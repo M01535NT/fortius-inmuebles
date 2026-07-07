@@ -1,0 +1,91 @@
+"use client";
+
+import * as React from "react";
+import { CheckCircle2 } from "lucide-react";
+
+/*
+  Formulario de interés por propiedad. TODO backend (T028): enviar el lead
+  con el slug/código de la propiedad al endpoint real; hoy confirma local.
+*/
+export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; codigo: string; titulo: string }) {
+  const [sent, setSent] = React.useState(false);
+
+  if (sent) {
+    return (
+      <div className="flex flex-col items-start" aria-live="polite">
+        <CheckCircle2 className="h-7 w-7 text-primary" strokeWidth={1.5} />
+        <p className="display-soft mt-4 text-xl text-foreground">Recibimos tu solicitud.</p>
+        <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
+          Te contactamos para coordinar la visita o resolver tus dudas sobre
+          esta propiedad.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        // TODO: POST a endpoint de leads con el slug de la propiedad (T028).
+        setSent(true);
+      }}
+    >
+      <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
+        Sobre: {codigo}
+      </p>
+      <input type="hidden" name="propiedad" value={slug} />
+      <div className="mt-4 grid gap-4">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="interes-nombre" className="text-[13.5px] font-medium text-foreground">
+            Nombre
+          </label>
+          <input
+            id="interes-nombre"
+            name="nombre"
+            required
+            autoComplete="name"
+            placeholder="Tu nombre"
+            className="h-11 rounded-md border border-input bg-background px-3.5 text-[15px] text-foreground placeholder:text-muted-foreground/70"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="interes-telefono" className="text-[13.5px] font-medium text-foreground">
+            Teléfono o WhatsApp
+          </label>
+          <input
+            id="interes-telefono"
+            name="telefono"
+            type="tel"
+            required
+            autoComplete="tel"
+            placeholder="664 000 0000"
+            className="h-11 rounded-md border border-input bg-background px-3.5 text-[15px] text-foreground placeholder:text-muted-foreground/70"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="interes-mensaje" className="text-[13.5px] font-medium text-foreground">
+            Mensaje <span className="font-normal text-muted-foreground">(opcional)</span>
+          </label>
+          <textarea
+            id="interes-mensaje"
+            name="mensaje"
+            rows={3}
+            placeholder={`Quiero saber más sobre ${titulo.toLowerCase()}`}
+            className="rounded-md border border-input bg-background px-3.5 py-2.5 text-[15px] text-foreground placeholder:text-muted-foreground/70"
+          />
+        </div>
+      </div>
+      <button
+        type="submit"
+        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99]"
+      >
+        Me interesa esta propiedad
+      </button>
+      <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+        Sin compromiso. Usamos tus datos solo para dar seguimiento a tu
+        solicitud.
+      </p>
+    </form>
+  );
+}

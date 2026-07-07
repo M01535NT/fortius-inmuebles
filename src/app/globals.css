@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  COTA design tokens.
+  One palette, two themes. Light is primary, dark is secondary.
+  Family: bone neutrals with a green undertone + emerald signature accent.
+*/
+
+@theme inline {
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex), ui-monospace, "SFMono-Regular", monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  /* Deep green surface used for the single color-block moment (same in both themes). */
+  --color-block: var(--block);
+  --color-block-foreground: var(--block-foreground);
+  --color-block-muted: var(--block-muted);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+}
+
+:root {
+  --background: #f4f5f1;
+  --foreground: #182019;
+  --card: #fbfbf9;
+  --card-foreground: #182019;
+  --popover: #fbfbf9;
+  --popover-foreground: #182019;
+  --primary: #0f6b4e;
+  --primary-foreground: #f2faf6;
+  --secondary: #e8eae3;
+  --secondary-foreground: #182019;
+  --muted: #eceee7;
+  --muted-foreground: #59635b;
+  --accent: #0d5c44;
+  --accent-foreground: #f2faf6;
+  --destructive: #b3352c;
+  --border: rgba(24, 32, 25, 0.14);
+  --input: rgba(24, 32, 25, 0.18);
+  --ring: #0f6b4e;
+  --block: #10241c;
+  --block-foreground: #edf2ec;
+  --block-muted: rgba(237, 242, 236, 0.66);
+  --radius: 6px;
+}
+
+.dark {
+  --background: #0c110e;
+  --foreground: #ecefe8;
+  --card: #121a15;
+  --card-foreground: #ecefe8;
+  --popover: #121a15;
+  --popover-foreground: #ecefe8;
+  --primary: #3fd8a0;
+  --primary-foreground: #062016;
+  --secondary: #1a231d;
+  --secondary-foreground: #ecefe8;
+  --muted: #161f19;
+  --muted-foreground: #98a49a;
+  --accent: #57e3b3;
+  --accent-foreground: #062016;
+  --destructive: #e2564b;
+  --border: rgba(236, 239, 232, 0.13);
+  --input: rgba(236, 239, 232, 0.18);
+  --ring: #3fd8a0;
+  /* Slightly greener than the dark canvas so the manifesto still reads as a block. */
+  --block: #163327;
+  --block-foreground: #edf2ec;
+  --block-muted: rgba(237, 242, 236, 0.66);
+}
+
+/* Legacy vars kept so interior routes built earlier keep rendering. */
+:root,
+.dark {
+  --nexo-canvas: #0a0e0c;
+  --nexo-panel: #0d1712;
+  --nexo-fg: #f3f1ec;
+  --nexo-green: #35d29b;
+  --nexo-green-soft: #57e3b3;
+  --nexo-green-deep: #1f9d73;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 100;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(15, 107, 78, 0.25);
+}
+
+.dark ::selection {
+  background: rgba(63, 216, 160, 0.3);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/*
+  Display type: Archivo variable at condensed width.
+  Condensed + tight leading is the brand voice; used for headlines only.
+*/
+.display-title {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 68;
+  font-weight: 680;
+  line-height: 0.94;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.display-soft {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 82;
+  font-weight: 560;
+  line-height: 1.04;
+  letter-spacing: 0.002em;
+  text-wrap: balance;
+}
+
+/* Ken Burns for the hero rotator: slow push-in on the active slide. */
+@keyframes kenburns {
+  from {
+    transform: scale(1.02) translateY(0);
+  }
+  to {
+    transform: scale(1.12) translateY(-1.5%);
+  }
+}
+
+.kenburns {
+  animation: kenburns 9.5s ease-out forwards;
+  will-change: transform;
+}
+
+/* Marquee (MagicUI) */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+.animate-marquee {
+  animation: marquee var(--duration, 32s) linear infinite;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration, 32s) linear infinite;
+}
+
+.marquee-pause:hover .animate-marquee,
+.marquee-pause:hover .animate-marquee-vertical {
+  animation-play-state: paused;
+}
+
+/* Legacy helpers used by interior routes. */
+.hairline-panel {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+
+.text-muted-soft {
+  color: var(--muted-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
