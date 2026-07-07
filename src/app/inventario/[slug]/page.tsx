@@ -158,8 +158,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         </div>
 
         {/* Cuerpo */}
+        {/* min-w-0 en ambas columnas: sin él, cualquier texto nowrap
+            (truncate) dentro propaga su min-content y ensancha la página. */}
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_0.42fr]">
-          <div>
+          <div className="min-w-0">
             {property.estado === "apartada" ? (
               <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-[14px] leading-relaxed text-foreground/85">
                 Esta propiedad está apartada. Podemos avisarte si vuelve a
@@ -208,13 +210,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               </div>
             ) : null}
 
-            {/* Documentos en PDF (se administran desde el panel) */}
-            <PropertyDocuments
-              documentos={property.documentos ?? []}
-              slug={property.slug}
-              codigo={property.codigo}
-            />
-
             {/* Ubicación: mapa por zona + puntos de interés */}
             <PropertyLocation property={property} />
 
@@ -225,7 +220,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </div>
 
           {/* Aside: asesor → calculadora → formulario de interés */}
-          <aside className="space-y-4">
+          <aside className="min-w-0 space-y-4">
             {asesor ? (
               <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-5">
                 {/* Avatar de iniciales: sin fotos de personas hasta tener el equipo real. */}
@@ -253,6 +248,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 titulo={property.titulo}
               />
             </div>
+
+            {/* Documentos en PDF (se administran desde el panel) */}
+            <PropertyDocuments
+              documentos={property.documentos ?? []}
+              slug={property.slug}
+              codigo={property.codigo}
+            />
           </aside>
         </div>
 

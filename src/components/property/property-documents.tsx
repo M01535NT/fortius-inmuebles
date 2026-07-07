@@ -37,89 +37,89 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
   }
 
   return (
-    <div className="mt-12">
-      <h2 className="display-soft text-2xl text-foreground">Documentos de la propiedad</h2>
-      <p className="mt-3 max-w-[62ch] text-[14.5px] leading-relaxed text-muted-foreground">
-        Ficha y documentos informativos en PDF. Déjanos tu contacto y se
-        liberan de inmediato; el expediente completo se comparte en persona.
-      </p>
-
-      <div className="mt-6 max-w-[620px] rounded-lg border border-border bg-card">
-        <ul className="divide-y divide-border">
-          {documentos.map((doc) => (
-            <li key={doc.codigo + doc.url} className="flex items-center gap-4 p-4 md:p-5">
-              <FileText className="size-5 shrink-0 text-primary" strokeWidth={1.5} />
-              <div className="min-w-0 flex-1">
-                <p className="text-[14.5px] font-medium text-foreground">{doc.nombre}</p>
-                <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-                  <span className="font-mono text-[11.5px]">{doc.codigo}</span> · {doc.descripcion}
-                </p>
-              </div>
-              {unlocked ? (
-                <a
-                  href={doc.url}
-                  download
-                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-primary px-3.5 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
-                >
-                  <ArrowDownToLine className="size-3.5" strokeWidth={1.5} />
-                  PDF
-                </a>
-              ) : (
-                <LockKeyhole className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden="true" />
-              )}
-            </li>
-          ))}
-        </ul>
-
-        {!unlocked ? (
-          <form onSubmit={onSubmit} className="border-t border-border p-4 md:p-5">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor={`docs-nombre-${slug}`} className="text-[13px] font-medium text-foreground">
-                  Nombre
-                </label>
-                <input
-                  id={`docs-nombre-${slug}`}
-                  name="nombre"
-                  required
-                  autoComplete="name"
-                  placeholder="Tu nombre"
-                  className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor={`docs-telefono-${slug}`} className="text-[13px] font-medium text-foreground">
-                  Teléfono o WhatsApp
-                </label>
-                <input
-                  id={`docs-telefono-${slug}`}
-                  name="telefono"
-                  type="tel"
-                  required
-                  autoComplete="tel"
-                  placeholder="664 000 0000"
-                  className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] sm:w-auto"
-            >
-              <ArrowDownToLine className="size-4" strokeWidth={1.5} />
-              Liberar descargas
-            </button>
-            <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
-              Sin compromiso. Usamos tus datos solo para dar seguimiento.
-            </p>
-          </form>
-        ) : (
-          <p className="border-t border-border p-4 text-[13px] leading-relaxed text-muted-foreground md:px-5">
-            Descargas liberadas. Si quieres el expediente completo o agendar
-            visita, escríbenos.
-          </p>
-        )}
+    <div className="rounded-lg border border-border bg-card">
+      <div className="p-5 pb-0">
+        <h2 className="display-soft text-xl text-foreground">Documentos de la propiedad</h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Déjanos tu contacto y los PDFs se liberan de inmediato; el
+          expediente completo se comparte en persona.
+        </p>
       </div>
+
+      <ul className="mt-4 divide-y divide-border border-t border-border">
+        {documentos.map((doc) => (
+          <li key={doc.codigo + doc.url} className="flex items-center gap-3 px-5 py-3.5">
+            <FileText className="size-4.5 shrink-0 text-primary" strokeWidth={1.5} />
+            <div className="min-w-0 flex-1">
+              <p className="text-[13.5px] font-medium text-foreground">{doc.nombre}</p>
+              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+                <span className="font-mono text-[11px]">{doc.codigo}</span> · {doc.descripcion}
+              </p>
+            </div>
+            {unlocked ? (
+              <a
+                href={doc.url}
+                download
+                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 text-[12.5px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
+              >
+                <ArrowDownToLine className="size-3.5" strokeWidth={1.5} />
+                PDF
+              </a>
+            ) : (
+              <LockKeyhole className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden="true" />
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {!unlocked ? (
+        <form onSubmit={onSubmit} className="border-t border-border p-5">
+          <div className="grid gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`docs-nombre-${slug}`} className="text-[13px] font-medium text-foreground">
+                Nombre
+              </label>
+              <input
+                id={`docs-nombre-${slug}`}
+                name="nombre"
+                required
+                autoComplete="name"
+                placeholder="Tu nombre"
+                className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`docs-telefono-${slug}`} className="text-[13px] font-medium text-foreground">
+                Teléfono o WhatsApp
+              </label>
+              <input
+                id={`docs-telefono-${slug}`}
+                name="telefono"
+                type="tel"
+                required
+                autoComplete="tel"
+                placeholder="664 000 0000"
+                className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99]"
+          >
+            <ArrowDownToLine className="size-4" strokeWidth={1.5} />
+            Liberar descargas
+          </button>
+          <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
+            Sin compromiso. Usamos tus datos solo para dar seguimiento.
+          </p>
+        </form>
+      ) : (
+        <p className="border-t border-border p-5 text-[13px] leading-relaxed text-muted-foreground">
+          Descargas liberadas. Si quieres el expediente completo o agendar
+          visita, escríbenos.
+        </p>
+      )}
     </div>
   );
 }
