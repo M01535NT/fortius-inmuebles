@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 
+import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 
 /*
@@ -52,6 +53,8 @@ export function SiteNav() {
   const pathname = usePathname();
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const closeMenu = React.useCallback(() => setMenuOpen(false), []);
 
   useMotionValueEvent(scrollY, "change", (v) => {
     setScrolled(v > 24);
@@ -66,6 +69,7 @@ export function SiteNav() {
     : "text-[#f2f4ee]/80 hover:text-[#f2f4ee]";
 
   return (
+    <>
     <motion.header
       initial={{ y: -16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -100,14 +104,33 @@ export function SiteNav() {
                 : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]"
             }
           />
-          <Link
-            href="/#evaluar"
-            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-[13.5px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.97]"
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir menú"
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            className={
+              "group inline-flex h-9 items-center gap-2.5 rounded-md border px-3.5 text-[13.5px] font-medium transition-colors active:scale-[0.97] " +
+              (solid
+                ? "border-border text-foreground/80 hover:bg-secondary hover:text-foreground"
+                : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]")
+            }
           >
-            Evaluar mi propiedad
-          </Link>
+            Menú
+            {/* Dos hairlines: el gesto de la marca (línea de acotación). */}
+            <span aria-hidden="true" className="flex flex-col gap-[5px]">
+              <span className="h-px w-5 bg-current transition-transform duration-300 group-hover:scale-x-75" />
+              <span className="h-px w-5 bg-current transition-transform duration-300 group-hover:scale-x-125" />
+            </span>
+          </button>
         </div>
       </div>
     </motion.header>
+
+    {/* Fuera del header: su transform crearía un containing block y
+        rompería el position:fixed del overlay. */}
+    <FullscreenMenu open={menuOpen} onClose={closeMenu} />
+    </>
   );
 }

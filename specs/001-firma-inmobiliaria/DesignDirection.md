@@ -99,7 +99,9 @@ Nota de implementación: el clip-path reveal en wrappers de sección no disparó
 
 ## Inventario De Componentes (Home)
 
-`src/components/home/`: site-nav · theme-toggle · hero · relato · metodo · entregables · destacadas · segmentos · respuestas · herramientas · zonas · compromisos · evaluar · site-footer.
+`src/components/home/`: site-nav · fullscreen-menu · theme-toggle · hero · relato · metodo · entregables · destacadas · segmentos · respuestas · herramientas · zonas · compromisos · evaluar · site-footer.
+
+Navegación (decisión 7-jul-2026): el navbar NO lleva CTA; en su lugar un botón "Menú" (dos hairlines, gesto de la marca) abre un **menú a pantalla completa** con reveal `clip-path: circle()` desde la esquina superior derecha (GSAP), enlaces display grandes numerados, panel de imagen que cambia al hover, CTA "Evaluar mi propiedad" dentro, rutas secundarias y línea de territorio al pie. Escape cierra; scroll bloqueado mientras está abierto; el overlay vive FUERA del `motion.header` (su transform rompería el `position:fixed`).
 GSAP (`src/components/gsap/`): split-heading · reveal · velocity-marquee · scrub.
 MagicUI aún en uso: blur-fade, text-reveal, kinetic-title (interiores), tilt-card, magic-card, border-beam, parallax-image, number-ticker, marquee (interiores).
 
