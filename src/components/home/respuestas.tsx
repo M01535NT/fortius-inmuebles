@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { KineticTitle } from "@/components/magicui/kinetic-title";
 
 /*
   Objection handling, phrased as the questions owners actually ask.
@@ -32,13 +33,10 @@ export function Respuestas() {
       className="mx-auto max-w-[1280px] scroll-mt-20 px-5 py-24 md:px-8 md:py-32"
     >
       <div className="grid gap-12 lg:grid-cols-12">
-        <BlurFade className="lg:col-span-4">
-          <h2 className="display-title text-4xl text-foreground sm:text-5xl">
-            Preguntas directas,
-            <br />
-            respuestas directas.
-          </h2>
-        </BlurFade>
+        <KineticTitle
+          lines={["Preguntas directas,", "respuestas directas."]}
+          className="display-title text-4xl text-foreground sm:text-5xl lg:col-span-4"
+        />
 
         <div className="lg:col-span-7 lg:col-start-6">
           <div className="divide-y divide-border border-y border-border">

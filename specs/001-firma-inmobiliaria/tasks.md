@@ -19,7 +19,7 @@ Vista por hitos en `ROADMAP.md` (raíz). IDs históricos entre paréntesis donde
 - [x] M1.4 Sección Segmentos (residencial/comercial/industrial con renders restantes, layout asimétrico).
 - [x] M1.5 Banda Compromisos ("Lo que puedes esperar en cada operación").
 - [x] M1.6 Primitivos MagicUI: text-reveal, magic-card, border-beam, number-ticker.
-- [x] M1.7 Motion Espectacular: hero kinetic + parallax, TextReveal en relato, clip reveal en manifiesto, Método horizontal pinned (desktop; vertical en mobile/reduced-motion), spotlight entregables, BorderBeam en formulario, ticker en calculadoras, máscaras en marquee.
+- [x] M1.7 Motion: hero kinetic + parallax, TextReveal en relato, KineticTitle en secciones, tilt 3D + spotlight en entregables, parallax en segmentos, zonas doble outline, BorderBeam en formulario, ticker en calculadoras, compromisos con hairlines. (Metodo horizontal pinned: probado y DESCARTADO por feedback; Metodo siempre vertical.)
 - [x] M1.8 `MOTION_MODE` (espectacular|equilibrado) documentado para pivote rápido.
 - [x] M1.9 Nav/footer con Herramientas; sitemap.ts actualizado.
 

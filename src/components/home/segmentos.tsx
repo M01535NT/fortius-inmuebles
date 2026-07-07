@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { ParallaxImage } from "@/components/magicui/parallax-image";
 
 /*
   Segmentos: puertas a las rutas de especialidad con los renders del
@@ -41,13 +41,17 @@ function SegmentoCard({
       href={segmento.href}
       className="group relative block h-full overflow-hidden rounded-lg border border-border"
     >
-      <div className={large ? "relative h-full min-h-[420px]" : "relative h-full min-h-[200px]"}>
-        <Image
+      <div
+        className={
+          (large ? "relative h-full min-h-[420px]" : "relative h-full min-h-[200px]") +
+          " overflow-hidden"
+        }
+      >
+        {/* Parallax interno: la foto viaja dentro del marco al hacer scroll. */}
+        <ParallaxImage
           src={segmento.image.src}
           alt={segmento.image.alt}
-          fill
           sizes={large ? "(max-width: 1024px) 100vw, 58vw" : "(max-width: 1024px) 100vw, 42vw"}
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
         {/* Scrim para legibilidad del texto sobre foto, ambos temas. */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b120e]/85 via-[#0b120e]/25 to-transparent" />

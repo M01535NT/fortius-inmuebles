@@ -5,6 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { BorderBeam } from "@/components/magicui/border-beam";
+import { KineticTitle } from "@/components/magicui/kinetic-title";
 
 /*
   Lead capture. The form is the page's conversion tool: few fields, visible
@@ -33,11 +34,10 @@ export function Evaluar() {
         <div className="grid gap-14 lg:grid-cols-12">
           {/* Left: pitch + what happens next */}
           <div className="lg:col-span-5">
-            <h2 className="display-title text-4xl text-foreground sm:text-5xl md:text-[54px]">
-              ¿Cuánto vale
-              <br />
-              tu propiedad?
-            </h2>
+            <KineticTitle
+              lines={["¿Cuánto vale", "tu propiedad?"]}
+              className="display-title text-4xl text-foreground sm:text-5xl md:text-[54px]"
+            />
             <p className="mt-6 max-w-[46ch] text-[15.5px] leading-relaxed text-muted-foreground">
               Cuéntanos lo básico. Sin compromiso y sin publicar nada antes de
               revisarlo contigo.

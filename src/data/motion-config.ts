@@ -1,10 +1,17 @@
 /*
   Modo de motion del sitio. Pivote de UNA constante:
 
-  - "espectacular": Método horizontal pinned en desktop, hero con kinetic
-    reveal + parallax, relato con TextReveal al scroll.
-  - "equilibrado": Método vertical siempre, hero con entrada simple,
-    relato con BlurFade. Mantiene spotlight/beam/ticker (micro-motion).
+  - "espectacular": hero con kinetic reveal por líneas + parallax + CTA
+    magnético; relato con TextReveal (palabras que se iluminan al scroll).
+  - "equilibrado": hero con entrada simple; relato con BlurFade.
+
+  Constantes en ambos modos: KineticTitle en títulos de sección, tilt 3D +
+  spotlight en entregables, parallax interno en segmentos, banda de zonas
+  doble outline, BorderBeam único en el formulario, NumberTicker en
+  calculadoras, compromisos con líneas que crecen.
+
+  Nota (7-jul-2026): el Método horizontal pinned se probó como pieza
+  "espectacular" y SE DESCARTÓ por feedback; el Método es siempre vertical.
 
   Mobile y prefers-reduced-motion SIEMPRE reciben la variante tranquila,
   sin importar el modo. Ver DesignDirection.md § Modos de motion.

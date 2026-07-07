@@ -61,12 +61,13 @@ Dos temas, **claro primario / oscuro secundario**, toggle en navbar (luna/sol), 
 
 | Pieza | Espectacular | Equilibrado |
 |---|---|---|
-| Método (Home) | Horizontal pinned (scroll-hijack, solo desktop) | Vertical con rail de progreso |
 | Hero H1 | Reveal por líneas (máscara) + CTA magnético | Entrada fade+y simple |
 | Hero fondo | Parallax al scroll | Sin parallax |
 | Relato | TextReveal (palabras que se iluminan al scroll) | BlurFade |
 
-Constantes en ambos modos: manifiesto con blur+lift, spotlight (MagicCard) en entregables, BorderBeam único en el formulario, NumberTicker en calculadoras, máscara del marquee. Mobile y `prefers-reduced-motion` reciben SIEMPRE la variante tranquila. **GSAP prohibido: solo Motion** (no mezclar bibliotecas de animación).
+Constantes en ambos modos: KineticTitle en títulos de sección, tilt 3D + spotlight en cards de entregables, parallax interno en las fotos de segmentos, banda de zonas doble contra-rotante en tipo outline (se rellena al hover), manifiesto con blur+lift, BorderBeam único en el formulario, NumberTicker en calculadoras, compromisos con hairlines que crecen. Mobile y `prefers-reduced-motion` reciben SIEMPRE la variante tranquila. **GSAP prohibido: solo Motion**.
+
+**Decisión 7-jul-2026:** el Método horizontal pinned (scroll-hijack) se construyó, se probó y **se descartó** por feedback del usuario; el Método es SIEMPRE vertical con rail de progreso. No reintroducir scroll-hijack en esa sección.
 
 Nota de implementación: el clip-path reveal en wrappers de sección no disparó con `whileInView`/`useInView` en este setup (el wrapper conserva el estilo inicial aunque el observer manual intersecta); usar BlurFade con parámetros dramáticos para reveals de bloque.
 

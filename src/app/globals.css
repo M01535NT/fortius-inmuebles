@@ -211,6 +211,18 @@ select {
   animation-play-state: paused;
 }
 
+/* Tipo outline para la banda de zonas: contorno que se rellena al hover. */
+.text-outline {
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--foreground) 38%, transparent);
+  color: transparent;
+  transition: color 0.35s ease;
+}
+
+.text-outline:hover {
+  color: var(--primary);
+  -webkit-text-stroke-color: transparent;
+}
+
 /* Máscara lateral para bandas marquee: entra y sale con degradado. */
 .marquee-mask {
   mask-image: linear-gradient(

@@ -1,7 +1,9 @@
 import { FileText } from "lucide-react";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { KineticTitle } from "@/components/magicui/kinetic-title";
 import { MagicCard } from "@/components/magicui/magic-card";
+import { TiltCard } from "@/components/magicui/tilt-card";
 
 /*
   These are real documents from the firm's internal manual, with their real
@@ -49,10 +51,11 @@ export function Entregables() {
       id="entregables"
       className="mx-auto max-w-[1280px] scroll-mt-20 px-5 py-24 md:px-8 md:py-32"
     >
-      <BlurFade>
-        <h2 className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl md:text-[56px]">
-          Papeles, no promesas.
-        </h2>
+      <KineticTitle
+        lines={["Papeles,", "no promesas."]}
+        className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl md:text-[56px]"
+      />
+      <BlurFade delay={0.2}>
         <p className="mt-6 max-w-[56ch] text-[15.5px] leading-relaxed text-muted-foreground">
           Cada fase produce documentos con nombre y código en nuestro manual
           interno. Estos seis los recibes tú, en este orden.
@@ -62,7 +65,8 @@ export function Entregables() {
       <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {DOCS.map((doc, i) => (
           <BlurFade key={doc.code} delay={0.06 * i} className="h-full">
-            <MagicCard className="h-full rounded-lg">
+            <TiltCard className="h-full">
+              <MagicCard className="h-full rounded-lg">
               <article className="group flex h-full flex-col justify-between rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/40">
               <div>
                 <div className="flex items-center justify-between">
@@ -82,7 +86,8 @@ export function Entregables() {
                 {doc.text}
               </p>
               </article>
-            </MagicCard>
+              </MagicCard>
+            </TiltCard>
           </BlurFade>
         ))}
       </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Calculator, ReceiptText, Scale } from "lucide-react";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { KineticTitle } from "@/components/magicui/kinetic-title";
 
 /*
   Herramientas: los números antes de decidir. Refuerza el ángulo de la
@@ -31,10 +32,11 @@ const TOOLS = [
 export function Herramientas() {
   return (
     <section className="mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
-      <BlurFade>
-        <h2 className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl">
-          Números antes de decidir.
-        </h2>
+      <KineticTitle
+        lines={["Números antes", "de decidir."]}
+        className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl"
+      />
+      <BlurFade delay={0.2}>
         <p className="mt-4 max-w-[54ch] text-[15.5px] leading-relaxed text-muted-foreground">
           Herramientas abiertas para que llegues a la conversación con una
           idea clara. Las cifras finales siempre se confirman con el
