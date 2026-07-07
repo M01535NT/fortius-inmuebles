@@ -22,15 +22,15 @@ Plan ejecutado: **`motion-v4-plan.md`** sobre GSAP (ScrollTrigger + SplitText).
 - [x] M1.5.4 Verificación Playwright: 7 profundidades en claro/oscuro, re-scroll, reduced motion estático, mobile 390 sin overflow, footer cortina, 0 pageerrors. Lint y build limpios.
 - [x] Extra: hook `useReducedMotionSafe` (useSyncExternalStore) elimina errores de hidratación #418 bajo `prefers-reduced-motion`; `<a>` → `<Link>` en todo el sitio (lint 0 errores).
 
-## M2 — Frontend restante
+## M2 — Frontend restante (completado 7-jul-2026, salvo M2.4)
 
-- [ ] M2.1 `/zonas` + `/zonas/[zona]` (hub SEO local + detalle).
-- [ ] M2.2 Página de gracias post-formulario.
-- [ ] M2.3 Filtros de inventario zona/precio/orden + sincronización a searchParams.
-- [ ] M2.4 Mapa con dirección exacta en detalle (pendiente decisión de privacidad).
-- [ ] M2.5 Lead magnet: checklist "¿está lista tu propiedad para venderse?" (PDF placeholder + captura).
-- [ ] M2.6 Espacio para video institucional "cómo trabajamos".
-- [ ] M2.7 Pulido responsive/a11y + presupuesto de performance (LCP/INP/CLS).
+- [x] M2.1 `/zonas` (hub con 11 zonas) + `/zonas/[zona]`: editorial por zona en `src/data/zonas.ts` (sin cifras inventadas), perfil, inventario real de la zona o vacío honesto, FAQ local, mapa embed y CTAs. En sitemap.ts, menú, footer y banda de zonas del Home.
+- [x] M2.2 `/vender-propiedad/gracias` (noindex): pasos siguientes, WhatsApp placeholder y enlaces "mientras tanto". El form `#evaluar` redirige ahí (TODO M3.1: POST real antes de redirigir).
+- [x] M2.3 Filtros de inventario: zona + precio min/max (excluye "a consulta" al filtrar) + orden (recientes/precio) con URL compartible vía `history.replaceState` (sin `useSearchParams`, evita el CSR bailout).
+- [ ] M2.4 Mapa con dirección exacta en detalle — **pendiente decisión de privacidad del usuario** (hoy: mapa por zona).
+- [x] M2.5 Lead magnet CHK-VEN-001: PDF placeholder real en `public/descargas/checklist-venta-cota.pdf` (generado, con marca y disclaimers) + captura nombre/WhatsApp en `/vender-propiedad` que libera la descarga (TODO M3.1: persistir lead).
+- [x] M2.6 Espacio de video institucional VID-INS-001 en `/nosotros`: placeholder con poster; `siteConfig.media.videoInstitucionalUrl` activa el reproductor al cargar el archivo real.
+- [x] M2.7 Verificación responsive/a11y de todo lo nuevo (labels, aria-pressed, aria-live, breadcrumb; sin overflow mobile; 0 pageerrors; lint y build limpios). Auditoría formal de LCP/INP/CLS diferida a M5, cuando exista multimedia real.
 
 ## M3 — Backend (pospuesto a propósito: primero frontend)
 

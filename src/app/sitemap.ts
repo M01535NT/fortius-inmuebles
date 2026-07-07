@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 
 import { siteConfig } from "@/data/site";
+import { zonas } from "@/data/zonas";
 
+/* El detalle de propiedad NO entra: lleva noindex mientras los datos
+   sean demo (quitar ambos guardrails al cargar inventario real). */
 const routes = [
   "",
   "/residencial",
@@ -14,6 +17,8 @@ const routes = [
   "/herramientas",
   "/herramientas/hipoteca",
   "/herramientas/gastos-de-cierre",
+  "/zonas",
+  ...zonas.map((z) => `/zonas/${z.slug}`),
   "/nosotros",
   "/contacto",
   "/privacidad",

@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2 } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { useRouter } from "next/navigation";
 
 import { Scrub } from "@/components/gsap/scrub";
 import { SplitHeading } from "@/components/gsap/split-heading";
@@ -11,8 +10,8 @@ import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /*
   Lead capture. The form is the page's conversion tool: few fields, visible
-  labels, honest microcopy. TODO: wire onSubmit to the real endpoint /
-  CRM webhook when it exists; today it confirms locally.
+  labels, honest microcopy. TODO(M3.1): POST al endpoint real (Supabase)
+  antes de redirigir; hoy solo redirige a la página de gracias.
 */
 const PASOS = [
   "Recibimos los datos de tu propiedad.",
@@ -21,14 +20,13 @@ const PASOS = [
 ];
 
 export function Evaluar() {
-  const reduce = useReducedMotion();
-  const [sent, setSent] = React.useState(false);
+  const router = useRouter();
   const sectionRef = React.useRef<HTMLElement>(null);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: POST to lead endpoint. Local confirmation until backend exists.
-    setSent(true);
+    // TODO(M3.1): enviar el lead al backend; la redirección se mantiene.
+    router.push("/vender-propiedad/gracias");
   }
 
   useGSAP(
@@ -70,7 +68,7 @@ export function Evaluar() {
         });
       }
     },
-    { scope: sectionRef, dependencies: [sent] },
+    { scope: sectionRef },
   );
 
   return (
@@ -115,24 +113,7 @@ export function Evaluar() {
 
           {/* Right: the form */}
           <div className="lg:col-span-6 lg:col-start-7">
-            {sent ? (
-              <motion.div
-                initial={reduce ? false : { opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="flex h-full min-h-[380px] flex-col items-start justify-center rounded-lg border border-border bg-card p-8"
-              >
-                <CheckCircle2 className="h-8 w-8 text-primary" strokeWidth={1.5} />
-                <h3 className="display-soft mt-5 text-2xl text-foreground">
-                  Recibimos los datos de tu propiedad.
-                </h3>
-                <p className="mt-3 max-w-[46ch] text-[15px] leading-relaxed text-muted-foreground">
-                  Revisamos la información y te contactamos para decirte cuál
-                  es el siguiente paso.
-                </p>
-              </motion.div>
-            ) : (
-              <form
+            <form
                 onSubmit={onSubmit}
                 className="relative rounded-lg border border-border bg-card p-6 md:p-8"
                 noValidate={false}
@@ -216,7 +197,6 @@ export function Evaluar() {
                   </p>
                 </div>
               </form>
-            )}
           </div>
         </div>
       </div>

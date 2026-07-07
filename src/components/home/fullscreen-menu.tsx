@@ -23,6 +23,7 @@ const PRIMARY = [
 ];
 
 const SECONDARY = [
+  { href: "/zonas", label: "Zonas" },
   { href: "/vender-propiedad", label: "Vender mi propiedad" },
   { href: "/comprar-propiedad", label: "Comprar propiedad" },
   { href: "/due-diligence-inmobiliaria", label: "Due diligence" },

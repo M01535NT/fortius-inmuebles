@@ -16,6 +16,11 @@ export const siteConfig = {
     messenger: "https://m.me/cotainmobiliaria",
     email: "contacto@cota.mx",
   },
+  media: {
+    /* URL del video institucional "cómo trabajamos" (mp4 o stream).
+       null = se muestra el espacio reservado; el cliente carga el real. */
+    videoInstitucionalUrl: null as string | null,
+  },
 };
 
 // El inventario vive en src/data/propiedades.ts (datos demo hasta el backend).

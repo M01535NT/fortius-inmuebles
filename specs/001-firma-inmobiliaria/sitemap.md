@@ -12,26 +12,15 @@ Todas con navbar/footer globales y el design system Cota (doble tema):
 - `/inventario` — explorador con filtros client-side (operación + tipo), contador, estado vacío y CTA persistente en mobile. Datos DEMO en `src/data/propiedades.ts`.
 - `/inventario/[slug]` — detalle: galería unificada Fotos/Video/360, ficha técnica, amenidades, mapa por zona, perfil del asesor, calculadora de hipoteca, FAQ, formulario de interés, relacionadas, CTA fija mobile, JSON-LD `RealEstateListing`. **Mientras los datos sean demo lleva `robots: noindex`.**
 - `/herramientas`, `/herramientas/hipoteca`, `/herramientas/gastos-de-cierre` — calculadoras públicas con disclaimers.
+- `/zonas` — hub SEO local con 11 zonas (Tijuana, Rosarito, Tecate, Ensenada); contenido en `src/data/zonas.ts`.
+- `/zonas/[zona]` — detalle: editorial, perfil, inventario real de la zona (o vacío honesto), FAQ local, mapa embed, CTAs.
+- `/vender-propiedad/gracias` — confirmación post-formulario (noindex); destino del form `#evaluar`.
 - `/privacidad` y `/terminos` — texto base provisional; requieren validación legal antes de producción.
-- Técnicas: `/sitemap.xml`, `/robots.txt`, favicon (`icon.svg`), OG image.
+- Técnicas: `/sitemap.xml`, `/robots.txt`, favicon (`icon.svg`), OG image, `/descargas/checklist-venta-cota.pdf` (lead magnet placeholder).
 
 Navegación principal actual: Propiedades (`/inventario`) · Método (`/#metodo`) · Entregables (`/#entregables`) · Herramientas · CTA "Evaluar mi propiedad" (`/#evaluar`).
 
 Formularios (`#evaluar` en Home, ContactForm en interiores, interés por propiedad) confirman localmente con `TODO` para conectar backend (Supabase, hito M3). **No lanzar campañas de pago hasta que los leads se persistan.**
-
-## Rutas Pendientes (hito M2)
-
-### `/zonas` — Hub SEO local
-
-Listado de zonas principales, breve descripción por zona, enlaces a propiedades por zona, CTA de asesoría.
-
-### `/zonas/[zona]` — Detalle de zona
-
-Descripción, propiedades destacadas de la zona, tipos disponibles, FAQ local, CTA para comprar/rentar/vender en esa zona.
-
-### `/vender-propiedad/gracias` — Confirmación post-formulario
-
-Mensaje de recepción, expectativa de siguiente paso, CTA secundario a WhatsApp.
 
 ## Panel De Administración (hito M4, alcance deseado)
 

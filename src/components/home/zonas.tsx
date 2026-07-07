@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+
 import { VelocityMarquee } from "@/components/gsap/velocity-marquee";
 
 const ZONAS_A = [
@@ -40,6 +43,15 @@ export function Zonas() {
       <VelocityMarquee duration={60} reverse className="marquee-mask mt-2">
         <Fila zonas={ZONAS_B} />
       </VelocityMarquee>
+      <div className="mx-auto mt-6 max-w-[1280px] px-5 md:px-8">
+        <Link
+          href="/zonas"
+          className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary transition-colors hover:text-foreground"
+        >
+          Conocer cada zona
+          <ArrowUpRight className="size-4" strokeWidth={1.5} />
+        </Link>
+      </div>
     </section>
   );
 }
