@@ -64,9 +64,9 @@ export default function HerramientasPage() {
 
         <p className="mt-10 text-[14.5px] text-muted-foreground">
           ¿Quieres una lectura de valor de tu propiedad?{" "}
-          <a href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
             Solicita una evaluación sin compromiso
-          </a>
+          </Link>
           .
         </p>
       </Container>

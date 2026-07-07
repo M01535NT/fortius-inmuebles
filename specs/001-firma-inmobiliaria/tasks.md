@@ -1,53 +1,52 @@
-# Tasks
+# Tasks / Roadmap — Sitio Cota
 
-Vista por hitos en `ROADMAP.md` (raíz). IDs históricos entre paréntesis donde aplica.
+Estado al 7-jul-2026. Única vista de hitos del proyecto (el antiguo `ROADMAP.md` se fusionó aquí).
+Principio de trabajo: **todo placeholder**; el cliente carga datos/archivos reales al entregar.
 
-## Completado (fases 1-9, jun-jul 2026)
+## Completado (jun–jul 2026)
 
-- [x] Fundación: Next.js + TS + Tailwind v4, shadcn/ui, Motion, Magic UI (T001-T006).
-- [x] Era NEXO360: home inicial y rutas MVP (T007-T015; varios componentes se eliminaron después).
-- [x] Rediseño "Cota": Home narrativo para propietarios, doble tema claro/oscuro, tokens Forest, Archivo condensada + IBM Plex Mono, copy con metodología (ver `Copywritting.md`), 6 entregables reales (T016-T019).
-- [x] Frontend consolidado: interiores con sistema Cota, nav/footer globales, slugs `/vender-propiedad` y `/comprar-propiedad`, imágenes WebP (-95%), favicon + OG, `/terminos`, fix de fuentes next/font (T020-T027).
-- [x] Inventario y detalle: modelo Property (precio unión discriminada, flag `demo`), explorador con filtros operación+tipo, detalle con galería 16:9 Fotos/Video/360 (placeholders), ficha, amenidades, mapa por zona + puntos de interés, calculadora de hipoteca, perfil de asesor, FAQ, form de interés, dock de contacto al scroll, JSON-LD RealEstateListing con noindex demo (T035-T042, T044-T047).
-- [x] Repo GitHub `M01535NT/Cota` (privado) con commit inicial.
+- [x] Fundación: Next.js + TS + Tailwind v4, shadcn/ui, Motion, Magic UI.
+- [x] Rediseño "Cota": Home narrativo para propietarios, doble tema, tokens Forest, Archivo condensada + IBM Plex Mono, copy con metodología (`Copywritting.md`), 6 entregables reales.
+- [x] Frontend consolidado: interiores con sistema Cota, nav/footer globales, slugs `/vender-propiedad` y `/comprar-propiedad`, imágenes WebP, favicon + OG, `/terminos`.
+- [x] Inventario y detalle: modelo Property (precio unión discriminada, flag `demo`), explorador con filtros operación+tipo, detalle con galería Fotos/Video/360, ficha, amenidades, mapa por zona, calculadora de hipoteca, asesor, FAQ, form de interés, JSON-LD `RealEstateListing` con noindex demo.
+- [x] Home v2: secciones Destacadas, Herramientas (+ `/herramientas`, `/herramientas/hipoteca`, `/herramientas/gastos-de-cierre`), Segmentos, Compromisos; primer pase de motion (Motion + MagicUI); `MOTION_MODE` para pivote rápido. El Método horizontal pinned se probó y **se descartó**: el Método es siempre vertical.
+- [x] Repo GitHub `M01535NT/Cota` (privado).
 
-## M1 - Home v2 y motion (completado 7-jul-2026)
+## M1.5 — Motion v4 con GSAP (completado 7-jul-2026)
 
-- [x] M1.1 ROADMAP.md + tasks reorganizado.
-- [x] M1.2 Sección Propiedades destacadas en Home (3 cards + CTA inventario).
-- [x] M1.3 Sección Herramientas en Home + páginas `/herramientas`, `/herramientas/hipoteca` (calculadora con precio editable), `/herramientas/gastos-de-cierre` (estimador nuevo con rangos de `InvestigacionModeloNegocio.md`).
-- [x] M1.4 Sección Segmentos (residencial/comercial/industrial con renders restantes, layout asimétrico).
-- [x] M1.5 Banda Compromisos ("Lo que puedes esperar en cada operación").
-- [x] M1.6 Primitivos MagicUI: text-reveal, magic-card, border-beam, number-ticker.
-- [x] M1.7 Motion: hero kinetic + parallax, TextReveal en relato, KineticTitle en secciones, tilt 3D + spotlight en entregables, parallax en segmentos, zonas doble outline, BorderBeam en formulario, ticker en calculadoras, compromisos con hairlines. (Metodo horizontal pinned: probado y DESCARTADO por feedback; Metodo siempre vertical.)
-- [x] M1.8 `MOTION_MODE` (espectacular|equilibrado) documentado para pivote rápido.
-- [x] M1.9 Nav/footer con Herramientas; sitemap.ts actualizado.
+Plan ejecutado: **`motion-v4-plan.md`** sobre GSAP (ScrollTrigger + SplitText).
 
-## M2 - Frontend restante
+- [x] M1.5.1 `gsap` + `@gsap/react` instalados; primitivos en `src/components/gsap/` (split-heading, reveal, velocity-marquee, scrub) + registro único en `src/lib/gsap.ts`.
+- [x] M1.5.2 Hero: cascada por letra con SplitText (entrada única).
+- [x] M1.5.3 Coreografía por sección de "Papeles, no promesas" al footer cortina, repetible al re-scrollear: watermark EXPEDIENTE, grid que respira, columnas contra-rotantes, acordeón real, flip 3D, marquee por velocidad, filas que se iluminan, línea que se dibuja.
+- [x] M1.5.4 Verificación Playwright: 7 profundidades en claro/oscuro, re-scroll, reduced motion estático, mobile 390 sin overflow, footer cortina, 0 pageerrors. Lint y build limpios.
+- [x] Extra: hook `useReducedMotionSafe` (useSyncExternalStore) elimina errores de hidratación #418 bajo `prefers-reduced-motion`; `<a>` → `<Link>` en todo el sitio (lint 0 errores).
 
-- [ ] M2.1 `/zonas` + `/zonas/[zona]`.
+## M2 — Frontend restante
+
+- [ ] M2.1 `/zonas` + `/zonas/[zona]` (hub SEO local + detalle).
 - [ ] M2.2 Página de gracias post-formulario.
-- [ ] M2.3 Filtros zona/precio/orden + searchParams (T043).
-- [ ] M2.4 Mapa con dirección exacta (decisión de privacidad) (T044 parcial).
-- [ ] M2.5 Lead magnet checklist (PDF placeholder + captura).
-- [ ] M2.6 Espacio para video institucional.
-- [ ] M2.7 Pulido responsive/a11y + presupuesto de performance.
+- [ ] M2.3 Filtros de inventario zona/precio/orden + sincronización a searchParams.
+- [ ] M2.4 Mapa con dirección exacta en detalle (pendiente decisión de privacidad).
+- [ ] M2.5 Lead magnet: checklist "¿está lista tu propiedad para venderse?" (PDF placeholder + captura).
+- [ ] M2.6 Espacio para video institucional "cómo trabajamos".
+- [ ] M2.7 Pulido responsive/a11y + presupuesto de performance (LCP/INP/CLS).
 
-## M3 - Backend (pospuesto a propósito)
+## M3 — Backend (pospuesto a propósito: primero frontend)
 
-- [ ] M3.1 Leads a Supabase: #evaluar, ContactForm, form de interés (T028). No lanzar pauta antes de esto.
-- [ ] M3.2 Notificaciones de leads (T029).
-- [ ] M3.3 Gracias conectada al envío real.
+- [ ] M3.1 Leads a Supabase: `#evaluar`, ContactForm interiores, form de interés por propiedad (TODOs marcados en código). **No lanzar pauta antes de esto.**
+- [ ] M3.2 Notificación de nuevos leads (correo/WhatsApp).
+- [ ] M3.3 Página de gracias conectada al envío real.
 
-## M4 - Panel admin
+## M4 — Panel de administración
 
-- [ ] M4.1 Panel con control total: inventario, imágenes, leads, asesores, configuración, copy editable (T030; alcance en sitemap.md). Migrar `src/data/*` a Supabase.
+- [ ] M4.1 Control total del sitio (alcance en `sitemap.md` § Panel De Administración): inventario, imágenes, leads, asesores, configuración y copy editable. Implica migrar `src/data/*.ts` a Supabase.
 
-## M5 - Lanzamiento
+## M5 — Lanzamiento
 
-- [ ] M5.1 Nombre/dominio/contacto reales (T031).
-- [ ] M5.2 Multimedia real (fotos/video/360/retratos) (T033).
-- [ ] M5.3 Quitar `demo` + noindex del inventario.
-- [ ] M5.4 JSON-LD RealEstateAgent (T034) + SEO on.
-- [ ] M5.5 Legales validados.
+- [ ] M5.1 Nombre comercial definitivo, dominio y contacto reales.
+- [ ] M5.2 Multimedia real (fotos/video/360/retratos).
+- [ ] M5.3 Quitar flag `demo` + `noindex` del inventario.
+- [ ] M5.4 JSON-LD `RealEstateAgent` global; revisar sitemap/robots; SEO on.
+- [ ] M5.5 Legales validados (privacidad, términos).
 - [ ] M5.6 Deploy Vercel + dominio + analítica.

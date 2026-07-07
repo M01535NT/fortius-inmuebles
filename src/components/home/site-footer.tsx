@@ -39,19 +39,19 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <a href="/#metodo" className="text-foreground/75 transition-colors hover:text-foreground">
+                <Link href="/#metodo" className="text-foreground/75 transition-colors hover:text-foreground">
                   Método
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#entregables" className="text-foreground/75 transition-colors hover:text-foreground">
+                <Link href="/#entregables" className="text-foreground/75 transition-colors hover:text-foreground">
                   Entregables
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#respuestas" className="text-foreground/75 transition-colors hover:text-foreground">
+                <Link href="/#respuestas" className="text-foreground/75 transition-colors hover:text-foreground">
                   Respuestas
-                </a>
+                </Link>
               </li>
               <li>
                 <Link href="/herramientas" className="text-foreground/75 transition-colors hover:text-foreground">
@@ -59,9 +59,9 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <a href="/#evaluar" className="text-foreground/75 transition-colors hover:text-foreground">
+                <Link href="/#evaluar" className="text-foreground/75 transition-colors hover:text-foreground">
                   Evaluar mi propiedad
-                </a>
+                </Link>
               </li>
             </ul>
           </nav>

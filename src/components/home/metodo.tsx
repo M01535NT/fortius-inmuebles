@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
+import { motion, useScroll, useSpring } from "motion/react";
 
 import { FASES } from "@/data/metodo";
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 
 /*
   Método vertical con línea de progreso al scroll. Es la versión para
@@ -12,7 +13,7 @@ import { FASES } from "@/data/metodo";
   Data compartida en src/data/metodo.ts.
 */
 export function Metodo({ anchor = true }: { anchor?: boolean }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const trackRef = React.useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: trackRef,

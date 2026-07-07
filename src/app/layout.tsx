@@ -58,8 +58,15 @@ export default function RootLayout({
       </head>
       <body>
         <SiteNav />
-        {children}
-        <SiteFooter />
+        {/*
+          Footer cortina: el contenido (z-10, fondo opaco) se desliza sobre el
+          footer pegado al fondo del viewport (sticky bottom, z-0) y lo revela
+          al llegar al final. Solo CSS, ambos temas.
+        */}
+        <div className="relative z-10 bg-background">{children}</div>
+        <div className="sticky bottom-0 z-0">
+          <SiteFooter />
+        </div>
       </body>
     </html>
   );

@@ -111,7 +111,9 @@ html {
 
 body {
   min-width: 320px;
-  overflow-x: hidden;
+  /* clip (no hidden): hidden crearía un scroll container y rompería el
+     position:sticky del footer cortina. */
+  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
@@ -221,6 +223,12 @@ select {
 .text-outline:hover {
   color: var(--primary);
   -webkit-text-stroke-color: transparent;
+}
+
+/* Watermark tipográfico (Entregables): contorno tenue, nunca compite con el texto. */
+.watermark-outline {
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--foreground) 10%, transparent);
+  color: transparent;
 }
 
 /* Máscara lateral para bandas marquee: entra y sale con degradado. */

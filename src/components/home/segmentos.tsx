@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
-import { BlurFade } from "@/components/magicui/blur-fade";
+import { Reveal } from "@/components/gsap/reveal";
+import { Scrub } from "@/components/gsap/scrub";
 import { ParallaxImage } from "@/components/magicui/parallax-image";
 
 /*
@@ -78,19 +79,24 @@ function SegmentoCard({
 
 export function Segmentos() {
   return (
-    <section className="mx-auto max-w-[1280px] px-5 py-6 md:px-8">
+    <section className="mx-auto max-w-[1280px] overflow-x-clip px-5 py-6 md:px-8">
+      {/* Columnas a velocidades opuestas: la grande baja, la derecha sube. */}
       <div className="grid gap-4 lg:grid-cols-12">
-        <BlurFade className="lg:col-span-7">
-          <SegmentoCard segmento={SEGMENTOS[0]} large />
-        </BlurFade>
-        <div className="grid gap-4 lg:col-span-5">
-          <BlurFade delay={0.08}>
-            <SegmentoCard segmento={SEGMENTOS[1]} />
-          </BlurFade>
-          <BlurFade delay={0.16}>
-            <SegmentoCard segmento={SEGMENTOS[2]} />
-          </BlurFade>
-        </div>
+        <Scrub y={[-30, 30]} className="lg:col-span-7">
+          <Reveal direction="left" distance={70} className="h-full">
+            <SegmentoCard segmento={SEGMENTOS[0]} large />
+          </Reveal>
+        </Scrub>
+        <Scrub y={[30, -30]} className="lg:col-span-5">
+          <div className="grid h-full gap-4">
+            <Reveal direction="right" distance={70} delay={0.08}>
+              <SegmentoCard segmento={SEGMENTOS[1]} />
+            </Reveal>
+            <Reveal direction="right" distance={70} delay={0.16}>
+              <SegmentoCard segmento={SEGMENTOS[2]} />
+            </Reveal>
+          </div>
+        </Scrub>
       </div>
     </section>
   );

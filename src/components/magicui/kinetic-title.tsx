@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useInView } from "motion/react";
 
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
 /*
@@ -23,7 +24,7 @@ export function KineticTitle({
   className,
   delayStep = 0.1,
 }: KineticTitleProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const ref = React.useRef<HTMLHeadingElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
 

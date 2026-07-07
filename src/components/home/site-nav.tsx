@@ -82,13 +82,13 @@ export function SiteNav() {
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="Principal">
           {links.map((l) => (
-            <a
+            <Link
               key={l.href}
               href={l.href}
               className={"text-[13.5px] font-medium transition-colors " + linkClass}
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -100,12 +100,12 @@ export function SiteNav() {
                 : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]"
             }
           />
-          <a
+          <Link
             href="/#evaluar"
             className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-[13.5px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.97]"
           >
             Evaluar mi propiedad
-          </a>
+          </Link>
         </div>
       </div>
     </motion.header>

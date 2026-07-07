@@ -5,16 +5,30 @@ import { Moon, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export function ThemeToggle({ className }: { className?: string }) {
-  const [dark, setDark] = React.useState(false);
+/* El estado vive en la clase del <html> (la pone el boot script); aquí solo
+   se observa, para que el primer render coincida con el HTML del servidor. */
+function subscribe(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
 
-  React.useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
+function getSnapshot() {
+  return document.documentElement.classList.contains("dark");
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+export function ThemeToggle({ className }: { className?: string }) {
+  const dark = React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   function toggle() {
     const next = !dark;
-    setDark(next);
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem("cota-theme", next ? "dark" : "light");

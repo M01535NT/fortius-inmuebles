@@ -1,4 +1,4 @@
-import { Marquee } from "@/components/magicui/marquee";
+import { VelocityMarquee } from "@/components/gsap/velocity-marquee";
 
 const ZONAS_A = [
   "Zona Río",
@@ -11,33 +11,35 @@ const ZONAS_A = [
 
 const ZONAS_B = ["Chapultepec", "Cacho", "Rosarito", "Tecate", "Ensenada", "Colinas"];
 
+function Fila({ zonas }: { zonas: string[] }) {
+  return (
+    <>
+      {zonas.map((zona) => (
+        <span
+          key={zona}
+          className="display-title text-outline mx-7 whitespace-nowrap text-[44px] md:text-[56px]"
+        >
+          {zona}
+        </span>
+      ))}
+    </>
+  );
+}
+
 /*
   Banda de zonas: doble fila contra-rotante en tipografía display outline
-  que se rellena de verde al hover. Una sola unidad marquee en la página.
+  que se rellena de verde al hover. La velocidad reacciona al scroll
+  (acelera al scrollear, se invierte al subir). Única unidad marquee.
 */
 export function Zonas() {
   return (
     <section aria-label="Zonas de operación" className="overflow-hidden border-y border-border py-8">
-      <Marquee pauseOnHover duration="52s" className="marquee-pause marquee-mask">
-        {ZONAS_A.map((zona) => (
-          <span
-            key={zona}
-            className="display-title text-outline mx-7 whitespace-nowrap text-[44px] md:text-[56px]"
-          >
-            {zona}
-          </span>
-        ))}
-      </Marquee>
-      <Marquee reverse pauseOnHover duration="60s" className="marquee-pause marquee-mask mt-2">
-        {ZONAS_B.map((zona) => (
-          <span
-            key={zona}
-            className="display-title text-outline mx-7 whitespace-nowrap text-[44px] md:text-[56px]"
-          >
-            {zona}
-          </span>
-        ))}
-      </Marquee>
+      <VelocityMarquee duration={52} className="marquee-mask">
+        <Fila zonas={ZONAS_A} />
+      </VelocityMarquee>
+      <VelocityMarquee duration={60} reverse className="marquee-mask mt-2">
+        <Fila zonas={ZONAS_B} />
+      </VelocityMarquee>
     </section>
   );
 }

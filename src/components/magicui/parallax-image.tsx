@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
+
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 
 /*
   ParallaxImage: la imagen se desplaza dentro de su marco mientras la
@@ -18,7 +20,7 @@ type ParallaxImageProps = {
 };
 
 export function ParallaxImage({ src, alt, sizes, hoverZoom = true }: ParallaxImageProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const ref = React.useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,

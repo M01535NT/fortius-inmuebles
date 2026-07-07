@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import { useMotionValue, useSpring } from "motion/react";
+
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 
 /*
   NumberTicker: anima un valor numérico con spring hacia su nuevo valor.
@@ -16,7 +18,7 @@ type NumberTickerProps = {
 };
 
 export function NumberTicker({ value, prefix = "", suffix = "", className }: NumberTickerProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const motionValue = useMotionValue(value);
   const spring = useSpring(motionValue, { stiffness: 90, damping: 22 });
   const ref = React.useRef<HTMLSpanElement>(null);

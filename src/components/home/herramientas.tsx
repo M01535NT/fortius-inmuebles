@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowUpRight, Calculator, ReceiptText, Scale } from "lucide-react";
 
-import { BlurFade } from "@/components/magicui/blur-fade";
-import { KineticTitle } from "@/components/magicui/kinetic-title";
+import { Reveal } from "@/components/gsap/reveal";
+import { SplitHeading } from "@/components/gsap/split-heading";
 
 /*
   Herramientas: los números antes de decidir. Refuerza el ángulo de la
@@ -32,21 +32,22 @@ const TOOLS = [
 export function Herramientas() {
   return (
     <section className="mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
-      <KineticTitle
+      <SplitHeading
         lines={["Números antes", "de decidir."]}
         className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl"
       />
-      <BlurFade delay={0.2}>
+      <Reveal delay={0.2} distance={40}>
         <p className="mt-4 max-w-[54ch] text-[15.5px] leading-relaxed text-muted-foreground">
           Herramientas abiertas para que llegues a la conversación con una
           idea clara. Las cifras finales siempre se confirman con el
           especialista.
         </p>
-      </BlurFade>
+      </Reveal>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
+      {/* Tiles con flip 3D de entrada, repetible. */}
+      <div className="mt-10 grid gap-4 [perspective:1200px] md:grid-cols-3">
         {TOOLS.map(({ icon: Icon, title, text, href }, i) => (
-          <BlurFade key={href} delay={0.07 * i}>
+          <Reveal key={href} rotateY={24} distance={50} delay={0.09 * i} className="h-full">
             <Link
               href={href}
               className="group flex h-full flex-col justify-between rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/50"
@@ -67,7 +68,7 @@ export function Herramientas() {
                 />
               </span>
             </Link>
-          </BlurFade>
+          </Reveal>
         ))}
       </div>
     </section>

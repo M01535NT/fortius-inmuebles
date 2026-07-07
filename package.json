@@ -9,11 +9,13 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-label": "latest",
     "@radix-ui/react-slot": "latest",
     "class-variance-authority": "latest",
     "clsx": "latest",
+    "gsap": "^3.15.0",
     "lucide-react": "latest",
     "motion": "latest",
     "next": "latest",

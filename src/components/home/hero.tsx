@@ -5,13 +5,14 @@ import Image from "next/image";
 import {
   AnimatePresence,
   motion,
-  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
 } from "motion/react";
 
+import { SplitHeading } from "@/components/gsap/split-heading";
 import { ESPECTACULAR } from "@/data/motion-config";
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 
 const SLIDES = [
   { src: "/hero/casa-playa.webp", alt: "Residencia frente al mar en Baja California" },
@@ -21,22 +22,6 @@ const SLIDES = [
 ];
 
 const ROTATE_MS = 8000;
-
-/* Reveal por líneas: cada línea sube desde su propia máscara. */
-function KineticLine({ children, delay }: { children: React.ReactNode; delay: number }) {
-  return (
-    <span className="block overflow-hidden pb-[0.08em]">
-      <motion.span
-        initial={{ y: "108%" }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
-        className="block"
-      >
-        {children}
-      </motion.span>
-    </span>
-  );
-}
 
 /* CTA con atracción magnética suave (motion values, cero re-renders). */
 function MagneticCta({ href, children }: { href: string; children: React.ReactNode }) {
@@ -68,7 +53,7 @@ function MagneticCta({ href, children }: { href: string; children: React.ReactNo
 }
 
 export function Hero() {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const kinetic = ESPECTACULAR && !reduce;
   const [index, setIndex] = React.useState(0);
 
@@ -119,28 +104,20 @@ export function Hero() {
 
       {/* Copy block, asymmetric bottom-left */}
       <div className="relative mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col justify-end px-5 pb-16 pt-24 md:px-8 md:pb-20">
-        {kinetic ? (
-          <h1 className="display-title text-[12.5vw] text-[#f2f4ee] sm:text-6xl md:text-7xl lg:text-[84px]">
-            <KineticLine delay={0.15}>Vende con plan,</KineticLine>
-            <KineticLine delay={0.28}>no con anuncios.</KineticLine>
-          </h1>
-        ) : (
-          <motion.h1
-            initial={reduce ? false : { opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="display-title text-[12.5vw] text-[#f2f4ee] sm:text-6xl md:text-7xl lg:text-[84px]"
-          >
-            Vende con plan,
-            <br />
-            no con anuncios.
-          </motion.h1>
-        )}
+        {/* Cascada por letra (GSAP SplitText): la entrada de página no se repite. */}
+        <SplitHeading
+          as="h1"
+          lines={["Vende con plan,", "no con anuncios."]}
+          once
+          delay={0.15}
+          charDelay={0.028}
+          className="display-title text-[12.5vw] text-[#f2f4ee] sm:text-6xl md:text-7xl lg:text-[84px]"
+        />
 
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
           className="mt-5 max-w-[46ch] text-[15.5px] leading-relaxed text-[#e6e9e2]/90 md:text-[17px]"
         >
           Precio con datos, expediente revisado y seguimiento por escrito. De la
@@ -150,7 +127,7 @@ export function Hero() {
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="mt-8 flex flex-wrap items-center gap-3"
         >
           {kinetic ? (

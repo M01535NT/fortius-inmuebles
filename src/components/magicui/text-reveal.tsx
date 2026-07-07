@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
 /*
@@ -34,7 +35,7 @@ function Word({
 }
 
 export function TextReveal({ text, className }: TextRevealProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const ref = React.useRef<HTMLParagraphElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,

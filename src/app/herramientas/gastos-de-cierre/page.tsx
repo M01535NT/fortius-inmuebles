@@ -38,9 +38,9 @@ export default function GastosDeCierrePage() {
         <p className="mt-8 text-[14.5px] text-muted-foreground">
           En cada operación entregamos este cálculo por escrito y afinado a tu
           caso (documento GAS-CIE-001).{" "}
-          <a href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
             Empieza con una evaluación
-          </a>
+          </Link>
           .
         </p>
       </Container>

@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, useMotionTemplate, useMotionValue, useReducedMotion } from "motion/react";
+import { motion, useMotionTemplate, useMotionValue } from "motion/react";
 
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
 /*
@@ -16,7 +17,7 @@ type MagicCardProps = React.PropsWithChildren<{
 }>;
 
 export function MagicCard({ children, className, glow = "rgba(15, 107, 78, 0.10)" }: MagicCardProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const mouseX = useMotionValue(-200);
   const mouseY = useMotionValue(-200);
 

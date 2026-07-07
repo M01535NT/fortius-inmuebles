@@ -65,15 +65,19 @@ Dos temas, **claro primario / oscuro secundario**, toggle en navbar (luna/sol), 
 | Hero fondo | Parallax al scroll | Sin parallax |
 | Relato | TextReveal (palabras que se iluminan al scroll) | BlurFade |
 
-Constantes en ambos modos: KineticTitle en títulos de sección, tilt 3D + spotlight en cards de entregables, parallax interno en las fotos de segmentos, banda de zonas doble contra-rotante en tipo outline (se rellena al hover), manifiesto con blur+lift, BorderBeam único en el formulario, NumberTicker en calculadoras, compromisos con hairlines que crecen. Mobile y `prefers-reduced-motion` reciben SIEMPRE la variante tranquila. **GSAP prohibido: solo Motion**.
+Constantes en ambos modos: KineticTitle en títulos de sección, tilt 3D + spotlight en cards de entregables, parallax interno en las fotos de segmentos, banda de zonas doble contra-rotante en tipo outline (se rellena al hover), manifiesto con blur+lift, BorderBeam único en el formulario, NumberTicker en calculadoras, compromisos con hairlines que crecen. Mobile y `prefers-reduced-motion` reciben SIEMPRE la variante tranquila.
+
+**Decisión 7-jul-2026: el Home usa GSAP** (ScrollTrigger + SplitText) como motor de animación — fluida, moderna, impresionante. **Ejecutado** según `motion-v4-plan.md`: primitivos en `src/components/gsap/` (`SplitHeading` cascada por letra, `Reveal` repetible, `VelocityMarquee`, `Scrub`), registro único en `src/lib/gsap.ts`, footer cortina en `layout.tsx`. Motion (motion-react) permanece en los primitivos ya construidos (hero parallax/rotador, Relato, Método, tilt/spotlight) y en interiores; no introducir Motion nuevo en el Home.
+
+Regla de hidratación: si `prefers-reduced-motion` cambia el MARKUP de un componente, usar `useReducedMotionSafe` (`src/lib/use-reduced-motion-safe.ts`), nunca el `useReducedMotion` de motion/react (rompe hidratación, React #418). El `overflow-x` del body es `clip` (no `hidden`) para no romper el sticky del footer cortina.
 
 **Decisión 7-jul-2026:** el Método horizontal pinned (scroll-hijack) se construyó, se probó y **se descartó** por feedback del usuario; el Método es SIEMPRE vertical con rail de progreso. No reintroducir scroll-hijack en esa sección.
 
 Nota de implementación: el clip-path reveal en wrappers de sección no disparó con `whileInView`/`useInView` en este setup (el wrapper conserva el estilo inicial aunque el observer manual intersecta); usar BlurFade con parámetros dramáticos para reveals de bloque.
 
-## Motion (Motion / motion-react)
+## Motion — reglas base (válidas para GSAP y Motion)
 
-- Entradas: BlurFade / fade+y con ease `[0.16,1,0.3,1]`, 0.45–0.7s, stagger corto.
+- Entradas: fade+y con ease tipo expo-out `[0.16,1,0.3,1]`, 0.45–0.9s, stagger corto.
 - Hero: crossfade de imágenes cada **8s** + Ken Burns (`.kenburns`, scale 1.02→1.12 en 9.5s). Indicadores de slide funcionales (barras clicables).
 - Método: línea de progreso vertical con `useScroll` + `useSpring` (origin-top, scaleY).
 - Navbar: transparente sobre hero (texto claro fijo) → sólida con blur al scroll (>24px, tokens del tema).
@@ -95,8 +99,9 @@ Nota de implementación: el clip-path reveal en wrappers de sección no disparó
 
 ## Inventario De Componentes (Home)
 
-`src/components/home/`: site-nav · theme-toggle · hero · relato · metodo · entregables · respuestas · zonas · evaluar · site-footer.
-MagicUI en uso: `blur-fade`, `marquee` (los no usados fueron eliminados).
+`src/components/home/`: site-nav · theme-toggle · hero · relato · metodo · entregables · destacadas · segmentos · respuestas · herramientas · zonas · compromisos · evaluar · site-footer.
+GSAP (`src/components/gsap/`): split-heading · reveal · velocity-marquee · scrub.
+MagicUI aún en uso: blur-fade, text-reveal, kinetic-title (interiores), tilt-card, magic-card, border-beam, parallax-image, number-ticker, marquee (interiores).
 
 ## Estado (6-jul-2026)
 

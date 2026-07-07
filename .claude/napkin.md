@@ -7,7 +7,7 @@
 ## Decisiones vigentes (leer antes de tocar nada)
 
 1. Marca provisional **Cota**; el nombre, dominio y contacto reales están pendientes. No inventar datos de contacto ni credenciales.
-2. Fuentes de verdad: `Copywritting.md` (copy del Home), `DesignDirection.md` (sistema visual), `sitemap.md` § Estado Actual (rutas). Si editas copy o diseño, actualiza el doc correspondiente.
+2. Fuentes de verdad (todas en `specs/001-firma-inmobiliaria/`): `Copywritting.md` (copy del Home), `DesignDirection.md` (sistema visual), `sitemap.md` (rutas), `tasks.md` (hitos; el ROADMAP se fusionó ahí). Si editas copy o diseño, actualiza el doc correspondiente.
 3. El Home es UNA pieza narrativa para propietarios. No convertirlo en secciones-plantilla ni agregar buscador de propiedades.
 4. Doble tema: claro default, `.dark` por clase + `localStorage("cota-theme")` con script anti-flash en `layout.tsx`. No usar `prefers-color-scheme` como fuente.
 5. Un solo bloque de color por página (manifiesto verde). No agregar más inversiones de tema.
@@ -23,7 +23,9 @@
 - Imágenes hero: `public/hero/*.webp` (~100KB c/u); originales PNG en `Imagenes hero/`.
 - Backend pospuesto a propósito (primero frontend). Formularios con `TODO` para Supabase; el panel admin futuro debe controlar TODO (inventario, imágenes, leads, asesores, config, copy) → ver `sitemap.md`.
 - Inventario: datos DEMO en `src/data/propiedades.ts` (flag `demo: true`; el detalle lleva `robots: noindex` mientras dure — quitar ambos al cargar inventario real). Precio = unión discriminada publico/consulta; `formatPrecio` es manual a propósito (Intl currency causa mismatch de hidratación). Filtros sin `useSearchParams` aún (evita Suspense/CSR bailout). En Next 16 `params` es Promise: `await params` en page y generateMetadata.
-- Motion: `MOTION_MODE` en `src/data/motion-config.ts` (espectacular|equilibrado) pivota hero kinetic/simple y TextReveal/BlurFade. GSAP prohibido (solo Motion). **El Método horizontal pinned se probó y SE DESCARTÓ (7-jul-2026, feedback usuario): el Método es siempre vertical; no reintroducir scroll-hijack ahí.** Primitivos disponibles en magicui/: kinetic-title, tilt-card, parallax-image, magic-card, text-reveal, border-beam, number-ticker, blur-fade, marquee. Gotcha real: animar `clipPath` en un wrapper de sección con whileInView/useInView NO dispara en este setup; usar BlurFade con yOffset/blur altos para reveals de bloque.
+- **Motion v4 GSAP EJECUTADO (7-jul-2026):** el Home se anima con GSAP (ScrollTrigger + SplitText). Primitivos en `src/components/gsap/` (split-heading, reveal, velocity-marquee, scrub); importar gsap SIEMPRE desde `src/lib/gsap.ts`. Repetible = `toggleActions: "restart none none reverse"` (hero y campos del form son `once`). Motion (motion-react) solo permanece en primitivos existentes e interiores — no introducir Motion nuevo en el Home.
+- Gotchas de hidratación/overflow: (1) si `prefers-reduced-motion` cambia el markup, usar `useReducedMotionSafe` de `src/lib/use-reduced-motion-safe.ts` (useSyncExternalStore), NUNCA `useReducedMotion` de motion/react → React #418; (2) body lleva `overflow-x: clip` (no `hidden`, rompe el sticky del footer cortina); (3) secciones con Reveal lateral necesitan `overflow-x-clip` propio o generan scrollWidth extra en mobile.
+- Motion: `MOTION_MODE` en `src/data/motion-config.ts` (espectacular|equilibrado) pivota parallax del hero, CTA magnético y TextReveal/BlurFade del relato. **El Método horizontal pinned se probó y SE DESCARTÓ (7-jul-2026, feedback usuario): el Método es siempre vertical; no reintroducir scroll-hijack ahí.** Primitivos disponibles en magicui/: kinetic-title, tilt-card, parallax-image, magic-card, text-reveal, border-beam, number-ticker, blur-fade, marquee. Gotcha real: animar `clipPath` en un wrapper de sección con whileInView/useInView NO dispara en este setup; usar BlurFade con yOffset/blur altos para reveals de bloque.
 - Detalle de propiedad: la galería usa altura vh compartida (`MEDIA_H` en property-gallery) para caber en el primer viewport — no volver a aspect-ratio grande. Aside sin sticky (contenido más alto que el viewport): asesor → calculadora → formulario. Mapa = Google embed por zona (`?q=...&output=embed`), sin API key. Contacto placeholder centralizado en `siteConfig.contact` (tel/wa/messenger/email). lucide-react ya NO trae iconos de marca (Facebook eliminado): usar MessagesSquare/MessageCircle como aproximación.
 
 ## Cómo verificar
@@ -31,6 +33,6 @@
 - `npm run build` debe salir limpio.
 - Visual: `npm run start -- -p 3311` + Playwright (instalado en scratchpad de sesión; browsers en `$LOCALAPPDATA/ms-playwright`). Revisar AMBOS temas y móvil. Tras rebuild, matar y relanzar el server (chunks 500 si no).
 
-## Pendientes grandes (ver specs/001 tasks Phase 6)
+## Pendientes grandes (ver specs/001-firma-inmobiliaria/tasks.md)
 
-- Interiores con sistema Cota · endpoint del form `#evaluar` · slugs definitivos (`/vender` vs `/vender-inmueble`) antes de indexar · favicon/OG · optimizar renders.
+- M2 frontend restante (/zonas, gracias, filtros, lead magnet, video institucional, pulido a11y/perf) · M3 leads a Supabase antes de cualquier pauta · M4 panel admin · M5 lanzamiento (datos reales, quitar demo/noindex).

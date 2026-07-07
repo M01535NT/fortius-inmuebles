@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion, useSpring } from "motion/react";
+import { motion, useSpring } from "motion/react";
 
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
 /*
@@ -14,7 +15,7 @@ export function TiltCard({
   className,
   max = 7,
 }: React.PropsWithChildren<{ className?: string; max?: number }>) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const rotateX = useSpring(0, { stiffness: 180, damping: 20 });
   const rotateY = useSpring(0, { stiffness: 180, damping: 20 });
 
