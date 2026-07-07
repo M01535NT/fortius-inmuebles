@@ -54,6 +54,11 @@ export function SiteFooter() {
                 </a>
               </li>
               <li>
+                <Link href="/herramientas" className="text-foreground/75 transition-colors hover:text-foreground">
+                  Herramientas
+                </Link>
+              </li>
+              <li>
                 <a href="/#evaluar" className="text-foreground/75 transition-colors hover:text-foreground">
                   Evaluar mi propiedad
                 </a>

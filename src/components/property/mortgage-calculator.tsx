@@ -2,12 +2,15 @@
 
 import * as React from "react";
 
+import { NumberTicker } from "@/components/magicui/number-ticker";
+
 /*
-  Calculadora de hipoteca (estimación informativa). Solo se muestra en
-  propiedades en venta con precio público y crédito disponible.
+  Calculadora de hipoteca (estimación informativa). En el detalle de
+  propiedad recibe el precio fijo; en /herramientas/hipoteca se usa con
+  `precioEditable` y el usuario captura el monto.
   Fórmula estándar de amortización con pagos mensuales fijos.
 */
-type Props = { precio: number; moneda: "MXN" | "USD" };
+type Props = { precio: number; moneda: "MXN" | "USD"; precioEditable?: boolean };
 
 const ENGANCHES = [10, 20, 30] as const;
 const PLAZOS = [10, 15, 20] as const;
@@ -17,7 +20,8 @@ function fmt(n: number): string {
   return `$${Math.round(n).toLocaleString("en-US")}`;
 }
 
-export function MortgageCalculator({ precio, moneda }: Props) {
+export function MortgageCalculator({ precio: precioInicial, moneda, precioEditable = false }: Props) {
+  const [precio, setPrecio] = React.useState<number>(precioInicial);
   const [enganche, setEnganche] = React.useState<number>(20);
   const [plazo, setPlazo] = React.useState<number>(20);
   const [tasa, setTasa] = React.useState<number>(TASA_DEFAULT);
@@ -34,9 +38,26 @@ export function MortgageCalculator({ precio, moneda }: Props) {
   return (
     <div className="rounded-lg border border-border bg-card p-5 md:p-6">
       <h2 className="display-soft text-xl text-foreground">Estima tu mensualidad</h2>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-        Con base en el precio de {fmt(precio)} {moneda}.
-      </p>
+      {precioEditable ? (
+        <div className="mt-4 flex flex-col gap-2">
+          <label htmlFor="calc-precio" className="text-[13.5px] font-medium text-foreground">
+            Precio de la propiedad ({moneda})
+          </label>
+          <input
+            id="calc-precio"
+            type="number"
+            min={100000}
+            step={50000}
+            value={precio}
+            onChange={(e) => setPrecio(Number(e.target.value) || precioInicial)}
+            className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-[15px] text-foreground"
+          />
+        </div>
+      ) : (
+        <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+          Con base en el precio de {fmt(precio)} {moneda}.
+        </p>
+      )}
 
       <div className="mt-4 grid grid-cols-3 gap-3">
         <div className="flex flex-col gap-2">
@@ -102,7 +123,7 @@ export function MortgageCalculator({ precio, moneda }: Props) {
         <div className="flex items-baseline justify-between gap-6 py-3.5">
           <dt className="text-[14.5px] font-medium text-foreground">Mensualidad</dt>
           <dd className="whitespace-nowrap font-mono text-[16px] font-medium text-primary">
-            {fmt(mensualidad)} {moneda}
+            <NumberTicker value={mensualidad} prefix="$" suffix={` ${moneda}`} />
           </dd>
         </div>
       </dl>

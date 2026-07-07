@@ -4,6 +4,8 @@ import * as React from "react";
 import { CheckCircle2 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
+import { BorderBeam } from "@/components/magicui/border-beam";
+
 /*
   Lead capture. The form is the page's conversion tool: few fields, visible
   labels, honest microcopy. TODO: wire onSubmit to the real endpoint /
@@ -75,10 +77,12 @@ export function Evaluar() {
             ) : (
               <form
                 onSubmit={onSubmit}
-                className="rounded-lg border border-border bg-card p-6 md:p-8"
+                className="relative rounded-lg border border-border bg-card p-6 md:p-8"
                 noValidate={false}
               >
-                <div className="grid gap-5 sm:grid-cols-2">
+                {/* Único BorderBeam de la página: señala la herramienta de conversión. */}
+                <BorderBeam />
+                <div className="relative grid gap-5 sm:grid-cols-2">
                   <div className="flex flex-col gap-2">
                     <label htmlFor="nombre" className="text-[13.5px] font-medium text-foreground">
                       Nombre
@@ -141,17 +145,19 @@ export function Evaluar() {
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] sm:w-auto"
-                >
-                  Solicitar evaluación
-                </button>
+                <div className="relative">
+                  <button
+                    type="submit"
+                    className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] sm:w-auto"
+                  >
+                    Solicitar evaluación
+                  </button>
 
-                <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-                  Sin compromiso. Usamos tus datos solo para dar seguimiento a
-                  tu solicitud.
-                </p>
+                  <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">
+                    Sin compromiso. Usamos tus datos solo para dar seguimiento a
+                    tu solicitud.
+                  </p>
+                </div>
               </form>
             )}
           </div>

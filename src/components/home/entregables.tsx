@@ -1,6 +1,7 @@
 import { FileText } from "lucide-react";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { MagicCard } from "@/components/magicui/magic-card";
 
 /*
   These are real documents from the firm's internal manual, with their real
@@ -60,8 +61,9 @@ export function Entregables() {
 
       <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {DOCS.map((doc, i) => (
-          <BlurFade key={doc.code} delay={0.06 * i}>
-            <article className="group flex h-full flex-col justify-between rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/40">
+          <BlurFade key={doc.code} delay={0.06 * i} className="h-full">
+            <MagicCard className="h-full rounded-lg">
+              <article className="group flex h-full flex-col justify-between rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/40">
               <div>
                 <div className="flex items-center justify-between">
                   <FileText className="h-5 w-5 text-primary" strokeWidth={1.5} />
@@ -79,7 +81,8 @@ export function Entregables() {
               <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
                 {doc.text}
               </p>
-            </article>
+              </article>
+            </MagicCard>
           </BlurFade>
         ))}
       </div>

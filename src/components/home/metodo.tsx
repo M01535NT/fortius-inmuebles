@@ -4,55 +4,14 @@ import * as React from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
 
-/*
-  The four phases come straight from the firm's internal operations manual
-  (Proceso Operativo Inmobiliario). Real process, not marketing filler.
-*/
-const FASES = [
-  {
-    n: "01",
-    title: "Captación",
-    body: "Antes de aceptar tu propiedad revisamos su situación legal y armamos el análisis comparativo de mercado. El precio de salida se defiende con comparables vendidos, no con corazonadas.",
-    items: [
-      "Dictamen documental antes de publicar",
-      "Análisis comparativo de mercado",
-      "Contrato con plan de trabajo por escrito",
-    ],
-  },
-  {
-    n: "02",
-    title: "Preparación",
-    body: "La propiedad se pone a punto antes de salir: reparaciones con retorno claro, fotografía profesional y una ficha distinta para cada canal.",
-    items: [
-      "Puesta a punto y staging",
-      "Fotografía y video profesional",
-      "Publicación multicanal con estrategia",
-    ],
-    image: { src: "/hero/interior-depa.webp", alt: "Interior preparado para fotografía profesional" },
-  },
-  {
-    n: "03",
-    title: "Comercialización",
-    body: "Calificamos a cada prospecto antes de abrir tu puerta. Las ofertas se reciben por escrito y las analizamos contigo antes de responder.",
-    items: [
-      "Filtro de prospectos antes de cada visita",
-      "Reporte de avances cada 30 días",
-      "Ofertas por escrito, analizadas contigo",
-    ],
-  },
-  {
-    n: "04",
-    title: "Cierre",
-    body: "Coordinamos notario, expediente y firma. Los costos se estiman desde antes, así sabes cuánto paga cada parte y qué sigue después de firmar.",
-    items: [
-      "Costos de cierre estimados por adelantado",
-      "Checklist documental para notario",
-      "Entrega de posesión documentada",
-    ],
-  },
-];
+import { FASES } from "@/data/metodo";
 
-export function Metodo() {
+/*
+  Método vertical con línea de progreso al scroll. Es la versión para
+  mobile, prefers-reduced-motion y el modo de motion "equilibrado".
+  Data compartida en src/data/metodo.ts.
+*/
+export function Metodo({ anchor = true }: { anchor?: boolean }) {
   const reduce = useReducedMotion();
   const trackRef = React.useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -62,7 +21,10 @@ export function Metodo() {
   const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 24 });
 
   return (
-    <section id="metodo" className="mx-auto max-w-[1280px] scroll-mt-20 px-5 py-24 md:px-8 md:py-36">
+    <section
+      id={anchor ? "metodo" : undefined}
+      className="mx-auto max-w-[1280px] scroll-mt-20 px-5 py-24 md:px-8 md:py-36"
+    >
       <div className="grid gap-14 lg:grid-cols-12">
         {/* Sticky intro column */}
         <div className="lg:col-span-4">

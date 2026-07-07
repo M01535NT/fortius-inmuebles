@@ -2,7 +2,16 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
+
+import { ESPECTACULAR } from "@/data/motion-config";
 
 const SLIDES = [
   { src: "/hero/casa-playa.webp", alt: "Residencia frente al mar en Baja California" },
@@ -13,9 +22,63 @@ const SLIDES = [
 
 const ROTATE_MS = 8000;
 
+/* Reveal por líneas: cada línea sube desde su propia máscara. */
+function KineticLine({ children, delay }: { children: React.ReactNode; delay: number }) {
+  return (
+    <span className="block overflow-hidden pb-[0.08em]">
+      <motion.span
+        initial={{ y: "108%" }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
+        className="block"
+      >
+        {children}
+      </motion.span>
+    </span>
+  );
+}
+
+/* CTA con atracción magnética suave (motion values, cero re-renders). */
+function MagneticCta({ href, children }: { href: string; children: React.ReactNode }) {
+  const x = useSpring(0, { stiffness: 220, damping: 18 });
+  const y = useSpring(0, { stiffness: 220, damping: 18 });
+
+  function onMove(e: React.PointerEvent<HTMLAnchorElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    x.set((e.clientX - rect.left - rect.width / 2) * 0.18);
+    y.set((e.clientY - rect.top - rect.height / 2) * 0.3);
+  }
+
+  function onLeave() {
+    x.set(0);
+    y.set(0);
+  }
+
+  return (
+    <motion.a
+      href={href}
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
+      style={{ x, y }}
+      className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
+    >
+      {children}
+    </motion.a>
+  );
+}
+
 export function Hero() {
   const reduce = useReducedMotion();
+  const kinetic = ESPECTACULAR && !reduce;
   const [index, setIndex] = React.useState(0);
+
+  const sectionRef = React.useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  /* Parallax: el fondo se queda atrás mientras la sección sale de cuadro. */
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", kinetic ? "18%" : "0%"]);
 
   React.useEffect(() => {
     if (reduce) return;
@@ -26,9 +89,9 @@ export function Hero() {
   }, [reduce]);
 
   return (
-    <section className="relative min-h-[100dvh] overflow-hidden" aria-label="Presentación">
-      {/* Background rotator */}
-      <div className="absolute inset-0" aria-hidden="true">
+    <section ref={sectionRef} className="relative min-h-[100dvh] overflow-hidden" aria-label="Presentación">
+      {/* Background rotator con parallax */}
+      <motion.div style={{ y: bgY }} className="absolute inset-0" aria-hidden="true">
         <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={index}
@@ -52,25 +115,32 @@ export function Hero() {
         </AnimatePresence>
         {/* Scrim: keeps copy AA-readable over any slide, both themes. */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b120e]/85 via-[#0b120e]/30 to-[#0b120e]/10" />
-      </div>
+      </motion.div>
 
       {/* Copy block, asymmetric bottom-left */}
       <div className="relative mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col justify-end px-5 pb-16 pt-24 md:px-8 md:pb-20">
-        <motion.h1
-          initial={reduce ? false : { opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="display-title text-[12.5vw] text-[#f2f4ee] sm:text-6xl md:text-7xl lg:text-[84px]"
-        >
-          Vende con plan,
-          <br />
-          no con anuncios.
-        </motion.h1>
+        {kinetic ? (
+          <h1 className="display-title text-[12.5vw] text-[#f2f4ee] sm:text-6xl md:text-7xl lg:text-[84px]">
+            <KineticLine delay={0.15}>Vende con plan,</KineticLine>
+            <KineticLine delay={0.28}>no con anuncios.</KineticLine>
+          </h1>
+        ) : (
+          <motion.h1
+            initial={reduce ? false : { opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="display-title text-[12.5vw] text-[#f2f4ee] sm:text-6xl md:text-7xl lg:text-[84px]"
+          >
+            Vende con plan,
+            <br />
+            no con anuncios.
+          </motion.h1>
+        )}
 
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
           className="mt-5 max-w-[46ch] text-[15.5px] leading-relaxed text-[#e6e9e2]/90 md:text-[17px]"
         >
           Precio con datos, expediente revisado y seguimiento por escrito. De la
@@ -80,15 +150,19 @@ export function Hero() {
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
           className="mt-8 flex flex-wrap items-center gap-3"
         >
-          <a
-            href="#evaluar"
-            className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
-          >
-            Evaluar mi propiedad
-          </a>
+          {kinetic ? (
+            <MagneticCta href="#evaluar">Evaluar mi propiedad</MagneticCta>
+          ) : (
+            <a
+              href="#evaluar"
+              className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
+            >
+              Evaluar mi propiedad
+            </a>
+          )}
           <a
             href="#metodo"
             className="inline-flex h-12 items-center rounded-md border border-[#f2f4ee]/35 px-6 text-[15px] font-medium text-[#f2f4ee] backdrop-blur-sm transition-colors hover:border-[#f2f4ee]/60 hover:bg-[#f2f4ee]/10 active:scale-[0.98]"
@@ -97,7 +171,7 @@ export function Hero() {
           </a>
         </motion.div>
 
-        {/* Slide state: functional carousel control, not decoration. */}
+        {/* Slide state: control funcional con progreso de 8s en la barra activa. */}
         <div className="mt-10 flex gap-2" role="tablist" aria-label="Imágenes del inicio">
           {SLIDES.map((s, i) => (
             <button
@@ -106,14 +180,21 @@ export function Hero() {
               aria-selected={i === index}
               aria-label={`Imagen ${i + 1}`}
               onClick={() => setIndex(i)}
-              className="group relative h-4 w-9 cursor-pointer"
+              className="group relative h-4 w-10 cursor-pointer"
             >
-              <span
-                className={
-                  "absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 rounded-full transition-colors " +
-                  (i === index ? "bg-[#f2f4ee]" : "bg-[#f2f4ee]/30 group-hover:bg-[#f2f4ee]/55")
-                }
-              />
+              <span className="absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 overflow-hidden rounded-full bg-[#f2f4ee]/25">
+                {i === index && !reduce ? (
+                  <motion.span
+                    key={`progress-${index}`}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: ROTATE_MS / 1000, ease: "linear" }}
+                    className="block h-full origin-left bg-[#f2f4ee]"
+                  />
+                ) : i === index ? (
+                  <span className="block h-full bg-[#f2f4ee]" />
+                ) : null}
+              </span>
             </button>
           ))}
         </div>

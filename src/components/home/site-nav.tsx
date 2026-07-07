@@ -45,7 +45,7 @@ const links = [
   { href: "/inventario", label: "Propiedades" },
   { href: "/#metodo", label: "Método" },
   { href: "/#entregables", label: "Entregables" },
-  { href: "/#respuestas", label: "Respuestas" },
+  { href: "/herramientas", label: "Herramientas" },
 ];
 
 export function SiteNav() {

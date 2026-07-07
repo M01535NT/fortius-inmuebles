@@ -18,7 +18,7 @@ const ZONAS = [
 export function Zonas() {
   return (
     <section aria-label="Zonas de operación" className="border-y border-border py-7">
-      <Marquee pauseOnHover duration="44s" className="marquee-pause">
+      <Marquee pauseOnHover duration="44s" className="marquee-pause marquee-mask">
         {ZONAS.map((zona) => (
           <span
             key={zona}

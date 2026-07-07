@@ -211,6 +211,61 @@ select {
   animation-play-state: paused;
 }
 
+/* Máscara lateral para bandas marquee: entra y sale con degradado. */
+.marquee-mask {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12%,
+    black 88%,
+    transparent
+  );
+}
+
+/* Border beam: haz que recorre el borde. Uso racionado (1 por página). */
+@keyframes beam-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.border-beam {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.border-beam::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 250deg,
+    var(--beam-from, #0f6b4e) 282deg,
+    var(--beam-to, #3fd8a0) 312deg,
+    transparent 340deg
+  );
+  animation: beam-spin var(--beam-duration, 8s) linear infinite;
+}
+
+.border-beam::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: var(--card);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .border-beam {
+    display: none;
+  }
+}
+
 /* Legacy helpers used by interior routes. */
 .hairline-panel {
   border: 1px solid var(--border);

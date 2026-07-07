@@ -55,6 +55,21 @@ Dos temas, **claro primario / oscuro secundario**, toggle en navbar (luna/sol), 
 - **Prohibido:** eyebrows uppercase sobre cada título, tres cards iguales, secciones espejo repetidas, títulos centrados con subtítulo como plantilla.
 - Familias de layout usadas (no repetir): hero full-bleed · declaración indentada · bloque de color split 7/4 · sticky + timeline · grid de documentos 3×2 · split acordeón · banda marquee · split formulario.
 
+## Modos de motion (pivote rápido)
+
+`src/data/motion-config.ts` define `MOTION_MODE: "espectacular" | "equilibrado"`. Cambiar UNA constante pivota el sitio:
+
+| Pieza | Espectacular | Equilibrado |
+|---|---|---|
+| Método (Home) | Horizontal pinned (scroll-hijack, solo desktop) | Vertical con rail de progreso |
+| Hero H1 | Reveal por líneas (máscara) + CTA magnético | Entrada fade+y simple |
+| Hero fondo | Parallax al scroll | Sin parallax |
+| Relato | TextReveal (palabras que se iluminan al scroll) | BlurFade |
+
+Constantes en ambos modos: manifiesto con blur+lift, spotlight (MagicCard) en entregables, BorderBeam único en el formulario, NumberTicker en calculadoras, máscara del marquee. Mobile y `prefers-reduced-motion` reciben SIEMPRE la variante tranquila. **GSAP prohibido: solo Motion** (no mezclar bibliotecas de animación).
+
+Nota de implementación: el clip-path reveal en wrappers de sección no disparó con `whileInView`/`useInView` en este setup (el wrapper conserva el estilo inicial aunque el observer manual intersecta); usar BlurFade con parámetros dramáticos para reveals de bloque.
+
 ## Motion (Motion / motion-react)
 
 - Entradas: BlurFade / fade+y con ease `[0.16,1,0.3,1]`, 0.45–0.7s, stagger corto.

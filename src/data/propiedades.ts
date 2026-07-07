@@ -214,7 +214,7 @@ export const propiedades: Property[] = [
       { lugar: "Aeropuerto de Tijuana", minutos: 12 },
       { lugar: "UABC Campus Otay", minutos: 8 },
     ],
-    destacada: false,
+    destacada: true,
     estado: "disponible",
     publicadaEl: "2026-07-02",
     demo: true,
