@@ -3,9 +3,11 @@
 import * as React from "react";
 import { CheckCircle2 } from "lucide-react";
 
+import { captureLead } from "@/lib/admin/store";
+
 /*
-  Formulario de interés por propiedad. TODO backend (T028): enviar el lead
-  con el slug/código de la propiedad al endpoint real; hoy confirma local.
+  Formulario de interés por propiedad. TODO backend (M3.1): enviar el lead
+  al endpoint real; hoy queda en la bandeja local del panel.
 */
 export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; codigo: string; titulo: string }) {
   const [sent, setSent] = React.useState(false);
@@ -27,7 +29,14 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        // TODO: POST a endpoint de leads con el slug de la propiedad (T028).
+        const data = new FormData(e.currentTarget);
+        captureLead({
+          nombre: String(data.get("nombre") ?? ""),
+          telefono: String(data.get("telefono") ?? ""),
+          mensaje: String(data.get("mensaje") ?? "") || undefined,
+          propiedadSlug: slug,
+          origen: "interes-propiedad",
+        });
         setSent(true);
       }}
     >

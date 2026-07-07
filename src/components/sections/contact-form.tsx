@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 
+import { captureLead } from "@/lib/admin/store";
+
 /*
-  Interior lead form. TODO: wire onSubmit to the real endpoint / CRM
-  webhook when the backend phase starts; today it confirms locally.
+  Interior lead form. TODO(M3.1): POST al endpoint real cuando exista el
+  backend; hoy el lead queda en la bandeja local del panel.
 */
 export function ContactForm() {
   const [sent, setSent] = useState(false);
@@ -30,7 +32,15 @@ export function ContactForm() {
       className="rounded-lg border border-border bg-card p-6 md:p-8"
       onSubmit={(event) => {
         event.preventDefault();
-        // TODO: POST to lead endpoint (backend phase).
+        const data = new FormData(event.currentTarget);
+        const objetivo = String(data.get("objective") ?? "");
+        const mensaje = String(data.get("message") ?? "");
+        captureLead({
+          nombre: String(data.get("name") ?? ""),
+          telefono: String(data.get("phone") ?? ""),
+          mensaje: [objetivo, mensaje].filter(Boolean).join(" · ") || undefined,
+          origen: "contacto",
+        });
         setSent(true);
       }}
     >

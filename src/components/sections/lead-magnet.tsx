@@ -5,6 +5,7 @@ import { ArrowDownToLine, FileCheck2 } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { captureLead } from "@/lib/admin/store";
 
 /*
   Lead magnet: checklist de venta a cambio de nombre y WhatsApp.
@@ -22,7 +23,13 @@ export function LeadMagnet() {
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO(M3.1): enviar el lead al backend; la descarga se libera igual.
+    const data = new FormData(e.currentTarget);
+    // TODO(M3.1): POST al backend; hoy queda en la bandeja local del panel.
+    captureLead({
+      nombre: String(data.get("nombre") ?? ""),
+      telefono: String(data.get("telefono") ?? ""),
+      origen: "checklist",
+    });
     setSent(true);
   }
 

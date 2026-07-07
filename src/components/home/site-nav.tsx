@@ -60,6 +60,9 @@ export function SiteNav() {
     setScrolled(v > 24);
   });
 
+  /* El panel /admin trae su propio shell: sin nav público. */
+  if (pathname.startsWith("/admin")) return null;
+
   /* Only the home hero is a dark full-bleed photo; there the nav floats
      with light text. Everywhere else (and after scroll) it is solid and
      adopts the theme tokens. */

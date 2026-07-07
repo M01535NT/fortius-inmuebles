@@ -1,0 +1,145 @@
+"use client";
+
+import * as React from "react";
+import Image from "next/image";
+import { FileText, Film, ImageIcon, Link2, Paperclip, Plus, Trash2 } from "lucide-react";
+
+import {
+  DemoBanner,
+  EmptyState,
+  Field,
+  PageHeader,
+  btnPrimary,
+  inputClass,
+  selectClass,
+} from "@/components/admin/ui";
+import { db, removeById, uid, upsert, useCollection, type ArchivoTipo } from "@/lib/admin/store";
+
+/*
+  Biblioteca de archivos del sitio: imágenes, PDFs y videos referenciados
+  por URL. La carga física de archivos llega con el storage del backend
+  (M4); mientras, este catálogo centraliza qué existe y dónde.
+*/
+const ICONOS: Record<ArchivoTipo, typeof FileText> = {
+  imagen: ImageIcon,
+  pdf: FileText,
+  video: Film,
+  otro: Paperclip,
+};
+
+export default function ArchivosPage() {
+  const archivos = useCollection(db.archivos);
+  const [filtro, setFiltro] = React.useState<ArchivoTipo | "todos">("todos");
+
+  const filtrados = archivos.filter((a) => filtro === "todos" || a.tipo === filtro);
+
+  function agregar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    upsert(db.archivos, {
+      id: uid(),
+      nombre: String(data.get("nombre") ?? ""),
+      url: String(data.get("url") ?? ""),
+      tipo: String(data.get("tipo") ?? "otro") as ArchivoTipo,
+    });
+    form.reset();
+  }
+
+  const chip =
+    "inline-flex h-8 items-center rounded-md border px-3 text-[12.5px] font-medium transition-colors";
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Archivos."
+        description="Catálogo de imágenes, PDFs y videos del sitio, referenciados por URL. La carga directa de archivos llega con el backend de storage."
+      />
+      <DemoBanner />
+
+      <form onSubmit={agregar} className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
+        <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+          <label htmlFor="ar-nombre" className="text-[12.5px] font-medium text-foreground">Nombre</label>
+          <input id="ar-nombre" name="nombre" required placeholder="Brochure residencial" className={inputClass} />
+        </div>
+        <div className="flex min-w-[220px] flex-1 flex-col gap-1.5">
+          <label htmlFor="ar-url" className="text-[12.5px] font-medium text-foreground">URL</label>
+          <input id="ar-url" name="url" required placeholder="/descargas/… o https://…" className={inputClass} />
+        </div>
+        <Field label="Tipo" htmlFor="ar-tipo">
+          <select id="ar-tipo" name="tipo" className={selectClass + " w-[120px]"}>
+            <option value="imagen">Imagen</option>
+            <option value="pdf">PDF</option>
+            <option value="video">Video</option>
+            <option value="otro">Otro</option>
+          </select>
+        </Field>
+        <button type="submit" className={btnPrimary}>
+          <Plus className="size-4" strokeWidth={1.5} /> Registrar
+        </button>
+      </form>
+
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por tipo">
+        {(["todos", "imagen", "pdf", "video", "otro"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            aria-pressed={filtro === t}
+            onClick={() => setFiltro(t)}
+            className={chip + (filtro === t ? " border-primary/50 bg-secondary text-foreground" : " border-border text-foreground/70 hover:bg-secondary")}
+          >
+            {t === "todos" ? "Todos" : t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {filtrados.length === 0 ? (
+        <EmptyState title="Sin archivos de ese tipo." />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filtrados.map((archivo) => {
+            const Icono = ICONOS[archivo.tipo];
+            return (
+              <article key={archivo.id} className="overflow-hidden rounded-lg border border-border bg-card">
+                {archivo.tipo === "imagen" ? (
+                  <div className="relative aspect-[16/10] border-b border-border">
+                    <Image src={archivo.url} alt={archivo.nombre} fill sizes="300px" className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="flex aspect-[16/10] items-center justify-center border-b border-border bg-secondary/40">
+                    <Icono className="size-8 text-muted-foreground" strokeWidth={1.25} />
+                  </div>
+                )}
+                <div className="p-3.5">
+                  <p className="truncate text-[13.5px] font-medium text-foreground">{archivo.nombre}</p>
+                  <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">{archivo.url}</p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <a
+                      href={archivo.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-primary hover:text-foreground"
+                    >
+                      <Link2 className="size-3.5" strokeWidth={1.5} /> Abrir
+                    </a>
+                    <button
+                      type="button"
+                      aria-label={`Eliminar ${archivo.nombre}`}
+                      onClick={() => {
+                        if (window.confirm(`¿Quitar "${archivo.nombre}" del catálogo? El archivo físico no se borra.`))
+                          removeById(db.archivos, archivo.id);
+                      }}
+                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
+                    >
+                      <Trash2 className="size-3.5" strokeWidth={1.5} />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

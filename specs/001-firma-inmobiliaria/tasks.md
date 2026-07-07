@@ -40,7 +40,10 @@ Plan ejecutado: **`motion-v4-plan.md`** sobre GSAP (ScrollTrigger + SplitText).
 
 ## M4 — Panel de administración
 
-- [ ] M4.1 Control total del sitio (alcance en `sitemap.md` § Panel De Administración): inventario, imágenes, leads, asesores, configuración y copy editable. Implica migrar `src/data/*.ts` a Supabase.
+- [x] M4.1 **Frontend completo del panel** (7-jul-2026) en `/admin`: dashboard con KPIs, Inmuebles (CRUD completo: precio, ficha, galería, video/360, POIs, **documentos PDF por inmueble**, destacada/estado inline), Leads (bandeja con pipeline de 6 estados, búsqueda, captura manual, expediente con notas y agenda vinculada), Calendario mensual, Notas, Blog (redacción de entradas), Asesores (CRUD con contadores de asignación), Archivos (catálogo por URL), Contenido (copy editable del Home + SEO) y Configuración (identidad/contacto/redes/video). Login placeholder (clave demo visible) y robots disallow `/admin`.
+- [x] M4.2 Los 5 formularios públicos capturan leads en la capa local del panel (`captureLead`): evaluación, contacto, interés, checklist y **descargas de documentos por propiedad** (nueva sección en el detalle público, gate de nombre+teléfono).
+- [ ] M4.3 **Conectar a Supabase** (el verdadero M3/M4 backend): sustituir `src/lib/admin/store.ts` (localStorage) por repositorios Supabase manteniendo la interfaz; Supabase Auth en lugar del login demo; storage para carga real de imágenes/PDFs; el sitio público lee de la BD (los cambios del panel hoy NO alteran las páginas públicas prerenderizadas).
+- [ ] M4.4 Rutas públicas `/blog` y `/blog/[slug]` cuando el contenido viva en la BD.
 
 ## M5 — Lanzamiento
 

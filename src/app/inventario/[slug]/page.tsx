@@ -8,6 +8,7 @@ import { ContactDock } from "@/components/property/contact-dock";
 import { Container } from "@/components/layout/container";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 import { PropertyCard } from "@/components/property/property-card";
+import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyFaq } from "@/components/property/property-faq";
 import { PropertyGallery } from "@/components/property/property-gallery";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
@@ -206,6 +207,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 </ul>
               </div>
             ) : null}
+
+            {/* Documentos en PDF (se administran desde el panel) */}
+            <PropertyDocuments
+              documentos={property.documentos ?? []}
+              slug={property.slug}
+              codigo={property.codigo}
+            />
 
             {/* Ubicación: mapa por zona + puntos de interés */}
             <PropertyLocation property={property} />

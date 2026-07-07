@@ -36,6 +36,17 @@ export type FichaTecnica = {
 
 export type ImagenPropiedad = { src: string; alt: string };
 
+/*
+  Documentos descargables por propiedad (PDFs): se entregan a cambio de los
+  datos del interesado. Se administran desde el panel (sección Inmuebles).
+*/
+export type DocumentoPropiedad = {
+  codigo: string; // "FIC-PRO-001", se muestra en mono
+  nombre: string;
+  descripcion: string;
+  url: string; // PDF en /descargas o storage cuando exista backend
+};
+
 export type Property = {
   slug: string;
   codigo: string; // "COTA-001", se muestra en mono
@@ -54,6 +65,8 @@ export type Property = {
      espacio reservado. */
   videoUrl?: string;
   tour360Url?: string;
+  /* PDFs descargables (ficha, plano, brochure); captura de datos previa. */
+  documentos?: DocumentoPropiedad[];
   asesorId: string; // ver src/data/asesores.ts
   creditoDisponible: boolean; // habilita la calculadora de hipoteca (solo venta)
   /* Puntos de interés cercanos (placeholder demo; tiempos aproximados en auto). */
@@ -119,6 +132,20 @@ export const propiedades: Property[] = [
       { src: "/hero/casa-playa.webp", alt: "Fachada de residencia frente al mar al atardecer" },
       { src: "/hero/interior-depa.webp", alt: "Área social con acabados claros y cancelería amplia" },
       { src: "/hero/edificio-ciudad.webp", alt: "Vista del entorno urbano cercano a la propiedad" },
+    ],
+    documentos: [
+      {
+        codigo: "FIC-PRO-001",
+        nombre: "Ficha técnica en PDF",
+        descripcion: "Superficies, distribución y amenidades en un documento imprimible.",
+        url: "/descargas/ficha-tecnica-demo.pdf",
+      },
+      {
+        codigo: "CHK-VEN-001",
+        nombre: "Checklist de compra segura",
+        descripcion: "Los puntos documentales que revisamos antes de cualquier operación.",
+        url: "/descargas/checklist-venta-cota.pdf",
+      },
     ],
     asesorId: "asesor-01",
     creditoDisponible: true,
@@ -206,6 +233,14 @@ export const propiedades: Property[] = [
     galeria: [
       { src: "/hero/nave-tijuana.webp", alt: "Nave industrial con andén de carga" },
       { src: "/hero/plaza.webp", alt: "Entorno comercial e industrial de la zona" },
+    ],
+    documentos: [
+      {
+        codigo: "FIC-PRO-001",
+        nombre: "Ficha técnica en PDF",
+        descripcion: "Alturas, superficies, capacidad eléctrica y accesos en un documento imprimible.",
+        url: "/descargas/ficha-tecnica-demo.pdf",
+      },
     ],
     asesorId: "asesor-02",
     creditoDisponible: false, // precio a consulta: sin base para calcular

@@ -1,0 +1,125 @@
+"use client";
+
+import * as React from "react";
+import { ArrowDownToLine, FileText, LockKeyhole } from "lucide-react";
+
+import type { DocumentoPropiedad } from "@/data/propiedades";
+import { captureLead } from "@/lib/admin/store";
+
+/*
+  Documentos descargables de la propiedad (PDFs cargados desde el panel,
+  sección Inmuebles). Se liberan a cambio de nombre y teléfono: cada
+  descarga es un lead con la propiedad de origen. TODO(M3.1): persistir el
+  lead en backend; hoy queda en la bandeja local del panel.
+*/
+type Props = {
+  documentos: DocumentoPropiedad[];
+  slug: string;
+  codigo: string;
+};
+
+export function PropertyDocuments({ documentos, slug, codigo }: Props) {
+  const [unlocked, setUnlocked] = React.useState(false);
+
+  if (documentos.length === 0) return null;
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    captureLead({
+      nombre: String(data.get("nombre") ?? ""),
+      telefono: String(data.get("telefono") ?? ""),
+      origen: "documentos",
+      propiedadSlug: slug,
+      mensaje: `Descargó documentos de ${codigo}`,
+    });
+    setUnlocked(true);
+  }
+
+  return (
+    <div className="mt-12">
+      <h2 className="display-soft text-2xl text-foreground">Documentos de la propiedad</h2>
+      <p className="mt-3 max-w-[62ch] text-[14.5px] leading-relaxed text-muted-foreground">
+        Ficha y documentos informativos en PDF. Déjanos tu contacto y se
+        liberan de inmediato; el expediente completo se comparte en persona.
+      </p>
+
+      <div className="mt-6 max-w-[620px] rounded-lg border border-border bg-card">
+        <ul className="divide-y divide-border">
+          {documentos.map((doc) => (
+            <li key={doc.codigo + doc.url} className="flex items-center gap-4 p-4 md:p-5">
+              <FileText className="size-5 shrink-0 text-primary" strokeWidth={1.5} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[14.5px] font-medium text-foreground">{doc.nombre}</p>
+                <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                  <span className="font-mono text-[11.5px]">{doc.codigo}</span> · {doc.descripcion}
+                </p>
+              </div>
+              {unlocked ? (
+                <a
+                  href={doc.url}
+                  download
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-primary px-3.5 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
+                >
+                  <ArrowDownToLine className="size-3.5" strokeWidth={1.5} />
+                  PDF
+                </a>
+              ) : (
+                <LockKeyhole className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden="true" />
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {!unlocked ? (
+          <form onSubmit={onSubmit} className="border-t border-border p-4 md:p-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={`docs-nombre-${slug}`} className="text-[13px] font-medium text-foreground">
+                  Nombre
+                </label>
+                <input
+                  id={`docs-nombre-${slug}`}
+                  name="nombre"
+                  required
+                  autoComplete="name"
+                  placeholder="Tu nombre"
+                  className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={`docs-telefono-${slug}`} className="text-[13px] font-medium text-foreground">
+                  Teléfono o WhatsApp
+                </label>
+                <input
+                  id={`docs-telefono-${slug}`}
+                  name="telefono"
+                  type="tel"
+                  required
+                  autoComplete="tel"
+                  placeholder="664 000 0000"
+                  className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] sm:w-auto"
+            >
+              <ArrowDownToLine className="size-4" strokeWidth={1.5} />
+              Liberar descargas
+            </button>
+            <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
+              Sin compromiso. Usamos tus datos solo para dar seguimiento.
+            </p>
+          </form>
+        ) : (
+          <p className="border-t border-border p-4 text-[13px] leading-relaxed text-muted-foreground md:px-5">
+            Descargas liberadas. Si quieres el expediente completo o agendar
+            visita, escríbenos.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Scrub } from "@/components/gsap/scrub";
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { BorderBeam } from "@/components/magicui/border-beam";
+import { captureLead } from "@/lib/admin/store";
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /*
@@ -25,7 +26,15 @@ export function Evaluar() {
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO(M3.1): enviar el lead al backend; la redirección se mantiene.
+    const data = new FormData(e.currentTarget);
+    // TODO(M3.1): POST al backend; hoy queda en la bandeja local del panel.
+    captureLead({
+      nombre: String(data.get("nombre") ?? ""),
+      telefono: String(data.get("telefono") ?? ""),
+      zona: String(data.get("zona") ?? ""),
+      tipoPropiedad: String(data.get("tipo") ?? ""),
+      origen: "evaluar",
+    });
     router.push("/vender-propiedad/gracias");
   }
 

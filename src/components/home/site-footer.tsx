@@ -1,6 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function SiteFooter() {
+  const pathname = usePathname();
+  /* El panel /admin trae su propio shell: sin footer público (además el
+     footer cortina interferiría con el layout del panel). */
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <footer className="border-t border-border">
       <div className="mx-auto max-w-[1280px] px-5 py-14 md:px-8">
