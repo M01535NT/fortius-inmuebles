@@ -18,24 +18,33 @@ import { getAsesorById } from "@/data/asesores";
 import {
   ESTADO_LABELS,
   formatPrecio,
-  getPropertyBySlug,
-  getRelatedProperties,
+
   OPERACION_LABELS,
-  propiedades,
   TIPO_LABELS,
   type Property,
 } from "@/data/propiedades";
+import {
+  getPropiedades,
+  getPropertyBySlug,
+  getRelatedProperties,
+} from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
 
 type Params = { slug: string };
 
-export function generateStaticParams(): Params[] {
+/* El inventario se lee del back-office; se revalida cada 5 minutos. */
+export const revalidate = 300;
+/* Un anuncio publicado después del build se genera al pedirlo. */
+export const dynamicParams = true;
+
+export async function generateStaticParams(): Promise<Params[]> {
+  const propiedades = await getPropiedades();
   return propiedades.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const property = getPropertyBySlug(slug);
+  const property = await getPropertyBySlug(slug);
   if (!property) return {};
   const precio =
     property.precio.modalidad === "publico" ? ` · ${formatPrecio(property.precio)}` : "";
@@ -96,10 +105,10 @@ function jsonLd(p: Property): string {
 
 export default async function PropertyDetailPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const property = getPropertyBySlug(slug);
+  const property = await getPropertyBySlug(slug);
   if (!property) notFound();
 
-  const related = getRelatedProperties(slug);
+  const related = await getRelatedProperties(slug);
   const ficha = fichaRows(property);
   const asesor = getAsesorById(property.asesorId);
   const muestraCalculadora =

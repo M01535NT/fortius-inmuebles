@@ -1,8 +1,13 @@
 /*
-  DATOS DEMO — propiedades ficticias con renders provisionales, creadas para
-  validar diseño y flujo de inventario/detalle. No representan inmuebles
-  reales. Reemplazar antes de indexar el sitio o lanzar campañas.
-  TODO backend (T030): migrar este archivo a Supabase junto con el panel admin.
+  CONTRATO DEL INVENTARIO — tipos, etiquetas y formateo.
+
+  El SITIO PÚBLICO ya NO lee de aquí: lee `src/lib/inventario.ts`, que consulta la
+  vista `public_listings` del back-office (inmobiliaria-os). Este archivo conserva
+  los TIPOS —que siguen siendo la forma que el sitio impone y a la que la base se
+  adapta— y el array `propiedades`, que hoy solo alimenta el panel /admin demo.
+
+  Ese panel está en retirada (ver la decisión en el back-office: el back-office es
+  uno solo). Cuando desaparezca, el array se va con él y aquí quedan solo los tipos.
 */
 
 export type Operacion = "venta" | "renta";

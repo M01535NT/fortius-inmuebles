@@ -5,7 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { DiagnosticCTA } from "@/components/sections/diagnostic-cta";
-import { propiedades } from "@/data/propiedades";
+import { getPropiedades } from "@/lib/inventario";
 import { zonas } from "@/data/zonas";
 
 export const metadata: Metadata = {
@@ -18,7 +18,11 @@ export const metadata: Metadata = {
   Hub SEO local: una card por zona con el conteo real de inventario público.
   El contenido editorial vive en src/data/zonas.ts.
 */
-export default function ZonasPage() {
+export const revalidate = 300;
+
+export default async function ZonasPage() {
+  const propiedades = await getPropiedades();
+
   return (
     <>
       <main className="bg-background pt-28 md:pt-32">

@@ -7,7 +7,7 @@ import { Container } from "@/components/layout/container";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { PropertyCard } from "@/components/property/property-card";
 import { DiagnosticCTA } from "@/components/sections/diagnostic-cta";
-import { propiedades } from "@/data/propiedades";
+import { getPropiedades } from "@/lib/inventario";
 import { getZonaBySlug, zonas } from "@/data/zonas";
 
 type Props = { params: Promise<{ zona: string }> };
@@ -35,6 +35,7 @@ export default async function ZonaPage({ params }: Props) {
   const zona = getZonaBySlug(slug);
   if (!zona) notFound();
 
+  const propiedades = await getPropiedades();
   const enZona = propiedades.filter(
     (p) => p.zona === zona.nombre && p.estado !== "vendida",
   );

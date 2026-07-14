@@ -5,7 +5,7 @@ import { Reveal } from "@/components/gsap/reveal";
 import { Scrub } from "@/components/gsap/scrub";
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { PropertyCard } from "@/components/property/property-card";
-import { getFeaturedProperties } from "@/data/propiedades";
+import { getFeaturedProperties } from "@/lib/inventario";
 
 /*
   Acceso directo al inventario sin convertir el Home en portal.
@@ -18,8 +18,8 @@ const DRIFT: [number, number][] = [
   [24, -24],
 ];
 
-export function Destacadas() {
-  const destacadas = getFeaturedProperties().slice(0, 3);
+export async function Destacadas() {
+  const destacadas = (await getFeaturedProperties()).slice(0, 3);
   if (destacadas.length === 0) return null;
 
   return (

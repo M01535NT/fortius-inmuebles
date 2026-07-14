@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
 import { InventoryExplorer } from "@/components/property/inventory-explorer";
 import { SectionHeading } from "@/components/sections/section-heading";
-import { propiedades } from "@/data/propiedades";
+import { getPropiedades } from "@/lib/inventario";
 
 export const metadata: Metadata = {
   title: "Inventario",
@@ -11,7 +11,12 @@ export const metadata: Metadata = {
     "Propiedades en venta y renta en Tijuana y Baja California, presentadas con información revisada.",
 };
 
-export default function InventarioPage() {
+/* El inventario se lee del back-office; se revalida cada 5 minutos. */
+export const revalidate = 300;
+
+export default async function InventarioPage() {
+  const propiedades = await getPropiedades();
+
   return (
     <main className="bg-background pb-24 pt-32 md:pb-0">
       <Container className="pb-16 md:pb-24">

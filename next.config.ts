@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      // Fotos de los anuncios: bucket público `listings` del back-office.
+      {
+        protocol: "https",
+        hostname: "fvvmvnduvzxvodeombld.supabase.co",
+        pathname: "/storage/v1/object/public/listings/**",
+      },
     ],
   },
 };
