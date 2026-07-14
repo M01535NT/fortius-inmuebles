@@ -11,6 +11,8 @@ import { captureLead } from "@/lib/admin/store";
 */
 export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; codigo: string; titulo: string }) {
   const [sent, setSent] = React.useState(false);
+  const [enviando, setEnviando] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   if (sent) {
     return (
@@ -27,17 +29,25 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
-        captureLead({
-          nombre: String(data.get("nombre") ?? ""),
-          telefono: String(data.get("telefono") ?? ""),
-          mensaje: String(data.get("mensaje") ?? "") || undefined,
-          propiedadSlug: slug,
-          origen: "interes-propiedad",
-        });
-        setSent(true);
+        setEnviando(true);
+        setError(null);
+        try {
+          await captureLead({
+            nombre: String(data.get("nombre") ?? ""),
+            telefono: String(data.get("telefono") ?? ""),
+            mensaje: String(data.get("mensaje") ?? "") || undefined,
+            propiedadSlug: slug,
+            origen: "interes-propiedad",
+          });
+          setSent(true);
+        } catch {
+          setError("No pudimos enviar tus datos. Inténtalo otra vez o escríbenos por WhatsApp.");
+        } finally {
+          setEnviando(false);
+        }
       }}
     >
       <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
@@ -87,10 +97,19 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
       </div>
       <button
         type="submit"
-        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99]"
+        disabled={enviando}
+        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
       >
-        Me interesa esta propiedad
+        {enviando ? "Enviando…" : "Me interesa esta propiedad"}
       </button>
+      {error ? (
+        <p
+          role="alert"
+          className="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[13.5px] leading-relaxed text-destructive"
+        >
+          {error}
+        </p>
+      ) : null}
       <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
         Sin compromiso. Usamos tus datos solo para dar seguimiento a tu
         solicitud.

@@ -6,11 +6,13 @@ import { CheckCircle2 } from "lucide-react";
 import { captureLead } from "@/lib/admin/store";
 
 /*
-  Interior lead form. TODO(M3.1): POST al endpoint real cuando exista el
-  backend; hoy el lead queda en la bandeja local del panel.
+  Formulario de contacto. El lead se entrega al back-office; si la entrega falla,
+  NO se dan las gracias: se dice la verdad y se ofrece el teléfono.
 */
 export function ContactForm() {
   const [sent, setSent] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (sent) {
     return (
@@ -30,18 +32,28 @@ export function ContactForm() {
   return (
     <form
       className="rounded-lg border border-border bg-card p-6 md:p-8"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const objetivo = String(data.get("objective") ?? "");
         const mensaje = String(data.get("message") ?? "");
-        captureLead({
-          nombre: String(data.get("name") ?? ""),
-          telefono: String(data.get("phone") ?? ""),
-          mensaje: [objetivo, mensaje].filter(Boolean).join(" · ") || undefined,
-          origen: "contacto",
-        });
-        setSent(true);
+        setEnviando(true);
+        setError(null);
+        try {
+          await captureLead({
+            nombre: String(data.get("name") ?? ""),
+            telefono: String(data.get("phone") ?? ""),
+            mensaje: [objetivo, mensaje].filter(Boolean).join(" · ") || undefined,
+            origen: "contacto",
+          });
+          setSent(true);
+        } catch {
+          setError(
+            "No pudimos enviar tus datos. Revisa tu conexión e inténtalo otra vez, o escríbenos por WhatsApp.",
+          );
+        } finally {
+          setEnviando(false);
+        }
       }}
     >
       <div className="grid gap-5 sm:grid-cols-2">
@@ -97,11 +109,21 @@ export function ContactForm() {
         </div>
       </div>
 
+      {error ? (
+        <p
+          role="alert"
+          className="mt-6 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-[14px] leading-relaxed text-destructive"
+        >
+          {error}
+        </p>
+      ) : null}
+
       <button
         type="submit"
-        className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] sm:w-auto"
+        disabled={enviando}
+        className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60 sm:w-auto"
       >
-        Solicitar evaluación
+        {enviando ? "Enviando…" : "Solicitar evaluación"}
       </button>
 
       <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">

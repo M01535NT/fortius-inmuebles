@@ -19,6 +19,7 @@ import * as React from "react";
 import { asesores as asesoresSeed, type Asesor as AsesorBase } from "@/data/asesores";
 import { propiedades as propiedadesSeed, type Property } from "@/data/propiedades";
 import { siteConfig } from "@/data/site";
+import { enviarProspecto, type OrigenProspecto } from "@/lib/prospectos";
 
 const PREFIX = "cota-admin:v1:";
 
@@ -459,11 +460,17 @@ export function logout() {
 /* ---------- captura de leads desde el sitio público ---------- */
 
 /*
-  Los formularios públicos llaman esto además de su TODO(M3.1) de backend:
-  el lead queda en la bandeja del panel de este navegador, así el flujo
-  completo (captura → seguimiento) es demostrable hoy.
+  Punto ÚNICO por el que pasan los cinco formularios del sitio.
+
+  Antes solo escribía en el `localStorage` del visitante: el lead se quedaba en
+  SU navegador y el negocio nunca lo veía. Ahora se entrega al back-office
+  (inmobiliaria-os) y, si la entrega falla, ESTA FUNCIÓN LANZA: un formulario no
+  debe dar las gracias por un lead que se perdió.
+
+  La copia local se conserva porque el panel /admin de este repo la usa como
+  bandeja de demostración. La fuente de verdad es el back-office.
 */
-export function captureLead(input: {
+export async function captureLead(input: {
   nombre: string;
   telefono: string;
   origen: LeadOrigen;
@@ -472,8 +479,9 @@ export function captureLead(input: {
   zona?: string;
   tipoPropiedad?: string;
   mensaje?: string;
-}) {
-  if (typeof window === "undefined") return;
+}): Promise<string> {
+  if (typeof window === "undefined") return "";
+
   const lead: Lead = {
     id: uid(),
     estado: "nuevo",
@@ -482,6 +490,12 @@ export function captureLead(input: {
     ...input,
   };
   upsert(db.leads, lead);
+
+  // El origen del panel usa guion (`interes-propiedad`); el del back-office usa
+  // guion bajo, como el resto de sus enumerados. Se traduce aquí, en la frontera.
+  const origen = input.origen.replace(/-/g, "_") as OrigenProspecto;
+
+  return enviarProspecto({ ...input, origen });
 }
 
 /* ---------- formato ---------- */

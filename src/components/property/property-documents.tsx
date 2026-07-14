@@ -20,20 +20,35 @@ type Props = {
 
 export function PropertyDocuments({ documentos, slug, codigo }: Props) {
   const [unlocked, setUnlocked] = React.useState(false);
+  const [enviando, setEnviando] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   if (documentos.length === 0) return null;
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  /*
+    Los PDFs se entregan a cambio del contacto. Si el contacto no llegó al
+    back-office, no se libera la descarga: sería regalar el documento y perder
+    el prospecto a la vez.
+  */
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    captureLead({
-      nombre: String(data.get("nombre") ?? ""),
-      telefono: String(data.get("telefono") ?? ""),
-      origen: "documentos",
-      propiedadSlug: slug,
-      mensaje: `Descargó documentos de ${codigo}`,
-    });
-    setUnlocked(true);
+    setEnviando(true);
+    setError(null);
+    try {
+      await captureLead({
+        nombre: String(data.get("nombre") ?? ""),
+        telefono: String(data.get("telefono") ?? ""),
+        origen: "documentos",
+        propiedadSlug: slug,
+        mensaje: `Descargó documentos de ${codigo}`,
+      });
+      setUnlocked(true);
+    } catch {
+      setError("No pudimos enviar tus datos. Inténtalo otra vez.");
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -105,11 +120,20 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           </div>
           <button
             type="submit"
-            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99]"
+            disabled={enviando}
+            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
           >
             <ArrowDownToLine className="size-4" strokeWidth={1.5} />
-            Liberar descargas
+            {enviando ? "Enviando…" : "Liberar descargas"}
           </button>
+          {error ? (
+            <p
+              role="alert"
+              className="mt-2.5 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[12.5px] leading-relaxed text-destructive"
+            >
+              {error}
+            </p>
+          ) : null}
           <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
             Sin compromiso. Usamos tus datos solo para dar seguimiento.
           </p>

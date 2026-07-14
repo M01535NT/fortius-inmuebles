@@ -13,6 +13,7 @@
     "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-label": "latest",
     "@radix-ui/react-slot": "latest",
+    "@supabase/supabase-js": "^2.110.3",
     "class-variance-authority": "latest",
     "clsx": "latest",
     "gsap": "^3.15.0",

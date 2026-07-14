@@ -23,19 +23,36 @@ const PASOS = [
 export function Evaluar() {
   const router = useRouter();
   const sectionRef = React.useRef<HTMLElement>(null);
+  const [enviando, setEnviando] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  /*
+    Hay que ESPERAR la entrega antes de navegar: si se lanzara el envío y se
+    redirigiera de inmediato, el navegador cancelaría la petición al cambiar de
+    página y el prospecto se perdería en silencio — justo lo que veníamos
+    haciendo. Y si falla, no se va a la página de gracias: no se agradece un
+    lead que no llegó.
+  */
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    // TODO(M3.1): POST al backend; hoy queda en la bandeja local del panel.
-    captureLead({
-      nombre: String(data.get("nombre") ?? ""),
-      telefono: String(data.get("telefono") ?? ""),
-      zona: String(data.get("zona") ?? ""),
-      tipoPropiedad: String(data.get("tipo") ?? ""),
-      origen: "evaluar",
-    });
-    router.push("/vender-propiedad/gracias");
+    setEnviando(true);
+    setError(null);
+    try {
+      await captureLead({
+        nombre: String(data.get("nombre") ?? ""),
+        telefono: String(data.get("telefono") ?? ""),
+        zona: String(data.get("zona") ?? ""),
+        tipoPropiedad: String(data.get("tipo") ?? ""),
+        origen: "evaluar",
+      });
+      router.push("/vender-propiedad/gracias");
+    } catch {
+      setError(
+        "No pudimos enviar tus datos. Revisa tu conexión e inténtalo otra vez, o escríbenos por WhatsApp.",
+      );
+      setEnviando(false);
+    }
   }
 
   useGSAP(
@@ -192,12 +209,22 @@ export function Evaluar() {
                   </div>
                 </div>
 
+                {error ? (
+                  <p
+                    role="alert"
+                    className="mt-6 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-[14px] leading-relaxed text-destructive"
+                  >
+                    {error}
+                  </p>
+                ) : null}
+
                 <div className="relative">
                   <button
                     type="submit"
-                    className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] sm:w-auto"
+                    disabled={enviando}
+                    className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60 sm:w-auto"
                   >
-                    Solicitar evaluación
+                    {enviando ? "Enviando…" : "Solicitar evaluación"}
                   </button>
 
                   <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">

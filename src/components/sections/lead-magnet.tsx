@@ -20,17 +20,26 @@ const PREVIEW = [
 
 export function LeadMagnet() {
   const [sent, setSent] = React.useState(false);
+  const [enviando, setEnviando] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    // TODO(M3.1): POST al backend; hoy queda en la bandeja local del panel.
-    captureLead({
-      nombre: String(data.get("nombre") ?? ""),
-      telefono: String(data.get("telefono") ?? ""),
-      origen: "checklist",
-    });
-    setSent(true);
+    setEnviando(true);
+    setError(null);
+    try {
+      await captureLead({
+        nombre: String(data.get("nombre") ?? ""),
+        telefono: String(data.get("telefono") ?? ""),
+        origen: "checklist",
+      });
+      setSent(true);
+    } catch {
+      setError("No pudimos enviar tus datos. Inténtalo otra vez.");
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -113,11 +122,20 @@ export function LeadMagnet() {
                   </div>
                   <button
                     type="submit"
-                    className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99]"
+                    disabled={enviando}
+                    className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
                   >
                     <ArrowDownToLine className="size-4" strokeWidth={1.5} />
-                    Obtener el checklist
+                    {enviando ? "Enviando…" : "Obtener el checklist"}
                   </button>
+                  {error ? (
+                    <p
+                      role="alert"
+                      className="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[13px] leading-relaxed text-destructive"
+                    >
+                      {error}
+                    </p>
+                  ) : null}
                   <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
                     Sin costo. Usamos tus datos solo para dar seguimiento; no
                     los compartimos.
