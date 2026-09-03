@@ -28,3 +28,6 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local verification reports, browser artifacts and disposable fixtures
+/.superpowers/
