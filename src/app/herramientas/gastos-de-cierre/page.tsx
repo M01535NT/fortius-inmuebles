@@ -6,6 +6,7 @@ import { ClosingCostsCalculator } from "@/components/tools/closing-costs-calcula
 import { Container } from "@/components/layout/container";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/herramientas/gastos-de-cierre" },
   title: "Gastos de cierre",
   description:
     "Estima los gastos de cierre al comprar o vender en Tijuana: impuestos, notario, registro y avalúo, con rangos de referencia.",

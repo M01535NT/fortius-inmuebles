@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/sections/section-heading";
 import { getPropiedades } from "@/lib/inventario";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/inventario" },
   title: "Inventario",
   description:
     "Propiedades en venta y renta en Tijuana y Baja California, presentadas con información revisada.",

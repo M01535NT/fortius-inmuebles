@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Compromisos } from "@/components/home/compromisos";
 import { Destacadas } from "@/components/home/destacadas";
 import { Entregables } from "@/components/home/entregables";
@@ -10,6 +11,8 @@ import { Respuestas } from "@/components/home/respuestas";
 import { Segmentos } from "@/components/home/segmentos";
 import { Zonas } from "@/components/home/zonas";
 import { getPublicContent } from "@/lib/backend/public";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 /*
   Home: one continuous piece for the property owner. Nav and footer live in

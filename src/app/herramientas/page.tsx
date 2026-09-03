@@ -5,6 +5,7 @@ import { ArrowUpRight, Calculator, ReceiptText } from "lucide-react";
 import { Container } from "@/components/layout/container";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/herramientas" },
   title: "Herramientas",
   description:
     "Calculadoras abiertas para llegar con números claros: hipoteca y gastos de cierre en Tijuana y Baja California.",

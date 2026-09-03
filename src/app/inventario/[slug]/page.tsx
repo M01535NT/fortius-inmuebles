@@ -42,8 +42,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     property.precio.modalidad === "publico" ? ` · ${formatPrecio(property.precio)}` : "";
   return {
     title: property.titulo,
+    alternates: { canonical: `/inventario/${property.slug}` },
     description: `${TIPO_LABELS[property.tipo]} en ${OPERACION_LABELS[property.operacion].toLowerCase()} en ${property.zona}${precio}. Información revisada por la firma.`,
-    openGraph: { images: [property.galeria[0].src] },
+    openGraph: {
+      url: new URL(`/inventario/${property.slug}`, siteConfig.url).href,
+      images: [new URL(property.galeria[0].src, siteConfig.url).href],
+    },
     // Inventario demo: no indexar listados ficticios. Quitar al cargar inventario real.
     robots: property.demo ? { index: false, follow: true } : undefined,
   };

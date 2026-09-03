@@ -6,6 +6,7 @@ import { Container } from "@/components/layout/container";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/herramientas/hipoteca" },
   title: "Calculadora de hipoteca",
   description:
     "Estima la mensualidad de tu crédito hipotecario con enganche, plazo y tasa editables. Estimación informativa.",

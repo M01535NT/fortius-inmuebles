@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!zona) return {};
   return {
     title: `Bienes raíces en ${zona.nombre}`,
+    alternates: { canonical: `/zonas/${zona.slug}` },
     description: `${zona.resumen} Qué se mueve en ${zona.nombre} y qué revisamos antes de comprar o vender ahí.`,
   };
 }

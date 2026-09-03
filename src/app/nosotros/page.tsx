@@ -4,6 +4,7 @@ import { InstitutionalVideo } from "@/components/sections/institutional-video";
 import { InteriorPage } from "@/components/sections/interior-page";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/nosotros" },
   title: "Nosotros",
   description:
     "Firma inmobiliaria enfocada en método, análisis comercial y acompañamiento profesional.",

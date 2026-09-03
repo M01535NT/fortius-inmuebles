@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { propiedades } from "@/data/propiedades";
 import { getPropiedades, getPropertyBySlug, getFeaturedProperties } from "@/lib/inventario";
 import sitemap from "@/app/sitemap";
+import robots from "@/app/robots";
 import { enviarProspecto } from "@/lib/prospectos";
 import { POST } from "@/app/api/leads/route";
 
@@ -52,9 +53,15 @@ test("public results exclude unpublished records, private fields and private ass
 test("sitemap includes only currently published non-demo details", async () => {
   records.push({ ...propiedades[1], publicada: true, demo: true }, { ...propiedades[2], publicada: false, demo: false });
   const urls = (await sitemap()).map((row) => row.url);
-  expect(urls).toContain(`https://cota.example/inventario/${propiedades[0].slug}`);
-  expect(urls).not.toContain(`https://cota.example/inventario/${propiedades[1].slug}`);
-  expect(urls).not.toContain(`https://cota.example/inventario/${propiedades[2].slug}`);
+  expect(urls).toContain(`https://cota-eight.vercel.app/inventario/${propiedades[0].slug}`);
+  expect(urls).not.toContain(`https://cota-eight.vercel.app/inventario/${propiedades[1].slug}`);
+  expect(urls).not.toContain(`https://cota-eight.vercel.app/inventario/${propiedades[2].slug}`);
+  expect(urls.every((url) => new URL(url).origin === "https://cota-eight.vercel.app")).toBe(true);
+  expect(JSON.stringify(urls)).not.toContain("cota.example");
+});
+test("robots directs crawlers to the real public sitemap and keeps admin excluded", () => {
+  expect(robots()).toMatchObject({ sitemap: "https://cota-eight.vercel.app/sitemap.xml", rules: { disallow: "/admin" } });
+  expect(JSON.stringify(robots())).not.toContain("cota.example");
 });
 test("legacy lead entry reports success only after same-origin BFF persistence", async () => {
   const id = await enviarProspecto({ nombre: "Consulta pública", telefono: "6641234567", origen: "contacto" });

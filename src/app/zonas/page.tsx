@@ -9,6 +9,7 @@ import { getPropiedades } from "@/lib/inventario";
 import { zonas } from "@/data/zonas";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/zonas" },
   title: "Zonas de operación",
   description:
     "Zonas donde operamos en Tijuana, Rosarito, Tecate y Ensenada: qué se mueve en cada una y qué revisamos antes de comprar o vender ahí.",

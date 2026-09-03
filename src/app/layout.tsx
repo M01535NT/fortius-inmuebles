@@ -6,6 +6,7 @@ import "@/app/globals.css";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
 import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
+import { siteConfig } from "@/data/site";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -22,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 const defaultMetadata: Metadata = {
-  metadataBase: new URL("https://cota.example"),
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: "COTA | Vende tu propiedad en Tijuana con método",
     template: "%s | COTA",

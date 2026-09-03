@@ -6,6 +6,7 @@ import { LeadMagnet } from "@/components/sections/lead-magnet";
 import { routePages } from "@/data/site";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/vender-propiedad" },
   title: "Vender inmueble",
   description: routePages.vender.description,
 };

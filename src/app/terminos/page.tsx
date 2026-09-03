@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/terminos" },
   title: "Términos y condiciones",
   description: "Términos generales de uso del sitio y de la información publicada.",
 };

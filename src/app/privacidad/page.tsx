@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacidad" },
   title: "Aviso de privacidad",
   description: "Aviso de privacidad para solicitudes inmobiliarias.",
 };

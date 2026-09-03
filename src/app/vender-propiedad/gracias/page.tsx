@@ -8,6 +8,7 @@ import { getPublicSettings } from "@/lib/backend/public";
 import { publicContact } from "@/lib/public-contact";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/vender-propiedad/gracias" },
   title: "Recibimos tu solicitud",
   robots: { index: false, follow: false }, // página de confirmación, no indexable
 };
