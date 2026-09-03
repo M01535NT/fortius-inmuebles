@@ -8,6 +8,8 @@ export const siteConfig = {
   name: "Cota",
   descriptor: "Bienes raíces con método",
   url: "https://cota.example", // TODO: real domain
+  platformUrl:
+    process.env.NEXT_PUBLIC_PLATFORM_URL ?? "https://inmobiliaria-os.vercel.app",
   contact: {
     // TODO(T031): datos reales del cliente. Placeholders para el prototipo.
     phone: "+52 664 000 0000",

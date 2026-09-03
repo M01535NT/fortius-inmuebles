@@ -4,9 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
+import { ArrowUpRight } from "lucide-react";
 
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { ThemeToggle } from "@/components/home/theme-toggle";
+import { siteConfig } from "@/data/site";
 
 /*
   COTA wordmark. The tick-line-tick glyph is a dimension mark ("cota"),
@@ -100,6 +102,20 @@ export function SiteNav() {
         </nav>
 
         <div className="flex items-center gap-2.5">
+          <a
+            href={siteConfig.platformUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={
+              "hidden h-10 items-center gap-2 rounded-md border px-3.5 text-[13.5px] font-medium transition-[background-color,color,border-color,transform] active:scale-[0.97] md:inline-flex " +
+              (solid
+                ? "border-border text-foreground/80 hover:bg-secondary hover:text-foreground"
+                : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]")
+            }
+          >
+            Plataforma
+            <ArrowUpRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
+          </a>
           <ThemeToggle
             className={
               solid

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowUpRight, X } from "lucide-react";
 
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { siteConfig } from "@/data/site";
 
 /*
   Menú a pantalla completa. Se revela con un clip-path circular que nace
@@ -110,8 +111,8 @@ export function FullscreenMenu({ open, onClose }: Props) {
       role="dialog"
       aria-modal="true"
       aria-label="Menú"
-      style={{ clipPath: CLIP_CLOSED, visibility: "hidden" }}
-      className="fixed inset-0 z-50 bg-background"
+      style={{ clipPath: CLIP_CLOSED }}
+      className="invisible fixed inset-0 z-50 bg-background"
     >
       {/* Cabecera del overlay: marca + cerrar en el mismo punto del botón. */}
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
@@ -159,7 +160,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
               ))}
             </ol>
 
-            <div data-menu-item className="mt-7">
+            <div data-menu-item className="mt-7 flex flex-wrap gap-3">
               <Link
                 href="/#evaluar"
                 onClick={onClose}
@@ -168,6 +169,16 @@ export function FullscreenMenu({ open, onClose }: Props) {
                 Evaluar mi propiedad
                 <ArrowUpRight className="size-4" strokeWidth={1.5} />
               </Link>
+              <a
+                href={siteConfig.platformUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={onClose}
+                className="inline-flex h-12 items-center gap-2 rounded-md border border-border px-6 text-[15px] font-semibold text-foreground transition-[background-color,color,transform] hover:bg-secondary active:scale-[0.98]"
+              >
+                Ir a la plataforma
+                <ArrowUpRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
+              </a>
             </div>
           </nav>
 
