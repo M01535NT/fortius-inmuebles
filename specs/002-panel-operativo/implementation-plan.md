@@ -1,5 +1,13 @@
 # COTA web y panel operativo Implementation Plan
 
+Estado: ejecutado, revisado e integrado el 3 de septiembre de 2026. Código de
+COTA publicado y verificado en e146091; plataforma separada en b278fcb.
+Las rutas temporales que figuran abajo son referencias históricas del plan:
+sus evidencias se retiraron a `C:/Paginas-web/_archivo/COTA-20260903/release-evidence`
+con manifiesto SHA-256. Consultar README para operación y alcance vigentes.
+La invitación fue aceptada por el proveedor; recepción y contraseña corresponden
+a la persona administradora, no se afirman completadas automáticamente.
+
 > For agentic workers: use superpowers:subagent-driven-development task by task, with tests and independent review. Infrastructure is handled by the controller alongside one bounded code task.
 
 **Goal:** COTA web y admin persistentes e independientes, después depuración recuperable.
@@ -77,7 +85,7 @@ The currently deployed footer explicitly shows `WhatsApp: por confirmar` and `Te
 **Owner:** controller. Created project qkkirjzhviqwvuqjnmei; no other project removed. Administrator address supplied privately and retained only in the local provisioning ledger, not versioned documentation or public contact settings.
 
 - [x] Apply migration only to new COTA; verify policies, empty sensitive collections and storage visibility.
-- [ ] Configure local credentials without committing secrets; invite admin and create membership, require password setup. Public content/settings can be seeded from current code; no private platform transfer.
+- [x] Configure local credentials without committing secrets; invite admin and create membership, require password setup. Public content/settings can be seeded from current code; no private platform transfer.
 - [x] Preserve currently published COTA inventory from the existing public-only view. Reuse existing local `/hero` images when SHA-256 verifies they are identical; copy into COTA Storage only if an image is absent locally. Snapshot captured at `.superpowers/sdd/implementation-plan/public-inventory-before.json`: three demo listings; `public-asset-manifest.json` verifies all four unique images already exist locally. Do not read/copy private platform tables or replace them with different static fixtures.
 - [x] Test unauthorized denial, real login/logout, CRUD/reload/two sessions/concurrent conflict, lead capture, publish/unpublish/content/contact/SEO and private files. Remove only known test fixtures after testing.
 - [x] Run npm test, lint, TypeScript and build. Configure Vercel only under user authority, otherwise mark production deployment pending explicitly.

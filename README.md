@@ -16,7 +16,7 @@ se actualizan desde ese backend sin una nueva compilación.
    `cota_staff`; no se concede acceso por correo ni por datos del navegador.
 4. Ejecuta `npm install` y `npm run dev -- --hostname 127.0.0.1 --port 3000`.
 
-Nunca confirmes ni publiques `.env.local`; la clave de servicio no debe usar un
+Nunca incluyas en Git ni publiques `.env.local`; la clave de servicio no debe usar un
 prefijo `NEXT_PUBLIC_` ni llegar al navegador. El sitio público expone solo la
 proyección publicada y los archivos privados se entregan con autorización del
 panel.
@@ -107,18 +107,29 @@ exactas. El archivo está en
 `C:\Paginas-web\_archivo\COTA-20260903`; el inventario de restauración
 versionado está en
 `docs/archive/COTA-20260903-manifest.json`, con una copia inmutable
-`MANIFEST.json` y las instrucciones `RESTORE.md` dentro del archivo. Los tres
-snapshots públicos que el seeder necesitaba permanecen en el espacio activo de
-plan y también tienen copia archivada. Para recuperar un archivo, comprueba su
-hash del manifiesto y cópialo de vuelta a su ruta relativa; no uses borrados
-recursivos.
+`MANIFEST.json` y las instrucciones `RESTORE.md` dentro del archivo. Al cerrar la
+entrega se retiraron también el espacio temporal del plan, las evidencias de
+pruebas y el script de archivo de una sola vez: 106 archivos verificados en
+`release-evidence`, con su propio manifiesto SHA-256. No son otra carpeta de
+proyecto activo. Los snapshots y los informes siguen recuperables allí.
+Para restaurar, comprueba el hash y copia únicamente la ruta necesaria.
 
 La investigación que sustentó el estimador de cierre quedó como antecedente
 histórico archivado, no como fuente jurídica o fiscal vigente.
 
-## Pendiente fuera de este cambio
+## Entrega y pendientes de contenido
 
-El contenido, contactos y propiedades actuales son demostrativos hasta que la
-operación los sustituya por datos reales. Falta publicar el despliegue e invitar
-formalmente a la administración; esas acciones no se ejecutan desde esta
-limpieza.
+El 3 de septiembre de 2026 se verificó la publicación de la web y el panel en
+`https://cota-eight.vercel.app`, con Supabase dedicado y ambas migraciones
+aplicadas. La retirada del enlace inverso se publicó en la plataforma separada,
+sin modificar su base de datos. La invitación de administración fue aceptada
+por el proveedor; la recepción del correo y la creación de contraseña deben
+completarse por la persona destinataria.
+
+Verificación: 145 pruebas offline de COTA, 19 de navegador, 15 comprobaciones
+alojadas, 21 rutas/SEO de producción, aceptación privada de producción, lint,
+tipos y build. Se conservaron las 14 filas iniciales y se retiraron los datos
+de prueba. La plataforma pasó sus 178 pruebas.
+
+El contenido, contactos y propiedades actuales siguen siendo demostrativos
+hasta que la operación los sustituya por datos reales desde `/admin`.
