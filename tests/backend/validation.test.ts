@@ -31,6 +31,25 @@ describe("BFF validation and authorization behavior", () => {
     expect(output[0].documentos).toEqual([]);
     expect(projectPublic("leads", [{ nombre: "Privado" }])).toEqual([]);
   });
+  it.each(["videoInstitucionalUrl", "facebook", "instagram", "whatsapp"])("public configuration blanks private capabilities in %s without dropping contact settings", (field) => {
+    const settings = { nombreComercial: "COTA", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/cota", instagram: "https://www.instagram.com/cota/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/cota-public/video.mp4" };
+    for (const unsafe of [
+      "https://assets.example.com/storage/v1/object/sign/cota-private/video.mp4?token=PRIVATE_CAPABILITY",
+      "/api/admin/files?bucket=cota-private&path=video.mp4",
+      "https://assets.example.com/storage/v1/object/authenticated/cota-private/video.mp4",
+      "javascript:alert(1)",
+    ]) {
+      const input = { ...settings, [field]: unsafe };
+      expect(projectPublic("config", [input])).toEqual([{ ...settings, [field]: "" }]);
+      expect(input[field as keyof typeof input]).toBe(unsafe);
+    }
+  });
+  it("public configuration preserves legitimate external and local links and empty URL fields", () => {
+    const settings = { nombreComercial: "COTA", telefono: "6641234567", whatsapp: "https://wa.me/526640000000", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/cota", instagram: "https://www.instagram.com/cota/", videoInstitucionalUrl: "/media/institucional.mp4" };
+    expect(projectPublic("config", [settings])).toEqual([settings]);
+    const emptyLinks = { ...settings, facebook: "", instagram: "", videoInstitucionalUrl: "", whatsapp: "" };
+    expect(projectPublic("config", [emptyLinks])).toEqual([emptyLinks]);
+  });
   it("validates contact, body, origin enum and rejects honeypot/privilege injection", () => {
     expect(parseLead({ nombre: "Persona", telefono: "6641234567", origen: "interes_propiedad" }).origen).toBe("interes_propiedad");
     for (const extra of [{ telefono: "a" }, { email: "wrong" }, { website: "spam" }, { estado: "cerrado" }, { origen: "fake" }]) {

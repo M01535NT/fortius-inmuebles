@@ -64,11 +64,16 @@ export function parseLead(value: unknown) {
 }
 
 function isPublicUrl(value: string) { return safeUrl.safeParse(value).success && !/(cota-private|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value); }
+// Keep the settings/contact shape even when a stored link is private or invalid.
+// This projection never rewrites the staff-owned source record.
+const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? value : "");
+const publicWhatsapp = z.string().transform((value) => isPublicUrl(value) || /^[+]?[0-9 ()-]{7,40}$/.test(value) ? value : "");
+const publicSettings = settingsSchema.strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
 // This second allowlist also protects server components against malformed DB data.
 const publicProperty = propertySchema.strip().extend({ ficha: ficha.strip(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()) });
 export function projectPublic(collection: string, values: unknown[]): Record<string, unknown>[] {
   const schema = collection === "propiedades" ? publicProperty : collection === "asesores" ? adviserSchema.pick({ id: true, nombre: true, cargo: true, iniciales: true, activo: true }).strip()
-    : collection === "contenido" ? contentSchema.strip() : collection === "config" ? settingsSchema.strip() : collection === "posts" ? postSchema.strip() : null;
+    : collection === "contenido" ? contentSchema.strip() : collection === "config" ? publicSettings : collection === "posts" ? postSchema.strip() : null;
   if (!schema) return [];
   const result: Record<string, unknown>[] = [];
   for (const value of values) {

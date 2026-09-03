@@ -225,7 +225,7 @@ $$;
 -- SELECT grant to anon; this function is the only public data-reading surface.
 create function public.cota_public_records(p_collection text) returns table(data jsonb)
 language plpgsql stable security definer set search_path = '' as $$
-declare d jsonb; result jsonb;
+declare d jsonb; result jsonb; k text;
 begin
   if p_collection not in ('propiedades','asesores','contenido','config','posts') then return; end if;
   for d in select r.data from public.cota_records r where r.collection=p_collection
@@ -248,6 +248,11 @@ begin
       result:=public.cota_pick(d,array['heroTitulo','heroSubtitulo','manifiestoTitulo','manifiestoTexto','seoTitle','seoDescription']);
     elsif p_collection='config' then
       result:=public.cota_pick(d,array['nombreComercial','telefono','whatsapp','email','horario','facebook','instagram','videoInstitucionalUrl']);
+      foreach k in array array['facebook','instagram','videoInstitucionalUrl','whatsapp'] loop
+        if not public.cota_public_url(d->>k) and not (k='whatsapp' and coalesce(d->>k,'') ~ '^[+]?[0-9 ()-]{7,40}$') then
+          result:=result || jsonb_build_object(k,'');
+        end if;
+      end loop;
     else
       result:=public.cota_pick(d,array['id','slug','titulo','resumen','contenido','estado','actualizadoEl']);
     end if;

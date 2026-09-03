@@ -135,6 +135,40 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
     });
   });
 
+  it.each(["videoInstitucionalUrl", "facebook", "instagram", "whatsapp"])("anonymous configuration projection blanks private capabilities in %s but retains other settings", async (field) => {
+    const settings = { nombreComercial: "COTA", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/cota", instagram: "https://www.instagram.com/cota/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/cota-public/video.mp4" };
+    let version: number | null = null;
+    for (const unsafe of [
+      "https://assets.example.com/storage/v1/object/sign/cota-private/video.mp4?token=PRIVATE_CAPABILITY",
+      "/api/admin/files?bucket=cota-private&path=video.mp4",
+      "https://assets.example.com/storage/v1/object/authenticated/cota-private/video.mp4",
+      "javascript:alert(1)",
+    ]) {
+      await asRole("authenticated", member, async () => {
+        const saved = await save("config", "singleton", { ...settings, [field]: unsafe }, version);
+        version = saved.version;
+        expect(saved.data[field]).toBe(unsafe);
+      });
+      await asRole("anon", null, async () => {
+        const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.cota_public_records('config')")).rows;
+        expect(rows).toEqual([{ data: { ...settings, [field]: "" } }]);
+      });
+    }
+  });
+
+  it("anonymous configuration keeps legitimate public links, local video and empty URLs", async () => {
+    const settings = { nombreComercial: "COTA", telefono: "6641234567", whatsapp: "https://wa.me/526640000000", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/cota", instagram: "https://www.instagram.com/cota/", videoInstitucionalUrl: "/media/institucional.mp4" };
+    await asRole("authenticated", member, async () => { await save("config", "singleton", settings); });
+    await asRole("anon", null, async () => {
+      expect((await db.query("select * from public.cota_public_records('config')")).rows).toEqual([{ data: settings }]);
+    });
+    const emptyLinks = { ...settings, facebook: "", instagram: "", videoInstitucionalUrl: "", whatsapp: "" };
+    await asRole("authenticated", member, async () => { await save("config", "singleton", emptyLinks, 1); });
+    await asRole("anon", null, async () => {
+      expect((await db.query("select * from public.cota_public_records('config')")).rows).toEqual([{ data: emptyLinks }]);
+    });
+  });
+
   it("captures leads only through privileged BFF and limits repeated submissions atomically", async () => {
     const lead = { nombre: "Persona", telefono: "6641234567", origen: "contacto" };
     await asRole("anon", null, async () => {
