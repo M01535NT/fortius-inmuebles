@@ -42,8 +42,8 @@ function Editor({ initial }: { initial: SiteContent }) {
         String(data.get(k) ?? ""),
       ]),
     ) as SiteContent;
-    await contentStore.save(next, version);
-    setVersion(contentStore.version("singleton"));
+    const saved = await contentStore.save(next, version);
+    setVersion(contentStore.version(saved));
     setGuardado(true);
     window.setTimeout(() => setGuardado(false), 2500);
   }

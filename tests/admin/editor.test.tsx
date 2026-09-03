@@ -12,8 +12,14 @@ import { PropertyForm } from "@/components/admin/property-form";
 import EditPropertyPage from "@/app/admin/propiedades/[slug]/editar/page";
 import LeadPage from "@/app/admin/leads/[id]/page";
 import ConfigPage from "@/app/admin/configuracion/page";
+import ContenidoPage from "@/app/admin/contenido/page";
 import ClientesPage from "@/app/admin/clientes/page";
-import { db, settingsStore, clearAdminCache } from "@/lib/admin/store";
+import {
+  db,
+  settingsStore,
+  contentStore,
+  clearAdminCache,
+} from "@/lib/admin/store";
 import type { Property } from "@/data/propiedades";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -282,3 +288,121 @@ test("client failure preserves details and only acknowledged save closes its edi
   );
   expect(db.clientes.list()[0].nombre).toBe("Cliente real");
 });
+
+const singletonEditors = [
+  {
+    name: "Configuración",
+    Page: ConfigPage,
+    store: settingsStore,
+    label: "Nombre comercial",
+    field: "nombreComercial",
+    button: "Guardar configuración",
+    initial: {
+      nombreComercial: "COTA",
+      telefono: "6645551234",
+      whatsapp: "https://wa.me/526645551234",
+      email: "hola@example.com",
+      horario: "Horario",
+      facebook: "",
+      instagram: "",
+      videoInstitucionalUrl: "",
+    },
+  },
+  {
+    name: "Contenido",
+    Page: ContenidoPage,
+    store: contentStore,
+    label: "Titular (H1)",
+    field: "heroTitulo",
+    button: "Guardar contenido",
+    initial: {
+      heroTitulo: "COTA",
+      heroSubtitulo: "Subtítulo",
+      manifiestoTitulo: "Manifiesto",
+      manifiestoTexto: "Texto",
+      seoTitle: "COTA Inmobiliaria",
+      seoDescription: "Descripción",
+    },
+  },
+];
+test.each(
+  singletonEditors.flatMap((editor) =>
+    [false, true].map((failRevalidation) => ({ ...editor, failRevalidation })),
+  ),
+)(
+  "$name submits its own saved v2 after cache reaches v3 (revalidation failure: $failRevalidation)",
+  async ({ Page, store, label, field, button, initial, failRevalidation }) => {
+    let serverData: Record<string, unknown> = { ...initial };
+    let serverVersion = 1;
+    let failGet = false;
+    let finishFirstPut!: () => void;
+    const submittedVersions: (number | null)[] = [];
+    const envelope = () => ({
+      id: "singleton",
+      data: { ...serverData },
+      version: serverVersion,
+      createdAt: "2026-09-03",
+      updatedAt: "2026-09-03",
+    });
+    vi.stubGlobal("fetch", async (_url: string, init?: RequestInit) => {
+      if (init?.method === "PUT") {
+        const body = JSON.parse(String(init.body));
+        submittedVersions.push(body.version);
+        if (body.version !== serverVersion)
+          return Response.json({ error: "Conflicto" }, { status: 409 });
+        serverData = body.data;
+        serverVersion++;
+        const saved = envelope();
+        if (submittedVersions.length === 1)
+          return new Promise<Response>((resolve) => {
+            finishFirstPut = () => resolve(Response.json({ record: saved }));
+          });
+        return Response.json({ record: saved });
+      }
+      return failGet
+        ? Response.json({ error: "Recarga no disponible" }, { status: 503 })
+        : Response.json({ records: [envelope()] });
+    });
+    await store.load();
+    render(<Page />);
+    fireEvent.change(screen.getByLabelText(label), {
+      target: { value: "Mi guardado" },
+    });
+    fireEvent.submit(
+      screen.getByRole("button", { name: button }).closest("form")!,
+    );
+    await waitFor(() => expect(submittedVersions).toEqual([1]));
+    // Our v2 committed, but its response is still in flight when another
+    // user commits v3 and a background GET exposes that newer snapshot.
+    serverData = { ...serverData, [field]: "Otro usuario" };
+    serverVersion = 3;
+    await act(async () => {
+      await store.load();
+    });
+    failGet = failRevalidation;
+    await act(async () => {
+      finishFirstPut();
+    });
+    await screen.findByText("Guardado.");
+    expect(store.version("singleton")).toBe(3);
+    expect(store.get()).toMatchObject({ [field]: "Otro usuario" });
+    expect(store.state().status).toBe(failRevalidation ? "error" : "ready");
+    expect((screen.getByLabelText(label) as HTMLInputElement).value).toBe(
+      "Mi guardado",
+    );
+    fireEvent.change(screen.getByLabelText(label), {
+      target: { value: "Segundo borrador" },
+    });
+    fireEvent.submit(
+      screen.getByRole("button", { name: button }).closest("form")!,
+    );
+    await waitFor(() => expect(submittedVersions).toHaveLength(2));
+    expect(submittedVersions).toEqual([1, 2]);
+    expect((await screen.findByRole("alert")).textContent).toContain("Conflicto");
+    expect((screen.getByLabelText(label) as HTMLInputElement).value).toBe(
+      "Segundo borrador",
+    );
+    expect(serverVersion).toBe(3);
+    expect(serverData[field]).toBe("Otro usuario");
+  },
+);

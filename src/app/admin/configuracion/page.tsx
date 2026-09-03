@@ -46,8 +46,8 @@ function Editor({ initial }: { initial: SiteSettings }) {
         String(data.get(k) ?? ""),
       ]),
     ) as SiteSettings;
-    await settingsStore.save(next, version);
-    setVersion(settingsStore.version("singleton"));
+    const saved = await settingsStore.save(next, version);
+    setVersion(settingsStore.version(saved));
     setGuardado(true);
     window.setTimeout(() => setGuardado(false), 2500);
   }
