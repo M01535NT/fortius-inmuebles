@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 
+const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -11,12 +12,8 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
-      // Fotos de los anuncios: bucket público `listings` del back-office.
-      {
-        protocol: "https",
-        hostname: "fvvmvnduvzxvodeombld.supabase.co",
-        pathname: "/storage/v1/object/public/listings/**",
-      },
+      // Solo el bucket público del proyecto COTA configurado; nunca el privado.
+      ...(publicStorageUrl ? [new URL("/storage/v1/object/public/cota-public/**", publicStorageUrl)] : []),
     ],
   },
 };

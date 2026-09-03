@@ -4,7 +4,8 @@ import { ArrowUpRight, CheckCircle2 } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { BlurFade } from "@/components/magicui/blur-fade";
-import { siteConfig } from "@/data/site";
+import { getPublicSettings } from "@/lib/backend/public";
+import { publicContact } from "@/lib/public-contact";
 
 export const metadata: Metadata = {
   title: "Recibimos tu solicitud",
@@ -17,7 +18,8 @@ const SIGUIENTE = [
   "Te contactamos para explicarte el resultado y el siguiente paso.",
 ];
 
-export default function GraciasPage() {
+export default async function GraciasPage() {
+  const contact = publicContact(await getPublicSettings());
   return (
     <main className="bg-background pt-28 md:pt-32">
       <Container className="pb-24 md:pb-32">
@@ -44,9 +46,10 @@ export default function GraciasPage() {
             </ol>
 
             <div className="mt-10 flex flex-wrap gap-3">
-              {/* TODO(T031): número real de WhatsApp del cliente. */}
               <a
-                href={siteConfig.contact.whatsapp}
+                href={contact.whatsapp || undefined}
+                aria-disabled={!contact.whatsapp}
+                title={contact.whatsapp ? undefined : "WhatsApp: por confirmar"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"

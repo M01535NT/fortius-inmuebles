@@ -1,0 +1,65 @@
+import * as React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { afterEach, expect, test, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { Hero } from "@/components/home/hero";
+import { Relato } from "@/components/home/relato";
+import { SiteFooter } from "@/components/home/site-footer";
+import { SiteNav } from "@/components/home/site-nav";
+import { ContactForm } from "@/components/sections/contact-form";
+
+vi.hoisted(() => { window.matchMedia = (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }); });
+vi.mock("next/navigation", () => ({ usePathname: () => "/contacto" }));
+vi.mock("@/lib/use-reduced-motion-safe", () => ({ useReducedMotionSafe: () => true }));
+const content = { heroTitulo: "Título del panel\nSegunda línea", heroSubtitulo: "Subtítulo publicado", manifiestoTitulo: "Proceso actualizado.\nCon seguimiento.", manifiestoTexto: "Texto actualizado", seoTitle: "SEO", seoDescription: "Descripción" };
+const settings = { nombreComercial: "Firma actualizada", telefono: "+52 664 123 4567", whatsapp: "+52 664 765 4321", email: "publico@example.com", horario: "Lunes a viernes", facebook: "", instagram: "", videoInstitucionalUrl: "" };
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+
+test("the existing hero and manifesto render panel copy without replacing their structure", () => {
+  const hero = renderToStaticMarkup(<Hero content={content} />);
+  const relato = renderToStaticMarkup(<Relato content={content} />);
+  expect(hero).toContain("Título del panel");
+  expect(hero).toContain("Subtítulo publicado");
+  expect(relato).toContain("Proceso actualizado.");
+  expect(relato).toContain("Texto actualizado");
+});
+test("the imported original copy preserves the hero line break and mint manifesto emphasis", () => {
+  const original = { ...content, heroTitulo: "Vende con plan, no con anuncios.", manifiestoTitulo: "No prometemos resultados. Documentamos el proceso." };
+  const hero = renderToStaticMarkup(<Hero content={original} />);
+  const relato = renderToStaticMarkup(<Relato content={original} />);
+  expect(hero).toContain('<span class="block">Vende con plan,</span><span class="block">no con anuncios.</span>');
+  expect(relato).toContain('<span class="block text-[#57e3b3]">Documentamos el proceso.</span>');
+});
+test("footer uses public settings and keeps placeholder numbers explicitly unconfirmed", () => {
+  const html = renderToStaticMarkup(<SiteFooter settings={settings} />);
+  expect(html).toContain("Firma actualizada");
+  expect(html).toContain('href="tel:+526641234567"');
+  expect(html).toContain('href="https://wa.me/526647654321"');
+  const placeholders = renderToStaticMarkup(<SiteFooter settings={{ ...settings, telefono: "+52 664 000 0000", whatsapp: "https://wa.me/526640000000" }} />);
+  expect(placeholders).toContain("WhatsApp: por confirmar");
+  expect(placeholders).toContain("Teléfono: por confirmar");
+  expect(placeholders).not.toContain('href="tel:');
+  expect(placeholders).not.toContain('href="https://wa.me/');
+});
+test("desktop public navigation opens this product administration in the same tab", () => {
+  render(<SiteNav settings={settings} />);
+  for (const admin of screen.getAllByRole("link", { name: "Administración" })) {
+    expect(admin.getAttribute("href")).toBe("/admin");
+    expect(admin.getAttribute("target")).toBeNull();
+  }
+});
+test("contact form retains input on rejected remote write and confirms acknowledged persistence", async () => {
+  let persisted = false;
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "No se guardó" }, { status: 503 })));
+  render(<ContactForm />);
+  fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Nombre público" } });
+  fireEvent.change(screen.getByLabelText(/Teléfono/), { target: { value: "6641234567" } });
+  fireEvent.click(screen.getByRole("button", { name: "Solicitar evaluación" }));
+  await screen.findByRole("alert");
+  expect((screen.getByLabelText("Nombre") as HTMLInputElement).value).toBe("Nombre público");
+  expect(persisted).toBe(false);
+  vi.mocked(fetch).mockImplementation(async () => { persisted = true; return Response.json({ id: "acknowledged" }); });
+  fireEvent.click(screen.getByRole("button", { name: "Solicitar evaluación" }));
+  await screen.findByText(/Recibimos/);
+  expect(persisted).toBe(true);
+});

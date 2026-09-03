@@ -1,6 +1,7 @@
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { TextReveal } from "@/components/magicui/text-reveal";
 import { ESPECTACULAR } from "@/data/motion-config";
+import type { SiteContent } from "@/lib/admin/store";
 
 /*
   Narrative opening: the problem (improvised selling) and the turn
@@ -12,7 +13,10 @@ import { ESPECTACULAR } from "@/data/motion-config";
 const DECLARACION =
   "La mayoría de las propiedades salen al mercado igual: fotos de celular, precio al tanteo y a esperar llamadas.";
 
-export function Relato() {
+export function Relato({ content }: { content?: SiteContent | null }) {
+  const title = content?.manifiestoTitulo ?? "No prometemos resultados. Documentamos el proceso.";
+  const lines = title === "No prometemos resultados. Documentamos el proceso."
+    ? ["No prometemos resultados.", "Documentamos el proceso."] : title.split("\n");
   return (
     <>
       {/* The problem */}
@@ -47,17 +51,14 @@ export function Relato() {
             <div className="grid gap-10 md:grid-cols-12">
               <BlurFade className="md:col-span-7">
                 <h2 className="display-title text-4xl sm:text-5xl md:text-[64px]">
-                  No prometemos resultados.
-                  <br />
-                  {/* Block is dark in both themes; mint keeps ~9:1 contrast. */}
-                  <span className="text-[#57e3b3]">Documentamos el proceso.</span>
+                  {lines.map((line, index) => (
+                    <span key={index} className={index === 0 ? "block" : "block text-[#57e3b3]"}>{line}</span>
+                  ))}
                 </h2>
               </BlurFade>
               <BlurFade delay={0.15} className="self-end md:col-span-4 md:col-start-9">
                 <p className="text-[15.5px] leading-relaxed text-block-muted">
-                  Cada operación sigue el mismo método por escrito, de la
-                  captación a la firma. Por eso siempre sabes en qué paso va la
-                  tuya, y qué sigue después.
+                  {content?.manifiestoTexto ?? "Cada operación sigue el mismo método por escrito, de la captación a la firma. Por eso siempre sabes en qué paso va la tuya, y qué sigue después."}
                 </p>
               </BlurFade>
             </div>

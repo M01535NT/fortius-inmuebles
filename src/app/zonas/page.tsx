@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   Hub SEO local: una card por zona con el conteo real de inventario público.
   El contenido editorial vive en src/data/zonas.ts.
 */
-export const revalidate = 300;
+export const revalidate = 0;
 
 export default async function ZonasPage() {
   const propiedades = await getPropiedades();

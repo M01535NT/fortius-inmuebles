@@ -1,19 +1,20 @@
 import { Mail, MapPinned, MessageCircle, Phone } from "lucide-react";
 
 import type { Asesor } from "@/data/asesores";
-import { siteConfig } from "@/data/site";
+import type { SiteSettings } from "@/lib/admin/store";
+import { publicContact } from "@/lib/public-contact";
 
 /*
-  Perfil completo del asesor titular. Datos de contacto placeholder desde
-  siteConfig (T031). Avatar de iniciales hasta tener retratos reales.
+  Perfil público del asesor. El contacto comercial lo configura el panel;
+  los datos privados del asesor nunca se utilizan como contacto por inferencia.
 */
-export function AgentProfile({ asesor }: { asesor: Asesor }) {
-  const { contact } = siteConfig;
+export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: SiteSettings | null }) {
+  const contact = publicContact(settings);
 
   const tiles = [
     { icon: Phone, label: "Teléfono", value: contact.phone },
-    { icon: MessageCircle, label: "WhatsApp", value: contact.phone },
-    { icon: Mail, label: "Correo", value: contact.email },
+    { icon: MessageCircle, label: "WhatsApp", value: contact.whatsappLabel },
+    { icon: Mail, label: "Correo", value: contact.email || "por confirmar" },
     { icon: MapPinned, label: "Cobertura", value: "Tijuana · Rosarito · Tecate · Ensenada" },
   ];
 
@@ -60,14 +61,16 @@ export function AgentProfile({ asesor }: { asesor: Asesor }) {
 
           <div className="mt-5 flex flex-wrap gap-3">
             <a
-              href={contact.phoneHref}
+              href={contact.phoneHref || undefined}
+              aria-disabled={!contact.phoneHref}
               className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 text-[14.5px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
               <Phone className="h-4 w-4" strokeWidth={1.5} />
               Llamar ahora
             </a>
             <a
-              href={`mailto:${contact.email}`}
+              href={contact.email ? `mailto:${contact.email}` : undefined}
+              aria-disabled={!contact.email}
               className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-5 text-[14.5px] font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
             >
               <Mail className="h-4 w-4" strokeWidth={1.5} />

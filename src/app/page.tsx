@@ -9,6 +9,7 @@ import { Relato } from "@/components/home/relato";
 import { Respuestas } from "@/components/home/respuestas";
 import { Segmentos } from "@/components/home/segmentos";
 import { Zonas } from "@/components/home/zonas";
+import { getPublicContent } from "@/lib/backend/public";
 
 /*
   Home: one continuous piece for the property owner. Nav and footer live in
@@ -19,11 +20,12 @@ import { Zonas } from "@/components/home/zonas";
   El Método es SIEMPRE vertical (decisión 7-jul-2026: el horizontal pinned
   se probó y se descartó; la vertical con rail es la mejor versión).
 */
-export default function HomePage() {
+export default async function HomePage() {
+  const content = await getPublicContent();
   return (
     <main>
-      <Hero />
-      <Relato />
+      <Hero content={content} />
+      <Relato content={content} />
       <Metodo />
       <Entregables />
       <Destacadas />

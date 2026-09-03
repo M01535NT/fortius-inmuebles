@@ -8,15 +8,15 @@ import { ArrowUpRight } from "lucide-react";
 
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { ThemeToggle } from "@/components/home/theme-toggle";
-import { siteConfig } from "@/data/site";
+import type { SiteSettings } from "@/lib/admin/store";
 
 /*
   COTA wordmark. The tick-line-tick glyph is a dimension mark ("cota"),
   the annotation used on architectural plans to fix exact measurements.
 */
-function Wordmark({ light }: { light: boolean }) {
+function Wordmark({ light, name }: { light: boolean; name: string }) {
   return (
-    <Link href="/" className="flex items-center gap-2.5" aria-label="COTA, inicio">
+    <Link href="/" className="flex items-center gap-2.5" aria-label={`${name}, inicio`}>
       <svg
         width="26"
         height="14"
@@ -38,7 +38,7 @@ function Wordmark({ light }: { light: boolean }) {
           (light ? "text-[#f2f4ee]" : "text-foreground")
         }
       >
-        Cota
+        {name}
       </span>
     </Link>
   );
@@ -51,7 +51,7 @@ const links = [
   { href: "/herramientas", label: "Herramientas" },
 ];
 
-export function SiteNav() {
+export function SiteNav({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = React.useState(false);
@@ -87,7 +87,7 @@ export function SiteNav() {
       }
     >
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
-        <Wordmark light={!solid} />
+        <Wordmark light={!solid} name={settings?.nombreComercial || "Cota"} />
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="Principal">
           {links.map((l) => (
@@ -102,10 +102,8 @@ export function SiteNav() {
         </nav>
 
         <div className="flex items-center gap-2.5">
-          <a
-            href={siteConfig.platformUrl}
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            href="/admin"
             className={
               "hidden h-10 items-center gap-2 rounded-md border px-3.5 text-[13.5px] font-medium transition-[background-color,color,border-color,transform] active:scale-[0.97] md:inline-flex " +
               (solid
@@ -113,9 +111,9 @@ export function SiteNav() {
                 : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]")
             }
           >
-            Plataforma
+            Administración
             <ArrowUpRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
-          </a>
+          </Link>
           <ThemeToggle
             className={
               solid

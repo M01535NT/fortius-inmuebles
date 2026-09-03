@@ -13,6 +13,7 @@ import {
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { ESPECTACULAR } from "@/data/motion-config";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
+import type { SiteContent } from "@/lib/admin/store";
 
 const SLIDES = [
   { src: "/hero/casa-playa.webp", alt: "Residencia frente al mar en Baja California" },
@@ -52,7 +53,11 @@ function MagneticCta({ href, children }: { href: string; children: React.ReactNo
   );
 }
 
-export function Hero() {
+export function Hero({ content }: { content?: SiteContent | null }) {
+  // The imported original is one string; retain its established two-line art direction.
+  const title = content?.heroTitulo ?? "Vende con plan, no con anuncios.";
+  const titleLines = title === "Vende con plan, no con anuncios."
+    ? ["Vende con plan,", "no con anuncios."] : title.split("\n");
   const reduce = useReducedMotionSafe();
   const kinetic = ESPECTACULAR && !reduce;
   const [index, setIndex] = React.useState(0);
@@ -107,7 +112,7 @@ export function Hero() {
         {/* Cascada por letra (GSAP SplitText): la entrada de página no se repite. */}
         <SplitHeading
           as="h1"
-          lines={["Vende con plan,", "no con anuncios."]}
+          lines={titleLines}
           once
           delay={0.15}
           charDelay={0.028}
@@ -120,8 +125,7 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
           className="mt-5 max-w-[46ch] text-[15.5px] leading-relaxed text-[#e6e9e2]/90 md:text-[17px]"
         >
-          Precio con datos, expediente revisado y seguimiento por escrito. De la
-          captación a la firma ante notario, en Tijuana y Baja California.
+          {content?.heroSubtitulo ?? "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California."}
         </motion.p>
 
         <motion.div

@@ -1,15 +1,13 @@
 /*
   Site data for COTA (provisional brand name).
-  Only what the current routes consume. The home page owns its own copy in
-  src/components/home/*; interior routes read from here until their redesign.
+  Static route descriptors and historical placeholders. Live home copy and
+  commercial contact settings come from the independent COTA panel.
 */
 
 export const siteConfig = {
   name: "Cota",
   descriptor: "Bienes raíces con método",
   url: "https://cota.example", // TODO: real domain
-  platformUrl:
-    process.env.NEXT_PUBLIC_PLATFORM_URL ?? "https://inmobiliaria-os.vercel.app",
   contact: {
     // TODO(T031): datos reales del cliente. Placeholders para el prototipo.
     phone: "+52 664 000 0000",
@@ -25,7 +23,7 @@ export const siteConfig = {
   },
 };
 
-// El inventario vive en src/data/propiedades.ts (datos demo hasta el backend).
+// El inventario público se lee del backend independiente del panel COTA.
 
 export const routePages = {
   residencial: {

@@ -14,7 +14,7 @@ import { PropertyGallery } from "@/components/property/property-gallery";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
 import { PropertyLocation } from "@/components/property/property-location";
 import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
-import { getAsesorById } from "@/data/asesores";
+import { getPublicAdvisers, getPublicSettings } from "@/lib/backend/public";
 import {
   ESTADO_LABELS,
   formatPrecio,
@@ -24,7 +24,6 @@ import {
   type Property,
 } from "@/data/propiedades";
 import {
-  getPropiedades,
   getPropertyBySlug,
   getRelatedProperties,
 } from "@/lib/inventario";
@@ -32,15 +31,8 @@ import { siteConfig } from "@/data/site";
 
 type Params = { slug: string };
 
-/* El inventario se lee del back-office; se revalida cada 5 minutos. */
-export const revalidate = 300;
-/* Un anuncio publicado después del build se genera al pedirlo. */
-export const dynamicParams = true;
-
-export async function generateStaticParams(): Promise<Params[]> {
-  const propiedades = await getPropiedades();
-  return propiedades.map((p) => ({ slug: p.slug }));
-}
+/* Cada solicitud consulta el inventario publicado del panel COTA. */
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
@@ -77,7 +69,7 @@ function jsonLd(p: Property): string {
     name: p.titulo,
     description: p.descripcion[0],
     url: `${siteConfig.url}/inventario/${p.slug}`,
-    image: p.galeria.map((g) => `${siteConfig.url}${g.src}`),
+    image: p.galeria.map((g) => new URL(g.src, siteConfig.url).href),
     datePosted: p.publicadaEl,
     address: {
       "@type": "PostalAddress",
@@ -108,9 +100,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
 
-  const related = await getRelatedProperties(slug);
+  const [related, advisers, settings] = await Promise.all([
+    getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(),
+  ]);
   const ficha = fichaRows(property);
-  const asesor = getAsesorById(property.asesorId);
+  const asesor = advisers.find((a) => a.id === property.asesorId);
   const muestraCalculadora =
     property.creditoDisponible &&
     property.operacion === "venta" &&
@@ -223,7 +217,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <PropertyLocation property={property} />
 
             {/* Perfil completo del asesor titular */}
-            {asesor ? <AgentProfile asesor={asesor} /> : null}
+            {asesor ? <AgentProfile asesor={asesor} settings={settings} /> : null}
 
             <PropertyFaq />
           </div>
@@ -283,7 +277,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
       </Container>
 
       <PropertyMobileCta />
-      <ContactDock />
+      <ContactDock settings={settings} />
     </main>
   );
 }

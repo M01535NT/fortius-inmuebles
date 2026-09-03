@@ -3,16 +3,16 @@ import { Play } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { BlurFade } from "@/components/magicui/blur-fade";
-import { siteConfig } from "@/data/site";
+import { getPublicSettings } from "@/lib/backend/public";
 
 /*
   Espacio reservado para el video institucional "cómo trabajamos".
   Principio del proyecto: la estructura queda lista y el cliente carga el
-  archivo real; al llenar siteConfig.media.videoInstitucionalUrl este
+  archivo real; al llenar videoInstitucionalUrl en el panel este
   componente reproduce el video en lugar del placeholder.
 */
-export function InstitutionalVideo() {
-  const url = siteConfig.media.videoInstitucionalUrl;
+export async function InstitutionalVideo() {
+  const url = (await getPublicSettings())?.videoInstitucionalUrl;
 
   return (
     <section className="border-t border-border">

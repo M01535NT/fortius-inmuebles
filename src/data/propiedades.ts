@@ -1,13 +1,10 @@
 /*
   CONTRATO DEL INVENTARIO — tipos, etiquetas y formateo.
 
-  El SITIO PÚBLICO ya NO lee de aquí: lee `src/lib/inventario.ts`, que consulta la
-  vista `public_listings` del back-office (inmobiliaria-os). Este archivo conserva
-  los TIPOS —que siguen siendo la forma que el sitio impone y a la que la base se
-  adapta— y el array `propiedades`, que hoy solo alimenta el panel /admin demo.
-
-  Ese panel está en retirada (ver la decisión en el back-office: el back-office es
-  uno solo). Cuando desaparezca, el array se va con él y aquí quedan solo los tipos.
+  El sitio público lee `src/lib/inventario.ts`, que consulta exclusivamente la
+  proyección pública del backend independiente de COTA. Este archivo conserva
+  tipos, etiquetas, formateo y ejemplos históricos para pruebas; ni la web ni
+  el panel utilizan este array como fuente operativa.
 */
 
 export type Operacion = "venta" | "renta";

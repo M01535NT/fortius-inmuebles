@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { SiteSettings } from "@/lib/admin/store";
+import { publicContact } from "@/lib/public-contact";
 
-export function SiteFooter() {
+export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
+  const contact = publicContact(settings);
+  const name = settings?.nombreComercial || "Cota";
   /* El panel /admin trae su propio shell: sin footer público (además el
      footer cortina interferiría con el layout del panel). */
   if (pathname.startsWith("/admin")) return null;
@@ -31,7 +35,7 @@ export function SiteFooter() {
                 />
               </svg>
               <span className="display-title text-[19px] tracking-[0.04em] text-foreground">
-                Cota
+                {name}
               </span>
             </div>
             <p className="mt-4 max-w-[40ch] text-[14px] leading-relaxed text-muted-foreground">
@@ -81,9 +85,8 @@ export function SiteFooter() {
 
           <div className="md:col-span-3">
             <ul className="space-y-3 text-[14px] text-foreground/75">
-              {/* TODO: replace with real WhatsApp, phone and email. */}
-              <li>WhatsApp: por confirmar</li>
-              <li>Teléfono: por confirmar</li>
+              <li>{contact.whatsapp ? <a href={contact.whatsapp}>WhatsApp: {contact.whatsappLabel}</a> : "WhatsApp: por confirmar"}</li>
+              <li>{contact.phoneHref ? <a href={contact.phoneHref}>Teléfono: {contact.phone}</a> : "Teléfono: por confirmar"}</li>
               <li>
                 <Link href="/privacidad" className="transition-colors hover:text-foreground">
                   Aviso de privacidad
@@ -101,7 +104,7 @@ export function SiteFooter() {
         <div className="mt-12 border-t border-border pt-6">
           <p className="text-[12.5px] leading-relaxed text-muted-foreground">
             Los costos, impuestos y tiempos varían por operación y se confirman
-            con el notario o el especialista correspondiente. © 2026 Cota.
+            con el notario o el especialista correspondiente. © 2026 {name}.
           </p>
         </div>
       </div>

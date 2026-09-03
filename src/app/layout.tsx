@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { connection } from "next/server";
 
 import "@/app/globals.css";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
+import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -19,7 +21,7 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
+const defaultMetadata: Metadata = {
   metadataBase: new URL("https://cota.example"),
   title: {
     default: "COTA | Vende tu propiedad en Tijuana con método",
@@ -36,20 +38,33 @@ export const metadata: Metadata = {
   },
 };
 
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getPublicContent();
+  return {
+    ...defaultMetadata,
+    title: { default: content?.seoTitle || "COTA | Vende tu propiedad en Tijuana con método", template: "%s | COTA" },
+    description: content?.seoDescription || defaultMetadata.description,
+    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || "COTA | Bienes raíces con método", description: content?.seoDescription || defaultMetadata.openGraph?.description },
+  };
+}
+
 /*
   Theme boot: light is the primary theme. We only add `.dark` when the user
   chose it before. Runs inline before paint to avoid a flash.
 */
 const themeInit = `(function(){try{if(localStorage.getItem("cota-theme")==="dark"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await connection();
+  const settings = await getPublicSettings();
   return (
     <html
       lang="es-MX"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${archivo.variable} ${plexMono.variable}`}
     >
@@ -57,7 +72,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body>
-        <SiteNav />
+        <SiteNav settings={settings} />
         {/*
           Footer cortina: el contenido (z-10, fondo opaco) se desliza sobre el
           footer pegado al fondo del viewport (sticky bottom, z-0) y lo revela
@@ -65,7 +80,7 @@ export default function RootLayout({
         */}
         <div className="relative z-10 bg-background">{children}</div>
         <div className="sticky bottom-0 z-0">
-          <SiteFooter />
+          <SiteFooter settings={settings} />
         </div>
       </body>
     </html>

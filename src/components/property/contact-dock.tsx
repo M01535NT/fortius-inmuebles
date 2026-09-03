@@ -4,14 +4,15 @@ import * as React from "react";
 import { Mail, MessageCircle, MessagesSquare, Phone } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 
-import { siteConfig } from "@/data/site";
+import type { SiteSettings } from "@/lib/admin/store";
+import { publicContact } from "@/lib/public-contact";
 
 /*
   Dock de contacto rápido: aparece al hacer scroll en el detalle de propiedad
   (solo desktop; en mobile ya existe la barra fija inferior). Enlaces con
-  datos placeholder de siteConfig (T031).
+  datos de contacto públicos del panel; los pendientes no son enlaces activos.
 */
-export function ContactDock() {
+export function ContactDock({ settings }: { settings?: SiteSettings | null }) {
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
   const [visible, setVisible] = React.useState(false);
@@ -20,12 +21,12 @@ export function ContactDock() {
     setVisible(v > 560);
   });
 
-  const { contact } = siteConfig;
+  const contact = publicContact(settings);
   const acciones = [
     { href: contact.phoneHref, label: "Llamar", icon: Phone },
     { href: contact.whatsapp, label: "WhatsApp", icon: MessageCircle },
     { href: contact.messenger, label: "Messenger", icon: MessagesSquare },
-    { href: `mailto:${contact.email}`, label: "Correo", icon: Mail },
+    { href: contact.email ? `mailto:${contact.email}` : "", label: "Correo", icon: Mail },
   ];
 
   return (
@@ -44,11 +45,12 @@ export function ContactDock() {
           {acciones.map(({ href, label, icon: Icon }) => (
             <a
               key={label}
-              href={href}
+              href={href || undefined}
+              aria-disabled={!href}
               target={href.startsWith("http") ? "_blank" : undefined}
               rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
               aria-label={label}
-              title={label}
+              title={href ? label : `${label}: por confirmar`}
               className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground/75 transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.96]"
             >
               <Icon className="h-[18px] w-[18px]" strokeWidth={1.5} />

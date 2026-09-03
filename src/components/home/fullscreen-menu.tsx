@@ -6,7 +6,6 @@ import Link from "next/link";
 import { ArrowUpRight, X } from "lucide-react";
 
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
-import { siteConfig } from "@/data/site";
 
 /*
   Menú a pantalla completa. Se revela con un clip-path circular que nace
@@ -169,16 +168,14 @@ export function FullscreenMenu({ open, onClose }: Props) {
                 Evaluar mi propiedad
                 <ArrowUpRight className="size-4" strokeWidth={1.5} />
               </Link>
-              <a
-                href={siteConfig.platformUrl}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href="/admin"
                 onClick={onClose}
                 className="inline-flex h-12 items-center gap-2 rounded-md border border-border px-6 text-[15px] font-semibold text-foreground transition-[background-color,color,transform] hover:bg-secondary active:scale-[0.98]"
               >
-                Ir a la plataforma
+                Administración
                 <ArrowUpRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
-              </a>
+              </Link>
             </div>
           </nav>
 
