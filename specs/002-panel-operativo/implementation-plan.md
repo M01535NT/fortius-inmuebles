@@ -37,10 +37,10 @@
 - Server exports `getPublicProperties():Promise<Property[]>`, `getPublicAdvisers():Promise<Asesor[]>`, `getPublicContent():Promise<SiteContent|null>`, `getPublicSettings():Promise<SiteSettings|null>`. Lists only explicit safe published data. Use type-only imports to avoid bringing client store into server module.
 - SQL cota_records per-row data/version, staff membership and RLS, explicit grants, atomic conditional mutations, validation and reference safeguards. Start with no fictitious leads/clients. Preserve all existing property/agent fields.
 
-- [ ] Write RED tests for 401/403, invalid collection/payload, create/update/version conflict, anonymous no-read and public-field exclusion. Use real validation/repository behavior, not source grep.
-- [ ] Implement minimal backend; test DB policies with a local Postgres-compatible runner or clearly separate unexecuted live checks from passing unit tests.
-- [ ] Run GREEN tests and lint; send stable SQL path/interfaces to controller for provisioning.
-- [ ] Commit only owned files; write report including RED/GREEN output and any external prerequisites.
+- [x] Write RED tests for 401/403, invalid collection/payload, create/update/version conflict, anonymous no-read and public-field exclusion. Use real validation/repository behavior, not source grep.
+- [x] Implement minimal backend; test DB policies with a local Postgres-compatible runner or clearly separate unexecuted live checks from passing unit tests.
+- [x] Run GREEN tests and lint; send stable SQL path/interfaces to controller for provisioning.
+- [x] Commit only owned files; write report including RED/GREEN output and any external prerequisites.
 
 ### Task 2: Panel persistente y acceso real
 
@@ -52,11 +52,11 @@ The version submitted must belong to the record snapshot the user started editin
 
 Use the current COTA interface tokens, Archivo/Plex typography, border/card treatment and component patterns. Add only functional controls/states required here; no visual redesign. Existing `Ver sitio` link to `/` stays: it is the same product, unlike the removed platform links.
 
-- [ ] RED tests: reload persistence through API, failed save no success/rollback, 409 conflict, session/cache clearing.
-- [ ] Replace demo auth and plaintext shared password with email/password server session. Keep modules/layout; make all modules and logout reachable on mobile.
-- [ ] Handle secure invitation/recovery on `/admin` with the callback/password endpoints; do not send invitations before this flow is deployed or ready locally.
-- [ ] Convert every mutation caller to awaited operations and explicit errors. Add client management, publication control and validated uploads/private URL resolution.
-- [ ] GREEN tests/lint and commit; independent review before next task.
+- [x] RED tests: reload persistence through API, failed save no success/rollback, 409 conflict, session/cache clearing.
+- [x] Replace demo auth and plaintext shared password with email/password server session. Keep modules/layout; make all modules and logout reachable on mobile.
+- [x] Handle secure invitation/recovery on `/admin` with the callback/password endpoints; do not send invitations before this flow is deployed or ready locally.
+- [x] Convert every mutation caller to awaited operations and explicit errors. Add client management, publication control and validated uploads/private URL resolution.
+- [x] GREEN tests/lint and commit; independent review before next task.
 
 ### Task 3: Web reads panel and products no longer cross-link
 
@@ -66,22 +66,22 @@ Current website data is already preserved in the dedicated backend: three publis
 
 The currently deployed footer explicitly shows `WhatsApp: por confirmar` and `Teléfono: por confirmar` for placeholder contact values. Preserve that honest placeholder handling until actual public contact details are supplied. Never publish the private administrator email as contact by inference.
 
-- [ ] RED integration tests: publication changes public results, private/unpublished exclusion, lead success requires remote persistence.
-- [ ] Replace platform clients with Task 1 projections/API; fetch content/settings server-side and pass to client components without visual redesign. Publication and edits update without rebuilding.
-- [ ] While editing the root layout, resolve the observed Next.js smooth-scroll warning using the documented `data-scroll-behavior` attribute; preserve the existing scrolling design.
-- [ ] Replace the website's current external platform entry with the internal `/admin` destination labeled `Administración`, retaining its current placement/design. Remove return links/default COTA destination in the separate platform, preserving its unrelated functionality.
-- [ ] GREEN tests plus visual desktop/mobile/theme/navigation/forms, then commit and review.
+- [x] RED integration tests: publication changes public results, private/unpublished exclusion, lead success requires remote persistence.
+- [x] Replace platform clients with Task 1 projections/API; fetch content/settings server-side and pass to client components without visual redesign. Publication and edits update without rebuilding.
+- [x] While editing the root layout, resolve the observed Next.js smooth-scroll warning using the documented `data-scroll-behavior` attribute; preserve the existing scrolling design.
+- [x] Replace the website's current external platform entry with the internal `/admin` destination labeled `Administración`, retaining its current placement/design. Remove return links/default COTA destination in the separate platform, preserving its unrelated functionality.
+- [x] GREEN tests plus visual desktop/mobile/theme/navigation/forms, then commit and review.
 
 ### Task 4: Provision and verify operational delivery
 
 **Owner:** controller. Created project qkkirjzhviqwvuqjnmei; no other project removed. Administrator address supplied privately and retained only in the local provisioning ledger, not versioned documentation or public contact settings.
 
-- [ ] Apply migration only to new COTA; verify policies, empty sensitive collections and storage visibility.
+- [x] Apply migration only to new COTA; verify policies, empty sensitive collections and storage visibility.
 - [ ] Configure local credentials without committing secrets; invite admin and create membership, require password setup. Public content/settings can be seeded from current code; no private platform transfer.
-- [ ] Preserve currently published COTA inventory from the existing public-only view. Reuse existing local `/hero` images when SHA-256 verifies they are identical; copy into COTA Storage only if an image is absent locally. Snapshot captured at `.superpowers/sdd/implementation-plan/public-inventory-before.json`: three demo listings; `public-asset-manifest.json` verifies all four unique images already exist locally. Do not read/copy private platform tables or replace them with different static fixtures.
-- [ ] Test unauthorized denial, real login/logout, CRUD/reload/two sessions/concurrent conflict, lead capture, publish/unpublish/content/contact/SEO and private files. Remove only known test fixtures after testing.
-- [ ] Run npm test, lint, TypeScript and build. Configure Vercel only under user authority, otherwise mark production deployment pending explicitly.
-- [ ] Resolve and verify runtime dependency security advisories before production; do not apply broad `npm audit fix --force` changes. Re-read installed Next.js docs when upgrading framework.
+- [x] Preserve currently published COTA inventory from the existing public-only view. Reuse existing local `/hero` images when SHA-256 verifies they are identical; copy into COTA Storage only if an image is absent locally. Snapshot captured at `.superpowers/sdd/implementation-plan/public-inventory-before.json`: three demo listings; `public-asset-manifest.json` verifies all four unique images already exist locally. Do not read/copy private platform tables or replace them with different static fixtures.
+- [x] Test unauthorized denial, real login/logout, CRUD/reload/two sessions/concurrent conflict, lead capture, publish/unpublish/content/contact/SEO and private files. Remove only known test fixtures after testing.
+- [x] Run npm test, lint, TypeScript and build. Configure Vercel only under user authority, otherwise mark production deployment pending explicitly.
+- [x] Resolve and verify runtime dependency security advisories before production; do not apply broad `npm audit fix --force` changes. Re-read installed Next.js docs when upgrading framework.
 
 ### Task 5: Approved cleanup after operation works
 
@@ -89,9 +89,9 @@ The currently deployed footer explicitly shows `WhatsApp: por confirmar` and `Te
 
 Consolidate current product/setup/security/verification/design guardrails and remaining real-contact/demo-content tasks into one README rather than replacement document sprawl. Preserve valid original visual decisions (Archivo/Plex, both themes, original Cota mark, vertical Método, safe reduced-motion hydration and overflow clipping); supersede demo-login/localStorage/platform-source claims. Keep the approved current specification/plan; do not archive this active plan workspace until final review/integration. Preserve calculator research provenance with the archived relative path/hash and label it historical, without asserting legal/tax currency or changing its behavior. Controller owns final invitation/deployment and will archive local one-time provisioning evidence after those steps. One-time `tests/live/seed-current-public.mjs` is no longer a reusable test: archive it with its source snapshot, and remove it from active tests only after the copy is verified. Keep reusable `tests/live/verify-cota.mjs`.
 
-- [ ] Recompute references: previously unused candidates may now be active.
-- [ ] Inventory/hash/archive original PNGs and business documents outside active project, verify copies before removing active originals. Preserve research-to-calculator traceability.
-- [ ] Consolidate obsolete eight specs/napkin into README, current criteria and remaining tasks; supersede old platform-as-source-of-truth instructions.
-- [ ] Remove only confirmed unused UI/motion components and dependencies; preserve active PDFs/assets, Git, environment and lockfile. Clean generated cache only while server is stopped.
-- [ ] Provide `npm test` as the existing offline backend+admin suites; hosted-mutating and browser checks remain separate explicit commands.
-- [ ] Run full verification, review diff, reopen localhost:3000, report archive/recovery and remaining blockers precisely.
+- [x] Recompute references: previously unused candidates may now be active.
+- [x] Inventory/hash/archive original PNGs and business documents outside active project, verify copies before removing active originals. Preserve research-to-calculator traceability.
+- [x] Consolidate obsolete eight specs/napkin into README, current criteria and remaining tasks; supersede old platform-as-source-of-truth instructions.
+- [x] Remove only confirmed unused UI/motion components and dependencies; preserve active PDFs/assets, Git, environment and lockfile. Clean generated cache only while server is stopped.
+- [x] Provide `npm test` as the existing offline backend+admin suites; hosted-mutating and browser checks remain separate explicit commands.
+- [x] Run full verification, review diff, reopen localhost:3000, report archive/recovery and remaining blockers precisely.
