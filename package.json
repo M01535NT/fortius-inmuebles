@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test:backend": "vitest run tests/backend"
+    "test:backend": "vitest run tests/backend",
+    "test:admin": "vitest run --config vitest.admin.config.ts",
+    "test:admin:browser": "playwright test --config playwright.admin.config.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -29,12 +31,15 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "latest",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "jsdom": "^30.0.1",
     "tailwindcss": "latest",
     "typescript": "latest",
     "vitest": "^4.1.11"

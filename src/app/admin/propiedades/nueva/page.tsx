@@ -8,7 +8,7 @@ export default function NuevaPropiedadPage() {
     <div className="space-y-6">
       <PageHeader
         title="Nuevo inmueble."
-        description="Todo es editable después. Los campos vacíos simplemente no se muestran en el sitio."
+        description="Alta privada por defecto. La publicación se activa expresamente y requiere al menos una imagen pública."
       />
       <PropertyForm />
     </div>

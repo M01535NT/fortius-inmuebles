@@ -1,27 +1,10 @@
 "use client";
 
 import * as React from "react";
-
-/*
-  Capa de datos del panel de administración.
-
-  DEMO FUNCIONAL sin backend: cada colección vive en localStorage, sembrada
-  desde src/data/* la primera vez. Todas las operaciones (alta, edición,
-  baja) funcionan de verdad en este navegador. TODO(M3/M4): sustituir este
-  módulo por repositorios Supabase (auth, Postgres, storage) manteniendo la
-  misma interfaz; las páginas del panel no deberían cambiar.
-
-  Nota de arquitectura: el sitio público se prerenderiza desde src/data/*,
-  así que los cambios hechos aquí NO alteran las páginas públicas hasta que
-  exista el backend. El panel valida flujo y operación completa.
-*/
-
-import { asesores as asesoresSeed, type Asesor as AsesorBase } from "@/data/asesores";
-import { propiedades as propiedadesSeed, type Property } from "@/data/propiedades";
-import { siteConfig } from "@/data/site";
-import { enviarProspecto, type OrigenProspecto } from "@/lib/prospectos";
-
-const PREFIX = "cota-admin:v1:";
+import type { Asesor as AsesorBase } from "@/data/asesores";
+import type { Property } from "@/data/propiedades";
+import type { Cliente, StaffUser, StoredRecord } from "@/lib/backend/contracts";
+export type { Cliente } from "@/lib/backend/contracts";
 
 /* ---------- tipos ---------- */
 
@@ -88,7 +71,13 @@ export type Lead = {
   notas: LeadNota[];
 };
 
-export const EVENTO_TIPOS = ["visita", "llamada", "firma", "reunion", "otro"] as const;
+export const EVENTO_TIPOS = [
+  "visita",
+  "llamada",
+  "firma",
+  "reunion",
+  "otro",
+] as const;
 export type EventoTipo = (typeof EVENTO_TIPOS)[number];
 
 export const EVENTO_TIPO_LABELS: Record<EventoTipo, string> = {
@@ -157,319 +146,358 @@ export type SiteSettings = {
   videoInstitucionalUrl: string;
 };
 
-/* ---------- storage genérico ---------- */
-
-function read<T>(key: string): T | null {
-  try {
-    const raw = window.localStorage.getItem(PREFIX + key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
+/** In-memory, acknowledged server data only. Never read/migrate browser storage. */
+export class AdminApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(
+      status === 409
+        ? "Conflicto: el registro cambió o tiene vínculos que impiden la operación. Conserva tu borrador y vuelve a cargar antes de reintentar."
+        : message,
+    );
   }
 }
+const sessionListeners = new Set<() => void>();
+let session: StaffUser | null = null;
+let sessionEpoch = 0;
+function setSession(user: StaffUser | null) {
+  if (!user || session?.id !== user.id) clearAdminCache();
+  session = user;
+  sessionListeners.forEach((l) => l());
+}
+export function useSession() {
+  return React.useSyncExternalStore(
+    (cb) => {
+      sessionListeners.add(cb);
+      return () => sessionListeners.delete(cb);
+    },
+    () => session,
+    () => null,
+  );
+}
 
-function write<T>(key: string, value: T) {
+export async function apiRequest<T>(
+  url: string,
+  method = "GET",
+  body?: unknown,
+): Promise<T> {
+  const epoch = sessionEpoch;
+  let response: Response;
   try {
-    window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+    response = await fetch(url, {
+      method,
+      credentials: "same-origin",
+      cache: "no-store",
+      ...(body === undefined
+        ? {}
+        : {
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }),
+    });
   } catch {
-    /* storage lleno o bloqueado: el panel sigue en memoria */
+    throw new AdminApiError(
+      0,
+      "No se pudo conectar. Tus cambios no se han guardado.",
+    );
   }
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (
+      epoch === sessionEpoch &&
+      (response.status === 401 || response.status === 403) &&
+      url.startsWith("/api/admin/")
+    )
+      setSession(null);
+    throw new AdminApiError(
+      response.status,
+      typeof result.error === "string"
+        ? result.error
+        : "No se pudo completar la operación.",
+    );
+  }
+  return result as T;
 }
 
-export function uid(): string {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `id-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-}
-
-/*
-  Colección con cache en memoria + suscripción: los componentes leen vía
-  useCollection (useSyncExternalStore), así el SSR prerenderiza vacío y el
-  cliente hidrata sin mismatch ni setState-en-effect.
-*/
-export type Collection<T> = {
+export type LoadState = {
+  status: "idle" | "loading" | "ready" | "error";
+  error: string | null;
+  loaded: boolean;
+};
+const IDLE: LoadState = { status: "idle", error: null, loaded: false };
+const EMPTY: never[] = [];
+export type Collection<T extends object> = {
   list(): T[];
-  save(items: T[]): void;
+  load(): Promise<void>;
+  state(): LoadState;
+  version(item: T | string): number | null;
+  put(item: T, version: number | null): Promise<T>;
+  remove(id: string, version: number): Promise<void>;
+  clear(): void;
   subscribe(cb: () => void): () => void;
 };
-
-const EMPTY: never[] = [];
-
-function collection<T>(key: string, seed: () => T[]): Collection<T> {
-  let cache: T[] | null = null;
+export function uid(): string {
+  return crypto.randomUUID();
+}
+function collection<T extends object>(
+  key: string,
+  identify: (item: T) => string,
+): Collection<T> {
+  let cache: T[] = [];
+  let versions = new Map<string, number>();
+  const snapshots = new WeakMap<T, number>();
+  let state = IDLE;
+  let generation = 0;
+  let pending: Promise<void> | null = null;
   const listeners = new Set<() => void>();
-  return {
-    list(): T[] {
-      if (cache) return cache;
-      if (typeof window === "undefined") return EMPTY;
-      const stored = read<T[]>(key);
-      cache = stored ?? seed();
-      if (!stored) write(key, cache);
-      return cache;
-    },
-    save(items: T[]) {
-      cache = items;
-      write(key, items);
-      listeners.forEach((l) => l());
-    },
-    subscribe(cb: () => void) {
+  const emit = () => listeners.forEach((l) => l());
+  const path = "/api/admin/collections/" + key;
+  const col: Collection<T> = {
+    list: () => cache,
+    state: () => state,
+    version: (item) =>
+      (typeof item === "string" ? versions.get(item) : snapshots.get(item)) ??
+      null,
+    subscribe(cb) {
       listeners.add(cb);
       return () => listeners.delete(cb);
     },
+    clear() {
+      generation++;
+      pending = null;
+      cache = [];
+      versions = new Map();
+      state = IDLE;
+      emit();
+    },
+    load() {
+      if (pending) return pending;
+      const current = generation;
+      state = { ...state, status: "loading", error: null };
+      emit();
+      pending = (async () => {
+        try {
+          const result = await apiRequest<{ records: StoredRecord<T>[] }>(path);
+          if (current !== generation) return;
+          cache = result.records.map((r) => r.data);
+          result.records.forEach((r) => snapshots.set(r.data, r.version));
+          versions = new Map(result.records.map((r) => [r.id, r.version]));
+          state = { status: "ready", error: null, loaded: true };
+        } catch (error) {
+          if (current !== generation) return;
+          state = { ...state, status: "error", error: errorMessage(error) };
+          throw error;
+        } finally {
+          if (current === generation) {
+            pending = null;
+            emit();
+          }
+        }
+      })();
+      return pending;
+    },
+    async put(item, version) {
+      const epoch = sessionEpoch;
+      const result = await apiRequest<{ record: StoredRecord<T> }>(
+        path + "/" + encodeURIComponent(identify(item)),
+        "PUT",
+        { data: item, version },
+      );
+      if (epoch !== sessionEpoch)
+        throw new AdminApiError(401, "La sesión cambió; vuelve a entrar.");
+      // A response to an earlier GET must never overwrite the acknowledged mutation.
+      generation++;
+      pending = null;
+      cache = [
+        result.record.data,
+        ...cache.filter((x) => identify(x) !== result.record.id),
+      ];
+      versions.set(result.record.id, result.record.version);
+      snapshots.set(result.record.data, result.record.version);
+      state = { status: "ready", error: null, loaded: true };
+      emit();
+      return result.record.data;
+    },
+    async remove(id, version) {
+      const epoch = sessionEpoch;
+      await apiRequest(path + "/" + encodeURIComponent(id), "DELETE", {
+        version,
+      });
+      if (epoch !== sessionEpoch)
+        throw new AdminApiError(401, "La sesión cambió; vuelve a entrar.");
+      generation++;
+      pending = null;
+      cache = cache.filter((x) => identify(x) !== id);
+      versions.delete(id);
+      emit();
+    },
   };
+  return col;
 }
-
-export function useCollection<T>(col: Collection<T>): T[] {
+const byId = <T extends { id: string }>(item: T) => item.id;
+export const db = {
+  propiedades: collection<AdminProperty>("propiedades", (item) => item.slug),
+  asesores: collection<Asesor>("asesores", byId),
+  leads: collection<Lead>("leads", byId),
+  clientes: collection<Cliente>("clientes", byId),
+  eventos: collection<Evento>("eventos", byId),
+  posts: collection<Post>("posts", byId),
+  notas: collection<Nota>("notas", byId),
+  archivos: collection<Archivo>("archivos", byId),
+};
+export function useCollection<T extends object>(col: Collection<T>): T[] {
+  React.useEffect(() => {
+    if (col.state().status === "idle") void col.load().catch(() => {});
+  }, [col]);
   return React.useSyncExternalStore(col.subscribe, col.list, () => EMPTY);
 }
-
-/* Singleton con el mismo patrón (contenido y configuración). */
-export type Singleton<T> = {
-  get(): T | null;
-  save(value: T): void;
-  subscribe(cb: () => void): () => void;
-};
-
-function singleton<T>(key: string, seed: () => T): Singleton<T> {
-  let cache: T | null = null;
-  const listeners = new Set<() => void>();
+export function useLoadState<T extends object>(col: Collection<T>) {
+  return React.useSyncExternalStore(col.subscribe, col.state, () => IDLE);
+}
+export type Singleton<T extends object> = ReturnType<typeof singleton<T>>;
+function singleton<T extends object>(key: string, empty: T) {
+  const col = collection<T>(key, () => "singleton");
   return {
-    get(): T | null {
-      if (cache) return cache;
-      if (typeof window === "undefined") return null;
-      const stored = read<T>(key);
-      cache = stored ?? seed();
-      if (!stored) write(key, cache);
-      return cache;
-    },
-    save(value: T) {
-      cache = value;
-      write(key, value);
-      listeners.forEach((l) => l());
-    },
-    subscribe(cb: () => void) {
-      listeners.add(cb);
-      return () => listeners.delete(cb);
-    },
+    ...col,
+    get: () => col.list()[0] ?? (col.state().loaded ? empty : null),
+    save: (value: T, version: number | null) => col.put(value, version),
   };
 }
-
-export function useSingleton<T>(store: Singleton<T>): T | null {
-  return React.useSyncExternalStore(store.subscribe, store.get, () => null);
-}
-
-/* ---------- seeds ---------- */
-
-function hoyMas(dias: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0, 10);
-}
-
-const seedLeads = (): Lead[] => [
-  {
-    id: "lead-demo-01",
-    nombre: "Laura Cisneros",
-    telefono: "664 555 0101",
-    origen: "evaluar",
-    estado: "en-evaluacion",
-    zona: "Playas de Tijuana",
-    tipoPropiedad: "Casa",
-    asesorId: "asesor-01",
-    creadoEl: new Date(Date.now() - 3 * 86400000).toISOString(),
-    notas: [
-      {
-        id: "n1",
-        texto: "Quiere vender en 6 meses; pedí escritura y predial para el análisis.",
-        fecha: new Date(Date.now() - 2 * 86400000).toISOString(),
-      },
-    ],
-  },
-  {
-    id: "lead-demo-02",
-    nombre: "Jorge Ahumada",
-    telefono: "664 555 0102",
-    origen: "interes-propiedad",
-    estado: "contactado",
-    propiedadSlug: "nave-industrial-otay",
-    mensaje: "Busco nave para operación logística, 2500 m2 mínimo.",
-    asesorId: "asesor-02",
-    creadoEl: new Date(Date.now() - 1 * 86400000).toISOString(),
-    notas: [],
-  },
-  {
-    id: "lead-demo-03",
-    nombre: "Sofía Beltrán",
-    telefono: "664 555 0103",
-    origen: "checklist",
-    estado: "nuevo",
-    creadoEl: new Date().toISOString(),
-    notas: [],
-  },
-];
-
-const seedEventos = (): Evento[] => [
-  {
-    id: "evento-demo-01",
-    titulo: "Visita a residencia en Playas",
-    fecha: hoyMas(1),
-    hora: "11:00",
-    tipo: "visita",
-    leadId: "lead-demo-01",
-    propiedadSlug: "residencia-vista-al-mar-playas",
-  },
-  {
-    id: "evento-demo-02",
-    titulo: "Llamada de seguimiento nave Otay",
-    fecha: hoyMas(2),
-    hora: "16:30",
-    tipo: "llamada",
-    leadId: "lead-demo-02",
-  },
-];
-
-const seedPosts = (): Post[] => [
-  {
-    id: "post-demo-01",
-    slug: "que-revisar-antes-de-vender",
-    titulo: "Qué revisar antes de poner tu casa en venta",
-    resumen: "Los cinco pendientes documentales que detienen más ventas en Tijuana, y cómo resolverlos a tiempo.",
-    contenido:
-      "La mayoría de las ventas que se caen no se caen por precio: se caen por papeles.\n\nAntes de publicar, confirma escritura inscrita, predial al corriente y la situación de todos los propietarios. Ese es el corazón de nuestro análisis de factibilidad.",
-    estado: "borrador",
-    actualizadoEl: new Date().toISOString(),
-  },
-];
-
-const seedNotas = (): Nota[] => [
-  {
-    id: "nota-demo-01",
-    titulo: "Pendientes de la semana",
-    texto: "Confirmar fotógrafo para la residencia de Playas. Pedir uso de suelo actualizado de la nave de Otay.",
-    actualizadoEl: new Date().toISOString(),
-  },
-];
-
-const seedArchivos = (): Archivo[] => [
-  { id: "arch-01", nombre: "Checklist de venta (lead magnet)", url: "/descargas/checklist-venta-cota.pdf", tipo: "pdf" },
-  { id: "arch-02", nombre: "Ficha técnica demo", url: "/descargas/ficha-tecnica-demo.pdf", tipo: "pdf" },
-  { id: "arch-03", nombre: "Hero: casa frente al mar", url: "/hero/casa-playa.webp", tipo: "imagen" },
-  { id: "arch-04", nombre: "Hero: edificio Zona Río", url: "/hero/edificio-ciudad.webp", tipo: "imagen" },
-  { id: "arch-05", nombre: "Hero: interior departamento", url: "/hero/interior-depa.webp", tipo: "imagen" },
-  { id: "arch-06", nombre: "Hero: plaza comercial", url: "/hero/plaza.webp", tipo: "imagen" },
-  { id: "arch-07", nombre: "Nave industrial Tijuana", url: "/hero/nave-tijuana.webp", tipo: "imagen" },
-];
-
-const seedContent = (): SiteContent => ({
-  heroTitulo: "Vende con plan, no con anuncios.",
-  heroSubtitulo:
-    "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California.",
-  manifiestoTitulo: "No prometemos resultados. Documentamos el proceso.",
-  manifiestoTexto:
-    "Cada operación sigue el mismo método por escrito, de la captación a la firma. Por eso siempre sabes en qué paso va la tuya, y qué sigue después.",
-  seoTitle: "COTA | Vende tu propiedad en Tijuana con método",
-  seoDescription:
-    "Firma inmobiliaria en Tijuana y Baja California. Precio con datos, expediente revisado y seguimiento por escrito, de la captación a la firma ante notario.",
+export const contentStore = singleton<SiteContent>("contenido", {
+  heroTitulo: "",
+  heroSubtitulo: "",
+  manifiestoTitulo: "",
+  manifiestoTexto: "",
+  seoTitle: "",
+  seoDescription: "",
 });
-
-const seedSettings = (): SiteSettings => ({
-  nombreComercial: siteConfig.name,
-  telefono: siteConfig.contact.phone,
-  whatsapp: siteConfig.contact.whatsapp,
-  email: siteConfig.contact.email,
-  horario: "Lunes a viernes 9:00–18:00; sábado con cita",
+export const settingsStore = singleton<SiteSettings>("config", {
+  nombreComercial: "",
+  telefono: "",
+  whatsapp: "",
+  email: "",
+  horario: "",
   facebook: "",
   instagram: "",
   videoInstitucionalUrl: "",
 });
-
-/* ---------- repositorios ---------- */
-
-export const db = {
-  propiedades: collection<AdminProperty>("propiedades", () => propiedadesSeed),
-  asesores: collection<Asesor>("asesores", () =>
-    asesoresSeed.map((a) => ({ ...a, activo: true })),
-  ),
-  leads: collection<Lead>("leads", seedLeads),
-  eventos: collection<Evento>("eventos", seedEventos),
-  posts: collection<Post>("posts", seedPosts),
-  notas: collection<Nota>("notas", seedNotas),
-  archivos: collection<Archivo>("archivos", seedArchivos),
-};
-
-export const contentStore = singleton<SiteContent>("contenido", seedContent);
-export const settingsStore = singleton<SiteSettings>("config", seedSettings);
-
-/* ---------- helpers de mutación ---------- */
-
-export function upsert<T extends { id: string }>(col: Collection<T>, item: T): T[] {
-  const items = col.list();
-  const i = items.findIndex((x) => x.id === item.id);
-  const next = i >= 0 ? items.map((x) => (x.id === item.id ? item : x)) : [item, ...items];
-  col.save(next);
-  return next;
+export function useSingleton<T extends object>(store: Singleton<T>): T | null {
+  React.useEffect(() => {
+    if (store.state().status === "idle") void store.load().catch(() => {});
+  }, [store]);
+  return React.useSyncExternalStore(store.subscribe, store.get, () => null);
 }
-
-export function removeById<T extends { id: string }>(col: Collection<T>, id: string): T[] {
-  const next = col.list().filter((x) => x.id !== id);
-  col.save(next);
-  return next;
+export const adminStores = [...Object.values(db), contentStore, settingsStore];
+export function clearAdminCache() {
+  sessionEpoch++;
+  adminStores.forEach((s) => s.clear());
 }
-
-/* Las propiedades se identifican por slug (no llevan id). */
-export function upsertPropiedad(item: AdminProperty): AdminProperty[] {
-  const items = db.propiedades.list();
-  const exists = items.some((p) => p.slug === item.slug);
-  const next = exists ? items.map((p) => (p.slug === item.slug ? item : p)) : [item, ...items];
-  db.propiedades.save(next);
-  return next;
+export async function loadAdminData() {
+  await Promise.all(adminStores.map((s) => s.load()));
 }
-
-export function removePropiedad(slug: string): AdminProperty[] {
-  const next = db.propiedades.list().filter((p) => p.slug !== slug);
-  db.propiedades.save(next);
-  return next;
+export async function upsert<T extends { id: string }>(
+  col: Collection<T>,
+  item: T,
+  version: number | null,
+) {
+  return col.put(item, version);
 }
-
-/* ---------- sesión (placeholder de autenticación) ---------- */
-
-const SESSION_KEY = PREFIX + "sesion";
-/* TODO(M4): sustituir por Supabase Auth. Clave visible a propósito: demo. */
-export const DEMO_PASSWORD = "cota2026";
-
-export function isLoggedIn(): boolean {
+export async function removeById<T extends { id: string }>(
+  col: Collection<T>,
+  id: string,
+  version: number | null,
+) {
+  if (version === null) throw new AdminApiError(409, "Registro no encontrado");
+  await col.remove(id, version);
+}
+export async function upsertPropiedad(
+  item: AdminProperty,
+  version: number | null,
+) {
+  return db.propiedades.put(item, version);
+}
+export async function removePropiedad(slug: string, version: number | null) {
+  if (version === null) throw new AdminApiError(409, "Registro no encontrado");
+  await db.propiedades.remove(slug, version);
+}
+export function errorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "No se pudo completar la operación.";
+}
+export async function isLoggedIn() {
+  const epoch = sessionEpoch;
   try {
-    return window.sessionStorage.getItem(SESSION_KEY) === "1";
-  } catch {
-    return false;
+    const result = await apiRequest<{ user: StaffUser }>("/api/auth/session");
+    if (epoch !== sessionEpoch) return false;
+    setSession(result.user);
+    return true;
+  } catch (error) {
+    if (epoch !== sessionEpoch) return false;
+    if (
+      error instanceof AdminApiError &&
+      (error.status === 401 || error.status === 403)
+    ) {
+      setSession(null);
+      return false;
+    }
+    throw error;
   }
 }
-export function login(password: string): boolean {
-  if (password !== DEMO_PASSWORD) return false;
-  try {
-    window.sessionStorage.setItem(SESSION_KEY, "1");
-  } catch {}
+export async function login(email: string, password: string) {
+  await apiRequest("/api/auth/login", "POST", { email, password });
+  return isLoggedIn();
+}
+export async function logout() {
+  // Clear private UI immediately, even if server logout fails; report failure to retry.
+  clearAdminCache();
+  await apiRequest("/api/auth/logout", "POST", {});
+  setSession(null);
+}
+export async function recoverPassword(email: string) {
+  await apiRequest("/api/auth/recovery", "POST", { email });
+}
+export async function changePassword(password: string) {
+  await apiRequest("/api/auth/password", "POST", { password });
+  await isLoggedIn();
+}
+export async function acceptPasswordLink(): Promise<boolean> {
+  const url = new URL(window.location.href);
+  const hash = new URLSearchParams(url.hash.slice(1));
+  const type = hash.get("type") ?? url.searchParams.get("type");
+  if (!url.hash && !url.searchParams.has("token_hash")) return false;
+  const body = {
+    type,
+    ...(hash.get("access_token")
+      ? {
+          access_token: hash.get("access_token"),
+          refresh_token: hash.get("refresh_token"),
+        }
+      : {
+          token_hash:
+            url.searchParams.get("token_hash") ?? hash.get("token_hash"),
+        }),
+  };
+  const error =
+    hash.get("error_description") ?? url.searchParams.get("error_description");
+  // Remove secrets before a request, including failure paths. No token storage.
+  url.hash = "";
+  ["token_hash", "type", "error", "error_code", "error_description"].forEach(
+    (k) => url.searchParams.delete(k),
+  );
+  window.history.replaceState(null, "", url.pathname + url.search);
+  if (error)
+    throw new AdminApiError(
+      400,
+      "El enlace no es válido o ha caducado. Solicita uno nuevo.",
+    );
+  if (type !== "invite" && type !== "recovery")
+    throw new AdminApiError(400, "Enlace de acceso no compatible.");
+  await apiRequest("/api/auth/callback", "POST", body);
   return true;
 }
-export function logout() {
-  try {
-    window.sessionStorage.removeItem(SESSION_KEY);
-  } catch {}
-}
-
-/* ---------- captura de leads desde el sitio público ---------- */
-
-/*
-  Punto ÚNICO por el que pasan los cinco formularios del sitio.
-
-  Antes solo escribía en el `localStorage` del visitante: el lead se quedaba en
-  SU navegador y el negocio nunca lo veía. Ahora se entrega al back-office
-  (inmobiliaria-os) y, si la entrega falla, ESTA FUNCIÓN LANZA: un formulario no
-  debe dar las gracias por un lead que se perdió.
-
-  La copia local se conserva porque el panel /admin de este repo la usa como
-  bandeja de demostración. La fuente de verdad es el back-office.
-*/
 export async function captureLead(input: {
   nombre: string;
   telefono: string;
@@ -480,26 +508,89 @@ export async function captureLead(input: {
   tipoPropiedad?: string;
   mensaje?: string;
 }): Promise<string> {
-  if (typeof window === "undefined") return "";
-
-  const lead: Lead = {
-    id: uid(),
-    estado: "nuevo",
-    creadoEl: new Date().toISOString(),
-    notas: [],
-    ...input,
-  };
-  upsert(db.leads, lead);
-
-  // El origen del panel usa guion (`interes-propiedad`); el del back-office usa
-  // guion bajo, como el resto de sus enumerados. Se traduce aquí, en la frontera.
-  const origen = input.origen.replace(/-/g, "_") as OrigenProspecto;
-
-  return enviarProspecto({ ...input, origen });
+  const result = await apiRequest<{ id: string }>("/api/leads", "POST", input);
+  return result.id;
 }
-
-/* ---------- formato ---------- */
-
+export type UploadedFile = {
+  bucket: "cota-private" | "cota-public";
+  path: string;
+  url: string;
+  name: string;
+  type: string;
+};
+export function archivoTipo(mime: string): ArchivoTipo {
+  return mime.startsWith("image/")
+    ? "imagen"
+    : mime === "application/pdf"
+      ? "pdf"
+      : mime.startsWith("video/")
+        ? "video"
+        : "otro";
+}
+export async function uploadFile(
+  file: File,
+  visibility: "private" | "public" = "private",
+): Promise<UploadedFile> {
+  if (!file.size || file.size > 20 * 1024 * 1024)
+    throw new Error("El archivo debe pesar entre 1 byte y 20 MB.");
+  if (
+    ![
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "application/pdf",
+      "video/mp4",
+      "video/webm",
+    ].includes(file.type)
+  )
+    throw new Error(
+      "Formato permitido: JPEG, PNG, WebP, GIF, PDF, MP4 o WebM.",
+    );
+  const prepared = await apiRequest<{ signedUrl: string; ticket: string }>(
+    "/api/admin/files/upload",
+    "POST",
+    { name: file.name, size: file.size, contentType: file.type, visibility },
+  );
+  const sent = await fetch(prepared.signedUrl, {
+    method: "PUT",
+    credentials: "omit",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  if (!sent.ok)
+    throw new Error("No se pudo cargar el archivo. No se ha registrado.");
+  return apiRequest<UploadedFile>("/api/admin/files/complete", "POST", {
+    ticket: prepared.ticket,
+  });
+}
+export async function resolveFileUrl(value: string) {
+  const url = new URL(value, window.location.origin);
+  if (
+    url.origin === window.location.origin &&
+    url.pathname === "/api/admin/files"
+  )
+    return (await apiRequest<{ url: string }>(url.pathname + url.search)).url;
+  if (
+    !["https:", "http:"].includes(url.protocol) ||
+    url.username ||
+    url.password
+  )
+    throw new Error("URL no válida.");
+  return url.href;
+}
+export async function openFile(value: string) {
+  const tab = window.open("about:blank", "_blank");
+  if (tab) tab.opener = null;
+  try {
+    const url = await resolveFileUrl(value);
+    if (tab) tab.location.href = url;
+    else throw new Error("Permite ventanas emergentes para abrir el archivo.");
+  } catch (error) {
+    tab?.close();
+    throw error;
+  }
+}
 export function fechaCorta(iso: string): string {
   const d = new Date(iso);
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;

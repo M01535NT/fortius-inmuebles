@@ -5,11 +5,11 @@ import Link from "next/link";
 
 import { EmptyState, PageHeader, btnGhost } from "@/components/admin/ui";
 import { PropertyForm } from "@/components/admin/property-form";
-import { db, useCollection } from "@/lib/admin/store";
+import { db, useCollection, useLoadState } from "@/lib/admin/store";
 
 /*
   Edición por slug. Ruta client-side: el slug llega vía React.use(params)
-  y la propiedad se busca en la capa local.
+  y se conserva la instantánea que abrió la edición.
 */
 export default function EditarPropiedadPage({
   params,
@@ -17,11 +17,17 @@ export default function EditarPropiedadPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = React.use(params);
-  const propiedades = useCollection(db.propiedades);
-  const property = propiedades.find((p) => p.slug === slug);
+  return <PropertyEditor key={slug} slug={slug} />;
+}
 
-  /* Aún hidratando (SSR devuelve lista vacía). */
-  if (propiedades.length === 0) {
+function PropertyEditor({ slug }: { slug: string }) {
+  const propiedades = useCollection(db.propiedades);
+  const load = useLoadState(db.propiedades);
+  const current = propiedades.find((p) => p.slug === slug);
+  const [snapshot, setSnapshot] = React.useState(current);
+  if (!snapshot && current) setSnapshot(current);
+  const property = snapshot ?? current;
+  if (!property && !load.loaded) {
     return <PageHeader title="Editar inmueble." />;
   }
 
@@ -43,7 +49,13 @@ export default function EditarPropiedadPage({
         title="Editar inmueble."
         description={`${property.codigo} · ${property.titulo}`}
       />
-      <PropertyForm initial={property} />
+      {!current ? (
+        <p role="alert" className="text-sm text-destructive">
+          El inmueble ya no aparece en el servidor. Conserva el borrador;
+          guardarlo requerirá resolver el conflicto.
+        </p>
+      ) : null}
+      <PropertyForm key={slug} initial={property} />
     </div>
   );
 }

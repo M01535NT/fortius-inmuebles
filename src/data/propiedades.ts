@@ -79,7 +79,8 @@ export type Property = {
   destacada: boolean;
   estado: EstadoPropiedad;
   publicadaEl: string; // ISO
-  demo: true; // guardrail: marca explícita de dato de ejemplo
+  demo: boolean; // marca explícita de dato de ejemplo
+  publicada?: boolean; // solo se publica por decisión explícita
 };
 
 export const TIPO_LABELS: Record<TipoPropiedad, string> = {
