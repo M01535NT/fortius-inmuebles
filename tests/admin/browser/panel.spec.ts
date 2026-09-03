@@ -18,6 +18,35 @@ test.beforeEach(async ({ page }) => {
     return route.fulfill({ json: { records: [] } });
   });
 });
+test("original Cota mark remains visible through email login and sidebar", async ({ page }, testInfo) => {
+  let logged = false;
+  await page.route("**/api/auth/**", (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === "/api/auth/session")
+      return route.fulfill(logged
+        ? { json: { user: { id: "staff-browser", email: "staff@example.com", role: "admin" } } }
+        : { status: 401, json: { error: "Sin sesión" } });
+    if (pathname === "/api/auth/login") logged = true;
+    return route.fulfill({ json: { ok: true } });
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/admin");
+  await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
+  const loginMark = page.getByRole("main").locator('svg[viewBox="0 0 26 14"]');
+  await expect(loginMark).toBeVisible();
+  await expect(loginMark).toHaveAttribute("width", "26");
+  await expect(loginMark).toHaveAttribute("height", "14");
+  await page.screenshot({ path: testInfo.outputPath("cota-login.png"), fullPage: true });
+  await page.getByLabel("Correo").fill("staff@example.com");
+  await page.getByLabel("Contraseña", { exact: true }).fill("local-fixture-password");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Panel.", exact: true })).toBeVisible();
+  const sidebarMark = page.getByRole("complementary").locator('svg[viewBox="0 0 26 14"]');
+  await expect(sidebarMark).toBeVisible();
+  await expect(sidebarMark).toHaveAttribute("width", "22");
+  await expect(sidebarMark).toHaveAttribute("height", "12");
+  await page.screenshot({ path: testInfo.outputPath("cota-sidebar.png"), fullPage: true });
+});
 for (const width of [375, 414, 768, 1024, 1440]) {
   test(
     "panel modules fit and remain reachable at " + width,

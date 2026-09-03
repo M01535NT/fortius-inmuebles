@@ -125,6 +125,12 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
     </AdminShell>,
   );
   await screen.findByText("Privado");
+  const sidebarBrand = screen.getByRole("complementary").firstElementChild!;
+  expect(sidebarBrand.querySelector("svg")?.getAttribute("width")).toBe("22");
+  expect(sidebarBrand.querySelector("svg")?.getAttribute("height")).toBe("12");
+  expect(sidebarBrand.querySelector("path")?.getAttribute("d")).toBe(
+    "M1 1v12M25 1v12M1 7h24",
+  );
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
@@ -139,6 +145,12 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   );
   await screen.findByRole("heading", { name: "Acceso al panel" });
   expect(screen.queryByText("Privado")).toBeNull();
+  const loginBrand = screen.getByText("Cota").parentElement!;
+  expect(loginBrand.querySelector("svg")?.getAttribute("width")).toBe("26");
+  expect(loginBrand.querySelector("svg")?.getAttribute("height")).toBe("14");
+  expect(loginBrand.querySelector("path")?.getAttribute("d")).toBe(
+    "M1 1v12M25 1v12M1 7h24",
+  );
 });
 test("callback secrets are removed before request, password mode survives verification", async () => {
   window.history.replaceState(
@@ -162,6 +174,52 @@ test("callback secrets are removed before request, password mode survives verifi
   });
   fireEvent.click(screen.getByRole("button", { name: "Guardar contraseña" }));
   await screen.findByText("Privado");
+});
+
+test("failed post-save reconciliation shows a retryable warning without discarding the open draft", async () => {
+  render(
+    <AdminShell>
+      <input aria-label="Borrador abierto" defaultValue="Mi texto sin perder" />
+    </AdminShell>,
+  );
+  await screen.findByLabelText("Borrador abierto");
+  let respond!: (response: Response) => void;
+  vi.mocked(fetch).mockImplementationOnce(
+    () => new Promise<Response>((done) => { respond = done; }),
+  );
+  const note = {
+    id: "n1",
+    titulo: "Guardado",
+    texto: "Texto",
+    actualizadoEl: "2026-09-03",
+  };
+  const saving = api.db.notas.put(note, null);
+  await act(async () => {
+    await api.db.notas.load();
+  });
+  vi.mocked(fetch).mockResolvedValueOnce(
+    Response.json({ error: "Sin conexión" }, { status: 503 }),
+  );
+  await act(async () => {
+    respond(Response.json({
+      record: {
+        id: "n1",
+        data: note,
+        version: 1,
+        createdAt: "2026-09-03",
+        updatedAt: "2026-09-03",
+      },
+    }));
+    const saved = await saving;
+    expect(api.db.notas.version(saved)).toBe(1);
+  });
+  expect((await screen.findByRole("alert")).textContent).toContain("se guardó");
+  expect((screen.getByLabelText("Borrador abierto") as HTMLInputElement).value)
+    .toBe("Mi texto sin perder");
+  fireEvent.click(screen.getByRole("button", { name: "Reintentar carga" }));
+  await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+  expect((screen.getByLabelText("Borrador abierto") as HTMLInputElement).value)
+    .toBe("Mi texto sin perder");
 });
 test("email login rejection keeps private content hidden and displays the server failure", async () => {
   vi.mocked(fetch).mockImplementation(async (url: string | URL | Request) => {

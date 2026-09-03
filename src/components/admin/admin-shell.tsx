@@ -70,10 +70,29 @@ function LoginScreen({
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-background px-5">
       <div className="w-full max-w-[400px]">
-        <p className="display-title text-[19px] tracking-[0.04em] text-foreground">
-          Cota{" "}
-          <span className="font-mono text-xs text-muted-foreground">Panel</span>
-        </p>
+        <div className="flex items-center gap-2.5">
+          <svg
+            width="26"
+            height="14"
+            viewBox="0 0 26 14"
+            fill="none"
+            aria-hidden="true"
+            className="text-primary"
+          >
+            <path
+              d="M1 1v12M25 1v12M1 7h24"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="display-title text-[19px] tracking-[0.04em] text-foreground">
+            Cota
+          </span>
+          <span className="ml-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            Panel
+          </span>
+        </div>
         <AsyncForm
           className="mt-8 space-y-4 rounded-lg border border-border bg-card p-6"
           onSubmit={async (e) => {
@@ -179,6 +198,12 @@ function LoginScreen({
     </main>
   );
 }
+const subscribeCollections = (cb: () => void) => {
+  const unsubscribe = adminStores.map((store) => store.subscribe(cb));
+  return () => unsubscribe.forEach((stop) => stop());
+};
+const collectionError = () =>
+  adminStores.map((store) => store.state().error).find(Boolean) ?? null;
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
@@ -186,6 +211,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = React.useState(true);
   const [passwordMode, setPasswordMode] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const refreshError = React.useSyncExternalStore(
+    subscribeCollections,
+    collectionError,
+    () => null,
+  );
   const [ready, setReady] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [menu, setMenu] = React.useState(false);
@@ -325,10 +355,25 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       <aside className="sticky top-0 hidden h-[100dvh] w-[228px] shrink-0 flex-col border-r border-border md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
+          <svg
+            width="22"
+            height="12"
+            viewBox="0 0 26 14"
+            fill="none"
+            aria-hidden="true"
+            className="text-primary"
+          >
+            <path
+              d="M1 1v12M25 1v12M1 7h24"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
           <span className="display-title text-[17px] tracking-[0.04em] text-foreground">
             Cota
           </span>
-          <span className="font-mono text-[10px] uppercase text-muted-foreground">
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
             Panel
           </span>
         </div>
@@ -388,9 +433,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ) : null}
         </header>
         <main className="space-y-5 p-5 md:p-8">
-          {error ? (
+          {error || refreshError ? (
             <div className="space-y-2">
-              <ErrorNotice error={error} />
+              <ErrorNotice error={error ?? refreshError} />
               <AsyncButton onClick={refresh} className={btnGhost}>
                 Reintentar carga
               </AsyncButton>

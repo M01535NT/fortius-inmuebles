@@ -250,10 +250,28 @@ function collection<T extends object>(
   const snapshots = new WeakMap<T, number>();
   let state = IDLE;
   let generation = 0;
+  let cacheRevision = 0;
+  let needsRevalidation = false;
   let pending: Promise<void> | null = null;
   const listeners = new Set<() => void>();
   const emit = () => listeners.forEach((l) => l());
   const path = "/api/admin/collections/" + key;
+  async function reconcile(epoch: number) {
+    try {
+      await col.load();
+    } catch {
+      if (epoch !== sessionEpoch) return;
+      // Persistence already succeeded. Keep the latest confirmed cache and
+      // let the shell offer a retry without making the editor retry its write.
+      state = {
+        ...state,
+        status: "error",
+        error:
+          "La operación se guardó, pero no se pudo actualizar la lista. Reintenta la carga.",
+      };
+      emit();
+    }
+  }
   const col: Collection<T> = {
     list: () => cache,
     state: () => state,
@@ -266,6 +284,8 @@ function collection<T extends object>(
     },
     clear() {
       generation++;
+      cacheRevision++;
+      needsRevalidation = false;
       pending = null;
       cache = [];
       versions = new Map();
@@ -284,6 +304,8 @@ function collection<T extends object>(
           cache = result.records.map((r) => r.data);
           result.records.forEach((r) => snapshots.set(r.data, r.version));
           versions = new Map(result.records.map((r) => [r.id, r.version]));
+          cacheRevision++;
+          needsRevalidation = false;
           state = { status: "ready", error: null, loaded: true };
         } catch (error) {
           if (current !== generation) return;
@@ -300,6 +322,7 @@ function collection<T extends object>(
     },
     async put(item, version) {
       const epoch = sessionEpoch;
+      const revision = cacheRevision;
       const result = await apiRequest<{ record: StoredRecord<T> }>(
         path + "/" + encodeURIComponent(identify(item)),
         "PUT",
@@ -310,18 +333,30 @@ function collection<T extends object>(
       // A response to an earlier GET must never overwrite the acknowledged mutation.
       generation++;
       pending = null;
+      // The returned snapshot always owns the version actually saved, even
+      // when the shared cache has already observed a later server state.
+      snapshots.set(result.record.data, result.record.version);
+      if (revision !== cacheRevision || needsRevalidation) {
+        // Numeric versions can restart after deletion/recreation. A fresh GET
+        // after this acknowledgement resolves that ambiguity without briefly
+        // replacing newer data (or resurrecting a deleted record) in the UI.
+        needsRevalidation = true;
+        await reconcile(epoch);
+        return result.record.data;
+      }
       cache = [
         result.record.data,
         ...cache.filter((x) => identify(x) !== result.record.id),
       ];
       versions.set(result.record.id, result.record.version);
-      snapshots.set(result.record.data, result.record.version);
+      cacheRevision++;
       state = { status: "ready", error: null, loaded: true };
       emit();
       return result.record.data;
     },
     async remove(id, version) {
       const epoch = sessionEpoch;
+      const revision = cacheRevision;
       await apiRequest(path + "/" + encodeURIComponent(id), "DELETE", {
         version,
       });
@@ -329,8 +364,15 @@ function collection<T extends object>(
         throw new AdminApiError(401, "La sesión cambió; vuelve a entrar.");
       generation++;
       pending = null;
+      if (revision !== cacheRevision || needsRevalidation) {
+        needsRevalidation = true;
+        await reconcile(epoch);
+        return;
+      }
       cache = cache.filter((x) => identify(x) !== id);
       versions.delete(id);
+      cacheRevision++;
+      state = { status: "ready", error: null, loaded: true };
       emit();
     },
   };
