@@ -1,0 +1,128 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { acceptAuthCallback, changePassword, loginWithPassword, logoutSession, requireStaff, requestRecovery } from "@/lib/backend/auth";
+import { GET as sessionRoute } from "@/app/api/auth/session/route";
+import { GET as listRoute } from "@/app/api/admin/collections/[collection]/route";
+import { PUT as putRoute } from "@/app/api/admin/collections/[collection]/[id]/route";
+import { POST as leadRoute } from "@/app/api/leads/route";
+import { POST as uploadRoute, GET as fileRoute } from "@/app/api/admin/files/route";
+
+const state = vi.hoisted(() => ({ cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(), active: true, member: true, validPassword: true, password: "", recoveryFailure: false, leadFailure: false }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: (name: string) => state.cookies.get(name), set: (name: string, value: string, options: Record<string, unknown>) => { state.cookies.set(name, { value, options }); } }) }));
+const user = { id: "10000000-0000-4000-8000-000000000001", aud: "authenticated", role: "authenticated", email: "staff@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-09-02T12:00:00Z" };
+const token = `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url")}.${Buffer.from(JSON.stringify({ sub: user.id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url")}.test-signature`;
+const session = { access_token: token, refresh_token: "test-refresh-token", expires_in: 3600, token_type: "bearer", user };
+
+beforeEach(() => {
+  state.cookies.clear(); state.active = true; state.member = true; state.validPassword = true; state.password = ""; state.recoveryFailure = false; state.leadFailure = false;
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://cota-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
+  vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_key");
+  // Only the external Auth/PostgREST boundary is replaced. Supabase-js and our
+  // session, membership, cookies and password code execute unchanged.
+  vi.stubGlobal("fetch", async (input: string | URL | Request, init: RequestInit = {}) => {
+    const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+    const headers = new Headers(init.headers);
+    if (url.pathname === "/auth/v1/token") return state.validPassword ? Response.json(session) : Response.json({ error_code: "invalid_credentials", msg: "Invalid login credentials" }, { status: 400 });
+    if (url.pathname === "/auth/v1/verify") return Response.json(session);
+    if (url.pathname === "/auth/v1/user") {
+      if (headers.get("authorization") !== `Bearer ${token}`) return Response.json({ msg: "invalid JWT", error_code: "bad_jwt" }, { status: 401 });
+      if (init.method === "PUT") state.password = JSON.parse(String(init.body)).password;
+      return Response.json(user);
+    }
+    if (url.pathname === "/rest/v1/cota_staff") return Response.json(state.member ? [{ role: "admin", active: state.active }] : []);
+    if (url.pathname === "/auth/v1/logout") return new Response(null, { status: 204 });
+    if (url.pathname === "/auth/v1/recover") return state.recoveryFailure ? Response.json({ msg: "SMTP is unavailable", error_code: "unexpected_failure" }, { status: 500 }) : Response.json({});
+    if (url.pathname === "/rest/v1/rpc/cota_capture_lead") return state.leadFailure ? Response.json({ code: "PT429", message: "Limited" }, { status: 429 }) : Response.json("new-lead-id");
+    if (url.pathname === "/rest/v1/cota_records") return Response.json([]);
+    if (url.pathname.startsWith("/storage/v1/object/sign/")) return Response.json({ signedURL: "/object/sign/cota-private/signed?token=temporary" });
+    if (url.pathname.startsWith("/storage/v1/object/")) return Response.json({ Key: url.pathname });
+    throw new Error(`Unexpected external request: ${url.pathname}`);
+  });
+});
+
+describe("HTTP API contracts", () => {
+  const req = (path: string, method: string, body?: unknown) => new Request(`https://cota.test${path}`, { method, headers: { origin: "https://cota.test", "content-type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  it("returns 401/403 from real handlers and rejects invalid collection/payload with 400", async () => {
+    expect((await sessionRoute()).status).toBe(401);
+    const context = { params: Promise.resolve({ collection: "notas", id: "n1" }) };
+    expect((await putRoute(req("/api/admin/collections/notas/n1", "PUT", { data: {}, version: null }), context)).status).toBe(401);
+    await loginWithPassword({ email: user.email, password: "a long password" });
+    state.active = false;
+    expect((await listRoute(req("/api/admin/collections/leads", "GET"), { params: Promise.resolve({ collection: "leads" }) })).status).toBe(403);
+    state.active = true;
+    expect((await listRoute(req("/api/admin/collections/staff", "GET"), { params: Promise.resolve({ collection: "staff" }) })).status).toBe(400);
+    expect((await putRoute(req("/api/admin/collections/notas/n1", "PUT", { data: {} }), context)).status).toBe(400);
+    const list = await listRoute(req("/api/admin/collections/leads", "GET"), { params: Promise.resolve({ collection: "leads" }) });
+    expect(list.headers.get("cache-control")).toContain("private, no-store");
+    expect(await list.json()).toEqual({ records: [] });
+  });
+  it("public lead endpoint exposes only persisted id and does not acknowledge a failed write", async () => {
+    const input = { nombre: "Persona", telefono: "6641234567", origen: "contacto" };
+    const saved = await leadRoute(req("/api/leads", "POST", input));
+    expect(saved.status).toBe(201);
+    expect(await saved.json()).toEqual({ id: "new-lead-id" });
+    state.leadFailure = true;
+    const failed = await leadRoute(req("/api/leads", "POST", input));
+    expect(failed.status).toBe(429);
+    expect(await failed.json()).not.toHaveProperty("id");
+  });
+  it("defaults uploads to private and returns stable paths; signing always needs staff", async () => {
+    await loginWithPassword({ email: user.email, password: "a long password" });
+    const form = new FormData(); form.set("file", new File(["%PDF-1.7\nhello"], "test.pdf", { type: "application/pdf" }));
+    const uploaded = await uploadRoute(new Request("https://cota.test/api/admin/files", { method: "POST", headers: { origin: "https://cota.test" }, body: form }));
+    expect(uploaded.status).toBe(201);
+    const file = await uploaded.json();
+    expect(file.bucket).toBe("cota-private");
+    expect(file.path).toMatch(/^[a-z0-9-]+\/[a-z0-9-]+\.pdf$/);
+    expect(file.url).not.toContain("token=");
+    const signed = await fileRoute(new Request(`https://cota.test${file.url}`));
+    expect(signed.status).toBe(200);
+    expect(await signed.json()).toMatchObject({ expiresIn: 60 });
+    await logoutSession();
+    expect((await fileRoute(new Request(`https://cota.test${file.url}`))).status).toBe(401);
+  });
+});
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+
+describe("real session behavior against the external transport boundary", () => {
+  it("rejects invalid credentials and never creates session cookies", async () => {
+    state.validPassword = false;
+    await expect(loginWithPassword({ email: user.email, password: "wrong" })).rejects.toMatchObject({ status: 401 });
+    expect(state.cookies.size).toBe(0);
+  });
+  it("requires live membership before setting HttpOnly cookies", async () => {
+    state.member = false;
+    await expect(loginWithPassword({ email: user.email, password: "a long password" })).rejects.toMatchObject({ status: 403 });
+    expect(state.cookies.size).toBe(0);
+    state.member = true;
+    expect((await loginWithPassword({ email: user.email, password: "a long password" })).user.role).toBe("admin");
+    expect(state.cookies.get("cota-access-token")).toMatchObject({ value: token, options: { httpOnly: true, sameSite: "lax", path: "/" } });
+    state.active = false;
+    await expect(requireStaff()).rejects.toMatchObject({ status: 403 });
+  });
+  it("refreshes a session with no access cookie and rejects an anonymous request", async () => {
+    await expect(requireStaff()).rejects.toMatchObject({ status: 401 });
+    state.cookies.set("cota-refresh-token", { value: "test-refresh-token" });
+    expect((await requireStaff()).user.id).toBe(user.id);
+    expect(state.cookies.get("cota-access-token")?.value).toBe(token);
+  });
+  it("accepts invite/recovery only, rechecks membership, and updates password with the authorized token", async () => {
+    await expect(acceptAuthCallback({ type: "signup", access_token: token, refresh_token: session.refresh_token })).rejects.toThrow();
+    await acceptAuthCallback({ type: "invite", access_token: token, refresh_token: session.refresh_token });
+    await expect(changePassword({ password: "short" })).rejects.toThrow();
+    await expect(changePassword({ password: "new strong password" })).resolves.toEqual({ ok: true });
+    expect(state.password).toBe("new strong password");
+  });
+  it("clears both cookies on logout so the next request is unauthenticated", async () => {
+    await loginWithPassword({ email: user.email, password: "a long password" });
+    await logoutSession();
+    expect(state.cookies.get("cota-access-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
+    expect(state.cookies.get("cota-refresh-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
+    await expect(requireStaff()).rejects.toMatchObject({ status: 401 });
+  });
+  it("recovery is non-enumerating but never claims delivery when the provider rejects", async () => {
+    expect(await requestRecovery({ email: "unknown@example.com" }, "https://cota.test/admin")).toEqual({ ok: true });
+    expect(state.cookies.size).toBe(0);
+    state.recoveryFailure = true;
+    await expect(requestRecovery({ email: user.email }, "https://cota.test/admin")).rejects.toMatchObject({ status: 503 });
+  });
+});
