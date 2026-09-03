@@ -56,7 +56,8 @@ vez se copiaron, verificaron por SHA-256 y después se retiraron de sus rutas
 exactas. El archivo está en
 `C:\Paginas-web\_archivo\COTA-20260903`; el inventario de restauración
 versionado está en
-`.superpowers/sdd/implementation-plan/archive-manifest.json`. Los tres
+`docs/archive/COTA-20260903-manifest.json`, con una copia inmutable
+`MANIFEST.json` y las instrucciones `RESTORE.md` dentro del archivo. Los tres
 snapshots públicos que el seeder necesitaba permanecen en el espacio activo de
 plan y también tienen copia archivada. Para recuperar un archivo, comprueba su
 hash del manifiesto y cópialo de vuelta a su ruta relativa; no uses borrados

@@ -6,6 +6,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# One-time archival evidence only. After its successful 2026-09-03 run, the
+# sources and temporary candidate inventory are intentionally no longer a
+# runnable input set. Later integrity checks and restoration use the immutable
+# docs/archive/COTA-20260903-manifest.json, not this script.
+
 function Resolve-ExactPath {
   param([string]$Path)
   return [System.IO.Path]::GetFullPath($Path)
