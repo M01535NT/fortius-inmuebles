@@ -9,8 +9,7 @@ import { captureLead } from "@/lib/admin/store";
 /*
   Documentos descargables de la propiedad (PDFs cargados desde el panel,
   sección Inmuebles). Se liberan a cambio de nombre y teléfono: cada
-  descarga es un lead con la propiedad de origen. TODO(M3.1): persistir el
-  lead en backend; hoy queda en la bandeja local del panel.
+  descarga es un lead persistido con la propiedad de origen.
 */
 type Props = {
   documentos: DocumentoPropiedad[];
@@ -27,7 +26,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
 
   /*
     Los PDFs se entregan a cambio del contacto. Si el contacto no llegó al
-    back-office, no se libera la descarga: sería regalar el documento y perder
+    backend dedicado de COTA, no se libera la descarga: sería regalar el documento y perder
     el prospecto a la vez.
   */
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

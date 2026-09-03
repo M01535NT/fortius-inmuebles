@@ -6,13 +6,16 @@ import { NumberTicker } from "@/components/magicui/number-ticker";
 
 /*
   Estimador de gastos de cierre (Tijuana, BC). Rangos de referencia
-  tomados de la investigación interna (InvestigacionModeloNegocio.md):
+  tomados de la investigación histórica archivada en
+  C:\Paginas-web\_archivo\COTA-20260903\InvestigacionModeloNegocio.md
+  (SHA-256 38D2400B8988272828428A4FB5B4FFF2FFE6C36B07FF1A4795FDD044673B2A43):
   - ISAI Tijuana: progresivo, aprox 2% a 4.5% (Art. 8 Ley de Ingresos municipal)
   - Honorarios notariales: 0.5% a 1.5%
   - Registro Público: ~0.2%
   - Avalúo: monto fijo aproximado ($3,000 a $15,000 MXN)
   Estimación informativa: los montos reales varían por operación y se
-  confirman con el notario o el especialista correspondiente.
+  confirman con el notario o el especialista correspondiente. El antecedente
+  archivado no afirma vigencia jurídica ni fiscal.
 */
 type Perfil = "comprador" | "vendedor";
 

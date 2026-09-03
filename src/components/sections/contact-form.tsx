@@ -6,7 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 import { captureLead } from "@/lib/admin/store";
 
 /*
-  Formulario de contacto. El lead se entrega al back-office; si la entrega falla,
+  Formulario de contacto. El lead se entrega al backend dedicado de COTA; si la entrega falla,
   NO se dan las gracias: se dice la verdad y se ofrece el teléfono.
 */
 export function ContactForm() {

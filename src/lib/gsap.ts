@@ -6,8 +6,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 
 /*
-  Punto único de registro de GSAP (decisión 7-jul-2026: el Home se anima
-  con GSAP; ver specs/001-firma-inmobiliaria/motion-v4-plan.md).
+  Punto único de registro de GSAP. El antecedente de motion quedó archivado en
+  C:\Paginas-web\_archivo\COTA-20260903\specs\001-firma-inmobiliaria\motion-v4-plan.md;
+  las reglas activas de diseño están en README.md.
   Importar gsap/ScrollTrigger/SplitText SIEMPRE desde aquí.
 */
 if (typeof window !== "undefined") {

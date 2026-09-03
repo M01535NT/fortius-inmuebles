@@ -181,38 +181,6 @@ select {
   will-change: transform;
 }
 
-/* Marquee (MagicUI) */
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(calc(-100% - var(--gap)));
-  }
-}
-
-@keyframes marquee-vertical {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(calc(-100% - var(--gap)));
-  }
-}
-
-.animate-marquee {
-  animation: marquee var(--duration, 32s) linear infinite;
-}
-
-.animate-marquee-vertical {
-  animation: marquee-vertical var(--duration, 32s) linear infinite;
-}
-
-.marquee-pause:hover .animate-marquee,
-.marquee-pause:hover .animate-marquee-vertical {
-  animation-play-state: paused;
-}
-
 /* Tipo outline para la banda de zonas: contorno que se rellena al hover. */
 .text-outline {
   -webkit-text-stroke: 1px color-mix(in srgb, var(--foreground) 38%, transparent);
