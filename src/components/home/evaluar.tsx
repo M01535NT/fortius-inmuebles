@@ -7,12 +7,13 @@ import { Scrub } from "@/components/gsap/scrub";
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { captureLead } from "@/lib/admin/store";
+import { PublicLeadForm } from "@/components/forms/public-lead-form";
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /*
   Lead capture. The form is the page's conversion tool: few fields, visible
-  labels, honest microcopy. TODO(M3.1): POST al endpoint real (Supabase)
-  antes de redirigir; hoy solo redirige a la página de gracias.
+  labels, honest microcopy. El POST al BFF de COTA debe confirmar la persistencia
+  antes de redirigir a la página de gracias; un fallo conserva el borrador.
 */
 const PASOS = [
   "Recibimos los datos de tu propiedad.",
@@ -40,6 +41,7 @@ export function Evaluar() {
     setError(null);
     try {
       await captureLead({
+        website: String(data.get("website") ?? ""),
         nombre: String(data.get("nombre") ?? ""),
         telefono: String(data.get("telefono") ?? ""),
         zona: String(data.get("zona") ?? ""),
@@ -139,7 +141,7 @@ export function Evaluar() {
 
           {/* Right: the form */}
           <div className="lg:col-span-6 lg:col-start-7">
-            <form
+            <PublicLeadForm
                 onSubmit={onSubmit}
                 className="relative rounded-lg border border-border bg-card p-6 md:p-8"
                 noValidate={false}
@@ -232,7 +234,7 @@ export function Evaluar() {
                     tu solicitud.
                   </p>
                 </div>
-              </form>
+              </PublicLeadForm>
           </div>
         </div>
       </div>

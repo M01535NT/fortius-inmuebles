@@ -4,10 +4,11 @@ import * as React from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { captureLead } from "@/lib/admin/store";
+import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
-  Formulario de interés por propiedad. TODO backend (M3.1): enviar el lead
-  al endpoint real; hoy queda en la bandeja local del panel.
+  Formulario de interés por propiedad. El BFF confirma el lead persistido
+  en COTA antes de mostrar la recepción; los fallos conservan los datos.
 */
 export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; codigo: string; titulo: string }) {
   const [sent, setSent] = React.useState(false);
@@ -28,7 +29,7 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
   }
 
   return (
-    <form
+    <PublicLeadForm
       onSubmit={async (e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
@@ -36,6 +37,7 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
         setError(null);
         try {
           await captureLead({
+            website: String(data.get("website") ?? ""),
             nombre: String(data.get("nombre") ?? ""),
             telefono: String(data.get("telefono") ?? ""),
             mensaje: String(data.get("mensaje") ?? "") || undefined,
@@ -114,6 +116,6 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
         Sin compromiso. Usamos tus datos solo para dar seguimiento a tu
         solicitud.
       </p>
-    </form>
+    </PublicLeadForm>
   );
 }

@@ -35,13 +35,15 @@ beforeAll(async () => {
     const details = error as { position?: number; internalPosition?: number; internalQuery?: string; message?: string };
     throw new Error(`SQL migration failed at ${details.position ?? details.internalPosition}: ${details.message}; ${details.internalQuery ?? ""}`, { cause: error });
   }
+  await db.exec(await readFile(new URL("../../supabase/migrations/202609030002_cota_record_revisions.sql", import.meta.url), "utf8"));
 });
 afterAll(async () => { await db?.close(); });
 
 describe("PostgreSQL policy and atomic persistence contract", () => {
   beforeEach(async () => {
     // Run bootstrap as owner; the tested operations below switch to real DB roles.
-    await db.exec("truncate public.cota_records cascade; truncate public.cota_rate_limits; delete from public.cota_staff;");
+    // Only this disposable in-memory DB resets revision metadata between tests.
+    await db.exec("truncate public.cota_records cascade; truncate public.cota_record_revisions; truncate public.cota_rate_limits; delete from public.cota_staff;");
     await db.query("insert into public.cota_staff(user_id,role) values ($1,'admin')", [member]);
   });
 
@@ -182,6 +184,20 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
       await expect(db.query("select public.cota_capture_lead($1::jsonb,$2)", [JSON.stringify(lead), "ip-test"])).rejects.toMatchObject({ code: "PT429" });
     });
     expect((await db.query("select * from public.cota_records where collection='leads'")).rows).toHaveLength(5);
+  });
+
+  it("post projection still exposes only explicitly public posts without authentication", async () => {
+    const post = { id: "p1", slug: "guia", titulo: "Guía", resumen: "Resumen", contenido: "Texto", estado: "publicado", actualizadoEl: "2026-09-03", privateNote: "NO PUBLICAR" };
+    await asRole("authenticated", member, async () => {
+      await save("posts", "p1", post);
+      await save("posts", "p2", { ...post, id: "p2", estado: "borrador" });
+    });
+    await asRole("anon", null, async () => {
+      const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.cota_public_records('posts')")).rows;
+      expect(rows).toHaveLength(1);
+      expect(rows[0].data).toMatchObject({ id: "p1", estado: "publicado", contenido: "Texto" });
+      expect(JSON.stringify(rows)).not.toContain("NO PUBLICAR");
+    });
   });
 
   it("storage private objects remain inaccessible to anonymous and nonmember users", async () => {

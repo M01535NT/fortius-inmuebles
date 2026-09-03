@@ -14,6 +14,9 @@ assert.equal(new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname,
   "qkkirjzhviqwvuqjnmei.supabase.co", "Refusing any other Supabase project");
 const origin = "http://localhost:3000";
 const verifyWeb = process.argv.includes("--web");
+const verifyRevisions = process.argv.includes("--revisions");
+if (verifyRevisions) assert.ok(process.argv.includes("--migration-002-applied"),
+  "Revision mutation requires explicit confirmation that reviewed migration002 is applied");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 assert.ok(key, "Server-only key is required");
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, key, {
@@ -146,6 +149,41 @@ try {
     estado: "disponible", publicadaEl: now, demo: true, publicada: false,
     privateVerificationMarker: "MUST-NOT-BE-PUBLIC" };
   let propertyVersion;
+  if (verifyRevisions) await check("migration002 preserves revisions across recreation, concurrent writes and direct RPC", async () => {
+    const id = `${prefix}-aba`;
+    records.push({ collection: "propiedades", id });
+    const fixture = { ...property, slug: id, titulo: "ABA current fixture" };
+    const path = collectionPath("propiedades", id);
+    const creates = await Promise.all([first(path, { method: "PUT", data: { data: fixture, version: null } }), second(path, { method: "PUT", data: { data: fixture, version: null } })]);
+    assert.deepEqual(creates.map((result) => result.status).sort(), [200, 409]);
+    const opening = creates.find((result) => result.status === 200).data.record;
+    const updates = await Promise.all([first(path, { method: "PUT", data: { data: { ...fixture, titulo: "Writer A" }, version: opening.version } }), second(path, { method: "PUT", data: { data: { ...fixture, titulo: "Writer B" }, version: opening.version } })]);
+    assert.deepEqual(updates.map((result) => result.status).sort(), [200, 409]);
+    const latest = updates.find((result) => result.status === 200).data.record;
+    assert.equal((await first(path, { method: "DELETE", data: { version: latest.version } })).status, 200);
+    const recreated = await second(path, { method: "PUT", data: { data: fixture, version: null } });
+    assert.equal(recreated.status, 200);
+    assert.ok(recreated.data.record.version > latest.version);
+    for (const version of [opening.version, latest.version]) {
+      assert.equal((await first(path, { method: "PUT", data: { data: opening.data, version } })).status, 409);
+      assert.equal((await first(path, { method: "DELETE", data: { version } })).status, 409);
+    }
+    const direct = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+    assert.ifError((await direct.auth.signInWithPassword(member)).error);
+    try {
+      const put = await direct.rpc("cota_put_record", { p_collection: "propiedades", p_id: id, p_data: opening.data, p_version: opening.version });
+      assert.equal(put.error?.code, "PT409");
+      const del = await direct.rpc("cota_delete_record", { p_collection: "propiedades", p_id: id, p_version: opening.version });
+      assert.equal(del.error?.code, "PT409");
+      const list = await first("/api/admin/collections/propiedades");
+      assert.equal(list.data.records.find((record) => record.id === id).data.titulo, fixture.titulo);
+    } finally { await direct.auth.signOut({ scope: "local" }); }
+    const valid = await second(path, { method: "PUT", data: { data: { ...fixture, titulo: "Valid recreated editor" }, version: recreated.data.record.version } });
+    assert.equal(valid.status, 200);
+    assert.equal(valid.data.record.data.titulo, "Valid recreated editor");
+    assert.equal((await second(path, { method: "DELETE", data: { version: valid.data.record.version } })).status, 200);
+    // Keep the numeric tombstone; final cleanup removes only remaining fixture content.
+  });
   await check("unpublished property is absent from public data", async () => {
     records.push({ collection: "propiedades", id: propertyId });
     const response = await first(collectionPath("propiedades", propertyId), {

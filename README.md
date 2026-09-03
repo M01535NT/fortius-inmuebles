@@ -42,6 +42,56 @@ node --env-file=.env.local tests/live/verify-cota.mjs --run --web
 
 No se debe ejecutar contra otro proyecto ni incluirse en `npm test`.
 
+## Actualización de concurrencia (migración002)
+
+`supabase/migrations/202609030002_cota_record_revisions.sql` se aplica después de
+001, sin modificarla. La tabla privada `cota_record_revisions` conserva únicamente
+colección, identificador y última revisión, incluso después de borrar el registro.
+No conserva contenido eliminado. Un trigger asigna la siguiente revisión en cada
+INSERT/UPDATE; ni RPC directo ni un INSERT privilegiado pueden reiniciarla.
+Las versiones siguen siendo números enteros positivos seguros para JavaScript;
+al agotarse ese rango la escritura falla, no se redondea ni reinicia.
+
+La actualización bloquea escrituras durante el backfill y conserva JSON, fechas,
+versiones actuales y borradores abiertos válidos. Anónimo, miembros, no miembros
+y `service_role` no tienen acceso directo al ledger; los triggers son funciones
+privilegiadas de búsqueda cerrada sin ejecución pública. Los grants/RLS de001,
+validación, creación exclusiva y guards de referencias no cambian. Todos los DML
+de registros toman el lock de001 antes de bloquear filas, evitando inversión de
+locks entre INSERT duplicado, UPDATE y el ledger. Esta serialización global es
+deliberada para este panel; no es una promesa de rendimiento masivo.
+
+**Corte histórico:**001 no guardaba revisiones de IDs borrados antes de002. No es
+posible reconstruirlas desde filas ausentes. Antes de aplicar, el controlador debe
+verificar que no quedan borradores operativos de esos IDs eliminados; en este
+proyecto inicial se ha confirmado que ese historial es solo QA desechable. Si esa
+condición no se cumple en otra instancia, detener el despliegue y usar un contrato
+de token/época, no afirmar protección retroactiva ni purgar datos por inferencia.
+La garantía duradera cubre las filas presentes al corte y su vida posterior, más
+todos los registros creados después. Nunca limpiar el ledger al borrar contenido.
+
+Orden: revisión independiente del SQL y hash → aplicación exclusiva al proyecto
+COTA con rol migrador → regresión opt-in → publicación del código. No revertir002
+retirando triggers o borrando revisiones. La regresión adicional usa solo fixtures
+propios y requiere confirmar explícitamente que002 ya fue aplicada:
+
+```text
+node --env-file=.env.local tests/live/verify-cota.mjs --run --revisions --migration-002-applied
+```
+
+Los formularios públicos permanecen bloqueados en el HTML inicial y hasta que
+React instala el manejador; sin JavaScript se informa que no se envió nada. Los
+errores conservan los campos y la confirmación/descarga espera el ACK del BFF.
+El campo trampa `website` viaja en ese mismo POST y no es enfocable ni autocompletable.
+
+## Alcance actual del blog
+
+El panel conserva alta, edición, borrado y los campos de las entradas. El estado
+`publicado` expone sus campos permitidos mediante la proyección pública, sin
+autenticación; no es un borrador privado. No existen páginas `/blog` ni páginas
+individuales de entradas. Guardar ese estado no crea una URL web; el slug sigue
+siendo un identificador editorial.
+
 ## Guardrails de producto y diseño
 
 Se conservan Archivo/Plex, las dos apariencias, la marca original Cota, el

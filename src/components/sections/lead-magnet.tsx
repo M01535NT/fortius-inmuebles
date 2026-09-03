@@ -6,11 +6,12 @@ import { ArrowDownToLine, FileCheck2 } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { captureLead } from "@/lib/admin/store";
+import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
   Lead magnet: checklist de venta a cambio de nombre y WhatsApp.
   El PDF es placeholder (public/descargas/) con marca provisional.
-  TODO(M3.1): persistir el lead en el backend antes de liberar la descarga.
+  La descarga se libera solo tras confirmar la persistencia en el backend de COTA.
 */
 const PREVIEW = [
   "Escritura inscrita y sin gravámenes pendientes.",
@@ -30,6 +31,7 @@ export function LeadMagnet() {
     setError(null);
     try {
       await captureLead({
+        website: String(data.get("website") ?? ""),
         nombre: String(data.get("nombre") ?? ""),
         telefono: String(data.get("telefono") ?? ""),
         origen: "checklist",
@@ -90,7 +92,7 @@ export function LeadMagnet() {
                   </a>
                 </div>
               ) : (
-                <form onSubmit={onSubmit} className="rounded-lg border border-border bg-card p-6 md:p-7">
+                <PublicLeadForm onSubmit={onSubmit} className="rounded-lg border border-border bg-card p-6 md:p-7">
                   <div className="grid gap-4">
                     <div className="flex flex-col gap-2">
                       <label htmlFor="lm-nombre" className="text-[13.5px] font-medium text-foreground">
@@ -140,7 +142,7 @@ export function LeadMagnet() {
                     Sin costo. Usamos tus datos solo para dar seguimiento; no
                     los compartimos.
                   </p>
-                </form>
+                </PublicLeadForm>
               )}
             </div>
           </div>

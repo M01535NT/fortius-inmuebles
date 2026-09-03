@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { captureLead } from "@/lib/admin/store";
+import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
   Formulario de contacto. El lead se entrega al backend dedicado de COTA; si la entrega falla,
@@ -30,7 +31,7 @@ export function ContactForm() {
   }
 
   return (
-    <form
+    <PublicLeadForm
       className="rounded-lg border border-border bg-card p-6 md:p-8"
       onSubmit={async (event) => {
         event.preventDefault();
@@ -41,6 +42,7 @@ export function ContactForm() {
         setError(null);
         try {
           await captureLead({
+            website: String(data.get("website") ?? ""),
             nombre: String(data.get("name") ?? ""),
             telefono: String(data.get("phone") ?? ""),
             mensaje: [objetivo, mensaje].filter(Boolean).join(" · ") || undefined,
@@ -130,6 +132,6 @@ export function ContactForm() {
         Sin compromiso. Usamos tus datos solo para dar seguimiento a tu
         solicitud.
       </p>
-    </form>
+    </PublicLeadForm>
   );
 }

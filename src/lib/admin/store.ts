@@ -337,7 +337,7 @@ function collection<T extends object>(
       // when the shared cache has already observed a later server state.
       snapshots.set(result.record.data, result.record.version);
       if (revision !== cacheRevision || needsRevalidation) {
-        // Numeric versions can restart after deletion/recreation. A fresh GET
+        // Response order need not match commit order. A fresh GET
         // after this acknowledgement resolves that ambiguity without briefly
         // replacing newer data (or resurrecting a deleted record) in the UI.
         needsRevalidation = true;
@@ -549,6 +549,7 @@ export async function captureLead(input: {
   zona?: string;
   tipoPropiedad?: string;
   mensaje?: string;
+  website?: string;
 }): Promise<string> {
   const result = await apiRequest<{ id: string }>("/api/leads", "POST", input);
   return result.id;

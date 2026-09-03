@@ -5,6 +5,7 @@ import { ArrowDownToLine, FileText, LockKeyhole } from "lucide-react";
 
 import type { DocumentoPropiedad } from "@/data/propiedades";
 import { captureLead } from "@/lib/admin/store";
+import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
   Documentos descargables de la propiedad (PDFs cargados desde el panel,
@@ -36,6 +37,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
     setError(null);
     try {
       await captureLead({
+        website: String(data.get("website") ?? ""),
         nombre: String(data.get("nombre") ?? ""),
         telefono: String(data.get("telefono") ?? ""),
         origen: "documentos",
@@ -87,7 +89,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
       </ul>
 
       {!unlocked ? (
-        <form onSubmit={onSubmit} className="border-t border-border p-5">
+        <PublicLeadForm onSubmit={onSubmit} className="border-t border-border p-5">
           <div className="grid gap-3">
             <div className="flex flex-col gap-1.5">
               <label htmlFor={`docs-nombre-${slug}`} className="text-[13px] font-medium text-foreground">
@@ -136,7 +138,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
             Sin compromiso. Usamos tus datos solo para dar seguimiento.
           </p>
-        </form>
+        </PublicLeadForm>
       ) : (
         <p className="border-t border-border p-5 text-[13px] leading-relaxed text-muted-foreground">
           Descargas liberadas. Si quieres el expediente completo o agendar

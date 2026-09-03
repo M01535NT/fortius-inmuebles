@@ -27,8 +27,9 @@ import {
 } from "@/lib/admin/store";
 
 /*
-  Blog: redacción, borradores y publicación de entradas persistentes.
-  Guardrails de Copywritting.md aplican a la voz de la marca.
+  Blog: redacción, borradores y exposición de entradas en la proyección pública.
+  No hay páginas públicas de blog. Guardrails vigentes: README.md; antecedente
+  Copywritting.md: docs/archive/COTA-20260903-manifest.json y su archivo recuperable.
 */
 function slugify(text: string): string {
   return text
@@ -81,7 +82,7 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
           className={inputClass}
         />
       </Field>
-      <Field label="Resumen (aparece en listados y SEO)" htmlFor="post-resumen">
+      <Field label="Resumen" htmlFor="post-resumen">
         <textarea
           id="post-resumen"
           name="resumen"
@@ -113,7 +114,7 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
           className={selectClass + " max-w-[220px]"}
         >
           <option value="borrador">Borrador</option>
-          <option value="publicado">Publicado en el sitio</option>
+          <option value="publicado">Expuesto públicamente</option>
         </select>
       </Field>
       <div className="flex gap-3">
@@ -141,7 +142,7 @@ export default function BlogAdminPage() {
     <div className="space-y-6">
       <PageHeader
         title="Blog."
-        description="Contenido editorial con la voz de la marca. Las entradas publicadas aparecen en el sitio."
+        description="Las entradas en estado público se exponen sin autenticación en la proyección de datos. No hay páginas de blog en el sitio. Los borradores no se exponen."
         actions={
           <button
             type="button"
@@ -176,11 +177,11 @@ export default function BlogAdminPage() {
                     {p.titulo}
                   </span>
                   <Badge tone={p.estado === "publicado" ? "green" : "amber"}>
-                    {p.estado === "publicado" ? "Publicado" : "Borrador"}
+                    {p.estado === "publicado" ? "Expuesto públicamente" : "Borrador"}
                   </Badge>
                 </p>
                 <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
-                  /blog/{p.slug} · {fechaCorta(p.actualizadoEl)}
+                  Slug: {p.slug} · {fechaCorta(p.actualizadoEl)}
                 </p>
               </div>
               <div className="flex shrink-0 gap-1.5">

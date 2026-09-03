@@ -65,6 +65,14 @@ describe("HTTP API contracts", () => {
     expect(failed.status).toBe(429);
     expect(await failed.json()).not.toHaveProperty("id");
   });
+  it("honeypot rejection never reaches persistence or returns a success id", async () => {
+    const persist = vi.fn(async () => Response.json("must-not-persist"));
+    vi.stubGlobal("fetch", persist);
+    const response = await leadRoute(req("/api/leads", "POST", { nombre: "Bot", telefono: "6641234567", origen: "contacto", website: "https://bot.invalid" }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).not.toHaveProperty("id");
+    expect(persist).not.toHaveBeenCalled();
+  });
   it("defaults uploads to private and returns stable paths; signing always needs staff", async () => {
     await loginWithPassword({ email: user.email, password: "a long password" });
     const form = new FormData(); form.set("file", new File(["%PDF-1.7\nhello"], "test.pdf", { type: "application/pdf" }));

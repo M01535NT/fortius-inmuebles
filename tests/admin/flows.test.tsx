@@ -118,6 +118,22 @@ test("blog edit holds opening version after background refresh and stays open on
   );
   expect(saved).toHaveLength(0);
 });
+test("blog distinguishes anonymous public data from a web page that does not exist", async () => {
+  render(<BlogPage />);
+  fireEvent.click(await screen.findByRole("button", { name: "Editar Guía" }));
+  const state = screen.getByLabelText("Estado") as HTMLSelectElement;
+  const publicOption = Array.from(state.options).find((option) => option.value === "publicado")!;
+  expect(publicOption.textContent).toMatch(/públic[ao]/i);
+  expect(document.body.textContent).toMatch(/sin autenticación/i);
+  expect(document.body.textContent).toMatch(/no (?:hay|existen).*páginas.*blog/i);
+  expect(document.body.textContent).not.toContain("Publicado en el sitio");
+  expect(document.body.textContent).not.toContain("/blog/guia");
+  fireEvent.change(state, { target: { value: "publicado" } });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar entrada" }));
+  await waitFor(() => expect(saved).toHaveLength(1));
+  expect((saved[0].data as Record<string, unknown>).estado).toBe("publicado");
+  expect(screen.getByText("Expuesto públicamente")).toBeTruthy();
+});
 test("authenticated shell exposes every module, clients and logout on mobile navigation", async () => {
   render(
     <AdminShell>
