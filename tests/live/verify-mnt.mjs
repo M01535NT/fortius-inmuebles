@@ -5,7 +5,7 @@
  * Creates its own two test users/records; never sends email or touches existing rows.
  */
 import assert from "node:assert/strict";
-import { randomBytes, randomUUID, createHash } from "node:crypto";
+import { randomBytes, randomUUID, createHash, createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 
@@ -40,7 +40,7 @@ let memberUserId;
 
 function session() {
   const cookies = new Map();
-  return async (path, { method = "GET", data, body } = {}) => {
+  const request = async (path, { method = "GET", data, body } = {}) => {
     const headers = new Headers({ Origin: origin });
     if (cookies.size) headers.set("Cookie", [...cookies].map(([k, v]) => `${k}=${v}`).join("; "));
     if (data !== undefined) headers.set("Content-Type", "application/json");
@@ -61,6 +61,9 @@ function session() {
     try { result = JSON.parse(text); } catch { result = { error: "Non-JSON response" }; }
     return { status: response.status, data: result, setCookies };
   };
+  request.deleteCookie = (name) => cookies.delete(name);
+  request.setCookie = (name, value) => cookies.set(name, value);
+  return request;
 }
 
 async function check(name, action) {
@@ -114,6 +117,20 @@ try {
     assert.ok(response.setCookies.every((value) => /httponly/i.test(value)));
     assert.equal((await second("/api/auth/login", { method: "POST", data: member })).status, 200);
     assert.equal((await first("/api/auth/session")).data.user.email, member.email);
+  });
+  await check("missing access token refreshes and invalid session cookies are rejected", async () => {
+    first.deleteCookie("mnt-access-token");
+    const refreshed = await first("/api/auth/session");
+    assert.equal(refreshed.status, 200);
+    assert.equal(refreshed.data.user.email, member.email);
+    assert.ok(refreshed.setCookies.some((value) => value.startsWith("mnt-access-token=")));
+
+    const invalid = session();
+    invalid.setCookie("mnt-access-token", "expired-verification-token");
+    invalid.setCookie("mnt-refresh-token", "expired-verification-refresh");
+    const rejected = await invalid("/api/auth/session");
+    assert.equal(rejected.status, 401);
+    assert.ok(rejected.setCookies.some((value) => /mnt-(access|refresh)-token=.*max-age=0/i.test(value)));
   });
 
   await check("an editor member retains panel access", async () => {
@@ -322,16 +339,26 @@ try {
     assert.ok(!(await (await fetch(origin + "/sitemap.xml")).text()).includes(`/blog/${slug}`));
   });
 
-  if (process.env.MNT_TEST_PRODUCTION_LEADS === "true") await check("lead confirmation follows database persistence", async () => {
-    const response = await session()("/api/leads", { method: "POST", data: {
-      nombre: "PRUEBA TECNICA MNT", telefono: "0000000000", origen: "contacto", mensaje: prefix,
-    } });
-    assert.equal(response.status, 201);
-    assert.equal(typeof response.data.id, "string");
+  if (process.env.MNT_TEST_PRODUCTION_LEADS === "true") await check("all five public lead variants acknowledge actual persistence", async () => {
+    const variants = ["evaluar", "contacto", "checklist", "documentos", "interes-propiedad"];
+    const ids = [];
+    for (const origen of variants) {
+      const response = await session()("/api/leads", { method: "POST", data: {
+        nombre: "PRUEBA TECNICA MNT", telefono: "0000000000", origen, mensaje: prefix,
+        ...(origen === "interes-propiedad" ? { propiedadSlug: propertyId } : {}),
+      } });
+      assert.equal(response.status, 201, `${origen}: acknowledgement`);
+      assert.equal(typeof response.data.id, "string");
+      ids.push(response.data.id);
+      records.push({ collection: "leads", id: response.data.id });
+    }
     const list = await first("/api/admin/collections/leads");
-    const saved = list.data.records.find((r) => r.id === response.data.id);
-    assert.equal(saved.data.mensaje, prefix);
-    records.push({ collection: "leads", id: saved.id });
+    for (const [index, id] of ids.entries()) {
+      const savedVariant = list.data.records.find((r) => r.id === id);
+      assert.equal(savedVariant.data.origen, variants[index]);
+      assert.equal(savedVariant.data.mensaje, prefix);
+    }
+    const saved = list.data.records.find((r) => r.id === ids[0]);
     const changed = { ...saved.data, estado: "contactado", notas: [{ id: `${prefix}-lead-note`, texto: "Seguimiento de prueba", fecha: now }] };
     const updated = await first(collectionPath("leads", saved.id), { method: "PUT", data: { data: changed, version: saved.version } });
     assert.equal(updated.status, 200);
@@ -398,6 +425,61 @@ try {
     assert.equal(download.status, 200);
     assert.equal(createHash("sha256").update(Buffer.from(await download.arrayBuffer())).digest("hex"),
       createHash("sha256").update(bytes).digest("hex"));
+    const forgedExpiredUrl = new URL(signed.data.url);
+    const forgedHeader = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+    const forgedPayload = Buffer.from(JSON.stringify({ exp: 1, sub: response.data.path })).toString("base64url");
+    forgedExpiredUrl.searchParams.set("token", `${forgedHeader}.${forgedPayload}.forged`);
+    assert.ok(!(await fetch(forgedExpiredUrl)).ok, "A forged expired private link must be denied");
+  });
+  await check("public upload is retrievable while invalid and oversized files are rejected", async () => {
+    const bytes = await readFile(new URL("../../public/hero/casa-playa.webp", import.meta.url));
+    const publicForm = new FormData();
+    publicForm.set("file", new File([bytes], `${prefix}-public.webp`, { type: "image/webp" }));
+    publicForm.set("visibility", "public");
+    const saved = await first("/api/admin/files", { method: "POST", body: publicForm });
+    if (saved.data.bucket === "mnt-public" && saved.data.path?.startsWith(memberUserId + "/")) {
+      objects.push({ bucket: saved.data.bucket, path: saved.data.path });
+    }
+    assert.equal(saved.status, 201);
+    assert.equal(saved.data.bucket, "mnt-public");
+    const publicDownload = await fetch(saved.data.url);
+    assert.equal(publicDownload.status, 200);
+    assert.equal(createHash("sha256").update(Buffer.from(await publicDownload.arrayBuffer())).digest("hex"),
+      createHash("sha256").update(bytes).digest("hex"));
+
+    const invalidForm = new FormData();
+    invalidForm.set("file", new File([Buffer.from("not a real png")], `${prefix}.png`, { type: "image/png" }));
+    invalidForm.set("visibility", "private");
+    assert.equal((await first("/api/admin/files", { method: "POST", body: invalidForm })).status, 400);
+
+    const oversized = await first("/api/admin/files/upload", { method: "POST", data: {
+      name: `${prefix}-oversized.webp`, size: 20 * 1024 * 1024 + 1,
+      contentType: "image/webp", visibility: "private",
+    } });
+    assert.equal(oversized.status, 400);
+  });
+  await check("interrupted staging and forged expired tickets cannot finalize", async () => {
+    const size = 1024;
+    const prepared = await first("/api/admin/files/upload", { method: "POST", data: {
+      name: `${prefix}-interrupted.webp`, size, contentType: "image/webp", visibility: "private",
+    } });
+    assert.equal(prepared.status, 200);
+    assert.ok(prepared.data.path.startsWith(memberUserId + "/"));
+    objects.push({ bucket: "mnt-staging", path: prepared.data.path });
+    assert.equal((await first("/api/admin/files/complete", {
+      method: "POST", data: { ticket: prepared.data.ticket },
+    })).status, 409);
+
+    const expiredPath = `${memberUserId}/${randomUUID()}.webp`;
+    const payload = Buffer.from(JSON.stringify({
+      name: `${prefix}-expired.webp`, size, contentType: "image/webp", visibility: "private",
+      v: 1, uid: memberUserId, path: expiredPath, expires: Date.now() - 1000,
+    })).toString("base64url");
+    // Match the server's HMAC without ever printing the service-role secret or ticket.
+    const expiredTicket = `${payload}.${createHmac("sha256", key).update(`mnt-upload-v1:${payload}`).digest("base64url")}`;
+    assert.equal((await first("/api/admin/files/complete", {
+      method: "POST", data: { ticket: expiredTicket },
+    })).status, 403);
   });
   await check("large upload sends bytes directly to private staging", async () => {
     const source = await readFile(new URL("../../public/hero/casa-playa.webp", import.meta.url));

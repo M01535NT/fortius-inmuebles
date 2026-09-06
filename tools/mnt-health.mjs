@@ -60,7 +60,9 @@ for (const location of locations) {
   await request(url);
 }
 for (const path of ["/admin", "/contacto", "/blog"]) await request(path);
-await request(`/blog/mnt-health-draft-${Date.now()}`, 404);
+const missingSuffix = Date.now();
+await request(`/inventario/mnt-health-missing-${missingSuffix}`, 404);
+await request(`/blog/mnt-health-missing-${missingSuffix}`, 404);
 const legacyPdf = await request("/descargas/checklist-venta-cota.pdf", null, false);
 assert.ok([301, 308].includes(legacyPdf.response.status), `Legacy PDF: expected 301/308, received ${legacyPdf.response.status}`);
 const redirectTarget = new URL(legacyPdf.response.headers.get("location"), origin);

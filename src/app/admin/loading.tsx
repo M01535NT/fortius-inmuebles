@@ -1,4 +1,4 @@
-export default function Loading() {
+export default function AdminLoading() {
   return (
     <main className="min-h-[70vh] bg-background px-5 py-32 text-foreground">
       <div className="mx-auto max-w-[1280px]" role="status" aria-live="polite">
