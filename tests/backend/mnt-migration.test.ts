@@ -38,7 +38,7 @@ test("rename preserves data, membership, revisions and removes old active SQL na
   expect((await db.query("select * from public.mnt_staff")).rows).toHaveLength(1);
   expect((await db.query("select * from public.mnt_record_revisions where id='keep'")).rows).toHaveLength(1);
   expect((await db.query("select relname from pg_class where relnamespace='public'::regnamespace and relname like 'cota_%'")).rows).toEqual([]);
-  expect((await db.query("select proname from pg_proc where pronamespace='public'::regnamespace and proname like 'cota_%'")).rows).toEqual([]);
+  expect((await db.query("select proname from pg_proc where pronamespace='public'::regnamespace and proname like 'cota_%'")).rows).toEqual([{proname:'cota_public_records'}]);
 });
 
 test("new RPC preserves staff authorization and stale revision rejection", async () => {
@@ -87,4 +87,23 @@ test("public projections exclude legacy and new private or staging URLs", async 
 test("deleted identities retain concurrency revisions after migration", async () => {
   await db.query("insert into public.mnt_records(collection,id,data) values ('notas','deleted',$1)", [JSON.stringify({id:"deleted",titulo:"Recreated",texto:"New"})]);
   expect((await db.query<{version:number}>("select version::int from public.mnt_records where id='deleted'")).rows[0].version).toBe(3);
+});
+
+test('temporary old public RPC has identical anon projection and no old write surface',async()=>{
+  await db.exec(`insert into public.mnt_records(collection,id,data) values('config','singleton','{"nombreComercial":"MNT Inmuebles"}')`);
+  await db.exec('set role anon');
+  try {
+    const current=(await db.query("select * from public.mnt_public_records('config')")).rows;
+    expect(current).toHaveLength(1);
+    expect((await db.query("select * from public.cota_public_records('config')")).rows).toEqual(current);
+    for(const collection of ['notas','leads','clientes','archivos'])expect((await db.query('select * from public.cota_public_records($1)',[collection])).rows).toEqual([]);
+    await expect(db.query("select public.cota_put_record('notas','keep','{}',3)")).rejects.toMatchObject({code:'42883'});
+  } finally {await db.exec('reset role');}
+  expect((await db.query("select prosecdef from pg_proc where oid='public.cota_public_records(text)'::regprocedure")).rows[0]).toEqual({prosecdef:false});
+});
+
+test('005 retires only the temporary read compatibility API after deployment',async()=>{
+  await db.exec(await readFile(new URL('../../supabase/migrations/202609060005_retire_public_read_compatibility.sql',import.meta.url),'utf8'));
+  expect((await db.query("select proname from pg_proc where pronamespace='public'::regnamespace and starts_with(proname,'cota_')")).rows).toEqual([]);
+  expect((await db.query("select * from public.mnt_public_records('config')")).rows).toHaveLength(1);
 });

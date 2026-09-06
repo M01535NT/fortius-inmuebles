@@ -36,6 +36,8 @@ node tools/mnt-restore-rehearsal.mjs .superpowers/backups/<fecha-UTC>
 
 El ensayo crea PostgreSQL PGlite en memoria con esquemas simulados de Auth y Storage, aplica 001 y 002, restaura filas completas como propietario y comprueba referencias y versiones. La desactivación de triggers ocurre exclusivamente en esa base nueva y aislada para conservar las versiones y fechas originales. Después aplica 003 y exige igualdad de contenido, fechas, revisiones y OID de tablas. Verifica todos los hashes de objetos y escribe `restore-rehearsal.json`.
 
+Durante el corte 003 conserva temporalmente un único wrapper de lectura pública para el build anterior; no conserva escrituras antiguas ni concede acceso adicional. Aplicar 005 para retirarlo solo después de verificar el build MNT. Una instalación completa incluye 001–005 y termina sin RPC antiguos. El procedimiento operativo está en `mnt-cutover-rollback.md`.
+
 No restaura objetos en Supabase ni escribe en producción. Los mocks no prueban la restauración del proveedor de Auth, contraseñas, sesiones, secretos, configuración del proyecto, extensiones ni disponibilidad de los servicios. La recuperación de Auth y del proyecto debe respaldarse y ensayarse por separado mediante las herramientas del proveedor. Tampoco sustituye un backup nativo/PITR de PostgreSQL cuando esté disponible.
 
 Un ensayo fallido bloquea la declaración de recuperación comprobada. Conservar el respaldo, el error y la evidencia; resolver primero la causa sin modificar el original para hacer pasar la prueba.

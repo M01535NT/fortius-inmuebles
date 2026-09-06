@@ -84,5 +84,14 @@ revoke all on function public.mnt_protect_post_slug() from public,anon,authentic
 create trigger mnt_post_stable_slug before update on public.mnt_records
   for each row execute function public.mnt_protect_post_slug();
 
+-- Temporary READ-ONLY compatibility for the still-serving previous public build.
+-- Same public allowlist and roles, no table grants and no write aliases.
+create function public.cota_public_records(p_collection text) returns table(data jsonb)
+language sql stable set search_path = '' as $$
+  select * from public.mnt_public_records(p_collection);
+$$;
+revoke all on function public.cota_public_records(text) from public,anon,authenticated,service_role;
+grant execute on function public.cota_public_records(text) to anon,authenticated;
+
 notify pgrst, 'reload schema';
 commit;

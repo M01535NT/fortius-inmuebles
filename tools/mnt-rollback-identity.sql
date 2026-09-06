@@ -35,6 +35,24 @@ begin
 end;
 $guard$;
 
+-- 003 may still have its temporary public-read wrapper (005 retires it).
+-- Remove only the verified wrapper so the original function OID can regain its name.
+do $compatibility$
+declare alias_oid oid;
+begin
+  alias_oid:=to_regprocedure('public.cota_public_records(text)');
+  if alias_oid is not null then
+    if not exists(select 1 from pg_proc p join pg_language l on l.oid=p.prolang
+      where p.oid=alias_oid and l.lanname='sql' and not p.prosecdef and p.proretset
+        and p.prorettype='jsonb'::regtype and p.provolatile='s'
+        and btrim(regexp_replace(p.prosrc,'[[:space:]]+',' ','g'))='select * from public.mnt_public_records(p_collection);') then
+      raise exception 'Rollback refused: unexpected legacy public-read function';
+    end if;
+    drop function public.cota_public_records(text);
+  end if;
+end;
+$compatibility$;
+
 do $inverse$
 declare item record; new_name text;
 begin

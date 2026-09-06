@@ -1,54 +1,57 @@
-# Corte y recuperación de MNT Inmuebles
+# Corte de escrituras y recuperación de MNT Inmuebles
 
-## Estado y alcance de la evidencia
+## Estado y evidencia
 
-El respaldo de referencia es `.superpowers/backups/2026-09-06T01-41-21-144Z`. Sus cinco arrays PostgreSQL coinciden con checksums obtenidos mediante una consulta independiente del propietario: 14 registros, 1 membresía, 3 referencias, 3 límites de tasa y 24 revisiones. La procedencia es una reconstrucción comprobada desde REST y revisiones observadas, no una descarga SQL original. Se enumeraron 3 buckets y 0 objetos. Se conserva además un bundle del repositorio como evidencia separada del respaldo de datos.
+El sitio público permanece disponible durante el corte. Se interrumpen temporalmente las escrituras del build antiguo mediante el cambio de nombres de sus RPC; una única función de compatibilidad mantiene sus lecturas públicas. Este procedimiento no requiere pausar el proyecto completo de Vercel.
 
-Los ensayos aislados de 003 y 004 pasaron. 003 conservó todas las filas y las identidades de tablas/funciones. 004 modificó 3 registros, conservó 11 intactos y mantuvo IDs, referencias y tombstones; las revisiones de las filas cambiadas avanzaron una vez. Esto prueba los procedimientos sobre el snapshot, no demuestra que las migraciones ya estén aplicadas en producción.
+El respaldo comprobado es `.superpowers/backups/2026-09-06T01-41-21-144Z`: 14 registros, 1 membresía, 3 referencias, 3 límites de tasa y 24 revisiones. Los cinco arrays canónicos coinciden con una consulta independiente del propietario. La procedencia es reconstrucción comprobada desde REST y revisiones observadas, no descarga SQL original. Storage contenía 3 buckets y 0 objetos; el bundle del repositorio es evidencia separada.
 
-El operador informó que Git, Supabase y Vercel fueron renombrados conservando sus IDs; registró el hostname nuevo, configuró `MNT_SITE_URL`, dejó `MNT_PUBLIC_LEADS_ENABLED=false` y actualizó Auth Site URL. Antes del corte se deben contrastar esos ajustes con el panel real. Un nombre de proyecto o un hostname registrado no demuestra todavía que el tráfico sirva el build nuevo.
+Los ensayos aislados preservan todas las filas al aplicar 003. Después, 004 cambia exactamente 3 registros y conserva 11 intactos, mantiene identidades/referencias/tombstones y avanza una revisión por cada fila modificada. Esto no afirma que las migraciones ya estén aplicadas en producción.
 
-## Preparación antes de interrumpir tráfico
+El operador informó que los proyectos Git, Supabase y Vercel conservan sus IDs tras el renombrado, que el nuevo hostname está registrado, que `MNT_SITE_URL` está configurado, que `MNT_PUBLIC_LEADS_ENABLED=false` y que Auth Site URL fue actualizado. Contrastar esos ajustes con los paneles reales; el registro de un hostname no demuestra que ya sirva el build candidato.
 
-1. Registrar el commit/build actual y el candidato MNT, los IDs de proyecto, dominios, variables no secretas y mecanismo de pausa disponible. Guardar credenciales únicamente en el almacén de secretos; no incluirlas en bitácoras ni comandos impresos.
-2. Ejecutar `npm run verify` y las pruebas de navegador contra el build de producción con CSP. Conservar la evidencia de escritorio/móvil, tema claro/oscuro, administración y envío desactivado.
-3. Verificar el respaldo con `node tools/mnt-backup.mjs --verify BACKUP_DIR` y ambos ensayos: `node tools/mnt-restore-rehearsal.mjs BACKUP_DIR` y la misma orden con `--content`.
-4. Preparar la reversión con `node tools/mnt-prepare-rollback.mjs BACKUP_DIR`. Genera `rollback-identity-guarded.sql` dentro del respaldo y rehúsa sobrescribir un archivo existente. El archivo contiene solo checksums/conteos y operaciones DDL; no restaura contenido.
-5. Mantener bloqueados los envíos públicos y las escrituras administrativas durante la ventana. La pausa HTTP del proyecto no revoca por sí misma clientes Supabase existentes: coordinar también las sesiones del equipo y cualquier integración.
+## Preparación
 
-## Secuencia de corte
+1. Registrar commits/builds, IDs de proyecto, dominios, variables no secretas y responsables. Conservar secretos fuera de bitácoras.
+2. Completar `npm run verify` y las pruebas de navegador contra el build de producción. Comprobar CSP, móvil/escritorio, temas, panel, ausencia de falsa persistencia y envíos desactivados con/sin JavaScript.
+3. Verificar el respaldo con `node tools/mnt-backup.mjs --verify BACKUP_DIR`; repetir los ensayos de `tools/mnt-restore-rehearsal.mjs` normal y con `--content`.
+4. Preparar `node tools/mnt-prepare-rollback.mjs BACKUP_DIR`. El artefacto local `rollback-identity-guarded.sql` tiene checksums de las cinco tablas y no contiene una restauración de datos. El generador rehúsa sobrescribirlo; conservar versiones anteriores diferenciadas si cambia el inversor.
+5. Coordinar la pausa de escrituras administrativas e integraciones y mantener desactivados los leads. No confundirla con una pausa del sitio. Los clientes privilegiados del proveedor requieren coordinación explícita.
 
-1. Activar la pausa o modo de mantenimiento del proyecto Vercel y confirmar desde una sesión externa que el público ya no inicia operaciones. Registrar hora y responsables. No continuar si el proveedor no permite aislar la ventana prevista.
-2. Obtener una consulta nueva del propietario con los cinco conteos/checksums, usando los órdenes indicados en `mnt-backup-restore.md`. Deben coincidir con el snapshot respaldado. Enumerar de nuevo buckets/objetos. Si hay cualquier diferencia, detener el corte, capturar un respaldo nuevo y repetir el ensayo; no sobrescribir el anterior.
-3. Aplicar `supabase/migrations/202609060003_mnt_identity.sql` como propietario y comprobar el resultado de su transacción. No omitir el preflight de slugs ni modificar 001/002. Aplicar luego `202609060004_mnt_content_identity.sql`. Cada archivo es una transacción independiente: si 004 falla después de confirmar 003, el esquema ya es MNT y debe mantenerse código compatible mientras se resuelve 004.
-4. Verificar que existen las cinco tablas MNT, que no quedan RPC COTA activos y que los permisos/roles se conservan. Comparar las 14 identidades y las 24 identidades de revisión; comprobar exactamente las 3 filas previstas de marca y sus incrementos de versión. Confirmar que membresías y referencias permanecen iguales y que ambas generaciones de buckets privados/staging se excluyen de la proyección pública.
-5. Publicar el build MNT comprobado en el mismo proyecto. Confirmar dominio, `MNT_SITE_URL`, backend dedicado, secreto de servidor y `MNT_PUBLIC_LEADS_ENABLED=false`. Los secretos no deben pasar a variables `NEXT_PUBLIC_*`.
-6. Probar por el canal de acceso autorizado durante mantenimiento: `/api/health`, inicio, inventario, blog, páginas 404/error, acceso al panel, CSP y formularios desactivados con/sin JS. Las pruebas de esta ventana deben ser de lectura. Si se crean datos de prueba o cualquier fila cambia, ya no aplica la reversión automática descrita abajo.
-7. Retirar la pausa solo cuando la verificación termine. Comprobar tráfico real del nuevo hostname y el dominio canónico antes de habilitar redirecciones del dominio anterior. Revisar que no se formen bucles.
-8. Mantener leads desactivados hasta la autorización operativa de recepción. Cuando se habiliten, comprobar una persistencia reconocida por el servidor con un registro de prueba identificado y seguir la política de conservación correspondiente.
+## Secuencia sin interrupción pública planificada
 
-Con cero objetos originales no se necesitan copias de Storage en este corte. Ese hecho debe verificarse de nuevo en la ventana. Los buckets de recuperación no se eliminan; cualquier cambio posterior de su visibilidad requiere confirmar que no hay referencias activas. No modificar `storage.objects` mediante SQL para simular una copia.
+1. Obtener conteos/checksums nuevos del propietario con los órdenes documentados en `mnt-backup-restore.md` y enumerar Storage. Deben coincidir con el respaldo. Si difieren, detener el corte, respaldar el nuevo estado y repetir el ensayo.
+2. Aplicar `202609060003_mnt_identity.sql` como propietario. La transacción cambia los nombres y conserva un único wrapper temporal `cota_public_records(text) returns table(data jsonb)` que delega a `mnt_public_records(text)`. Es `SECURITY INVOKER`, solo ejecutable por los mismos roles `anon` y `authenticated`, sin nuevos grants de tablas ni audiencias. La proyección y sus exclusiones privadas son las mismas.
+3. Confirmar que la web anterior sigue leyendo contenido público. Las funciones antiguas de escritura y tablas antiguas ya no existen: sus solicitudes fallan y no deben anunciar éxito. No crear aliases de escritura para evitar ese fallo.
+4. Aplicar `202609060004_mnt_content_identity.sql`. Verificar las tres filas previstas, sus revisiones y la integridad de las otras once. 003 y 004 son transacciones separadas: si 004 falla, el esquema ya es MNT y el wrapper mantiene las lecturas; corregir 004 sin restaurar un snapshot antiguo.
+5. Publicar el build MNT verificado en el mismo proyecto. Confirmar dominio, origen canónico, backend dedicado y `MNT_PUBLIC_LEADS_ENABLED=false`. El nuevo build usa exclusivamente los RPC MNT.
+6. Probar en lectura `/api/health`, inicio, inventario, blog, páginas 404/error, panel y CSP. Confirmar formularios desactivados con/sin JS. Si se crean registros de prueba o cualquier fila cambia, dejan de cumplirse las condiciones del inversor automático.
+7. Una vez verificado que el tráfico usa el build MNT, aplicar `202609060005_retire_public_read_compatibility.sql`. Solo elimina el wrapper temporal. Confirmar que no queda ningún RPC COTA y que la web nueva continúa funcionando. Una instalación nueva aplica 001, 002, 003, 004 y 005; el resultado final no conserva compatibilidad antigua.
+8. Verificar el hostname nuevo y el origen canónico antes de redirigir el hostname previo; comprobar ausencia de bucles. Habilitar escrituras del panel y, cuando proceda la autorización operativa de recepción, leads. Cualquier prueba de persistencia debe identificarse y conservarse según la política acordada.
+
+Con cero objetos originales no se requieren copias de Storage. Verificar otra vez ese hecho en la ventana. Los buckets de recuperación no se eliminan. Antes de cambiar su visibilidad, confirmar que no tienen referencias activas. No manipular `storage.objects` con SQL para simular copias.
 
 ## Recuperación preferida
 
-Si falla la interfaz después de 003, mantener el servicio pausado y desplegar un commit MNT compatible con el esquema nuevo. Esto preserva los datos recientes y evita una reversión de nombres innecesaria. Si falla 004, conservar 003 y resolver el contenido mediante una nueva revisión autorizada; la copia anterior permanece como evidencia.
+Si el build nuevo falla después de 003, conservar las lecturas mediante el wrapper mientras siga presente y desplegar un build MNT compatible con el esquema. Si 005 ya se aplicó, desplegar directamente un build MNT compatible. Evitar alternar un build antiguo contra un esquema incompatible. Una recuperación de interfaz no justifica restaurar datos anteriores.
 
-No restaurar un export antiguo sobre producción para corregir un fallo de interfaz. Auth, sesiones, contraseñas, secretos y configuración del proveedor tienen su propio procedimiento de recuperación. El backup de las cinco tablas y sus mocks PGlite no representa una recuperación completa de Auth ni del proyecto.
+Auth, sesiones, contraseñas, secretos y configuración del proveedor tienen recuperación separada. Las cinco tablas y los mocks PGlite no representan un backup completo del proyecto ni de Auth.
 
-## Reversión excepcional del esquema durante la ventana intacta
+## Inversión excepcional en la ventana sin escrituras nuevas
 
-Solo cuando el operador confirma que la ventana sigue pausada, que no hubo escrituras posteriores y que es necesario volver al build previo:
+Solo si el operador confirma que no hubo escrituras posteriores, que no hay objetos MNT y que necesita volver al build previo:
 
-1. Conservar evidencia del estado y error actuales. El archivo `rollback-identity-guarded.sql` debe corresponder al mismo respaldo ensayado.
-2. Ejecutar el archivo completo en una única sesión del propietario. Su preámbulo crea una tabla temporal de checksums; el inversor toma el mismo bloqueo de escrituras del producto y bloqueos de tablas, compara las cinco tablas y rehúsa continuar si cambió algún contenido, versión, membresía, referencia, límite de tasa o tombstone. También rehúsa si existe cualquier objeto en buckets MNT. La única fecha excluida de comparación es `records.updated_at`, pues 004 la genera en el momento del corte; una escritura normal incrementa la versión y se detecta igualmente.
-3. La transacción restaura nombres COTA de tablas, funciones, índices, restricciones, policies y triggers manteniendo OID, permisos, contenido y revisiones. Conserva la protección de slugs y el rechazo de URLs privadas/staging de ambas generaciones. No instala aliases públicos, no elimina buckets y no revierte la marca del JSON.
-4. Desplegar el build previo compatible, verificar el acceso y el contenido antes de retirar mantenimiento. Las cookies de sesión cambiaron de nombre: se requiere iniciar sesión nuevamente. Los nombres comerciales MNT pueden permanecer en datos y el build anterior puede mostrar su identidad visual anterior durante esta recuperación excepcional.
-5. Registrar que 003/004 fueron revertidas en nombres mediante una intervención compensatoria. No borrar el historial de migraciones ni ejecutar 003 otra vez automáticamente: los buckets MNT y las restricciones de slugs se conservaron. Un siguiente avance requiere un script de reanudación revisado para ese estado existente.
+1. Conservar evidencia del estado y fallo. Usar el archivo guardado preparado desde el mismo respaldo y ensayado contra él.
+2. Ejecutar `rollback-identity-guarded.sql` completo en una misma sesión del propietario. El preámbulo crea checksums temporales; la transacción bloquea las cinco tablas y los metadatos de Storage, compara todas las filas/versiones y rechaza cambios posteriores o cualquier objeto en buckets MNT. Solo excluye `records.updated_at` porque 004 genera esa fecha en el corte; las escrituras normales incrementan versión y se detectan.
+3. Si todavía existe `cota_public_records(text)`, el inversor exige que sea exactamente el wrapper SQL estable, invocador y delegante esperado antes de quitarlo. Si 005 ya lo retiró, continúa sin ese paso. Un objeto inesperado provoca rechazo, no borrado ciego.
+4. Restaura nombres COTA de tablas, funciones, índices, restricciones, policies y triggers conservando OID, permisos, contenido y revisiones. Las restricciones de slug continúan activas y se rechazan URLs privadas/staging de ambas generaciones. No elimina buckets, no revierte el JSON de marca y no crea aliases de escritura.
+5. Desplegar el build previo y comprobar su acceso/lecturas antes de permitir escrituras. Las cookies cambiaron de nombre, por lo que se requiere nuevo inicio de sesión. Los datos mantienen MNT aunque la interfaz previa pueda mostrar la identidad anterior.
+6. Registrar la intervención compensatoria sin borrar historial de migraciones. No volver a ejecutar 003 automáticamente: permanecen buckets MNT y restricciones nuevas. El avance posterior requiere un script de reanudación revisado para ese estado.
 
-Si el guard falla, no editar sus checksums para forzarlo a pasar. Mantener mantenimiento y usar un build compatible con MNT. Si se requiere una recuperación de datos después de nuevas escrituras, preparar una conciliación que preserve registros, versiones y archivos posteriores; presentar el resultado concreto para autorización antes de cualquier restauración productiva. El programa de ensayo continúa siendo exclusivamente local.
+Si falla la guarda, no sustituir sus checksums para forzarla. Mantener la pausa de escrituras y desplegar código compatible con MNT. Una recuperación de datos con escrituras posteriores exige conciliación que preserve esos registros, archivos y revisiones; obtener autorización para el resultado concreto antes de una restauración productiva.
 
-## Evidencia del inversor
+## Evidencia de pruebas
 
-Las pruebas PGlite comprueban rechazo sin preámbulo, rechazo después de una actualización y rechazo con objetos nuevos. En el caso permitido comprueban contenido/revisiones exactos, OID/ACL/configuración de funciones, conservación de los seis buckets, ausencia de aliases MNT y continuidad de las restricciones de slugs y exclusiones privadas. Esta evidencia no sustituye una prueba del proveedor real ni autoriza restauraciones fuera de la ventana definida.
+PGlite comprueba equivalencia de lectura antigua/nueva para `anon`, rechazo de colecciones privadas, ausencia de RPC antiguos de escritura y retirada limpia con 005. El inversor se prueba con el wrapper presente y después de 005; rechaza wrappers inesperados, ausencia de preámbulo, escrituras nuevas y objetos MNT. El caso permitido conserva OID/ACL/configuración, datos, revisiones, buckets y protecciones de slug y privacidad.
 
-También se ejecutó `node tools/mnt-restore-rehearsal.mjs BACKUP_DIR --content --rollback` contra el respaldo real comprobado. El artefacto guardado se aplicó solo en PGlite y conservó los 14 registros y las 24 revisiones; el resultado está en `restore-rehearsal-rollback.json`. Los timestamps del preámbulo se normalizan mediante el tipo PostgreSQL `timestamptz`, evitando diferencias de representación entre REST y PostgreSQL. Un diagnóstico de un intento previo fallido puede permanecer como evidencia; la conclusión corresponde al reporte exitoso posterior, no a eliminar el diagnóstico anterior.
+El ensayo real `node tools/mnt-restore-rehearsal.mjs BACKUP_DIR --content --rollback` conserva 14 registros y 24 revisiones en PGlite. El resultado se guarda por separado en `restore-rehearsal-rollback.json`; no se ejecuta contra el proveedor. Los timestamps esperados se normalizan como `timestamptz` antes de calcular hashes. Conservar diagnósticos anteriores como evidencia; el reporte exitoso posterior es la conclusión del ensayo.
