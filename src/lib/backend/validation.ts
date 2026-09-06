@@ -33,7 +33,8 @@ const origins = ["evaluar", "contacto", "interes-propiedad", "checklist", "docum
 const leadFields = { nombre: name, telefono: phone, email, propiedadSlug: reference, zona: short.optional(), tipoPropiedad: short.optional(), mensaje: text.optional() };
 const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short }).passthrough();
 const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")) }).passthrough();
-const postSchema = z.object({ id, slug: id, titulo: name, resumen: text, contenido: z.string().max(150000), estado: z.enum(["borrador", "publicado"]), actualizadoEl: date }).passthrough();
+const postSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
+const postSchema = z.object({ id, slug: postSlug, titulo: name, resumen: text, contenido: z.string().max(150000), estado: z.enum(["borrador", "publicado"]), actualizadoEl: date }).passthrough();
 
 export const recordSchemas = {
   propiedades: propertySchema,
@@ -43,7 +44,7 @@ export const recordSchemas = {
   eventos: z.object({ id, titulo: name, fecha: date, hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(), tipo: z.enum(["visita", "llamada", "firma", "reunion", "otro"]), leadId: reference, propiedadSlug: reference, clienteId: reference, notas: text.optional() }).passthrough(),
   notas: z.object({ id, titulo: name, texto: text, actualizadoEl: date }).passthrough(),
   posts: postSchema,
-  archivos: z.object({ id, nombre: name, url: safeUrl, tipo: z.enum(["imagen", "pdf", "video", "otro"]), notas: text.optional(), bucket: z.enum(["cota-private", "cota-public"]).optional(), path: z.string().max(300).optional(), visibility: z.enum(["private", "public"]).optional() }).passthrough(),
+  archivos: z.object({ id, nombre: name, url: safeUrl, tipo: z.enum(["imagen", "pdf", "video", "otro"]), notas: text.optional(), bucket: z.enum(["mnt-private", "mnt-public"]).optional(), path: z.string().max(300).optional(), visibility: z.enum(["private", "public"]).optional() }).passthrough(),
   contenido: contentSchema,
   config: settingsSchema,
 };
@@ -63,7 +64,7 @@ export function parseLead(value: unknown) {
   return z.object({ ...leadFields, origen: z.enum([...origins, "interes_propiedad"]), website: z.literal("").optional() }).strict().parse(value);
 }
 
-function isPublicUrl(value: string) { return safeUrl.safeParse(value).success && !/(cota-private|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value); }
+function isPublicUrl(value: string) { return safeUrl.safeParse(value).success && !/((?:cota|mnt)-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value); }
 // Keep the settings/contact shape even when a stored link is private or invalid.
 // This projection never rewrites the staff-owned source record.
 const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? value : "");

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { connection } from "next/server";
+import { headers } from "next/headers";
 
 import "@/app/globals.css";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
+import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
 import { siteConfig } from "@/data/site";
 
@@ -25,13 +27,13 @@ const plexMono = IBM_Plex_Mono({
 const defaultMetadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "COTA | Vende tu propiedad en Tijuana con método",
-    template: "%s | COTA",
+    default: "MNT Inmuebles | Vende tu propiedad en Tijuana con método",
+    template: "%s | MNT Inmuebles",
   },
   description:
     "Firma inmobiliaria en Tijuana y Baja California. Precio con datos, expediente revisado y seguimiento por escrito, de la captación a la firma ante notario.",
   openGraph: {
-    title: "COTA | Bienes raíces con método",
+    title: "MNT Inmuebles | Bienes raíces con método",
     description:
       "Vende, renta o compra en Tijuana con un proceso documentado: análisis de mercado, revisión de papeles y coordinación hasta la firma.",
     locale: "es_MX",
@@ -40,12 +42,18 @@ const defaultMetadata: Metadata = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const content = await getPublicContent();
+  const pathname = (await headers()).get("x-mnt-pathname") ?? "/";
+  const content = pathname.startsWith("/admin")
+    ? null
+    : await getPublicContent().catch(() => {
+        console.error("[public-shell] Contenido público no disponible.");
+        return null;
+      });
   return {
     ...defaultMetadata,
-    title: { default: content?.seoTitle || "COTA | Vende tu propiedad en Tijuana con método", template: "%s | COTA" },
+    title: { default: content?.seoTitle || "MNT Inmuebles | Vende tu propiedad en Tijuana con método", template: "%s | MNT Inmuebles" },
     description: content?.seoDescription || defaultMetadata.description,
-    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || "COTA | Bienes raíces con método", description: content?.seoDescription || defaultMetadata.openGraph?.description },
+    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || "MNT Inmuebles | Bienes raíces con método", description: content?.seoDescription || defaultMetadata.openGraph?.description },
   };
 }
 
@@ -53,7 +61,7 @@ export async function generateMetadata(): Promise<Metadata> {
   Theme boot: light is the primary theme. We only add `.dark` when the user
   chose it before. Runs inline before paint to avoid a flash.
 */
-const themeInit = `(function(){try{if(localStorage.getItem("cota-theme")==="dark"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
+const themeInit = `(function(){try{if(localStorage.getItem("mnt-theme")==="dark"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 export default async function RootLayout({
   children,
@@ -61,7 +69,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   await connection();
-  const settings = await getPublicSettings();
+  const requestHeaders = await headers();
+  const pathname = requestHeaders.get("x-mnt-pathname") ?? "/";
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const settings = isAdmin
+    ? null
+    : await getPublicSettings().catch(() => {
+        console.error("[public-shell] Configuración pública no disponible.");
+        return null;
+      });
+  const publicLeadsEnabled = process.env.MNT_PUBLIC_LEADS_ENABLED === "true";
   return (
     <html
       lang="es-MX"
@@ -70,19 +88,23 @@ export default async function RootLayout({
       className={`${archivo.variable} ${plexMono.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body>
-        <SiteNav settings={settings} />
+        {isAdmin ? null : <SiteNav settings={settings} />}
         {/*
           Footer cortina: el contenido (z-10, fondo opaco) se desliza sobre el
           footer pegado al fondo del viewport (sticky bottom, z-0) y lo revela
           al llegar al final. Solo CSS, ambos temas.
         */}
-        <div className="relative z-10 bg-background">{children}</div>
-        <div className="sticky bottom-0 z-0">
-          <SiteFooter settings={settings} />
-        </div>
+        <PublicFeaturesProvider publicLeadsEnabled={publicLeadsEnabled}>
+          <div className="relative z-10 bg-background">{children}</div>
+          {isAdmin ? null : (
+            <div className="sticky bottom-0 z-0">
+              <SiteFooter settings={settings} />
+            </div>
+          )}
+        </PublicFeaturesProvider>
       </body>
     </html>
   );

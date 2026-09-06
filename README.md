@@ -1,135 +1,64 @@
-# COTA
+# MNT Inmuebles
 
-COTA es un producto inmobiliario independiente: su sitio público y `/admin`
-comparten este repositorio y un backend dedicado. El panel es la fuente
-operativa de propiedades, clientes, leads, asesores, calendario, notas, blog,
-archivos, contenido y configuración. La publicación, despublicación y sitemap
-se actualizan desde ese backend sin una nueva compilación.
+Sitio público y panel `/admin` de MNT Inmuebles. Ambos forman un solo producto y usan un backend dedicado en Supabase. El panel administra inmuebles, leads, clientes, asesores, calendario, notas, blog, archivos, contenido y configuración; el sitio consulta únicamente la proyección pública.
 
-## Inicio local
+## Desarrollo local
 
-1. Copia `.env.example` como `.env.local` y completa únicamente los valores de
-   la instancia dedicada de COTA: URL pública, clave anónima y clave de servicio
-   solo para servidor.
-2. Aplica las migraciones de `supabase/migrations` al proyecto dedicado.
-3. Crea el usuario de administración en Supabase Auth y su membresía activa en
-   `cota_staff`; no se concede acceso por correo ni por datos del navegador.
-4. Ejecuta `npm install` y `npm run dev -- --hostname 127.0.0.1 --port 3000`.
+Requiere Node.js 24 y npm. Copia `.env.example` como `.env.local`, completa las credenciales del proyecto dedicado y ejecuta:
 
-Nunca incluyas en Git ni publiques `.env.local`; la clave de servicio no debe usar un
-prefijo `NEXT_PUBLIC_` ni llegar al navegador. El sitio público expone solo la
-proyección publicada y los archivos privados se entregan con autorización del
-panel.
+```text
+npm ci
+npm run dev -- --hostname 127.0.0.1 --port 3001
+```
+
+Variables:
+
+- `MNT_SITE_URL`: origen canónico; la URL registrada es `https://mnt-inmuebles.vercel.app` y en local se configura como `http://localhost:3001`.
+- `NEXT_PUBLIC_SUPABASE_URL`: URL del proyecto Supabase dedicado.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: clave pública del proyecto.
+- `SUPABASE_SERVICE_ROLE_KEY`: secreto exclusivo del servidor.
+- `MNT_PUBLIC_LEADS_ENABLED`: `false` por defecto; habilita recepción pública solo después de configurar y verificar el backend.
+
+## Backend
+
+Aplica las migraciones en este orden:
+
+1. `202609030001_cota_backend.sql`
+2. `202609030002_cota_record_revisions.sql`
+3. `202609060003_mnt_identity.sql`
+4. `202609060004_mnt_content_identity.sql`
+
+Los nombres de 001 y 002 son históricos e inmutables. La migración 003 conserva datos y revisiones, cambia la identidad activa a `mnt_*`, crea los buckets `mnt-staging`, `mnt-private` y `mnt-public`, y protege la unicidad e inmutabilidad de los slugs del blog. La migración 004 actualiza la identidad del contenido conservado. No edites migraciones aplicadas.
+
+Crea usuarios en Supabase Auth y registra su membresía activa en `mnt_staff`. El acceso al panel depende del rol almacenado en el servidor; no usa almacenamiento del navegador como base de datos o autorización.
 
 ## Verificación
 
-`npm test` ejecuta las suites offline de backend y panel. Para completar la
-verificación local:
-
 ```text
-npm run lint
-npx tsc --noEmit
-npm run build
-npm run test:admin:browser
+npm run verify
 ```
 
-La comprobación live es deliberadamente independiente porque crea y elimina sus
-propios datos de prueba en el proyecto dedicado:
+Ese comando ejecuta lint, tipos, pruebas de backend y panel, y build. No necesita secretos. Las pruebas de navegador se ejecutan por separado con `npm run test:admin:browser`; CI usa los escenarios con backend simulado o explícitamente no disponible.
+
+La verificación live es independiente porque crea y elimina fixtures en el proyecto dedicado:
 
 ```text
-node --env-file=.env.local tests/live/verify-cota.mjs --run --web
+npm run test:live -- --web
 ```
 
-No se debe ejecutar contra otro proyecto ni incluirse en `npm test`.
+Requiere `MNT_TEST_URL`, credenciales del proyecto y confirmación explícita mediante `--run`, incluida por el script. `MNT_TEST_PROJECT_REF` puede fijar el project ref dedicado. Las pruebas de leads reales solo se ejecutan con `MNT_TEST_PRODUCTION_LEADS=true`; respetan los límites existentes y fallan si el entorno ya está saturado. El hostname de Vercel está registrado, pero el despliegue final sigue pendiente.
 
-## Actualización de concurrencia (migración002)
-
-`supabase/migrations/202609030002_cota_record_revisions.sql` se aplica después de
-001, sin modificarla. La tabla privada `cota_record_revisions` conserva únicamente
-colección, identificador y última revisión, incluso después de borrar el registro.
-No conserva contenido eliminado. Un trigger asigna la siguiente revisión en cada
-INSERT/UPDATE; ni RPC directo ni un INSERT privilegiado pueden reiniciarla.
-Las versiones siguen siendo números enteros positivos seguros para JavaScript;
-al agotarse ese rango la escritura falla, no se redondea ni reinicia.
-
-La actualización bloquea escrituras durante el backfill y conserva JSON, fechas,
-versiones actuales y borradores abiertos válidos. Anónimo, miembros, no miembros
-y `service_role` no tienen acceso directo al ledger; los triggers son funciones
-privilegiadas de búsqueda cerrada sin ejecución pública. Los grants/RLS de001,
-validación, creación exclusiva y guards de referencias no cambian. Todos los DML
-de registros toman el lock de001 antes de bloquear filas, evitando inversión de
-locks entre INSERT duplicado, UPDATE y el ledger. Esta serialización global es
-deliberada para este panel; no es una promesa de rendimiento masivo.
-
-**Corte histórico:**001 no guardaba revisiones de IDs borrados antes de002. No es
-posible reconstruirlas desde filas ausentes. Antes de aplicar, el controlador debe
-verificar que no quedan borradores operativos de esos IDs eliminados; en este
-proyecto inicial se ha confirmado que ese historial es solo QA desechable. Si esa
-condición no se cumple en otra instancia, detener el despliegue y usar un contrato
-de token/época, no afirmar protección retroactiva ni purgar datos por inferencia.
-La garantía duradera cubre las filas presentes al corte y su vida posterior, más
-todos los registros creados después. Nunca limpiar el ledger al borrar contenido.
-
-Orden: revisión independiente del SQL y hash → aplicación exclusiva al proyecto
-COTA con rol migrador → regresión opt-in → publicación del código. No revertir002
-retirando triggers o borrando revisiones. La regresión adicional usa solo fixtures
-propios y requiere confirmar explícitamente que002 ya fue aplicada:
+Después de publicar, la comprobación operativa de solo lectura valida salud, sitemap, rutas públicas y redirecciones sin credenciales:
 
 ```text
-node --env-file=.env.local tests/live/verify-cota.mjs --run --revisions --migration-002-applied
+MNT_TEST_URL=https://mnt-inmuebles.vercel.app npm run health
+npm run health -- https://mnt-inmuebles.vercel.app --json
 ```
 
-Los formularios públicos permanecen bloqueados en el HTML inicial y hasta que
-React instala el manejador; sin JavaScript se informa que no se envió nada. Los
-errores conservan los campos y la confirmación/descarga espera el ACK del BFF.
-El campo trampa `website` viaja en ese mismo POST y no es enfocable ni autocompletable.
+`--json` guarda un informe sanitizado en `.superpowers/mnt-health.json`. Los tiempos son mediana y percentil 95 de las solicitudes realizadas; no sustituyen una medición Lighthouse.
 
-## Alcance actual del blog
+## Operación
 
-El panel conserva alta, edición, borrado y los campos de las entradas. El estado
-`publicado` expone sus campos permitidos mediante la proyección pública, sin
-autenticación; no es un borrador privado. No existen páginas `/blog` ni páginas
-individuales de entradas. Guardar ese estado no crea una URL web; el slug sigue
-siendo un identificador editorial.
+Consulta [Manual de administración](docs/admin-manual.md) para publicación, archivos, conflictos de versión, roles y recuperación. Los respaldos y el archivo histórico se documentan en [Respaldo y restauración](docs/mnt-backup-restore.md) y [evidencia archivada](docs/archive/COTA-20260903-restoration.md).
 
-## Guardrails de producto y diseño
-
-Se conservan Archivo/Plex, las dos apariencias, la marca original Cota, el
-tratamiento vertical de “Método”, la hidratación segura de movimiento reducido
-y el recorte de desbordes de animación. No hay dependencia de localStorage,
-sesiones de demostración ni plataforma externa como origen operativo.
-
-## Archivo recuperable
-
-Los 20 archivos históricos aprobados y el seeder de preservación de una sola
-vez se copiaron, verificaron por SHA-256 y después se retiraron de sus rutas
-exactas. El archivo está en
-`C:\Paginas-web\_archivo\COTA-20260903`; el inventario de restauración
-versionado está en
-`docs/archive/COTA-20260903-manifest.json`, con una copia inmutable
-`MANIFEST.json` y las instrucciones `RESTORE.md` dentro del archivo. Al cerrar la
-entrega se retiraron también el espacio temporal del plan, las evidencias de
-pruebas y el script de archivo de una sola vez: 106 archivos verificados en
-`release-evidence`, con su propio manifiesto SHA-256. No son otra carpeta de
-proyecto activo. Los snapshots y los informes siguen recuperables allí.
-Para restaurar, comprueba el hash y copia únicamente la ruta necesaria.
-
-La investigación que sustentó el estimador de cierre quedó como antecedente
-histórico archivado, no como fuente jurídica o fiscal vigente.
-
-## Entrega y pendientes de contenido
-
-El 3 de septiembre de 2026 se verificó la publicación de la web y el panel en
-`https://cota-eight.vercel.app`, con Supabase dedicado y ambas migraciones
-aplicadas. La retirada del enlace inverso se publicó en la plataforma separada,
-sin modificar su base de datos. La invitación de administración fue aceptada
-por el proveedor; la recepción del correo y la creación de contraseña deben
-completarse por la persona destinataria.
-
-Verificación: 145 pruebas offline de COTA, 19 de navegador, 15 comprobaciones
-alojadas, 21 rutas/SEO de producción, aceptación privada de producción, lint,
-tipos y build. Se conservaron las 14 filas iniciales y se retiraron los datos
-de prueba. La plataforma pasó sus 178 pruebas.
-
-El contenido, contactos y propiedades actuales siguen siendo demostrativos
-hasta que la operación los sustituya por datos reales desde `/admin`.
+Los inmuebles, contactos y documentos de ejemplo no acreditan datos comerciales vigentes. Sustitúyelos desde `/admin` antes de publicar.

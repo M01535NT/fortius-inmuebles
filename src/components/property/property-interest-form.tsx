@@ -6,14 +6,18 @@ import { CheckCircle2 } from "lucide-react";
 import { captureLead } from "@/lib/admin/store";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
+const subscribeToLocation = () => () => {};
+
 /*
   Formulario de interés por propiedad. El BFF confirma el lead persistido
-  en COTA antes de mostrar la recepción; los fallos conservan los datos.
+  en MNT antes de mostrar la recepción; los fallos conservan los datos.
 */
 export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; codigo: string; titulo: string }) {
   const [sent, setSent] = React.useState(false);
   const [enviando, setEnviando] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const search = React.useSyncExternalStore(subscribeToLocation, () => window.location.search, () => "");
+  const intencion = new URLSearchParams(search).get("intencion") === "visita" ? "visita" : "interes";
 
   if (sent) {
     return (
@@ -40,7 +44,10 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
             website: String(data.get("website") ?? ""),
             nombre: String(data.get("nombre") ?? ""),
             telefono: String(data.get("telefono") ?? ""),
-            mensaje: String(data.get("mensaje") ?? "") || undefined,
+            mensaje:
+              intencion === "visita"
+                ? `Solicitud de visita${String(data.get("mensaje") ?? "").trim() ? `: ${String(data.get("mensaje")).trim()}` : ""}`
+                : String(data.get("mensaje") ?? "") || undefined,
             propiedadSlug: slug,
             origen: "interes-propiedad",
           });
@@ -56,6 +63,7 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
         Sobre: {codigo}
       </p>
       <input type="hidden" name="propiedad" value={slug} />
+      <input type="hidden" name="intencion" value={intencion} />
       <div className="mt-4 grid gap-4">
         <div className="flex flex-col gap-2">
           <label htmlFor="interes-nombre" className="text-[13.5px] font-medium text-foreground">
@@ -102,7 +110,7 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
         disabled={enviando}
         className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
       >
-        {enviando ? "Enviando…" : "Me interesa esta propiedad"}
+        {enviando ? "Enviando…" : intencion === "visita" ? "Solicitar visita" : "Me interesa esta propiedad"}
       </button>
       {error ? (
         <p

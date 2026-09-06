@@ -107,7 +107,7 @@ beforeEach(() => {
           : url.endsWith("config")
             ? [
                 {
-                  nombreComercial: "COTA",
+                  nombreComercial: "MNT",
                   telefono: "6645551234",
                   whatsapp: "https://wa.me/526645551234",
                   email: "hola@example.com",
@@ -159,14 +159,19 @@ test("new real property defaults unpublished and not demo", async () => {
       .checked,
   ).toBe(false);
 });
-test("publication refuses a private-only gallery instead of promising public visibility", async () => {
+test.each([
+  "/api/admin/files?bucket=mnt-private&path=private.jpg",
+  "https://assets.example/storage/v1/object/public/mnt-staging/private.jpg",
+  "https://assets.example/storage/v1/object/public/cota-private/private.jpg",
+  "https://assets.example/storage/v1/object/public/cota-staging/private.jpg",
+])("publication refuses a non-public gallery URL: %s", async (src) => {
   render(
     <PropertyForm
       initial={{
         ...property,
         galeria: [
           {
-            src: "/api/admin/files?bucket=cota-private&path=private.jpg",
+            src,
             alt: "Privada",
           },
         ],
@@ -298,7 +303,7 @@ const singletonEditors = [
     field: "nombreComercial",
     button: "Guardar configuración",
     initial: {
-      nombreComercial: "COTA",
+      nombreComercial: "MNT",
       telefono: "6645551234",
       whatsapp: "https://wa.me/526645551234",
       email: "hola@example.com",
@@ -316,11 +321,11 @@ const singletonEditors = [
     field: "heroTitulo",
     button: "Guardar contenido",
     initial: {
-      heroTitulo: "COTA",
+      heroTitulo: "MNT",
       heroSubtitulo: "Subtítulo",
       manifiestoTitulo: "Manifiesto",
       manifiestoTexto: "Texto",
-      seoTitle: "COTA Inmobiliaria",
+      seoTitle: "MNT Inmobiliaria",
       seoDescription: "Descripción",
     },
   },

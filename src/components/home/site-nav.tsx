@@ -7,51 +7,21 @@ import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import type { SiteSettings } from "@/lib/admin/store";
-
-/*
-  COTA wordmark. The tick-line-tick glyph is a dimension mark ("cota"),
-  the annotation used on architectural plans to fix exact measurements.
-*/
-function Wordmark({ light, name }: { light: boolean; name: string }) {
-  return (
-    <Link href="/" className="flex items-center gap-2.5" aria-label={`${name}, inicio`}>
-      <svg
-        width="26"
-        height="14"
-        viewBox="0 0 26 14"
-        fill="none"
-        aria-hidden="true"
-        className={light ? "text-[#57e3b3]" : "text-primary"}
-      >
-        <path
-          d="M1 1v12M25 1v12M1 7h24"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
-      <span
-        className={
-          "display-title text-[19px] tracking-[0.04em] " +
-          (light ? "text-[#f2f4ee]" : "text-foreground")
-        }
-      >
-        {name}
-      </span>
-    </Link>
-  );
-}
 
 const links = [
   { href: "/inventario", label: "Propiedades" },
   { href: "/#metodo", label: "Método" },
   { href: "/#entregables", label: "Entregables" },
   { href: "/herramientas", label: "Herramientas" },
+  { href: "/blog", label: "Blog" },
 ];
 
-export function SiteNav({ settings }: { settings?: SiteSettings | null }) {
+export function SiteNav(props: { settings?: SiteSettings | null }) {
+  // Keep the caller contract while the identity is independent of stored labels.
+  void props.settings;
   const pathname = usePathname();
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = React.useState(false);
@@ -87,9 +57,9 @@ export function SiteNav({ settings }: { settings?: SiteSettings | null }) {
       }
     >
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
-        <Wordmark light={!solid} name={settings?.nombreComercial || "Cota"} />
+        <Link href="/" aria-label="MNT Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
 
-        <nav className="hidden items-center gap-7 md:flex" aria-label="Principal">
+        <nav className="hidden items-center gap-6 lg:flex" aria-label="Principal">
           {links.map((l) => (
             <Link
               key={l.href}
@@ -135,7 +105,7 @@ export function SiteNav({ settings }: { settings?: SiteSettings | null }) {
             }
           >
             Menú
-            {/* Dos hairlines: el gesto de la marca (línea de acotación). */}
+            {/* Indicador de menú. */}
             <span aria-hidden="true" className="flex flex-col gap-[5px]">
               <span className="h-px w-5 bg-current transition-transform duration-300 group-hover:scale-x-75" />
               <span className="h-px w-5 bg-current transition-transform duration-300 group-hover:scale-x-125" />

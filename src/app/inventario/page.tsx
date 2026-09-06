@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Propiedades en venta y renta en Tijuana y Baja California, presentadas con información revisada.",
 };
 
-/* El inventario publicado del panel COTA se consulta en cada solicitud. */
+/* El inventario publicado del panel MNT se consulta en cada solicitud. */
 export const revalidate = 0;
 
 export default async function InventarioPage() {
@@ -22,6 +22,7 @@ export default async function InventarioPage() {
     <main className="bg-background pb-24 pt-32 md:pb-0">
       <Container className="pb-16 md:pb-24">
         <SectionHeading
+          level="h1"
           eyebrow="Inventario"
           title="Propiedades."
           description="Cada propiedad publicada pasó por revisión documental y análisis de precio. Lo que ves es información verificada, no promesas."

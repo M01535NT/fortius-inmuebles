@@ -1,20 +1,19 @@
 /*
-  Site data for COTA (provisional brand name).
+  Site data for MNT Inmuebles.
   Static route descriptors and historical placeholders. Live home copy and
-  commercial contact settings come from the independent COTA panel.
+  commercial contact settings come from the independent MNT panel.
 */
 
 export const siteConfig = {
-  name: "Cota",
+  name: "MNT Inmuebles",
   descriptor: "Bienes raíces con método",
-  url: "https://cota-eight.vercel.app",
+  url: process.env.MNT_SITE_URL || "https://mnt-inmuebles.vercel.app",
   contact: {
-    // TODO(T031): datos reales del cliente. Placeholders para el prototipo.
-    phone: "+52 664 000 0000",
-    phoneHref: "tel:+526640000000",
-    whatsapp: "https://wa.me/526640000000",
-    messenger: "https://m.me/cotainmobiliaria",
-    email: "contacto@cota.mx",
+    phone: "",
+    phoneHref: "",
+    whatsapp: "",
+    messenger: "",
+    email: "",
   },
   media: {
     /* URL del video institucional "cómo trabajamos" (mp4 o stream).
@@ -23,7 +22,7 @@ export const siteConfig = {
   },
 };
 
-// El inventario público se lee del backend independiente del panel COTA.
+// El inventario público se lee del backend independiente del panel MNT.
 
 export const routePages = {
   residencial: {

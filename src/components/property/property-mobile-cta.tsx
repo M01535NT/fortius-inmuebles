@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 /*
   Barra fija inferior en mobile para el detalle de propiedad.
   TODO (T031): agregar WhatsApp y llamada cuando exista contacto real.
@@ -14,12 +12,12 @@ export function PropertyMobileCta() {
         >
           Me interesa
         </a>
-        <Link
-          href="/#evaluar"
+        <a
+          href="?intencion=visita#interes"
           className="flex h-12 flex-1 items-center justify-center rounded-md border border-border text-[15px] font-medium text-foreground active:scale-[0.99]"
         >
           Agendar visita
-        </Link>
+        </a>
       </div>
     </div>
   );

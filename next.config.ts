@@ -2,6 +2,15 @@ import type { NextConfig } from "next";
 
 const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/descargas/checklist-venta-cota.pdf",
+        destination: "/descargas/checklist-venta-mnt.pdf",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
@@ -12,8 +21,8 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
-      // Solo el bucket público del proyecto COTA configurado; nunca el privado.
-      ...(publicStorageUrl ? [new URL("/storage/v1/object/public/cota-public/**", publicStorageUrl)] : []),
+      // Solo el bucket público configurado de MNT; nunca el privado.
+      ...(publicStorageUrl ? [new URL("/storage/v1/object/public/mnt-public/**", publicStorageUrl)] : []),
     ],
   },
 };

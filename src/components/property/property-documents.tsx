@@ -1,16 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDownToLine, FileText, LockKeyhole } from "lucide-react";
+import { ArrowDownToLine, FileText } from "lucide-react";
 
 import type { DocumentoPropiedad } from "@/data/propiedades";
 import { captureLead } from "@/lib/admin/store";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
-  Documentos descargables de la propiedad (PDFs cargados desde el panel,
-  sección Inmuebles). Se liberan a cambio de nombre y teléfono: cada
-  descarga es un lead persistido con la propiedad de origen.
+  Material comercial público. El formulario registra el interés; no es
+  un control de confidencialidad. Los archivos privados usan el backend autorizado.
 */
 type Props = {
   documentos: DocumentoPropiedad[];
@@ -25,11 +24,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
 
   if (documentos.length === 0) return null;
 
-  /*
-    Los PDFs se entregan a cambio del contacto. Si el contacto no llegó al
-    backend dedicado de COTA, no se libera la descarga: sería regalar el documento y perder
-    el prospecto a la vez.
-  */
+  // Confirmar la persistencia antes de anunciar que se recibió el contacto.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
@@ -55,10 +50,10 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
   return (
     <div className="rounded-lg border border-border bg-card">
       <div className="p-5 pb-0">
-        <h2 className="display-soft text-xl text-foreground">Documentos de la propiedad</h2>
+        <h2 className="display-soft text-xl text-foreground">Documentos comerciales</h2>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Déjanos tu contacto y los PDFs se liberan de inmediato; el
-          expediente completo se comparte en persona.
+          Estos PDFs son material público. Comparte tu contacto para recibir
+          seguimiento. Los documentos privados del expediente se comparten por un canal autorizado.
         </p>
       </div>
 
@@ -82,7 +77,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
                 PDF
               </a>
             ) : (
-              <LockKeyhole className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden="true" />
+              <span className="font-mono text-[11px] text-muted-foreground">PDF</span>
             )}
           </li>
         ))}

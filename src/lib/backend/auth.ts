@@ -5,14 +5,14 @@ import { z } from "zod";
 import type { StaffUser } from "./contracts";
 import { ApiError, databaseError } from "./http";
 
-const ACCESS_COOKIE = "cota-access-token";
-const REFRESH_COOKIE = "cota-refresh-token";
+const ACCESS_COOKIE = "mnt-access-token";
+const REFRESH_COOKIE = "mnt-refresh-token";
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", priority: "high" as const };
 
 export function supabaseEnvironment() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new ApiError(503, "El servicio COTA no está configurado");
+  if (!url || !key) throw new ApiError(503, "El servicio MNT no está configurado");
   return { url, key };
 }
 
@@ -31,14 +31,14 @@ export function createServerClient(accessToken?: string, privileged = false): Su
 
 export function staffIdentity(user: { id: string; email?: string } | null, membership: { role: string; active: boolean } | null): StaffUser {
   if (!user) throw new ApiError(401, "Inicia sesión para continuar");
-  if (!membership?.active || !["admin", "editor"].includes(membership.role)) throw new ApiError(403, "Tu usuario no tiene acceso al panel COTA");
+  if (!membership?.active || !["admin", "editor"].includes(membership.role)) throw new ApiError(403, "Tu usuario no tiene acceso al panel MNT");
   return { id: user.id, email: user.email ?? "", role: membership.role as StaffUser["role"] };
 }
 
 async function verifyStaff(client: SupabaseClient, token: string): Promise<StaffUser> {
   const { data, error } = await client.auth.getUser(token);
   if (error || !data.user) throw new ApiError(401, "Sesión inválida o vencida");
-  const membership = await client.from("cota_staff").select("role,active").eq("user_id", data.user.id).maybeSingle();
+  const membership = await client.from("mnt_staff").select("role,active").eq("user_id", data.user.id).maybeSingle();
   if (membership.error) databaseError(membership.error);
   return staffIdentity(data.user, membership.data);
 }

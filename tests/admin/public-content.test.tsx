@@ -7,6 +7,7 @@ import { Relato } from "@/components/home/relato";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
 import { ContactForm } from "@/components/sections/contact-form";
+import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 
 vi.hoisted(() => { window.matchMedia = (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }); });
 vi.mock("next/navigation", () => ({ usePathname: () => "/contacto" }));
@@ -32,7 +33,7 @@ test("the imported original copy preserves the hero line break and mint manifest
 });
 test("footer uses public settings and keeps placeholder numbers explicitly unconfirmed", () => {
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);
-  expect(html).toContain("Firma actualizada");
+  expect(html).toContain('aria-label="MNT Inmuebles"');
   expect(html).toContain('href="tel:+526641234567"');
   expect(html).toContain('href="https://wa.me/526647654321"');
   const placeholders = renderToStaticMarkup(<SiteFooter settings={{ ...settings, telefono: "+52 664 000 0000", whatsapp: "https://wa.me/526640000000" }} />);
@@ -51,7 +52,7 @@ test("desktop public navigation opens this product administration in the same ta
 test("contact form retains input on rejected remote write and confirms acknowledged persistence", async () => {
   let persisted = false;
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "No se guardó" }, { status: 503 })));
-  render(<ContactForm />);
+  render(<PublicFeaturesProvider publicLeadsEnabled><ContactForm /></PublicFeaturesProvider>);
   fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Nombre público" } });
   fireEvent.change(screen.getByLabelText(/Teléfono/), { target: { value: "6641234567" } });
   fireEvent.click(screen.getByRole("button", { name: "Solicitar evaluación" }));

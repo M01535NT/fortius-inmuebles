@@ -1,7 +1,7 @@
 /**
  * Explicit integration check, never included in the offline test suite.
  * Run against the NEW dedicated project only:
- * node --env-file=.env.local tests/live/verify-cota.mjs --run
+ * node --env-file=.env.local tests/live/verify-mnt.mjs --run
  * Creates its own two test users/records; never sends email or touches existing rows.
  */
 import assert from "node:assert/strict";
@@ -10,9 +10,13 @@ import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 
 assert.equal(process.argv[2], "--run", "Live mutation requires explicit --run");
+const projectRef = process.env.MNT_TEST_PROJECT_REF || "qkkirjzhviqwvuqjnmei";
+assert.match(projectRef, /^[a-z]{20}$/, "Invalid dedicated Supabase project ref");
 assert.equal(new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname,
-  "qkkirjzhviqwvuqjnmei.supabase.co", "Refusing any other Supabase project");
-const origin = "http://localhost:3000";
+  `${projectRef}.supabase.co`, "Refusing any other Supabase project");
+const origin = process.env.MNT_TEST_URL;
+assert.ok(origin, "MNT_TEST_URL is required");
+assert.equal(new URL(origin).origin, origin, "MNT_TEST_URL must be an origin without a path");
 const verifyWeb = process.argv.includes("--web");
 const verifyRevisions = process.argv.includes("--revisions");
 if (verifyRevisions) assert.ok(process.argv.includes("--migration-002-applied"),
@@ -66,14 +70,14 @@ async function check(name, action) {
 }
 
 async function createUser(suffix, member) {
-  const email = `cota-${runId}-${suffix}@example.invalid`;
+  const email = `mnt-${runId}-${suffix}@example.invalid`;
   const password = randomBytes(32).toString("base64url");
   const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
   assert.ifError(error);
   users.push(data.user.id);
   if (member) {
     memberUserId = data.user.id;
-    const { error: grantError } = await admin.from("cota_staff")
+    const { error: grantError } = await admin.from("mnt_staff")
       .insert({ user_id: data.user.id, role: "admin", active: true });
     assert.ifError(grantError);
   }
@@ -90,7 +94,7 @@ try {
   await check("anonymous cannot read the panel", async () => {
     assert.equal((await first("/api/auth/session")).status, 401);
     assert.equal((await first("/api/admin/collections/clientes")).status, 401);
-    const { error } = await anon.from("cota_records").select("id").limit(1);
+    const { error } = await anon.from("mnt_records").select("id").limit(1);
     assert.ok(error, "Anonymous direct reads must be denied, not merely hidden by the UI");
   });
 
@@ -112,9 +116,22 @@ try {
     assert.equal((await first("/api/auth/session")).data.user.email, member.email);
   });
 
+  await check("an editor member retains panel access", async () => {
+    const { error: editorError } = await admin.from("mnt_staff")
+      .update({ role: "editor" }).eq("user_id", memberUserId);
+    assert.ifError(editorError);
+    const editorSession = await first("/api/auth/session");
+    assert.equal(editorSession.status, 200);
+    assert.equal(editorSession.data.user.role, "editor");
+    assert.equal((await first("/api/admin/collections/notas")).status, 200);
+    const { error: restoreError } = await admin.from("mnt_staff")
+      .update({ role: "admin" }).eq("user_id", memberUserId);
+    assert.ifError(restoreError);
+  });
+
   const clientId = `${prefix}-client`;
   const now = new Date().toISOString();
-  const client = { id: clientId, nombre: "PRUEBA TECNICA COTA", telefono: "0000000000",
+  const client = { id: clientId, nombre: "PRUEBA TECNICA MNT", telefono: "0000000000",
     tipo: "otro", notas: "Temporary verification fixture", creadoEl: now, actualizadoEl: now };
   let clientVersion;
   await check("client survives reload and is shared by two sessions", async () => {
@@ -141,7 +158,7 @@ try {
   });
 
   const propertyId = `${prefix}-property`;
-  const property = { slug: propertyId, codigo: "PRUEBA-COTA", titulo: "PRUEBA TECNICA COTA",
+  const property = { slug: propertyId, codigo: "PRUEBA-MNT", titulo: "PRUEBA TECNICA MNT",
     tipo: "casa", operacion: "venta", precio: { modalidad: "consulta" }, zona: "",
     direccionAproximada: "", descripcion: [], ficha: {}, amenidades: [],
     galeria: [{ src: "/hero/casa-playa.webp", alt: "Public verification fixture" }],
@@ -171,9 +188,9 @@ try {
     const direct = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
     assert.ifError((await direct.auth.signInWithPassword(member)).error);
     try {
-      const put = await direct.rpc("cota_put_record", { p_collection: "propiedades", p_id: id, p_data: opening.data, p_version: opening.version });
+      const put = await direct.rpc("mnt_put_record", { p_collection: "propiedades", p_id: id, p_data: opening.data, p_version: opening.version });
       assert.equal(put.error?.code, "PT409");
-      const del = await direct.rpc("cota_delete_record", { p_collection: "propiedades", p_id: id, p_version: opening.version });
+      const del = await direct.rpc("mnt_delete_record", { p_collection: "propiedades", p_id: id, p_version: opening.version });
       assert.equal(del.error?.code, "PT409");
       const list = await first("/api/admin/collections/propiedades");
       assert.equal(list.data.records.find((record) => record.id === id).data.titulo, fixture.titulo);
@@ -191,7 +208,7 @@ try {
     });
     assert.equal(response.status, 200);
     propertyVersion = response.data.record.version;
-    const { data, error } = await anon.rpc("cota_public_records", { p_collection: "propiedades" });
+    const { data, error } = await anon.rpc("mnt_public_records", { p_collection: "propiedades" });
     assert.ifError(error);
     assert.ok(!data.some((r) => r.data.slug === propertyId));
   });
@@ -201,7 +218,7 @@ try {
     });
     assert.equal(response.status, 200);
     propertyVersion = response.data.record.version;
-    const { data, error } = await anon.rpc("cota_public_records", { p_collection: "propiedades" });
+    const { data, error } = await anon.rpc("mnt_public_records", { p_collection: "propiedades" });
     assert.ifError(error);
     const visible = data.find((r) => r.data.slug === propertyId)?.data;
     assert.equal(visible?.titulo, property.titulo);
@@ -211,7 +228,7 @@ try {
     });
     assert.equal(hidden.status, 200);
     propertyVersion = hidden.data.record.version;
-    const again = await anon.rpc("cota_public_records", { p_collection: "propiedades" });
+    const again = await anon.rpc("mnt_public_records", { p_collection: "propiedades" });
     assert.ifError(again.error);
     assert.ok(!again.data.some((r) => r.data.slug === propertyId));
   });
@@ -244,9 +261,70 @@ try {
     assert.ok(!(await home.text()).includes("inmobiliaria-os.vercel.app"));
   });
 
-  await check("lead confirmation follows database persistence", async () => {
+  if (verifyWeb) await check("blog lifecycle follows publication, safe rendering and immutable unique slugs", async () => {
+    const postId = `${prefix}-web-post`;
+    const duplicateId = `${prefix}-web-post-duplicate`;
+    const slug = `${prefix}-web-post`;
+    const changedSlug = `${slug}-changed`;
+    const unsafeBody = "Primer párrafo\n\n<script>alert('mnt-live')</script>";
+    const post = {
+      id: postId, slug, titulo: "ARTÍCULO WEB DE PRUEBA", resumen: "Resumen temporal",
+      contenido: unsafeBody, estado: "borrador", actualizadoEl: now,
+    };
+    records.push({ collection: "posts", id: postId });
+    const path = collectionPath("posts", postId);
+    const detailUrl = `${origin}/blog/${slug}`;
+    const created = await first(path, { method: "PUT", data: { data: post, version: null } });
+    assert.equal(created.status, 200);
+    assert.equal((await fetch(detailUrl)).status, 404);
+    assert.ok(!(await (await fetch(origin + "/sitemap.xml")).text()).includes(`/blog/${slug}`));
+
+    const published = await first(path, {
+      method: "PUT", data: { data: { ...post, estado: "publicado" }, version: created.data.record.version },
+    });
+    assert.equal(published.status, 200);
+    const publicDetail = await fetch(detailUrl);
+    assert.equal(publicDetail.status, 200);
+    const publicHtml = await publicDetail.text();
+    assert.ok(publicHtml.includes(post.titulo));
+    assert.ok(publicHtml.includes("&lt;script&gt;alert"), "Stored markup must render as escaped text");
+    assert.ok(!publicHtml.includes("<script>alert('mnt-live')</script>"), "Stored markup must never become executable HTML");
+    assert.ok(publicHtml.includes(`rel="canonical" href="${detailUrl}"`));
+    assert.ok((await (await fetch(origin + "/sitemap.xml")).text()).includes(`/blog/${slug}`));
+
+    records.push({ collection: "posts", id: duplicateId });
+    const duplicate = await second(collectionPath("posts", duplicateId), {
+      method: "PUT", data: { data: { ...post, id: duplicateId }, version: null },
+    });
+    assert.equal(duplicate.status, 409);
+
+    const changedBody = "Contenido actualizado desde la segunda sesión.";
+    const edited = await second(path, {
+      method: "PUT", data: { data: { ...post, estado: "publicado", contenido: changedBody }, version: published.data.record.version },
+    });
+    assert.equal(edited.status, 200);
+    assert.equal(edited.data.record.data.slug, slug);
+    const editedHtml = await (await fetch(detailUrl)).text();
+    assert.ok(editedHtml.includes(changedBody));
+    assert.ok(!editedHtml.includes("Primer párrafo"));
+
+    const renamed = await first(path, {
+      method: "PUT", data: { data: { ...edited.data.record.data, slug: changedSlug }, version: edited.data.record.version },
+    });
+    assert.equal(renamed.status, 400);
+    assert.equal((await fetch(`${origin}/blog/${changedSlug}`)).status, 404);
+
+    const withdrawn = await first(path, {
+      method: "PUT", data: { data: { ...edited.data.record.data, estado: "borrador" }, version: edited.data.record.version },
+    });
+    assert.equal(withdrawn.status, 200);
+    assert.equal((await fetch(detailUrl)).status, 404);
+    assert.ok(!(await (await fetch(origin + "/sitemap.xml")).text()).includes(`/blog/${slug}`));
+  });
+
+  if (process.env.MNT_TEST_PRODUCTION_LEADS === "true") await check("lead confirmation follows database persistence", async () => {
     const response = await session()("/api/leads", { method: "POST", data: {
-      nombre: "PRUEBA TECNICA COTA", telefono: "0000000000", origen: "contacto", mensaje: prefix,
+      nombre: "PRUEBA TECNICA MNT", telefono: "0000000000", origen: "contacto", mensaje: prefix,
     } });
     assert.equal(response.status, 201);
     assert.equal(typeof response.data.id, "string");
@@ -259,7 +337,7 @@ try {
     assert.equal(updated.status, 200);
     const reloaded = await second("/api/admin/collections/leads");
     assert.deepEqual(reloaded.data.records.find((r) => r.id === saved.id).data, changed);
-    const denied = await anon.rpc("cota_public_records", { p_collection: "leads" });
+    const denied = await anon.rpc("mnt_public_records", { p_collection: "leads" });
     assert.ok(denied.error || denied.data.length === 0);
   });
 
@@ -292,7 +370,7 @@ try {
       assert.equal(updated.status, 200, `${collection}: update`);
       const reloaded = await second(`/api/admin/collections/${collection}`);
       assert.deepEqual(reloaded.data.records.find((row) => row.id === original.id).data, changed);
-      const hidden = await anon.rpc("cota_public_records", { p_collection: collection });
+      const hidden = await anon.rpc("mnt_public_records", { p_collection: collection });
       assert.ok(hidden.error || !hidden.data.some((row) => row.data.id === original.id), `${collection}: private/inactive/draft row leaked`);
       assert.equal((await first(path, { method: "DELETE", data: { version: created.data.record.version } })).status, 409);
       assert.equal((await first(path, { method: "DELETE", data: { version: updated.data.record.version } })).status, 200, `${collection}: unreferenced current-version delete`);
@@ -307,14 +385,14 @@ try {
     form.set("file", new File([bytes], `${prefix}.webp`, { type: "image/webp" }));
     form.set("visibility", "private");
     const response = await first("/api/admin/files", { method: "POST", body: form });
-    if (response.data.bucket === "cota-private" && response.data.path?.startsWith(memberUserId + "/")) {
+    if (response.data.bucket === "mnt-private" && response.data.path?.startsWith(memberUserId + "/")) {
       objects.push({ bucket: response.data.bucket, path: response.data.path });
     }
     assert.equal(response.status, 201);
-    assert.equal(response.data.bucket, "cota-private");
-    const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cota-private/${response.data.path}`;
+    assert.equal(response.data.bucket, "mnt-private");
+    const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/mnt-private/${response.data.path}`;
     assert.ok(!(await fetch(publicUrl)).ok, "Private file must not be publicly retrievable");
-    const signed = await first(`/api/admin/files?bucket=cota-private&path=${encodeURIComponent(response.data.path)}`);
+    const signed = await first(`/api/admin/files?bucket=mnt-private&path=${encodeURIComponent(response.data.path)}`);
     assert.equal(signed.status, 200);
     const download = await fetch(signed.data.url);
     assert.equal(download.status, 200);
@@ -328,9 +406,9 @@ try {
       name: `${prefix}-large.webp`, size: bytes.length, contentType: "image/webp", visibility: "private",
     } });
     assert.ok(prepared.status >= 200 && prepared.status < 300);
-    assert.equal(new URL(prepared.data.signedUrl).hostname, "qkkirjzhviqwvuqjnmei.supabase.co");
+    assert.equal(new URL(prepared.data.signedUrl).hostname, `${projectRef}.supabase.co`);
     assert.ok(prepared.data.path.startsWith(memberUserId + "/"));
-    objects.push({ bucket: "cota-staging", path: prepared.data.path });
+    objects.push({ bucket: "mnt-staging", path: prepared.data.path });
     const uploaded = await fetch(prepared.data.signedUrl, {
       method: "PUT", headers: { "Content-Type": "image/webp" }, body: bytes,
     });
@@ -338,11 +416,11 @@ try {
     const completed = await first("/api/admin/files/complete", {
       method: "POST", data: { ticket: prepared.data.ticket },
     });
-    if (completed.data.bucket === "cota-private" && completed.data.path?.startsWith(memberUserId + "/")) {
+    if (completed.data.bucket === "mnt-private" && completed.data.path?.startsWith(memberUserId + "/")) {
       objects.push({ bucket: completed.data.bucket, path: completed.data.path });
     }
     assert.ok(completed.status >= 200 && completed.status < 300);
-    assert.equal(completed.data.bucket, "cota-private");
+    assert.equal(completed.data.bucket, "mnt-private");
     const resolved = await first(completed.data.url);
     assert.equal(resolved.status, 200);
     const download = await fetch(resolved.data.url);
@@ -382,14 +460,14 @@ try {
   failure = error;
 } finally {
   const cleanupErrors = [];
-  const { data: testLeads, error: findLeadError } = await admin.from("cota_records")
+  const { data: testLeads, error: findLeadError } = await admin.from("mnt_records")
     .select("id").eq("collection", "leads").eq("data->>mensaje", prefix);
   if (findLeadError) cleanupErrors.push(`Finding test lead: ${findLeadError.message}`);
   for (const lead of testLeads ?? []) {
     if (!records.some((record) => record.collection === "leads" && record.id === lead.id)) records.push({ collection: "leads", id: lead.id });
   }
   for (const { collection, id } of records.reverse()) {
-    const { error } = await admin.from("cota_records").delete().eq("collection", collection).eq("id", id);
+    const { error } = await admin.from("mnt_records").delete().eq("collection", collection).eq("id", id);
     if (error) cleanupErrors.push(`Record ${collection}/${id}: ${error.message}`);
   }
   for (const { bucket, path } of objects) {

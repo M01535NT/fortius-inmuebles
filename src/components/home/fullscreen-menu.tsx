@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowUpRight, X } from "lucide-react";
 
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 /*
   Menú a pantalla completa. Se revela con un clip-path circular que nace
@@ -23,6 +24,7 @@ const PRIMARY = [
 ];
 
 const SECONDARY = [
+  { href: "/blog", label: "Blog" },
   { href: "/zonas", label: "Zonas" },
   { href: "/vender-propiedad", label: "Vender mi propiedad" },
   { href: "/comprar-propiedad", label: "Comprar propiedad" },
@@ -39,21 +41,46 @@ type Props = { open: boolean; onClose: () => void };
 export function FullscreenMenu({ open, onClose }: Props) {
   const ref = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
+  const previousFocusRef = React.useRef<HTMLElement | null>(null);
   const [active, setActive] = React.useState(0);
 
   /* Bloqueo de scroll + Escape mientras el menú está abierto. */
   React.useEffect(() => {
     if (!open) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const prev = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = Array.from(
+        ref.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [],
+      ).filter((element) => !element.hasAttribute("disabled"));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
-    closeRef.current?.focus();
+    // The reveal hook removes `visibility:hidden` during the same commit.
+    // Defer focus one frame so real browsers can focus the now-visible control.
+    const focusFrame = window.requestAnimationFrame(() => closeRef.current?.focus());
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       document.documentElement.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
+      previousFocusRef.current?.focus();
+      previousFocusRef.current = null;
     };
   }, [open, onClose]);
 
@@ -115,12 +142,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
     >
       {/* Cabecera del overlay: marca + cerrar en el mismo punto del botón. */}
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
-        <span className="flex items-center gap-2.5" aria-hidden="true">
-          <svg width="26" height="14" viewBox="0 0 26 14" fill="none" className="text-primary">
-            <path d="M1 1v12M25 1v12M1 7h24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          <span className="display-title text-[19px] tracking-[0.04em] text-foreground">Cota</span>
-        </span>
+        <BrandMark />
         <button
           ref={closeRef}
           type="button"

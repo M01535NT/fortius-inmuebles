@@ -7,10 +7,12 @@ import { InstitutionalVideo } from "@/components/sections/institutional-video";
 import { matchRemotePattern } from "next/dist/shared/lib/match-remote-pattern";
 import type { Metadata } from "next";
 import { propiedades } from "@/data/propiedades";
+import { siteConfig } from "@/data/site";
 import PropertyDetailPage, { generateMetadata as propertyMetadata } from "@/app/inventario/[slug]/page";
 import { generateMetadata as zoneMetadata } from "@/app/zonas/[zona]/page";
 
 vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }) }));
+vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-mnt-pathname": "/" }) }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/", useRouter: () => ({ push() {} }) }));
 vi.mock("next/server", async (original) => ({ ...await original<typeof import("next/server")>(), connection: async () => {} }));
 
@@ -21,7 +23,7 @@ beforeEach(() => {
   content = { heroTitulo: "Título del panel", heroSubtitulo: "Subtítulo publicado", manifiestoTitulo: "Proceso actualizado", manifiestoTexto: "Texto actualizado", seoTitle: "SEO publicado", seoDescription: "Descripción publicada", privateNote: "PRIVATE" };
   settings = { nombreComercial: "Firma publicada", telefono: "+52 664 123 4567", whatsapp: "+52 664 765 4321", email: "publico@example.com", horario: "", facebook: "", instagram: "", videoInstitucionalUrl: "/video-publico.mp4", privateNote: "PRIVATE" };
   publicProperty = { ...propiedades[0], publicada: true, galeria: [{ src: "/hero/casa-playa.webp", alt: "Casa" }, { src: "https://images.unsplash.com/remote.jpg", alt: "Remota" }] };
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://cota-public-test.supabase.co");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-public-test.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "public-test-key");
   vi.stubGlobal("fetch", vi.fn(async (_url, init) => {
     const collection = JSON.parse(init.body).p_collection;
@@ -30,16 +32,14 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
-test("root layout reads public settings for the next request and preserves smooth-scroll declaration", async () => {
+test("root layout reads public contact settings for the next request and preserves smooth-scroll declaration", async () => {
   let html = renderToStaticMarkup(await RootLayout({ children: "Página" }));
   expect(html).toContain('data-scroll-behavior="smooth"');
-  expect(html).toContain("Firma publicada");
   expect(html).toContain('href="tel:+526641234567"');
   expect(html).not.toContain("PRIVATE");
   settings.nombreComercial = "Firma editada";
   settings.telefono = "+52 664 321 7654";
   html = renderToStaticMarkup(await RootLayout({ children: "Página" }));
-  expect(html).toContain("Firma editada");
   expect(html).toContain('href="tel:+526643217654"');
 });
 test("home passes projected panel copy and metadata reads subsequent edits without a build", async () => {
@@ -60,18 +60,27 @@ test("institutional video reads the configured public URL and retains its placeh
 test("image optimization allows only the configured public bucket and existing external hosts", async () => {
   const config = (await import("../../next.config")).default;
   const allowed = (url: string) => config.images!.remotePatterns!.some((pattern) => matchRemotePattern(pattern, new URL(url)));
-  expect(allowed("https://cota-public-test.supabase.co/storage/v1/object/public/cota-public/image.webp")).toBe(true);
-  expect(allowed("https://cota-public-test.supabase.co/storage/v1/object/public/cota-private/private.webp")).toBe(false);
+  expect(allowed("https://mnt-public-test.supabase.co/storage/v1/object/public/mnt-public/image.webp")).toBe(true);
+  expect(allowed("https://mnt-public-test.supabase.co/storage/v1/object/public/mnt-private/private.webp")).toBe(false);
   expect(allowed("https://fvvmvnduvzxvodeombld.supabase.co/storage/v1/object/public/listings/old.webp")).toBe(false);
   expect(allowed("https://images.unsplash.com/photo.jpg")).toBe(true);
   expect(allowed("https://d8j0ntlcm91z4.cloudfront.net/photo.jpg")).toBe(true);
 });
 
+test("legacy public PDF keeps a permanent route to the MNT asset", async () => {
+  const config = (await import("../../next.config")).default;
+  expect(await config.redirects?.()).toContainEqual({
+    source: "/descargas/checklist-venta-cota.pdf",
+    destination: "/descargas/checklist-venta-mnt.pdf",
+    permanent: true,
+  });
+});
+
 test("root metadata resolves relative images on production without imposing an inherited home canonical", async () => {
   const metadata = await generateMetadata();
-  expect(metadata.metadataBase?.toString()).toBe("https://cota-eight.vercel.app/");
+  expect(metadata.metadataBase?.toString()).toBe(`${siteConfig.url}/`);
   expect(metadata.alternates?.canonical).toBeUndefined();
-  expect(JSON.stringify(metadata)).not.toContain("cota.example");
+  expect(JSON.stringify(metadata)).not.toContain("mnt.example");
 });
 
 const publicPages: [string, () => Promise<{ metadata: Metadata } >][] = [
@@ -99,17 +108,17 @@ test.each(publicPages)("public page %s declares its own canonical path", async (
 test("dynamic details share production canonical and OG URLs while keeping demo noindex", async () => {
   const metadata = await propertyMetadata({ params: Promise.resolve({ slug: propiedades[0].slug }) });
   expect(metadata.alternates?.canonical).toBe("/inventario/residencia-vista-al-mar-playas");
-  expect(metadata.openGraph).toMatchObject({ url: "https://cota-eight.vercel.app/inventario/residencia-vista-al-mar-playas", images: ["https://cota-eight.vercel.app/hero/casa-playa.webp"] });
+  expect(metadata.openGraph).toMatchObject({ url: `${siteConfig.url}/inventario/residencia-vista-al-mar-playas`, images: [`${siteConfig.url}/hero/casa-playa.webp`] });
   expect(metadata.robots).toEqual({ index: false, follow: true });
   expect((await zoneMetadata({ params: Promise.resolve({ zona: "playas-de-tijuana" }) })).alternates?.canonical).toBe("/zonas/playas-de-tijuana");
-  expect(JSON.stringify(metadata)).not.toContain("cota.example");
+  expect(JSON.stringify(metadata)).not.toContain("mnt.example");
 });
 test("rendered listing structured data uses production URLs for local assets and preserves remote URLs", async () => {
   const page = await PropertyDetailPage({ params: Promise.resolve({ slug: propiedades[0].slug }) });
   const script = (Children.toArray(page.props.children) as ReactElement[]).find((child) => child.type === "script")!;
   const html = renderToStaticMarkup(script);
   const data = JSON.parse(html.slice(html.indexOf(">") + 1, html.lastIndexOf("</script>")));
-  expect(data.url).toBe("https://cota-eight.vercel.app/inventario/residencia-vista-al-mar-playas");
-  expect(data.image).toEqual(["https://cota-eight.vercel.app/hero/casa-playa.webp", "https://images.unsplash.com/remote.jpg"]);
-  expect(html).not.toContain("cota.example");
+  expect(data.url).toBe(`${siteConfig.url}/inventario/residencia-vista-al-mar-playas`);
+  expect(data.image).toEqual([`${siteConfig.url}/hero/casa-playa.webp`, "https://images.unsplash.com/remote.jpg"]);
+  expect(html).not.toContain("mnt.example");
 });

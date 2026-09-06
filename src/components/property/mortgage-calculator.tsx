@@ -21,16 +21,23 @@ function fmt(n: number): string {
 }
 
 export function MortgageCalculator({ precio: precioInicial, moneda, precioEditable = false }: Props) {
-  const [precio, setPrecio] = React.useState<number>(precioInicial);
+  const [precioInput, setPrecioInput] = React.useState(String(precioInicial));
   const [enganche, setEnganche] = React.useState<number>(20);
   const [plazo, setPlazo] = React.useState<number>(20);
-  const [tasa, setTasa] = React.useState<number>(TASA_DEFAULT);
+  const [tasaInput, setTasaInput] = React.useState(String(TASA_DEFAULT));
+
+  const precio = Number(precioInput);
+  const tasa = Number(tasaInput);
+  const precioValido = precioInput.trim() !== "" && Number.isFinite(precio) && precio >= 100000 && precio <= 10_000_000_000_000;
+  const tasaValida = tasaInput.trim() !== "" && Number.isFinite(tasa) && tasa >= 1 && tasa <= 25;
+  const valido = precioValido && tasaValida;
 
   const montoEnganche = precio * (enganche / 100);
   const credito = precio - montoEnganche;
   const r = tasa / 100 / 12;
   const n = plazo * 12;
   const mensualidad = r > 0 ? (credito * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : credito / n;
+  const resultadoValido = valido && Number.isFinite(mensualidad);
 
   const selectClass =
     "h-11 rounded-md border border-input bg-background px-3 text-[15px] text-foreground";
@@ -48,8 +55,8 @@ export function MortgageCalculator({ precio: precioInicial, moneda, precioEditab
             type="number"
             min={100000}
             step={50000}
-            value={precio}
-            onChange={(e) => setPrecio(Number(e.target.value) || precioInicial)}
+            value={precioInput}
+            onChange={(e) => setPrecioInput(e.target.value)}
             className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-[15px] text-foreground"
           />
         </div>
@@ -104,13 +111,20 @@ export function MortgageCalculator({ precio: precioInicial, moneda, precioEditab
             min={1}
             max={25}
             step={0.1}
-            value={tasa}
-            onChange={(e) => setTasa(Number(e.target.value) || TASA_DEFAULT)}
+            value={tasaInput}
+            onChange={(e) => setTasaInput(e.target.value)}
             className="h-11 rounded-md border border-input bg-background px-3.5 text-[15px] text-foreground"
           />
         </div>
       </div>
 
+      {!resultadoValido ? (
+        <p role="alert" className="mt-5 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[13.5px] text-destructive">
+          {!precioValido
+            ? "Ingresa un precio válido entre $100,000 y $10,000,000,000,000."
+            : "Ingresa una tasa válida entre 1% y 25%."}
+        </p>
+      ) : (
       <dl className="mt-5 border-t border-border">
         <div className="flex items-baseline justify-between gap-6 border-b border-border py-3">
           <dt className="text-[14px] text-muted-foreground">Enganche ({enganche}%)</dt>
@@ -127,6 +141,7 @@ export function MortgageCalculator({ precio: precioInicial, moneda, precioEditab
           </dd>
         </div>
       </dl>
+      )}
 
       <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
         Estimación informativa con pagos fijos; no incluye seguros, comisiones

@@ -12,7 +12,7 @@ import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /*
   Lead capture. The form is the page's conversion tool: few fields, visible
-  labels, honest microcopy. El POST al BFF de COTA debe confirmar la persistencia
+  labels, honest microcopy. El POST al BFF de MNT debe confirmar la persistencia
   antes de redirigir a la página de gracias; un fallo conserva el borrador.
 */
 const PASOS = [

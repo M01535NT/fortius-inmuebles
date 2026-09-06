@@ -6,7 +6,6 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import {
   Badge,
-  DemoBanner,
   EmptyState,
   Field,
   PageHeader,
@@ -26,20 +25,7 @@ import {
   type Post,
 } from "@/lib/admin/store";
 
-/*
-  Blog: redacción, borradores y exposición de entradas en la proyección pública.
-  No hay páginas públicas de blog. Guardrails vigentes: README.md; antecedente
-  Copywritting.md: docs/archive/COTA-20260903-manifest.json y su archivo recuperable.
-*/
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
+/* Blog: redacción, borradores y publicación en las rutas públicas del sitio. */
 function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
   const [post] = React.useState(source);
   const [version] = React.useState(() =>
@@ -48,13 +34,12 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const titulo = String(data.get("titulo") ?? "");
     await upsert(
       db.posts,
       {
         id: post?.id ?? uid(),
-        slug: post?.slug ?? slugify(titulo),
-        titulo,
+        slug: post?.slug ?? String(data.get("slug") ?? ""),
+        titulo: String(data.get("titulo") ?? ""),
         resumen: String(data.get("resumen") ?? ""),
         contenido: String(data.get("contenido") ?? ""),
         estado: String(data.get("estado") ?? "borrador") as Post["estado"],
@@ -73,6 +58,28 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
       <h2 className="display-soft text-lg text-foreground">
         {post ? `Editando: ${post.titulo}` : "Nueva entrada"}
       </h2>
+      <Field
+        label="Slug"
+        htmlFor="post-slug"
+        hint={
+          post
+            ? "La ruta queda fija después de crear la entrada."
+            : "Ruta pública sin espacios, por ejemplo: guia-para-comprar."
+        }
+      >
+        <input
+          id="post-slug"
+          name="slug"
+          required
+          readOnly={Boolean(post)}
+          defaultValue={post?.slug}
+          pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+          className={
+            inputClass +
+            (post ? " bg-secondary text-muted-foreground" : "")
+          }
+        />
+      </Field>
       <Field label="Título" htmlFor="post-titulo">
         <input
           id="post-titulo"
@@ -142,7 +149,7 @@ export default function BlogAdminPage() {
     <div className="space-y-6">
       <PageHeader
         title="Blog."
-        description="Las entradas en estado público se exponen sin autenticación en la proyección de datos. No hay páginas de blog en el sitio. Los borradores no se exponen."
+        description="Redacta y publica artículos del sitio. Los borradores permanecen visibles únicamente en el panel."
         actions={
           <button
             type="button"
@@ -153,8 +160,6 @@ export default function BlogAdminPage() {
           </button>
         }
       />
-      <DemoBanner />
-
       {editando ? (
         <Editor key={editando} post={post} onDone={() => setEditando(null)} />
       ) : null}

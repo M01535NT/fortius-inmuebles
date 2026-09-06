@@ -37,7 +37,7 @@ type Props = { initial?: Property };
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {
   if (
-    /(cota-private|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
+    /((?:cota|mnt)-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
   )
     return false;
   if (/[\s\\]/.test(value) || value.startsWith("//")) return false;
@@ -105,7 +105,7 @@ export function PropertyForm({ initial: source }: Props) {
       slug,
       codigo:
         v("codigo") ||
-        `COTA-${String(propiedades.length + 1).padStart(3, "0")}`,
+        `MNT-${String(propiedades.length + 1).padStart(3, "0")}`,
       titulo: titulo.trim(),
       tipo: v("tipo") as TipoPropiedad,
       operacion: v("operacion") as Property["operacion"],
@@ -208,7 +208,7 @@ export function PropertyForm({ initial: source }: Props) {
               id="pf-codigo"
               name="codigo"
               defaultValue={initial?.codigo}
-              placeholder="COTA-004"
+              placeholder="MNT-004"
               className={inputClass}
             />
           </Field>
@@ -684,8 +684,9 @@ export function PropertyForm({ initial: source }: Props) {
           Documentos descargables (PDF)
         </h2>
         <p className="mt-1.5 text-[12.5px] text-muted-foreground">
-          Aparecen en el detalle público y se liberan a cambio de los datos del
-          interesado (cada descarga genera un lead).
+          Publica únicamente material comercial. Estos archivos tienen una URL pública;
+          el formulario de contacto no protege su confidencialidad. Guarda identificaciones
+          y documentos del expediente en archivos privados.
         </p>
         <UploadControl
           label="Subir PDF público"

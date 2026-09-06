@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function ContactoPage() {
   return (
     <main className="pt-20">
-      <DiagnosticCTA />
+      <DiagnosticCTA headingLevel="h1" />
     </main>
   );
 }

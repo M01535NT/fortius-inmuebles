@@ -38,6 +38,11 @@ export function PropertyCard({ property }: { property: Property }) {
         ) : null}
       </Link>
       <div className="grid gap-3 py-5">
+        {property.demo && (
+          <p className="w-fit rounded-sm border border-border bg-secondary px-2 py-1 text-xs font-medium text-foreground">
+            Propiedad de demostración
+          </p>
+        )}
         <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
           {TIPO_LABELS[property.tipo]} · {OPERACION_LABELS[property.operacion]}
         </p>

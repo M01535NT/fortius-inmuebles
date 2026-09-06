@@ -7,7 +7,7 @@ import { NumberTicker } from "@/components/magicui/number-ticker";
 /*
   Estimador de gastos de cierre (Tijuana, BC). Rangos de referencia
   tomados de la investigación histórica archivada en
-  C:\Paginas-web\_archivo\COTA-20260903\InvestigacionModeloNegocio.md
+  antecedente histórico: docs/mnt-implementation.md
   (SHA-256 38D2400B8988272828428A4FB5B4FFF2FFE6C36B07FF1A4795FDD044673B2A43):
   - ISAI Tijuana: progresivo, aprox 2% a 4.5% (Art. 8 Ley de Ingresos municipal)
   - Honorarios notariales: 0.5% a 1.5%
@@ -27,8 +27,15 @@ function fmt(n: number): string {
 
 export function ClosingCostsCalculator() {
   const [perfil, setPerfil] = React.useState<Perfil>("comprador");
-  const [precio, setPrecio] = React.useState<number>(3000000);
-  const [comision, setComision] = React.useState<number>(5);
+  const [precioInput, setPrecioInput] = React.useState("3000000");
+  const [comisionInput, setComisionInput] = React.useState("5");
+  const precio = Number(precioInput);
+  const comision = Number(comisionInput);
+  const precioValido = precioInput.trim() !== "" && Number.isFinite(precio) && precio >= 100000 && precio <= 10_000_000_000_000;
+  const comisionValida =
+    perfil === "comprador" ||
+    (comisionInput.trim() !== "" && Number.isFinite(comision) && comision >= 0 && comision <= 10);
+  const valido = precioValido && comisionValida;
 
   const rows =
     perfil === "comprador"
@@ -81,8 +88,8 @@ export function ClosingCostsCalculator() {
             type="number"
             min={100000}
             step={50000}
-            value={precio}
-            onChange={(e) => setPrecio(Number(e.target.value) || 3000000)}
+            value={precioInput}
+            onChange={(e) => setPrecioInput(e.target.value)}
             className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-[15px] text-foreground"
           />
         </div>
@@ -97,15 +104,21 @@ export function ClosingCostsCalculator() {
               min={0}
               max={10}
               step={0.5}
-              value={comision}
-              onChange={(e) => setComision(Number(e.target.value) || 5)}
+              value={comisionInput}
+              onChange={(e) => setComisionInput(e.target.value)}
               className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-[15px] text-foreground"
             />
           </div>
         ) : null}
       </div>
 
-      {/* Desglose */}
+      {!valido ? (
+        <p role="alert" className="mt-5 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[13.5px] text-destructive">
+          {!precioValido
+            ? "Ingresa un precio válido entre $100,000 y $10,000,000,000,000 MXN."
+            : "Ingresa una comisión válida entre 0% y 10%."}
+        </p>
+      ) : (
       <dl className="mt-7 border-t border-border">
         {rows.map((row) => (
           <div
@@ -132,6 +145,7 @@ export function ClosingCostsCalculator() {
           </dd>
         </div>
       </dl>
+      )}
 
       {perfil === "vendedor" ? (
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
