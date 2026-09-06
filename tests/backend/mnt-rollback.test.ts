@@ -44,6 +44,7 @@ test('inverse preserves OIDs ACLs data revisions buckets and slug protection wit
   expect((await db.query("select oid,proname name,proacl::text,prosecdef,proconfig from pg_proc where pronamespace='public'::regnamespace and starts_with(proname,'cota_') order by oid")).rows).toEqual(functions);
   expect((await db.query("select oid from pg_proc where pronamespace='public'::regnamespace and starts_with(proname,'mnt_')")).rows).toEqual([]);
   expect((await db.query('select * from storage.buckets')).rows).toHaveLength(6);
+  expect((await db.query("select policyname,roles,cmd from pg_policies where schemaname='storage' and tablename='objects'")).rows).toEqual([{policyname:'cota_storage_read',roles:['authenticated'],cmd:'SELECT'}]);
   await expect(db.exec(`update public.cota_records set data='{"slug":"changed"}' where id='p'`)).rejects.toMatchObject({code:'PT400'});
   for(const bucket of ['mnt-private','mnt-staging','cota-private','cota-staging'])expect((await db.query<{safe:boolean}>('select public.cota_public_url($1) safe',['/'+bucket+'/secret'])).rows[0].safe).toBe(false);
 });

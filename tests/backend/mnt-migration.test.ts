@@ -77,6 +77,20 @@ test("new storage buckets preserve visibility and limits", async () => {
   ]);
 });
 
+test('managed Storage policy is recreated atomically with the same read-only staff audience',async()=>{
+  const policies=(await db.query<{policyname:string;roles:string[];cmd:string;qual:string}>("select policyname,roles,cmd,qual from pg_policies where schemaname='storage' and tablename='objects'")).rows;
+  expect(policies).toHaveLength(1);
+  expect(policies[0]).toMatchObject({policyname:'mnt_storage_read',roles:['authenticated'],cmd:'SELECT'});
+  expect(policies[0].qual).toContain('mnt_is_staff');
+  expect(policies[0].qual).toContain('mnt-private');
+  expect(policies[0].qual).not.toContain('mnt-staging');
+  const sql=await readFile(migration,'utf8');
+  expect(sql).toContain("where schemaname='public' and policyname");
+  expect(sql).toContain('drop policy cota_storage_read on storage.objects');
+  expect(sql).toContain('create policy mnt_storage_read on storage.objects for select to authenticated');
+  expect(sql).not.toMatch(/alter\s+table\s+storage\.objects\s+owner/i);
+});
+
 test("public projections exclude legacy and new private or staging URLs", async () => {
   for (const bucket of ["cota-private","cota-staging","mnt-private","mnt-staging"]) {
     expect((await db.query<{safe:boolean}>("select public.mnt_public_url($1) safe", ["https://example.test/storage/v1/object/public/"+bucket+"/document.pdf"])).rows[0].safe).toBe(false);

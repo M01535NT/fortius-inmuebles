@@ -2,6 +2,21 @@
 -- Run with the migrator role during the coordinated application cutover.
 begin;
 select pg_advisory_xact_lock(781023);
+-- Fail before any rename if a partial/previous cutover could collide with names.
+do $identity_preflight$
+begin
+  if to_regclass('public.cota_records') is null
+    or to_regprocedure('public.cota_public_records(text)') is null then
+    raise exception 'Preflight: original COTA table and public reader are required';
+  end if;
+  if exists(select 1 from pg_class where relnamespace='public'::regnamespace
+      and starts_with(relname,'mnt_'))
+    or exists(select 1 from pg_proc where pronamespace='public'::regnamespace
+      and starts_with(proname,'mnt_')) then
+    raise exception 'Preflight: existing MNT relations or functions require state reconciliation';
+  end if;
+end;
+$identity_preflight$;
 lock table public.cota_records in access exclusive mode;
 
 -- Fail atomically with a useful diagnosis before touching names or data.
@@ -40,7 +55,7 @@ begin
     execute replace(replace(pg_get_functiondef(item.oid),'cota_','mnt_'),'cota-','mnt-');
   end loop;
   for item in select schemaname,tablename,policyname from pg_policies
-    where schemaname in ('public','storage') and policyname like 'cota\_%' escape '\' loop
+    where schemaname='public' and policyname like 'cota\_%' escape '\' loop
     execute format('alter policy %I on %I.%I rename to %I',item.policyname,item.schemaname,item.tablename,replace(item.policyname,'cota_','mnt_'));
   end loop;
   for item in select t.tgname,c.relname from pg_trigger t join pg_class c on c.oid=t.tgrelid
@@ -64,7 +79,11 @@ insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) v
  ('mnt-staging','mnt-staging',false,20971520,array['image/jpeg','image/png','image/webp','image/gif','application/pdf','video/mp4','video/webm']),
  ('mnt-private','mnt-private',false,20971520,array['image/jpeg','image/png','image/webp','image/gif','application/pdf','video/mp4','video/webm']),
  ('mnt-public','mnt-public',true,20971520,array['image/jpeg','image/png','image/webp','image/gif','application/pdf','video/mp4','video/webm']);
-alter policy mnt_storage_read on storage.objects to authenticated
+-- Managed Storage is owned by supabase_storage_admin. Supautils delegates
+-- CREATE/DROP POLICY to permitted postgres users, but not RenameStmt.
+-- Recreate this one known policy atomically; never change Storage ownership.
+drop policy cota_storage_read on storage.objects;
+create policy mnt_storage_read on storage.objects for select to authenticated
   using (bucket_id in ('mnt-private','mnt-public') and (select public.mnt_is_staff()));
 
 -- A stable public URL belongs to exactly one editorial record, including drafts.

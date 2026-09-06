@@ -72,7 +72,7 @@ begin
     execute format('alter function %s rename to %I',item.oid::regprocedure,new_name);
     execute replace(replace(pg_get_functiondef(item.oid),'mnt_','cota_'),'mnt-','cota-');
   end loop;
-  for item in select schemaname,tablename,policyname from pg_policies where schemaname in ('public','storage') and policyname like 'mnt\_%' escape '\' loop
+  for item in select schemaname,tablename,policyname from pg_policies where schemaname='public' and policyname like 'mnt\_%' escape '\' loop
     execute format('alter policy %I on %I.%I rename to %I',item.policyname,item.schemaname,item.tablename,replace(item.policyname,'mnt_','cota_'));
   end loop;
   for item in select t.tgname,c.relname from pg_trigger t join pg_class c on c.oid=t.tgrelid
@@ -88,7 +88,10 @@ language sql immutable set search_path = '' as $$
   select coalesce(u ~ '^(https?://[^/[:space:]]+|/[^/])' and u !~ '[[:cntrl:]]'
     and u !~* '((cota|mnt)-(private|staging)|/api/admin/|/storage/v1/object/sign/)',false);
 $$;
-alter policy cota_storage_read on storage.objects to authenticated
+-- Supabase postgres can manage granted policies, but cannot rename policies
+-- on the managed owner's tables. Preserve that ownership in the inverse too.
+drop policy mnt_storage_read on storage.objects;
+create policy cota_storage_read on storage.objects for select to authenticated
   using (bucket_id in ('cota-private','cota-public') and (select public.cota_is_staff()));
 drop table pg_temp.mnt_expected_cutover_state;
 notify pgrst,'reload schema';

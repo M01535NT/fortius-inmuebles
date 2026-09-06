@@ -55,3 +55,19 @@ Si falla la guarda, no sustituir sus checksums para forzarla. Mantener la pausa 
 PGlite comprueba equivalencia de lectura antigua/nueva para `anon`, rechazo de colecciones privadas, ausencia de RPC antiguos de escritura y retirada limpia con 005. El inversor se prueba con el wrapper presente y después de 005; rechaza wrappers inesperados, ausencia de preámbulo, escrituras nuevas y objetos MNT. El caso permitido conserva OID/ACL/configuración, datos, revisiones, buckets y protecciones de slug y privacidad.
 
 El ensayo real `node tools/mnt-restore-rehearsal.mjs BACKUP_DIR --content --rollback` conserva 14 registros y 24 revisiones en PGlite. El resultado se guarda por separado en `restore-rehearsal-rollback.json`; no se ejecuta contra el proveedor. Los timestamps esperados se normalizan como `timestamptz` antes de calcular hashes. Conservar diagnósticos anteriores como evidencia; el reporte exitoso posterior es la conclusión del ensayo.
+
+## Particularidad de permisos de Storage administrado
+
+Una ejecución real de 003 falló y revirtió su transacción al intentar renombrar una policy de `storage.objects`. El operador comprobó sesión `postgres`, propietario `supabase_storage_admin` y ausencia de membresía en ese rol. No se cambió la propiedad ni se concedió membresía.
+
+La versión corregida renombra policies solo en `public`. En Storage reemplaza atómicamente la policy conocida mediante `DROP POLICY` y `CREATE POLICY`, conservando exclusivamente `SELECT` para `authenticated` con membresía de personal y los buckets precisos. El inversor usa el mismo procedimiento. Supabase documenta que [el propietario de Storage debe conservarse](https://supabase.com/docs/guides/platform/permissions). Su [código oficial de supautils](https://github.com/supabase/supautils/blob/master/src/supautils.c) delega CREATE/ALTER/DROP POLICY conforme a `policy_grants`, pero la rama `RenameStmt` no implementa ese permiso de policies.
+
+PGlite no contiene la extensión supautils y las primeras pruebas usaban un propietario único: podían validar datos y restricciones, pero no detectar esa diferencia del servicio administrado. Las pruebas actuales comprueban el reemplazo y su audiencia; confirmar el permiso del proveedor al ejecutar sigue siendo necesario. No usar un cambio de propietario de Storage como solución.
+
+El operador ejecutó después un preflight real `BEGIN; DROP POLICY ...; CREATE POLICY ...; ROLLBACK` con la misma policy restringida. Terminó correctamente y no dejó cambios persistentes, confirmando que el rol del servicio admite el reemplazo transaccional. El inversor generado y el ensayo aislado del respaldo real se actualizaron y pasaron nuevamente.
+
+## Preflight explícito de colisiones
+
+La revisión automática bloqueó un reintento por la posibilidad de que ya existiera `mnt_public_records`. Una lectura posterior del operador confirmó `cota_records` y `cota_public_records(text)` presentes, `mnt_records` y `mnt_public_records(text)` ausentes y cero funciones MNT: esa colisión no estaba presente en el estado observado.
+
+003 ahora exige esas precondiciones dentro de la propia transacción, inmediatamente después del advisory lock y antes de bloquear o renombrar tablas. Rechaza cualquier relación o función `public.mnt_*`, así como la ausencia de la tabla o lector originales. Las pruebas de estado parcial confirman que el rechazo conserva las filas y los OID/cuerpos de funciones existentes. Si el estado cambia antes de ejecutar, la migración falla explícitamente; la observación anterior no se utiliza como autorización para sobrescribir objetos.
