@@ -84,9 +84,15 @@ Evidencia privada local: `.superpowers/live-verification-expanded.log`, `.superp
 | Pendiente de definición operativa | Respaldo externo | Fijar destino cifrado, retención, periodicidad y responsable. El respaldo local y la restauración aislada están comprobados. |
 | Pendiente de definición operativa | Monitoreo continuo | Activar un servicio o ejecución periódica del comando de salud. El endpoint, el comando y CI están implementados; no existe vigilancia continua contratada. |
 | Pendiente editorial | Lanzamiento | Sustituir propiedades, asesores y documentos demo; validar contactos, textos legales, fuentes y parámetros del estimador. |
-| En cierre | Ubicación local | Traslado a `C:\Paginas-web\MNT-Inmuebles` y actualización del proyecto guardado. |
+| Requiere cerrar Codex | Ubicación local | Windows impide renombrar la raíz mientras Codex la mantiene abierta. El ayudante de traslado espera hasta 30 minutos al cierre de la aplicación y registra el resultado en `C:\Paginas-web\MNT-traslado-resultado.json`. |
 
 La renovación se fuerza retirando el access token y conservando un refresh token válido; no se espera el vencimiento natural. Se comprueba rechazo de un enlace privado falsificado y vencido, y de un ticket de carga correctamente firmado pero vencido; no se esperó el TTL real de cada enlace. La interrupción probada prepara staging y no transmite bytes; no simula un corte físico a mitad de transferencia. La restauración aislada usa PGlite para datos y estructura de la aplicación, no una restauración integral de Supabase Auth. Estos límites no deben presentarse como pruebas ejecutadas.
+
+### Traslado local preparado
+
+`tools/finish-local-relocation.ps1` se ejecuta desde una copia fuera de la carpeta. No cierra aplicaciones. Antes de mover exige origen y destino exactos, destino inexistente, mismo commit y árbol limpio; después verifica el commit y el respaldo, actualiza únicamente el proyecto guardado y sus rutas asociadas, e inicia el servidor local con captación desactivada. Si algo cambia o falla, escribe `needs_attention` y no fuerza el traslado ni borra datos. La sintaxis y las guardas fueron revisadas; la ejecución completa queda pendiente de liberar la carpeta. El nombre MNT está escrito en la configuración guardada, pero la instancia abierta de Codex conserva su vista anterior hasta reiniciarse.
+
+Al reabrir Codex, consultar `C:\Paginas-web\MNT-traslado-resultado.json`: solo `completed` junto con `sourceAbsent`, `backupVerified` y `localHealth` verdaderos confirma el cierre del traslado. `waiting_for_codex_exit` significa que todavía espera; `needs_attention` conserva el motivo concreto. Si se agota el plazo, volver a ejecutar el ayudante con el commit actual verificado; no volver a correr las migraciones de base de datos.
 
 ## Entregables
 
