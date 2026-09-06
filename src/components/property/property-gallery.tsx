@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Download, Images, Play, Rotate3d, type LucideIcon } from "lucide-react";
 
 import type { ImagenPropiedad } from "@/data/propiedades";
+import { PropertyShare } from "@/components/property/property-share";
 
 type Modo = "fotos" | "video" | "360";
 
@@ -16,6 +17,7 @@ type Props = {
   videoUrl?: string;
   tour360Url?: string;
   fichaUrl?: string;
+  share?: { title: string; text: string; url: string };
 };
 
 const MODOS: { id: Modo; label: string; icon: LucideIcon }[] = [
@@ -44,7 +46,7 @@ function Reservado({ icon: Icon, titulo, texto }: { icon: LucideIcon; titulo: st
   );
 }
 
-export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaUrl }: Props) {
+export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, share }: Props) {
   const [modo, setModo] = React.useState<Modo>("fotos");
   const [index, setIndex] = React.useState(0);
   const actual = imagenes[index];
@@ -75,6 +77,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
           Ficha técnica
           <span className="sr-only"> (descargar PDF)</span>
         </a>}
+        {share && <PropertyShare {...share} />}
       </div>
 
       {modo === "fotos" ? (

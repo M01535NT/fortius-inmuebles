@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
+    "/inventario/*/imagen-social": ["./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
     "/inventario/*/ficha-tecnica": [
       "./public/hero/**/*",
       // Native Sharp binaries and libvips are loaded dynamically in Vercel's Linux runtime.

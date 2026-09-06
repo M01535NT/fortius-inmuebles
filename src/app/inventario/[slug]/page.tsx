@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Check, MapPin } from "lucide-react";
@@ -39,19 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
   if (!property) return {};
-  const precio =
-    property.precio.modalidad === "publico" ? ` · ${formatPrecio(property.precio)}` : "";
-  return {
-    title: property.titulo,
-    alternates: { canonical: `/inventario/${property.slug}` },
-    description: `${TIPO_LABELS[property.tipo]} en ${OPERACION_LABELS[property.operacion].toLowerCase()} en ${property.zona}${precio}. Información revisada por la firma.`,
-    openGraph: {
-      url: new URL(`/inventario/${property.slug}`, siteConfig.url).href,
-      images: [new URL(property.galeria[0].src, siteConfig.url).href],
-    },
-    // Inventario demo: no indexar listados ficticios. Quitar al cargar inventario real.
-    robots: property.demo ? { index: false, follow: true } : undefined,
-  };
+  return propertyShareMetadata(property);
 }
 
 /* Ficha técnica: solo filas con dato; números en mono. */
@@ -139,6 +128,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <PropertyGallery
             imagenes={property.galeria}
             titulo={property.titulo}
+            share={propertyShare(property)}
             videoUrl={property.videoUrl}
             tour360Url={property.tour360Url}
             fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
