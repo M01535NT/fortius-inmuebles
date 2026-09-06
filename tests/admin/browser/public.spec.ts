@@ -22,8 +22,7 @@ for (const width of [390, 1440]) {
     await page.screenshot({ path: testInfo.outputPath(`home-dark-${width}.png`) });
     await page.getByRole("button", { name: "Abrir menú" }).click();
     const menu = page.getByRole("dialog");
-    await expect(menu.getByRole("link", { name: "Administración", exact: true })).toHaveAttribute("href", "/admin");
-    await expect(menu.getByRole("link", { name: "Administración", exact: true })).not.toHaveAttribute("target", "_blank");
+    await expect(menu.locator('a[href="/admin"]')).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath(`menu-${width}.png`) });
     await page.keyboard.press("Escape");
     await page.goto("/inventario");
@@ -47,6 +46,7 @@ for (const width of [390, 1440]) {
       saved = true;
       return route.fulfill({ status: 201, json: { id: "local-acknowledged" } });
     });
+    await page.getByText("Prefiero dejar mis datos en un formulario", { exact: true }).click();
     await page.getByLabel("Nombre", { exact: true }).fill("Prueba local");
     await page.getByLabel("Teléfono o WhatsApp").fill("6641234567");
     await page.getByRole("button", { name: "Solicitar evaluación" }).click();

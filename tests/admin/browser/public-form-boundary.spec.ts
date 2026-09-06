@@ -54,6 +54,7 @@ for (const mode of ["JavaScript unavailable", "hydration delayed"]) {
     await page.goto(origin, { waitUntil: "commit" });
     for (const variant of variants) {
       const root = page.locator(`[data-variant="${variant}"]`);
+      if (variant === "evaluar") await root.locator("summary").click();
       const form = root.locator("form");
       await expect(form).toBeVisible();
       await expect(form).toHaveAttribute("method", "post");
@@ -103,7 +104,8 @@ for (const variant of variants) {
     });
     await page.goto(origin);
     const root = page.locator(`[data-variant="${variant}"]`);
-    const form = root.locator("form");
+    if (variant === "evaluar") await root.locator("summary").click();
+      const form = root.locator("form");
     await expect(form.getByLabel("Nombre", { exact: true })).toBeEnabled();
     await fill(form);
     await form.locator('input[type="tel"]').press("Enter");

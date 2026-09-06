@@ -1,4 +1,5 @@
 "use client";
+import { MessagingActions } from "@/components/contact/messaging-actions";
 
 import * as React from "react";
 import Image from "next/image";
@@ -134,7 +135,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="hero-copy-entry mt-8 flex flex-wrap items-center gap-3"
         >
-          {kinetic ? (
+          <MessagingActions message="Hola, quiero conversar sobre una propiedad con MNT Inmuebles." fallback={kinetic ? (
             <MagneticCta href="#evaluar">Evaluar mi propiedad</MagneticCta>
           ) : (
             <a
@@ -143,7 +144,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
             >
               Evaluar mi propiedad
             </a>
-          )}
+          )} />
           <a
             href="#metodo"
             className="inline-flex h-12 items-center rounded-md border border-[#f2f4ee]/35 px-6 text-[15px] font-medium text-[#f2f4ee] backdrop-blur-sm transition-colors hover:border-[#f2f4ee]/60 hover:bg-[#f2f4ee]/10 active:scale-[0.98]"

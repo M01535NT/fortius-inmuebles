@@ -42,12 +42,9 @@ test("footer uses public settings and keeps placeholder numbers explicitly uncon
   expect(placeholders).not.toContain('href="tel:');
   expect(placeholders).not.toContain('href="https://wa.me/');
 });
-test("desktop public navigation opens this product administration in the same tab", () => {
-  render(<SiteNav settings={settings} />);
-  for (const admin of screen.getAllByRole("link", { name: "Administración" })) {
-    expect(admin.getAttribute("href")).toBe("/admin");
-    expect(admin.getAttribute("target")).toBeNull();
-  }
+test("public navigation does not expose a panel shortcut", () => {
+  const { container } = render(<SiteNav settings={settings} />);
+  expect(container.querySelector('a[href="/admin"]')).toBeNull();
 });
 test("contact form retains input on rejected remote write and confirms acknowledged persistence", async () => {
   let persisted = false;

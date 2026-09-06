@@ -3,6 +3,7 @@ import { Mail, MapPinned, MessageCircle, Phone } from "lucide-react";
 import type { Asesor } from "@/data/asesores";
 import type { SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
+import { MessagingActions } from "@/components/contact/messaging-actions";
 
 /*
   Perfil público del asesor. El contacto comercial lo configura el panel;
@@ -60,22 +61,23 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <a
+            <MessagingActions settings={settings} message={`Hola, quiero hablar con ${asesor.nombre} sobre un inmueble.`} />
+            {contact.phoneHref && <a
               href={contact.phoneHref || undefined}
               aria-disabled={!contact.phoneHref}
               className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 text-[14.5px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
               <Phone className="h-4 w-4" strokeWidth={1.5} />
               Llamar ahora
-            </a>
-            <a
+            </a>}
+            {contact.email && <a
               href={contact.email ? `mailto:${contact.email}` : undefined}
               aria-disabled={!contact.email}
               className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-5 text-[14.5px] font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
             >
               <Mail className="h-4 w-4" strokeWidth={1.5} />
               Enviar correo
-            </a>
+            </a>}
           </div>
         </div>
       </div>

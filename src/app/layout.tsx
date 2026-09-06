@@ -91,13 +91,13 @@ export default async function RootLayout({
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body>
-        {isAdmin ? null : <SiteNav settings={settings} />}
         {/*
           Footer cortina: el contenido (z-10, fondo opaco) se desliza sobre el
           footer pegado al fondo del viewport (sticky bottom, z-0) y lo revela
           al llegar al final. Solo CSS, ambos temas.
         */}
-        <PublicFeaturesProvider publicLeadsEnabled={publicLeadsEnabled}>
+        <PublicFeaturesProvider publicLeadsEnabled={publicLeadsEnabled} settings={settings}>
+          {isAdmin ? null : <SiteNav settings={settings} />}
           <div className="relative z-10 bg-background">{children}</div>
           {isAdmin ? null : (
             <div className="sticky bottom-0 z-0">

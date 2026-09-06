@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    "/inventario/*/ficha-tecnica": ["./public/hero/**/*"],
+  },
   async redirects() {
     return [
       {

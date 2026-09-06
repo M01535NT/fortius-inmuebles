@@ -8,6 +8,7 @@ import { SplitHeading } from "@/components/gsap/split-heading";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { captureLead } from "@/lib/admin/store";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
+import { MessagingContact } from "@/components/contact/messaging-actions";
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /*
@@ -79,22 +80,7 @@ export function Evaluar() {
         );
       });
 
-      /* Campos del formulario: stagger una sola vez (zona de conversión). */
-      const campos = gsap.utils.toArray<HTMLElement>("[data-campo]", el);
-      if (campos.length > 0) {
-        gsap.from(campos, {
-          y: 24,
-          opacity: 0,
-          duration: 0.6,
-          ease: EASE_OUT,
-          stagger: 0.08,
-          scrollTrigger: {
-            trigger: el.querySelector("form"),
-            start: "top 80%",
-            toggleActions: "play none none none",
-          },
-        });
-      }
+
     },
     { scope: sectionRef },
   );
@@ -141,6 +127,7 @@ export function Evaluar() {
 
           {/* Right: the form */}
           <div className="lg:col-span-6 lg:col-start-7">
+            <MessagingContact message="Hola, quiero evaluar mi propiedad con MNT Inmuebles.">
             <PublicLeadForm
                 onSubmit={onSubmit}
                 className="relative rounded-lg border border-border bg-card p-6 md:p-8"
@@ -235,6 +222,7 @@ export function Evaluar() {
                   </p>
                 </div>
               </PublicLeadForm>
+            </MessagingContact>
           </div>
         </div>
       </div>

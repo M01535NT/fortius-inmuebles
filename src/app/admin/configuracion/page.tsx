@@ -85,7 +85,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
                 className={inputClass}
               />
             </Field>
-            <Field label="WhatsApp (URL)" htmlFor="cf-whatsapp">
+            <Field label="WhatsApp (número internacional o enlace wa.me)" htmlFor="cf-whatsapp">
               <input
                 id="cf-whatsapp"
                 name="whatsapp"
@@ -118,7 +118,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
             Redes y multimedia
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Facebook (URL)" htmlFor="cf-facebook">
+            <Field label="Facebook o Messenger (enlace de la página o m.me)" htmlFor="cf-facebook">
               <input
                 id="cf-facebook"
                 name="facebook"

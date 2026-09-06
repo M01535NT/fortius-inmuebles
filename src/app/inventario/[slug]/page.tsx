@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Check, MapPin } from "lucide-react";
 
 import { AgentProfile } from "@/components/property/agent-profile";
+import { MessagingContact } from "@/components/contact/messaging-actions";
 import { ContactDock } from "@/components/property/contact-dock";
 import { Container } from "@/components/layout/container";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
@@ -140,6 +141,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             titulo={property.titulo}
             videoUrl={property.videoUrl}
             tour360Url={property.tour360Url}
+            fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
           />
         </div>
 
@@ -255,11 +257,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             ) : null}
 
             <div id="interes" className="scroll-mt-24 rounded-lg border border-border bg-card p-6">
+              <MessagingContact settings={settings} title="Hablemos de esta propiedad." message={`Hola, me interesa ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`}>
               <PropertyInterestForm
                 slug={property.slug}
                 codigo={property.codigo}
                 titulo={property.titulo}
               />
+              </MessagingContact>
             </div>
 
             {/* Documentos en PDF (se administran desde el panel) */}
@@ -286,8 +290,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         ) : null}
       </Container>
 
-      <PropertyMobileCta />
-      <ContactDock settings={settings} />
+      <PropertyMobileCta settings={settings} message={`Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`} />
+      <ContactDock settings={settings} message={`Hola, me interesa ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`} />
     </main>
   );
 }

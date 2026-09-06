@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
+import { MessagingActions } from "@/components/contact/messaging-actions";
 
 export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
@@ -73,6 +74,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
           </nav>
 
           <div className="md:col-span-3">
+            <MessagingActions settings={settings} className="mb-5" />
             <ul className="space-y-3 text-[14px] text-foreground/75">
               <li>{contact.whatsapp ? <a href={contact.whatsapp}>WhatsApp: {contact.whatsappLabel}</a> : "WhatsApp: por confirmar"}</li>
               <li>{contact.phoneHref ? <a href={contact.phoneHref}>Teléfono: {contact.phone}</a> : "Teléfono: por confirmar"}</li>

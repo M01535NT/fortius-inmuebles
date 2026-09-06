@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Images, Play, Rotate3d, type LucideIcon } from "lucide-react";
+import { Download, Images, Play, Rotate3d, type LucideIcon } from "lucide-react";
 
 import type { ImagenPropiedad } from "@/data/propiedades";
 
@@ -15,6 +15,7 @@ type Props = {
      (cargada por el cliente) se activa el reproductor correspondiente. */
   videoUrl?: string;
   tour360Url?: string;
+  fichaUrl?: string;
 };
 
 const MODOS: { id: Modo; label: string; icon: LucideIcon }[] = [
@@ -43,7 +44,7 @@ function Reservado({ icon: Icon, titulo, texto }: { icon: LucideIcon; titulo: st
   );
 }
 
-export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url }: Props) {
+export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaUrl }: Props) {
   const [modo, setModo] = React.useState<Modo>("fotos");
   const [index, setIndex] = React.useState(0);
   const actual = imagenes[index];
@@ -69,6 +70,11 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url }: Prop
             {label}
           </button>
         ))}
+        {fichaUrl && <a href={fichaUrl} download className="inline-flex h-9 items-center gap-2 rounded-md border border-primary/40 px-3.5 text-[13.5px] font-medium text-primary transition-colors hover:bg-secondary">
+          <Download className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+          Ficha técnica
+          <span className="sr-only"> (descargar PDF)</span>
+        </a>}
       </div>
 
       {modo === "fotos" ? (

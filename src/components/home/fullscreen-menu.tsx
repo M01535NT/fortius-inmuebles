@@ -1,4 +1,5 @@
 "use client";
+import { MessagingActions } from "@/components/contact/messaging-actions";
 
 import * as React from "react";
 import Image from "next/image";
@@ -182,6 +183,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
             </ol>
 
             <div data-menu-item className="mt-7 flex flex-wrap gap-3">
+              <MessagingActions />
               <Link
                 href="/#evaluar"
                 onClick={onClose}
@@ -189,14 +191,6 @@ export function FullscreenMenu({ open, onClose }: Props) {
               >
                 Evaluar mi propiedad
                 <ArrowUpRight className="size-4" strokeWidth={1.5} />
-              </Link>
-              <Link
-                href="/admin"
-                onClick={onClose}
-                className="inline-flex h-12 items-center gap-2 rounded-md border border-border px-6 text-[15px] font-semibold text-foreground transition-[background-color,color,transform] hover:bg-secondary active:scale-[0.98]"
-              >
-                Administración
-                <ArrowUpRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
               </Link>
             </div>
           </nav>

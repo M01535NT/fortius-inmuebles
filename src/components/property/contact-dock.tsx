@@ -1,18 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { Mail, MessageCircle, MessagesSquare, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 
 import type { SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
+import { MessagingActions } from "@/components/contact/messaging-actions";
 
 /*
   Dock de contacto rápido: aparece al hacer scroll en el detalle de propiedad
   (solo desktop; en mobile ya existe la barra fija inferior). Enlaces con
   datos de contacto públicos del panel; los pendientes no son enlaces activos.
 */
-export function ContactDock({ settings }: { settings?: SiteSettings | null }) {
+export function ContactDock({ settings, message }: { settings?: SiteSettings | null; message?: string }) {
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
   const [visible, setVisible] = React.useState(false);
@@ -24,8 +25,6 @@ export function ContactDock({ settings }: { settings?: SiteSettings | null }) {
   const contact = publicContact(settings);
   const acciones = [
     { href: contact.phoneHref, label: "Llamar", icon: Phone },
-    { href: contact.whatsapp, label: "WhatsApp", icon: MessageCircle },
-    { href: contact.messenger, label: "Messenger", icon: MessagesSquare },
     { href: contact.email ? `mailto:${contact.email}` : "", label: "Correo", icon: Mail },
   ];
 
@@ -42,7 +41,8 @@ export function ContactDock({ settings }: { settings?: SiteSettings | null }) {
           <span className="px-2.5 font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
             Contactar
           </span>
-          {acciones.map(({ href, label, icon: Icon }) => (
+          <MessagingActions settings={settings} message={message} />
+          {acciones.filter(({ href }) => Boolean(href)).map(({ href, label, icon: Icon }) => (
             <a
               key={label}
               href={href || undefined}

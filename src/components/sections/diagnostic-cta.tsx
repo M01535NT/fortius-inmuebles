@@ -1,6 +1,7 @@
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { Container } from "@/components/layout/container";
 import { ContactForm } from "@/components/sections/contact-form";
+import { MessagingContact } from "@/components/contact/messaging-actions";
 
 export function DiagnosticCTA({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2" }) {
   const Heading = headingLevel;
@@ -21,7 +22,7 @@ export function DiagnosticCTA({ headingLevel = "h2" }: { headingLevel?: "h1" | "
           </BlurFade>
 
           <BlurFade delay={0.1} className="lg:col-span-6 lg:col-start-7">
-            <ContactForm />
+            <MessagingContact><ContactForm /></MessagingContact>
           </BlurFade>
         </div>
       </Container>
