@@ -27,6 +27,8 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run verify
+      - name: Verify PDF deployment assets
+        run: node tools/verify-pdf-bundle.mjs
       - name: Production browser tests with backend unavailable
         run: npm run test:admin:browser -- tests/admin/browser/mnt-production.spec.ts tests/admin/browser/panel.spec.ts
       - name: Public form browser tests with leads enabled
