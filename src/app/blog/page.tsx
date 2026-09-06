@@ -31,6 +31,7 @@ export default async function BlogPage() {
     <main className="bg-background pb-24 pt-32 md:pb-0">
       <Container className="pb-16 md:pb-24">
         <SectionHeading
+          level="h1"
           eyebrow="Criterio inmobiliario"
           title="Información para decidir."
           description="Análisis y guías prácticas sobre compraventa, documentación y valor inmobiliario en Baja California."

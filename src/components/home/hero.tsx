@@ -122,8 +122,8 @@ export function Hero({ content }: { content?: SiteContent | null }) {
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-5 max-w-[46ch] text-[15.5px] leading-relaxed text-[#e6e9e2]/90 md:text-[17px]"
+          transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
+          className="hero-copy-entry mt-5 max-w-[46ch] text-[15.5px] leading-relaxed text-[#e6e9e2]/90 md:text-[17px]"
         >
           {content?.heroSubtitulo ?? "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California."}
         </motion.p>
@@ -131,8 +131,8 @@ export function Hero({ content }: { content?: SiteContent | null }) {
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-8 flex flex-wrap items-center gap-3"
+          transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
+          className="hero-copy-entry mt-8 flex flex-wrap items-center gap-3"
         >
           {kinetic ? (
             <MagneticCta href="#evaluar">Evaluar mi propiedad</MagneticCta>

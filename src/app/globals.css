@@ -265,6 +265,12 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Applies before hydration, while the motion hook still uses its server snapshot. */
+  .hero-copy-entry {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
   *,
   *::before,
   *::after {

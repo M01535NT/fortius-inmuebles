@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+const baseURL = process.env.MNT_TEST_URL ?? "http://localhost:3001";
 export default defineConfig({
   testDir: "./tests/admin/browser",
   outputDir: ".superpowers/task2-ui/artifacts",
@@ -6,12 +7,12 @@ export default defineConfig({
   reporter: "list",
   webServer: {
     command: "npm run start -- --hostname 127.0.0.1 --port 3001",
-    url: process.env.MNT_TEST_URL ?? "http://localhost:3001",
+    url: new URL("/admin", baseURL).href,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
   use: {
-    baseURL: process.env.MNT_TEST_URL ?? "http://localhost:3001",
+    baseURL,
     browserName: "chromium",
     channel: process.platform === "win32" ? "msedge" : undefined,
     headless: true,
