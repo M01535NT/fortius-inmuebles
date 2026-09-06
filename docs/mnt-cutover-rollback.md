@@ -6,9 +6,11 @@ El sitio público permanece disponible durante el corte. Se interrumpen temporal
 
 El respaldo comprobado es `.superpowers/backups/2026-09-06T01-41-21-144Z`: 14 registros, 1 membresía, 3 referencias, 3 límites de tasa y 24 revisiones. Los cinco arrays canónicos coinciden con una consulta independiente del propietario. La procedencia es reconstrucción comprobada desde REST y revisiones observadas, no descarga SQL original. Storage contenía 3 buckets y 0 objetos; el bundle del repositorio es evidencia separada.
 
-Los ensayos aislados preservan todas las filas al aplicar 003. Después, 004 cambia exactamente 3 registros y conserva 11 intactos, mantiene identidades/referencias/tombstones y avanza una revisión por cada fila modificada. Esto no afirma que las migraciones ya estén aplicadas en producción.
+Los ensayos aislados preservaron todas las filas al aplicar 003. Después, 004 cambió exactamente 3 registros y conservó 11 intactos, mantuvo identidades/referencias/tombstones y avanzó una revisión por cada fila modificada. Las migraciones 003, 004 y 005 se aplicaron y verificaron en producción el 5 de septiembre de 2026, hora local; no deben volver a ejecutarse allí. Véase el reporte de implementación para la evidencia final.
 
-El operador informó que los proyectos Git, Supabase y Vercel conservan sus IDs tras el renombrado, que el nuevo hostname está registrado, que `MNT_SITE_URL` está configurado, que `MNT_PUBLIC_LEADS_ENABLED=false` y que Auth Site URL fue actualizado. Contrastar esos ajustes con los paneles reales; el registro de un hostname no demuestra que ya sirva el build candidato.
+Git, Supabase y Vercel conservaron sus IDs tras el renombrado; los ajustes se comprobaron en los paneles reales. `MNT_SITE_URL` y Auth Site URL apuntan a MNT, `MNT_PUBLIC_LEADS_ENABLED=false`, y el nuevo hostname sirve el build MNT verificado. El anterior redirige con 308. Si se usa este procedimiento en otra intervención, volver a contrastar esos ajustes.
+
+El inversor guardado corresponde exclusivamente a la ventana del corte sin escrituras posteriores. Las pruebas reales posteriores generaron revisiones y límites de tasa, por lo que **ya no es aplicable al estado final** y su guarda debe rechazarlo. La recuperación actual consiste en desplegar código MNT compatible o preparar una conciliación de datos específica; nunca forzar los checksums antiguos.
 
 ## Preparación
 

@@ -6,11 +6,11 @@ Plan autorizado: cambio integral de marca, logo arquitectónico vectorial, backe
 
 1. Inventario y respaldo: confirmado; comparación con propietario y restauración aislada satisfactorias.
 2. Identidad vectorial: confirmado; 12 SVG, favicon, imagen social y dos PDF revisados.
-3. Renombrado: servicios y repositorio confirmados; migraciones 003/004 ensayadas, corte pendiente.
+3. Renombrado: repositorio y servicios confirmados; migraciones 003, 004 y 005 aplicadas y comprobadas en la misma instancia.
 4. Funcionalidad y accesibilidad: implementado y verificado localmente.
-5. Blog y SEO: implementado; publicación real pendiente del corte.
-6. Seguridad y recuperación: pruebas locales y restauración aprobadas; integración real pendiente.
-7. Despliegue, carpeta y cierre: en ejecución.
+5. Blog y SEO: publicación, edición, retirada, URL estable y 404 comprobados contra persistencia real.
+6. Seguridad y recuperación: pruebas locales, restauración aislada y 20 comprobaciones de integración real aprobadas.
+7. Despliegue: publicado y verificado; cierre de carpeta y proyecto guardado en ejecución.
 
 ## Decisiones
 
@@ -57,6 +57,36 @@ Confirmadas en los paneles: Vercel Hobby, Supabase Free y correo Auth predetermi
 Antes del lanzamiento comercial se requiere alojamiento compatible: [Vercel limita Hobby al uso personal no comercial](https://vercel.com/docs/plans/hobby). No se contrató otro plan. También se requiere correo de recuperación adecuado: [el SMTP predeterminado de Supabase limita destinatarios al equipo y no ofrece garantía de entrega](https://supabase.com/docs/guides/auth/auth-smtp).
 
 Definir destino externo cifrado, retención y ejecución periódica de respaldos; se recomienda respaldo diario y ensayo mensual, además de cada migración. [Supabase recomienda exportaciones externas en Free y separa el respaldo de objetos Storage](https://supabase.com/docs/guides/platform/backups). Contactos, textos legales definitivos, propiedades reales, dominio comercial y parámetros documentados del estimador siguen siendo dependencias de lanzamiento, sin contratar servicios ni inventar datos.
+
+## Resultado del corte y aceptación real — 5 de septiembre de 2026, hora local
+
+- Producción: [mnt-inmuebles.vercel.app](https://mnt-inmuebles.vercel.app), mismo proyecto de alojamiento. PR #1 integrado; cambios posteriores de aceptación registrados en `main`. El dominio anterior redirige con 308 y conserva rutas y parámetros; se comprobaron inicio, inventario con filtro y `/admin`.
+- 003 preservó exactamente las cinco huellas de la base original. 004 cambió los tres registros previstos y dejó once intactos; la huella completa de las 24 revisiones coincidió con el ensayo: `c825066769d536ea253a2ac032e2a386`.
+- Se corrigió una restricción del Storage administrado: la política se recrea de manera transaccional, sin cambiar propietario ni permisos. El primer intento falló y se revirtió íntegro; el ensayo real de la operación equivalente y el segundo corte fueron satisfactorios.
+- 005 retiró el único lector temporal antiguo. Consulta del propietario posterior: cero relaciones, funciones o políticas `cota_*` activas. Los tres buckets originales vacíos permanecen como recuperación; existen los tres buckets MNT con su privacidad correspondiente.
+- Integración real: **20 comprobaciones aprobadas** desde el build de producción local contra el Supabase dedicado. Incluyen administrador/editor/no miembro, dos sesiones, renovación, cookies inválidas, 409, revisiones y concurrencia, publicación y retirada de fichas y blog, HTML escapado, slugs únicos/estables, cinco formularios con persistencia, CRUD de colecciones, archivos públicos/privados con hashes, límites de carga, staging incompleto, logout y recuperación con token del proveedor sin envío de correo.
+- Aceptación adicional directamente en Vercel: **19 comprobaciones aprobadas**; las cinco captaciones se excluyeron para conservar el bloqueo comercial de producción. La prueba de vencimiento usa una fecha de época para evitar falsos resultados por el desfase observado entre los relojes local y remoto.
+- Limpieza de la ronda local completa: 15 registros temporales, cinco rutas de objetos y dos usuarios de prueba retirados; la ronda final de Vercel retiró diez registros, cinco rutas de objetos y dos usuarios. Verificación posterior: **14 registros, una membresía, un usuario Auth, tres relaciones y cero objetos**. Los datos conservados coinciden con el ensayo. Se preservan **59 entradas del registro de revisiones**: las 24 originales más 35 identidades de prueba eliminadas entre todos los intentos; son tombstones de control de versiones, no contenido residual.
+- Producción devuelve 503 en ambas rutas de captación desactivada y 401 al consultar sesiones o clientes sin autenticación. No se habilitó la captación del sitio para hacer pruebas.
+- Salud pública: **28 rutas del sitemap, 37 solicitudes**, 34 respuestas 200, una 308 y dos 404 reales. Mediana HTTP 175,9 ms; percentil 95 de 945,5 ms en la muestra del corte. Son tiempos de solicitud, no Lighthouse ni Core Web Vitals de usuarios reales.
+- La prueba real detectó un 200 prematuro para contenido retirado causado por el estado global de carga. Se trasladó ese estado a `/admin`; los recorridos reales de publicación y retirada y el comprobador público confirman 404.
+- Revisión visual de 30 combinaciones: cinco rutas, tres tamaños y dos temas; sin desbordamientos ni errores JavaScript. Menú probado con teclado, símbolo a 24 px, favicon a 16 px y pie visible. Se añadió H1 al blog y se corrigió la entrada del hero con movimiento reducido.
+- Suite automatizada: **222 pruebas aprobadas** en [CI del commit funcional final 67704e9](https://github.com/M01535NT/mnt-inmuebles/actions/runs/34007290465): 115 de backend, 82 administrativas y 25 de navegador (18 de panel/regresiones y siete de formularios), además de instalación, lint, tipos y compilación. El ajuste final usa `/admin` para comprobar el arranque con backend público inaccesible. Los cambios posteriores del verificador live y documentación no alteran ese código funcional.
+
+Evidencia privada local: `.superpowers/live-verification-expanded.log`, `.superpowers/live-verification-vercel-final.log`, `.superpowers/mnt-health-production.json`, `.superpowers/mnt-visual/`, y `live-content-integrity.json` / `final-integrity.json` dentro del respaldo. La revisión desplegada final confirmó H1 del blog y ausencia de movimiento del hero incluso sin JavaScript. No contienen secretos en los reportes resumidos; el respaldo completo sí contiene datos privados y permanece excluido de Git.
+
+## Límites y siguientes acciones
+
+| Estado | Área | Acción |
+|---|---|---|
+| Pendiente del titular | Alojamiento comercial | Elegir un plan compatible antes de usar comercialmente el sitio. |
+| Pendiente del titular | Correo Auth | Configurar SMTP y probar recepción real de recuperación e invitaciones. El callback y cambio de contraseña sí se probaron con tokens reales. |
+| Pendiente de definición operativa | Respaldo externo | Fijar destino cifrado, retención, periodicidad y responsable. El respaldo local y la restauración aislada están comprobados. |
+| Pendiente de definición operativa | Monitoreo continuo | Activar un servicio o ejecución periódica del comando de salud. El endpoint, el comando y CI están implementados; no existe vigilancia continua contratada. |
+| Pendiente editorial | Lanzamiento | Sustituir propiedades, asesores y documentos demo; validar contactos, textos legales, fuentes y parámetros del estimador. |
+| En cierre | Ubicación local | Traslado a `C:\Paginas-web\MNT-Inmuebles` y actualización del proyecto guardado. |
+
+La renovación se fuerza retirando el access token y conservando un refresh token válido; no se espera el vencimiento natural. Se comprueba rechazo de un enlace privado falsificado y vencido, y de un ticket de carga correctamente firmado pero vencido; no se esperó el TTL real de cada enlace. La interrupción probada prepara staging y no transmite bytes; no simula un corte físico a mitad de transferencia. La restauración aislada usa PGlite para datos y estructura de la aplicación, no una restauración integral de Supabase Auth. Estos límites no deben presentarse como pruebas ejecutadas.
 
 ## Entregables
 

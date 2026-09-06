@@ -473,7 +473,8 @@ try {
     const expiredPath = `${memberUserId}/${randomUUID()}.webp`;
     const payload = Buffer.from(JSON.stringify({
       name: `${prefix}-expired.webp`, size, contentType: "image/webp", visibility: "private",
-      v: 1, uid: memberUserId, path: expiredPath, expires: Date.now() - 1000,
+      // An epoch timestamp avoids false failures from client/server clock skew.
+      v: 1, uid: memberUserId, path: expiredPath, expires: 1,
     })).toString("base64url");
     // Match the server's HMAC without ever printing the service-role secret or ticket.
     const expiredTicket = `${payload}.${createHmac("sha256", key).update(`mnt-upload-v1:${payload}`).digest("base64url")}`;
