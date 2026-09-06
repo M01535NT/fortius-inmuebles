@@ -684,8 +684,9 @@ export function PropertyForm({ initial: source }: Props) {
           Documentos descargables (PDF)
         </h2>
         <p className="mt-1.5 text-[12.5px] text-muted-foreground">
-          Aparecen en el detalle público y se liberan a cambio de los datos del
-          interesado (cada descarga genera un lead).
+          Publica únicamente material comercial. Estos archivos tienen una URL pública;
+          el formulario de contacto no protege su confidencialidad. Guarda identificaciones
+          y documentos del expediente en archivos privados.
         </p>
         <UploadControl
           label="Subir PDF público"
