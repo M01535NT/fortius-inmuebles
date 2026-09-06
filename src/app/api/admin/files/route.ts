@@ -5,7 +5,7 @@ import { apiResponse, ApiError, assertSameOrigin, databaseError, readBody } from
 import { MAX_FILE_BYTES, validateFile } from "@/lib/backend/validation";
 
 export const runtime = "nodejs";
-const bucketSchema = z.enum(["cota-private", "cota-public"]);
+const bucketSchema = z.enum(["mnt-private", "mnt-public"]);
 const pathSchema = z.string().max(300).regex(/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+\.(jpg|png|webp|gif|pdf|mp4|webm)$/);
 export async function POST(request: Request) {
   return apiResponse(async () => {
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const visibility = z.enum(["private", "public"]).parse(form.get("visibility") ?? "private");
     const { type, extension } = await validateFile(file);
     const client = createServerClient(undefined, true);
-    const bucket = visibility === "public" ? "cota-public" : "cota-private";
+    const bucket = visibility === "public" ? "mnt-public" : "mnt-private";
     const path = `${user.id}/${randomUUID()}.${extension}`;
     const { error } = await client.storage.from(bucket).upload(path, file, { contentType: type, upsert: false });
     if (error) databaseError(error);

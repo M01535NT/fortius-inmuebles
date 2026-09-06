@@ -7,7 +7,7 @@ import { captureLead } from "@/lib/admin/store";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
-  Formulario de contacto. El lead se entrega al backend dedicado de COTA; si la entrega falla,
+  Formulario de contacto. El lead se entrega al backend dedicado de MNT; si la entrega falla,
   NO se dan las gracias: se dice la verdad y se ofrece el teléfono.
 */
 export function ContactForm() {

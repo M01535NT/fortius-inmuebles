@@ -1,5 +1,5 @@
 {
-  "name": "inmobiliaria",
+  "name": "mnt-inmuebles",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,10 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "npm run test:backend && npm run test:admin",
     "test:backend": "vitest run tests/backend",
     "test:admin": "vitest run --config vitest.admin.config.ts",
-    "test:admin:browser": "playwright test --config playwright.admin.config.ts"
+    "test:admin:browser": "playwright test --config playwright.admin.config.ts",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
+    "test:live": "node --env-file=.env.local tests/live/verify-mnt.mjs --run",
+    "health": "node tools/mnt-health.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

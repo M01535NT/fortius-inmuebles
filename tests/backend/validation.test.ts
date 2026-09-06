@@ -18,13 +18,20 @@ describe("BFF validation and authorization behavior", () => {
     expect(() => parseWrite({ data: {}, version: -1 })).toThrow();
     expect(parseWrite({ data: {}, version: null })).toEqual({ data: {}, version: null });
   });
+  it("accepts only lowercase hyphenated post slugs", () => {
+    const post = { id: "p1", slug: "guia-para-comprar", titulo: "Guía", resumen: "Resumen", contenido: "Texto", estado: "borrador", actualizadoEl: "2026-09-05" };
+    expect(parseRecord("posts", "p1", post)).toEqual(post);
+    for (const slug of ["Guia-Mayuscula", "guia_con_guion_bajo", "guia--doble", "-guia", "guia-"]) {
+      expect(() => parseRecord("posts", "p1", { ...post, slug })).toThrow();
+    }
+  });
   it("preserves every existing property field while defaulting publication to false", () => {
     const saved = parseRecord("propiedades", propiedades[0].slug, propiedades[0]);
     expect(saved).toEqual({ ...propiedades[0], publicada: false });
     expect(() => parseRecord("propiedades", propiedades[0].slug, { ...propiedades[0], precio: { modalidad: "publico", monto: -2, moneda: "MXN" } })).toThrow();
   });
   it("public projection removes private root and nested keys and hides drafts", () => {
-    const input = { ...propiedades[0], publicada: true, notasInternas: "secreto", propietario: { nombre: "secreto" }, ficha: { ...propiedades[0].ficha, propietario: "secreto" }, galeria: [{ src: "/casa.webp", alt: "Casa", notas: "secreto" }], documentos: [{ codigo: "P1", nombre: "Privado", descripcion: "no", url: "/api/admin/files?bucket=cota-private&path=x" }] };
+    const input = { ...propiedades[0], publicada: true, notasInternas: "secreto", propietario: { nombre: "secreto" }, ficha: { ...propiedades[0].ficha, propietario: "secreto" }, galeria: [{ src: "/casa.webp", alt: "Casa", notas: "secreto" }], documentos: [{ codigo: "P1", nombre: "Privado", descripcion: "no", url: "/api/admin/files?bucket=mnt-private&path=x" }] };
     const output = projectPublic("propiedades", [input, { ...input, publicada: false }]);
     expect(output).toHaveLength(1);
     expect(JSON.stringify(output)).not.toContain("secreto");
@@ -32,11 +39,14 @@ describe("BFF validation and authorization behavior", () => {
     expect(projectPublic("leads", [{ nombre: "Privado" }])).toEqual([]);
   });
   it.each(["videoInstitucionalUrl", "facebook", "instagram", "whatsapp"])("public configuration blanks private capabilities in %s without dropping contact settings", (field) => {
-    const settings = { nombreComercial: "COTA", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/cota", instagram: "https://www.instagram.com/cota/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/cota-public/video.mp4" };
+    const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/mnt-public/video.mp4" };
     for (const unsafe of [
-      "https://assets.example.com/storage/v1/object/sign/cota-private/video.mp4?token=PRIVATE_CAPABILITY",
-      "/api/admin/files?bucket=cota-private&path=video.mp4",
-      "https://assets.example.com/storage/v1/object/authenticated/cota-private/video.mp4",
+      "https://assets.example.com/storage/v1/object/sign/mnt-private/video.mp4?token=PRIVATE_CAPABILITY",
+      "/api/admin/files?bucket=mnt-private&path=video.mp4",
+      "https://assets.example.com/storage/v1/object/authenticated/mnt-private/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/mnt-staging/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/cota-private/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/cota-staging/video.mp4",
       "javascript:alert(1)",
     ]) {
       const input = { ...settings, [field]: unsafe };
@@ -45,7 +55,7 @@ describe("BFF validation and authorization behavior", () => {
     }
   });
   it("public configuration preserves legitimate external and local links and empty URL fields", () => {
-    const settings = { nombreComercial: "COTA", telefono: "6641234567", whatsapp: "https://wa.me/526640000000", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/cota", instagram: "https://www.instagram.com/cota/", videoInstitucionalUrl: "/media/institucional.mp4" };
+    const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "https://wa.me/526640000000", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "/media/institucional.mp4" };
     expect(projectPublic("config", [settings])).toEqual([settings]);
     const emptyLinks = { ...settings, facebook: "", instagram: "", videoInstitucionalUrl: "", whatsapp: "" };
     expect(projectPublic("config", [emptyLinks])).toEqual([emptyLinks]);
@@ -58,8 +68,8 @@ describe("BFF validation and authorization behavior", () => {
   });
   it("rejects oversized actual streams and cross-origin mutations", async () => {
     await expect(readJson(new Request("http://localhost/api", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ a: "x".repeat(100) }) }), 50)).rejects.toMatchObject({ status: 413 });
-    expect(() => assertSameOrigin(new Request("https://cota.test/api", { headers: { origin: "https://attacker.test" } }))).toThrow(expect.objectContaining({ status: 403 }));
-    expect(() => assertSameOrigin(new Request("https://cota.test/api", { headers: { origin: "https://cota.test" } }))).not.toThrow();
+    expect(() => assertSameOrigin(new Request("https://mnt.test/api", { headers: { origin: "https://attacker.test" } }))).toThrow(expect.objectContaining({ status: 403 }));
+    expect(() => assertSameOrigin(new Request("https://mnt.test/api", { headers: { origin: "https://mnt.test" } }))).not.toThrow();
   });
   it("returns noncacheable errors without leaking infrastructure details", async () => {
     const failure = await apiResponse(async () => { throw new Error("database password secret"); });

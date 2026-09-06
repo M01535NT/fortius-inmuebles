@@ -31,7 +31,7 @@ import { siteConfig } from "@/data/site";
 
 type Params = { slug: string };
 
-/* Cada solicitud consulta el inventario publicado del panel COTA. */
+/* Cada solicitud consulta el inventario publicado del panel MNT. */
 export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
@@ -126,6 +126,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <ArrowLeft className="size-4" strokeWidth={1.5} />
           Volver al inventario
         </Link>
+
+        {property.demo && (
+          <p className="mt-5 rounded-md border border-border bg-secondary px-4 py-3 text-sm leading-relaxed text-foreground">
+            <strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.
+          </p>
+        )}
 
         {/* Galería primero, 16:9 completo en el primer viewport. */}
         <div className="mt-5">

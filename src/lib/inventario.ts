@@ -2,7 +2,7 @@ import "server-only";
 import type { Property } from "@/data/propiedades";
 import { getPublicProperties } from "@/lib/backend/public";
 
-/** Only the independent COTA panel's public projection reaches the website. */
+/** Only the independent MNT panel's public projection reaches the website. */
 export async function getPropiedades(): Promise<Property[]> {
   return getPublicProperties();
 }

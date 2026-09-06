@@ -11,7 +11,7 @@ import { PublicLeadForm } from "@/components/forms/public-lead-form";
 /*
   Lead magnet: checklist de venta a cambio de nombre y WhatsApp.
   El PDF es placeholder (public/descargas/) con marca provisional.
-  La descarga se libera solo tras confirmar la persistencia en el backend de COTA.
+  La descarga se libera solo tras confirmar la persistencia en el backend de MNT.
 */
 const PREVIEW = [
   "Escritura inscrita y sin gravámenes pendientes.",
@@ -83,7 +83,7 @@ export function LeadMagnet() {
                     spam y sin compartir tus datos.
                   </p>
                   <a
-                    href="/descargas/checklist-venta-cota.pdf"
+                    href="/descargas/checklist-venta-mnt.pdf"
                     download
                     className="mt-5 inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
                   >

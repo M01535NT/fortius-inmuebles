@@ -17,15 +17,17 @@ import {
   y ordenamiento. Los filtros se reflejan en la URL con history.replaceState
   (URLs compartibles) SIN useSearchParams: ese hook forzaría un límite de
   Suspense/CSR bailout en toda la página. El análisis histórico está archivado
-  en C:\Paginas-web\_archivo\COTA-20260903\.claude\napkin.md.
+  en la sección histórica de docs/mnt-implementation.md.
 */
 type Orden = "recientes" | "precio-asc" | "precio-desc";
+type Moneda = "todas" | "MXN" | "USD";
 
 type Filtros = {
   operacion: Operacion | "todas";
   tipo: TipoPropiedad | "todos";
   zona: string; // "todas" o nombre exacto
-  min: string; // MXN, texto del input
+  moneda: Moneda;
+  min: string; // texto del input en la moneda seleccionada
   max: string;
   orden: Orden;
 };
@@ -34,6 +36,7 @@ const DEFAULTS: Filtros = {
   operacion: "todas",
   tipo: "todos",
   zona: "todas",
+  moneda: "todas",
   min: "",
   max: "",
   orden: "recientes",
@@ -45,10 +48,13 @@ function filtrosDesdeUrl(search: string, zonas: string[], tipos: string[]): Filt
   const tipo = p.get("tipo");
   const zona = p.get("zona");
   const orden = p.get("orden");
+  const monedaParam = p.get("moneda");
+  const usaPrecio = Boolean(p.get("min") || p.get("max") || orden === "precio-asc" || orden === "precio-desc");
   return {
     operacion: op === "venta" || op === "renta" ? op : "todas",
     tipo: tipo && tipos.includes(tipo) ? (tipo as TipoPropiedad) : "todos",
     zona: zona && zonas.includes(zona) ? zona : "todas",
+    moneda: monedaParam === "MXN" || monedaParam === "USD" ? monedaParam : usaPrecio ? "MXN" : "todas",
     min: /^\d+$/.test(p.get("min") ?? "") ? (p.get("min") as string) : "",
     max: /^\d+$/.test(p.get("max") ?? "") ? (p.get("max") as string) : "",
     orden: orden === "precio-asc" || orden === "precio-desc" ? orden : "recientes",
@@ -60,6 +66,7 @@ function urlDesdeFiltros(f: Filtros): string {
   if (f.operacion !== "todas") p.set("op", f.operacion);
   if (f.tipo !== "todos") p.set("tipo", f.tipo);
   if (f.zona !== "todas") p.set("zona", f.zona);
+  if (f.moneda !== "todas") p.set("moneda", f.moneda);
   if (f.min) p.set("min", f.min);
   if (f.max) p.set("max", f.max);
   if (f.orden !== "recientes") p.set("orden", f.orden);
@@ -105,7 +112,18 @@ export function InventoryExplorer({ propiedades }: Props) {
   }, [filtros, zonas, tipos]);
 
   function set<K extends keyof Filtros>(key: K, value: Filtros[K]) {
-    setFiltros((f) => ({ ...f, [key]: value }));
+    setFiltros((f) => {
+      if (key === "moneda") {
+        const moneda = value as Moneda;
+        return moneda === "todas"
+          ? { ...f, moneda, min: "", max: "", orden: "recientes" }
+          : { ...f, moneda };
+      }
+      const necesitaMoneda =
+        (key === "orden" && value !== "recientes") ||
+        ((key === "min" || key === "max") && value !== "");
+      return { ...f, [key]: value, moneda: necesitaMoneda && f.moneda === "todas" ? "MXN" : f.moneda };
+    });
   }
 
   const min = filtros.min ? Number(filtros.min) : null;
@@ -116,6 +134,10 @@ export function InventoryExplorer({ propiedades }: Props) {
       if (filtros.operacion !== "todas" && p.operacion !== filtros.operacion) return false;
       if (filtros.tipo !== "todos" && p.tipo !== filtros.tipo) return false;
       if (filtros.zona !== "todas" && p.zona !== filtros.zona) return false;
+      if (
+        filtros.moneda !== "todas" &&
+        (p.precio.modalidad !== "publico" || p.precio.moneda !== filtros.moneda)
+      ) return false;
       if (min !== null || max !== null) {
         const monto = montoPublico(p);
         if (monto === null) return false; // "a consulta" queda fuera al filtrar por precio
@@ -210,8 +232,24 @@ export function InventoryExplorer({ propiedades }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <label htmlFor="filtro-moneda" className="text-[12.5px] font-medium text-muted-foreground">
+              Moneda
+            </label>
+            <select
+              id="filtro-moneda"
+              value={filtros.moneda}
+              onChange={(e) => set("moneda", e.target.value as Moneda)}
+              className={fieldClass}
+            >
+              <option value="todas">Todas</option>
+              <option value="MXN">MXN</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <label htmlFor="filtro-min" className="text-[12.5px] font-medium text-muted-foreground">
-              Precio desde (MXN)
+              Precio desde {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}
             </label>
             <input
               id="filtro-min"
@@ -227,7 +265,7 @@ export function InventoryExplorer({ propiedades }: Props) {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="filtro-max" className="text-[12.5px] font-medium text-muted-foreground">
-              Precio hasta (MXN)
+              Precio hasta {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}
             </label>
             <input
               id="filtro-max"

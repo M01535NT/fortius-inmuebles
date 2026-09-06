@@ -14,8 +14,10 @@ const session = { access_token: token, refresh_token: "test-refresh-token", expi
 
 beforeEach(() => {
   state.cookies.clear(); state.active = true; state.member = true; state.validPassword = true; state.password = ""; state.recoveryFailure = false; state.leadFailure = false;
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://cota-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_key");
+  vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
+  vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
   // Only the external Auth/PostgREST boundary is replaced. Supabase-js and our
   // session, membership, cookies and password code execute unchanged.
   vi.stubGlobal("fetch", async (input: string | URL | Request, init: RequestInit = {}) => {
@@ -28,19 +30,19 @@ beforeEach(() => {
       if (init.method === "PUT") state.password = JSON.parse(String(init.body)).password;
       return Response.json(user);
     }
-    if (url.pathname === "/rest/v1/cota_staff") return Response.json(state.member ? [{ role: "admin", active: state.active }] : []);
+    if (url.pathname === "/rest/v1/mnt_staff") return Response.json(state.member ? [{ role: "admin", active: state.active }] : []);
     if (url.pathname === "/auth/v1/logout") return new Response(null, { status: 204 });
     if (url.pathname === "/auth/v1/recover") return state.recoveryFailure ? Response.json({ msg: "SMTP is unavailable", error_code: "unexpected_failure" }, { status: 500 }) : Response.json({});
-    if (url.pathname === "/rest/v1/rpc/cota_capture_lead") return state.leadFailure ? Response.json({ code: "PT429", message: "Limited" }, { status: 429 }) : Response.json("new-lead-id");
-    if (url.pathname === "/rest/v1/cota_records") return Response.json([]);
-    if (url.pathname.startsWith("/storage/v1/object/sign/")) return Response.json({ signedURL: "/object/sign/cota-private/signed?token=temporary" });
+    if (url.pathname === "/rest/v1/rpc/mnt_capture_lead") return state.leadFailure ? Response.json({ code: "PT429", message: "Limited" }, { status: 429 }) : Response.json("new-lead-id");
+    if (url.pathname === "/rest/v1/mnt_records") return Response.json([]);
+    if (url.pathname.startsWith("/storage/v1/object/sign/")) return Response.json({ signedURL: "/object/sign/mnt-private/signed?token=temporary" });
     if (url.pathname.startsWith("/storage/v1/object/")) return Response.json({ Key: url.pathname });
     throw new Error(`Unexpected external request: ${url.pathname}`);
   });
 });
 
 describe("HTTP API contracts", () => {
-  const req = (path: string, method: string, body?: unknown) => new Request(`https://cota.test${path}`, { method, headers: { origin: "https://cota.test", "content-type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const req = (path: string, method: string, body?: unknown) => new Request(`https://mnt.test${path}`, { method, headers: { origin: "https://mnt.test", "content-type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
   it("returns 401/403 from real handlers and rejects invalid collection/payload with 400", async () => {
     expect((await sessionRoute()).status).toBe(401);
     const context = { params: Promise.resolve({ collection: "notas", id: "n1" }) };
@@ -76,17 +78,17 @@ describe("HTTP API contracts", () => {
   it("defaults uploads to private and returns stable paths; signing always needs staff", async () => {
     await loginWithPassword({ email: user.email, password: "a long password" });
     const form = new FormData(); form.set("file", new File(["%PDF-1.7\nhello"], "test.pdf", { type: "application/pdf" }));
-    const uploaded = await uploadRoute(new Request("https://cota.test/api/admin/files", { method: "POST", headers: { origin: "https://cota.test" }, body: form }));
+    const uploaded = await uploadRoute(new Request("https://mnt.test/api/admin/files", { method: "POST", headers: { origin: "https://mnt.test" }, body: form }));
     expect(uploaded.status).toBe(201);
     const file = await uploaded.json();
-    expect(file.bucket).toBe("cota-private");
+    expect(file.bucket).toBe("mnt-private");
     expect(file.path).toMatch(/^[a-z0-9-]+\/[a-z0-9-]+\.pdf$/);
     expect(file.url).not.toContain("token=");
-    const signed = await fileRoute(new Request(`https://cota.test${file.url}`));
+    const signed = await fileRoute(new Request(`https://mnt.test${file.url}`));
     expect(signed.status).toBe(200);
     expect(await signed.json()).toMatchObject({ expiresIn: 60 });
     await logoutSession();
-    expect((await fileRoute(new Request(`https://cota.test${file.url}`))).status).toBe(401);
+    expect((await fileRoute(new Request(`https://mnt.test${file.url}`))).status).toBe(401);
   });
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
@@ -103,15 +105,15 @@ describe("real session behavior against the external transport boundary", () => 
     expect(state.cookies.size).toBe(0);
     state.member = true;
     expect((await loginWithPassword({ email: user.email, password: "a long password" })).user.role).toBe("admin");
-    expect(state.cookies.get("cota-access-token")).toMatchObject({ value: token, options: { httpOnly: true, sameSite: "lax", path: "/" } });
+    expect(state.cookies.get("mnt-access-token")).toMatchObject({ value: token, options: { httpOnly: true, sameSite: "lax", path: "/" } });
     state.active = false;
     await expect(requireStaff()).rejects.toMatchObject({ status: 403 });
   });
   it("refreshes a session with no access cookie and rejects an anonymous request", async () => {
     await expect(requireStaff()).rejects.toMatchObject({ status: 401 });
-    state.cookies.set("cota-refresh-token", { value: "test-refresh-token" });
+    state.cookies.set("mnt-refresh-token", { value: "test-refresh-token" });
     expect((await requireStaff()).user.id).toBe(user.id);
-    expect(state.cookies.get("cota-access-token")?.value).toBe(token);
+    expect(state.cookies.get("mnt-access-token")?.value).toBe(token);
   });
   it("accepts invite/recovery only, rechecks membership, and updates password with the authorized token", async () => {
     await expect(acceptAuthCallback({ type: "signup", access_token: token, refresh_token: session.refresh_token })).rejects.toThrow();
@@ -123,14 +125,14 @@ describe("real session behavior against the external transport boundary", () => 
   it("clears both cookies on logout so the next request is unauthenticated", async () => {
     await loginWithPassword({ email: user.email, password: "a long password" });
     await logoutSession();
-    expect(state.cookies.get("cota-access-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
-    expect(state.cookies.get("cota-refresh-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
+    expect(state.cookies.get("mnt-access-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
+    expect(state.cookies.get("mnt-refresh-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
     await expect(requireStaff()).rejects.toMatchObject({ status: 401 });
   });
   it("recovery is non-enumerating but never claims delivery when the provider rejects", async () => {
-    expect(await requestRecovery({ email: "unknown@example.com" }, "https://cota.test/admin")).toEqual({ ok: true });
+    expect(await requestRecovery({ email: "unknown@example.com" }, "https://mnt.test/admin")).toEqual({ ok: true });
     expect(state.cookies.size).toBe(0);
     state.recoveryFailure = true;
-    await expect(requestRecovery({ email: user.email }, "https://cota.test/admin")).rejects.toMatchObject({ status: 503 });
+    await expect(requestRecovery({ email: user.email }, "https://mnt.test/admin")).rejects.toMatchObject({ status: 503 });
   });
 });

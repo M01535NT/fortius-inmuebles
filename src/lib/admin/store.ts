@@ -124,6 +124,9 @@ export type Archivo = {
   url: string;
   tipo: ArchivoTipo;
   notas?: string;
+  bucket?: "mnt-private" | "mnt-public";
+  path?: string;
+  visibility?: "private" | "public";
 };
 
 export type SiteContent = {
@@ -555,7 +558,7 @@ export async function captureLead(input: {
   return result.id;
 }
 export type UploadedFile = {
-  bucket: "cota-private" | "cota-public";
+  bucket: "mnt-private" | "mnt-public";
   path: string;
   url: string;
   name: string;
@@ -569,6 +572,17 @@ export function archivoTipo(mime: string): ArchivoTipo {
       : mime.startsWith("video/")
         ? "video"
         : "otro";
+}
+export function archivoFromUpload(id: string, file: UploadedFile): Archivo {
+  return {
+    id,
+    nombre: file.name,
+    url: file.url,
+    tipo: archivoTipo(file.type),
+    bucket: file.bucket,
+    path: file.path,
+    visibility: file.bucket === "mnt-public" ? "public" : "private",
+  };
 }
 export async function uploadFile(
   file: File,

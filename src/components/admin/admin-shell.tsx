@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { BrandMark } from "@/components/brand/brand-mark";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -71,24 +72,7 @@ function LoginScreen({
     <main className="flex min-h-[100dvh] items-center justify-center bg-background px-5">
       <div className="w-full max-w-[400px]">
         <div className="flex items-center gap-2.5">
-          <svg
-            width="26"
-            height="14"
-            viewBox="0 0 26 14"
-            fill="none"
-            aria-hidden="true"
-            className="text-primary"
-          >
-            <path
-              d="M1 1v12M25 1v12M1 7h24"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="display-title text-[19px] tracking-[0.04em] text-foreground">
-            Cota
-          </span>
+          <BrandMark />
           <span className="ml-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
             Panel
           </span>
@@ -355,24 +339,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       <aside className="sticky top-0 hidden h-[100dvh] w-[228px] shrink-0 flex-col border-r border-border md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <svg
-            width="22"
-            height="12"
-            viewBox="0 0 26 14"
-            fill="none"
-            aria-hidden="true"
-            className="text-primary"
-          >
-            <path
-              d="M1 1v12M25 1v12M1 7h24"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="display-title text-[17px] tracking-[0.04em] text-foreground">
-            Cota
-          </span>
+          <BrandMark />
           <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
             Panel
           </span>

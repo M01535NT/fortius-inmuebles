@@ -2,7 +2,7 @@
   CONTRATO DEL INVENTARIO — tipos, etiquetas y formateo.
 
   El sitio público lee `src/lib/inventario.ts`, que consulta exclusivamente la
-  proyección pública del backend independiente de COTA. Este archivo conserva
+  proyección pública del backend independiente de MNT. Este archivo conserva
   tipos, etiquetas, formateo y ejemplos históricos para pruebas; ni la web ni
   el panel utilizan este array como fuente operativa.
 */
@@ -51,7 +51,7 @@ export type DocumentoPropiedad = {
 
 export type Property = {
   slug: string;
-  codigo: string; // "COTA-001", se muestra en mono
+  codigo: string; // "MNT-001", se muestra en mono
   titulo: string;
   tipo: TipoPropiedad;
   operacion: Operacion;
@@ -103,7 +103,7 @@ export const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
 export const propiedades: Property[] = [
   {
     slug: "residencia-vista-al-mar-playas",
-    codigo: "COTA-001",
+    codigo: "MNT-001",
     titulo: "Residencia con vista al mar",
     tipo: "casa",
     operacion: "venta",
@@ -147,7 +147,7 @@ export const propiedades: Property[] = [
         codigo: "CHK-VEN-001",
         nombre: "Checklist de compra segura",
         descripcion: "Los puntos documentales que revisamos antes de cualquier operación.",
-        url: "/descargas/checklist-venta-cota.pdf",
+        url: "/descargas/checklist-venta-mnt.pdf",
       },
     ],
     asesorId: "asesor-01",
@@ -164,7 +164,7 @@ export const propiedades: Property[] = [
   },
   {
     slug: "departamento-zona-rio-renta",
-    codigo: "COTA-002",
+    codigo: "MNT-002",
     titulo: "Departamento amueblado en Zona Río",
     tipo: "departamento",
     operacion: "renta",
@@ -207,7 +207,7 @@ export const propiedades: Property[] = [
   },
   {
     slug: "nave-industrial-otay",
-    codigo: "COTA-003",
+    codigo: "MNT-003",
     titulo: "Nave industrial con andén en Otay",
     tipo: "nave-industrial",
     operacion: "venta",

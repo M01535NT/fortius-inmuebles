@@ -27,7 +27,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
 
   /*
     Los PDFs se entregan a cambio del contacto. Si el contacto no llegó al
-    backend dedicado de COTA, no se libera la descarga: sería regalar el documento y perder
+    backend dedicado de MNT, no se libera la descarga: sería regalar el documento y perder
     el prospecto a la vez.
   */
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

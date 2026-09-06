@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand/brand-mark";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { SiteSettings } from "@/lib/admin/store";
@@ -8,7 +9,7 @@ import { publicContact } from "@/lib/public-contact";
 export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
   const contact = publicContact(settings);
-  const name = settings?.nombreComercial || "Cota";
+  const name = "MNT Inmuebles";
   /* El panel /admin trae su propio shell: sin footer público (además el
      footer cortina interferiría con el layout del panel). */
   if (pathname.startsWith("/admin")) return null;
@@ -19,24 +20,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5">
             <div className="flex items-center gap-2.5">
-              <svg
-                width="26"
-                height="14"
-                viewBox="0 0 26 14"
-                fill="none"
-                aria-hidden="true"
-                className="text-primary"
-              >
-                <path
-                  d="M1 1v12M25 1v12M1 7h24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className="display-title text-[19px] tracking-[0.04em] text-foreground">
-                {name}
-              </span>
+              <BrandMark />
             </div>
             <p className="mt-4 max-w-[40ch] text-[14px] leading-relaxed text-muted-foreground">
               Bienes raíces con método en Tijuana y Baja California.
@@ -45,6 +29,11 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
 
           <nav className="md:col-span-3 md:col-start-7" aria-label="Secciones">
             <ul className="space-y-3 text-[14px]">
+              <li>
+                <Link href="/blog" className="text-foreground/75 transition-colors hover:text-foreground">
+                  Blog
+                </Link>
+              </li>
               <li>
                 <Link href="/inventario" className="text-foreground/75 transition-colors hover:text-foreground">
                   Propiedades

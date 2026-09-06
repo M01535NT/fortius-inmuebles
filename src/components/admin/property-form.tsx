@@ -37,7 +37,7 @@ type Props = { initial?: Property };
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {
   if (
-    /(cota-private|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
+    /((?:cota|mnt)-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
   )
     return false;
   if (/[\s\\]/.test(value) || value.startsWith("//")) return false;
@@ -105,7 +105,7 @@ export function PropertyForm({ initial: source }: Props) {
       slug,
       codigo:
         v("codigo") ||
-        `COTA-${String(propiedades.length + 1).padStart(3, "0")}`,
+        `MNT-${String(propiedades.length + 1).padStart(3, "0")}`,
       titulo: titulo.trim(),
       tipo: v("tipo") as TipoPropiedad,
       operacion: v("operacion") as Property["operacion"],
@@ -208,7 +208,7 @@ export function PropertyForm({ initial: source }: Props) {
               id="pf-codigo"
               name="codigo"
               defaultValue={initial?.codigo}
-              placeholder="COTA-004"
+              placeholder="MNT-004"
               className={inputClass}
             />
           </Field>

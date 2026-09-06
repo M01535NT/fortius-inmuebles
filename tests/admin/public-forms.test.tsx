@@ -8,6 +8,7 @@ import { LeadMagnet } from "@/components/sections/lead-magnet";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
 import { parseLead } from "@/lib/backend/validation";
+import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -32,10 +33,13 @@ function fillEvaluationFields(container: HTMLElement) {
   if (zone) fireEvent.change(zone, { target: { value: "Centro" } });
   if (type) fireEvent.change(type, { target: { value: "Casa" } });
 }
+const enabled = (component: React.ReactNode) => (
+  <PublicFeaturesProvider publicLeadsEnabled>{component}</PublicFeaturesProvider>
+);
 
 test.each(variants)("$name SSR blocks every control before hydration and supplies an honest no-JS notice", ({ component }) => {
   const root = document.createElement("div");
-  root.innerHTML = renderToStaticMarkup(component);
+  root.innerHTML = renderToStaticMarkup(enabled(component));
   const form = root.querySelector("form")!;
   expect(form.method).toBe("post");
   for (const control of form.querySelectorAll("input,select,textarea,button")) {
@@ -56,7 +60,7 @@ test.each(variants)("$name sends the actual honeypot and never acknowledges a re
     catch { return Response.json({ error: "Solicitud inválida" }, { status: 400 }); }
     return Response.json({ id: "persisted-ack" }, { status: 201 });
   }));
-  const { container } = render(component);
+  const { container } = render(enabled(component));
   fireEvent.change(screen.getByLabelText("Nombre", { exact: true }), { target: { value: "Prueba" } });
   fireEvent.change(screen.getByLabelText(/Teléfono/), { target: { value: "6641234567" } });
   fillEvaluationFields(container);
@@ -85,7 +89,7 @@ test.each(variants)("$name retains failed drafts and waits for ACK before succes
     if (requests.length === 1) return Response.json({ error: "No guardado" }, { status: 503 });
     return new Promise<Response>((resolve) => { acknowledge = resolve; });
   }));
-  const { container } = render(component);
+  const { container } = render(enabled(component));
   fireEvent.change(screen.getByLabelText("Nombre", { exact: true }), { target: { value: "Borrador" } });
   fireEvent.change(screen.getByLabelText(/Teléfono/), { target: { value: "6641234567" } });
   fillEvaluationFields(container);

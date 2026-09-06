@@ -26,13 +26,13 @@ import {
 } from "@/components/admin/ui";
 import {
   db,
+  archivoFromUpload,
   removeById,
   uid,
   upsert,
   useCollection,
   type ArchivoTipo,
   openFile,
-  archivoTipo,
 } from "@/lib/admin/store";
 
 /*
@@ -86,12 +86,7 @@ export default function ArchivosPage() {
         onUploaded={async (file) => {
           await upsert(
             db.archivos,
-            {
-              id: uid(),
-              nombre: file.name,
-              url: file.url,
-              tipo: archivoTipo(file.type),
-            },
+            archivoFromUpload(uid(), file),
             null,
           );
         }}

@@ -16,7 +16,7 @@ type StorageClient = Pick<SupabaseClient, "storage">;
 function sign(payload: string) {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!secret) throw new ApiError(503, "La carga de archivos no está configurada");
-  return createHmac("sha256", secret).update(`cota-upload-v1:${payload}`).digest();
+  return createHmac("sha256", secret).update(`mnt-upload-v1:${payload}`).digest();
 }
 function parseTicket(ticket: unknown, userId: string) {
   if (typeof ticket !== "string" || ticket.length > 4096 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(ticket)) throw new ApiError(403, "Permiso de carga inválido");
@@ -38,20 +38,20 @@ export async function prepareUpload(client: StorageClient, userId: string, input
   const path = `${userId}/${randomUUID()}.${extension}`;
   const payload = Buffer.from(JSON.stringify({ ...data, v: 1, uid: userId, path, expires: Date.now() + 10 * 60000 })).toString("base64url");
   const ticket = `${payload}.${sign(payload).toString("base64url")}`;
-  const signed = await client.storage.from("cota-staging").createSignedUploadUrl(path, { upsert: false });
+  const signed = await client.storage.from("mnt-staging").createSignedUploadUrl(path, { upsert: false });
   if (signed.error) databaseError(signed.error);
   return { signedUrl: signed.data.signedUrl, path, ticket };
 }
 
 export async function completeUpload(client: StorageClient, userId: string, ticket: unknown) {
   const claims = parseTicket(ticket, userId);
-  const staged = await client.storage.from("cota-staging").download(claims.path);
+  const staged = await client.storage.from("mnt-staging").download(claims.path);
   if (staged.error) throw new ApiError(409, "La carga temporal no está disponible; vuelve a seleccionar el archivo");
   if (staged.data.size !== claims.size || staged.data.size > MAX_FILE_BYTES) throw new ApiError(400, "El tamaño del archivo no coincide con el autorizado");
   const file = new File([staged.data], claims.name, { type: claims.contentType });
   const { type, extension } = await validateFile(file);
   if (!claims.path.endsWith(`.${extension}`)) throw new ApiError(400, "Tipo de archivo incongruente");
-  const bucket = claims.visibility === "public" ? "cota-public" : "cota-private";
+  const bucket = claims.visibility === "public" ? "mnt-public" : "mnt-private";
   // Copy the exact bytes just validated, not a mutable remote object. Immutable
   // final names make concurrent completion/replayed tickets unable to overwrite.
   const saved = await client.storage.from(bucket).upload(claims.path, file, { contentType: type, upsert: false });
@@ -61,8 +61,8 @@ export async function completeUpload(client: StorageClient, userId: string, tick
   }
   // Only this ticket's temporary object is removed. A cleanup outage must not
   // misreport a successfully persisted final file; abandoned staging is private.
-  await client.storage.from("cota-staging").remove([claims.path]);
-  const url = bucket === "cota-public" ? client.storage.from(bucket).getPublicUrl(claims.path).data.publicUrl
+  await client.storage.from("mnt-staging").remove([claims.path]);
+  const url = bucket === "mnt-public" ? client.storage.from(bucket).getPublicUrl(claims.path).data.publicUrl
     : `/api/admin/files?bucket=${bucket}&path=${encodeURIComponent(claims.path)}`;
   return { bucket, path: claims.path, url, name: claims.name, type };
 }

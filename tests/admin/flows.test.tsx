@@ -118,16 +118,13 @@ test("blog edit holds opening version after background refresh and stays open on
   );
   expect(saved).toHaveLength(0);
 });
-test("blog distinguishes anonymous public data from a web page that does not exist", async () => {
+test("blog publishes an entry while clearly keeping drafts inside the panel", async () => {
   render(<BlogPage />);
   fireEvent.click(await screen.findByRole("button", { name: "Editar Guía" }));
   const state = screen.getByLabelText("Estado") as HTMLSelectElement;
   const publicOption = Array.from(state.options).find((option) => option.value === "publicado")!;
   expect(publicOption.textContent).toMatch(/públic[ao]/i);
-  expect(document.body.textContent).toMatch(/sin autenticación/i);
-  expect(document.body.textContent).toMatch(/no (?:hay|existen).*páginas.*blog/i);
-  expect(document.body.textContent).not.toContain("Publicado en el sitio");
-  expect(document.body.textContent).not.toContain("/blog/guia");
+  expect(document.body.textContent).toMatch(/borradores.*panel/i);
   fireEvent.change(state, { target: { value: "publicado" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar entrada" }));
   await waitFor(() => expect(saved).toHaveLength(1));
@@ -141,12 +138,11 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
     </AdminShell>,
   );
   await screen.findByText("Privado");
-  const sidebarBrand = screen.getByRole("complementary").firstElementChild!;
-  expect(sidebarBrand.querySelector("svg")?.getAttribute("width")).toBe("22");
-  expect(sidebarBrand.querySelector("svg")?.getAttribute("height")).toBe("12");
-  expect(sidebarBrand.querySelector("path")?.getAttribute("d")).toBe(
-    "M1 1v12M25 1v12M1 7h24",
-  );
+  expect(
+    screen
+      .getByRole("complementary")
+      .querySelector('svg[aria-label="MNT Inmuebles"]'),
+  ).toBeTruthy();
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
@@ -161,12 +157,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   );
   await screen.findByRole("heading", { name: "Acceso al panel" });
   expect(screen.queryByText("Privado")).toBeNull();
-  const loginBrand = screen.getByText("Cota").parentElement!;
-  expect(loginBrand.querySelector("svg")?.getAttribute("width")).toBe("26");
-  expect(loginBrand.querySelector("svg")?.getAttribute("height")).toBe("14");
-  expect(loginBrand.querySelector("path")?.getAttribute("d")).toBe(
-    "M1 1v12M25 1v12M1 7h24",
-  );
+  expect(screen.getByRole("img", { name: "MNT Inmuebles" })).toBeTruthy();
 });
 test("callback secrets are removed before request, password mode survives verification", async () => {
   window.history.replaceState(

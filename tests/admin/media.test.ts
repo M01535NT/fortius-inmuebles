@@ -2,6 +2,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import {
   uploadFile,
   archivoTipo,
+  archivoFromUpload,
   resolveFileUrl,
   acceptPasswordLink,
   db,
@@ -30,9 +31,9 @@ test("20 MB uploads use preparation, direct bytes without credentials, then fina
     if (url === "https://storage.example/staging")
       return new Response("", { status: 200 });
     return Response.json({
-      bucket: "cota-private",
+      bucket: "mnt-private",
       path: "x.mp4",
-      url: "/api/admin/files?bucket=cota-private&path=x.mp4",
+      url: "/api/admin/files?bucket=mnt-private&path=x.mp4",
       name: "video.mp4",
       type: "video/mp4",
     });
@@ -55,8 +56,31 @@ test("20 MB uploads use preparation, direct bytes without credentials, then fina
     body: file,
   });
   expect(JSON.parse(String(calls[2].init?.body))).toEqual({ ticket: "ticket" });
-  expect(result.url).toBe("/api/admin/files?bucket=cota-private&path=x.mp4");
+  expect(result).toMatchObject({
+    bucket: "mnt-private",
+    path: "x.mp4",
+    url: "/api/admin/files?bucket=mnt-private&path=x.mp4",
+  });
   expect(archivoTipo(result.type)).toBe("video");
+});
+test("uploaded files keep storage identity and selected visibility in the library record", () => {
+  expect(
+    archivoFromUpload("record-1", {
+      bucket: "mnt-public",
+      path: "staff/file.pdf",
+      url: "https://storage.example/mnt-public/staff/file.pdf",
+      name: "ficha.pdf",
+      type: "application/pdf",
+    }),
+  ).toEqual({
+    id: "record-1",
+    nombre: "ficha.pdf",
+    url: "https://storage.example/mnt-public/staff/file.pdf",
+    tipo: "pdf",
+    bucket: "mnt-public",
+    path: "staff/file.pdf",
+    visibility: "public",
+  });
 });
 test("oversize and unsupported files cannot start upload", async () => {
   const network = vi.fn();
@@ -86,7 +110,7 @@ test("private resolver signs at open, does not persist signed capabilities", asy
       ),
   );
   expect(
-    await resolveFileUrl("/api/admin/files?bucket=cota-private&path=x.pdf"),
+    await resolveFileUrl("/api/admin/files?bucket=mnt-private&path=x.pdf"),
   ).toBe("https://storage.example/sign?token=short-lived");
   expect(db.archivos.list()).toEqual([]);
   await expect(resolveFileUrl("javascript:alert(1)")).rejects.toThrow();
