@@ -1,4 +1,5 @@
 "use client";
+import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { AsyncForm, AsyncButton, AsyncSelect } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -54,12 +55,13 @@ function LeadDetail({ id }: { id: string }) {
   const asesores = useCollection(db.asesores);
   const propiedades = useCollection(db.propiedades);
   const eventos = useCollection(db.eventos);
+  const [profileDraft, setProfileDraft] = React.useState<Lead | null>(null);
   const [noteDraft, setNoteDraft] = React.useState<{
     lead: Lead;
     version: number | null;
   } | null>(null);
 
-  const lead = leads.find((l) => l.id === id) ?? noteDraft?.lead;
+  const lead = leads.find((l) => l.id === id) ?? noteDraft?.lead ?? profileDraft;
 
   if (!lead) {
     return (
@@ -150,6 +152,8 @@ function LeadDetail({ id }: { id: string }) {
         }
       />
 
+      <LeadProfileEditor key={lead.id} lead={lead} onDraftChange={setProfileDraft} />
+
       {/* Pipeline */}
       <div
         className="flex flex-wrap gap-1.5"
@@ -180,7 +184,7 @@ function LeadDetail({ id }: { id: string }) {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
         {/* Columna principal: notas */}
         <div className="space-y-6">
           <section className="rounded-lg border border-border bg-card p-5">
@@ -329,7 +333,7 @@ function LeadDetail({ id }: { id: string }) {
         </div>
 
         {/* Lateral: datos + asignación */}
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
           <section className="rounded-lg border border-border bg-card p-5">
             <h2 className="display-soft text-lg text-foreground">Datos</h2>
             <dl className="mt-4 space-y-3 text-[13.5px]">
@@ -339,6 +343,7 @@ function LeadDetail({ id }: { id: string }) {
                   {lead.telefono}
                 </dd>
               </div>
+              {lead.email ? <div><dt className="text-muted-foreground">Correo electrónico</dt><dd className="mt-1 break-all">{lead.email}</dd></div> : null}
               {lead.zona ? (
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted-foreground">Zona</dt>

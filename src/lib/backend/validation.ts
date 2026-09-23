@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { leadProfileSchema } from "@/lib/lead-profile";
 import { COLLECTIONS, type CollectionName } from "./contracts";
 import { ApiError } from "./http";
 
@@ -39,7 +40,7 @@ const postSchema = z.object({ id, slug: postSlug, titulo: name, resumen: text, c
 export const recordSchemas = {
   propiedades: propertySchema,
   asesores: adviserSchema,
-  leads: z.object({ id, ...leadFields, origen: z.enum(origins), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough(),
+  leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough(),
   clientes: z.object({ id, nombre: name, telefono: phone, email, tipo: z.enum(["propietario", "comprador", "arrendador", "arrendatario", "otro"]), asesorId: reference, notas: text, creadoEl: date, actualizadoEl: date }).passthrough(),
   eventos: z.object({ id, titulo: name, fecha: date, hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(), tipo: z.enum(["visita", "llamada", "firma", "reunion", "otro"]), leadId: reference, propiedadSlug: reference, clienteId: reference, notas: text.optional() }).passthrough(),
   notas: z.object({ id, titulo: name, texto: text, actualizadoEl: date }).passthrough(),

@@ -4,6 +4,7 @@ import * as React from "react";
 import type { Asesor as AsesorBase } from "@/data/asesores";
 import type { Property } from "@/data/propiedades";
 import type { Cliente, StaffUser, StoredRecord } from "@/lib/backend/contracts";
+import type { LeadProfile } from "@/lib/lead-profile";
 export type { Cliente } from "@/lib/backend/contracts";
 
 /* ---------- tipos ---------- */
@@ -66,6 +67,7 @@ export type Lead = {
   zona?: string;
   tipoPropiedad?: string;
   mensaje?: string;
+  perfil?: LeadProfile;
   asesorId?: string;
   creadoEl: string; // ISO
   notas: LeadNota[];

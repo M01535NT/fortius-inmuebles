@@ -1,4 +1,5 @@
 "use client";
+import { LeadFields, readLeadFields } from "@/components/admin/lead-fields";
 import { AsyncForm, AsyncSelect } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -50,7 +51,7 @@ export default function AdminLeadsPage() {
     .filter((l) => {
       const q = busqueda.trim().toLowerCase();
       if (!q) return true;
-      return `${l.nombre} ${l.telefono} ${l.mensaje ?? ""} ${l.zona ?? ""}`
+      return `${l.nombre} ${l.telefono} ${l.email ?? ""} ${l.mensaje ?? ""} ${l.zona ?? ""} ${l.tipoPropiedad ?? ""} ${l.perfil?.requisitos ?? ""}`
         .toLowerCase()
         .includes(q);
     })
@@ -59,11 +60,9 @@ export default function AdminLeadsPage() {
   async function nuevoManual(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const data = new FormData(form);
     const lead: Lead = {
       id: uid(),
-      nombre: String(data.get("nombre") ?? ""),
-      telefono: String(data.get("telefono") ?? ""),
+      ...readLeadFields(form),
       origen: "manual",
       estado: "nuevo",
       creadoEl: new Date().toISOString(),
@@ -112,40 +111,9 @@ export default function AdminLeadsPage() {
       <div id="captura-manual-lead" hidden={!capturaAbierta}>
         <AsyncForm
           onSubmit={nuevoManual}
-          className="grid min-w-0 gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end [&>[role=alert]]:col-span-full [&>[role=status]]:col-span-full"
+          className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4"
         >
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <label
-              htmlFor="nuevo-nombre"
-              className="text-[12.5px] font-medium text-foreground"
-            >
-              Nombre
-            </label>
-            <input
-              id="nuevo-nombre"
-              ref={nombreInput}
-              name="nombre"
-              required
-              placeholder="Lead capturado por teléfono…"
-              className={inputClass}
-            />
-          </div>
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <label
-              htmlFor="nuevo-telefono"
-              className="text-[12.5px] font-medium text-foreground"
-            >
-              Teléfono
-            </label>
-            <input
-              id="nuevo-telefono"
-              name="telefono"
-              required
-              type="tel"
-              placeholder="664 000 0000"
-              className={inputClass}
-            />
-          </div>
+          <LeadFields nombreRef={nombreInput} />
           <button type="submit" className={btnPrimary}>
             <Plus className="size-4" strokeWidth={1.5} /> Capturar lead
           </button>
@@ -159,7 +127,7 @@ export default function AdminLeadsPage() {
           aria-label="Buscar lead"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar por nombre, teléfono, zona…"
+          placeholder="Buscar por nombre, teléfono, correo, zona…"
           className={inputClass + " lg:max-w-sm"}
         />
         <div
