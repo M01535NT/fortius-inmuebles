@@ -32,7 +32,7 @@ export function PageHeader({
 }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
-      <div>
+      <div className="min-w-0">
         <h1 className="display-title text-3xl text-foreground">{title}</h1>
         {description ? (
           <p className="mt-2 max-w-[64ch] text-[13.5px] leading-relaxed text-muted-foreground">
@@ -119,9 +119,8 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
 export function DemoBanner() {
   return (
     <p className="rounded-md border border-amber-600/30 bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-amber-800 dark:text-amber-300">
-      Los cambios se guardan en el servidor. Solo los inmuebles marcados como
-      publicados son visibles en el sitio. Los ejemplos conservan su etiqueta
-      Demo.
+      Solo los inmuebles publicados son visibles en el sitio. Los ejemplos
+      conservan su etiqueta Demo.
     </p>
   );
 }
@@ -175,6 +174,12 @@ export function AsyncForm({
 }) {
   const mutation = useMutation();
   const [uploading, setUploading] = React.useState(false);
+  const errorTarget = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!mutation.error) return;
+    errorTarget.current?.focus({ preventScroll: true });
+    errorTarget.current?.scrollIntoView?.({ block: "nearest" });
+  }, [mutation.error]);
   return (
     <UploadPendingContext.Provider value={setUploading}>
       <form
@@ -195,7 +200,11 @@ export function AsyncForm({
               Guardando…
             </p>
           ) : null}
-          <ErrorNotice error={mutation.error} />
+          {mutation.error ? (
+            <div ref={errorTarget} tabIndex={-1} className="scroll-mt-24 scroll-mb-8">
+              <ErrorNotice error={mutation.error} />
+            </div>
+          ) : null}
         </fieldset>
       </form>
     </UploadPendingContext.Provider>

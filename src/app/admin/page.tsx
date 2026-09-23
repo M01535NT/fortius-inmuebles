@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowUpRight, Building2, CalendarDays, Newspaper, Users } from "lucide-react";
 
 import { Badge, DemoBanner, PageHeader } from "@/components/admin/ui";
+import { operationalDate } from "@/lib/admin/operational-date";
 import {
   LEAD_ESTADO_LABELS,
   LEAD_ORIGEN_LABELS,
@@ -22,11 +23,12 @@ export default function AdminDashboard() {
   const eventos = useCollection(db.eventos);
   const posts = useCollection(db.posts);
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = operationalDate();
+  // "Próximos" incluye todo el día operativo, incluso eventos sin hora.
   const proximos = eventos
     .filter((e) => e.fecha >= hoy)
-    .sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? "")))
-    .slice(0, 5);
+    .sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? "")));
+  const vistaPrevia = proximos.slice(0, 5);
   const leadsNuevos = leads.filter((l) => l.estado === "nuevo").length;
   const disponibles = propiedades.filter((p) => p.estado === "disponible").length;
 
@@ -38,7 +40,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 sm:space-y-6">
       <PageHeader
         title="Panel."
         description="Lectura rápida de la operación: leads, inventario y agenda."
@@ -46,19 +48,21 @@ export default function AdminDashboard() {
       <DemoBanner />
 
       {/* KPIs */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map(({ icon: Icon, label, value, href }) => (
           <Link
             key={label}
             href={href}
-            className="group rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/50"
+            className="group min-w-0 rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/50 sm:p-4"
           >
-            <Icon className="size-5 text-primary" strokeWidth={1.5} />
-            <p className="mt-4 font-mono text-3xl text-foreground">{String(value).padStart(2, "0")}</p>
-            <p className="mt-1 flex items-center gap-1 text-[13px] text-muted-foreground">
-              {label}
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-mono text-2xl text-foreground sm:text-3xl">{String(value).padStart(2, "0")}</p>
+              <Icon className="size-5 shrink-0 text-primary" strokeWidth={1.5} />
+            </div>
+            <p className="mt-2 flex items-start gap-1 text-[13px] leading-snug text-muted-foreground">
+              <span className="min-w-0 [overflow-wrap:anywhere]">{label}</span>
               <ArrowUpRight
-                className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100"
+                className="mt-0.5 size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                 strokeWidth={1.5}
               />
             </p>
@@ -66,12 +70,37 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+        {/* Agenda primero para priorizar la operación en móvil. */}
+        <section aria-labelledby="dashboard-agenda" className="min-w-0 rounded-lg border border-border bg-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
+            <h2 id="dashboard-agenda" className="min-w-0 display-soft text-lg text-foreground">Agenda próxima</h2>
+            <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-[13px] font-medium text-primary hover:text-foreground">
+              Calendario
+            </Link>
+          </div>
+          {vistaPrevia.length === 0 ? (
+            <p className="p-4 text-[13.5px] text-muted-foreground sm:p-5">Sin eventos próximos.</p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {vistaPrevia.map((evento) => (
+                <li key={evento.id} className="flex min-w-0 flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:gap-4 sm:px-5">
+                  <span className="shrink-0 font-mono text-[12px] text-primary">
+                    {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
+                    {evento.hora ? ` ${evento.hora}` : ""}
+                  </span>
+                  <p className="min-w-0 text-[14px] text-foreground [overflow-wrap:anywhere]">{evento.titulo}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         {/* Leads recientes */}
-        <section className="rounded-lg border border-border bg-card">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <h2 className="display-soft text-lg text-foreground">Leads recientes</h2>
-            <Link href="/admin/leads" className="text-[13px] font-medium text-primary hover:text-foreground">
+        <section aria-labelledby="dashboard-leads" className="min-w-0 rounded-lg border border-border bg-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
+            <h2 id="dashboard-leads" className="min-w-0 display-soft text-lg text-foreground">Leads recientes</h2>
+            <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-[13px] font-medium text-primary hover:text-foreground">
               Ver todos
             </Link>
           </div>
@@ -83,43 +112,20 @@ export default function AdminDashboard() {
                 <li key={lead.id}>
                   <Link
                     href={`/admin/leads/${lead.id}`}
-                    className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-secondary/50"
+                    className="flex min-w-0 flex-col items-start gap-2 px-4 py-3 transition-colors hover:bg-secondary/50 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-[14px] font-medium text-foreground">{lead.nombre}</p>
-                      <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
+                      <p className="text-[14px] font-medium text-foreground [overflow-wrap:anywhere]">{lead.nombre}</p>
+                      <p className="mt-0.5 text-[12.5px] text-muted-foreground [overflow-wrap:anywhere]">
                         {LEAD_ORIGEN_LABELS[lead.origen]} · {fechaCorta(lead.creadoEl)}
                       </p>
                     </div>
-                    <Badge tone={lead.estado === "nuevo" ? "green" : "neutral"}>
-                      {LEAD_ESTADO_LABELS[lead.estado]}
-                    </Badge>
+                    <span className="shrink-0">
+                      <Badge tone={lead.estado === "nuevo" ? "green" : "neutral"}>
+                        {LEAD_ESTADO_LABELS[lead.estado]}
+                      </Badge>
+                    </span>
                   </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {/* Agenda */}
-        <section className="rounded-lg border border-border bg-card">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <h2 className="display-soft text-lg text-foreground">Agenda próxima</h2>
-            <Link href="/admin/calendario" className="text-[13px] font-medium text-primary hover:text-foreground">
-              Calendario
-            </Link>
-          </div>
-          {proximos.length === 0 ? (
-            <p className="p-5 text-[13.5px] text-muted-foreground">Sin eventos próximos.</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {proximos.map((evento) => (
-                <li key={evento.id} className="flex items-baseline gap-4 px-5 py-3.5">
-                  <span className="shrink-0 font-mono text-[12px] text-primary">
-                    {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
-                    {evento.hora ? ` ${evento.hora}` : ""}
-                  </span>
-                  <p className="min-w-0 truncate text-[14px] text-foreground">{evento.titulo}</p>
                 </li>
               ))}
             </ul>

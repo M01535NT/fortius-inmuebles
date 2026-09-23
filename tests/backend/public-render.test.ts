@@ -107,8 +107,11 @@ test.each(publicPages)("public page %s declares its own canonical path", async (
 });
 test("dynamic details share production canonical and OG URLs while keeping demo noindex", async () => {
   const metadata = await propertyMetadata({ params: Promise.resolve({ slug: propiedades[0].slug }) });
-  expect(metadata.alternates?.canonical).toBe("/inventario/residencia-vista-al-mar-playas");
-  expect(metadata.openGraph).toMatchObject({ url: `${siteConfig.url}/inventario/residencia-vista-al-mar-playas`, images: [`${siteConfig.url}/hero/casa-playa.webp`] });
+  expect(metadata.alternates?.canonical).toBe(`${siteConfig.url}/inventario/residencia-vista-al-mar-playas`);
+  expect(metadata.openGraph).toMatchObject({
+    url: `${siteConfig.url}/inventario/residencia-vista-al-mar-playas`,
+    images: [{ url: `${siteConfig.url}/inventario/residencia-vista-al-mar-playas/imagen-social`, type: "image/jpeg", width: 1200, height: 630 }],
+  });
   expect(metadata.robots).toEqual({ index: false, follow: true });
   expect((await zoneMetadata({ params: Promise.resolve({ zona: "playas-de-tijuana" }) })).alternates?.canonical).toBe("/zonas/playas-de-tijuana");
   expect(JSON.stringify(metadata)).not.toContain("mnt.example");

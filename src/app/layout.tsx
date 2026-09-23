@@ -88,7 +88,8 @@ export default async function RootLayout({
       className={`${archivo.variable} ${plexMono.variable}`}
     >
       <head>
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeInit }} />
+        {/* Browsers hide the nonce content attribute before hydration; the nonce property and CSP remain intact. */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body>
         {/*

@@ -1,3 +1,4 @@
+import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import { publicContact } from "@/lib/public-contact";
@@ -36,4 +37,12 @@ test("shared public settings expose direct anchors while keeping the form collap
   expect(html).toContain("<details");
   expect(html).not.toContain("<details open");
   expect(html).toContain("Prefiero dejar mis datos en un formulario");
+});
+
+test("mobile contact uses exactly phone and contextual WhatsApp links", () => {
+  const html = renderToStaticMarkup(<PropertyMobileCta settings={{ ...settings, telefono: "+52 664 123 4567" }} message="Quiero conocer esta casa" />);
+  expect(html).toContain('href="tel:+526641234567"');
+  expect(html).toContain('href="https://wa.me/526641234567?text=Quiero%20conocer%20esta%20casa"');
+  expect(html).not.toContain("m.me/");
+  expect((html.match(/<a /g) ?? []).length).toBe(2);
 });

@@ -18,6 +18,7 @@ import {
   Users,
   UsersRound,
   Menu,
+  X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import {
@@ -203,7 +204,33 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
   const [menu, setMenu] = React.useState(false);
+  const menuTrigger = React.useRef<HTMLButtonElement>(null);
+  const mobileNav = React.useRef<HTMLElement>(null);
   const boot = React.useRef<Promise<boolean> | null>(null);
+  React.useEffect(() => {
+    if (!menu) return;
+    mobileNav.current?.querySelector<HTMLAnchorElement>("a[href]")?.focus();
+    const closeOutside = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Node && !mobileNav.current?.contains(target) && !menuTrigger.current?.contains(target)) {
+        setMenu(false);
+      }
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setMenu(false);
+      menuTrigger.current?.focus();
+    };
+    document.addEventListener("keydown", escape);
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("focusin", closeOutside);
+    return () => {
+      document.removeEventListener("keydown", escape);
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("focusin", closeOutside);
+    };
+  }, [menu]);
   async function refresh() {
     setRefreshing(true);
     try {
@@ -312,7 +339,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               ? "page"
               : undefined
           }
-          className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-[13.5px] font-medium text-foreground/70 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary"
+          className={"flex min-h-11 min-w-0 items-center rounded-md py-2 text-[13.5px] font-medium text-foreground/70 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary " + (mobile ? "gap-2 px-2" : "gap-3 px-3")}
         >
           <Icon className="size-4 shrink-0" strokeWidth={1.5} />
           {label}
@@ -322,6 +349,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <>
           <Link
             href="/"
+            onClick={() => setMenu(false)}
             className="flex min-h-11 items-center gap-3 px-3 text-sm"
           >
             <ExternalLink className="size-4" />
@@ -372,6 +400,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
           <div className="flex min-h-16 items-center justify-between gap-3 px-5 md:px-8">
             <button
+              ref={menuTrigger}
               type="button"
               className={btnGhost + " md:hidden"}
               aria-label="Menú del panel"
@@ -379,9 +408,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               aria-controls="admin-mobile-nav"
               onClick={() => setMenu(!menu)}
             >
-              <Menu className="size-4" />
-              Módulos
+              {menu ? <X className="size-4" /> : <Menu className="size-4" />}
+              {menu ? "Cerrar" : "Módulos"}
             </button>
+            <p className="min-w-0 text-xs text-muted-foreground md:hidden" aria-live="polite">
+              {refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel"}
+            </p>
             <p className="hidden font-mono text-[11px] text-muted-foreground md:block">
               <FileText className="mr-1.5 inline size-3.5" />
               {session.email} ·{" "}
@@ -391,11 +423,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
           {menu ? (
             <nav
+              ref={mobileNav}
               id="admin-mobile-nav"
               aria-label="Módulos móviles"
-              className="max-h-[75dvh] space-y-1 overflow-y-auto border-t border-border p-3 md:hidden"
+              className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg md:hidden"
             >
-              {links(true)}
+              <p className="mb-3 break-all border-b border-border px-2 pb-3 text-sm text-muted-foreground">
+                {session.email}
+              </p>
+              <div className="grid grid-cols-2 gap-1">{links(true)}</div>
             </nav>
           ) : null}
         </header>

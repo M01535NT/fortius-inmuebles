@@ -4,6 +4,7 @@ import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 import * as React from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { operationalDate } from "@/lib/admin/operational-date";
 
 import {
   Badge,
@@ -45,30 +46,25 @@ const MESES = [
 ];
 const DIAS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
 
-function ymd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 export default function CalendarioPage() {
   const eventos = useCollection(db.eventos);
   const leads = useCollection(db.leads);
+  const hoy = operationalDate();
   const [cursor, setCursor] = React.useState(() => {
-    const d = new Date();
-    return { year: d.getFullYear(), month: d.getMonth() };
+    const [year, month] = hoy.split("-").map(Number);
+    return { year, month: month - 1 };
   });
-  const [seleccion, setSeleccion] = React.useState<string>(() =>
-    ymd(new Date()),
-  );
+  const [seleccion, setSeleccion] = React.useState(hoy);
 
-  const hoy = ymd(new Date());
-  const primerDia = new Date(cursor.year, cursor.month, 1);
-  const totalDias = new Date(cursor.year, cursor.month + 1, 0).getDate();
+  // UTC solo para aritmética de fechas, sin depender de la zona del dispositivo.
+  const primerDia = new Date(Date.UTC(cursor.year, cursor.month, 1));
+  const totalDias = new Date(Date.UTC(cursor.year, cursor.month + 1, 0)).getUTCDate();
   /* Lunes = 0 */
-  const offset = (primerDia.getDay() + 6) % 7;
+  const offset = (primerDia.getUTCDay() + 6) % 7;
   const celdas: (string | null)[] = [
     ...Array.from({ length: offset }, () => null),
     ...Array.from({ length: totalDias }, (_, i) =>
-      ymd(new Date(cursor.year, cursor.month, i + 1)),
+      `${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`,
     ),
   ];
 
@@ -81,8 +77,8 @@ export default function CalendarioPage() {
 
   function mover(delta: number) {
     setCursor(({ year, month }) => {
-      const d = new Date(year, month + delta, 1);
-      return { year: d.getFullYear(), month: d.getMonth() };
+      const d = new Date(Date.UTC(year, month + delta, 1));
+      return { year: d.getUTCFullYear(), month: d.getUTCMonth() };
     });
   }
 
@@ -106,28 +102,28 @@ export default function CalendarioPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <PageHeader
         title="Calendario."
-        description="Visitas, llamadas, firmas y reuniones del equipo."
+        description="Visitas, llamadas, firmas y reuniones del equipo. Horario de Tijuana."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
         {/* Mes */}
-        <section className="min-w-0 rounded-lg border border-border bg-card p-3 sm:p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="display-soft text-lg text-foreground">
+        <section aria-labelledby="calendar-month" className="min-w-0 rounded-lg border border-border bg-card p-3 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <h2 id="calendar-month" className="min-w-0 display-soft text-lg text-foreground">
               {MESES[cursor.month]}{" "}
               <span className="font-mono text-[15px] text-muted-foreground">
                 {cursor.year}
               </span>
             </h2>
-            <div className="flex gap-1.5">
+            <div className="flex shrink-0 gap-1.5">
               <button
                 type="button"
                 aria-label="Mes anterior"
                 onClick={() => mover(-1)}
-                className={btnGhost + " h-9 w-9 p-0"}
+                className={btnGhost + " size-11 shrink-0 p-0"}
               >
                 <ChevronLeft className="size-4" strokeWidth={1.5} />
               </button>
@@ -135,59 +131,59 @@ export default function CalendarioPage() {
                 type="button"
                 aria-label="Mes siguiente"
                 onClick={() => mover(1)}
-                className={btnGhost + " h-9 w-9 p-0"}
+                className={btnGhost + " size-11 shrink-0 p-0"}
               >
                 <ChevronRight className="size-4" strokeWidth={1.5} />
               </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <div className="min-w-[308px] sm:min-w-[332px]">
-              <div className="mt-4 grid grid-cols-7 gap-0 text-center font-mono text-[10.5px] uppercase text-muted-foreground sm:gap-1">
-                {DIAS.map((d) => (
-                  <span key={d} className="py-1">
-                    {d}
-                  </span>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-0 sm:gap-1">
-                {celdas.map((fecha, i) =>
-                  fecha === null ? (
-                    <span key={`x-${i}`} />
-                  ) : (
-                    <button
-                      key={fecha}
-                      type="button"
-                      onClick={() => setSeleccion(fecha)}
-                      aria-pressed={seleccion === fecha}
-                      className={
-                        "relative aspect-square rounded-md border text-[13px] transition-colors " +
-                        (seleccion === fecha
-                          ? "border-primary/60 bg-primary/10 font-semibold text-primary"
-                          : fecha === hoy
-                            ? "border-border bg-secondary font-semibold text-foreground"
-                            : "border-transparent text-foreground/75 hover:bg-secondary/60")
-                      }
-                    >
-                      {Number(fecha.slice(8, 10))}
-                      {porDia.get(fecha) ? (
-                        <span
-                          aria-label={`${porDia.get(fecha)} eventos`}
-                          className="absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary"
-                        />
-                      ) : null}
-                    </button>
-                  ),
-                )}
-              </div>
+          <div className="min-w-0">
+            <div className="mt-4 grid grid-cols-7 gap-0 text-center font-mono text-[10.5px] uppercase text-muted-foreground sm:gap-1">
+              {DIAS.map((d) => (
+                <span key={d} className="py-1">
+                  {d}
+                </span>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-0 sm:gap-1">
+              {celdas.map((fecha, i) =>
+                fecha === null ? (
+                  <span key={`x-${i}`} />
+                ) : (
+                  <button
+                    key={fecha}
+                    type="button"
+                    onClick={() => setSeleccion(fecha)}
+                    aria-label={`${Number(fecha.slice(8, 10))} de ${MESES[cursor.month].toLowerCase()} de ${cursor.year}${porDia.get(fecha) ? `, ${porDia.get(fecha)} eventos` : ""}`}
+                    aria-pressed={seleccion === fecha}
+                    aria-current={fecha === hoy ? "date" : undefined}
+                    className={
+                      "relative min-h-11 min-w-0! w-full rounded-md border py-2 text-[13px] transition-colors sm:aspect-square " +
+                      (seleccion === fecha
+                        ? "border-primary/60 bg-primary/10 font-semibold text-primary"
+                        : fecha === hoy
+                          ? "border-border bg-secondary font-semibold text-foreground"
+                          : "border-transparent text-foreground/75 hover:bg-secondary/60")
+                    }
+                  >
+                    {Number(fecha.slice(8, 10))}
+                    {porDia.get(fecha) ? (
+                      <span
+                        aria-hidden="true"
+                        className="absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary"
+                      />
+                    ) : null}
+                  </button>
+                ),
+              )}
             </div>
           </div>
         </section>
 
         {/* Día seleccionado */}
-        <section className="rounded-lg border border-border bg-card p-5">
-          <h2 className="display-soft text-lg text-foreground">
+        <section aria-labelledby="calendar-selected-day" className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-5">
+          <h2 id="calendar-selected-day" className="display-soft text-lg text-foreground">
             {Number(seleccion.slice(8, 10))} de{" "}
             {MESES[Number(seleccion.slice(5, 7)) - 1].toLowerCase()}
           </h2>
@@ -199,23 +195,23 @@ export default function CalendarioPage() {
                 return (
                   <li
                     key={evento.id}
-                    className="flex items-center justify-between gap-3 py-3"
+                    className="flex min-w-0 items-start justify-between gap-3 py-3"
                   >
                     <div className="min-w-0">
-                      <p className="flex items-center gap-2 text-[14px] text-foreground">
+                      <p className="flex min-w-0 flex-col items-start gap-1 text-[14px] text-foreground">
                         {evento.hora ? (
                           <span className="font-mono text-[12px] text-primary">
                             {evento.hora}
                           </span>
                         ) : null}
-                        <span className="truncate">{evento.titulo}</span>
+                        <span className="max-w-full [overflow-wrap:anywhere]">{evento.titulo}</span>
                       </p>
-                      <p className="mt-0.5 flex items-center gap-2 text-[12px] text-muted-foreground">
+                      <p className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
                         <Badge>{EVENTO_TIPO_LABELS[evento.tipo]}</Badge>
                         {lead ? (
                           <Link
                             href={`/admin/leads/${lead.id}`}
-                            className="truncate text-primary hover:text-foreground"
+                            className="inline-flex min-h-11 max-w-full items-center text-primary [overflow-wrap:anywhere] hover:text-foreground"
                           >
                             {lead.nombre}
                           </Link>
@@ -233,7 +229,7 @@ export default function CalendarioPage() {
                             db.eventos.version(evento),
                           );
                       }}
-                      className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
+                      className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
                     >
                       <Trash2 className="size-3.5" strokeWidth={1.5} />
                     </AsyncButton>
@@ -260,7 +256,7 @@ export default function CalendarioPage() {
                 className={inputClass}
               />
             </Field>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Fecha" htmlFor="cal-fecha">
                 <input
                   id="cal-fecha"
@@ -281,7 +277,7 @@ export default function CalendarioPage() {
                 />
               </Field>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Tipo" htmlFor="cal-tipo">
                 <select id="cal-tipo" name="tipo" className={selectClass}>
                   {EVENTO_TIPOS.map((t) => (

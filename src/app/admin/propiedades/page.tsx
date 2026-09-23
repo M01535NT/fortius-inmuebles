@@ -16,6 +16,7 @@ import {
   OPERACION_LABELS,
   TIPO_LABELS,
   formatPrecio,
+  type Property,
 } from "@/data/propiedades";
 import {
   db,
@@ -30,6 +31,7 @@ import {
 */
 export default function AdminPropiedadesPage() {
   const propiedades = useCollection(db.propiedades);
+  const asesores = useCollection(db.asesores);
 
   async function eliminar(
     slug: string,
@@ -44,7 +46,7 @@ export default function AdminPropiedadesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <PageHeader
         title="Inmuebles."
         description="Alta, edición y baja del inventario. Los PDFs de cada inmueble se administran dentro de su formulario."
@@ -62,142 +64,230 @@ export default function AdminPropiedadesPage() {
           hint="Crea el primero con el botón de arriba."
         />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
-          <table className="w-full min-w-[820px] text-left text-[13.5px]">
-            <thead>
-              <tr className="border-b border-border font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
-                <th className="px-4 py-3 font-medium">Código</th>
-                <th className="px-4 py-3 font-medium">Inmueble</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Precio</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium">PDFs</th>
-                <th className="px-4 py-3 text-right font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {propiedades.map((p) => (
-                <tr
-                  key={p.slug}
-                  className="align-middle transition-colors hover:bg-secondary/40"
-                >
-                  <td className="px-4 py-3 font-mono text-[12px] text-muted-foreground">
-                    {p.codigo}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <AsyncButton
-                        type="button"
-                        aria-label={
-                          p.destacada
-                            ? "Quitar de destacadas"
-                            : "Marcar destacada"
-                        }
-                        aria-pressed={p.destacada}
-                        onClick={async () =>
-                          await upsertPropiedad(
-                            { ...p, destacada: !p.destacada },
-                            db.propiedades.version(p),
-                          )
-                        }
-                        className={
-                          "shrink-0 transition-colors " +
-                          (p.destacada
-                            ? "text-primary"
-                            : "text-muted-foreground/40 hover:text-muted-foreground")
-                        }
-                      >
-                        <Star
-                          className="size-4"
-                          strokeWidth={1.5}
-                          fill={p.destacada ? "currentColor" : "none"}
-                        />
-                      </AsyncButton>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-foreground">
-                          {p.titulo}
-                        </p>
-                        <Badge tone={p.publicada ? "green" : "neutral"}>
-                          {p.publicada ? "Publicado" : "No publicado"}
-                        </Badge>{" "}
-                        {p.demo ? <Badge tone="amber">Demo</Badge> : null}
-                        <p className="truncate text-[12px] text-muted-foreground">
-                          {p.zona} · {OPERACION_LABELS[p.operacion]}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {TIPO_LABELS[p.tipo]}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-[12.5px] text-foreground">
-                    {formatPrecio(p.precio)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <label className="sr-only" htmlFor={`estado-${p.slug}`}>
-                      Estado de {p.titulo}
-                    </label>
-                    <AsyncSelect
-                      id={`estado-${p.slug}`}
-                      value={p.estado}
-                      onChange={async (value) =>
-                        await upsertPropiedad(
-                          { ...p, estado: value as typeof p.estado },
-                          db.propiedades.version(p),
-                        )
-                      }
-                      className="h-8 rounded-md border border-input bg-background px-2 text-[12.5px] text-foreground"
-                    >
-                      {Object.entries(ESTADO_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </AsyncSelect>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge
-                      tone={
-                        (p.documentos?.length ?? 0) > 0 ? "green" : "neutral"
-                      }
-                    >
-                      {String(p.documentos?.length ?? 0).padStart(2, "0")}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Link
-                        href={`/inventario/${p.slug}`}
-                        target="_blank"
-                        className="rounded-md px-2 py-1.5 text-[12.5px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                      >
-                        Ver
-                      </Link>
-                      <Link
-                        href={`/admin/propiedades/${p.slug}/editar`}
-                        aria-label={`Editar ${p.titulo}`}
-                        className="rounded-md border border-border p-2 text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
-                      >
-                        <Pencil className="size-3.5" strokeWidth={1.5} />
-                      </Link>
-                      <AsyncButton
-                        type="button"
-                        aria-label={`Eliminar ${p.titulo}`}
-                        onClick={() =>
-                          eliminar(p.slug, p.titulo, db.propiedades.version(p))
-                        }
-                        className="rounded-md border border-border p-2 text-foreground/70 transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="size-3.5" strokeWidth={1.5} />
-                      </AsyncButton>
-                    </div>
-                  </td>
+        <>
+          <ul aria-label="Inmuebles" className="min-w-0 space-y-3 lg:hidden">
+            {propiedades.map((p) => (
+              <li
+                key={p.slug}
+                className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4 [overflow-wrap:anywhere]"
+              >
+                <p className="font-mono text-xs text-muted-foreground">{p.codigo}</p>
+                <h2>
+                  <Link
+                    href={`/admin/propiedades/${p.slug}/editar`}
+                    className="flex min-h-11 items-center text-base font-semibold text-foreground hover:text-primary"
+                  >
+                    {p.titulo}
+                  </Link>
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  <Badge tone={p.publicada ? "green" : "neutral"}>
+                    {p.publicada ? "Publicado" : "No publicado"}
+                  </Badge>
+                  {p.demo ? <Badge tone="amber">Demo</Badge> : null}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {p.zona} · {TIPO_LABELS[p.tipo]} · {OPERACION_LABELS[p.operacion]}
+                </p>
+                <p className="font-mono text-base font-medium text-foreground">
+                  {formatPrecio(p.precio)}
+                </p>
+                <dl className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 text-sm">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">Asesor</dt>
+                    <dd className="mt-1">
+                      {asesores.find((a) => a.id === p.asesorId)?.nombre ?? "Sin asignar"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">PDFs</dt>
+                    <dd className="mt-1">{p.documentos?.length ?? 0}</dd>
+                  </div>
+                </dl>
+                <div className="min-w-0 space-y-1.5">
+                  <p className="text-xs text-muted-foreground">Estado</p>
+                  <PropertyStatus property={p} />
+                </div>
+                <FeaturedButton property={p} showLabel />
+                <PropertyActions
+                  property={p}
+                  onDelete={() => eliminar(p.slug, p.titulo, db.propiedades.version(p))}
+                  showLabels
+                />
+              </li>
+            ))}
+          </ul>
+          <div className="hidden min-w-0 overflow-x-auto rounded-lg border border-border bg-card lg:block">
+            <table className="w-full min-w-[820px] text-left text-[13.5px]">
+              <thead>
+                <tr className="border-b border-border font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
+                  <th className="px-4 py-3 font-medium">Código</th>
+                  <th className="px-4 py-3 font-medium">Inmueble</th>
+                  <th className="px-4 py-3 font-medium">Tipo</th>
+                  <th className="px-4 py-3 font-medium">Precio</th>
+                  <th className="px-4 py-3 font-medium">Estado</th>
+                  <th className="px-4 py-3 font-medium">PDFs</th>
+                  <th className="px-4 py-3 text-right font-medium">Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {propiedades.map((p) => (
+                  <tr
+                    key={p.slug}
+                    className="align-middle transition-colors hover:bg-secondary/40"
+                  >
+                    <td className="px-4 py-3 font-mono text-[12px] text-muted-foreground">
+                      {p.codigo}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <FeaturedButton property={p} />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">
+                            {p.titulo}
+                          </p>
+                          <Badge tone={p.publicada ? "green" : "neutral"}>
+                            {p.publicada ? "Publicado" : "No publicado"}
+                          </Badge>{" "}
+                          {p.demo ? <Badge tone="amber">Demo</Badge> : null}
+                          <p className="truncate text-[12px] text-muted-foreground">
+                            {p.zona} · {OPERACION_LABELS[p.operacion]}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {TIPO_LABELS[p.tipo]}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-[12.5px] text-foreground">
+                      {formatPrecio(p.precio)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <PropertyStatus property={p} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge
+                        tone={
+                          (p.documentos?.length ?? 0) > 0 ? "green" : "neutral"
+                        }
+                      >
+                        {String(p.documentos?.length ?? 0).padStart(2, "0")}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <PropertyActions
+                        property={p}
+                        onDelete={() => eliminar(p.slug, p.titulo, db.propiedades.version(p))}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function PropertyStatus({ property }: { property: Property }) {
+  return (
+    <AsyncSelect
+      aria-label={`Estado de ${property.titulo}`}
+      value={property.estado}
+      onChange={async (value) =>
+        await upsertPropiedad(
+          { ...property, estado: value as Property["estado"] },
+          db.propiedades.version(property),
+        )
+      }
+      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:text-[12.5px]"
+    >
+      {Object.entries(ESTADO_LABELS).map(([value, label]) => (
+        <option key={value} value={value}>
+          {label}
+        </option>
+      ))}
+    </AsyncSelect>
+  );
+}
+
+function FeaturedButton({
+  property,
+  showLabel = false,
+}: {
+  property: Property;
+  showLabel?: boolean;
+}) {
+  return (
+    <AsyncButton
+      type="button"
+      aria-label={`${property.destacada ? "Quitar de destacadas" : "Marcar destacada"}: ${property.titulo}`}
+      aria-pressed={property.destacada}
+      onClick={async () =>
+        await upsertPropiedad(
+          { ...property, destacada: !property.destacada },
+          db.propiedades.version(property),
+        )
+      }
+      className={
+        "inline-flex items-center justify-center gap-2 rounded-md px-2 text-sm transition-colors hover:bg-secondary " +
+        (property.destacada ? "text-primary" : "text-muted-foreground")
+      }
+    >
+      <Star
+        className="size-4 shrink-0"
+        strokeWidth={1.5}
+        fill={property.destacada ? "currentColor" : "none"}
+      />
+      {showLabel ? (property.destacada ? "Destacada" : "Marcar destacada") : null}
+    </AsyncButton>
+  );
+}
+
+function PropertyActions({
+  property,
+  onDelete,
+  showLabels = false,
+}: {
+  property: Property;
+  onDelete: () => Promise<void>;
+  showLabels?: boolean;
+}) {
+  const actionClass =
+    "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-border px-2 text-[12.5px] font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground";
+  return (
+    <div
+      className={showLabels
+        ? "flex min-w-0 flex-wrap items-start gap-2 border-t border-border pt-3"
+        : "flex items-start justify-end gap-1.5"}
+    >
+      <Link
+        href={`/inventario/${property.slug}`}
+        target="_blank"
+        aria-label={`Ver ${property.titulo}`}
+        className={actionClass}
+      >
+        Ver
+      </Link>
+      <Link
+        href={`/admin/propiedades/${property.slug}/editar`}
+        aria-label={`Editar ${property.titulo}`}
+        className={actionClass}
+      >
+        <Pencil className="size-3.5 shrink-0" strokeWidth={1.5} />
+        {showLabels ? "Editar" : null}
+      </Link>
+      <AsyncButton
+        type="button"
+        aria-label={`Eliminar ${property.titulo}`}
+        onClick={onDelete}
+        className={actionClass + " hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"}
+      >
+        <Trash2 className="size-3.5 shrink-0" strokeWidth={1.5} />
+        {showLabels ? "Eliminar" : null}
+      </AsyncButton>
     </div>
   );
 }

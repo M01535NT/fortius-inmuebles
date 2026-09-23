@@ -110,7 +110,9 @@ test("legacy price URLs default to MXN and explicit all currency remains availab
 test("visit CTA targets the current property form and records visit intent", async () => {
   window.history.replaceState(null, "", "/inventario/casa-prueba?intencion=visita#interes");
   const cta = renderToStaticMarkup(<PropertyMobileCta />);
-  expect(cta).toContain('href="?intencion=visita#interes"');
+  expect(cta).toContain("Llamar");
+  expect(cta).toContain("WhatsApp");
+  expect(cta).not.toContain("Agendar visita");
   render(<PropertyInterestForm slug="casa-prueba" codigo="C-1" titulo="Casa prueba" />);
   expect(await screen.findByDisplayValue("visita")).toBeTruthy();
   expect(screen.getByRole("button", { name: "Solicitar visita" })).toBeTruthy();

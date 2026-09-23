@@ -22,6 +22,7 @@ import {
   type TipoPropiedad,
 } from "@/data/propiedades";
 import { zonas } from "@/data/zonas";
+import { operationalDate } from "@/lib/admin/operational-date";
 import { db, upsertPropiedad, useCollection } from "@/lib/admin/store";
 
 /*
@@ -33,6 +34,17 @@ import { db, upsertPropiedad, useCollection } from "@/lib/admin/store";
   propiedad" del detalle público (con captura de datos del interesado).
 */
 type Props = { initial?: Property };
+
+const formSections = [
+  { id: "pf-basicos", label: "Datos básicos" },
+  { id: "pf-precio", label: "Precio" },
+  { id: "pf-ubicacion", label: "Ubicación" },
+  { id: "pf-contenido", label: "Descripción y ficha" },
+  { id: "pf-multimedia", label: "Multimedia" },
+  { id: "pf-documentos", label: "Documentos" },
+];
+const sectionClass =
+  "scroll-mt-20 rounded-lg border border-border bg-card p-5 md:p-6";
 
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {
@@ -174,10 +186,13 @@ export function PropertyForm({ initial: source }: Props) {
     "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground";
 
   return (
-    <AsyncForm onSubmit={onSubmit} className="max-w-[880px] space-y-8">
+    <AsyncForm
+      onSubmit={onSubmit}
+      className="max-w-[880px] space-y-8 [&_input]:scroll-mt-24 [&_input]:scroll-mb-52 [&_select]:scroll-mt-24 [&_select]:scroll-mb-52 [&_textarea]:scroll-mt-24 [&_textarea]:scroll-mb-52"
+    >
       {/* Básicos */}
-      <section className="rounded-lg border border-border bg-card p-5 md:p-6">
-        <h2 className="display-soft text-lg text-foreground">Datos básicos</h2>
+      <section id="pf-basicos" aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-basicos-heading" className="display-soft text-lg text-foreground">Datos básicos</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="Título" htmlFor="pf-titulo" className="sm:col-span-2">
             <input
@@ -271,8 +286,7 @@ export function PropertyForm({ initial: source }: Props) {
               type="date"
               required
               defaultValue={
-                initial?.publicadaEl.slice(0, 10) ??
-                new Date().toISOString().slice(0, 10)
+                initial?.publicadaEl.slice(0, 10) ?? operationalDate()
               }
               className={inputClass}
             />
@@ -317,8 +331,8 @@ export function PropertyForm({ initial: source }: Props) {
       </section>
 
       {/* Precio */}
-      <section className="rounded-lg border border-border bg-card p-5 md:p-6">
-        <h2 className="display-soft text-lg text-foreground">Precio</h2>
+      <section id="pf-precio" aria-labelledby="pf-precio-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-precio-heading" className="display-soft text-lg text-foreground">Precio</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <Field label="Modalidad" htmlFor="pf-modalidad">
             <select
@@ -368,8 +382,8 @@ export function PropertyForm({ initial: source }: Props) {
       </section>
 
       {/* Ubicación */}
-      <section className="rounded-lg border border-border bg-card p-5 md:p-6">
-        <h2 className="display-soft text-lg text-foreground">Ubicación</h2>
+      <section id="pf-ubicacion" aria-labelledby="pf-ubicacion-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-ubicacion-heading" className="display-soft text-lg text-foreground">Ubicación</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="Zona" htmlFor="pf-zona">
             <input
@@ -457,8 +471,8 @@ export function PropertyForm({ initial: source }: Props) {
       </section>
 
       {/* Contenido */}
-      <section className="rounded-lg border border-border bg-card p-5 md:p-6">
-        <h2 className="display-soft text-lg text-foreground">
+      <section id="pf-contenido" aria-labelledby="pf-contenido-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-contenido-heading" className="display-soft text-lg text-foreground">
           Descripción y ficha
         </h2>
         <div className="mt-5 space-y-4">
@@ -557,8 +571,8 @@ export function PropertyForm({ initial: source }: Props) {
       </section>
 
       {/* Multimedia */}
-      <section className="rounded-lg border border-border bg-card p-5 md:p-6">
-        <h2 className="display-soft text-lg text-foreground">Multimedia</h2>
+      <section id="pf-multimedia" aria-labelledby="pf-multimedia-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-multimedia-heading" className="display-soft text-lg text-foreground">Multimedia</h2>
         <p className="mt-1.5 text-[12.5px] text-muted-foreground">
           Puedes usar URLs o cargar material público validado. No incluyas
           documentos confidenciales.
@@ -679,8 +693,8 @@ export function PropertyForm({ initial: source }: Props) {
       </section>
 
       {/* Documentos PDF */}
-      <section className="rounded-lg border border-border bg-card p-5 md:p-6">
-        <h2 className="display-soft text-lg text-foreground">
+      <section id="pf-documentos" aria-labelledby="pf-documentos-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-documentos-heading" className="display-soft text-lg text-foreground">
           Documentos descargables (PDF)
         </h2>
         <p className="mt-1.5 text-[12.5px] text-muted-foreground">
@@ -785,26 +799,51 @@ export function PropertyForm({ initial: source }: Props) {
         </button>
       </section>
 
-      {error ? (
-        <p
-          role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-[13px] text-destructive"
-        >
-          {error}
-        </p>
-      ) : null}
-
-      <div className="flex gap-3">
-        <button type="submit" className={btnPrimary}>
-          {initial ? "Guardar cambios" : "Crear inmueble"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push("/admin/propiedades")}
-          className={btnGhost}
-        >
-          Cancelar
-        </button>
+      {/* Sticky stays in flow, reserving its own space after the final fields. */}
+      <div className="sticky bottom-0 z-20 space-y-3 rounded-lg border border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
+        {error ? (
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-[13px] text-destructive"
+          >
+            {error}
+          </p>
+        ) : null}
+        <div className="flex flex-wrap items-end gap-3">
+          <nav aria-label="Secciones del inmueble" className="w-full min-w-0 sm:flex-1">
+            <label htmlFor="pf-seccion" className="sr-only">Ir a sección</label>
+            <select
+              id="pf-seccion"
+              defaultValue=""
+              className={selectClass}
+              onChange={(event) => {
+                const select = event.currentTarget;
+                const section = document.getElementById(select.value);
+                if (!section) return;
+                section.focus({ preventScroll: true });
+                section.scrollIntoView({ block: "start" });
+                select.value = "";
+              }}
+            >
+              <option value="" disabled>Ir a sección…</option>
+              {formSections.map((section) => (
+                <option key={section.id} value={section.id}>{section.label}</option>
+              ))}
+            </select>
+          </nav>
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+            <button type="submit" className={btnPrimary + " flex-1 sm:flex-none"}>
+              {initial ? "Guardar cambios" : "Crear inmueble"}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/admin/propiedades")}
+              className={btnGhost + " flex-1 sm:flex-none"}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
       </div>
     </AsyncForm>
   );

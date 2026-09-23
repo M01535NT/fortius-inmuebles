@@ -4,7 +4,7 @@ import { AsyncForm, AsyncSelect } from "@/components/admin/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 import {
   Badge,
@@ -37,6 +37,13 @@ export default function AdminLeadsPage() {
   const asesores = useCollection(db.asesores);
   const [estado, setEstado] = React.useState<LeadEstado | "todos">("todos");
   const [busqueda, setBusqueda] = React.useState("");
+  const [capturaAbierta, setCapturaAbierta] = React.useState(false);
+  const [guardando, setGuardando] = React.useState(false);
+  const nombreInput = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (capturaAbierta) nombreInput.current?.focus();
+  }, [capturaAbierta]);
 
   const filtrados = leads
     .filter((l) => estado === "todos" || l.estado === estado)
@@ -51,7 +58,8 @@ export default function AdminLeadsPage() {
 
   async function nuevoManual(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const data = new FormData(form);
     const lead: Lead = {
       id: uid(),
       nombre: String(data.get("nombre") ?? ""),
@@ -61,64 +69,99 @@ export default function AdminLeadsPage() {
       creadoEl: new Date().toISOString(),
       notas: [],
     };
-    await upsert(db.leads, lead, null);
-    router.push(`/admin/leads/${lead.id}`);
+    setGuardando(true);
+    try {
+      await upsert(db.leads, lead, null);
+      form.reset();
+      setCapturaAbierta(false);
+      router.push(`/admin/leads/${lead.id}`);
+    } finally {
+      setGuardando(false);
+    }
   }
 
   const chip =
-    "inline-flex h-8 items-center rounded-md border px-3 text-[12.5px] font-medium transition-colors";
+    "inline-flex min-h-11 items-center rounded-md border px-3 text-[12.5px] font-medium transition-colors";
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <PageHeader
         title="Leads."
         description="Cada formulario del sitio captura aquí: evaluación, contacto, interés por propiedad, checklist y descargas de documentos."
+        actions={
+          <button
+            type="button"
+            aria-expanded={capturaAbierta}
+            aria-controls="captura-manual-lead"
+            disabled={guardando}
+            onClick={() => setCapturaAbierta((abierta) => !abierta)}
+            className={btnPrimary}
+          >
+            {capturaAbierta ? (
+              <X className="size-4" strokeWidth={1.5} />
+            ) : (
+              <Plus className="size-4" strokeWidth={1.5} />
+            )}
+            {capturaAbierta ? "Cerrar captura" : "Nuevo lead"}
+          </button>
+        }
       />
       <DemoBanner />
 
       {/* Alta manual rápida */}
-      <AsyncForm
-        onSubmit={nuevoManual}
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4"
-      >
-        <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
-          <label
-            htmlFor="nuevo-nombre"
-            className="text-[12.5px] font-medium text-foreground"
-          >
-            Nombre
-          </label>
-          <input
-            id="nuevo-nombre"
-            name="nombre"
-            required
-            placeholder="Lead capturado por teléfono…"
-            className={inputClass}
-          />
-        </div>
-        <div className="flex min-w-[150px] flex-col gap-1.5">
-          <label
-            htmlFor="nuevo-telefono"
-            className="text-[12.5px] font-medium text-foreground"
-          >
-            Teléfono
-          </label>
-          <input
-            id="nuevo-telefono"
-            name="telefono"
-            required
-            type="tel"
-            placeholder="664 000 0000"
-            className={inputClass}
-          />
-        </div>
-        <button type="submit" className={btnPrimary}>
-          <Plus className="size-4" strokeWidth={1.5} /> Capturar lead
-        </button>
-      </AsyncForm>
+      <div id="captura-manual-lead" hidden={!capturaAbierta}>
+        <AsyncForm
+          onSubmit={nuevoManual}
+          className="grid min-w-0 gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end [&>[role=alert]]:col-span-full [&>[role=status]]:col-span-full"
+        >
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <label
+              htmlFor="nuevo-nombre"
+              className="text-[12.5px] font-medium text-foreground"
+            >
+              Nombre
+            </label>
+            <input
+              id="nuevo-nombre"
+              ref={nombreInput}
+              name="nombre"
+              required
+              placeholder="Lead capturado por teléfono…"
+              className={inputClass}
+            />
+          </div>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <label
+              htmlFor="nuevo-telefono"
+              className="text-[12.5px] font-medium text-foreground"
+            >
+              Teléfono
+            </label>
+            <input
+              id="nuevo-telefono"
+              name="telefono"
+              required
+              type="tel"
+              placeholder="664 000 0000"
+              className={inputClass}
+            />
+          </div>
+          <button type="submit" className={btnPrimary}>
+            <Plus className="size-4" strokeWidth={1.5} /> Capturar lead
+          </button>
+        </AsyncForm>
+      </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex min-w-0 flex-col gap-3">
+        <input
+          type="search"
+          aria-label="Buscar lead"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar por nombre, teléfono, zona…"
+          className={inputClass + " lg:max-w-sm"}
+        />
         <div
           className="flex flex-wrap gap-1.5"
           role="group"
@@ -157,14 +200,6 @@ export default function AdminLeadsPage() {
             );
           })}
         </div>
-        <input
-          type="search"
-          aria-label="Buscar lead"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar por nombre, teléfono, zona…"
-          className={inputClass + " h-8 max-w-[260px] text-[12.5px]"}
-        />
       </div>
 
       {filtrados.length === 0 ? (
@@ -173,80 +208,101 @@ export default function AdminLeadsPage() {
           hint="Los formularios del sitio capturan leads en el servidor."
         />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
-          <table className="w-full min-w-[760px] text-left text-[13.5px]">
-            <thead>
-              <tr className="border-b border-border font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
-                <th className="px-4 py-3 font-medium">Lead</th>
-                <th className="px-4 py-3 font-medium">Origen</th>
-                <th className="px-4 py-3 font-medium">Asesor</th>
-                <th className="px-4 py-3 font-medium">Recibido</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtrados.map((lead) => {
-                const asesor = asesores.find((a) => a.id === lead.asesorId);
-                return (
-                  <tr
-                    key={lead.id}
-                    className="transition-colors hover:bg-secondary/40"
-                  >
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/leads/${lead.id}`}
-                        className="group block min-w-0"
-                      >
-                        <p className="truncate font-medium text-foreground group-hover:text-primary">
-                          {lead.nombre}
-                        </p>
-                        <p className="truncate text-[12px] text-muted-foreground">
-                          {lead.telefono}
-                          {lead.zona ? ` · ${lead.zona}` : ""}
-                        </p>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-[12.5px] text-muted-foreground">
-                      {LEAD_ORIGEN_LABELS[lead.origen]}
-                    </td>
-                    <td className="px-4 py-3 text-[12.5px] text-muted-foreground">
-                      {asesor?.nombre ?? "Sin asignar"}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-[12px] text-muted-foreground">
-                      {fechaCorta(lead.creadoEl)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <label
-                        className="sr-only"
-                        htmlFor={`lead-estado-${lead.id}`}
-                      >
-                        Estado de {lead.nombre}
-                      </label>
-                      <AsyncSelect
-                        id={`lead-estado-${lead.id}`}
-                        value={lead.estado}
-                        onChange={async (value) =>
-                          await upsert(
-                            db.leads,
-                            { ...lead, estado: value as LeadEstado },
-                            db.leads.version(lead),
-                          )
-                        }
-                        className="h-8 rounded-md border border-input bg-background px-2 text-[12.5px] text-foreground"
-                      >
-                        {LEAD_ESTADOS.map((value) => (
-                          <option key={value} value={value}>
-                            {LEAD_ESTADO_LABELS[value]}
-                          </option>
-                        ))}
-                      </AsyncSelect>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <ul aria-label="Leads" className="min-w-0 space-y-3 lg:hidden">
+            {filtrados.map((lead) => {
+              const asesor = asesores.find((a) => a.id === lead.asesorId);
+              return (
+                <li
+                  key={lead.id}
+                  className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4 [overflow-wrap:anywhere]"
+                >
+                  <h2>
+                    <Link
+                      href={`/admin/leads/${lead.id}`}
+                      className="flex min-h-11 items-center text-base font-semibold text-foreground hover:text-primary"
+                    >
+                      {lead.nombre}
+                    </Link>
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {lead.telefono}
+                    {lead.zona ? ` · ${lead.zona}` : ""}
+                  </p>
+                  <dl className="grid min-w-0 grid-cols-2 gap-3 text-sm">
+                    <div className="min-w-0">
+                      <dt className="text-xs text-muted-foreground">Origen</dt>
+                      <dd className="mt-1">{LEAD_ORIGEN_LABELS[lead.origen]}</dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-xs text-muted-foreground">Recibido</dt>
+                      <dd className="mt-1">{fechaCorta(lead.creadoEl)}</dd>
+                    </div>
+                    <div className="col-span-2 min-w-0">
+                      <dt className="text-xs text-muted-foreground">Asesor</dt>
+                      <dd className="mt-1">{asesor?.nombre ?? "Sin asignar"}</dd>
+                    </div>
+                  </dl>
+                  <div className="min-w-0 space-y-1.5">
+                    <p className="text-xs text-muted-foreground">Estado</p>
+                    <LeadStatus lead={lead} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="hidden min-w-0 overflow-x-auto rounded-lg border border-border bg-card lg:block">
+            <table className="w-full min-w-[760px] text-left text-[13.5px]">
+              <thead>
+                <tr className="border-b border-border font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
+                  <th className="px-4 py-3 font-medium">Lead</th>
+                  <th className="px-4 py-3 font-medium">Origen</th>
+                  <th className="px-4 py-3 font-medium">Asesor</th>
+                  <th className="px-4 py-3 font-medium">Recibido</th>
+                  <th className="px-4 py-3 font-medium">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtrados.map((lead) => {
+                  const asesor = asesores.find((a) => a.id === lead.asesorId);
+                  return (
+                    <tr
+                      key={lead.id}
+                      className="transition-colors hover:bg-secondary/40"
+                    >
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/admin/leads/${lead.id}`}
+                          className="group block min-h-11 min-w-0"
+                        >
+                          <p className="truncate font-medium text-foreground group-hover:text-primary">
+                            {lead.nombre}
+                          </p>
+                          <p className="truncate text-[12px] text-muted-foreground">
+                            {lead.telefono}
+                            {lead.zona ? ` · ${lead.zona}` : ""}
+                          </p>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-[12.5px] text-muted-foreground">
+                        {LEAD_ORIGEN_LABELS[lead.origen]}
+                      </td>
+                      <td className="px-4 py-3 text-[12.5px] text-muted-foreground">
+                        {asesor?.nombre ?? "Sin asignar"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-[12px] text-muted-foreground">
+                        {fechaCorta(lead.creadoEl)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <LeadStatus lead={lead} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {leads.some((l) => l.estado === "nuevo") ? (
@@ -256,5 +312,28 @@ export default function AdminLeadsPage() {
         </p>
       ) : null}
     </div>
+  );
+}
+
+function LeadStatus({ lead }: { lead: Lead }) {
+  return (
+    <AsyncSelect
+      aria-label={`Estado de ${lead.nombre}`}
+      value={lead.estado}
+      onChange={async (value) =>
+        await upsert(
+          db.leads,
+          { ...lead, estado: value as LeadEstado },
+          db.leads.version(lead),
+        )
+      }
+      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:text-[12.5px]"
+    >
+      {LEAD_ESTADOS.map((value) => (
+        <option key={value} value={value}>
+          {LEAD_ESTADO_LABELS[value]}
+        </option>
+      ))}
+    </AsyncSelect>
   );
 }

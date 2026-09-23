@@ -1,0 +1,155 @@
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import LeadsPage from "@/app/admin/leads/page";
+import PropiedadesPage from "@/app/admin/propiedades/page";
+import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
+import { propiedades } from "@/data/propiedades";
+
+const { push } = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
+const lead: Lead = {
+  id: "lead-movil",
+  nombre: "Cliente con nombre y apellidos extensos para revisar la lista desde el teléfono",
+  telefono: "664 123 4567",
+  estado: "nuevo",
+  origen: "manual",
+  asesorId: "asesor-01",
+  creadoEl: "2026-09-22T18:00:00.000Z",
+  notas: [],
+};
+const property = {
+  ...propiedades[0],
+  titulo: "Residencia con un título extenso que debe conservarse completo dentro de su tarjeta móvil",
+  destacada: false,
+  publicada: true,
+};
+let rejectWrites = false;
+let writes: { url: string; method: string; version: number | null }[] = [];
+
+beforeEach(() => {
+  clearAdminCache();
+  push.mockReset();
+  writes = [];
+  rejectWrites = false;
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+    if (init?.method === "PUT" || init?.method === "DELETE") {
+      const body = JSON.parse(String(init.body));
+      writes.push({ url, method: init.method, version: body.version });
+      if (rejectWrites) return Response.json({ error: "No se guardó" }, { status: 503 });
+      if (init.method === "DELETE") return Response.json({ ok: true });
+      return Response.json({ record: {
+        id: body.data.id ?? body.data.slug, data: body.data,
+        version: (body.version ?? 0) + 1,
+        createdAt: "2026-09-22", updatedAt: "2026-09-22",
+      } });
+    }
+    const data = url.endsWith("/leads") ? [lead] : url.endsWith("/propiedades") ? [property] : [
+      { id: "asesor-01", nombre: "Asesora de prueba", cargo: "Asesora", iniciales: "AP", activo: true },
+    ];
+    return Response.json({ records: data.map((item) => ({
+      id: "id" in item ? item.id : item.slug, data: item, version: 7,
+      createdAt: "2026-09-22", updatedAt: "2026-09-22",
+    })) });
+  }));
+});
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+test("manual lead capture starts collapsed and keeps an unfinished draft when toggled", async () => {
+  render(<LeadsPage />);
+  const toggle = screen.getByRole("button", { name: "Nuevo lead" });
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
+  fireEvent.click(toggle);
+  fireEvent.change(screen.getByRole("textbox", { name: "Nombre" }), { target: { value: "Borrador manual" } });
+  fireEvent.change(screen.getByRole("textbox", { name: "Teléfono" }), { target: { value: "6641234567" } });
+  fireEvent.click(screen.getByRole("button", { name: "Cerrar captura" }));
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo lead" }));
+  expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("Borrador manual");
+  expect((screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement).value).toBe("6641234567");
+  await screen.findByRole("list", { name: "Leads" });
+  expect(writes).toHaveLength(0);
+});
+
+test("manual capture preserves failed input and only closes after acknowledged save", async () => {
+  render(<LeadsPage />);
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo lead" }));
+  const name = screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement;
+  const phone = screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement;
+  expect(name.required && phone.required).toBe(true);
+  fireEvent.change(name, { target: { value: "Lead capturado" } });
+  fireEvent.change(phone, { target: { value: "6641234567" } });
+  rejectWrites = true;
+  fireEvent.click(screen.getByRole("button", { name: "Capturar lead" }));
+  expect((await screen.findByRole("alert")).textContent).toContain("No se guardó");
+  expect(name.value).toBe("Lead capturado");
+  expect(push).not.toHaveBeenCalled();
+  rejectWrites = false;
+  fireEvent.click(screen.getByRole("button", { name: "Capturar lead" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Nuevo lead" }).getAttribute("aria-expanded")).toBe("false"));
+  const saved = db.leads.list().find((item) => item.nombre === "Lead capturado")!;
+  expect(saved.telefono).toBe("6641234567");
+  expect(push).toHaveBeenCalledWith(`/admin/leads/${saved.id}`);
+  expect(writes.map((write) => write.version)).toEqual([null, null]);
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo lead" }));
+  expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("");
+});
+
+test("mobile lead rows retain details, filters and versioned status updates", async () => {
+  render(<LeadsPage />);
+  const list = await screen.findByRole("list", { name: "Leads" });
+  expect(within(list).getByRole("link", { name: lead.nombre }).getAttribute("href")).toBe(`/admin/leads/${lead.id}`);
+  expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
+  fireEvent.change(within(list).getByRole("combobox", { name: `Estado de ${lead.nombre}` }), { target: { value: "en-evaluacion" } });
+  await waitFor(() => expect(db.leads.list()[0].estado).toBe("en-evaluacion"));
+  expect(writes[0]).toEqual({ url: `/api/admin/collections/leads/${lead.id}`, method: "PUT", version: 7 });
+  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar lead" }), { target: { value: "sin coincidencia" } });
+  expect(screen.getByText("Sin leads con esos criterios.")).toBeTruthy();
+  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar lead" }), { target: { value: "" } });
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo (0)" }));
+  expect(screen.getByText("Sin leads con esos criterios.")).toBeTruthy();
+});
+
+test("mobile property rows expose full details and preserve versioned changes and errors", async () => {
+  render(<PropiedadesPage />);
+  const list = await screen.findByRole("list", { name: "Inmuebles" });
+  expect(within(list).getByRole("link", { name: property.titulo }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
+  expect(within(list).getByText("Publicado")).toBeTruthy();
+  expect(within(list).getByText(/12,850,000 MXN/)).toBeTruthy();
+  expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
+  fireEvent.change(within(list).getByRole("combobox", { name: `Estado de ${property.titulo}` }), { target: { value: "apartada" } });
+  await waitFor(() => expect(db.propiedades.list()[0].estado).toBe("apartada"));
+  expect(writes[0].version).toBe(7);
+  rejectWrites = true;
+  fireEvent.click(within(list).getByRole("button", { name: /Marcar destacada/ }));
+  expect((await within(list).findByRole("alert")).textContent).toContain("No se guardó");
+  expect(db.propiedades.list()[0].destacada).toBe(false);
+  rejectWrites = false;
+  fireEvent.click(within(list).getByRole("button", { name: /Marcar destacada/ }));
+  await waitFor(() => expect(db.propiedades.list()[0].destacada).toBe(true));
+  expect(writes.at(-1)?.version).toBe(8);
+});
+
+test("mobile property deletion requires confirmation and retains the row when the server fails", async () => {
+  render(<PropiedadesPage />);
+  const list = await screen.findByRole("list", { name: "Inmuebles" });
+  const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+  const remove = within(list).getByRole("button", { name: `Eliminar ${property.titulo}` });
+  fireEvent.click(remove);
+  await waitFor(() => expect(remove.getAttribute("aria-busy")).toBe("false"));
+  expect(writes).toHaveLength(0);
+  confirm.mockReturnValue(true);
+  rejectWrites = true;
+  fireEvent.click(remove);
+  await within(list).findByRole("alert");
+  expect(db.propiedades.list()).toHaveLength(1);
+  rejectWrites = false;
+  fireEvent.click(remove);
+  await screen.findByText("Sin inmuebles registrados.");
+  expect(writes.at(-1)).toEqual({ url: `/api/admin/collections/propiedades/${property.slug}`, method: "DELETE", version: 7 });
+});
