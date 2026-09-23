@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
@@ -7,6 +8,8 @@ import { Container } from "@/components/layout/container";
 import { BlogContent } from "@/components/blog/blog-content";
 import { siteConfig } from "@/data/site";
 import { getBlogPostBySlug } from "@/lib/blog";
+import { getBlogCover } from "@/data/blog-covers";
+import { getBlogFigures } from "@/data/blog-figures";
 
 type Params = { slug: string };
 
@@ -21,6 +24,8 @@ export async function generateMetadata({
   const post = await getBlogPostBySlug(slug);
   if (!post) return {};
   const path = `/blog/${post.slug}`;
+  const cover = getBlogCover(post.slug);
+  const coverUrl = cover ? new URL(cover.src, siteConfig.url).href : undefined;
   return {
     title: post.titulo,
     description: post.resumen,
@@ -31,7 +36,11 @@ export async function generateMetadata({
       description: post.resumen,
       url: new URL(path, siteConfig.url).href,
       modifiedTime: post.actualizadoEl,
+      ...(cover && coverUrl ? { images: [{ url: coverUrl, width: cover.width, height: cover.height, alt: cover.alt }] } : {}),
     },
+    ...(coverUrl ? {
+      twitter: { card: "summary_large_image", title: post.titulo, description: post.resumen, images: [coverUrl] },
+    } : {}),
   };
 }
 
@@ -39,6 +48,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
   if (!post) notFound();
+  const cover = getBlogCover(post.slug);
 
   return (
     <main className="bg-background pb-24 pt-28 md:pb-0 md:pt-32">
@@ -73,7 +83,21 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             </p>
           </header>
 
-          <BlogContent content={post.contenido} />
+          {cover && (
+            <figure className="mt-10">
+              <Image
+                {...cover}
+                alt={cover.alt}
+                sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 815px) calc(100vw - 3rem), 768px"
+                className="aspect-[3/2] h-auto w-full rounded-sm object-contain"
+              />
+              <figcaption className="mt-3 text-sm leading-6 text-muted-foreground">
+                Ilustración editorial generada con IA; no representa un inmueble en oferta.
+              </figcaption>
+            </figure>
+          )}
+
+          <BlogContent content={post.contenido} figures={getBlogFigures(post.slug)} />
         </article>
       </Container>
     </main>

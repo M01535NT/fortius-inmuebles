@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/sections/section-heading";
 import { getBlogPosts } from "@/lib/blog";
+import { getBlogCover } from "@/data/blog-covers";
 
 export const metadata: Metadata = {
   title: "Blog inmobiliario",
@@ -48,31 +50,47 @@ export default async function BlogPage() {
           </div>
         ) : (
           <ol className="mt-12 grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-2">
-            {posts.map((post, index) => (
-              <li key={post.id} className="min-w-0 bg-card">
-                <Link
-                  href={`/blog/${post.slug}`}
-                  className="group flex h-full min-h-64 flex-col p-6 transition-colors hover:bg-secondary/60 sm:p-8"
-                >
-                  <div className="flex items-start justify-between gap-6">
-                    <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                      {String(index + 1).padStart(2, "0")} · {formatDate(post.actualizadoEl)}
+            {posts.map((post, index) => {
+              const cover = getBlogCover(post.slug);
+              return (
+                <li key={post.id} className="min-w-0 bg-card">
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="group flex h-full min-h-64 flex-col p-6 transition-colors hover:bg-secondary/60 sm:p-8"
+                  >
+                    {cover && (
+                      <figure className="mb-6">
+                        <Image
+                          {...cover}
+                          alt={cover.alt}
+                          sizes="(max-width: 639px) calc(100vw - 5rem), (max-width: 767px) calc(100vw - 7rem), (max-width: 1023px) calc(50vw - 5.5rem), (max-width: 1239px) calc(50vw - 6rem), 524px"
+                          className="aspect-[3/2] h-auto w-full rounded-sm object-contain"
+                        />
+                        <figcaption className="mt-2 text-sm leading-5 text-muted-foreground">
+                          Ilustración editorial generada con IA; no representa un inmueble en oferta.
+                        </figcaption>
+                      </figure>
+                    )}
+                    <div className="flex items-start justify-between gap-6">
+                      <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                        {String(index + 1).padStart(2, "0")} · {formatDate(post.actualizadoEl)}
+                      </p>
+                      <ArrowUpRight
+                        className="size-5 shrink-0 text-primary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        strokeWidth={1.5}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <h2 className="display-soft mt-8 text-2xl text-foreground sm:text-3xl">
+                      {post.titulo}
+                    </h2>
+                    <p className="mt-4 max-w-[58ch] text-base leading-relaxed text-muted-foreground">
+                      {post.resumen}
                     </p>
-                    <ArrowUpRight
-                      className="size-5 shrink-0 text-primary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                      strokeWidth={1.5}
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <h2 className="display-soft mt-8 text-2xl text-foreground sm:text-3xl">
-                    {post.titulo}
-                  </h2>
-                  <p className="mt-4 max-w-[58ch] text-base leading-relaxed text-muted-foreground">
-                    {post.resumen}
-                  </p>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              );
+            })}
           </ol>
         )}
       </Container>

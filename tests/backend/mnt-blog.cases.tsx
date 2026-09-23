@@ -9,6 +9,8 @@ import sitemap from "@/app/sitemap";
 import { propiedades as propertyFixtures } from "@/data/propiedades";
 import { siteConfig } from "@/data/site";
 import { getBlogPostBySlug, getBlogPosts } from "@/lib/blog";
+import { BlogContent } from "@/components/blog/blog-content";
+import type { BlogFigure } from "@/data/blog-figures";
 
 const published = {
   id: "post-1",
@@ -162,4 +164,82 @@ test("sitemap dates come from records while static routes have no fabricated las
   expect(post.lastModified).toEqual(new Date("2026-09-04T18:30:00.000Z"));
   expect(property.lastModified).toEqual(new Date("2026-08-15"));
   expect(rows.some((row) => row.url.endsWith("/blog/borrador-interno"))).toBe(false);
+});
+
+const illustrated = { ...published, slug: "cuanto-vale-mi-casa-tijuana" };
+
+test("known editorial covers appear on cards and articles with responsive dimensions and disclosure", async () => {
+  posts = [illustrated, { ...published, id: "future-post" }];
+  const listing = renderToStaticMarkup(await BlogPage());
+  const article = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: illustrated.slug }) }));
+  for (const html of [listing, article]) {
+    expect(html).toMatch(/<img[^>]+width="1200"[^>]+height="800"/);
+    expect(html).toContain("%2Fimages%2Fblog%2F01.webp");
+    expect(html).toMatch(/<img[^>]+sizes="[^"]+"/);
+    expect(html).toMatch(/<img[^>]+alt="[^"]+"/);
+    expect(html).toContain("Ilustración editorial generada con IA; no representa un inmueble en oferta.");
+  }
+  expect(listing.match(/<img /g)).toHaveLength(1);
+  expect(listing).not.toContain('rel="preload"');
+  expect(article.indexOf("</header>")).toBeLessThan(article.indexOf("<figure"));
+  expect(article.indexOf("</figure>")).toBeLessThan(article.indexOf("Primer párrafo"));
+});
+
+test("known cover metadata exposes an absolute share image and a large Twitter card", async () => {
+  posts = [illustrated];
+  expect(await generatePostMetadata({ params: Promise.resolve({ slug: illustrated.slug }) })).toMatchObject({
+    openGraph: { images: [{ url: `${siteConfig.url}/images/blog/01.webp`, width: 1200, height: 800 }] },
+    twitter: { card: "summary_large_image", images: [`${siteConfig.url}/images/blog/01.webp`] },
+  });
+});
+
+test("article routes attach their editorial figures to the matching stored section", async () => {
+  posts = [{ ...illustrated, contenido: "## Cuatro cifras que conviene distinguir\n\nTexto de la sección\n\n## Siguiente sección\n\nContinuación" }];
+  const html = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: illustrated.slug }) }));
+  expect(html).toContain('aria-labelledby="figura-cuatro-cifras-title"');
+  expect(html.indexOf("Texto de la sección")).toBeLessThan(html.indexOf("Cuatro cifras, cuatro funciones"));
+  expect(html.indexOf("Cuatro cifras, cuatro funciones")).toBeLessThan(html.indexOf("Siguiente sección"));
+});
+
+test("future published slugs retain text rendering without invented cover metadata", async () => {
+  const article = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: published.slug }) }));
+  expect(article).not.toContain("<img");
+  expect(article).not.toContain("<figure");
+  const metadata = await generatePostMetadata({ params: Promise.resolve({ slug: published.slug }) });
+  expect(metadata.openGraph).not.toHaveProperty("images");
+  expect(metadata.twitter).toBeUndefined();
+});
+
+const sectionFigure: BlogFigure = {
+  id: "documents-test",
+  afterHeading: "Documentos",
+  title: "Resumen gráfico verificable",
+  caption: "Guía de lectura <script>inert</script>",
+  source: "Síntesis de la sección",
+  data: { type: "infographic", layout: "sequence", items: [{ label: "Identifica", detail: "Contrasta el documento" }] },
+};
+
+test("figures follow the entire matching h2 section including h3 content and precede the next h2", () => {
+  const html = renderToStaticMarkup(<BlogContent
+    content={"Introducción\n\n## Documentos\n\nPrimera parte\n\n### Revisión\n\nÚltima parte\n\n## Decisión\n\nCierre"}
+    figures={[sectionFigure]}
+  />);
+  expect(html).toContain("Resumen gráfico verificable");
+  expect(html.indexOf("Última parte")).toBeLessThan(html.indexOf("<figure"));
+  expect(html.indexOf("</figure>")).toBeLessThan(html.indexOf(">Decisión</h2>"));
+  expect(html).toContain("&lt;script&gt;inert&lt;/script&gt;");
+  expect(html).not.toContain("<script>");
+});
+
+test("final sections receive their figures once while missing headings and raw HTML stay inert", () => {
+  const html = renderToStaticMarkup(<BlogContent
+    content={"## Documentos\n\nPrimera sección\n\n## Documentos\n\nÚltima sección <svg onload=evil()>"}
+    figures={[sectionFigure, { ...sectionFigure, id: "absent", afterHeading: "Ausente", title: "No insertar" }]}
+  />);
+  expect(html.match(/Resumen gráfico verificable/g)).toHaveLength(1);
+  expect(html).not.toContain("No insertar");
+  expect(html).toContain("&lt;svg onload=evil()&gt;");
+  const final = renderToStaticMarkup(<BlogContent content={"## Documentos\n\nCierre final"} figures={[sectionFigure]} />);
+  expect(final.indexOf("Cierre final")).toBeLessThan(final.indexOf("<figure"));
+  expect(final).toContain("Resumen gráfico verificable");
 });

@@ -110,7 +110,8 @@ html {
 }
 
 body {
-  min-width: 320px;
+  /* Fit narrow viewports even when a vertical scrollbar reduces usable width. */
+  min-width: min(320px, 100%);
   /* clip (no hidden): hidden crearía un scroll container y rompería el
      position:sticky del footer cortina. */
   overflow-x: clip;

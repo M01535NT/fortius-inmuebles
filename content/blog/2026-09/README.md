@@ -21,7 +21,7 @@ Cada artículo incluye fuentes primarias enlazadas, fecha de revisión, resumen,
 
 ## Formato admitido
 
-Párrafos separados por líneas vacías, `##` para secciones, `###` para subsecciones, `- ` para viñetas, `1. ` para listas numeradas y `[texto](https://fuente)` para enlaces. Las rutas internas comienzan por `/`. El HTML se muestra como texto; no se ejecuta. No hay imágenes nuevas ni migración de esquema.
+Párrafos separados por líneas vacías, `##` para secciones, `###` para subsecciones, `- ` para viñetas, `1. ` para listas numeradas y `[texto](https://fuente)` para enlaces. Las rutas internas comienzan por `/`. El HTML se muestra como texto; no se ejecuta. Las portadas y figuras se describen en [VISUALES.md](VISUALES.md); no requieren migración de esquema.
 
 ## Validación y publicación
 

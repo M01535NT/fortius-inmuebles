@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
+import { BlogFigureView } from "@/components/blog/blog-figure";
+import type { BlogFigure } from "@/data/blog-figures";
 
 type Block =
   | { type: "paragraph" | "h2" | "h3"; text: string }
@@ -77,27 +79,48 @@ function inline(text: string): ReactNode[] {
 const bodyClass = "max-w-[68ch] text-base leading-8 text-foreground/85 sm:text-[1.0625rem]";
 
 /** A small text-only Markdown subset. React escapes all stored text, including HTML. */
-export function BlogContent({ content }: { content: string }) {
+export function BlogContent({ content, figures = [] }: { content: string; figures?: BlogFigure[] }) {
+  const contentBlocks = blocks(content);
+  const figuresAtEnd = new Map<number, BlogFigure[]>();
+  for (const figure of figures) {
+    const start = contentBlocks.findIndex((block) => block.type === "h2" && block.text === figure.afterHeading);
+    if (start === -1) continue;
+    const nextSection = contentBlocks.findIndex((block, index) => index > start && block.type === "h2");
+    const end = nextSection === -1 ? contentBlocks.length - 1 : nextSection - 1;
+    figuresAtEnd.set(end, [...(figuresAtEnd.get(end) ?? []), figure]);
+  }
+
+  function renderBlock(block: Block, index: number) {
+    if (block.type === "ul" || block.type === "ol") {
+      const List = block.type;
+      return (
+        <List key={index} className={`${bodyClass} space-y-2 pl-6 ${block.type === "ul" ? "list-disc" : "list-decimal"}`}>
+          {block.items.map((item, itemIndex) => <li key={itemIndex}>{inline(item)}</li>)}
+        </List>
+      );
+    }
+    if (block.type === "h2" || block.type === "h3") {
+      const Heading = block.type;
+      return (
+        <Heading key={index} className={`display-soft text-foreground ${block.type === "h2" ? "pt-6 text-2xl sm:text-3xl" : "pt-3 text-xl sm:text-2xl"}`}>
+          {inline(block.text)}
+        </Heading>
+      );
+    }
+    return <p key={index} className={bodyClass}>{inline(block.text)}</p>;
+  }
+
   return (
     <div className="mt-10 space-y-6 [overflow-wrap:anywhere]">
-      {blocks(content).map((block, index) => {
-        if (block.type === "ul" || block.type === "ol") {
-          const List = block.type;
-          return (
-            <List key={index} className={`${bodyClass} space-y-2 pl-6 ${block.type === "ul" ? "list-disc" : "list-decimal"}`}>
-              {block.items.map((item, itemIndex) => <li key={itemIndex}>{inline(item)}</li>)}
-            </List>
-          );
-        }
-        if (block.type === "h2" || block.type === "h3") {
-          const Heading = block.type;
-          return (
-            <Heading key={index} className={`display-soft text-foreground ${block.type === "h2" ? "pt-6 text-2xl sm:text-3xl" : "pt-3 text-xl sm:text-2xl"}`}>
-              {inline(block.text)}
-            </Heading>
-          );
-        }
-        return <p key={index} className={bodyClass}>{inline(block.text)}</p>;
+      {contentBlocks.map((block, index) => {
+        return (
+          <Fragment key={`block-${index}`}>
+            {renderBlock(block, index)}
+            {figuresAtEnd.get(index)?.map((figure, figureIndex) => (
+              <BlogFigureView key={`figure-${figure.id}-${figureIndex}`} figure={figure} />
+            ))}
+          </Fragment>
+        );
       })}
     </div>
   );
