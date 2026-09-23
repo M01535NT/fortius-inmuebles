@@ -20,6 +20,7 @@ export function mobilePanelData(day = "2026-09-22"): Record<string, Record<strin
       creadoEl: timestamp, notas: [],
     })),
     clientes: [{ id: "cliente-prueba", nombre: longLeadName, telefono: "0000000000", email: "cliente@example.invalid", tipo: "comprador", creadoEl: timestamp, actualizadoEl: timestamp }],
+    tareas: [{ id: "tarea-prueba", titulo: "Revisar documentos del inmueble y confirmar siguientes pasos con el propietario", descripcion: "Tarea ficticia para comprobar la interfaz.", categoria: "documentacion", estado: "en-curso", prioridad: "alta", vence: day, asesorId: "asesor-prueba", pasos: [{ id: "paso-1", texto: "Confirmar expediente", hecho: false }], historial: [] }],
     eventos: Array.from({ length: 8 }, (_, i) => ({
       id: "evento-" + i, titulo: "Visita de prueba al inmueble con un título largo para comprobar el calendario " + i,
       fecha: day, hora: "23:59", tipo: "visita",

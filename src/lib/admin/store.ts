@@ -5,6 +5,7 @@ import type { Asesor as AsesorBase } from "@/data/asesores";
 import type { Property } from "@/data/propiedades";
 import type { Cliente, StaffUser, StoredRecord } from "@/lib/backend/contracts";
 import type { LeadProfile } from "@/lib/lead-profile";
+import type { Task } from "@/lib/tasks";
 export type { Cliente } from "@/lib/backend/contracts";
 
 /* ---------- tipos ---------- */
@@ -385,6 +386,7 @@ function collection<T extends object>(
 }
 const byId = <T extends { id: string }>(item: T) => item.id;
 export const db = {
+  tareas: collection<Task>("tareas", byId),
   propiedades: collection<AdminProperty>("propiedades", (item) => item.slug),
   asesores: collection<Asesor>("asesores", byId),
   leads: collection<Lead>("leads", byId),

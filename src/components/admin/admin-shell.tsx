@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Building2,
   CalendarDays,
+  ClipboardList,
   ExternalLink,
   FileText,
   FolderOpen,
@@ -47,6 +48,7 @@ const NAV = [
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2 },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
   { href: "/admin/leads", label: "Leads", icon: Users },
+  { href: "/admin/tareas", label: "Tareas", icon: ClipboardList },
   { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },
   { href: "/admin/notas", label: "Notas", icon: StickyNote },
   { href: "/admin/blog", label: "Blog", icon: Newspaper },

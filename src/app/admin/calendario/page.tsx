@@ -5,6 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { isTaskOpen, TASK_STATUSES } from "@/lib/tasks";
 
 import {
   Badge,
@@ -49,6 +50,7 @@ const DIAS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
 export default function CalendarioPage() {
   const eventos = useCollection(db.eventos);
   const leads = useCollection(db.leads);
+  const tareas = useCollection(db.tareas).filter(isTaskOpen);
   const hoy = operationalDate();
   const [cursor, setCursor] = React.useState(() => {
     const [year, month] = hoy.split("-").map(Number);
@@ -70,6 +72,9 @@ export default function CalendarioPage() {
 
   const porDia = new Map<string, number>();
   for (const e of eventos) porDia.set(e.fecha, (porDia.get(e.fecha) ?? 0) + 1);
+  const tareasPorDia = new Map<string, number>();
+  for (const tarea of tareas) if (tarea.vence) tareasPorDia.set(tarea.vence, (tareasPorDia.get(tarea.vence) ?? 0) + 1);
+  const tareasDelDia = tareas.filter(tarea => tarea.vence === seleccion);
 
   const delDia = eventos
     .filter((e) => e.fecha === seleccion)
@@ -155,7 +160,7 @@ export default function CalendarioPage() {
                     key={fecha}
                     type="button"
                     onClick={() => setSeleccion(fecha)}
-                    aria-label={`${Number(fecha.slice(8, 10))} de ${MESES[cursor.month].toLowerCase()} de ${cursor.year}${porDia.get(fecha) ? `, ${porDia.get(fecha)} eventos` : ""}`}
+                    aria-label={`${Number(fecha.slice(8, 10))} de ${MESES[cursor.month].toLowerCase()} de ${cursor.year}${porDia.get(fecha) ? `, ${porDia.get(fecha)} eventos` : ""}${tareasPorDia.get(fecha) ? `, ${tareasPorDia.get(fecha)} tareas` : ""}`}
                     aria-pressed={seleccion === fecha}
                     aria-current={fecha === hoy ? "date" : undefined}
                     className={
@@ -168,7 +173,7 @@ export default function CalendarioPage() {
                     }
                   >
                     {Number(fecha.slice(8, 10))}
-                    {porDia.get(fecha) ? (
+                    {porDia.get(fecha) || tareasPorDia.get(fecha) ? (
                       <span
                         aria-hidden="true"
                         className="absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary"
@@ -243,6 +248,14 @@ export default function CalendarioPage() {
             </p>
           )}
 
+          {tareasDelDia.length > 0 && <section aria-label="Vencimientos de tareas" className="mt-5 border-t border-border pt-4">
+            <h3 className="font-medium text-sm">Tareas que vencen este día</h3>
+            <ul className="mt-2 divide-y divide-border">{tareasDelDia.map(tarea => <li key={tarea.id}>
+              <Link href={`/admin/tareas/${tarea.id}`} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary [overflow-wrap:anywhere]">
+                <span>{tarea.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[tarea.estado]}</span>
+              </Link>
+            </li>)}</ul>
+          </section>}
           <AsyncForm
             onSubmit={agendar}
             className="mt-5 space-y-3 border-t border-border pt-5"

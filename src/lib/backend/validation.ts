@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { leadProfileSchema } from "@/lib/lead-profile";
+import { taskSchema } from "@/lib/tasks";
 import { COLLECTIONS, type CollectionName } from "./contracts";
 import { ApiError } from "./http";
 
@@ -38,6 +39,7 @@ const postSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
 const postSchema = z.object({ id, slug: postSlug, titulo: name, resumen: text, contenido: z.string().max(150000), estado: z.enum(["borrador", "publicado"]), actualizadoEl: date }).passthrough();
 
 export const recordSchemas = {
+  tareas: taskSchema,
   propiedades: propertySchema,
   asesores: adviserSchema,
   leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough(),
@@ -53,7 +55,7 @@ export const recordSchemas = {
 export function parseCollection(value: unknown): CollectionName { return z.enum(COLLECTIONS).parse(value); }
 export function parseRecord(collection: CollectionName, recordId: string, value: unknown): Record<string, unknown> {
   id.parse(recordId);
-  const data = recordSchemas[collection].parse(value);
+  const data: Record<string, unknown> = recordSchemas[collection].parse(value);
   if ((collection === "contenido" || collection === "config") ? recordId !== "singleton" : data[collection === "propiedades" ? "slug" : "id"] !== recordId) throw new ApiError(400, "Identificador incongruente");
   if (new TextEncoder().encode(JSON.stringify(data)).byteLength > 250000) throw new ApiError(413, "Registro demasiado grande");
   if (collection === "propiedades" && data.publicada === true && !(data.galeria as unknown[]).length) throw new ApiError(400, "Publicar requiere al menos una imagen");

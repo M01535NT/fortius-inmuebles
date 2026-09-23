@@ -5,16 +5,19 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import AdminDashboard from "@/app/admin/page";
 import CalendarioPage from "@/app/admin/calendario/page";
 import { clearAdminCache, type Evento } from "@/lib/admin/store";
+import type { Task } from "@/lib/tasks";
 
 let events: Evento[] = [];
+let tasks: Task[] = [];
 
 beforeEach(() => {
   clearAdminCache();
   events = [];
+  tasks = [];
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-09-23T05:24:00Z"));
   vi.stubGlobal("fetch", async (url: string) => Response.json({
-    records: (url.endsWith("/eventos") ? events : []).map((event) => ({
+    records: (url.endsWith("/eventos") ? events : url.endsWith("/tareas") ? tasks : []).map((event) => ({
       id: event.id,
       data: event,
       version: 1,
@@ -22,6 +25,28 @@ beforeEach(() => {
       updatedAt: "2026-09-20T12:00:00Z",
     })),
   }));
+});
+
+test("dashboard groups open tasks by Tijuana date and links to their filters", async () => {
+  tasks = [
+    {id:"late",titulo:"Revisar expediente",descripcion:"",categoria:"documentacion",estado:"pendiente",prioridad:"alta",vence:"2026-09-21",pasos:[]},
+    {id:"today",titulo:"Confirmar documentos",descripcion:"",categoria:"cierre",estado:"pendiente",prioridad:"normal",vence:"2026-09-22",pasos:[]},
+    {id:"done",titulo:"Tarea terminada",descripcion:"",categoria:"cierre",estado:"completada",prioridad:"normal",vence:"2026-09-21",pasos:[]},
+  ];
+  render(<AdminDashboard />);
+  await screen.findByRole("link", {name:"Revisar expediente"});
+  expect(screen.getByRole("link", {name:/1 Vencidas/}).getAttribute("href")).toBe("/admin/tareas?vence=vencidas");
+  expect(screen.getByRole("link", {name:/1 Hoy/})).toBeTruthy();
+  expect(screen.queryByText("Tarea terminada")).toBeNull();
+});
+
+test("calendar projects an open task deadline without creating an event", async () => {
+  tasks = [{id:"due",titulo:"Enviar propuesta",descripcion:"",categoria:"negociacion",estado:"en-curso",prioridad:"alta",vence:"2026-09-22",pasos:[]}];
+  render(<CalendarioPage />);
+  await screen.findByRole("link", {name:/Enviar propuesta/});
+  expect(screen.getByRole("button", {name:"22 de septiembre de 2026, 1 tareas"})).toBeTruthy();
+  expect(screen.getByRole("link", {name:/Enviar propuesta/}).getAttribute("href")).toBe("/admin/tareas/due");
+  expect(screen.getByText("Sin eventos este día.")).toBeTruthy();
 });
 
 afterEach(() => {

@@ -28,8 +28,8 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
       if (path === "") {
         await expect(page.getByRole("link", { name: "08 Eventos próximos" })).toBeVisible();
         if (width === 390) {
-          const agenda = await page.getByRole("heading", { name: "Agenda próxima" }).boundingBox();
-          expect(agenda!.y).toBeLessThan(844);
+          const tasks = await page.getByRole("heading", { name: "Tareas pendientes" }).boundingBox();
+          expect(tasks!.y).toBeLessThan(844);
         }
       }
       if (path === "/leads") {

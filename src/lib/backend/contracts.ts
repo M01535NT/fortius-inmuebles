@@ -1,4 +1,4 @@
-export const COLLECTIONS = ["propiedades", "asesores", "leads", "clientes", "eventos", "notas", "posts", "archivos", "contenido", "config"] as const;
+export const COLLECTIONS = ["propiedades", "asesores", "leads", "clientes", "eventos", "tareas", "notas", "posts", "archivos", "contenido", "config"] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 export type StaffRole = "admin" | "editor";
 export type StaffUser = { id: string; email: string; role: StaffRole };

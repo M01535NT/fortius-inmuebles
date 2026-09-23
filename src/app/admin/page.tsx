@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DashboardTasks } from "@/components/admin/dashboard-tasks";
 import { ArrowUpRight, Building2, CalendarDays, Newspaper, Users } from "lucide-react";
 
 import { Badge, DemoBanner, PageHeader } from "@/components/admin/ui";
@@ -70,6 +71,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      <DashboardTasks />
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Agenda primero para priorizar la operación en móvil. */}
         <section aria-labelledby="dashboard-agenda" className="min-w-0 rounded-lg border border-border bg-card">
