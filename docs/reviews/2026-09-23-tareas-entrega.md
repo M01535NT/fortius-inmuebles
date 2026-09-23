@@ -1,4 +1,4 @@
-# Módulo de tareas: implementación y activación pendiente
+# Módulo de tareas: implementación y activación
 
 ## Implementado
 
@@ -16,21 +16,19 @@ El servidor controla autor, creación, modificación e historial. Los usuarios n
 - Recorridos de navegador con API simulada: creación, recarga, pasos, espera, completar, reabrir y calendario a 320, 390, 768 y 1440 px. Regresiones de leads y panel también verificadas.
 - Revisión visual manual en localhost a 390 px con datos ficticios y escrituras bloqueadas. Esta revisión motivó compactar los filtros.
 
-Las pruebas simuladas no equivalen a escrituras en Supabase real. La migración no se ha aplicado y la nueva función no se declara disponible en producción.
+Las pruebas simuladas se complementaron con una prueba transaccional en Supabase real bajo el rol authenticated y un miembro existente: creación, lectura, historial autoritativo, cierre y rechazo de versión obsoleta PT409. La transacción terminó en rollback: cero tareas residuales y 59 revisiones conservadas.
 
 ## Respaldo y limitaciones
 
-Respaldo REST local verificado por SHA-256 en `.superpowers/backups/2026-09-23T07-15-13-205Z`, excluido de Git: 14 registros activos, relaciones, miembros y límites. Storage devolvió tres buckets MNT y cero objetos. La tabla de revisiones denegó lectura con código 42501; por ello el respaldo no es completo y no debe presentarse como tal. Se necesita exportación del propietario antes del corte para incluir revisiones y definiciones SQL. No se borraron ni cambiaron registros remotos.
+Respaldo completo del propietario verificado en `.superpowers/backups/2026-09-23T07-30-25-907Z`, excluido de Git: 14 registros, 59 revisiones, 3 relaciones, un miembro y 3 registros de límites. Incluye definiciones de funciones, permisos y restricciones. Storage devolvió tres buckets MNT y cero objetos. Esta copia sustituye para el corte al respaldo REST parcial anterior.
+
+El respaldo se restauró en PostgreSQL aislado (PGlite), incluyendo las definiciones reales del servidor, y se ensayó la migración sin alterar datos. Después del cambio real, las cinco tablas conservaron exactamente sus SHA-256 canónicos; las cuatro funciones nuevas o modificadas coincidieron con las del ensayo. Evidencia local: `.superpowers/backups/2026-09-23-tasks-owner/rehearsal.json` e `integrity.json`.
 
 ## Activación
 
-La sesión administrativa de Supabase expiró. No existe una conexión SQL ni token administrativo disponible en este entorno. La clave del sitio no sustituye el acceso de propietario necesario para cambiar el esquema.
+Migración 006 aplicada al proyecto dedicado mediante sesión del propietario. El editor mostró un aviso de función existente al repetir contenido; se detuvo la repetición y se verificaron definiciones y datos antes de continuar. La migración no debe volver a ejecutarse. Permisos comprobados: anon no puede ejecutar el validador privado y authenticated conserva acceso al RPC de escritura.
 
-1. Entrar a `https://supabase.com/dashboard/project/qkkirjzhviqwvuqjnmei/sql/new` como propietario. Es posible desde el celular; esa sesión permite ejecutar SQL allí, pero no inicia sesión en la PC.
-2. Exportar respaldo completo del propietario y verificarlo antes de ejecutar cambios.
-3. Confirmar migraciones 001–005 aplicadas. Ejecutar una sola vez `supabase/migrations/202609230006_mnt_tasks.sql`. Es una transacción; conserva los registros existentes y modifica la validación para admitir tareas. Ante cualquier error, detenerse y conservar el mensaje.
-4. Verificar esquema, permisos y recuentos; probar creación/edición/conflicto con una tarea de QA identificada y luego cancelarla (no borrar registros reales).
-5. Publicar el código, comprobar rutas y acceso móvil, actualizar este reporte con evidencia real.
+Código integrado y enviado a main para despliegue en Vercel. La comprobación del despliegue se realiza después de la activación de la base de datos.
 
 La reversión de aplicación conserva las tareas y su historial. No eliminar colección, filas ni objetos para revertir la interfaz.
 
