@@ -20,12 +20,11 @@ const PRIMARY = [
   { href: "/inventario", label: "Propiedades", image: "/hero/edificio-ciudad.webp" },
   { href: "/#metodo", label: "Método", image: "/hero/interior-depa.webp" },
   { href: "/herramientas", label: "Herramientas", image: "/hero/plaza.webp" },
-  { href: "/nosotros", label: "Nosotros", image: "/hero/interior-plaza.webp" },
+  { href: "/blog", label: "Blog", image: "/hero/interior-plaza.webp" },
   { href: "/contacto", label: "Contacto", image: "/hero/nave-tijuana.webp" },
 ];
 
 const SECONDARY = [
-  { href: "/blog", label: "Blog" },
   { href: "/zonas", label: "Zonas" },
   { href: "/vender-propiedad", label: "Vender mi propiedad" },
   { href: "/comprar-propiedad", label: "Comprar propiedad" },
