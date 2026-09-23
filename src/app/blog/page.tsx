@@ -20,7 +20,7 @@ function formatDate(value: string): string {
     day: "2-digit",
     month: "long",
     year: "numeric",
-    timeZone: "UTC",
+    timeZone: "America/Tijuana",
   }).format(new Date(value));
 }
 

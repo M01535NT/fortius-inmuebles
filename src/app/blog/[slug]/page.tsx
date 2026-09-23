@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
+import { BlogContent } from "@/components/blog/blog-content";
 import { siteConfig } from "@/data/site";
-import { getBlogPostBySlug, postParagraphs } from "@/lib/blog";
+import { getBlogPostBySlug } from "@/lib/blog";
 
 type Params = { slug: string };
 
@@ -61,15 +62,18 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             <p className="mt-6 max-w-[62ch] text-lg leading-relaxed text-muted-foreground">
               {post.resumen}
             </p>
+            <p className="mt-5 text-sm text-muted-foreground">
+              Actualizado el{" "}
+              <time dateTime={post.actualizadoEl}>
+                {new Intl.DateTimeFormat("es-MX", {
+                  dateStyle: "long",
+                  timeZone: "America/Tijuana",
+                }).format(new Date(post.actualizadoEl))}
+              </time>
+            </p>
           </header>
 
-          <div className="mt-10 space-y-6">
-            {postParagraphs(post.contenido).map((paragraph, index) => (
-              <p key={index} className="max-w-[68ch] text-base leading-8 text-foreground/85 sm:text-[1.0625rem]">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <BlogContent content={post.contenido} />
         </article>
       </Container>
     </main>

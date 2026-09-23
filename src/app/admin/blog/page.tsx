@@ -102,7 +102,7 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
       <Field
         label="Contenido"
         htmlFor="post-contenido"
-        hint="Párrafos separados por línea en blanco. Voz de la marca: directa, sin promesas absolutas."
+        hint="Separa párrafos con una línea en blanco. Usa ## para títulos, ### para subtítulos, - para viñetas y 1. para listas numeradas; cada elemento va en su propia línea. Enlaces: [texto](/ruta) o [texto](https://sitio.com); también se admite http://. El HTML se muestra como texto. Voz directa, sin promesas absolutas."
       >
         <textarea
           id="post-contenido"

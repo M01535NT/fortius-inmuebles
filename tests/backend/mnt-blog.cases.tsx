@@ -86,6 +86,55 @@ test("the detail renders plain paragraphs with escaped stored text", async () =>
   expect(html).not.toContain("<script>alert");
 });
 
+test("the detail renders headings and contiguous lists without merging ordinary paragraphs", async () => {
+  posts = [{ ...published, contenido: "Introducción\r\nsegunda línea\r\n\r\n## Documentos\r\n- Escritura\r\n- Identificación\r\n### Pasos\r\n1. Revisar\r\n2. Comparar\r\n\r\nCierre" }];
+  const html = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: published.slug }) }));
+  expect(html).toMatch(/<p[^>]*>Introducción\nsegunda línea<\/p>/);
+  expect(html).toMatch(/<h2[^>]*>Documentos<\/h2>/);
+  expect(html).toMatch(/<h3[^>]*>Pasos<\/h3>/);
+  expect(html).toMatch(/<ul[^>]*><li[^>]*>Escritura<\/li><li[^>]*>Identificación<\/li><\/ul>/);
+  expect(html).toMatch(/<ol[^>]*><li[^>]*>Revisar<\/li><li[^>]*>Comparar<\/li><\/ol>/);
+  expect(html).toMatch(/<p[^>]*>Cierre<\/p>/);
+});
+
+test.each([
+  ["/contacto?tema=compra#formulario", true],
+  ["https://example.com/fuente", true],
+  ["http://example.com/fuente", true],
+  ["javascript:alert%281%29", false],
+  ["JaVaScRiPt:alert%281%29", false],
+  ["data:text/html,malicioso", false],
+  ["//example.com", false],
+  ["/\\example.com", false],
+  ["https:\\example.com", false],
+  ["https://", false],
+  ["mailto:test@example.com", false],
+  ["/\t/example.com", false],
+])("stored Markdown URL %s has safe link status %s", async (url, allowed) => {
+  posts = [{ ...published, contenido: `Consulta [fuente](${url}).` }];
+  const html = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: published.slug }) }));
+  expect(/<a[^>]*>fuente<\/a>/.test(html)).toBe(allowed);
+  if (allowed) expect(html).toContain(`href="${url.replaceAll("&", "&amp;")}"`);
+  else expect(html).toContain("[fuente](");
+});
+
+test("raw HTML in rich content remains inert while long source links can wrap", async () => {
+  const url = `https://example.com/${"documento".repeat(40)}`;
+  posts = [{ ...published, contenido: `## <img src=x onerror=alert(1)>\n\n[${url}](${url})\n\n<script>alert(1)</script>` }];
+  const html = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: published.slug }) }));
+  expect(html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+  expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+  expect(html).not.toContain("<img");
+  expect(html).not.toContain("<script>");
+  expect(html).toMatch(new RegExp(`<a[^>]*class="[^"]*\\[overflow-wrap:anywhere\\][^"]*"[^>]*>${url}</a>`));
+});
+
+test("article update date comes from the stored record", async () => {
+  const html = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: published.slug }) }));
+  expect(html).toContain('dateTime="2026-09-04T18:30:00.000Z"');
+  expect(html).toContain("4 de septiembre de 2026");
+});
+
 test("a draft or unknown blog slug returns not found", async () => {
   await expect(BlogPostPage({ params: Promise.resolve({ slug: "borrador-interno" }) })).rejects.toThrow("NEXT_NOT_FOUND");
   await expect(BlogPostPage({ params: Promise.resolve({ slug: "inexistente" }) })).rejects.toThrow("NEXT_NOT_FOUND");
