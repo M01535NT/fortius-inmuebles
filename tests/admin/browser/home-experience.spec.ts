@@ -64,6 +64,9 @@ for (const width of [375, 768, 1440]) {
     await expect(page.locator("html")).toHaveClass(/dark/);
     await page.getByRole("link", { name: "MNT Inmuebles, inicio" }).click();
     await page.screenshot({ path: testInfo.outputPath(`dark-reduced-${width}.png`) });
+    await page.getByRole("link", { name: "Acceso al panel" }).click();
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
     expect(errors).toEqual([]);
   });
 }

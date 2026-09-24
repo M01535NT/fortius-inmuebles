@@ -92,11 +92,17 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-border pt-6">
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4">
           <p className="text-[12.5px] leading-relaxed text-muted-foreground">
             Los costos, impuestos y tiempos varían por operación y se confirman
             con el notario o el especialista correspondiente. © 2026 {name}.
           </p>
+          <Link
+            href="/admin"
+            className="inline-flex min-h-11 items-center text-[12.5px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            Acceso al panel
+          </Link>
         </div>
       </div>
     </footer>
