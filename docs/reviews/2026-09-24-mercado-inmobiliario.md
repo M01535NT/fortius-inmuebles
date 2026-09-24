@@ -24,6 +24,8 @@ Se publicaron tres notas originales en una sola inserción: índice SHF de Tijua
 
 La carga `tools/mnt-publish-news.mjs --publish` verificó 15 artículos totales, la integridad completa de las 12 entradas anteriores y la lectura anónima de los tres nuevos textos con sus metadatos y fechas asignadas por la base de datos. Las copias antes/después y sus huellas se guardan localmente en `.superpowers/news/publication-2026-09-24T04-20-22-519Z/`, fuera de Git. Repetir la carga comprueba coincidencias y no vuelve a insertar ni sobrescribir.
 
-La publicación de la aplicación usa la integración existente de Vercel con `main`. El cierre exige que el despliegue correspondiente esté listo y que la portada, los filtros y las nuevas notas respondan en `https://mnt-inmuebles.vercel.app/blog`.
+La publicación de la aplicación usa la integración existente de Vercel con `main`. El despliegue `FsKedMZWqoFkRJSE5uPhi5V5gu78`, correspondiente a `0e656d3`, quedó Ready/Production/Current. En el sitio público se verificaron 15 artículos, tres resultados al seleccionar Actualidad y un resultado al combinar Actualidad, Comprar y la búsqueda «hipotecas».
+
+La ejecución de GitHub #19 detectó una expectativa antigua en `public-render.test.ts`: con `MNT_SITE_URL=http://localhost:3001` esperaba enlaces sociales locales, aunque la aplicación deliberadamente los convierte al dominio público. Se reprodujo el fallo con esa configuración y se corrigió el aislamiento de la prueba para cubrir explícitamente dominio público, localhost y dominio personalizado. Las 27 pruebas del archivo pasan con el entorno local de CI. No se alteró el comportamiento de producción para resolver esta discrepancia.
 
 La [guía de operación editorial](../mercado-inmobiliario-editorial.md) describe el uso del panel y una cadencia propuesta de dos notas semanales y una guía mensual. No se activó una automatización de publicaciones.

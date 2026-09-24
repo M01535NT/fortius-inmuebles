@@ -19,6 +19,7 @@ vi.mock("next/server", async (original) => ({ ...await original<typeof import("n
 let content: Record<string, unknown>;
 let settings: Record<string, unknown>;
 let publicProperty: Record<string, unknown>;
+const initialSiteUrl = siteConfig.url;
 beforeEach(() => {
   content = { heroTitulo: "Título del panel", heroSubtitulo: "Subtítulo publicado", manifiestoTitulo: "Proceso actualizado", manifiestoTexto: "Texto actualizado", seoTitle: "SEO publicado", seoDescription: "Descripción publicada", privateNote: "PRIVATE" };
   settings = { nombreComercial: "Firma publicada", telefono: "+52 664 123 4567", whatsapp: "+52 664 765 4321", email: "publico@example.com", horario: "", facebook: "", instagram: "", videoInstitucionalUrl: "/video-publico.mp4", privateNote: "PRIVATE" };
@@ -30,7 +31,7 @@ beforeEach(() => {
     return Response.json(collection === "asesores" ? [] : [{ data: collection === "contenido" ? content : collection === "propiedades" ? publicProperty : settings }]);
   }));
 });
-afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); siteConfig.url = initialSiteUrl; });
 
 test("root layout reads public contact settings for the next request and preserves smooth-scroll declaration", async () => {
   let html = renderToStaticMarkup(await RootLayout({ children: "Página" }));
@@ -105,12 +106,17 @@ const publicPages: [string, () => Promise<{ metadata: Metadata } >][] = [
 test.each(publicPages)("public page %s declares its own canonical path", async (path, load) => {
   expect((await load()).metadata?.alternates?.canonical).toBe(path);
 });
-test("dynamic details share production canonical and OG URLs while keeping demo noindex", async () => {
+test.each([
+  ["https://mnt-inmuebles.vercel.app", "https://mnt-inmuebles.vercel.app"],
+  ["http://localhost:3001", "https://mnt-inmuebles.vercel.app"],
+  ["https://inmuebles.example.org", "https://inmuebles.example.org"],
+])("dynamic details share public canonical and OG URLs from %s while keeping demo noindex", async (configuredUrl, publicOrigin) => {
+  siteConfig.url = configuredUrl;
   const metadata = await propertyMetadata({ params: Promise.resolve({ slug: propiedades[0].slug }) });
-  expect(metadata.alternates?.canonical).toBe(`${siteConfig.url}/inventario/residencia-vista-al-mar-playas`);
+  expect(metadata.alternates?.canonical).toBe(`${publicOrigin}/inventario/residencia-vista-al-mar-playas`);
   expect(metadata.openGraph).toMatchObject({
-    url: `${siteConfig.url}/inventario/residencia-vista-al-mar-playas`,
-    images: [{ url: `${siteConfig.url}/inventario/residencia-vista-al-mar-playas/imagen-social`, type: "image/jpeg", width: 1200, height: 630 }],
+    url: `${publicOrigin}/inventario/residencia-vista-al-mar-playas`,
+    images: [{ url: `${publicOrigin}/inventario/residencia-vista-al-mar-playas/imagen-social`, type: "image/jpeg", width: 1200, height: 630 }],
   });
   expect(metadata.robots).toEqual({ index: false, follow: true });
   expect((await zoneMetadata({ params: Promise.resolve({ zona: "playas-de-tijuana" }) })).alternates?.canonical).toBe("/zonas/playas-de-tijuana");
