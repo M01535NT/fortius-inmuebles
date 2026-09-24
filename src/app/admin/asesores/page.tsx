@@ -133,7 +133,7 @@ function Editor({
           />
         </Field>
       </div>
-      <label className="flex items-center gap-2 text-[13.5px] text-foreground">
+      <label className="flex items-center gap-2 text-sm text-foreground">
         <input
           type="checkbox"
           name="activo"
@@ -213,15 +213,15 @@ export default function AsesoresPage() {
                   <div className="flex items-center gap-3">
                     <span
                       aria-hidden="true"
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-[13px] text-foreground"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-sm text-foreground"
                     >
                       {a.iniciales}
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[14.5px] font-semibold text-foreground">
+                      <p className="truncate text-base font-semibold text-foreground">
                         {a.nombre}
                       </p>
-                      <p className="truncate text-[12.5px] text-muted-foreground">
+                      <p className="truncate text-sm text-muted-foreground">
                         {a.cargo}
                       </p>
                     </div>
@@ -232,7 +232,7 @@ export default function AsesoresPage() {
                 </div>
                 <dl className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 text-center">
                   <div>
-                    <dt className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-muted-foreground">
+                    <dt className="font-mono text-xs uppercase tracking-[0.06em] text-muted-foreground">
                       Leads
                     </dt>
                     <dd className="mt-1 font-mono text-xl text-foreground">
@@ -240,7 +240,7 @@ export default function AsesoresPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-muted-foreground">
+                    <dt className="font-mono text-xs uppercase tracking-[0.06em] text-muted-foreground">
                       Inmuebles
                     </dt>
                     <dd className="mt-1 font-mono text-xl text-foreground">

@@ -20,7 +20,7 @@ function Fila({ zonas }: { zonas: string[] }) {
       {zonas.map((zona) => (
         <span
           key={zona}
-          className="display-title text-outline mx-7 whitespace-nowrap text-[44px] md:text-[56px]"
+          className="display-title text-outline mx-7 whitespace-nowrap text-4xl md:text-5xl"
         >
           {zona}
         </span>
@@ -46,7 +46,7 @@ export function Zonas() {
       <div className="mx-auto mt-6 max-w-[1280px] px-5 md:px-8">
         <Link
           href="/zonas"
-          className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-foreground"
         >
           Conocer cada zona
           <ArrowUpRight className="size-4" strokeWidth={1.5} />

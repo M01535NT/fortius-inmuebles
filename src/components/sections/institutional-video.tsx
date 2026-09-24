@@ -18,7 +18,7 @@ export async function InstitutionalVideo() {
     <section className="border-t border-border">
       <Container className="py-16 md:py-20">
         <BlurFade>
-          <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
+          <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
             VID-INS-001 · Video
           </p>
           <h2 className="display-title mt-3 max-w-[16ch] text-3xl text-foreground sm:text-4xl">
@@ -31,7 +31,7 @@ export async function InstitutionalVideo() {
                 src={url}
                 controls
                 preload="metadata"
-                className="aspect-video w-full bg-[#0b120e]"
+                className="aspect-video w-full bg-image-scrim"
               >
                 Tu navegador no puede reproducir este video.
               </video>
@@ -45,18 +45,18 @@ export async function InstitutionalVideo() {
                   sizes="(max-width: 1280px) 100vw, 1216px"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-[#0b120e]/60" />
+                <div className="absolute inset-0 bg-image-scrim/60" />
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
                   <span
                     aria-hidden="true"
-                    className="flex h-16 w-16 items-center justify-center rounded-full border border-[#f2f4ee]/40 text-[#f2f4ee]"
+                    className="flex h-16 w-16 items-center justify-center rounded-full border border-on-image/40 text-on-image"
                   >
                     <Play className="ml-1 size-6" strokeWidth={1.5} />
                   </span>
-                  <p className="display-soft max-w-[30ch] text-xl text-[#f2f4ee]">
+                  <p className="display-soft max-w-[30ch] text-xl text-on-image">
                     Espacio reservado para el video institucional.
                   </p>
-                  <p className="max-w-[46ch] text-[13.5px] leading-relaxed text-[#e6e9e2]/80">
+                  <p className="max-w-[46ch] text-sm leading-relaxed text-on-image-muted/80">
                     Aquí verás el recorrido por las cuatro fases del método,
                     contado por el equipo. En producción.
                   </p>

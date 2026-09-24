@@ -55,16 +55,16 @@ function SegmentoCard({
           sizes={large ? "(max-width: 1024px) 100vw, 58vw" : "(max-width: 1024px) 100vw, 42vw"}
         />
         {/* Scrim para legibilidad del texto sobre foto, ambos temas. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b120e]/85 via-[#0b120e]/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-image-scrim/85 via-image-scrim/25 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-6">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h3 className="display-title text-2xl text-[#f2f4ee]">{segmento.title}</h3>
-              <p className="mt-1.5 max-w-[38ch] text-[13.5px] leading-relaxed text-[#e6e9e2]/85">
+              <h3 className="display-title text-2xl text-on-image">{segmento.title}</h3>
+              <p className="mt-1.5 max-w-[38ch] text-sm leading-relaxed text-on-image-muted/85">
                 {segmento.text}
               </p>
             </div>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[#f2f4ee]/30 text-[#f2f4ee] transition-all duration-300 group-hover:border-[#57e3b3] group-hover:text-[#57e3b3]">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-on-image/30 text-on-image transition-all duration-300 group-hover:border-block-accent group-hover:text-block-accent">
               <ArrowUpRight
                 className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 strokeWidth={1.5}

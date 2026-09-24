@@ -80,7 +80,7 @@ export default function AdminLeadsPage() {
   }
 
   const chip =
-    "inline-flex min-h-11 items-center rounded-md border px-3 text-[12.5px] font-medium transition-colors";
+    "inline-flex min-h-11 items-center rounded-md border px-3 text-sm font-medium transition-colors";
 
   return (
     <div className="min-w-0 space-y-6">
@@ -220,9 +220,9 @@ export default function AdminLeadsPage() {
             })}
           </ul>
           <div className="hidden min-w-0 overflow-x-auto rounded-lg border border-border bg-card lg:block">
-            <table className="w-full min-w-[760px] text-left text-[13.5px]">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
+                <tr className="border-b border-border font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
                   <th className="px-4 py-3 font-medium">Lead</th>
                   <th className="px-4 py-3 font-medium">Origen</th>
                   <th className="px-4 py-3 font-medium">Asesor</th>
@@ -246,19 +246,19 @@ export default function AdminLeadsPage() {
                           <p className="truncate font-medium text-foreground group-hover:text-primary">
                             {lead.nombre}
                           </p>
-                          <p className="truncate text-[12px] text-muted-foreground">
+                          <p className="truncate text-xs text-muted-foreground">
                             {lead.telefono}
                             {lead.zona ? ` · ${lead.zona}` : ""}
                           </p>
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-[12.5px] text-muted-foreground">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         {LEAD_ORIGEN_LABELS[lead.origen]}
                       </td>
-                      <td className="px-4 py-3 text-[12.5px] text-muted-foreground">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         {asesor?.nombre ?? "Sin asignar"}
                       </td>
-                      <td className="px-4 py-3 font-mono text-[12px] text-muted-foreground">
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                         {fechaCorta(lead.creadoEl)}
                       </td>
                       <td className="px-4 py-3">
@@ -274,7 +274,7 @@ export default function AdminLeadsPage() {
       )}
 
       {leads.some((l) => l.estado === "nuevo") ? (
-        <p className="text-[12.5px] text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           <Badge tone="green">Tip</Badge> Abre cada lead para asignar asesor,
           registrar notas y agendar el siguiente contacto.
         </p>
@@ -295,7 +295,7 @@ function LeadStatus({ lead }: { lead: Lead }) {
           db.leads.version(lead),
         )
       }
-      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:text-[12.5px]"
+      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:text-sm"
     >
       {LEAD_ESTADOS.map((value) => (
         <option key={value} value={value}>

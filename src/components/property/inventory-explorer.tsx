@@ -161,11 +161,11 @@ export function InventoryExplorer({ propiedades }: Props) {
   const hayFiltros = JSON.stringify(filtros) !== JSON.stringify(DEFAULTS);
 
   const chipBase =
-    "inline-flex h-9 items-center rounded-md border px-3.5 text-[13.5px] font-medium transition-colors";
+    "inline-flex h-9 items-center rounded-md border px-3.5 text-sm font-medium transition-colors";
   const chipOff = " border-border text-foreground/75 hover:bg-secondary hover:text-foreground";
   const chipOn = " border-primary/50 bg-secondary text-foreground";
   const fieldClass =
-    "h-9 rounded-md border border-input bg-background px-3 text-[13.5px] text-foreground";
+    "h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground";
 
   return (
     <div>
@@ -213,7 +213,7 @@ export function InventoryExplorer({ propiedades }: Props) {
 
         <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-zona" className="text-[12.5px] font-medium text-muted-foreground">
+            <label htmlFor="filtro-zona" className="text-sm font-medium text-muted-foreground">
               Zona
             </label>
             <select
@@ -232,7 +232,7 @@ export function InventoryExplorer({ propiedades }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-moneda" className="text-[12.5px] font-medium text-muted-foreground">
+            <label htmlFor="filtro-moneda" className="text-sm font-medium text-muted-foreground">
               Moneda
             </label>
             <select
@@ -248,7 +248,7 @@ export function InventoryExplorer({ propiedades }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-min" className="text-[12.5px] font-medium text-muted-foreground">
+            <label htmlFor="filtro-min" className="text-sm font-medium text-muted-foreground">
               Precio desde {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}
             </label>
             <input
@@ -264,7 +264,7 @@ export function InventoryExplorer({ propiedades }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-max" className="text-[12.5px] font-medium text-muted-foreground">
+            <label htmlFor="filtro-max" className="text-sm font-medium text-muted-foreground">
               Precio hasta {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}
             </label>
             <input
@@ -280,7 +280,7 @@ export function InventoryExplorer({ propiedades }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-orden" className="text-[12.5px] font-medium text-muted-foreground">
+            <label htmlFor="filtro-orden" className="text-sm font-medium text-muted-foreground">
               Ordenar por
             </label>
             <select
@@ -299,7 +299,7 @@ export function InventoryExplorer({ propiedades }: Props) {
             <button
               type="button"
               onClick={() => setFiltros(DEFAULTS)}
-              className="inline-flex h-9 items-center rounded-md px-3 text-[13.5px] font-medium text-primary transition-colors hover:text-foreground"
+              className="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-primary transition-colors hover:text-foreground"
             >
               Limpiar filtros
             </button>
@@ -307,7 +307,7 @@ export function InventoryExplorer({ propiedades }: Props) {
         </div>
 
         {min !== null || max !== null ? (
-          <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Al filtrar por precio, las propiedades con valor a consulta no se
             muestran.
           </p>
@@ -317,7 +317,7 @@ export function InventoryExplorer({ propiedades }: Props) {
       {/* Contador */}
       <p
         aria-live="polite"
-        className="mt-5 font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground"
+        className="mt-5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground"
       >
         {String(resultados.length).padStart(2, "0")}{" "}
         {resultados.length === 1 ? "resultado" : "resultados"}
@@ -335,7 +335,7 @@ export function InventoryExplorer({ propiedades }: Props) {
           <p className="display-soft text-2xl text-foreground">
             No hay propiedades con esos criterios.
           </p>
-          <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-muted-foreground">
+          <p className="mt-3 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
             El inventario cambia con frecuencia. Cuéntanos qué buscas y te
             avisamos cuando entre algo que encaje.
           </p>
@@ -344,14 +344,14 @@ export function InventoryExplorer({ propiedades }: Props) {
               <button
                 type="button"
                 onClick={() => setFiltros(DEFAULTS)}
-                className="inline-flex h-11 items-center rounded-md border border-border px-5 text-[14.5px] font-medium text-foreground transition-colors hover:bg-secondary"
+                className="inline-flex h-11 items-center rounded-md border border-border px-5 text-base font-medium text-foreground transition-colors hover:bg-secondary"
               >
                 Limpiar filtros
               </button>
             ) : null}
             <Link
               href="/contacto"
-              className="inline-flex h-11 items-center rounded-md bg-primary px-5 text-[14.5px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
+              className="inline-flex h-11 items-center rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
               Cuéntanos qué buscas
             </Link>
@@ -363,7 +363,7 @@ export function InventoryExplorer({ propiedades }: Props) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 pb-[calc(env(safe-area-inset-bottom)+12px)] backdrop-blur md:hidden">
         <Link
           href="/contacto"
-          className="flex h-12 w-full items-center justify-center rounded-md bg-primary text-[15px] font-semibold text-primary-foreground active:scale-[0.99]"
+          className="flex h-12 w-full items-center justify-center rounded-md bg-primary text-base font-semibold text-primary-foreground active:scale-[0.99]"
         >
           Cuéntanos qué buscas
         </Link>

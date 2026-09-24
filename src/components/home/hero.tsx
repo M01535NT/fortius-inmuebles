@@ -51,7 +51,7 @@ function MagneticCta({ href, children }: { href: string; children: React.ReactNo
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       style={{ x, y }}
-      className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
+      className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
     >
       {children}
     </motion.a>
@@ -118,7 +118,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           </motion.div>
         </AnimatePresence>
         {/* Scrim: keeps copy AA-readable over any slide, both themes. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b120e]/85 via-[#0b120e]/30 to-[#0b120e]/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-image-scrim/85 via-image-scrim/30 to-image-scrim/10" />
       </motion.div>
 
       {/* Copy block, asymmetric bottom-left */}
@@ -130,14 +130,14 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           once
           delay={0.15}
           charDelay={0.028}
-          className="display-title max-w-[23ch] text-[clamp(2.4rem,7.2vw,5.25rem)] text-[#f2f4ee]"
+          className="display-title max-w-[23ch] text-[clamp(2.4rem,7.2vw,5.25rem)] text-on-image"
         />
 
         <motion.p
           initial={reduce ? false : { opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
-          className="hero-copy-entry mt-5 max-w-[46ch] text-[15.5px] leading-relaxed text-[#e6e9e2]/90 md:text-[17px]"
+          className="hero-copy-entry mt-5 max-w-[46ch] text-base leading-relaxed text-on-image-muted/90 md:text-lg"
         >
           {copy.heroSubtitulo}
         </motion.p>
@@ -153,14 +153,14 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           ) : (
             <a
               href="#evaluar"
-              className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
+              className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
               Quiero vender mi propiedad
             </a>
           )} />
           <Link
             href="/inventario"
-            className="inline-flex h-12 items-center rounded-md border border-[#f2f4ee]/35 px-6 text-[15px] font-medium text-[#f2f4ee] backdrop-blur-sm transition-colors hover:border-[#f2f4ee]/60 hover:bg-[#f2f4ee]/10 active:scale-[0.98]"
+            className="inline-flex h-12 items-center rounded-md border border-on-image/35 px-6 text-base font-medium text-on-image backdrop-blur-sm transition-colors hover:border-on-image/60 hover:bg-on-image/10 active:scale-[0.98]"
           >
             Ver propiedades <ArrowUpRight className="ml-3 size-4" aria-hidden="true" />
           </Link>
@@ -178,24 +178,24 @@ export function Hero({ content }: { content?: SiteContent | null }) {
               onClick={() => { setIndex(i); setPaused(true); }}
               className="group relative h-11 w-11 cursor-pointer"
             >
-              <span className="absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 overflow-hidden rounded-full bg-[#f2f4ee]/25">
+              <span className="absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 overflow-hidden rounded-full bg-on-image/25">
                 {i === index && playing ? (
                   <motion.span
                     key={`progress-${index}`}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={{ duration: ROTATE_MS / 1000, ease: "linear" }}
-                    className="block h-full origin-left bg-[#f2f4ee]"
+                    className="block h-full origin-left bg-on-image"
                   />
                 ) : i === index ? (
-                  <span className="block h-full bg-[#f2f4ee]" />
+                  <span className="block h-full bg-on-image" />
                 ) : null}
               </span>
             </button>
           ))}
           {!reduce && <button type="button" onClick={() => setPaused(!paused)} aria-label={paused ? "Reanudar imágenes" : "Pausar imágenes"} className="flex size-11 items-center justify-center rounded-md text-white transition-colors hover:bg-white/15">{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</button>}
         </div>
-        <a href="#metodo" className="inline-flex min-h-11 items-center gap-3 text-sm text-[#f2f4ee] transition-opacity hover:opacity-80">Conocer el método <span aria-hidden="true">↓</span></a>
+        <a href="#metodo" className="inline-flex min-h-11 items-center gap-3 text-sm text-on-image transition-opacity hover:opacity-80">Conocer el método <span aria-hidden="true">↓</span></a>
         </div>
       </div>
     </section>

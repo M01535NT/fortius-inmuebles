@@ -13,7 +13,7 @@ export function BlogCard({ post, featured = false }: { post: Post; featured?: bo
       <Link href={`/blog/${post.slug}`} className={`group flex h-full flex-col transition-colors hover:bg-secondary/40 ${featured ? "lg:grid lg:grid-cols-2" : ""}`}>
         {cover && <figure className={`min-w-0 bg-secondary/35 ${featured ? "lg:flex lg:flex-col lg:justify-center" : ""}`}>
           <Image {...cover} alt={cover.alt} sizes={featured ? "(max-width: 1023px) 100vw, 50vw" : "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"} className="aspect-[3/2] h-auto w-full object-contain" />
-          <figcaption className="px-5 pb-4 pt-2 text-xs leading-5 text-muted-foreground">Ilustración editorial generada con IA; no representa un inmueble en oferta.</figcaption>
+          <figcaption className="px-5 pb-4 pt-2 text-sm leading-6 text-muted-foreground">Ilustración editorial generada con IA; no representa un inmueble en oferta.</figcaption>
         </figure>}
         <div className={`flex min-w-0 flex-1 flex-col p-6 ${featured ? `sm:p-9 ${cover ? "" : "lg:col-span-2"}` : ""}`}>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">

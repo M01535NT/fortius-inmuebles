@@ -18,7 +18,7 @@ export function BrandMark({ variant = 'full', inverse = false, className = '' }:
     >
       <path d={brandPaths.symbol} className={inverse ? 'fill-[#3FD8A0]' : 'fill-[#0F6B4E] dark:fill-[#3FD8A0]'} />
       {variant !== 'symbol' && (
-        <g transform={`translate(88 ${variant === 'full' ? 0 : 14})`} className={inverse ? 'fill-white' : 'fill-foreground'}>
+        <g transform={`translate(88 ${variant === 'full' ? 0 : 14})`} className={inverse ? 'fill-white' : 'fill-brand-ink'}>
           <path d={brandPaths.initials} />
           {variant === 'full' && <g transform="translate(0 47)" fillRule="evenodd">
             {brandPaths.descriptor.map((glyph, index) => <path key={index} transform={`translate(${glyph.x} 0)`} d={glyph.d} />)}

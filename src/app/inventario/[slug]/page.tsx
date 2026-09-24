@@ -138,14 +138,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         {/* Encabezado debajo del medio */}
         <div className="mt-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b border-border pb-8">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
               {property.codigo} · {TIPO_LABELS[property.tipo]} ·{" "}
               {OPERACION_LABELS[property.operacion]}
             </p>
-            <h1 className="display-title mt-2 max-w-[26ch] text-3xl text-foreground sm:text-4xl md:text-[42px]">
+            <h1 className="display-title mt-2 max-w-[26ch] text-3xl text-foreground sm:text-4xl md:text-4xl">
               {property.titulo}
             </h1>
-            <p className="mt-2.5 flex items-center gap-2 text-[14.5px] text-muted-foreground">
+            <p className="mt-2.5 flex items-center gap-2 text-base text-muted-foreground">
               <MapPin className="size-4 shrink-0 text-primary" strokeWidth={1.5} />
               {property.zona} · {property.direccionAproximada}
             </p>
@@ -155,7 +155,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               {formatPrecio(property.precio)}
             </p>
             {property.estado !== "disponible" ? (
-              <p className="mt-1.5 inline-block rounded-sm border border-border bg-secondary px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-foreground">
+              <p className="mt-1.5 inline-block rounded-sm border border-border bg-secondary px-2.5 py-1 font-mono text-xs uppercase tracking-[0.06em] text-foreground">
                 {ESTADO_LABELS[property.estado]}
               </p>
             ) : null}
@@ -168,7 +168,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_0.42fr]">
           <div className="min-w-0">
             {property.estado === "apartada" ? (
-              <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-[14px] leading-relaxed text-foreground/85">
+              <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-sm leading-relaxed text-foreground/85">
                 Esta propiedad está apartada. Podemos avisarte si vuelve a
                 estar disponible o mostrarte opciones similares.
               </p>
@@ -176,7 +176,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
 
             <div className="space-y-5">
               {property.descripcion.map((parrafo) => (
-                <p key={parrafo.slice(0, 32)} className="max-w-[68ch] text-[15.5px] leading-relaxed text-foreground/85">
+                <p key={parrafo.slice(0, 32)} className="max-w-[68ch] text-base leading-relaxed text-foreground/85">
                   {parrafo}
                 </p>
               ))}
@@ -192,8 +192,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                       key={row.label}
                       className="flex items-baseline justify-between gap-6 border-b border-border py-3.5"
                     >
-                      <dt className="text-[14px] text-muted-foreground">{row.label}</dt>
-                      <dd className="font-mono text-[14px] text-foreground">{row.value}</dd>
+                      <dt className="text-sm text-muted-foreground">{row.label}</dt>
+                      <dd className="font-mono text-sm text-foreground">{row.value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -206,7 +206,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 <h2 className="display-soft text-2xl text-foreground">Amenidades</h2>
                 <ul className="mt-5 grid max-w-[560px] gap-x-8 gap-y-3 sm:grid-cols-2">
                   {property.amenidades.map((a) => (
-                    <li key={a} className="flex items-start gap-2.5 text-[14.5px] text-foreground/85">
+                    <li key={a} className="flex items-start gap-2.5 text-base text-foreground/85">
                       <Check className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
                       {a}
                     </li>
@@ -231,13 +231,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 {/* Avatar de iniciales: sin fotos de personas hasta tener el equipo real. */}
                 <span
                   aria-hidden="true"
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-[14px] text-foreground"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-sm text-foreground"
                 >
                   {asesor.iniciales}
                 </span>
                 <div>
-                  <p className="text-[15px] font-semibold text-foreground">{asesor.nombre}</p>
-                  <p className="mt-0.5 text-[13px] text-muted-foreground">{asesor.cargo}</p>
+                  <p className="text-base font-semibold text-foreground">{asesor.nombre}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{asesor.cargo}</p>
                 </div>
               </div>
             ) : null}

@@ -9,4 +9,7 @@ assert(library.length > 0, "PDF function must include the native libvips shared 
 if (process.platform === "linux") assert(library.some(file => file.includes(".so")), "Linux PDF bundle must contain libvips .so");
 for (const file of library) assert(existsSync(resolve(dirname(manifest), file)), `Missing native library: ${file}`);
 assert(files.some(file => file.endsWith("public/hero/casa-playa.webp")), "PDF function must include local gallery images");
-console.log("PDF deployment bundle includes native image libraries and gallery assets.");
+for (const name of ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf", "IBMPlexMono-Medium.ttf"]) {
+  assert(files.some(file => file.endsWith(`public/fonts/${name}`)), `PDF function must include ${name}`);
+}
+console.log("PDF deployment bundle includes native image libraries, gallery assets and brand fonts.");

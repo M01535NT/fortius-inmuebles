@@ -32,7 +32,7 @@ export async function Destacadas() {
             className="display-title text-4xl text-foreground sm:text-5xl"
           />
           <Reveal delay={0.15} distance={40}>
-            <p className="mt-4 max-w-[52ch] text-[15.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
               {hasDemo ? "Explora las fichas y sus características. Los ejemplos de demostración están identificados y no constituyen ofertas reales." : "Consulta las características, el precio y la disponibilidad de cada inmueble. Te ayudamos a revisar las opciones que te interesen."}
             </p>
           </Reveal>
@@ -40,7 +40,7 @@ export async function Destacadas() {
         <Reveal delay={0.2} distance={40}>
           <Link
             href="/inventario"
-            className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-5 text-[14.5px] font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+            className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-5 text-base font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
           >
             Ver inventario
             <ArrowUpRight className="size-4" strokeWidth={1.5} />

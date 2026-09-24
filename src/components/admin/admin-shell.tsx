@@ -76,7 +76,7 @@ function LoginScreen({
       <div className="w-full max-w-[400px]">
         <div className="flex items-center gap-2.5">
           <BrandMark />
-          <span className="ml-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+          <span className="ml-1 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
             Panel
           </span>
         </div>
@@ -341,7 +341,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               ? "page"
               : undefined
           }
-          className={"flex min-h-11 min-w-0 items-center rounded-md py-2 text-[13.5px] font-medium text-foreground/70 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary " + (mobile ? "gap-2 px-2" : "gap-3 px-3")}
+          className={"flex min-h-11 min-w-0 items-center rounded-md py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary " + (mobile ? "gap-2 px-2" : "gap-3 px-3")}
         >
           <Icon className="size-4 shrink-0" strokeWidth={1.5} />
           {label}
@@ -370,7 +370,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <aside className="sticky top-0 hidden h-[100dvh] w-[228px] shrink-0 flex-col border-r border-border md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
           <BrandMark />
-          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+          <span className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
             Panel
           </span>
         </div>
@@ -416,7 +416,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <p className="min-w-0 text-xs text-muted-foreground md:hidden" aria-live="polite">
               {refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel"}
             </p>
-            <p className="hidden font-mono text-[11px] text-muted-foreground md:block">
+            <p className="hidden font-mono text-xs text-muted-foreground md:block">
               <FileText className="mr-1.5 inline size-3.5" />
               {session.email} ·{" "}
               {refreshing ? "Actualizando…" : "Conexión al servidor"}

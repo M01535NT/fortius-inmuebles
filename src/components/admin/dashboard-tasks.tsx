@@ -18,7 +18,7 @@ export function DashboardTasks() {
     <section aria-labelledby="dashboard-tasks" className="min-w-0 rounded-lg border border-border bg-card">
       <div className="flex flex-wrap items-center justify-between gap-x-3 border-b border-border px-4 py-2 sm:px-5">
         <h2 id="dashboard-tasks" className="display-soft text-lg">Tareas pendientes</h2>
-        <div className="flex flex-wrap gap-3 text-[13px] font-medium text-primary">
+        <div className="flex flex-wrap gap-3 text-sm font-medium text-primary">
           <Link className="inline-flex min-h-11 items-center" href="/admin/tareas?nueva=1">Nueva tarea</Link>
           <Link className="inline-flex min-h-11 items-center" href="/admin/tareas">Ver todas</Link>
         </div>

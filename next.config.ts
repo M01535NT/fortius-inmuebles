@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     "/inventario/*/imagen-social": ["./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
     "/inventario/*/ficha-tecnica": [
       "./public/hero/**/*",
+      "./public/fonts/*.ttf",
       // Native Sharp binaries and libvips are loaded dynamically in Vercel's Linux runtime.
       "./node_modules/@img/sharp-*/**/*",
     ],

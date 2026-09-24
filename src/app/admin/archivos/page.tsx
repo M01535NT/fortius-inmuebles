@@ -73,7 +73,7 @@ export default function ArchivosPage() {
   }
 
   const chip =
-    "inline-flex h-8 items-center rounded-md border px-3 text-[12.5px] font-medium transition-colors";
+    "inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium transition-colors";
 
   return (
     <div className="space-y-6">
@@ -99,7 +99,7 @@ export default function ArchivosPage() {
         <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
           <label
             htmlFor="ar-nombre"
-            className="text-[12.5px] font-medium text-foreground"
+            className="text-sm font-medium text-foreground"
           >
             Nombre
           </label>
@@ -114,7 +114,7 @@ export default function ArchivosPage() {
         <div className="flex min-w-[220px] flex-1 flex-col gap-1.5">
           <label
             htmlFor="ar-url"
-            className="text-[12.5px] font-medium text-foreground"
+            className="text-sm font-medium text-foreground"
           >
             URL
           </label>
@@ -200,17 +200,17 @@ export default function ArchivosPage() {
                   </div>
                 )}
                 <div className="p-3.5">
-                  <p className="truncate text-[13.5px] font-medium text-foreground">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {archivo.nombre}
                   </p>
-                  <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+                  <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
                     {archivo.url}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
                     <AsyncButton
                       type="button"
                       onClick={async () => await openFile(archivo.url)}
-                      className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-primary hover:text-foreground"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-foreground"
                     >
                       <Link2 className="size-3.5" strokeWidth={1.5} /> Abrir
                     </AsyncButton>

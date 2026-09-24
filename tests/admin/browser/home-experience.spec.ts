@@ -14,7 +14,7 @@ test("mobile performance budget across three cold loads", async () => {
   }
 });
 
-for (const width of [375, 768, 1440]) {
+for (const width of [375, 414, 768, 1024, 1440]) {
   test(`animated homepage remains readable and usable at ${width}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     const errors: string[] = [];

@@ -10,9 +10,13 @@ import re
 import shutil
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from pypdf import PdfReader
 
 ROOT = Path(__file__).resolve().parents[1]
+for name, filename in [('Archivo', 'Archivo-Regular.ttf'), ('Archivo-SemiBold', 'Archivo-SemiBold.ttf'), ('Plex', 'IBMPlexMono-Medium.ttf')]:
+    pdfmetrics.registerFont(TTFont(name, str(ROOT / 'public/fonts' / filename)))
 ARCHIVE = ROOT / '.superpowers/sdd/mnt-implementation/source-assets'
 ARCHIVE.mkdir(parents=True, exist_ok=True)
 PUBLIC = ROOT / 'public/descargas'
@@ -78,8 +82,8 @@ for name, lines in sources.items():
         line = re.sub(r'cota\.example(?:/#evaluar)?','Contacto: consultar el sitio web',line)
         line = line.replace('Documento de ejemplo con marca provisional.','Documento de ejemplo.')
         expected.append(line)
-        c.setFillColor(HexColor('#15201B' if index<2 else '#334139'))
-        c.setFont('Helvetica-Bold' if index==0 else 'Helvetica', 13 if index==0 else 10)
+        c.setFillColor(HexColor('#15201B' if index<2 else '#59635B'))
+        c.setFont('Archivo-SemiBold' if index==0 else ('Plex' if index==1 else 'Archivo'), 13 if index==0 else 10)
         if index==2: y-=12
         columns = re.split(r'\s{2,}', line, maxsplit=1)
         if name == 'ficha-tecnica-demo.pdf' and len(columns) == 2:

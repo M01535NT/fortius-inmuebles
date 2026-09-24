@@ -23,13 +23,13 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
             <div className="flex items-center gap-2.5">
               <BrandMark />
             </div>
-            <p className="mt-4 max-w-[40ch] text-[14px] leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-[40ch] text-sm leading-relaxed text-muted-foreground">
               Bienes raíces con método en Tijuana y Baja California.
             </p>
           </div>
 
           <nav className="md:col-span-3 md:col-start-7" aria-label="Secciones">
-            <ul className="space-y-3 text-[14px]">
+            <ul className="space-y-3 text-sm">
               <li>
                 <Link href="/blog" className="text-foreground/75 transition-colors hover:text-foreground">
                   Mercado inmobiliario
@@ -75,7 +75,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
 
           <div className="md:col-span-3">
             <MessagingActions settings={settings} className="mb-5" />
-            <ul className="space-y-3 text-[14px] text-foreground/75">
+            <ul className="space-y-3 text-sm text-foreground/75">
               <li>{contact.whatsapp ? <a href={contact.whatsapp}>WhatsApp: {contact.whatsappLabel}</a> : "WhatsApp: por confirmar"}</li>
               <li>{contact.phoneHref ? <a href={contact.phoneHref}>Teléfono: {contact.phone}</a> : "Teléfono: por confirmar"}</li>
               <li>
@@ -93,13 +93,13 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
         </div>
 
         <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4">
-          <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Los costos, impuestos y tiempos varían por operación y se confirman
             con el notario o el especialista correspondiente. © 2026 {name}.
           </p>
           <Link
             href="/admin"
-            className="inline-flex min-h-11 items-center text-[12.5px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             Acceso al panel
           </Link>

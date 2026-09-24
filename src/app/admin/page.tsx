@@ -60,7 +60,7 @@ export default function AdminDashboard() {
               <p className="font-mono text-2xl text-foreground sm:text-3xl">{String(value).padStart(2, "0")}</p>
               <Icon className="size-5 shrink-0 text-primary" strokeWidth={1.5} />
             </div>
-            <p className="mt-2 flex items-start gap-1 text-[13px] leading-snug text-muted-foreground">
+            <p className="mt-2 flex items-start gap-1 text-sm leading-snug text-muted-foreground">
               <span className="min-w-0 [overflow-wrap:anywhere]">{label}</span>
               <ArrowUpRight
                 className="mt-0.5 size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
@@ -77,21 +77,21 @@ export default function AdminDashboard() {
         <section aria-labelledby="dashboard-agenda" className="min-w-0 rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-agenda" className="min-w-0 display-soft text-lg text-foreground">Agenda próxima</h2>
-            <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-[13px] font-medium text-primary hover:text-foreground">
+            <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary hover:text-foreground">
               Calendario
             </Link>
           </div>
           {vistaPrevia.length === 0 ? (
-            <p className="p-4 text-[13.5px] text-muted-foreground sm:p-5">Sin eventos próximos.</p>
+            <p className="p-4 text-sm text-muted-foreground sm:p-5">Sin eventos próximos.</p>
           ) : (
             <ul className="divide-y divide-border">
               {vistaPrevia.map((evento) => (
                 <li key={evento.id} className="flex min-w-0 flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:gap-4 sm:px-5">
-                  <span className="shrink-0 font-mono text-[12px] text-primary">
+                  <span className="shrink-0 font-mono text-xs text-primary">
                     {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
                     {evento.hora ? ` ${evento.hora}` : ""}
                   </span>
-                  <p className="min-w-0 text-[14px] text-foreground [overflow-wrap:anywhere]">{evento.titulo}</p>
+                  <p className="min-w-0 text-sm text-foreground [overflow-wrap:anywhere]">{evento.titulo}</p>
                 </li>
               ))}
             </ul>
@@ -102,12 +102,12 @@ export default function AdminDashboard() {
         <section aria-labelledby="dashboard-leads" className="min-w-0 rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-leads" className="min-w-0 display-soft text-lg text-foreground">Leads recientes</h2>
-            <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-[13px] font-medium text-primary hover:text-foreground">
+            <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary hover:text-foreground">
               Ver todos
             </Link>
           </div>
           {leads.length === 0 ? (
-            <p className="p-5 text-[13.5px] text-muted-foreground">Sin leads aún.</p>
+            <p className="p-5 text-sm text-muted-foreground">Sin leads aún.</p>
           ) : (
             <ul className="divide-y divide-border">
               {leads.slice(0, 5).map((lead) => (
@@ -117,8 +117,8 @@ export default function AdminDashboard() {
                     className="flex min-w-0 flex-col items-start gap-2 px-4 py-3 transition-colors hover:bg-secondary/50 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
                   >
                     <div className="min-w-0">
-                      <p className="text-[14px] font-medium text-foreground [overflow-wrap:anywhere]">{lead.nombre}</p>
-                      <p className="mt-0.5 text-[12.5px] text-muted-foreground [overflow-wrap:anywhere]">
+                      <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{lead.nombre}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground [overflow-wrap:anywhere]">
                         {LEAD_ORIGEN_LABELS[lead.origen]} · {fechaCorta(lead.creadoEl)}
                       </p>
                     </div>

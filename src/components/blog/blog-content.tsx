@@ -76,7 +76,7 @@ function inline(text: string): ReactNode[] {
   return nodes;
 }
 
-const bodyClass = "max-w-[68ch] text-base leading-8 text-foreground/85 sm:text-[1.0625rem]";
+const bodyClass = "max-w-[68ch] text-base leading-8 text-foreground/85 sm:text-lg";
 
 /** A small text-only Markdown subset. React escapes all stored text, including HTML. */
 export function BlogContent({ content, figures = [] }: { content: string; figures?: BlogFigure[] }) {

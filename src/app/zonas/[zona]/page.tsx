@@ -47,7 +47,7 @@ export default async function ZonaPage({ params }: Props) {
         <Container className="pb-20 md:pb-24">
           {/* Encabezado */}
           <BlurFade inView={false}>
-            <nav aria-label="Miga de pan" className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
+            <nav aria-label="Miga de pan" className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
               <Link href="/zonas" className="transition-colors hover:text-foreground">
                 Zonas
               </Link>
@@ -65,20 +65,20 @@ export default async function ZonaPage({ params }: Props) {
               {zona.descripcion.map((parrafo) => (
                 <p
                   key={parrafo.slice(0, 24)}
-                  className="mt-5 max-w-[58ch] text-[15.5px] leading-relaxed text-muted-foreground first:mt-0"
+                  className="mt-5 max-w-[58ch] text-base leading-relaxed text-muted-foreground first:mt-0"
                 >
                   {parrafo}
                 </p>
               ))}
 
-              <p className="display-soft mt-9 text-[19px] text-foreground">
+              <p className="display-soft mt-9 text-xl text-foreground">
                 Qué se mueve aquí
               </p>
               <ul className="mt-4 flex flex-wrap gap-2">
                 {zona.perfil.map((item) => (
                   <li
                     key={item}
-                    className="inline-flex h-9 items-center rounded-md border border-border px-3.5 text-[13.5px] text-foreground/85"
+                    className="inline-flex h-9 items-center rounded-md border border-border px-3.5 text-sm text-foreground/85"
                   >
                     {item}
                   </li>
@@ -88,13 +88,13 @@ export default async function ZonaPage({ params }: Props) {
               <div className="mt-9 flex flex-wrap gap-3">
                 <Link
                   href="/#evaluar"
-                  className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
+                  className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
                 >
                   Vender en {zona.nombre}
                 </Link>
                 <Link
                   href="/inventario"
-                  className="inline-flex h-12 items-center rounded-md border border-border px-6 text-[15px] font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+                  className="inline-flex h-12 items-center rounded-md border border-border px-6 text-base font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
                 >
                   Buscar propiedad
                 </Link>
@@ -112,7 +112,7 @@ export default async function ZonaPage({ params }: Props) {
                   className="h-[300px] w-full md:h-[380px]"
                 />
               </div>
-              <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 Referencia general de la zona. Las ubicaciones exactas se
                 comparten al agendar visita.
               </p>
@@ -127,7 +127,7 @@ export default async function ZonaPage({ params }: Props) {
               </h2>
               <Link
                 href="/inventario"
-                className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-4 text-[13.5px] font-medium text-foreground transition-colors hover:bg-secondary"
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
               >
                 Ver todo el inventario
                 <ArrowUpRight className="size-4" strokeWidth={1.5} />
@@ -145,14 +145,14 @@ export default async function ZonaPage({ params }: Props) {
                 <p className="display-soft text-xl text-foreground">
                   Sin inventario público en {zona.nombre} por ahora.
                 </p>
-                <p className="mt-3 max-w-[56ch] text-[14.5px] leading-relaxed text-muted-foreground">
+                <p className="mt-3 max-w-[56ch] text-base leading-relaxed text-muted-foreground">
                   Parte de las propiedades que trabajamos se promueven de forma
                   dirigida. Cuéntanos qué buscas y te avisamos cuando entre
                   algo que encaje en la zona.
                 </p>
                 <Link
                   href="/contacto"
-                  className="mt-6 inline-flex h-11 items-center rounded-md border border-border px-5 text-[14.5px] font-medium text-foreground transition-colors hover:bg-secondary"
+                  className="mt-6 inline-flex h-11 items-center rounded-md border border-border px-5 text-base font-medium text-foreground transition-colors hover:bg-secondary"
                 >
                   Cuéntanos qué buscas
                 </Link>
@@ -170,13 +170,13 @@ export default async function ZonaPage({ params }: Props) {
                 {zona.faq.map((item) => (
                   <details key={item.q} className="group">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left [&::-webkit-details-marker]:hidden">
-                      <span className="display-soft text-[18px] text-foreground">{item.q}</span>
+                      <span className="display-soft text-lg text-foreground">{item.q}</span>
                       <Plus
                         className="h-5 w-5 shrink-0 text-primary transition-transform duration-300 group-open:rotate-45"
                         strokeWidth={1.5}
                       />
                     </summary>
-                    <p className="max-w-[62ch] pb-6 text-[14.5px] leading-relaxed text-muted-foreground">
+                    <p className="max-w-[62ch] pb-6 text-base leading-relaxed text-muted-foreground">
                       {item.a}
                     </p>
                   </details>

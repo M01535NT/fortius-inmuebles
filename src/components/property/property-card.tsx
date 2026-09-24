@@ -32,7 +32,7 @@ export function PropertyCard({ property }: { property: Property }) {
           }
         />
         {noDisponible ? (
-          <span className="absolute left-3 top-3 rounded-sm border border-border bg-background/90 px-2 py-1 font-mono text-[11px] uppercase tracking-[0.06em] text-foreground">
+          <span className="absolute left-3 top-3 rounded-sm border border-border bg-background/90 px-2 py-1 font-mono text-xs uppercase tracking-[0.06em] text-foreground">
             {ESTADO_LABELS[property.estado]}
           </span>
         ) : null}
@@ -43,11 +43,11 @@ export function PropertyCard({ property }: { property: Property }) {
             Propiedad de demostración
           </p>
         )}
-        <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
           {TIPO_LABELS[property.tipo]} · {OPERACION_LABELS[property.operacion]}
         </p>
         <div>
-          <h3 className="display-soft text-[22px] text-foreground">{property.titulo}</h3>
+          <h3 className="display-soft text-2xl text-foreground">{property.titulo}</h3>
           <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="size-4 text-primary" strokeWidth={1.5} />
             {property.zona}

@@ -32,7 +32,7 @@ export default async function ZonasPage() {
             <h1 className="display-title max-w-[14ch] text-5xl text-foreground md:text-6xl lg:text-7xl">
               Zonas con criterio local.
             </h1>
-            <p className="mt-6 max-w-[56ch] text-[15.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-[56ch] text-base leading-relaxed text-muted-foreground">
               Cada zona de Baja California se compra y se vende distinto. Aquí
               está lo que se mueve en cada una y lo que revisamos antes de
               operar ahí. Sin promedios inventados: criterio, no estadística
@@ -52,18 +52,18 @@ export default async function ZonasPage() {
                     className="group flex h-full flex-col justify-between rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/50"
                   >
                     <div>
-                      <p className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
+                      <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
                         {zona.municipio}
                       </p>
-                      <h2 className="display-title mt-3 text-[26px] text-foreground">
+                      <h2 className="display-title mt-3 text-2xl text-foreground">
                         {zona.nombre}
                       </h2>
-                      <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">
+                      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                         {zona.resumen}
                       </p>
                     </div>
                     <div className="mt-6 flex items-center justify-between">
-                      <span className="font-mono text-[11.5px] text-muted-foreground">
+                      <span className="font-mono text-xs text-muted-foreground">
                         {enZona > 0
                           ? `${String(enZona).padStart(2, "0")} en inventario`
                           : "Inventario a consulta"}
@@ -79,7 +79,7 @@ export default async function ZonasPage() {
             })}
           </div>
 
-          <p className="mt-10 max-w-[62ch] text-[13.5px] leading-relaxed text-muted-foreground">
+          <p className="mt-10 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
             ¿Tu propiedad está en otra zona? También la evaluamos: el método es
             el mismo y el criterio local se construye con comparables de tu
             sector.

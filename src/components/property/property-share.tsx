@@ -19,7 +19,7 @@ export function PropertyShare({ title, text, url }: { title: string; text: strin
     } finally { setBusy(false); }
   }
   return <>
-    <button type="button" onClick={share} disabled={busy} className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3.5 text-[13.5px] font-medium text-foreground/75 transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-60">
+    <button type="button" onClick={share} disabled={busy} className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3.5 text-sm font-medium text-foreground/75 transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-60">
       <Share2 className="h-4 w-4" aria-hidden="true" />{busy ? "Abriendo…" : "Compartir"}
     </button>
     {status && <p role="status" className="w-full text-sm text-muted-foreground">{status}</p>}

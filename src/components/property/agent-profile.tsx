@@ -31,13 +31,13 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
           aria-hidden="true"
           className="flex h-28 w-28 items-center justify-center rounded-lg bg-block sm:h-32 sm:w-32"
         >
-          <span className="font-mono text-2xl text-[#57e3b3]">{asesor.iniciales}</span>
+          <span className="font-mono text-2xl text-block-accent">{asesor.iniciales}</span>
         </div>
 
         <div>
-          <p className="display-soft text-[22px] text-foreground">{asesor.nombre}</p>
-          <p className="mt-1 text-[13.5px] text-muted-foreground">{asesor.cargo}</p>
-          <p className="mt-3 max-w-[56ch] text-[14.5px] leading-relaxed text-muted-foreground">
+          <p className="display-soft text-2xl text-foreground">{asesor.nombre}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{asesor.cargo}</p>
+          <p className="mt-3 max-w-[56ch] text-base leading-relaxed text-muted-foreground">
             Acompaña esta operación de principio a fin con el proceso
             documentado de la firma: precio con datos, expediente revisado y
             seguimiento por escrito.
@@ -51,10 +51,10 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
               >
                 <Icon className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.5} />
                 <div className="min-w-0">
-                  <p className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
+                  <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
                     {label}
                   </p>
-                  <p className="truncate text-[13.5px] text-foreground">{value}</p>
+                  <p className="truncate text-sm text-foreground">{value}</p>
                 </div>
               </div>
             ))}
@@ -65,7 +65,7 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
             {contact.phoneHref && <a
               href={contact.phoneHref || undefined}
               aria-disabled={!contact.phoneHref}
-              className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 text-[14.5px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
+              className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
               <Phone className="h-4 w-4" strokeWidth={1.5} />
               Llamar ahora
@@ -73,7 +73,7 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
             {contact.email && <a
               href={contact.email ? `mailto:${contact.email}` : undefined}
               aria-disabled={!contact.email}
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-5 text-[14.5px] font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+              className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-5 text-base font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
             >
               <Mail className="h-4 w-4" strokeWidth={1.5} />
               Enviar correo

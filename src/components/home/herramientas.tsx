@@ -37,7 +37,7 @@ export function Herramientas() {
         className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl"
       />
       <Reveal delay={0.2} distance={40}>
-        <p className="mt-4 max-w-[54ch] text-[15.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-4 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
           Herramientas abiertas para que llegues a la conversación con una
           idea clara. Las cifras finales siempre se confirman con el
           especialista.
@@ -57,10 +57,10 @@ export function Herramientas() {
                   className="h-6 w-6 text-primary transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
                   strokeWidth={1.5}
                 />
-                <h3 className="display-soft mt-5 text-[21px] text-foreground">{title}</h3>
-                <p className="mt-2.5 text-[14px] leading-relaxed text-muted-foreground">{text}</p>
+                <h3 className="display-soft mt-5 text-xl text-foreground">{title}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{text}</p>
               </div>
-              <span className="mt-6 inline-flex items-center gap-1.5 text-[14px] font-medium text-primary">
+              <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                 Abrir
                 <ArrowUpRight
                   className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

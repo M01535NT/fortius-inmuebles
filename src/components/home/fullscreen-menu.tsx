@@ -170,10 +170,10 @@ export function FullscreenMenu({ open, onClose }: Props) {
                     onClick={onClose}
                     className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5"
                   >
-                    <span className="font-mono text-[12px] text-primary">
+                    <span className="font-mono text-xs text-primary">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="display-title text-[clamp(30px,6.5vw,56px)] text-foreground/85 transition-colors duration-300 group-hover:text-foreground">
+                    <span className="display-title text-[clamp(1.875rem,6.5vw,3.5rem)] text-foreground/85 transition-colors duration-300 group-hover:text-foreground">
                       {item.label}
                     </span>
                     <ArrowUpRight
@@ -191,7 +191,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
                 href="/#evaluar"
                 prefetch={false}
                 onClick={onClose}
-                className="inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
+                className="inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
               >
                 Evaluar mi propiedad
                 <ArrowUpRight className="size-4" strokeWidth={1.5} />
@@ -218,8 +218,8 @@ export function FullscreenMenu({ open, onClose }: Props) {
                 }
               />
             ))}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0b120e]/80 to-transparent p-5">
-              <span className="font-mono text-[12px] text-[#e6e9e2]/90">
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-image-scrim/80 to-transparent p-5">
+              <span className="font-mono text-xs text-on-image-muted/90">
                 {String(active + 1).padStart(2, "0")} · {PRIMARY[active].label}
               </span>
             </div>
@@ -238,13 +238,13 @@ export function FullscreenMenu({ open, onClose }: Props) {
                 href={item.href}
                 prefetch={open ? null : false}
                 onClick={onClose}
-                className="text-[13.5px] text-foreground/70 transition-colors hover:text-foreground"
+                className="text-sm text-foreground/70 transition-colors hover:text-foreground"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <span className="font-mono text-[11.5px] uppercase tracking-wide text-muted-foreground">
+          <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
             Tijuana · Rosarito · Tecate · Ensenada
           </span>
         </div>

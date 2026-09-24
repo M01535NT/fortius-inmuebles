@@ -51,6 +51,17 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
         expect(box!.x + box!.width).toBeLessThanOrEqual(width);
         expect(box!.height).toBeGreaterThanOrEqual(44);
       }
+      if (path === "/propiedades" && width >= 1024) {
+        const status = page.getByRole("combobox", { name: "Estado de " + longPropertyTitle }).filter({ visible: true });
+        expect(await status.evaluate(select => {
+          const control = select as HTMLSelectElement;
+          const style = getComputedStyle(control);
+          const context = document.createElement("canvas").getContext("2d")!;
+          context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          const available = control.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 24;
+          return context.measureText(control.selectedOptions[0].text).width <= available;
+        }), "the selected property status must be readable without opening the menu").toBe(true);
+      }
       if (path === "/calendario") {
         const dates = page.getByRole("button", { name: /^\d+ de septiembre de 2026/ });
         expect(await dates.count()).toBe(30);

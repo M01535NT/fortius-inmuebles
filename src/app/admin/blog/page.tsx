@@ -226,7 +226,7 @@ export default function BlogAdminPage() {
             >
               <div className="min-w-0">
                 <p className="flex flex-wrap items-center gap-2">
-                  <span className="truncate text-[14.5px] font-medium text-foreground">
+                  <span className="truncate text-base font-medium text-foreground">
                     {p.titulo}
                   </span>
                   <Badge tone={p.estado === "publicado" ? "green" : "amber"}>
@@ -234,7 +234,7 @@ export default function BlogAdminPage() {
                   </Badge>
                   <span className="text-xs text-muted-foreground">{BLOG_FORMATS[postFormat(p)]}{postCategory(p) ? ` · ${BLOG_CATEGORIES[postCategory(p)!]}` : ""}{p.destacado ? " · Destacado" : ""}</span>
                 </p>
-                <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
+                <p className="mt-1 truncate text-sm text-muted-foreground">
                   Slug: {p.slug} · {fechaCorta(p.actualizadoEl)}
                 </p>
               </div>

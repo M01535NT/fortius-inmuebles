@@ -30,7 +30,7 @@ export default async function GraciasPage() {
             <h1 className="display-title mt-6 max-w-[16ch] text-5xl text-foreground md:text-6xl">
               Recibimos los datos de tu propiedad.
             </h1>
-            <p className="mt-6 max-w-[52ch] text-[15.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
               Gracias por la confianza. No publicamos nada ni compartimos tu
               información: el primer paso es revisar y hablar contigo.
             </p>
@@ -38,10 +38,10 @@ export default async function GraciasPage() {
             <ol className="mt-9 space-y-4">
               {SIGUIENTE.map((paso, i) => (
                 <li key={paso} className="flex items-start gap-4">
-                  <span className="font-mono text-[13px] leading-[1.7] text-primary">
+                  <span className="font-mono text-sm leading-[1.7] text-primary">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="text-[14.5px] leading-relaxed text-foreground/85">{paso}</span>
+                  <span className="text-base leading-relaxed text-foreground/85">{paso}</span>
                 </li>
               ))}
             </ol>
@@ -53,14 +53,14 @@ export default async function GraciasPage() {
                 title={contact.whatsapp ? undefined : "WhatsApp: por confirmar"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
+                className="inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
               >
                 Escribir por WhatsApp
                 <ArrowUpRight className="size-4" strokeWidth={1.5} />
               </a>
               <Link
                 href="/"
-                className="inline-flex h-12 items-center rounded-md border border-border px-6 text-[15px] font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
+                className="inline-flex h-12 items-center rounded-md border border-border px-6 text-base font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
               >
                 Volver al inicio
               </Link>
@@ -68,8 +68,8 @@ export default async function GraciasPage() {
           </BlurFade>
 
           <BlurFade delay={0.12} className="self-end lg:col-span-4 lg:col-start-9">
-            <p className="display-soft text-[19px] text-foreground">Mientras tanto</p>
-            <ul className="mt-5 space-y-3 text-[14.5px]">
+            <p className="display-soft text-xl text-foreground">Mientras tanto</p>
+            <ul className="mt-5 space-y-3 text-base">
               <li>
                 <Link
                   href="/herramientas/gastos-de-cierre"

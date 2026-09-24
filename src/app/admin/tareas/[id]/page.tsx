@@ -29,7 +29,7 @@ function TaskDetail({ id }: { id: string }) {
     <Link href="/admin/tareas" className={btnGhost}>Volver a tareas</Link>
     <PageHeader title={task?.titulo ?? "Tarea"} description="Actualiza el trabajo y conserva sus notas e historial. La fecha límite se interpreta con la fecha de Tijuana." />
     {!snapshot ? <EmptyState title="Tarea no disponible." hint="Puede estar cargando o ya no estar disponible." /> : <>
-      {conflict && <section aria-label="Revisar conflicto" className="min-w-0 space-y-3 rounded-lg border border-amber-600/40 bg-amber-500/10 p-4">
+      {conflict && <section aria-label="Revisar conflicto" className="min-w-0 space-y-3 rounded-lg border border-warning-border bg-warning-surface p-4">
         <h2 className="font-semibold">La tarea cambió mientras la editabas</h2>
         {conflict === "missing" ? <p className="text-sm">La tarea ya no está disponible. Conservamos tu borrador, pero no se puede guardar sobre un registro eliminado.</p> : <>
           <p className="text-sm">Compara la versión actual con tu borrador de abajo. Usarla como base conserva tu borrador; al guardar, sus campos sustituirán los de la versión actual. Ajusta tu borrador para conservar los cambios que necesites. El historial del servidor se conserva.</p>

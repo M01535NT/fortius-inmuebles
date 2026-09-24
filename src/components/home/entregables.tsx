@@ -67,10 +67,10 @@ export function Entregables({ content }: { content?: SiteContent | null }) {
       <div className="relative z-10 mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
         <SplitHeading
           lines={homeText(content, "entregablesTitulo").split("\n")}
-          className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl md:text-[56px]"
+          className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl md:text-5xl"
         />
         <Reveal delay={0.2} distance={40}>
-          <p className="mt-6 max-w-[56ch] text-[15.5px] leading-relaxed text-muted-foreground">
+          <p className="mt-6 max-w-[56ch] text-base leading-relaxed text-muted-foreground">
             {homeText(content, "entregablesTexto")}
           </p>
         </Reveal>
@@ -95,18 +95,18 @@ export function Entregables({ content }: { content?: SiteContent | null }) {
                           className="h-5 w-5 text-primary transition-transform duration-300 group-hover:rotate-6"
                           strokeWidth={1.5}
                         />
-                        <span className="font-mono text-[11.5px] text-muted-foreground transition-transform duration-300 group-hover:-translate-x-1">
+                        <span className="font-mono text-xs text-muted-foreground transition-transform duration-300 group-hover:-translate-x-1">
                           {doc.code}
                         </span>
                       </div>
-                      <h3 className="display-soft mt-5 text-[21px] text-foreground">
-                        <span className="mr-2 font-mono text-[13px] text-primary">
+                      <h3 className="display-soft mt-5 text-xl text-foreground">
+                        <span className="mr-2 font-mono text-sm text-primary">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         {doc.name}
                       </h3>
                     </div>
-                    <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
+                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
                       {homeText(content, doc.copy)}
                     </p>
                   </article>

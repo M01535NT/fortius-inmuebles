@@ -41,7 +41,7 @@ function Reservado({ icon: Icon, titulo, texto }: { icon: LucideIcon; titulo: st
     <div className={`${MEDIA_BOX} flex flex-col items-center justify-center gap-3 bg-secondary/50 px-8 text-center`}>
       <Icon className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
       <p className="display-soft text-xl text-foreground">{titulo}</p>
-      <p className="max-w-[42ch] text-[13.5px] leading-relaxed text-muted-foreground">{texto}</p>
+      <p className="max-w-[42ch] text-sm leading-relaxed text-muted-foreground">{texto}</p>
     </div>
   );
 }
@@ -62,7 +62,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
             aria-pressed={modo === id}
             onClick={() => setModo(id)}
             className={
-              "inline-flex h-9 items-center gap-2 rounded-md border px-3.5 text-[13.5px] font-medium transition-colors " +
+              "inline-flex h-9 items-center gap-2 rounded-md border px-3.5 text-sm font-medium transition-colors " +
               (modo === id
                 ? "border-primary/50 bg-secondary text-foreground"
                 : "border-border text-foreground/75 hover:bg-secondary hover:text-foreground")
@@ -72,7 +72,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
             {label}
           </button>
         ))}
-        {fichaUrl && <a href={fichaUrl} download className="inline-flex h-9 items-center gap-2 rounded-md border border-primary/40 px-3.5 text-[13.5px] font-medium text-primary transition-colors hover:bg-secondary">
+        {fichaUrl && <a href={fichaUrl} download className="inline-flex h-9 items-center gap-2 rounded-md border border-primary/40 px-3.5 text-sm font-medium text-primary transition-colors hover:bg-secondary">
           <Download className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
           Ficha técnica
           <span className="sr-only"> (descargar PDF)</span>
@@ -112,7 +112,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
                   </button>
                 ))}
               </div>
-              <span className="pl-1 font-mono text-[11.5px] text-muted-foreground">
+              <span className="pl-1 font-mono text-xs text-muted-foreground">
                 {String(index + 1).padStart(2, "0")} / {String(imagenes.length).padStart(2, "0")}
               </span>
             </div>

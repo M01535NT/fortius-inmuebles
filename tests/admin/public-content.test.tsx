@@ -30,7 +30,7 @@ test("legacy defaults receive the approved copy and keep intentional line breaks
   const relato = renderToStaticMarkup(<Relato content={original} />);
   expect(hero).toContain('Tu propiedad en Tijuana.');
   expect(hero).toContain('Un plan para venderla.');
-  expect(relato).toContain('<span class="block text-[#57e3b3]">con información.</span>');
+  expect(relato).toMatch(/<span class="[^"]*\bblock\b[^"]*">con información\.<\/span>/);
 });
 test("footer uses public settings and keeps placeholder numbers explicitly unconfirmed", () => {
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);

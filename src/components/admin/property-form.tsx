@@ -292,7 +292,7 @@ export function PropertyForm({ initial: source }: Props) {
             />
           </Field>
           <div className="flex flex-wrap items-end gap-6 pb-1">
-            <label className="flex items-center gap-2 text-[13.5px] text-foreground">
+            <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
                 name="destacada"
@@ -301,7 +301,7 @@ export function PropertyForm({ initial: source }: Props) {
               />
               Destacada en Home
             </label>
-            <label className="flex items-center gap-2 text-[13.5px] text-foreground">
+            <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
                 name="credito"
@@ -416,7 +416,7 @@ export function PropertyForm({ initial: source }: Props) {
         </div>
 
         <div className="mt-5">
-          <p className="text-[13px] font-medium text-foreground">
+          <p className="text-sm font-medium text-foreground">
             Puntos de interés cercanos
           </p>
           <div className="mt-2 space-y-2">
@@ -573,12 +573,12 @@ export function PropertyForm({ initial: source }: Props) {
       {/* Multimedia */}
       <section id="pf-multimedia" aria-labelledby="pf-multimedia-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-multimedia-heading" className="display-soft text-lg text-foreground">Multimedia</h2>
-        <p className="mt-1.5 text-[12.5px] text-muted-foreground">
+        <p className="mt-1.5 text-sm text-muted-foreground">
           Puedes usar URLs o cargar material público validado. No incluyas
           documentos confidenciales.
         </p>
         <div className="mt-4">
-          <p className="text-[13px] font-medium text-foreground">Galería</p>
+          <p className="text-sm font-medium text-foreground">Galería</p>
           <UploadControl
             label="Subir imagen pública"
             accept="image/jpeg,image/png,image/webp,image/gif"
@@ -697,7 +697,7 @@ export function PropertyForm({ initial: source }: Props) {
         <h2 id="pf-documentos-heading" className="display-soft text-lg text-foreground">
           Documentos descargables (PDF)
         </h2>
-        <p className="mt-1.5 text-[12.5px] text-muted-foreground">
+        <p className="mt-1.5 text-sm text-muted-foreground">
           Publica únicamente material comercial. Estos archivos tienen una URL pública;
           el formulario de contacto no protege su confidencialidad. Guarda identificaciones
           y documentos del expediente en archivos privados.
@@ -728,7 +728,7 @@ export function PropertyForm({ initial: source }: Props) {
                     )
                   }
                   placeholder="FIC-PRO-001"
-                  className={inputClass + " font-mono text-[12.5px]"}
+                  className={inputClass + " font-mono text-sm"}
                 />
                 <input
                   aria-label={`Documento ${i + 1}: nombre`}
@@ -804,7 +804,7 @@ export function PropertyForm({ initial: source }: Props) {
         {error ? (
           <p
             role="alert"
-            className="rounded-md border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-[13px] text-destructive"
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive"
           >
             {error}
           </p>

@@ -31,13 +31,13 @@ export function PropertyFaq() {
         {QA.map((item) => (
           <details key={item.q} className="group">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-left [&::-webkit-details-marker]:hidden">
-              <span className="text-[15px] font-medium text-foreground">{item.q}</span>
+              <span className="text-base font-medium text-foreground">{item.q}</span>
               <Plus
                 className="h-4 w-4 shrink-0 text-primary transition-transform duration-300 group-open:rotate-45"
                 strokeWidth={1.5}
               />
             </summary>
-            <p className="max-w-[60ch] pb-5 text-[14.5px] leading-relaxed text-muted-foreground">
+            <p className="max-w-[60ch] pb-5 text-base leading-relaxed text-muted-foreground">
               {item.a}
             </p>
           </details>

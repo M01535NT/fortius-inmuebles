@@ -75,10 +75,10 @@ export function Compromisos() {
                     className="absolute inset-x-0 bottom-0 h-px bg-border"
                   />
                   <div data-texto className="flex items-baseline gap-4 py-4">
-                    <span data-num className="inline-block font-mono text-[12px] text-primary">
+                    <span data-num className="inline-block font-mono text-xs text-primary">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="text-[15px] text-foreground/85">{c}</span>
+                    <span className="text-base text-foreground/85">{c}</span>
                   </div>
                 </li>
               ))}

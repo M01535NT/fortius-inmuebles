@@ -26,7 +26,7 @@ export default function HipotecaPage() {
         <h1 className="display-title mt-6 max-w-[16ch] text-4xl text-foreground md:text-5xl">
           Calculadora de hipoteca.
         </h1>
-        <p className="mt-5 max-w-[54ch] text-[15.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
           Captura el precio y juega con enganche, plazo y tasa. Si una
           propiedad de nuestro inventario te interesa, la calculadora también
           vive en su página con el precio ya cargado.
@@ -36,7 +36,7 @@ export default function HipotecaPage() {
           <MortgageCalculator precio={3000000} moneda="MXN" precioEditable />
         </div>
 
-        <p className="mt-8 text-[14.5px] text-muted-foreground">
+        <p className="mt-8 text-base text-muted-foreground">
           ¿Ya sabes qué buscas?{" "}
           <Link href="/inventario" className="font-medium text-primary underline-offset-4 hover:underline">
             Explora el inventario

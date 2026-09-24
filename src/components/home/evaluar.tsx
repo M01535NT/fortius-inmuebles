@@ -95,9 +95,9 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
           <div className="lg:col-span-5">
             <SplitHeading
               lines={homeText(content, "evaluarTitulo").split("\n")}
-              className="display-title text-4xl text-foreground sm:text-5xl md:text-[54px]"
+              className="display-title text-4xl text-foreground sm:text-5xl md:text-5xl"
             />
-            <p className="mt-6 max-w-[46ch] text-[15.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-[46ch] text-base leading-relaxed text-muted-foreground">
               {homeText(content, "evaluarTexto")}
             </p>
             <div className="relative mt-9">
@@ -113,11 +113,11 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
                   <li key={paso} data-paso className="flex items-start gap-4">
                     <span
                       data-num
-                      className="inline-block font-mono text-[13px] leading-[1.7] text-primary"
+                      className="inline-block font-mono text-sm leading-[1.7] text-primary"
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="text-[14.5px] leading-relaxed text-foreground/85">
+                    <span className="text-base leading-relaxed text-foreground/85">
                       {paso}
                     </span>
                   </li>
@@ -138,7 +138,7 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
                 <BorderBeam />
                 <div className="relative grid gap-5 sm:grid-cols-2">
                   <div data-campo className="flex flex-col gap-2">
-                    <label htmlFor="nombre" className="text-[13.5px] font-medium text-foreground">
+                    <label htmlFor="nombre" className="text-sm font-medium text-foreground">
                       Nombre
                     </label>
                     <input
@@ -146,12 +146,12 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
                       name="nombre"
                       required
                       autoComplete="name"
-                      className="h-11 rounded-md border border-input bg-background px-3.5 text-[15px] text-foreground placeholder:text-muted-foreground/70"
+                      className="h-11 rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground"
                       placeholder="Tu nombre"
                     />
                   </div>
                   <div data-campo className="flex flex-col gap-2">
-                    <label htmlFor="telefono" className="text-[13.5px] font-medium text-foreground">
+                    <label htmlFor="telefono" className="text-sm font-medium text-foreground">
                       Teléfono o WhatsApp
                     </label>
                     <input
@@ -160,24 +160,24 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
                       type="tel"
                       required
                       autoComplete="tel"
-                      className="h-11 rounded-md border border-input bg-background px-3.5 text-[15px] text-foreground placeholder:text-muted-foreground/70"
+                      className="h-11 rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground"
                       placeholder="664 000 0000"
                     />
                   </div>
                   <div data-campo className="flex flex-col gap-2">
-                    <label htmlFor="zona" className="text-[13.5px] font-medium text-foreground">
+                    <label htmlFor="zona" className="text-sm font-medium text-foreground">
                       Zona o colonia
                     </label>
                     <input
                       id="zona"
                       name="zona"
                       required
-                      className="h-11 rounded-md border border-input bg-background px-3.5 text-[15px] text-foreground placeholder:text-muted-foreground/70"
+                      className="h-11 rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground"
                       placeholder="Ej. Zona Río, Otay"
                     />
                   </div>
                   <div data-campo className="flex flex-col gap-2">
-                    <label htmlFor="tipo" className="text-[13.5px] font-medium text-foreground">
+                    <label htmlFor="tipo" className="text-sm font-medium text-foreground">
                       Tipo de propiedad
                     </label>
                     <select
@@ -185,7 +185,7 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
                       name="tipo"
                       required
                       defaultValue=""
-                      className="h-11 rounded-md border border-input bg-background px-3 text-[15px] text-foreground"
+                      className="h-11 rounded-md border border-input bg-background px-3 text-base text-foreground"
                     >
                       <option value="" disabled>
                         Selecciona una opción
@@ -202,7 +202,7 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
                 {error ? (
                   <p
                     role="alert"
-                    className="mt-6 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-[14px] leading-relaxed text-destructive"
+                    className="mt-6 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm leading-relaxed text-destructive"
                   >
                     {error}
                   </p>
@@ -212,12 +212,12 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
                   <button
                     type="submit"
                     disabled={enviando}
-                    className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60 sm:w-auto"
+                    className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60 sm:w-auto"
                   >
                     {enviando ? "Enviando…" : "Solicitar evaluación"}
                   </button>
 
-                  <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">
+                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
                     Sin compromiso. Usamos tus datos solo para dar seguimiento a
                     tu solicitud.
                   </p>

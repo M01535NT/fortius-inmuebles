@@ -11,7 +11,7 @@ export function PropertyLocation({ property }: { property: Property }) {
   return (
     <div className="mt-12">
       <h2 className="display-soft text-2xl text-foreground">Ubicación y zona</h2>
-      <p className="mt-3 max-w-[62ch] text-[14.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-muted-foreground">
         El mapa muestra la zona de la propiedad. La ubicación exacta se
         comparte al agendar tu visita.
       </p>
@@ -28,21 +28,21 @@ export function PropertyLocation({ property }: { property: Property }) {
 
       {property.puntosDeInteres.length > 0 ? (
         <div className="mt-6 max-w-[560px]">
-          <p className="text-[15px] font-medium text-foreground">A pocos minutos</p>
+          <p className="text-base font-medium text-foreground">A pocos minutos</p>
           <dl className="mt-2">
             {property.puntosDeInteres.map((poi) => (
               <div
                 key={poi.lugar}
                 className="flex items-baseline justify-between gap-6 border-b border-border py-3"
               >
-                <dt className="text-[14px] text-muted-foreground">{poi.lugar}</dt>
-                <dd className="font-mono text-[13.5px] text-foreground">
+                <dt className="text-sm text-muted-foreground">{poi.lugar}</dt>
+                <dd className="font-mono text-sm text-foreground">
                   {String(poi.minutos).padStart(2, "0")} min
                 </dd>
               </div>
             ))}
           </dl>
-          <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Tiempos aproximados en auto, según tráfico.
           </p>
         </div>

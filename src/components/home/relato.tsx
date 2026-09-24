@@ -23,17 +23,17 @@ export function Relato({ content }: { content?: SiteContent | null }) {
           {ESPECTACULAR ? (
             <TextReveal
               text={homeText(content, "relatoTexto")}
-              className="display-soft max-w-[24ch] text-3xl text-foreground sm:text-4xl md:text-[44px]"
+              className="display-soft max-w-[24ch] text-3xl text-foreground sm:text-4xl md:text-4xl"
             />
           ) : (
             <BlurFade>
-              <p className="display-soft max-w-[24ch] text-3xl text-foreground sm:text-4xl md:text-[44px]">
+              <p className="display-soft max-w-[24ch] text-3xl text-foreground sm:text-4xl md:text-4xl">
                 {homeText(content, "relatoTexto")}
               </p>
             </BlurFade>
           )}
           <BlurFade delay={0.12}>
-            <p className="mt-8 max-w-[52ch] text-[15.5px] leading-relaxed text-muted-foreground md:ml-[22%] md:text-[16.5px]">
+            <p className="mt-8 max-w-[52ch] text-base leading-relaxed text-muted-foreground md:ml-[22%] md:text-lg">
               {homeText(content, "relatoApoyo")}
             </p>
           </BlurFade>
@@ -46,14 +46,14 @@ export function Relato({ content }: { content?: SiteContent | null }) {
           <div className="mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
             <div className="grid gap-10 md:grid-cols-12">
               <BlurFade className="md:col-span-7">
-                <h2 className="display-title text-4xl sm:text-5xl md:text-[64px]">
+                <h2 className="display-title text-4xl sm:text-5xl md:text-6xl">
                   {lines.map((line, index) => (
-                    <span key={index} className={index === 0 ? "block" : "block text-[#57e3b3]"}>{line}</span>
+                    <span key={index} className={index === 0 ? "block" : "block text-block-accent"}>{line}</span>
                   ))}
                 </h2>
               </BlurFade>
               <BlurFade delay={0.15} className="self-end md:col-span-4 md:col-start-9">
-                <p className="text-[15.5px] leading-relaxed text-block-muted">
+                <p className="text-base leading-relaxed text-block-muted">
                   {copy.manifiestoTexto}
                 </p>
               </BlurFade>

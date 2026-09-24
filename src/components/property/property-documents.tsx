@@ -51,7 +51,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
     <div className="rounded-lg border border-border bg-card">
       <div className="p-5 pb-0">
         <h2 className="display-soft text-xl text-foreground">Documentos comerciales</h2>
-        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Estos PDFs son material público. Comparte tu contacto para recibir
           seguimiento. Los documentos privados del expediente se comparten por un canal autorizado.
         </p>
@@ -62,22 +62,22 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           <li key={doc.codigo + doc.url} className="flex items-center gap-3 px-5 py-3.5">
             <FileText className="size-4.5 shrink-0 text-primary" strokeWidth={1.5} />
             <div className="min-w-0 flex-1">
-              <p className="text-[13.5px] font-medium text-foreground">{doc.nombre}</p>
-              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                <span className="font-mono text-[11px]">{doc.codigo}</span> · {doc.descripcion}
+              <p className="text-sm font-medium text-foreground">{doc.nombre}</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                <span className="font-mono text-xs">{doc.codigo}</span> · {doc.descripcion}
               </p>
             </div>
             {unlocked ? (
               <a
                 href={doc.url}
                 download
-                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 text-[12.5px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
               >
                 <ArrowDownToLine className="size-3.5" strokeWidth={1.5} />
                 PDF
               </a>
             ) : (
-              <span className="font-mono text-[11px] text-muted-foreground">PDF</span>
+              <span className="font-mono text-xs text-muted-foreground">PDF</span>
             )}
           </li>
         ))}
@@ -87,7 +87,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
         <PublicLeadForm onSubmit={onSubmit} className="border-t border-border p-5">
           <div className="grid gap-3">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor={`docs-nombre-${slug}`} className="text-[13px] font-medium text-foreground">
+              <label htmlFor={`docs-nombre-${slug}`} className="text-sm font-medium text-foreground">
                 Nombre
               </label>
               <input
@@ -96,11 +96,11 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
                 required
                 autoComplete="name"
                 placeholder="Tu nombre"
-                className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
+                className="h-11 rounded-md border border-input bg-background px-3 text-base text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor={`docs-telefono-${slug}`} className="text-[13px] font-medium text-foreground">
+              <label htmlFor={`docs-telefono-${slug}`} className="text-sm font-medium text-foreground">
                 Teléfono o WhatsApp
               </label>
               <input
@@ -110,14 +110,14 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
                 required
                 autoComplete="tel"
                 placeholder="664 000 0000"
-                className="h-10 rounded-md border border-input bg-background px-3 text-[14px] text-foreground placeholder:text-muted-foreground/70"
+                className="h-11 rounded-md border border-input bg-background px-3 text-base text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={enviando}
-            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-[14px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
+            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
           >
             <ArrowDownToLine className="size-4" strokeWidth={1.5} />
             {enviando ? "Enviando…" : "Liberar descargas"}
@@ -125,17 +125,17 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           {error ? (
             <p
               role="alert"
-              className="mt-2.5 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[12.5px] leading-relaxed text-destructive"
+              className="mt-2.5 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-destructive"
             >
               {error}
             </p>
           ) : null}
-          <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground">
+          <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
             Sin compromiso. Usamos tus datos solo para dar seguimiento.
           </p>
         </PublicLeadForm>
       ) : (
-        <p className="border-t border-border p-5 text-[13px] leading-relaxed text-muted-foreground">
+        <p className="border-t border-border p-5 text-sm leading-relaxed text-muted-foreground">
           Descargas liberadas. Si quieres el expediente completo o agendar
           visita, escríbenos.
         </p>

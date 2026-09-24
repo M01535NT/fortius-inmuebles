@@ -38,7 +38,7 @@ function TarjetaNota({ nota: source }: { nota: Nota }) {
         aria-label="Título de la nota"
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
-        className="bg-transparent text-[15px] font-semibold text-foreground outline-none placeholder:text-muted-foreground/60"
+        className="bg-transparent text-base font-semibold text-foreground outline-none placeholder:text-muted-foreground"
         placeholder="Título"
       />
       <textarea
@@ -46,11 +46,11 @@ function TarjetaNota({ nota: source }: { nota: Nota }) {
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
         rows={5}
-        className="mt-2 flex-1 resize-none bg-transparent text-[13.5px] leading-relaxed text-foreground/85 outline-none placeholder:text-muted-foreground/60"
+        className="mt-2 flex-1 resize-none bg-transparent text-sm leading-relaxed text-foreground/85 outline-none placeholder:text-muted-foreground"
         placeholder="Escribe aquí…"
       />
       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-        <span className="font-mono text-[11px] text-muted-foreground">
+        <span className="font-mono text-xs text-muted-foreground">
           {fechaCorta(nota.actualizadoEl)}
         </span>
         <div className="flex gap-1.5">
@@ -71,7 +71,7 @@ function TarjetaNota({ nota: source }: { nota: Nota }) {
                 setNota(saved);
                 setVersion(db.notas.version(saved));
               }}
-              className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground hover:opacity-90"
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
             >
               Guardar
             </AsyncButton>
@@ -127,7 +127,7 @@ export default function NotasPage() {
         <div className="flex min-w-[180px] flex-col gap-1.5">
           <label
             htmlFor="nota-titulo"
-            className="text-[12.5px] font-medium text-foreground"
+            className="text-sm font-medium text-foreground"
           >
             Título
           </label>
@@ -142,7 +142,7 @@ export default function NotasPage() {
         <div className="flex min-w-0 w-full sm:min-w-[240px] flex-1 flex-col gap-1.5">
           <label
             htmlFor="nota-texto"
-            className="text-[12.5px] font-medium text-foreground"
+            className="text-sm font-medium text-foreground"
           >
             Contenido
           </label>

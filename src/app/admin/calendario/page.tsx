@@ -119,7 +119,7 @@ export default function CalendarioPage() {
           <div className="flex items-center justify-between gap-2">
             <h2 id="calendar-month" className="min-w-0 display-soft text-lg text-foreground">
               {MESES[cursor.month]}{" "}
-              <span className="font-mono text-[15px] text-muted-foreground">
+              <span className="font-mono text-base text-muted-foreground">
                 {cursor.year}
               </span>
             </h2>
@@ -144,7 +144,7 @@ export default function CalendarioPage() {
           </div>
 
           <div className="min-w-0">
-            <div className="mt-4 grid grid-cols-7 gap-0 text-center font-mono text-[10.5px] uppercase text-muted-foreground sm:gap-1">
+            <div className="mt-4 grid grid-cols-7 gap-0 text-center font-mono text-xs uppercase text-muted-foreground sm:gap-1">
               {DIAS.map((d) => (
                 <span key={d} className="py-1">
                   {d}
@@ -164,7 +164,7 @@ export default function CalendarioPage() {
                     aria-pressed={seleccion === fecha}
                     aria-current={fecha === hoy ? "date" : undefined}
                     className={
-                      "relative min-h-11 min-w-0! w-full rounded-md border py-2 text-[13px] transition-colors sm:aspect-square " +
+                      "relative min-h-11 min-w-0! w-full rounded-md border py-2 text-sm transition-colors sm:aspect-square " +
                       (seleccion === fecha
                         ? "border-primary/60 bg-primary/10 font-semibold text-primary"
                         : fecha === hoy
@@ -203,15 +203,15 @@ export default function CalendarioPage() {
                     className="flex min-w-0 items-start justify-between gap-3 py-3"
                   >
                     <div className="min-w-0">
-                      <p className="flex min-w-0 flex-col items-start gap-1 text-[14px] text-foreground">
+                      <p className="flex min-w-0 flex-col items-start gap-1 text-sm text-foreground">
                         {evento.hora ? (
-                          <span className="font-mono text-[12px] text-primary">
+                          <span className="font-mono text-xs text-primary">
                             {evento.hora}
                           </span>
                         ) : null}
                         <span className="max-w-full [overflow-wrap:anywhere]">{evento.titulo}</span>
                       </p>
-                      <p className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
+                      <p className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                         <Badge>{EVENTO_TIPO_LABELS[evento.tipo]}</Badge>
                         {lead ? (
                           <Link
@@ -243,7 +243,7 @@ export default function CalendarioPage() {
               })}
             </ul>
           ) : (
-            <p className="mt-4 text-[13px] text-muted-foreground">
+            <p className="mt-4 text-sm text-muted-foreground">
               Sin eventos este día.
             </p>
           )}

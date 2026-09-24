@@ -28,6 +28,22 @@ El favicon admite 16 px como excepción: usar `src/app/icon.svg`, con fondo verd
 
 La identidad visual no depende del nombre comercial antiguo guardado en configuraciones. Los datos de contacto sí conservan su origen y deben confirmarse antes de publicarse.
 
+## Sistema de interfaz refinado (septiembre de 2026)
+
+El objetivo es una identidad editorial sobria, legible y consistente entre la web pública, el panel y los documentos.
+
+- Se conservan Archivo e IBM Plex Mono. Archivo es la familia de lectura y títulos; Plex se reserva para etiquetas breves, índices y cifras.
+- `display-title`: Archivo, peso 680, ancho 68, interlineado 1, mayúsculas. Uso: titulares de portada y sección, nunca párrafos.
+- `display-soft`: Archivo, peso 600, ancho 88, interlineado 1.14. Uso: tarjetas, preguntas y subtítulos; conserva mayúsculas y minúsculas del contenido.
+- Texto de lectura: Archivo 400, ancho 100, normalmente 16 px; artículos 18 px desde `sm`, con interlineado 32 px. Énfasis: 500 para navegación/etiquetas, 600 para acciones y títulos.
+- Escala de interfaz: 12, 14, 16, 18, 20, 24, 30, 36, 48, 60 y 72 px, mediante utilidades en rem. 12 px se reserva para metadatos cortos; ayudas y avisos de lectura usan al menos 14 px. Los titulares fluidos y marcas de agua grandes son excepciones documentadas, no nuevos tamaños para párrafos.
+- El verde principal sigue siendo `#0F6B4E`, y su adaptación oscura `#3FD8A0`. La tinta de interfaz clara y del logo se unifica en `#15201B`. El logo oscuro usa blanco, igual que el maestro inverso; el texto de lectura oscuro mantiene `#ECEFE8`.
+- Portadas sobre imagen: `on-image`, `on-image-muted` e `image-scrim`. El bloque verde profundo usa `block-accent` (`#57E3B3`) para preservar contraste en ambos temas. Avisos: `warning`, `warning-border` y `warning-surface`, adaptados a ambos temas. Utilizar estas funciones de color en lugar de colores arbitrarios en componentes.
+- Los placeholders mantienen el color secundario completo. Los bordes de entrada del tema claro aumentan su definición. Se retiran las seis variables `nexo-*` sin referencias en `src`.
+- Los PDF de ejemplo y las fichas generadas incorporan Archivo 400/600, Plex 500, tinta `#15201B` y secundario `#59635B`. La ficha utiliza los contornos compartidos del logotipo, no texto reconstruido.
+
+Las fuentes para PDF están en `public/fonts/` con sus licencias. Su inclusión en la función de descarga se comprueba en `tools/verify-pdf-bundle.mjs`. No se cargan estas copias TTF en el navegador: la web conserva las versiones WOFF2 gestionadas por Next.
+
 ## Regeneración
 
 Desde la raíz del repositorio:

@@ -36,7 +36,7 @@ export function Metodo({ anchor = true, content }: { anchor?: boolean; content?:
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-28">
             <SplitHeading lines={homeText(content, "metodoTitulo").split("\n")} className="display-title text-4xl text-foreground sm:text-5xl" />
-            <p className="mt-6 max-w-[40ch] text-[15.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-[40ch] text-base leading-relaxed text-muted-foreground">
               {homeText(content, "metodoTexto")}
             </p>
           </div>
@@ -63,17 +63,17 @@ export function Metodo({ anchor = true, content }: { anchor?: boolean; content?:
                 />
                 <Reveal distance={42} once>
                 <div className="flex items-baseline gap-4">
-                  <span className="font-mono text-[13px] text-primary">{fase.n}</span>
-                  <h3 className="display-title text-2xl text-foreground sm:text-[28px]">
+                  <span className="font-mono text-sm text-primary">{fase.n}</span>
+                  <h3 className="display-title text-2xl text-foreground sm:text-3xl">
                     {fase.title}
                   </h3>
                 </div>
-                <p className="mt-3 max-w-[54ch] text-[15px] leading-relaxed text-muted-foreground">
+                <p className="mt-3 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
                   {homeText(content, fase.copy)}
                 </p>
                 <ul className="mt-5 space-y-2.5">
                   {fase.items.map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-[14.5px] text-foreground/85">
+                    <li key={item} className="flex items-start gap-3 text-base text-foreground/85">
                       <span
                         aria-hidden="true"
                         className="mt-[9px] h-px w-4 shrink-0 bg-primary"

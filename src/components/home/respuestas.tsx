@@ -51,7 +51,7 @@ function Item({ item, index }: { item: { q: string; a: string }; index: number }
           onClick={() => setOpen((v) => !v)}
           className="flex w-full cursor-pointer items-center justify-between gap-6 py-6 text-left"
         >
-          <span className="display-soft text-[19px] text-foreground md:text-[21px]">
+          <span className="display-soft text-xl text-foreground md:text-xl">
             {item.q}
           </span>
           <Plus
@@ -70,7 +70,7 @@ function Item({ item, index }: { item: { q: string; a: string }; index: number }
           }
         >
           <div className="min-h-0 overflow-hidden">
-            <p className="max-w-[62ch] pb-7 text-[15px] leading-relaxed text-muted-foreground">
+            <p className="max-w-[62ch] pb-7 text-base leading-relaxed text-muted-foreground">
               {item.a}
             </p>
           </div>

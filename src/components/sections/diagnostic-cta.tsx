@@ -15,7 +15,7 @@ export function DiagnosticCTA({ headingLevel = "h2" }: { headingLevel?: "h1" | "
               <br />
               una evaluación.
             </Heading>
-            <p className="mt-6 max-w-[46ch] text-[15.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-[46ch] text-base leading-relaxed text-muted-foreground">
               Cuéntanos qué quieres resolver. La primera conversación aclara
               precio, tiempos, condición del inmueble y el siguiente paso.
             </p>

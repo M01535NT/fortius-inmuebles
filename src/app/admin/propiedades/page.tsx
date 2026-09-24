@@ -118,9 +118,9 @@ export default function AdminPropiedadesPage() {
             ))}
           </ul>
           <div className="hidden min-w-0 overflow-x-auto rounded-lg border border-border bg-card lg:block">
-            <table className="w-full min-w-[820px] text-left text-[13.5px]">
+            <table className="w-full min-w-[820px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
+                <tr className="border-b border-border font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
                   <th className="px-4 py-3 font-medium">Código</th>
                   <th className="px-4 py-3 font-medium">Inmueble</th>
                   <th className="px-4 py-3 font-medium">Tipo</th>
@@ -136,7 +136,7 @@ export default function AdminPropiedadesPage() {
                     key={p.slug}
                     className="align-middle transition-colors hover:bg-secondary/40"
                   >
-                    <td className="px-4 py-3 font-mono text-[12px] text-muted-foreground">
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                       {p.codigo}
                     </td>
                     <td className="px-4 py-3">
@@ -150,7 +150,7 @@ export default function AdminPropiedadesPage() {
                             {p.publicada ? "Publicado" : "No publicado"}
                           </Badge>{" "}
                           {p.demo ? <Badge tone="amber">Demo</Badge> : null}
-                          <p className="truncate text-[12px] text-muted-foreground">
+                          <p className="truncate text-xs text-muted-foreground">
                             {p.zona} · {OPERACION_LABELS[p.operacion]}
                           </p>
                         </div>
@@ -159,7 +159,7 @@ export default function AdminPropiedadesPage() {
                     <td className="px-4 py-3 text-muted-foreground">
                       {TIPO_LABELS[p.tipo]}
                     </td>
-                    <td className="px-4 py-3 font-mono text-[12.5px] text-foreground">
+                    <td className="px-4 py-3 font-mono text-sm text-foreground">
                       {formatPrecio(p.precio)}
                     </td>
                     <td className="px-4 py-3">
@@ -202,7 +202,7 @@ function PropertyStatus({ property }: { property: Property }) {
           db.propiedades.version(property),
         )
       }
-      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:text-[12.5px]"
+      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:min-w-36 lg:text-sm"
     >
       {Object.entries(ESTADO_LABELS).map(([value, label]) => (
         <option key={value} value={value}>
@@ -256,7 +256,7 @@ function PropertyActions({
   showLabels?: boolean;
 }) {
   const actionClass =
-    "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-border px-2 text-[12.5px] font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground";
+    "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-border px-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground";
   return (
     <div
       className={showLabels

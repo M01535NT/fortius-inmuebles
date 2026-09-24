@@ -137,7 +137,7 @@ function LeadDetail({ id }: { id: string }) {
     <div className="space-y-6">
       <Link
         href="/admin/leads"
-        className="inline-flex items-center gap-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" strokeWidth={1.5} /> Volver a leads
       </Link>
@@ -173,7 +173,7 @@ function LeadDetail({ id }: { id: string }) {
               )
             }
             className={
-              "inline-flex h-9 items-center rounded-md border px-3.5 text-[13px] font-medium transition-colors " +
+              "inline-flex h-9 items-center rounded-md border px-3.5 text-sm font-medium transition-colors " +
               (lead.estado === estado
                 ? "border-primary/50 bg-primary/10 text-primary"
                 : "border-border text-foreground/70 hover:bg-secondary")
@@ -223,17 +223,17 @@ function LeadDetail({ id }: { id: string }) {
                     key={nota.id}
                     className="rounded-md bg-secondary/50 p-3.5"
                   >
-                    <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-foreground/90">
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
                       {nota.texto}
                     </p>
-                    <p className="mt-2 font-mono text-[11px] text-muted-foreground">
+                    <p className="mt-2 font-mono text-xs text-muted-foreground">
                       {fechaCorta(nota.fecha)}
                     </p>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="mt-5 text-[13px] text-muted-foreground">
+              <p className="mt-5 text-sm text-muted-foreground">
                 Sin notas aún. La primera llamada siempre deja una.
               </p>
             )}
@@ -302,11 +302,11 @@ function LeadDetail({ id }: { id: string }) {
                     className="flex items-center justify-between gap-4 py-3"
                   >
                     <div className="flex min-w-0 items-baseline gap-3">
-                      <span className="shrink-0 font-mono text-[12px] text-primary">
+                      <span className="shrink-0 font-mono text-xs text-primary">
                         {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
                         {evento.hora ? ` ${evento.hora}` : ""}
                       </span>
-                      <p className="truncate text-[14px] text-foreground">
+                      <p className="truncate text-sm text-foreground">
                         {evento.titulo}
                       </p>
                       <Badge>{EVENTO_TIPO_LABELS[evento.tipo]}</Badge>
@@ -336,10 +336,10 @@ function LeadDetail({ id }: { id: string }) {
         <aside className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
           <section className="rounded-lg border border-border bg-card p-5">
             <h2 className="display-soft text-lg text-foreground">Datos</h2>
-            <dl className="mt-4 space-y-3 text-[13.5px]">
+            <dl className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Teléfono</dt>
-                <dd className="font-mono text-[13px] text-foreground">
+                <dd className="font-mono text-sm text-foreground">
                   {lead.telefono}
                 </dd>
               </div>
@@ -359,7 +359,7 @@ function LeadDetail({ id }: { id: string }) {
               {lead.mensaje ? (
                 <div>
                   <dt className="text-muted-foreground">Mensaje</dt>
-                  <dd className="mt-1 rounded-md bg-secondary/50 p-3 text-[13px] leading-relaxed text-foreground/90">
+                  <dd className="mt-1 rounded-md bg-secondary/50 p-3 text-sm leading-relaxed text-foreground/90">
                     {lead.mensaje}
                   </dd>
                 </div>
@@ -418,7 +418,7 @@ function LeadDetail({ id }: { id: string }) {
                 <Link
                   href={`/inventario/${propiedad.slug}`}
                   target="_blank"
-                  className="block text-[13px] font-medium text-primary hover:text-foreground"
+                  className="block text-sm font-medium text-primary hover:text-foreground"
                 >
                   Ver {propiedad.codigo} en el sitio →
                 </Link>

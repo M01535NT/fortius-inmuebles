@@ -33,7 +33,7 @@ export default function HerramientasPage() {
         <h1 className="display-title max-w-[16ch] text-5xl text-foreground md:text-6xl">
           Números antes de decidir.
         </h1>
-        <p className="mt-6 max-w-[54ch] text-[15.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-6 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
           Herramientas abiertas, sin registro. Las cifras finales siempre se
           confirman con el notario o el especialista correspondiente.
         </p>
@@ -48,11 +48,11 @@ export default function HerramientasPage() {
               <div>
                 <Icon className="h-7 w-7 text-primary" strokeWidth={1.5} />
                 <h2 className="display-soft mt-5 text-2xl text-foreground">{title}</h2>
-                <p className="mt-3 max-w-[46ch] text-[14.5px] leading-relaxed text-muted-foreground">
+                <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-muted-foreground">
                   {text}
                 </p>
               </div>
-              <span className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-primary">
+              <span className="mt-8 inline-flex items-center gap-1.5 text-base font-medium text-primary">
                 Abrir herramienta
                 <ArrowUpRight
                   className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -63,7 +63,7 @@ export default function HerramientasPage() {
           ))}
         </div>
 
-        <p className="mt-10 text-[14.5px] text-muted-foreground">
+        <p className="mt-10 text-base text-muted-foreground">
           ¿Quieres una lectura de valor de tu propiedad?{" "}
           <Link href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
             Solicita una evaluación sin compromiso

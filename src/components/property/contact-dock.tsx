@@ -39,7 +39,7 @@ export function ContactDock({ settings, message }: { settings?: SiteSettings | n
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           className="fixed bottom-6 right-6 z-40 hidden items-center gap-1.5 rounded-lg border border-border bg-background/95 p-1.5 backdrop-blur md:flex"
         >
-          <span className="px-2.5 font-mono text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">
+          <span className="px-2.5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
             Contactar
           </span>
           <MessagingActions settings={settings} message={message} />
@@ -59,7 +59,7 @@ export function ContactDock({ settings, message }: { settings?: SiteSettings | n
           ))}
           <a
             href="#interes"
-            className="ml-1 inline-flex h-10 items-center rounded-md bg-primary px-4 text-[13.5px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.97]"
+            className="ml-1 inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.97]"
           >
             Me interesa
           </a>

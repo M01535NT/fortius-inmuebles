@@ -9,15 +9,15 @@ import { errorMessage, uploadFile, type UploadedFile } from "@/lib/admin/store";
 */
 
 export const btnPrimary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-[13.5px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50";
 export const btnGhost =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-[13.5px] font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]";
 export const btnDanger =
-  "inline-flex min-h-11 items-center justify-center rounded-md border border-destructive/40 px-3 text-[13px] font-medium text-destructive transition-colors hover:bg-destructive/10";
+  "inline-flex min-h-11 items-center justify-center rounded-md border border-destructive/40 px-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10";
 export const inputClass =
-  "min-h-11 min-w-0 w-full rounded-md border border-input bg-background px-3 text-base text-foreground placeholder:text-muted-foreground/60";
+  "min-h-11 min-w-0 w-full rounded-md border border-input bg-background px-3 text-base text-foreground placeholder:text-muted-foreground";
 export const textareaClass =
-  "min-w-0 w-full rounded-md border border-input bg-background px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground/60";
+  "min-w-0 w-full rounded-md border border-input bg-background px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground";
 export const selectClass =
   "min-h-11 min-w-0 w-full rounded-md border border-input bg-background px-2.5 text-base text-foreground";
 
@@ -35,7 +35,7 @@ export function PageHeader({
       <div className="min-w-0">
         <h1 className="display-title text-3xl text-foreground">{title}</h1>
         {description ? (
-          <p className="mt-2 max-w-[64ch] text-[13.5px] leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-[64ch] text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         ) : null}
@@ -62,13 +62,13 @@ export function Field({
     <div className={"flex flex-col gap-1.5 " + (className ?? "")}>
       <label
         htmlFor={htmlFor}
-        className="text-[13px] font-medium text-foreground"
+        className="text-sm font-medium text-foreground"
       >
         {label}
       </label>
       {children}
       {hint ? (
-        <p className="text-[12px] leading-relaxed text-muted-foreground">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           {hint}
         </p>
       ) : null}
@@ -87,13 +87,13 @@ export function Badge({
     neutral: "border-border bg-secondary text-foreground/80",
     green: "border-primary/40 bg-primary/10 text-primary",
     amber:
-      "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+      "border-warning-border bg-warning-surface text-warning",
     red: "border-destructive/40 bg-destructive/10 text-destructive",
   } as const;
   return (
     <span
       className={
-        "inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.05em] " +
+        "inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-xs uppercase tracking-[0.05em] " +
         tones[tone]
       }
     >
@@ -107,7 +107,7 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
     <div className="rounded-lg border border-dashed border-border p-10 text-center">
       <p className="display-soft text-lg text-foreground">{title}</p>
       {hint ? (
-        <p className="mx-auto mt-2 max-w-[48ch] text-[13.5px] text-muted-foreground">
+        <p className="mx-auto mt-2 max-w-[48ch] text-sm text-muted-foreground">
           {hint}
         </p>
       ) : null}
@@ -118,7 +118,7 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
 /* Compatibility export for the existing module layouts. */
 export function DemoBanner() {
   return (
-    <p className="rounded-md border border-amber-600/30 bg-amber-500/10 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-amber-800 dark:text-amber-300">
+    <p className="rounded-md border border-warning-border bg-warning-surface px-3.5 py-2.5 text-sm leading-relaxed text-warning">
       Solo los inmuebles publicados son visibles en el sitio. Los ejemplos
       conservan su etiqueta Demo.
     </p>

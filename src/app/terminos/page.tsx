@@ -15,7 +15,7 @@ export default function TerminosPage() {
         <h1 className="display-title text-5xl text-foreground md:text-6xl">
           Términos y condiciones.
         </h1>
-        <div className="mt-8 space-y-5 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="mt-8 space-y-5 text-base leading-relaxed text-muted-foreground">
           <p>
             La información publicada en este sitio tiene fines informativos y de
             orientación inicial. No constituye asesoría legal, fiscal ni

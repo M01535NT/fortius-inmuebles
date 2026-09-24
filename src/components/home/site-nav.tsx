@@ -43,7 +43,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
   const solid = scrolled || pathname !== "/";
   const linkClass = solid
     ? "text-foreground/75 hover:text-foreground"
-    : "text-[#f2f4ee]/80 hover:text-[#f2f4ee]";
+    : "text-on-image/80 hover:text-on-image";
 
   return (
     <>
@@ -66,7 +66,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
             <Link
               key={l.href}
               href={l.href}
-              className={"text-[13.5px] font-medium transition-colors " + linkClass}
+              className={"text-sm font-medium transition-colors " + linkClass}
             >
               {l.label}
             </Link>
@@ -79,7 +79,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
             className={
               solid
                 ? ""
-                : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]"
+                : "border-on-image/30 text-on-image/85 hover:bg-on-image/10 hover:text-on-image"
             }
           />
           <button
@@ -89,10 +89,10 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
             className={
-              "group inline-flex h-11 items-center gap-2.5 rounded-md border px-3.5 text-[13.5px] font-medium transition-colors active:scale-[0.97] " +
+              "group inline-flex h-11 items-center gap-2.5 rounded-md border px-3.5 text-sm font-medium transition-colors active:scale-[0.97] " +
               (solid
                 ? "border-border text-foreground/80 hover:bg-secondary hover:text-foreground"
-                : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]")
+                : "border-on-image/30 text-on-image/85 hover:bg-on-image/10 hover:text-on-image")
             }
           >
             Menú

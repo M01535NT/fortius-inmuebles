@@ -54,7 +54,7 @@ export function ClosingCostsCalculator() {
   const totalMax = rows.reduce((s, r) => s + r.max, 0);
 
   const chip =
-    "inline-flex h-10 items-center rounded-md border px-4 text-[14px] font-medium transition-colors";
+    "inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors";
 
   return (
     <div className="rounded-lg border border-border bg-card p-6 md:p-8">
@@ -80,7 +80,7 @@ export function ClosingCostsCalculator() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <label htmlFor="gastos-precio" className="text-[13.5px] font-medium text-foreground">
+          <label htmlFor="gastos-precio" className="text-sm font-medium text-foreground">
             {perfil === "comprador" ? "Precio de compra (MXN)" : "Precio de venta (MXN)"}
           </label>
           <input
@@ -90,12 +90,12 @@ export function ClosingCostsCalculator() {
             step={50000}
             value={precioInput}
             onChange={(e) => setPrecioInput(e.target.value)}
-            className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-[15px] text-foreground"
+            className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-base text-foreground"
           />
         </div>
         {perfil === "vendedor" ? (
           <div className="flex flex-col gap-2">
-            <label htmlFor="gastos-comision" className="text-[13.5px] font-medium text-foreground">
+            <label htmlFor="gastos-comision" className="text-sm font-medium text-foreground">
               Comisión pactada (%)
             </label>
             <input
@@ -106,14 +106,14 @@ export function ClosingCostsCalculator() {
               step={0.5}
               value={comisionInput}
               onChange={(e) => setComisionInput(e.target.value)}
-              className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-[15px] text-foreground"
+              className="h-11 rounded-md border border-input bg-background px-3.5 font-mono text-base text-foreground"
             />
           </div>
         ) : null}
       </div>
 
       {!valido ? (
-        <p role="alert" className="mt-5 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[13.5px] text-destructive">
+        <p role="alert" className="mt-5 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
           {!precioValido
             ? "Ingresa un precio válido entre $100,000 y $10,000,000,000,000 MXN."
             : "Ingresa una comisión válida entre 0% y 10%."}
@@ -125,15 +125,15 @@ export function ClosingCostsCalculator() {
             key={row.label}
             className="flex items-baseline justify-between gap-6 border-b border-border py-3.5"
           >
-            <dt className="text-[14px] text-muted-foreground">{row.label}</dt>
-            <dd className="whitespace-nowrap font-mono text-[14px] text-foreground">
+            <dt className="text-sm text-muted-foreground">{row.label}</dt>
+            <dd className="whitespace-nowrap font-mono text-sm text-foreground">
               {row.min === row.max ? fmt(row.min) : `${fmt(row.min)} a ${fmt(row.max)}`}
             </dd>
           </div>
         ))}
         <div className="flex items-baseline justify-between gap-6 py-4">
-          <dt className="text-[15px] font-medium text-foreground">Total estimado</dt>
-          <dd className="whitespace-nowrap font-mono text-[16px] font-medium text-primary">
+          <dt className="text-base font-medium text-foreground">Total estimado</dt>
+          <dd className="whitespace-nowrap font-mono text-base font-medium text-primary">
             {totalMin === totalMax ? (
               <NumberTicker value={totalMin} prefix="$" suffix=" MXN" />
             ) : (
@@ -148,14 +148,14 @@ export function ClosingCostsCalculator() {
       )}
 
       {perfil === "vendedor" ? (
-        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Falta el ISR por enajenación: lo calcula y retiene el notario según
           tu caso, y puede estar exento en casa habitación si cumples los
           requisitos. Lo revisamos contigo antes de decidir.
         </p>
       ) : null}
 
-      <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
         Estimación informativa con rangos de referencia para Tijuana, BC. Los
         montos reales varían por operación y se confirman con el notario o el
         especialista correspondiente.

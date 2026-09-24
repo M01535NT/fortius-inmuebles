@@ -29,10 +29,18 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  /* Deep green surface used for the single color-block moment (same in both themes). */
+  /* Deep green surface; each theme has a deliberately separate tone. */
   --color-block: var(--block);
   --color-block-foreground: var(--block-foreground);
   --color-block-muted: var(--block-muted);
+  --color-block-accent: #57e3b3;
+  --color-brand-ink: var(--brand-ink);
+  --color-on-image: #f2f4ee;
+  --color-on-image-muted: #e6e9e2;
+  --color-image-scrim: #0b120e;
+  --color-warning: var(--warning);
+  --color-warning-border: var(--warning-border);
+  --color-warning-surface: var(--warning-surface);
   --radius-sm: 2px;
   --radius-md: 4px;
   --radius-lg: 6px;
@@ -41,26 +49,34 @@
 
 :root {
   --background: #f4f5f1;
-  --foreground: #182019;
+  --foreground: #15201b;
   --card: #fbfbf9;
-  --card-foreground: #182019;
+  --card-foreground: #15201b;
   --popover: #fbfbf9;
-  --popover-foreground: #182019;
+  --popover-foreground: #15201b;
   --primary: #0f6b4e;
   --primary-foreground: #f2faf6;
   --secondary: #e8eae3;
-  --secondary-foreground: #182019;
+  --secondary-foreground: #15201b;
   --muted: #eceee7;
   --muted-foreground: #59635b;
   --accent: #0d5c44;
   --accent-foreground: #f2faf6;
   --destructive: #b3352c;
-  --border: rgba(24, 32, 25, 0.14);
-  --input: rgba(24, 32, 25, 0.18);
+  --border: rgba(21, 32, 27, 0.14);
+  --input: rgba(21, 32, 27, 0.24);
   --ring: #0f6b4e;
   --block: #10241c;
   --block-foreground: #edf2ec;
   --block-muted: rgba(237, 242, 236, 0.66);
+  --brand-ink: #15201b;
+  --warning: #953d00;
+  --warning-border: rgba(183, 80, 0, 0.4);
+  --warning-surface: #fbf0dc;
+  --weight-display: 680;
+  --width-display: 68;
+  --weight-editorial: 600;
+  --width-editorial: 88;
   --radius: 6px;
 }
 
@@ -87,17 +103,10 @@
   --block: #163327;
   --block-foreground: #edf2ec;
   --block-muted: rgba(237, 242, 236, 0.66);
-}
-
-/* Legacy vars kept so interior routes built earlier keep rendering. */
-:root,
-.dark {
-  --nexo-canvas: #0a0e0c;
-  --nexo-panel: #0d1712;
-  --nexo-fg: #f3f1ec;
-  --nexo-green: #35d29b;
-  --nexo-green-soft: #57e3b3;
-  --nexo-green-deep: #1f9d73;
+  --brand-ink: #ffffff;
+  --warning: #ffd236;
+  --warning-border: rgba(255, 210, 54, 0.4);
+  --warning-surface: #30281a;
 }
 
 * {
@@ -118,6 +127,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
   font-variation-settings: "wdth" 100;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -150,9 +161,9 @@ select {
 */
 .display-title {
   font-family: var(--font-sans);
-  font-variation-settings: "wdth" 68;
-  font-weight: 680;
-  line-height: 0.94;
+  font-variation-settings: "wdth" var(--width-display);
+  font-weight: var(--weight-display);
+  line-height: 1;
   letter-spacing: 0.005em;
   text-transform: uppercase;
   text-wrap: balance;
@@ -160,10 +171,10 @@ select {
 
 .display-soft {
   font-family: var(--font-sans);
-  font-variation-settings: "wdth" 82;
-  font-weight: 560;
-  line-height: 1.04;
-  letter-spacing: 0.002em;
+  font-variation-settings: "wdth" var(--width-editorial);
+  font-weight: var(--weight-editorial);
+  line-height: 1.14;
+  letter-spacing: 0;
   text-wrap: balance;
 }
 
