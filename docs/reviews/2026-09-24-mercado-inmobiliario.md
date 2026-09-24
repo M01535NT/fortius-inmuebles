@@ -28,4 +28,6 @@ La publicación de la aplicación usa la integración existente de Vercel con `m
 
 La ejecución de GitHub #19 detectó una expectativa antigua en `public-render.test.ts`: con `MNT_SITE_URL=http://localhost:3001` esperaba enlaces sociales locales, aunque la aplicación deliberadamente los convierte al dominio público. Se reprodujo el fallo con esa configuración y se corrigió el aislamiento de la prueba para cubrir explícitamente dominio público, localhost y dominio personalizado. Las 27 pruebas del archivo pasan con el entorno local de CI. No se alteró el comportamiento de producción para resolver esta discrepancia.
 
+La ejecución #20 completó las 331 pruebas de aplicación y la compilación, y detectó una carrera en la prueba de navegador de 768 px: el contador ya mostraba un resultado antes de enviar la búsqueda, por lo que la recarga podía cancelar la navegación pendiente. La prueba ahora espera tanto el formato seleccionado como la URL enviada antes de recargar. Se repitió tres veces el escenario de 768 px, con tres resultados correctos. Se conserva la comprobación de persistencia del texto tras recargar.
+
 La [guía de operación editorial](../mercado-inmobiliario-editorial.md) describe el uso del panel y una cadencia propuesta de dos notas semanales y una guía mensual. No se activó una automatización de publicaciones.

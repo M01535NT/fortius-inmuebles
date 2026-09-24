@@ -23,9 +23,13 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       expect(axe.violations).toEqual([]);
     }
     await page.getByRole("navigation", { name: "Tipo de contenido" }).getByRole("link", { name: "Actualidad" }).click();
+    await expect(page.getByRole("navigation", { name: "Tipo de contenido" }).getByRole("link", { name: "Actualidad" })).toHaveAttribute("aria-current", "page");
     await page.getByLabel("Buscar un tema").fill("CREDITO");
     await page.getByLabel("Tema", { exact: true }).selectOption("mercado");
     await page.getByRole("button", { name: "Buscar", exact: true }).click();
+    // The unsearched Actualidad fixture also has one result. Wait for the submitted
+    // URL before reloading, otherwise the reload can cancel the pending navigation.
+    await expect(page).toHaveURL(/\/blog\?tipo=actualidad&q=CREDITO&tema=mercado$/);
     await expect(page.getByRole("status")).toContainText("1 artículo");
     await expect(page.locator("main article")).toHaveCount(1);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
