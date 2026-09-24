@@ -32,7 +32,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
             <ul className="space-y-3 text-[14px]">
               <li>
                 <Link href="/blog" className="text-foreground/75 transition-colors hover:text-foreground">
-                  Blog
+                  Mercado inmobiliario
                 </Link>
               </li>
               <li>

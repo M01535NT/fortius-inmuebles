@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import BlogPage from "@/app/blog/page";
+import BlogPage, { generateMetadata as generateBlogMetadata } from "@/app/blog/page";
 import BlogPostPage, {
   generateMetadata as generatePostMetadata,
 } from "@/app/blog/[slug]/page";
@@ -67,6 +67,60 @@ test("the public reader exposes published posts and never returns a draft by slu
   expect((await getBlogPosts()).map((post) => post.slug)).toEqual(["guia-de-compra"]);
   expect((await getBlogPostBySlug("guia-de-compra"))?.titulo).toBe("Guía de compra <segura>");
   expect(await getBlogPostBySlug("borrador-interno")).toBeUndefined();
+});
+
+test("editorial fields survive the public boundary and first publication controls recency", async () => {
+  posts = [
+    { ...published, publicadoEl: "2026-08-01T12:00:00.000Z", actualizadoEl: "2026-09-24T12:00:00.000Z", categoria: "comprar", formato: "guia", destacado: true, internalNotes: "private" },
+    { ...published, id: "news", slug: "mercado-local", publicadoEl: "2026-09-20T12:00:00.000Z", formato: "actualidad", categoria: "mercado", fuenteNombre: "Fuente original", fuenteUrl: "https://example.com/informe" },
+  ];
+  const result = await getBlogPosts();
+  expect(result.map((post) => post.slug)).toEqual(["mercado-local", "guia-de-compra"]);
+  expect(result[0]).toMatchObject({ formato: "actualidad", categoria: "mercado", publicadoEl: "2026-09-20T12:00:00.000Z", fuenteUrl: "https://example.com/informe" });
+  expect(result[1]).not.toHaveProperty("internalNotes");
+});
+
+test("readers can combine accent-insensitive search, topic and format without exposing drafts", async () => {
+  posts = [
+    { ...published, titulo: "Crédito para vivienda", categoria: "comprar", formato: "guia" },
+    { ...published, id: "news", slug: "noticia-credito", titulo: "Crédito en Tijuana", categoria: "comprar", formato: "actualidad" },
+    { ...draft, titulo: "Crédito interno", categoria: "comprar", formato: "actualidad" },
+  ];
+  const html = renderToStaticMarkup(await BlogPage({ searchParams: Promise.resolve({ q: "CREDITO", tema: "comprar", tipo: "actualidad" }) }));
+  expect(html).toContain('href="/blog/noticia-credito"');
+  expect(html).not.toContain('href="/blog/guia-de-compra"');
+  expect(html).not.toContain("Crédito interno");
+  expect(html).toContain("1 artículo");
+  const empty = renderToStaticMarkup(await BlogPage({ searchParams: Promise.resolve({ q: "inexistente" }) }));
+  expect(empty).toContain("No encontramos artículos");
+  expect(empty).toContain("Limpiar filtros");
+});
+
+test("article source, type and publication date appear independently from its update", async () => {
+  posts = [{ ...published, formato: "actualidad", publicadoEl: "2026-08-01T12:00:00.000Z", fuenteNombre: "Informe original", fuenteUrl: "https://example.com/informe", ambito: "Tijuana", autor: "Redacción" }];
+  const html = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: published.slug }) }));
+  expect(html).toContain('dateTime="2026-08-01T12:00:00.000Z"');
+  expect(html).toContain('dateTime="2026-09-04T18:30:00.000Z"');
+  expect(html).toContain('href="https://example.com/informe"');
+  expect(html).toContain("Actualidad");
+  expect(html).toContain("Redacción");
+});
+
+test("pagination retains every article once when an older article is featured", async () => {
+  posts = Array.from({ length: 12 }, (_, i) => ({ ...published, id: `p${i}`, slug: `articulo-${i}`, formato: "actualidad", publicadoEl: `2026-09-${String(20 - i).padStart(2, "0")}T12:00:00Z`, destacado: i === 11 }));
+  const first = renderToStaticMarkup(await BlogPage());
+  const second = renderToStaticMarkup(await BlogPage({ searchParams: Promise.resolve({ pagina: "2" }) }));
+  const slugs = [...`${first}${second}`.matchAll(/href="\/blog\/(articulo-\d+)"/g)].map((match) => match[1]);
+  expect(slugs).toHaveLength(12);
+  expect(new Set(slugs).size).toBe(12);
+  expect(first).toContain('href="/blog/articulo-11"');
+  expect(second).not.toContain('href="/blog/articulo-11"');
+});
+
+test("filtered pages have a stable canonical and stay out of search indexes", async () => {
+  const meta = await generateBlogMetadata({ searchParams: Promise.resolve({ q: "credito", tema: "comprar" }) });
+  expect(meta).toMatchObject({ alternates: { canonical: "/blog" }, robots: { index: false, follow: true } });
+  expect((await generateBlogMetadata()).robots).toBeUndefined();
 });
 
 test("the blog index has a useful empty state and links every published entry", async () => {

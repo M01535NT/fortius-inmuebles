@@ -3,6 +3,7 @@ import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { BLOG_CATEGORIES, BLOG_FORMATS, postCategory, postFormat, formatBlogDate } from "@/lib/blog-editorial";
 
 import {
   Badge,
@@ -44,6 +45,14 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
         contenido: String(data.get("contenido") ?? ""),
         estado: String(data.get("estado") ?? "borrador") as Post["estado"],
         actualizadoEl: new Date().toISOString(),
+        categoria: String(data.get("categoria") || "") as Post["categoria"] || undefined,
+        formato: String(data.get("formato") || "guia") as Post["formato"],
+        destacado: data.get("destacado") === "on",
+        autor: String(data.get("autor") ?? "").trim(),
+        ambito: String(data.get("ambito") ?? "").trim(),
+        fuenteNombre: String(data.get("fuenteNombre") ?? "").trim(),
+        fuenteUrl: String(data.get("fuenteUrl") ?? "").trim(),
+        ...(post?.publicadoEl ? { publicadoEl: post.publicadoEl } : {}),
       },
       version,
     );
@@ -80,6 +89,30 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
           }
         />
       </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Tipo de contenido" htmlFor="post-formato">
+          <select id="post-formato" name="formato" defaultValue={post ? postFormat(post) : "guia"} className={selectClass}>
+            {Object.entries(BLOG_FORMATS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </Field>
+        <Field label="Tema" htmlFor="post-categoria">
+          <select id="post-categoria" name="categoria" defaultValue={post ? postCategory(post) ?? "" : ""} className={selectClass}>
+            <option value="">Sin clasificar</option>
+            {Object.entries(BLOG_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </Field>
+        <Field label="Autor" htmlFor="post-autor">
+          <input id="post-autor" name="autor" maxLength={500} defaultValue={post?.autor} className={inputClass} />
+        </Field>
+        <Field label="Ámbito o zona" htmlFor="post-ambito" hint="Por ejemplo: Tijuana, Baja California o México.">
+          <input id="post-ambito" name="ambito" maxLength={500} defaultValue={post?.ambito} className={inputClass} />
+        </Field>
+      </div>
+      <label className="flex min-h-11 items-center gap-3 text-sm">
+        <input type="checkbox" name="destacado" defaultChecked={post?.destacado} className="size-5 accent-primary" />
+        Destacar en portada
+      </label>
+      <p className="text-sm text-muted-foreground">Si hay varios destacados, se muestra primero el más reciente. Sin destacados, se presenta la última publicación.</p>
       <Field label="Título" htmlFor="post-titulo">
         <input
           id="post-titulo"
@@ -124,6 +157,21 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
           <option value="publicado">Expuesto públicamente</option>
         </select>
       </Field>
+      <fieldset className="space-y-4 rounded-md border border-border p-4">
+        <legend className="px-2 text-sm font-medium">Fuente principal</legend>
+        <p className="text-sm text-muted-foreground">En actualidad, indica qué ocurrió, cuándo y a quién afecta. Enlaza la fuente original; puedes añadir más fuentes en el contenido.</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Nombre de la fuente" htmlFor="post-fuente-nombre">
+            <input id="post-fuente-nombre" name="fuenteNombre" maxLength={500} defaultValue={post?.fuenteNombre} className={inputClass} />
+          </Field>
+          <Field label="Enlace a la fuente" htmlFor="post-fuente-url">
+            <input id="post-fuente-url" name="fuenteUrl" type="url" maxLength={2048} defaultValue={post?.fuenteUrl} placeholder="https://" className={inputClass} />
+          </Field>
+        </div>
+      </fieldset>
+      <p className="text-sm text-muted-foreground">
+        {post?.publicadoEl ? `Publicado el ${formatBlogDate(post.publicadoEl)}. La fecha se conserva al editar.` : post?.estado === "publicado" ? "Artículo anterior sin fecha de primera publicación registrada. Se muestra su última actualización." : "La fecha de publicación se registra automáticamente al publicar por primera vez."}
+      </p>
       <div className="flex gap-3">
         <button type="submit" className={btnPrimary}>
           Guardar entrada
@@ -148,8 +196,8 @@ export default function BlogAdminPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Blog."
-        description="Redacta y publica artículos del sitio. Los borradores permanecen visibles únicamente en el panel."
+        title="Mercado inmobiliario."
+        description="Publica guías y actualidad, clasifica los temas y elige el destacado de portada. Los borradores permanecen en el panel."
         actions={
           <button
             type="button"
@@ -184,6 +232,7 @@ export default function BlogAdminPage() {
                   <Badge tone={p.estado === "publicado" ? "green" : "amber"}>
                     {p.estado === "publicado" ? "Expuesto públicamente" : "Borrador"}
                   </Badge>
+                  <span className="text-xs text-muted-foreground">{BLOG_FORMATS[postFormat(p)]}{postCategory(p) ? ` · ${BLOG_CATEGORIES[postCategory(p)!]}` : ""}{p.destacado ? " · Destacado" : ""}</span>
                 </p>
                 <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
                   Slug: {p.slug} · {fechaCorta(p.actualizadoEl)}

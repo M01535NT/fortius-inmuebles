@@ -21,11 +21,13 @@ Si aparece un conflicto `409`, otra sesión guardó una versión posterior. Cons
 
 Los inmuebles nuevos permanecen sin publicar. Revisa título, operación, precio, zona, descripción, ficha, galería, asesor y documentos antes de activar **Publicar en el sitio**. La galería pública exige al menos una imagen accesible desde el bucket público. Despublicar retira la ficha pública en la siguiente consulta, pero conserva el registro operativo.
 
-## Blog
+## Mercado inmobiliario
 
-En **Blog**, crea título, slug, resumen, contenido y estado. El slug admite minúsculas, números y guiones simples; queda fijo después de crear la entrada. Usa líneas en blanco para separar párrafos. El contenido se muestra como texto, sin interpretar HTML.
+En **Mercado inmobiliario**, crea título, slug, resumen, contenido y estado. Clasifica la entrada como **Guías** o **Actualidad**, elige su tema y completa autor, ámbito y fuente original cuando corresponda. Puedes destacarla en portada. El slug admite minúsculas, números y guiones simples; queda fijo después de crear la entrada. Usa líneas en blanco para separar párrafos; se admiten encabezados, listas y enlaces Markdown, sin interpretar HTML.
 
 `Borrador` permanece en el panel. `Expuesto públicamente` publica la entrada en `/blog/<slug>` y la incorpora al sitemap. Confirma contenido, datos personales y vigencia antes de publicar.
+
+La primera publicación se registra automáticamente y se conserva al editar. La activación de los nuevos campos y fechas requiere la migración editorial 008. Consulta [la guía editorial](mercado-inmobiliario-editorial.md) para conocer la búsqueda, clasificación y rutina propuesta.
 
 ## Archivos
 

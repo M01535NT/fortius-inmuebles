@@ -74,3 +74,17 @@ test("editing displays the persisted slug as readonly and preserves it on save",
   await waitFor(() => expect(saved).not.toBeNull());
   expect(saved).toMatchObject({ slug: "guia-existente", titulo: "Título revisado" });
 });
+
+test("staff can classify and feature a news article with its original source", async () => {
+  await db.posts.load();
+  render(<BlogAdminPage />);
+  fireEvent.click(screen.getByRole("button", { name: "Editar Guía existente" }));
+  fireEvent.change(screen.getByLabelText("Tipo de contenido"), { target: { value: "actualidad" } });
+  fireEvent.change(screen.getByLabelText("Tema"), { target: { value: "mercado" } });
+  fireEvent.change(screen.getByLabelText("Nombre de la fuente"), { target: { value: "SHF" } });
+  fireEvent.change(screen.getByLabelText("Enlace a la fuente"), { target: { value: "https://example.com/informe" } });
+  fireEvent.click(screen.getByLabelText("Destacar en portada"));
+  fireEvent.submit(screen.getByRole("button", { name: "Guardar entrada" }).closest("form")!);
+  await waitFor(() => expect(saved).toMatchObject({ formato: "actualidad", categoria: "mercado", destacado: true, fuenteNombre: "SHF", fuenteUrl: "https://example.com/informe" }));
+  expect(saved).not.toHaveProperty("publicadoEl");
+});

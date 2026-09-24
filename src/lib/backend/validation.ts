@@ -38,7 +38,13 @@ const homeTextsSchema = z.object(Object.fromEntries(HOME_TEXT_KEYS.map((key) => 
 const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short, homeTexts: homeTextsSchema.optional() }).passthrough();
 const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")) }).passthrough();
 const postSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
-const postSchema = z.object({ id, slug: postSlug, titulo: name, resumen: text, contenido: z.string().max(150000), estado: z.enum(["borrador", "publicado"]), actualizadoEl: date }).passthrough();
+const postSchema = z.object({
+  id, slug: postSlug, titulo: name, resumen: text, contenido: z.string().max(150000),
+  estado: z.enum(["borrador", "publicado"]), actualizadoEl: date, publicadoEl: date.optional(),
+  categoria: z.enum(["comprar", "vender", "rentar", "mercado", "tramites"]).optional(),
+  formato: z.enum(["guia", "actualidad"]).optional(), destacado: z.boolean().optional(),
+  autor: short.optional(), ambito: short.optional(), fuenteNombre: short.optional(), fuenteUrl: optionalUrl,
+}).passthrough();
 
 export const recordSchemas = {
   tareas: taskSchema,
@@ -94,7 +100,10 @@ export function projectPublic(collection: string, values: unknown[]): Record<str
       for (const key of ["videoUrl", "tour360Url"]) if (data[key] && !isPublicUrl(data[key] as string)) delete data[key];
     }
     if (collection === "asesores" && data.activo !== true) continue;
-    if (collection === "posts" && data.estado !== "publicado") continue;
+    if (collection === "posts") {
+      if (data.estado !== "publicado") continue;
+      if (data.fuenteUrl && !isPublicUrl(data.fuenteUrl as string)) delete data.fuenteUrl;
+    }
     result.push(data);
   }
   return result;

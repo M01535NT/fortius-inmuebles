@@ -117,6 +117,14 @@ export type Post = {
   contenido: string; // párrafos separados por línea en blanco
   estado: "borrador" | "publicado";
   actualizadoEl: string;
+  publicadoEl?: string;
+  categoria?: import("@/lib/blog-editorial").BlogCategory;
+  formato?: import("@/lib/blog-editorial").BlogFormat;
+  destacado?: boolean;
+  autor?: string;
+  ambito?: string;
+  fuenteNombre?: string;
+  fuenteUrl?: string;
 };
 
 export type ArchivoTipo = "imagen" | "pdf" | "video" | "otro";

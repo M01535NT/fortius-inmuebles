@@ -2,10 +2,11 @@ import "server-only";
 
 import type { Post } from "@/lib/admin/store";
 import { getPublicPosts } from "@/lib/backend/public";
+import { postDate } from "@/lib/blog-editorial";
 
 export async function getBlogPosts(): Promise<Post[]> {
   return (await getPublicPosts()).sort(
-    (a, b) => Date.parse(b.actualizadoEl) - Date.parse(a.actualizadoEl),
+    (a, b) => Date.parse(postDate(b)) - Date.parse(postDate(a)) || a.slug.localeCompare(b.slug),
   );
 }
 

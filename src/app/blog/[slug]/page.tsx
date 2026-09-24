@@ -10,6 +10,7 @@ import { siteConfig } from "@/data/site";
 import { getBlogPostBySlug } from "@/lib/blog";
 import { getBlogCover } from "@/data/blog-covers";
 import { getBlogFigures } from "@/data/blog-figures";
+import { BLOG_CATEGORIES, postCategory, postFormat, formatBlogDate, readingMinutes } from "@/lib/blog-editorial";
 
 type Params = { slug: string };
 
@@ -36,6 +37,8 @@ export async function generateMetadata({
       description: post.resumen,
       url: new URL(path, siteConfig.url).href,
       modifiedTime: post.actualizadoEl,
+      ...(post.publicadoEl ? { publishedTime: post.publicadoEl } : {}),
+      ...(post.autor ? { authors: [post.autor] } : {}),
       ...(cover && coverUrl ? { images: [{ url: coverUrl, width: cover.width, height: cover.height, alt: cover.alt }] } : {}),
     },
     ...(coverUrl ? {
@@ -59,12 +62,12 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" strokeWidth={1.5} aria-hidden="true" />
-            Volver al blog
+            Volver a Mercado inmobiliario
           </Link>
 
           <header className="mt-8 border-b border-border pb-10">
             <p className="font-mono text-xs uppercase tracking-[0.08em] text-primary">
-              Criterio inmobiliario
+              {postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}{postCategory(post) ? ` · ${BLOG_CATEGORIES[postCategory(post)!]}` : ""}
             </p>
             <h1 className="display-title mt-4 text-4xl text-foreground sm:text-5xl md:text-6xl">
               {post.titulo}
@@ -72,7 +75,11 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             <p className="mt-6 max-w-[62ch] text-lg leading-relaxed text-muted-foreground">
               {post.resumen}
             </p>
-            <p className="mt-5 text-sm text-muted-foreground">
+            <p className="mt-5 text-sm leading-6 text-muted-foreground">
+              {[post.autor, post.ambito, `${readingMinutes(post)} min de lectura`].filter(Boolean).join(" · ")}
+            </p>
+            {post.publicadoEl && <p className="mt-2 text-sm text-muted-foreground">Publicado el <time dateTime={post.publicadoEl}>{formatBlogDate(post.publicadoEl)}</time></p>}
+            {post.actualizadoEl !== post.publicadoEl && <p className="mt-2 text-sm text-muted-foreground">
               Actualizado el{" "}
               <time dateTime={post.actualizadoEl}>
                 {new Intl.DateTimeFormat("es-MX", {
@@ -80,7 +87,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
                   timeZone: "America/Tijuana",
                 }).format(new Date(post.actualizadoEl))}
               </time>
-            </p>
+            </p>}
           </header>
 
           {cover && (
@@ -98,6 +105,9 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
           )}
 
           <BlogContent content={post.contenido} figures={getBlogFigures(post.slug)} />
+          {post.fuenteUrl && <aside className="mt-10 rounded-md border border-border bg-card p-5 text-sm leading-7 [overflow-wrap:anywhere]" aria-label="Fuente principal">
+            <span className="font-medium">Fuente principal: </span><a href={post.fuenteUrl} className="text-primary underline underline-offset-4">{post.fuenteNombre || "Consultar documento original"}</a>
+          </aside>}
         </article>
       </Container>
     </main>
