@@ -30,4 +30,6 @@ La ejecución de GitHub #19 detectó una expectativa antigua en `public-render.t
 
 La ejecución #20 completó las 331 pruebas de aplicación y la compilación, y detectó una carrera en la prueba de navegador de 768 px: el contador ya mostraba un resultado antes de enviar la búsqueda, por lo que la recarga podía cancelar la navegación pendiente. La prueba ahora espera tanto el formato seleccionado como la URL enviada antes de recargar. Se repitió tres veces el escenario de 768 px, con tres resultados correctos. Se conserva la comprobación de persistencia del texto tras recargar.
 
+La ejecución #21 aprobó la batería pública (10 pruebas; presupuesto opcional de rendimiento omitido). La navegación del panel todavía esperaba el nombre anterior «Blog». Se actualizó la expectativa a «Mercado inmobiliario» y los 18 escenarios del panel/producción mostraron resultados correctos localmente; el proceso quedó detenido al cerrar y se interrumpió, por lo que se conserva la ejecución de GitHub como comprobación completa de salida.
+
 La [guía de operación editorial](../mercado-inmobiliario-editorial.md) describe el uso del panel y una cadencia propuesta de dos notas semanales y una guía mensual. No se activó una automatización de publicaciones.
