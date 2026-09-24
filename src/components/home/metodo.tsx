@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
-import { motion, useScroll, useSpring } from "motion/react";
+import * as motion from "motion/react-m";
+import { homeText } from "@/data/home-copy";
+import type { SiteContent } from "@/lib/admin/store";
+import { Reveal } from "@/components/gsap/reveal";
+import { SplitHeading } from "@/components/gsap/split-heading";
+import { ParallaxImage } from "@/components/magicui/parallax-image";
+import { useScroll, useSpring } from "motion/react";
 
 import { FASES } from "@/data/metodo";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
@@ -12,7 +17,7 @@ import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
   mobile, prefers-reduced-motion y el modo de motion "equilibrado".
   Data compartida en src/data/metodo.ts.
 */
-export function Metodo({ anchor = true }: { anchor?: boolean }) {
+export function Metodo({ anchor = true, content }: { anchor?: boolean; content?: SiteContent | null }) {
   const reduce = useReducedMotionSafe();
   const trackRef = React.useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -30,14 +35,9 @@ export function Metodo({ anchor = true }: { anchor?: boolean }) {
         {/* Sticky intro column */}
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-28">
-            <h2 className="display-title text-4xl text-foreground sm:text-5xl">
-              Cuatro fases.
-              <br />
-              Un expediente.
-            </h2>
+            <SplitHeading lines={homeText(content, "metodoTitulo").split("\n")} className="display-title text-4xl text-foreground sm:text-5xl" />
             <p className="mt-6 max-w-[40ch] text-[15.5px] leading-relaxed text-muted-foreground">
-              Es el mismo proceso en cada operación, con documentos definidos
-              en cada fase. Pídelo completo en tu primera reunión.
+              {homeText(content, "metodoTexto")}
             </p>
           </div>
         </div>
@@ -61,6 +61,7 @@ export function Metodo({ anchor = true }: { anchor?: boolean }) {
                   aria-hidden="true"
                   className="absolute left-0 top-[7px] block h-[15px] w-[15px] rounded-full border-2 border-primary bg-background"
                 />
+                <Reveal distance={42} once>
                 <div className="flex items-baseline gap-4">
                   <span className="font-mono text-[13px] text-primary">{fase.n}</span>
                   <h3 className="display-title text-2xl text-foreground sm:text-[28px]">
@@ -68,7 +69,7 @@ export function Metodo({ anchor = true }: { anchor?: boolean }) {
                   </h3>
                 </div>
                 <p className="mt-3 max-w-[54ch] text-[15px] leading-relaxed text-muted-foreground">
-                  {fase.body}
+                  {homeText(content, fase.copy)}
                 </p>
                 <ul className="mt-5 space-y-2.5">
                   {fase.items.map((item) => (
@@ -81,14 +82,13 @@ export function Metodo({ anchor = true }: { anchor?: boolean }) {
                     </li>
                   ))}
                 </ul>
+                </Reveal>
                 {fase.image ? (
                   <div className="relative mt-7 aspect-[16/9] max-w-[520px] overflow-hidden rounded-lg border border-border">
-                    <Image
+                    <ParallaxImage
                       src={fase.image.src}
                       alt={fase.image.alt}
-                      fill
                       sizes="(max-width: 768px) 100vw, 520px"
-                      className="object-cover"
                     />
                   </div>
                 ) : null}

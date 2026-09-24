@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { HOME_FIELDS, HOME_TEXT_KEYS, homeText, resolveSiteContent } from "@/data/home-copy";
 
 import {
   AsyncForm,
@@ -25,7 +26,7 @@ export default function ContenidoPage() {
   return value ? <Editor initial={value} /> : <PageHeader title="Contenido." />;
 }
 function Editor({ initial }: { initial: SiteContent }) {
-  const [content] = React.useState(initial);
+  const [content] = React.useState(() => resolveSiteContent(initial));
   const [version, setVersion] = React.useState(() =>
     contentStore.version("singleton"),
   );
@@ -36,12 +37,13 @@ function Editor({ initial }: { initial: SiteContent }) {
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const next = Object.fromEntries(
-      Object.keys(content as SiteContent).map((k) => [
+    const next: SiteContent = { ...content, ...Object.fromEntries(
+      ["heroTitulo", "heroSubtitulo", "manifiestoTitulo", "manifiestoTexto", "seoTitle", "seoDescription"].map((k) => [
         k,
         String(data.get(k) ?? ""),
       ]),
-    ) as SiteContent;
+    ) };
+    next.homeTexts = Object.fromEntries(HOME_TEXT_KEYS.map((key) => [key, String(data.get(`home-${key}`) ?? "").trim()]));
     const saved = await contentStore.save(next, version);
     setVersion(contentStore.version(saved));
     setGuardado(true);
@@ -52,7 +54,7 @@ function Editor({ initial }: { initial: SiteContent }) {
     <div className="max-w-[760px] space-y-6">
       <PageHeader
         title="Contenido."
-        description="El copy de las secciones clave. Guardrails vigentes: sin cifras no verificadas, sin 'garantizado', sin guiones largos."
+        description="Edita los textos del sitio. Publica servicios y afirmaciones que puedas respaldar; los saltos de línea se conservan en los títulos."
       />
       <DemoBanner />
 
@@ -60,7 +62,7 @@ function Editor({ initial }: { initial: SiteContent }) {
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft text-lg text-foreground">Hero</h2>
           <Field label="Titular (H1)" htmlFor="ct-heroTitulo">
-            <input
+            <textarea
               id="ct-heroTitulo"
               name="heroTitulo"
               required
@@ -85,7 +87,7 @@ function Editor({ initial }: { initial: SiteContent }) {
             Manifiesto (bloque verde)
           </h2>
           <Field label="Titular" htmlFor="ct-manifiestoTitulo">
-            <input
+            <textarea
               id="ct-manifiestoTitulo"
               name="manifiestoTitulo"
               required
@@ -136,6 +138,18 @@ function Editor({ initial }: { initial: SiteContent }) {
           </Field>
         </section>
 
+        {Array.from(new Set(HOME_TEXT_KEYS.map((key) => HOME_FIELDS[key].group))).map((group) => (
+          <details key={group} className="rounded-lg border border-border bg-card p-5">
+            <summary className="min-h-11 cursor-pointer font-semibold text-foreground">{group}</summary>
+            <div className="mt-4 space-y-4">
+              {HOME_TEXT_KEYS.filter((key) => HOME_FIELDS[key].group === group).map((key) => (
+                <Field key={key} label={HOME_FIELDS[key].label} htmlFor={`home-${key}`}>
+                  <textarea id={`home-${key}`} name={`home-${key}`} defaultValue={homeText(content, key)} rows={3} maxLength={4000} className={textareaClass} />
+                </Field>
+              ))}
+            </div>
+          </details>
+        ))}
         <div className="flex items-center gap-4">
           <button type="submit" className={btnPrimary}>
             Guardar contenido

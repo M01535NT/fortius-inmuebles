@@ -22,6 +22,7 @@ export async function Destacadas() {
   const destacadas = (await getFeaturedProperties()).slice(0, 3);
   if (destacadas.length === 0) return null;
 
+  const hasDemo = destacadas.some((property) => property.demo);
   return (
     <section className="mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
       <div className="flex flex-wrap items-end justify-between gap-6">
@@ -32,8 +33,7 @@ export async function Destacadas() {
           />
           <Reveal delay={0.15} distance={40}>
             <p className="mt-4 max-w-[52ch] text-[15.5px] leading-relaxed text-muted-foreground">
-              Cada propiedad publicada pasó por revisión documental y análisis
-              de precio antes de salir al mercado.
+              {hasDemo ? "Explora las fichas y sus características. Los ejemplos de demostración están identificados y no constituyen ofertas reales." : "Consulta las características, el precio y la disponibilidad de cada inmueble. Te ayudamos a revisar las opciones que te interesen."}
             </p>
           </Reveal>
         </div>

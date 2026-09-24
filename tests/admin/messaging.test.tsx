@@ -29,7 +29,7 @@ test("unconfirmed or unsupported destinations never produce messaging links", ()
 });
 
 test("shared public settings expose direct anchors while keeping the form collapsed", () => {
-  const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled={false} settings={settings}>
+  const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled settings={settings}>
     <MessagingContact><form aria-label="Alternativa" /></MessagingContact>
   </PublicFeaturesProvider>);
   expect(html).toContain('href="https://wa.me/526641234567"');

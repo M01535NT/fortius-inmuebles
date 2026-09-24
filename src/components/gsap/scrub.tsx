@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useInView } from "motion/react";
 
-import { gsap, isMobile, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { gsap, useGSAP } from "@/lib/gsap";
 
 /*
   Wrapper scroll-linked genérico: el elemento deriva CON el scroll mientras
@@ -24,13 +25,18 @@ type Props = {
 
 export function Scrub({ children, className, y, x, xPercent, rotate, scaleY }: Props) {
   const ref = React.useRef<HTMLDivElement>(null);
+  const nearViewport = useInView(ref, { once: true, margin: "200px" });
 
   useGSAP(
     () => {
       const el = ref.current;
-      if (!el || prefersReducedMotion()) return;
+      if (!el || !nearViewport) return;
+      const media = gsap.matchMedia();
+      media.add({ reduce: "(prefers-reduced-motion: reduce)", compact: "(max-width: 767px)", desktop: "(min-width: 768px)" }, (context) => {
+      if (context.conditions?.reduce) return;
+      const compact = !!context.conditions?.compact;
 
-      const k = isMobile() ? 0.5 : 1;
+      const k = compact ? 0.5 : 1;
       const from: gsap.TweenVars = {};
       const to: gsap.TweenVars = {
         ease: "none",
@@ -48,8 +54,10 @@ export function Scrub({ children, className, y, x, xPercent, rotate, scaleY }: P
       if (scaleY) [from.scaleY, to.scaleY] = [scaleY[0], scaleY[1]];
 
       gsap.fromTo(el, from, to);
+      });
+      return () => media.revert();
     },
-    { scope: ref },
+    { scope: ref, dependencies: [nearViewport], revertOnUpdate: true },
   );
 
   return (

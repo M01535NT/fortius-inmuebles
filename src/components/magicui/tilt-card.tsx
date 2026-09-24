@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { motion, useSpring } from "motion/react";
+import * as motion from "motion/react-m";
+import { useSpring } from "motion/react";
 
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ export function TiltCard({
   const rotateY = useSpring(0, { stiffness: 180, damping: 20 });
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse") return;
     const rect = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;

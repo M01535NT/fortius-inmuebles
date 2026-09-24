@@ -1,19 +1,22 @@
 "use client";
+import * as motion from "motion/react-m";
 import { MessagingActions } from "@/components/contact/messaging-actions";
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowUpRight, Pause, Play } from "lucide-react";
 import {
   AnimatePresence,
-  motion,
   useScroll,
   useSpring,
   useTransform,
-} from "motion/react";
+  useInView } from "motion/react";
 
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { ESPECTACULAR } from "@/data/motion-config";
-import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
+import { useMotionProfile } from "@/lib/use-motion-profile";
+import { resolveSiteContent } from "@/data/home-copy";
 import type { SiteContent } from "@/lib/admin/store";
 
 const SLIDES = [
@@ -31,6 +34,7 @@ function MagneticCta({ href, children }: { href: string; children: React.ReactNo
   const y = useSpring(0, { stiffness: 220, damping: 18 });
 
   function onMove(e: React.PointerEvent<HTMLAnchorElement>) {
+    if (e.pointerType !== "mouse") return;
     const rect = e.currentTarget.getBoundingClientRect();
     x.set((e.clientX - rect.left - rect.width / 2) * 0.18);
     y.set((e.clientY - rect.top - rect.height / 2) * 0.3);
@@ -55,44 +59,53 @@ function MagneticCta({ href, children }: { href: string; children: React.ReactNo
 }
 
 export function Hero({ content }: { content?: SiteContent | null }) {
-  // The imported original is one string; retain its established two-line art direction.
-  const title = content?.heroTitulo ?? "Vende con plan, no con anuncios.";
-  const titleLines = title === "Vende con plan, no con anuncios."
-    ? ["Vende con plan,", "no con anuncios."] : title.split("\n");
-  const reduce = useReducedMotionSafe();
-  const kinetic = ESPECTACULAR && !reduce;
+  const copy = resolveSiteContent(content);
+  const titleLines = copy.heroTitulo.split("\n");
+  const { reduce, magnetic, parallax } = useMotionProfile();
+  const kinetic = ESPECTACULAR && magnetic;
   const [index, setIndex] = React.useState(0);
+  const [paused, setPaused] = React.useState(false);
+  const [visible, setVisible] = React.useState(true);
 
   const sectionRef = React.useRef<HTMLElement>(null);
+  const inView = useInView(sectionRef, { amount: 0.05 });
+  const playing = !reduce && !paused && visible && inView;
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
   });
   /* Parallax: el fondo se queda atrás mientras la sección sale de cuadro. */
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", kinetic ? "18%" : "0%"]);
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", `${ESPECTACULAR ? parallax : 0}%`]);
 
   React.useEffect(() => {
-    if (reduce) return;
-    const id = window.setInterval(() => {
+    const update = () => setVisible(document.visibilityState === "visible");
+    update();
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
+
+  React.useEffect(() => {
+    if (!playing) return;
+    const id = window.setTimeout(() => {
       setIndex((i) => (i + 1) % SLIDES.length);
     }, ROTATE_MS);
-    return () => window.clearInterval(id);
-  }, [reduce]);
+    return () => window.clearTimeout(id);
+  }, [playing, index]);
 
   return (
-    <section ref={sectionRef} className="relative min-h-[100dvh] overflow-hidden" aria-label="Presentación">
+    <section ref={sectionRef} className="relative min-h-[100svh] overflow-hidden bg-[#10241c]" aria-label="Presentación">
       {/* Background rotator con parallax */}
-      <motion.div style={{ y: bgY }} className="absolute inset-0" aria-hidden="true">
+      <motion.div style={{ y: bgY }} className="absolute inset-x-0 -top-[18%] bottom-0" aria-hidden="true">
         <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={index}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={reduce ? false : { opacity: 0, clipPath: "inset(0 100% 0 0)" }}
+            animate={{ opacity: 1, clipPath: "inset(0 0% 0 0)" }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.4, ease: "easeInOut" }}
+            transition={{ duration: reduce ? 0 : 1.4, ease: [0.76, 0, 0.24, 1] }}
             className="absolute inset-0"
           >
-            <div className={reduce ? "absolute inset-0" : "kenburns absolute inset-0"}>
+            <div className={reduce ? "absolute inset-0" : "kenburns absolute inset-0"} style={{ animationPlayState: playing ? "running" : "paused" }}>
               <Image
                 src={SLIDES[index].src}
                 alt=""
@@ -109,7 +122,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
       </motion.div>
 
       {/* Copy block, asymmetric bottom-left */}
-      <div className="relative mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col justify-end px-5 pb-16 pt-24 md:px-8 md:pb-20">
+      <div className="relative mx-auto flex min-h-[100svh] max-w-[1280px] flex-col justify-end px-5 pb-8 pt-28 md:px-8 md:pb-12">
         {/* Cascada por letra (GSAP SplitText): la entrada de página no se repite. */}
         <SplitHeading
           as="h1"
@@ -117,55 +130,56 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           once
           delay={0.15}
           charDelay={0.028}
-          className="display-title text-[12.5vw] text-[#f2f4ee] sm:text-6xl md:text-7xl lg:text-[84px]"
+          className="display-title max-w-[23ch] text-[clamp(2.4rem,7.2vw,5.25rem)] text-[#f2f4ee]"
         />
 
         <motion.p
-          initial={reduce ? false : { opacity: 0, y: 20 }}
+          initial={reduce ? false : { opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
           className="hero-copy-entry mt-5 max-w-[46ch] text-[15.5px] leading-relaxed text-[#e6e9e2]/90 md:text-[17px]"
         >
-          {content?.heroSubtitulo ?? "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California."}
+          {copy.heroSubtitulo}
         </motion.p>
 
         <motion.div
-          initial={reduce ? false : { opacity: 0, y: 16 }}
+          initial={reduce ? false : { opacity: 1, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="hero-copy-entry mt-8 flex flex-wrap items-center gap-3"
         >
           <MessagingActions message="Hola, quiero conversar sobre una propiedad con MNT Inmuebles." fallback={kinetic ? (
-            <MagneticCta href="#evaluar">Evaluar mi propiedad</MagneticCta>
+            <MagneticCta href="#evaluar">Quiero vender mi propiedad</MagneticCta>
           ) : (
             <a
               href="#evaluar"
               className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
-              Evaluar mi propiedad
+              Quiero vender mi propiedad
             </a>
           )} />
-          <a
-            href="#metodo"
+          <Link
+            href="/inventario"
             className="inline-flex h-12 items-center rounded-md border border-[#f2f4ee]/35 px-6 text-[15px] font-medium text-[#f2f4ee] backdrop-blur-sm transition-colors hover:border-[#f2f4ee]/60 hover:bg-[#f2f4ee]/10 active:scale-[0.98]"
           >
-            Conocer el método
-          </a>
+            Ver propiedades <ArrowUpRight className="ml-3 size-4" aria-hidden="true" />
+          </Link>
         </motion.div>
 
         {/* Slide state: control funcional con progreso de 8s en la barra activa. */}
-        <div className="mt-10 flex gap-2" role="tablist" aria-label="Imágenes del inicio">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/25 pt-3">
+        <div className="flex items-center gap-2" role="group" aria-label="Imágenes del inicio">
           {SLIDES.map((s, i) => (
             <button
               key={s.src}
-              role="tab"
-              aria-selected={i === index}
+              type="button"
+              aria-pressed={i === index}
               aria-label={`Imagen ${i + 1}`}
-              onClick={() => setIndex(i)}
-              className="group relative h-4 w-10 cursor-pointer"
+              onClick={() => { setIndex(i); setPaused(true); }}
+              className="group relative h-11 w-11 cursor-pointer"
             >
               <span className="absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 overflow-hidden rounded-full bg-[#f2f4ee]/25">
-                {i === index && !reduce ? (
+                {i === index && playing ? (
                   <motion.span
                     key={`progress-${index}`}
                     initial={{ scaleX: 0 }}
@@ -179,6 +193,9 @@ export function Hero({ content }: { content?: SiteContent | null }) {
               </span>
             </button>
           ))}
+          {!reduce && <button type="button" onClick={() => setPaused(!paused)} aria-label={paused ? "Reanudar imágenes" : "Pausar imágenes"} className="flex size-11 items-center justify-center rounded-md text-white transition-colors hover:bg-white/15">{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</button>}
+        </div>
+        <a href="#metodo" className="inline-flex min-h-11 items-center gap-3 text-sm text-[#f2f4ee] transition-opacity hover:opacity-80">Conocer el método <span aria-hidden="true">↓</span></a>
         </div>
       </div>
     </section>

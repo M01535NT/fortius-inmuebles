@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { motion, useMotionTemplate, useMotionValue } from "motion/react";
+import * as motion from "motion/react-m";
+import { useMotionTemplate, useMotionValue } from "motion/react";
 
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";

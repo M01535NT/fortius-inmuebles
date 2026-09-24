@@ -1,14 +1,13 @@
 "use client";
 
 import * as React from "react";
-import {
-  motion,
-  useInView,
+import * as motion from "motion/react-m";
+import { useInView,
   type HTMLMotionProps,
   type UseInViewOptions,
-  type Variants,
-} from "motion/react";
+  type Variants } from "motion/react";
 
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
 
 type BlurFadeProps = HTMLMotionProps<"div"> & {
@@ -33,6 +32,7 @@ export function BlurFade({
   inViewOnce = true,
   ...props
 }: BlurFadeProps) {
+  const reduce = useReducedMotionSafe();
   const ref = React.useRef<HTMLDivElement>(null);
   const inViewResult = useInView(ref, {
     once: inViewOnce,
@@ -56,10 +56,10 @@ export function BlurFade({
   return (
     <motion.div
       ref={ref}
-      initial={inView ? false : "hidden"}
-      animate={inView ? (isInView ? "visible" : undefined) : "visible"}
+      initial={reduce || inView ? false : "hidden"}
+      animate={reduce ? "visible" : inView ? (isInView ? "visible" : undefined) : "visible"}
       variants={variants}
-      transition={{ delay, duration, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ delay: reduce ? 0 : delay, duration: reduce ? 0 : duration, ease: [0.22, 1, 0.36, 1] }}
       className={cn(className)}
       {...props}
     >

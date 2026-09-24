@@ -9,6 +9,8 @@ import { SiteNav } from "@/components/home/site-nav";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
 import { siteConfig } from "@/data/site";
+import { SITE_COPY } from "@/data/home-copy";
+import { PublicPerformance } from "@/components/providers/public-performance";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -27,11 +29,11 @@ const plexMono = IBM_Plex_Mono({
 const defaultMetadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "MNT Inmuebles | Vende tu propiedad en Tijuana con método",
+    default: SITE_COPY.seoTitle,
     template: "%s | MNT Inmuebles",
   },
   description:
-    "Firma inmobiliaria en Tijuana y Baja California. Precio con datos, expediente revisado y seguimiento por escrito, de la captación a la firma ante notario.",
+    SITE_COPY.seoDescription,
   openGraph: {
     title: "MNT Inmuebles | Bienes raíces con método",
     description:
@@ -51,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
       });
   return {
     ...defaultMetadata,
-    title: { default: content?.seoTitle || "MNT Inmuebles | Vende tu propiedad en Tijuana con método", template: "%s | MNT Inmuebles" },
+    title: { default: content?.seoTitle || SITE_COPY.seoTitle, template: "%s | MNT Inmuebles" },
     description: content?.seoDescription || defaultMetadata.description,
     openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || "MNT Inmuebles | Bienes raíces con método", description: content?.seoDescription || defaultMetadata.openGraph?.description },
   };
@@ -99,6 +101,7 @@ export default async function RootLayout({
         */}
         <PublicFeaturesProvider publicLeadsEnabled={publicLeadsEnabled} settings={settings}>
           {isAdmin ? null : <SiteNav settings={settings} />}
+          {!isAdmin && process.env.VERCEL === "1" ? <PublicPerformance /> : null}
           <div className="relative z-10 bg-background">{children}</div>
           {isAdmin ? null : (
             <div className="sticky bottom-0 z-0">

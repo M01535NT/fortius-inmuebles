@@ -89,6 +89,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
       const el = ref.current;
       if (!el) return;
       const reduce = prefersReducedMotion();
+      gsap.killTweensOf([el, ...el.querySelectorAll("[data-menu-item], [data-menu-panel]")]);
 
       if (open) {
         const tl = gsap.timeline();
@@ -99,12 +100,13 @@ export function FullscreenMenu({ open, onClose }: Props) {
           return;
         }
         tl.to(el, { clipPath: CLIP_OPEN, duration: 0.75, ease: "power3.inOut" })
-          .from(
+          .fromTo(
             "[data-menu-item]",
+            { y: 70, rotation: 3, opacity: 0 },
             {
-              y: 70,
-              rotation: 3,
-              opacity: 0,
+              y: 0,
+              rotation: 0,
+              opacity: 1,
               duration: 0.7,
               ease: EASE_OUT,
               stagger: 0.055,
@@ -112,9 +114,10 @@ export function FullscreenMenu({ open, onClose }: Props) {
             },
             "-=0.3",
           )
-          .from(
+          .fromTo(
             "[data-menu-panel]",
-            { scale: 1.06, opacity: 0, duration: 0.8, ease: EASE_OUT },
+            { scale: 1.06, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.8, ease: EASE_OUT },
             "<0.1",
           );
       } else {
@@ -138,7 +141,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
       aria-modal="true"
       aria-label="Menú"
       style={{ clipPath: CLIP_CLOSED }}
-      className="invisible fixed inset-0 z-50 bg-background"
+      className="invisible fixed inset-0 z-50 overflow-y-auto bg-background"
     >
       {/* Cabecera del overlay: marca + cerrar en el mismo punto del botón. */}
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
@@ -148,21 +151,22 @@ export function FullscreenMenu({ open, onClose }: Props) {
           type="button"
           onClick={onClose}
           aria-label="Cerrar menú"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.97]"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.97]"
         >
           <X className="h-5 w-5" strokeWidth={1.5} />
         </button>
       </div>
 
-      <div className="mx-auto grid h-[calc(100dvh-64px)] max-w-[1280px] grid-rows-[1fr_auto] px-5 pb-8 pt-4 md:px-8">
+      <div className="mx-auto grid min-h-[calc(100dvh-64px)] max-w-[1280px] grid-rows-[1fr_auto] px-5 pb-8 pt-4 md:px-8">
         <div className="grid min-h-0 items-center gap-10 lg:grid-cols-12">
           {/* Enlaces principales */}
           <nav aria-label="Menú principal" className="lg:col-span-7">
             <ol>
               {PRIMARY.map((item, i) => (
-                <li key={item.href} data-menu-item onMouseEnter={() => setActive(i)}>
+                <li key={item.href} data-menu-item onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)}>
                   <Link
                     href={item.href}
+                    prefetch={open ? null : false}
                     onClick={onClose}
                     className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5"
                   >
@@ -185,6 +189,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
               <MessagingActions />
               <Link
                 href="/#evaluar"
+                prefetch={false}
                 onClick={onClose}
                 className="inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
               >
@@ -231,6 +236,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={open ? null : false}
                 onClick={onClose}
                 className="text-[13.5px] text-foreground/70 transition-colors hover:text-foreground"
               >

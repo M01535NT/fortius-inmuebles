@@ -5,6 +5,7 @@ import type { Asesor, SiteContent, SiteSettings, Post } from "@/lib/admin/store"
 import { createServerClient } from "./auth";
 import { projectPublic } from "./validation";
 import { databaseError } from "./http";
+import { resolveSiteContent } from "@/data/home-copy";
 
 const readPublic = cache(async (collection: string): Promise<Record<string, unknown>[]> => {
   const client = createServerClient();
@@ -20,6 +21,6 @@ const readPublic = cache(async (collection: string): Promise<Record<string, unkn
 
 export async function getPublicProperties(): Promise<Property[]> { return await readPublic("propiedades") as unknown as Property[]; }
 export async function getPublicAdvisers(): Promise<Asesor[]> { return await readPublic("asesores") as unknown as Asesor[]; }
-export async function getPublicContent(): Promise<SiteContent | null> { return (await readPublic("contenido"))[0] as SiteContent | undefined ?? null; }
+export async function getPublicContent(): Promise<SiteContent> { return resolveSiteContent((await readPublic("contenido"))[0] as SiteContent | undefined); }
 export async function getPublicSettings(): Promise<SiteSettings | null> { return (await readPublic("config"))[0] as SiteSettings | undefined ?? null; }
 export async function getPublicPosts(): Promise<Post[]> { return await readPublic("posts") as unknown as Post[]; }

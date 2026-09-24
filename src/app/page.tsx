@@ -29,15 +29,15 @@ export default async function HomePage() {
     <main>
       <Hero content={content} />
       <Relato content={content} />
-      <Metodo />
-      <Entregables />
+      <Metodo content={content} />
+      <Entregables content={content} />
       <Destacadas />
       <Segmentos />
-      <Respuestas />
+      <Respuestas content={content} />
       <Herramientas />
       <Zonas />
       <Compromisos />
-      <Evaluar />
+      <Evaluar content={content} />
     </main>
   );
 }

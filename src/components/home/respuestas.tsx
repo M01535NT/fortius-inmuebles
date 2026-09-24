@@ -1,5 +1,7 @@
 "use client";
 
+import { homeText, type HomeTextKey } from "@/data/home-copy";
+import type { SiteContent } from "@/lib/admin/store";
 import * as React from "react";
 import { Plus } from "lucide-react";
 
@@ -12,26 +14,26 @@ import { SplitHeading } from "@/components/gsap/split-heading";
   Motion: items entran alternando desde los lados; la apertura anima
   grid-template-rows 0fr→1fr con rotación del Plus.
 */
-const QA = [
+const QA: { q: string; copy: HomeTextKey }[] = [
   {
     q: "¿Cuánto tarda en venderse una propiedad?",
-    a: "Depende de la zona, el precio y el tipo de inmueble. Desconfía de quien te promete una fecha exacta. Lo que sí hacemos: revisar el avance con datos cada 30 días y ajustar la estrategia si el mercado no responde.",
+    copy: "tiempoRespuesta",
   },
   {
     q: "¿Cómo definen el precio de salida?",
-    a: "Con un análisis comparativo de mercado: propiedades similares vendidas en tu zona, su superficie, estado y las condiciones actuales de oferta. Buscamos un precio que atraiga ofertas reales, sin regalar tu propiedad ni espantar compradores.",
+    copy: "precioRespuesta",
   },
   {
     q: "¿Cuánto voy a pagar de costos de cierre?",
-    a: "Te entregamos una estimación desglosada desde el principio: impuestos, notario, avalúo y gestoría. Los montos varían por operación y se confirman con el notario o el especialista correspondiente.",
+    copy: "gastosRespuesta",
   },
   {
     q: "¿Qué necesito para empezar?",
-    a: "Solo los datos básicos del inmueble. Con eso hacemos una revisión inicial y te decimos qué documentos conviene tener listos para avanzar sin frenones.",
+    copy: "inicioRespuesta",
   },
 ];
 
-function Item({ item, index }: { item: (typeof QA)[number]; index: number }) {
+function Item({ item, index }: { item: { q: string; a: string }; index: number }) {
   const [open, setOpen] = React.useState(false);
   const panelId = `respuesta-${index}`;
 
@@ -78,7 +80,7 @@ function Item({ item, index }: { item: (typeof QA)[number]; index: number }) {
   );
 }
 
-export function Respuestas() {
+export function Respuestas({ content }: { content?: SiteContent | null }) {
   return (
     <section
       id="respuestas"
@@ -86,14 +88,14 @@ export function Respuestas() {
     >
       <div className="grid gap-12 lg:grid-cols-12">
         <SplitHeading
-          lines={["Preguntas directas,", "respuestas directas."]}
+          lines={homeText(content, "preguntasTitulo").split("\n")}
           className="display-title text-4xl text-foreground sm:text-5xl lg:col-span-4"
         />
 
         <div className="lg:col-span-7 lg:col-start-6">
           <div className="border-t border-border">
             {QA.map((item, i) => (
-              <Item key={item.q} item={item} index={i} />
+              <Item key={item.q} item={{ ...item, a: homeText(content, item.copy) }} index={i} />
             ))}
           </div>
         </div>

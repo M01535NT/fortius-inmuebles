@@ -12,19 +12,19 @@ import { ParallaxImage } from "@/components/magicui/parallax-image";
 const SEGMENTOS = [
   {
     title: "Residencial",
-    text: "Casas y departamentos con lectura de zona, valor y expediente.",
+    text: "Casas y departamentos para comprar, vender o rentar.",
     href: "/residencial",
     image: { src: "/hero/edificio-ciudad.webp", alt: "Edificio residencial en zona urbana" },
   },
   {
     title: "Comercial",
-    text: "Locales y oficinas con criterio de ubicación y flujo.",
+    text: "Locales y oficinas según la ubicación y las necesidades de tu negocio.",
     href: "/comercial",
     image: { src: "/hero/interior-plaza.webp", alt: "Interior de plaza comercial" },
   },
   {
     title: "Industrial",
-    text: "Naves y terrenos operativos con revisión documental.",
+    text: "Naves y terrenos: accesos, características y uso previsto.",
     href: "/industrial",
     image: { src: "/hero/parque-industrial.webp", alt: "Parque industrial en operación" },
   },

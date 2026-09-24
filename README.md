@@ -28,6 +28,8 @@ Aplica las migraciones en este orden:
 3. `202609060003_mnt_identity.sql`
 4. `202609060004_mnt_content_identity.sql`
 5. `202609060005_retire_public_read_compatibility.sql`
+6. `202609230006_mnt_tasks.sql`
+7. `202609230007_mnt_home_editorial.sql`
 
 Los nombres de 001 y 002 son históricos e inmutables. La migración 003 conserva datos y revisiones, cambia la identidad activa a `mnt_*`, crea los buckets `mnt-staging`, `mnt-private` y `mnt-public`, y protege la unicidad e inmutabilidad de los slugs del blog. La migración 004 actualiza el contenido. La 005 retira la lectura antigua temporal después de verificar el despliegue MNT. Las cinco están aplicadas en la instancia existente; no volver a ejecutarlas allí ni editar migraciones aplicadas.
 
@@ -40,6 +42,16 @@ npm run verify
 ```
 
 Ese comando ejecuta lint, tipos, pruebas de backend y panel, y build. No necesita secretos. Las pruebas de navegador se ejecutan por separado con `npm run test:admin:browser`; CI usa los escenarios con backend simulado o explícitamente no disponible.
+
+`npm run test:public:browser` comprueba la portada compilada a 375, 768 y 1440 px, ambos temas, movimiento reducido y accesibilidad automática. Inicia un backend local de solo lectura con datos de ejemplo; no usa Supabase real. Requiere el build previo y Edge en Windows o Chromium instalado mediante Playwright en Linux.
+
+Para medir tres cargas móviles con las animaciones activas, ejecuta esa suite con `MNT_RUN_LIGHTHOUSE=true` y el filtro `-- --grep "performance budget"`. Guarda resultados en `tmp/performance`; falla si la mediana supera LCP 2.5 s, CLS 0.1 o TBT 200 ms. Es una medición de laboratorio, no datos de usuarios ni INP.
+
+## Textos y movimiento de la portada
+
+`/admin/contenido` administra los títulos, metadatos y 23 textos de presentación, método, entregables, preguntas frecuentes y contacto. La migración 007 permite leer los nuevos textos desde la proyección pública mediante una lista explícita de campos; debe aplicarse antes de publicar esta versión. No reescribe registros. Los textos históricos predeterminados se actualizan al leerlos, mientras que los cambios personalizados del panel se conservan.
+
+La portada conserva GSAP/SplitText, parallax, imágenes con Ken Burns, barrido entre fotografías, menú circular y transiciones. En móvil se ajustan las distancias y se elimina el desenfoque por carácter; el movimiento reducido responde a la preferencia del sistema. Speed Insights se carga solo en el sitio público de Vercel y requiere habilitar el servicio en ese proyecto.
 
 La verificación live es independiente porque crea y elimina fixtures en el proyecto dedicado:
 

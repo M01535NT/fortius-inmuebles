@@ -133,6 +133,7 @@ export type Archivo = {
 };
 
 export type SiteContent = {
+  homeTexts?: import("@/data/home-copy").HomeTexts;
   heroTitulo: string;
   heroSubtitulo: string;
   manifiestoTitulo: string;

@@ -26,22 +26,22 @@ export const siteConfig = {
 
 export const routePages = {
   residencial: {
-    title: "Residencial con criterio de cierre",
+    title: "Casas y departamentos en Tijuana",
     eyebrow: "Residencial",
     description:
-      "Acompañamos compra, venta y renta residencial con análisis de precio, zona, expediente y tiempos reales de decisión.",
+      "Te acompañamos al comprar, vender o rentar. Revisamos las características del inmueble, su precio y la documentación disponible.",
     bullets: [
-      "Lectura de zona y comparables.",
+      "Análisis de la zona y de inmuebles comparables.",
       "Preparación de ficha y expediente.",
       "Filtro de prospectos y visitas.",
       "Acompañamiento comercial hasta cierre.",
     ],
   },
   comercial: {
-    title: "Activos comerciales con lectura de negocio",
+    title: "Locales y oficinas para tu negocio",
     eyebrow: "Comercial",
     description:
-      "Trabajamos locales, oficinas y espacios comerciales considerando ubicación, flujo, condiciones y objetivo de salida.",
+      "Revisamos ubicación, accesos y condiciones del espacio según la actividad que buscas desarrollar o el inmueble que quieres ofrecer.",
     bullets: [
       "Análisis de ubicación y demanda.",
       "Revisión de condiciones de uso.",
@@ -56,16 +56,16 @@ export const routePages = {
       "Atendemos naves, terrenos y espacios operativos con foco en documentación, uso previsto, accesos y viabilidad comercial.",
     bullets: [
       "Revisión de uso y características.",
-      "Lectura de accesos y operación.",
-      "Cuidado documental.",
+      "Revisión de accesos y necesidades de operación.",
+      "Revisión de la documentación disponible.",
       "Comercialización dirigida.",
     ],
   },
   vender: {
-    title: "Antes de vender, confirma si estás listo",
+    title: "Prepara tu propiedad para vender",
     eyebrow: "Vender inmueble",
     description:
-      "El primer paso no es publicar. Es entender valor, expediente, tiempos, condiciones y estrategia de salida.",
+      "Revisamos contigo el precio, los documentos y las condiciones de la venta antes de acordar cómo presentar la propiedad.",
     bullets: [
       "Opinión inicial de valor.",
       "Revisión de información básica.",
@@ -74,7 +74,7 @@ export const routePages = {
     ],
   },
   comprar: {
-    title: "Comprar con información, no con prisa",
+    title: "Encuentra una propiedad que se ajuste a tus planes",
     eyebrow: "Comprar inmueble",
     description:
       "Acompañamos la búsqueda y evaluación de propiedades con información clara para decidir mejor.",
@@ -89,7 +89,7 @@ export const routePages = {
     title: "Due diligence inmobiliaria antes de avanzar",
     eyebrow: "Due diligence",
     description:
-      "Una revisión temprana ayuda a detectar fricciones documentales, comerciales o de negociación.",
+      "Revisamos la documentación disponible para identificar pendientes y riesgos que conviene resolver antes de comprometerte.",
     bullets: [
       "Revisión documental inicial.",
       "Identificación de riesgos comerciales.",

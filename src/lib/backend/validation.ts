@@ -1,3 +1,4 @@
+import { HOME_TEXT_KEYS } from "@/data/home-copy";
 import { z } from "zod";
 import { leadProfileSchema } from "@/lib/lead-profile";
 import { taskSchema } from "@/lib/tasks";
@@ -33,7 +34,8 @@ const propertySchema = z.object({
 const adviserSchema = z.object({ id, nombre: name, cargo: short, iniciales: z.string().max(10), telefono: short.optional(), whatsapp: short.optional(), email, activo: z.boolean() }).passthrough();
 const origins = ["evaluar", "contacto", "interes-propiedad", "checklist", "documentos", "manual"] as const;
 const leadFields = { nombre: name, telefono: phone, email, propiedadSlug: reference, zona: short.optional(), tipoPropiedad: short.optional(), mensaje: text.optional() };
-const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short }).passthrough();
+const homeTextsSchema = z.object(Object.fromEntries(HOME_TEXT_KEYS.map((key) => [key, z.string().max(4000).optional()]))).strip();
+const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short, homeTexts: homeTextsSchema.optional() }).passthrough();
 const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")) }).passthrough();
 const postSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
 const postSchema = z.object({ id, slug: postSlug, titulo: name, resumen: text, contenido: z.string().max(150000), estado: z.enum(["borrador", "publicado"]), actualizadoEl: date }).passthrough();

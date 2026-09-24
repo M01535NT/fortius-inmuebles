@@ -10,7 +10,7 @@ test.beforeAll(async () => {
   server = await createServer({
     configFile: false,
     root: process.cwd(),
-    resolve: { alias: { "@": resolve("src"), "next/navigation": resolve("tests/admin/browser/fixtures/form-router.ts") } },
+    resolve: { alias: { "@": resolve("src"), "next/navigation": resolve("tests/admin/browser/fixtures/form-router.ts"), "next/link": resolve("tests/admin/browser/fixtures/form-link.tsx") } },
     server: { host: "127.0.0.1", port: 0, watch: { ignored: ["**/.superpowers/**"] } },
     appType: "custom",
     ssr: { noExternal: ["gsap", "@gsap/react"] },

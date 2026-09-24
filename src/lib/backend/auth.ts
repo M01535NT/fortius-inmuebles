@@ -9,9 +9,11 @@ const ACCESS_COOKIE = "mnt-access-token";
 const REFRESH_COOKIE = "mnt-refresh-token";
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", priority: "high" as const };
 
-export function supabaseEnvironment() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export function supabaseEnvironment(environment = process.env) {
+  // This server-only client reads its deployment environment at runtime.
+  // Direct NEXT_PUBLIC references would freeze these values into the build.
+  const url = environment.NEXT_PUBLIC_SUPABASE_URL;
+  const key = environment.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) throw new ApiError(503, "El servicio MNT no está configurado");
   return { url, key };
 }

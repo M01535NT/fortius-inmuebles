@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "motion/react";
+import * as motion from "motion/react-m";
+import { useScroll, useTransform } from "motion/react";
 
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 

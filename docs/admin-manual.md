@@ -36,6 +36,12 @@ Selecciona visibilidad antes de cargar:
 
 El sistema valida tipo, tamaño y contenido, y conserva `bucket` y `path` en el registro del catálogo. Quitar un elemento del catálogo no borra automáticamente el objeto almacenado. No cargues identificaciones, escrituras ni información confidencial como archivos públicos.
 
+## Contenido y contacto
+
+En **Contenido**, edita los titulares de portada, el bloque verde, los metadatos y los grupos de presentación, método, entregables, preguntas frecuentes y contacto. Los saltos de línea se conservan en los títulos. Un campo de los grupos que se deje vacío usa el texto predeterminado. Guarda para confirmar la escritura en el servidor. La publicación de estos nuevos grupos requiere la migración editorial 007.
+
+En **Configuración**, completa teléfono, WhatsApp y Facebook/Messenger cuando estén definidos. La web muestra los canales válidos configurados. Si todavía no hay canales y los formularios están deshabilitados, informa que el contacto estará disponible próximamente y ofrece consultar las propiedades. No publica destinos de ejemplo ni presenta formularios que no pueden recibir solicitudes.
+
 ## Leads y datos de ejemplo
 
 Los formularios públicos de leads están deshabilitados por defecto mediante `MNT_PUBLIC_LEADS_ENABLED=false`. Actívalos solo después de configurar el secreto del servidor, aplicar migraciones y verificar persistencia y límites.

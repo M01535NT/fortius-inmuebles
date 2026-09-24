@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import * as motion from "motion/react-m";
 import { Mail, Phone } from "lucide-react";
-import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
+import { AnimatePresence, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 
 import type { SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";

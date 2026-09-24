@@ -24,12 +24,13 @@ test("the existing hero and manifesto render panel copy without replacing their 
   expect(relato).toContain("Proceso actualizado.");
   expect(relato).toContain("Texto actualizado");
 });
-test("the imported original copy preserves the hero line break and mint manifesto emphasis", () => {
+test("legacy defaults receive the approved copy and keep intentional line breaks", () => {
   const original = { ...content, heroTitulo: "Vende con plan, no con anuncios.", manifiestoTitulo: "No prometemos resultados. Documentamos el proceso." };
   const hero = renderToStaticMarkup(<Hero content={original} />);
   const relato = renderToStaticMarkup(<Relato content={original} />);
-  expect(hero).toContain('<span class="block">Vende con plan,</span><span class="block">no con anuncios.</span>');
-  expect(relato).toContain('<span class="block text-[#57e3b3]">Documentamos el proceso.</span>');
+  expect(hero).toContain('Tu propiedad en Tijuana.');
+  expect(hero).toContain('Un plan para venderla.');
+  expect(relato).toContain('<span class="block text-[#57e3b3]">con información.</span>');
 });
 test("footer uses public settings and keeps placeholder numbers explicitly unconfirmed", () => {
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);

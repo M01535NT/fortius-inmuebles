@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MessageCircle, MessagesSquare } from "lucide-react";
+import { MessageCircle, MessagesSquare, Phone } from "lucide-react";
+import Link from "next/link";
 import type { SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
@@ -27,13 +28,16 @@ export function MessagingActions({ settings, message, className = "", compact = 
 export function MessagingContact({ children, title = "Conversemos directamente.", ...props }: Props & { children?: ReactNode; title?: string }) {
   const shared = usePublicFeatures();
   const contact = publicContact(props.settings === undefined ? shared.settings : props.settings);
+  const hasContact = !!(contact.whatsapp || contact.messenger || contact.phoneHref);
   return <div className="space-y-5">
     <div>
       <h3 className="display-soft text-2xl text-foreground">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{contact.whatsapp || contact.messenger ? `Escríbenos por ${contact.whatsapp && contact.messenger ? "WhatsApp o Messenger" : contact.whatsapp ? "WhatsApp" : "Messenger"}.` : "Los canales de mensajería estarán disponibles cuando se confirmen los datos de contacto."}</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{contact.whatsapp || contact.messenger ? `Escríbenos por ${contact.whatsapp && contact.messenger ? "WhatsApp o Messenger" : contact.whatsapp ? "WhatsApp" : "Messenger"}.` : contact.phoneHref ? "Llámanos para conversar sobre tu propiedad." : shared.publicLeadsEnabled ? "Déjanos tus datos para revisar tu solicitud." : "El contacto directo estará disponible próximamente."}</p>
     </div>
     <MessagingActions {...props} />
-    {children && <details className="group">
+    {contact.phoneHref && <a href={contact.phoneHref} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-4 font-medium text-foreground transition-colors hover:bg-secondary"><Phone className="size-4" aria-hidden="true" />Llamar</a>}
+    {!hasContact && !shared.publicLeadsEnabled && <Link href="/inventario" className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">Explorar propiedades</Link>}
+    {children && shared.publicLeadsEnabled && <details className="group">
       <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium text-foreground underline underline-offset-4">Prefiero dejar mis datos en un formulario</summary>
       <div className="pt-4">{children}</div>
     </details>}

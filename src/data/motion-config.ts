@@ -13,8 +13,9 @@
   Nota (7-jul-2026): el Método horizontal pinned se probó como pieza
   "espectacular" y SE DESCARTÓ por feedback; el Método es siempre vertical.
 
-  Mobile y prefers-reduced-motion SIEMPRE reciben la variante tranquila,
-  sin importar el modo. Ver DesignDirection.md § Modos de motion.
+  Mobile conserva la coreografía con recorridos ajustados; prefers-reduced-motion
+  recibe una variante estática,
+  sin importar el modo. Los perfiles se adaptan al cambiar el viewport.
 */
 export const MOTION_MODE: "espectacular" | "equilibrado" = "espectacular";
 

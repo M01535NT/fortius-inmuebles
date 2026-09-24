@@ -1,3 +1,5 @@
+import { homeText, type HomeTextKey } from "@/data/home-copy";
+import type { SiteContent } from "@/lib/admin/store";
 import { FileText } from "lucide-react";
 
 import { Reveal } from "@/components/gsap/reveal";
@@ -7,48 +9,46 @@ import { MagicCard } from "@/components/magicui/magic-card";
 import { TiltCard } from "@/components/magicui/tilt-card";
 
 /*
-  These are real documents from the firm's internal manual, with their real
-  internal codes, in the order the owner receives them. The codes are the
-  proof: a firm that names its paperwork actually uses it.
+  Document names keep their operational meaning; descriptions come from the panel.
   Motion: watermark EXPEDIENTE deriva con el scroll detrás del grid; las
   cards entran con rotación alterna y vuelven a animar al re-scrollear.
 */
-type Doc = { code: string; name: string; text: string };
+type Doc = { code: string; name: string; copy: HomeTextKey };
 
 const DOCS: Doc[] = [
   {
     code: "DUE-LEG-001",
     name: "Análisis de Factibilidad",
-    text: "Confirmamos que tu inmueble se puede vender, o qué hay que subsanar antes de salir al mercado.",
+    copy: "factibilidadTexto",
   },
   {
     code: "VAL-CMA-001",
     name: "Opinión de Valor",
-    text: "Comparables vendidos en tu zona para fijar un precio defendible, no un número al tanteo.",
+    copy: "valorTexto",
   },
   {
     code: "PLA-TRA-001",
     name: "Plan de Comercialización",
-    text: "La ruta de trabajo por escrito: canales, cronograma y estrategia de promoción.",
+    copy: "planTexto",
   },
   {
     code: "GAS-CIE-001",
     name: "Cálculo de Gastos",
-    text: "Impuestos, comisión y demás costos estimados, y cuánto te queda libre de la venta.",
+    copy: "gastosTexto",
   },
   {
     code: "CON-PSE-001",
     name: "Contrato",
-    text: "Todo el trabajo es bajo contrato, con obligaciones claras. Certeza para las dos partes.",
+    copy: "contratoTexto",
   },
   {
     code: "REP-MAR-001",
     name: "Reportes",
-    text: "Avances, visitas y prospectos, por escrito cada 30 días.",
+    copy: "reportesTexto",
   },
 ];
 
-export function Entregables() {
+export function Entregables({ content }: { content?: SiteContent | null }) {
   return (
     <section id="entregables" className="relative scroll-mt-20 overflow-hidden">
       {/* Watermark tipográfico: el expediente literal detrás de los papeles. */}
@@ -66,13 +66,12 @@ export function Entregables() {
 
       <div className="relative z-10 mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
         <SplitHeading
-          lines={["Papeles,", "no promesas."]}
+          lines={homeText(content, "entregablesTitulo").split("\n")}
           className="display-title max-w-[16ch] text-4xl text-foreground sm:text-5xl md:text-[56px]"
         />
         <Reveal delay={0.2} distance={40}>
           <p className="mt-6 max-w-[56ch] text-[15.5px] leading-relaxed text-muted-foreground">
-            Cada fase produce documentos con nombre y código en nuestro manual
-            interno. Estos seis los recibes tú, en este orden.
+            {homeText(content, "entregablesTexto")}
           </p>
         </Reveal>
 
@@ -108,7 +107,7 @@ export function Entregables() {
                       </h3>
                     </div>
                     <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
-                      {doc.text}
+                      {homeText(content, doc.copy)}
                     </p>
                   </article>
                 </MagicCard>

@@ -1,5 +1,7 @@
 "use client";
 
+import { homeText } from "@/data/home-copy";
+import type { SiteContent } from "@/lib/admin/store";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 
@@ -18,11 +20,11 @@ import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 */
 const PASOS = [
   "Recibimos los datos de tu propiedad.",
-  "Revisamos zona y comparables vendidos.",
-  "Te contactamos con una lectura inicial de valor y el siguiente paso.",
+  "Identificamos la información necesaria para revisar el caso.",
+  "Te contactamos para acordar el siguiente paso.",
 ];
 
-export function Evaluar() {
+export function Evaluar({ content }: { content?: SiteContent | null }) {
   const router = useRouter();
   const sectionRef = React.useRef<HTMLElement>(null);
   const [enviando, setEnviando] = React.useState(false);
@@ -92,12 +94,11 @@ export function Evaluar() {
           {/* Left: pitch + what happens next */}
           <div className="lg:col-span-5">
             <SplitHeading
-              lines={["¿Cuánto vale", "tu propiedad?"]}
+              lines={homeText(content, "evaluarTitulo").split("\n")}
               className="display-title text-4xl text-foreground sm:text-5xl md:text-[54px]"
             />
             <p className="mt-6 max-w-[46ch] text-[15.5px] leading-relaxed text-muted-foreground">
-              Cuéntanos lo básico. Sin compromiso y sin publicar nada antes de
-              revisarlo contigo.
+              {homeText(content, "evaluarTexto")}
             </p>
             <div className="relative mt-9">
               {/* Línea vertical que se dibuja con el scroll. */}

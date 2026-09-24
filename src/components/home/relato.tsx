@@ -1,6 +1,7 @@
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { TextReveal } from "@/components/magicui/text-reveal";
 import { ESPECTACULAR } from "@/data/motion-config";
+import { homeText, resolveSiteContent } from "@/data/home-copy";
 import type { SiteContent } from "@/lib/admin/store";
 
 /*
@@ -10,13 +11,10 @@ import type { SiteContent } from "@/lib/admin/store";
   Modo espectacular: la declaración se ilumina palabra por palabra al
   scroll (TextReveal) y el manifiesto entra con clip reveal.
 */
-const DECLARACION =
-  "La mayoría de las propiedades salen al mercado igual: fotos de celular, precio al tanteo y a esperar llamadas.";
 
 export function Relato({ content }: { content?: SiteContent | null }) {
-  const title = content?.manifiestoTitulo ?? "No prometemos resultados. Documentamos el proceso.";
-  const lines = title === "No prometemos resultados. Documentamos el proceso."
-    ? ["No prometemos resultados.", "Documentamos el proceso."] : title.split("\n");
+  const copy = resolveSiteContent(content);
+  const lines = copy.manifiestoTitulo.split("\n");
   return (
     <>
       {/* The problem */}
@@ -24,21 +22,19 @@ export function Relato({ content }: { content?: SiteContent | null }) {
         <div className="md:ml-[8%] lg:ml-[14%]">
           {ESPECTACULAR ? (
             <TextReveal
-              text={DECLARACION}
+              text={homeText(content, "relatoTexto")}
               className="display-soft max-w-[24ch] text-3xl text-foreground sm:text-4xl md:text-[44px]"
             />
           ) : (
             <BlurFade>
               <p className="display-soft max-w-[24ch] text-3xl text-foreground sm:text-4xl md:text-[44px]">
-                {DECLARACION}
+                {homeText(content, "relatoTexto")}
               </p>
             </BlurFade>
           )}
           <BlurFade delay={0.12}>
             <p className="mt-8 max-w-[52ch] text-[15.5px] leading-relaxed text-muted-foreground md:ml-[22%] md:text-[16.5px]">
-              Eso atrae curiosos, quema semanas y suele terminar en rebajas.
-              Y cuando por fin aparece un comprador real, un papel pendiente
-              detiene todo en la recta final.
+              {homeText(content, "relatoApoyo")}
             </p>
           </BlurFade>
         </div>
@@ -58,7 +54,7 @@ export function Relato({ content }: { content?: SiteContent | null }) {
               </BlurFade>
               <BlurFade delay={0.15} className="self-end md:col-span-4 md:col-start-9">
                 <p className="text-[15.5px] leading-relaxed text-block-muted">
-                  {content?.manifiestoTexto ?? "Cada operación sigue el mismo método por escrito, de la captación a la firma. Por eso siempre sabes en qué paso va la tuya, y qué sigue después."}
+                  {copy.manifiestoTexto}
                 </p>
               </BlurFade>
             </div>

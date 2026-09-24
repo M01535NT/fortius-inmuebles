@@ -1,13 +1,9 @@
-/*
-  Las cuatro fases del método, tomadas del manual operativo interno
-  (Proceso Operativo Inmobiliario). Compartidas por la versión vertical
-  (mobile / reduced-motion / modo equilibrado) y la horizontal pinned
-  (desktop espectacular).
-*/
+import type { HomeTextKey } from "@/data/home-copy";
+/* Vertical process. Main descriptions are edited through the content panel. */
 export type Fase = {
   n: string;
   title: string;
-  body: string;
+  copy: HomeTextKey;
   items: string[];
   image?: { src: string; alt: string };
 };
@@ -16,9 +12,9 @@ export const FASES: Fase[] = [
   {
     n: "01",
     title: "Captación",
-    body: "Antes de aceptar tu propiedad revisamos su situación legal y armamos el análisis comparativo de mercado. El precio de salida se defiende con comparables vendidos, no con corazonadas.",
+    copy: "captacionTexto",
     items: [
-      "Dictamen documental antes de publicar",
+      "Revisión documental inicial",
       "Análisis comparativo de mercado",
       "Contrato con plan de trabajo por escrito",
     ],
@@ -26,7 +22,7 @@ export const FASES: Fase[] = [
   {
     n: "02",
     title: "Preparación",
-    body: "La propiedad se pone a punto antes de salir: reparaciones con retorno claro, fotografía profesional y una ficha distinta para cada canal.",
+    copy: "preparacionTexto",
     items: [
       "Puesta a punto y staging",
       "Fotografía y video profesional",
@@ -37,7 +33,7 @@ export const FASES: Fase[] = [
   {
     n: "03",
     title: "Comercialización",
-    body: "Calificamos a cada prospecto antes de abrir tu puerta. Las ofertas se reciben por escrito y las analizamos contigo antes de responder.",
+    copy: "comercializacionTexto",
     items: [
       "Filtro de prospectos antes de cada visita",
       "Reporte de avances cada 30 días",
@@ -47,7 +43,7 @@ export const FASES: Fase[] = [
   {
     n: "04",
     title: "Cierre",
-    body: "Coordinamos notario, expediente y firma. Los costos se estiman desde antes, así sabes cuánto paga cada parte y qué sigue después de firmar.",
+    copy: "cierreTexto",
     items: [
       "Costos de cierre estimados por adelantado",
       "Checklist documental para notario",

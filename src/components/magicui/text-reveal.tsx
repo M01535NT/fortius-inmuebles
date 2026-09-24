@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
+import * as motion from "motion/react-m";
+import { useScroll, useTransform, type MotionValue } from "motion/react";
 
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import { cn } from "@/lib/utils";
@@ -25,10 +26,12 @@ function Word({
   progress: MotionValue<number>;
   range: [number, number];
 }) {
-  const opacity = useTransform(progress, range, [0.18, 1]);
+  // Full-contrast text stays readable; a separate accent supplies the scroll effect.
+  const scaleX = useTransform(progress, range, [0, 1]);
   return (
     <span className="relative inline-block">
-      <motion.span style={{ opacity }}>{children}</motion.span>
+      <span>{children}</span>
+      <motion.span aria-hidden="true" style={{ scaleX }} className="absolute inset-x-0 bottom-0 h-[0.055em] origin-left bg-primary" />
       {" "}
     </span>
   );

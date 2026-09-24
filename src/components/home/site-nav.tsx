@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
+import * as motion from "motion/react-m";
 import { usePathname } from "next/navigation";
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
+import { useMotionValueEvent, useScroll } from "motion/react";
 
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { MessagingActions } from "@/components/contact/messaging-actions";
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import type { SiteSettings } from "@/lib/admin/store";
 
 const links = [
@@ -20,10 +22,12 @@ const links = [
 ];
 
 export function SiteNav(props: { settings?: SiteSettings | null }) {
+  const reduce = useReducedMotionSafe();
   const pathname = usePathname();
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuReady, setMenuReady] = React.useState(false);
   const closeMenu = React.useCallback(() => setMenuOpen(false), []);
 
   useMotionValueEvent(scrollY, "change", (v) => {
@@ -44,9 +48,9 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
   return (
     <>
     <motion.header
-      initial={{ y: -16, opacity: 0 }}
+      initial={reduce ? false : { y: -16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: reduce ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={
         "fixed inset-x-0 top-0 z-40 transition-colors duration-300 " +
         (solid
@@ -80,12 +84,12 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
           />
           <button
             type="button"
-            onClick={() => setMenuOpen(true)}
+            onClick={() => { setMenuReady(true); setMenuOpen(true); }}
             aria-label="Abrir menú"
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
             className={
-              "group inline-flex h-9 items-center gap-2.5 rounded-md border px-3.5 text-[13.5px] font-medium transition-colors active:scale-[0.97] " +
+              "group inline-flex h-11 items-center gap-2.5 rounded-md border px-3.5 text-[13.5px] font-medium transition-colors active:scale-[0.97] " +
               (solid
                 ? "border-border text-foreground/80 hover:bg-secondary hover:text-foreground"
                 : "border-[#f2f4ee]/30 text-[#f2f4ee]/85 hover:bg-[#f2f4ee]/10 hover:text-[#f2f4ee]")
@@ -104,7 +108,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
 
     {/* Fuera del header: su transform crearía un containing block y
         rompería el position:fixed del overlay. */}
-    <FullscreenMenu open={menuOpen} onClose={closeMenu} />
+    {menuReady ? <FullscreenMenu open={menuOpen} onClose={closeMenu} /> : null}
     </>
   );
 }

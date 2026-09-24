@@ -121,3 +121,16 @@ test('005 retires only the temporary read compatibility API after deployment',as
   expect((await db.query("select proname from pg_proc where pronamespace='public'::regnamespace and starts_with(proname,'cota_')")).rows).toEqual([]);
   expect((await db.query("select * from public.mnt_public_records('config')")).rows).toHaveLength(1);
 });
+
+test("007 exposes approved home text fields without publishing unknown editorial data", async () => {
+  await db.exec(await readFile(new URL('../../supabase/migrations/202609230007_mnt_home_editorial.sql', import.meta.url), 'utf8'));
+  await db.query("insert into public.mnt_records(collection,id,data) values ('contenido','singleton',$1) on conflict (collection,id) do update set data=excluded.data", [JSON.stringify({ heroTitulo: "Texto propio", heroSubtitulo: "Texto", manifiestoTitulo: "Título", manifiestoTexto: "Texto", seoTitle: "SEO", seoDescription: "Descripción", homeTexts: { relatoTexto: "Edición del panel", internalNotes: "Privado" }, privateNotes: "Privado" })]);
+  await db.exec('set role anon');
+  try {
+    const rows = (await db.query<{data: Record<string, unknown>}>("select * from public.mnt_public_records('contenido')")).rows;
+    expect(rows[0].data.heroTitulo).toBe("Texto propio");
+    expect(rows[0].data.homeTexts).toEqual({ relatoTexto: "Edición del panel" });
+    expect(rows[0].data).not.toHaveProperty("privateNotes");
+    await expect(db.query("select * from public.mnt_records")).rejects.toMatchObject({code: '42501'});
+  } finally { await db.exec('reset role'); }
+});
