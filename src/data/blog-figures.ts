@@ -1,3 +1,5 @@
+import { september27Figures } from "./blog-figures-september-27";
+
 interface FigureStep {
   label: string;
   detail: string;
@@ -149,5 +151,6 @@ const figures: Record<string, BlogFigure[]> = {
 };
 
 export function getBlogFigures(slug: string): BlogFigure[] {
+  if (Object.hasOwn(september27Figures, slug)) return september27Figures[slug];
   return Object.hasOwn(figures, slug) ? figures[slug] : [];
 }

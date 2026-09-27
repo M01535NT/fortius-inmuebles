@@ -1,0 +1,58 @@
+[
+  {
+    "file": "01.md", "previous": { "titulo": "Vivienda en Tijuana: el índice SHF creció 9.7% en el primer semestre", "contenidoSha256": "7f0b1f257c1b3f94f7fc342aa37f5f9947a7818c607aabb1f18503d489d800d0" },
+    "id": "mnt-news-20260923-01", "slug": "indice-shf-tijuana-primer-semestre-2026",
+    "titulo": "Vivienda en Tijuana: qué significa el aumento de 9.7% reportado por SHF",
+    "resumen": "El índice de Tijuana creció 9.7% en el primer semestre de 2026. Aprende a distinguir la tendencia del mercado del precio de una propiedad concreta.",
+    "categoria": "mercado", "formato": "actualidad", "destacado": true,
+    "ambito": "Zona Metropolitana de Tijuana",
+    "fuenteNombre": "SHF · boletín 05/2026, del 10 de agosto de 2026",
+    "fuenteUrl": "https://www.gob.mx/shf/prensa/indice-shf-de-precios-de-la-vivienda-en-mexico-segundo-trimestre-de-2026-432219"
+  },
+  {
+    "file": "02.md", "id": "mnt-news-20260927-02", "slug": "mes-testamento-baja-california-2026",
+    "titulo": "Mes del Testamento 2026 en Baja California: beneficios y preparación",
+    "resumen": "La campaña de septiembre distingue honorarios preferenciales y exención de derechos. Revisa qué se anunció y cómo preparar tu entrevista en la notaría.",
+    "categoria": "tramites", "formato": "actualidad", "destacado": false,
+    "ambito": "Baja California",
+    "fuenteNombre": "Gobierno de Baja California · comunicado del 3 de septiembre de 2026",
+    "fuenteUrl": "https://www.bajacalifornia.gob.mx/coordinaciondegabinete/Prensa/NoticiaCompleta/27478"
+  },
+  {
+    "file": "03.md", "id": "mnt-news-20260927-03", "slug": "predial-isai-tijuana-condonacion-octubre-diciembre-2026",
+    "titulo": "Predial e ISAI en Tijuana: condonación del 1 de octubre al 29 de diciembre",
+    "resumen": "El nuevo acuerdo de Cabildo contempla condonar multas y recargos de predial e ISAI. Conoce las fechas, condiciones y diferencia frente al impuesto principal.",
+    "categoria": "tramites", "formato": "actualidad", "destacado": false,
+    "ambito": "Tijuana, Baja California",
+    "fuenteNombre": "Cabildo de Tijuana · acuerdo del 14 de septiembre de 2026, páginas 2–4",
+    "fuenteUrl": "https://www.tijuana.gob.mx/dependencias/cabildo/documentos/ACUERDO_47_4.1_XXV_14%20de%20Septiembre%20de%202026.pdf"
+  },
+  {
+    "file": "04.md", "previous": { "titulo": "Vivienda para el Bienestar en Baja California: qué significan las 80.8 mil acciones", "contenidoSha256": "1bd7b06fba01a90845f728221f293beb180d5a8a5c25eb6b676e109d02b256a1" },
+    "id": "mnt-news-20260924-02", "slug": "acciones-vivienda-bienestar-baja-california-2026",
+    "titulo": "Vivienda para el Bienestar: avances, escrituras y su lectura para Baja California",
+    "resumen": "El balance de septiembre distingue viviendas contratadas, en obra, asignadas y escrituras. Cómo interpretar esas cifras sin confundirlas con entregas locales.",
+    "categoria": "mercado", "formato": "actualidad", "destacado": false,
+    "ambito": "Baja California; contexto nacional",
+    "fuenteNombre": "FOVISSSTE · balance nacional del 14 de septiembre de 2026",
+    "fuenteUrl": "https://fovissste.gob.mx/noticias/vivienda-para-el-bienestar-beneficiara-a-12-millones-de-familias-en-el-sexenio/"
+  },
+  {
+    "file": "05.md", "id": "mnt-guide-20260927-05", "slug": "alerta-registral-baja-california-monitoreo-inmuebles",
+    "titulo": "Alerta Registral en Baja California: cómo vigilar movimientos sobre tu inmueble",
+    "resumen": "Conoce qué notifica la Alerta Registral, cómo se solicita y qué hacer con sus avisos. Una guía con pasos, vigencia y tarifa de referencia para septiembre.",
+    "categoria": "tramites", "formato": "guia", "destacado": false,
+    "ambito": "Baja California",
+    "fuenteNombre": "RETYS · Alerta Registral BC-DRPPC-026, ficha del 24 de septiembre de 2026",
+    "fuenteUrl": "https://retys.bajacalifornia.gob.mx/Portal/DescargarFichaTyS?tramiteId=747"
+  },
+  {
+    "file": "06.md", "id": "mnt-guide-20260927-06", "slug": "isr-venta-casa-habitacion-exencion-requisitos",
+    "titulo": "ISR al vender casa habitación: requisitos y límites de la exención",
+    "resumen": "La exención de ISR requiere acreditar condiciones. Revisa el límite en UDIS, los antecedentes de otras ventas y los documentos antes de calcular tu neto.",
+    "categoria": "vender", "formato": "guia", "destacado": false,
+    "ambito": "México; aplicación a operaciones en Baja California",
+    "fuenteNombre": "LISR, artículo 93 XIX a; Reglamento, artículos 154–155; RMF 2026",
+    "fuenteUrl": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf"
+  }
+]

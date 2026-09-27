@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { BlogContent } from "@/components/blog/blog-content";
+import { BlogCoverCredit } from "@/components/blog/blog-cover-credit";
 import { siteConfig } from "@/data/site";
 import { getBlogPostBySlug } from "@/lib/blog";
 import { getBlogCover } from "@/data/blog-covers";
@@ -93,13 +94,15 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
           {cover && (
             <figure className="mt-10">
               <Image
-                {...cover}
+                src={cover.src}
+                width={cover.width}
+                height={cover.height}
                 alt={cover.alt}
                 sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 815px) calc(100vw - 3rem), 768px"
-                className="aspect-[3/2] h-auto w-full rounded-sm object-contain"
+                className="h-auto w-full rounded-sm object-contain"
               />
               <figcaption className="mt-3 text-sm leading-6 text-muted-foreground">
-                Ilustración editorial generada con IA; no representa un inmueble en oferta.
+                <BlogCoverCredit cover={cover} linked />
               </figcaption>
             </figure>
           )}
