@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { homeText } from "@/data/home-copy";
 import type { SiteContent } from "@/lib/admin/store";
 import { SplitHeading } from "@/components/gsap/split-heading";
@@ -66,16 +65,6 @@ export function Metodo({ anchor = true, content }: { anchor?: boolean; content?:
                   <p className="mt-3 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
                     {homeText(content, fase.copy)}
                   </p>
-                  {fase.image ? (
-                    <div className="relative mt-7 aspect-[16/6] overflow-hidden rounded-lg border border-border">
-                      <Image
-                        src={fase.image.src}
-                        alt={fase.image.alt}
-                        sizes="(max-width: 768px) 100vw, 520px"
-                        fill className="object-cover"
-                      />
-                    </div>
-                  ) : null}
                 </div>
               </li>
             ))}
