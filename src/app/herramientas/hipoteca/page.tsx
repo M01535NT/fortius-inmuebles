@@ -18,7 +18,7 @@ export default function HipotecaPage() {
       <Container className="max-w-3xl pb-20 md:pb-28">
         <Link
           href="/herramientas"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-4" strokeWidth={1.5} />
           Herramientas

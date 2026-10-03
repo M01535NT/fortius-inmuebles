@@ -5,7 +5,7 @@ import { MessagingActions } from "@/components/contact/messaging-actions";
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Pause, Play } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import {
   AnimatePresence,
   useScroll,
@@ -193,7 +193,8 @@ export function Hero({ content }: { content?: SiteContent | null }) {
 
         {/* Slide state: control funcional con progreso de 8s en la barra activa. */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/25 pt-3">
-        <div className="flex items-center gap-2" role="group" aria-label="Imágenes del inicio">
+        <div className="flex items-center gap-2" role="group" aria-label="Imágenes del inicio" aria-describedby="hero-slide-help">
+          <p id="hero-slide-help" className="sr-only">Selecciona una imagen para mantenerla en pantalla y detener los cambios automáticos.</p>
           {SLIDES.map((s, i) => (
             <button
               key={s.src}
@@ -218,7 +219,6 @@ export function Hero({ content }: { content?: SiteContent | null }) {
               </span>
             </button>
           ))}
-          {!reduce && <button type="button" onClick={() => setPaused(!paused)} aria-label={paused ? "Reanudar imágenes" : "Pausar imágenes"} className="flex size-11 items-center justify-center rounded-md text-white transition-colors hover:bg-white/15">{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</button>}
         </div>
         <a href="#metodo" className="inline-flex min-h-11 items-center gap-3 text-sm text-on-image transition-opacity hover:opacity-80">Conocer el método <span aria-hidden="true">↓</span></a>
         </div>

@@ -48,7 +48,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
   return (
     <>
     <motion.header
-      initial={reduce ? false : { y: -16, opacity: 0 }}
+      initial={false}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: reduce ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={
@@ -66,6 +66,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
             <Link
               key={l.href}
               href={l.href}
+              aria-current={pathname === l.href || pathname.startsWith(`${l.href}/`) ? "page" : undefined}
               className={"text-sm font-medium transition-colors " + linkClass}
             >
               {l.label}

@@ -96,17 +96,19 @@ export default async function RootLayout({
       </head>
       <body>
         {/*
-          Footer cortina: el contenido (z-10, fondo opaco) se desliza sobre el
-          footer pegado al fondo del viewport (sticky bottom, z-0) y lo revela
-          al llegar al final. Solo CSS, ambos temas.
+          En pantallas amplias y altas, el contenido (z-10, fondo opaco) revela
+          el footer al llegar al final. En pantallas cortas, el footer sigue el
+          flujo normal para que todos sus enlaces sean accesibles.
         */}
         <PublicFeaturesProvider publicLeadsEnabled={publicLeadsEnabled} settings={settings}>
+          {/* Links crossing the admin/public boundary load a fresh document:
+              this server layout and its settings persist during soft navigation. */}
           {isAdmin ? <div className="relative z-10 bg-background">{children}</div> : (
             <PublicExperience>
               <SiteNav settings={settings} />
               {process.env.VERCEL === "1" ? <PublicPerformance /> : null}
               <div className="relative z-10 bg-background">{children}</div>
-              <div className="sticky bottom-0 z-0"><SiteFooter settings={settings} /></div>
+              <div className="public-footer relative z-0"><SiteFooter settings={settings} /></div>
             </PublicExperience>
           )}
         </PublicFeaturesProvider>

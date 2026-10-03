@@ -104,7 +104,7 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
     const navigate = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
-      if (!link || !root.current?.contains(link) || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+      if (!link || !root.current?.contains(link) || link.hasAttribute("download") || link.hasAttribute("data-document-navigation") || (link.target && link.target !== "_self")) return;
       const url = new URL(link.href, location.href);
       // Anchors, external contact channels and same-page filters keep native behavior.
       if (url.origin !== location.origin || url.pathname === location.pathname || url.pathname.startsWith("/api/") || url.pathname.startsWith("/admin")) return;

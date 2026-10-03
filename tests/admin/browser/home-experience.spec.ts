@@ -22,12 +22,10 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Vende tu propiedad");
-    const pause = page.getByRole("button", { name: "Pausar imágenes" });
-    await expect(pause).toBeVisible();
-    await pause.click();
-    await expect(page.getByRole("button", { name: "Reanudar imágenes" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Imagen 2", exact: true }).click();
     await expect(page.getByRole("button", { name: "Imagen 2", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".kenburns").last()).toHaveCSS("animation-play-state", "paused");
     await expect(page.locator(".hero-copy-entry").first()).toHaveCSS("opacity", "1");
     await expect(page.locator(".hero-copy-entry").last()).toHaveCSS("opacity", "1");
     await expect.poll(() => page.getByRole("heading", { level: 1 }).evaluate((heading) => {

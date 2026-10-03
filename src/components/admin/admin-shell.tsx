@@ -2,6 +2,7 @@
 import * as React from "react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import Link from "next/link";
+import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
@@ -181,6 +182,9 @@ function LoginScreen({
             </button>
           ) : null}
         </AsyncForm>
+        <DocumentLink href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline">
+          Volver al sitio
+        </DocumentLink>
       </div>
     </main>
   );
@@ -349,14 +353,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ))}
       {mobile ? (
         <>
-          <Link
+          <DocumentLink
             href="/"
             onClick={() => setMenu(false)}
             className="flex min-h-11 items-center gap-3 px-3 text-sm"
           >
             <ExternalLink className="size-4" />
             Ver sitio
-          </Link>
+          </DocumentLink>
           <AsyncButton type="button" onClick={leave} className={btnGhost}>
             <LogOut className="size-4" />
             Salir
@@ -381,13 +385,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {links()}
         </nav>
         <div className="space-y-2 border-t border-border p-3">
-          <Link
+          <DocumentLink
             href="/"
             className="flex min-h-11 items-center gap-3 px-3 text-sm"
           >
             <ExternalLink className="size-4" />
             Ver sitio
-          </Link>
+          </DocumentLink>
           <AsyncButton
             type="button"
             onClick={leave}

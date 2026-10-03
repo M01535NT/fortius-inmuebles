@@ -37,7 +37,7 @@ test("MNT fullscreen menu traps keyboard focus and restores its trigger", async 
   const close = dialog.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("link", { name: "Privacidad" })).toBeFocused();
+  await expect(dialog.getByRole("link", { name: "Términos y condiciones" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();
   await page.keyboard.press("Escape");
@@ -51,6 +51,7 @@ test("health and inventory expose backend unavailability without a false empty r
   await page.goto("/inventario");
   await expect(page.getByRole("heading", { name: "No pudimos cargar esta página." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reintentar" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
   await expect(page.getByText(/00 resultados/i)).toHaveCount(0);
 });
 
