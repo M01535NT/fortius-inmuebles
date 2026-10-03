@@ -146,7 +146,6 @@ export function Hero({ content }: { content?: SiteContent | null }) {
 
       {/* Copy block, asymmetric bottom-left */}
       <div className="relative mx-auto flex min-h-[100svh] max-w-[1280px] flex-col justify-end px-5 pb-8 pt-28 md:px-8 md:pb-12">
-        <div className="hero-eyebrow mb-6 flex items-center gap-3 text-on-image/90"><span className="h-px w-9 bg-current" /><span className="font-mono text-[10px] tracking-[0.16em] sm:text-xs">TIJUANA / BIENES RAÍCES CON MÉTODO</span></div>
         {/* Masked line reveal (GSAP SplitText); the hero entrance runs once. */}
         <SplitHeading
           as="h1"

@@ -44,7 +44,6 @@ export function Metodo({ anchor = true, content }: { anchor?: boolean; content?:
         {/* Sticky intro column */}
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-28">
-            <p className="section-kicker mb-5">01 — El proceso</p>
             <SplitHeading reveal="lines" lines={homeText(content, "metodoTitulo").split("\n")} className="display-title text-4xl text-foreground sm:text-5xl" />
             <p className="mt-6 max-w-[40ch] text-base leading-relaxed text-muted-foreground">
               {homeText(content, "metodoTexto")}
@@ -57,41 +56,26 @@ export function Metodo({ anchor = true, content }: { anchor?: boolean; content?:
           <ol className="method-cards">
             {FASES.map((fase, index) => (
               <li key={fase.n} data-method-card className="method-card" style={{ "--phase-index": index } as React.CSSProperties}>
-                <div className="mb-8 flex items-center justify-between border-b border-border pb-4">
-                  <span className="font-mono text-xs tracking-[0.12em] text-primary">FASE {fase.n}</span>
-                  <span className="font-mono text-[10px] tracking-wider text-muted-foreground">MÉTODO MNT / 04</span>
+                <div className="mb-5 border-b border-border pb-3">
+                  <span className="font-mono text-xs text-primary">Paso {index + 1} de {FASES.length}</span>
                 </div>
                 <div className="method-card-content">
-                <div className="flex items-start justify-between gap-3">
                   <h3 className="display-soft text-[clamp(1.8rem,4vw,2.8rem)] text-foreground">
                     {fase.title}
                   </h3>
-                  <span aria-hidden="true" className="method-number">{fase.n}</span>
-                </div>
-                <p className="mt-3 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
-                  {homeText(content, fase.copy)}
-                </p>
-                <ul className="mt-5 space-y-2.5">
-                  {fase.items.map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-base text-foreground/85">
-                      <span
-                        aria-hidden="true"
-                        className="mt-[9px] h-px w-4 shrink-0 bg-primary"
+                  <p className="mt-3 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
+                    {homeText(content, fase.copy)}
+                  </p>
+                  {fase.image ? (
+                    <div className="relative mt-7 aspect-[16/6] overflow-hidden rounded-lg border border-border">
+                      <Image
+                        src={fase.image.src}
+                        alt={fase.image.alt}
+                        sizes="(max-width: 768px) 100vw, 520px"
+                        fill className="object-cover"
                       />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                {fase.image ? (
-                  <div className="relative mt-7 aspect-[16/6] overflow-hidden rounded-lg border border-border">
-                    <Image
-                      src={fase.image.src}
-                      alt={fase.image.alt}
-                      sizes="(max-width: 768px) 100vw, 520px"
-                      fill className="object-cover"
-                    />
-                  </div>
-                ) : null}
+                    </div>
+                  ) : null}
                 </div>
               </li>
             ))}

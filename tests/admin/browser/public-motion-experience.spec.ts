@@ -52,9 +52,17 @@ test("desktop property interaction and route curtain preserve functional navigat
   for (const theme of ["light", "dark"]) {
     if (theme === "dark") await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await image.hover();
-    await property.evaluate(async (node) => {
-      await Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished));
-    });
+    // GSAP entrances run on ancestors and are separate from native transitions.
+    await expect.poll(() => page.locator("[data-property-card]").evaluateAll((cards) => cards.every((card) => {
+      for (let node: Element | null = card; node; node = node.parentElement) {
+        if (Number(getComputedStyle(node).opacity) < 1) return false;
+      }
+      return true;
+    }))).toBe(true);
+    // Changing theme can replace transitions and reject their finished promises.
+    await expect.poll(() => property.evaluate((node) =>
+      node.getAnimations({ subtree: true }).filter((animation) => animation.pending || animation.playState === "running").length,
+    )).toBe(0);
     const hoverResult = await new AxeBuilder({ page }).include("[data-property-card]").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(hoverResult.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
   }

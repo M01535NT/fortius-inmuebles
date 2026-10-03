@@ -21,7 +21,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Tu propiedad en Tijuana.");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Vende tu propiedad");
     const pause = page.getByRole("button", { name: "Pausar imágenes" });
     await expect(pause).toBeVisible();
     await pause.click();

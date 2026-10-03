@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/herramientas" },
   title: "Herramientas",
   description:
-    "Calculadoras abiertas para llegar con números claros: hipoteca y gastos de cierre en Tijuana y Baja California.",
+    "Calcula una mensualidad hipotecaria y estima gastos de compraventa en Tijuana y Baja California.",
 };
 
 const TOOLS = [
@@ -21,7 +21,7 @@ const TOOLS = [
   {
     icon: ReceiptText,
     title: "Gastos de cierre",
-    text: "Cuánto cuesta comprar o vender en Tijuana, desglosado por concepto y con rangos honestos.",
+    text: "Estima los gastos de comprar o vender en Tijuana, desglosados por concepto.",
     href: "/herramientas/gastos-de-cierre",
   },
 ];
@@ -31,11 +31,12 @@ export default function HerramientasPage() {
     <main className="bg-background pt-28 md:pt-32">
       <Container className="pb-20 md:pb-28">
         <h1 className="display-title max-w-[16ch] text-5xl text-foreground md:text-6xl">
-          Números antes de decidir.
+          Calculadoras inmobiliarias.
         </h1>
         <p className="mt-6 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
-          Herramientas abiertas, sin registro. Las cifras finales siempre se
-          confirman con el notario o el especialista correspondiente.
+          Estima una mensualidad o los gastos de compraventa, sin registrarte.
+          Los resultados son orientativos y deben confirmarse con la entidad,
+          la notaría o el especialista correspondiente.
         </p>
 
         <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -64,7 +65,7 @@ export default function HerramientasPage() {
         </div>
 
         <p className="mt-10 text-base text-muted-foreground">
-          ¿Quieres una lectura de valor de tu propiedad?{" "}
+          ¿Quieres vender tu propiedad?{" "}
           <Link href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
             Solicita una evaluación sin compromiso
           </Link>

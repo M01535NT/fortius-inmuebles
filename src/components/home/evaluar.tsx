@@ -5,28 +5,19 @@ import type { SiteContent } from "@/lib/admin/store";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 
-import { Scrub } from "@/components/gsap/scrub";
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { captureLead } from "@/lib/admin/store";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 import { MessagingContact } from "@/components/contact/messaging-actions";
-import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
 /*
   Lead capture. The form is the page's conversion tool: few fields, visible
   labels, honest microcopy. El POST al BFF de MNT debe confirmar la persistencia
   antes de redirigir a la página de gracias; un fallo conserva el borrador.
 */
-const PASOS = [
-  "Recibimos los datos de tu propiedad.",
-  "Identificamos la información necesaria para revisar el caso.",
-  "Te contactamos para acordar el siguiente paso.",
-];
-
 export function Evaluar({ content }: { content?: SiteContent | null }) {
   const router = useRouter();
-  const sectionRef = React.useRef<HTMLElement>(null);
   const [enviando, setEnviando] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -60,35 +51,8 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
     }
   }
 
-  useGSAP(
-    () => {
-      const el = sectionRef.current;
-      if (!el || prefersReducedMotion()) return;
-
-      /* Pasos en cascada con pop del número, repetible. */
-      gsap.utils.toArray<HTMLElement>("[data-paso]", el).forEach((paso, i) => {
-        const tl = gsap.timeline({
-          delay: 0.1 * i,
-          scrollTrigger: {
-            trigger: paso,
-            start: "top 85%",
-            toggleActions: "restart none none reverse",
-          },
-        });
-        tl.from(paso, { x: -24, opacity: 0, duration: 0.6, ease: EASE_OUT }).from(
-          paso.querySelector("[data-num]"),
-          { scale: 0.4, opacity: 0, duration: 0.45, ease: "back.out(2.2)" },
-          0.1,
-        );
-      });
-
-
-    },
-    { scope: sectionRef },
-  );
-
   return (
-    <section id="evaluar" ref={sectionRef} className="scroll-mt-20 bg-secondary/60">
+    <section id="evaluar" className="scroll-mt-20 bg-secondary/60">
       <div className="mx-auto max-w-[1280px] px-5 py-24 md:px-8 md:py-32">
         <div className="grid gap-14 lg:grid-cols-12">
           {/* Left: pitch + what happens next */}
@@ -100,30 +64,6 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
             <p className="mt-6 max-w-[46ch] text-base leading-relaxed text-muted-foreground">
               {homeText(content, "evaluarTexto")}
             </p>
-            <div className="relative mt-9">
-              {/* Línea vertical que se dibuja con el scroll. */}
-              <Scrub
-                scaleY={[0, 1]}
-                className="absolute bottom-1 left-0 top-1 w-px origin-top bg-primary/50"
-              >
-                <span aria-hidden="true" />
-              </Scrub>
-              <ol className="space-y-4 pl-6">
-                {PASOS.map((paso, i) => (
-                  <li key={paso} data-paso className="flex items-start gap-4">
-                    <span
-                      data-num
-                      className="inline-block font-mono text-sm leading-[1.7] text-primary"
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-base leading-relaxed text-foreground/85">
-                      {paso}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
           </div>
 
           {/* Right: the form */}

@@ -1,21 +1,16 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 
-/*
-  Compromisos: prueba social honesta mientras no existan testimonios
-  reales (guardrail: nada inventado). Cada fila se ilumina al cruzar el
-  viewport: hairline que crece, texto de tenue a pleno y número con pop.
-  Repetible al re-scrollear.
-*/
+/* Contract terms and owner decisions, with the existing row reveal. */
 const COMPROMISOS = [
-  "Información clara antes de cada decisión, no después.",
-  "Seguimiento por escrito de tu propiedad o tu búsqueda.",
-  "Comunicación directa durante todo el proceso.",
-  "Cuidado con tus datos y tus documentos.",
+  "Los honorarios y el trabajo incluido se establecen en el contrato.",
+  "El precio de publicación y la aceptación de una oferta se acuerdan contigo.",
+  "Los gastos e impuestos se presentan como estimaciones hasta que se confirmen los importes.",
 ];
 
 export function Compromisos() {
@@ -45,11 +40,6 @@ export function Compromisos() {
             fila.querySelector("[data-texto]"),
             { x: -18, opacity: 0.25, duration: 0.6, ease: EASE_OUT },
             0.1,
-          )
-          .from(
-            fila.querySelector("[data-num]"),
-            { scale: 0.4, opacity: 0, duration: 0.5, ease: "back.out(2.2)" },
-            0.15,
           );
       });
     },
@@ -61,28 +51,26 @@ export function Compromisos() {
       <div className="mx-auto max-w-[1280px] px-5 py-16 md:px-8 md:py-20">
         <div className="grid gap-8 lg:grid-cols-12">
           <SplitHeading
-            lines={["Lo que puedes esperar", "en cada operación"]}
+            lines={["Antes de contratar"]}
             charDelay={0.012}
             className="display-soft text-2xl text-foreground lg:col-span-4"
           />
           <div className="lg:col-span-7 lg:col-start-6">
             <ul ref={listRef} className="border-t border-border">
-              {COMPROMISOS.map((c, i) => (
+              {COMPROMISOS.map((c) => (
                 <li key={c} data-fila className="relative">
                   <span
                     data-hairline
                     aria-hidden="true"
                     className="absolute inset-x-0 bottom-0 h-px bg-border"
                   />
-                  <div data-texto className="flex items-baseline gap-4 py-4">
-                    <span data-num className="inline-block font-mono text-xs text-primary">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-base text-foreground/85">{c}</span>
-                  </div>
+                  <p data-texto className="py-4 text-base leading-relaxed text-foreground/85">{c}</p>
                 </li>
               ))}
             </ul>
+            <Link href="/privacidad" className="mt-5 inline-block text-sm text-primary underline underline-offset-4">
+              Consulta cómo tratamos tus datos
+            </Link>
           </div>
         </div>
       </div>

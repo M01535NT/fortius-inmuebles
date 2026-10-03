@@ -278,10 +278,10 @@ select {
 
 /* Public preview: editorial scale and generous rhythm, scoped away from admin. */
 .public-experience .display-title {
-  font-variation-settings: "wdth" 88;
-  font-weight: 580;
-  letter-spacing: -0.035em;
-  line-height: 1.06;
+  font-variation-settings: "wdth" 96;
+  font-weight: 560;
+  letter-spacing: -0.025em;
+  line-height: 1.12;
   text-transform: none;
 }
 
@@ -290,24 +290,17 @@ select {
   font-variation-settings: "wdth" 92;
   font-weight: 560;
   font-size: clamp(2.9rem, 7.8vw, 7.6rem);
-  line-height: 1.025;
-  letter-spacing: -0.05em;
+  line-height: 1.055;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
 .public-experience main h2.display-title {
-  font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+  font-size: clamp(2.2rem, 4.2vw, 4.2rem);
 }
 
 .hero-copy-entry a {
   border-radius: 100px;
-}
-
-.section-kicker {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  color: var(--primary);
 }
 
 .reading-progress {
@@ -376,14 +369,6 @@ select {
   box-shadow: 0 18px 60px -32px color-mix(in srgb, var(--foreground) 25%, transparent);
 }
 
-.method-number {
-  font-variation-settings: "wdth" 80;
-  font-size: 3.5rem;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  color: var(--primary);
-}
-
 .interactive-card {
   transition: box-shadow 450ms ease;
   border-radius: 8px;
@@ -414,11 +399,6 @@ select {
     top: calc(86px + var(--phase-index) * 14px);
     margin-bottom: 3rem;
   }
-}
-
-@media (max-width: 767px) {
-  .method-number { display: none; }
-  .hero-eyebrow { max-width: 32ch; }
 }
 
 @media (prefers-reduced-motion: reduce) {
