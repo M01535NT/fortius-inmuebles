@@ -36,9 +36,8 @@ const defaultMetadata: Metadata = {
   description:
     SITE_COPY.seoDescription,
   openGraph: {
-    title: "MNT Inmuebles | Bienes raíces con método",
-    description:
-      "Vende, renta o compra en Tijuana con un proceso documentado: análisis de mercado, revisión de papeles y coordinación hasta la firma.",
+    title: SITE_COPY.seoTitle,
+    description: SITE_COPY.seoDescription,
     locale: "es_MX",
     type: "website",
   },
@@ -56,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
     ...defaultMetadata,
     title: { default: content?.seoTitle || SITE_COPY.seoTitle, template: "%s | MNT Inmuebles" },
     description: content?.seoDescription || defaultMetadata.description,
-    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || "MNT Inmuebles | Bienes raíces con método", description: content?.seoDescription || defaultMetadata.openGraph?.description },
+    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || SITE_COPY.seoTitle, description: content?.seoDescription || SITE_COPY.seoDescription },
   };
 }
 
