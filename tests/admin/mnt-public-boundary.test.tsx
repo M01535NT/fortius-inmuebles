@@ -20,6 +20,7 @@ vi.mock("next/server", async (original) => ({ ...await original<typeof import("n
 vi.mock("@/lib/backend/auth", () => ({ createServerClient: () => ({ rpc }) }));
 vi.mock("@/components/home/site-nav", () => ({ SiteNav: () => <nav>public nav</nav> }));
 vi.mock("@/components/home/site-footer", () => ({ SiteFooter: () => <footer>public footer</footer> }));
+vi.mock("@/components/home/public-experience", () => ({ PublicExperience: ({ children }: React.PropsWithChildren) => children }));
 
 afterEach(() => {
   cleanup();

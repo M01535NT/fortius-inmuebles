@@ -20,8 +20,7 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
   the method → the proof (entregables) → inventory doors (destacadas,
   segmentos) → objections (respuestas) → tools (herramientas) → territory
   (zonas) → honest promise (compromisos) → conversion (evaluar).
-  El Método es SIEMPRE vertical (decisión 7-jul-2026: el horizontal pinned
-  se probó y se descartó; la vertical con rail es la mejor versión).
+  El Método conserva scroll vertical; la rama de prueba añade tarjetas apiladas.
 */
 export default async function HomePage() {
   const content = await getPublicContent();

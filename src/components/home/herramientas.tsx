@@ -3,6 +3,7 @@ import { ArrowUpRight, Calculator, ReceiptText, Scale } from "lucide-react";
 
 import { Reveal } from "@/components/gsap/reveal";
 import { SplitHeading } from "@/components/gsap/split-heading";
+import { TiltCard } from "@/components/magicui/tilt-card";
 
 /*
   Herramientas: los números antes de decidir. Refuerza el ángulo de la
@@ -48,8 +49,10 @@ export function Herramientas() {
       <div className="mt-10 grid gap-4 [perspective:1200px] md:grid-cols-3">
         {TOOLS.map(({ icon: Icon, title, text, href }, i) => (
           <Reveal key={href} rotateY={24} distance={50} delay={0.09 * i} className="h-full">
+            <TiltCard max={3} className="h-full">
             <Link
               href={href}
+              data-cursor="Abrir"
               className="group flex h-full flex-col justify-between rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/50"
             >
               <div>
@@ -68,6 +71,7 @@ export function Herramientas() {
                 />
               </span>
             </Link>
+            </TiltCard>
           </Reveal>
         ))}
       </div>

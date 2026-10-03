@@ -18,6 +18,7 @@ type Props = {
   charDelay?: number;
   /** Retraso inicial (solo útil con `once`, p.ej. el hero). */
   delay?: number;
+  reveal?: "chars" | "lines";
 };
 
 export function SplitHeading({
@@ -27,6 +28,7 @@ export function SplitHeading({
   once = false,
   charDelay = 0.035,
   delay = 0,
+  reveal = "chars",
 }: Props) {
   const ref = React.useRef<HTMLHeadingElement>(null);
   const nearViewport = useInView(ref, { once: true, margin: "200px" });
@@ -39,6 +41,19 @@ export function SplitHeading({
       media.add({ reduce: "(prefers-reduced-motion: reduce)", compact: "(max-width: 767px)", desktop: "(min-width: 768px)" }, (context) => {
       if (context.conditions?.reduce) return;
       const compact = !!context.conditions?.compact;
+
+      if (reveal === "lines") {
+        const split = SplitText.create(el, {
+          type: "lines", mask: "lines", autoSplit: true,
+          onSplit: (self) => {
+            return gsap.from(self.lines, {
+              yPercent: 105, duration: 1.05, delay, stagger: 0.11, ease: "power4.out",
+              scrollTrigger: { trigger: el, start: "top 88%", toggleActions: actions(once) },
+            });
+          },
+        });
+        return () => split.revert();
+      }
 
       const split = SplitText.create(el, {
         type: "chars,words",
@@ -67,7 +82,7 @@ export function SplitHeading({
       });
       return () => media.revert();
     },
-    { scope: ref, dependencies: [nearViewport], revertOnUpdate: true },
+    { scope: ref, dependencies: [nearViewport, reveal, delay, once, charDelay], revertOnUpdate: true },
   );
 
   return (

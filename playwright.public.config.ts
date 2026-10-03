@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/admin/browser",
-  testMatch: ["home-experience.spec.ts", "blog-editorial.spec.ts", "property-pdf.spec.ts"],
+  testMatch: ["home-experience.spec.ts", "public-motion-experience.spec.ts", "blog-editorial.spec.ts", "property-pdf.spec.ts"],
   outputDir: "tmp/public-browser",
   workers: 1,
   reporter: "list",

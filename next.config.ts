@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const nextConfig: NextConfig = {
+  // HTTP-only cloud tunnels reload on changes; React debug data must travel in RSC.
+  ...(process.env.NODE_ENV === "development" && process.env.MNT_CLOUD_PREVIEW === "true"
+    ? { experimental: { reactDebugChannel: false } }
+    : {}),
   outputFileTracingIncludes: {
     "/inventario/*/imagen-social": ["./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
     "/inventario/*/ficha-tecnica": [

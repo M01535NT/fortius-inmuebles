@@ -11,6 +11,7 @@ import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
 import { siteConfig } from "@/data/site";
 import { SITE_COPY } from "@/data/home-copy";
 import { PublicPerformance } from "@/components/providers/public-performance";
+import { PublicExperience } from "@/components/home/public-experience";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -100,13 +101,13 @@ export default async function RootLayout({
           al llegar al final. Solo CSS, ambos temas.
         */}
         <PublicFeaturesProvider publicLeadsEnabled={publicLeadsEnabled} settings={settings}>
-          {isAdmin ? null : <SiteNav settings={settings} />}
-          {!isAdmin && process.env.VERCEL === "1" ? <PublicPerformance /> : null}
-          <div className="relative z-10 bg-background">{children}</div>
-          {isAdmin ? null : (
-            <div className="sticky bottom-0 z-0">
-              <SiteFooter settings={settings} />
-            </div>
+          {isAdmin ? <div className="relative z-10 bg-background">{children}</div> : (
+            <PublicExperience>
+              <SiteNav settings={settings} />
+              {process.env.VERCEL === "1" ? <PublicPerformance /> : null}
+              <div className="relative z-10 bg-background">{children}</div>
+              <div className="sticky bottom-0 z-0"><SiteFooter settings={settings} /></div>
+            </PublicExperience>
           )}
         </PublicFeaturesProvider>
       </body>
