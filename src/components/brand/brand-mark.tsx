@@ -1,4 +1,4 @@
-import { brandPaths } from './brand-paths';
+import Image from 'next/image';
 
 type BrandMarkProps = {
   variant?: 'full' | 'compact' | 'symbol';
@@ -6,25 +6,21 @@ type BrandMarkProps = {
   className?: string;
 };
 
-/** Shared outlined artwork. Commercial settings never override the identity. */
+/** Shared Mint identity for the public site and administration. */
 export function BrandMark({ variant = 'full', inverse = false, className = '' }: BrandMarkProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${variant === 'symbol' ? 64 : 220} 64`}
+    <span
       role="img"
-      aria-label="MNT Inmuebles"
-      className={`${variant === 'symbol' ? 'h-8 w-8' : 'h-10 w-[137.5px]'} shrink-0 ${className}`}
+      aria-label="Mint Inmuebles"
+      className={`inline-flex items-center gap-2 ${variant === 'symbol' ? 'h-8 w-8' : 'h-10 w-[137.5px]'} shrink-0 ${inverse ? 'text-white' : 'text-brand-ink'} ${className}`}
     >
-      <path d={brandPaths.symbol} className={inverse ? 'fill-[#3FD8A0]' : 'fill-[#0F6B4E] dark:fill-[#3FD8A0]'} />
+      <Image src="/brand/mint-leaf.png" alt="" width={64} height={64} unoptimized className={`${variant === 'symbol' ? 'h-8 w-8' : 'h-10 w-10'} shrink-0 object-contain`} />
       {variant !== 'symbol' && (
-        <g transform={`translate(88 ${variant === 'full' ? 0 : 14})`} className={inverse ? 'fill-white' : 'fill-brand-ink'}>
-          <path d={brandPaths.initials} />
-          {variant === 'full' && <g transform="translate(0 47)" fillRule="evenodd">
-            {brandPaths.descriptor.map((glyph, index) => <path key={index} transform={`translate(${glyph.x} 0)`} d={glyph.d} />)}
-          </g>}
-        </g>
+        <span aria-hidden="true" className="flex flex-col">
+          <span className="text-[30px] font-semibold leading-none tracking-[-0.045em]">Mint</span>
+          {variant === 'full' && <span className="mt-0.5 text-[11px] leading-none tracking-[0.02em]">Inmuebles</span>}
+        </span>
       )}
-    </svg>
+    </span>
   );
 }

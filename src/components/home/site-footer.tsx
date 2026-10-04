@@ -11,7 +11,7 @@ import { MessagingActions } from "@/components/contact/messaging-actions";
 export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
   const contact = publicContact(settings);
-  const name = "MNT Inmuebles";
+  const name = "Mint Inmuebles";
   /* El panel /admin trae su propio shell: sin footer público (además el
      footer cortina interferiría con el layout del panel). */
   if (pathname.startsWith("/admin")) return null;
@@ -22,7 +22,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-5">
             <div className="flex items-center gap-2.5">
-              <Link href="/" aria-label="Inicio de MNT Inmuebles">
+              <Link href="/" aria-label="Inicio de Mint Inmuebles">
                 <BrandMark />
               </Link>
             </div>

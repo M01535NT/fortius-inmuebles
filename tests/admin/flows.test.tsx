@@ -141,7 +141,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   expect(
     screen
       .getByRole("complementary")
-      .querySelector('svg[aria-label="MNT Inmuebles"]'),
+      .querySelector('[role="img"][aria-label="Mint Inmuebles"]'),
   ).toBeTruthy();
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
@@ -158,7 +158,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   );
   await screen.findByRole("heading", { name: "Acceso al panel" });
   expect(screen.queryByText("Privado")).toBeNull();
-  expect(screen.getByRole("img", { name: "MNT Inmuebles" })).toBeTruthy();
+  expect(screen.getByRole("img", { name: "Mint Inmuebles" })).toBeTruthy();
 });
 test("callback secrets are removed before request, password mode survives verification", async () => {
   window.history.replaceState(

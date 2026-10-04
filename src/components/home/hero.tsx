@@ -172,7 +172,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="hero-copy-entry mt-8 flex flex-wrap items-center gap-3"
         >
-          <MessagingActions message="Hola, quiero conversar sobre una propiedad con MNT Inmuebles." fallback={kinetic ? (
+          <MessagingActions message="Hola, quiero conversar sobre una propiedad con Mint Inmuebles." fallback={kinetic ? (
             <MagneticCta href="#evaluar">Quiero vender mi propiedad</MagneticCta>
           ) : (
             <a

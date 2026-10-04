@@ -39,7 +39,7 @@ test("legacy defaults receive the regional copy and keep intentional manifesto l
 });
 test("footer uses public settings and keeps placeholder numbers explicitly unconfirmed", () => {
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);
-  expect(html).toContain('aria-label="MNT Inmuebles"');
+  expect(html).toContain('aria-label="Mint Inmuebles"');
   expect(html).toContain('href="tel:+526641234567"');
   expect(html).toContain('href="https://wa.me/526647654321"');
   const placeholders = renderToStaticMarkup(<SiteFooter settings={{ ...settings, telefono: "+52 664 000 0000", whatsapp: "https://wa.me/526640000000" }} />);

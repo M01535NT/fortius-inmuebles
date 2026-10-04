@@ -31,7 +31,7 @@ const defaultMetadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
     default: SITE_COPY.seoTitle,
-    template: "%s | MNT Inmuebles",
+    template: "%s | Mint Inmuebles",
   },
   description:
     SITE_COPY.seoDescription,
@@ -53,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
       });
   return {
     ...defaultMetadata,
-    title: { default: content?.seoTitle || SITE_COPY.seoTitle, template: "%s | MNT Inmuebles" },
+    title: { default: content?.seoTitle || SITE_COPY.seoTitle, template: "%s | Mint Inmuebles" },
     description: content?.seoDescription || defaultMetadata.description,
     openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || SITE_COPY.seoTitle, description: content?.seoDescription || SITE_COPY.seoDescription },
   };

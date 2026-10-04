@@ -5,7 +5,7 @@
 */
 
 export const siteConfig = {
-  name: "MNT Inmuebles",
+  name: "Mint Inmuebles",
   descriptor: "Bienes raíces con método",
   url: process.env.MNT_SITE_URL || "https://mnt-inmuebles.vercel.app",
   contact: {

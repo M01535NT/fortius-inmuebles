@@ -5,6 +5,21 @@ import { MessagingContact } from "@/components/contact/messaging-actions";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 import { homeText, resolveSiteContent } from "@/data/home-copy";
 
+test("Mint branding refreshes stored copy without changing property codes or site links", () => {
+  const content = resolveSiteContent({
+    heroTitulo: "Vende con MNT", heroSubtitulo: "Texto propio del equipo",
+    manifiestoTitulo: "Precio", manifiestoTexto: "Expediente MNT-001",
+    seoTitle: "MNT Inmuebles | Texto propio", seoDescription: "https://mnt-inmuebles.vercel.app",
+    homeTexts: { contratoTexto: "Contrato de MNT Inmuebles para MNT-001" },
+  });
+  expect(content.heroTitulo).toBe("Vende con Mint");
+  expect(content.heroSubtitulo).toBe("Texto propio del equipo");
+  expect(content.seoTitle).toBe("Mint Inmuebles | Texto propio");
+  expect(content.manifiestoTexto).toBe("Expediente MNT-001");
+  expect(content.seoDescription).toBe("https://mnt-inmuebles.vercel.app");
+  expect(homeText(content, "contratoTexto")).toBe("Contrato de Mint Inmuebles para MNT-001");
+});
+
 test("contact never invites visitors into a disabled form", () => {
   const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled={false}>
     <MessagingContact><form aria-label="Solicitud" /></MessagingContact>

@@ -33,7 +33,7 @@ test("reduced motion keeps all phases in normal reading order and navigation usa
     await expect(card.getByRole("heading")).toBeVisible();
   }
   await expect(page.locator("[data-custom-cursor]")).toHaveCount(0);
-  await page.getByRole("link", { name: "MNT Inmuebles, inicio" }).click();
+  await page.getByRole("link", { name: "Mint Inmuebles, inicio" }).click();
   await page.getByRole("link", { name: "Ver propiedades", exact: true }).click();
   await expect(page).toHaveURL(/\/inventario$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

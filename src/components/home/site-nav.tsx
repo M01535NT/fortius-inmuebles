@@ -59,7 +59,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
       }
     >
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
-        <Link href="/" aria-label="MNT Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
+        <Link href="/" aria-label="Mint Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
 
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Principal">
           {links.map((l) => (

@@ -16,7 +16,7 @@ export const HOME_FIELDS = {
   valorTexto: { group: "Entregables", label: "Opinión de valor", value: "Precio propuesto, propiedades comparadas, fuentes y límites de la información disponible." },
   planTexto: { group: "Entregables", label: "Plan de comercialización", value: "Dónde se publicará el inmueble, qué acciones se realizarán y en qué fechas." },
   gastosTexto: { group: "Entregables", label: "Estimación de gastos", value: "Impuestos, comisión y otros gastos estimados para calcular cuánto podrías recibir de la venta." },
-  contratoTexto: { group: "Entregables", label: "Contrato", value: "Servicio contratado, honorarios y obligaciones del propietario y de MNT." },
+  contratoTexto: { group: "Entregables", label: "Contrato", value: "Servicio contratado, honorarios y obligaciones del propietario y de Mint." },
   reportesTexto: { group: "Entregables", label: "Reportes", value: "Consultas, visitas y ofertas recibidas, con las acciones realizadas en el periodo." },
   preguntasTitulo: { group: "Preguntas frecuentes", label: "Título", value: "Preguntas\nsobre la venta." },
   tiempoRespuesta: { group: "Preguntas frecuentes", label: "Plazo de venta", value: "El plazo depende del precio, la zona, el estado del inmueble y la demanda. No se puede asegurar una fecha de venta." },
@@ -60,7 +60,7 @@ const PREVIOUS_HOME_TEXTS: Record<HomeTextKey, string> = {
 
 export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefined, key: HomeTextKey): string {
   const value = content?.homeTexts?.[key]?.trim();
-  return value && value !== PREVIOUS_HOME_TEXTS[key] ? value : HOME_FIELDS[key].value;
+  return (value && value !== PREVIOUS_HOME_TEXTS[key] ? value : HOME_FIELDS[key].value).replace(/\bMNT\b(?![-_])/g, "Mint");
 }
 
 export const SITE_COPY: Omit<SiteContent, "homeTexts"> = {
@@ -68,8 +68,8 @@ export const SITE_COPY: Omit<SiteContent, "homeTexts"> = {
   heroSubtitulo: "Trabajamos en Tijuana, Rosarito, Tecate y Ensenada. Revisamos los documentos, proponemos el precio de venta y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.",
   manifiestoTitulo: "Cómo proponemos\nel precio de venta.",
   manifiestoTexto: "Comparamos ubicación, superficie y estado con propiedades similares. Te explicamos las referencias utilizadas y distinguimos precios anunciados de ventas documentadas cuando hay datos disponibles.",
-  seoTitle: "MNT Inmuebles | Venta en Tijuana, Rosarito, Tecate y Ensenada",
-  seoDescription: "Venta de propiedades en Tijuana, Rosarito, Tecate y Ensenada. Revisión documental, precio de salida, publicación, visitas y análisis de ofertas con MNT Inmuebles.",
+  seoTitle: "Mint Inmuebles | Venta en Tijuana, Rosarito, Tecate y Ensenada",
+  seoDescription: "Venta de propiedades en Tijuana, Rosarito, Tecate y Ensenada. Revisión documental, precio de salida, publicación, visitas y análisis de ofertas con Mint Inmuebles.",
 };
 
 const LEGACY: Partial<Record<keyof typeof SITE_COPY, string[]>> = {
@@ -86,6 +86,7 @@ export function resolveSiteContent(content?: SiteContent | null): SiteContent {
   const result = { ...SITE_COPY, ...content };
   for (const key of Object.keys(SITE_COPY) as (keyof typeof SITE_COPY)[]) {
     if (!result[key]?.trim() || LEGACY[key]?.includes(result[key].trim())) result[key] = SITE_COPY[key];
+    result[key] = result[key].replace(/\bMNT\b(?![-_])/g, "Mint");
   }
   return result;
 }

@@ -140,7 +140,7 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
       <div ref={rail} role="progressbar" aria-label="Avance de lectura" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0} className="reading-progress" />
       {children}
       {magnetic && <motion.div data-custom-cursor aria-hidden="true" className="cursor-guide" style={{ x: cursorX, y: cursorY, opacity: cursorOpacity }}>{label}</motion.div>}
-      <div ref={curtain} data-page-curtain aria-hidden="true" className="page-curtain"><span>MNT<span className="ml-3 font-mono text-xs font-normal tracking-[0.15em]">INMUEBLES</span></span></div>
+      <div ref={curtain} data-page-curtain aria-hidden="true" className="page-curtain"><span>Mint<span className="ml-3 font-mono text-xs font-normal tracking-[0.15em]">INMUEBLES</span></span></div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ test("production security headers use a nonce without browser CSP violations", a
   expect(response?.headers()["content-security-policy"]).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
   expect(response?.headers()["x-frame-options"]).toBe("DENY");
   expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
-  await expect(page).toHaveTitle(/MNT Inmuebles/);
+  await expect(page).toHaveTitle(/Mint Inmuebles/);
   expect((await page.locator("head script").allTextContents()).join(" ")).toContain("mnt-theme");
   await page.waitForLoadState("networkidle");
   expect(violations).toEqual([]);
@@ -27,13 +27,13 @@ test("admin renders independently while the public backend is unavailable", asyn
   await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
 });
 
-test("MNT fullscreen menu traps keyboard focus and restores its trigger", async ({ page }) => {
+test("Mint fullscreen menu traps keyboard focus and restores its trigger", async ({ page }) => {
   await page.goto("/contacto");
   const trigger = page.getByRole("button", { name: "Abrir menú" });
   await trigger.focus();
   await trigger.press("Enter");
   const dialog = page.getByRole("dialog", { name: "Menú" });
-  await expect(dialog.getByRole("img", { name: "MNT Inmuebles" })).toBeVisible();
+  await expect(dialog.getByRole("img", { name: "Mint Inmuebles" })).toBeVisible();
   const close = dialog.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeFocused();
   await page.keyboard.press("Shift+Tab");

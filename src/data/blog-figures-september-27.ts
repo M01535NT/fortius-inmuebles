@@ -5,7 +5,7 @@ export const september27Figures: Record<string, BlogFigure[]> = {
     id: "figura-shf-contexto-precio", afterHeading: "Del índice al precio de una propiedad",
     title: "Del contexto metropolitano al inmueble",
     caption: "Enero-junio de 2026 contra el mismo periodo de 2025. La diferencia calculada es 1.8 puntos porcentuales; no es una ganancia individual ni un pronóstico.",
-    source: "SHF, boletín 05/2026; secuencia de análisis de MNT",
+    source: "SHF, boletín 05/2026; secuencia de análisis de Mint",
     data: { type: "infographic", layout: "sequence", items: [
       { label: "Contexto: Tijuana 9.7% · nacional 7.9%", detail: "Índices de vivienda adquirida con crédito, comparados para el mismo semestre." },
       { label: "Segmento: propiedades comparables", detail: "Distingue anuncios de operaciones documentadas y registra diferencias relevantes." },
@@ -16,7 +16,7 @@ export const september27Figures: Record<string, BlogFigure[]> = {
     id: "figura-testamento-preparacion", afterHeading: "Una ruta para ordenar tu patrimonio",
     title: "Prepara la entrevista en cuatro pasos",
     caption: "Herramienta de preparación, no lista oficial de requisitos. Campaña anunciada para septiembre de 2026; no se acredita una prórroga.",
-    source: "Elaboración editorial de MNT; anuncio del Gobierno de BC del 3 de septiembre de 2026",
+    source: "Elaboración editorial de Mint; anuncio del Gobierno de BC del 3 de septiembre de 2026",
     data: { type: "infographic", layout: "sequence", items: [
       { label: "Ordena la información", detail: "Personas, bienes, documentos disponibles y dudas que necesitas resolver." },
       { label: "Confirma el servicio", detail: "Pide requisitos, alcance de la tarifa, conceptos adicionales y disponibilidad de cita." },
@@ -28,7 +28,7 @@ export const september27Figures: Record<string, BlogFigure[]> = {
     id: "figura-predial-ejemplo", afterHeading: "Ejemplo ficticio de lectura del beneficio",
     title: "Condonar accesorios no elimina el impuesto",
     caption: "Ejemplo ficticio en pesos. Supone accesorios totalmente elegibles, cumplimiento del acuerdo y ausencia de otros cargos. No es una liquidación oficial.",
-    source: "Cálculo didáctico de MNT: 10,000 + 1,200 + 800 = 12,000; ahorro supuesto de 2,000",
+    source: "Cálculo didáctico de Mint: 10,000 + 1,200 + 800 = 12,000; ahorro supuesto de 2,000",
     data: { type: "infographic", layout: "grid", items: [
       { label: "$10,000 · impuesto principal", detail: "Es la cantidad base del ejemplo y permanece a cargo del contribuyente." },
       { label: "$2,000 · accesorios", detail: "$1,200 de recargos + $800 de multas, supuestos elegibles en este ejemplo." },
@@ -40,7 +40,7 @@ export const september27Figures: Record<string, BlogFigure[]> = {
     id: "figura-vivienda-etapas", afterHeading: "Un mapa para leer los anuncios",
     title: "Cuatro preguntas antes de comparar cifras",
     caption: "No sumes etapas ni traslades totales nacionales a Tijuana. Una escritura y una vivienda construida describen resultados distintos.",
-    source: "Lectura editorial de MNT de los reportes de BC y FOVISSSTE de septiembre de 2026",
+    source: "Lectura editorial de Mint de los reportes de BC y FOVISSSTE de septiembre de 2026",
     data: { type: "infographic", layout: "grid", items: [
       { label: "Territorio · ¿dónde?", detail: "País, estado, municipio o desarrollo: compara la misma escala." },
       { label: "Periodo · ¿hasta cuándo?", detail: "Distingue el corte del reporte de una meta para todo el sexenio." },
