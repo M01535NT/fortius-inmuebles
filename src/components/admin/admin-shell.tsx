@@ -50,6 +50,7 @@ const NAV = [
   { href: "/admin", label: "Panel", icon: LayoutDashboard },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2 },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
+  { href: "/admin/expedientes", label: "Expedientes", icon: FileText },
   { href: "/admin/leads", label: "Leads", icon: Users },
   { href: "/admin/tareas", label: "Tareas", icon: ClipboardList },
   { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },

@@ -3,6 +3,7 @@ import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { AdviserAccountLinks } from "@/components/admin/adviser-account-links";
 
 import {
   Badge,
@@ -19,6 +20,7 @@ import {
   uid,
   upsert,
   useCollection,
+  useSession,
   type Asesor,
 } from "@/lib/admin/store";
 
@@ -156,6 +158,7 @@ function Editor({
 
 export default function AsesoresPage() {
   const asesores = useCollection(db.asesores);
+  const session = useSession();
   const leads = useCollection(db.leads);
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
@@ -284,6 +287,7 @@ export default function AsesoresPage() {
           })}
         </div>
       )}
+      <AdviserAccountLinks isAdmin={session?.role === "admin"} advisers={asesores} />
     </div>
   );
 }
