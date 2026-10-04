@@ -7,6 +7,7 @@ import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { formatoById, validateFormato, type FormatoField } from "./catalog";
 import { calcularPresupuesto, importePartida, type Partida, type Pago } from "./presupuesto";
 import { CARGOS_NETO, calcularNeto, type CargoNeto } from "./neto";
+import { ENTREGA_TABLAS, type EntregaRow, type EntregaTabla } from "./entrega";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -198,6 +199,37 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     else write("No se recabó una decisión del interesado durante esta cita.", 10, regular, muted, 12);
     write("03 / Seguimiento del asesor", 13, bold, accent, 10);
     for (const field of definition.fields.slice(17)) fieldLine(field);
+  } else if (id === "16") {
+    const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
+    const section = (title: string) => { ensure(60); write(title, 13, bold, accent, 9); };
+    const entries = (key: EntregaTabla, state: string) => {
+      section(ENTREGA_TABLAS[key].label);
+      const rows = data[key] as EntregaRow[] | undefined;
+      if (!rows?.length) { write(state, 9, regular, ink, 10); return; }
+      for (const row of rows) {
+        ensure(45);
+        write(ENTREGA_TABLAS[key].columns.map((column) => `${column.label}: ${row[column.key]}`).join(" · "), 9, regular, ink, 9);
+      }
+    };
+    write(`En ${val("lugar")}, el ${val("fecha")} a las ${val("horaInicio")}, se documenta la entrega del inmueble ubicado en ${val("inmueble")}, expediente ${val("folio")}, conforme a ${val("contratoReferencia")}.`, 10, regular, ink, 10);
+    write(`Quien entrega: ${val("quienEntrega")}, ${val("caracterEntrega")}. Identificación y representación: ${val("identificacionEntrega")}. Quien recibe: ${val("quienRecibe")}, ${val("caracterRecibe")}. Identificación y representación: ${val("identificacionRecibe")}. Comparecieron: ${val("presentes")}.`, 10, regular, ink, 12);
+    section("01 / Resultado de la entrega");
+    write(`Resultado: ${val("resultadoEntrega")}. ${data.resultadoEntrega === "no_realizada" ? `Motivo: ${val("motivoNoEntrega")}.` : `Se recibieron ${val("areasEntregadas")}; quedaron sin entregar ${val("areasSinEntregar")}. Recepción efectiva: ${val("recepcionFecha")} a las ${val("recepcionHora")}.`}`, 10, regular, ink, 8);
+    write(`Ocupantes o bienes de terceros: ${val("ocupantesTerceros")}.`, 10, regular, ink, 10);
+    section("02 / Estado del inmueble");
+    write(`Áreas revisadas: ${val("areasRevisadas")}. Sin revisar: ${val("areasNoRevisadas")}.`, 10, regular, ink, 8);
+    entries("diferencias", val("estadoDiferencias"));
+    entries("accesos", val("estadoAccesos"));
+    entries("documentos", val("estadoDocumentos"));
+    entries("servicios", val("estadoServicios"));
+    write("Una lectura no acredita saldo cero. Si no se pudo leer un medidor, se indica en la observación.", 9, regular, muted, 10);
+    entries("pendientes", val("estadoPendientes"));
+    ensure(230);
+    section("07 / Reservas y firma");
+    write(`Quien entrega manifiesta: ${val("manifestacionEntrega")}. Quien recibe reserva: ${val("reservasRecibe")}. Manifestaciones no comprobadas: ${val("manifestacionesNoComprobadas")}.`, 10, regular, ink, 10);
+    write(`Fotografías o inventario complementario: ${val("anexos")}. El acto concluyó a las ${val("horaFinal")}. Ausencias de firma: ${val("ausenciasFirma")}.`, 10, regular, ink, 10);
+    write("Esta acta acredita los hechos asentados dentro del alcance de cada firma; no acredita pago del precio, ausencia de adeudos ni funcionamiento no probado. No implica finiquito automático ni renuncia a derechos por defectos no examinados. Los pendientes continúan hasta comprobar su cumplimiento.", 9, regular, muted, 10);
+    write("Quienes firman recibirán una copia completa.", 9, regular, muted, 10);
   } else if (id === "17") {
     write("Control interno para registrar el resultado de la operación, localizar su documentación y asignar el seguimiento que continúe. No es un finiquito ni acredita por sí solo el cumplimiento de obligaciones.", 10, regular, muted, 15);
     write("01 / Identificación", 13, bold, accent, 10);
@@ -234,8 +266,8 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     page.drawLine({ start: { x: margin, y }, end: { x: margin + 200, y }, thickness: 0.7, color: ink });
     if (id !== "18") page.drawLine({ start: { x: a4[0] - margin - 200, y }, end: { x: a4[0] - margin, y }, thickness: 0.7, color: ink });
     y -= 15;
-    page.drawText(id === "18" ? "Firma de quien recibe" : "Firma", { x: margin, y, size: 8, font: regular, color: muted });
-    if (id !== "18") page.drawText("Firma", { x: a4[0] - margin - 200, y, size: 8, font: regular, color: muted });
+    page.drawText(id === "18" ? "Firma de quien recibe" : id === "16" ? `Quien entrega: ${String(data.quienEntrega)}` : "Firma", { x: margin, y, size: 8, font: regular, color: muted });
+    if (id !== "18") page.drawText(id === "16" ? `Quien recibe: ${String(data.quienRecibe)}` : "Firma", { x: a4[0] - margin - 200, y, size: 8, font: regular, color: muted });
   }
   for (const [index, item] of pdf.getPages().entries()) item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: a4[0] - margin - 30, y: 35, size: 8, font: regular, color: muted });
   return pdf.save();

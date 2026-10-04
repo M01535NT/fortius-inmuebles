@@ -3,6 +3,8 @@ import type { FormatoDefinition } from "@/lib/formatos/catalog";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { BudgetRowsEditor } from "@/components/admin/budget-rows-editor";
 import { NetExpenseEditor } from "@/components/admin/net-expense-editor";
+import { EntregaRowsEditor } from "@/components/admin/entrega-rows-editor";
+import { ENTREGA_TABLAS, type EntregaTabla } from "@/lib/formatos/entrega";
 
 export function FormatoEditor({ definition, values, onChange }: {
   definition: FormatoDefinition;
@@ -13,10 +15,11 @@ export function FormatoEditor({ definition, values, onChange }: {
     {definition.fields.map((field) => {
       const id = `formato-${field.key}`;
       const value = values[field.key] ?? "";
-      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos";
+      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows";
       return <div key={field.key} className={wide ? "md:col-span-2" : ""}>
-        {field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
-        {field.type === "netoCargos" ? <NetExpenseEditor value={value} onChange={(rows) => onChange(field.key, rows)} />
+        {field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
+        {field.type === "entregaRows" && field.key in ENTREGA_TABLAS ? <EntregaRowsEditor kind={field.key as EntregaTabla} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        : field.type === "netoCargos" ? <NetExpenseEditor value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "partidas" || field.type === "pagos" ? <BudgetRowsEditor kind={field.type} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
         : field.type === "choice" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>

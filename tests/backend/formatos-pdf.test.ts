@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { createFormatoPdf, prepareFormatoEmission, receiptParagraphs } from "@/lib/formatos/pdf";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
+import { validateFormato } from "@/lib/formatos/catalog";
 
 const receipt = {
   numeroRecibo: "F-001", lugarEmision: "Tijuana", fechaPago: "2026-10-04", pagador: "Cliente de prueba",
@@ -11,6 +12,21 @@ const receipt = {
   medioPago: "Transferencia", referenciaPago: "SPEI-1", soporteRecepcion: "Comprobante SPEI-1",
   pagoParcialTotal: "total", saldo: 0, monedaSaldo: "MXN", soporteSaldo: "Contrato y pagos previos",
   observaciones: "Sin observaciones", cfdiEstado: "Pendiente", receptor: "Persona receptora",
+};
+
+const entrega = {
+  folio: "EXP-16", lugar: "Tijuana", fecha: "2026-10-04", horaInicio: "11:00", inmueble: "Casa en Tijuana",
+  contratoReferencia: "Compraventa del 1 de octubre de 2026", quienEntrega: "María Ramírez", caracterEntrega: "Propietaria",
+  identificacionEntrega: "INE cotejada", quienRecibe: "Luis García", caracterRecibe: "Comprador", identificacionRecibe: "INE cotejada",
+  presentes: "María, Luis y Ana", resultadoEntrega: "parcial", recepcionFecha: "2026-10-04", recepcionHora: "11:30",
+  areasEntregadas: "Casa principal", areasSinEntregar: "Bodega", ocupantesTerceros: "Ninguno",
+  areasRevisadas: "Casa principal", areasNoRevisadas: "Bodega cerrada",
+  estadoDiferencias: "registradas", diferencias: [{ area: "Cocina", observacion: "Falta una lámpara" }],
+  estadoAccesos: "registrados", accesos: [{ acceso: "Puerta principal", cantidad: "2 llaves, probadas" }],
+  estadoDocumentos: "ninguno", estadoServicios: "registrados", servicios: [{ servicio: "Agua, medidor 123", lectura: "50 m³", observacion: "Fotografía anexa" }],
+  estadoPendientes: "registrados", pendientes: [{ accion: "Entregar bodega", responsable: "María", fecha: "2026-10-10" }],
+  manifestacionEntrega: "Se entregan dos llaves", reservasRecibe: "Pendiente bodega", manifestacionesNoComprobadas: "Ninguna",
+  anexos: "Fotografías 1 a 4", horaFinal: "12:00", ausenciasFirma: "No aplica",
 };
 
 describe("emisión de formatos", () => {
@@ -109,6 +125,20 @@ describe("emisión de formatos", () => {
     const pdf = await PDFDocument.load(bytes);
     expect(pdf.getTitle()).toBe("Estimación del neto");
     expect(pdf.getPageCount()).toBeGreaterThan(0);
+  });
+
+  it("emite el acta de entrega con inventarios, pendientes y firmas", async () => {
+    expect(validateFormato("16", entrega)).toEqual([]);
+    const bytes = await createFormatoPdf("16", entrega);
+    const pdf = await PDFDocument.load(bytes);
+    expect(pdf.getTitle()).toMatch(/Acta de entrega/i);
+    expect(pdf.getPageCount()).toBeGreaterThanOrEqual(2);
+  });
+
+  it("impide emitir un acta parcial sin área pendiente o con inventario incompleto", async () => {
+    expect(validateFormato("16", { ...entrega, areasSinEntregar: "Ninguna" })).toContain("Áreas sin entregar");
+    expect(validateFormato("16", { ...entrega, accesos: [{ acceso: "Puerta" }] })).toContain("Llaves y accesos");
+    await expect(prepareFormatoEmission("16", { ...entrega, estadoPendientes: "ninguno" })).rejects.toThrow(/Acciones pendientes/);
   });
 
   it("rechaza importes negativos y recibos totales con saldo pendiente", async () => {

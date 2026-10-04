@@ -1,10 +1,11 @@
 import { validarPresupuesto } from "./presupuesto";
 import { validarNeto } from "./neto";
+import { validarEntrega } from "./entrega";
 
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows";
   required: boolean;
   options?: readonly { value: string; label: string }[];
 };
@@ -151,7 +152,38 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   ], true),
   f("14", "Oferta_de_compra_y_respuesta_del_propietario", "docx", 3, [fecha, inmueble, propietario, comprador, field("precioPropuesto", "Precio propuesto", "money"), moneda, field("condiciones", "Pago y condiciones", "long"), field("respuestaPropietario", "Respuesta del propietario", "long")]),
   f("15", "Promesa_de_compraventa", "docx", 4, [fecha, inmueble, propietario, comprador, field("precio", "Precio", "money"), moneda, field("formaPago", "Forma de pago", "long"), field("plazo", "Plazo para escriturar"), field("obligaciones", "Obligaciones y condiciones", "long")]),
-  f("16", "Acta_de_entrega_y_recepcion_del_inmueble", "docx", 4, [folio, fecha, inmueble, field("entrega", "Quien entrega"), field("recibe", "Quien recibe"), field("resultado", "Resultado de la entrega"), field("estado", "Estado observado", "long"), field("pendientes", "Pendientes", "long")]),
+  f("16", "Acta_de_entrega_y_recepcion_del_inmueble", "docx", 4, [
+    folio, field("lugar", "Lugar del acto"), fecha, field("horaInicio", "Hora de inicio", "time"), inmueble,
+    field("contratoReferencia", "Contrato y fecha de referencia"),
+    field("quienEntrega", "Nombre de quien entrega"), field("caracterEntrega", "Carácter de quien entrega"),
+    field("identificacionEntrega", "Identificación y representación de quien entrega"),
+    field("quienRecibe", "Nombre de quien recibe"), field("caracterRecibe", "Carácter de quien recibe"),
+    field("identificacionRecibe", "Identificación y representación de quien recibe"),
+    field("presentes", "Personas presentes", "long"),
+    choice("resultadoEntrega", "Resultado de la entrega", [
+      { value: "total", label: "Total" }, { value: "parcial", label: "Parcial" }, { value: "no_realizada", label: "No realizada" },
+    ]),
+    field("motivoNoEntrega", "Motivo de la entrega no realizada", "long", false),
+    field("recepcionFecha", "Fecha de recepción efectiva", "date", false), field("recepcionHora", "Hora de recepción efectiva", "time", false),
+    field("areasEntregadas", "Áreas y bienes entregados", "long", false), field("areasSinEntregar", "Áreas sin entregar o ninguna", "long"),
+    field("ocupantesTerceros", "Ocupantes y bienes de terceros observados o ninguno", "long"),
+    field("areasRevisadas", "Áreas revisadas o ninguna", "long"), field("areasNoRevisadas", "Áreas no revisadas y motivo o ninguna", "long"),
+    choice("estadoDiferencias", "Estado de daños y diferencias", [{ value: "sin_diferencias", label: "Sin diferencias en el alcance revisado" }, { value: "registradas", label: "Diferencias registradas" }, { value: "sin_revision", label: "No se revisó" }]),
+    field("diferencias", "Daños, faltantes o diferencias", "entregaRows", false),
+    choice("estadoAccesos", "Estado de llaves y accesos", [{ value: "ninguno", label: "Ninguno" }, { value: "registrados", label: "Accesos registrados" }]),
+    field("accesos", "Llaves y accesos", "entregaRows", false),
+    choice("estadoDocumentos", "Estado de documentos adicionales", [{ value: "ninguno", label: "Ninguno" }, { value: "registrados", label: "Documentos registrados" }]),
+    field("documentos", "Documentos adicionales entregados", "entregaRows", false),
+    choice("estadoServicios", "Estado de lecturas de servicios", [{ value: "no_aplica", label: "No aplica" }, { value: "registrados", label: "Lecturas registradas" }]),
+    field("servicios", "Servicios y lecturas", "entregaRows", false),
+    choice("estadoPendientes", "Estado de pendientes", [{ value: "ninguno", label: "Ninguno" }, { value: "registrados", label: "Pendientes registrados" }]),
+    field("pendientes", "Acciones pendientes", "entregaRows", false),
+    field("manifestacionEntrega", "Manifestación de quien entrega o ninguna", "long"),
+    field("reservasRecibe", "Reservas de quien recibe o ninguna", "long"),
+    field("manifestacionesNoComprobadas", "Manifestaciones no comprobadas o ninguna", "long"),
+    field("anexos", "Fotografías o inventario complementario o ninguno", "long"),
+    field("horaFinal", "Hora final", "time"), field("ausenciasFirma", "Ausencias de firma y motivo o no aplica", "long"),
+  ], true),
   f("17", "Cierre_del_expediente", "docx", 4, [
     folio, field("fechaRegistro", "Fecha de registro", "date"), inmueble,
     choice("resultadoOperacion", "Resultado de la operación", [
@@ -208,7 +240,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
-    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos") return false;
+    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
     if (item.type === "money" || item.type === "number") {
@@ -225,6 +257,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     return typeof value !== "string";
   }).map((item) => item.label);
   if (id === "08") errors.push(...validarNeto(data));
+  if (id === "16") errors.push(...validarEntrega(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
