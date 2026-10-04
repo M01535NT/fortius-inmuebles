@@ -7,7 +7,8 @@ test("the method remains readable on touch screens and shows reading progress", 
   await page.goto("/");
   const progress = page.getByRole("progressbar", { name: "Avance de lectura" });
   await expect(progress).toBeAttached();
-  await page.getByRole("link", { name: "Conocer el método" }).click();
+  await page.getByRole("button", { name: "Abrir menú" }).click();
+  await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
   const cards = page.locator("#metodo [data-method-card]");
   await expect(cards).toHaveCount(4);
   for (const title of ["Captación", "Preparación", "Comercialización", "Cierre"]) {

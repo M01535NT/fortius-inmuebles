@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import * as motion from "motion/react-m";
 import { AnimatePresence, useInView, useScroll, useTransform } from "motion/react";
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { MessagingActions } from "@/components/contact/messaging-actions";
 import { resolveSiteContent } from "@/data/home-copy";
@@ -62,14 +62,9 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
             </AnimatePresence>
           </motion.div>
         </div>
-        <figcaption className="sr-only">Fotografía de referencia</figcaption>
       </figure>
       <div className="editorial-hero-shade" aria-hidden="true" />
       <div className="editorial-hero-content editorial-container">
-        <div className="editorial-masthead">
-          <span>Venta de propiedades</span>
-          <Link href="/zonas" className="editorial-territory">Tijuana · Rosarito · Tecate · Ensenada</Link>
-        </div>
         <div className="editorial-cover-copy">
           <SplitHeading as="h1" once reveal="soft-lines" delay={0.1}
             lines={copy.heroTitulo === "Vende tu propiedad." ? ["Vende tu ", "propiedad."] : copy.heroTitulo.split("\n")}
@@ -84,15 +79,11 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
               fallback={<a href="#evaluar" className="editorial-button" data-cursor="Hablemos">Quiero vender mi propiedad <ArrowUpRight size={18} aria-hidden="true" /></a>} />
             <Link href="/inventario" className="editorial-text-link" data-cursor="Explorar">Ver propiedades <ArrowUpRight size={18} aria-hidden="true" /></Link>
           </motion.div>
-          <a href="#metodo" className="editorial-method-link">Conocer el método <ArrowDown size={16} aria-hidden="true" /></a>
         </div>
-        <div className="editorial-photo-caption">
-          <span>Fotografía de referencia</span>
-          <div role="group" aria-label="Imágenes del inicio" aria-describedby="editorial-slide-help" className="editorial-photo-controls">
-            <span id="editorial-slide-help" className="sr-only">Selecciona una imagen para mantenerla en pantalla y detener los cambios automáticos.</span>
-            {PHOTOS.map((photo, i) => <button key={photo.src} type="button" aria-label={`Imagen ${i + 1}`}
-              aria-pressed={index === i} onClick={() => { setIndex(i); setPaused(true); }}><span /></button>)}
-          </div>
+        <div role="group" aria-label="Imágenes del inicio" aria-describedby="editorial-slide-help" className="editorial-photo-controls">
+          <span id="editorial-slide-help" className="sr-only">Selecciona una imagen para mantenerla en pantalla y detener los cambios automáticos.</span>
+          {PHOTOS.map((photo, i) => <button key={photo.src} type="button" aria-label={`Imagen ${i + 1}`}
+            aria-pressed={index === i} onClick={() => { setIndex(i); setPaused(true); }}><span /></button>)}
         </div>
       </div>
     </section>

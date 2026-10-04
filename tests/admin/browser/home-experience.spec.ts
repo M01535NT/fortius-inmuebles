@@ -50,7 +50,8 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await expect(page.locator("[data-menu-item]").last()).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
-    await page.getByRole("link", { name: "Conocer el método" }).click();
+    await page.getByRole("button", { name: "Abrir menú" }).click();
+    await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
     await expect(page.locator("#metodo")).toBeInViewport();
     await page.locator("#evaluar").scrollIntoViewIfNeeded();
     await expect(page.locator("#evaluar")).toContainText("El contacto directo estará disponible próximamente.");
