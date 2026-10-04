@@ -13,9 +13,6 @@ import { publicContact } from "@/lib/public-contact";
 const sections = [
   { title: "Propiedades", links: [
     { href: "/inventario", label: "Ver inventario" },
-    { href: "/residencial", label: "Residencial" },
-    { href: "/comercial", label: "Comercial" },
-    { href: "/industrial", label: "Industrial" },
     { href: "/comprar-propiedad", label: "Comprar una propiedad" },
   ] },
   { title: "Trabajar con Mint", links: [
