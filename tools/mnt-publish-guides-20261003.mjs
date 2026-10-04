@@ -93,5 +93,8 @@ for (const post of posts) {
 }
 const { data: publicRows, error } = await anonymous.rpc('mnt_public_records', { p_collection: 'posts' });
 assert(!error, `Public read failed (${error?.code})`);
-for (const post of posts) assert(matches(publicRows.find(row => row.data.id === post.id), post), `Public content mismatch: ${post.id}`);
+for (const post of posts) {
+  const row = publicRows.find(row => row.data.id === post.id);
+  assert(matches({ id: row?.data.id, data: row?.data }, post), `Public content mismatch: ${post.id}`);
+}
 console.log(JSON.stringify({ published: rows.length, verified: posts.length, existingUnchanged: before.length, total: after.length, evidence: evidence.pathname }));
