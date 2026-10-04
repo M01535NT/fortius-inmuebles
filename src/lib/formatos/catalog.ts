@@ -3,11 +3,12 @@ import { validarNeto } from "./neto";
 import { validarEntrega } from "./entrega";
 import { validarOferta } from "./oferta";
 import { validarPlan } from "./plan";
+import { validarReporte } from "./reporte";
 
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows";
   required: boolean;
   options?: readonly { value: string; label: string }[];
 };
@@ -119,7 +120,54 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     field("siguienteAccion", "Siguiente acción"), field("responsableSiguiente", "Responsable de la siguiente acción"),
     field("fechaSiguiente", "Fecha de la siguiente acción", "date"),
   ], true),
-  f("11", "Reporte_de_comercializacion_al_propietario", "docx", 3, [folio, inmueble, propietario, asesor, field("periodo", "Periodo informado"), fecha, field("resultados", "Resultados del periodo", "long"), field("siguienteDecision", "Siguiente decisión", "long")]),
+  f("11", "Reporte_de_comercializacion_al_propietario", "docx", 3, [
+    folio, field("numeroReporte", "Número de reporte"), inmueble, propietario,
+    field("periodoInicio", "Inicio del periodo informado", "date"), field("periodoFin", "Fin del periodo informado", "date"),
+    asesor, field("contactoAsesor", "Contacto del asesor"), field("fechaEmision", "Fecha de emisión", "date"),
+    field("estadoReporte", "Estado del reporte"), field("precioVigente", "Precio vigente", "money"), moneda,
+    field("baseFiscal", "Base fiscal y alcance del precio"), field("fechaPrecio", "Fecha del precio", "date"),
+    field("soportePrecio", "Soporte del precio"), field("primeraPublicacion", "Primera publicación", "date"),
+    field("diasActivos", "Días activos en el mercado", "number"), field("pausasPeriodo", "Pausas del periodo o ninguna", "long"),
+    field("operacionEstado", "Operación y estado"), field("versionPlan", "Versión del plan 10"),
+    field("reportePrevio", "Reporte previo o ninguno"), field("resumen", "Resumen y resultado principal", "long"),
+    field("cambios", "Cambios de precio o estado y autorizaciones o ninguno", "long"),
+    choice("contactosEstado", "Estado del registro de contactos nuevos", [{ value: "comprobado", label: "Comprobado" }, { value: "pendiente", label: "Pendiente de registro" }]),
+    field("contactos", "Contactos nuevos", "number", false),
+    choice("visitasEstado", "Estado del registro de visitas realizadas", [{ value: "comprobado", label: "Comprobado" }, { value: "pendiente", label: "Pendiente de registro" }]),
+    field("visitas", "Visitas realizadas", "number", false),
+    choice("ofertasEstado", "Estado del registro de ofertas nuevas", [{ value: "comprobado", label: "Comprobado" }, { value: "pendiente", label: "Pendiente de registro" }]),
+    field("ofertas", "Ofertas recibidas", "number", false),
+    field("comparacion", "Avance respecto al periodo anterior y límites", "long"),
+    field("canales", "Canales y actividad", "reporteRows"),
+    field("comentarios", "Comentarios de interesados y frecuencia", "long"),
+    field("interpretacion", "Interpretación sustentada y límites", "long"),
+    field("respuestaPropuesta", "Respuesta comercial propuesta", "long"),
+    choice("registroVisitas", "Estado del registro detallado de citas", [{ value: "comprobado", label: "Comprobado" }, { value: "pendiente", label: "Pendiente de registro" }]),
+    field("agendadas", "Visitas agendadas", "number", false), field("realizadas", "Visitas realizadas de las citas", "number", false),
+    field("canceladas", "Visitas canceladas", "number", false), field("reprogramadas", "Visitas reprogramadas", "number", false),
+    field("pendientes", "Visitas pendientes al corte", "number", false),
+    field("ofertasActualizadas", "Ofertas actualizadas o retiradas o ninguna", "long"),
+    field("oportunidades", "Oportunidades en seguimiento", "reporteRows", false),
+    choice("publicidadEstado", "Estado de publicidad pagada", [{ value: "no_contratada", label: "No contratada" }, { value: "contratada", label: "Contratada" }]),
+    choice("monedaPublicidad", "Moneda de publicidad", [{ value: "MXN", label: "MXN" }, { value: "USD", label: "USD" }], false),
+    field("publicidad", "Publicidad pagada", "reporteRows", false),
+    field("saldoInicial", "Saldo inicial de fondos", "money", false), field("fondosRecibidos", "Fondos recibidos", "money", false),
+    field("fondosAplicados", "Fondos aplicados", "money", false), field("fondosDevueltos", "Fondos devueltos", "money", false),
+    field("pagosDirectos", "Pagos directos al portal", "money", false),
+    field("soporteSaldo", "Soporte y destino del saldo", "long", false),
+    field("acciones", "Acciones del siguiente periodo", "reporteRows"),
+    field("decisionSolicitada", "Decisión solicitada al propietario", "long"),
+    field("motivoDecision", "Motivo de la decisión", "long"), field("alcanceDecision", "Alcance de la decisión", "long"),
+    field("fechaLimiteDecision", "Fecha límite para la decisión", "date"),
+    choice("estadoRespuestaPropietario", "Estado de respuesta del propietario", [{ value: "pendiente", label: "Pendiente" }, { value: "recibida", label: "Recibida" }]),
+    field("constanciaRespuesta", "Constancia de respuesta del propietario", "long", false),
+    field("proximoReporte", "Fecha del próximo reporte", "date"), field("medioProximoReporte", "Medio del próximo reporte"),
+    field("elaborador", "Elaboró"), field("revisor", "Revisó"), field("soportes", "Documentos de respaldo", "long"),
+    choice("entregaInformeEstado", "Estado de entrega del informe", [{ value: "pendiente", label: "Pendiente" }, { value: "entregado", label: "Entregado" }]),
+    field("fechaEntregaInforme", "Fecha de entrega del informe", "date", false),
+    field("medioEntregaInforme", "Medio de entrega del informe", "text", false),
+    field("acuseInforme", "Acuse de entrega", "text", false),
+  ], true),
   f("12", "Entrevista_y_perfil_del_comprador", "docx", 3, [
     folio, field("fechaEntrevista", "Fecha de entrevista", "date"), asesor, comprador,
     field("telefono", "Teléfono"), field("correo", "Correo electrónico"),
@@ -328,7 +376,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
-    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows") return false;
+    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
     if (item.type === "money" || item.type === "number") {
@@ -348,6 +396,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "16") errors.push(...validarEntrega(data));
   if (id === "14") errors.push(...validarOferta(data));
   if (id === "10") errors.push(...validarPlan(data));
+  if (id === "11") errors.push(...validarReporte(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");

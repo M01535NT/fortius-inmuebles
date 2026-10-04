@@ -10,6 +10,7 @@ import { CARGOS_NETO, calcularNeto, type CargoNeto } from "./neto";
 import { ENTREGA_TABLAS, type EntregaRow, type EntregaTabla } from "./entrega";
 import { respuestaRequiereRatificacion } from "./oferta";
 import { calcularExtras, PLAN_TABLES, type PlanRow, type PlanTable } from "./plan";
+import { calcularPublicidadReporte, REPORTE_TABLES, type ReporteRow, type ReporteTable } from "./reporte";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -53,7 +54,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   const pdf = await PDFDocument.create();
-  const displayTitle = id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
+  const displayTitle = id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
   pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
@@ -212,6 +213,67 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     else write("Aceptación expresa pendiente. Las acciones propuestas no autorizan publicación, acceso, gasto ni difusión de datos hasta documentar su aprobación.", 10, bold, accent, 10);
     write(`Siguiente paso: ${val("siguienteAccion")}. Responsable: ${val("responsableSiguiente")}. Fecha: ${val("fechaSiguiente")}.`, 10, regular, ink, 10);
     write("Este plan no amplía facultades, honorarios, penalizaciones ni licencias del contrato de intermediación.", 9, regular, muted, 10);
+  } else if (id === "11") {
+    const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
+    const money = (amount: number, currency = val("moneda")) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} ${currency}`;
+    const section = (title: string) => { ensure(65); write(title, 13, bold, accent, 9); };
+    const rows = (key: ReporteTable) => data[key] as ReporteRow[];
+    const list = (key: ReporteTable) => {
+      for (const [index, row] of rows(key).entries()) {
+        ensure(52);
+        write(`${REPORTE_TABLES[key].label} ${index + 1}`, 9, bold, ink, 2);
+        write(REPORTE_TABLES[key].columns.map((column) => {
+          const value = row[column.key];
+          const rendered = key === "publicidad" && (column.key === "autorizado" || column.key === "ejercido") && typeof value === "number"
+            ? money(value, val("monedaPublicidad"))
+            : column.key === "fecha" && typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+              ? new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${value}T00:00:00Z`))
+              : String(value ?? "");
+          return `${column.label}: ${rendered}`;
+        }).join(" · "), 8.5, regular, muted, 7);
+      }
+    };
+    const metric = (key: "contactos" | "visitas" | "ofertas") => data[`${key}Estado`] === "pendiente" ? "pendiente de registro" : String(data[key]);
+    write(`Resultados del periodo ${val("periodoInicio")} al ${val("periodoFin")}. Reporte ${val("numeroReporte")} del expediente ${val("folio")}.`, 10, regular, muted, 11);
+    write(`${val("inmueble")} · Propietario: ${val("propietario")} · Asesor: ${val("asesor")} (${val("contactoAsesor")}) · Emisión: ${val("fechaEmision")} · Estado: ${val("estadoReporte")}.`, 9, regular, ink, 12);
+    section("01 / Situación al cierre");
+    write(`${val("resumen")}. Cambios de precio o estado: ${val("cambios")}.`, 10, regular, ink, 10);
+    write(`Precio vigente: ${money(data.precioVigente as number)}. Base: ${val("baseFiscal")}. Fecha y soporte: ${val("fechaPrecio")} · ${val("soportePrecio")}. Primera publicación: ${val("primeraPublicacion")}; ${val("diasActivos")} días activos. Pausas: ${val("pausasPeriodo")}. Operación: ${val("operacionEstado")}. Plan: ${val("versionPlan")}. Reporte previo: ${val("reportePrevio")}.`, 9, regular, ink, 12);
+    section("02 / Respuesta de los interesados");
+    write(`Contactos nuevos: ${metric("contactos")}. Visitas realizadas: ${metric("visitas")}. Ofertas nuevas: ${metric("ofertas")}.`, 11, bold, accent, 8);
+    write("Contactos nuevos son personas distintas que contactaron por primera vez en el periodo. Cada cita realizada cuenta como visita, incluida una segunda visita. Las ofertas nuevas se cuentan por folio, separadas de sus revisiones. Pendiente indica registro insuficiente; cero, ausencia comprobada.", 9, regular, muted, 9);
+    write(`Avance frente al periodo anterior: ${val("comparacion")}. El alcance de distintas plataformas puede incluir a las mismas personas y no equivale a compradores.`, 9, regular, ink, 10);
+    list("canales");
+    section("03 / Qué nos está diciendo el mercado");
+    write(`Comentarios de interesados y frecuencia: ${val("comentarios")}. Interpretación y límites: ${val("interpretacion")}. Acción propuesta: ${val("respuestaPropuesta")}.`, 10, regular, ink, 11);
+    page = pdf.addPage(a4); startPage();
+    write("Acciones y decisiones", 16, bold, accent, 11);
+    section("04 / Visitas y oportunidades en seguimiento");
+    if (data.registroVisitas === "pendiente") write("El detalle de citas está pendiente de registro; no se sustituyen los datos faltantes por ceros.", 10, regular, ink, 9);
+    else write(`Visitas agendadas: ${val("agendadas")}; realizadas de esas citas: ${val("realizadas")}; canceladas: ${val("canceladas")}; reprogramadas: ${val("reprogramadas")}; pendientes al corte: ${val("pendientes")}.`, 10, regular, ink, 9);
+    write(`Ofertas actualizadas o retiradas: ${val("ofertasActualizadas")}. Las ofertas se comunican oportunamente conforme al contrato; este reporte no sustituye su entrega ni acredita aceptación.`, 9, regular, ink, 9);
+    if (rows("oportunidades").length) list("oportunidades");
+    else write("No hay oportunidades en seguimiento registradas al corte.", 9, regular, muted, 11);
+    section("05 / Publicidad pagada");
+    if (data.publicidadEstado === "no_contratada") write("No contratado. No se reportan costos internos como publicidad del propietario.", 10, regular, ink, 12);
+    else {
+      const totals = calcularPublicidadReporte(data);
+      write(`Publicidad contratada en ${val("monedaPublicidad")}. Total autorizado: ${money(totals.autorizado, val("monedaPublicidad"))}; total ejercido: ${money(totals.ejercido, val("monedaPublicidad"))}.`, 10, bold, accent, 9);
+      list("publicidad");
+      write(`Fondos en poder de Fortius: saldo inicial ${money(data.saldoInicial as number, val("monedaPublicidad"))} + recibido ${money(data.fondosRecibidos as number, val("monedaPublicidad"))} − aplicado ${money(data.fondosAplicados as number, val("monedaPublicidad"))} − devuelto ${money(data.fondosDevueltos as number, val("monedaPublicidad"))} = saldo ${money(totals.saldoFondos, val("monedaPublicidad"))}.`, 9, regular, ink, 8);
+      write(`Pagos directos al portal: ${money(totals.pagosDirectos, val("monedaPublicidad"))}; no se restan otra vez de los fondos en poder de Fortius. Soporte y destino del saldo: ${val("soporteSaldo")}.`, 9, regular, ink, 9);
+      if (totals.ejercido > totals.autorizado) write("El gasto ejercido supera el importe autorizado; requiere revisión y explicación del soporte.", 9, bold, accent, 9);
+      if (totals.saldoFondos < 0) write("El saldo calculado de fondos es negativo; conciliar ingresos, aplicaciones y devoluciones.", 9, bold, accent, 9);
+      write("La publicidad pagada no está incluida en la comisión y requiere autorización previa. Los importes incluyen impuestos.", 9, regular, muted, 11);
+    }
+    section("06 / Acciones del siguiente periodo");
+    list("acciones");
+    section("07 / Decisiones que necesitamos de usted");
+    write(`Decisión solicitada: ${val("decisionSolicitada")}. Motivo: ${val("motivoDecision")}. Alcance: ${val("alcanceDecision")}. Fecha límite: ${val("fechaLimiteDecision")}.`, 10, regular, ink, 9);
+    write(data.estadoRespuestaPropietario === "recibida" ? `Respuesta recibida; constancia: ${val("constanciaRespuesta")}.` : "Respuesta pendiente. El silencio no aprueba cambios de precio, presupuesto ni condiciones.", 9, regular, ink, 12);
+    ensure(150);
+    write(`Próximo reporte: ${val("proximoReporte")} por ${val("medioProximoReporte")}. Elaboró: ${val("elaborador")}. Revisó: ${val("revisor")}. Documentos de respaldo: ${val("soportes")}.`, 9, regular, muted, 9);
+    write(data.entregaInformeEstado === "entregado" ? `Informe entregado el ${val("fechaEntregaInforme")} por ${val("medioEntregaInforme")}. Acuse: ${val("acuseInforme")}.` : "Entrega del informe pendiente de registrar.", 9, regular, muted, 9);
   } else if (id === "19") {
     const totals = calcularPresupuesto(data);
     const currency = String(data.moneda);
