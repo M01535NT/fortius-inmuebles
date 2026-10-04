@@ -144,9 +144,7 @@ export function MortgageCalculator({ precio: precioInicial, moneda, precioEditab
       )}
 
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        Estimación informativa con pagos fijos; no incluye seguros, comisiones
-        ni gastos de cierre, y no constituye una oferta de crédito. Las
-        condiciones reales las define tu institución financiera.
+        Pago fijo sin seguros, comisiones ni gastos de cierre.
       </p>
     </div>
   );

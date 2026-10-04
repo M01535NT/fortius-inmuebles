@@ -33,7 +33,7 @@ export async function Destacadas() {
           />
           <Reveal delay={0.15} distance={40}>
             <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
-              {hasDemo ? "Explora las fichas y sus características. Los ejemplos de demostración están identificados y no constituyen ofertas reales." : "Consulta las características, el precio y la disponibilidad de cada inmueble. Te ayudamos a revisar las opciones que te interesen."}
+              {hasDemo ? "Explora las fichas y sus características." : "Consulta las características, el precio y la disponibilidad de cada inmueble."}
             </p>
           </Reveal>
         </div>

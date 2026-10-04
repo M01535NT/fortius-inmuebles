@@ -9,7 +9,7 @@ export const HOME_FIELDS = {
   captacionTexto: { group: "Método", label: "Revisión inicial", value: "Revisamos los documentos y los datos del inmueble para identificar pendientes. Acordamos contigo el precio de salida y las condiciones del servicio." },
   preparacionTexto: { group: "Método", label: "Preparación", value: "Acordamos las mejoras que conviene valorar y organizamos la fotografía y el video. Reunimos las características del inmueble y elegimos los canales donde se publicará." },
   comercializacionTexto: { group: "Método", label: "Comercialización", value: "Revisamos las necesidades de los interesados antes de coordinar visitas. Recibes un reporte cada 30 días. Cuando recibimos una oferta por escrito, analizamos contigo el precio, la forma de pago y las condiciones." },
-  cierreTexto: { group: "Método", label: "Cierre", value: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión. Los importes se confirman con quien corresponda." },
+  cierreTexto: { group: "Método", label: "Cierre", value: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión." },
   entregablesTitulo: { group: "Entregables", label: "Título", value: "Documentos\nque te entregamos." },
   entregablesTexto: { group: "Entregables", label: "Introducción", value: "El contrato define los documentos incluidos en tu servicio." },
   factibilidadTexto: { group: "Entregables", label: "Revisión del expediente", value: "Documentos pendientes y aspectos que deben revisarse antes de ofrecer el inmueble." },
@@ -19,9 +19,9 @@ export const HOME_FIELDS = {
   contratoTexto: { group: "Entregables", label: "Contrato", value: "Servicio contratado, honorarios y obligaciones del propietario y de Mint." },
   reportesTexto: { group: "Entregables", label: "Reportes", value: "Consultas, visitas y ofertas recibidas, con las acciones realizadas en el periodo." },
   preguntasTitulo: { group: "Preguntas frecuentes", label: "Título", value: "Preguntas\nsobre la venta." },
-  tiempoRespuesta: { group: "Preguntas frecuentes", label: "Plazo de venta", value: "El plazo depende del precio, la zona, el estado del inmueble y la demanda. No se puede asegurar una fecha de venta." },
+  tiempoRespuesta: { group: "Preguntas frecuentes", label: "Plazo de venta", value: "El plazo depende del precio, la zona, el estado del inmueble y la demanda." },
   precioRespuesta: { group: "Preguntas frecuentes", label: "Precio de salida", value: "La opinión de valor compara tu propiedad con inmuebles similares. El precio al que se publicará se acuerda contigo." },
-  gastosRespuesta: { group: "Preguntas frecuentes", label: "Gastos de cierre", value: "Preparamos una estimación de impuestos, honorarios y otros gastos de tu operación. La notaría o el especialista correspondiente confirma los importes." },
+  gastosRespuesta: { group: "Preguntas frecuentes", label: "Gastos de cierre", value: "Preparamos una estimación de impuestos, honorarios y otros gastos de tu operación." },
   inicioRespuesta: { group: "Preguntas frecuentes", label: "Cómo empezar", value: "La ubicación, el tipo de inmueble y un teléfono para contactarte. Con esos datos podemos indicarte los documentos necesarios." },
   evaluarTitulo: { group: "Contacto", label: "Título", value: "¿Quieres vender\ntu propiedad?" },
   evaluarTexto: { group: "Contacto", label: "Introducción", value: "Dinos la ubicación y el tipo de inmueble. Te contactamos para pedir los documentos necesarios para revisarlo." },
@@ -58,9 +58,15 @@ const PREVIOUS_HOME_TEXTS: Record<HomeTextKey, string> = {
   evaluarTexto: "Para empezar, necesitamos saber dónde está, qué tipo de inmueble es y cómo contactarte. Te indicamos qué hace falta para una primera revisión.",
 };
 
+const PREVIOUS_NOTES: Partial<Record<HomeTextKey, string>> = {
+  cierreTexto: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión. Los importes se confirman con quien corresponda.",
+  tiempoRespuesta: "El plazo depende del precio, la zona, el estado del inmueble y la demanda. No se puede asegurar una fecha de venta.",
+  gastosRespuesta: "Preparamos una estimación de impuestos, honorarios y otros gastos de tu operación. La notaría o el especialista correspondiente confirma los importes.",
+};
+
 export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefined, key: HomeTextKey): string {
   const value = content?.homeTexts?.[key]?.trim();
-  return (value && value !== PREVIOUS_HOME_TEXTS[key] ? value : HOME_FIELDS[key].value).replace(/\bMNT\b(?![-_])/g, "Mint");
+  return (value && value !== PREVIOUS_HOME_TEXTS[key] && value !== PREVIOUS_NOTES[key] ? value : HOME_FIELDS[key].value).replace(/\bMNT\b(?![-_])/g, "Mint");
 }
 
 export const SITE_COPY: Omit<SiteContent, "homeTexts"> = {

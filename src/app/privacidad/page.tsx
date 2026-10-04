@@ -18,10 +18,6 @@ export default function PrivacidadPage() {
             La informacion enviada mediante formularios se utilizara unicamente para dar seguimiento
             a solicitudes inmobiliarias, diagnosticos, contacto comercial y orientacion inicial.
           </p>
-          <p>
-            Este texto es una base provisional. Debe sustituirse por un aviso validado por el responsable
-            legal del negocio antes de publicar el sitio en produccion.
-          </p>
         </div>
       </Container>
     </main>

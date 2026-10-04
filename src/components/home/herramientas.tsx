@@ -36,9 +36,7 @@ export function Herramientas() {
       />
       <Reveal delay={0.2} distance={40}>
         <p className="mt-4 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
-          Estima una mensualidad o los gastos de compraventa. Los resultados
-          son orientativos y deben confirmarse con la entidad o el especialista
-          correspondiente.
+          Estima una mensualidad o los gastos de compraventa.
         </p>
       </Reveal>
 

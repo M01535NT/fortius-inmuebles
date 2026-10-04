@@ -35,8 +35,6 @@ export default function HerramientasPage() {
         </h1>
         <p className="mt-6 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
           Estima una mensualidad o los gastos de compraventa, sin registrarte.
-          Los resultados son orientativos y deben confirmarse con la entidad,
-          la notaría o el especialista correspondiente.
         </p>
 
         <div className="mt-12 grid gap-4 md:grid-cols-2">

@@ -10,7 +10,6 @@ import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 const COMPROMISOS = [
   "Los honorarios y el trabajo incluido se establecen en el contrato.",
   "El precio de publicación y la aceptación de una oferta se acuerdan contigo.",
-  "Los gastos e impuestos se presentan como estimaciones hasta que se confirmen los importes.",
 ];
 
 export function Compromisos() {

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/herramientas/hipoteca" },
   title: "Calculadora de hipoteca",
   description:
-    "Estima la mensualidad de tu crédito hipotecario con enganche, plazo y tasa editables. Estimación informativa.",
+    "Estima la mensualidad de tu crédito hipotecario con enganche, plazo y tasa editables.",
 };
 
 export default function HipotecaPage() {

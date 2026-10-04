@@ -28,21 +28,11 @@ export default function TerminosPage() {
             antes de cualquier operación.
           </p>
           <p>
-            Los costos, impuestos y tiempos asociados a una operación
-            inmobiliaria varían según cada caso y se confirman con el notario o
-            el especialista correspondiente.
-          </p>
-          <p>
             El uso de los formularios implica la aceptación del{" "}
             <a href="/privacidad" className="text-primary underline-offset-4 hover:underline">
               aviso de privacidad
             </a>
             .
-          </p>
-          <p>
-            Este texto es una base provisional. Debe sustituirse por términos
-            validados por el responsable legal del negocio antes de publicar el
-            sitio en producción.
           </p>
         </div>
       </Container>

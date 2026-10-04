@@ -69,8 +69,8 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
           <div className="editorial-footer-contact">
             <h3>Contacto</h3>
             <ul>
-              <li>{contact.whatsapp ? <a href={contact.whatsapp} className="editorial-footer-link">WhatsApp: {contact.whatsappLabel}</a> : <span>WhatsApp: por confirmar</span>}</li>
-              <li>{contact.phoneHref ? <a href={contact.phoneHref} className="editorial-footer-link">Teléfono: {contact.phone}</a> : <span>Teléfono: por confirmar</span>}</li>
+              {contact.whatsapp && <li><a href={contact.whatsapp} className="editorial-footer-link">WhatsApp: {contact.whatsappLabel}</a></li>}
+              {contact.phoneHref && <li><a href={contact.phoneHref} className="editorial-footer-link">Teléfono: {contact.phone}</a></li>}
               {contact.messenger && <li><a href={contact.messenger} className="editorial-footer-link">Messenger</a></li>}
               {email && <li><a href={`mailto:${email}`} className="editorial-footer-link">{email}</a></li>}
               {settings?.horario?.trim() && <li className="editorial-footer-hours">{settings.horario}</li>}
@@ -85,7 +85,6 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
             <Link href="/terminos" className="editorial-footer-link">Términos y condiciones</Link>
             <DocumentLink href="/admin" className="editorial-footer-link">Acceso al panel</DocumentLink>
           </nav>
-          <p className="editorial-footer-note">Los costos, impuestos y tiempos varían por operación y se confirman con el notario o el especialista correspondiente.</p>
         </div>
       </div>
     </footer>

@@ -149,17 +149,10 @@ export function ClosingCostsCalculator() {
 
       {perfil === "vendedor" ? (
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Falta el ISR por enajenación: lo calcula y retiene el notario según
-          tu caso, y puede estar exento en casa habitación si cumples los
-          requisitos. Lo revisamos contigo antes de decidir.
+          ISR por enajenación no incluido en el total.
         </p>
       ) : null}
 
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        Estimación informativa con rangos de referencia para Tijuana, BC. Los
-        montos reales varían por operación y se confirman con el notario o el
-        especialista correspondiente.
-      </p>
     </div>
   );
 }

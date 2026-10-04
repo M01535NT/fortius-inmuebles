@@ -43,7 +43,7 @@ export async function EditorialProperties() {
     <div className="flex flex-wrap items-end justify-between gap-6">
       <div><SplitHeading reveal="lines" lines={["Propiedades."]} className="display-title text-foreground" />
         <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-muted-foreground">{properties.some((property) => property.demo)
-          ? "Explora las fichas y sus características. Los ejemplos de demostración están identificados y no constituyen ofertas reales."
+          ? "Explora las fichas y sus características."
           : "Consulta las características, el precio y la disponibilidad de cada inmueble."}</p>
       </div>
       <Link href="/inventario" className="editorial-text-link">Ver inventario <ArrowUpRight size={18} aria-hidden="true" /></Link>
@@ -71,7 +71,6 @@ export function EditorialTools() {
   return <section className="editorial-tools"><div className="editorial-container">
     <div className="editorial-section-label" data-editorial-rule>Para hacer tus cuentas</div>
     <SplitHeading reveal="lines" lines={["Calculadoras", "inmobiliarias."]} className="editorial-section-title" />
-    <p className="editorial-tools-note">Los resultados son orientativos. Confirma los importes con la entidad o el especialista correspondiente.</p>
     <div className="editorial-tools-grid">{TOOLS.map((tool) => <Link key={tool.href} href={tool.href} className="editorial-tool" data-cursor="Abrir" data-editorial-reveal><h3>{tool.title}</h3><p>{tool.text}</p><span>Abrir <ArrowUpRight size={20} aria-hidden="true" /></span></Link>)}</div>
   </div></section>;
 }

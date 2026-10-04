@@ -37,14 +37,14 @@ test("legacy defaults receive the regional copy and keep intentional manifesto l
   expect(hero).toContain('Trabajamos en Tijuana, Rosarito, Tecate y Ensenada.');
   expect(relato).toMatch(/<span class="[^"]*\bblock\b[^"]*">el precio de venta\.<\/span>/);
 });
-test("footer uses public settings and keeps placeholder numbers explicitly unconfirmed", () => {
+test("footer uses public settings and hides unconfigured contact channels", () => {
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);
   expect(html).toContain('aria-label="Mint Inmuebles"');
   expect(html).toContain('href="tel:+526641234567"');
   expect(html).toContain('href="https://wa.me/526647654321"');
   const placeholders = renderToStaticMarkup(<SiteFooter settings={{ ...settings, telefono: "+52 664 000 0000", whatsapp: "https://wa.me/526640000000" }} />);
-  expect(placeholders).toContain("WhatsApp: por confirmar");
-  expect(placeholders).toContain("Teléfono: por confirmar");
+  expect(placeholders).not.toContain("WhatsApp: por confirmar");
+  expect(placeholders).not.toContain("Teléfono: por confirmar");
   expect(placeholders).not.toContain('href="tel:');
   expect(placeholders).not.toContain('href="https://wa.me/');
 });

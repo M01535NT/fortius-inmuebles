@@ -15,11 +15,11 @@ const QA = [
   },
   {
     q: "¿El precio es negociable?",
-    a: "Las ofertas se presentan por escrito y se analizan con el propietario, con datos de mercado como referencia. No prometemos descuentos; prometemos un proceso serio para tu oferta.",
+    a: "Presenta tu oferta por escrito. La revisamos con el propietario y te comunicamos su respuesta.",
   },
   {
     q: "¿Qué gastos debo considerar además del precio?",
-    a: "Impuestos de adquisición, honorarios notariales, avalúo y gestoría, entre otros. Te entregamos una estimación desglosada antes de que decidas; los montos se confirman con el notario.",
+    a: "Impuestos de adquisición, honorarios notariales, avalúo y gestoría. Te entregamos una estimación desglosada antes de que decidas.",
   },
 ];
 
