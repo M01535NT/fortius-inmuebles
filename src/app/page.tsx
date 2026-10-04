@@ -7,7 +7,6 @@ import { EditorialHome } from "@/components/home/editorial-home";
 import { EditorialDocuments, EditorialIntro, EditorialProperties, EditorialTools } from "@/components/home/editorial-sections";
 import { Respuestas } from "@/components/home/respuestas";
 import { Segmentos } from "@/components/home/segmentos";
-import { Zonas } from "@/components/home/zonas";
 import { getPublicContent } from "@/lib/backend/public";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -25,7 +24,6 @@ export default async function HomePage() {
       <div className="editorial-segments"><Segmentos /></div>
       <Respuestas content={content} />
       <EditorialTools />
-      <Zonas />
       <Compromisos />
       <Evaluar content={content} />
     </EditorialHome>

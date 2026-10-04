@@ -3,12 +3,12 @@ import { expect, test } from "@playwright/test";
 const sections = [
   "/", "/inventario", "/residencial", "/comercial", "/industrial",
   "/vender-propiedad", "/comprar-propiedad", "/due-diligence-inmobiliaria",
-  "/blog", "/herramientas", "/zonas", "/nosotros", "/contacto",
+  "/blog", "/herramientas", "/nosotros", "/contacto",
   "/privacidad", "/terminos",
 ];
 const pages = [
   ...sections, "/herramientas/hipoteca", "/herramientas/gastos-de-cierre",
-  "/zonas/zona-rio", "/inventario/residencia-vista-al-mar-playas",
+  "/zonas", "/zonas/zona-rio", "/inventario/residencia-vista-al-mar-playas",
   "/blog/cuanto-vale-mi-casa-tijuana", "/vender-propiedad/gracias",
   "/ruta-inexistente-mnt",
 ];

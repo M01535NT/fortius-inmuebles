@@ -33,7 +33,6 @@ const SECONDARY = [
   { href: "/residencial", label: "Residencial" },
   { href: "/comercial", label: "Comercial" },
   { href: "/industrial", label: "Industrial" },
-  { href: "/zonas", label: "Zonas" },
   { href: "/nosotros", label: "Nosotros" },
   { href: "/privacidad", label: "Privacidad" },
   { href: "/terminos", label: "Términos y condiciones" },

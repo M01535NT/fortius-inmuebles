@@ -36,14 +36,6 @@ const sections = [
   ] },
 ];
 
-const areas = [
-  { href: "/zonas/zona-rio", label: "Zona Río" },
-  { href: "/zonas/playas-de-tijuana", label: "Playas de Tijuana" },
-  { href: "/zonas/rosarito", label: "Rosarito" },
-  { href: "/zonas/tecate", label: "Tecate" },
-  { href: "/zonas/ensenada", label: "Ensenada" },
-];
-
 export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
   const reduce = useReducedMotionSafe();
@@ -86,10 +78,6 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
             </ul>
           </div>
         </div>
-        <nav className="editorial-footer-areas" aria-label="Zonas de operación">
-          <Link href="/zonas" className="editorial-footer-link">Explorar zonas <ArrowUpRight size={16} aria-hidden="true" /></Link>
-          <ul>{areas.map((area) => <li key={area.href}><Link href={area.href} className="editorial-footer-link">{area.label}</Link></li>)}</ul>
-        </nav>
         <div className="editorial-footer-bottom">
           <p>© {new Date().getFullYear()} Mint Inmuebles.</p>
           <nav aria-label="Información legal y administración">
