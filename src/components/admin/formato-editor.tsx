@@ -1,20 +1,22 @@
 "use client";
 import type { FormatoDefinition } from "@/lib/formatos/catalog";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
+import { BudgetRowsEditor } from "@/components/admin/budget-rows-editor";
 
 export function FormatoEditor({ definition, values, onChange }: {
   definition: FormatoDefinition;
   values: Record<string, unknown>;
-  onChange: (key: string, value: string | number) => void;
+  onChange: (key: string, value: unknown) => void;
 }) {
   return <div className="grid gap-5 md:grid-cols-2">
     {definition.fields.map((field) => {
       const id = `formato-${field.key}`;
       const value = values[field.key] ?? "";
-      const wide = field.type === "long";
+      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos";
       return <div key={field.key} className={wide ? "md:col-span-2" : ""}>
-        <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>
-        {field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
+        {field.type === "partidas" || field.type === "pagos" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
+        {field.type === "partidas" || field.type === "pagos" ? <BudgetRowsEditor kind={field.type} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        : field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
         : field.type === "choice" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select> : field.key === "pagoParcialTotal" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>

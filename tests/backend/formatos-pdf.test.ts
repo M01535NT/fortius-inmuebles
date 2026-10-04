@@ -82,6 +82,18 @@ describe("emisión de formatos", () => {
     expect(pdf.getPageCount()).toBeGreaterThan(0);
   });
 
+  it("genera resumen, partidas y pagos del presupuesto calculado", async () => {
+    const bytes = await createFormatoPdf("19", {
+      folio: "EXP-3", inmueble: "Casa Tijuana", fechaCorte: "2026-10-05", responsable: "Ana",
+      moneda: "MXN", alcance: "Reparación de cocina", reservaImprevistos: 50,
+      partidas: [{ id: "P-1", area: "Cocina", concepto: "Pintura", tipoCosto: "Material", unidad: "pieza", cantidad: 2, precioUnitario: 120.25, estado: "Autorizado", soporte: "Cotización C-1" }],
+      pagos: [{ fechaPago: "2026-10-05", partidaId: "P-1", proveedor: "Proveedor A", concepto: "Anticipo", importe: 100, medio: "Transferencia", comprobante: "SPEI-1", estado: "Pagado" }],
+    });
+    const pdf = await PDFDocument.load(bytes);
+    expect(pdf.getTitle()).toBe("Presupuesto de rehabilitacion");
+    expect(pdf.getPageCount()).toBe(3);
+  });
+
   it("rechaza importes negativos y recibos totales con saldo pendiente", async () => {
     await expect(prepareFormatoEmission("18", { ...receipt, importeRecibido: -1 })).rejects.toThrow(/Importe recibido/);
     await expect(prepareFormatoEmission("18", { ...receipt, saldo: 100 })).rejects.toThrow(/Saldo pendiente/);

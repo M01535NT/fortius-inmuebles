@@ -1,7 +1,9 @@
+import { validarPresupuesto } from "./presupuesto";
+
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos";
   required: boolean;
   options?: readonly { value: string; label: string }[];
 };
@@ -165,7 +167,16 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     field("soporteSaldo", "Contrato y pagos previos"), field("observaciones", "Observaciones", "long"),
     field("cfdiEstado", "Folio fiscal o estado del CFDI"), field("receptor", "Nombre de quien recibe"),
   ], true),
-  f("19", "Presupuesto_de_rehabilitacion", "xlsx", 4, [folio, inmueble, fecha, field("alcance", "Alcance de la rehabilitación", "long"), field("partidas", "Partidas y cantidades", "long"), field("total", "Total presupuestado", "money")]),
+  f("19", "Presupuesto_de_rehabilitacion", "xlsx", 4, [
+    folio, inmueble, field("fechaCorte", "Fecha de corte", "date"), field("responsable", "Responsable"), moneda,
+    field("alcance", "Alcance de la rehabilitación", "long"),
+    field("reservaImprevistos", "Reserva para imprevistos", "money"),
+    field("partidas", "Partidas del presupuesto", "partidas"),
+    field("pagos", "Pagos registrados", "pagos", false),
+    choice("sinPagosConfirmado", "Confirma que no hubo pagos al corte", [
+      { value: "si", label: "Sí, no hubo pagos" }, { value: "no", label: "Hay pagos por registrar" },
+    ], false),
+  ], true),
 ];
 
 export function formatoById(id: string): FormatoDefinition {
@@ -176,6 +187,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
+    if (item.type === "partidas" || item.type === "pagos") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
     if (item.type === "money" || item.type === "number") {
@@ -191,6 +203,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     if (item.type === "choice") return typeof value !== "string" || !item.options?.some((option) => option.value === value);
     return typeof value !== "string";
   }).map((item) => item.label);
+  if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
     if (data.precioDeseado === 0) errors.push("Precio que le gustaría pagar");

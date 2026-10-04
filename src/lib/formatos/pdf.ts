@@ -5,6 +5,7 @@ import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { formatoById, validateFormato, type FormatoField } from "./catalog";
+import { calcularPresupuesto, importePartida, type Partida, type Pago } from "./presupuesto";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -107,6 +108,41 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   };
   if (id === "18") {
     for (const paragraph of receiptParagraphs(data)) write(paragraph, 10, regular, ink, 12);
+  } else if (id === "19") {
+    const totals = calcularPresupuesto(data);
+    const currency = String(data.moneda);
+    const cash = (value: number | null) => value === null ? "No hay partidas autorizadas" : `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} ${currency}`;
+    write("Resumen", 13, bold, accent, 10);
+    for (const field of definition.fields.slice(1, 7)) fieldLine(field);
+    write(`Subtotal cotizado: ${cash(totals.subtotalCotizado)}`, 10, regular, ink, 6);
+    write(`Importe autorizado: ${totals.autorizadoMenosPagado === null ? "No hay partidas autorizadas" : cash(totals.importeAutorizado)}`, 10, regular, ink, 6);
+    write(`Estimación con reserva: ${cash(totals.estimacionConReserva)}`, 10, bold, accent, 8);
+    write(`Total pagado: ${cash(totals.totalPagado)}`, 10, regular, ink, 6);
+    write(`Autorizado menos pagado: ${cash(totals.autorizadoMenosPagado)}`, 10, regular, ink, 6);
+    write(`Exceso sobre la estimación: ${cash(totals.excesoSobreEstimacion)}`, 10, regular, ink, 12);
+    write("Los precios unitarios incluyen los impuestos y cargos cotizados. Este presupuesto no calcula tasas fiscales.", 9, regular, muted, 10);
+    page = pdf.addPage(a4); startPage();
+    write("Partidas del presupuesto", 15, bold, accent, 10);
+    for (const item of data.partidas as Partida[]) {
+      ensure(88);
+      write(`${item.id} · ${item.area || "Sin área"} · ${item.concepto}`, 10, bold, ink, 3);
+      if (item.estado === "Descartado") write("Descartado; no incluido en los importes.", 9, regular, muted, 10);
+      else {
+        const amount = new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(importePartida(item));
+        write(`${item.tipoCosto} · ${item.cantidad} ${item.unidad} × ${cash(item.precioUnitario)} = ${amount} ${currency} · ${item.estado}`, 9, regular, ink, 3);
+        write(`Soporte: ${item.soporte}`, 9, regular, muted, 10);
+      }
+    }
+    page = pdf.addPage(a4); startPage();
+    write("Pagos registrados", 15, bold, accent, 10);
+    if ((data.pagos as Pago[]).length === 0) write("No hubo pagos registrados al corte; confirmado en la captura.", 10, regular, ink, 12);
+    for (const item of data.pagos as Pago[]) {
+      ensure(75);
+      write(`${item.fechaPago || "Sin fecha"} · ${item.partidaId || "Sin partida"} · ${item.proveedor || "Sin proveedor"}`, 10, bold, ink, 3);
+      write(`${item.concepto || "Sin concepto"} · ${item.estado} · ${item.estado === "Pagado" ? cash(item.importe) : "No sumado"}`, 9, regular, ink, 3);
+      write(`Medio: ${item.medio || "No indicado"} · Comprobante: ${item.comprobante || "No indicado"}`, 9, regular, muted, 10);
+    }
+    write("Sólo se suman importes efectivamente pagados y respaldados. Las partidas descartadas y los pagos anulados no integran los totales.", 9, regular, muted, 12);
   } else if (id === "12") {
     write("Una conversación para entender qué busca y cómo puede realizar la compra.", 10, regular, muted, 13);
     for (const field of definition.fields.slice(1, 8)) fieldLine(field);

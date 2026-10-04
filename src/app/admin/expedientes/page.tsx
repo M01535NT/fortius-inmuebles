@@ -4,6 +4,7 @@ import { PageHeader, btnGhost, btnPrimary, inputClass, selectClass } from "@/com
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { db, useCollection } from "@/lib/admin/store";
 import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
+import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 
 type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
@@ -114,10 +115,11 @@ export default function ExpedientesPage() {
   const selected = expedientes.find((item) => item.id === selectedId);
   const definition = documento ? formatoById(documento.formato_id) : null;
   const missing = definition ? validateFormato(definition.id, { ...values, folio: selected?.folio }) : [];
+  const budgetTotals = definition?.id === "19" && missing.length === 0 ? calcularPresupuesto(values) : null;
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
   return <div className="space-y-8">
     <PageHeader title="Expedientes y formatos" description="Catálogo de 25 formatos exclusivos. Cada PDF requiere captura completa y cotejo con el original." />
-    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 12 (comprador), 13 (visita), 17 (cierre) y 18 (recibo) admiten emisión. Los campos de los otros 21 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
+    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 12 (comprador), 13 (visita), 17 (cierre), 18 (recibo) y 19 (presupuesto) admiten emisión. Los campos de los otros 20 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     <section className="rounded-lg border border-border bg-card p-5">
       <h2 className="display-soft mb-4 text-xl">Nuevo expediente</h2>
@@ -150,6 +152,7 @@ export default function ExpedientesPage() {
           <p className="mb-5 text-sm text-muted-foreground">{definition.source} · Borrador v{documento.version}</p>
           <FormatoEditor definition={definition} values={{ ...values, folio: selected.folio }} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
           {missing.length > 0 && <p className="mt-5 text-sm text-muted-foreground">Para emitir faltan: {missing.join(", ")}.</p>}
+          {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {budgetTotals.subtotalCotizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${budgetTotals.importeAutorizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${String(values.moneda)}`}</p><p>Estimación con reserva: {budgetTotals.estimacionConReserva.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Pagado: {budgetTotals.totalPagado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p></div>}
           {hasUnsavedChanges && <p className="mt-5 text-sm text-muted-foreground">Guarda los cambios antes de emitir el PDF.</p>}
           {!definition.readyForEmission && <p className="mt-5 text-sm text-muted-foreground">Este formato está pendiente de cotejo con el original; la emisión permanece bloqueada.</p>}
           <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={saveDocumento} disabled={busy} className={btnPrimary}>Guardar borrador</button><button type="button" onClick={emitDocumento} disabled={busy || hasUnsavedChanges || missing.length > 0 || !definition.readyForEmission} className={btnGhost}>Emitir PDF de los datos guardados</button></div>

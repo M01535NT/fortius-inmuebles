@@ -14,4 +14,8 @@ describe("entrada de expedientes", () => {
     expect(draftWrite.parse({ version: 1, data: { fecha: "2026-10-04" } }).version).toBe(1);
     expect(() => draftWrite.parse({ version: 1, data: { texto: "x".repeat(260000) } })).toThrow();
   });
+  it("acepta partidas estructuradas y rechaza filas excesivas", () => {
+    expect(draftWrite.parse({ version: 1, data: { partidas: [{ id: "P-1", cantidad: 2, precioUnitario: 100 }] } }).data.partidas).toHaveLength(1);
+    expect(() => draftWrite.parse({ version: 1, data: { pagos: Array.from({ length: 71 }, () => ({ importe: 1 })) } })).toThrow();
+  });
 });
