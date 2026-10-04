@@ -13,13 +13,14 @@ import { ReporteRowsEditor } from "@/components/admin/reporte-rows-editor";
 import { REPORTE_TABLES, type ReporteTable } from "@/lib/formatos/reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable } from "@/lib/formatos/entrevista";
 import { EntrevistaRowsEditor } from "@/components/admin/entrevista-rows-editor";
+import { mostrarCampoAviso } from "@/lib/formatos/aviso";
 
 export function FormatoEditor({ definition, values, onChange }: {
   definition: FormatoDefinition;
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
 }) {
-  const shownFields = definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.fields;
+  const shownFields = definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.fields;
   return <div className="grid gap-5 md:grid-cols-2">
     {shownFields.map((field, index) => {
       const isOffer = definition.id === "14";

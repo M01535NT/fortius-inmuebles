@@ -5,6 +5,7 @@ import { validarOferta } from "./oferta";
 import { validarPlan } from "./plan";
 import { validarReporte } from "./reporte";
 import { entrevistaFields, validarEntrevista } from "./entrevista";
+import { validarAviso } from "./aviso";
 
 export type FormatoField = {
   key: string;
@@ -44,7 +45,36 @@ const levantamiento = [folio, inmueble, fecha, asesor, field("superficieTerreno"
 
 /** Source names are recorded for traceability; the source files are never served publicly. */
 export const FORMATOS: readonly FormatoDefinition[] = [
-  f("01", "Aviso_de_privacidad", "docx", 1, [field("responsable", "Responsable del tratamiento"), field("domicilioResponsable", "Domicilio del responsable"), field("contactoPrivacidad", "Contacto de privacidad"), fecha]),
+  f("01", "Aviso_de_privacidad", "docx", 1, [
+    sectionField("Responsable y contacto", "folio", "Folio del expediente"),
+    sectionField("Responsable y contacto", "fechaEmision", "Fecha de emisión", "date"),
+    sectionField("Responsable y contacto", "responsable", "Identidad del responsable"),
+    sectionField("Responsable y contacto", "domicilioResponsable", "Domicilio completo del responsable"),
+    sectionField("Responsable y contacto", "contactoPrivacidad", "Persona que atiende privacidad"),
+    sectionField("Responsable y contacto", "correoPrivacidad", "Correo para derechos de privacidad"),
+    sectionField("Titular y operación", "titular", "Nombre del titular"),
+    { ...choice("tipoTitular", "Calidad del titular", [{ value: "propietario", label: "Propietario" }, { value: "comprador", label: "Comprador" }, { value: "arrendatario", label: "Arrendatario" }, { value: "representante", label: "Representante" }, { value: "otro", label: "Otra" }]), section: "Titular y operación" },
+    sectionField("Titular y operación", "operacion", "Operación o servicio"),
+    { ...sectionField("Titular y operación", "representante", "Nombre del representante"), required: false },
+    { ...sectionField("Titular y operación", "documentoRepresentante", "Documento de representación"), required: false },
+    { ...choice("consentimientoPatrimonial", "Datos patrimoniales y financieros", [{ value: "si", label: "Consiente expresamente" }, { value: "no", label: "No consiente" }, { value: "no_aplica", label: "No aplica en esta etapa" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
+    { ...choice("consentimientoPublicidad", "Publicidad y oportunidades adicionales", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
+    { ...choice("publicidadCorreo", "Publicidad por correo", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }], false), section: "Decisiones del titular" },
+    { ...choice("publicidadTelefono", "Publicidad por teléfono", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }], false), section: "Decisiones del titular" },
+    { ...choice("publicidadMensajeria", "Publicidad por mensajería", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }], false), section: "Decisiones del titular" },
+    { ...choice("transferenciaAsesor", "Transferencia a asesor independiente", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }, { value: "no_aplica", label: "No aplica" }, { value: "pendiente", label: "Pendiente" }]), section: "Transferencias" },
+    { ...sectionField("Transferencias", "asesorDestinatario", "Destinatario asesor"), required: false },
+    { ...sectionField("Transferencias", "asesorPais", "País del asesor"), required: false },
+    { ...choice("transferenciaFinanciera", "Transferencia a entidad de financiamiento", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }, { value: "no_aplica", label: "No aplica" }, { value: "pendiente", label: "Pendiente" }]), section: "Transferencias" },
+    { ...sectionField("Transferencias", "financieroDestinatario", "Entidad financiera"), required: false },
+    { ...sectionField("Transferencias", "financieroPais", "País de la entidad financiera"), required: false },
+    { ...choice("transferenciaOperacion", "Transferencia a contraparte o notaría", [{ value: "si", label: "Autoriza cuando sea necesaria" }, { value: "no", label: "No autoriza" }, { value: "no_aplica", label: "No aplica" }, { value: "pendiente", label: "Pendiente" }]), section: "Transferencias" },
+    { ...sectionField("Transferencias", "operacionDestinatario", "Contraparte o notaría"), required: false },
+    { ...sectionField("Transferencias", "operacionPais", "País de la contraparte o notaría"), required: false },
+    { ...choice("acuseEstado", "Estado de firma del aviso", [{ value: "pendiente", label: "Pendiente de firma" }, { value: "firmado_fuera", label: "Firmado fuera del panel" }]), section: "Recepción del aviso" },
+    { ...sectionField("Recepción del aviso", "fechaAcuse", "Fecha de firma externa", "date"), required: false },
+    { ...sectionField("Recepción del aviso", "referenciaAcuse", "Referencia del acuse firmado"), required: false },
+  ], true),
   f("02", "Entrevista_inicial", "docx", 1, entrevistaFields, true),
   f("03", "Tablero_y_control_comercial", "xlsx", 1, [field("periodoInicio", "Inicio del periodo", "date"), field("periodoFin", "Fin del periodo", "date"), asesor, field("criterio", "Criterios del reporte", "long")]),
   f("04A", "Levantamiento_terreno", "docx", 1, levantamiento),
@@ -422,6 +452,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "10") errors.push(...validarPlan(data));
   if (id === "11") errors.push(...validarReporte(data));
   if (id === "02") errors.push(...validarEntrevista(data));
+  if (id === "01") errors.push(...validarAviso(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
