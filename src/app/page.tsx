@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { Compromisos } from "@/components/home/compromisos";
-import { Destacadas } from "@/components/home/destacadas";
-import { Entregables } from "@/components/home/entregables";
 import { Evaluar } from "@/components/home/evaluar";
-import { Hero } from "@/components/home/hero";
-import { Herramientas } from "@/components/home/herramientas";
 import { Metodo } from "@/components/home/metodo";
-import { Relato } from "@/components/home/relato";
+import { EditorialHero } from "@/components/home/editorial-hero";
+import { EditorialHome } from "@/components/home/editorial-home";
+import { EditorialDocuments, EditorialIntro, EditorialProperties, EditorialTools } from "@/components/home/editorial-sections";
 import { Respuestas } from "@/components/home/respuestas";
 import { Segmentos } from "@/components/home/segmentos";
 import { Zonas } from "@/components/home/zonas";
@@ -14,29 +12,22 @@ import { getPublicContent } from "@/lib/backend/public";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-/*
-  Home: one continuous piece for the property owner. Nav and footer live in
-  the root layout. Arc: hook (hero) → the problem (relato) → the manifesto →
-  the method → the proof (entregables) → inventory doors (destacadas,
-  segmentos) → objections (respuestas) → tools (herramientas) → territory
-  (zonas) → honest promise (compromisos) → conversion (evaluar).
-  El Método conserva scroll vertical; la rama de prueba añade tarjetas apiladas.
-*/
+/* Editorial home; shared backend, navigation, inventory and contact flows. */
 export default async function HomePage() {
   const content = await getPublicContent();
   return (
-    <main>
-      <Hero content={content} />
-      <Relato content={content} />
+    <EditorialHome>
+      <EditorialHero content={content} />
+      <EditorialIntro content={content} />
       <Metodo content={content} />
-      <Entregables content={content} />
-      <Destacadas />
-      <Segmentos />
+      <EditorialDocuments content={content} />
+      <div className="editorial-featured"><EditorialProperties /></div>
+      <div className="editorial-segments"><Segmentos /></div>
       <Respuestas content={content} />
-      <Herramientas />
+      <EditorialTools />
       <Zonas />
       <Compromisos />
       <Evaluar content={content} />
-    </main>
+    </EditorialHome>
   );
 }

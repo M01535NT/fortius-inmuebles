@@ -26,6 +26,7 @@ const PRIMARY = [
 ];
 
 const SECONDARY = [
+  { href: "/#entregables", label: "Entregables" },
   { href: "/vender-propiedad", label: "Vender mi propiedad" },
   { href: "/comprar-propiedad", label: "Comprar propiedad" },
   { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },

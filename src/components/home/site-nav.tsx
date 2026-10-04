@@ -21,7 +21,7 @@ const links = [
   { href: "/blog", label: "Mercado inmobiliario" },
 ];
 
-export function SiteNav(props: { settings?: SiteSettings | null }) {
+export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boolean }) {
   const reduce = useReducedMotionSafe();
   const pathname = usePathname();
   const { scrollY } = useScroll();
@@ -40,7 +40,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
   /* Only the home hero is a dark full-bleed photo; there the nav floats
      with light text. Everywhere else (and after scroll) it is solid and
      adopts the theme tokens. */
-  const solid = scrolled || pathname !== "/";
+  const solid = props.solidHome || scrolled || pathname !== "/";
   const linkClass = solid
     ? "text-foreground/75 hover:text-foreground"
     : "text-on-image/80 hover:text-on-image";
