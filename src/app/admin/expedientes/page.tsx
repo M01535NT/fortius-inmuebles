@@ -5,6 +5,7 @@ import { FormatoEditor } from "@/components/admin/formato-editor";
 import { db, useCollection } from "@/lib/admin/store";
 import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
+import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
 
 type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
@@ -66,10 +67,11 @@ export default function ExpedientesPage() {
     event.preventDefault(); setError(""); setBusy(true);
     try {
       const formatoId = String(new FormData(event.currentTarget).get("formatoId"));
+      const initialData = formatoId === "08" ? { erogaciones: CARGOS_NETO.map((item) => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) } : {};
       const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${selectedId}/formatos`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ formatoId, data: {} }),
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ formatoId, data: initialData }),
       });
-      setDocumentos((items) => [result.documento, ...items]); setDocumento(result.documento); setValues({}); setEmisiones([]); setCopias({});
+      setDocumentos((items) => [result.documento, ...items]); setDocumento(result.documento); setValues(result.documento.data); setEmisiones([]); setCopias({});
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
   async function openDocumento(id: string) {
@@ -116,10 +118,11 @@ export default function ExpedientesPage() {
   const definition = documento ? formatoById(documento.formato_id) : null;
   const missing = definition ? validateFormato(definition.id, { ...values, folio: selected?.folio }) : [];
   const budgetTotals = definition?.id === "19" && missing.length === 0 ? calcularPresupuesto(values) : null;
+  const netTotals = definition?.id === "08" && missing.length === 0 ? calcularNeto({ ...values, folio: selected?.folio }) : null;
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
   return <div className="space-y-8">
     <PageHeader title="Expedientes y formatos" description="Catálogo de 25 formatos exclusivos. Cada PDF requiere captura completa y cotejo con el original." />
-    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 12 (comprador), 13 (visita), 17 (cierre), 18 (recibo) y 19 (presupuesto) admiten emisión. Los campos de los otros 20 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
+    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 08 (neto del propietario), 12 (comprador), 13 (visita), 17 (cierre), 18 (recibo) y 19 (presupuesto) admiten emisión. Los campos de los otros 19 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     <section className="rounded-lg border border-border bg-card p-5">
       <h2 className="display-soft mb-4 text-xl">Nuevo expediente</h2>
@@ -153,6 +156,7 @@ export default function ExpedientesPage() {
           <FormatoEditor definition={definition} values={{ ...values, folio: selected.folio }} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
           {missing.length > 0 && <p className="mt-5 text-sm text-muted-foreground">Para emitir faltan: {missing.join(", ")}.</p>}
           {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {budgetTotals.subtotalCotizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${budgetTotals.importeAutorizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${String(values.moneda)}`}</p><p>Estimación con reserva: {budgetTotals.estimacionConReserva.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Pagado: {budgetTotals.totalPagado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p></div>}
+          {netTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Neto estimado</h3><p>Precio usado: {netTotals.precioBase.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p>Erogaciones: {netTotals.erogaciones.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p className="font-semibold">Neto: {netTotals.netoEstimado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p></div>}
           {hasUnsavedChanges && <p className="mt-5 text-sm text-muted-foreground">Guarda los cambios antes de emitir el PDF.</p>}
           {!definition.readyForEmission && <p className="mt-5 text-sm text-muted-foreground">Este formato está pendiente de cotejo con el original; la emisión permanece bloqueada.</p>}
           <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={saveDocumento} disabled={busy} className={btnPrimary}>Guardar borrador</button><button type="button" onClick={emitDocumento} disabled={busy || hasUnsavedChanges || missing.length > 0 || !definition.readyForEmission} className={btnGhost}>Emitir PDF de los datos guardados</button></div>

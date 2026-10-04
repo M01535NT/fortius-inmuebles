@@ -6,6 +6,7 @@ import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { formatoById, validateFormato, type FormatoField } from "./catalog";
 import { calcularPresupuesto, importePartida, type Partida, type Pago } from "./presupuesto";
+import { CARGOS_NETO, calcularNeto, type CargoNeto } from "./neto";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -49,7 +50,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   const pdf = await PDFDocument.create();
-  const displayTitle = id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : definition.title;
+  const displayTitle = id === "08" ? "Estimación del neto" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : definition.title;
   pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
@@ -108,6 +109,34 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   };
   if (id === "18") {
     for (const paragraph of receiptParagraphs(data)) write(paragraph, 10, regular, ink, 12);
+  } else if (id === "08") {
+    const totals = calcularNeto(data);
+    const cash = (amount: number) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} MXN`;
+    write("01 / Precio y diferencia", 13, bold, accent, 10);
+    for (const field of definition.fields.slice(1, 10)) fieldLine(field);
+    if (totals.diferenciaAbsoluta !== null) {
+      write(`Diferencia acordado menos sugerido: ${cash(totals.diferenciaAbsoluta)} (${totals.diferenciaPorcentual?.toFixed(2)} % sobre el sugerido)`, 10, regular, ink, 7);
+    }
+    write(`Precio usado para el neto: ${cash(totals.precioBase)}. El acuerdo con el vendedor no acredita una venta cerrada.`, 10, regular, ink, 12);
+    if (y < 260) { page = pdf.addPage(a4); startPage(); }
+    write("02 / Erogaciones a cargo del propietario", 13, bold, accent, 10);
+    for (const item of data.erogaciones as CargoNeto[]) {
+      ensure(57);
+      const label = CARGOS_NETO.find((fixed) => fixed.key === item.concepto)?.label ?? item.descripcion ?? "Otro cargo";
+      write(label, 9, bold, ink, 2);
+      write(`${item.estado} · ${item.estado === "No aplica" ? "0.00 MXN" : cash(item.importe ?? 0)} · ${item.justificacion}`, 9, regular, muted, 8);
+    }
+    write(`Total de erogaciones estimadas: ${cash(totals.erogaciones)}`, 10, bold, accent, 12);
+    ensure(230);
+    write("03 / Lo que se estima recibirá el propietario", 13, bold, accent, 10);
+    write(`Respaldo fiscal: ${cash(data.precioRespaldoFiscal as number)} · Válido hasta: ${displayValue(definition.fields[12], data.respaldoFiscalValidoHasta)}`, 9, regular, ink, 5);
+    write(`Cierre previsto: ${displayValue(definition.fields[13], data.cierrePrevisto)} · Cargos: revisados`, 9, regular, ink, 5);
+    write(`Responsable de la estimación: ${String(data.responsableEstimacion)}`, 9, regular, ink, 8);
+    write(`NETO ESTIMADO: ${cash(totals.netoEstimado)}`, 16, bold, accent, 12);
+    if (totals.netoEstimado < 0) write("Las erogaciones superan el precio: revisar el faltante.", 10, bold, accent, 8);
+    else write("Estimación revisada. Puede variar al concretarse la operación.", 10, regular, ink, 8);
+    write("Estimación, no garantía de cobro. El precio, impuestos, adeudos y gastos pueden cambiar. Total conjunto antes de repartir entre copropietarios.", 9, regular, muted, 8);
+    write("No equivale al saldo por cobrar en firma: los anticipos recibidos deben conciliarse por separado. Evita duplicar cargos.", 9, regular, muted, 8);
   } else if (id === "19") {
     const totals = calcularPresupuesto(data);
     const currency = String(data.moneda);

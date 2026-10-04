@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { createFormatoPdf, prepareFormatoEmission, receiptParagraphs } from "@/lib/formatos/pdf";
+import { CARGOS_NETO } from "@/lib/formatos/neto";
 
 const receipt = {
   numeroRecibo: "F-001", lugarEmision: "Tijuana", fechaPago: "2026-10-04", pagador: "Cliente de prueba",
@@ -92,6 +93,22 @@ describe("emisión de formatos", () => {
     const pdf = await PDFDocument.load(bytes);
     expect(pdf.getTitle()).toBe("Presupuesto de rehabilitacion");
     expect(pdf.getPageCount()).toBe(3);
+  });
+
+  it("genera la estimación del neto con precio, cargos justificados y respaldo fiscal", async () => {
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const nextYear = `${Number(today.slice(0, 4)) + 1}-12-31`;
+    const bytes = await createFormatoPdf("08", {
+      folio: "EXP-8", fechaEmision: today, propietario: "Cliente", inmueble: "Casa Tijuana",
+      referencia07: "OVC-07-v1", fecha07: today, estadoOperacion: "En estudio",
+      precioSugerido07: 3000000, precioAcordado: 2900000, precioBase: "acordado",
+      erogaciones: CARGOS_NETO.map((item) => ({ concepto: item.key, importe: item.key === "comision" ? 90000 : 0, estado: item.key === "comision" ? "Estimado" : "No aplica", justificacion: item.key === "comision" ? "Contrato de intermediación" : "No corresponde al expediente" })),
+      precioRespaldoFiscal: 2900000, respaldoFiscalValidoHasta: nextYear, cierrePrevisto: nextYear,
+      revisionCargos: "Revisado", responsableEstimacion: "Ana",
+    });
+    const pdf = await PDFDocument.load(bytes);
+    expect(pdf.getTitle()).toBe("Estimación del neto");
+    expect(pdf.getPageCount()).toBeGreaterThan(0);
   });
 
   it("rechaza importes negativos y recibos totales con saldo pendiente", async () => {

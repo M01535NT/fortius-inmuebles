@@ -2,6 +2,7 @@
 import type { FormatoDefinition } from "@/lib/formatos/catalog";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { BudgetRowsEditor } from "@/components/admin/budget-rows-editor";
+import { NetExpenseEditor } from "@/components/admin/net-expense-editor";
 
 export function FormatoEditor({ definition, values, onChange }: {
   definition: FormatoDefinition;
@@ -12,10 +13,11 @@ export function FormatoEditor({ definition, values, onChange }: {
     {definition.fields.map((field) => {
       const id = `formato-${field.key}`;
       const value = values[field.key] ?? "";
-      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos";
+      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos";
       return <div key={field.key} className={wide ? "md:col-span-2" : ""}>
-        {field.type === "partidas" || field.type === "pagos" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
-        {field.type === "partidas" || field.type === "pagos" ? <BudgetRowsEditor kind={field.type} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        {field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
+        {field.type === "netoCargos" ? <NetExpenseEditor value={value} onChange={(rows) => onChange(field.key, rows)} />
+        : field.type === "partidas" || field.type === "pagos" ? <BudgetRowsEditor kind={field.type} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
         : field.type === "choice" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}

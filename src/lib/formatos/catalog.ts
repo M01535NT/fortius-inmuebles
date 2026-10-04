@@ -1,9 +1,10 @@
 import { validarPresupuesto } from "./presupuesto";
+import { validarNeto } from "./neto";
 
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos";
   required: boolean;
   options?: readonly { value: string; label: string }[];
 };
@@ -49,7 +50,27 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   f("05", "Revision_juridica_y_control_de_cierre", "docx", 2, [folio, inmueble, fecha, propietario, field("documentos", "Documentos examinados", "long"), field("hallazgos", "Hallazgos y soporte", "long"), field("pendientes", "Pendientes y responsables", "long")]),
   f("06", "Opinion_juridica_del_inmueble", "docx", 2, [folio, inmueble, fecha, propietario, field("conclusion", "Conclusión ejecutiva", "long"), field("antecedentes", "Antecedentes y documentos", "long"), field("analisis", "Análisis jurídico", "long"), field("recomendaciones", "Recomendaciones y próximos pasos", "long")]),
   f("07", "Opinion_de_valor_comercial", "xlsx", 2, [folio, inmueble, fecha, field("antecedentes", "Antecedentes", "long"), field("comparables", "Comparables y fuentes", "long"), field("metodos", "Métodos y conciliación", "long"), field("valorConcluido", "Valor comercial concluido", "money")]),
-  f("08", "Estimacion_del_neto_del_propietario", "xlsx", 2, [folio, fecha, propietario, moneda, field("precioSugerido07", "Precio sugerido por la opinión 07", "money"), field("precioPactado", "Precio pactado", "money"), field("erogaciones", "Erogaciones y fuentes", "long"), field("netoEstimado", "Neto estimado", "money")]),
+  f("08", "Estimacion_del_neto_del_propietario", "xlsx", 2, [
+    folio, field("fechaEmision", "Fecha de emisión", "date"), propietario, inmueble,
+    field("referencia07", "Referencia y versión de la opinión 07"), field("fecha07", "Fecha de la opinión 07", "date"),
+    choice("estadoOperacion", "Estado de la operación", [
+      { value: "En estudio", label: "En estudio" }, { value: "Cancelada", label: "Cancelada" },
+      { value: "Cambio de operación", label: "Cambio de operación" },
+    ]),
+    field("precioSugerido07", "Valor sugerido según opinión 07", "money"),
+    field("precioAcordado", "Precio acordado con el vendedor", "money", false),
+    choice("precioBase", "Precio usado para el neto", [
+      { value: "sugerido07", label: "Sugerido del 07" }, { value: "acordado", label: "Acordado" },
+    ]),
+    field("erogaciones", "Erogaciones a cargo del propietario", "netoCargos"),
+    field("precioRespaldoFiscal", "Precio del respaldo fiscal", "money"),
+    field("respaldoFiscalValidoHasta", "Respaldo fiscal válido hasta", "date"),
+    field("cierrePrevisto", "Cierre previsto", "date"),
+    choice("revisionCargos", "Revisión de cargos", [
+      { value: "Pendiente", label: "Pendiente" }, { value: "Revisado", label: "Revisado" },
+    ]),
+    field("responsableEstimacion", "Responsable de la estimación"),
+  ], true),
   f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, [fecha, propietario, inmueble, field("prestador", "Prestador y representación"), field("precio", "Precio autorizado", "money"), moneda, field("honorarios", "Honorarios y condiciones", "long"), field("plazo", "Plazo"), field("modalidad", "Modalidad del encargo")]),
   f("10", "Plan_de_comercializacion", "docx", 3, [folio, inmueble, propietario, asesor, fecha, field("objetivo", "Objetivo del propietario", "long"), field("estrategia", "Estrategia", "long"), field("precioSalida", "Precio de salida", "money"), field("periodo", "Periodo de trabajo")]),
   f("11", "Reporte_de_comercializacion_al_propietario", "docx", 3, [folio, inmueble, propietario, asesor, field("periodo", "Periodo informado"), fecha, field("resultados", "Resultados del periodo", "long"), field("siguienteDecision", "Siguiente decisión", "long")]),
@@ -187,7 +208,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
-    if (item.type === "partidas" || item.type === "pagos") return false;
+    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
     if (item.type === "money" || item.type === "number") {
@@ -203,6 +224,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     if (item.type === "choice") return typeof value !== "string" || !item.options?.some((option) => option.value === value);
     return typeof value !== "string";
   }).map((item) => item.label);
+  if (id === "08") errors.push(...validarNeto(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
