@@ -21,7 +21,7 @@ const links = [
   { href: "/blog", label: "Mercado inmobiliario" },
 ];
 
-export function SiteNav(props: { settings?: SiteSettings | null }) {
+export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boolean }) {
   const reduce = useReducedMotionSafe();
   const pathname = usePathname();
   const { scrollY } = useScroll();
@@ -40,7 +40,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
   /* Only the home hero is a dark full-bleed photo; there the nav floats
      with light text. Everywhere else (and after scroll) it is solid and
      adopts the theme tokens. */
-  const solid = scrolled || pathname !== "/";
+  const solid = props.solidHome || scrolled || pathname !== "/";
   const linkClass = solid
     ? "text-foreground/75 hover:text-foreground"
     : "text-on-image/80 hover:text-on-image";
@@ -48,7 +48,7 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
   return (
     <>
     <motion.header
-      initial={reduce ? false : { y: -16, opacity: 0 }}
+      initial={false}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: reduce ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={
@@ -59,13 +59,14 @@ export function SiteNav(props: { settings?: SiteSettings | null }) {
       }
     >
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
-        <Link href="/" aria-label="MNT Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
+        <Link href="/" aria-label="Mint Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
 
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Principal">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
+              aria-current={pathname === l.href || pathname.startsWith(`${l.href}/`) ? "page" : undefined}
               className={"text-sm font-medium transition-colors " + linkClass}
             >
               {l.label}

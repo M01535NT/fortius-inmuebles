@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
+import { TiltCard } from "@/components/magicui/tilt-card";
 
 import {
   ESTADO_LABELS,
@@ -15,9 +16,11 @@ export function PropertyCard({ property }: { property: Property }) {
   const noDisponible = property.estado !== "disponible";
 
   return (
-    <article className="group">
+    <TiltCard max={4}>
+    <article data-property-card className="property-editorial-card group">
       <Link
         href={href}
+        data-cursor="Ver"
         className="relative block overflow-hidden rounded-lg border border-border"
       >
         <Image
@@ -43,7 +46,7 @@ export function PropertyCard({ property }: { property: Property }) {
             Propiedad de demostración
           </p>
         )}
-        <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="property-eyebrow font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
           {TIPO_LABELS[property.tipo]} · {OPERACION_LABELS[property.operacion]}
         </p>
         <div>
@@ -67,5 +70,6 @@ export function PropertyCard({ property }: { property: Property }) {
         </div>
       </div>
     </article>
+    </TiltCard>
   );
 }

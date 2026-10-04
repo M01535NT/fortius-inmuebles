@@ -18,6 +18,7 @@ type Props = {
   charDelay?: number;
   /** Retraso inicial (solo útil con `once`, p.ej. el hero). */
   delay?: number;
+  reveal?: "chars" | "lines" | "soft-lines";
 };
 
 export function SplitHeading({
@@ -27,8 +28,10 @@ export function SplitHeading({
   once = false,
   charDelay = 0.035,
   delay = 0,
+  reveal = "chars",
 }: Props) {
   const ref = React.useRef<HTMLHeadingElement>(null);
+  const softEntranceDone = React.useRef(false);
   const nearViewport = useInView(ref, { once: true, margin: "200px" });
 
   useGSAP(
@@ -36,9 +39,37 @@ export function SplitHeading({
       const el = ref.current;
       if (!el || !nearViewport) return;
       const media = gsap.matchMedia();
-      media.add({ reduce: "(prefers-reduced-motion: reduce)", compact: "(max-width: 767px)", desktop: "(min-width: 768px)" }, (context) => {
-      if (context.conditions?.reduce) return;
+      const soft = reveal === "soft-lines";
+      media.add(soft ? { reduce: "(prefers-reduced-motion: reduce)", motion: "(prefers-reduced-motion: no-preference)" } : { reduce: "(prefers-reduced-motion: reduce)", compact: "(max-width: 767px)", desktop: "(min-width: 768px)" }, (context) => {
+      if (context.conditions?.reduce) {
+        if (soft) softEntranceDone.current = true;
+        return;
+      }
+      if (soft && softEntranceDone.current) return;
       const compact = !!context.conditions?.compact;
+
+      if (reveal === "lines" || soft) {
+        const split = SplitText.create(el, {
+          type: "lines", mask: soft ? undefined : "lines", autoSplit: true,
+          onSplit: (self) => {
+            if (soft) {
+              if (softEntranceDone.current) return;
+              return gsap.fromTo(self.lines, { y: 18, opacity: 0, filter: "blur(3px)" }, {
+                y: 0, opacity: 1, filter: "blur(0px)", duration: 0.8, delay, stagger: 0.18, ease: "power3.out",
+                onComplete: () => {
+                  softEntranceDone.current = true;
+                  gsap.set(self.lines, { clearProps: "filter,transform" });
+                },
+              });
+            }
+            return gsap.from(self.lines, {
+              yPercent: 105, duration: 1.05, delay, stagger: 0.11, ease: "power4.out",
+              scrollTrigger: { trigger: el, start: "top 88%", toggleActions: actions(once) },
+            });
+          },
+        });
+        return () => split.revert();
+      }
 
       const split = SplitText.create(el, {
         type: "chars,words",
@@ -67,7 +98,7 @@ export function SplitHeading({
       });
       return () => media.revert();
     },
-    { scope: ref, dependencies: [nearViewport], revertOnUpdate: true },
+    { scope: ref, dependencies: [nearViewport, reveal, delay, once, charDelay], revertOnUpdate: true },
   );
 
   return (

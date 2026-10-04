@@ -21,13 +21,11 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Tu propiedad en Tijuana.");
-    const pause = page.getByRole("button", { name: "Pausar imágenes" });
-    await expect(pause).toBeVisible();
-    await pause.click();
-    await expect(page.getByRole("button", { name: "Reanudar imágenes" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Vende tu propiedad");
+    await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Imagen 2", exact: true }).click();
     await expect(page.getByRole("button", { name: "Imagen 2", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".kenburns").last()).toHaveCSS("animation-play-state", "paused");
     await expect(page.locator(".hero-copy-entry").first()).toHaveCSS("opacity", "1");
     await expect(page.locator(".hero-copy-entry").last()).toHaveCSS("opacity", "1");
     await expect.poll(() => page.getByRole("heading", { level: 1 }).evaluate((heading) => {
@@ -52,7 +50,8 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await expect(page.locator("[data-menu-item]").last()).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
-    await page.getByRole("link", { name: "Conocer el método" }).click();
+    await page.getByRole("button", { name: "Abrir menú" }).click();
+    await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
     await expect(page.locator("#metodo")).toBeInViewport();
     await page.locator("#evaluar").scrollIntoViewIfNeeded();
     await expect(page.locator("#evaluar")).toContainText("El contacto directo estará disponible próximamente.");
@@ -62,7 +61,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
-    await page.getByRole("link", { name: "MNT Inmuebles, inicio" }).click();
+    await page.getByRole("link", { name: "Mint Inmuebles, inicio" }).click();
     await page.screenshot({ path: testInfo.outputPath(`dark-reduced-${width}.png`) });
     await page.getByRole("link", { name: "Acceso al panel" }).click();
     await expect(page).toHaveURL(/\/admin$/);

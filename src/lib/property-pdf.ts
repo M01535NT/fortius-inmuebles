@@ -2,7 +2,6 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, PDFName, PDFString, type PDFFont } from "pdf-lib";
-import { brandPaths } from "@/components/brand/brand-paths";
 import { ESTADO_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
 import type { Asesor, SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
@@ -22,6 +21,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
       pdf.embedFont(await readFile(join(process.cwd(), "public", "fonts", name)), { subset: true })
     )
   );
+  const brandLeaf = await pdf.embedPng(await readFile(join(process.cwd(), "public", "brand", "mint-leaf.png")));
   // Keep accented Spanish and omit glyphs absent from the embedded Latin subset.
   const supported = new Set(regular.getCharacterSet());
   const clean = (s: string) => Array.from(s.normalize("NFC").replace(/[\u2010-\u2015]/g, "-")).filter(c => {
@@ -31,11 +31,9 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   let page = pdf.addPage([width, height]);
   let y = 0;
   const header = () => {
-    page.drawSvgPath(brandPaths.symbol, { x: margin, y: height - 35, scale: .48, color: green });
-    page.drawSvgPath(brandPaths.initials, { x: margin + 88 * .48, y: height - 35, scale: .48, color: ink });
-    for (const glyph of brandPaths.descriptor) {
-      page.drawSvgPath(glyph.d, { x: margin + (88 + glyph.x) * .48, y: height - 35 - 47 * .48, scale: .48, color: ink });
-    }
+    page.drawImage(brandLeaf, { x: margin, y: height - 68, width: 36, height: 36 });
+    page.drawText("Mint", { x: margin + 42, y: height - 52, size: 23, font: bold, color: ink });
+    page.drawText("Inmuebles", { x: margin + 42, y: height - 65, size: 9, font: regular, color: ink });
     page.drawText("FICHA TÉCNICA", { x: width - 145, y: height - 48, size: 10, font: mono, color: green });
     page.drawLine({ start: { x: margin, y: height - 82 }, end: { x: width - margin, y: height - 82 }, thickness: .7, color: green });
     y = height - 107;
@@ -90,8 +88,8 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     y -= box + 15;
     text(caption, 8, regular, muted);
   };
-  pdf.setTitle(`${p.titulo} | Ficha técnica | MNT Inmuebles`);
-  pdf.setAuthor("MNT Inmuebles");
+  pdf.setTitle(`${p.titulo} | Ficha técnica | Mint Inmuebles`);
+  pdf.setAuthor("Mint Inmuebles");
   pdf.setSubject(`Información pública del inmueble ${p.codigo}`);
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
   text(`${p.codigo}  /  ${TIPO_LABELS[p.tipo]}  /  ${OPERACION_LABELS[p.operacion]}  /  ${ESTADO_LABELS[p.estado]}`, 9, mono, green);
@@ -146,7 +144,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   const pages = pdf.getPages();
   pages.forEach((sheet, index) => {
     sheet.drawLine({ start: { x: margin, y: 46 }, end: { x: width - margin, y: 46 }, thickness: .4, color: muted });
-    sheet.drawText(clean(`MNT Inmuebles · ${p.codigo}${p.demo ? " · DEMOSTRACIÓN" : ""}`), { x: margin, y: 31, size: 8, font: regular, color: muted });
+    sheet.drawText(clean(`Mint Inmuebles · ${p.codigo}${p.demo ? " · DEMOSTRACIÓN" : ""}`), { x: margin, y: 31, size: 8, font: regular, color: muted });
     sheet.drawText(`${index + 1} / ${pages.length}`, { x: width - 70, y: 31, size: 8, font: regular, color: muted });
   });
   return pdf.save();

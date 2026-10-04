@@ -48,7 +48,7 @@ export default async function ZonaPage({ params }: Props) {
           {/* Encabezado */}
           <BlurFade inView={false}>
             <nav aria-label="Miga de pan" className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-              <Link href="/zonas" className="transition-colors hover:text-foreground">
+              <Link href="/zonas" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">
                 Zonas
               </Link>
               <span aria-hidden="true"> / </span>

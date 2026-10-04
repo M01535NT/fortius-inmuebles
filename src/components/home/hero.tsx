@@ -5,7 +5,7 @@ import { MessagingActions } from "@/components/contact/messaging-actions";
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Pause, Play } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import {
   AnimatePresence,
   useScroll,
@@ -18,6 +18,7 @@ import { ESPECTACULAR } from "@/data/motion-config";
 import { useMotionProfile } from "@/lib/use-motion-profile";
 import { resolveSiteContent } from "@/data/home-copy";
 import type { SiteContent } from "@/lib/admin/store";
+import { gsap, useGSAP } from "@/lib/gsap";
 
 const SLIDES = [
   { src: "/hero/casa-playa.webp", alt: "Residencia frente al mar en Baja California" },
@@ -48,6 +49,7 @@ function MagneticCta({ href, children }: { href: string; children: React.ReactNo
   return (
     <motion.a
       href={href}
+      data-cursor="Hablemos"
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       style={{ x, y }}
@@ -68,6 +70,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
   const [visible, setVisible] = React.useState(true);
 
   const sectionRef = React.useRef<HTMLElement>(null);
+  const depthRef = React.useRef<HTMLDivElement>(null);
   const inView = useInView(sectionRef, { amount: 0.05 });
   const playing = !reduce && !paused && visible && inView;
   const { scrollYProgress } = useScroll({
@@ -76,6 +79,24 @@ export function Hero({ content }: { content?: SiteContent | null }) {
   });
   /* Parallax: el fondo se queda atrás mientras la sección sale de cuadro. */
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", `${ESPECTACULAR ? parallax : 0}%`]);
+
+  useGSAP(() => {
+    const depth = depthRef.current;
+    const section = sectionRef.current;
+    if (!depth || !section || !magnetic) return;
+    const x = gsap.quickTo(depth, "x", { duration: 1.1, ease: "power3.out" });
+    const y = gsap.quickTo(depth, "y", { duration: 1.1, ease: "power3.out" });
+    const move = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      const rect = section.getBoundingClientRect();
+      x((event.clientX / rect.width - 0.5) * -28);
+      y(((event.clientY - rect.top) / rect.height - 0.5) * -20);
+    };
+    const leave = () => { x(0); y(0); };
+    section.addEventListener("pointermove", move, { passive: true });
+    section.addEventListener("pointerleave", leave);
+    return () => { section.removeEventListener("pointermove", move); section.removeEventListener("pointerleave", leave); };
+  }, { scope: sectionRef, dependencies: [magnetic], revertOnUpdate: true });
 
   React.useEffect(() => {
     const update = () => setVisible(document.visibilityState === "visible");
@@ -96,6 +117,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
     <section ref={sectionRef} className="relative min-h-[100svh] overflow-hidden bg-[#10241c]" aria-label="Presentación">
       {/* Background rotator con parallax */}
       <motion.div style={{ y: bgY }} className="absolute inset-x-0 -top-[18%] bottom-0" aria-hidden="true">
+        <div ref={depthRef} className="absolute -inset-5">
         <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={index}
@@ -119,18 +141,20 @@ export function Hero({ content }: { content?: SiteContent | null }) {
         </AnimatePresence>
         {/* Scrim: keeps copy AA-readable over any slide, both themes. */}
         <div className="absolute inset-0 bg-gradient-to-t from-image-scrim/85 via-image-scrim/30 to-image-scrim/10" />
+        </div>
       </motion.div>
 
       {/* Copy block, asymmetric bottom-left */}
       <div className="relative mx-auto flex min-h-[100svh] max-w-[1280px] flex-col justify-end px-5 pb-8 pt-28 md:px-8 md:pb-12">
-        {/* Cascada por letra (GSAP SplitText): la entrada de página no se repite. */}
+        {/* Masked line reveal (GSAP SplitText); the hero entrance runs once. */}
         <SplitHeading
           as="h1"
           lines={titleLines}
           once
+          reveal="lines"
           delay={0.15}
           charDelay={0.028}
-          className="display-title max-w-[23ch] text-[clamp(2.4rem,7.2vw,5.25rem)] text-on-image"
+          className="hero-title max-w-[19ch] text-on-image"
         />
 
         <motion.p
@@ -148,7 +172,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="hero-copy-entry mt-8 flex flex-wrap items-center gap-3"
         >
-          <MessagingActions message="Hola, quiero conversar sobre una propiedad con MNT Inmuebles." fallback={kinetic ? (
+          <MessagingActions message="Hola, quiero conversar sobre una propiedad con Mint Inmuebles." fallback={kinetic ? (
             <MagneticCta href="#evaluar">Quiero vender mi propiedad</MagneticCta>
           ) : (
             <a
@@ -160,6 +184,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           )} />
           <Link
             href="/inventario"
+            data-cursor="Explorar"
             className="inline-flex h-12 items-center rounded-md border border-on-image/35 px-6 text-base font-medium text-on-image backdrop-blur-sm transition-colors hover:border-on-image/60 hover:bg-on-image/10 active:scale-[0.98]"
           >
             Ver propiedades <ArrowUpRight className="ml-3 size-4" aria-hidden="true" />
@@ -168,7 +193,8 @@ export function Hero({ content }: { content?: SiteContent | null }) {
 
         {/* Slide state: control funcional con progreso de 8s en la barra activa. */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/25 pt-3">
-        <div className="flex items-center gap-2" role="group" aria-label="Imágenes del inicio">
+        <div className="flex items-center gap-2" role="group" aria-label="Imágenes del inicio" aria-describedby="hero-slide-help">
+          <p id="hero-slide-help" className="sr-only">Selecciona una imagen para mantenerla en pantalla y detener los cambios automáticos.</p>
           {SLIDES.map((s, i) => (
             <button
               key={s.src}
@@ -193,7 +219,6 @@ export function Hero({ content }: { content?: SiteContent | null }) {
               </span>
             </button>
           ))}
-          {!reduce && <button type="button" onClick={() => setPaused(!paused)} aria-label={paused ? "Reanudar imágenes" : "Pausar imágenes"} className="flex size-11 items-center justify-center rounded-md text-white transition-colors hover:bg-white/15">{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</button>}
         </div>
         <a href="#metodo" className="inline-flex min-h-11 items-center gap-3 text-sm text-on-image transition-opacity hover:opacity-80">Conocer el método <span aria-hidden="true">↓</span></a>
         </div>

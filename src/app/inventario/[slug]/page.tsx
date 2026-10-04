@@ -111,7 +111,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
       <Container className="pb-16 md:pb-24">
         <Link
           href="/inventario"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-4" strokeWidth={1.5} />
           Volver al inventario

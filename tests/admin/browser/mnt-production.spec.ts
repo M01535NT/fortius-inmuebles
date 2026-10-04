@@ -9,7 +9,7 @@ test("production security headers use a nonce without browser CSP violations", a
   expect(response?.headers()["content-security-policy"]).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
   expect(response?.headers()["x-frame-options"]).toBe("DENY");
   expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
-  await expect(page).toHaveTitle(/MNT Inmuebles/);
+  await expect(page).toHaveTitle(/Mint Inmuebles/);
   expect((await page.locator("head script").allTextContents()).join(" ")).toContain("mnt-theme");
   await page.waitForLoadState("networkidle");
   expect(violations).toEqual([]);
@@ -27,17 +27,17 @@ test("admin renders independently while the public backend is unavailable", asyn
   await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
 });
 
-test("MNT fullscreen menu traps keyboard focus and restores its trigger", async ({ page }) => {
+test("Mint fullscreen menu traps keyboard focus and restores its trigger", async ({ page }) => {
   await page.goto("/contacto");
   const trigger = page.getByRole("button", { name: "Abrir menú" });
   await trigger.focus();
   await trigger.press("Enter");
   const dialog = page.getByRole("dialog", { name: "Menú" });
-  await expect(dialog.getByRole("img", { name: "MNT Inmuebles" })).toBeVisible();
+  await expect(dialog.getByRole("img", { name: "Mint Inmuebles" })).toBeVisible();
   const close = dialog.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("link", { name: "Privacidad" })).toBeFocused();
+  await expect(dialog.getByRole("link", { name: "Términos y condiciones" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();
   await page.keyboard.press("Escape");
@@ -51,6 +51,7 @@ test("health and inventory expose backend unavailability without a false empty r
   await page.goto("/inventario");
   await expect(page.getByRole("heading", { name: "No pudimos cargar esta página." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reintentar" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
   await expect(page.getByText(/00 resultados/i)).toHaveCount(0);
 });
 

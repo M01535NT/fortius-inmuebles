@@ -15,7 +15,7 @@ for (const width of [390, 1440]) {
     await expect(page.getByRole("button", { name: "Imagen 1", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: "Imagen 2", exact: true }).click();
     await expect(page.getByRole("button", { name: "Imagen 2", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("link", { name: "Conocer el método" }).locator("..")).toHaveCSS("opacity", "1");
+    await expect(page.getByRole("link", { name: "Ver propiedades", exact: true }).locator("..")).toHaveCSS("opacity", "1");
     await page.screenshot({ path: testInfo.outputPath(`home-light-${width}.png`) });
     await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);

@@ -24,17 +24,22 @@ test("the existing hero and manifesto render panel copy without replacing their 
   expect(relato).toContain("Proceso actualizado.");
   expect(relato).toContain("Texto actualizado");
 });
-test("legacy defaults receive the approved copy and keep intentional line breaks", () => {
-  const original = { ...content, heroTitulo: "Vende con plan, no con anuncios.", manifiestoTitulo: "No prometemos resultados. Documentamos el proceso." };
+test("legacy defaults receive the regional copy and keep intentional manifesto line breaks", () => {
+  const original = {
+    ...content,
+    heroTitulo: "Vende tu propiedad\nen Tijuana.",
+    heroSubtitulo: "Proponemos el precio de venta, revisamos los documentos y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.",
+    manifiestoTitulo: "No prometemos resultados. Documentamos el proceso.",
+  };
   const hero = renderToStaticMarkup(<Hero content={original} />);
   const relato = renderToStaticMarkup(<Relato content={original} />);
-  expect(hero).toContain('Tu propiedad en Tijuana.');
-  expect(hero).toContain('Un plan para venderla.');
-  expect(relato).toMatch(/<span class="[^"]*\bblock\b[^"]*">con información\.<\/span>/);
+  expect(hero).toContain('Vende tu propiedad');
+  expect(hero).toContain('Trabajamos en Tijuana, Rosarito, Tecate y Ensenada.');
+  expect(relato).toMatch(/<span class="[^"]*\bblock\b[^"]*">el precio de venta\.<\/span>/);
 });
 test("footer uses public settings and keeps placeholder numbers explicitly unconfirmed", () => {
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);
-  expect(html).toContain('aria-label="MNT Inmuebles"');
+  expect(html).toContain('aria-label="Mint Inmuebles"');
   expect(html).toContain('href="tel:+526641234567"');
   expect(html).toContain('href="https://wa.me/526647654321"');
   const placeholders = renderToStaticMarkup(<SiteFooter settings={{ ...settings, telefono: "+52 664 000 0000", whatsapp: "https://wa.me/526640000000" }} />);

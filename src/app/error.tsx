@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { DocumentLink } from "@/components/navigation/document-link";
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
@@ -15,13 +16,18 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         <p className="mt-4 max-w-[52ch] leading-7 text-muted-foreground">
           La información no se mostró como vacía. Intenta cargarla nuevamente en unos momentos.
         </p>
-        <button
-          type="button"
-          onClick={reset}
-          className="mt-7 inline-flex min-h-11 items-center rounded-md bg-primary px-5 font-semibold text-primary-foreground"
-        >
-          Reintentar
-        </button>
+        <div className="mt-7 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={reset}
+            className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 font-semibold text-primary-foreground"
+          >
+            Reintentar
+          </button>
+          <DocumentLink href="/" className="inline-flex min-h-11 items-center rounded-md border border-border px-5 font-medium hover:bg-secondary">
+            Volver al inicio
+          </DocumentLink>
+        </div>
       </div>
     </main>
   );

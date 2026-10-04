@@ -8,7 +8,7 @@ const data = {
   propiedades: propiedades.map((property) => ({ ...property, publicada: true, demo: true })),
   asesores,
   contenido: [{ heroTitulo: "Vende con plan, no con anuncios.", heroSubtitulo: "", manifiestoTitulo: "No nos limitamos a tomar fotos. Creamos un proceso.", manifiestoTexto: "", seoTitle: "", seoDescription: "" }],
-  config: [{ nombreComercial: "MNT Inmuebles", telefono: "", whatsapp: "", email: "", horario: "", facebook: "", instagram: "", videoInstitucionalUrl: "" }],
+  config: [{ nombreComercial: "Mint Inmuebles", telefono: "", whatsapp: "", email: "", horario: "", facebook: "", instagram: "", videoInstitucionalUrl: "" }],
   posts: [
     ["cuanto-vale-mi-casa-tijuana", "Cuánto vale mi casa en Tijuana", "mercado"],
     ["documentos-vender-propiedad-baja-california", "Documentos para vender una propiedad en Baja California", "tramites"],

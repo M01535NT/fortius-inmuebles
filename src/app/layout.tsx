@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { headers } from "next/headers";
 
 import "@/app/globals.css";
+import "@/app/editorial.css";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
@@ -11,6 +12,7 @@ import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
 import { siteConfig } from "@/data/site";
 import { SITE_COPY } from "@/data/home-copy";
 import { PublicPerformance } from "@/components/providers/public-performance";
+import { PublicExperience } from "@/components/home/public-experience";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -30,14 +32,13 @@ const defaultMetadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
     default: SITE_COPY.seoTitle,
-    template: "%s | MNT Inmuebles",
+    template: "%s | Mint Inmuebles",
   },
   description:
     SITE_COPY.seoDescription,
   openGraph: {
-    title: "MNT Inmuebles | Bienes raíces con método",
-    description:
-      "Vende, renta o compra en Tijuana con un proceso documentado: análisis de mercado, revisión de papeles y coordinación hasta la firma.",
+    title: SITE_COPY.seoTitle,
+    description: SITE_COPY.seoDescription,
     locale: "es_MX",
     type: "website",
   },
@@ -53,9 +54,9 @@ export async function generateMetadata(): Promise<Metadata> {
       });
   return {
     ...defaultMetadata,
-    title: { default: content?.seoTitle || SITE_COPY.seoTitle, template: "%s | MNT Inmuebles" },
+    title: { default: content?.seoTitle || SITE_COPY.seoTitle, template: "%s | Mint Inmuebles" },
     description: content?.seoDescription || defaultMetadata.description,
-    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || "MNT Inmuebles | Bienes raíces con método", description: content?.seoDescription || defaultMetadata.openGraph?.description },
+    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || SITE_COPY.seoTitle, description: content?.seoDescription || SITE_COPY.seoDescription },
   };
 }
 
@@ -95,18 +96,20 @@ export default async function RootLayout({
       </head>
       <body>
         {/*
-          Footer cortina: el contenido (z-10, fondo opaco) se desliza sobre el
-          footer pegado al fondo del viewport (sticky bottom, z-0) y lo revela
-          al llegar al final. Solo CSS, ambos temas.
+          En pantallas amplias y altas, el contenido (z-10, fondo opaco) revela
+          el footer al llegar al final. En pantallas cortas, el footer sigue el
+          flujo normal para que todos sus enlaces sean accesibles.
         */}
         <PublicFeaturesProvider publicLeadsEnabled={publicLeadsEnabled} settings={settings}>
-          {isAdmin ? null : <SiteNav settings={settings} />}
-          {!isAdmin && process.env.VERCEL === "1" ? <PublicPerformance /> : null}
-          <div className="relative z-10 bg-background">{children}</div>
-          {isAdmin ? null : (
-            <div className="sticky bottom-0 z-0">
-              <SiteFooter settings={settings} />
-            </div>
+          {/* Links crossing the admin/public boundary load a fresh document:
+              this server layout and its settings persist during soft navigation. */}
+          {isAdmin ? <div className="relative z-10 bg-background">{children}</div> : (
+            <PublicExperience>
+              <SiteNav settings={settings} solidHome />
+              {process.env.VERCEL === "1" ? <PublicPerformance /> : null}
+              <div className="relative z-10 bg-background">{children}</div>
+              <div className="public-footer relative z-0"><SiteFooter settings={settings} /></div>
+            </PublicExperience>
           )}
         </PublicFeaturesProvider>
       </body>

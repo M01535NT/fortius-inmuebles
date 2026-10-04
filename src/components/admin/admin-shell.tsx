@@ -2,12 +2,15 @@
 import * as React from "react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import Link from "next/link";
+import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
   CalendarDays,
   ClipboardList,
   ExternalLink,
+  Eye,
+  EyeOff,
   FileText,
   FolderOpen,
   LayoutDashboard,
@@ -71,6 +74,7 @@ function LoginScreen({
 }) {
   const [recovery, setRecovery] = React.useState(false);
   const [sent, setSent] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-background px-5">
       <div className="w-full max-w-[400px]">
@@ -128,18 +132,29 @@ function LoginScreen({
               htmlFor="admin-password"
               hint={passwordMode ? "Entre 12 y 128 caracteres." : undefined}
             >
-              <input
-                id="admin-password"
-                name="password"
-                type="password"
-                required
-                minLength={passwordMode ? 12 : undefined}
-                maxLength={128}
-                autoComplete={
-                  passwordMode ? "new-password" : "current-password"
-                }
-                className={inputClass}
-              />
+              <div className="relative">
+                <input
+                  id="admin-password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={passwordMode ? 12 : undefined}
+                  maxLength={128}
+                  autoComplete={
+                    passwordMode ? "new-password" : "current-password"
+                  }
+                  className={inputClass + " pr-12"}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  aria-controls="admin-password"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+                </button>
+              </div>
             </Field>
           ) : null}
           {passwordMode ? (
@@ -175,12 +190,16 @@ function LoginScreen({
               onClick={() => {
                 setRecovery(!recovery);
                 setSent(false);
+                setShowPassword(false);
               }}
             >
               {recovery ? "Volver al acceso" : "Olvidé mi contraseña"}
             </button>
           ) : null}
         </AsyncForm>
+        <DocumentLink href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline">
+          Volver al sitio
+        </DocumentLink>
       </div>
     </main>
   );
@@ -349,14 +368,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ))}
       {mobile ? (
         <>
-          <Link
+          <DocumentLink
             href="/"
             onClick={() => setMenu(false)}
             className="flex min-h-11 items-center gap-3 px-3 text-sm"
           >
             <ExternalLink className="size-4" />
             Ver sitio
-          </Link>
+          </DocumentLink>
           <AsyncButton type="button" onClick={leave} className={btnGhost}>
             <LogOut className="size-4" />
             Salir
@@ -381,13 +400,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {links()}
         </nav>
         <div className="space-y-2 border-t border-border p-3">
-          <Link
+          <DocumentLink
             href="/"
             className="flex min-h-11 items-center gap-3 px-3 text-sm"
           >
             <ExternalLink className="size-4" />
             Ver sitio
-          </Link>
+          </DocumentLink>
           <AsyncButton
             type="button"
             onClick={leave}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { DocumentLink } from "@/components/navigation/document-link";
 
 export default function NotFound() {
   return (
@@ -9,12 +9,12 @@ export default function NotFound() {
         <p className="mt-4 max-w-[52ch] leading-7 text-muted-foreground">
           La dirección puede haber cambiado o el contenido ya no está disponible.
         </p>
-        <Link
+        <DocumentLink
           href="/"
           className="mt-7 inline-flex min-h-11 items-center rounded-md bg-primary px-5 font-semibold text-primary-foreground"
         >
           Volver al inicio
-        </Link>
+        </DocumentLink>
       </div>
     </main>
   );

@@ -4,6 +4,7 @@ import { MessagingActions } from "@/components/contact/messaging-actions";
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowUpRight, X } from "lucide-react";
 
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
@@ -25,11 +26,16 @@ const PRIMARY = [
 ];
 
 const SECONDARY = [
-  { href: "/zonas", label: "Zonas" },
+  { href: "/#entregables", label: "Entregables" },
   { href: "/vender-propiedad", label: "Vender mi propiedad" },
   { href: "/comprar-propiedad", label: "Comprar propiedad" },
-  { href: "/due-diligence-inmobiliaria", label: "Due diligence" },
+  { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },
+  { href: "/residencial", label: "Residencial" },
+  { href: "/comercial", label: "Comercial" },
+  { href: "/industrial", label: "Industrial" },
+  { href: "/nosotros", label: "Nosotros" },
   { href: "/privacidad", label: "Privacidad" },
+  { href: "/terminos", label: "Términos y condiciones" },
 ];
 
 /* El círculo nace donde está el botón de menú (esquina superior derecha). */
@@ -39,10 +45,12 @@ const CLIP_OPEN = "circle(150% at calc(100% - 52px) 32px)";
 type Props = { open: boolean; onClose: () => void };
 
 export function FullscreenMenu({ open, onClose }: Props) {
+  const pathname = usePathname() ?? "/";
   const ref = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
   const [active, setActive] = React.useState(0);
+  const isCurrent = (href: string) => href === pathname || (href !== "/" && !href.includes("#") && pathname.startsWith(`${href}/`));
 
   /* Bloqueo de scroll + Escape mientras el menú está abierto. */
   React.useEffect(() => {
@@ -141,20 +149,22 @@ export function FullscreenMenu({ open, onClose }: Props) {
       aria-modal="true"
       aria-label="Menú"
       style={{ clipPath: CLIP_CLOSED }}
-      className="invisible fixed inset-0 z-50 overflow-y-auto bg-background"
+      className="invisible fixed inset-0 z-50 overflow-y-auto scroll-pt-20 bg-background"
     >
       {/* Cabecera del overlay: marca + cerrar en el mismo punto del botón. */}
-      <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
-        <BrandMark />
-        <button
-          ref={closeRef}
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar menú"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.97]"
-        >
-          <X className="h-5 w-5" strokeWidth={1.5} />
-        </button>
+      <div className="sticky top-0 z-10 border-b border-border bg-background">
+        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
+          <BrandMark />
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar menú"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.97]"
+          >
+            <X className="h-5 w-5" strokeWidth={1.5} />
+          </button>
+        </div>
       </div>
 
       <div className="mx-auto grid min-h-[calc(100dvh-64px)] max-w-[1280px] grid-rows-[1fr_auto] px-5 pb-8 pt-4 md:px-8">
@@ -168,7 +178,8 @@ export function FullscreenMenu({ open, onClose }: Props) {
                     href={item.href}
                     prefetch={open ? null : false}
                     onClick={onClose}
-                    className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5"
+                    aria-current={isCurrent(item.href) ? "page" : undefined}
+                    className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
                   >
                     <span className="font-mono text-xs text-primary">
                       {String(i + 1).padStart(2, "0")}
@@ -231,14 +242,15 @@ export function FullscreenMenu({ open, onClose }: Props) {
           data-menu-item
           className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5"
         >
-          <nav aria-label="Menú secundario" className="flex flex-wrap gap-x-6 gap-y-2">
+          <nav aria-label="Menú secundario" className="grid w-full grid-cols-2 gap-x-4 sm:grid-cols-3 lg:grid-cols-5">
             {SECONDARY.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 prefetch={open ? null : false}
                 onClick={onClose}
-                className="text-sm text-foreground/70 transition-colors hover:text-foreground"
+                aria-current={isCurrent(item.href) ? "page" : undefined}
+                className="inline-flex min-h-11 items-center text-sm text-foreground/70 underline-offset-4 transition-colors hover:text-foreground aria-[current=page]:font-semibold aria-[current=page]:text-foreground aria-[current=page]:underline"
               >
                 {item.label}
               </Link>

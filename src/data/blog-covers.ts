@@ -26,7 +26,7 @@ export function getBlogCover(slug: string): BlogCover | undefined {
     credit: {
       author: "Urbaner44", sourceUrl: "https://commons.wikimedia.org/wiki/File:Tijuana_skyline.jpg",
       license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
-      note: "Archivo: 24 de marzo de 2021. Versión de Commons con marca retirada por Pbrks; reducida y convertida a WebP por MNT, sin recorte. No muestra una propiedad en oferta.",
+      note: "Archivo: 24 de marzo de 2021. Versión de Commons con marca retirada por Pbrks; reducida y convertida a WebP por Mint, sin recorte. No muestra una propiedad en oferta.",
     },
   };
   const cover = Object.hasOwn(covers, slug) ? covers[slug] : undefined;

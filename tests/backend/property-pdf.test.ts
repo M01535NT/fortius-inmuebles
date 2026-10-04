@@ -11,7 +11,7 @@ test("PDF uses real images, Spanish metadata, and paginates long public descript
   const bytes = await createPropertyPdf(property, { settings: null, siteUrl: "https://example.com", loadImage: loadPdfImage });
   const pdf = await PDFDocument.load(bytes);
   expect(pdf.getTitle()).toContain(property.titulo);
-  expect(pdf.getAuthor()).toBe("MNT Inmuebles");
+  expect(pdf.getAuthor()).toBe("Mint Inmuebles");
   expect(pdf.getPageCount()).toBeGreaterThan(3);
   expect(bytes.length).toBeGreaterThan(10000);
 });
