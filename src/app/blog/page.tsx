@@ -10,7 +10,7 @@ type Props = { searchParams?: Promise<Record<string, string | string[] | undefin
 export async function generateMetadata({ searchParams }: Props = {}): Promise<Metadata> {
   const search = normalizeBlogSearch(await searchParams ?? {});
   return {
-    title: "Mercado inmobiliario: guías y actualidad",
+    title: "Blog",
     description: "Guías, análisis y actualidad para comprar, vender y evaluar inmuebles en Tijuana y Baja California.",
     alternates: { canonical: "/blog" },
     ...(search.q || search.tema || search.tipo || search.pagina !== "1" ? { robots: { index: false, follow: true } } : {}),
@@ -38,7 +38,7 @@ export default async function BlogPage({ searchParams }: Props = {}) {
         <header className="border-b border-border pb-8 sm:pb-10">
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-primary">Tijuana · Baja California</p>
           <div className="mt-5 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-            <h1 className="display-title max-w-[14ch] text-5xl text-foreground sm:text-6xl lg:text-7xl">Mercado inmobiliario.</h1>
+            <h1 className="display-title max-w-[14ch] text-5xl text-foreground sm:text-6xl lg:text-7xl">Blog</h1>
             <p className="max-w-[48ch] text-base leading-7 text-muted-foreground sm:text-lg">Lo que pasa en el sector y lo que necesitas saber para tu próxima decisión. Guías, análisis y actualidad con contexto local.</p>
           </div>
         </header>

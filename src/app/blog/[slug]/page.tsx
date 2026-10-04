@@ -63,7 +63,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" strokeWidth={1.5} aria-hidden="true" />
-            Volver a Mercado inmobiliario
+            Volver al Blog
           </Link>
 
           <header className="mt-8 border-b border-border pb-10">

@@ -27,7 +27,7 @@ const sections = [
     { href: "/nosotros", label: "Conoce a Mint" },
   ] },
   { title: "Guías y herramientas", links: [
-    { href: "/blog", label: "Mercado inmobiliario" },
+    { href: "/blog", label: "Blog" },
     { href: "/blog?tema=vender&tipo=guia", label: "Guías para vender" },
     { href: "/blog?tema=comprar&tipo=guia", label: "Guías para comprar" },
     { href: "/herramientas/hipoteca", label: "Calculadora de hipoteca" },

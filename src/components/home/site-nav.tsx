@@ -18,7 +18,7 @@ const links = [
   { href: "/#metodo", label: "Método" },
   { href: "/#entregables", label: "Entregables" },
   { href: "/herramientas", label: "Herramientas" },
-  { href: "/blog", label: "Mercado inmobiliario" },
+  { href: "/blog", label: "Blog" },
 ];
 
 export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boolean }) {

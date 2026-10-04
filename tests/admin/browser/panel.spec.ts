@@ -64,7 +64,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         "Clientes",
         "Calendario",
         "Notas",
-        "Mercado inmobiliario",
+        "Blog",
         "Asesores",
         "Archivos",
         "Contenido",

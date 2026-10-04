@@ -54,7 +54,7 @@ const NAV = [
   { href: "/admin/tareas", label: "Tareas", icon: ClipboardList },
   { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },
   { href: "/admin/notas", label: "Notas", icon: StickyNote },
-  { href: "/admin/blog", label: "Mercado inmobiliario", icon: Newspaper },
+  { href: "/admin/blog", label: "Blog", icon: Newspaper },
   { href: "/admin/asesores", label: "Asesores", icon: UsersRound },
   { href: "/admin/archivos", label: "Archivos", icon: FolderOpen },
   { href: "/admin/contenido", label: "Contenido", icon: PenLine },

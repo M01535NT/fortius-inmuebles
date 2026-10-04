@@ -196,7 +196,7 @@ export default function BlogAdminPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Mercado inmobiliario."
+        title="Blog"
         description="Publica guías y actualidad, clasifica los temas y elige el destacado de portada. Los borradores permanecen en el panel."
         actions={
           <button

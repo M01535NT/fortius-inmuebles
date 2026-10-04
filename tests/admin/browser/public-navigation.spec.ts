@@ -110,7 +110,7 @@ test("short phone screens can reach the first footer navigation link", async ({ 
   await page.setViewportSize({ width: 375, height: 667 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/inventario");
-  const link = page.locator("footer").getByRole("link", { name: "Mercado inmobiliario", exact: true });
+  const link = page.locator("footer").getByRole("link", { name: "Blog", exact: true });
   await link.scrollIntoViewIfNeeded();
   await expect.poll(() => link.evaluate((node) => {
     const rect = node.getBoundingClientRect();
@@ -161,7 +161,7 @@ test("property, article, zone and calculator pages return to their catalogs", as
   await page.goto("/blog");
   await page.locator('main a[href="/blog/cuanto-vale-mi-casa-tijuana"]').first().click();
   await expect(page).toHaveURL(/\/blog\/cuanto-vale-mi-casa-tijuana$/);
-  await page.getByRole("link", { name: "Volver a Mercado inmobiliario" }).click();
+  await page.getByRole("link", { name: "Volver al Blog" }).click();
   await expect(page).toHaveURL(/\/blog$/);
 
   await page.goto("/zonas");

@@ -8,7 +8,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/blog");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mercado inmobiliario.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Blog");
     await expect(page.getByRole("region", { name: "Artículo destacado" })).toBeVisible();
     const cards = page.getByRole("region", { name: "Para seguir leyendo" }).locator("article");
     const a = await cards.nth(0).boundingBox();
