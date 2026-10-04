@@ -71,7 +71,7 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
           <Link href="/zonas" className="editorial-territory">Tijuana · Rosarito · Tecate · Ensenada</Link>
         </div>
         <div className="editorial-cover-copy">
-          <SplitHeading as="h1" once reveal="lines" delay={0.1}
+          <SplitHeading as="h1" once reveal="soft-lines" delay={0.1}
             lines={copy.heroTitulo === "Vende tu propiedad." ? ["Vende tu ", "propiedad."] : copy.heroTitulo.split("\n")}
             className="editorial-cover-title" />
           <motion.p className="hero-copy-entry editorial-cover-description"
