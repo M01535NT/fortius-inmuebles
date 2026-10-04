@@ -65,7 +65,7 @@ Files: `tests/admin/browser/financial-tools.spec.ts`, public Playwright configur
 - [x] Exercise both tools at 375, 414, 768 and 1440 pixels, light/dark and reduced motion; check Axe, no overflow, input privacy, comparisons, downloads and property-detail integration.
 - [x] Implement a source checker for official catalog updates, changed PDFs and rule expiration; verify it without changing any rate automatically.
 - [x] Have a fresh reviewer inspect the full diff and arithmetic/legal assumptions. Address material findings and rerun affected checks.
-- [ ] Merge the verified branch to main, push GitHub and confirm Vercel deployment and production interactions.
+- [x] Merge the verified branch to main, push GitHub and confirm Vercel deployment and production interactions.
 
 ## Validation evidence
 
@@ -76,4 +76,4 @@ Files: `tests/admin/browser/financial-tools.spec.ts`, public Playwright configur
 - All 10 fiscal source PDF hashes match; current official catalog and 2026 snapshot checker report no issues.
 - Fresh independent review compared fiscal rules against primary source text and tested 2,000 additional amortization cases. Its two findings (stale assumed base, native floating-point down payment) were fixed and covered by regression tests.
 
-Publication evidence is recorded after main deployment in the task execution ledger.
+Main published in a4bbd55 and 05809c9. Vercel confirmed deployment; production phone/desktop checks verified a 23,961.12 payment, saved scenarios, local PDF, Ensenada ISAI 76,500, seller net 2,776,000, no page overflow and no browser errors. The scheduled source-maintenance workflow passed on GitHub. Legacy offline-backend browser expectations were updated to match the primary-link menu and pending-cost model.

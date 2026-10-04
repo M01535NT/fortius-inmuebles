@@ -37,7 +37,8 @@ test("Mint fullscreen menu traps keyboard focus and restores its trigger", async
   const close = dialog.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("link", { name: "Términos y condiciones" })).toBeFocused();
+  await expect(dialog.locator('a[href="/contacto"]')).toBeFocused();
+  await expect(dialog.getByRole("link", { name: "Términos y condiciones" })).toHaveCount(0);
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();
   await page.keyboard.press("Escape");
@@ -68,16 +69,21 @@ test("calculators preserve editing and reject invalid output in production", asy
   await page.getByLabel("Comisión pactada (%)").fill("0");
   await expect(page.getByText(/Comisión de intermediación \(0%\)/)).toBeVisible();
   await page.getByLabel("Comisión pactada (%)").fill("");
+  await expect(page.getByLabel("Comisión pactada (%)")).toHaveValue("");
+  await expect(page.getByText(/Comisión de intermediación \(pendiente%\)/)).toBeVisible();
+  await expect(page.getByText("Falta incorporar", { exact: true })).toBeVisible();
+  await expect(page.getByText("Neto estimado de venta", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Comisión pactada (%)").fill("21");
   await expect(page.getByText(/Ingresa una comisión válida/)).toBeVisible();
-  await expect(page.getByText("Total estimado")).toHaveCount(0);
+  await expect(page.getByText("Neto parcial de venta", { exact: true })).toHaveCount(0);
 
   await page.goto("/herramientas/hipoteca");
   await page.getByLabel(/Precio de la propiedad/).fill("");
-  await expect(page.getByText(/Ingresa un precio válido entre \$100,000 y \$10,000,000,000,000/)).toBeVisible();
-  await expect(page.locator("dl").getByText("Mensualidad", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("alert").filter({ hasText: /Ingresa un precio equivalente entre \$100,000 y \$10,000,000,000 MXN/ })).toBeVisible();
+  await expect(page.locator("dl").getByText("Capital e interés mensual", { exact: true })).toHaveCount(0);
   await page.getByLabel(/Precio de la propiedad/).fill("1e308");
-  await expect(page.getByText(/Ingresa un precio válido entre .*10,000,000,000,000/)).toBeVisible();
-  await expect(page.locator("dl").getByText("Mensualidad", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("alert").filter({ hasText: /Ingresa un precio equivalente entre .*10,000,000,000 MXN/ })).toBeVisible();
+  await expect(page.locator("dl").getByText("Capital e interés mensual", { exact: true })).toHaveCount(0);
 });
 
 test("inventory and contact retain one H1", async ({ page }) => {
