@@ -644,7 +644,7 @@ export function ClosingCostsCalculator({
                 <div className="mt-6">
                   <ExportButton
                     report={report}
-                    filename={`mint-presupuesto-${activeProfile === "buyer" ? "compra" : "venta"}.pdf`}
+                    filename={`fortius-presupuesto-${activeProfile === "buyer" ? "compra" : "venta"}.pdf`}
                   />
                 </div>
               )}

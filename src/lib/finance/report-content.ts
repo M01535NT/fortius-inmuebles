@@ -190,7 +190,7 @@ export function mortgageReport(o: MortgageOptions): FinancialReport {
     lines: [
       "Crédito bancario en MXN a tasa nominal fija, pagos mensuales vencidos e interés sobre saldo. Pagos e intereses redondeados a centavos; el último pago ajusta el saldo a cero. No simula tasas variables, UDIS ni Infonavit.",
       "Los anticipos se aplican después del pago mensual, hasta el saldo restante. Puedes mantener la cuota y reducir plazo, o recalcularla sobre los meses restantes para reducir mensualidad. El ahorro indicado es sólo de intereses; las comisiones por anticipos se contabilizan aparte.",
-      "El CAT se conserva únicamente si lo capturaste de una cotización. No se calcula ni se usa como tasa nominal. Los resultados son una simulación de Mint, no una oferta de crédito ni una aprobación de un banco.",
+      "El CAT se conserva únicamente si lo capturaste de una cotización. No se calcula ni se usa como tasa nominal. Los resultados son una simulación de Fortius, no una oferta de crédito ni una aprobación de un banco.",
     ],
     links: [
       {

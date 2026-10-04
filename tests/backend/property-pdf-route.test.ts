@@ -17,7 +17,7 @@ test("download is an uncached PDF attachment derived from the current public pro
   const result = await call();
   expect(result.status).toBe(200);
   expect(result.headers.get("content-type")).toBe("application/pdf");
-  expect(result.headers.get("content-disposition")).toContain("attachment; filename=\"mint-ficha-");
+  expect(result.headers.get("content-disposition")).toContain("attachment; filename=\"fortius-ficha-");
   expect(result.headers.get("cache-control")).toContain("no-store");
   expect(mocks.pdf.mock.calls[0][0]).toEqual(propiedades[0]);
 });

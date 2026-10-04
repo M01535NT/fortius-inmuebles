@@ -68,7 +68,7 @@ export function Evaluar({ content }: { content?: SiteContent | null }) {
 
           {/* Right: the form */}
           <div className="lg:col-span-6 lg:col-start-7">
-            <MessagingContact message="Hola, quiero evaluar mi propiedad con Mint Inmuebles.">
+            <MessagingContact message="Hola, quiero evaluar mi propiedad con Fortius Inmuebles.">
             <PublicLeadForm
                 onSubmit={onSubmit}
                 className="relative rounded-lg border border-border bg-card p-6 md:p-8"

@@ -5,19 +5,19 @@ import { MessagingContact } from "@/components/contact/messaging-actions";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 import { homeText, resolveSiteContent } from "@/data/home-copy";
 
-test("Mint branding refreshes stored copy without changing property codes or site links", () => {
+test("Fortius branding refreshes stored copy without changing property codes or site links", () => {
   const content = resolveSiteContent({
     heroTitulo: "Vende con MNT", heroSubtitulo: "Texto propio del equipo",
     manifiestoTitulo: "Precio", manifiestoTexto: "Expediente MNT-001",
     seoTitle: "MNT Inmuebles | Texto propio", seoDescription: "https://mnt-inmuebles.vercel.app",
     homeTexts: { contratoTexto: "Contrato de MNT Inmuebles para MNT-001" },
   });
-  expect(content.heroTitulo).toBe("Vende con Mint");
+  expect(content.heroTitulo).toBe("Vende con Fortius");
   expect(content.heroSubtitulo).toBe("Texto propio del equipo");
-  expect(content.seoTitle).toBe("Mint Inmuebles | Texto propio");
+  expect(content.seoTitle).toBe("Fortius Inmuebles | Texto propio");
   expect(content.manifiestoTexto).toBe("Expediente MNT-001");
   expect(content.seoDescription).toBe("https://mnt-inmuebles.vercel.app");
-  expect(homeText(content, "contratoTexto")).toBe("Contrato de Mint Inmuebles para MNT-001");
+  expect(homeText(content, "contratoTexto")).toBe("Contrato de Fortius Inmuebles para MNT-001");
 });
 
 test("contact never invites visitors into a disabled form", () => {
@@ -77,4 +77,12 @@ test("the alternative refreshes previously published defaults while preserving c
   expect(homeText(old, "relatoTexto")).toBe("Contenido aprobado por el equipo");
   expect(old.seoTitle).toBe("SEO propio");
   expect(old.seoDescription).toBe("Descripción propia");
+});
+
+test("Fortius also updates customized Mint copy without rewriting URL or record identifiers", () => {
+  const content = resolveSiteContent({ heroTitulo: "Mint vende contigo", heroSubtitulo: "Texto personal de Mint", manifiestoTitulo: "Precio", manifiestoTexto: "MNT-001 / Mint_001", seoTitle: "Mint Inmuebles", seoDescription: "https://mnt-inmuebles.vercel.app", homeTexts: { contratoTexto: "Compromisos de Mint" } });
+  expect(content.heroTitulo).toBe("Fortius vende contigo");
+  expect(content.heroSubtitulo).toBe("Texto personal de Fortius");
+  expect(content.manifiestoTexto).toBe("MNT-001 / Mint_001");
+  expect(homeText(content, "contratoTexto")).toBe("Compromisos de Fortius");
 });

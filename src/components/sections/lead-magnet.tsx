@@ -83,7 +83,7 @@ export function LeadMagnet() {
                     spam y sin compartir tus datos.
                   </p>
                   <a
-                    href="/descargas/checklist-venta-mnt.pdf"
+                    href="/descargas/checklist-venta-fortius.pdf"
                     download
                     className="mt-5 inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
                   >

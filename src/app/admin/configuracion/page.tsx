@@ -1,5 +1,6 @@
 "use client";
 
+import { brandCopy } from "@/lib/brand-copy";
 import * as React from "react";
 
 import {
@@ -68,7 +69,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
               id="cf-nombre"
               name="nombreComercial"
               required
-              defaultValue={settings.nombreComercial}
+              defaultValue={brandCopy(settings.nombreComercial)}
               className={inputClass}
             />
           </Field>

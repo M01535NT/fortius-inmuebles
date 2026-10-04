@@ -15,7 +15,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     if (!property) return new Response("Inmueble no disponible.", { status: 404, headers });
     const [settings, advisers] = await Promise.all([getPublicSettings(), getPublicAdvisers()]);
     const bytes = await createPropertyPdf(property, { settings, adviser: advisers.find(a => a.id === property.asesorId), siteUrl: siteConfig.url, loadImage: loadPdfImage });
-    const filename = `mint-ficha-${property.slug.replace(/[^a-z0-9-]/gi, "-")}.pdf`;
+    const filename = `fortius-ficha-${property.slug.replace(/[^a-z0-9-]/gi, "-")}.pdf`;
     return new Response(Buffer.from(bytes), { headers: { ...headers, "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${filename}"` } });
   } catch {
     return new Response("No pudimos generar la ficha técnica. Inténtalo de nuevo en unos momentos.", { status: 503, headers });

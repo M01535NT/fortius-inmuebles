@@ -9,17 +9,17 @@ export async function createFinancialPdf(
   assets?: ReportAssets,
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle(`Mint | ${report.title}`);
-  pdf.setAuthor("Mint Inmuebles");
-  pdf.setCreator("Mint · Herramientas inmobiliarias");
+  pdf.setTitle(`Fortius | ${report.title}`);
+  pdf.setAuthor("Fortius Inmuebles");
+  pdf.setCreator("Fortius · Herramientas inmobiliarias");
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
   pdf.registerFontkit(fontkit);
-  const [regular, bold, mono, leaf] = assets
+  const [regular, bold, mono, logo] = assets
     ? await Promise.all([
         pdf.embedFont(assets.regular, { subset: true }),
         pdf.embedFont(assets.bold, { subset: true }),
         pdf.embedFont(assets.mono, { subset: true }),
-        pdf.embedPng(assets.leaf),
+        pdf.embedPng(assets.logo),
       ])
     : await Promise.all([
         pdf.embedFont(StandardFonts.Helvetica),
@@ -27,7 +27,7 @@ export async function createFinancialPdf(
         pdf.embedFont(StandardFonts.Courier),
         Promise.resolve(undefined),
       ]);
-  new FinancialLayout(pdf, { regular, bold, mono }, report, leaf).render();
+  new FinancialLayout(pdf, { regular, bold, mono }, report, logo).render();
   return pdf.save();
 }
 let assetPromise: Promise<ReportAssets> | undefined;
@@ -38,7 +38,7 @@ function reportAssets(): Promise<ReportAssets> {
       "/fonts/Archivo-Regular.ttf",
       "/fonts/Archivo-SemiBold.ttf",
       "/fonts/IBMPlexMono-Medium.ttf",
-      "/brand/mint-leaf.png",
+      "/brand/fortius-logo.png",
     ].map(async (path) => {
       const response = await fetch(path);
       if (!response.ok)
@@ -48,7 +48,7 @@ function reportAssets(): Promise<ReportAssets> {
       return new Uint8Array(await response.arrayBuffer());
     }),
   )
-    .then(([regular, bold, mono, leaf]) => ({ regular, bold, mono, leaf }))
+    .then(([regular, bold, mono, logo]) => ({ regular, bold, mono, logo }))
     .catch((error: unknown) => {
       assetPromise = undefined;
       throw error;

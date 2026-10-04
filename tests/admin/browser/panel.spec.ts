@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
     return route.fulfill({ json: { records: [] } });
   });
 });
-test("Mint Inmuebles mark remains visible through email login and sidebar", async ({ page }, testInfo) => {
+test("Fortius Inmuebles mark remains visible through email login and sidebar", async ({ page }, testInfo) => {
   let logged = false;
   await page.route("**/api/auth/**", (route) => {
     const pathname = new URL(route.request().url()).pathname;
@@ -32,14 +32,14 @@ test("Mint Inmuebles mark remains visible through email login and sidebar", asyn
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/admin");
   await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
-  const loginMark = page.getByRole("main").getByRole("img", { name: "Mint Inmuebles" });
+  const loginMark = page.getByRole("main").getByRole("img", { name: "Fortius Inmuebles" });
   await expect(loginMark).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("mnt-login.png"), fullPage: true });
   await page.getByLabel("Correo").fill("staff@example.com");
   await page.getByLabel("Contraseña", { exact: true }).fill("local-fixture-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Panel.", exact: true })).toBeVisible();
-  const sidebarMark = page.getByRole("complementary").getByRole("img", { name: "Mint Inmuebles" });
+  const sidebarMark = page.getByRole("complementary").getByRole("img", { name: "Fortius Inmuebles" });
   await expect(sidebarMark).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("mnt-sidebar.png"), fullPage: true });
 });

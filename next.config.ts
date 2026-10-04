@@ -11,15 +11,17 @@ const nextConfig: NextConfig = {
     "/inventario/*/ficha-tecnica": [
       "./public/hero/**/*",
       "./public/fonts/*.ttf",
+      "./public/brand/fortius-logo.png",
       // Native Sharp binaries and libvips are loaded dynamically in Vercel's Linux runtime.
       "./node_modules/@img/sharp-*/**/*",
     ],
   },
   async redirects() {
     return [
+      { source: "/descargas/checklist-venta-mnt.pdf", destination: "/descargas/checklist-venta-fortius.pdf", permanent: true },
       {
         source: "/descargas/checklist-venta-cota.pdf",
-        destination: "/descargas/checklist-venta-mnt.pdf",
+        destination: "/descargas/checklist-venta-fortius.pdf",
         permanent: true,
       },
     ];

@@ -1,4 +1,5 @@
-import Image from 'next/image';
+import { cn } from '@/lib/utils';
+import { fortiusPaths } from './brand-paths';
 
 type BrandMarkProps = {
   variant?: 'full' | 'compact' | 'symbol';
@@ -6,21 +7,16 @@ type BrandMarkProps = {
   className?: string;
 };
 
-/** Shared Mint identity for the public site and administration. */
-export function BrandMark({ variant = 'full', inverse = false, className = '' }: BrandMarkProps) {
+/** Architectural Fortius identity shared by the public site and administration. */
+export function BrandMark({ variant = 'full', inverse = false, className }: BrandMarkProps) {
+  const viewBox = variant === 'symbol' ? '174 -4 228 250' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
   return (
-    <span
-      role="img"
-      aria-label="Mint Inmuebles"
-      className={`inline-flex items-center gap-2 ${variant === 'symbol' ? 'h-8 w-8' : 'h-10 w-[137.5px]'} shrink-0 ${inverse ? 'text-white' : 'text-brand-ink'} ${className}`}
-    >
-      <Image src="/brand/mint-leaf.png" alt="" width={64} height={64} unoptimized className={`${variant === 'symbol' ? 'h-8 w-8' : 'h-10 w-10'} shrink-0 object-contain`} />
-      {variant !== 'symbol' && (
-        <span aria-hidden="true" className="flex flex-col">
-          <span className="text-[30px] font-semibold leading-none tracking-[-0.045em]">Mint</span>
-          {variant === 'full' && <span className="mt-0.5 text-[11px] leading-none tracking-[0.02em]">Inmuebles</span>}
-        </span>
-      )}
+    <span role="img" aria-label="Fortius Inmuebles" className={cn('inline-flex shrink-0 items-center', variant === 'symbol' ? 'h-8 w-8' : 'h-10 w-40', inverse ? 'text-white [--logo-accent:#e5829b]' : 'text-brand-ink', className)}>
+      <svg aria-hidden="true" focusable="false" viewBox={viewBox} className="h-full w-full">
+        {fortiusPaths.symbol.map((d, i) => <path key={d} d={d} fill={i < 2 ? 'currentColor' : 'var(--logo-accent)'} />)}
+        {variant !== 'symbol' && fortiusPaths.wordmark.map(d => <path key={d} d={d} fill="currentColor" />)}
+        {variant === 'full' && fortiusPaths.descriptor.map((glyph, i) => <path key={i} {...glyph} fill="currentColor" />)}
+      </svg>
     </span>
   );
 }

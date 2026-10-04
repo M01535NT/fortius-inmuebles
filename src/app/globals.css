@@ -3,9 +3,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  MNT Inmuebles design tokens.
+  Fortius Inmuebles design tokens.
   One palette, two themes. Light is primary, dark is secondary.
-  Family: bone neutrals with a green undertone + emerald signature accent.
+  Family: white, deep navy and burgundy.
 */
 
 @theme inline {
@@ -29,15 +29,15 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  /* Deep green surface; each theme has a deliberately separate tone. */
+  /* Deep navy surface; each theme has a deliberately separate tone. */
   --color-block: var(--block);
   --color-block-foreground: var(--block-foreground);
   --color-block-muted: var(--block-muted);
-  --color-block-accent: #57e3b3;
+  --color-block-accent: #ed9db2;
   --color-brand-ink: var(--brand-ink);
-  --color-on-image: #f2f4ee;
-  --color-on-image-muted: #e6e9e2;
-  --color-image-scrim: #0b120e;
+  --color-on-image: #ffffff;
+  --color-on-image-muted: #edf0f5;
+  --color-image-scrim: #061325;
   --color-warning: var(--warning);
   --color-warning-border: var(--warning-border);
   --color-warning-surface: var(--warning-surface);
@@ -48,28 +48,29 @@
 }
 
 :root {
-  --background: #f4f5f1;
-  --foreground: #15201b;
-  --card: #fbfbf9;
-  --card-foreground: #15201b;
-  --popover: #fbfbf9;
-  --popover-foreground: #15201b;
-  --primary: #0f6b4e;
-  --primary-foreground: #f2faf6;
-  --secondary: #e8eae3;
-  --secondary-foreground: #15201b;
-  --muted: #eceee7;
-  --muted-foreground: #59635b;
-  --accent: #0d5c44;
-  --accent-foreground: #f2faf6;
+  --background: #ffffff;
+  --foreground: #061f3f;
+  --card: #ffffff;
+  --card-foreground: #061f3f;
+  --popover: #ffffff;
+  --popover-foreground: #061f3f;
+  --primary: #8a1634;
+  --primary-foreground: #ffffff;
+  --secondary: #e8ecf2;
+  --secondary-foreground: #061f3f;
+  --muted: #f2f4f7;
+  --muted-foreground: #526176;
+  --accent: #70112a;
+  --accent-foreground: #ffffff;
   --destructive: #b3352c;
-  --border: rgba(21, 32, 27, 0.14);
-  --input: rgba(21, 32, 27, 0.24);
-  --ring: #0f6b4e;
-  --block: #10241c;
-  --block-foreground: #edf2ec;
-  --block-muted: rgba(237, 242, 236, 0.66);
-  --brand-ink: #15201b;
+  --border: rgba(6, 31, 63, 0.14);
+  --input: rgba(6, 31, 63, 0.24);
+  --ring: #8a1634;
+  --block: #061f3f;
+  --block-foreground: #ffffff;
+  --block-muted: rgba(255, 255, 255, 0.66);
+  --brand-ink: #061f3f;
+  --logo-accent: #8a1634;
   --warning: #953d00;
   --warning-border: rgba(183, 80, 0, 0.4);
   --warning-surface: #fbf0dc;
@@ -81,29 +82,30 @@
 }
 
 .dark {
-  --background: #0c110e;
-  --foreground: #ecefe8;
-  --card: #121a15;
-  --card-foreground: #ecefe8;
-  --popover: #121a15;
-  --popover-foreground: #ecefe8;
-  --primary: #3fd8a0;
-  --primary-foreground: #062016;
-  --secondary: #1a231d;
-  --secondary-foreground: #ecefe8;
-  --muted: #161f19;
-  --muted-foreground: #98a49a;
-  --accent: #57e3b3;
-  --accent-foreground: #062016;
+  --background: #071629;
+  --foreground: #f5f7fa;
+  --card: #0c203a;
+  --card-foreground: #f5f7fa;
+  --popover: #0c203a;
+  --popover-foreground: #f5f7fa;
+  --primary: #ed9db2;
+  --primary-foreground: #360817;
+  --secondary: #172f4b;
+  --secondary-foreground: #f5f7fa;
+  --muted: #102640;
+  --muted-foreground: #adbacd;
+  --accent: #ed9db2;
+  --accent-foreground: #360817;
   --destructive: #e2564b;
-  --border: rgba(236, 239, 232, 0.13);
-  --input: rgba(236, 239, 232, 0.18);
-  --ring: #3fd8a0;
-  /* Slightly greener than the dark canvas so the manifesto still reads as a block. */
-  --block: #163327;
-  --block-foreground: #edf2ec;
-  --block-muted: rgba(237, 242, 236, 0.66);
+  --border: rgba(245, 247, 250, 0.13);
+  --input: rgba(245, 247, 250, 0.18);
+  --ring: #ed9db2;
+  /* Lighter blue than the dark canvas so the manifesto still reads as a block. */
+  --block: #102d50;
+  --block-foreground: #ffffff;
+  --block-muted: rgba(255, 255, 255, 0.66);
   --brand-ink: #ffffff;
+  --logo-accent: #e5829b;
   --warning: #ffd236;
   --warning-border: rgba(255, 210, 54, 0.4);
   --warning-surface: #30281a;
@@ -135,11 +137,11 @@ body {
 }
 
 ::selection {
-  background: rgba(15, 107, 78, 0.25);
+  background: rgba(138, 22, 52, 0.25);
 }
 
 .dark ::selection {
-  background: rgba(63, 216, 160, 0.3);
+  background: rgba(237, 157, 178, 0.3);
 }
 
 button,
@@ -245,8 +247,8 @@ select {
     from 0deg,
     transparent 0deg,
     transparent 250deg,
-    var(--beam-from, #0f6b4e) 282deg,
-    var(--beam-to, #3fd8a0) 312deg,
+    var(--beam-from, #8a1634) 282deg,
+    var(--beam-to, #ed9db2) 312deg,
     transparent 340deg
   );
   animation: beam-spin var(--beam-duration, 8s) linear infinite;

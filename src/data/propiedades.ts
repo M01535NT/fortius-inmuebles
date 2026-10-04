@@ -51,7 +51,7 @@ export type DocumentoPropiedad = {
 
 export type Property = {
   slug: string;
-  codigo: string; // "MNT-001", se muestra en mono
+  codigo: string; // "FORTIUS-001", se muestra en mono
   titulo: string;
   tipo: TipoPropiedad;
   operacion: Operacion;
@@ -103,7 +103,7 @@ export const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
 export const propiedades: Property[] = [
   {
     slug: "residencia-vista-al-mar-playas",
-    codigo: "MNT-001",
+    codigo: "FORTIUS-001",
     titulo: "Residencia con vista al mar",
     tipo: "casa",
     operacion: "venta",
@@ -147,7 +147,7 @@ export const propiedades: Property[] = [
         codigo: "CHK-VEN-001",
         nombre: "Checklist de compra segura",
         descripcion: "Los puntos documentales que revisamos antes de cualquier operación.",
-        url: "/descargas/checklist-venta-mnt.pdf",
+        url: "/descargas/checklist-venta-fortius.pdf",
       },
     ],
     asesorId: "asesor-01",
@@ -164,7 +164,7 @@ export const propiedades: Property[] = [
   },
   {
     slug: "departamento-zona-rio-renta",
-    codigo: "MNT-002",
+    codigo: "FORTIUS-002",
     titulo: "Departamento amueblado en Zona Río",
     tipo: "departamento",
     operacion: "renta",
@@ -207,7 +207,7 @@ export const propiedades: Property[] = [
   },
   {
     slug: "nave-industrial-otay",
-    codigo: "MNT-003",
+    codigo: "FORTIUS-003",
     titulo: "Nave industrial con andén en Otay",
     tipo: "nave-industrial",
     operacion: "venta",

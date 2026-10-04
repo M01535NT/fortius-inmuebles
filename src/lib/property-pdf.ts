@@ -7,10 +7,10 @@ import type { Asesor, SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
 
 type Options = { settings: SiteSettings | null; adviser?: Asesor; siteUrl: string; loadImage: (src: string) => Promise<Uint8Array | null> };
-const green = rgb(15 / 255, 107 / 255, 78 / 255);
-const ink = rgb(21 / 255, 32 / 255, 27 / 255);
-const muted = rgb(89 / 255, 99 / 255, 91 / 255);
-const pale = rgb(244 / 255, 245 / 255, 241 / 255);
+const burgundy = rgb(138 / 255, 22 / 255, 52 / 255);
+const ink = rgb(6 / 255, 31 / 255, 63 / 255);
+const muted = rgb(82 / 255, 97 / 255, 118 / 255);
+const pale = rgb(242 / 255, 244 / 255, 247 / 255);
 
 /** Explicit public fields only. No record serialization or private attachments. */
 export async function createPropertyPdf(p: Property, options: Options): Promise<Uint8Array> {
@@ -21,7 +21,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
       pdf.embedFont(await readFile(join(process.cwd(), "public", "fonts", name)), { subset: true })
     )
   );
-  const brandLeaf = await pdf.embedPng(await readFile(join(process.cwd(), "public", "brand", "mint-leaf.png")));
+  const brandLogo = await pdf.embedPng(await readFile(join(process.cwd(), "public", "brand", "fortius-logo.png")));
   // Keep accented Spanish and omit glyphs absent from the embedded Latin subset.
   const supported = new Set(regular.getCharacterSet());
   const clean = (s: string) => Array.from(s.normalize("NFC").replace(/[\u2010-\u2015]/g, "-")).filter(c => {
@@ -31,11 +31,11 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   let page = pdf.addPage([width, height]);
   let y = 0;
   const header = () => {
-    page.drawImage(brandLeaf, { x: margin, y: height - 68, width: 36, height: 36 });
-    page.drawText("Mint", { x: margin + 42, y: height - 52, size: 23, font: bold, color: ink });
-    page.drawText("Inmuebles", { x: margin + 42, y: height - 65, size: 9, font: regular, color: ink });
-    page.drawText("FICHA TÉCNICA", { x: width - 145, y: height - 48, size: 10, font: mono, color: green });
-    page.drawLine({ start: { x: margin, y: height - 82 }, end: { x: width - margin, y: height - 82 }, thickness: .7, color: green });
+    const logoWidth = 156;
+    const logoHeight = logoWidth * brandLogo.height / brandLogo.width;
+    page.drawImage(brandLogo, { x: margin, y: height - 32 - logoHeight, width: logoWidth, height: logoHeight });
+    page.drawText("FICHA TÉCNICA", { x: width - 145, y: height - 48, size: 10, font: mono, color: burgundy });
+    page.drawLine({ start: { x: margin, y: height - 82 }, end: { x: width - margin, y: height - 82 }, thickness: .7, color: burgundy });
     y = height - 107;
   };
   header();
@@ -63,7 +63,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     }
     y -= 4;
   };
-  const section = (title: string) => { ensure(85); y -= 8; text(title, 13, bold, green); };
+  const section = (title: string) => { ensure(85); y -= 8; text(title, 13, bold, burgundy); };
   const link = (label: string, value: string) => {
     let url: URL;
     try { url = new URL(value, options.siteUrl); } catch { return; }
@@ -71,7 +71,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     ensure(34);
     const top = y;
     const count = lines(label, 10, regular).length;
-    text(label, 10, regular, green);
+    text(label, 10, regular, burgundy);
     // Links retain long URLs without compromising the printed layout.
     const annotation = pdf.context.register(pdf.context.obj({ Type: "Annot", Subtype: "Link", Rect: [margin, top - count * 15, width - margin, top + 11], Border: [0, 0, 0], A: { Type: "Action", S: "URI", URI: PDFString.of(url.href) } }));
     page.node.addAnnot(annotation);
@@ -88,15 +88,15 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     y -= box + 15;
     text(caption, 8, regular, muted);
   };
-  pdf.setTitle(`${p.titulo} | Ficha técnica | Mint Inmuebles`);
-  pdf.setAuthor("Mint Inmuebles");
+  pdf.setTitle(`${p.titulo} | Ficha técnica | Fortius Inmuebles`);
+  pdf.setAuthor("Fortius Inmuebles");
   pdf.setSubject(`Información pública del inmueble ${p.codigo}`);
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
-  text(`${p.codigo}  /  ${TIPO_LABELS[p.tipo]}  /  ${OPERACION_LABELS[p.operacion]}  /  ${ESTADO_LABELS[p.estado]}`, 9, mono, green);
+  text(`${p.codigo}  /  ${TIPO_LABELS[p.tipo]}  /  ${OPERACION_LABELS[p.operacion]}  /  ${ESTADO_LABELS[p.estado]}`, 9, mono, burgundy);
   text(p.titulo, 26, bold);
   text(`${p.zona} · ${p.direccionAproximada}`, 11, regular, muted);
-  text(formatPrecio(p.precio), 20, mono, green);
-  if (p.demo) text("PROPIEDAD DE DEMOSTRACIÓN. Datos y precio de ejemplo; no constituye una oferta real.", 9, bold, green);
+  text(formatPrecio(p.precio), 20, mono, burgundy);
+  if (p.demo) text("PROPIEDAD DE DEMOSTRACIÓN. Datos y precio de ejemplo; no constituye una oferta real.", 9, bold, burgundy);
   if (p.galeria[0]) await photo(p.galeria[0].src, p.galeria[0].alt, true);
   section("Superficies y distribución");
   const specs: [string, string | number | undefined][] = [
@@ -144,7 +144,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   const pages = pdf.getPages();
   pages.forEach((sheet, index) => {
     sheet.drawLine({ start: { x: margin, y: 46 }, end: { x: width - margin, y: 46 }, thickness: .4, color: muted });
-    sheet.drawText(clean(`Mint Inmuebles · ${p.codigo}${p.demo ? " · DEMOSTRACIÓN" : ""}`), { x: margin, y: 31, size: 8, font: regular, color: muted });
+    sheet.drawText(clean(`Fortius Inmuebles · ${p.codigo}${p.demo ? " · DEMOSTRACIÓN" : ""}`), { x: margin, y: 31, size: 8, font: regular, color: muted });
     sheet.drawText(`${index + 1} / ${pages.length}`, { x: width - 70, y: 31, size: 8, font: regular, color: muted });
   });
   return pdf.save();

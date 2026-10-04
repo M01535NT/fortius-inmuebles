@@ -117,7 +117,7 @@ export function PropertyForm({ initial: source }: Props) {
       slug,
       codigo:
         v("codigo") ||
-        `MNT-${String(propiedades.length + 1).padStart(3, "0")}`,
+        `FORTIUS-${String(propiedades.length + 1).padStart(3, "0")}`,
       titulo: titulo.trim(),
       tipo: v("tipo") as TipoPropiedad,
       operacion: v("operacion") as Property["operacion"],
@@ -223,7 +223,7 @@ export function PropertyForm({ initial: source }: Props) {
               id="pf-codigo"
               name="codigo"
               defaultValue={initial?.codigo}
-              placeholder="MNT-004"
+              placeholder="FORTIUS-004"
               className={inputClass}
             />
           </Field>

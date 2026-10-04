@@ -18,11 +18,11 @@ import type {
   ReportOverview,
   ReportTable,
 } from "./report-model";
-const ink = rgb(0.08, 0.1, 0.09),
-  muted = rgb(0.35, 0.39, 0.37),
-  mint = rgb(0.12, 0.42, 0.3),
-  pale = rgb(0.96, 0.97, 0.96),
-  rule = rgb(0.82, 0.85, 0.83);
+const ink = rgb(6 / 255, 31 / 255, 63 / 255),
+  muted = rgb(82 / 255, 97 / 255, 118 / 255),
+  burgundy = rgb(138 / 255, 22 / 255, 52 / 255),
+  pale = rgb(0.95, 0.96, 0.98),
+  rule = rgb(0.82, 0.85, 0.9);
 type Fonts = { regular: PDFFont; bold: PDFFont; mono: PDFFont };
 /** Coordinates use the top of each text line; all pagination reserves the footer. */
 export class FinancialLayout {
@@ -37,7 +37,7 @@ export class FinancialLayout {
     private pdf: PDFDocument,
     private fonts: Fonts,
     private report: FinancialReport,
-    private leaf?: PDFImage,
+    private logo?: PDFImage,
   ) {
     this.date = new Intl.DateTimeFormat("es-MX", {
       day: "2-digit",
@@ -123,28 +123,14 @@ export class FinancialLayout {
     this.margin = landscape ? 36 : 44;
     this.page = this.pdf.addPage(landscape ? [792, 612] : [612, 792]);
     const top = this.page.getHeight() - 36;
-    if (this.leaf)
-      this.page.drawImage(this.leaf, {
-        x: this.margin,
-        y: top - 30,
-        width: 30,
-        height: 30,
-      });
-    this.text(
-      "Mint",
-      this.margin + (this.leaf ? 38 : 0),
-      top - 1,
-      24,
-      this.fonts.bold,
-    );
-    this.text(
-      "INMUEBLES",
-      this.margin + (this.leaf ? 39 : 0),
-      top - 28,
-      7,
-      this.fonts.regular,
-      muted,
-    );
+    if (this.logo) {
+      const width = 158;
+      const height = width * this.logo.height / this.logo.width;
+      this.page.drawImage(this.logo, { x: this.margin, y: top - height, width, height });
+    } else {
+      this.text("Fortius", this.margin, top - 1, 24, this.fonts.bold);
+      this.text("REAL ESTATE & INVESTMENTS", this.margin, top - 28, 7, this.fonts.regular, muted);
+    }
     const dateSize = 8;
     this.text(
       this.date,
@@ -299,7 +285,7 @@ export class FinancialLayout {
               bottom +
               (sequence[i].balance / balance.principal) * (top - bottom),
           },
-          color: baseline ? muted : mint,
+          color: baseline ? muted : burgundy,
           thickness: baseline ? 1 : 1.8,
           ...(baseline ? { dashArray: [3, 2] } : {}),
         });
@@ -319,7 +305,7 @@ export class FinancialLayout {
     this.text("Mes", right - 16, bottom - 20, 8, this.fonts.regular, muted);
     this.text(
       different
-        ? "Verde: escenario actual · Gris: sin anticipos"
+        ? "Borgoña: escenario actual · Gris: sin anticipos"
         : "Escenario actual",
       this.margin,
       bottom - 23,
@@ -351,7 +337,7 @@ export class FinancialLayout {
           y: this.y - 8,
           width,
           height: 8,
-          color: [mint, rgb(0.48, 0.64, 0.56), rgb(0.73, 0.8, 0.76)][index % 3],
+          color: [burgundy, rgb(6 / 255, 31 / 255, 63 / 255), rgb(0.64, 0.72, 0.83)][index % 3],
         });
         x += width;
       });
@@ -403,7 +389,7 @@ export class FinancialLayout {
           y: this.y - 3,
           width: (this.width() * item.amount) / max,
           height: 3,
-          color: mint,
+          color: burgundy,
         });
         this.y -= 11;
       }
@@ -541,7 +527,7 @@ export class FinancialLayout {
           y: this.y - height,
           width: this.width(),
           height,
-          color: rgb(0.985, 0.989, 0.985),
+          color: rgb(0.985, 0.989, 0.995),
         });
       let x = this.margin;
       cells.forEach((cell, i) => {
@@ -571,7 +557,7 @@ export class FinancialLayout {
     const lines = this.wrap(label, this.width(), 9.5);
     this.ensure(lines.length * 15 + 5);
     for (const line of lines) {
-      this.text(line, this.margin, this.y, 9.5, this.fonts.regular, mint);
+      this.text(line, this.margin, this.y, 9.5, this.fonts.regular, burgundy);
       const ref = this.pdf.context.register(
         this.pdf.context.obj({
           Type: "Annot",
@@ -624,7 +610,7 @@ export class FinancialLayout {
     const count = this.pdf.getPageCount();
     this.pdf.getPages().forEach((page, index) => {
       const m = page.getWidth() > page.getHeight() ? 36 : 44;
-      page.drawText(`Mint · ${this.report.title}`, {
+      page.drawText(`Fortius · ${this.report.title}`, {
         x: m,
         y: 29,
         size: 8,

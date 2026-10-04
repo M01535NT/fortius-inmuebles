@@ -114,7 +114,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
   }, [playing, index]);
 
   return (
-    <section ref={sectionRef} className="relative min-h-[100svh] overflow-hidden bg-[#10241c]" aria-label="Presentación">
+    <section ref={sectionRef} className="relative min-h-[100svh] overflow-hidden bg-block" aria-label="Presentación">
       {/* Background rotator con parallax */}
       <motion.div style={{ y: bgY }} className="absolute inset-x-0 -top-[18%] bottom-0" aria-hidden="true">
         <div ref={depthRef} className="absolute -inset-5">
@@ -172,7 +172,7 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           transition={reduce ? { duration: 0, delay: 0 } : { duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="hero-copy-entry mt-8 flex flex-wrap items-center gap-3"
         >
-          <MessagingActions message="Hola, quiero conversar sobre una propiedad con Mint Inmuebles." fallback={kinetic ? (
+          <MessagingActions message="Hola, quiero conversar sobre una propiedad con Fortius Inmuebles." fallback={kinetic ? (
             <MagneticCta href="#evaluar">Quiero vender mi propiedad</MagneticCta>
           ) : (
             <a

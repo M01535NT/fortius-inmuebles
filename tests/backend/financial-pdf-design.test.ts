@@ -22,15 +22,15 @@ const input = {
   prepaymentMode: "term" as const,
 };
 async function assets() {
-  const [regular, bold, mono, leaf] = await Promise.all(
+  const [regular, bold, mono, logo] = await Promise.all(
     [
       "public/fonts/Archivo-Regular.ttf",
       "public/fonts/Archivo-SemiBold.ttf",
       "public/fonts/IBMPlexMono-Medium.ttf",
-      "public/brand/mint-leaf.png",
+      "public/brand/fortius-logo.png",
     ].map((path) => readFile(path)),
   );
-  return { regular, bold, mono, leaf };
+  return { regular, bold, mono, logo };
 }
 test("branded mortgage PDF has a financial overview, language, outline and repeated landscape payment headers", async () => {
   const result = calculateMortgage(input);
@@ -45,7 +45,7 @@ test("branded mortgage PDF has a financial overview, language, outline and repea
   const pdf = await PDFDocument.load(
     await createFinancialPdf(report, await assets()),
   );
-  expect(pdf.getAuthor()).toBe("Mint Inmuebles");
+  expect(pdf.getAuthor()).toBe("Fortius Inmuebles");
   expect(pdf.catalog.get(PDFName.of("Lang"))?.toString()).toContain("es-MX");
   expect(pdf.catalog.get(PDFName.of("Outlines"))).toBeTruthy();
   const pages = financialPdfPages(pdf);

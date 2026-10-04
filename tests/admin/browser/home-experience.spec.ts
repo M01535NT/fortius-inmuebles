@@ -61,7 +61,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
-    await page.getByRole("link", { name: "Mint Inmuebles, inicio" }).click();
+    await page.getByRole("link", { name: "Fortius Inmuebles, inicio" }).click();
     await page.screenshot({ path: testInfo.outputPath(`dark-reduced-${width}.png`) });
     await page.getByRole("link", { name: "Acceso al panel" }).click();
     await expect(page).toHaveURL(/\/admin$/);

@@ -582,7 +582,7 @@ export function MortgagePlanner({
                   {report && (
                     <ExportButton
                       report={report}
-                      filename="mint-hipoteca.pdf"
+                      filename="fortius-hipoteca.pdf"
                     />
                   )}
                   {!compact && input && (

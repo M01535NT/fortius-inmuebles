@@ -68,11 +68,11 @@ test("image optimization allows only the configured public bucket and existing e
   expect(allowed("https://d8j0ntlcm91z4.cloudfront.net/photo.jpg")).toBe(true);
 });
 
-test("legacy public PDF keeps a permanent route to the MNT asset", async () => {
+test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-cota.pdf",
-    destination: "/descargas/checklist-venta-mnt.pdf",
+    destination: "/descargas/checklist-venta-fortius.pdf",
     permanent: true,
   });
 });

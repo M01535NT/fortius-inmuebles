@@ -12,7 +12,7 @@ for (const width of [390, 1280]) {
     const downloaded = page.waitForEvent("download");
     await button.click();
     const download = await downloaded;
-    expect(download.suggestedFilename()).toBe("mint-ficha-residencia-vista-al-mar-playas.pdf");
+    expect(download.suggestedFilename()).toBe("fortius-ficha-residencia-vista-al-mar-playas.pdf");
     expect(await download.failure()).toBeNull();
     await download.saveAs(testInfo.outputPath("ficha-mnt.pdf"));
     const stream = await download.createReadStream();
@@ -20,7 +20,7 @@ for (const width of [390, 1280]) {
     for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
     const pdf = await PDFDocument.load(Buffer.concat(chunks));
     expect(pdf.getTitle()).toContain("Residencia con vista al mar");
-    expect(pdf.getAuthor()).toBe("Mint Inmuebles");
+    expect(pdf.getAuthor()).toBe("Fortius Inmuebles");
     expect(pdf.getPageCount()).toBeGreaterThan(0);
     await expect(page).toHaveURL(/\/inventario\/residencia-vista-al-mar-playas$/);
   });

@@ -12,4 +12,5 @@ assert(files.some(file => file.endsWith("public/hero/casa-playa.webp")), "PDF fu
 for (const name of ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf", "IBMPlexMono-Medium.ttf"]) {
   assert(files.some(file => file.endsWith(`public/fonts/${name}`)), `PDF function must include ${name}`);
 }
+assert(files.some(file => file.endsWith("public/brand/fortius-logo.png")), "PDF function must include the Fortius logo");
 console.log("PDF deployment bundle includes native image libraries, gallery assets and brand fonts.");

@@ -14,7 +14,7 @@ export function supabaseEnvironment(environment = process.env) {
   // Direct NEXT_PUBLIC references would freeze these values into the build.
   const url = environment.NEXT_PUBLIC_SUPABASE_URL;
   const key = environment.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new ApiError(503, "El servicio Mint no está configurado");
+  if (!url || !key) throw new ApiError(503, "El servicio Fortius no está configurado");
   return { url, key };
 }
 
@@ -33,7 +33,7 @@ export function createServerClient(accessToken?: string, privileged = false): Su
 
 export function staffIdentity(user: { id: string; email?: string } | null, membership: { role: string; active: boolean } | null): StaffUser {
   if (!user) throw new ApiError(401, "Inicia sesión para continuar");
-  if (!membership?.active || !["admin", "editor"].includes(membership.role)) throw new ApiError(403, "Tu usuario no tiene acceso al panel Mint");
+  if (!membership?.active || !["admin", "editor"].includes(membership.role)) throw new ApiError(403, "Tu usuario no tiene acceso al panel Fortius");
   return { id: user.id, email: user.email ?? "", role: membership.role as StaffUser["role"] };
 }
 

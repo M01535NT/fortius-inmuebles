@@ -7,7 +7,7 @@ import { SITE_TERMS } from "@/data/site-terms";
 export const metadata: Metadata = {
   alternates: { canonical: "/terminos" },
   title: "Términos y condiciones",
-  description: "Términos de uso de Mint Inmuebles: publicaciones, solicitudes, herramientas, contratación y canales de aclaración.",
+  description: "Términos de uso de Fortius Inmuebles: publicaciones, solicitudes, herramientas, contratación y canales de aclaración.",
 };
 
 export default function TerminosPage() {

@@ -15,13 +15,13 @@ const sections = [
     { href: "/inventario", label: "Ver inventario" },
     { href: "/comprar-propiedad", label: "Comprar una propiedad" },
   ] },
-  { title: "Trabajar con Mint", links: [
+  { title: "Trabajar con Fortius", links: [
     { href: "/vender-propiedad", label: "Vender mi propiedad" },
     { href: "/#metodo", label: "Método" },
     { href: "/#entregables", label: "Entregables" },
     { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },
     { href: "/#respuestas", label: "Preguntas frecuentes" },
-    { href: "/nosotros", label: "Conoce a Mint" },
+    { href: "/nosotros", label: "Conoce a Fortius" },
   ] },
   { title: "Guías y herramientas", links: [
     { href: "/blog", label: "Blog" },
@@ -44,7 +44,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
     <footer className="editorial-footer">
       <div className="editorial-container">
         <div className="editorial-footer-masthead">
-          <Link href="/" aria-label="Inicio de Mint Inmuebles"><BrandMark /></Link>
+          <Link href="/" aria-label="Inicio de Fortius Inmuebles"><BrandMark /></Link>
           <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
             Volver arriba <ArrowUp size={16} aria-hidden="true" />
           </button>
@@ -52,7 +52,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
         <motion.div className="editorial-footer-intro" initial={false}
           whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.65 }}>
           <h2>Propiedades y recursos.</h2>
-          <Link href="/contacto" className="editorial-text-link">Contactar a Mint <ArrowUpRight size={18} aria-hidden="true" /></Link>
+          <Link href="/contacto" className="editorial-text-link">Contactar a Fortius <ArrowUpRight size={18} aria-hidden="true" /></Link>
         </motion.div>
         <div className="editorial-footer-columns">
           {sections.map((section) => (
@@ -76,7 +76,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
           </div>
         </div>
         <div className="editorial-footer-bottom">
-          <p>© {new Date().getFullYear()} Mint Inmuebles.</p>
+          <p>© {new Date().getFullYear()} Fortius Inmuebles.</p>
           <nav aria-label="Información legal y administración">
             <Link href="/privacidad" className="editorial-footer-link">Aviso de privacidad</Link>
             <Link href="/terminos" className="editorial-footer-link">Términos y condiciones</Link>

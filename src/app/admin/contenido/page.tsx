@@ -84,7 +84,7 @@ function Editor({ initial }: { initial: SiteContent }) {
 
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft text-lg text-foreground">
-            Manifiesto (bloque verde)
+            Manifiesto (bloque azul)
           </h2>
           <Field label="Titular" htmlFor="ct-manifiestoTitulo">
             <textarea

@@ -75,7 +75,7 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
           </motion.p>
           <motion.div className="hero-copy-entry editorial-cover-actions" initial={false}
             whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.75 }}>
-            <MessagingActions message="Hola, quiero conversar sobre una propiedad con Mint Inmuebles."
+            <MessagingActions message="Hola, quiero conversar sobre una propiedad con Fortius Inmuebles."
               fallback={<a href="#evaluar" className="editorial-button" data-cursor="Hablemos">Quiero vender mi propiedad <ArrowUpRight size={18} aria-hidden="true" /></a>} />
             <Link href="/inventario" className="editorial-text-link" data-cursor="Explorar">Ver propiedades <ArrowUpRight size={18} aria-hidden="true" /></Link>
           </motion.div>

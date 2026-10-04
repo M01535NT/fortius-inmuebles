@@ -37,5 +37,5 @@ export type ReportAssets = {
   regular: Uint8Array;
   bold: Uint8Array;
   mono: Uint8Array;
-  leaf: Uint8Array;
+  logo: Uint8Array;
 };

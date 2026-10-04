@@ -30,7 +30,7 @@ test("local financial PDF paginates and preserves first/last schedule amounts an
     }),
   );
   expect(pdf.getPageCount()).toBeGreaterThan(5);
-  expect(pdf.getTitle()).toBe("Mint | Hipoteca de prueba");
+  expect(pdf.getTitle()).toBe("Fortius | Hipoteca de prueba");
   expect(pdf.getSubject()).toContain("2026.10.04");
   const content = pdf
     .getPages()

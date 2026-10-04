@@ -13,11 +13,11 @@ import { cn } from "@/lib/utils";
 */
 type MagicCardProps = React.PropsWithChildren<{
   className?: string;
-  /* Color del halo; por defecto el verde firma con alpha bajo. */
+  /* Color del halo; por defecto el borgoña de marca con alpha bajo. */
   glow?: string;
 }>;
 
-export function MagicCard({ children, className, glow = "rgba(15, 107, 78, 0.10)" }: MagicCardProps) {
+export function MagicCard({ children, className, glow = "rgba(138, 22, 52, 0.10)" }: MagicCardProps) {
   const reduce = useReducedMotionSafe();
   const mouseX = useMotionValue(-200);
   const mouseY = useMotionValue(-200);

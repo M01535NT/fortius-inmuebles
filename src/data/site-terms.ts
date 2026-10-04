@@ -2,7 +2,7 @@ export const SITE_TERMS = {
   effectiveDate: "2026-10-03",
   dateLabel: "3 de octubre de 2026",
   responsible: "Moisés Núñez Tonalá",
-  commercialName: "Mint Inmuebles",
+  commercialName: "Fortius Inmuebles",
   email: "tonala.mn@gmail.com",
   location: "Tijuana, Baja California, México",
   sections: [
@@ -10,7 +10,7 @@ export const SITE_TERMS = {
       id: "objeto",
       title: "Objeto y alcance",
       paragraphs: [
-        "Estos términos regulan el acceso y uso del sitio de Mint Inmuebles, sus publicaciones, herramientas y canales de contacto. Mint Inmuebles es el nombre comercial utilizado por Moisés Núñez Tonalá, responsable de este sitio.",
+        "Estos términos regulan el acceso y uso del sitio de Fortius Inmuebles, sus publicaciones, herramientas y canales de contacto. Fortius Inmuebles es el nombre comercial utilizado por Moisés Núñez Tonalá, responsable de este sitio.",
         "La consulta del sitio es gratuita. Navegar, abrir una ficha o enviar una solicitud de contacto no genera honorarios, no contrata servicios de intermediación y no celebra una compraventa o un arrendamiento. El sitio no dispone de un sistema para efectuar pagos ni formalizar operaciones inmobiliarias en línea.",
       ],
     },
@@ -37,7 +37,7 @@ export const SITE_TERMS = {
       paragraphs: [
         "Enviar un formulario, consultar una propiedad o pedir una visita constituye una solicitud de atención. El mensaje que confirma su recepción acredita ese envío; no significa que exista una cita confirmada, una oferta aceptada, un apartado o una reserva del inmueble.",
         "Las visitas requieren coordinación previa. Las ofertas deben identificar el inmueble, el precio, la forma de pago, los plazos y las condiciones propuestas. Su aceptación y los acuerdos que deriven de ellas se documentarán por separado, respetando las formalidades legales de cada acto.",
-        "Un anticipo, apartado o depósito requiere que las partes conozcan y acuerden previamente su propósito, destinatario, condiciones de aplicación y, en su caso, devolución. Estos términos no autorizan a Mint a cobrar o recibir esas cantidades por el solo uso del sitio.",
+        "Un anticipo, apartado o depósito requiere que las partes conozcan y acuerden previamente su propósito, destinatario, condiciones de aplicación y, en su caso, devolución. Estos términos no autorizan a Fortius a cobrar o recibir esas cantidades por el solo uso del sitio.",
       ],
     },
     {
@@ -72,14 +72,14 @@ export const SITE_TERMS = {
       title: "Derechos sobre contenidos y enlaces externos",
       paragraphs: [
         "Los derechos que correspondan a textos, fotografías, diseños, marcas y otros contenidos pertenecen a sus respectivos titulares. Puedes compartir enlaces al sitio. Las reproducciones y demás usos se sujetan a la ley, a las licencias indicadas y a las autorizaciones que sean necesarias; se conservan los usos permitidos legalmente.",
-        "Las fuentes y fotografías de terceros mantienen sus créditos y condiciones de licencia. Los enlaces a autoridades, entidades financieras, mapas o plataformas de mensajería conducen a servicios administrados por terceros, que tienen sus propias condiciones y políticas de privacidad. Su inclusión no atribuye a Mint el carácter de esas instituciones ni permite actuar en su nombre.",
+        "Las fuentes y fotografías de terceros mantienen sus créditos y condiciones de licencia. Los enlaces a autoridades, entidades financieras, mapas o plataformas de mensajería conducen a servicios administrados por terceros, que tienen sus propias condiciones y políticas de privacidad. Su inclusión no atribuye a Fortius el carácter de esas instituciones ni permite actuar en su nombre.",
       ],
     },
     {
       id: "seguridad",
       title: "Panel de administración y continuidad del servicio",
       paragraphs: [
-        "El panel de administración y los expedientes internos son de acceso restringido. Solo pueden utilizarlos personas autorizadas, mediante sus credenciales y dentro de las funciones asignadas. Si detectas un acceso indebido, una exposición de documentos o un mensaje que suplante a Mint, repórtalo al correo de contacto sin incluir contraseñas ni códigos de verificación.",
+        "El panel de administración y los expedientes internos son de acceso restringido. Solo pueden utilizarlos personas autorizadas, mediante sus credenciales y dentro de las funciones asignadas. Si detectas un acceso indebido, una exposición de documentos o un mensaje que suplante a Fortius, repórtalo al correo de contacto sin incluir contraseñas ni códigos de verificación.",
         "El sitio puede requerir mantenimiento o presentar interrupciones. Si una función no confirma el envío de una solicitud, no debe darse por recibida; utiliza el correo de contacto para verificarlo. Una interrupción del sitio no extingue obligaciones contratadas ni elimina los canales de aclaración previstos en estos términos.",
       ],
     },
@@ -87,7 +87,7 @@ export const SITE_TERMS = {
       id: "aclaraciones",
       title: "Aclaraciones y derechos de las personas usuarias",
       paragraphs: [
-        "Puedes solicitar información, reportar errores y presentar aclaraciones al correo indicado en esta página. Identifica la publicación o solicitud y explica el asunto; adjunta solo los datos necesarios para revisarlo. Mint dará seguimiento a las incidencias que correspondan a su actividad y corregirá la información cuando proceda.",
+        "Puedes solicitar información, reportar errores y presentar aclaraciones al correo indicado en esta página. Identifica la publicación o solicitud y explica el asunto; adjunta solo los datos necesarios para revisarlo. Fortius dará seguimiento a las incidencias que correspondan a su actividad y corregirá la información cuando proceda.",
         "Cada parte conserva las responsabilidades que le correspondan por sus actos y obligaciones. Ninguna disposición de estos términos excluye responsabilidades que la ley no permita excluir, autoriza prácticas engañosas ni impone una renuncia a derechos del consumidor o de protección de datos personales.",
         "La atención directa por correo no condiciona tu derecho a acudir a PROFECO, a las autoridades competentes o a los tribunales que legalmente correspondan.",
       ],
