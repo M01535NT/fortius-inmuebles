@@ -14,6 +14,9 @@ const sections = [
   { title: "Propiedades", links: [
     { href: "/inventario", label: "Ver inventario" },
     { href: "/comprar-propiedad", label: "Comprar una propiedad" },
+    { href: "/residencial", label: "Residencial" },
+    { href: "/comercial", label: "Comercial" },
+    { href: "/industrial", label: "Industrial" },
   ] },
   { title: "Trabajar con Fortius", links: [
     { href: "/vender-propiedad", label: "Vender mi propiedad" },

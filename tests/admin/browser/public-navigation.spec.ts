@@ -200,3 +200,15 @@ test("retired zone URLs permanently resolve to inventory", async ({ page }) => {
     expect(response.headers().location).toBe("/inventario");
   }
 });
+
+test("the footer reaches every property type from an interior page", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/blog");
+  const footer = page.locator("footer");
+  for (const route of ["residencial", "comercial", "industrial"]) {
+    await expect(footer.locator(`a[href="/${route}"]`)).toHaveCount(1);
+  }
+  await footer.getByRole("link", { name: "Comercial", exact: true }).click();
+  await expect(page).toHaveURL(/\/comercial$/);
+  await expect(page.getByRole("heading", { name: "Costo de ocupar" })).toBeVisible();
+});
