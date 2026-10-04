@@ -39,20 +39,39 @@ export function readingMinutes(post: Post): number {
   return Math.max(1, Math.ceil(post.contenido.trim().split(/\s+/).length / 220));
 }
 
-export type BlogSearch = { q?: string; tema?: string; tipo?: string; pagina?: string };
+export type BlogSearch = {
+  q?: string; tema?: string; tipo?: string; pagina?: string;
+  desde?: string; hasta?: string;
+  orden?: "recientes" | "antiguos";
+  vista?: "cuadricula" | "lista";
+};
+function validDate(value: string): string {
+  if (!/^[1-9]\d{3}-\d{2}-\d{2}$/.test(value)) return "";
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value ? value : "";
+}
+const calendarDate = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "America/Tijuana" });
+function postCalendarDate(post: Post): string {
+  const parts = calendarDate.formatToParts(new Date(postDate(post)));
+  return ["year", "month", "day"].map((type) => parts.find((part) => part.type === type)?.value).join("-");
+}
 export function normalizeBlogSearch(params: Record<string, string | string[] | undefined>): BlogSearch {
   const first = (key: string) => typeof params[key] === "string" ? params[key] as string : "";
   const q = first("q").trim().slice(0, 200);
   const tema = Object.hasOwn(BLOG_CATEGORIES, first("tema")) ? first("tema") : "";
   const tipo = Object.hasOwn(BLOG_FORMATS, first("tipo")) ? first("tipo") : "";
   const pagina = /^[1-9]\d{0,5}$/.test(first("pagina")) ? first("pagina") : "1";
-  return { q, tema, tipo, pagina };
+  const desde = validDate(first("desde"));
+  const hasta = validDate(first("hasta"));
+  const orden = first("orden") === "antiguos" ? "antiguos" : "recientes";
+  const vista = first("vista") === "lista" ? "lista" : "cuadricula";
+  return { q, tema, tipo, pagina, desde, hasta, orden, vista };
 }
 export function blogHref(search: BlogSearch): string {
   const params = new URLSearchParams();
-  for (const key of ["q", "tema", "tipo", "pagina"] as const) {
+  for (const key of ["q", "tema", "tipo", "desde", "hasta", "orden", "vista", "pagina"] as const) {
     const value = search[key];
-    if (value && !(key === "pagina" && value === "1")) params.set(key, value);
+    if (value && !(key === "pagina" && value === "1") && !(key === "orden" && value === "recientes") && !(key === "vista" && value === "cuadricula")) params.set(key, value);
   }
   return `/blog${params.size ? `?${params}` : ""}`;
 }
@@ -62,6 +81,8 @@ export function filterBlogPosts(posts: Post[], search: BlogSearch): Post[] {
   return posts.filter((post) => {
     const category = postCategory(post);
     const text = normalize(`${post.titulo} ${post.resumen} ${post.contenido} ${category ? BLOG_CATEGORIES[category] : ""}`);
-    return (!search.tema || category === search.tema) && (!search.tipo || postFormat(post) === search.tipo) && words.every((word) => text.includes(word));
-  });
+    const date = search.desde || search.hasta ? postCalendarDate(post) : "";
+    return (!search.tema || category === search.tema) && (!search.tipo || postFormat(post) === search.tipo) && words.every((word) => text.includes(word))
+      && (!search.desde || date >= search.desde) && (!search.hasta || date <= search.hasta);
+  }).sort((a, b) => (new Date(postDate(a)).getTime() - new Date(postDate(b)).getTime()) * (search.orden === "antiguos" ? 1 : -1));
 }

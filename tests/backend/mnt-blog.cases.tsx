@@ -123,6 +123,37 @@ test("filtered pages have a stable canonical and stay out of search indexes", as
   expect((await generateBlogMetadata()).robots).toBeUndefined();
 });
 
+test("list pagination keeps chronological order and retains the view in navigation", async () => {
+  posts = Array.from({ length: 12 }, (_, i) => ({ ...published, id: `p${i}`, slug: `articulo-${i}`, publicadoEl: `2026-09-${String(20 - i).padStart(2, "0")}T18:00:00Z`, destacado: i === 11 }));
+  const first = renderToStaticMarkup(await BlogPage({ searchParams: Promise.resolve({ vista: "lista", orden: "antiguos" }) }));
+  const second = renderToStaticMarkup(await BlogPage({ searchParams: Promise.resolve({ vista: "lista", orden: "antiguos", pagina: "2" }) }));
+  const slugs = [...`${first}${second}`.matchAll(/href="\/blog\/(articulo-\d+)"/g)].map((match) => match[1]);
+  expect(slugs).toEqual(Array.from({ length: 12 }, (_, i) => `articulo-${11 - i}`));
+  expect(first).not.toContain('aria-label="Artículo destacado"');
+  expect(first).toContain("Más antiguos primero");
+  expect(first).toContain('href="/blog?orden=antiguos&amp;vista=lista&amp;pagina=2"');
+});
+
+test("date filters show matching publication dates and explain reversed ranges", async () => {
+  posts = [
+    { ...published, publicadoEl: "2026-09-20T18:00:00Z" },
+    { ...published, id: "old", slug: "viejo", publicadoEl: "2026-08-20T18:00:00Z" },
+  ];
+  const html = renderToStaticMarkup(await BlogPage({ searchParams: Promise.resolve({ desde: "2026-09-20", hasta: "2026-09-20", vista: "lista" }) }));
+  expect(html).toContain('href="/blog/guia-de-compra"');
+  expect(html).not.toContain('href="/blog/viejo"');
+  expect(html).toContain("1 artículo");
+  expect(html).toContain('value="2026-09-20"');
+  expect(html).toContain('href="/blog?vista=lista"');
+  const reversed = renderToStaticMarkup(await BlogPage({ searchParams: Promise.resolve({ desde: "2026-09-30", hasta: "2026-09-01" }) }));
+  expect(reversed).toContain("La fecha desde debe ser anterior o igual a la fecha hasta.");
+  expect(reversed).not.toContain('href="/blog/guia-de-compra"');
+});
+
+test.each([{ desde: "2026-09-01" }, { hasta: "2026-09-30" }, { vista: "lista" }, { orden: "antiguos" }])("date, view and order variants retain the canonical without being indexed: %o", async (params) => {
+  expect(await generateBlogMetadata({ searchParams: Promise.resolve(params) })).toMatchObject({ alternates: { canonical: "/blog" }, robots: { index: false, follow: true } });
+});
+
 test("the blog index has a useful empty state and links every published entry", async () => {
   let html = renderToStaticMarkup(await BlogPage());
   expect(html).toContain('href="/blog/guia-de-compra"');
