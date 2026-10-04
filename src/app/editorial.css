@@ -120,7 +120,7 @@
 .editorial-footer-bottom .editorial-footer-note { width: 100%; font-size: 11px; line-height: 1.7; }
 @media (max-width: 1023px) { .editorial-footer-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; } }
 @media (max-width: 767px) {
-  .editorial-footer { padding-top: 24px; }
+  .editorial-footer { padding-top: 24px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   .editorial-footer-intro { padding-block: 32px 24px; }
   .editorial-footer-intro h2 { max-width: 12ch; }
   .editorial-footer-columns { padding-block: 28px; }
