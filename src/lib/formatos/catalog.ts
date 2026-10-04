@@ -11,11 +11,12 @@ import { levantamientoFields, isLevantamiento, validarLevantamiento } from "./le
 import { valorFields, mostrarCampoValor } from "./valor-fields";
 import { validarValor } from "./valor";
 import { promesaFields, mostrarCampoPromesa, validarPromesa } from "./promesa";
+import { intermediacionFields, mostrarCampoIntermediacion, validarIntermediacion } from "./intermediacion";
 
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows" | "intermediacionRows";
   required: boolean;
   section?: string;
   options?: readonly { value: string; label: string }[];
@@ -183,7 +184,7 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     ]),
     field("responsableEstimacion", "Responsable de la estimación"),
   ], true),
-  f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, [fecha, propietario, inmueble, field("prestador", "Prestador y representación"), field("precio", "Precio autorizado", "money"), moneda, field("honorarios", "Honorarios y condiciones", "long"), field("plazo", "Plazo"), field("modalidad", "Modalidad del encargo")]),
+  f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, intermediacionFields),
   f("10", "Plan_de_comercializacion", "docx", 3, [
     folio, inmueble, propietario, asesor, field("contactoAsesor", "Contacto del asesor"), fecha,
     choice("operacion", "Operación", [{ value: "venta", label: "Venta" }, { value: "renta", label: "Renta" }]),
@@ -486,7 +487,8 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   const errors = formatoById(id).fields.filter((item) => {
     if (id === "07" && !mostrarCampoValor(item.key, data)) return false;
     if (id === "15" && !mostrarCampoPromesa(item.key, data)) return false;
-    if (item.type === "valorRows" || item.type === "promesaRows") return false;
+    if (id === "09" && !mostrarCampoIntermediacion(item.key, data)) return false;
+    if (item.type === "valorRows" || item.type === "promesaRows" || item.type === "intermediacionRows") return false;
     if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows" || item.type === "levantamientoRows") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
@@ -514,6 +516,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (isLevantamiento(id)) errors.push(...validarLevantamiento(id, data));
   if (id === "07") errors.push(...validarValor(data));
   if (id === "15") errors.push(...validarPromesa(data));
+  if (id === "09") errors.push(...validarIntermediacion(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");

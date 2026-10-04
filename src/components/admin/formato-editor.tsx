@@ -24,6 +24,9 @@ import { ValorCalculation } from "@/components/admin/valor-calculation";
 import { mostrarCampoPromesa, PROMESA_TABLES, type PromesaTable } from "@/lib/formatos/promesa";
 import { PromesaRowsEditor } from "./promesa-rows-editor";
 import { PromesaReview } from "./promesa-review";
+import { mostrarCampoIntermediacion, INTERMEDIACION_TABLES, type IntermediacionTable } from "@/lib/formatos/intermediacion";
+import { IntermediacionRowsEditor } from "./intermediacion-rows-editor";
+import { IntermediacionSummary } from "./intermediacion-summary";
 
 export function FormatoEditor({ definition, values, onChange, images }: {
   definition: FormatoDefinition;
@@ -31,7 +34,7 @@ export function FormatoEditor({ definition, values, onChange, images }: {
   onChange: (key: string, value: unknown) => void;
   images?: { id: string; kind: string; caption: string }[];
 }) {
-  const shownFields = definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.fields;
+  const shownFields = definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.fields;
   return <div className="grid gap-5 md:grid-cols-2">
     {shownFields.map((field, index) => {
       const isOffer = definition.id === "14";
@@ -54,12 +57,13 @@ export function FormatoEditor({ definition, values, onChange, images }: {
       const required = field.required || isOffer && (creditFields.includes(field.key) && typeof values.credito === "number" && values.credito > 0 || responseFields.includes(field.key) && values.estadoRespuesta === "registrada" || counterFields.includes(field.key) && values.decisionPropietario === "contraoferta" || field.key === "confirmacionVigencia" && respuestaRequiereRatificacion(values)) || definition.id === "10" && ["nombreAprobador", "fechaAprobacion", "acuseAprobacion"].includes(field.key) && values.estadoAprobacion === "registrada";
       const id = `formato-${field.key}`;
       const value = values[field.key] ?? "";
-      const wide = field.type === "promesaRows" || field.type === "valorRows" || field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows";
+      const wide = field.type === "intermediacionRows" || field.type === "promesaRows" || field.type === "valorRows" || field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows";
       return <Fragment key={field.key}>
         {field.section && (index === 0 || shownFields[index - 1].section !== field.section) && <h2 className="mt-3 border-b border-border pb-2 text-base font-semibold text-foreground md:col-span-2">{field.section}</h2>}
         <div className={wide ? "md:col-span-2" : ""}>
-        {field.type === "promesaRows" || field.type === "valorRows" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
-        {field.type === "promesaRows" && field.key in PROMESA_TABLES ? <PromesaRowsEditor kind={field.key as PromesaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        {field.type === "intermediacionRows" || field.type === "promesaRows" || field.type === "valorRows" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
+        {field.type === "intermediacionRows" && field.key in INTERMEDIACION_TABLES ? <IntermediacionRowsEditor kind={field.key as IntermediacionTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        : field.type === "promesaRows" && field.key in PROMESA_TABLES ? <PromesaRowsEditor kind={field.key as PromesaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "valorRows" ? <ValorRowsEditor kind={field.key} value={value} images={images} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "levantamientoRows" && field.key in LEVANTAMIENTO_TABLES ? <LevantamientoRowsEditor kind={field.key as LevantamientoTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "juridicaRows" && field.key in JURIDICA_TABLES ? <JuridicaRowsEditor kind={field.key as JuridicaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
@@ -85,6 +89,7 @@ export function FormatoEditor({ definition, values, onChange, images }: {
       </Fragment>;
     })}
     {definition.id === "07" && <ValorCalculation values={values} onChange={onChange} />}
+    {definition.id === "09" && <IntermediacionSummary values={values} />}
     {definition.id === "15" && <PromesaReview values={values} onChange={onChange} />}
   </div>;
 }
