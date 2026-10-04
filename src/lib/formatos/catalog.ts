@@ -6,11 +6,12 @@ import { validarPlan } from "./plan";
 import { validarReporte } from "./reporte";
 import { entrevistaFields, validarEntrevista } from "./entrevista";
 import { validarAviso } from "./aviso";
+import { validarJuridica } from "./juridica";
 
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows";
   required: boolean;
   section?: string;
   options?: readonly { value: string; label: string }[];
@@ -84,7 +85,57 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   f("04E", "Levantamiento_local", "docx", 1, levantamiento),
   f("04F", "Levantamiento_nave_bodega", "docx", 1, levantamiento),
   f("04G", "Levantamiento_plaza_conjunto", "docx", 1, levantamiento),
-  f("05", "Revision_juridica_y_control_de_cierre", "docx", 2, [folio, inmueble, fecha, propietario, field("documentos", "Documentos examinados", "long"), field("hallazgos", "Hallazgos y soporte", "long"), field("pendientes", "Pendientes y responsables", "long")]),
+  f("05", "Revision_juridica_y_control_de_cierre", "docx", 2, [
+    sectionField("01 / Encargo e identificación", "folio", "ID de operación"),
+    sectionField("01 / Encargo e identificación", "idInmueble", "ID de inmueble"),
+    sectionField("01 / Encargo e identificación", "fechaCorte", "Fecha de corte", "date"),
+    sectionField("01 / Encargo e identificación", "versionRevision", "Versión de la revisión"),
+    sectionField("01 / Encargo e identificación", "inmueble", "Domicilio y unidad"),
+    sectionField("01 / Encargo e identificación", "municipio", "Municipio"),
+    sectionField("01 / Encargo e identificación", "claveCatastral", "Clave catastral o pendiente"),
+    sectionField("01 / Encargo e identificación", "folioReal", "Folio real o antecedente"),
+    sectionField("01 / Encargo e identificación", "solicitante", "Parte solicitante y calidad"),
+    sectionField("01 / Encargo e identificación", "operacion", "Operación y etapa a decidir"),
+    sectionField("01 / Encargo e identificación", "alcance", "Alcance de la revisión"),
+    sectionField("02 / Personas y facultades", "personas", "Personas y facultades", "juridicaRows"),
+    sectionField("02 / Personas y facultades", "estadoCivilAdquisicion", "Estado civil al adquirir y fecha"),
+    sectionField("02 / Personas y facultades", "estadoCivilActual", "Estado civil actual y cambios acreditados"),
+    sectionField("02 / Personas y facultades", "regimen", "Régimen patrimonial y evidencia"),
+    sectionField("02 / Personas y facultades", "consentimientos", "Consentimientos y firmas necesarios con fundamento", "long"),
+    sectionField("02 / Personas y facultades", "representacion", "Representación, acto, límites, vigencia y verificación", "long"),
+    sectionField("03 / Control documental", "documentos", "Control documental", "juridicaRows"),
+    sectionField("04 / Título y descripción", "tracto", "Cadena de titularidad", "juridicaRows"),
+    sectionField("04 / Título y descripción", "conclusionTracto", "Conclusión del tracto con evidencia", "long"),
+    sectionField("04 / Título y descripción", "contraste", "Contraste de identidad", "juridicaRows"),
+    sectionField("05 / Gravámenes y controversias", "cargas", "Cargas y limitaciones", "juridicaRows"),
+    sectionField("05 / Gravámenes y controversias", "consultas", "Consultas registrales y judiciales: alcance, fecha y resultado", "long"),
+    sectionField("06 / Posesión y compromisos", "ocupacion", "Ocupante, título y plazo", "long"),
+    sectionField("06 / Posesión y compromisos", "compromisos", "Contratos, promesas, opciones y exclusivas vigentes", "long"),
+    sectionField("06 / Posesión y compromisos", "posesion", "Condiciones y conflictos de posesión", "long"),
+    sectionField("07 / Controles especiales", "especiales", "Controles especiales", "juridicaRows"),
+    sectionField("08 / Fiscal, adeudos y formalización", "predial", "Predial: cuenta, periodo, saldo, fuente y fecha", "long"),
+    sectionField("08 / Fiscal, adeudos y formalización", "agua", "CESPT: cuenta, saldo, fuente y fecha", "long"),
+    sectionField("08 / Fiscal, adeudos y formalización", "otrosAdeudos", "Otros adeudos y evidencia", "long"),
+    sectionField("08 / Fiscal, adeudos y formalización", "responsableAdeudos", "Responsable de pago y pendientes", "long"),
+    sectionField("08 / Fiscal, adeudos y formalización", "fiscal", "ISR y posible exención: declarado, comprobado y validación profesional", "long"),
+    sectionField("08 / Fiscal, adeudos y formalización", "credito", "Crédito, avalúo y requisitos de banco o notaría", "long"),
+    sectionField("08 / Fiscal, adeudos y formalización", "gastos", "Impuestos y gastos: cálculo validado, fecha y responsable", "long"),
+    { ...choice("hallazgosEstado", "Estado de hallazgos", [{ value: "ninguno", label: "No se identificaron" }, { value: "abiertos", label: "Hay hallazgos abiertos" }, { value: "cerrados", label: "Subsanados con evidencia" }]), section: "09 / Hallazgos" },
+    sectionField("09 / Hallazgos", "hallazgos", "Hallazgos y subsanación", "juridicaRows"),
+    { ...choice("resultado", "Resultado jurídico", [{ value: "factible", label: "Factible para esta etapa" }, { value: "condiciones", label: "Factible con condiciones" }, { value: "no_factible_temporal", label: "No factible temporalmente" }, { value: "no_recomendable", label: "No recomendable" }, { value: "indeterminada", label: "Indeterminada" }]), section: "10 / Conclusión" },
+    sectionField("10 / Conclusión", "conclusion", "Conclusión jurídica y razones determinantes", "long"),
+    sectionField("10 / Conclusión", "puedeHacerse", "Qué puede hacerse hoy y qué debe esperar", "long"),
+    sectionField("10 / Conclusión", "limitaciones", "Limitaciones y riesgo residual", "long"),
+    sectionField("10 / Conclusión", "actualizar", "Hecho o fecha para actualizar", "long"),
+    sectionField("11 / Decisión por etapa", "etapas", "Decisión por etapa", "juridicaRows"),
+    sectionField("12 / Control de cierre", "cierre", "Condiciones de cierre", "juridicaRows"),
+    sectionField("12 / Control de cierre", "cambioOperacion", "Cancelación o cambio de operación y versión", "long"),
+    sectionField("12 / Control de cierre", "pendientes", "Pendientes, responsable y próxima revisión", "long"),
+    sectionField("12 / Control de cierre", "abogado", "Nombre completo del abogado responsable"),
+    sectionField("12 / Control de cierre", "cedula", "Cédula profesional"),
+    sectionField("12 / Control de cierre", "fechaRevision", "Fecha de revisión", "date"),
+    sectionField("12 / Control de cierre", "integrador", "Quién integró la captura y fecha"),
+  ], true),
   f("06", "Opinion_juridica_del_inmueble", "docx", 2, [
     sectionField("Referencia de la opinión", "folio", "Identificador de la operación"),
     sectionField("Referencia de la opinión", "fechaEmision", "Fecha de emisión", "date"),
@@ -430,7 +481,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
-    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows") return false;
+    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
     if (item.type === "money" || item.type === "number") {
@@ -453,6 +504,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "11") errors.push(...validarReporte(data));
   if (id === "02") errors.push(...validarEntrevista(data));
   if (id === "01") errors.push(...validarAviso(data));
+  if (id === "05") errors.push(...validarJuridica(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");

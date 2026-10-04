@@ -14,6 +14,8 @@ import { REPORTE_TABLES, type ReporteTable } from "@/lib/formatos/reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable } from "@/lib/formatos/entrevista";
 import { EntrevistaRowsEditor } from "@/components/admin/entrevista-rows-editor";
 import { mostrarCampoAviso } from "@/lib/formatos/aviso";
+import { JuridicaRowsEditor } from "@/components/admin/juridica-rows-editor";
+import { JURIDICA_TABLES, type JuridicaTable } from "@/lib/formatos/juridica";
 
 export function FormatoEditor({ definition, values, onChange }: {
   definition: FormatoDefinition;
@@ -41,12 +43,13 @@ export function FormatoEditor({ definition, values, onChange }: {
       const required = field.required || isOffer && (creditFields.includes(field.key) && typeof values.credito === "number" && values.credito > 0 || responseFields.includes(field.key) && values.estadoRespuesta === "registrada" || counterFields.includes(field.key) && values.decisionPropietario === "contraoferta" || field.key === "confirmacionVigencia" && respuestaRequiereRatificacion(values)) || definition.id === "10" && ["nombreAprobador", "fechaAprobacion", "acuseAprobacion"].includes(field.key) && values.estadoAprobacion === "registrada";
       const id = `formato-${field.key}`;
       const value = values[field.key] ?? "";
-      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows";
+      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows";
       return <Fragment key={field.key}>
         {field.section && (index === 0 || shownFields[index - 1].section !== field.section) && <h2 className="mt-3 border-b border-border pb-2 text-base font-semibold text-foreground md:col-span-2">{field.section}</h2>}
         <div className={wide ? "md:col-span-2" : ""}>
-        {field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
-        {field.type === "entrevistaRows" && field.key in ENTREVISTA_TABLES ? <EntrevistaRowsEditor kind={field.key as EntrevistaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        {field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
+        {field.type === "juridicaRows" && field.key in JURIDICA_TABLES ? <JuridicaRowsEditor kind={field.key as JuridicaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        : field.type === "entrevistaRows" && field.key in ENTREVISTA_TABLES ? <EntrevistaRowsEditor kind={field.key as EntrevistaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "reporteRows" && field.key in REPORTE_TABLES ? <ReporteRowsEditor kind={field.key as ReporteTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "planRows" && field.key in PLAN_TABLES ? <PlanRowsEditor kind={field.key as PlanTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "entregaRows" && field.key in ENTREGA_TABLAS ? <EntregaRowsEditor kind={field.key as EntregaTabla} value={value} onChange={(rows) => onChange(field.key, rows)} />

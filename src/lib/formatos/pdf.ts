@@ -13,6 +13,7 @@ import { calcularExtras, PLAN_TABLES, type PlanRow, type PlanTable } from "./pla
 import { calcularPublicidadReporte, REPORTE_TABLES, type ReporteRow, type ReporteTable } from "./reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable, type EntrevistaRow } from "./entrevista";
 import { mostrarCampoAviso } from "./aviso";
+import { JURIDICA_TABLES, mostrarColumnaJuridica, type JuridicaRow } from "./juridica";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -56,7 +57,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   const pdf = await PDFDocument.create();
-  const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : id === "06" ? "Opinión jurídica del inmueble" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
+  const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
   pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
@@ -192,6 +193,37 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       } else fieldLine(field);
     }
     write("Esta entrevista no autoriza publicación del inmueble, recepción de dinero, fijación de precio o comisión, ni exclusividad. Si existen varios titulares, debe documentarse la información y voluntad de cada uno. La revisión de títulos, gravámenes y aspectos fiscales queda pendiente de sus soportes.", 9, regular, muted, 14);
+  } else if (id === "05") {
+    write("Ficha de control documental y decisión por etapa. Los datos declarados, recibidos y verificados tienen alcances distintos.", 9, regular, muted, 12);
+    let section = "";
+    for (const field of definition.fields) {
+      if (field.section && field.section !== section) {
+        section = field.section;
+        ensure(83);
+        write(section, 13, bold, accent, 10);
+        if (section === "03 / Control documental") write("Aplica: sí, no o por determinar. Estado: no recibido, recibido, insuficiente o verificado. Recibido no equivale a autenticidad, vigencia ni conformidad jurídica.", 9, regular, muted, 10);
+        if (section === "07 / Controles especiales") write("Conforme, hallazgo, pendiente, no aplica o fuera de alcance. Todo NA/FA requiere motivo o evidencia.", 9, regular, muted, 10);
+      }
+      if (field.type !== "juridicaRows") { fieldLine(field); continue; }
+      const config = JURIDICA_TABLES[field.key];
+      const rows = data[field.key] as JuridicaRow[];
+      write(config.label, 9, bold, muted, 7);
+      if (rows.length === 0) { write(field.key === "cargas" ? "No se registraron cargas en esta ficha; esto no prueba su inexistencia." : "No se registraron filas; estado declarado en la conclusión o controles.", 9, regular, muted, 8); continue; }
+      for (const [index, entry] of rows.entries()) {
+        ensure(65);
+        const fixed = config.fixed?.[index];
+        write(fixed ? `${fixed.key} · ${fixed.label}` : `${index + 1}. ${entry.id ?? entry.persona ?? entry.acto ?? entry.carga ?? "Registro"}`, 9, bold, ink, 3);
+        write(config.columns.filter((column) => mostrarColumnaJuridica(field.key, column.key, entry)).map((column) => {
+          const value = entry[column.key] ?? "";
+          const shown = column.options?.find((option) => option.value === value)?.label ?? value;
+          return `${column.label}: ${shown}`;
+        }).join(" · "), 8.5, regular, muted, 8);
+      }
+    }
+    write("Esta ficha no determina automáticamente impuestos, exenciones, factibilidad de servicios, inexistencia de litigios ni facultades para disponer. Cada conclusión debe estar sustentada por el abogado responsable y actualizarse ante hechos nuevos.", 9, regular, muted, 15);
+    ensure(85); y -= 20;
+    page.drawLine({ start: { x: margin, y }, end: { x: margin + 270, y }, thickness: 0.7, color: ink }); y -= 15;
+    write(`${String(data.abogado)} · Cédula ${String(data.cedula)} · ${displayValue(definition.fields.find((field) => field.key === "fechaRevision")!, data.fechaRevision)}`, 8.5, regular, muted, 8);
   } else if (id === "06") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
     const section = (title: string) => { ensure(78); write(title, 13, bold, accent, 9); };
