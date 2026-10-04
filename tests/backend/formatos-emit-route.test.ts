@@ -4,6 +4,8 @@ vi.mock("@/lib/backend/auth", () => ({ requireStaff, createServerClient }));
 vi.mock("@/lib/formatos/pdf", () => ({ prepareFormatoEmission }));
 import { POST } from "@/app/api/admin/formatos/[id]/emitir/route";
 import { terrenoFields } from "@/lib/formatos/levantamiento";
+import { completeValorSample } from "./fixtures/valor";
+import { valorReviewSnapshot } from "@/lib/formatos/valor";
 
 const terrenoInput = {
   ...Object.fromEntries(terrenoFields.filter((field) => field.type !== "levantamientoRows").map((field) => [field.key, field.type === "date" ? "2026-10-04" : field.type === "time" ? "10:00" : "NV"])),
@@ -49,13 +51,30 @@ it("usa el folio autorizado del expediente al emitir, aunque el borrador conteng
 
 it("bloquea un formato cuyo original aún no fue cotejado", async () => {
   const id = "51000000-0000-4000-8000-000000000011";
-  const client = { from: vi.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id, expediente_id: "51000000-0000-4000-8000-000000000010", formato_id: "07", data: {}, version: 1 }, error: null }) }) }) })) };
+  const client = { from: vi.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id, expediente_id: "51000000-0000-4000-8000-000000000010", formato_id: "09", data: {}, version: 1 }, error: null }) }) }) })) };
   requireStaff.mockResolvedValue({ client, user: { id: "51000000-0000-4000-8000-000000000002", role: "editor" } });
   createServerClient.mockClear();
   const response = await POST(new Request(`https://panel.test/api/admin/formatos/${id}/emitir`, { method: "POST", headers: { origin: "https://panel.test" } }), { params: Promise.resolve({ id }) });
   expect(response.status).toBe(409);
   expect((await response.json()).error).toMatch(/pendiente de cotejo/i);
   expect(createServerClient).not.toHaveBeenCalled();
+});
+
+it("comprueba todas las fotografías del reporte 07 antes de descargar imágenes", async () => {
+  const id = "51000000-0000-4000-8000-000000000011";
+  const data: Record<string, unknown> = { ...completeValorSample(), folio: "REAL", fotografias: [{ assetId: "51000000-0000-4000-8000-000000000023", pie: "Vista sintética adicional" }] };
+  Object.assign(data, { revisionDatos: valorReviewSnapshot(data) });
+  const images = [{ id: data.fotoPrincipalId, kind: "foto" }, { id: data.croquisId, kind: "croquis" }];
+  const selected = vi.fn(async () => ({ data: images, error: null }));
+  requireStaff.mockResolvedValue({ client: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id, expediente_id: id, formato_id: "07", data, folio: "REAL", version: 1 }, error: null }), in: selected }) }) }) }, user: { id } });
+  const download = vi.fn();
+  createServerClient.mockReturnValue({ storage: { from: () => ({ download }) } });
+  prepareFormatoEmission.mockClear();
+  const response = await POST(new Request(`https://panel.test/api/admin/formatos/${id}/emitir`, { method: "POST", headers: { origin: "https://panel.test" } }), { params: Promise.resolve({ id }) });
+  expect(response.status).toBe(409);
+  expect(selected).toHaveBeenCalledWith("id", expect.arrayContaining(["51000000-0000-4000-8000-000000000023"]));
+  expect(download).not.toHaveBeenCalled();
+  expect(prepareFormatoEmission).not.toHaveBeenCalled();
 });
 
 it("rechaza seleccionar imágenes que no aparecen en el borrador autorizado", async () => {

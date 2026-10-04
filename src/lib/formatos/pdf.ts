@@ -17,6 +17,8 @@ import { JURIDICA_TABLES, mostrarColumnaJuridica, type JuridicaRow } from "./jur
 import sharp from "sharp";
 import { isLevantamiento, LEVANTAMIENTO_TITLES, LEVANTAMIENTO_TABLES, type LevantamientoTable, type LevantamientoRow } from "./levantamiento";
 import type { FormatoPdfAsset } from "./assets";
+import { calcularValor, calcularConstruccion, valorAssetIds, type ValorRow } from "./valor";
+import { VALOR_TABLES, mostrarCampoValor } from "./valor-fields";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -60,8 +62,9 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   if (isLevantamiento(id) && (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto") || !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis"))) throw new Error("Faltan la fotografía principal y el croquis autorizados del borrador");
+  if (id === "07" && valorAssetIds(data).some((assetId) => !assets.some((asset) => asset.id === assetId && asset.kind === (assetId === data.croquisId ? "croquis" : "foto") && (asset.kind !== "foto" || asset.observed_on && asset.observed_on <= String(data.fechaEmision))))) throw new Error("Faltan imágenes autorizadas y fotografías fechadas del borrador");
   const pdf = await PDFDocument.create();
-  const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
+  const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "07" ? "Opinión de valor comercial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
   pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
@@ -118,22 +121,22 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     write(field.label, 8, bold, muted, 2);
     write(value, 10, regular, ink, 8);
   };
+  const picture = async (asset: FormatoPdfAsset) => {
+    const bytes = await sharp(asset.bytes, { limitInputPixels: 40_000_000 }).rotate().resize({ width: 1800, height: 1200, fit: "inside", withoutEnlargement: true }).flatten({ background: "#ffffff" }).jpeg({ quality: 88 }).toBuffer();
+    const image = await pdf.embedJpg(bytes);
+    const fit = Math.min((a4[0] - 2 * margin) / image.width, 235 / image.height);
+    const width = image.width * fit; const height = image.height * fit;
+    ensure(height + 100);
+    page.drawImage(image, { x: margin + (a4[0] - 2 * margin - width) / 2, y: y - height, width, height });
+    y -= height + 14;
+    write(`${asset.caption} · ID ${asset.id}`, 8, bold, ink, 3);
+    write(`Fuente: ${asset.source}${asset.observed_on ? ` · Fecha: ${asset.observed_on}` : ""}`, 8, regular, muted, 10);
+  };
   if (id === "18") {
     for (const paragraph of receiptParagraphs(data)) write(paragraph, 10, regular, ink, 12);
   } else if (isLevantamiento(id)) {
     write("Inspección visual no pericial. No certifica superficies, seguridad ni uso autorizado. Ante riesgo suspenda el recorrido, registre lo ocurrido y derive a revisión competente.", 9, regular, muted, 10);
     write("Base técnica: D declarado · O observado · M medido orientativamente · C comprobado con evidencia · NV no verificado · NA no aplica. Lo desconocido no equivale a cero.", 9, regular, muted, 12);
-    const picture = async (asset: FormatoPdfAsset) => {
-      const bytes = await sharp(asset.bytes, { limitInputPixels: 40_000_000 }).rotate().resize({ width: 1800, height: 1200, fit: "inside", withoutEnlargement: true }).flatten({ background: "#ffffff" }).jpeg({ quality: 88 }).toBuffer();
-      const image = await pdf.embedJpg(bytes);
-      const fit = Math.min((a4[0] - 2 * margin) / image.width, 235 / image.height);
-      const width = image.width * fit; const height = image.height * fit;
-      ensure(height + 100);
-      page.drawImage(image, { x: margin + (a4[0] - 2 * margin - width) / 2, y: y - height, width, height });
-      y -= height + 14;
-      write(`${asset.caption} · ID ${asset.id}`, 8, bold, ink, 3);
-      write(`Fuente: ${asset.source}${asset.observed_on ? ` · Fecha: ${asset.observed_on}` : ""}`, 8, regular, muted, 10);
-    };
     const sectionNote = (section: string) => {
       if (section.startsWith("03")) write("Identifique documento, fecha y página; para M, instrumento, método y responsable. No sume áreas de distinta naturaleza. Si no se midió, anote NV.", 9, regular, muted, 10);
       if (section.startsWith("06") && id !== "04F") write(id === "04A" ? "La cercanía de una red no acredita factibilidad ni capacidad. La observación no confirma linderos, servidumbres ni el uso autorizado." : id === "04G" ? "Registre infraestructura existente. Rentas, cuotas, cobro, contratos y administración se controlan por separado." : "Distinguir servicio conectado, solo visible, declarado, pendiente o NA. La presencia de equipo no acredita funcionamiento ni capacidad.", 9, regular, muted, 10);
@@ -306,6 +309,96 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     y -= 15;
     write(`${val("abogado")} · Cédula profesional ${val("cedula")}`, 9, regular, muted, 5);
     write(`Fecha de emisión: ${val("fechaEmision")}`, 9, regular, muted, 8);
+  } else if (id === "07") {
+    const totals = calcularValor(data);
+    const val = (key: string) => String(data[key] ?? "");
+    const cash = (value: number | null | undefined) => value === null || value === undefined ? "Excluido" : `${value.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
+    const nextPage = () => { page = pdf.addPage(a4); startPage(); };
+    const fields = (keys: string[]) => keys.forEach((key) => { const field = definition.fields.find((item) => item.key === key); if (field && mostrarCampoValor(key, data)) fieldLine(field); });
+    await picture(assets.find((asset) => asset.id === data.fotoPrincipalId)!);
+    write(`${val("tipoInmueble")} · ${val("inmueble")}`, 12, bold, ink, 8);
+    write(`Fecha de valor: ${val("fechaValor")} · Emisión: ${val("fechaEmision")} · Versión ${val("versionInforme")}`, 9, regular, muted, 8);
+    write(`Solicitante: ${val("solicitante")} · Propietario: ${val("propietario")}`, 9, regular, ink, 8);
+    write(`VALOR COMERCIAL CONCLUIDO: ${cash(totals.concluido)}`, 16, bold, accent, 12);
+    write("Opinión comercial orientativa para venta. No garantiza un precio de cierre ni sustituye un avalúo requerido por autoridad, banco o contrato. Resultados en MXN, sin IVA en los precios comparados.", 9, regular, muted, 12);
+    nextPage(); const indexPage = page;
+    write("Índice", 18, bold, accent, 16); const indexY = y;
+    const sections: { title: string; page: number }[] = [];
+    const section = (title: string) => { nextPage(); sections.push({ title, page: pdf.getPageCount() }); write(title, 16, bold, accent, 14); };
+    section("01 / Resumen ejecutivo");
+    fields(["solicitante", "tipoInmueble", "inmueble", "regimen", "cuentaCatastral", "terreno", "construccion", "privativa", "baseMercado"]);
+    write(`Mercado: ${cash(totals.mercado)} · Peso ${val("pesoMercado")} %`, 10, regular, ink, 7);
+    write(`Ingresos: ${cash(totals.ingresos?.valor)} · Peso ${val("pesoIngresos")} %`, 10, regular, ink, 7);
+    write(`Físico: ${cash(totals.fisico?.valor)} · Peso ${val("pesoFisico")} %`, 10, regular, ink, 7);
+    write(`Indicador ponderado: ${cash(totals.indicador)}. Valor redondeado: ${cash(totals.concluido)}.`, 13, bold, accent, 12);
+    write(val("justificacion"), 10, regular, ink, 12);
+    write(`Límites: ${val("limites")}`, 9, regular, muted, 8);
+    write(`Revisar a más tardar: ${val("revisarAntes")}. Cambios del inmueble, operación o mercado requieren actualización.`, 9, regular, muted, 12);
+    const renderTable = (key: string) => {
+      const table = VALOR_TABLES[key]; const list = data[key] as ValorRow[] | undefined;
+      for (const [index, row] of (Array.isArray(list) ? list : []).entries()) {
+        ensure(100); write(`${table.singular} ${index + 1}`, 11, bold, accent, 8);
+        for (const column of table.columns) {
+          if (row.seleccion === "excluir" && !["id", "seleccion", "razonSeleccion"].includes(column.key)) continue;
+          if (column.type === "asset") continue;
+          const value = column.options?.find(([value]) => value === row[column.key])?.[1] ?? String(row[column.key] ?? "");
+          write(`${column.label}: ${value}`, 9, regular, ink, 6);
+        }
+        if (key.startsWith("comparables") && row.seleccion === "incluir") {
+          const group = key === "comparablesTerreno" ? "terreno" : key === "comparablesConstruccion" ? "construccion" : "renta";
+          const result = totals.results[group].rows.find((item) => item.id === row.id)!;
+          write(`Precio convertido: ${cash(result.precioMxn)}. Unitario: ${cash(result.unitario)}/m²${group === "renta" ? "/mes" : ""}. Factor resultante: ${result.factor.toFixed(6)}. Homologado: ${cash(result.homologado)}/m²${group === "renta" ? "/mes" : ""}.`, 9, bold, ink, 12);
+        }
+        if (key === "construcciones") {
+          const result = calcularConstruccion(row);
+          write(`Vida restante: ${(row.vidaUtil as number) - (row.edad as number)} años. Ross: ${result.ross?.toFixed(6)}. Heidecke: ${result.heidecke}. Factor neto: ${result.neto?.toFixed(6)}. Neto por m²: ${cash(result.unitarioNeto)}. Valor parcial: ${cash(result.parcial)}.`, 9, bold, ink, 12);
+        }
+      }
+    };
+    for (const prefix of ["02", "03", "04"]) {
+      const entries = definition.fields.filter((field) => field.section?.startsWith(prefix) && mostrarCampoValor(field.key, data));
+      section(entries[0].section!);
+      for (const field of entries) {
+        if (field.key === "fotoPrincipalId") continue;
+        if (field.key === "croquisId") { await picture(assets.find((asset) => asset.id === data.croquisId)!); continue; }
+        if (field.type === "valorRows") renderTable(field.key); else fieldLine(field);
+      }
+      if (prefix === "04") write("Los sistemas ocultos no se consideran observados. No se certifican seguridad ni cumplimiento normativo. La procedencia capturada de cada dato no equivale a verificación independiente.", 9, regular, muted, 12);
+    }
+    for (const [prefix, key, group] of [["05", "comparablesTerreno", "terreno"], ["06", "comparablesConstruccion", "construccion"], ["07", "comparablesRenta", "renta"]]) {
+      if (!totals.results[group]) continue;
+      section(prefix === "05" ? "05 / Mercado de terrenos" : prefix === "06" ? "06 / Mercado de inmuebles construidos" : "07 / Ingresos");
+      const result = totals.results[group];
+      write(`Fuentes completas: ${result.rows.length}. Media aritmética homologada: ${cash(result.media)}/m²${group === "renta" ? "/mes" : ""}. Rango de unitarios homologados: ${cash(result.minimo)} a ${cash(result.maximo)}.`, 10, bold, ink, 12);
+      write("Oferta y cierre no son equivalentes. Factor 1 indica ausencia de ajuste y también necesita justificación. No duplique negociación u otros efectos. La media es el cálculo de esta plantilla; el responsable debe justificar su pertinencia y evaluar dispersión.", 9, regular, muted, 12);
+      renderTable(key);
+      for (const field of definition.fields.filter((field) => field.section?.startsWith(prefix) && field.type !== "valorRows" && mostrarCampoValor(field.key, data))) fieldLine(field);
+      if (group === "terreno" && data.baseMercado === "terreno" && (data.pesoMercado as number) > 0) fields(["factorMercado", "razonFactorMercado", "criterioMercado"]);
+      if (group === "construccion") write("El precio comparado es el del inmueble completo por m² de la base seleccionada. Incluye los derechos sobre el terreno; no se agrega nuevamente su valor.", 9, regular, muted, 12);
+      if (group === "renta") {
+        const result = totals.ingresos!;
+        write(`Renta mensual: ${cash(result.mensual)}. Bruta anual (×12): ${cash(result.bruto)}. Pérdida por vacancia y cobranza: ${cash(result.perdida)}. Renta efectiva: ${cash(result.efectivo)}. Gastos sobre renta efectiva: ${cash(result.gastos)}. NOI: ${cash(result.noi)}. Valor por ingresos = NOI ÷ tasa neta: ${cash(result.valor)}.`, 10, bold, ink, 12);
+      }
+    }
+    if (totals.fisico) {
+      section("08 / Enfoque físico");
+      for (const field of definition.fields.filter((field) => field.section?.startsWith("08") && mostrarCampoValor(field.key, data))) { if (field.type === "valorRows") renderTable(field.key); else fieldLine(field); }
+      write("Ross = ½ × [edad/vida útil + (edad/vida útil)²]. Factor neto = (1 − Ross) × (1 − Heidecke). La tabla de seis estados conserva los coeficientes del original: 0, 0.0252, 0.181, 0.526, 0.722 y 1. Es una referencia histórica; no implica obligatoriedad local ni pertinencia automática. Esta variante no incorpora rescate.", 9, regular, muted, 12);
+      write(`Terreno A: ${cash(totals.fisico.terreno)}. Construcciones B: ${cash(totals.fisico.construccion)}. Obras C: ${cash(totals.fisico.obras)}. Total A + B + C: ${cash(totals.fisico.valor)}.`, 12, bold, accent, 12);
+      write("El inventario de construcciones reconcilia la superficie del sujeto. Las obras deben excluir componentes incluidos en los costos nuevos para evitar doble conteo.", 9, regular, muted, 12);
+    }
+    section("09 / Conciliación y revisión");
+    for (const field of definition.fields.filter((field) => field.section?.startsWith("09"))) fieldLine(field);
+    write(`Suma de pesos: 100 %. Indicador ponderado: ${cash(totals.indicador)}. Redondeo a múltiplos de ${val("redondeo")} MXN. VALOR CONCLUIDO: ${cash(totals.concluido)}.`, 13, bold, accent, 14);
+    write("Cada peso de 0 % excluye el enfoque; su razón se conserva arriba. Los enfoques pueden compartir datos: el promedio ponderado no es evidencia independiente. Los precios corresponden a sus fechas; el mercado puede cambiar. Las condiciones jurídicas y los límites de inspección conservan el alcance declarado.", 9, regular, muted, 12);
+    ensure(90); y -= 25; page.drawLine({ start: { x: margin, y }, end: { x: margin + 250, y }, thickness: 0.7, color: ink }); y -= 18;
+    write(`${val("asesor")} · Firma de quien emite`, 9, regular, muted, 10);
+    section("10 / Reporte fotográfico");
+    for (const row of data.fotografias as ValorRow[]) { write(String(row.pie), 11, bold, ink, 10); await picture(assets.find((asset) => asset.id === row.assetId)!); }
+    const finalPage = page; const finalY = y; page = indexPage; y = indexY;
+    for (const entry of sections) write(`${entry.title} · página ${entry.page}`, 11, regular, ink, 10);
+    write("Las secciones de cálculo incluidas corresponden a los enfoques utilizados. Los excluidos conservan su explicación en la conciliación.", 9, regular, muted, 12);
+    page = finalPage; y = finalY;
   } else if (id === "08") {
     const totals = calcularNeto(data);
     const cash = (amount: number) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} MXN`;

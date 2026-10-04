@@ -6,6 +6,7 @@ import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { prepareFormatoEmission } from "@/lib/formatos/pdf";
 import { MAX_ASSET_BYTES, type FormatoPdfAsset } from "@/lib/formatos/assets";
 import { isLevantamiento } from "@/lib/formatos/levantamiento";
+import { valorAssetIds } from "@/lib/formatos/valor";
 
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
@@ -30,11 +31,12 @@ export async function POST(request: Request, context: Context) {
     if (missing.length) throw new ApiError(409, `Faltan datos: ${missing.join(", ")}`);
     const privileged = createServerClient(undefined, true);
     const assets: FormatoPdfAsset[] = [];
-    if (isLevantamiento(draft.formato_id)) {
-      const assetIds = z.array(z.uuid()).length(2).parse([values.fotoPrincipalId, values.croquisId]);
+    if (isLevantamiento(draft.formato_id) || draft.formato_id === "07") {
+      const assetIds = z.array(z.uuid()).min(2).max(10).parse(draft.formato_id === "07" ? valorAssetIds(values) : [values.fotoPrincipalId, values.croquisId]);
       const images = await client.from("mnt_formato_assets").select("id,kind,caption,source,observed_on,mime,sha256,path").eq("draft_id", id).in("id", assetIds);
       if (images.error) databaseError(images.error);
-      if (images.data?.length !== 2 || !images.data.some((image) => image.id === values.fotoPrincipalId && image.kind === "foto") || !images.data.some((image) => image.id === values.croquisId && image.kind === "croquis")) throw new ApiError(409, "Selecciona la fotografía y el croquis del propio borrador");
+      if (images.data?.length !== assetIds.length || !assetIds.every((assetId) => images.data.some((image) => image.id === assetId && image.kind === (assetId === values.croquisId ? "croquis" : "foto")))) throw new ApiError(409, "Selecciona las fotografías y el croquis del propio borrador");
+      if (draft.formato_id === "07" && images.data.some((image) => image.kind === "foto" && (!image.observed_on || image.observed_on > String(values.fechaEmision)))) throw new ApiError(409, "Las fotografías de la opinión deben tener fecha anterior o igual a la emisión");
       for (const image of images.data) {
         const file = await privileged.storage.from("mnt-expedientes").download(image.path);
         if (file.error || !file.data) throw new ApiError(503, "Una imagen del borrador no está disponible");

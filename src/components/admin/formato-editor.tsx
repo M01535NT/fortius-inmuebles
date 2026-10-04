@@ -18,17 +18,21 @@ import { JuridicaRowsEditor } from "@/components/admin/juridica-rows-editor";
 import { JURIDICA_TABLES, type JuridicaTable } from "@/lib/formatos/juridica";
 import { isLevantamiento, LEVANTAMIENTO_TABLES, type LevantamientoTable } from "@/lib/formatos/levantamiento";
 import { LevantamientoRowsEditor } from "@/components/admin/levantamiento-rows-editor";
+import { mostrarCampoValor } from "@/lib/formatos/valor-fields";
+import { ValorRowsEditor } from "@/components/admin/valor-rows-editor";
+import { ValorCalculation } from "@/components/admin/valor-calculation";
 
-export function FormatoEditor({ definition, values, onChange }: {
+export function FormatoEditor({ definition, values, onChange, images }: {
   definition: FormatoDefinition;
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
+  images?: { id: string; kind: string; caption: string }[];
 }) {
-  const shownFields = definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.fields;
+  const shownFields = definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.fields;
   return <div className="grid gap-5 md:grid-cols-2">
     {shownFields.map((field, index) => {
       const isOffer = definition.id === "14";
-      if (isLevantamiento(definition.id) && ["fotoPrincipalId", "croquisId"].includes(field.key)) return null;
+      if ((isLevantamiento(definition.id) || definition.id === "07") && ["fotoPrincipalId", "croquisId"].includes(field.key)) return null;
       if (isLevantamiento(definition.id) && (field.key === "respaldos" && values.respaldosEstado !== "registrados" || field.key === "discrepancias" && values.discrepanciasEstado !== "registradas" || field.key === "unidades" && !["completo", "parcial"].includes(String(values.unidadesEstado)))) return null;
       const creditFields = ["institucionCredito", "estadoCredito"];
       const responseFields = ["lugarRespuesta", "fechaRespuesta", "horaRespuesta", "caracterPropietario", "decisionPropietario", "motivoRespuesta"];
@@ -47,12 +51,13 @@ export function FormatoEditor({ definition, values, onChange }: {
       const required = field.required || isOffer && (creditFields.includes(field.key) && typeof values.credito === "number" && values.credito > 0 || responseFields.includes(field.key) && values.estadoRespuesta === "registrada" || counterFields.includes(field.key) && values.decisionPropietario === "contraoferta" || field.key === "confirmacionVigencia" && respuestaRequiereRatificacion(values)) || definition.id === "10" && ["nombreAprobador", "fechaAprobacion", "acuseAprobacion"].includes(field.key) && values.estadoAprobacion === "registrada";
       const id = `formato-${field.key}`;
       const value = values[field.key] ?? "";
-      const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows";
+      const wide = field.type === "valorRows" || field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows";
       return <Fragment key={field.key}>
         {field.section && (index === 0 || shownFields[index - 1].section !== field.section) && <h2 className="mt-3 border-b border-border pb-2 text-base font-semibold text-foreground md:col-span-2">{field.section}</h2>}
         <div className={wide ? "md:col-span-2" : ""}>
-        {field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
-        {field.type === "levantamientoRows" && field.key in LEVANTAMIENTO_TABLES ? <LevantamientoRowsEditor kind={field.key as LevantamientoTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        {field.type === "valorRows" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows" ? <h3 className="mb-1.5 text-sm font-medium text-foreground">{field.label}</h3> : <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>}
+        {field.type === "valorRows" ? <ValorRowsEditor kind={field.key} value={value} images={images} onChange={(rows) => onChange(field.key, rows)} />
+        : field.type === "levantamientoRows" && field.key in LEVANTAMIENTO_TABLES ? <LevantamientoRowsEditor kind={field.key as LevantamientoTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "juridicaRows" && field.key in JURIDICA_TABLES ? <JuridicaRowsEditor kind={field.key as JuridicaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "entrevistaRows" && field.key in ENTREVISTA_TABLES ? <EntrevistaRowsEditor kind={field.key as EntrevistaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "reporteRows" && field.key in REPORTE_TABLES ? <ReporteRowsEditor kind={field.key as ReporteTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
@@ -60,7 +65,7 @@ export function FormatoEditor({ definition, values, onChange }: {
         : field.type === "entregaRows" && field.key in ENTREGA_TABLAS ? <EntregaRowsEditor kind={field.key as EntregaTabla} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "netoCargos" ? <NetExpenseEditor value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "partidas" || field.type === "pagos" ? <BudgetRowsEditor kind={field.type} value={value} onChange={(rows) => onChange(field.key, rows)} />
-        : field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
+        : field.key === "folio" || definition.id === "07" && ["versionRevisada", "indicadorRevisado", "revisionEstado"].includes(field.key) ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
         : field.type === "choice" ? <select id={id} required={required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select> : field.key === "pagoParcialTotal" ? <select id={id} required={required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
@@ -75,5 +80,6 @@ export function FormatoEditor({ definition, values, onChange }: {
         </div>
       </Fragment>;
     })}
+    {definition.id === "07" && <ValorCalculation values={values} onChange={onChange} />}
   </div>;
 }
