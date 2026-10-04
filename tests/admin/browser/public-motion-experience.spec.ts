@@ -98,14 +98,18 @@ test("reading progress follows the new page height after inventory filtering", a
   await expect(progress).toHaveAttribute("aria-valuenow", "100");
 });
 
-test("stacked phases keep readable text contrast during animated phone scrolling", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.emulateMedia({ reducedMotion: "no-preference" });
+for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }]) {
+test(`stacked phases keep readable text contrast during animated phone scrolling at ${viewport.width}x${viewport.height}`, async ({ browser }) => {
+  const context = await browser.newContext({ viewport, isMobile: true, hasTouch: true, reducedMotion: "no-preference" });
+  const page = await context.newPage();
   await page.goto("/");
   const cards = page.locator("#metodo [data-method-card]");
+  await expect(cards.first()).toHaveCSS("position", "sticky");
   await cards.nth(1).evaluate((node) => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 300, behavior: "instant" }));
   await expect.poll(() => cards.first().evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a)).toBeLessThan(1);
   await expect(cards.first().locator(".method-card-content")).toHaveCSS("opacity", "1");
   const result = await new AxeBuilder({ page }).include("#metodo").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+  await context.close();
 });
+}

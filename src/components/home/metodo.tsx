@@ -9,14 +9,14 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { FASES } from "@/data/metodo";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 
-/* Vertical storytelling; short screens and reduced motion keep normal flow. */
+/* Cards stack on desktop and touch screens; reduced motion keeps normal flow. */
 export function Metodo({ anchor = true, content }: { anchor?: boolean; content?: SiteContent | null }) {
   const reduce = useReducedMotionSafe();
   const stageRef = React.useRef<HTMLElement>(null);
   useGSAP(() => {
     if (reduce) return;
     const media = gsap.matchMedia();
-    media.add("(min-height: 740px)", () => {
+    media.add("(prefers-reduced-motion: no-preference)", () => {
       const cards = gsap.utils.toArray<HTMLElement>("[data-method-card]", stageRef.current);
       cards.slice(0, -1).forEach((card, index) => {
         gsap.to(card, {

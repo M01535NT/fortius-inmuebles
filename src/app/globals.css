@@ -401,7 +401,7 @@ select {
   .property-editorial-card:hover .property-eyebrow { opacity: 0.9; transform: translateY(-2px); }
 }
 
-@media (min-height: 740px) and (prefers-reduced-motion: no-preference) {
+@media (prefers-reduced-motion: no-preference) {
   .method-card {
     position: sticky;
     top: calc(86px + var(--phase-index) * 14px);
