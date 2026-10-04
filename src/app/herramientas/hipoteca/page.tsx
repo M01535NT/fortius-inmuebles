@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function HipotecaPage() {
   return (
     <main className="bg-background pt-28 md:pt-32">
-      <Container className="max-w-3xl pb-20 md:pb-28">
+      <Container className="pb-20 md:pb-28">
         <Link
           href="/herramientas"
           className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -27,9 +27,8 @@ export default function HipotecaPage() {
           Calculadora de hipoteca.
         </h1>
         <p className="mt-5 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
-          Captura el precio y juega con enganche, plazo y tasa. Si una
-          propiedad de nuestro inventario te interesa, la calculadora también
-          vive en su página con el precio ya cargado.
+          Compara cuotas, intereses y abonos anticipados. Guarda hasta tres
+          escenarios y descarga el detalle de cada pago.
         </p>
 
         <div className="mt-9">

@@ -33,7 +33,7 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-test("closing costs keeps zero commission and hides results for invalid drafts", () => {
+test("closing costs keeps zero commission and identifies a missing commission", () => {
   render(<ClosingCostsCalculator />);
   fireEvent.click(screen.getByRole("button", { name: "Voy a vender" }));
   const commission = screen.getByLabelText("Comisión pactada (%)") as HTMLInputElement;
@@ -42,7 +42,8 @@ test("closing costs keeps zero commission and hides results for invalid drafts",
   expect(screen.getByText(/Comisión de intermediación \(0%\)/)).toBeTruthy();
   fireEvent.change(commission, { target: { value: "" } });
   expect(commission.value).toBe("");
-  expect(screen.getByRole("alert").textContent).toMatch(/comisión/i);
+  expect(screen.getByText(/Comisión de intermediación \(pendiente%\)/)).toBeTruthy();
+  expect(screen.getByText("Falta incorporar")).toBeTruthy();
   expect(screen.queryByText("Total estimado")).toBeNull();
 });
 
@@ -64,13 +65,13 @@ test("mortgage keeps editable drafts and only calculates within the documented r
 test("calculators reject prices above the backend numeric cap", () => {
   const view = render(<MortgageCalculator precio={3_000_000} moneda="MXN" precioEditable />);
   fireEvent.change(screen.getByLabelText(/Precio de la propiedad/), { target: { value: "1e308" } });
-  expect(screen.getByRole("alert").textContent).toMatch(/10,000,000,000,000/);
+  expect(screen.getByRole("alert").textContent).toMatch(/10,000,000,000 MXN/);
   expect(screen.queryByText("Mensualidad")).toBeNull();
 
   view.unmount();
   render(<ClosingCostsCalculator />);
   fireEvent.change(screen.getByLabelText(/Precio de compra/), { target: { value: "1e308" } });
-  expect(screen.getByRole("alert").textContent).toMatch(/10,000,000,000,000/);
+  expect(screen.getByRole("alert").textContent).toMatch(/10,000,000,000 MXN/);
   expect(screen.queryByText("Total estimado")).toBeNull();
 });
 

@@ -16,7 +16,8 @@
     "test:live": "node --env-file=.env.local tests/live/verify-mnt.mjs --run",
     "health": "node tools/mnt-health.mjs",
     "test:public:browser": "playwright test --config playwright.public.config.ts",
-    "audit:performance": "node tools/public-performance.mjs"
+    "audit:performance": "node tools/public-performance.mjs",
+    "check:financial-sources": "node tools/check-financial-sources.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -24,6 +25,7 @@
     "@supabase/supabase-js": "^2.110.3",
     "@vercel/speed-insights": "^2.0.0",
     "clsx": "2.1.1",
+    "decimal.js": "10.6.0",
     "gsap": "^3.15.0",
     "lucide-react": "1.23.0",
     "motion": "12.42.2",

@@ -15,13 +15,13 @@ const TOOLS = [
   {
     icon: Calculator,
     title: "Calculadora de hipoteca",
-    text: "Estima tu mensualidad con enganche, plazo y tasa editables. Sin registrarte.",
+    text: "Compara escenarios, prueba abonos anticipados y descarga la amortización completa.",
     href: "/herramientas/hipoteca",
   },
   {
     icon: ReceiptText,
     title: "Gastos de cierre",
-    text: "Estima los gastos de comprar o vender en Tijuana, desglosados por concepto.",
+    text: "Prepara el efectivo de compra o el neto de venta, con impuestos locales y tus cotizaciones.",
     href: "/herramientas/gastos-de-cierre",
   },
 ];

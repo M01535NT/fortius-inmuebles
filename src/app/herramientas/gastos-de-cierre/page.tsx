@@ -9,13 +9,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/herramientas/gastos-de-cierre" },
   title: "Gastos de cierre",
   description:
-    "Estima los gastos de cierre al comprar o vender en Tijuana: impuestos, notario, registro y avalúo, con rangos de referencia.",
+    "Prepara tu presupuesto de compra o venta en Tijuana, Rosarito, Tecate o Ensenada con impuestos municipales y gastos desglosados.",
 };
 
 export default function GastosDeCierrePage() {
   return (
     <main className="bg-background pt-28 md:pt-32">
-      <Container className="max-w-3xl pb-20 md:pb-28">
+      <Container className="pb-20 md:pb-28">
         <Link
           href="/herramientas"
           className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -27,9 +27,8 @@ export default function GastosDeCierrePage() {
           Gastos de cierre.
         </h1>
         <p className="mt-5 max-w-[56ch] text-base leading-relaxed text-muted-foreground">
-          La sorpresa clásica de una operación son los gastos que nadie
-          explicó. Aquí tienes los rangos de referencia para Tijuana, por
-          concepto, según si compras o vendes.
+          Calcula cuánto efectivo necesitas para comprar o cuánto recibirías
+          al vender. Completa las cotizaciones y descarga tu presupuesto.
         </p>
 
         <div className="mt-9">
@@ -37,8 +36,7 @@ export default function GastosDeCierrePage() {
         </div>
 
         <p className="mt-8 text-base text-muted-foreground">
-          En cada operación entregamos este cálculo por escrito y afinado a tu
-          caso (documento GAS-CIE-001).{" "}
+          ¿Quieres preparar los números de tu operación?{" "}
           <Link href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
             Empieza con una evaluación
           </Link>
