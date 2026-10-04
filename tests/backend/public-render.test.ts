@@ -107,8 +107,8 @@ test.each(publicPages)("public page %s declares its own canonical path", async (
   expect((await load()).metadata?.alternates?.canonical).toBe(path);
 });
 test.each([
-  ["https://mnt-inmuebles.vercel.app", "https://mnt-inmuebles.vercel.app"],
-  ["http://localhost:3001", "https://mnt-inmuebles.vercel.app"],
+  ["https://fortius-inmuebles.vercel.app", "https://fortius-inmuebles.vercel.app"],
+  ["http://localhost:3001", "https://fortius-inmuebles.vercel.app"],
   ["https://inmuebles.example.org", "https://inmuebles.example.org"],
 ])("dynamic details share public canonical and OG URLs from %s while keeping demo noindex", async (configuredUrl, publicOrigin) => {
   siteConfig.url = configuredUrl;

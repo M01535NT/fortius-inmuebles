@@ -1,13 +1,15 @@
 /*
-  Site data for MNT Inmuebles.
+  Site data for Fortius Inmuebles.
   Static route descriptors and historical placeholders. Live home copy and
   commercial contact settings come from the independent MNT panel.
 */
 
+export const productionOrigin = "https://fortius-inmuebles.vercel.app";
+
 export const siteConfig = {
   name: "Fortius Inmuebles",
   descriptor: "Bienes raíces con método",
-  url: process.env.MNT_SITE_URL || "https://mnt-inmuebles.vercel.app",
+  url: process.env.MNT_SITE_URL || productionOrigin,
   contact: {
     phone: "",
     phoneHref: "",

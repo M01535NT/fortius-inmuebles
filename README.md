@@ -1,6 +1,8 @@
-# MNT Inmuebles
+# Fortius Inmuebles
 
-Sitio público y panel `/admin` de MNT Inmuebles. Ambos forman un solo producto y usan un backend dedicado en Supabase. El panel administra inmuebles, leads, clientes, asesores, calendario, notas, blog, archivos, contenido y configuración; el sitio consulta únicamente la proyección pública.
+Sitio público y panel `/admin` de Fortius Inmuebles. Ambos forman un solo producto y usan un backend dedicado en Supabase. El panel administra inmuebles, leads, clientes, asesores, calendario, notas, blog, archivos, contenido y configuración; el sitio consulta únicamente la proyección pública.
+
+Esta rama se despliega en el proyecto Vercel `fortius`, desde `alternativa-fortius`. Consulta [la configuración de despliegue](docs/deployment-fortius.md).
 
 ## Desarrollo local
 
@@ -13,7 +15,7 @@ npm run dev -- --hostname 127.0.0.1 --port 3001
 
 Variables:
 
-- `MNT_SITE_URL`: origen canónico; la URL registrada es `https://mnt-inmuebles.vercel.app` y en local se configura como `http://localhost:3001`.
+- `MNT_SITE_URL`: origen canónico; la URL registrada es `https://fortius-inmuebles.vercel.app` y en local se configura como `http://localhost:3001`.
 - `NEXT_PUBLIC_SUPABASE_URL`: URL del proyecto Supabase dedicado.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: clave pública del proyecto.
 - `SUPABASE_SERVICE_ROLE_KEY`: secreto exclusivo del servidor.
@@ -59,12 +61,12 @@ La verificación live es independiente porque crea y elimina fixtures en el proy
 npm run test:live -- --web
 ```
 
-Requiere `MNT_TEST_URL`, credenciales del proyecto y confirmación explícita mediante `--run`, incluida por el script. `MNT_TEST_PROJECT_REF` puede fijar el project ref dedicado. Las pruebas de leads reales solo se ejecutan con `MNT_TEST_PRODUCTION_LEADS=true`; respetan los límites existentes y fallan si el entorno ya está saturado. El despliegue está disponible en [MNT Inmuebles](https://mnt-inmuebles.vercel.app). La captación pública permanece desactivada; las cinco variantes se verificaron desde el build local con el backend real.
+Requiere `MNT_TEST_URL`, credenciales del proyecto y confirmación explícita mediante `--run`, incluida por el script. `MNT_TEST_PROJECT_REF` puede fijar el project ref dedicado. Las pruebas de leads reales solo se ejecutan con `MNT_TEST_PRODUCTION_LEADS=true`; respetan los límites existentes y fallan si el entorno ya está saturado. El despliegue está disponible en [Fortius Inmuebles](https://fortius-inmuebles.vercel.app). La captación pública permanece desactivada; las cinco variantes se verificaron desde el build local con el backend real.
 
 Después de publicar, la comprobación operativa de solo lectura valida salud, sitemap, rutas públicas y redirecciones sin credenciales:
 
 ```text
-npm run health -- https://mnt-inmuebles.vercel.app --json
+npm run health -- https://fortius-inmuebles.vercel.app --json
 ```
 
 `--json` guarda un informe sanitizado en `.superpowers/mnt-health.json`. Los tiempos son mediana y percentil 95 de las solicitudes realizadas; no sustituyen una medición Lighthouse.

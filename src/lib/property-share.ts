@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { formatPrecio, OPERACION_LABELS, TIPO_LABELS, type Property } from "@/data/propiedades";
-import { siteConfig } from "@/data/site";
+import { productionOrigin, siteConfig } from "@/data/site";
 
 export function propertyShare(p: Property) {
   const configured = new URL(siteConfig.url);
-  const origin = ["localhost", "127.0.0.1", "[::1]"].includes(configured.hostname) ? "https://mnt-inmuebles.vercel.app" : configured.origin;
+  const origin = ["localhost", "127.0.0.1", "[::1]"].includes(configured.hostname) ? productionOrigin : configured.origin;
   const url = new URL(`/inventario/${encodeURIComponent(p.slug)}`, origin).href;
   const title = `${p.titulo} · ${OPERACION_LABELS[p.operacion]} | Fortius Inmuebles`;
   const details = [p.ficha.recamaras != null ? `${p.ficha.recamaras} recámaras` : "", p.ficha.banos != null ? `${p.ficha.banos} baños` : "", p.ficha.construccionM2 != null ? `${p.ficha.construccionM2} m² de construcción` : ""].filter(Boolean);
