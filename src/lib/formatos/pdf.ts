@@ -55,7 +55,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   const pdf = await PDFDocument.create();
-  const displayTitle = id === "02" ? "Entrevista inicial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
+  const displayTitle = id === "02" ? "Entrevista inicial" : id === "06" ? "Opinión jurídica del inmueble" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
   pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
@@ -135,6 +135,42 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       } else fieldLine(field);
     }
     write("Esta entrevista no autoriza publicación del inmueble, recepción de dinero, fijación de precio o comisión, ni exclusividad. Si existen varios titulares, debe documentarse la información y voluntad de cada uno. La revisión de títulos, gravámenes y aspectos fiscales queda pendiente de sus soportes.", 9, regular, muted, 14);
+  } else if (id === "06") {
+    const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
+    const section = (title: string) => { ensure(78); write(title, 13, bold, accent, 9); };
+    write(`${val("fechaEmision")} · Operación ${val("folio")}`, 9, regular, muted, 12);
+    write(`${val("destinatario")}\nPresente`, 10, bold, ink, 12);
+    write(`Emito esta opinión respecto de ${val("inmueble")}, para ${val("operacion")}. Sus conclusiones tienen el alcance y las limitaciones expresados en este documento.`, 10, regular, ink, 12);
+    section("01 / Conclusión ejecutiva");
+    write(val("conclusion"), 11, regular, ink, 12);
+    write(`La conclusión se apoya en: ${val("sustento")}`, 9, regular, muted, 13);
+    section("02 / Objeto y alcance del encargo");
+    write(`Objeto. ${val("objeto")}`, 10, regular, ink, 9);
+    write(`Alcance. ${val("alcance")}`, 10, regular, ink, 13);
+    section("03 / Antecedentes y documentación");
+    write(val("antecedentes"), 10, regular, ink, 10);
+    write(`Documentos examinados. ${val("documentos")}`, 10, regular, ink, 13);
+    page = pdf.addPage(a4); startPage();
+    write("Análisis y recomendaciones", 16, bold, accent, 14);
+    section("04 / Análisis jurídico");
+    write("Titularidad y facultades para disponer", 10, bold, ink, 4);
+    write(val("titularidad"), 10, regular, ink, 11);
+    write("Situación registral e identidad del inmueble", 10, bold, ink, 4);
+    write(val("registro"), 10, regular, ink, 11);
+    write("Impedimentos y condiciones de la operación", 10, bold, ink, 4);
+    write(val("impedimentos"), 10, regular, ink, 12);
+    section("05 / Recomendaciones y próximos pasos");
+    write(val("recomendaciones"), 10, regular, ink, 9);
+    write(`Responsables y acciones pendientes. ${val("responsables")}`, 10, regular, ink, 12);
+    section("06 / Límites y actualización de la opinión");
+    write(val("limites"), 10, regular, ink, 9);
+    write(`Actualización necesaria. ${val("actualizacion")}`, 10, regular, ink, 18);
+    ensure(90);
+    y -= 20;
+    page.drawLine({ start: { x: margin, y }, end: { x: margin + 255, y }, thickness: 0.7, color: ink });
+    y -= 15;
+    write(`${val("abogado")} · Cédula profesional ${val("cedula")}`, 9, regular, muted, 5);
+    write(`Fecha de emisión: ${val("fechaEmision")}`, 9, regular, muted, 8);
   } else if (id === "08") {
     const totals = calcularNeto(data);
     const cash = (amount: number) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} MXN`;

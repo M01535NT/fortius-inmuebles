@@ -122,7 +122,7 @@ export default function ExpedientesPage() {
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
   return <div className="space-y-8">
     <PageHeader title="Expedientes y formatos" description="Catálogo de 25 formatos exclusivos. Cada PDF requiere captura completa y cotejo con el original." />
-    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 02 (entrevista inicial), 08 (neto del propietario), 10 (plan), 11 (reporte comercial), 12 (comprador), 13 (visita), 14 (propuesta y respuesta), 16 (entrega), 17 (cierre), 18 (recibo) y 19 (presupuesto) admiten emisión. Los campos de los otros 14 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
+    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 02 (entrevista inicial), 06 (opinión jurídica), 08 (neto del propietario), 10 (plan), 11 (reporte comercial), 12 (comprador), 13 (visita), 14 (propuesta y respuesta), 16 (entrega), 17 (cierre), 18 (recibo) y 19 (presupuesto) admiten emisión. Los campos de los otros 13 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     <section className="rounded-lg border border-border bg-card p-5">
       <h2 className="display-soft mb-4 text-xl">Nuevo expediente</h2>

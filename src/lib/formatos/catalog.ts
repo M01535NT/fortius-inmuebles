@@ -26,6 +26,7 @@ export type FormatoDefinition = {
 
 const field = (key: string, label: string, type: FormatoField["type"] = "text", required = true): FormatoField => ({ key, label, type, required });
 const choice = (key: string, label: string, options: readonly { value: string; label: string }[], required = true): FormatoField => ({ key, label, type: "choice", options, required });
+const sectionField = (section: string, key: string, label: string, type: FormatoField["type"] = "text"): FormatoField => ({ ...field(key, label, type), section });
 const f = (id: string, title: string, extension: "docx" | "xlsx", phase: FormatoDefinition["phase"], fields: FormatoField[], readyForEmission = false): FormatoDefinition => ({ id, title: title.replaceAll("_", " "), source: `${id}.${title}.${extension}`, phase, fields, readyForEmission });
 const inmueble = field("inmueble", "Inmueble y domicilio");
 const fecha = field("fecha", "Fecha", "date");
@@ -54,7 +55,28 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   f("04F", "Levantamiento_nave_bodega", "docx", 1, levantamiento),
   f("04G", "Levantamiento_plaza_conjunto", "docx", 1, levantamiento),
   f("05", "Revision_juridica_y_control_de_cierre", "docx", 2, [folio, inmueble, fecha, propietario, field("documentos", "Documentos examinados", "long"), field("hallazgos", "Hallazgos y soporte", "long"), field("pendientes", "Pendientes y responsables", "long")]),
-  f("06", "Opinion_juridica_del_inmueble", "docx", 2, [folio, inmueble, fecha, propietario, field("conclusion", "Conclusión ejecutiva", "long"), field("antecedentes", "Antecedentes y documentos", "long"), field("analisis", "Análisis jurídico", "long"), field("recomendaciones", "Recomendaciones y próximos pasos", "long")]),
+  f("06", "Opinion_juridica_del_inmueble", "docx", 2, [
+    sectionField("Referencia de la opinión", "folio", "Identificador de la operación"),
+    sectionField("Referencia de la opinión", "fechaEmision", "Fecha de emisión", "date"),
+    sectionField("Referencia de la opinión", "destinatario", "Destinatario"),
+    sectionField("Referencia de la opinión", "inmueble", "Domicilio y referencia del inmueble"),
+    sectionField("Referencia de la opinión", "operacion", "Operación y etapa examinadas"),
+    sectionField("01 / Conclusión ejecutiva", "conclusion", "Conclusión ejecutiva", "long"),
+    sectionField("01 / Conclusión ejecutiva", "sustento", "Evidencia y fundamento de la conclusión", "long"),
+    sectionField("02 / Objeto y alcance", "objeto", "Objeto del encargo", "long"),
+    sectionField("02 / Objeto y alcance", "alcance", "Alcance de la revisión", "long"),
+    sectionField("03 / Antecedentes y documentación", "antecedentes", "Antecedentes relevantes", "long"),
+    sectionField("03 / Antecedentes y documentación", "documentos", "Documentación examinada y localizadores", "long"),
+    sectionField("04 / Análisis jurídico", "titularidad", "Titularidad y facultades para disponer", "long"),
+    sectionField("04 / Análisis jurídico", "registro", "Situación registral e identidad del inmueble", "long"),
+    sectionField("04 / Análisis jurídico", "impedimentos", "Impedimentos y condiciones de la operación", "long"),
+    sectionField("05 / Recomendaciones", "recomendaciones", "Recomendaciones y próximos pasos", "long"),
+    sectionField("05 / Recomendaciones", "responsables", "Responsables y acciones pendientes", "long"),
+    sectionField("06 / Límites y actualización", "limites", "Límites de la opinión", "long"),
+    sectionField("06 / Límites y actualización", "actualizacion", "Hechos y momento para actualizar la opinión", "long"),
+    sectionField("Emisión de la opinión", "abogado", "Nombre completo del abogado responsable"),
+    sectionField("Emisión de la opinión", "cedula", "Cédula profesional"),
+  ], true),
   f("07", "Opinion_de_valor_comercial", "xlsx", 2, [folio, inmueble, fecha, field("antecedentes", "Antecedentes", "long"), field("comparables", "Comparables y fuentes", "long"), field("metodos", "Métodos y conciliación", "long"), field("valorConcluido", "Valor comercial concluido", "money")]),
   f("08", "Estimacion_del_neto_del_propietario", "xlsx", 2, [
     folio, field("fechaEmision", "Fecha de emisión", "date"), propietario, inmueble,
