@@ -49,13 +49,13 @@ for (const width of [390, 1440]) {
     await page.getByText("Prefiero dejar mis datos en un formulario", { exact: true }).click();
     await page.getByLabel("Nombre", { exact: true }).fill("Prueba local");
     await page.getByLabel("Teléfono o WhatsApp").fill("6641234567");
-    await page.getByRole("button", { name: "Solicitar evaluación" }).click();
+    await page.getByRole("button", { name: "Enviar consulta" }).click();
     await expect(page.locator("form").getByRole("alert")).toContainText("No pudimos enviar tus datos");
     await expect(page.getByLabel("Nombre", { exact: true })).toHaveValue("Prueba local");
     expect(saved).toBe(false);
     await page.screenshot({ path: testInfo.outputPath(`form-error-${width}.png`) });
     fail = false;
-    await page.getByRole("button", { name: "Solicitar evaluación" }).click();
+    await page.getByRole("button", { name: "Enviar consulta" }).click();
     await expect(page.getByRole("heading", { name: "Recibimos tu solicitud." })).toBeVisible();
     expect(saved).toBe(true);
     await expect(page.getByText("WhatsApp: por confirmar")).toBeVisible();

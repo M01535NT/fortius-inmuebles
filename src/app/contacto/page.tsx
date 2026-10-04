@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contacto" },
   title: "Contacto",
   description:
-    "Solicita diagnostico inmobiliario, opinion de valor o una conversacion inicial.",
+    "Consulta sobre compra, venta o un inmueble publicado y solicita una conversación inicial.",
 };
 
 export default function ContactoPage() {
   return (
     <main className="pt-20">
-      <DiagnosticCTA headingLevel="h1" />
+      <DiagnosticCTA headingLevel="h1" general />
     </main>
   );
 }

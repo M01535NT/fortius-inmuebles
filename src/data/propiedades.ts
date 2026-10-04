@@ -36,6 +36,22 @@ export type FichaTecnica = {
   antiguedad?: string;
 };
 
+export type FuenteSuperficie = "escritura" | "catastro" | "plano" | "medicion" | "declaracion";
+export const FUENTE_SUPERFICIE_LABELS: Record<FuenteSuperficie, string> = {
+  escritura: "Escritura",
+  catastro: "Catastro",
+  plano: "Plano",
+  medicion: "Medición orientativa",
+  declaracion: "Declaración del propietario",
+};
+
+export type InformacionPublica = {
+  fuenteTerreno?: FuenteSuperficie;
+  fuenteConstruccion?: FuenteSuperficie;
+  disponibilidadRevisadaEl?: string; // YYYY-MM-DD; no sustituye confirmar antes de una visita
+  ocupacionEntrega?: string; // solo condiciones autorizadas para publicación
+};
+
 export type ImagenPropiedad = { src: string; alt: string };
 
 /*
@@ -60,6 +76,7 @@ export type Property = {
   direccionAproximada: string; // referencia, nunca dirección exacta
   descripcion: string[]; // párrafos
   ficha: FichaTecnica;
+  informacionPublica?: InformacionPublica;
   amenidades: string[];
   galeria: ImagenPropiedad[];
   /* Placeholders multimedia: cuando el cliente cargue los archivos reales,

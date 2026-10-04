@@ -19,6 +19,7 @@ import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
 import { getPublicAdvisers, getPublicSettings } from "@/lib/backend/public";
 import {
   ESTADO_LABELS,
+  FUENTE_SUPERFICIE_LABELS,
   formatPrecio,
 
   OPERACION_LABELS,
@@ -44,11 +45,11 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 }
 
 /* Ficha técnica: solo filas con dato; números en mono. */
-function fichaRows(p: Property): { label: string; value: string }[] {
+function fichaRows(p: Property): { label: string; value: string; source?: string }[] {
   const f = p.ficha;
-  const rows: { label: string; value: string }[] = [];
-  if (f.terrenoM2) rows.push({ label: "Terreno", value: `${f.terrenoM2} m²` });
-  if (f.construccionM2) rows.push({ label: "Construcción", value: `${f.construccionM2} m²` });
+  const rows: { label: string; value: string; source?: string }[] = [];
+  if (f.terrenoM2 != null) rows.push({ label: "Terreno", value: `${f.terrenoM2} m²`, source: p.informacionPublica?.fuenteTerreno ? FUENTE_SUPERFICIE_LABELS[p.informacionPublica.fuenteTerreno] : "Fuente por confirmar" });
+  if (f.construccionM2 != null) rows.push({ label: "Construcción", value: `${f.construccionM2} m²`, source: p.informacionPublica?.fuenteConstruccion ? FUENTE_SUPERFICIE_LABELS[p.informacionPublica.fuenteConstruccion] : "Fuente por confirmar" });
   if (f.recamaras) rows.push({ label: "Recámaras", value: String(f.recamaras) });
   if (f.banos) rows.push({ label: "Baños", value: String(f.banos) });
   if (f.estacionamientos) rows.push({ label: "Estacionamientos", value: String(f.estacionamientos) });
@@ -193,12 +194,22 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                       className="flex items-baseline justify-between gap-6 border-b border-border py-3.5"
                     >
                       <dt className="text-sm text-muted-foreground">{row.label}</dt>
-                      <dd className="font-mono text-sm text-foreground">{row.value}</dd>
+                      <dd className="text-right font-mono text-sm text-foreground">{row.value}{row.source ? <span className="mt-1 block font-sans text-xs text-muted-foreground">{row.source}</span> : null}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
             ) : null}
+
+            <div className="mt-10 max-w-[560px] border-t border-border pt-5">
+              <h2 className="display-soft text-xl text-foreground">Disponibilidad y entrega</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {property.informacionPublica?.disponibilidadRevisadaEl
+                  ? `Disponibilidad revisada el ${new Date(`${property.informacionPublica.disponibilidadRevisadaEl}T12:00:00Z`).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}. Confírmala antes de programar una visita.`
+                  : "Confirma la disponibilidad antes de programar una visita."}
+              </p>
+              {property.informacionPublica?.ocupacionEntrega ? <p className="mt-2 text-sm leading-relaxed text-foreground/85">{property.informacionPublica.ocupacionEntrega}</p> : null}
+            </div>
 
             {/* Amenidades */}
             {property.amenidades.length > 0 ? (

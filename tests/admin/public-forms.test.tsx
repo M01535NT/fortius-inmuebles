@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ContactForm } from "@/components/sections/contact-form";
+import { BuyerBrief } from "@/components/sections/buyer-brief";
 import { Evaluar } from "@/components/home/evaluar";
 import { LeadMagnet } from "@/components/sections/lead-magnet";
 import { PropertyDocuments } from "@/components/property/property-documents";
@@ -19,7 +20,8 @@ vi.mock("@/components/gsap/split-heading", () => ({ SplitHeading: () => null }))
 vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: React.PropsWithChildren) => children }));
 
 const variants = [
-  { name: "contacto", component: <ContactForm />, button: "Solicitar evaluación" },
+  { name: "contacto", component: <ContactForm />, button: "Enviar consulta" },
+  { name: "comprador", component: <BuyerBrief />, button: "Enviar mi búsqueda" },
   { name: "evaluar", component: <Evaluar />, button: "Solicitar evaluación" },
   { name: "checklist", component: <LeadMagnet />, button: "Obtener el checklist" },
   { name: "documentos", component: <PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} />, button: "Liberar descargas" },
@@ -30,8 +32,10 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 function fillEvaluationFields(container: HTMLElement) {
   const zone = container.querySelector('input[name="zona"]');
   const type = container.querySelector('select[name="tipo"]');
+  const use = container.querySelector('input[name="uso"]');
   if (zone) fireEvent.change(zone, { target: { value: "Centro" } });
   if (type) fireEvent.change(type, { target: { value: "Casa" } });
+  if (use) fireEvent.change(use, { target: { value: "Vivir" } });
 }
 const enabled = (component: React.ReactNode) => (
   <PublicFeaturesProvider publicLeadsEnabled>{component}</PublicFeaturesProvider>

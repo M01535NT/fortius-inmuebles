@@ -149,6 +149,21 @@ test("property edits preserve all multimedia and fields and never navigate on fa
   );
   await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/propiedades"));
 });
+test("staff can save the public source and delivery facts on a property", async () => {
+  await db.propiedades.load();
+  render(<PropertyForm initial={db.propiedades.list()[0]} />);
+  fireEvent.change(screen.getByLabelText("Fuente de terreno"), { target: { value: "escritura" } });
+  fireEvent.change(screen.getByLabelText("Fuente de construcción"), { target: { value: "plano" } });
+  fireEvent.change(screen.getByLabelText("Disponibilidad revisada el"), { target: { value: "2026-10-04" } });
+  fireEvent.change(screen.getByLabelText("Ocupación y entrega"), { target: { value: "Entrega por acordar" } });
+  fireEvent.submit(screen.getByRole("button", { name: "Guardar cambios" }).closest("form")!);
+  await waitFor(() => expect(sent?.data.informacionPublica).toEqual({
+    fuenteTerreno: "escritura",
+    fuenteConstruccion: "plano",
+    disponibilidadRevisadaEl: "2026-10-04",
+    ocupacionEntrega: "Entrega por acordar",
+  }));
+});
 test("new real property defaults unpublished and not demo", async () => {
   render(<PropertyForm />);
   expect(

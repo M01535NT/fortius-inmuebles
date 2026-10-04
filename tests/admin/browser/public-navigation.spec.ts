@@ -9,7 +9,7 @@ const sections = [
 const menuRoutes = ["/", "/inventario", "/#metodo", "/herramientas", "/blog", "/contacto"];
 const pages = [
   ...sections, "/herramientas/hipoteca", "/herramientas/gastos-de-cierre",
-  "/zonas", "/zonas/zona-rio", "/inventario/residencia-vista-al-mar-playas",
+  "/inventario/residencia-vista-al-mar-playas",
   "/blog/cuanto-vale-mi-casa-tijuana", "/vender-propiedad/gracias",
   "/ruta-inexistente-mnt",
 ];
@@ -149,7 +149,7 @@ test("inventory menu keeps primary links accessible and restores focus when clos
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
 });
 
-test("property, article, zone and calculator pages return to their catalogs", async ({ page }) => {
+test("property, article and calculator pages return to their catalogs", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/inventario");
@@ -164,17 +164,39 @@ test("property, article, zone and calculator pages return to their catalogs", as
   await page.getByRole("link", { name: "Volver al Blog" }).click();
   await expect(page).toHaveURL(/\/blog$/);
 
-  await page.goto("/zonas");
-  await page.locator('main a[href="/zonas/zona-rio"]').click();
-  await expect(page).toHaveURL(/\/zonas\/zona-rio$/);
-  await page.getByRole("navigation", { name: "Miga de pan" }).getByRole("link", { name: "Zonas", exact: true }).click();
-  await expect(page).toHaveURL(/\/zonas$/);
-
   for (const calculator of ["hipoteca", "gastos-de-cierre"]) {
     await page.goto("/herramientas");
     await page.locator(`main a[href="/herramientas/${calculator}"]`).click();
     await expect(page).toHaveURL(new RegExp(`/herramientas/${calculator}$`));
     await page.getByRole("main").getByRole("link", { name: "Herramientas", exact: true }).click();
     await expect(page).toHaveURL(/\/herramientas$/);
+  }
+});
+
+test("buyers, sellers and segment pages lead to the right next step on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/comprar-propiedad");
+  await page.getByRole("link", { name: "Contar qué busco" }).click();
+  await expect(page).toHaveURL(/\/comprar-propiedad#busqueda$/);
+  await expect(page.getByRole("textbox", { name: "¿Para qué necesitas el inmueble?" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Presupuesto aproximado" })).toBeVisible();
+
+  await page.goto("/vender-propiedad");
+  await expect(page.getByRole("heading", { name: "Antes de publicar." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Estimar gastos y neto de venta" })).toHaveAttribute("href", "/herramientas/gastos-de-cierre");
+
+  for (const [route, heading] of [["residencial", "Habitarla"], ["comercial", "Costo de ocupar"], ["industrial", "Capacidad técnica"]]) {
+    await page.goto(`/${route}`);
+    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
+test("retired zone URLs permanently resolve to inventory", async ({ page }) => {
+  for (const route of ["/zonas", "/zonas/zona-rio"]) {
+    const response = await page.request.get(route, { maxRedirects: 0 });
+    expect(response.status()).toBe(308);
+    expect(response.headers().location).toBe("/inventario");
   }
 });

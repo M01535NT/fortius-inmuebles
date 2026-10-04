@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/inventario" },
   title: "Inventario",
   description:
-    "Propiedades en venta y renta en Tijuana y Baja California, presentadas con información revisada.",
+    "Propiedades en venta y renta con características, precio y condiciones publicadas por cada inmueble.",
 };
 
 /* El inventario publicado del panel MNT se consulta en cada solicitud. */
@@ -25,7 +25,7 @@ export default async function InventarioPage() {
           level="h1"
           eyebrow="Inventario"
           title="Propiedades."
-          description="Cada propiedad publicada pasó por revisión documental y análisis de precio. Lo que ves es información verificada, no promesas."
+          description="Consulta las características de cada inmueble y pregunta por su disponibilidad, documentos y condiciones antes de decidir."
         />
         <div className="mt-12">
           <InventoryExplorer propiedades={propiedades} />

@@ -9,7 +9,6 @@ import type { Metadata } from "next";
 import { propiedades } from "@/data/propiedades";
 import { siteConfig } from "@/data/site";
 import PropertyDetailPage, { generateMetadata as propertyMetadata } from "@/app/inventario/[slug]/page";
-import { generateMetadata as zoneMetadata } from "@/app/zonas/[zona]/page";
 
 vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }) }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-mnt-pathname": "/" }) }));
@@ -88,7 +87,6 @@ const publicPages: [string, () => Promise<{ metadata: Metadata } >][] = [
   ["/", () => import("@/app/page")],
   ["/contacto", () => import("@/app/contacto/page")],
   ["/inventario", () => import("@/app/inventario/page")],
-  ["/zonas", () => import("@/app/zonas/page")],
   ["/residencial", () => import("@/app/residencial/page")],
   ["/comercial", () => import("@/app/comercial/page")],
   ["/industrial", () => import("@/app/industrial/page")],
@@ -119,8 +117,15 @@ test.each([
     images: [{ url: `${publicOrigin}/inventario/residencia-vista-al-mar-playas/imagen-social`, type: "image/jpeg", width: 1200, height: 630 }],
   });
   expect(metadata.robots).toEqual({ index: false, follow: true });
-  expect((await zoneMetadata({ params: Promise.resolve({ zona: "playas-de-tijuana" }) })).alternates?.canonical).toBe("/zonas/playas-de-tijuana");
   expect(JSON.stringify(metadata)).not.toContain("mnt.example");
+});
+test("retired zone pages redirect to inventory and leave the sitemap", async () => {
+  const config = (await import("../../next.config")).default;
+  const redirects = await config.redirects?.();
+  expect(redirects).toContainEqual({ source: "/zonas", destination: "/inventario", permanent: true });
+  expect(redirects).toContainEqual({ source: "/zonas/:zona", destination: "/inventario", permanent: true });
+  const sitemap = (await import("@/app/sitemap")).default;
+  expect((await sitemap()).some((entry) => entry.url.includes("/zonas"))).toBe(false);
 });
 test("rendered listing structured data uses production URLs for local assets and preserves remote URLs", async () => {
   const page = await PropertyDetailPage({ params: Promise.resolve({ slug: propiedades[0].slug }) });

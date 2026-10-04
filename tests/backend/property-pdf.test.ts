@@ -56,7 +56,7 @@ test("editorial sheets omit empty fields and filler without losing public facts"
   expect(text).toContain("1.5 baños");
   expect(text).toMatch(/\/\s*mes/);
   expect(text).toContain("Apartada");
-  expect(text).not.toMatch(/No especificad|por confirmar|Fotografía no disponible|Casa Olivo|Crédito/);
+  expect(text).not.toMatch(/No especificad|Fotografía no disponible|Casa Olivo|Crédito/);
   expect(text).not.toContain("Terreno");
 });
 
@@ -81,13 +81,23 @@ test("the printed sheet contains the public details and usable contact values, w
   for (const paragraph of property.descripcion) expect(text).toContain(paragraph);
   for (const amenity of property.amenidades) expect(text).toContain(amenity);
   for (const place of property.puntosDeInteres) expect(text).toContain(`${place.lugar} · ${place.minutos} min`);
-  for (const detail of ["385 m²", "320 m²", "4 recámaras", "4.5 baños", "2 estacionamientos", "Antigüedad: 6 años", "Disponible", "Crédito disponible", property.direccionAproximada]) expect(text).toContain(detail);
+  for (const detail of ["385 m²", "320 m²", "4 recámaras", "4.5 baños", "2 estacionamientos", "Antigüedad: 6 años", "Disponible", "Crédito sujeto a evaluación", property.direccionAproximada]) expect(text).toContain(detail);
   expect(text).toContain("Teléfono: +52 664 123 4567");
   expect(text).toContain("WhatsApp: +526647654321");
   expect(text).toContain("Correo: asesor@example.com");
   expect(text).toContain(settings.horario);
   expect(text).not.toMatch(/Más información|Ficha técnica en PDF|documento imprimible|Ver inmueble|Recorrido de 360|Messenger/);
   expect(text).not.toContain("Superficies, distribución y amenidades en un documento imprimible.");
+});
+
+test("the printed sheet includes sourced surfaces and reviewed delivery facts", async () => {
+  const property = { ...propiedades[0], informacionPublica: { fuenteTerreno: "escritura" as const, fuenteConstruccion: "plano" as const, disponibilidadRevisadaEl: "2026-10-04", ocupacionEntrega: "Entrega 30 días después del cierre" } };
+  const bytes = await createPropertyPdf(property, { settings: null, siteUrl: "https://example.com", loadImage: async () => null });
+  const text = financialPdfPages(await PDFDocument.load(bytes)).join(" ").replace(/\s+/g, " ");
+  expect(text).toContain("Terreno · Escritura");
+  expect(text).toContain("Construcción · Plano");
+  expect(text).toContain("Disponibilidad revisada el 4 de octubre de 2026");
+  expect(text).toContain("Entrega 30 días después del cierre");
 });
 
 test("the cover photograph fills the printable width at its natural landscape aspect ratio", async () => {

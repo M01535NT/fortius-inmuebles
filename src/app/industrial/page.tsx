@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { InteriorPage } from "@/components/sections/interior-page";
+import { SegmentDetail } from "@/components/sections/segment-detail";
 import { routePages } from "@/data/site";
 
 export const metadata: Metadata = {
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function IndustrialPage() {
-  return <InteriorPage {...routePages.industrial} />;
+  return <><InteriorPage {...routePages.industrial} primary={{ href: "/inventario", label: "Ver propiedades" }} secondary={{ href: "/contacto", label: "Consultar un caso" }} /><SegmentDetail segment="industrial" /></>;
 }

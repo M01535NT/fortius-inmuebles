@@ -8,6 +8,8 @@ type InteriorPageProps = {
   title: string;
   description: string;
   bullets: string[];
+  primary?: { href: string; label: string };
+  secondary?: { href: string; label: string };
 };
 
 /*
@@ -15,7 +17,7 @@ type InteriorPageProps = {
   (display type, tokens, hairline lists), calmer vibe: no photo, the
   typography carries the page.
 */
-export function InteriorPage({ title, description, bullets }: InteriorPageProps) {
+export function InteriorPage({ title, description, bullets, primary = { href: "/#evaluar", label: "Evaluar mi propiedad" }, secondary = { href: "/#metodo", label: "Conocer el método" } }: InteriorPageProps) {
   return (
     <section className="bg-background pt-28 md:pt-32">
       <Container className="grid gap-14 pb-20 md:pb-28 lg:grid-cols-12">
@@ -28,16 +30,16 @@ export function InteriorPage({ title, description, bullets }: InteriorPageProps)
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link
-              href="/#evaluar"
+              href={primary.href}
               className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
-              Evaluar mi propiedad
+              {primary.label}
             </Link>
             <Link
-              href="/#metodo"
+              href={secondary.href}
               className="inline-flex h-12 items-center rounded-md border border-border px-6 text-base font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
             >
-              Conocer el método
+              {secondary.label}
             </Link>
           </div>
         </BlurFade>

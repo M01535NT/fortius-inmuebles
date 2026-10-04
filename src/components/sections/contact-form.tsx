@@ -10,7 +10,7 @@ import { PublicLeadForm } from "@/components/forms/public-lead-form";
   Formulario de contacto. El lead se entrega al backend dedicado de MNT; si la entrega falla,
   NO se dan las gracias: se dice la verdad y se ofrece el teléfono.
 */
-export function ContactForm() {
+export function ContactForm({ submitLabel = "Enviar consulta" }: { submitLabel?: string }) {
   const [sent, setSent] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +125,7 @@ export function ContactForm() {
         disabled={enviando}
         className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60 sm:w-auto"
       >
-        {enviando ? "Enviando…" : "Solicitar evaluación"}
+        {enviando ? "Enviando…" : submitLabel}
       </button>
 
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">

@@ -10,13 +10,12 @@ import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
   Lead magnet: checklist de venta a cambio de nombre y WhatsApp.
-  El PDF es placeholder (public/descargas/) con marca provisional.
   La descarga se libera solo tras confirmar la persistencia en el backend de MNT.
 */
 const PREVIEW = [
-  "Escritura inscrita y sin gravámenes pendientes.",
-  "Predial y agua al corriente, con recibos a la mano.",
-  "Precio definido con comparables vendidos, no al tanteo.",
+  "Identificar al propietario o representante y reunir el título disponible.",
+  "Revisar adeudos, gravámenes y diferencias documentales que deban resolverse.",
+  "Sustentar el precio con la evidencia de mercado que exista.",
 ];
 
 export function LeadMagnet() {
@@ -52,15 +51,15 @@ export function LeadMagnet() {
             {/* Pitch */}
             <div className="lg:col-span-6">
               <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                CHK-VEN-001 · Descarga
+                Guía para propietarios
               </p>
               <h2 className="display-title mt-3 max-w-[18ch] text-3xl text-foreground sm:text-4xl">
                 ¿Está lista tu propiedad para venderse?
               </h2>
               <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
-                Diez puntos que revisamos antes de publicar cualquier
-                propiedad. Marca los tuyos y sabrás qué falta antes de salir
-                al mercado.
+                Diez preguntas para preparar una venta. Algunas se resuelven
+                de inmediato; otras requieren revisar documentos o consultar
+                a un especialista antes de publicar.
               </p>
               <ul className="mt-6 space-y-2.5">
                 {PREVIEW.map((item) => (

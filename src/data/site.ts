@@ -28,15 +28,15 @@ export const siteConfig = {
 
 export const routePages = {
   residencial: {
-    title: "Casas y departamentos en Tijuana",
+    title: "Casas y departamentos para vivir",
     eyebrow: "Residencial",
     description:
       "Te acompañamos al comprar, vender o rentar. Revisamos las características del inmueble, su precio y la documentación disponible.",
     bullets: [
-      "Análisis de la zona y de inmuebles comparables.",
-      "Preparación de ficha y expediente.",
-      "Filtro de prospectos y visitas.",
-      "Acompañamiento comercial hasta cierre.",
+      "Distribución y estado físico observable.",
+      "Superficies y documentos según su fuente.",
+      "Presupuesto total y forma de pago.",
+      "Condiciones de ocupación y entrega.",
     ],
   },
   comercial: {
@@ -45,10 +45,10 @@ export const routePages = {
     description:
       "Revisamos ubicación, accesos y condiciones del espacio según la actividad que buscas desarrollar o el inmueble que quieres ofrecer.",
     bullets: [
-      "Análisis de ubicación y demanda.",
-      "Revisión de condiciones de uso.",
-      "Presentación comercial dirigida.",
-      "Negociación con criterios claros.",
+      "Uso previsto y restricciones del espacio.",
+      "Acceso, visibilidad y adaptación necesaria.",
+      "Renta o precio más gastos de ocupación.",
+      "Condiciones del contrato y entrega.",
     ],
   },
   industrial: {
@@ -57,10 +57,10 @@ export const routePages = {
     description:
       "Atendemos naves, terrenos y espacios operativos con foco en documentación, uso previsto, accesos y viabilidad comercial.",
     bullets: [
-      "Revisión de uso y características.",
-      "Revisión de accesos y necesidades de operación.",
-      "Revisión de la documentación disponible.",
-      "Comercialización dirigida.",
+      "Uso previsto y documentación disponible.",
+      "Acceso para carga y maniobras.",
+      "Energía, instalaciones y capacidad comprobable.",
+      "Adecuaciones, costos y plazos de ocupación.",
     ],
   },
   vender: {
@@ -81,10 +81,10 @@ export const routePages = {
     description:
       "Acompañamos la búsqueda y evaluación de propiedades con información clara para decidir mejor.",
     bullets: [
-      "Definición de objetivo y zona.",
-      "Comparación de alternativas.",
-      "Revisión de información relevante.",
-      "Acompañamiento en oferta y cierre.",
+      "Uso, presupuesto y momento de compra.",
+      "Alternativas y costo total estimado.",
+      "Datos disponibles y pendientes de cada inmueble.",
+      "Oferta y condiciones por escrito.",
     ],
   },
   dueDiligence: {

@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, PDFName, PDFString, pushGraphicsState, popGraphicsState, rectangle, clip, endPath, type PDFFont, type PDFImage } from "pdf-lib";
-import { ESTADO_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
+import { ESTADO_LABELS, FUENTE_SUPERFICIE_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
 import type { Asesor, SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
 
@@ -151,8 +151,8 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   // The cover follows the reference: narrative on the left, concise facts on the right.
   const leftWidth = 306, rightWidth = 176, rightX = width - margin - rightWidth;
   const specs: Row[] = [];
-  for (const [label, value] of [["Construcción", p.ficha.construccionM2], ["Terreno", p.ficha.terrenoM2]] as const) {
-    if (value != null) specs.push(row(`${value} m²`, serif, 22), row(label, regular, 9, muted, 7));
+  for (const [label, value, source] of [["Construcción", p.ficha.construccionM2, p.informacionPublica?.fuenteConstruccion], ["Terreno", p.ficha.terrenoM2, p.informacionPublica?.fuenteTerreno]] as const) {
+    if (value != null) specs.push(row(`${value} m²`, serif, 22), row(`${label} · ${source ? FUENTE_SUPERFICIE_LABELS[source] : "fuente por confirmar"}`, regular, 9, muted, 7));
   }
   if (p.ficha.recamaras != null) specs.push(row(`${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}`));
   if (p.ficha.banos != null) specs.push(row(`${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}`));
@@ -239,7 +239,13 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     p.amenidades.length ? [row("Amenidades", serif, 21, ink, 9), ...p.amenidades.map(a => row(a, regular, 10, ink, 3))] : [],
     p.puntosDeInteres.length ? [row("Alrededores", serif, 21, ink, 9), row("Tiempo aproximado en auto", regular, 8.5, muted, 6), ...p.puntosDeInteres.map(point => row(`${point.lugar} · ${point.minutos} min`, regular, 10, ink, 3))] : []
   );
-  if (p.operacion === "venta") text(p.creditoDisponible ? "Crédito disponible" : "Crédito: consultar con el asesor", 9, regular, muted, 10);
+  if (p.operacion === "venta") text(p.creditoDisponible ? "Crédito sujeto a evaluación" : "Crédito: consultar con el asesor", 9, regular, muted, 10);
+  section("Disponibilidad y entrega");
+  if (p.informacionPublica?.disponibilidadRevisadaEl) {
+    const checked = new Date(`${p.informacionPublica.disponibilidadRevisadaEl}T12:00:00Z`);
+    text(`Disponibilidad revisada el ${checked.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}. Confirmar antes de programar una visita.`, 9.5);
+  } else text("Confirmar disponibilidad antes de programar una visita.", 9.5);
+  if (p.informacionPublica?.ocupacionEntrega) text(p.informacionPublica.ocupacionEntrega, 9.5);
 
   // A compact gallery, two complete photographs per row; broken images leave no filler blocks.
   const gallery: { image: PDFImage; caption: string }[] = completeCover ? [completeCover] : [];

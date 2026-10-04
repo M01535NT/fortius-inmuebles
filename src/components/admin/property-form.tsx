@@ -17,6 +17,7 @@ import {
 import {
   TIPO_LABELS,
   type DocumentoPropiedad,
+  type FuenteSuperficie,
   type ImagenPropiedad,
   type Property,
   type TipoPropiedad,
@@ -112,8 +113,16 @@ export function PropertyForm({ initial: source }: Props) {
     }
 
     const modalidad = v("modalidad");
+    const informacionPublica: NonNullable<Property["informacionPublica"]> = {
+      fuenteTerreno: (v("fuenteTerreno") || undefined) as FuenteSuperficie | undefined,
+      fuenteConstruccion: (v("fuenteConstruccion") || undefined) as FuenteSuperficie | undefined,
+      disponibilidadRevisadaEl: v("disponibilidadRevisadaEl") || undefined,
+      ocupacionEntrega: v("ocupacionEntrega") || undefined,
+    };
+    const base = { ...initial };
+    delete base.informacionPublica;
     const property: Property = {
-      ...initial,
+      ...base,
       slug,
       codigo:
         v("codigo") ||
@@ -147,6 +156,7 @@ export function PropertyForm({ initial: source }: Props) {
         estacionamientos: num("estacionamientos"),
         antiguedad: v("antiguedad") || undefined,
       },
+      ...(Object.values(informacionPublica).some(Boolean) ? { informacionPublica } : {}),
       amenidades: v("amenidades")
         .split("\n")
         .map((a) => a.trim())
@@ -566,6 +576,28 @@ export function PropertyForm({ initial: source }: Props) {
                 className={inputClass}
               />
             </Field>
+          </div>
+          <div className="border-t border-border pt-5">
+            <h3 className="display-soft text-base text-foreground">Información para la ficha pública</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Publica solo datos autorizados. Identifica la fuente de cada superficie y registra la fecha únicamente cuando alguien verificó la disponibilidad.</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label="Fuente de terreno" htmlFor="pf-fuenteTerreno">
+                <select id="pf-fuenteTerreno" name="fuenteTerreno" defaultValue={initial?.informacionPublica?.fuenteTerreno ?? ""} className={inputClass}>
+                  <option value="">Sin indicar</option><option value="escritura">Escritura</option><option value="catastro">Catastro</option><option value="plano">Plano</option><option value="medicion">Medición orientativa</option><option value="declaracion">Declaración del propietario</option>
+                </select>
+              </Field>
+              <Field label="Fuente de construcción" htmlFor="pf-fuenteConstruccion">
+                <select id="pf-fuenteConstruccion" name="fuenteConstruccion" defaultValue={initial?.informacionPublica?.fuenteConstruccion ?? ""} className={inputClass}>
+                  <option value="">Sin indicar</option><option value="escritura">Escritura</option><option value="catastro">Catastro</option><option value="plano">Plano</option><option value="medicion">Medición orientativa</option><option value="declaracion">Declaración del propietario</option>
+                </select>
+              </Field>
+              <Field label="Disponibilidad revisada el" htmlFor="pf-disponibilidadRevisadaEl">
+                <input id="pf-disponibilidadRevisadaEl" name="disponibilidadRevisadaEl" type="date" defaultValue={initial?.informacionPublica?.disponibilidadRevisadaEl} className={inputClass} />
+              </Field>
+              <Field label="Ocupación y entrega" htmlFor="pf-ocupacionEntrega" hint="Condición comunicable al público; evita datos personales del ocupante.">
+                <input id="pf-ocupacionEntrega" name="ocupacionEntrega" maxLength={500} defaultValue={initial?.informacionPublica?.ocupacionEntrega} placeholder="Ej. Desocupada; fecha de entrega por acordar" className={inputClass} />
+              </Field>
+            </div>
           </div>
         </div>
       </section>

@@ -7,11 +7,11 @@ import { Plus } from "lucide-react";
 const QA = [
   {
     q: "¿Cómo agendo una visita?",
-    a: "Envía el formulario de esta página o usa el botón de agendar. Calificamos cada solicitud y coordinamos contigo día y hora; en la visita te acompaña el asesor titular de la propiedad.",
+    a: "Envía el formulario de esta página. Confirmamos la disponibilidad y coordinamos contigo día, hora y condiciones de la visita.",
   },
   {
     q: "¿Puedo comprar con crédito hipotecario?",
-    a: "Sí, cuando la propiedad califica. Te acompañamos en el proceso: avalúo, gestión con el banco y coordinación notarial. Los tiempos con crédito suelen ser mayores que de contado y te los explicamos desde el inicio.",
+    a: "Depende del inmueble, tu perfil y la institución que otorgue el crédito. Podemos revisar contigo los datos de la propiedad; la aprobación y condiciones las confirma el banco.",
   },
   {
     q: "¿El precio es negociable?",
@@ -19,7 +19,7 @@ const QA = [
   },
   {
     q: "¿Qué gastos debo considerar además del precio?",
-    a: "Impuestos de adquisición, honorarios notariales, avalúo y gestoría. Te entregamos una estimación desglosada antes de que decidas.",
+    a: "Considera impuestos de adquisición, honorarios notariales y, si aplica, avalúo y crédito. Puedes hacer una estimación inicial en nuestra calculadora de gastos de cierre.",
   },
 ];
 

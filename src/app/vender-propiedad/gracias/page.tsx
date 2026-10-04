@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const SIGUIENTE = [
   "Revisamos los datos de tu propiedad y su zona.",
-  "Consultamos comparables vendidos para una lectura inicial de valor.",
+  "Revisamos la información de precio disponible y te decimos qué falta para estimar un rango.",
   "Te contactamos para explicarte el resultado y el siguiente paso.",
 ];
 

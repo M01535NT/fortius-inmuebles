@@ -38,6 +38,16 @@ describe("BFF validation and authorization behavior", () => {
     expect(output[0].documentos).toEqual([]);
     expect(projectPublic("leads", [{ nombre: "Privado" }])).toEqual([]);
   });
+  it("publishes only authorized property facts and rejects malformed review dates", () => {
+    const info = { fuenteTerreno: "escritura", disponibilidadRevisadaEl: "2026-10-04", ocupacionEntrega: "Desocupada; fecha por acordar", propietario: "secreto" };
+    const input = { ...propiedades[0], publicada: true, informacionPublica: info };
+    expect(projectPublic("propiedades", [input])[0].informacionPublica).toEqual({
+      fuenteTerreno: "escritura",
+      disponibilidadRevisadaEl: "2026-10-04",
+      ocupacionEntrega: "Desocupada; fecha por acordar",
+    });
+    expect(() => parseRecord("propiedades", input.slug, { ...input, informacionPublica: { ...info, disponibilidadRevisadaEl: "mañana" } })).toThrow();
+  });
   it.each(["videoInstitucionalUrl", "facebook", "instagram", "whatsapp"])("public configuration blanks private capabilities in %s without dropping contact settings", (field) => {
     const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/mnt-public/video.mp4" };
     for (const unsafe of [

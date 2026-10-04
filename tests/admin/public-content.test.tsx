@@ -58,12 +58,12 @@ test("contact form retains input on rejected remote write and confirms acknowled
   render(<PublicFeaturesProvider publicLeadsEnabled><ContactForm /></PublicFeaturesProvider>);
   fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Nombre público" } });
   fireEvent.change(screen.getByLabelText(/Teléfono/), { target: { value: "6641234567" } });
-  fireEvent.click(screen.getByRole("button", { name: "Solicitar evaluación" }));
+  fireEvent.click(screen.getByRole("button", { name: "Enviar consulta" }));
   await screen.findByRole("alert");
   expect((screen.getByLabelText("Nombre") as HTMLInputElement).value).toBe("Nombre público");
   expect(persisted).toBe(false);
   vi.mocked(fetch).mockImplementation(async () => { persisted = true; return Response.json({ id: "acknowledged" }); });
-  fireEvent.click(screen.getByRole("button", { name: "Solicitar evaluación" }));
+  fireEvent.click(screen.getByRole("button", { name: "Enviar consulta" }));
   await screen.findByText(/Recibimos/);
   expect(persisted).toBe(true);
 });

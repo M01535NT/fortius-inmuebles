@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 
 import { siteConfig } from "@/data/site";
-import { zonas } from "@/data/zonas";
 import { getPropiedades } from "@/lib/inventario";
 import { getBlogPosts } from "@/lib/blog";
 
@@ -20,8 +19,6 @@ const routes = [
   "/herramientas",
   "/herramientas/hipoteca",
   "/herramientas/gastos-de-cierre",
-  "/zonas",
-  ...zonas.map((z) => `/zonas/${z.slug}`),
   "/nosotros",
   "/contacto",
   "/privacidad",

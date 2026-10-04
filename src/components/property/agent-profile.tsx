@@ -38,9 +38,8 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
           <p className="display-soft text-2xl text-foreground">{asesor.nombre}</p>
           <p className="mt-1 text-sm text-muted-foreground">{asesor.cargo}</p>
           <p className="mt-3 max-w-[56ch] text-base leading-relaxed text-muted-foreground">
-            Acompaña esta operación de principio a fin con el proceso
-            documentado de la firma: precio con datos, expediente revisado y
-            seguimiento por escrito.
+            Es el contacto para preguntar por la información disponible, las
+            visitas y las condiciones de esta propiedad.
           </p>
 
           <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
