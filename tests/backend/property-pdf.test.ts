@@ -1,11 +1,22 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { PDFDocument, PDFArray, PDFDict, PDFName, PDFString } from "pdf-lib";
+import { PDFDocument, PDFArray, PDFDict, PDFName, PDFRawStream, decodePDFRawStream } from "pdf-lib";
+import sharp from "sharp";
 import { propiedades } from "@/data/propiedades";
 import { createPropertyPdf } from "@/lib/property-pdf";
 import { loadPdfImage } from "@/lib/backend/pdf-images";
 import { financialPdfPages } from "../helpers/financial-pdf";
 
 afterEach(() => vi.unstubAllGlobals());
+
+function pageContent(pdf: PDFDocument, index: number) {
+  const contents = pdf.getPage(index).node.Contents();
+  const values = contents instanceof PDFArray ? contents.asArray() : [contents];
+  return values.map(value => {
+    const stream = pdf.context.lookup(value);
+    if (!(stream instanceof PDFRawStream)) throw new Error("Missing PDF content stream");
+    return new TextDecoder().decode(decodePDFRawStream(stream).decode());
+  }).join("\n");
+}
 
 test("PDF uses real images, Spanish metadata, and paginates long public descriptions", async () => {
   const property = { ...propiedades[0], descripcion: Array.from({ length: 35 }, () => "Descripción amplia de la propiedad. Superficies y distribución verificables. ".repeat(6)), ficha: { ...propiedades[0].ficha, recamaras: 0 } };
@@ -62,41 +73,54 @@ test("the reference template produces a compact two-page sheet with the property
   expect(text).toContain("4.5 baños");
 });
 
-test("long public resources retain clickable links on each page and reject active protocols", async () => {
-  const property = {
-    ...propiedades[0], galeria: [], descripcion: [], amenidades: [], puntosDeInteres: [],
-    videoUrl: "javascript:alert(1)", tour360Url: "https://example.com/tour",
-    documentos: [
-      { codigo: "PUBLIC", nombre: "Documento público con información de la propiedad. ".repeat(120), descripcion: "FINAL DEL DOCUMENTO", url: "/documentos/publico.pdf" },
-      { codigo: "INVALID", nombre: "No debe aparecer", descripcion: "No debe aparecer", url: "file:///private" },
-    ],
-  };
-  const bytes = await createPropertyPdf(property, { settings: null, siteUrl: "https://example.com", loadImage: async () => null });
+test("the printed sheet contains the public details and usable contact values, without resource teasers", async () => {
+  const property = { ...propiedades[0], demo: false, videoUrl: "https://example.com/video", tour360Url: "https://example.com/tour" };
+  const settings = { nombreComercial: "Fortius", telefono: "+52 664 123 4567", whatsapp: "526647654321", email: "asesor@example.com", horario: "Lunes a viernes, de 9:00 a 18:00", facebook: "https://m.me/fortius", instagram: "", videoInstitucionalUrl: "" };
+  const bytes = await createPropertyPdf(property, { settings, siteUrl: "https://example.com", loadImage: async () => null });
+  const text = financialPdfPages(await PDFDocument.load(bytes)).join(" ").replace(/\s+/g, " ");
+  for (const paragraph of property.descripcion) expect(text).toContain(paragraph);
+  for (const amenity of property.amenidades) expect(text).toContain(amenity);
+  for (const place of property.puntosDeInteres) expect(text).toContain(`${place.lugar} · ${place.minutos} min`);
+  for (const detail of ["385 m²", "320 m²", "4 recámaras", "4.5 baños", "2 estacionamientos", "Antigüedad: 6 años", "Disponible", "Crédito disponible", property.direccionAproximada]) expect(text).toContain(detail);
+  expect(text).toContain("Teléfono: +52 664 123 4567");
+  expect(text).toContain("WhatsApp: +526647654321");
+  expect(text).toContain("Correo: asesor@example.com");
+  expect(text).toContain(settings.horario);
+  expect(text).not.toMatch(/Más información|Ficha técnica en PDF|documento imprimible|Ver inmueble|Recorrido de 360|Messenger/);
+  expect(text).not.toContain("Superficies, distribución y amenidades en un documento imprimible.");
+});
+
+test("the cover photograph fills the printable width at its natural landscape aspect ratio", async () => {
+  const bytes = await createPropertyPdf(propiedades[0], { settings: null, siteUrl: "https://example.com", loadImage: loadPdfImage });
   const pdf = await PDFDocument.load(bytes);
-  const text = financialPdfPages(pdf).join(" ");
-  expect(text).toContain("FINAL DEL DOCUMENTO");
-  expect(text).not.toContain("No debe aparecer");
-  const targets: string[] = [];
-  let pagesWithDocument = 0;
-  for (const page of pdf.getPages()) {
-    let hasDocument = false;
-    for (const ref of page.node.Annots()?.asArray() ?? []) {
-      const annotation = pdf.context.lookup(ref, PDFDict);
-      const target = annotation.lookup(PDFName.of("A"), PDFDict).lookup(PDFName.of("URI"), PDFString).decodeText();
-      targets.push(target);
-      if (target.endsWith("/documentos/publico.pdf")) hasDocument = true;
-      const bounds = annotation.lookup(PDFName.of("Rect"), PDFArray).asArray().map(value => Number(value.toString()));
-      expect(bounds[0]).toBeGreaterThanOrEqual(46);
-      expect(bounds[1]).toBeGreaterThanOrEqual(60);
-      expect(bounds[2]).toBeLessThanOrEqual(566);
-      expect(bounds[3]).toBeLessThanOrEqual(703);
-    }
-    if (hasDocument) pagesWithDocument++;
-  }
-  expect(targets).toContain("https://example.com/tour");
-  expect(targets).toContain(`https://example.com/inventario/${property.slug}`);
-  expect(targets.every(url => url.startsWith("https://example.com/"))).toBe(true);
-  expect(pagesWithDocument).toBeGreaterThan(1);
+  const page = pdf.getPage(0);
+  const streams = pageContent(pdf, 0);
+  const images = [...streams.matchAll(/([\d.]+) 0 0 ([\d.]+) 0 0 cm\n1 0 0 1 0 0 cm\n\/(Image-[^ ]+) Do/g)];
+  // The first image is the brand logo; the second is the property's cover photo.
+  const [, drawnWidth, drawnHeight, resource] = images[1];
+  expect(Number(drawnWidth)).toBeCloseTo(520, 3);
+  expect(Number(drawnHeight)).toBeGreaterThan(280);
+  const objects = page.node.Resources()!.lookup(PDFName.of("XObject"), PDFDict);
+  const image = objects.lookup(PDFName.of(resource));
+  if (!(image instanceof PDFRawStream)) throw new Error("Missing cover photograph");
+  const originalWidth = Number(image.dict.get(PDFName.of("Width"))!.toString());
+  const originalHeight = Number(image.dict.get(PDFName.of("Height"))!.toString());
+  expect(Number(drawnWidth) / Number(drawnHeight)).toBeCloseTo(originalWidth / originalHeight, 5);
+});
+
+test("portrait covers retain their complete original in the printed gallery", async () => {
+  const portrait = await sharp({ create: { width: 400, height: 800, channels: 3, background: "#8a1634" } }).jpeg().toBuffer();
+  const load = vi.fn(async () => portrait);
+  const property = { ...propiedades[0], galeria: [{ src: "/portrait.jpg", alt: "Vista completa de la propiedad vertical" }] };
+  const bytes = await createPropertyPdf(property, { settings: null, siteUrl: "https://example.com", loadImage: load });
+  const pdf = await PDFDocument.load(bytes);
+  const streams = pdf.getPages().map((_, index) => pageContent(pdf, index)).join("\n");
+  expect(load).toHaveBeenCalledTimes(1);
+  expect(streams).toContain("520 320 re\nW\nn");
+  const images = [...streams.matchAll(/([\d.]+) 0 0 ([\d.]+) 0 0 cm\n1 0 0 1 0 0 cm\n\/(Image-[^ ]+) Do/g)];
+  expect(images.some(([, w, h]) => Number(w) === 520 && Number(h) === 1040)).toBe(true);
+  expect(images.some(([, w, h]) => Math.abs(Number(w) - 109) < .01 && Math.abs(Number(h) - 218) < .01)).toBe(true);
+  expect(financialPdfPages(pdf).join(" ")).toContain(property.galeria[0].alt);
 });
 
 test("a long opening begins on the cover and continues without losing any words", async () => {

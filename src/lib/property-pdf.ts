@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, rgb, PDFName, PDFString, type PDFFont, type PDFImage } from "pdf-lib";
+import { PDFDocument, rgb, PDFName, PDFString, pushGraphicsState, popGraphicsState, rectangle, clip, endPath, type PDFFont, type PDFImage } from "pdf-lib";
 import { ESTADO_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
 import type { Asesor, SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
@@ -12,7 +12,7 @@ const ink = rgb(.08, .09, .1);
 const muted = rgb(.34, .36, .39);
 // Letter paper, with the same generous margins as the supplied editorial reference.
 const width = 612, height = 792, margin = 46, content = width - margin * 2;
-const bottom = height - 60, start = 91;
+const bottom = height - 54, start = 83;
 
 /** An editorial sheet of explicit public fields. Never serialize private records. */
 export async function createPropertyPdf(p: Property, options: Options): Promise<Uint8Array> {
@@ -57,9 +57,13 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   const next = () => { page = pdf.addPage([width, height]); header(); };
   const ensure = (space: number) => { if (y + space > bottom && y > start) next(); };
   const text = (value: string, size = 10.5, font = regular, color = ink, gap = 7) => {
-    const leading = size * 1.45;
-    for (const line of wrap(value, size, font)) {
-      ensure(leading);
+    const leading = size * (font === serif ? 1.18 : 1.45);
+    const lines = wrap(value, size, font);
+    for (const [index, line] of lines.entries()) {
+      // Keep at least two opening/closing lines of a paragraph together in print.
+      const keep = index === 0 && lines.length === 3 ? 3
+        : index === 0 || index === lines.length - 2 ? Math.min(2, lines.length - index) : 1;
+      ensure(leading * keep);
       draw(line, margin, y, size, font, color);
       y += leading;
     }
@@ -92,22 +96,33 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   pdf.setSubject(`Información pública del inmueble ${p.codigo}`);
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
   header();
-  text(`${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${ESTADO_LABELS[p.estado]}`, 10, regular, muted, 9);
+  text(`${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${ESTADO_LABELS[p.estado]}`, 10, regular, muted, 7);
   const titleSize = wrap(p.titulo, 33, serif).length > 2 ? 28 : 33;
   text(p.titulo, titleSize, serif, ink, 7);
   text([p.zona, p.direccionAproximada].filter(Boolean).join(" · "), 10, regular, muted, 9);
-  text(formatPrecio(p.precio), 23, serif, burgundy, 15);
-  if (p.demo) text("Demostración · Datos y precio de ejemplo, sin oferta real.", 9, bold, burgundy, 12);
+  text(formatPrecio(p.precio), 23, serif, burgundy, 12);
+  if (p.demo) text("Demostración · Datos y precio de ejemplo, sin oferta real.", 9, bold, burgundy, 8);
 
   // Use the first available property photograph as the cover, preserving order.
   let coverIndex = -1;
+  let completeCover: { image: PDFImage; caption: string } | undefined;
   for (let index = 0; index < p.galeria.length; index++) {
     const image = await load(p.galeria[index].src);
     if (!image) continue;
-    ensure(300);
-    const photoHeight = Math.min(238, content * image.height / image.width);
-    photo(image, margin, y, content, photoHeight);
-    y += photoHeight + 22;
+    const naturalHeight = content * image.height / image.width;
+    const photoHeight = Math.min(320, Math.max(270, naturalHeight));
+    ensure(photoHeight + 18);
+    if (photoHeight === naturalHeight) {
+      photo(image, margin, y, content, photoHeight);
+    } else {
+      // Fill the wide cover for portrait/panoramic sources; retain the entire original in the gallery.
+      const scale = Math.max(content / image.width, photoHeight / image.height);
+      page.pushOperators(pushGraphicsState(), rectangle(margin, height - y - photoHeight, content, photoHeight), clip(), endPath());
+      page.drawImage(image, { x: margin + (content - image.width * scale) / 2, y: height - y - photoHeight + (photoHeight - image.height * scale) / 2, width: image.width * scale, height: image.height * scale });
+      page.pushOperators(popGraphicsState());
+      completeCover = { image, caption: p.galeria[index].alt };
+    }
+    y += photoHeight + 18;
     coverIndex = index;
     break;
   }
@@ -119,7 +134,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     return href ? [{ ...row(label, regular, 10, burgundy, 4), href }] : [];
   };
   const expand = (rows: Row[], max: number) => rows.flatMap(r => wrap(r.value, r.size, r.font, max).map((value, index, lines) => ({ ...r, value, space: index === lines.length - 1 ? r.space : 0 })));
-  const rowHeight = (r: Row) => r.size * 1.45 + r.space;
+  const rowHeight = (r: Row) => r.size * (r.font === serif ? 1.25 : 1.45) + r.space;
   const renderRows = (rows: Row[], x: number, top: number) => {
     for (const r of rows) {
       draw(r.value, x, top, r.size, r.font, r.color);
@@ -137,7 +152,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   const leftWidth = 306, rightWidth = 176, rightX = width - margin - rightWidth;
   const specs: Row[] = [];
   for (const [label, value] of [["Construcción", p.ficha.construccionM2], ["Terreno", p.ficha.terrenoM2]] as const) {
-    if (value != null) specs.push(row(`${value} m²`, serif, 22), row(label, regular, 9, muted, 9));
+    if (value != null) specs.push(row(`${value} m²`, serif, 22), row(label, regular, 9, muted, 7));
   }
   if (p.ficha.recamaras != null) specs.push(row(`${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}`));
   if (p.ficha.banos != null) specs.push(row(`${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}`));
@@ -227,7 +242,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   if (p.operacion === "venta") text(p.creditoDisponible ? "Crédito disponible" : "Crédito: consultar con el asesor", 9, regular, muted, 10);
 
   // A compact gallery, two complete photographs per row; broken images leave no filler blocks.
-  const gallery: { image: PDFImage; caption: string }[] = [];
+  const gallery: { image: PDFImage; caption: string }[] = completeCover ? [completeCover] : [];
   const galleryRow = () => {
     const gap = 18, cell = gallery.length === 1 ? content : (content - gap) / 2;
     const boxes = gallery.map(item => Math.min(gallery.length === 1 ? 218 : 162, cell * item.image.height / item.image.width));
@@ -262,23 +277,19 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     if (options.adviser.cargo) contactRows.push(row(options.adviser.cargo, regular, 9, muted, 7));
   }
   const contact = publicContact(options.settings);
-  if (contact.phoneHref) contactRows.push(...linkedRow(contact.phone, contact.phoneHref, true));
-  if (contact.email) contactRows.push(...linkedRow(contact.email, `mailto:${contact.email}`, true));
-  if (contact.whatsapp) contactRows.push(...linkedRow("WhatsApp", contact.whatsapp));
-  if (contact.messenger) contactRows.push(...linkedRow("Messenger", contact.messenger));
+  if (contact.phoneHref) contactRows.push(...linkedRow(`Teléfono: ${contact.phone}`, contact.phoneHref, true));
+  if (contact.email) contactRows.push(...linkedRow(`Correo: ${contact.email}`, `mailto:${contact.email}`, true));
+  if (contact.whatsapp) {
+    const number = new URL(contact.whatsapp).pathname.replace(/\//g, "");
+    contactRows.push(...linkedRow(`WhatsApp: +${number}`, contact.whatsapp));
+  }
   if (options.settings?.horario) contactRows.push(row(options.settings.horario, regular, 9, muted, 7));
-  contactRows.push(...linkedRow(`Ver inmueble en ${new URL(options.siteUrl).hostname}`, `/inventario/${p.slug}`));
+  contactRows.push(...linkedRow(`Sitio web: ${new URL(options.siteUrl).hostname}`, options.siteUrl));
   const date = new Date(p.publicadaEl);
   if (!Number.isNaN(date.getTime())) contactRows.push(row(`Publicado el ${date.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`, regular, 8, muted, 0));
-  const resources: Row[] = [];
-  if (p.videoUrl) resources.push(...linkedRow("Video del inmueble", p.videoUrl));
-  if (p.tour360Url) resources.push(...linkedRow("Recorrido de 360°", p.tour360Url));
-  for (const document of p.documentos ?? []) {
-    if (!safeUrl(document.url)) continue;
-    resources.push(...linkedRow(document.nombre, document.url));
-    if (document.descripcion) resources.push(row(document.descripcion, regular, 9, muted, 9));
-  }
-  columns(contactRows, resources.length ? [row("Más información", serif, 21, ink, 9), ...resources] : []);
+  // This is the complete printed property sheet, not a directory of other downloads.
+  // Surfaces, layout, amenities and descriptions are rendered above from the public record.
+  columns(contactRows, []);
   const pages = pdf.getPages();
   pages.forEach((sheet, index) => {
     page = sheet;
