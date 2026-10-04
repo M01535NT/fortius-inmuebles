@@ -4,12 +4,14 @@ import { validarEntrega } from "./entrega";
 import { validarOferta } from "./oferta";
 import { validarPlan } from "./plan";
 import { validarReporte } from "./reporte";
+import { entrevistaFields, validarEntrevista } from "./entrevista";
 
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows";
   required: boolean;
+  section?: string;
   options?: readonly { value: string; label: string }[];
 };
 
@@ -42,7 +44,7 @@ const levantamiento = [folio, inmueble, fecha, asesor, field("superficieTerreno"
 /** Source names are recorded for traceability; the source files are never served publicly. */
 export const FORMATOS: readonly FormatoDefinition[] = [
   f("01", "Aviso_de_privacidad", "docx", 1, [field("responsable", "Responsable del tratamiento"), field("domicilioResponsable", "Domicilio del responsable"), field("contactoPrivacidad", "Contacto de privacidad"), fecha]),
-  f("02", "Entrevista_inicial", "docx", 1, [folio, fecha, asesor, propietario, inmueble, field("contacto", "Datos de contacto"), field("relacionInmueble", "Relación con el inmueble"), field("necesidad", "Objetivo declarado", "long")]),
+  f("02", "Entrevista_inicial", "docx", 1, entrevistaFields, true),
   f("03", "Tablero_y_control_comercial", "xlsx", 1, [field("periodoInicio", "Inicio del periodo", "date"), field("periodoFin", "Fin del periodo", "date"), asesor, field("criterio", "Criterios del reporte", "long")]),
   f("04A", "Levantamiento_terreno", "docx", 1, levantamiento),
   f("04B", "Levantamiento_casa", "docx", 1, levantamiento),
@@ -376,7 +378,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
-    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows") return false;
+    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
     if (item.type === "money" || item.type === "number") {
@@ -397,6 +399,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "14") errors.push(...validarOferta(data));
   if (id === "10") errors.push(...validarPlan(data));
   if (id === "11") errors.push(...validarReporte(data));
+  if (id === "02") errors.push(...validarEntrevista(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");

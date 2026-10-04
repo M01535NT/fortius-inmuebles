@@ -11,6 +11,7 @@ import { ENTREGA_TABLAS, type EntregaRow, type EntregaTabla } from "./entrega";
 import { respuestaRequiereRatificacion } from "./oferta";
 import { calcularExtras, PLAN_TABLES, type PlanRow, type PlanTable } from "./plan";
 import { calcularPublicidadReporte, REPORTE_TABLES, type ReporteRow, type ReporteTable } from "./reporte";
+import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable, type EntrevistaRow } from "./entrevista";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -54,7 +55,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   const pdf = await PDFDocument.create();
-  const displayTitle = id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
+  const displayTitle = id === "02" ? "Entrevista inicial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
   pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
@@ -113,6 +114,27 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   };
   if (id === "18") {
     for (const paragraph of receiptParagraphs(data)) write(paragraph, 10, regular, ink, 12);
+  } else if (id === "02") {
+    write("Información declarada por quien responde; las respuestas y documentos deberán revisarse en las etapas correspondientes.", 9, regular, muted, 13);
+    let section = "";
+    for (const field of definition.fields) {
+      if (!mostrarCampoEntrevista(field.key, data)) continue;
+      if (field.section && field.section !== section) {
+        section = field.section;
+        ensure(88);
+        write(section, 13, bold, accent, 10);
+      }
+      if (field.type === "entrevistaRows") {
+        const kind = field.key as EntrevistaTable;
+        const entries = data[kind] as EntrevistaRow[];
+        write(field.label, 9, bold, muted, 5);
+        for (const [index, entry] of entries.entries()) {
+          ensure(65);
+          write(`${index + 1}. ${ENTREVISTA_TABLES[kind].columns.map((column) => `${column.label}: ${entry[column.key]}`).join(" · ")}`, 9, regular, ink, 8);
+        }
+      } else fieldLine(field);
+    }
+    write("Esta entrevista no autoriza publicación del inmueble, recepción de dinero, fijación de precio o comisión, ni exclusividad. Si existen varios titulares, debe documentarse la información y voluntad de cada uno. La revisión de títulos, gravámenes y aspectos fiscales queda pendiente de sus soportes.", 9, regular, muted, 14);
   } else if (id === "08") {
     const totals = calcularNeto(data);
     const cash = (amount: number) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} MXN`;
