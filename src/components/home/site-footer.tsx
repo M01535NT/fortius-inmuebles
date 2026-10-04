@@ -1,111 +1,103 @@
 "use client";
 
-import { BrandMark } from "@/components/brand/brand-mark";
 import Link from "next/link";
-import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
+import * as motion from "motion/react-m";
+import { ArrowUp, ArrowUpRight } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
+import { DocumentLink } from "@/components/navigation/document-link";
+import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import type { SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
-import { MessagingActions } from "@/components/contact/messaging-actions";
+
+const sections = [
+  { title: "Propiedades", links: [
+    { href: "/inventario", label: "Ver inventario" },
+    { href: "/residencial", label: "Residencial" },
+    { href: "/comercial", label: "Comercial" },
+    { href: "/industrial", label: "Industrial" },
+    { href: "/comprar-propiedad", label: "Comprar una propiedad" },
+  ] },
+  { title: "Trabajar con Mint", links: [
+    { href: "/vender-propiedad", label: "Vender mi propiedad" },
+    { href: "/#metodo", label: "Método" },
+    { href: "/#entregables", label: "Entregables" },
+    { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },
+    { href: "/#respuestas", label: "Preguntas frecuentes" },
+    { href: "/nosotros", label: "Conoce a Mint" },
+  ] },
+  { title: "Guías y herramientas", links: [
+    { href: "/blog", label: "Mercado inmobiliario" },
+    { href: "/blog?tema=vender&tipo=guia", label: "Guías para vender" },
+    { href: "/blog?tema=comprar&tipo=guia", label: "Guías para comprar" },
+    { href: "/herramientas/hipoteca", label: "Calculadora de hipoteca" },
+    { href: "/herramientas/gastos-de-cierre", label: "Calculadora de gastos de cierre" },
+    { href: "/herramientas", label: "Todas las herramientas" },
+  ] },
+];
+
+const areas = [
+  { href: "/zonas/zona-rio", label: "Zona Río" },
+  { href: "/zonas/playas-de-tijuana", label: "Playas de Tijuana" },
+  { href: "/zonas/rosarito", label: "Rosarito" },
+  { href: "/zonas/tecate", label: "Tecate" },
+  { href: "/zonas/ensenada", label: "Ensenada" },
+];
 
 export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   const pathname = usePathname();
+  const reduce = useReducedMotionSafe();
   const contact = publicContact(settings);
-  const name = "Mint Inmuebles";
-  /* El panel /admin trae su propio shell: sin footer público (además el
-     footer cortina interferiría con el layout del panel). */
+  const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email) ? contact.email : "";
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <footer className="border-t border-border">
-      <div className="mx-auto max-w-[1280px] px-5 py-14 md:px-8">
-        <div className="grid gap-10 md:grid-cols-12">
-          <div className="md:col-span-5">
-            <div className="flex items-center gap-2.5">
-              <Link href="/" aria-label="Inicio de Mint Inmuebles">
-                <BrandMark />
-              </Link>
-            </div>
-            <p className="mt-4 max-w-[40ch] text-sm leading-relaxed text-muted-foreground">
-              Bienes raíces con método en Tijuana y Baja California.
-            </p>
-          </div>
-
-          <nav className="md:col-span-3 md:col-start-7" aria-label="Secciones">
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link href="/blog" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Mercado inmobiliario
-                </Link>
-              </li>
-              <li>
-                <Link href="/inventario" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Propiedades
-                </Link>
-              </li>
-              <li>
-                <Link href="/#metodo" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Método
-                </Link>
-              </li>
-              <li>
-                <Link href="/#entregables" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Entregables
-                </Link>
-              </li>
-              <li>
-                <Link href="/#respuestas" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Respuestas
-                </Link>
-              </li>
-              <li>
-                <Link href="/herramientas" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Herramientas
-                </Link>
-              </li>
-              <li>
-                <Link href="/zonas" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Zonas
-                </Link>
-              </li>
-              <li>
-                <Link href="/#evaluar" className="inline-flex min-h-11 items-center text-foreground/75 transition-colors hover:text-foreground">
-                  Evaluar mi propiedad
-                </Link>
-              </li>
-            </ul>
-          </nav>
-
-          <div className="md:col-span-3">
-            <MessagingActions settings={settings} className="mb-5" />
-            <ul className="space-y-3 text-sm text-foreground/75">
-              <li>{contact.whatsapp ? <a href={contact.whatsapp}>WhatsApp: {contact.whatsappLabel}</a> : "WhatsApp: por confirmar"}</li>
-              <li>{contact.phoneHref ? <a href={contact.phoneHref}>Teléfono: {contact.phone}</a> : "Teléfono: por confirmar"}</li>
-              <li>
-                <Link href="/privacidad" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">
-                  Aviso de privacidad
-                </Link>
-              </li>
-              <li>
-                <Link href="/terminos" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">
-                  Términos y condiciones
-                </Link>
-              </li>
+    <footer className="editorial-footer">
+      <div className="editorial-container">
+        <div className="editorial-footer-masthead">
+          <Link href="/" aria-label="Inicio de Mint Inmuebles"><BrandMark /></Link>
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
+            Volver arriba <ArrowUp size={16} aria-hidden="true" />
+          </button>
+        </div>
+        <motion.div className="editorial-footer-intro" initial={false}
+          whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.65 }}>
+          <h2>Propiedades y recursos.</h2>
+          <Link href="/contacto" className="editorial-text-link">Contactar a Mint <ArrowUpRight size={18} aria-hidden="true" /></Link>
+        </motion.div>
+        <div className="editorial-footer-columns">
+          {sections.map((section) => (
+            <nav key={section.title} aria-label={section.title}>
+              <h3>{section.title}</h3>
+              <ul>{section.links.map((link) => <li key={link.href}>
+                <Link href={link.href} className="editorial-footer-link">{link.label}</Link>
+              </li>)}</ul>
+            </nav>
+          ))}
+          <div className="editorial-footer-contact">
+            <h3>Contacto</h3>
+            <ul>
+              <li>{contact.whatsapp ? <a href={contact.whatsapp} className="editorial-footer-link">WhatsApp: {contact.whatsappLabel}</a> : <span>WhatsApp: por confirmar</span>}</li>
+              <li>{contact.phoneHref ? <a href={contact.phoneHref} className="editorial-footer-link">Teléfono: {contact.phone}</a> : <span>Teléfono: por confirmar</span>}</li>
+              {contact.messenger && <li><a href={contact.messenger} className="editorial-footer-link">Messenger</a></li>}
+              {email && <li><a href={`mailto:${email}`} className="editorial-footer-link">{email}</a></li>}
+              {settings?.horario?.trim() && <li className="editorial-footer-hours">{settings.horario}</li>}
+              <li><Link href="/contacto" className="editorial-footer-link">Opciones de contacto</Link></li>
             </ul>
           </div>
         </div>
-
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4">
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Los costos, impuestos y tiempos varían por operación y se confirman
-            con el notario o el especialista correspondiente. © 2026 {name}.
-          </p>
-          <DocumentLink
-            href="/admin"
-            className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            Acceso al panel
-          </DocumentLink>
+        <nav className="editorial-footer-areas" aria-label="Zonas de operación">
+          <Link href="/zonas" className="editorial-footer-link">Explorar zonas <ArrowUpRight size={16} aria-hidden="true" /></Link>
+          <ul>{areas.map((area) => <li key={area.href}><Link href={area.href} className="editorial-footer-link">{area.label}</Link></li>)}</ul>
+        </nav>
+        <div className="editorial-footer-bottom">
+          <p>© {new Date().getFullYear()} Mint Inmuebles.</p>
+          <nav aria-label="Información legal y administración">
+            <Link href="/privacidad" className="editorial-footer-link">Aviso de privacidad</Link>
+            <Link href="/terminos" className="editorial-footer-link">Términos y condiciones</Link>
+            <DocumentLink href="/admin" className="editorial-footer-link">Acceso al panel</DocumentLink>
+          </nav>
+          <p className="editorial-footer-note">Los costos, impuestos y tiempos varían por operación y se confirman con el notario o el especialista correspondiente.</p>
         </div>
       </div>
     </footer>
