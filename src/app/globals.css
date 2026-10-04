@@ -356,21 +356,6 @@ select {
   opacity: 0.2;
 }
 
-.method-cards {
-  position: relative;
-  padding-bottom: 1rem;
-}
-
-.method-card {
-  position: relative;
-  margin-bottom: 2rem;
-  padding: clamp(1.4rem, 4vw, 2.5rem);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card);
-  box-shadow: 0 18px 60px -32px color-mix(in srgb, var(--foreground) 25%, transparent);
-}
-
 .interactive-card {
   transition: box-shadow 450ms ease;
   border-radius: 8px;
@@ -404,10 +389,9 @@ select {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .method-card {
+  .editorial-document[data-deliverable-card] {
     position: sticky;
-    top: calc(86px + var(--phase-index) * 14px);
-    margin-bottom: 3rem;
+    top: calc(88px + var(--deliverable-index) * 12px);
   }
 }
 

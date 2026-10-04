@@ -57,7 +57,7 @@ export async function InstitutionalVideo() {
                     Espacio reservado para el video institucional.
                   </p>
                   <p className="max-w-[46ch] text-sm leading-relaxed text-on-image-muted/80">
-                    Aquí verás el recorrido por las cuatro fases del método,
+                    Aquí verás el recorrido por las seis etapas del método,
                     contado por el equipo. En producción.
                   </p>
                 </div>

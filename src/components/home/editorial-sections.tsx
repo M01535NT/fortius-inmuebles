@@ -6,6 +6,7 @@ import type { SiteContent } from "@/lib/admin/store";
 import { SplitHeading } from "@/components/gsap/split-heading";
 import { PropertyCard } from "@/components/property/property-card";
 import { getFeaturedProperties } from "@/lib/inventario";
+import { DeliverablesStack } from "@/components/home/deliverables-stack";
 
 export function EditorialIntro({ content }: { content?: SiteContent | null }) {
   const copy = resolveSiteContent(content);
@@ -57,7 +58,7 @@ export function EditorialDocuments({ content }: { content?: SiteContent | null }
     <div className="editorial-section-label" data-editorial-rule>El trabajo por escrito</div>
     <div className="editorial-documents-grid">
       <div className="editorial-sticky-heading"><SplitHeading reveal="lines" lines={homeText(content, "entregablesTitulo").split("\n")} className="editorial-section-title" /><p>{homeText(content, "entregablesTexto")}</p></div>
-      <div>{DOCS.map((doc) => <article key={doc.copy} className="editorial-document" data-editorial-rule><h3 data-editorial-reveal>{doc.title}</h3><p>{homeText(content, doc.copy)}</p></article>)}</div>
+      <DeliverablesStack documents={DOCS.map((doc) => ({ title: doc.title, text: homeText(content, doc.copy) }))} />
     </div>
   </section>;
 }

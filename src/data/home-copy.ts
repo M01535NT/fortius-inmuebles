@@ -6,11 +6,13 @@ export const HOME_FIELDS = {
   relatoTexto: { group: "Presentación", label: "Introducción", value: "Antes de publicar, revisamos los documentos de la propiedad." },
   relatoApoyo: { group: "Presentación", label: "Texto de apoyo", value: "Identificamos documentos faltantes y datos que deben confirmarse. Si hay pendientes que afectan la venta, los señalamos antes de ofrecer el inmueble." },
   metodoTitulo: { group: "Método", label: "Título", value: "Qué hacemos\npara vender tu propiedad." },
-  metodoTexto: { group: "Método", label: "Introducción", value: "El contrato establece las tareas incluidas y los honorarios." },
-  captacionTexto: { group: "Método", label: "Revisión inicial", value: "Revisamos los documentos y los datos del inmueble para identificar pendientes. Acordamos contigo el precio de salida y las condiciones del servicio." },
-  preparacionTexto: { group: "Método", label: "Preparación", value: "Acordamos las mejoras que conviene valorar y organizamos la fotografía y el video. Reunimos las características del inmueble y elegimos los canales donde se publicará." },
-  comercializacionTexto: { group: "Método", label: "Comercialización", value: "Revisamos las necesidades de los interesados antes de coordinar visitas. Recibes un reporte cada 30 días. Cuando recibimos una oferta por escrito, analizamos contigo el precio, la forma de pago y las condiciones." },
-  cierreTexto: { group: "Método", label: "Cierre", value: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión." },
+  metodoTexto: { group: "Método", label: "Introducción", value: "Desde la primera revisión hasta la entrega, te explicamos qué sigue y qué necesitamos de ti." },
+  captacionTexto: { group: "Método", label: "Captación", value: "Conocemos tu objetivo y la propiedad. Identificamos quién puede autorizar la venta y qué documentos necesitamos para revisarla." },
+  diagnosticoTexto: { group: "Método", label: "Verificación y precio", value: "Revisamos documentos, características y pendientes. Comparamos inmuebles similares para proponerte un rango y acordar contigo el precio de salida." },
+  preparacionTexto: { group: "Método", label: "Contrato y preparación", value: "Dejamos por escrito el servicio, los honorarios y las autorizaciones. Preparamos la ficha, las fotografías y el plan de publicación con información que se pueda respaldar." },
+  comercializacionTexto: { group: "Método", label: "Publicación y seguimiento", value: "Publicamos la propiedad en los canales acordados y comprobamos que los anuncios muestren datos y disponibilidad vigentes. Te informamos de las consultas y del avance de la campaña." },
+  visitasOfertasTexto: { group: "Método", label: "Visitas y ofertas", value: "Coordinamos visitas con interesados compatibles y registramos sus dudas. Cuando llega una oferta, revisamos contigo precio, forma de pago, plazos y condiciones antes de responder." },
+  cierreTexto: { group: "Método", label: "Cierre y entrega", value: "Coordinamos la firma con las partes y la notaría. Verificamos los pagos, documentamos la entrega de llaves e inventario y damos seguimiento a los trámites pendientes." },
   entregablesTitulo: { group: "Entregables", label: "Título", value: "Documentos\nque te entregamos." },
   entregablesTexto: { group: "Entregables", label: "Introducción", value: "El contrato define los documentos incluidos en tu servicio." },
   factibilidadTexto: { group: "Entregables", label: "Revisión del expediente", value: "Documentos pendientes y aspectos que deben revisarse antes de ofrecer el inmueble." },
@@ -39,8 +41,10 @@ const PREVIOUS_HOME_TEXTS: Record<HomeTextKey, string> = {
   metodoTitulo: "Conoce cómo\navanzará tu venta.",
   metodoTexto: "Cuatro fases, con tareas y documentos definidos. Revisamos contigo el alcance del servicio antes de empezar.",
   captacionTexto: "Conocemos la propiedad, revisamos la documentación disponible y analizamos inmuebles comparables. Te explicamos qué información respalda el precio propuesto y qué falta por confirmar.",
+  diagnosticoTexto: "",
   preparacionTexto: "Acordamos las mejoras que conviene valorar, organizamos la fotografía y reunimos la información que necesitará un comprador.",
   comercializacionTexto: "Revisamos las necesidades de los interesados y coordinamos las visitas. Recibes un reporte cada 30 días; cuando llega una oferta, analizamos contigo el precio, la forma de pago y las condiciones.",
+  visitasOfertasTexto: "",
   cierreTexto: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Los gastos se presentan como estimaciones hasta que los confirme quien corresponda.",
   entregablesTitulo: "Lo que recibes\ndurante la venta.",
   entregablesTexto: "El trabajo queda por escrito. Estos documentos te ayudan a conocer la situación de tu propiedad, tomar decisiones y seguir el avance.",
@@ -60,14 +64,22 @@ const PREVIOUS_HOME_TEXTS: Record<HomeTextKey, string> = {
 };
 
 const PREVIOUS_NOTES: Partial<Record<HomeTextKey, string>> = {
-  cierreTexto: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión. Los importes se confirman con quien corresponda.",
+  metodoTexto: "El contrato establece las tareas incluidas y los honorarios.",
+  captacionTexto: "Revisamos los documentos y los datos del inmueble para identificar pendientes. Acordamos contigo el precio de salida y las condiciones del servicio.",
+  preparacionTexto: "Acordamos las mejoras que conviene valorar y organizamos la fotografía y el video. Reunimos las características del inmueble y elegimos los canales donde se publicará.",
+  comercializacionTexto: "Revisamos las necesidades de los interesados antes de coordinar visitas. Recibes un reporte cada 30 días. Cuando recibimos una oferta por escrito, analizamos contigo el precio, la forma de pago y las condiciones.",
+  cierreTexto: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión.",
   tiempoRespuesta: "El plazo depende del precio, la zona, el estado del inmueble y la demanda. No se puede asegurar una fecha de venta.",
   gastosRespuesta: "Preparamos una estimación de impuestos, honorarios y otros gastos de tu operación. La notaría o el especialista correspondiente confirma los importes.",
 };
 
+const OLDER_CLOSURE_NOTE = "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión. Los importes se confirman con quien corresponda.";
+
 export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefined, key: HomeTextKey): string {
   const value = content?.homeTexts?.[key]?.trim();
-  return brandCopy(value && value !== PREVIOUS_HOME_TEXTS[key] && value !== PREVIOUS_NOTES[key] ? value : HOME_FIELDS[key].value);
+  const isOldDefault = value === PREVIOUS_HOME_TEXTS[key] || value === PREVIOUS_NOTES[key]
+    || (key === "cierreTexto" && value === OLDER_CLOSURE_NOTE);
+  return brandCopy(value && !isOldDefault ? value : HOME_FIELDS[key].value);
 }
 
 export const SITE_COPY: Omit<SiteContent, "homeTexts"> = {

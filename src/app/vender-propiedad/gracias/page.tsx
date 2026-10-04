@@ -83,7 +83,7 @@ export default async function GraciasPage() {
                   href="/#metodo"
                   className="text-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline"
                 >
-                  Conoce las cuatro fases del método
+                  Conoce las seis etapas del método
                 </Link>
               </li>
               <li>

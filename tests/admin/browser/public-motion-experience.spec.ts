@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("the method remains readable on touch screens and shows reading progress", async ({ browser }) => {
+test("the six method stages open on touch screens and show reading progress", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await context.newPage();
   await page.goto("/");
@@ -9,13 +9,15 @@ test("the method remains readable on touch screens and shows reading progress", 
   await expect(progress).toBeAttached();
   await page.getByRole("button", { name: "Abrir menú" }).click();
   await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
-  const cards = page.locator("#metodo [data-method-card]");
-  await expect(cards).toHaveCount(4);
-  for (const title of ["Captación", "Preparación", "Comercialización", "Cierre"]) {
-    const card = cards.filter({ has: page.getByRole("heading", { name: title, exact: true }) });
-    await card.scrollIntoViewIfNeeded();
-    await expect(card.getByRole("heading", { name: title, exact: true })).toBeVisible();
-    expect(await card.evaluate((node) => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
+  const panels = page.locator("#metodo [data-method-panel]");
+  await expect(panels).toHaveCount(6);
+  for (const [index, title] of ["Captación", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"].entries()) {
+    const button = page.locator("#metodo").getByRole("button", { name: new RegExp(title) });
+    await button.click();
+    await expect(button).toHaveAttribute("aria-expanded", "true");
+    const panel = panels.nth(index);
+    await expect(panel.locator(".method-panel-copy")).toBeVisible();
+    await expect.poll(() => panel.evaluate((node) => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
   }
   await expect.poll(async () => Number(await progress.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -23,11 +25,34 @@ test("the method remains readable on touch screens and shows reading progress", 
   await context.close();
 });
 
-test("reduced motion keeps all phases in normal reading order and navigation usable", async ({ page }) => {
+test("desktop method opens the selected vertical panel with mouse and keyboard", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const method = page.locator("#metodo");
+  const panels = method.locator("[data-method-panel]");
+  await expect(panels).toHaveCount(6);
+  const first = panels.first();
+  const second = panels.nth(1);
+  const firstWidth = await first.evaluate((node) => node.getBoundingClientRect().width);
+  const secondWidth = await second.evaluate((node) => node.getBoundingClientRect().width);
+  expect(firstWidth).toBeGreaterThan(secondWidth * 2);
+  const publication = method.getByRole("button", { name: /Publicación y seguimiento/ });
+  await publication.click();
+  await expect(publication).toHaveAttribute("aria-expanded", "true");
+  await expect(method.locator(".method-panel-copy:visible")).toHaveCount(1);
+  await publication.press("ArrowRight");
+  const visits = method.getByRole("button", { name: /Visitas y ofertas/ });
+  await expect(visits).toBeFocused();
+  await expect(visits).toHaveAttribute("aria-expanded", "true");
+  const result = await new AxeBuilder({ page }).include("#metodo").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+});
+
+test("reduced motion keeps the deliverables in normal reading order and navigation usable", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const cards = page.locator("#metodo [data-method-card]");
-  await expect(cards).toHaveCount(4);
+  const cards = page.locator("#entregables [data-deliverable-card]");
+  await expect(cards).toHaveCount(6);
   for (const card of await cards.all()) {
     expect(await card.evaluate((node) => getComputedStyle(node).position)).not.toBe("sticky");
     await card.scrollIntoViewIfNeeded();
@@ -100,16 +125,16 @@ test("reading progress follows the new page height after inventory filtering", a
 });
 
 for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }]) {
-test(`stacked phases keep readable text contrast during animated phone scrolling at ${viewport.width}x${viewport.height}`, async ({ browser }) => {
+test(`stacked deliverables keep readable text contrast during animated phone scrolling at ${viewport.width}x${viewport.height}`, async ({ browser }) => {
   const context = await browser.newContext({ viewport, isMobile: true, hasTouch: true, reducedMotion: "no-preference" });
   const page = await context.newPage();
   await page.goto("/");
-  const cards = page.locator("#metodo [data-method-card]");
+  const cards = page.locator("#entregables [data-deliverable-card]");
   await expect(cards.first()).toHaveCSS("position", "sticky");
   await cards.nth(1).evaluate((node) => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 300, behavior: "instant" }));
   await expect.poll(() => cards.first().evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a)).toBeLessThan(1);
-  await expect(cards.first().locator(".method-card-content")).toHaveCSS("opacity", "1");
-  const result = await new AxeBuilder({ page }).include("#metodo").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  await expect(cards.first().locator("h3")).toBeVisible();
+  const result = await new AxeBuilder({ page }).include("#entregables").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
   await context.close();
 });

@@ -14,17 +14,27 @@ export const FASES: Fase[] = [
   },
   {
     n: "02",
-    title: "Preparación",
-    copy: "preparacionTexto",
+    title: "Verificación y precio",
+    copy: "diagnosticoTexto",
   },
   {
     n: "03",
-    title: "Comercialización",
-    copy: "comercializacionTexto",
+    title: "Contrato y preparación",
+    copy: "preparacionTexto",
   },
   {
     n: "04",
-    title: "Cierre",
+    title: "Publicación y seguimiento",
+    copy: "comercializacionTexto",
+  },
+  {
+    n: "05",
+    title: "Visitas y ofertas",
+    copy: "visitasOfertasTexto",
+  },
+  {
+    n: "06",
+    title: "Cierre y entrega",
     copy: "cierreTexto",
   },
 ];
