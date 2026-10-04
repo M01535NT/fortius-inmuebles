@@ -7,9 +7,9 @@ import fontkit from '@pdf-lib/fontkit';
 const root = resolve(import.meta.dirname, '..');
 const navy = '#061F3F', burgundy = '#8A1634';
 const symbol = [
-  'M197 20C185 35 178 52 178 68C178 86 190 94 211 94H270C289 94 304 102 315 115C312 96 296 79 271 76C263 75 253 75 244 75H212C191 75 184 61 197 20Z',
-  'M283 90C322 98 348 126 348 161C348 201 319 230 282 230C243 230 214 201 214 163C214 139 225 119 248 106C236 119 232 135 236 151C240 177 259 194 282 194C308 194 327 174 327 150C327 124 309 103 283 90Z',
-  'M311 75H364C386 75 394 61 383 20C396 33 403 51 403 68C403 86 389 94 368 94H329C324 87 318 80 311 75Z',
+  'M224 89C205 86 194 74 194 55C194 42 199 31 208 23C206 42 212 51 224 54C232 56 241 54 251 52L262 76C247 77 233 82 224 89Z',
+  'M292 32C342 32 379 73 379 130C379 187 342 228 292 228C242 228 205 187 205 130C205 73 242 32 292 32ZM292 78C265 78 250 99 250 130C250 161 265 182 292 182C319 182 334 161 334 130C334 99 319 78 292 78Z',
+  'M360 89C379 86 390 74 390 55C390 42 385 31 376 23C378 42 372 51 360 54C352 56 343 54 333 52L322 76C337 77 351 82 360 89Z',
 ];
 const wordmark = [
   'M0 32H164V64H46V104H146L122 136H46V228H0Z',
@@ -34,7 +34,7 @@ const geometry = { symbol, wordmark, descriptor };
 await writeFile(resolve(root, 'src/components/brand/brand-paths.ts'), `// Shared Fortius vector geometry; bull-shaped O inspired by the supplied reference.\nexport const fortiusPaths = ${JSON.stringify(geometry, null, 2)} as const;\n`);
 function svg(variant = 'full', inverse = false) {
   const ink = inverse ? '#FFFFFF' : navy, accent = inverse ? '#E5829B' : burgundy;
-  const viewBox = variant === 'symbol' ? '174 -4 234 250' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
+  const viewBox = variant === 'symbol' ? '190 18 204 216' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
   const paths = symbol.map((d, i) => `<path fill="${i < 2 ? ink : accent}" d="${d}"/>`).join('') + (variant === 'symbol' ? '' : wordmark.map(d => `<path fill="${ink}" d="${d}"/>`).join('')) + (variant === 'full' ? descriptor.map(p => `<path fill="${ink}" d="${p.d}" transform="${p.transform}"/>`).join('') : '');
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" role="img" aria-label="Fortius — Real Estate &amp; Investments">${paths}</svg>\n`;
 }

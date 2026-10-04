@@ -9,7 +9,7 @@ type BrandMarkProps = {
 
 /** Fortius identity shared by the public site and administration. */
 export function BrandMark({ variant = 'full', inverse = false, className }: BrandMarkProps) {
-  const viewBox = variant === 'symbol' ? '174 -4 234 250' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
+  const viewBox = variant === 'symbol' ? '190 18 204 216' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
   return (
     <span role="img" aria-label="Fortius Inmuebles" className={cn('inline-flex shrink-0 items-center', variant === 'symbol' ? 'h-8 w-8' : 'h-10 w-40', inverse ? 'text-white [--logo-accent:#e5829b]' : 'text-brand-ink', className)}>
       <svg aria-hidden="true" focusable="false" viewBox={viewBox} className="h-full w-full">
