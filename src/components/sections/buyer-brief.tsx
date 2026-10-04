@@ -7,11 +7,13 @@ import { CheckCircle2 } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 import { captureLead } from "@/lib/admin/store";
+import { usePublicFeatures } from "@/components/providers/public-features-provider";
 
 const inputClass = "h-11 w-full rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground";
 const labelClass = "mb-2 block text-sm font-medium text-foreground";
 
 export function BuyerBrief() {
+  const { publicLeadsEnabled } = usePublicFeatures();
   const [sent, setSent] = React.useState(false);
   const [sending, setSending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -50,11 +52,23 @@ export function BuyerBrief() {
         <div>
           <h2 className="display-title max-w-[15ch] text-4xl text-foreground md:text-5xl">Cuéntanos qué buscas.</h2>
           <p className="mt-5 max-w-[48ch] text-base leading-relaxed text-muted-foreground">
-            El uso, presupuesto y momento de compra nos ayudan a descartar opciones que no te sirven. Puedes dejar el presupuesto o la forma de pago por definir.
+            {publicLeadsEnabled
+              ? "El uso, presupuesto y momento de compra nos ayudan a descartar opciones que no te sirven. Puedes dejar el presupuesto o la forma de pago por definir."
+              : "Define el uso, el presupuesto total y tu momento de compra. Con esos datos podrás comparar inmuebles con más claridad."}
           </p>
           <p className="mt-5 text-sm leading-relaxed text-muted-foreground">También puedes <Link href="/inventario" className="text-primary underline underline-offset-4">explorar las propiedades publicadas</Link> antes de escribirnos.</p>
         </div>
-        {sent ? (
+        {!publicLeadsEnabled ? (
+          <div className="rounded-lg border border-border bg-card p-6 md:p-8">
+            <h3 className="display-soft text-2xl text-foreground">Tres datos para empezar</h3>
+            <ol className="mt-5 space-y-5 border-t border-border pt-5 text-sm leading-relaxed text-foreground/85">
+              <li><strong className="block text-foreground">1. Uso</strong>Vivir, invertir o instalar un negocio: cada objetivo cambia qué conviene revisar.</li>
+              <li><strong className="block text-foreground">2. Presupuesto total</strong>Incluye gastos de cierre y, si usarás crédito, una mensualidad sostenible.</li>
+              <li><strong className="block text-foreground">3. Plazo y pago</strong>Una fecha tentativa y la forma de pago ayudan a ordenar las visitas y ofertas.</li>
+            </ol>
+            <Link href="/inventario" className="mt-7 inline-flex min-h-11 items-center rounded-md bg-primary px-6 text-sm font-semibold text-primary-foreground">Explorar inventario</Link>
+          </div>
+        ) : sent ? (
           <div role="status" className="flex min-h-56 flex-col justify-center rounded-lg border border-border bg-card p-8">
             <CheckCircle2 className="size-8 text-primary" strokeWidth={1.5} />
             <h3 className="display-soft mt-5 text-2xl text-foreground">Recibimos tu búsqueda.</h3>

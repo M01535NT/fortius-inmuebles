@@ -11,5 +11,6 @@ export const metadata: Metadata = {
 };
 
 export default function ComprarInmueblePage() {
-  return <><InteriorPage {...routePages.comprar} primary={{ href: "/comprar-propiedad/#busqueda", label: "Contar qué busco" }} secondary={{ href: "/inventario", label: "Ver propiedades" }} /><BuyerBrief /></>;
+  const leadsEnabled = process.env.MNT_PUBLIC_LEADS_ENABLED === "true";
+  return <><InteriorPage {...routePages.comprar} primary={{ href: "/comprar-propiedad/#busqueda", label: leadsEnabled ? "Contar qué busco" : "Preparar mi búsqueda" }} secondary={{ href: "/inventario", label: "Ver propiedades" }} /><BuyerBrief /></>;
 }

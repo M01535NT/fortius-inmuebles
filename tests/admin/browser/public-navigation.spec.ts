@@ -177,10 +177,10 @@ test("buyers, sellers and segment pages lead to the right next step on mobile", 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/comprar-propiedad");
-  await page.getByRole("link", { name: "Contar qué busco" }).click();
+  await page.getByRole("link", { name: "Preparar mi búsqueda" }).click();
   await expect(page).toHaveURL(/\/comprar-propiedad#busqueda$/);
-  await expect(page.getByRole("textbox", { name: "¿Para qué necesitas el inmueble?" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Presupuesto aproximado" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tres datos para empezar" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Explorar inventario" })).toHaveAttribute("href", "/inventario");
 
   await page.goto("/vender-propiedad");
   await expect(page.getByRole("heading", { name: "Antes de publicar." })).toBeVisible();
