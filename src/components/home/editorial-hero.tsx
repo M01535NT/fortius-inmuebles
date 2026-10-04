@@ -45,12 +45,31 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
   }, [index, playing]);
 
   return (
-    <section ref={ref} aria-label="Presentación" className="editorial-hero editorial-container">
-      <div className="editorial-masthead" data-editorial-rule>
-        <span>Venta de propiedades</span>
-        <Link href="/zonas" className="editorial-territory">Tijuana · Rosarito · Tecate · Ensenada</Link>
-      </div>
-      <div className="editorial-cover-grid">
+    <section ref={ref} aria-label="Presentación" className="editorial-hero">
+      <figure className="editorial-cover-figure">
+        <div className="editorial-cover-window">
+          <motion.div className="editorial-cover-depth" style={{ y: reduce ? 0 : photoY, scale: reduce ? 1 : photoScale }}>
+            <AnimatePresence initial={false} mode="sync">
+              <motion.div key={index} className="editorial-cover-photo"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0 : 1.15, ease: [0.76, 0, 0.24, 1] }}>
+                <div className={reduce ? "absolute inset-0" : "kenburns absolute inset-0"} style={{ animationPlayState: playing ? "running" : "paused" }}>
+                  <Image src={PHOTOS[index].src} alt={PHOTOS[index].alt} fill priority={index === 0}
+                    sizes="100vw" className="object-cover" />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        </div>
+        <figcaption className="sr-only">Fotografía de referencia</figcaption>
+      </figure>
+      <div className="editorial-hero-shade" aria-hidden="true" />
+      <div className="editorial-hero-content editorial-container">
+        <div className="editorial-masthead">
+          <span>Venta de propiedades</span>
+          <Link href="/zonas" className="editorial-territory">Tijuana · Rosarito · Tecate · Ensenada</Link>
+        </div>
         <div className="editorial-cover-copy">
           <SplitHeading as="h1" once reveal="lines" delay={0.1}
             lines={copy.heroTitulo === "Vende tu propiedad." ? ["Vende tu ", "propiedad."] : copy.heroTitulo.split("\n")}
@@ -67,34 +86,14 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
           </motion.div>
           <a href="#metodo" className="editorial-method-link">Conocer el método <ArrowDown size={16} aria-hidden="true" /></a>
         </div>
-        <figure className="editorial-cover-figure">
-          <motion.div className="editorial-cover-window" initial={false}
-            animate={reduce ? { clipPath: "inset(0% 0% 0% 0%)" } : undefined}
-            whileInView={reduce ? undefined : { clipPath: ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"] }}
-            viewport={{ once: true, amount: 0.1 }} transition={{ duration: reduce ? 0 : 1.25 }}>
-            <motion.div className="editorial-cover-depth" style={{ y: reduce ? 0 : photoY, scale: reduce ? 1 : photoScale }}>
-              <AnimatePresence initial={false} mode="sync">
-                <motion.div key={index} className="editorial-cover-photo"
-                  initial={reduce ? false : { clipPath: "inset(0 0 100% 0)", opacity: 0 }}
-                  animate={{ clipPath: "inset(0 0 0% 0)", opacity: 1 }} exit={{ opacity: 0 }}
-                  transition={{ duration: reduce ? 0 : 1.15, ease: [0.76, 0, 0.24, 1] }}>
-                  <div className={reduce ? "absolute inset-0" : "kenburns absolute inset-0"} style={{ animationPlayState: playing ? "running" : "paused" }}>
-                    <Image src={PHOTOS[index].src} alt={PHOTOS[index].alt} fill priority={index === 0}
-                      sizes="(max-width: 767px) 100vw, 45vw" className="object-cover" />
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-          </motion.div>
-          <figcaption className="editorial-photo-caption">
-            <span>Fotografía de referencia</span>
-            <div role="group" aria-label="Imágenes del inicio" aria-describedby="editorial-slide-help" className="editorial-photo-controls">
-              <span id="editorial-slide-help" className="sr-only">Selecciona una imagen para mantenerla en pantalla y detener los cambios automáticos.</span>
-              {PHOTOS.map((photo, i) => <button key={photo.src} type="button" aria-label={`Imagen ${i + 1}`}
-                aria-pressed={index === i} onClick={() => { setIndex(i); setPaused(true); }}><span /></button>)}
-            </div>
-          </figcaption>
-        </figure>
+        <div className="editorial-photo-caption">
+          <span>Fotografía de referencia</span>
+          <div role="group" aria-label="Imágenes del inicio" aria-describedby="editorial-slide-help" className="editorial-photo-controls">
+            <span id="editorial-slide-help" className="sr-only">Selecciona una imagen para mantenerla en pantalla y detener los cambios automáticos.</span>
+            {PHOTOS.map((photo, i) => <button key={photo.src} type="button" aria-label={`Imagen ${i + 1}`}
+              aria-pressed={index === i} onClick={() => { setIndex(i); setPaused(true); }}><span /></button>)}
+          </div>
+        </div>
       </div>
     </section>
   );

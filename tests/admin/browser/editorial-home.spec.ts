@@ -6,7 +6,7 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     const page = await context.newPage();
     await page.goto("/");
     await expect(page.locator(".editorial-home h1")).toBeVisible();
-    await expect(page.locator("h1")).toHaveCSS("font-family", /Georgia/);
+    await expect(page.locator("h1")).toHaveCSS("font-family", /Archivo/);
     const photo = page.locator(".editorial-cover-depth");
     const before = await photo.evaluate((node) => getComputedStyle(node).transform);
     await page.evaluate(() => window.scrollTo({ top: 280, behavior: "instant" }));
