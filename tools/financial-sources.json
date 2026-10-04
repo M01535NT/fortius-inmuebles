@@ -1,0 +1,64 @@
+{
+  "version": "2026.10.04",
+  "reviewedAt": "2026-10-04",
+  "year": 2026,
+  "catalog": "https://www.congresobc.gob.mx/TrabajoLegislativo/Leyes",
+  "sources": [
+    {
+      "key": "tijuana",
+      "url": "https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_II/20251230_LEYINGRESOTIJUANA2026-3.PDF",
+      "catalogStem": "LEYINGRESOTIJUANA2026",
+      "sha256": "775a6103f56b6908e835b5265e01f8dd91ba414c3fc5a445d5a60f9a45329a80"
+    },
+    {
+      "key": "rosarito",
+      "url": "https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_II/20251230_LEYINGRESOROSARITO2026.PDF",
+      "catalogStem": "LEYINGRESOROSARITO2026",
+      "sha256": "395dbbdb2faf19a87045a46492ce9be6e442faaa3a9798b375a6666a5581da58"
+    },
+    {
+      "key": "tecate",
+      "url": "https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_II/20251230_LEYINGRESOTECATE2026.PDF",
+      "catalogStem": "LEYINGRESOTECATE2026",
+      "sha256": "42b3cac03d741ab9ef11b47aaa13c70e108e8ae0cf639069b421daf193785577"
+    },
+    {
+      "key": "ensenada",
+      "url": "https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_II/20251230_LEYINGRESOENSENADA2026.PDF",
+      "catalogStem": "LEYINGRESOENSENADA2026",
+      "sha256": "e959dcbea7cd1c3537cd6db3d649246c6ba0d2a000d1269e33622dd9e485655a"
+    },
+    {
+      "key": "registration",
+      "url": "https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_II/20260618_LEYINGRESOSESTADO2026.PDF",
+      "catalogStem": "LEYINGRESOSESTADO2026",
+      "sha256": "2da2a93409319a9e60e5b1a42b0dcd70d5f4d3f1679d7734e229b32714fd1a92"
+    },
+    {
+      "key": "fiscalBase",
+      "url": "https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_II/20241104_LEYHAMUN.PDF",
+      "catalogStem": "LEYHAMUN",
+      "sha256": "f6bc69dc20d14878f2432d961c7f32b0246bf096d68c1999677218c97205f575"
+    },
+    {
+      "key": "uma2026",
+      "url": "https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2026/uma/uma2026.pdf",
+      "sha256": "9c9c4ff3da9b34852d5e3b8165c50c346ff3ef7ba74737489f6d1f544c353e1c"
+    },
+    {
+      "key": "uma2025",
+      "url": "https://www.inegi.org.mx/contenidos/saladeprensa/boletines/2025/uma/uma2025.pdf",
+      "sha256": "eb88864cb07d7cbea007d48c3aec3d05ef07eb70376ab4d8208c967d82d8eaf4"
+    },
+    {
+      "key": "isr",
+      "url": "https://www.sat.gob.mx/minisitio/NormatividadRMFyRGCE/documentos2026/rmf/anexos/Anexo-8-RMF-2026_DOF-28122025.pdf",
+      "sha256": "69ebaf8a78a3bde5d631ad2a994e81ec6d07e2d4e39085c8c948d138f782c1f4"
+    },
+    {
+      "key": "incomeLaw",
+      "url": "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+      "sha256": "803c2875c09c751c1966b8eb4dca99f460b237da4ef67ee04b4fa325d8c2f786"
+    }
+  ]
+}
