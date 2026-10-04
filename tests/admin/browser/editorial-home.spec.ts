@@ -15,7 +15,7 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     await page.getByRole("dialog").getByRole("link", { name: "Entregables", exact: true }).click();
     await expect(page.locator("#entregables")).toBeInViewport();
     await expect(page.locator("#entregables article")).toHaveCount(6);
-    await page.locator('a[href="/herramientas/hipoteca"]').click();
+    await page.locator('main a[href="/herramientas/hipoteca"]').click();
     await expect(page).toHaveURL(/\/herramientas\/hipoteca$/);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await page.goBack();
