@@ -1,6 +1,6 @@
 # Fortius — identidad de la alternativa
 
-La marca comercial de esta rama es **Fortius Inmuebles**. La F, las letras RTIUS y el descriptor REAL ESTATE & INVESTMENTS conservan la geometría del logotipo original. La O forma una cabeza de toro minimalista: cuernos laterales cortos, orejas y una mandíbula redondeada rodean el espacio interior de la letra.
+La marca comercial de esta rama es **Fortius Inmuebles**. La F, las letras RTIUS y el descriptor REAL ESTATE & INVESTMENTS conservan la geometría del logotipo original. La O combina un aro facetado y de trazo sólido con dos cuernos separados y moderadamente cortos. El espacio interior sugiere el rostro del toro mediante su forma, sin detalles que se pierdan en la cabecera.
 
 | Uso | Color |
 | --- | --- |
