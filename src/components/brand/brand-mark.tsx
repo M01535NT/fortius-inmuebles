@@ -7,7 +7,7 @@ type BrandMarkProps = {
   className?: string;
 };
 
-/** Architectural Fortius identity shared by the public site and administration. */
+/** Fortius identity shared by the public site and administration. */
 export function BrandMark({ variant = 'full', inverse = false, className }: BrandMarkProps) {
   const viewBox = variant === 'symbol' ? '174 -4 228 250' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
   return (
