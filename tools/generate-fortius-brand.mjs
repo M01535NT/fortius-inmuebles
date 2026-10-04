@@ -7,9 +7,11 @@ import fontkit from '@pdf-lib/fontkit';
 const root = resolve(import.meta.dirname, '..');
 const navy = '#061F3F', burgundy = '#8A1634';
 const symbol = [
-  'M224 89C205 86 194 74 194 55C194 42 199 31 208 23C206 42 212 51 224 54C232 56 241 54 251 52L262 76C247 77 233 82 224 89Z',
-  'M292 32C342 32 379 73 379 130C379 187 342 228 292 228C242 228 205 187 205 130C205 73 242 32 292 32ZM292 78C265 78 250 99 250 130C250 161 265 182 292 182C319 182 334 161 334 130C334 99 319 78 292 78Z',
-  'M360 89C379 86 390 74 390 55C390 42 385 31 376 23C378 42 372 51 360 54C352 56 343 54 333 52L322 76C337 77 351 82 360 89Z',
+  'M224 105C210 100 194 101 180 110C191 129 206 137 220 133L232 118Z',
+  'M360 105C374 100 390 101 404 110C393 129 378 137 364 133L352 118Z',
+  'M236 99C212 99 194 87 190 72C186 59 192 46 204 40C202 56 212 65 226 67C237 69 249 65 259 61L269 85C254 88 243 94 236 99Z',
+  'M292 50C332 50 360 73 369 109C378 150 358 200 329 220C310 234 274 234 255 220C226 200 206 150 215 109C224 73 252 50 292 50ZM292 96C268 96 251 114 251 139C251 166 268 184 292 184C316 184 333 166 333 139C333 114 316 96 292 96Z',
+  'M348 99C372 99 390 87 394 72C398 59 392 46 380 40C382 56 372 65 358 67C347 69 335 65 325 61L315 85C330 88 341 94 348 99Z',
 ];
 const wordmark = [
   'M0 32H164V64H46V104H146L122 136H46V228H0Z',
@@ -34,8 +36,8 @@ const geometry = { symbol, wordmark, descriptor };
 await writeFile(resolve(root, 'src/components/brand/brand-paths.ts'), `// Shared Fortius vector geometry; bull-shaped O inspired by the supplied reference.\nexport const fortiusPaths = ${JSON.stringify(geometry, null, 2)} as const;\n`);
 function svg(variant = 'full', inverse = false) {
   const ink = inverse ? '#FFFFFF' : navy, accent = inverse ? '#E5829B' : burgundy;
-  const viewBox = variant === 'symbol' ? '190 18 204 216' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
-  const paths = symbol.map((d, i) => `<path fill="${i < 2 ? ink : accent}" d="${d}"/>`).join('') + (variant === 'symbol' ? '' : wordmark.map(d => `<path fill="${ink}" d="${d}"/>`).join('')) + (variant === 'full' ? descriptor.map(p => `<path fill="${ink}" d="${p.d}" transform="${p.transform}"/>`).join('') : '');
+  const viewBox = variant === 'symbol' ? '176 36 232 200' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
+  const paths = symbol.map((d, i) => `<path fill="${i < symbol.length - 1 ? ink : accent}" d="${d}"/>`).join('') + (variant === 'symbol' ? '' : wordmark.map(d => `<path fill="${ink}" d="${d}"/>`).join('')) + (variant === 'full' ? descriptor.map(p => `<path fill="${ink}" d="${p.d}" transform="${p.transform}"/>`).join('') : '');
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" role="img" aria-label="Fortius — Real Estate &amp; Investments">${paths}</svg>\n`;
 }
 for (const variant of ['full', 'compact', 'symbol']) {
