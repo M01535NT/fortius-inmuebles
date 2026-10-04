@@ -14,7 +14,7 @@ for (const width of [390, 1280]) {
     const download = await downloaded;
     expect(download.suggestedFilename()).toBe("fortius-ficha-residencia-vista-al-mar-playas.pdf");
     expect(await download.failure()).toBeNull();
-    await download.saveAs(testInfo.outputPath("ficha-mnt.pdf"));
+    await download.saveAs(testInfo.outputPath("ficha-fortius.pdf"));
     const stream = await download.createReadStream();
     const chunks: Buffer[] = [];
     for await (const chunk of stream!) chunks.push(Buffer.from(chunk));

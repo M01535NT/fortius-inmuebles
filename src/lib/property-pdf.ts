@@ -1,53 +1,40 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, rgb, PDFName, PDFString, type PDFFont } from "pdf-lib";
+import { PDFDocument, rgb, PDFName, PDFString, type PDFFont, type PDFImage } from "pdf-lib";
 import { ESTADO_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
 import type { Asesor, SiteSettings } from "@/lib/admin/store";
 import { publicContact } from "@/lib/public-contact";
 
 type Options = { settings: SiteSettings | null; adviser?: Asesor; siteUrl: string; loadImage: (src: string) => Promise<Uint8Array | null> };
 const burgundy = rgb(138 / 255, 22 / 255, 52 / 255);
-const ink = rgb(6 / 255, 31 / 255, 63 / 255);
-const muted = rgb(82 / 255, 97 / 255, 118 / 255);
-const pale = rgb(242 / 255, 244 / 255, 247 / 255);
+const ink = rgb(.08, .09, .1);
+const muted = rgb(.34, .36, .39);
+// Letter paper, with the same generous margins as the supplied editorial reference.
+const width = 612, height = 792, margin = 46, content = width - margin * 2;
+const bottom = height - 60, start = 91;
 
-/** Explicit public fields only. No record serialization or private attachments. */
+/** An editorial sheet of explicit public fields. Never serialize private records. */
 export async function createPropertyPdf(p: Property, options: Options): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
-  const [regular, bold, mono] = await Promise.all(
-    ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf", "IBMPlexMono-Medium.ttf"].map(async name =>
+  const [regular, bold, serif] = await Promise.all(
+    ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf", "LibreCaslonText-Regular.ttf"].map(async name =>
       pdf.embedFont(await readFile(join(process.cwd(), "public", "fonts", name)), { subset: true })
     )
   );
-  const brandLogo = await pdf.embedPng(await readFile(join(process.cwd(), "public", "brand", "fortius-logo.png")));
-  // Keep accented Spanish and omit glyphs absent from the embedded Latin subset.
-  const supported = new Set(regular.getCharacterSet());
-  const clean = (s: string) => Array.from(s.normalize("NFC").replace(/[\u2010-\u2015]/g, "-")).filter(c => {
-    return supported.has(c.codePointAt(0)!);
-  }).join("");
-  const width = 595.28, height = 841.89, margin = 44, content = width - margin * 2;
-  let page = pdf.addPage([width, height]);
-  let y = 0;
-  const header = () => {
-    const logoWidth = 156;
-    const logoHeight = logoWidth * brandLogo.height / brandLogo.width;
-    page.drawImage(brandLogo, { x: margin, y: height - 32 - logoHeight, width: logoWidth, height: logoHeight });
-    page.drawText("FICHA TÉCNICA", { x: width - 145, y: height - 48, size: 10, font: mono, color: burgundy });
-    page.drawLine({ start: { x: margin, y: height - 82 }, end: { x: width - margin, y: height - 82 }, thickness: .7, color: burgundy });
-    y = height - 107;
-  };
-  header();
-  const ensure = (space: number) => { if (y - space < 65) { page = pdf.addPage([width, height]); header(); } };
-  const lines = (value: string, size: number, font: PDFFont, max = content) => {
+  const logo = await pdf.embedPng(await readFile(join(process.cwd(), "public", "brand", "fortius-logo.png")));
+  const supported = new Map<PDFFont, Set<number>>();
+  for (const font of [regular, bold, serif]) supported.set(font, new Set(font.getCharacterSet()));
+  const clean = (s: string, font = regular) => Array.from(s.normalize("NFC").replace(/[\u2010-\u2015]/g, "-")).filter(c => supported.get(font)!.has(c.codePointAt(0)!)).join("");
+  const wrap = (value: string, size: number, font = regular, max = content) => {
     const result: string[] = [];
     for (const paragraph of value.split(/\r?\n/)) {
       let line = "";
-      for (const word of clean(paragraph).split(/\s+/)) {
+      for (const word of clean(paragraph, font).split(/\s+/).filter(Boolean)) {
         if (line && font.widthOfTextAtSize(`${line} ${word}`, size) > max) { result.push(line); line = ""; }
         for (const char of (line ? " " : "") + word) {
-          if (font.widthOfTextAtSize(line + char, size) > max) { result.push(line); line = ""; }
+          if (line && font.widthOfTextAtSize(line + char, size) > max) { result.push(line); line = ""; }
           line += char;
         }
       }
@@ -55,97 +42,250 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     }
     return result;
   };
-  const text = (value: string, size = 10, font = regular, color = ink) => {
-    for (const line of lines(value, size, font)) {
-      ensure(size * 1.5);
-      page.drawText(line, { x: margin, y: y - size, size, font, color });
-      y -= size * 1.5;
+  let page = pdf.addPage([width, height]);
+  let y = start;
+  const draw = (value: string, x: number, top: number, size = 10.5, font = regular, color = ink) => {
+    page.drawText(clean(value, font), { x, y: height - top - size, size, font, color });
+  };
+  const header = () => {
+    const logoWidth = 121;
+    page.drawImage(logo, { x: margin, y: height - 34 - logoWidth * logo.height / logo.width, width: logoWidth, height: logoWidth * logo.height / logo.width });
+    const label = "FICHA TÉCNICA";
+    draw(label, width - margin - regular.widthOfTextAtSize(label, 8), 42, 8, regular, muted);
+    y = start;
+  };
+  const next = () => { page = pdf.addPage([width, height]); header(); };
+  const ensure = (space: number) => { if (y + space > bottom && y > start) next(); };
+  const text = (value: string, size = 10.5, font = regular, color = ink, gap = 7) => {
+    const leading = size * 1.45;
+    for (const line of wrap(value, size, font)) {
+      ensure(leading);
+      draw(line, margin, y, size, font, color);
+      y += leading;
     }
-    y -= 4;
+    y += gap;
   };
-  const section = (title: string) => { ensure(85); y -= 8; text(title, 13, bold, burgundy); };
-  const link = (label: string, value: string) => {
-    let url: URL;
-    try { url = new URL(value, options.siteUrl); } catch { return; }
-    if (!["https:", "http:"].includes(url.protocol)) return;
-    ensure(34);
-    const top = y;
-    const count = lines(label, 10, regular).length;
-    text(label, 10, regular, burgundy);
-    // Links retain long URLs without compromising the printed layout.
-    const annotation = pdf.context.register(pdf.context.obj({ Type: "Annot", Subtype: "Link", Rect: [margin, top - count * 15, width - margin, top + 11], Border: [0, 0, 0], A: { Type: "Action", S: "URI", URI: PDFString.of(url.href) } }));
-    page.node.addAnnot(annotation);
+  const section = (label: string, minimum = 35) => {
+    ensure(39 + minimum);
+    y += 9;
+    text(label, 21, serif, ink, 7);
   };
-  const photo = async (src: string, caption: string, hero = false) => {
+  const safeUrl = (value: string, contact = false) => {
+    try {
+      const url = new URL(value, options.siteUrl);
+      return (contact ? ["https:", "http:", "mailto:", "tel:"] : ["https:", "http:"]).includes(url.protocol) && !url.username && !url.password ? url.href : null;
+    } catch { return null; }
+  };
+  const load = async (src: string) => {
     const bytes = await options.loadImage(src);
-    if (!bytes) { text(`Fotografía no disponible: ${caption}`, 9, regular, muted); return; }
-    const image = await pdf.embedJpg(bytes);
-    const box = hero ? 225 : 165;
-    ensure(box + 50);
-    const scale = Math.min(content / image.width, box / image.height);
-    page.drawRectangle({ x: margin, y: y - box, width: content, height: box, color: pale });
-    page.drawImage(image, { x: margin + (content - image.width * scale) / 2, y: y - box + (box - image.height * scale) / 2, width: image.width * scale, height: image.height * scale });
-    y -= box + 15;
-    text(caption, 8, regular, muted);
+    if (!bytes) return null;
+    try { return await pdf.embedJpg(bytes); } catch { return null; }
   };
+  const photo = (image: PDFImage, x: number, top: number, boxWidth: number, boxHeight: number) => {
+    const scale = Math.min(boxWidth / image.width, boxHeight / image.height);
+    // Show the entire photograph: no stretching, invented frame or hidden crop.
+    page.drawImage(image, { x: x + (boxWidth - image.width * scale) / 2, y: height - top - image.height * scale, width: image.width * scale, height: image.height * scale });
+  };
+
   pdf.setTitle(`${p.titulo} | Ficha técnica | Fortius Inmuebles`);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setSubject(`Información pública del inmueble ${p.codigo}`);
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
-  text(`${p.codigo}  /  ${TIPO_LABELS[p.tipo]}  /  ${OPERACION_LABELS[p.operacion]}  /  ${ESTADO_LABELS[p.estado]}`, 9, mono, burgundy);
-  text(p.titulo, 26, bold);
-  text(`${p.zona} · ${p.direccionAproximada}`, 11, regular, muted);
-  text(formatPrecio(p.precio), 20, mono, burgundy);
-  if (p.demo) text("PROPIEDAD DE DEMOSTRACIÓN. Datos y precio de ejemplo; no constituye una oferta real.", 9, bold, burgundy);
-  if (p.galeria[0]) await photo(p.galeria[0].src, p.galeria[0].alt, true);
-  section("Superficies y distribución");
-  const specs: [string, string | number | undefined][] = [
-    ["Terreno", p.ficha.terrenoM2 == null ? undefined : `${p.ficha.terrenoM2} m²`],
-    ["Construcción", p.ficha.construccionM2 == null ? undefined : `${p.ficha.construccionM2} m²`],
-    ["Recámaras", p.ficha.recamaras], ["Baños", p.ficha.banos], ["Estacionamientos", p.ficha.estacionamientos], ["Antigüedad", p.ficha.antiguedad],
-  ];
-  for (const [label, value] of specs) {
-    for (const [index, line] of lines(String(value ?? "No especificado"), 10, bold, content - 230).entries()) {
-      ensure(29);
-      page.drawRectangle({ x: margin, y: y - 25, width: content, height: 25, color: pale });
-      page.drawText(index === 0 ? label : "", { x: margin + 10, y: y - 16, size: 10, font: regular, color: muted });
-      page.drawText(line, { x: margin + 210, y: y - 16, size: 10, font: bold, color: ink });
-      y -= 29;
+  header();
+  text(`${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${ESTADO_LABELS[p.estado]}`, 10, regular, muted, 9);
+  const titleSize = wrap(p.titulo, 33, serif).length > 2 ? 28 : 33;
+  text(p.titulo, titleSize, serif, ink, 7);
+  text([p.zona, p.direccionAproximada].filter(Boolean).join(" · "), 10, regular, muted, 9);
+  text(formatPrecio(p.precio), 23, serif, burgundy, 15);
+  if (p.demo) text("Demostración · Datos y precio de ejemplo, sin oferta real.", 9, bold, burgundy, 12);
+
+  // Use the first available property photograph as the cover, preserving order.
+  let coverIndex = -1;
+  for (let index = 0; index < p.galeria.length; index++) {
+    const image = await load(p.galeria[index].src);
+    if (!image) continue;
+    ensure(300);
+    const photoHeight = Math.min(238, content * image.height / image.width);
+    photo(image, margin, y, content, photoHeight);
+    y += photoHeight + 22;
+    coverIndex = index;
+    break;
+  }
+
+  type Row = { value: string; font: PDFFont; size: number; color: typeof ink; space: number; href?: string };
+  const row = (value: string, font = regular, size = 10.5, color = ink, space = 0): Row => ({ value, font, size, color, space });
+  const linkedRow = (label: string, value: string, contact = false): Row[] => {
+    const href = safeUrl(value, contact);
+    return href ? [{ ...row(label, regular, 10, burgundy, 4), href }] : [];
+  };
+  const expand = (rows: Row[], max: number) => rows.flatMap(r => wrap(r.value, r.size, r.font, max).map((value, index, lines) => ({ ...r, value, space: index === lines.length - 1 ? r.space : 0 })));
+  const rowHeight = (r: Row) => r.size * 1.45 + r.space;
+  const renderRows = (rows: Row[], x: number, top: number) => {
+    for (const r of rows) {
+      draw(r.value, x, top, r.size, r.font, r.color);
+      // Each wrapped link line gets its own correctly positioned annotation.
+      if (r.href) page.node.addAnnot(pdf.context.register(pdf.context.obj({
+        Type: "Annot", Subtype: "Link", Rect: [x, height - top - r.size - 3, x + r.font.widthOfTextAtSize(r.value, r.size), height - top + 2], Border: [0, 0, 0],
+        A: { Type: "Action", S: "URI", URI: PDFString.of(r.href) },
+      })));
+      top += rowHeight(r);
+    }
+    return top;
+  };
+
+  // The cover follows the reference: narrative on the left, concise facts on the right.
+  const leftWidth = 306, rightWidth = 176, rightX = width - margin - rightWidth;
+  const specs: Row[] = [];
+  for (const [label, value] of [["Construcción", p.ficha.construccionM2], ["Terreno", p.ficha.terrenoM2]] as const) {
+    if (value != null) specs.push(row(`${value} m²`, serif, 22), row(label, regular, 9, muted, 9));
+  }
+  if (p.ficha.recamaras != null) specs.push(row(`${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}`));
+  if (p.ficha.banos != null) specs.push(row(`${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}`));
+  if (p.ficha.estacionamientos != null) specs.push(row(`${p.ficha.estacionamientos} ${p.ficha.estacionamientos === 1 ? "estacionamiento" : "estacionamientos"}`));
+  if (p.ficha.antiguedad?.trim()) specs.push(row(`Antigüedad: ${p.ficha.antiguedad}`, regular, 9, muted));
+  const specLines = expand(specs, rightWidth);
+  const description = p.descripcion.filter(value => value.trim());
+  if (specLines.length || description.length) {
+    ensure(Math.min(195, Math.max(100, specLines.reduce((sum, r) => sum + rowHeight(r), 0))));
+    const top = y;
+    let narrativeY = top, factsY = top;
+    const remaining = [...description];
+    const narrativeWidth = specLines.length ? leftWidth : content;
+    if (description.length) {
+      draw("La propiedad", margin, narrativeY, 21, serif);
+      narrativeY += 38;
+      // Prefer complete paragraphs; a long opening still needs a readable cover excerpt.
+      for (const paragraph of description) {
+        const normalized = clean(paragraph).replace(/\s+/g, " ").trim();
+        const paragraphRows = expand([row(normalized, regular, 10.5, ink, 8)], narrativeWidth);
+        const blockHeight = paragraphRows.reduce((sum, r) => sum + rowHeight(r), 0);
+        if (narrativeY + blockHeight > bottom) {
+          if (remaining.length === description.length) {
+            const count = Math.floor((bottom - narrativeY) / (10.5 * 1.45));
+            const excerpt = paragraphRows.slice(0, count).map(r => ({ ...r, space: 0 }));
+            narrativeY = renderRows(excerpt, margin, narrativeY);
+            // Advance through the original normalized text, preserving even unbroken words.
+            let offset = 0;
+            for (const r of excerpt) {
+              offset += r.value.length;
+              if (normalized[offset] === " ") offset++;
+            }
+            remaining[0] = normalized.slice(offset);
+            if (!remaining[0]) remaining.shift();
+          }
+          break;
+        }
+        narrativeY = renderRows(paragraphRows, margin, narrativeY);
+        remaining.shift();
+      }
+    }
+    let usedSpecs = 0;
+    for (const r of specLines) {
+      if (factsY + rowHeight(r) > bottom) break;
+      factsY = renderRows([r], rightX, factsY);
+      usedSpecs++;
+    }
+    y = Math.max(narrativeY, factsY) + 14;
+    if (remaining.length || usedSpecs < specLines.length) {
+      next();
+      if (remaining.length) {
+        section("La propiedad");
+        remaining.forEach(paragraph => text(paragraph));
+      }
+      if (usedSpecs < specLines.length) {
+        section("Distribución");
+        for (const r of specLines.slice(usedSpecs)) text(r.value, r.size, r.font, r.color, r.space);
+      }
     }
   }
-  section("Descripción del inmueble");
-  p.descripcion.forEach(paragraph => text(paragraph));
-  section("Amenidades");
-  text(p.amenidades.length ? p.amenidades.map(a => `- ${a}`).join("\n") : "No especificadas.");
-  section("Ubicación y condiciones");
-  text(`${p.zona}. ${p.direccionAproximada}. Ubicación aproximada; solicita los detalles al asesor.`);
-  if (p.puntosDeInteres.length) text(p.puntosDeInteres.map(point => `${point.lugar}: ${point.minutos} min aproximadamente en auto.`).join("\n"));
-  text(`Crédito disponible: ${p.creditoDisponible ? "Sí, sujeto a condiciones de la institución financiera." : "Consultar condiciones con el asesor."}`);
-  text(`Publicación: ${p.publicadaEl.slice(0, 10)}. Disponibilidad y condiciones sujetas a confirmación.`);
-  if (p.galeria.length > 1) {
-    section("Galería del inmueble");
-    for (const image of p.galeria.slice(1)) await photo(image.src, image.alt);
+
+  // Independent columns flow together across pages, so neither column can collide with a footer.
+  const columns = (left: Row[], right: Row[]) => {
+    const colWidth = (content - 32) / 2;
+    const queues = [expand(left, colWidth), expand(right, colWidth)];
+    if (!queues.some(q => q.length)) return;
+    const blockHeight = Math.max(...queues.map(queue => queue.reduce((sum, r) => sum + rowHeight(r), 0)));
+    // Reserve the actual short block, avoiding an extra page for a few contact lines.
+    ensure(Math.min(112, blockHeight) + 10);
+    y += 10;
+    while (queues.some(q => q.length)) {
+      const ends = queues.map((queue, index) => {
+        let top = y;
+        while (queue.length && top + rowHeight(queue[0]) <= bottom) {
+          top = renderRows([queue.shift()!], margin + index * (colWidth + 32), top);
+        }
+        return top;
+      });
+      y = Math.max(...ends) + 16;
+      if (queues.some(q => q.length)) next();
+    }
+  };
+  columns(
+    p.amenidades.length ? [row("Amenidades", serif, 21, ink, 9), ...p.amenidades.map(a => row(a, regular, 10, ink, 3))] : [],
+    p.puntosDeInteres.length ? [row("Alrededores", serif, 21, ink, 9), row("Tiempo aproximado en auto", regular, 8.5, muted, 6), ...p.puntosDeInteres.map(point => row(`${point.lugar} · ${point.minutos} min`, regular, 10, ink, 3))] : []
+  );
+  if (p.operacion === "venta") text(p.creditoDisponible ? "Crédito disponible" : "Crédito: consultar con el asesor", 9, regular, muted, 10);
+
+  // A compact gallery, two complete photographs per row; broken images leave no filler blocks.
+  const gallery: { image: PDFImage; caption: string }[] = [];
+  const galleryRow = () => {
+    const gap = 18, cell = gallery.length === 1 ? content : (content - gap) / 2;
+    const boxes = gallery.map(item => Math.min(gallery.length === 1 ? 218 : 162, cell * item.image.height / item.image.width));
+    const photoHeight = Math.max(...boxes);
+    const captions = gallery.map(item => wrap(item.caption, 8, regular, cell));
+    // Very long alt text remains available, but flows below the images across pages.
+    const captionHeight = Math.max(...captions.map(lines => lines.length)) * 11;
+    ensure(photoHeight + Math.min(captionHeight, 66) + 18);
+    gallery.forEach((item, index) => photo(item.image, margin + index * (cell + gap), y, cell, photoHeight));
+    y += photoHeight + 6;
+    const maxLines = Math.max(...captions.map(lines => lines.length));
+    for (let line = 0; line < maxLines; line++) {
+      ensure(11);
+      captions.forEach((lines, index) => { if (lines[line]) draw(lines[line], margin + index * (cell + gap), y, 8, regular, muted); });
+      y += 11;
+    }
+    y += 18;
+    gallery.length = 0;
+  };
+  for (const entry of p.galeria.slice(coverIndex + 1)) {
+    // If no cover could load, those sources have already been attempted.
+    if (coverIndex < 0) break;
+    const image = await load(entry.src);
+    if (image) gallery.push({ image, caption: entry.alt });
+    if (gallery.length === 2) galleryRow();
   }
-  section("Atención y recursos");
-  if (options.adviser) text(`${options.adviser.nombre} · ${options.adviser.cargo}`, 11, bold);
+  if (gallery.length) galleryRow();
+
+  const contactRows: Row[] = [row("Contacto", serif, 21, ink, 9)];
+  if (options.adviser) {
+    contactRows.push(row(options.adviser.nombre, bold, 11, ink, 1));
+    if (options.adviser.cargo) contactRows.push(row(options.adviser.cargo, regular, 9, muted, 7));
+  }
   const contact = publicContact(options.settings);
-  if (contact.phoneHref) text(`Teléfono: ${contact.phone}`);
-  if (contact.email) text(`Correo: ${contact.email}`);
-  if (contact.whatsapp) link("Conversar por WhatsApp", contact.whatsapp);
-  if (contact.messenger) link("Conversar por Messenger", contact.messenger);
-  if (!contact.phoneHref && !contact.email && !contact.whatsapp && !contact.messenger) text("Contactos de la firma: por confirmar.", 10, regular, muted);
-  if (options.settings?.horario) text(`Horario: ${options.settings.horario}`);
-  if (p.videoUrl) link("Ver video del inmueble", p.videoUrl);
-  if (p.tour360Url) link("Abrir recorrido de 360°", p.tour360Url);
-  for (const document of p.documentos ?? []) { link(`${document.codigo} · ${document.nombre}`, document.url); text(document.descripcion, 9, regular, muted); }
-  link("Consultar ficha vigente en el sitio web", `/inventario/${p.slug}`);
-  text(new URL(`/inventario/${p.slug}`, options.siteUrl).href, 8, regular, muted);
-  text("Documento informativo generado con los datos publicados. No sustituye escrituras, planos autorizados, avalúos ni la revisión documental de la operación.", 8, regular, muted);
+  if (contact.phoneHref) contactRows.push(...linkedRow(contact.phone, contact.phoneHref, true));
+  if (contact.email) contactRows.push(...linkedRow(contact.email, `mailto:${contact.email}`, true));
+  if (contact.whatsapp) contactRows.push(...linkedRow("WhatsApp", contact.whatsapp));
+  if (contact.messenger) contactRows.push(...linkedRow("Messenger", contact.messenger));
+  if (options.settings?.horario) contactRows.push(row(options.settings.horario, regular, 9, muted, 7));
+  contactRows.push(...linkedRow(`Ver inmueble en ${new URL(options.siteUrl).hostname}`, `/inventario/${p.slug}`));
+  const date = new Date(p.publicadaEl);
+  if (!Number.isNaN(date.getTime())) contactRows.push(row(`Publicado el ${date.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`, regular, 8, muted, 0));
+  const resources: Row[] = [];
+  if (p.videoUrl) resources.push(...linkedRow("Video del inmueble", p.videoUrl));
+  if (p.tour360Url) resources.push(...linkedRow("Recorrido de 360°", p.tour360Url));
+  for (const document of p.documentos ?? []) {
+    if (!safeUrl(document.url)) continue;
+    resources.push(...linkedRow(document.nombre, document.url));
+    if (document.descripcion) resources.push(row(document.descripcion, regular, 9, muted, 9));
+  }
+  columns(contactRows, resources.length ? [row("Más información", serif, 21, ink, 9), ...resources] : []);
   const pages = pdf.getPages();
   pages.forEach((sheet, index) => {
-    sheet.drawLine({ start: { x: margin, y: 46 }, end: { x: width - margin, y: 46 }, thickness: .4, color: muted });
-    sheet.drawText(clean(`Fortius Inmuebles · ${p.codigo}${p.demo ? " · DEMOSTRACIÓN" : ""}`), { x: margin, y: 31, size: 8, font: regular, color: muted });
-    sheet.drawText(`${index + 1} / ${pages.length}`, { x: width - 70, y: 31, size: 8, font: regular, color: muted });
+    page = sheet;
+    const footer = `Fortius · ${p.codigo}${p.demo ? " · Demostración" : ""}`;
+    wrap(footer, 8, regular, content - 70).slice(0, 2).forEach((line, i) => draw(line, margin, height - 35 + i * 10, 8, regular, muted));
+    const count = `${index + 1} / ${pages.length}`;
+    draw(count, width - margin - regular.widthOfTextAtSize(count, 8), height - 35, 8, regular, muted);
   });
   return pdf.save();
 }
