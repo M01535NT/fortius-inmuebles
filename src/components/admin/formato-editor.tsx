@@ -14,12 +14,15 @@ export function FormatoEditor({ definition, values, onChange }: {
       const wide = field.type === "long";
       return <div key={field.key} className={wide ? "md:col-span-2" : ""}>
         <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-foreground">{field.label}</label>
-        {field.key === "pagoParcialTotal" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
+        {field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
+        : field.type === "choice" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
+          <option value="">Selecciona</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select> : field.key === "pagoParcialTotal" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option><option value="total">Total</option><option value="parcial">Parcial</option>
         </select> : field.key === "moneda" || field.key === "monedaSaldo" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option><option value="MXN">MXN</option><option value="USD">USD</option>
         </select> : wide ? <textarea id={id} required={field.required} rows={4} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={textareaClass} />
-          : <input id={id} required={field.required} type={field.type === "date" ? "date" : field.type === "money" || field.type === "number" ? "number" : "text"}
+          : <input id={id} required={field.required} type={field.type === "date" ? "date" : field.type === "time" ? "time" : field.type === "money" || field.type === "number" ? "number" : "text"}
               step={field.type === "money" ? "0.01" : field.type === "number" ? "any" : undefined}
               min={field.type === "money" || field.type === "number" ? 0 : undefined}
               value={String(value)} onChange={(event) => onChange(field.key, field.type === "money" || field.type === "number" ? event.target.value === "" ? "" : Number(event.target.value) : event.target.value)} className={inputClass} />}

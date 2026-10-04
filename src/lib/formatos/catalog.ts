@@ -1,8 +1,9 @@
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "money" | "number" | "long";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice";
   required: boolean;
+  options?: readonly { value: string; label: string }[];
 };
 
 export type FormatoDefinition = {
@@ -15,6 +16,7 @@ export type FormatoDefinition = {
 };
 
 const field = (key: string, label: string, type: FormatoField["type"] = "text", required = true): FormatoField => ({ key, label, type, required });
+const choice = (key: string, label: string, options: readonly { value: string; label: string }[], required = true): FormatoField => ({ key, label, type: "choice", options, required });
 const f = (id: string, title: string, extension: "docx" | "xlsx", phase: FormatoDefinition["phase"], fields: FormatoField[], readyForEmission = false): FormatoDefinition => ({ id, title: title.replaceAll("_", " "), source: `${id}.${title}.${extension}`, phase, fields, readyForEmission });
 const inmueble = field("inmueble", "Inmueble y domicilio");
 const fecha = field("fecha", "Fecha", "date");
@@ -23,6 +25,11 @@ const propietario = field("propietario", "Propietario o representante");
 const comprador = field("comprador", "Comprador o representante");
 const folio = field("folio", "Folio del expediente");
 const moneda = field("moneda", "Moneda");
+const controlStates = [
+  { value: "comprobado", label: "Comprobado" },
+  { value: "pendiente", label: "Pendiente" },
+  { value: "no_aplica", label: "No aplica" },
+] as const;
 const levantamiento = [folio, inmueble, fecha, asesor, field("superficieTerreno", "Superficie de terreno", "number"), field("superficieConstruccion", "Superficie construida", "number", false), field("estadoObservado", "Estado observado", "long"), field("fotografias", "Referencias de fotografías", "long")];
 
 /** Source names are recorded for traceability; the source files are never served publicly. */
@@ -44,12 +51,109 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, [fecha, propietario, inmueble, field("prestador", "Prestador y representación"), field("precio", "Precio autorizado", "money"), moneda, field("honorarios", "Honorarios y condiciones", "long"), field("plazo", "Plazo"), field("modalidad", "Modalidad del encargo")]),
   f("10", "Plan_de_comercializacion", "docx", 3, [folio, inmueble, propietario, asesor, fecha, field("objetivo", "Objetivo del propietario", "long"), field("estrategia", "Estrategia", "long"), field("precioSalida", "Precio de salida", "money"), field("periodo", "Periodo de trabajo")]),
   f("11", "Reporte_de_comercializacion_al_propietario", "docx", 3, [folio, inmueble, propietario, asesor, field("periodo", "Periodo informado"), fecha, field("resultados", "Resultados del periodo", "long"), field("siguienteDecision", "Siguiente decisión", "long")]),
-  f("12", "Entrevista_y_perfil_del_comprador", "docx", 3, [fecha, asesor, comprador, field("contacto", "Contacto"), field("busqueda", "Inmueble buscado", "long"), field("presupuesto", "Presupuesto", "money"), moneda, field("formaPago", "Forma de pago")]),
-  f("13", "Registro_de_visita_y_retroalimentacion", "docx", 3, [fecha, asesor, inmueble, comprador, field("estadoCita", "Estado de la cita"), field("retroalimentacion", "Retroalimentación", "long")]),
+  f("12", "Entrevista_y_perfil_del_comprador", "docx", 3, [
+    folio, field("fechaEntrevista", "Fecha de entrevista", "date"), asesor, comprador,
+    field("telefono", "Teléfono"), field("correo", "Correo electrónico"),
+    choice("medioContacto", "Medio de contacto preferido", [
+      { value: "llamada", label: "Llamada" }, { value: "mensajeria", label: "Mensajería" }, { value: "correo", label: "Correo" },
+    ]), field("participantesDecision", "Quién más participa en la decisión"),
+    choice("tipoInmueble", "Tipo de inmueble buscado", [
+      { value: "casa", label: "Casa" }, { value: "departamento", label: "Departamento" }, { value: "terreno", label: "Terreno" },
+      { value: "local", label: "Local" }, { value: "oficina", label: "Oficina" }, { value: "nave_bodega", label: "Nave / bodega" }, { value: "otro", label: "Otro" },
+    ]),
+    choice("usoInmueble", "Uso previsto", [
+      { value: "vivienda", label: "Vivienda" }, { value: "comercial", label: "Comercial" },
+      { value: "industrial", label: "Industrial" }, { value: "otro_por_definir", label: "Otro / por definir" },
+    ]),
+    field("zonas", "Zonas donde busca", "long"), field("indispensables", "Características indispensables", "long"),
+    field("flexible", "Características en que puede ser flexible", "long"), field("descarta", "Características que descarta", "long"),
+    choice("motivoCompra", "Motivo de la compra", [
+      { value: "habitar", label: "Habitar" }, { value: "invertir", label: "Invertir" },
+      { value: "negocio", label: "Operar un negocio" }, { value: "otro", label: "Otro" },
+    ]),
+    field("precioDeseado", "Precio que le gustaría pagar", "money"), field("precioMaximo", "Precio máximo que puede pagar", "money"), moneda,
+    choice("gastosIncluidos", "¿El precio máximo incluye gastos de compra?", [
+      { value: "si", label: "Sí" }, { value: "no", label: "No" }, { value: "por_definir", label: "Por definir" },
+    ]), field("reservaGastos", "Dinero reservado para gastos de compra", "money"), field("monedaReserva", "Moneda de la reserva"),
+    choice("formaPago", "Forma de pago prevista", [
+      { value: "recursos_propios", label: "Recursos propios" }, { value: "credito", label: "Crédito" },
+      { value: "combinacion", label: "Combinación de ambos" }, { value: "por_definir", label: "Por definir" },
+    ]),
+    field("recursosPropios", "Recursos propios disponibles, importe declarado", "money", false),
+    field("monedaRecursos", "Moneda de los recursos propios", "text", false),
+    field("creditoPrevisto", "Crédito que prevé solicitar, importe", "money", false),
+    field("monedaCredito", "Moneda del crédito", "text", false),
+    field("institucionCredito", "Institución de crédito", "text", false),
+    choice("etapaCredito", "Etapa del crédito", [
+      { value: "sin_iniciar", label: "Sin iniciar" }, { value: "en_tramite", label: "En trámite" },
+      { value: "precalificado", label: "Precalificado" }, { value: "autorizado_con_soporte", label: "Autorizado con soporte" },
+      { value: "no_aplica", label: "No aplica" },
+    ], false),
+    field("soporteCredito", "Soporte de crédito revisado", "text", false),
+    field("fechaSoporte", "Fecha del soporte", "date", false),
+    field("vigenciaSoporte", "Vigencia del soporte", "date", false),
+    field("plazoCompra", "Para cuándo quiere comprar"),
+    choice("fechaFlexible", "¿Puede cambiar esa fecha?", [
+      { value: "si", label: "Sí" }, { value: "no", label: "No" }, { value: "por_definir", label: "Por definir" },
+    ]),
+    field("dependencias", "De qué depende la compra", "long"), field("diasVisita", "Días disponibles para visitas"),
+    field("horarioVisita", "Horario disponible para visitas"), field("siguienteAccion", "Siguiente acción", "long"),
+    field("responsableSeguimiento", "Responsable del siguiente paso"), field("fechaAcordada", "Fecha acordada", "date"),
+  ], true),
+  f("13", "Registro_de_visita_y_retroalimentacion", "docx", 3, [
+    folio, field("fechaCita", "Fecha de la cita", "date"), field("horaCita", "Hora de la cita", "time"), asesor,
+    inmueble, field("folioInmueble", "Folio del inmueble"), field("unidad", "Unidad visitada", "text", false),
+    field("interesado", "Nombre del interesado"), field("folioInteresado", "Folio del interesado", "text", false),
+    field("acompanantes", "Acompañantes", "text", false),
+    choice("estadoCita", "Estado de la cita", [
+      { value: "realizada", label: "Realizada" }, { value: "cancelada", label: "Cancelada" },
+      { value: "no_acudio", label: "No acudió" }, { value: "reprogramada", label: "Reprogramada" },
+    ]),
+    field("gusto", "¿Qué le gustó del inmueble?", "long", false),
+    field("noConvencio", "¿Qué no le convenció?", "long", false),
+    field("dudas", "¿Qué dudas o información necesita resolver?", "long", false),
+    choice("cumpleNecesidades", "¿El inmueble cumple sus necesidades?", [
+      { value: "si", label: "Sí" }, { value: "en_parte", label: "En parte" },
+      { value: "no", label: "No" }, { value: "por_definir", label: "Por definir" },
+    ], false),
+    choice("pasoSiguiente", "¿Qué quiere hacer después?", [
+      { value: "oferta", label: "Presentar oferta" }, { value: "otra_visita", label: "Otra visita" },
+      { value: "comparar", label: "Comparar opciones" }, { value: "descartar", label: "Descartarlo" },
+      { value: "por_definir", label: "Por definir" },
+    ], false),
+    field("motivoDecision", "Motivo de su decisión", "long", false),
+    field("observacionesAsesor", "Observaciones del asesor, distinguiendo hechos de interpretación", "long", false),
+    field("accionAcordada", "Acción acordada", "long"), field("responsableSeguimiento", "Responsable del seguimiento"),
+    field("fechaSeguimiento", "Fecha de seguimiento", "date"), field("pendientesComprobar", "Pendientes por comprobar", "long"),
+  ], true),
   f("14", "Oferta_de_compra_y_respuesta_del_propietario", "docx", 3, [fecha, inmueble, propietario, comprador, field("precioPropuesto", "Precio propuesto", "money"), moneda, field("condiciones", "Pago y condiciones", "long"), field("respuestaPropietario", "Respuesta del propietario", "long")]),
   f("15", "Promesa_de_compraventa", "docx", 4, [fecha, inmueble, propietario, comprador, field("precio", "Precio", "money"), moneda, field("formaPago", "Forma de pago", "long"), field("plazo", "Plazo para escriturar"), field("obligaciones", "Obligaciones y condiciones", "long")]),
   f("16", "Acta_de_entrega_y_recepcion_del_inmueble", "docx", 4, [folio, fecha, inmueble, field("entrega", "Quien entrega"), field("recibe", "Quien recibe"), field("resultado", "Resultado de la entrega"), field("estado", "Estado observado", "long"), field("pendientes", "Pendientes", "long")]),
-  f("17", "Cierre_del_expediente", "docx", 4, [folio, fecha, inmueble, field("resultado", "Resultado de la operación"), field("soporte", "Documento de soporte"), field("pendientes", "Pendientes y responsables", "long")]),
+  f("17", "Cierre_del_expediente", "docx", 4, [
+    folio, field("fechaRegistro", "Fecha de registro", "date"), inmueble,
+    choice("resultadoOperacion", "Resultado de la operación", [
+      { value: "realizada", label: "Realizada" }, { value: "cancelada", label: "Cancelada" }, { value: "sustituida", label: "Sustituida" },
+    ]),
+    field("soporteResultado", "Documento y fecha que soportan el resultado"),
+    field("motivoCambio", "Motivo de cancelación o cambio", "long", false),
+    field("expedienteRelacionado", "Expediente relacionado, si existe", "text", false),
+    choice("estadoExpediente", "Estado del expediente", [
+      { value: "cerrado_sin_pendientes", label: "Cerrado sin pendientes" },
+      { value: "terminado_con_seguimiento", label: "Terminado con seguimiento" },
+      { value: "no_procede_cerrar", label: "No procede cerrar" },
+    ]),
+    choice("tableroEstado", "Resultado actualizado en tablero 03", controlStates), field("tableroReferencia", "Referencia del tablero 03"),
+    choice("juridicaEstado", "Situación jurídica actualizada en 05", controlStates), field("juridicaReferencia", "Referencia de la revisión 05"),
+    choice("entregaEstado", "Entrega documentada en 16, si aplica", controlStates), field("entregaReferencia", "Referencia de entrega o motivo de no aplicación"),
+    choice("publicacionesEstado", "Publicaciones actualizadas", controlStates), field("publicacionesReferencia", "Referencia de publicaciones"),
+    choice("accesosEstado", "Accesos bajo custodia devueltos, si aplica", controlStates), field("accesosReferencia", "Referencia de accesos o motivo de no aplicación"),
+    field("accionesPendientes", "Acciones pendientes o ninguno", "long"),
+    field("responsablePendientes", "Responsable de los pendientes", "text", false),
+    field("proximaRevision", "Próxima revisión", "date", false),
+    field("ubicacionExpediente", "Ubicación del expediente completo"),
+    field("custodiaOriginales", "Originales bajo custodia y destino, o no aplica", "long"),
+    field("responsableRegistro", "Responsable del registro"),
+  ], true),
   f("18", "Recibo_de_pago_de_honorarios", "docx", 4, [
     field("numeroRecibo", "Número de recibo"), field("lugarEmision", "Lugar de emisión"), field("fechaPago", "Fecha del pago", "date"),
     field("pagador", "Quien paga"), field("importeRecibido", "Importe recibido", "money"), moneda,
@@ -83,8 +187,51 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
       const parsed = new Date(`${value}T00:00:00Z`);
       return Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value;
     }
+    if (item.type === "time") return typeof value !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+    if (item.type === "choice") return typeof value !== "string" || !item.options?.some((option) => option.value === value);
     return typeof value !== "string";
   }).map((item) => item.label);
+  if (id === "12") {
+    if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
+    if (data.precioDeseado === 0) errors.push("Precio que le gustaría pagar");
+    if (data.precioMaximo === 0) errors.push("Precio máximo que puede pagar");
+    if (typeof data.correo === "string" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.correo)) errors.push("Correo electrónico");
+    if (["recursos_propios", "combinacion"].includes(String(data.formaPago))) {
+      if (typeof data.recursosPropios !== "number" || data.recursosPropios <= 0) errors.push("Recursos propios disponibles, importe declarado");
+      if (!String(data.monedaRecursos ?? "").trim()) errors.push("Moneda de los recursos propios");
+    }
+    if (["credito", "combinacion"].includes(String(data.formaPago))) {
+      if (typeof data.creditoPrevisto !== "number" || data.creditoPrevisto <= 0) errors.push("Crédito que prevé solicitar, importe");
+      if (!String(data.monedaCredito ?? "").trim()) errors.push("Moneda del crédito");
+      if (!["sin_iniciar", "en_tramite", "precalificado", "autorizado_con_soporte"].includes(String(data.etapaCredito))) errors.push("Etapa del crédito");
+      if (data.etapaCredito === "autorizado_con_soporte") {
+        if (!String(data.soporteCredito ?? "").trim()) errors.push("Soporte de crédito revisado");
+        if (!String(data.fechaSoporte ?? "").trim()) errors.push("Fecha del soporte");
+        if (!String(data.vigenciaSoporte ?? "").trim()) errors.push("Vigencia del soporte");
+      }
+    }
+  }
+  if (id === "13" && data.estadoCita === "realizada") {
+    const requiredOnVisit = ["gusto", "noConvencio", "dudas", "cumpleNecesidades", "pasoSiguiente", "motivoDecision"];
+    for (const key of requiredOnVisit) {
+      const item = formatoById(id).fields.find((candidate) => candidate.key === key)!;
+      const value = data[key];
+      if (typeof value !== "string" || !value.trim() || (item.type === "choice" && !item.options?.some((option) => option.value === value))) errors.push(item.label);
+    }
+  }
+  if (id === "17") {
+    if (["cancelada", "sustituida"].includes(String(data.resultadoOperacion)) && !String(data.motivoCambio ?? "").trim()) errors.push("Motivo de cancelación o cambio");
+    const controls = ["tableroEstado", "juridicaEstado", "entregaEstado", "publicacionesEstado", "accesosEstado"];
+    if (data.estadoExpediente === "cerrado_sin_pendientes") {
+      if (controls.some((key) => data[key] === "pendiente")) errors.push("Estado del expediente");
+      if (String(data.accionesPendientes ?? "").trim().toLocaleLowerCase("es-MX") !== "ninguno") errors.push("Acciones pendientes o ninguno");
+    }
+    if (data.estadoExpediente === "terminado_con_seguimiento") {
+      if (String(data.accionesPendientes ?? "").trim().toLocaleLowerCase("es-MX") === "ninguno") errors.push("Acciones pendientes o ninguno");
+      if (!String(data.responsablePendientes ?? "").trim()) errors.push("Responsable de los pendientes");
+      if (!String(data.proximaRevision ?? "").trim()) errors.push("Próxima revisión");
+    }
+  }
   if (id === "18") {
     if (!["total", "parcial"].includes(String(data.pagoParcialTotal))) errors.push("Pago parcial o total");
     if (data.pagoParcialTotal === "total" && data.saldo !== 0) errors.push("Saldo pendiente");

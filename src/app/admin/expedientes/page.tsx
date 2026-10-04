@@ -113,11 +113,11 @@ export default function ExpedientesPage() {
   }
   const selected = expedientes.find((item) => item.id === selectedId);
   const definition = documento ? formatoById(documento.formato_id) : null;
-  const missing = definition ? validateFormato(definition.id, { folio: selected?.folio, ...values }) : [];
+  const missing = definition ? validateFormato(definition.id, { ...values, folio: selected?.folio }) : [];
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
   return <div className="space-y-8">
     <PageHeader title="Expedientes y formatos" description="Catálogo de 25 formatos exclusivos. Cada PDF requiere captura completa y cotejo con el original." />
-    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">El recibo 18 admite emisión. Los campos de los otros 24 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
+    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 12 (comprador), 13 (visita), 17 (cierre) y 18 (recibo) admiten emisión. Los campos de los otros 21 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     <section className="rounded-lg border border-border bg-card p-5">
       <h2 className="display-soft mb-4 text-xl">Nuevo expediente</h2>
@@ -148,7 +148,7 @@ export default function ExpedientesPage() {
         {documento && definition && <section className="rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft mb-2 text-xl">{definition.title}</h2>
           <p className="mb-5 text-sm text-muted-foreground">{definition.source} · Borrador v{documento.version}</p>
-          <FormatoEditor definition={definition} values={values} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
+          <FormatoEditor definition={definition} values={{ ...values, folio: selected.folio }} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
           {missing.length > 0 && <p className="mt-5 text-sm text-muted-foreground">Para emitir faltan: {missing.join(", ")}.</p>}
           {hasUnsavedChanges && <p className="mt-5 text-sm text-muted-foreground">Guarda los cambios antes de emitir el PDF.</p>}
           {!definition.readyForEmission && <p className="mt-5 text-sm text-muted-foreground">Este formato está pendiente de cotejo con el original; la emisión permanece bloqueada.</p>}

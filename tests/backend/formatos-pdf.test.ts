@@ -36,6 +36,52 @@ describe("emisión de formatos", () => {
     await expect(prepareFormatoEmission("07", {})).rejects.toThrow(/pendiente de cotejo/i);
   });
 
+  it("genera el registro de una visita cancelada sin exigir retroalimentación inexistente", async () => {
+    const bytes = await createFormatoPdf("13", {
+      folio: "EXP-1", fechaCita: "2026-10-05", horaCita: "10:30", asesor: "Ana",
+      inmueble: "Casa en Tijuana", folioInmueble: "INM-1", interesado: "Luis",
+      estadoCita: "cancelada", accionAcordada: "Reprogramar", responsableSeguimiento: "Ana",
+      fechaSeguimiento: "2026-10-06", pendientesComprobar: "Disponibilidad",
+    });
+    const pdf = await PDFDocument.load(bytes);
+    expect(pdf.getTitle()).toBe("Visita y retroalimentación");
+    expect(pdf.getPageCount()).toBeGreaterThan(0);
+  });
+
+  it("genera un cierre sin pendientes solo con controles respaldados", async () => {
+    const bytes = await createFormatoPdf("17", {
+      folio: "EXP-1", fechaRegistro: "2026-10-05", inmueble: "Casa Tijuana", resultadoOperacion: "realizada",
+      soporteResultado: "Escritura 123, 2026-10-05", estadoExpediente: "cerrado_sin_pendientes",
+      tableroEstado: "comprobado", tableroReferencia: "Tablero 03",
+      juridicaEstado: "comprobado", juridicaReferencia: "Revisión 05",
+      entregaEstado: "comprobado", entregaReferencia: "Acta 16",
+      publicacionesEstado: "comprobado", publicacionesReferencia: "Captura web",
+      accesosEstado: "no_aplica", accesosReferencia: "No se entregaron llaves",
+      accionesPendientes: "ninguno", ubicacionExpediente: "Expedientes/EXP-1",
+      custodiaOriginales: "No aplica", responsableRegistro: "Ana",
+    });
+    const pdf = await PDFDocument.load(bytes);
+    expect(pdf.getTitle()).toBe("Cierre del expediente");
+    expect(pdf.getPageCount()).toBeGreaterThan(0);
+  });
+
+  it("genera el perfil del comprador con importes declarados y seguimiento", async () => {
+    const bytes = await createFormatoPdf("12", {
+      folio: "EXP-2", fechaEntrevista: "2026-10-05", asesor: "Ana", comprador: "Luis",
+      telefono: "6640000000", correo: "luis@example.com", medioContacto: "correo", participantesDecision: "Cónyuge",
+      tipoInmueble: "casa", usoInmueble: "vivienda", zonas: "Zona Centro", indispensables: "Dos recámaras",
+      flexible: "Patio", descarta: "Escaleras", motivoCompra: "habitar", precioDeseado: 3000000,
+      precioMaximo: 3200000, moneda: "MXN", gastosIncluidos: "no", reservaGastos: 200000,
+      monedaReserva: "MXN", formaPago: "recursos_propios", recursosPropios: 3400000, monedaRecursos: "MXN",
+      plazoCompra: "2027-01", fechaFlexible: "si", dependencias: "Ninguna", diasVisita: "Sábados",
+      horarioVisita: "10 a 13", siguienteAccion: "Mostrar inmuebles", responsableSeguimiento: "Ana",
+      fechaAcordada: "2026-10-08",
+    });
+    const pdf = await PDFDocument.load(bytes);
+    expect(pdf.getTitle()).toBe("Perfil del comprador");
+    expect(pdf.getPageCount()).toBeGreaterThan(0);
+  });
+
   it("rechaza importes negativos y recibos totales con saldo pendiente", async () => {
     await expect(prepareFormatoEmission("18", { ...receipt, importeRecibido: -1 })).rejects.toThrow(/Importe recibido/);
     await expect(prepareFormatoEmission("18", { ...receipt, saldo: 100 })).rejects.toThrow(/Saldo pendiente/);

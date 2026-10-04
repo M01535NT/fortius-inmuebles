@@ -14,6 +14,8 @@ const margin = 45;
 
 function displayValue(field: FormatoField, value: unknown): string {
   if (field.type === "money" && typeof value === "number") return new Intl.NumberFormat("es-MX", { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(value);
+  if (field.type === "choice") return field.options?.find((option) => option.value === value)?.label ?? "";
+  if (field.type === "date" && typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${value}T00:00:00Z`));
   return String(value ?? "").trim();
 }
 
@@ -46,7 +48,8 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   const pdf = await PDFDocument.create();
-  pdf.setTitle(definition.title);
+  const displayTitle = id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : definition.title;
+  pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
   pdf.registerFontkit(fontkit);
@@ -93,10 +96,66 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     }
     y -= gap;
   };
-  write(definition.title, 19, bold, accent, 10);
+  write(displayTitle, 19, bold, accent, 10);
   write(`Expediente ${String(data.folio ?? "")} · Formato ${definition.id}`, 8.5, regular, muted, 14);
+  const fieldLine = (field: FormatoField) => {
+    const value = displayValue(field, data[field.key]);
+    if (!value) return;
+    ensure(42);
+    write(field.label, 8, bold, muted, 2);
+    write(value, 10, regular, ink, 8);
+  };
   if (id === "18") {
     for (const paragraph of receiptParagraphs(data)) write(paragraph, 10, regular, ink, 12);
+  } else if (id === "12") {
+    write("Una conversación para entender qué busca y cómo puede realizar la compra.", 10, regular, muted, 13);
+    for (const field of definition.fields.slice(1, 8)) fieldLine(field);
+    if (y < 230) { page = pdf.addPage(a4); startPage(); }
+    write("01 / La búsqueda", 13, bold, accent, 10);
+    for (const field of definition.fields.slice(8, 15)) fieldLine(field);
+    if (y < 230) { page = pdf.addPage(a4); startPage(); }
+    write("02 / El presupuesto y la forma de pago", 13, bold, accent, 10);
+    write("Precisar lo posible, resolver pendientes y acordar la siguiente acción.", 9, regular, muted, 10);
+    for (const field of definition.fields.slice(15, 31)) fieldLine(field);
+    if (y < 230) { page = pdf.addPage(a4); startPage(); }
+    write("03 / El plazo y el siguiente paso", 13, bold, accent, 10);
+    for (const field of definition.fields.slice(31)) fieldLine(field);
+    write("Los importes son declarados salvo soporte identificado. Una precalificación no garantiza el crédito. Poner a disposición el aviso de privacidad y registrar el seguimiento en el tablero.", 9, regular, muted, 12);
+  } else if (id === "13") {
+    write("Registrar la experiencia del interesado y acordar cómo continuar.", 10, regular, muted, 13);
+    for (const field of definition.fields.slice(1, 11)) fieldLine(field);
+    write("01 / Lo que comenta el interesado", 13, bold, accent, 10);
+    if (data.estadoCita === "realizada") for (const field of definition.fields.slice(11, 15)) fieldLine(field);
+    else write("No aplica: la cita no se realizó.", 10, regular, muted, 12);
+    if (y < 190) { page = pdf.addPage(a4); startPage(); }
+    write("02 / Su interés en continuar", 13, bold, accent, 10);
+    if (data.estadoCita === "realizada") for (const field of definition.fields.slice(15, 17)) fieldLine(field);
+    else write("No se recabó una decisión del interesado durante esta cita.", 10, regular, muted, 12);
+    write("03 / Seguimiento del asesor", 13, bold, accent, 10);
+    for (const field of definition.fields.slice(17)) fieldLine(field);
+  } else if (id === "17") {
+    write("Control interno para registrar el resultado de la operación, localizar su documentación y asignar el seguimiento que continúe. No es un finiquito ni acredita por sí solo el cumplimiento de obligaciones.", 10, regular, muted, 15);
+    write("01 / Identificación", 13, bold, accent, 10);
+    for (const field of definition.fields.slice(0, 3)) fieldLine(field);
+    write("02 / Resultado", 13, bold, accent, 10);
+    for (const field of definition.fields.slice(3, 8)) fieldLine(field);
+    page = pdf.addPage(a4); startPage();
+    write("03 / Comprobación del cierre", 13, bold, accent, 8);
+    write("Anote comprobado, pendiente o no aplica; cite el archivo que permite verificarlo. No repita su contenido.", 9, regular, muted, 12);
+    for (let index = 8; index < 18; index += 2) {
+      ensure(55);
+      const status = definition.fields[index];
+      const reference = definition.fields[index + 1];
+      write(status.label, 8, bold, muted, 1);
+      write(`${displayValue(status, data[status.key])} · ${displayValue(reference, data[reference.key])}`, 9, regular, ink, 6);
+    }
+    write("04 / Seguimiento pendiente", 13, bold, accent, 8);
+    for (const field of definition.fields.slice(18, 21)) fieldLine(field);
+    write("Con pendientes y responsable asignado, use terminado con seguimiento; sin responsable, no procede cerrar. Si no hay pendientes, escriba ninguno.", 9, regular, muted, 12);
+    ensure(190);
+    write("05 / Archivo", 13, bold, accent, 8);
+    for (const field of definition.fields.slice(21)) fieldLine(field);
+    write("Archivar no significa borrar. Conserve los documentos conforme al criterio aplicable al expediente; cualquier depuración se decide por separado.", 9, regular, muted, 12);
   } else for (const field of definition.fields) {
       ensure(48);
       write(field.label.toUpperCase(), 8, bold, muted, 2);

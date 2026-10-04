@@ -4,7 +4,7 @@
 
 La rama contiene la base de expedientes privados, asociación de cuentas editor con asesores, borradores versionados, archivo de PDFs emitidos con SHA-256 y archivo separado de copias firmadas fuera del sistema. El catálogo identifica los 25 originales del directorio `Formatos exclusivos`.
 
-El formato 18, **Recibo de pago de honorarios**, es el único habilitado para emisión. Su texto se cotejó con el DOCX original y se revisó una muestra renderizada de una página. Los otros 24 ofrecen una estructura preliminar de captura, pero **no equivalen todavía a sus Word o Excel**. La emisión se bloquea expresamente para ellos. No se ha aplicado la migración a Supabase de producción ni se ha desplegado este módulo.
+Los formatos 12, **Perfil del comprador**, 13, **Registro de visita y retroalimentación**, 17, **Cierre del expediente**, y 18, **Recibo de pago de honorarios**, están habilitados para emisión. Su contenido se cotejó con los DOCX originales y se revisaron visualmente muestras PDF de los cuatro. Los otros 21 ofrecen una estructura preliminar de captura, pero **no equivalen todavía a sus Word o Excel**. La emisión se bloquea expresamente para ellos. No se ha aplicado la migración a Supabase de producción ni se ha desplegado este módulo.
 
 ## Trabajo necesario antes del despliegue completo
 

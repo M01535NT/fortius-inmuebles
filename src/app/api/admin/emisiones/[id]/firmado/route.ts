@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
-import { apiResponse, ApiError, assertSameOrigin, databaseError } from "@/lib/backend/http";
+import { apiResponse, ApiError, assertSameOrigin, databaseError, readBody } from "@/lib/backend/http";
 
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
@@ -31,7 +31,12 @@ export async function POST(request: Request, context: Context) {
     const draft = await client.from("mnt_formato_drafts").select("expediente_id").eq("id", result.data.draft_id).maybeSingle();
     if (draft.error) databaseError(draft.error);
     if (!draft.data) throw new ApiError(404, "Expediente no encontrado");
-    const form = await request.formData();
+    const contentType = request.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().startsWith("multipart/form-data;")) throw new ApiError(415, "Se requiere formulario multipart");
+    const body = await readBody(request, MAX_PDF_BYTES + 65536);
+    let form: FormData;
+    try { form = await new Response(body as BodyInit, { headers: { "Content-Type": contentType } }).formData(); }
+    catch { throw new ApiError(400, "Formulario de archivo inválido"); }
     const file = form.get("archivo");
     if (!(file instanceof File)) throw new ApiError(400, "Adjunta el PDF firmado");
     if (file.size === 0 || file.size > MAX_PDF_BYTES) throw new ApiError(400, "El PDF debe ocupar entre 1 byte y 20 MB");

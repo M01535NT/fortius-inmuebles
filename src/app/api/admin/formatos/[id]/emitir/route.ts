@@ -23,7 +23,7 @@ export async function POST(request: Request, context: Context) {
     if (parent.error) databaseError(parent.error);
     if (!parent.data) throw new ApiError(404, "Expediente no encontrado");
     if (!draft.data || typeof draft.data !== "object" || Array.isArray(draft.data)) throw new ApiError(400, "Datos del documento inválidos");
-    const values = { folio: parent.data.folio, ...(draft.data as Record<string, unknown>) };
+    const values = { ...(draft.data as Record<string, unknown>), folio: parent.data.folio };
     const missing = validateFormato(draft.formato_id, values);
     if (missing.length) throw new ApiError(409, `Faltan datos: ${missing.join(", ")}`);
     const emission = await prepareFormatoEmission(draft.formato_id, values);
