@@ -6,7 +6,6 @@ import { db, useCollection } from "@/lib/admin/store";
 import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
-import { isLevantamiento } from "@/lib/formatos/levantamiento";
 
 type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };

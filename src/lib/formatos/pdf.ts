@@ -19,6 +19,7 @@ import { isLevantamiento, LEVANTAMIENTO_TITLES, LEVANTAMIENTO_TABLES, type Levan
 import type { FormatoPdfAsset } from "./assets";
 import { calcularValor, calcularConstruccion, valorAssetIds, type ValorRow } from "./valor";
 import { VALOR_TABLES, mostrarCampoValor } from "./valor-fields";
+import { promesaParagraphs } from "./promesa";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -65,7 +66,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   if (id === "07" && valorAssetIds(data).some((assetId) => !assets.some((asset) => asset.id === assetId && asset.kind === (assetId === data.croquisId ? "croquis" : "foto") && (asset.kind !== "foto" || asset.observed_on && asset.observed_on <= String(data.fechaEmision))))) throw new Error("Faltan imágenes autorizadas y fotografías fechadas del borrador");
   const pdf = await PDFDocument.create();
   const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "07" ? "Opinión de valor comercial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
-  pdf.setTitle(displayTitle);
+  pdf.setTitle(id === "15" ? "Contrato de promesa bilateral de compraventa" : displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
   pdf.registerFontkit(fontkit);
@@ -112,8 +113,10 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     }
     y -= gap;
   };
-  write(displayTitle, 19, bold, accent, 10);
-  write(`Expediente ${String(data.folio ?? "")} · Formato ${definition.id}`, 8.5, regular, muted, 14);
+  if (id !== "15") {
+    write(displayTitle, 19, bold, accent, 10);
+    write(`Expediente ${String(data.folio ?? "")} · Formato ${definition.id}`, 8.5, regular, muted, 14);
+  }
   const fieldLine = (field: FormatoField) => {
     const value = displayValue(field, data[field.key]);
     if (!value) return;
@@ -132,7 +135,46 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     write(`${asset.caption} · ID ${asset.id}`, 8, bold, ink, 3);
     write(`Fuente: ${asset.source}${asset.observed_on ? ` · Fecha: ${asset.observed_on}` : ""}`, 8, regular, muted, 10);
   };
-  if (id === "18") {
+  if (id === "15") {
+    const width = a4[0] - 2 * margin;
+    const contractParagraph = (content: string) => {
+      for (const paragraph of content.split(/\r?\n/)) {
+        const lines = wrap(paragraph, regular, 10);
+        for (const [index, line] of lines.entries()) {
+          ensure(15);
+          const words = line.split(" "); const justify = index < lines.length - 1 && words.length > 1;
+          if (justify) {
+            const space = (width - words.reduce((sum, word) => sum + regular.widthOfTextAtSize(word, 10), 0)) / (words.length - 1);
+            let x = margin;
+            for (const word of words) { page.drawText(word, { x, y, size: 10, font: regular, color: ink }); x += regular.widthOfTextAtSize(word, 10) + space; }
+          } else page.drawText(line, { x: margin, y, size: 10, font: regular, color: ink });
+          y -= 15;
+        }
+        y -= 8;
+      }
+    };
+    const paragraphs = promesaParagraphs(data);
+    const signatures = paragraphs.slice(-2).map((signature) => wrap(signature, regular, 9, 220));
+    const signatureHeight = Math.max(...signatures.map((lines) => lines.length)) * 14 + 40;
+    for (const paragraph of paragraphs.slice(0, -2)) {
+      if (["Declaraciones", "Cláusulas", "Firmas"].includes(paragraph) || /^\d{2}\s|^I{1,3}\. PARTE|^III\. AMBAS/.test(paragraph)) {
+        ensure(paragraph === "Firmas" ? signatureHeight + 53 : 60); y -= 8;
+        const title = ["Declaraciones", "Cláusulas", "Firmas"].includes(paragraph) ? paragraph.toUpperCase() : paragraph;
+        for (const line of wrap(title, bold, 11)) { page.drawText(line, { x: margin + (width - bold.widthOfTextAtSize(line, 11)) / 2, y, size: 11, font: bold, color: ink }); y -= 17; }
+        y -= 8;
+      } else {
+        if (paragraph.startsWith("Leído el contrato")) ensure(signatureHeight + 100);
+        contractParagraph(paragraph);
+      }
+    }
+    ensure(signatureHeight); y -= 30;
+    for (const [index, lines] of signatures.entries()) {
+      const x = index ? a4[0] - margin - 220 : margin;
+      page.drawLine({ start: { x, y }, end: { x: x + 220, y }, thickness: 0.7, color: ink });
+      for (const [lineIndex, line] of lines.entries()) page.drawText(line, { x: x + (220 - regular.widthOfTextAtSize(line, 9)) / 2, y: y - 18 - lineIndex * 14, size: 9, font: regular, color: ink });
+    }
+    y -= signatureHeight;
+  } else if (id === "18") {
     for (const paragraph of receiptParagraphs(data)) write(paragraph, 10, regular, ink, 12);
   } else if (isLevantamiento(id)) {
     write("Inspección visual no pericial. No certifica superficies, seguridad ni uso autorizado. Ante riesgo suspenda el recorrido, registre lo ocurrido y derive a revisión competente.", 9, regular, muted, 10);
@@ -721,7 +763,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       page.drawLine({ start: { x: margin, y: y + 5 }, end: { x: a4[0] - margin, y: y + 5 }, thickness: 0.35, color: rgb(0.82, 0.84, 0.85) });
       y -= 10;
     }
-  if (["09", "15", "16", "18"].includes(id)) {
+  if (["09", "16", "18"].includes(id)) {
     ensure(86);
     y -= 28;
     page.drawLine({ start: { x: margin, y }, end: { x: margin + 200, y }, thickness: 0.7, color: ink });
