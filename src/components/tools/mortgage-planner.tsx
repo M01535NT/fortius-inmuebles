@@ -26,7 +26,7 @@ import {
   PrivacyNote,
 } from "./finance-ui";
 import { ClosingCostsCalculator } from "./closing-costs-calculator";
-import type { FinancialReport } from "@/lib/finance/report";
+import { mortgageReport } from "@/lib/finance/report-content";
 type SavedScenario = {
   id: number;
   input: MortgageInput;
@@ -316,74 +316,34 @@ export function MortgagePlanner({
     capacityPercent >= 1
       ? paymentCapacity(number("income")!, number("debts")!, capacityPercent)
       : null;
-  const snapshot = (s: SavedScenario) => [
-    `Precio: ${money(s.input.price)}; enganche: ${s.input.downPercent}%; tasa nominal anual: ${s.input.annualRate}%; plazo: ${s.input.months} meses; primer pago: ${s.input.firstPayment}.`,
-    `Seguro mensual: ${s.input.insurance === null ? "Pendiente" : money(s.input.insurance)}; administración mensual: ${s.input.monthlyFee === null ? "Pendiente" : money(s.input.monthlyFee)}; apertura: ${s.input.openingFee === null ? "Pendiente" : money(s.input.openingFee)}.`,
-    `Abono mensual: ${money(s.input.extraMonthly)}; abono único: ${money(s.input.extraOnce)} en mes ${s.input.extraMonth}; objetivo: ${s.input.prepaymentMode === "term" ? "reducir plazo" : "reducir pago"}; comisión total por anticipos: ${s.input.prepaymentFee === null ? "Pendiente" : money(s.input.prepaymentFee)}.`,
-    `Capital e interés mensual inicial: ${money(s.result.payment)}; interés total: ${money(s.result.interest)}; costo de crédito conocido: ${money(s.result.totalKnownCost)}; pagos: ${s.result.schedule.length}.`,
-    `CAT de cotización: ${s.quotedCat || "No capturado"}; institución/producto: ${s.bank || "No capturado"}; fecha de cotización: ${s.quoteDate || "No capturada"}. No se usa como tasa nominal.`,
-    `Pendientes: ${s.result.pending.join(", ") || "Ninguno"}.`,
-  ];
-  const report: FinancialReport | null =
+  const report =
     result && input
-      ? {
-          title: "Simulación de hipoteca en MXN",
-          sections: [
-            {
-              title: "Datos del crédito",
-              lines: [
-                ...snapshot({
-                  id: 0,
-                  input,
-                  result,
-                  quotedCat: v.cat,
-                  bank: v.bank,
-                  quoteDate: v.quoteDate,
-                }),
-                ...(moneda === "USD"
-                  ? [
-                      `Precio original: ${money(originalPrice!, "USD")} USD; tipo de cambio capturado: ${v.exchange} MXN/USD. El crédito simulado es en MXN.`,
-                    ]
-                  : []),
-                "Tasa fija nominal, pagos mensuales vencidos; interés mensual sobre saldo. Seguros y administración capturados son cuotas constantes. No simula créditos variables, UDIS ni Infonavit.",
-              ],
-            },
-            {
-              title: "Resultado",
-              lines: [
-                `Enganche: ${money(result.downPayment)}; principal: ${money(result.principal)}.`,
-                `Interés ahorrado frente al mismo crédito sin anticipos: ${money(result.interestSaved)}; meses ahorrados: ${result.monthsSaved}.`,
-                "El costo conocido incluye principal, intereses y cargos capturados; excluye el enganche y gastos de compraventa. Los importes pendientes no son cero.",
-                ...(capacity !== null
-                  ? [
-                      `Capacidad elegida: ${capacityPercent}% del ingreso ${money(number("income")!)} menos deudas ${money(number("debts")!)} = ${money(capacity)}. No representa aprobación bancaria.`,
-                    ]
-                  : []),
-              ],
-            },
-            ...saved.map((s, i) => ({
-              title: `Escenario guardado ${i + 1}`,
-              lines: snapshot(s),
-            })),
-            {
-              title: "Amortización completa (MXN)",
-              lines: [
-                "Mes | Fecha | Capital + interés | Interés | Capital | Anticipo | Saldo | Egreso conocido",
-                ...result.schedule.map(
-                  (r) =>
-                    `${r.month} | ${r.date} | ${money(r.payment)} | ${money(r.interest)} | ${money(r.principal)} | ${money(r.extra)} | ${money(r.balance)} | ${money(r.knownOutlay)}`,
-                ),
-              ],
-            },
-            {
-              title: "Método y fuente",
-              lines: [
-                "Pagos e intereses redondeados a centavos; último pago ajustado para saldo cero. Anticipos después del pago del mes; recálculo de pago sobre plazo restante si así se elige. No se calcula ni anuncia un CAT oficial.",
-                FINANCIAL_SOURCES.cat.url,
-              ],
-            },
-          ],
-        }
+      ? mortgageReport({
+          input,
+          result,
+          saved,
+          quotedCat: v.cat,
+          bank: v.bank,
+          quoteDate: v.quoteDate,
+          ...(moneda === "USD"
+            ? {
+                fx: {
+                  original: originalPrice!,
+                  rate: number("exchange", 100)!,
+                },
+              }
+            : {}),
+          ...(v.income.trim() || v.debts.trim()
+            ? {
+                capacity: {
+                  income: number("income"),
+                  debts: number("debts"),
+                  percent: capacityPercent,
+                  budget: capacity,
+                },
+              }
+            : {}),
+        })
       : null;
   return (
     <div className="text-foreground">

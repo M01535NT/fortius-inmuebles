@@ -1,33 +1,8 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import {
-  PDFDocument,
-  PDFArray,
-  PDFRawStream,
-  decodePDFRawStream,
-} from "pdf-lib";
-function pdfText(pdf: PDFDocument) {
-  return (
-    pdf
-      .getPages()
-      .flatMap((p) => {
-        const c = p.node.Contents();
-        const streams =
-          c instanceof PDFArray
-            ? c.asArray().map((s) => pdf.context.lookup(s))
-            : [c];
-        return streams
-          .filter((s): s is PDFRawStream => s instanceof PDFRawStream)
-          .map((s) => new TextDecoder().decode(decodePDFRawStream(s).decode()));
-      })
-      .join("\n")
-      .match(/<([0-9A-F]+)>\s*Tj/g)
-      ?.map((s) =>
-        Buffer.from(s.slice(1, s.indexOf(">")), "hex").toString("latin1"),
-      )
-      .join("\n") ?? ""
-  );
-}
+import { PDFDocument } from "pdf-lib";
+import { financialPdfPages } from "../../helpers/financial-pdf";
+const pdfText = (pdf: PDFDocument) => financialPdfPages(pdf).join("\n");
 for (const width of [375, 414, 768, 1440]) {
   test(`financial tools are accessible and usable at ${width}px`, async ({
     page,
@@ -135,8 +110,8 @@ test("financial PDFs contain the same results, complete schedule and quotes with
   const pdf = await PDFDocument.load(Buffer.concat(chunks));
   expect(pdf.getPageCount()).toBeGreaterThan(5);
   expect(pdfText(pdf)).toContain("$3,123,456.78");
-  expect(pdfText(pdf)).toContain("Seguro mensual: Pendiente");
-  expect(pdfText(pdf)).toContain("240 | 2046-10-01");
+  expect(pdfText(pdf)).toMatch(/Seguro mensual\s+Pendiente/);
+  expect(pdfText(pdf)).toMatch(/240\s+2046-10-01/);
   expect(
     requests.some((r) => /3123456|3,123,456|income|extraMonthly/.test(r)),
   ).toBe(false);

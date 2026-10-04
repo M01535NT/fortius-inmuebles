@@ -9,7 +9,10 @@ import {
 import {
   calculateClosingBudget,
   calculateSellerIsr,
+  type BuyerBudgetInput,
+  type SellerBudgetInput,
 } from "@/lib/finance/closing";
+import { closingReport } from "@/lib/finance/report-content";
 import { convertPrice } from "@/lib/finance/mortgage";
 import {
   D,
@@ -183,48 +186,47 @@ export function ClosingCostsCalculator({
           fiscalYears: years,
         })
       : null;
-  const result =
+  const budgetInput: BuyerBudgetInput | SellerBudgetInput | null =
     !error && price !== null
-      ? calculateClosingBudget(
-          activeProfile === "buyer"
-            ? {
-                profile: "buyer",
-                municipality,
-                date,
-                price,
-                taxBase: amount("base"),
-                downPayment,
-                loan,
-                baseIsAssumed: assumed,
-                isaiQuote: amount("isai"),
-                registrationQuote: amount("registration"),
-                preventiveNotices: notices ?? 2,
-                notary: amount("notary"),
-                appraisal: amount("appraisal"),
-                openingFee: linked
-                  ? (financing?.openingFee ?? null)
-                  : amount("opening"),
-                other: amount("other"),
-              }
-            : {
-                profile: "seller",
-                municipality,
-                date,
-                price,
-                commissionPercent: commission,
-                vatPercent: vat,
-                commissionIncludesVat: includesVat,
-                mortgagePayoff: amount("payoff"),
-                cancellation: amount("cancellation"),
-                isr:
-                  isrMode === "simulate"
-                    ? (simulation?.provisional ?? null)
-                    : amount("isr"),
-                isrIsSimulated: isrMode === "simulate",
-                other: amount("other"),
-              },
-        )
+      ? activeProfile === "buyer"
+        ? {
+            profile: "buyer",
+            municipality,
+            date,
+            price,
+            taxBase: amount("base"),
+            downPayment,
+            loan,
+            baseIsAssumed: assumed,
+            isaiQuote: amount("isai"),
+            registrationQuote: amount("registration"),
+            preventiveNotices: notices ?? 2,
+            notary: amount("notary"),
+            appraisal: amount("appraisal"),
+            openingFee: linked
+              ? (financing?.openingFee ?? null)
+              : amount("opening"),
+            other: amount("other"),
+          }
+        : {
+            profile: "seller",
+            municipality,
+            date,
+            price,
+            commissionPercent: commission,
+            vatPercent: vat,
+            commissionIncludesVat: includesVat,
+            mortgagePayoff: amount("payoff"),
+            cancellation: amount("cancellation"),
+            isr:
+              isrMode === "simulate"
+                ? (simulation?.provisional ?? null)
+                : amount("isr"),
+            isrIsSimulated: isrMode === "simulate",
+            other: amount("other"),
+          }
       : null;
+  const result = budgetInput ? calculateClosingBudget(budgetInput) : null;
   const sourceLinks =
     activeProfile === "buyer"
       ? [
@@ -237,70 +239,31 @@ export function ClosingCostsCalculator({
         ]
       : [FINANCIAL_SOURCES.isr.url, FINANCIAL_SOURCES.incomeLaw.url];
   const report =
-    result && price !== null
-      ? {
-          title:
-            activeProfile === "buyer"
-              ? "Presupuesto de compra"
-              : "Presupuesto de venta",
-          sections: [
-            {
-              title: "Operación y supuestos",
-              lines: [
-                `Municipio: ${MUNICIPALITIES[municipality]}`,
-                `Fecha de operación: ${date}`,
-                `Precio: ${money(price)} MXN`,
-                ...(!linked && currency === "USD"
-                  ? [
-                      `Precio original: ${money(enteredPrice!, "USD")} USD; cambio capturado: ${v.exchange} MXN/USD`,
-                    ]
-                  : []),
-                ...(activeProfile === "buyer"
-                  ? [
-                      `Enganche: ${money(downPayment)}`,
-                      `Crédito: ${money(loan)}`,
-                      `Base ISAI: ${amount("base") === null ? "Pendiente" : money(amount("base")!)}${assumed ? " (precio usado como supuesto)" : ""}`,
-                      `Avisos preventivos: ${v.notices}`,
-                    ]
-                  : [
-                      `Comisión pactada: ${v.commission || "Pendiente"}%; IVA: ${vat}%; ${includesVat ? "incluido" : "adicional"}`,
-                      `Saldo de hipoteca: ${amount("payoff") === null ? "Pendiente" : money(amount("payoff")!)}`,
-                      ...(isrMode === "simulate"
-                        ? [
-                            `ISR provisional: costo fiscal actualizado ${v.cost || "Pendiente"}; deducciones actualizadas ${v.deductions || "Pendiente"}; años fiscales ${v.years || "Pendiente"}. Sin exenciones; persona física residente, propietario único. Alcance ${isrScope ? "confirmado por usuario" : "sin confirmar"}.`,
-                            ...(simulation
-                              ? [
-                                  `Ganancia: ${money(simulation.gain)}; años aplicados: ${simulation.years}; pago estatal acreditable: ${money(simulation.state)}; federal: ${money(simulation.federal)}`,
-                                ]
-                              : []),
-                          ]
-                        : ["ISR: determinación capturada o pendiente."]),
-                    ]),
-              ],
-            },
-            {
-              title: "Desglose",
-              lines: result.items.map(
-                (i) =>
-                  `${i.label}: ${i.amount === null ? "Pendiente" : money(i.amount)} (${i.kind === "rule" ? "regla calculada" : i.kind === "quote" ? "cotización capturada" : i.kind === "input" ? "dato capturado" : "sin importe"}). ${i.note ?? ""}`,
-              ),
-            },
-            {
-              title: "Resultado",
-              lines: [
-                `Gastos conocidos: ${money(result.knownExpenses)}`,
-                `${activeProfile === "buyer" ? "Efectivo inicial" : "Importe después de gastos"}${result.complete ? " estimado" : " parcial"}: ${money((activeProfile === "buyer" ? result.cashRequired : result.sellerNet)!)}`,
-                ...(result.pending.length
-                  ? [
-                      `Falta incorporar: ${result.pending.join(", ")}. El subtotal no incluye estos conceptos.`,
-                    ]
-                  : []),
-                "Compraventa ordinaria. No considera exenciones, actos especiales ni una liquidación definitiva de la autoridad.",
-              ],
-            },
-            { title: "Fuentes", lines: sourceLinks },
-          ],
-        }
+    result && budgetInput
+      ? closingReport({
+          input: budgetInput,
+          result,
+          ...(!linked && currency === "USD"
+            ? {
+                fx: {
+                  original: enteredPrice!,
+                  rate: parseAmount(v.exchange, 100)!,
+                },
+              }
+            : {}),
+          ...(activeProfile === "seller"
+            ? {
+                isr: {
+                  mode: isrMode,
+                  scope: isrScope,
+                  cost: amount("cost"),
+                  deductions: amount("deductions"),
+                  years,
+                  simulation,
+                },
+              }
+            : {}),
+        })
       : null;
   return (
     <section
