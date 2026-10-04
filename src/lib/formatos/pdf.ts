@@ -14,6 +14,9 @@ import { calcularPublicidadReporte, REPORTE_TABLES, type ReporteRow, type Report
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable, type EntrevistaRow } from "./entrevista";
 import { mostrarCampoAviso } from "./aviso";
 import { JURIDICA_TABLES, mostrarColumnaJuridica, type JuridicaRow } from "./juridica";
+import sharp from "sharp";
+import { isLevantamiento, LEVANTAMIENTO_TITLES, LEVANTAMIENTO_TABLES, type LevantamientoTable, type LevantamientoRow } from "./levantamiento";
+import type { FormatoPdfAsset } from "./assets";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -51,13 +54,14 @@ export function receiptParagraphs(data: Record<string, unknown>): string[] {
   ];
 }
 
-export async function createFormatoPdf(id: string, data: Record<string, unknown>): Promise<Uint8Array> {
+export async function createFormatoPdf(id: string, data: Record<string, unknown>, assets: FormatoPdfAsset[] = []): Promise<Uint8Array> {
   const definition = formatoById(id);
   if (!definition.readyForEmission) throw new Error("Formato pendiente de cotejo con el original");
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
+  if (isLevantamiento(id) && (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto") || !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis"))) throw new Error("Faltan la fotografía principal y el croquis autorizados del borrador");
   const pdf = await PDFDocument.create();
-  const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
+  const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
   pdf.setTitle(displayTitle);
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
@@ -116,6 +120,48 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   };
   if (id === "18") {
     for (const paragraph of receiptParagraphs(data)) write(paragraph, 10, regular, ink, 12);
+  } else if (isLevantamiento(id)) {
+    write("Inspección visual no pericial. No certifica superficies, seguridad ni uso autorizado. Ante riesgo suspenda el recorrido, registre lo ocurrido y derive a revisión competente.", 9, regular, muted, 10);
+    write("Base técnica: D declarado · O observado · M medido orientativamente · C comprobado con evidencia · NV no verificado · NA no aplica. Lo desconocido no equivale a cero.", 9, regular, muted, 12);
+    const picture = async (asset: FormatoPdfAsset) => {
+      const bytes = await sharp(asset.bytes, { limitInputPixels: 40_000_000 }).rotate().resize({ width: 1800, height: 1200, fit: "inside", withoutEnlargement: true }).flatten({ background: "#ffffff" }).jpeg({ quality: 88 }).toBuffer();
+      const image = await pdf.embedJpg(bytes);
+      const fit = Math.min((a4[0] - 2 * margin) / image.width, 235 / image.height);
+      const width = image.width * fit; const height = image.height * fit;
+      ensure(height + 100);
+      page.drawImage(image, { x: margin + (a4[0] - 2 * margin - width) / 2, y: y - height, width, height });
+      y -= height + 14;
+      write(`${asset.caption} · ID ${asset.id}`, 8, bold, ink, 3);
+      write(`Fuente: ${asset.source}${asset.observed_on ? ` · Fecha: ${asset.observed_on}` : ""}`, 8, regular, muted, 10);
+    };
+    const sectionNote = (section: string) => {
+      if (section.startsWith("03")) write("Identifique documento, fecha y página; para M, instrumento, método y responsable. No sume áreas de distinta naturaleza. Si no se midió, anote NV.", 9, regular, muted, 10);
+      if (section.startsWith("06") && id !== "04F") write(id === "04A" ? "La cercanía de una red no acredita factibilidad ni capacidad. La observación no confirma linderos, servidumbres ni el uso autorizado." : id === "04G" ? "Registre infraestructura existente. Rentas, cuotas, cobro, contratos y administración se controlan por separado." : "Distinguir servicio conectado, solo visible, declarado, pendiente o NA. La presencia de equipo no acredita funcionamiento ni capacidad.", 9, regular, muted, 10);
+      if (id === "04F" && section.startsWith("06")) write("Las dimensiones y capacidades se registran con su base. No se deduce la carga admisible del piso por su apariencia ni se prueba maquinaria durante esta visita.", 9, regular, muted, 10);
+      if (id === "04F" && section.startsWith("07")) write("kVA expresa potencia aparente; kW, potencia activa. No son intercambiables. La placa del transformador no acredita capacidad disponible ni factibilidad del suministro.", 9, regular, muted, 10);
+      if (id === "04F" && section.startsWith("09")) write("Anote equipos y documentos; no certifique suficiencia contra incendio, seguridad eléctrica ni aptitud de descarga. El desarrollo de un parque requiere un expediente independiente.", 9, regular, muted, 10);
+      if (id === "04G" && section.startsWith("04")) write("Use una fila por unidad. Para detalle interior active 04C, 04D, 04E o 04F con el mismo ID de inmueble y su ID de unidad. No sume superficies sin comprobar concepto y ausencia de traslapes.", 9, regular, muted, 10);
+    };
+    let previous = "";
+    for (const field of definition.fields) {
+      if (field.section !== previous) {
+        sectionNote(previous);
+        ensure(/Fotografía principal|Croquis/.test(field.section ?? "") ? 400 : 90);
+        write(field.section ?? "", 12, bold, accent, 10);
+        previous = field.section ?? "";
+      }
+      if (field.key === "fotoPrincipalId" || field.key === "croquisId") { await picture(assets.find((asset) => asset.id === data[field.key])!); continue; }
+      if (field.type === "levantamientoRows") {
+        const key = field.key as LevantamientoTable;
+        const rows = data[key] as LevantamientoRow[] | undefined;
+        for (const [index, row] of (rows ?? []).entries()) {
+          ensure(70); write(`Registro ${index + 1}`, 9, bold, muted, 4);
+          for (const column of LEVANTAMIENTO_TABLES[key].columns) write(`${column.label}: ${row[column.key]}`, 9, regular, ink, 4);
+          y -= 6;
+        }
+      } else fieldLine(field);
+    }
+    sectionNote(previous);
   } else if (id === "01") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
     const section = (title: string) => { ensure(80); write(title, 12, bold, accent, 9); };
@@ -595,7 +641,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   return pdf.save();
 }
 
-export async function prepareFormatoEmission(id: string, data: Record<string, unknown>) {
-  const bytes = await createFormatoPdf(id, data);
+export async function prepareFormatoEmission(id: string, data: Record<string, unknown>, assets?: FormatoPdfAsset[]) {
+  const bytes = await createFormatoPdf(id, data, assets);
   return { bytes, sha256: createHash("sha256").update(bytes).digest("hex") };
 }

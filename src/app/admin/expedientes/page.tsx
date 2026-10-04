@@ -6,6 +6,7 @@ import { db, useCollection } from "@/lib/admin/store";
 import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
+import { isLevantamiento } from "@/lib/formatos/levantamiento";
 
 type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
@@ -51,6 +52,7 @@ export default function ExpedientesPage() {
   }, [selectedId]);
 
   async function createExpediente(event: React.FormEvent<HTMLFormElement>) {
+    const formElement = event.currentTarget;
     event.preventDefault(); setError(""); setBusy(true);
     try {
       const data = new FormData(event.currentTarget);
@@ -62,7 +64,7 @@ export default function ExpedientesPage() {
         body: JSON.stringify({ clienteId, asesorId: cliente.asesorId, folio: String(data.get("folio") ?? "").trim(), operacion: String(data.get("operacion") ?? "venta"), propiedadSlug: String(data.get("propiedadSlug") ?? "") || undefined, unidad: String(data.get("unidad") ?? "") }),
       });
       setExpedientes((items) => [result.expediente, ...items]); setSelectedId(result.expediente.id); setDocumento(null);
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
   async function createDocumento(event: React.FormEvent<HTMLFormElement>) {
@@ -112,21 +114,23 @@ export default function ExpedientesPage() {
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
   async function uploadSignedCopy(emissionId: string, event: React.FormEvent<HTMLFormElement>) {
+    const formElement = event.currentTarget;
     event.preventDefault(); setError(""); setBusy(true);
     try {
       const form = new FormData(event.currentTarget);
       const result = await json<{ copia: Copia }>(`/api/admin/emisiones/${emissionId}/firmado`, { method: "POST", body: form });
       setCopias((current) => ({ ...current, [emissionId]: [result.copia, ...(current[emissionId] ?? [])] }));
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
   async function uploadAdjunto(event: React.FormEvent<HTMLFormElement>) {
+    const formElement = event.currentTarget;
     event.preventDefault(); if (!documento) return; setError(""); setBusy(true);
     try {
       const form = new FormData(event.currentTarget);
       const result = await json<{ adjunto: Adjunto }>(`/api/admin/formatos/${documento.id}/adjuntos`, { method: "POST", body: form });
       setAdjuntos((current) => [...current, result.adjunto]);
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
   const selected = expedientes.find((item) => item.id === selectedId);
@@ -137,7 +141,7 @@ export default function ExpedientesPage() {
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
   return <div className="space-y-8">
     <PageHeader title="Expedientes y formatos" description="Catálogo de 25 formatos exclusivos. Cada PDF requiere captura completa y cotejo con el original." />
-    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Los formatos 01 (aviso de privacidad), 02 (entrevista inicial), 05 (revisión jurídica), 06 (opinión jurídica), 08 (neto del propietario), 10 (plan), 11 (reporte comercial), 12 (comprador), 13 (visita), 14 (propuesta y respuesta), 16 (entrega), 17 (cierre), 18 (recibo) y 19 (presupuesto) admiten emisión. Los campos de los otros 11 formatos son preliminares y no reproducen aún sus Word o Excel originales; sus PDFs permanecen bloqueados.</p>
+    <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">21 formatos admiten emisión: 01, 02, los siete levantamientos 04A–04G, 05, 06, 08, 10, 11, 12, 13, 14, 16, 17, 18 y 19. Los formatos 03 (control comercial), 07 (opinión de valor), 09 (intermediación) y 15 (promesa de compraventa) siguen pendientes; sus PDFs permanecen bloqueados.</p>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     <section className="rounded-lg border border-border bg-card p-5">
       <h2 className="display-soft mb-4 text-xl">Nuevo expediente</h2>
@@ -171,7 +175,7 @@ export default function ExpedientesPage() {
           <FormatoEditor definition={definition} values={{ ...values, folio: selected.folio }} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
           {["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07"].includes(definition.id) && <div className="mt-6 rounded-lg border border-border p-4">
             <h3 className="font-semibold">Fotografías y croquis privados</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Registra la procedencia y fecha de cada imagen. Los adjuntos quedan en el expediente; todavía no aparecen en un PDF porque este formato sigue en construcción.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Registra la procedencia y fecha de cada imagen. {isLevantamiento(definition.id) ? "Selecciona la fotografía principal y el croquis que aparecerán en el PDF, y guarda esa selección antes de emitir." : "Los adjuntos quedan en el expediente; este formato sigue pendiente de emisión."}</p>
             <form onSubmit={uploadAdjunto} className="mt-4 grid gap-3 md:grid-cols-2">
               <label className="text-sm">Tipo<select name="tipo" required className={selectClass}><option value="foto">Fotografía</option><option value="croquis">Croquis o plano</option><option value="soporte">Soporte gráfico</option></select></label>
               <label className="text-sm">Fecha observada<input name="fechaObservacion" type="date" className={inputClass} /></label>
@@ -181,6 +185,7 @@ export default function ExpedientesPage() {
               <button type="submit" disabled={busy} className={btnGhost}>Archivar imagen</button>
             </form>
             {adjuntos.length > 0 && <ul className="mt-4 space-y-2 text-sm">{adjuntos.map((item) => <li key={item.id}><a className="text-primary underline" href={`/api/admin/adjuntos/${item.id}/descargar`} target="_blank" rel="noreferrer">{item.caption}</a> · {item.kind} · {item.source}{item.observed_on ? ` · ${item.observed_on}` : ""}</li>)}</ul>}
+            {isLevantamiento(definition.id) && <div className="mt-4 grid gap-3 md:grid-cols-2">{[{ key: "fotoPrincipalId", kind: "foto", label: "Fotografía principal del PDF" }, { key: "croquisId", kind: "croquis", label: "Croquis del PDF" }].map((slot) => <label key={slot.key} className="text-sm">{slot.label}<select value={String(values[slot.key] ?? "")} onChange={(event) => setValues((current) => ({ ...current, [slot.key]: event.target.value }))} className={selectClass}><option value="">Selecciona un adjunto</option>{adjuntos.filter((item) => item.kind === slot.kind).map((item) => <option key={item.id} value={item.id}>{item.caption}</option>)}</select></label>)}</div>}
           </div>}
           {missing.length > 0 && <p className="mt-5 text-sm text-muted-foreground">Para emitir faltan: {missing.join(", ")}.</p>}
           {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {budgetTotals.subtotalCotizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${budgetTotals.importeAutorizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${String(values.moneda)}`}</p><p>Estimación con reserva: {budgetTotals.estimacionConReserva.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Pagado: {budgetTotals.totalPagado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p></div>}

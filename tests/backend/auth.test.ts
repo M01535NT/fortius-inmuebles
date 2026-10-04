@@ -6,7 +6,7 @@ import { PUT as putRoute } from "@/app/api/admin/collections/[collection]/[id]/r
 import { POST as leadRoute } from "@/app/api/leads/route";
 import { POST as uploadRoute, GET as fileRoute } from "@/app/api/admin/files/route";
 
-const state = vi.hoisted(() => ({ cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(), active: true, member: true, validPassword: true, password: "", recoveryFailure: false, leadFailure: false }));
+const state = vi.hoisted(() => ({ cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(), active: true, member: true, validPassword: true, authServiceFailure: false, password: "", recoveryFailure: false, leadFailure: false }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: (name: string) => state.cookies.get(name), set: (name: string, value: string, options: Record<string, unknown>) => { state.cookies.set(name, { value, options }); } }) }));
 const user = { id: "10000000-0000-4000-8000-000000000001", aud: "authenticated", role: "authenticated", email: "staff@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-09-02T12:00:00Z" };
 const token = `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url")}.${Buffer.from(JSON.stringify({ sub: user.id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url")}.test-signature`;
@@ -14,6 +14,7 @@ const session = { access_token: token, refresh_token: "test-refresh-token", expi
 
 beforeEach(() => {
   state.cookies.clear(); state.active = true; state.member = true; state.validPassword = true; state.password = ""; state.recoveryFailure = false; state.leadFailure = false;
+  state.authServiceFailure = false;
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_key");
   vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
@@ -23,7 +24,10 @@ beforeEach(() => {
   vi.stubGlobal("fetch", async (input: string | URL | Request, init: RequestInit = {}) => {
     const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
     const headers = new Headers(init.headers);
-    if (url.pathname === "/auth/v1/token") return state.validPassword ? Response.json(session) : Response.json({ error_code: "invalid_credentials", msg: "Invalid login credentials" }, { status: 400 });
+    if (url.pathname === "/auth/v1/token") {
+      if (state.authServiceFailure) return Response.json({ error_code: "unexpected_failure", msg: "Internal authentication failure" }, { status: 400 });
+      return state.validPassword ? Response.json(session) : Response.json({ error_code: "invalid_credentials", msg: "Invalid login credentials" }, { status: 400 });
+    }
     if (url.pathname === "/auth/v1/verify") return Response.json(session);
     if (url.pathname === "/auth/v1/user") {
       if (headers.get("authorization") !== `Bearer ${token}`) return Response.json({ msg: "invalid JWT", error_code: "bad_jwt" }, { status: 401 });
@@ -94,6 +98,11 @@ describe("HTTP API contracts", () => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("real session behavior against the external transport boundary", () => {
+  it("reports authentication service failures without claiming the password is incorrect", async () => {
+    state.authServiceFailure = true;
+    await expect(loginWithPassword({ email: user.email, password: "a long password" })).rejects.toMatchObject({ status: 503 });
+    expect(state.cookies.size).toBe(0);
+  });
   it("rejects invalid credentials and never creates session cookies", async () => {
     state.validPassword = false;
     await expect(loginWithPassword({ email: user.email, password: "wrong" })).rejects.toMatchObject({ status: 401 });

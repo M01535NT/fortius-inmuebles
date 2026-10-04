@@ -82,7 +82,13 @@ export async function loginWithPassword(input: unknown): Promise<{ user: StaffUs
   const credentials = z.object({ email: z.email().max(254), password: z.string().min(1).max(128) }).strict().parse(input);
   const authClient = createServerClient();
   const { data, error } = await authClient.auth.signInWithPassword(credentials);
-  if (error || !data.session) throw new ApiError(401, "Correo o contraseña incorrectos");
+  if (error) {
+    if (error.code === "invalid_credentials") throw new ApiError(401, "Correo o contraseña incorrectos");
+    if (error.status === 429) throw new ApiError(429, "Demasiados intentos de acceso; inténtalo más tarde");
+    if (error.code === "email_not_confirmed") throw new ApiError(403, "Confirma tu correo antes de iniciar sesión");
+    throw new ApiError(503, "El servicio de acceso no está disponible; inténtalo de nuevo");
+  }
+  if (!data.session) throw new ApiError(503, "El servicio de acceso no devolvió una sesión válida");
   const user = await verifyStaff(createServerClient(data.session.access_token), data.session.access_token);
   await saveSession(data.session);
   return { user };

@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { ApiError } from "@/lib/backend/http";
 
 export const MAX_ASSET_BYTES = 10 * 1024 * 1024;
+export type FormatoPdfAsset = { id: string; kind: "foto" | "croquis" | "soporte"; caption: string; source: string; observed_on: string | null; mime: "image/jpeg" | "image/png"; sha256: string; bytes: Uint8Array };
 
 export async function inspectFormatoImage(file: File): Promise<{ bytes: Buffer; mime: "image/jpeg" | "image/png"; extension: "jpg" | "png" }> {
   if (file.size === 0 || file.size > MAX_ASSET_BYTES) throw new ApiError(400, "La imagen debe ocupar entre 1 byte y 10 MB");

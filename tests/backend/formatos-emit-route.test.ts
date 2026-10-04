@@ -3,6 +3,13 @@ const { requireStaff, createServerClient, prepareFormatoEmission } = vi.hoisted(
 vi.mock("@/lib/backend/auth", () => ({ requireStaff, createServerClient }));
 vi.mock("@/lib/formatos/pdf", () => ({ prepareFormatoEmission }));
 import { POST } from "@/app/api/admin/formatos/[id]/emitir/route";
+import { terrenoFields } from "@/lib/formatos/levantamiento";
+
+const terrenoInput = {
+  ...Object.fromEntries(terrenoFields.filter((field) => field.type !== "levantamientoRows").map((field) => [field.key, field.type === "date" ? "2026-10-04" : field.type === "time" ? "10:00" : "NV"])),
+  horaTermino: "11:00", permisoFoto: "autorizado", permisoMedicion: "NV", respaldosEstado: "sin_respaldo", discrepanciasEstado: "ninguna",
+  fotoPrincipalId: "51000000-0000-4000-8000-000000000021", croquisId: "51000000-0000-4000-8000-000000000022",
+};
 
 it("impide emitir un recibo guardado con datos faltantes y no toca Storage", async () => {
   const id = "51000000-0000-4000-8000-000000000011";
@@ -49,4 +56,37 @@ it("bloquea un formato cuyo original aún no fue cotejado", async () => {
   expect(response.status).toBe(409);
   expect((await response.json()).error).toMatch(/pendiente de cotejo/i);
   expect(createServerClient).not.toHaveBeenCalled();
+});
+
+it("rechaza seleccionar imágenes que no aparecen en el borrador autorizado", async () => {
+  const id = "51000000-0000-4000-8000-000000000011";
+  const eq = vi.fn(() => ({
+    maybeSingle: async () => ({ data: { id, expediente_id: id, formato_id: "04A", data: terrenoInput, folio: "REAL", version: 1 }, error: null }),
+    in: async () => ({ data: [], error: null }),
+  }));
+  requireStaff.mockResolvedValue({ client: { from: () => ({ select: () => ({ eq }) }) }, user: { id } });
+  prepareFormatoEmission.mockClear();
+  const download = vi.fn();
+  createServerClient.mockReturnValue({ storage: { from: () => ({ download }) } });
+  const response = await POST(new Request(`https://panel.test/api/admin/formatos/${id}/emitir`, { method: "POST", headers: { origin: "https://panel.test" } }), { params: Promise.resolve({ id }) });
+  expect(response.status).toBe(409);
+  expect(eq).toHaveBeenCalledWith("draft_id", id);
+  expect(download).not.toHaveBeenCalled();
+  expect(prepareFormatoEmission).not.toHaveBeenCalled();
+});
+
+it("no emite un levantamiento si una imagen archivada perdió su integridad", async () => {
+  const id = "51000000-0000-4000-8000-000000000011";
+  const images = [{ id: terrenoInput.fotoPrincipalId, kind: "foto", path: "foto.jpg", sha256: "a".repeat(64) }, { id: terrenoInput.croquisId, kind: "croquis", path: "croquis.png", sha256: "a".repeat(64) }];
+  requireStaff.mockResolvedValue({ client: { from: () => ({ select: () => ({ eq: () => ({
+    maybeSingle: async () => ({ data: { id, expediente_id: id, formato_id: "04A", data: terrenoInput, folio: "REAL", version: 1 }, error: null }),
+    in: async () => ({ data: images, error: null }),
+  }) }) }) }, user: { id } });
+  prepareFormatoEmission.mockClear();
+  const upload = vi.fn();
+  createServerClient.mockReturnValue({ storage: { from: () => ({ download: async () => ({ data: new Blob(["alterado"]), error: null }), upload }) } });
+  const response = await POST(new Request(`https://panel.test/api/admin/formatos/${id}/emitir`, { method: "POST", headers: { origin: "https://panel.test" } }), { params: Promise.resolve({ id }) });
+  expect(response.status).toBe(503);
+  expect(prepareFormatoEmission).not.toHaveBeenCalled();
+  expect(upload).not.toHaveBeenCalled();
 });

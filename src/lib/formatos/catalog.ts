@@ -7,11 +7,12 @@ import { validarReporte } from "./reporte";
 import { entrevistaFields, validarEntrevista } from "./entrevista";
 import { validarAviso } from "./aviso";
 import { validarJuridica } from "./juridica";
+import { levantamientoFields, isLevantamiento, validarLevantamiento } from "./levantamiento";
 
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows";
   required: boolean;
   section?: string;
   options?: readonly { value: string; label: string }[];
@@ -42,7 +43,6 @@ const controlStates = [
   { value: "pendiente", label: "Pendiente" },
   { value: "no_aplica", label: "No aplica" },
 ] as const;
-const levantamiento = [folio, inmueble, fecha, asesor, field("superficieTerreno", "Superficie de terreno", "number"), field("superficieConstruccion", "Superficie construida", "number", false), field("estadoObservado", "Estado observado", "long"), field("fotografias", "Referencias de fotografías", "long")];
 
 /** Source names are recorded for traceability; the source files are never served publicly. */
 export const FORMATOS: readonly FormatoDefinition[] = [
@@ -78,13 +78,13 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   ], true),
   f("02", "Entrevista_inicial", "docx", 1, entrevistaFields, true),
   f("03", "Tablero_y_control_comercial", "xlsx", 1, [field("periodoInicio", "Inicio del periodo", "date"), field("periodoFin", "Fin del periodo", "date"), asesor, field("criterio", "Criterios del reporte", "long")]),
-  f("04A", "Levantamiento_terreno", "docx", 1, levantamiento),
-  f("04B", "Levantamiento_casa", "docx", 1, levantamiento),
-  f("04C", "Levantamiento_departamento", "docx", 1, levantamiento),
-  f("04D", "Levantamiento_oficina", "docx", 1, levantamiento),
-  f("04E", "Levantamiento_local", "docx", 1, levantamiento),
-  f("04F", "Levantamiento_nave_bodega", "docx", 1, levantamiento),
-  f("04G", "Levantamiento_plaza_conjunto", "docx", 1, levantamiento),
+  f("04A", "Levantamiento_terreno", "docx", 1, levantamientoFields("04A"), true),
+  f("04B", "Levantamiento_casa", "docx", 1, levantamientoFields("04B"), true),
+  f("04C", "Levantamiento_departamento", "docx", 1, levantamientoFields("04C"), true),
+  f("04D", "Levantamiento_oficina", "docx", 1, levantamientoFields("04D"), true),
+  f("04E", "Levantamiento_local", "docx", 1, levantamientoFields("04E"), true),
+  f("04F", "Levantamiento_nave_bodega", "docx", 1, levantamientoFields("04F"), true),
+  f("04G", "Levantamiento_plaza_conjunto", "docx", 1, levantamientoFields("04G"), true),
   f("05", "Revision_juridica_y_control_de_cierre", "docx", 2, [
     sectionField("01 / Encargo e identificación", "folio", "ID de operación"),
     sectionField("01 / Encargo e identificación", "idInmueble", "ID de inmueble"),
@@ -481,7 +481,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
-    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows") return false;
+    if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows" || item.type === "levantamientoRows") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
     if (item.type === "money" || item.type === "number") {
@@ -505,6 +505,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "02") errors.push(...validarEntrevista(data));
   if (id === "01") errors.push(...validarAviso(data));
   if (id === "05") errors.push(...validarJuridica(data));
+  if (isLevantamiento(id)) errors.push(...validarLevantamiento(id, data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
