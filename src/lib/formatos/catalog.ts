@@ -1,6 +1,7 @@
 import { validarPresupuesto } from "./presupuesto";
 import { validarNeto } from "./neto";
 import { validarEntrega } from "./entrega";
+import { validarOferta } from "./oferta";
 
 export type FormatoField = {
   key: string;
@@ -150,7 +151,50 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     field("accionAcordada", "Acción acordada", "long"), field("responsableSeguimiento", "Responsable del seguimiento"),
     field("fechaSeguimiento", "Fecha de seguimiento", "date"), field("pendientesComprobar", "Pendientes por comprobar", "long"),
   ], true),
-  f("14", "Oferta_de_compra_y_respuesta_del_propietario", "docx", 3, [fecha, inmueble, propietario, comprador, field("precioPropuesto", "Precio propuesto", "money"), moneda, field("condiciones", "Pago y condiciones", "long"), field("respuestaPropietario", "Respuesta del propietario", "long")]),
+  f("14", "Oferta_de_compra_y_respuesta_del_propietario", "docx", 3, [
+    folio, field("lugarPropuesta", "Lugar de la propuesta"), field("fechaPropuesta", "Fecha de la propuesta", "date"),
+    propietario, comprador, field("representacionComprador", "Representación del comprador o cuenta propia"),
+    field("derechoAdquirir", "Derecho que se propone adquirir"), inmueble,
+    field("folioInmueble", "Folio del inmueble y unidad o no aplica"),
+    field("precioPropuesto", "Precio propuesto", "money"), moneda,
+    field("impuestosPrecio", "Impuestos incluidos o excluidos del precio"),
+    field("bienesIncluidos", "Bienes y accesorios incluidos o ninguno", "long"),
+    field("bienesExcluidos", "Bienes y accesorios excluidos o ninguno", "long"),
+    field("recursosPropios", "Recursos propios", "money"), field("credito", "Crédito previsto", "money"),
+    field("institucionCredito", "Institución del crédito", "text", false),
+    field("estadoCredito", "Estado del crédito", "text", false),
+    field("calendarioPagos", "Importe y momento de cada pago", "long"),
+    field("condiciones", "Condiciones, documentos o revisiones pendientes", "long"),
+    field("fechaCondiciones", "Límite para resolver condiciones", "date"),
+    field("fechaFormalizacion", "Fecha propuesta para formalizar", "date"),
+    field("fechaEntrega", "Fecha propuesta para la entrega", "date"),
+    field("gastosComprador", "Gastos a cargo del comprador", "long"),
+    field("gastosPropietario", "Gastos a cargo del propietario", "long"),
+    field("fechaLimitePropuesta", "Límite de respuesta a la propuesta", "date"),
+    field("horaLimitePropuesta", "Hora límite de la propuesta", "time"),
+    field("zonaHoraria", "Zona horaria"),
+    choice("estadoRespuesta", "Estado de la respuesta del propietario", [
+      { value: "pendiente", label: "Pendiente: emitir sólo la propuesta" },
+      { value: "registrada", label: "Respuesta registrada" },
+    ]),
+    field("lugarRespuesta", "Lugar de la respuesta", "text", false),
+    field("fechaRespuesta", "Fecha de la respuesta", "date", false),
+    field("horaRespuesta", "Hora de la respuesta", "time", false),
+    field("caracterPropietario", "Carácter y facultades del propietario", "text", false),
+    choice("decisionPropietario", "Decisión del propietario", [
+      { value: "aceptar", label: "Acepta las bases para negociar" },
+      { value: "contraoferta", label: "Propone cambios" },
+      { value: "rechazar", label: "Rechaza la propuesta" },
+    ], false),
+    field("motivoRespuesta", "Motivo de la respuesta", "long", false),
+    field("confirmacionVigencia", "Confirmación de vigencia por el comprador", "long", false),
+    field("precioContraoferta", "Precio de la contraoferta", "money", false),
+    choice("monedaContraoferta", "Moneda de la contraoferta", [{ value: "MXN", label: "MXN" }, { value: "USD", label: "USD" }], false),
+    field("impuestosContraoferta", "Impuestos de la contraoferta", "long", false),
+    field("cambiosContraoferta", "Cambios precisos de la contraoferta", "long", false),
+    field("fechaLimiteContraoferta", "Límite de respuesta a la contraoferta", "date", false),
+    field("horaLimiteContraoferta", "Hora límite de la contraoferta", "time", false),
+  ], true),
   f("15", "Promesa_de_compraventa", "docx", 4, [fecha, inmueble, propietario, comprador, field("precio", "Precio", "money"), moneda, field("formaPago", "Forma de pago", "long"), field("plazo", "Plazo para escriturar"), field("obligaciones", "Obligaciones y condiciones", "long")]),
   f("16", "Acta_de_entrega_y_recepcion_del_inmueble", "docx", 4, [
     folio, field("lugar", "Lugar del acto"), fecha, field("horaInicio", "Hora de inicio", "time"), inmueble,
@@ -258,6 +302,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   }).map((item) => item.label);
   if (id === "08") errors.push(...validarNeto(data));
   if (id === "16") errors.push(...validarEntrega(data));
+  if (id === "14") errors.push(...validarOferta(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");

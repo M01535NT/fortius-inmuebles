@@ -19,3 +19,16 @@ it("muestra el folio del expediente como dato no editable", () => {
   expect(screen.getByLabelText("Folio del expediente").getAttribute("readonly")).toBe("");
   expect(screen.getByLabelText("Folio del expediente").getAttribute("value")).toBe("EXP-204");
 });
+
+it("muestra sólo las condiciones aplicables de la propuesta y la respuesta", () => {
+  const definition = formatoById("14");
+  const { rerender } = render(<FormatoEditor definition={definition} values={{ credito: 0, estadoRespuesta: "pendiente" }} onChange={vi.fn()} />);
+  expect(screen.queryByLabelText("Institución del crédito")).toBeNull();
+  expect(screen.queryByLabelText("Lugar de la respuesta")).toBeNull();
+  rerender(<FormatoEditor definition={definition} values={{ credito: 1, estadoRespuesta: "registrada", decisionPropietario: "aceptar" }} onChange={vi.fn()} />);
+  expect(screen.getByLabelText("Institución del crédito")).toBeTruthy();
+  expect(screen.getByLabelText("Lugar de la respuesta")).toBeTruthy();
+  expect(screen.queryByLabelText("Precio de la contraoferta")).toBeNull();
+  rerender(<FormatoEditor definition={definition} values={{ credito: 1, estadoRespuesta: "registrada", decisionPropietario: "contraoferta" }} onChange={vi.fn()} />);
+  expect(screen.getByLabelText("Precio de la contraoferta")).toBeTruthy();
+});

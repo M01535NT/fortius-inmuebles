@@ -5,6 +5,7 @@ import { BudgetRowsEditor } from "@/components/admin/budget-rows-editor";
 import { NetExpenseEditor } from "@/components/admin/net-expense-editor";
 import { EntregaRowsEditor } from "@/components/admin/entrega-rows-editor";
 import { ENTREGA_TABLAS, type EntregaTabla } from "@/lib/formatos/entrega";
+import { respuestaRequiereRatificacion } from "@/lib/formatos/oferta";
 
 export function FormatoEditor({ definition, values, onChange }: {
   definition: FormatoDefinition;
@@ -13,6 +14,15 @@ export function FormatoEditor({ definition, values, onChange }: {
 }) {
   return <div className="grid gap-5 md:grid-cols-2">
     {definition.fields.map((field) => {
+      const isOffer = definition.id === "14";
+      const creditFields = ["institucionCredito", "estadoCredito"];
+      const responseFields = ["lugarRespuesta", "fechaRespuesta", "horaRespuesta", "caracterPropietario", "decisionPropietario", "motivoRespuesta"];
+      const counterFields = ["precioContraoferta", "monedaContraoferta", "impuestosContraoferta", "cambiosContraoferta", "fechaLimiteContraoferta", "horaLimiteContraoferta"];
+      if (isOffer && creditFields.includes(field.key) && !(typeof values.credito === "number" && values.credito > 0)) return null;
+      if (isOffer && [...responseFields, ...counterFields].includes(field.key) && values.estadoRespuesta !== "registrada") return null;
+      if (isOffer && counterFields.includes(field.key) && values.decisionPropietario !== "contraoferta") return null;
+      if (isOffer && field.key === "confirmacionVigencia" && !respuestaRequiereRatificacion(values)) return null;
+      const required = field.required || isOffer && (creditFields.includes(field.key) && typeof values.credito === "number" && values.credito > 0 || responseFields.includes(field.key) && values.estadoRespuesta === "registrada" || counterFields.includes(field.key) && values.decisionPropietario === "contraoferta" || field.key === "confirmacionVigencia" && respuestaRequiereRatificacion(values));
       const id = `formato-${field.key}`;
       const value = values[field.key] ?? "";
       const wide = field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows";
@@ -22,14 +32,14 @@ export function FormatoEditor({ definition, values, onChange }: {
         : field.type === "netoCargos" ? <NetExpenseEditor value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "partidas" || field.type === "pagos" ? <BudgetRowsEditor kind={field.type} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
-        : field.type === "choice" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
+        : field.type === "choice" ? <select id={id} required={required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-        </select> : field.key === "pagoParcialTotal" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
+        </select> : field.key === "pagoParcialTotal" ? <select id={id} required={required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option><option value="total">Total</option><option value="parcial">Parcial</option>
-        </select> : field.key === "moneda" || field.key === "monedaSaldo" ? <select id={id} required={field.required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
+        </select> : field.key === "moneda" || field.key === "monedaSaldo" ? <select id={id} required={required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option><option value="MXN">MXN</option><option value="USD">USD</option>
-        </select> : wide ? <textarea id={id} required={field.required} rows={4} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={textareaClass} />
-          : <input id={id} required={field.required} type={field.type === "date" ? "date" : field.type === "time" ? "time" : field.type === "money" || field.type === "number" ? "number" : "text"}
+        </select> : wide ? <textarea id={id} required={required} rows={4} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={textareaClass} />
+          : <input id={id} required={required} type={field.type === "date" ? "date" : field.type === "time" ? "time" : field.type === "money" || field.type === "number" ? "number" : "text"}
               step={field.type === "money" ? "0.01" : field.type === "number" ? "any" : undefined}
               min={field.type === "money" || field.type === "number" ? 0 : undefined}
               value={String(value)} onChange={(event) => onChange(field.key, field.type === "money" || field.type === "number" ? event.target.value === "" ? "" : Number(event.target.value) : event.target.value)} className={inputClass} />}
