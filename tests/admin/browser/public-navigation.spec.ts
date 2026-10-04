@@ -6,6 +6,7 @@ const sections = [
   "/blog", "/herramientas", "/nosotros", "/contacto",
   "/privacidad", "/terminos",
 ];
+const menuRoutes = ["/", "/inventario", "/#metodo", "/herramientas", "/blog", "/contacto"];
 const pages = [
   ...sections, "/herramientas/hipoteca", "/herramientas/gastos-de-cierre",
   "/zonas", "/zonas/zona-rio", "/inventario/residencia-vista-al-mar-playas",
@@ -28,10 +29,10 @@ for (const width of [375, 1440]) {
       await trigger.click();
       const menu = page.getByRole("dialog", { name: "Menú", exact: true });
       await expect(menu, path).toBeVisible();
-      for (const destination of sections) {
+      for (const destination of menuRoutes) {
         await expect(menu.locator(`a[href="${destination}"]`), `${path} → ${destination}`).toHaveCount(1);
       }
-      if (sections.includes(path)) await expect(menu.locator(`a[href="${path}"]`)).toHaveAttribute("aria-current", "page");
+      if (menuRoutes.includes(path)) await expect(menu.locator(`a[href="${path}"]`)).toHaveAttribute("aria-current", "page");
       await menu.getByRole("button", { name: "Cerrar menú" }).click();
       await expect(menu).toBeHidden();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
@@ -119,15 +120,15 @@ test("short phone screens can reach the first footer navigation link", async ({ 
   await expect(page).toHaveURL(/\/blog$/);
 });
 
-test("inventory menu can reach every section and close after scrolling", async ({ page }) => {
+test("inventory menu keeps primary links accessible and restores focus when closing", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/inventario");
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
-  for (const destination of sections) await expect(menu.locator(`a[href="${destination}"]`)).toHaveCount(1);
+  for (const destination of menuRoutes) await expect(menu.locator(`a[href="${destination}"]`)).toHaveCount(1);
   await expect(menu.locator("[data-menu-item]").last()).toHaveCSS("opacity", "1");
-  const terms = menu.getByRole("link", { name: "Términos y condiciones", exact: true });
-  await terms.scrollIntoViewIfNeeded();
+  const contact = menu.locator('a[href="/contacto"]');
+  await contact.scrollIntoViewIfNeeded();
   const close = menu.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeInViewport();
   await close.focus();
@@ -142,8 +143,8 @@ test("inventory menu can reach every section and close after scrolling", async (
   await expect(menu).toBeHidden();
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeFocused();
   await page.getByRole("button", { name: "Abrir menú" }).click();
-  await menu.getByRole("link", { name: "Nosotros", exact: true }).click();
-  await expect(page).toHaveURL(/\/nosotros$/);
+  await contact.click();
+  await expect(page).toHaveURL(/\/contacto$/);
   await expect(menu).toBeHidden();
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
 });

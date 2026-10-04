@@ -1,6 +1,4 @@
 "use client";
-import { MessagingActions } from "@/components/contact/messaging-actions";
-
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,19 +21,6 @@ const PRIMARY = [
   { href: "/herramientas", label: "Herramientas", image: "/hero/plaza.webp" },
   { href: "/blog", label: "Mercado inmobiliario", image: "/hero/interior-plaza.webp" },
   { href: "/contacto", label: "Contacto", image: "/hero/nave-tijuana.webp" },
-];
-
-const SECONDARY = [
-  { href: "/#entregables", label: "Entregables" },
-  { href: "/vender-propiedad", label: "Vender mi propiedad" },
-  { href: "/comprar-propiedad", label: "Comprar propiedad" },
-  { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },
-  { href: "/residencial", label: "Residencial" },
-  { href: "/comercial", label: "Comercial" },
-  { href: "/industrial", label: "Industrial" },
-  { href: "/nosotros", label: "Nosotros" },
-  { href: "/privacidad", label: "Privacidad" },
-  { href: "/terminos", label: "Términos y condiciones" },
 ];
 
 /* El círculo nace donde está el botón de menú (esquina superior derecha). */
@@ -167,7 +152,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto grid min-h-[calc(100dvh-64px)] max-w-[1280px] grid-rows-[1fr_auto] px-5 pb-8 pt-4 md:px-8">
+      <div className="mx-auto grid min-h-[calc(100dvh-64px)] max-w-[1280px] items-center px-5 py-8 md:px-8 md:py-12">
         <div className="grid min-h-0 items-center gap-10 lg:grid-cols-12">
           {/* Enlaces principales */}
           <nav aria-label="Menú principal" className="lg:col-span-7">
@@ -196,18 +181,6 @@ export function FullscreenMenu({ open, onClose }: Props) {
               ))}
             </ol>
 
-            <div data-menu-item className="mt-7 flex flex-wrap gap-3">
-              <MessagingActions />
-              <Link
-                href="/#evaluar"
-                prefetch={false}
-                onClick={onClose}
-                className="inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
-              >
-                Evaluar mi propiedad
-                <ArrowUpRight className="size-4" strokeWidth={1.5} />
-              </Link>
-            </div>
           </nav>
 
           {/* Panel de imagen: cambia con el hover de los enlaces. */}
@@ -229,37 +202,9 @@ export function FullscreenMenu({ open, onClose }: Props) {
                 }
               />
             ))}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-image-scrim/80 to-transparent p-5">
-              <span className="font-mono text-xs text-on-image-muted/90">
-                {String(active + 1).padStart(2, "0")} · {PRIMARY[active].label}
-              </span>
-            </div>
           </div>
         </div>
 
-        {/* Pie del menú: rutas secundarias + territorio. */}
-        <div
-          data-menu-item
-          className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5"
-        >
-          <nav aria-label="Menú secundario" className="grid w-full grid-cols-2 gap-x-4 sm:grid-cols-3 lg:grid-cols-5">
-            {SECONDARY.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                prefetch={open ? null : false}
-                onClick={onClose}
-                aria-current={isCurrent(item.href) ? "page" : undefined}
-                className="inline-flex min-h-11 items-center text-sm text-foreground/70 underline-offset-4 transition-colors hover:text-foreground aria-[current=page]:font-semibold aria-[current=page]:text-foreground aria-[current=page]:underline"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
-            Tijuana · Rosarito · Tecate · Ensenada
-          </span>
-        </div>
       </div>
     </div>
   );

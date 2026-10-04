@@ -11,8 +11,7 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     const before = await photo.evaluate((node) => getComputedStyle(node).transform);
     await page.evaluate(() => window.scrollTo({ top: 280, behavior: "instant" }));
     await expect.poll(() => photo.evaluate((node) => getComputedStyle(node).transform)).not.toBe(before);
-    await page.getByRole("button", { name: "Abrir menú" }).click();
-    await page.getByRole("dialog").getByRole("link", { name: "Entregables", exact: true }).click();
+    await page.locator("footer").getByRole("link", { name: "Entregables", exact: true }).click();
     await expect(page.locator("#entregables")).toBeInViewport();
     await expect(page.locator("#entregables article")).toHaveCount(6);
     await page.locator('main a[href="/herramientas/hipoteca"]').click();
