@@ -388,13 +388,6 @@ select {
   .property-editorial-card:hover .property-eyebrow { opacity: 0.9; transform: translateY(-2px); }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .editorial-document[data-deliverable-card] {
-    position: sticky;
-    top: calc(88px + var(--deliverable-index) * 12px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   /* Applies before hydration, while the motion hook still uses its server snapshot. */
   .hero-copy-entry {

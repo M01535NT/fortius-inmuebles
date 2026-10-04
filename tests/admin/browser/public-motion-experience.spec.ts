@@ -131,6 +131,10 @@ test(`stacked deliverables keep readable text contrast during animated phone scr
   await page.goto("/");
   const cards = page.locator("#entregables [data-deliverable-card]");
   await expect(cards.first()).toHaveCSS("position", "sticky");
+  await cards.first().evaluate((node) => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 140, behavior: "instant" }));
+  await page.evaluate(() => window.scrollBy({ top: 320, behavior: "instant" }));
+  await expect.poll(() => cards.first().evaluate((node) => Math.round(node.getBoundingClientRect().top))).toBeGreaterThanOrEqual(86);
+  await expect.poll(() => cards.first().evaluate((node) => Math.round(node.getBoundingClientRect().top))).toBeLessThanOrEqual(90);
   await cards.nth(1).evaluate((node) => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 300, behavior: "instant" }));
   await expect.poll(() => cards.first().evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a)).toBeLessThan(1);
   await expect(cards.first().locator("h3")).toBeVisible();
