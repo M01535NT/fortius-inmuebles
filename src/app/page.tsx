@@ -4,7 +4,7 @@ import { Evaluar } from "@/components/home/evaluar";
 import { Metodo } from "@/components/home/metodo";
 import { EditorialHero } from "@/components/home/editorial-hero";
 import { EditorialHome } from "@/components/home/editorial-home";
-import { EditorialDocuments, EditorialIntro, EditorialProperties, EditorialTools } from "@/components/home/editorial-sections";
+import { EditorialDocuments, EditorialIntro, EditorialProperties, EditorialSellerGateway, EditorialTools } from "@/components/home/editorial-sections";
 import { Respuestas } from "@/components/home/respuestas";
 import { Segmentos } from "@/components/home/segmentos";
 import { getPublicContent } from "@/lib/backend/public";
@@ -18,6 +18,7 @@ export default async function HomePage() {
     <EditorialHome>
       <EditorialHero content={content} />
       <EditorialIntro content={content} />
+      <EditorialSellerGateway />
       <Metodo content={content} />
       <EditorialDocuments content={content} />
       <div className="editorial-featured"><EditorialProperties /></div>

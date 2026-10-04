@@ -28,6 +28,21 @@ export function EditorialIntro({ content }: { content?: SiteContent | null }) {
   </section>;
 }
 
+export function EditorialSellerGateway() {
+  return <section className="editorial-seller-gateway" aria-labelledby="seller-gateway-title">
+    <div className="editorial-container editorial-seller-gateway-grid">
+      <div data-editorial-reveal>
+        <h2 id="seller-gateway-title">Antes de anunciarla, ten claro qué sigue.</h2>
+        <p>Te mostramos cómo revisamos el precio, los documentos y las condiciones de entrega, y qué hacemos cuando falta información.</p>
+      </div>
+      <Link href="/vender-propiedad" className="editorial-seller-gateway-link" data-editorial-reveal>
+        <span>Ver cómo vender mi propiedad</span>
+        <ArrowUpRight size={32} strokeWidth={1.4} aria-hidden="true" />
+      </Link>
+    </div>
+  </section>;
+}
+
 const DOCS: { title: string; copy: HomeTextKey }[] = [
   { title: "Análisis de factibilidad", copy: "factibilidadTexto" },
   { title: "Opinión de valor", copy: "valorTexto" },
@@ -66,7 +81,6 @@ export function EditorialDocuments({ content }: { content?: SiteContent | null }
 const TOOLS = [
   { title: "Calculadora de hipoteca", text: "Estima tu mensualidad con enganche, plazo y tasa editables.", href: "/herramientas/hipoteca" },
   { title: "Gastos de cierre", text: "Estima los gastos de compraventa, desglosados por concepto.", href: "/herramientas/gastos-de-cierre" },
-  { title: "Evaluar mi propiedad", text: "Comparte la ubicación y el tipo de inmueble para solicitar una revisión.", href: "#evaluar" },
 ];
 export function EditorialTools() {
   return <section className="editorial-tools"><div className="editorial-container">

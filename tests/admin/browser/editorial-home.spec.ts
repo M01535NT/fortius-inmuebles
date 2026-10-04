@@ -6,6 +6,14 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     const page = await context.newPage();
     await page.goto("/");
     await expect(page.locator(".editorial-home h1")).toBeVisible();
+    const sellerHeroLink = page.locator(".editorial-cover-actions").getByRole("link", { name: "Quiero vender mi propiedad" });
+    await expect(sellerHeroLink).toHaveAttribute("href", "/vender-propiedad");
+    const sellerGateway = page.locator(".editorial-seller-gateway");
+    await expect(sellerGateway.getByRole("heading", { name: "Antes de anunciarla, ten claro qué sigue." })).toBeVisible();
+    await sellerGateway.getByRole("link", { name: "Ver cómo vender mi propiedad" }).click();
+    await expect(page).toHaveURL(/\/vender-propiedad$/);
+    await expect(page.getByRole("heading", { name: "Antes de publicar." })).toBeVisible();
+    await page.goBack();
     await expect(page.locator("h1")).toHaveCSS("font-family", /Archivo/);
     const photo = page.locator(".editorial-cover-depth");
     const before = await photo.evaluate((node) => getComputedStyle(node).transform);
