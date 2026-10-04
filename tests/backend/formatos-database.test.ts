@@ -97,3 +97,17 @@ it("reserva copias firmadas privadas e inmutables para el asesor del expediente"
   });
   await asUser(other, async () => expect((await db.query("select id from public.mnt_signed_copies")).rows).toEqual([]));
 });
+
+it("reserva imágenes de un borrador al asesor del expediente y conserva su integridad", async () => {
+  const asset = "51000000-0000-4000-8000-000000000015";
+  await asUser(own, async () => {
+    await expect(db.query("insert into public.mnt_formato_assets(id,draft_id,kind,caption,source,mime,byte_length,sha256,path,uploaded_by) values ($1,$2,'foto','Fachada','Visita','image/jpeg',4,$3,$4,$5)", [asset, draft, "a".repeat(64), `${expediente}/${draft}/${asset}.jpg`, own])).rejects.toMatchObject({ code: "42501" });
+  });
+  await db.query("insert into public.mnt_formato_assets(id,draft_id,kind,caption,source,mime,byte_length,sha256,path,uploaded_by) values ($1,$2,'foto','Fachada','Visita','image/jpeg',4,$3,$4,$5)", [asset, draft, "a".repeat(64), `${expediente}/${draft}/${asset}.jpg`, own]);
+  await asUser(own, async () => {
+    expect((await db.query("select id,caption from public.mnt_formato_assets")).rows).toEqual([{ id: asset, caption: "Fachada" }]);
+    await expect(db.query("update public.mnt_formato_assets set caption='Otro' where id=$1", [asset])).rejects.toMatchObject({ code: "42501" });
+  });
+  await asUser(other, async () => expect((await db.query("select id from public.mnt_formato_assets")).rows).toEqual([]));
+  await asUser(null, async () => await expect(db.query("select id from public.mnt_formato_assets")).rejects.toMatchObject({ code: "42501" }));
+});

@@ -11,6 +11,7 @@ type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
 type Emision = { id: string; draft_version: number; created_at: string; sha256: string };
 type Copia = { id: string; emission_id: string; created_at: string; sha256: string };
+type Adjunto = { id: string; draft_id: string; kind: "foto" | "croquis" | "soporte"; caption: string; source: string; observed_on: string | null; mime: string; sha256: string; created_at: string };
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
@@ -29,6 +30,7 @@ export default function ExpedientesPage() {
   const [values, setValues] = React.useState<Record<string, unknown>>({});
   const [emisiones, setEmisiones] = React.useState<Emision[]>([]);
   const [copias, setCopias] = React.useState<Record<string, Copia[]>>({});
+  const [adjuntos, setAdjuntos] = React.useState<Adjunto[]>([]);
   const [error, setError] = React.useState("");
   const [busy, setBusy] = React.useState(false);
 
@@ -71,7 +73,7 @@ export default function ExpedientesPage() {
       const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${selectedId}/formatos`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ formatoId, data: initialData }),
       });
-      setDocumentos((items) => [result.documento, ...items]); setDocumento(result.documento); setValues(result.documento.data); setEmisiones([]); setCopias({});
+      setDocumentos((items) => [result.documento, ...items]); setDocumento(result.documento); setValues(result.documento.data); setEmisiones([]); setCopias({}); setAdjuntos([]);
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
   async function openDocumento(id: string) {
@@ -79,6 +81,10 @@ export default function ExpedientesPage() {
     try {
       const result = await json<{ documento: Documento; emisiones: Emision[] }>(`/api/admin/formatos/${id}`);
       setDocumento(result.documento); setValues(result.documento.data); setEmisiones(result.emisiones);
+      if (["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07"].includes(result.documento.formato_id)) {
+        const assets = await json<{ adjuntos: Adjunto[] }>(`/api/admin/formatos/${id}/adjuntos`);
+        setAdjuntos(assets.adjuntos);
+      } else setAdjuntos([]);
       const pairs = await Promise.all(result.emisiones.map(async (item) => {
         const response = await json<{ copias: Copia[] }>(`/api/admin/emisiones/${item.id}/firmado`);
         return [item.id, response.copias] as const;
@@ -114,6 +120,15 @@ export default function ExpedientesPage() {
       event.currentTarget.reset();
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
+  async function uploadAdjunto(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); if (!documento) return; setError(""); setBusy(true);
+    try {
+      const form = new FormData(event.currentTarget);
+      const result = await json<{ adjunto: Adjunto }>(`/api/admin/formatos/${documento.id}/adjuntos`, { method: "POST", body: form });
+      setAdjuntos((current) => [...current, result.adjunto]);
+      event.currentTarget.reset();
+    } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
+  }
   const selected = expedientes.find((item) => item.id === selectedId);
   const definition = documento ? formatoById(documento.formato_id) : null;
   const missing = definition ? validateFormato(definition.id, { ...values, folio: selected?.folio }) : [];
@@ -139,7 +154,7 @@ export default function ExpedientesPage() {
       <div className="rounded-lg border border-border bg-card p-5">
         <h2 className="display-soft mb-4 text-xl">Expedientes</h2>
         {expedientes.length === 0 && <p className="text-sm text-muted-foreground">Aún no hay expedientes visibles para tu cuenta.</p>}
-        <div className="space-y-2">{expedientes.map((item) => <button key={item.id} type="button" onClick={() => { setSelectedId(item.id); setDocumento(null); setEmisiones([]); }} className={`w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? item.cliente_id}</span></button>)}</div>
+        <div className="space-y-2">{expedientes.map((item) => <button key={item.id} type="button" onClick={() => { setSelectedId(item.id); setDocumento(null); setEmisiones([]); setAdjuntos([]); }} className={`w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? item.cliente_id}</span></button>)}</div>
       </div>
       <div className="space-y-6">{selected && <>
         <section className="rounded-lg border border-border bg-card p-5">
@@ -154,6 +169,19 @@ export default function ExpedientesPage() {
           <h2 className="display-soft mb-2 text-xl">{definition.title}</h2>
           <p className="mb-5 text-sm text-muted-foreground">{definition.source} · Borrador v{documento.version}</p>
           <FormatoEditor definition={definition} values={{ ...values, folio: selected.folio }} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
+          {["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07"].includes(definition.id) && <div className="mt-6 rounded-lg border border-border p-4">
+            <h3 className="font-semibold">Fotografías y croquis privados</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Registra la procedencia y fecha de cada imagen. Los adjuntos quedan en el expediente; todavía no aparecen en un PDF porque este formato sigue en construcción.</p>
+            <form onSubmit={uploadAdjunto} className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="text-sm">Tipo<select name="tipo" required className={selectClass}><option value="foto">Fotografía</option><option value="croquis">Croquis o plano</option><option value="soporte">Soporte gráfico</option></select></label>
+              <label className="text-sm">Fecha observada<input name="fechaObservacion" type="date" className={inputClass} /></label>
+              <label className="text-sm">Descripción<input name="descripcion" required maxLength={240} className={inputClass} /></label>
+              <label className="text-sm">Fuente o autor<input name="fuente" required maxLength={240} className={inputClass} /></label>
+              <label className="text-sm md:col-span-2">Imagen JPEG o PNG, máximo 10 MB<input name="archivo" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required className={inputClass} /></label>
+              <button type="submit" disabled={busy} className={btnGhost}>Archivar imagen</button>
+            </form>
+            {adjuntos.length > 0 && <ul className="mt-4 space-y-2 text-sm">{adjuntos.map((item) => <li key={item.id}><a className="text-primary underline" href={`/api/admin/adjuntos/${item.id}/descargar`} target="_blank" rel="noreferrer">{item.caption}</a> · {item.kind} · {item.source}{item.observed_on ? ` · ${item.observed_on}` : ""}</li>)}</ul>}
+          </div>}
           {missing.length > 0 && <p className="mt-5 text-sm text-muted-foreground">Para emitir faltan: {missing.join(", ")}.</p>}
           {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {budgetTotals.subtotalCotizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${budgetTotals.importeAutorizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${String(values.moneda)}`}</p><p>Estimación con reserva: {budgetTotals.estimacionConReserva.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Pagado: {budgetTotals.totalPagado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p></div>}
           {netTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Neto estimado</h3><p>Precio usado: {netTotals.precioBase.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p>Erogaciones: {netTotals.erogaciones.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p className="font-semibold">Neto: {netTotals.netoEstimado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p></div>}
