@@ -222,7 +222,7 @@ test("sitemap dates come from records while static routes have no fabricated las
 
 const illustrated = { ...published, slug: "cuanto-vale-mi-casa-tijuana" };
 
-test("known editorial covers appear on cards and articles with responsive dimensions and disclosure", async () => {
+test("known editorial covers appear on cards and articles with responsive dimensions and descriptive alt text", async () => {
   posts = [illustrated, { ...published, id: "future-post" }];
   const listing = renderToStaticMarkup(await BlogPage());
   const article = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: illustrated.slug }) }));
@@ -231,7 +231,7 @@ test("known editorial covers appear on cards and articles with responsive dimens
     expect(html).toContain("%2Fimages%2Fblog%2F01.webp");
     expect(html).toMatch(/<img[^>]+sizes="[^"]+"/);
     expect(html).toMatch(/<img[^>]+alt="[^"]+"/);
-    expect(html).toContain("Ilustración editorial generada con IA; no representa un inmueble en oferta.");
+    expect(html).not.toContain("Ilustración editorial generada con IA; no representa un inmueble en oferta.");
   }
   expect(listing.match(/<img /g)).toHaveLength(1);
   expect(listing).not.toContain('rel="preload"');

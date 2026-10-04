@@ -101,9 +101,9 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
                 sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 815px) calc(100vw - 3rem), 768px"
                 className="h-auto w-full rounded-sm object-contain"
               />
-              <figcaption className="mt-3 text-sm leading-6 text-muted-foreground">
+              {cover.credit && <figcaption className="mt-3 text-sm leading-6 text-muted-foreground">
                 <BlogCoverCredit cover={cover} linked />
-              </figcaption>
+              </figcaption>}
             </figure>
           )}
 

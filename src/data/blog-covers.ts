@@ -4,6 +4,11 @@ export type BlogCover = {
 };
 
 const covers: Record<string, { file: string; alt: string }> = {
+  "casa-recibe-visitas-pero-no-ofertas": { file: "03", alt: "Ilustración de una lupa sobre una casa en miniatura y sus tarjetas de presentación." },
+  "conviene-remodelar-antes-de-vender": { file: "07", alt: "Ilustración de una sala preparada para visitas y elementos de mantenimiento." },
+  "dos-ofertas-por-tu-propiedad-como-elegir": { file: "05", alt: "Ilustración de una vivienda y compartimentos para ordenar conceptos de la compraventa." },
+  "vender-casa-con-hipoteca-baja-california": { file: "02", alt: "Ilustración de un expediente ordenado, una maqueta de vivienda y una llave." },
+  "vender-propiedad-con-exclusiva-beneficios": { file: "12", alt: "Ilustración de una mesa de trabajo inmobiliario con expediente, cámara y llaves." },
   "cuanto-vale-mi-casa-tijuana": { file: "01", alt: "Ilustración de maquetas de casas, planos y un calibrador para comparar características." },
   "documentos-vender-propiedad-baja-california": { file: "02", alt: "Ilustración de un expediente ordenado, una maqueta de vivienda y una llave." },
   "propiedad-no-se-vende-que-revisar": { file: "03", alt: "Ilustración de una lupa sobre una casa en miniatura y sus tarjetas de presentación." },

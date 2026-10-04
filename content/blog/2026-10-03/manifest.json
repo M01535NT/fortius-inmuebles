@@ -1,0 +1,52 @@
+[
+  {
+    "file": "01-visitas-sin-ofertas.md",
+    "id": "mint-guide-20261003-01",
+    "slug": "casa-recibe-visitas-pero-no-ofertas",
+    "titulo": "Tu casa recibe visitas, pero ninguna oferta: ¿qué revisar?",
+    "resumen": "Aprende a leer los comentarios de las visitas y revisar el anuncio, el precio y los obstáculos que frenan una oferta por tu casa.",
+    "categoria": "vender",
+    "formato": "guia",
+    "destacado": false
+  },
+  {
+    "file": "02-remodelar-antes-vender.md",
+    "id": "mint-guide-20261003-02",
+    "slug": "conviene-remodelar-antes-de-vender",
+    "titulo": "¿Conviene remodelar antes de vender tu casa?",
+    "resumen": "Distingue reparaciones necesarias de mejoras de presentación y compara el costo de una remodelación con lo que podrías recibir al vender.",
+    "categoria": "vender",
+    "formato": "guia",
+    "destacado": false
+  },
+  {
+    "file": "03-comparar-ofertas.md",
+    "id": "mint-guide-20261003-03",
+    "slug": "dos-ofertas-por-tu-propiedad-como-elegir",
+    "titulo": "Dos ofertas por tu propiedad: cómo elegir",
+    "resumen": "Compara precio, forma de pago, plazos y condiciones para entender qué recibirías y qué necesitas resolver antes de aceptar una oferta.",
+    "categoria": "vender",
+    "formato": "guia",
+    "destacado": false
+  },
+  {
+    "file": "04-vender-con-hipoteca.md",
+    "id": "mint-guide-20261003-04",
+    "slug": "vender-casa-con-hipoteca-baja-california",
+    "titulo": "¿Puedes vender una casa que todavía tiene hipoteca?",
+    "resumen": "Organiza el saldo del crédito, el pago y la cancelación del gravamen para preparar la venta de una propiedad con hipoteca en Baja California.",
+    "categoria": "tramites",
+    "formato": "guia",
+    "destacado": false
+  },
+  {
+    "file": "05-exclusiva.md",
+    "id": "mint-guide-20261003-05",
+    "slug": "vender-propiedad-con-exclusiva-beneficios",
+    "titulo": "Vender tu propiedad con exclusiva: seguridad, orden y un asesor responsable",
+    "resumen": "Conoce cómo una exclusiva ayuda a coordinar visitas, cuidar tus documentos y colaborar con otros inmobiliarios mediante un asesor responsable.",
+    "categoria": "vender",
+    "formato": "guia",
+    "destacado": true
+  }
+]
