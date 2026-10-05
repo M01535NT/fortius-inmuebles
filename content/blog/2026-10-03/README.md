@@ -18,6 +18,6 @@ Controles sustantivos: no se presenta un traspaso privado como liberación del d
 
 ## Publicación
 
-`node tools/mnt-publish-guides-20261003.mjs` valida el lote localmente. `--check-remote` comprueba colisiones, lecturas y validación del servidor sin insertar. `--publish` realiza una sola inserción del lote, verifica la lectura anónima y conserva evidencia antes y después en `.superpowers/guides-20261003/`, excluida de Git.
+`node tools/fortius-inmuebles-publish-guides-20261003.mjs` valida el lote localmente. `--check-remote` comprueba colisiones, lecturas y validación del servidor sin insertar. `--publish` realiza una sola inserción del lote, verifica la lectura anónima y conserva evidencia antes y después en `.superpowers/guides-20261003/`, excluida de Git.
 
 Se usan las variables de Supabase del entorno. El script verifica el proyecto de destino; no guarda credenciales. Al repetirlo, los registros idénticos ya publicados no se insertan otra vez y cualquier contenido diferente detiene la operación.

@@ -31,9 +31,15 @@ export const leadProfileSchema = z.object({
   moneda: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.moneda)).optional(),
   superficieMin: area.optional(),
   superficieMax: area.optional(),
+  superficieTerreno: area.optional(),
+  superficieConstruccion: area.optional(),
   recamaras: count.optional(),
   estacionamientos: count.optional(),
+  recamarasInmueble: count.optional(),
+  estacionamientosInmueble: count.optional(),
   requisitos: z.string().max(20000).optional(),
+  caracteristicas: z.string().max(20000).optional(),
+  precioObjetivo: budget.optional(),
   formaPago: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.formaPago)).optional(),
   tipoCredito: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.tipoCredito)).optional(),
   estadoCredito: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.estadoCredito)).optional(),
@@ -41,8 +47,8 @@ export const leadProfileSchema = z.object({
   plazo: z.string().max(500).optional(),
   proximoContacto: calendarDate.optional(),
 }).passthrough().superRefine((profile, context) => {
-  if ((profile.presupuestoMin !== undefined || profile.presupuestoMax !== undefined) && profile.moneda === undefined) {
-    context.addIssue({ code: "custom", path: ["moneda"], message: "Selecciona la moneda del presupuesto" });
+  if ((profile.presupuestoMin !== undefined || profile.presupuestoMax !== undefined || profile.precioObjetivo !== undefined) && profile.moneda === undefined) {
+    context.addIssue({ code: "custom", path: ["moneda"], message: "Selecciona la moneda del monto" });
   }
   if (profile.presupuestoMin !== undefined && profile.presupuestoMax !== undefined && profile.presupuestoMin > profile.presupuestoMax) {
     context.addIssue({ code: "custom", path: ["presupuestoMax"], message: "El presupuesto máximo no puede ser menor que el mínimo" });

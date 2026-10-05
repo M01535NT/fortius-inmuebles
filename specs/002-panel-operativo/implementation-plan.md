@@ -29,7 +29,7 @@ a la persona administradora, no se afirman completadas automáticamente.
 
 ### Task 1: Backend, contratos y pruebas de aislamiento
 
-**Files:** Create `supabase/migrations/202609030001_cota_backend.sql`, `src/lib/backend/{contracts,validation,repository,auth,http,public}.ts`, `src/app/api/auth/{login,logout,session}/route.ts`, `src/app/api/admin/collections/[collection]/route.ts`, `src/app/api/admin/collections/[collection]/[id]/route.ts`, `src/app/api/admin/files/route.ts`, `src/app/api/leads/route.ts`, `tests/backend/*.test.ts`, `vitest.config.ts`, `.env.example`. Modify package files only for backend/testing dependencies and scripts. Do not modify admin store or UI in this task.
+**Files:** Create `supabase/migrations/202609030001_fortius_inmuebles_backend.sql`, `src/lib/backend/{contracts,validation,repository,auth,http,public}.ts`, `src/app/api/auth/{login,logout,session}/route.ts`, `src/app/api/admin/collections/[collection]/route.ts`, `src/app/api/admin/collections/[collection]/[id]/route.ts`, `src/app/api/admin/files/route.ts`, `src/app/api/leads/route.ts`, `tests/backend/*.test.ts`, `vitest.config.ts`, `.env.example`. Modify package files only for backend/testing dependencies and scripts. Do not modify admin store or UI in this task.
 
 **Interfaces:**
 - Environment: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY (server-only and only if necessary). No fallback project.

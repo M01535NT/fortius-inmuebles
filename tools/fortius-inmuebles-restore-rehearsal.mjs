@@ -2,7 +2,7 @@
 import {PGlite} from '@electric-sql/pglite';
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ownerExport,suffixes,verifyBackup} from './mnt-backup.mjs';
+import {ownerExport,suffixes,verifyBackup} from './fortius-inmuebles-backup.mjs';
 
 const root=resolve(process.argv[2]??'');
 const manifest=await verifyBackup(root);
@@ -17,7 +17,7 @@ try {
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
     create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,owner_id text); alter table storage.objects enable row level security;`);
-  for(const name of ['202609030001_cota_backend.sql','202609030002_cota_record_revisions.sql']) await db.exec(await readFile(resolve('supabase/migrations',name),'utf8'));
+  for(const name of ['202609030001_fortius_inmuebles_backend.sql','202609030002_fortius_inmuebles_record_revisions.sql']) await db.exec(await readFile(resolve('supabase/migrations',name),'utf8'));
   await db.exec('begin');
   for(const row of backup.tables.cota_staff)await db.query('insert into auth.users(id) values($1) on conflict do nothing',[row.user_id]);
   // Owner-only bypass is confined to this new in-memory database. Production restore is not implemented.
@@ -35,7 +35,7 @@ try {
   const orphanReferences=(await db.query(`select count(*)::int n from public.cota_record_references x left join public.cota_records s on (s.collection,s.id)=(x.source_collection,x.source_id) left join public.cota_records t on (t.collection,t.id)=(x.target_collection,x.target_id) where s.id is null or t.id is null`)).rows[0].n;
   const badRevisions=(await db.query(`select count(*)::int n from public.cota_records r left join public.cota_record_revisions v using(collection,id) where v.last_version is distinct from r.version`)).rows[0].n;
   if(orphanReferences||badRevisions)throw Error('Owner export has inconsistent references or revisions');
-  await db.exec(await readFile(resolve('supabase/migrations/202609060003_mnt_identity.sql'),'utf8'));
+  await db.exec(await readFile(resolve('supabase/migrations/202609060003_fortius_inmuebles_identity.sql'),'utf8'));
   for(const suffix of suffixes) {
     const after=await read('mnt',suffix);
     if(JSON.stringify(before[suffix])!==JSON.stringify(after))throw Error(`Cutover changed restored ${suffix} rows`);
@@ -46,7 +46,7 @@ try {
   result.relationIdentitiesPreserved=true;
   if(process.argv.includes('--content')) {
     const recordsBefore=await read('mnt','records'),revisionsBefore=await read('mnt','record_revisions');
-    await db.exec(await readFile(resolve('supabase/migrations/202609060004_mnt_content_identity.sql'),'utf8'));
+    await db.exec(await readFile(resolve('supabase/migrations/202609060004_fortius_inmuebles_content_identity.sql'),'utf8'));
     const recordsAfter=await read('mnt','records'),revisionsAfter=await read('mnt','record_revisions');
     const identity=row=>`${row.collection}/${row.id}`;
     const afterMap=new Map(recordsAfter.map(row=>[identity(row),row]));

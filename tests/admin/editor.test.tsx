@@ -175,8 +175,8 @@ test("new real property defaults unpublished and not demo", async () => {
   ).toBe(false);
 });
 test.each([
-  "/api/admin/files?bucket=mnt-private&path=private.jpg",
-  "https://assets.example/storage/v1/object/public/mnt-staging/private.jpg",
+  "/api/admin/files?bucket=fortius-inmuebles-private&path=private.jpg",
+  "https://assets.example/storage/v1/object/public/fortius-inmuebles-staging/private.jpg",
   "https://assets.example/storage/v1/object/public/cota-private/private.jpg",
   "https://assets.example/storage/v1/object/public/cota-staging/private.jpg",
 ])("publication refuses a non-public gallery URL: %s", async (src) => {

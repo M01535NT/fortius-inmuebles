@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { propiedades } from "../../../../src/data/propiedades.ts";
 import { asesores } from "../../../../src/data/asesores.ts";
 
-const port = Number(process.env.MNT_FIXTURE_PORT || 3101);
+const port = Number(process.env.FORTIUS_INMUEBLES_FIXTURE_PORT || 3101);
 const data = {
   propiedades: propiedades.map((property) => ({ ...property, publicada: true, demo: true })),
   asesores,
@@ -30,7 +30,7 @@ const data = {
 createServer(async (request, response) => {
   const url = new URL(request.url, `http://127.0.0.1:${port}`);
   if (request.method === "GET" && url.pathname === "/health") return response.end("ok");
-  if (request.method !== "POST" || url.pathname !== "/rest/v1/rpc/mnt_public_records") {
+  if (request.method !== "POST" || url.pathname !== "/rest/v1/rpc/fortius_inmuebles_public_records") {
     response.writeHead(404); return response.end();
   }
   let body = "";

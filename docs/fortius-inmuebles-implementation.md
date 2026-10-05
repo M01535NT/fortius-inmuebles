@@ -39,7 +39,7 @@ Respaldo local excluido de Git: `.superpowers/backups/2026-09-06T01-41-21-144Z`.
 
 El respaldo de base de datos se reconstruyó con las lecturas REST y el registro de revisiones observado en la consulta autorizada del propietario. Los cinco hashes canónicos PostgreSQL coincidieron exactamente con una consulta independiente del propietario. No se presenta como descarga SQL original. El manifiesto SHA-256 protege los archivos locales; los ensayos de restauración, contenido y reversión tienen informes separados.
 
-La copia local y el ensayo PGlite cubren datos de la aplicación y objetos de Storage. No sustituyen un respaldo completo del proveedor Auth ni una copia cifrada fuera del equipo. Véanse [respaldo y restauración](mnt-backup-restore.md) y [corte y reversión](mnt-cutover-rollback.md).
+La copia local y el ensayo PGlite cubren datos de la aplicación y objetos de Storage. No sustituyen un respaldo completo del proveedor Auth ni una copia cifrada fuera del equipo. Véanse [respaldo y restauración](fortius-inmuebles-backup-restore.md) y [corte y reversión](fortius-inmuebles-cutover-rollback.md).
 
 ## Identidad y excepciones históricas
 
@@ -98,6 +98,6 @@ Al reabrir Codex, consultar `C:\Paginas-web\MNT-traslado-resultado.json`: solo `
 
 - [Guía y archivos vectoriales](brand.md).
 - [Manual de administración](admin-manual.md).
-- [Respaldo y restauración](mnt-backup-restore.md).
-- [Corte y reversión](mnt-cutover-rollback.md).
+- [Respaldo y restauración](fortius-inmuebles-backup-restore.md).
+- [Corte y reversión](fortius-inmuebles-cutover-rollback.md).
 - `npm run verify`, CI y `npm run health` para comprobaciones reproducibles. El comprobador de salud es manual; no se ha contratado monitoreo externo ni prometido vigilancia continua.

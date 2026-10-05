@@ -6,7 +6,7 @@ let db: PGlite;
 const member = "30000000-0000-4000-8000-000000000001";
 const base = { id: "editorial", slug: "noticia-local", titulo: "Mercado local", resumen: "Contexto", contenido: "Datos", estado: "borrador", actualizadoEl: "2026-09-20T10:00:00.000Z", categoria: "mercado", formato: "actualidad", destacado: true, fuenteNombre: "Fuente", fuenteUrl: "https://example.com/informe" };
 async function put(data: Record<string, unknown>, version: number | null = null) {
-  return (await db.query<{ r: { data: Record<string, unknown>; version: number } }>("select public.mnt_put_record('posts',$1,$2::jsonb,$3) r", [data.id, JSON.stringify(data), version])).rows[0].r;
+  return (await db.query<{ r: { data: Record<string, unknown>; version: number } }>("select public.fortius_inmuebles_put_record('posts',$1,$2::jsonb,$3) r", [data.id, JSON.stringify(data), version])).rows[0].r;
 }
 beforeAll(async () => {
   db = new PGlite();
@@ -20,7 +20,7 @@ beforeAll(async () => {
     insert into auth.users values ('${member}');`);
   const dir = new URL("../../supabase/migrations/", import.meta.url);
   for (const file of (await readdir(dir)).filter((f) => f.endsWith(".sql")).sort()) await db.exec(await readFile(new URL(file, dir), "utf8"));
-  await db.query("insert into public.mnt_staff(user_id,role) values ($1,'editor')", [member]);
+  await db.query("insert into public.fortius_inmuebles_staff(user_id,role) values ($1,'editor')", [member]);
   await db.exec("set role authenticated");
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [member]);
 });
@@ -42,10 +42,10 @@ test("first publication is stamped by the database and survives edits and republ
 
 test("public SQL projection includes only editorial fields and safe sources, and excludes drafts", async () => {
   await put({ ...base, id: "public-source", slug: "fuente-publica", estado: "publicado", internalNotes: "private" });
-  await put({ ...base, id: "private-source", slug: "fuente-privada", estado: "publicado", fuenteUrl: "https://example.com/mnt-private/document.pdf" });
+  await put({ ...base, id: "private-source", slug: "fuente-privada", estado: "publicado", fuenteUrl: "https://example.com/fortius-inmuebles-private/document.pdf" });
   await put({ ...base, id: "draft-source", slug: "borrador" });
   await db.exec("reset role; set role anon");
-  const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.mnt_public_records('posts')")).rows.map((row) => row.data);
+  const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.fortius_inmuebles_public_records('posts')")).rows.map((row) => row.data);
   expect(rows.find((row) => row.id === "public-source")).toMatchObject({ formato: "actualidad", categoria: "mercado", destacado: true, fuenteUrl: "https://example.com/informe" });
   expect(rows.find((row) => row.id === "public-source")).not.toHaveProperty("internalNotes");
   expect(rows.find((row) => row.id === "private-source")).not.toHaveProperty("fuenteUrl");
@@ -61,10 +61,10 @@ test("invalid editorial metadata is rejected at the database boundary", async ()
 
 test("editing a legacy published article does not invent its first publication date", async () => {
   await db.exec("reset role");
-  await db.query("insert into public.mnt_records(collection,id,data) values ('posts','legacy',$1::jsonb)", [JSON.stringify({ ...base, id: "legacy", slug: "anterior", estado: "publicado" })]);
+  await db.query("insert into public.fortius_inmuebles_records(collection,id,data) values ('posts','legacy',$1::jsonb)", [JSON.stringify({ ...base, id: "legacy", slug: "anterior", estado: "publicado" })]);
   // Simulate a pre-migration record without a known first publication date.
-  await db.exec("alter table public.mnt_records disable trigger user");
-  await db.exec("update public.mnt_records set data=data-'publicadoEl' where id='legacy'; alter table public.mnt_records enable trigger user");
+  await db.exec("alter table public.fortius_inmuebles_records disable trigger user");
+  await db.exec("update public.fortius_inmuebles_records set data=data-'publicadoEl' where id='legacy'; alter table public.fortius_inmuebles_records enable trigger user");
   await db.exec("set role authenticated");
   const edited = await put({ ...base, id: "legacy", slug: "anterior", estado: "publicado" }, 1);
   expect(edited.data).not.toHaveProperty("publicadoEl");

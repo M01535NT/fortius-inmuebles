@@ -5,6 +5,7 @@ import { resolve, relative, isAbsolute, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const suffixes = ['staff','records','record_references','rate_limits','record_revisions'];
+const currentSuffixes = [...suffixes,'adviser_accounts','comercial_books','comercial_emissions','comercial_revisions','expedientes','file_uploads','formato_assets','formato_drafts','formato_emissions','lead_conversions','signed_copies'];
 export const sha256 = data => createHash('sha256').update(data).digest('hex');
 export function ownerExport(raw) {
   let data=Array.isArray(raw)?raw[0]:raw;
@@ -14,8 +15,8 @@ export function ownerExport(raw) {
     const prefix=data.prefix??'cota';
     data={format:'mnt-owner-export-v1',prefix,exported_at:data.created_at,tables:{[`${prefix}_staff`]:data.staff,[`${prefix}_records`]:data.records,[`${prefix}_record_references`]:data.references,[`${prefix}_rate_limits`]:data.rate_limits,[`${prefix}_record_revisions`]:data.revisions}};
   }
-  if(data.format!=='mnt-owner-export-v1'||!['cota','mnt'].includes(data.prefix)) throw Error('Invalid owner backup format');
-  for(const suffix of suffixes) if(!Array.isArray(data.tables?.[`${data.prefix}_${suffix}`])) throw Error('Incomplete owner backup tables');
+  if(data.format!=='mnt-owner-export-v1'||!['cota','mnt','fortius_inmuebles'].includes(data.prefix)) throw Error('Invalid owner backup format');
+  for(const suffix of data.prefix==='fortius_inmuebles'?currentSuffixes:suffixes) if(!Array.isArray(data.tables?.[`${data.prefix}_${suffix}`])) throw Error('Incomplete owner backup tables');
   return data;
 }
 function safePath(root,file) {
@@ -47,8 +48,8 @@ export async function main(args=process.argv.slice(2)) {
     } else console.log(JSON.stringify({verified:true,files:manifest.files.length,objects:manifest.objects.length,databaseComplete:manifest.database?.complete??false}));
     return;
   }
-  const prefix=args.includes('--prefix')?arg('--prefix'):'cota';
-  if(!['cota','mnt'].includes(prefix))throw Error('Prefix must be cota or mnt');
+  const prefix=args.includes('--prefix')?arg('--prefix'):'fortius_inmuebles';
+  if(!['cota','mnt','fortius_inmuebles'].includes(prefix))throw Error('Invalid backup schema prefix');
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!url||!key)throw Error('Required Supabase environment missing; load .env.local via node --env-file');
   const client=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
@@ -80,7 +81,7 @@ export async function main(args=process.argv.slice(2)) {
   }
   const {data:buckets,error:bucketError}=await client.storage.listBuckets();
   if(bucketError)throw Error('Storage bucket listing failed');
-  manifest.buckets=buckets.filter(b=>b.id.startsWith(`${prefix}-`));
+  manifest.buckets=buckets.filter(b=>b.id.startsWith(`${prefix.replaceAll("_", "-")}-`));
   if(!manifest.buckets.length)throw Error('No matching buckets found');
   for(const bucket of manifest.buckets) {
     async function walk(folder='') {

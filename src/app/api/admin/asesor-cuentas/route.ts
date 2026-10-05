@@ -11,8 +11,8 @@ export async function GET() {
     if (user.role !== "admin") throw new ApiError(403, "Solo el administrador vincula cuentas");
     const privileged = createServerClient(undefined, true);
     const [staff, accounts, authUsers] = await Promise.all([
-      privileged.from("mnt_staff").select("user_id,role,active").order("created_at"),
-      client.from("mnt_adviser_accounts").select("user_id,asesor_id"),
+      privileged.from("fortius_inmuebles_staff").select("user_id,role,active").order("created_at"),
+      client.from("fortius_inmuebles_adviser_accounts").select("user_id,asesor_id"),
       privileged.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     ]);
     if (staff.error) databaseError(staff.error);
@@ -30,10 +30,10 @@ export async function PUT(request: Request) {
     if (user.role !== "admin") throw new ApiError(403, "Solo el administrador vincula cuentas");
     const data = input.parse(await readJson(request, 4096));
     const privileged = createServerClient(undefined, true);
-    const membership = await privileged.from("mnt_staff").select("role,active").eq("user_id", data.userId).maybeSingle();
+    const membership = await privileged.from("fortius_inmuebles_staff").select("role,active").eq("user_id", data.userId).maybeSingle();
     if (membership.error) databaseError(membership.error);
     if (!membership.data?.active || membership.data.role !== "editor") throw new ApiError(400, "La cuenta debe ser de un asesor editor activo");
-    const result = await client.from("mnt_adviser_accounts").upsert({ user_id: data.userId, asesor_id: data.asesorId }, { onConflict: "user_id" }).select("user_id,asesor_id").single();
+    const result = await client.from("fortius_inmuebles_adviser_accounts").upsert({ user_id: data.userId, asesor_id: data.asesorId }, { onConflict: "user_id" }).select("user_id,asesor_id").single();
     if (result.error) databaseError(result.error);
     return { cuenta: result.data };
   });

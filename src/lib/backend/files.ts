@@ -15,7 +15,7 @@ type StorageClient = Pick<SupabaseClient, "storage">;
 type UploadClient = Pick<SupabaseClient, "storage" | "from">;
 
 export async function registerUpload(client: UploadClient, userId: string, bucket: string, path: string) {
-  const receipt = await client.from("mnt_file_uploads").insert({ bucket, path, uploaded_by: userId });
+  const receipt = await client.from("fortius_inmuebles_file_uploads").insert({ bucket, path, uploaded_by: userId });
   if (receipt.error) {
     await client.storage.from(bucket).remove([path]);
     databaseError(receipt.error);
@@ -25,7 +25,7 @@ export async function registerUpload(client: UploadClient, userId: string, bucke
 function sign(payload: string) {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!secret) throw new ApiError(503, "La carga de archivos no está configurada");
-  return createHmac("sha256", secret).update(`mnt-upload-v1:${payload}`).digest();
+  return createHmac("sha256", secret).update(`fortius-inmuebles-upload-v1:${payload}`).digest();
 }
 function parseTicket(ticket: unknown, userId: string) {
   if (typeof ticket !== "string" || ticket.length > 4096 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(ticket)) throw new ApiError(403, "Permiso de carga inválido");
@@ -47,20 +47,20 @@ export async function prepareUpload(client: StorageClient, userId: string, input
   const path = `${userId}/${randomUUID()}.${extension}`;
   const payload = Buffer.from(JSON.stringify({ ...data, v: 1, uid: userId, path, expires: Date.now() + 10 * 60000 })).toString("base64url");
   const ticket = `${payload}.${sign(payload).toString("base64url")}`;
-  const signed = await client.storage.from("mnt-staging").createSignedUploadUrl(path, { upsert: false });
+  const signed = await client.storage.from("fortius-inmuebles-staging").createSignedUploadUrl(path, { upsert: false });
   if (signed.error) databaseError(signed.error);
   return { signedUrl: signed.data.signedUrl, path, ticket };
 }
 
 export async function completeUpload(client: UploadClient, userId: string, ticket: unknown) {
   const claims = parseTicket(ticket, userId);
-  const staged = await client.storage.from("mnt-staging").download(claims.path);
+  const staged = await client.storage.from("fortius-inmuebles-staging").download(claims.path);
   if (staged.error) throw new ApiError(409, "La carga temporal no está disponible; vuelve a seleccionar el archivo");
   if (staged.data.size !== claims.size || staged.data.size > MAX_FILE_BYTES) throw new ApiError(400, "El tamaño del archivo no coincide con el autorizado");
   const file = new File([staged.data], claims.name, { type: claims.contentType });
   const { type, extension } = await validateFile(file);
   if (!claims.path.endsWith(`.${extension}`)) throw new ApiError(400, "Tipo de archivo incongruente");
-  const bucket = claims.visibility === "public" ? "mnt-public" : "mnt-private";
+  const bucket = claims.visibility === "public" ? "fortius-inmuebles-public" : "fortius-inmuebles-private";
   // Copy the exact bytes just validated, not a mutable remote object. Immutable
   // final names make concurrent completion/replayed tickets unable to overwrite.
   const saved = await client.storage.from(bucket).upload(claims.path, file, { contentType: type, upsert: false });
@@ -71,8 +71,8 @@ export async function completeUpload(client: UploadClient, userId: string, ticke
   await registerUpload(client, userId, bucket, claims.path);
   // Only this ticket's temporary object is removed. A cleanup outage must not
   // misreport a successfully persisted final file; abandoned staging is private.
-  await client.storage.from("mnt-staging").remove([claims.path]);
-  const url = bucket === "mnt-public" ? client.storage.from(bucket).getPublicUrl(claims.path).data.publicUrl
+  await client.storage.from("fortius-inmuebles-staging").remove([claims.path]);
+  const url = bucket === "fortius-inmuebles-public" ? client.storage.from(bucket).getPublicUrl(claims.path).data.publicUrl
     : `/api/admin/files?bucket=${bucket}&path=${encodeURIComponent(claims.path)}`;
   return { bucket, path: claims.path, url, name: claims.name, type };
 }

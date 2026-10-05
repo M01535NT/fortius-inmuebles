@@ -16,16 +16,16 @@ El inversor guardado corresponde exclusivamente a la ventana del corte sin escri
 
 1. Registrar commits/builds, IDs de proyecto, dominios, variables no secretas y responsables. Conservar secretos fuera de bitácoras.
 2. Completar `npm run verify` y las pruebas de navegador contra el build de producción. Comprobar CSP, móvil/escritorio, temas, panel, ausencia de falsa persistencia y envíos desactivados con/sin JavaScript.
-3. Verificar el respaldo con `node tools/mnt-backup.mjs --verify BACKUP_DIR`; repetir los ensayos de `tools/mnt-restore-rehearsal.mjs` normal y con `--content`.
-4. Preparar `node tools/mnt-prepare-rollback.mjs BACKUP_DIR`. El artefacto local `rollback-identity-guarded.sql` tiene checksums de las cinco tablas y no contiene una restauración de datos. El generador rehúsa sobrescribirlo; conservar versiones anteriores diferenciadas si cambia el inversor.
+3. Verificar el respaldo con `node tools/fortius-inmuebles-backup.mjs --verify BACKUP_DIR`; repetir los ensayos de `tools/fortius-inmuebles-restore-rehearsal.mjs` normal y con `--content`.
+4. Preparar `node tools/fortius-inmuebles-prepare-rollback.mjs BACKUP_DIR`. El artefacto local `rollback-identity-guarded.sql` tiene checksums de las cinco tablas y no contiene una restauración de datos. El generador rehúsa sobrescribirlo; conservar versiones anteriores diferenciadas si cambia el inversor.
 5. Coordinar la pausa de escrituras administrativas e integraciones y mantener desactivados los leads. No confundirla con una pausa del sitio. Los clientes privilegiados del proveedor requieren coordinación explícita.
 
 ## Secuencia sin interrupción pública planificada
 
-1. Obtener conteos/checksums nuevos del propietario con los órdenes documentados en `mnt-backup-restore.md` y enumerar Storage. Deben coincidir con el respaldo. Si difieren, detener el corte, respaldar el nuevo estado y repetir el ensayo.
-2. Aplicar `202609060003_mnt_identity.sql` como propietario. La transacción cambia los nombres y conserva un único wrapper temporal `cota_public_records(text) returns table(data jsonb)` que delega a `mnt_public_records(text)`. Es `SECURITY INVOKER`, solo ejecutable por los mismos roles `anon` y `authenticated`, sin nuevos grants de tablas ni audiencias. La proyección y sus exclusiones privadas son las mismas.
+1. Obtener conteos/checksums nuevos del propietario con los órdenes documentados en `fortius-inmuebles-backup-restore.md` y enumerar Storage. Deben coincidir con el respaldo. Si difieren, detener el corte, respaldar el nuevo estado y repetir el ensayo.
+2. Aplicar `202609060003_fortius_inmuebles_identity.sql` como propietario. La transacción cambia los nombres y conserva un único wrapper temporal `cota_public_records(text) returns table(data jsonb)` que delega a `mnt_public_records(text)`. Es `SECURITY INVOKER`, solo ejecutable por los mismos roles `anon` y `authenticated`, sin nuevos grants de tablas ni audiencias. La proyección y sus exclusiones privadas son las mismas.
 3. Confirmar que la web anterior sigue leyendo contenido público. Las funciones antiguas de escritura y tablas antiguas ya no existen: sus solicitudes fallan y no deben anunciar éxito. No crear aliases de escritura para evitar ese fallo.
-4. Aplicar `202609060004_mnt_content_identity.sql`. Verificar las tres filas previstas, sus revisiones y la integridad de las otras once. 003 y 004 son transacciones separadas: si 004 falla, el esquema ya es MNT y el wrapper mantiene las lecturas; corregir 004 sin restaurar un snapshot antiguo.
+4. Aplicar `202609060004_fortius_inmuebles_content_identity.sql`. Verificar las tres filas previstas, sus revisiones y la integridad de las otras once. 003 y 004 son transacciones separadas: si 004 falla, el esquema ya es MNT y el wrapper mantiene las lecturas; corregir 004 sin restaurar un snapshot antiguo.
 5. Publicar el build MNT verificado en el mismo proyecto. Confirmar dominio, origen canónico, backend dedicado y `MNT_PUBLIC_LEADS_ENABLED=false`. El nuevo build usa exclusivamente los RPC MNT.
 6. Probar en lectura `/api/health`, inicio, inventario, blog, páginas 404/error, panel y CSP. Confirmar formularios desactivados con/sin JS. Si se crean registros de prueba o cualquier fila cambia, dejan de cumplirse las condiciones del inversor automático.
 7. Una vez verificado que el tráfico usa el build MNT, aplicar `202609060005_retire_public_read_compatibility.sql`. Solo elimina el wrapper temporal. Confirmar que no queda ningún RPC COTA y que la web nueva continúa funcionando. Una instalación nueva aplica 001, 002, 003, 004 y 005; el resultado final no conserva compatibilidad antigua.
@@ -56,7 +56,7 @@ Si falla la guarda, no sustituir sus checksums para forzarla. Mantener la pausa 
 
 PGlite comprueba equivalencia de lectura antigua/nueva para `anon`, rechazo de colecciones privadas, ausencia de RPC antiguos de escritura y retirada limpia con 005. El inversor se prueba con el wrapper presente y después de 005; rechaza wrappers inesperados, ausencia de preámbulo, escrituras nuevas y objetos MNT. El caso permitido conserva OID/ACL/configuración, datos, revisiones, buckets y protecciones de slug y privacidad.
 
-El ensayo real `node tools/mnt-restore-rehearsal.mjs BACKUP_DIR --content --rollback` conserva 14 registros y 24 revisiones en PGlite. El resultado se guarda por separado en `restore-rehearsal-rollback.json`; no se ejecuta contra el proveedor. Los timestamps esperados se normalizan como `timestamptz` antes de calcular hashes. Conservar diagnósticos anteriores como evidencia; el reporte exitoso posterior es la conclusión del ensayo.
+El ensayo real `node tools/fortius-inmuebles-restore-rehearsal.mjs BACKUP_DIR --content --rollback` conserva 14 registros y 24 revisiones en PGlite. El resultado se guarda por separado en `restore-rehearsal-rollback.json`; no se ejecuta contra el proveedor. Los timestamps esperados se normalizan como `timestamptz` antes de calcular hashes. Conservar diagnósticos anteriores como evidencia; el reporte exitoso posterior es la conclusión del ensayo.
 
 ## Particularidad de permisos de Storage administrado
 

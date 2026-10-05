@@ -5,8 +5,8 @@ import { z } from "zod";
 import type { StaffUser } from "./contracts";
 import { ApiError, databaseError } from "./http";
 
-const ACCESS_COOKIE = "mnt-access-token";
-const REFRESH_COOKIE = "mnt-refresh-token";
+const ACCESS_COOKIE = "fortius-inmuebles-access-token";
+const REFRESH_COOKIE = "fortius-inmuebles-refresh-token";
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", priority: "high" as const };
 
 export function supabaseEnvironment(environment = process.env) {
@@ -40,7 +40,7 @@ export function staffIdentity(user: { id: string; email?: string } | null, membe
 async function verifyStaff(client: SupabaseClient, token: string): Promise<StaffUser> {
   const { data, error } = await client.auth.getUser(token);
   if (error || !data.user) throw new ApiError(401, "Sesión inválida o vencida");
-  const membership = await client.from("mnt_staff").select("role,active").eq("user_id", data.user.id).maybeSingle();
+  const membership = await client.from("fortius_inmuebles_staff").select("role,active").eq("user_id", data.user.id).maybeSingle();
   if (membership.error) databaseError(membership.error);
   return staffIdentity(data.user, membership.data);
 }

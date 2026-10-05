@@ -11,7 +11,7 @@ export default defineConfig({
     {
       command: "node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3100",
       url: "http://127.0.0.1:3100/admin", timeout: 120000, reuseExistingServer: false,
-      env: { MNT_SITE_URL: "http://127.0.0.1:3100", NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:3101", NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-test", SUPABASE_SERVICE_ROLE_KEY: "public-test", MNT_PUBLIC_LEADS_ENABLED: "false" },
+      env: { FORTIUS_INMUEBLES_SITE_URL: "http://127.0.0.1:3100", NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:3101", NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-test", SUPABASE_SERVICE_ROLE_KEY: "public-test", FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED: "false" },
     },
   ],
   use: { baseURL: "http://127.0.0.1:3100", browserName: "chromium", channel: process.platform === "win32" ? "msedge" : undefined, headless: true, trace: "retain-on-failure" },

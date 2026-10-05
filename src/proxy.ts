@@ -20,7 +20,7 @@ export function proxy(request: NextRequest) {
   `.replace(/\s{2,}/g, " ").trim();
 
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-mnt-pathname", request.nextUrl.pathname);
+  requestHeaders.set("x-fortius-inmuebles-pathname", request.nextUrl.pathname);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", csp);
 

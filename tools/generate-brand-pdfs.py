@@ -19,7 +19,7 @@ sources = json.loads((ROOT / 'tools/brand-document-content.json').read_text(enco
 image = ImageReader(str(ROOT / 'public/brand/fortius-logo.png'))
 w, h = image.getSize()
 for name, lines in sources.items():
-    target = public / name.replace('checklist-venta-cota', 'checklist-venta-fortius')
+    target = public / name
     c = canvas.Canvas(str(target), pagesize=(612, 792), invariant=1)
     c.setTitle('Fortius Inmuebles - ' + lines[0].split(' - ', 1)[1])
     c.setAuthor('Fortius Inmuebles')
@@ -29,8 +29,7 @@ for name, lines in sources.items():
     y = 672
     expected = []
     for index, original in enumerate(lines):
-        line = original.replace('COTA - ', '').replace('COTA-000', 'FORTIUS-000')
-        line = re.sub(r'cota\.example(?:/#evaluar)?', 'Contacto: consultar el sitio web', line)
+        line = original.removeprefix('Fortius Inmuebles - ')
         line = line.replace('Documento de ejemplo con marca provisional.', 'Documento de ejemplo.')
         expected.append(line)
         c.setFillColor(HexColor('#061F3F' if index < 2 else '#526176'))

@@ -11,10 +11,10 @@ export async function GET(_request: Request, context: Context) {
   try {
     const id = z.uuid().parse((await context.params).id);
     const { client } = await requireStaff();
-    const result = await client.from("mnt_formato_assets").select("id,path,mime,sha256").eq("id", id).maybeSingle();
+    const result = await client.from("fortius_inmuebles_formato_assets").select("id,path,mime,sha256").eq("id", id).maybeSingle();
     if (result.error) databaseError(result.error);
     if (!result.data) throw new ApiError(404, "Adjunto no encontrado");
-    const file = await createServerClient(undefined, true).storage.from("mnt-expedientes").download(result.data.path);
+    const file = await createServerClient(undefined, true).storage.from("fortius-inmuebles-expedientes").download(result.data.path);
     if (file.error || !file.data) throw new ApiError(503, "El adjunto no está disponible");
     const bytes = Buffer.from(await file.data.arrayBuffer());
     if (createHash("sha256").update(bytes).digest("hex") !== result.data.sha256) throw new ApiError(503, "El adjunto no superó la verificación de integridad");

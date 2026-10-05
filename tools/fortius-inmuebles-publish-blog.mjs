@@ -14,7 +14,7 @@ assert(new Set(posts.map((post) => post.slug)).size === 12, 'Duplicate article s
 const slugs = new Set(posts.map((post) => post.slug));
 const manifest = [];
 for (const [index, post] of posts.entries()) {
-  assert(post.id === `mnt-blog-202609-${String(index + 1).padStart(2, '0')}`, 'Unexpected article ID');
+  assert(post.id === `fortius-inmuebles-blog-202609-${String(index + 1).padStart(2, '0')}`, 'Unexpected article ID');
   assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug), `${post.id}: invalid slug`);
   assert(post.titulo.length > 0 && post.titulo.length <= 160, `${post.id}: invalid title`);
   assert(post.resumen.length >= 130 && post.resumen.length <= 180, `${post.id}: invalid summary length`);
@@ -45,7 +45,7 @@ const client = createClient(url, key, { auth: { persistSession: false, autoRefre
 const readPosts = async () => {
   const rows = [];
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await client.from('mnt_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
+    const { data, error } = await client.from('fortius_inmuebles_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
     if (error) throw new Error(`Cannot inventory posts (${error.code})`);
     rows.push(...data);
     if (data.length < 500) return rows;
@@ -61,7 +61,7 @@ if (existing.length) {
 const timestamp = new Date().toISOString();
 const rows = posts.map((post) => ({ collection: 'posts', id: post.id, data: { ...post, estado: 'publicado', actualizadoEl: timestamp } }));
 for (const row of rows) {
-  const { error } = await client.rpc('mnt_validate_record', { c: 'posts', record_id: row.id, d: row.data });
+  const { error } = await client.rpc('fortius_inmuebles_validate_record', { c: 'posts', record_id: row.id, d: row.data });
   if (error) throw new Error(`Server validation rejected ${row.id} (${error.code})`);
 }
 console.log(JSON.stringify({ remoteValidation: 'passed', existingPosts: before.length, additions: 12, publish }));
@@ -71,7 +71,7 @@ await mkdir(evidence, { recursive: true });
 await writeFile(new URL('before.json', evidence), JSON.stringify(before, null, 2));
 await writeFile(new URL('manifest.json', evidence), JSON.stringify({ timestamp, manifest }, null, 2));
 // A single INSERT is atomic. Never upsert or replace existing editorial content.
-const { error } = await client.from('mnt_records').insert(rows);
+const { error } = await client.from('fortius_inmuebles_records').insert(rows);
 if (error) throw new Error(`Insert rejected (${error.code}); check remote state before retrying`);
 const after = await readPosts();
 assert(posts.every((post) => after.some((row) => row.id === post.id && digest(row.data) === digest(post) && row.data.estado === 'publicado')), 'Readback failed; inspect publication evidence');

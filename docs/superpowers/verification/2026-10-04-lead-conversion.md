@@ -38,11 +38,11 @@ Navegador con datos sintéticos: **2/2 pruebas** correctas a 320 y 1440 px, conv
 
 ## Supabase: instalación y prueba real
 
-Proyecto: `qkkirjzhviqwvuqjnmei` / mnt-inmuebles. Supabase CLI oficial 2.119.0. Migración aplicada mediante consulta transaccional de Management API, código de salida 0:
+Proyecto: `qkkirjzhviqwvuqjnmei` / fortius-inmuebles. Supabase CLI oficial 2.119.0. Migración aplicada mediante consulta transaccional de Management API, código de salida 0:
 
 | Archivo aplicado | SHA-256 |
 |---|---|
-| `20261005013631_mnt_lead_conversion.sql` | `6A63C10FA593FEF619316200D4A1C70B9B477C4025A643EE3260B8C7C258E716` |
+| `20261005013631_fortius_inmuebles_lead_conversion.sql` | `6A63C10FA593FEF619316200D4A1C70B9B477C4025A643EE3260B8C7C258E716` |
 
 El esquema anterior carece de historial conciliado de migraciones. Esta aplicación explícita no equivale a preparar un `db push` general; no volver a aplicar el conjunto anterior automáticamente.
 

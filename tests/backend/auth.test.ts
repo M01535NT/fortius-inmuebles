@@ -16,10 +16,10 @@ beforeEach(() => {
   state.cookies.clear(); state.active = true; state.member = true; state.validPassword = true; state.password = ""; state.recoveryFailure = false; state.leadFailure = false;
   state.authServiceFailure = false;
   state.fileMissing = false;
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://fortius-inmuebles-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_key");
-  vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
-  vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
+  vi.stubEnv("FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED", "true");
+  vi.stubEnv("FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED", "true");
   // Only the external Auth/PostgREST boundary is replaced. Supabase-js and our
   // session, membership, cookies and password code execute unchanged.
   vi.stubGlobal("fetch", async (input: string | URL | Request, init: RequestInit = {}) => {
@@ -35,15 +35,15 @@ beforeEach(() => {
       if (init.method === "PUT") state.password = JSON.parse(String(init.body)).password;
       return Response.json(user);
     }
-    if (url.pathname === "/rest/v1/mnt_staff") return Response.json(state.member ? [{ role: "admin", active: state.active }] : []);
+    if (url.pathname === "/rest/v1/fortius_inmuebles_staff") return Response.json(state.member ? [{ role: "admin", active: state.active }] : []);
     if (url.pathname === "/auth/v1/logout") return new Response(null, { status: 204 });
     if (url.pathname === "/auth/v1/recover") return state.recoveryFailure ? Response.json({ msg: "SMTP is unavailable", error_code: "unexpected_failure" }, { status: 500 }) : Response.json({});
-    if (url.pathname === "/rest/v1/rpc/mnt_capture_lead") return state.leadFailure ? Response.json({ code: "PT429", message: "Limited" }, { status: 429 }) : Response.json("new-lead-id");
-    if (url.pathname === "/rest/v1/mnt_records") return Response.json([]);
-    if (url.pathname === "/rest/v1/mnt_file_uploads" && init.method === "POST") return new Response(null, { status: 201 });
+    if (url.pathname === "/rest/v1/rpc/fortius_inmuebles_capture_lead") return state.leadFailure ? Response.json({ code: "PT429", message: "Limited" }, { status: 429 }) : Response.json("new-lead-id");
+    if (url.pathname === "/rest/v1/fortius_inmuebles_records") return Response.json([]);
+    if (url.pathname === "/rest/v1/fortius_inmuebles_file_uploads" && init.method === "POST") return new Response(null, { status: 201 });
     if (url.pathname.startsWith("/storage/v1/object/sign/")) return state.fileMissing
       ? Response.json({ statusCode: "404", error: "not_found", message: "Object not found" }, { status: 400 })
-      : Response.json({ signedURL: "/object/sign/mnt-private/signed?token=temporary" });
+      : Response.json({ signedURL: "/object/sign/fortius-inmuebles-private/signed?token=temporary" });
     if (url.pathname.startsWith("/storage/v1/object/")) return Response.json({ Key: url.pathname });
     throw new Error(`Unexpected external request: ${url.pathname}`);
   });
@@ -52,7 +52,7 @@ beforeEach(() => {
 describe("HTTP API contracts", () => {
   it("no confunde un archivo inexistente o ajeno con una caída del servidor ni devuelve URL", async () => {
     await loginWithPassword({ email: user.email, password: "a long password" }); state.fileMissing = true;
-    const response = await fileRoute(new Request("https://mnt.test/api/admin/files?bucket=mnt-private&path=own/missing.pdf"));
+    const response = await fileRoute(new Request("https://mnt.test/api/admin/files?bucket=fortius-inmuebles-private&path=own/missing.pdf"));
     expect(response.status).toBe(404);
     expect(await response.json()).not.toHaveProperty("url");
   });
@@ -95,7 +95,7 @@ describe("HTTP API contracts", () => {
     const uploaded = await uploadRoute(new Request("https://mnt.test/api/admin/files", { method: "POST", headers: { origin: "https://mnt.test" }, body: form }));
     expect(uploaded.status).toBe(201);
     const file = await uploaded.json();
-    expect(file.bucket).toBe("mnt-private");
+    expect(file.bucket).toBe("fortius-inmuebles-private");
     expect(file.path).toMatch(/^[a-z0-9-]+\/[a-z0-9-]+\.pdf$/);
     expect(file.url).not.toContain("token=");
     const signed = await fileRoute(new Request(`https://mnt.test${file.url}`));
@@ -124,15 +124,15 @@ describe("real session behavior against the external transport boundary", () => 
     expect(state.cookies.size).toBe(0);
     state.member = true;
     expect((await loginWithPassword({ email: user.email, password: "a long password" })).user.role).toBe("admin");
-    expect(state.cookies.get("mnt-access-token")).toMatchObject({ value: token, options: { httpOnly: true, sameSite: "lax", path: "/" } });
+    expect(state.cookies.get("fortius-inmuebles-access-token")).toMatchObject({ value: token, options: { httpOnly: true, sameSite: "lax", path: "/" } });
     state.active = false;
     await expect(requireStaff()).rejects.toMatchObject({ status: 403 });
   });
   it("refreshes a session with no access cookie and rejects an anonymous request", async () => {
     await expect(requireStaff()).rejects.toMatchObject({ status: 401 });
-    state.cookies.set("mnt-refresh-token", { value: "test-refresh-token" });
+    state.cookies.set("fortius-inmuebles-refresh-token", { value: "test-refresh-token" });
     expect((await requireStaff()).user.id).toBe(user.id);
-    expect(state.cookies.get("mnt-access-token")?.value).toBe(token);
+    expect(state.cookies.get("fortius-inmuebles-access-token")?.value).toBe(token);
   });
   it("accepts invite/recovery only, rechecks membership, and updates password with the authorized token", async () => {
     await expect(acceptAuthCallback({ type: "signup", access_token: token, refresh_token: session.refresh_token })).rejects.toThrow();
@@ -144,8 +144,8 @@ describe("real session behavior against the external transport boundary", () => 
   it("clears both cookies on logout so the next request is unauthenticated", async () => {
     await loginWithPassword({ email: user.email, password: "a long password" });
     await logoutSession();
-    expect(state.cookies.get("mnt-access-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
-    expect(state.cookies.get("mnt-refresh-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
+    expect(state.cookies.get("fortius-inmuebles-access-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
+    expect(state.cookies.get("fortius-inmuebles-refresh-token")).toMatchObject({ value: "", options: { maxAge: 0 } });
     await expect(requireStaff()).rejects.toMatchObject({ status: 401 });
   });
   it("recovery is non-enumerating but never claims delivery when the provider rejects", async () => {

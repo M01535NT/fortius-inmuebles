@@ -1,4 +1,4 @@
-# Revisión móvil del Dashboard — MNT Inmuebles
+# Revisión móvil del Dashboard — Fortius Inmuebles
 
 Fecha: 22 de septiembre de 2026, hora de Tijuana. Código base: `99c484e`, con cambios locales previos ajenos a esta revisión.
 
@@ -177,7 +177,7 @@ No se modificaron las API, los permisos ni el esquema de datos. El guardado sigu
 - `npm run typecheck`: pasó.
 - `npm test`: **121 pruebas de backend y 108 del panel; 229 en total, todas correctas**.
 - `npm run build`: pasó. La primera ejecución restringida no pudo descargar las fuentes de Google Fonts; la compilación final con acceso a esas fuentes terminó correctamente.
-- `MNT_TEST_URL=http://localhost:3020 npx playwright test --config playwright.admin.config.ts mobile-panel.spec.ts panel.spec.ts`: **20 pruebas correctas**. Incluyen registros largos a 320, 360, 390, 430, 768 y 1440 px; las pruebas previas también cubren 375, 414 y 1024 px. Se comprobaron ambos temas, menú, formularios, errores, calendario y estado vacío.
+- `FORTIUS_INMUEBLES_TEST_URL=http://localhost:3020 npx playwright test --config playwright.admin.config.ts mobile-panel.spec.ts panel.spec.ts`: **20 pruebas correctas**. Incluyen registros largos a 320, 360, 390, 430, 768 y 1440 px; las pruebas previas también cubren 375, 414 y 1024 px. Se comprobaron ambos temas, menú, formularios, errores, calendario y estado vacío.
 - Navegación manual en Chrome sobre `http://localhost:3021/admin`, usando la compilación final y datos ficticios: Dashboard, menú con Tab, calendario, leads, inmuebles y formulario. Se verificaron 320 y 390 px, temas claro/oscuro, navegación por secciones, validación nativa y error del servidor visible sin perder el borrador.
 - A 390 × 844, el título de la agenda quedó aproximadamente en **y=516**, frente a y=1,376 del diagnóstico. El documento quedó dentro de la ventana; calendario y formulario también se comprobaron sin desbordamiento a 320 px.
 - `git diff --check`: sin errores de espacios.

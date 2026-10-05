@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const { error } = await createServerClient().rpc("mnt_public_records", {
+    const { error } = await createServerClient().rpc("fortius_inmuebles_public_records", {
       p_collection: "config",
     });
     if (error) throw new Error("database unavailable");

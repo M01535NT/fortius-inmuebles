@@ -2,7 +2,7 @@
 
 Implementación del diseño aprobado: portada editorial, buscador, filtros por tema y formato, tarjetas independientes, destacado, paginación y bloque de guías. Se conservan las rutas `/blog` y `/blog/<slug>`.
 
-El panel incorpora formato, tema, destacado, autor, ámbito y fuente principal. La migración `202609240008_mnt_blog_editorial.sql` valida metadatos, registra la primera publicación, conserva esa fecha al editar y amplía la proyección pública con una lista explícita de campos. No modifica los artículos históricos. Las fechas históricas desconocidas permanecen desconocidas.
+El panel incorpora formato, tema, destacado, autor, ámbito y fuente principal. La migración `202609240008_fortius_inmuebles_blog_editorial.sql` valida metadatos, registra la primera publicación, conserva esa fecha al editar y amplía la proyección pública con una lista explícita de campos. No modifica los artículos históricos. Las fechas históricas desconocidas permanecen desconocidas.
 
 ## Verificación
 
@@ -22,11 +22,11 @@ La migración 008 se aplicó una vez al proyecto Supabase `qkkirjzhviqwvuqjnmei`
 
 Se publicaron tres notas originales en una sola inserción: índice SHF de Tijuana, comparación del costo hipotecario a partir de una publicación de CONDUSEF e inflación de agosto del INEGI. Los textos revisados están en `content/blog/2026-09-actualidad`. Cada nota incluye periodo, fecha de la fuente, ámbito, autor, clasificación y fuente oficial. El ejemplo hipotecario se identifica expresamente como basado en información de diciembre de 2025.
 
-La carga `tools/mnt-publish-news.mjs --publish` verificó 15 artículos totales, la integridad completa de las 12 entradas anteriores y la lectura anónima de los tres nuevos textos con sus metadatos y fechas asignadas por la base de datos. Las copias antes/después y sus huellas se guardan localmente en `.superpowers/news/publication-2026-09-24T04-20-22-519Z/`, fuera de Git. Repetir la carga comprueba coincidencias y no vuelve a insertar ni sobrescribir.
+La carga `tools/fortius-inmuebles-publish-news.mjs --publish` verificó 15 artículos totales, la integridad completa de las 12 entradas anteriores y la lectura anónima de los tres nuevos textos con sus metadatos y fechas asignadas por la base de datos. Las copias antes/después y sus huellas se guardan localmente en `.superpowers/news/publication-2026-09-24T04-20-22-519Z/`, fuera de Git. Repetir la carga comprueba coincidencias y no vuelve a insertar ni sobrescribir.
 
 La publicación de la aplicación usa la integración existente de Vercel con `main`. El despliegue `FsKedMZWqoFkRJSE5uPhi5V5gu78`, correspondiente a `0e656d3`, quedó Ready/Production/Current. En el sitio público se verificaron 15 artículos, tres resultados al seleccionar Actualidad y un resultado al combinar Actualidad, Comprar y la búsqueda «hipotecas».
 
-La ejecución de GitHub #19 detectó una expectativa antigua en `public-render.test.ts`: con `MNT_SITE_URL=http://localhost:3001` esperaba enlaces sociales locales, aunque la aplicación deliberadamente los convierte al dominio público. Se reprodujo el fallo con esa configuración y se corrigió el aislamiento de la prueba para cubrir explícitamente dominio público, localhost y dominio personalizado. Las 27 pruebas del archivo pasan con el entorno local de CI. No se alteró el comportamiento de producción para resolver esta discrepancia.
+La ejecución de GitHub #19 detectó una expectativa antigua en `public-render.test.ts`: con `FORTIUS_INMUEBLES_SITE_URL=http://localhost:3001` esperaba enlaces sociales locales, aunque la aplicación deliberadamente los convierte al dominio público. Se reprodujo el fallo con esa configuración y se corrigió el aislamiento de la prueba para cubrir explícitamente dominio público, localhost y dominio personalizado. Las 27 pruebas del archivo pasan con el entorno local de CI. No se alteró el comportamiento de producción para resolver esta discrepancia.
 
 La ejecución #20 completó las 331 pruebas de aplicación y la compilación, y detectó una carrera en la prueba de navegador de 768 px: el contador ya mostraba un resultado antes de enviar la búsqueda, por lo que la recarga podía cancelar la navegación pendiente. La prueba ahora espera tanto el formato seleccionado como la URL enviada antes de recargar. Se repitió tres veces el escenario de 768 px, con tres resultados correctos. Se conserva la comprobación de persistencia del texto tras recargar.
 

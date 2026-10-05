@@ -37,7 +37,7 @@ Priorizar información de Tijuana y Baja California. Incluir noticias nacionales
 
 ## Activación técnica
 
-Antes de publicar esta versión de la aplicación, aplicar una vez `supabase/migrations/202609240008_mnt_blog_editorial.sql`. La migración amplía la lista de campos públicos del blog y añade validación y registro de fechas. No reescribe artículos existentes ni modifica permisos. Los datos siguen en el backend autenticado del producto.
+Antes de publicar esta versión de la aplicación, aplicar una vez `supabase/migrations/202609240008_fortius_inmuebles_blog_editorial.sql`. La migración amplía la lista de campos públicos del blog y añade validación y registro de fechas. No reescribe artículos existentes ni modifica permisos. Los datos siguen en el backend autenticado del producto.
 
 Después del despliegue, comprobar con un borrador editorial real que el panel conserva los campos y que, al publicar, aparecen clasificación, fuente y fecha. Comprobar también una búsqueda combinada y el acceso a un artículo anterior.
 

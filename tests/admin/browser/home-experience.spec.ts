@@ -4,7 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 test("mobile performance budget across three cold loads", async () => {
-  test.skip(process.env.MNT_RUN_LIGHTHOUSE !== "true", "Opt-in measurement; run with MNT_RUN_LIGHTHOUSE=true.");
+  test.skip(process.env.FORTIUS_INMUEBLES_RUN_LIGHTHOUSE !== "true", "Opt-in measurement; run with FORTIUS_INMUEBLES_RUN_LIGHTHOUSE=true.");
   test.setTimeout(240000);
   try {
     await promisify(execFile)(process.execPath, ["tools/public-performance.mjs", "http://127.0.0.1:3100"], { windowsHide: true });

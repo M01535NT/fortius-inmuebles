@@ -32,9 +32,9 @@ for (const width of [320, 390, 768, 1440]) {
     await page.getByLabel("Zonas de interés").fill("Otay y alrededores");
     await page.getByLabel("Superficie mínima (m²)", { exact: true }).fill("500");
     await page.getByLabel("Requisitos adicionales").fill("Acceso para camiones y servicios disponibles.");
-    await page.getByText("Presupuesto y financiamiento", { exact: true }).click();
+    await page.getByText("Presupuesto de renta", { exact: true }).click();
     await expect(page.getByText(/Presupuesto de renta mensual/)).toBeVisible();
-    await page.getByLabel("Presupuesto máximo").fill("3000");
+    await page.getByLabel("Renta mensual máxima").fill("3000");
     await page.getByLabel("Moneda", { exact: true }).selectOption("USD");
     await page.getByLabel("Origen de ingresos").selectOption("estados-unidos");
     await page.getByText("Seguimiento", { exact: true }).click();
@@ -67,3 +67,35 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(page.getByLabel("Nombre", { exact: true })).toHaveValue("No perder aunque se elimine");
   });
 }
+
+test("seller capture shows property details and sale price at mobile width", async ({ page }, testInfo) => {
+  let saved: Record<string, unknown> = {};
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/**", async route => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (path === "/api/auth/session") return route.fulfill({ json: { user: { id: "test", email: "test@example.invalid", role: "admin" } } });
+    if (request.method() === "PUT") {
+      saved = request.postDataJSON().data;
+      return route.fulfill({ json: { record: { id: saved.id, data: saved, version: 1, createdAt: "2026-09-23", updatedAt: "2026-09-23" } } });
+    }
+    return route.fulfill({ json: { records: path.endsWith("/leads") && saved.id ? [{ id: saved.id, data: saved, version: 1 }] : [] } });
+  });
+  await page.goto("/admin/leads");
+  await page.getByRole("button", { name: "Nuevo lead", exact: true }).click();
+  await page.getByLabel("Nombre", { exact: true }).fill("Propietaria de prueba");
+  await page.getByLabel("Teléfono", { exact: true }).fill("6641234567");
+  await page.getByText("Qué busca y características", { exact: true }).click();
+  await page.getByLabel("Operación").selectOption("vender");
+  await expect(page.getByLabel("Superficie construida (m²)")).toBeVisible();
+  await expect(page.getByLabel("Requisitos adicionales")).toHaveCount(0);
+  await page.getByLabel("Ubicación del inmueble").fill("Hipódromo");
+  await page.getByLabel("Superficie construida (m²)").fill("180");
+  await page.getByText("Precio esperado", { exact: true }).click();
+  await page.getByLabel("Precio de venta esperado").fill("3500000");
+  await page.getByLabel("Moneda", { exact: true }).selectOption("MXN");
+  await page.screenshot({ path: testInfo.outputPath("lead-sale-mobile.png"), fullPage: true });
+  await page.getByRole("button", { name: "Capturar lead", exact: true }).click();
+  await expect(page.getByText("3,500,000 MXN", { exact: true })).toBeVisible();
+  expect((saved.perfil as Record<string, unknown>).precioObjetivo).toBe(3500000);
+});

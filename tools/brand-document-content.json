@@ -1,6 +1,6 @@
 {
-  "checklist-venta-cota.pdf": [
-    "COTA - Checklist: esta lista tu propiedad para venderse?",
+  "checklist-venta-fortius.pdf": [
+    "Fortius Inmuebles - Checklist: esta lista tu propiedad para venderse?",
     "CHK-VEN-001 - Documento de referencia",
     "Marca cada punto antes de salir al mercado. Los primeros cinco",
     "evitan que un papel detenga tu venta en la recta final.",
@@ -17,18 +17,18 @@
     "Si algun punto no esta resuelto, ese es exactamente el tipo de",
     "pendiente que revisamos en la evaluacion inicial, sin costo y",
     "sin compromiso.",
-    "cota.example/#evaluar - WhatsApp: por confirmar",
+    "Contacto: consultar el sitio web - WhatsApp: por confirmar",
     "Documento de ejemplo con marca provisional. Los costos, impuestos y",
     "tiempos varian por operacion y se confirman con el notario o el",
     "especialista correspondiente."
   ],
   "ficha-tecnica-demo.pdf": [
-    "COTA - Ficha tecnica de propiedad",
+    "Fortius Inmuebles - Ficha tecnica de propiedad",
     "FIC-PRO-001 - Documento de ejemplo",
     "Este es un documento de demostracion. La ficha real de cada",
     "propiedad se genera desde el panel de administracion con los",
     "datos verificados del inmueble.",
-    "Codigo interno         COTA-000",
+    "Codigo interno         FORTIUS-000",
     "Tipo y operacion       Por definir",
     "Zona                   Por definir",
     "Terreno                --- m2",
@@ -39,7 +39,7 @@
     "Toda propiedad publicada por la firma pasa por revision documental",
     "y analisis de precio con comparables vendidos antes de salir al",
     "mercado. Pide el expediente completo en tu primera reunion.",
-    "cota.example - WhatsApp: por confirmar",
+    "Contacto: consultar el sitio web - WhatsApp: por confirmar",
     "Documento de ejemplo con marca provisional. La informacion definitiva",
     "se confirma en el expediente de cada operacion."
   ]

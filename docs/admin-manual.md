@@ -1,4 +1,4 @@
-# Manual de administración de MNT Inmuebles
+# Manual de administración de Fortius Inmuebles
 
 ## Acceso y roles
 
@@ -46,6 +46,6 @@ En **Configuración**, completa teléfono, WhatsApp y Facebook/Messenger cuando 
 
 ## Leads y datos de ejemplo
 
-Los formularios públicos de leads están deshabilitados por defecto mediante `MNT_PUBLIC_LEADS_ENABLED=false`. Actívalos solo después de configurar el secreto del servidor, aplicar migraciones y verificar persistencia y límites.
+Los formularios públicos de leads están deshabilitados por defecto mediante `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED=false`. Actívalos solo después de configurar el secreto del servidor, aplicar migraciones y verificar persistencia y límites.
 
 Los inmuebles, contactos, PDFs y demás datos de ejemplo sirven para revisar la interfaz. No representan inventario, precios, personas, disponibilidad ni condiciones comerciales reales. Sustituye o despublica cada ejemplo antes de una entrega pública.

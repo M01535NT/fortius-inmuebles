@@ -11,7 +11,7 @@ import { siteConfig } from "@/data/site";
 import PropertyDetailPage, { generateMetadata as propertyMetadata } from "@/app/inventario/[slug]/page";
 
 vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }) }));
-vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-mnt-pathname": "/" }) }));
+vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-fortius-inmuebles-pathname": "/" }) }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/", useRouter: () => ({ push() {} }) }));
 vi.mock("next/server", async (original) => ({ ...await original<typeof import("next/server")>(), connection: async () => {} }));
 
@@ -23,7 +23,7 @@ beforeEach(() => {
   content = { heroTitulo: "Título del panel", heroSubtitulo: "Subtítulo publicado", manifiestoTitulo: "Proceso actualizado", manifiestoTexto: "Texto actualizado", seoTitle: "SEO publicado", seoDescription: "Descripción publicada", privateNote: "PRIVATE" };
   settings = { nombreComercial: "Firma publicada", telefono: "+52 664 123 4567", whatsapp: "+52 664 765 4321", email: "publico@example.com", horario: "", facebook: "", instagram: "", videoInstitucionalUrl: "/video-publico.mp4", privateNote: "PRIVATE" };
   publicProperty = { ...propiedades[0], publicada: true, galeria: [{ src: "/hero/casa-playa.webp", alt: "Casa" }, { src: "https://images.unsplash.com/remote.jpg", alt: "Remota" }] };
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-public-test.supabase.co");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://fortius-inmuebles-public-test.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "public-test-key");
   vi.stubGlobal("fetch", vi.fn(async (_url, init) => {
     const collection = JSON.parse(init.body).p_collection;
@@ -60,8 +60,8 @@ test("institutional video reads the configured public URL and retains its placeh
 test("image optimization allows only the configured public bucket and existing external hosts", async () => {
   const config = (await import("../../next.config")).default;
   const allowed = (url: string) => config.images!.remotePatterns!.some((pattern) => matchRemotePattern(pattern, new URL(url)));
-  expect(allowed("https://mnt-public-test.supabase.co/storage/v1/object/public/mnt-public/image.webp")).toBe(true);
-  expect(allowed("https://mnt-public-test.supabase.co/storage/v1/object/public/mnt-private/private.webp")).toBe(false);
+  expect(allowed("https://fortius-inmuebles-public-test.supabase.co/storage/v1/object/public/fortius-inmuebles-public/image.webp")).toBe(true);
+  expect(allowed("https://fortius-inmuebles-public-test.supabase.co/storage/v1/object/public/fortius-inmuebles-private/private.webp")).toBe(false);
   expect(allowed("https://fvvmvnduvzxvodeombld.supabase.co/storage/v1/object/public/listings/old.webp")).toBe(false);
   expect(allowed("https://images.unsplash.com/photo.jpg")).toBe(true);
   expect(allowed("https://d8j0ntlcm91z4.cloudfront.net/photo.jpg")).toBe(true);

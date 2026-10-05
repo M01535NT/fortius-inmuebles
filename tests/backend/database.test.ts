@@ -15,7 +15,7 @@ async function asRole<T>(role: string, uid: string | null, run: () => Promise<T>
   try { return await run(); } finally { await db.exec("reset role"); }
 }
 async function save(collection: string, id: string, data: unknown, version: number | null = null) {
-  const result = await db.query<{ record: { version: number; data: Record<string, unknown> } }>("select public.mnt_put_record($1,$2,$3::jsonb,$4::bigint) as record", [collection, id, JSON.stringify(data), version]);
+  const result = await db.query<{ record: { version: number; data: Record<string, unknown> } }>("select public.fortius_inmuebles_put_record($1,$2,$3::jsonb,$4::bigint) as record", [collection, id, JSON.stringify(data), version]);
   return result.rows[0].record;
 }
 
@@ -30,13 +30,14 @@ beforeAll(async () => {
     create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner_id text); alter table storage.objects enable row level security;
     grant usage on schema storage to anon, authenticated, service_role; grant all on storage.objects to anon, authenticated, service_role;
     insert into auth.users values ('${member}'), ('${outsider}');`);
-  const migration = await readFile(new URL("../../supabase/migrations/202609030001_cota_backend.sql", import.meta.url), "utf8");
+  const migration = await readFile(new URL("../../supabase/migrations/202609030001_fortius_inmuebles_backend.sql", import.meta.url), "utf8");
   try { await db.exec(migration); } catch (error) {
     const details = error as { position?: number; internalPosition?: number; internalQuery?: string; message?: string };
     throw new Error(`SQL migration failed at ${details.position ?? details.internalPosition}: ${details.message}; ${details.internalQuery ?? ""}`, { cause: error });
   }
-  await db.exec(await readFile(new URL("../../supabase/migrations/202609030002_cota_record_revisions.sql", import.meta.url), "utf8"));
-  await db.exec(await readFile(new URL("../../supabase/migrations/202609060003_mnt_identity.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../../supabase/migrations/202609030002_fortius_inmuebles_record_revisions.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../../supabase/migrations/202609060003_fortius_inmuebles_identity.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../../supabase/migrations/20261005035035_fortius_inmuebles_identity.sql", import.meta.url), "utf8"));
 });
 afterAll(async () => { await db?.close(); });
 
@@ -44,8 +45,8 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
   beforeEach(async () => {
     // Run bootstrap as owner; the tested operations below switch to real DB roles.
     // Only this disposable in-memory DB resets revision metadata between tests.
-    await db.exec("truncate public.mnt_records cascade; truncate public.mnt_record_revisions; truncate public.mnt_rate_limits; delete from public.mnt_staff;");
-    await db.query("insert into public.mnt_staff(user_id,role) values ($1,'admin')", [member]);
+    await db.exec("truncate public.fortius_inmuebles_records cascade; truncate public.fortius_inmuebles_record_revisions; truncate public.fortius_inmuebles_rate_limits; delete from public.fortius_inmuebles_staff;");
+    await db.query("insert into public.fortius_inmuebles_staff(user_id,role) values ($1,'admin')", [member]);
   });
 
   it("persists create/update, rejects stale updates and duplicate creates", async () => {
@@ -54,30 +55,30 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
       expect((await save("asesores", "a1", { ...adviser, nombre: "Ana María" }, 1)).version).toBe(2);
       await expect(save("asesores", "a1", adviser, 1)).rejects.toMatchObject({ code: "PT409" });
       await expect(save("asesores", "a1", adviser)).rejects.toMatchObject({ code: "PT409" });
-      const result = await db.query<{ data: Record<string, unknown> }>("select data from public.mnt_records where id='a1'");
+      const result = await db.query<{ data: Record<string, unknown> }>("select data from public.fortius_inmuebles_records where id='a1'");
       expect(result.rows[0].data.nombre).toBe("Ana María");
     });
   });
 
   it("denies anonymous private reads and mutations even with valid payloads", async () => {
     await asRole("anon", null, async () => {
-      await expect(db.query("select * from public.mnt_records")).rejects.toMatchObject({ code: "42501" });
+      await expect(db.query("select * from public.fortius_inmuebles_records")).rejects.toMatchObject({ code: "42501" });
       await expect(save("asesores", "a1", adviser)).rejects.toMatchObject({ code: "42501" });
-      await expect(db.query("select * from public.mnt_staff")).rejects.toMatchObject({ code: "42501" });
+      await expect(db.query("select * from public.fortius_inmuebles_staff")).rejects.toMatchObject({ code: "42501" });
     });
   });
 
   it("authenticated outsiders cannot read, mutate, or grant themselves membership", async () => {
     await asRole("authenticated", outsider, async () => {
-      expect((await db.query("select * from public.mnt_records")).rows).toEqual([]);
+      expect((await db.query("select * from public.fortius_inmuebles_records")).rows).toEqual([]);
       await expect(save("asesores", "a1", adviser)).rejects.toMatchObject({ code: "PT403" });
-      await expect(db.query("insert into public.mnt_staff(user_id,role) values ($1,'admin')", [outsider])).rejects.toMatchObject({ code: "42501" });
+      await expect(db.query("insert into public.fortius_inmuebles_staff(user_id,role) values ($1,'admin')", [outsider])).rejects.toMatchObject({ code: "42501" });
     });
   });
 
   it("requires versions even for direct staff writes and rejects invalid data", async () => {
     await asRole("authenticated", member, async () => {
-      await expect(db.query("insert into public.mnt_records(collection,id,data) values ('notas','n1','{}')")).rejects.toMatchObject({ code: "42501" });
+      await expect(db.query("insert into public.fortius_inmuebles_records(collection,id,data) values ('notas','n1','{}')")).rejects.toMatchObject({ code: "42501" });
       await expect(save("staff", "x", {})).rejects.toMatchObject({ code: "PT400" });
       await expect(save("asesores", "wrong", adviser)).rejects.toMatchObject({ code: "PT400" });
       await expect(save("propiedades", "broken", { slug: "broken" })).rejects.toMatchObject({ code: "PT400" });
@@ -95,7 +96,7 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
 
   it("repository validates and persists via the actual database, mapping stale writes to 409", async () => {
     const client = { rpc: async (fn: string, args: Record<string, unknown>) => {
-      if (fn !== "mnt_put_record") throw new Error("Unexpected RPC");
+      if (fn !== "fortius_inmuebles_put_record") throw new Error("Unexpected RPC");
       try { return { data: await save(String(args.p_collection), String(args.p_id), args.p_data, args.p_version as number | null), error: null }; }
       catch (error) { return { data: null, error }; }
     } } as unknown as Parameters<typeof putRecord>[0];
@@ -112,11 +113,11 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
     await asRole("authenticated", member, async () => {
       await save("asesores", "a1", adviser);
       await save("propiedades", "casa-1", property);
-      await expect(db.query("select public.mnt_delete_record('asesores','a1',1)")).rejects.toMatchObject({ code: "PT409" });
-      await expect(db.query("select public.mnt_delete_record('propiedades','casa-1',7)")).rejects.toMatchObject({ code: "PT409" });
-      await db.query("select public.mnt_delete_record('propiedades','casa-1',1)");
-      await db.query("select public.mnt_delete_record('asesores','a1',1)");
-      expect((await db.query("select * from public.mnt_records")).rows).toEqual([]);
+      await expect(db.query("select public.fortius_inmuebles_delete_record('asesores','a1',1)")).rejects.toMatchObject({ code: "PT409" });
+      await expect(db.query("select public.fortius_inmuebles_delete_record('propiedades','casa-1',7)")).rejects.toMatchObject({ code: "PT409" });
+      await db.query("select public.fortius_inmuebles_delete_record('propiedades','casa-1',1)");
+      await db.query("select public.fortius_inmuebles_delete_record('asesores','a1',1)");
+      expect((await db.query("select * from public.fortius_inmuebles_records")).rows).toEqual([]);
     });
   });
 
@@ -127,24 +128,24 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
       await save("propiedades", "borrador", { ...property, slug: "borrador", publicada: false });
     });
     await asRole("anon", null, async () => {
-      const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.mnt_public_records('propiedades')")).rows;
+      const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.fortius_inmuebles_public_records('propiedades')")).rows;
       expect(rows).toHaveLength(1);
       expect(rows[0].data.slug).toBe("casa-1");
       expect(JSON.stringify(rows)).not.toContain("NO PUBLICAR");
       expect(rows[0].data.demo).toBe(false);
-      expect((await db.query("select * from public.mnt_public_records('leads')")).rows).toEqual([]);
-      const agents = (await db.query<{ data: Record<string, unknown> }>("select * from public.mnt_public_records('asesores')")).rows;
+      expect((await db.query("select * from public.fortius_inmuebles_public_records('leads')")).rows).toEqual([]);
+      const agents = (await db.query<{ data: Record<string, unknown> }>("select * from public.fortius_inmuebles_public_records('asesores')")).rows;
       expect(agents[0].data.email).toBeUndefined();
     });
   });
 
   it.each(["videoInstitucionalUrl", "facebook", "instagram", "whatsapp"])("anonymous configuration projection blanks private capabilities in %s but retains other settings", async (field) => {
-    const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/mnt-public/video.mp4" };
+    const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-public/video.mp4" };
     let version: number | null = null;
     for (const unsafe of [
-      "https://assets.example.com/storage/v1/object/sign/mnt-private/video.mp4?token=PRIVATE_CAPABILITY",
-      "/api/admin/files?bucket=mnt-private&path=video.mp4",
-      "https://assets.example.com/storage/v1/object/authenticated/mnt-private/video.mp4",
+      "https://assets.example.com/storage/v1/object/sign/fortius-inmuebles-private/video.mp4?token=PRIVATE_CAPABILITY",
+      "/api/admin/files?bucket=fortius-inmuebles-private&path=video.mp4",
+      "https://assets.example.com/storage/v1/object/authenticated/fortius-inmuebles-private/video.mp4",
       "javascript:alert(1)",
     ]) {
       await asRole("authenticated", member, async () => {
@@ -153,7 +154,7 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
         expect(saved.data[field]).toBe(unsafe);
       });
       await asRole("anon", null, async () => {
-        const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.mnt_public_records('config')")).rows;
+        const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.fortius_inmuebles_public_records('config')")).rows;
         expect(rows).toEqual([{ data: { ...settings, [field]: "" } }]);
       });
     }
@@ -163,28 +164,28 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
     const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "https://wa.me/526640000000", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "/media/institucional.mp4" };
     await asRole("authenticated", member, async () => { await save("config", "singleton", settings); });
     await asRole("anon", null, async () => {
-      expect((await db.query("select * from public.mnt_public_records('config')")).rows).toEqual([{ data: settings }]);
+      expect((await db.query("select * from public.fortius_inmuebles_public_records('config')")).rows).toEqual([{ data: settings }]);
     });
     const emptyLinks = { ...settings, facebook: "", instagram: "", videoInstitucionalUrl: "", whatsapp: "" };
     await asRole("authenticated", member, async () => { await save("config", "singleton", emptyLinks, 1); });
     await asRole("anon", null, async () => {
-      expect((await db.query("select * from public.mnt_public_records('config')")).rows).toEqual([{ data: emptyLinks }]);
+      expect((await db.query("select * from public.fortius_inmuebles_public_records('config')")).rows).toEqual([{ data: emptyLinks }]);
     });
   });
 
   it("captures leads only through privileged BFF and limits repeated submissions atomically", async () => {
     const lead = { nombre: "Persona", telefono: "6641234567", origen: "contacto" };
     await asRole("anon", null, async () => {
-      await expect(db.query("select public.mnt_capture_lead($1::jsonb,$2)", [JSON.stringify(lead), "ip-test"])).rejects.toMatchObject({ code: "42501" });
+      await expect(db.query("select public.fortius_inmuebles_capture_lead($1::jsonb,$2)", [JSON.stringify(lead), "ip-test"])).rejects.toMatchObject({ code: "42501" });
     });
     await asRole("service_role", null, async () => {
       for (let i = 0; i < 5; i++) {
-        const result = await db.query<{ id: string }>("select public.mnt_capture_lead($1::jsonb,$2) as id", [JSON.stringify(lead), "ip-test"]);
+        const result = await db.query<{ id: string }>("select public.fortius_inmuebles_capture_lead($1::jsonb,$2) as id", [JSON.stringify(lead), "ip-test"]);
         expect(result.rows[0].id).toMatch(/^[0-9a-f-]{36}$/);
       }
-      await expect(db.query("select public.mnt_capture_lead($1::jsonb,$2)", [JSON.stringify(lead), "ip-test"])).rejects.toMatchObject({ code: "PT429" });
+      await expect(db.query("select public.fortius_inmuebles_capture_lead($1::jsonb,$2)", [JSON.stringify(lead), "ip-test"])).rejects.toMatchObject({ code: "PT429" });
     });
-    expect((await db.query("select * from public.mnt_records where collection='leads'")).rows).toHaveLength(5);
+    expect((await db.query("select * from public.fortius_inmuebles_records where collection='leads'")).rows).toHaveLength(5);
   });
 
   it("post projection still exposes only explicitly public posts without authentication", async () => {
@@ -194,7 +195,7 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
       await save("posts", "p2", { ...post, id: "p2", slug: "guia-borrador", estado: "borrador" });
     });
     await asRole("anon", null, async () => {
-      const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.mnt_public_records('posts')")).rows;
+      const rows = (await db.query<{ data: Record<string, unknown> }>("select * from public.fortius_inmuebles_public_records('posts')")).rows;
       expect(rows).toHaveLength(1);
       expect(rows[0].data).toMatchObject({ id: "p1", estado: "publicado", contenido: "Texto" });
       expect(JSON.stringify(rows)).not.toContain("NO PUBLICAR");
@@ -202,18 +203,18 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
   });
 
   it("storage private objects remain inaccessible to anonymous and nonmember users", async () => {
-    await db.query("insert into storage.objects(bucket_id,name) values ('mnt-private','private.pdf')");
+    await db.query("insert into storage.objects(bucket_id,name) values ('fortius-inmuebles-private','private.pdf')");
     await asRole("anon", null, async () => { expect((await db.query("select * from storage.objects")).rows).toEqual([]); });
     await asRole("authenticated", outsider, async () => { expect((await db.query("select * from storage.objects")).rows).toEqual([]); });
     await asRole("authenticated", member, async () => { expect((await db.query("select * from storage.objects")).rows).toHaveLength(1); });
   });
 
   it("staff cannot bypass content validation by directly inserting final or staging objects", async () => {
-    await db.query("insert into storage.objects(bucket_id,name) values ('mnt-staging','pending.pdf')");
+    await db.query("insert into storage.objects(bucket_id,name) values ('fortius-inmuebles-staging','pending.pdf')");
     await asRole("authenticated", member, async () => {
-      expect((await db.query("select * from storage.objects where bucket_id='mnt-staging'")).rows).toEqual([]);
-      await expect(db.query("insert into storage.objects(bucket_id,name) values ('mnt-public','unvalidated.pdf')")).rejects.toMatchObject({ code: "42501" });
-      await expect(db.query("insert into storage.objects(bucket_id,name) values ('mnt-staging','unvalidated.pdf')")).rejects.toMatchObject({ code: "42501" });
+      expect((await db.query("select * from storage.objects where bucket_id='fortius-inmuebles-staging'")).rows).toEqual([]);
+      await expect(db.query("insert into storage.objects(bucket_id,name) values ('fortius-inmuebles-public','unvalidated.pdf')")).rejects.toMatchObject({ code: "42501" });
+      await expect(db.query("insert into storage.objects(bucket_id,name) values ('fortius-inmuebles-staging','unvalidated.pdf')")).rejects.toMatchObject({ code: "42501" });
     });
   });
 });

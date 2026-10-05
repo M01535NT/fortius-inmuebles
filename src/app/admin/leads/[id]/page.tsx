@@ -366,7 +366,7 @@ function LeadDetail({ id }: { id: string }) {
               {lead.email ? <div><dt className="text-muted-foreground">Correo electrónico</dt><dd className="mt-1 break-all">{lead.email}</dd></div> : null}
               {lead.zona ? (
                 <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Zona</dt>
+                  <dt className="text-muted-foreground">{lead.perfil?.operacion === "vender" || lead.perfil?.operacion === "arrendar" ? "Ubicación" : "Zona de interés"}</dt>
                   <dd className="text-foreground">{lead.zona}</dd>
                 </div>
               ) : null}

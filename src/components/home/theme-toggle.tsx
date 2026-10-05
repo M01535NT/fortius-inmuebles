@@ -31,7 +31,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     const next = !dark;
     document.documentElement.classList.toggle("dark", next);
     try {
-      localStorage.setItem("mnt-theme", next ? "dark" : "light");
+      localStorage.setItem("fortius-inmuebles-theme", next ? "dark" : "light");
     } catch {
       /* storage unavailable */
     }

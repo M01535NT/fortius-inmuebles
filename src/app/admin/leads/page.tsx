@@ -53,7 +53,7 @@ export default function AdminLeadsPage() {
     .filter((l) => {
       const q = busqueda.trim().toLowerCase();
       if (!q) return true;
-      return `${l.nombre} ${l.telefono} ${l.email ?? ""} ${l.mensaje ?? ""} ${l.zona ?? ""} ${l.tipoPropiedad ?? ""} ${l.perfil?.requisitos ?? ""}`
+      return `${l.nombre} ${l.telefono} ${l.email ?? ""} ${l.mensaje ?? ""} ${l.zona ?? ""} ${l.tipoPropiedad ?? ""} ${l.perfil?.requisitos ?? ""} ${l.perfil?.caracteristicas ?? ""}`
         .toLowerCase()
         .includes(q);
     })

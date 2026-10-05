@@ -5,7 +5,7 @@ import { publicContact } from "@/lib/public-contact";
 import { MessagingActions, MessagingContact } from "@/components/contact/messaging-actions";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 
-const settings = { nombreComercial: "MNT Inmuebles", telefono: "", whatsapp: "+52 664 123 4567", email: "", horario: "", facebook: "https://www.facebook.com/mnt.fixture", instagram: "", videoInstitucionalUrl: "" };
+const settings = { nombreComercial: "Fortius Inmuebles", telefono: "", whatsapp: "+52 664 123 4567", email: "", horario: "", facebook: "https://www.facebook.com/mnt.fixture", instagram: "", videoInstitucionalUrl: "" };
 
 test("direct messaging preserves property context and canonicalizes supported destinations", () => {
   const message = "Hola, residencia & jardín: https://example.com/inventario/casa";

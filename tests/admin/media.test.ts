@@ -31,9 +31,9 @@ test("20 MB uploads use preparation, direct bytes without credentials, then fina
     if (url === "https://storage.example/staging")
       return new Response("", { status: 200 });
     return Response.json({
-      bucket: "mnt-private",
+      bucket: "fortius-inmuebles-private",
       path: "x.mp4",
-      url: "/api/admin/files?bucket=mnt-private&path=x.mp4",
+      url: "/api/admin/files?bucket=fortius-inmuebles-private&path=x.mp4",
       name: "video.mp4",
       type: "video/mp4",
     });
@@ -57,27 +57,27 @@ test("20 MB uploads use preparation, direct bytes without credentials, then fina
   });
   expect(JSON.parse(String(calls[2].init?.body))).toEqual({ ticket: "ticket" });
   expect(result).toMatchObject({
-    bucket: "mnt-private",
+    bucket: "fortius-inmuebles-private",
     path: "x.mp4",
-    url: "/api/admin/files?bucket=mnt-private&path=x.mp4",
+    url: "/api/admin/files?bucket=fortius-inmuebles-private&path=x.mp4",
   });
   expect(archivoTipo(result.type)).toBe("video");
 });
 test("uploaded files keep storage identity and selected visibility in the library record", () => {
   expect(
     archivoFromUpload("record-1", {
-      bucket: "mnt-public",
+      bucket: "fortius-inmuebles-public",
       path: "staff/file.pdf",
-      url: "https://storage.example/mnt-public/staff/file.pdf",
+      url: "https://storage.example/fortius-inmuebles-public/staff/file.pdf",
       name: "ficha.pdf",
       type: "application/pdf",
     }),
   ).toEqual({
     id: "record-1",
     nombre: "ficha.pdf",
-    url: "https://storage.example/mnt-public/staff/file.pdf",
+    url: "https://storage.example/fortius-inmuebles-public/staff/file.pdf",
     tipo: "pdf",
-    bucket: "mnt-public",
+    bucket: "fortius-inmuebles-public",
     path: "staff/file.pdf",
     visibility: "public",
   });
@@ -110,7 +110,7 @@ test("private resolver signs at open, does not persist signed capabilities", asy
       ),
   );
   expect(
-    await resolveFileUrl("/api/admin/files?bucket=mnt-private&path=x.pdf"),
+    await resolveFileUrl("/api/admin/files?bucket=fortius-inmuebles-private&path=x.pdf"),
   ).toBe("https://storage.example/sign?token=short-lived");
   expect(db.archivos.list()).toEqual([]);
   await expect(resolveFileUrl("javascript:alert(1)")).rejects.toThrow();

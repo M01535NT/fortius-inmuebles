@@ -4,9 +4,9 @@ import { readFile, readdir } from "node:fs/promises";
 let db: PGlite;
 let functions: unknown;
 const member = "30000000-0000-4000-8000-000000000001";
-const snapshot = "select oid,proname,proacl::text,prosecdef,proconfig from pg_proc where pronamespace='public'::regnamespace and proname in ('mnt_validate_record','mnt_put_record','mnt_delete_record','mnt_public_records') order by oid";
+const snapshot = "select oid,proname,proacl::text,prosecdef,proconfig from pg_proc where pronamespace='public'::regnamespace and proname in ('fortius_inmuebles_validate_record','fortius_inmuebles_put_record','fortius_inmuebles_delete_record','fortius_inmuebles_public_records') order by oid";
 const base = { id:"t1",titulo:"Seguimiento",categoria:"leads",estado:"pendiente",prioridad:"normal",descripcion:"",pasos:[] };
-async function put(data:Record<string,unknown>, version:number|null=null,collection="tareas") { return (await db.query<{r:{data:Record<string,unknown>;version:number}}>("select public.mnt_put_record($1,$2,$3::jsonb,$4) r",[collection,data.id,JSON.stringify(data),version])).rows[0].r; }
+async function put(data:Record<string,unknown>, version:number|null=null,collection="tareas") { return (await db.query<{r:{data:Record<string,unknown>;version:number}}>("select public.fortius_inmuebles_put_record($1,$2,$3::jsonb,$4) r",[collection,data.id,JSON.stringify(data),version])).rows[0].r; }
 beforeAll(async()=>{
   db = new PGlite();
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
@@ -18,10 +18,11 @@ beforeAll(async()=>{
     grant usage on schema storage to anon,authenticated,service_role; grant all on storage.objects to anon,authenticated,service_role;
     insert into auth.users values ('${member}');`);
   const dir = new URL("../../supabase/migrations/",import.meta.url);
-  for(const file of (await readdir(dir)).filter(f=>f.endsWith('.sql')&&!f.includes('mnt_tasks')).sort()) await db.exec(await readFile(new URL(file,dir),'utf8'));
-  functions=(await db.query(snapshot)).rows;
-  await db.exec(await readFile(new URL('202609230006_mnt_tasks.sql',dir),'utf8'));
-  await db.query("insert into public.mnt_staff(user_id,role) values ($1,'editor')",[member]);
+  for(const file of (await readdir(dir)).filter(f=>f.endsWith('.sql')&&!f.includes('fortius_inmuebles_tasks')&&f<'20261005035035').sort()) await db.exec(await readFile(new URL(file,dir),'utf8'));
+  functions=(await db.query<{proname:string}>(snapshot.replaceAll('fortius_inmuebles_','mnt_'))).rows.map(row=>({...row,proname:row.proname.replace('mnt_','fortius_inmuebles_')}));
+  await db.exec(await readFile(new URL('202609230006_fortius_inmuebles_tasks.sql',dir),'utf8'));
+  await db.exec(await readFile(new URL('20261005035035_fortius_inmuebles_identity.sql',dir),'utf8'));
+  await db.query("insert into public.fortius_inmuebles_staff(user_id,role) values ($1,'editor')",[member]);
   await db.exec('set role authenticated');
   await db.query("select set_config('request.jwt.claim.sub',$1,false)",[member]);
 });
@@ -44,31 +45,31 @@ test('direct RPC rejects malformed tasks and missing references',async()=>{
 test('task reference deletion protection and legacy events stay operational',async()=>{
   await put({id:'a1',nombre:'Asesor',cargo:'',iniciales:'A',activo:true},null,'asesores');
   await put({...base,id:'linked',asesorId:'a1'});
-  await expect(db.query("select public.mnt_delete_record('asesores','a1',1)")).rejects.toMatchObject({code:'PT409'});
+  await expect(db.query("select public.fortius_inmuebles_delete_record('asesores','a1',1)")).rejects.toMatchObject({code:'PT409'});
   await put({id:'e1',titulo:'Visita',fecha:'2026-09-23',tipo:'visita'},null,'eventos');
-  await db.query("select public.mnt_delete_record('tareas','linked',1)");
+  await db.query("select public.fortius_inmuebles_delete_record('tareas','linked',1)");
   const recreated=await put({...base,id:'linked'}); expect(recreated.version).toBe(2);
 });
 test('all task reference kinds retain foreign key guards',async()=>{
   await db.exec('reset role');
   await db.query("select set_config('request.jwt.claim.sub','',false)");
-  for(const [collection,id] of [['leads','lead-ref'],['clientes','client-ref'],['propiedades','property-ref']]) await db.query('insert into public.mnt_records(collection,id,data) values($1,$2,$3::jsonb)',[collection,id,JSON.stringify({id})]);
+  for(const [collection,id] of [['leads','lead-ref'],['clientes','client-ref'],['propiedades','property-ref']]) await db.query('insert into public.fortius_inmuebles_records(collection,id,data) values($1,$2,$3::jsonb)',[collection,id,JSON.stringify({id})]);
   // The new client privacy policy reserves unassigned records for admins.
-  await db.query("update public.mnt_staff set role='admin' where user_id=$1",[member]);
+  await db.query("update public.fortius_inmuebles_staff set role='admin' where user_id=$1",[member]);
   await db.exec('set role authenticated');
   await db.query("select set_config('request.jwt.claim.sub',$1,false)",[member]);
   await put({...base,id:'all-refs',leadId:'lead-ref',clienteId:'client-ref',propiedadSlug:'property-ref'});
-  for(const [collection,id] of [['leads','lead-ref'],['clientes','client-ref'],['propiedades','property-ref']]) await expect(db.query('select public.mnt_delete_record($1,$2,1)',[collection,id])).rejects.toMatchObject({code:'PT409'});
-  await expect(db.query("select public.mnt_delete_record('tareas','all-refs',2)")).rejects.toMatchObject({code:'PT409'});
+  for(const [collection,id] of [['leads','lead-ref'],['clientes','client-ref'],['propiedades','property-ref']]) await expect(db.query('select public.fortius_inmuebles_delete_record($1,$2,1)',[collection,id])).rejects.toMatchObject({code:'PT409'});
+  await expect(db.query("select public.fortius_inmuebles_delete_record('tareas','all-refs',2)")).rejects.toMatchObject({code:'PT409'});
   await db.exec('reset role');
-  await db.query("update public.mnt_staff set role='editor' where user_id=$1",[member]);
+  await db.query("update public.fortius_inmuebles_staff set role='editor' where user_id=$1",[member]);
   await db.exec('set role authenticated');
 });
 test('private tasks never project publicly and unauthorized users cannot write',async()=>{
   await db.exec('reset role; set role anon');
-  expect((await db.query("select * from public.mnt_public_records('tareas')")).rows).toEqual([]);
+  expect((await db.query("select * from public.fortius_inmuebles_public_records('tareas')")).rows).toEqual([]);
   await expect(put({...base,id:'denied'})).rejects.toMatchObject({code:'42501'});
-  await expect(db.query('select * from public.mnt_records')).rejects.toMatchObject({code:'42501'});
+  await expect(db.query('select * from public.fortius_inmuebles_records')).rejects.toMatchObject({code:'42501'});
   await db.exec('reset role; set role authenticated');
   await db.query("select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000002',false)");
   await expect(put({...base,id:'denied'})).rejects.toMatchObject({code:'PT403'});

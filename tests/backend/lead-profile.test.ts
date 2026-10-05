@@ -27,6 +27,11 @@ describe("private lead qualification profile", () => {
     expect(save(perfil)).toEqual({ ...oldLead, perfil });
   });
 
+  it("accepts an owner's property details and asking amount", () => {
+    const perfil = { operacion: "arrendar", superficieTerreno: 250, superficieConstruccion: 180, recamarasInmueble: 3, estacionamientosInmueble: 2, caracteristicas: "Disponible en noviembre", precioObjetivo: 35000, moneda: "MXN" };
+    expect(save(perfil).perfil).toEqual(perfil);
+  });
+
   it.each([
     { presupuestoMin: -1, moneda: "MXN" }, { presupuestoMax: 1e13 + 1, moneda: "USD" },
     { presupuestoMin: Infinity, moneda: "MXN" }, { presupuestoMax: NaN, moneda: "USD" },
@@ -36,6 +41,10 @@ describe("private lead qualification profile", () => {
     { superficieMin: 200, superficieMax: 100 },
     { recamaras: -1 }, { recamaras: 1.5 }, { recamaras: 1001 },
     { estacionamientos: -1 }, { estacionamientos: 1.5 }, { estacionamientos: 1001 },
+    { precioObjetivo: 35000 }, { precioObjetivo: -1, moneda: "MXN" },
+    { superficieTerreno: -1 }, { superficieConstruccion: 1e9 + 1 },
+    { recamarasInmueble: 1.5 }, { estacionamientosInmueble: 1001 },
+    { caracteristicas: "x".repeat(20001) },
     { operacion: "venta" }, { uso: "casa" }, { formaPago: "efectivo" },
     { tipoCredito: "desconocido" }, { estadoCredito: "pendiente" }, { origenIngresos: "usa" },
     { proximoContacto: "2026-02-29" }, { proximoContacto: "2026-04-31" },

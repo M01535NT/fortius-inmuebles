@@ -49,7 +49,7 @@ const anonymous = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env
 async function inventory() {
   const rows = [];
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await client.from('mnt_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
+    const { data, error } = await client.from('fortius_inmuebles_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
     assert(!error, `Inventory failed (${error?.code})`);
     rows.push(...data);
     if (data.length < 500) return rows;
@@ -69,7 +69,7 @@ for (const href of links.filter(href => href.startsWith('/blog/'))) {
 const timestamp = new Date().toISOString();
 const rows = pending.map(post => ({ collection: 'posts', id: post.id, data: { ...post, estado: 'publicado', actualizadoEl: timestamp } }));
 for (const row of rows) {
-  const { error } = await client.rpc('mnt_validate_record', { c: 'posts', record_id: row.id, d: row.data });
+  const { error } = await client.rpc('fortius_inmuebles_validate_record', { c: 'posts', record_id: row.id, d: row.data });
   assert(!error, `Validation failed: ${row.id} (${error?.code})`);
 }
 console.log(JSON.stringify({ remoteValidation: 'passed', existing: before.length, additions: rows.length, publish }));
@@ -80,7 +80,7 @@ await writeFile(new URL('before.json', evidence), JSON.stringify(before, null, 2
 await writeFile(new URL('manifest.json', evidence), JSON.stringify(manifest, null, 2));
 if (rows.length) {
   // One atomic addition: existing articles and their featured flags remain untouched.
-  const { error } = await client.from('mnt_records').insert(rows);
+  const { error } = await client.from('fortius_inmuebles_records').insert(rows);
   assert(!error, `Insert failed (${error?.code}); inspect remote state before retrying`);
 }
 const after = await inventory();
@@ -91,7 +91,7 @@ for (const post of posts) {
   const row = after.find(row => row.id === post.id);
   assert(matches(row, post) && Number.isFinite(Date.parse(row.data.publicadoEl)), `Stored publication mismatch: ${post.id}`);
 }
-const { data: publicRows, error } = await anonymous.rpc('mnt_public_records', { p_collection: 'posts' });
+const { data: publicRows, error } = await anonymous.rpc('fortius_inmuebles_public_records', { p_collection: 'posts' });
 assert(!error, `Public read failed (${error?.code})`);
 for (const post of posts) {
   const row = publicRows.find(row => row.data.id === post.id);

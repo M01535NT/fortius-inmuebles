@@ -43,6 +43,68 @@ test("invalid budget prevents a write and preserves the draft", async () => {
   expect((screen.getByLabelText("Nombre") as HTMLInputElement).value).toBe("Persona de prueba");
 });
 
+test("operation changes the capture fields and saves an owner's asking price", async () => {
+  openCapture();
+  change("Operación", "vender");
+  expect(screen.queryByLabelText("Presupuesto máximo")).toBeNull();
+  expect(screen.queryByLabelText("Forma de pago")).toBeNull();
+  expect(screen.getByLabelText("Precio de venta esperado")).toBeTruthy();
+  change("Tipo de inmueble", "casa");
+  change("Ubicación del inmueble", "Hipódromo");
+  change("Superficie construida (m²)", "180");
+  change("Precio de venta esperado", "3500000");
+  change("Moneda", "MXN");
+  fireEvent.click(screen.getByRole("button", { name: "Capturar lead" }));
+  await waitFor(() => expect(writes).toHaveLength(1));
+  expect(writes[0]).toMatchObject({ data: { zona: "Hipódromo", perfil: { operacion: "vender", superficieConstruccion: 180, precioObjetivo: 3500000, moneda: "MXN" } } });
+});
+
+test("renting asks for monthly budget without purchase credit fields", () => {
+  openCapture();
+  change("Operación", "rentar");
+  expect(screen.getByLabelText("Renta mensual máxima")).toBeTruthy();
+  expect(screen.getByLabelText("Origen de ingresos")).toBeTruthy();
+  expect(screen.queryByLabelText("Tipo de crédito")).toBeNull();
+  change("Operación", "arrendar");
+  expect(screen.getByLabelText("Renta mensual esperada")).toBeTruthy();
+  expect(screen.queryByLabelText("Origen de ingresos")).toBeNull();
+});
+
+test("switching from purchase to sale removes incompatible answers on save", async () => {
+  openCapture();
+  change("Operación", "comprar");
+  change("Presupuesto máximo", "2000000");
+  change("Moneda", "MXN");
+  change("Forma de pago", "credito");
+  change("Tipo de crédito", "bancario");
+  change("Operación", "vender");
+  change("Precio de venta esperado", "2500000");
+  change("Moneda", "MXN");
+  fireEvent.click(screen.getByRole("button", { name: "Capturar lead" }));
+  await waitFor(() => expect(writes).toHaveLength(1));
+  expect(writes[0]).toMatchObject({ data: { perfil: { operacion: "vender", precioObjetivo: 2500000 } } });
+  expect((writes[0].data as Lead).perfil).not.toHaveProperty("presupuestoMax");
+  expect((writes[0].data as Lead).perfil).not.toHaveProperty("tipoCredito");
+});
+
+test("editing contact details preserves hidden legacy qualification when intent is unchanged", async () => {
+  const existing: Lead = { id: "legacy", nombre: "Anterior", telefono: "6641234567", origen: "manual", estado: "nuevo", creadoEl: "2026-09-22", notas: [], perfil: { operacion: "vender", presupuestoMax: 2500000, moneda: "MXN" } };
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+    if (init?.method === "PUT") {
+      const body = JSON.parse(String(init.body)); writes.push(body);
+      return Response.json({ record: { id: body.data.id, data: body.data, version: 2, createdAt: "2026-09-22", updatedAt: "2026-09-23" } });
+    }
+    return Response.json({ records: url.endsWith("/leads") ? [{ id: existing.id, data: existing, version: 1, createdAt: "2026-09-22", updatedAt: "2026-09-22" }] : [] });
+  }));
+  await db.leads.load();
+  render(<LeadProfileEditor lead={db.leads.list()[0]} />);
+  fireEvent.click(screen.getByRole("button", { name: "Editar ficha" }));
+  change("Nombre", "Actualizado");
+  fireEvent.click(screen.getByRole("button", { name: "Guardar ficha" }));
+  await waitFor(() => expect(writes).toHaveLength(1));
+  expect(writes[0]).toMatchObject({ data: { nombre: "Actualizado", perfil: { presupuestoMax: 2500000 } } });
+});
+
 test("editing keeps unknown fields, original history and version; failed save retains edits", async () => {
   const existing: Lead = { id: "lead-existing", nombre: "Original", telefono: "6641234567", email: "old@example.invalid", origen: "contacto", estado: "contactado", creadoEl: "2026-09-22", notas: [{ id: "n1", texto: "No perder", fecha: "2026-09-22" }], perfil: { origenIngresos: "estados-unidos", futureField: "keep" } };
   let reject = true;
