@@ -5,7 +5,7 @@ import { validarOferta } from "./oferta";
 import { validarPlan } from "./plan";
 import { validarReporte } from "./reporte";
 import { entrevistaFields, validarEntrevista } from "./entrevista";
-import { validarAviso } from "./aviso";
+import { camposRepresentante, mostrarCampoAviso, validarAviso } from "./aviso";
 import { validarJuridica } from "./juridica";
 import { levantamientoFields, isLevantamiento, validarLevantamiento } from "./levantamiento";
 import { valorFields, mostrarCampoValor } from "./valor-fields";
@@ -62,6 +62,7 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     { ...choice("tipoTitular", "Calidad del titular", [{ value: "propietario", label: "Propietario" }, { value: "comprador", label: "Comprador" }, { value: "arrendatario", label: "Arrendatario" }, { value: "representante", label: "Representante" }, { value: "otro", label: "Otra" }]), section: "Titular y operación" },
     sectionField("Titular y operación", "operacion", "Operación o servicio"),
     { ...sectionField("Titular y operación", "representante", "Nombre del representante"), required: false },
+    { ...sectionField("Titular y operación", "calidadRepresentante", "Carácter del representante (por ejemplo, apoderada)"), required: false },
     { ...sectionField("Titular y operación", "documentoRepresentante", "Documento de representación"), required: false },
     { ...choice("consentimientoPatrimonial", "Datos patrimoniales y financieros", [{ value: "si", label: "Consiente expresamente" }, { value: "no", label: "No consiente" }, { value: "no_aplica", label: "No aplica en esta etapa" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
     { ...choice("consentimientoPublicidad", "Publicidad y oportunidades adicionales", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
@@ -478,6 +479,9 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   ], true),
 ];
 
+const avisoDefinition = FORMATOS.find(item => item.id === "01")!;
+avisoDefinition.fields.push(...camposRepresentante(avisoDefinition.fields));
+
 export function formatoById(id: string): FormatoDefinition {
   const formato = FORMATOS.find((item) => item.id === id);
   if (!formato) throw new Error("Formato desconocido");
@@ -486,6 +490,7 @@ export function formatoById(id: string): FormatoDefinition {
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   const errors = formatoById(id).fields.filter((item) => {
+    if (id === "01" && !mostrarCampoAviso(item.key, data)) return false;
     if (id === "07" && !mostrarCampoValor(item.key, data)) return false;
     if (id === "15" && !mostrarCampoPromesa(item.key, data)) return false;
     if (id === "09" && !mostrarCampoIntermediacion(item.key, data)) return false;

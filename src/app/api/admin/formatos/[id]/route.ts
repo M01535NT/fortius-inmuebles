@@ -11,7 +11,7 @@ export async function GET(_request: Request, context: Context) {
     const { data, error } = await client.from("fortius_inmuebles_formato_drafts").select("id,expediente_id,formato_id,data,version,created_at,updated_at").eq("id", id).maybeSingle();
     if (error) databaseError(error);
     if (!data) throw new ApiError(404, "Documento no encontrado");
-    const emissions = await client.from("fortius_inmuebles_formato_emissions").select("id,draft_id,draft_version,sha256,created_by,created_at").eq("draft_id", id).order("created_at", { ascending: false });
+    const emissions = await client.from("fortius_inmuebles_formato_emissions").select("id,draft_id,draft_version,sha256,created_by,created_at,snapshot->>plantillaVersion").eq("draft_id", id).order("created_at", { ascending: false });
     if (emissions.error) databaseError(emissions.error);
     return { documento: data, emisiones: emissions.data ?? [] };
   });

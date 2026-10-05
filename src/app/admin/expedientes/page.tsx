@@ -7,10 +7,11 @@ import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
+import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 
 type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
-type Emision = { id: string; draft_version: number; created_at: string; sha256: string };
+type Emision = { id: string; draft_version: number; created_at: string; sha256: string; plantillaVersion?: string };
 type Copia = { id: string; emission_id: string; created_at: string; sha256: string };
 type Adjunto = { id: string; draft_id: string; kind: "foto" | "croquis" | "soporte"; caption: string; source: string; observed_on: string | null; mime: string; sha256: string; created_at: string };
 
@@ -164,7 +165,7 @@ export default function ExpedientesPage() {
         setDocumento(saved); setValues(saved.data);
         setDocumentos(items => items.map(item => item.id === saved.id ? saved : item));
       }
-      let emission = emisiones.find(item => item.draft_version === saved.version);
+      let emission = emisiones.find(item => item.draft_version === saved.version && item.plantillaVersion === AVISO_TEMPLATE_VERSION);
       if (!emission) {
         const result = await json<{ emision: Emision }>(`/api/admin/formatos/${saved.id}/emitir`, {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: saved.version }),
@@ -198,6 +199,7 @@ export default function ExpedientesPage() {
   }
   const selected = expedientes.find((item) => item.id === selectedId);
   const definition = documento ? formatoById(documento.formato_id) : null;
+  const currentAvisoEmission = emisiones.find(item => item.draft_version === documento?.version && item.plantillaVersion === AVISO_TEMPLATE_VERSION);
   const missing = definition ? validateFormato(definition.id, { ...values, folio: selected?.folio }) : [];
   const budgetTotals = definition?.id === "19" && missing.length === 0 ? calcularPresupuesto(values) : null;
   const netTotals = definition?.id === "08" && missing.length === 0 ? calcularNeto({ ...values, folio: selected?.folio }) : null;
@@ -260,7 +262,7 @@ export default function ExpedientesPage() {
             <button type="button" onClick={saveAndDownloadAviso} disabled={busy || missing.length > 0} className={btnPrimary}>{pdfBusy ? "Preparando PDF…" : "Guardar y descargar PDF"}</button>
             <button type="button" onClick={saveDocumento} disabled={busy} className={btnGhost}>Guardar borrador</button>
           </> : <><button type="button" onClick={saveDocumento} disabled={busy} className={btnPrimary}>Guardar borrador</button><button type="button" onClick={emitDocumento} disabled={busy || hasUnsavedChanges || missing.length > 0 || !definition.readyForEmission} className={btnGhost}>Emitir PDF de los datos guardados</button></>}</div>
-          {definition.id === "01" && !hasUnsavedChanges && emisiones.some(item => item.draft_version === documento.version) && <p role="status" className="mt-3 text-sm"><a className="text-primary underline" href={`/api/admin/emisiones/${emisiones.find(item => item.draft_version === documento.version)!.id}/descargar`}>Descargar PDF del aviso</a> · Versión {documento.version}</p>}
+          {definition.id === "01" && !hasUnsavedChanges && currentAvisoEmission && <p role="status" className="mt-3 text-sm"><a className="text-primary underline" href={`/api/admin/emisiones/${currentAvisoEmission.id}/descargar`}>Descargar PDF del aviso</a> · Versión {documento.version}</p>}
           {emisiones.length > 0 && <div className="mt-6 border-t border-border pt-4"><h3 className="font-semibold">Emisiones archivadas</h3><ul className="mt-2 space-y-5">{emisiones.map((item) => <li key={item.id} className="rounded-md border border-border p-3"><a className="text-primary underline" href={`/api/admin/emisiones/${item.id}/descargar`}>PDF emitido · versión {item.draft_version} · {new Date(item.created_at).toLocaleString("es-MX")}</a><form onSubmit={(event) => uploadSignedCopy(item.id, event)} className="mt-3 flex flex-wrap items-end gap-2"><label className="text-sm">Adjuntar copia firmada externamente<input name="archivo" type="file" accept="application/pdf,.pdf" required className={inputClass} /></label><button type="submit" disabled={busy} className={btnGhost}>Archivar copia</button></form>{(copias[item.id] ?? []).map((copy) => <a key={copy.id} className="mt-2 block text-sm text-primary underline" href={`/api/admin/copias-firmadas/${copy.id}/descargar`}>Copia firmada adjunta · {new Date(copy.created_at).toLocaleString("es-MX")}</a>)}</li>)}</ul></div>}
           </fieldset>
         </section>}

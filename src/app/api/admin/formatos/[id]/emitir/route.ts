@@ -7,6 +7,7 @@ import { prepareFormatoEmission } from "@/lib/formatos/pdf";
 import { MAX_ASSET_BYTES, type FormatoPdfAsset } from "@/lib/formatos/assets";
 import { isLevantamiento } from "@/lib/formatos/levantamiento";
 import { valorAssetIds } from "@/lib/formatos/valor";
+import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
@@ -54,13 +55,13 @@ export async function POST(request: Request, context: Context) {
     if (upload.error) databaseError(upload.error);
     const saved = await privileged.from("fortius_inmuebles_formato_emissions").insert({
       id: emissionId, draft_id: id, draft_version: draft.version,
-      snapshot: { ...values, formatoId: draft.formato_id, source: definition.source, ...(assets.length ? { imagenes: assets.map((image) => ({ id: image.id, kind: image.kind, caption: image.caption, source: image.source, observed_on: image.observed_on, mime: image.mime, sha256: image.sha256 })) } : {}) },
+      snapshot: { ...values, formatoId: draft.formato_id, source: definition.source, ...(draft.formato_id === "01" ? { plantillaVersion: AVISO_TEMPLATE_VERSION } : {}), ...(assets.length ? { imagenes: assets.map((image) => ({ id: image.id, kind: image.kind, caption: image.caption, source: image.source, observed_on: image.observed_on, mime: image.mime, sha256: image.sha256 })) } : {}) },
       sha256: emission.sha256, path, created_by: user.id,
     }).select("id,draft_id,draft_version,sha256,created_by,created_at").single();
     if (saved.error) {
       await privileged.storage.from("fortius-inmuebles-expedientes").remove([path]);
       databaseError(saved.error);
     }
-    return { emision: saved.data };
+    return { emision: { ...saved.data, ...(draft.formato_id === "01" ? { plantillaVersion: AVISO_TEMPLATE_VERSION } : {}) } };
   }, 201);
 }
