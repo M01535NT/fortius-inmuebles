@@ -1,0 +1,131 @@
+"use client";
+import * as React from "react";
+import { btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
+import { EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
+
+export type ExpedienteOperativo = {
+  id: string; version: number; asesor_id: string; etapa?: keyof typeof EXPEDIENTE_ETAPAS;
+  fecha_objetivo?: string | null; checklist?: Partial<Record<keyof typeof EXPEDIENTE_DOCUMENTOS, "pendiente" | "recibido" | "no_aplica">>;
+  created_at?: string; updated_at?: string;
+};
+type Activity = { id: string; tipo: "nota" | "cambio"; descripcion: string; created_by: string; created_at: string };
+type Props<T extends ExpedienteOperativo> = {
+  expediente: T; responsable: string; onSaved: (value: T) => void; onDirtyChange: (value: boolean) => void;
+};
+
+async function json<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error ?? "No se pudo completar la operación");
+  return body as T;
+}
+function shownDate(value?: string | null) {
+  if (!value) return "Sin fecha";
+  return value.slice(0, 10);
+}
+function checklistKey(value: ExpedienteOperativo["checklist"]) {
+  return Object.entries(value ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([key, status]) => `${key}:${status}`).join("|");
+}
+
+export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expediente, responsable, onSaved, onDirtyChange }: Props<T>) {
+  const [etapa, setEtapa] = React.useState<keyof typeof EXPEDIENTE_ETAPAS>(expediente.etapa ?? "captacion");
+  const [fecha, setFecha] = React.useState(expediente.fecha_objetivo ?? "");
+  const [checklist, setChecklist] = React.useState<NonNullable<ExpedienteOperativo["checklist"]>>(expediente.checklist ?? {});
+  const [activity, setActivity] = React.useState<Activity[]>([]);
+  const [note, setNote] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const [notice, setNotice] = React.useState("");
+  const dirty = etapa !== (expediente.etapa ?? "captacion") || fecha !== (expediente.fecha_objetivo ?? "")
+    || checklistKey(checklist) !== checklistKey(expediente.checklist);
+  React.useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
+  React.useEffect(() => {
+    let active = true;
+    json<{ actividad: Activity[] }>(`/api/admin/expedientes/${expediente.id}/actividad`)
+      .then(result => { if (active) setActivity(Array.isArray(result.actividad) ? result.actividad : []); })
+      .catch(cause => { if (active) setError(String(cause)); });
+    return () => { active = false; };
+  }, [expediente.id]);
+  async function refreshActivity() {
+    const result = await json<{ actividad: Activity[] }>(`/api/admin/expedientes/${expediente.id}/actividad`);
+    setActivity(result.actividad);
+  }
+  async function save(event: React.FormEvent) {
+    event.preventDefault(); if (!dirty || busy) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const result = await json<{ expediente: T }>(`/api/admin/expedientes/${expediente.id}/operacion`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version: expediente.version, etapa, fechaObjetivo: fecha || null, checklist }),
+      });
+      onSaved(result.expediente);
+      setNotice("Operación guardada.");
+      await refreshActivity().catch(() => setError("La operación se guardó, pero no se pudo actualizar la actividad."));
+    } catch (cause) { setError(String(cause)); }
+    finally { setBusy(false); }
+  }
+  async function addNote(event: React.FormEvent) {
+    event.preventDefault(); if (!note.trim() || busy) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const result = await json<{ actividad: Activity }>(`/api/admin/expedientes/${expediente.id}/actividad`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ descripcion: note.trim() }),
+      });
+      setActivity(items => [result.actividad, ...items]);
+      setNote("");
+      setNotice("Actividad registrada.");
+    } catch (cause) { setError(String(cause)); }
+    finally { setBusy(false); }
+  }
+  return <section className="rounded-lg border border-border bg-card p-5" aria-label="Seguimiento del expediente">
+    <h3 className="display-soft text-xl">Seguimiento del expediente</h3>
+    <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+      <p><strong>Responsable:</strong> {responsable}</p>
+      <p><strong>Abierto:</strong> {shownDate(expediente.created_at)}</p>
+      <p><strong>Última actualización:</strong> {shownDate(expediente.updated_at)}</p>
+      <p><strong>Versión:</strong> {expediente.version}</p>
+    </div>
+    {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
+    {notice && <p role="status" className="mt-3 text-sm">{notice}</p>}
+    <form onSubmit={save} className="mt-5 space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-sm">Etapa
+          <select className={selectClass} value={etapa} disabled={busy} onChange={event => setEtapa(event.target.value as keyof typeof EXPEDIENTE_ETAPAS)}>
+            {Object.entries(EXPEDIENTE_ETAPAS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </label>
+        <label className="text-sm">Fecha objetivo
+          <input type="date" className={inputClass} value={fecha} disabled={busy} onChange={event => setFecha(event.target.value)} />
+        </label>
+      </div>
+      <div>
+        <h4 className="font-semibold">Checklist documental</h4>
+        <p className="text-sm text-muted-foreground">Estado registrado; coteja los soportes antes de marcar «Recibido».</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {Object.entries(EXPEDIENTE_DOCUMENTOS).map(([key, label]) => <label key={key} className="text-sm">{label}
+            <select className={selectClass} disabled={busy} value={checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS] ?? "pendiente"}
+              onChange={event => setChecklist(current => ({ ...current, [key]: event.target.value as "pendiente" | "recibido" | "no_aplica" }))}>
+              <option value="pendiente">Pendiente</option><option value="recibido">Recibido</option><option value="no_aplica">No aplica</option>
+            </select>
+          </label>)}
+        </div>
+      </div>
+      <button type="submit" disabled={!dirty || busy} className={btnPrimary}>Guardar seguimiento</button>
+    </form>
+    <div className="mt-6 border-t border-border pt-5">
+      <h4 className="font-semibold">Actividad</h4>
+      <form onSubmit={addNote} className="mt-3 flex flex-wrap items-end gap-2">
+        <label className="min-w-[240px] flex-1 text-sm">Nueva nota
+          <textarea className={inputClass} maxLength={1000} rows={2} value={note} disabled={busy}
+            onChange={event => setNote(event.target.value)} />
+        </label>
+        <button type="submit" disabled={!note.trim() || busy} className={btnGhost}>Registrar nota</button>
+      </form>
+      {activity.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">Sin actividad registrada.</p>
+        : <ol className="mt-3 space-y-2 text-sm">{activity.map(item => <li key={item.id} className="rounded-md border border-border p-3">
+          <p>{item.descripcion}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · {new Date(item.created_at).toLocaleString("es-MX")}</p>
+        </li>)}</ol>}
+    </div>
+  </section>;
+}

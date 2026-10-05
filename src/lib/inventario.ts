@@ -19,7 +19,7 @@ export async function getRelatedProperties(slug: string, limit = 3): Promise<Pro
   const todas = await getPropiedades();
   const actual = todas.find((p) => p.slug === slug);
   if (!actual) return [];
-  const pool = todas.filter((p) => p.slug !== slug && p.estado !== "vendida");
+  const pool = todas.filter((p) => p.slug !== slug && p.estado !== "vendida" && p.estado !== "rentada");
   const related = pool.filter((p) => p.zona === actual.zona || p.tipo === actual.tipo);
   return [...related, ...pool.filter((p) => !related.includes(p))].slice(0, limit);
 }

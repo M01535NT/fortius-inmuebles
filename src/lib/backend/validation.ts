@@ -1,4 +1,5 @@
 import { HOME_TEXT_KEYS } from "@/data/home-copy";
+import { estadoValido, type Property } from "@/data/propiedades";
 import { z } from "zod";
 import { leadProfileSchema } from "@/lib/lead-profile";
 import { taskSchema } from "@/lib/tasks";
@@ -34,7 +35,7 @@ const point = z.object({ lugar: short, minutos: amount }).passthrough();
 const propertySchema = z.object({
   slug: id, codigo: name, titulo: name, tipo: z.enum(["casa", "departamento", "terreno", "local", "oficina", "nave-industrial"]), operacion: z.enum(["venta", "renta"]), precio: price,
   zona: short, direccionAproximada: short, descripcion: z.array(text).max(100), ficha, informacionPublica: informacionPublica.optional(), amenidades: z.array(short).max(100), galeria: z.array(image).max(100), videoUrl: optionalUrl, tour360Url: optionalUrl,
-  documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["disponible", "apartada", "vendida"]), publicadaEl: date,
+  documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["disponible", "apartada", "vendida", "rentada"]), publicadaEl: date,
   demo: z.boolean(), publicada: z.boolean().default(false),
 }).passthrough();
 const adviserSchema = z.object({ id, nombre: name, cargo: short, iniciales: z.string().max(10), telefono: short.optional(), whatsapp: short.optional(), email, activo: z.boolean() }).passthrough();
@@ -58,7 +59,7 @@ export const recordSchemas = {
   asesores: adviserSchema,
   leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500), clienteId: reference, convertidoEl: date.optional(), convertidoPor: reference }).passthrough(),
   clientes: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), tipo: z.enum(["propietario", "comprador", "arrendador", "arrendatario", "otro"]), asesorId: reference, notas: text, creadoEl: date, actualizadoEl: date, leadId: reference, convertidoEl: date.optional(), convertidoPor: reference, leadOriginal: z.object({ id, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough().optional() }).passthrough(),
-  eventos: z.object({ id, titulo: name, fecha: date, hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(), tipo: z.enum(["visita", "llamada", "firma", "reunion", "otro"]), leadId: reference, propiedadSlug: reference, clienteId: reference, notas: text.optional() }).passthrough(),
+  eventos: z.object({ id, titulo: name, fecha: z.iso.date(), hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(), tipo: z.enum(["visita", "llamada", "firma", "reunion", "otro"]), leadId: reference, propiedadSlug: reference, clienteId: reference, expedienteId: z.uuid().or(z.literal("")).optional(), asesorId: reference, notas: text.optional() }).passthrough(),
   notas: z.object({ id, titulo: name, texto: text, actualizadoEl: date }).passthrough(),
   posts: postSchema,
   archivos: z.object({ id, nombre: name, url: safeUrl, tipo: z.enum(["imagen", "pdf", "video", "otro"]), notas: text.optional(), bucket: z.enum(["fortius-inmuebles-private", "fortius-inmuebles-public"]).optional(), path: z.string().max(300).optional(), visibility: z.enum(["private", "public"]).optional() }).passthrough(),
@@ -74,6 +75,7 @@ export function parseRecord(collection: CollectionName, recordId: string, value:
   // Keep room for server conversion metadata within the bounded request/DB.
   const limit = (collection === "clientes" && data.leadId) || (collection === "leads" && data.clienteId) ? 260000 : 250000;
   if (new TextEncoder().encode(JSON.stringify(data)).byteLength > limit) throw new ApiError(413, "Registro demasiado grande");
+  if (collection === "propiedades" && !estadoValido(data.operacion as Property["operacion"], data.estado as Property["estado"])) throw new ApiError(400, "Estado incompatible con la operación");
   if (collection === "propiedades" && data.publicada === true && !(data.galeria as unknown[]).length) throw new ApiError(400, "Publicar requiere al menos una imagen");
   return data;
 }
@@ -83,7 +85,7 @@ export function parseLead(value: unknown) {
   return z.object({ ...leadFields, origen: z.enum([...origins, "interes_propiedad"]), website: z.literal("").optional() }).strict().parse(value);
 }
 
-function isPublicUrl(value: string) { return safeUrl.safeParse(value).success && !/((?:cota|mnt|fortius-inmuebles)-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value); }
+function isPublicUrl(value: string) { return safeUrl.safeParse(value).success && !/([a-z0-9-]+-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value); }
 // Keep the settings/contact shape even when a stored link is private or invalid.
 // This projection never rewrites the staff-owned source record.
 const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? value : "");
@@ -101,6 +103,7 @@ export function projectPublic(collection: string, values: unknown[]): Record<str
     if (!parsed.success) continue;
     const data = parsed.data as Record<string, unknown>;
     if (collection === "propiedades") {
+      if (!estadoValido(data.operacion as Property["operacion"], data.estado as Property["estado"])) continue;
       if (data.publicada !== true) continue;
       data.galeria = (data.galeria as { src: string }[]).filter((item) => isPublicUrl(item.src));
       if (!(data.galeria as unknown[]).length) continue;

@@ -101,7 +101,10 @@ export type Evento = {
   hora?: string; // HH:mm
   tipo: EventoTipo;
   leadId?: string;
+  clienteId?: string;
   propiedadSlug?: string;
+  expedienteId?: string;
+  asesorId?: string;
   notas?: string;
 };
 

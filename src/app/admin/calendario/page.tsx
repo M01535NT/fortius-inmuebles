@@ -5,6 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { projectFollowups } from "@/lib/admin/followups";
 import { isTaskOpen, TASK_STATUSES } from "@/lib/tasks";
 
 import {
@@ -29,7 +30,7 @@ import {
 
 /*
   Calendario mensual de la operación: visitas, llamadas, firmas y
-  reuniones, vinculables a leads y propiedades.
+  reuniones, vinculables a personas, inmuebles, expedientes y asesores.
 */
 const MESES = [
   "Enero",
@@ -50,7 +51,26 @@ const DIAS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
 export default function CalendarioPage() {
   const eventos = useCollection(db.eventos);
   const leads = useCollection(db.leads);
+  const clientes = useCollection(db.clientes);
+  const propiedades = useCollection(db.propiedades);
+  const asesores = useCollection(db.asesores);
   const tareas = useCollection(db.tareas).filter(isTaskOpen);
+  const [expedientes, setExpedientes] = React.useState<{ id: string; folio: string; cliente_id: string; propiedad_slug: string | null; asesor_id: string }[]>([]);
+  const [selectedExpedienteId, setSelectedExpedienteId] = React.useState("");
+  React.useEffect(() => {
+    let active = true;
+    fetch("/api/admin/expedientes", { credentials: "same-origin", cache: "no-store" })
+      .then(response => response.ok ? response.json() : { expedientes: [] })
+      .then(result => { if (active) {
+        const rows = Array.isArray(result.expedientes) ? result.expedientes : [];
+        setExpedientes(rows);
+        const requested = new URLSearchParams(window.location.search).get("expediente");
+        if (rows.some((row: { id: string }) => row.id === requested)) setSelectedExpedienteId(requested!);
+      } })
+      .catch(() => { if (active) setExpedientes([]); });
+    return () => { active = false; };
+  }, []);
+  const followups = projectFollowups(leads, clientes);
   const hoy = operationalDate();
   const [cursor, setCursor] = React.useState(() => {
     const [year, month] = hoy.split("-").map(Number);
@@ -74,7 +94,10 @@ export default function CalendarioPage() {
   for (const e of eventos) porDia.set(e.fecha, (porDia.get(e.fecha) ?? 0) + 1);
   const tareasPorDia = new Map<string, number>();
   for (const tarea of tareas) if (tarea.vence) tareasPorDia.set(tarea.vence, (tareasPorDia.get(tarea.vence) ?? 0) + 1);
+  const contactosPorDia = new Map<string, number>();
+  for (const item of followups) contactosPorDia.set(item.fecha, (contactosPorDia.get(item.fecha) ?? 0) + 1);
   const tareasDelDia = tareas.filter(tarea => tarea.vence === seleccion);
+  const contactosDelDia = followups.filter(item => item.fecha === seleccion);
 
   const delDia = eventos
     .filter((e) => e.fecha === seleccion)
@@ -91,6 +114,7 @@ export default function CalendarioPage() {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
+    const expediente = expedientes.find(x => x.id === data.get("expedienteId"));
     await upsert(
       db.eventos,
       {
@@ -99,7 +123,11 @@ export default function CalendarioPage() {
         fecha: String(data.get("fecha") ?? seleccion),
         hora: String(data.get("hora") ?? "") || undefined,
         tipo: String(data.get("tipo") ?? "otro") as EventoTipo,
-        leadId: String(data.get("leadId") ?? "") || undefined,
+        leadId: expediente ? undefined : String(data.get("leadId") ?? "") || undefined,
+        clienteId: (expediente?.cliente_id ?? String(data.get("clienteId") ?? "")) || undefined,
+        propiedadSlug: (expediente?.propiedad_slug ?? String(data.get("propiedadSlug") ?? "")) || undefined,
+        expedienteId: String(data.get("expedienteId") ?? "") || undefined,
+        asesorId: (expediente?.asesor_id ?? String(data.get("asesorId") ?? "")) || undefined,
       },
       null,
     );
@@ -160,7 +188,7 @@ export default function CalendarioPage() {
                     key={fecha}
                     type="button"
                     onClick={() => setSeleccion(fecha)}
-                    aria-label={`${Number(fecha.slice(8, 10))} de ${MESES[cursor.month].toLowerCase()} de ${cursor.year}${porDia.get(fecha) ? `, ${porDia.get(fecha)} eventos` : ""}${tareasPorDia.get(fecha) ? `, ${tareasPorDia.get(fecha)} tareas` : ""}`}
+                    aria-label={`${Number(fecha.slice(8, 10))} de ${MESES[cursor.month].toLowerCase()} de ${cursor.year}${porDia.get(fecha) ? `, ${porDia.get(fecha)} eventos` : ""}${tareasPorDia.get(fecha) ? `, ${tareasPorDia.get(fecha)} tareas` : ""}${contactosPorDia.get(fecha) ? `, ${contactosPorDia.get(fecha)} contactos` : ""}`}
                     aria-pressed={seleccion === fecha}
                     aria-current={fecha === hoy ? "date" : undefined}
                     className={
@@ -173,7 +201,7 @@ export default function CalendarioPage() {
                     }
                   >
                     {Number(fecha.slice(8, 10))}
-                    {porDia.get(fecha) || tareasPorDia.get(fecha) ? (
+                    {porDia.get(fecha) || tareasPorDia.get(fecha) || contactosPorDia.get(fecha) ? (
                       <span
                         aria-hidden="true"
                         className="absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary"
@@ -197,6 +225,10 @@ export default function CalendarioPage() {
             <ul className="mt-4 divide-y divide-border border-y border-border">
               {delDia.map((evento) => {
                 const lead = leads.find((l) => l.id === evento.leadId);
+                const cliente = clientes.find((c) => c.id === evento.clienteId);
+                const propiedad = propiedades.find((p) => p.slug === evento.propiedadSlug);
+                const expediente = expedientes.find((x) => x.id === evento.expedienteId);
+                const asesor = asesores.find((a) => a.id === evento.asesorId);
                 return (
                   <li
                     key={evento.id}
@@ -221,6 +253,10 @@ export default function CalendarioPage() {
                             {lead.nombre}
                           </Link>
                         ) : null}
+                        {cliente ? <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center text-primary hover:text-foreground">Cliente: {cliente.nombre}</Link> : null}
+                        {propiedad ? <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`} className="inline-flex min-h-11 items-center text-primary hover:text-foreground">Inmueble: {propiedad.codigo}</Link> : null}
+                        {expediente ? <Link href={`/admin/expedientes?expediente=${encodeURIComponent(expediente.id)}`} className="inline-flex min-h-11 items-center text-primary hover:text-foreground">Expediente: {expediente.folio}</Link> : null}
+                        {asesor ? <span>Asesor: {asesor.nombre}</span> : null}
                       </p>
                     </div>
                     <AsyncButton
@@ -253,6 +289,14 @@ export default function CalendarioPage() {
             <ul className="mt-2 divide-y divide-border">{tareasDelDia.map(tarea => <li key={tarea.id}>
               <Link href={`/admin/tareas/${tarea.id}`} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary [overflow-wrap:anywhere]">
                 <span>{tarea.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[tarea.estado]}</span>
+              </Link>
+            </li>)}</ul>
+          </section>}
+          {contactosDelDia.length > 0 && <section aria-label="Próximos contactos" className="mt-5 border-t border-border pt-4">
+            <h3 className="font-medium text-sm">Contactos previstos este día</h3>
+            <ul className="mt-2 divide-y divide-border">{contactosDelDia.map(item => <li key={item.id}>
+              <Link href={item.href} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary [overflow-wrap:anywhere]">
+                <span>{item.personName}</span><span className="text-xs text-muted-foreground">{item.kind === "cliente" ? "Cliente" : "Lead"} · {asesores.find(a => a.id === item.asesorId)?.nombre ?? "Sin asesor"}</span>
               </Link>
             </li>)}</ul>
           </section>}
@@ -311,6 +355,30 @@ export default function CalendarioPage() {
                 </select>
               </Field>
             </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Cliente (opcional)" htmlFor="cal-cliente">
+                <select id="cal-cliente" name="clienteId" className={selectClass}><option value="">Ninguno</option>{clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+              </Field>
+              <Field label="Inmueble (opcional)" htmlFor="cal-propiedad">
+                <select id="cal-propiedad" name="propiedadSlug" className={selectClass}><option value="">Ninguno</option>{propiedades.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select>
+              </Field>
+              <Field label="Expediente (opcional)" htmlFor="cal-expediente">
+                <select id="cal-expediente" name="expedienteId" value={selectedExpedienteId} className={selectClass} onChange={event => {
+                  setSelectedExpedienteId(event.currentTarget.value);
+                  const selected = expedientes.find(x => x.id === event.currentTarget.value);
+                  const form = event.currentTarget.form;
+                  if (!selected || !form) return;
+                  for (const [name, value] of [["clienteId", selected.cliente_id], ["propiedadSlug", selected.propiedad_slug ?? ""], ["asesorId", selected.asesor_id], ["leadId", ""]]) {
+                    const field = form.elements.namedItem(name);
+                    if (field instanceof HTMLSelectElement) field.value = value;
+                  }
+                }}><option value="">Ninguno</option>{expedientes.map(x => <option key={x.id} value={x.id}>{x.folio}</option>)}</select>
+              </Field>
+              <Field label="Asesor (opcional)" htmlFor="cal-asesor">
+                <select id="cal-asesor" name="asesorId" className={selectClass}><option value="">Ninguno</option>{asesores.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select>
+              </Field>
+            </div>
+            {selectedExpedienteId ? <p className="text-xs text-muted-foreground">El expediente vincula automáticamente al cliente, inmueble y asesor al guardar el evento.</p> : null}
             <button type="submit" className={btnPrimary + " w-full"}>
               Agendar
             </button>

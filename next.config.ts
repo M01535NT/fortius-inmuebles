@@ -21,11 +21,6 @@ const nextConfig: NextConfig = {
       { source: "/zonas", destination: "/inventario", permanent: true },
       { source: "/zonas/:zona", destination: "/inventario", permanent: true },
       { source: "/descargas/checklist-venta-mnt.pdf", destination: "/descargas/checklist-venta-fortius.pdf", permanent: true },
-      {
-        source: "/descargas/checklist-venta-cota.pdf",
-        destination: "/descargas/checklist-venta-fortius.pdf",
-        permanent: true,
-      },
     ];
   },
   images: {

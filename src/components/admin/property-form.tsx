@@ -15,6 +15,9 @@ import {
   textareaClass,
 } from "@/components/admin/ui";
 import {
+  ESTADO_LABELS,
+  ESTADOS_POR_OPERACION,
+  estadoValido,
   TIPO_LABELS,
   type DocumentoPropiedad,
   type FuenteSuperficie,
@@ -50,7 +53,7 @@ const sectionClass =
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {
   if (
-    /((?:cota|mnt|fortius-inmuebles)-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
+    /([a-z0-9-]+-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
   )
     return false;
   if (/[\s\\]/.test(value) || value.startsWith("//")) return false;
@@ -86,6 +89,11 @@ export function PropertyForm({ initial: source }: Props) {
   const propiedades = useCollection(db.propiedades);
 
   const [titulo, setTitulo] = React.useState(initial?.titulo ?? "");
+  const [codigo, setCodigo] = React.useState(initial?.codigo ?? "");
+  const [operacion, setOperacion] = React.useState<Property["operacion"]>(initial?.operacion ?? "venta");
+  const [estado, setEstado] = React.useState<Property["estado"]>(
+    initial && estadoValido(initial.operacion, initial.estado) ? initial.estado : "disponible",
+  );
   const [galeria, setGaleria] = React.useState<ImagenPropiedad[]>(
     initial?.galeria ?? [],
   );
@@ -94,6 +102,9 @@ export function PropertyForm({ initial: source }: Props) {
   );
   const [pois, setPois] = React.useState(initial?.puntosDeInteres ?? []);
   const [error, setError] = React.useState<string | null>(null);
+  const codigoDuplicado = codigo.trim() && propiedades.find((p) =>
+    p.slug !== initial?.slug && p.codigo.trim().toUpperCase() === codigo.trim().toUpperCase(),
+  );
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -112,6 +123,14 @@ export function PropertyForm({ initial: source }: Props) {
       return;
     }
 
+    const codigoFinal = codigo.trim() || `FORTIUS-${String(
+      Math.max(0, ...propiedades.map((p) => Number(/^FORTIUS-(\d+)$/i.exec(p.codigo.trim())?.[1] ?? 0))) + 1,
+    ).padStart(3, "0")}`;
+    if (propiedades.some((p) => p.slug !== slug && p.codigo.trim().toUpperCase() === codigoFinal.toUpperCase())) {
+      setError(`Ya existe otro inmueble con el código "${codigoFinal}". Asigna uno distinto.`);
+      return;
+    }
+
     const modalidad = v("modalidad");
     const informacionPublica: NonNullable<Property["informacionPublica"]> = {
       fuenteTerreno: (v("fuenteTerreno") || undefined) as FuenteSuperficie | undefined,
@@ -124,12 +143,10 @@ export function PropertyForm({ initial: source }: Props) {
     const property: Property = {
       ...base,
       slug,
-      codigo:
-        v("codigo") ||
-        `FORTIUS-${String(propiedades.length + 1).padStart(3, "0")}`,
+      codigo: codigoFinal,
       titulo: titulo.trim(),
       tipo: v("tipo") as TipoPropiedad,
-      operacion: v("operacion") as Property["operacion"],
+      operacion,
       precio:
         modalidad === "publico"
           ? {
@@ -169,7 +186,7 @@ export function PropertyForm({ initial: source }: Props) {
       creditoDisponible: f.get("credito") === "on",
       puntosDeInteres: pois.filter((p) => p.lugar.trim()),
       destacada: f.get("destacada") === "on",
-      estado: v("estado") as Property["estado"],
+      estado,
       publicadaEl:
         initial?.publicadaEl.slice(0, 10) === v("publicadaEl")
           ? initial.publicadaEl
@@ -232,11 +249,17 @@ export function PropertyForm({ initial: source }: Props) {
             <input
               id="pf-codigo"
               name="codigo"
-              defaultValue={initial?.codigo}
-              placeholder="FORTIUS-004"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              placeholder="Se asigna automáticamente"
               className={inputClass}
             />
           </Field>
+          {codigoDuplicado ? (
+            <p role="alert" className="text-sm text-destructive sm:col-span-2">
+              El código ya corresponde a {codigoDuplicado.titulo}. Asigna uno distinto.
+            </p>
+          ) : null}
           <Field label="Tipo" htmlFor="pf-tipo">
             <select
               id="pf-tipo"
@@ -255,7 +278,12 @@ export function PropertyForm({ initial: source }: Props) {
             <select
               id="pf-operacion"
               name="operacion"
-              defaultValue={initial?.operacion ?? "venta"}
+              value={operacion}
+              onChange={(e) => {
+                const next = e.target.value as Property["operacion"];
+                setOperacion(next);
+                setEstado((current) => estadoValido(next, current) ? current : "disponible");
+              }}
               className={selectClass}
             >
               <option value="venta">Venta</option>
@@ -266,12 +294,13 @@ export function PropertyForm({ initial: source }: Props) {
             <select
               id="pf-estado"
               name="estado"
-              defaultValue={initial?.estado ?? "disponible"}
+              value={estado}
+              onChange={(e) => setEstado(e.target.value as Property["estado"])}
               className={selectClass}
             >
-              <option value="disponible">Disponible</option>
-              <option value="apartada">Apartada</option>
-              <option value="vendida">Vendida</option>
+              {ESTADOS_POR_OPERACION[operacion].map((value) => (
+                <option key={value} value={value}>{ESTADO_LABELS[value]}</option>
+              ))}
             </select>
           </Field>
           <Field label="Asesor titular" htmlFor="pf-asesor">

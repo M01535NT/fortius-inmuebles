@@ -25,6 +25,13 @@ describe("BFF validation and authorization behavior", () => {
       expect(() => parseRecord("posts", "p1", { ...post, slug })).toThrow();
     }
   });
+  it("validates calendar links and a real calendar date", () => {
+    const event = { id: "event1", titulo: "Visita", fecha: "2026-10-04", tipo: "visita", clienteId: "client1", propiedadSlug: "home1", expedienteId: "4f813087-b257-4a79-9c8d-e2401d941111", asesorId: "adviser1" };
+    expect(parseRecord("eventos", "event1", event)).toEqual(event);
+    for (const invalid of [{ fecha: "2026-02-31" }, { clienteId: "client space" }, { expedienteId: "not-a-uuid" }, { asesorId: 3 }]) {
+      expect(() => parseRecord("eventos", "event1", { ...event, ...invalid })).toThrow();
+    }
+  });
   it("preserves every existing property field while defaulting publication to false", () => {
     const saved = parseRecord("propiedades", propiedades[0].slug, propiedades[0]);
     expect(saved).toEqual({ ...propiedades[0], publicada: false });
@@ -55,8 +62,8 @@ describe("BFF validation and authorization behavior", () => {
       "/api/admin/files?bucket=fortius-inmuebles-private&path=video.mp4",
       "https://assets.example.com/storage/v1/object/authenticated/fortius-inmuebles-private/video.mp4",
       "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-staging/video.mp4",
-      "https://assets.example.com/storage/v1/object/public/cota-private/video.mp4",
-      "https://assets.example.com/storage/v1/object/public/cota-staging/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/legacy-private/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/legacy-staging/video.mp4",
       "javascript:alert(1)",
     ]) {
       const input = { ...settings, [field]: unsafe };

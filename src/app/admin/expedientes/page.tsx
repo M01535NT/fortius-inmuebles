@@ -8,8 +8,10 @@ import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
+import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
+import type { ExpedienteOperativo } from "@/components/admin/expediente-operation-panel";
 
-type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number; deleted_at?: string | null };
+type Expediente = ExpedienteOperativo & { cliente_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; deleted_at?: string | null };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
 type Emision = { id: string; draft_version: number; created_at: string; sha256: string; plantillaVersion?: string };
 type Copia = { id: string; emission_id: string; created_at: string; sha256: string };
@@ -25,6 +27,7 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
 export default function ExpedientesPage() {
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
+  const asesores = useCollection(db.asesores);
   const [expedientes, setExpedientes] = React.useState<Expediente[]>([]);
   const [showDeleted, setShowDeleted] = React.useState(false);
   const [notice, setNotice] = React.useState("");
@@ -38,32 +41,40 @@ export default function ExpedientesPage() {
   const [error, setError] = React.useState("");
   const [busy, updateBusy] = React.useState(false);
   const [pdfBusy, setPdfBusy] = React.useState(false);
+  const [operationalDirty, setOperationalDirty] = React.useState(false);
   const working = React.useRef(false);
   const generation = React.useRef(0);
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
   function setBusy(value: boolean) { working.current = value; updateBusy(value); }
   function canNavigate() {
     if (working.current) return false;
-    if (hasUnsavedChanges) { setError("Guarda o descarta los cambios antes de cambiar de documento o expediente."); return false; }
+    if (hasUnsavedChanges || operationalDirty) { setError("Guarda o descarta los cambios antes de cambiar de documento o expediente."); return false; }
     return true;
   }
   function selectExpediente(id: string) {
     if (!canNavigate()) return;
     generation.current++;
-    setSelectedId(id); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]); setError("");
+    setSelectedId(id); setOperationalDirty(false); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]); setError("");
   }
   React.useEffect(() => () => { generation.current++; }, []);
   React.useEffect(() => {
-    if (!hasUnsavedChanges) return;
+    if (!hasUnsavedChanges && !operationalDirty) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, operationalDirty]);
 
   React.useEffect(() => {
     let active = true;
     json<{ expedientes: Expediente[] }>(showDeleted ? "/api/admin/expedientes?estado=eliminados" : "/api/admin/expedientes")
-      .then((result) => { if (active) setExpedientes(result.expedientes); })
+      .then((result) => {
+        if (!active) return;
+        setExpedientes(result.expedientes);
+        if (!showDeleted) {
+          const linked = new URLSearchParams(window.location.search).get("expediente");
+          if (linked && result.expedientes.some(item => item.id === linked)) setSelectedId(current => current || linked);
+        }
+      })
       .catch((cause) => { if (active) setError(String(cause)); });
     return () => { active = false; };
   }, [showDeleted]);
@@ -94,7 +105,7 @@ export default function ExpedientesPage() {
       });
       generation.current++;
       setExpedientes(items => items.filter(item => item.id !== selected.id));
-      setSelectedId(""); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]);
+      setSelectedId(""); setOperationalDirty(false); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]);
       setNotice(remove ? "Expediente eliminado. Puedes recuperarlo en Eliminados." : "Expediente restaurado. Está disponible en Activos.");
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
@@ -257,9 +268,16 @@ export default function ExpedientesPage() {
         <section className="rounded-lg border border-border bg-card p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="display-soft text-xl">{selected.folio}</h2>
-            <button type="button" disabled={busy || pdfBusy} onClick={changeExpedienteState} className={selected.deleted_at ? btnPrimary : btnDanger}>{selected.deleted_at ? "Restaurar expediente" : "Eliminar expediente"}</button>
+            <div className="flex flex-wrap gap-2">
+              {!selected.deleted_at && <a className={btnGhost} href={`/admin/calendario?expediente=${encodeURIComponent(selected.id)}`}>Programar evento</a>}
+              <button type="button" disabled={busy || pdfBusy} onClick={changeExpedienteState} className={selected.deleted_at ? btnPrimary : btnDanger}>{selected.deleted_at ? "Restaurar expediente" : "Eliminar expediente"}</button>
+            </div>
           </div>
           {selected.deleted_at ? <p className="text-sm text-muted-foreground">Este expediente está en Eliminados. Restaúralo para consultar o editar sus formatos y PDF.</p> : <>
+          <div className="mb-5"><ExpedienteOperationPanel key={selected.id} expediente={selected}
+            responsable={asesores.find(item => item.id === selected.asesor_id)?.nombre ?? selected.asesor_id}
+            onDirtyChange={setOperationalDirty}
+            onSaved={saved => setExpedientes(items => items.map(item => item.id === saved.id ? saved : item))} /></div>
           <form onSubmit={createDocumento} className="flex flex-wrap items-end gap-3">
             <label className="min-w-[240px] flex-1 text-sm">Formato<select name="formatoId" required className={selectClass}>{FORMATOS.filter(item => !item.globalRoute).map((item) => <option key={item.id} value={item.id}>{item.id} · {item.title}</option>)}</select></label>
             <button type="submit" disabled={busy || hasUnsavedChanges} className={btnPrimary}>Crear borrador</button>

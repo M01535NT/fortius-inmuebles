@@ -69,8 +69,9 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
+  expect(await config.redirects?.()).toHaveLength(3);
   expect(await config.redirects?.()).toContainEqual({
-    source: "/descargas/checklist-venta-cota.pdf",
+    source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
     permanent: true,
   });

@@ -5,7 +5,7 @@ vi.mock("@/lib/admin/store", () => ({
 }));
 import ExpedientesPage from "@/app/admin/expedientes/page";
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.history.replaceState(null, "", "/"); });
 const exp = { id: "exp-a", cliente_id: "c-own", asesor_id: "own", propiedad_slug: null, folio: "EXP-A", operacion: "venta", unidad: "", version: 1 };
 const a = { id: "doc-a", expediente_id: exp.id, formato_id: "18", data: { pagador: "Cliente A" }, version: 1, updated_at: "2026-10-04" };
 const b = { ...a, id: "doc-b", formato_id: "02", data: { nombre: "Cliente B" } };
@@ -30,6 +30,12 @@ it("informa las emisiones disponibles y ofrece el control comercial global", asy
   expect(screen.getByText(/23 formatos.*por expediente/)).toBeTruthy();
   expect(screen.getByRole("link", { name: /03.*Control comercial/i }).getAttribute("href")).toBe("/admin/control-comercial");
   expect(screen.getByText(/09.*registro.*cotejo/i)).toBeTruthy();
+});
+it("abre el expediente enlazado desde la agenda y ofrece programar evento", async () => {
+  window.history.replaceState(null, "", "/admin/expedientes?expediente=exp-a");
+  fixture(); render(<ExpedientesPage />);
+  const link = await screen.findByRole("link", { name: "Programar evento" });
+  expect(link.getAttribute("href")).toBe("/admin/calendario?expediente=exp-a");
 });
 it("conserva los cambios sin guardar al intentar abrir otro documento o expediente", async () => {
   fixture(); const field = await openA();

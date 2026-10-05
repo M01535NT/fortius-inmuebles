@@ -174,6 +174,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 estar disponible o mostrarte opciones similares.
               </p>
             ) : null}
+            {property.estado === "rentada" ? (
+              <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-sm leading-relaxed text-foreground/85">
+                Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.
+              </p>
+            ) : null}
 
             <div className="space-y-5">
               {property.descripcion.map((parrafo) => (

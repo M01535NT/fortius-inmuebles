@@ -13,6 +13,8 @@ import {
 } from "@/components/admin/ui";
 import {
   ESTADO_LABELS,
+  ESTADOS_POR_OPERACION,
+  estadoValido,
   OPERACION_LABELS,
   TIPO_LABELS,
   formatPrecio,
@@ -72,6 +74,9 @@ export default function AdminPropiedadesPage() {
                 className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4 [overflow-wrap:anywhere]"
               >
                 <p className="font-mono text-xs text-muted-foreground">{p.codigo}</p>
+                {propiedades.some((other) => other.slug !== p.slug && other.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase()) ? (
+                  <p className="text-xs font-medium text-destructive">Código duplicado: corrígelo en Editar.</p>
+                ) : null}
                 <h2>
                   <Link
                     href={`/admin/propiedades/${p.slug}/editar`}
@@ -138,6 +143,9 @@ export default function AdminPropiedadesPage() {
                   >
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                       {p.codigo}
+                      {propiedades.some((other) => other.slug !== p.slug && other.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase()) ? (
+                        <span className="block text-xs font-medium text-destructive">Código duplicado</span>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -204,10 +212,11 @@ function PropertyStatus({ property }: { property: Property }) {
       }
       className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:min-w-36 lg:text-sm"
     >
-      {Object.entries(ESTADO_LABELS).map(([value, label]) => (
-        <option key={value} value={value}>
-          {label}
-        </option>
+      {!estadoValido(property.operacion, property.estado) ? (
+        <option value={property.estado} disabled>{ESTADO_LABELS[property.estado]} (incompatible; corrige el estado)</option>
+      ) : null}
+      {ESTADOS_POR_OPERACION[property.operacion].map((value) => (
+        <option key={value} value={value}>{ESTADO_LABELS[value]}</option>
       ))}
     </AsyncSelect>
   );

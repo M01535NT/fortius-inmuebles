@@ -1,8 +1,9 @@
 import * as React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import { PropertyForm } from "@/components/admin/property-form";
+import { propiedades } from "@/data/propiedades";
 import { clearAdminCache } from "@/lib/admin/store";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
@@ -132,4 +133,15 @@ test("a failed save retains the draft and restores navigation and cancel without
   fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
   expect(push).toHaveBeenCalledWith("/admin/propiedades");
   expect(writes).toHaveLength(1);
+});
+
+
+test("switching an existing sold listing to rental offers Rentada and resets incompatible status", () => {
+  render(<PropertyForm initial={{ ...propiedades[0], estado: "vendida" }} />);
+  const status = screen.getByLabelText("Estado") as HTMLSelectElement;
+  expect(status.value).toBe("vendida");
+  fireEvent.change(screen.getByLabelText("Operación"), { target: { value: "renta" } });
+  expect(status.value).toBe("disponible");
+  expect(within(status).getByRole("option", { name: "Rentada" })).toBeTruthy();
+  expect(within(status).queryByRole("option", { name: "Vendida" })).toBeNull();
 });

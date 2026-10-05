@@ -52,6 +52,7 @@ const NAV = [
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
   { href: "/admin/expedientes", label: "Expedientes", icon: FileText },
   { href: "/admin/control-comercial", label: "Control comercial", icon: ClipboardList, adminOnly: true },
+  { href: "/admin/reportes", label: "Reportes", icon: ClipboardList, adminOnly: true },
   { href: "/admin/leads", label: "Leads", icon: Users },
   { href: "/admin/tareas", label: "Tareas", icon: ClipboardList },
   { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },

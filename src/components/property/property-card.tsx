@@ -31,7 +31,7 @@ export function PropertyCard({ property }: { property: Property }) {
           sizes="(max-width: 768px) 100vw, 33vw"
           className={
             "aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]" +
-            (property.estado === "vendida" ? " opacity-80" : "")
+            (property.estado === "vendida" || property.estado === "rentada" ? " opacity-80" : "")
           }
         />
         {noDisponible ? (

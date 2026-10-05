@@ -5,13 +5,18 @@ import { Check } from "lucide-react";
 import { AsyncButton, btnGhost } from "@/components/admin/ui";
 import { db, upsert, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { overdueFollowups, projectFollowups } from "@/lib/admin/followups";
 import { isTaskOpen, taskBucket, TASK_PRIORITIES } from "@/lib/tasks";
 
 const buckets = { vencidas: "Vencidas", hoy: "Hoy", proximas: "Próximos 7 días", "sin-fecha": "Sin fecha" } as const;
 
 export function DashboardTasks() {
   const tasks = useCollection(db.tareas);
+  const leads = useCollection(db.leads);
+  const clientes = useCollection(db.clientes);
+  const asesores = useCollection(db.asesores);
   const hoy = operationalDate();
+  const overdue = overdueFollowups(projectFollowups(leads, clientes), hoy);
   const open = tasks.filter(isTaskOpen);
   const preview = [...open].sort((a, b) => (a.vence || "9999").localeCompare(b.vence || "9999") || a.titulo.localeCompare(b.titulo)).slice(0, 5);
   return (
@@ -22,6 +27,16 @@ export function DashboardTasks() {
           <Link className="inline-flex min-h-11 items-center" href="/admin/tareas?nueva=1">Nueva tarea</Link>
           <Link className="inline-flex min-h-11 items-center" href="/admin/tareas">Ver todas</Link>
         </div>
+      </div>
+      <div className="border-b border-border px-4 py-3 sm:px-5">
+        <h3 className="text-sm font-semibold text-foreground">Seguimientos vencidos: <span className="font-mono text-destructive">{overdue.length}</span></h3>
+        {overdue.length ? <ul className="mt-2 space-y-1">
+          {overdue.slice(0, 5).map(item => <li key={item.id} className="flex flex-wrap items-baseline gap-x-2 text-sm">
+            <Link href={item.href} className="min-h-11 py-2 font-medium text-primary hover:text-foreground">{item.personName}</Link>
+            <span className="text-muted-foreground">{item.kind === "cliente" ? "Cliente" : "Lead"} · {item.fecha} · {asesores.find(a => a.id === item.asesorId)?.nombre ?? "Sin asesor"}</span>
+          </li>)}
+          {overdue.length > 5 ? <li className="text-xs text-muted-foreground">{overdue.length - 5} seguimientos más vencidos</li> : null}
+        </ul> : <p className="mt-1 text-sm text-muted-foreground">No hay próximos contactos vencidos.</p>}
       </div>
       <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
         {Object.entries(buckets).map(([bucket, label]) => (

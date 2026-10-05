@@ -63,15 +63,15 @@ for (const path of ["/admin", "/contacto", "/blog"]) await request(path);
 const missingSuffix = Date.now();
 await request(`/inventario/fortius-inmuebles-health-missing-${missingSuffix}`, 404);
 await request(`/blog/fortius-inmuebles-health-missing-${missingSuffix}`, 404);
-const legacyPdf = await request("/descargas/checklist-venta-cota.pdf", null, false);
+const legacyPdf = await request("/descargas/checklist-venta-mnt.pdf", null, false);
 assert.ok([301, 308].includes(legacyPdf.response.status), `Legacy PDF: expected 301/308, received ${legacyPdf.response.status}`);
 const redirectTarget = new URL(legacyPdf.response.headers.get("location"), origin);
 assert.equal(redirectTarget.origin, origin, "Legacy PDF redirects externally");
 assert.equal(redirectTarget.pathname, "/descargas/checklist-venta-fortius.pdf");
 await request(redirectTarget);
 
-const legacyBrand = /(^|[^\p{L}\p{N}])cota([^\p{L}\p{N}]|$)/iu;
-for (const page of htmlBodies) assert.ok(!legacyBrand.test(page.body), `Visible/meta legacy brand found in ${page.path}`);
+const previousBrand = /(^|[^\p{L}\p{N}])MNT Inmuebles([^\p{L}\p{N}]|$)/iu;
+for (const page of htmlBodies) assert.ok(!previousBrand.test(page.body), `Visible/meta previous brand found in ${page.path}`);
 
 const sorted = [...timings].sort((a, b) => a - b);
 const percentile = (ratio) => sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * ratio) - 1)];

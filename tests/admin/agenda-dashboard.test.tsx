@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import AdminDashboard from "@/app/admin/page";
@@ -51,6 +51,7 @@ test("calendar projects an open task deadline without creating an event", async 
 
 afterEach(() => {
   cleanup();
+  window.history.replaceState(null, "", "/");
   vi.useRealTimers();
   vi.unstubAllGlobals();
   clearAdminCache();
@@ -129,4 +130,39 @@ test("calendar lets staff select a day across the year and keeps the form date i
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-01");
   fireEvent.click(screen.getByRole("button", { name: "Mes anterior" }));
   expect(screen.getByRole("heading", { name: "Diciembre 2026" })).toBeTruthy();
+});
+
+test("dashboard shows one overdue followup for a converted client with its adviser", async () => {
+  vi.stubGlobal("fetch", async (url: string) => {
+    const records = url.endsWith("/leads") ? [{ id: "lead1", data: { id: "lead1", nombre: "Prospecto", telefono: "6641234567", origen: "manual", estado: "activo", clienteId: "client1", asesorId: "a1", creadoEl: "2026-09-01", notas: [], perfil: { proximoContacto: "2026-09-20" } } }]
+      : url.endsWith("/clientes") ? [{ id: "client1", data: { id: "client1", nombre: "Cliente convertido", telefono: "6641234567", tipo: "comprador", asesorId: "a1", leadId: "lead1", notas: "", creadoEl: "2026-09-01", actualizadoEl: "2026-09-01", perfil: { proximoContacto: "2026-09-21" } } }]
+      : url.endsWith("/asesores") ? [{ id: "a1", data: { id: "a1", nombre: "Asesora Ana", cargo: "", iniciales: "AA", activo: true } }] : [];
+    return Response.json({ records: records.map(item => ({ ...item, version: 1 })) });
+  });
+  render(<AdminDashboard />);
+  expect(await screen.findByRole("link", { name: "Cliente convertido" })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
+  expect(screen.getByText(/Seguimientos vencidos:/).textContent).toContain("1");
+  expect(screen.getByText(/Cliente · 2026-09-21 · Asesora Ana/)).toBeTruthy();
+  expect(screen.queryByRole("link", { name: "Prospecto" })).toBeNull();
+});
+
+test("calendar saves a linked event with client, property, expediente and adviser", async () => {
+  let saved: Record<string, unknown> | null = null;
+  const expedienteId = "51000000-0000-4000-8000-000000000010";
+  window.history.replaceState(null, "", `/admin/calendario?expediente=${expedienteId}`);
+  vi.stubGlobal("fetch", async (url: string, options?: RequestInit) => {
+    if (options?.method === "PUT") {
+      saved = JSON.parse(String(options.body)).data;
+      return Response.json({ record: { id: saved!.id, data: saved, version: 1 } });
+    }
+    if (url.endsWith("/expedientes")) return Response.json({ expedientes: [{ id: expedienteId, folio: "EXP-1", cliente_id: "c1", propiedad_slug: "p1", asesor_id: "a1" }] });
+    const data = url.endsWith("/clientes") ? [{ id: "c1", nombre: "Cliente A" }] : url.endsWith("/propiedades") ? [{ slug: "p1", codigo: "F-1", titulo: "Casa" }] : url.endsWith("/asesores") ? [{ id: "a1", nombre: "Asesora A" }] : [];
+    return Response.json({ records: data.map(item => ({ id: "id" in item ? item.id : item.slug, data: item, version: 1 })) });
+  });
+  render(<CalendarioPage />);
+  await screen.findByRole("option", { name: "EXP-1" });
+  await waitFor(() => expect((screen.getByLabelText("Expediente (opcional)") as HTMLSelectElement).value).toBe(expedienteId));
+  fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita vinculada" } });
+  fireEvent.submit(screen.getByRole("button", { name: "Agendar" }).closest("form")!);
+  await waitFor(() => expect(saved).toMatchObject({ titulo: "Visita vinculada", clienteId: "c1", propiedadSlug: "p1", expedienteId, asesorId: "a1" }));
 });

@@ -17,7 +17,16 @@ export type TipoPropiedad =
   | "oficina"
   | "nave-industrial";
 
-export type EstadoPropiedad = "disponible" | "apartada" | "vendida";
+export type EstadoPropiedad = "disponible" | "apartada" | "vendida" | "rentada";
+
+export const ESTADOS_POR_OPERACION: Record<Operacion, readonly EstadoPropiedad[]> = {
+  venta: ["disponible", "apartada", "vendida"],
+  renta: ["disponible", "apartada", "rentada"],
+};
+
+export function estadoValido(operacion: Operacion, estado: EstadoPropiedad): boolean {
+  return ESTADOS_POR_OPERACION[operacion].includes(estado);
+}
 
 /*
   Precio como unión discriminada: evita strings libres ("Consultar") y
@@ -115,6 +124,7 @@ export const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
   disponible: "Disponible",
   apartada: "Apartada",
   vendida: "Vendida",
+  rentada: "Rentada",
 };
 
 export const propiedades: Property[] = [
@@ -291,7 +301,7 @@ export function getFeaturedProperties(): Property[] {
 export function getRelatedProperties(slug: string, limit = 3): Property[] {
   const current = getPropertyBySlug(slug);
   if (!current) return [];
-  const pool = propiedades.filter((p) => p.slug !== slug && p.estado !== "vendida");
+  const pool = propiedades.filter((p) => p.slug !== slug && p.estado !== "vendida" && p.estado !== "rentada");
   const related = pool.filter((p) => p.zona === current.zona || p.tipo === current.tipo);
   const fill = pool.filter((p) => !related.includes(p));
   return [...related, ...fill].slice(0, limit);

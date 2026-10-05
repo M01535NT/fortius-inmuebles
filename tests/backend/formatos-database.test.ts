@@ -185,3 +185,16 @@ it("reserva imágenes de un borrador al asesor del expediente y conserva su inte
   await asUser(other, async () => expect((await db.query("select id from public.fortius_inmuebles_formato_assets")).rows).toEqual([]));
   await asUser(null, async () => await expect(db.query("select id from public.fortius_inmuebles_formato_assets")).rejects.toMatchObject({ code: "42501" }));
 });
+
+it("valida vínculos de agenda y oculta eventos de clientes y expedientes ajenos", async () => {
+  const linked = { id: "event-linked", titulo: "Visita privada", fecha: "2026-10-04", tipo: "visita", clienteId: "c-own", asesorId: "own", expedienteId: expediente };
+  await asUser(own, async () => {
+    await db.query("select public.fortius_inmuebles_put_record('eventos',$1,$2::jsonb,null)", [linked.id, JSON.stringify(linked)]);
+    expect((await db.query("select id from public.fortius_inmuebles_records where collection='eventos' and id=$1", [linked.id])).rows).toEqual([{ id: linked.id }]);
+    await expect(db.query("select public.fortius_inmuebles_put_record('eventos','event-mismatch',$1::jsonb,null)", [JSON.stringify({ ...linked, id: "event-mismatch", asesorId: "other" })])).rejects.toMatchObject({ code: "PT403" });
+    await expect(db.query("select public.fortius_inmuebles_put_record('eventos','event-foreign',$1::jsonb,null)", [JSON.stringify({ ...linked, id: "event-foreign", clienteId: "c-other" })])).rejects.toMatchObject({ code: "PT403" });
+  });
+  await asUser(other, async () => {
+    expect((await db.query("select id from public.fortius_inmuebles_records where collection='eventos' and id=$1", [linked.id])).rows).toEqual([]);
+  });
+});
