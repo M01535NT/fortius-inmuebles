@@ -18,7 +18,7 @@ const guideSlugs = new Set(localGuides.map((post) => post.slug));
 const sourceHosts = new Set(['www.gob.mx', 'www.inegi.org.mx', 'revista.condusef.gob.mx']);
 assert(posts.length === 3 && new Set(posts.map((p) => p.id)).size === 3 && new Set(posts.map((p) => p.slug)).size === 3, 'Expected three unique articles');
 for (const post of posts) {
-  assert(/^fortius-inmuebles-news-20260923-0[1-3]$/.test(post.id) && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug), 'Invalid identifier');
+  assert(/^mnt-news-20260923-0[1-3]$/.test(post.id) && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug), 'Invalid identifier');
   assert(post.titulo.length > 0 && post.titulo.length <= 160 && post.resumen.length >= 100 && post.resumen.length <= 180, `${post.id}: invalid title/summary`);
   assert(post.formato === 'actualidad' && ['mercado', 'comprar'].includes(post.categoria) && typeof post.destacado === 'boolean', `${post.id}: invalid classification`);
   assert(post.autor === 'Redacción Fortius Inmuebles' && post.ambito && post.fuenteNombre, `${post.id}: missing attribution`);

@@ -14,7 +14,7 @@ assert(new Set(posts.map((post) => post.slug)).size === 12, 'Duplicate article s
 const slugs = new Set(posts.map((post) => post.slug));
 const manifest = [];
 for (const [index, post] of posts.entries()) {
-  assert(post.id === `fortius-inmuebles-blog-202609-${String(index + 1).padStart(2, '0')}`, 'Unexpected article ID');
+  assert(post.id === `mnt-blog-202609-${String(index + 1).padStart(2, '0')}`, 'Unexpected article ID');
   assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug), `${post.id}: invalid slug`);
   assert(post.titulo.length > 0 && post.titulo.length <= 160, `${post.id}: invalid title`);
   assert(post.resumen.length >= 130 && post.resumen.length <= 180, `${post.id}: invalid summary length`);
