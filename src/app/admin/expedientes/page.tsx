@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { PageHeader, btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
+import { PageHeader, btnDanger, btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { db, useCollection } from "@/lib/admin/store";
 import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
@@ -9,7 +9,7 @@ import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 
-type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number };
+type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number; deleted_at?: string | null };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
 type Emision = { id: string; draft_version: number; created_at: string; sha256: string; plantillaVersion?: string };
 type Copia = { id: string; emission_id: string; created_at: string; sha256: string };
@@ -26,6 +26,8 @@ export default function ExpedientesPage() {
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
   const [expedientes, setExpedientes] = React.useState<Expediente[]>([]);
+  const [showDeleted, setShowDeleted] = React.useState(false);
+  const [notice, setNotice] = React.useState("");
   const [selectedId, setSelectedId] = React.useState("");
   const [documentos, setDocumentos] = React.useState<Documento[]>([]);
   const [documento, setDocumento] = React.useState<Documento | null>(null);
@@ -60,20 +62,42 @@ export default function ExpedientesPage() {
 
   React.useEffect(() => {
     let active = true;
-    json<{ expedientes: Expediente[] }>("/api/admin/expedientes")
+    json<{ expedientes: Expediente[] }>(showDeleted ? "/api/admin/expedientes?estado=eliminados" : "/api/admin/expedientes")
       .then((result) => { if (active) setExpedientes(result.expedientes); })
       .catch((cause) => { if (active) setError(String(cause)); });
     return () => { active = false; };
-  }, []);
+  }, [showDeleted]);
   React.useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedId || showDeleted) return;
     let active = true;
     json<{ documentos: Documento[] }>(`/api/admin/expedientes/${selectedId}/formatos`)
       .then((result) => { if (active) setDocumentos(result.documentos); })
       .catch((cause) => { if (active) setError(String(cause)); });
     return () => { active = false; };
-  }, [selectedId]);
+  }, [selectedId, showDeleted]);
 
+  function changeList(deleted: boolean) {
+    if (!canNavigate() || pdfBusy) return;
+    selectExpediente(""); setExpedientes([]); setShowDeleted(deleted); setNotice("");
+  }
+  async function changeExpedienteState() {
+    if (!selected || !canNavigate() || pdfBusy) return;
+    const remove = !selected.deleted_at;
+    if (remove && !window.confirm(
+      "¿Eliminar el expediente " + selected.folio + "? Se moverá a Eliminados con sus formatos y PDF. Podrás restaurarlo desde esa vista."
+    )) return;
+    setError(""); setNotice(""); setBusy(true);
+    try {
+      await json<{ expediente: Expediente }>("/api/admin/expedientes/" + selected.id, {
+        method: remove ? "DELETE" : "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version: selected.version }),
+      });
+      generation.current++;
+      setExpedientes(items => items.filter(item => item.id !== selected.id));
+      setSelectedId(""); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]);
+      setNotice(remove ? "Expediente eliminado. Puedes recuperarlo en Eliminados." : "Expediente restaurado. Está disponible en Activos.");
+    } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
+  }
   async function createExpediente(event: React.FormEvent<HTMLFormElement>) {
     const formElement = event.currentTarget;
     event.preventDefault(); if (!canNavigate()) return; setError(""); setBusy(true);
@@ -207,7 +231,8 @@ export default function ExpedientesPage() {
     <PageHeader title="Expedientes y formatos" description="Catálogo de 25 formatos exclusivos. Cada PDF requiere captura completa y cotejo con el original." />
     <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"><p>{FORMATOS.filter(item => item.readyForEmission && !item.globalRoute).length} formatos admiten emisión por expediente, sujeta a captura y revisión completas.</p><p><a href="/admin/control-comercial" className="text-primary underline">03 · Control comercial global</a>: carteras, historial y PDF desde su propio módulo.</p><p>09 · Intermediación: puedes preparar la captura; su PDF requiere registro y cotejo del modelo registrado.</p></div>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
-    <section className="rounded-lg border border-border bg-card p-5">
+    {notice && <p role="status" className="rounded-md border border-border p-3 text-sm">{notice}</p>}
+    {!showDeleted && <section className="rounded-lg border border-border bg-card p-5">
       <h2 className="display-soft mb-4 text-xl">Nuevo expediente</h2>
       <form onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
         <label className="text-sm">Cliente<select name="clienteId" required className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
@@ -217,21 +242,30 @@ export default function ExpedientesPage() {
         <label className="text-sm">Unidad, si aplica<input name="unidad" className={inputClass} /></label>
         <button type="submit" disabled={busy || hasUnsavedChanges} className={btnPrimary + " self-end"}>Crear expediente</button>
       </form>
-    </section>
+    </section>}
     <section className="grid gap-6 lg:grid-cols-[minmax(240px,340px)_1fr]">
       <div className="rounded-lg border border-border bg-card p-5">
         <h2 className="display-soft mb-4 text-xl">Expedientes</h2>
-        {expedientes.length === 0 && <p className="text-sm text-muted-foreground">Aún no hay expedientes visibles para tu cuenta.</p>}
+        <div className="mb-4 flex flex-wrap gap-2" aria-label="Estado de los expedientes">
+          <button type="button" className={showDeleted ? btnGhost : btnPrimary} aria-pressed={!showDeleted} disabled={busy || pdfBusy} onClick={() => { if (showDeleted) changeList(false); }}>Activos</button>
+          <button type="button" className={showDeleted ? btnPrimary : btnGhost} aria-pressed={showDeleted} disabled={busy || pdfBusy} onClick={() => { if (!showDeleted) changeList(true); }}>Eliminados</button>
+        </div>
+        {expedientes.length === 0 && <p className="text-sm text-muted-foreground">{showDeleted ? "No hay expedientes eliminados visibles para tu cuenta." : "Aún no hay expedientes activos visibles para tu cuenta."}</p>}
         <div className="space-y-2">{expedientes.map((item) => <button key={item.id} type="button" disabled={busy} onClick={() => selectExpediente(item.id)} className={`w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? item.cliente_id}</span></button>)}</div>
       </div>
       <div className="space-y-6">{selected && <>
         <section className="rounded-lg border border-border bg-card p-5">
-          <h2 className="display-soft mb-3 text-xl">{selected.folio}</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="display-soft text-xl">{selected.folio}</h2>
+            <button type="button" disabled={busy || pdfBusy} onClick={changeExpedienteState} className={selected.deleted_at ? btnPrimary : btnDanger}>{selected.deleted_at ? "Restaurar expediente" : "Eliminar expediente"}</button>
+          </div>
+          {selected.deleted_at ? <p className="text-sm text-muted-foreground">Este expediente está en Eliminados. Restaúralo para consultar o editar sus formatos y PDF.</p> : <>
           <form onSubmit={createDocumento} className="flex flex-wrap items-end gap-3">
             <label className="min-w-[240px] flex-1 text-sm">Formato<select name="formatoId" required className={selectClass}>{FORMATOS.filter(item => !item.globalRoute).map((item) => <option key={item.id} value={item.id}>{item.id} · {item.title}</option>)}</select></label>
             <button type="submit" disabled={busy || hasUnsavedChanges} className={btnPrimary}>Crear borrador</button>
           </form>
           <div className="mt-5 flex flex-wrap gap-2">{documentos.map((item) => <button key={item.id} type="button" disabled={busy} onClick={() => openDocumento(item.id)} className={btnGhost}>{item.formato_id} · {formatoById(item.formato_id).title} · v{item.version}</button>)}</div>
+          </>}
         </section>
         {documento && definition && <section className="rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft mb-2 text-xl">{definition.title}</h2>

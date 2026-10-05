@@ -32,7 +32,7 @@ jobs:
       - name: Public motion, responsive layout and accessibility
         run: npm run test:public:browser
       - name: Production browser tests with backend unavailable
-        run: npm run test:admin:browser -- tests/admin/browser/fortius-inmuebles-production.spec.ts tests/admin/browser/panel.spec.ts
+        run: npm run test:admin:browser -- tests/admin/browser/fortius-inmuebles-production.spec.ts tests/admin/browser/panel.spec.ts tests/admin/browser/expediente-deletion.spec.ts
       - name: Public form browser tests with leads enabled
         env:
           FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED: "true"
