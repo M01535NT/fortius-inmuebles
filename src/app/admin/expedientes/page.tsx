@@ -6,6 +6,7 @@ import { db, useCollection } from "@/lib/admin/store";
 import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
+import { downloadAdminPdf } from "@/lib/admin/download-pdf";
 
 type Expediente = { id: string; cliente_id: string; asesor_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; version: number };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
@@ -33,6 +34,7 @@ export default function ExpedientesPage() {
   const [adjuntos, setAdjuntos] = React.useState<Adjunto[]>([]);
   const [error, setError] = React.useState("");
   const [busy, updateBusy] = React.useState(false);
+  const [pdfBusy, setPdfBusy] = React.useState(false);
   const working = React.useRef(false);
   const generation = React.useRef(0);
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
@@ -91,7 +93,16 @@ export default function ExpedientesPage() {
     event.preventDefault(); if (!canNavigate()) return; setError(""); setBusy(true);
     try {
       const formatoId = String(new FormData(event.currentTarget).get("formatoId"));
-      const initialData = formatoId === "08" ? { erogaciones: CARGOS_NETO.map((item) => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) } : {};
+      const cliente = clientes.find(item => item.id === selected?.cliente_id);
+      const today = new Date();
+      const initialData = formatoId === "01" ? {
+        titular: cliente?.nombre ?? "",
+        tipoTitular: cliente && ["propietario", "comprador", "arrendatario"].includes(cliente.tipo) ? cliente.tipo : "otro",
+        operacion: ({ venta: "Venta", renta: "Renta", administracion: "Administración", otra: "Otra" } as Record<string, string>)[selected?.operacion ?? ""] ?? "",
+        fechaEmision: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
+        consentimientoPatrimonial: "pendiente", consentimientoPublicidad: "pendiente",
+        transferenciaAsesor: "pendiente", transferenciaFinanciera: "pendiente", transferenciaOperacion: "pendiente", acuseEstado: "pendiente",
+      } : formatoId === "08" ? { erogaciones: CARGOS_NETO.map((item) => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) } : {};
       const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${selectedId}/formatos`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ formatoId, data: initialData }),
       });
@@ -138,6 +149,32 @@ export default function ExpedientesPage() {
       const result = await json<{ emision: Emision }>(`/api/admin/formatos/${documento.id}/emitir`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: documento.version }) });
       setEmisiones((items) => [result.emision, ...items]);
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
+  }
+  async function saveAndDownloadAviso() {
+    if (!documento || documento.formato_id !== "01" || working.current) return;
+    if (validateFormato("01", { ...values, folio: selected?.folio }).length) return;
+    setError(""); setBusy(true); setPdfBusy(true);
+    try {
+      let saved = documento;
+      if (hasUnsavedChanges) {
+        const result = await json<{ documento: Documento }>(`/api/admin/formatos/${documento.id}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: documento.version, data: values }),
+        });
+        saved = result.documento;
+        setDocumento(saved); setValues(saved.data);
+        setDocumentos(items => items.map(item => item.id === saved.id ? saved : item));
+      }
+      let emission = emisiones.find(item => item.draft_version === saved.version);
+      if (!emission) {
+        const result = await json<{ emision: Emision }>(`/api/admin/formatos/${saved.id}/emitir`, {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: saved.version }),
+        });
+        emission = result.emision;
+        setEmisiones(items => [result.emision, ...items]);
+      }
+      await downloadAdminPdf(`/api/admin/emisiones/${emission.id}/descargar`, `Fortius-Aviso-de-privacidad-v${saved.version}.pdf`);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo descargar el aviso"); }
+    finally { setBusy(false); setPdfBusy(false); }
   }
   async function uploadSignedCopy(emissionId: string, event: React.FormEvent<HTMLFormElement>) {
     const formElement = event.currentTarget;
@@ -198,7 +235,7 @@ export default function ExpedientesPage() {
           <h2 className="display-soft mb-2 text-xl">{definition.title}</h2>
           <p className="mb-5 text-sm text-muted-foreground">{definition.source} · Borrador v{documento.version}</p>
           <fieldset disabled={busy} className="min-w-0">
-          <FormatoEditor definition={definition} values={{ ...values, folio: selected.folio }} images={adjuntos} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
+          <FormatoEditor key={documento.id} definition={definition} values={{ ...values, folio: selected.folio }} images={adjuntos} onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
           {["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07"].includes(definition.id) && <div className="mt-6 rounded-lg border border-border p-4">
             <h3 className="font-semibold">Fotografías y croquis privados</h3>
             <p className="mt-1 text-sm text-muted-foreground">Registra la procedencia y fecha de cada imagen. Selecciona la fotografía principal y el croquis que aparecerán en el PDF, y guarda esa selección antes de emitir. La opinión 07 exige fecha para sus fotografías.</p>
@@ -216,10 +253,14 @@ export default function ExpedientesPage() {
           {missing.length > 0 && <p className="mt-5 text-sm text-muted-foreground">Para emitir faltan: {missing.join(", ")}.</p>}
           {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {budgetTotals.subtotalCotizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${budgetTotals.importeAutorizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${String(values.moneda)}`}</p><p>Estimación con reserva: {budgetTotals.estimacionConReserva.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Pagado: {budgetTotals.totalPagado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p></div>}
           {netTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Neto estimado</h3><p>Precio usado: {netTotals.precioBase.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p>Erogaciones: {netTotals.erogaciones.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p className="font-semibold">Neto: {netTotals.netoEstimado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p></div>}
-          {hasUnsavedChanges && <p className="mt-5 text-sm text-muted-foreground">Guarda los cambios antes de emitir el PDF.</p>}
+          {hasUnsavedChanges && <p className="mt-5 text-sm text-muted-foreground">{definition.id === "01" ? "Al descargar el PDF se guardarán los datos que estás viendo." : "Guarda los cambios antes de emitir el PDF."}</p>}
           {hasUnsavedChanges && <button type="button" disabled={busy} className={btnGhost + " mt-3"} onClick={() => { if (window.confirm("¿Descartar los cambios sin guardar de este borrador?")) { setValues(documento.data); setError(""); } }}>Descartar cambios sin guardar</button>}
           {!definition.readyForEmission && <p className="mt-5 text-sm text-muted-foreground">Este formato está pendiente de cotejo con el original; la emisión permanece bloqueada.</p>}
-          <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={saveDocumento} disabled={busy} className={btnPrimary}>Guardar borrador</button><button type="button" onClick={emitDocumento} disabled={busy || hasUnsavedChanges || missing.length > 0 || !definition.readyForEmission} className={btnGhost}>Emitir PDF de los datos guardados</button></div>
+          <div className="mt-5 flex flex-wrap gap-3">{definition.id === "01" ? <>
+            <button type="button" onClick={saveAndDownloadAviso} disabled={busy || missing.length > 0} className={btnPrimary}>{pdfBusy ? "Preparando PDF…" : "Guardar y descargar PDF"}</button>
+            <button type="button" onClick={saveDocumento} disabled={busy} className={btnGhost}>Guardar borrador</button>
+          </> : <><button type="button" onClick={saveDocumento} disabled={busy} className={btnPrimary}>Guardar borrador</button><button type="button" onClick={emitDocumento} disabled={busy || hasUnsavedChanges || missing.length > 0 || !definition.readyForEmission} className={btnGhost}>Emitir PDF de los datos guardados</button></>}</div>
+          {definition.id === "01" && !hasUnsavedChanges && emisiones.some(item => item.draft_version === documento.version) && <p role="status" className="mt-3 text-sm"><a className="text-primary underline" href={`/api/admin/emisiones/${emisiones.find(item => item.draft_version === documento.version)!.id}/descargar`}>Descargar PDF del aviso</a> · Versión {documento.version}</p>}
           {emisiones.length > 0 && <div className="mt-6 border-t border-border pt-4"><h3 className="font-semibold">Emisiones archivadas</h3><ul className="mt-2 space-y-5">{emisiones.map((item) => <li key={item.id} className="rounded-md border border-border p-3"><a className="text-primary underline" href={`/api/admin/emisiones/${item.id}/descargar`}>PDF emitido · versión {item.draft_version} · {new Date(item.created_at).toLocaleString("es-MX")}</a><form onSubmit={(event) => uploadSignedCopy(item.id, event)} className="mt-3 flex flex-wrap items-end gap-2"><label className="text-sm">Adjuntar copia firmada externamente<input name="archivo" type="file" accept="application/pdf,.pdf" required className={inputClass} /></label><button type="submit" disabled={busy} className={btnGhost}>Archivar copia</button></form>{(copias[item.id] ?? []).map((copy) => <a key={copy.id} className="mt-2 block text-sm text-primary underline" href={`/api/admin/copias-firmadas/${copy.id}/descargar`}>Copia firmada adjunta · {new Date(copy.created_at).toLocaleString("es-MX")}</a>)}</li>)}</ul></div>}
           </fieldset>
         </section>}

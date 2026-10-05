@@ -1,5 +1,6 @@
 "use client";
 import { Fragment } from "react";
+import { AvisoEditor } from "./aviso-editor";
 import type { FormatoDefinition } from "@/lib/formatos/catalog";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { BudgetRowsEditor } from "@/components/admin/budget-rows-editor";
@@ -13,7 +14,6 @@ import { ReporteRowsEditor } from "@/components/admin/reporte-rows-editor";
 import { REPORTE_TABLES, type ReporteTable } from "@/lib/formatos/reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable } from "@/lib/formatos/entrevista";
 import { EntrevistaRowsEditor } from "@/components/admin/entrevista-rows-editor";
-import { mostrarCampoAviso } from "@/lib/formatos/aviso";
 import { JuridicaRowsEditor } from "@/components/admin/juridica-rows-editor";
 import { JURIDICA_TABLES, type JuridicaTable } from "@/lib/formatos/juridica";
 import { isLevantamiento, LEVANTAMIENTO_TABLES, type LevantamientoTable } from "@/lib/formatos/levantamiento";
@@ -34,7 +34,8 @@ export function FormatoEditor({ definition, values, onChange, images }: {
   onChange: (key: string, value: unknown) => void;
   images?: { id: string; kind: string; caption: string }[];
 }) {
-  const shownFields = definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.fields;
+  if (definition.id === "01") return <AvisoEditor definition={definition} values={values} onChange={onChange} />;
+  const shownFields = definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.fields;
   return <div className="grid gap-5 md:grid-cols-2">
     {shownFields.map((field, index) => {
       const isOffer = definition.id === "14";
