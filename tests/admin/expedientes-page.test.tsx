@@ -63,3 +63,44 @@ it("evita que una apertura lenta se mezcle con otro documento", async () => {
   await act(async () => complete(Response.json({ documento: a, emisiones: [] })));
   await waitFor(() => expect((screen.getByLabelText("Quien paga") as HTMLInputElement).value).toBe("Cliente A"));
 });
+
+it("exige confirmación para eliminar y permite restaurar desde Eliminados",async()=>{
+  let removed=false, version=1;
+  const requests:string[]=[];
+  vi.stubGlobal("confirm",vi.fn().mockReturnValueOnce(false).mockReturnValue(true));
+  vi.stubGlobal("fetch",async(url:string,init?:RequestInit)=>{
+    if(init?.method==="DELETE" || init?.method==="PATCH"){
+      requests.push(init.method);expect(JSON.parse(String(init.body))).toEqual({version});
+      removed=init.method==="DELETE";version++;
+      return Response.json({expediente:{...exp,deleted_at:removed?"2026-10-05T05:30:00Z":null,version}});
+    }
+    if(url.endsWith("/formatos"))return Response.json({documentos:[]});
+    return Response.json({expedientes:(url.includes("estado=eliminados")===removed)?[{...exp,deleted_at:removed?"2026-10-05T05:30:00Z":null,version}]:[]});
+  });
+  render(<ExpedientesPage/>);
+  fireEvent.click(await screen.findByRole("button",{name:/EXP-A/}));
+  fireEvent.click(screen.getByRole("button",{name:"Eliminar expediente"}));
+  expect(requests).toEqual([]);
+  fireEvent.click(screen.getByRole("button",{name:"Eliminar expediente"}));
+  await waitFor(()=>expect(screen.queryByRole("button",{name:/EXP-A/})).toBeNull());
+  fireEvent.click(screen.getByRole("button",{name:"Eliminados"}));
+  fireEvent.click(await screen.findByRole("button",{name:/EXP-A/}));
+  expect(screen.queryByRole("button",{name:"Crear borrador"})).toBeNull();
+  fireEvent.click(screen.getByRole("button",{name:"Restaurar expediente"}));
+  await waitFor(()=>expect(requests).toEqual(["DELETE","PATCH"]));
+  await waitFor(()=>expect(screen.queryByRole("button",{name:/EXP-A/})).toBeNull());
+  fireEvent.click(screen.getByRole("button",{name:"Activos"}));
+  expect(await screen.findByRole("button",{name:/EXP-A/})).toBeTruthy();
+});
+it("no elimina si hay cambios sin guardar y conserva el expediente ante un fallo",async()=>{
+  fixture();const field=await openA();fireEvent.change(field,{target:{value:"Pendiente"}});
+  vi.stubGlobal("confirm",()=>true);
+  fireEvent.click(screen.getByRole("button",{name:"Eliminar expediente"}));
+  expect(screen.getByRole("alert").textContent).toMatch(/guarda.*descarta/i);
+  expect((screen.getByLabelText("Quien paga") as HTMLInputElement).value).toBe("Pendiente");
+  fireEvent.click(screen.getByRole("button",{name:"Descartar cambios sin guardar"}));
+  vi.stubGlobal("fetch",async()=>Response.json({error:"El expediente cambió; recarga antes de continuar"},{status:409}));
+  fireEvent.click(screen.getByRole("button",{name:"Eliminar expediente"}));
+  await waitFor(()=>expect(screen.getByRole("alert").textContent).toMatch(/recarga/));
+  expect(screen.getByRole("button",{name:/EXP-A/})).toBeTruthy();
+});

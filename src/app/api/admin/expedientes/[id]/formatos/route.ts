@@ -8,7 +8,7 @@ export async function GET(_request: Request, context: Context) {
   return apiResponse(async () => {
     const id = z.uuid().parse((await context.params).id);
     const { client } = await requireStaff();
-    const parent = await client.from("fortius_inmuebles_expedientes").select("id").eq("id", id).maybeSingle();
+    const parent = await client.from("fortius_inmuebles_expedientes").select("id").eq("id", id).is("deleted_at", null).maybeSingle();
     if (parent.error) databaseError(parent.error);
     if (!parent.data) throw new ApiError(404, "Expediente no encontrado");
     const { data, error } = await client.from("fortius_inmuebles_formato_drafts").select("id,expediente_id,formato_id,data,version,created_at,updated_at").eq("expediente_id", id).order("created_at", { ascending: false });
