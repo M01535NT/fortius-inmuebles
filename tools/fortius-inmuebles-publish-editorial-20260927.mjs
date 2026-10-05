@@ -12,7 +12,7 @@ const targets = await Promise.all(entries.map(async ({ file, previous, ...metada
   previous: previous ?? null,
 })));
 assert(targets.length === 6 && new Set(targets.map(x => x.post.slug)).size === 6, 'Expected six unique topics');
-const expectedPrevious = new Set(['fortius-inmuebles-news-20260923-01', 'fortius-inmuebles-news-20260924-02']);
+const expectedPrevious = new Set(['mnt-news-20260923-01', 'mnt-news-20260924-02']);
 const sourceHosts = new Set(['www.gob.mx', 'www.bajacalifornia.gob.mx', 'www.tijuana.gob.mx', 'apps.tijuana.gob.mx', 'fovissste.gob.mx', 'retys.bajacalifornia.gob.mx', 'www.diputados.gob.mx', 'www.sat.gob.mx']);
 for (const { post, previous } of targets) {
   assert(Boolean(previous) === expectedPrevious.has(post.id), 'Unexpected update target');
