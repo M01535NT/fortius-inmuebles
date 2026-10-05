@@ -33,4 +33,5 @@ next-env.d.ts
 /.superpowers/
 /tmp/
 /.claude/
+/supabase/.temp/
 /financial-source-report.json
