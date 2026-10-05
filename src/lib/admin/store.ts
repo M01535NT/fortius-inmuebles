@@ -72,6 +72,9 @@ export type Lead = {
   asesorId?: string;
   creadoEl: string; // ISO
   notas: LeadNota[];
+  clienteId?: string;
+  convertidoEl?: string;
+  convertidoPor?: string;
 };
 
 export const EVENTO_TIPOS = [
@@ -249,6 +252,7 @@ export type Collection<T extends object> = {
   state(): LoadState;
   version(item: T | string): number | null;
   put(item: T, version: number | null): Promise<T>;
+  acknowledge(record: StoredRecord<T>): Promise<void>;
   remove(id: string, version: number): Promise<void>;
   clear(): void;
   subscribe(cb: () => void): () => void;
@@ -369,6 +373,21 @@ function collection<T extends object>(
       emit();
       return result.record.data;
     },
+    async acknowledge(record) {
+      const epoch = sessionEpoch;
+      generation++;
+      pending = null;
+      snapshots.set(record.data, record.version);
+      if ((versions.get(record.id) ?? 0) > record.version || needsRevalidation) {
+        await reconcile(epoch);
+        return;
+      }
+      cache = [record.data, ...cache.filter(item => identify(item) !== record.id)];
+      versions.set(record.id, record.version);
+      cacheRevision++;
+      state = { status: "ready", error: null, loaded: true };
+      emit();
+    },
     async remove(id, version) {
       const epoch = sessionEpoch;
       const revision = cacheRevision;
@@ -405,6 +424,19 @@ export const db = {
   notas: collection<Nota>("notas", byId),
   archivos: collection<Archivo>("archivos", byId),
 };
+export async function convertirLead(lead: Lead): Promise<Cliente> {
+  const version = db.leads.version(lead);
+  if (!version) throw new Error("Vuelve a cargar el lead antes de convertirlo.");
+  const epoch = sessionEpoch;
+  const result = await apiRequest<{ cliente: StoredRecord<Cliente>; lead: StoredRecord<Lead> }>(
+    `/api/admin/leads/${encodeURIComponent(lead.id)}/convertir`, "POST", { version },
+  );
+  if (epoch !== sessionEpoch) throw new AdminApiError(401, "La sesión cambió; vuelve a entrar.");
+  await db.leads.acknowledge(result.lead);
+  if (epoch !== sessionEpoch) throw new AdminApiError(401, "La sesión cambió; vuelve a entrar.");
+  await db.clientes.acknowledge(result.cliente);
+  return result.cliente.data;
+}
 export function useCollection<T extends object>(col: Collection<T>): T[] {
   React.useEffect(() => {
     if (col.state().status === "idle") void col.load().catch(() => {});

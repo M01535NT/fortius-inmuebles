@@ -1,156 +1,24 @@
 "use client";
 import * as React from "react";
+import Link from "next/link";
+import { ClienteEditor, CLIENTE_TIPO_LABELS as TIPOS } from "@/components/admin/cliente-editor";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
-  AsyncForm,
   AsyncButton,
   PageHeader,
-  Field,
   EmptyState,
   Badge,
   btnPrimary,
   btnGhost,
   inputClass,
-  selectClass,
-  textareaClass,
 } from "@/components/admin/ui";
 import {
   db,
   useCollection,
-  upsert,
   removeById,
-  uid,
   type Cliente,
 } from "@/lib/admin/store";
 
-const TIPOS: Record<Cliente["tipo"], string> = {
-  propietario: "Propietario",
-  comprador: "Comprador",
-  arrendador: "Arrendador",
-  arrendatario: "Arrendatario",
-  otro: "Otro",
-};
-function Editor({
-  initial,
-  onDone,
-}: {
-  initial?: Cliente;
-  onDone: () => void;
-}) {
-  const [cliente] = React.useState(initial);
-  const [version] = React.useState(() =>
-    initial ? db.clientes.version(initial) : null,
-  );
-  const asesores = useCollection(db.asesores);
-  return (
-    <AsyncForm
-      className="space-y-4 rounded-lg border border-border bg-card p-5"
-      onSubmit={async (e) => {
-        const data = new FormData(e.currentTarget);
-        const v = (key: string) => String(data.get(key) ?? "").trim();
-        const now = new Date().toISOString();
-        await upsert(
-          db.clientes,
-          {
-            ...cliente,
-            id: cliente?.id ?? uid(),
-            nombre: v("nombre"),
-            telefono: v("telefono"),
-            email: v("email") || undefined,
-            tipo: v("tipo") as Cliente["tipo"],
-            asesorId: v("asesorId") || undefined,
-            notas: v("notas"),
-            creadoEl: cliente?.creadoEl ?? now,
-            actualizadoEl: now,
-          },
-          version,
-        );
-        onDone();
-      }}
-    >
-      <h2 className="display-soft text-lg">
-        {cliente ? "Editar cliente" : "Nuevo cliente"}
-      </h2>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Nombre" htmlFor="cl-nombre">
-          <input
-            id="cl-nombre"
-            name="nombre"
-            required
-            defaultValue={cliente?.nombre}
-            className={inputClass}
-          />
-        </Field>
-        <Field label="Teléfono" htmlFor="cl-telefono">
-          <input
-            id="cl-telefono"
-            name="telefono"
-            type="tel"
-            required
-            defaultValue={cliente?.telefono}
-            className={inputClass}
-          />
-        </Field>
-        <Field label="Correo" htmlFor="cl-email">
-          <input
-            id="cl-email"
-            name="email"
-            type="email"
-            defaultValue={cliente?.email}
-            className={inputClass}
-          />
-        </Field>
-        <Field label="Tipo de cliente" htmlFor="cl-tipo">
-          <select
-            id="cl-tipo"
-            name="tipo"
-            defaultValue={cliente?.tipo ?? "otro"}
-            className={selectClass}
-          >
-            {Object.entries(TIPOS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Asesor responsable" htmlFor="cl-asesor">
-          <select
-            id="cl-asesor"
-            name="asesorId"
-            defaultValue={cliente?.asesorId ?? ""}
-            className={selectClass}
-          >
-            <option value="">Sin asignar</option>
-            {asesores.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nombre}
-                {a.activo ? "" : " (inactivo)"}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-      <Field label="Notas" htmlFor="cl-notas">
-        <textarea
-          id="cl-notas"
-          name="notas"
-          rows={4}
-          defaultValue={cliente?.notas}
-          className={textareaClass}
-        />
-      </Field>
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" className={btnPrimary}>
-          Guardar cliente
-        </button>
-        <button type="button" onClick={onDone} className={btnGhost}>
-          Cancelar
-        </button>
-      </div>
-    </AsyncForm>
-  );
-}
 export default function ClientesPage() {
   const clientes = useCollection(db.clientes);
   const [editing, setEditing] = React.useState<Cliente | "nuevo" | null>(null);
@@ -173,7 +41,7 @@ export default function ClientesPage() {
         }
       />
       {editing ? (
-        <Editor
+        <ClienteEditor
           key={editing === "nuevo" ? "nuevo" : editing.id}
           initial={editing === "nuevo" ? undefined : editing}
           onDone={() => setEditing(null)}
@@ -197,9 +65,10 @@ export default function ClientesPage() {
               className="flex flex-wrap items-center justify-between gap-3 p-4"
             >
               <div className="min-w-0">
-                <p className="font-medium">
-                  {cliente.nombre} <Badge>{TIPOS[cliente.tipo]}</Badge>
+                <p className="font-medium [overflow-wrap:anywhere]">
+                  <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center hover:text-primary">{cliente.nombre}</Link> <Badge>{TIPOS[cliente.tipo]}</Badge>
                 </p>
+                {cliente.leadId ? <p className="text-xs text-muted-foreground">Convertido desde un lead · perfil e historial conservados</p> : null}
                 <p className="break-words text-sm text-muted-foreground">
                   {cliente.telefono}{" "}
                   {cliente.email ? " · " + cliente.email : ""}
@@ -213,7 +82,7 @@ export default function ClientesPage() {
                 >
                   <Pencil className="size-4" />
                 </button>
-                <AsyncButton
+                {!cliente.leadId ? <AsyncButton
                   aria-label={"Eliminar " + cliente.nombre}
                   className={btnGhost}
                   onClick={async () => {
@@ -226,7 +95,7 @@ export default function ClientesPage() {
                   }}
                 >
                   <Trash2 className="size-4" />
-                </AsyncButton>
+                </AsyncButton> : null}
               </div>
             </li>
           ))}

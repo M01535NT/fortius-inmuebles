@@ -8,7 +8,7 @@ import { leadProfileSchema, LEAD_PROFILE_OPTIONS, type LeadProfile } from "@/lib
 const numericFields = ["presupuestoMin", "presupuestoMax", "superficieMin", "superficieMax", "recamaras", "estacionamientos"] as const;
 const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "plazo", "proximoContacto"] as const;
 
-export function readLeadFields(form: HTMLFormElement, base?: Lead) {
+export function readLeadFields(form: HTMLFormElement, base?: Pick<Lead, "perfil">) {
   const data = new FormData(form);
   const profile: Record<string, unknown> = { ...base?.perfil };
   for (const key of numericFields) {
@@ -27,7 +27,7 @@ export function readLeadFields(form: HTMLFormElement, base?: Lead) {
   };
 }
 
-export function LeadFields({ lead, nombreRef }: { lead?: Lead; nombreRef?: React.Ref<HTMLInputElement> }) {
+export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "telefono" | "email" | "perfil" | "zona" | "tipoPropiedad" | "propiedadSlug" | "asesorId" | "mensaje">; nombreRef?: React.Ref<HTMLInputElement> }) {
   const prefix = React.useId();
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);

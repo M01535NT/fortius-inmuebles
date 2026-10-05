@@ -51,11 +51,18 @@ test('task reference deletion protection and legacy events stay operational',asy
 });
 test('all task reference kinds retain foreign key guards',async()=>{
   await db.exec('reset role');
+  await db.query("select set_config('request.jwt.claim.sub','',false)");
   for(const [collection,id] of [['leads','lead-ref'],['clientes','client-ref'],['propiedades','property-ref']]) await db.query('insert into public.mnt_records(collection,id,data) values($1,$2,$3::jsonb)',[collection,id,JSON.stringify({id})]);
+  // The new client privacy policy reserves unassigned records for admins.
+  await db.query("update public.mnt_staff set role='admin' where user_id=$1",[member]);
   await db.exec('set role authenticated');
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)",[member]);
   await put({...base,id:'all-refs',leadId:'lead-ref',clienteId:'client-ref',propiedadSlug:'property-ref'});
   for(const [collection,id] of [['leads','lead-ref'],['clientes','client-ref'],['propiedades','property-ref']]) await expect(db.query('select public.mnt_delete_record($1,$2,1)',[collection,id])).rejects.toMatchObject({code:'PT409'});
   await expect(db.query("select public.mnt_delete_record('tareas','all-refs',2)")).rejects.toMatchObject({code:'PT409'});
+  await db.exec('reset role');
+  await db.query("update public.mnt_staff set role='editor' where user_id=$1",[member]);
+  await db.exec('set role authenticated');
 });
 test('private tasks never project publicly and unauthorized users cannot write',async()=>{
   await db.exec('reset role; set role anon');

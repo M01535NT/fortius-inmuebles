@@ -1,5 +1,6 @@
 "use client";
 import { LeadFields, readLeadFields } from "@/components/admin/lead-fields";
+import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
 import { AsyncForm, AsyncSelect } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -36,7 +37,7 @@ export default function AdminLeadsPage() {
   const router = useRouter();
   const leads = useCollection(db.leads);
   const asesores = useCollection(db.asesores);
-  const [estado, setEstado] = React.useState<LeadEstado | "todos">("todos");
+  const [estado, setEstado] = React.useState<LeadEstado | "todos" | "convertidos">("todos");
   const [busqueda, setBusqueda] = React.useState("");
   const [capturaAbierta, setCapturaAbierta] = React.useState(false);
   const [guardando, setGuardando] = React.useState(false);
@@ -47,7 +48,8 @@ export default function AdminLeadsPage() {
   }, [capturaAbierta]);
 
   const filtrados = leads
-    .filter((l) => estado === "todos" || l.estado === estado)
+    .filter((l) => estado === "convertidos" ? !!l.clienteId : !l.clienteId)
+    .filter((l) => estado === "todos" || estado === "convertidos" || l.estado === estado)
     .filter((l) => {
       const q = busqueda.trim().toLowerCase();
       if (!q) return true;
@@ -86,7 +88,7 @@ export default function AdminLeadsPage() {
     <div className="min-w-0 space-y-6">
       <PageHeader
         title="Leads."
-        description="Cada formulario del sitio captura aquí: evaluación, contacto, interés por propiedad, checklist y descargas de documentos."
+        description="Captura y da seguimiento a tus leads. Convierte un lead en cliente con sus datos e historial; consúltalo después en Convertidos."
         actions={
           <button
             type="button"
@@ -146,10 +148,10 @@ export default function AdminLeadsPage() {
                 : " border-border text-foreground/70 hover:bg-secondary")
             }
           >
-            Todos ({leads.length})
+            Todos ({leads.filter(l => !l.clienteId).length})
           </button>
           {LEAD_ESTADOS.map((e) => {
-            const count = leads.filter((l) => l.estado === e).length;
+            const count = leads.filter((l) => !l.clienteId && l.estado === e).length;
             return (
               <button
                 key={e}
@@ -167,6 +169,10 @@ export default function AdminLeadsPage() {
               </button>
             );
           })}
+          <button type="button" aria-pressed={estado === "convertidos"} onClick={() => setEstado("convertidos")}
+            className={chip + (estado === "convertidos" ? " border-primary/50 bg-secondary text-foreground" : " border-border text-foreground/70 hover:bg-secondary")}>
+            Convertidos ({leads.filter(l => !!l.clienteId).length})
+          </button>
         </div>
       </div>
 
@@ -215,6 +221,7 @@ export default function AdminLeadsPage() {
                     <p className="text-xs text-muted-foreground">Estado</p>
                     <LeadStatus lead={lead} />
                   </div>
+                  <ConvertLeadButton lead={lead} compact />
                 </li>
               );
             })}
@@ -228,6 +235,7 @@ export default function AdminLeadsPage() {
                   <th className="px-4 py-3 font-medium">Asesor</th>
                   <th className="px-4 py-3 font-medium">Recibido</th>
                   <th className="px-4 py-3 font-medium">Estado</th>
+                  <th className="px-4 py-3 font-medium">Cliente</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -264,6 +272,7 @@ export default function AdminLeadsPage() {
                       <td className="px-4 py-3">
                         <LeadStatus lead={lead} />
                       </td>
+                      <td className="px-4 py-3"><ConvertLeadButton lead={lead} compact /></td>
                     </tr>
                   );
                 })}
@@ -273,7 +282,7 @@ export default function AdminLeadsPage() {
         </>
       )}
 
-      {leads.some((l) => l.estado === "nuevo") ? (
+      {leads.some((l) => !l.clienteId && l.estado === "nuevo") ? (
         <p className="text-sm text-muted-foreground">
           <Badge tone="green">Tip</Badge> Abre cada lead para asignar asesor,
           registrar notas y agendar el siguiente contacto.
@@ -284,6 +293,7 @@ export default function AdminLeadsPage() {
 }
 
 function LeadStatus({ lead }: { lead: Lead }) {
+  if (lead.clienteId) return <Badge tone="green">Convertido en cliente</Badge>;
   return (
     <AsyncSelect
       aria-label={`Estado de ${lead.nombre}`}

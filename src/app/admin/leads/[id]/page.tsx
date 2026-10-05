@@ -1,5 +1,6 @@
 "use client";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
+import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
 import { AsyncForm, AsyncButton, AsyncSelect } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -56,6 +57,8 @@ function LeadDetail({ id }: { id: string }) {
   const propiedades = useCollection(db.propiedades);
   const eventos = useCollection(db.eventos);
   const [profileDraft, setProfileDraft] = React.useState<Lead | null>(null);
+  const [noteDirty, setNoteDirty] = React.useState(false);
+  const [agendaDirty, setAgendaDirty] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState<{
     lead: Lead;
     version: number | null;
@@ -102,6 +105,7 @@ function LeadDetail({ id }: { id: string }) {
     );
     form.reset();
     setNoteDraft(null);
+    setNoteDirty(false);
   }
 
   async function agendar(e: React.FormEvent<HTMLFormElement>) {
@@ -123,6 +127,7 @@ function LeadDetail({ id }: { id: string }) {
       null,
     );
     form.reset();
+    setAgendaDirty(false);
   }
 
   async function eliminar() {
@@ -146,13 +151,19 @@ function LeadDetail({ id }: { id: string }) {
         title={lead.nombre}
         description={`${LEAD_ORIGEN_LABELS[lead.origen]} · recibido el ${fechaCorta(lead.creadoEl)}`}
         actions={
-          <AsyncButton type="button" onClick={eliminar} className={btnDanger}>
-            <Trash2 className="size-3.5" strokeWidth={1.5} /> Eliminar
-          </AsyncButton>
+          <>
+            <ConvertLeadButton lead={lead} disabled={!!profileDraft || noteDirty || agendaDirty} />
+            {!lead.clienteId ? <AsyncButton type="button" onClick={eliminar} className={btnDanger}>
+              <Trash2 className="size-3.5" strokeWidth={1.5} /> Eliminar
+            </AsyncButton> : null}
+          </>
         }
       />
 
-      <LeadProfileEditor key={lead.id} lead={lead} onDraftChange={setProfileDraft} />
+      {profileDraft || noteDirty || agendaDirty ? <p role="status" className="text-sm text-muted-foreground">Guarda o cancela los cambios pendientes antes de convertir el lead.</p> : null}
+      {lead.clienteId ? <p className="text-sm text-muted-foreground">Convertido en cliente. Esta ficha conserva el historial y la agenda del lead.</p> : null}
+
+      <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
 
       {/* Pipeline */}
       <div
@@ -202,7 +213,8 @@ function LeadDetail({ id }: { id: string }) {
                   if (!noteDraft)
                     setNoteDraft({ lead, version: db.leads.version(lead) });
                 }}
-                onChange={() => {
+                onChange={(event) => {
+                  setNoteDirty(event.target.value.trim().length > 0);
                   if (!noteDraft)
                     setNoteDraft({ lead, version: db.leads.version(lead) });
                 }}
@@ -246,6 +258,10 @@ function LeadDetail({ id }: { id: string }) {
             </h2>
             <AsyncForm
               onSubmit={agendar}
+              onChange={(event) => {
+                const data = new FormData(event.currentTarget);
+                setAgendaDirty(["titulo", "fecha", "hora"].some(key => String(data.get(key) ?? "").trim() !== "") || data.get("tipo") !== EVENTO_TIPOS[0]);
+              }}
               className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
             >
               <Field label="Título" htmlFor="ev-titulo">
@@ -292,6 +308,10 @@ function LeadDetail({ id }: { id: string }) {
                   <CalendarPlus className="size-4" strokeWidth={1.5} />
                 </button>
               </div>
+              {agendaDirty ? <button type="button" className={btnGhost} onClick={(event) => {
+                event.currentTarget.form?.reset();
+                setAgendaDirty(false);
+              }}>Cancelar cita</button> : null}
             </AsyncForm>
 
             {eventosDelLead.length > 0 ? (
@@ -370,9 +390,10 @@ function LeadDetail({ id }: { id: string }) {
           <section className="rounded-lg border border-border bg-card p-5">
             <h2 className="display-soft text-lg text-foreground">Asignación</h2>
             <div className="mt-4 space-y-4">
-              <Field label="Asesor responsable" htmlFor="lead-asesor">
+              <Field label="Asesor responsable" htmlFor="lead-asesor" hint={lead.clienteId ? "Reasigna al asesor desde Clientes; el historial se conserva con el mismo responsable." : undefined}>
                 <AsyncSelect
                   id="lead-asesor"
+                  disabled={!!lead.clienteId}
                   value={lead.asesorId ?? ""}
                   onChange={async (value) =>
                     await upsert(

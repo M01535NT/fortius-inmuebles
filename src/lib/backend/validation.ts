@@ -56,8 +56,8 @@ export const recordSchemas = {
   tareas: taskSchema,
   propiedades: propertySchema,
   asesores: adviserSchema,
-  leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough(),
-  clientes: z.object({ id, nombre: name, telefono: phone, email, tipo: z.enum(["propietario", "comprador", "arrendador", "arrendatario", "otro"]), asesorId: reference, notas: text, creadoEl: date, actualizadoEl: date }).passthrough(),
+  leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500), clienteId: reference, convertidoEl: date.optional(), convertidoPor: reference }).passthrough(),
+  clientes: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), tipo: z.enum(["propietario", "comprador", "arrendador", "arrendatario", "otro"]), asesorId: reference, notas: text, creadoEl: date, actualizadoEl: date, leadId: reference, convertidoEl: date.optional(), convertidoPor: reference, leadOriginal: z.object({ id, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough().optional() }).passthrough(),
   eventos: z.object({ id, titulo: name, fecha: date, hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(), tipo: z.enum(["visita", "llamada", "firma", "reunion", "otro"]), leadId: reference, propiedadSlug: reference, clienteId: reference, notas: text.optional() }).passthrough(),
   notas: z.object({ id, titulo: name, texto: text, actualizadoEl: date }).passthrough(),
   posts: postSchema,
@@ -71,7 +71,9 @@ export function parseRecord(collection: CollectionName, recordId: string, value:
   id.parse(recordId);
   const data: Record<string, unknown> = recordSchemas[collection].parse(value);
   if ((collection === "contenido" || collection === "config") ? recordId !== "singleton" : data[collection === "propiedades" ? "slug" : "id"] !== recordId) throw new ApiError(400, "Identificador incongruente");
-  if (new TextEncoder().encode(JSON.stringify(data)).byteLength > 250000) throw new ApiError(413, "Registro demasiado grande");
+  // Keep room for server conversion metadata within the bounded request/DB.
+  const limit = (collection === "clientes" && data.leadId) || (collection === "leads" && data.clienteId) ? 260000 : 250000;
+  if (new TextEncoder().encode(JSON.stringify(data)).byteLength > limit) throw new ApiError(413, "Registro demasiado grande");
   if (collection === "propiedades" && data.publicada === true && !(data.galeria as unknown[]).length) throw new ApiError(400, "Publicar requiere al menos una imagen");
   return data;
 }

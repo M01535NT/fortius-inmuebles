@@ -20,7 +20,7 @@ import {
 */
 export default function AdminDashboard() {
   const propiedades = useCollection(db.propiedades);
-  const leads = useCollection(db.leads);
+  const leads = useCollection(db.leads).filter(lead => !lead.clienteId);
   const eventos = useCollection(db.eventos);
   const posts = useCollection(db.posts);
 

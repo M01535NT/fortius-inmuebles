@@ -50,6 +50,8 @@ const NAV = [
   { href: "/admin", label: "Panel", icon: LayoutDashboard },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2 },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
+  { href: "/admin/expedientes", label: "Expedientes", icon: FileText },
+  { href: "/admin/control-comercial", label: "Control comercial", icon: ClipboardList, adminOnly: true },
   { href: "/admin/leads", label: "Leads", icon: Users },
   { href: "/admin/tareas", label: "Tareas", icon: ClipboardList },
   { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },
@@ -350,7 +352,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   const links = (mobile = false) => (
     <>
-      {NAV.map(({ href, label, icon: Icon }) => (
+      {NAV.filter(item => !("adminOnly" in item && item.adminOnly) || session?.role === "admin").map(({ href, label, icon: Icon }) => (
         <Link
           key={href}
           href={href}
