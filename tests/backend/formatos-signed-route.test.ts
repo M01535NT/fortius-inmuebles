@@ -15,7 +15,7 @@ it("rechaza cargar una copia firmada sin acceso autenticado", async () => {
 
 it("rechaza archivos que no son PDF antes de usar almacenamiento privilegiado", async () => {
   const id = "51000000-0000-4000-8000-000000000012";
-  const client = { from: vi.fn((table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: table === "mnt_formato_emissions" ? { id, draft_id: "51000000-0000-4000-8000-000000000011" } : { expediente_id: "51000000-0000-4000-8000-000000000010" }, error: null }) }) }) })) };
+  const client = { from: vi.fn((table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: table === "fortius_inmuebles_formato_emissions" ? { id, draft_id: "51000000-0000-4000-8000-000000000011" } : { expediente_id: "51000000-0000-4000-8000-000000000010" }, error: null }) }) }) })) };
   requireStaff.mockResolvedValue({ client, user: { id: "51000000-0000-4000-8000-000000000002" } });
   createServerClient.mockClear();
   const form = new FormData();

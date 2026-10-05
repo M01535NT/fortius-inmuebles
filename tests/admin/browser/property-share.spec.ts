@@ -10,7 +10,7 @@ for (const width of [390, 1280]) {
     await page.goto("/inventario/residencia-vista-al-mar-renta");
     await page.getByRole("button", { name: "Compartir", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("Enlace copiado");
-    await expect(page.locator("html")).toHaveAttribute("data-copied", "https://mnt-inmuebles.vercel.app/inventario/residencia-vista-al-mar-renta");
+    await expect(page.locator("html")).toHaveAttribute("data-copied", "https://fortius-inmuebles.vercel.app/inventario/residencia-vista-al-mar-renta");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.goto("/");
     await expect(page.getByRole("button", { name: "Compartir", exact: true })).toHaveCount(0);

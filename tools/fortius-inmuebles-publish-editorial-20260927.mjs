@@ -8,11 +8,11 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const canonical = (v) => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;
 const digest = (v) => createHash('sha256').update(JSON.stringify(canonical(v)) ?? 'undefined').digest('hex');
 const targets = await Promise.all(entries.map(async ({ file, previous, ...metadata }) => ({
-  post: { ...metadata, autor: 'Redacción MNT Inmuebles', contenido: (await readFile(new URL(file, directory), 'utf8')).trim() },
+  post: { ...metadata, autor: 'Redacción Fortius Inmuebles', contenido: (await readFile(new URL(file, directory), 'utf8')).trim() },
   previous: previous ?? null,
 })));
 assert(targets.length === 6 && new Set(targets.map(x => x.post.slug)).size === 6, 'Expected six unique topics');
-const expectedPrevious = new Set(['mnt-news-20260923-01', 'mnt-news-20260924-02']);
+const expectedPrevious = new Set(['fortius-inmuebles-news-20260923-01', 'fortius-inmuebles-news-20260924-02']);
 const sourceHosts = new Set(['www.gob.mx', 'www.bajacalifornia.gob.mx', 'www.tijuana.gob.mx', 'apps.tijuana.gob.mx', 'fovissste.gob.mx', 'retys.bajacalifornia.gob.mx', 'www.diputados.gob.mx', 'www.sat.gob.mx']);
 for (const { post, previous } of targets) {
   assert(Boolean(previous) === expectedPrevious.has(post.id), 'Unexpected update target');
@@ -39,7 +39,7 @@ const anonymous = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env
 async function inventory() {
   const rows = [];
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await client.from('mnt_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
+    const { data, error } = await client.from('fortius_inmuebles_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
     if (error) throw new Error(`Inventory failed: ${error.code ?? error.message}`);
     rows.push(...data);
     if (data.length < 500) return rows;
@@ -57,7 +57,7 @@ for (const target of targets) {
     assert(row && row.data.estado === 'publicado' && row.data.slug === post.slug && digest(row.data.contenido) === previous.contenidoSha256 && row.data.titulo === previous.titulo, `Previous content changed: ${post.id}`);
   } else assert(!row, `Unexpected existing record: ${post.id}`);
   const data = { ...(row?.data ?? {}), ...post, estado: 'publicado', actualizadoEl: new Date().toISOString() };
-  const validation = await client.rpc('mnt_validate_record', { c: 'posts', record_id: post.id, d: data });
+  const validation = await client.rpc('fortius_inmuebles_validate_record', { c: 'posts', record_id: post.id, d: data });
   assert(!validation.error, `Validation failed: ${post.id} ${validation.error?.code ?? ''} ${validation.error?.message ?? ''}`);
   pending.push({ ...target, row, data });
 }
@@ -72,12 +72,12 @@ await writeFile(new URL('before.json', evidence), JSON.stringify(before, null, 2
 await writeFile(new URL('manifest.json', evidence), JSON.stringify(summary, null, 2));
 // Updates use the observed version and never replace unknown fields or first publication.
 for (const target of pending.filter(t => t.row)) {
-  const { data, error } = await client.from('mnt_records').update({ data: target.data, version: target.row.version + 1, updated_at: timestamp }).eq('collection', 'posts').eq('id', target.post.id).eq('version', target.row.version).select('id');
+  const { data, error } = await client.from('fortius_inmuebles_records').update({ data: target.data, version: target.row.version + 1, updated_at: timestamp }).eq('collection', 'posts').eq('id', target.post.id).eq('version', target.row.version).select('id');
   assert(!error && data?.length === 1, `Concurrent change or failed update: ${target.post.id}`);
 }
 const additions = pending.filter(t => !t.row).map(t => ({ collection: 'posts', id: t.post.id, data: t.data }));
 if (additions.length) {
-  const { error } = await client.from('mnt_records').insert(additions);
+  const { error } = await client.from('fortius_inmuebles_records').insert(additions);
   assert(!error, `Insert failed: ${error?.code ?? ''}; inspect state before retrying`);
 }
 const after = await inventory();
@@ -89,7 +89,7 @@ for (const old of before) {
   if (!targets.some(t => t.post.id === old.id)) assert(digest(old) === digest(current), 'Unrelated article changed');
   else assert(current.data.publicadoEl === old.data.publicadoEl, 'First publication changed');
 }
-const { data: publicRows, error } = await anonymous.rpc('mnt_public_records', { p_collection: 'posts' });
+const { data: publicRows, error } = await anonymous.rpc('fortius_inmuebles_public_records', { p_collection: 'posts' });
 assert(!error, 'Public read failed');
 for (const { post } of targets) assert(matches(publicRows.find(r => r.data.id === post.id), post), `Public content mismatch: ${post.id}`);
 console.log(JSON.stringify({ verified: 6, inserted: additions.length, updated: pending.filter(t => t.row).length, total: after.length, evidence: evidence.pathname }));

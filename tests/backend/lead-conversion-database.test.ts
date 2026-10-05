@@ -16,11 +16,11 @@ async function asUser<T>(user: string, action: () => Promise<T>) {
 const lead = (id: string, extra = {}) => ({ id, nombre: "Persona de prueba", telefono: "+52 664 123 4567", email: "prueba@example.invalid", origen: "manual", estado: "contactado", asesorId: "own", creadoEl: "2026-10-04T10:00:00Z", notas: [{ id: "n1", texto: "Seguimiento conservado", fecha: "2026-10-04" }], zona: "Otay", mensaje: "Consulta inicial", tipoPropiedad: "casa", perfil: { operacion: "comprar", presupuestoMax: 250000, moneda: "USD", formaPago: "credito", requisitos: "Acceso sin escalones", futureField: "conservar" }, datoFuturo: { detalle: "Conservar íntegro" }, ...extra });
 async function create(id: string, extra = {}) {
   const data = lead(id, extra);
-  await asUser(admin, () => db.query("select public.mnt_put_record('leads',$1,$2::jsonb,null)", [id, JSON.stringify(data)]));
+  await asUser(admin, () => db.query("select public.fortius_inmuebles_put_record('leads',$1,$2::jsonb,null)", [id, JSON.stringify(data)]));
   return data;
 }
 async function convert(id: string, version = 1) {
-  return (await db.query<{ result: { cliente: { id: string; data: Record<string, unknown>; version: number }; lead: { data: Record<string, unknown>; version: number } } }>("select public.mnt_convert_lead($1,$2) as result", [id, version])).rows[0].result;
+  return (await db.query<{ result: { cliente: { id: string; data: Record<string, unknown>; version: number }; lead: { data: Record<string, unknown>; version: number } } }>("select public.fortius_inmuebles_convert_lead($1,$2) as result", [id, version])).rows[0].result;
 }
 beforeAll(async () => {
   db = new PGlite();
@@ -34,9 +34,9 @@ beforeAll(async () => {
     insert into auth.users values ('${admin}'),('${own}'),('${other}'),('${outsider}');`);
   const dir = new URL("../../supabase/migrations/", import.meta.url);
   for (const file of (await readdir(dir)).filter((name) => name.endsWith(".sql")).sort()) await db.exec(await readFile(new URL(file, dir), "utf8"));
-  await db.exec(`insert into public.mnt_staff(user_id,role) values ('${admin}','admin'),('${own}','editor'),('${other}','editor');
-    insert into public.mnt_records(collection,id,data) values ('asesores','own','{"id":"own","nombre":"Ana","cargo":"Asesora","iniciales":"AA","activo":true}'),('asesores','other','{"id":"other","nombre":"Luis","cargo":"Asesor","iniciales":"LL","activo":true}');
-    insert into public.mnt_adviser_accounts(user_id,asesor_id) values ('${own}','own'),('${other}','other');`);
+  await db.exec(`insert into public.fortius_inmuebles_staff(user_id,role) values ('${admin}','admin'),('${own}','editor'),('${other}','editor');
+    insert into public.fortius_inmuebles_records(collection,id,data) values ('asesores','own','{"id":"own","nombre":"Ana","cargo":"Asesora","iniciales":"AA","activo":true}'),('asesores','other','{"id":"other","nombre":"Luis","cargo":"Asesor","iniciales":"LL","activo":true}');
+    insert into public.fortius_inmuebles_adviser_accounts(user_id,asesor_id) values ('${own}','own'),('${other}','other');`);
 });
 afterAll(async () => { await db?.close(); });
 
@@ -44,13 +44,13 @@ it("convierte atómicamente con todo el perfil, historial, contacto, asesor y ca
   const original = await create("rich");
   const result = await asUser(own, () => convert("rich"));
   expect(result.cliente.data).toMatchObject({ nombre: original.nombre, telefono: original.telefono, email: original.email, asesorId: "own", tipo: "comprador", perfil: original.perfil, zona: original.zona, tipoPropiedad: original.tipoPropiedad, mensaje: original.mensaje, datoFuturo: original.datoFuturo, leadId: "rich", leadOriginal: { id: original.id, creadoEl: original.creadoEl, notas: original.notas }, notas: "" });
-  expect((await db.query("select source_data from public.mnt_lead_conversions where lead_id='rich'")).rows).toEqual([{ source_data: original }]);
+  expect((await db.query("select source_data from public.fortius_inmuebles_lead_conversions where lead_id='rich'")).rows).toEqual([{ source_data: original }]);
   expect(result.lead.data).toMatchObject({ ...original, clienteId: result.cliente.id });
   expect(result.lead.version).toBe(2);
   expect(result.cliente.version).toBe(1);
   await asUser(own, async () => {
-    expect((await db.query("select id from public.mnt_records where collection='clientes' and id=$1", [result.cliente.id])).rows).toHaveLength(1);
-    await expect(db.query("select * from public.mnt_lead_conversions")).rejects.toMatchObject({ code: "42501" });
+    expect((await db.query("select id from public.fortius_inmuebles_records where collection='clientes' and id=$1", [result.cliente.id])).rows).toHaveLength(1);
+    await expect(db.query("select * from public.fortius_inmuebles_lead_conversions")).rejects.toMatchObject({ code: "42501" });
   });
 });
 
@@ -58,7 +58,7 @@ it("reintentar la misma conversión devuelve el mismo cliente sin sobrescribir s
   await create("retry");
   await asUser(own, async () => {
     const first = await convert("retry");
-    await db.query("select public.mnt_put_record('clientes',$1,$2::jsonb,1)", [first.cliente.id, JSON.stringify({ ...first.cliente.data, telefono: "6647654321", notas: "Nota nueva del cliente" })]);
+    await db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,1)", [first.cliente.id, JSON.stringify({ ...first.cliente.data, telefono: "6647654321", notas: "Nota nueva del cliente" })]);
     const second = await convert("retry", 1);
     expect(second.cliente.id).toBe(first.cliente.id);
     expect(second.cliente.version).toBe(2);
@@ -66,17 +66,17 @@ it("reintentar la misma conversión devuelve el mismo cliente sin sobrescribir s
     expect(second.cliente.data.notas).toBe("Nota nueva del cliente");
     expect(second.lead.version).toBe(2);
   });
-  expect((await db.query("select * from public.mnt_lead_conversions where lead_id='retry'")).rows).toHaveLength(1);
+  expect((await db.query("select * from public.fortius_inmuebles_lead_conversions where lead_id='retry'")).rows).toHaveLength(1);
 });
 
 it("rechaza una versión obsoleta sin crear un cliente ni modificar el lead", async () => {
   const data = await create("stale");
   await asUser(own, async () => {
-    await db.query("select public.mnt_put_record('leads','stale',$1::jsonb,1)", [JSON.stringify({ ...data, nombre: "Nombre actualizado" })]);
+    await db.query("select public.fortius_inmuebles_put_record('leads','stale',$1::jsonb,1)", [JSON.stringify({ ...data, nombre: "Nombre actualizado" })]);
     await expect(convert("stale", 1)).rejects.toMatchObject({ code: "PT409" });
-    expect((await db.query("select data,version from public.mnt_records where collection='leads' and id='stale'")).rows).toMatchObject([{ data: { nombre: "Nombre actualizado" }, version: 2 }]);
+    expect((await db.query("select data,version from public.fortius_inmuebles_records where collection='leads' and id='stale'")).rows).toMatchObject([{ data: { nombre: "Nombre actualizado" }, version: 2 }]);
   });
-  expect((await db.query("select * from public.mnt_lead_conversions where lead_id='stale'")).rows).toEqual([]);
+  expect((await db.query("select * from public.fortius_inmuebles_lead_conversions where lead_id='stale'")).rows).toEqual([]);
 });
 
 it("impide convertir leads ajenos o sin membresía y tampoco filtra un cliente ya convertido", async () => {
@@ -96,27 +96,27 @@ it.each([["comprar", "comprador"], ["vender", "propietario"], ["rentar", "arrend
 it("no permite falsificar ni borrar vínculos y conserva el historial aunque se intente eliminar", async () => {
   const data = await create("protected");
   await asUser(own, async () => {
-    await expect(db.query("select public.mnt_put_record('leads','protected',$1::jsonb,1)", [JSON.stringify({ ...data, clienteId: "fake", convertidoEl: "2026-10-04" })])).rejects.toMatchObject({ code: "PT403" });
+    await expect(db.query("select public.fortius_inmuebles_put_record('leads','protected',$1::jsonb,1)", [JSON.stringify({ ...data, clienteId: "fake", convertidoEl: "2026-10-04" })])).rejects.toMatchObject({ code: "PT403" });
     const result = await convert("protected");
     const withoutLink = { ...result.lead.data };
     delete withoutLink.clienteId;
-    await expect(db.query("select public.mnt_put_record('leads','protected',$1::jsonb,2)", [JSON.stringify(withoutLink)])).rejects.toMatchObject({ code: "PT403" });
-    await expect(db.query("select public.mnt_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify({ ...result.cliente.data, leadOriginal: {} })])).rejects.toMatchObject({ code: "PT403" });
-    await expect(db.query("select public.mnt_delete_record('leads','protected',2)")).rejects.toMatchObject({ code: "PT409" });
-    await expect(db.query("select public.mnt_delete_record('clientes',$1,1)", [result.cliente.id])).rejects.toMatchObject({ code: "PT409" });
+    await expect(db.query("select public.fortius_inmuebles_put_record('leads','protected',$1::jsonb,2)", [JSON.stringify(withoutLink)])).rejects.toMatchObject({ code: "PT403" });
+    await expect(db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify({ ...result.cliente.data, leadOriginal: {} })])).rejects.toMatchObject({ code: "PT403" });
+    await expect(db.query("select public.fortius_inmuebles_delete_record('leads','protected',2)")).rejects.toMatchObject({ code: "PT409" });
+    await expect(db.query("select public.fortius_inmuebles_delete_record('clientes',$1,1)", [result.cliente.id])).rejects.toMatchObject({ code: "PT409" });
   });
 });
 
 it("si se rechaza el guardado final, revierte el cliente, el vínculo y ambas escrituras", async () => {
   await create("rollback");
   await db.exec(`create function public.qa_reject_conversion() returns trigger language plpgsql as $$begin if new.collection='leads' and new.id='rollback' and new.data ? 'clienteId' then raise sqlstate 'PT400' using message='Fallo final de prueba'; end if; return new; end;$$;
-    create trigger qa_reject_conversion before update on public.mnt_records for each row execute function public.qa_reject_conversion();`);
-  const before = (await db.query("select count(*) from public.mnt_records where collection='clientes'")).rows;
+    create trigger qa_reject_conversion before update on public.fortius_inmuebles_records for each row execute function public.qa_reject_conversion();`);
+  const before = (await db.query("select count(*) from public.fortius_inmuebles_records where collection='clientes'")).rows;
   await asUser(own, async () => { await expect(convert("rollback")).rejects.toMatchObject({ code: "PT400" }); });
-  expect((await db.query("select count(*) from public.mnt_records where collection='clientes'")).rows).toEqual(before);
-  expect((await db.query("select * from public.mnt_lead_conversions where lead_id='rollback'")).rows).toEqual([]);
-  expect((await db.query("select version,data->>'clienteId' as client from public.mnt_records where collection='leads' and id='rollback'")).rows).toEqual([{ version: 1, client: null }]);
-  await db.exec("drop trigger qa_reject_conversion on public.mnt_records; drop function public.qa_reject_conversion()");
+  expect((await db.query("select count(*) from public.fortius_inmuebles_records where collection='clientes'")).rows).toEqual(before);
+  expect((await db.query("select * from public.fortius_inmuebles_lead_conversions where lead_id='rollback'")).rows).toEqual([]);
+  expect((await db.query("select version,data->>'clienteId' as client from public.fortius_inmuebles_records where collection='leads' and id='rollback'")).rows).toEqual([{ version: 1, client: null }]);
+  await db.exec("drop trigger qa_reject_conversion on public.fortius_inmuebles_records; drop function public.qa_reject_conversion()");
 });
 
 it("convierte y permite editar un lead válido cerca del límite con diez notas completas", async () => {
@@ -128,21 +128,21 @@ it("convierte y permite editar un lead válido cerca del límite con diez notas 
   expect(result.cliente.data.padding).toBe(padded.padding);
   expect(result.cliente.data.leadOriginal).toMatchObject({ notas: padded.notas });
   const edited = parseRecord("clientes", result.cliente.id, { ...result.cliente.data, notas: "Cliente editable después de convertir" });
-  await asUser(own, () => db.query("select public.mnt_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify(edited)]));
+  await asUser(own, () => db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify(edited)]));
 });
 
 it("reasigna cliente y lead juntos para que el nuevo asesor pueda ver historial y agenda", async () => {
   const original = await create("reassigned");
   const result = await asUser(admin, () => convert("reassigned"));
-  await asUser(admin, () => db.query("select public.mnt_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify({ ...result.cliente.data, asesorId: "other" })]));
+  await asUser(admin, () => db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify({ ...result.cliente.data, asesorId: "other" })]));
   await asUser(other, async () => {
-    expect((await db.query("select data,version from public.mnt_records where collection='leads' and id='reassigned'")).rows).toMatchObject([{ data: { asesorId: "other", clienteId: result.cliente.id }, version: 3 }]);
+    expect((await db.query("select data,version from public.fortius_inmuebles_records where collection='leads' and id='reassigned'")).rows).toMatchObject([{ data: { asesorId: "other", clienteId: result.cliente.id }, version: 3 }]);
   });
-  await asUser(own, async () => { expect((await db.query("select id from public.mnt_records where collection='leads' and id='reassigned'")).rows).toEqual([]); });
+  await asUser(own, async () => { expect((await db.query("select id from public.fortius_inmuebles_records where collection='leads' and id='reassigned'")).rows).toEqual([]); });
   await asUser(admin, async () => {
-    await expect(db.query("select public.mnt_put_record('leads','reassigned',$1::jsonb,3)", [JSON.stringify({ ...original, clienteId: result.cliente.id, convertidoEl: result.lead.data.convertidoEl, convertidoPor: result.lead.data.convertidoPor })])).rejects.toMatchObject({ code: "PT403" });
-    await db.query("select public.mnt_put_record('clientes',$1,$2::jsonb,2)", [result.cliente.id, JSON.stringify({ ...result.cliente.data, asesorId: "" })]);
-    expect((await db.query("select data->>'asesorId' as adviser,version from public.mnt_records where collection='leads' and id='reassigned'")).rows).toEqual([{ adviser: null, version: 4 }]);
+    await expect(db.query("select public.fortius_inmuebles_put_record('leads','reassigned',$1::jsonb,3)", [JSON.stringify({ ...original, clienteId: result.cliente.id, convertidoEl: result.lead.data.convertidoEl, convertidoPor: result.lead.data.convertidoPor })])).rejects.toMatchObject({ code: "PT403" });
+    await db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,2)", [result.cliente.id, JSON.stringify({ ...result.cliente.data, asesorId: "" })]);
+    expect((await db.query("select data->>'asesorId' as adviser,version from public.fortius_inmuebles_records where collection='leads' and id='reassigned'")).rows).toEqual([{ adviser: null, version: 4 }]);
   });
 });
 
@@ -154,7 +154,7 @@ it("reserva margen SQL para metadatos aun cuando los campos futuros usan el lím
   await create("dense", padded);
   const result = await asUser(own, () => convert("dense"));
   const edited = parseRecord("clientes", result.cliente.id, { ...result.cliente.data, notas: "Sigue editable" });
-  await asUser(own, () => db.query("select public.mnt_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify(edited)]));
+  await asUser(own, () => db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,1)", [result.cliente.id, JSON.stringify(edited)]));
   expect(result.cliente.data.perfil).toEqual(padded.perfil);
 });
 

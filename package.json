@@ -1,5 +1,5 @@
 {
-  "name": "mnt-inmuebles",
+  "name": "fortius-inmuebles",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,8 +13,8 @@
     "test:admin": "vitest run --config vitest.admin.config.ts",
     "test:admin:browser": "playwright test --config playwright.admin.config.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
-    "test:live": "node --env-file=.env.local tests/live/verify-mnt.mjs --run",
-    "health": "node tools/mnt-health.mjs",
+    "test:live": "node --env-file=.env.local tests/live/verify-fortius-inmuebles.mjs --run",
+    "health": "node tools/fortius-inmuebles-health.mjs",
     "test:public:browser": "playwright test --config playwright.public.config.ts",
     "audit:performance": "node tools/public-performance.mjs",
     "check:financial-sources": "node tools/check-financial-sources.mjs"

@@ -50,7 +50,7 @@ const sectionClass =
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {
   if (
-    /((?:cota|mnt)-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
+    /((?:cota|mnt|fortius-inmuebles)-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value)
   )
     return false;
   if (/[\s\\]/.test(value) || value.startsWith("//")) return false;

@@ -16,18 +16,18 @@ beforeEach(() => {
   records = [{ ...propiedades[0], demo: false, publicada: true, notasPrivadas: "SECRET", galeria: [{ src: "/hero/casa-playa.webp", alt: "Casa" }, { src: "/api/admin/files/secret", alt: "Privada" }] }];
   persisted = [];
   rejectWrite = false;
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-public-test.supabase.co");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://fortius-inmuebles-public-test.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "test-server-key");
-  vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
+  vi.stubEnv("FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED", "true");
   vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const url = String(input);
     if (url === "/api/leads") return POST(new Request("http://localhost/api/leads", { ...init, headers: { "content-type": "application/json", origin: "http://localhost" } }));
-    if (url.split("?")[0].endsWith("/rest/v1/rpc/mnt_public_records")) {
+    if (url.split("?")[0].endsWith("/rest/v1/rpc/fortius_inmuebles_public_records")) {
       const body = JSON.parse(String(init?.body));
       return Response.json(body.p_collection === "propiedades" ? records.map((data) => ({ data })) : []);
     }
-    if (url.endsWith("/rest/v1/rpc/mnt_capture_lead")) {
+    if (url.endsWith("/rest/v1/rpc/fortius_inmuebles_capture_lead")) {
       if (rejectWrite) return Response.json({ message: "Database unavailable", code: "XX000" }, { status: 503 });
       persisted.push(JSON.parse(String(init?.body)).p_data);
       return Response.json("lead-confirmed");

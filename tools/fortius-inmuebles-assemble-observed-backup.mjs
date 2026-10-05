@@ -2,9 +2,9 @@
 import {PGlite} from '@electric-sql/pglite';
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {sha256,verifyBackup,suffixes} from './mnt-backup.mjs';
+import {sha256,verifyBackup,suffixes} from './fortius-inmuebles-backup.mjs';
 const [directory,revisionsPath,checksumsPath]=process.argv.slice(2);
-if(!directory||!revisionsPath||!checksumsPath)throw Error('Usage: node tools/mnt-assemble-observed-backup.mjs BACKUP_DIR REVISIONS_JSON OWNER_CHECKSUMS_JSON');
+if(!directory||!revisionsPath||!checksumsPath)throw Error('Usage: node tools/fortius-inmuebles-assemble-observed-backup.mjs BACKUP_DIR REVISIONS_JSON OWNER_CHECKSUMS_JSON');
 const root=resolve(directory),manifest=await verifyBackup(root);
 if(manifest.database.complete)throw Error('Already complete; refusing to replace owner evidence');
 const revisionsBytes=await readFile(resolve(revisionsPath)),checksumsBytes=await readFile(resolve(checksumsPath));

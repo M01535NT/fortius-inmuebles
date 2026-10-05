@@ -1,4 +1,4 @@
-# Lote editorial MNT Inmuebles — septiembre de 2026
+# Lote editorial Fortius Inmuebles — septiembre de 2026
 
 Doce artículos originales en español, revisados el 23 de septiembre de 2026. Los JSON son la copia editorial inicial; después de publicarlos, el panel administra las versiones vigentes en Supabase. Editar estos archivos por sí solo no cambia la web.
 
@@ -28,19 +28,19 @@ Párrafos separados por líneas vacías, `##` para secciones, `###` para subsecc
 Validar localmente, sin red:
 
 ```powershell
-node tools/mnt-publish-blog.mjs
+node tools/fortius-inmuebles-publish-blog.mjs
 ```
 
 Validar también contra el proyecto existente, sin escribir:
 
 ```powershell
-node --env-file=.env.local tools/mnt-publish-blog.mjs --check-remote
+node --env-file=.env.local tools/fortius-inmuebles-publish-blog.mjs --check-remote
 ```
 
 Después de desplegar y comprobar el renderer, publicar el lote autorizado:
 
 ```powershell
-node --env-file=.env.local tools/mnt-publish-blog.mjs --publish
+node --env-file=.env.local tools/fortius-inmuebles-publish-blog.mjs --publish
 ```
 
 El publicador exige el origen HTTPS exacto del proyecto MNT, usa la credencial de servicio existente exclusivamente en Node, valida cada registro mediante la función existente y realiza un único INSERT atómico. No usa upsert ni cambia permisos. Un ID o slug existente con contenido diferente detiene el lote; una repetición con las doce entradas idénticas ya publicadas no escribe nada.

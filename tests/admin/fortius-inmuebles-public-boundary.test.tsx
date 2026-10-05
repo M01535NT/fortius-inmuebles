@@ -24,7 +24,7 @@ vi.mock("@/components/home/public-experience", () => ({ PublicExperience: ({ chi
 
 afterEach(() => {
   cleanup();
-  requestHeaders.delete("x-mnt-pathname");
+  requestHeaders.delete("x-fortius-inmuebles-pathname");
   requestHeaders.delete("x-nonce");
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
@@ -32,19 +32,19 @@ afterEach(() => {
 });
 
 test("proxy overwrites spoofed path headers, emits a fresh nonce CSP and hardening headers", () => {
-  const request = new NextRequest("https://mnt.test/admin", { headers: { "x-mnt-pathname": "/spoofed", "x-nonce": "spoofed" } });
+  const request = new NextRequest("https://mnt.test/admin", { headers: { "x-fortius-inmuebles-pathname": "/spoofed", "x-nonce": "spoofed" } });
   const response = proxy(request);
   const csp = response.headers.get("content-security-policy") ?? "";
   expect(csp).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
   expect(csp).not.toContain("spoofed");
-  expect(response.headers.get("x-middleware-request-x-mnt-pathname")).toBe("/admin");
+  expect(response.headers.get("x-middleware-request-x-fortius-inmuebles-pathname")).toBe("/admin");
   expect(response.headers.get("x-frame-options")).toBe("DENY");
   expect(response.headers.get("x-content-type-options")).toBe("nosniff");
   expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
 });
 
 test("admin root layout and metadata never query the public backend", async () => {
-  requestHeaders.set("x-mnt-pathname", "/admin/inmuebles");
+  requestHeaders.set("x-fortius-inmuebles-pathname", "/admin/inmuebles");
   requestHeaders.set("x-nonce", "nonce-test");
   vi.stubGlobal("fetch", vi.fn(() => { throw new Error("public backend must not run"); }));
   const html = renderToStaticMarkup(await RootLayout({ children: <main>Admin</main> }));
@@ -57,7 +57,7 @@ test("admin root layout and metadata never query the public backend", async () =
 });
 
 test("public shell degrades on backend failure without swallowing inventory failures", async () => {
-  requestHeaders.set("x-mnt-pathname", "/contacto");
+  requestHeaders.set("x-fortius-inmuebles-pathname", "/contacto");
   vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("secret backend detail"); }));
   const log = vi.spyOn(console, "error").mockImplementation(() => {});
   const html = renderToStaticMarkup(await RootLayout({ children: <main>Contacto</main> }));
@@ -86,7 +86,7 @@ test("enabled provider hydrates the form and points native fallback at the gated
 });
 
 test("public lead endpoint is disabled unless explicitly enabled", async () => {
-  vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "false");
+  vi.stubEnv("FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED", "false");
   const request = new Request("https://mnt.test/api/public/leads", { method: "POST", headers: { origin: "https://mnt.test", "content-type": "application/json" }, body: "{}" });
   const response = await publicLead(request);
   expect(response.status).toBe(503);
@@ -95,7 +95,7 @@ test("public lead endpoint is disabled unless explicitly enabled", async () => {
 });
 
 test("public lead endpoint writes only when explicitly enabled", async () => {
-  vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
+  vi.stubEnv("FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED", "true");
   rpc.mockResolvedValueOnce({ data: "lead-id", error: null });
   const response = await publicLead(new Request("https://mnt.test/api/public/leads", {
     method: "POST",
@@ -104,7 +104,7 @@ test("public lead endpoint writes only when explicitly enabled", async () => {
   }));
   expect(response.status).toBe(201);
   expect(await response.json()).toEqual({ id: "lead-id" });
-  expect(rpc).toHaveBeenCalledWith("mnt_capture_lead", expect.objectContaining({ p_data: expect.objectContaining({ nombre: "Persona" }) }));
+  expect(rpc).toHaveBeenCalledWith("fortius_inmuebles_capture_lead", expect.objectContaining({ p_data: expect.objectContaining({ nombre: "Persona" }) }));
 });
 
 test("health returns only generic database availability", async () => {

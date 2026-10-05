@@ -18,10 +18,10 @@ const guideSlugs = new Set(localGuides.map((post) => post.slug));
 const sourceHosts = new Set(['www.gob.mx', 'www.inegi.org.mx', 'revista.condusef.gob.mx']);
 assert(posts.length === 3 && new Set(posts.map((p) => p.id)).size === 3 && new Set(posts.map((p) => p.slug)).size === 3, 'Expected three unique articles');
 for (const post of posts) {
-  assert(/^mnt-news-20260923-0[1-3]$/.test(post.id) && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug), 'Invalid identifier');
+  assert(/^fortius-inmuebles-news-20260923-0[1-3]$/.test(post.id) && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug), 'Invalid identifier');
   assert(post.titulo.length > 0 && post.titulo.length <= 160 && post.resumen.length >= 100 && post.resumen.length <= 180, `${post.id}: invalid title/summary`);
   assert(post.formato === 'actualidad' && ['mercado', 'comprar'].includes(post.categoria) && typeof post.destacado === 'boolean', `${post.id}: invalid classification`);
-  assert(post.autor === 'Redacción MNT Inmuebles' && post.ambito && post.fuenteNombre, `${post.id}: missing attribution`);
+  assert(post.autor === 'Redacción Fortius Inmuebles' && post.ambito && post.fuenteNombre, `${post.id}: missing attribution`);
   const source = new URL(post.fuenteUrl);
   assert(source.protocol === 'https:' && sourceHosts.has(source.hostname), `${post.id}: unexpected source`);
   const words = post.contenido.trim().split(/\s+/).length;
@@ -48,14 +48,14 @@ const anonymous = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, o
 const readPosts = async () => {
   const rows = [];
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await client.from('mnt_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
+    const { data, error } = await client.from('fortius_inmuebles_records').select('id,data,version,created_at,updated_at').eq('collection', 'posts').order('id').range(offset, offset + 499);
     if (error) throw new Error(`Inventory failed (${error.code})`);
     rows.push(...data);
     if (data.length < 500) return rows;
   }
 };
 const verifyPublic = async () => {
-  const { data, error } = await anonymous.rpc('mnt_public_records', { p_collection: 'posts' });
+  const { data, error } = await anonymous.rpc('fortius_inmuebles_public_records', { p_collection: 'posts' });
   if (error) throw new Error(`Public verification failed (${error.code})`);
   for (const post of posts) {
     const found = data.map((row) => row.data).find((value) => value.id === post.id);
@@ -78,7 +78,7 @@ for (const post of posts) {
 const timestamp = new Date().toISOString();
 const rows = posts.map((post) => ({ collection: 'posts', id: post.id, data: { ...post, estado: 'publicado', actualizadoEl: timestamp } }));
 for (const row of rows) {
-  const { error } = await client.rpc('mnt_validate_record', { c: 'posts', record_id: row.id, d: row.data });
+  const { error } = await client.rpc('fortius_inmuebles_validate_record', { c: 'posts', record_id: row.id, d: row.data });
   if (error) throw new Error(`Server validation failed for ${row.id} (${error.code})`);
 }
 console.log(JSON.stringify({ remoteValidation: 'passed', existingPosts: before.length, additions: 3, publish }));
@@ -88,7 +88,7 @@ await mkdir(evidence, { recursive: true });
 await writeFile(new URL('before.json', evidence), JSON.stringify(before, null, 2));
 await writeFile(new URL('manifest.json', evidence), JSON.stringify({ timestamp, manifest }, null, 2));
 // Single atomic insert. Never overwrite existing content. Database stamps first publication.
-const { error } = await client.from('mnt_records').insert(rows);
+const { error } = await client.from('fortius_inmuebles_records').insert(rows);
 if (error) throw new Error(`Insert failed (${error.code}); inspect remote state before retrying`);
 const after = await readPosts();
 await writeFile(new URL('after.json', evidence), JSON.stringify(after, null, 2));

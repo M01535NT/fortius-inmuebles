@@ -34,14 +34,14 @@ test("Fortius Inmuebles mark remains visible through email login and sidebar", a
   await expect(page.getByRole("heading", { name: "Acceso al panel" })).toBeVisible();
   const loginMark = page.getByRole("main").getByRole("img", { name: "Fortius Inmuebles" });
   await expect(loginMark).toBeVisible();
-  await page.screenshot({ path: testInfo.outputPath("mnt-login.png"), fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath("fortius-inmuebles-login.png"), fullPage: true });
   await page.getByLabel("Correo").fill("staff@example.com");
   await page.getByLabel("Contraseña", { exact: true }).fill("local-fixture-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Panel.", exact: true })).toBeVisible();
   const sidebarMark = page.getByRole("complementary").getByRole("img", { name: "Fortius Inmuebles" });
   await expect(sidebarMark).toBeVisible();
-  await page.screenshot({ path: testInfo.outputPath("mnt-sidebar.png"), fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath("fortius-inmuebles-sidebar.png"), fullPage: true });
 });
 for (const width of [375, 414, 768, 1024, 1440]) {
   test(

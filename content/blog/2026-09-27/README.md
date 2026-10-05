@@ -23,6 +23,6 @@ Seis textos completos en Markdown, metadata en `manifest.json` y seis figuras ac
 
 ## Publicación y revisión
 
-`node tools/mnt-publish-editorial-20260927.mjs` valida el lote sin red ni escrituras. `--check-remote` realiza prevalidación; `--publish` conserva una copia anterior y verifica la lectura pública. Actualizaciones con control de versión; no sobrescribe cambios inesperados. Requiere credenciales de entorno existentes, que nunca se imprimen.
+`node tools/fortius-inmuebles-publish-editorial-20260927.mjs` valida el lote sin red ni escrituras. `--check-remote` realiza prevalidación; `--publish` conserva una copia anterior y verifica la lectura pública. Actualizaciones con control de versión; no sobrescribe cambios inesperados. Requiere credenciales de entorno existentes, que nunca se imprimen.
 
 Desplegar primero las figuras y el crédito de foto; publicar después los textos. Revisar las seis páginas, enlaces internos y vista móvil. Los originales anteriores no se reejecutan para revertir esta edición.

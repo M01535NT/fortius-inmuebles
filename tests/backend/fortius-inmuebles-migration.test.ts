@@ -7,7 +7,7 @@ let functionState: unknown;
 let revisionState: unknown;
 const functionSnapshot = String.raw`select oid,replace(proname,'cota_','mnt_') name,proacl::text,prosecdef,proconfig from pg_proc where pronamespace='public'::regnamespace and proname like 'cota\_%' escape '\' order by oid`;
 const member = "30000000-0000-4000-8000-000000000001";
-const migration = new URL("../../supabase/migrations/202609060003_mnt_identity.sql", import.meta.url);
+const migration = new URL("../../supabase/migrations/202609060003_fortius_inmuebles_identity.sql", import.meta.url);
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
@@ -18,7 +18,7 @@ beforeAll(async () => {
     create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,owner_id text); alter table storage.objects enable row level security;
     grant usage on schema storage to anon,authenticated,service_role; grant all on storage.objects to anon,authenticated,service_role;
     insert into auth.users values ('${member}');`);
-  for (const path of ["202609030001_cota_backend.sql", "202609030002_cota_record_revisions.sql"]) {
+  for (const path of ["202609030001_fortius_inmuebles_backend.sql", "202609030002_fortius_inmuebles_record_revisions.sql"]) {
     await db.exec(await readFile(new URL(`../../supabase/migrations/${path}`, import.meta.url), "utf8"));
   }
   await db.query("insert into public.cota_staff(user_id,role) values ($1,'admin')", [member]);
@@ -123,7 +123,7 @@ test('005 retires only the temporary read compatibility API after deployment',as
 });
 
 test("007 exposes approved home text fields without publishing unknown editorial data", async () => {
-  await db.exec(await readFile(new URL('../../supabase/migrations/202609230007_mnt_home_editorial.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../../supabase/migrations/202609230007_fortius_inmuebles_home_editorial.sql', import.meta.url), 'utf8'));
   await db.query("insert into public.mnt_records(collection,id,data) values ('contenido','singleton',$1) on conflict (collection,id) do update set data=excluded.data", [JSON.stringify({ heroTitulo: "Texto propio", heroSubtitulo: "Texto", manifiestoTitulo: "Título", manifiestoTexto: "Texto", seoTitle: "SEO", seoDescription: "Descripción", homeTexts: { relatoTexto: "Edición del panel", internalNotes: "Privado" }, privateNotes: "Privado" })]);
   await db.exec('set role anon');
   try {

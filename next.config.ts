@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const nextConfig: NextConfig = {
   // HTTP-only cloud tunnels reload on changes; React debug data must travel in RSC.
-  ...(process.env.NODE_ENV === "development" && process.env.MNT_CLOUD_PREVIEW === "true"
+  ...(process.env.NODE_ENV === "development" && process.env.FORTIUS_INMUEBLES_CLOUD_PREVIEW === "true"
     ? { experimental: { reactDebugChannel: false } }
     : {}),
   outputFileTracingIncludes: {
@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
       // Solo el bucket público configurado de MNT; nunca el privado.
-      ...(publicStorageUrl ? [new URL("/storage/v1/object/public/mnt-public/**", publicStorageUrl)] : []),
+      ...(publicStorageUrl ? [new URL("/storage/v1/object/public/fortius-inmuebles-public/**", publicStorageUrl)] : []),
     ],
   },
 };

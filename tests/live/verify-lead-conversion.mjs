@@ -13,10 +13,10 @@ const run = randomUUID(), prefix = `qa-lead-${run}`, users = [], records = [], s
 const manifest = () => writeFile(".qa-comercial/live-lead-manifest.json", JSON.stringify({ run, users, records }, null, 2));
 const apiPath = (collection, id) => `/api/admin/collections/${collection}/${id}`;
 async function account(role, suffix) {
-  const email = `mnt-qa-lead-${run}-${suffix}@example.invalid`, password = randomBytes(32).toString("base64url");
+  const email = `fortius-inmuebles-qa-lead-${run}-${suffix}@example.invalid`, password = randomBytes(32).toString("base64url");
   const created = await server.auth.admin.createUser({ email, password, email_confirm: true }); assert.ifError(created.error);
   const id = created.data.user.id; users.push(id); await manifest();
-  assert.ifError((await server.from("mnt_staff").insert({ user_id: id, role, active: true })).error);
+  assert.ifError((await server.from("fortius_inmuebles_staff").insert({ user_id: id, role, active: true })).error);
   const cookies = new Map();
   const request = async (path, method = "GET", data) => {
     const headers = new Headers({ Origin: origin });
@@ -44,7 +44,7 @@ try {
   for (const [who, suffix] of [[own, "own"], [other, "other"]]) {
     const adviser = `${prefix}-${suffix}`;
     await create(admin, "asesores", { id: adviser, nombre: `QA ${suffix}`, cargo: "Asesor", iniciales: "QA", activo: true });
-    assert.ifError((await server.from("mnt_adviser_accounts").insert({ user_id: who.id, asesor_id: adviser })).error);
+    assert.ifError((await server.from("fortius_inmuebles_adviser_accounts").insert({ user_id: who.id, asesor_id: adviser })).error);
   }
   const original = { id: `${prefix}-source`, nombre: "Persona sintética de conversión", telefono: "6640000000", email: `qa-${run}@example.invalid`, asesorId: `${prefix}-own`, origen: "manual", estado: "contactado", creadoEl: "2026-10-04", notas: [{ id: "n1", texto: "Nota sintética anterior", fecha: "2026-10-04" }], zona: "Otay", tipoPropiedad: "casa", mensaje: "Consulta sintética", perfil: { operacion: "comprar", presupuestoMax: 250000, moneda: "USD", requisitos: "Acceso sin escalones", futureField: "Conservar" }, campoFuturo: "Conservar también" };
   await create(admin, "leads", original);
@@ -105,23 +105,23 @@ finally {
   const predicates = records.map(item => `(collection=${quote(item.collection)} and id=${quote(item.id)})`).join(" or ") || "false";
   const sql = `begin;
 set local lock_timeout='2s'; set local statement_timeout='15s';
-do $$begin if exists(select 1 from auth.users where id in (${list(users)}) and email not like 'mnt-qa-lead-${run}-%@example.invalid') then raise exception 'Unexpected account'; end if; end;$$;
-create temporary table qa_lead_cleanup on commit drop as select collection,id from public.mnt_records where ${predicates} or (collection='clientes' and id in(select cliente_id from public.mnt_lead_conversions where lead_id in (${list(leadIds)})));
-do $$begin if exists(select 1 from public.mnt_record_references r join qa_lead_cleanup target on (r.target_collection,r.target_id)=(target.collection,target.id) where not exists(select 1 from qa_lead_cleanup source where (r.source_collection,r.source_id)=(source.collection,source.id))) then raise exception 'External reference to test data'; end if; end;$$;
-delete from public.mnt_lead_conversions where lead_id in (${list(leadIds)});
-delete from public.mnt_adviser_accounts where user_id in (${list(users)});
-delete from public.mnt_record_references r using qa_lead_cleanup t where (r.source_collection,r.source_id)=(t.collection,t.id);
-delete from public.mnt_records r using qa_lead_cleanup t where (r.collection,r.id)=(t.collection,t.id);
-delete from public.mnt_record_revisions r using qa_lead_cleanup t where (r.collection,r.id)=(t.collection,t.id);
-delete from public.mnt_staff where user_id in (${list(users)});
+do $$begin if exists(select 1 from auth.users where id in (${list(users)}) and email not like 'fortius-inmuebles-qa-lead-${run}-%@example.invalid') then raise exception 'Unexpected account'; end if; end;$$;
+create temporary table qa_lead_cleanup on commit drop as select collection,id from public.fortius_inmuebles_records where ${predicates} or (collection='clientes' and id in(select cliente_id from public.fortius_inmuebles_lead_conversions where lead_id in (${list(leadIds)})));
+do $$begin if exists(select 1 from public.fortius_inmuebles_record_references r join qa_lead_cleanup target on (r.target_collection,r.target_id)=(target.collection,target.id) where not exists(select 1 from qa_lead_cleanup source where (r.source_collection,r.source_id)=(source.collection,source.id))) then raise exception 'External reference to test data'; end if; end;$$;
+delete from public.fortius_inmuebles_lead_conversions where lead_id in (${list(leadIds)});
+delete from public.fortius_inmuebles_adviser_accounts where user_id in (${list(users)});
+delete from public.fortius_inmuebles_record_references r using qa_lead_cleanup t where (r.source_collection,r.source_id)=(t.collection,t.id);
+delete from public.fortius_inmuebles_records r using qa_lead_cleanup t where (r.collection,r.id)=(t.collection,t.id);
+delete from public.fortius_inmuebles_record_revisions r using qa_lead_cleanup t where (r.collection,r.id)=(t.collection,t.id);
+delete from public.fortius_inmuebles_staff where user_id in (${list(users)});
 commit;
-select count(*) as remaining_test_records from public.mnt_records where ${predicates} or (collection='clientes' and data->>'leadId' in (${list(leadIds)}));
+select count(*) as remaining_test_records from public.fortius_inmuebles_records where ${predicates} or (collection='clientes' and data->>'leadId' in (${list(leadIds)}));
 `;
   await writeFile(".qa-comercial/cleanup-live-lead.sql", sql); await manifest();
   try {
     execFileSync("C:/Users/Moise/AppData/Local/npm-cache/_npx/c34c3565ecb5471d/node_modules/@supabase/cli-windows-x64/bin/supabase.exe", ["db", "query", "--linked", "--project-ref", "qkkirjzhviqwvuqjnmei", "--file", ".qa-comercial/cleanup-live-lead.sql"], { stdio: "pipe", timeout: 60000, windowsHide: true });
     for (const id of users) {
-      const user = await server.auth.admin.getUserById(id); assert.ifError(user.error); assert.ok(user.data.user.email.startsWith(`mnt-qa-lead-${run}-`));
+      const user = await server.auth.admin.getUserById(id); assert.ifError(user.error); assert.ok(user.data.user.email.startsWith(`fortius-inmuebles-qa-lead-${run}-`));
       assert.ifError((await server.auth.admin.deleteUser(id)).error);
     }
     console.log("PASS test conversions, records, memberships and three Auth accounts removed");

@@ -11,7 +11,7 @@ it("usa el JWT del asesor y una sola operación de conversión con la revisión 
   const response = await POST(request(), context);
   expect(response.status).toBe(200);
   expect(await response.json()).toEqual({ cliente: { id: "c1" }, lead: { id: "l1" } });
-  expect(rpc).toHaveBeenCalledExactlyOnceWith("mnt_convert_lead", { p_lead_id: "l1", p_version: 7 });
+  expect(rpc).toHaveBeenCalledExactlyOnceWith("fortius_inmuebles_convert_lead", { p_lead_id: "l1", p_version: 7 });
   expect(response.headers.get("cache-control")).toContain("no-store");
 });
 it.each([{}, { version: null }, { version: 0 }, { version: 1.5 }, { version: 1, clienteId: "forged" }])("rechaza una solicitud inválida %j antes de escribir", async body => {

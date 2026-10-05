@@ -138,7 +138,7 @@ export type Archivo = {
   url: string;
   tipo: ArchivoTipo;
   notas?: string;
-  bucket?: "mnt-private" | "mnt-public";
+  bucket?: "fortius-inmuebles-private" | "fortius-inmuebles-public";
   path?: string;
   visibility?: "private" | "public";
 };
@@ -603,7 +603,7 @@ export async function captureLead(input: {
   return result.id;
 }
 export type UploadedFile = {
-  bucket: "mnt-private" | "mnt-public";
+  bucket: "fortius-inmuebles-private" | "fortius-inmuebles-public";
   path: string;
   url: string;
   name: string;
@@ -626,7 +626,7 @@ export function archivoFromUpload(id: string, file: UploadedFile): Archivo {
     tipo: archivoTipo(file.type),
     bucket: file.bucket,
     path: file.path,
-    visibility: file.bucket === "mnt-public" ? "public" : "private",
+    visibility: file.bucket === "fortius-inmuebles-public" ? "public" : "private",
   };
 }
 export async function uploadFile(

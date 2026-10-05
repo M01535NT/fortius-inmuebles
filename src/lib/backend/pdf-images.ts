@@ -18,7 +18,7 @@ export async function loadPdfImage(src: string): Promise<Uint8Array | null> {
     } else {
       const url = new URL(src);
       const storage = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const ownPublic = storage && url.origin === new URL(storage).origin && url.pathname.startsWith("/storage/v1/object/public/mnt-public/");
+      const ownPublic = storage && url.origin === new URL(storage).origin && url.pathname.startsWith("/storage/v1/object/public/fortius-inmuebles-public/");
       if (url.protocol !== "https:" || url.username || url.password || url.port || (!ownPublic && !["images.unsplash.com", "d8j0ntlcm91z4.cloudfront.net"].includes(url.hostname))) return null;
       const response = await fetch(url, { cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000) });
       if (!response.ok || !response.headers.get("content-type")?.startsWith("image/") || Number(response.headers.get("content-length")) > MAX_BYTES || !response.body) return null;

@@ -1,6 +1,6 @@
 # COTA-20260903 restoration
 
-The immutable archive manifest is `docs/archive/COTA-20260903-manifest.json`. An identical copy named
+The immutable archive manifest is `docs/archive/fortius-inmuebles-20260903-manifest.json`. An identical copy named
 `MANIFEST.json` is stored at the root of
 `C:\Paginas-web\_archivo\COTA-20260903`.
 

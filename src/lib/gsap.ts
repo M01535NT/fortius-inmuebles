@@ -7,7 +7,7 @@ import { SplitText } from "gsap/SplitText";
 
 /*
   Punto único de registro de GSAP. El antecedente de motion quedó archivado en
-  evidencia histórica: docs/mnt-implementation.md;
+  evidencia histórica: docs/fortius-inmuebles-implementation.md;
   las reglas activas de diseño están en README.md.
   Importar gsap/ScrollTrigger/SplitText SIEMPRE desde aquí.
 */

@@ -10,7 +10,7 @@ test("production security headers use a nonce without browser CSP violations", a
   expect(response?.headers()["x-frame-options"]).toBe("DENY");
   expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
   await expect(page).toHaveTitle(/Fortius Inmuebles/);
-  expect((await page.locator("head script").allTextContents()).join(" ")).toContain("mnt-theme");
+  expect((await page.locator("head script").allTextContents()).join(" ")).toContain("fortius-inmuebles-theme");
   await page.waitForLoadState("networkidle");
   expect(violations).toEqual([]);
 });

@@ -15,6 +15,6 @@ Los maestros están en `public/brand/fortius-{logo,compact,symbol}.svg`, con ver
 
 Regeneración: `node tools/generate-fortius-brand.mjs`. PDF estáticos: `python tools/generate-brand-pdfs.py`. Ambos trabajan sin acceso a servicios ni cambios en la base de datos.
 
-Las menciones comerciales guardadas de Mint y MNT se normalizan al presentar el contenido de Inicio. Se conservan las URLs, identificadores existentes, variables MNT_*, cookies, RPC y buckets de Supabase, que son contratos técnicos de la aplicación. Los códigos de nuevos inmuebles utilizan el prefijo FORTIUS.
+Las menciones comerciales guardadas de Mint y MNT se normalizan al presentar el contenido de Inicio. Se conservan las URLs, identificadores existentes, variables FORTIUS_INMUEBLES_*, cookies, RPC y buckets de Supabase, que son contratos técnicos de la aplicación. Los códigos de nuevos inmuebles utilizan el prefijo FORTIUS.
 
 La alternativa se prueba en `alternativa-fortius`; la rama main conserva su diseño y marca hasta una integración solicitada.

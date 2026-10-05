@@ -6,7 +6,7 @@ afterEach(async()=>{await db?.close();db=undefined;});
 async function fixture(){
   db=new PGlite();
   await db.exec(`create table public.cota_records(id text);insert into public.cota_records values('preserved');create function public.cota_public_records(p_collection text) returns table(data jsonb) language sql as $$select '{}'::jsonb$$;`);
-  return readFile(new URL('../../supabase/migrations/202609060003_mnt_identity.sql',import.meta.url),'utf8');
+  return readFile(new URL('../../supabase/migrations/202609060003_fortius_inmuebles_identity.sql',import.meta.url),'utf8');
 }
 test('existing target function fails before mutating old relation or either function',async()=>{
   const sql=await fixture();

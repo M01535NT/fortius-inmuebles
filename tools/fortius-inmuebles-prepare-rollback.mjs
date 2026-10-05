@@ -2,7 +2,7 @@
 import {PGlite} from '@electric-sql/pglite';
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ownerExport,suffixes,verifyBackup} from './mnt-backup.mjs';
+import {ownerExport,suffixes,verifyBackup} from './fortius-inmuebles-backup.mjs';
 const root=resolve(process.argv[2]??'');
 const manifest=await verifyBackup(root);
 const owner=ownerExport(JSON.parse(await readFile(resolve(root,manifest.database.file),'utf8')));
@@ -22,7 +22,7 @@ try {
     values.push(`('${suffix}',${rows.length},'${hash}')`);
   }
   const preamble=`-- Expected isolated003004 state; refuses any subsequent table content/revision change.\ncreate temporary table mnt_expected_cutover_state(suffix text primary key,row_count bigint not null,checksum text not null);\ninsert into pg_temp.mnt_expected_cutover_state values\n${values.join(',\n')};\n`;
-  const sql=preamble+await readFile(resolve('tools/mnt-rollback-identity.sql'),'utf8');
+  const sql=preamble+await readFile(resolve('tools/fortius-inmuebles-rollback-identity.sql'),'utf8');
   await writeFile(resolve(root,'rollback-identity-guarded.sql'),sql,{flag:'wx'});
   console.log(JSON.stringify({prepared:true,remoteWrites:0,tables:5,artifact:'rollback-identity-guarded.sql'}));
 } finally {await db.close();}

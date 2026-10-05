@@ -8,7 +8,7 @@ beforeAll(async()=>{
   db=new PGlite();
   await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql as $$select null::uuid$$;
     create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid,bucket_id text,name text);alter table storage.objects enable row level security;`);
-  for(const name of ['202609030001_cota_backend.sql','202609030002_cota_record_revisions.sql','202609060003_mnt_identity.sql'])await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
+  for(const name of ['202609030001_fortius_inmuebles_backend.sql','202609030002_fortius_inmuebles_record_revisions.sql','202609060003_fortius_inmuebles_identity.sql'])await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
   const rows=[
     ['config','singleton',{nombreComercial:'Cota',email:'contacto@cota.mx',telefono:'+52 664 000 0000',whatsapp:'https://wa.me/526640000000'}],
     ['contenido','singleton',{seoTitle:'COTA | Método',text:'Cota. mascotas acotado COTAB COTA',url:'https://cota-eight.vercel.app/inventario/casa',nested:['COTA',['Cota'],{label:'COTA-004',key:'cota_records'}]}],
@@ -21,7 +21,7 @@ beforeAll(async()=>{
   await db.query("insert into public.mnt_staff(user_id,role) values($1,'admin')",[member]);
   await db.exec("insert into public.mnt_record_revisions values('notas','deleted',9)");
   original=(await db.query<Record<string,unknown>>('select * from public.mnt_records order by collection,id')).rows;
-  await db.exec(await readFile(new URL('../../supabase/migrations/202609060004_mnt_content_identity.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../supabase/migrations/202609060004_fortius_inmuebles_content_identity.sql',import.meta.url),'utf8'));
 });
 afterAll(async()=>{await db?.close();});
 test('rebrands standalone words recursively without damaging unrelated words or identities',async()=>{
@@ -50,6 +50,6 @@ test('leaves no transformer and retains legacy and current private URL exclusion
 test('preserves confirmed contacts and is idempotent after brand substitutions',async()=>{
   await db.query("update public.mnt_records set data=$1::jsonb where collection='config'",[JSON.stringify({nombreComercial:'MNT Inmuebles',email:'real@cota.mx',telefono:'+52 664 123 4567',whatsapp:'https://wa.me/526641234567'})]);
   const before=(await db.query('select * from public.mnt_records order by collection,id')).rows;
-  await db.exec(await readFile(new URL('../../supabase/migrations/202609060004_mnt_content_identity.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../supabase/migrations/202609060004_fortius_inmuebles_content_identity.sql',import.meta.url),'utf8'));
   expect((await db.query('select * from public.mnt_records order by collection,id')).rows).toEqual(before);
 });

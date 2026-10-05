@@ -45,7 +45,7 @@ const defaultMetadata: Metadata = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const pathname = (await headers()).get("x-mnt-pathname") ?? "/";
+  const pathname = (await headers()).get("x-fortius-inmuebles-pathname") ?? "/";
   const content = pathname.startsWith("/admin")
     ? null
     : await getPublicContent().catch(() => {
@@ -64,7 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
   Theme boot: light is the primary theme. We only add `.dark` when the user
   chose it before. Runs inline before paint to avoid a flash.
 */
-const themeInit = `(function(){try{if(localStorage.getItem("mnt-theme")==="dark"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
+const themeInit = `(function(){try{if(localStorage.getItem("fortius-inmuebles-theme")==="dark"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 export default async function RootLayout({
   children,
@@ -73,7 +73,7 @@ export default async function RootLayout({
 }>) {
   await connection();
   const requestHeaders = await headers();
-  const pathname = requestHeaders.get("x-mnt-pathname") ?? "/";
+  const pathname = requestHeaders.get("x-fortius-inmuebles-pathname") ?? "/";
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
   const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
   const settings = isAdmin
@@ -82,7 +82,7 @@ export default async function RootLayout({
         console.error("[public-shell] Configuración pública no disponible.");
         return null;
       });
-  const publicLeadsEnabled = process.env.MNT_PUBLIC_LEADS_ENABLED === "true";
+  const publicLeadsEnabled = process.env.FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED === "true";
   return (
     <html
       lang="es-MX"

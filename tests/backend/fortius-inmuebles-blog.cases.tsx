@@ -49,7 +49,7 @@ beforeEach(() => {
       publicadaEl: "2026-08-15",
     },
   ];
-  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-public-test.supabase.co");
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://fortius-inmuebles-public-test.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "public-test-key");
   vi.stubGlobal("fetch", vi.fn(async (_input, init) => {
     const collection = JSON.parse(String(init?.body)).p_collection;

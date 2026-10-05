@@ -9,14 +9,14 @@ test("Fortius branding refreshes stored copy without changing property codes or 
   const content = resolveSiteContent({
     heroTitulo: "Vende con MNT", heroSubtitulo: "Texto propio del equipo",
     manifiestoTitulo: "Precio", manifiestoTexto: "Expediente MNT-001",
-    seoTitle: "MNT Inmuebles | Texto propio", seoDescription: "https://mnt-inmuebles.vercel.app",
+    seoTitle: "MNT Inmuebles | Texto propio", seoDescription: "https://fortius-inmuebles.vercel.app",
     homeTexts: { contratoTexto: "Contrato de MNT Inmuebles para MNT-001" },
   });
   expect(content.heroTitulo).toBe("Vende con Fortius");
   expect(content.heroSubtitulo).toBe("Texto propio del equipo");
   expect(content.seoTitle).toBe("Fortius Inmuebles | Texto propio");
   expect(content.manifiestoTexto).toBe("Expediente MNT-001");
-  expect(content.seoDescription).toBe("https://mnt-inmuebles.vercel.app");
+  expect(content.seoDescription).toBe("https://fortius-inmuebles.vercel.app");
   expect(homeText(content, "contratoTexto")).toBe("Contrato de Fortius Inmuebles para MNT-001");
 });
 
@@ -80,7 +80,7 @@ test("the alternative refreshes previously published defaults while preserving c
 });
 
 test("Fortius also updates customized Mint copy without rewriting URL or record identifiers", () => {
-  const content = resolveSiteContent({ heroTitulo: "Mint vende contigo", heroSubtitulo: "Texto personal de Mint", manifiestoTitulo: "Precio", manifiestoTexto: "MNT-001 / Mint_001", seoTitle: "Mint Inmuebles", seoDescription: "https://mnt-inmuebles.vercel.app", homeTexts: { contratoTexto: "Compromisos de Mint" } });
+  const content = resolveSiteContent({ heroTitulo: "Mint vende contigo", heroSubtitulo: "Texto personal de Mint", manifiestoTitulo: "Precio", manifiestoTexto: "MNT-001 / Mint_001", seoTitle: "Mint Inmuebles", seoDescription: "https://fortius-inmuebles.vercel.app", homeTexts: { contratoTexto: "Compromisos de Mint" } });
   expect(content.heroTitulo).toBe("Fortius vende contigo");
   expect(content.heroSubtitulo).toBe("Texto personal de Fortius");
   expect(content.manifiestoTexto).toBe("MNT-001 / Mint_001");

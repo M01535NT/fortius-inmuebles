@@ -6,9 +6,9 @@ const suffixes=['staff','records','record_references','rate_limits','record_revi
 async function initialize(){
   db=new PGlite();
   await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql as $$select null::uuid$$;create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid,bucket_id text,name text);alter table storage.objects enable row level security;`);
-  for(const name of ['202609030001_cota_backend.sql','202609030002_cota_record_revisions.sql','202609060003_mnt_identity.sql','202609060004_mnt_content_identity.sql'])await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
+  for(const name of ['202609030001_fortius_inmuebles_backend.sql','202609030002_fortius_inmuebles_record_revisions.sql','202609060003_fortius_inmuebles_identity.sql','202609060004_fortius_inmuebles_content_identity.sql'])await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
   await db.exec(`insert into public.mnt_records(collection,id,data) values('notas','keep','{"texto":"MNT Inmuebles"}'),('posts','p','{"slug":"stable"}');insert into public.mnt_record_revisions values('notas','deleted',4);`);
-  inverse=await readFile(new URL('../../tools/mnt-rollback-identity.sql',import.meta.url),'utf8');
+  inverse=await readFile(new URL('../../tools/fortius-inmuebles-rollback-identity.sql',import.meta.url),'utf8');
 }
 beforeAll(initialize);
 afterAll(async()=>{await db?.close();});

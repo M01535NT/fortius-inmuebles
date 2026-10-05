@@ -31,7 +31,7 @@ describe("BFF validation and authorization behavior", () => {
     expect(() => parseRecord("propiedades", propiedades[0].slug, { ...propiedades[0], precio: { modalidad: "publico", monto: -2, moneda: "MXN" } })).toThrow();
   });
   it("public projection removes private root and nested keys and hides drafts", () => {
-    const input = { ...propiedades[0], publicada: true, notasInternas: "secreto", propietario: { nombre: "secreto" }, ficha: { ...propiedades[0].ficha, propietario: "secreto" }, galeria: [{ src: "/casa.webp", alt: "Casa", notas: "secreto" }], documentos: [{ codigo: "P1", nombre: "Privado", descripcion: "no", url: "/api/admin/files?bucket=mnt-private&path=x" }] };
+    const input = { ...propiedades[0], publicada: true, notasInternas: "secreto", propietario: { nombre: "secreto" }, ficha: { ...propiedades[0].ficha, propietario: "secreto" }, galeria: [{ src: "/casa.webp", alt: "Casa", notas: "secreto" }], documentos: [{ codigo: "P1", nombre: "Privado", descripcion: "no", url: "/api/admin/files?bucket=fortius-inmuebles-private&path=x" }] };
     const output = projectPublic("propiedades", [input, { ...input, publicada: false }]);
     expect(output).toHaveLength(1);
     expect(JSON.stringify(output)).not.toContain("secreto");
@@ -49,12 +49,12 @@ describe("BFF validation and authorization behavior", () => {
     expect(() => parseRecord("propiedades", input.slug, { ...input, informacionPublica: { ...info, disponibilidadRevisadaEl: "mañana" } })).toThrow();
   });
   it.each(["videoInstitucionalUrl", "facebook", "instagram", "whatsapp"])("public configuration blanks private capabilities in %s without dropping contact settings", (field) => {
-    const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/mnt-public/video.mp4" };
+    const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "526641234567", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-public/video.mp4" };
     for (const unsafe of [
-      "https://assets.example.com/storage/v1/object/sign/mnt-private/video.mp4?token=PRIVATE_CAPABILITY",
-      "/api/admin/files?bucket=mnt-private&path=video.mp4",
-      "https://assets.example.com/storage/v1/object/authenticated/mnt-private/video.mp4",
-      "https://assets.example.com/storage/v1/object/public/mnt-staging/video.mp4",
+      "https://assets.example.com/storage/v1/object/sign/fortius-inmuebles-private/video.mp4?token=PRIVATE_CAPABILITY",
+      "/api/admin/files?bucket=fortius-inmuebles-private&path=video.mp4",
+      "https://assets.example.com/storage/v1/object/authenticated/fortius-inmuebles-private/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-staging/video.mp4",
       "https://assets.example.com/storage/v1/object/public/cota-private/video.mp4",
       "https://assets.example.com/storage/v1/object/public/cota-staging/video.mp4",
       "javascript:alert(1)",

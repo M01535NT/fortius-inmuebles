@@ -11,11 +11,11 @@ export async function GET(_request: Request, context: Context) {
   try {
     const id = z.uuid().parse((await context.params).id);
     const { client } = await requireStaff();
-    const copy = await client.from("mnt_signed_copies").select("id,path,sha256").eq("id", id).maybeSingle();
+    const copy = await client.from("fortius_inmuebles_signed_copies").select("id,path,sha256").eq("id", id).maybeSingle();
     if (copy.error) databaseError(copy.error);
     if (!copy.data) throw new ApiError(404, "Copia firmada no encontrada");
     const privileged = createServerClient(undefined, true);
-    const file = await privileged.storage.from("mnt-expedientes").download(copy.data.path);
+    const file = await privileged.storage.from("fortius-inmuebles-expedientes").download(copy.data.path);
     if (file.error || !file.data) throw new ApiError(503, "La copia archivada no está disponible");
     const bytes = Buffer.from(await file.data.arrayBuffer());
     if (createHash("sha256").update(bytes).digest("hex") !== copy.data.sha256) throw new ApiError(503, "La copia archivada no superó la verificación de integridad");

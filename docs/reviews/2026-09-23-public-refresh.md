@@ -37,7 +37,7 @@ El presupuesto opcional de rendimiento falla por LCP; no se redujo el objetivo p
 
 ## Publicación y operación
 
-1. Migración `supabase/migrations/202609230007_mnt_home_editorial.sql` aplicada en el proyecto `mnt-inmuebles` mediante SQL Editor. Solo amplía la proyección pública del contenido con una lista de campos permitidos; no reescribe registros. No volver a ejecutarla en esa instancia.
+1. Migración `supabase/migrations/202609230007_fortius_inmuebles_home_editorial.sql` aplicada en el proyecto `fortius-inmuebles` mediante SQL Editor. Solo amplía la proyección pública del contenido con una lista de campos permitidos; no reescribe registros. No volver a ejecutarla en esa instancia.
 2. Desplegar la versión y verificar la portada, el guardado editorial y las rutas públicas.
 3. Habilitar Speed Insights en el proyecto de Vercel para obtener métricas de usuarios reales. El componente excluye `/admin` y elimina consultas y fragmentos de las URLs reportadas.
 4. Completar los contactos en Configuración y sustituir o despublicar el inventario de ejemplo antes de operar comercialmente. Los formularios de captación siguen dependiendo de su activación explícita y del backend configurado.

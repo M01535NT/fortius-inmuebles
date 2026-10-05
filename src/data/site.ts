@@ -9,7 +9,7 @@ export const productionOrigin = "https://fortius-inmuebles.vercel.app";
 export const siteConfig = {
   name: "Fortius Inmuebles",
   descriptor: "Bienes raíces con método",
-  url: process.env.MNT_SITE_URL || productionOrigin,
+  url: process.env.FORTIUS_INMUEBLES_SITE_URL || productionOrigin,
   contact: {
     phone: "",
     phoneHref: "",

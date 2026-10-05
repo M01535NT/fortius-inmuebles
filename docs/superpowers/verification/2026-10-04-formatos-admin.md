@@ -31,17 +31,17 @@ Dos fallos adicionales aparecieron en las pruebas reales y se corrigieron con pr
 
 ## Supabase: instalación y prueba real
 
-Proyecto verificado: `qkkirjzhviqwvuqjnmei` / mnt-inmuebles. Herramienta oficial Supabase CLI 2.119.0.
+Proyecto verificado: `qkkirjzhviqwvuqjnmei` / fortius-inmuebles. Herramienta oficial Supabase CLI 2.119.0.
 
 Primero se validaron las cuatro migraciones iniciales en una transacción real con rollback confirmado. Después se instalaron transaccionalmente, con límites de bloqueo y ejecución. La corrección de lectura de expedientes se instaló después de reproducir el fallo real.
 
 | Migración instalada | SHA-256 del archivo aplicado |
 |---|---|
-| `202610040009_mnt_expedientes.sql` | `68918FE0AD5F8887648AB344E3CA63EC512FA359977A4E12D0227702BBEA0D47` |
-| `202610040010_mnt_formato_assets.sql` | `E5B325664BA552250A1C2C46A3AEBFA27213F5C8AAEC4C3DF4A480CCF68BF216` |
-| `20261005000752_mnt_comercial.sql` | `9B226F774B0BDE5CCF5EB8CC1C2A2A670456AA8B0D317C76E76FF9F69EE1DB9B` |
-| `20261005004358_mnt_private_upload_provenance.sql` | `8F27EFE2993A1DDE5621C4B275DC1B7F7B1D331664A5C94AC7019B6333FA0013` |
-| `20261005011326_mnt_expediente_row_scope.sql` | `7B29591160FDCA519CBD95D309EAB4C897C75D30751B66CCCDF1CAB5A014BA39` |
+| `202610040009_fortius_inmuebles_expedientes.sql` | `68918FE0AD5F8887648AB344E3CA63EC512FA359977A4E12D0227702BBEA0D47` |
+| `202610040010_fortius_inmuebles_formato_assets.sql` | `E5B325664BA552250A1C2C46A3AEBFA27213F5C8AAEC4C3DF4A480CCF68BF216` |
+| `20261005000752_fortius_inmuebles_comercial.sql` | `9B226F774B0BDE5CCF5EB8CC1C2A2A670456AA8B0D317C76E76FF9F69EE1DB9B` |
+| `20261005004358_fortius_inmuebles_private_upload_provenance.sql` | `8F27EFE2993A1DDE5621C4B275DC1B7F7B1D331664A5C94AC7019B6333FA0013` |
+| `20261005011326_fortius_inmuebles_expediente_row_scope.sql` | `7B29591160FDCA519CBD95D309EAB4C897C75D30751B66CCCDF1CAB5A014BA39` |
 
 El proyecto no tenía historial en `supabase_migrations.schema_migrations`: el esquema anterior fue aplicado manualmente. Esta instalación usa consultas transaccionales de Management API. Conciliar historial antes de utilizar `db push`; no volver a aplicar automáticamente las migraciones anteriores.
 
@@ -79,4 +79,4 @@ Cuestiones no certificadas por la revisión independiente, con decisión expresa
 
 ## Publicación pendiente
 
-La rama conserva los cambios localmente. No se realizó otro push: la revisión automática anterior rechazó transferir código privado a GitHub sin autorización específica de destino. Falta resolver esa autorización para `M01535NT/mnt-inmuebles` y completar la publicación y comprobación del sitio. La carpeta de trabajo se conserva para continuar ese paso.
+La rama conserva los cambios localmente. No se realizó otro push: la revisión automática anterior rechazó transferir código privado a GitHub sin autorización específica de destino. Falta resolver esa autorización para `M01535NT/fortius-inmuebles` y completar la publicación y comprobación del sitio. La carpeta de trabajo se conserva para continuar ese paso.

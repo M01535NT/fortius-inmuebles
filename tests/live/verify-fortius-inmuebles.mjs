@@ -1,7 +1,7 @@
 /**
  * Explicit integration check, never included in the offline test suite.
  * Run against the NEW dedicated project only:
- * node --env-file=.env.local tests/live/verify-mnt.mjs --run
+ * node --env-file=.env.local tests/live/verify-fortius-inmuebles.mjs --run
  * Creates its own two test users/records; never sends email or touches existing rows.
  */
 import assert from "node:assert/strict";
@@ -10,13 +10,13 @@ import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 
 assert.equal(process.argv[2], "--run", "Live mutation requires explicit --run");
-const projectRef = process.env.MNT_TEST_PROJECT_REF || "qkkirjzhviqwvuqjnmei";
+const projectRef = process.env.FORTIUS_INMUEBLES_TEST_PROJECT_REF || "qkkirjzhviqwvuqjnmei";
 assert.match(projectRef, /^[a-z]{20}$/, "Invalid dedicated Supabase project ref");
 assert.equal(new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname,
   `${projectRef}.supabase.co`, "Refusing any other Supabase project");
-const origin = process.env.MNT_TEST_URL;
-assert.ok(origin, "MNT_TEST_URL is required");
-assert.equal(new URL(origin).origin, origin, "MNT_TEST_URL must be an origin without a path");
+const origin = process.env.FORTIUS_INMUEBLES_TEST_URL;
+assert.ok(origin, "FORTIUS_INMUEBLES_TEST_URL is required");
+assert.equal(new URL(origin).origin, origin, "FORTIUS_INMUEBLES_TEST_URL must be an origin without a path");
 const verifyWeb = process.argv.includes("--web");
 const verifyRevisions = process.argv.includes("--revisions");
 if (verifyRevisions) assert.ok(process.argv.includes("--migration-002-applied"),
@@ -73,14 +73,14 @@ async function check(name, action) {
 }
 
 async function createUser(suffix, member) {
-  const email = `mnt-${runId}-${suffix}@example.invalid`;
+  const email = `fortius-inmuebles-${runId}-${suffix}@example.invalid`;
   const password = randomBytes(32).toString("base64url");
   const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
   assert.ifError(error);
   users.push(data.user.id);
   if (member) {
     memberUserId = data.user.id;
-    const { error: grantError } = await admin.from("mnt_staff")
+    const { error: grantError } = await admin.from("fortius_inmuebles_staff")
       .insert({ user_id: data.user.id, role: "admin", active: true });
     assert.ifError(grantError);
   }
@@ -97,7 +97,7 @@ try {
   await check("anonymous cannot read the panel", async () => {
     assert.equal((await first("/api/auth/session")).status, 401);
     assert.equal((await first("/api/admin/collections/clientes")).status, 401);
-    const { error } = await anon.from("mnt_records").select("id").limit(1);
+    const { error } = await anon.from("fortius_inmuebles_records").select("id").limit(1);
     assert.ok(error, "Anonymous direct reads must be denied, not merely hidden by the UI");
   });
 
@@ -119,29 +119,29 @@ try {
     assert.equal((await first("/api/auth/session")).data.user.email, member.email);
   });
   await check("missing access token refreshes and invalid session cookies are rejected", async () => {
-    first.deleteCookie("mnt-access-token");
+    first.deleteCookie("fortius-inmuebles-access-token");
     const refreshed = await first("/api/auth/session");
     assert.equal(refreshed.status, 200);
     assert.equal(refreshed.data.user.email, member.email);
-    assert.ok(refreshed.setCookies.some((value) => value.startsWith("mnt-access-token=")));
+    assert.ok(refreshed.setCookies.some((value) => value.startsWith("fortius-inmuebles-access-token=")));
 
     const invalid = session();
-    invalid.setCookie("mnt-access-token", "expired-verification-token");
-    invalid.setCookie("mnt-refresh-token", "expired-verification-refresh");
+    invalid.setCookie("fortius-inmuebles-access-token", "expired-verification-token");
+    invalid.setCookie("fortius-inmuebles-refresh-token", "expired-verification-refresh");
     const rejected = await invalid("/api/auth/session");
     assert.equal(rejected.status, 401);
-    assert.ok(rejected.setCookies.some((value) => /mnt-(access|refresh)-token=.*max-age=0/i.test(value)));
+    assert.ok(rejected.setCookies.some((value) => /fortius-inmuebles-(access|refresh)-token=.*max-age=0/i.test(value)));
   });
 
   await check("an editor member retains panel access", async () => {
-    const { error: editorError } = await admin.from("mnt_staff")
+    const { error: editorError } = await admin.from("fortius_inmuebles_staff")
       .update({ role: "editor" }).eq("user_id", memberUserId);
     assert.ifError(editorError);
     const editorSession = await first("/api/auth/session");
     assert.equal(editorSession.status, 200);
     assert.equal(editorSession.data.user.role, "editor");
     assert.equal((await first("/api/admin/collections/notas")).status, 200);
-    const { error: restoreError } = await admin.from("mnt_staff")
+    const { error: restoreError } = await admin.from("fortius_inmuebles_staff")
       .update({ role: "admin" }).eq("user_id", memberUserId);
     assert.ifError(restoreError);
   });
@@ -205,9 +205,9 @@ try {
     const direct = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
     assert.ifError((await direct.auth.signInWithPassword(member)).error);
     try {
-      const put = await direct.rpc("mnt_put_record", { p_collection: "propiedades", p_id: id, p_data: opening.data, p_version: opening.version });
+      const put = await direct.rpc("fortius_inmuebles_put_record", { p_collection: "propiedades", p_id: id, p_data: opening.data, p_version: opening.version });
       assert.equal(put.error?.code, "PT409");
-      const del = await direct.rpc("mnt_delete_record", { p_collection: "propiedades", p_id: id, p_version: opening.version });
+      const del = await direct.rpc("fortius_inmuebles_delete_record", { p_collection: "propiedades", p_id: id, p_version: opening.version });
       assert.equal(del.error?.code, "PT409");
       const list = await first("/api/admin/collections/propiedades");
       assert.equal(list.data.records.find((record) => record.id === id).data.titulo, fixture.titulo);
@@ -225,7 +225,7 @@ try {
     });
     assert.equal(response.status, 200);
     propertyVersion = response.data.record.version;
-    const { data, error } = await anon.rpc("mnt_public_records", { p_collection: "propiedades" });
+    const { data, error } = await anon.rpc("fortius_inmuebles_public_records", { p_collection: "propiedades" });
     assert.ifError(error);
     assert.ok(!data.some((r) => r.data.slug === propertyId));
   });
@@ -235,7 +235,7 @@ try {
     });
     assert.equal(response.status, 200);
     propertyVersion = response.data.record.version;
-    const { data, error } = await anon.rpc("mnt_public_records", { p_collection: "propiedades" });
+    const { data, error } = await anon.rpc("fortius_inmuebles_public_records", { p_collection: "propiedades" });
     assert.ifError(error);
     const visible = data.find((r) => r.data.slug === propertyId)?.data;
     assert.equal(visible?.titulo, property.titulo);
@@ -245,7 +245,7 @@ try {
     });
     assert.equal(hidden.status, 200);
     propertyVersion = hidden.data.record.version;
-    const again = await anon.rpc("mnt_public_records", { p_collection: "propiedades" });
+    const again = await anon.rpc("fortius_inmuebles_public_records", { p_collection: "propiedades" });
     assert.ifError(again.error);
     assert.ok(!again.data.some((r) => r.data.slug === propertyId));
   });
@@ -283,7 +283,7 @@ try {
     const duplicateId = `${prefix}-web-post-duplicate`;
     const slug = `${prefix}-web-post`;
     const changedSlug = `${slug}-changed`;
-    const unsafeBody = "Primer párrafo\n\n<script>alert('mnt-live')</script>";
+    const unsafeBody = "Primer párrafo\n\n<script>alert('fortius-inmuebles-live')</script>";
     const post = {
       id: postId, slug, titulo: "ARTÍCULO WEB DE PRUEBA", resumen: "Resumen temporal",
       contenido: unsafeBody, estado: "borrador", actualizadoEl: now,
@@ -305,7 +305,7 @@ try {
     const publicHtml = await publicDetail.text();
     assert.ok(publicHtml.includes(post.titulo));
     assert.ok(publicHtml.includes("&lt;script&gt;alert"), "Stored markup must render as escaped text");
-    assert.ok(!publicHtml.includes("<script>alert('mnt-live')</script>"), "Stored markup must never become executable HTML");
+    assert.ok(!publicHtml.includes("<script>alert('fortius-inmuebles-live')</script>"), "Stored markup must never become executable HTML");
     assert.ok(publicHtml.includes(`rel="canonical" href="${detailUrl}"`));
     assert.ok((await (await fetch(origin + "/sitemap.xml")).text()).includes(`/blog/${slug}`));
 
@@ -339,7 +339,7 @@ try {
     assert.ok(!(await (await fetch(origin + "/sitemap.xml")).text()).includes(`/blog/${slug}`));
   });
 
-  if (process.env.MNT_TEST_PRODUCTION_LEADS === "true") await check("all five public lead variants acknowledge actual persistence", async () => {
+  if (process.env.FORTIUS_INMUEBLES_TEST_PRODUCTION_LEADS === "true") await check("all five public lead variants acknowledge actual persistence", async () => {
     const variants = ["evaluar", "contacto", "checklist", "documentos", "interes-propiedad"];
     const ids = [];
     for (const origen of variants) {
@@ -364,7 +364,7 @@ try {
     assert.equal(updated.status, 200);
     const reloaded = await second("/api/admin/collections/leads");
     assert.deepEqual(reloaded.data.records.find((r) => r.id === saved.id).data, changed);
-    const denied = await anon.rpc("mnt_public_records", { p_collection: "leads" });
+    const denied = await anon.rpc("fortius_inmuebles_public_records", { p_collection: "leads" });
     assert.ok(denied.error || denied.data.length === 0);
   });
 
@@ -397,7 +397,7 @@ try {
       assert.equal(updated.status, 200, `${collection}: update`);
       const reloaded = await second(`/api/admin/collections/${collection}`);
       assert.deepEqual(reloaded.data.records.find((row) => row.id === original.id).data, changed);
-      const hidden = await anon.rpc("mnt_public_records", { p_collection: collection });
+      const hidden = await anon.rpc("fortius_inmuebles_public_records", { p_collection: collection });
       assert.ok(hidden.error || !hidden.data.some((row) => row.data.id === original.id), `${collection}: private/inactive/draft row leaked`);
       assert.equal((await first(path, { method: "DELETE", data: { version: created.data.record.version } })).status, 409);
       assert.equal((await first(path, { method: "DELETE", data: { version: updated.data.record.version } })).status, 200, `${collection}: unreferenced current-version delete`);
@@ -412,14 +412,14 @@ try {
     form.set("file", new File([bytes], `${prefix}.webp`, { type: "image/webp" }));
     form.set("visibility", "private");
     const response = await first("/api/admin/files", { method: "POST", body: form });
-    if (response.data.bucket === "mnt-private" && response.data.path?.startsWith(memberUserId + "/")) {
+    if (response.data.bucket === "fortius-inmuebles-private" && response.data.path?.startsWith(memberUserId + "/")) {
       objects.push({ bucket: response.data.bucket, path: response.data.path });
     }
     assert.equal(response.status, 201);
-    assert.equal(response.data.bucket, "mnt-private");
-    const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/mnt-private/${response.data.path}`;
+    assert.equal(response.data.bucket, "fortius-inmuebles-private");
+    const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/fortius-inmuebles-private/${response.data.path}`;
     assert.ok(!(await fetch(publicUrl)).ok, "Private file must not be publicly retrievable");
-    const signed = await first(`/api/admin/files?bucket=mnt-private&path=${encodeURIComponent(response.data.path)}`);
+    const signed = await first(`/api/admin/files?bucket=fortius-inmuebles-private&path=${encodeURIComponent(response.data.path)}`);
     assert.equal(signed.status, 200);
     const download = await fetch(signed.data.url);
     assert.equal(download.status, 200);
@@ -437,11 +437,11 @@ try {
     publicForm.set("file", new File([bytes], `${prefix}-public.webp`, { type: "image/webp" }));
     publicForm.set("visibility", "public");
     const saved = await first("/api/admin/files", { method: "POST", body: publicForm });
-    if (saved.data.bucket === "mnt-public" && saved.data.path?.startsWith(memberUserId + "/")) {
+    if (saved.data.bucket === "fortius-inmuebles-public" && saved.data.path?.startsWith(memberUserId + "/")) {
       objects.push({ bucket: saved.data.bucket, path: saved.data.path });
     }
     assert.equal(saved.status, 201);
-    assert.equal(saved.data.bucket, "mnt-public");
+    assert.equal(saved.data.bucket, "fortius-inmuebles-public");
     const publicDownload = await fetch(saved.data.url);
     assert.equal(publicDownload.status, 200);
     assert.equal(createHash("sha256").update(Buffer.from(await publicDownload.arrayBuffer())).digest("hex"),
@@ -465,7 +465,7 @@ try {
     } });
     assert.equal(prepared.status, 200);
     assert.ok(prepared.data.path.startsWith(memberUserId + "/"));
-    objects.push({ bucket: "mnt-staging", path: prepared.data.path });
+    objects.push({ bucket: "fortius-inmuebles-staging", path: prepared.data.path });
     assert.equal((await first("/api/admin/files/complete", {
       method: "POST", data: { ticket: prepared.data.ticket },
     })).status, 409);
@@ -477,7 +477,7 @@ try {
       v: 1, uid: memberUserId, path: expiredPath, expires: 1,
     })).toString("base64url");
     // Match the server's HMAC without ever printing the service-role secret or ticket.
-    const expiredTicket = `${payload}.${createHmac("sha256", key).update(`mnt-upload-v1:${payload}`).digest("base64url")}`;
+    const expiredTicket = `${payload}.${createHmac("sha256", key).update(`fortius-inmuebles-upload-v1:${payload}`).digest("base64url")}`;
     assert.equal((await first("/api/admin/files/complete", {
       method: "POST", data: { ticket: expiredTicket },
     })).status, 403);
@@ -491,7 +491,7 @@ try {
     assert.ok(prepared.status >= 200 && prepared.status < 300);
     assert.equal(new URL(prepared.data.signedUrl).hostname, `${projectRef}.supabase.co`);
     assert.ok(prepared.data.path.startsWith(memberUserId + "/"));
-    objects.push({ bucket: "mnt-staging", path: prepared.data.path });
+    objects.push({ bucket: "fortius-inmuebles-staging", path: prepared.data.path });
     const uploaded = await fetch(prepared.data.signedUrl, {
       method: "PUT", headers: { "Content-Type": "image/webp" }, body: bytes,
     });
@@ -499,11 +499,11 @@ try {
     const completed = await first("/api/admin/files/complete", {
       method: "POST", data: { ticket: prepared.data.ticket },
     });
-    if (completed.data.bucket === "mnt-private" && completed.data.path?.startsWith(memberUserId + "/")) {
+    if (completed.data.bucket === "fortius-inmuebles-private" && completed.data.path?.startsWith(memberUserId + "/")) {
       objects.push({ bucket: completed.data.bucket, path: completed.data.path });
     }
     assert.ok(completed.status >= 200 && completed.status < 300);
-    assert.equal(completed.data.bucket, "mnt-private");
+    assert.equal(completed.data.bucket, "fortius-inmuebles-private");
     const resolved = await first(completed.data.url);
     assert.equal(resolved.status, 200);
     const download = await fetch(resolved.data.url);
@@ -543,14 +543,14 @@ try {
   failure = error;
 } finally {
   const cleanupErrors = [];
-  const { data: testLeads, error: findLeadError } = await admin.from("mnt_records")
+  const { data: testLeads, error: findLeadError } = await admin.from("fortius_inmuebles_records")
     .select("id").eq("collection", "leads").eq("data->>mensaje", prefix);
   if (findLeadError) cleanupErrors.push(`Finding test lead: ${findLeadError.message}`);
   for (const lead of testLeads ?? []) {
     if (!records.some((record) => record.collection === "leads" && record.id === lead.id)) records.push({ collection: "leads", id: lead.id });
   }
   for (const { collection, id } of records.reverse()) {
-    const { error } = await admin.from("mnt_records").delete().eq("collection", collection).eq("id", id);
+    const { error } = await admin.from("fortius_inmuebles_records").delete().eq("collection", collection).eq("id", id);
     if (error) cleanupErrors.push(`Record ${collection}/${id}: ${error.message}`);
   }
   for (const { bucket, path } of objects) {

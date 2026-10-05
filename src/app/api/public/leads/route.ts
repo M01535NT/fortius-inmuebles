@@ -7,7 +7,7 @@ import { parseLead } from "@/lib/backend/validation";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  if (process.env.MNT_PUBLIC_LEADS_ENABLED !== "true") {
+  if (process.env.FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED !== "true") {
     return Response.json(
       { error: "La recepción de solicitudes no está disponible en este momento." },
       { status: 503 },
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       ? request.headers.get("x-vercel-forwarded-for")?.split(",")[0].trim() ?? "unknown"
       : "shared";
     const rateKey = createHash("sha256").update(address).digest("hex");
-    const result = await createServerClient(undefined, true).rpc("mnt_capture_lead", {
+    const result = await createServerClient(undefined, true).rpc("fortius_inmuebles_capture_lead", {
       p_data: data,
       p_rate_key: rateKey,
     });

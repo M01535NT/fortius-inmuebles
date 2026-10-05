@@ -9,12 +9,12 @@ const jsonIndex = args.indexOf("--json");
 let reportPath;
 if (jsonIndex >= 0) {
   const candidate = args[jsonIndex + 1];
-  reportPath = candidate && !candidate.startsWith("--") ? candidate : ".superpowers/mnt-health.json";
+  reportPath = candidate && !candidate.startsWith("--") ? candidate : ".superpowers/fortius-inmuebles-health.json";
   args.splice(jsonIndex, candidate && !candidate.startsWith("--") ? 2 : 1);
 }
 assert.ok(args.length <= 1, "Usage: npm run health -- [origin] [--json [path-under-.superpowers]]");
-const origin = args[0] || process.env.MNT_TEST_URL;
-assert.ok(origin, "MNT_TEST_URL or an origin argument is required");
+const origin = args[0] || process.env.FORTIUS_INMUEBLES_TEST_URL;
+assert.ok(origin, "FORTIUS_INMUEBLES_TEST_URL or an origin argument is required");
 const base = new URL(origin);
 assert.equal(base.origin, origin, "Origin must not contain a path, query, credentials or trailing slash");
 assert.ok(!base.username && !base.password, "Origin credentials are forbidden");
@@ -29,7 +29,7 @@ async function request(url, expected = 200, follow = true) {
   for (let redirects = 0; redirects <= 5; redirects += 1) {
     assert.equal(current.origin, origin, `External origin refused: ${current.origin}`);
     const started = performance.now();
-    const response = await fetch(current, { redirect: "manual", headers: { "user-agent": "mnt-health/1.0" } });
+    const response = await fetch(current, { redirect: "manual", headers: { "user-agent": "fortius-inmuebles-health/1.0" } });
     timings.push(performance.now() - started);
     statuses.set(response.status, (statuses.get(response.status) || 0) + 1);
     if (follow && [301, 302, 303, 307, 308].includes(response.status)) {
@@ -61,13 +61,13 @@ for (const location of locations) {
 }
 for (const path of ["/admin", "/contacto", "/blog"]) await request(path);
 const missingSuffix = Date.now();
-await request(`/inventario/mnt-health-missing-${missingSuffix}`, 404);
-await request(`/blog/mnt-health-missing-${missingSuffix}`, 404);
+await request(`/inventario/fortius-inmuebles-health-missing-${missingSuffix}`, 404);
+await request(`/blog/fortius-inmuebles-health-missing-${missingSuffix}`, 404);
 const legacyPdf = await request("/descargas/checklist-venta-cota.pdf", null, false);
 assert.ok([301, 308].includes(legacyPdf.response.status), `Legacy PDF: expected 301/308, received ${legacyPdf.response.status}`);
 const redirectTarget = new URL(legacyPdf.response.headers.get("location"), origin);
 assert.equal(redirectTarget.origin, origin, "Legacy PDF redirects externally");
-assert.equal(redirectTarget.pathname, "/descargas/checklist-venta-mnt.pdf");
+assert.equal(redirectTarget.pathname, "/descargas/checklist-venta-fortius.pdf");
 await request(redirectTarget);
 
 const legacyBrand = /(^|[^\p{L}\p{N}])cota([^\p{L}\p{N}]|$)/iu;

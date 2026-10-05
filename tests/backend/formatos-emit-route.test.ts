@@ -52,7 +52,7 @@ it("usa el folio autorizado del expediente al emitir, aunque el borrador conteng
     cfdiEstado: "Pendiente", receptor: "Ana",
   };
   const client = { from: vi.fn((table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({
-    data: table === "mnt_formato_drafts" ? { id, expediente_id: expedienteId, formato_id: "18", data, version: 1 } : { id: expedienteId, folio: "REAL" }, error: null,
+    data: table === "fortius_inmuebles_formato_drafts" ? { id, expediente_id: expedienteId, formato_id: "18", data, version: 1 } : { id: expedienteId, folio: "REAL" }, error: null,
   }) }) }) })) };
   requireStaff.mockResolvedValue({ client, user: { id: "51000000-0000-4000-8000-000000000002" } });
   prepareFormatoEmission.mockResolvedValue({ bytes: new Uint8Array([37, 80, 68, 70, 45]), sha256: "a".repeat(64) });
