@@ -6,6 +6,7 @@ import { POST } from "@/app/api/admin/formatos/[id]/emitir/route";
 import { terrenoFields } from "@/lib/formatos/levantamiento";
 import { completeValorSample } from "./fixtures/valor";
 import { valorReviewSnapshot } from "@/lib/formatos/valor";
+import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 
 const terrenoInput = {
   ...Object.fromEntries(terrenoFields.filter((field) => field.type !== "levantamientoRows").map((field) => [field.key, field.type === "date" ? "2026-10-04" : field.type === "time" ? "10:00" : "NV"])),
@@ -74,6 +75,24 @@ it("bloquea un formato cuyo original aún no fue cotejado", async () => {
   expect(response.status).toBe(409);
   expect((await response.json()).error).toMatch(/pendiente de cotejo/i);
   expect(createServerClient).not.toHaveBeenCalled();
+});
+
+it("identifica la plantilla del aviso en el archivo histórico y en la respuesta de descarga", async () => {
+  const id = "51000000-0000-4000-8000-000000000011";
+  const data = {
+    folio: "EXP-QA", fechaEmision: "2026-10-04", responsable: "Persona QA",
+    domicilioResponsable: "Calle de prueba 100, Centro, Tijuana, Baja California", contactoPrivacidad: "Atención QA", correoPrivacidad: "qa@example.invalid",
+    titular: "Titular QA", tipoTitular: "propietario", operacion: "Venta", consentimientoPatrimonial: "pendiente", consentimientoPublicidad: "pendiente",
+    transferenciaAsesor: "pendiente", transferenciaFinanciera: "pendiente", transferenciaOperacion: "pendiente", acuseEstado: "pendiente", plantillaVersion: "valor-no-confiable-del-borrador",
+  };
+  requireStaff.mockResolvedValue({ client: { from: (table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: table === "fortius_inmuebles_formato_drafts" ? { id, expediente_id: id, formato_id: "01", data, version: 1 } : { id, folio: "EXP-QA" }, error: null }) }) }) }) }, user: { id } });
+  prepareFormatoEmission.mockResolvedValue({ bytes: new Uint8Array([37, 80, 68, 70, 45]), sha256: "a".repeat(64) });
+  const insert = vi.fn((payload: Record<string, unknown>) => ({ select: () => ({ single: async () => ({ data: { id: payload.id, draft_version: 1 }, error: null }) }) }));
+  createServerClient.mockReturnValue({ storage: { from: () => ({ upload: async () => ({ error: null }) }) }, from: () => ({ insert }) });
+  const response = await POST(emitRequest(id), { params: Promise.resolve({ id }) });
+  expect(response.status).toBe(201);
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({ snapshot: expect.objectContaining({ plantillaVersion: AVISO_TEMPLATE_VERSION }) }));
+  expect((await response.json()).emision.plantillaVersion).toBe(AVISO_TEMPLATE_VERSION);
 });
 
 it("comprueba todas las fotografías del reporte 07 antes de descargar imágenes", async () => {

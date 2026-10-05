@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import type { FormatoDefinition } from "@/lib/formatos/catalog";
-import { mostrarCampoAviso, validarAviso } from "@/lib/formatos/aviso";
+import { claveRepresentante, mostrarCampoAviso, validarAviso } from "@/lib/formatos/aviso";
 import { inputClass, selectClass } from "./ui";
 
 type Props = { definition: FormatoDefinition; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void };
@@ -31,9 +31,22 @@ export function AvisoEditor({ definition, values, onChange }: Props) {
       <div className={grid}>{fields(["titular", "tipoTitular", "operacion", "fechaEmision"])}</div>
       <details open={values.tipoTitular === "representante" || Boolean(String(values.representante ?? "").trim())} className="mt-4">
         <summary className="cursor-pointer py-2 text-sm font-medium">Representante, si aplica</summary>
-        <div className={`mt-3 ${grid}`}>{fields(["representante", "documentoRepresentante"])}</div>
+        <div className={`mt-3 ${grid}`}>{fields(["representante", "calidadRepresentante", "documentoRepresentante"])}</div>
       </details>
     </section>
+    {Boolean(String(values.representante ?? "").trim()) && <details className="border-t border-border pt-4">
+      <summary className="cursor-pointer py-2 text-sm font-semibold">Decisiones de {String(values.representante)} sobre sus propios datos</summary>
+      <p className="mb-4 mt-1 text-sm text-muted-foreground">El PDF incluye una hoja separada para esta persona. Sus decisiones no se copian del titular; déjalas pendientes para recabarlas en papel.</p>
+      <div className={grid}>{fields(["consentimientoPatrimonial", "consentimientoPublicidad", "publicidadCorreo", "publicidadTelefono", "publicidadMensajeria"].map(claveRepresentante))}</div>
+      <details className="mt-4">
+        <summary className="cursor-pointer py-2 text-sm font-medium">Compartir los datos propios del representante</summary>
+        <div className={`mt-3 ${grid}`}>{fields(["transferenciaAsesor", "asesorDestinatario", "asesorPais", "transferenciaFinanciera", "financieroDestinatario", "financieroPais", "transferenciaOperacion", "operacionDestinatario", "operacionPais"].map(claveRepresentante))}</div>
+      </details>
+      <details className="mt-2">
+        <summary className="cursor-pointer py-2 text-sm font-medium">Firma de la hoja del representante</summary>
+        <div className={`mt-3 ${grid}`}>{fields(["acuseEstado", "fechaAcuse", "referenciaAcuse"].map(claveRepresentante))}</div>
+      </details>
+    </details>}
     <section aria-labelledby="aviso-decisiones" className="border-t border-border pt-5">
       <h3 id="aviso-decisiones" className="text-lg font-semibold">Decisiones de privacidad</h3>
       <p className="mb-4 mt-1 text-sm text-muted-foreground">Registra la decisión del titular. Puedes descargar el aviso con decisiones pendientes para recabar su firma.</p>
@@ -55,6 +68,6 @@ export function AvisoEditor({ definition, values, onChange }: Props) {
       {businessComplete && <p className="my-2 text-sm text-muted-foreground">{String(values.responsable)} · {String(values.correoPrivacidad)}</p>}
       <div className={`mt-3 ${grid}`}>{fields(responsableKeys)}</div>
     </details>
-    <p className="text-xs text-muted-foreground">Expediente: {String(values.folio ?? "")}. Se incluirá en el PDF.</p>
+    <p className="text-xs text-muted-foreground">Expediente: {String(values.folio ?? "")}. El aviso conserva el diseño de la plantilla Fortius.</p>
   </div>;
 }
