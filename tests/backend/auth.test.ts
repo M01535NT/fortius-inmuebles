@@ -6,7 +6,7 @@ import { PUT as putRoute } from "@/app/api/admin/collections/[collection]/[id]/r
 import { POST as leadRoute } from "@/app/api/leads/route";
 import { POST as uploadRoute, GET as fileRoute } from "@/app/api/admin/files/route";
 
-const state = vi.hoisted(() => ({ cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(), active: true, member: true, validPassword: true, authServiceFailure: false, password: "", recoveryFailure: false, leadFailure: false }));
+const state = vi.hoisted(() => ({ cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(), active: true, member: true, validPassword: true, authServiceFailure: false, password: "", recoveryFailure: false, leadFailure: false, fileMissing: false }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: (name: string) => state.cookies.get(name), set: (name: string, value: string, options: Record<string, unknown>) => { state.cookies.set(name, { value, options }); } }) }));
 const user = { id: "10000000-0000-4000-8000-000000000001", aud: "authenticated", role: "authenticated", email: "staff@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-09-02T12:00:00Z" };
 const token = `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url")}.${Buffer.from(JSON.stringify({ sub: user.id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url")}.test-signature`;
@@ -15,6 +15,7 @@ const session = { access_token: token, refresh_token: "test-refresh-token", expi
 beforeEach(() => {
   state.cookies.clear(); state.active = true; state.member = true; state.validPassword = true; state.password = ""; state.recoveryFailure = false; state.leadFailure = false;
   state.authServiceFailure = false;
+  state.fileMissing = false;
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_key");
   vi.stubEnv("MNT_PUBLIC_LEADS_ENABLED", "true");
@@ -39,13 +40,22 @@ beforeEach(() => {
     if (url.pathname === "/auth/v1/recover") return state.recoveryFailure ? Response.json({ msg: "SMTP is unavailable", error_code: "unexpected_failure" }, { status: 500 }) : Response.json({});
     if (url.pathname === "/rest/v1/rpc/mnt_capture_lead") return state.leadFailure ? Response.json({ code: "PT429", message: "Limited" }, { status: 429 }) : Response.json("new-lead-id");
     if (url.pathname === "/rest/v1/mnt_records") return Response.json([]);
-    if (url.pathname.startsWith("/storage/v1/object/sign/")) return Response.json({ signedURL: "/object/sign/mnt-private/signed?token=temporary" });
+    if (url.pathname === "/rest/v1/mnt_file_uploads" && init.method === "POST") return new Response(null, { status: 201 });
+    if (url.pathname.startsWith("/storage/v1/object/sign/")) return state.fileMissing
+      ? Response.json({ statusCode: "404", error: "not_found", message: "Object not found" }, { status: 400 })
+      : Response.json({ signedURL: "/object/sign/mnt-private/signed?token=temporary" });
     if (url.pathname.startsWith("/storage/v1/object/")) return Response.json({ Key: url.pathname });
     throw new Error(`Unexpected external request: ${url.pathname}`);
   });
 });
 
 describe("HTTP API contracts", () => {
+  it("no confunde un archivo inexistente o ajeno con una caída del servidor ni devuelve URL", async () => {
+    await loginWithPassword({ email: user.email, password: "a long password" }); state.fileMissing = true;
+    const response = await fileRoute(new Request("https://mnt.test/api/admin/files?bucket=mnt-private&path=own/missing.pdf"));
+    expect(response.status).toBe(404);
+    expect(await response.json()).not.toHaveProperty("url");
+  });
   const req = (path: string, method: string, body?: unknown) => new Request(`https://mnt.test${path}`, { method, headers: { origin: "https://mnt.test", "content-type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
   it("returns 401/403 from real handlers and rejects invalid collection/payload with 400", async () => {
     expect((await sessionRoute()).status).toBe(401);

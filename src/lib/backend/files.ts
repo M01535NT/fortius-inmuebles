@@ -12,6 +12,15 @@ const uploadInput = z.object({
 }).strict();
 const ticketSchema = uploadInput.extend({ v: z.literal(1), uid: z.uuid(), path: z.string().regex(/^[a-f0-9-]+\/[a-f0-9-]+\.(jpg|png|webp|gif|pdf|mp4|webm)$/), expires: z.number().int() }).strict();
 type StorageClient = Pick<SupabaseClient, "storage">;
+type UploadClient = Pick<SupabaseClient, "storage" | "from">;
+
+export async function registerUpload(client: UploadClient, userId: string, bucket: string, path: string) {
+  const receipt = await client.from("mnt_file_uploads").insert({ bucket, path, uploaded_by: userId });
+  if (receipt.error) {
+    await client.storage.from(bucket).remove([path]);
+    databaseError(receipt.error);
+  }
+}
 
 function sign(payload: string) {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -43,7 +52,7 @@ export async function prepareUpload(client: StorageClient, userId: string, input
   return { signedUrl: signed.data.signedUrl, path, ticket };
 }
 
-export async function completeUpload(client: StorageClient, userId: string, ticket: unknown) {
+export async function completeUpload(client: UploadClient, userId: string, ticket: unknown) {
   const claims = parseTicket(ticket, userId);
   const staged = await client.storage.from("mnt-staging").download(claims.path);
   if (staged.error) throw new ApiError(409, "La carga temporal no está disponible; vuelve a seleccionar el archivo");
@@ -59,6 +68,7 @@ export async function completeUpload(client: StorageClient, userId: string, tick
     if ("statusCode" in saved.error && String(saved.error.statusCode) === "409") throw new ApiError(409, "Esta carga ya fue finalizada");
     databaseError(saved.error);
   }
+  await registerUpload(client, userId, bucket, claims.path);
   // Only this ticket's temporary object is removed. A cleanup outage must not
   // misreport a successfully persisted final file; abandoned staging is private.
   await client.storage.from("mnt-staging").remove([claims.path]);

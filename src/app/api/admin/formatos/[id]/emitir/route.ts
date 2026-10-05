@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
-import { apiResponse, ApiError, assertSameOrigin, databaseError } from "@/lib/backend/http";
+import { apiResponse, ApiError, assertSameOrigin, databaseError, readJson } from "@/lib/backend/http";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { prepareFormatoEmission } from "@/lib/formatos/pdf";
 import { MAX_ASSET_BYTES, type FormatoPdfAsset } from "@/lib/formatos/assets";
@@ -16,10 +16,12 @@ export async function POST(request: Request, context: Context) {
     assertSameOrigin(request);
     const id = z.uuid().parse((await context.params).id);
     const { client, user } = await requireStaff();
+    const expected = z.object({ version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) }).strict().parse(await readJson(request, 1024));
     const result = await client.from("mnt_formato_drafts").select("id,expediente_id,formato_id,data,version").eq("id", id).maybeSingle();
     if (result.error) databaseError(result.error);
     if (!result.data) throw new ApiError(404, "Documento no encontrado");
     const draft = result.data;
+    if (draft.version !== expected.version) throw new ApiError(409, "La versión del documento cambió; recarga y revisa antes de emitir");
     const definition = formatoById(draft.formato_id);
     if (!definition.readyForEmission) throw new ApiError(409, "Formato pendiente de cotejo con el original");
     const parent = await client.from("mnt_expedientes").select("id,folio").eq("id", draft.expediente_id).maybeSingle();

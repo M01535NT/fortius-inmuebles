@@ -8,6 +8,20 @@ function row(id = "I1", segmento: "Inmueble" | "Comprador" = "Inmueble") {
   o.niveles = segmento === "Inmueble" ? [1, 0, 1, 0] : [1, 1, 1, 0, 0, 0]; o.gestion.operacion = "Venta"; return o;
 }
 describe("cartera comercial, reglas del original", () => {
+  it("resuelve pendientes con la última corrección y conserva el control histórico", () => {
+    const b = book(); b.oportunidades = [row()];
+    const d1 = { ...{id:"D1",oportunidad:"",nombre:"",aplicabilidad:"Por definir" as const,estado:"Pendiente" as const,fuente:"",fecha:"",responsable:"",observacion:"",anterior:""}, oportunidad: "I1", nombre: "Escritura", aplicabilidad: "Aplica" as const };
+    const e1 = { ...{id:"E1",oportunidad:"",fecha:"",actividad:"Otro" as const,detalle:"",importe:null,moneda:"" as const,estado:"Registrado" as const,responsable:"",evidencia:"",base:"Declarado" as const,anterior:""}, oportunidad: "I1" };
+    b.documentos = [d1, { ...d1, id: "D2", anterior: "D1", estado: "Verificado", fuente: "Copia cotejada", fecha: "2026-10-04", responsable: "Ana" }];
+    b.eventos = [e1, { ...e1, id: "E2", anterior: "E1", detalle: "Visita corregida", fecha: "2026-10-04", responsable: "Ana" }];
+    const result = calculateComercial(b);
+    expect(result.controles).not.toContain("Hay documentos pendientes");
+    expect(result.controles).not.toContain("Hay eventos pendientes");
+    expect(result.documentos[0]).toMatchObject({ id: "D1", vigente: false, sustituidoPor: "D2" });
+    expect(result.documentos[0].controles).toContain("Pendiente de recepción");
+    expect(result.documentos[1]).toMatchObject({ vigente: true, sustituidoPor: null, controles: [] });
+    expect(result.eventos).toHaveLength(2);
+  });
   it("inicia vacía, sin asumir cotización", () => { const b = emptyComercialBook(); expect(b.oportunidades).toEqual([]); expect(b.config.tc).toBeNull(); expect(b.config.pesosInmueble).toEqual([20,20,50,10]); });
   it("conserva el umbral estricto y bases distintas", () => {
     const b = book(); b.oportunidades = [row(), row("C1", "Comprador")]; let r = calculateComercial(b);

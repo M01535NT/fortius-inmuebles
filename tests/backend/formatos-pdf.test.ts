@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
+import { lastPageGeometry } from "./fixtures/pdf-geometry";
 import { createFormatoPdf, prepareFormatoEmission, receiptParagraphs } from "@/lib/formatos/pdf";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
 import { validateFormato } from "@/lib/formatos/catalog";
@@ -133,6 +134,24 @@ describe("emisión de formatos", () => {
     const pdf = await PDFDocument.load(bytes);
     expect(pdf.getTitle()).toMatch(/Acta de entrega/i);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(2);
+  });
+
+  it("mantiene nombres y representaciones largos dentro de las dos columnas de firma", async () => {
+    const bytes = await createFormatoPdf("16", { ...entrega,
+      quienEntrega: "Lic. María Guadalupe Hernández Martínez, apoderada de Inmobiliaria del Pacífico",
+      quienRecibe: "Lic. José Francisco López Fernández, representante de Desarrollos Inmobiliarios de Baja California",
+    });
+    const { operators, text } = await lastPageGeometry(bytes);
+    const signatureLines = [...operators.matchAll(/45 ([\d.]+) m\s+245 ([\d.]+) l/g)];
+    expect(signatureLines.length).toBeGreaterThan(0);
+    const signatureOffset = signatureLines.at(-1)!.index!;
+    const captions = text.filter(t => t.offset > signatureOffset && t.y > 40);
+    expect(captions.length).toBeGreaterThan(0);
+    for (const caption of captions) {
+      expect(caption.width).toBeLessThanOrEqual(200.01);
+      expect(caption.x + caption.width).toBeLessThanOrEqual(550.29);
+      expect(caption.y).toBeGreaterThan(45);
+    }
   });
 
   it("impide emitir un acta parcial sin área pendiente o con inventario incompleto", async () => {

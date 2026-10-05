@@ -764,13 +764,17 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       y -= 10;
     }
   if (["09", "16", "18"].includes(id)) {
-    ensure(86);
+    const left = wrap(id === "18" ? "Firma de quien recibe" : id === "16" ? `Quien entrega: ${String(data.quienEntrega)}` : "Firma", regular, 8, 200);
+    const right = id === "18" ? [] : wrap(id === "16" ? `Quien recibe: ${String(data.quienRecibe)}` : "Firma", regular, 8, 200);
+    const captionHeight = Math.max(left.length, right.length) * 12;
+    ensure(58 + captionHeight);
     y -= 28;
     page.drawLine({ start: { x: margin, y }, end: { x: margin + 200, y }, thickness: 0.7, color: ink });
     if (id !== "18") page.drawLine({ start: { x: a4[0] - margin - 200, y }, end: { x: a4[0] - margin, y }, thickness: 0.7, color: ink });
     y -= 15;
-    page.drawText(id === "18" ? "Firma de quien recibe" : id === "16" ? `Quien entrega: ${String(data.quienEntrega)}` : "Firma", { x: margin, y, size: 8, font: regular, color: muted });
-    if (id !== "18") page.drawText(id === "16" ? `Quien recibe: ${String(data.quienRecibe)}` : "Firma", { x: a4[0] - margin - 200, y, size: 8, font: regular, color: muted });
+    left.forEach((line, index) => page.drawText(line, { x: margin, y: y - index * 12, size: 8, font: regular, color: muted }));
+    right.forEach((line, index) => page.drawText(line, { x: a4[0] - margin - 200, y: y - index * 12, size: 8, font: regular, color: muted }));
+    y -= captionHeight;
   }
   for (const [index, item] of pdf.getPages().entries()) item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: a4[0] - margin - 30, y: 35, size: 8, font: regular, color: muted });
   return pdf.save();

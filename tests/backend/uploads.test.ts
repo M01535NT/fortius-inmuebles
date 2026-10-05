@@ -4,15 +4,23 @@ import { prepareUpload, completeUpload } from "@/lib/backend/files";
 
 const userId = "10000000-0000-4000-8000-000000000001";
 const stored = new Map<string, Blob>();
+const receipts: { bucket: string; path: string; uploaded_by: string }[] = [];
+let rejectReceipt = false;
 const pdf = new Blob(["%PDF-1.7\nreal bytes"], { type: "application/pdf" });
 
 beforeEach(() => {
   stored.clear();
+  receipts.length = 0; rejectReceipt = false;
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://mnt-test.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_key_only");
   vi.stubGlobal("fetch", async (input: string | URL | Request, init: RequestInit = {}) => {
     const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+    if (url.pathname === "/rest/v1/mnt_file_uploads") {
+      if (rejectReceipt) return Response.json({ code: "XX000", message: "Unavailable" }, { status: 500 });
+      receipts.push(JSON.parse(String(init.body)));
+      return new Response(null, { status: 201 });
+    }
     if (url.pathname.startsWith("/storage/v1/object/upload/sign/")) return Response.json({ url: `${url.pathname}?token=upload-test` });
     const key = decodeURIComponent(url.pathname.replace("/storage/v1/object/", ""));
     if (init.method === "DELETE") {
@@ -38,6 +46,19 @@ afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.useRealTimers();
 describe("direct upload staging and authenticated completion", () => {
   const client = () => createServerClient(undefined, true);
   const input = () => ({ name: "brochure.pdf", size: pdf.size, contentType: "application/pdf", visibility: "public" });
+  it("persists server-authenticated provenance before returning a final file", async () => {
+    const prepared = await prepareUpload(client(), userId, input());
+    stored.set(`mnt-staging/${prepared.path}`, pdf);
+    const result = await completeUpload(client(), userId, prepared.ticket);
+    expect(receipts).toEqual([{ bucket: "mnt-public", path: result.path, uploaded_by: userId }]);
+  });
+  it("does not return an unverified final path when provenance persistence fails", async () => {
+    const prepared = await prepareUpload(client(), userId, input());
+    stored.set(`mnt-staging/${prepared.path}`, pdf); rejectReceipt = true;
+    await expect(completeUpload(client(), userId, prepared.ticket)).rejects.toThrow();
+    expect(stored.has(`mnt-public/${prepared.path}`)).toBe(false);
+    expect(stored.has(`mnt-staging/${prepared.path}`)).toBe(true);
+  });
   it("keeps staging private until the exact signed file is validated, then publishes the verified bytes", async () => {
     const prepared = await prepareUpload(client(), userId, input());
     expect(prepared.signedUrl).toContain("mnt-staging");

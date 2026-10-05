@@ -37,5 +37,6 @@ export function emptyComercialBook(): ComercialBookData {
 }
 export interface CommercialTotals { valor: number|null; potencial: number|null; ponderado: number|null; priorizado: number|null; abierto: number|null }
 export interface CommercialRow { id: string; segmento: Segment; puntuacion: number|null; clasificacion: "Sin evaluar"|"Revisar"|"Prioritario"; tc: number|null; potencial: number|null; ponderado: number|null; priorizado: number|null; valorMXN: number|null; potencialMXN: number|null; ponderadoMXN: number|null; priorizadoMXN: number|null; abiertoMXN: number|null; participacion: number|null; dias: number|null; alerta: string; controles: string[] }
-export interface ComercialResult { corte: string; configuracionErrors: string[]; filas: CommercialRow[]; totals: CommercialTotals; segmentos: Record<Segment,CommercialTotals>; controles: string[]; eventos: {id:string;controles:string[]}[]; documentos: {id:string;controles:string[]}[] }
+export interface CommercialHistoryControl { id:string; controles:string[]; vigente:boolean; sustituidoPor:string|null }
+export interface ComercialResult { corte: string; configuracionErrors: string[]; filas: CommercialRow[]; totals: CommercialTotals; segmentos: Record<Segment,CommercialTotals>; controles: string[]; eventos: CommercialHistoryControl[]; documentos: CommercialHistoryControl[] }
 export interface CommercialBook { id:string; nombre:string; version:number; data:ComercialBookData; created_at:string; updated_at:string }

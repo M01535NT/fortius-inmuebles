@@ -29,7 +29,7 @@ create policy comercial_revision_read on public.mnt_comercial_revisions for sele
 create policy comercial_emission_read on public.mnt_comercial_emissions for select to authenticated using(public.mnt_is_admin());
 
 create function public.mnt_comercial_guard() returns trigger language plpgsql set search_path='' as $$
-declare k text; row_data jsonb; prior jsonb; seen text[]; reference text;
+declare k text; row_data jsonb; prior jsonb; seen text[]; corrected text[]; reference text;
 begin
  if TG_OP='UPDATE' then
   if new.id<>old.id or new.created_by<>old.created_by or new.created_at<>old.created_at then raise exception using errcode='PT403',message='Identidad inmutable'; end if;
@@ -38,12 +38,14 @@ begin
  foreach k in array array['oportunidades','eventos','documentos'] loop
   if jsonb_typeof(new.data->k) is distinct from 'array' then raise exception using errcode='PT400',message='Registros inválidos';end if;
   if jsonb_array_length(new.data->k)>(case when k='oportunidades' then 1000 else 3000 end) then raise exception using errcode='PT400',message='Límite de registros';end if;
-  seen=array[]::text[];
+  seen=array[]::text[]; corrected=array[]::text[];
   for row_data in select value from jsonb_array_elements(new.data->k) loop
    if coalesce(row_data->>'id','') !~ '^[[:alnum:]_-]{1,80}$' or row_data->>'id'=any(seen) then raise exception using errcode='PT400',message='ID inválido o repetido';end if;
    reference=coalesce(row_data->>'anterior','');
    if reference<>'' then
+    if reference=any(corrected) then raise exception using errcode='PT400',message='El anterior ya tiene una corrección';end if;
     if not(reference=any(seen)) or not exists(select 1 from jsonb_array_elements(new.data->k) p where p->>'id'=reference and p->>'oportunidad'=row_data->>'oportunidad') then raise exception using errcode='PT400',message='Corrección inválida';end if;
+    corrected=array_append(corrected,reference);
    end if;
    seen=array_append(seen,row_data->>'id');
   end loop;

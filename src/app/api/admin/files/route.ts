@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { apiResponse, ApiError, assertSameOrigin, databaseError, readBody } from "@/lib/backend/http";
 import { MAX_FILE_BYTES, validateFile } from "@/lib/backend/validation";
+import { registerUpload } from "@/lib/backend/files";
 
 export const runtime = "nodejs";
 const bucketSchema = z.enum(["mnt-private", "mnt-public"]);
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     const path = `${user.id}/${randomUUID()}.${extension}`;
     const { error } = await client.storage.from(bucket).upload(path, file, { contentType: type, upsert: false });
     if (error) databaseError(error);
+    await registerUpload(client, user.id, bucket, path);
     const url = visibility === "public" ? client.storage.from(bucket).getPublicUrl(path).data.publicUrl : `/api/admin/files?bucket=${bucket}&path=${encodeURIComponent(path)}`;
     return { bucket, path, url, name: file.name.slice(0, 160), type };
   }, 201);
@@ -37,6 +39,7 @@ export async function GET(request: Request) {
     const bucket = bucketSchema.parse(params.get("bucket"));
     const path = pathSchema.parse(params.get("path"));
     const { data, error } = await client.storage.from(bucket).createSignedUrl(path, 60);
+    if (error && "statusCode" in error && ["403", "404"].includes(String(error.statusCode))) throw new ApiError(404, "Archivo no encontrado o sin acceso");
     if (error) databaseError(error);
     return { url: data!.signedUrl, expiresIn: 60 };
   });

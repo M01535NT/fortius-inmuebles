@@ -39,6 +39,73 @@ beforeAll(async () => {
 });
 afterAll(async () => { await db?.close(); });
 
+for (const collection of ["tareas", "eventos", "notas"]) {
+  it(`impide actualizar, borrar o desvincular ${collection} de un cliente ajeno mediante RPC`, async () => {
+    const id = `restricted-${collection}`;
+    const data = collection === "tareas" ? { id, titulo: "Privado", categoria: "documentacion", estado: "pendiente", prioridad: "normal", clienteId: "c-own" }
+      : collection === "eventos" ? { id, titulo: "Privado", fecha: "2026-10-04", hora: "10:00", tipo: "reunion", notas: "", clienteId: "c-own" }
+        : { id, titulo: "Privado", texto: "Detalle confidencial", actualizadoEl: "2026-10-04", clienteId: "c-own" };
+    await asUser(admin, () => db.query("select public.mnt_put_record($1,$2,$3::jsonb,null)", [collection, id, JSON.stringify(data)]));
+    await asUser(other, async () => {
+      expect((await db.query("select id from public.mnt_records where collection=$1 and id=$2", [collection, id])).rows).toEqual([]);
+      await expect(db.query("select public.mnt_put_record($1,$2,$3::jsonb,1)", [collection, id, JSON.stringify({ ...data, titulo: "Alterado" })])).rejects.toMatchObject({ code: "PT403" });
+      await expect(db.query("select public.mnt_put_record($1,$2,$3::jsonb,1)", [collection, id, JSON.stringify({ ...data, clienteId: "c-other" })])).rejects.toMatchObject({ code: "PT403" });
+      await expect(db.query("select public.mnt_delete_record($1,$2,1)", [collection, id])).rejects.toMatchObject({ code: "PT403" });
+    });
+    await asUser(own, async () => {
+      await expect(db.query("select public.mnt_put_record($1,$2,$3::jsonb,1)", [collection, id, JSON.stringify({ ...data, clienteId: "" })])).rejects.toMatchObject({ code: "PT403" });
+      expect((await db.query("select public.mnt_put_record($1,$2,$3::jsonb,1) as result", [collection, id, JSON.stringify({ ...data, titulo: "Seguimiento propio" })])).rows).toHaveLength(1);
+    });
+  });
+}
+
+it("no concede acceso a una ruta privada al copiarla en metadatos de otro cliente", async () => {
+  const path = `${own}/55000000-0000-4000-8000-000000000001.pdf`;
+  await db.query("insert into storage.objects(bucket_id,name,owner_id) values ('mnt-private',$1,$2)", [path, own]);
+  await asUser(other, async () => {
+    expect((await db.query("select public.mnt_private_path_visible($1) as visible", [path])).rows).toEqual([{ visible: false }]);
+    await expect(db.query("select public.mnt_put_record('archivos','forged',$1::jsonb,null)", [JSON.stringify({ id: "forged", nombre: "Ajeno", url: "/api/admin/files", tipo: "pdf", notas: "", bucket: "mnt-private", path, visibility: "private", clienteId: "c-other" })])).rejects.toMatchObject({ code: "PT403" });
+    expect((await db.query("select name from storage.objects where name=$1", [path])).rows).toEqual([]);
+  });
+});
+
+it("vincula una carga verificada una sola vez y respeta la reasignación y eliminación posterior", async () => {
+  const path = `${own}/55000000-0000-4000-8000-000000000002.pdf`;
+  const data = { id: "trusted-file", nombre: "Verificado", url: "/api/admin/files", tipo: "pdf", notas: "", bucket: "mnt-private", path, visibility: "private", clienteId: "c-own" };
+  await asUser(own, async () => {
+    await expect(db.query("insert into public.mnt_file_uploads(bucket,path,uploaded_by) values ('mnt-private',$1,$2)", [path, own])).rejects.toMatchObject({ code: "42501" });
+  });
+  await db.query("insert into public.mnt_file_uploads(bucket,path,uploaded_by) values ('mnt-private',$1,$2)", [path, own]);
+  await asUser(own, async () => {
+    await db.query("select public.mnt_put_record('archivos','trusted-file',$1::jsonb,null)", [JSON.stringify(data)]);
+    expect((await db.query("select public.mnt_private_path_visible($1) as visible", [path])).rows).toEqual([{ visible: true }]);
+    await expect(db.query("select public.mnt_put_record('archivos','trusted-file',$1::jsonb,1)", [JSON.stringify({ ...data, visibility: "public" })])).rejects.toMatchObject({ code: "PT403" });
+  });
+  await asUser(admin, () => db.query("select public.mnt_put_record('archivos','trusted-file',$1::jsonb,1)", [JSON.stringify({ ...data, clienteId: "c-other" })]));
+  await asUser(own, async () => {
+    expect((await db.query("select public.mnt_private_path_visible($1) as visible", [path])).rows).toEqual([{ visible: false }]);
+    await expect(db.query("select public.mnt_put_record('archivos','duplicate',$1::jsonb,null)", [JSON.stringify({ ...data, id: "duplicate" })])).rejects.toMatchObject({ code: "PT403" });
+  });
+  await asUser(other, async () => expect((await db.query("select public.mnt_private_path_visible($1) as visible", [path])).rows).toEqual([{ visible: true }]));
+  await asUser(admin, () => db.query("select public.mnt_delete_record('archivos','trusted-file',2)"));
+  await asUser(own, async () => {
+    await expect(db.query("select public.mnt_put_record('archivos','reclaimed',$1::jsonb,null)", [JSON.stringify({ ...data, id: "reclaimed" })])).rejects.toMatchObject({ code: "PT403" });
+    expect((await db.query("select public.mnt_private_path_visible($1) as visible", [path])).rows).toEqual([{ visible: false }]);
+  });
+  await expect(db.query("update public.mnt_file_uploads set record_id=null where path=$1", [path])).rejects.toMatchObject({ code: "PT403" });
+});
+
+it("mantiene compatible la carga anterior del administrador sólo si el objeto existe bajo su propia ruta", async () => {
+  const path = `${admin}/55000000-0000-4000-8000-000000000003.pdf`;
+  const data = { id: "legacy-admin-file", nombre: "Carga validada", url: "/api/admin/files", tipo: "pdf", notas: "", bucket: "mnt-private", path, visibility: "private" };
+  await asUser(admin, async () => {
+    await expect(db.query("select public.mnt_put_record('archivos','legacy-admin-file',$1::jsonb,null)", [JSON.stringify(data)])).rejects.toMatchObject({ code: "PT403" });
+  });
+  await db.query("insert into storage.objects(bucket_id,name) values ('mnt-private',$1)", [path]);
+  await asUser(admin, () => db.query("select public.mnt_put_record('archivos','legacy-admin-file',$1::jsonb,null)", [JSON.stringify(data)]));
+  expect((await db.query("select record_id from public.mnt_file_uploads where path=$1", [path])).rows).toEqual([{ record_id: "legacy-admin-file" }]);
+});
+
 it("permite al asesor consultar solo su cliente y expediente", async () => {
   await asUser(own, async () => {
     expect((await db.query("select id from public.mnt_records where collection='clientes'")).rows).toEqual([{ id: "c-own" }]);
@@ -49,6 +116,13 @@ it("permite al asesor consultar solo su cliente y expediente", async () => {
     expect((await db.query("select id from public.mnt_records where collection='clientes'")).rows).toEqual([{ id: "c-other" }]);
     expect((await db.query("select id from public.mnt_expedientes")).rows).toEqual([]);
     expect((await db.query("select id from public.mnt_formato_drafts")).rows).toEqual([]);
+  });
+});
+
+it("permite crear y devolver un expediente propio en la misma operación de guardado", async () => {
+  await asUser(own, async () => {
+    const result = await db.query("insert into public.mnt_expedientes(cliente_id,asesor_id,folio) values ('c-own','own','EXP-INSERT-RETURNING') returning folio,version");
+    expect(result.rows).toEqual([{ folio: "EXP-INSERT-RETURNING", version: 1 }]);
   });
 });
 

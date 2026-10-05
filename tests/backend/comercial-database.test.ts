@@ -10,6 +10,12 @@ beforeAll(async()=>{
  await db.exec(`insert into public.mnt_staff(user_id,role) values('${admin}','admin'),('${editor}','editor');`);
 });
 afterAll(async()=>{await db?.close();});
+it("rechaza en SQL una bifurcación de correcciones",async()=>{
+ await asUser(admin,async()=>{const b=emptyComercialBook();const d={...{id:"D1",oportunidad:"",nombre:"",aplicabilidad:"Por definir" as const,estado:"Pendiente" as const,fuente:"",fecha:"",responsable:"",observacion:"",anterior:""},oportunidad:"I1"};
+ b.documentos=[d,{...d,id:"D2",anterior:"D1"},{...d,id:"D3",anterior:"D1"}];
+ await expect(db.query("insert into mnt_comercial_books(nombre,data,created_by) values('Bifurcación',$1,$2)",[JSON.stringify(b),admin])).rejects.toMatchObject({code:"PT400"});
+ });
+});
 it("admin guarda; editor/anon no leen ni escriben cartera o revisiones",async()=>{
  await asUser(admin,async()=>{await db.query("insert into mnt_comercial_books(id,nombre,data,created_by) values($1,'Cartera',$2,$3)",[id,JSON.stringify(emptyComercialBook()),admin]);expect((await db.query("select version from mnt_comercial_revisions where book_id=$1",[id])).rows).toEqual([{version:1}]);});
  await asUser(editor,async()=>{expect((await db.query("select * from mnt_comercial_books")).rows).toEqual([]);expect((await db.query("select * from mnt_comercial_revisions")).rows).toEqual([]);await expect(db.query("insert into mnt_comercial_books(nombre,data,created_by) values('Ajeno',$1,$2)",[JSON.stringify(emptyComercialBook()),editor])).rejects.toMatchObject({code:"42501"});});

@@ -14,8 +14,13 @@ const source=z.object({conteo:z.number().int().min(0).max(1000).nullable(),valor
 export const comercialDataSchema=z.object({config:z.object({modoCorte:z.enum(["Fijo","Diario"]),fechaCorte:date,umbral:percentage.nullable(),diasAviso:z.number().int().min(0).max(365).nullable(),pesosInmueble:z.array(percentage.nullable()).length(4),pesosComprador:z.array(percentage.nullable()).length(6),definicionesInmueble:z.array(text).length(4),definicionesComprador:z.array(text).length(6),tc:z.number().gt(0).max(10000).nullable(),fechaTc:date,fuenteTc:text}).strict(),oportunidades:z.array(opportunity).max(1000),eventos:z.array(event).max(3000),documentos:z.array(document).max(3000),origen:z.object({estado:z.enum(["Sin configurar","Configurado","No aplica"]),fuente:text,motivo:text,Inmueble:source,Comprador:source}).strict()}).strict().superRefine((b,ctx)=>{
  for(const key of ["oportunidades","eventos","documentos"] as const) {
   const seen=new Map<string,{oportunidad?:string}>();
+  const corrected=new Set<string>();
   b[key].forEach((row,index)=>{if(seen.has(row.id))ctx.addIssue({code:"custom",path:[key,index,"id"],message:"ID repetido"});
    if("anterior" in row && row.anterior && (row.anterior === row.id || !seen.has(row.anterior) || seen.get(row.anterior)?.oportunidad !== row.oportunidad))ctx.addIssue({code:"custom",path:[key,index,"anterior"],message:"El anterior debe preceder y pertenecer a la misma oportunidad"});
+   if("anterior" in row && row.anterior) {
+    if(corrected.has(row.anterior))ctx.addIssue({code:"custom",path:[key,index,"anterior"],message:"Corrige la última versión; el anterior ya tiene sucesor"});
+    corrected.add(row.anterior);
+   }
    seen.set(row.id,"oportunidad" in row ? row : {});
   });
  }

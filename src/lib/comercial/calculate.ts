@@ -41,15 +41,17 @@ export function calculateComercial(b:ComercialBookData,today=todayBC()):Comercia
  });
  const totals=(rows:CommercialRow[]):CommercialTotals=>({valor:sum(rows.map(o=>o.valorMXN)),potencial:sum(rows.map(o=>o.potencialMXN)),ponderado:sum(rows.map(o=>o.ponderadoMXN)),priorizado:sum(rows.map(o=>o.priorizadoMXN)),abierto:sum(rows.map(o=>o.abiertoMXN))});
  const total=totals(filas); if(total.valor!==null && total.valor>0)for(const r of filas)r.participacion=r.valorMXN!==null?new Decimal(r.valorMXN).div(total.valor).mul(100).toDecimalPlaces(4).toNumber():null;
- const eventos=b.eventos.map(e=>{const controls:string[]=[]; if(!ids.has(e.oportunidad))controls.push("Oportunidad inexistente"); if(!e.fecha)controls.push("Falta fecha"); else if(e.fecha>corte)controls.push("Fecha posterior al corte"); if(!e.detalle || !e.responsable)controls.push("Completar detalle y responsable"); if(e.actividad==="Oferta" && !(e.importe!==null && e.importe>0))controls.push("Oferta sin importe positivo"); if(e.importe!==null && !e.moneda)controls.push("Falta moneda del importe"); if(e.base==="Comprobado" && !e.evidencia)controls.push("Falta evidencia"); return {id:e.id,controles:controls};});
+ const eventCorrections=new Map(b.eventos.filter(e=>e.anterior).map(e=>[e.anterior,e.id]));
+ const documentCorrections=new Map(b.documentos.filter(d=>d.anterior).map(d=>[d.anterior,d.id]));
+ const eventos=b.eventos.map(e=>{const controls:string[]=[]; if(!ids.has(e.oportunidad))controls.push("Oportunidad inexistente"); if(!e.fecha)controls.push("Falta fecha"); else if(e.fecha>corte)controls.push("Fecha posterior al corte"); if(!e.detalle || !e.responsable)controls.push("Completar detalle y responsable"); if(e.actividad==="Oferta" && !(e.importe!==null && e.importe>0))controls.push("Oferta sin importe positivo"); if(e.importe!==null && !e.moneda)controls.push("Falta moneda del importe"); if(e.base==="Comprobado" && !e.evidencia)controls.push("Falta evidencia"); return {id:e.id,controles:controls,vigente:!eventCorrections.has(e.id),sustituidoPor:eventCorrections.get(e.id)??null};});
  const documentos=b.documentos.map(d=>{const controls:string[]=[]; if(!ids.has(d.oportunidad))controls.push("Oportunidad inexistente"); if(!d.nombre)controls.push("Falta documento"); if(d.fecha>corte)controls.push("Fecha posterior al corte");
   if(d.aplicabilidad==="Por definir")controls.push("Definir aplicabilidad");
   else if(d.aplicabilidad==="No aplica") {if(!d.observacion || !d.responsable || !d.fecha)controls.push("Justificar no aplica");}
   else if(["Pendiente","Solicitado"].includes(d.estado))controls.push("Pendiente de recepción");
   else {if(!d.fuente || !d.responsable || !d.fecha)controls.push("Completar revisión"); if(d.estado==="Recibido")controls.push("Pendiente de revisión"); if(d.estado==="Rechazado")controls.push(d.observacion?"Requiere corrección":"Explicar rechazo");}
-  return {id:d.id,controles:controls};
+  return {id:d.id,controles:controls,vigente:!documentCorrections.has(d.id),sustituidoPor:documentCorrections.get(d.id)??null};
  });
- const controles=[...config]; if(filas.some(o=>o.controles.length))controles.push("Hay oportunidades con datos o controles pendientes"); if(eventos.some(e=>e.controles.length))controles.push("Hay eventos pendientes"); if(documentos.some(d=>d.controles.length))controles.push("Hay documentos pendientes");
+ const controles=[...config]; if(filas.some(o=>o.controles.length))controles.push("Hay oportunidades con datos o controles pendientes"); if(eventos.some(e=>e.vigente && e.controles.length))controles.push("Hay eventos pendientes"); if(documentos.some(d=>d.vigente && d.controles.length))controles.push("Hay documentos pendientes");
  if(b.origen.estado==="Sin configurar")controles.push("Conciliación de origen sin configurar");
  else if(b.origen.estado==="No aplica" && !b.origen.motivo)controles.push("Justificar conciliación no aplicable");
  else if(b.origen.estado==="Configurado") {
