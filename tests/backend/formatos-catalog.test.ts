@@ -19,6 +19,7 @@ describe("catálogo de formatos exclusivos", () => {
     expect(formatoById("08").title).toMatch(/neto/i);
     expect(formatoById("08").fields.some((field) => field.key === "precioSugerido07")).toBe(true);
   });
+  it("dirige el 03 al tablero global y excluye campos preliminares por expediente",()=>{expect(formatoById("03").globalRoute).toBe("/admin/control-comercial");expect(formatoById("03").fields).toEqual([]);});
 
   it("solo marca listo para emitir un formato cotejado con su original", () => {
     expect(FORMATOS.filter((formato) => formato.readyForEmission).map((formato) => formato.id)).toEqual(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);

@@ -22,7 +22,7 @@ export interface CommercialEvent { id: string; oportunidad: string; fecha: strin
 export interface CommercialDocument { id: string; oportunidad: string; nombre: string; aplicabilidad: typeof APPLICABILITY[number]; estado: typeof DOCUMENT_STATES[number]; fuente: string; fecha: string; responsable: string; observacion: string; anterior: string }
 export interface SourceControl { conteo: number|null; valor: number|null; potencial: number|null; priorizado: number|null }
 export interface ComercialBookData {
- config: { modoCorte: "Fijo"|"Diario"; fechaCorte: string; umbral: number; diasAviso: number; pesosInmueble: number[]; pesosComprador: number[]; definicionesInmueble: string[]; definicionesComprador: string[]; tc: number|null; fechaTc: string; fuenteTc: string };
+ config: { modoCorte: "Fijo"|"Diario"; fechaCorte: string; umbral: number|null; diasAviso: number|null; pesosInmueble: (number|null)[]; pesosComprador: (number|null)[]; definicionesInmueble: string[]; definicionesComprador: string[]; tc: number|null; fechaTc: string; fuenteTc: string };
  oportunidades: Opportunity[]; eventos: CommercialEvent[]; documentos: CommercialDocument[];
  origen: { estado: "Sin configurar"|"Configurado"|"No aplica"; fuente: string; motivo: string; Inmueble: SourceControl; Comprador: SourceControl };
 }

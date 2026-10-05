@@ -163,7 +163,7 @@ export default function ExpedientesPage() {
         <section className="rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft mb-3 text-xl">{selected.folio}</h2>
           <form onSubmit={createDocumento} className="flex flex-wrap items-end gap-3">
-            <label className="min-w-[240px] flex-1 text-sm">Formato<select name="formatoId" required className={selectClass}>{FORMATOS.map((item) => <option key={item.id} value={item.id}>{item.id} · {item.title}</option>)}</select></label>
+            <label className="min-w-[240px] flex-1 text-sm">Formato<select name="formatoId" required className={selectClass}>{FORMATOS.filter(item => !item.globalRoute).map((item) => <option key={item.id} value={item.id}>{item.id} · {item.title}</option>)}</select></label>
             <button type="submit" disabled={busy} className={btnPrimary}>Crear borrador</button>
           </form>
           <div className="mt-5 flex flex-wrap gap-2">{documentos.map((item) => <button key={item.id} type="button" onClick={() => openDocumento(item.id)} className={btnGhost}>{item.formato_id} · {formatoById(item.formato_id).title} · v{item.version}</button>)}</div>

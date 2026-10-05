@@ -23,6 +23,7 @@ export async function POST(request: Request, context: Context) {
     const id = z.uuid().parse((await context.params).id);
     const { client } = await requireStaff();
     const input = draftCreate.parse(await readJson(request));
+    if (input.formatoId === "03") throw new ApiError(409, "El formato 03 se trabaja en Control comercial, como cartera global");
     const { data, error } = await client.from("mnt_formato_drafts").insert({ expediente_id: id, formato_id: input.formatoId, data: input.data }).select("id,expediente_id,formato_id,data,version,created_at,updated_at").single();
     if (error) databaseError(error);
     return { documento: data };

@@ -9,7 +9,9 @@ export function calculateComercial(b:ComercialBookData,today=todayBC()):Comercia
  const c=b.config, corte=c.modoCorte === "Diario" ? today : c.fechaCorte;
  const config:string[]=[];
  if(!validDate(corte))config.push("Definir fecha de corte válida");
- const weightsOK=(weights:number[])=>weights.reduce((s,n)=>s.plus(n),new Decimal(0)).eq(100);
+ const weightsOK=(weights:(number|null)[])=>!weights.some(n=>n===null) && weights.reduce<Decimal>((s,n)=>s.plus(n!),new Decimal(0)).eq(100);
+ if(c.umbral===null)config.push("Definir umbral de priorización");
+ if(c.diasAviso===null)config.push("Definir días de aviso");
  if(!weightsOK(c.pesosInmueble))config.push("Los pesos de inmuebles deben sumar 100%");
  if(!weightsOK(c.pesosComprador))config.push("Los pesos de compradores deben sumar 100%");
  const ids=new Set(b.oportunidades.map(o=>o.id));
@@ -17,8 +19,8 @@ export function calculateComercial(b:ComercialBookData,today=todayBC()):Comercia
   const controls:string[]=[]; const g=o.gestion;
   if(!o.nombre)controls.push("Falta nombre"); if(o.tipo==="Por definir")controls.push("Definir tipo"); if(!o.fuente)controls.push("Falta fuente");
   const weights=o.segmento==="Inmueble"?c.pesosInmueble:c.pesosComprador;
-  const score=o.niveles.some(v=>v===null)||!weightsOK(weights)?null:o.niveles.reduce((s,n,i)=>s.plus(new Decimal(n!).mul(weights[i])),new Decimal(0)).toNumber();
-  const classification=score===null?"Sin evaluar":score>c.umbral?"Prioritario":"Revisar";
+  const score=o.niveles.some(v=>v===null)||!weightsOK(weights)?null:o.niveles.reduce((s,n,i)=>s.plus(new Decimal(n!).mul(weights[i]!)),new Decimal(0)).toNumber();
+  const classification=score===null||c.umbral===null?"Sin evaluar":score>c.umbral?"Prioritario":"Revisar";
   if(score===null)controls.push("Evaluación pendiente");
   if(o.valor===null || o.valor<=0)controls.push("Valor o presupuesto pendiente");
   if(o.comision===null)controls.push("Comisión pendiente");
@@ -26,12 +28,12 @@ export function calculateComercial(b:ComercialBookData,today=todayBC()):Comercia
   if(!baseValid)controls.push(g.operacion==="Por definir"?"Definir operación":"Revisar base del honorario: el modelo valor por porcentaje sólo cubre venta");
   const potential=baseValid && o.valor!==null && o.valor>0 && o.comision!==null?round(new Decimal(o.valor).mul(o.comision).div(100)):null;
   const weighted=potential!==null && score!==null ? (o.segmento==="Comprador"?round(new Decimal(potential).mul(score).div(100)):potential):null;
-  const prioritized=weighted===null?null:classification==="Prioritario"?weighted:0;
+  const prioritized=weighted===null||c.umbral===null?null:classification==="Prioritario"?weighted:0;
   const tc=o.moneda==="MXN"?1:o.moneda==="USD" && c.tc && validDate(c.fechaTc) && c.fechaTc<=corte && c.fuenteTc?c.tc:null;
   if(tc===null)controls.push("Conversión a MXN pendiente");
   const convert=(v:number|null)=>v!==null && tc!==null?round(new Decimal(v).mul(tc)):null;
   const closed=g.etapa.startsWith("Cerrado "); const days=validDate(g.compromiso)&&validDate(corte)?day(g.compromiso)-day(corte):null;
-  const alerta=closed?"Cerrado":g.tarea==="Completado"?"Programar siguiente":g.tarea==="Cancelado"?"Reprogramar":days===null?"Sin compromiso":days<0?"Vencido":!g.responsable?"Sin responsable":!g.accion?"Sin acción":days<=c.diasAviso?"Próximo":"En plazo";
+  const alerta=closed?"Cerrado":g.tarea==="Completado"?"Programar siguiente":g.tarea==="Cancelado"?"Reprogramar":days===null?"Sin compromiso":days<0?"Vencido":!g.responsable?"Sin responsable":!g.accion?"Sin acción":c.diasAviso===null?"Aviso pendiente":days<=c.diasAviso?"Próximo":"En plazo";
   if(!g.responsable)controls.push("Falta responsable"); if(!g.compromiso && !closed)controls.push("Falta compromiso"); if(g.etapa==="Por definir")controls.push("Definir etapa"); if(!g.unidad)controls.push("Definir unidad");
   if(g.relacionado)controls.push(g.relacionado===o.id || !ids.has(g.relacionado)?"Revisar ID relacionado":"Revisar posible doble honorario");
   if(o.segmento==="Comprador" && /^(comprador|cliente|proyecto)\s*\d*$/i.test(o.nombre))controls.push("Identificar comprador o proyecto");

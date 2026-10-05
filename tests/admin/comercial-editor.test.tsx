@@ -1,0 +1,11 @@
+import {afterEach,expect,it,vi} from "vitest";
+import {cleanup,fireEvent,render,screen} from "@testing-library/react";
+import {ComercialOpportunityEditor} from "@/components/admin/comercial-opportunity-editor";
+import {newOpportunity,emptyComercialBook} from "@/lib/comercial/types";
+import {ComercialConfigEditor} from "@/components/admin/comercial-config-editor";
+import {ComercialHistoryEditor} from "@/components/admin/comercial-history-editor";
+import {useState} from "react";
+afterEach(cleanup);
+it("separa conceptos y distingue vacío de cero",()=>{const changed=vi.fn();function Harness(){const[o,set]=useState(()=>newOpportunity("I1","Inmueble"));return <ComercialOpportunityEditor opportunity={o} config={emptyComercialBook().config} onChange={v=>{changed(v);set(v);}}/>;}render(<Harness/>);fireEvent.change(screen.getByLabelText("Valor original"),{target:{value:"0"}});expect(changed.mock.calls[0][0].valor).toBe(0);fireEvent.change(screen.getByLabelText("Valor original"),{target:{value:""}});expect(changed.mock.calls[1][0].valor).toBeNull();expect(screen.getByLabelText("Fecha de compromiso")).toBeTruthy();expect(screen.getByLabelText("Próxima acción")).toBeTruthy();expect(screen.getByLabelText("Estado de tarea")).toBeTruthy();expect(screen.getByLabelText("Etapa")).toBeTruthy();});
+it("no infiere peso cero al borrar una configuración",()=>{const changed=vi.fn();render(<ComercialConfigEditor data={emptyComercialBook()} onChange={changed}/>);fireEvent.change(screen.getByLabelText("Ubicación · peso %"),{target:{value:""}});expect(changed.mock.calls[0][0].config.pesosInmueble[0]).toBeNull();});
+it("evento nuevo entra en captura pendiente y exige guardar con la cartera",()=>{const changed=vi.fn();render(<ComercialHistoryEditor kind="eventos" data={emptyComercialBook()} savedIds={new Set()} onChange={changed}/>);fireEvent.click(screen.getByRole("button",{name:"Agregar evento"}));expect(changed.mock.calls[0][0].eventos[0].id).toBe("E1");});

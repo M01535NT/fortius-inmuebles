@@ -29,6 +29,7 @@ export type FormatoDefinition = {
   phase: 1 | 2 | 3 | 4;
   fields: FormatoField[];
   readyForEmission: boolean;
+  globalRoute?: string;
 };
 
 const field = (key: string, label: string, type: FormatoField["type"] = "text", required = true): FormatoField => ({ key, label, type, required });
@@ -81,7 +82,7 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     { ...sectionField("Recepción del aviso", "referenciaAcuse", "Referencia del acuse firmado"), required: false },
   ], true),
   f("02", "Entrevista_inicial", "docx", 1, entrevistaFields, true),
-  f("03", "Tablero_y_control_comercial", "xlsx", 1, [field("periodoInicio", "Inicio del periodo", "date"), field("periodoFin", "Fin del periodo", "date"), asesor, field("criterio", "Criterios del reporte", "long")]),
+  { ...f("03", "Tablero_y_control_comercial", "xlsx", 1, []), globalRoute: "/admin/control-comercial" },
   f("04A", "Levantamiento_terreno", "docx", 1, levantamientoFields("04A"), true),
   f("04B", "Levantamiento_casa", "docx", 1, levantamientoFields("04B"), true),
   f("04C", "Levantamiento_departamento", "docx", 1, levantamientoFields("04C"), true),

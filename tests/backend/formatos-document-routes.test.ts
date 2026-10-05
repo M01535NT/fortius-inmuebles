@@ -14,6 +14,9 @@ it("rechaza un tipo de documento que no está en los 25 originales", async () =>
   const response = await createDraft(request(`/api/admin/expedientes/${id}/formatos`, "POST", { formatoId: "20", data: {} }), { params: Promise.resolve({ id }) });
   expect(response.status).toBe(400);
 });
+it("el tablero global 03 no crea un borrador por expediente",async()=>{
+ const id="51000000-0000-4000-8000-000000000010";const r=await createDraft(request(`/api/admin/expedientes/${id}/formatos`,"POST",{formatoId:"03",data:{}}),{params:Promise.resolve({id})});expect(r.status).toBe(409);
+});
 
 it("rechaza guardar una revisión de documento sin versión válida", async () => {
   const id = "51000000-0000-4000-8000-000000000011";
