@@ -236,7 +236,9 @@
 .method-timeline p { margin-top: 16px; color: var(--muted-foreground); font-size: 14px; line-height: 1.8; }
 
 /* Portrait photographs use the reference's 30:41 proportion in every catalog. */
-.property-catalog { max-width: 1156px; }
+.property-catalog { max-width: 1280px; }
+.property-catalog .property-catalog-grid { gap: 40px 24px; }
+.property-catalog .property-card-image::after { inset: 0; background: linear-gradient(180deg, rgba(6,12,20,0) 42%, rgba(6,12,20,.24) 70%, rgba(6,12,20,.72) 100%); }
 .property-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 32px; }
 .property-card-motion { min-width: 0; height: 100%; border-radius: 0; }
 .property-editorial-card { display: flex; flex-direction: column; height: 100%; background: var(--background); }
@@ -354,4 +356,9 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .timeline-toggle svg { transition: none; }
+}
+
+/* Keep catalog photographs broad before there is room for three columns. */
+@media (min-width: 640px) and (max-width: 1199px) {
+  .property-catalog .property-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

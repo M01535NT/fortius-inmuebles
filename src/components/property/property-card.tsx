@@ -33,7 +33,7 @@ export function PropertyCard({ property }: { property: Property }) {
           alt={property.galeria[0].alt}
           width={600}
           height={820}
-          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 380px"
+          sizes="(max-width: 639px) 100vw, (max-width: 1199px) 50vw, 400px"
           className={
             "h-full w-full object-cover" +
             (property.estado === "vendida" || property.estado === "rentada" ? " opacity-80" : "")
