@@ -169,6 +169,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         </dl>}
         <a href="#interes" className="editorial-text-link property-enquiry-link">Consultar este inmueble <ArrowUpRight size={18} aria-hidden="true" /></a>
 
+        <nav className="mt-6 flex gap-x-6 gap-y-2 overflow-x-auto border-y border-border py-3 text-sm" aria-label="Secciones del inmueble">
+          <a href="#caracteristicas" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Características</a>
+          <a href="#ubicacion" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Ubicación</a>
+          <a href="#documentos" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Documentos</a>
+          <a href="#interes" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Contacto</a>
+        </nav>
+
         {/* Cuerpo */}
         {/* min-w-0 en ambas columnas: sin él, cualquier texto nowrap
             (truncate) dentro propaga su min-content y ensancha la página. */}
@@ -183,7 +190,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             </MessagingContact>
           </div>
 
-          <div className="property-detail-main min-w-0">
+          <div id="caracteristicas" className="property-detail-main min-w-0 scroll-mt-24">
             {property.estado === "apartada" ? (
               <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-sm leading-relaxed text-foreground/85">
                 Esta propiedad está apartada. Podemos avisarte si vuelve a
@@ -248,7 +255,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             ) : null}
 
             {/* Ubicación: mapa por zona + puntos de interés */}
-            <PropertyLocation property={property} />
+            <div id="ubicacion" className="scroll-mt-24"><PropertyLocation property={property} /></div>
 
             {/* Perfil completo del asesor titular */}
             {asesor ? <AgentProfile asesor={asesor} settings={settings} message={enquiryMessage} /> : null}
@@ -259,15 +266,20 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           {/* Recursos complementarios después de la información y el contacto. */}
           <aside className="property-detail-extras min-w-0 space-y-4">
             {muestraCalculadora && property.precio.modalidad === "publico" ? (
-              <MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} />
+              <details className="rounded-lg border border-border bg-card p-5">
+                <summary className="cursor-pointer display-soft text-xl text-foreground">Calcular mi mensualidad</summary>
+                <div className="mt-5"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
+              </details>
             ) : null}
 
             {/* Documentos en PDF (se administran desde el panel) */}
-            <PropertyDocuments
-              documentos={property.documentos ?? []}
-              slug={property.slug}
-              codigo={property.codigo}
-            />
+            <div id="documentos" className="scroll-mt-24">
+              <PropertyDocuments
+                documentos={property.documentos ?? []}
+                slug={property.slug}
+                codigo={property.codigo}
+              />
+            </div>
           </aside>
         </div>
 

@@ -19,10 +19,10 @@ type InteriorPageProps = {
 */
 export function InteriorPage({ title, description, bullets, primary = { href: "/#evaluar", label: "Evaluar mi propiedad" }, secondary = { href: "/#metodo", label: "Conocer el método" } }: InteriorPageProps) {
   return (
-    <section className="bg-background pt-28 md:pt-32">
-      <Container className="grid gap-14 pb-20 md:pb-28 lg:grid-cols-12">
+    <section className="interior-page bg-background pt-28 md:pt-32">
+      <Container className="grid gap-12 pb-16 md:gap-14 md:pb-24 lg:grid-cols-12">
         <BlurFade inView={false} className="lg:col-span-7">
-          <h1 className="display-title max-w-[14ch] text-5xl text-foreground md:text-6xl lg:text-7xl">
+          <h1 className="display-title max-w-[14ch] text-5xl text-foreground md:text-6xl lg:text-[4.35rem]">
             {title}
           </h1>
           <p className="mt-6 max-w-[52ch] text-base leading-relaxed text-muted-foreground">

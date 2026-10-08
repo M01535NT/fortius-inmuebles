@@ -49,6 +49,11 @@ function BalanceChart({ result }: { result: MortgageResult }) {
         className="my-4 h-40 w-full overflow-visible"
         role="img"
         aria-label="Saldo de crédito por mes; línea principal con los abonos elegidos y línea gris sin abonos"
+        onPointerDown={(event) => {
+          const bounds = event.currentTarget.getBoundingClientRect();
+          const ratio = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+          setSelected(Math.max(1, Math.min(result.schedule.length, Math.round(ratio * result.baseline.length))));
+        }}
       >
         <path
           d={path(result.baseline)}
@@ -63,6 +68,8 @@ function BalanceChart({ result }: { result: MortgageResult }) {
           className="stroke-primary"
           strokeWidth="3"
         />
+        <line x1={(row.month / result.baseline.length) * 500} x2={(row.month / result.baseline.length) * 500} y1="0" y2="150" className="stroke-foreground/30" strokeWidth="1" />
+        <circle cx={(row.month / result.baseline.length) * 500} cy={(1 - row.balance / result.principal) * 150} r="5" className="fill-primary stroke-background" strokeWidth="2" />
       </svg>
       <Field label="Consultar mes del crédito">
         {(id) => (
@@ -78,8 +85,9 @@ function BalanceChart({ result }: { result: MortgageResult }) {
         )}
       </Field>
       <p className="mt-1 text-sm text-muted-foreground">
-        Mes {row.month} · {row.date} · Saldo {money(row.balance)}
+        Mes {row.month} · {row.date} · Saldo {money(row.balance)} · Capital pagado {money(row.principal)} · Interés {money(row.interest)}
       </p>
+      {(result.interestSaved > 0 || result.monthsSaved > 0) ? <p className="mt-3 rounded-md bg-secondary p-3 text-sm text-foreground">Con los abonos capturados: {money(result.interestSaved)} menos de intereses y {result.monthsSaved} {result.monthsSaved === 1 ? "mes" : "meses"} menos de crédito.</p> : null}
       <p className="mt-2 text-xs text-muted-foreground">
         Línea continua: tu escenario. Discontinua: sin abonos anticipados.
       </p>

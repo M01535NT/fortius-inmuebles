@@ -39,6 +39,29 @@ type Financing = {
   loan: number;
   openingFee: number | null;
 };
+
+function ClosingBreakdown({ items }: { items: { key: string; label: string; amount: number | null }[] }) {
+  const known = items.filter((item): item is { key: string; label: string; amount: number } => item.amount !== null && item.amount > 0);
+  const [active, setActive] = useState(0);
+  const total = known.reduce((sum, item) => sum + item.amount, 0);
+  if (!total) return null;
+  const segments = known.map((item, index) => ({
+    item,
+    x: known.slice(0, index).reduce((sum, previous) => sum + previous.amount / total * 100, 0),
+    width: item.amount / total * 100,
+  }));
+
+  return (
+    <section className="mt-5 rounded-md border border-border p-4" aria-labelledby="closing-breakdown-title">
+      <p id="closing-breakdown-title" className="text-sm font-medium text-foreground">Cómo se distribuyen los gastos conocidos</p>
+      <svg viewBox="0 0 100 16" role="img" aria-label={`Desglose de ${known[active]?.label}: ${money(known[active]?.amount ?? 0)} MXN`} className="mt-4 h-16 w-full overflow-visible">
+        {segments.map(({ item, x, width }, index) => <rect key={item.key} x={x} y="3" width={width} height="10" rx="1" className={index === active ? "fill-primary" : "fill-muted-foreground/25"} onClick={() => setActive(index)} />)}
+      </svg>
+      <p className="font-mono text-sm text-foreground" aria-live="polite">{known[active]?.label}: {money(known[active]?.amount ?? 0)} MXN</p>
+      <div className="mt-3 flex flex-wrap gap-2">{known.map((item, index) => <button key={item.key} type="button" aria-pressed={index === active} onClick={() => setActive(index)} className={`rounded-md border px-3 py-2 text-xs ${index === active ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
+    </section>
+  );
+}
 export function ClosingCostsCalculator({
   financing,
 }: {
@@ -604,6 +627,7 @@ export function ClosingCostsCalculator({
                   }
                 />
               </dl>
+              <ClosingBreakdown items={result.items} />
               <ul className="mt-4 divide-y divide-border">
                 {result.items.map((item) => (
                   <li key={item.key} className="py-3">

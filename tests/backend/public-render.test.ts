@@ -52,10 +52,10 @@ test("home passes projected panel copy and metadata reads subsequent edits witho
   content.seoDescription = "Descripción editada";
   expect((await generateMetadata()).description).toBe("Descripción editada");
 });
-test("institutional video reads the configured public URL and retains its placeholder when empty", async () => {
+test("institutional video reads the configured public URL and stays absent when empty", async () => {
   expect(renderToStaticMarkup(await InstitutionalVideo())).toContain('src="/video-publico.mp4"');
   settings.videoInstitucionalUrl = "";
-  expect(renderToStaticMarkup(await InstitutionalVideo())).toContain("Espacio reservado para el video institucional.");
+  expect(renderToStaticMarkup(await InstitutionalVideo())).toBe("");
 });
 test("image optimization allows only the configured public bucket and existing external hosts", async () => {
   const config = (await import("../../next.config")).default;

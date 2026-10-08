@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
-import { BlogContent } from "@/components/blog/blog-content";
+import { BlogContent, blogHeadings } from "@/components/blog/blog-content";
 import { BlogCard } from "@/components/blog/blog-card";
 import { getBlogFigures } from "@/data/blog-figures";
 import { getBlogCover } from "@/data/blog-covers";
@@ -12,6 +12,13 @@ import type { Post } from "@/lib/admin/store";
 const slugs = ["indice-shf-tijuana-primer-semestre-2026", "mes-testamento-baja-california-2026", "predial-isai-tijuana-condonacion-octubre-diciembre-2026", "acciones-vivienda-bienestar-baja-california-2026", "alerta-registral-baja-california-monitoreo-inmuebles", "isr-venta-casa-habitacion-exencion-requisitos"];
 
 describe("September 27 editorial batch", () => {
+  test("long articles expose stable heading links for a table of contents", () => {
+    expect(blogHeadings("## Primero\n\nTexto\n\n### Después\n\nMás texto")).toEqual([
+      { id: "articulo-seccion-0", text: "Primero", level: "h2" },
+      { id: "articulo-seccion-2", text: "Después", level: "h3" },
+    ]);
+  });
+
   test.each(slugs)("%s actually renders an accessible explanation inside its article", (slug) => {
     const index = slugs.indexOf(slug) + 1;
     const content = readFileSync(`content/blog/2026-09-27/${String(index).padStart(2, "0")}.md`, "utf8");

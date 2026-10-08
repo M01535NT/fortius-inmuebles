@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 
 import { InstitutionalVideo } from "@/components/sections/institutional-video";
 import { InteriorPage } from "@/components/sections/interior-page";
+import { EditorialAdvisor } from "@/components/home/editorial-advisor";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/nosotros" },
   title: "Nosotros",
   description:
-    "Firma inmobiliaria enfocada en método, análisis comercial y acompañamiento profesional.",
+    "Conoce quién atiende las operaciones inmobiliarias de Fortius y cómo se coordina cada decisión.",
 };
 
 export default function NosotrosPage() {
@@ -15,15 +16,16 @@ export default function NosotrosPage() {
     <>
       <InteriorPage
         eyebrow="Nosotros"
-        title="Una firma de método, no de improvisación."
-        description="La marca se construye alrededor de proceso, criterio y comunicación clara. No inventamos cifras ni credenciales: mostramos cómo trabajamos."
+        title="Conoce a Fortius."
+        description="Moisés Núñez Tonalá es tu contacto para coordinar la promoción, las visitas y las propuestas. Tú conservas la decisión sobre el precio y las condiciones de la operación."
         bullets={[
-          "Claridad antes de tomar decisiones.",
-          "Orden documental y comercial.",
-          "Seguimiento profesional de prospectos.",
-          "Acompañamiento hasta el cierre.",
+          "Un contacto responsable de tu operación.",
+          "Visitas y propuestas coordinadas contigo.",
+          "Información pendiente identificada con claridad.",
+          "Seguimiento desde la primera conversación hasta el cierre.",
         ]}
       />
+      <EditorialAdvisor />
       <InstitutionalVideo />
     </>
   );
