@@ -115,3 +115,84 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
+
+test("inventory compares chosen properties and restores filtered results after a detail visit", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/inventario', { waitUntil: 'domcontentloaded' });
+  const choices = page.getByRole('checkbox', { name: /Comparar / });
+  await expect(choices.first()).toBeVisible();
+  await choices.nth(0).check();
+  await choices.nth(1).check();
+  await page.getByRole('button', { name: 'Ver comparación (2)' }).click();
+  await expect(page.getByRole('table', { name: 'Comparación de inmuebles' })).toBeVisible();
+  await expect(page.getByRole('table')).toContainText('Estacionamientos');
+  await page.getByRole('group', { name: 'Operación', exact: true }).getByRole('button', { name: 'Venta', exact: true }).click();
+  await expect(page).toHaveURL(/op=venta/);
+  await page.locator('.property-card-image').first().click();
+  await expect(page.locator('.property-gallery')).toBeVisible();
+  await page.getByRole('link', { name: 'Volver al inventario' }).click();
+  await expect(page.getByRole('group', { name: 'Operación', exact: true }).getByRole('button', { name: 'Venta', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Ver comparación (2)' })).toBeVisible();
+});
+
+test("photo gallery hides absent media and supports full-screen keyboard navigation", async ({ page }) => {
+  await page.goto('/inventario', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.property-card-image').first()).toBeVisible();
+  await page.locator('.property-card-image').first().click();
+  await expect(page.getByRole('button', { name: 'Video', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: /Ampliar fotografía/ }).click();
+  const viewer = page.getByRole('dialog', { name: 'Fotografías del inmueble' });
+  await expect(viewer).toBeVisible();
+  await viewer.press('ArrowRight');
+  await expect(viewer.getByRole('status')).toContainText('2 /');
+  await viewer.dispatchEvent('touchstart', { touches: [{ identifier: 1, clientX: 280, clientY: 200 }] });
+  await viewer.dispatchEvent('touchend', { changedTouches: [{ identifier: 1, clientX: 80, clientY: 205 }] });
+  await expect(viewer.getByRole('status')).toContainText('1 /');
+  await viewer.press('Escape');
+  await expect(viewer).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Ampliar fotografía/ })).toBeFocused();
+});
+
+test("stale comparison choices never block current inventory", async ({ page }) => {
+  await page.goto('/inventario', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => sessionStorage.setItem('fortius-inventory-comparison', JSON.stringify(['removed-1', 'removed-2', 'removed-3'])));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const choice = page.getByRole('checkbox', { name: /Comparar / }).first();
+  await expect(choice).toBeEnabled();
+  await choice.check();
+  await expect(page.getByRole('button', { name: 'Ver comparación (1)' })).toBeVisible();
+});
+
+test("interior routes provide useful next actions and honest media", async ({ page }) => {
+  await page.goto('/contacto', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Cuéntanos qué quieres resolver.' })).toBeVisible();
+  await page.getByText('Quiero vender', { exact: true }).click();
+  await expect(page.getByLabel('Quiero vender')).toBeChecked();
+
+  await page.goto('/nosotros', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Conoce a Fortius.' })).toBeVisible();
+  await expect(page.getByText('Espacio reservado para el video institucional.')).toHaveCount(0);
+
+  await page.goto('/residencial', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('img', { name: /Esquema de vivienda/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Descanso' }).click();
+  await expect(page.getByRole('img', { name: /Descanso/ })).toBeVisible();
+});
+
+test("financial tools expose interactive visual explanations", async ({ page }) => {
+  await page.goto('/herramientas/hipoteca', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('img', { name: /Saldo de crédito por mes/ })).toBeVisible();
+  await expect(page.getByLabel('Consultar mes del crédito')).toBeVisible();
+
+  await page.goto('/herramientas/gastos-de-cierre', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('Cómo se distribuyen los gastos conocidos')).toBeVisible();
+});
+
+test("blog articles offer a relevant next action and related reading", async ({ page }) => {
+  await page.goto('/blog', { waitUntil: 'domcontentloaded' });
+  const article = page.locator('a[href^="/blog/"]').first();
+  await expect(article).toBeVisible();
+  await article.click();
+  await expect(page.getByText('Siguiente paso', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Lecturas relacionadas' })).toBeVisible();
+});

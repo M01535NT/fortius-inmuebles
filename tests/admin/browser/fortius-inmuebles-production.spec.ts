@@ -37,7 +37,7 @@ test("Fortius fullscreen menu traps keyboard focus and restores its trigger", as
   const close = dialog.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.locator('a[href="/contacto"]')).toBeFocused();
+  await expect(dialog.getByRole("link", { name: /Contacto directo/ })).toBeFocused();
   await expect(dialog.getByRole("link", { name: "Términos y condiciones" })).toHaveCount(0);
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();

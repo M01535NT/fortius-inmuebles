@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { ConceptualPropertyPlan } from "@/components/sections/conceptual-property-plan";
 
 type Segment = "residencial" | "comercial" | "industrial";
 
@@ -44,6 +45,7 @@ export function SegmentDetail({ segment }: { segment: Segment }) {
           <h2 className="display-title max-w-[15ch] text-4xl text-foreground md:text-5xl">Lo que conviene mirar.</h2>
           <p className="max-w-[56ch] self-end text-lg leading-relaxed text-foreground/85">{detail.intro}</p>
         </BlurFade>
+        <div className="mt-12"><ConceptualPropertyPlan segment={segment} /></div>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {detail.checks.map((check, index) => (
             <BlurFade key={check.title} delay={index * 0.08} className="border-t border-border pt-5">

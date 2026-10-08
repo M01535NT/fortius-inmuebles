@@ -2,11 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 import { PropertyCard } from "@/components/property/property-card";
 import {
   OPERACION_LABELS,
   TIPO_LABELS,
+  formatPrecio,
   type Operacion,
   type Property,
   type TipoPropiedad,
@@ -82,7 +84,12 @@ type Props = { propiedades: Property[] };
 
 export function InventoryExplorer({ propiedades }: Props) {
   const [filtros, setFiltros] = React.useState<Filtros>(DEFAULTS);
+  const [comparadas, setComparadas] = React.useState<string[]>([]);
+  const [comparisonHydrated, setComparisonHydrated] = React.useState(false);
+  const [comparacionVisible, setComparacionVisible] = React.useState(false);
   const inicializado = React.useRef(false);
+  const comparisonRef = React.useRef<HTMLElement>(null);
+  const comparisonButtonRef = React.useRef<HTMLButtonElement>(null);
 
   // Derivados de los datos: nunca listas hardcodeadas en paralelo.
   const tipos = React.useMemo(
@@ -100,16 +107,52 @@ export function InventoryExplorer({ propiedades }: Props) {
      prerenderiza con defaults), así que el único momento seguro es
      post-montaje. */
   React.useEffect(() => {
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem("fortius-inventory-comparison") ?? "[]");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restauración única de una preferencia de sesión tras hidratar
+      if (Array.isArray(saved)) setComparadas(saved.filter((slug): slug is string => typeof slug === "string" && propiedades.some((property) => property.slug === slug)).slice(0, 3));
+    } catch {
+      // El inventario funciona aunque el navegador bloquee el almacenamiento.
+    }
+    setComparisonHydrated(true);
+  }, [propiedades]);
+
+  React.useEffect(() => {
+    if (!comparisonHydrated) return;
+    try {
+      window.sessionStorage.setItem("fortius-inventory-comparison", JSON.stringify(comparadas));
+    } catch {
+      // La selección sigue disponible durante esta visita.
+    }
+  }, [comparadas, comparisonHydrated]);
+
+  React.useEffect(() => {
     if (!inicializado.current) {
       inicializado.current = true;
       if (window.location.search) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- adopción única de estado externo (URL) tras hidratar
         setFiltros(filtrosDesdeUrl(window.location.search, zonas, tipos));
       }
+      let savedScroll = window.history.state?.fortiusInventoryScroll;
+      try {
+        const savedReturn = JSON.parse(window.sessionStorage.getItem("fortius-inventory-return") ?? "null");
+        if (savedReturn?.url === `${window.location.pathname}${window.location.search}` && typeof savedReturn.scrollY === "number") savedScroll = savedReturn.scrollY;
+      } catch {
+        // La restauración por historial sigue disponible.
+      }
+      if (typeof savedScroll === "number" && savedScroll > 0) {
+        window.requestAnimationFrame(() => window.scrollTo({ top: savedScroll }));
+      }
       return;
     }
-    window.history.replaceState(null, "", urlDesdeFiltros(filtros));
+    window.history.replaceState(window.history.state, "", urlDesdeFiltros(filtros));
   }, [filtros, zonas, tipos]);
+
+  React.useEffect(() => {
+    const restore = () => setFiltros(filtrosDesdeUrl(window.location.search, zonas, tipos));
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, [zonas, tipos]);
 
   function set<K extends keyof Filtros>(key: K, value: Filtros[K]) {
     setFiltros((f) => {
@@ -159,6 +202,34 @@ export function InventoryExplorer({ propiedades }: Props) {
     });
 
   const hayFiltros = JSON.stringify(filtros) !== JSON.stringify(DEFAULTS);
+  const propiedadesComparadas = comparadas
+    .map((slug) => propiedades.find((property) => property.slug === slug))
+    .filter((property): property is Property => Boolean(property));
+  const activeFilters = [
+    filtros.operacion !== "todas" ? { key: "operacion", label: OPERACION_LABELS[filtros.operacion] } : null,
+    filtros.tipo !== "todos" ? { key: "tipo", label: TIPO_LABELS[filtros.tipo] } : null,
+    filtros.zona !== "todas" ? { key: "zona", label: filtros.zona } : null,
+    filtros.moneda !== "todas" ? { key: "moneda", label: filtros.moneda } : null,
+    filtros.min ? { key: "min", label: `Desde ${filtros.min}` } : null,
+    filtros.max ? { key: "max", label: `Hasta ${filtros.max}` } : null,
+    filtros.orden !== "recientes" ? { key: "orden", label: filtros.orden === "precio-asc" ? "Menor precio" : "Mayor precio" } : null,
+  ].filter((filter): filter is { key: keyof Filtros; label: string } => Boolean(filter));
+
+  function clearFilter(key: keyof Filtros) {
+    const defaults = { operacion: "todas", tipo: "todos", zona: "todas", moneda: "todas", min: "", max: "", orden: "recientes" } as const;
+    set(key, defaults[key] as Filtros[typeof key]);
+  }
+
+  function toggleComparada(slug: string) {
+    setComparadas((current) => current.includes(slug)
+      ? current.filter((item) => item !== slug)
+      : current.length < 3 ? [...current, slug] : current);
+  }
+
+  function showComparison() {
+    setComparacionVisible(true);
+    window.requestAnimationFrame(() => comparisonRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
 
   const chipBase =
     "inline-flex h-9 items-center rounded-md border px-3.5 text-sm font-medium transition-colors";
@@ -312,6 +383,10 @@ export function InventoryExplorer({ propiedades }: Props) {
             muestran.
           </p>
         ) : null}
+
+        {activeFilters.length > 0 ? <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtros activos">
+          {activeFilters.map((filter) => <button key={filter.key} type="button" onClick={() => clearFilter(filter.key)} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border px-3 text-xs text-foreground hover:bg-secondary">{filter.label}<X className="size-3.5" aria-hidden="true" /><span className="sr-only">Quitar filtro</span></button>)}
+        </div> : null}
       </div>
 
       {/* Contador */}
@@ -323,11 +398,61 @@ export function InventoryExplorer({ propiedades }: Props) {
         {resultados.length === 1 ? "resultado" : "resultados"}
       </p>
 
+      {comparadas.length > 0 ? (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-y border-border py-3">
+          <p className="text-sm text-muted-foreground">Selecciona hasta 3 propiedades para compararlas.</p>
+          <button ref={comparisonButtonRef} type="button" onClick={showComparison} className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90">
+            Ver comparación ({comparadas.length})
+          </button>
+        </div>
+      ) : null}
+
+      {comparacionVisible && propiedadesComparadas.length > 0 ? (
+        <section ref={comparisonRef} className="scroll-mt-24 border-b border-border py-8" aria-labelledby="comparison-title">
+          <div className="flex items-center justify-between gap-4">
+            <h2 id="comparison-title" className="display-soft text-2xl text-foreground">Comparación de inmuebles</h2>
+            <button type="button" onClick={() => { setComparacionVisible(false); window.requestAnimationFrame(() => comparisonButtonRef.current?.focus()); }} className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+              <X className="size-4" aria-hidden="true" /> Cerrar
+            </button>
+          </div>
+          <div className="mt-5 overflow-x-auto">
+            <table className="min-w-[720px] w-full border-collapse text-left text-sm" aria-label="Comparación de inmuebles">
+              <thead><tr className="border-b border-border"><th className="py-3 pr-5 font-medium text-muted-foreground">Dato</th>{propiedadesComparadas.map((property) => <th key={property.slug} className="px-4 py-3 font-medium text-foreground"><Link href={`/inventario/${property.slug}`} className="underline decoration-primary/40 underline-offset-4">{property.titulo}</Link></th>)}</tr></thead>
+              <tbody>
+                {[
+                  ["Precio", (property: Property) => formatPrecio(property.precio)],
+                  ["Terreno", (property: Property) => property.ficha.terrenoM2 != null ? `${property.ficha.terrenoM2} m²` : "No informado"],
+                  ["Construcción", (property: Property) => property.ficha.construccionM2 != null ? `${property.ficha.construccionM2} m²` : "No informado"],
+                  ["Recámaras", (property: Property) => property.ficha.recamaras?.toString() ?? "No informado"],
+                  ["Estacionamientos", (property: Property) => property.ficha.estacionamientos?.toString() ?? "No informado"],
+                  ["Ubicación", (property: Property) => property.zona],
+                ].map(([label, value]) => <tr key={label as string} className="border-b border-border/70"><th className="py-3 pr-5 font-normal text-muted-foreground">{label as string}</th>{propiedadesComparadas.map((property) => <td key={property.slug} className="px-4 py-3 text-foreground">{(value as (property: Property) => string)(property)}</td>)}</tr>)}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
       {/* Grid o vacío */}
       {resultados.length > 0 ? (
         <div className="property-catalog-grid mt-8">
           {resultados.map((p) => (
-            <PropertyCard key={p.slug} property={p} />
+            <div key={p.slug} onClickCapture={(event) => {
+              if ((event.target as HTMLElement).closest("a[href^='/inventario/']")) {
+                window.history.replaceState({ ...window.history.state, fortiusInventoryScroll: window.scrollY }, "", window.location.href);
+                try {
+                  window.sessionStorage.setItem("fortius-inventory-return", JSON.stringify({ url: `${window.location.pathname}${window.location.search}`, scrollY: window.scrollY }));
+                } catch {
+                  // El enlace de regreso conserva /inventario como alternativa.
+                }
+              }
+            }}>
+              <PropertyCard property={p} />
+              <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" checked={comparadas.includes(p.slug)} disabled={!comparadas.includes(p.slug) && comparadas.length >= 3} onChange={() => toggleComparada(p.slug)} className="size-4 accent-primary" />
+                Comparar {p.titulo}
+              </label>
+            </div>
           ))}
         </div>
       ) : (

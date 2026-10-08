@@ -10,7 +10,7 @@ import { PublicLeadForm } from "@/components/forms/public-lead-form";
   Formulario de contacto. El lead se entrega al backend dedicado de MNT; si la entrega falla,
   NO se dan las gracias: se dice la verdad y se ofrece el teléfono.
 */
-export function ContactForm({ submitLabel = "Enviar consulta" }: { submitLabel?: string }) {
+export function ContactForm({ submitLabel = "Enviar consulta", initialObjective = "", initialMessage = "" }: { submitLabel?: string; initialObjective?: string; initialMessage?: string }) {
   const [sent, setSent] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +93,7 @@ export function ContactForm({ submitLabel = "Enviar consulta" }: { submitLabel?:
           <input
             id="objective"
             name="objective"
+            defaultValue={initialObjective}
             placeholder="Vender, comprar, rentar o evaluar"
             className="h-11 rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground"
           />
@@ -104,6 +105,7 @@ export function ContactForm({ submitLabel = "Enviar consulta" }: { submitLabel?:
           <textarea
             id="message"
             name="message"
+            defaultValue={initialMessage}
             rows={3}
             placeholder="Cuéntanos el contexto inicial"
             className="rounded-md border border-input bg-background px-3.5 py-2.5 text-base text-foreground placeholder:text-muted-foreground"

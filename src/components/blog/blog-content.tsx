@@ -43,6 +43,12 @@ function blocks(content: string): Block[] {
   return result.filter((block) => block.type !== "paragraph" || block.text);
 }
 
+export function blogHeadings(content: string) {
+  return blocks(content).flatMap((block, index) => block.type === "h2" || block.type === "h3"
+    ? [{ id: `articulo-seccion-${index}`, text: block.text, level: block.type }]
+    : []);
+}
+
 function isSafeLink(url: string): boolean {
   // Reject browser-normalized controls and backslashes before parsing URLs.
   if ([...url].some((char) => char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127 || char === "\\")) return false;
@@ -102,7 +108,7 @@ export function BlogContent({ content, figures = [] }: { content: string; figure
     if (block.type === "h2" || block.type === "h3") {
       const Heading = block.type;
       return (
-        <Heading key={index} className={`display-soft text-foreground ${block.type === "h2" ? "pt-6 text-2xl sm:text-3xl" : "pt-3 text-xl sm:text-2xl"}`}>
+        <Heading id={`articulo-seccion-${index}`} key={index} className={`scroll-mt-24 display-soft text-foreground ${block.type === "h2" ? "pt-6 text-2xl sm:text-3xl" : "pt-3 text-xl sm:text-2xl"}`}>
           {inline(block.text)}
         </Heading>
       );

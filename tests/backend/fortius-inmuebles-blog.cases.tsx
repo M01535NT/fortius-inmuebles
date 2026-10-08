@@ -283,7 +283,7 @@ test("article routes attach their editorial figures to the matching stored secti
   const html = renderToStaticMarkup(await BlogPostPage({ params: Promise.resolve({ slug: illustrated.slug }) }));
   expect(html).toContain('aria-labelledby="figura-cuatro-cifras-title"');
   expect(html.indexOf("Texto de la sección")).toBeLessThan(html.indexOf("Cuatro cifras, cuatro funciones"));
-  expect(html.indexOf("Cuatro cifras, cuatro funciones")).toBeLessThan(html.indexOf("Siguiente sección"));
+  expect(html.indexOf("Cuatro cifras, cuatro funciones")).toBeLessThan(html.indexOf('id="articulo-seccion-2"'));
 });
 
 test("future published slugs retain text rendering without invented cover metadata", async () => {
