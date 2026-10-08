@@ -32,7 +32,7 @@ export function PropertyCard({ property }: { property: Property }) {
           src={property.galeria[0].src}
           alt={property.galeria[0].alt}
           width={600}
-          height={820}
+          height={750}
           sizes="(max-width: 639px) 100vw, (max-width: 1199px) 50vw, 400px"
           className={
             "h-full w-full object-cover" +

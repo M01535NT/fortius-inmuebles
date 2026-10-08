@@ -77,7 +77,7 @@ for (const width of [390, 1440]) {
       const photo = page.locator("[data-property-card] img").first();
       await expect(photo).toBeVisible();
       const box = await photo.boundingBox();
-      expect(box!.width / box!.height).toBeCloseTo(30 / 41, 1);
+      expect(box!.width / box!.height).toBeCloseTo(4 / 5, 2);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.locator("[data-property-card] a").first().click();

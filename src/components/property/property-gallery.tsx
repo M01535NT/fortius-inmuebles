@@ -26,8 +26,7 @@ const MODOS: { id: Modo; label: string; icon: LucideIcon }[] = [
   { id: "360", label: "Recorrido 360°", icon: Rotate3d },
 ];
 
-/* Video and tours retain their native landscape frame. Photographs use
-   a larger editorial mosaic, with a portrait cover on small screens. */
+/* One centered photograph at a time; thumbnails keep the full gallery accessible. */
 const MEDIA_BOX =
   "relative aspect-video w-full overflow-hidden border border-border";
 
@@ -77,22 +76,15 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
 
       {modo === "fotos" ? (
         <>
-          <div className={`property-gallery-photos${imagenes.length === 1 ? " property-gallery-single" : ""}`}>
+          <div className="property-gallery-photos">
             <div className="property-gallery-main">
               <Image key={actual.src} src={actual.src} alt={actual.alt} fill
-                priority={index === 0} sizes="(max-width: 767px) 100vw, 75vw" className="object-cover" />
+                priority={index === 0} sizes="(max-width: 767px) 100vw, 1200px" className="object-contain object-center" />
               <span className="property-gallery-counter" aria-live="polite">{index + 1} / {imagenes.length}</span>
             </div>
-            {imagenes.length > 1 && <div className="property-gallery-side">
-              {imagenes.slice(1, 3).map((image, i) => <button key={image.src} type="button"
-                onClick={() => setIndex(i + 1)} aria-label={`Seleccionar imagen ${i + 2}`}
-                aria-pressed={index === i + 1}>
-                <Image src={image.src} alt={image.alt} fill sizes="25vw" className="object-cover" />
-              </button>)}
-            </div>}
           </div>
           {imagenes.length > 1 ? (
-            <div className="mt-4 flex min-w-0 items-center gap-3">
+            <div className="property-gallery-navigation">
               <div className="property-gallery-thumbnails" role="group" aria-label={`Imágenes de ${titulo}`}>
                 {imagenes.map((img, i) => (
                   <button
@@ -102,7 +94,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
                     aria-pressed={i === index}
                     onClick={() => setIndex(i)}
                     className={
-                      "relative h-20 w-16 shrink-0 overflow-hidden border transition-colors " +
+                      "relative h-16 w-24 shrink-0 overflow-hidden border transition-colors " +
                       (i === index ? "border-primary" : "border-border opacity-75 hover:opacity-100")
                     }
                   >
@@ -110,9 +102,6 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
                   </button>
                 ))}
               </div>
-              <span className="shrink-0 pl-1 font-mono text-xs text-muted-foreground">
-                {String(index + 1).padStart(2, "0")} / {String(imagenes.length).padStart(2, "0")}
-              </span>
             </div>
           ) : null}
         </>

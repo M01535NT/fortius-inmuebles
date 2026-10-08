@@ -235,14 +235,14 @@
 .method-timeline h3 { min-height: 3.3em; font-size: 19px; font-weight: 550; line-height: 1.15; letter-spacing: -.025em; }
 .method-timeline p { margin-top: 16px; color: var(--muted-foreground); font-size: 14px; line-height: 1.8; }
 
-/* Portrait photographs use the reference's 30:41 proportion in every catalog. */
+/* A slightly shorter portrait crop gives property cards a broader silhouette. */
 .property-catalog { max-width: 1280px; }
 .property-catalog .property-catalog-grid { gap: 40px 24px; }
 .property-catalog .property-card-image::after { inset: 0; background: linear-gradient(180deg, rgba(6,12,20,0) 42%, rgba(6,12,20,.24) 70%, rgba(6,12,20,.72) 100%); }
 .property-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 32px; }
 .property-card-motion { min-width: 0; height: 100%; border-radius: 0; }
 .property-editorial-card { display: flex; flex-direction: column; height: 100%; background: var(--background); }
-.property-card-image { position: relative; display: block; overflow: hidden; aspect-ratio: 30 / 41; flex-shrink: 0; }
+.property-card-image { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 5; flex-shrink: 0; }
 .property-card-image::after { position: absolute; content: ""; inset: 65% 0 0; pointer-events: none; background: linear-gradient(transparent, rgba(6,31,63,.2)); }
 .property-card-badge { position: absolute; top: 16px; left: 16px; max-width: calc(100% - 32px); padding: 7px 10px; background: #f5f1eb; color: #061f3f; font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
 .property-card-badge::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: 8px; vertical-align: 1px; background: #8a1634; }
@@ -257,19 +257,14 @@
 .property-card-detail { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; transition: background .3s, color .3s; }
 .property-card-detail:hover { background: #8a1634; color: #fff; }
 
-.property-gallery-photos { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 12px; height: clamp(420px, 42vw, 600px); }
-.property-gallery-single { grid-template-columns: minmax(0, 1fr); }
-.property-gallery-main, .property-gallery-side > button { position: relative; min-width: 0; overflow: hidden; background: var(--secondary); }
+.property-gallery-photos { width: 100%; margin-inline: auto; }
+.property-gallery-main { position: relative; width: 100%; height: clamp(240px, 50vw, 600px); overflow: hidden; background: var(--secondary); }
 .property-gallery-main img { animation: gallery-photo-in .6s ease both; }
-.property-gallery-side { display: grid; grid-auto-rows: minmax(0, 1fr); gap: 12px; }
-.property-gallery-side button { cursor: pointer; }
-.property-gallery-side button:focus-visible { outline-offset: -5px; z-index: 1; }
-.property-gallery-side img { transition: transform .7s cubic-bezier(.16,1,.3,1); }
-.property-gallery-side button:hover img { transform: scale(1.04); }
+.property-gallery-navigation { display: flex; justify-content: center; min-width: 0; margin-top: 16px; }
 .property-gallery-counter { position: absolute; bottom: 20px; left: 20px; background: #f5f1eb; color: #061f3f; padding: 8px 12px; font-size: 12px; }
-.property-gallery-thumbnails { display: flex; min-width: 0; gap: 10px; overflow-x: auto; padding-block: 4px; scroll-snap-type: x proximity; }
+.property-gallery-thumbnails { display: flex; min-width: 0; max-width: 100%; gap: 10px; overflow-x: auto; padding-block: 4px; scroll-snap-type: x proximity; }
 .property-gallery-thumbnails button { scroll-snap-align: start; }
-@keyframes gallery-photo-in { from { opacity: .6; transform: scale(1.025); } to { opacity: 1; transform: scale(1); } }
+@keyframes gallery-photo-in { from { opacity: .6; } to { opacity: 1; } }
 
 @media (max-width: 1099px) {
   .method-timeline { grid-template-columns: 1fr; gap: 0; margin-top: 44px; padding-left: 48px; }
@@ -296,9 +291,6 @@
   .menu-route-description { font-size: 12px; line-height: 1.6; }
   .hero-marquee-item { gap: 24px; padding-right: 24px; font-size: 11px; }
   .editorial-image-reveal { height: 60svh; min-height: 300px; }
-  .property-gallery-photos { display: block; height: auto; }
-  .property-gallery-main { aspect-ratio: 30 / 41; }
-  .property-gallery-side { display: none; }
 }
 @media (max-width: 639px) {
   .property-catalog-grid { grid-template-columns: 1fr; gap: 40px; }
