@@ -124,7 +124,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </p>
         )}
 
-        {/* Galería primero, 16:9 completo en el primer viewport. */}
+        {/* Galería editorial con imagen principal y vistas complementarias. */}
         <div className="mt-5">
           <PropertyGallery
             imagenes={property.galeria}
@@ -143,11 +143,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               {property.codigo} · {TIPO_LABELS[property.tipo]} ·{" "}
               {OPERACION_LABELS[property.operacion]}
             </p>
-            <h1 className="display-title mt-2 max-w-[26ch] text-3xl text-foreground sm:text-4xl md:text-4xl">
+            <h1 className="display-title mt-3 max-w-[26ch] text-4xl text-foreground md:text-5xl">
               {property.titulo}
             </h1>
             <p className="mt-2.5 flex items-center gap-2 text-base text-muted-foreground">
-              <MapPin className="size-4 shrink-0 text-primary" strokeWidth={1.5} />
+              <MapPin className="size-4 shrink-0 text-primary-ink" strokeWidth={1.5} />
               {property.zona} · {property.direccionAproximada}
             </p>
           </div>
@@ -223,7 +223,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 <ul className="mt-5 grid max-w-[560px] gap-x-8 gap-y-3 sm:grid-cols-2">
                   {property.amenidades.map((a) => (
                     <li key={a} className="flex items-start gap-2.5 text-base text-foreground/85">
-                      <Check className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
+                      <Check className="mt-0.5 size-4 shrink-0 text-primary-ink" strokeWidth={1.5} />
                       {a}
                     </li>
                   ))}
@@ -287,7 +287,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <h2 className="display-title text-3xl text-foreground sm:text-4xl">
               Otras propiedades.
             </h2>
-            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="property-catalog-grid mt-8">
               {related.map((p) => (
                 <PropertyCard key={p.slug} property={p} />
               ))}

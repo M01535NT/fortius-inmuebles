@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Compromisos } from "@/components/home/compromisos";
 import { Evaluar } from "@/components/home/evaluar";
-import { Metodo } from "@/components/home/metodo";
+import { MethodTimeline } from "@/components/home/method-timeline";
+import { EditorialImageReveal } from "@/components/home/editorial-image-reveal";
 import { EditorialHero } from "@/components/home/editorial-hero";
 import { EditorialHome } from "@/components/home/editorial-home";
 import { EditorialDocuments, EditorialIntro, EditorialProperties, EditorialSellerGateway, EditorialTools } from "@/components/home/editorial-sections";
@@ -18,8 +19,9 @@ export default async function HomePage() {
     <EditorialHome>
       <EditorialHero content={content} />
       <EditorialIntro content={content} />
+      <EditorialImageReveal />
       <EditorialSellerGateway />
-      <Metodo content={content} />
+      <MethodTimeline content={content} />
       <EditorialDocuments content={content} />
       <div className="editorial-featured"><EditorialProperties /></div>
       <div className="editorial-segments"><Segmentos /></div>

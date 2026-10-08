@@ -52,13 +52,13 @@ export function Herramientas() {
             >
               <div>
                 <Icon
-                  className="h-6 w-6 text-primary transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
+                  className="h-6 w-6 text-primary-ink transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
                   strokeWidth={1.5}
                 />
                 <h3 className="display-soft mt-5 text-xl text-foreground">{title}</h3>
                 <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{text}</p>
               </div>
-              <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+              <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary-ink">
                 Abrir
                 <ArrowUpRight
                   className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

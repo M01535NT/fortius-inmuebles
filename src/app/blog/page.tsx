@@ -39,7 +39,7 @@ export default async function BlogPage({ searchParams }: Props = {}) {
     <main className="bg-background pb-24 pt-28 md:pb-0 md:pt-32">
       <Container className="pb-16 md:pb-24">
         <header className="border-b border-border pb-8 sm:pb-10">
-          <p className="font-mono text-xs uppercase tracking-[0.14em] text-primary">Tijuana · Baja California</p>
+          <p className="font-mono text-xs uppercase tracking-[0.14em] text-primary-ink">Tijuana · Baja California</p>
           <div className="mt-5 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <h1 className="display-title max-w-[14ch] text-5xl text-foreground sm:text-6xl lg:text-7xl">Blog</h1>
             <p className="max-w-[48ch] text-base leading-7 text-muted-foreground sm:text-lg">Lo que pasa en el sector y lo que necesitas saber para tu próxima decisión. Guías, análisis y actualidad con contexto local.</p>
@@ -85,7 +85,7 @@ export default async function BlogPage({ searchParams }: Props = {}) {
           <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <nav aria-label="Tipo de contenido" className="flex flex-wrap items-center gap-2">
               {[["", "Todo"], ...Object.entries(BLOG_FORMATS)].map(([value, label]) => <Link key={value} href={blogHref({ ...search, tipo: value, pagina: "1" })} aria-current={search.tipo === value ? "page" : undefined} className={`inline-flex min-h-11 items-center rounded-md border px-5 text-sm font-medium transition-colors ${search.tipo === value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:bg-secondary"}`}>{label}</Link>)}
-              {(isFiltered || search.orden === "antiguos") && <Link href={clearHref} className="inline-flex min-h-11 items-center px-3 text-sm text-primary underline underline-offset-4">Limpiar filtros</Link>}
+              {(isFiltered || search.orden === "antiguos") && <Link href={clearHref} className="inline-flex min-h-11 items-center px-3 text-sm text-primary-ink underline underline-offset-4">Limpiar filtros</Link>}
             </nav>
             <nav aria-label="Vista de artículos" className="flex w-fit gap-1 rounded-md border border-border bg-card p-1">
               {([{ value: "cuadricula", label: "Cuadrícula", Icon: LayoutGrid }, { value: "lista", label: "Lista", Icon: List }] as const).map(({ value, label, Icon }) => <Link key={value} href={blogHref({ ...search, vista: value })} aria-label={`Vista de ${label.toLowerCase()}`} aria-current={search.vista === value ? "page" : undefined} className={`inline-flex min-h-11 items-center gap-2 rounded-sm px-3 text-sm font-medium transition-colors ${search.vista === value ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary"}`}><Icon aria-hidden="true" className="size-4" />{label}</Link>)}
@@ -106,7 +106,7 @@ export default async function BlogPage({ searchParams }: Props = {}) {
             {filtered.length === 0 ? <div className="rounded-lg border border-dashed border-border px-6 py-14 text-center">
               <h3 className="display-soft text-2xl">No encontramos artículos con esos filtros.</h3>
               <p className="mt-3 text-muted-foreground">{invalidRange ? "Corrige las fechas para ver los artículos." : "Prueba con otra palabra, tema o fecha."}</p>
-              <Link href={clearHref} className="mt-4 inline-flex min-h-11 items-center text-primary underline underline-offset-4">Limpiar filtros</Link>
+              <Link href={clearHref} className="mt-4 inline-flex min-h-11 items-center text-primary-ink underline underline-offset-4">Limpiar filtros</Link>
             </div> : visible.length > 0 ? <ol className={listView ? "grid gap-3" : "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"}>
               {visible.map((post) => <li key={post.id} className="min-w-0"><BlogCard post={post} view={search.vista} /></li>)}
             </ol> : <p className="text-muted-foreground">Puedes empezar por el artículo destacado.</p>}

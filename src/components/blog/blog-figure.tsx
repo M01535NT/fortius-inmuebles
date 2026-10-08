@@ -14,7 +14,7 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
       className="my-10 min-w-0 overflow-hidden rounded-lg border border-border bg-card font-sans text-foreground [overflow-wrap:anywhere]"
     >
       <div className="border-b border-border p-5 sm:p-7">
-        <p className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide text-primary">
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide text-primary-ink">
           <Icon aria-hidden="true" className="size-5 shrink-0" />
           {isInfographic ? "GUÍA VISUAL" : data.type === "monthly-comparison" ? "EJEMPLO FICTICIO" : "EJEMPLO ILUSTRATIVO"}
         </p>
@@ -28,7 +28,7 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
           {data.items.map((item, index) => (
             <li key={item.label} className="relative min-w-0 border-b border-border py-5 last:border-b-0 first:pt-0 sm:first:pt-5">
               <div className="flex min-w-0 items-start gap-3">
-                <span aria-hidden="true" className="shrink-0 text-2xl font-semibold tabular-nums leading-tight text-primary">
+                <span aria-hidden="true" className="shrink-0 text-2xl font-semibold tabular-nums leading-tight text-primary-ink">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <div className="min-w-0">
@@ -37,7 +37,7 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
                 </div>
               </div>
               {data.layout === "sequence" && index < data.items.length - 1 && (
-                <ArrowDown aria-hidden="true" className="mt-4 size-5 text-primary" />
+                <ArrowDown aria-hidden="true" className="mt-4 size-5 text-primary-ink" />
               )}
             </li>
           ))}
@@ -69,7 +69,7 @@ function FigureChart({ figure }: { figure: BlogFigure & { data: Exclude<BlogFigu
           <div key={row.label}>
             <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <span className="text-base font-semibold">{row.label}</span>
-              <span className="text-xl font-semibold tabular-nums text-primary">{formatFigureAmount(row.value)} {unit}</span>
+              <span className="text-xl font-semibold tabular-nums text-primary-ink">{formatFigureAmount(row.value)} {unit}</span>
             </div>
             <div className="h-5 border-l border-foreground/40 bg-muted">
               <div className="h-full bg-primary" style={{ width: `${(row.value / max) * 100}%` }} />
@@ -94,7 +94,7 @@ function FigureChart({ figure }: { figure: BlogFigure & { data: Exclude<BlogFigu
 
       {monthly && (
         <p className="mt-6 border-l-2 border-primary pl-4 text-base leading-relaxed">
-          Diferencia de salida de efectivo: <strong className="text-primary">{formatFigureAmount(rows[0].value - rows[1].value)} MXN al mes</strong>. Este cálculo no mide patrimonio.
+          Diferencia de salida de efectivo: <strong className="text-primary-ink">{formatFigureAmount(rows[0].value - rows[1].value)} MXN al mes</strong>. Este cálculo no mide patrimonio.
         </p>
       )}
     </div>

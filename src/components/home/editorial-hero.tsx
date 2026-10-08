@@ -10,6 +10,7 @@ import { SplitHeading } from "@/components/gsap/split-heading";
 import { resolveSiteContent } from "@/data/home-copy";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import type { SiteContent } from "@/lib/admin/store";
+import { HeroMarquee } from "@/components/home/hero-marquee";
 
 const PHOTOS = [
   { src: "/hero/casa-playa.webp", alt: "Residencia junto al mar" },
@@ -84,6 +85,7 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
             aria-pressed={index === i} onClick={() => { setIndex(i); setPaused(true); }}><span /></button>)}
         </div>
       </div>
+      <HeroMarquee />
     </section>
   );
 }

@@ -67,7 +67,7 @@ export function Compromisos() {
                 </li>
               ))}
             </ul>
-            <Link href="/privacidad" className="mt-5 inline-block text-sm text-primary underline underline-offset-4">
+            <Link href="/privacidad" className="mt-5 inline-block text-sm text-primary-ink underline underline-offset-4">
               Consulta cómo tratamos tus datos
             </Link>
           </div>

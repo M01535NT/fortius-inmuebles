@@ -182,7 +182,7 @@ function LoginScreen({
                 : "Entrar"}
           </button>
           {sent ? (
-            <p role="status" className="text-sm text-primary">
+            <p role="status" className="text-sm text-primary-ink">
               Si el correo tiene acceso, recibirá un enlace de recuperación.
             </p>
           ) : null}
@@ -200,7 +200,7 @@ function LoginScreen({
             </button>
           ) : null}
         </AsyncForm>
-        <DocumentLink href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline">
+        <DocumentLink href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline-offset-4 hover:underline">
           Volver al sitio
         </DocumentLink>
       </div>

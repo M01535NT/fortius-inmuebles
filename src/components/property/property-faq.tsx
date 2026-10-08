@@ -33,7 +33,7 @@ export function PropertyFaq() {
             <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-left [&::-webkit-details-marker]:hidden">
               <span className="text-base font-medium text-foreground">{item.q}</span>
               <Plus
-                className="h-4 w-4 shrink-0 text-primary transition-transform duration-300 group-open:rotate-45"
+                className="h-4 w-4 shrink-0 text-primary-ink transition-transform duration-300 group-open:rotate-45"
                 strokeWidth={1.5}
               />
             </summary>

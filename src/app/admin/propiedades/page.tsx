@@ -80,7 +80,7 @@ export default function AdminPropiedadesPage() {
                 <h2>
                   <Link
                     href={`/admin/propiedades/${p.slug}/editar`}
-                    className="flex min-h-11 items-center text-base font-semibold text-foreground hover:text-primary"
+                    className="flex min-h-11 items-center text-base font-semibold text-foreground hover:text-primary-ink"
                   >
                     {p.titulo}
                   </Link>
@@ -242,7 +242,7 @@ function FeaturedButton({
       }
       className={
         "inline-flex items-center justify-center gap-2 rounded-md px-2 text-sm transition-colors hover:bg-secondary " +
-        (property.destacada ? "text-primary" : "text-muted-foreground")
+        (property.destacada ? "text-primary-ink" : "text-muted-foreground")
       }
     >
       <Star

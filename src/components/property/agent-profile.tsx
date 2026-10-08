@@ -48,7 +48,7 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
                 key={label}
                 className="flex items-center gap-3 rounded-md border border-border px-3.5 py-2.5"
               >
-                <Icon className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.5} />
+                <Icon className="h-4 w-4 shrink-0 text-primary-ink" strokeWidth={1.5} />
                 <div className="min-w-0">
                   <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
                     {label}

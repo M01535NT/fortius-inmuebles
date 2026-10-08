@@ -186,7 +186,7 @@ function LeadDetail({ id }: { id: string }) {
             className={
               "inline-flex h-9 items-center rounded-md border px-3.5 text-sm font-medium transition-colors " +
               (lead.estado === estado
-                ? "border-primary/50 bg-primary/10 text-primary"
+                ? "border-primary/50 bg-primary/10 text-primary-ink"
                 : "border-border text-foreground/70 hover:bg-secondary")
             }
           >
@@ -322,7 +322,7 @@ function LeadDetail({ id }: { id: string }) {
                     className="flex items-center justify-between gap-4 py-3"
                   >
                     <div className="flex min-w-0 items-baseline gap-3">
-                      <span className="shrink-0 font-mono text-xs text-primary">
+                      <span className="shrink-0 font-mono text-xs text-primary-ink">
                         {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
                         {evento.hora ? ` ${evento.hora}` : ""}
                       </span>
@@ -439,7 +439,7 @@ function LeadDetail({ id }: { id: string }) {
                 <Link
                   href={`/inventario/${propiedad.slug}`}
                   target="_blank"
-                  className="block text-sm font-medium text-primary hover:text-foreground"
+                  className="block text-sm font-medium text-primary-ink hover:text-foreground"
                 >
                   Ver {propiedad.codigo} en el sitio →
                 </Link>

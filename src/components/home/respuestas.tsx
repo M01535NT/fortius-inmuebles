@@ -56,7 +56,7 @@ function Item({ item, index }: { item: { q: string; a: string }; index: number }
           </span>
           <Plus
             className={
-              "h-5 w-5 shrink-0 text-primary transition-transform duration-300" +
+              "h-5 w-5 shrink-0 text-primary-ink transition-transform duration-300" +
               (open ? " rotate-45" : "")
             }
             strokeWidth={1.5}

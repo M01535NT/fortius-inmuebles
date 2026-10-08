@@ -194,7 +194,7 @@ export default function CalendarioPage() {
                     className={
                       "relative min-h-11 min-w-0! w-full rounded-md border py-2 text-sm transition-colors sm:aspect-square " +
                       (seleccion === fecha
-                        ? "border-primary/60 bg-primary/10 font-semibold text-primary"
+                        ? "border-primary/60 bg-primary/10 font-semibold text-primary-ink"
                         : fecha === hoy
                           ? "border-border bg-secondary font-semibold text-foreground"
                           : "border-transparent text-foreground/75 hover:bg-secondary/60")
@@ -237,7 +237,7 @@ export default function CalendarioPage() {
                     <div className="min-w-0">
                       <p className="flex min-w-0 flex-col items-start gap-1 text-sm text-foreground">
                         {evento.hora ? (
-                          <span className="font-mono text-xs text-primary">
+                          <span className="font-mono text-xs text-primary-ink">
                             {evento.hora}
                           </span>
                         ) : null}
@@ -248,14 +248,14 @@ export default function CalendarioPage() {
                         {lead ? (
                           <Link
                             href={`/admin/leads/${lead.id}`}
-                            className="inline-flex min-h-11 max-w-full items-center text-primary [overflow-wrap:anywhere] hover:text-foreground"
+                            className="inline-flex min-h-11 max-w-full items-center text-primary-ink [overflow-wrap:anywhere] hover:text-foreground"
                           >
                             {lead.nombre}
                           </Link>
                         ) : null}
-                        {cliente ? <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center text-primary hover:text-foreground">Cliente: {cliente.nombre}</Link> : null}
-                        {propiedad ? <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`} className="inline-flex min-h-11 items-center text-primary hover:text-foreground">Inmueble: {propiedad.codigo}</Link> : null}
-                        {expediente ? <Link href={`/admin/expedientes?expediente=${encodeURIComponent(expediente.id)}`} className="inline-flex min-h-11 items-center text-primary hover:text-foreground">Expediente: {expediente.folio}</Link> : null}
+                        {cliente ? <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Cliente: {cliente.nombre}</Link> : null}
+                        {propiedad ? <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Inmueble: {propiedad.codigo}</Link> : null}
+                        {expediente ? <Link href={`/admin/expedientes?expediente=${encodeURIComponent(expediente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Expediente: {expediente.folio}</Link> : null}
                         {asesor ? <span>Asesor: {asesor.nombre}</span> : null}
                       </p>
                     </div>
@@ -287,7 +287,7 @@ export default function CalendarioPage() {
           {tareasDelDia.length > 0 && <section aria-label="Vencimientos de tareas" className="mt-5 border-t border-border pt-4">
             <h3 className="font-medium text-sm">Tareas que vencen este día</h3>
             <ul className="mt-2 divide-y divide-border">{tareasDelDia.map(tarea => <li key={tarea.id}>
-              <Link href={`/admin/tareas/${tarea.id}`} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary [overflow-wrap:anywhere]">
+              <Link href={`/admin/tareas/${tarea.id}`} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary-ink [overflow-wrap:anywhere]">
                 <span>{tarea.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[tarea.estado]}</span>
               </Link>
             </li>)}</ul>
@@ -295,7 +295,7 @@ export default function CalendarioPage() {
           {contactosDelDia.length > 0 && <section aria-label="Próximos contactos" className="mt-5 border-t border-border pt-4">
             <h3 className="font-medium text-sm">Contactos previstos este día</h3>
             <ul className="mt-2 divide-y divide-border">{contactosDelDia.map(item => <li key={item.id}>
-              <Link href={item.href} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary [overflow-wrap:anywhere]">
+              <Link href={item.href} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary-ink [overflow-wrap:anywhere]">
                 <span>{item.personName}</span><span className="text-xs text-muted-foreground">{item.kind === "cliente" ? "Cliente" : "Lead"} · {asesores.find(a => a.id === item.asesorId)?.nombre ?? "Sin asesor"}</span>
               </Link>
             </li>)}</ul>

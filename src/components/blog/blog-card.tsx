@@ -19,9 +19,9 @@ export function BlogCard({ post, featured = false, view = "cuadricula" }: { post
         </figure>}
         <div className={`flex min-w-0 flex-1 flex-col ${list ? "" : `p-6 ${featured ? `sm:p-9 ${cover ? "" : "lg:col-span-2"}` : ""}`}`}>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-            <span className="font-medium text-primary">{postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}</span>
+            <span className="font-medium text-primary-ink">{postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}</span>
             {category && <span className="text-muted-foreground">{BLOG_CATEGORIES[category]}</span>}
-            {featured && <span className="ml-auto rounded-sm bg-primary/10 px-2 py-1 text-xs font-medium text-primary">Destacado</span>}
+            {featured && <span className="ml-auto rounded-sm bg-primary/10 px-2 py-1 text-xs font-medium text-primary-ink">Destacado</span>}
           </div>
           <h2 className={`display-soft text-foreground [overflow-wrap:anywhere] ${list ? "mt-2 text-xl sm:text-2xl" : featured ? "mt-5 text-3xl sm:text-4xl" : "mt-5 text-2xl"}`}>{post.titulo}</h2>
           <p className={`${list ? "mt-2 hidden sm:line-clamp-2" : "mt-4 line-clamp-3"} text-base leading-7 text-muted-foreground [overflow-wrap:anywhere]`}>{post.resumen}</p>
@@ -30,7 +30,7 @@ export function BlogCard({ post, featured = false, view = "cuadricula" }: { post
               {post.publicadoEl ? "" : "Actualizado · "}<time dateTime={postDate(post)}>{formatBlogDate(postDate(post))}</time>
               <span className={list ? "block sm:inline sm:before:content-['_·_']" : "block"}>{readingMinutes(post)} min de lectura</span>
             </p>
-            <ArrowUpRight aria-hidden="true" className="size-5 shrink-0 text-primary transition-transform motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:translate-x-1" />
+            <ArrowUpRight aria-hidden="true" className="size-5 shrink-0 text-primary-ink transition-transform motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:translate-x-1" />
           </div>
         </div>
       </Link>

@@ -1,49 +1,39 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("the six method stages open on touch screens and show reading progress", async ({ browser }) => {
+test("the six timeline stages remain readable on touch screens and show reading progress", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await context.newPage();
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
   const progress = page.getByRole("progressbar", { name: "Avance de lectura" });
   await expect(progress).toBeAttached();
   await page.getByRole("button", { name: "Abrir menú" }).click();
   await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
-  const panels = page.locator("#metodo [data-method-panel]");
-  await expect(panels).toHaveCount(6);
-  for (const [index, title] of ["Captación", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"].entries()) {
-    const button = page.locator("#metodo").getByRole("button", { name: new RegExp(title) });
-    await button.click();
-    await expect(button).toHaveAttribute("aria-expanded", "true");
-    const panel = panels.nth(index);
-    await expect(panel.locator(".method-panel-copy")).toBeVisible();
-    await expect.poll(() => panel.evaluate((node) => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
+  const stages = page.locator("[data-method-timeline] li");
+  await expect(stages).toHaveCount(6);
+  for (const stage of await stages.all()) {
+    await stage.scrollIntoViewIfNeeded();
+    await expect(stage.getByRole("heading")).toBeInViewport();
+    await expect(stage.locator("p")).toBeVisible();
   }
+  const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
+  expect(boxes[1].top).toBeGreaterThanOrEqual(boxes[0].bottom - 1);
   await expect.poll(async () => Number(await progress.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.locator("[data-custom-cursor]")).toHaveCount(0);
   await context.close();
 });
 
-test("desktop method opens the selected vertical panel with mouse and keyboard", async ({ page }) => {
+test("desktop timeline presents all six stages together and passes accessibility checks", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  const method = page.locator("#metodo");
-  const panels = method.locator("[data-method-panel]");
-  await expect(panels).toHaveCount(6);
-  const first = panels.first();
-  const second = panels.nth(1);
-  const firstWidth = await first.evaluate((node) => node.getBoundingClientRect().width);
-  const secondWidth = await second.evaluate((node) => node.getBoundingClientRect().width);
-  expect(firstWidth).toBeGreaterThan(secondWidth * 2);
-  const publication = method.getByRole("button", { name: /Publicación y seguimiento/ });
-  await publication.click();
-  await expect(publication).toHaveAttribute("aria-expanded", "true");
-  await expect(method.locator(".method-panel-copy:visible")).toHaveCount(1);
-  await publication.press("ArrowRight");
-  const visits = method.getByRole("button", { name: /Visitas y ofertas/ });
-  await expect(visits).toBeFocused();
-  await expect(visits).toHaveAttribute("aria-expanded", "true");
+  await page.locator("#metodo").scrollIntoViewIfNeeded();
+  const stages = page.locator("[data-method-timeline] li");
+  await expect(stages).toHaveCount(6);
+  await expect(stages.last()).toHaveCSS("transform", "none");
+  const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
+  expect(boxes[1].left).toBeGreaterThan(boxes[0].right);
+  expect(boxes[1].top).toBeCloseTo(boxes[0].top);
   const result = await new AxeBuilder({ page }).include("#metodo").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });

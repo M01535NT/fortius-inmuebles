@@ -18,7 +18,7 @@ export function ContactForm({ submitLabel = "Enviar consulta" }: { submitLabel?:
   if (sent) {
     return (
       <div className="flex min-h-[320px] flex-col items-start justify-center rounded-lg border border-border bg-card p-8">
-        <CheckCircle2 className="h-8 w-8 text-primary" strokeWidth={1.5} />
+        <CheckCircle2 className="h-8 w-8 text-primary-ink" strokeWidth={1.5} />
         <h3 className="display-soft mt-5 text-2xl text-foreground">
           Recibimos tu solicitud.
         </h3>

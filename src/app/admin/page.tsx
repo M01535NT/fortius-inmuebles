@@ -58,7 +58,7 @@ export default function AdminDashboard() {
           >
             <div className="flex items-center justify-between gap-2">
               <p className="font-mono text-2xl text-foreground sm:text-3xl">{String(value).padStart(2, "0")}</p>
-              <Icon className="size-5 shrink-0 text-primary" strokeWidth={1.5} />
+              <Icon className="size-5 shrink-0 text-primary-ink" strokeWidth={1.5} />
             </div>
             <p className="mt-2 flex items-start gap-1 text-sm leading-snug text-muted-foreground">
               <span className="min-w-0 [overflow-wrap:anywhere]">{label}</span>
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
         <section aria-labelledby="dashboard-agenda" className="min-w-0 rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-agenda" className="min-w-0 display-soft text-lg text-foreground">Agenda próxima</h2>
-            <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary hover:text-foreground">
+            <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Calendario
             </Link>
           </div>
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
             <ul className="divide-y divide-border">
               {vistaPrevia.map((evento) => (
                 <li key={evento.id} className="flex min-w-0 flex-col gap-1 px-4 py-3 sm:flex-row sm:items-baseline sm:gap-4 sm:px-5">
-                  <span className="shrink-0 font-mono text-xs text-primary">
+                  <span className="shrink-0 font-mono text-xs text-primary-ink">
                     {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
                     {evento.hora ? ` ${evento.hora}` : ""}
                   </span>
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
         <section aria-labelledby="dashboard-leads" className="min-w-0 rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-leads" className="min-w-0 display-soft text-lg text-foreground">Leads recientes</h2>
-            <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary hover:text-foreground">
+            <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Ver todos
             </Link>
           </div>

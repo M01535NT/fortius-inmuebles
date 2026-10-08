@@ -158,7 +158,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
           {guardado ? (
             <p
               aria-live="polite"
-              className="text-sm font-medium text-primary"
+              className="text-sm font-medium text-primary-ink"
             >
               Guardado.
             </p>

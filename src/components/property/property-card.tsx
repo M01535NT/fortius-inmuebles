@@ -14,58 +14,49 @@ import {
 export function PropertyCard({ property }: { property: Property }) {
   const href = `/inventario/${property.slug}`;
   const noDisponible = property.estado !== "disponible";
+  const facts = [
+    property.ficha.recamaras ? `${property.ficha.recamaras} rec.` : null,
+    property.ficha.banos ? `${property.ficha.banos} baños` : null,
+    property.ficha.construccionM2 ? `${property.ficha.construccionM2} m² const.` : property.ficha.terrenoM2 ? `${property.ficha.terrenoM2} m² terreno` : null,
+  ].filter(Boolean);
 
   return (
-    <TiltCard max={4}>
+    <TiltCard max={3} className="property-card-motion">
     <article data-property-card className="property-editorial-card group">
       <Link
         href={href}
         data-cursor="Ver"
-        className="relative block overflow-hidden rounded-lg border border-border"
+        className="property-card-image"
       >
         <Image
           src={property.galeria[0].src}
           alt={property.galeria[0].alt}
-          width={900}
-          height={620}
-          sizes="(max-width: 768px) 100vw, 33vw"
+          width={600}
+          height={820}
+          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 380px"
           className={
-            "aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]" +
+            "h-full w-full object-cover" +
             (property.estado === "vendida" || property.estado === "rentada" ? " opacity-80" : "")
           }
         />
-        {noDisponible ? (
-          <span className="absolute left-3 top-3 rounded-sm border border-border bg-background/90 px-2 py-1 font-mono text-xs uppercase tracking-[0.06em] text-foreground">
-            {ESTADO_LABELS[property.estado]}
-          </span>
-        ) : null}
+        <span className="property-card-badge">
+          {noDisponible ? ESTADO_LABELS[property.estado] : OPERACION_LABELS[property.operacion]}
+          {property.demo ? " · Demostración" : ""}
+        </span>
       </Link>
-      <div className="grid gap-3 py-5">
-        {property.demo && (
-          <p className="w-fit rounded-sm border border-border bg-secondary px-2 py-1 text-xs font-medium text-foreground">
-            Propiedad de demostración
-          </p>
-        )}
-        <p className="property-eyebrow font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-          {TIPO_LABELS[property.tipo]} · {OPERACION_LABELS[property.operacion]}
-        </p>
-        <div>
-          <h3 className="display-soft text-2xl text-foreground">{property.titulo}</h3>
-          <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="size-4 text-primary" strokeWidth={1.5} />
+      <div className="property-card-copy">
+        <div className="property-card-heading">
+          <p className="property-card-location">
+            <MapPin className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
             {property.zona}
           </p>
+          <h3 className="property-card-title"><Link href={href}>{property.titulo}</Link></h3>
+          <p className="property-card-price">{formatPrecio(property.precio)}</p>
         </div>
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-sm font-semibold text-foreground">
-            {formatPrecio(property.precio)}
-          </span>
-          <Link
-            href={href}
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-opacity hover:opacity-80"
-          >
-            Ver detalle
-            <ArrowUpRight className="size-4" strokeWidth={1.5} />
+        <div className="property-card-facts">
+          <p>{facts.length ? facts.join(" · ") : TIPO_LABELS[property.tipo]}</p>
+          <Link href={href} className="property-card-detail" aria-label={`Ver detalle de ${property.titulo}`}>
+            <span className="sr-only">Ver detalle</span><ArrowUpRight className="size-5" strokeWidth={1.5} aria-hidden="true" />
           </Link>
         </div>
       </div>

@@ -45,13 +45,13 @@ export default function HerramientasPage() {
               className="group flex flex-col justify-between rounded-lg border border-border bg-card p-7 transition-colors hover:border-primary/50"
             >
               <div>
-                <Icon className="h-7 w-7 text-primary" strokeWidth={1.5} />
+                <Icon className="h-7 w-7 text-primary-ink" strokeWidth={1.5} />
                 <h2 className="display-soft mt-5 text-2xl text-foreground">{title}</h2>
                 <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-muted-foreground">
                   {text}
                 </p>
               </div>
-              <span className="mt-8 inline-flex items-center gap-1.5 text-base font-medium text-primary">
+              <span className="mt-8 inline-flex items-center gap-1.5 text-base font-medium text-primary-ink">
                 Abrir herramienta
                 <ArrowUpRight
                   className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -64,7 +64,7 @@ export default function HerramientasPage() {
 
         <p className="mt-10 text-base text-muted-foreground">
           ¿Quieres vender tu propiedad?{" "}
-          <Link href="/#evaluar" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/#evaluar" className="font-medium text-primary-ink underline-offset-4 hover:underline">
             Solicita una evaluación sin compromiso
           </Link>
           .
