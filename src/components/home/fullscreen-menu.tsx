@@ -8,6 +8,7 @@ import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
 import { publicContact } from "@/lib/public-contact";
+import { MessagingActions } from "@/components/contact/messaging-actions";
 
 /*
   Menú a pantalla completa. Se revela con un clip-path circular que nace
@@ -163,33 +164,40 @@ export function FullscreenMenu({ open, onClose }: Props) {
       <div className="menu-editorial-layout">
         <div className="menu-editorial-grid">
           {/* Enlaces principales */}
-          <nav aria-label="Menú principal" className="menu-editorial-primary">
-            <ol>
-              {PRIMARY.map((item, i) => (
-                <li key={item.href} data-menu-item>
-                  <Link
-                    href={item.href}
-                    prefetch={open ? null : false}
-                    onClick={onClose}
-                    aria-current={isCurrent(item.href) ? "page" : undefined}
-                    className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
-                  >
-                    <span className="font-mono text-xs text-primary-ink">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="display-title text-[clamp(1.875rem,6.5vw,3.5rem)] text-foreground/85 transition-colors duration-300 group-hover:text-foreground">
-                      {item.label}
-                    </span>
-                    <ArrowUpRight
-                      className="ml-auto size-5 self-center text-primary-ink opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
-                      strokeWidth={1.5}
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ol>
+          <div className="menu-editorial-primary">
+            <nav aria-label="Menú principal">
+              <ol>
+                {PRIMARY.map((item, i) => (
+                  <li key={item.href} data-menu-item>
+                    <Link
+                      href={item.href}
+                      prefetch={open ? null : false}
+                      onClick={onClose}
+                      aria-current={isCurrent(item.href) ? "page" : undefined}
+                      className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
+                    >
+                      <span className="font-mono text-xs text-primary-ink">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="display-title text-[clamp(1.875rem,6.5vw,3.5rem)] text-foreground/85 transition-colors duration-300 group-hover:text-foreground">
+                        {item.label}
+                      </span>
+                      <ArrowUpRight
+                        className="ml-auto size-5 self-center text-primary-ink opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
+                        strokeWidth={1.5}
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ol>
 
-          </nav>
+            </nav>
+            {(contact.whatsapp || contact.emailHref || contact.messenger) && (
+              <nav aria-label="Canales de contacto" className="mt-6" data-menu-panel>
+                <MessagingActions settings={settings} message="Hola, quiero conversar sobre una propiedad con Fortius." />
+              </nav>
+            )}
+          </div>
 
           <nav aria-label="Accesos destacados" className="menu-route-grid">
             {routes.map((route) => (

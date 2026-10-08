@@ -9,7 +9,6 @@ import { useMotionValueEvent, useScroll } from "motion/react";
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { ThemeToggle } from "@/components/home/theme-toggle";
-import { MessagingActions } from "@/components/contact/messaging-actions";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import type { SiteSettings } from "@/lib/admin/store";
 
@@ -75,7 +74,6 @@ export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boo
         </nav>
 
         <div className="flex items-center gap-2.5">
-          <div className="hidden xl:block"><MessagingActions settings={props.settings} /></div>
           <ThemeToggle
             className={
               solid
