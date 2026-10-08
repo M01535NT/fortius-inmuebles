@@ -1,4 +1,8 @@
 "use client";
+import * as React from "react";
+import Image from "next/image";
+import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
+import { emptyInventoryFilters, filterInventory } from "@/lib/admin/workspace";
 import { AsyncButton, AsyncSelect } from "@/components/admin/ui";
 
 import Link from "next/link";
@@ -10,6 +14,7 @@ import {
   EmptyState,
   PageHeader,
   btnPrimary,
+  btnGhost,
 } from "@/components/admin/ui";
 import {
   ESTADO_LABELS,
@@ -34,6 +39,11 @@ import {
 export default function AdminPropiedadesPage() {
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);
+  const [filters,setFilters] = React.useState(emptyInventoryFilters);
+  const results = filterInventory(propiedades,filters);
+  const [page,setPage]=React.useState(0);
+  const currentPage=Math.min(page,Math.max(0,Math.ceil(results.length/24)-1));
+  const filtered=results.slice(currentPage*24,(currentPage+1)*24);
 
   async function eliminar(
     slug: string,
@@ -59,6 +69,9 @@ export default function AdminPropiedadesPage() {
         }
       />
       <DemoBanner />
+      <InventoryControls value={filters} onChange={next=>{setFilters(next);setPage(0);}} advisers={asesores} count={results.length}/>
+      {results.length>24 && <nav aria-label="Páginas de inmuebles" className="flex flex-wrap items-center gap-3"><button type="button" className={btnGhost} disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>Anterior</button><span className="text-sm">Página {currentPage+1} de {Math.ceil(results.length/24)}</span><button type="button" className={btnGhost} disabled={(currentPage+1)*24>=results.length} onClick={()=>setPage(currentPage+1)}>Siguiente</button></nav>}
+      {propiedades.length > 0 && filtered.length === 0 && <EmptyState title="No hay inmuebles con estos filtros." hint="Prueba otra búsqueda o limpia los filtros."/>}
 
       {propiedades.length === 0 ? (
         <EmptyState
@@ -68,12 +81,12 @@ export default function AdminPropiedadesPage() {
       ) : (
         <>
           <ul aria-label="Inmuebles" className="min-w-0 space-y-3 lg:hidden">
-            {propiedades.map((p) => (
+            {filtered.map((p) => (
               <li
                 key={p.slug}
                 className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4 [overflow-wrap:anywhere]"
               >
-                <p className="font-mono text-xs text-muted-foreground">{p.codigo}</p>
+                <div className="flex items-center gap-3">{p.galeria[0] && <Image unoptimized width={96} height={64} src={p.galeria[0].src} alt="" className="h-16 w-24 rounded object-cover" loading="lazy"/>}<p className="font-mono text-xs text-muted-foreground">{p.codigo}</p></div>
                 {propiedades.some((other) => other.slug !== p.slug && other.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase()) ? (
                   <p className="text-xs font-medium text-destructive">Código duplicado: corrígelo en Editar.</p>
                 ) : null}
@@ -136,7 +149,7 @@ export default function AdminPropiedadesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {propiedades.map((p) => (
+                {filtered.map((p) => (
                   <tr
                     key={p.slug}
                     className="align-middle transition-colors hover:bg-secondary/40"
@@ -149,6 +162,7 @@ export default function AdminPropiedadesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
+                        {p.galeria[0] && <Image unoptimized width={960} height={720} src={p.galeria[0].src} alt="" className="h-14 w-20 shrink-0 rounded object-cover" loading="lazy"/>}
                         <FeaturedButton property={p} />
                         <div className="min-w-0">
                           <p className="truncate font-medium text-foreground">

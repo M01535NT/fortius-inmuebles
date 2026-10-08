@@ -71,12 +71,21 @@ const lead = {
   creadoEl: "2026-09-03",
   notas: [],
 };
+test.each(["Quitar documento", "Quitar punto"])("button-only edit %s protects unsaved changes",async(name)=>{
+  render(<PropertyForm initial={property}/>);
+  fireEvent.click(screen.getByRole("button",{name}));
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  fireEvent.click(screen.getByRole("button",{name:"Cancelar"}));
+  expect(confirm).toHaveBeenCalled();
+  expect(push).not.toHaveBeenCalled();
+});
 let fail = 0,
   version = 1,
   removed = false;
 let sent: { data: Record<string, unknown>; version: number | null } | null =
   null;
 beforeEach(() => {
+  sessionStorage.clear();
   clearAdminCache();
   fail = 0;
   version = 1;
@@ -166,13 +175,45 @@ test("staff can save the public source and delivery facts on a property", async 
 });
 test("new real property defaults unpublished and not demo", async () => {
   render(<PropertyForm />);
-  expect(
-    (screen.getByLabelText("Publicar en el sitio") as HTMLInputElement).checked,
-  ).toBe(false);
+  expect(screen.getByText("Borrador · no visible en el sitio")).toBeTruthy();
+  expect(screen.getByRole("button",{name:"Guardar y publicar"})).toBeTruthy();
   expect(
     (screen.getByLabelText("Dato de demostración (Demo)") as HTMLInputElement)
       .checked,
   ).toBe(false);
+});
+test("property temporary copy recovers controlled and uncontrolled fields without publishing", async()=>{
+ await db.propiedades.load();const source=db.propiedades.list()[0];const mounted=render(<PropertyForm initial={source}/>);
+ fireEvent.change(screen.getByLabelText("Título"),{target:{value:"Casa recuperada"}});
+ fireEvent.change(screen.getByLabelText("Descripción"),{target:{value:"Descripción pendiente"}});
+ fireEvent.click(screen.getByRole("button",{name:"Guardar copia temporal"}));
+ expect(sent).toBeNull();mounted.unmount();render(<PropertyForm initial={source}/>);
+ fireEvent.click(screen.getByRole("button",{name:"Recuperar copia"}));
+ expect((screen.getByLabelText("Título") as HTMLInputElement).value).toBe("Casa recuperada");
+ expect((screen.getByLabelText("Descripción") as HTMLTextAreaElement).value).toBe("Descripción pendiente");
+ fireEvent.click(screen.getByRole("button",{name:"Guardar cambios"}));
+ await waitFor(()=>expect(sent?.data.publicada).toBe(false));
+ expect(sessionStorage.getItem("fortius:property-draft:anonymous:real")).toBeNull();
+});
+test("publication is an explicit action and image order controls choose the cover", async()=>{
+ await db.propiedades.load();render(<PropertyForm initial={db.propiedades.list()[0]}/>);
+ fireEvent.click(screen.getByRole("button",{name:"Agregar imagen"}));
+ fireEvent.change(screen.getByLabelText("Imagen 2: URL"),{target:{value:"/hero/interior-depa.webp"}});
+ fireEvent.change(screen.getByLabelText("Imagen 2: texto alternativo"),{target:{value:"Interior"}});
+ fireEvent.click(screen.getByRole("button",{name:"Subir foto 2"}));
+ fireEvent.click(screen.getByRole("button",{name:"Guardar y publicar"}));
+ await waitFor(()=>expect(sent?.data.publicada).toBe(true));
+ expect((sent?.data.galeria as {src:string}[])[0].src).toBe("/hero/interior-depa.webp");
+});
+test("a stale draft exposes every field without overwriting the current version",async()=>{
+ await db.propiedades.load();const mounted=render(<PropertyForm initial={db.propiedades.list()[0]}/>);
+ fireEvent.change(screen.getByLabelText("Documento 1: descripción"),{target:{value:"Documento pendiente de recuperar"}});
+ fireEvent.click(screen.getByRole("button",{name:"Guardar copia temporal"}));mounted.unmount();
+ version=2;await db.propiedades.load();render(<PropertyForm initial={db.propiedades.list()[0]}/>);
+ expect((screen.getByRole("button",{name:"Recuperar copia"}) as HTMLButtonElement).disabled).toBe(true);
+ fireEvent.click(screen.getByText("Ver todos los datos de la copia"));
+ expect(screen.getByLabelText("Copia completa").textContent).toContain("Documento pendiente de recuperar");
+ expect((screen.getByLabelText("Documento 1: descripción") as HTMLInputElement).value).toBe("Plano público");
 });
 test.each([
   "/api/admin/files?bucket=fortius-inmuebles-private&path=private.jpg",
@@ -193,10 +234,7 @@ test.each([
       }}
     />,
   );
-  fireEvent.click(screen.getByLabelText("Publicar en el sitio"));
-  fireEvent.submit(
-    screen.getByRole("button", { name: "Guardar cambios" }).closest("form")!,
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Guardar y publicar" }));
   expect((await screen.findByRole("alert")).textContent).toContain("pública");
   expect(sent).toBeNull();
   expect(push).not.toHaveBeenCalled();

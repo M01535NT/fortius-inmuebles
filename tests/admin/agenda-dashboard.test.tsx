@@ -71,11 +71,12 @@ test("dashboard keeps this evening's eight Tijuana events when UTC is already to
   events = eightEvents("2026-09-22");
   render(<AdminDashboard />);
 
-  await screen.findByText("Visita 1");
+  await screen.findAllByText("Visita 1");
   expect(screen.getByRole("link", { name: /Eventos próximos/ }).textContent).toContain("08");
   const agenda = screen.getByRole("heading", { name: "Agenda próxima" }).closest("section")!;
   expect(within(agenda).getAllByRole("listitem")).toHaveLength(5);
-  expect(screen.queryByText("Visita 6")).toBeNull();
+  expect(within(agenda).queryByText("Visita 6")).toBeNull();
+  expect(within(screen.getByRole("region",{name:"Atención de hoy"})).getByText("Visita 6")).toBeTruthy();
 });
 
 test("dashboard counts all eligible days before limiting its chronologically ordered preview", async () => {

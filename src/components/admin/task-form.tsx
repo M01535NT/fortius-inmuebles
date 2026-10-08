@@ -5,9 +5,9 @@ import { AsyncForm, Field, btnGhost, btnPrimary, inputClass, selectClass, textar
 import { db, uid, useCollection } from "@/lib/admin/store";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, TASK_TEMPLATES, taskSchema, type Task } from "@/lib/tasks";
 
-export function TaskForm({ initial, onSave }: { initial?: Task; onSave: (task: Task) => Promise<Task> }) {
+export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaults?: Pick<Task,"leadId"|"clienteId"|"propiedadSlug">; onSave: (task: Task) => Promise<Task> }) {
   // The draft belongs to this editor session, never to a background refetch.
-  const [draft, setDraft] = React.useState<Task>(() => initial ?? { id: uid(), titulo: "", descripcion: "", categoria: "administracion", estado: "pendiente", prioridad: "normal", pasos: [] });
+  const [draft, setDraft] = React.useState<Task>(() => initial ?? { id: uid(), titulo: "", descripcion: "", categoria: "administracion", estado: "pendiente", prioridad: "normal", pasos: [], ...defaults });
   const [saved, setSaved] = React.useState(false);
   const asesores = useCollection(db.asesores);
   const leads = useCollection(db.leads);

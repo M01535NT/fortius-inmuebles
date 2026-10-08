@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { RelatedWork } from "@/components/admin/workspace/related-work";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { ClienteEditor, CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-editor";
@@ -32,6 +33,7 @@ function ClienteDetail({ id }: { id: string }) {
       <Link href={`/admin/leads/${encodeURIComponent(cliente.leadId)}`} className={btnGhost}>Ver historial y agenda del lead</Link>
     </div> : null}
     {editing ? <ClienteEditor initial={cliente} onDone={() => setEditing(false)} /> : <>
+      <RelatedWork clienteId={id}/>
       <section className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
         <h2 className="display-soft text-lg">Datos del cliente</h2>
         <dl className="grid min-w-0 gap-4 text-sm sm:grid-cols-2">

@@ -10,7 +10,7 @@ export type ExpedienteOperativo = {
 };
 type Activity = { id: string; tipo: "nota" | "cambio"; descripcion: string; created_by: string; created_at: string };
 type Props<T extends ExpedienteOperativo> = {
-  expediente: T; responsable: string; onSaved: (value: T) => void; onDirtyChange: (value: boolean) => void;
+  expediente: T; responsable: string; view?: "all"|"summary"|"activity"; onSaved: (value: T) => void; onDirtyChange: (value: boolean) => void;
 };
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
@@ -27,7 +27,7 @@ function checklistKey(value: ExpedienteOperativo["checklist"]) {
   return Object.entries(value ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([key, status]) => `${key}:${status}`).join("|");
 }
 
-export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expediente, responsable, onSaved, onDirtyChange }: Props<T>) {
+export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expediente, responsable, onSaved, onDirtyChange, view="all" }: Props<T>) {
   const [etapa, setEtapa] = React.useState<keyof typeof EXPEDIENTE_ETAPAS>(expediente.etapa ?? "captacion");
   const [fecha, setFecha] = React.useState(expediente.fecha_objetivo ?? "");
   const [checklist, setChecklist] = React.useState<NonNullable<ExpedienteOperativo["checklist"]>>(expediente.checklist ?? {});
@@ -87,7 +87,7 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
     </div>
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="mt-3 text-sm">{notice}</p>}
-    <form onSubmit={save} className="mt-5 space-y-4">
+    <form hidden={view==="activity"} onSubmit={save} className="mt-5 space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Etapa
           <select className={selectClass} value={etapa} disabled={busy} onChange={event => setEtapa(event.target.value as keyof typeof EXPEDIENTE_ETAPAS)}>
@@ -112,11 +112,13 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
       </div>
       <button type="submit" disabled={!dirty || busy} className={btnPrimary}>Guardar seguimiento</button>
     </form>
-    <div className="mt-6 border-t border-border pt-5">
-      <h4 className="font-semibold">Actividad</h4>
+    <div id="exp-actividad" hidden={view==="summary"} className="mt-6 scroll-mt-24 border-t border-border pt-5">
+      <h4 className="font-semibold">Actividad y revisión documental</h4>
+      <p className="mt-2 text-sm text-muted-foreground">Recibido indica recepción. Registra por separado qué documento revisaste, su soporte y el resultado.</p>
+      <div className="mt-3 flex flex-wrap gap-2">{Object.entries(EXPEDIENTE_DOCUMENTOS).filter(([key])=>checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS]==="recibido").map(([key,label])=><button key={key} type="button" className={btnGhost} disabled={busy} onClick={()=>{setNote("Revisión de "+label+": ");document.getElementById("exp-review-note")?.focus();}}>Revisar {label}</button>)}</div>
       <form onSubmit={addNote} className="mt-3 flex flex-wrap items-end gap-2">
         <label className="min-w-[240px] flex-1 text-sm">Nueva nota
-          <textarea className={inputClass} maxLength={1000} rows={2} value={note} disabled={busy}
+          <textarea id="exp-review-note" className={inputClass} maxLength={1000} rows={2} value={note} disabled={busy}
             onChange={event => setNote(event.target.value)} />
         </label>
         <button type="submit" disabled={!note.trim() || busy} className={btnGhost}>Registrar nota</button>
@@ -124,7 +126,7 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
       {activity.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">Sin actividad registrada.</p>
         : <ol className="mt-3 space-y-2 text-sm">{activity.map(item => <li key={item.id} className="rounded-md border border-border p-3">
           <p>{item.descripcion}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · {new Date(item.created_at).toLocaleString("es-MX")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · Responsable {item.created_by} · {new Date(item.created_at).toLocaleString("es-MX")}</p>
         </li>)}</ol>}
     </div>
   </section>;

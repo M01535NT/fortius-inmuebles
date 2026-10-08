@@ -1,5 +1,6 @@
 "use client";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
+import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
 import { AsyncForm, AsyncButton, AsyncSelect } from "@/components/admin/ui";
 
@@ -147,6 +148,7 @@ function LeadDetail({ id }: { id: string }) {
         <ArrowLeft className="size-4" strokeWidth={1.5} /> Volver a leads
       </Link>
 
+      <RelatedWork leadId={id}/>
       <PageHeader
         title={lead.nombre}
         description={`${LEAD_ORIGEN_LABELS[lead.origen]} · recibido el ${fechaCorta(lead.creadoEl)}`}

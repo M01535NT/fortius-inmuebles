@@ -1,5 +1,8 @@
 "use client";
 import * as React from "react";
+import { DossierTabs, type DossierView } from "@/components/admin/workspace/dossier-tabs";
+import { RelatedWork } from "@/components/admin/workspace/related-work";
+import { EXPEDIENTE_ETAPAS, EXPEDIENTE_DOCUMENTOS } from "@/lib/formatos/expediente-operations";
 import { PageHeader, btnDanger, btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { db, useCollection } from "@/lib/admin/store";
@@ -31,6 +34,8 @@ export default function ExpedientesPage() {
   const [expedientes, setExpedientes] = React.useState<Expediente[]>([]);
   const [showDeleted, setShowDeleted] = React.useState(false);
   const [notice, setNotice] = React.useState("");
+  const [query,setQuery] = React.useState("");
+  const [view,setView]=React.useState<DossierView>("all");
   const [selectedId, setSelectedId] = React.useState("");
   const [documentos, setDocumentos] = React.useState<Documento[]>([]);
   const [documento, setDocumento] = React.useState<Documento | null>(null);
@@ -54,7 +59,7 @@ export default function ExpedientesPage() {
   function selectExpediente(id: string) {
     if (!canNavigate()) return;
     generation.current++;
-    setSelectedId(id); setOperationalDirty(false); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]); setError("");
+    setSelectedId(id); setView("all"); setOperationalDirty(false); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]); setError("");
   }
   React.useEffect(() => () => { generation.current++; }, []);
   React.useEffect(() => {
@@ -262,9 +267,12 @@ export default function ExpedientesPage() {
           <button type="button" className={showDeleted ? btnPrimary : btnGhost} aria-pressed={showDeleted} disabled={busy || pdfBusy} onClick={() => { if (!showDeleted) changeList(true); }}>Eliminados</button>
         </div>
         {expedientes.length === 0 && <p className="text-sm text-muted-foreground">{showDeleted ? "No hay expedientes eliminados visibles para tu cuenta." : "Aún no hay expedientes activos visibles para tu cuenta."}</p>}
-        <div className="space-y-2">{expedientes.map((item) => <button key={item.id} type="button" disabled={busy} onClick={() => selectExpediente(item.id)} className={`w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? item.cliente_id}</span></button>)}</div>
+        <label className="mb-3 block text-sm">Buscar expediente<input type="search" className={inputClass} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Folio o cliente"/></label>
+        <div className="space-y-2">{expedientes.filter(item=>`${item.folio} ${clientes.find(c=>c.id===item.cliente_id)?.nombre??""}`.toLocaleLowerCase("es").includes(query.trim().toLocaleLowerCase("es"))).map((item) => <button key={item.id} type="button" disabled={busy} onClick={() => selectExpediente(item.id)} className={`w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? item.cliente_id}</span></button>)}</div>
       </div>
-      <div className="space-y-6">{selected && <>
+      <div className="min-w-0 space-y-6">{selected && <>
+        {!selected.deleted_at && <DossierTabs value={view} onChange={setView} disabled={busy||pdfBusy}/>}
+        <div id="exp-tab-content" role="tabpanel" aria-labelledby={`exp-tab-${view}`} tabIndex={0} className="min-w-0 space-y-6">
         <section className="rounded-lg border border-border bg-card p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="display-soft text-xl">{selected.folio}</h2>
@@ -274,18 +282,22 @@ export default function ExpedientesPage() {
             </div>
           </div>
           {selected.deleted_at ? <p className="text-sm text-muted-foreground">Este expediente está en Eliminados. Restaúralo para consultar o editar sus formatos y PDF.</p> : <>
-          <div className="mb-5"><ExpedienteOperationPanel key={selected.id} expediente={selected}
+          <div id="exp-resumen" hidden={view!=="all"&&view!=="summary"} className="mb-4 scroll-mt-24 rounded-lg bg-secondary/30 p-4">
+            <p className="text-sm font-semibold">{EXPEDIENTE_ETAPAS[selected.etapa??"captacion"]} · {selected.fecha_objetivo??"Sin fecha objetivo"}</p>
+            <p className="mt-2 text-sm">Próximo pendiente documental: {Object.entries(EXPEDIENTE_DOCUMENTOS).find(([key])=>!selected.checklist?.[key as keyof typeof EXPEDIENTE_DOCUMENTOS] || selected.checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS]==="pendiente")?.[1]??"Recepción registrada; consulta las revisiones en Actividad."}</p>
+          </div>
+          <div className="mb-5" hidden={view==="documents"||view==="tasks"}><ExpedienteOperationPanel key={selected.id} expediente={selected} view={view==="activity"?"activity":view==="summary"?"summary":"all"}
             responsable={asesores.find(item => item.id === selected.asesor_id)?.nombre ?? selected.asesor_id}
             onDirtyChange={setOperationalDirty}
             onSaved={saved => setExpedientes(items => items.map(item => item.id === saved.id ? saved : item))} /></div>
-          <form onSubmit={createDocumento} className="flex flex-wrap items-end gap-3">
-            <label className="min-w-[240px] flex-1 text-sm">Formato<select name="formatoId" required className={selectClass}>{FORMATOS.filter(item => !item.globalRoute).map((item) => <option key={item.id} value={item.id}>{item.id} · {item.title}</option>)}</select></label>
+          <div hidden={view!=="all"&&view!=="documents"}><form id="exp-documentos" onSubmit={createDocumento} className="scroll-mt-24 flex flex-wrap items-end gap-3">
+            <label className="min-w-0 w-full flex-1 text-sm">Formato<select name="formatoId" required className={selectClass}>{FORMATOS.filter(item => !item.globalRoute).map((item) => <option key={item.id} value={item.id}>{item.id} · {item.title}</option>)}</select></label>
             <button type="submit" disabled={busy || hasUnsavedChanges} className={btnPrimary}>Crear borrador</button>
           </form>
-          <div className="mt-5 flex flex-wrap gap-2">{documentos.map((item) => <button key={item.id} type="button" disabled={busy} onClick={() => openDocumento(item.id)} className={btnGhost}>{item.formato_id} · {formatoById(item.formato_id).title} · v{item.version}</button>)}</div>
+          <div className="mt-5 flex flex-wrap gap-2">{documentos.map((item) => <button key={item.id} type="button" disabled={busy} onClick={() => openDocumento(item.id)} className={btnGhost}>{item.formato_id} · {formatoById(item.formato_id).title} · v{item.version}</button>)}</div></div>
           </>}
         </section>
-        {documento && definition && <section className="rounded-lg border border-border bg-card p-5">
+        {documento && definition && <section hidden={view!=="all"&&view!=="documents"} className="rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft mb-2 text-xl">{definition.title}</h2>
           <p className="mb-5 text-sm text-muted-foreground">{definition.source} · Borrador v{documento.version}</p>
           <fieldset disabled={busy} className="min-w-0">
@@ -318,7 +330,8 @@ export default function ExpedientesPage() {
           {emisiones.length > 0 && <div className="mt-6 border-t border-border pt-4"><h3 className="font-semibold">Emisiones archivadas</h3><ul className="mt-2 space-y-5">{emisiones.map((item) => <li key={item.id} className="rounded-md border border-border p-3"><a className="text-primary-ink underline" href={`/api/admin/emisiones/${item.id}/descargar`}>PDF emitido · versión {item.draft_version} · {new Date(item.created_at).toLocaleString("es-MX")}</a><form onSubmit={(event) => uploadSignedCopy(item.id, event)} className="mt-3 flex flex-wrap items-end gap-2"><label className="text-sm">Adjuntar copia firmada externamente<input name="archivo" type="file" accept="application/pdf,.pdf" required className={inputClass} /></label><button type="submit" disabled={busy} className={btnGhost}>Archivar copia</button></form>{(copias[item.id] ?? []).map((copy) => <a key={copy.id} className="mt-2 block text-sm text-primary-ink underline" href={`/api/admin/copias-firmadas/${copy.id}/descargar`}>Copia firmada adjunta · {new Date(copy.created_at).toLocaleString("es-MX")}</a>)}</li>)}</ul></div>}
           </fieldset>
         </section>}
-      </>}</div>
+      {!selected.deleted_at && <div id="exp-tareas" hidden={view!=="all"&&view!=="tasks"} className="scroll-mt-24"><RelatedWork expedienteId={selected.id} clienteId={selected.cliente_id} propertySlug={selected.propiedad_slug??undefined}/></div>}
+      </div></>}</div>
     </section>
   </div>;
 }

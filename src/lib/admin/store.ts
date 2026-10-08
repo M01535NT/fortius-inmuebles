@@ -75,6 +75,7 @@ export type Lead = {
   clienteId?: string;
   convertidoEl?: string;
   convertidoPor?: string;
+  firstContactedAt?: string;
 };
 
 export const EVENTO_TIPOS = [

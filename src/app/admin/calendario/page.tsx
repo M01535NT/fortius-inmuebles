@@ -1,4 +1,5 @@
 "use client";
+import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -49,6 +50,7 @@ const MESES = [
 const DIAS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
 
 export default function CalendarioPage() {
+  useQuickCreate("/admin/calendario", () => document.getElementById("cal-titulo")?.focus());
   const eventos = useCollection(db.eventos);
   const leads = useCollection(db.leads);
   const clientes = useCollection(db.clientes);
@@ -77,6 +79,19 @@ export default function CalendarioPage() {
     return { year, month: month - 1 };
   });
   const [seleccion, setSeleccion] = React.useState(hoy);
+  const [context,setContext] = React.useState<Record<string,string>>({});
+  React.useEffect(()=>{
+    // Hydrate URL navigation after mounting the authenticated calendar.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const params=new URLSearchParams(window.location.search);
+    const date=params.get("fecha");
+    if(date && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date))){
+      setSeleccion(date);const [year,month]=date.split("-").map(Number);setCursor({year,month:month-1});
+    }
+    setContext(Object.fromEntries(["leadId","clienteId","propiedadSlug"].map(key=>[key,params.get(key)??""])));
+    if(params.get("nueva")==="1")document.getElementById("cal-titulo")?.focus();
+    /* eslint-enable react-hooks/set-state-in-effect */
+  },[]);
 
   // UTC solo para aritmética de fechas, sin depender de la zona del dispositivo.
   const primerDia = new Date(Date.UTC(cursor.year, cursor.month, 1));
@@ -345,7 +360,7 @@ export default function CalendarioPage() {
                 </select>
               </Field>
               <Field label="Lead (opcional)" htmlFor="cal-lead">
-                <select id="cal-lead" name="leadId" className={selectClass}>
+                <select key={context.leadId} defaultValue={leads.some(l=>l.id===context.leadId)?context.leadId:""} id="cal-lead" name="leadId" className={selectClass}>
                   <option value="">Ninguno</option>
                   {leads.map((l) => (
                     <option key={l.id} value={l.id}>
@@ -357,10 +372,10 @@ export default function CalendarioPage() {
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Cliente (opcional)" htmlFor="cal-cliente">
-                <select id="cal-cliente" name="clienteId" className={selectClass}><option value="">Ninguno</option>{clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+                <select key={context.clienteId} defaultValue={clientes.some(c=>c.id===context.clienteId)?context.clienteId:""} id="cal-cliente" name="clienteId" className={selectClass}><option value="">Ninguno</option>{clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
               </Field>
               <Field label="Inmueble (opcional)" htmlFor="cal-propiedad">
-                <select id="cal-propiedad" name="propiedadSlug" className={selectClass}><option value="">Ninguno</option>{propiedades.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select>
+                <select key={context.propiedadSlug} defaultValue={propiedades.some(p=>p.slug===context.propiedadSlug)?context.propiedadSlug:""} id="cal-propiedad" name="propiedadSlug" className={selectClass}><option value="">Ninguno</option>{propiedades.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select>
               </Field>
               <Field label="Expediente (opcional)" htmlFor="cal-expediente">
                 <select id="cal-expediente" name="expedienteId" value={selectedExpedienteId} className={selectClass} onChange={event => {

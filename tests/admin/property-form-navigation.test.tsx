@@ -130,6 +130,10 @@ test("a failed save retains the draft and restores navigation and cancel without
   expect(push).not.toHaveBeenCalled();
   chooseSection("Multimedia");
   expect(document.activeElement).toBe(screen.getByRole("region", { name: "Multimedia" }));
+  vi.spyOn(window,"confirm").mockReturnValueOnce(false);
+  fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+  expect(push).not.toHaveBeenCalled();
+  vi.spyOn(window,"confirm").mockReturnValueOnce(true);
   fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
   expect(push).toHaveBeenCalledWith("/admin/propiedades");
   expect(writes).toHaveLength(1);

@@ -92,7 +92,8 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         fullPage: true,
       });
       await page.goto("/admin/propiedades/nueva");
-      await expect(page.getByLabel("Publicar en el sitio")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Guardar y publicar", exact: true })).toBeVisible();
+      await expect(page.getByText("Borrador · no visible en el sitio", { exact: true })).toBeVisible();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { DashboardTasks } from "@/components/admin/dashboard-tasks";
+import { TodayWorkspace } from "@/components/admin/workspace/today";
 import { ArrowUpRight, Building2, CalendarDays, Newspaper, Users } from "lucide-react";
 
 import { Badge, DemoBanner, PageHeader } from "@/components/admin/ui";
@@ -72,6 +73,7 @@ export default function AdminDashboard() {
       </div>
 
       <DashboardTasks />
+      <TodayWorkspace />
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Agenda primero para priorizar la operación en móvil. */}
         <section aria-labelledby="dashboard-agenda" className="min-w-0 rounded-lg border border-border bg-card">
@@ -91,7 +93,7 @@ export default function AdminDashboard() {
                     {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
                     {evento.hora ? ` ${evento.hora}` : ""}
                   </span>
-                  <p className="min-w-0 text-sm text-foreground [overflow-wrap:anywhere]">{evento.titulo}</p>
+                  <Link href={`/admin/calendario?fecha=${evento.fecha}&evento=${evento.id}`} className="min-w-0 text-sm text-foreground underline-offset-4 hover:underline [overflow-wrap:anywhere]">{evento.titulo}</Link>
                 </li>
               ))}
             </ul>

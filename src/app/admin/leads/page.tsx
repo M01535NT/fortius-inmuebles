@@ -1,5 +1,8 @@
 "use client";
+import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 import { LeadFields, readLeadFields } from "@/components/admin/lead-fields";
+import { LeadBoard } from "@/components/admin/workspace/lead-board";
+import { duplicateContacts } from "@/lib/admin/workspace";
 import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
 import { AsyncForm, AsyncSelect } from "@/components/admin/ui";
 
@@ -39,7 +42,9 @@ export default function AdminLeadsPage() {
   const asesores = useCollection(db.asesores);
   const [estado, setEstado] = React.useState<LeadEstado | "todos" | "convertidos">("todos");
   const [busqueda, setBusqueda] = React.useState("");
-  const [capturaAbierta, setCapturaAbierta] = React.useState(false);
+  const [capturaAbierta, setCapturaAbierta] = React.useState(()=>typeof window!=="undefined" && new URLSearchParams(window.location.search).get("nuevo")==="1");
+  useQuickCreate("/admin/leads", () => setCapturaAbierta(true));
+  const [view,setView] = React.useState<"lista"|"etapas">("lista");
   const [guardando, setGuardando] = React.useState(false);
   const nombreInput = React.useRef<HTMLInputElement>(null);
 
@@ -176,7 +181,8 @@ export default function AdminLeadsPage() {
         </div>
       </div>
 
-      {filtrados.length === 0 ? (
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Vista de prospectos"><button type="button" className={btnPrimary} aria-pressed={view==="lista"} onClick={()=>setView("lista")}>Lista</button><button type="button" className={btnPrimary} aria-pressed={view==="etapas"} onClick={()=>setView("etapas")}>Por etapas</button><span className="self-center text-sm text-muted-foreground">{leads.filter(l=>duplicateContacts(l,leads).length>0).length} registros con posible duplicado</span></div>
+      {view === "etapas" ? <LeadBoard leads={filtrados}/> : filtrados.length === 0 ? (
         <EmptyState
           title="Sin leads con esos criterios."
           hint="Los formularios del sitio capturan leads en el servidor."

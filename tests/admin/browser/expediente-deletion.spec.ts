@@ -22,7 +22,7 @@ for(const width of [390,1440]){
   expect(removed).toBe(false);
   page.once("dialog",dialog=>dialog.accept());
   await page.getByRole("button",{name:"Eliminar expediente",exact:true}).click();
-  await expect(page.getByRole("status")).toContainText("Expediente eliminado");
+  await expect(page.getByRole("main").getByRole("status")).toContainText("Expediente eliminado");
   await page.reload();
   await expect(page.getByRole("button",{name:/EXP-PRUEBA/})).toHaveCount(0);
   await page.getByRole("button",{name:"Eliminados",exact:true}).click();
@@ -31,7 +31,7 @@ for(const width of [390,1440]){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath("expediente-eliminado-"+width+".png"),fullPage:true});
   await page.getByRole("button",{name:"Restaurar expediente",exact:true}).click();
-  await expect(page.getByRole("status")).toContainText("Expediente restaurado");
+  await expect(page.getByRole("main").getByRole("status")).toContainText("Expediente restaurado");
   await page.getByRole("button",{name:"Activos",exact:true}).click();
   await page.getByRole("button",{name:/EXP-PRUEBA/}).click();
   await expect(page.getByRole("button",{name:"Crear borrador",exact:true})).toBeVisible();

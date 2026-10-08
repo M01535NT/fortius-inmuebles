@@ -1,4 +1,5 @@
 "use client";
+import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 
 import * as React from "react";
 import Link from "next/link";
@@ -15,8 +16,11 @@ function Tasks() {
   const params = useSearchParams();
   const router = useRouter();
   const tareas = useCollection(db.tareas);
+  const leads = useCollection(db.leads), clientes = useCollection(db.clientes), propiedades = useCollection(db.propiedades);
+  const defaults = {leadId: leads.find(l=>l.id===params.get("leadId"))?.id, clienteId: clientes.find(c=>c.id===params.get("clienteId"))?.id, propiedadSlug: propiedades.find(p=>p.slug===params.get("propiedadSlug"))?.slug};
   const asesores = useCollection(db.asesores);
   const [creating, setCreating] = React.useState(params.get("nueva") === "1");
+  useQuickCreate("/admin/tareas", () => setCreating(true));
   const [query, setQuery] = React.useState("");
   const [responsible, setResponsible] = React.useState("todas");
   const [status, setStatus] = React.useState("abiertas");
@@ -37,7 +41,7 @@ function Tasks() {
   const options = (record: Record<string, string>) => Object.entries(record).map(([value, label]) => <option key={value} value={value}>{label}</option>);
   return <div className="min-w-0 space-y-6">
     <PageHeader title="Tareas." description="Organiza el trabajo del equipo, sus pendientes y avances." actions={<button className={btnPrimary} type="button" aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</button>} />
-    {creating && <section className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6"><h2 className="mb-4 text-lg font-semibold">Nueva tarea</h2><TaskForm onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
+    {creating && <section className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6"><h2 className="mb-4 text-lg font-semibold">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
     <section aria-label="Filtros de tareas" className="min-w-0 space-y-3">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       <Field label="Buscar tareas" htmlFor="tasks-search"><input id="tasks-search" className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Título o descripción" /></Field>

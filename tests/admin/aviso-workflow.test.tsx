@@ -4,9 +4,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { formatoById } from "@/lib/formatos/catalog";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
-vi.mock("@/lib/admin/store", () => {
+vi.mock("@/lib/admin/store", async importOriginal => {
+  const actual=await importOriginal<typeof import("@/lib/admin/store")>();
   const clientes = {}, propiedades = {};
-  return { db: { clientes, propiedades }, useCollection: (collection: unknown) => collection === clientes ? [{ id: "c-qa", nombre: "Cliente del expediente QA", tipo: "propietario" }] : [] };
+  return { ...actual, db: { ...actual.db, clientes, propiedades }, useCollection: (collection: unknown) => collection === clientes ? [{ id: "c-qa", nombre: "Cliente del expediente QA", tipo: "propietario" }] : [] };
 });
 import ExpedientesPage from "@/app/admin/expedientes/page";
 

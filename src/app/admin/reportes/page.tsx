@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { PeriodReport } from "@/components/admin/workspace/period-report";
 import Link from "next/link";
 import { PageHeader } from "@/components/admin/ui";
 import { apiRequest, db, useCollection, useLoadState, useSession } from "@/lib/admin/store";
@@ -49,6 +50,7 @@ export default function ReportesPage() {
   ];
   return <div className="min-w-0 space-y-6">
     <PageHeader title="Reportes comerciales" description={`Corte operativo ${operationalDate()} · datos actuales del panel.`} />
+    <PeriodReport/>
     <section aria-label="Indicadores principales" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map(card => <Link key={card.label} href={card.href} className="rounded-lg border border-border bg-card p-5 hover:border-primary/50"><h2 className="text-sm text-muted-foreground">{card.label}</h2><p className="mt-2 font-mono text-3xl">{card.value}</p></Link>)}
     </section>

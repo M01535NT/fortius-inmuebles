@@ -5,6 +5,8 @@ import Link from "next/link";
 
 import { EmptyState, PageHeader, btnGhost } from "@/components/admin/ui";
 import { PropertyForm } from "@/components/admin/property-form";
+import { RelatedWork } from "@/components/admin/workspace/related-work";
+import { HistoryLink } from "@/components/admin/workspace/history-link";
 import { db, useCollection, useLoadState } from "@/lib/admin/store";
 
 /*
@@ -48,6 +50,7 @@ function PropertyEditor({ slug }: { slug: string }) {
       <PageHeader
         title="Editar inmueble."
         description={`${property.codigo} · ${property.titulo}`}
+        actions={<HistoryLink collection="propiedades" id={slug}/>}
       />
       {!current ? (
         <p role="alert" className="text-sm text-destructive">
@@ -56,6 +59,7 @@ function PropertyEditor({ slug }: { slug: string }) {
         </p>
       ) : null}
       <PropertyForm key={slug} initial={property} />
+      <RelatedWork propertySlug={slug}/>
     </div>
   );
 }

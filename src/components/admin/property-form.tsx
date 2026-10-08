@@ -1,8 +1,10 @@
 "use client";
+import Image from "next/image";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { PropertyWorkbench, readDraftFields, type PropertyDraft } from "@/components/admin/workspace/property-workbench";
 
 import {
   AsyncForm,
@@ -27,7 +29,7 @@ import {
 } from "@/data/propiedades";
 import { zonas } from "@/data/zonas";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { db, upsertPropiedad, useCollection } from "@/lib/admin/store";
+import { AdminApiError, db, upsertPropiedad, useCollection, useSession } from "@/lib/admin/store";
 
 /*
   Formulario completo de inmueble (alta y edición). Los campos de lista
@@ -87,6 +89,10 @@ export function PropertyForm({ initial: source }: Props) {
   );
   const asesores = useCollection(db.asesores);
   const propiedades = useCollection(db.propiedades);
+  const session = useSession();
+  const [dirty,setDirty] = React.useState(false);
+  const [conflict,setConflict] = React.useState(false);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   const [titulo, setTitulo] = React.useState(initial?.titulo ?? "");
   const [codigo, setCodigo] = React.useState(initial?.codigo ?? "");
@@ -94,22 +100,33 @@ export function PropertyForm({ initial: source }: Props) {
   const [estado, setEstado] = React.useState<Property["estado"]>(
     initial && estadoValido(initial.operacion, initial.estado) ? initial.estado : "disponible",
   );
-  const [galeria, setGaleria] = React.useState<ImagenPropiedad[]>(
+  const [galeria, updateGaleria] = React.useState<ImagenPropiedad[]>(
     initial?.galeria ?? [],
   );
-  const [documentos, setDocumentos] = React.useState<DocumentoPropiedad[]>(
+  const [documentos, updateDocumentos] = React.useState<DocumentoPropiedad[]>(
     initial?.documentos ?? [],
   );
-  const [pois, setPois] = React.useState(initial?.puntosDeInteres ?? []);
+  const [pois, updatePois] = React.useState(initial?.puntosDeInteres ?? []);
+  function setGaleria(value: React.SetStateAction<ImagenPropiedad[]>) {updateGaleria(value);setDirty(true);}
+  function setDocumentos(value: React.SetStateAction<DocumentoPropiedad[]>) {updateDocumentos(value);setDirty(true);}
+  function setPois(value: React.SetStateAction<typeof pois>) {updatePois(value);setDirty(true);}
   const [error, setError] = React.useState<string | null>(null);
   const codigoDuplicado = codigo.trim() && propiedades.find((p) =>
     p.slug !== initial?.slug && p.codigo.trim().toUpperCase() === codigo.trim().toUpperCase(),
   );
+  function snapshot(): PropertyDraft { return {version,fields:readDraftFields(formRef.current),titulo,codigo,operacion,estado,galeria,documentos,pois}; }
+  function restore(draft:PropertyDraft) {
+    setTitulo(draft.titulo);setCodigo(draft.codigo);setOperacion(draft.operacion);setEstado(draft.estado);setGaleria(draft.galeria);setDocumentos(draft.documentos);setPois(draft.pois);
+    formRef.current?.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>("input,select,textarea").forEach(el=>{const value=draft.fields[el.name||el.id];if(value===undefined || el instanceof HTMLInputElement && el.type==="file")return;if(el instanceof HTMLInputElement && el.type==="checkbox")el.checked=value===true;else el.value=String(value);});
+    setDirty(true);
+  }
+  function moveImage(index:number,direction:number) { const next=[...galeria];[next[index],next[index+direction]]=[next[index+direction],next[index]];setGaleria(next);setDirty(true); }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const f = new FormData(e.currentTarget);
+    const action = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("data-action");
     const v = (name: string) => String(f.get(name) ?? "").trim();
     const num = (name: string) => (v(name) ? Number(v(name)) : undefined);
 
@@ -192,7 +209,7 @@ export function PropertyForm({ initial: source }: Props) {
           ? initial.publicadaEl
           : v("publicadaEl"),
       demo: f.get("demo") === "on",
-      publicada: f.get("publicada") === "on",
+      publicada: action === "publish" ? true : action === "unpublish" ? false : (initial?.publicada ?? false),
     };
 
     if (
@@ -205,7 +222,9 @@ export function PropertyForm({ initial: source }: Props) {
       return;
     }
 
-    await upsertPropiedad(property, version);
+    try {await upsertPropiedad(property, version);}catch(cause){if(cause instanceof AdminApiError && cause.status===409)setConflict(true);throw cause;}
+    setDirty(false);
+    try {sessionStorage.removeItem(`fortius:property-draft:${session?.id??"anonymous"}:${initial?.slug??"new"}`);}catch{}
     router.push("/admin/propiedades");
   }
 
@@ -214,9 +233,12 @@ export function PropertyForm({ initial: source }: Props) {
 
   return (
     <AsyncForm
+      ref={formRef}
+      onChangeCapture={()=>setDirty(true)}
       onSubmit={onSubmit}
       className="max-w-[880px] space-y-8 [&_input]:scroll-mt-24 [&_input]:scroll-mb-52 [&_select]:scroll-mt-24 [&_select]:scroll-mb-52 [&_textarea]:scroll-mt-24 [&_textarea]:scroll-mb-52"
     >
+      <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={formSections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
       {/* Básicos */}
       <section id="pf-basicos" aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-basicos-heading" className="display-soft text-lg text-foreground">Datos básicos</h2>
@@ -349,14 +371,7 @@ export function PropertyForm({ initial: source }: Props) {
               />
               Acepta crédito
             </label>
-            <label className="flex min-h-11 items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="publicada"
-                defaultChecked={initial?.publicada ?? false}
-              />
-              Publicar en el sitio
-            </label>
+            <p className="flex min-h-11 items-center text-sm">{initial?.publicada ? "Publicado en el sitio" : "Borrador · no visible en el sitio"}</p>
             <label className="flex min-h-11 items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -459,6 +474,7 @@ export function PropertyForm({ initial: source }: Props) {
             Puntos de interés cercanos
           </p>
           <div className="mt-2 space-y-2">
+            <UploadControl label="Tomar foto con la cámara" accept="image/*" capture="environment" publicOnly onUploaded={file=>{setGaleria(current=>[...current,{src:file.url,alt:file.name}]);setDirty(true);}}/>
             {pois.map((poi, i) => (
               <div key={i} className="flex gap-2">
                 <input
@@ -645,15 +661,21 @@ export function PropertyForm({ initial: source }: Props) {
             accept="image/jpeg,image/png,image/webp,image/gif"
             publicOnly
             onUploaded={(file) =>
-              setGaleria((current) => [
+              { setDirty(true); setGaleria((current) => [
                 ...current,
                 { src: file.url, alt: file.name },
-              ])
+              ]); }
             }
           />
           <div className="mt-2 space-y-2">
             {galeria.map((img, i) => (
-              <div key={i} className="flex gap-2">
+              <div key={i} className="grid min-w-0 grid-cols-1 gap-2 rounded-md border border-border p-3 sm:grid-cols-2">
+                <div className="flex items-center gap-2 sm:col-span-2">
+                  {img.src && publicGalleryUrl(img.src) && <Image unoptimized width={960} height={720} src={img.src} alt={img.alt} className="h-16 w-24 rounded object-cover"/>}
+                  <span className="flex-1 text-sm">{i===0?"Portada":`Foto ${i+1}`}</span>
+                  <button type="button" className={rowBtn} disabled={i===0} aria-label={`Subir foto ${i+1}`} onClick={()=>moveImage(i,-1)}><ArrowUp size={16}/></button>
+                  <button type="button" className={rowBtn} disabled={i===galeria.length-1} aria-label={`Bajar foto ${i+1}`} onClick={()=>moveImage(i,1)}><ArrowDown size={16}/></button>
+                </div>
                 <input
                   aria-label={`Imagen ${i + 1}: URL`}
                   value={img.src}
@@ -684,7 +706,7 @@ export function PropertyForm({ initial: source }: Props) {
                 <button
                   type="button"
                   aria-label="Quitar imagen"
-                  onClick={() => setGaleria(galeria.filter((_, j) => j !== i))}
+                  onClick={() => {setGaleria(galeria.filter((_, j) => j !== i));setDirty(true);}}
                   className={rowBtn}
                 >
                   <Trash2 className="size-4" strokeWidth={1.5} />
@@ -896,9 +918,10 @@ export function PropertyForm({ initial: source }: Props) {
             <button type="submit" className={btnPrimary + " flex-1 sm:flex-none"}>
               {initial ? "Guardar cambios" : "Crear inmueble"}
             </button>
+            <button type="submit" data-action={initial?.publicada?"unpublish":"publish"} className={btnGhost+" flex-1 sm:flex-none"}>{initial?.publicada?"Retirar del sitio":"Guardar y publicar"}</button>
             <button
               type="button"
-              onClick={() => router.push("/admin/propiedades")}
+              onClick={() => {if(!dirty || window.confirm("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin/propiedades");}}
               className={btnGhost + " flex-1 sm:flex-none"}
             >
               Cancelar

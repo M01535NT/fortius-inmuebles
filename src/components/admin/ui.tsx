@@ -168,6 +168,7 @@ export function AsyncForm({
   className,
   ...props
 }: Omit<React.FormHTMLAttributes<HTMLFormElement>, "onSubmit"> & {
+  ref?: React.Ref<HTMLFormElement>;
   onSubmit: (
     event: React.FormEvent<HTMLFormElement>,
   ) => Promise<unknown> | void;
@@ -262,11 +263,13 @@ export function UploadControl({
   accept,
   label = "Subir archivo",
   publicOnly = false,
+  capture,
 }: {
   onUploaded: (file: UploadedFile) => Promise<unknown> | void;
   accept?: string;
   label?: string;
   publicOnly?: boolean;
+  capture?: "user" | "environment";
 }) {
   const [visibility, setVisibility] = React.useState<"private" | "public">(
     "private",
@@ -288,6 +291,7 @@ export function UploadControl({
         <input
           id={id}
           type="file"
+          capture={capture}
           accept={
             accept ??
             "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm"

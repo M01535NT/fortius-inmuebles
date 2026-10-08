@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react";
 import { BrandMark } from "@/components/brand/brand-mark";
-import Link from "next/link";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
 import {
@@ -23,8 +22,11 @@ import {
   UsersRound,
   Menu,
   X,
+  History,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/home/theme-toggle";
+import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
+import { WorkspaceSearch } from "@/components/admin/workspace/search";
 import {
   AsyncForm,
   AsyncButton,
@@ -62,6 +64,7 @@ const NAV = [
   { href: "/admin/archivos", label: "Archivos", icon: FolderOpen },
   { href: "/admin/contenido", label: "Contenido", icon: PenLine },
   { href: "/admin/configuracion", label: "Configuración", icon: Settings },
+  { href: "/admin/historial", label: "Historial", icon: History, adminOnly: true },
 ];
 
 function LoginScreen({
@@ -321,6 +324,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [sessionId, passwordMode]); // same user's refreshed session doesn't discard drafts
   async function leave() {
+    try {for(const key of Object.keys(sessionStorage))if(key.startsWith(`fortius:property-draft:${sessionId}:`))sessionStorage.removeItem(key);}catch{}
     setReady(false);
     try {
       await logout();
@@ -353,22 +357,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   const links = (mobile = false) => (
     <>
-      {NAV.filter(item => !("adminOnly" in item && item.adminOnly) || session?.role === "admin").map(({ href, label, icon: Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          onClick={() => setMenu(false)}
-          aria-current={
-            (href === "/admin" ? pathname === href : pathname.startsWith(href))
-              ? "page"
-              : undefined
-          }
-          className={"flex min-h-11 min-w-0 items-center rounded-md py-2 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary " + (mobile ? "gap-2 px-2" : "gap-3 px-3")}
-        >
-          <Icon className="size-4 shrink-0" strokeWidth={1.5} />
-          {label}
-        </Link>
-      ))}
+      <WorkspaceNavigation key={session.id} modules={NAV.map(item => ({ ...item, group: ["Blog", "Archivos", "Contenido"].includes(item.label) ? "Publicación" : ["Configuración", "Asesores", "Reportes", "Historial"].includes(item.label) ? "Administración" : "Operación" })).sort((a,b)=>["Operación","Publicación","Administración"].indexOf(a.group)-["Operación","Publicación","Administración"].indexOf(b.group))} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
       {mobile ? (
         <>
           <DocumentLink
@@ -388,8 +377,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     </>
   );
   return (
-    <div className="flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
-      <aside className="sticky top-0 hidden h-[100dvh] w-[228px] shrink-0 flex-col border-r border-border md:flex">
+    <div className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
+      <aside className="sticky top-0 hidden h-[100dvh] w-[244px] shrink-0 flex-col border-r border-border md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
           <BrandMark />
           <span className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
@@ -443,7 +432,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               {session.email} ·{" "}
               {refreshing ? "Actualizando…" : "Conexión al servidor"}
             </p>
-            <ThemeToggle />
+            <div className="flex shrink-0 items-center gap-1"><WorkspaceSearch /><ThemeToggle /></div>
           </div>
           {menu ? (
             <nav
@@ -455,7 +444,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <p className="mb-3 break-all border-b border-border px-2 pb-3 text-sm text-muted-foreground">
                 {session.email}
               </p>
-              <div className="grid grid-cols-2 gap-1">{links(true)}</div>
+              <div className="space-y-2">{links(true)}</div>
             </nav>
           ) : null}
         </header>

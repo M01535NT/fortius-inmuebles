@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-vi.mock("@/lib/admin/store", () => ({
+vi.mock("@/lib/admin/store", async importOriginal => ({
+  ...await importOriginal<typeof import("@/lib/admin/store")>(),
   db: { clientes: {}, propiedades: {} }, useCollection: () => [],
 }));
 import ExpedientesPage from "@/app/admin/expedientes/page";
