@@ -89,6 +89,7 @@ export function InventoryExplorer({ propiedades }: Props) {
   const [comparacionVisible, setComparacionVisible] = React.useState(false);
   const inicializado = React.useRef(false);
   const comparisonRef = React.useRef<HTMLElement>(null);
+  const comparisonButtonRef = React.useRef<HTMLButtonElement>(null);
 
   // Derivados de los datos: nunca listas hardcodeadas en paralelo.
   const tipos = React.useMemo(
@@ -109,12 +110,12 @@ export function InventoryExplorer({ propiedades }: Props) {
     try {
       const saved = JSON.parse(window.sessionStorage.getItem("fortius-inventory-comparison") ?? "[]");
       // eslint-disable-next-line react-hooks/set-state-in-effect -- restauración única de una preferencia de sesión tras hidratar
-      if (Array.isArray(saved)) setComparadas(saved.filter((slug): slug is string => typeof slug === "string").slice(0, 3));
+      if (Array.isArray(saved)) setComparadas(saved.filter((slug): slug is string => typeof slug === "string" && propiedades.some((property) => property.slug === slug)).slice(0, 3));
     } catch {
       // El inventario funciona aunque el navegador bloquee el almacenamiento.
     }
     setComparisonHydrated(true);
-  }, []);
+  }, [propiedades]);
 
   React.useEffect(() => {
     if (!comparisonHydrated) return;
@@ -132,7 +133,13 @@ export function InventoryExplorer({ propiedades }: Props) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- adopción única de estado externo (URL) tras hidratar
         setFiltros(filtrosDesdeUrl(window.location.search, zonas, tipos));
       }
-      const savedScroll = window.history.state?.fortiusInventoryScroll;
+      let savedScroll = window.history.state?.fortiusInventoryScroll;
+      try {
+        const savedReturn = JSON.parse(window.sessionStorage.getItem("fortius-inventory-return") ?? "null");
+        if (savedReturn?.url === `${window.location.pathname}${window.location.search}` && typeof savedReturn.scrollY === "number") savedScroll = savedReturn.scrollY;
+      } catch {
+        // La restauración por historial sigue disponible.
+      }
       if (typeof savedScroll === "number" && savedScroll > 0) {
         window.requestAnimationFrame(() => window.scrollTo({ top: savedScroll }));
       }
@@ -394,7 +401,7 @@ export function InventoryExplorer({ propiedades }: Props) {
       {comparadas.length > 0 ? (
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-y border-border py-3">
           <p className="text-sm text-muted-foreground">Selecciona hasta 3 propiedades para compararlas.</p>
-          <button type="button" onClick={showComparison} className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90">
+          <button ref={comparisonButtonRef} type="button" onClick={showComparison} className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90">
             Ver comparación ({comparadas.length})
           </button>
         </div>
@@ -404,7 +411,7 @@ export function InventoryExplorer({ propiedades }: Props) {
         <section ref={comparisonRef} className="scroll-mt-24 border-b border-border py-8" aria-labelledby="comparison-title">
           <div className="flex items-center justify-between gap-4">
             <h2 id="comparison-title" className="display-soft text-2xl text-foreground">Comparación de inmuebles</h2>
-            <button type="button" onClick={() => setComparacionVisible(false)} className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <button type="button" onClick={() => { setComparacionVisible(false); window.requestAnimationFrame(() => comparisonButtonRef.current?.focus()); }} className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
               <X className="size-4" aria-hidden="true" /> Cerrar
             </button>
           </div>
@@ -414,8 +421,8 @@ export function InventoryExplorer({ propiedades }: Props) {
               <tbody>
                 {[
                   ["Precio", (property: Property) => formatPrecio(property.precio)],
-                  ["Terreno", (property: Property) => property.ficha.terrenoM2 ? `${property.ficha.terrenoM2} m²` : "No informado"],
-                  ["Construcción", (property: Property) => property.ficha.construccionM2 ? `${property.ficha.construccionM2} m²` : "No informado"],
+                  ["Terreno", (property: Property) => property.ficha.terrenoM2 != null ? `${property.ficha.terrenoM2} m²` : "No informado"],
+                  ["Construcción", (property: Property) => property.ficha.construccionM2 != null ? `${property.ficha.construccionM2} m²` : "No informado"],
                   ["Recámaras", (property: Property) => property.ficha.recamaras?.toString() ?? "No informado"],
                   ["Estacionamientos", (property: Property) => property.ficha.estacionamientos?.toString() ?? "No informado"],
                   ["Ubicación", (property: Property) => property.zona],
@@ -433,6 +440,11 @@ export function InventoryExplorer({ propiedades }: Props) {
             <div key={p.slug} onClickCapture={(event) => {
               if ((event.target as HTMLElement).closest("a[href^='/inventario/']")) {
                 window.history.replaceState({ ...window.history.state, fortiusInventoryScroll: window.scrollY }, "", window.location.href);
+                try {
+                  window.sessionStorage.setItem("fortius-inventory-return", JSON.stringify({ url: `${window.location.pathname}${window.location.search}`, scrollY: window.scrollY }));
+                } catch {
+                  // El enlace de regreso conserva /inventario como alternativa.
+                }
               }
             }}>
               <PropertyCard property={p} />

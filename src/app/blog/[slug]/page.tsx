@@ -55,7 +55,8 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   if (!post) notFound();
   const cover = getBlogCover(post.slug);
   const headings = blogHeadings(post.contenido);
-  const related = posts.filter((candidate) => candidate.slug !== post.slug && postCategory(candidate) === postCategory(post)).slice(0, 3);
+  const category = postCategory(post);
+  const related = category ? posts.filter((candidate) => candidate.slug !== post.slug && postCategory(candidate) === category).slice(0, 3) : [];
   const nextAction = postCategory(post) === "vender"
     ? { href: "/vender-propiedad", label: "Revisar cómo vendemos una propiedad" }
     : postCategory(post) === "comprar" || postCategory(post) === "rentar"

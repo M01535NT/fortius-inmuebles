@@ -51,7 +51,10 @@ function BalanceChart({ result }: { result: MortgageResult }) {
         aria-label="Saldo de crédito por mes; línea principal con los abonos elegidos y línea gris sin abonos"
         onPointerDown={(event) => {
           const bounds = event.currentTarget.getBoundingClientRect();
-          const ratio = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+          const viewAspect = 500 / 150;
+          const contentWidth = bounds.width / bounds.height > viewAspect ? bounds.height * viewAspect : bounds.width;
+          const contentOffset = (bounds.width - contentWidth) / 2;
+          const ratio = Math.max(0, Math.min(1, (event.clientX - bounds.left - contentOffset) / contentWidth));
           setSelected(Math.max(1, Math.min(result.schedule.length, Math.round(ratio * result.baseline.length))));
         }}
       >
@@ -85,7 +88,7 @@ function BalanceChart({ result }: { result: MortgageResult }) {
         )}
       </Field>
       <p className="mt-1 text-sm text-muted-foreground">
-        Mes {row.month} · {row.date} · Saldo {money(row.balance)} · Capital pagado {money(row.principal)} · Interés {money(row.interest)}
+        Mes {row.month} · {row.date} · Saldo {money(row.balance)} · Capital del mes {money(row.principal)} · Interés {money(row.interest)}
       </p>
       {(result.interestSaved > 0 || result.monthsSaved > 0) ? <p className="mt-3 rounded-md bg-secondary p-3 text-sm text-foreground">Con los abonos capturados: {money(result.interestSaved)} menos de intereses y {result.monthsSaved} {result.monthsSaved === 1 ? "mes" : "meses"} menos de crédito.</p> : null}
       <p className="mt-2 text-xs text-muted-foreground">

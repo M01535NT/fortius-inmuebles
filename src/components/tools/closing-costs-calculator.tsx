@@ -42,9 +42,10 @@ type Financing = {
 
 function ClosingBreakdown({ items }: { items: { key: string; label: string; amount: number | null }[] }) {
   const known = items.filter((item): item is { key: string; label: string; amount: number } => item.amount !== null && item.amount > 0);
-  const [active, setActive] = useState(0);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
   const total = known.reduce((sum, item) => sum + item.amount, 0);
   if (!total) return null;
+  const selected = known.find((item) => item.key === activeKey) ?? known[0];
   const segments = known.map((item, index) => ({
     item,
     x: known.slice(0, index).reduce((sum, previous) => sum + previous.amount / total * 100, 0),
@@ -54,11 +55,11 @@ function ClosingBreakdown({ items }: { items: { key: string; label: string; amou
   return (
     <section className="mt-5 rounded-md border border-border p-4" aria-labelledby="closing-breakdown-title">
       <p id="closing-breakdown-title" className="text-sm font-medium text-foreground">Cómo se distribuyen los gastos conocidos</p>
-      <svg viewBox="0 0 100 16" role="img" aria-label={`Desglose de ${known[active]?.label}: ${money(known[active]?.amount ?? 0)} MXN`} className="mt-4 h-16 w-full overflow-visible">
-        {segments.map(({ item, x, width }, index) => <rect key={item.key} x={x} y="3" width={width} height="10" rx="1" className={index === active ? "fill-primary" : "fill-muted-foreground/25"} onClick={() => setActive(index)} />)}
+      <svg viewBox="0 0 100 16" role="img" aria-label={`Desglose de ${selected.label}: ${money(selected.amount)} MXN`} className="mt-4 h-16 w-full overflow-visible">
+        {segments.map(({ item, x, width }) => <rect key={item.key} x={x} y="3" width={width} height="10" rx="1" className={item.key === selected.key ? "fill-primary" : "fill-muted-foreground/25"} onClick={() => setActiveKey(item.key)} />)}
       </svg>
-      <p className="font-mono text-sm text-foreground" aria-live="polite">{known[active]?.label}: {money(known[active]?.amount ?? 0)} MXN</p>
-      <div className="mt-3 flex flex-wrap gap-2">{known.map((item, index) => <button key={item.key} type="button" aria-pressed={index === active} onClick={() => setActive(index)} className={`rounded-md border px-3 py-2 text-xs ${index === active ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
+      <p className="font-mono text-sm text-foreground" aria-live="polite">{selected.label}: {money(selected.amount)} MXN</p>
+      <div className="mt-3 flex flex-wrap gap-2">{known.map((item) => <button key={item.key} type="button" aria-pressed={item.key === selected.key} onClick={() => setActiveKey(item.key)} className={`rounded-md border px-3 py-2 text-xs ${item.key === selected.key ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
     </section>
   );
 }

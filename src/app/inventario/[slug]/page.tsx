@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, Check, MapPin } from "lucide-react";
+import { ArrowUpRight, Check, MapPin } from "lucide-react";
 
 import { AgentProfile } from "@/components/property/agent-profile";
 import { MessagingContact } from "@/components/contact/messaging-actions";
@@ -13,6 +12,7 @@ import { PropertyCard } from "@/components/property/property-card";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyFaq } from "@/components/property/property-faq";
 import { PropertyGallery } from "@/components/property/property-gallery";
+import { InventoryBackLink } from "@/components/property/inventory-back-link";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
 import { PropertyLocation } from "@/components/property/property-location";
 import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
@@ -111,13 +111,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(property) }} />
 
       <Container className="pb-16 md:pb-24">
-        <Link
-          href="/inventario"
-          className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" strokeWidth={1.5} />
-          Volver al inventario
-        </Link>
+        <InventoryBackLink />
 
         {property.demo && (
           <p className="mt-5 rounded-md border border-border bg-secondary px-4 py-3 text-sm leading-relaxed text-foreground">
@@ -172,7 +166,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         <nav className="mt-6 flex gap-x-6 gap-y-2 overflow-x-auto border-y border-border py-3 text-sm" aria-label="Secciones del inmueble">
           <a href="#caracteristicas" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Características</a>
           <a href="#ubicacion" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Ubicación</a>
-          <a href="#documentos" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Documentos</a>
+          {(property.documentos?.length ?? 0) > 0 ? <a href="#documentos" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Documentos</a> : null}
           <a href="#interes" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Contacto</a>
         </nav>
 

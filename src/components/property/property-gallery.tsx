@@ -90,12 +90,12 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
         <>
           <div className="property-gallery-photos">
             <div className="property-gallery-main">
-              <button ref={openButtonRef} type="button" onClick={openViewer} aria-label="Ampliar fotografía" className="absolute inset-0 z-[1] cursor-zoom-in">
+              <button ref={openButtonRef} type="button" onClick={openViewer} aria-label={`Ampliar fotografía: ${actual.alt}`} className="absolute inset-0 z-[1] cursor-zoom-in">
                 <Image key={actual.src} src={actual.src} alt={actual.alt} fill
                   priority={index === 0} sizes="(max-width: 767px) 100vw, 1200px" className="object-contain object-center" />
                 <span className="absolute right-3 top-3 inline-flex size-10 items-center justify-center rounded-full bg-background/85 text-foreground backdrop-blur"><Maximize2 className="size-4" aria-hidden="true" /></span>
               </button>
-              <span className="property-gallery-counter" aria-live="polite">{index + 1} / {imagenes.length}</span>
+              <span className="property-gallery-counter z-[2] pointer-events-none" aria-live="polite">{index + 1} / {imagenes.length}</span>
             </div>
           </div>
           {imagenes.length > 1 ? (

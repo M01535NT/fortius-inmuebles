@@ -130,7 +130,7 @@ test("inventory compares chosen properties and restores filtered results after a
   await expect(page).toHaveURL(/op=venta/);
   await page.locator('.property-card-image').first().click();
   await expect(page.locator('.property-gallery')).toBeVisible();
-  await page.goBack();
+  await page.getByRole('link', { name: 'Volver al inventario' }).click();
   await expect(page.getByRole('group', { name: 'Operación', exact: true }).getByRole('button', { name: 'Venta', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', { name: 'Ver comparación (2)' })).toBeVisible();
 });
@@ -140,14 +140,27 @@ test("photo gallery hides absent media and supports full-screen keyboard navigat
   await expect(page.locator('.property-card-image').first()).toBeVisible();
   await page.locator('.property-card-image').first().click();
   await expect(page.getByRole('button', { name: 'Video', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Ampliar fotografía' }).click();
+  await page.getByRole('button', { name: /Ampliar fotografía/ }).click();
   const viewer = page.getByRole('dialog', { name: 'Fotografías del inmueble' });
   await expect(viewer).toBeVisible();
   await viewer.press('ArrowRight');
   await expect(viewer.getByRole('status')).toContainText('2 /');
+  await viewer.dispatchEvent('touchstart', { touches: [{ identifier: 1, clientX: 280, clientY: 200 }] });
+  await viewer.dispatchEvent('touchend', { changedTouches: [{ identifier: 1, clientX: 80, clientY: 205 }] });
+  await expect(viewer.getByRole('status')).toContainText('1 /');
   await viewer.press('Escape');
   await expect(viewer).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Ampliar fotografía' })).toBeFocused();
+  await expect(page.getByRole('button', { name: /Ampliar fotografía/ })).toBeFocused();
+});
+
+test("stale comparison choices never block current inventory", async ({ page }) => {
+  await page.goto('/inventario', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => sessionStorage.setItem('fortius-inventory-comparison', JSON.stringify(['removed-1', 'removed-2', 'removed-3'])));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const choice = page.getByRole('checkbox', { name: /Comparar / }).first();
+  await expect(choice).toBeEnabled();
+  await choice.check();
+  await expect(page.getByRole('button', { name: 'Ver comparación (1)' })).toBeVisible();
 });
 
 test("interior routes provide useful next actions and honest media", async ({ page }) => {
