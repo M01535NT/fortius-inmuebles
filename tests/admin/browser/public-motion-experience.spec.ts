@@ -14,7 +14,8 @@ test("the six timeline stages remain readable on touch screens and show reading 
   for (const stage of await stages.all()) {
     await stage.scrollIntoViewIfNeeded();
     await expect(stage.getByRole("heading")).toBeInViewport();
-    await expect(stage.locator("p")).toBeVisible();
+    await stage.getByRole("button").tap();
+    await expect(stage.getByRole("region")).toBeVisible();
   }
   const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
   expect(boxes[1].top).toBeGreaterThanOrEqual(boxes[0].bottom - 1);

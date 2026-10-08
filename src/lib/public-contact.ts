@@ -37,12 +37,15 @@ export function publicContact(settings?: SiteSettings | null, message?: string) 
   const whatsapp = settings?.whatsapp.trim() ?? "";
   const whatsappDigits = messagingNumber(whatsapp);
   const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}${message ? `?text=${encodeURIComponent(message)}` : ""}` : "";
+  const email = settings?.email.trim() ?? "";
+  const emailHref = email ? `mailto:${email}${message ? `?subject=${encodeURIComponent("Consulta a Fortius Inmuebles")}&body=${encodeURIComponent(message)}` : ""}` : "";
   return {
+    emailHref,
     phone: digits ? phone : "por confirmar",
     phoneHref: digits ? `tel:+${digits}` : "",
     whatsapp: whatsappHref,
     whatsappLabel: whatsappHref ? whatsapp : "por confirmar",
-    email: settings?.email.trim() ?? "",
+    email,
     messenger: messengerLink(settings?.facebook ?? ""),
   };
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Check, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, MapPin } from "lucide-react";
 
 import { AgentProfile } from "@/components/property/agent-profile";
 import { MessagingContact } from "@/components/contact/messaging-actions";
@@ -99,6 +99,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
     getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(),
   ]);
   const ficha = fichaRows(property);
+  const enquiryMessage = `Hola, me interesa ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`;
   const asesor = advisers.find((a) => a.id === property.asesorId);
   const muestraCalculadora =
     property.creditoDisponible &&
@@ -163,11 +164,26 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </div>
         </div>
 
+        {ficha.length > 0 && <dl className="property-key-facts" aria-label="Características principales">
+          {ficha.slice(0, 5).map((row) => <div key={row.label}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}
+        </dl>}
+        <a href="#interes" className="editorial-text-link property-enquiry-link">Consultar este inmueble <ArrowUpRight size={18} aria-hidden="true" /></a>
+
         {/* Cuerpo */}
         {/* min-w-0 en ambas columnas: sin él, cualquier texto nowrap
             (truncate) dentro propaga su min-content y ensancha la página. */}
-        <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_0.42fr]">
-          <div className="min-w-0">
+        <div className="property-detail-layout">
+          <div id="interes" className="property-detail-contact scroll-mt-24 border border-border bg-card p-6">
+            <MessagingContact settings={settings} title="Hablemos de esta propiedad." message={enquiryMessage}>
+              <PropertyInterestForm
+                slug={property.slug}
+                codigo={property.codigo}
+                titulo={property.titulo}
+              />
+            </MessagingContact>
+          </div>
+
+          <div className="property-detail-main min-w-0">
             {property.estado === "apartada" ? (
               <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-sm leading-relaxed text-foreground/85">
                 Esta propiedad está apartada. Podemos avisarte si vuelve a
@@ -235,42 +251,16 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <PropertyLocation property={property} />
 
             {/* Perfil completo del asesor titular */}
-            {asesor ? <AgentProfile asesor={asesor} settings={settings} /> : null}
+            {asesor ? <AgentProfile asesor={asesor} settings={settings} message={enquiryMessage} /> : null}
 
             <PropertyFaq />
           </div>
 
-          {/* Aside: asesor → calculadora → formulario de interés */}
-          <aside className="min-w-0 space-y-4">
-            {asesor ? (
-              <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-5">
-                {/* Avatar de iniciales: sin fotos de personas hasta tener el equipo real. */}
-                <span
-                  aria-hidden="true"
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-sm text-foreground"
-                >
-                  {asesor.iniciales}
-                </span>
-                <div>
-                  <p className="text-base font-semibold text-foreground">{asesor.nombre}</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">{asesor.cargo}</p>
-                </div>
-              </div>
-            ) : null}
-
+          {/* Recursos complementarios después de la información y el contacto. */}
+          <aside className="property-detail-extras min-w-0 space-y-4">
             {muestraCalculadora && property.precio.modalidad === "publico" ? (
               <MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} />
             ) : null}
-
-            <div id="interes" className="scroll-mt-24 rounded-lg border border-border bg-card p-6">
-              <MessagingContact settings={settings} title="Hablemos de esta propiedad." message={`Hola, me interesa ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`}>
-              <PropertyInterestForm
-                slug={property.slug}
-                codigo={property.codigo}
-                titulo={property.titulo}
-              />
-              </MessagingContact>
-            </div>
 
             {/* Documentos en PDF (se administran desde el panel) */}
             <PropertyDocuments
@@ -297,7 +287,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
       </Container>
 
       <PropertyMobileCta settings={settings} message={`Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`} />
-      <ContactDock settings={settings} message={`Hola, me interesa ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`} />
+      <ContactDock settings={settings} message={enquiryMessage} />
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Compromisos } from "@/components/home/compromisos";
+import { EditorialAdvisor } from "@/components/home/editorial-advisor";
 import { Evaluar } from "@/components/home/evaluar";
 import { MethodTimeline } from "@/components/home/method-timeline";
 import { EditorialImageReveal } from "@/components/home/editorial-image-reveal";
@@ -27,7 +27,7 @@ export default async function HomePage() {
       <div className="editorial-segments"><Segmentos /></div>
       <Respuestas content={content} />
       <EditorialTools />
-      <Compromisos />
+      <EditorialAdvisor />
       <Evaluar content={content} />
     </EditorialHome>
   );

@@ -11,15 +11,9 @@ import { DeliverablesStack } from "@/components/home/deliverables-stack";
 export function EditorialIntro({ content }: { content?: SiteContent | null }) {
   const copy = resolveSiteContent(content);
   return <section className="editorial-intro editorial-container" aria-label="Revisión y precio">
-    <div className="editorial-section-label" data-editorial-rule>Antes de publicar</div>
-    <div className="editorial-intro-grid">
-      <SplitHeading as="p" reveal="lines" lines={[homeText(content, "relatoTexto")]} className="editorial-statement" />
-      <p className="editorial-support" data-editorial-reveal>{homeText(content, "relatoApoyo")}</p>
-    </div>
     <div className="editorial-price-grid">
-      <figure className="editorial-interior"><div className="editorial-photo-clip"><Image src="/hero/interior-depa.webp" alt="Interior de un departamento, imagen de referencia" width={1000} height={720} sizes="(max-width: 767px) 100vw, 50vw" data-editorial-image /></div><figcaption>La propiedad, antes de ponerla en venta.</figcaption></figure>
+      <figure className="editorial-interior"><div className="editorial-photo-clip"><Image src="/hero/interior-depa.webp" alt="Interior de un departamento, imagen de referencia" width={1000} height={720} sizes="(max-width: 767px) 100vw, 50vw" data-editorial-image /></div></figure>
       <div className="editorial-price-copy" data-editorial-reveal>
-        <span className="editorial-section-label">El precio de salida</span>
         <SplitHeading reveal="lines" lines={copy.manifiestoTitulo.split("\n")} className="editorial-section-title" />
         <p>{copy.manifiestoTexto}</p>
         <Link href="/herramientas" className="editorial-text-link">Consultar herramientas <ArrowUpRight size={18} aria-hidden="true" /></Link>
@@ -32,8 +26,8 @@ export function EditorialSellerGateway() {
   return <section className="editorial-seller-gateway" aria-labelledby="seller-gateway-title">
     <div className="editorial-container editorial-seller-gateway-grid">
       <div data-editorial-reveal>
-        <h2 id="seller-gateway-title">Antes de anunciarla, ten claro qué sigue.</h2>
-        <p>Te mostramos cómo revisamos el precio, los documentos y las condiciones de entrega, y qué hacemos cuando falta información.</p>
+        <h2 id="seller-gateway-title">¿Tienes una propiedad para vender?</h2>
+        <p>Conoce el servicio, los honorarios y lo que necesitas para empezar.</p>
       </div>
       <Link href="/vender-propiedad" className="editorial-seller-gateway-link" data-editorial-reveal>
         <span>Ver cómo vender mi propiedad</span>
@@ -58,9 +52,6 @@ export async function EditorialProperties() {
   return <section className="editorial-container editorial-properties">
     <div className="flex flex-wrap items-end justify-between gap-6">
       <div><SplitHeading reveal="lines" lines={["Propiedades."]} className="display-title text-foreground" />
-        <p className="mt-5 max-w-[52ch] text-base leading-relaxed text-muted-foreground">{properties.some((property) => property.demo)
-          ? "Explora las fichas y sus características."
-          : "Consulta las características, el precio y la disponibilidad de cada inmueble."}</p>
       </div>
       <Link href="/inventario" className="editorial-text-link">Ver inventario <ArrowUpRight size={18} aria-hidden="true" /></Link>
     </div>
@@ -70,7 +61,6 @@ export async function EditorialProperties() {
 
 export function EditorialDocuments({ content }: { content?: SiteContent | null }) {
   return <section id="entregables" className="editorial-documents editorial-container">
-    <div className="editorial-section-label" data-editorial-rule>El trabajo por escrito</div>
     <div className="editorial-documents-grid">
       <div className="editorial-sticky-heading"><SplitHeading reveal="lines" lines={homeText(content, "entregablesTitulo").split("\n")} className="editorial-section-title" /><p>{homeText(content, "entregablesTexto")}</p></div>
       <DeliverablesStack documents={DOCS.map((doc) => ({ title: doc.title, text: homeText(content, doc.copy) }))} />
@@ -84,7 +74,6 @@ const TOOLS = [
 ];
 export function EditorialTools() {
   return <section className="editorial-tools"><div className="editorial-container">
-    <div className="editorial-section-label" data-editorial-rule>Para hacer tus cuentas</div>
     <SplitHeading reveal="lines" lines={["Calculadoras", "inmobiliarias."]} className="editorial-section-title" />
     <div className="editorial-tools-grid">{TOOLS.map((tool) => <Link key={tool.href} href={tool.href} className="editorial-tool" data-cursor="Abrir" data-editorial-reveal><h3>{tool.title}</h3><p>{tool.text}</p><span>Abrir <ArrowUpRight size={20} aria-hidden="true" /></span></Link>)}</div>
   </div></section>;

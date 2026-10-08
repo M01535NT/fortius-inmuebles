@@ -91,3 +91,27 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
+
+for (const width of [390, 1440]) {
+  test(`method details open by keyboard and close without hiding stage names at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    const stages = page.locator('[data-method-timeline]');
+    const buttons = stages.getByRole('button');
+    await expect(buttons).toHaveCount(6);
+    await expect(buttons.first()).toHaveAttribute('aria-expanded', 'false');
+    await buttons.first().focus();
+    await page.keyboard.press('Enter');
+    await expect(buttons.first()).toHaveAttribute('aria-expanded', 'true');
+    await expect(stages.getByRole('region', { name: 'Captación' })).toBeVisible();
+    await buttons.nth(1).click();
+    await expect(buttons.first()).toHaveAttribute('aria-expanded', 'false');
+    await expect(buttons.nth(1)).toHaveAttribute('aria-expanded', 'true');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await buttons.nth(1).click();
+    await expect(buttons.nth(1)).toHaveAttribute('aria-expanded', 'false');
+    await expect(buttons).toHaveCount(6);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}

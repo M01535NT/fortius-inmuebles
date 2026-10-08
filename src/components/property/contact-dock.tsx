@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as motion from "motion/react-m";
-import { Mail, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 import { AnimatePresence, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 
 import type { SiteSettings } from "@/lib/admin/store";
@@ -23,10 +23,9 @@ export function ContactDock({ settings, message }: { settings?: SiteSettings | n
     setVisible(v > 560);
   });
 
-  const contact = publicContact(settings);
+  const contact = publicContact(settings, message);
   const acciones = [
     { href: contact.phoneHref, label: "Llamar", icon: Phone },
-    { href: contact.email ? `mailto:${contact.email}` : "", label: "Correo", icon: Mail },
   ];
 
   return (

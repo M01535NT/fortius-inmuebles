@@ -47,7 +47,7 @@ test("editorial refresh replaces only known legacy defaults and preserves bespok
     seoTitle: "MNT Inmuebles | Venta de propiedades en Tijuana",
     seoDescription: "Firma inmobiliaria en Tijuana y Baja California. Precio con datos, expediente revisado y seguimiento por escrito, de la captación a la firma ante notario.",
   });
-  expect(legacy.heroTitulo).toBe("Vende tu propiedad.");
+  expect(legacy.heroTitulo).toBe("Inmobiliaria para\ncomprar y vender.");
   for (const city of ["Tijuana", "Rosarito", "Tecate", "Ensenada"]) {
     expect(legacy.seoTitle).toContain(city);
     expect(legacy.seoDescription).toContain(city);
@@ -70,7 +70,7 @@ test("the alternative refreshes previously published defaults while preserving c
       relatoTexto: "Contenido aprobado por el equipo",
     },
   });
-  expect(old.heroTitulo).toBe("Vende tu propiedad.");
+  expect(old.heroTitulo).toBe("Inmobiliaria para\ncomprar y vender.");
   expect(old.manifiestoTitulo).toBe("Cómo proponemos\nel precio de venta.");
   expect(old.manifiestoTexto).toBe("Texto específico del equipo");
   expect(homeText(old, "metodoTitulo")).toBe("Qué hacemos\npara vender tu propiedad.");

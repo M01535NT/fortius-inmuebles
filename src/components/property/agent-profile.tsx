@@ -9,8 +9,8 @@ import { MessagingActions } from "@/components/contact/messaging-actions";
   Perfil público del asesor. El contacto comercial lo configura el panel;
   los datos privados del asesor nunca se utilizan como contacto por inferencia.
 */
-export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: SiteSettings | null }) {
-  const contact = publicContact(settings);
+export function AgentProfile({ asesor, settings, message }: { asesor: Asesor; settings?: SiteSettings | null; message?: string }) {
+  const contact = publicContact(settings, message);
 
   const tiles = [
     { icon: Phone, label: "Teléfono", value: contact.phone },
@@ -22,7 +22,7 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
   return (
     <div className="mt-12">
       <h2 className="display-soft text-2xl text-foreground">
-        Atención directa, sin intermediarios
+        Tu asesor para este inmueble
       </h2>
 
       <div className="mt-5 grid gap-6 rounded-lg border border-border bg-card p-6 sm:grid-cols-[128px_1fr] md:p-7">
@@ -60,7 +60,7 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <MessagingActions settings={settings} message={`Hola, quiero hablar con ${asesor.nombre} sobre un inmueble.`} />
+            <MessagingActions settings={settings} message={message ?? `Hola, quiero hablar con ${asesor.nombre} sobre un inmueble.`} />
             {contact.phoneHref && <a
               href={contact.phoneHref || undefined}
               aria-disabled={!contact.phoneHref}
@@ -68,14 +68,6 @@ export function AgentProfile({ asesor, settings }: { asesor: Asesor; settings?: 
             >
               <Phone className="h-4 w-4" strokeWidth={1.5} />
               Llamar ahora
-            </a>}
-            {contact.email && <a
-              href={contact.email ? `mailto:${contact.email}` : undefined}
-              aria-disabled={!contact.email}
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-5 text-base font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
-            >
-              <Mail className="h-4 w-4" strokeWidth={1.5} />
-              Enviar correo
             </a>}
           </div>
         </div>

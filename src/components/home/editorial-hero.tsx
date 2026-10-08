@@ -67,7 +67,7 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
       <div className="editorial-hero-content editorial-container">
         <div className="editorial-cover-copy">
           <SplitHeading as="h1" once reveal="soft-lines" delay={0.1}
-            lines={copy.heroTitulo === "Vende tu propiedad." ? ["Vende tu ", "propiedad."] : copy.heroTitulo.split("\n")}
+            lines={copy.heroTitulo.split("\n")}
             className="editorial-cover-title" />
           <motion.p className="hero-copy-entry editorial-cover-description"
             initial={false} animate={{ y: 0 }} transition={{ duration: reduce ? 0 : 0.8 }}>
