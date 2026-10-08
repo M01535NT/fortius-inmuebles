@@ -4,7 +4,7 @@
   commercial contact settings come from the independent MNT panel.
 */
 
-export const productionOrigin = "https://fortius-inmuebles.vercel.app";
+export const productionOrigin = "https://fortiusinmuebles.com";
 
 export const siteConfig = {
   name: "Fortius Inmuebles",

@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Retire public production aliases while preserving paths and query strings.
+      ...["fortius-inmuebles.vercel.app", "fortius-alpha.vercel.app"].map((host) => ({
+        source: "/:path*",
+        has: [{ type: "host" as const, value: host }],
+        destination: "https://fortiusinmuebles.com/:path*",
+        permanent: true,
+      })),
       { source: "/zonas", destination: "/inventario", permanent: true },
       { source: "/zonas/:zona", destination: "/inventario", permanent: true },
       { source: "/descargas/checklist-venta-mnt.pdf", destination: "/descargas/checklist-venta-fortius.pdf", permanent: true },
