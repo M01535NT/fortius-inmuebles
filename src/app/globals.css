@@ -84,18 +84,18 @@
 }
 
 .dark {
-  --background: #0a1726;
+  --background: #060c14;
   --foreground: #f5f1eb;
-  --card: #112235;
+  --card: #0c1622;
   --card-foreground: #f5f1eb;
-  --popover: #112235;
+  --popover: #0c1622;
   --popover-foreground: #f5f1eb;
   --primary: #8a1634;
   --primary-text: #f5f1eb;
   --primary-foreground: #ffffff;
-  --secondary: #192b3d;
+  --secondary: #121e2c;
   --secondary-foreground: #f5f1eb;
-  --muted: #142537;
+  --muted: #0e1926;
   --muted-foreground: #b6bec8;
   --accent: #a2223f;
   --accent-foreground: #ffffff;
@@ -103,8 +103,8 @@
   --border: rgba(245, 247, 250, 0.13);
   --input: rgba(245, 247, 250, 0.18);
   --ring: #f5f1eb;
-  /* Lighter blue than the dark canvas so the manifesto still reads as a block. */
-  --block: #152b42;
+  /* Subtle navy layers on a near-black canvas retain depth without bright blue bands. */
+  --block: #0c1826;
   --block-foreground: #ffffff;
   --block-muted: rgba(255, 255, 255, 0.66);
   --brand-ink: #061f3f;
