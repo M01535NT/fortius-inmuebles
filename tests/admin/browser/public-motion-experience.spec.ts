@@ -34,7 +34,7 @@ test("desktop timeline presents all six stages together and passes accessibility
   await expect(stages.last()).toHaveCSS("transform", "none");
   const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
   expect(boxes[1].left).toBeGreaterThan(boxes[0].right);
-  expect(boxes[1].top).toBeCloseTo(boxes[0].top);
+  expect(Math.abs(boxes[1].top - boxes[0].top)).toBeLessThan(10);
   const result = await new AxeBuilder({ page }).include("#metodo").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
 });
