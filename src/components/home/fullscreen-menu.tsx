@@ -1,26 +1,27 @@
 "use client";
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, X } from "lucide-react";
 
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { BrandMark } from "@/components/brand/brand-mark";
+import { usePublicFeatures } from "@/components/providers/public-features-provider";
+import { publicContact } from "@/lib/public-contact";
 
 /*
   Menú a pantalla completa. Se revela con un clip-path circular que nace
   en la esquina superior derecha (donde vive el botón de menú) y se
   expande hasta cubrir el viewport. Enlaces display grandes a la
-  izquierda; panel de imagen a la derecha que cambia con el hover.
+  izquierda; cuatro accesos a servicios y contacto a la derecha.
 */
 const PRIMARY = [
-  { href: "/", label: "Inicio", image: "/hero/casa-playa.webp" },
-  { href: "/inventario", label: "Propiedades", image: "/hero/edificio-ciudad.webp" },
-  { href: "/#metodo", label: "Método", image: "/hero/interior-depa.webp" },
-  { href: "/herramientas", label: "Herramientas", image: "/hero/plaza.webp" },
-  { href: "/blog", label: "Blog", image: "/hero/interior-plaza.webp" },
-  { href: "/contacto", label: "Contacto", image: "/hero/nave-tijuana.webp" },
+  { href: "/", label: "Inicio" },
+  { href: "/inventario", label: "Propiedades" },
+  { href: "/#metodo", label: "Método" },
+  { href: "/herramientas", label: "Herramientas" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contacto", label: "Contacto" },
 ];
 
 /* El círculo nace donde está el botón de menú (esquina superior derecha). */
@@ -34,7 +35,14 @@ export function FullscreenMenu({ open, onClose }: Props) {
   const ref = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
-  const [active, setActive] = React.useState(0);
+  const { settings } = usePublicFeatures();
+  const contact = publicContact(settings, "Hola, quiero conversar sobre una propiedad con Fortius.");
+  const routes = [
+    { label: "Vender propiedad", href: "/vender-propiedad", text: "Conoce qué revisamos y cómo preparamos tu venta." },
+    { label: "Opinión de valor", href: "/vender-propiedad#precio-y-condiciones", text: "Un precio de salida respaldado por las características y el mercado." },
+    { label: "Ver inventario", href: "/inventario", text: "Fotografías, precios y características de cada propiedad." },
+    { label: "Contacto directo", href: contact.whatsapp || contact.messenger || "/contacto", text: "Cuéntanos qué quieres vender o qué estás buscando.", external: !!(contact.whatsapp || contact.messenger) },
+  ];
   const isCurrent = (href: string) => href === pathname || (href !== "/" && !href.includes("#") && pathname.startsWith(`${href}/`));
 
   /* Bloqueo de scroll + Escape mientras el menú está abierto. */
@@ -152,13 +160,13 @@ export function FullscreenMenu({ open, onClose }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto grid min-h-[calc(100dvh-64px)] max-w-[1280px] items-center px-5 py-8 md:px-8 md:py-12">
-        <div className="grid min-h-0 items-center gap-10 lg:grid-cols-12">
+      <div className="menu-editorial-layout">
+        <div className="menu-editorial-grid">
           {/* Enlaces principales */}
-          <nav aria-label="Menú principal" className="lg:col-span-7">
+          <nav aria-label="Menú principal" className="menu-editorial-primary">
             <ol>
               {PRIMARY.map((item, i) => (
-                <li key={item.href} data-menu-item onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)}>
+                <li key={item.href} data-menu-item>
                   <Link
                     href={item.href}
                     prefetch={open ? null : false}
@@ -166,14 +174,14 @@ export function FullscreenMenu({ open, onClose }: Props) {
                     aria-current={isCurrent(item.href) ? "page" : undefined}
                     className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
                   >
-                    <span className="font-mono text-xs text-primary">
+                    <span className="font-mono text-xs text-primary-ink">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <span className="display-title text-[clamp(1.875rem,6.5vw,3.5rem)] text-foreground/85 transition-colors duration-300 group-hover:text-foreground">
                       {item.label}
                     </span>
                     <ArrowUpRight
-                      className="ml-auto size-5 self-center text-primary opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
+                      className="ml-auto size-5 self-center text-primary-ink opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
                       strokeWidth={1.5}
                     />
                   </Link>
@@ -183,26 +191,19 @@ export function FullscreenMenu({ open, onClose }: Props) {
 
           </nav>
 
-          {/* Panel de imagen: cambia con el hover de los enlaces. */}
-          <div
-            data-menu-panel
-            className="relative hidden h-[min(52dvh,520px)] overflow-hidden rounded-lg border border-border lg:col-span-5 lg:block"
-            aria-hidden="true"
-          >
-            {PRIMARY.map((item, i) => (
-              <Image
-                key={item.image}
-                src={item.image}
-                alt=""
-                fill
-                sizes="(max-width: 1024px) 0px, 40vw"
-                className={
-                  "object-cover transition-opacity duration-500" +
-                  (i === active ? " opacity-100" : " opacity-0")
-                }
-              />
+          <nav aria-label="Accesos destacados" className="menu-route-grid">
+            {routes.map((route) => (
+              <Link key={route.label} href={route.href} onClick={onClose}
+                prefetch={open ? null : false}
+                target={route.external ? "_blank" : undefined}
+                rel={route.external ? "noopener noreferrer" : undefined}
+                data-menu-panel className="menu-route-card">
+                <ArrowUpRight size={23} strokeWidth={1.4} aria-hidden="true" />
+                <span className="menu-route-title">{route.label}</span>
+                <span className="menu-route-description">{route.text}</span>
+              </Link>
             ))}
-          </div>
+          </nav>
         </div>
 
       </div>

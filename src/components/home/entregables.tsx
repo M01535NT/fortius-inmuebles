@@ -68,7 +68,7 @@ export function Entregables({ content }: { content?: SiteContent | null }) {
                     <div>
                       <div className="flex items-center justify-between">
                         <FileText
-                          className="h-5 w-5 text-primary transition-transform duration-300 group-hover:rotate-6"
+                          className="h-5 w-5 text-primary-ink transition-transform duration-300 group-hover:rotate-6"
                           strokeWidth={1.5}
                         />
                       </div>

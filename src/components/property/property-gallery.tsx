@@ -26,15 +26,10 @@ const MODOS: { id: Modo; label: string; icon: LucideIcon }[] = [
   { id: "360", label: "Recorrido 360°", icon: Rotate3d },
 ];
 
-/*
-  Caja de medios compartida por los tres modos: 16:9 real siempre.
-  En mobile el ancho manda (w-full + aspect); en desktop manda la altura
-  (min(60vh, 684px)) y el ancho se deriva del aspect-ratio, así el
-  componente cabe completo en el primer viewport de cualquier pantalla.
-  684px = ancho máximo del contenedor (1216) * 9/16.
-*/
+/* Video and tours retain their native landscape frame. Photographs use
+   a larger editorial mosaic, with a portrait cover on small screens. */
 const MEDIA_BOX =
-  "relative aspect-video w-full overflow-hidden rounded-lg border border-border md:w-auto md:h-[min(60vh,684px)]";
+  "relative aspect-video w-full overflow-hidden border border-border";
 
 function Reservado({ icon: Icon, titulo, texto }: { icon: LucideIcon; titulo: string; texto: string }) {
   return (
@@ -52,7 +47,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
   const actual = imagenes[index];
 
   return (
-    <div>
+    <div className="property-gallery">
       {/* Selector de modo */}
       <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Modo de galería">
         {MODOS.map(({ id, label, icon: Icon }) => (
@@ -72,7 +67,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
             {label}
           </button>
         ))}
-        {fichaUrl && <a href={fichaUrl} download className="inline-flex h-9 items-center gap-2 rounded-md border border-primary/40 px-3.5 text-sm font-medium text-primary transition-colors hover:bg-secondary">
+        {fichaUrl && <a href={fichaUrl} download className="inline-flex h-9 items-center gap-2 rounded-md border border-primary/40 px-3.5 text-sm font-medium text-primary-ink transition-colors hover:bg-secondary">
           <Download className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
           Ficha técnica
           <span className="sr-only"> (descargar PDF)</span>
@@ -82,20 +77,23 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
 
       {modo === "fotos" ? (
         <>
-          <div className={MEDIA_BOX}>
-            <Image
-              key={actual.src}
-              src={actual.src}
-              alt={actual.alt}
-              fill
-              priority={index === 0}
-              sizes="(max-width: 1024px) 100vw, 66vw"
-              className="object-cover"
-            />
+          <div className={`property-gallery-photos${imagenes.length === 1 ? " property-gallery-single" : ""}`}>
+            <div className="property-gallery-main">
+              <Image key={actual.src} src={actual.src} alt={actual.alt} fill
+                priority={index === 0} sizes="(max-width: 767px) 100vw, 75vw" className="object-cover" />
+              <span className="property-gallery-counter" aria-live="polite">{index + 1} / {imagenes.length}</span>
+            </div>
+            {imagenes.length > 1 && <div className="property-gallery-side">
+              {imagenes.slice(1, 3).map((image, i) => <button key={image.src} type="button"
+                onClick={() => setIndex(i + 1)} aria-label={`Seleccionar imagen ${i + 2}`}
+                aria-pressed={index === i + 1}>
+                <Image src={image.src} alt={image.alt} fill sizes="25vw" className="object-cover" />
+              </button>)}
+            </div>}
           </div>
           {imagenes.length > 1 ? (
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex gap-2" role="group" aria-label={`Imágenes de ${titulo}`}>
+            <div className="mt-4 flex min-w-0 items-center gap-3">
+              <div className="property-gallery-thumbnails" role="group" aria-label={`Imágenes de ${titulo}`}>
                 {imagenes.map((img, i) => (
                   <button
                     key={img.src}
@@ -104,7 +102,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
                     aria-pressed={i === index}
                     onClick={() => setIndex(i)}
                     className={
-                      "relative h-16 w-24 overflow-hidden rounded-md border transition-colors " +
+                      "relative h-20 w-16 shrink-0 overflow-hidden border transition-colors " +
                       (i === index ? "border-primary" : "border-border opacity-75 hover:opacity-100")
                     }
                   >
@@ -112,7 +110,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
                   </button>
                 ))}
               </div>
-              <span className="pl-1 font-mono text-xs text-muted-foreground">
+              <span className="shrink-0 pl-1 font-mono text-xs text-muted-foreground">
                 {String(index + 1).padStart(2, "0")} / {String(imagenes.length).padStart(2, "0")}
               </span>
             </div>

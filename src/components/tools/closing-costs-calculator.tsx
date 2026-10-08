@@ -679,7 +679,7 @@ export function ClosingCostsCalculator({
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary underline underline-offset-4"
+                    className="text-primary-ink underline underline-offset-4"
                   >
                     {activeProfile === "buyer"
                       ? [

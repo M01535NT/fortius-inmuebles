@@ -67,7 +67,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
           </Link>
 
           <header className="mt-8 border-b border-border pb-10">
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-primary">
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-primary-ink">
               {postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}{postCategory(post) ? ` · ${BLOG_CATEGORIES[postCategory(post)!]}` : ""}
             </p>
             <h1 className="display-title mt-4 text-4xl text-foreground sm:text-5xl md:text-6xl">
@@ -109,7 +109,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
 
           <BlogContent content={post.contenido} figures={getBlogFigures(post.slug)} />
           {post.fuenteUrl && <aside className="mt-10 rounded-md border border-border bg-card p-5 text-sm leading-7 [overflow-wrap:anywhere]" aria-label="Fuente principal">
-            <span className="font-medium">Fuente principal: </span><a href={post.fuenteUrl} className="text-primary underline underline-offset-4">{post.fuenteNombre || "Consultar documento original"}</a>
+            <span className="font-medium">Fuente principal: </span><a href={post.fuenteUrl} className="text-primary-ink underline underline-offset-4">{post.fuenteNombre || "Consultar documento original"}</a>
           </aside>}
         </article>
       </Container>

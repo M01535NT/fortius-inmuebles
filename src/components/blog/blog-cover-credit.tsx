@@ -4,5 +4,5 @@ export function BlogCoverCredit({ cover, linked = false }: { cover: BlogCover; l
   if (!cover.credit) return null;
   const { author, sourceUrl, license, licenseUrl, note } = cover.credit;
   if (!linked) return <>Foto: {author} · {license}. Archivo de 2021. Créditos completos en el artículo.</>;
-  return <>Foto: <a href={sourceUrl} className="text-primary underline underline-offset-4">{author} / Wikimedia Commons</a>. Licencia <a href={licenseUrl} className="text-primary underline underline-offset-4">{license}</a>. {note}</>;
+  return <>Foto: <a href={sourceUrl} className="text-primary-ink underline underline-offset-4">{author} / Wikimedia Commons</a>. Licencia <a href={licenseUrl} className="text-primary-ink underline underline-offset-4">{license}</a>. {note}</>;
 }

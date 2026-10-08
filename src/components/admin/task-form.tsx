@@ -62,7 +62,7 @@ export function TaskForm({ initial, onSave }: { initial?: Task; onSave: (task: T
       {draft.estado === "completada" || draft.estado === "cancelada" ? <button type="submit" name="estado" value="pendiente" className={btnGhost}>Reabrir tarea</button> : <button type="submit" name="estado" value="completada" className={btnGhost}>Completar tarea</button>}
       {draft.estado !== "cancelada" && <button type="submit" name="estado" value="cancelada" className={btnGhost}>Cancelar tarea</button>}
     </>}</div>
-    {saved && <p role="status" className="text-sm text-primary">Tarea guardada.</p>}
+    {saved && <p role="status" className="text-sm text-primary-ink">Tarea guardada.</p>}
   </AsyncForm>;
 }
 

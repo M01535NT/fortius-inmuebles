@@ -32,8 +32,8 @@ export function SellerProcess() {
             </div>
             <ol className="border-t border-border">
               {reviews.map((item, index) => (
-                <li key={item.title} className="grid gap-3 border-b border-border py-6 sm:grid-cols-[3rem_1fr]">
-                  <span className="font-mono text-sm text-primary">0{index + 1}</span>
+                <li key={item.title} id={index === 2 ? "precio-y-condiciones" : undefined} className="scroll-mt-24 grid gap-3 border-b border-border py-6 sm:grid-cols-[3rem_1fr]">
+                  <span className="font-mono text-sm text-primary-ink">0{index + 1}</span>
                   <div>
                     <h3 className="display-soft text-xl text-foreground">{item.title}</h3>
                     <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">{item.text}</p>
@@ -49,14 +49,14 @@ export function SellerProcess() {
             <p className="mt-3 max-w-[55ch] text-base leading-relaxed text-muted-foreground">
               Una respuesta sobre lo que ya puede avanzar, los pendientes que requieren atención y una propuesta de siguientes pasos. Durante la venta, acordamos cómo darte seguimiento a visitas y ofertas.
             </p>
-            <Link href="/#entregables" className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">Ver entregables del método</Link>
+            <Link href="/#entregables" className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline underline-offset-4">Ver entregables del método</Link>
           </div>
           <div>
             <h3 className="display-soft text-2xl text-foreground">Si hay pendientes</h3>
             <p className="mt-3 max-w-[55ch] text-base leading-relaxed text-muted-foreground">
               Te decimos cuáles afectan el precio, la promoción o el cierre y qué información se necesita para resolverlos. No tienes que adivinar si conviene anunciar de inmediato.
             </p>
-            <Link href="/herramientas/gastos-de-cierre" className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">Estimar gastos y neto de venta</Link>
+            <Link href="/herramientas/gastos-de-cierre" className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline underline-offset-4">Estimar gastos y neto de venta</Link>
           </div>
         </BlurFade>
       </Container>

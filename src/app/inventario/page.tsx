@@ -20,7 +20,7 @@ export default async function InventarioPage() {
 
   return (
     <main className="bg-background pb-24 pt-32 md:pb-0">
-      <Container className="pb-16 md:pb-24">
+      <Container className="property-catalog pb-16 md:pb-24">
         <SectionHeading
           level="h1"
           eyebrow="Inventario"

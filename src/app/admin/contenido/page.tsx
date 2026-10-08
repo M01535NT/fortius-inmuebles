@@ -157,7 +157,7 @@ function Editor({ initial }: { initial: SiteContent }) {
           {guardado ? (
             <p
               aria-live="polite"
-              className="text-sm font-medium text-primary"
+              className="text-sm font-medium text-primary-ink"
             >
               Guardado.
             </p>

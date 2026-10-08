@@ -21,7 +21,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Vende tu propiedad");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Inmobiliaria para");
     await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Imagen 2", exact: true }).click();
     await expect(page.getByRole("button", { name: "Imagen 2", exact: true })).toHaveAttribute("aria-pressed", "true");

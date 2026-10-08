@@ -56,7 +56,7 @@ export function BuyerBrief() {
               ? "El uso, presupuesto y momento de compra nos ayudan a descartar opciones que no te sirven. Puedes dejar el presupuesto o la forma de pago por definir."
               : "Define el uso, el presupuesto total y tu momento de compra. Con esos datos podrás comparar inmuebles con más claridad."}
           </p>
-          <p className="mt-5 text-sm leading-relaxed text-muted-foreground">También puedes <Link href="/inventario" className="text-primary underline underline-offset-4">explorar las propiedades publicadas</Link> antes de escribirnos.</p>
+          <p className="mt-5 text-sm leading-relaxed text-muted-foreground">También puedes <Link href="/inventario" className="text-primary-ink underline underline-offset-4">explorar las propiedades publicadas</Link> antes de escribirnos.</p>
         </div>
         {!publicLeadsEnabled ? (
           <div className="rounded-lg border border-border bg-card p-6 md:p-8">
@@ -70,7 +70,7 @@ export function BuyerBrief() {
           </div>
         ) : sent ? (
           <div role="status" className="flex min-h-56 flex-col justify-center rounded-lg border border-border bg-card p-8">
-            <CheckCircle2 className="size-8 text-primary" strokeWidth={1.5} />
+            <CheckCircle2 className="size-8 text-primary-ink" strokeWidth={1.5} />
             <h3 className="display-soft mt-5 text-2xl text-foreground">Recibimos tu búsqueda.</h3>
             <p className="mt-2 text-base text-muted-foreground">Revisaremos lo que nos compartiste y te contactaremos para precisar las opciones.</p>
           </div>

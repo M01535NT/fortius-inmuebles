@@ -33,8 +33,8 @@ test("legacy defaults receive the regional copy and keep intentional manifesto l
   };
   const hero = renderToStaticMarkup(<Hero content={original} />);
   const relato = renderToStaticMarkup(<Relato content={original} />);
-  expect(hero).toContain('Vende tu propiedad');
-  expect(hero).toContain('Trabajamos en Tijuana, Rosarito, Tecate y Ensenada.');
+  expect(hero).toContain('Inmobiliaria para');
+  expect(hero).toContain('En Fortius te ayudamos a comparar propiedades');
   expect(relato).toMatch(/<span class="[^"]*\bblock\b[^"]*">el precio de venta\.<\/span>/);
 });
 test("footer uses public settings and hides unconfigured contact channels", () => {

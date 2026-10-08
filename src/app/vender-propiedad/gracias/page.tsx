@@ -26,7 +26,7 @@ export default async function GraciasPage() {
       <Container className="pb-24 md:pb-32">
         <div className="grid gap-14 lg:grid-cols-12">
           <BlurFade inView={false} className="lg:col-span-7">
-            <CheckCircle2 className="h-9 w-9 text-primary" strokeWidth={1.5} />
+            <CheckCircle2 className="h-9 w-9 text-primary-ink" strokeWidth={1.5} />
             <h1 className="display-title mt-6 max-w-[16ch] text-5xl text-foreground md:text-6xl">
               Recibimos los datos de tu propiedad.
             </h1>
@@ -38,7 +38,7 @@ export default async function GraciasPage() {
             <ol className="mt-9 space-y-4">
               {SIGUIENTE.map((paso, i) => (
                 <li key={paso} className="flex items-start gap-4">
-                  <span className="font-mono text-sm leading-[1.7] text-primary">
+                  <span className="font-mono text-sm leading-[1.7] text-primary-ink">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="text-base leading-relaxed text-foreground/85">{paso}</span>

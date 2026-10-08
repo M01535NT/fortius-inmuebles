@@ -47,7 +47,7 @@ export function SegmentDetail({ segment }: { segment: Segment }) {
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {detail.checks.map((check, index) => (
             <BlurFade key={check.title} delay={index * 0.08} className="border-t border-border pt-5">
-              <span className="font-mono text-xs text-primary">0{index + 1}</span>
+              <span className="font-mono text-xs text-primary-ink">0{index + 1}</span>
               <h3 className="display-soft mt-4 text-2xl text-foreground">{check.title}</h3>
               <p className="mt-3 text-base leading-relaxed text-muted-foreground">{check.body}</p>
             </BlurFade>
@@ -58,8 +58,8 @@ export function SegmentDetail({ segment }: { segment: Segment }) {
           <div>
             <p className="max-w-[65ch] text-base leading-relaxed text-muted-foreground">{detail.decision}</p>
             <div className="mt-5 flex flex-wrap gap-x-7 gap-y-2">
-              <Link href="/inventario" className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">Ver propiedades</Link>
-              <Link href="/contacto" className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">Consultar un caso</Link>
+              <Link href="/inventario" className="inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline underline-offset-4">Ver propiedades</Link>
+              <Link href="/contacto" className="inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline underline-offset-4">Consultar un caso</Link>
             </div>
           </div>
         </BlurFade>

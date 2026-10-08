@@ -60,7 +60,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
       <ul className="mt-4 divide-y divide-border border-t border-border">
         {documentos.map((doc) => (
           <li key={doc.codigo + doc.url} className="flex items-center gap-3 px-5 py-3.5">
-            <FileText className="size-4.5 shrink-0 text-primary" strokeWidth={1.5} />
+            <FileText className="size-4.5 shrink-0 text-primary-ink" strokeWidth={1.5} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground">{doc.nombre}</p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">

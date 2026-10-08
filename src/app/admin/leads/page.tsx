@@ -194,7 +194,7 @@ export default function AdminLeadsPage() {
                   <h2>
                     <Link
                       href={`/admin/leads/${lead.id}`}
-                      className="flex min-h-11 items-center text-base font-semibold text-foreground hover:text-primary"
+                      className="flex min-h-11 items-center text-base font-semibold text-foreground hover:text-primary-ink"
                     >
                       {lead.nombre}
                     </Link>
@@ -251,7 +251,7 @@ export default function AdminLeadsPage() {
                           href={`/admin/leads/${lead.id}`}
                           className="group block min-h-11 min-w-0"
                         >
-                          <p className="truncate font-medium text-foreground group-hover:text-primary">
+                          <p className="truncate font-medium text-foreground group-hover:text-primary-ink">
                             {lead.nombre}
                           </p>
                           <p className="truncate text-xs text-muted-foreground">

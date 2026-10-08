@@ -37,7 +37,7 @@ function ClienteDetail({ id }: { id: string }) {
         <dl className="grid min-w-0 gap-4 text-sm sm:grid-cols-2">
           {Object.entries({ "Teléfono": cliente.telefono, "Correo electrónico": cliente.email, "Tipo de cliente": CLIENTE_TIPO_LABELS[cliente.tipo], "Asesor responsable": asesor?.nombre ?? "Sin asignar", "Zonas de interés": cliente.zona, "Tipo de inmueble": cliente.tipoPropiedad }).map(([label, value]) => value ? <div key={label} className="min-w-0"><dt className="text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-wrap">{value}</dd></div> : null)}
         </dl>
-        {cliente.propiedadSlug ? <Link href={`/inventario/${encodeURIComponent(cliente.propiedadSlug)}`} className="inline-flex min-h-11 items-center text-sm text-primary">Ver inmueble de interés</Link> : null}
+        {cliente.propiedadSlug ? <Link href={`/inventario/${encodeURIComponent(cliente.propiedadSlug)}`} className="inline-flex min-h-11 items-center text-sm text-primary-ink">Ver inmueble de interés</Link> : null}
         {cliente.mensaje ? <div className="text-sm"><h3 className="text-muted-foreground">Mensaje inicial</h3><p className="mt-1 whitespace-pre-wrap">{cliente.mensaje}</p></div> : null}
       </section>
       {cliente.perfil ? <section className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5"><h2 className="display-soft text-lg">Perfil y necesidades</h2><LeadProfileSummary perfil={cliente.perfil} /></section> : null}

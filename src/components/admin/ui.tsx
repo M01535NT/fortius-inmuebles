@@ -85,7 +85,7 @@ export function Badge({
 }) {
   const tones = {
     neutral: "border-border bg-secondary text-foreground/80",
-    green: "border-primary/40 bg-primary/10 text-primary",
+    green: "border-primary/40 bg-primary/10 text-primary-ink",
     amber:
       "border-warning-border bg-warning-surface text-warning",
     red: "border-destructive/40 bg-destructive/10 text-destructive",

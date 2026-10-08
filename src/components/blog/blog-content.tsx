@@ -65,7 +65,7 @@ function inline(text: string): ReactNode[] {
       <a
         key={match.index}
         href={match[2]}
-        className="rounded-sm text-primary underline decoration-primary/50 underline-offset-4 [overflow-wrap:anywhere] hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        className="rounded-sm text-primary-ink underline decoration-primary/50 underline-offset-4 [overflow-wrap:anywhere] hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
       >
         {match[1]}
       </a>

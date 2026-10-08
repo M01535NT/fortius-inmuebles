@@ -299,7 +299,7 @@ export function InventoryExplorer({ propiedades }: Props) {
             <button
               type="button"
               onClick={() => setFiltros(DEFAULTS)}
-              className="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-primary transition-colors hover:text-foreground"
+              className="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-primary-ink transition-colors hover:text-foreground"
             >
               Limpiar filtros
             </button>
@@ -325,7 +325,7 @@ export function InventoryExplorer({ propiedades }: Props) {
 
       {/* Grid o vacío */}
       {resultados.length > 0 ? (
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="property-catalog-grid mt-8">
           {resultados.map((p) => (
             <PropertyCard key={p.slug} property={p} />
           ))}

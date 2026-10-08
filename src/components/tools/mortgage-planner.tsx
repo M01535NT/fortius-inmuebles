@@ -611,7 +611,7 @@ export function MortgagePlanner({
                 {compact && (
                   <a
                     href="/herramientas/hipoteca"
-                    className="mt-4 inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+                    className="mt-4 inline-flex min-h-11 items-center text-sm text-primary-ink underline underline-offset-4"
                   >
                     Abrir simulador completo
                   </a>
@@ -636,7 +636,7 @@ export function MortgagePlanner({
                 href={FINANCIAL_SOURCES.cat.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary underline underline-offset-4"
+                className="text-primary-ink underline underline-offset-4"
               >
                 Banxico: qué incluye el CAT
               </a>

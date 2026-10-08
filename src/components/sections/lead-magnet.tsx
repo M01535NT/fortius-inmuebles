@@ -64,7 +64,7 @@ export function LeadMagnet() {
               <ul className="mt-6 space-y-2.5">
                 {PREVIEW.map((item) => (
                   <li key={item} className="flex items-start gap-3 text-base text-foreground/85">
-                    <FileCheck2 className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
+                    <FileCheck2 className="mt-0.5 size-4 shrink-0 text-primary-ink" strokeWidth={1.5} />
                     {item}
                   </li>
                 ))}

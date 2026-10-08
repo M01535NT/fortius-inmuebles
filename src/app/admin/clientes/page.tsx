@@ -66,7 +66,7 @@ export default function ClientesPage() {
             >
               <div className="min-w-0">
                 <p className="font-medium [overflow-wrap:anywhere]">
-                  <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center hover:text-primary">{cliente.nombre}</Link> <Badge>{TIPOS[cliente.tipo]}</Badge>
+                  <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center hover:text-primary-ink">{cliente.nombre}</Link> <Badge>{TIPOS[cliente.tipo]}</Badge>
                 </p>
                 {cliente.leadId ? <p className="text-xs text-muted-foreground">Convertido desde un lead · perfil e historial conservados</p> : null}
                 <p className="break-words text-sm text-muted-foreground">

@@ -210,7 +210,7 @@ export default function ArchivosPage() {
                     <AsyncButton
                       type="button"
                       onClick={async () => await openFile(archivo.url)}
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-foreground"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-ink hover:text-foreground"
                     >
                       <Link2 className="size-3.5" strokeWidth={1.5} /> Abrir
                     </AsyncButton>

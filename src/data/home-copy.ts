@@ -83,8 +83,8 @@ export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefi
 }
 
 export const SITE_COPY: Omit<SiteContent, "homeTexts"> = {
-  heroTitulo: "Vende tu propiedad.",
-  heroSubtitulo: "Trabajamos en Tijuana, Rosarito, Tecate y Ensenada. Revisamos los documentos, proponemos el precio de venta y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.",
+  heroTitulo: "Inmobiliaria para\ncomprar y vender.",
+  heroSubtitulo: "En Fortius te ayudamos a comparar propiedades, coordinar visitas y negociar las condiciones de tu compra o venta. Tu asesor reúne la información y da seguimiento a la operación para que puedas decidir.",
   manifiestoTitulo: "Cómo proponemos\nel precio de venta.",
   manifiestoTexto: "Comparamos ubicación, superficie y estado con propiedades similares. Te explicamos las referencias utilizadas y distinguimos precios anunciados de ventas documentadas cuando hay datos disponibles.",
   seoTitle: "Fortius Inmuebles | Venta en Tijuana, Rosarito, Tecate y Ensenada",
@@ -93,8 +93,8 @@ export const SITE_COPY: Omit<SiteContent, "homeTexts"> = {
 
 const LEGACY: Partial<Record<keyof typeof SITE_COPY, string[]>> = {
   seoDescription: ["Firma inmobiliaria en Tijuana y Baja California. Precio con datos, expediente revisado y seguimiento por escrito, de la captación a la firma ante notario.", "Venta de propiedades en Tijuana. Revisión documental, opinión de valor, publicación, visitas y revisión de ofertas con MNT Inmuebles.", "Vende tu propiedad en Tijuana con MNT Inmuebles. Análisis de mercado, revisión documental y seguimiento por escrito para acompañar cada etapa de la venta."],
-  heroTitulo: ["Vende tu propiedad\nen Tijuana.", "Tu propiedad en Tijuana.\nUn plan para venderla.", "Vende con plan, no con anuncios."],
-  heroSubtitulo: ["Proponemos el precio de venta, revisamos los documentos y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.", "Revisamos la documentación, analizamos el mercado y acordamos contigo cómo presentar la propiedad. Durante la venta, recibes seguimiento por escrito y acompañamiento para evaluar las ofertas.", "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California."],
+  heroTitulo: ["Vende tu propiedad.", "Vende tu propiedad\nen Tijuana.", "Tu propiedad en Tijuana.\nUn plan para venderla.", "Vende con plan, no con anuncios."],
+  heroSubtitulo: ["Trabajamos en Tijuana, Rosarito, Tecate y Ensenada. Revisamos los documentos, proponemos el precio de venta y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.", "Proponemos el precio de venta, revisamos los documentos y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.", "Revisamos la documentación, analizamos el mercado y acordamos contigo cómo presentar la propiedad. Durante la venta, recibes seguimiento por escrito y acompañamiento para evaluar las ofertas.", "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California."],
   manifiestoTitulo: ["Cada decisión,\ncon información.", "No prometemos resultados. Documentamos el proceso.", "No nos limitamos a tomar fotos. Creamos un proceso."],
   manifiestoTexto: ["Conoce el precio propuesto, los documentos pendientes y los siguientes pasos. El plan se acuerda contigo y el avance queda por escrito.", "Cada operación sigue el mismo método por escrito, de la captación a la firma. Por eso siempre sabes en qué paso va la tuya, y qué sigue después."],
   seoTitle: ["MNT Inmuebles | Venta de propiedades en Tijuana", "MNT Inmuebles | Metodología Inmobiliaria", "MNT Inmuebles | Vende tu propiedad en Tijuana con método"],

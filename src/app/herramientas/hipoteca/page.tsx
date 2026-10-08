@@ -37,7 +37,7 @@ export default function HipotecaPage() {
 
         <p className="mt-8 text-base text-muted-foreground">
           ¿Ya sabes qué buscas?{" "}
-          <Link href="/inventario" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/inventario" className="font-medium text-primary-ink underline-offset-4 hover:underline">
             Explora el inventario
           </Link>
           .

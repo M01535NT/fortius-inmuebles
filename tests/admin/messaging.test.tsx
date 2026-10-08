@@ -46,3 +46,20 @@ test("mobile contact uses exactly phone and contextual WhatsApp links", () => {
   expect(html).not.toContain("m.me/");
   expect((html.match(/<a /g) ?? []).length).toBe(2);
 });
+
+test("email-only contact preserves the property and does not claim contact is unavailable", () => {
+  const message = "Me interesa Casa Jardín (FOR-001). https://example.com/inventario/jardin?a=1&b=2";
+  const emailOnly = { ...settings, whatsapp: "", facebook: "", email: "asesor@example.com" };
+  const html = renderToStaticMarkup(<PublicFeaturesProvider publicLeadsEnabled={false} settings={emailOnly}>
+    <MessagingContact message={message} />
+  </PublicFeaturesProvider>);
+  expect(html).toContain("mailto:asesor@example.com");
+  expect(html).toContain(encodeURIComponent(message));
+  expect(html).not.toContain("próximamente");
+});
+
+test("mobile enquiry remains usable when no phone or WhatsApp is configured", () => {
+  const html = renderToStaticMarkup(<PropertyMobileCta settings={null} />);
+  expect(html).toContain('href="#interes"');
+  expect(html).not.toContain("disabled");
+});
