@@ -422,13 +422,34 @@
   .about-lead { font-size: 16px; }
 }
 
-.about-dropdown { position: relative; }
-.about-dropdown-trigger { display: flex; align-items: center; }
-.about-dropdown-trigger > a { padding-block: 14px; }
-.about-dropdown-trigger > button { display: grid; place-items: center; width: 28px; height: 44px; cursor: pointer; }
-.about-dropdown-panel { position: absolute; top: 100%; left: -16px; width: 190px; padding-top: 8px; }
-.about-dropdown-panel ul { padding: 8px; background: var(--background); color: var(--foreground); border: 1px solid var(--border); box-shadow: 0 16px 40px #00000020; }
-.about-dropdown-panel a { display: flex; align-items: center; min-height: 44px; padding: 10px 14px; font-size: 14px; }
-.about-dropdown-panel a:hover, .about-dropdown-panel a:focus-visible { background: var(--secondary); color: var(--foreground); }
-.about-dropdown :is(a,button):focus-visible { outline: 2px solid var(--primary-text); outline-offset: 2px; }
 .about-page :is(#mision, #vision) { scroll-margin-top: 88px; }
+
+.nav-disclosure { position: relative; }
+.nav-disclosure-trigger { display: flex; align-items: center; position: relative; }
+.nav-disclosure-trigger::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: #8a1634; transform: scaleX(0); transform-origin: left; transition: transform .2s; }
+.nav-disclosure-trigger[data-active=true]::after { transform: scaleX(1); }
+.nav-disclosure-trigger > a { padding-block: 14px; }
+.nav-disclosure-trigger > button { display: grid; place-items: center; width: 28px; height: 44px; cursor: pointer; }
+.nav-disclosure-trigger button svg { transition: transform .2s; }
+.nav-disclosure-trigger button[aria-expanded=true] svg { transform: rotate(180deg); }
+.nav-disclosure-panel { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); width: 540px; padding-top: 10px; }
+.nav-disclosure-content { display: grid; grid-template-columns: 190px 1fr; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-top: 3px solid #8a1634; box-shadow: 0 24px 56px #00000026; animation: nav-panel-in .2s ease-out; }
+.nav-disclosure-feature { background: var(--secondary); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
+.nav-disclosure-feature p { font-family: Georgia, serif; font-size: 27px; line-height: 1.12; letter-spacing: -.035em; }
+.nav-disclosure-feature a { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 13px; color: var(--primary-text); }
+.nav-disclosure-feature svg { flex-shrink: 0; }
+.nav-disclosure-content ul { padding: 10px; }
+.nav-disclosure-content li > a { display: block; padding: 12px; min-height: 60px; }
+.nav-disclosure-content li > a > span { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 500; }
+.nav-disclosure-content small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--muted-foreground); }
+.nav-disclosure-content li > a:hover, .nav-disclosure-content li > a:focus-visible { background: var(--secondary); }
+.nav-disclosure :is(a,button):focus-visible { outline: 2px solid var(--primary-text); outline-offset: 2px; }
+.nav-contact-link { border-left: 1px solid currentColor; padding-left: 20px; }
+@keyframes nav-panel-in { from { opacity: 0; translate: 0 -6px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .nav-disclosure-content { animation: none; } .nav-disclosure-trigger::after, .nav-disclosure-trigger button svg { transition: none; } }
+.menu-group-toggle { display: grid; place-items: center; min-width: 44px; height: 44px; border: 1px solid var(--border); cursor: pointer; color: var(--foreground); }
+.menu-group-toggle[aria-expanded=true] { background: var(--secondary); }
+.menu-group-toggle[aria-expanded=true] svg { transform: rotate(180deg); }
+.menu-group-links:not([hidden]) { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; padding: 12px 0 20px; }
+.menu-group-links a { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; font-size: 14px; color: var(--foreground); border-bottom: 1px solid var(--border); }
+.menu-group-links a:hover { color: var(--primary-text); }

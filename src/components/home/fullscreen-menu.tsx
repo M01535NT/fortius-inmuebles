@@ -2,7 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, X } from "lucide-react";
+import { navigationGroups } from "@/data/navigation";
+import { ArrowUpRight, ChevronDown, X } from "lucide-react";
 
 import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { BrandMark } from "@/components/brand/brand-mark";
@@ -34,6 +35,7 @@ type Props = { open: boolean; onClose: () => void };
 
 export function FullscreenMenu({ open, onClose }: Props) {
   const pathname = usePathname() ?? "/";
+  const [expandedGroup, setExpandedGroup] = React.useState<string | null>(null);
   const ref = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
@@ -168,14 +170,18 @@ export function FullscreenMenu({ open, onClose }: Props) {
           <div className="menu-editorial-primary">
             <nav aria-label="Menú principal">
               <ol>
-                {PRIMARY.map((item, i) => (
+                {PRIMARY.map((item, i) => {
+                  const group = navigationGroups.find(group => group.href === item.href || (group.label === "Servicios" && item.href === "/#metodo"));
+                  const expanded = expandedGroup === group?.label;
+                  return (
                   <li key={item.href} data-menu-item>
+                    <div className="flex items-center gap-2">
                     <Link
                       href={item.href}
                       prefetch={open ? null : false}
                       onClick={onClose}
                       aria-current={isCurrent(item.href) ? "page" : undefined}
-                      className="group flex items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
+                      className="group flex min-w-0 flex-1 items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
                     >
                       <span className="font-mono text-xs text-primary-ink">
                         {String(i + 1).padStart(2, "0")}
@@ -188,8 +194,11 @@ export function FullscreenMenu({ open, onClose }: Props) {
                         strokeWidth={1.5}
                       />
                     </Link>
+                    {group && <button type="button" aria-label={`Desplegar ${group.label}`} aria-expanded={expanded} aria-controls={`menu-group-${i}`} onClick={() => setExpandedGroup(expanded ? null : group.label)} className="menu-group-toggle"><ChevronDown size={20} aria-hidden="true" /></button>}
+                    </div>
+                    {group && <ul id={`menu-group-${i}`} hidden={!expanded} className="menu-group-links">{group.links.map(link => <li key={link.href}><Link href={link.href} onClick={onClose}>{link.label}<ArrowUpRight size={14} aria-hidden="true" /></Link></li>)}</ul>}
                   </li>
-                ))}
+                ); })}
               </ol>
 
             </nav>

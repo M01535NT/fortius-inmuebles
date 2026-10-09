@@ -6,25 +6,21 @@ import * as motion from "motion/react-m";
 import { usePathname } from "next/navigation";
 import { useMotionValueEvent, useScroll } from "motion/react";
 
-import { AboutDropdown } from "@/components/navigation/about-dropdown";
+import { NavDropdown } from "@/components/navigation/nav-dropdown";
+import { navigationGroups } from "@/data/navigation";
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
 import type { SiteSettings } from "@/lib/admin/store";
 
-const links = [
-  { href: "/inventario", label: "Propiedades" },
-  { href: "/#metodo", label: "Método" },
-  { href: "/nosotros", label: "Nosotros" },
-  { href: "/herramientas", label: "Herramientas" },
-  { href: "/blog", label: "Blog" },
-];
+
 
 export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boolean }) {
   const reduce = useReducedMotionSafe();
   const pathname = usePathname();
   const { scrollY } = useScroll();
+  const [openGroup, setOpenGroup] = React.useState<string | null>(null);
   const [scrolled, setScrolled] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [menuReady, setMenuReady] = React.useState(false);
@@ -62,16 +58,8 @@ export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boo
         <Link href="/" aria-label="Fortius Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
 
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Principal">
-          {links.map((l) => l.href === "/nosotros" ? <AboutDropdown key={l.href} current={pathname === "/nosotros"} className={"text-sm font-medium transition-colors " + linkClass} /> : (
-            <Link
-              key={l.href}
-              href={l.href}
-              aria-current={pathname === l.href || pathname.startsWith(`${l.href}/`) ? "page" : undefined}
-              className={"text-sm font-medium transition-colors " + linkClass}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {navigationGroups.map(group => <NavDropdown key={group.label} group={group} current={pathname === group.href || (group.label === "Recursos" && pathname.startsWith("/blog"))} open={openGroup === group.label} onOpen={() => setOpenGroup(group.label)} onClose={() => setOpenGroup(null)} className={"text-sm font-medium transition-colors " + linkClass} />)}
+          <Link href="/contacto" className={"nav-contact-link text-sm font-medium " + linkClass}>Contacto</Link>
         </nav>
 
         <div className="flex items-center gap-2.5">
@@ -84,7 +72,7 @@ export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boo
           />
           <button
             type="button"
-            onClick={() => { setMenuReady(true); setMenuOpen(true); }}
+            onClick={() => { setOpenGroup(null); setMenuReady(true); setMenuOpen(true); }}
             aria-label="Abrir menú"
             aria-haspopup="dialog"
             aria-expanded={menuOpen}
