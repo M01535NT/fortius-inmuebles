@@ -12,27 +12,21 @@ import { publicContact } from "@/lib/public-contact";
 
 const sections = [
   { title: "Propiedades", links: [
-    { href: "/inventario", label: "Ver inventario" },
     { href: "/comprar-propiedad", label: "Comprar una propiedad" },
     { href: "/residencial", label: "Residencial" },
     { href: "/comercial", label: "Comercial" },
     { href: "/industrial", label: "Industrial" },
   ] },
   { title: "Trabajar con Fortius", links: [
-    { href: "/vender-propiedad", label: "Vender mi propiedad" },
     { href: "/#metodo", label: "Método" },
-    { href: "/#entregables", label: "Entregables" },
     { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },
     { href: "/#respuestas", label: "Preguntas frecuentes" },
     { href: "/nosotros", label: "Conoce a Fortius" },
   ] },
   { title: "Guías y herramientas", links: [
     { href: "/blog", label: "Blog" },
-    { href: "/blog?tema=vender&tipo=guia", label: "Guías para vender" },
-    { href: "/blog?tema=comprar&tipo=guia", label: "Guías para comprar" },
     { href: "/herramientas/hipoteca", label: "Calculadora de hipoteca" },
     { href: "/herramientas/gastos-de-cierre", label: "Calculadora de gastos de cierre" },
-    { href: "/herramientas", label: "Todas las herramientas" },
   ] },
 ];
 
@@ -46,16 +40,17 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   return (
     <footer className="editorial-footer">
       <div className="editorial-container">
-        <div className="editorial-footer-masthead">
-          <Link href="/" aria-label="Inicio de Fortius Inmuebles"><BrandMark /></Link>
-          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
-            Volver arriba <ArrowUp size={16} aria-hidden="true" />
-          </button>
-        </div>
         <motion.div className="editorial-footer-intro" initial={false}
           whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.65 }}>
-          <h2>Propiedades y recursos.</h2>
-          <Link href="/contacto" className="editorial-text-link">Contactar a Fortius <ArrowUpRight size={18} aria-hidden="true" /></Link>
+          <div className="editorial-footer-invitation">
+            <p className="editorial-footer-eyebrow">Tu próxima propiedad empieza con una conversación.</p>
+            <h2>Hablemos de<br /><em>lo que sigue.</em></h2>
+            <Link href="/contacto" className="editorial-footer-cta">Contactar a Fortius <ArrowUpRight size={22} aria-hidden="true" /></Link>
+          </div>
+          <nav className="editorial-footer-directions" aria-label="Comprar o vender">
+            <Link href="/vender-propiedad"><span><small>Para propietarios</small>Quiero vender</span><ArrowUpRight aria-hidden="true" /></Link>
+            <Link href="/inventario"><span><small>Para compradores</small>Buscar propiedad</span><ArrowUpRight aria-hidden="true" /></Link>
+          </nav>
         </motion.div>
         <div className="editorial-footer-columns">
           {sections.map((section) => (
@@ -77,6 +72,12 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
               <li><Link href="/contacto" className="editorial-footer-link">Opciones de contacto</Link></li>
             </ul>
           </div>
+        </div>
+        <div className="editorial-footer-masthead">
+          <Link href="/" aria-label="Inicio de Fortius Inmuebles" className="editorial-footer-brand"><BrandMark /></Link>
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
+            Volver arriba <ArrowUp size={18} aria-hidden="true" />
+          </button>
         </div>
         <div className="editorial-footer-bottom">
           <p>© {new Date().getFullYear()} Fortius Inmuebles.</p>
