@@ -1,4 +1,5 @@
 import 'server-only';
+import { drawFortiusLetterhead } from './pdf-letterhead';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import fontkit from '@pdf-lib/fontkit';
@@ -11,9 +12,8 @@ export async function createNoticePdf(content: NonNullable<ReturnType<typeof not
   const bold=await pdf.embedFont(await readFile(join(process.cwd(),'public/fonts/Archivo-SemiBold.ttf')), {subset:true});
   const logo=await pdf.embedPng(await readFile(join(process.cwd(),'public/brand/fortius-logo.png')));
   const width=483; let page=pdf.addPage([595,842]);let y=730;
-  function header(){page.drawImage(logo,{x:56,y:765,width:155,height:logo.height/logo.width*155});}
-  header();
-  function room(height:number){if(y-height<66){page=pdf.addPage([595,842]);header();y=725;}}
+
+  function room(height:number){if(y-height<66){page=pdf.addPage([595,842]);y=725;}}
   function paragraph(text:string,size=11,heading=false){
     const font=heading?bold:regular;const words=text.split(/\s+/);const lines:string[][]=[];let line:string[]=[];
     for(const word of words){if(line.length && font.widthOfTextAtSize([...line,word].join(' '),size)>width){lines.push(line);line=[];}line.push(word);}if(line.length)lines.push(line);
@@ -24,6 +24,6 @@ export async function createNoticePdf(content: NonNullable<ReturnType<typeof not
   }
   paragraph(content.title,25,true);y-=8;
   for(const section of content.sections){paragraph(section.title,13,true);for(const text of section.paragraphs)paragraph(text);y-=8;}
-  pdf.getPages().forEach((p,i)=>{p.drawText('Fortius Inmuebles · fortiusinmuebles.com',{x:56,y:36,size:8,font:regular,color:rgb(.35,.38,.42)});p.drawText(`${i+1} / ${pdf.getPageCount()}`,{x:510,y:36,size:8,font:regular});});
+  pdf.getPages().forEach((p,i)=>drawFortiusLetterhead(p,logo,regular,bold,i+1,pdf.getPageCount()));
   return pdf.save();
 }

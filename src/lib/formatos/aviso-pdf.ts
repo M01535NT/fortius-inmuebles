@@ -1,4 +1,5 @@
 import "server-only";
+import { drawFortiusLetterhead } from "../pdf-letterhead";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
@@ -38,8 +39,8 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   const value = (key: string) => clean(data[key]);
   function newPage() {
     page = pdf.addPage(pageSize);
-    page.drawImage(logo, { x: 64.85, y: 712.5, width: 188.65, height: 47.95 });
-    page.drawText("01 / PRIVACIDAD", { x: 484.35, y: 733.45, font: mono, size: 8, color: rgb(89 / 255, 99 / 255, 91 / 255) });
+    if (!options.publicTemplate) page.drawImage(logo, { x: 64.85, y: 712.5, width: 188.65, height: 47.95 });
+    if (!options.publicTemplate) page.drawText("01 / PRIVACIDAD", { x: 484.35, y: 733.45, font: mono, size: 8, color: rgb(89 / 255, 99 / 255, 91 / 255) });
     top = 87;
   }
   function line(text: string, at: number, size = 10.5, font = regular, x = left, color = navy) {
@@ -296,7 +297,8 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   decisions(false);
   if (value("representante")) decisions(true);
   for (const [index, item] of pdf.getPages().entries()) {
-    item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: 63.65, y: 25.3, size: 10.5, font: regular, color: navy });
+    if (options.publicTemplate) drawFortiusLetterhead(item, logo, regular, bold, index + 1, pdf.getPageCount());
+    else item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: 63.65, y: 25.3, size: 10.5, font: regular, color: navy });
   }
   return pdf.save();
 }
