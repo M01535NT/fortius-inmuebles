@@ -84,6 +84,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
         <div className="editorial-footer-bottom">
           <p>© {new Date().getFullYear()} Fortius Inmuebles.</p>
           <nav aria-label="Información legal y administración">
+            <Link href="/avisos" className="editorial-footer-link">Avisos y documentos</Link>
             <Link href="/privacidad" className="editorial-footer-link">Aviso de privacidad</Link>
             <Link href="/terminos" className="editorial-footer-link">Términos y condiciones</Link>
             <DocumentLink href="/admin" className="editorial-footer-link">Acceso al panel</DocumentLink>

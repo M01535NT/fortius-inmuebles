@@ -19,6 +19,7 @@ const PRIMARY = [
   { href: "/herramientas", label: "Herramientas" },
   { href: "/blog", label: "Blog" },
   { href: "/nosotros", label: "Nosotros" },
+  { href: "/avisos", label: "Avisos" },
   { href: "/contacto", label: "Contacto" },
 ];
 

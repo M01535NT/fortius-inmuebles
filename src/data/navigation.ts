@@ -23,5 +23,11 @@ export const navigationGroups = [
     { href: "/herramientas/gastos-de-cierre", label: "Gastos de cierre", detail: "Prepara los números de la operación." },
     { href: "/#respuestas", label: "Preguntas frecuentes", detail: "Resuelve las dudas iniciales." },
   ] },
+  { label: "Avisos", href: "/avisos", heading: "Información a tu alcance.", featured: "Ver documentos", links: [
+    { href: "/avisos#derechos", label: "Derechos del consumidor", detail: "Carta de derechos en PDF." },
+    { href: "/avisos#no-discriminacion", label: "No discriminación", detail: "Nuestra política de atención." },
+    { href: "/privacidad", label: "Privacidad", detail: "Información sobre tus datos." },
+    { href: "/avisos#honorarios", label: "Honorarios y atención", detail: "Información y canales de contacto." },
+  ] },
 ];
 export type NavigationGroup = typeof navigationGroups[number];

@@ -516,3 +516,31 @@
   .contact-team-link { align-items: flex-start; flex-direction: column; margin-top: 32px; }
 }
 @media (prefers-reduced-motion: reduce) { .contact-intent { transition: none; } }
+
+.notices-page { padding-block: 128px 72px; }
+.notices-page h1 { font-family: var(--font-sans); font-size: clamp(40px, 5.5vw, 72px); font-weight: 560; line-height: 1.08; letter-spacing: -.04em; }
+.notices-page header > p:last-child { margin-top: 24px; color: var(--muted-foreground); line-height: 1.8; }
+.notices-list { margin-top: 48px; border-top: 1px solid var(--border); }
+.notices-list article, .notices-privacy { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding-block: 32px; border-bottom: 1px solid var(--border); }
+.notices-page h2 { font-size: clamp(21px, 2.3vw, 30px); font-weight: 550; letter-spacing: -.02em; }
+.notices-page article p, .notices-privacy p { margin-top: 10px; color: var(--muted-foreground); font-size: 14px; line-height: 1.7; }
+.notice-actions { display: flex; gap: 12px; flex-shrink: 0; }
+.notices-page a { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; padding: 12px; font-size: 14px; }
+.notices-page a[download] { background: #8a1634; color: #fff; padding-inline: 18px; }
+.notices-page a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.notices-page a:focus-visible { outline: 2px solid var(--primary-text); outline-offset: 4px; }
+.notices-privacy { margin-top: 16px; }
+.nav-disclosure:last-of-type .nav-disclosure-panel { left: auto; right: 0; transform: none; }
+@media (max-width: 767px) { .notices-page { padding-block: 104px 48px; } .notices-list article, .notices-privacy { flex-direction: column; align-items: flex-start; gap: 20px; } }
+.notices-list article { flex-wrap: wrap; scroll-margin-top: 88px; }
+.notices-list article > div:first-child { flex: 1; min-width: min(280px, 100%); }
+.notice-reading { flex-basis: 100%; }
+.notice-reading summary { cursor: pointer; min-height: 44px; padding-block: 12px; font-size: 14px; color: var(--primary-text); }
+.notice-reading section { max-width: 78ch; padding-block: 16px; }
+.notice-reading h3 { font-weight: 600; font-size: 18px; }
+.privacy-page { max-width: 920px; padding-block: 128px 64px; }
+.privacy-page h1 { font-size: clamp(38px, 5vw, 64px); }
+.privacy-page section { padding-top: 32px; }
+.privacy-page h2 { font-size: 23px; font-weight: 600; }
+.privacy-page section p { font-size: 15px; line-height: 1.85; margin-top: 16px; white-space: pre-line; overflow-wrap: anywhere; }
+.privacy-download { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; margin-top: 24px; color: var(--primary-text); text-decoration: underline; text-underline-offset: 4px; }

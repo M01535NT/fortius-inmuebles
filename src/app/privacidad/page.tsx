@@ -1,25 +1,10 @@
-import type { Metadata } from "next";
-
-import { Container } from "@/components/layout/container";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/privacidad" },
-  title: "Aviso de privacidad",
-  description: "Aviso de privacidad para solicitudes inmobiliarias.",
-};
-
-export default function PrivacidadPage() {
-  return (
-    <main className="bg-background pt-32">
-      <Container className="max-w-3xl py-16">
-        <h1 className="display-title text-5xl md:text-7xl">Aviso de privacidad.</h1>
-        <div className="mt-8 space-y-5 text-sm leading-7 text-muted-foreground">
-          <p>
-            La informacion enviada mediante formularios se utilizara unicamente para dar seguimiento
-            a solicitudes inmobiliarias, diagnosticos, contacto comercial y orientacion inicial.
-          </p>
-        </div>
-      </Container>
-    </main>
-  );
-}
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Download } from 'lucide-react';
+import { privacyNotice } from '@/data/privacy-notice';
+export const metadata:Metadata={title:'Aviso de privacidad',description:'Responsable, tratamiento de datos, derechos y decisiones de consentimiento de Fortius Inmuebles.',alternates:{canonical:'/privacidad'}};
+export default function PrivacidadPage(){return <main className="editorial-container privacy-page">
+  <header><p className="contact-eyebrow">Fortius Inmuebles</p><h1 className="display-title">Aviso de privacidad.</h1><a href="/avisos/privacidad.pdf" download className="privacy-download">Descargar PDF <Download size={18} aria-hidden="true" /></a></header>
+  {privacyNotice.sections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.paragraphs.map((p,i)=><p key={i}>{p}</p>)}</section>)}
+  <Link href="/avisos" className="privacy-download">Volver a Avisos</Link>
+</main>;}

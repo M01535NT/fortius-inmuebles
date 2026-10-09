@@ -14,7 +14,7 @@ const width = 511;
 const pageSize: [number, number] = [612, 792];
 
 /** Reconstructs the supplied Letter template. Personal data are always supplied by the draft. */
-export async function createAvisoPdf(data: Record<string, unknown>): Promise<Uint8Array> {
+export async function createAvisoPdf(data: Record<string, unknown>, options: { publicTemplate?: boolean } = {}): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
   pdf.setTitle("Aviso de privacidad");
@@ -194,9 +194,10 @@ export async function createAvisoPdf(data: Record<string, unknown>): Promise<Uin
     `Responsable: ${value("responsable")}`,
     `Domicilio: ${value("domicilioResponsable")}`,
     `Atención de privacidad: ${value("contactoPrivacidad")} · ${value("correoPrivacidad")}`,
+    ...(options.publicTemplate ? ["Sitio web: https://fortiusinmuebles.com"] : []),
   ], cream);
   top -= 1.055;
-  paragraph(value("representante") ? `Para ${value("representante")}, ${value("calidadRepresentante") || "representante"} de ${value("titular")}` : `Para ${value("titular")}`, { size: 10, leading: 11.55, gap: 4.855, justify: false });
+  if (!options.publicTemplate) paragraph(value("representante") ? `Para ${value("representante")}, ${value("calidadRepresentante") || "representante"} de ${value("titular")}` : `Para ${value("titular")}`, { size: 10, leading: 11.55, gap: 4.855, justify: false });
   paragraph("La persona identificada arriba, que opera bajo el nombre comercial Fortius Inmuebles, es responsable del tratamiento de sus datos. Este aviso explica qué información utiliza, para qué la necesita y cómo puede usted decidir sobre ella. La marca comercial no sustituye la identidad del responsable.");
   section("01 / A quién se dirige y cómo obtenemos los datos");
   paragraph("Se dirige a quienes solicitan o reciben servicios de intermediación, valoración comercial o administración inmobiliaria, y a sus representantes, copropietarios y obligados solidarios. Recibimos información en entrevistas, visitas, documentos, llamadas, correo y mensajería; también de representantes autorizados, contrapartes de una operación y registros públicos consultados legítimamente. La información de terceros no autoriza usos ajenos a este aviso.");
@@ -241,23 +242,23 @@ export async function createAvisoPdf(data: Record<string, unknown>): Promise<Uin
   paragraph("Puede revocar su consentimiento o solicitar que dejemos de enviarle publicidad mediante el mismo correo o domicilio. Identifique el tratamiento o canal que desea suspender y su medio de respuesta. Para revocación se acreditará la identidad; se atenderá con los requisitos y plazos del procedimiento anterior. La revocación no tiene efectos retroactivos ni elimina obligaciones legales de conservación. Si impide continuar una parte del servicio, se le explicará cuál y por qué. La baja de publicidad se registrará para evitar nuevos envíos por esa finalidad.");
   section("08 / Conservación, seguridad y cambios al aviso");
   paragraph("Los datos se conservarán durante el tiempo necesario para las finalidades informadas y los plazos legales o contractuales aplicables. Al concluir, se bloquearán y suprimirán cuando corresponda. El acceso debe limitarse al personal y proveedores autorizados, con medidas administrativas, técnicas y físicas acordes con el riesgo. Las vulneraciones que afecten significativamente sus derechos se comunicarán conforme a la ley.");
-  paragraph(`Las actualizaciones podrán solicitarse en ${value("correoPrivacidad")} o consultarse en el domicilio del responsable. Se informarán los cambios sustanciales por el medio de contacto registrado y se solicitará un nuevo consentimiento cuando corresponda.`);
+  paragraph(`Las actualizaciones podrán solicitarse en ${value("correoPrivacidad")} o consultarse ${options.publicTemplate ? "en https://fortiusinmuebles.com/privacidad y " : ""}en el domicilio del responsable. Se informarán los cambios sustanciales por el medio de contacto registrado y se solicitará un nuevo consentimiento cuando corresponda.`);
 
   function decisions(own: boolean) {
     const choices = own ? decisionesRepresentante(data) : data;
     const person = own ? value("representante") : value("titular");
     newPage();
     // A long name wraps instead of shrinking or being clipped.
-    const titles = wrap(`Decisiones de ${person}`, 20, bold);
+    const titles = wrap(options.publicTemplate ? "Sus decisiones" : `Decisiones de ${person}`, 20, bold);
     if (!own && value("representante")) top += 1;
     for (const text of titles) { ensure(23.05); centered(text, top, 20); top += 23.05; }
     top += 5.095;
-    paragraph(`Titular: ${person}${own ? ", por su propio derecho" : ""}`, { size: 9.5, leading: 10.95, gap: 0, justify: false });
+    paragraph(`Titular: ${options.publicTemplate ? "________________________________________" : person}${own ? ", por su propio derecho" : ""}`, { size: 9.5, leading: 10.95, gap: 0, justify: false });
     if (!own && value("representante")) paragraph(`Representante: ${value("representante")}`, { size: 9.5, leading: 10.95, gap: 0, justify: false });
-    paragraph(`Operación: ${value("operacion")}`, { size: 9.5, leading: 10.95, gap: 0, justify: false });
+    paragraph(`Operación: ${options.publicTemplate ? "________________________________________" : value("operacion")}`, { size: 9.5, leading: 10.95, gap: 0, justify: false });
     const signedDate = choices.acuseEstado === "firmado_fuera" ? clean(choices.fechaAcuse) : "";
     paragraph(`Fecha de recepción y decisiones: ${signedDate || "__________________"}`, { size: 9.5, leading: 10.95, gap: 5, justify: false });
-    paragraph(own ? `Esta hoja se refiere únicamente a los datos personales propios de ${person}. Sus decisiones no sustituyen las de ${value("titular")}.` : value("representante") ? `Esta hoja corresponde a los datos de ${person}. ${/a$/i.test(value("calidadRepresentante")) ? "La representante" : "El representante"} sólo podrá decidir dentro de las facultades que acredite.` : `Esta hoja corresponde a los datos de ${person}.`, { size: 9.5, leading: 10.85, gap: 5.06, justify: false });
+    paragraph(options.publicTemplate ? "Esta hoja corresponde a los datos del titular que la complete. Si firma un representante, deberá acreditar sus facultades." : own ? `Esta hoja se refiere únicamente a los datos personales propios de ${person}. Sus decisiones no sustituyen las de ${value("titular")}.` : value("representante") ? `Esta hoja corresponde a los datos de ${person}. ${/a$/i.test(value("calidadRepresentante")) ? "La representante" : "El representante"} sólo podrá decidir dentro de las facultades que acredite.` : `Esta hoja corresponde a los datos de ${person}.`, { size: 9.5, leading: 10.85, gap: 5.06, justify: false });
     section("A / Tratamiento de datos patrimoniales o financieros");
     paragraph("Para evaluar y tramitar mi operación y, en su caso, administrar los servicios contratados, consiento expresamente el tratamiento de los datos patrimoniales y financieros descritos en el aviso. Si existe una excepción legal al consentimiento, el responsable deberá identificarla y documentarla; no se presume por firmar la recepción.");
     ensure(12.1);
@@ -287,10 +288,10 @@ export async function createAvisoPdf(data: Record<string, unknown>): Promise<Uin
     top += 7.265;
     centered("D / Recepción del aviso", top, 12); top += 19.635;
     paragraph("Se puso a mi disposición este aviso de privacidad. La firma acredita su recepción y, exclusivamente, las autorizaciones afirmativas que marqué. No implica renuncia a mis derechos ni autorización para obtener un reporte de crédito.");
-    const signer = own ? `${person}, por su propio derecho` : value("representante") ? `${value("representante")}, en representación de ${person}` : `${person}, por su propio derecho`;
+    const signer = options.publicTemplate ? "Nombre del titular o representante: __________________________" : own ? `${person}, por su propio derecho` : value("representante") ? `${value("representante")}, en representación de ${person}` : `${person}, por su propio derecho`;
     paragraph(`${signer}\nFirma: _________________________________________________________`, { size: 10, leading: 11.55, justify: false, keep: true });
-    if (own || !value("representante")) paragraph("Carácter en esta hoja: titular de sus propios datos personales.", { size: 9.5, leading: 10.95, justify: false });
-    else paragraph(`Documento de representación referido: ${value("documentoRepresentante").replace(/[.\s]+$/, "")}. Facultades y vigencia sujetas al cotejo del testimonio íntegro.`, { size: 9, leading: 10.35, justify: false, keep: true });
+    if (!options.publicTemplate && (own || !value("representante"))) paragraph("Carácter en esta hoja: titular de sus propios datos personales.", { size: 9.5, leading: 10.95, justify: false });
+    else if (!options.publicTemplate) paragraph(`Documento de representación referido: ${value("documentoRepresentante").replace(/[.\s]+$/, "")}. Facultades y vigencia sujetas al cotejo del testimonio íntegro.`, { size: 9, leading: 10.35, justify: false, keep: true });
   }
   decisions(false);
   if (value("representante")) decisions(true);

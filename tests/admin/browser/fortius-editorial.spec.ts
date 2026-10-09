@@ -34,7 +34,7 @@ for (const width of [390, 1440]) {
     await page.getByRole("button", { name: "Abrir menú" }).click();
     const menu = page.getByRole("dialog", { name: "Menú", exact: true });
     const primary = menu.getByRole("navigation", { name: "Menú principal", exact: true });
-    await expect(primary.getByRole("link")).toHaveCount(7);
+    await expect(primary.getByRole("link")).toHaveCount(8);
     const shortcuts = menu.getByRole("navigation", { name: "Accesos destacados" });
     await expect(shortcuts.getByRole("link")).toHaveCount(4);
     const sell = shortcuts.getByRole("link", { name: /Vender propiedad/ });

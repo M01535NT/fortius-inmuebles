@@ -57,7 +57,7 @@ export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boo
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
         <Link href="/" aria-label="Fortius Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
 
-        <nav className="hidden items-center gap-6 lg:flex" aria-label="Principal">
+        <nav className="hidden items-center gap-3 lg:flex xl:gap-6" aria-label="Principal">
           {navigationGroups.map(group => <NavDropdown key={group.label} group={group} current={pathname === group.href || (group.label === "Recursos" && pathname.startsWith("/blog"))} open={openGroup === group.label} onOpen={() => setOpenGroup(group.label)} onClose={() => setOpenGroup(null)} className={"text-sm font-medium transition-colors " + linkClass} />)}
           <Link href="/contacto" className={"nav-contact-link text-sm font-medium " + linkClass}>Contacto</Link>
         </nav>

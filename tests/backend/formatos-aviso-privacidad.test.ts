@@ -77,3 +77,14 @@ it("pagina nombres, domicilios, destinatarios y documentos que exceden una hoja"
     }
   }
 });
+
+
+it("publica una plantilla de cuatro páginas sin marcar consentimientos", async () => {
+  const { createAvisoPdf } = await import("@/lib/formatos/aviso-pdf");
+  const pdf = await PDFDocument.load(await createAvisoPdf({ responsable: aviso.responsable, domicilioResponsable: aviso.domicilioResponsable, contactoPrivacidad: aviso.contactoPrivacidad, correoPrivacidad: aviso.correoPrivacidad }, { publicTemplate: true }));
+  expect(pdf.getPageCount()).toBe(4);
+  const content = pdf.getPages()[3].node.Contents();
+  const streams = content instanceof PDFArray ? content.asArray().map(ref => pdf.context.lookup(ref) as PDFRawStream) : [content as PDFRawStream];
+  const operators = streams.map(stream => Buffer.from(decodePDFRawStream(stream).decode()).toString("latin1")).join("\n");
+  expect(operators.match(/0\.9 w/g) ?? []).toHaveLength(0);
+});
