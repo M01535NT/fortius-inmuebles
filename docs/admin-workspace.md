@@ -2,6 +2,8 @@
 
 ## Organización personal
 
+El botón junto al encabezado contrae la barra lateral a iconos o vuelve a expandirla. El borde derecho permite ajustar el ancho entre 224 y 360 px; también admite foco con Tab, flechas izquierda/derecha y Home/End. Doble clic recupera 264 px. El ancho y el estado se conservan por cuenta en ese navegador. En celular se mantiene el menú desplegable con nombres completos.
+
 En el menú lateral, **Organizar módulos** habilita el arrastre en escritorio y los botones Subir/Bajar para teclado y celular. **Restablecer orden** recupera los grupos originales. El orden y las vistas de inventario se conservan por usuario en ese navegador; no se sincronizan entre dispositivos ni alteran los permisos.
 
 La búsqueda del encabezado reúne los registros que el usuario puede consultar y permite crear un inmueble, prospecto, tarea o visita. El panel del día enlaza pendientes, contactos, visitas programadas y expedientes fuera de fecha.

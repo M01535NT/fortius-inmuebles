@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import styles from "./panel.module.css";
 
 export const metadata: Metadata = {
   title: { default: "Panel", template: "%s | Panel Fortius" },
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <AdminShell>{children}</AdminShell>;
+  return <div className={styles.panel}><AdminShell>{children}</AdminShell></div>;
 }

@@ -9,9 +9,9 @@ import { errorMessage, uploadFile, type UploadedFile } from "@/lib/admin/store";
 */
 
 export const btnPrimary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50";
+  "admin-button admin-button-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground active:scale-[0.98] disabled:opacity-50";
 export const btnGhost =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]";
+  "admin-button admin-button-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary active:scale-[0.98]";
 export const btnDanger =
   "inline-flex min-h-11 items-center justify-center rounded-md border border-destructive/40 px-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10";
 export const inputClass =

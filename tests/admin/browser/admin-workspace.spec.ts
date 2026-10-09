@@ -44,6 +44,70 @@ async function fits(page: Page) {
     ),
   ).toBe(true);
 }
+test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/admin");
+  const sidebar = page.locator("#admin-desktop-sidebar");
+  const resize = page.getByRole("separator", { name: "Ancho de la barra lateral" });
+  await expect(resize).toHaveAttribute("aria-valuenow", "264");
+  await resize.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(resize).toHaveAttribute("aria-valuenow", "280");
+  const box = await resize.boundingBox();
+  await page.mouse.move(box!.x + 5, box!.y + 100);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + 45, box!.y + 100);
+  await page.mouse.up();
+  await expect(resize).toHaveAttribute("aria-valuenow", "320");
+  await page.getByRole("button", { name: "Contraer barra lateral" }).click();
+  await expect(sidebar).toHaveAttribute("data-collapsed", "true");
+  await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
+  await fits(page);
+  await page.reload();
+  await expect(sidebar).toHaveAttribute("data-collapsed", "true");
+  await page.getByRole("button", { name: "Expandir barra lateral" }).click();
+  await expect(resize).toHaveAttribute("aria-valuenow", "320");
+  await resize.focus();
+  await page.keyboard.press("End");
+  await expect(resize).toHaveAttribute("aria-valuenow", "360");
+  await page.keyboard.press("Home");
+  await expect(resize).toHaveAttribute("aria-valuenow", "224");
+  await fits(page);
+});
+test("form controls have readable contrast in both themes", async ({ page }, info) => {
+  await page.goto("/admin/propiedades/audit-casa/editar");
+  await expect(page.locator("main h1")).toBeVisible();
+  for (const dark of [false, true]) {
+    await page.evaluate((value) => document.documentElement.classList.toggle("dark", value), dark);
+    // Allow surface transitions to reach their final colors.
+    await page.waitForTimeout(200);
+    const results = await page.evaluate(() => {
+      const luminance = (color: string) => {
+        const values = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map((value) => {
+          const channel = value / 255;
+          return channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4;
+        });
+        return values[0] * .2126 + values[1] * .7152 + values[2] * .0722;
+      };
+      const contrast = (a: string, b: string) => {
+        const x = luminance(a), y = luminance(b);
+        return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+      };
+      return Array.from(document.querySelectorAll("main input:not([type=hidden]):not([type=checkbox]):not([type=radio]), main textarea, main select, main .admin-button-primary, main .admin-button-secondary"))
+        .filter((element) => (element as HTMLElement).offsetWidth > 0 && !(element as HTMLInputElement).disabled)
+        .map((element) => {
+          const style = getComputedStyle(element);
+          return { text: contrast(style.color, style.backgroundColor), edge: contrast(style.borderTopColor, style.backgroundColor), field: element.matches("input,textarea,select") };
+        });
+    });
+    expect(results.length).toBeGreaterThan(5);
+    for (const result of results) {
+      expect(result.text).toBeGreaterThanOrEqual(4.5);
+      if (result.field) expect(result.edge).toBeGreaterThanOrEqual(3);
+    }
+    await page.screenshot({ path: info.outputPath(`form-${dark ? "dark" : "light"}.png`) });
+  }
+});
 test("quick creation works repeatedly from the current module", async ({
   page,
 }) => {

@@ -19,12 +19,16 @@ export function WorkspaceNavigation({
   role,
   pathname,
   onNavigate,
+  collapsed = false,
+  onExpand,
 }: {
   modules: AdminModule[];
   userId: string;
   role: string;
   pathname: string;
   onNavigate: () => void;
+  collapsed?: boolean;
+  onExpand?: () => void;
 }) {
   const allowed = modules.filter((m) => !m.adminOnly || role === "admin");
   const key = `fortius:modules:${userId}`;
@@ -56,7 +60,7 @@ export function WorkspaceNavigation({
           const previous = allowed.find((m) => m.href === ids[index - 1]);
           return (
             <React.Fragment key={id}>
-              {!custom && previous?.group !== item.group && (
+              {!collapsed && !custom && previous?.group !== item.group && (
                 <p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.group}
                 </p>
@@ -80,6 +84,8 @@ export function WorkspaceNavigation({
               >
                 <Link
                   href={id}
+                  aria-label={item.label}
+                  title={collapsed ? item.label : undefined}
                   onClick={onNavigate}
                   aria-current={
                     (
@@ -93,9 +99,9 @@ export function WorkspaceNavigation({
                   className="flex min-h-11 min-w-0 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-foreground/75 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary aria-[current=page]:text-foreground"
                 >
                   <Icon className="size-4 shrink-0" strokeWidth={1.5} />
-                  <span className="break-words">{item.label}</span>
+                  <span className={collapsed ? "sr-only" : "break-words"}>{item.label}</span>
                 </Link>
-                {editing && (
+                {editing && !collapsed && (
                   <div className="flex items-center justify-between gap-1 px-2 pb-2">
                     <span
                       draggable
@@ -150,12 +156,14 @@ export function WorkspaceNavigation({
       <button
         className={btnGhost + " mt-4 w-full"}
         aria-expanded={editing}
+        aria-label={editing && !collapsed ? "Terminar organización" : "Organizar módulos"}
+        title={collapsed ? "Organizar módulos" : undefined}
         type="button"
-        onClick={() => setEditing(!editing)}
+        onClick={() => { if (collapsed) { onExpand?.(); setEditing(true); } else setEditing(!editing); }}
       >
-        {editing ? "Terminar organización" : "Organizar módulos"}
+        {collapsed ? <GripVertical size={20} /> : editing ? "Terminar organización" : "Organizar módulos"}
       </button>
-      {editing && (
+      {editing && !collapsed && (
         <>
           <p className="mt-2 px-1 text-xs text-muted-foreground">
             Arrastra o usa las flechas. El orden se guarda para tu cuenta en

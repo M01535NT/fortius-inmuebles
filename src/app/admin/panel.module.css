@@ -1,0 +1,65 @@
+.panel {
+  --background: #f0f3f8;
+  --foreground: #10243d;
+  --card: #ffffff;
+  --secondary: #dce5ef;
+  --muted-foreground: #43546b;
+  --border: #a5b1c1;
+  --input: #61738a;
+  --primary: #8a1634;
+  --primary-foreground: #ffffff;
+  --field-surface: #e0e8f2;
+  --control-edge: #61738a;
+  --focus-color: #174f94;
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.55;
+}
+:global(.dark) .panel {
+  --background: #080f1c;
+  --foreground: #f3f6fc;
+  --card: #121e30;
+  --secondary: #2c405a;
+  --muted-foreground: #c1ccdb;
+  --border: #596e87;
+  --input: #92a7c2;
+  --field-surface: #24364e;
+  --control-edge: #92a7c2;
+  --focus-color: #aacfff;
+}
+.panel :is(h1, h2, h3) { font-variation-settings: "wdth" 100; }
+.panel h1 { font-family: var(--font-sans); font-size: clamp(1.75rem, 2.3vw, 2rem); font-weight: 750; line-height: 1.2; letter-spacing: -.025em; text-transform: none; }
+.panel h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 700; line-height: 1.35; letter-spacing: -.015em; }
+.panel h3 { font-family: var(--font-sans); font-size: 1.125rem; font-weight: 650; line-height: 1.4; }
+.panel label { font-weight: 650; color: var(--foreground); }
+.panel label ~ p { font-size: .875rem; line-height: 1.5; }
+.panel :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]), textarea, select) {
+  background: var(--field-surface);
+  color: var(--foreground);
+  border: 1.5px solid var(--control-edge);
+  border-radius: 6px;
+  box-shadow: inset 0 2px 3px #061f3f12;
+  font-size: 1rem;
+}
+.panel :is(input, textarea)::placeholder { color: var(--muted-foreground); opacity: 1; }
+.panel :is(button, a, input, textarea, select, [role=separator]):focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
+.panel :is(button, a):global(.admin-button) { border: 1px solid var(--control-edge); box-shadow: 0 2px 0 #061f3f25, inset 0 1px 0 #ffffff25; font-weight: 650; }
+.panel :global(.admin-button-secondary), .panel :global(.admin-sidebar-toggle) { background: var(--secondary); color: var(--foreground); border: 1px solid var(--control-edge); border-radius: 6px; }
+.panel :global(.admin-button-primary) { background: #8a1634; color: #fff; border-color: #8a1634; }
+:global(.dark) .panel :global(.admin-button-primary) { border-color: #cf8b9c; }
+.panel :global(.admin-button):not(:disabled):hover { filter: brightness(.94); }
+:global(.dark) .panel :global(.admin-button):not(:disabled):hover { filter: brightness(1.15); }
+.panel :global(.admin-button):disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+.panel :global(.admin-sidebar) { background: var(--card); }
+.panel :global(.admin-sidebar) > div:first-child { background: #fff; }
+.panel :global(.admin-sidebar) > div:first-child span { color: #43546b; }
+.panel :global(.admin-sidebar) [aria-current=page] { background: #173655; color: #fff; box-shadow: inset 3px 0 0 #cf8b9c; }
+.panel :global(.admin-sidebar) nav a:hover { background: var(--secondary); color: var(--foreground); }
+.panel :global(.admin-sidebar)[data-collapsed=true] :global(.admin-sidebar-label) { display: none; }
+.panel :global(.admin-sidebar)[data-collapsed=true] nav { padding-inline: 10px; }
+.panel :global(.admin-sidebar)[data-collapsed=true] :is(a, button) { justify-content: center; padding-inline: 8px; gap: 0; }
+.panel :global(.admin-sidebar-toggle) { align-items: center; justify-content: center; flex-shrink: 0; }
+.panel :global(.admin-sidebar-resize) { position: absolute; top: 0; right: -5px; bottom: 0; width: 10px; cursor: col-resize; touch-action: none; z-index: 40; }
+.panel :global(.admin-sidebar-resize)::after { content: ""; position: absolute; top: 45%; bottom: 45%; left: 3px; width: 3px; border-radius: 3px; background: var(--control-edge); }
+.panel :global(.admin-sidebar-resize):hover::after, .panel :global(.admin-sidebar-resize):focus-visible::after { top: 0; bottom: 0; background: var(--focus-color); }
+@media (prefers-reduced-motion: no-preference) { .panel :is(button, input, select, textarea) { transition: background-color 150ms, box-shadow 150ms; } }

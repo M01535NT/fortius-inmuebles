@@ -27,6 +27,7 @@ import {
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
+import { SidebarResize, SidebarToggle, useSidebarPreference } from "@/components/admin/workspace/sidebar";
 import {
   AsyncForm,
   AsyncButton,
@@ -220,6 +221,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
   const sessionId = session?.id;
+  const [sidebar, setSidebar] = useSidebarPreference(sessionId ?? "guest");
   const [checking, setChecking] = React.useState(true);
   const [passwordMode, setPasswordMode] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -357,7 +359,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   const links = (mobile = false) => (
     <>
-      <WorkspaceNavigation key={session.id} modules={NAV.map(item => ({ ...item, group: ["Blog", "Archivos", "Contenido"].includes(item.label) ? "Publicación" : ["Configuración", "Asesores", "Reportes", "Historial"].includes(item.label) ? "Administración" : "Operación" })).sort((a,b)=>["Operación","Publicación","Administración"].indexOf(a.group)-["Operación","Publicación","Administración"].indexOf(b.group))} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
+      <WorkspaceNavigation key={session.id} collapsed={!mobile && sidebar.collapsed} onExpand={() => setSidebar({ ...sidebar, collapsed: false })} modules={NAV.map(item => ({ ...item, group: ["Blog", "Archivos", "Contenido"].includes(item.label) ? "Publicación" : ["Configuración", "Asesores", "Reportes", "Historial"].includes(item.label) ? "Administración" : "Operación" })).sort((a,b)=>["Operación","Publicación","Administración"].indexOf(a.group)-["Operación","Publicación","Administración"].indexOf(b.group))} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
       {mobile ? (
         <>
           <DocumentLink
@@ -378,10 +380,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   );
   return (
     <div className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
-      <aside className="sticky top-0 hidden h-[100dvh] w-[244px] shrink-0 flex-col border-r border-border md:flex">
+      <aside id="admin-desktop-sidebar" data-collapsed={sidebar.collapsed} style={{ width: sidebar.collapsed ? 76 : sidebar.width }} className="admin-sidebar sticky top-0 hidden h-[100dvh] shrink-0 flex-col border-r border-border md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <BrandMark />
-          <span className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+          <BrandMark variant={sidebar.collapsed ? "symbol" : "full"} className="min-w-0 shrink" />
+          <span className="admin-sidebar-label font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
             Panel
           </span>
         </div>
@@ -394,24 +396,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="space-y-2 border-t border-border p-3">
           <DocumentLink
             href="/"
+            aria-label="Ver sitio"
+            title="Ver sitio"
             className="flex min-h-11 items-center gap-3 px-3 text-sm"
           >
             <ExternalLink className="size-4" />
-            Ver sitio
+            <span className="admin-sidebar-label">Ver sitio</span>
           </DocumentLink>
           <AsyncButton
             type="button"
             onClick={leave}
+            aria-label="Salir"
+            title="Salir"
             className={btnGhost + " w-full"}
           >
             <LogOut className="size-4" />
-            Salir
+            <span className="admin-sidebar-label">Salir</span>
           </AsyncButton>
         </div>
+        {!sidebar.collapsed && <SidebarResize width={sidebar.width} onResize={(width) => setSidebar({ ...sidebar, width })} />}
       </aside>
       <div className="min-w-0 flex-1">
         <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
           <div className="flex min-h-16 items-center justify-between gap-3 px-5 md:px-8">
+            <SidebarToggle collapsed={sidebar.collapsed} onToggle={() => setSidebar({ ...sidebar, collapsed: !sidebar.collapsed })} />
             <button
               ref={menuTrigger}
               type="button"
