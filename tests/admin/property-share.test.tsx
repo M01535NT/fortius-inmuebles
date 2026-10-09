@@ -65,7 +65,7 @@ test.each(["http://localhost:3001", "http://127.0.0.1:3001", "http://[::1]:3001"
   try {
     siteConfig.url = origin;
     const share = propertyShare(propiedades[0]);
-    expect(new URL(share.url).origin).toBe("https://fortius-inmuebles.vercel.app");
+    expect(new URL(share.url).origin).toBe("https://fortiusinmuebles.com");
     expect(share.image).toBe(`${share.url}/imagen-social`);
   } finally { siteConfig.url = previous; }
 });

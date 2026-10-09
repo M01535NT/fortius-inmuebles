@@ -69,7 +69,7 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
-  expect(await config.redirects?.()).toHaveLength(3);
+  expect(await config.redirects?.()).toHaveLength(5);
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
@@ -107,7 +107,7 @@ test.each(publicPages)("public page %s declares its own canonical path", async (
 });
 test.each([
   ["https://fortius-inmuebles.vercel.app", "https://fortius-inmuebles.vercel.app"],
-  ["http://localhost:3001", "https://fortius-inmuebles.vercel.app"],
+  ["http://localhost:3001", "https://fortiusinmuebles.com"],
   ["https://inmuebles.example.org", "https://inmuebles.example.org"],
 ])("dynamic details share public canonical and OG URLs from %s while keeping demo noindex", async (configuredUrl, publicOrigin) => {
   siteConfig.url = configuredUrl;
