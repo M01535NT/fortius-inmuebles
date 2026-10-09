@@ -544,3 +544,13 @@
 .privacy-page h2 { font-size: 23px; font-weight: 600; }
 .privacy-page section p { font-size: 15px; line-height: 1.85; margin-top: 16px; white-space: pre-line; overflow-wrap: anywhere; }
 .privacy-download { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; margin-top: 24px; color: var(--primary-text); text-decoration: underline; text-underline-offset: 4px; }
+
+/* Footer social profiles use the public settings, never placeholder accounts. */
+.editorial-footer-identity { display: grid; justify-items: start; gap: 20px; }
+.editorial-footer-socials { display: flex; flex-wrap: wrap; gap: 10px; }
+.editorial-footer-socials a, .editorial-footer-social-pending { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border: 1px solid #718094; border-radius: 50%; color: #f5f1e9; background: #101e30; transition: background-color .2s, border-color .2s, transform .2s; }
+.editorial-footer-socials a:hover { background: #8a1634; border-color: #c15a76; transform: translateY(-3px); }
+.editorial-footer-socials a:focus-visible { outline: 2px solid #f5f1e9; outline-offset: 4px; background: #8a1634; }
+@media (prefers-reduced-motion: reduce) { .editorial-footer-socials a { transition: none; } .editorial-footer-socials a:hover { transform: none; } }
+
+.editorial-footer-social-pending { color: #a8b3c1; border-style: dashed; background: transparent; }
