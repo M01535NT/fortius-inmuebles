@@ -11,12 +11,7 @@ import { usePublicFeatures } from "@/components/providers/public-features-provid
 import { publicContact } from "@/lib/public-contact";
 import { MessagingActions } from "@/components/contact/messaging-actions";
 
-/*
-  Menú a pantalla completa. Se revela con un clip-path circular que nace
-  en la esquina superior derecha (donde vive el botón de menú) y se
-  expande hasta cubrir el viewport. Enlaces display grandes a la
-  izquierda; cuatro accesos a servicios y contacto a la derecha.
-*/
+/* Full-width curtain from the top; content follows in a short descending stagger. */
 const PRIMARY = [
   { href: "/", label: "Inicio" },
   { href: "/inventario", label: "Propiedades" },
@@ -27,9 +22,8 @@ const PRIMARY = [
   { href: "/contacto", label: "Contacto" },
 ];
 
-/* El círculo nace donde está el botón de menú (esquina superior derecha). */
-const CLIP_CLOSED = "circle(0px at calc(100% - 52px) 32px)";
-const CLIP_OPEN = "circle(150% at calc(100% - 52px) 32px)";
+const CLIP_CLOSED = "inset(0% 0% 100% 0%)";
+const CLIP_OPEN = "inset(0% 0% 0% 0%)";
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -64,7 +58,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
       if (e.key !== "Tab") return;
       const focusable = Array.from(
         ref.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [],
-      ).filter((element) => !element.hasAttribute("disabled"));
+      ).filter((element) => !element.hasAttribute("disabled") && element.getClientRects().length > 0);
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -104,25 +98,25 @@ export function FullscreenMenu({ open, onClose }: Props) {
           tl.set("[data-menu-item], [data-menu-panel]", { clearProps: "all" });
           return;
         }
-        tl.to(el, { clipPath: CLIP_OPEN, duration: 0.75, ease: "power3.inOut" })
+        tl.to(el, { clipPath: CLIP_OPEN, duration: 0.65, ease: "power3.inOut" })
           .fromTo(
             "[data-menu-item]",
-            { y: 70, rotation: 3, opacity: 0 },
+            { y: -24, rotation: 0, opacity: 0 },
             {
               y: 0,
               rotation: 0,
               opacity: 1,
-              duration: 0.7,
+              duration: 0.5,
               ease: EASE_OUT,
-              stagger: 0.055,
+              stagger: 0.045,
               transformOrigin: "0% 100%",
             },
-            "-=0.3",
+            "-=0.35",
           )
           .fromTo(
             "[data-menu-panel]",
-            { scale: 1.06, opacity: 0 },
-            { scale: 1, opacity: 1, duration: 0.8, ease: EASE_OUT },
+            { y: -18, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.55, stagger: 0.04, ease: EASE_OUT },
             "<0.1",
           );
       } else {
@@ -146,7 +140,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
       aria-modal="true"
       aria-label="Menú"
       style={{ clipPath: CLIP_CLOSED }}
-      className="invisible fixed inset-0 z-50 overflow-y-auto scroll-pt-20 bg-background"
+      className="menu-curtain invisible fixed inset-0 z-50 overflow-y-auto scroll-pt-20 bg-background"
     >
       {/* Cabecera del overlay: marca + cerrar en el mismo punto del botón. */}
       <div className="sticky top-0 z-10 border-b border-border bg-background">
@@ -183,9 +177,6 @@ export function FullscreenMenu({ open, onClose }: Props) {
                       aria-current={isCurrent(item.href) ? "page" : undefined}
                       className="group flex min-w-0 flex-1 items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
                     >
-                      <span className="font-mono text-xs text-primary-ink">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
                       <span className="display-title text-[clamp(1.875rem,6.5vw,3.5rem)] text-foreground/85 transition-colors duration-300 group-hover:text-foreground">
                         {item.label}
                       </span>
