@@ -64,7 +64,7 @@ export default function HerramientasPage() {
 
         <p className="mt-10 text-base text-muted-foreground">
           ¿Quieres vender tu propiedad?{" "}
-          <Link href="/#evaluar" className="font-medium text-primary-ink underline-offset-4 hover:underline">
+          <Link href="/vender-propiedad" className="font-medium text-primary-ink underline-offset-4 hover:underline">
             Solicita una evaluación sin compromiso
           </Link>
           .

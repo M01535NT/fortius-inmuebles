@@ -173,10 +173,10 @@ export function Hero({ content }: { content?: SiteContent | null }) {
           className="hero-copy-entry mt-8 flex flex-wrap items-center gap-3"
         >
           <MessagingActions message="Hola, quiero conversar sobre una propiedad con Fortius Inmuebles." fallback={kinetic ? (
-            <MagneticCta href="#evaluar">Quiero vender mi propiedad</MagneticCta>
+            <MagneticCta href="/vender-propiedad">Quiero vender mi propiedad</MagneticCta>
           ) : (
             <a
-              href="#evaluar"
+              href="/vender-propiedad"
               className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
             >
               Quiero vender mi propiedad

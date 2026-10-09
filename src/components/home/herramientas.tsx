@@ -23,7 +23,7 @@ const TOOLS = [
     icon: Scale,
     title: "Evaluar mi propiedad",
     text: "Comparte la ubicación y el tipo de inmueble para solicitar una revisión.",
-    href: "#evaluar",
+    href: "/vender-propiedad",
   },
 ];
 

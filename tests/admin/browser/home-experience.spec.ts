@@ -53,9 +53,8 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
     await expect(page.locator("#metodo")).toBeInViewport();
-    await page.locator("#evaluar").scrollIntoViewIfNeeded();
-    await expect(page.locator("#evaluar")).toContainText("El contacto directo estará disponible próximamente.");
-    await expect(page.locator("#evaluar form")).toHaveCount(0);
+    await expect(page.locator("#evaluar")).toHaveCount(0);
+    await expect(page.locator('a[href$="#evaluar"]')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);

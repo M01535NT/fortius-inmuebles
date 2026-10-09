@@ -17,7 +17,7 @@ type InteriorPageProps = {
   (display type, tokens, hairline lists), calmer vibe: no photo, the
   typography carries the page.
 */
-export function InteriorPage({ title, description, bullets, primary = { href: "/#evaluar", label: "Evaluar mi propiedad" }, secondary = { href: "/#metodo", label: "Conocer el método" } }: InteriorPageProps) {
+export function InteriorPage({ title, description, bullets, primary = { href: "/vender-propiedad", label: "Evaluar mi propiedad" }, secondary = { href: "/#metodo", label: "Conocer el método" } }: InteriorPageProps) {
   return (
     <section className="interior-page bg-background pt-28 md:pt-32">
       <Container className="grid gap-12 pb-16 md:gap-14 md:pb-24 lg:grid-cols-12">

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { EditorialAdvisor } from "@/components/home/editorial-advisor";
-import { Evaluar } from "@/components/home/evaluar";
 import { MethodTimeline } from "@/components/home/method-timeline";
 import { EditorialImageReveal } from "@/components/home/editorial-image-reveal";
 import { EditorialHero } from "@/components/home/editorial-hero";
@@ -28,7 +27,6 @@ export default async function HomePage() {
       <Respuestas content={content} />
       <EditorialTools />
       <EditorialAdvisor />
-      <Evaluar content={content} />
     </EditorialHome>
   );
 }

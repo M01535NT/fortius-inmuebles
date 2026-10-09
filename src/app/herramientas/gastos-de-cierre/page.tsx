@@ -37,7 +37,7 @@ export default function GastosDeCierrePage() {
 
         <p className="mt-8 text-base text-muted-foreground">
           ¿Quieres preparar los números de tu operación?{" "}
-          <Link href="/#evaluar" className="font-medium text-primary-ink underline-offset-4 hover:underline">
+          <Link href="/vender-propiedad" className="font-medium text-primary-ink underline-offset-4 hover:underline">
             Empieza con una evaluación
           </Link>
           .
