@@ -1,4 +1,10 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
+
+function primaryMenuLink(menu: Locator, href: string) {
+  const primary = menu.getByRole("navigation", { name: "Menú principal", exact: true });
+  // Role queries exclude collapsed submenu links with the same destination.
+  return primary.getByRole("link").and(primary.locator(`a[href="${href}"]`));
+}
 
 const sections = [
   "/", "/inventario", "/residencial", "/comercial", "/industrial",
@@ -30,9 +36,9 @@ for (const width of [375, 1440]) {
       const menu = page.getByRole("dialog", { name: "Menú", exact: true });
       await expect(menu, path).toBeVisible();
       for (const destination of menuRoutes) {
-        await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${destination}"]`), `${path} → ${destination}`).toHaveCount(1);
+        await expect(primaryMenuLink(menu, destination), `${path} → ${destination}`).toHaveCount(1);
       }
-      if (menuRoutes.includes(path)) await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${path}"]`)).toHaveAttribute("aria-current", "page");
+      if (menuRoutes.includes(path)) await expect(primaryMenuLink(menu, path)).toHaveAttribute("aria-current", "page");
       await menu.getByRole("button", { name: "Cerrar menú" }).click();
       await expect(menu).toBeHidden();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
@@ -58,7 +64,7 @@ test("leaving an initially loaded admin page restores public navigation", async 
   await expect(page).toHaveURL(/\/inventario$/);
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
-  await menu.locator('nav[aria-label="Menú principal"] a[href="/contacto"]').click();
+  await primaryMenuLink(menu, "/contacto").click();
   await expect(page).toHaveURL(/\/contacto$/);
   await expect(menu).toBeHidden();
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
@@ -120,20 +126,50 @@ test("short phone screens can reach the first footer navigation link", async ({ 
   await expect(page).toHaveURL(/\/blog$/);
 });
 
+for (const reducedMotion of ["no-preference", "reduce"] as const) {
+  test(`fullscreen menu traps keyboard focus and restores its trigger with ${reducedMotion} motion`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion });
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/inventario");
+    const trigger = page.getByRole("button", { name: "Abrir menú" });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const menu = page.getByRole("dialog", { name: "Menú", exact: true });
+    const close = menu.getByRole("button", { name: "Cerrar menú" });
+    const lastLink = menu.getByRole("navigation", { name: "Accesos destacados" }).getByRole("link").last();
+    await expect(close).toBeFocused();
+    await lastLink.focus();
+    await page.keyboard.press("Tab");
+    await expect(close).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(lastLink).toBeFocused();
+    // Interior navigation still uses the browser's normal tab order.
+    await close.focus();
+    await page.keyboard.press("Tab");
+    const firstLink = primaryMenuLink(menu, "/");
+    await expect(firstLink).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(close).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+}
+
 test("inventory menu keeps primary links accessible and restores focus when closing", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/inventario");
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
-  for (const destination of menuRoutes) await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${destination}"]`)).toHaveCount(1);
+  for (const destination of menuRoutes) await expect(primaryMenuLink(menu, destination)).toHaveCount(1);
   await expect(menu.locator("[data-menu-item]").last()).toHaveCSS("opacity", "1");
-  const contact = menu.locator('nav[aria-label="Menú principal"] a[href="/contacto"]');
+  const contact = primaryMenuLink(menu, "/contacto");
   await contact.scrollIntoViewIfNeeded();
   const close = menu.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeInViewport();
   await close.focus();
   await page.keyboard.press("Tab");
-  const firstLink = menu.locator('nav[aria-label="Menú principal"] a[href="/"]');
+  const firstLink = primaryMenuLink(menu, "/");
   await expect(firstLink).toBeFocused();
   await expect.poll(() => firstLink.evaluate((node) => {
     const rect = node.getBoundingClientRect();

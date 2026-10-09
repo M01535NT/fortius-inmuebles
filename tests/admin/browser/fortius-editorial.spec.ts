@@ -165,12 +165,15 @@ test("stale comparison choices never block current inventory", async ({ page }) 
 
 test("interior routes provide useful next actions and honest media", async ({ page }) => {
   await page.goto('/contacto', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'Cuéntanos qué quieres resolver.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /¿Compras o vendes\?\s*Hablemos\./ })).toBeVisible();
+  const sell = page.getByRole('radio', { name: /^Quiero vender/ });
   await page.getByText('Quiero vender', { exact: true }).click();
-  await expect(page.getByLabel('Quiero vender')).toBeChecked();
+  await expect(sell).toBeChecked();
+  await expect(page.getByRole('heading', { name: 'Hablemos de la venta de tu propiedad.' })).toBeVisible();
 
   await page.goto('/nosotros', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'Conoce a Fortius.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Personas detrás\s*de cada operación\./ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Conoce a tu asesor.' })).toBeVisible();
   await expect(page.getByText('Espacio reservado para el video institucional.')).toHaveCount(0);
 
   await page.goto('/residencial', { waitUntil: 'domcontentloaded' });
