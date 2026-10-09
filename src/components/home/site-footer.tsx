@@ -21,7 +21,9 @@ const sections = [
     { href: "/#metodo", label: "Método" },
     { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },
     { href: "/#respuestas", label: "Preguntas frecuentes" },
-    { href: "/nosotros", label: "Conoce a Fortius" },
+    { href: "/nosotros", label: "Nosotros" },
+    { href: "/nosotros#agentes", label: "Agentes" },
+    { href: "/nosotros#identidad", label: "Misión, visión y valores" },
   ] },
   { title: "Guías y herramientas", links: [
     { href: "/blog", label: "Blog" },

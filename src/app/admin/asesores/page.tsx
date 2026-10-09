@@ -25,11 +25,7 @@ import {
   type Asesor,
 } from "@/lib/admin/store";
 
-/*
-  Equipo de asesores: perfiles que se muestran en el detalle de propiedad
-  y reciben la asignación de leads. Sin fotos hasta tener retratos reales
-  (guardrail): el avatar público es un círculo de iniciales.
-*/
+/* Internal assignments and explicitly published profiles are managed separately. */
 function Editor({
   asesor: source,
   onDone,
@@ -61,6 +57,11 @@ function Editor({
         whatsapp: String(data.get("whatsapp") ?? "") || undefined,
         email: String(data.get("email") ?? "") || undefined,
         activo: data.get("activo") === "on",
+        perfilPublico: {
+          publicado: data.get("publicado") === "on",
+          descripcion: String(data.get("descripcion") ?? ""),
+          ...Object.fromEntries(["foto", "telefono", "whatsapp", "email", "instagram", "facebook", "linkedin"].map(key => [key, String(data.get(`publico-${key}`) ?? "")])),
+        },
       },
       version,
     );
@@ -136,6 +137,15 @@ function Editor({
           />
         </Field>
       </div>
+      <fieldset className="space-y-4 rounded-lg border border-border p-4">
+        <legend className="px-2 font-semibold">Ficha pública en Nosotros</legend>
+        <p className="text-sm text-muted-foreground">Estos datos se publican solo si activas la ficha. Los contactos internos de arriba no se muestran automáticamente.</p>
+        <Field label="Descripción profesional" htmlFor="as-descripcion"><textarea id="as-descripcion" name="descripcion" maxLength={2000} rows={4} defaultValue={asesor?.perfilPublico?.descripcion} className={inputClass} /></Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {([['foto', 'URL de fotografía pública'], ['telefono', 'Teléfono público'], ['whatsapp', 'WhatsApp público (URL o número)'], ['email', 'Correo público'], ['instagram', 'Instagram (URL)'], ['facebook', 'Facebook (URL)'], ['linkedin', 'LinkedIn (URL)']] as const).map(([key, label]) => <Field key={key} label={label} htmlFor={`as-publico-${key}`}><input id={`as-publico-${key}`} name={`publico-${key}`} type={key === 'email' ? 'email' : ['foto', 'instagram', 'facebook', 'linkedin'].includes(key) ? 'url' : 'text'} defaultValue={asesor?.perfilPublico?.[key]} className={inputClass} /></Field>)}
+        </div>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="publicado" defaultChecked={asesor?.perfilPublico?.publicado ?? false} className="size-4" />Publicar esta ficha y sus datos de contacto en Nosotros</label>
+      </fieldset>
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input
           type="checkbox"

@@ -30,6 +30,9 @@ const data = {
 createServer(async (request, response) => {
   const url = new URL(request.url, `http://127.0.0.1:${port}`);
   if (request.method === "GET" && url.pathname === "/health") return response.end("ok");
+  if (request.method === "GET" && url.pathname === "/rest/v1/fortius_inmuebles_records" && url.searchParams.get("collection") === "eq.asesores") {
+    response.setHeader("Content-Type", "application/json"); return response.end("[]");
+  }
   if (request.method !== "POST" || url.pathname !== "/rest/v1/rpc/fortius_inmuebles_public_records") {
     response.writeHead(404); return response.end();
   }

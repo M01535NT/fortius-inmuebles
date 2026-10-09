@@ -13,6 +13,7 @@ export type { Cliente } from "@/lib/backend/contracts";
 export type AdminProperty = Property;
 
 export type Asesor = AsesorBase & {
+  perfilPublico?: { publicado: boolean; descripcion: string; foto?: string; telefono?: string; whatsapp?: string; email?: string; instagram?: string; facebook?: string; linkedin?: string };
   telefono?: string;
   whatsapp?: string;
   email?: string;

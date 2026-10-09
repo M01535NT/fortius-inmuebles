@@ -38,7 +38,21 @@ const propertySchema = z.object({
   documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["disponible", "apartada", "vendida", "rentada"]), publicadaEl: date,
   demo: z.boolean(), publicada: z.boolean().default(false),
 }).passthrough();
-const adviserSchema = z.object({ id, nombre: name, cargo: short, iniciales: z.string().max(10), telefono: short.optional(), whatsapp: short.optional(), email, activo: z.boolean() }).passthrough();
+export const adviserProfileSchema = z.object({
+  publicado: z.boolean(), descripcion: z.string().max(2000),
+  foto: optionalUrl, telefono: short.optional(), whatsapp: short.optional(), email,
+  instagram: optionalUrl, facebook: optionalUrl, linkedin: optionalUrl,
+}).strip();
+export function publishedAdviser(value: unknown) {
+  const result = adviserSchema.strip().safeParse(value);
+  if (!result.success || !result.data.activo || !result.data.perfilPublico?.publicado) return null;
+  const { id, nombre, cargo, iniciales, perfilPublico } = result.data;
+  for (const field of ["foto", "instagram", "facebook", "linkedin"] as const) {
+    if (perfilPublico[field] && !isPublicUrl(perfilPublico[field])) delete perfilPublico[field];
+  }
+  return { id, nombre, cargo, iniciales, ...perfilPublico };
+}
+const adviserSchema = z.object({ id, nombre: name, cargo: short, iniciales: z.string().max(10), telefono: short.optional(), whatsapp: short.optional(), email, activo: z.boolean(), perfilPublico: adviserProfileSchema.optional() }).passthrough();
 const origins = ["evaluar", "contacto", "interes-propiedad", "checklist", "documentos", "manual"] as const;
 const leadFields = { nombre: name, telefono: phone, email, propiedadSlug: reference, zona: short.optional(), tipoPropiedad: short.optional(), mensaje: text.optional() };
 const homeTextsSchema = z.object(Object.fromEntries(HOME_TEXT_KEYS.map((key) => [key, z.string().max(4000).optional()]))).strip();

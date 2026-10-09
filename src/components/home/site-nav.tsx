@@ -15,7 +15,7 @@ import type { SiteSettings } from "@/lib/admin/store";
 const links = [
   { href: "/inventario", label: "Propiedades" },
   { href: "/#metodo", label: "Método" },
-  { href: "/#entregables", label: "Entregables" },
+  { href: "/nosotros", label: "Nosotros" },
   { href: "/herramientas", label: "Herramientas" },
   { href: "/blog", label: "Blog" },
 ];
