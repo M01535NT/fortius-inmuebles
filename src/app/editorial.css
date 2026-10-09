@@ -421,3 +421,14 @@
   .about-section { padding-block: 24px 48px; }
   .about-lead { font-size: 16px; }
 }
+
+.about-dropdown { position: relative; }
+.about-dropdown-trigger { display: flex; align-items: center; }
+.about-dropdown-trigger > a { padding-block: 14px; }
+.about-dropdown-trigger > button { display: grid; place-items: center; width: 28px; height: 44px; cursor: pointer; }
+.about-dropdown-panel { position: absolute; top: 100%; left: -16px; width: 190px; padding-top: 8px; }
+.about-dropdown-panel ul { padding: 8px; background: var(--background); color: var(--foreground); border: 1px solid var(--border); box-shadow: 0 16px 40px #00000020; }
+.about-dropdown-panel a { display: flex; align-items: center; min-height: 44px; padding: 10px 14px; font-size: 14px; }
+.about-dropdown-panel a:hover, .about-dropdown-panel a:focus-visible { background: var(--secondary); color: var(--foreground); }
+.about-dropdown :is(a,button):focus-visible { outline: 2px solid var(--primary-text); outline-offset: 2px; }
+.about-page :is(#mision, #vision) { scroll-margin-top: 88px; }

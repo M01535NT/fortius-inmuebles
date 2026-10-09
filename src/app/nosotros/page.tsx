@@ -56,8 +56,8 @@ export default async function NosotrosPage() {
       })}</div>
     </section>
     <section id="identidad" className="about-identity"><div className="editorial-container">
-      <div className="about-purpose"><BlurFade><p className="about-eyebrow">Misión</p><h2>Decidir con información.<br />Avanzar con respaldo.</h2><p>Acompañar la venta y compra de inmuebles con información comprobable, coordinación documental y representación cercana, para que cada cliente entienda sus opciones y decida con claridad.</p></BlurFade>
-      <BlurFade><p className="about-eyebrow">Visión</p><h2>Crecer por la confianza<br />que construimos.</h2><p>Ser una inmobiliaria de referencia en Baja California por la calidad de su asesoría, el orden de sus operaciones y relaciones que continúen después de la firma.</p></BlurFade></div>
+      <div className="about-purpose"><BlurFade id="mision"><p className="about-eyebrow">Misión</p><h2>Decidir con información.<br />Avanzar con respaldo.</h2><p>Acompañar la venta y compra de inmuebles con información comprobable, coordinación documental y representación cercana, para que cada cliente entienda sus opciones y decida con claridad.</p></BlurFade>
+      <BlurFade id="vision"><p className="about-eyebrow">Visión</p><h2>Crecer por la confianza<br />que construimos.</h2><p>Ser una inmobiliaria de referencia en Baja California por la calidad de su asesoría, el orden de sus operaciones y relaciones que continúen después de la firma.</p></BlurFade></div>
       <div id="valores" className="about-values"><h2>Lo que guía nuestro trabajo.</h2><div>{values.map(([title, text])=><BlurFade key={title}><article><h3>{title}</h3><p>{text}</p></article></BlurFade>)}</div></div>
     </div></section>
     <InstitutionalVideo />

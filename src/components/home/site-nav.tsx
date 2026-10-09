@@ -6,6 +6,7 @@ import * as motion from "motion/react-m";
 import { usePathname } from "next/navigation";
 import { useMotionValueEvent, useScroll } from "motion/react";
 
+import { AboutDropdown } from "@/components/navigation/about-dropdown";
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { ThemeToggle } from "@/components/home/theme-toggle";
@@ -61,7 +62,7 @@ export function SiteNav(props: { settings?: SiteSettings | null; solidHome?: boo
         <Link href="/" aria-label="Fortius Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
 
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Principal">
-          {links.map((l) => (
+          {links.map((l) => l.href === "/nosotros" ? <AboutDropdown key={l.href} current={pathname === "/nosotros"} className={"text-sm font-medium transition-colors " + linkClass} /> : (
             <Link
               key={l.href}
               href={l.href}
