@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { headers } from "next/headers";
@@ -28,7 +28,13 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+export const viewport: Viewport = { themeColor: "#061f3f" };
+
 const defaultMetadata: Metadata = {
+  applicationName: "Fortius",
+  // Next emits the standard mobile tag; retain Apple’s tag for older iOS.
+  other: { "apple-mobile-web-app-capable": "yes" },
+  appleWebApp: { capable: true, title: "Fortius", statusBarStyle: "default" },
   metadataBase: new URL(siteConfig.url),
   title: {
     default: SITE_COPY.seoTitle,
