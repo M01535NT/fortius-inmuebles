@@ -474,3 +474,45 @@
 @media (prefers-reduced-motion: reduce) {
   .menu-curtain .menu-route-card, .menu-curtain .menu-route-card::before, .menu-curtain .menu-route-card > svg { transition: none; }
 }
+
+/* Contact: shared Archivo identity, a clear choice and one conversation panel. */
+.contact-page { padding-block: clamp(112px, 12vw, 160px) 64px; }
+.contact-heading { display: grid; grid-template-columns: 1.5fr 1fr; align-items: end; gap: 40px; padding-bottom: 48px; }
+.contact-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 24px; }
+.contact-heading h1 { font-family: var(--font-sans); font-size: clamp(42px, 5.6vw, 76px); font-weight: 560; font-variation-settings: "wdth" 96; letter-spacing: -.04em; line-height: 1.06; }
+.contact-heading h1 span { display: inline-block; border-bottom: 3px solid #8a1634; padding-bottom: 6px; }
+.contact-heading > p { max-width: 34ch; color: var(--muted-foreground); line-height: 1.8; font-size: 16px; padding-bottom: 8px; }
+.contact-workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; border-top: 1px solid var(--border); padding-top: 36px; align-items: start; }
+.contact-choices { min-width: 0; }
+.contact-legend { font-size: 14px; font-weight: 600; margin-bottom: 18px; }
+.contact-intent-list { display: grid; }
+.contact-intent { display: grid; grid-template-columns: 28px minmax(0, 1fr) 20px; align-items: center; gap: 20px; position: relative; cursor: pointer; border: 1px solid transparent; border-bottom-color: var(--border); padding: 24px 16px; transition: background .2s, border-color .2s; }
+.contact-intent strong { display: block; font-size: clamp(20px, 2.1vw, 28px); font-weight: 550; letter-spacing: -.02em; }
+.contact-intent small { display: block; font-size: 13px; line-height: 1.7; color: var(--muted-foreground); margin-top: 7px; }
+.contact-intent[data-selected=true] { border-color: var(--border); border-left: 3px solid #8a1634; background: var(--secondary); }
+.contact-intent:hover { background: var(--secondary); }
+.contact-intent:has(input:focus-visible) { outline: 2px solid var(--primary-text); outline-offset: 3px; z-index: 1; }
+.contact-conversation { background: var(--secondary); border: 1px solid var(--border); border-top: 3px solid #8a1634; padding: clamp(24px, 3.5vw, 44px); min-height: 355px; }
+.contact-conversation .display-soft { font-family: var(--font-sans); font-size: clamp(25px, 2.6vw, 36px); font-weight: var(--weight-editorial); line-height: 1.15; letter-spacing: -.025em; max-width: 20ch; }
+.contact-conversation a:focus-visible, .contact-team-link a:focus-visible { outline: 2px solid var(--primary-text); outline-offset: 4px; }
+.contact-conversation summary { line-height: 1.6; }
+.contact-conversation form { padding: 20px; }
+.contact-conversation form > .grid { grid-template-columns: 1fr; }
+.contact-conversation form > .grid > div { grid-column: auto; min-width: 0; }
+.contact-conversation :is(input, textarea) { max-width: 100%; }
+.contact-hours { display: flex; align-items: start; gap: 10px; margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px; font-size: 13px; line-height: 1.7; color: var(--muted-foreground); }
+.contact-hours svg { flex-shrink: 0; margin-top: 2px; }
+.contact-team-link { border-top: 1px solid var(--border); margin-top: 48px; padding-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.contact-team-link p { font-size: 22px; line-height: 1.35; letter-spacing: -.02em; }
+.contact-team-link a { display: inline-flex; align-items: center; gap: 24px; min-height: 44px; font-size: 14px; color: var(--primary-text); }
+@media (max-width: 767px) {
+  .contact-page { padding-block: 104px 48px; }
+  .contact-heading, .contact-workspace { grid-template-columns: 1fr; gap: 24px; }
+  .contact-heading { padding-bottom: 28px; }
+  .contact-heading > p { max-width: none; }
+  .contact-workspace { padding-top: 24px; }
+  .contact-conversation { min-height: 0; }
+  .contact-intent { padding: 20px 12px; gap: 14px; }
+  .contact-team-link { align-items: flex-start; flex-direction: column; margin-top: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .contact-intent { transition: none; } }
