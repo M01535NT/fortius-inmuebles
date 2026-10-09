@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, expect, test, vi } from "vitest";
 
@@ -30,6 +30,7 @@ vi.mock("@/lib/gsap", () => ({
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   window.history.replaceState(null, "", "/");
 });
 
@@ -132,13 +133,23 @@ test("fullscreen menu traps Tab, closes with Escape and restores prior focus", a
   trigger.focus();
   const onClose = vi.fn();
   const view = render(<FullscreenMenu open onClose={onClose} />);
-  const close = screen.getByRole("button", { name: "Cerrar menú" });
-  const links = screen.getAllByRole("link");
+  const menu = within(screen.getByRole("dialog", { name: "Menú" }));
+  const close = menu.getByRole("button", { name: "Cerrar menú" });
+  const links = menu.getAllByRole("link");
+  // JSDOM has no layout: visible controls otherwise have empty client rects.
+  // Only model accessible controls; collapsed submenu links retain empty rects.
+  const rect = new DOMRect(0, 0, 100, 40);
+  const rects = Object.assign([rect], { item: (index: number) => index === 0 ? rect : null });
+  for (const element of [...links, ...menu.getAllByRole("button")]) {
+    vi.spyOn(element, "getClientRects").mockReturnValue(rects);
+  }
   await waitFor(() => expect(document.activeElement).toBe(close));
   links.at(-1)!.focus();
-  fireEvent.keyDown(window, { key: "Tab" });
+  expect(fireEvent.keyDown(links.at(-1)!, { key: "Tab" })).toBe(false);
   expect(document.activeElement).toBe(close);
-  fireEvent.keyDown(window, { key: "Escape" });
+  expect(fireEvent.keyDown(close, { key: "Tab", shiftKey: true })).toBe(false);
+  expect(document.activeElement).toBe(links.at(-1));
+  fireEvent.keyDown(links.at(-1)!, { key: "Escape" });
   expect(onClose).toHaveBeenCalledOnce();
   view.rerender(<FullscreenMenu open={false} onClose={onClose} />);
   expect(document.activeElement).toBe(trigger);
