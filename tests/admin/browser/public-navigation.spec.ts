@@ -120,6 +120,36 @@ test("short phone screens can reach the first footer navigation link", async ({ 
   await expect(page).toHaveURL(/\/blog$/);
 });
 
+for (const reducedMotion of ["no-preference", "reduce"] as const) {
+  test(`fullscreen menu traps keyboard focus and restores its trigger with ${reducedMotion} motion`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion });
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/inventario");
+    const trigger = page.getByRole("button", { name: "Abrir menú" });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const menu = page.getByRole("dialog", { name: "Menú", exact: true });
+    const close = menu.getByRole("button", { name: "Cerrar menú" });
+    const lastLink = menu.getByRole("navigation", { name: "Accesos destacados" }).getByRole("link").last();
+    await expect(close).toBeFocused();
+    await lastLink.focus();
+    await page.keyboard.press("Tab");
+    await expect(close).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(lastLink).toBeFocused();
+    // Interior navigation still uses the browser's normal tab order.
+    await close.focus();
+    await page.keyboard.press("Tab");
+    const firstLink = menu.locator('nav[aria-label="Menú principal"] a[href="/"]');
+    await expect(firstLink).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(close).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+}
+
 test("inventory menu keeps primary links accessible and restores focus when closing", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/inventario");
