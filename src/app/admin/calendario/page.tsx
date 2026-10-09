@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
@@ -152,7 +153,8 @@ export default function CalendarioPage() {
   return (
     <div className="min-w-0 space-y-6">
       <PageHeader
-        title="Calendario."
+        title="Calendario"
+        actions={<button type="button" className={btnPrimary} onClick={() => { document.getElementById("cal-titulo")?.focus(); document.getElementById("cal-titulo")?.scrollIntoView({ block: "center" }); }}>Nueva visita o evento</button>}
         description="Visitas, llamadas, firmas y reuniones del equipo. Horario de Tijuana."
       />
 
@@ -278,7 +280,7 @@ export default function CalendarioPage() {
                       type="button"
                       aria-label={`Eliminar ${evento.titulo}`}
                       onClick={async () => {
-                        if (window.confirm("¿Eliminar este evento?"))
+                        if (await confirmAction("¿Eliminar este evento?"))
                           await removeById(
                             db.eventos,
                             evento.id,
@@ -311,7 +313,7 @@ export default function CalendarioPage() {
             <h3 className="font-medium text-sm">Contactos previstos este día</h3>
             <ul className="mt-2 divide-y divide-border">{contactosDelDia.map(item => <li key={item.id}>
               <Link href={item.href} className="flex min-h-11 min-w-0 flex-col gap-1 py-3 text-sm text-primary-ink [overflow-wrap:anywhere]">
-                <span>{item.personName}</span><span className="text-xs text-muted-foreground">{item.kind === "cliente" ? "Cliente" : "Lead"} · {asesores.find(a => a.id === item.asesorId)?.nombre ?? "Sin asesor"}</span>
+                <span>{item.personName}</span><span className="text-xs text-muted-foreground">{item.kind === "cliente" ? "Cliente" : "Prospecto"} · {asesores.find(a => a.id === item.asesorId)?.nombre ?? "Sin asesor"}</span>
               </Link>
             </li>)}</ul>
           </section>}
@@ -359,7 +361,7 @@ export default function CalendarioPage() {
                   ))}
                 </select>
               </Field>
-              <Field label="Lead (opcional)" htmlFor="cal-lead">
+              <Field label="Prospecto (opcional)" htmlFor="cal-lead">
                 <select key={context.leadId} defaultValue={leads.some(l=>l.id===context.leadId)?context.leadId:""} id="cal-lead" name="leadId" className={selectClass}>
                   <option value="">Ninguno</option>
                   {leads.map((l) => (

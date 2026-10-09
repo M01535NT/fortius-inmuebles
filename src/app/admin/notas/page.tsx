@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -80,7 +81,7 @@ function TarjetaNota({ nota: source }: { nota: Nota }) {
             type="button"
             aria-label={`Eliminar nota ${nota.titulo}`}
             onClick={async () => {
-              if (window.confirm(`¿Eliminar la nota "${nota.titulo}"?`))
+              if (await confirmAction(`¿Eliminar la nota "${nota.titulo}"?`))
                 await removeById(db.notas, nota.id, version);
             }}
             className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"

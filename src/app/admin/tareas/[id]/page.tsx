@@ -44,7 +44,7 @@ function TaskDetail({ id }: { id: string }) {
             <dl className="grid min-w-0 gap-2 text-sm sm:grid-cols-2">
               <div><dt className="font-medium">Prioridad</dt><dd>{TASK_PRIORITIES[conflict.task.prioridad]}</dd></div>
               <div><dt className="font-medium">Categoría</dt><dd>{TASK_CATEGORIES[conflict.task.categoria]}</dd></div>
-              <div><dt className="font-medium">Lead</dt><dd>{leads.find((l) => l.id === conflict.task.leadId)?.nombre ?? (conflict.task.leadId ? "Lead no disponible" : "Sin vínculo")}</dd></div>
+              <div><dt className="font-medium">Prospecto</dt><dd>{leads.find((l) => l.id === conflict.task.leadId)?.nombre ?? (conflict.task.leadId ? "Prospecto no disponible" : "Sin vínculo")}</dd></div>
               <div><dt className="font-medium">Cliente</dt><dd>{clientes.find((c) => c.id === conflict.task.clienteId)?.nombre ?? (conflict.task.clienteId ? "Cliente no disponible" : "Sin vínculo")}</dd></div>
               <div><dt className="font-medium">Inmueble</dt><dd>{propiedades.find((p) => p.slug === conflict.task.propiedadSlug)?.titulo ?? (conflict.task.propiedadSlug ? "Inmueble no disponible" : "Sin vínculo")}</dd></div>
               <div><dt className="font-medium">Motivo de espera</dt><dd>{conflict.task.motivoEspera || "Sin motivo registrado"}</dd></div>

@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { DashboardTasks } from "@/components/admin/dashboard-tasks";
+import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 import { TodayWorkspace } from "@/components/admin/workspace/today";
-import { ArrowUpRight, Building2, CalendarDays, Newspaper, Users } from "lucide-react";
+import { ArrowUpRight, Building2, CalendarDays, Users } from "lucide-react";
 
-import { Badge, DemoBanner, PageHeader } from "@/components/admin/ui";
+import { Badge, PageHeader } from "@/components/admin/ui";
 import { operationalDate } from "@/lib/admin/operational-date";
 import {
   LEAD_ESTADO_LABELS,
@@ -23,34 +23,33 @@ export default function AdminDashboard() {
   const propiedades = useCollection(db.propiedades);
   const leads = useCollection(db.leads).filter(lead => !lead.clienteId);
   const eventos = useCollection(db.eventos);
-  const posts = useCollection(db.posts);
 
   const hoy = operationalDate();
   // "Próximos" incluye todo el día operativo, incluso eventos sin hora.
   const proximos = eventos
     .filter((e) => e.fecha >= hoy)
     .sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? "")));
-  const vistaPrevia = proximos.slice(0, 5);
+  const vistaPrevia = proximos.filter((e) => e.fecha > hoy).slice(0, 5);
   const leadsNuevos = leads.filter((l) => l.estado === "nuevo").length;
   const disponibles = propiedades.filter((p) => p.estado === "disponible").length;
 
   const kpis = [
-    { icon: Users, label: "Leads nuevos", value: leadsNuevos, href: "/admin/leads" },
+    { icon: Users, label: "Prospectos nuevos", value: leadsNuevos, href: "/admin/leads" },
     { icon: Building2, label: "Inmuebles disponibles", value: disponibles, href: "/admin/propiedades" },
     { icon: CalendarDays, label: "Eventos próximos", value: proximos.length, href: "/admin/calendario" },
-    { icon: Newspaper, label: "Borradores de blog", value: posts.filter((p) => p.estado === "borrador").length, href: "/admin/blog" },
   ];
 
   return (
     <div className="min-w-0 space-y-4 sm:space-y-6">
       <PageHeader
-        title="Panel."
-        description="Lectura rápida de la operación: leads, inventario y agenda."
+        title="Mi jornada"
+        description="Pendientes, visitas y próximos pasos del equipo."
       />
-      <DemoBanner />
+      <SetupChecklist />
+      <TodayWorkspace />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {kpis.map(({ icon: Icon, label, value, href }) => (
           <Link
             key={label}
@@ -72,13 +71,11 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <DashboardTasks />
-      <TodayWorkspace />
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Agenda primero para priorizar la operación en móvil. */}
         <section aria-labelledby="dashboard-agenda" className="min-w-0 rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
-            <h2 id="dashboard-agenda" className="min-w-0 display-soft text-lg text-foreground">Agenda próxima</h2>
+            <h2 id="dashboard-agenda" className="min-w-0 display-soft text-lg text-foreground">Próximos días</h2>
             <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Calendario
             </Link>
@@ -100,16 +97,16 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        {/* Leads recientes */}
+        {/* Prospectos recientes */}
         <section aria-labelledby="dashboard-leads" className="min-w-0 rounded-lg border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
-            <h2 id="dashboard-leads" className="min-w-0 display-soft text-lg text-foreground">Leads recientes</h2>
+            <h2 id="dashboard-leads" className="min-w-0 display-soft text-lg text-foreground">Prospectos recientes</h2>
             <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Ver todos
             </Link>
           </div>
           {leads.length === 0 ? (
-            <p className="p-5 text-sm text-muted-foreground">Sin leads aún.</p>
+            <p className="p-5 text-sm text-muted-foreground">Sin prospectos aún.</p>
           ) : (
             <ul className="divide-y divide-border">
               {leads.slice(0, 5).map((lead) => (

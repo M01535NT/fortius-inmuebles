@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
 import { DossierTabs, type DossierView } from "@/components/admin/workspace/dossier-tabs";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
@@ -99,7 +100,7 @@ export default function ExpedientesPage() {
   async function changeExpedienteState() {
     if (!selected || !canNavigate() || pdfBusy) return;
     const remove = !selected.deleted_at;
-    if (remove && !window.confirm(
+    if (remove && !await confirmAction(
       "¿Eliminar el expediente " + selected.folio + "? Se moverá a Eliminados con sus formatos y PDF. Podrás restaurarlo desde esa vista."
     )) return;
     setError(""); setNotice(""); setBusy(true);
@@ -244,12 +245,12 @@ export default function ExpedientesPage() {
   const budgetTotals = definition?.id === "19" && missing.length === 0 ? calcularPresupuesto(values) : null;
   const netTotals = definition?.id === "08" && missing.length === 0 ? calcularNeto({ ...values, folio: selected?.folio }) : null;
   return <div className="space-y-8">
-    <PageHeader title="Expedientes y formatos" description="Catálogo de 25 formatos exclusivos. Cada PDF requiere captura completa y cotejo con el original." />
-    <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"><p>{FORMATOS.filter(item => item.readyForEmission && !item.globalRoute).length} formatos admiten emisión por expediente, sujeta a captura y revisión completas.</p><p><a href="/admin/control-comercial" className="text-primary-ink underline">03 · Control comercial global</a>: carteras, historial y PDF desde su propio módulo.</p><p>09 · Intermediación: puedes preparar la captura; su PDF requiere registro y cotejo del modelo registrado.</p></div>
+    <PageHeader title="Expedientes y formatos" description="Documentos, pendientes y siguientes pasos de cada operación." />
+    <details className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"><summary className="cursor-pointer font-semibold">Formatos y requisitos de emisión</summary><p className="mt-3">{FORMATOS.filter(item => item.readyForEmission && !item.globalRoute).length} formatos admiten emisión por expediente, sujeta a captura y revisión completas.</p><p><a href="/admin/control-comercial" className="text-primary-ink underline">03 · Control comercial global</a>: carteras, historial y PDF desde su propio módulo.</p><p>09 · Intermediación: puedes preparar la captura; su PDF requiere registro y cotejo del modelo registrado.</p></details>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="rounded-md border border-border p-3 text-sm">{notice}</p>}
-    {!showDeleted && <section className="rounded-lg border border-border bg-card p-5">
-      <h2 className="display-soft mb-4 text-xl">Nuevo expediente</h2>
+    {!showDeleted && <details className="rounded-lg border border-border bg-card p-5" open={expedientes.length === 0 || undefined}>
+      <summary className="cursor-pointer font-semibold">Nuevo expediente</summary>
       <form onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
         <label className="text-sm">Cliente<select name="clienteId" required className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
         <label className="text-sm">Folio<input name="folio" required maxLength={80} className={inputClass} /></label>
@@ -258,8 +259,8 @@ export default function ExpedientesPage() {
         <label className="text-sm">Unidad, si aplica<input name="unidad" className={inputClass} /></label>
         <button type="submit" disabled={busy || hasUnsavedChanges} className={btnPrimary + " self-end"}>Crear expediente</button>
       </form>
-    </section>}
-    <section className="grid gap-6 lg:grid-cols-[minmax(240px,340px)_1fr]">
+    </details>}
+    <section className="grid items-start gap-6 lg:grid-cols-[minmax(240px,340px)_1fr]">
       <div className="rounded-lg border border-border bg-card p-5">
         <h2 className="display-soft mb-4 text-xl">Expedientes</h2>
         <div className="mb-4 flex flex-wrap gap-2" aria-label="Estado de los expedientes">
@@ -320,7 +321,7 @@ export default function ExpedientesPage() {
           {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {budgetTotals.subtotalCotizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${budgetTotals.importeAutorizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${String(values.moneda)}`}</p><p>Estimación con reserva: {budgetTotals.estimacionConReserva.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Pagado: {budgetTotals.totalPagado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p></div>}
           {netTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Neto estimado</h3><p>Precio usado: {netTotals.precioBase.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p>Erogaciones: {netTotals.erogaciones.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p className="font-semibold">Neto: {netTotals.netoEstimado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p></div>}
           {hasUnsavedChanges && <p className="mt-5 text-sm text-muted-foreground">{definition.id === "01" ? "Al descargar el PDF se guardarán los datos que estás viendo." : "Guarda los cambios antes de emitir el PDF."}</p>}
-          {hasUnsavedChanges && <button type="button" disabled={busy} className={btnGhost + " mt-3"} onClick={() => { if (window.confirm("¿Descartar los cambios sin guardar de este borrador?")) { setValues(documento.data); setError(""); } }}>Descartar cambios sin guardar</button>}
+          {hasUnsavedChanges && <button type="button" disabled={busy} className={btnGhost + " mt-3"} onClick={async () => { if (await confirmAction("¿Descartar los cambios sin guardar de este borrador?")) { setValues(documento.data); setError(""); } }}>Descartar cambios sin guardar</button>}
           {!definition.readyForEmission && <p className="mt-5 text-sm text-muted-foreground">Este formato está pendiente de cotejo con el original; la emisión permanece bloqueada.</p>}
           <div className="mt-5 flex flex-wrap gap-3">{definition.id === "01" ? <>
             <button type="button" onClick={saveAndDownloadAviso} disabled={busy || missing.length > 0} className={btnPrimary}>{pdfBusy ? "Preparando PDF…" : "Guardar y descargar PDF"}</button>

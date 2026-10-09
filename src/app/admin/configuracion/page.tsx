@@ -139,7 +139,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
           <Field
             label="Video institucional (URL)"
             htmlFor="cf-video"
-            hint="Al llenarlo, el espacio reservado de /nosotros se convierte en reproductor (con backend)."
+            hint="El video aparecerá en la página Nosotros."
           >
             <input
               id="cf-video"

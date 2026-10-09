@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 
 import * as React from "react";
 import Image from "next/image";
@@ -92,6 +93,7 @@ export default function ArchivosPage() {
         }}
       />
 
+      <details className="rounded-lg border border-border bg-card p-4"><summary className="cursor-pointer font-semibold">Registrar un enlace existente</summary>
       <AsyncForm
         onSubmit={agregar}
         className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4"
@@ -145,6 +147,7 @@ export default function ArchivosPage() {
           <Plus className="size-4" strokeWidth={1.5} /> Registrar
         </button>
       </AsyncForm>
+      </details>
 
       <div
         className="flex flex-wrap gap-1.5"
@@ -170,7 +173,7 @@ export default function ArchivosPage() {
       </div>
 
       {filtrados.length === 0 ? (
-        <EmptyState title="Sin archivos de ese tipo." />
+        <EmptyState title="Sin archivos de ese tipo." hint="Carga tu primer archivo arriba o cambia el filtro." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtrados.map((archivo) => {
@@ -204,7 +207,7 @@ export default function ArchivosPage() {
                     {archivo.nombre}
                   </p>
                   <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
-                    {archivo.url}
+                    {archivo.tipo.toUpperCase()}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
                     <AsyncButton
@@ -219,7 +222,7 @@ export default function ArchivosPage() {
                       aria-label={`Quitar de la biblioteca ${archivo.nombre}`}
                       onClick={async () => {
                         if (
-                          window.confirm(
+                          await confirmAction(
                             `¿Quitar "${archivo.nombre}" del catálogo? El archivo físico no se borra.`,
                           )
                         )

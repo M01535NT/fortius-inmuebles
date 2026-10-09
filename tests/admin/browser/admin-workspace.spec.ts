@@ -230,3 +230,61 @@ test("inventory saved view, related tasks and global search navigate with contex
     page.getByLabel("Inmueble relacionado", { exact: true }),
   ).toHaveValue("audit-casa");
 });
+test("profile menu persists identity, photo and reading preferences", async ({ page }, info) => {
+  let profile = {name:"",avatar:""};
+  await page.route("**/api/auth/session", route => route.fulfill({json:{user:{id:"workspace-test",email:"prueba@example.invalid",role:"admin",...profile}}}));
+  await page.route("**/api/auth/profile", async route => {
+    expect(route.request().method()).toBe("PATCH");
+    profile = route.request().postDataJSON();
+    return route.fulfill({json:{ok:true}});
+  });
+  await page.goto("/admin");
+  const menu = page.getByRole("button", {name:/Menú de usuario/});
+  await menu.click();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeFocused();
+  await expect(menu).toHaveAttribute("aria-expanded","false");
+  await menu.click();
+  await page.getByRole("link",{name:"Mi perfil y fotografía"}).click();
+  await page.getByLabel("Nombre visible").fill("Moisés Núñez");
+  await page.getByLabel("Seleccionar fotografía").setInputFiles({
+    name:"foto.png",mimeType:"image/png",
+    buffer:Buffer.from(await page.evaluate(() => { const canvas=document.createElement("canvas");canvas.width=canvas.height=32;const ctx=canvas.getContext("2d")!;ctx.fillStyle="#173655";ctx.fillRect(0,0,32,32);return canvas.toDataURL("image/png").split(",")[1]; }),"base64"),
+  });
+  await expect(page.getByAltText("Vista previa de tu fotografía")).toBeVisible();
+  await page.getByRole("button",{name:"Guardar perfil",exact:true}).click();
+  await expect(page.getByText("Perfil guardado en tu cuenta.")).toBeVisible();
+  expect(profile.avatar).toMatch(/^data:image\/jpeg;base64,/);
+  await page.getByRole("button",{name:"Compacta",exact:true}).click();
+  await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density","compact");
+  await page.reload();
+  await expect(page.getByLabel("Nombre visible")).toHaveValue("Moisés Núñez");
+  await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density","compact");
+  await page.screenshot({path:info.outputPath("profile.png"),fullPage:true});
+});
+test("failed Blog loading does not block inventory navigation", async ({page}) => {
+  await page.route("**/api/admin/collections/posts", route => route.fulfill({status:503,json:{error:"Blog temporalmente no disponible"}}));
+  await page.goto("/admin/blog");
+  await expect(page.getByText(/No se pudo cargar este módulo/)).toBeVisible();
+  await page.locator("#admin-desktop-sidebar").getByRole("link",{name:"Inmuebles",exact:true}).click();
+  await expect(page.locator("main h1")).toHaveText("Inmuebles");
+  await expect(page.getByRole("link",{name:/Casa de prueba/}).first()).toBeVisible();
+});
+test("mobile editor reveals collapsed sections and confirms leaving through search", async ({page}, info) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/admin/propiedades/audit-casa/editar");
+  await expect(page.locator("#pf-basicos")).toHaveAttribute("open","");
+  await expect(page.locator("#pf-precio")).not.toHaveAttribute("open","");
+  await page.locator("#pf-precio summary").click();
+  await expect(page.getByLabel("Monto",{exact:true})).toBeVisible();
+  await page.getByLabel("Título",{exact:true}).fill("Casa con cambios");
+  await page.getByRole("button",{name:"Buscar en el panel"}).click();
+  await page.getByRole("dialog").getByRole("link",{name:"Nueva tarea",exact:true}).click();
+  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Cancelar",exact:true}).click();
+  await expect(page).toHaveURL(/audit-casa/);
+  await page.getByRole("dialog").getByRole("link",{name:"Nueva tarea",exact:true}).click();
+  await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
+  await expect(page).toHaveURL(/admin\/tareas/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.screenshot({path:info.outputPath("mobile-task.png"),fullPage:true});
+});

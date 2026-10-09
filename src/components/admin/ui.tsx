@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 
 import * as React from "react";
 import { errorMessage, uploadFile, type UploadedFile } from "@/lib/admin/store";
@@ -33,7 +34,7 @@ export function PageHeader({
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
       <div className="min-w-0">
-        <h1 className="display-title text-3xl text-foreground">{title}</h1>
+        <h1 className="display-title text-3xl text-foreground">{title.replace(/\.$/, "")}</h1>
         {description ? (
           <p className="mt-2 max-w-[64ch] text-sm leading-relaxed text-muted-foreground">
             {description}
@@ -116,11 +117,11 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
 }
 
 /* Compatibility export for the existing module layouts. */
-export function DemoBanner() {
+export function DemoBanner({ show = false }: { show?: boolean }) {
+  if (!show) return null;
   return (
     <p className="rounded-md border border-warning-border bg-warning-surface px-3.5 py-2.5 text-sm leading-relaxed text-warning">
-      Solo los inmuebles publicados son visibles en el sitio. Los ejemplos
-      conservan su etiqueta Demo.
+      Los inmuebles en borrador solo son visibles para tu equipo.
     </p>
   );
 }
@@ -175,6 +176,7 @@ export function AsyncForm({
 }) {
   const mutation = useMutation();
   const [uploading, setUploading] = React.useState(false);
+  const [saved, setSaved] = React.useState(false);
   const errorTarget = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!mutation.error) return;
@@ -186,9 +188,11 @@ export function AsyncForm({
       <form
         {...props}
         aria-busy={mutation.pending || uploading}
+        onInputCapture={(event) => { setSaved(false); props.onInputCapture?.(event); (event.target as HTMLElement).removeAttribute("aria-invalid"); }}
+        onInvalidCapture={(event) => { (event.target as HTMLElement).setAttribute("aria-invalid", "true"); props.onInvalidCapture?.(event); }}
         onSubmit={async (e) => {
           e.preventDefault();
-          if (!uploading) await mutation.run(() => onSubmit(e));
+          if (!uploading) { setSaved(false); const ok = await mutation.run(() => onSubmit(e)); setSaved(ok === true); }
         }}
       >
         <fieldset
@@ -196,6 +200,7 @@ export function AsyncForm({
           className={"min-w-0 " + (className ?? "")}
         >
           {children}
+          {saved && <p role="status" className="admin-saved w-full text-sm">Cambios guardados.</p>}
           {mutation.pending ? (
             <p role="status" className="w-full text-sm text-muted-foreground">
               Guardando…
@@ -304,7 +309,7 @@ export function UploadControl({
             if (!file) return;
             if (
               publicOnly &&
-              !window.confirm(
+              !await confirmAction(
                 "Este archivo será público. ¿Confirmas que puede difundirse?",
               )
             ) {

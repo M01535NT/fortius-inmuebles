@@ -21,14 +21,14 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
   test(`populated panel, calendar and lists fit at ${width}`, async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width, height: 844 });
-    for (const [path, heading] of [["", "Panel."], ["/leads", "Leads."], ["/propiedades", "Inmuebles."], ["/calendario", "Calendario."]] as const) {
+    for (const [path, heading] of [["", "Mi jornada"], ["/leads", "Prospectos"], ["/propiedades", "Inmuebles"], ["/calendario", "Calendario"]] as const) {
       await page.goto("/admin" + path);
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
       await fitsPage(page);
       if (path === "") {
         await expect(page.getByRole("link", { name: "08 Eventos próximos" })).toBeVisible();
         if (width === 390) {
-          const tasks = await page.getByRole("heading", { name: "Tareas pendientes" }).boundingBox();
+          const tasks = await page.getByRole("heading", { name: /Tareas prioritarias/ }).boundingBox();
           expect(tasks!.y).toBeLessThan(844);
         }
       }
@@ -39,7 +39,7 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
         if (width < 768) {
           const box = await control.boundingBox();
           expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-          await page.getByRole("button", { name: "Nuevo lead", exact: true }).click();
+          await page.getByRole("button", { name: "Nuevo prospecto", exact: true }).click();
           await expect(page.getByRole("textbox", { name: "Nombre", exact: true })).toBeVisible();
           await fitsPage(page);
         }
@@ -52,6 +52,11 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
         expect(box!.height).toBeGreaterThanOrEqual(44);
       }
       if (path === "/propiedades" && width >= 1024) {
+        const title = page.locator("table p[title]").first();
+        const star = page.locator("table").getByRole("button", {name:/destacada/}).first();
+        const titleBox = await title.boundingBox(), starBox = await star.boundingBox();
+        expect(starBox!.x + starBox!.width).toBeLessThanOrEqual(titleBox!.x);
+
         const status = page.getByRole("combobox", { name: "Estado de " + longPropertyTitle }).filter({ visible: true });
         expect(await status.evaluate(select => {
           const control = select as HTMLSelectElement;
@@ -124,8 +129,10 @@ for (const width of [320, 390, 768]) {
       return field!.y >= 64 && field!.y + field!.height < controls!.y;
     }).toBe(true);
     await title.fill("Borrador conservado");
+    await sections.selectOption("pf-ubicacion");
     await page.getByLabel("Zona", { exact: true }).fill("Centro");
     await page.getByLabel("Referencia (nunca dirección exacta)", { exact: true }).fill("Referencia ficticia");
+    await sections.selectOption("pf-contenido");
     await page.getByLabel("Descripción", { exact: true }).fill("Descripción de prueba");
     await save.click();
     const error = page.getByRole("main").getByRole("alert");

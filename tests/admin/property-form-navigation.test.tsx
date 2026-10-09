@@ -1,3 +1,5 @@
+import { confirmAction } from "@/components/admin/workspace/confirm";
+vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
 import * as React from "react";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
@@ -130,12 +132,12 @@ test("a failed save retains the draft and restores navigation and cancel without
   expect(push).not.toHaveBeenCalled();
   chooseSection("Multimedia");
   expect(document.activeElement).toBe(screen.getByRole("region", { name: "Multimedia" }));
-  vi.spyOn(window,"confirm").mockReturnValueOnce(false);
+  vi.mocked(confirmAction).mockResolvedValueOnce(false);
   fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
   expect(push).not.toHaveBeenCalled();
-  vi.spyOn(window,"confirm").mockReturnValueOnce(true);
+  vi.mocked(confirmAction).mockResolvedValueOnce(true);
   fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
-  expect(push).toHaveBeenCalledWith("/admin/propiedades");
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/propiedades"));
   expect(writes).toHaveLength(1);
 });
 

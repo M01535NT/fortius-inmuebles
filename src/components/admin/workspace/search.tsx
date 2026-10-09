@@ -7,10 +7,11 @@ import { normalizedText } from "@/lib/admin/workspace";
 import { btnGhost, inputClass } from "@/components/admin/ui";
 
 export function WorkspaceSearch() {
-  const properties = useCollection(db.propiedades),
-    leads = useCollection(db.leads),
-    clients = useCollection(db.clientes),
-    tasks = useCollection(db.tareas);
+  const [opened, setOpened] = React.useState(false);
+  const properties = useCollection(db.propiedades, opened),
+    leads = useCollection(db.leads, opened),
+    clients = useCollection(db.clientes, opened),
+    tasks = useCollection(db.tareas, opened);
   const dialog = React.useRef<HTMLDialogElement>(null);
   const trigger = React.useRef<HTMLButtonElement>(null);
   const [query, setQuery] = React.useState("");
@@ -19,6 +20,7 @@ export function WorkspaceSearch() {
   >([]);
   const [error, setError] = React.useState("");
   function open() {
+    setOpened(true);
     dialog.current?.showModal();
     setError("");
     apiRequest<{ expedientes: { id: string; folio: string }[] }>(
@@ -111,6 +113,8 @@ export function WorkspaceSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        {opened && [db.propiedades, db.leads, db.clientes, db.tareas].some(store => store.state().status === "loading" || store.state().status === "idle") && <p role="status">Buscando en tus módulos…</p>}
+        {opened && [db.propiedades, db.leads, db.clientes, db.tareas].some(store => store.state().status === "error") && <p role="alert">La búsqueda está incompleta. No se pudo consultar alguno de los módulos.</p>}
         {error && (
           <p role="status" className="mt-3 text-sm">
             {error}

@@ -40,15 +40,15 @@ async function detail(kind: "lead" | "client") {
 
 test("un botón en la lista convierte con la revisión y abre Clientes; el lead pasa a Convertidos", async () => {
   render(<LeadsPage />);
-  const list = await screen.findByRole("list", { name: "Leads" });
+  const list = await screen.findByRole("list", { name: "Prospectos" });
   fireEvent.click(within(list).getByRole("button", { name: /Convertir en cliente/ }));
   await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/clientes/c1"));
   expect(posts).toEqual([{ version: 7 }]);
   expect(db.clientes.list()[0].perfil).toEqual(original.perfil);
   expect(db.leads.version(db.leads.list()[0])).toBe(8);
-  expect(screen.queryByRole("list", { name: "Leads" })).toBeNull();
+  expect(screen.queryByRole("list", { name: "Prospectos" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Convertidos (1)" }));
-  expect(within(screen.getByRole("list", { name: "Leads" })).getByRole("link", { name: "Ver cliente" }).getAttribute("href")).toBe("/admin/clientes/c1");
+  expect(within(screen.getByRole("list", { name: "Prospectos" })).getByRole("link", { name: "Ver cliente" }).getAttribute("href")).toBe("/admin/clientes/c1");
 });
 
 test("si falla la conversión conserva el lead y permite reintentar sin navegación ni cliente falso", async () => {
@@ -124,6 +124,6 @@ test("el panel deja de contar y ofrecer como nuevo un lead convertido", async ()
   currentLead = { ...original, estado: "nuevo", clienteId: "c1" };
   await db.leads.load();
   render(<Dashboard />);
-  expect(screen.getByRole("link", { name: /Leads nuevos/ }).textContent).toContain("00");
+  expect(screen.getByRole("link", { name: /Prospectos nuevos/ }).textContent).toContain("00");
   expect(screen.queryByRole("link", { name: new RegExp(original.nombre) })).toBeNull();
 });

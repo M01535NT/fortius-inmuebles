@@ -1,3 +1,5 @@
+import { confirmAction } from "@/components/admin/workspace/confirm";
+vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
 import { afterEach, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 vi.mock("@/lib/admin/store", async importOriginal => ({
@@ -27,8 +29,9 @@ async function openA() {
 }
 it("informa las emisiones disponibles y ofrece el control comercial global", async () => {
   fixture(); render(<ExpedientesPage />);
-  expect(screen.getByText(/25 formatos/)).toBeTruthy();
+  expect(screen.getByRole("heading", {name:"Expedientes y formatos"})).toBeTruthy();
   expect(screen.getByText(/23 formatos.*por expediente/)).toBeTruthy();
+  fireEvent.click(screen.getByText("Formatos y requisitos de emisión"));
   expect(screen.getByRole("link", { name: /03.*Control comercial/i }).getAttribute("href")).toBe("/admin/control-comercial");
   expect(screen.getByText(/09.*registro.*cotejo/i)).toBeTruthy();
 });
@@ -74,7 +77,7 @@ it("evita que una apertura lenta se mezcle con otro documento", async () => {
 it("exige confirmación para eliminar y permite restaurar desde Eliminados",async()=>{
   let removed=false, version=1;
   const requests:string[]=[];
-  vi.stubGlobal("confirm",vi.fn().mockReturnValueOnce(false).mockReturnValue(true));
+  vi.mocked(confirmAction).mockResolvedValueOnce(false).mockResolvedValue(true);
   vi.stubGlobal("fetch",async(url:string,init?:RequestInit)=>{
     if(init?.method==="DELETE" || init?.method==="PATCH"){
       requests.push(init.method);expect(JSON.parse(String(init.body))).toEqual({version});
@@ -101,11 +104,12 @@ it("exige confirmación para eliminar y permite restaurar desde Eliminados",asyn
 });
 it("no elimina si hay cambios sin guardar y conserva el expediente ante un fallo",async()=>{
   fixture();const field=await openA();fireEvent.change(field,{target:{value:"Pendiente"}});
-  vi.stubGlobal("confirm",()=>true);
+  vi.mocked(confirmAction).mockResolvedValue(true);
   fireEvent.click(screen.getByRole("button",{name:"Eliminar expediente"}));
   expect(screen.getByRole("alert").textContent).toMatch(/guarda.*descarta/i);
   expect((screen.getByLabelText("Quien paga") as HTMLInputElement).value).toBe("Pendiente");
   fireEvent.click(screen.getByRole("button",{name:"Descartar cambios sin guardar"}));
+  await waitFor(() => expect((screen.getByLabelText("Quien paga") as HTMLInputElement).value).not.toBe("Pendiente"));
   vi.stubGlobal("fetch",async()=>Response.json({error:"El expediente cambió; recarga antes de continuar"},{status:409}));
   fireEvent.click(screen.getByRole("button",{name:"Eliminar expediente"}));
   await waitFor(()=>expect(screen.getByRole("alert").textContent).toMatch(/recarga/));

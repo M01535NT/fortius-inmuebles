@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
@@ -70,7 +71,7 @@ function LeadDetail({ id }: { id: string }) {
   if (!lead) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Lead no encontrado." />
+        <PageHeader title="Prospecto no encontrado." />
         <EmptyState title="Este lead no existe o fue eliminado." />
         <Link href="/admin/leads" className={btnGhost}>
           Volver a leads
@@ -133,7 +134,7 @@ function LeadDetail({ id }: { id: string }) {
 
   async function eliminar() {
     if (!lead) return;
-    if (window.confirm(`¿Eliminar el lead "${lead.nombre}" y su historial?`)) {
+    if (await confirmAction(`¿Eliminar el lead "${lead.nombre}" y su historial?`)) {
       await removeById(db.leads, lead.id, db.leads.version(lead));
       router.push("/admin/leads");
     }

@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
 import {
   apiRequest,
@@ -216,7 +217,7 @@ export default function HistoryPage() {
                       className={btnGhost}
                       onClick={async () => {
                         if (
-                          !window.confirm(
+                          !await confirmAction(
                             "¿Restaurar este registro? Los contenidos públicos volverán como borradores.",
                           )
                         )

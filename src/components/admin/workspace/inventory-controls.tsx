@@ -91,6 +91,7 @@ export function InventoryControls({
           Mis inmuebles
         </button>
       )}
+      {Object.values(value).some(Boolean) && <button type="button" className={btnGhost} onClick={() => onChange({ ...emptyInventoryFilters })}>Limpiar filtros</button>}
       <details>
         <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">
           Filtros y vistas guardadas ·{" "}
@@ -225,7 +226,7 @@ export function InventoryControls({
         </p>
       </details>
       <p role="status" className="text-sm text-muted-foreground">
-        {count} inmuebles
+        {count} {count === 1 ? "inmueble" : "inmuebles"}
       </p>
     </section>
   );

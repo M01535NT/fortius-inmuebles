@@ -1,9 +1,11 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import type { StaffUser } from "./contracts";
 import { ApiError, databaseError } from "./http";
+import { profileSchema, storedProfileSchema } from "./profile";
 
 const ACCESS_COOKIE = "fortius-inmuebles-access-token";
 const REFRESH_COOKIE = "fortius-inmuebles-refresh-token";
@@ -31,10 +33,30 @@ export function createServerClient(accessToken?: string, privileged = false): Su
   });
 }
 
-export function staffIdentity(user: { id: string; email?: string } | null, membership: { role: string; active: boolean } | null): StaffUser {
+export function staffIdentity(user: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null, membership: { role: string; active: boolean } | null): StaffUser {
   if (!user) throw new ApiError(401, "Inicia sesión para continuar");
   if (!membership?.active || !["admin", "editor"].includes(membership.role)) throw new ApiError(403, "Tu usuario no tiene acceso al panel Fortius");
-  return { id: user.id, email: user.email ?? "", role: membership.role as StaffUser["role"] };
+  const profile = storedProfileSchema.safeParse(user.user_metadata?.fortius_profile);
+  return { id: user.id, email: user.email ?? "", role: membership.role as StaffUser["role"], ...(profile.success ? profile.data : {}) };
+}
+
+export async function updateProfile(input: unknown) {
+  const profile = profileSchema.parse(input);
+  const { accessToken, user } = await requireStaff();
+  if (profile.avatar.startsWith("data:")) {
+    const uploaded = await createServerClient(undefined, true).storage.from("fortius-inmuebles-private").upload(`profiles/${user.id}/avatar.jpg`, Buffer.from(profile.avatar.split(",")[1], "base64"), { contentType: "image/jpeg", upsert: true });
+    if (uploaded.error) throw new ApiError(503, "No se pudo guardar la fotografía");
+    profile.avatar = `/api/auth/profile/photo?v=${randomUUID()}`;
+  }
+  const refreshToken = (await cookies()).get(REFRESH_COOKIE)?.value;
+  if (!refreshToken) throw new ApiError(401, "Vuelve a iniciar sesión para guardar tu perfil");
+  const client = createServerClient();
+  const established = await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+  if (established.error || !established.data.session) throw new ApiError(401, "Sesión vencida");
+  const result = await client.auth.updateUser({ data: { fortius_profile: profile } });
+  if (result.error) throw new ApiError(503, "No se pudo guardar el perfil. Conserva la página abierta y reintenta.");
+  await saveSession(established.data.session);
+  return { ok: true };
 }
 
 async function verifyStaff(client: SupabaseClient, token: string): Promise<StaffUser> {

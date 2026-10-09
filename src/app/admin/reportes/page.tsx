@@ -45,7 +45,7 @@ export default function ReportesPage() {
   const cards = [
     { label: "Contactos vencidos", value: metrics.overdueContacts, href: "/admin/leads" },
     { label: "Tareas vencidas", value: metrics.overdueTasks, href: "/admin/tareas?vence=vencidas" },
-    { label: "Leads convertidos", value: metrics.converted, href: "/admin/leads" },
+    { label: "Prospectos convertidos", value: metrics.converted, href: "/admin/leads" },
     { label: "Conversión histórica", value: metrics.conversionPercent === null ? "Sin base" : `${metrics.conversionPercent}%`, href: "/admin/leads" },
   ];
   return <div className="min-w-0 space-y-6">
@@ -54,10 +54,10 @@ export default function ReportesPage() {
     <section aria-label="Indicadores principales" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map(card => <Link key={card.label} href={card.href} className="rounded-lg border border-border bg-card p-5 hover:border-primary/50"><h2 className="text-sm text-muted-foreground">{card.label}</h2><p className="mt-2 font-mono text-3xl">{card.value}</p></Link>)}
     </section>
-    <p className="text-sm text-muted-foreground">Conversión histórica = leads convertidos a cliente / {metrics.capturedLeads} leads capturados desde el inicio del registro. Incluye los descartados; no mide cierres ni ingresos. Los contactos vencidos se calculan con la fecha de Tijuana y excluyen leads convertidos o cerrados.</p>
+    <p className="text-sm text-muted-foreground">Conversión histórica = prospectos convertidos a cliente / {metrics.capturedLeads} prospectos capturados desde el inicio del registro. Incluye los descartados; no mide cierres ni ingresos. Los contactos vencidos se calculan con la fecha de Tijuana y excluyen prospectos convertidos o cerrados.</p>
     <section className="rounded-lg border border-border bg-card p-5">
       <h2 className="text-xl font-semibold">Cartera por asesor</h2>
-      <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2">Asesor</th><th scope="col" className="p-2">Leads activos</th><th scope="col" className="p-2">Clientes</th><th scope="col" className="p-2">Inmuebles</th><th scope="col" className="p-2">Expedientes</th><th scope="col" className="p-2">Contactos vencidos</th><th scope="col" className="p-2">Tareas vencidas</th></tr></thead><tbody>
+      <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2">Asesor</th><th scope="col" className="p-2">Prospectos activos</th><th scope="col" className="p-2">Clientes</th><th scope="col" className="p-2">Inmuebles</th><th scope="col" className="p-2">Expedientes</th><th scope="col" className="p-2">Contactos vencidos</th><th scope="col" className="p-2">Tareas vencidas</th></tr></thead><tbody>
         {metrics.portfolio.map(row => <tr key={row.id} className="border-b border-border"><th scope="row" className="p-2 font-medium">{row.nombre}</th><td className="p-2">{row.leads}</td><td className="p-2">{row.clientes}</td><td className="p-2">{row.inmuebles}</td><td className="p-2">{row.expedientes}</td><td className="p-2">{row.contactosVencidos}</td><td className="p-2">{row.tareasVencidas}</td></tr>)}
         <tr><th scope="row" className="p-2 font-medium">Sin asesor</th><td className="p-2">{metrics.unassigned.leads}</td><td className="p-2">{metrics.unassigned.clientes}</td><td className="p-2">{metrics.unassigned.inmuebles}</td><td className="p-2">{metrics.unassigned.expedientes}</td><td className="p-2">{metrics.unassigned.contactosVencidos}</td><td className="p-2">{metrics.unassigned.tareasVencidas}</td></tr>
       </tbody></table></div>

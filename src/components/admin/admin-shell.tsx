@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   Building2,
   CalendarDays,
-  ClipboardList,
   ExternalLink,
   Eye,
   EyeOff,
@@ -23,9 +22,16 @@ import {
   Menu,
   X,
   History,
+  ChartNoAxesCombined,
+  ListTodo,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
+import { ProfileMenu } from "@/components/admin/workspace/profile-menu";
+import { Breadcrumbs } from "@/components/admin/workspace/breadcrumbs";
+import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
+import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
 import { SidebarResize, SidebarToggle, useSidebarPreference } from "@/components/admin/workspace/sidebar";
 import {
@@ -43,7 +49,6 @@ import {
   changePassword,
   errorMessage,
   isLoggedIn,
-  loadAdminData,
   login,
   logout,
   recoverPassword,
@@ -54,10 +59,10 @@ const NAV = [
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2 },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
   { href: "/admin/expedientes", label: "Expedientes", icon: FileText },
-  { href: "/admin/control-comercial", label: "Control comercial", icon: ClipboardList, adminOnly: true },
-  { href: "/admin/reportes", label: "Reportes", icon: ClipboardList, adminOnly: true },
-  { href: "/admin/leads", label: "Leads", icon: Users },
-  { href: "/admin/tareas", label: "Tareas", icon: ClipboardList },
+  { href: "/admin/control-comercial", label: "Control comercial", icon: BriefcaseBusiness, adminOnly: true },
+  { href: "/admin/reportes", label: "Reportes", icon: ChartNoAxesCombined, adminOnly: true },
+  { href: "/admin/leads", label: "Prospectos", icon: Users },
+  { href: "/admin/tareas", label: "Tareas", icon: ListTodo },
   { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },
   { href: "/admin/notas", label: "Notas", icon: StickyNote },
   { href: "/admin/blog", label: "Blog", icon: Newspaper },
@@ -215,22 +220,22 @@ const subscribeCollections = (cb: () => void) => {
   const unsubscribe = adminStores.map((store) => store.subscribe(cb));
   return () => unsubscribe.forEach((stop) => stop());
 };
-const collectionError = () =>
-  adminStores.map((store) => store.state().error).find(Boolean) ?? null;
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
   const sessionId = session?.id;
+  const [density] = useBrowserPreference(`fortius:density:${sessionId}`, "comfortable", value => value === "compact" ? "compact" : "comfortable");
   const [sidebar, setSidebar] = useSidebarPreference(sessionId ?? "guest");
   const [checking, setChecking] = React.useState(true);
   const [passwordMode, setPasswordMode] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const refreshError = React.useSyncExternalStore(
     subscribeCollections,
-    collectionError,
+    () => workspaceStores(pathname).map(store => store.state().error).find(Boolean) ?? null,
     () => null,
   );
   const [ready, setReady] = React.useState(false);
+  const [loadedPath, setLoadedPath] = React.useState("");
   const [refreshing, setRefreshing] = React.useState(false);
   const [menu, setMenu] = React.useState(false);
   const menuTrigger = React.useRef<HTMLButtonElement>(null);
@@ -263,8 +268,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   async function refresh() {
     setRefreshing(true);
     try {
-      await loadAdminData();
+      await loadWorkspace(pathname);
       setReady(true);
+          setLoadedPath(pathname);
       setError(null);
     } catch (e) {
       setError(errorMessage(e));
@@ -300,9 +306,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     const refreshData = async () => {
       setRefreshing(true);
       try {
-        await loadAdminData();
+        await loadWorkspace(pathname);
         if (active) {
           setReady(true);
+          setLoadedPath(pathname);
           setError(null);
         }
       } catch (e) {
@@ -324,7 +331,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       active = false;
       window.removeEventListener("focus", focus);
     };
-  }, [sessionId, passwordMode]); // same user's refreshed session doesn't discard drafts
+  }, [sessionId, passwordMode, pathname]); // same user's refreshed session doesn't discard drafts
   async function leave() {
     try {for(const key of Object.keys(sessionStorage))if(key.startsWith(`fortius:property-draft:${sessionId}:`))sessionStorage.removeItem(key);}catch{}
     setReady(false);
@@ -379,7 +386,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     </>
   );
   return (
-    <div className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
+    <div data-density={density} className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       <aside id="admin-desktop-sidebar" data-collapsed={sidebar.collapsed} style={{ width: sidebar.collapsed ? 76 : sidebar.width }} className="admin-sidebar sticky top-0 hidden h-[100dvh] shrink-0 flex-col border-r border-border md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
           <BrandMark variant={sidebar.collapsed ? "symbol" : "full"} className="min-w-0 shrink" />
@@ -435,12 +442,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <p className="min-w-0 text-xs text-muted-foreground md:hidden" aria-live="polite">
               {refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel"}
             </p>
-            <p className="hidden font-mono text-xs text-muted-foreground md:block">
+            <p className="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground md:block">
               <FileText className="mr-1.5 inline size-3.5" />
-              {session.email} ·{" "}
-              {refreshing ? "Actualizando…" : "Conexión al servidor"}
+              {refreshing ? "Actualizando…" : "Espacio de trabajo"}
             </p>
-            <div className="flex shrink-0 items-center gap-1"><WorkspaceSearch /><ThemeToggle /></div>
+            <div className="flex shrink-0 items-center gap-1"><WorkspaceSearch /><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
           </div>
           {menu ? (
             <nav
@@ -457,6 +463,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ) : null}
         </header>
         <main className="space-y-5 p-5 md:p-8">
+          <Breadcrumbs />
           {error || refreshError ? (
             <div className="space-y-2">
               <ErrorNotice error={error ?? refreshError} />
@@ -465,9 +472,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </AsyncButton>
             </div>
           ) : null}
-          {!ready ? (
+          {!ready || loadedPath !== pathname ? (
             <p role="status" aria-busy={refreshing}>
-              Cargando datos del panel…
+              {error || refreshError ? "No se pudo cargar este módulo. Puedes reintentar o abrir otro desde el menú." : "Cargando módulo…"}
             </p>
           ) : (
             <>

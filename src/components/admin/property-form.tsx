@@ -1,9 +1,12 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import Image from "next/image";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { LibraryPicker } from "@/components/admin/workspace/library-picker";
+import { FormSection, revealSection } from "@/components/admin/workspace/form-section";
 import { PropertyWorkbench, readDraftFields, type PropertyDraft } from "@/components/admin/workspace/property-workbench";
 
 import {
@@ -132,20 +135,17 @@ export function PropertyForm({ initial: source }: Props) {
 
     const slug = initial?.slug ?? slugify(v("slug") || titulo);
     if (!slug) {
-      setError("El título o slug no puede estar vacío.");
-      return;
+      throw new Error("El título o slug no puede estar vacío.");
     }
     if (!initial && propiedades.some((p) => p.slug === slug)) {
-      setError(`Ya existe un inmueble con el slug "${slug}".`);
-      return;
+      throw new Error(`Ya existe un inmueble con el slug "${slug}".`);
     }
 
     const codigoFinal = codigo.trim() || `FORTIUS-${String(
       Math.max(0, ...propiedades.map((p) => Number(/^FORTIUS-(\d+)$/i.exec(p.codigo.trim())?.[1] ?? 0))) + 1,
     ).padStart(3, "0")}`;
     if (propiedades.some((p) => p.slug !== slug && p.codigo.trim().toUpperCase() === codigoFinal.toUpperCase())) {
-      setError(`Ya existe otro inmueble con el código "${codigoFinal}". Asigna uno distinto.`);
-      return;
+      throw new Error(`Ya existe otro inmueble con el código "${codigoFinal}". Asigna uno distinto.`);
     }
 
     const modalidad = v("modalidad");
@@ -216,10 +216,7 @@ export function PropertyForm({ initial: source }: Props) {
       property.publicada &&
       !property.galeria.some((image) => publicGalleryUrl(image.src))
     ) {
-      setError(
-        "Para publicar, agrega al menos una imagen pública a la galería. Los enlaces privados no aparecen en el sitio.",
-      );
-      return;
+      throw new Error("Para publicar, agrega al menos una imagen pública a la galería. Los enlaces privados no aparecen en el sitio.");
     }
 
     try {await upsertPropiedad(property, version);}catch(cause){if(cause instanceof AdminApiError && cause.status===409)setConflict(true);throw cause;}
@@ -235,12 +232,13 @@ export function PropertyForm({ initial: source }: Props) {
     <AsyncForm
       ref={formRef}
       onChangeCapture={()=>setDirty(true)}
+      onInvalidCapture={(event) => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }}
       onSubmit={onSubmit}
       className="max-w-[880px] space-y-8 [&_input]:scroll-mt-24 [&_input]:scroll-mb-52 [&_select]:scroll-mt-24 [&_select]:scroll-mb-52 [&_textarea]:scroll-mt-24 [&_textarea]:scroll-mb-52"
     >
       <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={formSections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
       {/* Básicos */}
-      <section id="pf-basicos" aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
+      <FormSection id="pf-basicos" aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-basicos-heading" className="display-soft text-lg text-foreground">Datos básicos</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="Título" htmlFor="pf-titulo" className="sm:col-span-2">
@@ -382,10 +380,10 @@ export function PropertyForm({ initial: source }: Props) {
             </label>
           </div>
         </div>
-      </section>
+      </FormSection>
 
       {/* Precio */}
-      <section id="pf-precio" aria-labelledby="pf-precio-heading" tabIndex={-1} className={sectionClass}>
+      <FormSection id="pf-precio" aria-labelledby="pf-precio-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-precio-heading" className="display-soft text-lg text-foreground">Precio</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <Field label="Modalidad" htmlFor="pf-modalidad">
@@ -433,10 +431,10 @@ export function PropertyForm({ initial: source }: Props) {
             </select>
           </Field>
         </div>
-      </section>
+      </FormSection>
 
       {/* Ubicación */}
-      <section id="pf-ubicacion" aria-labelledby="pf-ubicacion-heading" tabIndex={-1} className={sectionClass}>
+      <FormSection id="pf-ubicacion" aria-labelledby="pf-ubicacion-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-ubicacion-heading" className="display-soft text-lg text-foreground">Ubicación</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="Zona" htmlFor="pf-zona">
@@ -523,10 +521,10 @@ export function PropertyForm({ initial: source }: Props) {
             <Plus className="size-4" strokeWidth={1.5} /> Agregar punto
           </button>
         </div>
-      </section>
+      </FormSection>
 
       {/* Contenido */}
-      <section id="pf-contenido" aria-labelledby="pf-contenido-heading" tabIndex={-1} className={sectionClass}>
+      <FormSection id="pf-contenido" aria-labelledby="pf-contenido-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-contenido-heading" className="display-soft text-lg text-foreground">
           Descripción y ficha
         </h2>
@@ -645,10 +643,10 @@ export function PropertyForm({ initial: source }: Props) {
             </div>
           </div>
         </div>
-      </section>
+      </FormSection>
 
       {/* Multimedia */}
-      <section id="pf-multimedia" aria-labelledby="pf-multimedia-heading" tabIndex={-1} className={sectionClass}>
+      <FormSection id="pf-multimedia" aria-labelledby="pf-multimedia-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-multimedia-heading" className="display-soft text-lg text-foreground">Multimedia</h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
           Puedes usar URLs o cargar material público validado. No incluyas
@@ -734,6 +732,7 @@ export function PropertyForm({ initial: source }: Props) {
           >
             <Plus className="size-4" strokeWidth={1.5} /> Agregar imagen
           </button>
+          <LibraryPicker kind="imagen" allowed={publicGalleryUrl} onChoose={file => { setGaleria([...galeria, { src: file.url, alt: file.nombre }]); setDirty(true); }}/>
         </div>
 
         <div className="mt-4">
@@ -773,10 +772,10 @@ export function PropertyForm({ initial: source }: Props) {
             />
           </Field>
         </div>
-      </section>
+      </FormSection>
 
       {/* Documentos PDF */}
-      <section id="pf-documentos" aria-labelledby="pf-documentos-heading" tabIndex={-1} className={sectionClass}>
+      <FormSection id="pf-documentos" aria-labelledby="pf-documentos-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-documentos-heading" className="display-soft text-lg text-foreground">
           Documentos descargables (PDF)
         </h2>
@@ -880,7 +879,8 @@ export function PropertyForm({ initial: source }: Props) {
         >
           <Plus className="size-4" strokeWidth={1.5} /> Agregar PDF
         </button>
-      </section>
+        <LibraryPicker kind="pdf" allowed={publicGalleryUrl} onChoose={file => { setDocumentos([...documentos, { codigo: file.id, nombre: file.nombre, descripcion: file.notas ?? "", url: file.url }]); setDirty(true); }}/>
+      </FormSection>
 
       {/* Sticky stays in flow, reserving its own space after the final fields. */}
       <div className="sticky bottom-0 z-20 space-y-3 rounded-lg border border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
@@ -892,6 +892,7 @@ export function PropertyForm({ initial: source }: Props) {
             {error}
           </p>
         ) : null}
+        <p role="status" className="text-sm font-semibold">{dirty ? "Cambios sin guardar" : "Sin cambios pendientes"} · {initial?.publicada ? "Publicado" : "Borrador"}</p>
         <div className="flex flex-wrap items-end gap-3">
           <nav aria-label="Secciones del inmueble" className="w-full min-w-0 sm:flex-1">
             <label htmlFor="pf-seccion" className="sr-only">Ir a sección</label>
@@ -903,8 +904,7 @@ export function PropertyForm({ initial: source }: Props) {
                 const select = event.currentTarget;
                 const section = document.getElementById(select.value);
                 if (!section) return;
-                section.focus({ preventScroll: true });
-                section.scrollIntoView({ block: "start" });
+                revealSection(section);
                 select.value = "";
               }}
             >
@@ -921,7 +921,7 @@ export function PropertyForm({ initial: source }: Props) {
             <button type="submit" data-action={initial?.publicada?"unpublish":"publish"} className={btnGhost+" flex-1 sm:flex-none"}>{initial?.publicada?"Retirar del sitio":"Guardar y publicar"}</button>
             <button
               type="button"
-              onClick={() => {if(!dirty || window.confirm("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin/propiedades");}}
+              onClick={async () => {if(!dirty || await confirmAction("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin/propiedades");}}
               className={btnGhost + " flex-1 sm:flex-none"}
             >
               Cancelar

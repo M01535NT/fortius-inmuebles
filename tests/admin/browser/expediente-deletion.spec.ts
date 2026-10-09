@@ -17,11 +17,11 @@ for(const width of [390,1440]){
   });
   await page.goto("/admin/expedientes");
   await page.getByRole("button",{name:/EXP-PRUEBA/}).click();
-  page.once("dialog",dialog=>dialog.dismiss());
   await page.getByRole("button",{name:"Eliminar expediente",exact:true}).click();
+  await page.getByRole("dialog").getByRole("button",{name:"Cancelar",exact:true}).click();
   expect(removed).toBe(false);
-  page.once("dialog",dialog=>dialog.accept());
   await page.getByRole("button",{name:"Eliminar expediente",exact:true}).click();
+  await page.getByRole("dialog").getByRole("button",{name:"Confirmar",exact:true}).click();
   await expect(page.getByRole("main").getByRole("status")).toContainText("Expediente eliminado");
   await page.reload();
   await expect(page.getByRole("button",{name:/EXP-PRUEBA/})).toHaveCount(0);

@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
 import Image from "next/image";
 import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
@@ -51,7 +52,7 @@ export default function AdminPropiedadesPage() {
     version: number | null,
   ) {
     if (
-      window.confirm(`¿Eliminar "${titulo}"? Esta acción no se puede deshacer.`)
+      await confirmAction(`¿Eliminar "${titulo}"? Un administrador podrá recuperarlo desde Historial.`)
     ) {
       await removePropiedad(slug, version);
     }
@@ -68,7 +69,7 @@ export default function AdminPropiedadesPage() {
           </Link>
         }
       />
-      <DemoBanner />
+      <DemoBanner show />
       <InventoryControls value={filters} onChange={next=>{setFilters(next);setPage(0);}} advisers={asesores} count={results.length}/>
       {results.length>24 && <nav aria-label="Páginas de inmuebles" className="flex flex-wrap items-center gap-3"><button type="button" className={btnGhost} disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>Anterior</button><span className="text-sm">Página {currentPage+1} de {Math.ceil(results.length/24)}</span><button type="button" className={btnGhost} disabled={(currentPage+1)*24>=results.length} onClick={()=>setPage(currentPage+1)}>Siguiente</button></nav>}
       {propiedades.length > 0 && filtered.length === 0 && <EmptyState title="No hay inmuebles con estos filtros." hint="Prueba otra búsqueda o limpia los filtros."/>}
@@ -136,7 +137,7 @@ export default function AdminPropiedadesPage() {
             ))}
           </ul>
           <div className="hidden min-w-0 overflow-x-auto rounded-lg border border-border bg-card lg:block">
-            <table className="w-full min-w-[820px] text-left text-sm">
+            <table className="w-full min-w-[980px] text-left text-sm [&_td]:px-3 [&_th]:px-3">
               <thead>
                 <tr className="border-b border-border font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
                   <th className="px-4 py-3 font-medium">Código</th>
@@ -161,11 +162,11 @@ export default function AdminPropiedadesPage() {
                       ) : null}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {p.galeria[0] && <Image unoptimized width={960} height={720} src={p.galeria[0].src} alt="" className="h-14 w-20 shrink-0 rounded object-cover" loading="lazy"/>}
-                        <FeaturedButton property={p} />
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-foreground">
+                      <div className="flex w-[260px] items-center gap-2">
+                        {p.galeria[0] && <Image unoptimized width={960} height={720} src={p.galeria[0].src} alt="" className="h-14 w-14 shrink-0 rounded object-cover" loading="lazy"/>}
+                        <div className="shrink-0"><FeaturedButton property={p} /></div>
+                        <div className="min-w-0 flex-1">
+                          <p title={p.titulo} className="line-clamp-2 font-medium text-foreground">
                             {p.titulo}
                           </p>
                           <Badge tone={p.publicada ? "green" : "neutral"}>

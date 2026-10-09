@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
 import Link from "next/link";
 import { ClienteEditor, CLIENTE_TIPO_LABELS as TIPOS } from "@/components/admin/cliente-editor";
@@ -86,7 +87,7 @@ export default function ClientesPage() {
                   aria-label={"Eliminar " + cliente.nombre}
                   className={btnGhost}
                   onClick={async () => {
-                    if (window.confirm("¿Eliminar a " + cliente.nombre + "?"))
+                    if (await confirmAction("¿Eliminar a " + cliente.nombre + "?"))
                       await removeById(
                         db.clientes,
                         cliente.id,

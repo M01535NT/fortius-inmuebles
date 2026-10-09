@@ -38,7 +38,7 @@ test("Fortius Inmuebles mark remains visible through email login and sidebar", a
   await page.getByLabel("Correo").fill("staff@example.com");
   await page.getByLabel("Contraseña", { exact: true }).fill("local-fixture-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Panel.", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mi jornada", exact: true })).toBeVisible();
   const sidebarMark = page.getByRole("complementary").getByRole("img", { name: "Fortius Inmuebles" });
   await expect(sidebarMark).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("fortius-inmuebles-sidebar.png"), fullPage: true });
@@ -50,7 +50,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/admin");
       await expect(
-        page.getByRole("heading", { name: "Panel.", exact: true }),
+        page.getByRole("heading", { name: "Mi jornada", exact: true }),
       ).toBeVisible();
       const nav =
         width < 768
@@ -60,7 +60,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await page.getByRole("button", { name: "Menú del panel" }).click();
       for (const name of [
         "Inmuebles",
-        "Leads",
+        "Prospectos",
         "Clientes",
         "Calendario",
         "Notas",
@@ -120,7 +120,7 @@ test("failed initial load is explicit and does not render an empty-success dashb
     "Servidor temporalmente no disponible",
   );
   await expect(
-    page.getByRole("heading", { name: "Panel.", exact: true }),
+    page.getByRole("heading", { name: "Mi jornada", exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Reintentar carga" }),
@@ -216,7 +216,7 @@ test("real browser forms retain failed drafts and reload acknowledged notes", as
   });
   await page.goto("/admin/notas");
   await page.getByLabel("Título", { exact: true }).fill("Acuerdo registrado");
-  await page.getByLabel("Contenido", { exact: true }).fill("Seguimiento real");
+  await page.getByRole("textbox", { name: "Contenido", exact: true }).fill("Seguimiento real");
   await page.getByRole("button", { name: "Nueva nota" }).click();
   await expect(page.getByRole("main").getByRole("alert")).toContainText(
     "No se guardó",

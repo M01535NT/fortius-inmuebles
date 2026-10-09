@@ -14,7 +14,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import * as api from "@/lib/admin/store";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/admin",
+  usePathname: () => window.location.pathname.startsWith("/admin") ? window.location.pathname : "/admin",
   useRouter: () => ({ push: vi.fn() }),
 }));
 let fail = false;
@@ -189,6 +189,7 @@ test("callback secrets are removed before request, password mode survives verifi
 });
 
 test("failed post-save reconciliation shows a retryable warning without discarding the open draft", async () => {
+  window.history.replaceState(null, "", "/admin/notas");
   render(
     <AdminShell>
       <input aria-label="Borrador abierto" defaultValue="Mi texto sin perder" />

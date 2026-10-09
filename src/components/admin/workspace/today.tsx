@@ -8,13 +8,14 @@ import { operationalDate } from "@/lib/admin/operational-date";
 export function TodayWorkspace() {
   const leads = useCollection(db.leads),
     clients = useCollection(db.clientes),
-    events = useCollection(db.eventos);
+    events = useCollection(db.eventos),
+    tasks = useCollection(db.tareas);
   const today = operationalDate();
   const contacts = projectFollowups(leads, clients).filter(
     (f) => f.fecha <= today,
   );
   const visits = events
-    .filter((e) => e.tipo === "visita" && e.fecha === today)
+    .filter((e) => e.fecha === today)
     .sort((a, b) => (a.hora ?? "").localeCompare(b.hora ?? ""));
   const [dossiers, setDossiers] = React.useState<
     { id: string; folio: string; etapa?: string; fecha_objetivo?: string }[]
@@ -40,7 +41,9 @@ export function TodayWorkspace() {
     (e) =>
       e.etapa !== "cerrado" && e.fecha_objetivo && e.fecha_objetivo < today,
   );
+  const pending = tasks.filter(t => t.estado !== "completada" && t.estado !== "cancelada" && t.vence && t.vence <= today).sort((a,b) => (a.vence ?? "").localeCompare(b.vence ?? ""));
   const groups = [
+    { title: "Tareas prioritarias", items: pending.map(t => ({ id: t.id, title: t.titulo, detail: t.vence === today ? "Hoy" : `Vencida · ${t.vence}`, href: `/admin/tareas/${t.id}` })), empty: "No hay tareas vencidas ni previstas para hoy." },
     {
       title: "Contactos por atender",
       items: contacts.map((f) => ({
@@ -52,14 +55,14 @@ export function TodayWorkspace() {
       empty: "Sin contactos vencidos ni previstos para hoy.",
     },
     {
-      title: "Visitas de hoy",
+      title: "Agenda de hoy",
       items: visits.map((e) => ({
         id: e.id,
         title: e.titulo,
         detail: e.hora ?? "Sin hora",
         href: `/admin/calendario?fecha=${today}&evento=${e.id}`,
       })),
-      empty: "Sin visitas programadas para hoy.",
+      empty: "Sin eventos programados para hoy.",
     },
     {
       title: "Expedientes por retomar",
@@ -80,7 +83,7 @@ export function TodayWorkspace() {
   return (
     <section
       aria-label="Atención de hoy"
-      className="grid min-w-0 gap-3 xl:grid-cols-3"
+      className="grid min-w-0 items-start gap-3 md:grid-cols-2"
     >
       {groups.map((group) => (
         <div
@@ -94,8 +97,8 @@ export function TodayWorkspace() {
             </span>
           </h2>
           {group.items.length ? (
-            <ul className="mt-2 max-h-64 overflow-y-auto divide-y divide-border">
-              {group.items.map((item) => (
+            <ul className="mt-2 divide-y divide-border">
+              {group.items.slice(0, 4).map((item) => (
                 <li key={item.id}>
                   <Link
                     href={item.href}
@@ -114,6 +117,7 @@ export function TodayWorkspace() {
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">{group.empty}</p>
           )}
+          {group.items.length > 4 && <Link className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold underline" href={group.items[0].href.split("?")[0].split("/").slice(0,3).join("/")}>Ver los {group.items.length} pendientes</Link>}
         </div>
       ))}
     </section>

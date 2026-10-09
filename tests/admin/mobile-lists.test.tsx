@@ -1,3 +1,5 @@
+import { confirmAction } from "@/components/admin/workspace/confirm";
+vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import LeadsPage from "@/app/admin/leads/page";
@@ -62,57 +64,57 @@ afterEach(() => {
 
 test("manual lead capture starts collapsed and keeps an unfinished draft when toggled", async () => {
   render(<LeadsPage />);
-  const toggle = screen.getByRole("button", { name: "Nuevo lead" });
+  const toggle = screen.getByRole("button", { name: "Nuevo prospecto" });
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
   expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
   fireEvent.click(toggle);
   fireEvent.change(screen.getByRole("textbox", { name: "Nombre" }), { target: { value: "Borrador manual" } });
   fireEvent.change(screen.getByRole("textbox", { name: "Teléfono" }), { target: { value: "6641234567" } });
   fireEvent.click(screen.getByRole("button", { name: "Cerrar captura" }));
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo lead" }));
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
   expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("Borrador manual");
   expect((screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement).value).toBe("6641234567");
-  await screen.findByRole("list", { name: "Leads" });
+  await screen.findByRole("list", { name: "Prospectos" });
   expect(writes).toHaveLength(0);
 });
 
 test("manual capture preserves failed input and only closes after acknowledged save", async () => {
   render(<LeadsPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo lead" }));
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
   const name = screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement;
   const phone = screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement;
   expect(name.required && phone.required).toBe(true);
   fireEvent.change(name, { target: { value: "Lead capturado" } });
   fireEvent.change(phone, { target: { value: "6641234567" } });
   rejectWrites = true;
-  fireEvent.click(screen.getByRole("button", { name: "Capturar lead" }));
+  fireEvent.click(screen.getByRole("button", { name: "Capturar prospecto" }));
   expect((await screen.findByRole("alert")).textContent).toContain("No se guardó");
   expect(name.value).toBe("Lead capturado");
   expect(push).not.toHaveBeenCalled();
   rejectWrites = false;
-  fireEvent.click(screen.getByRole("button", { name: "Capturar lead" }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Nuevo lead" }).getAttribute("aria-expanded")).toBe("false"));
+  fireEvent.click(screen.getByRole("button", { name: "Capturar prospecto" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Nuevo prospecto" }).getAttribute("aria-expanded")).toBe("false"));
   const saved = db.leads.list().find((item) => item.nombre === "Lead capturado")!;
   expect(saved.telefono).toBe("6641234567");
   expect(push).toHaveBeenCalledWith(`/admin/leads/${saved.id}`);
   expect(writes.map((write) => write.version)).toEqual([null, null]);
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo lead" }));
+  fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
   expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("");
 });
 
 test("mobile lead rows retain details, filters and versioned status updates", async () => {
   render(<LeadsPage />);
-  const list = await screen.findByRole("list", { name: "Leads" });
+  const list = await screen.findByRole("list", { name: "Prospectos" });
   expect(within(list).getByRole("link", { name: lead.nombre }).getAttribute("href")).toBe(`/admin/leads/${lead.id}`);
   expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
   fireEvent.change(within(list).getByRole("combobox", { name: `Estado de ${lead.nombre}` }), { target: { value: "en-evaluacion" } });
   await waitFor(() => expect(db.leads.list()[0].estado).toBe("en-evaluacion"));
   expect(writes[0]).toEqual({ url: `/api/admin/collections/leads/${lead.id}`, method: "PUT", version: 7 });
-  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar lead" }), { target: { value: "sin coincidencia" } });
-  expect(screen.getByText("Sin leads con esos criterios.")).toBeTruthy();
-  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar lead" }), { target: { value: "" } });
+  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar prospecto" }), { target: { value: "sin coincidencia" } });
+  expect(screen.getByText("Sin prospectos con esos criterios.")).toBeTruthy();
+  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar prospecto" }), { target: { value: "" } });
   fireEvent.click(screen.getByRole("button", { name: "Nuevo (0)" }));
-  expect(screen.getByText("Sin leads con esos criterios.")).toBeTruthy();
+  expect(screen.getByText("Sin prospectos con esos criterios.")).toBeTruthy();
 });
 
 test("mobile property rows expose full details and preserve versioned changes and errors", async () => {
@@ -138,12 +140,12 @@ test("mobile property rows expose full details and preserve versioned changes an
 test("mobile property deletion requires confirmation and retains the row when the server fails", async () => {
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
-  const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+  const confirm = vi.mocked(confirmAction).mockResolvedValue(false);
   const remove = within(list).getByRole("button", { name: `Eliminar ${property.titulo}` });
   fireEvent.click(remove);
   await waitFor(() => expect(remove.getAttribute("aria-busy")).toBe("false"));
   expect(writes).toHaveLength(0);
-  confirm.mockReturnValue(true);
+  confirm.mockResolvedValue(true);
   rejectWrites = true;
   fireEvent.click(remove);
   await within(list).findByRole("alert");

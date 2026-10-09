@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -265,12 +266,9 @@ export default function AsesoresPage() {
                     aria-label={`Eliminar ${a.nombre}`}
                     onClick={async () => {
                       if (leadsAsignados + inmuebles + clientesAsignados > 0) {
-                        window.alert(
-                          "Este asesor tiene leads, clientes o inmuebles asignados. Reasígnalos antes de eliminarlo.",
-                        );
-                        return;
+                        throw new Error("Este asesor tiene prospectos, clientes o inmuebles asignados. Reasígnalos antes de eliminarlo.");
                       }
-                      if (window.confirm(`¿Eliminar a ${a.nombre}?`))
+                      if (await confirmAction(`¿Eliminar a ${a.nombre}?`))
                         await removeById(
                           db.asesores,
                           a.id,

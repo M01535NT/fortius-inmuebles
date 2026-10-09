@@ -17,6 +17,7 @@ import {
   EmptyState,
   PageHeader,
   btnPrimary,
+  btnGhost,
   inputClass,
 } from "@/components/admin/ui";
 import {
@@ -92,8 +93,8 @@ export default function AdminLeadsPage() {
   return (
     <div className="min-w-0 space-y-6">
       <PageHeader
-        title="Leads."
-        description="Captura y da seguimiento a tus leads. Convierte un lead en cliente con sus datos e historial; consúltalo después en Convertidos."
+        title="Prospectos"
+        description="Contacta, asigna y da seguimiento a las personas interesadas."
         actions={
           <button
             type="button"
@@ -108,7 +109,7 @@ export default function AdminLeadsPage() {
             ) : (
               <Plus className="size-4" strokeWidth={1.5} />
             )}
-            {capturaAbierta ? "Cerrar captura" : "Nuevo lead"}
+            {capturaAbierta ? "Cerrar captura" : "Nuevo prospecto"}
           </button>
         }
       />
@@ -122,7 +123,7 @@ export default function AdminLeadsPage() {
         >
           <LeadFields nombreRef={nombreInput} />
           <button type="submit" className={btnPrimary}>
-            <Plus className="size-4" strokeWidth={1.5} /> Capturar lead
+            <Plus className="size-4" strokeWidth={1.5} /> Capturar prospecto
           </button>
         </AsyncForm>
       </div>
@@ -131,7 +132,7 @@ export default function AdminLeadsPage() {
       <div className="flex min-w-0 flex-col gap-3">
         <input
           type="search"
-          aria-label="Buscar lead"
+          aria-label="Buscar prospecto"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre, teléfono, correo, zona…"
@@ -181,15 +182,15 @@ export default function AdminLeadsPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Vista de prospectos"><button type="button" className={btnPrimary} aria-pressed={view==="lista"} onClick={()=>setView("lista")}>Lista</button><button type="button" className={btnPrimary} aria-pressed={view==="etapas"} onClick={()=>setView("etapas")}>Por etapas</button><span className="self-center text-sm text-muted-foreground">{leads.filter(l=>duplicateContacts(l,leads).length>0).length} registros con posible duplicado</span></div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Vista de prospectos"><button type="button" className={btnGhost} aria-pressed={view==="lista"} onClick={()=>setView("lista")}>Lista</button><button type="button" className={btnGhost} aria-pressed={view==="etapas"} onClick={()=>setView("etapas")}>Por etapas</button><span className="self-center text-sm text-muted-foreground">{leads.filter(l=>duplicateContacts(l,leads).length>0).length} registros con posible duplicado</span></div>
       {view === "etapas" ? <LeadBoard leads={filtrados}/> : filtrados.length === 0 ? (
         <EmptyState
-          title="Sin leads con esos criterios."
-          hint="Los formularios del sitio capturan leads en el servidor."
+          title="Sin prospectos con esos criterios."
+          hint="Prueba otra búsqueda o registra un prospecto."
         />
       ) : (
         <>
-          <ul aria-label="Leads" className="min-w-0 space-y-3 lg:hidden">
+          <ul aria-label="Prospectos" className="min-w-0 space-y-3 lg:hidden">
             {filtrados.map((lead) => {
               const asesor = asesores.find((a) => a.id === lead.asesorId);
               return (
@@ -236,7 +237,7 @@ export default function AdminLeadsPage() {
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                  <th className="px-4 py-3 font-medium">Lead</th>
+                  <th className="px-4 py-3 font-medium">Prospecto</th>
                   <th className="px-4 py-3 font-medium">Origen</th>
                   <th className="px-4 py-3 font-medium">Asesor</th>
                   <th className="px-4 py-3 font-medium">Recibido</th>
@@ -290,7 +291,7 @@ export default function AdminLeadsPage() {
 
       {leads.some((l) => !l.clienteId && l.estado === "nuevo") ? (
         <p className="text-sm text-muted-foreground">
-          <Badge tone="green">Tip</Badge> Abre cada lead para asignar asesor,
+          <Badge tone="green">Tip</Badge> Abre cada prospecto para asignar asesor,
           registrar notas y agendar el siguiente contacto.
         </p>
       ) : null}
@@ -311,7 +312,7 @@ function LeadStatus({ lead }: { lead: Lead }) {
           db.leads.version(lead),
         )
       }
-      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:text-sm"
+      className="min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-2 text-base text-foreground lg:min-w-40 lg:text-sm"
     >
       {LEAD_ESTADOS.map((value) => (
         <option key={value} value={value}>

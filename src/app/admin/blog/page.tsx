@@ -1,4 +1,5 @@
 "use client";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -251,7 +252,7 @@ export default function BlogAdminPage() {
                   type="button"
                   aria-label={`Eliminar ${p.titulo}`}
                   onClick={async () => {
-                    if (window.confirm(`¿Eliminar "${p.titulo}"?`))
+                    if (await confirmAction(`¿Eliminar "${p.titulo}"?`))
                       await removeById(db.posts, p.id, db.posts.version(p));
                   }}
                   className="rounded-md border border-border p-2 text-foreground/70 transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"

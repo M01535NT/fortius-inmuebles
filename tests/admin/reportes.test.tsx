@@ -28,5 +28,5 @@ test("shows saved commercial counts and expediente stages", async () => {
   const stages = screen.getByRole("heading", { name: "Etapas de operación" }).closest("section")!;
   expect(within(stages).getByText("Negociación")).toBeTruthy();
   expect(within(stages).getByText("1")).toBeTruthy();
-  expect(screen.getByText(/Conversión histórica = leads convertidos/)).toBeTruthy();
+  expect(screen.getByText(/Conversión histórica = prospectos convertidos/)).toBeTruthy();
 });

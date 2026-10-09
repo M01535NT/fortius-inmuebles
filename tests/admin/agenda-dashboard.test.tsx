@@ -34,9 +34,9 @@ test("dashboard groups open tasks by Tijuana date and links to their filters", a
     {id:"done",titulo:"Tarea terminada",descripcion:"",categoria:"cierre",estado:"completada",prioridad:"normal",vence:"2026-09-21",pasos:[]},
   ];
   render(<AdminDashboard />);
-  await screen.findByRole("link", {name:"Revisar expediente"});
-  expect(screen.getByRole("link", {name:/1 Vencidas/}).getAttribute("href")).toBe("/admin/tareas?vence=vencidas");
-  expect(screen.getByRole("link", {name:/1 Hoy/})).toBeTruthy();
+  await screen.findByRole("link", {name:/Revisar expediente/});
+  expect(screen.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin/tareas/late");
+  expect(screen.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
   expect(screen.queryByText("Tarea terminada")).toBeNull();
 });
 
@@ -73,10 +73,10 @@ test("dashboard keeps this evening's eight Tijuana events when UTC is already to
 
   await screen.findAllByText("Visita 1");
   expect(screen.getByRole("link", { name: /Eventos próximos/ }).textContent).toContain("08");
-  const agenda = screen.getByRole("heading", { name: "Agenda próxima" }).closest("section")!;
-  expect(within(agenda).getAllByRole("listitem")).toHaveLength(5);
+  const agenda = screen.getByRole("heading", { name: "Próximos días" }).closest("section")!;
+  expect(within(agenda).getByText("Sin eventos próximos.")).toBeTruthy();
   expect(within(agenda).queryByText("Visita 6")).toBeNull();
-  expect(within(screen.getByRole("region",{name:"Atención de hoy"})).getByText("Visita 6")).toBeTruthy();
+  expect(within(screen.getByRole("region",{name:"Atención de hoy"})).getByRole("link", {name:"Ver los 8 pendientes"})).toBeTruthy();
 });
 
 test("dashboard counts all eligible days before limiting its chronologically ordered preview", async () => {
@@ -88,7 +88,7 @@ test("dashboard counts all eligible days before limiting its chronologically ord
 
   await screen.findByText("Visita 1");
   expect(screen.getByRole("link", { name: /Eventos próximos/ }).textContent).toContain("08");
-  const agenda = screen.getByRole("heading", { name: "Agenda próxima" }).closest("section")!;
+  const agenda = screen.getByRole("heading", { name: "Próximos días" }).closest("section")!;
   expect(within(agenda).getAllByRole("listitem").map((item) => within(item).getByText(/Visita/).textContent)).toEqual([
     "Visita 1",
     "Visita 2",
@@ -141,9 +141,9 @@ test("dashboard shows one overdue followup for a converted client with its advis
     return Response.json({ records: records.map(item => ({ ...item, version: 1 })) });
   });
   render(<AdminDashboard />);
-  expect(await screen.findByRole("link", { name: "Cliente convertido" })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
-  expect(screen.getByText(/Seguimientos vencidos:/).textContent).toContain("1");
-  expect(screen.getByText(/Cliente · 2026-09-21 · Asesora Ana/)).toBeTruthy();
+  expect(await screen.findByRole("link", { name: /Cliente convertido/ })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
+  expect(screen.getByRole("heading", {name:/Contactos por atender/}).textContent).toContain("1");
+  expect(screen.getByText(/Pendiente desde 2026-09-21/)).toBeTruthy();
   expect(screen.queryByRole("link", { name: "Prospecto" })).toBeNull();
 });
 

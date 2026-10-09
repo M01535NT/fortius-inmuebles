@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { acceptAuthCallback, changePassword, loginWithPassword, logoutSession, requireStaff, requestRecovery } from "@/lib/backend/auth";
+import { PATCH as profileRoute } from "@/app/api/auth/profile/route";
+import { GET as photoRoute } from "@/app/api/auth/profile/photo/route";
 import { GET as sessionRoute } from "@/app/api/auth/session/route";
 import { GET as listRoute } from "@/app/api/admin/collections/[collection]/route";
 import { PUT as putRoute } from "@/app/api/admin/collections/[collection]/[id]/route";
@@ -13,6 +15,7 @@ const token = `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toStr
 const session = { access_token: token, refresh_token: "test-refresh-token", expires_in: 3600, token_type: "bearer", user };
 
 beforeEach(() => {
+  user.user_metadata = {};
   state.cookies.clear(); state.active = true; state.member = true; state.validPassword = true; state.password = ""; state.recoveryFailure = false; state.leadFailure = false;
   state.authServiceFailure = false;
   state.fileMissing = false;
@@ -32,7 +35,7 @@ beforeEach(() => {
     if (url.pathname === "/auth/v1/verify") return Response.json(session);
     if (url.pathname === "/auth/v1/user") {
       if (headers.get("authorization") !== `Bearer ${token}`) return Response.json({ msg: "invalid JWT", error_code: "bad_jwt" }, { status: 401 });
-      if (init.method === "PUT") state.password = JSON.parse(String(init.body)).password;
+      if (init.method === "PUT") { const body = JSON.parse(String(init.body)); state.password = body.password; if (body.data) user.user_metadata = body.data; }
       return Response.json(user);
     }
     if (url.pathname === "/rest/v1/fortius_inmuebles_staff") return Response.json(state.member ? [{ role: "admin", active: state.active }] : []);
@@ -154,4 +157,34 @@ describe("real session behavior against the external transport boundary", () => 
     state.recoveryFailure = true;
     await expect(requestRecovery({ email: user.email }, "https://mnt.test/admin")).rejects.toMatchObject({ status: 503 });
   });
+});
+
+it("profile persists a compact private avatar reference and cannot change permissions", async () => {
+  const request = (body: unknown, origin = "https://mnt.test") => new Request("https://mnt.test/api/auth/profile", {method:"PATCH", headers:{origin,"content-type":"application/json"}, body:JSON.stringify(body)});
+  expect((await profileRoute(request({name:"Asesor",avatar:""}))).status).toBe(401);
+  await loginWithPassword({email:user.email,password:"a long password"});
+  expect((await profileRoute(request({name:"Asesor",avatar:"",role:"admin"}))).status).toBe(400);
+  expect((await profileRoute(request({name:"Asesor",avatar:""},"https://other.test"))).status).toBe(403);
+  const original = fetch;
+  const paths: string[] = [];
+  vi.stubGlobal("fetch", async (input: string | URL | Request, init?: RequestInit) => {
+    const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+    if(url.pathname.startsWith("/storage/v1/object/")) {
+      paths.push(url.pathname);
+      if(init?.method === "POST") return Response.json({Key:"avatar.jpg"});
+      return new Response(new Uint8Array([255,216,255,224]), {headers:{"content-type":"image/jpeg"}});
+    }
+    return original(input, init);
+  });
+  const avatar = "data:image/jpeg;base64," + Buffer.from([255,216,255,224,...Array(8000).fill(0)]).toString("base64");
+  expect((await profileRoute(request({name:"Asesor actualizado",avatar}))).status).toBe(200);
+  expect(JSON.stringify(user.user_metadata).length).toBeLessThan(250);
+  const sessionResponse = await sessionRoute();
+  expect((await sessionResponse.json()).user).toMatchObject({name:"Asesor actualizado",avatar:expect.stringMatching(/^\/api\/auth\/profile\/photo/),role:"admin"});
+  const photo = await photoRoute();
+  expect(photo.headers.get("content-type")).toBe("image/jpeg");
+  expect((await photo.arrayBuffer()).byteLength).toBe(4);
+  expect(paths.every(path => path.includes("profiles/"+user.id+"/avatar.jpg"))).toBe(true);
+  state.cookies.clear();
+  expect((await photoRoute()).status).toBe(401);
 });

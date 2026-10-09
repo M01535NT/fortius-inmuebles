@@ -441,10 +441,10 @@ export async function convertirLead(lead: Lead): Promise<Cliente> {
   await db.clientes.acknowledge(result.cliente);
   return result.cliente.data;
 }
-export function useCollection<T extends object>(col: Collection<T>): T[] {
+export function useCollection<T extends object>(col: Collection<T>, enabled = true): T[] {
   React.useEffect(() => {
-    if (col.state().status === "idle") void col.load().catch(() => {});
-  }, [col]);
+    if (enabled && col.state().status === "idle") void col.load().catch(() => {});
+  }, [col, enabled]);
   return React.useSyncExternalStore(col.subscribe, col.list, () => EMPTY);
 }
 export function useLoadState<T extends object>(col: Collection<T>) {

@@ -1,4 +1,7 @@
 "use client";
+import { revealSection } from "./form-section";
+import { confirmAction } from "./confirm";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import * as React from "react";
 import { btnGhost } from "@/components/admin/ui";
@@ -60,6 +63,7 @@ export function PropertyWorkbench({
   conflict: boolean;
 }) {
   const session = useSession();
+  const router = useRouter();
   const key = `fortius:property-draft:${session?.id ?? "anonymous"}:${identity}`;
   const [saved, setSaved] = React.useState<PropertyDraft | null>(() => {
       try {
@@ -114,15 +118,20 @@ export function PropertyWorkbench({
       event.preventDefault();
       event.returnValue = "";
     };
-    const leave = (event: MouseEvent) => {
+    let leaving = false;
+    const leave = async (event: MouseEvent) => {
       const link = (event.target as Element).closest?.("a[href]");
       if (
-        link &&
-        !link.getAttribute("href")?.startsWith("#") &&
-        !window.confirm("Hay cambios sin guardar. ¿Quieres salir del editor?")
+        link && !leaving && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0 && link.getAttribute("target") !== "_blank" && !link.hasAttribute("download") &&
+        !link.getAttribute("href")?.startsWith("#")
       ) {
         event.preventDefault();
         event.stopPropagation();
+        if (leaving) return;
+        leaving = true;
+        const href = link.getAttribute("href");
+        if (href && await confirmAction("Hay cambios sin guardar. ¿Quieres salir del editor?")) (link as HTMLAnchorElement).click();
+        leaving = false;
       }
     };
     window.addEventListener("beforeunload", unload);
@@ -131,7 +140,7 @@ export function PropertyWorkbench({
       window.removeEventListener("beforeunload", unload);
       document.removeEventListener("click", leave, true);
     };
-  }, [dirty]);
+  }, [dirty, router]);
   React.useEffect(() => {
     const form = root.current?.closest("form");
     if (!form) return;
@@ -247,6 +256,7 @@ export function PropertyWorkbench({
           <a
             key={s.id}
             href={`#${s.id}`}
+            onClick={(event) => { event.preventDefault(); revealSection(document.getElementById(s.id)); }}
             className="inline-flex min-h-11 items-center gap-2 rounded border border-border px-3 text-xs hover:bg-secondary"
           >
             <span aria-hidden="true">

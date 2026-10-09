@@ -1,3 +1,5 @@
+import { confirmAction } from "@/components/admin/workspace/confirm";
+vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
 import * as React from "react";
 import {
   act,
@@ -74,7 +76,7 @@ const lead = {
 test.each(["Quitar documento", "Quitar punto"])("button-only edit %s protects unsaved changes",async(name)=>{
   render(<PropertyForm initial={property}/>);
   fireEvent.click(screen.getByRole("button",{name}));
-  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  const confirm=vi.mocked(confirmAction).mockResolvedValue(false);
   fireEvent.click(screen.getByRole("button",{name:"Cancelar"}));
   expect(confirm).toHaveBeenCalled();
   expect(push).not.toHaveBeenCalled();
@@ -464,3 +466,10 @@ test.each(
     expect(serverData[field]).toBe("Otro usuario");
   },
 );
+test("publication validation never reports a saved record or sends a write", async () => {
+  render(<PropertyForm initial={{...property, publicada:true, galeria:[]}} />);
+  fireEvent.submit(screen.getByLabelText("Título").closest("form")!);
+  expect((await screen.findByRole("alert")).textContent).toContain("imagen pública");
+  expect(screen.queryByText("Cambios guardados.")).toBeNull();
+  expect(sent).toBeNull();
+});

@@ -20,7 +20,7 @@ for (const width of [320, 390, 768, 1440]) {
       return route.fulfill({ json: { records: data } });
     });
     await page.goto("/admin/leads");
-    await page.getByRole("button", { name: "Nuevo lead", exact: true }).click();
+    await page.getByRole("button", { name: "Nuevo prospecto", exact: true }).click();
     await page.getByLabel("Nombre", { exact: true }).fill("Lead de prueba móvil");
     await page.getByLabel("Teléfono", { exact: true }).fill("6641234567");
     await page.getByLabel("Correo electrónico", { exact: true }).fill("test@example.invalid");
@@ -41,7 +41,7 @@ for (const width of [320, 390, 768, 1440]) {
     await page.getByLabel("Próximo contacto").fill("2026-10-01");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`lead-form-${width}.png`), fullPage: true });
-    await page.getByRole("button", { name: "Capturar lead", exact: true }).click();
+    await page.getByRole("button", { name: "Capturar prospecto", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/leads\/[^/]+$/);
     await expect(page.getByRole("heading", { name: "Lead de prueba móvil", exact: true })).toBeVisible();
     await page.reload();
@@ -82,7 +82,7 @@ test("seller capture shows property details and sale price at mobile width", asy
     return route.fulfill({ json: { records: path.endsWith("/leads") && saved.id ? [{ id: saved.id, data: saved, version: 1 }] : [] } });
   });
   await page.goto("/admin/leads");
-  await page.getByRole("button", { name: "Nuevo lead", exact: true }).click();
+  await page.getByRole("button", { name: "Nuevo prospecto", exact: true }).click();
   await page.getByLabel("Nombre", { exact: true }).fill("Propietaria de prueba");
   await page.getByLabel("Teléfono", { exact: true }).fill("6641234567");
   await page.getByText("Qué busca y características", { exact: true }).click();
@@ -95,7 +95,7 @@ test("seller capture shows property details and sale price at mobile width", asy
   await page.getByLabel("Precio de venta esperado").fill("3500000");
   await page.getByLabel("Moneda", { exact: true }).selectOption("MXN");
   await page.screenshot({ path: testInfo.outputPath("lead-sale-mobile.png"), fullPage: true });
-  await page.getByRole("button", { name: "Capturar lead", exact: true }).click();
+  await page.getByRole("button", { name: "Capturar prospecto", exact: true }).click();
   await expect(page.getByText("3,500,000 MXN", { exact: true })).toBeVisible();
   expect((saved.perfil as Record<string, unknown>).precioObjetivo).toBe(3500000);
 });
