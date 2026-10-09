@@ -19,7 +19,13 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     const before = await photo.evaluate((node) => getComputedStyle(node).transform);
     await page.evaluate(() => window.scrollTo({ top: 280, behavior: "instant" }));
     await expect.poll(() => photo.evaluate((node) => getComputedStyle(node).transform)).not.toBe(before);
-    await page.locator("footer").getByRole("link", { name: "Entregables", exact: true }).click();
+    await page.getByRole("button", { name: "Abrir menú" }).click();
+    const menu = page.getByRole("dialog", { name: "Menú", exact: true });
+    await menu.getByRole("button", { name: "Desplegar Servicios" }).click();
+    const deliverables = menu.getByRole("link", { name: "Entregables", exact: true });
+    await expect(deliverables).toHaveAttribute("href", "/#entregables");
+    await deliverables.click();
+    await expect(menu).toBeHidden();
     await expect(page.locator("#entregables")).toBeInViewport();
     await expect(page.locator("#entregables article")).toHaveCount(6);
     await page.locator('main a[href="/herramientas/hipoteca"]').click();
