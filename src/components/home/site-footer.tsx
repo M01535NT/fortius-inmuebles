@@ -67,12 +67,12 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
           whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.65 }}>
           <div className="editorial-footer-invitation">
             <p className="editorial-footer-eyebrow">Tu próxima propiedad empieza con una conversación.</p>
-            <h2>Hablemos de<br /><em>lo que sigue.</em></h2>
+            <h2>{pathname === "/" ? <>Hablemos de tu<br /><em>próxima operación.</em></> : <>Hablemos de<br /><em>lo que sigue.</em></>}</h2>
             <Link href="/contacto" className="editorial-footer-cta">Contactar a Fortius <ArrowUpRight size={22} aria-hidden="true" /></Link>
           </div>
           <nav className="editorial-footer-directions" aria-label="Comprar o vender">
             <Link href="/vender-propiedad"><span><small>Para propietarios</small>Quiero vender</span><ArrowUpRight aria-hidden="true" /></Link>
-            <Link href="/inventario"><span><small>Para compradores</small>Buscar propiedad</span><ArrowUpRight aria-hidden="true" /></Link>
+            <Link href="/inventario"><span><small>Para compradores</small>{pathname === "/" ? "Explorar inmuebles" : "Buscar propiedad"}</span><ArrowUpRight aria-hidden="true" /></Link>
           </nav>
         </motion.div>
         <div className="editorial-footer-columns">

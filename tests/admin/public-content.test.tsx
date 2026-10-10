@@ -33,9 +33,9 @@ test("legacy defaults receive the regional copy and keep intentional manifesto l
   };
   const hero = renderToStaticMarkup(<Hero content={original} />);
   const relato = renderToStaticMarkup(<Relato content={original} />);
-  expect(hero).toContain('Inmobiliaria para');
-  expect(hero).toContain('En Fortius te ayudamos a comparar propiedades');
-  expect(relato).toMatch(/<span class="[^"]*\bblock\b[^"]*">el precio de venta\.<\/span>/);
+  expect(hero).toContain('Tu propiedad merece');
+  expect(hero).toContain('Somos una inmobiliaria en Baja California.');
+  expect(relato).toMatch(/<span class="[^"]*\bblock\b[^"]*">Un asesor para coordinar\.<\/span>/);
 });
 test("footer uses public settings and hides unconfigured contact channels", () => {
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);

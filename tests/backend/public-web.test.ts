@@ -54,6 +54,22 @@ test("public results exclude unpublished records, private fields and private ass
   expect(visible[0]).not.toHaveProperty("notasPrivadas");
   expect(visible[0].galeria).toEqual([{ src: "/hero/casa-playa.webp", alt: "Casa" }]);
 });
+test("featured inventory preserves published demos and excludes unavailable real or unpublished records", async () => {
+  const base = records[0];
+  records = [
+    { ...base, slug: "real", destacada: true, demo: false, estado: "disponible" },
+    { ...base, slug: "demo", destacada: true, demo: true, estado: "disponible" },
+    { ...base, slug: "demo-reserved", destacada: true, demo: true, estado: "apartada" },
+    { ...base, slug: "sold", destacada: true, estado: "vendida" },
+    { ...base, slug: "reserved", destacada: true, estado: "apartada" },
+    { ...base, slug: "rented", destacada: true, operacion: "renta", estado: "rentada" },
+    { ...base, slug: "draft", destacada: true, publicada: false },
+    { ...base, slug: "ordinary", destacada: false },
+  ];
+  expect((await getFeaturedProperties()).map((p) => p.slug)).toEqual(["real", "demo", "demo-reserved"]);
+  records = records.filter((p) => p.slug !== "real" && p.slug !== "demo" && p.slug !== "demo-reserved");
+  expect(await getFeaturedProperties()).toEqual([]);
+});
 test("sitemap includes only currently published non-demo details", async () => {
   records.push({ ...propiedades[1], publicada: true, demo: true }, { ...propiedades[2], publicada: false, demo: false });
   const urls = (await sitemap()).map((row) => row.url);

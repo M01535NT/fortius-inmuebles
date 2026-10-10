@@ -84,9 +84,9 @@ function Editor({ initial }: { initial: SiteContent }) {
 
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft text-lg text-foreground">
-            Manifiesto (bloque azul)
+            Por qué Fortius
           </h2>
-          <Field label="Titular" htmlFor="ct-manifiestoTitulo">
+          <Field label="Título de la sección" htmlFor="ct-manifiestoTitulo">
             <textarea
               id="ct-manifiestoTitulo"
               name="manifiestoTitulo"
@@ -95,7 +95,7 @@ function Editor({ initial }: { initial: SiteContent }) {
               className={inputClass}
             />
           </Field>
-          <Field label="Texto" htmlFor="ct-manifiestoTexto">
+          <Field label="Precio con referencias · descripción" htmlFor="ct-manifiestoTexto">
             <textarea
               id="ct-manifiestoTexto"
               name="manifiestoTexto"

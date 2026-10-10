@@ -30,6 +30,7 @@ vi.mock("@/lib/gsap", () => ({
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   window.history.replaceState(null, "", "/");
 });
 
@@ -127,6 +128,10 @@ test("inventory and contact routes expose one page H1", async () => {
 });
 
 test("fullscreen menu traps Tab, closes with Escape and restores prior focus", async () => {
+  // JSDOM has no layout: model rendered rectangles for this focus test only.
+  vi.spyOn(HTMLElement.prototype, "getClientRects").mockImplementation(function (this: HTMLElement) {
+    return (this.hidden ? [] : [{ width: 1, height: 1 }]) as unknown as DOMRectList;
+  });
   const trigger = document.createElement("button");
   document.body.append(trigger);
   trigger.focus();
@@ -138,6 +143,8 @@ test("fullscreen menu traps Tab, closes with Escape and restores prior focus", a
   links.at(-1)!.focus();
   fireEvent.keyDown(window, { key: "Tab" });
   expect(document.activeElement).toBe(close);
+  fireEvent.keyDown(window, { key: "Tab", shiftKey: true });
+  expect(document.activeElement).toBe(links.at(-1));
   fireEvent.keyDown(window, { key: "Escape" });
   expect(onClose).toHaveBeenCalledOnce();
   view.rerender(<FullscreenMenu open={false} onClose={onClose} />);

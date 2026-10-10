@@ -12,7 +12,9 @@ export async function getPropertyBySlug(slug: string): Promise<Property | undefi
 }
 
 export async function getFeaturedProperties(): Promise<Property[]> {
-  return (await getPropiedades()).filter((p) => p.destacada);
+  // Keep the owner's published demonstrations, including their example states,
+  // until they remove them from featured inventory in the panel.
+  return (await getPropiedades()).filter((p) => p.destacada && (p.demo || p.estado === "disponible"));
 }
 
 export async function getRelatedProperties(slug: string, limit = 3): Promise<Property[]> {

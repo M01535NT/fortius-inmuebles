@@ -21,7 +21,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Inmobiliaria para");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Tu propiedad merece");
     await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Imagen 2", exact: true }).click();
     await expect(page.getByRole("button", { name: "Imagen 2", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -36,7 +36,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       });
     })).toBe(true);
     await expect(page.locator('section[aria-label="Presentación"] img')).toHaveCount(1);
-    await page.getByRole("link", { name: "Ver propiedades", exact: true }).hover();
+    await page.locator(".editorial-cover-actions").getByRole("link", { name: "Explorar inmuebles", exact: true }).hover();
     await page.screenshot({ path: testInfo.outputPath(`hero-${width}.png`) });
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();

@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Children, type ReactElement } from "react";
 import RootLayout, { generateMetadata } from "@/app/layout";
 import HomePage from "@/app/page";
+import { EditorialIntro, EditorialProperties } from "@/components/home/editorial-sections";
 import { InstitutionalVideo } from "@/components/sections/institutional-video";
 import { matchRemotePattern } from "next/dist/shared/lib/match-remote-pattern";
 import type { Metadata } from "next";
@@ -46,11 +47,26 @@ test("home passes projected panel copy and metadata reads subsequent edits witho
   const home = await HomePage();
   const sections = Children.toArray(home.props.children) as ReactElement<{ content?: unknown }>[];
   expect(sections[0].props.content).toMatchObject({ heroTitulo: "Título del panel" });
-  expect(sections[1].props.content).toMatchObject({ manifiestoTexto: "Texto actualizado" });
+  expect(sections.find((section) => section.type === EditorialIntro)?.props.content).toMatchObject({ manifiestoTexto: "Texto actualizado" });
   expect(sections[0].props.content).not.toHaveProperty("privateNote");
   expect((await generateMetadata()).description).toBe("Descripción publicada");
   content.seoDescription = "Descripción editada";
   expect((await generateMetadata()).description).toBe("Descripción editada");
+});
+test("the benefits render each customized panel field without substituting the new defaults", () => {
+  const html = renderToStaticMarkup(EditorialIntro({ content: {
+    heroTitulo: "Hero", heroSubtitulo: "Descripción", seoTitle: "SEO", seoDescription: "SEO",
+    manifiestoTitulo: "Mi propuesta", manifiestoTexto: "Mis referencias de precio",
+    homeTexts: { relatoTexto: "Mi revisión documental", relatoApoyo: "Mi promoción acordada" },
+  } }));
+  for (const copy of ["Mi propuesta", "Mis referencias de precio", "Mi revisión documental", "Mi promoción acordada"]) expect(html).toContain(copy);
+});
+test("an empty featured selection keeps a real inventory destination and creates no placeholder listing", async () => {
+  publicProperty.destacada = false;
+  const html = renderToStaticMarkup(await EditorialProperties());
+  expect(html).toContain('href="/inventario"');
+  expect(html).toContain("Por ahora no hay propiedades destacadas disponibles");
+  expect(html).not.toContain("data-property-card");
 });
 test("institutional video reads the configured public URL and stays absent when empty", async () => {
   expect(renderToStaticMarkup(await InstitutionalVideo())).toContain('src="/video-publico.mp4"');

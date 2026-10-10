@@ -76,7 +76,7 @@ export function EditorialHero({ content }: { content?: SiteContent | null }) {
           <motion.div className="hero-copy-entry editorial-cover-actions" initial={false}
             whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.75 }}>
             <Link href="/vender-propiedad" className="editorial-button" data-cursor="Vender">Quiero vender mi propiedad <ArrowUpRight size={20} aria-hidden="true" /></Link>
-            <Link href="/inventario" className="editorial-text-link" data-cursor="Explorar">Ver propiedades <ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <Link href="/inventario" className="editorial-text-link" data-cursor="Explorar">Explorar inmuebles <ArrowUpRight size={18} aria-hidden="true" /></Link>
           </motion.div>
         </div>
         <div role="group" aria-label="Imágenes del inicio" aria-describedby="editorial-slide-help" className="editorial-photo-controls">

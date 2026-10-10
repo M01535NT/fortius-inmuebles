@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/gsap/reveal";
 import { Scrub } from "@/components/gsap/scrub";
 import { ParallaxImage } from "@/components/magicui/parallax-image";
+import { SplitHeading } from "@/components/gsap/split-heading";
 
 /*
   Segmentos: puertas a las rutas de especialidad con los renders del
@@ -63,6 +64,7 @@ function SegmentoCard({
               <p className="mt-1.5 max-w-[38ch] text-sm leading-relaxed text-on-image-muted/85">
                 {segmento.text}
               </p>
+              <span className="editorial-specialty-action">Conocer {segmento.title.toLowerCase()}</span>
             </div>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-on-image/30 text-on-image transition-all duration-300 group-hover:border-block-accent group-hover:text-block-accent">
               <ArrowUpRight
@@ -79,7 +81,11 @@ function SegmentoCard({
 
 export function Segmentos() {
   return (
-    <section className="mx-auto max-w-[1280px] overflow-x-clip px-5 py-6 md:px-8">
+    <section id="especialidades" aria-label="Servicios y especialidades" className="mx-auto max-w-[1280px] overflow-x-clip px-5 py-6 md:px-8">
+      <div className="editorial-specialties-heading">
+        <p className="editorial-eyebrow">Servicios y especialidades</p>
+        <SplitHeading reveal="lines" lines={["Residencial, comercial", "e industrial."]} className="editorial-section-title" />
+      </div>
       {/* Columnas a velocidades opuestas: la grande baja, la derecha sube. */}
       <div className="grid gap-4 lg:grid-cols-12">
         <Scrub y={[-30, 30]} className="lg:col-span-7">

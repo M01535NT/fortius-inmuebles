@@ -3,7 +3,34 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import { MessagingContact } from "@/components/contact/messaging-actions";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
-import { homeText, resolveSiteContent } from "@/data/home-copy";
+import { homeText, resolveSiteContent, SITE_COPY } from "@/data/home-copy";
+
+test("the commercial refresh updates shipped defaults without mutating stored content or custom fields", () => {
+  const stored = {
+    ...SITE_COPY,
+    heroTitulo: "Inmobiliaria para\ncomprar y vender.",
+    heroSubtitulo: "En Fortius te ayudamos a comparar propiedades, coordinar visitas y negociar las condiciones de tu compra o venta. Tu asesor reúne la información y da seguimiento a la operación para que puedas decidir.",
+    manifiestoTitulo: "Cómo proponemos\nel precio de venta.",
+    manifiestoTexto: "Texto aprobado por mi equipo.",
+    homeTexts: {
+      metodoTitulo: "Qué hacemos\npara vender tu propiedad.",
+      entregablesTitulo: "Documentos\nque te entregamos.",
+      preguntasTitulo: "Preguntas\nsobre la venta.",
+      gastosTexto: "Estimación personalizada del servicio.",
+    },
+  };
+  const before = structuredClone(stored);
+  const resolved = resolveSiteContent(stored);
+  expect(resolved.heroTitulo.replaceAll("\n", " ")).toBe("Tu propiedad merece una estrategia, no solo un anuncio.");
+  expect(resolved.heroSubtitulo).toContain("Somos una inmobiliaria en Baja California.");
+  expect(resolved.manifiestoTitulo.replaceAll("\n", " ")).toBe("Información para decidir. Un asesor para coordinar.");
+  expect(resolved.manifiestoTexto).toBe(stored.manifiestoTexto);
+  expect(homeText(resolved, "metodoTitulo").replaceAll("\n", " ")).toBe("Nuestro método. Seis etapas para coordinar tu venta.");
+  expect(homeText(resolved, "entregablesTitulo").replaceAll("\n", " ")).toBe("Documentos y seguimiento.");
+  expect(homeText(resolved, "preguntasTitulo").replaceAll("\n", " ")).toBe("Preguntas antes de avanzar.");
+  expect(homeText(resolved, "gastosTexto")).toBe(stored.homeTexts.gastosTexto);
+  expect(stored).toEqual(before);
+});
 
 test("Fortius branding refreshes stored copy without changing property codes or site links", () => {
   const content = resolveSiteContent({
@@ -47,7 +74,7 @@ test("editorial refresh replaces only known legacy defaults and preserves bespok
     seoTitle: "MNT Inmuebles | Venta de propiedades en Tijuana",
     seoDescription: "Firma inmobiliaria en Tijuana y Baja California. Precio con datos, expediente revisado y seguimiento por escrito, de la captación a la firma ante notario.",
   });
-  expect(legacy.heroTitulo).toBe("Inmobiliaria para\ncomprar y vender.");
+  expect(legacy.heroTitulo).toBe("Tu propiedad merece\nuna estrategia,\nno solo un anuncio.");
   for (const city of ["Tijuana", "Rosarito", "Tecate", "Ensenada"]) {
     expect(legacy.seoTitle).toContain(city);
     expect(legacy.seoDescription).toContain(city);
@@ -70,10 +97,10 @@ test("the alternative refreshes previously published defaults while preserving c
       relatoTexto: "Contenido aprobado por el equipo",
     },
   });
-  expect(old.heroTitulo).toBe("Inmobiliaria para\ncomprar y vender.");
-  expect(old.manifiestoTitulo).toBe("Cómo proponemos\nel precio de venta.");
+  expect(old.heroTitulo).toBe("Tu propiedad merece\nuna estrategia,\nno solo un anuncio.");
+  expect(old.manifiestoTitulo).toBe("Información para decidir.\nUn asesor para coordinar.");
   expect(old.manifiestoTexto).toBe("Texto específico del equipo");
-  expect(homeText(old, "metodoTitulo")).toBe("Qué hacemos\npara vender tu propiedad.");
+  expect(homeText(old, "metodoTitulo")).toBe("Nuestro método.\nSeis etapas para coordinar tu venta.");
   expect(homeText(old, "relatoTexto")).toBe("Contenido aprobado por el equipo");
   expect(old.seoTitle).toBe("SEO propio");
   expect(old.seoDescription).toBe("Descripción propia");

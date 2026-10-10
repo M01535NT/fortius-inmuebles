@@ -30,9 +30,9 @@ for (const width of [375, 1440]) {
       const menu = page.getByRole("dialog", { name: "Menú", exact: true });
       await expect(menu, path).toBeVisible();
       for (const destination of menuRoutes) {
-        await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${destination}"]`), `${path} → ${destination}`).toHaveCount(1);
+        await expect(menu.locator(`nav[aria-label="Menú principal"] > ol > li > div > a[href="${destination}"]`), `${path} → ${destination}`).toHaveCount(1);
       }
-      if (menuRoutes.includes(path)) await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${path}"]`)).toHaveAttribute("aria-current", "page");
+      if (menuRoutes.includes(path)) await expect(menu.locator(`nav[aria-label="Menú principal"] > ol > li > div > a[href="${path}"]`)).toHaveAttribute("aria-current", "page");
       await menu.getByRole("button", { name: "Cerrar menú" }).click();
       await expect(menu).toBeHidden();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
@@ -54,11 +54,11 @@ test("leaving an initially loaded admin page restores public navigation", async 
   await page.getByRole("link", { name: "Ver sitio", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
-  await page.getByRole("link", { name: "Ver propiedades", exact: true }).click();
+  await page.locator(".editorial-cover-actions").getByRole("link", { name: "Explorar inmuebles", exact: true }).click();
   await expect(page).toHaveURL(/\/inventario$/);
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
-  await menu.locator('nav[aria-label="Menú principal"] a[href="/contacto"]').click();
+  await menu.locator('nav[aria-label="Menú principal"] > ol > li > div > a[href="/contacto"]').click();
   await expect(page).toHaveURL(/\/contacto$/);
   await expect(menu).toBeHidden();
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
@@ -125,15 +125,21 @@ test("inventory menu keeps primary links accessible and restores focus when clos
   await page.goto("/inventario");
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
-  for (const destination of menuRoutes) await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${destination}"]`)).toHaveCount(1);
+  for (const destination of menuRoutes) await expect(menu.locator(`nav[aria-label="Menú principal"] > ol > li > div > a[href="${destination}"]`)).toHaveCount(1);
   await expect(menu.locator("[data-menu-item]").last()).toHaveCSS("opacity", "1");
-  const contact = menu.locator('nav[aria-label="Menú principal"] a[href="/contacto"]');
+  const contact = menu.locator('nav[aria-label="Menú principal"] > ol > li > div > a[href="/contacto"]');
   await contact.scrollIntoViewIfNeeded();
   const close = menu.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeInViewport();
+  const lastFocusable = menu.locator('a[href]:visible, button:not([disabled]):visible').last();
+  await lastFocusable.focus();
+  await page.keyboard.press("Tab");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(lastFocusable).toBeFocused();
   await close.focus();
   await page.keyboard.press("Tab");
-  const firstLink = menu.locator('nav[aria-label="Menú principal"] a[href="/"]');
+  const firstLink = menu.locator('nav[aria-label="Menú principal"] > ol > li > div > a[href="/"]');
   await expect(firstLink).toBeFocused();
   await expect.poll(() => firstLink.evaluate((node) => {
     const rect = node.getBoundingClientRect();
