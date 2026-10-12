@@ -22,7 +22,7 @@
   },
   "work_in_progress_limit": 1,
   "review_limit": 1,
-  "next_action": "Completar prueba preview de checks nativos; aplicar protección main con GITHUB_ADMIN_TOKEN; acordar recuperación y destino backend de ensayo antes de aceptación externa",
+  "next_action": "Comprobar Verify y gate verde del PR 15; aplicar protección main cuando GITHUB_ADMIN_TOKEN llegue al entorno; acordar custodia/destino aislado de recuperación y preview",
   "decisions": [
     {
       "id": "DEC-01",
@@ -530,5 +530,23 @@
     }
   },
   "implementation_branch": "feature/fortius-erp-crm-foundation",
-  "authorization_evidence": "Moisés: Apruebo el plan. Comienza. (12/10/2026)"
+  "authorization_evidence": "Moisés: Apruebo el plan. Comienza. (12/10/2026)",
+  "recovery_objectives": {
+    "approval": "user_explicit",
+    "date": "2026-10-12",
+    "backup_frequency": "daily",
+    "rpo_target_hours": 24,
+    "rto_target_hours": 8,
+    "demonstrated": false,
+    "custody": "pending",
+    "provider_rehearsal": "pending"
+  },
+  "publication_controls": {
+    "repository_visibility": "public_authorized",
+    "main_protection": "pending_administration_credential",
+    "vercel_checks": "configured_both_projects",
+    "preview_negative_probe": "passed",
+    "preview_positive_probe": "pending",
+    "production_deploy": "not_authorized"
+  }
 }

@@ -1,0 +1,61 @@
+{
+  "purpose": "CI-01 isolated negative candidate; no production deploy",
+  "repository": "M01535NT/fortius-inmuebles",
+  "pull_request": 15,
+  "workflow_run": 38322442262,
+  "head_sha": "b176f7df7a72e5d60f4bfcf941c75ffab2a41a7f",
+  "workflow_conclusion": "failure",
+  "vercel": {
+    "deployment": {
+      "id": "dpl_xmjR1KWQPDa5rMD9K9wuiGisQWeH",
+      "target": null,
+      "readyState": "READY",
+      "aliasAssigned": false,
+      "alias": [
+        "fortius-inmuebles-git-feature-fortius-erp-crm-foundation-tonala.vercel.app"
+      ],
+      "gitSource": {
+        "ref": "feature/fortius-erp-crm-foundation",
+        "repoId": 1291895344,
+        "sha": "b176f7df7a72e5d60f4bfcf941c75ffab2a41a7f",
+        "type": "github",
+        "prId": null
+      }
+    },
+    "checks": {
+      "runs": [
+        {
+          "id": "ckr_2bca9f03-2b8a-42c2-a513-f30dcdaaafd2",
+          "name": "Fortius · Verify",
+          "checkId": "chk_bed0e675-11a4-4100-9ce1-e2c4b6a84b3c",
+          "ownerId": "team_jlilBsnf2SeH3eRCrKSz3PxX",
+          "deploymentId": "dpl_xmjR1KWQPDa5rMD9K9wuiGisQWeH",
+          "projectId": "prj_mCgnplUXyiI0YFnL6Fr2zVLmSzJv",
+          "source": {
+            "kind": "git-provider",
+            "provider": "github",
+            "externalCheckName": "verify"
+          },
+          "requires": "build-ready",
+          "blocks": "deployment-alias",
+          "targets": [
+            "preview"
+          ],
+          "status": "completed",
+          "conclusion": "failed",
+          "externalId": "115053415564",
+          "externalUrl": "https://github.com/M01535NT/fortius-inmuebles/actions/runs/38322442262/job/115053415564",
+          "timeout": 1800,
+          "createdAt": 1791847755029,
+          "updatedAt": 1791847866960,
+          "completedAt": 1791847866960
+        }
+      ]
+    }
+  },
+  "production_unchanged": {
+    "fortius": "dpl_4bFjiHah1WeXSHW27y6yBRoPWVSW",
+    "mnt": "dpl_4iqa8WKbcud8ED2GmLTz48eP1BAh",
+    "sha": "4faaa1234ade05b013994821585c52f9cb6cebd9"
+  }
+}

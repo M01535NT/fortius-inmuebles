@@ -78,3 +78,9 @@ Suite de herramientas tras correcciones: 12 casos ejecutados y aprobados; lint d
 - Deployment Checks creados en Fortius/MNT; lectura posterior y prueba controlada pendientes de registro final. Solo previews autorizados por CI-01, sin promoción productiva.
 - Nuevos previews sin credenciales backend productivas. No confundir esto con un backend de ensayo completo ni revocación de variables en previews antiguos.
 - Metadata de backups del proveedor sin PITR ni copias listadas; objetivos y custodia requieren decisión informada.
+
+### Candidato negativo de CI-01
+
+PR de revisión: [#15](https://github.com/M01535NT/fortius-inmuebles/pull/15). Commit de prueba `b176f7df7a72e5d60f4bfcf941c75ffab2a41a7f`, workflow Verify run `38322442262`, job `115053415564`: fallo esperado por una prueba temporal, no defecto nuevo del producto. Vercel deployment `dpl_xmjR1KWQPDa5rMD9K9wuiGisQWeH`: build READY, check `completed/failed`, `aliasAssigned=false`. Check enlazó el job GitHub exacto mediante externalId. Los dos targets productivos conservaron sus IDs y main `4faaa123`. [Metadata sin secretos](ci-negative-preview-2026-10-12.json).
+
+Se retira la prueba deliberadamente fallida antes de continuar hacia verde. Este ensayo prueba el mecanismo en preview; no equivale a haber promovido producción ni a disponer de un backend de ensayo funcional. Moisés aprobó copia diaria y objetivo de recuperación de ocho horas; custodia y ensayo completo siguen pendientes.

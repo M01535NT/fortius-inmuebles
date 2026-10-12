@@ -57,7 +57,7 @@ La integración actual no puede aplicar la configuración. Con Administration wr
 
 La API de backups Supabase devolvió `pitr_enabled=false`, `backups=[]` y sin ventana física informada. Esto **no prueba ausencia de todas las copias externas**, pero no permite dar por existente una recuperación gestionada del proveedor. Ver [recuperación](recovery-policy.md).
 
-Pendientes: objetivos comprensibles y custodia acordados, destino aislado aprobado, Auth/Storage recuperados con prueba y backend de preview separado. La aprobación para desarrollar no autoriza compras, restaurar producción ni dar por aprobado un plazo de recuperación.
+Pendientes: custodia y destino aislado aprobados, Auth/Storage recuperados con prueba y backend de preview separado. Moisés aprobó el objetivo inicial de copia diaria y recuperación en hasta ocho horas; aún no es capacidad demostrada. La aprobación para desarrollar no autoriza compras, restaurar producción ni dar por aprobado un plazo de recuperación.
 
 ## Fuentes del control
 
