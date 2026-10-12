@@ -6,7 +6,7 @@ Fecha de lectura y cambios autorizados: 12/10/2026. Repositorio: `M01535NT/forti
 
 - Moisés autorizó hacer público el repositorio y proteger main. La conexión GitHub de Codex rechazó ambos cambios con HTTP 403 `Resource not accessible by integration`. Moisés cambió la visibilidad desde GitHub: `visibility=public` confirmado por API. Esto resuelve la restricción del plan privado; **no concede al token permisos administrativos**.
 - Antes del cambio se inspeccionaron las 15 ramas de GitHub: 2,257 blobs alcanzables, 50,993,412 bytes. La búsqueda por patrones de credenciales y coincidencias con secretos del entorno no encontró credenciales; el patrón parecido a una clave en un SVG pertenece al bloque `plantuml-src` comprimido. Esta comprobación no garantiza que toda información sea adecuada para difusión. Código, migraciones, formatos, documentación e historial son públicos por autorización expresa.
-- Main continúa en `4faaa123`, `protected=false` hasta disponer de acceso administrativo. Preparado el requisito seguro `GITHUB_ADMIN_TOKEN`, limitado al repositorio y a Administration read/write; no guardar su valor en archivos Git ni chat.
+- Main continúa en `4faaa123`, `protected=false`. GITHUB_ADMIN_TOKEN ya fue incorporado al entorno, pero el intermediario sigue autenticando las peticiones como la integración de Codex y la API deniega Administration. No guardar el valor en archivos Git ni chat.
 - Vercel: sesión autorizada por flujo oficial de dispositivo. CLI 63.1.2 consultada desde artefacto npm con integridad SRI comprobada, sin instalar dependencias. Sesión temporal: no equivale a un token persistente del entorno.
 - Supabase: 18 tablas públicas Fortius con RLS y 22 migraciones; cinco buckets, solo uno público. No se consultaron registros de clientes ni se modificó SQL.
 
@@ -33,7 +33,7 @@ Se configuró un Deployment Check en cada proyecto:
 
 Este control retiene la asignación de dominios cuando falta o falla el check; **no impide que exista el build ni su URL de despliegue**. La protección de acceso de Vercel sigue siendo necesaria. Una cuenta autorizada que cambie configuraciones puede eludir controles: esto no es una frontera frente al administrador del proveedor.
 
-Durante la prueba controlada se amplía temporalmente el ámbito del check Fortius a preview, conservando producción. El registro de la iteración debe confirmar su restitución y el resultado, antes de declarar la comprobación completa. No se crea ni promueve un despliegue de producción en esta tarea.
+Durante la prueba controlada se amplió temporalmente el ámbito del check Fortius a preview, conservando producción. Se comprobó el fallo y el paso a verde, y se restituyó el ámbito a producción mediante PATCH y lectura posterior. Ver evidencia negativa y positiva de la iteración. No se creó ni promovió un despliegue de producción en esta tarea.
 
 ## Previews y datos
 
@@ -47,7 +47,7 @@ Archivo revisable: [configuración](github-main-protection.json).
 
 Requiere PR, check `verify` de GitHub Actions (app 15368), rama actualizada, conversaciones resueltas y aplica también a administradores. Prohíbe force-push y eliminar main. Revisión humana obligatoria: cero aprobaciones por ahora, para evitar exigir a Moisés una segunda cuenta inexistente; el requisito de PR y pruebas se mantiene. Incorporar revisión por otra persona cuando exista un equipo autorizado.
 
-La integración actual no puede aplicar la configuración. Con Administration write, usar el token solo para esa API y comprobar de nuevo la configuración efectiva. No declarar protegida main por haber preparado el JSON.
+La integración actual no puede aplicar ni leer la configuración administrativa. REST PUT/GET protection y GraphQL branchProtectionRules devolvieron denegación. La comprobación de enrutamiento (GET /user, con token solicitado, sin Authorization y con una cadena deliberadamente inválida) devolvió en todos los casos el mismo usuario, OAuth client y vencimiento de la integración: no se usó una sesión administrativa distinta. No extraer credenciales del proxy ni intentar eludirlo. Resolver permisos de la conexión mediante un mecanismo soportado, o aplicar la regla desde GitHub. No declarar protegida main por haber preparado el JSON.
 
 ## Preflight local
 

@@ -2,7 +2,7 @@
   "format": "fortius-project-plan-v1",
   "id": "FORTIUS-ERP-CRM-20261012",
   "title": "Evolución modular del panel operativo Fortius",
-  "mode": "planificar",
+  "mode": "ejecutar",
   "status": "en_curso",
   "document_date": "2026-10-12",
   "timezone": "America/Los_Angeles",
@@ -22,7 +22,7 @@
   },
   "work_in_progress_limit": 1,
   "review_limit": 1,
-  "next_action": "Comprobar Verify y gate verde del PR 15; aplicar protección main cuando GITHUB_ADMIN_TOKEN llegue al entorno; acordar custodia/destino aislado de recuperación y preview",
+  "next_action": "Continuar recorrido de captación local conforme al plan y resolver decisiones de relaciones/capacidades; protección main bloqueada por permisos de integración, sin nuevos pedidos de token",
   "decisions": [
     {
       "id": "DEC-01",
@@ -527,6 +527,14 @@
       "fixed_with_red_green": 2,
       "message_scope_also_corrected": true,
       "deferred_findings": 0
+    },
+    "remote_code_revision": "f8a57e903e8e7ef1b9be3aa6a6d21473ed3f59f2",
+    "remote_verify_run": 38322772916,
+    "remote_result": "success",
+    "remote_browser": {
+      "passed": 101,
+      "optional_skipped": 1,
+      "real_devices": "not_checked"
     }
   },
   "implementation_branch": "feature/fortius-erp-crm-foundation",
@@ -543,10 +551,16 @@
   },
   "publication_controls": {
     "repository_visibility": "public_authorized",
-    "main_protection": "pending_administration_credential",
+    "main_protection": "blocked_platform_auth_routing_administration_403",
     "vercel_checks": "configured_both_projects",
     "preview_negative_probe": "passed",
-    "preview_positive_probe": "pending",
-    "production_deploy": "not_authorized"
+    "preview_positive_probe": "passed",
+    "production_deploy": "not_authorized",
+    "final_vercel_scope": "production_confirmed_both_projects"
+  },
+  "execution_priority": {
+    "user_requested": "start_operating_soon",
+    "current_important_data": "user_reports_none",
+    "full_provider_recovery_rehearsal": "defer_from_initial_functional_development; required_before_recovery_claims"
   }
 }

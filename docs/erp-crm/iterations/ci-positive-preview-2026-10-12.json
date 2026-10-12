@@ -1,0 +1,197 @@
+{
+  "repository": "M01535NT/fortius-inmuebles",
+  "pull_request": 15,
+  "validated_code_sha": "f8a57e903e8e7ef1b9be3aa6a6d21473ed3f59f2",
+  "workflow_run": 38322772916,
+  "workflow_conclusion": "success",
+  "test_results": {
+    "backend": 499,
+    "admin": 211,
+    "tools": 12,
+    "public_browser": 63,
+    "admin_browser": 31,
+    "public_form_browser": 7,
+    "optional_browser_skipped": 1
+  },
+  "vercel_positive_probe": {
+    "deployment": {
+      "id": "dpl_8jdVj12HC5B7DAfQP7FY92bzpU1x",
+      "target": null,
+      "readyState": "READY",
+      "aliasAssigned": true,
+      "alias": [
+        "fortius-inmuebles-git-feature-fortius-erp-crm-foundation-tonala.vercel.app"
+      ],
+      "gitSource": {
+        "ref": "feature/fortius-erp-crm-foundation",
+        "repoId": 1291895344,
+        "sha": "f8a57e903e8e7ef1b9be3aa6a6d21473ed3f59f2",
+        "type": "github",
+        "prId": null
+      }
+    },
+    "checks": {
+      "runs": [
+        {
+          "id": "ckr_48c22d47-ef31-4063-bf93-33a510fd5eaa",
+          "name": "Fortius · Verify",
+          "checkId": "chk_bed0e675-11a4-4100-9ce1-e2c4b6a84b3c",
+          "ownerId": "team_jlilBsnf2SeH3eRCrKSz3PxX",
+          "deploymentId": "dpl_8jdVj12HC5B7DAfQP7FY92bzpU1x",
+          "projectId": "prj_mCgnplUXyiI0YFnL6Fr2zVLmSzJv",
+          "source": {
+            "kind": "git-provider",
+            "provider": "github",
+            "externalCheckName": "verify"
+          },
+          "requires": "build-ready",
+          "blocks": "deployment-alias",
+          "targets": [
+            "preview"
+          ],
+          "status": "completed",
+          "conclusion": "succeeded",
+          "externalId": "115054441780",
+          "externalUrl": "https://github.com/M01535NT/fortius-inmuebles/actions/runs/38322772916/job/115054441780",
+          "timeout": 1800,
+          "createdAt": 1791848016665,
+          "updatedAt": 1791848576852,
+          "completedAt": 1791848576852
+        }
+      ]
+    }
+  },
+  "final_provider_controls": [
+    {
+      "project": "fortius-inmuebles",
+      "checks": [
+        {
+          "id": "chk_bed0e675-11a4-4100-9ce1-e2c4b6a84b3c",
+          "name": "Fortius · Verify",
+          "ownerId": "team_jlilBsnf2SeH3eRCrKSz3PxX",
+          "projectId": "prj_mCgnplUXyiI0YFnL6Fr2zVLmSzJv",
+          "isRerequestable": false,
+          "requires": "build-ready",
+          "source": {
+            "kind": "git-provider",
+            "provider": "github",
+            "externalCheckName": "verify"
+          },
+          "blocks": "deployment-alias",
+          "targets": [
+            "production"
+          ],
+          "sourceKind": "git-provider",
+          "sourceIntegrationConfigurationId": "",
+          "timeout": 1800,
+          "createdAt": 1791847197496,
+          "updatedAt": 1791848684690
+        }
+      ],
+      "productionDeployment": "dpl_4bFjiHah1WeXSHW27y6yBRoPWVSW",
+      "productionSha": "4faaa1234ade05b013994821585c52f9cb6cebd9",
+      "previewProtection": {
+        "deploymentType": "all_except_custom_domains"
+      },
+      "productionEnv": [
+        {
+          "key": "FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED",
+          "target": [
+            "production"
+          ]
+        },
+        {
+          "key": "FORTIUS_INMUEBLES_SITE_URL",
+          "target": [
+            "production",
+            "preview"
+          ]
+        },
+        {
+          "key": "NEXT_PUBLIC_SUPABASE_URL",
+          "target": [
+            "production"
+          ]
+        },
+        {
+          "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "target": [
+            "production"
+          ]
+        },
+        {
+          "key": "SUPABASE_SERVICE_ROLE_KEY",
+          "target": [
+            "production"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "mnt-inmuebles",
+      "checks": [
+        {
+          "id": "chk_be048572-df37-489b-9ec8-0096fbe909fc",
+          "name": "Fortius repository · Verify",
+          "ownerId": "team_jlilBsnf2SeH3eRCrKSz3PxX",
+          "projectId": "prj_URAa9vCvovvqGj5L474PBS5fursr",
+          "isRerequestable": false,
+          "requires": "build-ready",
+          "source": {
+            "kind": "git-provider",
+            "provider": "github",
+            "externalCheckName": "verify"
+          },
+          "blocks": "deployment-alias",
+          "targets": [
+            "production"
+          ],
+          "sourceKind": "git-provider",
+          "sourceIntegrationConfigurationId": "",
+          "timeout": 1800,
+          "createdAt": 1791847272098,
+          "updatedAt": 1791847272099
+        }
+      ],
+      "productionDeployment": "dpl_4iqa8WKbcud8ED2GmLTz48eP1BAh",
+      "productionSha": "4faaa1234ade05b013994821585c52f9cb6cebd9",
+      "previewProtection": {
+        "deploymentType": "all_except_custom_domains"
+      },
+      "productionEnv": [
+        {
+          "key": "MNT_SITE_URL",
+          "target": [
+            "production"
+          ]
+        },
+        {
+          "key": "MNT_PUBLIC_LEADS_ENABLED",
+          "target": [
+            "production"
+          ]
+        },
+        {
+          "key": "NEXT_PUBLIC_SUPABASE_URL",
+          "target": [
+            "production"
+          ]
+        },
+        {
+          "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "target": [
+            "production"
+          ]
+        },
+        {
+          "key": "SUPABASE_SERVICE_ROLE_KEY",
+          "target": [
+            "production"
+          ]
+        }
+      ]
+    }
+  ],
+  "production_deploy_performed": false,
+  "main_protection": "blocked_platform_integration_administration_403"
+}

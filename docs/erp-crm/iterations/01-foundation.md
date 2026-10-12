@@ -24,7 +24,7 @@ Consolidar correcciones locales anteriores, repetir verificaciones, completar pr
 |---|---|---|
 | BAS-01 | en_revision | Correcciones cotejadas; lint/TypeScript/710 tests/build y 21 escenarios de navegador pasaron. Revisión independiente realizada; aceptación de negocio pendiente. |
 | REC-01 | en_revision | DB aislada, reconciliación DB/objetos, huellas y copia local implementadas/probadas; servicio Auth/Storage y objetivos aún pendientes. |
-| CI-01 / ENV-01 | bloqueada parcialmente | Preflight local implementado; Repo público autorizado; conexión GitHub sin Administration write. Checks nativos Vercel activados; pruebas controladas y backend preview separado en revisión. |
+| CI-01 / ENV-01 | bloqueada parcialmente | Preflight local implementado; Repo público autorizado; GitHub API bloquea Administration incluso con la nueva binding. Checks nativos Vercel activados; prueba negativa de preview aprobada, verde y backend separado en revisión. |
 | AUT-01 | bloqueada parcialmente | URL Auth confirmada; pruebas existentes de auth pasaron; falta prueba de envío y MFA recuperable en cuenta controlada. |
 | OBS-01 | en_revision | requestId y logs sin PII probados; captura/retención/alertas del proveedor pendientes. |
 | PRV-01 | en_revision | Inventario y fuentes oficiales recuperados; conservación/fundamento/aceptación profesional pendientes. |
@@ -84,3 +84,19 @@ Suite de herramientas tras correcciones: 12 casos ejecutados y aprobados; lint d
 PR de revisión: [#15](https://github.com/M01535NT/fortius-inmuebles/pull/15). Commit de prueba `b176f7df7a72e5d60f4bfcf941c75ffab2a41a7f`, workflow Verify run `38322442262`, job `115053415564`: fallo esperado por una prueba temporal, no defecto nuevo del producto. Vercel deployment `dpl_xmjR1KWQPDa5rMD9K9wuiGisQWeH`: build READY, check `completed/failed`, `aliasAssigned=false`. Check enlazó el job GitHub exacto mediante externalId. Los dos targets productivos conservaron sus IDs y main `4faaa123`. [Metadata sin secretos](ci-negative-preview-2026-10-12.json).
 
 Se retira la prueba deliberadamente fallida antes de continuar hacia verde. Este ensayo prueba el mecanismo en preview; no equivale a haber promovido producción ni a disponer de un backend de ensayo funcional. Moisés aprobó copia diaria y objetivo de recuperación de ocho horas; custodia y ensayo completo siguen pendientes.
+
+### Prioridad y límite de la conexión
+
+Moisés indicó que todavía no hay trabajo importante que pudiera perderse y priorizó comenzar a operar pronto. El ensayo completo de recuperación no frena el desarrollo funcional inicial con datos sintéticos; los objetivos aprobados se conservan y deben comprobarse antes de prometer una recuperación de información operativa importante. No se modifica seguridad ni se publica producción por esta priorización.
+
+GITHUB_ADMIN_TOKEN se incorporó al runtime. La API siguió rechazando protección main; REST y GraphQL probados. Diagnóstico de enrutamiento confirmó que incluso una lectura sin Authorization recibe la sesión de la integración. Se deja como bloqueo de la conexión, no se solicita otro token ni se afirma que un campo de entorno otorga Administration.
+
+### Candidato corregido y estado final de la comprobación
+
+Commit de código validado `f8a57e903e8e7ef1b9be3aa6a6d21473ed3f59f2`: GitHub Verify run [38322772916](https://github.com/M01535NT/fortius-inmuebles/actions/runs/38322772916) finalizó success. Lint, TypeScript, 499 pruebas backend, 211 admin, 12 herramientas, build y activos PDF aprobados. Navegador en CI: 63 public, 31 admin y 7 formularios aprobados; una medición opcional de rendimiento omitida, sin atribuirle resultado. No prueba dispositivos físicos ni capacidad de recuperación del proveedor.
+
+Vercel `dpl_8jdVj12HC5B7DAfQP7FY92bzpU1x`: check completed/succeeded, externalId `115054441780`, aliasAssigned=true. La prueba temporal ya no existe. Se restituyó el check Fortius a producción; GET posterior confirmó que ambos proyectos tienen un check GitHub verify que bloquea deployment-alias en producción, sin variables backend productivas en nuevos previews. Los dos targets productivos conservaron IDs y SHA 4faaa123. Inicio, inventario y acceso al panel públicos respondieron HTTP 200. [Metadata positiva y configuración final](ci-positive-preview-2026-10-12.json).
+
+Ruling: el check nativo sirve en el plan Hobby comprobado; no añadir un pipeline de deploy ni guardar otra credencial en GitHub Actions para resolver lo que el proveedor ya ofrece. Límite: la prueba de mecanismo se hizo en preview, no una promoción de producción. CI-01 conserva la excepción de protección main bloqueada por la integración, y ENV-01 requiere backend aislado antes de validar flujos dinámicos en preview.
+
+El siguiente commit solo agrega/corrige estos documentos de evidencia; los resultados anteriores corresponden al SHA indicado, no se atribuyen automáticamente a otra revisión. La verificación automática de ese commit documental queda visible en el PR. No se integra main ni se declara terminado el ERP completo con esta entrega de fundamentos.
