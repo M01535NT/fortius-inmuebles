@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Container>
+title Fortius TO-BE · C4 nivel 2
+caption Propósito: mantener una aplicación con servicios y entornos delimitados
+Person(staff, "Personal / visitante", "Permisos diferentes")
+System_Boundary(f, "Fortius · un entorno") {
+ Container(web, "Monolito modular", "Next.js / TypeScript", "UI, API y casos de uso con contratos independientes")
+ Container(auth, "Identidad", "Supabase Auth", "URLs correctas y política MFA")
+ ContainerDb(db, "Datos", "Supabase PostgreSQL", "RLS, integridad, consultas paginadas")
+ ContainerDb(storage, "Archivos", "Supabase Storage", "Custodia y recuperación comprobables")
+}
+Rel(staff, web, "Acceso según rol", "HTTPS")
+Rel(web, auth, "Verifica identidad", "HTTPS")
+Rel(web, db, "Consultas y transacciones", "HTTPS / REST-RPC")
+Rel(web, storage, "Archivos autorizados", "HTTPS")
+note bottom of web
+ Replicar aislamiento de datos y credenciales por entorno
+ después de verificar configuración/costos actuales.
+ No se propone un microservicio ni worker obligatorio.
+end note
+SHOW_LEGEND()
+footer PROPUESTO: arquitectura futura, no implementada.
+
+@enduml

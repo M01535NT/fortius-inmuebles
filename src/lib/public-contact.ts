@@ -1,4 +1,4 @@
-import type { SiteSettings } from "@/lib/admin/store";
+import type { SiteSettings } from "@/lib/domain/records";
 
 /** Known demo numbers must never be presented as confirmed contact channels. */
 function phoneDigits(value: string) {

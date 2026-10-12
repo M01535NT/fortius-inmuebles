@@ -1,4 +1,5 @@
 // In-memory isolated PostgreSQL only. This program has no production client or credentials.
+import {rehearseCurrent} from './fortius-inmuebles-restore-current.mjs';
 import {PGlite} from '@electric-sql/pglite';
 import {readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
@@ -8,6 +9,12 @@ const root=resolve(process.argv[2]??'');
 const manifest=await verifyBackup(root);
 if(!manifest.database.complete)throw Error('Full owner export required, including tombstones');
 const backup=ownerExport(JSON.parse(await readFile(resolve(root,manifest.database.file),'utf8')));
+if(backup.prefix==='fortius_inmuebles') {
+  const result=await rehearseCurrent(backup);
+  await writeFile(resolve(root,'restore-rehearsal-current.json'),JSON.stringify({...result,objectHashesVerified:manifest.objects.length},null,2));
+  console.log(JSON.stringify({passed:result.passed,productionWrites:0,tables:Object.keys(result.tables).length,objectsVerified:manifest.objects.length}));
+  process.exit(0);
+}
 if(backup.prefix!=='cota')throw Error('This rehearsal validates the cota001/002 to mnt003 cutover only');
 const db=new PGlite();
 const result={format:'mnt-restore-rehearsal-v1',startedAt:new Date().toISOString(),productionWrites:0,objectHashesVerified:manifest.objects.length,tables:{}};

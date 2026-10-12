@@ -1,0 +1,50 @@
+@startuml
+title Fortius AS-IS · C4 nivel 4 · Escritura de registro
+caption Propósito: representar funciones y tipos reales del flujo PUT [E03,E04]
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam ArrowColor #17334F
+skinparam BackgroundColor #FFFFFF
+class "api/admin/collections/[collection]/[id]/route.ts" as route <<module>> {
+ PUT(request, context)
+}
+class "backend/http.ts" as http <<module>> {
+ apiResponse(...)
+ assertSameOrigin(request)
+ readJson(request)
+}
+class "backend/auth.ts" as auth <<module>> {
+ requireStaff()
+ createServerClient(accessToken?, privileged?)
+}
+class "backend/repository.ts" as repo <<module>> {
+ putRecord(client, collection, id, input): Promise<StoredRecord>
+}
+class "backend/validation.ts" as validation <<module>> {
+ parseCollection(...)
+ parseWrite(...)
+ parseRecord(...)
+}
+class "backend/contracts.ts" as contracts <<module>> {
+ StoredRecord
+}
+class "SupabaseClient" as client <<SDK>> {
+ rpc(name, parameters)
+}
+class "fortius_inmuebles_put_record" as rpc <<SQL function>>
+route --> http : envuelve/valida petición
+route --> auth : requireStaff()
+route --> repo : putRecord()
+repo --> validation : normaliza y valida
+repo ..> contracts : retorno tipado
+repo --> client : client.rpc(...)
+client --> rpc : HTTPS / PostgREST
+note bottom of rpc
+ Control de versión, integridad y persistencia.
+ No es una clase TypeScript.
+end note
+legend bottom
+CONFIRMADO: módulos/funciones existentes; cajas module no representan clases instanciables.
+Flecha continua = invocación; discontinua = dependencia de tipo.
+endlegend
+@enduml

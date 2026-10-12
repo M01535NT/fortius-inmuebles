@@ -38,6 +38,7 @@ beforeAll(async () => {
   await db.exec(await readFile(new URL("../../supabase/migrations/202609030002_fortius_inmuebles_record_revisions.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../../supabase/migrations/202609060003_fortius_inmuebles_identity.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../../supabase/migrations/20261005035035_fortius_inmuebles_identity.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../../supabase/migrations/20261010131109_fortius_public_property_facts.sql", import.meta.url), "utf8"));
 });
 afterAll(async () => { await db?.close(); });
 
@@ -218,3 +219,23 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
     });
   });
 });
+
+ it("SQL public projection preserves approved facts and strips unknown nested fields", async () => {
+    await asRole("authenticated", member, async () => {
+      await save("asesores", "info-adviser", {...adviser,id:"info-adviser"});
+      await save("propiedades", "info-property", {...property,slug:"info-property",asesorId:"info-adviser",informacionPublica:{fuenteTerreno:"escritura",ocupacionEntrega:"Libre",propietario:"NEVER_PUBLIC"}});
+    });
+    const result=await asRole("anon", null, () => db.query<{data: Record<string,unknown>}>("select data from public.fortius_inmuebles_public_records('propiedades') where data->>'slug'='info-property'"));
+    expect(result.rows[0].data.informacionPublica).toEqual({fuenteTerreno:"escritura",ocupacionEntrega:"Libre"});
+    expect(JSON.stringify(result.rows)).not.toContain("NEVER_PUBLIC");
+ });
+
+ it("does not publish objects smuggled into an approved public scalar key", async () => {
+    await asRole("authenticated", member, async () => {
+      await save("asesores", "scalar-adviser", {...adviser,id:"scalar-adviser"});
+      await save("propiedades", "scalar-property", {...property,slug:"scalar-property",asesorId:"scalar-adviser",informacionPublica:{ocupacionEntrega:{private:"NEVER_PUBLIC"}}});
+    });
+    const result=await asRole("anon", null, () => db.query<{data: Record<string,unknown>}>("select data from public.fortius_inmuebles_public_records('propiedades') where data->>'slug'='scalar-property'"));
+    expect(result.rows[0].data.informacionPublica).toEqual({});
+    expect(JSON.stringify(result.rows)).not.toContain("NEVER_PUBLIC");
+ });

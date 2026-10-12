@@ -1,6 +1,6 @@
 import type { Property } from "@/data/propiedades";
 import type { Cliente } from "@/lib/backend/contracts";
-import type { Lead, Asesor } from "@/lib/admin/store";
+import type { Lead, Asesor } from "@/lib/domain/records";
 import type { Task } from "@/lib/tasks";
 import { isTaskOpen } from "@/lib/tasks";
 import { projectFollowups, overdueFollowups } from "@/lib/admin/followups";

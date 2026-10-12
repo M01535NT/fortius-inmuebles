@@ -2,7 +2,7 @@ import "server-only";
 import { brandCopy } from "@/lib/brand-copy";
 import { cache } from "react";
 import type { Property } from "@/data/propiedades";
-import type { Asesor, SiteContent, SiteSettings, Post } from "@/lib/admin/store";
+import type { Asesor, SiteContent, SiteSettings, Post } from "@/lib/domain/records";
 import { createServerClient } from "./auth";
 import { projectPublic } from "./validation";
 import { databaseError } from "./http";

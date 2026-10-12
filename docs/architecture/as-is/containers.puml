@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Container>
+title Fortius AS-IS · C4 nivel 2
+caption Propósito: distinguir unidades desplegables y servicios gestionados [E03–E08]
+Person(visitor, "Visitante", "Navegador público")
+Person(staff, "Personal", "Navegador administrativo")
+System_Boundary(f, "Fortius") {
+ Container(web, "Aplicación Fortius", "Next.js / React / TypeScript", "Páginas públicas, /admin, Route Handlers y generación PDF")
+}
+System_Boundary(s, "Supabase gestionado") {
+ Container(auth, "Auth", "Supabase Auth", "Sesiones e identidad")
+ ContainerDb(db, "Base de datos", "PostgreSQL 17.6 + PostgREST", "18 tablas públicas, RLS, funciones y triggers")
+ ContainerDb(storage, "Archivos", "Supabase Storage", "5 buckets; uno público, cuatro privados")
+}
+Rel(visitor, web, "Consulta proyección pública", "HTTPS")
+Rel(staff, web, "UI y API con cookies", "HTTPS")
+Rel(web, auth, "Login, getUser y refresh", "HTTPS / Supabase SDK")
+Rel(web, db, "Consultas y RPC con rol anónimo, usuario o privilegiado", "HTTPS / PostgREST")
+Rel(web, storage, "Carga, descarga y firma", "HTTPS / Storage SDK")
+Rel(staff, storage, "Carga staging autorizada", "HTTPS / URL firmada")
+Rel(visitor, storage, "Consulta medios públicos", "HTTPS")
+SHOW_LEGEND()
+footer CONFIRMADO salvo notas expresas. Evidencias: evidence.md.
+
+@enduml
