@@ -3,14 +3,14 @@
 - Sitio público: https://fortiusinmuebles.com
 - Proyecto Vercel: https://vercel.com/tonala/fortius-inmuebles
 - ID Vercel: prj_mCgnplUXyiI0YFnL6Fr2zVLmSzJv.
-- Repositorio privado: M01535NT/fortius-inmuebles; ID 1291895344.
+- Repositorio público: M01535NT/fortius-inmuebles; ID 1291895344. Visibilidad autorizada el 12 de octubre de 2026.
 - Rama de producción: main.
 - Supabase: fortius-inmuebles; ref qkkirjzhviqwvuqjnmei.
 - Framework: Next.js; Node.js 24.x.
 
 ## Variables
 
-Producción y vistas previas usan FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com, FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED=false y NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY. La clave del servidor es sensible y no se incluye en el repositorio.
+Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. Consultar [controles y evidencia](erp-crm/environment-release.md).
 
 El sitio público y el panel son un mismo producto. Los nombres de los proyectos cambiaron conservando sus IDs, datos, secretos y dominio público. La conexión Git existente identifica el repositorio por su ID y conserva la rama main.
 
@@ -32,3 +32,7 @@ Comprobar salud, Inicio, inventario, blog, herramientas, acceso al panel, robots
 - El dominio está registrado en NEUBOX. No fue necesario cambiar DNS: ya sirve el proyecto desde Vercel con HTTPS.
 - La recepción pública de prospectos permanece desactivada.
 - Verificación de cuenta NEUBOX: el correo del 8 de octubre solicita completarla dentro de 15 días. El estado en el panel aún debe comprobarse; el correo por sí solo no acredita que siga pendiente.
+
+## Control de publicación (12 de octubre de 2026)
+
+Deployment Check GitHub `verify` activado en Fortius y en el proyecto MNT conectado al mismo repositorio. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. No se realizó publicación de producción en esta tarea.

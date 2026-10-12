@@ -24,7 +24,7 @@ Consolidar correcciones locales anteriores, repetir verificaciones, completar pr
 |---|---|---|
 | BAS-01 | en_revision | Correcciones cotejadas; lint/TypeScript/710 tests/build y 21 escenarios de navegador pasaron. Revisión independiente realizada; aceptación de negocio pendiente. |
 | REC-01 | en_revision | DB aislada, reconciliación DB/objetos, huellas y copia local implementadas/probadas; servicio Auth/Storage y objetivos aún pendientes. |
-| CI-01 / ENV-01 | bloqueada parcialmente | Preflight local implementado; GitHub privado exige plan superior para rulesets; Vercel sin autenticación disponible. |
+| CI-01 / ENV-01 | bloqueada parcialmente | Preflight local implementado; Repo público autorizado; conexión GitHub sin Administration write. Checks nativos Vercel activados; pruebas controladas y backend preview separado en revisión. |
 | AUT-01 | bloqueada parcialmente | URL Auth confirmada; pruebas existentes de auth pasaron; falta prueba de envío y MFA recuperable en cuenta controlada. |
 | OBS-01 | en_revision | requestId y logs sin PII probados; captura/retención/alertas del proveedor pendientes. |
 | PRV-01 | en_revision | Inventario y fuentes oficiales recuperados; conservación/fundamento/aceptación profesional pendientes. |
@@ -69,3 +69,12 @@ Suite de herramientas tras correcciones: 12 casos ejecutados y aprobados; lint d
 - Acceso administrativo para controles GitHub/Vercel y verificación de proveedor.
 - Buzón/cuenta controlados y autorización de envío para prueba de recuperación/invitación.
 - Revisión profesional de tratamiento, conservación y solicitudes de privacidad.
+
+## Resolución de accesos y publicación — continuación
+
+- Remoto confirmado: `M01535NT/fortius-inmuebles`; carpeta local histórica `mnt-inmuebles`. Main productiva sigue en `4faaa123`.
+- Sesión Vercel oficial autorizada; se inspeccionaron los dos proyectos vinculados, dominios, variables por nombre/ámbito y despliegues. La publicación tras Verify fallido se confirmó en metadata histórica.
+- Repositorio público con autorización expresa y cambio realizado por Moisés: API de integración no puede editar visibilidad ni protección (403). JSON de main preparado; secreto administrativo pendiente.
+- Deployment Checks creados en Fortius/MNT; lectura posterior y prueba controlada pendientes de registro final. Solo previews autorizados por CI-01, sin promoción productiva.
+- Nuevos previews sin credenciales backend productivas. No confundir esto con un backend de ensayo completo ni revocación de variables en previews antiguos.
+- Metadata de backups del proveedor sin PITR ni copias listadas; objetivos y custodia requieren decisión informada.

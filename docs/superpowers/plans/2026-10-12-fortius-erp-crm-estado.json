@@ -22,7 +22,7 @@
   },
   "work_in_progress_limit": 1,
   "review_limit": 1,
-  "next_action": "Resolver VERCEL_TOKEN, flujo de publicación, objetivos de recuperación y cuenta de prueba; continuar tareas locales autorizadas según decisiones",
+  "next_action": "Completar prueba preview de checks nativos; aplicar protección main con GITHUB_ADMIN_TOKEN; acordar recuperación y destino backend de ensayo antes de aceptación externa",
   "decisions": [
     {
       "id": "DEC-01",

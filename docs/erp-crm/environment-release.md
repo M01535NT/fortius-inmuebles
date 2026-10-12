@@ -1,40 +1,66 @@
 # Entornos y controles de publicación — Fortius
 
-Fecha de lectura: 12/10/2026. Solo metadata y configuración seleccionada, sin registros de clientes.
+Fecha de lectura y cambios autorizados: 12/10/2026. Repositorio: `M01535NT/fortius-inmuebles`. La carpeta local conserva el nombre histórico `/workspace/mnt-inmuebles`; su remoto es el repositorio Fortius.
 
-## Evidencia actual
+## Evidencia y autorización
 
-- GitHub: main en `4faaa123`, `protected=false`. Metadata del repositorio indica permisos administrativos, pero API de rulesets responde 403: se requiere GitHub Pro o repositorio público para habilitar esa función en el plan actual. Es una limitación del producto contratado, no prueba de token inválido.
-- Vercel: no se encontró token ni configuración de autenticación en las ubicaciones del entorno comprobadas. No se comprobaron configuración administrativa, ámbitos de variables, promoción ni estado del proyecto antiguo.
-- Supabase: catálogo de 18 tablas públicas Fortius con RLS habilitado; 22 versiones en schema_migrations, incluida `20261010131109`. Buckets: público, privado, staging, expedientes y comercial; solo el bucket público tiene `public=true`. Límite observado: 20 MiB.
-- Auth: `site_url=https://fortiusinmuebles.com/admin`; allowlist incluye Fortius y URLs históricas/locales. No retirar URLs históricas sin inventario de uso.
+- Moisés autorizó hacer público el repositorio y proteger main. La conexión GitHub de Codex rechazó ambos cambios con HTTP 403 `Resource not accessible by integration`. Moisés cambió la visibilidad desde GitHub: `visibility=public` confirmado por API. Esto resuelve la restricción del plan privado; **no concede al token permisos administrativos**.
+- Antes del cambio se inspeccionaron las 15 ramas de GitHub: 2,257 blobs alcanzables, 50,993,412 bytes. La búsqueda por patrones de credenciales y coincidencias con secretos del entorno no encontró credenciales; el patrón parecido a una clave en un SVG pertenece al bloque `plantuml-src` comprimido. Esta comprobación no garantiza que toda información sea adecuada para difusión. Código, migraciones, formatos, documentación e historial son públicos por autorización expresa.
+- Main continúa en `4faaa123`, `protected=false` hasta disponer de acceso administrativo. Preparado el requisito seguro `GITHUB_ADMIN_TOKEN`, limitado al repositorio y a Administration read/write; no guardar su valor en archivos Git ni chat.
+- Vercel: sesión autorizada por flujo oficial de dispositivo. CLI 63.1.2 consultada desde artefacto npm con integridad SRI comprobada, sin instalar dependencias. Sesión temporal: no equivale a un token persistente del entorno.
+- Supabase: 18 tablas públicas Fortius con RLS y 22 migraciones; cinco buckets, solo uno público. No se consultaron registros de clientes ni se modificó SQL.
 
-## Matriz a completar
+## Vercel real
 
-| Entorno | Fuente Git / datos | Estado |
+| Proyecto | Fuente / entorno productivo | Dominios |
 |---|---|---|
-| Desarrollo/pruebas locales | Rama foundation; API mock y PGlite; sin clientes | Pruebas locales registradas en la iteración. |
-| Preview Vercel | Variables y proyecto de datos por confirmar | NO VERIFICADO; no asumir aislamiento por etiqueta Preview. |
-| Producción Vercel | Main y Supabase vigente, relación administrativa por confirmar | Configuración NO VERIFICADA; no promover desde esta tarea. |
-| Recuperación | Destino aislado del proveedor aún no aprobado | Pendiente; copia local de bytes no sustituye este entorno. |
+| fortius-inmuebles | GitHub Fortius, main; Next.js y Node.js 24.x | fortiusinmuebles.com; www redirige al principal; aliases Fortius. |
+| mnt-inmuebles | El mismo GitHub Fortius, main; Next.js y Node.js 24.x | mnt-inmuebles.vercel.app; cota-eight redirige a MNT. |
 
-## Preflight local implementado
+Ambos están en el equipo tonala, plan Hobby. Protección Vercel `all_except_custom_domains` y protección de forks activas. La web pública y el panel comparten despliegue. El proyecto MNT sigue activo: no fue eliminado, retirado ni redirigido como parte de esta tarea.
 
-```bash
-node tools/fortius-release-check.mjs
-```
+La historia confirmó que commits `4c0c0d2` y `7b9cd68` tuvieron workflow Verify fallido y despliegues productivos READY. Por eso proteger únicamente el merge no era suficiente.
 
-Exige árbol Git limpio y la última actividad de ejecución de Verify del commit HEAD exacto en push/PR, concluida con éxito. Considera tiempos de intento/actualización: created_at original no basta para ordenar reruns. Una ejecución pendiente/fallida, metadata insuficiente, un workflow distinto o una verificación de otro commit bloquean el preflight. Consulta GitHub en lectura; no llama Vercel ni despliega.
+## Control nativo activado
 
-Este comando es una comprobación previa. **No bloquea por sí mismo los despliegues automáticos de Vercel ni una publicación que lo omita.** Debe integrarse en el flujo real después de comprobar configuración y acceso.
+Se configuró un Deployment Check en cada proyecto:
 
-## Alternativas a revisar con Moisés
+- Fuente: GitHub; nombre externo exacto del job `verify`, perteneciente al workflow `.github/workflows/verify.yml`.
+- Requisito: `build-ready`; bloquea `deployment-alias`; ámbito final: producción.
+- Fortius: `chk_bed0e675-11a4-4100-9ce1-e2c4b6a84b3c`.
+- MNT: `chk_be048572-df37-489b-9ec8-0096fbe909fc`.
+- Timeout solicitado: 1,800 segundos. No se agregó un servicio, workflow de deploy ni dependencia.
 
-1. GitHub Pro para repositorio privado, reglas de rama y checks requeridos; verificar además que Vercel espere el flujo aprobado, porque proteger merge y proteger publicación son controles distintos.
-2. Mantener plan GitHub actual y usar despliegue de producción controlado: deshabilitar promociones automáticas incompatibles en Vercel y ejecutar deploy solo desde un job que dependa de Verify, con credencial limitada y autorización de publicación. Confirmar funciones/plan de Vercel y revisar bypass administrativos.
+Este control retiene la asignación de dominios cuando falta o falla el check; **no impide que exista el build ni su URL de despliegue**. La protección de acceso de Vercel sigue siendo necesaria. Una cuenta autorizada que cambie configuraciones puede eludir controles: esto no es una frontera frente al administrador del proveedor.
 
-No hacer público el repositorio como solución automática ni contratar planes sin decisión expresa. No añadir un workflow de deploy que parezca activo mientras falten credencial y configuración del proveedor.
+Durante la prueba controlada se amplía temporalmente el ámbito del check Fortius a preview, conservando producción. El registro de la iteración debe confirmar su restitución y el resultado, antes de declarar la comprobación completa. No se crea ni promueve un despliegue de producción en esta tarea.
 
-## Para declarar CI-01 aceptado
+## Previews y datos
 
-Configurar el flujo elegido, fallar una comprobación en candidato/preview controlado, comprobar que no llega a producción y después probar el flujo autorizado a verde. Registrar commit/check/promoción y procedimiento de rollback compatible con el esquema. Hasta entonces CI-01 y parte de ENV-01 siguen bloqueados.
+Se retiró el ámbito preview de `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` en ambos proyectos y de `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED` en Fortius. Los valores y ámbitos de producción se conservaron; no se imprimieron ni copiaron claves.
+
+Quitar solo service_role no basta: el panel usa sesión del usuario y RLS para operaciones normales (`backend/auth.ts`, `backend/repository.ts`). Los **nuevos previews** carecen del backend productivo; hasta configurar un backend de pruebas, las páginas dinámicas pueden mostrar indisponibilidad. No presentar este estado como un entorno de ensayo completo. Los despliegues previos pueden conservar variables antiguas: el cambio de ámbito no las revoca retroactivamente; mantienen la protección de Vercel. No se borraron despliegues antiguos ni se rotaron claves productivas.
+
+## Protección main preparada
+
+Archivo revisable: [configuración](github-main-protection.json).
+
+Requiere PR, check `verify` de GitHub Actions (app 15368), rama actualizada, conversaciones resueltas y aplica también a administradores. Prohíbe force-push y eliminar main. Revisión humana obligatoria: cero aprobaciones por ahora, para evitar exigir a Moisés una segunda cuenta inexistente; el requisito de PR y pruebas se mantiene. Incorporar revisión por otra persona cuando exista un equipo autorizado.
+
+La integración actual no puede aplicar la configuración. Con Administration write, usar el token solo para esa API y comprobar de nuevo la configuración efectiva. No declarar protegida main por haber preparado el JSON.
+
+## Preflight local
+
+`node tools/fortius-release-check.mjs` exige árbol limpio y última actividad de Verify del HEAD exacto concluida con éxito. Ordena correctamente reruns. Lee GitHub; no despliega ni activa por sí mismo reglas del proveedor. Complementa, no sustituye, los controles nativos.
+
+## Recuperación y límites
+
+La API de backups Supabase devolvió `pitr_enabled=false`, `backups=[]` y sin ventana física informada. Esto **no prueba ausencia de todas las copias externas**, pero no permite dar por existente una recuperación gestionada del proveedor. Ver [recuperación](recovery-policy.md).
+
+Pendientes: objetivos comprensibles y custodia acordados, destino aislado aprobado, Auth/Storage recuperados con prueba y backend de preview separado. La aprobación para desarrollar no autoriza compras, restaurar producción ni dar por aprobado un plazo de recuperación.
+
+## Fuentes del control
+
+- [Vercel Deployment Checks](https://vercel.com/docs/deployment-checks).
+- OpenAPI oficial `https://openapi.vercel.sh`: `/v2/projects/{projectIdOrName}/checks` y `/v9/projects/{idOrName}/env/{id}`.
+- Metadata de GitHub, checks por SHA y configuración Vercel consultadas mediante sesión autorizada. Evidencia resumida en [iteración 1](iterations/01-foundation.md).

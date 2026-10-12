@@ -38,3 +38,11 @@ El padre del destino debe existir. Se rechazan destinos existentes, interiores a
 6. Registrar limitaciones, disposición del destino y aprobación. Mantener producción intacta.
 
 No generar copias de clientes para la fase sintética. No considerar REC-01 cerrado hasta acordar objetivos y comprobar recuperación del alcance requerido.
+
+## Explicación para decidir y evidencia del proveedor
+
+RPO significa cuánto trabajo reciente podría perderse: si la última copia es de ayer, puede faltar lo capturado hoy. RTO significa cuánto tiempo puede permanecer detenido el sistema hasta recuperarlo. Son objetivos a medir, no garantías actuales.
+
+Propuesta inicial pendiente de aprobación: copia al menos cada día y recuperación dentro de una jornada de ocho horas. Una operación que no tolere perder capturas del día necesita un objetivo más corto y comprobar el mecanismo y su costo. La frecuencia también debe cubrir los archivos, no solo la base.
+
+Lectura autorizada del catálogo de backups Supabase el 12/10/2026: `pitr_enabled=false`, `backups=[]`, sin ventana de respaldo físico informada. No se descargaron copias ni se leyeron clientes. No descarta respaldos externos; no demuestra que exista una copia diaria gestionada. Antes de prometer plazos, confirmar custodia, automatización, consistencia y ensayo completo.
