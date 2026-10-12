@@ -10,6 +10,8 @@ El exportador actual incluye las 18 tablas públicas, incluidas `record_history`
 
 El ensayo actual aplica las migraciones del repositorio a PGlite en memoria, exige coincidencia de las tablas del catálogo, importa el export, valida de nuevo todas las FK y compara todos los campos y fechas. Revisa también revisiones de registros. Los reportes guardan resultados, no publican datos.
 
+Además regenera en la base aislada las referencias derivadas del JSON y compara su inventario contra la fuente. Un asesor inexistente dentro del JSON, aunque el índice anterior apuntara a un asesor válido, bloquea el ensayo. No se corrige ni normaliza el respaldo para hacerlo pasar.
+
 **Límites:** el ensayo usa identificadores Auth provisionales, no restaura contraseñas, sesiones ni configuración completa de Supabase. Los hashes verifican los objetos descargados, pero no se ha ensayado subirlos a un servicio Storage de recuperación. Completar esa prueba requiere un destino aislado y una política de custodia/RPO/RTO. No ejecutar una restauración en producción.
 
 La copia REST complementaria cubre las cinco tablas del núcleo histórico; el export propietario es la fuente completa de las 18 tablas. No confundir ambos niveles de cobertura.

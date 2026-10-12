@@ -22,7 +22,7 @@ Consolidar correcciones locales anteriores, repetir verificaciones, completar pr
 
 | Entrega | Estado | Evidencia / límite |
 |---|---|---|
-| BAS-01 | en_revision | Correcciones cotejadas; lint/TypeScript/710 tests/build y 21 escenarios de navegador pasaron. Revisión independiente pendiente. |
+| BAS-01 | en_revision | Correcciones cotejadas; lint/TypeScript/710 tests/build y 21 escenarios de navegador pasaron. Revisión independiente realizada; aceptación de negocio pendiente. |
 | REC-01 | en_revision | DB aislada, reconciliación DB/objetos, huellas y copia local implementadas/probadas; servicio Auth/Storage y objetivos aún pendientes. |
 | CI-01 / ENV-01 | bloqueada parcialmente | Preflight local implementado; GitHub privado exige plan superior para rulesets; Vercel sin autenticación disponible. |
 | AUT-01 | bloqueada parcialmente | URL Auth confirmada; pruebas existentes de auth pasaron; falta prueba de envío y MFA recuperable en cuenta controlada. |
@@ -51,6 +51,17 @@ Consolidar correcciones locales anteriores, repetir verificaciones, completar pr
 | Políticas y planes ERP, documentación de auditoría | Documentación local autorizada previamente/esta iteración | Fuentes y límites explícitos; sin secretos ni expedientes de clientes. |
 
 Archivos de `test-results/` se conservan como artefactos locales e ignoran en Git; copias privadas y scratch nunca se incluyen en el commit.
+
+## Revisión independiente y correcciones
+
+Un revisor independiente examinó la rama contra la base `4faaa123`, ejecutó tests locales y reprodujo dos hallazgos importantes con datos sintéticos. No modificó archivos ni infraestructura.
+
+- Corregido: una repetición reciente de un run Verify antiguo podía ignorarse al ordenar solo por created_at. Se considera actividad de ejecución (`run_started_at`/`updated_at`), con metadata incompleta denegada. Test nuevo mostró autorización incorrecta antes y rechazo después.
+- Corregido: las FK podían estar válidas aunque `records.data` apuntara a otra identidad y el índice de referencias siguiera viejo. El ensayo regenera referencias con la función SQL migrada en la base aislada y exige igualdad con el export. Referencias inexistentes/inventario ausente se rechazan. Test mostró aceptación incorrecta antes y rechazo después.
+- Ruling: no aplicar validadores de nuevas escrituras a todo el JSON histórico para recuperar — eso podría rechazar estados legacy permitidos en su fecha — comprobar derivación de relaciones e igualdad del snapshot, sin normalizar fuente — costo residual: este ensayo no certifica todas las reglas de cada trigger de negocio.
+- Ruling: el mensaje «deployment remains blocked» se trata como afirmación importante de alcance, aunque el revisor lo calificó menor — cambiar a «preflight denied» y probar CLI sin repositorio — costo evitado: atribuir al proveedor un control que el comando no implementa.
+
+Suite de herramientas tras correcciones: 12 casos ejecutados y aprobados; lint de los scripts/tests aprobado, diff sin errores de espacio. Código de aplicación no cambió en la corrección de estos scripts: conserva la comprobación completa de 710 tests/build y 21 escenarios de navegador de esta sesión. No se realizó otra revisión independiente de la misma rama: los hallazgos se verifican mediante sus reproducciones y suite. No quedan hallazgos del revisor diferidos; los límites del proveedor siguen abiertos.
 
 ## Dependencias de aceptación
 

@@ -45,11 +45,16 @@ export async function rehearseCurrent(input){
    const table=quote(fk.rel.replace('public.',''));
    await db.exec(`alter table public.${table} drop constraint ${quote(fk.conname)}; alter table public.${table} add constraint ${quote(fk.conname)} ${fk.definition} not valid; alter table public.${table} validate constraint ${quote(fk.conname)}`);
   }
+  // FK validation alone can trust a stale reference index whose targets exist,
+  // while the JSON record points somewhere else. Rebuild the derived inventory
+  // using the migrated write function, then compare it with the source below.
+  // Only this isolated database is changed; never normalize the owner export.
+  await db.exec('select public.fortius_inmuebles_sync_references(collection,id,data) from public.fortius_inmuebles_records');
   const tables={};
   for(const suffix of currentSuffixes){
    const table='fortius_inmuebles_'+suffix,rows=backup.tables[table];
    const result=await db.query(`select count(*)::int n from ((select to_jsonb(t) from public.${quote(table)} t except all select value from jsonb_array_elements($1::jsonb)) union all (select value from jsonb_array_elements($1::jsonb) except all select to_jsonb(t) from public.${quote(table)} t)) differences`,[JSON.stringify(rows)]);
-   if(result.rows[0].n)throw Error('Restored content differs: '+suffix);
+   if(result.rows[0].n)throw Error(suffix==='record_references'?'Restored reference inventory differs from record JSON':'Restored content differs: '+suffix);
    tables[suffix]={rows:rows.length,exactContentAndDates:true};
   }
   const bad=(await db.query(`select count(*)::int n from public.fortius_inmuebles_records r left join public.fortius_inmuebles_record_revisions v using(collection,id) where v.last_version is distinct from r.version`)).rows[0].n;

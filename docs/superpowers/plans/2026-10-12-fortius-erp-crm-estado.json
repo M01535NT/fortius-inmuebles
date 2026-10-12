@@ -22,7 +22,7 @@
   },
   "work_in_progress_limit": 1,
   "review_limit": 1,
-  "next_action": "Consolidar y verificar fase 0 en rama feature/fortius-erp-crm-foundation",
+  "next_action": "Resolver VERCEL_TOKEN, flujo de publicación, objetivos de recuperación y cuenta de prueba; continuar tareas locales autorizadas según decisiones",
   "decisions": [
     {
       "id": "DEC-01",
@@ -508,7 +508,7 @@
       "backend": "499 passed",
       "admin": "211 passed",
       "build": "passed",
-      "tools": "10 passed",
+      "tools": "12 passed",
       "browser": "21 passed (Chromium, API sintética)",
       "pdf_assets": "passed",
       "production_deploy": "not_checked"
@@ -520,7 +520,14 @@
       "2026-10-12-fortius-erp-crm.md": "f70ffa3560bbf7ccd1740212c4159cc77e51e1a1c5b0f1907d0ff1593f723d7e",
       "2026-10-12-fortius-erp-crm-primeras-iteraciones.md": "32bc08fe97fe2e7babe7faf37c944966f4bac252191ff8cb9da0b6cac4045107"
     },
-    "iteration_evidence": "docs/erp-crm/iterations/01-foundation.md"
+    "iteration_evidence": "docs/erp-crm/iterations/01-foundation.md",
+    "independent_review": {
+      "reviewed_commit": "bab1caa3db938851770ceb123a250ee7fd3d123c",
+      "important_findings": 2,
+      "fixed_with_red_green": 2,
+      "message_scope_also_corrected": true,
+      "deferred_findings": 0
+    }
   },
   "implementation_branch": "feature/fortius-erp-crm-foundation",
   "authorization_evidence": "Moisés: Apruebo el plan. Comienza. (12/10/2026)"

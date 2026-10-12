@@ -8,7 +8,7 @@ El export actual cubre 18 tablas públicas. El verificador comprueba hashes/byte
 
 Esto es integridad y coherencia del alcance capturado. No acredita autenticidad contra un atacante que pudiera reemplazar datos y manifiesto a la vez: custodiar la huella del manifiesto y la copia en un medio independiente y restringido.
 
-El ensayo DB aplica migraciones a PGlite en memoria, restaura contenido, valida FK/revisiones y compara campos/fechas. Auth contiene placeholders de identidad: no contraseñas/sesiones/servicio. La nueva recuperación de objetos copia bytes a un directorio local nuevo, relee huellas y conserva metadata; no configura un servicio Storage ni prueba sus políticas en otro proyecto.
+El ensayo DB aplica migraciones a PGlite en memoria, restaura contenido, valida FK/revisiones y compara campos/fechas. Regenera el índice de referencias de los JSON mediante la función SQL migrada y lo contrasta con el snapshot; no basta que las filas del índice antiguo tengan FK válidas. No normaliza el export ni aplica reglas actuales de nueva captura indiscriminadamente a datos legacy. Auth contiene placeholders de identidad: no contraseñas/sesiones/servicio. La nueva recuperación de objetos copia bytes a un directorio local nuevo, relee huellas y conserva metadata; no configura un servicio Storage ni prueba sus políticas en otro proyecto.
 
 ## Comprobación local sin credenciales
 

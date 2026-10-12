@@ -24,7 +24,7 @@ Fecha de lectura: 12/10/2026. Solo metadata y configuración seleccionada, sin r
 node tools/fortius-release-check.mjs
 ```
 
-Exige árbol Git limpio y la última ejecución de Verify del commit HEAD exacto en push/PR, concluida con éxito. Una ejecución pendiente/fallida, un workflow distinto o una verificación de otro commit bloquean el preflight. Consulta GitHub en lectura; no llama Vercel ni despliega.
+Exige árbol Git limpio y la última actividad de ejecución de Verify del commit HEAD exacto en push/PR, concluida con éxito. Considera tiempos de intento/actualización: created_at original no basta para ordenar reruns. Una ejecución pendiente/fallida, metadata insuficiente, un workflow distinto o una verificación de otro commit bloquean el preflight. Consulta GitHub en lectura; no llama Vercel ni despliega.
 
 Este comando es una comprobación previa. **No bloquea por sí mismo los despliegues automáticos de Vercel ni una publicación que lo omita.** Debe integrarse en el flujo real después de comprobar configuración y acceso.
 
