@@ -1,25 +1,10 @@
-# Entornos y controles de publicación — Fortius
+# Entornos y publicación de Fortius
 
-Fecha de lectura y cambios autorizados: 12/10/2026. Repositorio: `M01535NT/fortius-inmuebles`. La carpeta local conserva el nombre histórico `/workspace/mnt-inmuebles`; su remoto es el repositorio Fortius.
+Referencia de la configuración y sus límites al corte del 12/10/2026. La configuración del proveedor no se releyó durante esta limpieza; comprobarla antes de publicar.
 
-## Evidencia y autorización
+## Estado posterior a la integración
 
-- Moisés autorizó hacer público el repositorio y proteger main. La conexión GitHub de Codex rechazó ambos cambios con HTTP 403 `Resource not accessible by integration`. Moisés cambió la visibilidad desde GitHub: `visibility=public` confirmado por API. Esto resuelve la restricción del plan privado; **no concede al token permisos administrativos**.
-- Antes del cambio se inspeccionaron las 15 ramas de GitHub: 2,257 blobs alcanzables, 50,993,412 bytes. La búsqueda por patrones de credenciales y coincidencias con secretos del entorno no encontró credenciales; el patrón parecido a una clave en un SVG pertenece al bloque `plantuml-src` comprimido. Esta comprobación no garantiza que toda información sea adecuada para difusión. Código, migraciones, formatos, documentación e historial son públicos por autorización expresa.
-- Main continúa en `4faaa123`, `protected=false`. GITHUB_ADMIN_TOKEN ya fue incorporado al entorno, pero el intermediario sigue autenticando las peticiones como la integración de Codex y la API deniega Administration. No guardar el valor en archivos Git ni chat.
-- Vercel: sesión autorizada por flujo oficial de dispositivo. CLI 63.1.2 consultada desde artefacto npm con integridad SRI comprobada, sin instalar dependencias. Sesión temporal: no equivale a un token persistente del entorno.
-- Supabase: 18 tablas públicas Fortius con RLS y 22 migraciones; cinco buckets, solo uno público. No se consultaron registros de clientes ni se modificó SQL.
-
-## Vercel real
-
-| Proyecto | Fuente / entorno productivo | Dominios |
-|---|---|---|
-| fortius-inmuebles | GitHub Fortius, main; Next.js y Node.js 24.x | fortiusinmuebles.com; www redirige al principal; aliases Fortius. |
-| mnt-inmuebles | El mismo GitHub Fortius, main; Next.js y Node.js 24.x | mnt-inmuebles.vercel.app; cota-eight redirige a MNT. |
-
-Ambos están en el equipo tonala, plan Hobby. Protección Vercel `all_except_custom_domains` y protección de forks activas. La web pública y el panel comparten despliegue. El proyecto MNT sigue activo: no fue eliminado, retirado ni redirigido como parte de esta tarea.
-
-La historia confirmó que commits `4c0c0d2` y `7b9cd68` tuvieron workflow Verify fallido y despliegues productivos READY. Por eso proteger únicamente el merge no era suficiente.
+GitHub confirma `main=1e763345`, repositorio público y `protected=false`. Los fundamentos se integraron en `36e3ba64` mediante [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15); [Verify 38327265116](https://github.com/M01535NT/fortius-inmuebles/actions/runs/38327265116) finalizó success para ese SHA. El PR documenta publicación productiva y comprobación del dominio. Esta actualización releyó GitHub; la configuración Vercel/Supabase y los recorridos productivos posteriores son evidencia registrada, no una nueva lectura de esos proveedores.
 
 ## Control nativo activado
 
@@ -28,18 +13,24 @@ Se configuró un Deployment Check en cada proyecto:
 - Fuente: GitHub; nombre externo exacto del job `verify`, perteneciente al workflow `.github/workflows/verify.yml`.
 - Requisito: `build-ready`; bloquea `deployment-alias`; ámbito final: producción.
 - Fortius: `chk_bed0e675-11a4-4100-9ce1-e2c4b6a84b3c`.
-- MNT: `chk_be048572-df37-489b-9ec8-0096fbe909fc`.
+- Proyecto adicional: `chk_be048572-df37-489b-9ec8-0096fbe909fc`.
 - Timeout solicitado: 1,800 segundos. No se agregó un servicio, workflow de deploy ni dependencia.
 
 Este control retiene la asignación de dominios cuando falta o falla el check; **no impide que exista el build ni su URL de despliegue**. La protección de acceso de Vercel sigue siendo necesaria. Una cuenta autorizada que cambie configuraciones puede eludir controles: esto no es una frontera frente al administrador del proveedor.
 
-Durante la prueba controlada se amplió temporalmente el ámbito del check Fortius a preview, conservando producción. Se comprobó el fallo y el paso a verde, y se restituyó el ámbito a producción mediante PATCH y lectura posterior. Ver evidencia negativa y positiva de la iteración. No se creó ni promovió un despliegue de producción en esta tarea.
+Durante la prueba controlada se amplió temporalmente el ámbito del check Fortius a preview, conservando producción. Se comprobó el fallo y el paso a verde, y se restituyó el ámbito a producción mediante PATCH y lectura posterior. Los recibos negativo y positivo se conservan en la copia externa `workspace-before.zip`, dentro de `docs/erp-crm/iterations/`; el [plan único](../../PLAN_ERP_CRM.md) resume su alcance. Esa prueba de mecanismo no creó ni promovió un despliegue de producción.
 
 ## Previews y datos
 
 Se retiró el ámbito preview de `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` en ambos proyectos y de `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED` en Fortius. Los valores y ámbitos de producción se conservaron; no se imprimieron ni copiaron claves.
 
 Quitar solo service_role no basta: el panel usa sesión del usuario y RLS para operaciones normales (`backend/auth.ts`, `backend/repository.ts`). Los **nuevos previews** carecen del backend productivo; hasta configurar un backend de pruebas, las páginas dinámicas pueden mostrar indisponibilidad. No presentar este estado como un entorno de ensayo completo. Los despliegues previos pueden conservar variables antiguas: el cambio de ámbito no las revoca retroactivamente; mantienen la protección de Vercel. No se borraron despliegues antiguos ni se rotaron claves productivas.
+
+### Excepción autorizada: codex/erp-crm-preview
+
+El 12/10/2026 Moisés autorizó conectar únicamente `codex/erp-crm-preview` a la base actual de Fortius y, de forma expresa, reutilizar `SUPABASE_SERVICE_ROLE_KEY` como secreto del servidor de esa rama. En Vercel se añadieron entradas independientes para `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`, con ámbito Preview y restricción a esa rama. Las entradas de Production se conservaron; no se habilitó el backend para todos los previews ni se cambió el código de permisos.
+
+Esta rama comparte datos reales y permite las operaciones de los usuarios autorizados; no es una base de pruebas aislada. La clave privada no usa prefijo público y se guarda como Secret. La copia temporal utilizada para importarla se eliminó, sin modificar `.env.local`. La verificación de la conexión no autoriza cuentas nuevas, correos ni escrituras de ensayo sobre expedientes reales. Los cambios de variables requieren un despliegue nuevo; el anterior conserva su configuración.
 
 ## Protección main preparada
 
@@ -63,4 +54,4 @@ Pendientes: custodia y destino aislado aprobados, Auth/Storage recuperados con p
 
 - [Vercel Deployment Checks](https://vercel.com/docs/deployment-checks).
 - OpenAPI oficial `https://openapi.vercel.sh`: `/v2/projects/{projectIdOrName}/checks` y `/v9/projects/{idOrName}/env/{id}`.
-- Metadata de GitHub, checks por SHA y configuración Vercel consultadas mediante sesión autorizada. Evidencia resumida en [iteración 1](iterations/01-foundation.md).
+- Metadata de GitHub, checks por SHA y configuración Vercel consultadas mediante sesión autorizada. La evidencia cronológica anterior se conserva fuera del repositorio; el avance está en [el plan único](../../PLAN_ERP_CRM.md).

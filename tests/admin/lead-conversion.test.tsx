@@ -40,6 +40,7 @@ async function detail(kind: "lead" | "client") {
 
 test("un botón en la lista convierte con la revisión y abre Clientes; el lead pasa a Convertidos", async () => {
   render(<LeadsPage />);
+  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
   const list = await screen.findByRole("list", { name: "Prospectos" });
   fireEvent.click(within(list).getByRole("button", { name: /Convertir en cliente/ }));
   await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/clientes/c1"));
@@ -47,6 +48,7 @@ test("un botón en la lista convierte con la revisión y abre Clientes; el lead 
   expect(db.clientes.list()[0].perfil).toEqual(original.perfil);
   expect(db.leads.version(db.leads.list()[0])).toBe(8);
   expect(screen.queryByRole("list", { name: "Prospectos" })).toBeNull();
+  fireEvent.click(screen.getByText("Filtros de etapa"));
   fireEvent.click(screen.getByRole("button", { name: "Convertidos (1)" }));
   expect(within(screen.getByRole("list", { name: "Prospectos" })).getByRole("link", { name: "Ver cliente" }).getAttribute("href")).toBe("/admin/clientes/c1");
 });

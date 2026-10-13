@@ -7,7 +7,7 @@ import { emptyInventoryFilters, filterInventory } from "@/lib/admin/workspace";
 import { AsyncButton, AsyncSelect } from "@/components/admin/ui";
 
 import Link from "next/link";
-import { Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { Pencil, Plus, Star, Trash2, Building2, LayoutGrid, List, MoreHorizontal, BedDouble, Bath, Maximize } from "lucide-react";
 
 import {
   Badge,
@@ -41,6 +41,7 @@ export default function AdminPropiedadesPage() {
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);
   const [filters,setFilters] = React.useState(emptyInventoryFilters);
+  const [view, setView] = React.useState<"tarjetas" | "lista">("tarjetas");
   const results = filterInventory(propiedades,filters);
   const [page,setPage]=React.useState(0);
   const currentPage=Math.min(page,Math.max(0,Math.ceil(results.length/24)-1));
@@ -59,18 +60,22 @@ export default function AdminPropiedadesPage() {
   }
 
   return (
-    <div className="min-w-0 space-y-6">
+    <div className="admin-inventory-page min-w-0 space-y-4">
       <PageHeader
-        title="Inmuebles."
-        description="Alta, edición y baja del inventario. Los PDFs de cada inmueble se administran dentro de su formulario."
+        title="Cartera de inmuebles"
+        description="Disponibilidad, precios y documentación de tu inventario."
         actions={
           <Link href="/admin/propiedades/nueva" className={btnPrimary}>
             <Plus className="size-4" strokeWidth={1.5} /> Nuevo inmueble
           </Link>
         }
       />
-      <DemoBanner show />
-      <InventoryControls value={filters} onChange={next=>{setFilters(next);setPage(0);}} advisers={asesores} count={results.length}/>
+      <div className="admin-inventory-toolbar"><InventoryControls value={filters} onChange={next=>{setFilters(next);setPage(0);}} advisers={asesores} count={results.length}/>
+      <div className="admin-view-switch" role="group" aria-label="Vista de inmuebles">
+        <button type="button" className={btnGhost} aria-pressed={view === "tarjetas"} onClick={() => setView("tarjetas")}><LayoutGrid size={17} /> Tarjetas</button>
+        <button type="button" className={btnGhost} aria-pressed={view === "lista"} onClick={() => setView("lista")}><List size={17} /> Lista</button>
+      </div>
+      </div>
       {results.length>24 && <nav aria-label="Páginas de inmuebles" className="flex flex-wrap items-center gap-3"><button type="button" className={btnGhost} disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>Anterior</button><span className="text-sm">Página {currentPage+1} de {Math.ceil(results.length/24)}</span><button type="button" className={btnGhost} disabled={(currentPage+1)*24>=results.length} onClick={()=>setPage(currentPage+1)}>Siguiente</button></nav>}
       {propiedades.length > 0 && filtered.length === 0 && <EmptyState title="No hay inmuebles con estos filtros." hint="Prueba otra búsqueda o limpia los filtros."/>}
 
@@ -81,37 +86,40 @@ export default function AdminPropiedadesPage() {
         />
       ) : (
         <>
-          <ul aria-label="Inmuebles" className="min-w-0 space-y-3 lg:hidden">
+          <ul aria-label="Inmuebles" className={view === "tarjetas" ? "admin-properties-grid" : "min-w-0 space-y-3 lg:hidden"}>
             {filtered.map((p) => (
               <li
                 key={p.slug}
-                className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4 [overflow-wrap:anywhere]"
+                className="admin-card admin-property-card min-w-0 [overflow-wrap:anywhere]"
               >
-                <div className="flex items-center gap-3">{p.galeria[0] && <Image unoptimized width={96} height={64} src={p.galeria[0].src} alt="" className="h-16 w-24 rounded object-cover" loading="lazy"/>}<p className="font-mono text-xs text-muted-foreground">{p.codigo}</p></div>
+                <div className="admin-property-image">{p.galeria[0] ? <Image unoptimized width={640} height={420} src={p.galeria[0].src} alt="" className="admin-property-photo" loading="lazy"/> : <div className="admin-property-photo flex items-center justify-center"><Building2 size={40} className="text-muted-foreground" aria-hidden="true"/><span className="sr-only">Sin fotografía</span></div>}
+                  <div className="admin-property-image-status"><PropertyStatus property={p} /></div>
+                  <div className="admin-property-image-feature"><FeaturedButton property={p} /></div>
+                  {p.demo && <span className="admin-property-demo"><Badge tone="amber">Demo</Badge></span>}
+                </div>
+                <div className="admin-property-body">
                 {propiedades.some((other) => other.slug !== p.slug && other.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase()) ? (
                   <p className="text-xs font-medium text-destructive">Código duplicado: corrígelo en Editar.</p>
                 ) : null}
-                <h2>
+                <div className="admin-property-titleline"><h2>
                   <Link
                     href={`/admin/propiedades/${p.slug}/editar`}
                     className="flex min-h-11 items-center text-base font-semibold text-foreground hover:text-primary-ink"
                   >
                     {p.titulo}
                   </Link>
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  <Badge tone={p.publicada ? "green" : "neutral"}>
-                    {p.publicada ? "Publicado" : "No publicado"}
-                  </Badge>
-                  {p.demo ? <Badge tone="amber">Demo</Badge> : null}
-                </div>
+                </h2><p className="admin-property-price">{formatPrecio(p.precio)}</p></div>
                 <p className="text-sm text-muted-foreground">
                   {p.zona} · {TIPO_LABELS[p.tipo]} · {OPERACION_LABELS[p.operacion]}
                 </p>
-                <p className="font-mono text-base font-medium text-foreground">
-                  {formatPrecio(p.precio)}
+                <p className="admin-property-facts flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  {p.ficha.recamaras !== undefined && <span><BedDouble size={18} aria-hidden="true"/>{p.ficha.recamaras} recámaras</span>}
+                  {p.ficha.banos !== undefined && <span><Bath size={18} aria-hidden="true"/>{p.ficha.banos} baños</span>}
+                  {p.ficha.construccionM2 !== undefined ? <span><Maximize size={18} aria-hidden="true"/>{p.ficha.construccionM2} m² construidos</span> : p.ficha.terrenoM2 !== undefined ? <span><Maximize size={18} aria-hidden="true"/>{p.ficha.terrenoM2} m² de terreno</span> : null}
                 </p>
-                <dl className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 text-sm">
+                <details className="admin-property-options"><summary aria-label={`Opciones de ${p.titulo}`}><MoreHorizontal size={20}/></summary>
+                <div className="admin-property-options-content"><p className="text-xs text-muted-foreground">{p.codigo}</p><Badge tone={p.publicada ? "green" : "neutral"}>{p.publicada ? "Publicado" : "No publicado"}</Badge>
+                <details className="admin-property-info"><summary>Responsable y documentos</summary><dl className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 text-sm">
                   <div className="min-w-0">
                     <dt className="text-xs text-muted-foreground">Asesor</dt>
                     <dd className="mt-1">
@@ -122,21 +130,18 @@ export default function AdminPropiedadesPage() {
                     <dt className="text-xs text-muted-foreground">PDFs</dt>
                     <dd className="mt-1">{p.documentos?.length ?? 0}</dd>
                   </div>
-                </dl>
-                <div className="min-w-0 space-y-1.5">
-                  <p className="text-xs text-muted-foreground">Estado</p>
-                  <PropertyStatus property={p} />
-                </div>
-                <FeaturedButton property={p} showLabel />
+                </dl></details>
                 <PropertyActions
                   property={p}
                   onDelete={() => eliminar(p.slug, p.titulo, db.propiedades.version(p))}
                   showLabels
                 />
+                </div></details>
+                </div>
               </li>
             ))}
           </ul>
-          <div className="hidden min-w-0 overflow-x-auto rounded-lg border border-border bg-card lg:block">
+          {view === "lista" && <div className="hidden min-w-0 overflow-x-auto rounded-lg border border-border bg-card lg:block">
             <table className="w-full min-w-[980px] text-left text-sm [&_td]:px-3 [&_th]:px-3">
               <thead>
                 <tr className="border-b border-border font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
@@ -207,9 +212,10 @@ export default function AdminPropiedadesPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </div>}
         </>
       )}
+      <div className="admin-inventory-note"><DemoBanner show /></div>
     </div>
   );
 }

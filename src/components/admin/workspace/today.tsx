@@ -1,125 +1,82 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, Building2, FileText, MoreHorizontal, MapPin, Users } from "lucide-react";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
+import { Badge } from "@/components/admin/ui";
 import { projectFollowups } from "@/lib/admin/followups";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
+
+type Dossier = { id: string; folio: string; etapa?: string; fecha_objetivo?: string; propiedad_slug?: string | null; asesor_id?: string };
+const stages = ["captacion", "documentacion", "comercializacion", "negociacion", "cierre"] as const;
+const dateLabel = (date: string | undefined, today: string) => !date ? "Sin fecha" : date === today ? "Hoy" : date.split("-").reverse().slice(0, 2).join("/");
 
 export function TodayWorkspace() {
-  const leads = useCollection(db.leads),
-    clients = useCollection(db.clientes),
-    events = useCollection(db.eventos),
-    tasks = useCollection(db.tareas);
+  const leads = useCollection(db.leads), clients = useCollection(db.clientes), events = useCollection(db.eventos), tasks = useCollection(db.tareas);
+  const properties = useCollection(db.propiedades), advisers = useCollection(db.asesores);
   const today = operationalDate();
-  const contacts = projectFollowups(leads, clients).filter(
-    (f) => f.fecha <= today,
-  );
-  const visits = events
-    .filter((e) => e.fecha === today)
-    .sort((a, b) => (a.hora ?? "").localeCompare(b.hora ?? ""));
-  const [dossiers, setDossiers] = React.useState<
-    { id: string; folio: string; etapa?: string; fecha_objetivo?: string }[]
-  >([]);
-  const [state, setState] = React.useState("loading");
+  const contacts = projectFollowups(leads, clients).filter(f => f.fecha <= today);
+  const visits = events.filter(e => e.fecha === today).sort((a, b) => (a.hora ?? "").localeCompare(b.hora ?? ""));
+  const [dossiers, setDossiers] = React.useState<Dossier[]>([]);
+  const [state, setState] = React.useState<"loading" | "ready" | "error">("loading");
   React.useEffect(() => {
     let active = true;
-    apiRequest<{ expedientes: typeof dossiers }>("/api/admin/expedientes")
-      .then((r) => {
-        if (active) {
-          setDossiers(r.expedientes ?? []);
-          setState("ready");
-        }
-      })
-      .catch(() => {
-        if (active) setState("error");
-      });
-    return () => {
-      active = false;
-    };
+    apiRequest<{ expedientes: Dossier[] }>("/api/admin/expedientes")
+      .then(r => { if (active) { setDossiers(r.expedientes ?? []); setState("ready"); } })
+      .catch(() => { if (active) setState("error"); });
+    return () => { active = false; };
   }, []);
-  const due = dossiers.filter(
-    (e) =>
-      e.etapa !== "cerrado" && e.fecha_objetivo && e.fecha_objetivo < today,
-  );
-  const pending = tasks.filter(t => t.estado !== "completada" && t.estado !== "cancelada" && t.vence && t.vence <= today).sort((a,b) => (a.vence ?? "").localeCompare(b.vence ?? ""));
-  const groups = [
-    { title: "Tareas prioritarias", items: pending.map(t => ({ id: t.id, title: t.titulo, detail: t.vence === today ? "Hoy" : `Vencida · ${t.vence}`, href: `/admin/tareas/${t.id}` })), empty: "No hay tareas vencidas ni previstas para hoy." },
-    {
-      title: "Contactos por atender",
-      items: contacts.map((f) => ({
-        id: f.id,
-        title: f.personName,
-        detail: f.fecha === today ? "Hoy" : `Pendiente desde ${f.fecha}`,
-        href: f.href,
-      })),
-      empty: "Sin contactos vencidos ni previstos para hoy.",
-    },
-    {
-      title: "Agenda de hoy",
-      items: visits.map((e) => ({
-        id: e.id,
-        title: e.titulo,
-        detail: e.hora ?? "Sin hora",
-        href: `/admin/calendario?fecha=${today}&evento=${e.id}`,
-      })),
-      empty: "Sin eventos programados para hoy.",
-    },
-    {
-      title: "Expedientes por retomar",
-      items: due.map((e) => ({
-        id: e.id,
-        title: e.folio,
-        detail: `Fecha objetivo: ${e.fecha_objetivo}`,
-        href: `/admin/expedientes?expediente=${e.id}`,
-      })),
-      empty:
-        state === "loading"
-          ? "Cargando expedientes…"
-          : state === "error"
-            ? "No se pudo consultar el seguimiento de expedientes."
-            : "Sin expedientes con fecha objetivo vencida.",
-    },
-  ];
-  return (
-    <section
-      aria-label="Atención de hoy"
-      className="grid min-w-0 items-start gap-3 md:grid-cols-2"
-    >
-      {groups.map((group) => (
-        <div
-          key={group.title}
-          className="min-w-0 rounded-lg border border-border bg-card p-4"
-        >
-          <h2 className="font-semibold">
-            {group.title}{" "}
-            <span className="text-muted-foreground">
-              {group.items.length || ""}
-            </span>
-          </h2>
-          {group.items.length ? (
-            <ul className="mt-2 divide-y divide-border">
-              {group.items.slice(0, 4).map((item) => (
-                <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    className="block rounded py-3 hover:bg-secondary"
-                  >
-                    <span className="block break-words text-sm font-medium">
-                      {item.title}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {item.detail}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-3 text-sm text-muted-foreground">{group.empty}</p>
-          )}
-          {group.items.length > 4 && <Link className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold underline" href={group.items[0].href.split("?")[0].split("/").slice(0,3).join("/")}>Ver los {group.items.length} pendientes</Link>}
-        </div>
-      ))}
+  const activeTasks = tasks.filter(t => t.estado !== "completada" && t.estado !== "cancelada").sort((a, b) => (a.vence ?? "9999").localeCompare(b.vence ?? "9999"));
+  const pending = activeTasks.filter(t => t.vence && t.vence <= today);
+  const due = dossiers.filter(d => d.etapa !== "cerrado" && d.fecha_objetivo && d.fecha_objetivo < today);
+  const rows = activeTasks.slice(0, 3).map(task => {
+    const property = properties.find(p => p.slug === task.propiedadSlug);
+    const dossier = task.propiedadSlug ? dossiers.find(d => d.propiedad_slug === task.propiedadSlug && d.etapa !== "cerrado") : undefined;
+    const adviser = advisers.find(a => a.id === (task.asesorId || dossier?.asesor_id));
+    return { id: task.id, title: property?.titulo ?? "Sin inmueble vinculado", detail: property?.zona ?? "Tarea del equipo", photo: property?.galeria[0]?.src, stage: dossier?.etapa, action: task.titulo, adviser: adviser?.nombre ?? "Sin asignar", date: task.vence, href: `/admin/tareas/${task.id}` };
+  });
+  const operationRows = rows.length ? rows : dossiers.filter(d => d.etapa !== "cerrado").slice(0, 3).map(dossier => {
+    const property = properties.find(p => p.slug === dossier.propiedad_slug);
+    return { id: dossier.id, title: property?.titulo ?? dossier.folio, detail: property?.zona ?? dossier.folio, photo: property?.galeria[0]?.src, stage: dossier.etapa, action: "Abrir expediente", adviser: advisers.find(a => a.id === dossier.asesor_id)?.nombre ?? "Sin asignar", date: dossier.fecha_objetivo, href: `/admin/expedientes?expediente=${dossier.id}` };
+  });
+  const stageLabel = (stage?: string) => stage === "documentacion" ? "Revisión documental" : EXPEDIENTE_ETAPAS[stage as keyof typeof EXPEDIENTE_ETAPAS] ?? "Sin etapa registrada";
+  return <div className="admin-daily-layout">
+    <section className="admin-card admin-cycle-card" aria-label="Ciclo del inmueble">
+      <div className="admin-card-heading"><h2>Ciclo del inmueble</h2><Link href="/admin/expedientes">Ver operaciones <ArrowRight size={16}/></Link></div>
+      {state === "error" ? <p role="alert" className="p-5 text-sm text-muted-foreground">No se pudieron consultar las etapas. Recarga el módulo para reintentar.</p> : <ol className="admin-cycle" aria-busy={state === "loading"}>
+        {stages.map((stage, index) => <li key={stage} className="admin-cycle-step"><span className="admin-cycle-number" aria-hidden="true">{index + 1}</span><div className="min-w-0"><p>{stage === "documentacion" ? "Revisión" : EXPEDIENTE_ETAPAS[stage]}</p><strong>{state === "loading" ? "—" : dossiers.filter(d => (d.etapa ?? "captacion") === stage).length}</strong><span className="ml-1 text-xs text-muted-foreground">expedientes</span></div></li>)}
+      </ol>}
+      <span className="sr-only">Etapas de expedientes activos; no incluye expedientes cerrados.</span>
     </section>
-  );
+    <section className="admin-card admin-attention-card" aria-label="Atención de hoy">
+      <div className="admin-card-heading"><h2>Operaciones que requieren atención</h2><Link href="/admin/tareas">Ver todas <ArrowRight size={16}/></Link></div>
+      <div className="admin-operations-scroll"><table className="admin-operations-table"><thead><tr><th>Inmueble</th><th>Etapa</th><th>Próximo paso</th><th>Responsable</th><th>Fecha</th><th><span className="sr-only">Detalle</span></th></tr></thead><tbody>
+        {operationRows.map(row => <tr key={row.id}><td><Link href={row.href} className="admin-operation-property">{row.photo ? <Image unoptimized src={row.photo} width={84} height={56} alt=""/> : <Building2 size={24} aria-hidden="true"/>}<span><strong title={row.title}>{row.title}</strong><small>{row.detail}</small></span></Link></td><td><span data-stage={row.stage} className="admin-operation-stage" aria-label={stageLabel(row.stage)}>{row.stage === "documentacion" ? "Revisión" : stageLabel(row.stage)}</span></td><td><Link href={row.href} title={row.action} className="admin-next-action">{row.action}</Link></td><td><span className="admin-responsible" title={row.adviser}><span aria-hidden="true">{row.adviser === "Sin asignar" ? "—" : row.adviser.split(/\s+/).slice(0, 2).map(w => w[0]).join("")}</span><span>{row.adviser}</span></span></td><td className={row.date && row.date <= today ? "text-primary-ink font-semibold" : ""}>{dateLabel(row.date, today)}</td><td><Link className="admin-row-detail" href={row.href} aria-label={`Abrir detalle de ${row.title}`}><MoreHorizontal size={18}/></Link></td></tr>)}
+      </tbody></table></div>
+      {!operationRows.length && <p className="admin-table-empty">{state === "loading" ? "Cargando operaciones…" : state === "error" ? "No se pudieron consultar los expedientes." : "Sin tareas ni operaciones activas registradas."}</p>}
+    </section>
+    <section className="admin-card admin-agenda-card" aria-label="Agenda de hoy">
+      <div className="admin-card-heading"><h2>Agenda de hoy</h2><Link href="/admin/calendario">Ver agenda <ArrowRight size={16}/></Link></div>
+      {visits.length ? <ul className="admin-agenda-list">{visits.slice(0, 3).map(event => {
+        const context = properties.find(p => p.slug === event.propiedadSlug)?.titulo
+          ?? clients.find(c => c.id === event.clienteId)?.nombre
+          ?? leads.find(l => l.id === event.leadId)?.nombre
+          ?? dossiers.find(d => d.id === event.expedienteId)?.folio;
+        const Icon = event.tipo === "visita" ? MapPin : event.tipo === "llamada" ? Users : FileText;
+        return <li key={event.id}><time>{event.hora ?? "Sin hora"}</time><span className="admin-agenda-dot" aria-hidden="true"/><Icon size={19} aria-hidden="true"/><Link href={`/admin/calendario?fecha=${today}&evento=${event.id}`}>{event.titulo}{context && <small>{context}</small>}</Link></li>;
+      })}</ul> : <p className="admin-table-empty">Sin eventos programados para hoy.</p>}
+      {visits.length > 3 && <Link href={`/admin/calendario?fecha=${today}`} className="admin-agenda-more">Ver los {visits.length} pendientes</Link>}
+    </section>
+    <div className="admin-lower-layout">
+    <section className="admin-card admin-financial-card"><div className="admin-card-heading"><h2>Flujo de efectivo</h2><Link href="/admin/finanzas">Ver finanzas <ArrowRight size={16}/></Link></div><div className="admin-module-empty"><FileText size={28} aria-hidden="true"/><Badge tone="amber">Pendiente de implementación</Badge><p>El flujo de cobros y egresos se mostrará cuando esté habilitado el registro financiero.</p><Link href="/admin/expedientes">Consultar presupuestos por expediente</Link></div></section>
+    <section className="admin-card admin-territory-card"><div className="admin-card-heading"><h2>Cartera por zona</h2><Link href="/admin/territorio">Ver zonas <ArrowRight size={16}/></Link></div><ul className="admin-zone-summary">{[...new Set(properties.map(p => p.zona || "Sin zona"))].slice(0, 4).map(zone => <li key={zone}><Building2 size={20} aria-hidden="true"/><span>{zone}</span><strong>{properties.filter(p => (p.zona || "Sin zona") === zone).length}</strong></li>)}</ul><div className="admin-map-pending"><Badge tone="amber">Mapa pendiente</Badge><span>Las ubicaciones se incorporarán con el módulo geográfico.</span></div></section>
+    </div>
+    <details className="admin-daily-details"><summary>Seguimiento del equipo</summary><div className="admin-followup-grid">
+      <section><h3>Tareas prioritarias {pending.length || ""}</h3>{pending.length ? pending.map(t => <Link key={t.id} href={`/admin/tareas/${t.id}`}>{t.titulo}<small>{t.vence === today ? "Hoy" : `Vencida · ${t.vence}`}</small></Link>) : <p>No hay tareas vencidas ni previstas para hoy.</p>}</section>
+      <section><h3>Contactos por atender {contacts.length || ""}</h3>{contacts.length ? contacts.map(f => <Link key={f.id} href={f.href}>{f.personName}<small>{f.fecha === today ? "Hoy" : `Pendiente desde ${f.fecha}`}</small></Link>) : <p>Sin contactos vencidos ni previstos para hoy.</p>}</section>
+      <section><h3>Expedientes por retomar</h3>{due.length ? due.map(d => <Link key={d.id} href={`/admin/expedientes?expediente=${d.id}`}>{d.folio}<small>Fecha objetivo: {d.fecha_objetivo}</small></Link>) : <p>{state === "error" ? "No se pudo consultar el seguimiento de expedientes." : "Sin expedientes con fecha objetivo vencida."}</p>}</section>
+    </div></details>
+  </div>;
 }

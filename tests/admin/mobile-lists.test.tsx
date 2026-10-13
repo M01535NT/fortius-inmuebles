@@ -64,6 +64,7 @@ afterEach(() => {
 
 test("manual lead capture starts collapsed and keeps an unfinished draft when toggled", async () => {
   render(<LeadsPage />);
+  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
   const toggle = screen.getByRole("button", { name: "Nuevo prospecto" });
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
   expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
@@ -80,6 +81,7 @@ test("manual lead capture starts collapsed and keeps an unfinished draft when to
 
 test("manual capture preserves failed input and only closes after acknowledged save", async () => {
   render(<LeadsPage />);
+  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
   fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
   const name = screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement;
   const phone = screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement;
@@ -104,6 +106,7 @@ test("manual capture preserves failed input and only closes after acknowledged s
 
 test("mobile lead rows retain details, filters and versioned status updates", async () => {
   render(<LeadsPage />);
+  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
   const list = await screen.findByRole("list", { name: "Prospectos" });
   expect(within(list).getByRole("link", { name: lead.nombre }).getAttribute("href")).toBe(`/admin/leads/${lead.id}`);
   expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
@@ -113,6 +116,7 @@ test("mobile lead rows retain details, filters and versioned status updates", as
   fireEvent.change(screen.getByRole("searchbox", { name: "Buscar prospecto" }), { target: { value: "sin coincidencia" } });
   expect(screen.getByText("Sin prospectos con esos criterios.")).toBeTruthy();
   fireEvent.change(screen.getByRole("searchbox", { name: "Buscar prospecto" }), { target: { value: "" } });
+  fireEvent.click(screen.getByText("Filtros de etapa"));
   fireEvent.click(screen.getByRole("button", { name: "Nuevo (0)" }));
   expect(screen.getByText("Sin prospectos con esos criterios.")).toBeTruthy();
 });
@@ -120,6 +124,7 @@ test("mobile lead rows retain details, filters and versioned status updates", as
 test("mobile property rows expose full details and preserve versioned changes and errors", async () => {
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
+  fireEvent.click(within(list).getByLabelText(`Opciones de ${property.titulo}`));
   expect(within(list).getByRole("link", { name: property.titulo }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
   expect(within(list).getByText("Publicado")).toBeTruthy();
   expect(within(list).getByText(/12,850,000 MXN/)).toBeTruthy();

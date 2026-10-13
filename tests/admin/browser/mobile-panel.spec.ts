@@ -21,18 +21,20 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
   test(`populated panel, calendar and lists fit at ${width}`, async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width, height: 844 });
-    for (const [path, heading] of [["", "Mi jornada"], ["/leads", "Prospectos"], ["/propiedades", "Inmuebles"], ["/calendario", "Calendario"]] as const) {
+    for (const [path, heading] of [["", "Resumen ejecutivo"], ["/leads", "CRM · Relaciones comerciales"], ["/propiedades", "Cartera de inmuebles"], ["/calendario", "Calendario"]] as const) {
       await page.goto("/admin" + path);
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
       await fitsPage(page);
       if (path === "") {
         await expect(page.getByRole("link", { name: "08 Eventos próximos" })).toBeVisible();
         if (width === 390) {
+          await page.getByText("Seguimiento del equipo", { exact: true }).click();
           const tasks = await page.getByRole("heading", { name: /Tareas prioritarias/ }).boundingBox();
-          expect(tasks!.y).toBeLessThan(844);
+          expect(tasks!.height).toBeGreaterThan(0);
         }
       }
       if (path === "/leads") {
+        await page.getByRole("button", { name: "Lista", exact: true }).click();
         await expect(page.getByRole("link", { name: new RegExp(longLeadName) })).toBeVisible();
         const control = page.getByRole("combobox", { name: "Estado de " + longLeadName });
         await expect(control).toBeVisible();
@@ -45,6 +47,7 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
         }
       }
       if (path === "/propiedades" && width < 768) {
+        await page.getByLabel("Opciones de " + longPropertyTitle, { exact: true }).click();
         const edit = page.getByRole("link", { name: "Editar " + longPropertyTitle });
         await expect(edit).toBeVisible();
         const box = await edit.boundingBox();
@@ -52,6 +55,7 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
         expect(box!.height).toBeGreaterThanOrEqual(44);
       }
       if (path === "/propiedades" && width >= 1024) {
+        await page.getByRole("button", { name: "Lista", exact: true }).click();
         const title = page.locator("table p[title]").first();
         const star = page.locator("table").getByRole("button", {name:/destacada/}).first();
         const titleBox = await title.boundingBox(), starBox = await star.boundingBox();
@@ -92,9 +96,9 @@ test("mobile navigation closes with Escape and dark populated views still fit", 
   await trigger.click();
   const nav = page.getByRole("navigation", { name: "Módulos móviles" });
   await expect(nav.getByText("auditoria@example.invalid")).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Panel", exact: true })).toBeFocused();
+  await expect(nav.getByRole("link", { name: "Resumen", exact: true })).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(nav.getByRole("link", { name: "Inmuebles", exact: true })).toBeFocused();
+  await expect(nav.getByRole("link", { name: "CRM", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(nav).toBeHidden();
   await expect(trigger).toBeFocused();

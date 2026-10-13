@@ -4,10 +4,10 @@ import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useBrowserPreference } from "./browser-preference";
 
 export function useSidebarPreference(userId: string) {
-  return useBrowserPreference(`fortius:sidebar:${userId}`, { width: 264, collapsed: false }, (value) => {
+  return useBrowserPreference(`fortius:sidebar:${userId}`, { width: 232, collapsed: false }, (value) => {
     const saved = value as { width?: unknown; collapsed?: unknown } | null;
     return {
-      width: typeof saved?.width === "number" && Number.isFinite(saved.width) ? Math.max(224, Math.min(360, saved.width)) : 264,
+      width: typeof saved?.width === "number" && Number.isFinite(saved.width) ? Math.max(224, Math.min(360, saved.width)) : 232,
       collapsed: saved?.collapsed === true,
     };
   });
@@ -31,7 +31,7 @@ export function SidebarResize({ width, onResize }: { width: number; onResize: (w
     onPointerUp={() => { drag.current = null; }}
     onPointerCancel={() => { drag.current = null; }}
     onLostPointerCapture={() => { drag.current = null; }}
-    onDoubleClick={() => onResize(264)}
+    onDoubleClick={() => onResize(232)}
     onKeyDown={(event) => {
       const next = event.key === "ArrowLeft" ? width - 16 : event.key === "ArrowRight" ? width + 16 : event.key === "Home" ? 224 : event.key === "End" ? 360 : null;
       if (next !== null) { event.preventDefault(); onResize(clamp(next)); }

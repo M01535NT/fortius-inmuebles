@@ -49,16 +49,16 @@ test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.goto("/admin");
   const sidebar = page.locator("#admin-desktop-sidebar");
   const resize = page.getByRole("separator", { name: "Ancho de la barra lateral" });
-  await expect(resize).toHaveAttribute("aria-valuenow", "264");
+  await expect(resize).toHaveAttribute("aria-valuenow", "232");
   await resize.focus();
   await page.keyboard.press("ArrowRight");
-  await expect(resize).toHaveAttribute("aria-valuenow", "280");
+  await expect(resize).toHaveAttribute("aria-valuenow", "248");
   const box = await resize.boundingBox();
   await page.mouse.move(box!.x + 5, box!.y + 100);
   await page.mouse.down();
   await page.mouse.move(box!.x + 45, box!.y + 100);
   await page.mouse.up();
-  await expect(resize).toHaveAttribute("aria-valuenow", "320");
+  await expect(resize).toHaveAttribute("aria-valuenow", "288");
   await page.getByRole("button", { name: "Contraer barra lateral" }).click();
   await expect(sidebar).toHaveAttribute("data-collapsed", "true");
   await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
@@ -66,7 +66,7 @@ test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.reload();
   await expect(sidebar).toHaveAttribute("data-collapsed", "true");
   await page.getByRole("button", { name: "Expandir barra lateral" }).click();
-  await expect(resize).toHaveAttribute("aria-valuenow", "320");
+  await expect(resize).toHaveAttribute("aria-valuenow", "288");
   await resize.focus();
   await page.keyboard.press("End");
   await expect(resize).toHaveAttribute("aria-valuenow", "360");
@@ -183,7 +183,7 @@ test("reorders navigation by drag and touch controls, persists and restores", as
   await desktop.getByRole("button", { name: "Organizar módulos" }).click();
   await desktop
     .getByTitle("Arrastrar Inmuebles")
-    .dragTo(desktop.getByRole("link", { name: "Panel", exact: true }));
+    .dragTo(desktop.getByRole("link", { name: "Resumen", exact: true }));
   await expect(desktop.getByRole("link").first()).toHaveText("Inmuebles");
   await page.reload();
   await expect(desktop.getByRole("link").first()).toHaveText("Inmuebles");
@@ -192,9 +192,9 @@ test("reorders navigation by drag and touch controls, persists and restores", as
   const mobile = page.getByRole("navigation", { name: "Módulos móviles" });
   await mobile.getByRole("button", { name: "Organizar módulos" }).click();
   await mobile
-    .getByRole("button", { name: "Subir Panel", exact: true })
+    .getByRole("button", { name: "Subir Resumen", exact: true })
     .click();
-  await expect(mobile.getByRole("link").first()).toHaveText("Panel");
+  await expect(mobile.getByRole("link").first()).toHaveText("Resumen");
   await fits(page);
 });
 test("inventory saved view, related tasks and global search navigate with context", async ({
@@ -267,7 +267,7 @@ test("failed Blog loading does not block inventory navigation", async ({page}) =
   await page.goto("/admin/blog");
   await expect(page.getByText(/No se pudo cargar este módulo/)).toBeVisible();
   await page.locator("#admin-desktop-sidebar").getByRole("link",{name:"Inmuebles",exact:true}).click();
-  await expect(page.locator("main h1")).toHaveText("Inmuebles");
+  await expect(page.locator("main h1")).toHaveText("Cartera de inmuebles");
   await expect(page.getByRole("link",{name:/Casa de prueba/}).first()).toBeVisible();
 });
 test("mobile editor reveals collapsed sections and confirms leaving through search", async ({page}, info) => {

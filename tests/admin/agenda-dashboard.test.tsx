@@ -34,9 +34,10 @@ test("dashboard groups open tasks by Tijuana date and links to their filters", a
     {id:"done",titulo:"Tarea terminada",descripcion:"",categoria:"cierre",estado:"completada",prioridad:"normal",vence:"2026-09-21",pasos:[]},
   ];
   render(<AdminDashboard />);
-  await screen.findByRole("link", {name:/Revisar expediente/});
-  expect(screen.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin/tareas/late");
-  expect(screen.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
+  const attention = within(screen.getByRole("region", {name:"Atención de hoy"}));
+  await attention.findByRole("link", {name:/Revisar expediente/});
+  expect(attention.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin/tareas/late");
+  expect(attention.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
   expect(screen.queryByText("Tarea terminada")).toBeNull();
 });
 
@@ -76,7 +77,7 @@ test("dashboard keeps this evening's eight Tijuana events when UTC is already to
   const agenda = screen.getByRole("heading", { name: "Próximos días" }).closest("section")!;
   expect(within(agenda).getByText("Sin eventos próximos.")).toBeTruthy();
   expect(within(agenda).queryByText("Visita 6")).toBeNull();
-  expect(within(screen.getByRole("region",{name:"Atención de hoy"})).getByRole("link", {name:"Ver los 8 pendientes"})).toBeTruthy();
+  expect(within(screen.getByRole("region",{name:"Agenda de hoy"})).getByRole("link", {name:"Ver los 8 pendientes"})).toBeTruthy();
 });
 
 test("dashboard counts all eligible days before limiting its chronologically ordered preview", async () => {

@@ -18,8 +18,8 @@ import {
   Explorador con filtros client-side: operación, tipo, zona, rango de precio
   y ordenamiento. Los filtros se reflejan en la URL con history.replaceState
   (URLs compartibles) SIN useSearchParams: ese hook forzaría un límite de
-  Suspense/CSR bailout en toda la página. El análisis histórico está archivado
-  en la sección histórica de docs/fortius-inmuebles-implementation.md.
+  Suspense/CSR bailout en toda la página. Conservar esta frontera al ampliar
+  el inventario conforme a PLAN_ERP_CRM.md.
 */
 type Orden = "recientes" | "precio-asc" | "precio-desc";
 type Moneda = "todas" | "MXN" | "USD";

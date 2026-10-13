@@ -45,7 +45,7 @@ export default function AdminLeadsPage() {
   const [busqueda, setBusqueda] = React.useState("");
   const [capturaAbierta, setCapturaAbierta] = React.useState(()=>typeof window!=="undefined" && new URLSearchParams(window.location.search).get("nuevo")==="1");
   useQuickCreate("/admin/leads", () => setCapturaAbierta(true));
-  const [view,setView] = React.useState<"lista"|"etapas">("lista");
+  const [view,setView] = React.useState<"lista"|"etapas">("etapas");
   const [guardando, setGuardando] = React.useState(false);
   const nombreInput = React.useRef<HTMLInputElement>(null);
 
@@ -91,9 +91,9 @@ export default function AdminLeadsPage() {
     "inline-flex min-h-11 items-center rounded-md border px-3 text-sm font-medium transition-colors";
 
   return (
-    <div className="min-w-0 space-y-6">
-      <PageHeader
-        title="Prospectos"
+    <div className={"admin-crm-page min-w-0 space-y-4 " + (view === "etapas" && filtrados.length > 0 && !capturaAbierta ? "admin-crm-board-page" : "")}>
+      <div className="admin-crm-heading"><PageHeader
+        title="CRM · Relaciones comerciales"
         description="Contacta, asigna y da seguimiento a las personas interesadas."
         actions={
           <button
@@ -112,7 +112,7 @@ export default function AdminLeadsPage() {
             {capturaAbierta ? "Cerrar captura" : "Nuevo prospecto"}
           </button>
         }
-      />
+      /></div>
       <DemoBanner />
 
       {/* Alta manual rápida */}
@@ -129,7 +129,11 @@ export default function AdminLeadsPage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex min-w-0 flex-col gap-3">
+      <div className="admin-crm-toolbar flex min-w-0 flex-wrap gap-3">
+        <nav className="admin-view-switch" aria-label="Relaciones comerciales">
+          <Link href="/admin/leads" aria-current="page" className={btnGhost}>Prospectos</Link>
+          <Link href="/admin/clientes" className={btnGhost}>Clientes y propietarios</Link>
+        </nav>
         <input
           type="search"
           aria-label="Buscar prospecto"
@@ -138,7 +142,7 @@ export default function AdminLeadsPage() {
           placeholder="Buscar por nombre, teléfono, correo, zona…"
           className={inputClass + " lg:max-w-sm"}
         />
-        <div
+        <details className="admin-crm-filters"><summary>Filtros de etapa</summary><div
           className="flex flex-wrap gap-1.5"
           role="group"
           aria-label="Filtrar por estado"
@@ -179,11 +183,11 @@ export default function AdminLeadsPage() {
             className={chip + (estado === "convertidos" ? " border-primary/50 bg-secondary text-foreground" : " border-border text-foreground/70 hover:bg-secondary")}>
             Convertidos ({leads.filter(l => !!l.clienteId).length})
           </button>
-        </div>
-      </div>
+        </div></details>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Vista de prospectos"><button type="button" className={btnGhost} aria-pressed={view==="lista"} onClick={()=>setView("lista")}>Lista</button><button type="button" className={btnGhost} aria-pressed={view==="etapas"} onClick={()=>setView("etapas")}>Por etapas</button><span className="self-center text-sm text-muted-foreground">{leads.filter(l=>duplicateContacts(l,leads).length>0).length} registros con posible duplicado</span></div>
-      {view === "etapas" ? <LeadBoard leads={filtrados}/> : filtrados.length === 0 ? (
+      </div>
+      {view === "etapas" && filtrados.length > 0 ? <LeadBoard leads={filtrados}/> : filtrados.length === 0 ? (
         <EmptyState
           title="Sin prospectos con esos criterios."
           hint="Prueba otra búsqueda o registra un prospecto."

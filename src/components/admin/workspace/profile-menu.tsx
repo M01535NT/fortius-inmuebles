@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/admin/store";
 import { AsyncButton, btnGhost } from "@/components/admin/ui";
-import { LogOut, Settings, UserRound, KeyRound } from "lucide-react";
+import { LogOut, Settings, UserRound, KeyRound, ChevronDown } from "lucide-react";
 export function ProfileMenu({ onLogout }: { onLogout: () => Promise<void> }) {
   const user = useSession();
   const [open, setOpen] = React.useState(false);
@@ -19,8 +19,8 @@ export function ProfileMenu({ onLogout }: { onLogout: () => Promise<void> }) {
   const name = user.name || user.email.split("@")[0];
   const initials = name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase();
   return <div className="admin-profile" ref={root} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }} onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); } }}>
-    <button ref={trigger} type="button" className="admin-avatar" aria-label={`Menú de usuario: ${name}`} aria-expanded={open} aria-controls="admin-profile-menu" onClick={() => setOpen(!open)}>
-      {user.avatar ? <Image unoptimized src={user.avatar} alt="" width={40} height={40} /> : <span aria-hidden="true">{initials}</span>}
+    <button ref={trigger} type="button" className="admin-profile-trigger" aria-label={`Menú de usuario: ${name}`} aria-expanded={open} aria-controls="admin-profile-menu" onClick={() => setOpen(!open)}>
+      <span className="admin-avatar">{user.avatar ? <Image unoptimized src={user.avatar} alt="" width={40} height={40} /> : <span aria-hidden="true">{initials}</span>}</span><span className="admin-profile-name">{name}</span><ChevronDown className="admin-profile-chevron" size={14} aria-hidden="true"/>
     </button>
     {open && <div id="admin-profile-menu" className="admin-profile-menu">
       <p className="font-semibold">{name}</p><p className="break-all text-sm text-muted-foreground">{user.email}</p><p className="mb-3 text-xs text-muted-foreground">{user.role === "admin" ? "Administrador" : "Editor"}</p>

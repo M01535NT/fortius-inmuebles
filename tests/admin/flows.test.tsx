@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import NotasPage from "@/app/admin/notas/page";
@@ -146,6 +147,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
+  fireEvent.click(within(nav).getByRole("button", { name: "Más herramientas" }));
   expect(
     Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href")),
   ).toContain("/admin/clientes");
@@ -154,7 +156,8 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   expect(nav.querySelector('a[href="/admin/control-comercial"]')).toBeTruthy();
   expect(nav.querySelector('a[href="/admin/reportes"]')).toBeTruthy();
   expect(nav.querySelector('a[href="/admin/historial"]')).toBeTruthy();
-  expect(nav.querySelectorAll("a")).toHaveLength(17);
+  for (const href of ["documentos", "finanzas", "territorio", "portal-clientes"]) expect(nav.querySelector(`a[href="/admin/${href}"]`)).toBeTruthy();
+  expect(nav.querySelectorAll("a")).toHaveLength(21);
   fireEvent.click(
     Array.from(nav.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Salir"),

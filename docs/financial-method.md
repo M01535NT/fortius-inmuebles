@@ -1,5 +1,7 @@
 # Financial tools: method and maintenance
 
+Source verification note, 12 October 2026: `npm run check:financial-sources` could not fetch any of the ten sources or the legislative catalog in this environment. The fiscal snapshot and hashes remain those reviewed on 4 October; this failed request does not establish an amendment or current validity. Recheck official sources before revising fiscal inputs.
+
 The client uses `decimal.js` with 40 digits of internal precision and half-up cent rounding. Inputs remain in React memory. They are never sent to an API, appended to a URL, or persisted to browser storage. PDFs are generated locally on demand.
 
 ## Mortgage

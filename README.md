@@ -21,7 +21,7 @@ El acceso al panel requiere autenticación y una membresía activa. Los permisos
 
 Producción se despliega desde `main` en el proyecto Vercel `fortius-inmuebles`, conectado al repositorio público [`M01535NT/fortius-inmuebles`](https://github.com/M01535NT/fortius-inmuebles). El dominio principal es `https://fortiusinmuebles.com`; `www` y los aliases públicos de Fortius redirigen a ese dominio.
 
-La base ERP/CRM está integrada: contratos de dominio compartidos, paginación de expedientes, identificadores de diagnóstico y herramientas de verificación de respaldos y restauración aislada. **El ERP completo sigue en desarrollo.** Consulta [el alcance de la primera iteración](docs/erp-crm/iterations/01-foundation.md) y [el plan de próximas iteraciones](docs/superpowers/plans/2026-10-12-fortius-erp-crm-primeras-iteraciones.md); los estados y resultados de esos documentos corresponden al corte que indican.
+Los fundamentos ERP/CRM están integrados. El desarrollo del sistema completo, sus fases, decisiones y avance se concentran en [PLAN_ERP_CRM.md](PLAN_ERP_CRM.md), el único plan vigente.
 
 La recepción pública de prospectos permanece desactivada. Los inmuebles y documentos demo no acreditan inventario, precios ni condiciones comerciales vigentes. El formato 09 permite preparar información; la emisión del contrato permanece bloqueada por falta de cotejo del modelo y sus registros aplicables. Consulta [el estado de los formatos](docs/formatos-admin-status.md).
 
@@ -114,12 +114,7 @@ La interfaz pública incluye un menú a pantalla completa, navegación por servi
 
 ## Documentación
 
-- [Manual de administración](docs/admin-manual.md): operación, publicación, archivos, roles y conflictos de versión.
-- [Estado de los formatos](docs/formatos-admin-status.md): alcance, emisión y límites de los documentos.
-- [Arquitectura y auditoría](docs/architecture/README.md): informe y diagramas con corte al 10 de octubre de 2026; la arquitectura propuesta se distingue de la implementada.
-- [Primera iteración ERP/CRM](docs/erp-crm/iterations/01-foundation.md) y [plan de próximas iteraciones](docs/superpowers/plans/2026-10-12-fortius-erp-crm-primeras-iteraciones.md).
-- [Respaldo y restauración](docs/fortius-inmuebles-backup-restore.md) y [política de recuperación](docs/erp-crm/recovery-policy.md).
-- [Configuración de despliegue](docs/deployment-fortius.md) y [controles de entornos y publicación](docs/erp-crm/environment-release.md).
-- [Cambio de identidad](docs/fortius-inmuebles-identity.md) y [evidencia histórica archivada](docs/archive/fortius-inmuebles-20260903-restoration.md).
+- [Plan único del ERP/CRM](PLAN_ERP_CRM.md): alcance, orden de implementación, tareas y avance.
+- [Manuales y referencias vigentes](docs/README.md): operación del panel, formatos, marca, despliegue, recuperación y fuentes.
 
-Antes de activar la operación comercial, revisa contactos, contenido definitivo, datos de ejemplo y [pendientes de entrega](docs/fortius-inmuebles-implementation.md).
+Los planes, auditorías y archivos temporales anteriores se retiraron del área de trabajo con una copia local recuperable fuera del repositorio. Las migraciones y pruebas conservan identificadores históricos que siguen siendo necesarios para compatibilidad y recuperación.

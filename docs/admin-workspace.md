@@ -1,5 +1,7 @@
 # Panel operativo Fortius
 
+Corte documental: 12/10/2026. El desarrollo se dirige desde [el plan único](../PLAN_ERP_CRM.md).
+
 ## Organización personal
 
 El botón junto al encabezado contrae la barra lateral a iconos o vuelve a expandirla. El borde derecho permite ajustar el ancho entre 224 y 360 px; también admite foco con Tab, flechas izquierda/derecha y Home/End. Doble clic recupera 264 px. El ancho y el estado se conservan por cuenta en ese navegador. En celular se mantiene el menú desplegable con nombres completos.
@@ -7,6 +9,12 @@ El botón junto al encabezado contrae la barra lateral a iconos o vuelve a expan
 En el menú lateral, **Organizar módulos** habilita el arrastre en escritorio y los botones Subir/Bajar para teclado y celular. **Restablecer orden** recupera los grupos originales. El orden y las vistas de inventario se conservan por usuario en ese navegador; no se sincronizan entre dispositivos ni alteran los permisos.
 
 La búsqueda del encabezado reúne los registros que el usuario puede consultar y permite crear un inmueble, prospecto, tarea o visita. El panel del día enlaza pendientes, contactos, visitas programadas y expedientes fuera de fecha.
+
+## Navegación del diseño corporativo
+
+**Resumen** abre el tablero de pendientes y etapas reales; **CRM** abre los prospectos y enlaza clientes/propietarios; **Operaciones** abre los expedientes existentes. El inventario permite alternar **Tarjetas** y **Lista**, conservando filtros y acciones. **Documentos** reúne accesos a expedientes, biblioteca, notas y documentos del inmueble.
+
+**Finanzas** reúne herramientas disponibles, con contabilidad, flujo de efectivo y TIR/VAN señalados como pendientes. **Análisis territorial** muestra inmuebles por zona; mapas y comparables siguen pendientes. **Portal de clientes** muestra el alcance previsto en una pantalla interna de administración: todavía no habilita usuarios externos, comparte documentos ni envía invitaciones. Los módulos financieros y del portal requieren administrador.
 
 ## Edición y seguimiento
 
@@ -20,7 +28,7 @@ La búsqueda del encabezado reúne los registros que el usuario puede consultar 
 
 ## Activación de historial y recuperación
 
-Aplicar una sola vez, después de las migraciones anteriores:
+En una instalación nueva, aplicar las migraciones en orden, incluida la siguiente. En una instancia existente, consultar primero su historial y aplicar únicamente las pendientes; no repetir una migración ya registrada:
 
 `supabase/migrations/20261008210000_fortius_admin_history.sql`
 

@@ -1,18 +1,22 @@
 .panel {
-  --background: #f0f3f8;
-  --foreground: #10243d;
+  --background: #fbfcfe;
+  --foreground: #061f3f;
   --card: #ffffff;
-  --secondary: #dce5ef;
-  --muted-foreground: #43546b;
-  --border: #a5b1c1;
+  --secondary: #edf2f8;
+  --muted-foreground: #52647a;
+  --border: #dce4ee;
   --input: #61738a;
   --primary: #8a1634;
   --primary-foreground: #ffffff;
-  --field-surface: #e0e8f2;
+  --field-surface: #f2f5fa;
   --control-edge: #61738a;
   --focus-color: #174f94;
   color: var(--foreground);
-  font-size: 15px;
+  --primary-text: #8a1634;
+  --card-foreground: #061f3f;
+  --panel-selected: #f4e9ed;
+  --panel-selected-ink: #8a1634;
+  font-size: 16px;
   line-height: 1.55;
 }
 :global(.dark) .panel {
@@ -21,14 +25,18 @@
   --card: #121e30;
   --secondary: #2c405a;
   --muted-foreground: #c1ccdb;
-  --border: #596e87;
+  --border: #35465d;
   --input: #92a7c2;
   --field-surface: #24364e;
   --control-edge: #92a7c2;
   --focus-color: #aacfff;
+  --primary-text: #f0b3c3;
+  --card-foreground: #f3f6fc;
+  --panel-selected: #382333;
+  --panel-selected-ink: #f0b3c3;
 }
 .panel :is(h1, h2, h3) { font-variation-settings: "wdth" 100; }
-.panel h1 { font-family: var(--font-sans); font-size: clamp(1.75rem, 2.3vw, 2rem); font-weight: 750; line-height: 1.2; letter-spacing: -.025em; text-transform: none; }
+.panel h1 { font-family: var(--font-sans); font-size: clamp(1.75rem, 2.3vw, 2rem); font-weight: 700; line-height: 1.2; letter-spacing: -.025em; text-transform: none; }
 .panel h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 700; line-height: 1.35; letter-spacing: -.015em; }
 .panel h3 { font-family: var(--font-sans); font-size: 1.125rem; font-weight: 650; line-height: 1.4; }
 .panel label { font-weight: 650; color: var(--foreground); }
@@ -36,15 +44,15 @@
 .panel :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]), textarea, select) {
   background: var(--field-surface);
   color: var(--foreground);
-  border: 1.5px solid var(--control-edge);
+  border: 1px solid var(--control-edge);
   border-radius: 6px;
-  box-shadow: inset 0 2px 3px #061f3f12;
+  box-shadow: none;
   font-size: 1rem;
 }
 .panel :is(input, textarea)::placeholder { color: var(--muted-foreground); opacity: 1; }
 .panel :is(button, a, input, textarea, select, [role=separator]):focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
-.panel :is(button, a):global(.admin-button) { border: 1px solid var(--control-edge); box-shadow: 0 2px 0 #061f3f25, inset 0 1px 0 #ffffff25; font-weight: 650; }
-.panel :global(.admin-button-secondary), .panel :global(.admin-sidebar-toggle) { background: var(--secondary); color: var(--foreground); border: 1px solid var(--control-edge); border-radius: 6px; }
+.panel :is(button, a):global(.admin-button) { border: 1px solid var(--border); box-shadow: none; font-weight: 600; }
+.panel :global(.admin-button-secondary), .panel :global(.admin-sidebar-toggle) { background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 6px; }
 .panel :global(.admin-button-primary) { background: #8a1634; color: #fff; border-color: #8a1634; }
 :global(.dark) .panel :global(.admin-button-primary) { border-color: #cf8b9c; }
 .panel :global(.admin-button):not(:disabled):hover { filter: brightness(.94); }
@@ -53,7 +61,7 @@
 .panel :global(.admin-sidebar) { background: var(--card); }
 .panel :global(.admin-sidebar) > div:first-child { background: #fff; }
 .panel :global(.admin-sidebar) > div:first-child span { color: #43546b; }
-.panel :global(.admin-sidebar) [aria-current=page] { background: #173655; color: #fff; box-shadow: inset 3px 0 0 #cf8b9c; }
+.panel :global(.admin-sidebar) [aria-current=page], .panel :global(.admin-mobile-nav) [aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); box-shadow: inset 3px 0 0 #8a1634; }
 .panel :global(.admin-sidebar) nav a:hover { background: var(--secondary); color: var(--foreground); }
 .panel :global(.admin-sidebar)[data-collapsed=true] :global(.admin-sidebar-label) { display: none; }
 .panel :global(.admin-sidebar)[data-collapsed=true] nav { padding-inline: 10px; }
@@ -63,8 +71,8 @@
 .panel :global(.admin-sidebar-resize)::after { content: ""; position: absolute; top: 45%; bottom: 45%; left: 3px; width: 3px; border-radius: 3px; background: var(--control-edge); }
 .panel :global(.admin-sidebar-resize):hover::after, .panel :global(.admin-sidebar-resize):focus-visible::after { top: 0; bottom: 0; background: var(--focus-color); }
 @media (prefers-reduced-motion: no-preference) { .panel :is(button, input, select, textarea) { transition: background-color 150ms, box-shadow 150ms; } }
-.panel button[aria-pressed=true], .panel button[aria-selected=true] { background: #173655; color: #fff; border-color: #173655; box-shadow: inset 0 -3px #cf8b9c; }
-.panel button[aria-pressed=false] { background: var(--secondary); color: var(--foreground); border-color: var(--control-edge); box-shadow: none; }
+.panel button[aria-pressed=true], .panel button[aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); border-color: var(--panel-selected-ink); box-shadow: none; }
+.panel button[aria-pressed=false] { background: var(--card); color: var(--foreground); border-color: var(--border); box-shadow: none; }
 .panel [aria-invalid=true] { border-color: var(--destructive); outline: 2px solid var(--destructive); outline-offset: 1px; }
 .panel :global(.admin-saved) { border-left: 3px solid #27735d; padding: .65rem 1rem; background: var(--secondary); color: var(--foreground); }
 .panel :global(.admin-sidebar) nav { scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable; }
@@ -75,7 +83,7 @@
 .panel :global(.admin-breadcrumbs) { color: var(--muted-foreground); font-size: .8rem; display: flex; flex-wrap: wrap; gap: .25rem; }
 .panel :global(.admin-breadcrumbs) a:hover { text-decoration: underline; }
 .panel :global(.admin-profile) { position: relative; margin-left: .5rem; }
-.panel :global(.admin-avatar) { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #173655; color: #fff; border: 2px solid var(--control-edge); font-size: .9rem; font-weight: 700; flex-shrink: 0; }
+.panel :global(.admin-avatar) { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #061f3f; color: #fff; border: 1px solid var(--border); font-size: .9rem; font-weight: 700; flex-shrink: 0; }
 .panel :global(.admin-avatar) img { width: 100%; height: 100%; object-fit: cover; }
 .panel :global(.admin-profile-menu) { position: absolute; right: 0; top: calc(100% + 10px); width: min(300px, calc(100vw - 32px)); padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: 0 16px 40px #0003; z-index: 70; }
 .panel :global(.admin-profile-menu) a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px; font-size: .875rem; border-radius: 6px; }
@@ -96,3 +104,236 @@
 .panel input[type=file]::file-selector-button { background: var(--secondary); color: var(--foreground); border: 1px solid var(--control-edge); border-radius: 4px; margin-right: 10px; padding: 8px 12px; cursor: pointer; }
 .panel :global(.admin-sidebar) > div:first-child { background: var(--card); }
 .panel :global(.admin-sidebar) > div:first-child span:not([role=img]) { color: var(--muted-foreground); }
+
+/* Fortius workbench: quiet surfaces, operational hierarchy and one action accent. */
+.panel :global(.admin-workspace) { border-left: .375rem solid #061f3f; }
+.panel :global(.admin-sidebar-brand) { min-height: 7.75rem; justify-content: center; }
+.panel :global(.admin-topbar) { background: var(--card); }
+.panel :global(.admin-topbar-inner) { gap: .75rem; padding: .5rem 1rem; min-height: 3.75rem; }
+.panel :global(.admin-content) { width: 100%; max-width: 110rem; margin-inline: auto; padding: 1.25rem 1rem 3rem; }
+.panel :global(.admin-page-header) { align-items: center; border: 0; padding-bottom: .25rem; }
+.panel :global(.admin-page-header) p { margin-top: .5rem; font-size: .9375rem; }
+.panel :global(.admin-nav-group) { font-size: .6875rem; letter-spacing: .14em; }
+.panel :global(.admin-nav-link) { border-radius: .375rem; }
+.panel :global(.admin-nav-link) svg { width: 1.125rem; height: 1.125rem; }
+.panel :global(.admin-search-trigger) { flex: 1; min-width: 2.75rem; justify-content: flex-start; max-width: 44rem; background: var(--field-surface); color: var(--muted-foreground); font-weight: 400; }
+.panel :global(.admin-search-trigger) span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel :global(.admin-search-trigger) kbd { margin-left: auto; border: 1px solid var(--border); border-radius: .25rem; padding: .125rem .375rem; font-size: .75rem; }
+.panel :global(.admin-card) { min-width: 0; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); box-shadow: 0 2px 8px #061f3f03; }
+.panel :global(.admin-card-heading) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 1rem; min-height: 2.75rem; border-bottom: 1px solid var(--border); }
+.panel :global(.admin-card-heading) h2 { font-size: 1.125rem; }
+.panel :global(.admin-card-heading) a { display: inline-flex; align-items: center; min-height: 2.75rem; gap: .375rem; font-size: .875rem; color: var(--foreground); }
+.panel :global(.admin-metrics) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: .5rem; background: var(--card); overflow: hidden; }
+.panel :global(.admin-metrics) > a { min-width: 0; padding: 1.25rem; }
+.panel :global(.admin-metrics) > a + a { border-left: 1px solid var(--border); }
+.panel :global(.admin-metrics) > a:hover { background: var(--secondary); }
+.panel :global(.admin-metric-value) { display: block; margin-top: .5rem; font-size: 2rem; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.panel :global(.admin-cycle) { display: grid; grid-template-columns: minmax(0, 1fr); gap: .625rem; padding: 1rem; }
+.panel :global(.admin-cycle-step) { display: flex; min-width: 0; align-items: center; gap: .75rem; padding: .875rem; background: var(--secondary); border-radius: .375rem; }
+.panel :global(.admin-cycle-number) { display: flex; flex-shrink: 0; width: 2rem; height: 2rem; align-items: center; justify-content: center; border-radius: 50%; background: #061f3f; color: white; font-size: .875rem; }
+.panel :global(.admin-cycle-step):last-child :global(.admin-cycle-number) { background: #8a1634; }
+.panel :global(.admin-cycle-step) strong { font-size: 1.375rem; font-variant-numeric: tabular-nums; }
+.panel :global(.admin-cycle-step) p { font-size: .875rem; overflow-wrap: anywhere; }
+.panel :global(.admin-badge) { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; border-radius: .25rem; font-size: .8125rem; line-height: 1.5; }
+.panel :global(.font-mono) { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
+.panel :global(.admin-properties-grid) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+.panel :global(.admin-property-photo) { height: 13rem; width: 100%; object-fit: cover; background: var(--secondary); }
+.panel :global(.admin-property-card) { overflow: hidden; }
+.panel :global(.admin-property-card) h2 { font-size: 1.125rem; }
+.panel :global(.admin-property-body) { padding: 1rem; display: grid; gap: .5rem; }
+.panel :global(.admin-property-titleline) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.panel :global(.admin-property-price) { font-weight: 700; font-size: 1rem; }
+.panel :global(.admin-property-controls) { display: flex; align-items: center; gap: .5rem; }
+.panel :global(.admin-property-info) { font-size: .8125rem; color: var(--muted-foreground); }
+.panel :global(.admin-property-info) summary { display: flex; align-items: center; min-height: 2.75rem; cursor: pointer; }
+.panel :global(.admin-inventory-note) p { background: transparent; color: var(--muted-foreground); padding: 0; border: 0; font-size: .8125rem; }
+.panel :global(.admin-inventory-toolbar) { display: grid; gap: .75rem; align-items: start; }
+.panel :global(.admin-property-image) { position: relative; }
+.panel :global(.admin-property-image-status) { position: absolute; top: .75rem; right: .75rem; max-width: calc(100% - 1.5rem); }
+.panel :global(.admin-property-image-status) select { background: #8a1634 !important; color: #fff !important; border-color: #8a1634 !important; width: auto; min-width: 8rem; }
+.panel :global(.admin-property-image-feature) { position: absolute; left: .75rem; bottom: .75rem; }
+.panel :global(.admin-property-image-feature) button { background: var(--card); border-radius: .25rem; }
+.panel :global(.admin-property-card) { position: relative; }
+.panel :global(.admin-property-demo) { position: absolute; left: .75rem; top: .75rem; }
+.panel :global(.admin-property-facts) > span { display: inline-flex; gap: .5rem; align-items: center; }
+.panel :global(.admin-property-options) > summary { position: absolute; right: .75rem; top: 9.5rem; display: flex; width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); border-radius: .25rem; background: var(--card); }
+.panel :global(.admin-property-options)[open] > summary { color: var(--primary-text); }
+.panel :global(.admin-property-options-content) { display: grid; gap: .75rem; padding-top: .75rem; }
+@media (min-width: 1280px) {
+  .panel :global(.admin-inventory-toolbar) { grid-template-columns: minmax(0,1fr) auto; }
+  .panel :global(.admin-inventory-toolbar) > :global(.admin-view-switch) { padding-top: .875rem; }
+  .panel :global(.admin-inventory-controls) { background: transparent; border: 0; padding: 0; }
+  .panel :global(.admin-inventory-controls) > p[role=status] { font-size: .75rem; }
+  .panel :global(.admin-property-photo) { height: 11rem; }
+  .panel :global(.admin-property-options) > summary { top: 7.5rem; }
+}
+@media (min-width: 1024px) {
+  .panel :global(.admin-inventory-controls) { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: .75rem; padding: .875rem 1rem; }
+  .panel :global(.admin-inventory-controls) > div:first-child > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .panel :global(.admin-inventory-controls) > * { margin: 0; }
+  .panel :global(.admin-inventory-controls) > details[open] { grid-column: 1 / -1; }
+  .panel :global(.admin-inventory-controls) > p[role=status] { grid-column: 1 / -1; }
+}
+.panel :global(.admin-view-switch) { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.panel :global(.admin-module-grid) { display: grid; gap: 1rem; }
+.panel :global(.admin-module-link) { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.5rem; }
+.panel :global(.admin-module-link) svg { color: var(--primary-text); }
+.panel :global(.admin-module-link) p { color: var(--muted-foreground); font-size: .9375rem; }
+.panel :global(.admin-module-link):hover { border-color: var(--primary-text); }
+.panel :global(.admin-status-note) { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 1rem 1.25rem; border-left: 3px solid #8a1634; background: var(--card); color: var(--muted-foreground); font-size: .9375rem; }
+.panel :global(.admin-login-card) { padding: 2rem; box-shadow: 0 12px 40px #061f3f08; }
+.panel table th { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-size: .8125rem; font-weight: 600; background: var(--secondary); }
+.panel table td { padding-block: .875rem; }
+@media (min-width: 640px) {
+  .panel :global(.admin-properties-grid), .panel :global(.admin-module-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel :global(.admin-cycle) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+  .panel :global(.admin-content) { padding: 1.5rem 1.25rem 2rem; }
+  .panel :global(.admin-topbar-inner) { padding-inline: 1.25rem; }
+  .panel :global(.admin-metrics) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Geometry of the approved image: compact header, operational table and side agenda. */
+.panel :global(.admin-more-tools), .panel :global(.admin-organize-button) { width: 100%; border: 0; background: transparent; text-align: left; justify-content: flex-start; padding-inline: .75rem; font-size: .8125rem; font-weight: 500; color: var(--muted-foreground); }
+.panel :global(.admin-more-tools) { margin-top: 1.25rem; }
+.panel :global(.admin-sidebar) nav { padding: 0 .625rem; }
+.panel :global(.admin-nav-link) { min-height: 3rem; font-size: .9375rem; }
+.panel :global(.admin-profile-trigger) { display: inline-flex; align-items: center; gap: .5rem; font-size: .8125rem; }
+.panel :global(.admin-profile-name), .panel :global(.admin-profile-chevron) { display: none; }
+.panel :global(.admin-alert-link) { display: inline-flex; min-width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; }
+.panel :global(.admin-executive-header) { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; align-items: center; }
+.panel :global(.admin-executive-header) > div:first-child p { margin-top: .5rem; color: var(--muted-foreground); font-size: 1rem; }
+.panel :global(.admin-executive-header) > a { justify-self: start; }
+.panel :global(.admin-executive-metrics) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem 0; }
+.panel :global(.admin-executive-metrics) > a { min-width: 0; padding-inline: 1rem; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: .375rem; }
+.panel :global(.admin-executive-metrics) small { font-size: .75rem; font-weight: 500; line-height: 1.5; min-height: 3em; }
+.panel :global(.admin-executive-metrics) strong { font-size: 1.75rem; line-height: 1.15; font-weight: 700; }
+.panel :global(.admin-executive-metrics) > a > span { color: var(--muted-foreground); font-size: .875rem; padding-top: .375rem; }
+.panel :global(.admin-daily-layout) { display: grid; gap: 1.25rem; grid-template-columns: minmax(0,1fr); }
+.panel :global(.admin-lower-layout) { display: grid; gap: 1.25rem; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr); }
+.panel :global(.admin-cycle-card) :global(.admin-card-heading) { border: 0; }
+.panel :global(.admin-cycle) { gap: .5rem; padding: 0 1rem .625rem; }
+.panel :global(.admin-cycle-step) { min-height: 5.375rem; padding: .875rem 1rem; border: 1px solid var(--border); }
+.panel :global(.admin-cycle-number) { width: 2.375rem; height: 2.375rem; }
+.panel :global(.admin-cycle-step) strong { font-size: 1.5rem; }
+.panel :global(.admin-operations-scroll) { position: relative; overflow-x: auto; }
+.panel :global(.admin-operations-table) { width: 100%; min-width: 50rem; text-align: left; font-size: .875rem; table-layout: fixed; }
+.panel :global(.admin-operations-table) th, .panel :global(.admin-operations-table) td { padding: .625rem .875rem; }
+.panel :global(.admin-operations-table) th:first-child { width: 30%; }
+.panel :global(.admin-operations-table) th:nth-child(2) { width: 20%; }
+.panel :global(.admin-operations-table) th:nth-child(3) { width: 20%; }
+.panel :global(.admin-operations-table) th:nth-child(4) { width: 16%; }
+.panel :global(.admin-operations-table) th:nth-child(5) { width: 8%; }
+.panel :global(.admin-operations-table) th:last-child { width: 6%; background: var(--secondary); box-shadow: none; }
+.panel :global(.admin-operations-table) :is(th,td):last-child { position: static; padding-inline: 0; box-shadow: none; }
+.panel :global(.admin-row-detail) { min-height: 2.75rem; display: flex; align-items: center; justify-content: center; }
+.panel :global(.admin-operation-stage) { display: inline-block; max-width: 100%; overflow-wrap: anywhere; padding: .25rem .625rem; border-radius: .25rem; font-size: .8125rem; background: var(--secondary); }
+.panel :global(.admin-operation-stage)[data-stage=documentacion] { background: #e4ebff; color: #28456b; }
+.panel :global(.admin-operation-stage)[data-stage=negociacion] { background: #f2e5e1; color: #6b353f; }
+.panel :global(.admin-operation-stage)[data-stage=comercializacion] { background: #d9ede6; color: #245d52; }
+:global(.dark) .panel :global(.admin-operation-stage) { background: var(--secondary); color: var(--foreground); }
+.panel :global(.admin-operations-table) td { border-bottom: 1px solid var(--border); height: 4.25rem; }
+.panel :global(.admin-operation-property) { display: flex; gap: .75rem; align-items: center; min-height: 2.75rem; }
+.panel :global(.admin-operation-property) img { width: 4.5rem; height: 3rem; border-radius: .1875rem; object-fit: cover; flex-shrink: 0; }
+.panel :global(.admin-operation-property) > span { min-width: 0; }
+.panel :global(.admin-operation-property) strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.panel :global(.admin-operation-property) small { display: block; color: var(--muted-foreground); font-size: .8125rem; }
+.panel :global(.admin-next-action) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.panel :global(.admin-responsible) { display: flex; gap: .375rem; align-items: center; }
+.panel :global(.admin-responsible) > span:first-child { display: inline-flex; width: 2rem; height: 2rem; flex-shrink: 0; align-items: center; justify-content: center; background: var(--secondary); border-radius: 50%; font-size: .6875rem; }
+.panel :global(.admin-responsible) > span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .8125rem; }
+.panel :global(.admin-table-empty) { padding: 2rem 1.25rem; color: var(--muted-foreground); font-size: .875rem; min-height: 12rem; }
+.panel :global(.admin-agenda-list) { padding-inline: 1.25rem; }
+.panel :global(.admin-agenda-list) li { display: grid; grid-template-columns: 3.25rem .625rem 1.25rem minmax(0,1fr); align-items: start; gap: .625rem; min-height: 5rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+.panel :global(.admin-agenda-list) time { font-size: .875rem; }
+.panel :global(.admin-agenda-list) a { font-size: .875rem; font-weight: 600; }
+.panel :global(.admin-agenda-list) small { display: block; color: var(--muted-foreground); font-size: .8125rem; font-weight: 400; margin-top: .375rem; }
+.panel :global(.admin-agenda-dot) { display: block; margin-top: .375rem; width: .5rem; height: .5rem; background: #8a1634; border-radius: 50%; }
+.panel :global(.admin-agenda-more) { display: inline-flex; padding: .625rem 1.25rem; font-size: .8125rem; color: var(--primary-text); }
+.panel :global(.admin-daily-details) { padding: .5rem 1rem; font-size: .8125rem; }
+.panel :global(.admin-daily-layout) > :global(.admin-daily-details) { grid-column: 1 / -1; padding: 0; }
+.panel :global(.admin-attention-card), .panel :global(.admin-agenda-card) { min-height: 19rem; }
+.panel :global(.admin-daily-details) summary, .panel :global(.admin-dashboard-more) > summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; font-size: .8125rem; color: var(--muted-foreground); }
+.panel :global(.admin-followup-grid) { display: grid; gap: 1rem; padding-bottom: 1rem; }
+.panel :global(.admin-followup-grid) a { display: block; min-height: 2.75rem; margin-top: .5rem; }
+.panel :global(.admin-followup-grid) small { display: block; color: var(--muted-foreground); }
+.panel :global(.admin-module-empty) { min-height: 14rem; padding: 1.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; }
+.panel :global(.admin-module-empty) p { max-width: 36ch; color: var(--muted-foreground); font-size: .875rem; }
+.panel :global(.admin-module-empty) > a { color: var(--primary-text); font-size: .875rem; min-height: 2.75rem; }
+.panel :global(.admin-zone-summary) { padding: 1rem 1.25rem; }
+.panel :global(.admin-zone-summary) li { display: flex; gap: .75rem; align-items: center; min-height: 3rem; font-size: .9375rem; }
+.panel :global(.admin-zone-summary) strong { margin-left: auto; }
+.panel :global(.admin-map-pending) { display: flex; flex-wrap: wrap; gap: .75rem; padding: 1rem 1.25rem; font-size: .8125rem; color: var(--muted-foreground); }
+.panel :global(.admin-dashboard-more) { border-top: 1px solid var(--border); }
+.panel :global(.admin-cycle-step) p { font-weight: 600; }
+.panel :global(.admin-crm-layout) { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; align-items: start; }
+.panel :global(.admin-crm-board) { display: grid; grid-auto-columns: minmax(16rem,1fr); grid-auto-flow: column; overflow-x: auto; gap: .75rem; padding-bottom: .75rem; min-width: 0; }
+.panel :global(.admin-crm-column) { background: var(--secondary); border: 1px solid var(--border); padding: .75rem; border-radius: .375rem; min-height: 19rem; }
+.panel :global(.admin-crm-column) > h2 { display: flex; justify-content: space-between; align-items: center; font-size: .9375rem; margin-bottom: .75rem; }
+.panel :global(.admin-crm-column) ul { display: grid; gap: .75rem; }
+.panel :global(.admin-crm-contact) { position: relative; min-height: 7.5rem; padding: .75rem; border: 1px solid var(--border); background: var(--card); border-radius: .25rem; }
+.panel :global(.admin-crm-contact)[data-selected=true] { border-left: 2px solid var(--primary-text); }
+.panel :global(.admin-crm-select) { display: flex; align-items: center; width: 100%; text-align: left; gap: .625rem; padding: 0 1rem 0 0; background: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--foreground) !important; }
+.panel :global(.admin-crm-select) > span:last-child { min-width: 0; }
+.panel :global(.admin-crm-select) strong { display: block; font-size: .875rem; overflow-wrap: anywhere; }
+.panel :global(.admin-crm-select) small { display: block; font-size: .8125rem; color: var(--muted-foreground); }
+.panel :global(.admin-contact-avatar) { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--secondary); font-weight: 600; }
+.panel :global(.admin-crm-date) { display: flex; gap: .5rem; margin: .75rem 0 0 3.375rem; font-size: .8125rem; color: var(--muted-foreground); }
+.panel :global(.admin-crm-profile-link) { display: flex; position: absolute; right: .25rem; top: .25rem; width: 2rem; min-height: 2.75rem; align-items: center; justify-content: center; color: var(--foreground); }
+.panel :global(.admin-crm-empty) { font-size: .8125rem; color: var(--muted-foreground); padding: 1rem 0; }
+.panel :global(.admin-crm-inspector) { padding: 1.25rem; display: grid; gap: 1.25rem; }
+.panel :global(.admin-crm-person) { display: flex; gap: .75rem; align-items: center; }
+.panel :global(.admin-crm-person) :global(.admin-contact-avatar) { width: 3.5rem; height: 3.5rem; }
+.panel :global(.admin-crm-person) h2 { font-size: 1.125rem; margin-bottom: .25rem; }
+.panel :global(.admin-crm-full-profile) { margin-left: auto; display: inline-flex; flex-shrink: 0; width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; }
+.panel :global(.admin-crm-inspector) dl { display: grid; gap: 1rem; font-size: .875rem; }
+.panel :global(.admin-crm-inspector) dl > div { display: grid; grid-template-columns: 1fr 1.2fr; gap: .75rem; }
+.panel :global(.admin-crm-inspector) dt { color: var(--muted-foreground); }
+.panel :global(.admin-crm-inspector) dd { overflow-wrap: anywhere; }
+.panel :global(.admin-crm-stage) { display: grid; gap: .5rem; font-size: .875rem; }
+.panel :global(.admin-crm-notes) h3 { font-size: .875rem; margin-bottom: .5rem; }
+.panel :global(.admin-crm-notes) p { font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
+@media(min-width: 1280px) { .panel :global(.admin-crm-layout) { grid-template-columns: minmax(0,1fr) 20rem; }.panel :global(.admin-crm-board) { grid-auto-columns: calc((100% - 1.5rem)/3); } }
+.panel :global(.admin-crm-toolbar) { align-items: center; }
+.panel :global(.admin-crm-toolbar) > input { flex: 1 1 16rem; width: auto; }
+.panel :global(.admin-crm-toolbar) > nav { border-bottom: 1px solid var(--border); }
+.panel :global(.admin-crm-toolbar) > nav a { border: 0; background: transparent; border-radius: 0; }
+.panel :global(.admin-crm-toolbar) > nav a[aria-current=page] { color: var(--primary-text); box-shadow: inset 0 -2px 0 var(--primary-text); }
+.panel :global(.admin-crm-filters) > summary { cursor: pointer; display: flex; min-height: 2.75rem; align-items: center; padding: 0 .75rem; font-size: .8125rem; border: 1px solid var(--border); border-radius: .25rem; }
+.panel :global(.admin-crm-filters)[open] { flex: 1 1 100%; }
+.panel :global(.admin-crm-filters)[open] > div { margin-top: .75rem; }
+.panel :global(.admin-crm-toolbar) [aria-label="Vista de prospectos"] > span { display: none; }
+@media(min-width: 1280px) {
+  .panel :global(.admin-crm-board-page) { display: grid; grid-template-columns: minmax(0,1fr) 20rem; grid-template-rows: minmax(4.25rem,auto) minmax(2.75rem,auto) auto; gap: .75rem 1rem; align-items: start; }
+  .panel :global(.admin-crm-heading) :global(.admin-page-header) p { margin-top: .25rem; line-height: 1.4; }
+  .panel :global(.admin-crm-board-page) > * { margin: 0; grid-column: 1; }
+  .panel :global(.admin-crm-board-page) > :global(.admin-crm-layout) { display: contents; }
+  .panel :global(.admin-crm-inspector) { grid-column: 2; grid-row: 1 / span 3; }
+  .panel :global(.admin-crm-board) { grid-column: 1; }
+}
+@media (max-width: 639px) { .panel :global(.admin-search-trigger) { flex: 0 0 2.75rem; width: 2.75rem; padding: 0; justify-content: center; }.panel :global(.admin-search-trigger) span { display: none; } }
+@media (min-width: 1024px) {
+  .panel :global(.admin-profile-name), .panel :global(.admin-profile-chevron) { display: inline; }
+  .panel :global(.admin-executive-header) { grid-template-columns: minmax(0,1fr) auto; gap: 1rem; min-height: 4.5rem; }
+  .panel :global(.admin-executive-metrics) { grid-column: 1 / -1; grid-row: 2; }
+  .panel :global(.admin-executive-metrics) { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .panel :global(.admin-cycle) { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .panel :global(.admin-cycle-card) { grid-column: 1 / -1; }
+  .panel :global(.admin-followup-grid) { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (min-width: 1280px) {
+  .panel :global(.admin-daily-layout) { grid-template-columns: minmax(0,2.1fr) minmax(0,1fr); }
+  .panel :global(.admin-cycle) { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 0; }
+  .panel :global(.admin-lower-layout) { grid-template-columns: minmax(0,1.47fr) minmax(0,1fr); }
+  .panel :global(.admin-cycle-step) { position: relative; isolation: isolate; border: 0; border-radius: 0; padding-left: 2rem; clip-path: polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%,16px 50%); margin-left: -10px; background: var(--border); }
+  .panel :global(.admin-cycle-step)::before { content: ""; position: absolute; inset: 1px; clip-path: inherit; background: var(--secondary); z-index: -1; }
+  .panel :global(.admin-cycle-step):first-child { margin-left: 0; padding-left: 1rem; clip-path: polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%); }
+  .panel :global(.admin-followup-grid) { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (min-width: 1280px) {
+  .panel :global(.admin-executive-header) { grid-template-columns: minmax(16rem,1fr) minmax(25rem,1.2fr) auto; }
+  .panel :global(.admin-executive-metrics) { grid-column: auto; grid-row: auto; }
+  .panel :global(.admin-properties-grid) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panel :global(.admin-cycle) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
