@@ -37,9 +37,12 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     await expect(secondary).toHaveAttribute("href", "/inventario");
     await expect(primary).toHaveCSS("opacity", "1");
     await expect(secondary).toHaveCSS("opacity", "1");
-    const copy = (await hero.locator(".editorial-cover-copy").boundingBox())!;
     const photo = (await hero.locator("figure").boundingBox())!;
-    expect(photo.y).toBeGreaterThanOrEqual(copy.y + copy.height);
+    const cover = (await hero.locator(".editorial-hero-content").boundingBox())!;
+    expect(cover.y).toBe(64);
+    expect(cover.height).toBeGreaterThanOrEqual(836);
+    expect(photo.y).toBe(64);
+    await expect(hero.locator(".editorial-hero-content")).toHaveCSS("background-color", "rgb(248, 247, 244)");
     if (width >= 768) expect((await primary.boundingBox())!.y + (await primary.boundingBox())!.height).toBeLessThanOrEqual(900);
     for (const link of [primary, secondary]) {
       const box = (await link.boundingBox())!;
@@ -95,6 +98,70 @@ test("public homepage passes automatic WCAG AA checks in both themes", async ({ 
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
   }
+});
+
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+  test(`cover reveals the pinned photo before the page continues at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    const cover = page.locator(".editorial-hero-content");
+    const photo = page.locator(".editorial-cover-figure");
+    const nextSection = page.locator(".editorial-seller-gateway");
+    const initial = (await cover.boundingBox())!;
+    expect(initial.y).toBe(64);
+    expect(initial.height).toBeGreaterThanOrEqual(viewport.height - 64);
+    if (viewport.height <= 540) {
+      expect(initial.height).toBeCloseTo(viewport.height - 64, 0);
+      await expect(page.locator(".editorial-scroll-cue")).toBeInViewport({ ratio: 1 });
+      await expect(page.locator(".editorial-hero-primary")).toBeInViewport({ ratio: 1 });
+    }
+    await expect(page.locator(".editorial-scroll-cue")).toHaveAttribute("href", "#hero-panorama");
+    await page.screenshot({ path: testInfo.outputPath("cover.png") });
+    await page.mouse.wheel(0, Math.round(initial.height / 2));
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(initial.height / 2 - 2);
+    const halfway = (await cover.boundingBox())!;
+    expect(halfway.y).toBeLessThan(initial.y - initial.height / 3);
+    expect((await photo.boundingBox())!.y).toBeCloseTo(64, 0);
+    expect((await nextSection.boundingBox())!.y).toBeGreaterThanOrEqual(viewport.height - 2);
+    await page.screenshot({ path: testInfo.outputPath("revealing.png") });
+    await page.evaluate(distance => window.scrollTo({ top: distance, behavior: "instant" }), initial.height);
+    expect((await cover.boundingBox())!.y + (await cover.boundingBox())!.height).toBeCloseTo(64, 0);
+    expect((await photo.boundingBox())!.y).toBeCloseTo(64, 0);
+    expect((await nextSection.boundingBox())!.y).toBeCloseTo(viewport.height, 0);
+    await page.screenshot({ path: testInfo.outputPath("photo.png") });
+    await page.mouse.wheel(0, Math.round((viewport.height - 64) / 3));
+    await expect.poll(async () => (await nextSection.boundingBox())!.y).toBeLessThan(viewport.height - 30);
+    expect((await photo.boundingBox())!.y).toBeLessThan(64);
+    await page.screenshot({ path: testInfo.outputPath("page-continues.png") });
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    expect((await cover.boundingBox())!.y).toBe(64);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(page.locator(".editorial-scroll-cue svg")).toHaveCSS("animation-name", "none");
+    await page.locator(".editorial-scroll-cue").click();
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(initial.height - 2);
+    expect((await nextSection.boundingBox())!.y).toBeCloseTo(viewport.height, 0);
+  });
+}
+
+test("touch swipe lifts the cover using native scrolling", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  const touch = await context.newCDPSession(page);
+  await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 190, y: 720 }] });
+  for (const y of [680, 640, 600, 560, 520, 480]) {
+    await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 190, y }] });
+    await page.waitForTimeout(40); // Pace physical input; this is not a layout wait.
+  }
+  await page.waitForTimeout(100);
+  await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
+  expect((await page.locator(".editorial-cover-figure").boundingBox())!.y).toBeCloseTo(64, 0);
+  expect((await page.locator(".editorial-hero-content").boundingBox())!.y).toBeLessThan(0);
+  expect((await page.locator(".editorial-seller-gateway").boundingBox())!.y).toBeGreaterThanOrEqual(844);
+  await context.close();
 });
 
 test("hero remains readable before hydration with reduced motion and without JavaScript", async ({ browser }) => {
