@@ -24,17 +24,17 @@ for (const width of [375, 768, 1440]) {
     test.setTimeout(90_000);
     await page.setViewportSize({ width, height: 1000 });
     for (const [path, title] of [
-      ["", "Resumen ejecutivo"], ["leads", "Prospectos"], ["propiedades", "Cartera de inmuebles"],
+      ["", "Resumen ejecutivo"], ["leads", "CRM · Relaciones comerciales"], ["propiedades", "Cartera de inmuebles"],
       ["expedientes", "Expedientes"], ["documentos", "Documentos y expediente"], ["finanzas", "Finanzas y rentabilidad"],
       ["territorio", "Análisis territorial"], ["portal-clientes", "Portal de clientes"],
     ]) {
       await page.goto(`/admin/${path}`);
       await expect(page.getByRole("main").getByRole("heading", { name: title, exact: true })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      if (path === "") await expect(page.getByRole("main").getByText("12/10/2026 · Pendientes, visitas y próximos pasos del equipo.", { exact: true })).toBeVisible();
+      if (path === "") await expect(page.getByRole("main").getByText("12/10/2026", { exact: true })).toBeVisible();
       if (path === "leads") {
         await page.getByRole("button", { name: "Por etapas", exact: true }).click();
-        await expect(page.getByRole("link", { name: "Contacto de prueba", exact: true })).toBeVisible();
+        await expect(page.getByRole("button", { name: "Ver resumen de Contacto de prueba", exact: true })).toBeVisible();
       }
       if (path === "propiedades") {
         await expect(page.getByRole("list", { name: "Inmuebles", exact: true })).toBeVisible();

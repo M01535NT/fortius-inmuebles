@@ -49,16 +49,16 @@ test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.goto("/admin");
   const sidebar = page.locator("#admin-desktop-sidebar");
   const resize = page.getByRole("separator", { name: "Ancho de la barra lateral" });
-  await expect(resize).toHaveAttribute("aria-valuenow", "264");
+  await expect(resize).toHaveAttribute("aria-valuenow", "232");
   await resize.focus();
   await page.keyboard.press("ArrowRight");
-  await expect(resize).toHaveAttribute("aria-valuenow", "280");
+  await expect(resize).toHaveAttribute("aria-valuenow", "248");
   const box = await resize.boundingBox();
   await page.mouse.move(box!.x + 5, box!.y + 100);
   await page.mouse.down();
   await page.mouse.move(box!.x + 45, box!.y + 100);
   await page.mouse.up();
-  await expect(resize).toHaveAttribute("aria-valuenow", "320");
+  await expect(resize).toHaveAttribute("aria-valuenow", "288");
   await page.getByRole("button", { name: "Contraer barra lateral" }).click();
   await expect(sidebar).toHaveAttribute("data-collapsed", "true");
   await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
@@ -66,7 +66,7 @@ test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.reload();
   await expect(sidebar).toHaveAttribute("data-collapsed", "true");
   await page.getByRole("button", { name: "Expandir barra lateral" }).click();
-  await expect(resize).toHaveAttribute("aria-valuenow", "320");
+  await expect(resize).toHaveAttribute("aria-valuenow", "288");
   await resize.focus();
   await page.keyboard.press("End");
   await expect(resize).toHaveAttribute("aria-valuenow", "360");

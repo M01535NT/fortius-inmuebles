@@ -38,6 +38,7 @@ export function WorkspaceNavigation({
   const [editing, setEditing] = React.useState(false);
   const [dragging, setDragging] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState("");
+  const [more, setMore] = React.useState<boolean | null>(null);
 
   const ids = normalizeOrder(
     order,
@@ -51,16 +52,21 @@ export function WorkspaceNavigation({
     );
   }
   const custom = ids.some((id, i) => id !== allowed[i]?.href);
+  const modular = allowed.some(m => m.group === "Principal");
+  const additionalActive = allowed.some(m => m.group !== "Principal" && pathname.startsWith(m.href));
+  const expanded = (more ?? (additionalActive || custom)) || editing;
+  const visibleIds = modular && !expanded && !collapsed ? ids.filter(id => allowed.find(m => m.href === id)?.group === "Principal") : ids;
   return (
     <div className="min-w-0">
       <div className="space-y-1">
-        {ids.map((id, index) => {
+        {visibleIds.map((id) => {
+          const index = ids.indexOf(id);
           const item = allowed.find((m) => m.href === id)!;
           const Icon = item.icon;
           const previous = allowed.find((m) => m.href === ids[index - 1]);
           return (
             <React.Fragment key={id}>
-              {!collapsed && !custom && previous?.group !== item.group && (
+              {!collapsed && !custom && item.group !== "Principal" && previous?.group !== item.group && (
                 <p className="admin-nav-group px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.group}
                 </p>
@@ -153,8 +159,9 @@ export function WorkspaceNavigation({
           );
         })}
       </div>
+      {modular && !collapsed && <button type="button" className="admin-more-tools" aria-expanded={expanded} onClick={() => setMore(!expanded)}>{expanded ? "Menú principal" : "Más herramientas"}</button>}
       <button
-        className={btnGhost + " mt-4 w-full"}
+        className={btnGhost + " admin-organize-button mt-4 w-full"}
         aria-expanded={editing}
         aria-label={editing && !collapsed ? "Terminar organización" : "Organizar módulos"}
         title={collapsed ? "Organizar módulos" : undefined}

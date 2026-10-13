@@ -58,6 +58,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
           : page.getByRole("navigation", { name: "Módulos del panel" });
       if (width < 768)
         await page.getByRole("button", { name: "Menú del panel" }).click();
+      await nav.getByRole("button", { name: "Más herramientas", exact: true }).click();
       for (const name of [
         "Inmuebles",
         "CRM",

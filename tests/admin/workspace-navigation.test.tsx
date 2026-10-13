@@ -26,6 +26,19 @@ afterEach(() => {
   cleanup();
   localStorage.clear();
 });
+test("additional modules can collapse after reordering without losing primary routes", () => {
+  const compactModules = modules.map(item => ({ ...item, group: item.href === "/admin/reports" ? "Equipo" : "Principal" }));
+  render(<WorkspaceNavigation modules={compactModules} userId="compact" role="admin" pathname="/admin" onNavigate={() => {}} />);
+  expect(screen.queryByRole("link", { name: "Reportes" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Organizar módulos" }));
+  fireEvent.click(screen.getByRole("button", { name: "Subir Inmuebles" }));
+  fireEvent.click(screen.getByRole("button", { name: "Terminar organización" }));
+  fireEvent.click(screen.getByRole("button", { name: "Menú principal" }));
+  expect(screen.queryByRole("link", { name: "Reportes" })).toBeNull();
+  expect(screen.getByRole("link", { name: "Inmuebles" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Más herramientas" }));
+  expect(screen.getByRole("link", { name: "Reportes" })).toBeTruthy();
+});
 function show(userId = "one", role = "admin") {
   return render(
     <WorkspaceNavigation

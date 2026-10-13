@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 import { TodayWorkspace } from "@/components/admin/workspace/today";
-import { ArrowUpRight, Building2, CalendarDays, Users, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
-import { Badge, PageHeader, btnPrimary } from "@/components/admin/ui";
+import { Badge, btnPrimary } from "@/components/admin/ui";
 import { operationalDate } from "@/lib/admin/operational-date";
 import {
   LEAD_ESTADO_LABELS,
@@ -34,43 +34,20 @@ export default function AdminDashboard() {
   const disponibles = propiedades.filter((p) => p.estado === "disponible").length;
 
   const kpis = [
-    { icon: Users, label: "Prospectos nuevos", value: leadsNuevos, href: "/admin/leads" },
-    { icon: Building2, label: "Inmuebles disponibles", value: disponibles, href: "/admin/propiedades" },
-    { icon: CalendarDays, label: "Eventos próximos", value: proximos.length, href: "/admin/calendario" },
+    { label: "Inmuebles disponibles", value: disponibles, href: "/admin/propiedades" },
+    { label: "Prospectos nuevos", value: leadsNuevos, href: "/admin/leads" },
+    { label: "Eventos próximos", value: proximos.length, href: "/admin/calendario" },
   ];
 
   return (
-    <div className="min-w-0 space-y-4 sm:space-y-6">
-      <PageHeader
-        title="Resumen ejecutivo"
-        description={`${hoy.split("-").reverse().join("/")} · Pendientes, visitas y próximos pasos del equipo.`}
-        actions={<Link href="/admin/propiedades/nueva" className={btnPrimary}><Plus size={18} /> Nuevo inmueble</Link>}
-      />
-
-      {/* KPIs */}
-      <div className="admin-metrics">
-        {kpis.map(({ icon: Icon, label, value, href }) => (
-          <Link
-            key={label}
-            href={href}
-            className="group min-w-0 transition-colors"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="admin-metric-value text-foreground">{String(value).padStart(2, "0")}</p>
-              <Icon className="size-5 shrink-0 text-primary-ink" strokeWidth={1.5} />
-            </div>
-            <p className="mt-2 flex items-start gap-1 text-sm leading-snug text-muted-foreground">
-              <span className="min-w-0 [overflow-wrap:anywhere]">{label}</span>
-              <ArrowUpRight
-                className="mt-0.5 size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-                strokeWidth={1.5}
-              />
-            </p>
-          </Link>
-        ))}
-      </div>
+    <div className="admin-dashboard min-w-0 space-y-5">
+      <header className="admin-executive-header">
+        <div><h1>Resumen ejecutivo</h1><p><time dateTime={hoy}>{hoy.split("-").reverse().join("/")}</time></p></div>
+        <div className="admin-executive-metrics">{kpis.map(({ label, value, href }) => <Link key={label} href={href} aria-label={`${String(value).padStart(2,"0")} ${label}`}><small>{label}</small><strong>{String(value).padStart(2, "0")}</strong></Link>)}<Link href="/admin/finanzas"><small>Comisiones previstas</small><span>Pendiente</span></Link></div>
+        <Link href="/admin/expedientes?nuevo=1#nuevo-expediente" className={btnPrimary}><Plus size={18} /> Nueva operación</Link>
+      </header>
       <TodayWorkspace />
-
+      <details className="admin-dashboard-more"><summary>Más información del equipo</summary>
       <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Agenda primero para priorizar la operación en móvil. */}
         <section aria-labelledby="dashboard-agenda" className="admin-card min-w-0 rounded-lg border border-border bg-card">
@@ -134,6 +111,7 @@ export default function AdminDashboard() {
         </section>
       </div>
       <SetupChecklist />
+      </details>
     </div>
   );
 }

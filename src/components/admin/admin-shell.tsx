@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import Link from "next/link";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
@@ -28,6 +29,7 @@ import {
   Wallet,
   MapPin,
   ContactRound,
+  Bell,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
@@ -63,8 +65,8 @@ const NAV = [
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2 },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
   { href: "/admin/expedientes", label: "Operaciones", icon: FileText },
-  { href: "/admin/documentos", label: "Documentos", icon: FolderOpen },
   { href: "/admin/finanzas", label: "Finanzas", icon: Wallet, adminOnly: true },
+  { href: "/admin/documentos", label: "Documentos", icon: FolderOpen },
   { href: "/admin/territorio", label: "Análisis territorial", icon: MapPin },
   { href: "/admin/portal-clientes", label: "Portal de clientes", icon: ContactRound, adminOnly: true },
   { href: "/admin/control-comercial", label: "Control comercial", icon: BriefcaseBusiness, adminOnly: true },
@@ -373,7 +375,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   const links = (mobile = false) => (
     <>
-      <WorkspaceNavigation key={session.id} collapsed={!mobile && sidebar.collapsed} onExpand={() => setSidebar({ ...sidebar, collapsed: false })} modules={NAV.map(item => ({ ...item, group: ["Blog", "Archivos", "Contenido"].includes(item.label) ? "Publicación" : ["Configuración", "Asesores", "Reportes", "Historial"].includes(item.label) ? "Administración" : "Operación" })).sort((a,b)=>["Operación","Publicación","Administración"].indexOf(a.group)-["Operación","Publicación","Administración"].indexOf(b.group))} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
+      <WorkspaceNavigation key={session.id} collapsed={!mobile && sidebar.collapsed} onExpand={() => setSidebar({ ...sidebar, collapsed: false })} modules={NAV.map(item => ({ ...item, group: ["/admin", "/admin/leads", "/admin/propiedades", "/admin/expedientes", "/admin/finanzas", "/admin/documentos", "/admin/territorio", "/admin/portal-clientes"].includes(item.href) ? "Principal" : ["Blog", "Archivos", "Contenido"].includes(item.label) ? "Publicación" : "Equipo y administración" })).sort((a,b)=>["Principal","Equipo y administración","Publicación"].indexOf(a.group)-["Principal","Equipo y administración","Publicación"].indexOf(b.group))} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
       {mobile ? (
         <>
           <DocumentLink
@@ -405,6 +407,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {links()}
         </nav>
         <div className="space-y-2 border-t border-border p-3">
+          <DocumentLink href="/admin/configuracion" aria-label="Configuración" className="flex min-h-11 items-center gap-3 px-3 text-sm"><Settings className="size-4"/><span className="admin-sidebar-label">Configuración</span></DocumentLink>
+          <SidebarToggle collapsed={sidebar.collapsed} onToggle={() => setSidebar({ ...sidebar, collapsed: !sidebar.collapsed })} />
           <DocumentLink
             href="/"
             aria-label="Ver sitio"
@@ -430,7 +434,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="min-w-0 flex-1">
         <header className="admin-topbar sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
           <div className="admin-topbar-inner flex min-h-16 items-center justify-between gap-3 px-5 md:px-8">
-            <SidebarToggle collapsed={sidebar.collapsed} onToggle={() => setSidebar({ ...sidebar, collapsed: !sidebar.collapsed })} />
             <button
               ref={menuTrigger}
               type="button"
@@ -445,7 +448,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </button>
             <WorkspaceSearch />
             <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
-            <div className="flex shrink-0 items-center gap-1"><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
+            <div className="flex shrink-0 items-center gap-1"><Link className="admin-alert-link" href="/admin/tareas" aria-label="Tareas y avisos"><Bell size={20}/></Link><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
           </div>
           {menu ? (
             <nav

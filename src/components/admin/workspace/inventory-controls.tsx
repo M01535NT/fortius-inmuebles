@@ -68,7 +68,7 @@ export function InventoryControls({
   return (
     <section
       aria-label="Filtros de inmuebles"
-      className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4"
+      className="admin-inventory-controls min-w-0 space-y-3 rounded-lg border border-border bg-card p-4"
     >
       <Field label="Buscar inmuebles" htmlFor="inventory-query">
         <input

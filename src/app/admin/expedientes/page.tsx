@@ -29,6 +29,7 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export default function ExpedientesPage() {
+  const [createOpen] = React.useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("nuevo") === "1");
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);
@@ -249,7 +250,7 @@ export default function ExpedientesPage() {
     <details className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"><summary className="cursor-pointer font-semibold">Formatos y requisitos de emisión</summary><p className="mt-3">{FORMATOS.filter(item => item.readyForEmission && !item.globalRoute).length} formatos admiten emisión por expediente, sujeta a captura y revisión completas.</p><p><a href="/admin/control-comercial" className="text-primary-ink underline">03 · Control comercial global</a>: carteras, historial y PDF desde su propio módulo.</p><p>09 · Intermediación: puedes preparar la captura; su PDF requiere registro y cotejo del modelo registrado.</p></details>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="rounded-md border border-border p-3 text-sm">{notice}</p>}
-    {!showDeleted && <details className="rounded-lg border border-border bg-card p-5" open={expedientes.length === 0 || undefined}>
+    {!showDeleted && <details id="nuevo-expediente" className="rounded-lg border border-border bg-card p-5" open={createOpen || expedientes.length === 0 || undefined}>
       <summary className="cursor-pointer font-semibold">Nuevo expediente</summary>
       <form onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
         <label className="text-sm">Cliente<select name="clienteId" required className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
