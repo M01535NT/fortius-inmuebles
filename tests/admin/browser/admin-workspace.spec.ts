@@ -44,6 +44,79 @@ async function fits(page: Page) {
     ),
   ).toBe(true);
 }
+
+test("app window searches, traps keyboard focus, closes and navigates", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/admin");
+  const trigger = page.getByRole("button", { name: "Abrir aplicaciones" });
+  const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
+  await trigger.click();
+  await expect(apps.getByRole("link")).toHaveCount(20);
+  const search = apps.getByRole("searchbox", { name: "Buscar aplicación" });
+  await expect(search).toBeFocused();
+  await search.fill("ANALISIS");
+  await expect(apps.getByRole("link")).toHaveCount(1);
+  await expect(apps.getByRole("link", { name: "Análisis territorial" })).toBeVisible();
+  await search.fill("zzzinexistente");
+  await expect(apps.getByRole("status")).toContainText("No hay aplicaciones");
+  await search.fill("");
+  const close = apps.getByRole("button", { name: "Cerrar aplicaciones" });
+  const last = apps.getByRole("link", { name: "Historial" });
+  await last.focus();
+  await page.keyboard.press("Tab");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(last).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(apps).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.mouse.click(300, 100);
+  await expect(apps).not.toBeVisible();
+  await trigger.click();
+  await apps.getByRole("link", { name: "CRM", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/leads$/);
+  await expect(apps).not.toBeVisible();
+});
+
+test("apps fit small phones and tablets and release the mobile menu", async ({ page }) => {
+  for (const width of [320, 375, 768]) {
+    await page.setViewportSize({ width, height: 812 });
+    await page.goto("/admin");
+    await expect(page.getByRole("heading", { name: "Resumen ejecutivo" })).toBeVisible();
+    await fits(page);
+    if (width < 768) await page.getByRole("button", { name: "Menú del panel" }).click();
+    await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
+    const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
+    const box = await apps.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+    await expect(apps.getByRole("link")).toHaveCount(20);
+    if (width < 768) await expect(page.locator('button[aria-label="Menú del panel"]')).toHaveAttribute("aria-expanded", "false");
+    await apps.getByRole("link", { name: "Historial" }).focus();
+    await expect(apps.getByRole("link", { name: "Historial" })).toBeInViewport();
+    await apps.getByRole("button", { name: "Cerrar aplicaciones" }).click();
+    await expect(apps).not.toBeVisible();
+    if (width < 768) {
+      await page.goto("/admin/configuracion");
+      await page.getByRole("button", { name: "Menú del panel" }).click();
+      await expect(page.getByRole("navigation", { name: "Módulos móviles" }).getByRole("link", { name: "Configuración", exact: true })).toHaveAttribute("aria-current", "page");
+    }
+  }
+});
+
+test("editor apps exclude admin-only modules even when searched", async ({ page }) => {
+  await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { id: "editor-apps-test", email: "editor@example.invalid", role: "editor" } } }));
+  await page.goto("/admin");
+  await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
+  const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
+  await expect(apps.getByRole("link")).toHaveCount(15);
+  for (const name of ["Finanzas", "Portal de clientes", "Control comercial", "Reportes", "Historial"]) {
+    await expect(apps.getByRole("link", { name, exact: true })).toHaveCount(0);
+  }
+  await apps.getByRole("searchbox").fill("finanzas");
+  await expect(apps.getByRole("status")).toContainText("No hay aplicaciones");
+});
 test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");

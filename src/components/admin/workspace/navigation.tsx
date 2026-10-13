@@ -2,17 +2,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { useBrowserPreference } from "./browser-preference";
-import { ArrowDown, ArrowUp, GripVertical, RotateCcw } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, GripVertical, MoreHorizontal, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { moveModule, normalizeOrder } from "@/lib/admin/workspace";
 import { btnGhost } from "@/components/admin/ui";
 
-export type AdminModule = {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  adminOnly?: boolean;
-  group: string;
-};
+import { permittedModules, type AdminModule } from "./module-catalog";
+export type { AdminModule } from "./module-catalog";
+const isPrimary = (module: AdminModule) => module.primary || module.group === "Principal";
 export function WorkspaceNavigation({
   modules,
   userId,
@@ -30,7 +26,7 @@ export function WorkspaceNavigation({
   collapsed?: boolean;
   onExpand?: () => void;
 }) {
-  const allowed = modules.filter((m) => !m.adminOnly || role === "admin");
+  const allowed = permittedModules(modules, role);
   const key = `fortius:modules:${userId}`;
   const [order, setOrder] = useBrowserPreference<string[]>(key, [], (value) =>
     Array.isArray(value) ? value.filter((x) => typeof x === "string") : [],
@@ -52,22 +48,22 @@ export function WorkspaceNavigation({
     );
   }
   const custom = ids.some((id, i) => id !== allowed[i]?.href);
-  const modular = allowed.some(m => m.group === "Principal");
-  const additionalActive = allowed.some(m => m.group !== "Principal" && pathname.startsWith(m.href));
+  const modular = allowed.some(isPrimary);
+  const additionalActive = allowed.some(m => !isPrimary(m) && pathname.startsWith(m.href));
   const expanded = (more ?? (additionalActive || custom)) || editing;
-  const visibleIds = modular && !expanded && !collapsed ? ids.filter(id => allowed.find(m => m.href === id)?.group === "Principal") : ids;
+  const visibleIds = modular && !expanded && !collapsed ? ids.filter(id => isPrimary(allowed.find(m => m.href === id)!)) : ids;
   return (
     <div className="min-w-0">
       <div className="space-y-1">
-        {visibleIds.map((id) => {
+        {visibleIds.map((id, visibleIndex) => {
           const index = ids.indexOf(id);
           const item = allowed.find((m) => m.href === id)!;
           const Icon = item.icon;
-          const previous = allowed.find((m) => m.href === ids[index - 1]);
+          const previous = allowed.find((m) => m.href === visibleIds[visibleIndex - 1]);
           return (
             <React.Fragment key={id}>
-              {!collapsed && !custom && item.group !== "Principal" && previous?.group !== item.group && (
-                <p className="admin-nav-group px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {!collapsed && !custom && !["Principal", "Inicio"].includes(item.group) && previous?.group !== item.group && (
+                <p data-separated={!!previous && previous.group !== "Inicio"} className="admin-nav-group px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.group}
                 </p>
               )}
@@ -159,7 +155,7 @@ export function WorkspaceNavigation({
           );
         })}
       </div>
-      {modular && !collapsed && <button type="button" className="admin-more-tools" aria-expanded={expanded} onClick={() => setMore(!expanded)}>{expanded ? "Menú principal" : "Más herramientas"}</button>}
+      {modular && !collapsed && <button type="button" className="admin-more-tools" aria-expanded={expanded} onClick={() => setMore(!expanded)}><MoreHorizontal size={20} aria-hidden="true"/><span>{expanded ? "Menú principal" : "Más herramientas"}</span>{expanded ? <ChevronUp size={16} aria-hidden="true"/> : <ChevronDown size={16} aria-hidden="true"/>}</button>}
       <button
         className={btnGhost + " admin-organize-button mt-4 w-full"}
         aria-expanded={editing}
@@ -168,7 +164,7 @@ export function WorkspaceNavigation({
         type="button"
         onClick={() => { if (collapsed) { onExpand?.(); setEditing(true); } else setEditing(!editing); }}
       >
-        {collapsed ? <GripVertical size={20} /> : editing ? "Terminar organización" : "Organizar módulos"}
+        {collapsed ? <GripVertical size={20} /> : <><SlidersHorizontal size={20} aria-hidden="true"/><span>{editing ? "Terminar organización" : "Organizar menú"}</span></>}
       </button>
       {editing && !collapsed && (
         <>
