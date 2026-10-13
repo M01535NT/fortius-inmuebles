@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
 
 export function EditorialHero() {
@@ -46,12 +46,17 @@ export function EditorialHero() {
             </Link>
           </div>
         </div>
+        <a href="#hero-panorama" className="editorial-scroll-cue">
+          <span>Desplázate para descubrir</span>
+          <ChevronDown size={20} aria-hidden="true" />
+        </a>
       </div>
+      <span id="hero-panorama" className="editorial-photo-start" aria-hidden="true" />
       <figure className="editorial-cover-figure">
         <div className="editorial-cover-window">
           <div className="editorial-cover-photo">
-            <Image src="/hero/panorama-editorial.webp" alt="Panorámica de arquitectura comercial y paisaje costero, imagen conceptual de referencia"
-              fill loading="eager" fetchPriority="high" sizes="100vw"
+            <Image src="/hero/panorama-editorial-full.webp" alt="Panorámica de arquitectura comercial y paisaje costero, imagen conceptual de referencia"
+              fill loading="eager" fetchPriority="high" sizes="max(100vw, 300svh)"
               className="object-cover" />
           </div>
         </div>
