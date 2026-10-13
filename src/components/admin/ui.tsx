@@ -32,7 +32,7 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+    <div className="admin-page-header flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
       <div className="min-w-0">
         <h1 className="display-title text-3xl text-foreground">{title.replace(/\.$/, "")}</h1>
         {description ? (
@@ -94,7 +94,7 @@ export function Badge({
   return (
     <span
       className={
-        "inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-xs uppercase tracking-[0.05em] " +
+        "admin-badge inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-xs uppercase tracking-[0.05em] " +
         tones[tone]
       }
     >

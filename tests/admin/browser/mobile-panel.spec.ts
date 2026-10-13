@@ -21,7 +21,7 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
   test(`populated panel, calendar and lists fit at ${width}`, async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width, height: 844 });
-    for (const [path, heading] of [["", "Mi jornada"], ["/leads", "Prospectos"], ["/propiedades", "Inmuebles"], ["/calendario", "Calendario"]] as const) {
+    for (const [path, heading] of [["", "Resumen ejecutivo"], ["/leads", "Prospectos"], ["/propiedades", "Cartera de inmuebles"], ["/calendario", "Calendario"]] as const) {
       await page.goto("/admin" + path);
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
       await fitsPage(page);
@@ -52,6 +52,7 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
         expect(box!.height).toBeGreaterThanOrEqual(44);
       }
       if (path === "/propiedades" && width >= 1024) {
+        await page.getByRole("button", { name: "Lista", exact: true }).click();
         const title = page.locator("table p[title]").first();
         const star = page.locator("table").getByRole("button", {name:/destacada/}).first();
         const titleBox = await title.boundingBox(), starBox = await star.boundingBox();
@@ -92,9 +93,9 @@ test("mobile navigation closes with Escape and dark populated views still fit", 
   await trigger.click();
   const nav = page.getByRole("navigation", { name: "Módulos móviles" });
   await expect(nav.getByText("auditoria@example.invalid")).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Panel", exact: true })).toBeFocused();
+  await expect(nav.getByRole("link", { name: "Resumen", exact: true })).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(nav.getByRole("link", { name: "Inmuebles", exact: true })).toBeFocused();
+  await expect(nav.getByRole("link", { name: "CRM", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(nav).toBeHidden();
   await expect(trigger).toBeFocused();

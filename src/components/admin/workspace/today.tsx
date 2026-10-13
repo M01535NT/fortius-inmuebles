@@ -4,6 +4,7 @@ import Link from "next/link";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { projectFollowups } from "@/lib/admin/followups";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 
 export function TodayWorkspace() {
   const leads = useCollection(db.leads),
@@ -81,14 +82,32 @@ export function TodayWorkspace() {
     },
   ];
   return (
+    <div className="flex min-w-0 flex-col gap-4">
+    <section className="admin-card order-2 xl:order-1" aria-label="Ciclo del inmueble">
+      <div className="admin-card-heading">
+        <h2>Ciclo del inmueble</h2>
+        <Link href="/admin/expedientes">Ver operaciones →</Link>
+      </div>
+      {state === "error" ? <p role="alert" className="p-5 text-sm text-muted-foreground">No se pudieron consultar las etapas. Recarga el módulo para reintentar.</p> : (
+        <ol className="admin-cycle" aria-busy={state === "loading"}>
+          {(["captacion", "documentacion", "comercializacion", "negociacion", "cierre"] as const).map((stage, index) => (
+            <li key={stage} className="admin-cycle-step">
+              <span className="admin-cycle-number" aria-hidden="true">{index + 1}</span>
+              <div className="min-w-0"><p>{EXPEDIENTE_ETAPAS[stage]}</p><strong>{state === "loading" ? "—" : dossiers.filter(d => (d.etapa ?? "captacion") === stage).length}</strong><span className="ml-1 text-xs text-muted-foreground">expedientes</span></div>
+            </li>
+          ))}
+        </ol>
+      )}
+      <p className="px-5 pb-4 text-xs text-muted-foreground">Etapas registradas en los expedientes activos. Los expedientes cerrados no se incluyen en este recorrido.</p>
+    </section>
     <section
       aria-label="Atención de hoy"
-      className="grid min-w-0 items-start gap-3 md:grid-cols-2"
+      className="order-1 grid min-w-0 items-start gap-3 md:grid-cols-2 xl:order-2"
     >
       {groups.map((group) => (
         <div
           key={group.title}
-          className="min-w-0 rounded-lg border border-border bg-card p-4"
+          className="admin-card min-w-0 rounded-lg border border-border bg-card p-5"
         >
           <h2 className="font-semibold">
             {group.title}{" "}
@@ -121,5 +140,6 @@ export function TodayWorkspace() {
         </div>
       ))}
     </section>
+    </div>
   );
 }

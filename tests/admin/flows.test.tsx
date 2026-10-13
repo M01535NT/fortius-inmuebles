@@ -154,7 +154,8 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   expect(nav.querySelector('a[href="/admin/control-comercial"]')).toBeTruthy();
   expect(nav.querySelector('a[href="/admin/reportes"]')).toBeTruthy();
   expect(nav.querySelector('a[href="/admin/historial"]')).toBeTruthy();
-  expect(nav.querySelectorAll("a")).toHaveLength(17);
+  for (const href of ["documentos", "finanzas", "territorio", "portal-clientes"]) expect(nav.querySelector(`a[href="/admin/${href}"]`)).toBeTruthy();
+  expect(nav.querySelectorAll("a")).toHaveLength(21);
   fireEvent.click(
     Array.from(nav.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Salir"),

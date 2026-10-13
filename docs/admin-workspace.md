@@ -10,6 +10,12 @@ En el menú lateral, **Organizar módulos** habilita el arrastre en escritorio y
 
 La búsqueda del encabezado reúne los registros que el usuario puede consultar y permite crear un inmueble, prospecto, tarea o visita. El panel del día enlaza pendientes, contactos, visitas programadas y expedientes fuera de fecha.
 
+## Navegación del diseño corporativo
+
+**Resumen** abre el tablero de pendientes y etapas reales; **CRM** abre los prospectos y enlaza clientes/propietarios; **Operaciones** abre los expedientes existentes. El inventario permite alternar **Tarjetas** y **Lista**, conservando filtros y acciones. **Documentos** reúne accesos a expedientes, biblioteca, notas y documentos del inmueble.
+
+**Finanzas** reúne herramientas disponibles, con contabilidad, flujo de efectivo y TIR/VAN señalados como pendientes. **Análisis territorial** muestra inmuebles por zona; mapas y comparables siguen pendientes. **Portal de clientes** muestra el alcance previsto en una pantalla interna de administración: todavía no habilita usuarios externos, comparte documentos ni envía invitaciones. Los módulos financieros y del portal requieren administrador.
+
 ## Edición y seguimiento
 
 - El inventario permite buscar, filtrar, paginar y guardar vistas. “Mis inmuebles” usa la vinculación de asesor de la sesión, no coincidencias de correo.

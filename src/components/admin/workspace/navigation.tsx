@@ -61,7 +61,7 @@ export function WorkspaceNavigation({
           return (
             <React.Fragment key={id}>
               {!collapsed && !custom && previous?.group !== item.group && (
-                <p className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="admin-nav-group px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.group}
                 </p>
               )}
@@ -96,7 +96,7 @@ export function WorkspaceNavigation({
                       ? "page"
                       : undefined
                   }
-                  className="flex min-h-11 min-w-0 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-foreground/75 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary aria-[current=page]:text-foreground"
+                  className="admin-nav-link flex min-h-11 min-w-0 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-foreground/75 transition-colors hover:bg-secondary aria-[current=page]:bg-secondary aria-[current=page]:text-foreground"
                 >
                   <Icon className="size-4 shrink-0" strokeWidth={1.5} />
                   <span className={collapsed ? "sr-only" : "break-words"}>{item.label}</span>

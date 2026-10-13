@@ -78,12 +78,13 @@ export function WorkspaceSearch() {
       <button
         ref={trigger}
         type="button"
-        className={btnGhost + " px-3"}
+        className={btnGhost + " admin-search-trigger px-3"}
         aria-label="Buscar en el panel"
         onClick={open}
       >
         <Search size={18} />
-        <span className="hidden lg:inline">Buscar / Crear</span>
+        <span className="hidden sm:inline">Buscar inmueble, contacto o expediente…</span>
+        <span className="sm:hidden">Buscar</span>
       </button>
       <dialog
         ref={dialog}

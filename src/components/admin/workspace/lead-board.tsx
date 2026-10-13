@@ -27,7 +27,7 @@ export function LeadBoard({ leads }: { leads: Lead[] }) {
             aria-label={
               stage === "convertido" ? "Convertidos" : LEAD_ESTADO_LABELS[stage]
             }
-            className="min-w-0 rounded-lg border border-border bg-secondary/25 p-3"
+            className="min-w-0 rounded-lg border border-border bg-secondary p-4"
           >
             <h2 className="flex justify-between text-sm font-semibold">
               {stage === "convertido"
@@ -39,7 +39,7 @@ export function LeadBoard({ leads }: { leads: Lead[] }) {
               {rows.map((lead) => (
                 <li
                   key={lead.id}
-                  className="space-y-2 rounded-lg border border-border bg-card p-3"
+                  className="admin-card space-y-2 rounded-lg border border-border bg-card p-4"
                 >
                   <Link
                     className="block break-words py-2 font-medium"

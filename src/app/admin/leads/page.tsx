@@ -130,6 +130,10 @@ export default function AdminLeadsPage() {
 
       {/* Filtros */}
       <div className="flex min-w-0 flex-col gap-3">
+        <nav className="admin-view-switch" aria-label="Relaciones comerciales">
+          <Link href="/admin/leads" aria-current="page" className={btnGhost}>Prospectos</Link>
+          <Link href="/admin/clientes" className={btnGhost}>Clientes y propietarios</Link>
+        </nav>
         <input
           type="search"
           aria-label="Buscar prospecto"

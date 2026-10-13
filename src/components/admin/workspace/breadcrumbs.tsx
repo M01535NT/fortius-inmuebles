@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-const labels: Record<string, string> = { propiedades: "Inmuebles", leads: "Prospectos", clientes: "Clientes", tareas: "Tareas", calendario: "Calendario", expedientes: "Expedientes", archivos: "Archivos", asesores: "Asesores", blog: "Blog", contenido: "Contenido", configuracion: "Configuración", perfil: "Mi perfil", reportes: "Reportes", historial: "Historial", "control-comercial": "Control comercial", nuevo: "Nuevo", editar: "Editar" };
+const labels: Record<string, string> = { propiedades: "Inmuebles", leads: "CRM", clientes: "Clientes", tareas: "Tareas", calendario: "Calendario", expedientes: "Operaciones", documentos: "Documentos", finanzas: "Finanzas", territorio: "Análisis territorial", "portal-clientes": "Portal de clientes", archivos: "Archivos", asesores: "Asesores", blog: "Blog", contenido: "Contenido", configuracion: "Configuración", perfil: "Mi perfil", reportes: "Reportes", historial: "Historial", "control-comercial": "Control comercial", nuevo: "Nuevo", editar: "Editar" };
 export function Breadcrumbs() {
   const parts = usePathname().split("/").filter(Boolean).slice(1);
   if (!parts.length) return null;

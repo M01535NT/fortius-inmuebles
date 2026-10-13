@@ -25,6 +25,9 @@ import {
   ChartNoAxesCombined,
   ListTodo,
   BriefcaseBusiness,
+  Wallet,
+  MapPin,
+  ContactRound,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
@@ -55,13 +58,17 @@ import {
   useSession,
 } from "@/lib/admin/store";
 const NAV = [
-  { href: "/admin", label: "Panel", icon: LayoutDashboard },
+  { href: "/admin", label: "Resumen", icon: LayoutDashboard },
+  { href: "/admin/leads", label: "CRM", icon: Users },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2 },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
-  { href: "/admin/expedientes", label: "Expedientes", icon: FileText },
+  { href: "/admin/expedientes", label: "Operaciones", icon: FileText },
+  { href: "/admin/documentos", label: "Documentos", icon: FolderOpen },
+  { href: "/admin/finanzas", label: "Finanzas", icon: Wallet, adminOnly: true },
+  { href: "/admin/territorio", label: "Análisis territorial", icon: MapPin },
+  { href: "/admin/portal-clientes", label: "Portal de clientes", icon: ContactRound, adminOnly: true },
   { href: "/admin/control-comercial", label: "Control comercial", icon: BriefcaseBusiness, adminOnly: true },
   { href: "/admin/reportes", label: "Reportes", icon: ChartNoAxesCombined, adminOnly: true },
-  { href: "/admin/leads", label: "Prospectos", icon: Users },
   { href: "/admin/tareas", label: "Tareas", icon: ListTodo },
   { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },
   { href: "/admin/notas", label: "Notas", icon: StickyNote },
@@ -97,7 +104,7 @@ function LoginScreen({
           </span>
         </div>
         <AsyncForm
-          className="mt-8 space-y-4 rounded-lg border border-border bg-card p-6"
+          className="admin-login-card mt-8 space-y-4 rounded-lg border border-border bg-card p-6"
           onSubmit={async (e) => {
             const data = new FormData(e.currentTarget);
             if (passwordMode) {
@@ -388,11 +395,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div data-density={density} className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       <aside id="admin-desktop-sidebar" data-collapsed={sidebar.collapsed} style={{ width: sidebar.collapsed ? 76 : sidebar.width }} className="admin-sidebar sticky top-0 hidden h-[100dvh] shrink-0 flex-col border-r border-border md:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
+        <div className="admin-sidebar-brand flex h-16 items-center gap-2.5 border-b border-border px-5">
           <BrandMark variant={sidebar.collapsed ? "symbol" : "full"} className="min-w-0 shrink" />
-          <span className="admin-sidebar-label font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-            Panel
-          </span>
         </div>
         <nav
           className="flex-1 overflow-y-auto p-3"
@@ -424,8 +428,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {!sidebar.collapsed && <SidebarResize width={sidebar.width} onResize={(width) => setSidebar({ ...sidebar, width })} />}
       </aside>
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
-          <div className="flex min-h-16 items-center justify-between gap-3 px-5 md:px-8">
+        <header className="admin-topbar sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
+          <div className="admin-topbar-inner flex min-h-16 items-center justify-between gap-3 px-5 md:px-8">
             <SidebarToggle collapsed={sidebar.collapsed} onToggle={() => setSidebar({ ...sidebar, collapsed: !sidebar.collapsed })} />
             <button
               ref={menuTrigger}
@@ -439,21 +443,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               {menu ? <X className="size-4" /> : <Menu className="size-4" />}
               {menu ? "Cerrar" : "Módulos"}
             </button>
-            <p className="min-w-0 text-xs text-muted-foreground md:hidden" aria-live="polite">
-              {refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel"}
-            </p>
-            <p className="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground md:block">
-              <FileText className="mr-1.5 inline size-3.5" />
-              {refreshing ? "Actualizando…" : "Espacio de trabajo"}
-            </p>
-            <div className="flex shrink-0 items-center gap-1"><WorkspaceSearch /><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
+            <WorkspaceSearch />
+            <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
+            <div className="flex shrink-0 items-center gap-1"><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
           </div>
           {menu ? (
             <nav
               ref={mobileNav}
               id="admin-mobile-nav"
               aria-label="Módulos móviles"
-              className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg md:hidden"
+              className="admin-mobile-nav absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg md:hidden"
             >
               <p className="mb-3 break-all border-b border-border px-2 pb-3 text-sm text-muted-foreground">
                 {session.email}
@@ -462,7 +461,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </nav>
           ) : null}
         </header>
-        <main className="space-y-5 p-5 md:p-8">
+        <main className="admin-content space-y-5 p-5 md:p-8">
           <Breadcrumbs />
           {error || refreshError ? (
             <div className="space-y-2">

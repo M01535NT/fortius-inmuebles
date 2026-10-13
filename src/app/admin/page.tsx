@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 import { TodayWorkspace } from "@/components/admin/workspace/today";
-import { ArrowUpRight, Building2, CalendarDays, Users } from "lucide-react";
+import { ArrowUpRight, Building2, CalendarDays, Users, Plus } from "lucide-react";
 
-import { Badge, PageHeader } from "@/components/admin/ui";
+import { Badge, PageHeader, btnPrimary } from "@/components/admin/ui";
 import { operationalDate } from "@/lib/admin/operational-date";
 import {
   LEAD_ESTADO_LABELS,
@@ -42,22 +42,21 @@ export default function AdminDashboard() {
   return (
     <div className="min-w-0 space-y-4 sm:space-y-6">
       <PageHeader
-        title="Mi jornada"
-        description="Pendientes, visitas y próximos pasos del equipo."
+        title="Resumen ejecutivo"
+        description={`${hoy.split("-").reverse().join("/")} · Pendientes, visitas y próximos pasos del equipo.`}
+        actions={<Link href="/admin/propiedades/nueva" className={btnPrimary}><Plus size={18} /> Nuevo inmueble</Link>}
       />
-      <SetupChecklist />
-      <TodayWorkspace />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+      <div className="admin-metrics">
         {kpis.map(({ icon: Icon, label, value, href }) => (
           <Link
             key={label}
             href={href}
-            className="group min-w-0 rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/50 sm:p-4"
+            className="group min-w-0 transition-colors"
           >
             <div className="flex items-center justify-between gap-2">
-              <p className="font-mono text-2xl text-foreground sm:text-3xl">{String(value).padStart(2, "0")}</p>
+              <p className="admin-metric-value text-foreground">{String(value).padStart(2, "0")}</p>
               <Icon className="size-5 shrink-0 text-primary-ink" strokeWidth={1.5} />
             </div>
             <p className="mt-2 flex items-start gap-1 text-sm leading-snug text-muted-foreground">
@@ -70,11 +69,12 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
+      <TodayWorkspace />
 
       <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Agenda primero para priorizar la operación en móvil. */}
-        <section aria-labelledby="dashboard-agenda" className="min-w-0 rounded-lg border border-border bg-card">
-          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
+        <section aria-labelledby="dashboard-agenda" className="admin-card min-w-0 rounded-lg border border-border bg-card">
+          <div className="admin-card-heading flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-agenda" className="min-w-0 display-soft text-lg text-foreground">Próximos días</h2>
             <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Calendario
@@ -98,8 +98,8 @@ export default function AdminDashboard() {
         </section>
 
         {/* Prospectos recientes */}
-        <section aria-labelledby="dashboard-leads" className="min-w-0 rounded-lg border border-border bg-card">
-          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
+        <section aria-labelledby="dashboard-leads" className="admin-card min-w-0 rounded-lg border border-border bg-card">
+          <div className="admin-card-heading flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-leads" className="min-w-0 display-soft text-lg text-foreground">Prospectos recientes</h2>
             <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Ver todos
@@ -133,6 +133,7 @@ export default function AdminDashboard() {
           )}
         </section>
       </div>
+      <SetupChecklist />
     </div>
   );
 }
