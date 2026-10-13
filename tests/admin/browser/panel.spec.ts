@@ -55,7 +55,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       const nav =
         width < 768
           ? page.getByRole("navigation", { name: "Módulos móviles" })
-          : page.getByRole("navigation", { name: "Módulos del panel" });
+          : page.locator("#admin-desktop-sidebar");
       if (width < 768)
         await page.getByRole("button", { name: "Menú del panel" }).click();
       await nav.getByRole("button", { name: "Más herramientas", exact: true }).click();
