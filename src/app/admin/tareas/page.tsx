@@ -17,7 +17,7 @@ function Tasks() {
   const router = useRouter();
   const tareas = useCollection(db.tareas);
   const leads = useCollection(db.leads), clientes = useCollection(db.clientes), propiedades = useCollection(db.propiedades);
-  const defaults = {leadId: leads.find(l=>l.id===params.get("leadId"))?.id, clienteId: clientes.find(c=>c.id===params.get("clienteId"))?.id, propiedadSlug: propiedades.find(p=>p.slug===params.get("propiedadSlug"))?.slug};
+  const defaults = {expedienteId: params.get("expediente")?.toLowerCase() || undefined, leadId: leads.find(l=>l.id===params.get("leadId"))?.id, clienteId: clientes.find(c=>c.id===params.get("clienteId"))?.id, propiedadSlug: propiedades.find(p=>p.slug===params.get("propiedadSlug"))?.slug};
   const asesores = useCollection(db.asesores);
   const [creating, setCreating] = React.useState(params.get("nueva") === "1");
   useQuickCreate("/admin/tareas", () => setCreating(true));

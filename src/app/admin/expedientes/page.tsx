@@ -1,6 +1,8 @@
 "use client";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
+import { Plus, FolderOpen } from "lucide-react";
+import { OperationBrief } from "@/components/admin/workspace/operation-brief";
 import { DossierTabs, type DossierView } from "@/components/admin/workspace/dossier-tabs";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { EXPEDIENTE_ETAPAS, EXPEDIENTE_DOCUMENTOS } from "@/lib/formatos/expediente-operations";
@@ -29,7 +31,7 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export default function ExpedientesPage() {
-  const [createOpen] = React.useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("nuevo") === "1");
+  const [createOpen,setCreateOpen] = React.useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("nuevo") === "1");
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);
@@ -37,7 +39,7 @@ export default function ExpedientesPage() {
   const [showDeleted, setShowDeleted] = React.useState(false);
   const [notice, setNotice] = React.useState("");
   const [query,setQuery] = React.useState("");
-  const [view,setView]=React.useState<DossierView>("all");
+  const [view,setView]=React.useState<DossierView>(()=>typeof window!=="undefined"&&new URLSearchParams(window.location.search).has("documento")?"documents":"all");
   const [selectedId, setSelectedId] = React.useState("");
   const [documentos, setDocumentos] = React.useState<Documento[]>([]);
   const [documento, setDocumento] = React.useState<Documento | null>(null);
@@ -62,6 +64,27 @@ export default function ExpedientesPage() {
     if (!canNavigate()) return;
     generation.current++;
     setSelectedId(id); setView("all"); setOperationalDirty(false); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]); setError("");
+  }
+  async function openDocumento(id: string) {
+    if (!canNavigate()) return;
+    setError(""); setBusy(true);
+    const requestGeneration = ++generation.current;
+    try {
+      const result = await json<{ documento: Documento; emisiones: Emision[] }>(`/api/admin/formatos/${id}`);
+      let images: Adjunto[] = [];
+      if (["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07"].includes(result.documento.formato_id)) {
+        const assets = await json<{ adjuntos: Adjunto[] }>(`/api/admin/formatos/${id}/adjuntos`);
+        images = assets.adjuntos;
+      }
+      const pairs = await Promise.all(result.emisiones.map(async (item) => {
+        const response = await json<{ copias: Copia[] }>(`/api/admin/emisiones/${item.id}/firmado`);
+        return [item.id, response.copias] as const;
+      }));
+      if (requestGeneration !== generation.current) return;
+      setDocumento(result.documento); setValues(result.documento.data); setEmisiones(result.emisiones);
+      setAdjuntos(images); setCopias(Object.fromEntries(pairs));
+    } catch (cause) { if (requestGeneration === generation.current) setError(String(cause)); }
+    finally { if (requestGeneration === generation.current) setBusy(false); }
   }
   React.useEffect(() => () => { generation.current++; }, []);
   React.useEffect(() => {
@@ -89,9 +112,16 @@ export default function ExpedientesPage() {
     if (!selectedId || showDeleted) return;
     let active = true;
     json<{ documentos: Documento[] }>(`/api/admin/expedientes/${selectedId}/formatos`)
-      .then((result) => { if (active) setDocumentos(result.documentos); })
+      .then((result) => {
+        if (!active) return;
+        setDocumentos(result.documentos);
+        const requested=new URLSearchParams(window.location.search).get("documento");
+        if(requested&&result.documentos.some(item=>item.id===requested)) void openDocumento(requested);
+      })
       .catch((cause) => { if (active) setError(String(cause)); });
     return () => { active = false; };
+    // Apply the incoming document once per dossier; editing state is not a reload trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, showDeleted]);
 
   function changeList(deleted: boolean) {
@@ -129,6 +159,7 @@ export default function ExpedientesPage() {
         body: JSON.stringify({ clienteId, asesorId: cliente.asesorId, folio: String(data.get("folio") ?? "").trim(), operacion: String(data.get("operacion") ?? "venta"), propiedadSlug: String(data.get("propiedadSlug") ?? "") || undefined, unidad: String(data.get("unidad") ?? "") }),
       });
       setExpedientes((items) => [result.expediente, ...items]); setSelectedId(result.expediente.id); setDocumento(null);
+      setCreateOpen(false);
       formElement.reset();
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
@@ -151,27 +182,6 @@ export default function ExpedientesPage() {
       });
       setDocumentos((items) => [result.documento, ...items]); setDocumento(result.documento); setValues(result.documento.data); setEmisiones([]); setCopias({}); setAdjuntos([]);
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
-  }
-  async function openDocumento(id: string) {
-    if (!canNavigate()) return;
-    setError(""); setBusy(true);
-    const requestGeneration = ++generation.current;
-    try {
-      const result = await json<{ documento: Documento; emisiones: Emision[] }>(`/api/admin/formatos/${id}`);
-      let images: Adjunto[] = [];
-      if (["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07"].includes(result.documento.formato_id)) {
-        const assets = await json<{ adjuntos: Adjunto[] }>(`/api/admin/formatos/${id}/adjuntos`);
-        images = assets.adjuntos;
-      }
-      const pairs = await Promise.all(result.emisiones.map(async (item) => {
-        const response = await json<{ copias: Copia[] }>(`/api/admin/emisiones/${item.id}/firmado`);
-        return [item.id, response.copias] as const;
-      }));
-      if (requestGeneration !== generation.current) return;
-      setDocumento(result.documento); setValues(result.documento.data); setEmisiones(result.emisiones);
-      setAdjuntos(images); setCopias(Object.fromEntries(pairs));
-    } catch (cause) { if (requestGeneration === generation.current) setError(String(cause)); }
-    finally { if (requestGeneration === generation.current) setBusy(false); }
   }
   async function saveDocumento() {
     if (!documento || working.current) return;
@@ -245,14 +255,14 @@ export default function ExpedientesPage() {
   const missing = definition ? validateFormato(definition.id, { ...values, folio: selected?.folio }) : [];
   const budgetTotals = definition?.id === "19" && missing.length === 0 ? calcularPresupuesto(values) : null;
   const netTotals = definition?.id === "08" && missing.length === 0 ? calcularNeto({ ...values, folio: selected?.folio }) : null;
-  return <div className="space-y-8">
-    <PageHeader title="Expedientes y formatos" description="Documentos, pendientes y siguientes pasos de cada operación." />
+  return <div className="admin-operations-page min-w-0 space-y-5">
+    <PageHeader title="Expedientes y formatos" description="Documentos, pendientes y siguientes pasos de cada operación." actions={!showDeleted&&<button type="button" className={btnPrimary} aria-expanded={createOpen} aria-controls="nuevo-expediente" disabled={busy||pdfBusy} onClick={()=>setCreateOpen(!createOpen)}><Plus size={18}/>{createOpen?"Cerrar captura":"Nueva operación"}</button>}/>
     <details className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"><summary className="cursor-pointer font-semibold">Formatos y requisitos de emisión</summary><p className="mt-3">{FORMATOS.filter(item => item.readyForEmission && !item.globalRoute).length} formatos admiten emisión por expediente, sujeta a captura y revisión completas.</p><p><a href="/admin/control-comercial" className="text-primary-ink underline">03 · Control comercial global</a>: carteras, historial y PDF desde su propio módulo.</p><p>09 · Intermediación: puedes preparar la captura; su PDF requiere registro y cotejo del modelo registrado.</p></details>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="rounded-md border border-border p-3 text-sm">{notice}</p>}
-    {!showDeleted && <details id="nuevo-expediente" className="rounded-lg border border-border bg-card p-5" open={createOpen || expedientes.length === 0 || undefined}>
+    {!showDeleted && <details id="nuevo-expediente" hidden={!createOpen} className="admin-operation-create rounded-lg border border-border bg-card p-5" open={createOpen} onToggle={event=>setCreateOpen(event.currentTarget.open)}>
       <summary className="cursor-pointer font-semibold">Nuevo expediente</summary>
-      <form onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
+      <form hidden={!createOpen} onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
         <label className="text-sm">Cliente<select name="clienteId" required className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
         <label className="text-sm">Folio<input name="folio" required maxLength={80} className={inputClass} /></label>
         <label className="text-sm">Operación<select name="operacion" className={selectClass}><option value="venta">Venta</option><option value="renta">Renta</option><option value="administracion">Administración</option><option value="otra">Otra</option></select></label>
@@ -261,7 +271,7 @@ export default function ExpedientesPage() {
         <button type="submit" disabled={busy || hasUnsavedChanges} className={btnPrimary + " self-end"}>Crear expediente</button>
       </form>
     </details>}
-    <section className="grid items-start gap-6 lg:grid-cols-[minmax(240px,340px)_1fr]">
+    <section className="admin-operation-layout">
       <div className="rounded-lg border border-border bg-card p-5">
         <h2 className="display-soft mb-4 text-xl">Expedientes</h2>
         <div className="mb-4 flex flex-wrap gap-2" aria-label="Estado de los expedientes">
@@ -270,9 +280,10 @@ export default function ExpedientesPage() {
         </div>
         {expedientes.length === 0 && <p className="text-sm text-muted-foreground">{showDeleted ? "No hay expedientes eliminados visibles para tu cuenta." : "Aún no hay expedientes activos visibles para tu cuenta."}</p>}
         <label className="mb-3 block text-sm">Buscar expediente<input type="search" className={inputClass} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Folio o cliente"/></label>
-        <div className="space-y-2">{expedientes.filter(item=>`${item.folio} ${clientes.find(c=>c.id===item.cliente_id)?.nombre??""}`.toLocaleLowerCase("es").includes(query.trim().toLocaleLowerCase("es"))).map((item) => <button key={item.id} type="button" disabled={busy} onClick={() => selectExpediente(item.id)} className={`w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? item.cliente_id}</span></button>)}</div>
+        <div className="space-y-2">{expedientes.filter(item=>`${item.folio} ${clientes.find(c=>c.id===item.cliente_id)?.nombre??""}`.toLocaleLowerCase("es").includes(query.trim().toLocaleLowerCase("es"))).map((item) => <button key={item.id} type="button" disabled={busy} aria-pressed={item.id===selectedId} onClick={() => selectExpediente(item.id)} className={`admin-dossier-select w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? "Cliente no disponible"}</span><small>{EXPEDIENTE_ETAPAS[item.etapa??"captacion"]} · {item.fecha_objetivo??"Sin fecha objetivo"}</small></button>)}</div>
       </div>
-      <div className="min-w-0 space-y-6">{selected && <>
+      <div className="min-w-0 space-y-5">{!selected&&<section className="admin-card admin-operation-welcome"><FolderOpen size={32} aria-hidden="true"/><h2>Tu operación, en un solo lugar</h2><p>Selecciona un expediente para consultar su inmueble, personas, documentos y siguientes pasos.</p>{!showDeleted&&<button type="button" className={btnGhost} onClick={()=>setCreateOpen(true)}>Abrir captura de operación</button>}</section>}{selected && <>
+        {!selected.deleted_at&&<OperationBrief operation={selected} onReview={()=>setView("summary")}/>}
         {!selected.deleted_at && <DossierTabs value={view} onChange={setView} disabled={busy||pdfBusy}/>}
         <div id="exp-tab-content" role="tabpanel" aria-labelledby={`exp-tab-${view}`} tabIndex={0} className="min-w-0 space-y-6">
         <section className="rounded-lg border border-border bg-card p-5">

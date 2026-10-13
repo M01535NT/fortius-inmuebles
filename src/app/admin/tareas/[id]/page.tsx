@@ -47,6 +47,7 @@ function TaskDetail({ id }: { id: string }) {
               <div><dt className="font-medium">Prospecto</dt><dd>{leads.find((l) => l.id === conflict.task.leadId)?.nombre ?? (conflict.task.leadId ? "Prospecto no disponible" : "Sin vínculo")}</dd></div>
               <div><dt className="font-medium">Cliente</dt><dd>{clientes.find((c) => c.id === conflict.task.clienteId)?.nombre ?? (conflict.task.clienteId ? "Cliente no disponible" : "Sin vínculo")}</dd></div>
               <div><dt className="font-medium">Inmueble</dt><dd>{propiedades.find((p) => p.slug === conflict.task.propiedadSlug)?.titulo ?? (conflict.task.propiedadSlug ? "Inmueble no disponible" : "Sin vínculo")}</dd></div>
+              <div><dt className="font-medium">Referencia de expediente</dt><dd>{conflict.task.expedienteId ? "Vínculo directo registrado" : "Sin referencia a expediente"}</dd></div>
               <div><dt className="font-medium">Motivo de espera</dt><dd>{conflict.task.motivoEspera || "Sin motivo registrado"}</dd></div>
               <div className="sm:col-span-2"><dt className="font-medium">Pasos</dt><dd>{conflict.task.pasos.length ? <ul className="space-y-1">{conflict.task.pasos.map((paso) => <li key={paso.id}>{paso.hecho ? "Completado" : "Pendiente"}: {paso.texto}</li>)}</ul> : "Sin pasos"}</dd></div>
             </dl>
@@ -71,6 +72,7 @@ function TaskDetail({ id }: { id: string }) {
         }
       }} /></section>
       <nav aria-label="Registros relacionados" className="flex flex-wrap gap-2">
+        {task?.expedienteId && <Link className={btnGhost} href={`/admin/expedientes?expediente=${task.expedienteId}`}>Ver expediente</Link>}
         {task?.leadId && <Link className={btnGhost} href={`/admin/leads/${task.leadId}`}>Ver lead</Link>}
         {task?.clienteId && <Link className={btnGhost} href="/admin/clientes">Ver clientes</Link>}
         {task?.propiedadSlug && <Link className={btnGhost} href={`/admin/propiedades/${task.propiedadSlug}/editar`}>Ver inmueble</Link>}

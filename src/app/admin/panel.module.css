@@ -182,6 +182,81 @@
 .panel :global(.admin-module-link):hover { border-color: var(--primary-text); }
 .panel :global(.admin-status-note) { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 1rem 1.25rem; border-left: 3px solid #8a1634; background: var(--card); color: var(--muted-foreground); font-size: .9375rem; }
 .panel :global(.admin-login-card) { padding: 2rem; box-shadow: 0 12px 40px #061f3f08; }
+
+/* Operational review: visible priorities, a single dossier context and document access. */
+.panel :global(.admin-data-scope) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; color: var(--muted-foreground); font-size: .8125rem; }
+.panel :global(.admin-data-scope) label { display: inline-flex; align-items: center; gap: .625rem; min-height: 2.75rem; font-size: .8125rem; cursor: pointer; }
+.panel :global(.admin-data-scope) input { width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
+.panel :global(.admin-attention-overview) { grid-column: 1 / -1; }
+.panel :global(.admin-priority-grid) { display: grid; gap: 1rem; padding: 1rem; }
+.panel :global(.admin-priority-grid) h3 { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .875rem; }
+.panel :global(.admin-priority-grid) p { margin-top: .5rem; font-size: .8125rem; color: var(--muted-foreground); }
+.panel :global(.admin-priority-grid) :is(a,summary) { display: block; min-height: 2.75rem; padding-block: .625rem; font-size: .875rem; overflow-wrap: anywhere; }
+.panel :global(.admin-priority-grid) small { display: block; color: var(--muted-foreground); margin-top: .125rem; }
+.panel :global(.admin-priority-grid) summary { cursor: pointer; color: var(--primary-text); }
+.panel :global(.admin-report-metrics) { display: grid; gap: .75rem; }
+.panel :global(.admin-metric-action) { display: grid; gap: .375rem; min-width: 0; padding: 1rem; text-align: left; border: 1px solid var(--border); border-radius: .375rem; background: var(--card); color: var(--foreground); }
+.panel :is(button,a):global(.admin-metric-action):hover { background: var(--secondary); }
+.panel :global(.admin-metric-action) strong { font-size: 1.875rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.panel :global(.admin-metric-action) :is(span,small) { font-size: .875rem; }
+.panel :global(.admin-metric-action) small { color: var(--muted-foreground); }
+.panel :global(.admin-report-detail) { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.panel :global(.admin-report-detail) h3 { font-size: 1rem; }
+.panel :global(.admin-report-detail) a { display: block; min-height: 2.75rem; padding-block: .5rem; overflow-wrap: anywhere; }
+.panel :global(.admin-report-detail) small { display: block; color: var(--muted-foreground); }
+.panel :global(.admin-document-filters) { display: grid; gap: .75rem; padding: 1rem 1.25rem; align-items: end; }
+.panel :global(.admin-document-filters) label { min-width: 0; font-size: .875rem; }
+.panel :global(.admin-document-filters) :is(input,select) { margin-top: .375rem; }
+.panel :global(.admin-document-list) > li { display: grid; grid-template-columns: 1.5rem minmax(0,1fr); gap: .75rem; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+.panel :global(.admin-document-list) h3 { font-size: .9375rem; overflow-wrap: anywhere; }
+.panel :global(.admin-document-list) :is(p,small) { color: var(--muted-foreground); font-size: .8125rem; overflow-wrap: anywhere; }
+.panel :global(.admin-document-list) > li > :is(a,span) { grid-column: 2; justify-self: start; }
+.panel :global(.admin-document-pagination) { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1rem; padding: 1rem; border-top: 1px solid var(--border); }
+.panel :global(.admin-document-tools) summary { display: flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-size: .875rem; }
+.panel :global(.admin-operation-layout) { display: grid; align-items: start; gap: 1.25rem; min-width: 0; }
+.panel :global(.admin-operation-create) { border-left: 3px solid var(--primary); }
+.panel :global(.admin-operation-create) summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; }
+.panel :global(.admin-operation-create) form:not([hidden]) { padding-top: 1rem; }
+.panel :global(.admin-operation-create) form[hidden] { display: none; }
+.panel :global(.admin-dossier-select) { display: grid; gap: .375rem; overflow-wrap: anywhere; }
+.panel :global(.admin-dossier-select) small { color: var(--muted-foreground); }
+.panel :global(.admin-operation-welcome) { display: grid; justify-items: start; gap: 1rem; padding: 2rem; }
+.panel :global(.admin-operation-welcome) p { max-width: 42rem; color: var(--muted-foreground); }
+.panel :global(.admin-operation-brief) { overflow: hidden; }
+.panel :global(.admin-operation-identity) { display: flex; flex-wrap: wrap; gap: .875rem; align-items: center; padding: 1.25rem; background: var(--secondary); }
+.panel :global(.admin-operation-identity) > div { flex: 1; min-width: 0; }
+.panel :global(.admin-operation-identity) h2 { font-size: 1.375rem; margin-block: .25rem; overflow-wrap: anywhere; }
+.panel :global(.admin-operation-identity) :is(p,small) { font-size: .8125rem; color: var(--muted-foreground); }
+.panel :global(.admin-operation-symbol) { display: inline-flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; flex-shrink: 0; border-radius: .5rem; background: var(--card); color: var(--primary-text); }
+.panel :global(.admin-operation-context) { display: grid; gap: 1rem; padding: 1.25rem; }
+.panel :global(.admin-operation-context) dt { font-size: .8125rem; color: var(--muted-foreground); margin-bottom: .25rem; }
+.panel :global(.admin-operation-context) dd { font-weight: 600; font-size: .875rem; overflow-wrap: anywhere; }
+.panel :global(.admin-operation-context) a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.panel :global(.admin-operation-brief) { container-type: inline-size; }
+.panel :global(.admin-operation-next), .panel :global(.admin-operation-gaps) { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.25rem; border-top: 1px solid var(--border); }
+.panel :global(.admin-operation-next) > div, .panel :global(.admin-operation-gaps) > div { min-width: 0; width: 100%; }
+.panel :global(.admin-operation-next) h3, .panel :global(.admin-operation-gaps) h3 { font-size: 1rem; }
+.panel :global(.admin-operation-next) p { margin-top: .375rem; font-size: .875rem; color: var(--muted-foreground); }
+.panel :global(.admin-operation-next) small { display: block; color: var(--muted-foreground); margin-top: .25rem; }
+.panel :global(.admin-operation-next) a { overflow-wrap: anywhere; }
+.panel :global(.admin-operation-gaps) { background: var(--field-surface); align-items: start; }
+.panel :global(.admin-operation-gaps) ul { margin-top: .5rem; font-size: .875rem; list-style: disc; padding-left: 1.125rem; }
+.panel :global(.admin-operation-gaps) p { margin-top: .75rem; color: var(--muted-foreground); font-size: .8125rem; }
+@container (min-width: 32rem) {
+  .panel :global(.admin-operation-next), .panel :global(.admin-operation-gaps) { flex-direction: row; justify-content: space-between; }
+  .panel :global(.admin-operation-next) { align-items: center; }
+  .panel :global(.admin-operation-next) > div, .panel :global(.admin-operation-gaps) > div { width: auto; flex: 1; }
+}
+@media (min-width: 640px) {
+  .panel :global(.admin-priority-grid), .panel :global(.admin-operation-context) { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .panel :global(.admin-report-metrics) { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .panel :global(.admin-document-list) > li { grid-template-columns: 1.5rem minmax(0,1fr) auto auto; }
+  .panel :global(.admin-document-list) > li > :is(a,span) { grid-column: auto; }
+}
+@media (min-width: 1024px) {
+  .panel :global(.admin-operation-layout) { grid-template-columns: minmax(240px,300px) minmax(0,1fr); }
+  .panel :global(.admin-document-filters) { grid-template-columns: minmax(0,1fr) minmax(0,1.5fr) auto; }
+}
 .panel table th { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-size: .8125rem; font-weight: 600; background: var(--secondary); }
 .panel table td { padding-block: .875rem; }
 @media (min-width: 640px) {

@@ -36,8 +36,9 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
   const [notice, setNotice] = React.useState("");
-  const dirty = etapa !== (expediente.etapa ?? "captacion") || fecha !== (expediente.fecha_objetivo ?? "")
+  const operationDirty = etapa !== (expediente.etapa ?? "captacion") || fecha !== (expediente.fecha_objetivo ?? "")
     || checklistKey(checklist) !== checklistKey(expediente.checklist);
+  const dirty = operationDirty || !!note.trim();
   React.useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
   React.useEffect(() => {
     let active = true;
@@ -51,7 +52,7 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
     setActivity(result.actividad);
   }
   async function save(event: React.FormEvent) {
-    event.preventDefault(); if (!dirty || busy) return;
+    event.preventDefault(); if (!operationDirty || busy) return;
     setBusy(true); setError(""); setNotice("");
     try {
       const result = await json<{ expediente: T }>(`/api/admin/expedientes/${expediente.id}/operacion`, {
@@ -110,12 +111,12 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
           </label>)}
         </div>
       </div>
-      <button type="submit" disabled={!dirty || busy} className={btnPrimary}>Guardar seguimiento</button>
+      <button type="submit" disabled={!operationDirty || busy} className={btnPrimary}>Guardar seguimiento</button>
     </form>
     <div id="exp-actividad" hidden={view==="summary"} className="mt-6 scroll-mt-24 border-t border-border pt-5">
       <h4 className="font-semibold">Actividad y revisión documental</h4>
       <p className="mt-2 text-sm text-muted-foreground">Recibido indica recepción. Registra por separado qué documento revisaste, su soporte y el resultado.</p>
-      <div className="mt-3 flex flex-wrap gap-2">{Object.entries(EXPEDIENTE_DOCUMENTOS).filter(([key])=>checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS]==="recibido").map(([key,label])=><button key={key} type="button" className={btnGhost} disabled={busy} onClick={()=>{setNote("Revisión de "+label+": ");document.getElementById("exp-review-note")?.focus();}}>Revisar {label}</button>)}</div>
+      <div className="mt-3 flex flex-wrap gap-2">{Object.entries(EXPEDIENTE_DOCUMENTOS).filter(([key])=>checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS]==="recibido").map(([key,label])=><button key={key} type="button" className={btnGhost} disabled={busy || !!note.trim()} onClick={()=>{setNote("Revisión de "+label+": ");document.getElementById("exp-review-note")?.focus();}}>Revisar {label}</button>)}</div>
       <form onSubmit={addNote} className="mt-3 flex flex-wrap items-end gap-2">
         <label className="min-w-[240px] flex-1 text-sm">Nueva nota
           <textarea id="exp-review-note" className={inputClass} maxLength={1000} rows={2} value={note} disabled={busy}

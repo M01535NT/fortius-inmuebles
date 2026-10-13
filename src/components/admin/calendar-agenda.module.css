@@ -1,0 +1,123 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+}
+.viewButton { min-width: 5rem; }
+.period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.week {
+  container-type: inline-size;
+  margin-top: 1rem;
+}
+.weekDay {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .5rem;
+  min-width: 0;
+  padding-block: 1rem;
+  border-top: 1px solid var(--border);
+}
+.weekDate {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 2.75rem;
+  width: 100%;
+  min-width: 0;
+  padding: .5rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: left;
+  color: var(--foreground);
+  background: var(--card);
+}
+.weekDate strong { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.weekDate span { color: var(--muted-foreground); font-size: .875rem; }
+.weekDate[aria-current=date] { border-color: var(--primary-text); }
+.activityList {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.activity {
+  min-width: 0;
+  padding-block: .75rem;
+}
+.activity + .activity { border-top: 1px solid var(--border); }
+.activityMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  font-size: .75rem;
+}
+.activityTime, .activityDate { font-variant-numeric: tabular-nums; color: var(--muted-foreground); }
+.activityDate { color: var(--foreground); font-weight: 600; }
+.activityTitle {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  max-width: 100%;
+  padding-block: .375rem;
+  text-align: left;
+  color: var(--foreground);
+  font-size: .875rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.activityTitle:hover { color: var(--primary-text); text-decoration: underline; }
+.activityNote { color: var(--muted-foreground); font-size: .75rem; }
+.context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .75rem;
+  min-width: 0;
+  color: var(--muted-foreground);
+  font-size: .75rem;
+  overflow-wrap: anywhere;
+}
+.context a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  max-width: 100%;
+  color: var(--primary-text);
+  overflow-wrap: anywhere;
+}
+.context a:hover { text-decoration: underline; }
+.context span { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.formContext {
+  padding: .75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--secondary);
+}
+.formContext > p:first-child { font-size: .75rem; font-weight: 650; color: var(--foreground); }
+.empty { padding: .75rem; color: var(--muted-foreground); font-size: .875rem; }
+@container (min-width: 28rem) {
+  .weekDay { grid-template-columns: 7rem minmax(0, 1fr); gap: 1rem; }
+  .weekDate { flex-direction: column; align-items: flex-start; align-self: start; }
+}
+@media (min-width: 1280px) {
+  .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 360px); }
+}

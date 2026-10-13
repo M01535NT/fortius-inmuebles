@@ -1,9 +1,12 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 import { TodayWorkspace } from "@/components/admin/workspace/today";
 import { Plus } from "lucide-react";
+import { InventoryScope } from "@/components/admin/workspace/inventory-scope";
+import { operationalInventory } from "@/lib/admin/operational-inventory";
 
 import { Badge, btnPrimary } from "@/components/admin/ui";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -21,6 +24,7 @@ import {
 */
 export default function AdminDashboard() {
   const propiedades = useCollection(db.propiedades);
+  const [includeDemo, setIncludeDemo] = React.useState(false);
   const leads = useCollection(db.leads).filter(lead => !lead.clienteId);
   const eventos = useCollection(db.eventos);
 
@@ -31,7 +35,7 @@ export default function AdminDashboard() {
     .sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? "")));
   const vistaPrevia = proximos.filter((e) => e.fecha > hoy).slice(0, 5);
   const leadsNuevos = leads.filter((l) => l.estado === "nuevo").length;
-  const disponibles = propiedades.filter((p) => p.estado === "disponible").length;
+  const disponibles = operationalInventory(propiedades, includeDemo).filter((p) => p.estado === "disponible").length;
 
   const kpis = [
     { label: "Inmuebles disponibles", value: disponibles, href: "/admin/propiedades" },
@@ -46,7 +50,8 @@ export default function AdminDashboard() {
         <div className="admin-executive-metrics">{kpis.map(({ label, value, href }) => <Link key={label} href={href} aria-label={`${String(value).padStart(2,"0")} ${label}`}><small>{label}</small><strong>{String(value).padStart(2, "0")}</strong></Link>)}<Link href="/admin/finanzas"><small>Comisiones previstas</small><span>Pendiente</span></Link></div>
         <Link href="/admin/expedientes?nuevo=1#nuevo-expediente" className={btnPrimary}><Plus size={18} /> Nueva operación</Link>
       </header>
-      <TodayWorkspace />
+      <InventoryScope count={propiedades.filter(p => p.demo).length} included={includeDemo} onChange={setIncludeDemo}/>
+      <TodayWorkspace includeDemo={includeDemo}/>
       <details className="admin-dashboard-more"><summary>Más información del equipo</summary>
       <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Agenda primero para priorizar la operación en móvil. */}
