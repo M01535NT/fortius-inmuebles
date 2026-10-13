@@ -3,89 +3,59 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import * as motion from "motion/react-m";
-import { AnimatePresence, useInView, useScroll, useTransform } from "motion/react";
-import { ArrowUpRight } from "lucide-react";
-import { SplitHeading } from "@/components/gsap/split-heading";
-import { resolveSiteContent } from "@/data/home-copy";
-import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
-import type { SiteContent } from "@/lib/admin/store";
-import { HeroMarquee } from "@/components/home/hero-marquee";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { gsap, useGSAP } from "@/lib/gsap";
 
-const PHOTOS = [
-  { src: "/hero/casa-playa.webp", alt: "Residencia junto al mar" },
-  { src: "/hero/interior-depa.webp", alt: "Interior de departamento" },
-  { src: "/hero/edificio-ciudad.webp", alt: "Arquitectura residencial en la ciudad" },
-  { src: "/hero/plaza.webp", alt: "Plaza comercial" },
-];
-
-export function EditorialHero({ content }: { content?: SiteContent | null }) {
-  const copy = resolveSiteContent(content);
-  const reduce = useReducedMotionSafe();
+export function EditorialHero() {
   const ref = React.useRef<HTMLElement>(null);
-  const inView = useInView(ref, { amount: 0.05 });
-  const [index, setIndex] = React.useState(0);
-  const [paused, setPaused] = React.useState(false);
-  const [visible, setVisible] = React.useState(true);
-  const playing = inView && visible && !reduce && !paused;
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const photoY = useTransform(scrollYProgress, [0, 1], ["0%", "14%"]);
-  const photoScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
 
-  React.useEffect(() => {
-    const update = () => setVisible(document.visibilityState === "visible");
-    update();
-    document.addEventListener("visibilitychange", update);
-    return () => document.removeEventListener("visibilitychange", update);
-  }, []);
-  React.useEffect(() => {
-    if (!playing) return;
-    const timer = setTimeout(() => setIndex((value) => (value + 1) % PHOTOS.length), 8000);
-    return () => clearTimeout(timer);
-  }, [index, playing]);
+  useGSAP(() => {
+    const media = gsap.matchMedia();
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      const entrance = gsap.timeline({ defaults: { duration: 0.65, ease: "power3.out" } });
+      entrance
+        .from(".editorial-cover-eyebrow", { opacity: 0, y: 8 }, 0)
+        .from(".editorial-title-line", { opacity: 0, y: 18, stagger: 0.1 }, 0.12)
+        .from(".editorial-cover-description", { opacity: 0, y: 12 }, 0.25)
+        .from(".editorial-cover-actions > a", { opacity: 0, y: 10, stagger: 0.1 }, 0.36)
+        .from(".editorial-cover-photo", { scale: 1.025, duration: 0.85 }, 0);
+    });
+    return () => media.revert();
+  }, { scope: ref });
 
   return (
-    <section ref={ref} aria-label="Presentación" className="editorial-hero">
-      <figure className="editorial-cover-figure">
-        <div className="editorial-cover-window">
-          <motion.div className="editorial-cover-depth" style={{ y: reduce ? 0 : photoY, scale: reduce ? 1 : photoScale }}>
-            <AnimatePresence initial={false} mode="sync">
-              <motion.div key={index} className="editorial-cover-photo"
-                initial={reduce ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                transition={{ duration: reduce ? 0 : 1.15, ease: [0.76, 0, 0.24, 1] }}>
-                <div className={reduce ? "absolute inset-0" : "kenburns absolute inset-0"} style={{ animationPlayState: playing ? "running" : "paused" }}>
-                  <Image src={PHOTOS[index].src} alt={PHOTOS[index].alt} fill priority={index === 0}
-                    sizes="100vw" className="object-cover" />
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-        </div>
-      </figure>
-      <div className="editorial-hero-shade" aria-hidden="true" />
+    <section ref={ref} aria-labelledby="hero-title" className="editorial-hero">
       <div className="editorial-hero-content editorial-container">
         <div className="editorial-cover-copy">
-          <SplitHeading as="h1" once reveal="soft-lines" delay={0.1}
-            lines={copy.heroTitulo.split("\n")}
-            className="editorial-cover-title" />
-          <motion.p className="hero-copy-entry editorial-cover-description"
-            initial={false} animate={{ y: 0 }} transition={{ duration: reduce ? 0 : 0.8 }}>
-            {copy.heroSubtitulo}
-          </motion.p>
-          <motion.div className="hero-copy-entry editorial-cover-actions" initial={false}
-            whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.75 }}>
-            <Link href="/vender-propiedad" className="editorial-button" data-cursor="Vender">Quiero vender mi propiedad <ArrowUpRight size={20} aria-hidden="true" /></Link>
-            <Link href="/inventario" className="editorial-text-link" data-cursor="Explorar">Explorar inmuebles <ArrowUpRight size={18} aria-hidden="true" /></Link>
-          </motion.div>
-        </div>
-        <div role="group" aria-label="Imágenes del inicio" aria-describedby="editorial-slide-help" className="editorial-photo-controls">
-          <span id="editorial-slide-help" className="sr-only">Selecciona una imagen para mantenerla en pantalla y detener los cambios automáticos.</span>
-          {PHOTOS.map((photo, i) => <button key={photo.src} type="button" aria-label={`Imagen ${i + 1}`}
-            aria-pressed={index === i} onClick={() => { setIndex(i); setPaused(true); }}><span /></button>)}
+          <div className="editorial-cover-heading">
+            <p className="editorial-cover-eyebrow">INMOBILIARIA EN BAJA CALIFORNIA</p>
+            <h1 id="hero-title" className="editorial-cover-title">
+              <span className="editorial-title-line">La venta empieza</span>{" "}
+              <span className="editorial-title-line editorial-cover-emphasis">antes del anuncio.</span>
+            </h1>
+          </div>
+          <p className="editorial-cover-description">
+            Analizamos el mercado, revisamos la documentación y coordinamos contigo cada etapa de la comercialización de tu propiedad.
+          </p>
+          <div className="editorial-cover-actions">
+            <Link href="/vender-propiedad" className="editorial-hero-primary">
+              Quiero vender mi propiedad <span className="editorial-cta-direction" aria-hidden="true"><ArrowUpRight size={20} /></span>
+            </Link>
+            <Link href="/inventario" className="editorial-hero-secondary">
+              <span>Ver propiedades</span><ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </div>
-      <HeroMarquee />
+      <figure className="editorial-cover-figure">
+        <div className="editorial-cover-window">
+          <div className="editorial-cover-photo">
+            <Image src="/hero/panorama-editorial.webp" alt="Panorámica de arquitectura comercial y paisaje costero, imagen conceptual de referencia"
+              fill loading="eager" fetchPriority="high" sizes="100vw"
+              className="object-cover" />
+          </div>
+        </div>
+      </figure>
     </section>
   );
 }

@@ -1,15 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-test("service strip can stay paused while the visitor continues navigating", async ({ page }) => {
+test("the hero has a single image and no obsolete carousel or service-strip controls", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
-  const strip = page.getByRole("button", { name: "Pausar banda de servicios" });
-  await strip.click();
-  await page.getByRole("button", { name: "Abrir menú" }).focus();
-  await page.mouse.move(0, 0);
-  await expect(page.locator(".hero-marquee-track")).toHaveCSS("animation-play-state", "paused");
-  await page.getByRole("button", { name: "Reanudar banda de servicios" }).press("Enter");
-  await page.getByRole("button", { name: "Abrir menú" }).focus();
-  await expect(page.locator(".hero-marquee-track")).toHaveCSS("animation-play-state", "running");
+  const hero = page.locator(".editorial-hero");
+  await expect(hero.locator("img")).toHaveCount(1);
+  await expect(hero.locator("button, .hero-marquee, .editorial-photo-controls")).toHaveCount(0);
 });
 
 test("dark link hover retains readable ink while buttons remain burgundy", async ({ page }) => {
@@ -48,13 +43,10 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
-  test(`home has a moving marquee, six timeline stages and a fixed image at ${width}px`, async ({ page }) => {
+  test(`home keeps six timeline stages and the fixed image below the simplified hero at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/", { waitUntil: "networkidle" });
-    const marquee = page.locator(".hero-marquee-track");
-    await expect(marquee).toHaveCSS("animation-play-state", "running");
-    const transform = await marquee.evaluate((node) => getComputedStyle(node).transform);
-    await expect.poll(() => marquee.evaluate((node) => getComputedStyle(node).transform)).not.toBe(transform);
+    await expect(page.locator(".hero-marquee-track")).toHaveCount(0);
     const timeline = page.locator("[data-method-timeline]");
     await expect(timeline.locator("li")).toHaveCount(6);
     await expect(timeline.getByRole("heading", { name: "Cierre y entrega" })).toBeVisible();
@@ -65,7 +57,6 @@ for (const width of [390, 1440]) {
     await page.evaluate(() => window.scrollBy({ top: 150, behavior: "instant" }));
     expect(await photo.evaluate((node) => node.getBoundingClientRect().top)).toBe(top);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(marquee).toHaveCSS("animation-name", "none");
     await expect(timeline.locator("li").last()).toHaveCSS("opacity", "1");
     await expect(page.locator(".editorial-cover-title")).toBeVisible();
   });

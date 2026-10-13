@@ -46,9 +46,8 @@ test("root layout reads public contact settings for the next request and preserv
 test("home passes projected panel copy and metadata reads subsequent edits without a build", async () => {
   const home = await HomePage();
   const sections = Children.toArray(home.props.children) as ReactElement<{ content?: unknown }>[];
-  expect(sections[0].props.content).toMatchObject({ heroTitulo: "Título del panel" });
+  expect(sections[0].props).not.toHaveProperty("content");
   expect(sections.find((section) => section.type === EditorialIntro)?.props.content).toMatchObject({ manifiestoTexto: "Texto actualizado" });
-  expect(sections[0].props.content).not.toHaveProperty("privateNote");
   expect((await generateMetadata()).description).toBe("Descripción publicada");
   content.seoDescription = "Descripción editada";
   expect((await generateMetadata()).description).toBe("Descripción editada");
