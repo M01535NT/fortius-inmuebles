@@ -15,6 +15,7 @@ export function useSidebarPreference(userId: string) {
 export function SidebarToggle({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   return <button type="button" className="admin-sidebar-toggle hidden md:inline-flex" aria-label={collapsed ? "Expandir barra lateral" : "Contraer barra lateral"} aria-expanded={!collapsed} aria-controls="admin-desktop-sidebar" onClick={onToggle} title={collapsed ? "Expandir barra lateral" : "Contraer barra lateral"}>
     {collapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
+    <span className="admin-sidebar-label">{collapsed ? "Expandir" : "Contraer"}</span>
   </button>;
 }
 export function SidebarResize({ width, onResize }: { width: number; onResize: (width: number) => void }) {

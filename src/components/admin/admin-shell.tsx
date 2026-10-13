@@ -5,34 +5,19 @@ import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
 import {
-  Building2,
-  CalendarDays,
   ExternalLink,
   Eye,
   EyeOff,
-  FileText,
-  FolderOpen,
-  LayoutDashboard,
   LogOut,
-  Newspaper,
-  PenLine,
   Settings,
-  StickyNote,
-  Users,
-  UsersRound,
   Menu,
   X,
-  History,
-  ChartNoAxesCombined,
-  ListTodo,
-  BriefcaseBusiness,
-  Wallet,
-  MapPin,
-  ContactRound,
   Bell,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
+import { SIDEBAR_MODULES } from "@/components/admin/workspace/module-catalog";
+import { AppLauncher } from "@/components/admin/workspace/app-launcher";
 import { ProfileMenu } from "@/components/admin/workspace/profile-menu";
 import { Breadcrumbs } from "@/components/admin/workspace/breadcrumbs";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
@@ -59,28 +44,6 @@ import {
   recoverPassword,
   useSession,
 } from "@/lib/admin/store";
-const NAV = [
-  { href: "/admin", label: "Resumen", icon: LayoutDashboard },
-  { href: "/admin/leads", label: "CRM", icon: Users },
-  { href: "/admin/propiedades", label: "Inmuebles", icon: Building2 },
-  { href: "/admin/clientes", label: "Clientes", icon: UsersRound },
-  { href: "/admin/expedientes", label: "Operaciones", icon: FileText },
-  { href: "/admin/finanzas", label: "Finanzas", icon: Wallet, adminOnly: true },
-  { href: "/admin/documentos", label: "Documentos", icon: FolderOpen },
-  { href: "/admin/territorio", label: "Análisis territorial", icon: MapPin },
-  { href: "/admin/portal-clientes", label: "Portal de clientes", icon: ContactRound, adminOnly: true },
-  { href: "/admin/control-comercial", label: "Control comercial", icon: BriefcaseBusiness, adminOnly: true },
-  { href: "/admin/reportes", label: "Reportes", icon: ChartNoAxesCombined, adminOnly: true },
-  { href: "/admin/tareas", label: "Tareas", icon: ListTodo },
-  { href: "/admin/calendario", label: "Calendario", icon: CalendarDays },
-  { href: "/admin/notas", label: "Notas", icon: StickyNote },
-  { href: "/admin/blog", label: "Blog", icon: Newspaper },
-  { href: "/admin/asesores", label: "Asesores", icon: UsersRound },
-  { href: "/admin/archivos", label: "Archivos", icon: FolderOpen },
-  { href: "/admin/contenido", label: "Contenido", icon: PenLine },
-  { href: "/admin/configuracion", label: "Configuración", icon: Settings },
-  { href: "/admin/historial", label: "Historial", icon: History, adminOnly: true },
-];
 
 function LoginScreen({
   onLogin,
@@ -375,9 +338,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   const links = (mobile = false) => (
     <>
-      <WorkspaceNavigation key={session.id} collapsed={!mobile && sidebar.collapsed} onExpand={() => setSidebar({ ...sidebar, collapsed: false })} modules={NAV.map(item => ({ ...item, group: ["/admin", "/admin/leads", "/admin/propiedades", "/admin/expedientes", "/admin/finanzas", "/admin/documentos", "/admin/territorio", "/admin/portal-clientes"].includes(item.href) ? "Principal" : ["Blog", "Archivos", "Contenido"].includes(item.label) ? "Publicación" : "Equipo y administración" })).sort((a,b)=>["Principal","Equipo y administración","Publicación"].indexOf(a.group)-["Principal","Equipo y administración","Publicación"].indexOf(b.group))} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
+      <WorkspaceNavigation key={session.id} collapsed={!mobile && sidebar.collapsed} onExpand={() => setSidebar({ ...sidebar, collapsed: false })} modules={SIDEBAR_MODULES} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
       {mobile ? (
         <>
+          <DocumentLink href="/admin/configuracion" aria-current={pathname.startsWith("/admin/configuracion") ? "page" : undefined} onClick={() => setMenu(false)} className="admin-sidebar-action"><Settings className="size-4"/>Configuración</DocumentLink>
           <DocumentLink
             href="/"
             onClick={() => setMenu(false)}
@@ -406,28 +370,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         >
           {links()}
         </nav>
-        <div className="space-y-2 border-t border-border p-3">
-          <DocumentLink href="/admin/configuracion" aria-label="Configuración" className="flex min-h-11 items-center gap-3 px-3 text-sm"><Settings className="size-4"/><span className="admin-sidebar-label">Configuración</span></DocumentLink>
-          <SidebarToggle collapsed={sidebar.collapsed} onToggle={() => setSidebar({ ...sidebar, collapsed: !sidebar.collapsed })} />
+        <div className="admin-sidebar-footer">
+          <DocumentLink href="/admin/configuracion" aria-label="Configuración" title="Configuración" aria-current={pathname.startsWith("/admin/configuracion") ? "page" : undefined} className="admin-sidebar-action"><Settings className="size-4"/><span className="admin-sidebar-label">Configuración</span></DocumentLink>
           <DocumentLink
             href="/"
             aria-label="Ver sitio"
             title="Ver sitio"
-            className="flex min-h-11 items-center gap-3 px-3 text-sm"
+            className="admin-sidebar-action"
           >
             <ExternalLink className="size-4" />
             <span className="admin-sidebar-label">Ver sitio</span>
           </DocumentLink>
+          <div className="admin-sidebar-controls">
+          <SidebarToggle collapsed={sidebar.collapsed} onToggle={() => setSidebar({ ...sidebar, collapsed: !sidebar.collapsed })} />
           <AsyncButton
             type="button"
             onClick={leave}
             aria-label="Salir"
             title="Salir"
-            className={btnGhost + " w-full"}
+            className={btnGhost + " admin-sidebar-exit"}
           >
             <LogOut className="size-4" />
             <span className="admin-sidebar-label">Salir</span>
           </AsyncButton>
+          </div>
         </div>
         {!sidebar.collapsed && <SidebarResize width={sidebar.width} onResize={(width) => setSidebar({ ...sidebar, width })} />}
       </aside>
@@ -444,11 +410,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               onClick={() => setMenu(!menu)}
             >
               {menu ? <X className="size-4" /> : <Menu className="size-4" />}
-              {menu ? "Cerrar" : "Módulos"}
+              <span className="sr-only sm:not-sr-only">{menu ? "Cerrar" : "Módulos"}</span>
             </button>
             <WorkspaceSearch />
             <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
-            <div className="flex shrink-0 items-center gap-1"><Link className="admin-alert-link" href="/admin/tareas" aria-label="Tareas y avisos"><Bell size={20}/></Link><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
+            <div className="flex shrink-0 items-center gap-1"><AppLauncher role={session.role} pathname={pathname} onOpen={() => setMenu(false)} /><Link className="admin-alert-link" href="/admin/tareas" aria-label="Tareas y avisos"><Bell size={20}/></Link><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
           </div>
           {menu ? (
             <nav

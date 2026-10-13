@@ -1,6 +1,6 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 12 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** Codex. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 13 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** Codex. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
@@ -24,6 +24,16 @@ Referencia de alcance: funciones de la imagen «Foto 1.jpg», incorporadas el 12
 La primera entrega sigue siendo captación y próxima acción dentro del panel. Después se amplían documentos, finanzas y tableros; el análisis de inversión, los mapas, el portal de clientes y la IA se entregan por módulos con sus pruebas. Estas cuatro capacidades forman parte del producto ampliado solicitado y siguen pendientes. El núcleo inicial puede aceptarse por separado; su aceptación no acredita que el producto ampliado esté completo.
 
 ## Dónde estamos
+
+### Barra lateral y aplicaciones — 13/10/2026
+
+Diseño aprobado: barra azul institucional con selección guinda, módulos agrupados en Comercial, Gestión y Herramientas; controles de configuración, sitio, contraer y salir al pie. Se conservan el orden personalizado, el ancho y los accesos existentes. El botón superior Aplicaciones abre una ventana con iconos y búsqueda local de los módulos disponibles para cada rol. Estos accesos no implementan las capacidades financieras, geográficas o de portal que siguen pendientes.
+
+- [x] Aplicar barra lateral y ventana de aplicaciones; reutilizar un catálogo de rutas y permisos.
+- [x] Comprobar teclado, búsqueda, cierres, navegación, permisos y adaptación a escritorio, tablet y móvil.
+- [x] Comparar capturas con las propuestas y cerrar los hallazgos de revisión independiente.
+
+Publicación: integrar esta revisión en `main` cuando sus comprobaciones automáticas pasen y confirmar el despliegue en `fortiusinmuebles.com/admin`. La evidencia técnica se conserva fuera de la carpeta activa.
 
 ### Diseño aprobado del panel — 12/10/2026
 
@@ -52,7 +62,7 @@ Este cambio es de presentación. No implementa contabilidad, TIR/VAN, mapas inte
 - Ya existen inmuebles, prospectos/clientes, agenda/tareas, expedientes, documentos privados y cartera comercial. También contratos compartidos, consultas paginadas de expedientes, diagnóstico de errores y comprobaciones locales de respaldo.
 - El sistema completo sigue pendiente. La cartera actual y las calculadoras públicas no equivalen a contabilidad ni a cobros efectivos.
 - Los resultados remotos de [Verify 38327265116](https://github.com/M01535NT/fortius-inmuebles/actions/runs/38327265116) corresponden a `36e3ba64`: 499 pruebas backend, 211 de panel, 12 de herramientas y 101 de navegador, según la evidencia registrada. No son pruebas nuevas de esta limpieza ni pruebas en dispositivos físicos.
-- La autorización actual permite preparar y desplegar la vista previa de `codex/erp-crm-preview` conectada a la base actual de Fortius. La conexión y el uso de la clave privada del servidor fueron autorizados expresamente; las tres variables están limitadas a esa rama. No autoriza una publicación productiva, compras, correos de prueba ni cambios automáticos a datos productivos.
+- La conexión de la vista previa de `codex/erp-crm-preview` a la base actual y el uso de la clave privada del servidor fueron autorizados expresamente; las tres variables de esa vista previa están limitadas a esa rama. Después se autorizó publicar los cambios de diseño del panel en el sitio principal. Esa autorización no incluye compras, correos de prueba ni cambios automáticos a datos productivos.
 - Esa vista previa comparte los datos reales; no es un entorno aislado. Las comprobaciones de esta conexión se limitan a lecturas y solicitudes de acceso sin crear cuentas, modificar expedientes ni enviar correos. Las demás ramas conservan la separación descrita en `docs/erp-crm/environment-release.md`.
 
 ## Primera fase — preparar la base y comprobarla
