@@ -305,7 +305,7 @@
 .panel :global(.admin-crm-filters)[open] > div { margin-top: .75rem; }
 .panel :global(.admin-crm-toolbar) [aria-label="Vista de prospectos"] > span { display: none; }
 @media(min-width: 1280px) {
-  .panel :global(.admin-crm-board-page) { display: grid; grid-template-columns: minmax(0,1fr) 20rem; grid-template-rows: 4.25rem 2.75rem auto; gap: .75rem 1rem; align-items: start; }
+  .panel :global(.admin-crm-board-page) { display: grid; grid-template-columns: minmax(0,1fr) 20rem; grid-template-rows: minmax(4.25rem,auto) minmax(2.75rem,auto) auto; gap: .75rem 1rem; align-items: start; }
   .panel :global(.admin-crm-heading) :global(.admin-page-header) p { margin-top: .25rem; line-height: 1.4; }
   .panel :global(.admin-crm-board-page) > * { margin: 0; grid-column: 1; }
   .panel :global(.admin-crm-board-page) > :global(.admin-crm-layout) { display: contents; }

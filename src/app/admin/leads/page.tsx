@@ -91,7 +91,7 @@ export default function AdminLeadsPage() {
     "inline-flex min-h-11 items-center rounded-md border px-3 text-sm font-medium transition-colors";
 
   return (
-    <div className={"admin-crm-page min-w-0 space-y-4 " + (view === "etapas" && filtrados.length > 0 ? "admin-crm-board-page" : "")}>
+    <div className={"admin-crm-page min-w-0 space-y-4 " + (view === "etapas" && filtrados.length > 0 && !capturaAbierta ? "admin-crm-board-page" : "")}>
       <div className="admin-crm-heading"><PageHeader
         title="CRM · Relaciones comerciales"
         description="Contacta, asigna y da seguimiento a las personas interesadas."
