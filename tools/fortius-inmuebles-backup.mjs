@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve, relative, isAbsolute, dirname } from 'node:path';
+import { mkdir, readFile, writeFile, realpath } from 'node:fs/promises';
+import { resolve, relative, isAbsolute, dirname, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const suffixes = ['staff','records','record_references','rate_limits','record_revisions'];
-const currentSuffixes = [...suffixes,'adviser_accounts','comercial_books','comercial_emissions','comercial_revisions','expedientes','file_uploads','formato_assets','formato_drafts','formato_emissions','lead_conversions','signed_copies'];
+export const currentSuffixes = [...suffixes,'adviser_accounts','comercial_books','comercial_emissions','comercial_revisions','expedientes','file_uploads','formato_assets','formato_drafts','formato_emissions','lead_conversions','signed_copies','record_history','expediente_actividad'];
 export const sha256 = data => createHash('sha256').update(data).digest('hex');
 export function ownerExport(raw) {
   let data=Array.isArray(raw)?raw[0]:raw;
@@ -24,18 +24,93 @@ function safePath(root,file) {
   if(isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')) throw Error('Unsafe manifest path');
   return path;
 }
+async function readBackupFile(root, file) {
+  const actual = await realpath(safePath(root, file));
+  safePath(root, relative(root, actual));
+  return readFile(actual);
+}
+function reconcileObjects(manifest, database) {
+  const files = new Map();
+  for (const file of manifest.files) {
+    if (files.has(file.file)) throw Error('Duplicate backup file inventory');
+    files.set(file.file, file);
+  }
+  const buckets = new Map((manifest.buckets ?? []).map(bucket => [bucket.id, bucket]));
+  const objects = new Map();
+  const key = (bucket, path) => JSON.stringify([bucket, path]);
+  for (const object of manifest.objects ?? []) {
+    const file = files.get(object.file);
+    if (!file || file.bytes !== object.bytes || file.sha256 !== object.sha256) throw Error('Object differs from hashed file inventory');
+    const bucket = buckets.get(object.bucket);
+    if (!bucket || typeof bucket.public !== 'boolean' || object.public !== bucket.public) throw Error('Object bucket metadata is inconsistent');
+    if (!object.bucket.endsWith('-public') && bucket.public) throw Error('Private bucket marked public');
+    const id = key(object.bucket, object.path);
+    if (objects.has(id)) throw Error('Duplicate backup object inventory');
+    objects.set(id, object);
+  }
+  if (database?.prefix !== 'fortius_inmuebles') return;
+  const requireObject = (bucket, path, fingerprint, byteLength) => {
+    const object = objects.get(key(bucket, path));
+    if (!object) throw Error('Referenced object missing from backup');
+    if (fingerprint && object.sha256 !== fingerprint) throw Error('Database object fingerprint differs from backed-up bytes');
+    if (byteLength != null && object.bytes !== byteLength) throw Error('Database object byte length differs from backed-up bytes');
+  };
+  const table = suffix => database.tables[`fortius_inmuebles_${suffix}`];
+  for (const suffix of ['formato_emissions', 'signed_copies', 'formato_assets']) {
+    for (const row of table(suffix)) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
+  }
+  for (const row of table('comercial_emissions')) requireObject('fortius-inmuebles-comercial', row.path, row.sha256);
+  for (const row of table('file_uploads')) requireObject(row.bucket, row.path);
+  for (const row of table('records')) {
+    if (row.collection === 'archivos' && row.data?.bucket && row.data?.path) requireObject(row.data.bucket, row.data.path);
+  }
+}
 export async function verifyBackup(directory) {
-  const root=resolve(directory), manifest=JSON.parse(await readFile(resolve(root,'manifest.json'),'utf8'));
+  const root=await realpath(resolve(directory)), manifest=JSON.parse(await readBackupFile(root,'manifest.json'));
   if(manifest.format!=='mnt-backup-v1')throw Error('Invalid manifest');
   for(const file of manifest.files) {
-    const data=await readFile(safePath(root,file.file));
+    const data=await readBackupFile(root,file.file);
     if(data.length!==file.bytes||sha256(data)!==file.sha256) throw Error(`Backup integrity failure for artifact ${file.file}`);
   }
-  if(manifest.database?.complete) ownerExport(JSON.parse(await readFile(safePath(root,manifest.database.file),'utf8')));
+  let database;
+  if(manifest.database?.complete) {
+    if (!manifest.files.some(file => file.file === manifest.database.file)) throw Error('Database missing from hashed file inventory');
+    database=ownerExport(JSON.parse(await readBackupFile(root,manifest.database.file)));
+    if (manifest.prefix && manifest.prefix !== database.prefix) throw Error('Database and manifest prefix differ');
+  }
+  reconcileObjects(manifest, database);
   return manifest;
+}
+export async function restoreBackupObjects(directory, destination) {
+  const root = await realpath(resolve(directory));
+  const requested = resolve(destination);
+  const target = resolve(await realpath(dirname(requested)), basename(requested));
+  const contains = (parent, child) => {
+    const rel = relative(parent, child);
+    return !rel || (!isAbsolute(rel) && rel !== '..' && !rel.startsWith('../') && !rel.startsWith('..\\'));
+  };
+  if (contains(root, target) || contains(target, root)) throw Error('An isolated target outside the backup is required');
+  const manifest = await verifyBackup(root);
+  await mkdir(target, { mode: 0o700 }); // Refuse existing destinations, including symlinks.
+  const objects = [];
+  for (const object of manifest.objects ?? []) {
+    const bytes = await readBackupFile(root, object.file);
+    if (sha256(bytes) !== object.sha256 || bytes.length !== object.bytes) throw Error('Source object changed after verification');
+    const file = `${String(objects.length + 1).padStart(8, '0')}.bin`;
+    await writeFile(resolve(target, file), bytes, { flag: 'wx', mode: 0o600 });
+    if (sha256(await readFile(resolve(target, file))) !== object.sha256) throw Error('Restored object integrity failure');
+    objects.push({ ...object, file });
+  }
+  await writeFile(resolve(target, 'objects.json'), JSON.stringify({ format: 'fortius-local-object-recovery-v1', objects, buckets: manifest.buckets }, null, 2), { flag: 'wx', mode: 0o600 });
+  return { passed: true, productionWrites: 0, objects: objects.length, bytes: objects.reduce((n, o) => n + o.bytes, 0), storageServiceRecovery: 'not_checked' };
 }
 export async function main(args=process.argv.slice(2)) {
   const arg=name=>args[args.indexOf(name)+1];
+  if (args.includes('--restore-objects')) {
+    if (!args.includes('--target') || !arg('--target') || !arg('--restore-objects')) throw Error('Usage: --restore-objects BACKUP_DIR --target NEW_ISOLATED_DIR');
+    console.log(JSON.stringify(await restoreBackupObjects(arg('--restore-objects'), arg('--target'))));
+    return;
+  }
   if(args.includes('--verify')||args.includes('--diagnose')) {
     const root=resolve(arg(args.includes('--verify')?'--verify':'--diagnose'));
     const manifest=await verifyBackup(root);

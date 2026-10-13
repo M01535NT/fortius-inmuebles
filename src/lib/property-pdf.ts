@@ -3,7 +3,7 @@ import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, PDFName, PDFString, pushGraphicsState, popGraphicsState, rectangle, clip, endPath, type PDFFont, type PDFImage } from "pdf-lib";
 import { ESTADO_LABELS, FUENTE_SUPERFICIE_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
-import type { Asesor, SiteSettings } from "@/lib/admin/store";
+import type { Asesor, SiteSettings } from "@/lib/domain/records";
 import { publicContact } from "@/lib/public-contact";
 
 type Options = { settings: SiteSettings | null; adviser?: Asesor; siteUrl: string; loadImage: (src: string) => Promise<Uint8Array | null> };

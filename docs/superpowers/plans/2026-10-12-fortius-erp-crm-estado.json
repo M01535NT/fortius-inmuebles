@@ -1,0 +1,566 @@
+{
+  "format": "fortius-project-plan-v1",
+  "id": "FORTIUS-ERP-CRM-20261012",
+  "title": "Evolución modular del panel operativo Fortius",
+  "mode": "ejecutar",
+  "status": "en_curso",
+  "document_date": "2026-10-12",
+  "timezone": "America/Los_Angeles",
+  "repository": "M01535NT/fortius-inmuebles",
+  "baseline_commit": "4faaa1234ade05b013994821585c52f9cb6cebd9",
+  "planning_authorized": true,
+  "implementation_authorized": true,
+  "production_authorized": false,
+  "sponsor": "Moisés Núñez Tonalá",
+  "engineering_owner": "Codex",
+  "acceptance_owner": "Moisés Núñez Tonalá",
+  "objective": "Operación inmobiliaria diaria trazable, cuatro tableros y panel instalable compatible con la aplicación existente",
+  "documents": {
+    "spec": "2026-10-12-fortius-erp-crm-spec.md",
+    "plan": "2026-10-12-fortius-erp-crm.md",
+    "first_iterations": "2026-10-12-fortius-erp-crm-primeras-iteraciones.md"
+  },
+  "work_in_progress_limit": 1,
+  "review_limit": 1,
+  "next_action": "Continuar recorrido de captación local conforme al plan y resolver decisiones de relaciones/capacidades; protección main bloqueada por permisos de integración, sin nuevos pedidos de token",
+  "decisions": [
+    {
+      "id": "DEC-01",
+      "status": "propuesta",
+      "subject": "Monolito modular"
+    },
+    {
+      "id": "DEC-02",
+      "status": "pendiente",
+      "subject": "Venta/captación como primer recorrido"
+    },
+    {
+      "id": "DEC-03",
+      "status": "pendiente",
+      "subject": "Capacidades, roles y responsables"
+    },
+    {
+      "id": "DEC-04",
+      "status": "pendiente",
+      "subject": "Relaciones, papeles y evidencia"
+    },
+    {
+      "id": "DEC-05",
+      "status": "pendiente",
+      "subject": "Etapas, avance, cierre y excepciones"
+    },
+    {
+      "id": "DEC-06",
+      "status": "pendiente",
+      "subject": "RPO/RTO, retención y custodia"
+    },
+    {
+      "id": "DEC-07",
+      "status": "pendiente",
+      "subject": "Finanzas, monedas y honorarios"
+    },
+    {
+      "id": "DEC-08",
+      "status": "propuesta",
+      "subject": "Primera PWA conectada"
+    },
+    {
+      "id": "DEC-09",
+      "status": "pendiente",
+      "subject": "Fuente de verdad e inmobiliaria-os"
+    },
+    {
+      "id": "DEC-10",
+      "status": "pendiente",
+      "subject": "Accesos administrativos y destino aislado"
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "BAS-01",
+      "phase": 0,
+      "class": "indispensable",
+      "depends_on": [],
+      "status": "en_revision"
+    },
+    {
+      "id": "REC-01",
+      "phase": 0,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "en_revision"
+    },
+    {
+      "id": "CI-01",
+      "phase": 0,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "bloqueada",
+      "blocker": "GitHub privado: rulesets requiere plan superior; Vercel sin autenticación disponible/configuración no verificada"
+    },
+    {
+      "id": "AUT-01",
+      "phase": 0,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "bloqueada",
+      "blocker": "Cuenta/buzón controlados y política MFA pendientes; no se envían correos de prueba sin autorización"
+    },
+    {
+      "id": "OBS-01",
+      "phase": 0,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "en_revision"
+    },
+    {
+      "id": "ENV-01",
+      "phase": 0,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "bloqueada",
+      "blocker": "GitHub privado: rulesets requiere plan superior; Vercel sin autenticación disponible/configuración no verificada"
+    },
+    {
+      "id": "PRV-01",
+      "phase": 0,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "en_revision"
+    },
+    {
+      "id": "REL-01",
+      "phase": 1,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "SEG-01",
+      "phase": 1,
+      "class": "indispensable",
+      "depends_on": [
+        "REL-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "USR-01",
+      "phase": 1,
+      "class": "indispensable",
+      "depends_on": [
+        "SEG-01",
+        "AUT-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "CRM-01",
+      "phase": 1,
+      "class": "indispensable",
+      "depends_on": [
+        "REL-01",
+        "SEG-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "OPS-01",
+      "phase": 1,
+      "class": "indispensable",
+      "depends_on": [
+        "CRM-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "PUB-01",
+      "phase": 1,
+      "class": "indispensable",
+      "depends_on": [
+        "SEG-01",
+        "CRM-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "DAT-01",
+      "phase": 1,
+      "class": "indispensable",
+      "depends_on": [
+        "REL-01",
+        "SEG-01",
+        "PRV-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "COM-01",
+      "phase": 2,
+      "class": "indispensable",
+      "depends_on": [
+        "OPS-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "VIS-01",
+      "phase": 2,
+      "class": "indispensable",
+      "depends_on": [
+        "OPS-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "OFE-01",
+      "phase": 2,
+      "class": "indispensable",
+      "depends_on": [
+        "COM-01",
+        "VIS-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "DOC-01",
+      "phase": 2,
+      "class": "indispensable",
+      "depends_on": [
+        "OPS-01",
+        "SEG-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "LEG-01",
+      "phase": 2,
+      "class": "indispensable",
+      "depends_on": [
+        "DOC-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "TEC-01",
+      "phase": 2,
+      "class": "indispensable",
+      "depends_on": [
+        "DOC-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "CIE-01",
+      "phase": 2,
+      "class": "indispensable",
+      "depends_on": [
+        "OFE-01",
+        "LEG-01",
+        "TEC-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "FIN-01",
+      "phase": 3,
+      "class": "indispensable",
+      "depends_on": [
+        "OPS-01",
+        "DOC-01",
+        "SEG-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "FIN-02",
+      "phase": 3,
+      "class": "indispensable",
+      "depends_on": [
+        "FIN-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "TAB-01",
+      "phase": 3,
+      "class": "indispensable",
+      "depends_on": [
+        "SEG-01",
+        "CRM-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "TAB-02",
+      "phase": 3,
+      "class": "indispensable",
+      "depends_on": [
+        "CRM-01",
+        "COM-01",
+        "VIS-01",
+        "TAB-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "TAB-03",
+      "phase": 3,
+      "class": "indispensable",
+      "depends_on": [
+        "FIN-02",
+        "TAB-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "TAB-04",
+      "phase": 3,
+      "class": "indispensable",
+      "depends_on": [
+        "LEG-01",
+        "TEC-01",
+        "TAB-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "UX-01",
+      "phase": 4,
+      "class": "indispensable",
+      "depends_on": [
+        "BAS-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "UX-02",
+      "phase": 4,
+      "class": "conveniente",
+      "depends_on": [
+        "SEG-01",
+        "PAG-01",
+        "TAB-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "PWA-01",
+      "phase": 4,
+      "class": "indispensable",
+      "depends_on": [
+        "AUT-01",
+        "UX-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "PWA-02",
+      "phase": 4,
+      "class": "conveniente",
+      "depends_on": [
+        "PWA-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "PWA-03",
+      "phase": 4,
+      "class": "opcional",
+      "depends_on": [
+        "PWA-01",
+        "SEG-01",
+        "PRV-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "PAG-01",
+      "phase": 5,
+      "class": "indispensable",
+      "depends_on": [
+        "SEG-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "ESC-01",
+      "phase": 5,
+      "class": "conveniente",
+      "depends_on": [
+        "PAG-01",
+        "FIN-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "PIL-01",
+      "phase": 5,
+      "class": "indispensable",
+      "depends_on": [
+        "REC-01",
+        "CI-01",
+        "ENV-01",
+        "PRV-01",
+        "USR-01",
+        "DAT-01",
+        "CIE-01",
+        "TAB-02",
+        "TAB-03",
+        "TAB-04",
+        "PWA-01",
+        "PAG-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "EXT-01",
+      "phase": 6,
+      "class": "condicional",
+      "depends_on": [
+        "CRM-01",
+        "OPS-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "EXT-02",
+      "phase": 6,
+      "class": "condicional",
+      "depends_on": [
+        "FIN-02",
+        "CIE-01",
+        "LEG-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "EXT-03",
+      "phase": 6,
+      "class": "condicional",
+      "depends_on": [
+        "OPS-01",
+        "FIN-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "EXT-04",
+      "phase": 6,
+      "class": "condicional",
+      "depends_on": [
+        "OPS-01",
+        "PRV-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "EXT-05",
+      "phase": 6,
+      "class": "condicional",
+      "depends_on": [
+        "FIN-02",
+        "DOC-01",
+        "PRV-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "EXT-06",
+      "phase": 6,
+      "class": "condicional",
+      "depends_on": [
+        "DOC-01",
+        "LEG-01",
+        "PRV-01"
+      ],
+      "status": "pendiente"
+    },
+    {
+      "id": "EXT-07",
+      "phase": 6,
+      "class": "condicional",
+      "depends_on": [
+        "ESC-01"
+      ],
+      "status": "pendiente"
+    }
+  ],
+  "verification": {
+    "status": "passed: cobertura documental, enlaces, IDs y dependencias; aceptación humana pendiente",
+    "implementation_tests": {
+      "lint": "passed",
+      "typescript": "passed",
+      "backend": "499 passed",
+      "admin": "211 passed",
+      "build": "passed",
+      "tools": "12 passed",
+      "browser": "21 passed (Chromium, API sintética)",
+      "pdf_assets": "passed",
+      "production_deploy": "not_checked"
+    },
+    "live_mobile_installation": "not_checked",
+    "canonical_skill_schema": "unavailable: recurso remoto no accesible; estructura local propia, no declarada conforme a ese esquema",
+    "document_sha256": {
+      "2026-10-12-fortius-erp-crm-spec.md": "14a042c9902ea46ece7ca13688b7a6f16487c783f08d61e99389604267a7b244",
+      "2026-10-12-fortius-erp-crm.md": "f70ffa3560bbf7ccd1740212c4159cc77e51e1a1c5b0f1907d0ff1593f723d7e",
+      "2026-10-12-fortius-erp-crm-primeras-iteraciones.md": "32bc08fe97fe2e7babe7faf37c944966f4bac252191ff8cb9da0b6cac4045107"
+    },
+    "iteration_evidence": "docs/erp-crm/iterations/01-foundation.md",
+    "independent_review": {
+      "reviewed_commit": "bab1caa3db938851770ceb123a250ee7fd3d123c",
+      "important_findings": 2,
+      "fixed_with_red_green": 2,
+      "message_scope_also_corrected": true,
+      "deferred_findings": 0
+    },
+    "remote_code_revision": "f8a57e903e8e7ef1b9be3aa6a6d21473ed3f59f2",
+    "remote_verify_run": 38322772916,
+    "remote_result": "success",
+    "remote_browser": {
+      "passed": 101,
+      "optional_skipped": 1,
+      "real_devices": "not_checked"
+    }
+  },
+  "implementation_branch": "feature/fortius-erp-crm-foundation",
+  "authorization_evidence": "Moisés: Apruebo el plan. Comienza. (12/10/2026)",
+  "recovery_objectives": {
+    "approval": "user_explicit",
+    "date": "2026-10-12",
+    "backup_frequency": "daily",
+    "rpo_target_hours": 24,
+    "rto_target_hours": 8,
+    "demonstrated": false,
+    "custody": "pending",
+    "provider_rehearsal": "pending"
+  },
+  "publication_controls": {
+    "repository_visibility": "public_authorized",
+    "main_protection": "blocked_platform_auth_routing_administration_403",
+    "vercel_checks": "configured_both_projects",
+    "preview_negative_probe": "passed",
+    "preview_positive_probe": "passed",
+    "production_deploy": "not_authorized",
+    "final_vercel_scope": "production_confirmed_both_projects"
+  },
+  "execution_priority": {
+    "user_requested": "start_operating_soon",
+    "current_important_data": "user_reports_none",
+    "full_provider_recovery_rehearsal": "defer_from_initial_functional_development; required_before_recovery_claims"
+  }
+}

@@ -1,0 +1,43 @@
+@startuml
+title Fortius AS-IS · Emisión de PDF
+caption Propósito: mostrar validación, snapshot y compensación de persistencia [E16]
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam ArrowColor #17334F
+skinparam BackgroundColor #FFFFFF
+actor "Personal autorizado" as person
+participant "POST formatos/[id]/emitir" as route
+database "DB vía REST" as db
+participant "prepareFormatoEmission" as pdf
+participant "Storage privado" as store
+person -> route : versión esperada + cookies
+route -> route : origen, requireStaff, validación de entrada
+route -> db : borrador y expediente con cliente de usuario/RLS
+db --> route : datos permitidos
+route -> route : versión, readyForEmission, campos requeridos
+opt Formato requiere imágenes
+ route -> db : activos del propio borrador
+ route -> store : descargar activos con cliente privilegiado
+ store --> route : bytes
+ route -> route : tamaño y SHA256
+end
+route -> pdf : datos validados y activos
+pdf --> route : bytes PDF + SHA256
+route -> store : upload(path, upsert=false)
+store --> route : resultado
+alt Carga falla
+ route --> person : error sanitizado
+else Carga correcta
+ route -> db : insertar emisión: snapshot, versión, hash, path, actor
+ alt Inserción falla
+  route -> store : intentar remove(path)
+  route --> person : error sanitizado
+ else Inserción correcta
+  route --> person : 201 + metadatos de emisión
+ end
+end
+legend bottom
+CONFIRMADO: acceso validado antes de operaciones privilegiadas.
+Compensación DB/Storage; no hay transacción atómica entre ambos servicios.
+endlegend
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Context>
+title Fortius TO-BE · C4 nivel 1
+caption Propósito: conservar alcance y evitar servicios especulativos
+Person(visitor, "Visitante / cliente", "Consulta y contacto")
+Person(staff, "Personal autorizado", "Operación con política de acceso")
+System(fortius, "Fortius modular", "Mismos productos; responsabilidades y operación estabilizadas")
+System_Ext(supabase, "Supabase", "Identidad, datos y archivos")
+System_Ext(wa, "WhatsApp", "Contacto por enlace")
+System_Ext(insights, "Speed Insights", "Rendimiento público existente")
+Rel(visitor, fortius, "Navega y consulta", "HTTPS")
+Rel(staff, fortius, "Opera según capacidades", "HTTPS")
+Rel(fortius, supabase, "Datos y permisos", "HTTPS / REST-RPC")
+Rel(visitor, wa, "Abre contacto", "HTTPS")
+Rel(fortius, insights, "Rendimiento", "HTTPS")
+SHOW_LEGEND()
+footer PROPUESTO: arquitectura futura, no implementada.
+
+@enduml

@@ -1,4 +1,4 @@
-import type { Post } from "@/lib/admin/store";
+import type { Post } from "@/lib/domain/records";
 
 export const BLOG_CATEGORIES = {
   comprar: "Comprar",

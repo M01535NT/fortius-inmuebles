@@ -1,0 +1,48 @@
+@startuml
+title Fortius AS-IS · Autenticación de una solicitud
+caption Propósito: explicar sesión y pertenencia staff antes del acceso a datos [E03,E07]
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam ArrowColor #17334F
+skinparam BackgroundColor #FFFFFF
+actor "Personal" as person
+participant "Route Handler" as route
+participant "requireStaff / auth.ts" as auth
+participant "Supabase Auth" as identity
+database "PostgreSQL vía REST" as db
+person -> route : HTTPS + cookies
+route -> route : assertSameOrigin en mutaciones
+route -> auth : requireStaff()
+break No hay access ni refresh cookie
+ auth --> route : 401
+ route --> person : respuesta sanitizada
+end
+opt Hay access token
+ auth -> identity : getUser(token)
+ opt Identidad válida
+  auth -> db : verificar staff activo / rol
+ end
+end
+opt Falta access o verificación devuelve401, con refresh disponible
+ auth -> identity : refreshSession()
+ identity --> auth : sesión renovada o error
+ opt Renovación correcta
+  auth -> identity : getUser(nuevo token)
+  auth -> db : verificar staff con identidad válida
+  auth -> auth : guardar cookies solo tras verificar staff
+ end
+end
+alt No autorizado / sin sesión válida
+ auth --> route : error de autenticación/autorización
+ route --> person : respuesta sanitizada
+else Personal válido
+ auth --> route : user + client con token
+ route -> db : consulta / RPC bajo autorización y RLS
+ db --> route : resultado o error
+ route --> person : JSON
+end
+legend bottom
+CONFIRMADO: flujo simplificado del módulo; no sustituye todos los casos de login/invitación.
+TOTP habilitable no implica AAL2 obligatorio en este flujo.
+endlegend
+@enduml

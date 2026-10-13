@@ -1,4 +1,4 @@
-import type { Lead } from "@/lib/admin/store";
+import type { Lead } from "@/lib/domain/records";
 import type { Cliente } from "@/lib/backend/contracts";
 
 export type Followup = {

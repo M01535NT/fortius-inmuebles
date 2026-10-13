@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { ZodError } from "zod";
 
 export class ApiError extends Error {
@@ -40,12 +41,15 @@ export async function readJson(request: Request, maxBytes = 262144): Promise<unk
 }
 
 export async function apiResponse(action: () => Promise<unknown>, successStatus = 200): Promise<Response> {
-  const headers = { "Cache-Control": "private, no-store, max-age=0", "Vary": "Cookie", "X-Content-Type-Options": "nosniff" };
+  const requestId = randomUUID();
+  const startedAt = Date.now();
+  const headers = { "X-Request-Id": requestId, "Cache-Control": "private, no-store, max-age=0", "Vary": "Cookie", "X-Content-Type-Options": "nosniff" };
   try { return Response.json(await action(), { status: successStatus, headers }); }
   catch (error) {
     const status = error instanceof ApiError ? error.status : error instanceof ZodError ? 400 : 500;
     const message = error instanceof ApiError ? error.message : status === 400 ? "Datos inválidos; revisa los campos" : "No se pudo completar la operación";
-    return Response.json({ error: message }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
+    if (status >= 500) console.error(JSON.stringify({ event: "api_failure", requestId, status, category: error instanceof ApiError ? "dependency" : "unexpected", durationMs: Date.now() - startedAt }));
+    return Response.json({ error: message, requestId }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
   }
 }
 

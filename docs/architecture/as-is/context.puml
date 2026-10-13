@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Context>
+title Fortius AS-IS · C4 nivel 1
+caption Propósito: ubicar actores y sistemas conectados [E03,E05,E13,E15]
+Person(visitor, "Visitante / cliente", "Consulta inmuebles, herramientas y contacto")
+Person(staff, "Personal autorizado", "Admin o editor")
+System(fortius, "Fortius", "Sitio público, panel y API en una aplicación")
+System_Ext(supabase, "Supabase", "Auth, PostgreSQL y Storage")
+System_Ext(wa, "WhatsApp", "Destino de enlace; no API Business demostrada")
+System_Ext(insights, "Vercel Speed Insights", "Métricas de rendimiento público")
+Rel(visitor, fortius, "Consulta y navegación", "HTTPS")
+Rel(staff, fortius, "Administra con sesión", "HTTPS")
+Rel(fortius, supabase, "Identidad, datos y archivos", "HTTPS / SDK REST-RPC")
+Rel(visitor, wa, "Abre enlace de contacto de Fortius", "Enlace HTTPS")
+Rel(fortius, insights, "Instrumentación del cliente público", "HTTPS")
+SHOW_LEGEND()
+footer CONFIRMADO salvo notas expresas. Evidencias: evidence.md.
+
+@enduml

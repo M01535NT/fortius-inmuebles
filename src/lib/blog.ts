@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Post } from "@/lib/admin/store";
+import type { Post } from "@/lib/domain/records";
 import { getPublicPosts } from "@/lib/backend/public";
 import { postDate } from "@/lib/blog-editorial";
 
