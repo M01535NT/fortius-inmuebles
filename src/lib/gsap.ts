@@ -6,9 +6,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 
 /*
-  Punto único de registro de GSAP. El antecedente de motion quedó archivado en
-  evidencia histórica: docs/fortius-inmuebles-implementation.md;
-  las reglas activas de diseño están en README.md.
+  Punto único de registro de GSAP. Las reglas activas de identidad y diseño
+  están en docs/brand.md; el desarrollo se guía por PLAN_ERP_CRM.md.
   Importar gsap/ScrollTrigger/SplitText SIEMPRE desde aquí.
 */
 if (typeof window !== "undefined") {

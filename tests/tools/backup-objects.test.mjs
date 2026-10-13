@@ -87,12 +87,24 @@ test('accepts reconciled bytes and copies them into a fresh isolated directory w
   } finally { await f.close(); }
 });
 
-test('rejects a file inventory symlink that escapes the backup even when its bytes match', async () => {
+test('rejects a file inventory filesystem link that escapes the backup even when its bytes match', async () => {
   const f = await fixture();
   try {
-    await writeFile(join(f.parent, 'outside.bin'), f.bytes);
     await rm(join(f.root, 'document.bin'));
-    await symlink(join(f.parent, 'outside.bin'), join(f.root, 'document.bin'));
+    if (process.platform === 'win32') {
+      // Directory junctions exercise realpath escape without requiring file-symlink privileges.
+      const outside = join(f.parent, 'outside');
+      await mkdir(outside);
+      await writeFile(join(outside, 'document.bin'), f.bytes);
+      await symlink(outside, join(f.root, 'linked'), 'junction');
+      f.manifest.files[0].file = 'linked/document.bin';
+      f.manifest.objects[0].file = 'linked/document.bin';
+      await f.save();
+    } else {
+      await writeFile(join(f.parent, 'outside.bin'), f.bytes);
+      await symlink(join(f.parent, 'outside.bin'), join(f.root, 'document.bin'));
+    }
+    assert.deepEqual(await readFile(join(f.root, f.manifest.files[0].file)), f.bytes);
     await assert.rejects(backupTools.verifyBackup(f.root), /unsafe manifest path/i);
   } finally { await f.close(); }
 });

@@ -1,14 +1,16 @@
 # Identidad Fortius Inmuebles
 
 - Carpeta principal: `C:/Paginas-web/fortius-inmuebles`.
-- GitHub privado: `M01535NT/fortius-inmuebles`, ID 1291895344.
+- GitHub público (visibilidad comprobada el 12/10/2026): `M01535NT/fortius-inmuebles`, ID 1291895344.
 - Vercel: `tonala/fortius-inmuebles`, ID `prj_mCgnplUXyiI0YFnL6Fr2zVLmSzJv`, producción desde `main`.
-- Sitio: `https://fortius-inmuebles.vercel.app`.
+- Sitio canónico: `https://fortiusinmuebles.com`; `www` y aliases públicos Fortius redirigen al principal según [la configuración documentada](deployment-fortius.md).
 - Supabase: `fortius-inmuebles`, ref `qkkirjzhviqwvuqjnmei`; se conserva la instancia.
 - SQL activo: prefijo `fortius_inmuebles_`; Storage: prefijo `fortius-inmuebles-`.
 - Variables propias: `FORTIUS_INMUEBLES_*`; las claves de conexión de Supabase conservan sus nombres estándar.
 
 ## Corte y recuperación
+
+El cambio de identidad ya está integrado. Los pasos siguientes describen su procedimiento histórico; no son una migración pendiente que deba repetirse. El antecedente completo se conserva fuera del repositorio. Para el esquema vigente seguir [respaldo y restauración](fortius-inmuebles-backup-restore.md).
 
 Antes del corte, conservar respaldo propietario de todas las tablas, inventario de funciones/permisos, Auth, objetos y buckets. El cambio de esquema es una transacción y no modifica los registros. Renombrar funciones primero y reescribir después sus referencias textuales conserva sus OIDs y ACL. Las políticas de Storage se recrean con los mismos roles y predicados, sin cambiar el propietario administrado.
 

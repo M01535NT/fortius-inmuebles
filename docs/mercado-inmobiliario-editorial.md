@@ -1,5 +1,7 @@
 # Mercado inmobiliario: operación editorial
 
+Corte documental: 12/10/2026. La funcionalidad editorial forma parte del código integrado; las comprobaciones de entregas anteriores se conservan fuera del repositorio.
+
 ## Estructura
 
 La sección pública conserva `/blog` y las direcciones de sus artículos. Su nombre visible es **Mercado inmobiliario**. Reúne dos formatos: **Guías** y **Actualidad**. Los temas disponibles son Comprar, Vender, Rentar, Valor y mercado y Trámites.
@@ -37,8 +39,8 @@ Priorizar información de Tijuana y Baja California. Incluir noticias nacionales
 
 ## Activación técnica
 
-Antes de publicar esta versión de la aplicación, aplicar una vez `supabase/migrations/202609240008_fortius_inmuebles_blog_editorial.sql`. La migración amplía la lista de campos públicos del blog y añade validación y registro de fechas. No reescribe artículos existentes ni modifica permisos. Los datos siguen en el backend autenticado del producto.
+En una instalación nueva, aplicar todas las migraciones en orden, incluida `supabase/migrations/202609240008_fortius_inmuebles_blog_editorial.sql`. La migración amplía la lista de campos públicos del blog y añade validación y registro de fechas. No reescribe artículos existentes ni modifica permisos. Los datos siguen en el backend autenticado del producto.
 
 Después del despliegue, comprobar con un borrador editorial real que el panel conserva los campos y que, al publicar, aparecen clasificación, fuente y fecha. Comprobar también una búsqueda combinada y el acceso a un artículo anterior.
 
-Estado de esta entrega: implementación y pruebas locales. Migración remota y despliegue pendientes.
+La descripción de migración/despliegue pendientes corresponde a la preparación de septiembre y queda superada como estado del código. En una instancia existente consultar su historial y aplicar únicamente las migraciones pendientes, sin repetir la editorial. La presencia del código no acredita por sí sola que cada artículo siga publicado o vigente; revisar sus datos y fuentes antes de difundirlo.

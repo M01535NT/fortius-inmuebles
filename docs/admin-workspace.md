@@ -1,5 +1,7 @@
 # Panel operativo Fortius
 
+Corte documental: 12/10/2026. El desarrollo se dirige desde [el plan único](../PLAN_ERP_CRM.md).
+
 ## Organización personal
 
 El botón junto al encabezado contrae la barra lateral a iconos o vuelve a expandirla. El borde derecho permite ajustar el ancho entre 224 y 360 px; también admite foco con Tab, flechas izquierda/derecha y Home/End. Doble clic recupera 264 px. El ancho y el estado se conservan por cuenta en ese navegador. En celular se mantiene el menú desplegable con nombres completos.
@@ -20,7 +22,7 @@ La búsqueda del encabezado reúne los registros que el usuario puede consultar 
 
 ## Activación de historial y recuperación
 
-Aplicar una sola vez, después de las migraciones anteriores:
+En una instalación nueva, aplicar las migraciones en orden, incluida la siguiente. En una instancia existente, consultar primero su historial y aplicar únicamente las pendientes; no repetir una migración ya registrada:
 
 `supabase/migrations/20261008210000_fortius_admin_history.sql`
 

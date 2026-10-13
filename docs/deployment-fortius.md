@@ -35,4 +35,4 @@ Comprobar salud, Inicio, inventario, blog, herramientas, acceso al panel, robots
 
 ## Control de publicación (12 de octubre de 2026)
 
-Deployment Check GitHub `verify` activado en Fortius y en el proyecto MNT conectado al mismo repositorio. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. No se realizó publicación de producción en esta tarea.
+Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado al mismo repositorio. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](erp-crm/environment-release.md).

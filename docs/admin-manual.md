@@ -1,8 +1,10 @@
 # Manual de administración de Fortius Inmuebles
 
+Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; [estado y pendientes](../PLAN_ERP_CRM.md).
+
 ## Acceso y roles
 
-Abre `/admin` e inicia sesión con una cuenta habilitada en `mnt_staff`. Los roles admitidos son `admin` y `editor`; en la implementación actual, ambos tienen acceso operativo a las colecciones del panel. La administración de usuarios se realiza en Supabase y no desde esta interfaz. La interfaz no concede permisos: Supabase valida identidad, membresía activa y rol en cada operación.
+Abre `/admin` e inicia sesión con una cuenta habilitada en `fortius_inmuebles_staff`. Los roles admitidos son `admin` y `editor`; en la implementación actual, ambos tienen acceso operativo a las colecciones del panel. La administración de usuarios se realiza en Supabase y no desde esta interfaz. La interfaz no concede permisos: Supabase valida identidad, membresía activa y rol en cada operación.
 
 Si olvidaste la contraseña, selecciona **Olvidé mi contraseña**, solicita el enlace y establece una contraseña nueva desde la sesión de recuperación. Los enlaces vencidos o ya utilizados requieren una solicitud nueva. Nunca copies tokens de recuperación en notas o mensajes.
 
@@ -27,7 +29,15 @@ En **Mercado inmobiliario**, crea título, slug, resumen, contenido y estado. Cl
 
 `Borrador` permanece en el panel. `Expuesto públicamente` publica la entrada en `/blog/<slug>` y la incorpora al sitemap. Confirma contenido, datos personales y vigencia antes de publicar.
 
-La primera publicación se registra automáticamente y se conserva al editar. La activación de los nuevos campos y fechas requiere la migración editorial 008. Consulta [la guía editorial](mercado-inmobiliario-editorial.md) para conocer la búsqueda, clasificación y rutina propuesta.
+La primera publicación se registra automáticamente y se conserva al editar. La activación de los nuevos campos y fechas requiere `202609240008_fortius_inmuebles_blog_editorial.sql`. Consulta [la guía editorial](mercado-inmobiliario-editorial.md) para conocer la búsqueda, clasificación y rutina propuesta.
+
+## Prospectos, expedientes y control comercial
+
+El perfil del prospecto se adapta a comprar, rentar, vender o dar en arrendamiento. La conversión vincula el cliente y, cuando corresponde, el expediente; revisar antes las coincidencias advertidas por el panel. La vinculación de cuenta con asesor determina el acceso privado a los expedientes, mientras el control comercial global requiere administrador.
+
+**Eliminar expediente** conserva sus documentos y permite recuperarlo desde **Eliminados**. Mientras está eliminado se bloquean escrituras y descargas documentales. La recuperación mantiene su identidad y archivos; una eliminación recuperable no equivale a borrado definitivo.
+
+Consultar [el catálogo y sus límites](formatos-admin-status.md) antes de emitir. El 09 continúa bloqueado aunque tenga datos capturados. [El espacio de trabajo](admin-workspace.md) explica vistas guardadas, copias temporales, historial y reportes.
 
 ## Archivos
 
@@ -40,7 +50,7 @@ El sistema valida tipo, tamaño y contenido, y conserva `bucket` y `path` en el 
 
 ## Contenido y contacto
 
-En **Contenido**, edita los titulares de portada, el bloque verde, los metadatos y los grupos de presentación, método, entregables, preguntas frecuentes y contacto. Los saltos de línea se conservan en los títulos. Un campo de los grupos que se deje vacío usa el texto predeterminado. Guarda para confirmar la escritura en el servidor. La publicación de estos nuevos grupos requiere la migración editorial 007.
+En **Contenido**, edita los titulares de portada, el bloque de marca, los metadatos y los grupos de presentación, método, entregables, preguntas frecuentes y contacto. Los saltos de línea se conservan en los títulos. Un campo de los grupos que se deje vacío usa el texto predeterminado. Guarda para confirmar la escritura en el servidor. La publicación de estos nuevos grupos requiere `202609230007_fortius_inmuebles_home_editorial.sql`.
 
 En **Configuración**, completa teléfono, WhatsApp y Facebook/Messenger cuando estén definidos. La web muestra los canales válidos configurados. Si todavía no hay canales y los formularios están deshabilitados, informa que el contacto estará disponible próximamente y ofrece consultar las propiedades. No publica destinos de ejemplo ni presenta formularios que no pueden recibir solicitudes.
 
@@ -48,4 +58,4 @@ En **Configuración**, completa teléfono, WhatsApp y Facebook/Messenger cuando 
 
 Los formularios públicos de leads están deshabilitados por defecto mediante `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED=false`. Actívalos solo después de configurar el secreto del servidor, aplicar migraciones y verificar persistencia y límites.
 
-Los inmuebles, contactos, PDFs y demás datos de ejemplo sirven para revisar la interfaz. No representan inventario, precios, personas, disponibilidad ni condiciones comerciales reales. Sustituye o despublica cada ejemplo antes de una entrega pública.
+Los inmuebles, contactos, PDFs y demás datos de ejemplo sirven para revisar la interfaz. No representan inventario, precios, personas, disponibilidad ni condiciones comerciales reales. Conserva las propiedades demo y su identificación de ejemplo. Para iniciar operación real, separa los ejemplos de los registros operativos y revisa su publicación; no los cuentes como actividad ni inventario comercial vigente.
