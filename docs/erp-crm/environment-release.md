@@ -26,6 +26,12 @@ Se retiró el ámbito preview de `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABA
 
 Quitar solo service_role no basta: el panel usa sesión del usuario y RLS para operaciones normales (`backend/auth.ts`, `backend/repository.ts`). Los **nuevos previews** carecen del backend productivo; hasta configurar un backend de pruebas, las páginas dinámicas pueden mostrar indisponibilidad. No presentar este estado como un entorno de ensayo completo. Los despliegues previos pueden conservar variables antiguas: el cambio de ámbito no las revoca retroactivamente; mantienen la protección de Vercel. No se borraron despliegues antiguos ni se rotaron claves productivas.
 
+### Excepción autorizada: codex/erp-crm-preview
+
+El 12/10/2026 Moisés autorizó conectar únicamente `codex/erp-crm-preview` a la base actual de Fortius y, de forma expresa, reutilizar `SUPABASE_SERVICE_ROLE_KEY` como secreto del servidor de esa rama. En Vercel se añadieron entradas independientes para `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`, con ámbito Preview y restricción a esa rama. Las entradas de Production se conservaron; no se habilitó el backend para todos los previews ni se cambió el código de permisos.
+
+Esta rama comparte datos reales y permite las operaciones de los usuarios autorizados; no es una base de pruebas aislada. La clave privada no usa prefijo público y se guarda como Secret. La copia temporal utilizada para importarla se eliminó, sin modificar `.env.local`. La verificación de la conexión no autoriza cuentas nuevas, correos ni escrituras de ensayo sobre expedientes reales. Los cambios de variables requieren un despliegue nuevo; el anterior conserva su configuración.
+
 ## Protección main preparada
 
 Archivo revisable: [configuración](github-main-protection.json).

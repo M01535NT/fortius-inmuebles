@@ -29,7 +29,8 @@ La primera entrega sigue siendo captación y próxima acción dentro del panel. 
 - Ya existen inmuebles, prospectos/clientes, agenda/tareas, expedientes, documentos privados y cartera comercial. También contratos compartidos, consultas paginadas de expedientes, diagnóstico de errores y comprobaciones locales de respaldo.
 - El sistema completo sigue pendiente. La cartera actual y las calculadoras públicas no equivalen a contabilidad ni a cobros efectivos.
 - Los resultados remotos de [Verify 38327265116](https://github.com/M01535NT/fortius-inmuebles/actions/runs/38327265116) corresponden a `36e3ba64`: 499 pruebas backend, 211 de panel, 12 de herramientas y 101 de navegador, según la evidencia registrada. No son pruebas nuevas de esta limpieza ni pruebas en dispositivos físicos.
-- La autorización actual permite limpiar, consolidar este plan y preparar la primera fase local. No autoriza una publicación, compras, correos de prueba ni cambios a datos productivos.
+- La autorización actual permite preparar y desplegar la vista previa de `codex/erp-crm-preview` conectada a la base actual de Fortius. La conexión y el uso de la clave privada del servidor fueron autorizados expresamente; las tres variables están limitadas a esa rama. No autoriza una publicación productiva, compras, correos de prueba ni cambios automáticos a datos productivos.
+- Esa vista previa comparte los datos reales; no es un entorno aislado. Las comprobaciones de esta conexión se limitan a lecturas y solicitudes de acceso sin crear cuentas, modificar expedientes ni enviar correos. Las demás ramas conservan la separación descrita en `docs/erp-crm/environment-release.md`.
 
 ## Primera fase — preparar la base y comprobarla
 
