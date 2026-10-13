@@ -5,19 +5,20 @@ import Image from "next/image";
 import { ArrowRight, Building2, FileText, MoreHorizontal, MapPin, Users } from "lucide-react";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { Badge } from "@/components/admin/ui";
-import { projectFollowups } from "@/lib/admin/followups";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
+import { operationalInventory } from "@/lib/admin/operational-inventory";
+import { AttentionQueue } from "./attention-queue";
 
 type Dossier = { id: string; folio: string; etapa?: string; fecha_objetivo?: string; propiedad_slug?: string | null; asesor_id?: string };
 const stages = ["captacion", "documentacion", "comercializacion", "negociacion", "cierre"] as const;
 const dateLabel = (date: string | undefined, today: string) => !date ? "Sin fecha" : date === today ? "Hoy" : date.split("-").reverse().slice(0, 2).join("/");
 
-export function TodayWorkspace() {
+export function TodayWorkspace({ includeDemo = false }: { includeDemo?: boolean } = {}) {
   const leads = useCollection(db.leads), clients = useCollection(db.clientes), events = useCollection(db.eventos), tasks = useCollection(db.tareas);
   const properties = useCollection(db.propiedades), advisers = useCollection(db.asesores);
   const today = operationalDate();
-  const contacts = projectFollowups(leads, clients).filter(f => f.fecha <= today);
+  const operationalProperties = operationalInventory(properties, includeDemo);
   const visits = events.filter(e => e.fecha === today).sort((a, b) => (a.hora ?? "").localeCompare(b.hora ?? ""));
   const [dossiers, setDossiers] = React.useState<Dossier[]>([]);
   const [state, setState] = React.useState<"loading" | "ready" | "error">("loading");
@@ -33,7 +34,7 @@ export function TodayWorkspace() {
   const due = dossiers.filter(d => d.etapa !== "cerrado" && d.fecha_objetivo && d.fecha_objetivo < today);
   const rows = activeTasks.slice(0, 3).map(task => {
     const property = properties.find(p => p.slug === task.propiedadSlug);
-    const dossier = task.propiedadSlug ? dossiers.find(d => d.propiedad_slug === task.propiedadSlug && d.etapa !== "cerrado") : undefined;
+    const dossier = task.expedienteId ? dossiers.find(d => d.id === task.expedienteId && d.etapa !== "cerrado") : undefined;
     const adviser = advisers.find(a => a.id === (task.asesorId || dossier?.asesor_id));
     return { id: task.id, title: property?.titulo ?? "Sin inmueble vinculado", detail: property?.zona ?? "Tarea del equipo", photo: property?.galeria[0]?.src, stage: dossier?.etapa, action: task.titulo, adviser: adviser?.nombre ?? "Sin asignar", date: task.vence, href: `/admin/tareas/${task.id}` };
   });
@@ -43,6 +44,7 @@ export function TodayWorkspace() {
   });
   const stageLabel = (stage?: string) => stage === "documentacion" ? "Revisión documental" : EXPEDIENTE_ETAPAS[stage as keyof typeof EXPEDIENTE_ETAPAS] ?? "Sin etapa registrada";
   return <div className="admin-daily-layout">
+    <AttentionQueue today={today}/>
     <section className="admin-card admin-cycle-card" aria-label="Ciclo del inmueble">
       <div className="admin-card-heading"><h2>Ciclo del inmueble</h2><Link href="/admin/expedientes">Ver operaciones <ArrowRight size={16}/></Link></div>
       {state === "error" ? <p role="alert" className="p-5 text-sm text-muted-foreground">No se pudieron consultar las etapas. Recarga el módulo para reintentar.</p> : <ol className="admin-cycle" aria-busy={state === "loading"}>
@@ -71,11 +73,10 @@ export function TodayWorkspace() {
     </section>
     <div className="admin-lower-layout">
     <section className="admin-card admin-financial-card"><div className="admin-card-heading"><h2>Flujo de efectivo</h2><Link href="/admin/finanzas">Ver finanzas <ArrowRight size={16}/></Link></div><div className="admin-module-empty"><FileText size={28} aria-hidden="true"/><Badge tone="amber">Pendiente de implementación</Badge><p>El flujo de cobros y egresos se mostrará cuando esté habilitado el registro financiero.</p><Link href="/admin/expedientes">Consultar presupuestos por expediente</Link></div></section>
-    <section className="admin-card admin-territory-card"><div className="admin-card-heading"><h2>Cartera por zona</h2><Link href="/admin/territorio">Ver zonas <ArrowRight size={16}/></Link></div><ul className="admin-zone-summary">{[...new Set(properties.map(p => p.zona || "Sin zona"))].slice(0, 4).map(zone => <li key={zone}><Building2 size={20} aria-hidden="true"/><span>{zone}</span><strong>{properties.filter(p => (p.zona || "Sin zona") === zone).length}</strong></li>)}</ul><div className="admin-map-pending"><Badge tone="amber">Mapa pendiente</Badge><span>Las ubicaciones se incorporarán con el módulo geográfico.</span></div></section>
+    <section className="admin-card admin-territory-card"><div className="admin-card-heading"><h2>Cartera por zona</h2><Link href="/admin/territorio">Ver zonas <ArrowRight size={16}/></Link></div><ul className="admin-zone-summary">{[...new Set(operationalProperties.map(p => p.zona || "Sin zona"))].slice(0, 4).map(zone => <li key={zone}><Building2 size={20} aria-hidden="true"/><span>{zone}</span><strong>{operationalProperties.filter(p => (p.zona || "Sin zona") === zone).length}</strong></li>)}</ul>{!operationalProperties.length && <p className="p-4 text-sm text-muted-foreground">Sin inmuebles en el alcance seleccionado.</p>}<div className="admin-map-pending"><Badge tone="amber">Mapa pendiente</Badge><span>Las ubicaciones se incorporarán con el módulo geográfico.</span></div></section>
     </div>
     <details className="admin-daily-details"><summary>Seguimiento del equipo</summary><div className="admin-followup-grid">
       <section><h3>Tareas prioritarias {pending.length || ""}</h3>{pending.length ? pending.map(t => <Link key={t.id} href={`/admin/tareas/${t.id}`}>{t.titulo}<small>{t.vence === today ? "Hoy" : `Vencida · ${t.vence}`}</small></Link>) : <p>No hay tareas vencidas ni previstas para hoy.</p>}</section>
-      <section><h3>Contactos por atender {contacts.length || ""}</h3>{contacts.length ? contacts.map(f => <Link key={f.id} href={f.href}>{f.personName}<small>{f.fecha === today ? "Hoy" : `Pendiente desde ${f.fecha}`}</small></Link>) : <p>Sin contactos vencidos ni previstos para hoy.</p>}</section>
       <section><h3>Expedientes por retomar</h3>{due.length ? due.map(d => <Link key={d.id} href={`/admin/expedientes?expediente=${d.id}`}>{d.folio}<small>Fecha objetivo: {d.fecha_objetivo}</small></Link>) : <p>{state === "error" ? "No se pudo consultar el seguimiento de expedientes." : "Sin expedientes con fecha objetivo vencida."}</p>}</section>
     </div></details>
   </div>;

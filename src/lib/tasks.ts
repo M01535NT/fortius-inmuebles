@@ -12,7 +12,7 @@ export const taskSchema = z.object({
   categoria: z.enum(Object.keys(TASK_CATEGORIES) as [keyof typeof TASK_CATEGORIES, ...Array<keyof typeof TASK_CATEGORIES>]),
   estado: z.enum(Object.keys(TASK_STATUSES) as [keyof typeof TASK_STATUSES, ...Array<keyof typeof TASK_STATUSES>]),
   prioridad: z.enum(Object.keys(TASK_PRIORITIES) as [keyof typeof TASK_PRIORITIES, ...Array<keyof typeof TASK_PRIORITIES>]),
-  vence: calendarDate.or(z.literal("")).optional(), asesorId: reference, leadId: reference, clienteId: reference, propiedadSlug: reference,
+  vence: calendarDate.or(z.literal("")).optional(), expedienteId: z.uuid().transform((value) => value.toLowerCase()).or(z.literal("")).optional(), asesorId: reference, leadId: reference, clienteId: reference, propiedadSlug: reference,
   pasos: z.array(z.object({ id, texto: z.string().trim().min(1).max(500), hecho: z.boolean() })).max(100).default([]),
   motivoEspera: z.string().max(5000).optional(), nuevaNota: z.string().max(5000).optional(),
   creadoEl: z.string().optional(), actualizadoEl: z.string().optional(), completadoEl: z.string().optional(), completadoPor: z.string().optional(),
@@ -36,3 +36,8 @@ export const TASK_TEMPLATES: Array<{id:string;nombre:string;categoria:Task["cate
   {id:"arrendamiento",nombre:"Arrendamiento",categoria:"arrendamientos",titulo:"Coordinar arrendamiento",descripcion:"Revisar expediente y preparar entrega.",pasos:["Revisar expediente","Confirmar contrato y condiciones","Preparar inventario de entrega"]},
   {id:"mantenimiento",nombre:"Mantenimiento",categoria:"mantenimiento",titulo:"Coordinar mantenimiento",descripcion:"Documentar la incidencia y verificar su atención.",pasos:["Registrar incidencia","Solicitar presupuesto y autorización","Verificar trabajo realizado"]},
 ];
+
+export type TaskExpediente = { id: string; folio: string; cliente_id: string; asesor_id: string; propiedad_slug?: string | null; deleted_at?: string | null };
+export function taskExpedienteContext(expediente: TaskExpediente): Pick<Task, "expedienteId" | "clienteId" | "asesorId" | "propiedadSlug"> {
+  return { expedienteId: expediente.id, clienteId: expediente.cliente_id, asesorId: expediente.asesor_id, propiedadSlug: expediente.propiedad_slug || undefined };
+}

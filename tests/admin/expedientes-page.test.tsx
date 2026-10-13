@@ -50,6 +50,17 @@ it("conserva los cambios sin guardar al intentar abrir otro documento o expedien
   fireEvent.click(screen.getByRole("button", { name: /EXP-B/ }));
   expect((screen.getByLabelText("Quien paga") as HTMLInputElement).value).toBe("Captura pendiente");
 });
+
+it("una nota pendiente bloquea el cambio de expediente sin perder texto",async()=>{
+  fixture();render(<ExpedientesPage/>);
+  fireEvent.click(await screen.findByRole("button",{name:/EXP-A/}));
+  const note=await screen.findByLabelText("Nueva nota");
+  fireEvent.change(note,{target:{value:"Comprobar antecedente original"}});
+  fireEvent.click(screen.getByRole("button",{name:/EXP-B/}));
+  expect((screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value).toBe("Comprobar antecedente original");
+  expect(screen.getByRole("alert").textContent).toMatch(/guarda.*descarta/i);
+  expect(screen.getByRole("button",{name:/EXP-A/}).getAttribute("aria-pressed")).toBe("true");
+});
 it("bloquea navegación y edición mientras guarda y mantiene captura tras un fallo", async () => {
   let complete!: (response: Response) => void;
   fixture(() => new Promise(resolve => { complete = resolve; }));

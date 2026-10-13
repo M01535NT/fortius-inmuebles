@@ -144,7 +144,7 @@ test("dashboard shows one overdue followup for a converted client with its advis
   render(<AdminDashboard />);
   expect(await screen.findByRole("link", { name: /Cliente convertido/ })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
   expect(screen.getByRole("heading", {name:/Contactos por atender/}).textContent).toContain("1");
-  expect(screen.getByText(/Pendiente desde 2026-09-21/)).toBeTruthy();
+  expect(screen.getByText(/Pendiente desde 21\/09\/2026/)).toBeTruthy();
   expect(screen.queryByRole("link", { name: "Prospecto" })).toBeNull();
 });
 

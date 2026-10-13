@@ -40,3 +40,26 @@ it("guarda etapa, fecha y checklist con versión y muestra la actividad", async 
   expect(await screen.findByText("Etapa: captacion → documentacion")).toBeTruthy();
   expect(dirty).toHaveBeenCalledWith(true);
 });
+
+it("protege una nota pendiente y conserva su contenido si falla el registro", async () => {
+  const dirty=vi.fn();
+  vi.stubGlobal("fetch",async(_url:string,init?:RequestInit)=>init?.method==="POST"?Response.json({error:"Registro rechazado"},{status:503}):Response.json({actividad:[]}));
+  render(<ExpedienteOperationPanel expediente={base} responsable="Ana" onSaved={vi.fn()} onDirtyChange={dirty}/>);
+  fireEvent.change(screen.getByLabelText("Nueva nota"),{target:{value:"Revisar soporte original"}});
+  expect(dirty).toHaveBeenLastCalledWith(true);
+  expect((screen.getByRole("button",{name:"Guardar seguimiento"}) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.click(screen.getByRole("button",{name:"Registrar nota"}));
+  await screen.findByText(/Registro rechazado/);
+  expect((screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value).toBe("Revisar soporte original");
+  expect(dirty).toHaveBeenLastCalledWith(true);
+});
+
+it("el atajo de revisión no sustituye una nota que ya se está escribiendo",()=>{
+  vi.stubGlobal("fetch",async()=>Response.json({actividad:[]}));
+  render(<ExpedienteOperationPanel expediente={{...base,checklist:{identidad:"recibido"}}} responsable="Ana" onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
+  fireEvent.change(screen.getByLabelText("Nueva nota"),{target:{value:"Texto pendiente de revisión"}});
+  const shortcut=screen.getByRole("button",{name:"Revisar Identificación del titular"}) as HTMLButtonElement;
+  expect(shortcut.disabled).toBe(true);
+  fireEvent.click(shortcut);
+  expect((screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value).toBe("Texto pendiente de revisión");
+});

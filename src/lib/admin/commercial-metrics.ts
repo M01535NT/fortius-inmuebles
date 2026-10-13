@@ -4,14 +4,17 @@ import type { Lead, Asesor } from "@/lib/domain/records";
 import type { Task } from "@/lib/tasks";
 import { isTaskOpen } from "@/lib/tasks";
 import { projectFollowups, overdueFollowups } from "@/lib/admin/followups";
+import { operationalInventory } from "@/lib/admin/operational-inventory";
 
 export type StageRecord = { id: string; etapa?: string | null; asesor_id: string };
 
 export function commercialMetrics(input: {
   leads: Lead[]; clientes: Cliente[]; propiedades: Property[];
   tareas: Task[]; asesores: Asesor[]; expedientes: StageRecord[]; today: string;
+  includeDemo?: boolean;
 }) {
-  const { leads, clientes, propiedades, tareas, asesores, expedientes, today } = input;
+  const { leads, clientes, tareas, asesores, expedientes, today } = input;
+  const propiedades = operationalInventory(input.propiedades, input.includeDemo);
   const convertedLeadIds = new Set(clientes.map(cliente => cliente.leadId).filter(Boolean));
   const activeLeads = leads.filter(lead => !lead.clienteId && !convertedLeadIds.has(lead.id) && lead.estado !== "cerrado" && lead.estado !== "descartado");
   const converted = leads.filter(lead => !!lead.clienteId || convertedLeadIds.has(lead.id)).length;

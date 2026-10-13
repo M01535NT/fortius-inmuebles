@@ -31,6 +31,14 @@ test("reports no conversion rate without captured leads", () => {
   expect(commercialMetrics(base).conversionPercent).toBeNull();
 });
 
+test("demo properties are excluded from operative portfolios unless explicitly included", () => {
+  const input={...base,propiedades:[property,{...property,slug:"demo",demo:true},{...property,slug:"demo-unassigned",demo:true,asesorId:""}]};
+  expect(commercialMetrics(input).portfolio[0].inmuebles).toBe(1);
+  expect(commercialMetrics(input).unassigned.inmuebles).toBe(0);
+  expect(commercialMetrics({...input,includeDemo:true}).portfolio[0].inmuebles).toBe(2);
+  expect(commercialMetrics({...input,includeDemo:true}).unassigned.inmuebles).toBe(1);
+});
+
 
 test("recognizes older client links and excludes closed leads from active portfolio", () => {
   const metrics = commercialMetrics({ ...base,

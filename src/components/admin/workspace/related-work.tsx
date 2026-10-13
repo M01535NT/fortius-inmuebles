@@ -42,7 +42,9 @@ export function RelatedWork({
       (propertySlug && row.propiedadSlug === propertySlug) ||
       (expedienteId && row.expedienteId === expedienteId)
     );
-  const relatedTasks = tasks.filter(matches),
+  const relatedTasks = tasks.filter((task) => expedienteId
+    ? task.expedienteId === expedienteId || (!task.expedienteId && !!property && task.propiedadSlug === property)
+    : matches(task)).sort((a, b) => expedienteId ? Number(b.expedienteId === expedienteId) - Number(a.expedienteId === expedienteId) : 0),
     relatedEvents = events
       .filter(matches)
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
@@ -220,7 +222,7 @@ export function RelatedWork({
                 >
                   {t.titulo}
                   <span className="block text-xs text-muted-foreground">
-                    {TASK_STATUSES[t.estado]} · {t.vence ?? "Sin fecha"}
+                    {TASK_STATUSES[t.estado]} · {t.vence ?? "Sin fecha"}{expedienteId && !t.expedienteId ? " · Sin referencia a expediente" : ""}
                   </span>
                 </Link>
               </li>

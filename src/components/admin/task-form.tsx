@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { AsyncForm, Field, btnGhost, btnPrimary, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
-import { db, uid, useCollection } from "@/lib/admin/store";
-import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, TASK_TEMPLATES, taskSchema, type Task } from "@/lib/tasks";
+import { apiRequest, db, uid, useCollection } from "@/lib/admin/store";
+import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, TASK_TEMPLATES, taskSchema, taskExpedienteContext, type Task, type TaskExpediente } from "@/lib/tasks";
 
-export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaults?: Pick<Task,"leadId"|"clienteId"|"propiedadSlug">; onSave: (task: Task) => Promise<Task> }) {
+export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaults?: Pick<Task,"leadId"|"clienteId"|"propiedadSlug"|"expedienteId">; onSave: (task: Task) => Promise<Task> }) {
   // The draft belongs to this editor session, never to a background refetch.
   const [draft, setDraft] = React.useState<Task>(() => initial ?? { id: uid(), titulo: "", descripcion: "", categoria: "administracion", estado: "pendiente", prioridad: "normal", pasos: [], ...defaults });
   const [saved, setSaved] = React.useState(false);
@@ -13,11 +13,51 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
   const leads = useCollection(db.leads);
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
+  const [expedientes, setExpedientes] = React.useState<TaskExpediente[]>([]);
+  const [expedientesLoaded, setExpedientesLoaded] = React.useState(false);
+  const [expedienteLinks, setExpedienteLinks] = React.useState<boolean | null>(null);
+  const [expedienteError, setExpedienteError] = React.useState("");
+  const [capabilityError, setCapabilityError] = React.useState("");
+  React.useEffect(() => {
+    let active = true;
+    apiRequest<{ expedientes: TaskExpediente[] }>("/api/admin/expedientes")
+      .then((result) => {
+        if (!active) return;
+        const authorized = result.expedientes.filter((item) => !item.deleted_at);
+        setExpedientes(authorized); setExpedientesLoaded(true);
+        // Resolve a URL context after authorization arrives without replacing edits.
+        if (!initial) setDraft((old) => {
+          const linked = authorized.find((item) => item.id === old.expedienteId);
+          return linked ? { ...old, ...taskExpedienteContext(linked) } : old;
+        });
+      })
+      .catch(() => { if (active) setExpedienteError("No se pudieron consultar los expedientes. Puedes guardar una tarea sin ese vínculo."); });
+    apiRequest<{ expedienteLinks: boolean }>("/api/admin/tareas/capacidades")
+      .then((result) => { if (active) setExpedienteLinks(result.expedienteLinks); })
+      .catch(() => { if (active) setCapabilityError("No se pudo comprobar la disponibilidad del vínculo con expedientes. Puedes guardar una tarea sin ese vínculo."); });
+    return () => { active = false; };
+  // This context belongs to the editor session, as does its draft.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const expediente = expedientes.find((item) => item.id === draft.expedienteId);
+  const contextMatches = expediente && draft.clienteId === expediente.cliente_id
+    && draft.asesorId === expediente.asesor_id
+    && (draft.propiedadSlug || "") === (expediente.propiedad_slug || "");
+  function selectExpediente(value: string) {
+    const selected = expedientes.find((item) => item.id === value);
+    setSaved(false);
+    setDraft((old) => selected ? { ...old, ...taskExpedienteContext(selected) } : { ...old, expedienteId: "" });
+  }
   function change<K extends keyof Task>(key: K, value: Task[K]) { setSaved(false); setDraft((old) => ({ ...old, [key]: value })); }
   function options(values: Record<string, string>) { return Object.entries(values).map(([value, label]) => <option key={value} value={value}>{label}</option>); }
   return <AsyncForm className="space-y-5" onSubmit={async (event) => {
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const next = submitter?.name === "estado" ? { ...draft, estado: submitter.value as Task["estado"] } : draft;
+    if (next.expedienteId) {
+      if (!expedienteLinks) throw new Error(expedienteLinks === false ? "El vínculo con expedientes requiere una actualización del servicio. Puedes guardar tareas sin ese vínculo." : "No se pudo confirmar la disponibilidad del vínculo. Reintenta o guarda la tarea sin ese vínculo.");
+      if (!expedientesLoaded || !expediente) throw new Error("Selecciona un expediente activo y disponible o retira el vínculo.");
+      if (!contextMatches) throw new Error("Actualiza cliente, inmueble y responsable con los vínculos actuales del expediente.");
+    }
     const result = taskSchema.safeParse(next);
     if (!result.success) throw new Error(result.error.issues.map((issue) => issue.message).join(". "));
     const record = await onSave({ ...next, ...result.data });
@@ -31,20 +71,33 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     </Field>}
     <Field label="Título" htmlFor="task-title"><input id="task-title" required maxLength={160} className={inputClass} value={draft.titulo} onChange={(e) => change("titulo", e.target.value)} /></Field>
     <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-      <Field label="Responsable" htmlFor="task-advisor"><select id="task-advisor" className={selectClass} value={draft.asesorId ?? ""} onChange={(e) => change("asesorId", e.target.value || undefined)}><option value="">Sin asignar</option>{draft.asesorId && !asesores.some((a) => a.id === draft.asesorId) && <option value={draft.asesorId}>Responsable no disponible</option>}{asesores.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
+      <Field label="Responsable" htmlFor="task-advisor"><select disabled={!!draft.expedienteId} id="task-advisor" className={selectClass} value={draft.asesorId ?? ""} onChange={(e) => change("asesorId", e.target.value || undefined)}><option value="">Sin asignar</option>{draft.asesorId && !asesores.some((a) => a.id === draft.asesorId) && <option value={draft.asesorId}>Responsable no disponible</option>}{asesores.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
       <Field label="Fecha límite (opcional)" htmlFor="task-due"><input id="task-due" type="date" className={inputClass} value={draft.vence ?? ""} onChange={(e) => change("vence", e.target.value || undefined)} /></Field>
       <Field label="Estado" htmlFor="task-status"><select id="task-status" className={selectClass} value={draft.estado} onChange={(e) => change("estado", e.target.value as Task["estado"])}>{options(TASK_STATUSES)}</select></Field>
       <Field label="Prioridad" htmlFor="task-priority"><select id="task-priority" className={selectClass} value={draft.prioridad} onChange={(e) => change("prioridad", e.target.value as Task["prioridad"])}>{options(TASK_PRIORITIES)}</select></Field>
     </div>
     {draft.estado === "en-espera" && <Field label="Motivo de espera" htmlFor="task-wait"><input required maxLength={5000} id="task-wait" className={inputClass} value={draft.motivoEspera ?? ""} onChange={(e) => change("motivoEspera", e.target.value)} /></Field>}
-    <details className="min-w-0 rounded-md border border-border p-3" open={initial ? true : undefined}>
+    <details className="min-w-0 rounded-md border border-border p-3" open={initial || draft.expedienteId ? true : undefined}>
       <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium">Descripción, categoría y vínculos</summary>
       <div className="mt-3 grid min-w-0 gap-4 sm:grid-cols-2">
         <Field label="Descripción" htmlFor="task-description" className="sm:col-span-2"><textarea id="task-description" maxLength={20000} rows={3} className={textareaClass} value={draft.descripcion ?? ""} onChange={(e) => change("descripcion", e.target.value)} /></Field>
+        <Field label="Expediente relacionado" htmlFor="task-dossier" className="sm:col-span-2" hint="Al vincularlo, cliente, inmueble y responsable corresponden a esa operación.">
+          <select id="task-dossier" className={selectClass} value={draft.expedienteId ?? ""} onChange={(e) => selectExpediente(e.target.value)}>
+            <option value="">Sin referencia a expediente</option>
+            {draft.expedienteId && !expediente && <option value={draft.expedienteId}>Expediente no disponible</option>}
+            {expedientes.map((item) => <option key={item.id} value={item.id} disabled={!expedienteLinks}>{item.folio}</option>)}
+          </select>
+          {!expedientesLoaded && !expedienteError && <p role="status" className="text-sm text-muted-foreground">Cargando expedientes disponibles…</p>}
+          {expedienteLinks === false && <p role="status" className="text-sm text-muted-foreground">El vínculo con expedientes requiere una actualización del servicio. Puedes guardar tareas sin ese vínculo.</p>}
+          {capabilityError && <p role="status" className="text-sm text-muted-foreground">{capabilityError}</p>}
+          {expedienteError && <p role="status" className="text-sm text-muted-foreground">{expedienteError}</p>}
+          {expedientesLoaded && draft.expedienteId && !expediente && <p className="text-sm text-muted-foreground">El expediente ya no está activo o disponible. Selecciona otro o retira el vínculo antes de guardar.</p>}
+          {expediente && !contextMatches && <button type="button" className={btnGhost} onClick={() => selectExpediente(expediente.id)}>Usar vínculos actuales del expediente</button>}
+        </Field>
         <Field label="Categoría" htmlFor="task-category"><select id="task-category" className={selectClass} value={draft.categoria} onChange={(e) => change("categoria", e.target.value as Task["categoria"])}>{options(TASK_CATEGORIES)}</select></Field>
         <Field label="Prospecto relacionado" htmlFor="task-lead"><select id="task-lead" className={selectClass} value={draft.leadId ?? ""} onChange={(e) => change("leadId", e.target.value || undefined)}><option value="">Sin vínculo</option>{draft.leadId && !leads.some((l) => l.id === draft.leadId) && <option value={draft.leadId}>Prospecto no disponible</option>}{leads.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}</select></Field>
-        <Field label="Cliente relacionado" htmlFor="task-client"><select id="task-client" className={selectClass} value={draft.clienteId ?? ""} onChange={(e) => change("clienteId", e.target.value || undefined)}><option value="">Sin vínculo</option>{draft.clienteId && !clientes.some((c) => c.id === draft.clienteId) && <option value={draft.clienteId}>Cliente no disponible</option>}{clientes.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></Field>
-        <Field label="Inmueble relacionado" htmlFor="task-property"><select id="task-property" className={selectClass} value={draft.propiedadSlug ?? ""} onChange={(e) => change("propiedadSlug", e.target.value || undefined)}><option value="">Sin vínculo</option>{draft.propiedadSlug && !propiedades.some((p) => p.slug === draft.propiedadSlug) && <option value={draft.propiedadSlug}>Inmueble no disponible</option>}{propiedades.map((p) => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}</select></Field>
+        <Field label="Cliente relacionado" htmlFor="task-client"><select disabled={!!draft.expedienteId} id="task-client" className={selectClass} value={draft.clienteId ?? ""} onChange={(e) => change("clienteId", e.target.value || undefined)}><option value="">Sin vínculo</option>{draft.clienteId && !clientes.some((c) => c.id === draft.clienteId) && <option value={draft.clienteId}>Cliente no disponible</option>}{clientes.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></Field>
+        <Field label="Inmueble relacionado" htmlFor="task-property"><select disabled={!!draft.expedienteId} id="task-property" className={selectClass} value={draft.propiedadSlug ?? ""} onChange={(e) => change("propiedadSlug", e.target.value || undefined)}><option value="">Sin vínculo</option>{draft.propiedadSlug && !propiedades.some((p) => p.slug === draft.propiedadSlug) && <option value={draft.propiedadSlug}>Inmueble no disponible</option>}{propiedades.map((p) => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}</select></Field>
       </div>
     </details>
     <section aria-label="Pasos de la tarea" className="space-y-3">
