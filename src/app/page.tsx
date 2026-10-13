@@ -15,7 +15,7 @@ export default async function HomePage() {
   const content = await getPublicContent();
   return (
     <EditorialHome>
-      <EditorialHero content={content} />
+      <EditorialHero />
       <EditorialSellerGateway />
       <div className="editorial-featured"><EditorialProperties /></div>
       <div className="editorial-segments"><Segmentos /></div>

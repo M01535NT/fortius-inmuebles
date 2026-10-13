@@ -14,29 +14,44 @@ test("mobile performance budget across three cold loads", async () => {
   }
 });
 
-for (const width of [375, 414, 768, 1024, 1440]) {
+for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
   test(`animated homepage remains readable and usable at ${width}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Tu propiedad merece");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("La venta empieza antes del anuncio.");
     await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
-    await page.getByRole("button", { name: "Imagen 2", exact: true }).click();
-    await expect(page.getByRole("button", { name: "Imagen 2", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator(".kenburns").last()).toHaveCSS("animation-play-state", "paused");
-    await expect(page.locator(".hero-copy-entry").first()).toHaveCSS("opacity", "1");
-    await expect(page.locator(".hero-copy-entry").last()).toHaveCSS("opacity", "1");
-    await expect.poll(() => page.getByRole("heading", { level: 1 }).evaluate((heading) => {
-      const parts = Array.from(heading.querySelectorAll("*"));
-      return parts.length > 2 && parts.every((part) => {
-        const style = getComputedStyle(part);
-        return style.opacity === "1" && (style.filter === "none" || style.filter === "blur(0px)");
-      });
-    })).toBe(true);
-    await expect(page.locator('section[aria-label="Presentación"] img')).toHaveCount(1);
-    await page.locator(".editorial-cover-actions").getByRole("link", { name: "Explorar inmuebles", exact: true }).hover();
+    const hero = page.locator(".editorial-hero");
+    await expect(hero.locator("h1")).toHaveCount(1);
+    await expect(hero.locator("button, .hero-marquee")).toHaveCount(0);
+    await expect(hero.locator(".editorial-cover-eyebrow")).toHaveText("INMOBILIARIA EN BAJA CALIFORNIA");
+    await expect(hero.locator(".editorial-cover-description")).toHaveText("Analizamos el mercado, revisamos la documentación y coordinamos contigo cada etapa de la comercialización de tu propiedad.");
+    await expect(hero.locator(".editorial-cover-window")).toHaveCSS("opacity", "1");
+    await expect(hero.locator("img")).toHaveCount(1);
+    expect(await hero.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    const primary = hero.getByRole("link", { name: "Quiero vender mi propiedad", exact: true });
+    const secondary = hero.getByRole("link", { name: "Ver propiedades", exact: true });
+    await expect(primary).toHaveAttribute("href", "/vender-propiedad");
+    await expect(secondary).toHaveAttribute("href", "/inventario");
+    await expect(primary).toHaveCSS("opacity", "1");
+    await expect(secondary).toHaveCSS("opacity", "1");
+    const copy = (await hero.locator(".editorial-cover-copy").boundingBox())!;
+    const photo = (await hero.locator("figure").boundingBox())!;
+    expect(photo.y).toBeGreaterThanOrEqual(copy.y + copy.height);
+    if (width >= 768) expect((await primary.boundingBox())!.y + (await primary.boundingBox())!.height).toBeLessThanOrEqual(900);
+    for (const link of [primary, secondary]) {
+      const box = (await link.boundingBox())!;
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+    }
+    await primary.focus();
+    await expect(primary).toHaveCSS("outline-style", "solid");
+    await page.keyboard.press("Tab");
+    await expect(secondary).toBeFocused();
+    await secondary.hover();
     await page.screenshot({ path: testInfo.outputPath(`hero-${width}.png`) });
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
@@ -57,6 +72,8 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await expect(page.locator('a[href$="#evaluar"]')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(hero.locator(".editorial-cover-photo")).toHaveCSS("transform", "none");
+    await expect(hero.locator(".editorial-cover-window")).toHaveCSS("clip-path", "none");
     await expect(page.getByRole("button", { name: /Pausar imágenes|Reanudar imágenes/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
@@ -77,5 +94,27 @@ test("public homepage passes automatic WCAG AA checks in both themes", async ({ 
     if (theme === "dark") await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+  }
+});
+
+test("hero remains readable before hydration with reduced motion and without JavaScript", async ({ browser }) => {
+  for (const javaScriptEnabled of [false, true]) {
+    const context = await browser.newContext({ javaScriptEnabled, reducedMotion: "reduce", viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.goto("/");
+    const hero = page.locator(".editorial-hero");
+    await expect(hero.locator("h1")).toHaveCSS("opacity", "1");
+    await expect(hero.locator(".editorial-cover-window")).toHaveCSS("opacity", "1");
+    await expect(hero.locator(".editorial-cover-photo")).toHaveCSS("transform", "none");
+    await hero.getByRole("link", { name: "Quiero vender mi propiedad", exact: true }).click();
+    await expect(page).toHaveURL(/\/vender-propiedad$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prepara tu propiedad para vender");
+    await page.goto("/");
+    await hero.getByRole("link", { name: "Ver propiedades", exact: true }).click();
+    await expect(page).toHaveURL(/\/inventario$/);
+    expect(errors).toEqual([]);
+    await context.close();
   }
 });
