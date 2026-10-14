@@ -33,10 +33,10 @@ test("additional modules can collapse after reordering without losing primary ro
   fireEvent.click(screen.getByRole("button", { name: "Organizar módulos" }));
   fireEvent.click(screen.getByRole("button", { name: "Subir Inmuebles" }));
   fireEvent.click(screen.getByRole("button", { name: "Terminar organización" }));
-  fireEvent.click(screen.getByRole("button", { name: "Menú principal" }));
+  fireEvent.click(screen.getByRole("button", { name: "Ocultar más" }));
   expect(screen.queryByRole("link", { name: "Reportes" })).toBeNull();
   expect(screen.getByRole("link", { name: "Inmuebles" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Más herramientas" }));
+  fireEvent.click(screen.getByRole("button", { name: "Más" }));
   expect(screen.getByRole("link", { name: "Reportes" })).toBeTruthy();
 });
 function show(userId = "one", role = "admin") {

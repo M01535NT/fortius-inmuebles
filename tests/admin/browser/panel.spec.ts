@@ -58,30 +58,30 @@ for (const width of [375, 414, 768, 1024, 1440]) {
           : page.getByRole("navigation", { name: "Módulos del panel", exact: true });
       if (width < 768)
         await page.getByRole("button", { name: "Menú del panel" }).click();
+      for (const name of ["Resumen", "Hoy", "Operaciones", "Agenda"])
+        await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
+      await expect(nav.getByRole("link", { name: "Inmuebles", exact: true })).toHaveCount(0);
+      await expect(nav.getByRole("link", { name: "Captación", exact: true })).toHaveCount(0);
+      await nav.getByRole("button", { name: "Más", exact: true }).click();
+      await expect(nav.getByRole("button", { name: "Ocultar más", exact: true })).toHaveAttribute("aria-expanded", "true");
       for (const stage of ["Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"])
         await expect(nav.getByRole("link", { name: stage, exact: true })).toBeVisible();
-      await expect(nav.getByRole("link", { name: "Inmuebles", exact: true })).toHaveCount(0);
-      await nav.getByRole("button", { name: "Más", exact: true }).click();
-      await expect(nav.getByRole("button", { name: "Ocultar gestión", exact: true })).toHaveAttribute("aria-expanded", "true");
       for (const name of [
         "Inmuebles",
         "CRM",
         "Clientes",
-        "Calendario",
         "Notas",
         "Blog",
         "Asesores",
         "Archivos",
         "Contenido",
         "Configuración",
-        "Operaciones",
         "Documentos",
         "Finanzas",
         "Análisis territorial",
         "Portal de clientes",
         "Control comercial",
         "Reportes",
-        "Tareas",
         "Historial",
       ])
         await expect(
