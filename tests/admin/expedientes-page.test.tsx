@@ -172,7 +172,7 @@ it('protects unsaved operation capture when leaving through a navigation link',a
 });
 
 it('protects a new operation draft and allows explicit discard',async()=>{
- fixture();render(<ExpedientesPage/>);fireEvent.click(screen.getByRole('button',{name:'Alta directa de expediente'}));
+ fixture();render(<ExpedientesPage/>);fireEvent.click(screen.getByRole('button',{name:'Alta directa'}));
  const field=screen.getByLabelText('Unidad, si aplica');fireEvent.change(field,{target:{value:'Unidad pendiente'}});
  vi.mocked(confirmAction).mockResolvedValueOnce(false);fireEvent.click(screen.getByRole('link',{name:/Control comercial/}));
  await waitFor(()=>expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining('Descartar los cambios y salir')));

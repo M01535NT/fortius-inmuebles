@@ -21,7 +21,7 @@ for (const width of [320, 360, 390, 430, 768, 1440]) {
   test(`populated panel, calendar and lists fit at ${width}`, async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width, height: 844 });
-    for (const [path, heading] of [["", "Resumen ejecutivo"], ["/leads", "CRM · Relaciones comerciales"], ["/propiedades", "Cartera de inmuebles"], ["/calendario", "Calendario"]] as const) {
+    for (const [path, heading] of [["", "¿Qué vas a hacer hoy?"], ["/leads", "CRM · Relaciones comerciales"], ["/propiedades", "Cartera de inmuebles"], ["/calendario", "Calendario"]] as const) {
       await page.goto("/admin" + path);
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
       await fitsPage(page);

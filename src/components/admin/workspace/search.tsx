@@ -151,8 +151,9 @@ export function WorkspaceSearch() {
             <h3 className="text-sm font-semibold">Crear rápidamente</h3>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {[
-                ["Nuevo inmueble", "/admin/propiedades/nueva"],
+                ["Nueva operación", "/admin/operaciones/nueva"],
                 ["Nuevo prospecto", "/admin/leads?nuevo=1"],
+                ["Nuevo inmueble", "/admin/propiedades/nueva"],
                 ["Nueva tarea", "/admin/tareas?nueva=1"],
                 ["Agendar visita", "/admin/calendario?nueva=1"],
               ].map(([label, href]) => (

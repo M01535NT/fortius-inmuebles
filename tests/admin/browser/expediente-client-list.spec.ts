@@ -58,7 +58,7 @@ for (const width of [390, 768, 1440]) {
     await expect(panel).toContainText("No hay expedientes eliminados");
     await panel.getByRole("link", { name: "Nueva operación" }).click();
     await expect(page).toHaveURL(/operaciones[/]nueva$/);
-    await expect(page.getByRole("heading", { name: "¿Qué quiere hacer el prospecto?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "¿Qué necesita esta persona?" })).toBeVisible();
     expect(errors).toEqual([]);
   });
 }

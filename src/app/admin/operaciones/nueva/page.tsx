@@ -256,7 +256,7 @@ export default function NewOperation() {
             ? "Preparar entrevista del expediente"
             : "Nueva operación"
         }
-        description="Primero define qué necesita la persona. Después registra el contacto y realiza su entrevista."
+        description="Elige un solo perfil. El resto del panel se adapta a esa decisión: contacto, entrevista y siguiente paso."
       />
       <ol
         aria-label="Inicio de la operación"
@@ -270,7 +270,7 @@ export default function NewOperation() {
               : "text-muted-foreground"
           }
         >
-          1. Tipo de prospecto
+          1. Tipo de operación
         </li>
         <li
           aria-current={step === 2 ? "step" : undefined}
@@ -280,10 +280,10 @@ export default function NewOperation() {
               : "text-muted-foreground"
           }
         >
-          2. Datos de contacto
+          2. Contacto
         </li>
         <li className="text-muted-foreground">
-          3. Entrevista y siguiente paso
+          3. Entrevista
         </li>
       </ol>
       {error && (
@@ -295,10 +295,13 @@ export default function NewOperation() {
         </p>
       )}
       {step === 1 ? (
-        <section className="space-y-4" aria-label="Tipo de prospecto">
+        <section className="space-y-4" aria-label="Tipo de operación">
           <h2 className="display-soft text-2xl">
-            ¿Qué quiere hacer el prospecto?
+            ¿Qué necesita esta persona?
           </h2>
+          <p className="max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
+            Elige un solo perfil para continuar. El resto del panel se adapta a esa decisión.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {Object.entries(INTENTS).map(([key, definition]) => {
               const Icon = icons[key as IntakeIntent];
@@ -373,7 +376,7 @@ export default function NewOperation() {
                     changed();
                   }}
                 />{" "}
-                Nuevo prospecto
+                Persona nueva
               </label>
               <label className="flex min-h-11 items-center gap-2">
                 <input
@@ -385,7 +388,7 @@ export default function NewOperation() {
                     changed();
                   }}
                 />{" "}
-                Contacto existente
+                Ya está en Fortius
               </label>
             </div>
             {kind === "nuevo" ? (
@@ -557,7 +560,7 @@ export default function NewOperation() {
             >
               {busy
                 ? "Preparando entrevista…"
-                : "Guardar contacto y abrir entrevista"}{" "}
+                : "Iniciar entrevista"}{" "}
               <ArrowRight size={16} />
             </button>
           </fieldset>

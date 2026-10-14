@@ -38,7 +38,7 @@ test("Fortius Inmuebles mark remains visible through email login and sidebar", a
   await page.getByLabel("Correo").fill("staff@example.com");
   await page.getByLabel("Contraseña", { exact: true }).fill("local-fixture-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Resumen ejecutivo", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "¿Qué vas a hacer hoy?", exact: true })).toBeVisible();
   const sidebarMark = page.getByRole("complementary").getByRole("img", { name: "Fortius Inmuebles" });
   await expect(sidebarMark).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("fortius-inmuebles-sidebar.png"), fullPage: true });
@@ -50,7 +50,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/admin");
       await expect(
-        page.getByRole("heading", { name: "Resumen ejecutivo", exact: true }),
+        page.getByRole("heading", { name: "¿Qué vas a hacer hoy?", exact: true }),
       ).toBeVisible();
       const nav =
         width < 768
@@ -61,7 +61,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       for (const stage of ["Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"])
         await expect(nav.getByRole("link", { name: stage, exact: true })).toBeVisible();
       await expect(nav.getByRole("link", { name: "Inmuebles", exact: true })).toHaveCount(0);
-      await nav.getByRole("button", { name: "Gestión", exact: true }).click();
+      await nav.getByRole("button", { name: "Más", exact: true }).click();
       await expect(nav.getByRole("button", { name: "Ocultar gestión", exact: true })).toHaveAttribute("aria-expanded", "true");
       for (const name of [
         "Inmuebles",
@@ -136,7 +136,7 @@ test("failed initial load is explicit and does not render an empty-success dashb
     "Servidor temporalmente no disponible",
   );
   await expect(
-    page.getByRole("heading", { name: "Resumen ejecutivo", exact: true }),
+    page.getByRole("heading", { name: "¿Qué vas a hacer hoy?", exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Reintentar carga" }),

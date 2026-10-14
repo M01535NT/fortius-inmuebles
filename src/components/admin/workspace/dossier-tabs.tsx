@@ -6,12 +6,13 @@ export type DossierView =
   | "documents"
   | "activity"
   | "tasks";
+/** Coach first: one next step; dense surfaces stay under Vista avanzada. */
 const tabs: { id: DossierView; label: string }[] = [
-  { id: "all", label: "Vista general" },
-  { id: "summary", label: "Resumen" },
+  { id: "summary", label: "Siguiente paso" },
   { id: "documents", label: "Documentos" },
+  { id: "tasks", label: "Tareas" },
   { id: "activity", label: "Actividad" },
-  { id: "tasks", label: "Tareas y agenda" },
+  { id: "all", label: "Vista avanzada" },
 ];
 export function DossierTabs({
   value,

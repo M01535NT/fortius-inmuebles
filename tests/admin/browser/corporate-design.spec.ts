@@ -24,7 +24,7 @@ for (const width of [375, 768, 1440]) {
     test.setTimeout(90_000);
     await page.setViewportSize({ width, height: 1000 });
     for (const [path, title] of [
-      ["", "Resumen ejecutivo"], ["leads", "CRM · Relaciones comerciales"], ["propiedades", "Cartera de inmuebles"],
+      ["", "¿Qué vas a hacer hoy?"], ["leads", "CRM · Relaciones comerciales"], ["propiedades", "Cartera de inmuebles"],
       ["expedientes", "Expedientes"], ["documentos", "Documentos y expediente"], ["finanzas", "Finanzas y rentabilidad"],
       ["territorio", "Análisis territorial"], ["portal-clientes", "Portal de clientes"],
     ]) {

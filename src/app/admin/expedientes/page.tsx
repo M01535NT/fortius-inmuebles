@@ -1,6 +1,7 @@
 "use client";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
+import Link from "next/link";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { FolderOpen } from "lucide-react";
 import { emptyWorkflow, WORKFLOW_ROUTES, stageLabel, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
@@ -46,7 +47,7 @@ export default function ExpedientesPage() {
   const [showDeleted, setShowDeleted] = React.useState(false);
   const [notice, setNotice] = React.useState("");
   const [query,setQuery] = React.useState("");
-  const [view,setView]=React.useState<DossierView>(()=>typeof window!=="undefined"&&new URLSearchParams(window.location.search).has("documento")?"documents":"all");
+  const [view,setView]=React.useState<DossierView>(()=>typeof window!=="undefined"&&new URLSearchParams(window.location.search).has("documento")?"documents":"summary");
   const [selectedId, setSelectedId] = React.useState("");
   const [documentos, setDocumentos] = React.useState<Documento[]>([]);
   const [documento, setDocumento] = React.useState<Documento | null>(null);
@@ -73,7 +74,7 @@ export default function ExpedientesPage() {
   function selectExpediente(id: string) {
     if (!canNavigate()) return;
     generation.current++;
-    setSelectedId(id); setView("all"); setOperationalDirty(false); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]); setError("");
+    setSelectedId(id); setView("summary"); setOperationalDirty(false); setDocumento(null); setValues({}); setDocumentos([]); setEmisiones([]); setCopias({}); setAdjuntos([]); setError("");
   }
   async function openDocumento(id: string) {
     if (!canNavigate()) return;
@@ -276,7 +277,7 @@ export default function ExpedientesPage() {
   const budgetTotals = definition?.id === "19" && missing.length === 0 ? calcularPresupuesto(values) : null;
   const netTotals = definition?.id === "08" && missing.length === 0 ? calcularNeto({ ...values, folio: selected?.folio }) : null;
   return <div className="admin-operations-page min-w-0 space-y-5">
-    <PageHeader title="Expedientes y formatos" description="Documentos, pendientes y siguientes pasos de cada operación." actions={!showDeleted&&<button type="button" className={btnGhost} aria-expanded={createOpen} aria-controls="nuevo-expediente" disabled={busy||pdfBusy} onClick={()=>setCreateOpen(!createOpen)}>{createOpen?"Cerrar alta directa":"Alta directa de expediente"}</button>}/>
+    <PageHeader title="Operaciones" description="Una operación a la vez: siguiente paso, documentos y seguimiento." actions={!showDeleted&&<button type="button" className={btnGhost} aria-expanded={createOpen} aria-controls="nuevo-expediente" disabled={busy||pdfBusy} onClick={()=>setCreateOpen(!createOpen)}>{createOpen?"Cerrar alta directa":"Alta directa"}</button>}/>
     <details className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"><summary className="cursor-pointer font-semibold">Formatos y requisitos de emisión</summary><p className="mt-3">{FORMATOS.filter(item => item.readyForEmission && !item.globalRoute).length} formatos admiten emisión por expediente, sujeta a captura y revisión completas.</p><p><a href="/admin/control-comercial" className="text-primary-ink underline">03 · Control comercial global</a>: carteras, historial y PDF desde su propio módulo.</p><p>09 · Intermediación: puedes preparar la captura; su PDF requiere registro y cotejo del modelo registrado.</p></details>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="rounded-md border border-border p-3 text-sm">{notice}</p>}
@@ -298,7 +299,7 @@ export default function ExpedientesPage() {
       <ExpedienteClientList expedientes={expedientes} clientes={clientes} propiedades={propiedades} selectedId={selectedId}
         showDeleted={showDeleted} busy={busy || pdfBusy} query={query} onQueryChange={setQuery} onStateChange={changeList}
         onSelect={selectExpediente} />
-      <div className="min-w-0 space-y-5">{!selected&&<section className="admin-card admin-operation-welcome"><FolderOpen size={32} aria-hidden="true"/><h2>Tu operación, en un solo lugar</h2><p>Selecciona un expediente para consultar su inmueble, personas, documentos y siguientes pasos.</p>{!showDeleted&&<button type="button" className={btnGhost} onClick={()=>setCreateOpen(true)}>Abrir captura de operación</button>}</section>}{selected && <>
+      <div className="min-w-0 space-y-5">        {!selected&&<section className="admin-card admin-operation-welcome"><FolderOpen size={32} aria-hidden="true"/><h2>Elige una operación o empieza una nueva</h2><p>La captura guiada define el perfil del contacto y te deja en el siguiente paso. El alta directa queda para casos excepcionales.</p>{!showDeleted&&<div className="flex flex-wrap gap-3"><Link href="/admin/operaciones/nueva" className={btnPrimary}>Nueva operación</Link><button type="button" className={btnGhost} onClick={()=>setCreateOpen(true)}>Alta directa</button></div>}</section>}{selected && <>
         {!selected.deleted_at&&<OperationBrief operation={selected} onReview={()=>{if(view!=="all"&&view!=="summary"){if(!canNavigate())return;setView("summary");}requestAnimationFrame(()=>{const target=document.getElementById("exp-guia");target?.scrollIntoView({block:"start"});target?.focus();});}}/>}
         {!selected.deleted_at && <DossierTabs value={view} onChange={setView} disabled={busy||pdfBusy}/>}
         <div id="exp-tab-content" role="tabpanel" aria-labelledby={`exp-tab-${view}`} tabIndex={0} className="min-w-0 space-y-6">

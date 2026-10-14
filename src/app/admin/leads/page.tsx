@@ -96,21 +96,26 @@ export default function AdminLeadsPage() {
         title="CRM · Relaciones comerciales"
         description="Contacta, asigna y da seguimiento a las personas interesadas."
         actions={
-          <button
-            type="button"
-            aria-expanded={capturaAbierta}
-            aria-controls="captura-manual-lead"
-            disabled={guardando}
-            onClick={() => setCapturaAbierta((abierta) => !abierta)}
-            className={btnPrimary}
-          >
-            {capturaAbierta ? (
-              <X className="size-4" strokeWidth={1.5} />
-            ) : (
-              <Plus className="size-4" strokeWidth={1.5} />
-            )}
-            {capturaAbierta ? "Cerrar captura" : "Nuevo prospecto"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin/operaciones/nueva" className={btnPrimary}>
+              <Plus className="size-4" strokeWidth={1.5} /> Nueva operación
+            </Link>
+            <button
+              type="button"
+              aria-expanded={capturaAbierta}
+              aria-controls="captura-manual-lead"
+              disabled={guardando}
+              onClick={() => setCapturaAbierta((abierta) => !abierta)}
+              className={btnGhost}
+            >
+              {capturaAbierta ? (
+                <X className="size-4" strokeWidth={1.5} />
+              ) : (
+                <Plus className="size-4" strokeWidth={1.5} />
+              )}
+              {capturaAbierta ? "Cerrar captura" : "Nuevo prospecto"}
+            </button>
+          </div>
         }
       /></div>
       <DemoBanner />
