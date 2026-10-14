@@ -41,12 +41,13 @@ alter table public.fortius_inmuebles_interviews enable row level security;
 revoke all on public.fortius_inmuebles_interviews from public,anon,authenticated,service_role;
 grant select on public.fortius_inmuebles_interviews to authenticated;
 grant select on public.fortius_inmuebles_interviews to service_role;
+-- Same current-adviser scope as CRM clients and expediente documents; historical actor is audit data, never an access grant.
 create function public.fortius_inmuebles_interview_visible(a text,l text,c text,e uuid) returns boolean
 language sql stable security definer set search_path='' as $$
  select public.fortius_inmuebles_is_staff()
- and case when e is not null then exists(select 1 from public.fortius_inmuebles_expedientes x where x.id=e and x.deleted_at is null and public.fortius_inmuebles_can_access_expediente(x.id) and (public.fortius_inmuebles_is_admin() or x.cliente_id=c))
-  when c is not null then exists(select 1 from public.fortius_inmuebles_records x where x.collection='clientes' and x.id=c and public.fortius_inmuebles_record_visible(x.collection,x.data))
-  else exists(select 1 from public.fortius_inmuebles_records x where x.collection='leads' and x.id=l and public.fortius_inmuebles_record_visible(x.collection,x.data)) end;
+ and case when e is not null then exists(select 1 from public.fortius_inmuebles_expedientes x where x.id=e and x.deleted_at is null and public.fortius_inmuebles_can_access_expediente(x.id) and (public.fortius_inmuebles_is_admin() or (x.asesor_id=public.fortius_inmuebles_current_asesor_id() and x.cliente_id=c and public.fortius_inmuebles_can_access_client_id(c))))
+  when c is not null then exists(select 1 from public.fortius_inmuebles_records x where x.collection='clientes' and x.id=c and public.fortius_inmuebles_record_visible(x.collection,x.data) and (public.fortius_inmuebles_is_admin() or x.data->>'asesorId'=public.fortius_inmuebles_current_asesor_id()))
+  else exists(select 1 from public.fortius_inmuebles_records x where x.collection='leads' and x.id=l and public.fortius_inmuebles_record_visible(x.collection,x.data) and (public.fortius_inmuebles_is_admin() or x.data->>'asesorId'=public.fortius_inmuebles_current_asesor_id())) end;
 $$;
 revoke all on function public.fortius_inmuebles_interview_visible(text,text,text,uuid) from public,anon,service_role;
 grant execute on function public.fortius_inmuebles_interview_visible(text,text,text,uuid) to authenticated;

@@ -402,3 +402,10 @@ it("cancels a reassigned prospect draft and allows the new responsible adviser t
     expect(next.id).not.toBe(r.id);
   });
 });
+it('keeps historical interviews within the current authorized client and operation scope',async()=>{
+ const r=await asUser(own,()=>start('vender',contact('6646678899')));const done=await asUser(own,()=>save(r.id,1,answers(),true));
+ await asUser(other,async()=>{expect((await db.query('select id from public.fortius_inmuebles_interviews where id=$1',[r.id])).rows).toHaveLength(0);});
+ await asUser(admin,async()=>{const c=(await db.query<{data:Record<string,unknown>;version:number}>("select data,version from public.fortius_inmuebles_records where collection='clientes' and id=$1",[done.cliente_id])).rows[0];await db.query("select public.fortius_inmuebles_put_record('clientes',$1,$2::jsonb,$3)",[done.cliente_id,JSON.stringify({...c.data,asesorId:'other'}),c.version]);await db.query("update public.fortius_inmuebles_expedientes set asesor_id='other',version=version+1 where id=$1",[done.expediente_id]);});
+ await asUser(own,async()=>{expect((await db.query('select id from public.fortius_inmuebles_interviews where id=$1',[r.id])).rows).toHaveLength(0);});
+ await asUser(other,async()=>{expect((await db.query('select id from public.fortius_inmuebles_interviews where id=$1',[r.id])).rows).toHaveLength(1);});
+});
