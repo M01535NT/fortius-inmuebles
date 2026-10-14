@@ -14,6 +14,7 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   if(!run.result)throw new ApiError(400,'Genera y guarda un resultado primero');
   const format=new URL(request.url).searchParams.get('format')??'pdf';
   if(!['pdf','csv'].includes(format))throw new ApiError(400,'Formato no disponible');
+  if(run.slug==='conversor'&&format==='pdf')throw new ApiError(400,'Consulta la conversión directamente en pantalla');
   const csv=format==='csv',photos:Uint8Array[]=[];
   if(!csv&&run.slug==='ficha-comercial'&&Array.isArray(run.input.photoUrls)&&run.input.photoUrls.length){
    const propertyId=run.context.inmuebleId??run.input.propertySlug;

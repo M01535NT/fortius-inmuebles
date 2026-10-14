@@ -741,7 +741,7 @@ Objetivo: veinte herramientas funcionales en /admin/apps/[slug], con captura, re
 11. Fotos: recorte, giro, luz/contraste, compresión/marca, original intacto y copia sin GPS.
 12. QR: ficha pública o documento expresamente compartido, revocable y vencimiento privado 7 días.
 13. Rutas: Google Routes, coordenadas capturadas, hasta10 paradas, horarios fijos conservan orden.
-14. Conversor: m2/ft2/ha, m/ft, MXN/USD, cambio manual con fuente/fecha congelado.
+14. Conversor: m2/ft2/ha, m/ft, MXN/USD, cambio manual con fuente/fecha congelado. Resultado visible en pantalla; no genera ni descarga PDF (decisión del titular del 13/10/2026).
 15. Inversión: flujos fechados proyecto/deuda/capital, ROI denominador explícito, VAN365, TIR no determinada si ambigua, escenarios y PDF/CSV.
 16. Rehabilitación: partidas/unidades/cantidades/precios/impuestos/contingencia/desembolsos; transferencia explícita a inversión.
 17. OCR: Document AI, PDF/JPG/PNG 20MB/100páginas dividido en lotes, original/huella, texto corregible por página.
@@ -766,7 +766,7 @@ Pruebas: cálculo independiente, dosasesores/admin, concurrencia/duplicados/sesi
 
 ### Estado de implementación — 13/10/2026
 
-**Código implementado y comprobado localmente; publicación y piloto pendientes.** Rama `codex/apps-asesores`, basada en `a35315d`. Se reutilizó el checkout aislado del panel para conservar intactos los cambios de la página pública que estaban en la carpeta principal. Este aislamiento no crea un segundo plan.
+**Núcleo de 16 apps publicado en el dominio real; cuatro integraciones externas diferidas.** Rama `codex/apps-asesores`, basada en `a35315d`. Se reutilizó el checkout aislado del panel para conservar intactos los cambios de la página pública que estaban en la carpeta principal. Este aislamiento no crea un segundo plan.
 
 - Catálogo y menú superior con las 20 herramientas, búsqueda y favoritos. La barra lateral separa seis etapas del procedimiento y conserva los módulos existentes dentro de Gestión.
 - Dieciséis herramientas locales implementadas: ficha, hipoteca, comparables, ofertas, neto, comisiones, informe, PDF, revisor, fotos, QR, conversor, inversiones, rehabilitación, versiones y cotizador. Guardado privado, reapertura, historial, eliminación recuperable y exportación comparten la misma plataforma.
@@ -774,14 +774,14 @@ Pruebas: cálculo independiente, dosasesores/admin, concurrencia/duplicados/sesi
 
 | Entrega | Estado comprobado | Pendiente |
 |---|---|---|
-| Entorno y plataforma | Implementación local, migraciones y permisos probados | Aplicar migraciones en destino y comprobar respaldos/restauración |
+| Entorno y plataforma | Implementación local, migraciones y permisos probados | Migraciones remotas aplicadas; respaldo completo y ensayo local aprobados |
 | Herramientas diarias, financieras y comerciales | Motores, formularios y exportación implementados; regresiones aprobadas | Piloto con cuentas autorizadas en el entorno desplegado |
 | Documentos e integraciones | Archivos privados, versiones, cuotas, citas y eventos probados con datos sintéticos | Proveedores y límites reales; diferidos |
-| Presentación | 20 rutas revisadas en navegador; escritorio, tableta, móvil y temas claro/oscuro; PDF de cuatro páginas inspeccionado | Repetir recorrido tras despliegue |
+| Presentación | 20 rutas revisadas en navegador; escritorio, tableta, móvil y temas claro/oscuro; PDF de cuatro páginas inspeccionado | Recorrido productivo de guardado, reapertura e historial realizado; pendiente piloto de dos asesores |
 
 **Verificación local:** suite general de 637 pruebas backend y 313 de panel aprobada; lint, tipos y compilación aprobados. Después se añadieron dos regresiones de búsqueda y tres de reintentos de guardado: las 18 pruebas afectadas volvieron a pasar. Revisiones independientes de motores, plataforma y seguridad cerraron los defectos reproducidos, incluida la búsqueda por varios términos. La prueba visual de guardado/reapertura usó un servidor de datos sintéticos; los permisos se probaron separadamente con las migraciones reales en PostgreSQL embebido. Esto no acredita una conexión productiva.
 
-**Activación del núcleo local:** antes de migrar, obtener y verificar una copia con el exportador correspondiente al esquema instalado (el exportador de la base `a35315d` cubre las 18 tablas anteriores; el nuevo requiere las migraciones de Apps). Aplicar, en orden y después de las migraciones existentes, `20261014002133_apps_runs.sql` y `20261014002229_fortius_apps_integrations.sql`; desplegar la rama con la configuración de autenticación y Storage autorizada para ese destino; mantener desactivados los proveedores; probar guardar, reabrir, exportar, eliminar/restaurar y aislamiento entre dos asesores y un administrador. No se aplicó SQL a la base actual durante esta implementación. La autorización previa de secretos corresponde a `codex/erp-crm-preview` y no se extiende automáticamente a esta rama.
+**Activación del núcleo local:** antes de migrar, obtener y verificar una copia con el exportador correspondiente al esquema instalado (el exportador de la base `a35315d` cubre las 18 tablas anteriores; el nuevo requiere las migraciones de Apps). Aplicar, en orden y después de las migraciones existentes, `20261014002133_apps_runs.sql` y `20261014002229_fortius_apps_integrations.sql`; desplegar la rama con la configuración de autenticación y Storage autorizada para ese destino; mantener desactivados los proveedores; probar guardar, reabrir, exportar, eliminar/restaurar y aislamiento entre dos asesores y un administrador. La aplicación remota se realizó después, durante la ventana de publicación autorizada que se registra abajo. La autorización previa de secretos corresponde a `codex/erp-crm-preview` y no se extiende automáticamente a esta rama.
 
 **Activación posterior de proveedores:** configurar las variables de servidor indicadas en `.env.example`, verificar cuentas, tarifas, moneda, impuestos, retención y límites; probar documentos sintéticos y webhook antes de habilitar datos reales. El presupuesto interno reserva costos estimados; falta contrastarlo con la facturación efectiva. Probar también la concurrencia entre conexiones PostgreSQL independientes y los límites de 20 MB/100 páginas con los servicios reales.
 
@@ -789,16 +789,17 @@ Pruebas: cálculo independiente, dosasesores/admin, concurrencia/duplicados/sesi
 
 **Recuperación local:** el exportador y el ensayo de restauración ahora incluyen las 26 tablas y el bucket privado de integraciones. El formato actual exige las ocho tablas nuevas; las copias históricas completas de 18 tablas se reconocen expresamente y conservan sus datos. Se comprueban versiones, relaciones, huellas, tamaños, procedencia de originales, privacidad incluso de buckets vacíos y coincidencia de la versión declarada. Las 28 pruebas de respaldo/restauración pasan en entorno aislado; esto no equivale a restaurar la base o Storage remotos. También se verifica que el despliegue incluya las fuentes y bibliotecas necesarias para los PDF de las apps.
 
-La aceptación humana, la migración remota, el despliegue y las cuatro activaciones externas siguen pendientes. No se declara operación 20/20 ni publicación productiva.
+La migración remota y el despliegue del núcleo local están realizados. Siguen pendientes la aceptación del piloto de dos asesores y las cuatro activaciones externas. No se declara operación 20/20.
 
-### Preparación de publicación — 13/10/2026
+### Publicación del núcleo local — 13/10/2026
 
 - Identificado el destino existente: Vercel `tonala/fortius-inmuebles` y Supabase `qkkirjzhviqwvuqjnmei` (Fortius Inmuebles). Producción ya dispone de su clave de servidor; no se copió a otra rama. No se activaron proveedores externos.
-- Simulación remota de migraciones: solo quedan pendientes `20261014002133_apps_runs.sql` y `20261014002229_fortius_apps_integrations.sql`; no se aplicaron.
-- Copia preliminar privada de las 18 tablas instaladas, cinco buckets y seis objetos (1,149,580 bytes), verificada y recuperada en una base local aislada con el esquema nuevo de 26 tablas. La prueba detectó que la zona horaria local alteraba la representación de las fechas: el ensayo ahora usa UTC y conserva microsegundos. Las 29 pruebas de respaldo pasan. La extracción del JSON debe preservar las cadenas de fecha; no convertirlas a objetos DateTime antes de guardar.
-- Esta copia preliminar no acredita una ventana sin escrituras ni recuperación completa de Auth/Storage. Antes de migrar, renovar y verificar el respaldo durante la ventana coordinada. No restaurar sobre producción.
-- La versión corregida pasa lint, tipos, 642 pruebas backend, 313 del panel y compilación. Los recursos PDF están incluidos. Los 116 manifiestos de ejecución revisados no contienen la cadena de lint con el aviso pendiente.
-- Se añadió `.vercelignore`: credenciales locales, respaldos y evidencia de pruebas quedan fuera del despliegue manual. El inventario se comprueba antes de publicar.
-- Existe sesión de administrador en el panel real. La base solo tiene una cuenta de personal; la prueba con dos asesores reales requiere sus cuentas autorizadas. No se crearon cuentas ni se ampliaron permisos para simularla.
+- Ventana sin ediciones confirmada por el titular. Respaldo final anterior a la migración: 18 tablas, cinco buckets y seis objetos (1,149,580 bytes), con integridad y restauración local verificadas. Las 18 tablas conservaron exactamente sus datos tras las migraciones.
+- Aplicadas únicamente las migraciones `20261014002133_apps_runs.sql` y `20261014002229_fortius_apps_integrations.sql`. Verificadas 26 tablas con RLS y el nuevo bucket privado.
+- Versión del núcleo promovida en `https://fortiusinmuebles.com`; salud HTTP 200. El panel autenticado permite guardar, recargar, reabrir y consultar versiones del trabajo de prueba. La corrección solicitada elimina el PDF del conversor y bloquea también esa exportación en el servidor; su cálculo sigue visible en pantalla.
+- Respaldo posterior: 26 tablas, seis buckets y seis objetos, verificado y restaurado en PostgreSQL aislado. Los tres ledgers internos sin permiso de lectura REST se conservan íntegros en el export propietario. El manifiesto registra por separado las tres lecturas REST denegadas, sin ampliar permisos ni declarar ese complemento completo. Las 32 pruebas y la revisión independiente de la corrección pasan.
+- Lint, tipos, 642 pruebas backend, 313 del panel, compilación y comprobaciones de navegador aprobadas para la versión publicada inicialmente. La corrección de conversor vuelve a pasar las 35 pruebas afectadas, lint y tipos; debe pasar además la verificación remota del commit antes de incorporarse a main.
+- `.vercelignore` excluye credenciales, respaldos y evidencia de pruebas. No se copiaron secretos a esta rama. El aviso pendiente de dependencias de desarrollo descrito arriba no aparece en los 116 manifiestos de ejecución inspeccionados.
+- Solo existe una cuenta de personal en la base actual. La separación entre asesores tiene pruebas aisladas; el piloto con dos cuentas reales sigue pendiente. No se crearon cuentas ni se ampliaron permisos para simularlo.
 
-**Siguiente paso pendiente:** confirmar la ventana sin ediciones, renovar el respaldo, aplicar las dos migraciones, publicar la versión comprobada y recorrer guardado/reapertura/exportación con la cuenta autorizada. La separación entre asesores ya tiene pruebas aisladas; el piloto con dos cuentas reales permanece pendiente. No se declara publicación productiva ni operación 20/20.
+**Pendientes conservados:** activación de firmas, OCR, consultas documentales y rutas; piloto de dos asesores autorizados; ensayo completo de recuperación de Auth/Storage en un destino aislado. Ninguno se declara completado por la publicación del núcleo local.

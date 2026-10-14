@@ -166,6 +166,28 @@ export async function restoreBackupObjects(directory, destination) {
   await writeFile(resolve(target, 'objects.json'), JSON.stringify({ format: 'fortius-local-object-recovery-v1', objects, buckets: manifest.buckets }, null, 2), { flag: 'wx', mode: 0o600 });
   return { passed: true, productionWrites: 0, objects: objects.length, bytes: objects.reduce((n, o) => n + o.bytes, 0), storageServiceRecovery: 'not_checked' };
 }
+// These internal ledgers deliberately have no service-role SELECT grant.
+// A denied supplemental read is acceptable only with a complete current owner export.
+const ownerOnlyLedgers = new Set(['record_revisions','record_history','lead_conversions']);
+export async function readRestSnapshot(client,prefix,suffix,ownerDatabase) {
+  const table=prefix+'_'+suffix,rows=[];
+  let errorCode=null;
+  for(let offset=0;;offset+=1000) {
+    let query=client.from(table).select('*').range(offset,offset+999);
+    for(const column of tableOrderKeys(suffix))query=query.order(column,{ascending:true});
+    const {data,error}=await query;
+    if(error){errorCode=error.code||'request-failed';break;}
+    rows.push(...data);if(data.length<1000)break;
+  }
+  let ownerCovered=false;
+  if(errorCode && prefix==='fortius_inmuebles' && errorCode==='42501' && ownerOnlyLedgers.has(suffix) && ownerDatabase) {
+    const owner=ownerExport(ownerDatabase);
+    ownerCovered=owner.prefix===prefix && ownerSchemaVersion(owner)===currentSchemaVersion;
+  }
+  const legacyRevision=prefix!=='fortius_inmuebles' && suffix==='record_revisions';
+  if(errorCode && !ownerCovered && !legacyRevision)throw Error('REST backup failed for '+suffix+' ('+errorCode+')');
+  return {table,complete:!errorCode,errorCode,ownerCovered,rows};
+}
 export async function main(args=process.argv.slice(2)) {
   const arg=name=>args[args.indexOf(name)+1];
   if (args.includes('--restore-objects')) {
@@ -194,27 +216,24 @@ export async function main(args=process.argv.slice(2)) {
   await mkdir(root,{recursive:true});
   const manifest={format:'mnt-backup-v1',startedAt:new Date().toISOString(),prefix,files:[],objects:[],buckets:[],database:{complete:false},consistency:'Reads require a coordinated write freeze for a consistent database/object snapshot.'};
   const save=async(file,data)=>{const buffer=Buffer.isBuffer(data)?data:Buffer.from(data);const path=safePath(root,file);await mkdir(dirname(path),{recursive:true});await writeFile(path,buffer,{flag:'wx'});const entry={file,bytes:buffer.length,sha256:sha256(buffer)};manifest.files.push(entry);return entry;};
+  let ownerDatabase;
   if(args.includes('--database')) {
     const original=await readFile(resolve(arg('--database')));
     const db=ownerExport(JSON.parse(original));
+    ownerDatabase=db;
     if(db.prefix!==prefix)throw Error('Owner export prefix differs from requested backup');
     const entry=await save('database-owner.json',original);
     manifest.database={complete:true,file:entry.file,exportedAt:db.exported_at,schemaVersion:ownerSchemaVersion(db),counts:Object.fromEntries(Object.entries(db.tables).map(([name,rows])=>[name,rows.length]))};
   }
-  // Independent REST snapshot is useful cross-check evidence, never a substitute for owner revisions.
+  // REST is supplemental: retain explicit gaps, never label them complete.
+  manifest.rest={complete:true,unavailable:[]};
   for(const suffix of prefix==='fortius_inmuebles'?currentSuffixes:suffixes) {
-    const table=`${prefix}_${suffix}`, rows=[];
-    let errorCode=null;
-    for(let offset=0;;offset+=1000) {
-      let query=client.from(table).select('*').range(offset,offset+999);
-      const keys=tableOrderKeys(suffix);
-      for(const column of keys)query=query.order(column,{ascending:true});
-      const {data,error}=await query;
-      if(error){errorCode=error.code||'request-failed';break;}
-      rows.push(...data); if(data.length<1000)break;
+    const snapshot=await readRestSnapshot(client,prefix,suffix,ownerDatabase);
+    await save('rest/'+suffix+'.json',JSON.stringify(snapshot,null,2));
+    if(!snapshot.complete) {
+      manifest.rest.complete=false;
+      manifest.rest.unavailable.push({table:snapshot.table,errorCode:snapshot.errorCode,ownerCovered:snapshot.ownerCovered});
     }
-    await save(`rest/${suffix}.json`,JSON.stringify({table,complete:!errorCode,errorCode,rows},null,2));
-    if(errorCode&&(prefix==='fortius_inmuebles'||suffix!=='record_revisions'))throw Error(`REST backup failed for ${suffix} (${errorCode})`);
   }
   const {data:buckets,error:bucketError}=await client.storage.listBuckets();
   if(bucketError)throw Error('Storage bucket listing failed');
@@ -244,6 +263,6 @@ export async function main(args=process.argv.slice(2)) {
   manifest.counts={buckets:manifest.buckets.length,objects:manifest.objects.length,bytes:manifest.objects.reduce((n,o)=>n+o.bytes,0)};
   await writeFile(resolve(root,'manifest.json'),JSON.stringify(manifest,null,2),{flag:'wx'});
   await verifyBackup(root);
-  console.log(JSON.stringify({backup:root,verified:true,...manifest.counts,databaseComplete:manifest.database.complete}));
+  console.log(JSON.stringify({backup:root,verified:true,...manifest.counts,databaseComplete:manifest.database.complete,restComplete:manifest.rest.complete,restUnavailable:manifest.rest.unavailable.length}));
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) main().catch(error=>{console.error(error.message);process.exitCode=1;});
