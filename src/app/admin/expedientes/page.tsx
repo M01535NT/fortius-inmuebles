@@ -1,7 +1,6 @@
 "use client";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
-import Link from "next/link";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { FolderOpen } from "lucide-react";
 import { emptyWorkflow, WORKFLOW_ROUTES, stageLabel, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
@@ -299,7 +298,7 @@ export default function ExpedientesPage() {
       <ExpedienteClientList expedientes={expedientes} clientes={clientes} propiedades={propiedades} selectedId={selectedId}
         showDeleted={showDeleted} busy={busy || pdfBusy} query={query} onQueryChange={setQuery} onStateChange={changeList}
         onSelect={selectExpediente} />
-      <div className="min-w-0 space-y-5">        {!selected&&<section className="admin-card admin-operation-welcome"><FolderOpen size={32} aria-hidden="true"/><h2>Elige una operación o empieza una nueva</h2><p>La captura guiada define el perfil del contacto y te deja en el siguiente paso. El alta directa queda para casos excepcionales.</p>{!showDeleted&&<div className="flex flex-wrap gap-3"><Link href="/admin/operaciones/nueva" className={btnPrimary}>Nueva operación</Link><button type="button" className={btnGhost} onClick={()=>setCreateOpen(true)}>Alta directa</button></div>}</section>}{selected && <>
+      <div className="min-w-0 space-y-5">        {!selected&&<section className="admin-card admin-operation-welcome"><FolderOpen size={32} aria-hidden="true"/><h2>Elige una operación o empieza una nueva</h2><p>Usa <strong>Nueva operación</strong> en la lista para la captación guiada. Si necesitas un expediente sin entrevista, usa <strong>Alta directa</strong> arriba.</p></section>}{selected && <>
         {!selected.deleted_at&&<OperationBrief operation={selected} onReview={()=>{if(view!=="all"&&view!=="summary"){if(!canNavigate())return;setView("summary");}requestAnimationFrame(()=>{const target=document.getElementById("exp-guia");target?.scrollIntoView({block:"start"});target?.focus();});}}/>}
         {!selected.deleted_at && <DossierTabs value={view} onChange={setView} disabled={busy||pdfBusy}/>}
         <div id="exp-tab-content" role="tabpanel" aria-labelledby={`exp-tab-${view}`} tabIndex={0} className="min-w-0 space-y-6">

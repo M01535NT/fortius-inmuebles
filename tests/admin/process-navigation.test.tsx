@@ -16,7 +16,8 @@ function sidebar(role = "admin", userId = "process") { return render(<WorkspaceN
 test("menú diario corto y Más conserva procedimiento y módulos", () => {
   localStorage.setItem("fortius:modules:process", JSON.stringify(["/admin/clientes", "/admin/reportes", "/admin", "/admin/propiedades"])); sidebar();
   expect(screen.getAllByRole("link").slice(0, 4).map(link => link.getAttribute("href"))).toEqual(["/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario"]);
-  fireEvent.click(screen.getByRole("button", { name: "Más" }));
+  const more = screen.getByRole("button", { name: /más/i });
+  if (more.getAttribute("aria-expanded") !== "true") fireEvent.click(more);
   expect(screen.getAllByRole("link").slice(0, 10).map(link => link.getAttribute("href"))).toEqual([
     "/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario",
     "/admin/proceso/captacion", "/admin/proceso/preparacion", "/admin/proceso/promocion",

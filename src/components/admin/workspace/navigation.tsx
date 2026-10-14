@@ -64,7 +64,7 @@ export function WorkspaceNavigation({
           const previous = allowed.find((m) => m.href === visibleIds[visibleIndex - 1]);
           return (
             <React.Fragment key={id}>
-              {!collapsed && (!custom || procedure) && !["Principal", "Inicio"].includes(item.group) && previous?.group !== item.group && (
+              {!collapsed && !["Principal", "Inicio"].includes(item.group) && previous?.group !== item.group && (
                 <p data-separated={!!previous && previous.group !== "Inicio"} className="admin-nav-group px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.group}
                 </p>
