@@ -286,6 +286,3 @@ revoke all on function public.fortius_inmuebles_cancel_contact_interviews() from
 create trigger fortius_cancel_contact_interviews after update of data on public.fortius_inmuebles_records for each row execute function public.fortius_inmuebles_cancel_contact_interviews();
 notify pgrst,'reload schema';
 commit;
-
-
-
