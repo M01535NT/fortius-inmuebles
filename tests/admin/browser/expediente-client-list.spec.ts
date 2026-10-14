@@ -36,7 +36,7 @@ for (const width of [390, 768, 1440]) {
     await expect(panel.getByRole("button", { name: /Ana Martínez/ })).toHaveCSS("border-left-color", "rgba(0, 0, 0, 0)");
     await expect(page.getByRole("heading", { name: "EXP-000002", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Entrevista inicial" }).getByRole("link")).toBeVisible();
-    await page.getByRole("heading", { name: "Expedientes y formatos", exact: true }).scrollIntoViewIfNeeded();
+    await page.getByRole("heading", { name: "Operaciones", exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath(`clientes-${width}.png`), fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await panel.getByRole("searchbox").fill("martinez");
