@@ -1,0 +1,14 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+const state = vi.hoisted(()=>({ records:{} as Record<string,Record<string,unknown>|null>, signed:vi.fn(), calls:[] as string[] }));
+vi.mock('@/lib/backend/auth',()=>({createServerClient:()=>({from:(table:string)=>{state.calls.push(table);const query={select:()=>query,eq:()=>query,is:()=>query,gt:()=>query,maybeSingle:async()=>({data:state.records[table]??null,error:null})};return query;},storage:{from:(bucket:string)=>({createSignedUrl:(...args:unknown[])=>state.signed(bucket,...args)})}})}));
+import { GET } from '@/app/api/apps/shared/[token]/route';
+const token='a'.repeat(43);
+const request=()=>GET(new Request(`https://fortiusinmuebles.com/api/apps/shared/${token}`),{params:Promise.resolve({token})});
+beforeEach(()=>{state.calls=[];state.signed.mockReset().mockResolvedValue({data:{signedUrl:'https://storage.example.invalid/temporary'},error:null});state.records={fortius_inmuebles_app_shares:{file_id:'file',owner_id:'user'},fortius_inmuebles_staff:{role:'editor',active:true},fortius_inmuebles_app_files:{expediente_id:'dossier',path:'original/file.pdf',name:'Documento.pdf',owner_id:'user'},fortius_inmuebles_expedientes:{id:'dossier',asesor_id:'adviser',cliente_id:'client'},fortius_inmuebles_adviser_accounts:{asesor_id:'adviser'},fortius_inmuebles_records:{data:{asesorId:'adviser'}}};});
+describe('private shared documents',()=>{
+ it('redirects to existing private storage with a short lifetime',async()=>{const response=await request();expect(response.status).toBe(303);expect(state.signed).toHaveBeenCalledWith('fortius-inmuebles-private','original/file.pdf',60,{download:'Documento.pdf'});expect(response.headers.get('cache-control')).toContain('no-store');});
+ it.each(['fortius_inmuebles_app_shares','fortius_inmuebles_staff','fortius_inmuebles_expedientes'])('denies missing or unavailable %s',async table=>{state.records[table]=null;expect((await request()).status).toBe(404);expect(state.signed).not.toHaveBeenCalled();});
+ it('denies reassigned clients even when dossier adviser still matches',async()=>{state.records.fortius_inmuebles_records={data:{asesorId:'other'}};expect((await request()).status).toBe(404);expect(state.signed).not.toHaveBeenCalled();});
+ it('denies deactivated staff and cross-owner standalone files',async()=>{state.records.fortius_inmuebles_staff={role:'editor',active:false};expect((await request()).status).toBe(404);state.records.fortius_inmuebles_staff={role:'editor',active:true};state.records.fortius_inmuebles_app_files={owner_id:'other',expediente_id:null};expect((await request()).status).toBe(404);});
+ it('rejects malformed bearer before any database lookup',async()=>{expect((await GET(new Request('https://example.invalid'),{params:Promise.resolve({token:'../x'})})).status).toBe(404);expect(state.calls).toHaveLength(0);});
+});

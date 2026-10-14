@@ -1,12 +1,13 @@
 // Isolated schema rehearsal only: no network client, credentials or production writes.
 import {PGlite} from '@electric-sql/pglite';
 import {readFile,readdir} from 'node:fs/promises';
-import {ownerExport,currentSuffixes} from './fortius-inmuebles-backup.mjs';
+import {ownerExport,currentSuffixes,ownerSchemaVersion} from './fortius-inmuebles-backup.mjs';
 const quote=value=>'"'+value.replaceAll('"','""')+'"';
 export async function createRehearsalDatabase(){
  const db=new PGlite();
  try{
-  await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
+  // Owner exports use UTC; do not let the workstation timezone rewrite dates.
+  await db.exec(`set time zone 'UTC'; create role anon; create role authenticated; create role service_role bypassrls;
    create schema auth; create table auth.users(id uuid primary key);
    create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
    grant usage on schema auth to anon,authenticated,service_role; grant execute on function auth.uid() to anon,authenticated,service_role;
@@ -21,11 +22,14 @@ export async function createRehearsalDatabase(){
 export async function rehearseCurrent(input){
  const backup=ownerExport(input);
  if(backup.prefix!=='fortius_inmuebles')throw Error('Current Fortius export required');
+ const sourceSchemaVersion=ownerSchemaVersion(backup);
+ const emptyTablesAdded=currentSuffixes.filter(s=>!Object.hasOwn(backup.tables,'fortius_inmuebles_'+s));
+ const rowsFor=table=>backup.tables[table]??[];
  const db=await createRehearsalDatabase();
  try{
   const actual=(await db.query("select tablename from pg_tables where schemaname='public' and tablename like 'fortius_inmuebles_%' order by tablename")).rows.map(r=>r.tablename);
-  const expected=currentSuffixes.map(s=>'fortius_inmuebles_'+s).sort();
-  if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error('Export inventory differs from migrated schema');
+  const expected=currentSuffixes.map(s=>'fortius_inmuebles_'+s);
+  if(JSON.stringify(actual)!==JSON.stringify([...expected].sort()))throw Error('Export inventory differs from migrated schema');
   const columnRows=(await db.query(`select table_name,column_name,is_generated from information_schema.columns
    where table_schema='public' and table_name=any($1::text[]) order by table_name,ordinal_position`,[expected])).rows;
   const columns=new Map(expected.map(table=>[table,{
@@ -47,7 +51,7 @@ export async function rehearseCurrent(input){
   for(const table of expected){
    const writable=columns.get(table).writable.map(quote).join(',');
    if(!writable)throw Error('Migrated table has no writable columns: '+table);
-   await db.query(`insert into public.${quote(table)} (${writable}) select ${writable} from jsonb_populate_recordset(null::public.${quote(table)},$1::jsonb)`,[JSON.stringify(backup.tables[table])]);
+   await db.query(`insert into public.${quote(table)} (${writable}) select ${writable} from jsonb_populate_recordset(null::public.${quote(table)},$1::jsonb)`,[JSON.stringify(rowsFor(table))]);
   }
   for(const table of expected)await db.exec(`alter table public.${quote(table)} enable trigger all`);
   // Restoring with triggers disabled does not validate FK rows retroactively.
@@ -63,7 +67,7 @@ export async function rehearseCurrent(input){
   await db.exec('select public.fortius_inmuebles_sync_references(collection,id,data) from public.fortius_inmuebles_records');
   const tables={};
   for(const suffix of currentSuffixes){
-   const table='fortius_inmuebles_'+suffix,rows=backup.tables[table];
+   const table='fortius_inmuebles_'+suffix,rows=rowsFor(table);
    // Only calculated fields absent from older exports may differ in shape.
    // Compare every writable field/date exactly, then every supplied calculated value.
    const result=await db.query(`with restored as (select to_jsonb(t) value from public.${quote(table)} t),
@@ -81,7 +85,16 @@ export async function rehearseCurrent(input){
   }
   const bad=(await db.query(`select count(*)::int n from public.fortius_inmuebles_records r left join public.fortius_inmuebles_record_revisions v using(collection,id) where v.last_version is distinct from r.version`)).rows[0].n;
   if(bad)throw Error('Restored revisions do not match records');
+  // Version rows are immutable recovery evidence, including recoverable deletions.
+  // Empty or stale histories must not pass just because all FK targets exist.
+  const badAppVersions=(await db.query(`select count(*)::int n from public.fortius_inmuebles_app_runs r
+   left join public.fortius_inmuebles_app_run_versions v on v.run_id=r.id and v.version=r.version
+   where v.snapshot is distinct from to_jsonb(r)
+    or (select count(*) from public.fortius_inmuebles_app_run_versions h where h.run_id=r.id)<>r.version
+    or (select min(version) from public.fortius_inmuebles_app_run_versions h where h.run_id=r.id)<>1
+    or (select max(version) from public.fortius_inmuebles_app_run_versions h where h.run_id=r.id)<>r.version`)).rows[0].n;
+  if(badAppVersions)throw Error('Restored app version history does not match runs');
   await db.exec('commit');
-  return {passed:true,productionWrites:0,tables,foreignKeysValidated:fks.length,auth:'Identity placeholders only; full Auth recovery is not tested',storage:'Object hashes are checked by the backup verifier; Storage service recovery is not tested'};
+  return {passed:true,productionWrites:0,sourceSchemaVersion,emptyTablesAdded,restoreOrder:[...currentSuffixes],tables,foreignKeysValidated:fks.length,auth:'Identity placeholders only; full Auth recovery is not tested',storage:'Object hashes are checked by the backup verifier; Storage service recovery is not tested'};
  }finally{await db.close();}
 }

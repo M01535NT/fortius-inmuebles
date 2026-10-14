@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
 import { mobilePanelData, panelRecords } from "./fixtures/mobile-panel-data";
 test.beforeEach(async ({ page }) => {
   const data = mobilePanelData("2026-10-08");
@@ -27,7 +27,9 @@ test.beforeEach(async ({ page }) => {
     if (path === "/api/admin/mi-asesor")
       return route.fulfill({ json: { asesorId: "asesor-prueba" } });
     if (path === "/api/admin/expedientes")
-      return route.fulfill({ json: { expedientes: [] } });
+      return route.fulfill({ json: { expedientes: [], nextOffset: null } });
+    if (path === "/api/admin/apps/runs")
+      return route.fulfill({ json: { runs: [], nextOffset: null } });
     if (path === "/api/admin/comercial")
       return route.fulfill({ json: { carteras: [] } });
     if (path === "/api/admin/historial")
@@ -51,17 +53,18 @@ test("app window searches, traps keyboard focus, closes and navigates", async ({
   const trigger = page.getByRole("button", { name: "Abrir aplicaciones" });
   const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
   await trigger.click();
-  await expect(apps.getByRole("link")).toHaveCount(20);
+  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(20);
+  await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
   const search = apps.getByRole("searchbox", { name: "Buscar aplicación" });
   await expect(search).toBeFocused();
-  await search.fill("ANALISIS");
-  await expect(apps.getByRole("link")).toHaveCount(1);
-  await expect(apps.getByRole("link", { name: "Análisis territorial" })).toBeVisible();
+  await search.fill("FOTOGRAFIAS");
+  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(1);
+  await expect(apps.getByRole("link", { name: "Fotografías" })).toBeVisible();
   await search.fill("zzzinexistente");
   await expect(apps.getByRole("status")).toContainText("No hay aplicaciones");
   await search.fill("");
   const close = apps.getByRole("button", { name: "Cerrar aplicaciones" });
-  const last = apps.getByRole("link", { name: "Historial" });
+  const last = apps.getByRole("link", { name: "Abrir catálogo completo" });
   await last.focus();
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();
@@ -74,8 +77,9 @@ test("app window searches, traps keyboard focus, closes and navigates", async ({
   await page.mouse.click(300, 100);
   await expect(apps).not.toBeVisible();
   await trigger.click();
-  await apps.getByRole("link", { name: "CRM", exact: true }).click();
-  await expect(page).toHaveURL(/\/admin\/leads$/);
+  await apps.getByRole("link", { name: "Fotografías", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/apps\/fotografias$/);
+  await expect(page.getByLabel("Fotografía original")).toBeVisible();
   await expect(apps).not.toBeVisible();
 });
 
@@ -91,36 +95,50 @@ test("apps fit small phones and tablets and release the mobile menu", async ({ p
     const box = await apps.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-    await expect(apps.getByRole("link")).toHaveCount(20);
+    await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(20);
+    await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
     if (width < 768) await expect(page.locator('button[aria-label="Menú del panel"]')).toHaveAttribute("aria-expanded", "false");
-    await apps.getByRole("link", { name: "Historial" }).focus();
-    await expect(apps.getByRole("link", { name: "Historial" })).toBeInViewport();
+    await apps.getByRole("link", { name: "Abrir catálogo completo" }).focus();
+    await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toBeInViewport();
     await apps.getByRole("button", { name: "Cerrar aplicaciones" }).click();
     await expect(apps).not.toBeVisible();
     if (width < 768) {
       await page.goto("/admin/configuracion");
       await page.getByRole("button", { name: "Menú del panel" }).click();
-      await expect(page.getByRole("navigation", { name: "Módulos móviles" }).getByRole("link", { name: "Configuración", exact: true })).toHaveAttribute("aria-current", "page");
+      const mobile = page.getByRole("navigation", { name: "Módulos móviles" });
+      await expect(mobile.getByRole("link", { name: "Configuración", exact: true }).and(mobile.locator(".admin-nav-link"))).toHaveAttribute("aria-current", "page");
     }
   }
 });
 
-test("editor apps exclude admin-only modules even when searched", async ({ page }) => {
+test("editor has all twenty tools while Gestión excludes admin-only modules", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { id: "editor-apps-test", email: "editor@example.invalid", role: "editor" } } }));
   await page.goto("/admin");
   await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
   const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
-  await expect(apps.getByRole("link")).toHaveCount(15);
-  for (const name of ["Finanzas", "Portal de clientes", "Control comercial", "Reportes", "Historial"]) {
-    await expect(apps.getByRole("link", { name, exact: true })).toHaveCount(0);
-  }
+  const tools = apps.getByRole("navigation", { name: "Aplicaciones del sistema" });
+  await expect(tools.getByRole("link")).toHaveCount(20);
+  await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
+  await apps.getByRole("button", { name: "Finanzas", exact: true }).click();
+  await expect(tools.getByRole("link")).toHaveCount(6);
+  await expect(tools.getByRole("link", { name: "Hipoteca", exact: true })).toHaveAttribute("href", "/admin/apps/hipoteca");
   await apps.getByRole("searchbox").fill("finanzas");
   await expect(apps.getByRole("status")).toContainText("No hay aplicaciones");
+  await apps.getByRole("button", { name: "Cerrar aplicaciones" }).click();
+  const sidebar = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
+  await sidebar.getByRole("button", { name: "Gestión", exact: true }).click();
+  for (const name of ["Finanzas", "Portal de clientes", "Control comercial", "Reportes", "Historial"])
+    await expect(sidebar.getByRole("link", { name, exact: true })).toHaveCount(0);
+  for (const name of ["Inmuebles", "CRM", "Clientes", "Tareas", "Calendario"])
+    await expect(sidebar.getByRole("link", { name, exact: true })).toBeVisible();
 });
 test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const sidebar = page.locator("#admin-desktop-sidebar");
+  await sidebar.getByRole("button", { name: "Gestión", exact: true }).click();
+  await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
   const resize = page.getByRole("separator", { name: "Ancho de la barra lateral" });
   await expect(resize).toHaveAttribute("aria-valuenow", "232");
   await resize.focus();
@@ -139,6 +157,8 @@ test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.reload();
   await expect(sidebar).toHaveAttribute("data-collapsed", "true");
   await page.getByRole("button", { name: "Expandir barra lateral" }).click();
+  await sidebar.getByRole("button", { name: "Gestión", exact: true }).click();
+  await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
   await expect(resize).toHaveAttribute("aria-valuenow", "288");
   await resize.focus();
   await page.keyboard.press("End");
@@ -244,30 +264,52 @@ for (const width of [320, 390, 1440]) {
     await expect(dialog).not.toBeVisible();
   });
 }
-test("reorders navigation by drag and touch controls, persists and restores", async ({
-  page,
-}) => {
+async function expectFixedProcedure(navigation: Locator) {
+  const names = ["Resumen", "Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"];
+  for (const [index, name] of names.entries())
+    await expect(navigation.getByRole("link").nth(index)).toHaveText(name);
+}
+test("reorders Gestión by drag and touch, persists, restores and keeps procedure fixed", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/admin");
-  const desktop = page.getByRole("navigation", {
-    name: "Módulos del panel",
-    exact: true,
-  });
+  const desktop = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
+  await expectFixedProcedure(desktop);
   await desktop.getByRole("button", { name: "Organizar módulos" }).click();
-  await desktop
-    .getByTitle("Arrastrar Inmuebles")
-    .dragTo(desktop.getByRole("link", { name: "Resumen", exact: true }));
-  await expect(desktop.getByRole("link").first()).toHaveText("Inmuebles");
+  await expect(desktop.getByTitle("Arrastrar Resumen")).toHaveCount(0);
+  await expect(desktop.getByRole("button", { name: "Subir Captación", exact: true })).toHaveCount(0);
+  await expect(desktop.getByRole("button", { name: "Subir CRM", exact: true })).toBeDisabled();
+  await desktop.getByTitle("Arrastrar Inmuebles").dragTo(desktop.getByRole("link", { name: "CRM", exact: true }));
+  await expect(desktop.getByRole("link").nth(7)).toHaveText("Inmuebles");
+  await expect(desktop.getByRole("link").nth(8)).toHaveText("CRM");
+  await expectFixedProcedure(desktop);
   await page.reload();
-  await expect(desktop.getByRole("link").first()).toHaveText("Inmuebles");
+  await desktop.getByRole("button", { name: "Gestión", exact: true }).click();
+  await expect(desktop.getByRole("link").nth(7)).toHaveText("Inmuebles");
+  await expectFixedProcedure(desktop);
   await page.setViewportSize({ width: 390, height: 900 });
   await page.getByRole("button", { name: "Menú del panel" }).click();
   const mobile = page.getByRole("navigation", { name: "Módulos móviles" });
   await mobile.getByRole("button", { name: "Organizar módulos" }).click();
-  await mobile
-    .getByRole("button", { name: "Subir Resumen", exact: true })
-    .click();
-  await expect(mobile.getByRole("link").first()).toHaveText("Resumen");
+  await expect(mobile.getByRole("link").nth(7)).toHaveText("Inmuebles");
+  await mobile.getByRole("button", { name: "Subir CRM", exact: true }).click();
+  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
+  await expect(mobile.getByRole("link").nth(8)).toHaveText("Inmuebles");
+  await expectFixedProcedure(mobile);
+  await page.reload();
+  await page.getByRole("button", { name: "Menú del panel" }).click();
+  await mobile.getByRole("button", { name: "Organizar módulos" }).click();
+  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
+  await mobile.getByRole("button", { name: "Bajar CRM", exact: true }).click();
+  await expect(mobile.getByRole("link").nth(7)).toHaveText("Inmuebles");
+  await mobile.getByRole("button", { name: "Restablecer", exact: true }).click();
+  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
+  await expectFixedProcedure(mobile);
+  await expect(mobile.getByRole("status")).toContainText("Orden original restaurado.");
+  await page.reload();
+  await page.getByRole("button", { name: "Menú del panel" }).click();
+  await mobile.getByRole("button", { name: "Gestión", exact: true }).click();
+  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
+  await expectFixedProcedure(mobile);
   await fits(page);
 });
 test("inventory saved view, related tasks and global search navigate with context", async ({

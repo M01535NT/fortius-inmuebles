@@ -1,0 +1,3 @@
+import { Building2, Landmark, Scale, GitCompareArrows, Wallet, HandCoins, ChartNoAxesCombined, Files, Signature, ClipboardCheck, Image, QrCode, Route, ArrowLeftRight, TrendingUp, Hammer, ScanText, FileDiff, BookOpenCheck, ReceiptText } from "lucide-react";
+const icons={Building2,Landmark,Scale,GitCompareArrows,Wallet,HandCoins,ChartNoAxesCombined,Files,Signature,ClipboardCheck,Image,QrCode,Route,ArrowLeftRight,TrendingUp,Hammer,ScanText,FileDiff,BookOpenCheck,ReceiptText};
+export function AppIcon({name,className}:{name:string;className?:string}){const Icon=icons[name as keyof typeof icons]??Files;return <Icon className={className} size={24} strokeWidth={1.6} aria-hidden="true"/>;}

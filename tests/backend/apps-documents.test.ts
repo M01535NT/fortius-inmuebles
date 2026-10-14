@@ -1,0 +1,6 @@
+import { expect, test } from "vitest";
+import { PDFDocument } from "pdf-lib";
+import { transformPdf, compareTexts, safePublicUrl } from "@/lib/apps/documents";
+test("reorders selected PDF pages without changing original bytes",async()=>{const d=await PDFDocument.create();d.addPage([300,400]);d.addPage([500,600]);const bytes=await d.save();const original=bytes.slice();const out=await transformPdf([bytes],[{file:0,page:2,rotation:90},{file:0,page:1,rotation:0}]);const p=await PDFDocument.load(out);expect(p.getPages()[0].getWidth()).toBe(500);expect(p.getPages()[0].getRotation().angle).toBe(90);expect(bytes).toEqual(original);await expect(transformPdf([bytes],[{file:0,page:3,rotation:0}])).rejects.toThrow();});
+test("text comparison preserves context and marks both sides of a replacement",()=>{expect(compareTexts("Cláusula\nPrecio 100\nFirmas","Cláusula\nPrecio 120\nFirmas")).toEqual([{kind:"same",text:"Cláusula"},{kind:"removed",text:"Precio 100"},{kind:"added",text:"Precio 120"},{kind:"same",text:"Firmas"}]);});
+test("QR rejects admin pages, external destinations and javascript",()=>{expect(safePublicUrl("https://fortiusinmuebles.com/propiedad/casa")).toBeTruthy();for(const s of["javascript:alert(1)","https://evil.test/a","https://fortiusinmuebles.com/admin","https://fortiusinmuebles.com/api/auth"])expect(()=>safePublicUrl(s)).toThrow();});

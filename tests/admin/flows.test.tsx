@@ -147,7 +147,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
-  fireEvent.click(within(nav).getByRole("button", { name: "Más herramientas" }));
+  fireEvent.click(within(nav).getByRole("button", { name: "Gestión" }));
   expect(
     Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href")),
   ).toContain("/admin/clientes");
@@ -157,7 +157,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   expect(nav.querySelector('a[href="/admin/reportes"]')).toBeTruthy();
   expect(nav.querySelector('a[href="/admin/historial"]')).toBeTruthy();
   for (const href of ["documentos", "finanzas", "territorio", "portal-clientes"]) expect(nav.querySelector(`a[href="/admin/${href}"]`)).toBeTruthy();
-  expect(nav.querySelectorAll("a")).toHaveLength(21);
+  expect(nav.querySelectorAll("a")).toHaveLength(28);
   fireEvent.click(
     Array.from(nav.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Salir"),

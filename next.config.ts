@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     ? { experimental: { reactDebugChannel: false } }
     : {}),
   outputFileTracingIncludes: {
+    "/api/admin/apps/runs/*/export": ["./public/fonts/*.ttf", "./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
     "/avisos/*": ["./public/fonts/*.ttf", "./public/brand/fortius-logo.png"],
     "/inventario/*/imagen-social": ["./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
     "/inventario/*/ficha-tecnica": [

@@ -5,8 +5,53 @@ import { resolve, relative, isAbsolute, dirname, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const suffixes = ['staff','records','record_references','rate_limits','record_revisions'];
-export const currentSuffixes = [...suffixes,'adviser_accounts','comercial_books','comercial_emissions','comercial_revisions','expedientes','file_uploads','formato_assets','formato_drafts','formato_emissions','lead_conversions','signed_copies','record_history','expediente_actividad'];
+// Parents precede their dependent tables. records/expedientes form a cycle;
+// the isolated restorer revalidates every FK after loading both sides.
+export const historicalCurrentSuffixes = ['staff','records','record_revisions','rate_limits','adviser_accounts','expedientes','record_references','file_uploads','formato_drafts','formato_assets','formato_emissions','signed_copies','comercial_books','comercial_revisions','comercial_emissions','lead_conversions','record_history','expediente_actividad'];
+export const appSuffixes = ['app_runs','app_run_versions','app_files','app_shares','integration_jobs','integration_artifacts','integration_pages','signature_events'];
+export const currentSuffixes = [...historicalCurrentSuffixes,...appSuffixes];
+export const currentSchemaVersion = 2;
+export function ownerSchemaVersion(data) {
+  if (data.prefix !== 'fortius_inmuebles') return undefined;
+  if (Object.hasOwn(data,'schema_version')) {
+    if (![1,currentSchemaVersion].includes(data.schema_version)) throw Error('Unsupported owner backup schema version');
+    return data.schema_version;
+  }
+  // Only the complete pre-Apps inventory is historical. A partial Apps export
+  // must fail instead of silently replacing omitted tables with empty arrays.
+  return appSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? currentSchemaVersion : 1;
+}
+export function tableOrderKeys(suffix) {
+  if (!currentSuffixes.includes(suffix)) throw Error('Unknown backup table');
+  const keys={staff:['user_id'],adviser_accounts:['user_id'],rate_limits:['key'],record_references:['source_collection','source_id','field'],records:['collection','id'],record_revisions:['collection','id'],comercial_revisions:['book_id','version'],lead_conversions:['lead_id'],app_run_versions:['run_id','version'],signature_events:['hash']};
+  return keys[suffix] ?? ['id'];
+}
+export function isBackupBucket(prefix,id) {
+  return id.startsWith(prefix.replaceAll('_','-')+'-') || (prefix==='fortius_inmuebles' && id==='fortius-app-integrations');
+}
 export const sha256 = data => createHash('sha256').update(data).digest('hex');
+function validateAppInventory(data) {
+  if(data.prefix!=='fortius_inmuebles') return;
+  for(const row of [...(data.tables.fortius_inmuebles_app_files??[]),...(data.tables.fortius_inmuebles_integration_artifacts??[])]) {
+    if(typeof row.sha256!=='string' || !/^[a-f0-9]{64}$/.test(row.sha256)) throw Error('App object fingerprint is missing or invalid');
+    if(!Number.isSafeInteger(row.size_bytes) || row.size_bytes<=0) throw Error('App object size is missing or invalid');
+  }
+  const receipts=new Map();
+  for(const row of data.tables.fortius_inmuebles_file_uploads) {
+    if(row.bucket!=='fortius-inmuebles-private') continue;
+    const matches=receipts.get(row.path)??[];matches.push(row);receipts.set(row.path,matches);
+  }
+  // Both uploaded originals and generated PDFs claim the same private receipt.
+  // Provider artifacts instead belong to their job and have a separate inventory.
+  for(const file of data.tables.fortius_inmuebles_app_files??[]) {
+    const matches=receipts.get(file.path)??[],receipt=matches[0];
+    const binding='apps:'+(file.expediente_id??'independent');
+    if(matches.length!==1 || typeof file.owner_id!=='string' || typeof file.path!=='string'
+      || !file.path.startsWith(file.owner_id+'/') || receipt.uploaded_by!==file.owner_id || receipt.record_id!==binding) {
+      throw Error('App file upload receipt provenance differs or is missing');
+    }
+  }
+}
 export function ownerExport(raw) {
   let data=Array.isArray(raw)?raw[0]:raw;
   data=data.backup??data;
@@ -16,7 +61,13 @@ export function ownerExport(raw) {
     data={format:'mnt-owner-export-v1',prefix,exported_at:data.created_at,tables:{[`${prefix}_staff`]:data.staff,[`${prefix}_records`]:data.records,[`${prefix}_record_references`]:data.references,[`${prefix}_rate_limits`]:data.rate_limits,[`${prefix}_record_revisions`]:data.revisions}};
   }
   if(data.format!=='mnt-owner-export-v1'||!['cota','mnt','fortius_inmuebles'].includes(data.prefix)) throw Error('Invalid owner backup format');
-  for(const suffix of data.prefix==='fortius_inmuebles'?currentSuffixes:suffixes) if(!Array.isArray(data.tables?.[`${data.prefix}_${suffix}`])) throw Error('Incomplete owner backup tables');
+  const required=data.prefix==='fortius_inmuebles'?(ownerSchemaVersion(data)===currentSchemaVersion?currentSuffixes:historicalCurrentSuffixes):suffixes;
+  for(const suffix of required) if(!Array.isArray(data.tables?.[`${data.prefix}_${suffix}`])) throw Error('Incomplete owner backup tables');
+  if(data.prefix==='fortius_inmuebles') {
+    const allowed=new Set(required.map(s=>data.prefix+'_'+s));
+    if(Object.keys(data.tables).some(table=>!allowed.has(table))) throw Error('Unexpected owner backup table');
+  }
+  validateAppInventory(data);
   return data;
 }
 function safePath(root,file) {
@@ -35,7 +86,13 @@ function reconcileObjects(manifest, database) {
     if (files.has(file.file)) throw Error('Duplicate backup file inventory');
     files.set(file.file, file);
   }
-  const buckets = new Map((manifest.buckets ?? []).map(bucket => [bucket.id, bucket]));
+  const buckets = new Map();
+  for(const bucket of manifest.buckets??[]) {
+    if(!bucket || typeof bucket.id!=='string' || !bucket.id || typeof bucket.public!=='boolean') throw Error('Invalid bucket metadata');
+    if(buckets.has(bucket.id)) throw Error('Duplicate backup bucket inventory');
+    if(!bucket.id.endsWith('-public') && bucket.public) throw Error('Private bucket marked public');
+    buckets.set(bucket.id,bucket);
+  }
   const objects = new Map();
   const key = (bucket, path) => JSON.stringify([bucket, path]);
   for (const object of manifest.objects ?? []) {
@@ -55,11 +112,13 @@ function reconcileObjects(manifest, database) {
     if (fingerprint && object.sha256 !== fingerprint) throw Error('Database object fingerprint differs from backed-up bytes');
     if (byteLength != null && object.bytes !== byteLength) throw Error('Database object byte length differs from backed-up bytes');
   };
-  const table = suffix => database.tables[`fortius_inmuebles_${suffix}`];
+  const table = suffix => database.tables[`fortius_inmuebles_${suffix}`] ?? [];
   for (const suffix of ['formato_emissions', 'signed_copies', 'formato_assets']) {
     for (const row of table(suffix)) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
   }
   for (const row of table('comercial_emissions')) requireObject('fortius-inmuebles-comercial', row.path, row.sha256);
+  for (const row of table('app_files')) requireObject('fortius-inmuebles-private', row.path, row.sha256, row.size_bytes);
+  for (const row of table('integration_artifacts')) requireObject('fortius-app-integrations', row.storage_path, row.sha256, row.size_bytes);
   for (const row of table('file_uploads')) requireObject(row.bucket, row.path);
   for (const row of table('records')) {
     if (row.collection === 'archivos' && row.data?.bucket && row.data?.path) requireObject(row.data.bucket, row.data.path);
@@ -77,6 +136,9 @@ export async function verifyBackup(directory) {
     if (!manifest.files.some(file => file.file === manifest.database.file)) throw Error('Database missing from hashed file inventory');
     database=ownerExport(JSON.parse(await readBackupFile(root,manifest.database.file)));
     if (manifest.prefix && manifest.prefix !== database.prefix) throw Error('Database and manifest prefix differ');
+    if (Object.hasOwn(manifest.database,'schemaVersion') && manifest.database.schemaVersion!==ownerSchemaVersion(database)) {
+      throw Error('Database and manifest schema versions differ');
+    }
   }
   reconcileObjects(manifest, database);
   return manifest;
@@ -103,6 +165,28 @@ export async function restoreBackupObjects(directory, destination) {
   }
   await writeFile(resolve(target, 'objects.json'), JSON.stringify({ format: 'fortius-local-object-recovery-v1', objects, buckets: manifest.buckets }, null, 2), { flag: 'wx', mode: 0o600 });
   return { passed: true, productionWrites: 0, objects: objects.length, bytes: objects.reduce((n, o) => n + o.bytes, 0), storageServiceRecovery: 'not_checked' };
+}
+// These internal ledgers deliberately have no service-role SELECT grant.
+// A denied supplemental read is acceptable only with a complete current owner export.
+const ownerOnlyLedgers = new Set(['record_revisions','record_history','lead_conversions']);
+export async function readRestSnapshot(client,prefix,suffix,ownerDatabase) {
+  const table=prefix+'_'+suffix,rows=[];
+  let errorCode=null;
+  for(let offset=0;;offset+=1000) {
+    let query=client.from(table).select('*').range(offset,offset+999);
+    for(const column of tableOrderKeys(suffix))query=query.order(column,{ascending:true});
+    const {data,error}=await query;
+    if(error){errorCode=error.code||'request-failed';break;}
+    rows.push(...data);if(data.length<1000)break;
+  }
+  let ownerCovered=false;
+  if(errorCode && prefix==='fortius_inmuebles' && errorCode==='42501' && ownerOnlyLedgers.has(suffix) && ownerDatabase) {
+    const owner=ownerExport(ownerDatabase);
+    ownerCovered=owner.prefix===prefix && ownerSchemaVersion(owner)===currentSchemaVersion;
+  }
+  const legacyRevision=prefix!=='fortius_inmuebles' && suffix==='record_revisions';
+  if(errorCode && !ownerCovered && !legacyRevision)throw Error('REST backup failed for '+suffix+' ('+errorCode+')');
+  return {table,complete:!errorCode,errorCode,ownerCovered,rows};
 }
 export async function main(args=process.argv.slice(2)) {
   const arg=name=>args[args.indexOf(name)+1];
@@ -132,31 +216,28 @@ export async function main(args=process.argv.slice(2)) {
   await mkdir(root,{recursive:true});
   const manifest={format:'mnt-backup-v1',startedAt:new Date().toISOString(),prefix,files:[],objects:[],buckets:[],database:{complete:false},consistency:'Reads require a coordinated write freeze for a consistent database/object snapshot.'};
   const save=async(file,data)=>{const buffer=Buffer.isBuffer(data)?data:Buffer.from(data);const path=safePath(root,file);await mkdir(dirname(path),{recursive:true});await writeFile(path,buffer,{flag:'wx'});const entry={file,bytes:buffer.length,sha256:sha256(buffer)};manifest.files.push(entry);return entry;};
+  let ownerDatabase;
   if(args.includes('--database')) {
     const original=await readFile(resolve(arg('--database')));
     const db=ownerExport(JSON.parse(original));
+    ownerDatabase=db;
     if(db.prefix!==prefix)throw Error('Owner export prefix differs from requested backup');
     const entry=await save('database-owner.json',original);
-    manifest.database={complete:true,file:entry.file,exportedAt:db.exported_at,counts:Object.fromEntries(Object.entries(db.tables).map(([name,rows])=>[name,rows.length]))};
+    manifest.database={complete:true,file:entry.file,exportedAt:db.exported_at,schemaVersion:ownerSchemaVersion(db),counts:Object.fromEntries(Object.entries(db.tables).map(([name,rows])=>[name,rows.length]))};
   }
-  // Independent REST snapshot is useful cross-check evidence, never a substitute for owner revisions.
-  for(const suffix of suffixes) {
-    const table=`${prefix}_${suffix}`, rows=[];
-    let errorCode=null;
-    for(let offset=0;;offset+=1000) {
-      let query=client.from(table).select('*').range(offset,offset+999);
-      const keys=suffix==='staff'?['user_id']:suffix==='rate_limits'?['key']:suffix==='record_references'?['source_collection','source_id','field']:['collection','id'];
-      for(const column of keys)query=query.order(column,{ascending:true});
-      const {data,error}=await query;
-      if(error){errorCode=error.code||'request-failed';break;}
-      rows.push(...data); if(data.length<1000)break;
+  // REST is supplemental: retain explicit gaps, never label them complete.
+  manifest.rest={complete:true,unavailable:[]};
+  for(const suffix of prefix==='fortius_inmuebles'?currentSuffixes:suffixes) {
+    const snapshot=await readRestSnapshot(client,prefix,suffix,ownerDatabase);
+    await save('rest/'+suffix+'.json',JSON.stringify(snapshot,null,2));
+    if(!snapshot.complete) {
+      manifest.rest.complete=false;
+      manifest.rest.unavailable.push({table:snapshot.table,errorCode:snapshot.errorCode,ownerCovered:snapshot.ownerCovered});
     }
-    await save(`rest/${suffix}.json`,JSON.stringify({table,complete:!errorCode,errorCode,rows},null,2));
-    if(errorCode&&suffix!=='record_revisions')throw Error(`REST backup failed for ${suffix} (${errorCode})`);
   }
   const {data:buckets,error:bucketError}=await client.storage.listBuckets();
   if(bucketError)throw Error('Storage bucket listing failed');
-  manifest.buckets=buckets.filter(b=>b.id.startsWith(`${prefix.replaceAll("_", "-")}-`));
+  manifest.buckets=buckets.filter(b=>isBackupBucket(prefix,b.id));
   if(!manifest.buckets.length)throw Error('No matching buckets found');
   for(const bucket of manifest.buckets) {
     async function walk(folder='') {
@@ -182,6 +263,6 @@ export async function main(args=process.argv.slice(2)) {
   manifest.counts={buckets:manifest.buckets.length,objects:manifest.objects.length,bytes:manifest.objects.reduce((n,o)=>n+o.bytes,0)};
   await writeFile(resolve(root,'manifest.json'),JSON.stringify(manifest,null,2),{flag:'wx'});
   await verifyBackup(root);
-  console.log(JSON.stringify({backup:root,verified:true,...manifest.counts,databaseComplete:manifest.database.complete}));
+  console.log(JSON.stringify({backup:root,verified:true,...manifest.counts,databaseComplete:manifest.database.complete,restComplete:manifest.rest.complete,restUnavailable:manifest.rest.unavailable.length}));
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href) main().catch(error=>{console.error(error.message);process.exitCode=1;});
