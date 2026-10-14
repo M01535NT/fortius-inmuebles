@@ -15,8 +15,12 @@ import {
   interviewFields,
   interviewIssues,
   answerLabel,
+  fieldInPhase,
+  isOwnerIntent,
+  phaseIssues,
   type InterviewAnswers,
   type OperationalInterview,
+  type OwnerPhase,
 } from "@/lib/intake/interview";
 import {
   PageHeader,
@@ -43,7 +47,8 @@ function InterviewEditor({ id }: { id: string }) {
     [busy, setBusy] = React.useState(false),
     [error, setError] = React.useState(""),
     [notice, setNotice] = React.useState(""),
-    [validate, setValidate] = React.useState(false);
+    [validate, setValidate] = React.useState(false),
+    [phase, setPhase] = React.useState<OwnerPhase>("persona");
   const saving = React.useRef(false);
   const completed = interview?.estado === "completada";
   const dirty =
@@ -58,13 +63,20 @@ function InterviewEditor({ id }: { id: string }) {
     )
       .then((r) => {
         if (active) {
-          setInterview(r.entrevista);
-          setAnswers({
+          const respuestas = {
             ...r.entrevista.respuestas,
             ...(!r.entrevista.respuestas.fecha
               ? { fecha: operationalDate() }
               : {}),
-          });
+          };
+          setInterview(r.entrevista);
+          setAnswers(respuestas);
+          if (
+            isOwnerIntent(r.entrevista.intencion) &&
+            phaseIssues(r.entrevista.intencion, respuestas, "persona")
+              .length === 0
+          )
+            setPhase("inmueble");
         }
       })
       .catch((e) => {
@@ -79,13 +91,21 @@ function InterviewEditor({ id }: { id: string }) {
       document.getElementById("entrevista-resultado")?.focus();
   }, [interview?.estado]);
   async function save(complete: boolean) {
-    if (!interview || saving.current || completed) return;
+    if (!interview || saving.current || completed) return false;
+    const owner = isOwnerIntent(interview.intencion);
     const issues = interviewIssues(interview.intencion, answers);
     setValidate(complete);
     if (complete && issues.length) {
       setError("Faltan respuestas para continuar. Puedes guardar el borrador.");
-      document.getElementById("pregunta-" + issues[0].key)?.focus();
-      return;
+      const missing = issues[0];
+      const section =
+        interviewFields(interview.intencion).find(
+          (field) => field.key === missing.key,
+        )?.section ?? "";
+      if (owner && fieldInPhase(section, "persona")) setPhase("persona");
+      else if (owner) setPhase("inmueble");
+      document.getElementById("pregunta-" + missing.key)?.focus();
+      return false;
     }
     saving.current = true;
     setBusy(true);
@@ -108,31 +128,54 @@ function InterviewEditor({ id }: { id: string }) {
         complete
           ? r.entrevista.anterior_id
             ? "Corrección guardada. La entrevista anterior se conserva."
-            : "Entrevista completada. El expediente y la próxima tarea están listos."
+            : owner
+              ? "Entrevista completada. La casa quedó capturada en el expediente."
+              : "Entrevista completada. El expediente y la próxima tarea están listos."
           : "Borrador guardado. Puedes salir y continuar después.",
       );
       if (complete) {
-        const reload = await Promise.allSettled([
-          db.leads.load(),
-          db.clientes.load(),
-          db.tareas.load(),
-        ]);
+        const reload = await Promise.allSettled(
+          [db.leads, db.clientes, db.tareas, db.propiedades]
+            .filter((store) => store)
+            .map((store) => store.load()),
+        );
         if (reload.some((r) => r.status === "rejected"))
           setNotice(
             "Entrevista completada. Recarga las listas del panel para ver los nuevos vínculos.",
           );
         document.getElementById("entrevista-resultado")?.focus();
       }
+      return true;
     } catch (cause) {
       setError(
         cause instanceof Error
           ? cause.message
           : "No se pudo guardar la entrevista.",
       );
+      return false;
     } finally {
       saving.current = false;
       setBusy(false);
     }
+  }
+  async function continueProperty() {
+    if (!interview || completed) return;
+    const pending = phaseIssues(interview.intencion, answers, "persona");
+    setValidate(true);
+    if (pending.length) {
+      setError("Faltan respuestas para continuar. Puedes guardar el borrador.");
+      document.getElementById("pregunta-" + pending[0].key)?.focus();
+      return;
+    }
+    if (dirty) {
+      const saved = await save(false);
+      if (!saved) return;
+      setNotice("");
+    }
+    setValidate(false);
+    setError("");
+    setPhase("inmueble");
+    document.getElementById("paso-inmueble")?.focus();
   }
   if (!interview)
     return (
@@ -173,6 +216,8 @@ function InterviewEditor({ id }: { id: string }) {
         </Link>
       </div>
     );
+  const owner = isOwnerIntent(interview.intencion);
+  const spouse = answers.estadoCivil === "casado";
   const fields = interviewFields(interview.intencion)
     .filter(
       (f) =>
@@ -181,10 +226,23 @@ function InterviewEditor({ id }: { id: string }) {
     )
     .filter(
       (f) => f.key !== "detalleAlertas" || answers.alertas === "declaradas",
+    )
+    .filter(
+      (f) =>
+        !["conyuge", "regimen", "fechaMatrimonio", "lugarMatrimonio"].includes(
+          f.key,
+        ) || spouse,
+    )
+    .filter(
+      (f) => completed || !owner || fieldInPhase(f.section, phase),
     );
   const sections = [...new Set(fields.map((f) => f.section))],
     issues = interviewIssues(interview.intencion, answers);
-  const mandatory = fields.filter((f) => f.required),
+  const mandatory = fields.filter(
+      (f) =>
+        f.required ||
+        (spouse && (f.key === "conyuge" || f.key === "regimen")),
+    ),
     answered = mandatory.filter((f) => !!answers[f.key]?.trim()).length;
   const expHref = interview.expediente_id
     ? "/admin/expedientes?expediente=" + interview.expediente_id
@@ -211,8 +269,40 @@ function InterviewEditor({ id }: { id: string }) {
       </Link>
       <PageHeader
         title={"Entrevista · " + INTENTS[interview.intencion].role}
-        description="Captura lo que declara la persona. La revisión de documentos y la viabilidad se realizan después."
+        description={
+          owner
+            ? "Primero la persona. Después los datos de la casa nueva. Las medidas y las fotos se capturan en la visita."
+            : "Captura lo que declara la persona. La revisión de documentos y la viabilidad se realizan después."
+        }
       />
+      {owner && !completed && (
+        <ol aria-label="Captación" className="flex flex-wrap gap-3 text-sm">
+          <li className="text-muted-foreground">1. Perfil</li>
+          <li className="text-muted-foreground">2. Contacto</li>
+          <li
+            aria-current={phase === "persona" ? "step" : undefined}
+            className={
+              phase === "persona"
+                ? "font-semibold text-primary-ink"
+                : "text-muted-foreground"
+            }
+          >
+            3. Persona
+          </li>
+          <li
+            id="paso-inmueble"
+            tabIndex={-1}
+            aria-current={phase === "inmueble" ? "step" : undefined}
+            className={
+              phase === "inmueble"
+                ? "font-semibold text-primary-ink"
+                : "text-muted-foreground"
+            }
+          >
+            4. Inmueble
+          </li>
+        </ol>
+      )}
       <section
         className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-border bg-card p-5"
         aria-label="Contacto de la entrevista"
@@ -251,7 +341,9 @@ function InterviewEditor({ id }: { id: string }) {
           <p className="text-sm">
             {interview.anterior_id
               ? "La corrección se guardó en el mismo expediente."
-              : "Puedes continuar con la evaluación y preparación de la operación."}{" "}
+              : owner
+                ? "La casa quedó registrada como inmueble privado. El levantamiento de medidas y fotos se hace en documentos, cuando visites la propiedad."
+                : "Puedes continuar con la evaluación y preparación de la operación."}{" "}
             Los documentos, la titularidad y los recursos todavía deben
             comprobarse.
           </p>
@@ -356,7 +448,9 @@ function InterviewEditor({ id }: { id: string }) {
                           className="mb-1.5 block text-sm font-medium"
                         >
                           {f.label}
-                          {f.required && (
+                          {(f.required ||
+                            (spouse &&
+                              (f.key === "conyuge" || f.key === "regimen"))) && (
                             <span className="text-muted-foreground"> *</span>
                           )}
                         </label>
@@ -448,6 +542,20 @@ function InterviewEditor({ id }: { id: string }) {
         </fieldset>
         {!completed && (
           <div className="sticky bottom-0 z-10 flex flex-wrap gap-3 rounded-lg border border-border bg-card p-3 shadow-sm">
+            {owner && phase === "inmueble" && (
+              <button
+                type="button"
+                className={btnGhost}
+                disabled={busy}
+                onClick={() => {
+                  setValidate(false);
+                  setError("");
+                  setPhase("persona");
+                }}
+              >
+                <ArrowLeft size={16} /> Volver a la persona
+              </button>
+            )}
             <button
               type="submit"
               className={btnGhost}
@@ -456,19 +564,32 @@ function InterviewEditor({ id }: { id: string }) {
               <Save size={16} />
               {busy ? "Guardando…" : "Guardar borrador"}
             </button>
-            <button
-              type="button"
-              className={btnPrimary}
-              disabled={busy}
-              onClick={() => void save(true)}
-            >
-              {interview.anterior_id
-                ? "Completar corrección"
-                : interview.expediente_id
-                  ? "Guardar entrevista en el expediente"
-                  : "Guardar y pasar a evaluación"}{" "}
-              <ArrowRight size={16} />
-            </button>
+            {owner && phase === "persona" ? (
+              <button
+                type="button"
+                className={btnPrimary}
+                disabled={busy}
+                onClick={() => void continueProperty()}
+              >
+                Continuar con el inmueble <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={btnPrimary}
+                disabled={busy}
+                onClick={() => void save(true)}
+              >
+                {interview.anterior_id
+                  ? "Completar corrección"
+                  : owner
+                    ? "Guardar y capturar la casa"
+                    : interview.expediente_id
+                      ? "Guardar entrevista en el expediente"
+                      : "Guardar y pasar a evaluación"}{" "}
+                <ArrowRight size={16} />
+              </button>
+            )}
           </div>
         )}
       </form>

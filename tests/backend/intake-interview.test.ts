@@ -43,6 +43,7 @@ describe("Entrevista inicial por intención", () => {
         ocupacion: "por_aclarar",
         documentos: "por_aclarar",
         alertas: "por_aclarar",
+        estadoCivil: "soltero",
       }),
     ).toEqual([]);
     expect(
@@ -62,6 +63,36 @@ describe("Entrevista inicial por intención", () => {
         horizonte: "Tres años",
       }),
     ).toEqual([]);
+  });
+  it("pide cónyuge y régimen solo cuando el propietario declara estar casado", () => {
+    expect(
+      interviewIssues("vender", {
+        ...common,
+        relacion: "propietario",
+        ocupacion: "desocupado",
+        documentos: "Escritura",
+        alertas: "ninguna_declarada",
+        estadoCivil: "casado",
+      }).map((issue) => issue.key),
+    ).toEqual(expect.arrayContaining(["conyuge", "regimen"]));
+    expect(
+      interviewIssues("vender", {
+        ...common,
+        relacion: "propietario",
+        ocupacion: "desocupado",
+        documentos: "Escritura",
+        alertas: "ninguna_declarada",
+        estadoCivil: "casado",
+        conyuge: "Ana López",
+        regimen: "separacion",
+      }),
+    ).toEqual([]);
+    expect(interviewFields("vender").map((field) => field.key)).toContain(
+      "estadoCivil",
+    );
+    expect(interviewFields("comprar").map((field) => field.key)).not.toContain(
+      "estadoCivil",
+    );
   });
   it("exige importe positivo cuando se declara conocido y próxima acción fechada", () => {
     const issues = interviewIssues("comprar", {

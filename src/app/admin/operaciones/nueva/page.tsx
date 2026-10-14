@@ -262,29 +262,22 @@ export default function NewOperation() {
         aria-label="Inicio de la operación"
         className="flex flex-wrap gap-3 text-sm"
       >
-        <li
-          aria-current={step === 1 ? "step" : undefined}
-          className={
-            step === 1
-              ? "font-semibold text-primary-ink"
-              : "text-muted-foreground"
-          }
-        >
-          1. Tipo de operación
-        </li>
-        <li
-          aria-current={step === 2 ? "step" : undefined}
-          className={
-            step === 2
-              ? "font-semibold text-primary-ink"
-              : "text-muted-foreground"
-          }
-        >
-          2. Contacto
-        </li>
-        <li className="text-muted-foreground">
-          3. Entrevista
-        </li>
+        {(intent === "vender" || intent === "arrendar"
+          ? ["Perfil", "Contacto", "Persona", "Inmueble"]
+          : ["Tipo de operación", "Contacto", "Entrevista"]
+        ).map((label, index) => (
+          <li
+            key={label}
+            aria-current={step === index + 1 ? "step" : undefined}
+            className={
+              step === index + 1
+                ? "font-semibold text-primary-ink"
+                : "text-muted-foreground"
+            }
+          >
+            {index + 1}. {label}
+          </li>
+        ))}
       </ol>
       {error && (
         <p

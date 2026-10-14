@@ -15,6 +15,7 @@ it('received paperwork and absent action do not enable stage advancement',()=>{
 it('retains evidence and reports a failed save without announcing an advance',async()=>{
  const saved=vi.fn(),dirty=vi.fn();vi.stubGlobal('fetch',async(_url:string,init?:RequestInit)=>init?.method==='PUT'?Response.json({error:'Servicio no disponible'},{status:503}):Response.json({expedientes:[]}));
  render(<OperationWorkflowPanel expediente={base} onSaved={saved} onDirtyChange={dirty}/>);
+ fireEvent.click(screen.getByText('Requisitos para avanzar'));
  const field=screen.getByLabelText('Soporte de Entrevista y objetivo del propietario');
  fireEvent.change(field,{target:{value:'Referencia ficticia v1 conservada'}});
  fireEvent.click(screen.getByRole('button',{name:'Guardar guía'}));
@@ -33,6 +34,7 @@ it('creates the next action in place while preserving unsaved review evidence',a
  taskStore.put.mockImplementation(async(value:Record<string,unknown>)=>{tasks.push(value);return value;});
  vi.stubGlobal('fetch',async()=>Response.json({expedientes:[]}));
  render(<OperationWorkflowPanel expediente={base} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
+ fireEvent.click(screen.getByText('Requisitos para avanzar'));
  const evidence=screen.getByLabelText('Soporte de Entrevista y objetivo del propietario');
  fireEvent.change(evidence,{target:{value:'Evidencia ficticia sin guardar'}});
  fireEvent.change(screen.getByLabelText('Próxima tarea'),{target:{value:'Solicitar documentación'}});
@@ -41,4 +43,16 @@ it('creates the next action in place while preserving unsaved review evidence',a
  expect(await screen.findByRole('link',{name:'Solicitar documentación'})).toBeTruthy();
  expect((evidence as HTMLTextAreaElement).value).toBe('Evidencia ficticia sin guardar');
  expect(tasks[0]).toMatchObject({expedienteId:base.id,clienteId:'c1',asesorId:'a1',vence:'2030-12-31',estado:'pendiente'});
+});
+it('shows the captured house and does not ask to assign inventory during early captación',()=>{
+ vi.stubGlobal('fetch',async()=>Response.json({expedientes:[]}));
+ render(<OperationWorkflowPanel expediente={{...base,etapa:'documentacion'}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
+ expect(screen.getByText(/No se asigna una casa del inventario/)).toBeTruthy();
+ expect(screen.getByText('Vincular una casa que ya existe')).toBeTruthy();
+ expect(screen.getByRole('combobox',{name:'Inmueble de esta operación'}).closest('details')?.open).toBe(false);
+});
+it('asks to capture the house before negotiation when none exists',()=>{
+ vi.stubGlobal('fetch',async()=>Response.json({expedientes:[]}));
+ render(<OperationWorkflowPanel expediente={{...base,etapa:'comercializacion'}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
+ expect(screen.getByText('Captura los datos del inmueble.')).toBeTruthy();
 });

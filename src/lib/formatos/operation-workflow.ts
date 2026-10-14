@@ -78,7 +78,7 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  if(flow.estado!=="activa") result.unshift("Reactivar la operación antes de avanzar.");
  if(Object.values(flow.requisitos).some(r=>r?.estado==="observado")) result.push("Resolver las observaciones abiertas.");
  const index=WORKFLOW_STAGES.indexOf(target);
- if(index>=3 && !context.propiedad_slug) result.push("Vincular el inmueble.");
+ if(index>=3 && !context.propiedad_slug) result.push("Captura los datos del inmueble.");
  if(index>=4 && !flow.contraparteId && (flow.contraparteExterna?.trim().length??0)<3) result.push("Identificar la contraparte interna o externa.");
  const open=tasks.filter(t=>t.expedienteId===context.id && !["completada","cancelada"].includes(t.estado));
  if(target==="cerrado") { if(open.length) result.push("Resolver o descartar las tareas pendientes antes de archivar."); }

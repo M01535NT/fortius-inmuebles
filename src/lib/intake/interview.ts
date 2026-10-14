@@ -96,6 +96,50 @@ const common: Field[] = [
     required: true,
   },
 ];
+const personal: Field[] = [
+  {
+    key: "estadoCivil",
+    label: "Estado civil",
+    section: "Situación personal",
+    options: [
+      "soltero",
+      "casado",
+      "divorciado",
+      "viudo",
+      "otro",
+      "por_aclarar",
+    ],
+    required: true,
+    hint: "Si está casado, captura también al cónyuge y el régimen.",
+  },
+  {
+    key: "conyuge",
+    label: "Nombre del cónyuge",
+    section: "Situación personal",
+  },
+  {
+    key: "regimen",
+    label: "Régimen matrimonial",
+    section: "Situación personal",
+    options: [
+      "sociedad_conyugal",
+      "separacion",
+      "no_aplica",
+      "por_aclarar",
+    ],
+  },
+  {
+    key: "fechaMatrimonio",
+    label: "Fecha del matrimonio",
+    section: "Situación personal",
+    type: "date",
+  },
+  {
+    key: "lugarMatrimonio",
+    label: "Lugar del matrimonio",
+    section: "Situación personal",
+  },
+];
 const owner: Field[] = [
   {
     key: "relacion",
@@ -217,8 +261,22 @@ const end: Field[] = [
     required: true,
   },
 ];
+export function isOwnerIntent(intent: IntakeIntent) {
+  return intent === "vender" || intent === "arrendar";
+}
+const PERSONA_SECTIONS = [
+  "Objetivo",
+  "Situación personal",
+  "Acuerdos",
+  "Siguiente paso",
+] as const;
+export type OwnerPhase = "persona" | "inmueble";
+export function fieldInPhase(section: string, phase: OwnerPhase) {
+  const persona = (PERSONA_SECTIONS as readonly string[]).includes(section);
+  return phase === "persona" ? persona : !persona;
+}
 export function interviewFields(intent: IntakeIntent): Field[] {
-  const isOwner = intent === "vender" || intent === "arrendar";
+  const isOwner = isOwnerIntent(intent);
   const label = isOwner
     ? intent === "arrendar"
       ? "Renta mensual esperada"
@@ -228,8 +286,12 @@ export function interviewFields(intent: IntakeIntent): Field[] {
       : intent === "invertir"
         ? "Capital declarado"
         : "Presupuesto declarado";
+  const objective = common.filter((field) => field.section === "Objetivo");
+  const property = common.filter((field) => field.section === "Inmueble");
   return [
-    ...common,
+    ...objective,
+    ...(isOwner ? personal : []),
+    ...property,
     ...(isOwner ? owner : seeker),
     {
       key: "presupuestoEstado",
@@ -290,6 +352,13 @@ export const OPTION_LABELS: Record<string, string> = {
   credito: "Crédito",
   mixto: "Recursos y crédito",
   nave_industrial: "Nave industrial",
+  soltero: "Soltero",
+  casado: "Casado",
+  divorciado: "Divorciado",
+  viudo: "Viudo",
+  sociedad_conyugal: "Sociedad conyugal",
+  separacion: "Separación de bienes",
+  no_aplica: "No aplica",
 };
 export function answerLabel(value: string) {
   const label =
@@ -324,12 +393,42 @@ export function interviewIssues(
       key: "detalleAlertas",
       message: "Describe las condiciones declaradas.",
     });
+  if (
+    isOwnerIntent(intent) &&
+    answers.tipoInmueble === "por_definir"
+  )
+    issues.push({
+      key: "tipoInmueble",
+      message: "Elige el tipo de inmueble para capturar la casa.",
+    });
+  if (isOwnerIntent(intent) && answers.estadoCivil === "casado") {
+    if (!answers.conyuge?.trim())
+      issues.push({ key: "conyuge", message: "Nombre del cónyuge" });
+    if (
+      !["sociedad_conyugal", "separacion", "no_aplica", "por_aclarar"].includes(
+        answers.regimen ?? "",
+      )
+    )
+      issues.push({ key: "regimen", message: "Elige el régimen matrimonial." });
+  }
   if (answers.privacidad !== "presentado")
     issues.push({
       key: "privacidad",
       message: "Pon el aviso de privacidad a disposición antes de continuar.",
     });
   return issues;
+}
+export function phaseIssues(
+  intent: IntakeIntent,
+  answers: InterviewAnswers,
+  phase: OwnerPhase,
+) {
+  const keys = new Set(
+    interviewFields(intent)
+      .filter((field) => fieldInPhase(field.section, phase))
+      .map((field) => field.key),
+  );
+  return interviewIssues(intent, answers).filter((issue) => keys.has(issue.key));
 }
 export const startIntakeSchema = z
   .object({

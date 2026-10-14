@@ -67,6 +67,8 @@ const answers = (intent = "vender") => ({
         ocupacion: "por_aclarar",
         documentos: "Por aclarar",
         alertas: "por_aclarar",
+        estadoCivil: "soltero",
+        ubicacion: "Colonia ficticia",
       }
     : {
         uso: "Vivienda",
@@ -135,6 +137,27 @@ it.each(["vender", "arrendar", "comprar", "rentar", "invertir"])(
         ["arrendar", "rentar"].includes(intent) ? "renta" : "venta",
       );
       expect(exp.etapa).toBe("documentacion");
+      const owner = ["vender", "arrendar"].includes(intent);
+      const linked = (
+        await db.query<{ propiedad_slug: string | null; unidad: string }>(
+          "select propiedad_slug,unidad from public.fortius_inmuebles_expedientes where id=$1",
+          [done.expediente_id],
+        )
+      ).rows[0];
+      if (owner) {
+        expect(linked.propiedad_slug).toBeTruthy();
+        expect(done.propiedad_slug).toBe(linked.propiedad_slug);
+        expect(linked.unidad).toBe("Colonia ficticia");
+        const property = (
+          await db.query<{ data: Record<string, unknown> }>(
+            "select data from public.fortius_inmuebles_records where collection='propiedades' and id=$1",
+            [linked.propiedad_slug],
+          )
+        ).rows[0].data;
+        expect(property.publicada).toBe(false);
+        expect(property.asesorId).toBe("own");
+        expect(property.tipo).toBe("casa");
+      } else expect(linked.propiedad_slug).toBeNull();
       if (exp.flujo) {
         expect(exp.flujo.requisitos.titularidad).toBeUndefined();
         expect(exp.flujo.requisitos.capacidad).toBeUndefined();
@@ -322,6 +345,26 @@ it("allows authorized context reassignment with pending reviews and requires a n
     await db.query(
       "update public.fortius_inmuebles_expedientes set asesor_id='other',version=version+1 where id=$1",
       [done.expediente_id],
+    );
+    const house = (
+      await db.query<{ propiedad_slug: string }>(
+        "select propiedad_slug from public.fortius_inmuebles_expedientes where id=$1",
+        [done.expediente_id],
+      )
+    ).rows[0];
+    const property = (
+      await db.query<{ data: Record<string, unknown>; version: number }>(
+        "select data,version from public.fortius_inmuebles_records where collection='propiedades' and id=$1",
+        [house.propiedad_slug],
+      )
+    ).rows[0];
+    await db.query(
+      "select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,$3)",
+      [
+        house.propiedad_slug,
+        JSON.stringify({ ...property.data, asesorId: "other" }),
+        property.version,
+      ],
     );
   });
   await asUser(other, async () => {

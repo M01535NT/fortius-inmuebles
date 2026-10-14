@@ -40,7 +40,7 @@ beforeAll(async () => {
     ('propiedades','legacy-listed','{"slug":"legacy-listed","codigo":"LEGACY-PUB","tipo":"casa","operacion":"venta","asesorId":"own","publicada":true}'),
     ('propiedades','house-a','{"slug":"house-a","codigo":"HOUSE-A","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}'),
     ('propiedades','house-b','{"slug":"house-b","codigo":"HOUSE-B","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}');`);
-  for(const file of (await readdir(dir)).filter(f=>f.endsWith('_guided_operations.sql')||f.endsWith('_operational_interviews.sql')))await db.exec(await readFile(new URL(file,dir),'utf8'));
+  for(const file of (await readdir(dir)).filter(f=>f.endsWith('_guided_operations.sql')||f.endsWith('_operational_interviews.sql')).sort())await db.exec(await readFile(new URL(file,dir),'utf8'));
 });
 afterAll(async () => { await db?.close(); });
 

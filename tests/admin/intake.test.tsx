@@ -75,6 +75,8 @@ it("chooses a profile before contact capture and prevents double submission", as
       name: "Vender un inmueble Propietario vendedor",
     }),
   );
+  expect(screen.getByRole("list", { name: "Inicio de la operación" }).textContent).toContain("3. Persona");
+  expect(screen.getByRole("list", { name: "Inicio de la operación" }).textContent).toContain("4. Inmueble");
   fireEvent.click(
     screen.getByRole("button", { name: "Continuar con el contacto" }),
   );
@@ -157,8 +159,27 @@ it("does not advance an incomplete interview and displays the missing question",
     );
   });
   fireEvent.click(
-    await screen.findByRole("button", { name: "Guardar y pasar a evaluación" }),
+    await screen.findByRole("button", { name: "Continuar con el inmueble" }),
   );
   expect(request.mock.calls.some((c) => c[1] === "PUT")).toBe(false);
   expect(screen.getByRole("alert").textContent).toContain("Faltan respuestas");
+  expect(screen.queryByLabelText("Tipo de inmueble *")).toBeNull();
+});
+it("shows spouse fields only after a married answer and keeps the house step next", async () => {
+  request.mockResolvedValue({ entrevista: interview });
+  await act(async () => {
+    render(
+      <React.Suspense fallback={<p>Cargando</p>}>
+        <Interview params={Promise.resolve({ id })} />
+      </React.Suspense>,
+    );
+  });
+  expect(await screen.findByLabelText("Estado civil *")).toBeTruthy();
+  expect(screen.queryByLabelText("Nombre del cónyuge *")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Estado civil *"), {
+    target: { value: "casado" },
+  });
+  expect(screen.getByLabelText("Nombre del cónyuge *")).toBeTruthy();
+  expect(screen.getByLabelText("Régimen matrimonial *")).toBeTruthy();
+  expect(screen.queryByLabelText("Tipo de inmueble *")).toBeNull();
 });
