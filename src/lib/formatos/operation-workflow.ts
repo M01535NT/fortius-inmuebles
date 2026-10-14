@@ -51,9 +51,9 @@ export function nextWorkflowStage(stage: WorkflowStage) { return WORKFLOW_STAGES
 export function requiredReviews(route: OperationWorkflow["ruta"], target: WorkflowStage): RequirementKey[] {
  const n = WORKFLOW_STAGES.indexOf(target);
  if (n<=0) return [];
- const keys: RequirementKey[] = route === "captacion" ? ["entrevista","titularidad"] : ["perfil","capacidad","privacidad"];
- if(n>=2) keys.push(...(route === "captacion" ? ["factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion"] as RequirementKey[] : ["opciones"] as RequirementKey[]));
- if(n>=3) keys.push(route === "captacion" ? "comprador" : "visitas");
+ const keys: RequirementKey[] = route === "captacion" ? ["entrevista"] : ["perfil","privacidad"];
+ if(n>=2) keys.push(...(route === "captacion" ? ["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion"] as RequirementKey[] : ["opciones"] as RequirementKey[]));
+ if(n>=3) keys.push(...(route === "captacion" ? ["comprador"] as RequirementKey[] : ["visitas","capacidad"] as RequirementKey[]));
  if(n>=4) keys.push("oferta","revision_cierre","instrumento","contraparte");
  if(n>=5) keys.push("firma","pago");
  if(n>=6) keys.push("entrega");

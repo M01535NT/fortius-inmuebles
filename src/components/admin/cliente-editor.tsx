@@ -9,6 +9,7 @@ export const CLIENTE_TIPO_LABELS: Record<Cliente["tipo"], string> = {
   comprador: "Comprador",
   arrendador: "Arrendador",
   arrendatario: "Arrendatario",
+  inversionista: "Inversionista",
   otro: "Otro",
 };
 export function ClienteEditor({

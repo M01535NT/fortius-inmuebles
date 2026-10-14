@@ -1,9 +1,9 @@
--- Read-only owner export of all 26 current tables, including private Apps data.
--- Schema version 2 requires the complete Apps inventory. Preserve the raw export.
+-- Read-only owner export of all 27 current tables, including private Apps data.
+-- Schema version 3 requires Apps and operational interviews. Preserve the raw export.
 select jsonb_build_object(
   'format', 'mnt-owner-export-v1',
   'prefix', 'fortius_inmuebles',
-  'schema_version', 2,
+  'schema_version', 3,
   'exported_at', now(),
   'tables', jsonb_build_object(
     'fortius_inmuebles_staff', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_staff t),
@@ -31,6 +31,7 @@ select jsonb_build_object(
     'fortius_inmuebles_integration_jobs', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_integration_jobs t),
     'fortius_inmuebles_integration_artifacts', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_integration_artifacts t),
     'fortius_inmuebles_integration_pages', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_integration_pages t),
-    'fortius_inmuebles_signature_events', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_signature_events t)
+    'fortius_inmuebles_signature_events', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_signature_events t),
+    'fortius_inmuebles_interviews', (select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from public.fortius_inmuebles_interviews t)
   )
 ) as backup;

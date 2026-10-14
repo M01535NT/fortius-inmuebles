@@ -8,6 +8,20 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 
 Por instrucción de Moisés del 13/10/2026, este plan debe actualizarse con cada entrega a GitHub y cada despliegue. Registrar fecha local, alcance real, PR, commit funcional, migraciones aplicadas, comprobaciones y límites, enlace y estado del despliegue. Distinguir preparación, publicación comprobada y pendientes; no marcar publicado por haber hecho push. Los commits que solo actualizan este registro no requieren reconstruir un producto cuyo código permanece idéntico. Actualizar también las tareas realizadas y pendientes del mismo plan.
 
+### Captación y entrevista preparada — implementación 13/10/2026
+
+**Problema:** Nueva operación exigía un cliente existente y la guía pedía entrevista sin ofrecer dónde realizarla. **Alcance autorizado:** Resumen → elegir vender/ofrecer renta/comprar/buscar renta/invertir → contacto nuevo o existente → cuestionario correspondiente → guardar borrador/reabrir → completar y continuar en el expediente.
+
+- Nueva tabla privada `fortius_inmuebles_interviews`: intención por operación, contacto/asesor autorizado, respuestas versionadas, expediente y entrevista anterior. Capturas completadas inmutables; correcciones vinculadas al mismo expediente. Se conservan los formatos documentales02/12.
+- El nuevo contacto permanece en Prospectos durante el borrador. Solo al completar se convierte a cliente, crea expediente con folio automático y próxima tarea fechada; todo ocurre en una transacción. Un cliente existente conserva ficha, tipo, perfil, responsable y operaciones anteriores; inversionista tiene clasificación propia cuando se crea desde esta captura.
+- La entrevista admite evaluación. Titularidad/factibilidad/autorizaciones se revisan antes de comercializar; capacidad comprobada antes de oferta. Precio/capital por definir no se registra como cero. Aviso presentado no significa consentimiento.
+- Reintentos del mismo ingreso/contenido producen el mismo resultado; claves con contenido distinto se rechazan. Teléfono compartido requiere confirmación expresa de persona distinta. Reanudar un borrador no se considera una creación exitosa de otra solicitud.
+- La corrección conserva la próxima acción inicial; cambios de tarea se realizan en Tareas. No crea otra operación ni otra tarea. Reasignar contexto vuelve las revisiones a pendientes; después se captura entrevista del nuevo contexto.
+- Renta: entrevista y admisión a revisión/preparación, con seguimiento manual por tareas y documentos. No se presenta la guía de compraventa como ciclo completo de arrendamiento. Integraciones externas continúan diferidas.
+- Respaldo actualv3 incluye27tablas; mantiene reconocimiento y restauración de copias completasv1(18) yv2(26), rechazando inventarios incompletos.
+
+**Tareas:** cuestionario, guardado, transacción y accesos implementados; revisión, pruebas visuales y publicación en curso. Migración nueva `20261014054506_operational_interviews.sql` todavía pendiente de aplicar en la base real. No declarar publicado hasta verificar CI, migración y dominio. Rama `codex/captacion-entrevistas`.
+
 ### Publicación anterior comprobada — folios
 
 Rama `codex/folios-automaticos`, PR #22, código funcional `0dfff7242d8a0cb8233d3ffbb28ee1b385352690`. Migración `20261014031535_automatic_folios.sql` aplicada y registrada en Fortius; 26 tablas con RLS conservadas. Respaldo privado de las 26 tablas y restauración aislada aprobados. Preparación Vercel: `fortius-inmuebles-92cd6vae7-tonala.vercel.app`. Publicado en `fortiusinmuebles.com/admin` después de Verify #140 aprobado para el commit funcional exacto. PR #22 integrada en `main` (`84875d614d5b41ebaf54ec3c986d2beb5bba7a8a`); Vercel Ready, despliegue `dpl_6KzgZovFXMPXu11tFboWkLMdJyPM`, promovido al dominio. Formulario autenticado comprobado: folio de inmueble no editable y mensaje de asignación al guardar. La revisión automática rechazó insertar el inmueble ficticio de QA; no se guardó. El ensayo de creación y restauración es aislado, no una inserción real.

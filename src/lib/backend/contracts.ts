@@ -5,7 +5,7 @@ export type StaffUser = { id: string; email: string; role: StaffRole; name?: str
 export type StoredRecord<T = Record<string, unknown>> = { id: string; data: T; version: number; createdAt: string; updatedAt: string };
 export type Cliente = {
   id: string; nombre: string; telefono: string; email?: string;
-  tipo: "propietario" | "comprador" | "arrendador" | "arrendatario" | "otro";
+  tipo: "propietario" | "comprador" | "arrendador" | "arrendatario" | "inversionista" | "otro";
   asesorId?: string; notas: string; creadoEl: string; actualizadoEl: string;
   leadId?: string; convertidoEl?: string; convertidoPor?: string;
   perfil?: import("@/lib/lead-profile").LeadProfile;

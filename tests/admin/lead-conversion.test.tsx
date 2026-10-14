@@ -53,42 +53,14 @@ test("un botón en la lista convierte con la revisión y abre Clientes; el lead 
   expect(within(screen.getByRole("list", { name: "Prospectos" })).getByRole("link", { name: "Ver cliente" }).getAttribute("href")).toBe("/admin/clientes/c1");
 });
 
-test("si falla la conversión conserva el lead y permite reintentar sin navegación ni cliente falso", async () => {
-  fail = true;
-  await detail("lead");
-  fireEvent.click(await screen.findByRole("button", { name: "Convertir y abrir operación" }));
-  expect((await screen.findByRole("alert")).textContent).toContain("Servicio temporalmente");
-  expect(db.clientes.list()).toEqual([]);
-  expect(db.leads.list()[0]).toEqual(original);
-  expect(push).not.toHaveBeenCalled();
-  fail = false;
-  fireEvent.click(screen.getByRole("button", { name: "Convertir y abrir operación" }));
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/expedientes?nuevo=1&clienteId=c1&ruta=compra"));
+test("preparar operación abre la entrevista sin convertir prematuramente",async()=>{
+ await detail("lead");expect((await screen.findByRole("link",{name:"Preparar operación"})).getAttribute("href")).toBe("/admin/operaciones/nueva?leadId=l1&intencion=comprar");expect(posts).toEqual([]);expect(db.clientes.list()).toEqual([]);
 });
-
-test("protege la ficha y notas sin guardar antes de convertir", async () => {
-  await detail("lead");
-  const button = await screen.findByRole("button", { name: "Convertir y abrir operación" });
-  fireEvent.click(screen.getByRole("button", { name: "Editar ficha" }));
-  fireEvent.change(screen.getByLabelText("Nombre", { exact: true }), { target: { value: "Nombre sin guardar" } });
-  expect(button.hasAttribute("disabled")).toBe(true);
-  expect(posts).toEqual([]);
-  fireEvent.click(screen.getByRole("button", { name: "Cancelar edición" }));
-  expect(button.hasAttribute("disabled")).toBe(false);
-  fireEvent.change(screen.getByLabelText("Nueva nota"), { target: { value: "Nota sin guardar" } });
-  expect(button.hasAttribute("disabled")).toBe(true);
-  fireEvent.change(screen.getByLabelText("Nueva nota"), { target: { value: "" } });
-  expect(button.hasAttribute("disabled")).toBe(false);
-  fireEvent.change(screen.getByLabelText("Título", { exact: true }), { target: { value: "Cita sin guardar" } });
-  fireEvent.change(screen.getByLabelText("Fecha", { exact: true }), { target: { value: "2026-10-05" } });
-  expect(button.hasAttribute("disabled")).toBe(true);
-  expect(posts).toEqual([]);
-  fireEvent.change(screen.getByLabelText("Título", { exact: true }), { target: { value: "" } });
-  fireEvent.change(screen.getByLabelText("Fecha", { exact: true }), { target: { value: "" } });
-  expect(button.hasAttribute("disabled")).toBe(false);
-  fireEvent.change(screen.getByLabelText("Título", { exact: true }), { target: { value: "Otra cita" } });
-  fireEvent.click(screen.getByRole("button", { name: "Cancelar cita" }));
-  expect(button.hasAttribute("disabled")).toBe(false);
+test("la conversión explícita conserva el lead tras fallo y permite reintentar",async()=>{
+ await db.leads.load();fail=true;await expect(convertirLead(db.leads.list()[0])).rejects.toThrow("Servicio temporalmente");expect(db.clientes.list()).toEqual([]);fail=false;await convertirLead(db.leads.list()[0]);expect(db.clientes.list()[0].id).toBe("c1");
+});
+test.each(["Nueva nota","Título"])("protege %s antes de preparar la entrevista",async(label)=>{
+ await detail("lead");expect(await screen.findByRole("link",{name:"Preparar operación"})).toBeTruthy();fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});expect((screen.getByRole("button",{name:"Preparar operación"}) as HTMLButtonElement).disabled).toBe(true);expect(posts).toEqual([]);
 });
 
 test("la ficha del cliente muestra el perfil, asesor, historial y contacto heredados; editar conserva el origen", async () => {
@@ -133,9 +105,9 @@ test("el panel deja de contar y ofrecer como nuevo un lead convertido", async ()
 test.each(["Nueva nota", "Título"])("un prospecto convertido protege %s antes de abrir su operación", async (label) => {
   currentLead={...original,clienteId:"c1"};currentClient=cliente;
   await detail("lead");
-  expect((await screen.findByRole("link",{name:"Abrir operación"})).getAttribute("href")).toContain("clienteId=c1");
+  expect((await screen.findByRole("link",{name:"Preparar operación"})).getAttribute("href")).toContain("clienteId=c1");
   fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});
-  const button=screen.getByRole("button",{name:"Abrir operación"}) as HTMLButtonElement;
+  const button=screen.getByRole("button",{name:"Preparar operación"}) as HTMLButtonElement;
   expect(button.disabled).toBe(true);fireEvent.click(button);
   expect(push).not.toHaveBeenCalled();expect(posts).toEqual([]);expect(writes).toEqual([]);
   expect((screen.getByLabelText(label,{exact:true}) as HTMLInputElement).value).toBe("Captura pendiente");
