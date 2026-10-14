@@ -50,11 +50,11 @@ afterEach(() => {
   delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView;
 });
 
-test("new property publication date uses Tijuana's day when UTC is already tomorrow", () => {
+test("new property has no premature publication date even across the UTC day boundary", () => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-09-23T05:40:00Z"));
   render(<PropertyForm />);
-  expect((screen.getByLabelText("Fecha de publicación") as HTMLInputElement).value).toBe("2026-09-22");
+  expect((screen.getByLabelText("Fecha de publicación") as HTMLInputElement).value).toBe("");
 });
 
 function chooseSection(name: string) {

@@ -47,7 +47,7 @@ async function start(
   return (
     await db.query<{ r: Record<string, unknown> }>(
       "select public.fortius_inmuebles_start_intake($1,$2,$3::jsonb,$4) r",
-      [id, intent, JSON.stringify(c), exp],
+      [id, intent, JSON.stringify(exp ? c : {...c, seguimiento: {origen:"llamada",accion:"Revisar documentos",fecha:"2030-10-20"}}), exp],
     )
   ).rows[0].r;
 }
@@ -98,7 +98,7 @@ it("persists partial answers without converting the prospect and detects another
   asUser(own, async () => {
     const r = await start();
     const interview = await save(r.id, 1, { objetivo: "Quiero vender" });
-    expect(interview.respuestas).toEqual({ objetivo: "Quiero vender" });
+    expect(interview.respuestas).toEqual({ objetivo: "Quiero vender", origenContacto: "llamada" });
     expect(
       (
         await db.query<{ data: Record<string, unknown> }>(
@@ -134,7 +134,7 @@ it.each(["vender", "arrendar", "comprar", "rentar", "invertir"])(
         )
       ).rows[0];
       expect(exp.operacion).toBe(
-        ["arrendar", "rentar"].includes(intent) ? "renta" : "venta",
+        ["arrendar", "rentar"].includes(intent) ? "renta" : intent === "invertir" ? "inversion" : "venta",
       );
       expect(exp.etapa).toBe("documentacion");
       const owner = ["vender", "arrendar"].includes(intent);
@@ -381,7 +381,7 @@ it("allows authorized context reassignment with pending reviews and requires a n
 it("rolls back conversion, operation and snapshot if the next task fails", async () => {
   const r = await asUser(own, () => start("vender", contact("6645557799")));
   await db.exec(
-    "create function public.intake_test_failure() returns trigger language plpgsql as $$begin if new.collection='tareas' then raise exception 'synthetic task failure';end if;return new;end;$$;create trigger intake_test_fail before insert on public.fortius_inmuebles_records for each row execute function public.intake_test_failure();",
+    "create function public.intake_test_failure() returns trigger language plpgsql as $$begin if new.collection='tareas' then raise exception 'synthetic task failure';end if;return new;end;$$;create trigger intake_test_fail before insert or update on public.fortius_inmuebles_records for each row execute function public.intake_test_failure();",
   );
   try {
     await asUser(own, async () => {

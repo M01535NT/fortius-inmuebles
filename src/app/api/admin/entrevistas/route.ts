@@ -8,7 +8,7 @@ import {
 } from "@/lib/backend/http";
 import { startIntakeSchema } from "@/lib/intake/interview";
 const fields =
-  "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
+  "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,propiedad_slug,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
 export async function GET(request: Request) {
   return apiResponse(async () => {
     const { client } = await requireStaff();
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     const { data, error } = await client.rpc("fortius_inmuebles_start_intake", {
       p_id: input.id,
       p_intent: input.intencion,
-      p_contact: input.contacto,
+      p_contact: { ...input.contacto, ...(input.seguimiento ? { seguimiento: input.seguimiento } : {}) },
       p_expediente_id: input.expedienteId ?? null,
     });
     if (error) databaseError(error);

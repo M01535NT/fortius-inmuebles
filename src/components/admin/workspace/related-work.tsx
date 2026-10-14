@@ -109,10 +109,11 @@ export function RelatedWork({
       </div>
       {person && (
         <p className="text-sm">
-          Próximo contacto:{" "}
+          Próxima comunicación:{" "}
           <strong>{person.perfil?.proximoContacto ?? "Por programar"}</strong>
         </p>
       )}
+      <p className="text-sm text-muted-foreground">La comunicación, las citas y las tareas conservan fechas propias. No todas las tareas requieren contactar a la persona.</p>
       {lead && (
         <div className="text-sm">
           {lead.firstContactedAt ? (

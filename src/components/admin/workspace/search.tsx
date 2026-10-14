@@ -16,14 +16,14 @@ export function WorkspaceSearch() {
   const trigger = React.useRef<HTMLButtonElement>(null);
   const [query, setQuery] = React.useState("");
   const [dossiers, setDossiers] = React.useState<
-    { id: string; folio: string }[]
+    { id: string; folio: string; cliente_id?: string }[]
   >([]);
   const [error, setError] = React.useState("");
   function open() {
     setOpened(true);
     dialog.current?.showModal();
     setError("");
-    apiRequest<{ expedientes: { id: string; folio: string }[] }>(
+    apiRequest<{ expedientes: { id: string; folio: string; cliente_id?: string }[] }>(
       "/api/admin/expedientes",
     )
       .then((result) => setDossiers(result.expedientes ?? []))
@@ -66,9 +66,9 @@ export function WorkspaceSearch() {
     })),
     ...dossiers.map((e) => ({
       id: `e:${e.id}`,
-      label: e.folio,
-      detail: "Expediente",
-      text: e.folio,
+      label: clients.find(c => c.id === e.cliente_id)?.nombre ?? e.folio,
+      detail: `Operación · ${e.folio}`,
+      text: `${e.folio} ${clients.find(c => c.id === e.cliente_id)?.nombre ?? ""}`,
       href: `/admin/expedientes?expediente=${e.id}`,
     })),
   ].filter((item) => normalizedText(item.text).includes(normalizedText(query)));

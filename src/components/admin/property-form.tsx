@@ -32,7 +32,6 @@ import {
   type TipoPropiedad,
 } from "@/data/propiedades";
 import { zonas } from "@/data/zonas";
-import { operationalDate } from "@/lib/admin/operational-date";
 import { AdminApiError, db, upsertPropiedad, useCollection, useSession } from "@/lib/admin/store";
 
 /*
@@ -103,7 +102,7 @@ export function PropertyForm({ initial: source }: Props) {
   const codigo = initial?.codigo ?? "";
   const [operacion, setOperacion] = React.useState<Property["operacion"]>(initial?.operacion ?? "venta");
   const [estado, setEstado] = React.useState<Property["estado"]>(
-    initial && estadoValido(initial.operacion, initial.estado) ? initial.estado : "disponible",
+    initial && estadoValido(initial.operacion, initial.estado) ? initial.estado : "evaluacion",
   );
   const [galeria, updateGaleria] = React.useState<ImagenPropiedad[]>(
     initial?.galeria ?? [],
@@ -329,9 +328,8 @@ export function PropertyForm({ initial: source }: Props) {
               id="pf-publicadaEl"
               name="publicadaEl"
               type="date"
-              required
               defaultValue={
-                initial?.publicadaEl.slice(0, 10) ?? operationalDate()
+                initial?.publicadaEl.slice(0, 10) ?? ""
               }
               className={inputClass}
             />

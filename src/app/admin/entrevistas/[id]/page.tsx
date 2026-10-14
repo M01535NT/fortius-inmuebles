@@ -8,7 +8,7 @@ import {
   ClipboardList,
   Save,
 } from "lucide-react";
-import { apiRequest, db } from "@/lib/admin/store";
+import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import {
   INTENTS,
@@ -40,6 +40,7 @@ export default function InterviewPage({
   return <InterviewEditor key={id} id={id} />;
 }
 function InterviewEditor({ id }: { id: string }) {
+  const properties = useCollection(db.propiedades);
   const [interview, setInterview] = React.useState<OperationalInterview | null>(
       null,
     ),
@@ -129,7 +130,7 @@ function InterviewEditor({ id }: { id: string }) {
           ? r.entrevista.anterior_id
             ? "Corrección guardada. La entrevista anterior se conserva."
             : owner
-              ? "Entrevista completada. La casa quedó capturada en el expediente."
+              ? r.entrevista.propiedad_slug ? "Entrevista completada. El inmueble quedó vinculado al expediente." : "Entrevista completada. Falta crear o vincular el inmueble desde el expediente."
               : "Entrevista completada. El expediente y la próxima tarea están listos."
           : "Borrador guardado. Puedes salir y continuar después.",
       );
@@ -238,11 +239,7 @@ function InterviewEditor({ id }: { id: string }) {
     );
   const sections = [...new Set(fields.map((f) => f.section))],
     issues = interviewIssues(interview.intencion, answers);
-  const mandatory = fields.filter(
-      (f) =>
-        f.required ||
-        (spouse && (f.key === "conyuge" || f.key === "regimen")),
-    ),
+  const mandatory = fields.filter((f) => f.required),
     answered = mandatory.filter((f) => !!answers[f.key]?.trim()).length;
   const expHref = interview.expediente_id
     ? "/admin/expedientes?expediente=" + interview.expediente_id
@@ -271,7 +268,7 @@ function InterviewEditor({ id }: { id: string }) {
         title={"Entrevista · " + INTENTS[interview.intencion].role}
         description={
           owner
-            ? "Primero la persona. Después los datos de la casa nueva. Las medidas y las fotos se capturan en la visita."
+            ? "Primero la persona. Después los datos del inmueble, nuevo o existente. Las medidas y las fotos se capturan en la visita."
             : "Captura lo que declara la persona. La revisión de documentos y la viabilidad se realizan después."
         }
       />
@@ -342,7 +339,7 @@ function InterviewEditor({ id }: { id: string }) {
             {interview.anterior_id
               ? "La corrección se guardó en el mismo expediente."
               : owner
-                ? "La casa quedó registrada como inmueble privado. El levantamiento de medidas y fotos se hace en documentos, cuando visites la propiedad."
+                ? interview.propiedad_slug ? "El inmueble quedó vinculado. Las medidas, fotografías y observaciones se completan durante la visita." : "Esta entrevista histórica no tiene un inmueble vinculado. Revisa coincidencias y crea o vincula el inmueble desde el expediente."
                 : "Puedes continuar con la evaluación y preparación de la operación."}{" "}
             Los documentos, la titularidad y los recursos todavía deben
             comprobarse.
@@ -415,6 +412,10 @@ function InterviewEditor({ id }: { id: string }) {
         className="space-y-4"
       >
         <fieldset disabled={busy || completed} className="min-w-0 space-y-4">
+          {owner && phase === "inmueble" && !interview.anterior_id && <section className="rounded-md border border-border p-4">
+            <label className="block text-sm">Identidad del inmueble<select className={selectClass} value={answers.propiedadExistente ?? ""} onChange={e => setAnswers(old => ({ ...old, propiedadExistente: e.target.value }))}><option value="">Registrar un inmueble provisional nuevo</option>{properties.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo} · {p.direccionAproximada}</option>)}</select></label>
+            <p className="mt-2 text-sm text-muted-foreground">Selecciona el registro existente si corresponde a la misma unidad. Compartir domicilio no identifica por sí solo el inmueble. Un encargo nuevo conserva su expediente e historia propios.</p>
+          </section>}
           {sections.map((section, n) => (
             <section
               key={section}
@@ -448,9 +449,7 @@ function InterviewEditor({ id }: { id: string }) {
                           className="mb-1.5 block text-sm font-medium"
                         >
                           {f.label}
-                          {(f.required ||
-                            (spouse &&
-                              (f.key === "conyuge" || f.key === "regimen"))) && (
+                          {f.required && (
                             <span className="text-muted-foreground"> *</span>
                           )}
                         </label>
@@ -583,7 +582,7 @@ function InterviewEditor({ id }: { id: string }) {
                 {interview.anterior_id
                   ? "Completar corrección"
                   : owner
-                    ? "Guardar y capturar la casa"
+                    ? "Guardar y vincular el inmueble"
                     : interview.expediente_id
                       ? "Guardar entrevista en el expediente"
                       : "Guardar y pasar a evaluación"}{" "}

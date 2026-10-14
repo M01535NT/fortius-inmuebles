@@ -86,6 +86,8 @@ it("chooses a profile before contact capture and prevents double submission", as
   fireEvent.change(screen.getByLabelText("Teléfono"), {
     target: { value: "6641234567" },
   });
+  fireEvent.change(screen.getByLabelText("Siguiente acción"), {target:{value:"Entrevistar al propietario"}});
+  fireEvent.change(screen.getByLabelText("Fecha de la siguiente acción"), {target:{value:"2030-12-31"}});
   await waitFor(() =>
     expect(
       (
@@ -174,12 +176,12 @@ it("shows spouse fields only after a married answer and keeps the house step nex
       </React.Suspense>,
     );
   });
-  expect(await screen.findByLabelText("Estado civil *")).toBeTruthy();
-  expect(screen.queryByLabelText("Nombre del cónyuge *")).toBeNull();
-  fireEvent.change(screen.getByLabelText("Estado civil *"), {
+  expect(await screen.findByLabelText("Estado civil")).toBeTruthy();
+  expect(screen.queryByLabelText("Nombre del cónyuge")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Estado civil"), {
     target: { value: "casado" },
   });
-  expect(screen.getByLabelText("Nombre del cónyuge *")).toBeTruthy();
-  expect(screen.getByLabelText("Régimen matrimonial *")).toBeTruthy();
+  expect(screen.getByLabelText("Nombre del cónyuge")).toBeTruthy();
+  expect(screen.getByLabelText("Régimen matrimonial")).toBeTruthy();
   expect(screen.queryByLabelText("Tipo de inmueble *")).toBeNull();
 });

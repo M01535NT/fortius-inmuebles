@@ -17,11 +17,11 @@ export type TipoPropiedad =
   | "oficina"
   | "nave-industrial";
 
-export type EstadoPropiedad = "disponible" | "apartada" | "vendida" | "rentada";
+export type EstadoPropiedad = "evaluacion" | "disponible" | "apartada" | "vendida" | "rentada";
 
 export const ESTADOS_POR_OPERACION: Record<Operacion, readonly EstadoPropiedad[]> = {
-  venta: ["disponible", "apartada", "vendida"],
-  renta: ["disponible", "apartada", "rentada"],
+  venta: ["evaluacion", "disponible", "apartada", "vendida"],
+  renta: ["evaluacion", "disponible", "apartada", "rentada"],
 };
 
 export function estadoValido(operacion: Operacion, estado: EstadoPropiedad): boolean {
@@ -121,6 +121,7 @@ export const OPERACION_LABELS: Record<Operacion, string> = {
 };
 
 export const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
+  evaluacion: "En evaluación · privado",
   disponible: "Disponible",
   apartada: "Apartada",
   vendida: "Vendida",

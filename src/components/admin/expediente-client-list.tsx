@@ -63,7 +63,11 @@ export function ExpedienteClientList({ expedientes, clientes, propiedades, selec
     {expedientes.length === 0 ? <p className="text-sm text-muted-foreground">{showDeleted ? "No hay expedientes eliminados visibles para tu cuenta." : "Aún no hay expedientes activos visibles para tu cuenta."}</p>
       : visible.length === 0 ? <p role="status" className="text-sm text-muted-foreground">No hay coincidencias. Prueba otro nombre o folio.</p>
       : <div>{groups.map(group => {
-        const items = visible.filter(item => (groups.some(candidate => candidate.type === clientsById.get(item.cliente_id)?.tipo) ? clientsById.get(item.cliente_id)?.tipo : "otro") === group.type);
+        const items = visible.filter(item => {
+          const route = item.flujo?.ruta as string | undefined;
+          const type = route === "inversion" ? "inversionista" : route === "arrendatario" ? "arrendatario" : route === "arrendador" ? "arrendador" : route === "compra" ? item.operacion === "renta" ? "arrendatario" : "comprador" : route === "captacion" ? item.operacion === "renta" ? "arrendador" : "propietario" : clientsById.get(item.cliente_id)?.tipo;
+          return (groups.some(candidate => candidate.type === type) ? type : "otro") === group.type;
+        });
         if (items.length === 0 && group.type !== "comprador" && group.type !== "propietario") return null;
         return <details key={group.type} open className="group border-t border-border py-2">
           <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1 text-base font-semibold [&::-webkit-details-marker]:hidden">
@@ -79,7 +83,7 @@ export function ExpedienteClientList({ expedientes, clientes, propiedades, selec
                 className="admin-dossier-select w-full min-w-0 rounded-r-md border-l-4 px-3 py-3 text-left transition-colors hover:bg-secondary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
                 <strong className="block break-words text-base font-semibold">{client?.nombre?.trim() || "Cliente sin nombre"}</strong>
                 <span className="mt-1 block break-words text-sm text-muted-foreground">{property ?? (item.propiedad_slug ? "Inmueble vinculado" : "Sin inmueble vinculado")}</span>
-                <span className="mt-1 block break-words text-sm text-muted-foreground">{item.operacion === "venta" ? stageLabel(item.etapa ?? "captacion", item.flujo?.ruta) : EXPEDIENTE_ETAPAS[item.etapa ?? "captacion"]} · {item.folio} · {item.fecha_objetivo ?? "Sin fecha objetivo"}</span>
+                <span className="mt-1 block break-words text-sm text-muted-foreground">{item.flujo ? stageLabel(item.etapa ?? "captacion", item.flujo?.ruta) : EXPEDIENTE_ETAPAS[item.etapa ?? "captacion"]} · {item.folio} · {item.fecha_objetivo ?? "Sin fecha objetivo"}</span>
               </button></li>;
             })}
           </ul>}

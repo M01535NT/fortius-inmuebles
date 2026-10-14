@@ -40,7 +40,7 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
   const [error, setError] = React.useState("");
   const [notice, setNotice] = React.useState("");
   const [workflowDirty,setWorkflowDirty] = React.useState(false);
-  const guided=expediente.operacion==="venta";
+  const guided=["venta","renta","inversion"].includes(expediente.operacion ?? "");
   const operationDirty = !guided && (etapa !== (expediente.etapa ?? "captacion") || fecha !== (expediente.fecha_objetivo ?? "")
     || checklistKey(checklist) !== checklistKey(expediente.checklist));
   const dirty = operationDirty || workflowDirty || !!note.trim();

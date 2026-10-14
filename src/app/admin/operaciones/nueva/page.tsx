@@ -71,6 +71,7 @@ export default function NewOperation() {
     [email, setEmail] = React.useState(""),
     [adviser, setAdviser] = React.useState(""),
     [shared, setShared] = React.useState(false);
+  const [origin, setOrigin] = React.useState("llamada"), [action, setAction] = React.useState(""), [actionDate, setActionDate] = React.useState("");
   const [config, setConfig] = React.useState<{
       administrador: boolean;
       asesorId: string | null;
@@ -81,7 +82,7 @@ export default function NewOperation() {
     [error, setError] = React.useState("");
   const requestId = React.useRef<string | null>(null),
     sent = React.useRef(false);
-  const dirty = !!name || !!phone || !!email;
+  const dirty = !!name || !!phone || !!email || !!action || !!actionDate;
   const allowRef = useInterviewGuard(dirty, busy);
   React.useEffect(() => {
     let active = true;
@@ -114,23 +115,23 @@ export default function NewOperation() {
   }, []);
   const normalized = phone.replace(/\D/g, "");
   const matches =
-    normalized.length >= 7
+    (normalized.length >= 7 || !!email.trim())
       ? [
           ...leads
             .filter((l) => !l.clienteId)
             .map((l) => ({
               id: l.id,
               nombre: l.nombre,
-              telefono: l.telefono,
+              telefono: l.telefono, email: l.email,
               tipo: "lead",
             })),
           ...clients.map((c) => ({
             id: c.id,
             nombre: c.nombre,
-            telefono: c.telefono,
+            telefono: c.telefono, email: c.email,
             tipo: "cliente",
           })),
-        ].filter((c) => c.telefono.replace(/\D/g, "") === normalized)
+        ].filter((c) => (normalized.length>=7 && c.telefono.replace(/\D/g, "") === normalized) || (!!email.trim() && c.email?.trim().toLowerCase() === email.trim().toLowerCase()))
       : [];
   const loaded = leadState.loaded && clientState.loaded && adviserState.loaded;
   async function start(e: React.FormEvent) {
@@ -186,6 +187,7 @@ export default function NewOperation() {
           id: requestId.current,
           intencion: intent,
           contacto,
+          ...(query.get("expedienteId") ? {} : { seguimiento: { origen: origin, accion: action, fecha: actionDate } }),
           ...(query.get("expedienteId")
             ? { expedienteId: query.get("expedienteId") }
             : {}),
@@ -404,7 +406,6 @@ export default function NewOperation() {
                   <label className="text-sm">
                     Teléfono
                     <input
-                      required
                       type="tel"
                       autoComplete="tel"
                       className={inputClass}
@@ -418,7 +419,7 @@ export default function NewOperation() {
                     />
                   </label>
                   <label className="text-sm">
-                    Correo electrónico (opcional)
+                    Correo electrónico (teléfono o correo requerido)
                     <input
                       type="email"
                       autoComplete="email"
@@ -426,7 +427,7 @@ export default function NewOperation() {
                       maxLength={254}
                       value={email}
                       onChange={(e) => {
-                        setEmail(e.target.value);
+                        setEmail(e.target.value); setShared(false);
                         changed();
                       }}
                     />
@@ -470,7 +471,7 @@ export default function NewOperation() {
                     aria-label="Contactos coincidentes"
                   >
                     <p className="font-semibold">
-                      Este teléfono ya está registrado
+                      Este medio de contacto ya está registrado
                     </p>
                     {matches.map((c) => (
                       <button
@@ -541,6 +542,12 @@ export default function NewOperation() {
                 Cargando contactos y responsables…
               </p>
             )}
+            {!query.get("expedienteId") && <div className="my-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-sm">Origen del contacto<select className={selectClass} value={origin} onChange={e => { setOrigin(e.target.value); changed(); }}>{Object.entries({ llamada: "Llamada", whatsapp: "WhatsApp", correo: "Correo electrónico", referido: "Referido", web: "Web", presencial: "Presencial", otro: "Otro" }).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              <label className="text-sm">Siguiente acción<input required maxLength={160} className={inputClass} value={action} onChange={e => { setAction(e.target.value); changed(); }}/></label>
+              <label className="text-sm">Fecha de la siguiente acción<input required type="date" className={inputClass} value={actionDate} onChange={e => { setActionDate(e.target.value); changed(); }}/></label>
+              <p className="text-sm text-muted-foreground">El contacto y su acción quedan guardados antes de completar la entrevista. Puedes retomarla desde Prospectos o Tareas.</p>
+            </div>}
             <button
               type="submit"
               className={btnPrimary}

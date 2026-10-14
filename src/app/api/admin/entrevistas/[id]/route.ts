@@ -10,7 +10,7 @@ import {
 import { interviewIssues, saveIntakeSchema } from "@/lib/intake/interview";
 type Context = { params: Promise<{ id: string }> };
 const fields =
-  "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
+  "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,propiedad_slug,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
 export async function GET(_r: Request, c: Context) {
   return apiResponse(async () => {
     const { client } = await requireStaff();

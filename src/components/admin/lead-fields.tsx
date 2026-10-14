@@ -5,8 +5,8 @@ import { Field, inputClass, selectClass, textareaClass } from "./ui";
 import { db, useCollection, type Lead } from "@/lib/admin/store";
 import { leadProfileSchema, LEAD_PROFILE_OPTIONS, type LeadProfile } from "@/lib/lead-profile";
 
-const numericFields = ["presupuestoMin", "presupuestoMax", "precioObjetivo", "superficieMin", "superficieMax", "superficieTerreno", "superficieConstruccion", "recamaras", "estacionamientos", "recamarasInmueble", "estacionamientosInmueble"] as const;
-const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "caracteristicas", "plazo", "proximoContacto"] as const;
+const numericFields = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo", "superficieMin", "superficieMax", "superficieTerreno", "superficieConstruccion", "recamaras", "estacionamientos", "recamarasInmueble", "estacionamientosInmueble"] as const;
+const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "caracteristicas", "plazo", "proximoContacto", "estrategiaInversion", "horizonteInversion", "criteriosInversion"] as const;
 
 export function readLeadFields(form: HTMLFormElement, base?: Pick<Lead, "perfil">) {
   const data = new FormData(form);
@@ -25,6 +25,7 @@ export function readLeadFields(form: HTMLFormElement, base?: Pick<Lead, "perfil"
   const result = leadProfileSchema.safeParse(profile);
   if (!result.success) throw new Error(result.error.issues.map(issue => issue.message).join(". "));
   const optional = (key: string) => String(data.get(key) ?? "").trim() || undefined;
+  if(!String(data.get("telefono")??"").trim()&&!optional("email"))throw new Error("Registra teléfono o correo electrónico");
   return {
     nombre: String(data.get("nombre") ?? "").trim(), telefono: String(data.get("telefono") ?? "").trim(),
     email: optional("email"), zona: optional("zona"), tipoPropiedad: optional("tipoPropiedad"),
@@ -64,10 +65,10 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
   }}>
     <section className="min-w-0 rounded-lg border border-border p-4">
       <h2 className="text-base font-semibold">Contacto</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Nombre y teléfono son obligatorios. Puedes completar los demás datos después.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Registra el nombre y al menos un medio: teléfono o correo electrónico. Los demás datos se completan según el encargo.</p>
       <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
         <Field label="Nombre" htmlFor={id("nombre")}><input ref={nombreRef} id={id("nombre")} name="nombre" required maxLength={160} defaultValue={lead?.nombre ?? ""} autoComplete="name" className={inputClass} /></Field>
-        <Field label="Teléfono" htmlFor={id("telefono")}><input id={id("telefono")} name="telefono" required type="tel" maxLength={40} defaultValue={lead?.telefono ?? ""} autoComplete="tel" className={inputClass} /></Field>
+        <Field label="Teléfono" htmlFor={id("telefono")}><input id={id("telefono")} name="telefono" type="tel" maxLength={40} defaultValue={lead?.telefono ?? ""} autoComplete="tel" className={inputClass} /></Field>
         {text("email", "Correo electrónico", lead?.email, "email", 254)}
       </div>
     </section>
@@ -102,6 +103,8 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
       {choice("moneda", "Moneda")}
       {buyer ? <>{choice("formaPago", "Forma de pago")}{(formaPago === "credito" || formaPago === "mixto") && <>{choice("tipoCredito", "Tipo de crédito")}{choice("estadoCredito", "Estado del crédito")}</>}{choice("origenIngresos", "Origen de ingresos")}</> : operacion === "rentar" ? choice("origenIngresos", "Origen de ingresos") : null}
     </LeadSection>
+    {operacion==="invertir"&&<LeadSection title="Criterios de inversión">{number("capitalDeclarado","Capital declarado",1e13)}<Field label="Estrategia" htmlFor={id("estrategiaInversion")}><select id={id("estrategiaInversion")} name="perfil.estrategiaInversion" defaultValue={perfil.estrategiaInversion??""} className={selectClass}><option value="">Por confirmar</option><option value="renta">Renta</option><option value="reventa">Reventa</option><option value="mixta">Mixta</option><option value="por_definir">Por definir</option></select></Field>{text("perfil.horizonteInversion","Horizonte",perfil.horizonteInversion,"text",2000)}{text("perfil.criteriosInversion","Criterios y límites",perfil.criteriosInversion,"text",2000)}<p className="text-sm text-muted-foreground sm:col-span-2">El capital es declarado; los recursos, escenarios y riesgos se comprueban en el encargo. Invertir no obliga a registrar una compra.</p></LeadSection>}
+    {["comprar","rentar"].includes(operacion)&&perfil.presupuestoDeclarado!==undefined&&<LeadSection title="Presupuesto declarado">{number("presupuestoDeclarado","Presupuesto declarado",1e13)}<p className="text-sm text-muted-foreground">Es una declaración inicial, distinta de capacidad comprobada o presupuesto máximo acordado.</p></LeadSection>}
     <LeadSection title="Seguimiento">
       {text("perfil.plazo", "Plazo previsto", perfil.plazo)}
       {text("perfil.proximoContacto", "Próximo contacto", perfil.proximoContacto, "date", 10)}
@@ -121,13 +124,13 @@ function LeadSection({ title, children }: { title: string; children: React.React
 
 export function LeadProfileSummary({ perfil }: { perfil?: LeadProfile }) {
   if (!perfil || !Object.values(perfil).some(value => value !== undefined && value !== "")) return <p className="text-sm text-muted-foreground">Perfil pendiente. Edita la ficha para registrar la necesidad del lead y sus datos.</p>;
-  const labels: Record<string, string> = { operacion: "Operación", uso: "Uso", moneda: "Moneda", formaPago: "Forma de pago", tipoCredito: "Crédito", estadoCredito: "Estado del crédito", origenIngresos: "Origen de ingresos", presupuestoMin: "Presupuesto mínimo", presupuestoMax: "Presupuesto máximo", precioObjetivo: perfil.operacion === "arrendar" ? "Renta mensual esperada" : "Precio de venta esperado", superficieMin: "Superficie mínima (m²)", superficieMax: "Superficie máxima (m²)", superficieTerreno: "Superficie de terreno (m²)", superficieConstruccion: "Superficie construida (m²)", recamaras: "Recámaras mínimas", estacionamientos: "Estacionamientos mínimos", recamarasInmueble: "Recámaras del inmueble", estacionamientosInmueble: "Estacionamientos del inmueble", requisitos: "Requisitos", caracteristicas: "Características y condiciones", plazo: "Plazo previsto", proximoContacto: "Próximo contacto" };
-  return <dl className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">{Object.entries(labels).map(([key, label]) => {
+  const labels: Record<string, string> = { capitalDeclarado: "Capital declarado", presupuestoDeclarado: "Presupuesto declarado", estrategiaInversion: "Estrategia de inversión", horizonteInversion: "Horizonte", criteriosInversion: "Criterios y límites", operacion: "Operación", uso: "Uso", moneda: "Moneda", formaPago: "Forma de pago", tipoCredito: "Crédito", estadoCredito: "Estado del crédito", origenIngresos: "Origen de ingresos", presupuestoMin: "Presupuesto mínimo", presupuestoMax: "Presupuesto máximo", precioObjetivo: perfil.operacion === "arrendar" ? "Renta mensual esperada" : "Precio de venta esperado", superficieMin: "Superficie mínima (m²)", superficieMax: "Superficie máxima (m²)", superficieTerreno: "Superficie de terreno (m²)", superficieConstruccion: "Superficie construida (m²)", recamaras: "Recámaras mínimas", estacionamientos: "Estacionamientos mínimos", recamarasInmueble: "Recámaras del inmueble", estacionamientosInmueble: "Estacionamientos del inmueble", requisitos: "Requisitos", caracteristicas: "Características y condiciones", plazo: "Plazo previsto", proximoContacto: "Próximo contacto" };
+  return <><p className="mb-3 text-sm text-muted-foreground">Perfil principal de la persona. Cada encargo conserva su entrevista y sus condiciones propias.</p><dl className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">{Object.entries(labels).map(([key, label]) => {
     const value = perfil[key as keyof LeadProfile];
     if (value === undefined || value === "") return null;
     const options = LEAD_PROFILE_OPTIONS[key as keyof typeof LEAD_PROFILE_OPTIONS] as Record<string, string> | undefined;
     let display = options?.[String(value)] ?? (typeof value === "number" ? value.toLocaleString("es-MX") : String(value));
     if (key.startsWith("presupuesto") || key === "precioObjetivo") display += ` ${perfil.moneda ?? ""}${perfil.operacion === "rentar" || perfil.operacion === "arrendar" ? " /mes" : ""}`;
     return <div key={key} className="min-w-0 [overflow-wrap:anywhere]"><dt className="text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-wrap">{display}</dd></div>;
-  })}</dl>;
+  })}</dl></>;
 }

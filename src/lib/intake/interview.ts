@@ -12,7 +12,7 @@ export const INTENTS = {
     role: "Propietario arrendador",
     description: "Captar una propiedad para renta",
     operation: "renta",
-    route: "captacion",
+    route: "arrendador",
   },
   comprar: {
     label: "Comprar un inmueble",
@@ -26,14 +26,14 @@ export const INTENTS = {
     role: "Arrendatario",
     description: "Encontrar una propiedad para arrendar",
     operation: "renta",
-    route: "compra",
+    route: "arrendatario",
   },
   invertir: {
     label: "Invertir en inmuebles",
     role: "Inversionista",
     description: "Definir estrategia y criterios de inversión",
-    operation: "venta",
-    route: "compra",
+    operation: "inversion",
+    route: "inversion",
   },
 } as const;
 export type IntakeIntent = keyof typeof INTENTS;
@@ -109,8 +109,7 @@ const personal: Field[] = [
       "otro",
       "por_aclarar",
     ],
-    required: true,
-    hint: "Si está casado, captura también al cónyuge y el régimen.",
+    hint: "Dato opcional en la entrevista. La situación del titular y sus facultades se revisan antes de contratar.",
   },
   {
     key: "conyuge",
@@ -328,6 +327,8 @@ export function interviewFields(intent: IntakeIntent): Field[] {
   ];
 }
 export const ANSWER_KEYS = [
+  "origenContacto",
+  "propiedadExistente",
   ...new Set(
     Object.keys(INTENTS).flatMap((i) =>
       interviewFields(i as IntakeIntent).map((f) => f.key),
@@ -399,18 +400,8 @@ export function interviewIssues(
   )
     issues.push({
       key: "tipoInmueble",
-      message: "Elige el tipo de inmueble para capturar la casa.",
+      message: "Elige el tipo de inmueble para registrar el inmueble provisional.",
     });
-  if (isOwnerIntent(intent) && answers.estadoCivil === "casado") {
-    if (!answers.conyuge?.trim())
-      issues.push({ key: "conyuge", message: "Nombre del cónyuge" });
-    if (
-      !["sociedad_conyugal", "separacion", "no_aplica", "por_aclarar"].includes(
-        answers.regimen ?? "",
-      )
-    )
-      issues.push({ key: "regimen", message: "Elige el régimen matrimonial." });
-  }
   if (answers.privacidad !== "presentado")
     issues.push({
       key: "privacidad",
@@ -444,12 +435,12 @@ export const startIntakeSchema = z
             .string()
             .trim()
             .max(40)
-            .refine((v) => v.replace(/\D/g, "").length >= 7),
+            .refine((v) => v === "" || v.replace(/\D/g, "").length >= 7),
           email: z.email().max(254).or(z.literal("")),
           asesorId: z.string().min(1).max(160),
           telefonoCompartido: z.boolean().default(false),
         })
-        .strict(),
+        .strict().refine(c => !!c.telefono || !!c.email, "Registra teléfono o correo electrónico"),
       z
         .object({
           tipo: z.enum(["lead", "cliente"]),
@@ -457,8 +448,9 @@ export const startIntakeSchema = z
         })
         .strict(),
     ]),
+    seguimiento: z.object({ origen: z.enum(["llamada","whatsapp","correo","referido","web","presencial","otro"]), accion: z.string().trim().min(1).max(160), fecha: z.iso.date() }).strict().optional(),
   })
-  .strict();
+  .strict().refine(v => !!v.expedienteId || !!v.seguimiento, { message: "Registra origen y siguiente acción con fecha", path: ["seguimiento"] });
 export const saveIntakeSchema = z
   .object({
     version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
@@ -473,6 +465,7 @@ export type OperationalInterview = {
   lead_id: string | null;
   cliente_id: string | null;
   expediente_id: string | null;
+  propiedad_slug?: string | null;
   anterior_id: string | null;
   contacto: { nombre: string; telefono: string; email?: string };
   respuestas: InterviewAnswers;
