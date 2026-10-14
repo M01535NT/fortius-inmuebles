@@ -110,7 +110,7 @@ test("navigation keeps native required fields active and saves only on explicit 
   expect(screen.getByRole("button", { name: "Cancelar" }).matches(":disabled")).toBe(true);
   expect(push).not.toHaveBeenCalled();
   expect(writes[0]).toMatchObject({ version: null, data: {
-    slug: "casa-en-revision", titulo: "Casa en revisión", zona: "Centro",
+    codigo: "", slug: "casa-en-revision", titulo: "Casa en revisión", zona: "Centro",
     direccionAproximada: "Cerca del parque", descripcion: ["Descripción conservada"],
   } });
   completeSave!();
@@ -151,3 +151,20 @@ test("switching an existing sold listing to rental offers Rentada and resets inc
   expect(within(status).getByRole("option", { name: "Rentada" })).toBeTruthy();
   expect(within(status).queryByRole("option", { name: "Vendida" })).toBeNull();
 });
+
+ test('shows the internal identifier as read-only and preserves existing property identity', async () => {
+  render(<PropertyForm initial={{ ...propiedades[0], codigo: 'LEGADO-001', publicada: false }} />);
+  const field = screen.getByLabelText('Folio del inmueble') as HTMLInputElement;
+  expect(field.readOnly).toBe(true);
+  expect(field.value).toBe('LEGADO-001');
+  fireEvent.submit(field.closest('form')!);
+  await waitFor(() => expect(writes).toHaveLength(1));
+  expect(writes[0].data.codigo).toBe('LEGADO-001');
+ });
+ test('explains automatic allocation before saving a new property', () => {
+  render(<PropertyForm />);
+  const field = screen.getByLabelText('Folio del inmueble') as HTMLInputElement;
+  expect(field.readOnly).toBe(true);
+  expect(field.required).toBe(false);
+  expect(field.value).toBe('Se asignará al guardar');
+ });

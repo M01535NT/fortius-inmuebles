@@ -33,7 +33,7 @@ const informacionPublica = z.object({
 const price = z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }).passthrough(), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() }).passthrough()]);
 const point = z.object({ lugar: short, minutos: amount }).passthrough();
 const propertySchema = z.object({
-  slug: id, codigo: name, titulo: name, tipo: z.enum(["casa", "departamento", "terreno", "local", "oficina", "nave-industrial"]), operacion: z.enum(["venta", "renta"]), precio: price,
+  slug: id, codigo: z.string().trim().max(160).default(""), titulo: name, tipo: z.enum(["casa", "departamento", "terreno", "local", "oficina", "nave-industrial"]), operacion: z.enum(["venta", "renta"]), precio: price,
   zona: short, direccionAproximada: short, descripcion: z.array(text).max(100), ficha, informacionPublica: informacionPublica.optional(), amenidades: z.array(short).max(100), galeria: z.array(image).max(100), videoUrl: optionalUrl, tour360Url: optionalUrl,
   documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["disponible", "apartada", "vendida", "rentada"]), publicadaEl: date,
   demo: z.boolean(), publicada: z.boolean().default(false),
@@ -106,7 +106,8 @@ const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? v
 const publicWhatsapp = z.string().transform((value) => isPublicUrl(value) || /^[+]?[0-9 ()-]{7,40}$/.test(value) ? value : "");
 const publicSettings = settingsSchema.strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
 // This second allowlist also protects server components against malformed DB data.
-const publicProperty = propertySchema.strip().extend({ ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()) });
+const publicProperty = propertySchema.strip().extend({
+  codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()) });
 export function projectPublic(collection: string, values: unknown[]): Record<string, unknown>[] {
   const schema = collection === "propiedades" ? publicProperty : collection === "asesores" ? adviserSchema.pick({ id: true, nombre: true, cargo: true, iniciales: true, activo: true }).strip()
     : collection === "contenido" ? contentSchema.strip() : collection === "config" ? publicSettings : collection === "posts" ? postSchema.strip() : null;

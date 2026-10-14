@@ -13,7 +13,7 @@ const data = z.record(z.string().max(120), z.union([
   .refine((value) => new TextEncoder().encode(JSON.stringify(value)).byteLength <= 250000, "Documento demasiado grande");
 
 export const expedienteCreate = z.object({
-  clienteId: id, asesorId: id, folio, operacion: operation,
+  clienteId: id, asesorId: id, folio: folio.optional(), operacion: operation,
   propiedadSlug: id.optional(), unidad: z.string().max(160).default(""),
 }).strict();
 export const expedienteWrite = z.object({

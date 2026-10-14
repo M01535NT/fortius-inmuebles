@@ -156,10 +156,11 @@ export default function ExpedientesPage() {
       if (!cliente?.asesorId) throw new Error("Asigna un asesor responsable al cliente antes de abrir su expediente.");
       const result = await json<{ expediente: Expediente }>("/api/admin/expedientes", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clienteId, asesorId: cliente.asesorId, folio: String(data.get("folio") ?? "").trim(), operacion: String(data.get("operacion") ?? "venta"), propiedadSlug: String(data.get("propiedadSlug") ?? "") || undefined, unidad: String(data.get("unidad") ?? "") }),
+        body: JSON.stringify({ clienteId, asesorId: cliente.asesorId, operacion: String(data.get("operacion") ?? "venta"), propiedadSlug: String(data.get("propiedadSlug") ?? "") || undefined, unidad: String(data.get("unidad") ?? "") }),
       });
       setExpedientes((items) => [result.expediente, ...items]); setSelectedId(result.expediente.id); setDocumento(null);
       setCreateOpen(false);
+      setNotice(`Expediente creado: ${result.expediente.folio}.`);
       formElement.reset();
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
   }
@@ -264,7 +265,7 @@ export default function ExpedientesPage() {
       <summary className="cursor-pointer font-semibold">Nuevo expediente</summary>
       <form hidden={!createOpen} onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
         <label className="text-sm">Cliente<select name="clienteId" required className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
-        <label className="text-sm">Folio<input name="folio" required maxLength={80} className={inputClass} /></label>
+        <div className="text-sm"><label htmlFor="nuevo-expediente-folio">Folio del expediente</label><input id="nuevo-expediente-folio" aria-describedby="nuevo-expediente-folio-ayuda" readOnly value="Se asignará al guardar" className={inputClass + " bg-secondary text-muted-foreground"} /><p id="nuevo-expediente-folio-ayuda" className="mt-1 text-xs text-muted-foreground">Fortius lo asigna automáticamente al crear el expediente.</p></div>
         <label className="text-sm">Operación<select name="operacion" className={selectClass}><option value="venta">Venta</option><option value="renta">Renta</option><option value="administracion">Administración</option><option value="otra">Otra</option></select></label>
         <label className="text-sm">Inmueble<select name="propiedadSlug" className={selectClass}><option value="">Sin vincular</option>{propiedades.map((item) => <option key={item.slug} value={item.slug}>{item.titulo}</option>)}</select></label>
         <label className="text-sm">Unidad, si aplica<input name="unidad" className={inputClass} /></label>
