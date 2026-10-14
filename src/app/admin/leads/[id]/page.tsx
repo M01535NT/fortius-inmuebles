@@ -1,6 +1,7 @@
 "use client";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
+import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
 import { AsyncForm, AsyncButton, AsyncSelect } from "@/components/admin/ui";
@@ -149,6 +150,7 @@ function LeadDetail({ id }: { id: string }) {
         <ArrowLeft className="size-4" strokeWidth={1.5} /> Volver a leads
       </Link>
 
+      <InterviewAccess leadId={id} clienteId={lead.clienteId} intencion={lead.perfil?.operacion} disabled={!!profileDraft || noteDirty || agendaDirty}/>
       <RelatedWork leadId={id}/>
       <PageHeader
         title={lead.nombre}

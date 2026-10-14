@@ -48,7 +48,7 @@ export default function AdminDashboard() {
       <header className="admin-executive-header">
         <div><h1>Resumen ejecutivo</h1><p><time dateTime={hoy}>{hoy.split("-").reverse().join("/")}</time></p></div>
         <div className="admin-executive-metrics">{kpis.map(({ label, value, href }) => <Link key={label} href={href} aria-label={`${String(value).padStart(2,"0")} ${label}`}><small>{label}</small><strong>{String(value).padStart(2, "0")}</strong></Link>)}<Link href="/admin/finanzas"><small>Comisiones previstas</small><span>Pendiente</span></Link></div>
-        <Link href="/admin/expedientes?nuevo=1#nuevo-expediente" className={btnPrimary}><Plus size={18} /> Nueva operación</Link>
+        <Link href="/admin/operaciones/nueva" className={btnPrimary}><Plus size={18} /> Nueva operación</Link>
       </header>
       <InventoryScope count={propiedades.filter(p => p.demo).length} included={includeDemo} onChange={setIncludeDemo}/>
       <TodayWorkspace includeDemo={includeDemo}/>

@@ -24,7 +24,7 @@ beforeAll(async () => {
     grant usage on schema storage to anon,authenticated,service_role; grant all on storage.objects to anon,authenticated,service_role;
     insert into auth.users values ('${admin}'),('${own}'),('${other}');`);
   const dir = new URL("../../supabase/migrations/", import.meta.url);
-  for (const file of (await readdir(dir)).filter(name => name.endsWith(".sql") && !name.endsWith("_guided_operations.sql")).sort()) {
+  for (const file of (await readdir(dir)).filter(name => name.endsWith(".sql") && !name.endsWith("_guided_operations.sql") && !name.endsWith("_operational_interviews.sql")).sort()) {
     await db.exec(await readFile(new URL(file, dir), "utf8"));
   }
   await db.exec(`insert into public.fortius_inmuebles_staff(user_id,role) values ('${admin}','admin'),('${own}','editor'),('${other}','editor');
@@ -40,7 +40,7 @@ beforeAll(async () => {
     ('propiedades','legacy-listed','{"slug":"legacy-listed","codigo":"LEGACY-PUB","tipo":"casa","operacion":"venta","asesorId":"own","publicada":true}'),
     ('propiedades','house-a','{"slug":"house-a","codigo":"HOUSE-A","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}'),
     ('propiedades','house-b','{"slug":"house-b","codigo":"HOUSE-B","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}');`);
-  for(const file of (await readdir(dir)).filter(f=>f.endsWith('_guided_operations.sql')))await db.exec(await readFile(new URL(file,dir),'utf8'));
+  for(const file of (await readdir(dir)).filter(f=>f.endsWith('_guided_operations.sql')||f.endsWith('_operational_interviews.sql')))await db.exec(await readFile(new URL(file,dir),'utf8'));
 });
 afterAll(async () => { await db?.close(); });
 

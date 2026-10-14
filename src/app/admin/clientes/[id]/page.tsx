@@ -27,7 +27,7 @@ function ClienteDetail({ id }: { id: string }) {
   return <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
     <Link href="/admin/clientes" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Volver a clientes</Link>
     <PageHeader title={cliente.nombre} description="Ficha del cliente: contacto, perfil y seguimiento."
-      actions={!editing ? <><Link className={btnPrimary} href={`/admin/expedientes?${new URLSearchParams({nuevo:"1",clienteId:id,ruta:cliente.tipo==="comprador"?"compra":"captacion",...(cliente.propiedadSlug?{inmueble:cliente.propiedadSlug}:{})})}`}>Abrir operación</Link><button type="button" className={btnGhost} onClick={() => setEditing(true)}>Editar cliente</button></> : undefined} />
+      actions={!editing ? <><Link className={btnPrimary} href={`/admin/operaciones/nueva?${new URLSearchParams({clienteId:id,intencion:cliente.tipo==="inversionista"?"invertir":cliente.tipo==="comprador"?"comprar":cliente.tipo==="arrendador"?"arrendar":cliente.tipo==="arrendatario"?"rentar":"vender"})}`}>Abrir operación</Link><button type="button" className={btnGhost} onClick={() => setEditing(true)}>Editar cliente</button></> : undefined} />
     {cliente.leadId ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/40 p-4">
       <p className="text-sm"><Badge tone="green">Convertido desde un lead</Badge>{cliente.convertidoEl ? ` · ${fechaCorta(cliente.convertidoEl)}` : ""}</p>
       <Link href={`/admin/leads/${encodeURIComponent(cliente.leadId)}`} className={btnGhost}>Ver historial y agenda del lead</Link>

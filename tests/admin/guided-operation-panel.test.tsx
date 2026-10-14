@@ -25,7 +25,7 @@ it('a buyer sees profile and capacity instead of seller title and intermediation
  vi.stubGlobal('fetch',async()=>Response.json({expedientes:[]}));
  render(<OperationWorkflowPanel expediente={{...base,flujo:emptyWorkflow('compra')}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
  expect(screen.getByLabelText('Estado de Perfil, necesidades y participantes de la compra')).toBeTruthy();
- expect(screen.getByLabelText('Estado de Presupuesto, recursos y crédito comprobados')).toBeTruthy();
+ expect(screen.queryByLabelText('Estado de Presupuesto, recursos y crédito comprobados')).toBeNull();
  expect(screen.queryByLabelText('Estado de Identidad, representación y antecedente de propiedad')).toBeNull();
 });
 

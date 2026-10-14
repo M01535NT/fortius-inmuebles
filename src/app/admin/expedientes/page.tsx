@@ -1,6 +1,8 @@
 "use client";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
+import Link from "next/link";
+import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { Plus, FolderOpen } from "lucide-react";
 import { emptyWorkflow, WORKFLOW_ROUTES, stageLabel, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { OperationBrief } from "@/components/admin/workspace/operation-brief";
@@ -274,7 +276,7 @@ export default function ExpedientesPage() {
   const budgetTotals = definition?.id === "19" && missing.length === 0 ? calcularPresupuesto(values) : null;
   const netTotals = definition?.id === "08" && missing.length === 0 ? calcularNeto({ ...values, folio: selected?.folio }) : null;
   return <div className="admin-operations-page min-w-0 space-y-5">
-    <PageHeader title="Expedientes y formatos" description="Documentos, pendientes y siguientes pasos de cada operación." actions={!showDeleted&&<button type="button" className={btnPrimary} aria-expanded={createOpen} aria-controls="nuevo-expediente" disabled={busy||pdfBusy} onClick={()=>setCreateOpen(!createOpen)}><Plus size={18}/>{createOpen?"Cerrar captura":"Nueva operación"}</button>}/>
+    <PageHeader title="Expedientes y formatos" description="Documentos, pendientes y siguientes pasos de cada operación." actions={!showDeleted&&<><Link href="/admin/operaciones/nueva" className={btnPrimary}><Plus size={18}/>Nueva operación</Link><button type="button" className={btnGhost} aria-expanded={createOpen} aria-controls="nuevo-expediente" disabled={busy||pdfBusy} onClick={()=>setCreateOpen(!createOpen)}>{createOpen?"Cerrar alta directa":"Alta directa de expediente"}</button></>}/>
     <details className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground"><summary className="cursor-pointer font-semibold">Formatos y requisitos de emisión</summary><p className="mt-3">{FORMATOS.filter(item => item.readyForEmission && !item.globalRoute).length} formatos admiten emisión por expediente, sujeta a captura y revisión completas.</p><p><a href="/admin/control-comercial" className="text-primary-ink underline">03 · Control comercial global</a>: carteras, historial y PDF desde su propio módulo.</p><p>09 · Intermediación: puedes preparar la captura; su PDF requiere registro y cotejo del modelo registrado.</p></details>
     {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="rounded-md border border-border p-3 text-sm">{notice}</p>}
@@ -320,6 +322,7 @@ export default function ExpedientesPage() {
             <p className="text-sm font-semibold">{selected.flujo?stageLabel(selected.etapa??"captacion",selected.flujo.ruta):EXPEDIENTE_ETAPAS[selected.etapa??"captacion"]} · {selected.fecha_objetivo??"Sin fecha objetivo"}</p>
             <p hidden={!!selected.flujo} className="mt-2 text-sm">Próximo pendiente documental: {Object.entries(EXPEDIENTE_DOCUMENTOS).find(([key])=>!selected.checklist?.[key as keyof typeof EXPEDIENTE_DOCUMENTOS] || selected.checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS]==="pendiente")?.[1]??"Recepción registrada; consulta las revisiones en Actividad."}</p>
           </div>
+          <div className="mb-5" hidden={view!=="all"&&view!=="summary"}><InterviewAccess key={selected.id} expedienteId={selected.id} clienteId={selected.cliente_id} intencion={selected.operacion==="renta"?(clientes.find(c=>c.id===selected.cliente_id)?.tipo==="arrendatario"?"rentar":"arrendar"):selected.flujo?.ruta==="compra"?"comprar":"vender"} disabled={hasUnsavedChanges||operationalDirty||creationDirty||busy}/></div>
           <div className="mb-5" hidden={view==="documents"||view==="tasks"}><ExpedienteOperationPanel key={selected.id} expediente={selected} view={view==="activity"?"activity":view==="summary"?"summary":"all"}
             responsable={asesores.find(item => item.id === selected.asesor_id)?.nombre ?? selected.asesor_id}
             onDirtyChange={setOperationalDirty}
