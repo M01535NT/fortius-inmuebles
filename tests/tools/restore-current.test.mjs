@@ -149,3 +149,16 @@ test('direct database rehearsal rejects app files without their matching claimed
   await assert.rejects(rehearseCurrent(invalid),/app.*(?:provenance|receipt)/i);assert.deepEqual(invalid,original);
  }
 });
+
+test('restores UTC timestamps with microseconds independently of the workstation timezone',async()=>{
+ const db=await createRehearsalDatabase();
+ try { assert.equal((await db.query('show timezone')).rows[0].TimeZone,'UTC'); }
+ finally { await db.close(); }
+ const source=structuredClone(backup);
+ source.tables.fortius_inmuebles_staff[0].created_at='2026-09-03T11:28:21.663459+00:00';
+ const original=structuredClone(source);
+ const result=await rehearseCurrent(source);
+ assert.equal(result.passed,true);
+ assert.equal(result.tables.staff.exactContentAndDates,true);
+ assert.deepEqual(source,original);
+});

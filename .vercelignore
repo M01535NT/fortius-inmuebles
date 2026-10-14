@@ -1,0 +1,17 @@
+# Keep local credentials, backups and verification evidence off the deployment.
+.git
+node_modules
+.next
+.superpowers
+.claude
+.codex
+.agents
+.vercel
+.env*
+supabase/.temp
+tmp
+test-results
+playwright-report
+*.tsbuildinfo
+npm-debug.log*
+financial-source-report.json

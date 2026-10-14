@@ -6,7 +6,8 @@ const quote=value=>'"'+value.replaceAll('"','""')+'"';
 export async function createRehearsalDatabase(){
  const db=new PGlite();
  try{
-  await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
+  // Owner exports use UTC; do not let the workstation timezone rewrite dates.
+  await db.exec(`set time zone 'UTC'; create role anon; create role authenticated; create role service_role bypassrls;
    create schema auth; create table auth.users(id uuid primary key);
    create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
    grant usage on schema auth to anon,authenticated,service_role; grant execute on function auth.uid() to anon,authenticated,service_role;
