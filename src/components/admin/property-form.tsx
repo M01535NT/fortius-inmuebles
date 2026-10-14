@@ -98,7 +98,7 @@ export function PropertyForm({ initial: source }: Props) {
   const formRef = React.useRef<HTMLFormElement>(null);
 
   const [titulo, setTitulo] = React.useState(initial?.titulo ?? "");
-  const [codigo, setCodigo] = React.useState(initial?.codigo ?? "");
+  const codigo = initial?.codigo ?? "";
   const [operacion, setOperacion] = React.useState<Property["operacion"]>(initial?.operacion ?? "venta");
   const [estado, setEstado] = React.useState<Property["estado"]>(
     initial && estadoValido(initial.operacion, initial.estado) ? initial.estado : "disponible",
@@ -114,13 +114,10 @@ export function PropertyForm({ initial: source }: Props) {
   function setDocumentos(value: React.SetStateAction<DocumentoPropiedad[]>) {updateDocumentos(value);setDirty(true);}
   function setPois(value: React.SetStateAction<typeof pois>) {updatePois(value);setDirty(true);}
   const [error, setError] = React.useState<string | null>(null);
-  const codigoDuplicado = codigo.trim() && propiedades.find((p) =>
-    p.slug !== initial?.slug && p.codigo.trim().toUpperCase() === codigo.trim().toUpperCase(),
-  );
   function snapshot(): PropertyDraft { return {version,fields:readDraftFields(formRef.current),titulo,codigo,operacion,estado,galeria,documentos,pois}; }
   function restore(draft:PropertyDraft) {
-    setTitulo(draft.titulo);setCodigo(draft.codigo);setOperacion(draft.operacion);setEstado(draft.estado);setGaleria(draft.galeria);setDocumentos(draft.documentos);setPois(draft.pois);
-    formRef.current?.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>("input,select,textarea").forEach(el=>{const value=draft.fields[el.name||el.id];if(value===undefined || el instanceof HTMLInputElement && el.type==="file")return;if(el instanceof HTMLInputElement && el.type==="checkbox")el.checked=value===true;else el.value=String(value);});
+    setTitulo(draft.titulo);setOperacion(draft.operacion);setEstado(draft.estado);setGaleria(draft.galeria);setDocumentos(draft.documentos);setPois(draft.pois);
+    formRef.current?.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>("input,select,textarea").forEach(el=>{const value=draft.fields[el.name||el.id];if(value===undefined || el instanceof HTMLInputElement && (el.type==="file" || el.readOnly))return;if(el instanceof HTMLInputElement && el.type==="checkbox")el.checked=value===true;else el.value=String(value);});
     setDirty(true);
   }
   function moveImage(index:number,direction:number) { const next=[...galeria];[next[index],next[index+direction]]=[next[index+direction],next[index]];setGaleria(next);setDirty(true); }
@@ -141,13 +138,6 @@ export function PropertyForm({ initial: source }: Props) {
       throw new Error(`Ya existe un inmueble con el slug "${slug}".`);
     }
 
-    const codigoFinal = codigo.trim() || `FORTIUS-${String(
-      Math.max(0, ...propiedades.map((p) => Number(/^FORTIUS-(\d+)$/i.exec(p.codigo.trim())?.[1] ?? 0))) + 1,
-    ).padStart(3, "0")}`;
-    if (propiedades.some((p) => p.slug !== slug && p.codigo.trim().toUpperCase() === codigoFinal.toUpperCase())) {
-      throw new Error(`Ya existe otro inmueble con el código "${codigoFinal}". Asigna uno distinto.`);
-    }
-
     const modalidad = v("modalidad");
     const informacionPublica: NonNullable<Property["informacionPublica"]> = {
       fuenteTerreno: (v("fuenteTerreno") || undefined) as FuenteSuperficie | undefined,
@@ -160,7 +150,7 @@ export function PropertyForm({ initial: source }: Props) {
     const property: Property = {
       ...base,
       slug,
-      codigo: codigoFinal,
+      codigo,
       titulo: titulo.trim(),
       tipo: v("tipo") as TipoPropiedad,
       operacion,
@@ -265,21 +255,14 @@ export function PropertyForm({ initial: source }: Props) {
               />
             </Field>
           ) : null}
-          <Field label="Código interno" htmlFor="pf-codigo">
+          <Field label="Folio del inmueble" htmlFor="pf-codigo" hint={initial ? "Identificador interno del inmueble." : "Fortius lo asigna automáticamente al crear el inmueble."}>
             <input
               id="pf-codigo"
-              name="codigo"
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
-              placeholder="Se asigna automáticamente"
-              className={inputClass}
+              readOnly
+              value={codigo || "Se asignará al guardar"}
+              className={inputClass + " bg-secondary text-muted-foreground"}
             />
           </Field>
-          {codigoDuplicado ? (
-            <p role="alert" className="text-sm text-destructive sm:col-span-2">
-              El código ya corresponde a {codigoDuplicado.titulo}. Asigna uno distinto.
-            </p>
-          ) : null}
           <Field label="Tipo" htmlFor="pf-tipo">
             <select
               id="pf-tipo"

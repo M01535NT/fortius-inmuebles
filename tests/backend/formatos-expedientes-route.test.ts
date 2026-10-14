@@ -54,3 +54,19 @@ it("rechaza límites inválidos y no devuelve éxito ante una página vacía inc
  expect(range).not.toHaveBeenCalled();
  expect((await GET(new Request("https://panel.test/api/admin/expedientes?limit=100"))).status).toBe(409);
 });
+
+for (const legacyFolio of [undefined, 'MANUAL-IGNORAR']) {
+  it(`creates an expediente with a server folio (legacy input: ${legacyFolio ?? 'absent'})`, async () => {
+    const result = { id: 'new-exp', folio: 'EXP-000021', cliente_id: 'c1', asesor_id: 'a1' };
+    const query = { insert: vi.fn(), select: vi.fn(), single: vi.fn().mockResolvedValue({ data: result, error: null }) };
+    query.insert.mockReturnValue(query); query.select.mockReturnValue(query);
+    requireStaff.mockResolvedValue({ client: { from: () => query } });
+    const response = await POST(new Request('https://panel.test/api/admin/expedientes', {
+      method: 'POST', headers: { origin: 'https://panel.test', 'content-type': 'application/json' },
+      body: JSON.stringify({ clienteId: 'c1', asesorId: 'a1', operacion: 'venta', folio: legacyFolio }),
+    }));
+    expect(response.status).toBe(201);
+    expect(query.insert.mock.calls[0][0]).not.toHaveProperty('folio');
+    expect(await response.json()).toEqual({ expediente: result });
+  });
+}

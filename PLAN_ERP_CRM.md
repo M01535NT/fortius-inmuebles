@@ -25,6 +25,23 @@ La primera entrega sigue siendo captación y próxima acción dentro del panel. 
 
 ## Dónde estamos
 
+### Folios y revisión del recorrido — 13/10/2026
+
+**Implementado en esta revisión:** el folio interno del inmueble se asigna en PostgreSQL al crear el inmueble (`FORTIUS-000001` en adelante); el expediente recibe su propio folio (`EXP-000001` en adelante). Se conserva cada identificador anterior y se consideran los números históricos de inmuebles eliminados. Los formularios dejan de pedir un número manual. El folio real del Registro Público se captura desde su documento: no se genera.
+
+**Comprobación local:** 649 pruebas de servidor, 318 del panel y 32 de herramientas de respaldo/restauración aprobadas; lint, tipos y compilación de producción sin fallos. Revisión técnica independiente aprobada. El ensayo simultáneo usa la cola de una conexión PGlite: no acredita dos conexiones PostgreSQL independientes. La publicación requiere aplicar la migración compatible y comprobar la versión servida.
+
+**Diagnóstico del recorrido actual:** las etapas de la barra lateral agrupan expedientes; no validan automáticamente que concluyó el trabajo anterior. El sistema tiene personas, inmuebles, tareas, documentos y formatos para gran parte de la operación, pero el asesor todavía debe coordinarlos. Esta revisión no acredita un proceso completo ni una autorización jurídica para publicar o cerrar.
+
+Mejoras propuestas, pendientes de implementación:
+
+1. Abrir la operación desde el contacto y continuar en una sola pantalla con personas, inmueble, documentos y próxima acción relacionados; abrir desde el contacto el expediente provisional con documentos pendientes. Hoy puede abrirse manualmente: falta esa continuidad contextual.
+2. Separar el recorrido del propietario (captación, revisión, precio, intermediación, comercialización) del comprador (perfil, capacidad de compra, opciones, visitas, oferta) y relacionarlos al negociar un inmueble concreto.
+3. Mostrar requisitos por etapa, quién debe resolverlos y una próxima acción con fecha. Distinguir recibido, revisado, pendiente y observado; permitir pausa, regularización o descarte. No confundir un documento recibido con un dictamen favorable.
+4. Condicionar publicación y avance a los controles del proceso que correspondan, con evidencia y responsable. Antes de cerrar, distinguir firma, condiciones de pago, entrega y seguimiento posterior; no marcar todo como concluido por cambiar una etiqueta.
+
+La reforma debe conservar expedientes y permisos existentes. Las reglas jurídicas, contractuales y fiscales deben especificarse y validarse antes de convertirlas en bloqueos del panel.
+
 ### Reforma operativa del panel — 13/10/2026
 
 Diagnóstico revisado y aprobado para ejecución por Moisés: avisos de seguimiento visibles; indicadores que distingan los inmuebles Demo; mejor organización del expediente y de sus documentos; vínculo directo de tareas al expediente; vistas semanal y de próximos eventos. Esta iteración conserva identidad Fortius, formatos, versiones, permisos y tareas anteriores. No activa contabilidad, mapas, portal externo, integraciones de mensajería ni reglas jurídicas/comerciales nuevas.
