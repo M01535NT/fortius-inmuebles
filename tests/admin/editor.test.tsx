@@ -95,6 +95,7 @@ beforeEach(() => {
   sent = null;
   push.mockClear();
   vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+    if(url.endsWith("/publicacion"))return Response.json({permitida:true,publicacionAnterior:false,faltantes:[]});
     if (init?.method === "PUT") {
       sent = JSON.parse(String(init.body));
       if (fail) return Response.json({ error: "Fallo" }, { status: fail });
@@ -178,7 +179,7 @@ test("staff can save the public source and delivery facts on a property", async 
 test("new real property defaults unpublished and not demo", async () => {
   render(<PropertyForm />);
   expect(screen.getByText("Borrador · no visible en el sitio")).toBeTruthy();
-  expect(screen.getByRole("button",{name:"Guardar y publicar"})).toBeTruthy();
+  expect(screen.queryByRole("button",{name:"Guardar y publicar"})).toBeNull();
   expect(
     (screen.getByLabelText("Dato de demostración (Demo)") as HTMLInputElement)
       .checked,
@@ -203,6 +204,7 @@ test("publication is an explicit action and image order controls choose the cove
  fireEvent.change(screen.getByLabelText("Imagen 2: URL"),{target:{value:"/hero/interior-depa.webp"}});
  fireEvent.change(screen.getByLabelText("Imagen 2: texto alternativo"),{target:{value:"Interior"}});
  fireEvent.click(screen.getByRole("button",{name:"Subir foto 2"}));
+ await waitFor(()=>expect((screen.getByRole("button",{name:"Guardar y publicar"}) as HTMLButtonElement).disabled).toBe(false));
  fireEvent.click(screen.getByRole("button",{name:"Guardar y publicar"}));
  await waitFor(()=>expect(sent?.data.publicada).toBe(true));
  expect((sent?.data.galeria as {src:string}[])[0].src).toBe("/hero/interior-depa.webp");
@@ -236,6 +238,7 @@ test.each([
       }}
     />,
   );
+  await waitFor(()=>expect((screen.getByRole("button",{name:"Guardar y publicar"}) as HTMLButtonElement).disabled).toBe(false));
   fireEvent.click(screen.getByRole("button", { name: "Guardar y publicar" }));
   expect((await screen.findByRole("alert")).textContent).toContain("pública");
   expect(sent).toBeNull();

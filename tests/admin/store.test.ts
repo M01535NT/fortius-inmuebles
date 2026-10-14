@@ -271,3 +271,12 @@ test("public lead capture delivers only through BFF and never writes a local lea
   ).resolves.toBe("lead-server");
   expect(store.db.leads.list()).toEqual([]);
 });
+
+test("an authorization refusal keeps acknowledged data and the precise operational blocker",async()=>{
+ const api=await import("@/lib/admin/store");await api.db.notas.load();fail=403;
+ await expect(api.apiRequest("/api/admin/expedientes/x/operacion","PUT",{})).rejects.toMatchObject({status:403});
+ expect(api.db.notas.list()).toEqual([note]);
+ expect(new api.AdminApiError(409,"Resuelve las observaciones abiertas").message).toContain("Resuelve las observaciones abiertas");
+ fail=401;await expect(api.apiRequest("/api/admin/expedientes")).rejects.toMatchObject({status:401});
+ expect(api.db.notas.list()).toEqual([]);
+});

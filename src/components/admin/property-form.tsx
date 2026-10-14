@@ -1,6 +1,7 @@
 "use client";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import Image from "next/image";
+import { PropertyPublicationGate } from "./property-publication-gate";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -93,6 +94,7 @@ export function PropertyForm({ initial: source }: Props) {
   const asesores = useCollection(db.asesores);
   const propiedades = useCollection(db.propiedades);
   const session = useSession();
+  const [publicationReady,setPublicationReady]=React.useState(false);
   const [dirty,setDirty] = React.useState(false);
   const [conflict,setConflict] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -227,6 +229,7 @@ export function PropertyForm({ initial: source }: Props) {
       className="max-w-[880px] space-y-8 [&_input]:scroll-mt-24 [&_input]:scroll-mb-52 [&_select]:scroll-mt-24 [&_select]:scroll-mb-52 [&_textarea]:scroll-mt-24 [&_textarea]:scroll-mb-52"
     >
       <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={formSections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
+      {initial ? <PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">Primero guarda el inmueble privado. Después vincula su captación y completa la autorización para publicarlo.</p>}
       {/* Básicos */}
       <FormSection id="pf-basicos" aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-basicos-heading" className="display-soft text-lg text-foreground">Datos básicos</h2>
@@ -901,7 +904,7 @@ export function PropertyForm({ initial: source }: Props) {
             <button type="submit" className={btnPrimary + " flex-1 sm:flex-none"}>
               {initial ? "Guardar cambios" : "Crear inmueble"}
             </button>
-            <button type="submit" data-action={initial?.publicada?"unpublish":"publish"} className={btnGhost+" flex-1 sm:flex-none"}>{initial?.publicada?"Retirar del sitio":"Guardar y publicar"}</button>
+            {initial && <button type="submit" disabled={!initial.publicada && !publicationReady} data-action={initial.publicada?"unpublish":"publish"} className={btnGhost+" flex-1 sm:flex-none"}>{initial.publicada?"Retirar del sitio":"Guardar y publicar"}</button>}
             <button
               type="button"
               onClick={async () => {if(!dirty || await confirmAction("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin/propiedades");}}

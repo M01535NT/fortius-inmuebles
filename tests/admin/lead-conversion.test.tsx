@@ -56,19 +56,19 @@ test("un botón en la lista convierte con la revisión y abre Clientes; el lead 
 test("si falla la conversión conserva el lead y permite reintentar sin navegación ni cliente falso", async () => {
   fail = true;
   await detail("lead");
-  fireEvent.click(await screen.findByRole("button", { name: "Convertir en cliente" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Convertir y abrir operación" }));
   expect((await screen.findByRole("alert")).textContent).toContain("Servicio temporalmente");
   expect(db.clientes.list()).toEqual([]);
   expect(db.leads.list()[0]).toEqual(original);
   expect(push).not.toHaveBeenCalled();
   fail = false;
-  fireEvent.click(screen.getByRole("button", { name: "Convertir en cliente" }));
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/clientes/c1"));
+  fireEvent.click(screen.getByRole("button", { name: "Convertir y abrir operación" }));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/expedientes?nuevo=1&clienteId=c1&ruta=compra"));
 });
 
 test("protege la ficha y notas sin guardar antes de convertir", async () => {
   await detail("lead");
-  const button = await screen.findByRole("button", { name: "Convertir en cliente" });
+  const button = await screen.findByRole("button", { name: "Convertir y abrir operación" });
   fireEvent.click(screen.getByRole("button", { name: "Editar ficha" }));
   fireEvent.change(screen.getByLabelText("Nombre", { exact: true }), { target: { value: "Nombre sin guardar" } });
   expect(button.hasAttribute("disabled")).toBe(true);
@@ -128,4 +128,15 @@ test("el panel deja de contar y ofrecer como nuevo un lead convertido", async ()
   render(<Dashboard />);
   expect(screen.getByRole("link", { name: /Prospectos nuevos/ }).textContent).toContain("00");
   expect(screen.queryByRole("link", { name: new RegExp(original.nombre) })).toBeNull();
+});
+
+test.each(["Nueva nota", "Título"])("un prospecto convertido protege %s antes de abrir su operación", async (label) => {
+  currentLead={...original,clienteId:"c1"};currentClient=cliente;
+  await detail("lead");
+  expect((await screen.findByRole("link",{name:"Abrir operación"})).getAttribute("href")).toContain("clienteId=c1");
+  fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});
+  const button=screen.getByRole("button",{name:"Abrir operación"}) as HTMLButtonElement;
+  expect(button.disabled).toBe(true);fireEvent.click(button);
+  expect(push).not.toHaveBeenCalled();expect(posts).toEqual([]);expect(writes).toEqual([]);
+  expect((screen.getByLabelText(label,{exact:true}) as HTMLInputElement).value).toBe("Captura pendiente");
 });

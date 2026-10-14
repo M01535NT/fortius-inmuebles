@@ -35,7 +35,7 @@ test("Captación filtra todas las páginas autorizadas y abre expedientes reales
 });
 test("Preparación usa documentación y Postventa conserva cerrado con accesos de seguimiento", async () => {
   const view = render(<ProcessStageWorkspace stage="preparacion" />); expect(await screen.findByRole("link", { name: /DOC-1/ })).toBeTruthy(); expect(screen.queryByText("CAP-1")).toBeNull();
-  view.rerender(<ProcessStageWorkspace stage="postventa" />); expect(await screen.findByRole("link", { name: /CERRADO-1/ })).toBeTruthy(); expect(screen.getByText(/Postventa no es una etapa registrada/)).toBeTruthy();
+  view.rerender(<ProcessStageWorkspace stage="postventa" />); expect(await screen.findByRole("link", { name: /CERRADO-1/ })).toBeTruthy(); expect(screen.getByText(/Esta vista reúne entrega, postventa y expedientes cerrados/)).toBeTruthy();
   expect(screen.getByRole("link", { name: "Abrir agenda" }).getAttribute("href")).toBe("/admin/calendario"); expect(screen.getByRole("link", { name: "Ver tareas" }).getAttribute("href")).toBe("/admin/tareas");
 });
 test("fallo de API se distingue de lista vacía y permite reintentar", async () => {

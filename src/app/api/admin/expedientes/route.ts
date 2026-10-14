@@ -13,7 +13,7 @@ export async function GET(request?: Request) {
     let offset = z.coerce.number().int().min(0).max(100000).parse(params.get("offset") ?? 0);
     const records: Record<string, unknown>[] = [];
     for (;;) {
-      let query = client.from("fortius_inmuebles_expedientes").select("id,cliente_id,asesor_id,propiedad_slug,folio,operacion,unidad,etapa,fecha_objetivo,checklist,version,deleted_at,created_at,updated_at", { count: "exact" });
+      let query = client.from("fortius_inmuebles_expedientes").select("id,cliente_id,asesor_id,propiedad_slug,folio,operacion,unidad,etapa,fecha_objetivo,checklist,flujo,version,deleted_at,created_at,updated_at", { count: "exact" });
       query = state === "eliminados" ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
       const { data, error, count } = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + limit - 1);
       if (error) databaseError(error);
@@ -38,8 +38,8 @@ export async function POST(request: Request) {
     const input = expedienteCreate.parse(await readJson(request));
     const { data, error } = await client.from("fortius_inmuebles_expedientes").insert({
       cliente_id: input.clienteId, asesor_id: input.asesorId, propiedad_slug: input.propiedadSlug ?? null,
-      operacion: input.operacion, unidad: input.unidad,
-    }).select("id,cliente_id,asesor_id,propiedad_slug,folio,operacion,unidad,etapa,fecha_objetivo,checklist,version,created_at,updated_at").single();
+      operacion: input.operacion, unidad: input.unidad, ...(input.flujo ? {flujo: input.flujo} : {}),
+    }).select("id,cliente_id,asesor_id,propiedad_slug,folio,operacion,unidad,etapa,fecha_objetivo,checklist,flujo,version,created_at,updated_at").single();
     if (error) databaseError(error);
     return { expediente: data };
   }, 201);

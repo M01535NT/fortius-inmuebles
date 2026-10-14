@@ -15,7 +15,7 @@ export class AdminApiError extends Error {
   ) {
     super(
       status === 409
-        ? "Conflicto: el registro cambió o tiene vínculos que impiden la operación. Conserva tu borrador y vuelve a cargar antes de reintentar."
+        ? `${message || "El registro cambió o tiene vínculos que impiden la operación."} Conserva tu borrador antes de reintentar.`
         : message,
     );
   }
@@ -68,7 +68,7 @@ export async function apiRequest<T>(
   if (!response.ok) {
     if (
       epoch === sessionEpoch &&
-      (response.status === 401 || response.status === 403) &&
+      response.status === 401 &&
       url.startsWith("/api/admin/")
     )
       setSession(null);

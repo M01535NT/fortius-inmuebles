@@ -126,3 +126,22 @@ it("no elimina si hay cambios sin guardar y conserva el expediente ante un fallo
   await waitFor(()=>expect(screen.getByRole("alert").textContent).toMatch(/recarga/));
   expect(screen.getByRole("button",{name:/EXP-A/})).toBeTruthy();
 });
+
+it('protects unsaved operation capture when leaving through a navigation link',async()=>{
+ fixture();render(<ExpedientesPage/>);fireEvent.click(await screen.findByRole('button',{name:/EXP-A/}));
+ const note=await screen.findByLabelText('Nueva nota');fireEvent.change(note,{target:{value:'Captura pendiente que no debe perderse'}});
+ vi.mocked(confirmAction).mockResolvedValueOnce(false);fireEvent.click(screen.getByRole('link',{name:'Programar evento'}));
+ await waitFor(()=>expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining('Descartar los cambios y salir')));
+ expect((note as HTMLTextAreaElement).value).toBe('Captura pendiente que no debe perderse');
+});
+
+it('protects a new operation draft and allows explicit discard',async()=>{
+ fixture();render(<ExpedientesPage/>);fireEvent.click(screen.getByRole('button',{name:'Nueva operación'}));
+ const field=screen.getByLabelText('Unidad, si aplica');fireEvent.change(field,{target:{value:'Unidad pendiente'}});
+ vi.mocked(confirmAction).mockResolvedValueOnce(false);fireEvent.click(screen.getByRole('link',{name:/Control comercial/}));
+ await waitFor(()=>expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining('Descartar los cambios y salir')));
+ expect((field as HTMLInputElement).value).toBe('Unidad pendiente');
+ vi.mocked(confirmAction).mockResolvedValueOnce(true);fireEvent.click(screen.getByRole('button',{name:'Descartar nueva operación'}));
+ await waitFor(()=>expect((field as HTMLInputElement).value).toBe(''));
+ expect(screen.queryByRole('button',{name:'Descartar nueva operación'})).toBeNull();
+});
