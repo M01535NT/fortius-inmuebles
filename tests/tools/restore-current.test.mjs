@@ -43,7 +43,7 @@ before(async()=>{
    insert into public.fortius_inmuebles_signature_events(hash,job_id,event_type,event_at,processed_at) values
    (repeat('1',64),'52000000-0000-4000-8000-000000000006','submission.completed',now(),now());`);
   const interview=(await db.query("select public.fortius_inmuebles_start_intake($1,'vender',$2::jsonb,$3) r",['54000000-0000-4000-8000-000000000010',JSON.stringify({tipo:'cliente',id:'c'}),expedienteId])).rows[0].r;
-  await db.query("select public.fortius_inmuebles_save_intake($1,1,$2::jsonb,true)",[interview.id,JSON.stringify({fecha:'2026-10-13',objetivo:'Objetivo de prueba',plazo:'Tres meses',zona:'Tijuana',tipoInmueble:'casa',relacion:'propietario',ocupacion:'por_aclarar',documentos:'Por aclarar',alertas:'por_aclarar',presupuestoEstado:'por_definir',privacidad:'presentado',siguienteAccion:'Revisar documentos',siguienteFecha:'2030-10-20'})]);
+  await db.query("select public.fortius_inmuebles_save_intake($1,1,$2::jsonb,true)",[interview.id,JSON.stringify({fecha:'2026-10-13',objetivo:'Objetivo de prueba',plazo:'Tres meses',zona:'Tijuana',tipoInmueble:'casa',relacion:'propietario',ocupacion:'por_aclarar',documentos:'Por aclarar',alertas:'por_aclarar',estadoCivil:'soltero',presupuestoEstado:'por_definir',privacidad:'presentado',siguienteAccion:'Revisar documentos',siguienteFecha:'2030-10-20'})]);
   // Model the reference synchronization performed by real record writes.
   await db.exec("select public.fortius_inmuebles_sync_references(collection,id,data) from public.fortius_inmuebles_records");
   const sql=await readFile(new URL('../../tools/fortius-inmuebles-owner-export.sql',import.meta.url),'utf8');
@@ -55,7 +55,7 @@ test('restores the current schema with history, activity and document snapshots;
   const source=structuredClone(backup);
   const result=await rehearseCurrent(backup);
   assert.equal(result.passed,true);assert.equal(Object.keys(result.tables).length,27);
-  assert.equal(result.tables.formato_drafts.rows,1);assert.equal(result.tables.formato_emissions.rows,1);assert.equal(result.tables.expediente_actividad.rows,3);assert.equal(result.tables.interviews.rows,1);assert.ok(result.tables.record_history.rows>0);
+  assert.equal(result.tables.formato_drafts.rows,1);assert.equal(result.tables.formato_emissions.rows,1);assert.equal(result.tables.expediente_actividad.rows,4);assert.equal(result.tables.interviews.rows,1);assert.ok(result.tables.record_history.rows>0);
   const broken=structuredClone(backup);broken.tables.fortius_inmuebles_formato_drafts[0].expediente_id='51000000-0000-4000-8000-000000000099';
   await assert.rejects(rehearseCurrent(broken),/foreign key/i);
   const missingAdvisor=structuredClone(backup);
