@@ -5,8 +5,29 @@ export class ApiError extends Error {
   constructor(public readonly status: number, message: string) { super(message); }
 }
 
+// Next.js rewrites 127.0.0.1 (and the rest of 127.0.0.0/8) to localhost on request.url.
+// The browser Origin header keeps the address that was opened, so a literal comparison
+// rejects the local panel at http://127.0.0.1:3001.
+function isLoopbackHostname(hostname: string): boolean {
+  if (hostname === "localhost" || hostname === "::1" || hostname === "[::1]") return true;
+  const parts = hostname.split(".");
+  return parts.length === 4 && parts[0] === "127" && parts.every((part) => /^\d{1,3}$/.test(part) && Number(part) <= 255);
+}
+
+function comparableOrigin(value: string): string | null {
+  try {
+    const url = new URL(value);
+    const hostname = isLoopbackHostname(url.hostname) ? "localhost" : url.hostname;
+    return `${url.protocol}//${hostname}${url.port ? `:${url.port}` : ""}`;
+  } catch {
+    return null;
+  }
+}
+
 export function assertSameOrigin(request: Request): void {
-  if (request.headers.get("origin") !== new URL(request.url).origin) {
+  const presented = request.headers.get("origin");
+  const received = comparableOrigin(request.url);
+  if (!presented || !received || comparableOrigin(presented) !== received) {
     throw new ApiError(403, "Origen de solicitud no permitido");
   }
 }

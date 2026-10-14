@@ -87,6 +87,13 @@ describe("BFF validation and authorization behavior", () => {
     await expect(readJson(new Request("http://localhost/api", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ a: "x".repeat(100) }) }), 50)).rejects.toMatchObject({ status: 413 });
     expect(() => assertSameOrigin(new Request("https://mnt.test/api", { headers: { origin: "https://attacker.test" } }))).toThrow(expect.objectContaining({ status: 403 }));
     expect(() => assertSameOrigin(new Request("https://mnt.test/api", { headers: { origin: "https://mnt.test" } }))).not.toThrow();
+    expect(() => assertSameOrigin(new Request("http://localhost:3001/api/auth/login", { headers: { origin: "http://127.0.0.1:3001" } }))).not.toThrow();
+    expect(() => assertSameOrigin(new Request("http://127.0.0.1:3001/api/auth/login", { headers: { origin: "http://localhost:3001" } }))).not.toThrow();
+    expect(() => assertSameOrigin(new Request("http://localhost:3001/api/auth/login", { headers: { origin: "http://[::1]:3001" } }))).not.toThrow();
+    expect(() => assertSameOrigin(new Request("http://localhost:3001/api/auth/login", { headers: { origin: "http://127.0.0.1:3002" } }))).toThrow(expect.objectContaining({ status: 403 }));
+    expect(() => assertSameOrigin(new Request("https://localhost:3001/api/auth/login", { headers: { origin: "http://127.0.0.1:3001" } }))).toThrow(expect.objectContaining({ status: 403 }));
+    expect(() => assertSameOrigin(new Request("https://fortiusinmuebles.com/api/auth/login", { headers: { origin: "http://127.0.0.1:3001" } }))).toThrow(expect.objectContaining({ status: 403 }));
+    expect(() => assertSameOrigin(new Request("https://mnt.test/api"))).toThrow(expect.objectContaining({ status: 403 }));
   });
   it("returns noncacheable errors without leaking infrastructure details", async () => {
     const failure = await apiResponse(async () => { throw new Error("database password secret"); });
