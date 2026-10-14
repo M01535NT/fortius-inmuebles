@@ -1,17 +1,53 @@
 import { confirmAction } from "@/components/admin/workspace/confirm";
 vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
 import { afterEach, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+const collections = vi.hoisted(() => ({ clientes: [] as Record<string, unknown>[] }));
 vi.mock("@/lib/admin/store", async importOriginal => ({
   ...await importOriginal<typeof import("@/lib/admin/store")>(),
-  db: { clientes: {}, propiedades: {} }, useCollection: () => [],
+  db: { clientes: "clientes", propiedades: "propiedades" }, useCollection: (collection: string) => collection === "clientes" ? collections.clientes : [],
 }));
 import ExpedientesPage from "@/app/admin/expedientes/page";
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.history.replaceState(null, "", "/"); });
+afterEach(() => { cleanup(); collections.clientes = []; vi.unstubAllGlobals(); window.history.replaceState(null, "", "/"); });
 const exp = { id: "exp-a", cliente_id: "c-own", asesor_id: "own", propiedad_slug: null, folio: "EXP-A", operacion: "venta", unidad: "", version: 1 };
 const a = { id: "doc-a", expediente_id: exp.id, formato_id: "18", data: { pagador: "Cliente A" }, version: 1, updated_at: "2026-10-04" };
 const b = { ...a, id: "doc-b", formato_id: "02", data: { nombre: "Cliente B" } };
+it("agrupa por tipo de cliente, busca sin acentos y conserva expedientes sin cliente disponible", async () => {
+  collections.clientes = [
+    { id: "buyer", nombre: "Ana Martínez", tipo: "comprador", zona: "Zona Río" },
+    { id: "seller", nombre: "Juan Ibarra", tipo: "propietario" },
+    { id: "tenant", nombre: "María López", tipo: "arrendatario" },
+    { id: "investor", nombre: "Ángel Inversor", tipo: "inversionista" },
+  ];
+  vi.stubGlobal("fetch", async (url: string) => Response.json(url.endsWith("/formatos") ? { documentos: [] } : {
+    expedientes: [
+      { ...exp, cliente_id: "buyer", folio: "EXP-COMPRA" },
+      { ...exp, id: "seller-exp", cliente_id: "seller", folio: "EXP-VENTA" },
+      { ...exp, id: "tenant-exp", cliente_id: "tenant", folio: "EXP-RENTA" },
+      { ...exp, id: "investor-exp", cliente_id: "investor", folio: "EXP-INV" },
+      { ...exp, id: "unknown-exp", cliente_id: "missing", folio: "EXP-OTRO" },
+    ],
+  }));
+  render(<ExpedientesPage />);
+  const panel = screen.getByRole("complementary", { name: "Clientes y operaciones" });
+  expect(await within(panel).findByRole("button", { name: /Ana Martínez.*EXP-COMPRA/ })).toBeTruthy();
+  expect(within(panel).getByText("Compradores")).toBeTruthy();
+  expect(within(panel).getByText("Vendedores")).toBeTruthy();
+  expect(within(panel).getByText("Arrendatarios")).toBeTruthy();
+  expect(within(panel).getByText("Inversionistas")).toBeTruthy();
+  expect(within(panel).getByRole("button", { name: /Ángel Inversor.*EXP-INV/ })).toBeTruthy();
+  expect(within(panel).getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
+  expect(within(panel).getByRole("button", { name: /Cliente sin nombre.*EXP-OTRO/ })).toBeTruthy();
+  fireEvent.change(within(panel).getByRole("searchbox"), { target: { value: "martinez" } });
+  expect(within(panel).getByRole("button", { name: /Ana Martínez/ })).toBeTruthy();
+  expect(within(panel).queryByRole("button", { name: /Juan Ibarra/ })).toBeNull();
+  fireEvent.change(within(panel).getByRole("searchbox"), { target: { value: "EXP-VENTA" } });
+  fireEvent.click(within(panel).getByRole("button", { name: /Juan Ibarra/ }));
+  expect(within(panel).getByRole("button", { name: /Juan Ibarra/ }).getAttribute("aria-current")).toBe("true");
+  fireEvent.change(within(panel).getByRole("searchbox"), { target: { value: "inexistente" } });
+  expect(within(panel).getByText(/No hay coincidencias/)).toBeTruthy();
+});
 function fixture(put?: (init: RequestInit) => Promise<Response>, open?: (id: string) => Promise<Response>) {
   vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
     if (url === "/api/admin/expedientes") return Response.json({ expedientes: [exp, { ...exp, id: "exp-b", folio: "EXP-B" }] });

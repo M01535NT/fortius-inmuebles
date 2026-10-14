@@ -1,12 +1,22 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 13 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** Codex. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 14 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** Codex. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
 ## Regla de actualización en cada publicación
 
 Por instrucción de Moisés del 13/10/2026, este plan debe actualizarse con cada entrega a GitHub y cada despliegue. Registrar fecha local, alcance real, PR, commit funcional, migraciones aplicadas, comprobaciones y límites, enlace y estado del despliegue. Distinguir preparación, publicación comprobada y pendientes; no marcar publicado por haber hecho push. Los commits que solo actualizan este registro no requieren reconstruir un producto cuyo código permanece idéntico. Actualizar también las tareas realizadas y pendientes del mismo plan.
+
+### Consolidación de main y publicación — 14/10/2026
+
+**Alcance:** concentrar en main el trabajo vigente y publicar el proyecto actualizado. La portada panorámica y su revelado al desplazarse, Apps, folios, flujo guiado, entrevistas y aviso de privacidad ya tienen su versión vigente en main; las ramas históricas no se reaplican sobre el producto actual.
+
+- Integrar la lista de clientes y operaciones que permanecía en la carpeta local: grupos de compradores, vendedores, arrendadores, arrendatarios, inversionistas y otros; búsqueda de nombre/folio sin acentos, selección y acceso a eliminados.
+- Mantener entrevistas, requisitos por etapa, protección de cambios sin guardar, versiones, folios automáticos y el botón de alta directa. Nueva operación conduce al asistente de cinco perfiles; no vuelve al formulario anterior ni solicita folio manual.
+- No requiere migraciones ni activar proveedores. Conservar respaldo verificable de la captura local antes de actualizar la carpeta canónica a main.
+
+**Estado:** preparada la integración en `codex/integracion-pendientes`. Verificación local: lint, tipos, 687 pruebas backend, 333 del panel y compilación aprobados; tres pruebas de navegador a 390/768/1440px, con búsqueda, selección, teclado, eliminados y navegación al asistente. Estas tres regresiones se incorporan a Verify para las próximas entregas. Registrar la comprobación del despliegue real al concluir.
 
 ### Captación y entrevista preparada — implementación 13/10/2026
 
