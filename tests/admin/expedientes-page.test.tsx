@@ -60,12 +60,13 @@ function fixture(put?: (init: RequestInit) => Promise<Response>, open?: (id: str
 async function openA() {
   render(<ExpedientesPage />);
   fireEvent.click(await screen.findByRole("button", { name: /EXP-A/ }));
+  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
   fireEvent.click(await screen.findByRole("button", { name: /^18 ·/ }));
   return await screen.findByLabelText("Quien paga");
 }
 it("informa las emisiones disponibles y ofrece el control comercial global", async () => {
   fixture(); render(<ExpedientesPage />);
-  expect(screen.getByRole("heading", {name:"Expedientes y formatos"})).toBeTruthy();
+  expect(screen.getByRole("heading", {name:"Operaciones"})).toBeTruthy();
   expect(screen.getByText(/23 formatos.*por expediente/)).toBeTruthy();
   fireEvent.click(screen.getByText("Formatos y requisitos de emisión"));
   expect(screen.getByRole("link", { name: /03.*Control comercial/i }).getAttribute("href")).toBe("/admin/control-comercial");
@@ -114,6 +115,7 @@ it("evita que una apertura lenta se mezcle con otro documento", async () => {
   fixture(undefined, () => new Promise(resolve => { complete = resolve; }));
   render(<ExpedientesPage />);
   fireEvent.click(await screen.findByRole("button", { name: /EXP-A/ }));
+  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
   fireEvent.click(await screen.findByRole("button", { name: /^18 ·/ }));
   expect((screen.getByRole("button", { name: /^02 ·/ }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: /^02 ·/ }));
@@ -172,7 +174,7 @@ it('protects unsaved operation capture when leaving through a navigation link',a
 });
 
 it('protects a new operation draft and allows explicit discard',async()=>{
- fixture();render(<ExpedientesPage/>);fireEvent.click(screen.getByRole('button',{name:'Alta directa de expediente'}));
+ fixture();render(<ExpedientesPage/>);fireEvent.click(screen.getByRole('button',{name:'Alta directa'}));
  const field=screen.getByLabelText('Unidad, si aplica');fireEvent.change(field,{target:{value:'Unidad pendiente'}});
  vi.mocked(confirmAction).mockResolvedValueOnce(false);fireEvent.click(screen.getByRole('link',{name:/Control comercial/}));
  await waitFor(()=>expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining('Descartar los cambios y salir')));

@@ -13,14 +13,20 @@ beforeEach(() => { failed = false; requests.length = 0; localStorage.clear(); cl
 })); });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); clearAdminCache(); localStorage.clear(); });
 function sidebar(role = "admin", userId = "process") { return render(<WorkspaceNavigation modules={SIDEBAR_MODULES} userId={userId} role={role} pathname="/admin/proceso/preparacion" onNavigate={() => {}} />); }
-test("procedimiento aparece en orden aun con preferencias previas y Gestión conserva módulos", () => {
+test("menú diario corto y Más conserva procedimiento y módulos", () => {
   localStorage.setItem("fortius:modules:process", JSON.stringify(["/admin/clientes", "/admin/reportes", "/admin", "/admin/propiedades"])); sidebar();
-  expect(screen.getAllByRole("link").slice(0, 7).map(link => link.getAttribute("href"))).toEqual(["/admin", "/admin/proceso/captacion", "/admin/proceso/preparacion", "/admin/proceso/promocion", "/admin/proceso/negociacion", "/admin/proceso/cierre", "/admin/proceso/postventa"]);
+  expect(screen.getAllByRole("link").slice(0, 4).map(link => link.getAttribute("href"))).toEqual(["/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario"]);
+  const more = screen.getByRole("button", { name: /más/i });
+  if (more.getAttribute("aria-expanded") !== "true") fireEvent.click(more);
+  expect(screen.getAllByRole("link").slice(0, 10).map(link => link.getAttribute("href"))).toEqual([
+    "/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario",
+    "/admin/proceso/captacion", "/admin/proceso/preparacion", "/admin/proceso/promocion",
+    "/admin/proceso/negociacion", "/admin/proceso/cierre", "/admin/proceso/postventa",
+  ]);
   expect(screen.getByRole("link", { name: "Preparación" }).getAttribute("aria-current")).toBe("page");
-  fireEvent.click(screen.getByRole("button", { name: "Gestión" }));
-  for (const name of ["CRM", "Inmuebles", "Clientes", "Operaciones", "Documentos", "Calendario", "Tareas", "Asesores", "Archivos", "Configuración"]) expect(screen.getByRole("link", { name })).toBeTruthy();
+  for (const name of ["CRM", "Inmuebles", "Clientes", "Documentos", "Asesores", "Archivos", "Configuración"]) expect(screen.getByRole("link", { name })).toBeTruthy();
 });
-test("Gestión mantiene restricciones de rol y etapas no se reordenan", () => {
+test("Más mantiene restricciones de rol y etapas no se reordenan", () => {
   sidebar("editor", "process-editor"); fireEvent.click(screen.getByRole("button", { name: "Organizar módulos" }));
   expect(screen.queryByRole("button", { name: "Subir Captación" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Finanzas" })).toBeNull(); expect(screen.queryByRole("link", { name: "Reportes" })).toBeNull();
@@ -31,6 +37,7 @@ test("Captación filtra todas las páginas autorizadas y abre expedientes reales
   const list = await screen.findByRole("list", { name: "Expedientes en Captación" });
   expect(within(list).getAllByRole("link").map(link => link.getAttribute("href"))).toEqual(["/admin/expedientes?expediente=c1", "/admin/expedientes?expediente=c2"]);
   expect(screen.queryByText("DOC-1")).toBeNull(); expect(screen.queryByText("ELIMINADO")).toBeNull(); expect(screen.queryByText("SIN-ETAPA")).toBeNull();
+  expect(screen.getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
   expect(requests).toHaveLength(2); expect(requests.every(request => !request.method || request.method === "GET")).toBe(true);
 });
 test("Preparación usa documentación y Postventa conserva cerrado con accesos de seguimiento", async () => {

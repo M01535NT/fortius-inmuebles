@@ -147,7 +147,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
-  fireEvent.click(within(nav).getByRole("button", { name: "Gestión" }));
+  fireEvent.click(within(nav).getByRole("button", { name: "Más" }));
   expect(
     Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href")),
   ).toContain("/admin/clientes");

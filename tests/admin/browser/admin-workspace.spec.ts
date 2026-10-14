@@ -87,7 +87,7 @@ test("apps fit small phones and tablets and release the mobile menu", async ({ p
   for (const width of [320, 375, 768]) {
     await page.setViewportSize({ width, height: 812 });
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { name: "Resumen ejecutivo" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "¿Qué vas a hacer hoy?" })).toBeVisible();
     await fits(page);
     if (width < 768) await page.getByRole("button", { name: "Menú del panel" }).click();
     await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
@@ -111,7 +111,7 @@ test("apps fit small phones and tablets and release the mobile menu", async ({ p
   }
 });
 
-test("editor has all twenty tools while Gestión excludes admin-only modules", async ({ page }) => {
+test("editor has all twenty tools while Más excludes admin-only modules", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { id: "editor-apps-test", email: "editor@example.invalid", role: "editor" } } }));
   await page.goto("/admin");
@@ -127,17 +127,19 @@ test("editor has all twenty tools while Gestión excludes admin-only modules", a
   await expect(apps.getByRole("status")).toContainText("No hay aplicaciones");
   await apps.getByRole("button", { name: "Cerrar aplicaciones" }).click();
   const sidebar = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  await sidebar.getByRole("button", { name: "Gestión", exact: true }).click();
+  await expect(sidebar.getByRole("link", { name: "Hoy", exact: true })).toBeVisible();
+  await expect(sidebar.getByRole("link", { name: "Agenda", exact: true })).toBeVisible();
+  await sidebar.getByRole("button", { name: "Más", exact: true }).click();
   for (const name of ["Finanzas", "Portal de clientes", "Control comercial", "Reportes", "Historial"])
     await expect(sidebar.getByRole("link", { name, exact: true })).toHaveCount(0);
-  for (const name of ["Inmuebles", "CRM", "Clientes", "Tareas", "Calendario"])
+  for (const name of ["Inmuebles", "CRM", "Clientes"])
     await expect(sidebar.getByRole("link", { name, exact: true })).toBeVisible();
 });
 test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const sidebar = page.locator("#admin-desktop-sidebar");
-  await sidebar.getByRole("button", { name: "Gestión", exact: true }).click();
+  await sidebar.getByRole("button", { name: "Más", exact: true }).click();
   await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
   const resize = page.getByRole("separator", { name: "Ancho de la barra lateral" });
   await expect(resize).toHaveAttribute("aria-valuenow", "232");
@@ -157,7 +159,7 @@ test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
   await page.reload();
   await expect(sidebar).toHaveAttribute("data-collapsed", "true");
   await page.getByRole("button", { name: "Expandir barra lateral" }).click();
-  await sidebar.getByRole("button", { name: "Gestión", exact: true }).click();
+  await sidebar.getByRole("button", { name: "Más", exact: true }).click();
   await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
   await expect(resize).toHaveAttribute("aria-valuenow", "288");
   await resize.focus();
@@ -264,52 +266,59 @@ for (const width of [320, 390, 1440]) {
     await expect(dialog).not.toBeVisible();
   });
 }
-async function expectFixedProcedure(navigation: Locator) {
-  const names = ["Resumen", "Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"];
+async function expectFixedDaily(navigation: Locator) {
+  const names = ["Resumen", "Hoy", "Operaciones", "Agenda", "Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"];
   for (const [index, name] of names.entries())
     await expect(navigation.getByRole("link").nth(index)).toHaveText(name);
 }
-test("reorders Gestión by drag and touch, persists, restores and keeps procedure fixed", async ({ page }) => {
+/** Con orden personalizado el menú se abre solo y el botón pasa a «Ocultar más». */
+async function ensureMoreExpanded(navigation: Locator) {
+  const toggle = navigation.getByRole("button", { name: /^(Más|Ocultar más)$/ });
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+}
+test("reorders Más by drag and touch, persists, restores and keeps daily/procedure fixed", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/admin");
   const desktop = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  await expectFixedProcedure(desktop);
+  await ensureMoreExpanded(desktop);
+  await expectFixedDaily(desktop);
   await desktop.getByRole("button", { name: "Organizar módulos" }).click();
   await expect(desktop.getByTitle("Arrastrar Resumen")).toHaveCount(0);
   await expect(desktop.getByRole("button", { name: "Subir Captación", exact: true })).toHaveCount(0);
   await expect(desktop.getByRole("button", { name: "Subir CRM", exact: true })).toBeDisabled();
   await desktop.getByTitle("Arrastrar Inmuebles").dragTo(desktop.getByRole("link", { name: "CRM", exact: true }));
-  await expect(desktop.getByRole("link").nth(7)).toHaveText("Inmuebles");
-  await expect(desktop.getByRole("link").nth(8)).toHaveText("CRM");
-  await expectFixedProcedure(desktop);
+  await expect(desktop.getByRole("link").nth(10)).toHaveText("Inmuebles");
+  await expect(desktop.getByRole("link").nth(11)).toHaveText("CRM");
+  await expectFixedDaily(desktop);
   await page.reload();
-  await desktop.getByRole("button", { name: "Gestión", exact: true }).click();
-  await expect(desktop.getByRole("link").nth(7)).toHaveText("Inmuebles");
-  await expectFixedProcedure(desktop);
+  await ensureMoreExpanded(desktop);
+  await expect(desktop.getByRole("link").nth(10)).toHaveText("Inmuebles");
+  await expectFixedDaily(desktop);
   await page.setViewportSize({ width: 390, height: 900 });
   await page.getByRole("button", { name: "Menú del panel" }).click();
   const mobile = page.getByRole("navigation", { name: "Módulos móviles" });
   await mobile.getByRole("button", { name: "Organizar módulos" }).click();
-  await expect(mobile.getByRole("link").nth(7)).toHaveText("Inmuebles");
+  await expect(mobile.getByRole("link").nth(10)).toHaveText("Inmuebles");
   await mobile.getByRole("button", { name: "Subir CRM", exact: true }).click();
-  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
-  await expect(mobile.getByRole("link").nth(8)).toHaveText("Inmuebles");
-  await expectFixedProcedure(mobile);
+  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
+  await expect(mobile.getByRole("link").nth(11)).toHaveText("Inmuebles");
+  await expectFixedDaily(mobile);
   await page.reload();
   await page.getByRole("button", { name: "Menú del panel" }).click();
   await mobile.getByRole("button", { name: "Organizar módulos" }).click();
-  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
+  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
   await mobile.getByRole("button", { name: "Bajar CRM", exact: true }).click();
-  await expect(mobile.getByRole("link").nth(7)).toHaveText("Inmuebles");
+  await expect(mobile.getByRole("link").nth(10)).toHaveText("Inmuebles");
   await mobile.getByRole("button", { name: "Restablecer", exact: true }).click();
-  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
-  await expectFixedProcedure(mobile);
+  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
+  await expectFixedDaily(mobile);
   await expect(mobile.getByRole("status")).toContainText("Orden original restaurado.");
   await page.reload();
   await page.getByRole("button", { name: "Menú del panel" }).click();
-  await mobile.getByRole("button", { name: "Gestión", exact: true }).click();
-  await expect(mobile.getByRole("link").nth(7)).toHaveText("CRM");
-  await expectFixedProcedure(mobile);
+  await ensureMoreExpanded(mobile);
+  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
+  await expectFixedDaily(mobile);
   await fits(page);
 });
 test("inventory saved view, related tasks and global search navigate with context", async ({

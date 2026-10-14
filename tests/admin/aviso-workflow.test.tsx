@@ -65,6 +65,7 @@ it("genera la plantilla actual cuando sólo hay un PDF archivado con el diseño 
   });
   render(<ExpedientesPage />);
   fireEvent.click(await screen.findByRole("button", { name: /EXP-QA/ }));
+  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
   fireEvent.click(await screen.findByRole("button", { name: /^01 ·/ }));
   await screen.findByLabelText("Nombre del titular");
   expect(screen.queryByRole("link", { name: "Descargar PDF del aviso" })).toBeNull();
@@ -88,6 +89,7 @@ it("recupera el cliente y la operación al crear un aviso, sin presumir autoriza
   });
   render(<ExpedientesPage />);
   fireEvent.click(await screen.findByRole("button", { name: /EXP-QA/ }));
+  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
   fireEvent.change(screen.getByRole("combobox", { name: "Formato" }), { target: { value: "01" } });
   fireEvent.click(screen.getByRole("button", { name: "Crear borrador" }));
   await screen.findByLabelText("Nombre del titular");
@@ -121,6 +123,7 @@ async function setup(failure?: "save" | "emit" | "download") {
   });
   render(<ExpedientesPage />);
   fireEvent.click(await screen.findByRole("button", { name: /EXP-QA/ }));
+  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
   fireEvent.click(await screen.findByRole("button", { name: /^01 ·/ }));
   fireEvent.change(await screen.findByLabelText("Nombre del titular"), { target: { value: "Titular actualizado QA" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar y descargar PDF" }));

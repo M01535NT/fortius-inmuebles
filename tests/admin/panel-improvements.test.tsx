@@ -69,7 +69,7 @@ test("an empty operations module offers creation without forcing the form open",
   await screen.findByText("Aún no hay expedientes activos visibles para tu cuenta.");
   expect(screen.queryByRole("button",{name:"Crear expediente"})).toBeNull();
   expect(screen.getByRole("link",{name:"Nueva operación"}).getAttribute("href")).toBe("/admin/operaciones/nueva");
-  fireEvent.click(screen.getByRole("button", {name:"Alta directa de expediente"}));
+  fireEvent.click(screen.getByRole("button", {name:"Alta directa"}));
   expect(screen.getByRole("button",{name:"Crear expediente"})).toBeTruthy();
 });
 

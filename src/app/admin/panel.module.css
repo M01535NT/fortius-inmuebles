@@ -277,6 +277,12 @@
 .panel :global(.admin-profile-trigger) { display: inline-flex; align-items: center; gap: .5rem; font-size: .8125rem; }
 .panel :global(.admin-profile-name), .panel :global(.admin-profile-chevron) { display: none; }
 .panel :global(.admin-alert-link) { display: inline-flex; min-width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; }
+.panel :global(.admin-coach-header) { display: grid; gap: 1.25rem; align-items: start; padding: 1.25rem 0 .25rem; }
+.panel :global(.admin-coach-header) h1 { font-size: clamp(1.75rem, 2.5vw, 2.25rem); line-height: 1.15; }
+.panel :global(.admin-coach-header) > div:first-child > p { margin-top: .75rem; max-width: 42rem; color: var(--muted-foreground); font-size: 1rem; line-height: 1.55; }
+.panel :global(.admin-coach-date) { margin-top: .75rem !important; font-size: .875rem !important; }
+.panel :global(.admin-coach-actions) { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.panel :global(.admin-coach-metrics) { border: 1px solid var(--border); border-radius: .5rem; padding: 1rem 0; background: var(--card); }
 .panel :global(.admin-executive-header) { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; align-items: center; }
 .panel :global(.admin-executive-header) > div:first-child p { margin-top: .5rem; color: var(--muted-foreground); font-size: 1rem; }
 .panel :global(.admin-executive-header) > a { justify-self: start; }
@@ -390,6 +396,8 @@
 @media (max-width: 639px) { .panel :global(.admin-search-trigger) { flex: 0 0 2.75rem; width: 2.75rem; padding: 0; justify-content: center; }.panel :global(.admin-search-trigger) span { display: none; } }
 @media (min-width: 1024px) {
   .panel :global(.admin-profile-name), .panel :global(.admin-profile-chevron) { display: inline; }
+  .panel :global(.admin-coach-header) { grid-template-columns: minmax(0,1fr) auto; align-items: end; }
+  .panel :global(.admin-coach-actions) { justify-content: flex-end; }
   .panel :global(.admin-executive-header) { grid-template-columns: minmax(0,1fr) auto; gap: 1rem; min-height: 4.5rem; }
   .panel :global(.admin-executive-metrics) { grid-column: 1 / -1; grid-row: 2; }
   .panel :global(.admin-executive-metrics) { grid-template-columns: repeat(4,minmax(0,1fr)); }

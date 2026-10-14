@@ -101,13 +101,13 @@ it("chooses a profile before contact capture and prevents double submission", as
     expect(
       (
         screen.getByRole("button", {
-          name: "Guardar contacto y abrir entrevista",
+          name: "Iniciar entrevista",
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false),
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "Guardar contacto y abrir entrevista" }),
+    screen.getByRole("button", { name: "Iniciar entrevista" }),
   );
   fireEvent.click(
     screen.getByRole("button", { name: "Preparando entrevista…" }),

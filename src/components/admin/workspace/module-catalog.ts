@@ -43,8 +43,9 @@ export function permittedModules(modules: AdminModule[], role: string) {
   return modules.filter(module => !module.adminOnly || role === "admin");
 }
 
+/** Etapas del procedimiento: accesibles, pero fuera del menú diario. */
 export const PROCESS_STAGES = [
-  { slug: "captacion", label: "Captación", etapa: "captacion", icon: ContactRound, description: "Revisa los expedientes en captación y da seguimiento a los contactos iniciales.", action: { href: "/admin/leads?nuevo=1", label: "Capturar prospecto" } },
+  { slug: "captacion", label: "Captación", etapa: "captacion", icon: ContactRound, description: "Revisa los expedientes en captación y da seguimiento a los contactos iniciales.", action: { href: "/admin/operaciones/nueva", label: "Nueva operación" } },
   { slug: "preparacion", label: "Preparación", etapa: "documentacion", icon: FolderOpen, description: "Prepara los expedientes que están en documentación: soportes, revisiones y pendientes.", action: { href: "/admin/documentos", label: "Consultar documentos" } },
   { slug: "promocion", label: "Promoción", etapa: "comercializacion", icon: Building2, description: "Consulta las operaciones en comercialización y coordina inventario, publicaciones y visitas.", action: { href: "/admin/propiedades", label: "Abrir inventario" } },
   { slug: "negociacion", label: "Negociación", etapa: "negociacion", icon: BriefcaseBusiness, description: "Da seguimiento a las operaciones en negociación y sus próximos acuerdos.", action: { href: "/admin/tareas", label: "Ver tareas" } },
@@ -52,8 +53,24 @@ export const PROCESS_STAGES = [
   { slug: "postventa", label: "Postventa", etapa: "cerrado", icon: CalendarDays, description: "Seguimiento de expedientes cerrados mediante la agenda y las tareas existentes.", action: { href: "/admin/calendario", label: "Abrir agenda" } },
 ] as const;
 export function getProcessStage(slug: string) { return PROCESS_STAGES.find(stage => stage.slug === slug); }
+
+const PRIMARY_HREFS = new Set(["/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario"]);
+
+/** Menú diario corto; el resto vive bajo «Más». */
 export const SIDEBAR_MODULES: AdminModule[] = [
-  { ...ADMIN_MODULES[0], fixed: true },
-  ...PROCESS_STAGES.map(stage => ({ href: `/admin/proceso/${stage.slug}`, label: stage.label, icon: stage.icon, group: "Procedimiento", primary: true, fixed: true })),
-  ...ADMIN_MODULES.filter(module => module.href !== "/admin").map(module => ({ ...module, group: "Gestión", primary: false })),
+  { href: "/admin", label: "Resumen", icon: LayoutDashboard, group: "Principal", primary: true, fixed: true, tone: "rose" },
+  { href: "/admin/tareas", label: "Hoy", icon: ListTodo, group: "Principal", primary: true, fixed: true, tone: "rose" },
+  { href: "/admin/expedientes", label: "Operaciones", icon: FileText, group: "Principal", primary: true, fixed: true },
+  { href: "/admin/calendario", label: "Agenda", icon: CalendarDays, group: "Principal", primary: true, fixed: true, tone: "rose" },
+  ...PROCESS_STAGES.map(stage => ({
+    href: `/admin/proceso/${stage.slug}`,
+    label: stage.label,
+    icon: stage.icon,
+    group: "Procedimiento",
+    primary: false,
+    fixed: true,
+  })),
+  ...ADMIN_MODULES
+    .filter(module => !PRIMARY_HREFS.has(module.href))
+    .map(module => ({ ...module, group: "Más", primary: false })),
 ];
