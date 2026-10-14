@@ -36,10 +36,13 @@ export function WorkspaceNavigation({
   const [notice, setNotice] = React.useState("");
   const [more, setMore] = React.useState<boolean | null>(null);
 
-  const ids = normalizeOrder(
+  const procedure = allowed.some(module => module.group === "Procedimiento");
+  const fixedIds = allowed.filter(module => module.fixed).map(module => module.href);
+  const normalizedIds = normalizeOrder(
     order,
     allowed.map((m) => m.href),
   );
+  const ids = [...fixedIds, ...normalizedIds.filter(id => !fixedIds.includes(id))];
   function save(next: string[], message: string) {
     setNotice(
       setOrder(next)
@@ -50,7 +53,7 @@ export function WorkspaceNavigation({
   const custom = ids.some((id, i) => id !== allowed[i]?.href);
   const modular = allowed.some(isPrimary);
   const additionalActive = allowed.some(m => !isPrimary(m) && pathname.startsWith(m.href));
-  const expanded = (more ?? (additionalActive || custom)) || editing;
+  const expanded = (more ?? (additionalActive || (!procedure && custom))) || editing;
   const visibleIds = modular && !expanded && !collapsed ? ids.filter(id => isPrimary(allowed.find(m => m.href === id)!)) : ids;
   return (
     <div className="min-w-0">
@@ -62,7 +65,7 @@ export function WorkspaceNavigation({
           const previous = allowed.find((m) => m.href === visibleIds[visibleIndex - 1]);
           return (
             <React.Fragment key={id}>
-              {!collapsed && !custom && !["Principal", "Inicio"].includes(item.group) && previous?.group !== item.group && (
+              {!collapsed && (!custom || procedure) && !["Principal", "Inicio"].includes(item.group) && previous?.group !== item.group && (
                 <p data-separated={!!previous && previous.group !== "Inicio"} className="admin-nav-group px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.group}
                 </p>
@@ -72,11 +75,11 @@ export function WorkspaceNavigation({
                   "rounded-md " + (dragging === id ? "opacity-50" : "")
                 }
                 onDragOver={(event) => {
-                  if (editing && dragging) event.preventDefault();
+                  if (editing && dragging && !item.fixed) event.preventDefault();
                 }}
                 onDrop={(event) => {
                   event.preventDefault();
-                  if (dragging)
+                  if (dragging && !item.fixed)
                     save(
                       moveModule(ids, dragging, id),
                       `${allowed.find((m) => m.href === dragging)?.label} reordenado.`,
@@ -103,7 +106,7 @@ export function WorkspaceNavigation({
                   <Icon className="size-4 shrink-0" strokeWidth={1.5} />
                   <span className={collapsed ? "sr-only" : "break-words"}>{item.label}</span>
                 </Link>
-                {editing && !collapsed && (
+                {editing && !collapsed && !item.fixed && (
                   <div className="flex items-center justify-between gap-1 px-2 pb-2">
                     <span
                       draggable
@@ -121,7 +124,7 @@ export function WorkspaceNavigation({
                     <div className="flex gap-1">
                       <button
                         type="button"
-                        disabled={index === 0}
+                        disabled={index === fixedIds.length}
                         aria-label={`Subir ${item.label}`}
                         className="rounded border border-border p-2 disabled:opacity-25"
                         onClick={() =>
@@ -155,7 +158,7 @@ export function WorkspaceNavigation({
           );
         })}
       </div>
-      {modular && !collapsed && <button type="button" className="admin-more-tools" aria-expanded={expanded} onClick={() => setMore(!expanded)}><MoreHorizontal size={20} aria-hidden="true"/><span>{expanded ? "Menú principal" : "Más herramientas"}</span>{expanded ? <ChevronUp size={16} aria-hidden="true"/> : <ChevronDown size={16} aria-hidden="true"/>}</button>}
+      {modular && !collapsed && <button type="button" className="admin-more-tools" aria-expanded={expanded} onClick={() => setMore(!expanded)}><MoreHorizontal size={20} aria-hidden="true"/><span>{procedure ? expanded ? "Ocultar gestión" : "Gestión" : expanded ? "Menú principal" : "Más herramientas"}</span>{expanded ? <ChevronUp size={16} aria-hidden="true"/> : <ChevronDown size={16} aria-hidden="true"/>}</button>}
       <button
         className={btnGhost + " admin-organize-button mt-4 w-full"}
         aria-expanded={editing}

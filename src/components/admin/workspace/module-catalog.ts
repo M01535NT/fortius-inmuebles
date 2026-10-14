@@ -12,6 +12,7 @@ export type AdminModule = {
   adminOnly?: boolean;
   group: string;
   primary?: boolean;
+  fixed?: boolean;
   tone?: "rose";
 };
 
@@ -42,7 +43,17 @@ export function permittedModules(modules: AdminModule[], role: string) {
   return modules.filter(module => !module.adminOnly || role === "admin");
 }
 
-const sidebarGroups = ["Inicio", "Comercial", "Gestión", "Herramientas", "Equipo y administración", "Publicación"];
-export const SIDEBAR_MODULES = ADMIN_MODULES
-  .filter(module => module.href !== "/admin/configuracion")
-  .sort((a, b) => sidebarGroups.indexOf(a.group) - sidebarGroups.indexOf(b.group));
+export const PROCESS_STAGES = [
+  { slug: "captacion", label: "Captación", etapa: "captacion", icon: ContactRound, description: "Revisa los expedientes en captación y da seguimiento a los contactos iniciales.", action: { href: "/admin/leads?nuevo=1", label: "Capturar prospecto" } },
+  { slug: "preparacion", label: "Preparación", etapa: "documentacion", icon: FolderOpen, description: "Prepara los expedientes que están en documentación: soportes, revisiones y pendientes.", action: { href: "/admin/documentos", label: "Consultar documentos" } },
+  { slug: "promocion", label: "Promoción", etapa: "comercializacion", icon: Building2, description: "Consulta las operaciones en comercialización y coordina inventario, publicaciones y visitas.", action: { href: "/admin/propiedades", label: "Abrir inventario" } },
+  { slug: "negociacion", label: "Negociación", etapa: "negociacion", icon: BriefcaseBusiness, description: "Da seguimiento a las operaciones en negociación y sus próximos acuerdos.", action: { href: "/admin/tareas", label: "Ver tareas" } },
+  { slug: "cierre", label: "Cierre", etapa: "cierre", icon: FileText, description: "Revisa los expedientes en cierre y coordina los documentos, firmas y entregas pendientes.", action: { href: "/admin/calendario", label: "Abrir agenda" } },
+  { slug: "postventa", label: "Postventa", etapa: "cerrado", icon: CalendarDays, description: "Seguimiento de expedientes cerrados mediante la agenda y las tareas existentes.", action: { href: "/admin/calendario", label: "Abrir agenda" } },
+] as const;
+export function getProcessStage(slug: string) { return PROCESS_STAGES.find(stage => stage.slug === slug); }
+export const SIDEBAR_MODULES: AdminModule[] = [
+  { ...ADMIN_MODULES[0], fixed: true },
+  ...PROCESS_STAGES.map(stage => ({ href: `/admin/proceso/${stage.slug}`, label: stage.label, icon: stage.icon, group: "Procedimiento", primary: true, fixed: true })),
+  ...ADMIN_MODULES.filter(module => module.href !== "/admin").map(module => ({ ...module, group: "Gestión", primary: false })),
+];

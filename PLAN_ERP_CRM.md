@@ -723,3 +723,68 @@ La carpeta de trabajo se conserva única por indicación del titular; esta prepa
 **Decisiones de ejecución de esta preparación:** mantener una sola carpeta y trabajar en rama local; conservar código y migraciones históricos que siguen siendo necesarios; guardar evidencia y copias fuera del repositorio. La prueba de escape conservó symlink de archivo en Linux y usa junction de directorio en Windows, comprobando primero que los bytes externos son accesibles y después que el verificador los rechaza. No se omitió ese caso ni se cambió la protección del respaldo. La referencia de API es [Node.js, fsPromises.symlink](https://nodejs.org/docs/latest-v24.x/api/fs.html#fspromisessymlinktarget-path-type).
 
 **Preparación local terminada y comprobada. Siguiente acción:** continuar la fase de captación, empezando por REL-01 y SEG-01, con DEC-02/03/04/05/09 resueltas antes de activar sus políticas. Los pendientes del proveedor siguen abiertos; el ERP completo no se declara terminado por ordenar archivos.
+
+## Implementación aprobada — 20 apps para asesores (13/10/2026)
+
+Objetivo: veinte herramientas funcionales en /admin/apps/[slug], con captura, resultados, guardado privado, reapertura y exportación. Menú superior exclusivo de herramientas; barra lateral para operación. Conservar identidad Fortius, web pública, funciones existentes y permisos. Contexto de inmueble/cliente/expediente validado en servidor; un expediente único. No mover automáticamente etapas por emitir un documento o recibir una firma.
+
+1. Ficha comercial: datos publicables, fotografías, contacto, PDF versionado.
+2. Hipoteca: precio, enganche, tasa, plazo, seguros, comisiones, anticipos, amortización y escenarios; reutilizar motor.
+3. Comparables: inventario, captura e importación CSV, fuente/fecha/moneda/superficie, ajustes y oferta vs cierre.
+4. Ofertas: precio, pagos, plazos, condiciones, neto, comparación y recomendación humana.
+5. Neto: gastos pendientes, crédito, honorarios e impuestos capturados; pagado histórico separado; desconocido no es cero.
+6. Comisiones: base, porcentaje/importe, impuestos, reparto y redondeo comprobados.
+7. Informes propietario: periodo, actividad, visitas, ofertas, próximos pasos, vista previa, PDF.
+8. Plantillas/PDF: formatos actuales y unir/separar/ordenar/rotar PDF conservando originales.
+9. Firmas: DocuSeal API, campos/firmantes, envío explícito, eventos autenticados, estados, firmado/evidencia inmutables; sin constructor incrustado de pago.
+10. Revisor: listas versionadas, faltantes/vencimientos/discrepancias, revisión humana y pendientes.
+11. Fotos: recorte, giro, luz/contraste, compresión/marca, original intacto y copia sin GPS.
+12. QR: ficha pública o documento expresamente compartido, revocable y vencimiento privado 7 días.
+13. Rutas: Google Routes, coordenadas capturadas, hasta10 paradas, horarios fijos conservan orden.
+14. Conversor: m2/ft2/ha, m/ft, MXN/USD, cambio manual con fuente/fecha congelado.
+15. Inversión: flujos fechados proyecto/deuda/capital, ROI denominador explícito, VAN365, TIR no determinada si ambigua, escenarios y PDF/CSV.
+16. Rehabilitación: partidas/unidades/cantidades/precios/impuestos/contingencia/desembolsos; transferencia explícita a inversión.
+17. OCR: Document AI, PDF/JPG/PNG 20MB/100páginas dividido en lotes, original/huella, texto corregible por página.
+18. Versiones: adiciones/eliminaciones/textos lado a lado, OCR identificado, no certificar equivalencia de imágenes/firmas.
+19. Consulta: búsqueda local PostgreSQL filtrada por permisos + OpenAI GPT-5.4-mini, citas archivo/versión/página, abstención e inyección tratada como texto.
+20. Cotizador: servicios/honorarios/gastos/descuentos/impuestos/vigencia, PDF y versiones; sin CFDI o contrato automático.
+
+### Orden de entregas y aceptación
+- [ ] 0. Entorno aislado, costos/cuentas/retención y prueba proveedor firma.
+- [ ] 1. Catálogo, favoritos, contexto, guardado/versiones, permisos, archivos, trabajos y consumo.
+- [ ] 2. Apps1/8/11/12/14/20.
+- [ ] 3. Apps2/5/6/15/16.
+- [ ] 4. Apps3/4/7/13.
+- [ ] 5. Apps17/18/10/19.
+- [ ] 6. Firma9 y QA conjunta/piloto/despliegue.
+
+Modelo AppRun: slug, entradas, resultado, autor, contexto, versión, fechas. Trabajos persistentes con cuotas, reintentos limitados e idempotencia. Autorización al crear/ejecutar/entregar; RLS y control optimista. Privados de autor/admin o permisos del expediente. No copiar secretos reales al entorno aislado.
+
+Presupuesto nuevos servicios:2000MXN/mes global (excluye desarrollo/alojamiento actual). Referencia 40firmas=28USD; 1000consultas de8000tokens entrada/2000salida=15USD; 2000páginasOCR=3USD;200rutas=2USD. Total48USD; supuesto20MXN/USD y16%recargo=1113.60MXN+200infra+400reserva=1713.60MXN. Tarifas referidas13oct2026, confirmar cuenta real antes activar. Reservar costo máximo antes ejecutar, incluir obligaciones firmadas otro mes, avisar80%, bloquear saldo insuficiente. No contratación implícita. Fuentes: docuseal.com/pricing, developers.openai.com/api/docs/models/gpt-5.4-mini, cloud.google.com/products/document-ai/pricing, developers.google.com/maps/billing-and-pricing/pricing.
+
+Pruebas: cálculo independiente, dosasesores/admin, concurrencia/duplicados/sesión, guardar-reabrir-exportar20apps, OCR ilegible, citas/aislamiento/inyección, webhookfalso/repetido/desordenado, proveedor caído/cuotas. Lint/tipos/build/pruebas, UI escritorio/tablet/móvil/teclado/claro-oscuro yPDFs renderizados. Migración/restauración aisladas, revisión independiente y piloto real controlado. Solo20/20 cuando todas estén probadas y los servicios configurados. store:false no implica retencióncero; revisar conservación/eliminación/contratos antes datos reales.
+
+### Estado de implementación — 13/10/2026
+
+**Código implementado y comprobado localmente; publicación y piloto pendientes.** Rama `codex/apps-asesores`, basada en `a35315d`. Se reutilizó el checkout aislado del panel para conservar intactos los cambios de la página pública que estaban en la carpeta principal. Este aislamiento no crea un segundo plan.
+
+- Catálogo y menú superior con las 20 herramientas, búsqueda y favoritos. La barra lateral separa seis etapas del procedimiento y conserva los módulos existentes dentro de Gestión.
+- Dieciséis herramientas locales implementadas: ficha, hipoteca, comparables, ofertas, neto, comisiones, informe, PDF, revisor, fotos, QR, conversor, inversiones, rehabilitación, versiones y cotizador. Guardado privado, reapertura, historial, eliminación recuperable y exportación comparten la misma plataforma.
+- Firmas, OCR, consulta documental y rutas tienen interfaz e integración preparadas. **Su activación se difiere por decisión del titular.** No se contrataron cuentas, copiaron claves, enviaron firmas ni efectuaron llamadas pagadas. `FORTIUS_APPS_ENABLED=false` mantiene desactivado el procesamiento externo.
+
+| Entrega | Estado comprobado | Pendiente |
+|---|---|---|
+| Entorno y plataforma | Implementación local, migraciones y permisos probados | Aplicar migraciones en destino y comprobar respaldos/restauración |
+| Herramientas diarias, financieras y comerciales | Motores, formularios y exportación implementados; regresiones aprobadas | Piloto con cuentas autorizadas en el entorno desplegado |
+| Documentos e integraciones | Archivos privados, versiones, cuotas, citas y eventos probados con datos sintéticos | Proveedores y límites reales; diferidos |
+| Presentación | 20 rutas revisadas en navegador; escritorio, tableta, móvil y temas claro/oscuro; PDF de cuatro páginas inspeccionado | Repetir recorrido tras despliegue |
+
+**Verificación local:** suite general de 637 pruebas backend y 313 de panel aprobada; lint, tipos y compilación aprobados. Después se añadieron dos regresiones de búsqueda y tres de reintentos de guardado: las 18 pruebas afectadas volvieron a pasar. Revisiones independientes de motores, plataforma y seguridad cerraron los defectos reproducidos, incluida la búsqueda por varios términos. La prueba visual de guardado/reapertura usó un servidor de datos sintéticos; los permisos se probaron separadamente con las migraciones reales en PostgreSQL embebido. Esto no acredita una conexión productiva.
+
+**Activación del núcleo local:** aplicar, en orden y después de las migraciones existentes, `20261014002133_apps_runs.sql` y `20261014002229_fortius_apps_integrations.sql`; desplegar la rama con la configuración de autenticación y Storage autorizada para ese destino; mantener desactivados los proveedores; probar guardar, reabrir, exportar, eliminar/restaurar y aislamiento entre dos asesores y un administrador. No se aplicó SQL a la base actual durante esta implementación. La autorización previa de secretos corresponde a `codex/erp-crm-preview` y no se extiende automáticamente a esta rama.
+
+**Activación posterior de proveedores:** configurar las variables de servidor indicadas en `.env.example`, verificar cuentas, tarifas, moneda, impuestos, retención y límites; probar documentos sintéticos y webhook antes de habilitar datos reales. El presupuesto interno reserva costos estimados; falta contrastarlo con la facturación efectiva. Probar también la concurrencia entre conexiones PostgreSQL independientes y los límites de 20 MB/100 páginas con los servicios reales.
+
+**Observación de dependencias:** la auditoría informó diez entradas de severidad alta en paquetes cuyas versiones ya estaban en la base `a35315d`; se conservaron las versiones existentes. Requieren evaluación específica antes de liberar a producción, sin ejecutar actualizaciones forzadas como parte de estas apps.
+
+La aceptación humana, la migración remota, el despliegue y las cuatro activaciones externas siguen pendientes. No se declara operación 20/20 ni publicación productiva.
