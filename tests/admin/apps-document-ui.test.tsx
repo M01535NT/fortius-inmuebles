@@ -40,7 +40,8 @@ it("conserva PDF originales al seleccionar, bloquea guardar durante la carga y p
 it("conserva el borrador PDF previo y reintenta únicamente el registro pendiente de una carga parcial", async () => {
   let fail = true; mocks.apiRequest.mockImplementation(async (_url: string, _method: string, body: { name: string }) => { if (body.name === "b.pdf" && fail) throw new Error("Registro interrumpido"); return { file: saved(body.name) }; });
   render(<Harness slug="pdf" initial={oldPdf} />); fireEvent.change(screen.getByLabelText("PDF originales"), { target: { files: [await pdfFile("a.pdf"), await pdfFile("b.pdf")] } });
-  await screen.findByRole("alert"); expect(mocks.change).not.toHaveBeenCalled(); expect(screen.getByText(/previous.pdf · página 1 · 90/)).toBeTruthy(); expect(mocks.busy).toHaveBeenLastCalledWith(false);
+  await screen.findByRole("alert"); expect(mocks.change).not.toHaveBeenCalled(); expect(screen.getByText(/previous.pdf · página 1 · 90/)).toBeTruthy();
+  await waitFor(() => expect(mocks.busy).toHaveBeenLastCalledWith(false));
   fail = false; fireEvent.click(screen.getByRole("button", { name: "Reintentar carga de originales" })); await waitFor(() => expect(mocks.change).toHaveBeenCalledTimes(1));
   expect(mocks.uploadFile).toHaveBeenCalledTimes(2); expect(mocks.apiRequest.mock.calls.map(call => call[2].name)).toEqual(["a.pdf", "b.pdf", "b.pdf"]); expect(mocks.change.mock.lastCall![0].originals).toHaveLength(2);
 });
