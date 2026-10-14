@@ -2,6 +2,7 @@
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
 import { Plus, FolderOpen } from "lucide-react";
+import { emptyWorkflow, WORKFLOW_ROUTES, stageLabel, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { OperationBrief } from "@/components/admin/workspace/operation-brief";
 import { DossierTabs, type DossierView } from "@/components/admin/workspace/dossier-tabs";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
@@ -32,6 +33,10 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
 
 export default function ExpedientesPage() {
   const [createOpen,setCreateOpen] = React.useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("nuevo") === "1");
+  const [newClient,setNewClient]=React.useState(()=>typeof window!=="undefined"?new URLSearchParams(window.location.search).get("clienteId")??"":"");
+  const [newProperty,setNewProperty]=React.useState(()=>typeof window!=="undefined"?new URLSearchParams(window.location.search).get("inmueble")??"":"");
+  const [newOperation,setNewOperation]=React.useState("venta");
+  const [newRoute,setNewRoute]=React.useState<OperationWorkflow["ruta"]>(()=>typeof window!=="undefined"&&new URLSearchParams(window.location.search).get("ruta")==="compra"?"compra":"captacion");
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);
@@ -50,14 +55,17 @@ export default function ExpedientesPage() {
   const [error, setError] = React.useState("");
   const [busy, updateBusy] = React.useState(false);
   const [pdfBusy, setPdfBusy] = React.useState(false);
+  const [creationDirty,setCreationDirty]=React.useState(false);
+  const creationForm=React.useRef<HTMLFormElement>(null);
   const [operationalDirty, setOperationalDirty] = React.useState(false);
   const working = React.useRef(false);
+  const allowLeave=React.useRef(false),leavePending=React.useRef(false);
   const generation = React.useRef(0);
   const hasUnsavedChanges = documento ? JSON.stringify(values) !== JSON.stringify(documento.data) : false;
   function setBusy(value: boolean) { working.current = value; updateBusy(value); }
-  function canNavigate() {
+  function canNavigate(ignoreCreation=false) {
     if (working.current) return false;
-    if (hasUnsavedChanges || operationalDirty) { setError("Guarda o descarta los cambios antes de cambiar de documento o expediente."); return false; }
+    if (hasUnsavedChanges || operationalDirty || !ignoreCreation && creationDirty) { setError("Guarda o descarta los cambios antes de cambiar de documento o expediente."); return false; }
     return true;
   }
   function selectExpediente(id: string) {
@@ -88,11 +96,20 @@ export default function ExpedientesPage() {
   }
   React.useEffect(() => () => { generation.current++; }, []);
   React.useEffect(() => {
-    if (!hasUnsavedChanges && !operationalDirty) return;
-    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [hasUnsavedChanges, operationalDirty]);
+    if (!hasUnsavedChanges && !operationalDirty && !creationDirty) return;
+    const warn = (event: BeforeUnloadEvent) => { if(allowLeave.current)return;event.preventDefault(); event.returnValue = ""; };
+    const protect=(event:MouseEvent)=>{
+      if(allowLeave.current||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      const anchor=event.target instanceof Element?event.target.closest<HTMLAnchorElement>("a[href]"):null;
+      if(!anchor||anchor.target==="_blank"||anchor.hasAttribute("download"))return;
+      const target=new URL(anchor.href,window.location.href);
+      if(!["http:","https:"].includes(target.protocol)||target.origin===window.location.origin&&target.pathname===window.location.pathname&&target.search===window.location.search)return;
+      event.preventDefault();event.stopImmediatePropagation();if(leavePending.current)return;leavePending.current=true;
+      void confirmAction("Hay captura sin guardar. ¿Descartar los cambios y salir de esta operación?").then(approved=>{if(approved){allowLeave.current=true;window.location.assign(target.href);}}).finally(()=>{leavePending.current=false;});
+    };
+    window.addEventListener("beforeunload", warn);document.addEventListener("click",protect,true);
+    return () => {window.removeEventListener("beforeunload",warn);document.removeEventListener("click",protect,true);};
+  }, [hasUnsavedChanges, operationalDirty, creationDirty]);
 
   React.useEffect(() => {
     let active = true;
@@ -148,7 +165,7 @@ export default function ExpedientesPage() {
   }
   async function createExpediente(event: React.FormEvent<HTMLFormElement>) {
     const formElement = event.currentTarget;
-    event.preventDefault(); if (!canNavigate()) return; setError(""); setBusy(true);
+    event.preventDefault(); if (!canNavigate(true)) return; setError(""); setBusy(true);
     try {
       const data = new FormData(event.currentTarget);
       const clienteId = String(data.get("clienteId") ?? "");
@@ -156,10 +173,10 @@ export default function ExpedientesPage() {
       if (!cliente?.asesorId) throw new Error("Asigna un asesor responsable al cliente antes de abrir su expediente.");
       const result = await json<{ expediente: Expediente }>("/api/admin/expedientes", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clienteId, asesorId: cliente.asesorId, operacion: String(data.get("operacion") ?? "venta"), propiedadSlug: String(data.get("propiedadSlug") ?? "") || undefined, unidad: String(data.get("unidad") ?? "") }),
+        body: JSON.stringify({ clienteId, asesorId: cliente.asesorId, operacion: String(data.get("operacion") ?? "venta"), propiedadSlug: String(data.get("propiedadSlug") ?? "") || undefined, unidad: String(data.get("unidad") ?? ""), ...(newOperation==="venta"?{flujo:emptyWorkflow(newRoute)}:{}) }),
       });
       setExpedientes((items) => [result.expediente, ...items]); setSelectedId(result.expediente.id); setDocumento(null);
-      setCreateOpen(false);
+      setCreateOpen(false); setCreationDirty(false);
       setNotice(`Expediente creado: ${result.expediente.folio}.`);
       formElement.reset();
     } catch (cause) { setError(String(cause)); } finally { setBusy(false); }
@@ -263,13 +280,16 @@ export default function ExpedientesPage() {
     {notice && <p role="status" className="rounded-md border border-border p-3 text-sm">{notice}</p>}
     {!showDeleted && <details id="nuevo-expediente" hidden={!createOpen} className="admin-operation-create rounded-lg border border-border bg-card p-5" open={createOpen} onToggle={event=>setCreateOpen(event.currentTarget.open)}>
       <summary className="cursor-pointer font-semibold">Nuevo expediente</summary>
-      <form hidden={!createOpen} onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
-        <label className="text-sm">Cliente<select name="clienteId" required className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
+      <form ref={creationForm} hidden={!createOpen} onChange={()=>setCreationDirty(true)} onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
+        <label className="text-sm">Cliente<select name="clienteId" required disabled={busy} value={newClient} onChange={e=>{setNewClient(e.target.value);setNewRoute(clientes.find(c=>c.id===e.target.value)?.tipo==="comprador"?"compra":"captacion");}} className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
         <div className="text-sm"><label htmlFor="nuevo-expediente-folio">Folio del expediente</label><input id="nuevo-expediente-folio" aria-describedby="nuevo-expediente-folio-ayuda" readOnly value="Se asignará al guardar" className={inputClass + " bg-secondary text-muted-foreground"} /><p id="nuevo-expediente-folio-ayuda" className="mt-1 text-xs text-muted-foreground">Fortius lo asigna automáticamente al crear el expediente.</p></div>
-        <label className="text-sm">Operación<select name="operacion" className={selectClass}><option value="venta">Venta</option><option value="renta">Renta</option><option value="administracion">Administración</option><option value="otra">Otra</option></select></label>
-        <label className="text-sm">Inmueble<select name="propiedadSlug" className={selectClass}><option value="">Sin vincular</option>{propiedades.map((item) => <option key={item.slug} value={item.slug}>{item.titulo}</option>)}</select></label>
-        <label className="text-sm">Unidad, si aplica<input name="unidad" className={inputClass} /></label>
-        <button type="submit" disabled={busy || hasUnsavedChanges} className={btnPrimary + " self-end"}>Crear expediente</button>
+        <label className="text-sm">Operación<select name="operacion" disabled={busy} value={newOperation} onChange={e=>setNewOperation(e.target.value)} className={selectClass}><option value="venta">Venta</option><option value="renta">Renta</option><option value="administracion">Administración</option><option value="otra">Otra</option></select></label>
+        <label className="text-sm">Inmueble<select name="propiedadSlug" disabled={busy} value={newProperty} onChange={e=>setNewProperty(e.target.value)} className={selectClass}><option value="">Sin vincular</option>{propiedades.filter(item=>newRoute==="compra"||!newClient||item.asesorId===clientes.find(c=>c.id===newClient)?.asesorId).map((item) => <option key={item.slug} value={item.slug}>{item.titulo}</option>)}</select></label>
+        {newOperation==="venta"&&<label className="text-sm">Ruta de la nueva operación<select disabled={busy} value={newRoute} onChange={e=>setNewRoute(e.target.value as OperationWorkflow["ruta"])} className={selectClass}>{Object.entries(WORKFLOW_ROUTES).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>}
+        <p className="text-sm text-muted-foreground md:col-span-2">Puedes iniciar con documentos pendientes y vincular el inmueble después. Cada avance indicará qué falta.</p>
+        <label className="text-sm">Unidad, si aplica<input name="unidad" disabled={busy} className={inputClass} /></label>
+        <button type="submit" disabled={busy || hasUnsavedChanges || operationalDirty} className={btnPrimary + " self-end"}>Crear expediente</button>
+        {creationDirty&&<button type="button" disabled={busy} className={btnGhost} onClick={async()=>{if(await confirmAction("¿Descartar la nueva operación sin guardar?")){creationForm.current?.reset();setNewClient("");setNewProperty("");setNewOperation("venta");setNewRoute("captacion");setCreationDirty(false);setError("");}}}>Descartar nueva operación</button>}
       </form>
     </details>}
     <section className="admin-operation-layout">
@@ -281,10 +301,10 @@ export default function ExpedientesPage() {
         </div>
         {expedientes.length === 0 && <p className="text-sm text-muted-foreground">{showDeleted ? "No hay expedientes eliminados visibles para tu cuenta." : "Aún no hay expedientes activos visibles para tu cuenta."}</p>}
         <label className="mb-3 block text-sm">Buscar expediente<input type="search" className={inputClass} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Folio o cliente"/></label>
-        <div className="space-y-2">{expedientes.filter(item=>`${item.folio} ${clientes.find(c=>c.id===item.cliente_id)?.nombre??""}`.toLocaleLowerCase("es").includes(query.trim().toLocaleLowerCase("es"))).map((item) => <button key={item.id} type="button" disabled={busy} aria-pressed={item.id===selectedId} onClick={() => selectExpediente(item.id)} className={`admin-dossier-select w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? "Cliente no disponible"}</span><small>{EXPEDIENTE_ETAPAS[item.etapa??"captacion"]} · {item.fecha_objetivo??"Sin fecha objetivo"}</small></button>)}</div>
+        <div className="space-y-2">{expedientes.filter(item=>`${item.folio} ${clientes.find(c=>c.id===item.cliente_id)?.nombre??""}`.toLocaleLowerCase("es").includes(query.trim().toLocaleLowerCase("es"))).map((item) => <button key={item.id} type="button" disabled={busy} aria-pressed={item.id===selectedId} onClick={() => selectExpediente(item.id)} className={`admin-dossier-select w-full rounded-md border p-3 text-left text-sm ${item.id === selectedId ? "border-primary" : "border-border"}`}><strong className="block">{item.folio}</strong><span>{clientes.find((client) => client.id === item.cliente_id)?.nombre ?? "Cliente no disponible"}</span><small>{item.operacion==="venta"?stageLabel(item.etapa??"captacion",item.flujo?.ruta):EXPEDIENTE_ETAPAS[item.etapa??"captacion"]} · {item.fecha_objetivo??"Sin fecha objetivo"}</small></button>)}</div>
       </div>
       <div className="min-w-0 space-y-5">{!selected&&<section className="admin-card admin-operation-welcome"><FolderOpen size={32} aria-hidden="true"/><h2>Tu operación, en un solo lugar</h2><p>Selecciona un expediente para consultar su inmueble, personas, documentos y siguientes pasos.</p>{!showDeleted&&<button type="button" className={btnGhost} onClick={()=>setCreateOpen(true)}>Abrir captura de operación</button>}</section>}{selected && <>
-        {!selected.deleted_at&&<OperationBrief operation={selected} onReview={()=>setView("summary")}/>}
+        {!selected.deleted_at&&<OperationBrief operation={selected} onReview={()=>{if(view!=="all"&&view!=="summary"){if(!canNavigate())return;setView("summary");}requestAnimationFrame(()=>{const target=document.getElementById("exp-guia");target?.scrollIntoView({block:"start"});target?.focus();});}}/>}
         {!selected.deleted_at && <DossierTabs value={view} onChange={setView} disabled={busy||pdfBusy}/>}
         <div id="exp-tab-content" role="tabpanel" aria-labelledby={`exp-tab-${view}`} tabIndex={0} className="min-w-0 space-y-6">
         <section className="rounded-lg border border-border bg-card p-5">
@@ -297,8 +317,8 @@ export default function ExpedientesPage() {
           </div>
           {selected.deleted_at ? <p className="text-sm text-muted-foreground">Este expediente está en Eliminados. Restaúralo para consultar o editar sus formatos y PDF.</p> : <>
           <div id="exp-resumen" hidden={view!=="all"&&view!=="summary"} className="mb-4 scroll-mt-24 rounded-lg bg-secondary/30 p-4">
-            <p className="text-sm font-semibold">{EXPEDIENTE_ETAPAS[selected.etapa??"captacion"]} · {selected.fecha_objetivo??"Sin fecha objetivo"}</p>
-            <p className="mt-2 text-sm">Próximo pendiente documental: {Object.entries(EXPEDIENTE_DOCUMENTOS).find(([key])=>!selected.checklist?.[key as keyof typeof EXPEDIENTE_DOCUMENTOS] || selected.checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS]==="pendiente")?.[1]??"Recepción registrada; consulta las revisiones en Actividad."}</p>
+            <p className="text-sm font-semibold">{selected.flujo?stageLabel(selected.etapa??"captacion",selected.flujo.ruta):EXPEDIENTE_ETAPAS[selected.etapa??"captacion"]} · {selected.fecha_objetivo??"Sin fecha objetivo"}</p>
+            <p hidden={!!selected.flujo} className="mt-2 text-sm">Próximo pendiente documental: {Object.entries(EXPEDIENTE_DOCUMENTOS).find(([key])=>!selected.checklist?.[key as keyof typeof EXPEDIENTE_DOCUMENTOS] || selected.checklist[key as keyof typeof EXPEDIENTE_DOCUMENTOS]==="pendiente")?.[1]??"Recepción registrada; consulta las revisiones en Actividad."}</p>
           </div>
           <div className="mb-5" hidden={view==="documents"||view==="tasks"}><ExpedienteOperationPanel key={selected.id} expediente={selected} view={view==="activity"?"activity":view==="summary"?"summary":"all"}
             responsable={asesores.find(item => item.id === selected.asesor_id)?.nombre ?? selected.asesor_id}

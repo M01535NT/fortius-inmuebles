@@ -155,7 +155,7 @@ function LeadDetail({ id }: { id: string }) {
         description={`${LEAD_ORIGEN_LABELS[lead.origen]} · recibido el ${fechaCorta(lead.creadoEl)}`}
         actions={
           <>
-            <ConvertLeadButton lead={lead} disabled={!!profileDraft || noteDirty || agendaDirty} />
+            <ConvertLeadButton lead={lead} openOperation disabled={!!profileDraft || noteDirty || agendaDirty} />
             {!lead.clienteId ? <AsyncButton type="button" onClick={eliminar} className={btnDanger}>
               <Trash2 className="size-3.5" strokeWidth={1.5} /> Eliminar
             </AsyncButton> : null}

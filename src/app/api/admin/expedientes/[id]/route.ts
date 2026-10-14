@@ -15,7 +15,7 @@ async function changeState(request: Request, context: Context, remove: boolean) 
       .update({ deleted_at: remove ? new Date().toISOString() : null, version: input.version + 1 })
       .eq("id", id).eq("version", input.version);
     query = remove ? query.is("deleted_at", null) : query.not("deleted_at", "is", null);
-    const { data, error } = await query.select("id,cliente_id,asesor_id,propiedad_slug,folio,operacion,unidad,version,deleted_at,created_at,updated_at").maybeSingle();
+    const { data, error } = await query.select("id,cliente_id,asesor_id,propiedad_slug,folio,operacion,unidad,etapa,fecha_objetivo,checklist,flujo,version,deleted_at,created_at,updated_at").maybeSingle();
     if (error) databaseError(error);
     if (!data) throw new ApiError(409, "El expediente cambió o ya no está disponible; recarga antes de continuar");
     return { expediente: data };

@@ -106,7 +106,9 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         fullPage: true,
       });
       await page.goto("/admin/propiedades/nueva");
-      await expect(page.getByRole("button", { name: "Guardar y publicar", exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Crear inmueble", exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Guardar y publicar", exact: true })).toHaveCount(0);
+      await expect(page.getByLabel("Folio del inmueble", { exact: true })).toHaveAttribute("readonly", "");
       await expect(page.getByText("Borrador · no visible en el sitio", { exact: true })).toBeVisible();
       expect(
         await page.evaluate(

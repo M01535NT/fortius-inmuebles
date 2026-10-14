@@ -1,0 +1,9 @@
+"use client";
+import * as React from "react";
+import Link from "next/link";
+import { apiRequest } from "@/lib/admin/store";
+export function PropertyPublicationGate({slug,onReady}:{slug:string;onReady:(value:boolean)=>void}) {
+ const [result,setResult]=React.useState<{permitida:boolean;publicacionAnterior:boolean;expedienteId?:string;faltantes:string[]}|null>(null),[error,setError]=React.useState("");
+ React.useEffect(()=>{let active=true;onReady(false);apiRequest<NonNullable<typeof result>>(`/api/admin/propiedades/${encodeURIComponent(slug)}/publicacion`).then(r=>{if(typeof r.permitida!=="boolean"||!Array.isArray(r.faltantes)||!r.faltantes.every(x=>typeof x==="string"))throw new Error("Respuesta inválida");if(active){setResult(r);onReady(r.permitida===true);}}).catch(()=>{if(active){setError("No se pudo comprobar la autorización de publicación. Puedes guardar la ficha privada y volver a intentarlo.");onReady(false);}});return()=>{active=false;};},[slug,onReady]);
+ return <aside className="rounded-md border border-border bg-secondary/30 p-4 text-sm" aria-label="Control de publicación"><h3 className="font-semibold">Antes de publicar</h3>{error?<p role="status" className="mt-2">{error}</p>:!result?<p className="mt-2">Comprobando la captación vinculada…</p>:result.publicacionAnterior?<p className="mt-2">Publicación anterior conservada. Si la retiras, la guía deberá estar completa antes de reactivarla.</p>:result.permitida?<p className="mt-2">La guía vinculada permite solicitar la publicación; también se comprobará al guardar.</p>:<ul className="mt-2 list-disc space-y-1 pl-5">{result.faltantes.map(item=><li key={item}>{item}</li>)}</ul>}<Link className="mt-3 inline-flex min-h-11 items-center text-primary-ink underline" href={result?.expedienteId?`/admin/expedientes?expediente=${result.expedienteId}`:`/admin/expedientes?nuevo=1&inmueble=${encodeURIComponent(slug)}`}>Abrir captación del inmueble</Link></aside>;
+}

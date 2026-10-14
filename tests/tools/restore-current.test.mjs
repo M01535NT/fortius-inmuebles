@@ -162,3 +162,12 @@ test('restores UTC timestamps with microseconds independently of the workstation
  assert.equal(result.tables.staff.exactContentAndDates,true);
  assert.deepEqual(source,original);
 });
+
+test('restores historical counterpart evidence but rejects an orphan JSON relationship',async()=>{
+ const source=structuredClone(backup),target=structuredClone(source.tables.fortius_inmuebles_expedientes[0]);
+ target.id='51000000-0000-4000-8000-000000000099';target.folio='SYNTHETIC-TARGET';source.tables.fortius_inmuebles_expedientes.push(target);
+ source.tables.fortius_inmuebles_expedientes[0].flujo={version:1,ruta:'captacion',estado:'pausada',motivo:'Histórico',requisitos:{},contraparteId:target.id};
+ const original=structuredClone(source);assert.equal((await rehearseCurrent(source)).passed,true);assert.deepEqual(source,original);
+ source.tables.fortius_inmuebles_expedientes[0].flujo.contraparteId='51000000-0000-4000-8000-000000000088';
+ await assert.rejects(rehearseCurrent(source),/counterpart reference is missing/);
+});

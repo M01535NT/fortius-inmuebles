@@ -60,6 +60,12 @@ export async function rehearseCurrent(input){
    const table=quote(fk.rel.replace('public.',''));
    await db.exec(`alter table public.${table} drop constraint ${quote(fk.conname)}; alter table public.${table} add constraint ${quote(fk.conname)} ${fk.definition} not valid; alter table public.${table} validate constraint ${quote(fk.conname)}`);
   }
+  // JSON counterpart references have no physical FK. Validate their structural
+  // targets without re-evaluating historical eligibility or rewriting evidence.
+  const orphanCounterparts=(await db.query(`select count(*)::int n from public.fortius_inmuebles_expedientes e
+   where e.flujo->>'contraparteId' is not null and not exists
+    (select 1 from public.fortius_inmuebles_expedientes target where target.id::text=e.flujo->>'contraparteId')`)).rows[0].n;
+  if(orphanCounterparts)throw Error('Restored operation counterpart reference is missing');
   // FK validation alone can trust a stale reference index whose targets exist,
   // while the JSON record points somewhere else. Rebuild the derived inventory
   // using the migrated write function, then compare it with the source below.
@@ -67,7 +73,11 @@ export async function rehearseCurrent(input){
   await db.exec('select public.fortius_inmuebles_sync_references(collection,id,data) from public.fortius_inmuebles_records');
   const tables={};
   for(const suffix of currentSuffixes){
-   const table='fortius_inmuebles_'+suffix,rows=rowsFor(table);
+   const table='fortius_inmuebles_'+suffix,sourceRows=rowsFor(table);
+   // These new nullable fields were absent in historical exports. Fill only
+   // their null defaults in comparison input; never mutate the supplied backup.
+   const defaults=suffix==='expedientes'?{flujo:null}:suffix==='expediente_actividad'?{detalle:null}:{};
+   const rows=sourceRows.map(row=>({...defaults,...row}));
    // Only calculated fields absent from older exports may differ in shape.
    // Compare every writable field/date exactly, then every supplied calculated value.
    const result=await db.query(`with restored as (select to_jsonb(t) value from public.${quote(table)} t),
