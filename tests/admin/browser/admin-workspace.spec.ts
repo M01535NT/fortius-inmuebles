@@ -271,11 +271,17 @@ async function expectFixedDaily(navigation: Locator) {
   for (const [index, name] of names.entries())
     await expect(navigation.getByRole("link").nth(index)).toHaveText(name);
 }
+/** Con orden personalizado el menú se abre solo y el botón pasa a «Ocultar más». */
+async function ensureMoreExpanded(navigation: Locator) {
+  const toggle = navigation.getByRole("button", { name: /^(Más|Ocultar más)$/ });
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+}
 test("reorders Más by drag and touch, persists, restores and keeps daily/procedure fixed", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/admin");
   const desktop = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  await desktop.getByRole("button", { name: "Más", exact: true }).click();
+  await ensureMoreExpanded(desktop);
   await expectFixedDaily(desktop);
   await desktop.getByRole("button", { name: "Organizar módulos" }).click();
   await expect(desktop.getByTitle("Arrastrar Resumen")).toHaveCount(0);
@@ -286,7 +292,7 @@ test("reorders Más by drag and touch, persists, restores and keeps daily/proced
   await expect(desktop.getByRole("link").nth(11)).toHaveText("CRM");
   await expectFixedDaily(desktop);
   await page.reload();
-  await desktop.getByRole("button", { name: "Más", exact: true }).click();
+  await ensureMoreExpanded(desktop);
   await expect(desktop.getByRole("link").nth(10)).toHaveText("Inmuebles");
   await expectFixedDaily(desktop);
   await page.setViewportSize({ width: 390, height: 900 });
@@ -310,7 +316,7 @@ test("reorders Más by drag and touch, persists, restores and keeps daily/proced
   await expect(mobile.getByRole("status")).toContainText("Orden original restaurado.");
   await page.reload();
   await page.getByRole("button", { name: "Menú del panel" }).click();
-  await mobile.getByRole("button", { name: "Más", exact: true }).click();
+  await ensureMoreExpanded(mobile);
   await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
   await expectFixedDaily(mobile);
   await fits(page);

@@ -34,6 +34,7 @@ for(const width of [390,1440]){
   await expect(page.getByRole("main").getByRole("status")).toContainText("Expediente restaurado");
   await page.getByRole("button",{name:"Activos",exact:true}).click();
   await page.getByRole("button",{name:/EXP-PRUEBA/}).click();
+  await page.getByRole("tab",{name:"Documentos",exact:true}).click();
   await expect(page.getByRole("button",{name:"Crear borrador",exact:true})).toBeVisible();
  });
 }
