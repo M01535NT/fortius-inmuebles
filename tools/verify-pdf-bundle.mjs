@@ -14,3 +14,17 @@ for (const name of ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf", "IBMPlexMono-
 }
 assert(files.some(file => file.endsWith("public/brand/fortius-logo.png")), "PDF function must include the Fortius logo");
 console.log("PDF deployment bundle includes native image libraries, gallery assets and brand fonts.");
+
+const appManifest = ".next/server/app/api/admin/apps/runs/[id]/export/route.js.nft.json";
+const appFiles = JSON.parse(readFileSync(appManifest, "utf8")).files;
+for (const name of ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf"]) {
+  const matches = appFiles.filter(file => file.endsWith(`public/fonts/${name}`));
+  assert(matches.length > 0, `Adviser app PDF must include ${name}`);
+  for (const file of matches) assert(existsSync(resolve(dirname(appManifest), file)), `Missing app PDF font: ${file}`);
+}
+const appLibraries = appFiles.filter(file => /libvips-cpp.*\.(so|dll|dylib)/.test(file));
+assert(appLibraries.length > 0, "Adviser app PDF must include native image support");
+if (process.platform === "linux") assert(appLibraries.some(file => file.includes(".so")), "Adviser app PDF needs the Linux libvips library");
+for (const file of appLibraries) assert(existsSync(resolve(dirname(appManifest), file)), `Missing app PDF image library: ${file}`);
+assert(appFiles.some(file => file.endsWith("public/hero/casa-playa.webp")), "Adviser app PDF must include local gallery images");
+console.log("Adviser app PDF bundle includes its fonts, gallery assets and native image libraries.");
