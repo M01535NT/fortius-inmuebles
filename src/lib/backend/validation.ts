@@ -35,7 +35,7 @@ const point = z.object({ lugar: short, minutos: amount }).passthrough();
 const propertySchema = z.object({
   slug: id, codigo: z.string().trim().max(160).default(""), titulo: name, tipo: z.enum(["casa", "departamento", "terreno", "local", "oficina", "nave-industrial"]), operacion: z.enum(["venta", "renta"]), precio: price,
   zona: short, direccionAproximada: short, descripcion: z.array(text).max(100), ficha, informacionPublica: informacionPublica.optional(), amenidades: z.array(short).max(100), galeria: z.array(image).max(100), videoUrl: optionalUrl, tour360Url: optionalUrl,
-  documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["disponible", "apartada", "vendida", "rentada"]), publicadaEl: date,
+  documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["evaluacion", "disponible", "apartada", "vendida", "rentada"]), publicadaEl: date.or(z.literal("")),
   demo: z.boolean(), publicada: z.boolean().default(false),
 }).passthrough();
 export const adviserProfileSchema = z.object({
@@ -54,7 +54,7 @@ export function publishedAdviser(value: unknown) {
 }
 const adviserSchema = z.object({ id, nombre: name, cargo: short, iniciales: z.string().max(10), telefono: short.optional(), whatsapp: short.optional(), email, activo: z.boolean(), perfilPublico: adviserProfileSchema.optional() }).passthrough();
 const origins = ["evaluar", "contacto", "interes-propiedad", "checklist", "documentos", "manual"] as const;
-const leadFields = { nombre: name, telefono: phone, email, propiedadSlug: reference, zona: short.optional(), tipoPropiedad: short.optional(), mensaje: text.optional() };
+const leadFields = { nombre: name, telefono: phone.or(z.literal("")), email, propiedadSlug: reference, zona: short.optional(), tipoPropiedad: short.optional(), mensaje: text.optional() };
 const homeTextsSchema = z.object(Object.fromEntries(HOME_TEXT_KEYS.map((key) => [key, z.string().max(4000).optional()]))).strip();
 const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short, homeTexts: homeTextsSchema.optional() }).passthrough();
 const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")) }).passthrough();
@@ -91,12 +91,15 @@ export function parseRecord(collection: CollectionName, recordId: string, value:
   if (new TextEncoder().encode(JSON.stringify(data)).byteLength > limit) throw new ApiError(413, "Registro demasiado grande");
   if (collection === "propiedades" && !estadoValido(data.operacion as Property["operacion"], data.estado as Property["estado"])) throw new ApiError(400, "Estado incompatible con la operación");
   if (collection === "propiedades" && data.publicada === true && !(data.galeria as unknown[]).length) throw new ApiError(400, "Publicar requiere al menos una imagen");
+  if (collection === "propiedades" && data.estado === "evaluacion" && (data.publicada === true || data.publicadaEl !== "")) throw new ApiError(400, "Un inmueble en evaluación permanece privado y sin fecha de publicación");
+  if (collection === "propiedades" && data.publicada === true && !data.publicadaEl) throw new ApiError(400, "Publicar requiere fecha de publicación");
+  if ((collection === "leads" || collection === "clientes") && !data.telefono && !data.email) throw new ApiError(400, "Registra teléfono o correo electrónico");
   return data;
 }
 export function parseWrite(value: unknown) { return z.object({ data: z.record(z.string(), z.unknown()), version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable() }).strict().parse(value); }
 export function parseDelete(value: unknown) { return z.object({ version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) }).strict().parse(value); }
 export function parseLead(value: unknown) {
-  return z.object({ ...leadFields, origen: z.enum([...origins, "interes_propiedad"]), website: z.literal("").optional() }).strict().parse(value);
+  return z.object({ ...leadFields, telefono: phone, origen: z.enum([...origins, "interes_propiedad"]), website: z.literal("").optional() }).strict().parse(value);
 }
 
 function isPublicUrl(value: string) { return safeUrl.safeParse(value).success && !/([a-z0-9-]+-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value); }

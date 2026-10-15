@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const LEAD_PROFILE_OPTIONS = {
-  operacion: { comprar: "Comprar", rentar: "Rentar para uso propio", vender: "Vender", arrendar: "Ofrecer en arrendamiento" },
+  operacion: { comprar: "Comprar", rentar: "Rentar para uso propio", vender: "Vender", arrendar: "Ofrecer en arrendamiento", invertir: "Evaluar una inversión" },
   uso: { residencial: "Residencial", comercial: "Comercial", industrial: "Industrial", mixto: "Mixto", otro: "Otro" },
   moneda: { MXN: "MXN", USD: "USD" },
   formaPago: { contado: "Contado", credito: "Crédito", mixto: "Mixto" },
@@ -28,6 +28,8 @@ export const leadProfileSchema = z.object({
   uso: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.uso)).optional(),
   presupuestoMin: budget.optional(),
   presupuestoMax: budget.optional(),
+  presupuestoDeclarado: budget.optional(),
+  capitalDeclarado: budget.optional(),
   moneda: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.moneda)).optional(),
   superficieMin: area.optional(),
   superficieMax: area.optional(),
@@ -45,9 +47,12 @@ export const leadProfileSchema = z.object({
   estadoCredito: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.estadoCredito)).optional(),
   origenIngresos: z.enum(optionKeys(LEAD_PROFILE_OPTIONS.origenIngresos)).optional(),
   plazo: z.string().max(500).optional(),
+  estrategiaInversion: z.enum(["renta","reventa","mixta","por_definir"]).optional(),
+  horizonteInversion: z.string().max(2000).optional(),
+  criteriosInversion: z.string().max(2000).optional(),
   proximoContacto: calendarDate.optional(),
 }).passthrough().superRefine((profile, context) => {
-  if ((profile.presupuestoMin !== undefined || profile.presupuestoMax !== undefined || profile.precioObjetivo !== undefined) && profile.moneda === undefined) {
+  if ((profile.presupuestoMin !== undefined || profile.presupuestoMax !== undefined || profile.presupuestoDeclarado !== undefined || profile.capitalDeclarado !== undefined || profile.precioObjetivo !== undefined) && profile.moneda === undefined) {
     context.addIssue({ code: "custom", path: ["moneda"], message: "Selecciona la moneda del monto" });
   }
   if (profile.presupuestoMin !== undefined && profile.presupuestoMax !== undefined && profile.presupuestoMin > profile.presupuestoMax) {

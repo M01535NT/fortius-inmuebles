@@ -83,7 +83,7 @@ it("recupera el cliente y la operación al crear un aviso, sin presumir autoriza
     if (url === "/api/admin/expedientes") return Response.json({ expedientes: [exp] });
     if (init?.method === "POST") {
       initial = JSON.parse(String(init.body)).data;
-      return Response.json({ documento: { ...draft, data: initial, version: 1 } }, { status: 201 });
+      return Response.json({ documento: { ...draft, data: {...initial,titular:"Cliente del expediente QA",tipoTitular:"propietario",operacion:"Venta"}, version: 1 } }, { status: 201 });
     }
     return Response.json({ documentos: [] });
   });
@@ -93,7 +93,9 @@ it("recupera el cliente y la operación al crear un aviso, sin presumir autoriza
   fireEvent.change(screen.getByRole("combobox", { name: "Formato" }), { target: { value: "01" } });
   fireEvent.click(screen.getByRole("button", { name: "Crear borrador" }));
   await screen.findByLabelText("Nombre del titular");
-  expect(initial).toMatchObject({ titular: "Cliente del expediente QA", tipoTitular: "propietario", operacion: "Venta", consentimientoPatrimonial: "pendiente", consentimientoPublicidad: "pendiente", transferenciaAsesor: "pendiente", transferenciaFinanciera: "pendiente", transferenciaOperacion: "pendiente", acuseEstado: "pendiente" });
+  expect((screen.getByLabelText("Nombre del titular") as HTMLInputElement).value).toBe("Cliente del expediente QA");
+  expect(initial).not.toHaveProperty("titular");
+  expect(initial).toMatchObject({ consentimientoPatrimonial: "pendiente", consentimientoPublicidad: "pendiente", transferenciaAsesor: "pendiente", transferenciaFinanciera: "pendiente", transferenciaOperacion: "pendiente", acuseEstado: "pendiente" });
   expect(initial.fechaEmision).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   expect(initial).not.toHaveProperty("responsable");
 });

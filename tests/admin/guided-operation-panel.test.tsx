@@ -1,5 +1,5 @@
 import { afterEach,expect,it,vi } from 'vitest';
-import { cleanup,fireEvent,render,screen } from '@testing-library/react';
+import { cleanup,fireEvent,render,screen,waitFor } from '@testing-library/react';
 const {tasks,propertyStore,taskStore}=vi.hoisted(()=>({tasks:[] as Array<Record<string,unknown>>,propertyStore:{load:vi.fn().mockResolvedValue(undefined)},taskStore:{load:vi.fn().mockResolvedValue(undefined),put:vi.fn()}}));
 vi.mock('@/lib/admin/store',async original=>({...await original<typeof import('@/lib/admin/store')>(),db:{propiedades:propertyStore,tareas:taskStore},useCollection:(store:object)=>store===taskStore?tasks:[]}));
 import {OperationWorkflowPanel} from '@/components/admin/operation-workflow-panel';
@@ -25,7 +25,7 @@ it('retains evidence and reports a failed save without announcing an advance',as
 it('a buyer sees profile and capacity instead of seller title and intermediation',()=>{
  vi.stubGlobal('fetch',async()=>Response.json({expedientes:[]}));
  render(<OperationWorkflowPanel expediente={{...base,flujo:emptyWorkflow('compra')}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
- expect(screen.getByLabelText('Estado de Perfil, necesidades y participantes de la compra')).toBeTruthy();
+ expect(screen.getByLabelText('Estado de Perfil, necesidades y participantes del encargo')).toBeTruthy();
  expect(screen.queryByLabelText('Estado de Presupuesto, recursos y crédito comprobados')).toBeNull();
  expect(screen.queryByLabelText('Estado de Identidad, representación y antecedente de propiedad')).toBeNull();
 });
@@ -47,12 +47,25 @@ it('creates the next action in place while preserving unsaved review evidence',a
 it('shows the captured house and does not ask to assign inventory during early captación',()=>{
  vi.stubGlobal('fetch',async()=>Response.json({expedientes:[]}));
  render(<OperationWorkflowPanel expediente={{...base,etapa:'documentacion'}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
- expect(screen.getByText(/No se asigna una casa del inventario/)).toBeTruthy();
- expect(screen.getByText('Vincular una casa que ya existe')).toBeTruthy();
+ expect(screen.getByText(/se vincula explícitamente un inmueble existente/)).toBeTruthy();
+ expect(screen.getByText('Vincular un inmueble que ya existe')).toBeTruthy();
  expect(screen.getByRole('combobox',{name:'Inmueble de esta operación'}).closest('details')?.open).toBe(false);
 });
 it('asks to capture the house before negotiation when none exists',()=>{
  vi.stubGlobal('fetch',async()=>Response.json({expedientes:[]}));
  render(<OperationWorkflowPanel expediente={{...base,etapa:'comercializacion'}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
  expect(screen.getByText('Captura los datos del inmueble.')).toBeTruthy();
+});
+
+it('offers only the opposite rent route and labels its participant correctly',async()=>{
+ const peers=[
+ {id:'peer-tenant',folio:'RENTA-TENANT',operacion:'renta',cliente_id:'c2',propiedad_slug:'p1',flujo:emptyWorkflow('arrendatario')},
+ {id:'peer-sale',folio:'VENTA-BUYER',operacion:'venta',cliente_id:'c3',propiedad_slug:'p1',flujo:emptyWorkflow('compra')},
+ {id:'peer-invest',folio:'INVERSION',operacion:'inversion',cliente_id:'c4',propiedad_slug:'p1',flujo:emptyWorkflow('inversion')},
+ {id:'peer-owner',folio:'RENTA-OWNER',operacion:'renta',cliente_id:'c5',propiedad_slug:'p1',flujo:emptyWorkflow('arrendador')}
+ ];
+ vi.stubGlobal('fetch',async()=>Response.json({expedientes:peers,entrevistas:[],documentos:[]}));
+ render(<OperationWorkflowPanel expediente={{...base,operacion:'renta',propiedad_slug:'p1',flujo:emptyWorkflow('arrendador')}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
+ await waitFor(()=>expect(screen.getByRole('option',{name:'RENTA-TENANT · Arrendatario'})).toBeTruthy());
+ expect(screen.queryByRole('option',{name:/VENTA-BUYER|INVERSION|RENTA-OWNER/})).toBeNull();
 });

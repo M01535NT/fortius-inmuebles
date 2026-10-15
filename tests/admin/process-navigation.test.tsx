@@ -38,7 +38,7 @@ test("Captación filtra todas las páginas autorizadas y abre expedientes reales
   expect(within(list).getAllByRole("link").map(link => link.getAttribute("href"))).toEqual(["/admin/expedientes?expediente=c1", "/admin/expedientes?expediente=c2"]);
   expect(screen.queryByText("DOC-1")).toBeNull(); expect(screen.queryByText("ELIMINADO")).toBeNull(); expect(screen.queryByText("SIN-ETAPA")).toBeNull();
   expect(screen.getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
-  expect(requests).toHaveLength(2); expect(requests.every(request => !request.method || request.method === "GET")).toBe(true);
+  expect(requests.filter(request=>request.url.startsWith("/api/admin/expedientes"))).toHaveLength(2); expect(requests.every(request => !request.method || request.method === "GET")).toBe(true);
 });
 test("Preparación usa documentación y Postventa conserva cerrado con accesos de seguimiento", async () => {
   const view = render(<ProcessStageWorkspace stage="preparacion" />); expect(await screen.findByRole("link", { name: /DOC-1/ })).toBeTruthy(); expect(screen.queryByText("CAP-1")).toBeNull();

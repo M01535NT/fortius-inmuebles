@@ -85,7 +85,8 @@ test("manual capture preserves failed input and only closes after acknowledged s
   fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
   const name = screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement;
   const phone = screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement;
-  expect(name.required && phone.required).toBe(true);
+  expect(name.required).toBe(true);
+  expect(phone.required).toBe(false);
   fireEvent.change(name, { target: { value: "Lead capturado" } });
   fireEvent.change(phone, { target: { value: "6641234567" } });
   rejectWrites = true;

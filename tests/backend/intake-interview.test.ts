@@ -64,7 +64,7 @@ describe("Entrevista inicial por intención", () => {
       }),
     ).toEqual([]);
   });
-  it("pide cónyuge y régimen solo cuando el propietario declara estar casado", () => {
+  it("conserva datos matrimoniales opcionales sin condicionar la entrevista inicial", () => {
     expect(
       interviewIssues("vender", {
         ...common,
@@ -73,8 +73,8 @@ describe("Entrevista inicial por intención", () => {
         documentos: "Escritura",
         alertas: "ninguna_declarada",
         estadoCivil: "casado",
-      }).map((issue) => issue.key),
-    ).toEqual(expect.arrayContaining(["conyuge", "regimen"]));
+      }),
+    ).toEqual([]);
     expect(
       interviewIssues("vender", {
         ...common,

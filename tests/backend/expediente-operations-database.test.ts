@@ -40,11 +40,15 @@ afterAll(async () => { await db?.close(); });
 
 it("registra cambios y notas, y limita lectura y escritura al asesor responsable", async () => {
   await asUser(own, async () => {
+    const flow={version:1,ruta:"arrendador",estado:"activa",motivo:"",requisitos:{entrevista:{estado:"revisado",soporte:"Entrevista externa documentada",evidencia:{tipo:"externa",referencia:"Archivo sintético de entrevista v1",fecha:"2026-10-14",responsable:"Responsable del ensayo",resultado:"Perfil inicial recibido y revisado"}}}};
+    await db.query("update public.fortius_inmuebles_expedientes set flujo=$2::jsonb,version=2 where id=$1",[exp,JSON.stringify(flow)]);
+    const task={id:"initial-next",titulo:"Solicitar escritura",categoria:"documentacion",estado:"pendiente",prioridad:"normal",pasos:[],asesorId:"own",clienteId:"c-own",expedienteId:exp,vence:"2030-12-31"};
+    await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,null)",[task.id,JSON.stringify(task)]);
     const changed = await db.query(
-      "update public.fortius_inmuebles_expedientes set etapa='documentacion',fecha_objetivo='2026-11-15',checklist='{\"identidad\":\"recibido\"}',version=2 where id=$1 and version=1 returning etapa,fecha_objetivo::text,version::int",
+      "update public.fortius_inmuebles_expedientes set etapa='documentacion',fecha_objetivo='2026-11-15',checklist='{\"identidad\":\"recibido\"}',version=3 where id=$1 and version=2 returning etapa,fecha_objetivo::text,version::int",
       [exp],
     );
-    expect(changed.rows).toEqual([{ etapa: "documentacion", fecha_objetivo: "2026-11-15", version: 2 }]);
+    expect(changed.rows).toEqual([{ etapa: "documentacion", fecha_objetivo: "2026-11-15", version: 3 }]);
     await db.query("insert into public.fortius_inmuebles_expediente_actividad(expediente_id,tipo,descripcion) values ($1,'nota','Solicitar escritura')", [exp]);
     const rows = (await db.query("select tipo,descripcion from public.fortius_inmuebles_expediente_actividad order by created_at")).rows;
     expect(rows).toContainEqual({ tipo: "cambio", descripcion: expect.stringContaining("Etapa: captacion") });
@@ -57,6 +61,6 @@ it("registra cambios y notas, y limita lectura y escritura al asesor responsable
   });
   await asUser(own, async () => {
     await expect(db.query("insert into public.fortius_inmuebles_expediente_actividad(expediente_id,tipo,descripcion) values ($1,'cambio','Falso')", [exp])).rejects.toMatchObject({ code: "42501" });
-    await expect(db.query("update public.fortius_inmuebles_expedientes set checklist='{\"identidad\":\"inventado\"}',version=3 where id=$1", [exp])).rejects.toMatchObject({ code: "23514" });
+    await expect(db.query("update public.fortius_inmuebles_expedientes set checklist='{\"identidad\":\"inventado\"}',version=4 where id=$1", [exp])).rejects.toMatchObject({ code: "23514" });
   });
 });
