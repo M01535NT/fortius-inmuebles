@@ -81,7 +81,7 @@ export function InterviewAccess({
           ? INTENTS[current.intencion].role +
             " · " +
             (current.estado === "completada"
-              ? "Respuestas guardadas en el expediente"
+              ? "Respuestas guardadas en la operación"
               : "Borrador por terminar")
           : "Define el perfil y captura sus objetivos, condiciones y siguiente acción."}
       </p>

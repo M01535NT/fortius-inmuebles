@@ -68,7 +68,7 @@ function row(kind: "lead" | "cliente", person: Lead | Cliente, verb: string | un
   const date = step?.date ? stepDate(step.date, today, step.time) : null;
   return {
     id: person.id, kind, name: person.nombre, phone: person.telefono,
-    href: `/admin/${kind === "lead" ? "leads" : "clientes"}/${encodeURIComponent(person.id)}`,
+    href: kind === "lead" ? `/admin/leads/${encodeURIComponent(person.id)}` : `/admin/clientes/${encodeURIComponent(person.id)}`,
     wants: wants(person, verb) ?? "Por preguntar",
     zone: person.zona?.trim() || "Zona por definir",
     budget: budget(person.perfil),

@@ -77,7 +77,7 @@ export function RelatedWork({
       })
       .catch(() => {
         if (active)
-          setError("No se pudieron consultar los expedientes vinculados.");
+          setError("No se pudieron consultar las operaciones vinculadas.");
       });
     return () => {
       active = false;
@@ -160,7 +160,7 @@ export function RelatedWork({
           {duplicates.map((d) => (
             <Link
               key={d.id}
-              href={`/admin/${leadId ? "leads" : "clientes"}/${d.id}`}
+              href={leadId ? `/admin/leads/${d.id}` : `/admin/clientes/${d.id}`}
               className="mt-2 block underline"
             >
               {d.nombre}
@@ -223,7 +223,7 @@ export function RelatedWork({
                 >
                   {t.titulo}
                   <span className="block text-xs text-muted-foreground">
-                    {TASK_STATUSES[t.estado]} · {t.vence ?? "Sin fecha"}{expedienteId && !t.expedienteId ? " · Sin referencia a expediente" : ""}
+                    {TASK_STATUSES[t.estado]} · {t.vence ?? "Sin fecha"}{expedienteId && !t.expedienteId ? " · Sin operación vinculada" : ""}
                   </span>
                 </Link>
               </li>
@@ -268,7 +268,7 @@ export function RelatedWork({
       )}
       {dossiers.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold">Expedientes</h3>
+          <h3 className="text-sm font-semibold">Operaciones</h3>
           {dossiers.map((d) => (
             <Link
               key={d.id}

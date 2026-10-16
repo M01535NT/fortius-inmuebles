@@ -5,7 +5,7 @@ export async function downloadAdminPdf(url: string, filename: string): Promise<v
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error ?? "No se pudo descargar el PDF. Puedes volver a intentarlo desde el enlace.");
   }
-  if (!response.headers.get("content-type")?.includes("application/pdf")) throw new Error("El servidor no entregó un PDF. Intenta descargarlo nuevamente.");
+  if (!response.headers.get("content-type")?.includes("application/pdf")) throw new Error("No se recibió el PDF. Intenta descargarlo de nuevo.");
   const blob = await response.blob();
   if (await blob.slice(0, 5).text() !== "%PDF-") throw new Error("El archivo recibido no es un PDF válido.");
   const objectUrl = URL.createObjectURL(blob);

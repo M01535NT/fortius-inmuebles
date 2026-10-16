@@ -16,7 +16,7 @@ export const WORKFLOW_REQUIREMENTS = {
  escenarios_inversion: { label: "Escenarios, fuentes, supuestos y sensibilidad revisados", formato: "App Inversiones" },
  riesgos_inversion: { label: "Diligencia proporcional, limitaciones y riesgos documentados", formato: "05" },
  decision_inversion: { label: "Decisión informada y capital comprometido autorizados", formato: "Decisión de inversión" },
- ejecucion_inversion: { label: "Ejecución elegida y expediente correspondiente vinculados", formato: "Encargo de ejecución" },
+ ejecucion_inversion: { label: "Ejecución elegida y operación correspondiente vinculada", formato: "Encargo de ejecución" },
  seguimiento_inversion: { label: "Seguimiento de escenarios y resultados acordado", formato: "11" },
  entrevista: { label: "Entrevista y objetivo del propietario", formato: "02" },
  titularidad: { label: "Identidad, representación y antecedente de propiedad", formato: "05" },
@@ -42,7 +42,7 @@ export const WORKFLOW_REQUIREMENTS = {
  entrega: { label: "Entrega material y acta con pendientes asentados", formato: "16" },
  registro: { label: "Trámite registral y pendientes atendidos", formato: "17", noAplica: true },
  honorarios: { label: "Honorarios y cobros conforme al contrato", formato: "18", noAplica: true },
- archivo: { label: "Postventa, pendientes resueltos y expediente archivado", formato: "17" },
+ archivo: { label: "Postventa, pendientes resueltos y operación archivada", formato: "17" },
 } as const;
 export type RequirementKey = keyof typeof WORKFLOW_REQUIREMENTS;
 const evidence = z.object({ tipo: z.enum(["entrevista","documento","emision","adjunto","externa"]), referencia: z.string().max(1000), version: z.number().int().positive().optional(), fecha: z.iso.date().optional(), responsable: z.string().max(160).optional(), resultado: z.string().max(1000).optional(), limites: z.string().max(1000).optional() }).strict();

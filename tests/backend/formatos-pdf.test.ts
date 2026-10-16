@@ -79,7 +79,7 @@ describe("emisión de formatos", () => {
       custodiaOriginales: "No aplica", responsableRegistro: "Ana",
     });
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("Cierre del expediente");
+    expect(pdf.getTitle()).toBe("Cierre de la operación");
     expect(pdf.getPageCount()).toBeGreaterThan(0);
   });
 
@@ -108,7 +108,7 @@ describe("emisión de formatos", () => {
       pagos: [{ fechaPago: "2026-10-05", partidaId: "P-1", proveedor: "Proveedor A", concepto: "Anticipo", importe: 100, medio: "Transferencia", comprobante: "SPEI-1", estado: "Pagado" }],
     });
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("Presupuesto de rehabilitacion");
+    expect(pdf.getTitle()).toBe("Presupuesto de rehabilitación");
     expect(pdf.getPageCount()).toBe(3);
   });
 

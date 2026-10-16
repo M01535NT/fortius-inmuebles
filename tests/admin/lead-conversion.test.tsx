@@ -69,7 +69,7 @@ test("la ficha del cliente muestra el perfil, asesor, historial y contacto hered
   expect(screen.getByText("250,000 USD", { exact: true })).toBeTruthy();
   expect(screen.getByText("Ana Asesora", { exact: true })).toBeTruthy();
   expect(screen.getByText(original.notas[0].texto, { exact: true })).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Ver historial y agenda del lead" }).getAttribute("href")).toBe("/admin/leads/l1");
+  expect(screen.getByRole("link", { name: "Ver su historial como prospecto" }).getAttribute("href")).toBe("/admin/leads/l1");
   fireEvent.click(screen.getByRole("button", { name: "Editar cliente" }));
   expect((screen.getByLabelText("Correo electrónico", { exact: true }) as HTMLInputElement).value).toBe(original.email);
   fireEvent.change(screen.getByLabelText("Presupuesto máximo", { exact: true }), { target: { value: "260000" } });

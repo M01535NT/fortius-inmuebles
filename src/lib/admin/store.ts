@@ -57,7 +57,7 @@ export async function loadAllDossiers<T>(): Promise<T[]> {
   let offset: number | null = 0;
   while (offset !== null) {
     const page: { expedientes: T[]; nextOffset: number | null } = await apiRequest(`/api/admin/expedientes?limit=200&offset=${offset}`);
-    if (!Array.isArray(page.expedientes) || (page.nextOffset !== null && (!Number.isInteger(page.nextOffset) || page.nextOffset <= offset || page.nextOffset > 100000))) throw new Error("No se pudo completar la consulta de expedientes. Vuelve a intentarlo.");
+    if (!Array.isArray(page.expedientes) || (page.nextOffset !== null && (!Number.isInteger(page.nextOffset) || page.nextOffset <= offset || page.nextOffset > 100000))) throw new Error("No se pudieron consultar las operaciones. Vuelve a intentarlo.");
     records.push(...page.expedientes);
     offset = page.nextOffset;
   }
@@ -294,7 +294,7 @@ export const db = {
 };
 export async function convertirLead(lead: Lead): Promise<Cliente> {
   const version = db.leads.version(lead);
-  if (!version) throw new Error("Vuelve a cargar el lead antes de convertirlo.");
+  if (!version) throw new Error("Vuelve a cargar el prospecto antes de convertirlo.");
   const epoch = sessionEpoch;
   const result = await apiRequest<{ cliente: StoredRecord<Cliente>; lead: StoredRecord<Lead> }>(
     `/api/admin/leads/${encodeURIComponent(lead.id)}/convertir`, "POST", { version },

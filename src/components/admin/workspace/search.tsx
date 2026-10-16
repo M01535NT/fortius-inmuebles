@@ -30,7 +30,7 @@ export function WorkspaceSearch({ label = "Buscar" }: { label?: string } = {}) {
       .then((result) => setDossiers(result.expedientes ?? []))
       .catch(() =>
         setError(
-          "No se pudieron buscar expedientes. Los demás resultados siguen disponibles.",
+          "No se pudieron buscar operaciones. Los demás resultados siguen disponibles.",
         ),
       );
   }

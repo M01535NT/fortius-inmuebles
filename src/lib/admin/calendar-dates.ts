@@ -17,11 +17,3 @@ export function calendarWeekDays(value: string): string[] {
   return Array.from({ length: 7 }, (_, index) => shiftCalendarDate(monday, index));
 }
 
-export function compareCalendarEntries(
-  a: { fecha: string; hora?: string; titulo: string },
-  b: { fecha: string; hora?: string; titulo: string },
-): number {
-  return a.fecha.localeCompare(b.fecha)
-    || (a.hora || "24:00").localeCompare(b.hora || "24:00")
-    || a.titulo.localeCompare(b.titulo, "es");
-}

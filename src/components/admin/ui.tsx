@@ -288,7 +288,7 @@ export function UploadControl({
         hint={
           publicOnly
             ? "Material público. No subas identificaciones, escrituras ni documentos confidenciales."
-            : "Privado por defecto. Máximo 20 MB; el servidor valida el contenido."
+            : "Privado por defecto. Máximo 20 MB; el contenido se revisa al subirlo."
         }
       >
         <input

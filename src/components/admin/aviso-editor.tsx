@@ -68,6 +68,6 @@ export function AvisoEditor({ definition, values, onChange }: Props) {
       {businessComplete && <p className="my-2 text-sm text-muted-foreground">{String(values.responsable)} · {String(values.correoPrivacidad)}</p>}
       <div className={`mt-3 ${grid}`}>{fields(responsableKeys)}</div>
     </details>
-    <p className="text-xs text-muted-foreground">Expediente: {String(values.folio ?? "")}. El aviso conserva el diseño de la plantilla Fortius.</p>
+    <p className="text-xs text-muted-foreground">Operación {String(values.folio ?? "")}. El aviso conserva el diseño de la plantilla Fortius.</p>
   </div>;
 }

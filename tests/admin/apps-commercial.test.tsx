@@ -45,7 +45,7 @@ test("ficha importa datos públicos mediante selección sin notas privadas", asy
 });
 test("actividad del expediente requiere selección y se identifica como registrada", async () => {
   await act(async () => { render(<Harness slug="informe-propietario" context={{ expedienteId }} />); });
-  fireEvent.click(screen.getByRole("button", { name: "Consultar actividad del expediente" }));
+  fireEvent.click(screen.getByRole("button", { name: "Consultar actividad de la operación" }));
   const check = await screen.findByLabelText("Incluir actividad 1"); expect(savedInput.rows).toEqual([]);
   fireEvent.click(check); fireEvent.click(screen.getByRole("button", { name: "Incorporar actividades seleccionadas" }));
   expect(savedInput.rows).toEqual([expect.objectContaining({ detail: "Actividad registrada", origin: "registrado", sourceExpedienteId: expedienteId })]);
@@ -53,18 +53,18 @@ test("actividad del expediente requiere selección y se identifica como registra
 test("revisor exige confirmación y crea una tarea con vínculos actuales del expediente", async () => {
   await act(async () => { render(<Harness slug="revisor-expediente" context={{ expedienteId }} />); });
   fireEvent.click(screen.getByRole("button", { name: "Preparar tarea de pendientes" }));
-  const confirm = await screen.findByLabelText("Confirmo crear esta tarea en el expediente");
-  expect(writes).toEqual([]); expect(screen.getByRole("button", { name: "Crear tarea en el expediente" }).hasAttribute("disabled")).toBe(true);
-  fireEvent.click(confirm); fireEvent.click(screen.getByRole("button", { name: "Crear tarea en el expediente" }));
+  const confirm = await screen.findByLabelText("Confirmo crear esta tarea en la operación");
+  expect(writes).toEqual([]); expect(screen.getByRole("button", { name: "Crear tarea en la operación" }).hasAttribute("disabled")).toBe(true);
+  fireEvent.click(confirm); fireEvent.click(screen.getByRole("button", { name: "Crear tarea en la operación" }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ version: null, data: { expedienteId, clienteId: "c1", asesorId: "a1", propiedadSlug: "casa-uno", estado: "pendiente", categoria: "documentacion" } });
-  expect(await screen.findByText("Tarea creada en el expediente.")).toBeTruthy();
+  expect(await screen.findByText("Tarea creada en la operación.")).toBeTruthy();
 });
 
 test("F3 importa actividad con fecha de Tijuana y la incluye en su periodo local", async () => {
   activityCreatedAt = "2026-10-01T01:00:00Z";
   await act(async () => { render(<Harness slug="informe-propietario" context={{ expedienteId }} initial={{ ...getCommercialDefaults("informe-propietario"), ownerLabel: "Propietario", from: "2026-09-30", to: "2026-09-30", nextSteps: "Seguimiento" }} />); });
-  fireEvent.click(screen.getByRole("button", { name: "Consultar actividad del expediente" }));
+  fireEvent.click(screen.getByRole("button", { name: "Consultar actividad de la operación" }));
   fireEvent.click(await screen.findByLabelText("Incluir actividad 1"));
   fireEvent.click(screen.getByRole("button", { name: "Incorporar actividades seleccionadas" }));
   expect(savedInput.rows).toEqual([expect.objectContaining({ date: "2026-09-30" })]);

@@ -43,7 +43,7 @@ test("la sección activa incluye sus fichas de detalle y las direcciones anterio
   const [hoy, operaciones, contactos, , agenda] = MAIN_NAV;
   expect(isNavActive("/admin", hoy)).toBe(true);
   expect(isNavActive("/admin/operaciones", hoy)).toBe(false);
-  expect(isNavActive("/admin/entrevistas/abc", operaciones)).toBe(true);
+  expect(isNavActive("/admin/operaciones/nueva", operaciones)).toBe(true);
   expect(isNavActive("/admin/leads/123", contactos)).toBe(true);
   expect(isNavActive("/admin/tareas/9", agenda)).toBe(true);
   expect(isNavActive("/admin/agendas", agenda)).toBe(false);

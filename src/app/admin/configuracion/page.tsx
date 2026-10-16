@@ -2,6 +2,7 @@
 
 import { brandCopy } from "@/lib/brand-copy";
 import * as React from "react";
+import Link from "next/link";
 import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 
 import {
@@ -165,6 +166,9 @@ function Editor({ initial }: { initial: SiteSettings }) {
           ) : null}
         </div>
       </AsyncForm>
+      <p className="text-sm text-muted-foreground">
+        Para revisar el diseño: <Link href="/admin/sistema" className="font-semibold text-foreground underline underline-offset-4">muestra de los componentes del panel</Link>.
+      </p>
     </div>
   );
 }

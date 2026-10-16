@@ -38,8 +38,8 @@ function ClienteDetail({ id }: { id: string }) {
           router.push("/admin/contactos?tab=clientes");
         }}>Eliminar cliente</AsyncButton>}</> : undefined} />
     {cliente.leadId ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/40 p-4">
-      <p className="text-sm"><Badge tone="green">Convertido desde un lead</Badge>{cliente.convertidoEl ? ` · ${fechaCorta(cliente.convertidoEl)}` : ""}</p>
-      <Link href={`/admin/leads/${encodeURIComponent(cliente.leadId)}`} className={btnGhost}>Ver historial y agenda del lead</Link>
+      <p className="text-sm"><Badge tone="green">Antes era prospecto</Badge>{cliente.convertidoEl ? ` · ${fechaCorta(cliente.convertidoEl)}` : ""}</p>
+      <Link href={`/admin/leads/${encodeURIComponent(cliente.leadId)}`} className={btnGhost}>Ver su historial como prospecto</Link>
     </div> : null}
     {editing ? <ClienteEditor initial={cliente} onDone={() => setEditing(false)} /> : <>
       <RelatedWork clienteId={id}/>

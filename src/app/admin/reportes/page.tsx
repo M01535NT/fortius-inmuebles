@@ -35,7 +35,7 @@ export default function ReportesPage() {
     let active = true;
     apiRequest<{ expedientes: StageRecord[] }>("/api/admin/expedientes")
       .then(result => { if (active) { setExpedientes(result.expedientes); setExpedientStatus("ready"); } })
-      .catch(cause => { if (active) { setError(cause instanceof Error ? cause.message : "No se pudieron cargar expedientes."); setExpedientStatus("error"); } });
+      .catch(cause => { if (active) { setError(cause instanceof Error ? cause.message : "No se pudieron cargar las operaciones."); setExpedientStatus("error"); } });
     return () => { active = false; };
   }, [session?.role]);
   if (session?.role !== "admin") return <p role="alert" className="rounded-md border border-border p-6">Los reportes requieren acceso de administrador.</p>;
@@ -73,11 +73,11 @@ export default function ReportesPage() {
       <h2 className="text-xl font-semibold">Cartera por asesor</h2>
       <p className="my-3 text-sm text-muted-foreground">Distribución actual del equipo; no se limita al periodo del reporte.</p>
       <InventoryScope count={propiedades.filter(property=>property.demo).length} included={includeDemo} onChange={setIncludeDemo}/>
-      <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2">Asesor</th><th scope="col" className="p-2">Prospectos activos</th><th scope="col" className="p-2">Clientes</th><th scope="col" className="p-2">Inmuebles</th><th scope="col" className="p-2">Expedientes</th><th scope="col" className="p-2">Contactos vencidos</th><th scope="col" className="p-2">Tareas vencidas</th></tr></thead><tbody>
+      <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2">Asesor</th><th scope="col" className="p-2">Prospectos activos</th><th scope="col" className="p-2">Clientes</th><th scope="col" className="p-2">Inmuebles</th><th scope="col" className="p-2">Operaciones</th><th scope="col" className="p-2">Contactos vencidos</th><th scope="col" className="p-2">Tareas vencidas</th></tr></thead><tbody>
         {metrics.portfolio.map(row => <tr key={row.id} className="border-b border-border"><th scope="row" className="p-2 font-medium">{row.nombre}</th><td className="p-2">{row.leads}</td><td className="p-2">{row.clientes}</td><td className="p-2">{row.inmuebles}</td><td className="p-2">{row.expedientes}</td><td className="p-2">{row.contactosVencidos}</td><td className="p-2">{row.tareasVencidas}</td></tr>)}
         <tr><th scope="row" className="p-2 font-medium">Sin asesor</th><td className="p-2">{metrics.unassigned.leads}</td><td className="p-2">{metrics.unassigned.clientes}</td><td className="p-2">{metrics.unassigned.inmuebles}</td><td className="p-2">{metrics.unassigned.expedientes}</td><td className="p-2">{metrics.unassigned.contactosVencidos}</td><td className="p-2">{metrics.unassigned.tareasVencidas}</td></tr>
       </tbody></table></div>
     </section>
-    <section className="rounded-lg border border-border bg-card p-5"><h2 className="text-xl font-semibold">Etapas de operación</h2>{metrics.stages.length ? <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{metrics.stages.map(([stage, count]) => <li key={stage} className="flex justify-between rounded-md border border-border p-3"><span>{stageLabels[stage] ?? stage}</span><strong className="font-mono">{count}</strong></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">Sin expedientes activos.</p>}<Link href="/admin/operaciones" className="mt-4 inline-block text-sm text-primary-ink underline">Abrir expedientes</Link></section>
+    <section className="rounded-lg border border-border bg-card p-5"><h2 className="text-xl font-semibold">Etapas de operación</h2>{metrics.stages.length ? <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{metrics.stages.map(([stage, count]) => <li key={stage} className="flex justify-between rounded-md border border-border p-3"><span>{stageLabels[stage] ?? stage}</span><strong className="font-mono">{count}</strong></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">Sin operaciones en curso.</p>}<Link href="/admin/operaciones" className="mt-4 inline-block text-sm text-primary-ink underline">Abrir operaciones</Link></section>
   </div>;
 }

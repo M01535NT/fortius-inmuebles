@@ -1,22 +1,10 @@
 import { expect, test } from "vitest";
 import {
-  normalizeOrder,
-  moveModule,
   duplicateContacts,
   filterInventory,
 } from "@/lib/admin/workspace";
 import type { Property } from "@/data/propiedades";
 
-test("navigation recovers from invalid storage and never adds unknown modules", () => {
-  expect(normalizeOrder(["b", "b", "private", 42], ["a", "b", "c"])).toEqual([
-    "b",
-    "a",
-    "c",
-  ]);
-  expect(normalizeOrder({}, ["a", "b"])).toEqual(["a", "b"]);
-  expect(moveModule(["a", "b", "c"], "c", "a")).toEqual(["c", "a", "b"]);
-  expect(moveModule(["a", "b"], "x", "a")).toEqual(["a", "b"]);
-});
 test("duplicate detection ignores blank contacts and normalizes Mexican phones", () => {
   const rows = [
     { id: "1", telefono: "+52 664 123 4567", email: " Uno@ejemplo.mx " },

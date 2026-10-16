@@ -27,7 +27,7 @@ export async function saveRun(client: SupabaseClient, userId: string, body: unkn
       if (COMMERCIAL_APPS.has(input.slug)) input.result = calculateCommercial(input.slug, input.input);
     } catch (error) { throw new ApiError(400, error instanceof Error ? error.message : "Revisa la captura"); }
   }
-  if (input.slug === "ficha-comercial" && input.context.inmuebleId && input.input.propertySlug && input.context.inmuebleId !== input.input.propertySlug) throw new ApiError(400, "La ficha debe corresponder al inmueble del expediente");
+  if (input.slug === "ficha-comercial" && input.context.inmuebleId && input.input.propertySlug && input.context.inmuebleId !== input.input.propertySlug) throw new ApiError(400, "La ficha debe ser del inmueble de la operación");
   const value = { title: input.title, input: input.input, result: input.result };
   const sameValue = (run: AppRun) => run.slug === input.slug && run.title === input.title && isDeepStrictEqual(run.input, input.input) && isDeepStrictEqual(run.result, input.result) && isDeepStrictEqual(run.context, input.context);
   if (input.id && input.version) {
