@@ -437,7 +437,7 @@
 .panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link) { min-height: 2.75rem; color: #e3ebf6; padding: .5rem .75rem; font-size: .9375rem; font-weight: 450; }
 .panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link) svg { width: 1.25rem; height: 1.25rem; }
 .panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link):hover { background: #193654; color: #fff; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) [aria-current=page] { background: #8a1634; color: #fff; box-shadow: inset 3px 0 0 #e5829b; font-weight: 600; }
+.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) [aria-current=page] { background: #8a1634; color: #fff; box-shadow: inset 3px 0 0 #70112a; font-weight: 600; }
 .panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link)[aria-current=page]:hover { background: #8a1634; color: #fff; }
 .panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-group) { color: #c5d2e4; font-size: .6875rem; letter-spacing: .035em; padding-top: .75rem; padding-bottom: .375rem; }
 .panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-group)[data-separated=true] { border-top: 1px solid #304664; margin-top: .75rem; }
