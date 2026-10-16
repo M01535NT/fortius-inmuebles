@@ -101,7 +101,7 @@ export function HoyScreen() {
         {(interviews === null || !!interviews?.length) && <Section id="hoy-entrevistas" title="Entrevistas por terminar" count={interviews?.length}>
           {interviews === null ? failed("las entrevistas") : <Card as="div" className={s.list}>{interviews!.map(interview => <article key={interview.id} className={s.waiting}>
             <div className="flex min-w-0 flex-col gap-1"><strong className="text-base [overflow-wrap:anywhere]">{interview.contacto?.nombre || "Contacto sin nombre"}</strong><p className="text-sm text-muted-foreground">{interviewSummary(interview)}</p></div>
-            <ButtonLink href={`/admin/entrevistas/${encodeURIComponent(interview.id)}`} className="shrink-0 self-start sm:self-center" aria-label={`Seguir la entrevista de ${interview.contacto?.nombre || "contacto sin nombre"}`}>Seguir la entrevista<ArrowRight size={16} aria-hidden="true" /></ButtonLink>
+            <ButtonLink href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.id)}`} className="shrink-0 self-start sm:self-center" aria-label={`Seguir la entrevista de ${interview.contacto?.nombre || "contacto sin nombre"}`}>Seguir la entrevista<ArrowRight size={16} aria-hidden="true" /></ButtonLink>
           </article>)}</Card>}
         </Section>}
 

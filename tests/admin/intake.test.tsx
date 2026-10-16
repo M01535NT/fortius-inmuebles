@@ -1,187 +1,146 @@
 import * as React from "react";
-import { afterEach, expect, it, vi } from "vitest";
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import NewOperation from "@/app/admin/operaciones/nueva/page";
-import Interview from "@/app/admin/entrevistas/[id]/page";
-const { request, push } = vi.hoisted(() => ({
-  request: vi.fn(),
-  push: vi.fn(),
-}));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+const { request, push, nav } = vi.hoisted(() => ({ request: vi.fn(), push: vi.fn(), nav: { search: new URLSearchParams(), listeners: new Set<() => void>() } }));
+vi.mock("next/navigation", async () => {
+  const react = await import("react");
+  const subscribe = (cb: () => void) => { nav.listeners.add(cb); return () => nav.listeners.delete(cb); };
+  const replace = (url: string) => { nav.search = new URL(url, "http://localhost").searchParams; nav.listeners.forEach(cb => cb()); };
+  return { useRouter: () => ({ push, replace }), useSearchParams: () => react.useSyncExternalStore(subscribe, () => nav.search) };
+});
 vi.mock("@/lib/admin/store", () => {
-  const stores = {
-    leads: { load: vi.fn().mockResolvedValue(undefined) },
-    clientes: { load: vi.fn().mockResolvedValue(undefined) },
-    tareas: { load: vi.fn().mockResolvedValue(undefined) },
-    asesores: {},
+  const store = () => ({ load: vi.fn().mockResolvedValue(undefined) });
+  const stores = { leads: store(), clientes: store(), tareas: store(), propiedades: store(), asesores: store() };
+  const people: Record<string, unknown[]> = {
+    asesores: [{ id: "a", nombre: "Ana", activo: true }],
+    leads: [{ id: "lead-1", nombre: "Ramón Félix Arce", telefono: "664 351 0928", email: "" }],
   };
   return {
-    AdminApiError: class extends Error {
-      status = 503;
-    },
-    apiRequest: request,
-    db: stores,
-    useCollection: (c: unknown) =>
-      c === stores.asesores ? [{ id: "a", nombre: "Ana", activo: true }] : [],
+    AdminApiError: class extends Error { status = 503; },
+    apiRequest: request, db: stores,
+    errorMessage: (e: unknown) => e instanceof Error ? e.message : String(e),
+    useCollection: (c: unknown) => people[Object.entries(stores).find(([, v]) => v === c)?.[0] ?? ""] ?? [],
     useLoadState: () => ({ loaded: true }),
   };
 });
+import { NewOperationWizard } from "@/components/admin/intake/wizard";
+import { dontKnowValue, firstOpenScreen, interviewScreens, screenIssues } from "@/lib/intake/wizard";
+import { interviewFields } from "@/lib/intake/interview";
+
 const id = "54000000-0000-4000-8000-000000000001";
-const interview = {
-  id,
-  intencion: "vender",
-  asesor_id: "a",
-  lead_id: "lead",
-  cliente_id: null,
-  expediente_id: null,
-  anterior_id: null,
-  contacto: { nombre: "Propietario", telefono: "6640000000" },
-  respuestas: { fecha: "2026-10-13" },
-  estado: "borrador",
-  version: 2,
-  completed_at: null,
-  updated_at: "2026-10-13",
-};
-afterEach(() => {
-  cleanup();
-  request.mockReset();
-  push.mockReset();
-  window.history.replaceState(null, "", "/");
-});
-it("chooses a profile before contact capture and prevents double submission", async () => {
+const interview = { id, intencion: "vender", asesor_id: "a", lead_id: "lead", cliente_id: null, expediente_id: null, anterior_id: null, contacto: { nombre: "Propietario", telefono: "6640000000" }, respuestas: { fecha: "2026-10-13" }, estado: "borrador", version: 2, completed_at: null, updated_at: "2026-10-13" };
+const config = (url: string) => url.endsWith("/config") ? { administrador: true, asesorId: null } : { entrevistas: [] };
+beforeEach(() => { nav.search = new URLSearchParams(); });
+afterEach(() => { cleanup(); request.mockReset(); push.mockReset(); });
+
+it("elige qué quiere el cliente, captura quién es y no envía dos veces", async () => {
   let done!: (v: unknown) => void;
-  request.mockImplementation((url: string, method?: string) =>
-    method === "POST"
-      ? new Promise((r) => {
-          done = r;
-        })
-      : Promise.resolve(
-          url.endsWith("/config")
-            ? { administrador: true, asesorId: null }
-            : { entrevistas: [] },
-        ),
-  );
-  render(<NewOperation />);
-  expect(screen.getAllByRole("button", { pressed: false })).toHaveLength(5);
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "Vender un inmueble Propietario vendedor",
-    }),
-  );
-  expect(screen.getByRole("list", { name: "Inicio de la operación" }).textContent).toContain("3. Persona");
-  expect(screen.getByRole("list", { name: "Inicio de la operación" }).textContent).toContain("4. Inmueble");
-  fireEvent.click(
-    screen.getByRole("button", { name: "Continuar con el contacto" }),
-  );
-  fireEvent.change(screen.getByLabelText("Nombre completo"), {
-    target: { value: "Ana Propietaria" },
-  });
-  fireEvent.change(screen.getByLabelText("Teléfono"), {
-    target: { value: "6641234567" },
-  });
-  fireEvent.change(screen.getByLabelText("Siguiente acción"), {target:{value:"Entrevistar al propietario"}});
-  fireEvent.change(screen.getByLabelText("Fecha de la siguiente acción"), {target:{value:"2030-12-31"}});
-  await waitFor(() =>
-    expect(
-      (
-        screen.getByRole("combobox", {
-          name: "Asesor responsable",
-        }) as HTMLSelectElement
-      ).disabled,
-    ).toBe(false),
-  );
-  fireEvent.change(
-    screen.getByRole("combobox", { name: "Asesor responsable" }),
-    { target: { value: "a" } },
-  );
-  await waitFor(() =>
-    expect(
-      (
-        screen.getByRole("button", {
-          name: "Iniciar entrevista",
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(false),
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "Iniciar entrevista" }),
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "Preparando entrevista…" }),
-  );
-  expect(request.mock.calls.filter((c) => c[1] === "POST")).toHaveLength(1);
-  expect(request.mock.calls.find((c) => c[1] === "POST")?.[2]).toMatchObject({
-    intencion: "vender",
-    contacto: { tipo: "nuevo", nombre: "Ana Propietaria" },
-  });
+  request.mockImplementation((url: string, method?: string) => method === "POST" ? new Promise(r => { done = r; }) : Promise.resolve(url.startsWith("/api/admin/entrevistas/") && !url.endsWith("/config") ? { entrevista: interview } : config(url)));
+  render(<NewOperationWizard />);
+  expect(screen.getByText("Paso 1 de 4")).toBeTruthy();
+  expect(screen.getAllByRole("radio")).toHaveLength(5);
+  expect((screen.getByRole("button", { name: /Continuar/ }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.click(screen.getByRole("radio", { name: /Vender su inmueble/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
+  expect(screen.getByRole("heading", { name: "¿Quién es?" })).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Nombre completo"), { target: { value: "Ana Propietaria" } });
+  fireEvent.change(screen.getByLabelText("Teléfono"), { target: { value: "6641234567" } });
+  await waitFor(() => expect(screen.getByRole("combobox", { name: "Asesor responsable" })).toBeTruthy());
+  fireEvent.click(screen.getByRole("button", { name: /Continuar con la entrevista/ }));
+  expect(screen.getByRole("alert").textContent).toBe("Elige al asesor responsable.");
+  fireEvent.change(screen.getByRole("combobox", { name: "Asesor responsable" }), { target: { value: "a" } });
+  fireEvent.click(screen.getByRole("button", { name: /Continuar con la entrevista/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Guardando/ }));
+  expect(request.mock.calls.filter(c => c[1] === "POST")).toHaveLength(1);
+  expect(request.mock.calls.find(c => c[1] === "POST")?.[2]).toMatchObject({ intencion: "vender", contacto: { tipo: "nuevo", nombre: "Ana Propietaria", asesorId: "a" }, seguimiento: { origen: "llamada", accion: "Terminar la entrevista" } });
   await act(async () => done({ entrevista: interview }));
-  expect(push).toHaveBeenCalledWith("/admin/entrevistas/" + id);
+  expect(nav.search.get("entrevista")).toBe(id);
+  expect(await screen.findByRole("heading", { name: "El propietario" })).toBeTruthy();
+  expect(screen.getByText("Paso 3 de 4")).toBeTruthy();
 });
-it("saves partial answers with the current version and preserves them on server conflict", async () => {
-  request.mockImplementation((_url: string, method?: string) =>
-    method === "PUT"
-      ? Promise.reject(new Error("La entrevista cambió; conserva tu captura"))
-      : Promise.resolve({ entrevista: interview }),
-  );
-  await act(async () => {
-    render(
-      <React.Suspense fallback={<p>Cargando</p>}>
-        <Interview params={Promise.resolve({ id })} />
-      </React.Suspense>,
-    );
-  });
-  const question = await screen.findByLabelText("¿Qué quiere lograr? *");
+
+it("avisa si el teléfono ya está registrado y usa esa ficha cuando es la misma persona", async () => {
+  request.mockImplementation((url: string, method?: string) => Promise.resolve(method === "POST" ? { entrevista: interview } : config(url)));
+  nav.search = new URLSearchParams({ intencion: "comprar" });
+  render(<NewOperationWizard />);
+  fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
+  fireEvent.change(screen.getByLabelText("Nombre completo"), { target: { value: "Ramón" } });
+  fireEvent.change(screen.getByLabelText("Teléfono"), { target: { value: "6643510928" } });
+  expect(screen.getByText("Ya tenemos a alguien con ese teléfono")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Sí, es la misma persona" }));
+  expect(screen.getByText("Ramón Félix Arce")).toBeTruthy();
+  await waitFor(() => expect((screen.getByRole("button", { name: /Continuar con la entrevista/ }) as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(screen.getByRole("button", { name: /Continuar con la entrevista/ }));
+  await waitFor(() => expect(request.mock.calls.find(c => c[1] === "POST")?.[2]).toMatchObject({ intencion: "comprar", contacto: { tipo: "lead", id: "lead-1" } }));
+});
+
+it("guarda lo capturado con la versión actual y lo conserva si el servidor rechaza", async () => {
+  nav.search = new URLSearchParams({ entrevista: id });
+  request.mockImplementation((_url: string, method?: string) => method === "PUT" ? Promise.reject(new Error("La entrevista cambió; conserva tu captura")) : Promise.resolve({ entrevista: interview }));
+  render(<NewOperationWizard />);
+  const question = await screen.findByLabelText("¿Qué quiere lograr?");
   fireEvent.change(question, { target: { value: "Vender mi casa" } });
-  fireEvent.click(screen.getByRole("button", { name: "Guardar borrador" }));
-  await screen.findByRole("alert");
-  expect(request.mock.calls.find((c) => c[1] === "PUT")?.[2]).toMatchObject({
-    version: 2,
-    completar: false,
-    respuestas: { objetivo: "Vender mi casa" },
-  });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar y seguir después" }));
+  expect((await screen.findByRole("alert")).textContent).toContain("La entrevista cambió");
+  expect(request.mock.calls.find(c => c[1] === "PUT")?.[2]).toMatchObject({ version: 2, completar: false, respuestas: { objetivo: "Vender mi casa" } });
   expect((question as HTMLTextAreaElement).value).toBe("Vender mi casa");
-  expect(
-    screen.queryByRole("region", { name: "Entrevista completada" }),
-  ).toBeNull();
+  expect(push).not.toHaveBeenCalled();
 });
-it("does not advance an incomplete interview and displays the missing question", async () => {
+
+it("no avanza una pantalla incompleta y dice qué falta; «No sabe» cuenta como respuesta", async () => {
+  nav.search = new URLSearchParams({ entrevista: id });
   request.mockResolvedValue({ entrevista: interview });
-  await act(async () => {
-    render(
-      <React.Suspense fallback={<p>Cargando</p>}>
-        <Interview params={Promise.resolve({ id })} />
-      </React.Suspense>,
-    );
-  });
-  fireEvent.click(
-    await screen.findByRole("button", { name: "Continuar con el inmueble" }),
-  );
-  expect(request.mock.calls.some((c) => c[1] === "PUT")).toBe(false);
-  expect(screen.getByRole("alert").textContent).toContain("Faltan respuestas");
-  expect(screen.queryByLabelText("Tipo de inmueble *")).toBeNull();
+  render(<NewOperationWizard />);
+  fireEvent.click(await screen.findByRole("button", { name: /^Continuar/ }));
+  expect(request.mock.calls.some(c => c[1] === "PUT")).toBe(false);
+  expect(screen.getByRole("alert").textContent).toContain("Te falta: ¿Qué quiere lograr?");
+  expect(screen.getByRole("heading", { name: "El propietario" })).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("¿Qué quiere lograr?"), { target: { value: "Vender" } });
+  const plazo = screen.getByLabelText("¿En qué plazo quiere realizar la operación?");
+  fireEvent.click(within(plazo.parentElement!).getByLabelText("No sabe"));
+  expect((plazo as HTMLInputElement).disabled).toBe(true);
+  request.mockImplementation((_url: string, method?: string, body?: { respuestas: Record<string, string> }) => Promise.resolve({ entrevista: method === "PUT" ? { ...interview, version: 3, respuestas: body!.respuestas } : interview }));
+  fireEvent.click(screen.getByRole("button", { name: /^Continuar/ }));
+  expect(await screen.findByRole("heading", { name: "El inmueble" })).toBeTruthy();
+  expect(request.mock.calls.find(c => c[1] === "PUT")?.[2]).toMatchObject({ completar: false, respuestas: { objetivo: "Vender", plazo: "No sabe" } });
 });
-it("shows spouse fields only after a married answer and keeps the house step next", async () => {
+
+it("muestra los datos del cónyuge solo si está casado", async () => {
+  nav.search = new URLSearchParams({ entrevista: id });
   request.mockResolvedValue({ entrevista: interview });
-  await act(async () => {
-    render(
-      <React.Suspense fallback={<p>Cargando</p>}>
-        <Interview params={Promise.resolve({ id })} />
-      </React.Suspense>,
-    );
-  });
-  expect(await screen.findByLabelText("Estado civil")).toBeTruthy();
+  render(<NewOperationWizard />);
+  const civil = await screen.findByRole("radiogroup", { name: "Estado civil" });
+  expect(within(civil).getByRole("radio", { name: "No sabe" })).toBeTruthy();
   expect(screen.queryByLabelText("Nombre del cónyuge")).toBeNull();
-  fireEvent.change(screen.getByLabelText("Estado civil"), {
-    target: { value: "casado" },
-  });
+  fireEvent.click(within(civil).getByRole("radio", { name: "Casado" }));
   expect(screen.getByLabelText("Nombre del cónyuge")).toBeTruthy();
-  expect(screen.getByLabelText("Régimen matrimonial")).toBeTruthy();
-  expect(screen.queryByLabelText("Tipo de inmueble *")).toBeNull();
+  expect(screen.getByRole("radiogroup", { name: "Régimen matrimonial" })).toBeTruthy();
+});
+
+it("al terminar la entrevista muestra la operación creada", async () => {
+  const answers = { fecha: "2026-10-13", objetivo: "Vender", plazo: "6 meses", zona: "Playas", tipoInmueble: "casa", relacion: "propietario", ocupacion: "propietario", documentos: "Escritura", alertas: "ninguna_declarada", presupuestoEstado: "por_definir", privacidad: "presentado", siguienteAccion: "Visitar la casa", siguienteFecha: "2026-10-20" };
+  const ready = { ...interview, respuestas: answers };
+  nav.search = new URLSearchParams({ entrevista: id });
+  request.mockImplementation((url: string, method?: string) => Promise.resolve(method === "PUT" ? { entrevista: { ...ready, estado: "completada", version: 3, expediente_id: "exp-1", completed_at: "2026-10-13T18:00:00Z" } } : url === "/api/admin/expedientes" ? { expedientes: [{ id: "exp-1", folio: "EXP-2026-047" }] } : { entrevista: ready }));
+  render(<NewOperationWizard />);
+  expect(await screen.findByRole("heading", { name: "Documentos y lo que sigue" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: /Terminar entrevista/ }));
+  expect(await screen.findByRole("heading", { name: "Listo, la operación está creada" })).toBeTruthy();
+  expect(request.mock.calls.find(c => c[1] === "PUT")?.[2]).toMatchObject({ completar: true });
+  expect(await screen.findByText("EXP-2026-047")).toBeTruthy();
+  expect(screen.getByRole("link", { name: /Abrir la operación/ }).getAttribute("href")).toBe("/admin/operaciones/exp-1");
+  expect(screen.getByText("Paso 4 de 4")).toBeTruthy();
+});
+
+it("agrupa la entrevista en pantallas y deja «No sabe» solo donde se puede", () => {
+  expect(interviewScreens("vender").map(s => s.title)).toEqual(["El propietario", "El inmueble", "Lo que quiere", "Documentos y lo que sigue"]);
+  expect(interviewScreens("comprar").map(s => s.title)).toEqual(["Qué busca", "Lo que necesita", "Presupuesto y acuerdos", "Lo que sigue"]);
+  const field = (intent: "vender" | "comprar", key: string) => interviewFields(intent).find(f => f.key === key)!;
+  expect(dontKnowValue("vender", field("vender", "tipoInmueble"))).toBeNull();
+  expect(dontKnowValue("comprar", field("comprar", "tipoInmueble"))).toBe("por_definir");
+  expect(dontKnowValue("vender", field("vender", "relacion"))).toBe("por_aclarar");
+  expect(dontKnowValue("vender", field("vender", "objetivo"))).toBe("No sabe");
+  expect([dontKnowValue("vender", field("vender", "fecha")), dontKnowValue("vender", field("vender", "siguienteAccion")), dontKnowValue("vender", field("vender", "privacidad"))]).toEqual([null, null, null]);
+  expect(firstOpenScreen("vender", { fecha: "2026-10-13", objetivo: "x", plazo: "y" })).toBe(1);
+  expect(screenIssues("vender", { fecha: "2026-10-13" }, interviewScreens("vender")[0]).map(i => i.key)).toEqual(["objetivo", "plazo"]);
 });

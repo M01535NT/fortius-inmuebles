@@ -58,7 +58,7 @@ for (const width of [390, 768, 1440]) {
     await page.getByRole("link", { name: "Ver operaciones eliminadas" }).click();
     await expect(page.getByText("No hay operaciones eliminadas")).toBeVisible();
     await page.goto("/admin/operaciones/nueva");
-    await expect(page.getByRole("heading", { name: "¿Qué necesita esta persona?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "¿Qué quiere hacer el cliente?" })).toBeVisible();
     expect(errors).toEqual([]);
   });
 }

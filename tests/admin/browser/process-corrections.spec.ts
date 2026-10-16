@@ -14,6 +14,7 @@ for(const width of [390,768,1440]) {
    if(u.pathname==='/api/admin/expedientes')return route.fulfill({json:{expedientes:ops,nextOffset:null}});
    if(u.pathname==='/api/admin/mi-asesor')return route.fulfill({json:{asesorId:adviser.id}});
    if(u.pathname==='/api/admin/apps/runs')return route.fulfill({json:{runs:[],nextOffset:null}});
+   if(u.pathname==='/api/admin/entrevistas/config')return route.fulfill({json:{administrador:true,asesorId:null}});
    if(u.pathname==='/api/admin/entrevistas')return route.fulfill({json:{entrevistas:[]}});
    if(u.pathname.endsWith('/formatos'))return route.fulfill({json:{documentos:[]}});
    if(u.pathname.endsWith('/actividad'))return route.fulfill({json:{actividad:[]}});
@@ -21,11 +22,14 @@ for(const width of [390,768,1440]) {
    return route.fulfill({json:{records:data.map(v=>({id:v.id,data:v,version:1}))}});
   });
   await page.goto('/admin/operaciones/nueva');
-  const seller=page.getByRole('button',{name:'Vender un inmueble Propietario vendedor'});await seller.focus();await page.keyboard.press('Enter');
-  await page.getByRole('button',{name:/Continuar con el contacto/}).click();
-  await expect(page.getByLabel('Siguiente acción',{exact:true})).toBeVisible();
+  const seller=page.getByRole('radio',{name:/^Vender su inmueble/});await seller.focus();await page.keyboard.press('Enter');
+  await expect(seller).toHaveAttribute('aria-checked','true');
+  await page.getByRole('button',{name:'Continuar',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'¿Quién es?'})).toBeVisible();
   await page.getByLabel('Nombre completo').fill('Primer contacto sintético');
-  await page.getByLabel('Correo electrónico (teléfono o correo requerido)').fill('ensayo@example.invalid');
+  await page.getByLabel(/^Correo/).fill('ensayo@example.invalid');
+  await page.getByText('Siguiente acción mientras termina la entrevista').click();
+  await expect(page.getByLabel('Siguiente acción',{exact:true})).toHaveValue('Terminar la entrevista');
   await page.getByLabel('Siguiente acción',{exact:true}).fill('Entrevistar al titular');
   await page.getByLabel('Fecha de la siguiente acción').fill('2030-12-31');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
