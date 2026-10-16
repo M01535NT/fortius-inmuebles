@@ -25,7 +25,7 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
   - fondo gris azulado de lienzo, con tarjetas blancas de borde y sombra suaves, y botones secundarios más visibles.
   - Se aplica solo al panel guiado (componente `Surface` y `kit.tsx`). El lienzo de diseño se actualizó a su versión 38. Revisado en `/admin/sistema` a 1440 px en claro y oscuro y a 375 px, sin desbordamiento.
 
-**Fase 2 · Estructura y navegación — 16/10/2026 (local, sin push):**
+**Fase 2 · Estructura y navegación — 16/10/2026 (en la rama `feat/panel-guiado`, commit `d644da0`; sin PR ni publicación):**
 - **Barra lateral nueva** (`workspace/guided-nav.tsx`):
   - botón «Nueva operación» arriba;
   - cinco secciones: Hoy, Operaciones, Contactos, Inmuebles y Agenda;
@@ -40,6 +40,19 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
   - las páginas `/admin/proceso/[etapa]` siguen activas fuera del menú y pasan a pestañas de Operaciones en la Fase 4;
   - los asesores ya no ven Blog, Contenido ni Archivos en el menú, porque Administración es solo para el administrador.
 - **Pruebas:** lint, tipos, 330 del panel, 702 de servidor y compilación aprobados. Con el servidor sin base de datos pasan las 42 de navegador del panel que corre CI y las 70 públicas (1 omitida).
+- **Revisión contra el encargo, 16/10/2026 (en la nube, sin base de datos):**
+  - Se repitieron `npm run verify` (702 de servidor, 330 del panel y compilación), las 35 de herramientas, el paquete de PDF, las 70 públicas (1 omitida) y las 42 de navegador del panel que corre CI.
+  - La prueba de la barra inferior en celular fallaba siempre: medía a mitad del desplazamiento suave de la página. Ahora se desplaza al instante antes de medir. El diseño no cambió: el contenido termina 25 px por encima de la barra.
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro: Hoy, Operaciones, Contactos (dos pestañas), Agenda (dos pestañas), Inmuebles, Herramientas y el menú del celular.
+  - La barra lateral coincide con el artboard `Sidebar`.
+  - **Diferencias con el encargo, pendientes de decisión del titular:**
+    - La página puente `/admin/documentos` sigue activa, sin enlaces que lleven a ella. El encargo la retira, pero contiene el buscador de documentos de todas las operaciones.
+    - El menú del celular difiere de `MenuMovil`:
+      - muestra el correo en lugar del rol;
+      - Administración aparece abierta en vez de plegada con la marca «Solo admin»;
+      - Herramientas no lleva el texto «Ver las 16 herramientas» ni su explicación;
+      - Agenda no indica las visitas de hoy;
+      - agrega «Mi perfil» y «Ver sitio».
 
 ## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
 

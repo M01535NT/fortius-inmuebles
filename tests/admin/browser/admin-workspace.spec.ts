@@ -84,7 +84,8 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
     const tabs = page.getByRole("navigation", { name: "Secciones principales" });
     for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
     await fits(page);
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    // El sitio usa desplazamiento suave; se mide al llegar al final, no a mitad de la animación.
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
     const clearance = await page.evaluate(() => {
       const last = document.querySelector("main")!.lastElementChild!.getBoundingClientRect().bottom;
       return document.querySelector('nav[aria-label="Secciones principales"]')!.getBoundingClientRect().top - last;
