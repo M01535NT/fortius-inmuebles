@@ -11,13 +11,21 @@ function verified(resolution = true): OperationWorkflow {
 }
 
 describe("proceso de comercialización", () => {
-  it("define seis etapas en el orden del titular", () => {
-    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Captación", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
+  it("define siete etapas en el orden del titular", () => {
+    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Prospecto", "Entrevista inicial", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
     expect(new Set(SALE_PROCESS.flatMap(p => p.etapas))).toEqual(new Set(WORKFLOW_STAGES));
   });
   it("cada estado interno del propietario corresponde a una etapa", () => {
     const flow = emptyWorkflow("captacion");
-    expect(WORKFLOW_STAGES.map(stage => processPhase(stage, flow, today))).toEqual(["captacion", "verificacion", "publicacion", "visitas", "cierre", "cierre", "cierre", "cierre"]);
+    expect(WORKFLOW_STAGES.map(stage => processPhase(stage, flow, today))).toEqual(["prospecto", "verificacion", "publicacion", "visitas", "cierre", "cierre", "cierre", "cierre"]);
+  });
+  it("el propietario es prospecto hasta iniciar la entrevista inicial (02)", () => {
+    const flow = emptyWorkflow("captacion");
+    expect(processPhase("captacion", flow, today)).toBe("prospecto");
+    expect(processPhase("captacion", flow, today, { iniciada: true })).toBe("captacion");
+    expect(processStageText("captacion", flow, today)).toBe("Prospecto");
+    expect(processStageText("captacion", flow, today, { iniciada: true })).toBe("Entrevista inicial");
+    expect(processPhase("captacion", emptyWorkflow("compra"), today)).toBe("captacion");
   });
   it("documentación pasa a contrato solo con verificación y decisión de captación", () => {
     expect(processPhase("documentacion", emptyWorkflow(), today)).toBe("verificacion");
@@ -36,7 +44,7 @@ describe("proceso de comercialización", () => {
     expect(processPhase("documentacion", flow, today)).toBe("verificacion");
   });
   it("expedientes históricos sin guía conservan su etapa equivalente", () => {
-    expect(processPhase(undefined, null, today)).toBe("captacion");
+    expect(processPhase(undefined, null, today)).toBe("prospecto");
     expect(processPhase("documentacion", null, today)).toBe("verificacion");
     expect(processPhase("negociacion", null, today)).toBe("visitas");
     expect(processStageText("comercializacion", null, today)).toBe("Publicación y seguimiento");

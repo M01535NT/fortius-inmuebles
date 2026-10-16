@@ -21,7 +21,7 @@ const reviewed = (extra: Record<string, unknown> = {}) => ({ estado: "revisado",
 const accepted = { resolucion: { tipo: "aceptada", fecha: "2026-10-09", motivo: "Encargo aceptado", siguienteAccion: "Firmar", fechaSiguiente: "2026-10-12" } };
 const flow = (requisitos: Record<string, unknown> = {}, extra: Record<string, unknown> = {}) => ({ version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos, ...extra });
 type Op = Record<string, unknown> & { id: string; version: number };
-let server: { ops: Op[]; deleted: Op[]; docs: Record<string, unknown>[]; tasks: Record<string, unknown>[]; activity: Record<string, unknown>[]; runs: Record<string, Record<string, unknown>[]>; puts: Array<{ url: string; body: Record<string, unknown> }>; methods: string[]; fail?: (url: string, init?: RequestInit) => Response | Promise<Response> | undefined };
+let server: { ops: Op[]; deleted: Op[]; docs: Record<string, unknown>[]; emissions: Record<string, Record<string, unknown>[]>; tasks: Record<string, unknown>[]; activity: Record<string, unknown>[]; runs: Record<string, Record<string, unknown>[]>; puts: Array<{ url: string; body: Record<string, unknown> }>; methods: string[]; fail?: (url: string, init?: RequestInit) => Response | Promise<Response> | undefined };
 const base = (over: Partial<Op> = {}): Op => ({ id: ID, folio: "EXP-2026-041", version: 3, operacion: "venta", etapa: "captacion", cliente_id: "c1", asesor_id: "a1", propiedad_slug: "casa", flujo: flow(), ...over });
 const collections: Record<string, () => Record<string, unknown>[]> = {
   clientes: () => [{ id: "c1", nombre: "Familia Castañeda Ortiz", tipo: "propietario", telefono: "6642184471", asesorId: "a1" }, { id: "c2", nombre: "Ángel Martínez", tipo: "comprador", asesorId: "a2" }],
@@ -40,6 +40,7 @@ function respond(url: string, init?: RequestInit): Response | Promise<Response> 
   if (opMatch) {
     const [, id, rest = ""] = opMatch;
     if (rest === "/operacion") { server.puts.push({ url, body }); const index = server.ops.findIndex(o => o.id === id); const saved = { ...server.ops[index], etapa: body.etapa, flujo: body.flujo, propiedad_slug: body.propiedadSlug, fecha_objetivo: body.fechaObjetivo, version: server.ops[index].version + 1 }; server.ops[index] = saved; return Response.json({ expediente: saved }); }
+    if (rest === "/formatos" && method === "POST") { const created = { id: `d${body.formatoId}`, expediente_id: id, formato_id: body.formatoId, data: { ...body.data, entrevistado: "Familia Castañeda Ortiz" }, version: 1, updated_at: "2026-10-16T18:00:00Z" }; server.docs.unshift(created); return Response.json({ documento: created }); }
     if (rest === "/formatos") return Response.json({ documentos: server.docs });
     if (rest === "/actividad") { if (method === "POST") { const item = { id: `h${server.activity.length + 1}`, tipo: "nota", descripcion: body.descripcion, created_by: "a1", created_at: "2026-10-16T18:00:00Z" }; server.activity.unshift(item); return Response.json({ actividad: item }); } return Response.json({ actividad: server.activity }); }
     if (method === "DELETE" || method === "PATCH") {
@@ -52,7 +53,7 @@ function respond(url: string, init?: RequestInit): Response | Promise<Response> 
   if (path === "/api/admin/mi-asesor") return Response.json({ asesorId: "a1" });
   if (path === "/api/admin/apps/runs") return Response.json({ runs: server.runs[new URL(url, "http://x").searchParams.get("slug") ?? ""] ?? [], nextOffset: null });
   const doc = path.match(/^\/api\/admin\/formatos\/([^/]+)$/);
-  if (doc) { const found = server.docs.find(d => d.id === doc[1])!; if (method === "PUT") { const saved = { ...found, data: body.data, version: Number(found.version) + 1 }; return Response.json({ documento: saved }); } return Response.json({ documento: found, emisiones: [] }); }
+  if (doc) { const found = server.docs.find(d => d.id === doc[1])!; if (method === "PUT") { const saved = { ...found, data: body.data, version: Number(found.version) + 1 }; return Response.json({ documento: saved }); } return Response.json({ documento: found, emisiones: server.emissions[doc[1]] ?? [] }); }
   const col = path.match(/^\/api\/admin\/collections\/([^/]+)(?:\/(.+))?$/);
   if (col) { if (method === "PUT") { server.puts.push({ url, body }); if (col[1] === "tareas") server.tasks.push(body.data); return Response.json({ record: { id: decodeURIComponent(col[2]), data: body.data, version: 1 } }); } return Response.json({ records: (collections[col[1]]?.() ?? []).map(data => ({ id: (data.id ?? data.slug) as string, data, version: 1 })) }); }
   return Response.json({});
@@ -61,10 +62,15 @@ beforeEach(() => {
   clearAdminCache(); vi.mocked(confirmAction).mockReset().mockResolvedValue(true); nav.push.mockReset();
   nav.path = "/admin/operaciones"; nav.search = new URLSearchParams();
   vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-16T18:00:00Z"));
-  server = { ops: [base()], deleted: [], docs: [], tasks: [], activity: [], runs: {}, puts: [], methods: [] };
+  server = { ops: [base()], deleted: [], docs: [], emissions: {}, tasks: [], activity: [], runs: {}, puts: [], methods: [] };
   vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => respond(url, init)));
 });
 afterEach(() => { cleanup(); clearAdminCache(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+/** Entrevista inicial (02) terminada: la operación está en «Entrevista inicial» y no en «Prospecto». */
+function interviewDone() {
+  server.docs = [{ id: "d02", expediente_id: ID, formato_id: "02", data: {}, version: 2, updated_at: "2026-10-15T18:00:00Z" }];
+  server.emissions = { d02: [{ id: "e02", draft_version: 2, created_at: "2026-10-15T18:00:00Z" }] };
+}
 async function openOperation(tab?: string) {
   nav.path = `/admin/operaciones/${ID}`; nav.search = new URLSearchParams(tab ? { tab } : {});
   render(<OperationScreen id={ID} />);
@@ -73,9 +79,10 @@ async function openOperation(tab?: string) {
 const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(-1)!.body;
 
 it("muestra la etapa y sus requisitos, y «Lo tengo» se guarda con la versión de la operación", async () => {
+  interviewDone();
   await openOperation();
-  expect(screen.getByText("Lo que sigue · Etapa 1 de 6")).toBeTruthy();
-  expect(screen.getByRole("heading", { level: 2, name: "Captación" })).toBeTruthy();
+  expect(await screen.findByText("Lo que sigue · Etapa 2 de 7")).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 2, name: "Entrevista inicial" })).toBeTruthy();
   const group = screen.getByRole("radiogroup", { name: "Estado de Entrevista con el propietario" });
   expect(within(group).queryByRole("radio", { name: /No aplica/ })).toBeNull();
   fireEvent.click(within(group).getByRole("radio", { name: /Lo tengo/ }));
@@ -84,9 +91,30 @@ it("muestra la etapa y sus requisitos, y «Lo tengo» se guarda con la versión 
   expect(within(group).getByRole("radio", { name: /Lo tengo/ }).getAttribute("aria-checked")).toBe("true");
 });
 
+it("el prospecto se ve en su etapa y «Iniciar entrevista inicial» abre el 02 por secciones", async () => {
+  await openOperation();
+  expect(await screen.findByText("Lo que sigue · Etapa 1 de 7")).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 2, name: "Prospecto" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
+  expect(screen.getByText("Al completarlo se abre «Entrevista inicial» sola.")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Iniciar entrevista inicial" }));
+  const capture = await screen.findByRole("dialog", { name: "Entrevista inicial" });
+  expect(server.methods).toContain("POST");
+  expect(within(capture).getByRole("heading", { level: 3, name: "Datos de la entrevista" })).toBeTruthy();
+  expect(within(capture).getByRole("button", { name: /Descargar Word/ })).toBeTruthy();
+  expect(within(capture).getByRole("button", { name: /Siguiente sección/ })).toBeTruthy();
+  fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  expect(await screen.findByText("Lo que sigue · Etapa 2 de 7")).toBeTruthy();
+  expect(screen.getByRole("button", { name: /Continuar entrevista/ })).toBeTruthy();
+  expect(screen.getByText(/Te falta:/).parentElement?.textContent).toContain("Terminar la entrevista inicial (02)");
+});
+
 it("un fallo al guardar se informa en palabras sencillas y no anuncia ningún avance", async () => {
   server.fail = (url, init) => init?.method === "PUT" && url.endsWith("/operacion") ? Response.json({ error: "Servicio no disponible" }, { status: 503 }) : undefined;
+  interviewDone();
   await openOperation();
+  await screen.findByText("Lo que sigue · Etapa 2 de 7");
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Entrevista/ })).getByRole("radio", { name: /Lo tengo/ }));
   expect((await screen.findByRole("alert")).textContent).toBe("No se pudo guardar: Servicio no disponible");
   expect(screen.queryByText(/pasó a/)).toBeNull();
@@ -94,10 +122,12 @@ it("un fallo al guardar se informa en palabras sencillas y no anuncia ningún av
 });
 
 it("Marcar como revisado pide qué se encontró y guarda el respaldo, quién y cuándo", async () => {
+  interviewDone();
   await openOperation();
+  await screen.findByText("Lo que sigue · Etapa 2 de 7");
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Entrevista/ })).getByRole("radio", { name: /Revisado/ }));
   const sheet = await screen.findByRole("dialog", { name: "Entrevista con el propietario" });
-  expect(within(sheet).getByRole("radio", { name: /Documento fuera del sistema/ })).toHaveProperty("checked", true);
+  fireEvent.click(within(sheet).getByRole("radio", { name: /Documento fuera del sistema/ }));
   fireEvent.click(within(sheet).getByRole("button", { name: "Guardar como revisado" }));
   expect(within(sheet).getByRole("alert").textContent).toBe("Escribe qué encontraste.");
   fireEvent.change(within(sheet).getByLabelText("Qué encontraste"), { target: { value: "Quiere vender en seis meses" } });
@@ -110,7 +140,9 @@ it("Marcar como revisado pide qué se encontró y guarda el respaldo, quién y c
 });
 
 it("Hay un problema guarda el título y la explicación, y se resuelve dejando constancia", async () => {
+  interviewDone();
   await openOperation();
+  await screen.findByText("Lo que sigue · Etapa 2 de 7");
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Entrevista/ })).getByRole("radio", { name: /Hay un problema/ }));
   const sheet = await screen.findByRole("dialog");
   fireEvent.change(within(sheet).getByLabelText("Cuál es el problema"), { target: { value: "El propietario no tiene la escritura" } });
@@ -124,8 +156,9 @@ it("Hay un problema guarda el título y la explicación, y se resuelve dejando c
 
 it("«Pasar a» se habilita solo con todo listo y registra el avance", async () => {
   server.ops = [base({ flujo: flow({ entrevista: reviewed() }) })];
+  interviewDone();
   await openOperation();
-  const advance = screen.getByRole("button", { name: /Pasar a: Verificación y precio/ });
+  const advance = await screen.findByRole("button", { name: /Pasar a: Verificación y precio/ });
   expect((advance as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByRole("button", { name: "Agendar la próxima tarea" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Qué sigue"), { target: { value: "Pedir la escritura" } });
@@ -137,7 +170,7 @@ it("«Pasar a» se habilita solo con todo listo y registra el avance", async () 
   fireEvent.click(screen.getByRole("button", { name: /Pasar a: Verificación y precio/ }));
   expect(await screen.findByText("Listo: la operación pasó a «Verificación y precio».")).toBeTruthy();
   expect(lastFlow()).toMatchObject({ etapa: "documentacion", version: 3 });
-  expect(screen.getByText("Lo que sigue · Etapa 2 de 6")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 3 de 7")).toBeTruthy();
 });
 
 it("en Verificación el contrato espera; durante la publicación avisa el informe mensual vencido", async () => {
@@ -236,7 +269,7 @@ it("el tablero agrupa por etapa, busca sin acentos, filtra «Mías» y abre cada
   render(<OperationsBoard />);
   const visits = await screen.findByRole("listitem", { name: /Visitas y ofertas/ });
   expect(visits.hasAttribute("data-active")).toBe(true);
-  expect(within(screen.getByRole("listitem", { name: /^Captación/ })).getByRole("link", { name: /Familia Castañeda Ortiz/ }).getAttribute("href")).toBe(`/admin/operaciones/${ID}`);
+  expect(within(screen.getByRole("listitem", { name: /^Prospecto/ })).getByRole("link", { name: /Familia Castañeda Ortiz/ }).getAttribute("href")).toBe(`/admin/operaciones/${ID}`);
   expect(screen.getByText("Vencido · 14 oct")).toBeTruthy();
   expect(screen.getByText(/1 con algo vencido/)).toBeTruthy();
   expect(within(screen.getByRole("listitem", { name: /Verificación/ })).getByRole("link", { name: /EXP-SIN-CLIENTE/ })).toBeTruthy();
@@ -308,7 +341,7 @@ it("en Verificación no hay un botón que nunca se activa: explica que «Contrat
   server.ops = [base({ etapa: "documentacion", flujo: flow(verifiedExcept, accepted) })];
   server.tasks = [{ id: "t1", titulo: "Firmar contrato", estado: "pendiente", prioridad: "normal", categoria: "captacion", pasos: [], vence: "2026-10-20", expedienteId: ID, asesorId: "a1" }];
   await openOperation();
-  expect(screen.getByText("Lo que sigue · Etapa 2 de 6")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 3 de 7")).toBeTruthy();
   expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
   expect(screen.getByText("Al completarlo se abre «Contrato y preparación» sola.")).toBeTruthy();
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Precio de salida/ })).getByRole("radio", { name: /Revisado/ }));
@@ -317,6 +350,6 @@ it("en Verificación no hay un botón que nunca se activa: explica que «Contrat
   fireEvent.change(within(sheet).getByLabelText("Folio o dónde está"), { target: { value: "Mensaje de WhatsApp del 15 oct" } });
   fireEvent.click(within(sheet).getByRole("button", { name: "Guardar como revisado" }));
   expect(await screen.findByText("Verificación terminada. Ya puedes trabajar el contrato y la preparación.")).toBeTruthy();
-  expect(screen.getByText("Lo que sigue · Etapa 3 de 6")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 4 de 7")).toBeTruthy();
   expect(screen.getByRole("button", { name: /Pasar a: Publicación y seguimiento/ })).toBeTruthy();
 });

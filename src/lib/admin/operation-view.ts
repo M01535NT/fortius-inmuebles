@@ -1,5 +1,5 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { emptyWorkflow, isOwnerRoute, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { emptyWorkflow, isOwnerRoute, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 
 /*
@@ -12,6 +12,8 @@ export type OperationRecord = {
   id: string; folio: string; version: number; cliente_id: string; asesor_id: string; operacion: string; unidad?: string;
   propiedad_slug: string | null; etapa?: WorkflowStage; fecha_objetivo?: string | null; checklist?: Record<string, string>;
   flujo?: OperationWorkflow | null; created_at?: string; updated_at?: string; deleted_at?: string | null;
+  /** No viene de la base: lo calcula la pantalla con los documentos de la operación (entrevista inicial 02). */
+  inicial?: InitialInterviewStatus;
 };
 type Review = NonNullable<OperationWorkflow["requisitos"][RequirementKey]>;
 
@@ -29,7 +31,7 @@ export const stageOf = (op: Pick<OperationRecord, "etapa">): WorkflowStage => op
 export function routeStages(op: OperationRecord, today: string) {
   const flow = flowOf(op), stage = stageOf(op);
   if (isOwnerRoute(flow.ruta)) {
-    const phase = processPhase(stage, op.flujo ?? flow, today);
+    const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial);
     return { labels: SALE_PROCESS.map(p => p.label), current: SALE_PROCESS.findIndex(p => p.key === phase), phase };
   }
   const steps = WORKFLOW_STAGES.filter(s => s !== "cerrado");
@@ -49,7 +51,7 @@ export function currentRequirements(op: OperationRecord, today: string): Array<{
   const routeKeys = new Set(requiredReviews(flow.ruta, "cerrado"));
   let own: RequirementKey[], before: RequirementKey[];
   if (isOwnerRoute(flow.ruta)) {
-    const index = SALE_PROCESS.findIndex(p => p.key === processPhase(stage, op.flujo ?? flow, today));
+    const index = SALE_PROCESS.findIndex(p => p.key === processPhase(stage, op.flujo ?? flow, today, op.inicial));
     own = phaseRequirements(SALE_PROCESS[index].key).filter(k => routeKeys.has(k));
     before = [...routeKeys].filter(k => { const phase = requirementPhase(k); return !!phase && SALE_PROCESS.findIndex(p => p.key === phase) < index; });
   } else {
@@ -70,7 +72,8 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   const flow = flowOf(op), stage = stageOf(op), next = nextWorkflowStage(stage);
   if (!next) return null;
   if (!isOwnerRoute(flow.ruta)) return { target: next, label: stageLabel(next, flow.ruta) };
-  const phase = processPhase(stage, op.flujo ?? flow, today);
+  const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial);
+  if (phase === "prospecto") return { label: "Entrevista inicial" };
   if (phase === "verificacion") return { label: "Contrato y preparación" };
   if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar la operación" : stageLabel(next, "captacion").replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
   const following = SALE_PROCESS[SALE_PROCESS.findIndex(p => p.key === phase) + 1];
@@ -100,17 +103,20 @@ function requirementWhy(r: Review | undefined) {
 export function missingItems(op: OperationRecord, tasks: Task[], today: string, propertySlug = op.propiedad_slug): Missing[] {
   const flow = flowOf(op), target = advanceTarget(op, today);
   if (!target) return [];
+  const phase = isOwnerRoute(flow.ruta) ? processPhase(stageOf(op), op.flujo ?? flow, today, op.inicial) : undefined;
+  if (phase === "prospecto") return [{ text: "Iniciar la entrevista inicial", why: "con el botón «Iniciar entrevista inicial»", place: "operacion" }];
   if (!target.target) {
     const items: Missing[] = phaseRequirements("verificacion").filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
     if (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo)) items.push({ text: "Registrar si tomas el encargo", why: "se decide en Ajustes", place: "ajustes" });
     return items;
   }
   const labels = new Map(Object.entries(WORKFLOW_REQUIREMENTS).map(([key, value]) => [value.label as string, key as RequirementKey]));
-  return workflowBlockers(flow, target.target, { id: op.id, asesor_id: op.asesor_id, propiedad_slug: propertySlug }, tasks, today).map(blocker => {
+  const initial: Missing[] = phase === "captacion" && !op.inicial?.emitida ? [{ text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" }] : [];
+  return initial.concat(workflowBlockers(flow, target.target, { id: op.id, asesor_id: op.asesor_id, propiedad_slug: propertySlug }, tasks, today).map(blocker => {
     const key = labels.get(blocker);
     if (key) return { text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" as const };
     return BLOCKER_TEXT[blocker] ?? { text: blocker, why: "", place: "operacion" as const };
-  });
+  }));
 }
 
 /** Una línea bajo cada requisito: quién lo revisó y qué encontró, o qué falta. */
@@ -141,7 +147,7 @@ export type BoardCard = { id: string; who: string; property: string; next: strin
 export function boardCard(op: OperationRecord, tasks: Task[], today: string, names: { client: (id?: string) => string | undefined; property: (slug?: string | null) => string | undefined }, me?: string): BoardCard {
   const next = tasks.filter(t => t.expedienteId === op.id && isTaskOpen(t)).sort((a, b) => (a.vence || "9999").localeCompare(b.vence || "9999"))[0];
   const stage = stageOf(op);
-  const column = SALE_PROCESS.findIndex(p => p.key === processPhase(stage, op.flujo, today));
+  const column = SALE_PROCESS.findIndex(p => p.key === processPhase(stage, op.flujo, today, op.inicial));
   return {
     id: op.id, who: names.client(op.cliente_id) ?? op.folio,
     property: names.property(op.propiedad_slug) ?? (op.propiedad_slug ? "Inmueble no disponible" : "Sin inmueble vinculado"),
@@ -157,6 +163,7 @@ export function dueLabel(date: string | undefined, today: string) {
 
 /** Herramientas de cada etapa; se abren con el contexto de la operación. */
 const PHASE_TOOLS: Record<SalePhase, Array<[string, string]>> = {
+  prospecto: [["comparables", "Comparar casas parecidas"]],
   captacion: [["revisor-expediente", "Pendientes documentales"], ["comparables", "Comparar casas parecidas"]],
   verificacion: [["comparables", "Comparar casas parecidas"], ["neto-propietario", "Neto del propietario"], ["revisor-expediente", "Pendientes documentales"]],
   contrato: [["ficha-comercial", "Ficha del inmueble"], ["fotografias", "Fotografías"], ["cotizador", "Cotizador de servicios"]],

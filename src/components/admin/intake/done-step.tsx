@@ -9,8 +9,8 @@ import { intentTitle, optionLabel, visibleFields } from "@/lib/intake/wizard";
 import s from "./wizard.module.css";
 
 const NEXT: Record<string, string> = {
-  vender: "Revisar lo que dijo el propietario y pasar a Verificación y precio.",
-  arrendar: "Revisar lo que dijo el propietario y preparar la oferta de renta.",
+  vender: "Hacer la entrevista inicial en persona: desde la operación se abre el formato 02 para capturarla.",
+  arrendar: "Hacer la entrevista inicial en persona: desde la operación se abre el formato 02 para capturarla.",
   comprar: "Revisar su perfil y buscarle opciones.",
   rentar: "Revisar lo que necesita y buscarle opciones.",
   invertir: "Revisar su mandato y buscar alternativas.",
@@ -38,7 +38,7 @@ export function DoneStep({ interview, fresh }: { interview: OperationalInterview
   return <div className={s.body}>
     <span className={s.doneMark} aria-hidden="true"><Check size={28} /></span>
     <h1 ref={heading} tabIndex={-1} className={s.title}>{!fresh ? "Entrevista terminada" : correction ? "Listo, la corrección quedó guardada" : "Listo, la operación está creada"}</h1>
-    <p className={s.lead}>{!fresh ? `Se terminó el ${interview.completed_at ? new Date(interview.completed_at).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) : "día registrado"}. Sus respuestas se conservan sin cambios.` : correction ? "La entrevista anterior se conserva en la misma operación." : "La encuentras en Operaciones, en la etapa Captación."}</p>
+    <p className={s.lead}>{!fresh ? `Se terminó el ${interview.completed_at ? new Date(interview.completed_at).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) : "día registrado"}. Sus respuestas se conservan sin cambios.` : correction ? "La entrevista anterior se conserva en la misma operación." : owner ? "La encuentras en Operaciones, en la etapa Prospecto." : "La encuentras en Operaciones, en la etapa Captación."}</p>
     <Card as="div" className="overflow-hidden"><dl className={s.summary} aria-label="Resumen de la operación">
       <dt>Folio</dt><dd className="font-mono font-semibold">{folio === undefined && href ? "Consultando…" : folio ?? "—"}</dd>
       <dt>Cliente</dt><dd>{who}</dd>

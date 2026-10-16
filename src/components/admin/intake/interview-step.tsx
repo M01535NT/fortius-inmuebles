@@ -6,7 +6,7 @@ import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, errorMessage, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { interviewIssues, isOwnerIntent, type InterviewAnswers, type OperationalInterview } from "@/lib/intake/interview";
-import { DONT_KNOW, dontKnowValue, firstOpenScreen, interviewScreens, optionLabel, screenFields, screenIssues } from "@/lib/intake/wizard";
+import { DONT_KNOW, dontKnowValue, firstOpenScreen, interviewScreens, optionLabel, PROSPECT_SCREEN, screenFields, screenIssues, withProspectDefaults } from "@/lib/intake/wizard";
 import { cn } from "@/lib/utils";
 import s from "./wizard.module.css";
 
@@ -22,7 +22,7 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
 }) {
   const properties = useCollection(db.propiedades);
   const intent = interview.intencion, owner = isOwnerIntent(intent), correction = !!interview.anterior_id;
-  const [answers, setAnswers] = React.useState<InterviewAnswers>(() => ({ ...interview.respuestas, ...(interview.respuestas.fecha ? {} : { fecha: operationalDate() }) }));
+  const [answers, setAnswers] = React.useState<InterviewAnswers>(() => withProspectDefaults(intent, { ...interview.respuestas, ...(interview.respuestas.fecha ? {} : { fecha: operationalDate() }) }));
   const screens = interviewScreens(intent);
   const [index, setIndex] = React.useState(() => firstOpenScreen(intent, interview.respuestas));
   const [validate, setValidate] = React.useState(false);
@@ -30,7 +30,7 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
   const saving = React.useRef(false), heading = React.useRef<HTMLHeadingElement>(null);
   const dirty = JSON.stringify(answers) !== JSON.stringify(interview.respuestas);
   React.useEffect(() => { onDirtyChange(dirty, busy); }, [dirty, busy, onDirtyChange]);
-  const screen = screens[index], last = index === screens.length - 1;
+  const screen = screens[index], last = index === screens.length - 1, prospect = screen.title === PROSPECT_SCREEN;
   const fields = screenFields(intent, answers, screen);
   const issues = validate ? screenIssues(intent, answers, screen) : [];
   // Al contestar se borra el aviso «Te falta»; lo pendiente sigue marcado junto a cada pregunta.
@@ -62,12 +62,13 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
     go(index + 1);
   }
   async function finish() {
-    const missing = interviewIssues(intent, answers);
-    if (missing.length) {
-      const target = screens.findIndex(sc => screenIssues(intent, answers, sc).length > 0);
-      if (target >= 0 && target !== index) { go(target); setValidate(true); setError(`Te falta: ${screenIssues(intent, answers, screens[target]).map(m => m.message).join(" · ")}`); return; }
-      showMissing(missing); return;
+    const target = screens.findIndex(sc => screenIssues(intent, answers, sc).length > 0);
+    if (target >= 0) {
+      if (target !== index) { go(target); setValidate(true); setError(`Te falta: ${screenIssues(intent, answers, screens[target]).map(m => m.message).join(" · ")}`); return; }
+      showMissing(screenIssues(intent, answers, screen)); return;
     }
+    const missing = interviewIssues(intent, answers);
+    if (missing.length) { showMissing(missing); return; }
     const done = await persist(true);
     if (!done) return;
     await Promise.allSettled([db.leads.load(), db.clientes.load(), db.tareas.load(), db.propiedades.load()]);
@@ -101,12 +102,12 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
         <button type="button" aria-current={i === index ? "step" : undefined} disabled={busy || i > index} onClick={() => go(i)}>{i < index ? <Check size={14} aria-hidden="true" /> : <span className="font-mono text-xs">{i + 1}</span>}{sc.title}</button>
       </li>)}</ol>
       <h1 ref={heading} tabIndex={-1} className={s.title}>{screen.title}</h1>
-      <p className={s.lead}>{interview.contacto.nombre}. Si no sabe algo, márcalo y seguimos; lo completas después.</p>
-      {!correction && <p className="flex items-start gap-2 text-sm text-muted-foreground"><Info size={16} aria-hidden="true" className="mt-0.5 shrink-0" />La operación se crea al terminar la entrevista. Si la guardas para después, la encuentras en Hoy, en «Entrevistas por terminar».</p>}
+      <p className={s.lead}>{interview.contacto.nombre}. {prospect ? "Lo básico del primer contacto: la entrevista completa se hace en persona." : "Si no sabe algo, márcalo y seguimos; lo completas después."}</p>
+      {!correction && <p className="flex items-start gap-2 text-sm text-muted-foreground"><Info size={16} aria-hidden="true" className="mt-0.5 shrink-0" />{prospect ? "Al guardar el prospecto se crea la operación en la etapa Prospecto. Si lo guardas para después, lo encuentras en Hoy, en «Entrevistas por terminar»." : "La operación se crea al terminar la entrevista. Si la guardas para después, la encuentras en Hoy, en «Entrevistas por terminar»."}</p>}
       {correction && <p className="text-sm text-muted-foreground">Estás corrigiendo una entrevista ya terminada. La anterior se conserva en la operación.</p>}
-      {owner && screen.title === "El inmueble" && !correction && <Card as="div" className="p-4">
+      {owner && (screen.title === "El inmueble" || prospect) && !correction && <Card as="div" className="p-4">
         <label className="flex flex-col gap-2 text-sm font-semibold">¿Ya tenemos este inmueble registrado?<select className={selectClass} value={answers.propiedadExistente ?? ""} disabled={busy} onChange={e => set("propiedadExistente", e.target.value)}><option value="">No, registrar uno nuevo con estos datos</option>{properties.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select></label>
-        <p className="mt-2 text-sm text-muted-foreground">Elígelo solo si es la misma unidad; compartir dirección no basta. Las medidas y las fotos se capturan en la visita.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Elígelo solo si es la misma unidad; compartir dirección no basta. Las medidas y las fotos se capturan en el levantamiento.</p>
       </Card>}
       <Card as="div" className="flex flex-col gap-6 p-5 sm:p-7">
         {fields.map(field => <div key={field.key} className={s.question}>
@@ -122,7 +123,7 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
     <div className={s.footer}><div className={s.footerRow}>
       {index > 0 ? <Button variant="ghost" disabled={busy} onClick={() => go(index - 1)}><ArrowLeft size={16} aria-hidden="true" />Atrás</Button> : <span />}
       <Button disabled={busy} onClick={() => void later()}>{busy ? "Guardando…" : "Guardar y seguir después"}</Button>
-      {last ? <Button variant="primary" disabled={busy} onClick={() => void finish()}>{correction ? "Terminar corrección" : "Terminar entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>
+      {last ? <Button variant="primary" disabled={busy} onClick={() => void finish()}>{correction ? "Terminar corrección" : prospect ? "Guardar prospecto" : "Terminar entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>
         : <Button variant="primary" disabled={busy} onClick={() => void next()}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button>}
     </div></div>
   </>;

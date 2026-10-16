@@ -13,16 +13,21 @@ import { isTaskOpen } from "@/lib/tasks";
 import { advanceTarget, contractLocked, currentRequirements, flowOf, isGuided, missingItems, routeStages, stageGuide, stageOf, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
 import { shortDate, weekdayDate } from "@/lib/admin/today";
 import { RequirementList, type Evidence } from "./requirements";
+import { InitialInterviewCard } from "./initial-interview";
+import type { Documento } from "./documents-tab";
+import type { Emision } from "./formato-capture";
 import { saveError } from "./use-operation";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage }) => Promise<unknown>;
+/** Documentos de la entrevista inicial: los formatos de la operación y los PDF de la entrevista (02). */
+export type InitialDocs = { documents: Documento[]; emissions: Emision[]; onDocumentsChange: (update: (items: Documento[]) => Documento[]) => void; onEmitted: (emision: Emision) => void; onOpenDocument: (id: string) => void };
 type Run = { id: string; title: string; updatedAt: string; result?: unknown; context?: { expedienteId?: string } };
 
 /** «Lo que sigue»: la etapa, sus requisitos, la próxima tarea y lo que falta para pasar a la siguiente. */
-export function NextStepTab({ op, today, evidence, interview, onSave, onSavedLegacy, onGoTo, onDirtyChange }: {
-  op: OperationRecord; today: string; evidence: Evidence; interview: OperationalInterview | null; onSave: Save;
+export function NextStepTab({ op, today, evidence, interview, initial, cliente, onSave, onSavedLegacy, onGoTo, onDirtyChange }: {
+  op: OperationRecord; today: string; evidence: Evidence; interview: OperationalInterview | null; initial: InitialDocs; cliente?: string; onSave: Save;
   onSavedLegacy: (value: OperationRecord) => void; onGoTo: (tab: "documentos" | "ajustes" | "tareas") => void; onDirtyChange: (dirty: boolean) => void;
 }) {
   const tasks = useCollection(db.tareas);
@@ -71,8 +76,9 @@ export function NextStepTab({ op, today, evidence, interview, onSave, onSavedLeg
           {flow.estado !== "activa" && <p className="font-semibold text-[var(--warning)]">Operación {flow.estado === "pausada" ? "en pausa" : flow.estado === "regularizacion" ? "en regularización" : "descartada"}{flow.motivo ? `: ${flow.motivo}` : ""}</p>}
           {guide.que && <dl className={s.guide}><dt>Qué hacemos</dt><dd>{guide.que}</dd><dt>Para qué</dt><dd>{guide.para}</dd></dl>}
         </div>
-        {phase === "captacion" && <InterviewAccess key={op.id} expedienteId={op.id} clienteId={op.cliente_id} intencion={flow.ruta === "arrendador" ? "arrendar" : "vender"} disabled={busy} />}
-        <RequirementList flow={flow} items={items} today={today} locked={contractLocked(op, today) && items.some(i => !i.earlier && ["intermediacion", "levantamiento", "plan", "publicacion"].includes(i.key))} busy={busy} evidence={evidence} onChange={changeRequirement} onAddDocument={() => onGoTo("documentos")} />
+        {owner && (phase === "prospecto" || phase === "captacion") && <InitialInterviewCard op={op} phase={phase} cliente={cliente} interview={interview} disabled={busy} {...initial} />}
+        {phase === "prospecto" && <InterviewAccess key={op.id} expedienteId={op.id} clienteId={op.cliente_id} intencion={flow.ruta === "arrendador" ? "arrendar" : "vender"} disabled={busy} />}
+        {phase !== "prospecto" && <RequirementList flow={flow} items={items} today={today} locked={contractLocked(op, today) && items.some(i => !i.earlier && ["intermediacion", "levantamiento", "plan", "publicacion"].includes(i.key))} busy={busy} evidence={evidence} onChange={changeRequirement} onAddDocument={() => onGoTo("documentos")} />}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
       </Card>

@@ -8,7 +8,7 @@ import { inputClass, selectClass } from "@/components/admin/ui";
 import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { INTENTS, type IntakeIntent, type OperationalInterview } from "@/lib/intake/interview";
-import { INTENT_CHOICES, WIZARD_STEPS, intentTitle } from "@/lib/intake/wizard";
+import { INTENT_CHOICES, intentTitle, wizardSteps } from "@/lib/intake/wizard";
 import { useInterviewGuard } from "./use-interview-guard";
 import { InterviewStep } from "./interview-step";
 import { DoneStep } from "./done-step";
@@ -22,7 +22,7 @@ import s from "./wizard.module.css";
   «?entrevista=<id>» retoma una entrevista (o muestra una terminada).
 */
 
-const ORIGINS = { llamada: "Llamada", whatsapp: "WhatsApp", correo: "Correo electrónico", referido: "Referido", web: "Página web", presencial: "En persona", otro: "Otro" } as const;
+const ORIGINS = { llamada: "Llamada", whatsapp: "WhatsApp", correo: "Correo electrónico", referido: "Referido", web: "Página web o redes sociales", presencial: "En persona", otro: "Otro" } as const;
 type Contact = { kind: "lead" | "cliente"; id: string };
 
 export function NewOperationWizard() {
@@ -47,7 +47,7 @@ export function NewOperationWizard() {
   return <Surface className="flex min-h-[100dvh] flex-1 flex-col">
     {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin/operaciones/nueva?entrevista=${encodeURIComponent(started.id)}`, { scroll: false }); }} onGuard={onGuard} />
       : <div className={s.shell}>
-        <Header step={step === 0 ? 3 : step} />
+        <Header step={step === 0 ? 3 : step} intent={interview?.intencion} />
         {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
           : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble de la operación. Prepara una entrevista con los datos actuales desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
           : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
@@ -56,7 +56,8 @@ export function NewOperationWizard() {
   </Surface>;
 }
 
-function Header({ step }: { step: number }) {
+function Header({ step, intent }: { step: number; intent?: IntakeIntent | null }) {
+  const WIZARD_STEPS = wizardSteps(intent);
   return <div className={s.top}>
     <div className={s.topRow}>
       <Link href="/admin" className={s.close} aria-label="Salir de Nueva operación"><X size={20} aria-hidden="true" />Nueva operación</Link>
@@ -150,7 +151,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
   }
 
   return <div className={s.shell}>
-    <Header step={step} />
+    <Header step={step} intent={intent} />
     <div className={s.body}>
       {step === 1 ? <>
         <h1 className={s.title}>¿Qué quiere hacer el cliente?</h1>
@@ -190,7 +191,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
           </>}
           {!correctionOf && <>
             <label className="flex flex-col gap-2 text-sm font-semibold">¿Cómo llegó?<select className={selectClass} value={origin} onChange={e => { setOrigin(e.target.value as keyof typeof ORIGINS); changed(); }}>{Object.entries(ORIGINS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <details className="text-sm"><summary className="cursor-pointer font-semibold">Siguiente acción mientras termina la entrevista</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <details className="text-sm"><summary className="cursor-pointer font-semibold">Siguiente acción mientras terminas de capturarlo</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-2">Siguiente acción<input required maxLength={160} className={inputClass} value={action} onChange={e => { setAction(e.target.value); changed(); }} /></label>
               <label className="flex flex-col gap-2">Fecha de la siguiente acción<input required type="date" className={inputClass} value={actionDate} onChange={e => { setActionDate(e.target.value); changed(); }} /></label>
               <p className="text-muted-foreground sm:col-span-2">El contacto y esta acción se guardan al empezar la entrevista, para no perderlo de vista.</p>
@@ -205,7 +206,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
     <div className={s.footer}><div className={s.footerRow}>
       {step === 2 && !correctionOf ? <Button variant="ghost" disabled={busy} onClick={() => setStep(1)}><ArrowLeft size={16} aria-hidden="true" />Atrás</Button> : <span />}
       {step === 1 ? <Button variant="primary" disabled={!intent} onClick={() => setStep(2)}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button>
-        : <Button variant="primary" disabled={busy || !intent || !config} onClick={() => void start()}>{busy ? "Guardando…" : uncertain ? "Reintentar con los mismos datos" : "Continuar con la entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>}
+        : <Button variant="primary" disabled={busy || !intent || !config} onClick={() => void start()}>{busy ? "Guardando…" : uncertain ? "Reintentar con los mismos datos" : intent === "vender" || intent === "arrendar" ? "Continuar con los datos del prospecto" : "Continuar con la entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>}
     </div></div>
   </div>;
 }

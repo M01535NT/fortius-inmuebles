@@ -131,7 +131,8 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
 
 /** Proceso de comercialización definido por el titular (PLAN_ERP_CRM.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
 export const SALE_PROCESS = [
- { key: "captacion", slug: "captacion", label: "Captación", hace: "Conocer al propietario, su objetivo y el inmueble; identificar quién puede autorizar la venta y reunir la información inicial.", para: "Saber qué necesita el cliente y si podemos atender la operación.", etapas: ["captacion"] },
+ { key: "prospecto", slug: "prospecto", label: "Prospecto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
+ { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir el checklist de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
  { key: "verificacion", slug: "verificacion-precio", label: "Verificación y precio", hace: "Revisar documentos, características y pendientes; comparar propiedades similares y acordar el precio de salida.", para: "Detectar obstáculos y vender con un precio sustentado.", etapas: ["documentacion"] },
  { key: "contrato", slug: "contrato-preparacion", label: "Contrato y preparación", hace: "Formalizar el servicio, honorarios y autorizaciones; preparar ficha, fotografías y plan de publicación.", para: "Dejar claras las responsabilidades y presentar el inmueble con información respaldada.", etapas: ["documentacion"] },
  { key: "publicacion", slug: "publicacion-seguimiento", label: "Publicación y seguimiento", hace: "Publicar en los canales acordados, mantener los datos actualizados e informar al propietario sobre consultas y avance.", para: "Generar interesados y evaluar cómo está funcionando la comercialización.", etapas: ["comercializacion"] },
@@ -144,6 +145,7 @@ export function isOwnerRoute(route?: string | null) { return route === "captacio
 
 /** Requisitos que cierran cada etapa del propietario. Los de verificación deben completarse antes de capturar los de contrato. */
 const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
+ prospecto: [],
  captacion: ["entrevista"],
  verificacion: ["titularidad","factibilidad","valor","precio"],
  contrato: ["intermediacion","levantamiento","plan","publicacion"],
@@ -162,20 +164,23 @@ export function verificationComplete(flow: OperationWorkflow | null | undefined,
  return !!flow && VERIFICATION_REQUIREMENTS.every(key => reviewComplete(flow, key, today)) && !!flow.resolucion && ["aceptada","condicionada"].includes(flow.resolucion.tipo);
 }
 /** Etapa del proceso para cualquier expediente. Compradores y arrendatarios se integran en «Visitas y ofertas»; inversión se agrupa por analogía. */
-export function processPhase(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string): SalePhase {
+/** Estado de la entrevista inicial (02) del propietario: lo conoce quien consulta los documentos de la operación. */
+export type InitialInterviewStatus = { iniciada?: boolean; emitida?: boolean };
+export function processPhase(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string, initial?: InitialInterviewStatus): SalePhase {
  const stage = etapa ?? "captacion";
  if (["cierre","entrega","postventa","cerrado"].includes(stage)) return "cierre";
- if (stage === "captacion") return "captacion";
+ // El propietario es «Prospecto» hasta que se inicia su entrevista inicial (02); compradores y demás siguen su ruta.
+ if (stage === "captacion") return (!flow || isOwnerRoute(flow.ruta)) && !initial?.iniciada ? "prospecto" : "captacion";
  if (flow && (flow.ruta === "compra" || flow.ruta === "arrendatario")) return "visitas";
  if (flow?.ruta === "inversion") return "verificacion";
  if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : "verificacion";
  return stage === "comercializacion" ? "publicacion" : "visitas";
 }
 /** Texto de la etapa actual: el proceso para el propietario de venta; la etiqueta propia para las demás rutas. */
-export function processStageText(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string) {
+export function processStageText(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string, initial?: InitialInterviewStatus) {
  const stage = etapa ?? "captacion";
  if (flow && flow.ruta !== "captacion") return stageLabel(stage, flow.ruta);
- if (stage === "documentacion") return salePhase(processPhase(stage, flow, today)).label;
+ if (stage === "documentacion" || stage === "captacion") return salePhase(processPhase(stage, flow, today, initial)).label;
  return stageLabel(stage, "captacion");
 }
 

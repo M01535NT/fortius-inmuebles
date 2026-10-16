@@ -50,6 +50,21 @@ export function OperationsBoard() {
       .catch(cause => { if (alive) { setRecords(null); setError(errorMessage(cause)); } });
     return () => { alive = false; };
   }, [deleted, attempt]);
+  // Operaciones con entrevista inicial (02) iniciada: separan «Prospecto» de «Entrevista inicial».
+  const [started, setStarted] = React.useState<Set<string>>(new Set());
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      const ids = new Set<string>();
+      for (let offset: number | null = 0; offset !== null && offset < 2000;) {
+        const page: { documentos?: Array<{ expedienteId: string }>; nextOffset?: number | null } = await apiRequest(`/api/admin/documentos?formato=02&limit=100&offset=${offset}`);
+        (page.documentos ?? []).forEach(d => ids.add(d.expedienteId));
+        offset = page.nextOffset ?? null;
+      }
+      if (alive) setStarted(ids);
+    })().catch(() => undefined);
+    return () => { alive = false; };
+  }, [attempt]);
   React.useEffect(() => {
     let alive = true;
     apiRequest<{ asesorId?: string | null }>("/api/admin/mi-asesor").then(r => { if (alive) { setMe(r.asesorId ?? undefined); if (!r.asesorId) setScope("equipo"); } }).catch(() => { if (alive) setScope("equipo"); });
@@ -66,7 +81,7 @@ export function OperationsBoard() {
     client: (id?: string) => id ? clients.find(c => c.id === id)?.nombre : undefined,
     property: (slug?: string | null) => slug ? properties.find(p => p.slug === slug)?.titulo : undefined,
   };
-  const all = (records ?? []).map(op => ({ op, card: boardCard(op, tasks, today, names, me) }));
+  const all = (records ?? []).map(op => ({ op, card: boardCard({ ...op, inicial: { iniciada: started.has(op.id) } }, tasks, today, names, me) }));
   const visible = all.filter(({ op, card }) => (!admin || scope === "equipo" || !me || card.mine) && (!query.trim() || normalize(`${card.who} ${op.folio} ${card.property}`).includes(normalize(query.trim()))));
   const late = visible.filter(({ op, card }) => op.etapa !== "cerrado" && card.late).length;
   const archived = visible.filter(({ op }) => op.etapa === "cerrado");
