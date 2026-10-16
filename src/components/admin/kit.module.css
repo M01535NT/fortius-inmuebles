@@ -1,0 +1,71 @@
+/*
+  Componentes del panel guiado (docs/diseno/lienzo-panel/Componentes.dc.html).
+  Usan los tokens de .panel; el prefijo :global(.admin-root), clase global del contenedor del panel, les da precedencia
+  sobre las reglas genéricas heredadas de panel.module.css.
+*/
+
+/* Botones */
+:global(.admin-root) .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem; border-radius: 4px; border: 1px solid transparent; font-size: .9375rem; font-weight: 600; line-height: 1; text-decoration: none; cursor: pointer; white-space: nowrap; background: none; color: var(--foreground); }
+:global(.admin-root) .lg { min-height: 3.25rem; padding: 0 1.5rem; font-size: 1rem; }
+:global(.admin-root) .primary { background: var(--primary); border-color: var(--primary-edge); color: #fff; }
+:global(.admin-root) .primary:not(:disabled):hover { background: var(--primary-hover); }
+:global(.admin-root) .secondary { background: var(--card); border-color: var(--control-edge); color: var(--foreground); }
+:global(.admin-root) .secondary:not(:disabled):hover { background: var(--secondary); }
+:global(.admin-root) .ghost { background: none; color: var(--foreground); }
+:global(.admin-root) .ghost:not(:disabled):hover { background: var(--secondary); }
+:global(.admin-root) .link { color: var(--primary-text); padding: 0 .25rem; text-decoration: underline; text-underline-offset: 3px; min-height: 2.75rem; }
+:global(.admin-root) .danger { background: var(--card); border-color: var(--destructive); color: var(--destructive); }
+:global(.admin-root) .dangerSolid { background: #b3352c; border-color: #b3352c; color: #fff; }
+:global(.admin-root) .iconOnly { width: 2.75rem; padding: 0; flex: none; }
+:global(.admin-root) .btn:disabled, :global(.admin-root) .btn[aria-disabled=true] { opacity: .55; cursor: not-allowed; }
+
+/* Estados de requisito: se distinguen por relleno, borde e ícono */
+:global(.admin-root) .chip { display: inline-flex; align-items: center; gap: .375rem; min-height: 1.75rem; padding: 0 .625rem; border-radius: 2px; border: 1px solid transparent; font-size: .8125rem; font-weight: 600; line-height: 1; white-space: nowrap; }
+:global(.admin-root) .pendiente { border-color: var(--control-edge); color: var(--muted-foreground); }
+:global(.admin-root) .recibido { background: var(--secondary); color: var(--foreground); }
+:global(.admin-root) .revisado { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .observado { background: var(--warning-surface); color: var(--warning); border-color: var(--warning-border); }
+:global(.admin-root) .no_aplica { border: 1px dashed var(--control-edge); color: var(--muted-foreground); }
+
+/* Superficies */
+:global(.admin-root) .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+:global(.admin-root) .eyebrow { font-size: .75rem; line-height: 1.2; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-foreground); }
+
+/* Pestañas */
+:global(.admin-root) .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+:global(.admin-root) .tabs .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font-size: .9375rem; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none; border-radius: 0; }
+:global(.admin-root) .tabs .tab[aria-selected=true] { color: var(--foreground); border-bottom-color: var(--primary); background: none; }
+
+/* Selector segmentado */
+:global(.admin-root) .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--control-edge); border-radius: 4px; overflow: hidden; background: var(--card); }
+:global(.admin-root) .seg .segItem { min-height: 2.625rem; padding: 0 .875rem; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: none; font-size: .875rem; font-weight: 600; color: var(--muted-foreground); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .375rem; white-space: nowrap; }
+:global(.admin-root) .seg .segItem:last-child { border-right: 0; }
+:global(.admin-root) .seg .segItem[aria-checked=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+
+/* Avance */
+:global(.admin-root) .bar { height: 6px; border-radius: 3px; background: var(--secondary); overflow: hidden; }
+:global(.admin-root) .bar > span { display: block; height: 100%; background: var(--primary); }
+:global(.admin-root) .stepLine { height: 4px; border-radius: 2px; background: var(--border); }
+:global(.admin-root) .stepLine[data-on=true] { background: var(--primary); }
+
+/* Avisos y vacíos */
+:global(.admin-root) .notice { display: flex; gap: .75rem; padding: .875rem 1rem; border-radius: 4px; border: 1px solid var(--warning-border); background: var(--warning-surface); color: var(--foreground); }
+:global(.admin-root) .notice > svg { color: var(--warning); flex: none; }
+:global(.admin-root) .notice[data-tone=info] { border-color: var(--border); background: var(--secondary); }
+:global(.admin-root) .notice[data-tone=info] > svg { color: var(--foreground); }
+:global(.admin-root) .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .625rem; padding: 2.5rem 1.5rem; border: 1px dashed var(--control-edge); border-radius: 6px; color: var(--muted-foreground); }
+
+/* Panel lateral (computadora) o inferior (celular) */
+:global(.admin-root) .scrim { position: fixed; inset: 0; z-index: 60; background: var(--scrim); border: 0; padding: 0; cursor: default; }
+:global(.admin-root) .sheet { position: fixed; z-index: 61; display: flex; flex-direction: column; background: var(--card); color: var(--foreground); box-shadow: -18px 0 48px rgba(6, 31, 63, .18); top: 0; right: 0; bottom: 0; width: min(460px, 100%); border-left: 1px solid var(--border); padding-top: env(safe-area-inset-top, 0px); }
+@media (max-width: 767px) {
+  :global(.admin-root) .sheet { top: auto; left: 0; width: 100%; max-height: 92%; border-left: 0; border-radius: 8px 8px 0 0; box-shadow: 0 -12px 40px rgba(6, 31, 63, .2); padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :global(.admin-root) .sheet { animation: sheetIn .2s ease; }
+}
+@media (prefers-reduced-motion: no-preference) and (max-width: 767px) {
+  :global(.admin-root) .sheet { animation-name: sheetUp; }
+}
+@keyframes sheetIn { from { transform: translateX(24px); opacity: .4; } to { transform: none; opacity: 1; } }
+@keyframes sheetUp { from { transform: translateY(32px); opacity: .4; } to { transform: none; opacity: 1; } }

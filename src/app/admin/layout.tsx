@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <div className={styles.panel}><AdminShell>{children}</AdminShell></div>;
+  return <div className={`${styles.panel} admin-root`}><AdminShell>{children}</AdminShell></div>;
 }
