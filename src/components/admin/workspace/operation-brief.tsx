@@ -8,6 +8,7 @@ import { isTaskOpen } from "@/lib/tasks";
 import { stageLabel, requiredReviews, nextWorkflowStage, reviewComplete } from "@/lib/formatos/operation-workflow";
 import { EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 import type { ExpedienteOperativo } from "@/components/admin/expediente-operation-panel";
+import { formatDate } from "@/lib/utils";
 
 type Operation=ExpedienteOperativo & {folio:string;cliente_id:string;propiedad_slug:string|null;operacion:string};
 export function OperationBrief({operation,onReview}:{operation:Operation;onReview:()=>void}){
@@ -24,7 +25,7 @@ export function OperationBrief({operation,onReview}:{operation:Operation;onRevie
     <dl className="admin-operation-context">
       <div><dt>Cliente</dt><dd>{client?<Link href={`/admin/clientes/${encodeURIComponent(client.id)}`}>{client.nombre}</Link>:"Cliente no disponible"}</dd></div>
       <div><dt>Responsable</dt><dd>{adviser?.nombre??"Responsable no disponible"}</dd></div>
-      <div><dt>Fecha objetivo</dt><dd>{operation.fecha_objetivo?operation.fecha_objetivo.split("-").reverse().join("/"):"Sin fecha objetivo"}</dd></div>
+      <div><dt>Fecha objetivo</dt><dd>{operation.fecha_objetivo?formatDate(operation.fecha_objetivo):"Sin fecha objetivo"}</dd></div>
     </dl>
     <div className="admin-operation-next" aria-label="Tu siguiente paso"><div><h3>Tu siguiente paso</h3>{next?<Link href={`/admin/tareas/${encodeURIComponent(next.id)}`}><strong>{next.titulo}</strong><small>{next.vence?`Fecha límite: ${next.vence}`:"Sin fecha límite"}</small></Link>:<p>Sin próxima tarea registrada</p>}</div>{operation.operacion==="venta"?<button type="button" className={btnPrimary} onClick={onReview}>Continuar <ArrowUpRight size={16}/></button>:<Link className={btnPrimary} href={`/admin/tareas?${query}`}>Crear próxima tarea <ArrowUpRight size={16}/></Link>}</div>
     <div hidden={operation.operacion==="venta"} className="admin-operation-gaps"><div><h3>Por completar</h3><ul>{!operation.propiedad_slug&&<li>Vincular el inmueble.</li>}{!operation.fecha_objetivo&&<li>Registrar una fecha objetivo.</li>}{!next&&<li>Acordar y registrar la próxima tarea.</li>}<li>{pending.length} {operation.flujo?"requisitos del próximo paso por revisar":pending.length===1?"requisito documental pendiente de recepción":"requisitos documentales pendientes de recepción"}.</li></ul><p>{operation.flujo?"Consulta sus soportes, vigencia y pendientes en la guía.":"La recepción registrada se revisa por separado en Actividad."}</p></div><button type="button" className={btnGhost} onClick={onReview}>Revisar requisitos</button></div>

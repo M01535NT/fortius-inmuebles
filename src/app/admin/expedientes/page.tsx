@@ -7,10 +7,10 @@ import { emptyWorkflow, WORKFLOW_ROUTES, stageLabel, type OperationWorkflow } fr
 import { OperationBrief } from "@/components/admin/workspace/operation-brief";
 import { DossierTabs, type DossierView } from "@/components/admin/workspace/dossier-tabs";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
-import { EXPEDIENTE_ETAPAS, EXPEDIENTE_DOCUMENTOS } from "@/lib/formatos/expediente-operations";
+import { EXPEDIENTE_ETAPAS, EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import { PageHeader, btnDanger, btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
 import { FormatoEditor } from "@/components/admin/formato-editor";
-import { db, useCollection } from "@/lib/admin/store";
+import { db, fetchJson as json, useCollection } from "@/lib/admin/store";
 import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
@@ -19,6 +19,7 @@ import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 import { ExpedienteClientList } from "@/components/admin/expediente-client-list";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
 import type { ExpedienteOperativo } from "@/components/admin/expediente-operation-panel";
+import { formatAmount } from "@/lib/finance/money";
 
 type Expediente = ExpedienteOperativo & { cliente_id: string; propiedad_slug: string | null; folio: string; operacion: string; unidad: string; deleted_at?: string | null };
 type Documento = { id: string; expediente_id: string; formato_id: string; data: Record<string, unknown>; version: number; updated_at: string };
@@ -26,12 +27,6 @@ type Emision = { id: string; draft_version: number; created_at: string; sha256: 
 type Copia = { id: string; emission_id: string; created_at: string; sha256: string };
 type Adjunto = { id: string; draft_id: string; kind: "foto" | "croquis" | "soporte"; caption: string; source: string; observed_on: string | null; mime: string; sha256: string; created_at: string };
 
-async function json<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
-  const body = await response.json();
-  if (!response.ok) throw new Error(body.error ?? "No se pudo completar la operación");
-  return body as T;
-}
 
 export default function ExpedientesPage() {
   const [createOpen,setCreateOpen] = React.useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("nuevo") === "1");
@@ -283,7 +278,7 @@ export default function ExpedientesPage() {
       <form ref={creationForm} hidden={!createOpen} onChange={()=>setCreationDirty(true)} onSubmit={createExpediente} className="grid gap-4 md:grid-cols-2">
         <label className="text-sm">Cliente<select name="clienteId" required disabled={busy} value={newClient} onChange={e=>{setNewClient(e.target.value);setNewRoute(clientes.find(c=>c.id===e.target.value)?.tipo==="comprador"?"compra":"captacion");}} className={selectClass}><option value="">Selecciona</option>{clientes.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
         <div className="text-sm"><label htmlFor="nuevo-expediente-folio">Folio del expediente</label><input id="nuevo-expediente-folio" aria-describedby="nuevo-expediente-folio-ayuda" readOnly value="Se asignará al guardar" className={inputClass + " bg-secondary text-muted-foreground"} /><p id="nuevo-expediente-folio-ayuda" className="mt-1 text-xs text-muted-foreground">Fortius lo asigna automáticamente al crear el expediente.</p></div>
-        <label className="text-sm">Operación<select name="operacion" disabled={busy} value={newOperation} onChange={e=>{setNewOperation(e.target.value);setNewRoute(e.target.value==="inversion"?"inversion":e.target.value==="renta"?"arrendador":"captacion");}} className={selectClass}><option value="venta">Venta</option><option value="renta">Renta</option><option value="inversion">Evaluación de inversión</option><option value="administracion">Administración</option><option value="otra">Otra</option></select></label>
+        <label className="text-sm">Operación<select name="operacion" disabled={busy} value={newOperation} onChange={e=>{setNewOperation(e.target.value);setNewRoute(e.target.value==="inversion"?"inversion":e.target.value==="renta"?"arrendador":"captacion");}} className={selectClass}>{Object.entries(EXPEDIENTE_OPERACIONES).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
         <label className="text-sm">Inmueble<select name="propiedadSlug" disabled={busy} value={newProperty} onChange={e=>setNewProperty(e.target.value)} className={selectClass}><option value="">Sin vincular</option>{propiedades.filter(item=>newRoute==="compra"||!newClient||item.asesorId===clientes.find(c=>c.id===newClient)?.asesorId).map((item) => <option key={item.slug} value={item.slug}>{item.titulo}</option>)}</select></label>
         {["venta","renta","inversion"].includes(newOperation)&&<label className="text-sm">Ruta de la nueva operación<select disabled={busy} value={newRoute} onChange={e=>setNewRoute(e.target.value as OperationWorkflow["ruta"])} className={selectClass}>{Object.entries(WORKFLOW_ROUTES).filter(([k])=>newOperation==="inversion"?k==="inversion":newOperation==="renta"?["arrendador","arrendatario"].includes(k):["captacion","compra"].includes(k)).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>}
         <p className="text-sm text-muted-foreground md:col-span-2">Puedes iniciar con documentos pendientes y vincular el inmueble después. Cada avance indicará qué falta.</p>
@@ -347,8 +342,8 @@ export default function ExpedientesPage() {
             <div className="mt-4 grid gap-3 md:grid-cols-2">{[{ key: "fotoPrincipalId", kind: "foto", label: "Fotografía principal del PDF" }, { key: "croquisId", kind: "croquis", label: "Croquis del PDF" }].map((slot) => <label key={slot.key} className="text-sm">{slot.label}<select value={String(values[slot.key] ?? "")} onChange={(event) => setValues((current) => ({ ...current, [slot.key]: event.target.value }))} className={selectClass}><option value="">Selecciona un adjunto</option>{adjuntos.filter((item) => item.kind === slot.kind).map((item) => <option key={item.id} value={item.id}>{item.caption}</option>)}</select></label>)}</div>
           </div>}
           {missing.length > 0 && <p className="mt-5 text-sm text-muted-foreground">Para emitir faltan: {missing.join(", ")}.</p>}
-          {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {budgetTotals.subtotalCotizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${budgetTotals.importeAutorizado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${String(values.moneda)}`}</p><p>Estimación con reserva: {budgetTotals.estimacionConReserva.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p><p>Pagado: {budgetTotals.totalPagado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} {String(values.moneda)}</p></div>}
-          {netTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Neto estimado</h3><p>Precio usado: {netTotals.precioBase.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p>Erogaciones: {netTotals.erogaciones.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p><p className="font-semibold">Neto: {netTotals.netoEstimado.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</p></div>}
+          {budgetTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Resumen calculado</h3><p>Subtotal cotizado: {formatAmount(budgetTotals.subtotalCotizado)} {String(values.moneda)}</p><p>Autorizado: {budgetTotals.autorizadoMenosPagado === null ? "Sin partidas autorizadas" : `${formatAmount(budgetTotals.importeAutorizado)} ${String(values.moneda)}`}</p><p>Estimación con reserva: {formatAmount(budgetTotals.estimacionConReserva)} {String(values.moneda)}</p><p>Pagado: {formatAmount(budgetTotals.totalPagado)} {String(values.moneda)}</p></div>}
+          {netTotals && <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm"><h3 className="font-semibold">Neto estimado</h3><p>Precio usado: {formatAmount(netTotals.precioBase)} MXN</p><p>Erogaciones: {formatAmount(netTotals.erogaciones)} MXN</p><p className="font-semibold">Neto: {formatAmount(netTotals.netoEstimado)} MXN</p></div>}
           {hasUnsavedChanges && <p className="mt-5 text-sm text-muted-foreground">{definition.id === "01" ? "Al descargar el PDF se guardarán los datos que estás viendo." : "Guarda los cambios antes de emitir el PDF."}</p>}
           {hasUnsavedChanges && <button type="button" disabled={busy} className={btnGhost + " mt-3"} onClick={async () => { if (await confirmAction("¿Descartar los cambios sin guardar de este borrador?")) { setValues(documento.data); setError(""); } }}>Descartar cambios sin guardar</button>}
           {!definition.readyForEmission && <p className="mt-5 text-sm text-muted-foreground">Este formato está pendiente de cotejo con el original; la emisión permanece bloqueada.</p>}

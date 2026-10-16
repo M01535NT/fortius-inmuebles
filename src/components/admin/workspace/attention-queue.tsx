@@ -4,6 +4,7 @@ import { Badge } from "@/components/admin/ui";
 import { db, useCollection } from "@/lib/admin/store";
 import { projectFollowups } from "@/lib/admin/followups";
 import { isTaskOpen } from "@/lib/tasks";
+import { formatDate } from "@/lib/utils";
 
 export function AttentionQueue({ today }: { today: string }) {
   const leads=useCollection(db.leads), clients=useCollection(db.clientes), tasks=useCollection(db.tareas), advisers=useCollection(db.asesores);
@@ -18,7 +19,7 @@ export function AttentionQueue({ today }: { today: string }) {
     <div className="admin-card-heading"><h2>Prioridades de hoy</h2><span className="text-sm text-muted-foreground">Contactos y tareas del equipo</span></div>
     <div className="admin-priority-grid">
       <div><h3>Contactos por atender <Badge tone={contacts.length ? "amber" : "neutral"}>{contacts.length}</Badge></h3>
-        {contacts.length ? <ul>{contacts.slice(0,4).map(contact=><li key={contact.id}><Link href={contact.href}><strong>{contact.personName}</strong><small>{contact.fecha===today ? "Hoy" : `Pendiente desde ${contact.fecha.split("-").reverse().join("/")}`} · {advisers.find(adviser=>adviser.id===contact.asesorId)?.nombre??"Sin asignar"}</small></Link></li>)}</ul> : <p>Sin contactos previstos para hoy ni atrasados.</p>}
+        {contacts.length ? <ul>{contacts.slice(0,4).map(contact=><li key={contact.id}><Link href={contact.href}><strong>{contact.personName}</strong><small>{contact.fecha===today ? "Hoy" : `Pendiente desde ${formatDate(contact.fecha)}`} · {advisers.find(adviser=>adviser.id===contact.asesorId)?.nombre??"Sin asignar"}</small></Link></li>)}</ul> : <p>Sin contactos previstos para hoy ni atrasados.</p>}
         {contacts.length>4 && <details><summary>Ver {contacts.length-4} contactos más</summary><ul>{contacts.slice(4).map(contact=><li key={contact.id}><Link href={contact.href}>{contact.personName}<small>{contact.fecha}</small></Link></li>)}</ul></details>}
       </div>
       <div><h3>Tareas para hoy o vencidas <Badge tone={dueTasks.length ? "amber" : "neutral"}>{dueTasks.length}</Badge></h3>

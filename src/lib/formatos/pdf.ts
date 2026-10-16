@@ -20,6 +20,7 @@ import type { FormatoPdfAsset } from "./assets";
 import { calcularValor, calcularConstruccion, valorAssetIds, type ValorRow } from "./valor";
 import { VALOR_TABLES, mostrarCampoValor } from "./valor-fields";
 import { promesaParagraphs } from "./promesa";
+import { formatAmount } from "@/lib/finance/money";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -28,7 +29,7 @@ const a4: [number, number] = [595.28, 841.89];
 const margin = 45;
 
 function displayValue(field: FormatoField, value: unknown): string {
-  if (field.type === "money" && typeof value === "number") return new Intl.NumberFormat("es-MX", { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(value);
+  if (field.type === "money" && typeof value === "number") return formatAmount(value);
   if (field.type === "choice") return field.options?.find((option) => option.value === value)?.label ?? "";
   if (field.type === "date" && typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${value}T00:00:00Z`));
   return String(value ?? "").trim();
@@ -42,7 +43,7 @@ export function receiptParagraphs(data: Record<string, unknown>): string[] {
     return new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${raw}T00:00:00Z`));
   };
   const money = (key: string) => typeof data[key] === "number"
-    ? new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data[key] as number)
+    ? formatAmount(data[key] as number)
     : value(key);
   return [
     `Número de recibo: ${value("numeroRecibo")} · Lugar de emisión: ${value("lugarEmision")}`,
@@ -299,7 +300,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   } else if (id === "07") {
     const totals = calcularValor(data);
     const val = (key: string) => String(data[key] ?? "");
-    const cash = (value: number | null | undefined) => value === null || value === undefined ? "Excluido" : `${value.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
+    const cash = (value: number | null | undefined) => value === null || value === undefined ? "Excluido" : `${formatAmount(value)} MXN`;
     const nextPage = () => { page = pdf.addPage(a4); startPage(); };
     const fields = (keys: string[]) => keys.forEach((key) => { const field = definition.fields.find((item) => item.key === key); if (field && mostrarCampoValor(key, data)) fieldLine(field); });
     await picture(assets.find((asset) => asset.id === data.fotoPrincipalId)!);
@@ -388,7 +389,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     page = finalPage; y = finalY;
   } else if (id === "08") {
     const totals = calcularNeto(data);
-    const cash = (amount: number) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} MXN`;
+    const cash = (amount: number) => `${formatAmount(amount)} MXN`;
     write("01 / Precio y diferencia", 13, bold, accent, 10);
     for (const field of definition.fields.slice(1, 10)) fieldLine(field);
     if (totals.diferenciaAbsoluta !== null) {
@@ -416,7 +417,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     write("No equivale al saldo por cobrar en firma: los anticipos recibidos deben conciliarse por separado. Evita duplicar cargos.", 9, regular, muted, 8);
   } else if (id === "10") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
-    const cash = (amount: number, currency = val("moneda")) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} ${currency}`;
+    const cash = (amount: number, currency = val("moneda")) => `${formatAmount(amount)} ${currency}`;
     const section = (title: string) => { ensure(65); write(title, 13, bold, accent, 9); };
     const rows = (key: PlanTable) => data[key] as PlanRow[];
     const list = (key: PlanTable) => {
@@ -488,7 +489,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     write("Este plan no amplía facultades, honorarios, penalizaciones ni licencias del contrato de intermediación.", 9, regular, muted, 10);
   } else if (id === "11") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
-    const money = (amount: number, currency = val("moneda")) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} ${currency}`;
+    const money = (amount: number, currency = val("moneda")) => `${formatAmount(amount)} ${currency}`;
     const section = (title: string) => { ensure(65); write(title, 13, bold, accent, 9); };
     const rows = (key: ReporteTable) => data[key] as ReporteRow[];
     const list = (key: ReporteTable) => {
@@ -550,7 +551,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   } else if (id === "19") {
     const totals = calcularPresupuesto(data);
     const currency = String(data.moneda);
-    const cash = (value: number | null) => value === null ? "No hay partidas autorizadas" : `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} ${currency}`;
+    const cash = (value: number | null) => value === null ? "No hay partidas autorizadas" : `${formatAmount(value)} ${currency}`;
     write("Resumen", 13, bold, accent, 10);
     for (const field of definition.fields.slice(1, 7)) fieldLine(field);
     write(`Subtotal cotizado: ${cash(totals.subtotalCotizado)}`, 10, regular, ink, 6);
@@ -567,7 +568,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       write(`${item.id} · ${item.area || "Sin área"} · ${item.concepto}`, 10, bold, ink, 3);
       if (item.estado === "Descartado") write("Descartado; no incluido en los importes.", 9, regular, muted, 10);
       else {
-        const amount = new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(importePartida(item));
+        const amount = formatAmount(importePartida(item));
         write(`${item.tipoCosto} · ${item.cantidad} ${item.unidad} × ${cash(item.precioUnitario)} = ${amount} ${currency} · ${item.estado}`, 9, regular, ink, 3);
         write(`Soporte: ${item.soporte}`, 9, regular, muted, 10);
       }
@@ -610,7 +611,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     for (const field of definition.fields.slice(17)) fieldLine(field);
   } else if (id === "14") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
-    const cash = (amount: unknown, currency: string) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount as number)} ${currency}`;
+    const cash = (amount: unknown, currency: string) => `${formatAmount(amount as number)} ${currency}`;
     const signature = (name: string, role: string) => {
       ensure(88);
       y -= 30;

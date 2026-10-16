@@ -13,7 +13,6 @@ import { Plus, X } from "lucide-react";
 
 import {
   Badge,
-  DemoBanner,
   EmptyState,
   PageHeader,
   btnPrimary,
@@ -118,7 +117,6 @@ export default function AdminLeadsPage() {
           </div>
         }
       /></div>
-      <DemoBanner />
 
       {/* Alta manual rápida */}
       <div id="captura-manual-lead" hidden={!capturaAbierta}>

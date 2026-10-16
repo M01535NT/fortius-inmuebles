@@ -5,7 +5,6 @@ import { HOME_FIELDS, HOME_TEXT_KEYS, homeText, resolveSiteContent } from "@/dat
 
 import {
   AsyncForm,
-  DemoBanner,
   Field,
   PageHeader,
   btnPrimary,
@@ -56,7 +55,6 @@ function Editor({ initial }: { initial: SiteContent }) {
         title="Contenido."
         description="Edita los textos del sitio. Publica servicios y afirmaciones que puedas respaldar; los saltos de línea se conservan en los títulos."
       />
-      <DemoBanner />
 
       <AsyncForm onSubmit={guardar} className="space-y-6">
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">

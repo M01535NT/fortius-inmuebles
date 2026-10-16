@@ -1,10 +1,11 @@
 "use client";
 import { calcularValor, valorReviewSnapshot } from "@/lib/formatos/valor";
 import { btnGhost } from "./ui";
+import { formatAmount } from "@/lib/finance/money";
 
 export function ValorCalculation({ values, onChange }: { values: Record<string, unknown>; onChange: (key: string, value: unknown) => void }) {
   const result = calcularValor(values);
-  const cash = (value: number | null | undefined) => value === null || value === undefined ? "Pendiente" : `${value.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
+  const cash = (value: number | null | undefined) => value === null || value === undefined ? "Pendiente" : `${formatAmount(value)} MXN`;
   return <section className="space-y-3 rounded-lg border border-border bg-muted/30 p-4 md:col-span-2">
     <h2 className="font-semibold">Cálculos de la opinión</h2>
     <dl className="grid gap-3 md:grid-cols-2">

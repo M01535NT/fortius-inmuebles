@@ -1,5 +1,6 @@
 import { FORMATOS } from "./catalog";
 import type { OperationalInterview } from "@/lib/intake/interview";
+import { EXPEDIENTE_OPERACIONES } from "./expediente-operations";
 
 type Context = {
  expediente: { folio: string; unidad?: string; operacion?: string; flujo?: { ruta?: string } | null };
@@ -21,7 +22,7 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   telefono:persona?.telefono, correo:persona?.email,
   inmueble:expediente.unidad||inmueble?.direccionAproximada||a.ubicacion,
   idInmueble:inmueble?.slug, colonia:inmueble?.zona||a.zona,
-  operacion:({venta:"Venta",renta:"Renta",inversion:"Evaluación de inversión",administracion:"Administración",otra:"Otra"} as Record<string,string>)[expediente.operacion??""],
+  operacion:(EXPEDIENTE_OPERACIONES as Record<string,string>)[expediente.operacion??""],
   fechaEntrevista:a.fecha, origenContacto:a.origenContacto, relacion:a.relacion,
   tipoTitular:a.relacion==="representante"?"representante":expediente.flujo?.ruta==="compra"?"comprador":expediente.flujo?.ruta==="arrendatario"?"arrendatario":owner?"propietario":"otro",
   tipoInmueble:a.tipoInmueble, zonas:a.zona, indispensables:a.necesidades,

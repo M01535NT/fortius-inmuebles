@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import type { FormatoField } from "./catalog";
 import { PROMESA_ORIGINAL } from "./promesa-text";
+import { formatAmount } from "@/lib/finance/money";
 
 const field = (section: string, key: string, label: string, type: FormatoField["type"] = "text"): FormatoField => ({ section, key, label, type, required: true });
 const choice = (section: string, key: string, label: string, options: string[][]): FormatoField => ({ ...field(section, key, label, "choice"), options: options.map(([value, label]) => ({ value, label })) });
@@ -146,7 +147,7 @@ export function importePromesaLetra(value: number, currency: string): string {
 export function promesaParagraphs(data: Record<string, unknown>): string[] {
   const v = (key: string) => String(data[key] ?? "").trim();
   const day = (key: string) => new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${v(key)}T00:00:00Z`));
-  const cash = (key: string) => new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data[key] as number);
+  const cash = (key: string) => formatAmount(data[key] as number);
   const letters = (key: string) => importePromesaLetra(data[key] as number, v("moneda"));
   const list = (key: string, format: (row: PromesaRow) => string) => (rows(data[key]) ?? []).map((row, index) => `${index + 1}) ${format(row)}`).join("; ");
   const rowDay = (value: unknown) => new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${String(value)}T00:00:00Z`));
@@ -163,7 +164,7 @@ export function promesaParagraphs(data: Record<string, unknown>): string[] {
     "RECURSOS PROPIOS Y FINANCIAMIENTO": `${cash("recursosPropios")} ${v("moneda")} de recursos propios y ${cash("credito")} ${v("moneda")} de crédito`, "ESTADO DEL CRÉDITO": (data.credito as number) > 0 ? v("estadoCredito") : "no se prevé crédito",
     "ANEXOS INCORPORADOS": list("anexos", (row) => `${row.documento}, versión ${row.version}, ${row.referencia}`), "ACCESORIOS INCLUIDOS": v("accesorios"), EXCLUSIONES: v("exclusiones"), "FECHA LÍMITE": day("fechaLimite"),
     "PRECIO NÚMERO": cash("precio"), MONEDA: v("moneda"), "PRECIO LETRA": letters("precio"), "TRATAMIENTO FISCAL": v("tratamientoFiscal"), "REGLA DE CONVERSIÓN": data.conversion === "si" ? v("reglaConversion") : "el pago en la moneda pactada, sin conversión",
-    "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": list("pagosPrecio", (row) => `${new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(row.importe as number)} ${v("moneda")} el ${rowDay(row.fecha)}, por ${row.medio}, a ${row.beneficiario}, ${row.cuenta}`),
+    "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": list("pagosPrecio", (row) => `${formatAmount(row.importe as number)} ${v("moneda")} el ${rowDay(row.fecha)}, por ${row.medio}, a ${row.beneficiario}, ${row.cuenta}`),
     "FECHA CONDICIONES": day("fechaCondiciones"), "CONDICIONES, RESPONSABLES Y EVIDENCIA": list("condiciones", (row) => `${row.condicion}; responsable: ${row.responsable}; evidencia: ${row.evidencia}`),
     INSTITUCIÓN: v("institucionCredito"), "FECHA SOLICITUD": data.condicionCredito === "si" ? day("fechaSolicitud") : "no aplica",
     "DOCUMENTOS Y FECHA DE ENTREGA": list("documentosVendedor", (row) => `${row.documento}, a más tardar el ${rowDay(row.fecha)}`), "MECANISMO DE LIQUIDACIÓN Y CANCELACIÓN": v("mecanismoGravamenes"),

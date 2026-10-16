@@ -1,6 +1,6 @@
 import {afterEach,beforeEach,expect,it,vi} from "vitest";
 import {cleanup,fireEvent,render,screen,waitFor} from "@testing-library/react";
-const {session}=vi.hoisted(()=>({session:vi.fn()}));vi.mock("@/lib/admin/store",()=>({useSession:session}));
+const {session}=vi.hoisted(()=>({session:vi.fn()}));vi.mock("@/lib/admin/store",async original=>({...await original<typeof import("@/lib/admin/store")>(),useSession:session}));
 import Page from "@/app/admin/control-comercial/page";
 import {emptyComercialBook,newOpportunity} from "@/lib/comercial/types";
 const id="61000000-0000-4000-8000-000000000003";

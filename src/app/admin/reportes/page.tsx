@@ -9,11 +9,9 @@ import { PageHeader } from "@/components/admin/ui";
 import { apiRequest, db, useCollection, useLoadState, useSession } from "@/lib/admin/store";
 import { commercialMetrics, type StageRecord } from "@/lib/admin/commercial-metrics";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 
-const stageLabels: Record<string, string> = {
-  captacion: "Captación", documentacion: "Documentación", comercializacion: "Comercialización",
-  negociacion: "Negociación", cierre: "Cierre", cerrado: "Cerrado", "sin-etapa": "Sin etapa",
-};
+const stageLabels: Record<string, string> = { ...EXPEDIENTE_ETAPAS, "sin-etapa": "Sin etapa" };
 
 export default function ReportesPage() {
   const session = useSession();

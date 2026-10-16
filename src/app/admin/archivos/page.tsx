@@ -17,7 +17,6 @@ import {
   AsyncForm,
   AsyncButton,
   UploadControl,
-  DemoBanner,
   EmptyState,
   Field,
   PageHeader,
@@ -82,7 +81,6 @@ export default function ArchivosPage() {
         title="Archivos."
         description="Catálogo de imágenes, PDFs y videos. Carga validada de hasta 20 MB; archivos privados solo para personal autorizado."
       />
-      <DemoBanner />
       <UploadControl
         onUploaded={async (file) => {
           await upsert(

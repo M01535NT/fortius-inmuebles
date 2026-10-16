@@ -19,6 +19,7 @@ import {
   useCollection,
 } from "@/lib/admin/store";
 import { INTENTS, type OperationalInterview } from "@/lib/intake/interview";
+import { formatDate } from "@/lib/utils";
 
 /*
   Resumen coach: una acción principal (Nueva operación), entrevistas
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
             prospecto: vender, arrendar, comprar, rentar o invertir.
           </p>
           <p className="admin-coach-date">
-            <time dateTime={hoy}>{hoy.split("-").reverse().join("/")}</time>
+            <time dateTime={hoy}>{formatDate(hoy)}</time>
           </p>
         </div>
         <div className="admin-coach-actions">

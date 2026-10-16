@@ -39,6 +39,31 @@ export function useSession() {
   );
 }
 
+/** Error de una petición con su código HTTP; conserva el mensaje del servidor. */
+export class RequestError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
+/** Petición JSON o multipart (FormData) sin cambiar el mensaje de error del servidor. */
+export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
+  const body = await response.json();
+  if (!response.ok) throw new RequestError(body.error ?? "No se pudo completar la operación", response.status);
+  return body as T;
+}
+
+/** Reúne todas las páginas de expedientes disponibles para la cuenta. */
+export async function loadAllDossiers<T>(): Promise<T[]> {
+  const records: T[] = [];
+  let offset: number | null = 0;
+  while (offset !== null) {
+    const page: { expedientes: T[]; nextOffset: number | null } = await apiRequest(`/api/admin/expedientes?limit=200&offset=${offset}`);
+    if (!Array.isArray(page.expedientes) || (page.nextOffset !== null && (!Number.isInteger(page.nextOffset) || page.nextOffset <= offset || page.nextOffset > 100000))) throw new Error("No se pudo completar la consulta de expedientes. Vuelve a intentarlo.");
+    records.push(...page.expedientes);
+    offset = page.nextOffset;
+  }
+  return records;
+}
+
 export async function apiRequest<T>(
   url: string,
   method = "GET",

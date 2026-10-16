@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AppWorkspace } from "@/components/admin/apps/workspace";
 const mocks=vi.hoisted(()=>({api:vi.fn(),confirm:vi.fn(),search:new URLSearchParams()}));
-vi.mock("@/lib/admin/store",()=>({apiRequest:mocks.api,useSession:()=>({id:"test-admin"}),errorMessage:(e:Error)=>e.message,uploadFile:vi.fn()}));
+vi.mock("@/lib/admin/store",()=>({apiRequest:mocks.api,loadAllDossiers:async()=>(await mocks.api("/api/admin/expedientes?limit=200&offset=0")).expedientes,useSession:()=>({id:"test-admin"}),errorMessage:(e:Error)=>e.message,uploadFile:vi.fn()}));
 vi.mock("next/navigation",()=>({useSearchParams:()=>mocks.search}));
 vi.mock("@/components/admin/workspace/confirm",()=>({confirmAction:mocks.confirm}));
 vi.mock("@/components/admin/apps/document-editor",()=>({DocumentEditor:()=>null}));
