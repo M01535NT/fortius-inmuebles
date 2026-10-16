@@ -94,12 +94,17 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
     const trigger = page.getByRole("button", { name: "Menú del panel" });
     await trigger.click();
     const menu = page.getByRole("navigation", { name: "Módulos móviles" });
-    for (const name of ["Inmuebles", "Agenda", "Herramientas", "Configuración"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
-    await expect(menu.getByRole("button", { name: "Salir" })).toBeVisible();
+    for (const name of ["Inmuebles", "Agenda", "Ver las 16 herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    const admin = menu.getByRole("button", { name: /Administración/ });
+    await expect(admin).toHaveAttribute("aria-expanded", "false");
+    await admin.click();
+    await expect(menu.getByRole("link", { name: "Configuración", exact: true })).toBeVisible();
+    await expect(menu.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(menu).toHaveCount(0);
     await expect(trigger).toBeFocused();
     await trigger.click();
+    await menu.getByRole("button", { name: /Administración/ }).click();
     await menu.getByRole("link", { name: "Configuración", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/configuracion$/);
     await trigger.click();
@@ -288,4 +293,15 @@ test("mobile editor reveals collapsed sections and confirms leaving through sear
   await expect(page).toHaveURL(/admin\/agenda\?tab=tareas/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.screenshot({path:info.outputPath("mobile-task.png"),fullPage:true});
+});
+test("Documentos es una pestaña de Herramientas y la dirección anterior lleva a ella", async ({ page }) => {
+  await page.route("**/api/admin/documentos?**", route => route.fulfill({ json: { documentos: [], total: 0, nextOffset: null } }));
+  await page.goto("/admin/documentos");
+  await expect(page).toHaveURL(/\/admin\/herramientas\?tab=documentos$/);
+  await expect(page.getByRole("tab", { name: "Documentos" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Documentos", exact: true })).toBeVisible();
+  await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
+  await page.getByRole("tab", { name: "Herramientas" }).click();
+  await expect(page).toHaveURL(/\/admin\/herramientas$/);
+  await expect(page.getByRole("textbox", { name: "Buscar herramienta" })).toBeVisible();
 });

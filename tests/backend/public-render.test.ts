@@ -84,7 +84,7 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
-  expect(await config.redirects?.()).toHaveLength(11);
+  expect(await config.redirects?.()).toHaveLength(12);
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
@@ -102,6 +102,7 @@ test("las listas anteriores del panel redirigen a sus secciones nuevas sin tocar
     "/admin/calendario": "/admin/agenda",
     "/admin/tareas": "/admin/agenda?tab=tareas",
     "/admin/apps": "/admin/herramientas",
+    "/admin/documentos": "/admin/herramientas?tab=documentos",
   });
   expect(redirects.filter(r => r.source.startsWith("/admin")).every(r => r.permanent === false && !r.source.includes(":"))).toBe(true);
 });

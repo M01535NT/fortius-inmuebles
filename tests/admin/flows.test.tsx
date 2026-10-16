@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
@@ -147,7 +148,12 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
-  expect(Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual([
+  const links = () => Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href"));
+  expect(links()).toEqual(["/admin/propiedades", "/admin/agenda", "/admin/herramientas", "/admin/perfil", "/"]);
+  const admin = within(nav).getByRole("button", { name: /Administración/ });
+  expect(admin.getAttribute("aria-expanded")).toBe("false");
+  fireEvent.click(admin);
+  expect(links()).toEqual([
     "/admin/propiedades", "/admin/agenda", "/admin/herramientas",
     "/admin/asesores", "/admin/contenido", "/admin/reportes", "/admin/historial", "/admin/configuracion",
     "/admin/perfil", "/",
@@ -157,7 +163,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   for (const href of ["finanzas", "territorio", "portal-clientes", "expedientes", "leads", "tareas"]) expect(document.querySelector(`a[href="/admin/${href}"]`)).toBeNull();
   fireEvent.click(
     Array.from(nav.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("Salir"),
+      b.textContent?.includes("Cerrar sesión"),
     )!,
   );
   await screen.findByRole("heading", { name: "Acceso al panel" });

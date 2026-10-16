@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronDown, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Plus, ShieldCheck, UserRound, Building2 } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronRight, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, ShieldCheck, UserRound, Building2 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
@@ -27,7 +27,7 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
   { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
 ];
-export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas", "/admin/documentos"] };
+export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
 /** Administración. Las páginas con más de un módulo (Sitio web, Reportes) se agrupan en pestañas en la Fase 6. */
 export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> = [
   { href: "/admin/asesores", label: "Equipo", match: ["/admin/asesores"] },
@@ -85,7 +85,7 @@ export function GuidedSidebar({ pathname, role, user, search, onLogout }: { path
     <div className="flex flex-col gap-0.5">
       <Link href="/admin/perfil" className={cn(s.link, s.sub)} aria-current={pathname.startsWith("/admin/perfil") ? "page" : undefined}><UserRound size={18} aria-hidden="true" />Mi perfil</Link>
       <DocumentLink href="/" className={cn(s.link, s.sub)}><ExternalLink size={18} aria-hidden="true" />Ver sitio</DocumentLink>
-      <AsyncButton type="button" onClick={onLogout} className={cn(s.link, s.sub)}><LogOut size={18} aria-hidden="true" />Salir</AsyncButton>
+      <AsyncButton type="button" onClick={onLogout} className={cn(s.link, s.sub)}><LogOut size={18} aria-hidden="true" />Cerrar sesión</AsyncButton>
     </div>
   </aside>;
 }
@@ -109,23 +109,39 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: { name: string; email: string; initials: string }; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
   const [, , , inmuebles, agenda] = MAIN_NAV;
-  const row = (href: string, label: string, icon: React.ReactNode, active: boolean) => <Link href={href} className={s.menuRow} aria-current={active ? "page" : undefined} onClick={onNavigate}>{icon}{label}</Link>;
+  const events = useCollection(db.eventos);
+  const today = operationalDate();
+  const visits = events.filter(event => event.tipo === "visita" && event.fecha === today).length;
+  const [adminOpen, setAdminOpen] = React.useState(() => ADMIN_NAV.some(item => isNavActive(pathname, item)));
+  const row = (href: string, label: string, icon: React.ReactNode, active: boolean, meta?: string) => <Link href={href} className={s.menuRow} aria-current={active ? "page" : undefined} onClick={onNavigate}>
+    {icon}<span className="flex-1">{label}</span>{meta && <span className={s.menuMeta}>{meta}</span>}{icon && <ChevronRight size={18} aria-hidden="true" className={s.menuChevron} />}
+  </Link>;
   return <nav ref={panel} id="admin-mobile-menu" className={s.menu} aria-label="Módulos móviles">
-    <div className="flex items-center gap-3 px-1"><span className={s.avatar} aria-hidden="true">{user.initials}</span><span className="flex min-w-0 flex-col"><span className="font-semibold">{user.name}</span><span className="break-all text-sm text-muted-foreground">{user.email}</span></span></div>
+    <div className="flex items-center gap-3 px-1"><span className={s.avatar} aria-hidden="true">{user.initials}</span><span className="flex min-w-0 flex-col"><span className="truncate font-semibold">{user.name}</span><span className="text-sm text-muted-foreground">{role === "admin" ? "Administrador" : "Asesor"}</span></span></div>
     <div className={s.menuGroup}>
       {row(inmuebles.href, inmuebles.label, <inmuebles.icon size={20} aria-hidden={true} />, isNavActive(pathname, inmuebles))}
-      {row(agenda.href, agenda.label, <agenda.icon size={20} aria-hidden={true} />, isNavActive(pathname, agenda))}
-      {row(TOOLS_NAV.href, "Herramientas", <TOOLS_NAV.icon size={20} aria-hidden={true} />, isNavActive(pathname, TOOLS_NAV))}
+      {row(agenda.href, agenda.label, <agenda.icon size={20} aria-hidden={true} />, isNavActive(pathname, agenda), visits ? `${visits} ${visits === 1 ? "visita" : "visitas"} hoy` : undefined)}
     </div>
-    {role === "admin" && <div className={s.menuGroup} aria-label="Administración" role="group">
-      <p className={s.menuLabel}>Administración</p>
-      {ADMIN_NAV.map(item => <React.Fragment key={item.href}>{row(item.href, item.label, null, isNavActive(pathname, item))}</React.Fragment>)}
+    <div className="flex flex-col gap-2">
+      <p className={s.menuLabel} id="admin-menu-herramientas">Herramientas</p>
+      <div className={s.menuGroup} role="group" aria-labelledby="admin-menu-herramientas">
+        {row(TOOLS_NAV.href, "Ver las 16 herramientas", <TOOLS_NAV.icon size={20} aria-hidden={true} />, isNavActive(pathname, TOOLS_NAV))}
+      </div>
+      <p className="px-1 text-sm text-muted-foreground">Dentro de cada operación aparecen las de su etapa.</p>
+    </div>
+    {role === "admin" && <div className={s.menuGroup}>
+      <button type="button" className={s.menuRow} aria-expanded={adminOpen} aria-controls="admin-menu-administracion" onClick={() => setAdminOpen(open => !open)}>
+        <ShieldCheck size={20} aria-hidden="true" /><span className="flex-1">Administración</span><span className={s.menuBadge}>Solo admin</span><ChevronDown size={18} aria-hidden="true" className={cn(s.chevron, adminOpen && s.chevronOpen)} />
+      </button>
+      {adminOpen && <div id="admin-menu-administracion" role="group" aria-label="Administración" className="flex flex-col pl-8">
+        {ADMIN_NAV.map(item => <React.Fragment key={item.href}>{row(item.href, item.label, null, isNavActive(pathname, item))}</React.Fragment>)}
+      </div>}
     </div>}
     <div className={s.menuGroup}>
-      <div className={s.menuRow}><span className="flex-1">Modo oscuro</span><ThemeToggle /></div>
+      <div className={s.menuRow}><Moon size={20} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle /></div>
       {row("/admin/perfil", "Mi perfil", <UserRound size={20} aria-hidden="true" />, pathname.startsWith("/admin/perfil"))}
-      <DocumentLink href="/" className={s.menuRow} onClick={onNavigate}><ExternalLink size={20} aria-hidden="true" />Ver sitio</DocumentLink>
-      <AsyncButton type="button" onClick={onLogout} className={s.menuRow}><LogOut size={20} aria-hidden="true" />Salir</AsyncButton>
+      <DocumentLink href="/" className={s.menuRow} onClick={onNavigate}><ExternalLink size={20} aria-hidden="true" /><span className="flex-1">Ver sitio</span></DocumentLink>
+      <AsyncButton type="button" onClick={onLogout} className={s.menuRow}><LogOut size={20} aria-hidden="true" />Cerrar sesión</AsyncButton>
     </div>
   </nav>;
 }

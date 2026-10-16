@@ -45,14 +45,16 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
   - La prueba de la barra inferior en celular fallaba siempre: medía a mitad del desplazamiento suave de la página. Ahora se desplaza al instante antes de medir. El diseño no cambió: el contenido termina 25 px por encima de la barra.
   - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro: Hoy, Operaciones, Contactos (dos pestañas), Agenda (dos pestañas), Inmuebles, Herramientas y el menú del celular.
   - La barra lateral coincide con el artboard `Sidebar`.
-  - **Diferencias con el encargo, pendientes de decisión del titular:**
-    - La página puente `/admin/documentos` sigue activa, sin enlaces que lleven a ella. El encargo la retira, pero contiene el buscador de documentos de todas las operaciones.
-    - El menú del celular difiere de `MenuMovil`:
-      - muestra el correo en lugar del rol;
-      - Administración aparece abierta en vez de plegada con la marca «Solo admin»;
-      - Herramientas no lleva el texto «Ver las 16 herramientas» ni su explicación;
-      - Agenda no indica las visitas de hoy;
-      - agrega «Mi perfil» y «Ver sitio».
+  - **Ajustes decididos por el titular el 16/10/2026** (dejó dos a criterio del agente):
+    - **Documentos pasa a ser una pestaña de Herramientas** (`/admin/herramientas?tab=documentos`). Conserva el buscador por folio y formato de todas las operaciones. Se retiró la página puente `/admin/documentos`, que ahora redirige a esa pestaña, junto con su componente `ModuleLink` y sus estilos. «Notas del equipo» sigue enlazada desde Herramientas.
+    - **El menú del celular sigue el artboard `MenuMovil`:**
+      - arriba, el nombre y el rol en lugar del correo;
+      - Inmuebles y Agenda con flecha; Agenda indica las visitas de hoy cuando las hay;
+      - Herramientas aparece como «Ver las 16 herramientas», con su explicación;
+      - Administración va plegada con la marca «Solo admin» y se abre sola si estás en una de sus páginas;
+      - «Salir» pasa a «Cerrar sesión», también en la barra lateral.
+      - Se conservan «Mi perfil» y «Ver sitio», porque en el celular no tienen otro acceso.
+    - **Administración sigue siendo solo para el administrador.** El titular confirmó que los asesores no necesitan Blog, Contenido ni Archivos en el menú.
 
 ## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
 

@@ -37,3 +37,6 @@
 :global(.admin-root) .menuLabel { padding: .5rem .75rem .25rem; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-foreground); }
 :global(.admin-root) .menuRow { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 3.25rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: var(--foreground); font-size: 1rem; font-weight: 550; text-align: left; text-decoration: none; cursor: pointer; }
 :global(.admin-root) .menuRow[aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .menuMeta { font-family: var(--font-mono); font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .menuChevron { color: var(--muted-foreground); flex: none; }
+:global(.admin-root) .menuBadge { padding: .125rem .5rem; border-radius: 6px; background: var(--secondary); font-family: var(--font-mono); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }

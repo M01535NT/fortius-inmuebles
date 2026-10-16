@@ -57,9 +57,10 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
         await page.getByRole("button", { name: "Menú del panel" }).click();
         const menu = page.getByRole("navigation", { name: "Módulos móviles" });
-        for (const name of ["Inmuebles", "Agenda", "Herramientas", "Equipo", "Sitio web", "Reportes", "Historial", "Configuración"])
+        await menu.getByRole("button", { name: /Administración/ }).click();
+        for (const name of ["Inmuebles", "Agenda", "Ver las 16 herramientas", "Equipo", "Sitio web", "Reportes", "Historial", "Configuración"])
           await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
-        await expect(menu.getByRole("button", { name: "Salir" })).toBeVisible();
+        await expect(menu.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
         await page.screenshot({ path: testInfo.outputPath("navigation-" + width + ".png"), fullPage: true });
         await page.keyboard.press("Escape");
         await tabs.getByRole("link", { name: "Contactos" }).click();

@@ -37,6 +37,7 @@ const nextConfig: NextConfig = {
       { source: "/admin/calendario", destination: "/admin/agenda", permanent: false },
       { source: "/admin/tareas", destination: "/admin/agenda?tab=tareas", permanent: false },
       { source: "/admin/apps", destination: "/admin/herramientas", permanent: false },
+      { source: "/admin/documentos", destination: "/admin/herramientas?tab=documentos", permanent: false },
     ];
   },
   images: {
