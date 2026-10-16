@@ -47,6 +47,11 @@ export function Eyebrow({ as: Tag = "p", className, ...props }: { as?: "p" | "h2
   return <Tag className={cn(s.eyebrow, className)} {...props} />;
 }
 
+/** Fondo de lienzo de una pantalla del panel guiado: tarjetas blancas encima, campos con esquinas de 10 px. */
+export function Surface({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn(s.surface, className)} {...props} />;
+}
+
 export function Card({ as: Tag = "section", className, ...props }: { as?: "section" | "div" | "article" | "aside" } & React.HTMLAttributes<HTMLElement>) {
   return <Tag className={cn(s.card, className)} {...props} />;
 }

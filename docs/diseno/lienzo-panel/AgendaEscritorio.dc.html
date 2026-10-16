@@ -63,7 +63,7 @@
           <sc-for list="{{dias}}" as="d" hint-placeholder-count="7">
             <div style="position: relative; height: 616px; border-left: 1px solid var(--line); background: {{d.fondo}}; background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 55px, var(--line) 55px, var(--line) 56px)">
               <sc-for list="{{d.eventos}}" as="e" hint-placeholder-count="1">
-                <a href="#" style="position: absolute; left: 4px; right: 4px; top: {{e.top}}px; height: {{e.alto}}px; padding: 6px 8px; border-radius: 4px; overflow: hidden; text-decoration: none; display: flex; flex-direction: column; gap: 2px; background: {{e.fondo}}; color: {{e.tinta}}; border: 1px solid {{e.borde}}">
+                <a href="#" style="position: absolute; left: 4px; right: 4px; top: {{e.top}}px; height: {{e.alto}}px; padding: 6px 8px; border-radius: 8px; overflow: hidden; text-decoration: none; display: flex; flex-direction: column; gap: 2px; background: {{e.fondo}}; color: {{e.tinta}}; border: 1px solid {{e.borde}}">
                   <span class="mono xs" style="font-weight: 600">{{e.hora}}</span>
                   <span class="xs" style="font-weight: 650; line-height: 1.25">{{e.titulo}}</span>
                 </a>

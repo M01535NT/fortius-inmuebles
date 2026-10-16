@@ -24,7 +24,7 @@
         <p class="mut">11 en curso · <span class="vencido">4 con algo vencido</span></p>
       </div>
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
-        <label style="display: flex; align-items: center; gap: 10px; width: 280px; min-height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 6px; background: var(--field)">
+        <label style="display: flex; align-items: center; gap: 10px; width: 280px; min-height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 10px; background: var(--field)">
           <svg class="ico ico-s mut" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
           <span class="mut" style="font-size: 15px">Buscar cliente o folio</span>
         </label>
@@ -38,7 +38,7 @@
     <div style="overflow-x: auto; margin: 0 -4px; padding: 0 4px 8px">
       <div style="display: grid; grid-template-columns: repeat(6, minmax(176px, 1fr)); gap: 12px; align-items: start">
         <sc-for list="{{columnas}}" as="col" hint-placeholder-count="6">
-          <section aria-label="{{col.nombre}}" style="display: flex; flex-direction: column; gap: 10px; padding: 12px; min-height: 640px; border-radius: 8px; background: var(--sec)">
+          <section aria-label="{{col.nombre}}" style="display: flex; flex-direction: column; gap: 10px; padding: 12px; min-height: 640px; border-radius: 14px; background: var(--sec)">
             <header style="display: flex; flex-direction: column; gap: 4px; padding: 2px 4px 6px">
               <span class="mono xs mut">Etapa {{col.n}}</span>
               <h2 style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 15px; line-height: 1.3; font-weight: 700">

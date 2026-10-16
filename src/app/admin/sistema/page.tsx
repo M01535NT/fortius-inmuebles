@@ -3,7 +3,7 @@ import * as React from "react";
 import { ArrowRight, Columns3 } from "lucide-react";
 import { useSession } from "@/lib/admin/store";
 import { SALE_PROCESS } from "@/lib/formatos/operation-workflow";
-import { Button, Card, EmptyBox, Eyebrow, Notice, Segmented, Sheet, StageProgress, StatusChip, Tabs, TabPanel } from "@/components/admin/kit";
+import { Button, Card, EmptyBox, Eyebrow, Notice, Segmented, Sheet, StageProgress, StatusChip, Surface, Tabs, TabPanel } from "@/components/admin/kit";
 
 /** Muestra interna de los componentes del panel guiado (Componentes.dc.html). Solo administrador, fuera del menú. */
 export default function SistemaPage() {
@@ -13,7 +13,7 @@ export default function SistemaPage() {
   const [sheet, setSheet] = React.useState(false);
   if (session?.role !== "admin") return <p role="alert">Esta página requiere acceso de administrador.</p>;
   const stages = SALE_PROCESS.map(p => p.label);
-  return <div className="flex flex-col gap-12">
+  return <Surface className="-m-4 flex flex-col gap-12 rounded-[14px] p-4 sm:-m-6 sm:p-8">
     <header className="flex flex-col gap-2"><Eyebrow>Panel Fortius · Sistema</Eyebrow><h1 className="text-3xl font-bold">Componentes</h1></header>
 
     <section aria-labelledby="c-btn" className="grid gap-6 md:grid-cols-[240px_minmax(0,1fr)]">
@@ -63,5 +63,5 @@ export default function SistemaPage() {
     <Sheet open={sheet} onClose={() => setSheet(false)} eyebrow="Marcar como revisado" title="Que se pueda vender sin obstáculos" description="Dinos con qué lo comprobaste." footer={<><Button onClick={() => setSheet(false)}>Cancelar</Button><Button variant="primary" onClick={() => setSheet(false)}>Guardar como revisado</Button></>}>
       <div className="flex flex-col gap-1.5"><label htmlFor="muestra-res">Qué encontraste</label><textarea id="muestra-res" rows={3} className="min-h-24 w-full px-3.5 py-3" defaultValue="Sin gravámenes ni embargos." /></div>
     </Sheet>
-  </div>;
+  </Surface>;
 }

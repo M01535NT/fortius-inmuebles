@@ -20,6 +20,10 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 - Muestra interna en `/admin/sistema` (solo administrador, fuera del menú y sin datos), comparada con `Componentes.dc.html` a 1440 px en claro y oscuro y a 375 px en celular, sin desbordamiento.
 - Pruebas: 7 nuevas del kit; lint, tipos, 335 del panel, 701 de servidor y compilación aprobados.
 - Las pantallas existentes no cambian todavía. `panel.module.css` se retira conforme migren las pantallas (meta: menos de 15 KB).
+- **Ajuste de estilo, 16/10/2026, a pedido del titular:**
+  - esquinas redondeadas: 10 px en controles, 14 px en tarjetas y pastillas en los estados;
+  - fondo gris azulado de lienzo, con tarjetas blancas de borde y sombra suaves, y botones secundarios más visibles.
+  - Se aplica solo al panel guiado (componente `Surface` y `kit.tsx`). El lienzo de diseño se actualizó a su versión 38. Revisado en `/admin/sistema` a 1440 px en claro y oscuro y a 375 px, sin desbordamiento.
 
 ## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
 
