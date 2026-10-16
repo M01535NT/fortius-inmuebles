@@ -6,7 +6,7 @@ import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { db, useCollection, useSession } from "@/lib/admin/store";
 import { RESOLUTION_TYPES, stageLabel, WORKFLOW_ROUTES, WORKFLOW_STAGES, WORKFLOW_STATES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
-import { flowOf, isGuided, stageOf, type OperationRecord } from "@/lib/admin/operation-view";
+import { flowOf, isGuided, routeStages, stageOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
 
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage; propiedadSlug?: string | null; fechaObjetivo?: string | null }) => Promise<unknown>;
@@ -44,7 +44,10 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
     event.preventDefault();
     if (flow.estado !== "activa" && flow.motivo.trim().length < 3) { setError("Escribe el motivo de la pausa, la regularización o el descarte."); return; }
     if (flow.resolucion && flow.resolucion.motivo.trim().length < 3) { setError("Escribe el motivo de la decisión del encargo."); return; }
-    await run(() => onSave({ flujo: flow, propiedadSlug: property || null, fechaObjetivo: date || null }), "Guardado");
+    const before = routeStages(op, today).phase;
+    let opened = false;
+    await run(() => onSave({ flujo: flow, propiedadSlug: property || null, fechaObjetivo: date || null }).then(saved => { opened = before === "verificacion" && routeStages(saved as OperationRecord, today).phase === "contrato"; }), "Guardado");
+    if (opened) setNotice("Guardado. Verificación terminada: ya puedes trabajar el contrato en «Lo que sigue».");
   }
   async function goBack() {
     if (!back || flow.motivo.trim().length < 3) { setError("Elige la etapa y escribe el motivo de la corrección."); return; }

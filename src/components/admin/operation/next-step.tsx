@@ -42,8 +42,9 @@ export function NextStepTab({ op, today, evidence, interview, onSave, onSavedLeg
     try {
       const requisitos = { ...flow.requisitos };
       if (review) requisitos[key] = review; else delete requisitos[key];
-      await onSave({ flujo: { ...flow, requisitos } });
-      setNotice("Guardado");
+      const saved = await onSave({ flujo: { ...flow, requisitos } }) as OperationRecord;
+      // «Contrato y preparación» se abre sola al terminar la verificación: se avisa para que no pase inadvertido.
+      setNotice(phase === "verificacion" && routeStages(saved, today).phase === "contrato" ? "Verificación terminada. Ya puedes trabajar el contrato y la preparación." : "Guardado");
     } catch (cause) { const message = saveError(cause); setError(`No se pudo guardar: ${message}`); throw new Error(message); }
     finally { setBusy(false); }
   }
@@ -81,7 +82,8 @@ export function NextStepTab({ op, today, evidence, interview, onSave, onSavedLeg
       <NextTask op={op} today={today} />
       {target && <div className={s.advance} aria-live="polite">
         <div className="min-w-0 text-sm">{missing.length ? <><strong>Te falta: </strong>{(showAll ? missing : missing.slice(0, 2)).map((item, i) => <React.Fragment key={i}>{i > 0 && " · "}<button type="button" className={s.missingLink} onClick={() => goToMissing(item)}>{item.text}</button>{item.why && <span className="text-muted-foreground"> ({item.why})</span>}</React.Fragment>)}{!showAll && missing.length > 2 && <> · <button type="button" className={s.missingLink} onClick={() => setShowAll(true)}>y {missing.length - 2} más</button></>}</> : <strong>Todo listo para pasar a la siguiente etapa.</strong>}</div>
-        <Button variant="primary" className="shrink-0" disabled={busy || missing.length > 0 || !target.target} onClick={() => void advance()}>Pasar a: {target.label}<ArrowRight size={16} aria-hidden="true" /></Button>
+        {target.target ? <Button variant="primary" className="shrink-0" disabled={busy || missing.length > 0} onClick={() => void advance()}>Pasar a: {target.label}<ArrowRight size={16} aria-hidden="true" /></Button>
+          : <p className="shrink-0 text-sm text-muted-foreground md:max-w-[16rem]">Al completarlo se abre «{target.label}» sola.</p>}
       </div>}
     </div>
     <Side op={op} today={today} interview={interview} />

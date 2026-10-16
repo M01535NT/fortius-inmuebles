@@ -302,3 +302,21 @@ it("el tablero reúne todas las páginas de la consulta y solo lee, sin escribir
   expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).startsWith("/api/admin/expedientes?limit"))).toHaveLength(2);
   expect(server.methods).toEqual([]);
 });
+
+it("en Verificación no hay un botón que nunca se activa: explica que «Contrato» se abre sola y lo avisa al ocurrir", async () => {
+  const verifiedExcept = { entrevista: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: { estado: "recibido", soporte: "Acordado por WhatsApp" } };
+  server.ops = [base({ etapa: "documentacion", flujo: flow(verifiedExcept, accepted) })];
+  server.tasks = [{ id: "t1", titulo: "Firmar contrato", estado: "pendiente", prioridad: "normal", categoria: "captacion", pasos: [], vence: "2026-10-20", expedienteId: ID, asesorId: "a1" }];
+  await openOperation();
+  expect(screen.getByText("Lo que sigue · Etapa 2 de 6")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
+  expect(screen.getByText("Al completarlo se abre «Contrato y preparación» sola.")).toBeTruthy();
+  fireEvent.click(within(screen.getByRole("radiogroup", { name: /Precio de salida/ })).getByRole("radio", { name: /Revisado/ }));
+  const sheet = await screen.findByRole("dialog");
+  fireEvent.change(within(sheet).getByLabelText("Qué encontraste"), { target: { value: "Precio acordado de 4.5 millones" } });
+  fireEvent.change(within(sheet).getByLabelText("Folio o dónde está"), { target: { value: "Mensaje de WhatsApp del 15 oct" } });
+  fireEvent.click(within(sheet).getByRole("button", { name: "Guardar como revisado" }));
+  expect(await screen.findByText("Verificación terminada. Ya puedes trabajar el contrato y la preparación.")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 3 de 6")).toBeTruthy();
+  expect(screen.getByRole("button", { name: /Pasar a: Publicación y seguimiento/ })).toBeTruthy();
+});

@@ -138,13 +138,13 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
   - se retiraron dos pruebas de componentes que ya no existen (pestañas del expediente y guía anterior); su comportamiento queda cubierto por 7 pruebas de lógica y 16 de pantalla nuevas.
   - En navegador, las de CI de tablero, eliminación y rutas se adaptaron a la nueva pantalla.
 - **Resultados:**
-  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 333 del panel y 35 de herramientas, además del paquete de PDF;
+  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 334 del panel y 35 de herramientas, además del paquete de PDF;
   - 44 de navegador del panel que corre CI, contra un servidor sin base de datos;
   - 70 públicas (1 omitida).
   - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro: tablero, cada pestaña de la operación, el panel «Marcar como revisado» y las eliminadas.
 - **Límites y decisiones por confirmar:**
   - las rutas de compra, renta e inversión muestran sus propios 7 pasos, no las 6 etapas del propietario;
-  - en «Verificación y precio» el botón no cambia la etapa interna: «Contrato y preparación» se abre sola al completar la verificación y registrar la decisión;
+  - **Corrección a pedido del titular:** en «Verificación y precio» el botón «Pasar a» se quedaba apagado para siempre, porque «Contrato y preparación» se abre sola al completar la verificación y registrar la decisión. Ahora esa etapa no muestra el botón: explica que el contrato se abre solo y avisa cuando ocurre, ya sea desde los requisitos o desde Ajustes;
   - «Ya se resolvió» deja el requisito en «Lo tengo» para que se revise de nuevo;
   - los títulos de los formatos conservan su nombre de archivo, sin acentos (repaso del glosario en la Fase 7).
 
