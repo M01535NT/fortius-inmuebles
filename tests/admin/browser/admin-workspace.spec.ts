@@ -287,6 +287,8 @@ test("reorders Más by drag and touch, persists, restores and keeps daily/proced
   await expect(desktop.getByTitle("Arrastrar Resumen")).toHaveCount(0);
   await expect(desktop.getByRole("button", { name: "Subir Captación", exact: true })).toHaveCount(0);
   await expect(desktop.getByRole("button", { name: "Subir CRM", exact: true })).toBeDisabled();
+  // Ambos extremos visibles: desplazar la barra durante un arrastre nativo lo cancela.
+  await desktop.getByRole("link", { name: "CRM", exact: true }).scrollIntoViewIfNeeded();
   await desktop.getByTitle("Arrastrar Inmuebles").dragTo(desktop.getByRole("link", { name: "CRM", exact: true }));
   await expect(desktop.getByRole("link").nth(10)).toHaveText("Inmuebles");
   await expect(desktop.getByRole("link").nth(11)).toHaveText("CRM");

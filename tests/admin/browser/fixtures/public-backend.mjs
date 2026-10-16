@@ -1,6 +1,6 @@
 // Read-only local fixture for the real Next.js public routes. Never contacts Supabase.
 import { createServer } from "node:http";
-import { propiedades } from "../../../../src/data/propiedades.ts";
+import { propiedades } from "../../../fixtures/propiedades.ts";
 import { asesores } from "../../../../src/data/asesores.ts";
 
 const port = Number(process.env.FORTIUS_INMUEBLES_FIXTURE_PORT || 3101);
