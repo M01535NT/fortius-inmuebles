@@ -267,7 +267,7 @@ for (const width of [320, 390, 1440]) {
   });
 }
 async function expectFixedDaily(navigation: Locator) {
-  const names = ["Resumen", "Hoy", "Operaciones", "Agenda", "Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"];
+  const names = ["Resumen", "Hoy", "Operaciones", "Agenda", "Captación", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"];
   for (const [index, name] of names.entries())
     await expect(navigation.getByRole("link").nth(index)).toHaveText(name);
 }

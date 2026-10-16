@@ -62,7 +62,7 @@ export function stageLabel(stage: WorkflowStage, route?: OperationWorkflow["ruta
  if (route === "inversion") return ["Mandato y criterios","Alternativas","Diligencia y riesgos","Escenarios","Decisión y capital","Ejecución vinculada","Seguimiento de resultados","Archivado"][WORKFLOW_STAGES.indexOf(stage)] ?? stage;
  if (route === "arrendador") return ["Captación para renta","Revisión y preparación","Oferta de renta","Selección del arrendatario","Contrato y garantías","Firma y pagos","Entrega y seguimiento","Archivo del encargo"][WORKFLOW_STAGES.indexOf(stage)] ?? stage;
  if (route === "arrendatario") return ["Necesidades de renta","Opciones","Visitas","Solicitud y condiciones","Contrato y garantías","Firma y pagos","Entrega y seguimiento","Archivo del encargo"][WORKFLOW_STAGES.indexOf(stage)] ?? stage;
- const labels = route === "compra" ? ["Perfil y capacidad","Opciones","Visitas","Oferta y negociación","Firma y pago","Entrega","Postventa","Archivado"] : ["Captación inicial","Revisión y preparación","Comercialización","Oferta y negociación","Firma y pago","Entrega","Postventa","Archivado"];
+ const labels = route === "compra" ? ["Perfil y capacidad","Opciones","Visitas","Oferta y negociación","Firma y pago","Entrega","Postventa","Archivado"] : ["Captación","Verificación y precio","Publicación y seguimiento","Visitas y ofertas","Cierre y entrega · firma y pago","Cierre y entrega · entrega","Cierre y entrega · postventa","Cierre y entrega · archivo"];
  return labels[WORKFLOW_STAGES.indexOf(stage)] ?? stage;
 }
 export function nextWorkflowStage(stage: WorkflowStage) { return WORKFLOW_STAGES[WORKFLOW_STAGES.indexOf(stage)+1]; }
@@ -127,4 +127,70 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  if(target==="cerrado") { if(open.length) result.push("Resolver o descartar las tareas pendientes antes de archivar."); }
  else if(!open.some(t=>t.asesorId===context.asesor_id && !!t.vence)) result.push("Agendar una próxima tarea con fecha y responsable.");
  return result;
+}
+
+/** Proceso de comercialización definido por el titular (PLAN_ERP_CRM.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
+export const SALE_PROCESS = [
+ { key: "captacion", slug: "captacion", label: "Captación", hace: "Conocer al propietario, su objetivo y el inmueble; identificar quién puede autorizar la venta y reunir la información inicial.", para: "Saber qué necesita el cliente y si podemos atender la operación.", etapas: ["captacion"] },
+ { key: "verificacion", slug: "verificacion-precio", label: "Verificación y precio", hace: "Revisar documentos, características y pendientes; comparar propiedades similares y acordar el precio de salida.", para: "Detectar obstáculos y vender con un precio sustentado.", etapas: ["documentacion"] },
+ { key: "contrato", slug: "contrato-preparacion", label: "Contrato y preparación", hace: "Formalizar el servicio, honorarios y autorizaciones; preparar ficha, fotografías y plan de publicación.", para: "Dejar claras las responsabilidades y presentar el inmueble con información respaldada.", etapas: ["documentacion"] },
+ { key: "publicacion", slug: "publicacion-seguimiento", label: "Publicación y seguimiento", hace: "Publicar en los canales acordados, mantener los datos actualizados e informar al propietario sobre consultas y avance.", para: "Generar interesados y evaluar cómo está funcionando la comercialización.", etapas: ["comercializacion"] },
+ { key: "visitas", slug: "visitas-ofertas", label: "Visitas y ofertas", hace: "Coordinar visitas con prospectos compatibles y revisar cada oferta: precio, forma de pago, plazos y condiciones.", para: "Convertir el interés en una propuesta viable que el propietario pueda decidir informado.", etapas: ["negociacion"] },
+ { key: "cierre", slug: "cierre-entrega", label: "Cierre y entrega", hace: "Coordinar la firma con las partes y la notaría, verificar pagos, documentar llaves e inventario y seguir los pendientes.", para: "La operación no termina al aceptar una oferta: debe concretarse y entregarse correctamente.", etapas: ["cierre","entrega","postventa","cerrado"] },
+] as const satisfies ReadonlyArray<{ key: string; slug: string; label: string; hace: string; para: string; etapas: readonly WorkflowStage[] }>;
+export type SalePhase = typeof SALE_PROCESS[number]["key"];
+export function salePhase(key: SalePhase) { return SALE_PROCESS.find(phase => phase.key === key)!; }
+export function isOwnerRoute(route?: string | null) { return route === "captacion" || route === "arrendador"; }
+
+/** Requisitos que cierran cada etapa del propietario. Los de verificación deben completarse antes de capturar los de contrato. */
+const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
+ captacion: ["entrevista"],
+ verificacion: ["titularidad","factibilidad","valor","precio"],
+ contrato: ["intermediacion","levantamiento","plan","publicacion"],
+ publicacion: ["comprador","arrendatario"],
+ visitas: ["oferta","revision_cierre","instrumento","contraparte","contrato_renta","garantias_renta"],
+ cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
+};
+export const VERIFICATION_REQUIREMENTS = OWNER_PHASE_REQUIREMENTS.verificacion;
+export function requirementPhase(key: RequirementKey): SalePhase | undefined {
+ return (Object.keys(OWNER_PHASE_REQUIREMENTS) as SalePhase[]).find(phase => OWNER_PHASE_REQUIREMENTS[phase].includes(key));
+}
+/** Verificación terminada: revisiones de la etapa 1 completas y decisión de captación registrada. */
+export function verificationComplete(flow: OperationWorkflow | null | undefined, today: string) {
+ return !!flow && VERIFICATION_REQUIREMENTS.every(key => reviewComplete(flow, key, today)) && !!flow.resolucion && ["aceptada","condicionada"].includes(flow.resolucion.tipo);
+}
+/** Etapa del proceso para cualquier expediente. Compradores y arrendatarios se integran en «Visitas y ofertas»; inversión se agrupa por analogía. */
+export function processPhase(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string): SalePhase {
+ const stage = etapa ?? "captacion";
+ if (["cierre","entrega","postventa","cerrado"].includes(stage)) return "cierre";
+ if (stage === "captacion") return "captacion";
+ if (flow && (flow.ruta === "compra" || flow.ruta === "arrendatario")) return "visitas";
+ if (flow?.ruta === "inversion") return "verificacion";
+ if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : "verificacion";
+ return stage === "comercializacion" ? "publicacion" : "visitas";
+}
+/** Texto de la etapa actual: el proceso para el propietario de venta; la etiqueta propia para las demás rutas. */
+export function processStageText(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string) {
+ const stage = etapa ?? "captacion";
+ if (flow && flow.ruta !== "captacion") return stageLabel(stage, flow.ruta);
+ if (stage === "documentacion") return salePhase(processPhase(stage, flow, today)).label;
+ return stageLabel(stage, "captacion");
+}
+
+/** Informe al propietario: periodicidad mensual (decisión del titular, 15/10/2026). */
+export function addMonths(date: string, months: number) {
+ const [y, m, d] = date.split("-").map(Number);
+ const target = new Date(Date.UTC(y, m - 1 + months, 1));
+ const last = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+ target.setUTCDate(Math.min(d, last));
+ return target.toISOString().slice(0, 10);
+}
+export function ownerReportStatus(lastReport: string | null | undefined, today: string): { estado: "al_dia" | "vencido" | "sin_informe"; proximo?: string } {
+ if (!lastReport) return { estado: "sin_informe" };
+ const proximo = addMonths(lastReport.slice(0, 10), 1);
+ return { estado: proximo < today ? "vencido" : "al_dia", proximo };
+}
+/** El informe aplica mientras el inmueble se promueve o negocia. */
+export function ownerReportApplies(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined) {
+ return (!flow || isOwnerRoute(flow.ruta)) && (etapa === "comercializacion" || etapa === "negociacion");
 }

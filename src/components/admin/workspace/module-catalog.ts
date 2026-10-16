@@ -2,8 +2,9 @@ import type * as React from "react";
 import {
   Building2, CalendarDays, ChartNoAxesCombined, ContactRound, FileText,
   FolderOpen, History, LayoutDashboard, ListTodo, Newspaper, PenLine,
-  Settings, StickyNote, Users, UsersRound, BriefcaseBusiness, Wallet, MapPin,
+  Settings, StickyNote, Users, UsersRound, BriefcaseBusiness, Wallet, MapPin, ClipboardCheck,
 } from "lucide-react";
+import { SALE_PROCESS, type SalePhase } from "@/lib/formatos/operation-workflow";
 
 export type AdminModule = {
   href: string;
@@ -43,15 +44,18 @@ export function permittedModules(modules: AdminModule[], role: string) {
   return modules.filter(module => !module.adminOnly || role === "admin");
 }
 
-/** Etapas del procedimiento: accesibles, pero fuera del menú diario. */
-export const PROCESS_STAGES = [
-  { slug: "captacion", label: "Captación", etapa: "captacion", icon: ContactRound, description: "Revisa los expedientes en captación y da seguimiento a los contactos iniciales.", action: { href: "/admin/operaciones/nueva", label: "Nueva operación" } },
-  { slug: "preparacion", label: "Preparación", etapa: "documentacion", icon: FolderOpen, description: "Prepara los expedientes que están en documentación: soportes, revisiones y pendientes.", action: { href: "/admin/documentos", label: "Consultar documentos" } },
-  { slug: "promocion", label: "Promoción", etapa: "comercializacion", icon: Building2, description: "Consulta las operaciones en comercialización y coordina inventario, publicaciones y visitas.", action: { href: "/admin/propiedades", label: "Abrir inventario" } },
-  { slug: "negociacion", label: "Negociación", etapa: "negociacion", icon: BriefcaseBusiness, description: "Da seguimiento a las operaciones en negociación y sus próximos acuerdos.", action: { href: "/admin/tareas", label: "Ver tareas" } },
-  { slug: "cierre", label: "Cierre", etapa: "cierre", icon: FileText, description: "Revisa los expedientes en cierre y coordina los documentos, firmas y entregas pendientes.", action: { href: "/admin/calendario", label: "Abrir agenda" } },
-  { slug: "postventa", label: "Postventa", etapa: "cerrado", icon: CalendarDays, description: "Seguimiento de expedientes cerrados mediante la agenda y las tareas existentes.", action: { href: "/admin/calendario", label: "Abrir agenda" } },
-] as const;
+/** Etapas del proceso de comercialización: accesibles, pero fuera del menú diario. */
+const PROCESS_PRESENTATION: Record<SalePhase, { icon: AdminModule["icon"]; action: { href: string; label: string } }> = {
+  captacion: { icon: ContactRound, action: { href: "/admin/operaciones/nueva", label: "Nueva operación" } },
+  verificacion: { icon: ClipboardCheck, action: { href: "/admin/apps/comparables", label: "Comparar propiedades" } },
+  contrato: { icon: PenLine, action: { href: "/admin/apps/ficha-comercial", label: "Preparar ficha comercial" } },
+  publicacion: { icon: Building2, action: { href: "/admin/propiedades", label: "Abrir inventario" } },
+  visitas: { icon: CalendarDays, action: { href: "/admin/calendario", label: "Abrir agenda" } },
+  cierre: { icon: BriefcaseBusiness, action: { href: "/admin/tareas", label: "Ver tareas" } },
+};
+export const PROCESS_STAGES = SALE_PROCESS.map((phase, index) => ({ ...phase, numero: index, ...PROCESS_PRESENTATION[phase.key] }));
+/** Direcciones anteriores a la definición del 15/10/2026. */
+export const LEGACY_PROCESS_SLUGS: Record<string, string> = { preparacion: "verificacion-precio", promocion: "publicacion-seguimiento", negociacion: "visitas-ofertas", cierre: "cierre-entrega", postventa: "cierre-entrega" };
 export function getProcessStage(slug: string) { return PROCESS_STAGES.find(stage => stage.slug === slug); }
 
 const PRIMARY_HREFS = new Set(["/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario"]);
@@ -66,7 +70,7 @@ export const SIDEBAR_MODULES: AdminModule[] = [
     href: `/admin/proceso/${stage.slug}`,
     label: stage.label,
     icon: stage.icon,
-    group: "Procedimiento",
+    group: "Proceso de venta",
     primary: false,
     fixed: true,
   })),

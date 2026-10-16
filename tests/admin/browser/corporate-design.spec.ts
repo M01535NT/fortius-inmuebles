@@ -64,7 +64,7 @@ test("pending client portal exposes no client data or invitation action", async 
 test("cycle failure is explicit and does not invent zero counts", async ({ page }) => {
   await page.route("**/api/admin/expedientes", route => route.fulfill({ status: 503, json: { error: "Expedientes no disponibles" } }));
   await page.goto("/admin");
-  const cycle = page.getByRole("region", { name: "Ciclo del inmueble", exact: true });
+  const cycle = page.getByRole("region", { name: "Proceso de venta", exact: true });
   await expect(cycle.getByRole("alert")).toHaveText("No se pudieron consultar las etapas. Recarga el módulo para reintentar.");
   await expect(cycle.getByRole("list")).toHaveCount(0);
 });
