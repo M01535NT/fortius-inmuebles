@@ -39,4 +39,17 @@ it("resume el último informe por expediente sin devolver contenido", async () =
   expect(await response.json()).toEqual({ ultimos: { [expediente]: "2026-10-10T18:00:00Z" } });
   expect(query.select).toHaveBeenCalledWith("expediente_id,updated_at");
   expect(query.is).toHaveBeenCalledWith("deleted_at", null);
+  expect(query.not).toHaveBeenCalledWith("result", "is", null);
+});
+
+it("recorre todas las páginas antes de resumir el último informe", async () => {
+  const otro = "80000000-0000-4000-8000-000000000011";
+  const query = chain(null);
+  query.range = vi.fn()
+    .mockResolvedValueOnce({ data: Array.from({ length: 1000 }, () => ({ expediente_id: expediente, updated_at: "2026-10-10T18:00:00Z" })), error: null })
+    .mockResolvedValueOnce({ data: [{ expediente_id: otro, updated_at: "2026-08-01T18:00:00Z" }], error: null });
+  requireStaff.mockResolvedValue({ client: { from: () => query } });
+  const response = await GET(new Request("https://panel.test/api/admin/apps/runs?slug=informe-propietario&vista=ultimo-por-expediente"));
+  expect(await response.json()).toEqual({ ultimos: { [expediente]: "2026-10-10T18:00:00Z", [otro]: "2026-08-01T18:00:00Z" } });
+  expect(query.range).toHaveBeenNthCalledWith(2, 1000, 1999);
 });
