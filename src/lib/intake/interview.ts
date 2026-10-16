@@ -37,7 +37,7 @@ export const INTENTS = {
   },
 } as const;
 export type IntakeIntent = keyof typeof INTENTS;
-export const intentSchema = z.enum([
+const intentSchema = z.enum([
   "vender",
   "arrendar",
   "comprar",
@@ -326,7 +326,7 @@ export function interviewFields(intent: IntakeIntent): Field[] {
     ...end,
   ];
 }
-export const ANSWER_KEYS = [
+const ANSWER_KEYS = [
   "origenContacto",
   "propiedadExistente",
   ...new Set(
@@ -335,14 +335,14 @@ export const ANSWER_KEYS = [
     ),
   ),
 ];
-export const answersSchema = z
+const answersSchema = z
   .record(z.string(), z.string().trim().max(2000))
   .refine(
     (a) => Object.keys(a).every((k) => ANSWER_KEYS.includes(k)),
     "Pregunta desconocida",
   );
 export type InterviewAnswers = z.infer<typeof answersSchema>;
-export const OPTION_LABELS: Record<string, string> = {
+const OPTION_LABELS: Record<string, string> = {
   por_definir: "Por definir",
   por_aclarar: "Por aclarar",
   ninguna_declarada: "Ninguna declarada",

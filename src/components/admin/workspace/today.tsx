@@ -4,20 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Building2, FileText, MoreHorizontal, MapPin, Users } from "lucide-react";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
-import { Badge } from "@/components/admin/ui";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { ownerReportApplies, ownerReportStatus, processPhase, processStageText, SALE_PROCESS, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
-import { operationalInventory } from "@/lib/admin/operational-inventory";
 import { AttentionQueue } from "./attention-queue";
 
 type Dossier = { id: string; folio: string; etapa?: WorkflowStage; fecha_objetivo?: string; propiedad_slug?: string | null; asesor_id?: string; cliente_id?: string; flujo?: OperationWorkflow | null };
 const dateLabel = (date: string | undefined, today: string) => !date ? "Sin fecha" : date === today ? "Hoy" : date.split("-").reverse().slice(0, 2).join("/");
 
-export function TodayWorkspace({ includeDemo = false }: { includeDemo?: boolean } = {}) {
+export function TodayWorkspace() {
   const leads = useCollection(db.leads), clients = useCollection(db.clientes), events = useCollection(db.eventos), tasks = useCollection(db.tareas);
   const properties = useCollection(db.propiedades), advisers = useCollection(db.asesores);
   const today = operationalDate();
-  const operationalProperties = operationalInventory(properties, includeDemo);
   const visits = events.filter(e => e.fecha === today).sort((a, b) => (a.hora ?? "").localeCompare(b.hora ?? ""));
   const [dossiers, setDossiers] = React.useState<Dossier[]>([]);
   const [state, setState] = React.useState<"loading" | "ready" | "error">("loading");
@@ -76,10 +73,6 @@ export function TodayWorkspace({ includeDemo = false }: { includeDemo?: boolean 
       })}</ul> : <p className="admin-table-empty">Sin eventos programados para hoy.</p>}
       {visits.length > 3 && <Link href={`/admin/calendario?fecha=${today}`} className="admin-agenda-more">Ver los {visits.length} pendientes</Link>}
     </section>
-    <div className="admin-lower-layout">
-    <section className="admin-card admin-financial-card"><div className="admin-card-heading"><h2>Flujo de efectivo</h2><Link href="/admin/finanzas">Ver finanzas <ArrowRight size={16}/></Link></div><div className="admin-module-empty"><FileText size={28} aria-hidden="true"/><Badge tone="amber">Pendiente de implementación</Badge><p>El flujo de cobros y egresos se mostrará cuando esté habilitado el registro financiero.</p><Link href="/admin/expedientes">Consultar presupuestos por expediente</Link></div></section>
-    <section className="admin-card admin-territory-card"><div className="admin-card-heading"><h2>Cartera por zona</h2><Link href="/admin/territorio">Ver zonas <ArrowRight size={16}/></Link></div><ul className="admin-zone-summary">{[...new Set(operationalProperties.map(p => p.zona || "Sin zona"))].slice(0, 4).map(zone => <li key={zone}><Building2 size={20} aria-hidden="true"/><span>{zone}</span><strong>{operationalProperties.filter(p => (p.zona || "Sin zona") === zone).length}</strong></li>)}</ul>{!operationalProperties.length && <p className="p-4 text-sm text-muted-foreground">Sin inmuebles en el alcance seleccionado.</p>}<div className="admin-map-pending"><Badge tone="amber">Mapa pendiente</Badge><span>Las ubicaciones se incorporarán con el módulo geográfico.</span></div></section>
-    </div>
     <details className="admin-daily-details"><summary>Seguimiento del equipo</summary><div className="admin-followup-grid">
       <section><h3>Tareas prioritarias {pending.length || ""}</h3>{pending.length ? pending.map(t => <Link key={t.id} href={`/admin/tareas/${t.id}`}>{t.titulo}<small>{t.vence === today ? "Hoy" : `Vencida · ${t.vence}`}</small></Link>) : <p>No hay tareas vencidas ni previstas para hoy.</p>}</section>
       <section><h3>Expedientes por retomar</h3>{due.length ? due.map(d => <Link key={d.id} href={`/admin/expedientes?expediente=${d.id}`}>{d.folio}<small>Fecha objetivo: {d.fecha_objetivo}</small></Link>) : <p>{state === "error" ? "No se pudo consultar el seguimiento de expedientes." : "Sin expedientes con fecha objetivo vencida."}</p>}</section>

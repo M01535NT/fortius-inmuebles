@@ -10,7 +10,7 @@ import { getProcessStage, PROCESS_STAGES } from "./module-catalog";
 
 type ProcessDossier = { cliente_id?: string; id: string; folio: string; etapa?: WorkflowStage | null; operacion?: string; fecha_objetivo?: string | null; deleted_at?: string | null; flujo?:OperationWorkflow|null };
 const formatDate = (date: string) => date.slice(0, 10).split("-").reverse().join("/");
-export function reportText(last: string | undefined, today: string) {
+function reportText(last: string | undefined, today: string) {
   const status = ownerReportStatus(last, today);
   return status.estado === "sin_informe" ? "Informe al propietario: sin informe registrado" : status.estado === "vencido" ? `Informe al propietario: vencido desde ${formatDate(status.proximo!)}` : `Informe al propietario: al día · próximo ${formatDate(status.proximo!)}`;
 }

@@ -95,7 +95,7 @@ export function reviewComplete(flow: OperationWorkflow, key: RequirementKey, tod
   && (r.estado === "no_aplica" || !!r.evidencia && (r.evidencia.tipo === "externa" ? r.evidencia.referencia.trim().length >= 10 && !!r.evidencia.fecha && (r.evidencia.responsable?.trim().length??0)>=3 && (r.evidencia.resultado?.trim().length??0)>=3 : z.uuid().safeParse(r.evidencia.referencia).success && (r.evidencia.tipo === "adjunto" || !!r.evidencia.version)))
   && (!("vigencia" in definition) || !!r.vigenteHasta && r.vigenteHasta>=today);
 }
-export function observationBlocks(flow: OperationWorkflow, target: WorkflowStage) {
+function observationBlocks(flow: OperationWorkflow, target: WorkflowStage) {
  const required = requiredReviews(flow.ruta,target);
  return Object.entries(flow.requisitos).some(([key,r])=>r?.estado === "observado" && (required.includes(key as RequirementKey) || r.bloquea?.includes(target)));
 }
@@ -139,7 +139,7 @@ export const SALE_PROCESS = [
  { key: "cierre", slug: "cierre-entrega", label: "Cierre y entrega", hace: "Coordinar la firma con las partes y la notaría, verificar pagos, documentar llaves e inventario y seguir los pendientes.", para: "La operación no termina al aceptar una oferta: debe concretarse y entregarse correctamente.", etapas: ["cierre","entrega","postventa","cerrado"] },
 ] as const satisfies ReadonlyArray<{ key: string; slug: string; label: string; hace: string; para: string; etapas: readonly WorkflowStage[] }>;
 export type SalePhase = typeof SALE_PROCESS[number]["key"];
-export function salePhase(key: SalePhase) { return SALE_PROCESS.find(phase => phase.key === key)!; }
+function salePhase(key: SalePhase) { return SALE_PROCESS.find(phase => phase.key === key)!; }
 export function isOwnerRoute(route?: string | null) { return route === "captacion" || route === "arrendador"; }
 
 /** Requisitos que cierran cada etapa del propietario. Los de verificación deben completarse antes de capturar los de contrato. */
@@ -151,7 +151,7 @@ const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
  visitas: ["oferta","revision_cierre","instrumento","contraparte","contrato_renta","garantias_renta"],
  cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
 };
-export const VERIFICATION_REQUIREMENTS = OWNER_PHASE_REQUIREMENTS.verificacion;
+const VERIFICATION_REQUIREMENTS = OWNER_PHASE_REQUIREMENTS.verificacion;
 export function requirementPhase(key: RequirementKey): SalePhase | undefined {
  return (Object.keys(OWNER_PHASE_REQUIREMENTS) as SalePhase[]).find(phase => OWNER_PHASE_REQUIREMENTS[phase].includes(key));
 }

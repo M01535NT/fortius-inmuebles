@@ -11,7 +11,7 @@ const ACCESS_COOKIE = "fortius-inmuebles-access-token";
 const REFRESH_COOKIE = "fortius-inmuebles-refresh-token";
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", priority: "high" as const };
 
-export function supabaseEnvironment(environment = process.env) {
+function supabaseEnvironment(environment = process.env) {
   // This server-only client reads its deployment environment at runtime.
   // Direct NEXT_PUBLIC references would freeze these values into the build.
   const url = environment.NEXT_PUBLIC_SUPABASE_URL;
@@ -73,7 +73,7 @@ async function saveSession(session: Session) {
   jar.set(REFRESH_COOKIE, session.refresh_token, { ...cookieOptions, maxAge: 60 * 60 * 24 * 7 });
 }
 
-export async function clearSession() {
+async function clearSession() {
   const jar = await cookies();
   jar.set(ACCESS_COOKIE, "", { ...cookieOptions, maxAge: 0 });
   jar.set(REFRESH_COOKIE, "", { ...cookieOptions, maxAge: 0 });

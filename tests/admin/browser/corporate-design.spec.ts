@@ -25,8 +25,7 @@ for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const [path, title] of [
       ["", "¿Qué vas a hacer hoy?"], ["leads", "CRM · Relaciones comerciales"], ["propiedades", "Cartera de inmuebles"],
-      ["expedientes", "Expedientes"], ["documentos", "Documentos y expediente"], ["finanzas", "Finanzas y rentabilidad"],
-      ["territorio", "Análisis territorial"], ["portal-clientes", "Portal de clientes"],
+      ["expedientes", "Expedientes"], ["documentos", "Documentos y expediente"],
     ]) {
       await page.goto(`/admin/${path}`);
       await expect(page.getByRole("main").getByRole("heading", { name: title, exact: true })).toBeVisible();
@@ -43,23 +42,10 @@ for (const width of [375, 768, 1440]) {
         await expect(page.getByRole("button", { name: "Lista", exact: true })).toHaveAttribute("aria-pressed", "true");
         await page.getByRole("button", { name: "Tarjetas", exact: true }).click();
       }
-      if (path === "finanzas" || path === "portal-clientes") await expect(page.getByText("Pendiente de implementación", { exact: true })).toBeVisible();
-      if (path === "territorio") {
-        await expect(page.getByText("Mapas pendientes", { exact: true })).toBeVisible();
-        await expect(page.getByRole("main").getByRole("link", { name: "Casa del Valle · dato sintético" })).toBeVisible();
-      }
       await page.screenshot({ path: info.outputPath(`${path || "resumen"}-${width}.png`), fullPage: true });
     }
   });
 }
-
-test("pending client portal exposes no client data or invitation action", async ({ page }) => {
-  await page.goto("/admin/portal-clientes");
-  const main = page.getByRole("main");
-  await expect(main.getByText("El acceso de clientes todavía no está habilitado.", { exact: false })).toBeVisible();
-  await expect(main.getByRole("button")).toHaveCount(0);
-  await expect(main.getByText("Contacto de prueba", { exact: true })).toHaveCount(0);
-});
 
 test("cycle failure is explicit and does not invent zero counts", async ({ page }) => {
   await page.route("**/api/admin/expedientes", route => route.fulfill({ status: 503, json: { error: "Expedientes no disponibles" } }));
@@ -67,13 +53,4 @@ test("cycle failure is explicit and does not invent zero counts", async ({ page 
   const cycle = page.getByRole("region", { name: "Proceso de venta", exact: true });
   await expect(cycle.getByRole("alert")).toHaveText("No se pudieron consultar las etapas. Recarga el módulo para reintentar.");
   await expect(cycle.getByRole("list")).toHaveCount(0);
-});
-
-test("new administrator modules preserve adviser access limits", async ({ page }) => {
-  await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { id: "adviser-qa", email: "adviser@example.invalid", role: "asesor" } } }));
-  for (const path of ["finanzas", "portal-clientes"]) {
-    await page.goto(`/admin/${path}`);
-    await expect(page.getByRole("main").getByRole("alert")).toHaveText("Este módulo requiere acceso de administrador.");
-    await expect(page.getByRole("navigation", { name: "Módulos del panel", exact: true }).getByRole("link", { name: "Finanzas", exact: true })).toHaveCount(0);
-  }
 });

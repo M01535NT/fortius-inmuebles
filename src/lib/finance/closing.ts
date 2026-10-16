@@ -77,7 +77,7 @@ export function registrationFees(
   );
 }
 
-export type SellerIsrInput = {
+type SellerIsrInput = {
   price: number;
   updatedAcquisitionCost: number | null;
   updatedDeductions: number | null;
@@ -134,7 +134,7 @@ export function calculateSellerIsr(input: SellerIsrInput) {
   };
 }
 
-export type BudgetItem = {
+type BudgetItem = {
   key: string;
   label: string;
   amount: number | null;

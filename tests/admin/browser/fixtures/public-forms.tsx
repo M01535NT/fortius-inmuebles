@@ -1,6 +1,5 @@
 import * as React from "react";
 import { ContactForm } from "@/components/sections/contact-form";
-import { Evaluar } from "@/components/home/evaluar";
 import { LeadMagnet } from "@/components/sections/lead-magnet";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
@@ -9,7 +8,6 @@ import { PropertyInterestForm } from "@/components/property/property-interest-fo
 export function PublicFormsFixture() {
   return <>
     <section data-variant="contacto"><ContactForm /></section>
-    <section data-variant="evaluar"><Evaluar /></section>
     <section data-variant="checklist"><LeadMagnet /></section>
     <section data-variant="documentos"><PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} /></section>
     <section data-variant="interes-propiedad"><PropertyInterestForm slug="fixture" codigo="TEST" titulo="Casa" /></section>

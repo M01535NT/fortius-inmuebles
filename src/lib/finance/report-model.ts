@@ -7,7 +7,7 @@ export type ReportTable = {
   }[];
   rows: string[][];
 };
-export type ReportSection = {
+type ReportSection = {
   title: string;
   lines?: string[];
   table?: ReportTable;

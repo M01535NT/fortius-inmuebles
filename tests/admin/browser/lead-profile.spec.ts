@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { propiedades } from "../../../src/data/propiedades";
+import { propiedades } from "../../fixtures/propiedades";
 
 for (const width of [320, 390, 768, 1440]) {
   test(`lead qualification survives reload and conflict at ${width}px`, async ({ page }, testInfo) => {

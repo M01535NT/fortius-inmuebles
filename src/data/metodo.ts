@@ -1,6 +1,6 @@
 import type { HomeTextKey } from "@/data/home-copy";
 /* Vertical process. Main descriptions are edited through the content panel. */
-export type Fase = {
+type Fase = {
   n: string;
   title: string;
   copy: HomeTextKey;

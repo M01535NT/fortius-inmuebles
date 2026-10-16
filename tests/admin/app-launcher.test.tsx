@@ -16,7 +16,7 @@ afterEach(() => {
 function open(role = "admin", pathname = "/admin") { render(<AppLauncher role={role} pathname={pathname} onOpen={() => {}} />); const trigger = screen.getByRole("button", { name: "Abrir aplicaciones" }); fireEvent.click(trigger); const dialog = screen.getByRole("dialog", { name: "Aplicaciones del sistema" }); return { trigger, dialog, apps: within(dialog).getByRole("navigation", { name: "Aplicaciones del sistema" }) }; }
 test.each(["admin", "editor"])("%s accede a las veinte herramientas sin duplicar módulos administrativos", role => {
   const { dialog, apps } = open(role, "/admin/apps/ficha-comercial"); const links = within(apps).getAllByRole("link");
-  expect(links).toHaveLength(20); expect(new Set(links.map(link => link.getAttribute("href"))).size).toBe(20);
+  expect(links).toHaveLength(16); expect(new Set(links.map(link => link.getAttribute("href"))).size).toBe(16);
   expect(links.every(link => /^\/admin\/apps\/[a-z-]+$/.test(link.getAttribute("href") ?? ""))).toBe(true);
   expect(within(apps).getByRole("link", { name: "Ficha comercial" }).getAttribute("aria-current")).toBe("page");
   expect(within(apps).getByRole("link", { name: "Cotizador de servicios" }).getAttribute("href")).toBe("/admin/apps/cotizador");
@@ -27,7 +27,7 @@ test("búsqueda sin acentos filtra herramientas y navegar cierra el diálogo", (
   const { dialog, apps, trigger } = open(); fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "FOTOGRAFIAS" } });
   const link = within(apps).getByRole("link", { name: "Fotografías" }); expect(within(apps).getAllByRole("link")).toHaveLength(1); expect(link.getAttribute("href")).toBe("/admin/apps/fotografias");
   link.addEventListener("click", event => event.preventDefault()); fireEvent.click(link); expect(trigger.getAttribute("aria-expanded")).toBe("false"); expect(screen.queryByRole("dialog")).toBeNull();
-  fireEvent.click(trigger); expect(within(screen.getByRole("navigation", { name: "Aplicaciones del sistema" })).getAllByRole("link")).toHaveLength(20);
+  fireEvent.click(trigger); expect(within(screen.getByRole("navigation", { name: "Aplicaciones del sistema" })).getAllByRole("link")).toHaveLength(16);
 });
 test("categorías y búsqueda se combinan sin perder el acceso al catálogo", () => {
   const { dialog, apps } = open(); fireEvent.click(within(dialog).getByRole("button", { name: "Finanzas" })); expect(within(apps).getAllByRole("link")).toHaveLength(6);

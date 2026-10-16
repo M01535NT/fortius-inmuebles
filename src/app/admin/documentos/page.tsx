@@ -13,6 +13,5 @@ export default function DocumentosPage() {
       <ModuleLink href="/admin/notas" icon={NotebookPen} title="Notas de trabajo" description="Consulta y organiza las notas internas del equipo." />
       <ModuleLink href="/admin/propiedades" icon={History} title="Documentación del inmueble" description="Abre un inmueble para administrar sus fichas, documentos y fotografías." />
     </div></details>
-    <p className="admin-status-note">La búsqueda documental con IA y la revisión asistida de cláusulas siguen pendientes del plan. Cada documento conserva sus controles actuales de acceso y emisión.</p>
   </div>;
 }

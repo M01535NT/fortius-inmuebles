@@ -2,7 +2,7 @@ import type * as React from "react";
 import {
   Building2, CalendarDays, ChartNoAxesCombined, ContactRound, FileText,
   FolderOpen, History, LayoutDashboard, ListTodo, Newspaper, PenLine,
-  Settings, StickyNote, Users, UsersRound, BriefcaseBusiness, Wallet, MapPin, ClipboardCheck,
+  Settings, StickyNote, Users, UsersRound, BriefcaseBusiness, ClipboardCheck,
 } from "lucide-react";
 import { SALE_PROCESS, type SalePhase } from "@/lib/formatos/operation-workflow";
 
@@ -17,16 +17,13 @@ export type AdminModule = {
   tone?: "rose";
 };
 
-export const ADMIN_MODULES: AdminModule[] = [
+const ADMIN_MODULES: AdminModule[] = [
   { href: "/admin", label: "Resumen", icon: LayoutDashboard, group: "Inicio", primary: true, tone: "rose" },
   { href: "/admin/leads", label: "CRM", icon: Users, group: "Comercial", primary: true },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, group: "Comercial", primary: true },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound, group: "Equipo y administración", tone: "rose" },
   { href: "/admin/expedientes", label: "Operaciones", icon: FileText, group: "Comercial", primary: true },
   { href: "/admin/documentos", label: "Documentos", icon: FolderOpen, group: "Gestión", primary: true },
-  { href: "/admin/finanzas", label: "Finanzas", icon: Wallet, group: "Gestión", primary: true, adminOnly: true },
-  { href: "/admin/territorio", label: "Análisis territorial", icon: MapPin, group: "Herramientas", primary: true },
-  { href: "/admin/portal-clientes", label: "Portal de clientes", icon: ContactRound, group: "Herramientas", primary: true, adminOnly: true },
   { href: "/admin/control-comercial", label: "Control comercial", icon: BriefcaseBusiness, group: "Equipo y administración", adminOnly: true, tone: "rose" },
   { href: "/admin/reportes", label: "Reportes", icon: ChartNoAxesCombined, group: "Equipo y administración", adminOnly: true },
   { href: "/admin/tareas", label: "Tareas", icon: ListTodo, group: "Equipo y administración", tone: "rose" },

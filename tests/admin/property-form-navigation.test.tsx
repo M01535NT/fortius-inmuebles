@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import { PropertyForm } from "@/components/admin/property-form";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 import { clearAdminCache } from "@/lib/admin/store";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));

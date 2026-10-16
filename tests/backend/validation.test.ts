@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 import { parseCollection, parseRecord, parseWrite, parseLead, validateFile, projectPublic } from "@/lib/backend/validation";
 import { staffIdentity } from "@/lib/backend/auth";
 import { assertSameOrigin, readJson, apiResponse, ApiError } from "@/lib/backend/http";

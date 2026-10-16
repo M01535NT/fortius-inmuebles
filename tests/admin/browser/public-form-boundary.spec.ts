@@ -4,7 +4,7 @@ import type { ViteDevServer } from "vite";
 
 let server: ViteDevServer;
 let origin: string;
-const variants = ["contacto", "evaluar", "checklist", "documentos", "interes-propiedad"];
+const variants = ["contacto", "checklist", "documentos", "interes-propiedad"];
 test.beforeAll(async () => {
   const { createServer } = await import("vite");
   server = await createServer({
@@ -54,7 +54,6 @@ for (const mode of ["JavaScript unavailable", "hydration delayed"]) {
     await page.goto(origin, { waitUntil: "commit" });
     for (const variant of variants) {
       const root = page.locator(`[data-variant="${variant}"]`);
-      if (variant === "evaluar") await root.locator("summary").click();
       const form = root.locator("form");
       await expect(form).toBeVisible();
       await expect(form).toHaveAttribute("method", "post");
@@ -104,8 +103,7 @@ for (const variant of variants) {
     });
     await page.goto(origin);
     const root = page.locator(`[data-variant="${variant}"]`);
-    if (variant === "evaluar") await root.locator("summary").click();
-      const form = root.locator("form");
+    const form = root.locator("form");
     await expect(form.getByLabel("Nombre", { exact: true })).toBeEnabled();
     await fill(form);
     await form.locator('input[type="tel"]').press("Enter");
@@ -117,8 +115,7 @@ for (const variant of variants) {
     await expect(root.locator("a[download]")).toHaveCount(0);
     expect(new URL(page.url()).pathname).toBe("/");
     acknowledge();
-    if (variant === "evaluar") await expect(page).toHaveURL(/\/vender-propiedad\/gracias$/);
-    else await expect(form).toHaveCount(0);
+    await expect(form).toHaveCount(0);
     if (["documentos", "checklist"].includes(variant)) await expect(root.locator("a[download]")).toHaveCount(1);
   });
 }

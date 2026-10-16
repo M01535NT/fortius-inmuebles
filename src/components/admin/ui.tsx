@@ -137,7 +137,7 @@ export function ErrorNotice({ error }: { error: string | null }) {
   ) : null;
 }
 
-export function useMutation() {
+function useMutation() {
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const lock = React.useRef(false);

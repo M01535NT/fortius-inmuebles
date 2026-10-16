@@ -9,7 +9,7 @@ const rows = (v: unknown): ValorRow[] | null => Array.isArray(v) && v.every((row
 const d = (v: unknown) => new Decimal(v as number);
 const area = (data: ValorRow, key: string) => number(data[key], true) ? data[key] as number : null;
 const pct = (v: unknown, positive = false) => number(v, positive) && (v as number) < 100;
-export const HEIDECKE = [0, 0.0252, 0.181, 0.526, 0.722, 1] as const;
+const HEIDECKE = [0, 0.0252, 0.181, 0.526, 0.722, 1] as const;
 export const CONSTRUCTION_STATES = ["Óptimo / nuevo", "Bueno / reparaciones menores", "Regular / reparaciones simples", "Malo / reparaciones importantes", "Muy malo / muchas reparaciones importantes", "Ruinoso / sin valor de construcción"];
 
 export function valorReviewSnapshot(data: ValorRow): string {

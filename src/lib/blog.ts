@@ -14,9 +14,3 @@ export async function getBlogPostBySlug(slug: string): Promise<Post | undefined>
   return (await getBlogPosts()).find((post) => post.slug === slug);
 }
 
-export function postParagraphs(content: string): string[] {
-  return content
-    .split(/\r?\n\s*\r?\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-}

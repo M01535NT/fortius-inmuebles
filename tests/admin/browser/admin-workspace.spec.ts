@@ -53,7 +53,7 @@ test("app window searches, traps keyboard focus, closes and navigates", async ({
   const trigger = page.getByRole("button", { name: "Abrir aplicaciones" });
   const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
   await trigger.click();
-  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(20);
+  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(16);
   await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
   const search = apps.getByRole("searchbox", { name: "Buscar aplicación" });
   await expect(search).toBeFocused();
@@ -95,7 +95,7 @@ test("apps fit small phones and tablets and release the mobile menu", async ({ p
     const box = await apps.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-    await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(20);
+    await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(16);
     await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
     if (width < 768) await expect(page.locator('button[aria-label="Menú del panel"]')).toHaveAttribute("aria-expanded", "false");
     await apps.getByRole("link", { name: "Abrir catálogo completo" }).focus();
@@ -118,7 +118,7 @@ test("editor has all twenty tools while Más excludes admin-only modules", async
   await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
   const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
   const tools = apps.getByRole("navigation", { name: "Aplicaciones del sistema" });
-  await expect(tools.getByRole("link")).toHaveCount(20);
+  await expect(tools.getByRole("link")).toHaveCount(16);
   await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
   await apps.getByRole("button", { name: "Finanzas", exact: true }).click();
   await expect(tools.getByRole("link")).toHaveCount(6);

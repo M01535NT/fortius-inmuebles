@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { PropertyShare } from "@/components/property/property-share";
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import { siteConfig } from "@/data/site";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 
 const payload = { title: "Casa en renta", text: "Playas · $24,500 MXN /mes", url: "https://fortius-inmuebles.vercel.app/inventario/casa" };
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });

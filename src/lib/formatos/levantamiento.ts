@@ -166,8 +166,6 @@ export function levantamientoFields(id: LevantamientoId): FormatoField[] {
   ];
 }
 
-export function validarTerreno(data: Record<string, unknown>): string[] { return validarLevantamiento("04A", data); }
-
 export function validarLevantamiento(id: LevantamientoId, data: Record<string, unknown>): string[] {
   const errors: string[] = [];
   for (const key of ["fotoPrincipalId", "croquisId"]) if (typeof data[key] !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(data[key] as string)) errors.push(key === "fotoPrincipalId" ? "Selecciona la fotografía principal adjunta" : "Selecciona el croquis adjunto");

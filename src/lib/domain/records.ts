@@ -48,7 +48,7 @@ export const LEAD_ORIGEN_LABELS: Record<LeadOrigen, string> = {
   manual: "Captura manual",
 };
 
-export type LeadNota = { id: string; texto: string; fecha: string };
+type LeadNota = { id: string; texto: string; fecha: string };
 
 export type Lead = {
   id: string;

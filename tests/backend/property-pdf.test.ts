@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { PDFDocument, PDFArray, PDFDict, PDFName, PDFRawStream, decodePDFRawStream } from "pdf-lib";
 import sharp from "sharp";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 import { createPropertyPdf } from "@/lib/property-pdf";
 import { loadPdfImage } from "@/lib/backend/pdf-images";
 import { financialPdfPages } from "../helpers/financial-pdf";

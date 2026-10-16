@@ -13,7 +13,7 @@ import type { MortgageInput, MortgageResult } from "./mortgage";
 import { money } from "./money";
 import type { FinancialReport, ReportTable } from "./report-model";
 type Fx = { original: number; rate: number };
-export type MortgageReportScenario = {
+type MortgageReportScenario = {
   input: MortgageInput;
   result: MortgageResult;
   quotedCat: string;

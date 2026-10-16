@@ -82,14 +82,14 @@ export async function apiRequest<T>(
   return result as T;
 }
 
-export type LoadState = {
+type LoadState = {
   status: "idle" | "loading" | "ready" | "error";
   error: string | null;
   loaded: boolean;
 };
 const IDLE: LoadState = { status: "idle", error: null, loaded: false };
 const EMPTY: never[] = [];
-export type Collection<T extends object> = {
+type Collection<T extends object> = {
   list(): T[];
   load(): Promise<void>;
   state(): LoadState;
@@ -289,7 +289,7 @@ export function useCollection<T extends object>(col: Collection<T>, enabled = tr
 export function useLoadState<T extends object>(col: Collection<T>) {
   return React.useSyncExternalStore(col.subscribe, col.state, () => IDLE);
 }
-export type Singleton<T extends object> = ReturnType<typeof singleton<T>>;
+type Singleton<T extends object> = ReturnType<typeof singleton<T>>;
 function singleton<T extends object>(key: string, empty: T) {
   const col = collection<T>(key, () => "singleton");
   return {

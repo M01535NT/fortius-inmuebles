@@ -39,7 +39,7 @@ export function readingMinutes(post: Post): number {
   return Math.max(1, Math.ceil(post.contenido.trim().split(/\s+/).length / 220));
 }
 
-export type BlogSearch = {
+type BlogSearch = {
   q?: string; tema?: string; tipo?: string; pagina?: string;
   desde?: string; hasta?: string;
   orden?: "recientes" | "antiguos";

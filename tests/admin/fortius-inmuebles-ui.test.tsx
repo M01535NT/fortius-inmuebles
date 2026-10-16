@@ -13,11 +13,6 @@ import { PropertyInterestForm } from "@/components/property/property-interest-fo
 import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
 import type { Property } from "@/data/propiedades";
 
-vi.mock("@/components/magicui/number-ticker", () => ({
-  NumberTicker: ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => (
-    <span>{prefix}{Math.round(value)}{suffix}</span>
-  ),
-}));
 vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: React.PropsWithChildren) => children }));
 vi.mock("@/components/property/property-card", () => ({ PropertyCard: ({ property }: { property: Property }) => <article>{property.titulo}</article> }));
 vi.mock("@/lib/inventario", () => ({ getPropiedades: async () => [] }));

@@ -6,7 +6,7 @@ export async function transformPdf(files: Uint8Array[], selection: { file: numbe
   for(const item of selection){if(!Number.isInteger(item.file)||!Number.isInteger(item.page)||![0,90,180,270].includes(item.rotation)||!sources[item.file]||item.page<1||item.page>sources[item.file].getPageCount())throw new Error("Página o giro inválido.");const [page]=await output.copyPages(sources[item.file],[item.page-1]);page.setRotation(degrees((page.getRotation().angle+item.rotation)%360));output.addPage(page);}
   return output.save();
 }
-export type TextChange={kind:"same"|"added"|"removed";text:string};
+type TextChange={kind:"same"|"added"|"removed";text:string};
 export function compareTexts(before:string,after:string):TextChange[]{
   const a=before.replaceAll("\r\n","\n").split("\n"),b=after.replaceAll("\r\n","\n").split("\n");
   if(a.length>2000||b.length>2000||before.length>200000||after.length>200000)throw new Error("Compara hasta 2,000 líneas y 200,000 caracteres por versión.");

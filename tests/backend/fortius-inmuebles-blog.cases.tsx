@@ -6,7 +6,7 @@ import BlogPostPage, {
   generateMetadata as generatePostMetadata,
 } from "@/app/blog/[slug]/page";
 import sitemap from "@/app/sitemap";
-import { propiedades as propertyFixtures } from "@/data/propiedades";
+import { propiedades as propertyFixtures } from "../fixtures/propiedades";
 import { siteConfig } from "@/data/site";
 import { getBlogPostBySlug, getBlogPosts } from "@/lib/blog";
 import { BlogContent } from "@/components/blog/blog-content";
