@@ -87,7 +87,7 @@ it('shows the six sale phases and keeps contract capture locked until verificati
  expect(screen.getByLabelText('Estado de Intermediación formalizada y autorización').matches(':disabled')).toBe(false);
 });
 it('flags an overdue monthly owner report while the property is promoted',async()=>{
- vi.stubGlobal('fetch',async(url:string)=>String(url).includes('informe-propietario')?Response.json({runs:[{id:'r1',title:'Informe ficticio',updatedAt:'2000-01-10T18:00:00Z',context:{}}]}):Response.json({expedientes:[],runs:[]}));
+ vi.stubGlobal('fetch',async(url:string)=>String(url).includes('informe-propietario')?Response.json({runs:[{id:'r2',title:'Borrador sin resultado',updatedAt:'2000-02-01T18:00:00Z',result:null,context:{}},{id:'r1',title:'Informe ficticio',updatedAt:'2000-01-10T18:00:00Z',result:{title:'Informe'},context:{}}]}):Response.json({expedientes:[],runs:[]}));
  render(<OperationWorkflowPanel expediente={{...base,etapa:'comercializacion',flujo:verifiedFixture}} onSaved={vi.fn()} onDirtyChange={vi.fn()}/>);
  expect(await screen.findByText('Informe vencido desde 10/02/2000. Último preparado el 10/01/2000.')).toBeTruthy();
  expect(screen.getByRole('link',{name:'Preparar informe del mes'}).getAttribute('href')).toContain('/admin/apps/informe-propietario?expedienteId=');
