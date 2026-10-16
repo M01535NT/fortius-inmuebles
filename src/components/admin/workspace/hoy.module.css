@@ -1,0 +1,43 @@
+/* Hoy (lienzo: Main y HoyMovil). Prefijo :global(.admin-root): ver kit.module.css. */
+:global(.admin-root) .layout { display: grid; gap: 2rem; align-items: start; }
+@media (min-width: 1100px) { :global(.admin-root) .layout { grid-template-columns: minmax(0, 1fr) 20rem; gap: 2.5rem; } }
+@media (min-width: 1280px) { :global(.admin-root) .layout { grid-template-columns: minmax(0, 1fr) 22rem; } }
+
+:global(.admin-root) .date { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-foreground); }
+:global(.admin-root) .hello { margin: 0; }
+:global(.admin-root) .title { display: flex; align-items: baseline; gap: .375rem; margin: 0; font-size: 1.1875rem; }
+:global(.admin-root) .count { font-family: var(--font-mono); font-size: .875rem; font-weight: 500; color: var(--muted-foreground); }
+:global(.admin-root) .more { flex: none; font-size: .875rem; font-weight: 600; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .more:hover { text-decoration: underline; text-underline-offset: 4px; }
+:global(.admin-root) .mono { font-family: var(--font-mono); font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .late { color: var(--primary-text); font-weight: 600; }
+:global(.admin-root) .note { padding: 1rem 1.25rem; font-size: .875rem; color: var(--muted-foreground); }
+
+/* Listas dentro de una tarjeta, separadas por una línea. */
+:global(.admin-root) .list { overflow: hidden; }
+:global(.admin-root) .list > * + *, :global(.admin-root) .list ul > li + li { border-top: 1px solid var(--border); }
+:global(.admin-root) .list ul.flex > li + li { border-top: 0; }
+:global(.admin-root) .waiting, :global(.admin-root) .report { display: flex; flex-direction: column; gap: .875rem; padding: 1rem 1.25rem; }
+@media (min-width: 640px) { :global(.admin-root) .waiting { flex-direction: row; align-items: center; justify-content: space-between; gap: 1.5rem; } }
+
+/* Tareas de hoy */
+:global(.admin-root) .task { display: flex; align-items: flex-start; gap: .875rem; padding: .875rem 1.25rem; }
+:global(.admin-root) .task a { color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .task a:hover { text-decoration: underline; text-underline-offset: 3px; }
+:global(.admin-root) .check { flex: none; width: 1.375rem; height: 1.375rem; margin-top: .125rem; accent-color: var(--primary); cursor: pointer; }
+:global(.admin-root) .doneText { color: var(--muted-foreground) !important; text-decoration: line-through !important; }
+:global(.admin-root) .add { display: flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 1.25rem; color: var(--primary-text); font-size: .9375rem; font-weight: 500; text-decoration: none; }
+:global(.admin-root) .add:hover { background: var(--secondary); }
+
+/* Agenda de hoy: las visitas van destacadas en guinda. */
+:global(.admin-root) .event { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: .75rem; padding: .875rem .875rem; border-radius: 10px; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .event:hover { background: var(--secondary); }
+:global(.admin-root) .visit, :global(.admin-root) .visit:hover { background: var(--panel-selected); }
+:global(.admin-root) .time { font-family: var(--font-mono); font-size: .9375rem; font-weight: 600; }
+:global(.admin-root) .tag { align-self: flex-start; padding: .125rem .5rem; border-radius: 5px; background: var(--primary); color: #fff; font-family: var(--font-mono); font-size: .6875rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+
+/* Próximos 7 días */
+:global(.admin-root) .upcoming { display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: .75rem; padding: .875rem 1.25rem; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .upcoming:hover { background: var(--secondary); }
+:global(.admin-root) .day { font-family: var(--font-mono); font-size: .8125rem; font-weight: 600; }
+:global(.admin-root) .kind { align-self: flex-start; padding: .0625rem .4375rem; border-radius: 5px; background: var(--secondary); font-family: var(--font-mono); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }

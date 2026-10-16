@@ -2,6 +2,7 @@
 
 import { brandCopy } from "@/lib/brand-copy";
 import * as React from "react";
+import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 
 import {
   AsyncForm,
@@ -58,6 +59,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
         title="Configuración."
         description="Identidad, contacto y datos operativos del negocio."
       />
+      <SetupChecklist />
 
       <AsyncForm onSubmit={guardar} className="space-y-6">
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">

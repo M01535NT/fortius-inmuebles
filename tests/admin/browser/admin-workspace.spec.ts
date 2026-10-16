@@ -80,7 +80,7 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
   for (const width of [320, 375]) {
     await page.setViewportSize({ width, height: 812 });
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { name: "¿Qué vas a hacer hoy?" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
     const tabs = page.getByRole("navigation", { name: "Secciones principales" });
     for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
     await fits(page);
@@ -304,4 +304,16 @@ test("Documentos es una pestaña de Herramientas y la dirección anterior lleva 
   await page.getByRole("tab", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
   await expect(page.getByRole("textbox", { name: "Buscar herramienta" })).toBeVisible();
+});
+test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/admin");
+    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
+    for (const name of [/^Esperan algo de ti/, /^Tareas de hoy/, /^Agenda de hoy/, /^Próximos 7 días/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+    const tasks = page.getByRole("region", { name: "Tareas de hoy" });
+    await expect(tasks.getByRole("checkbox").first()).toBeVisible();
+    await expect(tasks.getByRole("link", { name: "Agregar tarea" })).toHaveAttribute("href", "/admin/agenda?tab=tareas&nueva=1");
+    await fits(page);
+  }
 });

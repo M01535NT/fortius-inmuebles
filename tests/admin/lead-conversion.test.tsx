@@ -94,11 +94,11 @@ test("una lectura anterior a la conversión no revierte la confirmación del ser
   expect(db.leads.version(db.leads.list()[0])).toBe(8);
 });
 
-test("el panel deja de contar y ofrecer como nuevo un lead convertido", async () => {
-  currentLead = { ...original, estado: "nuevo", clienteId: "c1" };
+test("Hoy deja de pedir seguimiento a un lead ya convertido", async () => {
+  currentLead = { ...original, estado: "nuevo", clienteId: "c1", perfil: { ...original.perfil, proximoContacto: "2020-01-01" } };
   await db.leads.load();
   render(<Dashboard />);
-  expect(screen.getByRole("link", { name: /Prospectos nuevos/ }).textContent).toContain("00");
+  await screen.findByRole("region", { name: /Esperan algo de ti/ });
   expect(screen.queryByRole("link", { name: new RegExp(original.nombre) })).toBeNull();
 });
 

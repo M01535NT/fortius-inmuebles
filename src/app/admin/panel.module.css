@@ -113,12 +113,6 @@
 .panel :global(.admin-card-heading) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 1rem; min-height: 2.75rem; border-bottom: 1px solid var(--border); }
 .panel :global(.admin-card-heading) h2 { font-size: 1.125rem; }
 .panel :global(.admin-card-heading) a { display: inline-flex; align-items: center; min-height: 2.75rem; gap: .375rem; font-size: .875rem; color: var(--foreground); }
-.panel :global(.admin-cycle) { display: grid; grid-template-columns: minmax(0, 1fr); gap: .625rem; padding: 1rem; }
-.panel :global(.admin-cycle-step) { display: flex; min-width: 0; align-items: center; gap: .75rem; padding: .875rem; background: var(--secondary); border-radius: .375rem; }
-.panel :global(.admin-cycle-number) { display: flex; flex-shrink: 0; width: 2rem; height: 2rem; align-items: center; justify-content: center; border-radius: 50%; background: #061f3f; color: white; font-size: .875rem; }
-.panel :global(.admin-cycle-step):last-child :global(.admin-cycle-number) { background: #8a1634; }
-.panel :global(.admin-cycle-step) strong { font-size: 1.375rem; font-variant-numeric: tabular-nums; }
-.panel :global(.admin-cycle-step) p { font-size: .875rem; overflow-wrap: anywhere; }
 .panel :global(.admin-badge) { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; border-radius: .25rem; font-size: .8125rem; line-height: 1.5; }
 .panel :global(.font-mono) { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
 .panel :global(.admin-properties-grid) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
@@ -165,13 +159,6 @@
 .panel :global(.admin-data-scope) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; color: var(--muted-foreground); font-size: .8125rem; }
 .panel :global(.admin-data-scope) label { display: inline-flex; align-items: center; gap: .625rem; min-height: 2.75rem; font-size: .8125rem; cursor: pointer; }
 .panel :global(.admin-data-scope) input { width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
-.panel :global(.admin-attention-overview) { grid-column: 1 / -1; }
-.panel :global(.admin-priority-grid) { display: grid; gap: 1rem; padding: 1rem; }
-.panel :global(.admin-priority-grid) h3 { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .875rem; }
-.panel :global(.admin-priority-grid) p { margin-top: .5rem; font-size: .8125rem; color: var(--muted-foreground); }
-.panel :global(.admin-priority-grid) :is(a,summary) { display: block; min-height: 2.75rem; padding-block: .625rem; font-size: .875rem; overflow-wrap: anywhere; }
-.panel :global(.admin-priority-grid) small { display: block; color: var(--muted-foreground); margin-top: .125rem; }
-.panel :global(.admin-priority-grid) summary { cursor: pointer; color: var(--primary-text); }
 .panel :global(.admin-report-metrics) { display: grid; gap: .75rem; }
 .panel :global(.admin-metric-action) { display: grid; gap: .375rem; min-width: 0; padding: 1rem; text-align: left; border: 1px solid var(--border); border-radius: .375rem; background: var(--card); color: var(--foreground); }
 .panel :is(button,a):global(.admin-metric-action):hover { background: var(--secondary); }
@@ -225,7 +212,7 @@
   .panel :global(.admin-operation-next) > div, .panel :global(.admin-operation-gaps) > div { width: auto; flex: 1; }
 }
 @media (min-width: 640px) {
-  .panel :global(.admin-priority-grid), .panel :global(.admin-operation-context) { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .panel :global(.admin-operation-context) { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .panel :global(.admin-report-metrics) { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .panel :global(.admin-document-list) > li { grid-template-columns: 1.5rem minmax(0,1fr) auto auto; }
   .panel :global(.admin-document-list) > li > :is(a,span) { grid-column: auto; }
@@ -238,7 +225,6 @@
 .panel table td { padding-block: .875rem; }
 @media (min-width: 640px) {
   .panel :global(.admin-properties-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .panel :global(.admin-cycle) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 768px) {
   .panel :global(.admin-content) { padding: 1.5rem 1.25rem 2rem; }
@@ -246,66 +232,6 @@
 
 /* Geometry of the approved image: compact header, operational table and side agenda. */
 
-.panel :global(.admin-coach-header) { display: grid; gap: 1.25rem; align-items: start; padding: 1.25rem 0 .25rem; }
-.panel :global(.admin-coach-header) h1 { font-size: clamp(1.75rem, 2.5vw, 2.25rem); line-height: 1.15; }
-.panel :global(.admin-coach-header) > div:first-child > p { margin-top: .75rem; max-width: 42rem; color: var(--muted-foreground); font-size: 1rem; line-height: 1.55; }
-.panel :global(.admin-coach-date) { margin-top: .75rem !important; font-size: .875rem !important; }
-.panel :global(.admin-coach-actions) { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
-.panel :global(.admin-coach-metrics) { border: 1px solid var(--border); border-radius: .5rem; padding: 1rem 0; background: var(--card); }
-.panel :global(.admin-executive-metrics) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem 0; }
-.panel :global(.admin-executive-metrics) > a { min-width: 0; padding-inline: 1rem; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: .375rem; }
-.panel :global(.admin-executive-metrics) small { font-size: .75rem; font-weight: 500; line-height: 1.5; min-height: 3em; }
-.panel :global(.admin-executive-metrics) strong { font-size: 1.75rem; line-height: 1.15; font-weight: 700; }
-.panel :global(.admin-executive-metrics) > a > span { color: var(--muted-foreground); font-size: .875rem; padding-top: .375rem; }
-.panel :global(.admin-daily-layout) { display: grid; gap: 1.25rem; grid-template-columns: minmax(0,1fr); }
-.panel :global(.admin-cycle-card) :global(.admin-card-heading) { border: 0; }
-.panel :global(.admin-cycle) { gap: .5rem; padding: 0 1rem .625rem; }
-.panel :global(.admin-cycle-step) { min-height: 5.375rem; padding: .875rem 1rem; border: 1px solid var(--border); }
-.panel :global(.admin-cycle-number) { width: 2.375rem; height: 2.375rem; }
-.panel :global(.admin-cycle-step) strong { font-size: 1.5rem; }
-.panel :global(.admin-operations-scroll) { position: relative; overflow-x: auto; }
-.panel :global(.admin-operations-table) { width: 100%; min-width: 50rem; text-align: left; font-size: .875rem; table-layout: fixed; }
-.panel :global(.admin-operations-table) th, .panel :global(.admin-operations-table) td { padding: .625rem .875rem; }
-.panel :global(.admin-operations-table) th:first-child { width: 30%; }
-.panel :global(.admin-operations-table) th:nth-child(2) { width: 20%; }
-.panel :global(.admin-operations-table) th:nth-child(3) { width: 20%; }
-.panel :global(.admin-operations-table) th:nth-child(4) { width: 16%; }
-.panel :global(.admin-operations-table) th:nth-child(5) { width: 8%; }
-.panel :global(.admin-operations-table) th:last-child { width: 6%; background: var(--secondary); box-shadow: none; }
-.panel :global(.admin-operations-table) :is(th,td):last-child { position: static; padding-inline: 0; box-shadow: none; }
-.panel :global(.admin-row-detail) { min-height: 2.75rem; display: flex; align-items: center; justify-content: center; }
-.panel :global(.admin-operation-stage) { display: inline-block; max-width: 100%; overflow-wrap: anywhere; padding: .25rem .625rem; border-radius: .25rem; font-size: .8125rem; background: var(--secondary); }
-.panel :global(.admin-operation-stage)[data-stage=documentacion] { background: #e4ebff; color: #28456b; }
-.panel :global(.admin-operation-stage)[data-stage=negociacion] { background: #f2e5e1; color: #6b353f; }
-.panel :global(.admin-operation-stage)[data-stage=comercializacion] { background: #d9ede6; color: #245d52; }
-:global(.dark) .panel :global(.admin-operation-stage) { background: var(--secondary); color: var(--foreground); }
-.panel :global(.admin-operations-table) td { border-bottom: 1px solid var(--border); height: 4.25rem; }
-.panel :global(.admin-operation-property) { display: flex; gap: .75rem; align-items: center; min-height: 2.75rem; }
-.panel :global(.admin-operation-property) img { width: 4.5rem; height: 3rem; border-radius: .1875rem; object-fit: cover; flex-shrink: 0; }
-.panel :global(.admin-operation-property) > span { min-width: 0; }
-.panel :global(.admin-operation-property) strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.panel :global(.admin-operation-property) small { display: block; color: var(--muted-foreground); font-size: .8125rem; }
-.panel :global(.admin-next-action) { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-.panel :global(.admin-responsible) { display: flex; gap: .375rem; align-items: center; }
-.panel :global(.admin-responsible) > span:first-child { display: inline-flex; width: 2rem; height: 2rem; flex-shrink: 0; align-items: center; justify-content: center; background: var(--secondary); border-radius: 50%; font-size: .6875rem; }
-.panel :global(.admin-responsible) > span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .8125rem; }
-.panel :global(.admin-table-empty) { padding: 2rem 1.25rem; color: var(--muted-foreground); font-size: .875rem; min-height: 12rem; }
-.panel :global(.admin-agenda-list) { padding-inline: 1.25rem; }
-.panel :global(.admin-agenda-list) li { display: grid; grid-template-columns: 3.25rem .625rem 1.25rem minmax(0,1fr); align-items: start; gap: .625rem; min-height: 5rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
-.panel :global(.admin-agenda-list) time { font-size: .875rem; }
-.panel :global(.admin-agenda-list) a { font-size: .875rem; font-weight: 600; }
-.panel :global(.admin-agenda-list) small { display: block; color: var(--muted-foreground); font-size: .8125rem; font-weight: 400; margin-top: .375rem; }
-.panel :global(.admin-agenda-dot) { display: block; margin-top: .375rem; width: .5rem; height: .5rem; background: #8a1634; border-radius: 50%; }
-.panel :global(.admin-agenda-more) { display: inline-flex; padding: .625rem 1.25rem; font-size: .8125rem; color: var(--primary-text); }
-.panel :global(.admin-daily-details) { padding: .5rem 1rem; font-size: .8125rem; }
-.panel :global(.admin-daily-layout) > :global(.admin-daily-details) { grid-column: 1 / -1; padding: 0; }
-.panel :global(.admin-attention-card), .panel :global(.admin-agenda-card) { min-height: 19rem; }
-.panel :global(.admin-daily-details) summary, .panel :global(.admin-dashboard-more) > summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; font-size: .8125rem; color: var(--muted-foreground); }
-.panel :global(.admin-followup-grid) { display: grid; gap: 1rem; padding-bottom: 1rem; }
-.panel :global(.admin-followup-grid) a { display: block; min-height: 2.75rem; margin-top: .5rem; }
-.panel :global(.admin-followup-grid) small { display: block; color: var(--muted-foreground); }
-.panel :global(.admin-dashboard-more) { border-top: 1px solid var(--border); }
-.panel :global(.admin-cycle-step) p { font-weight: 600; }
 .panel :global(.admin-crm-layout) { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; align-items: start; }
 .panel :global(.admin-crm-board) { display: grid; grid-auto-columns: minmax(16rem,1fr); grid-auto-flow: column; overflow-x: auto; gap: .75rem; padding-bottom: .75rem; min-width: 0; }
 .panel :global(.admin-crm-column) { background: var(--secondary); border: 1px solid var(--border); padding: .75rem; border-radius: .375rem; min-height: 19rem; }
@@ -352,27 +278,8 @@
   .panel :global(.admin-crm-board) { grid-column: 1; }
 }
 @media (max-width: 639px) { .panel :global(.admin-search-trigger) { flex: 0 0 2.75rem; width: 2.75rem; padding: 0; justify-content: center; }.panel :global(.admin-search-trigger) span { display: none; } }
-@media (min-width: 1024px) {
-  .panel :global(.admin-coach-header) { grid-template-columns: minmax(0,1fr) auto; align-items: end; }
-  .panel :global(.admin-coach-actions) { justify-content: flex-end; }
-  .panel :global(.admin-executive-metrics) { grid-column: 1 / -1; grid-row: 2; }
-  .panel :global(.admin-executive-metrics) { grid-template-columns: repeat(4,minmax(0,1fr)); }
-  .panel :global(.admin-cycle) { grid-template-columns: repeat(3,minmax(0,1fr)); }
-  .panel :global(.admin-cycle-card) { grid-column: 1 / -1; }
-  .panel :global(.admin-followup-grid) { grid-template-columns: repeat(3,minmax(0,1fr)); }
-}
 @media (min-width: 1280px) {
-  .panel :global(.admin-daily-layout) { grid-template-columns: minmax(0,2.1fr) minmax(0,1fr); }
-  .panel :global(.admin-cycle) { grid-template-columns: repeat(6,minmax(0,1fr)); gap: 0; }
-  .panel :global(.admin-cycle-step) { position: relative; isolation: isolate; border: 0; border-radius: 0; padding-left: 2rem; clip-path: polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%,16px 50%); margin-left: -10px; background: var(--border); }
-  .panel :global(.admin-cycle-step)::before { content: ""; position: absolute; inset: 1px; clip-path: inherit; background: var(--secondary); z-index: -1; }
-  .panel :global(.admin-cycle-step):first-child { margin-left: 0; padding-left: 1rem; clip-path: polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%); }
-  .panel :global(.admin-followup-grid) { grid-template-columns: repeat(3,minmax(0,1fr)); }
-}
-@media (min-width: 1280px) {
-  .panel :global(.admin-executive-metrics) { grid-column: auto; grid-row: auto; }
   .panel :global(.admin-properties-grid) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .panel :global(.admin-cycle) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
 /* Búsqueda: solo el ícono en celular, con texto desde 640 px. */

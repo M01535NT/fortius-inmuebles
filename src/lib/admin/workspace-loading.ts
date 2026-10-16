@@ -6,12 +6,11 @@ export function workspaceStores(pathname: string) {
   switch (section) {
     case "propiedades": return pathname.split("/").length > 3 ? operation : [db.propiedades, db.asesores];
     case "leads": return pathname.split("/").length > 3 ? operation : [db.leads, db.asesores];
-    case "documentos": return [];
     case "perfil": case "historial": case "sistema": case "herramientas": return [];
     case "blog": return [db.posts];
     case "archivos": return [db.archivos];
     case "notas": return [db.notas];
-    case "configuracion": return [settingsStore];
+    case "configuracion": return [settingsStore, db.asesores, db.propiedades];
     case "contenido": return [contentStore];
     case "": return [...operation, settingsStore];
     default: return operation;

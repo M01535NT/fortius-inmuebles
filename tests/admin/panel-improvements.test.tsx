@@ -21,27 +21,28 @@ function install(records: Record<string, unknown[]> = {}) {
 }
 afterEach(() => { cleanup(); clearAdminCache(); vi.useRealTimers(); vi.unstubAllGlobals(); window.history.replaceState(null, "", "/"); });
 
-test("dashboard excludes demo inventory until the user explicitly includes it", async () => {
+test("reports exclude demo inventory until the user explicitly includes it", async () => {
   install({ propiedades: [
     { slug: "demo", titulo: "Ejemplo", estado: "disponible", demo: true, galeria: [], zona: "Demo", precio: {modalidad:"consulta"}, operacion:"venta", tipo:"casa", ficha:{} },
     { slug: "real", titulo: "Real", estado: "disponible", galeria: [], zona: "Real", precio: {modalidad:"consulta"}, operacion:"venta", tipo:"casa", ficha:{} },
   ] });
-  render(<AdminDashboard/>);
+  render(<ReportesPage/>);
   const toggle = await screen.findByRole("checkbox", {name:/Incluir inmuebles Demo/});
-  expect(screen.getByRole("link", { name: /Inmuebles disponibles/ }).textContent).toContain("01");
+  const unassigned = () => screen.getByRole("rowheader", {name:"Sin asesor"}).closest("tr")!.querySelectorAll("td")[2].textContent;
+  expect(unassigned()).toBe("1");
   fireEvent.click(toggle);
-  expect(screen.getByRole("link", { name: /Inmuebles disponibles/ }).textContent).toContain("02");
+  expect(unassigned()).toBe("2");
 });
 
 test("due converted contact is visible on arrival and points to the client, once", async () => {
   const profile={proximoContacto:"2026-10-12"};
   install({ leads:[{id:"lead",nombre:"Contacto convertido",telefono:"6640000000",estado:"activo",clienteId:"client",perfil:profile,notas:[],creadoEl:baseDate,origen:"manual"}], clientes:[{id:"client",nombre:"Contacto convertido",leadId:"lead",tipo:"comprador",perfil:profile}] });
   render(<AdminDashboard/>);
-  const attention=await screen.findByRole("region",{name:"Prioridades de hoy"});
-  const link=await within(attention).findByRole("link",{name:/Contacto convertido/});
+  const waiting=await screen.findByRole("region",{name:/Esperan algo de ti/});
+  const link=await within(waiting).findByRole("link",{name:"Continuar con Contacto convertido"});
   expect(link.getAttribute("href")).toBe("/admin/clientes/client");
-  expect(within(attention).getAllByRole("link",{name:/Contacto convertido/})).toHaveLength(1);
-  expect(attention.closest("details")).toBeNull();
+  expect(within(waiting).getAllByRole("link",{name:/Contacto convertido/})).toHaveLength(1);
+  expect(waiting.closest("details")).toBeNull();
 });
 
 test("reports opens the actual overdue client records and labels historical scope", async () => {
@@ -53,15 +54,16 @@ test("reports opens the actual overdue client records and labels historical scop
   expect(screen.getByRole("heading",{name:"Histórico del CRM"})).toBeTruthy();
 });
 
-test("all current task priorities remain reachable and oldest deadlines appear first", async () => {
+test("every task due today or overdue stays on Hoy, oldest deadline first", async () => {
   install({tareas:Array.from({length:5},(_,index)=>({id:`t-${index}`,titulo:`Pendiente ${index}`,estado:"pendiente",prioridad:"media",categoria:"general",pasos:[],vence:index===4?"2026-10-10":baseDate}))});
   render(<AdminDashboard/>);
-  const attention=await screen.findByRole("region",{name:"Prioridades de hoy"});
-  await within(attention).findByRole("link",{name:/Pendiente 0/});
-  const links=within(attention).getAllByRole("link",{name:/Pendiente/});
+  const today=await screen.findByRole("region",{name:"Tareas de hoy"});
+  await within(today).findByRole("link",{name:/Pendiente 0/});
+  const links=within(today).getAllByRole("link",{name:/Pendiente/});
+  expect(links).toHaveLength(5);
   expect(links[0].getAttribute("href")).toBe("/admin/tareas/t-4");
-  fireEvent.click(within(attention).getByText("Ver 1 tarea más"));
-  expect(within(attention).getByRole("link",{name:/Pendiente 3/}).getAttribute("href")).toBe("/admin/tareas/t-3");
+  expect(within(today).getByRole("link",{name:/Pendiente 3/}).getAttribute("href")).toBe("/admin/tareas/t-3");
+  expect(within(today).getByText("0 de 5 hechas")).toBeTruthy();
 });
 
 test("an empty operations module offers creation without forcing the form open", async () => {

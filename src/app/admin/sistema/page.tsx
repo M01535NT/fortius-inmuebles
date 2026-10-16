@@ -13,7 +13,7 @@ export default function SistemaPage() {
   const [sheet, setSheet] = React.useState(false);
   if (session?.role !== "admin") return <p role="alert">Esta página requiere acceso de administrador.</p>;
   const stages = SALE_PROCESS.map(p => p.label);
-  return <Surface className="-m-4 flex flex-col gap-12 rounded-[14px] p-4 sm:-m-6 sm:p-8">
+  return <Surface className="-mx-4 -mt-5 flex flex-col gap-12 px-4 pb-8 pt-5 md:-mx-5 md:-mt-6 md:rounded-[14px] md:px-8 md:pt-8">
     <header className="flex flex-col gap-2"><Eyebrow>Panel Fortius · Sistema</Eyebrow><h1 className="text-3xl font-bold">Componentes</h1></header>
 
     <section aria-labelledby="c-btn" className="grid gap-6 md:grid-cols-[240px_minmax(0,1fr)]">

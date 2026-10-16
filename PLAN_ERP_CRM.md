@@ -56,6 +56,44 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
       - Se conservan «Mi perfil» y «Ver sitio», porque en el celular no tienen otro acceso.
     - **Administración sigue siendo solo para el administrador.** El titular confirmó que los asesores no necesitan Blog, Contenido ni Archivos en el menú.
 
+**Fase 3 · Hoy — 16/10/2026 (en la rama `feat/panel-guiado`; sin PR ni publicación):**
+- **Pantalla nueva** (`workspace/hoy.tsx`, artboards `Main` y `HoyMovil`). Arriba, la fecha, el saludo según la hora y un resumen en una línea. Después:
+  - **Esperan algo de ti:** una tarjeta por operación con su motivo más urgente y un solo botón «Continuar». El orden de prioridad es:
+    1. requisito con un problema;
+    2. tarea vencida;
+    3. documento recibido por revisar;
+    4. oferta registrada en los últimos 3 días;
+    5. operación sin próxima tarea con fecha.
+    - Al final van los contactos a los que toca dar seguimiento, que antes estaban en «Prioridades de hoy».
+    - Las operaciones archivadas, descartadas o en pausa no aparecen.
+  - **Entrevistas por terminar:** cada una dice qué quiere el cliente y cuántas secciones con preguntas obligatorias le faltan, con el botón «Seguir la entrevista».
+  - **Tareas de hoy:** las que vencen hoy o antes y las que se terminaron hoy. Se marcan en la misma pantalla y avisan «Guardado» o «No se pudo guardar: <motivo>».
+  - **Agenda de hoy:** todas las citas del día, con las visitas destacadas en guinda.
+  - **Próximos 7 días:** tareas con fecha en la semana, documentos revisados que dejan de estar vigentes e informes mensuales que se cumplen.
+  - **Informes al propietario vencidos,** incluidas las operaciones que nunca han tenido informe, con «Preparar informe».
+- **Lógica aparte y probada** en `src/lib/admin/today.ts`. Ahí también quedan los nombres sencillos de los requisitos, que la Fase 4 reutiliza.
+- **Lo que salió de Hoy:**
+  - los indicadores (inmuebles disponibles, prospectos nuevos y eventos próximos), el selector de inmuebles Demo y el tablero «Proceso de venta». El tablero regresa en Operaciones (Fase 4), y el conteo con o sin Demo sigue en Reportes;
+  - la lista «Sin próximo contacto». La Fase 6 muestra en Contactos el siguiente paso con fecha de cada persona;
+  - «Preparar tu espacio», que pasa a Configuración.
+  - Se retiraron `today.tsx`, `attention-queue.tsx` y sus estilos: `panel.module.css` baja de 35.1 KB a 25.0 KB.
+- **Corrección:** el lienzo de `/admin/sistema` se salía 4 px de la pantalla en computadora; ahora usa los mismos márgenes que Hoy.
+- **Límites:**
+  - Las ofertas «nuevas» se toman de las 20 consultas más recientes del comparador de ofertas.
+  - Hoy muestra todo lo que el servidor permite ver a cada usuario, sin filtro «Mías».
+  - El contador de «Hoy» en el menú cuenta las tareas vencidas o de hoy y los contactos por atender, así que no siempre coincide con el número de «Esperan algo de ti».
+  - «Continuar» abre la operación en `/admin/operaciones?expediente=…` hasta que exista la operación guiada (Fase 4).
+- **Pruebas actualizadas, sin borrar ninguna:**
+  - las que revisaban la pantalla anterior ahora cubren lo mismo en la nueva;
+  - la prueba de inmuebles Demo pasa a Reportes;
+  - la prueba de la pantalla de error usa Contactos, porque Hoy ya no se rompe con un prospecto mal formado.
+  - Se agregaron 7 pruebas de la lógica de Hoy y de marcar tareas, y 1 de navegador.
+- **Resultados:**
+  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 337 del panel y 35 de herramientas, además del paquete de PDF;
+  - 44 de navegador del panel que corre CI, contra un servidor sin base de datos;
+  - 70 públicas (1 omitida).
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro.
+
 ## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
 
 **Alcance:** mismo comportamiento con menos código y peso, decidido por el titular el 15/10/2026: quitar Finanzas, Análisis territorial y Portal de clientes, y eliminar las integraciones apagadas (firmas, OCR, consulta con IA y rutas). Rama `chore/limpieza-codigo`, sin migraciones ni cambios de permisos o datos. **Estado: comprobada localmente; sin push, PR ni publicación.**

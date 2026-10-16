@@ -27,18 +27,22 @@ beforeEach(() => {
   }));
 });
 
-test("dashboard groups open tasks by Tijuana date and links to their filters", async () => {
+test("Hoy lists today's and overdue open tasks by Tijuana date and links to each one", async () => {
   tasks = [
     {id:"late",titulo:"Revisar expediente",descripcion:"",categoria:"documentacion",estado:"pendiente",prioridad:"alta",vence:"2026-09-21",pasos:[]},
     {id:"today",titulo:"Confirmar documentos",descripcion:"",categoria:"cierre",estado:"pendiente",prioridad:"normal",vence:"2026-09-22",pasos:[]},
     {id:"done",titulo:"Tarea terminada",descripcion:"",categoria:"cierre",estado:"completada",prioridad:"normal",vence:"2026-09-21",pasos:[]},
+    {id:"later",titulo:"Tarea de mañana",descripcion:"",categoria:"cierre",estado:"pendiente",prioridad:"normal",vence:"2026-09-23",pasos:[]},
   ];
   render(<AdminDashboard />);
-  const attention = within(screen.getByRole("region", {name:"Atención de hoy"}));
-  await attention.findByRole("link", {name:/Revisar expediente/});
-  expect(attention.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin/tareas/late");
-  expect(attention.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
-  expect(screen.queryByText("Tarea terminada")).toBeNull();
+  const today = within(screen.getByRole("region", {name:"Tareas de hoy"}));
+  await today.findByRole("link", {name:/Revisar expediente/});
+  expect(today.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin/tareas/late");
+  expect(today.getByText("Vencida desde el 21 sep")).toBeTruthy();
+  expect(today.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
+  expect(today.queryByText("Tarea terminada")).toBeNull();
+  expect(today.queryByText("Tarea de mañana")).toBeNull();
+  expect(within(screen.getByRole("region", {name:"Próximos 7 días"})).getByText("Tarea de mañana")).toBeTruthy();
 });
 
 test("calendar projects an open task deadline without creating an event", async () => {
@@ -68,48 +72,41 @@ function eightEvents(fecha: string): Evento[] {
   }));
 }
 
-test("dashboard keeps this evening's eight Tijuana events when UTC is already tomorrow", async () => {
+test("Hoy keeps this evening's eight Tijuana events when UTC is already tomorrow", async () => {
   events = eightEvents("2026-09-22");
   render(<AdminDashboard />);
 
-  await screen.findAllByText("Visita 1");
-  expect(screen.getByRole("link", { name: /Eventos próximos/ }).textContent).toContain("08");
-  const agenda = screen.getByRole("heading", { name: "Próximos días" }).closest("section")!;
-  expect(within(agenda).getByText("Sin eventos próximos.")).toBeTruthy();
-  expect(within(agenda).queryByText("Visita 6")).toBeNull();
-  expect(within(screen.getByRole("region",{name:"Agenda de hoy"})).getByRole("link", {name:"Ver los 8 pendientes"})).toBeTruthy();
+  const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
+  await agenda.findByText("Visita 1");
+  expect(agenda.getByText("Visita 8")).toBeTruthy();
+  expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(8);
+  expect(screen.getByText(/8 visitas hoy/)).toBeTruthy();
 });
 
-test("dashboard counts all eligible days before limiting its chronologically ordered preview", async () => {
+test("Hoy's agenda shows only the operating day, not later or past days", async () => {
   events = [
     ...eightEvents("2026-09-24").reverse(),
     { id: "past", titulo: "Visita de ayer", fecha: "2026-09-21", hora: "23:59", tipo: "visita" },
   ];
   render(<AdminDashboard />);
 
-  await screen.findByText("Visita 1");
-  expect(screen.getByRole("link", { name: /Eventos próximos/ }).textContent).toContain("08");
-  const agenda = screen.getByRole("heading", { name: "Próximos días" }).closest("section")!;
-  expect(within(agenda).getAllByRole("listitem").map((item) => within(item).getByText(/Visita/).textContent)).toEqual([
-    "Visita 1",
-    "Visita 2",
-    "Visita 3",
-    "Visita 4",
-    "Visita 5",
-  ]);
+  const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
+  await agenda.findByText("Sin citas hoy");
+  expect(screen.queryByText("Visita 1")).toBeNull();
   expect(screen.queryByText("Visita de ayer")).toBeNull();
 });
 
-test("date-based upcoming includes earlier and untimed events from the operating day", async () => {
+test("Hoy's agenda includes earlier and untimed events from the operating day, untimed last", async () => {
   events = [
     { id: "untimed", titulo: "Pendiente sin hora", fecha: "2026-09-22", tipo: "otro" },
     { id: "morning", titulo: "Reunión matutina", fecha: "2026-09-22", hora: "08:00", tipo: "reunion" },
   ];
   render(<AdminDashboard />);
 
-  await screen.findByText("Pendiente sin hora");
-  expect(screen.getByText("Reunión matutina")).toBeTruthy();
-  expect(screen.getByRole("link", { name: /Eventos próximos/ }).textContent).toContain("02");
+  const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
+  await agenda.findByText("Pendiente sin hora");
+  expect(agenda.getAllByRole("listitem").map(item => item.textContent)).toEqual([expect.stringContaining("Reunión matutina"), expect.stringContaining("Pendiente sin hora")]);
+  expect(screen.getByText(/0 visitas hoy/)).toBeTruthy();
 });
 
 test("calendar opens the operating day and month even when UTC has crossed the year", async () => {
@@ -134,7 +131,7 @@ test("calendar lets staff select a day across the year and keeps the form date i
   expect(screen.getByRole("heading", { name: "Diciembre 2026" })).toBeTruthy();
 });
 
-test("dashboard shows one overdue followup for a converted client with its adviser", async () => {
+test("Hoy shows one overdue followup for a converted client and points to the client", async () => {
   vi.stubGlobal("fetch", async (url: string) => {
     const records = url.endsWith("/leads") ? [{ id: "lead1", data: { id: "lead1", nombre: "Prospecto", telefono: "6641234567", origen: "manual", estado: "activo", clienteId: "client1", asesorId: "a1", creadoEl: "2026-09-01", notas: [], perfil: { proximoContacto: "2026-09-20" } } }]
       : url.endsWith("/clientes") ? [{ id: "client1", data: { id: "client1", nombre: "Cliente convertido", telefono: "6641234567", tipo: "comprador", asesorId: "a1", leadId: "lead1", notas: "", creadoEl: "2026-09-01", actualizadoEl: "2026-09-01", perfil: { proximoContacto: "2026-09-21" } } }]
@@ -142,10 +139,11 @@ test("dashboard shows one overdue followup for a converted client with its advis
     return Response.json({ records: records.map(item => ({ ...item, version: 1 })) });
   });
   render(<AdminDashboard />);
-  expect(await screen.findByRole("link", { name: /Cliente convertido/ })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
-  expect(screen.getByRole("heading", {name:/Contactos por atender/}).textContent).toContain("1");
-  expect(screen.getByText(/Pendiente desde 21\/09\/2026/)).toBeTruthy();
-  expect(screen.queryByRole("link", { name: "Prospecto" })).toBeNull();
+  const waiting = within(screen.getByRole("region", {name:/Esperan algo de ti/}));
+  expect(await waiting.findByRole("link", { name: "Continuar con Cliente convertido" })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
+  expect(waiting.getByText("Desde el 21 sep")).toBeTruthy();
+  expect(waiting.queryByText("Prospecto", {exact:true})).toBeNull();
+  expect(waiting.getAllByRole("article")).toHaveLength(1);
 });
 
 test("calendar saves a linked event with client, property, expediente and adviser", async () => {
