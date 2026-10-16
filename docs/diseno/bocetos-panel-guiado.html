@@ -1,0 +1,1189 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Panel Fortius guiado</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: un marco de presentación neutro (controles + notas) alrededor de una maqueta del panel a tamaño real:
+   celular 390 px o computadora 1440 × 900 escalada al ancho disponible. La maqueta usa la identidad Fortius. */
+:root{
+  --navy:#061F3F; --wine:#8A1634;
+  --bg:#FBFCFE; --surface:#FFFFFF; --sunken:#F1F4F8; --stage:#E8EDF3; --bezel:#0B1A2E;
+  --ink:#061F3F; --ink-2:#4F5E73; --ink-3:#5C687A;
+  --line:rgba(6,31,63,.11); --line-2:rgba(6,31,63,.24);
+  --accent:#8A1634; --on-accent:#FFFFFF; --accent-ink:#8A1634; --accent-soft:#F6E8EC;
+  --ok:#1D6A43; --ok-bg:#E4F1E9; --info:#1C4C86; --info-bg:#E5EDF8; --bad:#9E2A22; --bad-bg:#FBE7E4; --warn:#7A5100; --warn-bg:#F9EFD7;
+  --shadow:0 1px 2px rgba(6,31,63,.06),0 10px 28px rgba(6,31,63,.07);
+  --scrim:rgba(6,31,63,.34);
+  --font:"Archivo",ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#060C14; --surface:#0C1622; --sunken:#122032; --stage:#02060B; --bezel:#1B2A3D;
+  --ink:#F2EFEA; --ink-2:#B3BDCA; --ink-3:#9AA6B6;
+  --line:rgba(242,239,234,.10); --line-2:rgba(242,239,234,.24);
+  --accent:#A3203F; --on-accent:#FFFFFF; --accent-ink:#F0A2B4; --accent-soft:rgba(240,162,180,.12);
+  --ok:#86D5A7; --ok-bg:rgba(134,213,167,.12); --info:#97BFF3; --info-bg:rgba(151,191,243,.12); --bad:#F6A399; --bad-bg:rgba(246,163,153,.13); --warn:#EEC46E; --warn-bg:rgba(238,196,110,.13);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35); --scrim:rgba(0,0,0,.56);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#060C14; --surface:#0C1622; --sunken:#122032; --stage:#02060B; --bezel:#1B2A3D;
+  --ink:#F2EFEA; --ink-2:#B3BDCA; --ink-3:#9AA6B6;
+  --line:rgba(242,239,234,.10); --line-2:rgba(242,239,234,.24);
+  --accent:#A3203F; --on-accent:#FFFFFF; --accent-ink:#F0A2B4; --accent-soft:rgba(240,162,180,.12);
+  --ok:#86D5A7; --ok-bg:rgba(134,213,167,.12); --info:#97BFF3; --info-bg:rgba(151,191,243,.12); --bad:#F6A399; --bad-bg:rgba(246,163,153,.13); --warn:#EEC46E; --warn-bg:rgba(238,196,110,.13);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35); --scrim:rgba(0,0,0,.56);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--stage);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3,p{margin:0}
+h1,h2{text-wrap:balance}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono);font-size:.92em;letter-spacing:0}
+.i{flex:none;display:block}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- Marco de presentación ---------- */
+.shell{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;max-width:1560px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.shell>*,.stage-grid>*{min-width:0}
+.sh-top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between}
+.sh-title h1{font-size:22px;font-weight:650;font-stretch:112%;letter-spacing:-.01em}
+.sh-title p{color:var(--ink-2);margin-top:2px;max-width:60ch}
+.sh-ctrls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.ctrl{display:flex;align-items:center;gap:8px}
+.ctrl>span{font-size:12px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 11px;border-radius:6px;font-size:13px;font-weight:500;color:var(--ink-2);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(6,31,63,.12);font-weight:600}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.chips button{flex:none;border:1px solid var(--line-2);background:transparent;border-radius:999px;padding:6px 13px;font-size:13px;color:var(--ink-2);white-space:nowrap}
+.chips button .n{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-right:6px}
+.chips button[aria-current="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+.chips button[aria-current="true"] .n{color:inherit;opacity:.7}
+.stage-grid{display:grid;gap:28px;align-items:start}
+.stage-grid.is-phone{grid-template-columns:minmax(0,390px) minmax(0,440px);justify-content:center}
+.stage-grid.is-desk{grid-template-columns:minmax(0,1fr)}
+@media (max-width:860px){.stage-grid.is-phone{grid-template-columns:minmax(0,1fr);justify-items:center}}
+.frame-phone{width:390px;max-width:100%;height:min(812px,84dvh);min-height:560px;border:10px solid var(--bezel);border-radius:38px;overflow:hidden;background:var(--bg);box-shadow:var(--shadow);position:relative}
+@media (max-width:480px){.frame-phone{border-width:1px;border-color:var(--line-2);border-radius:18px;height:78dvh}}
+.frame-desk-wrap{width:100%;overflow:hidden;border:1px solid var(--line-2);border-radius:10px;box-shadow:var(--shadow);background:var(--bg);position:relative}
+.frame-desk{width:1440px;height:900px;transform-origin:0 0;position:absolute;top:0;left:0}
+.notes{display:grid;gap:18px;align-content:start;min-width:0}
+.is-desk .notes{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px 40px}
+.note-block h2{font-size:16px;font-weight:650;margin-bottom:8px}
+.note-block h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+.note-block ul{display:grid;gap:7px}
+.note-block li{padding-left:16px;position:relative;color:var(--ink-2);max-width:62ch}
+.note-block li::before{content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--accent-ink)}
+.note-block.q li::before{background:var(--ink-3)}
+.note-block .quita li::before{background:transparent;border:1.5px solid var(--ink-3)}
+.note-meta{font-size:13px;color:var(--ink-3)}
+
+/* ---------- Maqueta: estructura ---------- */
+.app{position:relative;overflow:hidden;background:var(--bg);color:var(--ink);font-size:14px}
+.app.desk{width:1440px;height:900px;display:grid;grid-template-columns:252px minmax(0,1fr)}
+.app.phone{width:100%;height:100%;display:flex;flex-direction:column}
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%}
+.phone .main{flex:1}
+.scroll{flex:1;overflow-y:auto;min-height:0;overscroll-behavior:contain}
+.desk .page{padding:40px 48px 56px;max-width:1180px}
+.desk .page.wide{max-width:none}
+.phone .page{padding:16px 16px 28px}
+
+/* Barra lateral */
+.side{border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;padding:20px 14px 14px;gap:14px;min-height:0}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 6px}
+.logo{width:30px;height:30px;border-radius:6px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-stretch:120%;font-size:15px}
+:root[data-theme="dark"] .logo{box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.wm{font-weight:650;font-stretch:115%;font-size:16px;line-height:1.1;display:grid}
+.wm small{font-weight:500;font-stretch:100%;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.search-btn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--bg);border-radius:8px;height:36px;padding:0 10px;color:var(--ink-3);font-size:13px;text-align:left}
+.search-btn kbd{margin-left:auto;font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.nav{display:grid;gap:2px}
+.nav-item{width:100%;display:flex;align-items:center;gap:11px;height:40px;padding:0 10px;border:0;background:transparent;border-radius:8px;color:var(--ink-2);font-size:14.5px;font-weight:500;text-align:left}
+.nav-item:hover{background:var(--sunken);color:var(--ink)}
+.nav-item[aria-current="page"]{background:var(--sunken);color:var(--ink);font-weight:650}
+.nav-item[aria-current="page"] .i{color:var(--accent-ink)}
+.nav-item .badge{margin-left:auto;min-width:22px;height:20px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 6px;font-variant-numeric:tabular-nums}
+.nav-item .count{margin-left:auto;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.nav-item .chev{margin-left:auto;transition:transform .15s}
+.nav-item[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.nav-sep{height:1px;background:var(--line);margin:6px 10px}
+.nav-sub{display:grid;gap:1px;padding:2px 0 4px 31px}
+.nav-sub button{border:0;background:transparent;text-align:left;padding:6px 10px;border-radius:6px;color:var(--ink-2);font-size:13.5px}
+.nav-sub button:hover{background:var(--sunken);color:var(--ink)}
+.side-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 6px 0;border-top:1px solid var(--line)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--sunken);border:1px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:650;flex:none}
+.side-foot p{font-size:13.5px;font-weight:600;line-height:1.2}
+.side-foot p.muted{font-weight:400;font-size:12px}
+.icon-btn{border:0;background:transparent;width:36px;height:36px;border-radius:8px;display:grid;place-items:center;color:var(--ink-2);flex:none}
+.icon-btn:hover{background:var(--sunken);color:var(--ink)}
+.side-foot .icon-btn{margin-left:auto}
+
+/* Celular: encabezado y barra inferior */
+.ptop{display:flex;align-items:center;gap:10px;height:56px;padding:0 8px 0 16px;border-bottom:1px solid var(--line);background:var(--surface);flex:none}
+.ptop .logo{width:26px;height:26px;font-size:13px}
+.ptop h1{font-size:17px;font-weight:650;font-stretch:108%}
+.ptop .sp{margin-left:auto;display:flex;gap:2px}
+.ptop .back{display:flex;align-items:center;gap:2px;border:0;background:transparent;color:var(--accent-ink);font-weight:600;padding:8px 6px 8px 0;margin-left:-6px}
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;border-top:1px solid var(--line);background:var(--surface);height:64px;padding:0 4px}
+.tab{border:0;background:transparent;display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--ink-3);padding:6px 0;position:relative}
+.tab[aria-current="page"]{color:var(--ink);font-weight:650}
+.tab[aria-current="page"] .i{color:var(--accent-ink)}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 6px);min-width:17px;height:17px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:10px;font-weight:650;display:grid;place-items:center;padding:0 4px}
+.tab-plus{justify-self:center;width:48px;height:48px;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;box-shadow:0 4px 12px rgba(138,22,52,.3)}
+
+/* ---------- Piezas comunes ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font-weight:600;font-size:14px;white-space:nowrap}
+.btn:hover{border-color:var(--ink-3)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{filter:brightness(1.08);border-color:var(--accent)}
+.btn-primary[aria-disabled="true"]{background:var(--sunken);border-color:var(--line-2);color:var(--ink-3);filter:none;cursor:not-allowed}
+.btn-block{width:100%}
+.btn-sm{height:34px;padding:0 12px;font-size:13.5px}
+.btn-danger{color:var(--bad);border-color:var(--bad)}
+.btn-danger.solid{background:var(--bad);color:var(--surface)}
+.link{border:0;background:transparent;padding:0;color:var(--accent-ink);font-weight:600;font-size:13.5px;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px}
+.link:hover{text-decoration-color:currentColor}
+.muted{color:var(--ink-2)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.ph{display:grid;gap:6px;margin-bottom:32px}
+.phone .ph{margin-bottom:22px}
+.ph h1{font-size:30px;font-weight:650;font-stretch:112%;letter-spacing:-.015em;line-height:1.15}
+.phone .ph h1{font-size:24px}
+.lede{color:var(--ink-2);font-size:15px}
+.ph-row{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px}
+.sec{display:grid;gap:12px;align-content:start}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.sec h2,.sec-h h2{font-size:16px;font-weight:650}
+.rows>li{border-top:1px solid var(--line)}
+.rows>li:last-child{border-bottom:1px solid var(--line)}
+.tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:999px;background:var(--sunken);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap}
+.tag .n{font-family:var(--mono);font-weight:500}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}
+.tag.info{background:var(--info-bg);color:var(--info)}
+.tone-bad{color:var(--bad)} .tone-ok{color:var(--ok)} .tone-warn{color:var(--warn)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs button{border:0;background:transparent;padding:10px 12px;font-weight:550;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;border-radius:0;font-size:14px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:650}
+.tabs button .n{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-left:4px}
+.field{display:grid;gap:6px}
+.field label,.field .lbl{font-weight:600;font-size:14px}
+.field .hint{font-size:13px;color:var(--ink-3)}
+.input,.select,.textarea{width:100%;height:42px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);padding:0 12px;font-size:15px}
+.textarea{height:auto;min-height:84px;padding:10px 12px;resize:vertical;line-height:1.45}
+.input[aria-invalid="true"],.select[aria-invalid="true"],.textarea[aria-invalid="true"]{border-color:var(--bad)}
+.err{color:var(--bad);font-size:13px;font-weight:550}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pills label{position:relative}
+.pills input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.pills span{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:1px solid var(--line-2);border-radius:999px;font-size:14px;background:var(--surface)}
+.pills input:checked+span{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+.pills input:focus-visible+span{outline:2px solid var(--accent-ink);outline-offset:2px}
+.check{display:flex;gap:12px;align-items:flex-start;padding:12px 0}
+.check input{appearance:none;width:20px;height:20px;border:1.5px solid var(--line-2);border-radius:5px;margin:1px 0 0;flex:none;display:grid;place-items:center;background:var(--surface);cursor:pointer}
+.check input:checked{background:var(--ok);border-color:var(--ok)}
+.check input:checked::after{content:"";width:10px;height:5px;border:2px solid var(--surface);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.check.done .ct{text-decoration:line-through;color:var(--ink-3)}
+.check .ct{font-weight:550}
+.check .cs{font-size:13px;color:var(--ink-3)}
+.thumb{width:72px;height:54px;border-radius:6px;flex:none;display:grid;place-items:center;color:var(--ink-3);background:var(--sunken);border:1px solid var(--line);overflow:hidden}
+.phone .thumb{width:60px;height:48px}
+
+/* Hoy */
+.hoy-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:48px}
+.phone .hoy-grid{grid-template-columns:1fr;gap:32px}
+.hoy-col{display:grid;gap:40px;align-content:start}
+.phone .hoy-col{gap:32px}
+.wait{display:flex;gap:16px;align-items:center;padding:16px 0}
+.phone .wait{align-items:flex-start;flex-wrap:wrap;gap:10px}
+.wait .rm{flex:1;min-width:0;display:grid;gap:2px}
+.rt{font-weight:650;font-size:15px}
+.rs{color:var(--ink-2);font-size:13.5px}
+.why{display:flex;gap:6px;align-items:center;font-size:13.5px;font-weight:550;margin-top:4px}
+.wait .side-r{display:flex;align-items:center;gap:12px;flex:none}
+.phone .wait .side-r{width:100%;justify-content:space-between}
+.agenda li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.agenda li:last-child{border-bottom:1px solid var(--line)}
+.agenda time{font-family:var(--mono);font-size:13.5px;font-weight:500;padding-top:1px}
+.agenda li.now time{color:var(--accent-ink)}
+.report{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+/* Operaciones: tablero */
+.board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:start}
+.col-stage{display:grid;gap:8px;background:var(--sunken);border-radius:10px;padding:10px;min-height:420px;align-content:start}
+.col-stage header{display:flex;align-items:center;gap:8px;padding:4px 4px 6px}
+.col-stage h2{font-size:13.5px;font-weight:650;line-height:1.25}
+.num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-2);display:grid;place-items:center;font-size:11.5px;font-weight:650;flex:none;font-family:var(--mono)}
+.col-stage .count{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.opcard{width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:12px;display:grid;gap:3px}
+.opcard:hover{border-color:var(--line-2);box-shadow:var(--shadow)}
+.opcard .rt{font-size:14px}
+.opcard .rs{font-size:12.5px}
+.oc-next{display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:var(--ink-2);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.oc-next.late{color:var(--accent-ink);font-weight:600}
+.oc-next .i{margin-top:2px}
+.empty{color:var(--ink-3);font-size:13px;padding:8px 4px}
+.stage-pills{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:0 -16px 16px;padding-inline:16px;scrollbar-width:none}
+.stage-pills button{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--surface);border-radius:999px;height:36px;padding:0 13px;font-size:13.5px;color:var(--ink-2)}
+.stage-pills button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:650}
+.stage-pills .n{font-family:var(--mono);font-size:12px;opacity:.75}
+.op-list{display:grid;gap:10px}
+
+/* Operación guiada */
+.crumb{display:flex;gap:6px;align-items:center;font-size:13.5px;color:var(--ink-3);margin-bottom:14px}
+.crumb button{border:0;background:transparent;padding:0;color:var(--accent-ink);font-weight:600}
+.op-h{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:28px}
+.op-h h1{font-size:28px;font-weight:650;font-stretch:112%;letter-spacing:-.015em;line-height:1.15}
+.phone .op-h{margin-bottom:16px}
+.phone .op-h h1{font-size:22px}
+.op-sub{color:var(--ink-2);font-size:15px;margin-top:4px}
+.op-meta{font-size:13px;color:var(--ink-3);margin-top:6px}
+.stepper{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin-bottom:28px}
+.stepper li{display:grid;justify-items:start;gap:8px;position:relative;padding-right:8px}
+.stepper li::before{content:"";position:absolute;top:13px;left:30px;right:6px;height:2px;background:var(--line-2);border-radius:2px}
+.stepper li:last-child::before{display:none}
+.stepper li.done::before{background:var(--ok)}
+.stepper .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line-2);background:var(--bg);font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--ink-3);position:relative}
+.stepper .done .dot{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.stepper .cur .dot{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.stepper .lbl{font-size:13px;color:var(--ink-3);line-height:1.3}
+.stepper .done .lbl{color:var(--ink-2)}
+.stepper .cur .lbl{color:var(--ink);font-weight:650}
+.pstep{display:grid;gap:8px;margin-bottom:18px}
+.pstep p{font-size:14px}
+.pstep b{font-weight:650}
+.bar{height:6px;border-radius:99px;background:var(--sunken);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.op-tabs{margin-bottom:28px}
+.phone .op-tabs{margin:0 -16px 20px;padding:0 8px}
+.op-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}
+.phone .op-grid{grid-template-columns:1fr;gap:28px}
+.next-card{border:1px solid var(--line-2);border-radius:12px;background:var(--surface);box-shadow:var(--shadow);display:grid}
+.nc-h{padding:24px 24px 18px;display:grid;gap:8px}
+.phone .nc-h{padding:18px 16px 14px}
+.nc-h h2{font-size:20px;font-weight:650;font-stretch:108%}
+.nc-what{color:var(--ink-2);font-size:14.5px;max-width:70ch}
+.nc-what b{color:var(--ink);font-weight:600}
+.reqs{border-top:1px solid var(--line)}
+.req{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--line);position:relative}
+.phone .req{padding:14px 16px;flex-direction:column;gap:10px}
+.req.flash{animation:flash 1.2s ease}
+@keyframes flash{0%,40%{background:var(--accent-soft)}100%{background:transparent}}
+.req-main{display:grid;gap:3px;min-width:0}
+.req-t{font-weight:650;font-size:15px}
+.req-hint{font-size:13.5px;color:var(--ink-2)}
+.req-ev{font-size:13px;color:var(--ok);display:flex;gap:6px;align-items:flex-start;margin-top:4px}
+.req-ev.bad{color:var(--bad)}
+.req-ev.na{color:var(--ink-3)}
+.req-ev .i{margin-top:2px}
+.status{flex:none;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 11px;border-radius:999px;border:1px solid transparent;font-size:13.5px;font-weight:600;white-space:nowrap}
+.status .chev{opacity:.7}
+.s-pend{background:var(--surface);border-color:var(--line-2);color:var(--ink-2)}
+.s-tengo{background:var(--info-bg);color:var(--info)}
+.s-rev{background:var(--ok-bg);color:var(--ok)}
+.s-prob{background:var(--bad-bg);color:var(--bad)}
+.s-na{background:var(--sunken);color:var(--ink-3)}
+.menu{position:absolute;right:24px;top:52px;z-index:5;width:286px;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;box-shadow:var(--shadow);padding:6px;display:grid;gap:2px}
+.mi{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;align-items:start;text-align:left;border:0;background:transparent;border-radius:7px;padding:9px 10px}
+.mi:hover:not([disabled]){background:var(--sunken)}
+.mi[aria-checked="true"]{background:var(--sunken)}
+.mi .l{font-weight:600;font-size:14px}
+.mi .h{grid-column:2;font-size:12.5px;color:var(--ink-3)}
+.mi[disabled]{cursor:not-allowed;opacity:.55}
+.mi.t-tengo .i{color:var(--info)} .mi.t-rev .i{color:var(--ok)} .mi.t-prob .i{color:var(--bad)} .mi.t-pend .i,.mi.t-na .i{color:var(--ink-3)}
+.mi .i{margin-top:1px}
+.nc-task{display:flex;gap:14px;align-items:flex-start;padding:18px 24px 22px}
+.phone .nc-task{padding:16px}
+.nc-task .ico{width:36px;height:36px;border-radius:8px;background:var(--sunken);display:grid;place-items:center;color:var(--ink-2);flex:none}
+.nc-task .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.nc-task .t{font-weight:650;font-size:15px}
+.nc-task .link{margin-left:auto;flex:none}
+.rail{display:grid;gap:32px}
+.rail h3{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:10px}
+.tool{width:100%;display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:12px}
+.tool+.tool{margin-top:8px}
+.tool:hover{border-color:var(--line-2)}
+.tool .ti{width:34px;height:34px;border-radius:8px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.tool .tt{font-weight:650;font-size:14px}
+.tool .td{font-size:12.5px;color:var(--ink-3);line-height:1.35}
+.tool .go{margin-left:auto;color:var(--ink-3)}
+.person p{line-height:1.45}
+.actionbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 48px;border-top:1px solid var(--line);background:var(--surface)}
+.phone .actionbar{flex-direction:column;align-items:stretch;gap:10px;padding:12px 16px}
+.ab-miss{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14px;min-width:0}
+.phone .ab-miss{font-size:13px}
+.ab-miss .k{font-weight:650;color:var(--ink)}
+.ab-miss .ok{color:var(--ok);font-weight:600;display:flex;gap:6px;align-items:center}
+.ab-miss .link{font-size:inherit}
+.ab-miss .sep{color:var(--ink-3)}
+.actionbar .btn{height:44px;padding:0 20px;font-size:15px}
+.tab-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.tab-h h2{font-size:18px;font-weight:650}
+.tab-h .acts{display:flex;gap:8px;flex-wrap:wrap}
+.doc{display:flex;gap:14px;align-items:center;padding:14px 0}
+.doc .ico{width:36px;height:36px;border-radius:8px;background:var(--sunken);display:grid;place-items:center;color:var(--ink-2);flex:none}
+.doc .dm{flex:1;min-width:0}
+.doc .dn{font-weight:600;overflow-wrap:anywhere}
+.doc .dd{font-size:13px;color:var(--ink-3)}
+.hist li{display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.hist time{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);padding-top:2px}
+.phone .hist li{grid-template-columns:56px minmax(0,1fr);gap:10px}
+.settings{display:grid;gap:0;max-width:680px}
+.set{display:grid;gap:8px;padding:22px 0;border-top:1px solid var(--line)}
+.set h3{font-size:15px;font-weight:650}
+.set .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.set .row .select{width:auto;min-width:220px;flex:1}
+.set.danger h3{color:var(--bad)}
+.confirm{border:1px solid var(--bad);background:var(--bad-bg);border-radius:10px;padding:16px;display:grid;gap:12px}
+.confirm p{color:var(--ink)}
+
+/* Capas: paneles y avisos */
+.layer{position:absolute;inset:0;z-index:30;display:flex}
+.scrim{position:absolute;inset:0;background:var(--scrim);border:0;padding:0;cursor:default}
+.sheet{position:relative;margin-left:auto;width:440px;height:100%;background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;animation:slidein .2s ease}
+.phone .sheet{margin:auto 0 0;width:100%;height:auto;max-height:88%;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;animation:slideup .22s ease}
+@keyframes slidein{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes slideup{from{transform:translateY(32px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-h{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:22px 24px 6px}
+.phone .sheet-h{padding:18px 16px 4px}
+.sheet-h h2{font-size:19px;font-weight:650;font-stretch:106%}
+.sheet-h p{color:var(--ink-2);font-size:14px;margin-top:3px}
+.sheet-b{padding:16px 24px;display:grid;gap:18px;overflow-y:auto;flex:1;align-content:start}
+.phone .sheet-b{padding:14px 16px}
+.sheet-f{display:flex;gap:10px;justify-content:flex-end;padding:14px 24px 20px;border-top:1px solid var(--line)}
+.phone .sheet-f{padding:12px 16px 16px}
+.phone .sheet-f .btn{flex:1}
+details.more{border-top:1px solid var(--line);padding-top:12px}
+details.more summary{cursor:pointer;font-weight:600;color:var(--accent-ink);font-size:14px;list-style:none;display:flex;gap:6px;align-items:center}
+details.more summary::-webkit-details-marker{display:none}
+details.more[open] summary .i{transform:rotate(180deg)}
+details.more .inner{display:grid;gap:16px;padding-top:14px}
+.help dl{display:grid;gap:12px}
+.help dt{font-weight:650;display:flex;gap:8px;align-items:center}
+.help dd{margin:2px 0 0;color:var(--ink-2)}
+.help h3{font-size:14px;font-weight:650;margin-bottom:4px}
+.toast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:550;max-width:min(520px,calc(100% - 32px));width:max-content;box-shadow:var(--shadow);animation:slideup .2s ease}
+.desk .toast{bottom:32px}
+
+/* Nueva operación */
+.wiz{max-width:620px;margin:0 auto;display:grid;gap:26px}
+.desk .wiz{padding-top:8px}
+.wiz-top{display:grid;gap:10px}
+.wiz-top .eyebrow{display:flex;justify-content:space-between}
+.wiz h1{font-size:26px;font-weight:650;font-stretch:110%;line-height:1.2}
+.phone .wiz h1{font-size:22px}
+.wiz .intro{color:var(--ink-2);font-size:15px;margin-top:-14px}
+.choices{display:grid;gap:10px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.choice .cbox{display:flex;gap:14px;align-items:center;border:1px solid var(--line-2);border-radius:12px;padding:16px;background:var(--surface)}
+.choice .cbox .ico{width:40px;height:40px;border-radius:10px;background:var(--sunken);display:grid;place-items:center;color:var(--ink-2);flex:none}
+.choice .ct{font-weight:650;font-size:15.5px}
+.choice .cd{font-size:13.5px;color:var(--ink-3)}
+.choice input:checked+.cbox{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.choice input:checked+.cbox .ico{background:var(--accent);color:var(--on-accent)}
+.choice input:focus-visible+.cbox{outline:2px solid var(--accent-ink);outline-offset:2px}
+.form{display:grid;gap:20px}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.phone .form .two{grid-template-columns:1fr}
+.dup{border:1px solid var(--line-2);border-radius:12px;padding:16px;display:grid;gap:12px;background:var(--surface)}
+.dup.sel{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
+.dup .acts{display:flex;gap:8px;flex-wrap:wrap}
+.docs-ask li{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
+.docs-ask li:last-child{border-bottom:1px solid var(--line)}
+.docs-ask .select{width:auto;height:36px;font-size:14px}
+.wiz-foot{flex:none;display:flex;gap:10px;align-items:center;padding:14px 48px;border-top:1px solid var(--line);background:var(--surface)}
+.phone .wiz-foot{padding:12px 16px}
+.wiz-foot .grow{flex:1}
+.phone .wiz-foot .later{display:none}
+.done-mark{width:56px;height:56px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center}
+.summary li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.summary li .i{color:var(--ok);margin-top:2px}
+
+/* Listas: contactos, inmuebles, agenda */
+.list-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:18px}
+.search{position:relative;flex:1;max-width:340px;min-width:200px}
+.search .i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+.search input{padding-left:36px;height:38px;font-size:14px}
+.phone .search{max-width:none}
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.tbl td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl td:first-child,.tbl th:first-child{padding-left:0}
+.tbl td:last-child,.tbl th:last-child{padding-right:0;text-align:right}
+.tbl tr:hover td{background:color-mix(in srgb,var(--sunken) 55%,transparent)}
+.tbl .num-cell{font-variant-numeric:tabular-nums;white-space:nowrap}
+.prow{display:flex;gap:12px;align-items:flex-start;padding:14px 0}
+.prow .pm{flex:1;min-width:0;display:grid;gap:2px}
+.prow .meta{font-size:12.5px;color:var(--ink-3)}
+.prow .acts{margin-top:8px}
+.inm{display:flex;gap:14px;align-items:center}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.day{border-left:1px solid var(--line);min-height:460px;display:flex;flex-direction:column}
+.day:first-child{border-left:0}
+.day header{padding:12px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:8px}
+.day header .d{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.day header .n{font-size:20px;font-weight:650;font-variant-numeric:tabular-nums}
+.day.today header .n{color:var(--on-accent);background:var(--accent);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;font-size:15px}
+.day .evs{padding:8px;display:grid;gap:6px;align-content:start}
+.ev{border-radius:8px;padding:8px 9px;background:var(--sunken);display:grid;gap:1px;text-align:left;border:0;width:100%}
+.ev time{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.ev .et{font-weight:600;font-size:13px;line-height:1.3}
+.ev .ec{font-size:12px;color:var(--ink-3);line-height:1.3}
+.ev.visita{background:var(--accent-soft)}
+.ev.visita time{color:var(--accent-ink)}
+.daystrip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:18px}
+.daystrip button{border:0;background:transparent;display:grid;justify-items:center;gap:4px;padding:6px 0;border-radius:10px;color:var(--ink-2);font-size:11.5px;font-weight:600;letter-spacing:.04em}
+.daystrip button .n{font-size:17px;font-weight:650;color:var(--ink);letter-spacing:0;font-variant-numeric:tabular-nums}
+.daystrip button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.daystrip button[aria-pressed="true"] .n{color:var(--bg)}
+.daystrip button .dot{width:5px;height:5px;border-radius:50%;background:var(--accent-ink)}
+.daystrip button .dot.none{background:transparent}
+.group-h{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin:24px 0 2px}
+.group-h:first-child{margin-top:0}
+.group-h.bad{color:var(--bad)}
+.apps{display:grid;gap:36px}
+.app-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.phone .app-grid{grid-template-columns:1fr;gap:8px}
+.app-grid .tool+.tool{margin-top:0}
+.menu-list li button{width:100%;display:flex;align-items:center;gap:12px;border:0;background:transparent;padding:14px 4px;border-bottom:1px solid var(--line);text-align:left;font-size:15px;font-weight:550}
+.menu-list li button .chev{margin-left:auto;color:var(--ink-3)}
+.menu-list .i{color:var(--ink-2)}
+.menu-h{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin:24px 0 2px}
+.who{display:flex;gap:12px;align-items:center;padding:4px 0 8px}
+</style>
+
+<div class="shell" id="shell">
+  <header class="sh-top">
+    <div class="sh-title">
+      <h1>Bocetos del panel guiado</h1>
+      <p>Fortius Inmuebles · Fase B para aprobación. Todo es clicable y los datos son ficticios.</p>
+    </div>
+    <div class="sh-ctrls" role="group" aria-label="Opciones de vista">
+      <div class="ctrl"><span>Vista</span><div class="seg" id="c-device"><button type="button" data-shell="device" data-arg="phone">Celular</button><button type="button" data-shell="device" data-arg="desktop">Computadora</button></div></div>
+      <div class="ctrl"><span>Modo</span><div class="seg" id="c-theme"><button type="button" data-shell="theme" data-arg="light">Claro</button><button type="button" data-shell="theme" data-arg="dark">Oscuro</button><button type="button" data-shell="theme" data-arg="system">Sistema</button></div></div>
+      <div class="ctrl"><span>Ver como</span><div class="seg" id="c-role"><button type="button" data-shell="role" data-arg="admin">Administrador</button><button type="button" data-shell="role" data-arg="asesor">Asesor</button></div></div>
+    </div>
+  </header>
+  <nav class="chips" id="c-screens" aria-label="Pantallas del boceto"></nav>
+  <div class="stage-grid" id="stage">
+    <div id="frame"></div>
+    <aside class="notes" id="notes" aria-live="polite"></aside>
+  </div>
+</div>
+
+<script>
+(function(){
+/* ---------- Iconos ---------- */
+const P={
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+ layers:'<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>',
+ users:'<circle cx="9.5" cy="8" r="3.5"/><path d="M3 20v-1a4.5 4.5 0 0 1 4.5-4.5h4A4.5 4.5 0 0 1 16 19v1"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M21 20v-1a4.5 4.5 0 0 0-3-4.2"/>',
+ home:'<path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5.5h4V20"/>',
+ calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+ grid:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+ sliders:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+ search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+ chevd:'<path d="m6 9 6 6 6-6"/>', chevr:'<path d="m9 6 6 6-6 6"/>', chevl:'<path d="m15 6-6 6 6 6"/>',
+ check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+ alert:'<path d="M10.3 4.2 2.8 17.3A2 2 0 0 0 4.5 20.3h15a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v4M12 16.8v.2"/>',
+ clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+ file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
+ upload:'<path d="M12 15V4M7 9l5-5 5 5M5 20h14"/>',
+ arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+ x:'<path d="M6 6l12 12M18 6 6 18"/>',
+ moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/>',
+ help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.5M12 16.8v.2"/>',
+ circle:'<circle cx="12" cy="12" r="7.5"/>',
+ dot:'<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
+ minus:'<path d="M7 12h10"/>',
+ coin:'<circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.5 0-2.5.8-2.5 2s1 1.6 2.5 2 2.5.9 2.5 2-1 2-2.5 2c-1.2 0-2.1-.5-2.6-1.3M12 6.5V8M12 16v1.5"/>',
+ image:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5"/>',
+ key:'<circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M16 7l2.5 2.5M14 9l2 2"/>',
+ tag:'<path d="M3.5 12.5V5a1.5 1.5 0 0 1 1.5-1.5h7.5l8 8-9 9z"/><circle cx="8.5" cy="8.5" r="1.4"/>',
+ trend:'<path d="m4 16 5-5 4 4 7-7"/><path d="M15 8h5v5"/>',
+ user:'<circle cx="12" cy="8" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
+ logout:'<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/>',
+ house:'<path d="M6 34 30 14l24 20"/><path d="M11 30v20h38V30"/><path d="M25 50V38h10v12"/>',
+ phone:'<path d="M6.5 3.5h3l1.5 4-2 1.2a10 10 0 0 0 6.3 6.3l1.2-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z"/>',
+};
+const I=(n,s=18)=>`<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const HOUSE=`<svg width="40" height="34" viewBox="0 0 60 56" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P.house}</svg>`;
+
+/* ---------- Proceso de venta (de SALE_PROCESS, en una línea) ---------- */
+const STAGES=[
+ {key:'captacion',label:'Captación',hace:'Conocer al propietario, su objetivo y el inmueble.',para:'Saber si podemos atender la operación.',
+  full:'Conocer al propietario, su objetivo y el inmueble; identificar quién puede autorizar la venta y reunir la información inicial. Sirve para saber qué necesita el cliente y si podemos atender la operación.',
+  reqs:['entrevista'],tools:[['coin','Cotizador de servicios','Propuesta de honorarios con vigencia.']]},
+ {key:'verificacion',label:'Verificación y precio',hace:'Revisar documentos y comparar propiedades para acordar el precio.',para:'Detectar obstáculos y vender con un precio sustentado.',
+  full:'Revisar documentos, características y pendientes; comparar propiedades similares y acordar el precio de salida. Sirve para detectar obstáculos y vender con un precio sustentado.',
+  reqs:['titularidad','factibilidad','valor','precio'],tools:[['trend','Comparables','Sustenta el precio con fuentes y ajustes.'],['file','Pendientes documentales','Qué falta, quién lo entrega y cuándo vence.']]},
+ {key:'contrato',label:'Contrato y preparación',hace:'Firmar el contrato de servicio y preparar ficha, fotos y plan de publicación.',para:'Dejar claras las responsabilidades antes de publicar.',
+  full:'Formalizar el servicio, honorarios y autorizaciones; preparar ficha, fotografías y plan de publicación. Sirve para dejar claras las responsabilidades y presentar el inmueble con información respaldada.',
+  reqs:['intermediacion','levantamiento','plan','publicacion'],tools:[['home','Ficha comercial','Presenta el inmueble con la identidad Fortius.'],['coin','Neto del propietario','Lo que recibirá después de gastos e impuestos.']]},
+ {key:'publicacion',label:'Publicación y seguimiento',hace:'Publicar, mantener los datos al día e informar al propietario cada mes.',para:'Generar interesados y medir cómo va la venta.',
+  full:'Publicar en los canales acordados, mantener los datos actualizados e informar al propietario sobre consultas y avance. Sirve para generar interesados y evaluar cómo está funcionando la comercialización.',
+  reqs:['comprador'],tools:[['trend','Informe al propietario','Actividad del mes y próximos pasos.']]},
+ {key:'visitas',label:'Visitas y ofertas',hace:'Coordinar visitas y revisar cada oferta: precio, pago, plazos y condiciones.',para:'Que el propietario decida con una propuesta viable.',
+  full:'Coordinar visitas con prospectos compatibles y revisar cada oferta: precio, forma de pago, plazos y condiciones. Sirve para convertir el interés en una propuesta viable que el propietario pueda decidir informado.',
+  reqs:['oferta','revision_cierre','instrumento','contraparte'],tools:[['tag','Comparador de ofertas','Compara condiciones y formas de pago.']]},
+ {key:'cierre',label:'Cierre y entrega',hace:'Firmar en notaría, verificar pagos y entregar llaves e inventario.',para:'Concretar la venta y entregarla bien.',
+  full:'Coordinar la firma con las partes y la notaría, verificar pagos, documentar llaves e inventario y seguir los pendientes. La operación no termina al aceptar una oferta: debe concretarse y entregarse correctamente.',
+  reqs:['firma','pago','entrega','registro','honorarios','archivo'],tools:[['coin','Comisiones y reparto','Honorarios, participantes y distribución.']]},
+];
+const REQ={
+ entrevista:{t:'Entrevista con el propietario',h:'Objetivo, tiempos, propietarios, inmueble y precio que espera.',f:'02'},
+ titularidad:{t:'Quién es dueño y quién firma',h:'Identificación de cada propietario y escritura o documento de compra.',f:'05'},
+ factibilidad:{t:'Que se pueda vender sin obstáculos',h:'Certificado de libertad de gravamen, predial y agua al corriente.',f:'06',vig:true},
+ valor:{t:'Opinión de valor',h:'Al menos 3 propiedades comparables, cada una con su fuente.',f:'07'},
+ precio:{t:'Precio de salida acordado',h:'Precio y condiciones que el propietario aprobó por escrito.',f:'08'},
+ intermediacion:{t:'Contrato de servicio firmado',h:'Honorarios, exclusividad y permiso para promover el inmueble.',f:'09'},
+ levantamiento:{t:'Fotos, medidas y datos revisados',h:'Que la ficha coincida con lo que dijo el propietario y con lo que viste.',f:'04B'},
+ plan:{t:'Plan de publicación aprobado',h:'Canales, fechas y quién atiende las visitas.',f:'10'},
+ publicacion:{t:'Permiso para publicar',h:'El propietario aprobó la ficha y los datos que se verán.',f:'10'},
+ comprador:{t:'Comprador con capacidad de pago',h:'Persona identificada, con crédito o recursos comprobados.',f:'12'},
+ oferta:{t:'Oferta aceptada por escrito',h:'Precio, forma de pago y plazos que aceptó el propietario.',f:'14'},
+ revision_cierre:{t:'Documentos al día para firmar',h:'Certificados y pagos vigentes a la fecha de la firma.',f:'06',vig:true},
+ instrumento:{t:'Cómo se firma y se paga',h:'Anticipo, quién lo guarda y cuándo se devuelve.',f:'15'},
+ contraparte:{t:'Comprador y participantes identificados',h:'Quién compra, quién lo representa y quién más interviene.',f:'14'},
+ firma:{t:'Firma ante notario',h:'Fecha, notaría y documentos firmados.',f:'15'},
+ pago:{t:'Pago completo antes de entregar',h:'Pagos recibidos según lo acordado.',f:'18'},
+ entrega:{t:'Entrega con acta',h:'Llaves, inventario y pendientes anotados en el acta.',f:'16'},
+ registro:{t:'Trámite de registro',h:'Inscripción de la compraventa y pendientes atendidos.',f:'17',na:true},
+ honorarios:{t:'Honorarios cobrados',h:'Cobro conforme al contrato de servicio.',f:'18',na:true},
+ archivo:{t:'Pendientes resueltos y operación archivada',h:'Seguimiento posterior a la entrega terminado.',f:'17'},
+};
+const STATES={
+ pend:{l:'Pendiente',i:'circle',h:'Aún no lo tienes.'},
+ tengo:{l:'Lo tengo',i:'dot',h:'Ya lo recibiste; falta revisarlo.'},
+ rev:{l:'Revisado',i:'check',h:'Te pedirá el documento que lo respalda.'},
+ prob:{l:'Hay un problema',i:'alert',h:'Algo no cuadra y detiene la etapa.'},
+ na:{l:'No aplica',i:'minus',h:'Solo si de verdad no aplica; pide el motivo.'},
+};
+const stageOfReq=k=>STAGES.findIndex(s=>s.reqs.includes(k));
+const TEAM=['Daniela Ríos','Jorge Treviño','Ana Lucía Méndez'];
+
+/* ---------- Datos ficticios ---------- */
+const OPS=[
+ {id:'castaneda',folio:'EXP-2026-041',cliente:'Familia Castañeda Ruiz',contacto:'Ramón Castañeda',tel:'664 381 2290',inmueble:'Casa en Playas de Tijuana, sección Jardines',precio:'$3,890,000',asesor:'Daniela Ríos',stage:1,desde:'Cliente desde el 2 de octubre',
+  req:{titularidad:{st:'tengo'},factibilidad:{st:'rev',doc:'Certificado de libertad de gravamen.pdf',by:'Daniela Ríos',date:'13 oct',vig:'12 nov 2026'},valor:{st:'pend'},precio:{st:'pend'}},
+  next:{t:'Llevar 3 comparables al propietario',f:'Vie 16 oct · 16:00'},
+  docs:[['Entrevista con el propietario','PDF generado · 3 oct','Entrevista con el propietario'],['Escritura 4,512 (escaneo).pdf','Subido · 8 oct',''],['INE Ramón Castañeda.jpg','Subido · 8 oct',''],['INE Lucía Ruiz.jpg','Subido · 8 oct',''],['Certificado de libertad de gravamen.pdf','Subido · 13 oct','Que se pueda vender sin obstáculos'],['Predial 2026.pdf','Subido · 13 oct','']],
+  hist:[['13 oct','Daniela Ríos marcó «Que se pueda vender sin obstáculos» como revisado.'],['8 oct','Se subieron la escritura y las identificaciones.'],['6 oct','La operación pasó a Verificación y precio.'],['3 oct','Daniela Ríos completó la entrevista con el propietario.'],['2 oct','Se creó la operación desde un prospecto de WhatsApp.']],
+  tasks:[['Llevar 3 comparables al propietario','Vie 16 oct',false],['Pedir el predial 2026 a la familia','Hoy',false],['Subir escritura e identificaciones','8 oct',true]]},
+ {id:'salgado',folio:'EXP-2026-037',cliente:'Roberto Salgado',contacto:'Roberto Salgado',tel:'661 102 7745',inmueble:'Departamento con vista al mar en Costa Bella, Rosarito',precio:'$2,750,000',asesor:'Jorge Treviño',stage:2,desde:'Cliente desde el 18 de septiembre',
+  req:{intermediacion:{st:'rev',doc:'Contrato de servicio firmado.pdf',by:'Jorge Treviño',date:'10 oct'},levantamiento:{st:'prob',pb:'Faltan fotos de la recámara 2 y el balcón mide 9 m², no 12 m² como dice la ficha.'},plan:{st:'tengo'},publicacion:{st:'pend'}},
+  next:{t:'Sesión de fotos de la recámara 2',f:'Hoy · 17:00'},
+  docs:[['Contrato de servicio firmado.pdf','Subido · 10 oct','Contrato de servicio firmado'],['Ficha comercial · Versión 3','PDF generado · 12 oct',''],['Fotos del departamento (24)','Subidas · 11 oct',''],['Plan de publicación','Borrador del documento · 12 oct',''],['Escritura y predial.pdf','Subido · 25 sep','']],
+  hist:[['12 oct','Jorge Treviño marcó «Fotos, medidas y datos revisados» con un problema.'],['10 oct','Se firmó el contrato de servicio.'],['30 sep','La operación pasó a Contrato y preparación.'],['18 sep','Se creó la operación.']],
+  tasks:[['Sesión de fotos de la recámara 2','Hoy',false],['Corregir la medida del balcón en la ficha','Vie 16 oct',false]]},
+ {id:'ochoa',folio:'EXP-2026-043',cliente:'Mariana Ochoa',inmueble:'Terreno en El Rosario, Rosarito',precio:'Por definir',asesor:'Daniela Ríos',stage:0,req:{entrevista:{st:'pend'}},next:{t:'Entrevista con la propietaria',f:'Vie 16 oct · 10:00'}},
+ {id:'villalobos',folio:'EXP-2026-042',cliente:'Héctor Villalobos',inmueble:'Casa en Otay Universidad',precio:'Por definir',asesor:'Jorge Treviño',stage:0,req:{entrevista:{st:'tengo'}},next:{t:'Revisar las notas de la entrevista',f:'Lun 19 oct'}},
+ {id:'arenas',folio:'EXP-2026-039',cliente:'Grupo Arenas',inmueble:'Local comercial en Zona Río',precio:'$5,200,000',asesor:'Ana Lucía Méndez',stage:1,req:{titularidad:{st:'rev',doc:'Acta constitutiva y poder.pdf',by:'Ana Lucía Méndez',date:'9 oct'}},next:{t:'Pedir certificado de libertad de gravamen',f:'Mar 20 oct'}},
+ {id:'llamas',folio:'EXP-2026-031',cliente:'Patricia Llamas',inmueble:'Casa en Cumbres de Juárez',precio:'$2,180,000',asesor:'Daniela Ríos',stage:3,req:{comprador:{st:'pend'}},next:{t:'Enviar el informe mensual',f:'Venció el 12 oct',late:true}},
+ {id:'barba',folio:'EXP-2026-029',cliente:'Luis Fernando Barba',inmueble:'Departamento en Zona Río, piso 9',precio:'$3,400,000',asesor:'Jorge Treviño',stage:3,req:{comprador:{st:'tengo'}},next:{t:'Actualizar el precio en portales',f:'Lun 19 oct'}},
+ {id:'medina',folio:'EXP-2026-024',cliente:'Sofía Medina',inmueble:'Casa en Real del Mar',precio:'$4,600,000',asesor:'Daniela Ríos',stage:4,req:{oferta:{st:'tengo'}},next:{t:'Revisar la oferta con la propietaria',f:'Hoy · 18:00'},why:'Llegó una oferta de $4,350,000'},
+ {id:'pineda',folio:'EXP-2026-018',cliente:'Ernesto y Laura Pineda',inmueble:'Casa en Chapultepec',precio:'$6,950,000',asesor:'Ana Lucía Méndez',stage:5,req:{firma:{st:'tengo'}},next:{t:'Firma en notaría',f:'Jue 22 oct · 12:00'}},
+];
+const getOp=id=>OPS.find(o=>o.id===id);
+function req(op,k){
+  if(op.req[k]) return op.req[k];
+  return stageOfReq(k)<op.stage?{st:'rev',doc:'Documento en la operación',by:op.asesor,date:'sep'}:{st:'pend'};
+}
+const missing=op=>STAGES[op.stage].reqs.filter(k=>!['rev','na'].includes(req(op,k).st));
+function why(op){
+  if(op.why) return {t:op.why,tone:'info'};
+  const m=missing(op), pb=m.find(k=>req(op,k).st==='prob');
+  if(pb) return {t:'Hay un problema: '+REQ[pb].t.toLowerCase(),tone:'bad'};
+  if(!m.length) return {t:'Lista para pasar a '+(STAGES[op.stage+1]?.label??'cierre'),tone:'ok'};
+  return {t:'Falta: '+m.map(k=>REQ[k].t.toLowerCase()).join(', '),tone:'warn'};
+}
+const TASKS=[
+ {id:'t1',t:'Llamar a Mariana Ochoa para confirmar la entrevista',s:'10:00 · Terreno en El Rosario',done:false},
+ {id:'t2',t:'Pedir el predial 2026 a la familia Castañeda',s:'Casa en Playas de Tijuana',done:false},
+ {id:'t3',t:'Enviar 3 opciones de renta a Karla Ibarra',s:'Prospecto · departamento en Zona Río',done:false},
+ {id:'t4',t:'Subir las fotos nuevas de Costa Bella',s:'Después de la sesión de las 17:00',done:false},
+];
+const EVENTS={12:[['10:00','Llamada','Informe mensual · Patricia Llamas','llamada']],13:[['12:00','Visita','Depto. en Zona Río · Karla Ibarra','visita']],14:[['17:00','Reunión de equipo','Oficina Zona Río','']],
+ 15:[['11:00','Visita','Casa en Real del Mar · Andrés Fuentes','visita'],['13:30','Llamada','Grupo Arenas · local en Zona Río','llamada'],['17:00','Sesión de fotos','Depto. en Costa Bella, Rosarito','']],
+ 16:[['10:00','Entrevista','Mariana Ochoa · terreno en El Rosario',''],['16:00','Entregar comparables','Familia Castañeda · Playas','']],17:[['11:00','Casa abierta','Casa en Cumbres de Juárez','visita']],18:[]};
+const DAYS=[['Lun',12],['Mar',13],['Mié',14],['Jue',15],['Vie',16],['Sáb',17],['Dom',18]];
+const PROSPECTS=[
+ ['Andrés Fuentes','Comprar casa en Playas o Real del Mar, hasta $4.5 M','Sitio web','Hoy','Visita hoy a las 11:00',''],
+ ['Mariana Ochoa','Vender un terreno en El Rosario, Rosarito','Referido','Ayer','Entrevista el viernes',''],
+ ['Karla Ibarra','Rentar departamento en Zona Río, hasta $18,000 al mes','WhatsApp','13 oct','Enviar opciones hoy',''],
+ ['Ricardo Peña','Invertir en lotes en Rosarito','Redes sociales','9 oct','Llamar esta semana',''],
+ ['Gabriela Domínguez','Vender casa en Lomas de Agua Caliente','WhatsApp','2 oct','Sin seguimiento hace 13 días','late'],
+];
+const CLIENTS=[['Familia Castañeda Ruiz','Vende · Casa en Playas de Tijuana','castaneda'],['Roberto Salgado','Vende · Depto. en Costa Bella','salgado'],['Patricia Llamas','Vende · Casa en Cumbres de Juárez','llamas'],['Sofía Medina','Vende · Casa en Real del Mar','medina'],['Ernesto y Laura Pineda','Venden · Casa en Chapultepec','pineda'],['Grupo Arenas','Vende · Local en Zona Río','arenas']];
+const PROPS=[
+ ['Casa en Playas de Tijuana, sección Jardines','Tijuana','$3,890,000','3 rec · 2.5 baños · 210 m²','En preparación','','castaneda'],
+ ['Departamento con vista al mar, Costa Bella','Rosarito','$2,750,000','2 rec · 2 baños · 96 m²','En preparación','','salgado'],
+ ['Casa en Cumbres de Juárez','Tijuana','$2,180,000','3 rec · 2 baños · 140 m²','Publicado','ok','llamas'],
+ ['Departamento en Zona Río, piso 9','Tijuana','$3,400,000','2 rec · 2 baños · 110 m²','Publicado','ok','barba'],
+ ['Casa en Real del Mar','Tijuana','$4,600,000','4 rec · 3.5 baños · 320 m²','Con oferta','info','medina'],
+ ['Casa en Chapultepec','Tijuana','$6,950,000','4 rec · 4 baños · 380 m²','En cierre','warn','pineda'],
+ ['Local comercial en Zona Río','Tijuana','$5,200,000','Local · 180 m²','En preparación','','arenas'],
+];
+const APPS=[
+ ['Comercial','tag',[['Ficha comercial','Presenta un inmueble con la identidad Fortius.'],['Comparables','Sustenta precios con fuentes y ajustes visibles.'],['Comparador de ofertas','Compara condiciones y formas de pago.'],['Informe al propietario','Actividades, resultados y próximos pasos.'],['Cotizador de servicios','Propuesta con conceptos y vigencia.']]],
+ ['Finanzas','coin',[['Hipoteca','Mensualidades, anticipos y tabla de pagos.'],['Neto del propietario','Lo que recibirá el propietario.'],['Comisiones y reparto','Honorarios, participantes y distribución.'],['Inversiones','Rendimiento con flujos y escenarios.'],['Rehabilitación','Partidas, imprevistos y pagos.'],['Unidades y monedas','Superficies, longitudes y MXN / USD.']]],
+ ['Documentos','file',[['Plantillas y PDF','Prepara formatos y organiza páginas.'],['Pendientes documentales','Requisitos, vencimientos y pendientes.'],['Comparador de versiones','Encuentra cambios entre dos textos.']]],
+ ['Fotos y enlaces','image',[['Fotografías','Recorte, luz y copias listas para publicar.'],['Enlaces y QR','Comparte fichas y documentos.']]],
+];
+
+/* ---------- Entrevista por secciones ---------- */
+const WTYPES=[
+ ['vender','home','Vender su inmueble','Es dueño y quiere vender.'],
+ ['rentar_prop','key','Poner su inmueble en renta','Es dueño y busca inquilino.'],
+ ['comprar','search','Comprar un inmueble','Busca casa, departamento, terreno o local.'],
+ ['rentar','calendar','Rentar para vivir o trabajar','Busca un inmueble en renta.'],
+ ['invertir','trend','Invertir','Busca un inmueble como inversión.'],
+];
+const OWNER_SECTIONS=[
+ {t:'Objetivo y tiempos',i:'Para entender por qué vende y con qué prisa.',f:[
+  {id:'motivo',l:'¿Por qué quiere vender?',type:'pills',o:['Cambio de ciudad','Comprar otra casa','Herencia','Necesita liquidez','Otro','No sabe'],v:'Comprar otra casa'},
+  {id:'cuando',l:'¿Para cuándo quiere vender?',type:'select',o:['En menos de 3 meses','De 3 a 6 meses','Más de 6 meses','No sabe'],v:'De 3 a 6 meses'},
+  {id:'vive',l:'¿Quién vive hoy en el inmueble?',type:'pills',o:['El propietario','Está rentado','Está vacío','No sabe'],v:'El propietario'},
+  {id:'preoc',l:'Expectativas y preocupaciones',type:'textarea',v:'Quiere vender antes de que su hija entre a la universidad en agosto. Le preocupa el tiempo del trámite del crédito del comprador.'}]},
+ {t:'Propietarios',i:'Quién aparece en la escritura y quién debe autorizar la venta.',f:[
+  {id:'duenos',l:'¿Quién aparece en la escritura?',type:'text',v:'Gabriela Domínguez Soto'},
+  {id:'civil',l:'Estado civil cuando compró',type:'select',o:['Soltera o soltero','Casada o casado, bienes separados','Casada o casado, bienes en común','No sabe'],v:'Casada o casado, bienes en común'},
+  {id:'autoriza',l:'¿Alguien más debe autorizar la venta?',type:'pills',o:['Sí','No','No sabe'],v:'Sí',h:'Si estaba casada en bienes en común, normalmente firma también su cónyuge.'}]},
+ {t:'El inmueble',i:'Los datos básicos. Las medidas se confirman después con la escritura.',f:[
+  {id:'tipo',l:'Tipo de inmueble',type:'pills',o:['Casa','Departamento','Terreno','Local'],v:'Casa'},
+  {id:'dom',l:'Domicilio',type:'text',v:'Calle Rosales 214, Lomas de Agua Caliente, Tijuana'},
+  {two:true,f:[{id:'terreno',l:'Terreno (m²)',type:'text',v:'200'},{id:'constr',l:'Construcción (m²)',type:'text',v:'185'}]},
+  {two:true,f:[{id:'rec',l:'Recámaras',type:'text',v:'3'},{id:'banos',l:'Baños',type:'text',v:'2.5'}]}]},
+ {t:'Precio y condiciones',i:'Lo que espera recibir y cómo acepta que le paguen.',f:[
+  {id:'precio',l:'Precio que desea',type:'text',v:'$3,600,000',h:'Es lo que dice el propietario; el precio de salida se acuerda en Verificación y precio.'},
+  {id:'fuente',l:'¿De dónde sale ese precio?',type:'pills',o:['Lo vio en internet','Avalúo','Se lo dijo un conocido','No sabe'],v:'Lo vio en internet'},
+  {id:'pagos',l:'Formas de pago que acepta',type:'checks',o:['Contado','Crédito bancario','Infonavit','Fovissste'],v:['Contado','Crédito bancario','Infonavit']},
+  {id:'deuda',l:'¿Tiene hipoteca o algún adeudo?',type:'pills',o:['Sí','No','No sabe'],v:'No'}]},
+ {t:'Documentos',i:'Qué documentos tiene y cuándo los entrega. Se crean tareas con esas fechas.',f:[{id:'docs',type:'docs'}]},
+];
+const BUYER_SECTIONS=[
+ {t:'Lo que busca',i:'Zona, tipo de inmueble y lo indispensable.',f:[
+  {id:'zona',l:'Zonas de interés',type:'text',v:'Playas de Tijuana, Real del Mar'},
+  {id:'tipo',l:'Tipo de inmueble',type:'pills',o:['Casa','Departamento','Terreno','Local'],v:'Casa'},
+  {id:'indis',l:'Lo indispensable',type:'textarea',v:'3 recámaras, cochera para 2 autos, cerca de escuelas.'}]},
+ {t:'Presupuesto y forma de pago',i:'Para mostrar solo opciones que puede pagar.',f:[
+  {id:'pres',l:'Presupuesto máximo',type:'text',v:'$4,500,000'},
+  {id:'pagos',l:'¿Cómo va a pagar?',type:'checks',o:['Contado','Crédito bancario','Infonavit','Fovissste'],v:['Crédito bancario']},
+  {id:'precal',l:'¿Ya tiene precalificación de crédito?',type:'pills',o:['Sí','No','En trámite','No sabe'],v:'En trámite'}]},
+ {t:'Tiempos',i:'Para saber con qué prisa buscar.',f:[
+  {id:'cuando',l:'¿Para cuándo lo necesita?',type:'select',o:['En menos de 3 meses','De 3 a 6 meses','Más de 6 meses','No sabe'],v:'En menos de 3 meses'},
+  {id:'decide',l:'¿Quién más decide la compra?',type:'text',v:'Su esposa'}]},
+];
+const DOCS_ASK=[['Escritura','Lo tiene'],['Identificación oficial','Lo tiene'],['Predial 2026','Lo va a conseguir'],['Recibos de agua y luz','Lo tiene'],['Acta de matrimonio','Lo va a conseguir']];
+
+/* ---------- Estado ---------- */
+const S={device:matchMedia('(max-width: 760px)').matches?'phone':'desktop',theme:'system',role:'admin',screen:'hoy',sel:null,opId:'castaneda',opTab:'guia',
+ menuReq:null,sheet:null,adminOpen:false,scope:'mias',stageTab:1,ctab:'pro',atab:'cal',ifilter:'Todos',day:15,confirmDel:false,toast:null,
+ wiz:{step:0,tipo:'vender',dup:null,vals:{}},flash:null};
+
+const ENTRIES=[['nav','Navegación'],['hoy','Hoy'],['operaciones','Operaciones'],['op-ver','Operación · verificación'],['op-con','Operación · contrato'],['nueva','Nueva operación'],['contactos','Contactos'],['inmuebles','Inmuebles'],['agenda','Agenda'],['herramientas','Herramientas']];
+function entryOf(){
+ if(S.sel) return S.sel;
+ if(S.screen==='op') return S.opId==='salgado'?'op-con':S.opId==='castaneda'?'op-ver':'operaciones';
+ if(S.screen==='menu') return 'nav';
+ return S.screen;
+}
+function pick(id){
+ Object.assign(S,{menuReq:null,sheet:null,confirmDel:false,sel:null,opTab:'guia'});
+ if(id==='nav'){S.screen=S.device==='phone'?'menu':'hoy';S.adminOpen=S.role==='admin';S.sel='nav';}
+ else if(id==='op-ver'){S.screen='op';S.opId='castaneda';}
+ else if(id==='op-con'){S.screen='op';S.opId='salgado';}
+ else if(id==='nueva'){S.screen='nueva';S.wiz={step:0,tipo:'vender',dup:null,vals:{}};}
+ else S.screen=id;
+}
+
+const NOTES={
+ nav:{t:'Barra lateral y navegación',b:['Un solo botón principal arriba: «+ Nueva operación».','Cinco secciones: Hoy, Operaciones, Contactos, Inmuebles y Agenda. El número junto a Hoy reemplaza la campana.','Herramientas (16) pasa a un segundo nivel. Dentro de cada operación solo aparecen las de su etapa.','Administración va plegada y solo la ve el administrador. Prueba «Ver como: Asesor».','En celular, la barra inferior es Hoy · Operaciones · + · Contactos · Menú.'],q:['«Más» y «Organizar menú»','La campana repetida','Los enlaces de etapas en el menú','La página puente «Documentos»: los documentos viven dentro de cada operación']},
+ hoy:{t:'Hoy',b:['Junta en una pantalla corta el resumen, las tareas del día, la agenda y los informes vencidos.','Cada operación que espera algo tiene un solo botón: «Continuar».','El informe mensual al propietario aparece aquí desde el día que vence hasta que se envía.','Las tareas se marcan aquí mismo, sin abrir otra página.'],q:['Flujo de efectivo','Cartera por zona','Comisiones previstas','La tarjeta «Proceso de venta» repetida']},
+ operaciones:{t:'Operaciones',b:['Las 6 etapas son columnas en computadora y pestañas en celular.','Cada tarjeta dice cliente, inmueble y el próximo paso con su fecha. Lo vencido se marca en guinda.','«Mías / Todo el equipo» para quien supervisa a otros asesores.','Abre cualquier tarjeta para ver la operación guiada.'],q:['La tabla de 6 columnas de la pantalla de inicio','Los enlaces sueltos de etapas en el menú']},
+ 'op-ver':{t:'Operación guiada · Verificación y precio',b:['Una sola tarjeta «Lo que sigue» con los requisitos de esta etapa y nada más.','Prueba: cambia «Opinión de valor» a Revisado. Se abre un panel que pide el documento que lo respalda, quién lo revisó y la fecha.','El botón de abajo dice a qué etapa pasas. Si falta algo, «Te falta» enlaza cada requisito.','Documentos, Tareas, Historial y Ajustes son pestañas. Eliminar vive en Ajustes y pide confirmación.','El servidor pide exactamente lo mismo que hoy; solo cambia cómo se pregunta.'],q:['4 botones principales y más de 12 secciones desplegables','«Eliminar expediente» en rojo cerca del inicio','Avisos legales repetidos: queda un solo «¿Qué significa?»']},
+ 'op-con':{t:'Operación guiada · Contrato y preparación',b:['Ejemplo con un problema: «Fotos, medidas y datos revisados» detiene la etapa y lo dice abajo.','Herramientas de la etapa: Ficha comercial y Neto del propietario.','En celular el avance se lee «Etapa 3 de 6» con una barra.','Las rutas de compra, renta e inversión usan este mismo diseño con sus propias etapas.'],q:['«Datos declarados y datos de la ficha · conciliar…»: ahora dice «Que la ficha coincida con lo que dijo el propietario»']},
+ nueva:{t:'Nueva operación',b:['Une el alta y la entrevista en un asistente: qué quiere el cliente, quién es, la entrevista por secciones y listo.','La barra cuenta los pasos reales (hoy anuncia 4 pasos y son 2).','Avisa si el contacto ya existe antes de crear otro.','Las preguntas aceptan «No sabe» y se puede guardar para seguir después.','Al terminar abre la operación en Captación con la entrevista ya revisada.'],q:['Ir y venir entre «Nueva operación» y la página de la entrevista']},
+ contactos:{t:'Contactos',b:['CRM y Clientes se unen en Contactos, con pestañas Prospectos y Clientes.','Cada fila dice qué busca la persona y cuál es el siguiente paso.','Desde un prospecto se crea la operación directamente.','/admin/leads redirige aquí.'],q:['Tres nombres para lo mismo: CRM, Clientes y Prospectos']},
+ inmuebles:{t:'Inmuebles',b:['Lista con foto, precio, medidas, estado y la operación a la que pertenece.','Filtros por estado en una sola fila.','El mismo estilo de lista sirve para Equipo, Blog y Archivos en Administración.'],q:[]},
+ agenda:{t:'Agenda',b:['Calendario y Tareas en una sola sección; /admin/tareas redirige aquí.','Semana completa en computadora, día por día en celular.','Las visitas se distinguen en guinda claro.'],q:['Hoy, Tareas y la campana abriendo la misma página']},
+ herramientas:{t:'Herramientas',b:['Quedan 16 herramientas en cuatro grupos.','Cada operación muestra solo las de su etapa, con sus datos ya cargados.','«Revisor de expediente» se propone como «Pendientes documentales».'],q:['Firmas','Lector de documentos','Consulta documental','Ruta de visitas']},
+};
+const QUESTIONS=['¿«Hoy» debe ser la pantalla de inicio también para el administrador, o prefiere entrar a Operaciones?','Cuando algo de una etapa pasada cambia, ¿se reabre desde la guía o solo desde Ajustes › Corregir etapa?','¿Aprueba renombrar «Revisor de expediente» como «Pendientes documentales»?'];
+
+/* ---------- Piezas ---------- */
+const isPhone=()=>S.device==='phone';
+const statusBtn=(op,k)=>{const r=req(op,k),s=STATES[r.st];return `<button type="button" class="status s-${r.st}" data-act="status" data-arg="${k}" aria-haspopup="menu" aria-expanded="${S.menuReq===k}" aria-label="${REQ[k].t}: ${s.l}. Cambiar estado">${I(s.i,16)}${s.l}${I('chevd',14).replace('class="i"','class="i chev"')}</button>`};
+function evLine(op,k){
+ const r=req(op,k);
+ if(r.st==='rev') return `<p class="req-ev">${I('check',15)}<span>${r.doc} · revisó ${r.by} · ${r.date}${r.vig?` · vigente hasta ${r.vig}`:''}</span></p>`;
+ if(r.st==='prob') return `<p class="req-ev bad">${I('alert',15)}<span>${r.pb}</span></p>`;
+ if(r.st==='na') return `<p class="req-ev na">${I('minus',15)}<span>No aplica: ${r.why}</span></p>`;
+ return '';
+}
+function statusMenu(op,k){
+ const cur=req(op,k).st;
+ return `<div class="menu" role="menu" aria-label="Estado de ${REQ[k].t}">${Object.entries(STATES).map(([id,s])=>{
+  const dis=id==='na'&&!REQ[k].na;
+  return `<button type="button" role="menuitemradio" class="mi t-${id}" aria-checked="${cur===id}" data-act="setst" data-arg="${k}|${id}" ${dis?'disabled':''}>${I(s.i,18)}<span class="l">${s.l}${id==='rev'?' ✓':''}</span><span class="h">${dis?'Este requisito siempre aplica.':s.h}</span></button>`}).join('')}</div>`;
+}
+
+/* ---------- Pantallas ---------- */
+function vHoy(){
+ const wait=['castaneda','salgado','medina'].map(getOp);
+ const reports=[getOp('llamas')];
+ return `<div class="page">
+ <header class="ph"><p class="eyebrow">Jueves 15 de octubre</p><h1>Buenos días, Daniela</h1><p class="lede">${wait.length} operaciones esperan algo, ${TASKS.filter(t=>!t.done).length} tareas y ${EVENTS[15].length} citas hoy.</p></header>
+ <div class="hoy-grid">
+  <div class="hoy-col">
+   <section class="sec" aria-labelledby="h-wait"><div class="sec-h"><h2 id="h-wait">Operaciones que esperan algo</h2><button type="button" class="link" data-act="go" data-arg="operaciones">Ver todas</button></div>
+    <ul class="rows">${wait.map(op=>{const w=why(op);return `<li class="wait"><div class="rm"><p class="rt">${op.cliente}</p><p class="rs">${op.inmueble}</p><p class="why tone-${w.tone==='info'?'ok':w.tone}">${I(w.tone==='bad'?'alert':w.tone==='warn'?'clock':'arrow',15)}${w.t}</p></div><div class="side-r"><span class="tag"><span class="n">${op.stage+1}/6</span>${STAGES[op.stage].label}</span><button type="button" class="btn btn-sm" data-act="op" data-arg="${op.id}">Continuar ${I('arrow',16)}</button></div></li>`}).join('')}</ul>
+   </section>
+   <section class="sec" aria-labelledby="h-tasks"><div class="sec-h"><h2 id="h-tasks">Tareas de hoy</h2><button type="button" class="link" data-act="goagenda" data-arg="tar">Ver todas</button></div>
+    <ul class="rows">${TASKS.map(t=>`<li><label class="check ${t.done?'done':''}"><input type="checkbox" id="task-${t.id}" data-act="task" data-arg="${t.id}" ${t.done?'checked':''}><span><span class="ct">${t.t}</span><br><span class="cs">${t.s}</span></span></label></li>`).join('')}</ul>
+   </section>
+  </div>
+  <div class="hoy-col">
+   <section class="sec" aria-labelledby="h-ag"><div class="sec-h"><h2 id="h-ag">Agenda de hoy</h2><button type="button" class="link" data-act="goagenda" data-arg="cal">Abrir agenda</button></div>
+    <ol class="agenda">${EVENTS[15].map((e,i)=>`<li class="${i===0?'now':''}"><time>${e[0]}</time><div><p class="rt" style="font-size:14px">${e[1]}</p><p class="rs">${e[2]}</p></div></li>`).join('')}</ol>
+   </section>
+   <section class="sec" aria-labelledby="h-inf"><h2 id="h-inf">Informes al propietario</h2>
+    ${reports.map(op=>`<div class="report"><div><p class="rt" style="font-size:14px">${op.cliente}</p><p class="rs">${op.inmueble}</p><p class="why tone-bad">${I('clock',15)}Informe mensual vencido desde el 12 oct</p></div><button type="button" class="btn btn-sm" data-act="tool" data-arg="Informe al propietario">Preparar informe</button></div>`).join('')}
+   </section>
+  </div>
+ </div></div>`;
+}
+
+function opCard(op){
+ return `<button type="button" class="opcard" data-act="op" data-arg="${op.id}"><span class="rt">${op.cliente}</span><span class="rs">${op.inmueble}</span><span class="oc-next ${op.next.late?'late':''}">${I(op.next.late?'alert':'clock',14)}<span>${op.next.t} · ${op.next.f}</span></span></button>`;
+}
+function vOps(){
+ const list=OPS.filter(o=>S.scope==='equipo'||o.asesor==='Daniela Ríos');
+ const late=list.filter(o=>o.next.late).length;
+ const head=`<header class="ph ph-row"><div style="display:grid;gap:6px"><h1>Operaciones</h1><p class="lede">${list.length} activas${late?` · ${late} con algo vencido`:''}</p></div>
+  <div class="seg" role="group" aria-label="Qué operaciones ver"><button type="button" aria-pressed="${S.scope==='mias'}" data-act="scope" data-arg="mias">Mías</button><button type="button" aria-pressed="${S.scope==='equipo'}" data-act="scope" data-arg="equipo">Todo el equipo</button></div></header>`;
+ if(isPhone()){
+  const inStage=list.filter(o=>o.stage===S.stageTab);
+  return `<div class="page">${head}
+  <div class="stage-pills" role="tablist" aria-label="Etapas">${STAGES.map((s,i)=>`<button type="button" role="tab" aria-selected="${S.stageTab===i}" data-act="stab" data-arg="${i}"><span class="n">${i+1}</span>${s.label}<span class="n">${list.filter(o=>o.stage===i).length}</span></button>`).join('')}</div>
+  <p class="muted" style="margin-bottom:12px;font-size:13.5px">${STAGES[S.stageTab].hace}</p>
+  <ul class="op-list">${inStage.length?inStage.map(o=>`<li>${opCard(o)}</li>`).join(''):`<li class="empty">No hay operaciones en esta etapa.</li>`}</ul></div>`;
+ }
+ return `<div class="page wide">${head}
+ <div class="board">${STAGES.map((s,i)=>{const items=list.filter(o=>o.stage===i);return `<section class="col-stage" aria-label="${s.label}"><header><span class="num">${i+1}</span><h2>${s.label}</h2><span class="count">${items.length}</span></header><ul style="display:grid;gap:8px">${items.length?items.map(o=>`<li>${opCard(o)}</li>`).join(''):`<li class="empty">Sin operaciones</li>`}</ul></section>`}).join('')}</div></div>`;
+}
+
+function vOp(){
+ const op=getOp(S.opId), cur=op.stage, st=STAGES[cur];
+ const tabs=[['guia','Lo que sigue'],['docs','Documentos',(op.docs||[]).length],['tareas','Tareas',(op.tasks||[]).filter(t=>!t[2]).length],['hist','Historial'],['ajustes','Ajustes']];
+ const header=isPhone()?`
+  <header class="op-h"><div><h1>${op.cliente}</h1><p class="op-sub">${op.inmueble}</p><p class="op-meta">${op.asesor} · <span class="mono">${op.folio}</span></p></div></header>
+  <div class="pstep"><p><b>Etapa ${cur+1} de 6</b> · ${st.label}</p><div class="bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="${cur+1}" aria-label="Avance de la operación"><i style="width:${(cur+1)/6*100}%"></i></div></div>`
+ :`<nav class="crumb" aria-label="Ruta"><button type="button" data-act="go" data-arg="operaciones">Operaciones</button><span aria-hidden="true">/</span><span class="mono">${op.folio}</span></nav>
+  <header class="op-h"><div><h1>${op.cliente}</h1><p class="op-sub">${op.inmueble} · ${op.precio}</p><p class="op-meta">Responsable: ${op.asesor}</p></div><span class="tag" style="height:30px;padding:0 12px;font-size:13px"><span class="n">${cur+1}/6</span>${st.label}</span></header>
+  <ol class="stepper" aria-label="Etapas de la operación">${STAGES.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}" ${i===cur?'aria-current="step"':''}><span class="dot">${i<cur?I('check',15):i+1}</span><span class="lbl">${s.label}${i<cur?'<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"> (terminada)</span>':''}</span></li>`).join('')}</ol>`;
+ const tabbar=`<div class="tabs op-tabs" role="tablist" aria-label="Secciones de la operación">${tabs.map(([id,l,n])=>`<button type="button" role="tab" aria-selected="${S.opTab===id}" data-act="optab" data-arg="${id}">${l}${n?`<span class="n">${n}</span>`:''}</button>`).join('')}</div>`;
+ let body='';
+ if(S.opTab==='guia'){
+  body=`<div class="op-grid">
+   <section class="next-card" aria-labelledby="ls-h">
+    <div class="nc-h"><p class="eyebrow">Lo que sigue</p><h2 id="ls-h">${st.label}</h2>
+     <p class="nc-what"><b>Qué se hace:</b> ${st.hace} <b>Para qué:</b> ${st.para}</p>
+     <div><button type="button" class="link" data-act="help">${'¿Qué significa?'}</button></div></div>
+    <ul class="reqs">${st.reqs.map(k=>`<li class="req ${S.flash===k?'flash':''}" id="req-${k}"><div class="req-main"><p class="req-t">${REQ[k].t}</p><p class="req-hint">${REQ[k].h}</p>${evLine(op,k)}</div>${statusBtn(op,k)}${S.menuReq===k&&!isPhone()?statusMenu(op,k):''}</li>`).join('')}</ul>
+    <div class="nc-task"><span class="ico">${I('clock',18)}</span><div><p class="k">Próxima tarea</p><p class="t">${op.next.t}</p><p class="muted" style="font-size:13.5px">${op.next.f} · ${op.asesor}</p></div><button type="button" class="link" data-act="toast" data-arg="Aquí cambias la tarea, la fecha o el responsable.">Cambiar</button></div>
+   </section>
+   <aside class="rail">
+    <section><h3>Herramientas de esta etapa</h3>${st.tools.map(t=>`<button type="button" class="tool" data-act="tool" data-arg="${t[1]}"><span class="ti">${I(t[0],18)}</span><span><span class="tt">${t[1]}</span><br><span class="td">${t[2]}</span></span><span class="go">${I('chevr',16)}</span></button>`).join('')}</section>
+    <section class="person"><h3>Cliente</h3><p class="rt" style="font-size:14.5px">${op.contacto||op.cliente}</p><p class="mono muted">${op.tel||'664 000 0000'}</p><p class="muted" style="font-size:13px">${op.desde||'Cliente activo'}</p></section>
+   </aside></div>`;
+ } else if(S.opTab==='docs'){
+  body=`<div class="tab-h"><h2>Documentos</h2><div class="acts"><button type="button" class="btn btn-sm" data-act="toast" data-arg="Aquí eliges el archivo y a qué requisito respalda.">${I('upload',16)} Subir documento</button><button type="button" class="btn btn-sm" data-act="toast" data-arg="Elige qué formato generar en PDF con los datos guardados.">${I('file',16)} Generar PDF</button></div></div>
+  <ul class="rows">${(op.docs||[['Entrevista con el propietario','PDF generado','']]).map(d=>`<li class="doc"><span class="ico">${I('file',18)}</span><div class="dm"><p class="dn">${d[0]}</p><p class="dd">${d[1]}${d[2]?` · respalda «${d[2]}»`:''}</p></div><button type="button" class="link" data-act="toast" data-arg="Abre ${d[0]}">Abrir</button></li>`).join('')}</ul>`;
+ } else if(S.opTab==='tareas'){
+  body=`<div class="tab-h"><h2>Tareas</h2><button type="button" class="btn btn-sm" data-act="toast" data-arg="Nueva tarea ligada a esta operación.">${I('plus',16)} Tarea</button></div>
+  <ul class="rows">${(op.tasks||[[op.next.t,op.next.f,false]]).map((t,i)=>`<li><label class="check ${t[2]?'done':''}"><input type="checkbox" id="optask-${i}" data-act="optask" data-arg="${i}" ${t[2]?'checked':''}><span><span class="ct">${t[0]}</span><br><span class="cs">${t[1]} · ${op.asesor}</span></span></label></li>`).join('')}</ul>`;
+ } else if(S.opTab==='hist'){
+  body=`<div class="tab-h"><h2>Historial</h2></div><ol class="hist">${(op.hist||[['—','Se creó la operación.']]).map(h=>`<li><time>${h[0]}</time><p>${h[1]}</p></li>`).join('')}</ol>`;
+ } else {
+  body=`<div class="settings">
+   <section class="set"><h3>Decisión sobre el encargo</h3><p class="muted">¿Fortius acepta atender esta operación?</p><div class="row"><select class="select" id="set-dec" aria-label="Decisión sobre el encargo"><option>Aceptada</option><option>Aceptada con condiciones</option><option>Pausada</option><option>Rechazada</option><option>Referida a otra inmobiliaria</option><option>Cancelada</option></select></div></section>
+   <section class="set"><h3>Tipo de operación</h3><p class="muted">Venta · el propietario vende</p></section>
+   <section class="set"><h3>Comprador</h3><p class="muted">${cur>=4?'Sofía Medina recibió una oferta; agrega aquí al comprador.':'Todavía no hay comprador.'}</p><div class="row"><button type="button" class="btn btn-sm" data-act="toast" data-arg="Busca un contacto o escribe los datos del comprador.">Agregar comprador</button></div></section>
+   <section class="set"><h3>Corregir etapa</h3><p class="muted">Solo si la operación quedó en una etapa equivocada. El cambio queda en el historial.</p><div class="row"><select class="select" id="set-stage" aria-label="Etapa correcta">${STAGES.map((s,i)=>`<option ${i===cur?'selected':''}>${i+1}. ${s.label}</option>`).join('')}</select><button type="button" class="btn btn-sm" data-act="toast" data-arg="Etapa corregida y anotada en el historial.">Guardar</button></div></section>
+   <section class="set danger"><h3>Eliminar operación</h3><p class="muted">Borra la operación con sus documentos y tareas. No se puede deshacer.</p>
+    ${S.confirmDel?`<div class="confirm" role="alertdialog" aria-labelledby="cd-t"><p id="cd-t"><b>¿Eliminar ${op.folio} de ${op.cliente}?</b> Se borrarán ${(op.docs||[]).length} documentos y ${(op.tasks||[]).length} tareas.</p><div class="row"><button type="button" class="btn btn-sm btn-danger solid" data-act="delok">Sí, eliminar</button><button type="button" class="btn btn-sm" data-act="delno">Cancelar</button></div></div>`:`<div class="row"><button type="button" class="btn btn-sm btn-danger" data-act="delask">${I('x',16)} Eliminar operación</button></div>`}</section>
+  </div>`;
+ }
+ return `<div class="page">${header}${tabbar}${body}</div>`;
+}
+function actionbar(){
+ const op=getOp(S.opId), m=missing(op), nx=STAGES[op.stage+1];
+ const label=nx?`Pasar a: ${nx.label}`:'Cerrar y archivar';
+ const left=m.length?`<span class="k">Te falta:</span>${m.map((k,i)=>`<button type="button" class="link" data-act="focusreq" data-arg="${k}">${REQ[k].t}${req(op,k).st==='prob'?' (hay un problema)':''}</button>${i<m.length-1?'<span class="sep">·</span>':''}`).join('')}`:`<span class="ok">${I('check',16)} Todo listo para avanzar</span>`;
+ return `<div class="actionbar"><div class="ab-miss">${left}</div><button type="button" class="btn btn-primary" data-act="advance" aria-disabled="${m.length>0}">${label} ${I('arrow',18)}</button></div>`;
+}
+
+function wizSteps(){const own=['vender','rentar_prop'].includes(S.wiz.tipo);return ['tipo','quien',...(own?OWNER_SECTIONS:BUYER_SECTIONS).map((s,i)=>'s'+i),'listo'];}
+function field(f){
+ if(f.two) return `<div class="two">${f.f.map(field).join('')}</div>`;
+ const v=S.wiz.vals[f.id]??f.v, id='wz-'+f.id;
+ const hint=f.h?`<p class="hint" id="${id}-h">${f.h}</p>`:'';
+ if(f.type==='pills'||f.type==='checks'){
+  const multi=f.type==='checks';
+  return `<fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:6px">${f.l}</legend><div class="pills">${f.o.map((o,i)=>`<label><input type="${multi?'checkbox':'radio'}" name="${id}" id="${id}-${i}" value="${o}" ${(multi?v.includes(o):v===o)?'checked':''}><span>${o}</span></label>`).join('')}</div>${hint}</fieldset>`;
+ }
+ if(f.type==='select') return `<div class="field"><label for="${id}">${f.l}</label><select class="select" id="${id}">${f.o.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>${hint}</div>`;
+ if(f.type==='textarea') return `<div class="field"><label for="${id}">${f.l}</label><textarea class="textarea" id="${id}">${v}</textarea>${hint}</div>`;
+ if(f.type==='docs') return `<ul class="docs-ask">${DOCS_ASK.map((d,i)=>`<li><label for="wz-doc-${i}" style="font-weight:600">${d[0]}</label><select class="select" id="wz-doc-${i}">${['Lo tiene','Lo va a conseguir','No aplica','No sabe'].map(o=>`<option ${o===d[1]?'selected':''}>${o}</option>`).join('')}</select></li>`).join('')}</ul><div class="field"><label for="wz-docdate">¿Cuándo entrega lo que falta?</label><input class="input" type="date" id="wz-docdate" value="2026-10-23"></div>`;
+ return `<div class="field"><label for="${id}">${f.l}</label><input class="input" id="${id}" value="${v}" ${f.h?`aria-describedby="${id}-h"`:''}>${hint}</div>`;
+}
+function vNueva(){
+ const steps=wizSteps(), k=steps[S.wiz.step], total=steps.length-1, own=['vender','rentar_prop'].includes(S.wiz.tipo);
+ const secs=own?OWNER_SECTIONS:BUYER_SECTIONS;
+ const top=(label)=>`<div class="wiz-top"><p class="eyebrow"><span>Paso ${S.wiz.step+1} de ${total}</span><span>${label}</span></p><div class="bar" role="progressbar" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${S.wiz.step+1}" aria-label="Avance del asistente"><i style="width:${(S.wiz.step+1)/total*100}%"></i></div></div>`;
+ if(k==='tipo') return `<div class="page"><div class="wiz">${top('Tipo de operación')}<h1>¿Qué quiere hacer el cliente?</h1>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Tipo de operación</legend><div class="choices">${WTYPES.map(t=>`<label class="choice"><input type="radio" name="wz-tipo" id="wz-tipo-${t[0]}" value="${t[0]}" data-act="wtipo" data-arg="${t[0]}" ${S.wiz.tipo===t[0]?'checked':''}><span class="cbox"><span class="ico">${I(t[1],20)}</span><span><span class="ct">${t[2]}</span><br><span class="cd">${t[3]}</span></span></span></label>`).join('')}</div></fieldset></div></div>`;
+ if(k==='quien'){
+  const d=S.wiz.dup;
+  return `<div class="page"><div class="wiz">${top('Contacto')}<h1>¿Quién es?</h1><p class="intro">Busca primero; así no se repiten contactos.</p>
+  <div class="field"><label for="wz-buscar">Nombre o teléfono</label><div class="search" style="max-width:none">${I('search',16)}<input class="input" id="wz-buscar" value="Gabriela Domínguez"></div></div>
+  <div class="dup ${d==='same'?'sel':''}" role="group" aria-labelledby="dup-t"><p id="dup-t"><b>Ya existe un contacto parecido</b></p><div><p class="rt" style="font-size:15px">Gabriela Domínguez</p><p class="muted" style="font-size:13.5px">Prospecto desde el 2 de octubre · WhatsApp · <span class="mono">664 218 3390</span></p><p class="muted" style="font-size:13.5px">Quiere vender casa en Lomas de Agua Caliente.</p></div>
+   ${d==='same'?`<p class="tone-ok" style="display:flex;gap:6px;align-items:center;font-weight:600">${I('check',16)} Se usará este contacto</p><div><button type="button" class="link" data-act="wdup" data-arg="new">No es ella, es otra persona</button></div>`:`<div class="acts"><button type="button" class="btn btn-sm" data-act="wdup" data-arg="same">Es ella, usar este contacto</button><button type="button" class="btn btn-sm" data-act="wdup" data-arg="new">Es otra persona</button></div>`}</div>
+  ${d==='new'?`<div class="form"><div class="field"><label for="wz-nombre">Nombre completo</label><input class="input" id="wz-nombre" value="Gabriela Domínguez Soto"></div><div class="two"><div class="field"><label for="wz-tel">Teléfono</label><input class="input" id="wz-tel" value="664 218 3390" inputmode="tel"></div><div class="field"><label for="wz-mail">Correo</label><input class="input" id="wz-mail" value="gaby.dominguez@ejemplo.mx" type="email"></div></div>
+   <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:6px">¿Cómo llegó?</legend><div class="pills">${['WhatsApp','Llamada','Sitio web','Referido','Presencial'].map((o,i)=>`<label><input type="radio" name="wz-origen" id="wz-origen-${i}" ${i===0?'checked':''}><span>${o}</span></label>`).join('')}</div></fieldset></div>`:''}
+  </div></div>`;
+ }
+ if(k==='listo'){
+  return `<div class="page"><div class="wiz" style="padding-top:24px"><span class="done-mark">${I('check',28)}</span><h1>Listo. La operación está creada.</h1><p class="intro" style="margin-top:-10px">Gabriela Domínguez · Casa en Lomas de Agua Caliente · <span class="mono">EXP-2026-044</span></p>
+  <ul class="summary"><li>${I('check',16)}<span>Etapa 1 de 6, Captación, con la entrevista revisada.</span></li><li>${I('check',16)}<span>Se crearon 2 tareas: pedir el predial 2026 y el acta de matrimonio antes del 23 oct.</span></li><li>${I('check',16)}<span>La entrevista quedó guardada como PDF en Documentos.</span></li></ul>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" class="btn btn-primary" data-act="wopen">Abrir la operación ${I('arrow',18)}</button><button type="button" class="btn" data-act="go" data-arg="hoy">Volver a Hoy</button></div></div></div>`;
+ }
+ const sec=secs[+k.slice(1)];
+ return `<div class="page"><div class="wiz">${top('Entrevista · '+(+k.slice(1)+1)+' de '+secs.length)}<h1>${sec.t}</h1><p class="intro">${sec.i}</p><div class="form">${sec.f.map(field).join('')}</div></div></div>`;
+}
+function wizFoot(){
+ const steps=wizSteps(),k=steps[S.wiz.step];
+ if(k==='listo') return '';
+ const last=S.wiz.step===steps.length-2, interview=k.startsWith('s');
+ return `<div class="wiz-foot">${S.wiz.step>0?`<button type="button" class="btn" data-act="wback">${I('chevl',18)} Atrás</button>`:`<button type="button" class="btn" data-act="go" data-arg="hoy">Cancelar</button>`}<span class="grow"></span>${interview?`<button type="button" class="link later" data-act="toast" data-arg="Guardado. La encontrarás en Hoy para seguir después.">Guardar y seguir después</button>`:''}<button type="button" class="btn btn-primary" data-act="wnext">${last?'Crear operación':'Siguiente'} ${I('arrow',18)}</button></div>`;
+}
+
+function vContactos(){
+ const pro=S.ctab==='pro';
+ const tabs=`<div class="tabs" role="tablist" aria-label="Tipo de contacto" style="margin-bottom:18px"><button type="button" role="tab" aria-selected="${pro}" data-act="ctab" data-arg="pro">Prospectos<span class="n">${PROSPECTS.length}</span></button><button type="button" role="tab" aria-selected="${!pro}" data-act="ctab" data-arg="cli">Clientes<span class="n">${CLIENTS.length}</span></button></div>`;
+ const tools=`<div class="list-tools"><div class="search">${I('search',16)}<input class="input" id="c-search" placeholder="Buscar por nombre o teléfono" aria-label="Buscar contactos"></div><button type="button" class="btn btn-sm" data-act="toast" data-arg="Nuevo contacto: nombre, teléfono y cómo llegó.">${I('plus',16)} Contacto</button></div>`;
+ let body;
+ if(isPhone()){
+  body=`<ul class="rows">${pro?PROSPECTS.map(p=>`<li class="prow"><span class="avatar">${p[0].split(' ').map(w=>w[0]).slice(0,2).join('')}</span><div class="pm"><p class="rt">${p[0]}</p><p class="rs">${p[1]}</p><p class="meta">${p[2]} · último contacto ${p[3].toLowerCase()}</p><p class="why ${p[5]?'tone-bad':''}" style="margin-top:2px;font-size:13px">${I(p[5]?'alert':'clock',14)}${p[4]}</p><div class="acts"><button type="button" class="btn btn-sm" data-act="go" data-arg="nueva">Crear operación</button></div></div></li>`).join(''):CLIENTS.map(c=>{const op=getOp(c[2]);return `<li class="prow"><span class="avatar">${c[0].split(' ').filter(w=>w.length>1).map(w=>w[0]).slice(0,2).join('')}</span><div class="pm"><p class="rt">${c[0]}</p><p class="rs">${c[1]}</p><p class="meta">Etapa ${op.stage+1} de 6 · ${STAGES[op.stage].label}</p><div class="acts"><button type="button" class="btn btn-sm" data-act="op" data-arg="${c[2]}">Abrir operación</button></div></div></li>`}).join('')}</ul>`;
+ } else {
+  body=pro?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nombre</th><th>Qué busca</th><th>Llegó por</th><th>Último contacto</th><th>Siguiente paso</th><th><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Acción</span></th></tr></thead><tbody>${PROSPECTS.map(p=>`<tr><td><p class="rt" style="font-size:14px">${p[0]}</p></td><td class="muted">${p[1]}</td><td>${p[2]}</td><td class="num-cell">${p[3]}</td><td class="${p[5]?'tone-bad':''}" style="font-weight:${p[5]?600:400}">${p[4]}</td><td><button type="button" class="btn btn-sm" data-act="go" data-arg="nueva">Crear operación</button></td></tr>`).join('')}</tbody></table></div>`
+  :`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nombre</th><th>Operación</th><th>Etapa</th><th>Responsable</th><th><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Acción</span></th></tr></thead><tbody>${CLIENTS.map(c=>{const op=getOp(c[2]);return `<tr><td><p class="rt" style="font-size:14px">${c[0]}</p><p class="mono muted" style="font-size:12px">${op.folio}</p></td><td class="muted">${c[1]}</td><td><span class="tag"><span class="n">${op.stage+1}/6</span>${STAGES[op.stage].label}</span></td><td>${op.asesor}</td><td><button type="button" class="btn btn-sm" data-act="op" data-arg="${c[2]}">Abrir operación</button></td></tr>`}).join('')}</tbody></table></div>`;
+ }
+ return `<div class="page"><header class="ph"><h1>Contactos</h1><p class="lede">Personas interesadas y clientes con operación.</p></header>${tabs}${tools}${body}</div>`;
+}
+function vInmuebles(){
+ const filters=['Todos','Publicados','En preparación','Con oferta o en cierre'];
+ const match=p=>S.ifilter==='Todos'||(S.ifilter==='Publicados'&&p[4]==='Publicado')||(S.ifilter==='En preparación'&&p[4]==='En preparación')||(S.ifilter==='Con oferta o en cierre'&&['Con oferta','En cierre'].includes(p[4]));
+ const list=PROPS.filter(match);
+ const seg=`<div class="stage-pills" role="group" aria-label="Filtrar por estado" style="margin-bottom:${isPhone()?'14px':'0'};${isPhone()?'':'margin-inline:0;padding-inline:0'}">${filters.map(f=>`<button type="button" aria-selected="${S.ifilter===f}" aria-pressed="${S.ifilter===f}" data-act="ifil" data-arg="${f}">${f}</button>`).join('')}</div>`;
+ const body=isPhone()?`<ul class="rows">${list.map(p=>`<li class="prow"><span class="thumb">${HOUSE}</span><div class="pm"><p class="rt" style="font-size:14.5px">${p[0]}</p><p class="rs">${p[1]} · <span style="font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)">${p[2]}</span></p><p class="meta">${p[3]}</p><p style="margin-top:6px"><span class="tag ${p[5]}">${p[4]}</span></p></div></li>`).join('')}</ul>`
+ :`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Inmueble</th><th>Precio</th><th>Medidas</th><th>Estado</th><th>Operación</th></tr></thead><tbody>${list.map(p=>`<tr><td><div class="inm"><span class="thumb">${HOUSE}</span><div><p class="rt" style="font-size:14px">${p[0]}</p><p class="rs">${p[1]}</p></div></div></td><td class="num-cell" style="font-weight:600">${p[2]}</td><td class="muted">${p[3]}</td><td><span class="tag ${p[5]}">${p[4]}</span></td><td><button type="button" class="link" data-act="op" data-arg="${p[6]}">${getOp(p[6]).folio}</button></td></tr>`).join('')}</tbody></table></div>`;
+ return `<div class="page"><header class="ph ph-row"><div style="display:grid;gap:6px"><h1>Inmuebles</h1><p class="lede">${PROPS.length} inmuebles en Tijuana y Rosarito.</p></div><button type="button" class="btn btn-sm" data-act="toast" data-arg="Alta de inmueble: datos, fotos y operación.">${I('plus',16)} Inmueble</button></header>${seg}${isPhone()?'':'<div style="height:16px"></div>'}${body}</div>`;
+}
+function vAgenda(){
+ const cal=S.atab==='cal';
+ const tabs=`<div class="tabs" role="tablist" aria-label="Vista de agenda" style="margin-bottom:20px"><button type="button" role="tab" aria-selected="${cal}" data-act="atab" data-arg="cal">Calendario</button><button type="button" role="tab" aria-selected="${!cal}" data-act="atab" data-arg="tar">Tareas<span class="n">${TASKS.filter(t=>!t.done).length+4}</span></button></div>`;
+ let body;
+ if(cal){
+  const nav=`<div class="list-tools"><p style="font-weight:650;font-size:15px">Semana del 12 al 18 de octubre</p><div style="display:flex;gap:4px"><button type="button" class="icon-btn" aria-label="Semana anterior" data-act="toast" data-arg="Semana anterior">${I('chevl')}</button><button type="button" class="btn btn-sm" data-act="day" data-arg="15">Hoy</button><button type="button" class="icon-btn" aria-label="Semana siguiente" data-act="toast" data-arg="Semana siguiente">${I('chevr')}</button></div></div>`;
+  const evHtml=e=>`<button type="button" class="ev ${e[3]}" data-act="toast" data-arg="${e[1]} · ${e[2]}"><time>${e[0]}</time><span class="et">${e[1]}</span><span class="ec">${e[2]}</span></button>`;
+  body=isPhone()?`${nav}<div class="daystrip" role="group" aria-label="Día">${DAYS.map(([d,n])=>`<button type="button" aria-pressed="${S.day===n}" data-act="day" data-arg="${n}">${d}<span class="n">${n}</span><span class="dot ${EVENTS[n].length?'':'none'}"></span></button>`).join('')}</div>
+   <ol class="agenda">${EVENTS[S.day].length?EVENTS[S.day].map(e=>`<li><time>${e[0]}</time><div><p class="rt" style="font-size:14px">${e[1]}</p><p class="rs">${e[2]}</p></div></li>`).join(''):'<li><span></span><p class="muted">Sin citas este día.</p></li>'}</ol>`
+   :`${nav}<div class="week">${DAYS.map(([d,n])=>`<section class="day ${n===15?'today':''}" aria-label="${d} ${n}"><header><span class="d">${d}</span><span class="n">${n}</span></header><div class="evs">${EVENTS[n].map(evHtml).join('')}</div></section>`).join('')}</div>`;
+ } else {
+  const grp=(t,items,cls='')=>`<h2 class="group-h ${cls}">${t}</h2><ul class="rows">${items.join('')}</ul>`;
+  const row=(id,t,s,done=false)=>`<li><label class="check ${done?'done':''}"><input type="checkbox" id="ag-${id}" data-act="task" data-arg="${id}" ${done?'checked':''}><span><span class="ct">${t}</span><br><span class="cs">${s}</span></span></label></li>`;
+  body=grp('Vencidas',[row('x1','Enviar el informe mensual a Patricia Llamas','Venció el 12 oct · Casa en Cumbres de Juárez')],'bad')+grp('Hoy',TASKS.map(t=>row(t.id,t.t,t.s,t.done)))+grp('Próximos días',[row('x2','Llevar 3 comparables a la familia Castañeda','Vie 16 oct · 16:00'),row('x3','Pedir certificado de libertad de gravamen · Grupo Arenas','Mar 20 oct'),row('x4','Confirmar notaría y hora de firma con los Pineda','Mié 21 oct')]);
+ }
+ return `<div class="page"><header class="ph"><h1>Agenda</h1></header>${tabs}${body}</div>`;
+}
+function vTools(){
+ return `<div class="page"><header class="ph"><h1>Herramientas</h1><p class="lede">16 herramientas. Dentro de cada operación verás solo las de su etapa.</p></header>
+ <div class="apps">${APPS.map(([g,ic,items])=>`<section class="sec" aria-label="${g}"><h2 class="group-h" style="margin:0">${g}</h2><div class="app-grid">${items.map(a=>`<button type="button" class="tool" data-act="tool" data-arg="${a[0]}"><span class="ti">${I(ic,18)}</span><span><span class="tt">${a[0]}</span><br><span class="td">${a[1]}</span></span></button>`).join('')}</div></section>`).join('')}</div></div>`;
+}
+function vMenu(){
+ const item=(act,arg,ic,l)=>`<li><button type="button" data-act="${act}" data-arg="${arg}">${I(ic,20)}${l}${I('chevr',16).replace('class="i"','class="i chev"')}</button></li>`;
+ return `<div class="page"><div class="who"><span class="avatar" style="width:44px;height:44px;font-size:14px">DR</span><div><p class="rt">Daniela Ríos</p><p class="muted" style="font-size:13px">${S.role==='admin'?'Administradora':'Asesora'} · Fortius Inmuebles</p></div></div>
+ <ul class="menu-list">${item('go','inmuebles','home','Inmuebles')}${item('go','agenda','calendar','Agenda')}${item('go','herramientas','grid','Herramientas <span class="muted" style="font-size:13px;margin-left:4px">16</span>')}</ul>
+ ${S.role==='admin'?`<h2 class="menu-h">Administración</h2><ul class="menu-list">${['Equipo','Sitio web','Reportes','Historial','Configuración'].map(l=>item('adminitem',l,'sliders',l)).join('')}</ul>`:''}
+ <h2 class="menu-h">Cuenta</h2><ul class="menu-list">${item('toast','Mi perfil: nombre, foto y teléfono.','user','Mi perfil')}${item('theme','','moon','Modo claro u oscuro')}${item('toast','Sesión cerrada (en el boceto no pasa nada).','logout','Cerrar sesión')}</ul></div>`;
+}
+
+/* ---------- Capas ---------- */
+function vSheet(){
+ const sh=S.sheet; if(!sh) return '';
+ const op=getOp(S.opId);
+ const wrap=(title,sub,body,foot,form)=>`<div class="layer"><button type="button" class="scrim" data-act="close" aria-label="Cerrar" tabindex="-1"></button><${form?`form data-form="${form}" novalidate`:'div'} class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="sheet-h"><div><h2 id="sh-t">${title}</h2>${sub?`<p>${sub}</p>`:''}</div><button type="button" class="icon-btn" data-act="close" aria-label="Cerrar">${I('x')}</button></div><div class="sheet-b">${body}</div>${foot?`<div class="sheet-f">${foot}</div>`:''}</${form?'form':'div'}></div>`;
+ if(sh.type==='status'){
+  const k=sh.key,cur=req(op,k).st;
+  return wrap(REQ[k].t,'Elige el estado',`<div style="display:grid;gap:4px;margin:0 -10px">${Object.entries(STATES).map(([id,s])=>{const dis=id==='na'&&!REQ[k].na;return `<button type="button" class="mi t-${id}" aria-checked="${cur===id}" role="menuitemradio" data-act="setst" data-arg="${k}|${id}" ${dis?'disabled':''} style="padding:12px 10px">${I(s.i,20)}<span class="l" style="font-size:15px">${s.l}${id==='rev'?' ✓':''}</span><span class="h" style="font-size:13px">${dis?'Este requisito siempre aplica.':s.h}</span></button>`}).join('')}</div>`,'');
+ }
+ if(sh.type==='rev'){
+  const k=sh.key,def=REQ[k];
+  const docs=(op.docs||[]).map(d=>d[0]);
+  return wrap('Marcar como revisado',def.t,`
+   <div class="field"><label for="rv-doc">¿Qué documento lo respalda?</label><select class="select" id="rv-doc" aria-describedby="rv-doc-e"><option value="">Elige un documento</option>${docs.map(d=>`<option>${d}</option>`).join('')}<option value="ext">Un documento fuera del sistema…</option></select><p class="err" id="rv-doc-e" hidden>Elige el documento que respalda la revisión.</p></div>
+   <div class="field" id="rv-ext-w" hidden><label for="rv-ext">Describe el documento y dónde está</label><input class="input" id="rv-ext" placeholder="Ej. Avalúo bancario impreso, en la carpeta física" aria-describedby="rv-ext-e"><p class="err" id="rv-ext-e" hidden>Escribe al menos 10 letras para que otro asesor lo encuentre.</p></div>
+   <div class="field"><label for="rv-who">¿Quién lo revisó?</label><select class="select" id="rv-who">${TEAM.map(t=>`<option ${t===op.asesor?'selected':''}>${t}</option>`).join('')}</select></div>
+   <div class="field"><label for="rv-date">Fecha de revisión</label><input class="input" type="date" id="rv-date" value="2026-10-15"></div>
+   ${def.vig?`<div class="field"><label for="rv-vig">Vigente hasta</label><input class="input" type="date" id="rv-vig" aria-describedby="rv-vig-h rv-vig-e"><p class="hint" id="rv-vig-h">Este documento vence. Te avisaremos antes de que pase.</p><p class="err" id="rv-vig-e" hidden>Indica hasta cuándo es válido.</p></div>`:''}
+   <details class="more"><summary>Más detalles ${I('chevd',16)}</summary><div class="inner">
+    <div class="field"><label for="rv-res">Qué encontraste</label><textarea class="textarea" id="rv-res" placeholder="Ej. Los 3 comparables están en un radio de 1 km y son de este año."></textarea></div>
+    <div class="field"><label for="rv-lim">Límites o salvedades</label><textarea class="textarea" id="rv-lim" placeholder="Ej. No se revisó el interior de la bodega."></textarea></div>
+    <p class="hint">Formato ${def.f} · versión del documento se toma del archivo elegido.</p></div></details>`,
+   `<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn btn-primary">${I('check',18)} Guardar como revisado</button>`,'rev');
+ }
+ if(sh.type==='prob'||sh.type==='na'){
+  const k=sh.key,p=sh.type==='prob';
+  return wrap(p?'Hay un problema':'No aplica',REQ[k].t,`<div class="field"><label for="pb-txt">${p?'¿Qué no cuadra?':'¿Por qué no aplica?'}</label><textarea class="textarea" id="pb-txt" aria-describedby="pb-h pb-e" placeholder="${p?'Ej. El balcón mide 9 m², no 12 m² como dice la ficha.':'Ej. La venta es de contado y no requiere registro adicional.'}"></textarea><p class="hint" id="pb-h">${p?'La etapa no avanza hasta que se resuelva. Queda en el historial.':'Queda anotado en el historial.'}</p><p class="err" id="pb-e" hidden>Escribe una explicación corta.</p></div>`,
+   `<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button>`,sh.type);
+ }
+ if(sh.type==='help'){
+  const st=STAGES[op.stage];
+  return wrap('¿Qué significa?','',`<div class="help" style="display:grid;gap:22px"><div><h3>${st.label}</h3><p class="muted">${st.full}</p></div>
+   <div><h3>Los estados de cada requisito</h3><dl>${Object.entries(STATES).map(([id,s])=>`<div><dt><span class="status s-${id}" style="height:26px;font-size:12.5px">${I(s.i,14)}${s.l}</span></dt><dd>${{pend:'Todavía no lo tienes.',tengo:'Ya lo recibiste, pero nadie lo ha revisado. Recibir no es lo mismo que revisar.',rev:'Lo revisaste y anotaste qué documento lo respalda, quién lo revisó y cuándo. Solo así cuenta para avanzar.',prob:'Algo no cuadra. La etapa no avanza hasta resolverlo.',na:'Solo en requisitos que lo permiten (registro y honorarios). Pide el motivo.'}[id]}</dd></div>`).join('')}</dl></div>
+   <div><h3>¿Por qué se pide el respaldo?</h3><p class="muted">Para que cualquier persona del equipo sepa en qué se basó la revisión, y para que la operación quede bien documentada si después hay una duda o un reclamo.</p></div></div>`,'');
+ }
+ return '';
+}
+
+/* ---------- Ensamblado ---------- */
+function screenHtml(){
+ switch(S.screen){
+  case 'hoy':return vHoy(); case 'operaciones':return vOps(); case 'op':return vOp(); case 'nueva':return vNueva();
+  case 'contactos':return vContactos(); case 'inmuebles':return vInmuebles(); case 'agenda':return vAgenda(); case 'herramientas':return vTools();
+  case 'menu':return isPhone()?vMenu():vHoy();
+ }
+ return vHoy();
+}
+function navActive(id){
+ const s=S.screen==='op'?'operaciones':S.screen==='menu'&&!isPhone()?'hoy':S.screen;
+ return s===id;
+}
+function sidebar(){
+ const it=(id,l,ic,extra='')=>`<li><button type="button" class="nav-item" data-act="go" data-arg="${id}" ${navActive(id)?'aria-current="page"':''}>${I(ic,19)}${l}${extra}</button></li>`;
+ const pend=TASKS.filter(t=>!t.done).length+1;
+ return `<aside class="side"><div class="brand"><span class="logo" aria-hidden="true">F</span><span class="wm">Fortius<small>Inmuebles</small></span></div>
+ <button type="button" class="btn btn-primary btn-block" data-act="go" data-arg="nueva">${I('plus',18)} Nueva operación</button>
+ <button type="button" class="search-btn" data-act="toast" data-arg="Busca operaciones, contactos o inmuebles por nombre, folio o teléfono.">${I('search',16)} Buscar<kbd>Ctrl K</kbd></button>
+ <nav aria-label="Principal" style="display:grid;gap:6px"><ul class="nav">${it('hoy','Hoy','sun',`<span class="badge" aria-label="${pend} pendientes">${pend}</span>`)}${it('operaciones','Operaciones','layers')}${it('contactos','Contactos','users')}${it('inmuebles','Inmuebles','home')}${it('agenda','Agenda','calendar')}</ul>
+ <div class="nav-sep"></div><ul class="nav">${it('herramientas','Herramientas','grid','<span class="count">16</span>')}
+ ${S.role==='admin'?`<li><button type="button" class="nav-item" data-act="admin" aria-expanded="${S.adminOpen}" aria-controls="adm-list">${I('sliders',19)}Administración${I('chevd',16).replace('class="i"','class="i chev"')}</button>${S.adminOpen?`<ul class="nav-sub" id="adm-list">${['Equipo','Sitio web','Reportes','Historial','Configuración'].map(l=>`<li><button type="button" data-act="adminitem" data-arg="${l}">${l}</button></li>`).join('')}</ul>`:''}</li>`:''}</ul></nav>
+ <div class="side-foot"><span class="avatar">DR</span><div><p>Daniela Ríos</p><p class="muted">${S.role==='admin'?'Administradora':'Asesora'}</p></div><button type="button" class="icon-btn" data-act="theme" aria-label="Cambiar entre modo claro y oscuro">${I('moon',18)}</button></div></aside>`;
+}
+function phoneTop(){
+ const titles={hoy:'Hoy',operaciones:'Operaciones',contactos:'Contactos',inmuebles:'Inmuebles',agenda:'Agenda',herramientas:'Herramientas',menu:'Menú'};
+ if(S.screen==='op') return `<header class="ptop"><button type="button" class="back" data-act="go" data-arg="operaciones">${I('chevl',20)}Operaciones</button><span class="sp"><button type="button" class="icon-btn" data-act="optab" data-arg="ajustes" aria-label="Ajustes de la operación">${I('sliders',20)}</button></span></header>`;
+ if(S.screen==='nueva') return `<header class="ptop"><h1>Nueva operación</h1><span class="sp"><button type="button" class="icon-btn" data-act="go" data-arg="hoy" aria-label="Cerrar asistente">${I('x',20)}</button></span></header>`;
+ const back=['inmuebles','agenda','herramientas'].includes(S.screen);
+ return `<header class="ptop">${back?`<button type="button" class="back" data-act="go" data-arg="menu">${I('chevl',20)}Menú</button>`:`<span class="logo" aria-hidden="true">F</span><h1>${titles[S.screen]||'Hoy'}</h1>`}<span class="sp"><button type="button" class="icon-btn" data-act="toast" data-arg="Busca operaciones, contactos o inmuebles." aria-label="Buscar">${I('search',20)}</button></span></header>`;
+}
+function tabbar(){
+ const cur=S.screen==='op'?'operaciones':['inmuebles','agenda','herramientas','menu'].includes(S.screen)?'menu':S.screen;
+ const t=(id,l,ic,extra='')=>`<button type="button" class="tab" data-act="go" data-arg="${id}" ${cur===id?'aria-current="page"':''}>${I(ic,22)}${l}${extra}</button>`;
+ return `<nav class="tabbar" aria-label="Principal">${t('hoy','Hoy','sun',`<span class="badge">${TASKS.filter(x=>!x.done).length+1}</span>`)}${t('operaciones','Operaciones','layers')}<button type="button" class="tab-plus" data-act="go" data-arg="nueva" aria-label="Nueva operación">${I('plus',24)}</button>${t('contactos','Contactos','users')}${t('menu','Menú','menu')}</nav>`;
+}
+function appHtml(){
+ const opGuide=S.screen==='op'&&S.opTab==='guia';
+ const foot=opGuide?actionbar():S.screen==='nueva'?wizFoot():'';
+ const toast=S.toast?`<div class="toast" role="status">${S.toast}</div>`:'';
+ if(isPhone()) return `<div class="app phone">${phoneTop()}<div class="main"><div class="scroll" id="scroll">${screenHtml()}</div>${foot}</div>${S.screen==='nueva'?'':tabbar()}${vSheet()}${toast}</div>`;
+ return `<div class="app desk">${sidebar()}<div class="main"><div class="scroll" id="scroll">${screenHtml()}</div>${foot}</div>${vSheet()}${toast}</div>`;
+}
+
+/* ---------- Render ---------- */
+const frame=document.getElementById('frame'), notes=document.getElementById('notes'), stage=document.getElementById('stage');
+let lastScreenKey='', toastTimer=null, focusSel=null;
+function render(){
+ const key=S.screen+'|'+S.opId+'|'+S.opTab+'|'+S.wiz.step+'|'+S.device;
+ const prevScroll=document.getElementById('scroll')?.scrollTop||0;
+ const a=document.activeElement;
+ const refocus=focusSel||(a&&frame.contains(a)&&a.dataset.act?`[data-act="${a.dataset.act}"]${a.dataset.arg!==undefined?`[data-arg="${CSS.escape(a.dataset.arg)}"]`:''}`:null);
+ focusSel=null;
+ // controles del marco
+ document.querySelectorAll('#c-device button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.arg===S.device));
+ document.querySelectorAll('#c-theme button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.arg===S.theme));
+ document.querySelectorAll('#c-role button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.arg===S.role));
+ const ent=entryOf();
+ document.getElementById('c-screens').innerHTML=ENTRIES.map(([id,l],i)=>`<button type="button" data-shell="screen" data-arg="${id}" aria-current="${ent===id}"><span class="n">${i+1}</span>${l}</button>`).join('');
+ stage.className='stage-grid '+(isPhone()?'is-phone':'is-desk');
+ const app=appHtml();
+ frame.innerHTML=isPhone()?`<div class="frame-phone">${app}</div>`:`<div class="frame-desk-wrap" id="dw"><div class="frame-desk">${app}</div></div>`;
+ const n=NOTES[ent]||NOTES.hoy;
+ notes.innerHTML=`<section class="note-block"><h2>${n.t}</h2><h3>Qué cambia</h3><ul>${n.b.map(x=>`<li>${x}</li>`).join('')}</ul></section>
+  ${n.q.length?`<section class="note-block"><h3>Lo que se quita</h3><ul class="quita">${n.q.map(x=>`<li>${x}</li>`).join('')}</ul></section>`:''}
+  <section class="note-block q"><h3>Preguntas abiertas</h3><ul>${QUESTIONS.map(x=>`<li>${x}</li>`).join('')}</ul><p class="note-meta" style="margin-top:12px">Comenta cada pantalla en esta página. Los cambios se ajustan aquí mismo hasta aprobarla.</p></section>`;
+ fit();
+ const sc=document.getElementById('scroll');
+ if(sc&&key===lastScreenKey) sc.scrollTop=prevScroll;
+ lastScreenKey=key;
+ if(refocus){const el=frame.querySelector(refocus);if(el)el.focus({preventScroll:true});}
+ if(S.sheet){const f=frame.querySelector('.sheet select, .sheet textarea, .sheet .mi:not([disabled])');if(f&&!(refocus&&frame.querySelector(refocus)?.closest('.sheet')))f.focus({preventScroll:true});}
+ if(S.flash){const el=frame.querySelector('#req-'+S.flash);if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.querySelector('.status')?.focus({preventScroll:true});}S.flash=null;}
+}
+function fit(){
+ const w=document.getElementById('dw'); if(!w) return;
+ const s=Math.min(1,w.clientWidth/1440);
+ w.firstElementChild.style.transform=`scale(${s})`;
+ w.style.height=(900*s)+'px';
+}
+new ResizeObserver(fit).observe(stage);
+function toast(t){
+ S.toast=t; clearTimeout(toastTimer); render();
+ toastTimer=setTimeout(()=>{S.toast=null;frame.querySelector('.toast')?.remove();},2800);
+}
+function applyTheme(){
+ const r=document.documentElement;
+ if(S.theme==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',S.theme);
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener('click',e=>{
+ const sb=e.target.closest('[data-shell]');
+ if(sb){
+  const a=sb.dataset.shell,v=sb.dataset.arg;
+  if(a==='device'){S.device=v;S.menuReq=null;S.sheet=null;if(S.screen==='menu'&&v==='desktop')S.screen='hoy';if(S.sel==='nav'&&v==='phone')S.screen='menu';}
+  if(a==='theme'){S.theme=v;applyTheme();}
+  if(a==='role'){S.role=v;}
+  if(a==='screen'){pick(v);try{history.replaceState(null,'','#'+v)}catch(_){}}
+  render();return;
+ }
+ const el=e.target.closest('[data-act]');
+ if(!el||!frame.contains(el)){
+  if(S.menuReq&&!e.target.closest('.menu')){S.menuReq=null;render();}
+  return;
+ }
+ const act=el.dataset.act, arg=el.dataset.arg;
+ if(el.getAttribute('aria-disabled')==='true'&&act!=='advance') return;
+ if(act==='task'||act==='optask'||act==='wtipo'){ // casillas: se procesan en change
+  return;
+ }
+ if(act!=='status'&&act!=='setst') S.menuReq=null;
+ switch(act){
+  case 'go': S.sel=null;S.sheet=null;S.confirmDel=false;S.screen=arg;if(arg==='nueva')S.wiz={step:0,tipo:'vender',dup:null,vals:{}};break;
+  case 'goagenda': S.sel=null;S.screen='agenda';S.atab=arg;break;
+  case 'op': S.sel=null;S.screen='op';S.opId=arg;S.opTab='guia';S.confirmDel=false;break;
+  case 'optab': S.opTab=arg;S.confirmDel=false;break;
+  case 'scope': S.scope=arg;break;
+  case 'stab': S.stageTab=+arg;break;
+  case 'ctab': S.ctab=arg;break;
+  case 'atab': S.atab=arg;break;
+  case 'ifil': S.ifilter=arg;break;
+  case 'day': S.day=+arg;break;
+  case 'admin': S.adminOpen=!S.adminOpen;break;
+  case 'adminitem': return toast(`${arg}: conserva sus funciones actuales y recibe el estilo nuevo en la Fase C.`);
+  case 'theme': {const dark=S.theme==='dark'||(S.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);S.theme=dark?'light':'dark';applyTheme();break;}
+  case 'toast': return toast(arg);
+  case 'tool': return toast(`Abre «${arg}» con los datos de esta operación.`);
+  case 'help': S.sheet={type:'help'};break;
+  case 'close': {const k=S.sheet?.key;S.sheet=null;if(k)focusSel=`[data-act="status"][data-arg="${k}"]`;break;}
+  case 'status': if(isPhone()){S.sheet={type:'status',key:arg};}else{S.menuReq=S.menuReq===arg?null:arg;if(S.menuReq)focusSel=`.menu .mi[aria-checked="true"]`;}break;
+  case 'setst': {
+   const [k,st]=arg.split('|'), op=getOp(S.opId); S.menuReq=null;
+   if(st==='rev'||st==='prob'||st==='na'){S.sheet={type:st,key:k};break;}
+   op.req[k]={st}; S.sheet=null; focusSel=`[data-act="status"][data-arg="${k}"]`;
+   return toast(`«${REQ[k].t}» quedó como ${STATES[st].l}.`);
+  }
+  case 'focusreq': S.opTab='guia';S.flash=arg;break;
+  case 'advance': {
+   const op=getOp(S.opId), m=missing(op);
+   if(m.length){S.flash=m[0];render();return toast(`Antes de avanzar completa: ${m.map(k=>REQ[k].t).join(', ')}.`);}
+   if(op.stage>=5) return toast('La operación se cerraría y archivaría aquí.');
+   op.stage++; const ns=STAGES[op.stage];
+   op.next={t:'Empezar con: '+REQ[ns.reqs[0]].t.toLowerCase(),f:'Por definir'};
+   op.hist=[['15 oct',`${op.asesor} pasó la operación a ${ns.label}.`],...(op.hist||[])];
+   lastScreenKey='';
+   return toast(`La operación pasó a ${ns.label}.`);
+  }
+  case 'delask': S.confirmDel=true;focusSel='[data-act="delno"]';break;
+  case 'delno': S.confirmDel=false;focusSel='[data-act="delask"]';break;
+  case 'delok': S.confirmDel=false;return toast('En el boceto no se elimina nada.');
+  case 'wdup': S.wiz.dup=arg;break;
+  case 'wback': S.wiz.step=Math.max(0,S.wiz.step-1);break;
+  case 'wnext': {
+   const k=wizSteps()[S.wiz.step];
+   if(k==='quien'&&!S.wiz.dup){return toast('Indica si es la misma persona o una nueva.');}
+   S.wiz.step++;
+   break;
+  }
+  case 'wopen': {
+   if(!getOp('dominguez')) OPS.unshift({id:'dominguez',folio:'EXP-2026-044',cliente:'Gabriela Domínguez',contacto:'Gabriela Domínguez Soto',tel:'664 218 3390',inmueble:'Casa en Lomas de Agua Caliente',precio:'$3,600,000 (deseado)',asesor:'Daniela Ríos',stage:0,desde:'Prospecto desde el 2 de octubre',
+    req:{entrevista:{st:'rev',doc:'Entrevista con el propietario',by:'Daniela Ríos',date:'15 oct'}},next:{t:'Pedir el predial 2026 y el acta de matrimonio',f:'Vie 23 oct'},
+    docs:[['Entrevista con el propietario','PDF generado · 15 oct','Entrevista con el propietario']],hist:[['15 oct','Daniela Ríos creó la operación y completó la entrevista.']],tasks:[['Pedir el predial 2026','Vie 23 oct',false],['Pedir el acta de matrimonio','Vie 23 oct',false]]});
+   S.screen='op';S.opId='dominguez';S.opTab='guia';S.sel=null;break;
+  }
+ }
+ render();
+});
+frame.addEventListener('change',e=>{
+ const t=e.target, act=t.dataset.act;
+ if(act==='task'){
+  const task=TASKS.find(x=>x.id===t.dataset.arg); if(task){task.done=t.checked;} t.closest('.check')?.classList.toggle('done',t.checked);
+  if(!task) return;
+  focusSel=`[data-act="task"][data-arg="${task.id}"]`; return toast(t.checked?'Tarea terminada.':'Tarea pendiente otra vez.');
+ }
+ if(act==='optask'){const op=getOp(S.opId);if(op.tasks){op.tasks[+t.dataset.arg][2]=t.checked;}t.closest('.check')?.classList.toggle('done',t.checked);return;}
+ if(act==='wtipo'){S.wiz.tipo=t.value;return;}
+ if(t.id==='rv-doc'){const w=frame.querySelector('#rv-ext-w');if(w)w.hidden=t.value!=='ext';frame.querySelector('#rv-doc-e').hidden=true;t.removeAttribute('aria-invalid');}
+ if(t.id&&t.id.startsWith('wz-')&&t.type!=='radio'&&t.type!=='checkbox'){S.wiz.vals[t.id.slice(3)]=t.value;}
+ if(t.name&&t.name.startsWith('wz-')&&t.type==='radio'){S.wiz.vals[t.name.slice(3)]=t.value;}
+ if(t.name&&t.name.startsWith('wz-')&&t.type==='checkbox'){S.wiz.vals[t.name.slice(3)]=[...frame.querySelectorAll(`input[name="${t.name}"]:checked`)].map(x=>x.value);}
+});
+frame.addEventListener('submit',e=>{
+ e.preventDefault();
+ const f=e.target, kind=f.dataset.form, k=S.sheet?.key, op=getOp(S.opId);
+ const bad=(id,eid)=>{const el=f.querySelector('#'+id);el.setAttribute('aria-invalid','true');f.querySelector('#'+eid).hidden=false;el.focus();};
+ if(kind==='rev'){
+  const doc=f.querySelector('#rv-doc').value;
+  if(!doc) return bad('rv-doc','rv-doc-e');
+  let docName=doc;
+  if(doc==='ext'){const x=f.querySelector('#rv-ext').value.trim();if(x.length<10) return bad('rv-ext','rv-ext-e');docName=x;}
+  const vigEl=f.querySelector('#rv-vig');
+  if(vigEl&&!vigEl.value) return bad('rv-vig','rv-vig-e');
+  const fmt=d=>{const [y,m,dd]=d.split('-');return `${+dd} ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][+m-1]}${y!=='2026'?' '+y:''}`};
+  op.req[k]={st:'rev',doc:docName,by:f.querySelector('#rv-who').value,date:fmt(f.querySelector('#rv-date').value||'2026-10-15'),vig:vigEl?fmt(vigEl.value)+(vigEl.value.startsWith('2026')?' 2026':''):undefined};
+  op.hist=[['15 oct',`${f.querySelector('#rv-who').value} marcó «${REQ[k].t}» como revisado.`],...(op.hist||[])];
+ } else {
+  const txt=f.querySelector('#pb-txt').value.trim();
+  if(txt.length<3) return bad('pb-txt','pb-e');
+  op.req[k]=kind==='prob'?{st:'prob',pb:txt}:{st:'na',why:txt};
+ }
+ S.sheet=null; focusSel=`[data-act="status"][data-arg="${k}"]`;
+ toast(kind==='rev'?`«${REQ[k].t}» quedó revisado.`:kind==='prob'?'Problema anotado. La etapa no avanza hasta resolverlo.':'Anotado como «No aplica».');
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&(S.sheet||S.menuReq)){const k=S.sheet?.key||S.menuReq;S.sheet=null;S.menuReq=null;if(k)focusSel=`[data-act="status"][data-arg="${k}"]`;render();}
+});
+
+/* ---------- Inicio ---------- */
+const h=(location.hash||'').slice(1);
+if(ENTRIES.some(([id])=>id===h)) pick(h);
+render();
+})();
+</script>
+
+</body></html>
