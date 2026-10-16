@@ -38,7 +38,7 @@
 /* Pestañas */
 :global(.admin-root) .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
 :global(.admin-root) .tabs .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font-size: .9375rem; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none; border-radius: 0; }
-:global(.admin-root) .tabs .tab[aria-selected=true] { color: var(--foreground); border-bottom-color: var(--primary); background: none; }
+:global(.admin-root) .tabs .tab[aria-selected=true], :global(.admin-root) .tabs .tab[aria-current=page] { color: var(--foreground); border-bottom-color: var(--primary); background: none; }
 
 /* Selector segmentado */
 :global(.admin-root) .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--edge-soft); border-radius: var(--radius-control); overflow: hidden; background: var(--card); box-shadow: var(--shadow-control); }

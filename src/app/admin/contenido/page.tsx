@@ -22,7 +22,7 @@ import {
 */
 export default function ContenidoPage() {
   const value = useSingleton(contentStore);
-  return value ? <Editor initial={value} /> : <PageHeader title="Contenido." />;
+  return value ? <Editor initial={value} /> : <PageHeader title="Textos del sitio" />;
 }
 function Editor({ initial }: { initial: SiteContent }) {
   const [content] = React.useState(() => resolveSiteContent(initial));
@@ -31,7 +31,7 @@ function Editor({ initial }: { initial: SiteContent }) {
   );
   const [guardado, setGuardado] = React.useState(false);
 
-  if (!content) return <PageHeader title="Contenido." />;
+  if (!content) return <PageHeader title="Textos del sitio" />;
 
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -52,7 +52,7 @@ function Editor({ initial }: { initial: SiteContent }) {
   return (
     <div className="max-w-[760px] space-y-6">
       <PageHeader
-        title="Contenido."
+        title="Textos del sitio"
         description="Edita los textos del sitio. Publica servicios y afirmaciones que puedas respaldar; los saltos de línea se conservan en los títulos."
       />
 

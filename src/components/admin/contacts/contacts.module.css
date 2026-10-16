@@ -1,0 +1,34 @@
+/* Contactos (lienzo: ContactosEscritorio y ContactosMovil). Prefijo :global(.admin-root): ver kit.module.css. */
+:global(.admin-root) .mono { font-family: var(--font-mono); font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .late { color: var(--primary-text); font-weight: 600; }
+:global(.admin-root) .search { position: relative; display: flex; align-items: center; min-width: 0; }
+:global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
+:global(.admin-root) .search input { padding-left: 2.5rem; width: 100%; }
+@media (min-width: 1024px) { :global(.admin-root) .search input { width: 17.5rem; } }
+:global(.admin-root) .tabsRow { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .75rem; }
+:global(.admin-root) .tabsRow > :first-child { flex: 1 1 auto; min-width: 0; }
+:global(.admin-root) .filter select { min-width: 12rem; }
+
+/* Tabla en computadora */
+:global(.admin-root) .tableCard { display: none; overflow-x: auto; }
+@media (min-width: 1024px) { :global(.admin-root) .tableCard { display: block; } }
+:global(.admin-root) .table { width: 100%; min-width: 53.75rem; border-collapse: collapse; table-layout: fixed; font-size: .9375rem; }
+:global(.admin-root) .table th, :global(.admin-root) .table td { background: transparent; }
+:global(.admin-root) .colPerson { width: 28%; }
+:global(.admin-root) .colOpen { width: 4.5rem; }
+:global(.admin-root) .table thead th { padding: .875rem 1rem; border-bottom: 1px solid var(--border); text-align: left; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-foreground); }
+:global(.admin-root) .table tbody th, :global(.admin-root) .table td { white-space: normal; overflow-wrap: anywhere; padding: 1rem; border-bottom: 1px solid var(--border); text-align: left; font-weight: 400; vertical-align: top; }
+:global(.admin-root) .table tr > :first-child { padding-left: 1.25rem; }
+:global(.admin-root) .table tr > :last-child { padding-right: 1.25rem; vertical-align: middle; position: static; background: transparent; box-shadow: none; }
+:global(.admin-root) .table tbody tr:last-child > * { border-bottom: 0; }
+:global(.admin-root) .table tbody tr:hover { background: var(--panel-hover, color-mix(in srgb, var(--secondary) 45%, transparent)); }
+:global(.admin-root) .name { font-weight: 650; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .name:hover { text-decoration: underline; text-underline-offset: 4px; }
+:global(.admin-root) .open { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-control); color: var(--muted-foreground); }
+
+/* Lista en celular */
+:global(.admin-root) .list { display: flex; flex-direction: column; }
+@media (min-width: 1024px) { :global(.admin-root) .list { display: none; } }
+:global(.admin-root) .list > li + li { border-top: 1px solid var(--border); }
+:global(.admin-root) .item { display: flex; align-items: center; gap: .75rem; padding: 1rem 0; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .item strong { font-size: 1rem; font-weight: 650; }

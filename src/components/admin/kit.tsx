@@ -97,6 +97,13 @@ export function Tabs<K extends string>({ items, value, onChange, label, idPrefix
   </div>;
 }
 
+/** Pestañas que llevan a otra página de la misma sección (por ejemplo, Sitio web). */
+export function NavTabs({ items, label, current }: { items: Array<{ href: string; label: string }>; label: string; current: string }) {
+  return <nav className={s.tabs} aria-label={label}>
+    {items.map(item => <Link key={item.href} href={item.href} className={s.tab} aria-current={item.href === current ? "page" : undefined}>{item.label}</Link>)}
+  </nav>;
+}
+
 export function TabPanel({ idPrefix, id, children, className }: { idPrefix: string; id: string; children: React.ReactNode; className?: string }) {
   return <div role="tabpanel" id={`${idPrefix}-panel-${id}`} aria-labelledby={`${idPrefix}-tab-${id}`} className={className}>{children}</div>;
 }

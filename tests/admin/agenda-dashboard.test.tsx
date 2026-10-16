@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import AdminDashboard from "@/app/admin/page";
-import CalendarioPage from "@/components/admin/screens/calendario";
+import { AgendaCalendar as CalendarioPage } from "@/components/admin/agenda/calendar";
 import { clearAdminCache, type Evento } from "@/lib/admin/store";
 import type { Task } from "@/lib/tasks";
 
@@ -48,10 +48,10 @@ test("Hoy lists today's and overdue open tasks by Tijuana date and links to each
 test("calendar projects an open task deadline without creating an event", async () => {
   tasks = [{id:"due",titulo:"Enviar propuesta",descripcion:"",categoria:"negociacion",estado:"en-curso",prioridad:"alta",vence:"2026-09-22",pasos:[]}];
   render(<CalendarioPage />);
-  await screen.findByRole("link", {name:/Enviar propuesta/});
+  const links = await screen.findAllByRole("link", {name:/Enviar propuesta/});
+  expect(new Set(links.map(link => link.getAttribute("href")))).toEqual(new Set(["/admin/tareas/due"]));
   expect(screen.getByRole("button", {name:"22 de septiembre de 2026, 1 tareas"})).toBeTruthy();
-  expect(screen.getByRole("link", {name:/Enviar propuesta/}).getAttribute("href")).toBe("/admin/tareas/due");
-  expect(screen.getByText("Sin eventos este día.")).toBeTruthy();
+  expect(screen.getByText("Sin citas este día")).toBeTruthy();
 });
 
 afterEach(() => {
@@ -109,26 +109,27 @@ test("Hoy's agenda includes earlier and untimed events from the operating day, u
   expect(screen.getByText(/0 visitas hoy/)).toBeTruthy();
 });
 
-test("calendar opens the operating day and month even when UTC has crossed the year", async () => {
+test("calendar opens the operating day and week even when UTC has crossed the year", async () => {
   vi.setSystemTime(new Date("2027-01-01T07:30:00Z"));
   events = [{ id: "year-end", titulo: "Firma de cierre", fecha: "2026-12-31", hora: "23:59", tipo: "firma" }];
   render(<CalendarioPage />);
 
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-12-31");
-  expect(screen.getByRole("heading", { name: "Diciembre 2026" })).toBeTruthy();
-  await screen.findByText("Firma de cierre");
+  expect(screen.getByRole("heading", { name: "Jueves 31 de diciembre" })).toBeTruthy();
+  expect((await screen.findAllByText("Firma de cierre")).length).toBeGreaterThan(0);
 });
 
 test("calendar lets staff select a day across the year and keeps the form date in sync", async () => {
   vi.setSystemTime(new Date("2026-12-31T20:00:00Z"));
   render(<CalendarioPage />);
 
-  fireEvent.click(screen.getByRole("button", { name: "Mes siguiente" }));
-  expect(screen.getByRole("heading", { name: "Enero 2027" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "1 de enero de 2027" }));
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-01");
-  fireEvent.click(screen.getByRole("button", { name: "Mes anterior" }));
-  expect(screen.getByRole("heading", { name: "Diciembre 2026" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Semana siguiente" }));
+  expect(screen.getByRole("button", { name: "4 de enero de 2027" })).toBeTruthy();
+  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2027-01-08");
+  fireEvent.click(screen.getByRole("button", { name: "Semana anterior" }));
+  expect(screen.getByRole("button", { name: "28 de diciembre de 2026" })).toBeTruthy();
 });
 
 test("Hoy shows one overdue followup for a converted client and points to the client", async () => {
@@ -161,8 +162,8 @@ test("calendar saves a linked event with client, property, expediente and advise
   });
   render(<CalendarioPage />);
   await screen.findByRole("option", { name: "EXP-1" });
-  await waitFor(() => expect((screen.getByLabelText("Expediente (opcional)") as HTMLSelectElement).value).toBe(expedienteId));
+  await waitFor(() => expect((screen.getByLabelText("Operación (opcional)") as HTMLSelectElement).value).toBe(expedienteId));
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita vinculada" } });
-  fireEvent.submit(screen.getByRole("button", { name: "Agendar" }).closest("form")!);
+  fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(saved).toMatchObject({ titulo: "Visita vinculada", clienteId: "c1", propiedadSlug: "p1", expedienteId, asesorId: "a1" }));
 });

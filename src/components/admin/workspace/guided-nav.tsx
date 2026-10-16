@@ -28,7 +28,7 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
 ];
 export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
-/** Administración. Las páginas con más de un módulo (Sitio web, Reportes) se agrupan en pestañas en la Fase 6. */
+/** Administración. Sitio web y Reportes agrupan sus páginas en pestañas (ver AdminFrame). */
 export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> = [
   { href: "/admin/asesores", label: "Equipo", match: ["/admin/asesores"] },
   { href: "/admin/contenido", label: "Sitio web", match: ["/admin/contenido", "/admin/blog", "/admin/archivos"] },

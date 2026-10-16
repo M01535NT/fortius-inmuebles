@@ -1,0 +1,125 @@
+"use client";
+import * as React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Building2, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
+import { ButtonLink, Card, EmptyBox, Segmented } from "@/components/admin/kit";
+import { AsyncButton, AsyncSelect, Badge, DemoBanner, inputClass } from "@/components/admin/ui";
+import { confirmAction } from "@/components/admin/workspace/confirm";
+import { GuidedPage } from "@/components/admin/workspace/guided-page";
+import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
+import { emptyInventoryFilters, filterInventory, type InventoryFilters } from "@/lib/admin/workspace";
+import { ESTADO_LABELS, ESTADOS_POR_OPERACION, OPERACION_LABELS, estadoValido, formatPrecio, type Property } from "@/data/propiedades";
+import { db, removePropiedad, upsertPropiedad, useCollection } from "@/lib/admin/store";
+import s from "./properties.module.css";
+
+/*
+  Inmuebles (lienzo: InmueblesEscritorio e InmueblesMovil). Lista con foto, operación,
+  estado, medidas y precio. El estado, la marca de destacada, ver, editar y eliminar
+  están en «Opciones» de cada inmueble; los filtros por asesor, estado, publicación y
+  las vistas guardadas, en «Más filtros».
+*/
+
+const PAGE = 24;
+
+/** «180 m² const. · 220 m² terreno · 3 rec. · 2.5 baños». */
+export function propertyFacts(p: Property) {
+  const f = p.ficha;
+  return [
+    f.construccionM2 !== undefined && `${f.construccionM2} m² const.`,
+    f.terrenoM2 !== undefined && `${f.terrenoM2} m² terreno`,
+    f.recamaras !== undefined && `${f.recamaras} rec.`,
+    f.banos !== undefined && `${f.banos} ${f.banos === 1 ? "baño" : "baños"}`,
+  ].filter(Boolean).join(" · ");
+}
+
+/** Lo que más importa del estado: si ya no está disponible, eso; si lo está, si se ve en el sitio. */
+export function propertyState(p: Property) {
+  if (p.estado !== "disponible") return { label: ESTADO_LABELS[p.estado], strong: p.estado === "apartada" };
+  return { label: p.publicada ? "Publicado" : "Sin publicar", strong: false };
+}
+
+export function PropertyList() {
+  const properties = useCollection(db.propiedades), advisers = useCollection(db.asesores);
+  const [filters, setFilters] = React.useState<InventoryFilters>(emptyInventoryFilters);
+  const [page, setPage] = React.useState(0);
+  const results = filterInventory(properties, filters);
+  const pages = Math.max(1, Math.ceil(results.length / PAGE));
+  const current = Math.min(page, pages - 1);
+  const shown = results.slice(current * PAGE, (current + 1) * PAGE);
+  const published = properties.filter(p => p.publicada).length;
+  const update = (next: InventoryFilters) => { setFilters(next); setPage(0); };
+  const extra = [filters.advisor, filters.publication, filters.status].filter(Boolean).length;
+
+  return <GuidedPage title="Inmuebles" subtitle={`${properties.length} ${properties.length === 1 ? "inmueble" : "inmuebles"} · ${published} ${published === 1 ? "publicado" : "publicados"}`} actions={<>
+    <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />
+    <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
+    <ButtonLink href="/admin/propiedades/nueva"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
+  </>}>
+    <details className={s.more}>
+      <summary>Más filtros{extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}</summary>
+      <div className="mt-3"><InventoryControls value={filters} onChange={update} advisers={advisers} count={results.length} hideSearch /></div>
+    </details>
+
+    {properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" action={<Link href="/admin/propiedades/nueva" className="font-semibold underline underline-offset-4">Agregar inmueble</Link>}>Agrégalo aquí o al terminar la entrevista con el propietario.</EmptyBox>
+      : shown.length === 0 ? <EmptyBox title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
+      : <Card as="div" className={s.listCard}><ul aria-label="Inmuebles" className={s.list}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul></Card>}
+
+    {results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
+      <button type="button" className={s.pageButton} disabled={current === 0} onClick={() => setPage(current - 1)}>Anterior</button>
+      <span className="text-sm">Página {current + 1} de {pages}</span>
+      <button type="button" className={s.pageButton} disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Siguiente</button>
+    </nav>}
+    <div className="mt-6"><DemoBanner /></div>
+  </GuidedPage>;
+}
+
+function PropertyItem({ property: p, duplicated, adviser }: { property: Property; duplicated: boolean; adviser?: string }) {
+  const state = propertyState(p);
+  const href = `/admin/propiedades/${p.slug}/editar`;
+  return <li className={s.item}>
+    <Link href={href} className={s.row}>
+      <span className={s.photo}>{p.galeria[0] ? <Image unoptimized width={480} height={330} src={p.galeria[0].src} alt="" loading="lazy" /> : <span className={s.noPhoto}><Building2 size={28} aria-hidden="true" /><span className="font-mono text-xs">Sin foto</span></span>}</span>
+      <span className={s.main}>
+        <span className="flex flex-wrap gap-1.5"><Badge>{OPERACION_LABELS[p.operacion]}</Badge><Badge tone={state.strong ? "amber" : "neutral"}>{state.label}</Badge>{p.destacada && <Badge tone="green">Destacada</Badge>}{p.demo && <Badge tone="amber">Demo</Badge>}</span>
+        <span className={s.title}>{p.titulo}</span>
+        <span className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin size={15} aria-hidden="true" className="shrink-0" />{[p.zona, p.direccionAproximada].filter(Boolean).join(", ")}</span>
+        {propertyFacts(p) && <span className={s.mono}>{propertyFacts(p)}</span>}
+        {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
+      </span>
+      <span className={s.price}><span className={s.amount}>{formatPrecio(p.precio)}</span><span className={s.mono}>{p.codigo}</span></span>
+    </Link>
+    <details className={s.options}>
+      <summary aria-label={`Opciones de ${p.titulo}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
+      <div className={s.optionsBody}>
+        <label className="flex min-w-0 flex-col gap-1.5 text-sm font-semibold">Estado<PropertyStatus property={p} /></label>
+        <p className="text-sm"><span className="text-muted-foreground">Responsable:</span> <span>{adviser ?? "Sin asignar"}</span> · <span className="text-muted-foreground">PDF:</span> {p.documentos?.length ?? 0}</p>
+        <div className="flex flex-wrap gap-2">
+          <FeaturedButton property={p} />
+          <Link href={`/inventario/${p.slug}`} target="_blank" className={s.action} aria-label={`Ver ${p.titulo} en el sitio`}>Ver en el sitio</Link>
+          <Link href={href} className={s.action} aria-label={`Editar ${p.titulo}`}><Pencil size={15} aria-hidden="true" />Editar</Link>
+          <AsyncButton type="button" className={s.action} aria-label={`Eliminar ${p.titulo}`} onClick={async () => {
+            if (await confirmAction(`¿Eliminar "${p.titulo}"? Un administrador podrá recuperarlo desde Historial.`)) await removePropiedad(p.slug, db.propiedades.version(p));
+          }}><Trash2 size={15} aria-hidden="true" />Eliminar</AsyncButton>
+        </div>
+      </div>
+    </details>
+  </li>;
+}
+
+function PropertyStatus({ property }: { property: Property }) {
+  return <AsyncSelect aria-label={`Estado de ${property.titulo}`} value={property.estado}
+    onChange={async value => await upsertPropiedad({ ...property, estado: value as Property["estado"] }, db.propiedades.version(property))}
+    className="min-h-11 w-full min-w-0 rounded-[10px] border border-input bg-background px-2 text-base text-foreground">
+    {!estadoValido(property.operacion, property.estado) && <option value={property.estado} disabled>{ESTADO_LABELS[property.estado]} (no corresponde a la operación; corrígelo)</option>}
+    {ESTADOS_POR_OPERACION[property.operacion].map(value => <option key={value} value={value}>{ESTADO_LABELS[value]}</option>)}
+  </AsyncSelect>;
+}
+
+function FeaturedButton({ property }: { property: Property }) {
+  return <AsyncButton type="button" className={s.action} aria-pressed={property.destacada}
+    aria-label={`${property.destacada ? "Quitar de destacadas" : "Marcar destacada"}: ${property.titulo}`}
+    onClick={async () => await upsertPropiedad({ ...property, destacada: !property.destacada }, db.propiedades.version(property))}>
+    <Star size={15} aria-hidden="true" fill={property.destacada ? "currentColor" : "none"} />{property.destacada ? "Destacada" : "Marcar destacada"}
+  </AsyncButton>;
+}

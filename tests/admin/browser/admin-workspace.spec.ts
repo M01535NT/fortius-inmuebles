@@ -150,7 +150,7 @@ test("quick creation works repeatedly from the current module", async ({
   page,
 }) => {
   for (const [path, label, field, close] of [
-    ["/admin/contactos", "Nuevo prospecto", "Nombre", "Cerrar captura"],
+    ["/admin/contactos", "Nuevo prospecto", "Nombre", "Cancelar"],
     ["/admin/agenda?tab=tareas", "Nueva tarea", "Título", "Cerrar captura"],
   ]) {
     await page.goto(path);
@@ -213,6 +213,7 @@ test("inventory saved view, related tasks and global search navigate with contex
   page,
 }) => {
   await page.goto("/admin/propiedades");
+  await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
   await page
     .getByLabel("Publicación", { exact: true })
@@ -222,6 +223,7 @@ test("inventory saved view, related tasks and global search navigate with contex
     .getByRole("button", { name: "Guardar vista", exact: true })
     .click();
   await page.reload();
+  await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
   await page.getByRole("button", { name: "Pendientes", exact: true }).click();
   await expect(page.getByLabel("Publicación", { exact: true })).toHaveValue(
@@ -273,7 +275,7 @@ test("failed Blog loading does not block inventory navigation", async ({page}) =
   await page.goto("/admin/blog");
   await expect(page.getByText(/No se pudo cargar este módulo/)).toBeVisible();
   await page.getByRole("navigation",{name:"Módulos del panel",exact:true}).getByRole("link",{name:"Inmuebles",exact:true}).click();
-  await expect(page.locator("main h1")).toHaveText("Cartera de inmuebles");
+  await expect(page.locator("main h1")).toHaveText("Inmuebles");
   await expect(page.getByRole("link",{name:/Casa de prueba/}).first()).toBeVisible();
 });
 test("mobile editor reveals collapsed sections and confirms leaving through search", async ({page}, info) => {
@@ -299,7 +301,7 @@ test("Documentos es una pestaña de Herramientas y la dirección anterior lleva 
   await page.goto("/admin/documentos");
   await expect(page).toHaveURL(/\/admin\/herramientas\?tab=documentos$/);
   await expect(page.getByRole("tab", { name: "Documentos" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("heading", { name: "Documentos", exact: true })).toBeVisible();
+  await expect(page.getByText(/Busca por folio o formato/)).toBeVisible();
   await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
   await page.getByRole("tab", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);

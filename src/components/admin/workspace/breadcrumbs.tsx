@@ -8,6 +8,7 @@ export function Breadcrumbs() {
   const parts = usePathname().split("/").filter(Boolean).slice(1);
   // Operaciones tiene su propio regreso y Nueva operación ocupa toda la pantalla.
   if(parts[0]==="operaciones")return null;
-  if (!parts.length || (parts.length === 1 && ["leads", "propiedades"].includes(parts[0]))) return null;
+  // Cada sección principal tiene su propio título; las migas solo ayudan dentro de una ficha.
+  if (parts.length <= 1) return null;
   return <nav aria-label="Ubicación en el panel" className="admin-breadcrumbs"><Link href="/admin">Inicio</Link>{parts.map((part, index) => <span key={index}><span aria-hidden="true"> / </span>{(index === parts.length - 1 || !labels[part] || part === "proceso") ? <span aria-current={index === parts.length - 1 ? "page" : undefined}>{labels[part] ?? "Registro"}</span> : <Link href={"/admin/" + parts.slice(0, index + 1).join("/")}>{labels[part] ?? "Registro"}</Link>}</span>)}</nav>;
 }

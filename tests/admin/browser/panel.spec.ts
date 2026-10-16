@@ -75,8 +75,8 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await nav.getByRole("link", { name: "Contactos" }).click();
       }
       await page.getByRole("tab", { name: "Clientes" }).click();
-      await page.getByRole("button", { name: "Nuevo cliente" }).click();
-      await expect(page.getByLabel("Teléfono")).toBeVisible();
+      await page.getByRole("button", { name: "Agregar contacto" }).filter({ visible: true }).click();
+      await expect(page.getByLabel("Teléfono", { exact: true })).toBeVisible();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,

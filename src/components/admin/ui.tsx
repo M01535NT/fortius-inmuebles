@@ -32,11 +32,11 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="admin-page-header flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+    <div className="admin-page-header flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="display-title text-3xl text-foreground">{title.replace(/\.$/, "")}</h1>
+        <h1 className="m-0">{title.replace(/\.$/, "")}</h1>
         {description ? (
-          <p className="mt-2 max-w-[64ch] text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-1 max-w-[64ch] text-muted-foreground">
             {description}
           </p>
         ) : null}

@@ -5,7 +5,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { TaskForm } from "@/components/admin/task-form";
-import { Badge, EmptyState, Field, PageHeader, btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
+import { Badge, Field, inputClass, selectClass } from "@/components/admin/ui";
+import { Button, Card, EmptyBox } from "@/components/admin/kit";
+import { stepDate } from "@/lib/admin/contacts-view";
+import { shortDate } from "@/lib/admin/today";
 import { db, useCollection, upsert } from "@/lib/admin/store";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, taskBucket } from "@/lib/tasks";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -40,8 +43,11 @@ function Tasks() {
   const activeFilters = Number(responsible !== "todas") + Number(status !== "todas") + Number(priority !== "todas") + Number(category !== "todas");
   const options = (record: Record<string, string>) => Object.entries(record).map(([value, label]) => <option key={value} value={value}>{label}</option>);
   return <div className="min-w-0 space-y-6">
-    <PageHeader title="Tareas." description="Organiza el trabajo del equipo, sus pendientes y avances." actions={<button className={btnPrimary} type="button" aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</button>} />
-    {creating && <section className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6"><h2 className="mb-4 text-lg font-semibold">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"} · Las fechas son de Tijuana.</p>
+      <Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button>
+    </div>
+    {creating && <section className="min-w-0 rounded-[14px] border border-border bg-card p-4 sm:p-6"><h2 className="mb-4 text-lg font-semibold">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
     <section aria-label="Filtros de tareas" className="min-w-0 space-y-3">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       <Field label="Buscar tareas" htmlFor="tasks-search"><input id="tasks-search" className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Título o descripción" /></Field>
@@ -57,15 +63,21 @@ function Tasks() {
         </div>
       </details>
     </section>
-    <p className="text-xs text-muted-foreground">Hoy y los vencimientos se calculan con la fecha de Tijuana.</p>
-    <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"}</p>
-    {filtered.length ? <div className="grid min-w-0 gap-3 lg:grid-cols-2">{filtered.map((task) => <article key={task.id} className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4">
-      <div className="flex flex-wrap gap-2"><Badge tone={task.estado === "completada" ? "green" : "neutral"}>{TASK_STATUSES[task.estado]}</Badge>{taskBucket(task, today) === "vencidas" && <Badge tone="red">Vencida</Badge>}<Badge>{TASK_PRIORITIES[task.prioridad]}</Badge></div>
-      <h2 className="min-w-0 font-semibold"><Link className="flex min-h-11 min-w-0 items-center [overflow-wrap:anywhere] hover:underline" href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h2>
-      {task.descripcion && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{task.descripcion}</p>}
-      <p className="break-words text-sm">{asesores.find((a) => a.id === task.asesorId)?.nombre ?? (task.asesorId ? "Responsable no disponible" : "Sin asignar")} · {TASK_CATEGORIES[task.categoria]}</p>
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground"><span>{task.vence ? `Fecha límite: ${task.vence}` : "Sin fecha límite"}</span><span>{task.pasos.filter((p) => p.hecho).length}/{task.pasos.length} pasos</span></div>
-      <Link href={`/admin/tareas/${task.id}`} className={btnGhost}>Abrir tarea</Link>
-    </article>)}</div> : <EmptyState title="No hay tareas con estos filtros." hint="Puedes cambiar los filtros o crear una tarea." />}
+    {filtered.length ? <Card as="div" className="overflow-hidden"><ul aria-label="Tareas">{filtered.map((task) => {
+      const date = task.vence ? stepDate(task.vence, today) : null;
+      const open = !["completada", "cancelada"].includes(task.estado);
+      return <li key={task.id} className="flex min-w-0 flex-col gap-1.5 border-b border-border px-4 py-4 last:border-b-0 sm:px-5">
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+          <h2 className="m-0 min-w-0 text-base font-semibold"><Link className="inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h2>
+          <span className={"font-mono text-xs " + (open && date?.late ? "font-semibold text-primary-ink" : "text-muted-foreground")}>{!date ? "Sin fecha" : !date.late ? date.label : open ? date.label.replace("Vencido", "Vencida") : shortDate(task.vence!)}</span>
+        </div>
+        {task.descripcion && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{task.descripcion}</p>}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+          <Badge tone={task.estado === "completada" ? "green" : "neutral"}>{TASK_STATUSES[task.estado]}</Badge>
+          {task.prioridad !== "normal" && <Badge tone={task.prioridad === "urgente" ? "red" : "neutral"}>Prioridad {TASK_PRIORITIES[task.prioridad].toLowerCase()}</Badge>}
+          <span className="text-muted-foreground">{asesores.find((a) => a.id === task.asesorId)?.nombre ?? (task.asesorId ? "Responsable no disponible" : "Sin asignar")} · {TASK_CATEGORIES[task.categoria]}{task.pasos.length ? ` · ${task.pasos.filter((p) => p.hecho).length} de ${task.pasos.length} pasos` : ""}</span>
+        </div>
+      </li>;
+    })}</ul></Card> : <EmptyBox title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>}
   </div>;
 }
