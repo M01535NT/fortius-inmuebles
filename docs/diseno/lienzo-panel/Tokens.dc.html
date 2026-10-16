@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tokens del panel</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp" style="width: 1440px; min-height: 1300px; padding: 64px 72px; display: flex; flex-direction: column; gap: 48px">
+  <header style="display: flex; flex-direction: column; gap: 10px; max-width: 760px">
+    <p class="eyebrow">Panel Fortius · Sistema</p>
+    <h1 style="margin: 0; font-size: 64px; line-height: 1; font-weight: 700; font-variation-settings: 'wdth' 68; text-transform: uppercase">Tokens de color y tipografía</h1>
+    <p class="mut" style="font-size: 17px">Una sola paleta en dos modos. El guinda es solo para la acción principal, lo seleccionado y lo vencido. Los neutros son azulados, nunca grises cálidos.</p>
+  </header>
+
+  <section aria-labelledby="t-color" style="display: flex; flex-direction: column; gap: 16px">
+    <h2 id="t-color" class="h2">Color</h2>
+    <div style="display: grid; grid-template-columns: 260px repeat(2, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden">
+      <div class="eyebrow" style="padding: 14px 20px; background: var(--sec)">Token</div>
+      <div class="eyebrow" style="padding: 14px 20px; background: var(--sec)">Claro</div>
+      <div class="eyebrow" style="padding: 14px 20px; background: var(--sec)">Oscuro</div>
+      <sc-for list="{{colores}}" as="c" hint-placeholder-count="14">
+        <div style="padding: 12px 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px">
+          <span style="font-weight: 600; font-size: 15px">{{c.nombre}}</span>
+          <span class="xs mut">{{c.uso}}</span>
+        </div>
+        <div style="padding: 12px 20px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 14px">
+          <span style="width: 56px; height: 36px; border-radius: 4px; border: 1px solid rgba(6,31,63,.18); background: {{c.claro}}"></span>
+          <span class="mono small">{{c.claro}}</span>
+        </div>
+        <div style="padding: 12px 20px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 14px">
+          <span style="width: 56px; height: 36px; border-radius: 4px; border: 1px solid rgba(6,31,63,.18); background: {{c.oscuro}}"></span>
+          <span class="mono small">{{c.oscuro}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px">
+    <section aria-labelledby="t-tipo" style="display: flex; flex-direction: column; gap: 20px">
+      <h2 id="t-tipo" class="h2">Tipografía</h2>
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Título · 30/700</span><span class="h1">Buenos días, Mariana</span></div>
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Sección · 20/700</span><span class="h2">Esperan algo de ti</span></div>
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Subtítulo · 17/650</span><span class="h3">Familia Castañeda Ortiz</span></div>
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Texto · 16/400</span><span>Revisamos los documentos antes de publicar.</span></div>
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Apoyo · 14/400</span><span class="small mut">Casa en Playas de Tijuana · Verificación y precio</span></div>
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Etiqueta · 12/600</span><span class="eyebrow">Lo que sigue</span></div>
+        <div class="hr"></div>
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Plex Mono · cifras</span><span class="mono" style="font-size: 18px; font-weight: 600">$4,850,000 MXN</span></div>
+        <div style="display: flex; align-items: baseline; gap: 20px"><span class="mono xs mut" style="width: 140px; flex: none">Plex Mono · folio</span><span class="mono small">EXP-2026-041 · 16 oct 2026 · 10:00</span></div>
+        <p class="small mut">Archivo para toda la interfaz (ancho 100; ancho 68 solo en la marca). IBM Plex Mono para folios, fechas, horas y cifras. Los campos usan 16 px para que el celular no haga zoom.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-forma" style="display: flex; flex-direction: column; gap: 20px">
+      <h2 id="t-forma" class="h2">Espacio, forma y foco</h2>
+      <div style="display: flex; align-items: flex-end; gap: 14px">
+        <sc-for list="{{espacios}}" as="e" hint-placeholder-count="7">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+            <span style="width: {{e.px}}px; height: {{e.px}}px; background: var(--navy)"></span>
+            <span class="mono xs mut">{{e.px}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p class="small mut">Escala de 4 px. Pantallas con mucho aire: 48 px de margen en computadora, 20 px en celular.</p>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap">
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 2px"></span><span class="mono xs mut">2 · etiquetas</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 4px"></span><span class="mono xs mut">4 · botones</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 6px"></span><span class="mono xs mut">6 · campos</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 8px"></span><span class="mono xs mut">8 · tarjetas</span></div>
+      </div>
+      <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap; padding-top: 8px">
+        <button class="btn btn-sec foco" type="button">Foco visible</button>
+        <span class="small mut" style="max-width: 300px">Contorno azul de 3 px con 3 px de separación, para no confundirlo con lo seleccionado. Objetivos táctiles de 44 px como mínimo.</span>
+      </div>
+      <div class="hr"></div>
+      <p class="small mut">Contraste AA verificado en ambos modos: texto principal 16:1, texto de apoyo 6:1, guinda como texto 7.9:1. En oscuro el guinda como texto se vuelve rosa claro (#F0B3C3) y el botón guinda conserva su relleno con un borde rosa.</p>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      espacios: [4, 8, 12, 16, 24, 32, 48].map((px) => ({ px })),
+      colores: [
+        { nombre: 'Fondo', uso: 'Lienzo del panel', claro: '#FBFCFE', oscuro: '#080F1C' },
+        { nombre: 'Tarjeta', uso: 'Superficies, barra lateral, botón secundario', claro: '#FFFFFF', oscuro: '#121E30' },
+        { nombre: 'Texto', uso: 'Títulos y texto principal', claro: '#061F3F', oscuro: '#F3F6FC' },
+        { nombre: 'Texto de apoyo', uso: 'Descripciones y pistas', claro: '#52647A', oscuro: '#C1CCDB' },
+        { nombre: 'Guinda · acción', uso: 'Botón principal, activo, barra de avance', claro: '#8A1634', oscuro: '#8A1634' },
+        { nombre: 'Guinda · texto', uso: 'Vencido, enlaces, cifras destacadas', claro: '#8A1634', oscuro: '#F0B3C3' },
+        { nombre: 'Seleccionado', uso: 'Fila o estado elegido', claro: '#F4E9ED', oscuro: '#382333' },
+        { nombre: 'Neutro', uso: 'Rellenos suaves, «Lo tengo»', claro: '#EDF2F8', oscuro: '#2C405A' },
+        { nombre: 'Línea', uso: 'Divisiones', claro: '#DCE4EE', oscuro: '#35465D' },
+        { nombre: 'Borde de control', uso: 'Campos y botones secundarios', claro: '#61738A', oscuro: '#92A7C2' },
+        { nombre: 'Campo', uso: 'Fondo de campos', claro: '#F2F5FA', oscuro: '#24364E' },
+        { nombre: 'Foco', uso: 'Contorno de foco', claro: '#174F94', oscuro: '#AACFFF' },
+        { nombre: 'Aviso', uso: 'Texto de «Hay un problema»', claro: '#953D00', oscuro: '#FFD236' },
+        { nombre: 'Aviso · fondo', uso: 'Fondo de «Hay un problema»', claro: '#FBF0DC', oscuro: '#30281A' },
+        { nombre: 'Peligro', uso: 'Eliminar y errores', claro: '#B3352C', oscuro: '#F2857B' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

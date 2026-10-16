@@ -33,7 +33,7 @@ export const valorFields: FormatoField[] = [
   field("10 / Reporte fotográfico", "fotografias", "Fotografías pertinentes", "valorRows", false),
 ];
 
-export type ValorColumn = { key: string; label: string; type?: "number" | "date" | "long" | "asset"; options?: [string, string][] };
+type ValorColumn = { key: string; label: string; type?: "number" | "date" | "long" | "asset"; options?: [string, string][] };
 const comps: ValorColumn[] = [
   { key: "id", label: "ID único del inmueble" }, { key: "seleccion", label: "Selección", options: [["incluir", "Incluir"], ["excluir", "Excluir"]] }, { key: "ubicacion", label: "Ubicación y referencia" }, { key: "fuente", label: "URL o localizador de evidencia" }, { key: "fechaConsulta", label: "Fecha de consulta", type: "date" }, { key: "fechaPrecio", label: "Fecha del precio", type: "date" }, { key: "tipoPrecio", label: "Tipo de precio", options: priceTypes }, { key: "moneda", label: "Moneda", options: [["MXN", "MXN"], ["USD", "USD"]] }, { key: "precio", label: "Precio original sin IVA (renta: mensual)", type: "number" }, { key: "superficie", label: "Superficie base en m²", type: "number" }, { key: "fuenteSuperficie", label: "Fuente y concepto de la superficie", type: "long" },
   ...([ ["Zona", "zona"], ["Ubicacion", "ubicación o conservación"], ["Superficie", "superficie"], ["Negociacion", "negociación"] ] as [string, string][]).flatMap(([key, label]): ValorColumn[] => [{ key: `f${key}`, label: `Factor de ${label}`, type: "number" }, { key: `razon${key}`, label: `Razón y evidencia del factor de ${label}`, type: "long" }]), { key: "razonSeleccion", label: "Razón de selección o exclusión", type: "long" },

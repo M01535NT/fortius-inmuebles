@@ -64,7 +64,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
       await expect(nav.getByRole("link", { name: "Captación", exact: true })).toHaveCount(0);
       await nav.getByRole("button", { name: "Más", exact: true }).click();
       await expect(nav.getByRole("button", { name: "Ocultar más", exact: true })).toHaveAttribute("aria-expanded", "true");
-      for (const stage of ["Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"])
+      for (const stage of ["Captación", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"])
         await expect(nav.getByRole("link", { name: stage, exact: true })).toBeVisible();
       for (const name of [
         "Inmuebles",
@@ -77,9 +77,6 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         "Contenido",
         "Configuración",
         "Documentos",
-        "Finanzas",
-        "Análisis territorial",
-        "Portal de clientes",
         "Control comercial",
         "Reportes",
         "Historial",

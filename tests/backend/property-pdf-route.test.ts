@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from "vitest";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 const mocks = vi.hoisted(() => ({ property: vi.fn(), settings: vi.fn(), advisers: vi.fn(), pdf: vi.fn() }));
 vi.mock("@/lib/inventario", () => ({ getPropertyBySlug: mocks.property }));
 vi.mock("@/lib/backend/public", () => ({ getPublicSettings: mocks.settings, getPublicAdvisers: mocks.advisers }));

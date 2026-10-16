@@ -1,6 +1,6 @@
 export const COLLECTIONS = ["propiedades", "asesores", "leads", "clientes", "eventos", "tareas", "notas", "posts", "archivos", "contenido", "config"] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
-export type StaffRole = "admin" | "editor";
+type StaffRole = "admin" | "editor";
 export type StaffUser = { id: string; email: string; role: StaffRole; name?: string; avatar?: string };
 export type StoredRecord<T = Record<string, unknown>> = { id: string; data: T; version: number; createdAt: string; updatedAt: string };
 export type Cliente = {

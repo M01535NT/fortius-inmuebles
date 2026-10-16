@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { operationWorkflowSchema } from "./operation-workflow";
+import { operationWorkflowSchema, type WorkflowStage } from "./operation-workflow";
 
-export const EXPEDIENTE_ETAPAS = {
+export const EXPEDIENTE_OPERACIONES = { venta: "Venta", renta: "Renta", inversion: "Evaluación de inversión", administracion: "Administración", otra: "Otra" } as const;
+
+export const EXPEDIENTE_ETAPAS: Record<WorkflowStage, string> = {
   captacion: "Captación",
   documentacion: "Documentación",
   comercializacion: "Comercialización",
@@ -10,7 +12,7 @@ export const EXPEDIENTE_ETAPAS = {
   entrega: "Entrega",
   postventa: "Postventa",
   cerrado: "Cerrado",
-} as const;
+};
 
 export const EXPEDIENTE_DOCUMENTOS = {
   identidad: "Identificación del titular",

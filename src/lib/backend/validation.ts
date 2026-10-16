@@ -38,7 +38,7 @@ const propertySchema = z.object({
   documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["evaluacion", "disponible", "apartada", "vendida", "rentada"]), publicadaEl: date.or(z.literal("")),
   demo: z.boolean(), publicada: z.boolean().default(false),
 }).passthrough();
-export const adviserProfileSchema = z.object({
+const adviserProfileSchema = z.object({
   publicado: z.boolean(), descripcion: z.string().max(2000),
   foto: optionalUrl, telefono: short.optional(), whatsapp: short.optional(), email,
   instagram: optionalUrl, facebook: optionalUrl, linkedin: optionalUrl,
@@ -67,7 +67,7 @@ const postSchema = z.object({
   autor: short.optional(), ambito: short.optional(), fuenteNombre: short.optional(), fuenteUrl: optionalUrl,
 }).passthrough();
 
-export const recordSchemas = {
+const recordSchemas = {
   tareas: taskSchema,
   propiedades: propertySchema,
   asesores: adviserSchema,

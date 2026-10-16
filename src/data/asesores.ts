@@ -27,6 +27,3 @@ export const asesores: Asesor[] = [
   },
 ];
 
-export function getAsesorById(id: string): Asesor | undefined {
-  return asesores.find((a) => a.id === id);
-}

@@ -11,7 +11,7 @@ export const APPLICABILITY = ["Por definir", "Aplica", "No aplica"] as const;
 export const CRITERIA_I = ["Ubicación", "Mercado", "Precio", "Valor agregado"];
 export const CRITERIA_C = ["Lealtad", "Compatibilidad", "Motivación", "Mercado", "Respaldo", "Visitas"];
 export type Segment = "Inmueble" | "Comprador";
-export type Currency = "" | "MXN" | "USD";
+type Currency = "" | "MXN" | "USD";
 export interface Management {
  etapa: typeof STAGES[number]; responsable: string; registro: string; ultima: string; accion: string; compromiso: string;
  cierre: string; prioridad: typeof PRIORITIES[number]; tarea: typeof TASKS[number]; operacion: typeof OPERATIONS[number];
@@ -20,7 +20,7 @@ export interface Management {
 export interface Opportunity { id: string; segmento: Segment; nombre: string; tipo: typeof PROPERTY_TYPES[number]; valor: number|null; moneda: Currency; comision: number|null; niveles: (number|null)[]; fuente: string; gestion: Management }
 export interface CommercialEvent { id: string; oportunidad: string; fecha: string; actividad: typeof ACTIVITIES[number]; detalle: string; importe: number|null; moneda: Currency; estado: typeof EVENT_STATES[number]; responsable: string; evidencia: string; base: typeof BASES[number]; anterior: string }
 export interface CommercialDocument { id: string; oportunidad: string; nombre: string; aplicabilidad: typeof APPLICABILITY[number]; estado: typeof DOCUMENT_STATES[number]; fuente: string; fecha: string; responsable: string; observacion: string; anterior: string }
-export interface SourceControl { conteo: number|null; valor: number|null; potencial: number|null; priorizado: number|null }
+interface SourceControl { conteo: number|null; valor: number|null; potencial: number|null; priorizado: number|null }
 export interface ComercialBookData {
  config: { modoCorte: "Fijo"|"Diario"; fechaCorte: string; umbral: number|null; diasAviso: number|null; pesosInmueble: (number|null)[]; pesosComprador: (number|null)[]; definicionesInmueble: string[]; definicionesComprador: string[]; tc: number|null; fechaTc: string; fuenteTc: string };
  oportunidades: Opportunity[]; eventos: CommercialEvent[]; documentos: CommercialDocument[];
@@ -37,6 +37,6 @@ export function emptyComercialBook(): ComercialBookData {
 }
 export interface CommercialTotals { valor: number|null; potencial: number|null; ponderado: number|null; priorizado: number|null; abierto: number|null }
 export interface CommercialRow { id: string; segmento: Segment; puntuacion: number|null; clasificacion: "Sin evaluar"|"Revisar"|"Prioritario"; tc: number|null; potencial: number|null; ponderado: number|null; priorizado: number|null; valorMXN: number|null; potencialMXN: number|null; ponderadoMXN: number|null; priorizadoMXN: number|null; abiertoMXN: number|null; participacion: number|null; dias: number|null; alerta: string; controles: string[] }
-export interface CommercialHistoryControl { id:string; controles:string[]; vigente:boolean; sustituidoPor:string|null }
+interface CommercialHistoryControl { id:string; controles:string[]; vigente:boolean; sustituidoPor:string|null }
 export interface ComercialResult { corte: string; configuracionErrors: string[]; filas: CommercialRow[]; totals: CommercialTotals; segmentos: Record<Segment,CommercialTotals>; controles: string[]; eventos: CommercialHistoryControl[]; documentos: CommercialHistoryControl[] }
 export interface CommercialBook { id:string; nombre:string; version:number; data:ComercialBookData; created_at:string; updated_at:string }

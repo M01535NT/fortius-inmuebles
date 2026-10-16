@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Operación guiada en celular</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp {{temaClase}}" style="position: relative; width: 390px; min-height: 844px; height: {{alto}}; overflow: hidden; display: flex; flex-direction: column">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px 0 4px">
+    <a class="icon-btn" href="OperacionesMovil.dc.html" aria-label="Volver a Operaciones">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <span class="mono xs mut">{{d.folio}}</span>
+  </div>
+
+  <header style="padding: 4px 20px 0; display: flex; flex-direction: column; gap: 6px">
+    <h1 class="h1" style="font-size: 25px">{{d.cliente}}</h1>
+    <p class="small">{{d.inmueble}}</p>
+    <p class="small" style="display: flex; flex-wrap: wrap; gap: 2px 16px">
+      <span><span class="mut">{{d.precioLbl}}</span> <span class="mono" style="font-weight: 600">{{d.precio}}</span></span>
+      <span><span class="mut">Responsable</span> Mariana Ruiz</span>
+    </p>
+  </header>
+
+  <div style="padding: 18px 20px 4px; display: flex; flex-direction: column; gap: 8px">
+    <p style="display: flex; justify-content: space-between; gap: 12px; font-size: 15px">
+      <span style="font-weight: 700">{{d.etapaNombre}}</span>
+      <span class="mono small mut">Etapa {{d.etapa}} de 6</span>
+    </p>
+    <div class="bar" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="{{d.etapa}}" aria-label="Etapa {{d.etapa}} de 6"><span style="width: {{avance}}%"></span></div>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Secciones de la operación" style="padding: 0 8px; margin-top: 10px">
+    <button class="tab {{tab.sigue}}" role="tab" aria-selected="{{tabSel.sigue}}" type="button">Lo que sigue</button>
+    <button class="tab" role="tab" aria-selected="false" type="button">Documentos <span class="mono xs">{{d.docs}}</span></button>
+    <button class="tab" role="tab" aria-selected="false" type="button">Tareas <span class="mono xs">{{d.tareas}}</span></button>
+    <button class="tab" role="tab" aria-selected="false" type="button">Historial</button>
+    <button class="tab {{tab.ajustes}}" role="tab" aria-selected="{{tabSel.ajustes}}" type="button">Ajustes</button>
+  </div>
+
+  <!-- Lo que sigue -->
+  <sc-if value="{{verSigue}}" hint-placeholder-val="{{true}}">
+    <main role="tabpanel" style="flex: 1; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+      <section class="card" aria-labelledby="m-sigue" style="padding: 20px 18px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <p class="eyebrow">Lo que sigue</p>
+          <h2 id="m-sigue" class="h2" style="font-size: 22px">{{d.etapaNombre}}</h2>
+          <p><span style="font-weight: 650">Qué hacemos: </span>{{d.que}}</p>
+          <p><span style="font-weight: 650">Para qué: </span>{{d.para}}</p>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 8px">
+            <h3 class="h3">Requisitos</h3>
+            <span class="mono xs mut">{{revisadosTxt}}</span>
+          </div>
+          <ol style="border-top: 1px solid var(--line)">
+            <sc-for list="{{reqs}}" as="r" hint-placeholder-count="4">
+              <li id="m-req-{{r.id}}" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 0; border-bottom: 1px solid var(--line)">
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <span style="font-weight: 650; font-size: 16px">{{r.nombre}}</span>
+                  <span class="small mut">{{r.detalle}}</span>
+                </div>
+                <button type="button" aria-label="Estado de {{r.nombre}}: {{r.label}}. Cambiar" style="align-self: flex-start; min-height: 44px; border: 0; background: none; padding: 0; display: inline-flex; align-items: center; cursor: pointer">
+                  <span class="chip {{r.cls}}">
+                    <sc-if value="{{r.esPend}}" hint-placeholder-val="{{false}}"><svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle></svg></sc-if>
+                    <sc-if value="{{r.esTengo}}" hint-placeholder-val="{{false}}"><svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"></path></svg></sc-if>
+                    <sc-if value="{{r.esRev}}" hint-placeholder-val="{{false}}"><svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+                    <sc-if value="{{r.esProb}}" hint-placeholder-val="{{false}}"><svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 2.5 20h19z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg></sc-if>
+                    {{r.label}}
+                    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="M6 9l6 6 6-6"></path></svg>
+                  </span>
+                </button>
+
+                <sc-if value="{{r.abierto}}" hint-placeholder-val="{{false}}">
+                  <div role="radiogroup" aria-label="Estado de {{r.nombre}}" style="display: flex; flex-direction: column; gap: 6px">
+                    <sc-for list="{{r.opciones}}" as="o" hint-placeholder-count="5">
+                      <button type="button" role="radio" aria-checked="{{o.checked}}" class="opcion {{o.cls}}" style="min-height: 48px; padding-top: 8px; padding-bottom: 8px">
+                        <span class="radio" aria-hidden="true"></span>
+                        <span style="font-weight: 600; font-size: 15px">{{o.label}}</span>
+                      </button>
+                    </sc-for>
+                    <p class="xs mut">Al marcar «Revisado» te pedimos el documento que lo respalda.</p>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{r.esProb}}" hint-placeholder-val="{{false}}">
+                  <div class="notice" role="status" style="flex-direction: column; gap: 8px">
+                    <p style="display: flex; gap: 8px; font-weight: 650">
+                      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--warn)"><path d="M12 4 2.5 20h19z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>
+                      {{r.problemaTitulo}}
+                    </p>
+                    <p class="small">{{r.problema}}</p>
+                    <p class="mono xs mut">{{r.problemaMeta}}</p>
+                    <button class="btn btn-sec" type="button" style="align-self: flex-start">Escribir qué pasó</button>
+                  </div>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ol>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="m-tarea" style="padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+          <h2 id="m-tarea" class="eyebrow">Próxima tarea</h2>
+          <p style="font-weight: 600">{{d.tarea}}</p>
+          <p class="mono xs {{d.tareaCls}}">{{d.tareaFecha}}</p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="m-herr" style="padding: 14px 18px; display: flex; flex-direction: column">
+        <h2 id="m-herr" class="eyebrow" style="padding: 4px 0 6px">Herramientas de esta etapa</h2>
+        <sc-for list="{{d.herramientas}}" as="h" hint-placeholder-count="3">
+          <a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 48px; text-decoration: none; font-weight: 600; font-size: 15px">
+            <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6v18h12V7z"></path><path d="M14 3v4h4"></path></svg>
+            <span style="flex: 1">{{h}}</span>
+            <svg class="ico ico-s mut" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </a>
+        </sc-for>
+      </section>
+
+      <section class="card" aria-labelledby="m-prop" style="padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <h2 id="m-prop" class="eyebrow">Propietario</h2>
+        <div><p style="font-weight: 650">{{d.prop.nombre}}</p><p class="small mut">{{d.prop.tambien}}</p></div>
+        <p class="small"><span class="mut">Lo que quiere: </span>{{d.prop.objetivo}}</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <a class="btn btn-sec" href="#">Llamar</a>
+          <a class="btn btn-sec" href="#">WhatsApp</a>
+        </div>
+      </section>
+
+      <button type="button" aria-expanded="false" class="card" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 18px; text-align: left; cursor: pointer; color: var(--fg)">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.3-2.4 3.8M12 17.5v.01"></path></svg>
+        <span style="flex: 1; font-weight: 650">¿Qué significa?</span>
+        <svg class="ico ico-s mut" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+      </button>
+    </main>
+
+    <div style="position: sticky; bottom: 0; padding: 14px 16px 18px; background: var(--card); border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -8px 24px rgba(6,31,63,.08)">
+      <p id="m-falta" class="small">
+        <span style="font-weight: 700">Te falta: </span>
+        <sc-for list="{{falta}}" as="f" hint-placeholder-count="2">
+          <a href="#m-req-{{f.id}}" class="btn-link" style="padding: 0 1px; font-weight: 600">{{f.nombre}}</a><span class="mut">{{f.sep}}</span>
+        </sc-for>
+      </p>
+      <button class="btn btn-pri btn-lg" type="button" disabled aria-describedby="m-falta" style="width: 100%">Pasar a: {{d.siguiente}}</button>
+    </div>
+  </sc-if>
+
+  <!-- Ajustes -->
+  <sc-if value="{{verAjustes}}" hint-placeholder-val="{{false}}">
+    <main role="tabpanel" style="flex: 1; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+      <section class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <h2 class="eyebrow">Datos de la operación</h2>
+        <dl style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px 12px; font-size: 15px">
+          <dt class="mut">Tipo</dt><dd>Venta</dd>
+          <dt class="mut">Inició</dt><dd class="mono">02 oct 2026</dd>
+          <dt class="mut">Folio</dt><dd class="mono">{{d.folio}}</dd>
+        </dl>
+        <div><label class="lbl" for="m-resp">Responsable</label><select class="inp" id="m-resp"><option>Mariana Ruiz</option></select></div>
+      </section>
+      <section class="card" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <h2 class="eyebrow">Si ya no sigue</h2>
+        <p class="small mut">Pausa la operación si el propietario lo pide. Elimínala solo si se creó por error.</p>
+        <button class="btn btn-sec" type="button">Pausar operación</button>
+        <button class="btn btn-danger" type="button">Eliminar operación</button>
+      </section>
+    </main>
+  </sc-if>
+
+  <!-- Hoja «Revisado» -->
+  <sc-if value="{{conHoja}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: var(--scrim)"></div>
+    <section role="dialog" aria-modal="true" aria-labelledby="h-t" style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 92%; display: flex; flex-direction: column; background: var(--card); border-radius: 8px 8px 0 0; box-shadow: 0 -12px 40px rgba(6,31,63,.2)">
+      <span aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin-top: 10px"></span>
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 12px 12px 14px 20px; border-bottom: 1px solid var(--line)">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <p class="eyebrow">Marcar como revisado</p>
+          <h2 id="h-t" class="h2">Que se pueda vender sin obstáculos</h2>
+        </div>
+        <button class="icon-btn" type="button" aria-label="Cerrar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+      </div>
+      <div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 18px; overflow: auto">
+        <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+          <legend class="lbl" style="padding: 0">Documento que lo respalda</legend>
+          <button class="opcion on" type="button" aria-pressed="true">
+            <span class="radio" aria-hidden="true"></span>
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-weight: 600; font-size: 15px">Certificado de gravamen.pdf</span><span class="mono xs mut">Subido el 15 oct</span></span>
+          </button>
+          <button class="opcion" type="button" aria-pressed="false">
+            <span class="radio" aria-hidden="true"></span>
+            <span style="font-weight: 600; font-size: 15px">Documento fuera del sistema</span>
+          </button>
+        </fieldset>
+        <div><label class="lbl" for="h-quien">Quién lo revisó</label><select class="inp" id="h-quien"><option>Mariana Ruiz (tú)</option></select></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <div><label class="lbl" for="h-fecha">Fecha</label><input class="inp mono" id="h-fecha" value="16/10/2026"></div>
+          <div><label class="lbl" for="h-vig">Vigente hasta</label><input class="inp mono" id="h-vig" value="14/01/2027"></div>
+        </div>
+        <div><label class="lbl" for="h-res">Qué encontraste</label><textarea class="inp" id="h-res" rows="3" style="min-height: 88px; padding: 12px 14px; resize: vertical">Sin gravámenes ni embargos.</textarea></div>
+        <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0; border: 0; background: none; font-weight: 600; color: var(--fg); cursor: pointer">
+          Más detalles
+          <svg class="ico ico-s mut" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+      </div>
+      <div style="padding: 14px 20px 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px">
+        <button class="btn btn-pri btn-lg" type="button" style="width: 100%">Guardar como revisado</button>
+        <button class="btn btn-ghost" type="button" style="width: 100%">Cancelar</button>
+      </div>
+    </section>
+  </sc-if>
+
+  <!-- Confirmación de eliminar -->
+  <sc-if value="{{conDialogo}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: var(--scrim)"></div>
+    <section role="alertdialog" aria-modal="true" aria-labelledby="dl-t" aria-describedby="dl-d" class="card" style="position: absolute; left: 16px; right: 16px; top: 260px; padding: 24px 20px 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 18px 48px rgba(6,31,63,.24)">
+      <h2 id="dl-t" class="h2">¿Eliminar esta operación?</h2>
+      <p id="dl-d" class="small">Se borran sus tareas y su historial. Los documentos del propietario se quedan en su contacto. No se puede deshacer.</p>
+      <p class="small mut">{{d.cliente}} · <span class="mono">{{d.folio}}</span></p>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px">
+        <button class="btn btn-danger-solid btn-lg" type="button" style="width: 100%">Sí, eliminar</button>
+        <button class="btn btn-sec btn-lg" type="button" style="width: 100%">No, regresar</button>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"estado":{"editor":"enum","options":["verificacion","contrato","revisado","ajustes"],"default":"verificacion"},"tema":{"editor":"enum","options":["claro","oscuro"],"default":"claro"},"$preview":{"width":390,"height":2000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const estado = this.props.estado ?? 'verificacion';
+    const tema = this.props.tema === 'oscuro' ? 'oscuro' : 'claro';
+    const ETAPAS = ['Captación', 'Verificación y precio', 'Contrato y preparación', 'Publicación y seguimiento', 'Visitas y ofertas', 'Cierre y entrega'];
+    const LABEL = { pend: 'Pendiente', tengo: 'Lo tengo', rev: 'Revisado ✓', prob: 'Hay un problema', na: 'No aplica' };
+    const CLS = { pend: 'st-pend', tengo: 'st-tengo', rev: 'st-rev', prob: 'st-prob', na: 'st-na' };
+    const DATOS = {
+      verificacion: {
+        cliente: 'Familia Castañeda Ortiz', inmueble: 'Casa en Playas de Tijuana', precioLbl: 'Espera', precio: '$4,850,000 MXN', folio: 'EXP-2026-041', etapa: 2,
+        que: 'revisar los documentos y comparar casas parecidas para acordar el precio.',
+        para: 'detectar obstáculos a tiempo y vender con un precio sustentado.',
+        reqs: [
+          { id: 'r1', nombre: 'Quién es dueño y quién firma', estado: 'rev', detalle: 'Escritura e INE de ambos · Revisó Jorge Salcedo el 14 oct' },
+          { id: 'r2', nombre: 'Que se pueda vender sin obstáculos', estado: 'tengo', abierto: true, detalle: 'Mandaron el certificado de gravamen el 15 oct. Falta revisarlo.' },
+          { id: 'r3', nombre: 'Opinión de valor', estado: 'pend', detalle: 'Compara al menos 3 casas parecidas en la zona.' },
+          { id: 'r4', nombre: 'Precio de salida acordado', estado: 'pend', detalle: 'Se acuerda después de la opinión de valor.' }
+        ],
+        tarea: 'Llamar a la Sra. Castañeda para agendar la opinión de valor', tareaFecha: 'Lun 19 oct · 10:00', tareaCls: 'mut',
+        herramientas: ['Comparar casas parecidas', 'Generar PDF de opinión de valor', 'Lista de documentos'],
+        prop: { nombre: 'Rosa Elena Castañeda Ortiz', tambien: 'Copropietario: Arturo Castañeda Ortiz', objetivo: 'vender en 4 a 6 meses para mudarse a Ensenada.' },
+        docs: 6, tareas: 3
+      },
+      contrato: {
+        cliente: 'Familia Navarro Lugo', inmueble: 'Departamento en Chapultepec', precioLbl: 'Salida', precio: '$3,200,000 MXN', folio: 'EXP-2026-038', etapa: 3,
+        que: 'firmar el contrato de servicio y preparar ficha, fotos y plan de publicación.',
+        para: 'dejar claras las responsabilidades de cada quien.',
+        reqs: [
+          { id: 'r1', nombre: 'Contrato de servicio firmado', estado: 'rev', detalle: 'Firmado por ambos dueños · Revisó Mariana Ruiz el 9 oct' },
+          { id: 'r2', nombre: 'Fotos, medidas y datos revisados', estado: 'rev', detalle: '24 fotos y plano · Revisó Mariana Ruiz el 12 oct' },
+          { id: 'r3', nombre: 'Plan de publicación aprobado', estado: 'tengo', detalle: 'Dijo que sí por WhatsApp el 14 oct. Falta guardar su aprobación.' },
+          { id: 'r4', nombre: 'Permiso para publicar', estado: 'prob', detalle: 'Necesitamos la firma de los dos dueños.',
+            problemaTitulo: 'Falta la firma de Daniel Navarro',
+            problema: 'Es copropietario y vive en San Diego. Le mandamos el permiso el 13 oct y no responde. Puede firmar en línea.',
+            problemaMeta: 'Lo marcó Mariana Ruiz · 13 oct' }
+        ],
+        tarea: 'Volver a pedirle la firma a Daniel Navarro', tareaFecha: 'Hoy · 17:00', tareaCls: 'vencido',
+        herramientas: ['Generar PDF del contrato', 'Ficha del inmueble', 'Plan de publicación'],
+        prop: { nombre: 'Claudia Lugo de Navarro', tambien: 'Copropietario: Daniel Navarro Lugo', objetivo: 'vender antes de fin de año.' },
+        docs: 9, tareas: 2
+      }
+    };
+    const base = DATOS[estado === 'contrato' ? 'contrato' : 'verificacion'];
+    const conHoja = estado === 'revisado';
+    const verAjustes = estado === 'ajustes';
+    const d = { ...base, etapaNombre: ETAPAS[base.etapa - 1], siguiente: ETAPAS[base.etapa] };
+    const reqs = base.reqs.map((r) => {
+      const sel = conHoja && r.abierto ? 'rev' : r.estado;
+      return {
+        ...r, label: LABEL[r.estado], cls: CLS[r.estado],
+        esPend: r.estado === 'pend', esTengo: r.estado === 'tengo', esRev: r.estado === 'rev', esProb: r.estado === 'prob',
+        abierto: !!r.abierto,
+        opciones: ['pend', 'tengo', 'rev', 'prob', 'na'].filter((k) => k !== 'na' || r.permiteNA).map((k) => ({ label: LABEL[k], cls: k === sel ? 'on' : '', checked: k === sel ? 'true' : 'false' }))
+      };
+    });
+    const pend = base.reqs.filter((r) => r.estado !== 'rev' && r.estado !== 'na');
+    return {
+      tema, temaClase: tema === 'oscuro' ? 'oscuro' : '',
+      d, reqs, conHoja, verAjustes, verSigue: !verAjustes, conDialogo: verAjustes,
+      alto: conHoja || verAjustes ? '844px' : 'auto',
+      avance: Math.round((base.etapa / 6) * 1000) / 10,
+      tab: { sigue: verAjustes ? '' : 'on', ajustes: verAjustes ? 'on' : '' },
+      tabSel: { sigue: verAjustes ? 'false' : 'true', ajustes: verAjustes ? 'true' : 'false' },
+      falta: pend.map((r, i) => ({ id: r.id, nombre: r.nombre, sep: i < pend.length - 1 ? ' · ' : '' })),
+      revisadosTxt: base.reqs.filter((r) => r.estado === 'rev').length + ' de ' + base.reqs.length + ' revisados'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import type { Lead, Evento } from "@/lib/domain/records";
 import { operationalDate } from "@/lib/admin/operational-date";
-export type PeriodFilter = { from: string; to: string; advisor: string };
+type PeriodFilter = { from: string; to: string; advisor: string };
 export function dateInPeriod(
   date: string | undefined,
   filter: Pick<PeriodFilter, "from" | "to">,

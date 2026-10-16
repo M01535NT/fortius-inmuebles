@@ -6,8 +6,8 @@ import type { Followup } from "@/lib/admin/followups";
 import { TASK_STATUSES, type Task } from "@/lib/tasks";
 import styles from "./calendar-agenda.module.css";
 
-export type CalendarReferences = Pick<Evento, "leadId" | "clienteId" | "propiedadSlug" | "expedienteId" | "asesorId">;
-export type CalendarContext = {
+type CalendarReferences = Pick<Evento, "leadId" | "clienteId" | "propiedadSlug" | "expedienteId" | "asesorId">;
+type CalendarContext = {
   leads: Lead[];
   clientes: Cliente[];
   propiedades: AdminProperty[];

@@ -7,6 +7,7 @@ import { apiRequest, db, errorMessage, uid, useCollection, useLoadState } from "
 import { calculateCommercial, commercialCalendarDate, commercialRows, COMPARABLE_COLUMNS, isCommercialPhotoUrl, parseComparablesCsv, publicPropertyInput, type CommercialRow } from "@/lib/apps/commercial";
 import type { AppEditorProps, AppInput } from "@/lib/apps/types";
 import { taskExpedienteContext, taskSchema, type Task, type TaskExpediente } from "@/lib/tasks";
+import { OPERACION_LABELS } from "@/data/propiedades";
 
 const panel = "min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5";
 const grid = "grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3";
@@ -14,7 +15,7 @@ const txt = (value: unknown) => typeof value === "string" || typeof value === "n
 const options = (values: Record<string, string>) => Object.entries(values).map(([value, label]) => ({ value, label }));
 const propertyTypes = options({ casa: "Casa", departamento: "Departamento", terreno: "Terreno", local: "Local", oficina: "Oficina", "nave-industrial": "Nave industrial" });
 const currencies = options({ MXN: "MXN", USD: "USD" });
-const operations = options({ venta: "Venta", renta: "Renta" });
+const operations = options(OPERACION_LABELS);
 type FormField = { key: string; label: string; type?: "number" | "date" | "textarea" | "checkbox"; options?: { value: string; label: string }[]; hint?: string };
 const comparableFields: FormField[] = [
   { key: "label", label: "Referencia" }, { key: "type", label: "Tipo de inmueble", options: propertyTypes }, { key: "operation", label: "Operación", options: operations },

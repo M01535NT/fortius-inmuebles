@@ -2,8 +2,8 @@
 import {CommercialField as F,commercialNumber} from "./comercial-field";
 import {btnGhost} from "./ui";
 import {ACTIVITIES,APPLICABILITY,BASES,DOCUMENT_STATES,EVENT_STATES,type ComercialBookData,type CommercialDocument,type CommercialEvent} from "@/lib/comercial/types";
-export function newCommercialEvent(id:string):CommercialEvent{return {id,oportunidad:"",fecha:"",actividad:"Seguimiento",detalle:"",importe:null,moneda:"",estado:"Registrado",responsable:"",evidencia:"",base:"Declarado",anterior:""};}
-export function newCommercialDocument(id:string):CommercialDocument{return {id,oportunidad:"",nombre:"",aplicabilidad:"Por definir",estado:"Pendiente",fuente:"",fecha:"",responsable:"",observacion:"",anterior:""};}
+function newCommercialEvent(id:string):CommercialEvent{return {id,oportunidad:"",fecha:"",actividad:"Seguimiento",detalle:"",importe:null,moneda:"",estado:"Registrado",responsable:"",evidencia:"",base:"Declarado",anterior:""};}
+function newCommercialDocument(id:string):CommercialDocument{return {id,oportunidad:"",nombre:"",aplicabilidad:"Por definir",estado:"Pendiente",fuente:"",fecha:"",responsable:"",observacion:"",anterior:""};}
 // Rows are part of the book immediately. Saved rows are read-only; corrections append a new ID.
 export function ComercialHistoryEditor({kind,data,savedIds,onChange}:{kind:"eventos"|"documentos";data:ComercialBookData;savedIds:Set<string>;onChange:(d:ComercialBookData)=>void}){
  const rows=data[kind]; const update=(id:string,key:string,value:unknown)=>onChange({...data,[kind]:rows.map(row=>row.id===id?{...row,[key]:value}:row)});

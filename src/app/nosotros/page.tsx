@@ -26,7 +26,7 @@ export default async function NosotrosPage() {
   const profiles = team.length ? team : [{
     id: "moises", nombre: SITE_TERMS.responsible, cargo: "Asesor inmobiliario · Fortius", iniciales: "MN",
     descripcion: "Soy tu contacto para revisar lo que buscas o la propiedad que quieres vender. Coordino las visitas y reviso las propuestas contigo; tú decides qué condiciones aceptar.",
-    foto: "/images/team/advisor-example.png", telefono: settings?.telefono, whatsapp: settings?.whatsapp,
+    foto: "/images/team/advisor-example.webp", telefono: settings?.telefono, whatsapp: settings?.whatsapp,
     email: contact.email || SITE_TERMS.email, instagram: undefined, facebook: undefined, linkedin: undefined,
   }];
   return <main className="about-page">

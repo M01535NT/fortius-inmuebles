@@ -1,0 +1,396 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-16T17:00:00Z"
+  },
+  "title": "Panel Fortius",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Tokens.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "title": "Tokens de color y tipografía"
+    },
+    "Componentes.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1900,
+      "title": "Hoja de componentes"
+    },
+    "Sidebar.dc.html": {
+      "x": 0,
+      "y": 2300,
+      "w": 248,
+      "h": 900,
+      "title": "Barra lateral · asesor"
+    },
+    "SidebarAdmin.dc.html": {
+      "x": 328,
+      "y": 2300,
+      "w": 248,
+      "h": 900,
+      "title": "Barra lateral · administrador"
+    },
+    "BarraInferior.dc.html": {
+      "x": 656,
+      "y": 2300,
+      "w": 390,
+      "h": 80,
+      "title": "Barra inferior · celular"
+    },
+    "MenuMovil.dc.html": {
+      "x": 1126,
+      "y": 2300,
+      "w": 390,
+      "h": 844,
+      "title": "Menú · celular"
+    },
+    "Main.dc.html": {
+      "x": 0,
+      "y": 3600,
+      "w": 1440,
+      "h": 1500,
+      "title": "Hoy · computadora",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "HoyMovil.dc.html": {
+      "x": 1520,
+      "y": 3600,
+      "w": 390,
+      "h": 2050,
+      "title": "Hoy · celular",
+      "is_interactive": true
+    },
+    "HoyEscritorioOscuro.dc.html": {
+      "x": 1990,
+      "y": 3600,
+      "w": 1440,
+      "h": 1500,
+      "title": "Hoy · computadora · oscuro",
+      "expand": "fill"
+    },
+    "HoyMovilOscuro.dc.html": {
+      "x": 3510,
+      "y": 3600,
+      "w": 390,
+      "h": 2050,
+      "title": "Hoy · celular · oscuro"
+    },
+    "OperacionesEscritorio.dc.html": {
+      "x": 0,
+      "y": 6100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Operaciones · computadora",
+      "expand": "fill"
+    },
+    "OperacionesMovil.dc.html": {
+      "x": 1520,
+      "y": 6100,
+      "w": 390,
+      "h": 1250,
+      "title": "Operaciones · celular"
+    },
+    "OperacionesMovilOscuro.dc.html": {
+      "x": 1990,
+      "y": 6100,
+      "w": 390,
+      "h": 1250,
+      "title": "Operaciones · celular · oscuro"
+    },
+    "OperacionEscritorio.dc.html": {
+      "x": 0,
+      "y": 7750,
+      "w": 1440,
+      "h": 1300,
+      "title": "Operación · Verificación y precio",
+      "expand": "fill"
+    },
+    "OperacionEscritorioContrato.dc.html": {
+      "x": 1520,
+      "y": 7750,
+      "w": 1440,
+      "h": 1300,
+      "title": "Operación · Contrato con un problema",
+      "expand": "fill"
+    },
+    "OperacionEscritorioRevisado.dc.html": {
+      "x": 3040,
+      "y": 7750,
+      "w": 1440,
+      "h": 1300,
+      "title": "Operación · panel «Revisado»",
+      "expand": "fill"
+    },
+    "OperacionEscritorioOscuro.dc.html": {
+      "x": 4560,
+      "y": 7750,
+      "w": 1440,
+      "h": 1300,
+      "title": "Operación · oscuro",
+      "expand": "fill"
+    },
+    "OperacionMovil.dc.html": {
+      "x": 0,
+      "y": 9450,
+      "w": 390,
+      "h": 2000,
+      "title": "Operación · Verificación · celular"
+    },
+    "OperacionMovilContrato.dc.html": {
+      "x": 470,
+      "y": 9450,
+      "w": 390,
+      "h": 2000,
+      "title": "Operación · Contrato con un problema · celular"
+    },
+    "OperacionMovilRevisado.dc.html": {
+      "x": 940,
+      "y": 9450,
+      "w": 390,
+      "h": 844,
+      "title": "Operación · panel «Revisado» · celular"
+    },
+    "OperacionMovilAjustes.dc.html": {
+      "x": 1410,
+      "y": 9450,
+      "w": 390,
+      "h": 844,
+      "title": "Operación · Ajustes y eliminar · celular"
+    },
+    "OperacionMovilOscuro.dc.html": {
+      "x": 1880,
+      "y": 9450,
+      "w": 390,
+      "h": 2000,
+      "title": "Operación · celular · oscuro"
+    },
+    "NuevaEscritorio.dc.html": {
+      "x": 0,
+      "y": 11850,
+      "w": 1440,
+      "h": 900,
+      "title": "Nueva operación 1 · Qué quiere hacer",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "NuevaEscritorio2.dc.html": {
+      "x": 1520,
+      "y": 11850,
+      "w": 1440,
+      "h": 900,
+      "title": "Nueva operación 2 · Quién es",
+      "expand": "fill"
+    },
+    "NuevaEscritorio3.dc.html": {
+      "x": 3040,
+      "y": 11850,
+      "w": 1440,
+      "h": 900,
+      "title": "Nueva operación 3 · Entrevista",
+      "expand": "fill"
+    },
+    "NuevaEscritorio4.dc.html": {
+      "x": 4560,
+      "y": 11850,
+      "w": 1440,
+      "h": 900,
+      "title": "Nueva operación 4 · Listo",
+      "expand": "fill"
+    },
+    "NuevaMovil.dc.html": {
+      "x": 0,
+      "y": 13150,
+      "w": 390,
+      "h": 900,
+      "title": "Nueva operación 1 · celular",
+      "is_interactive": true
+    },
+    "NuevaMovil2.dc.html": {
+      "x": 470,
+      "y": 13150,
+      "w": 390,
+      "h": 900,
+      "title": "Nueva operación 2 · celular"
+    },
+    "NuevaMovil3.dc.html": {
+      "x": 940,
+      "y": 13150,
+      "w": 390,
+      "h": 900,
+      "title": "Nueva operación 3 · celular"
+    },
+    "NuevaMovil4.dc.html": {
+      "x": 1410,
+      "y": 13150,
+      "w": 390,
+      "h": 900,
+      "title": "Nueva operación 4 · celular"
+    },
+    "ContactosEscritorio.dc.html": {
+      "x": 0,
+      "y": 14450,
+      "w": 1440,
+      "h": 960,
+      "title": "Contactos · computadora",
+      "expand": "fill"
+    },
+    "ContactosMovil.dc.html": {
+      "x": 1520,
+      "y": 14450,
+      "w": 390,
+      "h": 1300,
+      "title": "Contactos · celular"
+    },
+    "InmueblesEscritorio.dc.html": {
+      "x": 1990,
+      "y": 14450,
+      "w": 1440,
+      "h": 1100,
+      "title": "Inmuebles · computadora",
+      "expand": "fill"
+    },
+    "InmueblesMovil.dc.html": {
+      "x": 3510,
+      "y": 14450,
+      "w": 390,
+      "h": 1500,
+      "title": "Inmuebles · celular"
+    },
+    "AgendaEscritorio.dc.html": {
+      "x": 3980,
+      "y": 14450,
+      "w": 1440,
+      "h": 1000,
+      "title": "Agenda · computadora",
+      "expand": "fill"
+    },
+    "AgendaMovil.dc.html": {
+      "x": 5500,
+      "y": 14450,
+      "w": 390,
+      "h": 1300,
+      "title": "Agenda · celular"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Tokens.dc.html",
+    "Componentes.dc.html",
+    "Sidebar.dc.html",
+    "SidebarAdmin.dc.html",
+    "BarraInferior.dc.html",
+    "MenuMovil.dc.html",
+    "HoyMovil.dc.html",
+    "HoyEscritorioOscuro.dc.html",
+    "HoyMovilOscuro.dc.html",
+    "OperacionesEscritorio.dc.html",
+    "OperacionesMovil.dc.html",
+    "OperacionesMovilOscuro.dc.html",
+    "OperacionEscritorio.dc.html",
+    "OperacionEscritorioContrato.dc.html",
+    "OperacionEscritorioRevisado.dc.html",
+    "OperacionEscritorioOscuro.dc.html",
+    "OperacionMovil.dc.html",
+    "OperacionMovilContrato.dc.html",
+    "OperacionMovilRevisado.dc.html",
+    "OperacionMovilAjustes.dc.html",
+    "OperacionMovilOscuro.dc.html",
+    "NuevaEscritorio.dc.html",
+    "NuevaEscritorio2.dc.html",
+    "NuevaEscritorio3.dc.html",
+    "NuevaEscritorio4.dc.html",
+    "NuevaMovil.dc.html",
+    "NuevaMovil2.dc.html",
+    "NuevaMovil3.dc.html",
+    "NuevaMovil4.dc.html",
+    "ContactosEscritorio.dc.html",
+    "ContactosMovil.dc.html",
+    "InmueblesEscritorio.dc.html",
+    "InmueblesMovil.dc.html",
+    "AgendaEscritorio.dc.html",
+    "AgendaMovil.dc.html"
+  ],
+  "notes": {
+    "rowA": {
+      "x": 0,
+      "y": -260,
+      "text": "Tokens y componentes",
+      "kind": "title1",
+      "maxW": 2960
+    },
+    "rowB": {
+      "x": 0,
+      "y": 2040,
+      "text": "Navegación",
+      "kind": "title1",
+      "maxW": 1516
+    },
+    "rowC": {
+      "x": 0,
+      "y": 3340,
+      "text": "Hoy",
+      "kind": "title1",
+      "maxW": 3900
+    },
+    "rowD": {
+      "x": 0,
+      "y": 5840,
+      "text": "Operaciones",
+      "kind": "title1",
+      "maxW": 2380
+    },
+    "rowE": {
+      "x": 0,
+      "y": 7490,
+      "text": "Operación guiada · computadora",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "rowF": {
+      "x": 0,
+      "y": 9190,
+      "text": "Operación guiada · celular",
+      "kind": "title1",
+      "maxW": 2270
+    },
+    "rowG": {
+      "x": 0,
+      "y": 11590,
+      "text": "Nueva operación · computadora",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "rowH": {
+      "x": 0,
+      "y": 12890,
+      "text": "Nueva operación · celular",
+      "kind": "title1",
+      "maxW": 1800
+    },
+    "rowI": {
+      "x": 0,
+      "y": 14190,
+      "text": "Contactos, Inmuebles y Agenda",
+      "kind": "title1",
+      "maxW": 5890
+    }
+  },
+  "designSystems": [
+    {
+      "title": "Fortius Inmuebles",
+      "namespace": "fortius",
+      "artifact": "https://claude.ai/code/artifact/6405d0e4-6031-467b-b606-d450b1ba57e1",
+      "version": "1792135307-d84f",
+      "copiedAt": "2026-10-16T17:00:00Z"
+    }
+  ]
+}

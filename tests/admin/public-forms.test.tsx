@@ -4,7 +4,6 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ContactForm } from "@/components/sections/contact-form";
 import { BuyerBrief } from "@/components/sections/buyer-brief";
-import { Evaluar } from "@/components/home/evaluar";
 import { LeadMagnet } from "@/components/sections/lead-magnet";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyInterestForm } from "@/components/property/property-interest-form";
@@ -22,7 +21,6 @@ vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: Reac
 const variants = [
   { name: "contacto", component: <ContactForm />, button: "Enviar consulta" },
   { name: "comprador", component: <BuyerBrief />, button: "Enviar mi búsqueda" },
-  { name: "evaluar", component: <Evaluar />, button: "Solicitar evaluación" },
   { name: "checklist", component: <LeadMagnet />, button: "Obtener el checklist" },
   { name: "documentos", component: <PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} />, button: "Liberar descargas" },
   { name: "interes-propiedad", component: <PropertyInterestForm slug="fixture" codigo="TEST" titulo="Casa" />, button: "Me interesa esta propiedad" },

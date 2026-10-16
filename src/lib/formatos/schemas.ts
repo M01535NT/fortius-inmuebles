@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { operationWorkflowSchema } from "./operation-workflow";
+import { EXPEDIENTE_OPERACIONES } from "./expediente-operations";
 
 const id = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/);
 const version = z.number().int().positive();
 const folio = z.string().trim().min(1).max(80);
-const operation = z.enum(["venta", "renta", "inversion", "administracion", "otra"]);
+const operation = z.enum(Object.keys(EXPEDIENTE_OPERACIONES) as [keyof typeof EXPEDIENTE_OPERACIONES, ...(keyof typeof EXPEDIENTE_OPERACIONES)[]]);
 const row = z.record(z.string().max(120), z.union([z.string().max(2000), z.number().finite(), z.boolean()]))
   .refine((value) => Object.keys(value).length <= 24, "Fila demasiado grande");
 const data = z.record(z.string().max(120), z.union([

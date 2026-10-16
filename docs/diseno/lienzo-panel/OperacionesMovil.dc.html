@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Operaciones en celular</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp {{temaClase}}" style="width: 390px; min-height: 1250px; display: flex; flex-direction: column">
+  <main style="flex: 1; padding: 20px 0 32px; display: flex; flex-direction: column; gap: 18px">
+    <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 12px 0 20px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <h1 class="h1" style="font-size: 27px">Operaciones</h1>
+        <p class="small mut">11 en curso · <span class="vencido">4 con algo vencido</span></p>
+      </div>
+      <button class="icon-btn" type="button" aria-label="Buscar">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      </button>
+    </header>
+
+    <div style="padding: 0 20px">
+      <div class="seg" role="radiogroup" aria-label="Mostrar operaciones de" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%">
+        <button type="button" role="radio" aria-checked="true" class="on">Mías</button>
+        <button type="button" role="radio" aria-checked="false">Todo el equipo</button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Etapas" style="padding: 0 12px">
+      <button class="tab" role="tab" aria-selected="false" type="button"><span class="mono xs">1</span> Captación <span class="mono xs">2</span></button>
+      <button class="tab" role="tab" aria-selected="false" type="button"><span class="mono xs">2</span> Verificación <span class="mono xs">2</span></button>
+      <button class="tab" role="tab" aria-selected="false" type="button"><span class="mono xs">3</span> Contrato <span class="mono xs">1</span></button>
+      <button class="tab on" role="tab" aria-selected="true" type="button"><span class="mono xs">4</span> Publicación <span class="mono xs">3</span></button>
+      <button class="tab" role="tab" aria-selected="false" type="button"><span class="mono xs">5</span> Visitas <span class="mono xs">2</span></button>
+      <button class="tab" role="tab" aria-selected="false" type="button"><span class="mono xs">6</span> Cierre <span class="mono xs">1</span></button>
+    </div>
+
+    <section aria-labelledby="m-etapa" role="tabpanel" style="padding: 4px 20px 0; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h2 id="m-etapa" class="h2">Publicación y seguimiento</h2>
+        <p class="small mut">Publicar, mantener los datos al día e informar al propietario cada mes.</p>
+      </div>
+      <a class="card" href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; text-decoration: none">
+        <span style="display: flex; flex-direction: column; gap: 2px"><span class="h3">Familia Ibarra Cota</span><span class="small mut">Casa en Otay Universidad</span></span>
+        <span class="hr"></span>
+        <span style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+          <span style="display: flex; flex-direction: column; gap: 2px"><span class="xs mut" style="font-weight: 600">Sigue</span><span>Informe mensual al propietario</span></span>
+          <svg class="ico mut" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </span>
+        <span class="mono xs vencido">Vencido · 10 oct</span>
+      </a>
+      <a class="card" href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; text-decoration: none">
+        <span style="display: flex; flex-direction: column; gap: 2px"><span class="h3">Familia Robles Ochoa</span><span class="small mut">Casa en Otay Constituyentes</span></span>
+        <span class="hr"></span>
+        <span style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+          <span style="display: flex; flex-direction: column; gap: 2px"><span class="xs mut" style="font-weight: 600">Sigue</span><span>Informe mensual al propietario</span></span>
+          <svg class="ico mut" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </span>
+        <span class="mono xs vencido">Vencido · 14 oct</span>
+      </a>
+      <a class="card" href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; text-decoration: none">
+        <span style="display: flex; flex-direction: column; gap: 2px"><span class="h3">Familia Lizárraga</span><span class="small mut">Local en el centro de Tecate</span></span>
+        <span class="hr"></span>
+        <span style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+          <span style="display: flex; flex-direction: column; gap: 2px"><span class="xs mut" style="font-weight: 600">Sigue</span><span>Actualizar el precio publicado</span></span>
+          <svg class="ico mut" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </span>
+        <span class="mono xs mut">Mar · 20 oct</span>
+      </a>
+      <p class="xs mut" style="text-align: center; padding-top: 8px">Desliza las etapas para ver las demás operaciones.</p>
+    </section>
+  </main>
+  <dc-import name="BarraInferior" activo="operaciones" tema="{{tema}}" hint-size="390px,80px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["claro","oscuro"],"default":"claro"},"$preview":{"width":390,"height":1250}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tema = this.props.tema === 'oscuro' ? 'oscuro' : 'claro';
+    return { tema, temaClase: tema === 'oscuro' ? 'oscuro' : '' };
+  }
+}
+</script>
+</body>
+</html>

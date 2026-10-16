@@ -123,11 +123,6 @@
 .panel :global(.admin-card-heading) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 1rem; min-height: 2.75rem; border-bottom: 1px solid var(--border); }
 .panel :global(.admin-card-heading) h2 { font-size: 1.125rem; }
 .panel :global(.admin-card-heading) a { display: inline-flex; align-items: center; min-height: 2.75rem; gap: .375rem; font-size: .875rem; color: var(--foreground); }
-.panel :global(.admin-metrics) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: .5rem; background: var(--card); overflow: hidden; }
-.panel :global(.admin-metrics) > a { min-width: 0; padding: 1.25rem; }
-.panel :global(.admin-metrics) > a + a { border-left: 1px solid var(--border); }
-.panel :global(.admin-metrics) > a:hover { background: var(--secondary); }
-.panel :global(.admin-metric-value) { display: block; margin-top: .5rem; font-size: 2rem; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
 .panel :global(.admin-cycle) { display: grid; grid-template-columns: minmax(0, 1fr); gap: .625rem; padding: 1rem; }
 .panel :global(.admin-cycle-step) { display: flex; min-width: 0; align-items: center; gap: .75rem; padding: .875rem; background: var(--secondary); border-radius: .375rem; }
 .panel :global(.admin-cycle-number) { display: flex; flex-shrink: 0; width: 2rem; height: 2rem; align-items: center; justify-content: center; border-radius: 50%; background: #061f3f; color: white; font-size: .875rem; }
@@ -143,7 +138,6 @@
 .panel :global(.admin-property-body) { padding: 1rem; display: grid; gap: .5rem; }
 .panel :global(.admin-property-titleline) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
 .panel :global(.admin-property-price) { font-weight: 700; font-size: 1rem; }
-.panel :global(.admin-property-controls) { display: flex; align-items: center; gap: .5rem; }
 .panel :global(.admin-property-info) { font-size: .8125rem; color: var(--muted-foreground); }
 .panel :global(.admin-property-info) summary { display: flex; align-items: center; min-height: 2.75rem; cursor: pointer; }
 .panel :global(.admin-inventory-note) p { background: transparent; color: var(--muted-foreground); padding: 0; border: 0; font-size: .8125rem; }
@@ -180,7 +174,6 @@
 .panel :global(.admin-module-link) svg { color: var(--primary-text); }
 .panel :global(.admin-module-link) p { color: var(--muted-foreground); font-size: .9375rem; }
 .panel :global(.admin-module-link):hover { border-color: var(--primary-text); }
-.panel :global(.admin-status-note) { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 1rem 1.25rem; border-left: 3px solid #8a1634; background: var(--card); color: var(--muted-foreground); font-size: .9375rem; }
 .panel :global(.admin-login-card) { padding: 2rem; box-shadow: 0 12px 40px #061f3f08; }
 
 /* Operational review: visible priorities, a single dossier context and document access. */
@@ -266,7 +259,6 @@
 @media (min-width: 768px) {
   .panel :global(.admin-content) { padding: 1.5rem 1.25rem 2rem; }
   .panel :global(.admin-topbar-inner) { padding-inline: 1.25rem; }
-  .panel :global(.admin-metrics) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Geometry of the approved image: compact header, operational table and side agenda. */
@@ -283,16 +275,12 @@
 .panel :global(.admin-coach-date) { margin-top: .75rem !important; font-size: .875rem !important; }
 .panel :global(.admin-coach-actions) { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
 .panel :global(.admin-coach-metrics) { border: 1px solid var(--border); border-radius: .5rem; padding: 1rem 0; background: var(--card); }
-.panel :global(.admin-executive-header) { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; align-items: center; }
-.panel :global(.admin-executive-header) > div:first-child p { margin-top: .5rem; color: var(--muted-foreground); font-size: 1rem; }
-.panel :global(.admin-executive-header) > a { justify-self: start; }
 .panel :global(.admin-executive-metrics) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem 0; }
 .panel :global(.admin-executive-metrics) > a { min-width: 0; padding-inline: 1rem; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: .375rem; }
 .panel :global(.admin-executive-metrics) small { font-size: .75rem; font-weight: 500; line-height: 1.5; min-height: 3em; }
 .panel :global(.admin-executive-metrics) strong { font-size: 1.75rem; line-height: 1.15; font-weight: 700; }
 .panel :global(.admin-executive-metrics) > a > span { color: var(--muted-foreground); font-size: .875rem; padding-top: .375rem; }
 .panel :global(.admin-daily-layout) { display: grid; gap: 1.25rem; grid-template-columns: minmax(0,1fr); }
-.panel :global(.admin-lower-layout) { display: grid; gap: 1.25rem; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr); }
 .panel :global(.admin-cycle-card) :global(.admin-card-heading) { border: 0; }
 .panel :global(.admin-cycle) { gap: .5rem; padding: 0 1rem .625rem; }
 .panel :global(.admin-cycle-step) { min-height: 5.375rem; padding: .875rem 1rem; border: 1px solid var(--border); }
@@ -339,13 +327,6 @@
 .panel :global(.admin-followup-grid) { display: grid; gap: 1rem; padding-bottom: 1rem; }
 .panel :global(.admin-followup-grid) a { display: block; min-height: 2.75rem; margin-top: .5rem; }
 .panel :global(.admin-followup-grid) small { display: block; color: var(--muted-foreground); }
-.panel :global(.admin-module-empty) { min-height: 14rem; padding: 1.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; }
-.panel :global(.admin-module-empty) p { max-width: 36ch; color: var(--muted-foreground); font-size: .875rem; }
-.panel :global(.admin-module-empty) > a { color: var(--primary-text); font-size: .875rem; min-height: 2.75rem; }
-.panel :global(.admin-zone-summary) { padding: 1rem 1.25rem; }
-.panel :global(.admin-zone-summary) li { display: flex; gap: .75rem; align-items: center; min-height: 3rem; font-size: .9375rem; }
-.panel :global(.admin-zone-summary) strong { margin-left: auto; }
-.panel :global(.admin-map-pending) { display: flex; flex-wrap: wrap; gap: .75rem; padding: 1rem 1.25rem; font-size: .8125rem; color: var(--muted-foreground); }
 .panel :global(.admin-dashboard-more) { border-top: 1px solid var(--border); }
 .panel :global(.admin-cycle-step) p { font-weight: 600; }
 .panel :global(.admin-crm-layout) { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; align-items: start; }
@@ -398,7 +379,6 @@
   .panel :global(.admin-profile-name), .panel :global(.admin-profile-chevron) { display: inline; }
   .panel :global(.admin-coach-header) { grid-template-columns: minmax(0,1fr) auto; align-items: end; }
   .panel :global(.admin-coach-actions) { justify-content: flex-end; }
-  .panel :global(.admin-executive-header) { grid-template-columns: minmax(0,1fr) auto; gap: 1rem; min-height: 4.5rem; }
   .panel :global(.admin-executive-metrics) { grid-column: 1 / -1; grid-row: 2; }
   .panel :global(.admin-executive-metrics) { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .panel :global(.admin-cycle) { grid-template-columns: repeat(3,minmax(0,1fr)); }
@@ -407,18 +387,16 @@
 }
 @media (min-width: 1280px) {
   .panel :global(.admin-daily-layout) { grid-template-columns: minmax(0,2.1fr) minmax(0,1fr); }
-  .panel :global(.admin-cycle) { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 0; }
-  .panel :global(.admin-lower-layout) { grid-template-columns: minmax(0,1.47fr) minmax(0,1fr); }
+  .panel :global(.admin-cycle) { grid-template-columns: repeat(6,minmax(0,1fr)); gap: 0; }
   .panel :global(.admin-cycle-step) { position: relative; isolation: isolate; border: 0; border-radius: 0; padding-left: 2rem; clip-path: polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%,16px 50%); margin-left: -10px; background: var(--border); }
   .panel :global(.admin-cycle-step)::before { content: ""; position: absolute; inset: 1px; clip-path: inherit; background: var(--secondary); z-index: -1; }
   .panel :global(.admin-cycle-step):first-child { margin-left: 0; padding-left: 1rem; clip-path: polygon(0 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,0 100%); }
   .panel :global(.admin-followup-grid) { grid-template-columns: repeat(3,minmax(0,1fr)); }
 }
 @media (min-width: 1280px) {
-  .panel :global(.admin-executive-header) { grid-template-columns: minmax(16rem,1fr) minmax(25rem,1.2fr) auto; }
   .panel :global(.admin-executive-metrics) { grid-column: auto; grid-row: auto; }
   .panel :global(.admin-properties-grid) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .panel :global(.admin-cycle) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .panel :global(.admin-cycle) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
 /* Navigation and app launcher share the existing module catalogue. */

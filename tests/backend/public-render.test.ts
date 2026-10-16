@@ -7,7 +7,7 @@ import { EditorialIntro, EditorialProperties } from "@/components/home/editorial
 import { InstitutionalVideo } from "@/components/sections/institutional-video";
 import { matchRemotePattern } from "next/dist/shared/lib/match-remote-pattern";
 import type { Metadata } from "next";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 import { siteConfig } from "@/data/site";
 import PropertyDetailPage, { generateMetadata as propertyMetadata } from "@/app/inventario/[slug]/page";
 

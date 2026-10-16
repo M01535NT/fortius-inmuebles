@@ -19,6 +19,7 @@ import {
   useCollection,
 } from "@/lib/admin/store";
 import { INTENTS, type OperationalInterview } from "@/lib/intake/interview";
+import { formatDate } from "@/lib/utils";
 
 /*
   Resumen coach: una acción principal (Nueva operación), entrevistas
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
             prospecto: vender, arrendar, comprar, rentar o invertir.
           </p>
           <p className="admin-coach-date">
-            <time dateTime={hoy}>{hoy.split("-").reverse().join("/")}</time>
+            <time dateTime={hoy}>{formatDate(hoy)}</time>
           </p>
         </div>
         <div className="admin-coach-actions">
@@ -129,14 +130,10 @@ export default function AdminDashboard() {
             <strong>{String(value).padStart(2, "0")}</strong>
           </Link>
         ))}
-        <Link href="/admin/finanzas">
-          <small>Comisiones previstas</small>
-          <span>Pendiente</span>
-        </Link>
       </div>
 
       <InventoryScope count={propiedades.filter(p => p.demo).length} included={includeDemo} onChange={setIncludeDemo}/>
-      <TodayWorkspace includeDemo={includeDemo}/>
+      <TodayWorkspace/>
       <details className="admin-dashboard-more"><summary>Más información del equipo</summary>
       <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-2">
         <section aria-labelledby="dashboard-agenda" className="admin-card min-w-0 rounded-lg border border-border bg-card">

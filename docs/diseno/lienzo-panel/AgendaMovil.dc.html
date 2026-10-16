@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Agenda en celular</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp" style="width: 390px; min-height: 1300px; display: flex; flex-direction: column">
+  <main style="flex: 1; padding: 20px 0 32px; display: flex; flex-direction: column; gap: 16px">
+    <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 12px 0 20px">
+      <h1 class="h1" style="font-size: 27px">Agenda</h1>
+      <button class="icon-btn borde" type="button" aria-label="Agendar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Vista" style="padding: 0 12px">
+      <button class="tab on" role="tab" aria-selected="true" type="button">Agenda</button>
+      <button class="tab" role="tab" aria-selected="false" type="button">Tareas <span class="mono xs">9</span></button>
+    </div>
+
+    <div role="tablist" aria-label="Día" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 0 12px">
+      <sc-for list="{{dias}}" as="d" hint-placeholder-count="7">
+        <button type="button" role="tab" aria-selected="{{d.sel}}" style="min-height: 60px; border-radius: 4px; border: 1px solid {{d.borde}}; background: {{d.fondo}}; color: {{d.tinta}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer">
+          <span class="xs" style="font-weight: 600">{{d.nombre}}</span>
+          <span class="mono" style="font-size: 17px; font-weight: 600">{{d.num}}</span>
+          <span aria-hidden="true" style="width: 5px; height: 5px; border-radius: 50%; background: {{d.punto}}"></span>
+        </button>
+      </sc-for>
+    </div>
+
+    <section aria-labelledby="dia-t" style="padding: 8px 20px 0; display: flex; flex-direction: column; gap: 12px">
+      <h2 id="dia-t" class="h2">Viernes 16 de octubre</h2>
+      <p class="small mut" style="margin-top: -6px">2 visitas y 1 entrevista</p>
+      <ol style="display: flex; flex-direction: column; gap: 10px">
+        <li>
+          <a href="#" style="display: flex; gap: 14px; padding: 16px; border-radius: 6px; background: var(--pri); border: 1px solid var(--pedge); color: #fff; text-decoration: none">
+            <span class="mono" style="font-weight: 600; width: 46px; flex: none">11:00</span>
+            <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span class="mono xs" style="text-transform: uppercase; letter-spacing: .06em; opacity: .9">Visita</span>
+              <span style="font-weight: 650">Casa en Baja Malibú, Rosarito</span>
+              <span class="small" style="opacity: .92">Con la familia Ortega · 1 h</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="card" style="display: flex; gap: 14px; padding: 16px; text-decoration: none">
+            <span class="mono" style="font-weight: 600; width: 46px; flex: none">13:30</span>
+            <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span class="mono xs mut" style="text-transform: uppercase; letter-spacing: .06em">Entrevista</span>
+              <span style="font-weight: 650">Lucía Mendoza</span>
+              <span class="small mut">Colinas de Agua Caliente · 1 h 30 min</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="#" style="display: flex; gap: 14px; padding: 16px; border-radius: 6px; background: var(--pri); border: 1px solid var(--pedge); color: #fff; text-decoration: none">
+            <span class="mono" style="font-weight: 600; width: 46px; flex: none">17:00</span>
+            <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span class="mono xs" style="text-transform: uppercase; letter-spacing: .06em; opacity: .9">Visita</span>
+              <span style="font-weight: 650">Departamento en Zona Río</span>
+              <span class="small" style="opacity: .92">Con Andrés Fimbres · 1 h</span>
+            </span>
+          </a>
+        </li>
+      </ol>
+      <div class="empty" style="padding: 24px 16px; margin-top: 8px">
+        <p style="font-weight: 650; color: var(--fg)">Tarde libre después de las 18:00</p>
+        <button class="btn btn-sec" type="button">Agendar algo</button>
+      </div>
+    </section>
+  </main>
+  <dc-import name="BarraInferior" activo="menu" hint-size="390px,80px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dias = [
+      { nombre: 'Lun', num: 12, visitas: true }, { nombre: 'Mar', num: 13 }, { nombre: 'Mié', num: 14, visitas: true },
+      { nombre: 'Jue', num: 15, visitas: true }, { nombre: 'Vie', num: 16, hoy: true, visitas: true }, { nombre: 'Sáb', num: 17, visitas: true }, { nombre: 'Dom', num: 18 }
+    ];
+    return {
+      dias: dias.map((d) => ({
+        ...d,
+        sel: d.hoy ? 'true' : 'false',
+        fondo: d.hoy ? 'var(--navy)' : 'var(--card)',
+        tinta: d.hoy ? '#ffffff' : 'var(--fg)',
+        borde: d.hoy ? 'var(--navy)' : 'var(--line)',
+        punto: d.visitas ? (d.hoy ? '#e5829b' : 'var(--pri)') : 'transparent'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

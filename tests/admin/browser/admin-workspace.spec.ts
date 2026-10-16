@@ -53,7 +53,7 @@ test("app window searches, traps keyboard focus, closes and navigates", async ({
   const trigger = page.getByRole("button", { name: "Abrir aplicaciones" });
   const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
   await trigger.click();
-  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(20);
+  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(16);
   await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
   const search = apps.getByRole("searchbox", { name: "Buscar aplicación" });
   await expect(search).toBeFocused();
@@ -95,7 +95,7 @@ test("apps fit small phones and tablets and release the mobile menu", async ({ p
     const box = await apps.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-    await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(20);
+    await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(16);
     await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
     if (width < 768) await expect(page.locator('button[aria-label="Menú del panel"]')).toHaveAttribute("aria-expanded", "false");
     await apps.getByRole("link", { name: "Abrir catálogo completo" }).focus();
@@ -118,7 +118,7 @@ test("editor has all twenty tools while Más excludes admin-only modules", async
   await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
   const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
   const tools = apps.getByRole("navigation", { name: "Aplicaciones del sistema" });
-  await expect(tools.getByRole("link")).toHaveCount(20);
+  await expect(tools.getByRole("link")).toHaveCount(16);
   await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
   await apps.getByRole("button", { name: "Finanzas", exact: true }).click();
   await expect(tools.getByRole("link")).toHaveCount(6);
@@ -267,7 +267,7 @@ for (const width of [320, 390, 1440]) {
   });
 }
 async function expectFixedDaily(navigation: Locator) {
-  const names = ["Resumen", "Hoy", "Operaciones", "Agenda", "Captación", "Preparación", "Promoción", "Negociación", "Cierre", "Postventa"];
+  const names = ["Resumen", "Hoy", "Operaciones", "Agenda", "Captación", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"];
   for (const [index, name] of names.entries())
     await expect(navigation.getByRole("link").nth(index)).toHaveText(name);
 }
@@ -287,6 +287,8 @@ test("reorders Más by drag and touch, persists, restores and keeps daily/proced
   await expect(desktop.getByTitle("Arrastrar Resumen")).toHaveCount(0);
   await expect(desktop.getByRole("button", { name: "Subir Captación", exact: true })).toHaveCount(0);
   await expect(desktop.getByRole("button", { name: "Subir CRM", exact: true })).toBeDisabled();
+  // Ambos extremos visibles: desplazar la barra durante un arrastre nativo lo cancela.
+  await desktop.getByRole("link", { name: "CRM", exact: true }).scrollIntoViewIfNeeded();
   await desktop.getByTitle("Arrastrar Inmuebles").dragTo(desktop.getByRole("link", { name: "CRM", exact: true }));
   await expect(desktop.getByRole("link").nth(10)).toHaveText("Inmuebles");
   await expect(desktop.getByRole("link").nth(11)).toHaveText("CRM");

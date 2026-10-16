@@ -79,13 +79,3 @@ export function EditorialDocuments({ content }: { content?: SiteContent | null }
   </section>;
 }
 
-const TOOLS = [
-  { title: "Calculadora de hipoteca", text: "Estima tu mensualidad con enganche, plazo y tasa editables.", href: "/herramientas/hipoteca" },
-  { title: "Gastos de cierre", text: "Estima los gastos de compraventa, desglosados por concepto.", href: "/herramientas/gastos-de-cierre" },
-];
-export function EditorialTools() {
-  return <section className="editorial-tools"><div className="editorial-container">
-    <SplitHeading reveal="lines" lines={["Calculadoras", "inmobiliarias."]} className="editorial-section-title" />
-    <div className="editorial-tools-grid">{TOOLS.map((tool) => <Link key={tool.href} href={tool.href} className="editorial-tool" data-cursor="Abrir" data-editorial-reveal><h3>{tool.title}</h3><p>{tool.text}</p><span>Abrir <ArrowUpRight size={20} aria-hidden="true" /></span></Link>)}</div>
-  </div></section>;
-}

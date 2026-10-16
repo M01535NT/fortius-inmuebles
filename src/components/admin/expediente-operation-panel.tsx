@@ -5,6 +5,7 @@ import { OperationWorkflowPanel } from "./operation-workflow-panel";
 import type { OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
 import { EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
+import { fetchJson as json } from "@/lib/admin/store";
 
 export type ExpedienteOperativo = {
   id: string; version: number; asesor_id: string; etapa?: keyof typeof EXPEDIENTE_ETAPAS;
@@ -16,12 +17,6 @@ type Props<T extends ExpedienteOperativo> = {
   expediente: T; responsable: string; view?: "all"|"summary"|"activity"; onSaved: (value: T) => void; onDirtyChange: (value: boolean) => void;
 };
 
-async function json<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
-  const body = await response.json();
-  if (!response.ok) throw new Error(body.error ?? "No se pudo completar la operación");
-  return body as T;
-}
 function shownDate(value?: string | null) {
   if (!value) return "Sin fecha";
   return value.includes("T") ? operationalDate(new Date(value)) : value.slice(0, 10);

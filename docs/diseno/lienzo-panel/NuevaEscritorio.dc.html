@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nueva operación</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp {{temaClase}}" style="width: 100%; min-height: {{alto}}px; display: flex; flex-direction: column">
+  <!-- Barra superior del asistente -->
+  <header style="display: flex; flex-direction: column; gap: 12px; padding: {{padTop}}; border-bottom: 1px solid var(--line); background: var(--card)">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <a class="icon-btn" href="{{salir}}" aria-label="Salir sin crear la operación">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </a>
+        <span style="font-weight: 700; font-size: 17px">Nueva operación</span>
+      </div>
+      <span class="mono small mut">Paso {{paso}} de 4</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 640px; align-self: center">
+      <div class="bar" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="{{paso}}" aria-label="Paso {{paso}} de 4"><span style="width: {{avance}}%"></span></div>
+      <p class="xs mut">{{pasoNombre}}</p>
+    </div>
+  </header>
+
+  <main style="flex: 1; width: 100%; max-width: 688px; align-self: center; padding: {{padMain}}; display: flex; flex-direction: column; gap: 28px">
+
+    <!-- Paso 1 -->
+    <sc-if value="{{p1}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <h1 class="h1">¿Qué quiere hacer el cliente?</h1>
+        <p class="mut">Elige una opción. La puedes cambiar después.</p>
+      </div>
+      <div role="radiogroup" aria-label="Qué quiere hacer el cliente" style="display: flex; flex-direction: column; gap: 10px">
+        <sc-for list="{{tipos}}" as="t" hint-placeholder-count="5">
+          <button type="button" role="radio" aria-checked="{{t.checked}}" class="opcion {{t.cls}}" onClick="{{t.pick}}">
+            <span class="radio" aria-hidden="true"></span>
+            <span style="display: flex; flex-direction: column; gap: 2px">
+              <span style="font-weight: 650; font-size: 17px">{{t.titulo}}</span>
+              <span class="small mut">{{t.desc}}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- Paso 2 -->
+    <sc-if value="{{p2}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <h1 class="h1">¿Quién es?</h1>
+        <p class="mut">Con el nombre y el teléfono basta para empezar.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <div><label class="lbl" for="n-nombre">Nombre completo</label><input class="inp" id="n-nombre" value="Ramón Félix Arce"></div>
+        <div><label class="lbl" for="n-tel">Teléfono</label><input class="inp mono" id="n-tel" value="664 351 0928" inputmode="tel"></div>
+        <div class="notice" role="status">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 2.5 20h19z"></path><path d="M12 10v4.5M12 17.5v.01"></path></svg>
+          <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+            <p style="font-weight: 650">Ya tenemos a alguien con ese teléfono</p>
+            <p class="small">Ramón Félix Arce · Prospecto desde marzo de 2026 · Buscaba casa en Rosarito.</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <button class="btn btn-sec" type="button">Sí, es la misma persona</button>
+              <button class="btn btn-ghost" type="button">No, es otra persona</button>
+            </div>
+          </div>
+        </div>
+        <div><label class="lbl" for="n-correo">Correo <span class="mut" style="font-weight: 400">(si lo tiene)</span></label><input class="inp" id="n-correo" placeholder="nombre@correo.com"></div>
+      </div>
+    </sc-if>
+
+    <!-- Paso 3 -->
+    <sc-if value="{{p3}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <ol aria-label="Secciones de la entrevista" style="display: flex; flex-wrap: wrap; gap: 6px 16px">
+          <li class="small mut" style="display: flex; align-items: center; gap: 6px"><svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>El propietario</li>
+          <li class="small" aria-current="step" style="display: flex; align-items: center; gap: 6px; font-weight: 700"><span class="mono xs">2</span>El inmueble</li>
+          <li class="small mut" style="display: flex; align-items: center; gap: 6px"><span class="mono xs">3</span>Lo que quiere</li>
+          <li class="small mut" style="display: flex; align-items: center; gap: 6px"><span class="mono xs">4</span>Documentos</li>
+        </ol>
+        <h1 class="h1">El inmueble</h1>
+        <p class="mut">Si el cliente no sabe algo, márcalo y seguimos. Lo completas después.</p>
+        <p class="small" style="display: flex; gap: 8px; align-items: flex-start">
+          <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 3px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8v.01"></path></svg>
+          <span>La operación se crea al terminar la entrevista. Si la guardas para después, la encuentras en Hoy, en «Entrevistas por terminar».</span>
+        </p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <fieldset style="border: 0; margin: 0; padding: 0">
+          <legend class="lbl" style="padding: 0">¿Qué tipo de inmueble es?</legend>
+          <div role="radiogroup" style="display: flex; flex-wrap: wrap; gap: 8px">
+            <button class="btn btn-sec" type="button" role="radio" aria-checked="true" style="background: var(--sel); border: 2px solid var(--pri); color: var(--selink)">Casa</button>
+            <button class="btn btn-sec" type="button" role="radio" aria-checked="false">Departamento</button>
+            <button class="btn btn-sec" type="button" role="radio" aria-checked="false">Terreno</button>
+            <button class="btn btn-sec" type="button" role="radio" aria-checked="false">Local</button>
+          </div>
+        </fieldset>
+        <div><label class="lbl" for="n-col">¿En qué colonia está?</label><input class="inp" id="n-col" value="Playas de Tijuana, sección Jardines"></div>
+        <div>
+          <label class="lbl" for="n-m2c">¿Cuántos metros de construcción?</label>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px">
+            <input class="inp mono" id="n-m2c" value="180" style="width: 140px">
+            <span class="mono small mut">m²</span>
+            <label style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer"><input type="checkbox" style="width: 20px; height: 20px; accent-color: #8a1634">No sabe</label>
+          </div>
+        </div>
+        <div>
+          <label class="lbl" for="n-m2t">¿Cuántos metros de terreno?</label>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px">
+            <input class="inp mono" id="n-m2t" value="" disabled style="width: 140px; opacity: .55">
+            <span class="mono small mut">m²</span>
+            <label style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer"><input type="checkbox" checked style="width: 20px; height: 20px; accent-color: #8a1634">No sabe</label>
+          </div>
+        </div>
+        <fieldset style="border: 0; margin: 0; padding: 0">
+          <legend class="lbl" style="padding: 0">¿La escritura está a su nombre?</legend>
+          <div role="radiogroup" style="display: flex; flex-wrap: wrap; gap: 8px">
+            <button class="btn btn-sec" type="button" role="radio" aria-checked="false">Sí</button>
+            <button class="btn btn-sec" type="button" role="radio" aria-checked="false">No</button>
+            <button class="btn btn-sec" type="button" role="radio" aria-checked="true" style="background: var(--sel); border: 2px solid var(--pri); color: var(--selink)">No sabe</button>
+          </div>
+        </fieldset>
+      </div>
+    </sc-if>
+
+    <!-- Paso 4 -->
+    <sc-if value="{{p4}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 8px">
+        <span aria-hidden="true" style="width: 56px; height: 56px; border-radius: 4px; background: var(--pri); color: #fff; display: inline-flex; align-items: center; justify-content: center">
+          <svg class="ico ico-l" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+        </span>
+        <h1 class="h1">Listo, la operación está creada</h1>
+        <p class="mut">La encuentras en Operaciones, en la etapa Captación.</p>
+      </div>
+      <dl class="card" style="padding: 8px 24px; display: grid; grid-template-columns: 130px minmax(0, 1fr)">
+        <dt class="small mut" style="padding: 14px 0; border-bottom: 1px solid var(--line)">Folio</dt><dd class="mono" style="padding: 14px 0; border-bottom: 1px solid var(--line); font-weight: 600">EXP-2026-047</dd>
+        <dt class="small mut" style="padding: 14px 0; border-bottom: 1px solid var(--line)">Cliente</dt><dd style="padding: 14px 0; border-bottom: 1px solid var(--line)">Ramón Félix Arce</dd>
+        <dt class="small mut" style="padding: 14px 0; border-bottom: 1px solid var(--line)">Quiere</dt><dd style="padding: 14px 0; border-bottom: 1px solid var(--line)">Vender su inmueble</dd>
+        <dt class="small mut" style="padding: 14px 0; border-bottom: 1px solid var(--line)">Inmueble</dt><dd style="padding: 14px 0; border-bottom: 1px solid var(--line)">Casa en Playas de Tijuana</dd>
+        <dt class="small mut" style="padding: 14px 0">Lo que sigue</dt><dd style="padding: 14px 0">Revisar la entrevista y pasar a Verificación y precio.</dd>
+      </dl>
+      <div style="display: flex; flex-direction: {{pieDir}}; gap: 10px">
+        <a class="btn btn-pri btn-lg" href="{{abrir}}">Abrir la operación
+          <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+        </a>
+        <a class="btn btn-ghost btn-lg" href="{{salir}}">Volver a Hoy</a>
+      </div>
+    </sc-if>
+  </main>
+
+  <!-- Pie con acciones -->
+  <sc-if value="{{conPie}}" hint-placeholder-val="{{true}}">
+    <footer style="border-top: 1px solid var(--line); background: var(--card); padding: {{padPie}}">
+      <div style="width: 100%; max-width: 640px; margin: 0 auto; display: flex; flex-direction: {{pieDir}}; justify-content: space-between; align-items: stretch; gap: 10px">
+        <sc-if value="{{conAtras}}" hint-placeholder-val="{{false}}">
+          <button class="btn btn-ghost btn-lg" type="button" onClick="{{atras}}">
+            <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+            Atrás
+          </button>
+        </sc-if>
+        <sc-if value="{{sinAtras}}" hint-placeholder-val="{{true}}"><span></span></sc-if>
+        <div style="display: flex; flex-direction: {{pieDir}}; gap: 10px">
+          <sc-if value="{{p3}}" hint-placeholder-val="{{false}}">
+            <button class="btn btn-sec btn-lg" type="button">Guardar y seguir después</button>
+          </sc-if>
+          <button class="btn btn-pri btn-lg" type="button" onClick="{{continuar}}">
+            {{continuarTxt}}
+            <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </button>
+        </div>
+      </div>
+    </footer>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"paso":{"editor":"enum","options":[1,2,3,4],"default":1},"movil":{"editor":"boolean","default":false},"tema":{"editor":"enum","options":["claro","oscuro"],"default":"claro"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { paso: null, tipo: 'vender' };
+  }
+  renderVals() {
+    const movil = !!this.props.movil;
+    const paso = Math.min(4, Math.max(1, Number(this.state.paso ?? this.props.paso ?? 1)));
+    const nombres = ['Qué quiere hacer', 'Quién es', 'Entrevista', 'Listo'];
+    const TIPOS = [
+      { id: 'vender', titulo: 'Vender su inmueble', desc: 'Casa, departamento, terreno o local que quiere vender.' },
+      { id: 'renta', titulo: 'Ofrecer su inmueble en renta', desc: 'Busca inquilino para su propiedad.' },
+      { id: 'comprar', titulo: 'Comprar', desc: 'Busca un inmueble para comprar.' },
+      { id: 'rentar', titulo: 'Rentar', desc: 'Busca dónde vivir o trabajar en renta.' },
+      { id: 'invertir', titulo: 'Invertir', desc: 'Quiere comprar para rentar o revender.' }
+    ];
+    const ir = (n) => () => this.setState({ paso: n });
+    return {
+      temaClase: this.props.tema === 'oscuro' ? 'oscuro' : '',
+      paso, pasoNombre: nombres[paso - 1],
+      avance: paso * 25,
+      p1: paso === 1, p2: paso === 2, p3: paso === 3, p4: paso === 4,
+      conPie: paso < 4, conAtras: paso > 1, sinAtras: paso === 1,
+      continuarTxt: paso === 3 ? 'Terminar entrevista' : 'Continuar',
+      continuar: ir(paso + 1), atras: ir(paso - 1),
+      tipos: TIPOS.map((t) => ({ ...t, cls: t.id === this.state.tipo ? 'on' : '', checked: t.id === this.state.tipo ? 'true' : 'false', pick: () => this.setState({ tipo: t.id }) })),
+      alto: movil ? 900 : 900,
+      padTop: movil ? '8px 16px 14px 8px' : '16px 32px 18px 24px',
+      padMain: movil ? '24px 20px 32px' : '56px 24px 48px',
+      padPie: movil ? '14px 16px 18px' : '16px 24px',
+      pieDir: movil ? 'column-reverse' : 'row',
+      salir: movil ? 'HoyMovil.dc.html' : 'Main.dc.html',
+      abrir: movil ? 'OperacionMovil.dc.html' : 'OperacionEscritorio.dc.html'
+    };
+  }
+}
+</script>
+</body>
+</html>

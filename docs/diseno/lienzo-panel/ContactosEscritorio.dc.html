@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Contactos</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp" style="width: 100%; min-height: 960px; display: flex; flex-wrap: wrap; align-items: stretch">
+  <div style="flex: 0 0 248px; display: flex">
+    <dc-import name="Sidebar" activo="contactos" hint-size="248px,960px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; max-width: 1192px; padding: 40px 48px 56px; display: flex; flex-direction: column; gap: 24px">
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 class="h1">Contactos</h1>
+        <p class="mut">Las personas con las que hablamos y lo que buscan.</p>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+        <label style="display: flex; align-items: center; gap: 10px; width: 280px; min-height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 6px; background: var(--field)">
+          <svg class="ico ico-s mut" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span class="mut" style="font-size: 15px">Buscar nombre o teléfono</span>
+        </label>
+        <button class="btn btn-sec" type="button">
+          <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          Agregar contacto
+        </button>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Tipo de contacto">
+      <button class="tab on" role="tab" aria-selected="true" type="button">Prospectos <span class="mono xs">24</span></button>
+      <button class="tab" role="tab" aria-selected="false" type="button">Clientes <span class="mono xs">38</span></button>
+    </div>
+
+    <div class="card" style="overflow-x: auto">
+      <table style="width: 100%; min-width: 860px; border-collapse: collapse; font-size: 15px">
+        <thead>
+          <tr style="text-align: left">
+            <th scope="col" class="eyebrow" style="padding: 14px 20px; border-bottom: 1px solid var(--line)">Persona</th>
+            <th scope="col" class="eyebrow" style="padding: 14px 16px; border-bottom: 1px solid var(--line)">Lo que busca</th>
+            <th scope="col" class="eyebrow" style="padding: 14px 16px; border-bottom: 1px solid var(--line)">Zona y presupuesto</th>
+            <th scope="col" class="eyebrow" style="padding: 14px 16px; border-bottom: 1px solid var(--line)">Siguiente paso</th>
+            <th scope="col" class="eyebrow" style="padding: 14px 20px; border-bottom: 1px solid var(--line)"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Abrir</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{personas}}" as="p" hint-placeholder-count="7">
+            <tr>
+              <th scope="row" style="padding: 16px 20px; border-bottom: 1px solid var(--line); text-align: left; font-weight: 400">
+                <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 650">{{p.nombre}}</span><span class="mono xs mut">{{p.tel}}</span></span>
+              </th>
+              <td style="padding: 16px; border-bottom: 1px solid var(--line)">{{p.busca}}</td>
+              <td style="padding: 16px; border-bottom: 1px solid var(--line)"><span style="display: flex; flex-direction: column; gap: 2px"><span>{{p.zona}}</span><span class="mono xs mut">{{p.presupuesto}}</span></span></td>
+              <td style="padding: 16px; border-bottom: 1px solid var(--line)"><span style="display: flex; flex-direction: column; gap: 2px"><span>{{p.paso}}</span><span class="mono xs {{p.fechaCls}}">{{p.fecha}}</span></span></td>
+              <td style="padding: 16px 20px; border-bottom: 1px solid var(--line); text-align: right">
+                <a class="icon-btn" href="#" aria-label="Abrir a {{p.nombre}}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+              </td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      personas: [
+        { nombre: 'Ramón Félix Arce', tel: '664 351 0928', busca: 'Comprar casa de 3 recámaras', zona: 'Rosarito, cerca de la playa', presupuesto: 'Hasta $4,200,000 MXN', paso: 'Mandarle 3 opciones', fecha: 'Hoy · 16 oct', fechaCls: 'mut' },
+        { nombre: 'Sofía Arreola Peña', tel: '664 772 1045', busca: 'Rentar departamento amueblado', zona: 'Zona Río o Chapultepec', presupuesto: '$18,000 a $22,000 MXN / mes', paso: 'Llamar para agendar visitas', fecha: 'Vencido · 14 oct', fechaCls: 'vencido' },
+        { nombre: 'Familia Ortega Ruiz', tel: '661 120 4398', busca: 'Comprar casa con vista al mar', zona: 'Baja Malibú, Rosarito', presupuesto: 'Hasta $7,000,000 MXN', paso: 'Visita a la casa de Héctor Valdivia', fecha: 'Hoy · 11:00', fechaCls: 'mut' },
+        { nombre: 'Alberto Cázares', tel: '664 615 8820', busca: 'Invertir en departamentos para renta', zona: 'Otay y Zona Río', presupuesto: '$2,500,000 a $3,500,000 MXN', paso: 'Mandarle el análisis de renta', fecha: 'Lun · 19 oct', fechaCls: 'mut' },
+        { nombre: 'Daniela Ochoa Lizárraga', tel: '665 108 3371', busca: 'Comprar terreno', zona: 'Tecate', presupuesto: 'Hasta $1,200,000 MXN', paso: 'Confirmar si tiene crédito aprobado', fecha: 'Mié · 21 oct', fechaCls: 'mut' },
+        { nombre: 'Andrés Fimbres', tel: '664 289 6612', busca: 'Comprar departamento', zona: 'Zona Río', presupuesto: 'Hasta $4,000,000 MXN', paso: 'Visita al departamento de Zona Río', fecha: 'Hoy · 17:00', fechaCls: 'mut' },
+        { nombre: 'Karla Beltrán Soto', tel: '646 230 7719', busca: 'Rentar casa', zona: 'Valle Dorado, Ensenada', presupuesto: '$14,000 MXN / mes', paso: 'Preguntarle si sigue buscando', fecha: 'Vencido · 9 oct', fechaCls: 'vencido' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

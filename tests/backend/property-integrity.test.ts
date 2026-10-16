@@ -1,7 +1,7 @@
 import { afterAll, expect, test } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile } from "node:fs/promises";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 import { parseRecord, projectPublic } from "@/lib/backend/validation";
 
 const sample = propiedades[0];

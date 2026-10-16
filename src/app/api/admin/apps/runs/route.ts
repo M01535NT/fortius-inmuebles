@@ -7,8 +7,22 @@ export async function GET(request: Request) {
   return apiResponse(async () => {
     const { client } = await requireStaff(); const params = new URL(request.url).searchParams;
     const slug = z.string().refine(v => !!getApp(v)).parse(params.get("slug"));
+    if (params.get("vista") === "ultimo-por-expediente") {
+      // Only runs with a result count as a prepared report; drafts keep result null.
+      const ultimos: Record<string, string> = {}; const page = 1000;
+      for (let from = 0; ; from += page) {
+        const { data, error } = await client.from(RUNS).select("expediente_id,updated_at").eq("slug", slug).is("deleted_at", null).not("expediente_id", "is", null).not("result", "is", null).order("updated_at", { ascending: false }).order("id").range(from, from + page - 1);
+        if (error) databaseError(error);
+        const rows = (data ?? []) as Array<{ expediente_id: string | null; updated_at: string }>;
+        for (const row of rows) if (row.expediente_id && !ultimos[row.expediente_id]) ultimos[row.expediente_id] = row.updated_at;
+        if (rows.length < page) break;
+      }
+      return { ultimos };
+    }
     const offset = z.coerce.number().int().min(0).max(100000).parse(params.get("offset") ?? 0);
     let query = client.from(RUNS).select("*", { count: "exact" }).eq("slug", slug);
+    const expedienteId = params.get("expedienteId");
+    if (expedienteId) query = query.eq("expediente_id", z.uuid().parse(expedienteId));
     query = params.get("deleted") === "true" ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
     const { data, error, count } = await query.order("updated_at", { ascending: false }).order("id").range(offset, offset + 19);
     if (error) databaseError(error);

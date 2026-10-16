@@ -1,10 +1,11 @@
 "use client";
 import { calcularIntermediacion } from "@/lib/formatos/intermediacion";
 import { INTERMEDIACION_CLAUSES } from "@/lib/formatos/intermediacion-text";
+import { formatAmount } from "@/lib/finance/money";
 
 export function IntermediacionSummary({ values }: { values: Record<string, unknown> }) {
   const result = calcularIntermediacion(values);
-  const cash = (value: number | null) => value === null ? "Pendiente" : `${value.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
+  const cash = (value: number | null) => value === null ? "Pendiente" : `${formatAmount(value)} MXN`;
   return <section className="space-y-4 rounded-lg border border-border bg-muted/30 p-4 md:col-span-2">
     <h2 className="font-semibold">Emisión del contrato 09 bloqueada</h2>
     <p className="text-sm">El modelo Fortius no está registrado. Puedes preparar y guardar los datos. Introducir un número de registro o seleccionar un supuesto de no aplicación no habilita el PDF: falta revisar el modelo y sus registros aplicables antes de autorizar su emisión.</p>

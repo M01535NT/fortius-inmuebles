@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Contactos en celular</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp" style="width: 390px; min-height: 1300px; display: flex; flex-direction: column">
+  <main style="flex: 1; padding: 20px 0 32px; display: flex; flex-direction: column; gap: 16px">
+    <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 12px 0 20px">
+      <h1 class="h1" style="font-size: 27px">Contactos</h1>
+      <div style="display: flex; gap: 4px">
+        <button class="icon-btn" type="button" aria-label="Buscar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button>
+        <button class="icon-btn borde" type="button" aria-label="Agregar contacto"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Tipo de contacto" style="padding: 0 12px">
+      <button class="tab on" role="tab" aria-selected="true" type="button">Prospectos <span class="mono xs">24</span></button>
+      <button class="tab" role="tab" aria-selected="false" type="button">Clientes <span class="mono xs">38</span></button>
+    </div>
+
+    <ul class="lista" style="padding: 0 20px">
+      <sc-for list="{{personas}}" as="p" hint-placeholder-count="6">
+        <li>
+          <a href="#" style="display: flex; gap: 12px; align-items: center; padding: 16px 0; text-decoration: none">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="font-weight: 650; font-size: 16px">{{p.nombre}}</span>
+              <span class="small">{{p.busca}} · <span class="mut">{{p.zona}}</span></span>
+              <span class="small" style="display: flex; flex-wrap: wrap; gap: 2px 8px"><span class="mut">Sigue:</span> {{p.paso}}</span>
+              <span class="mono xs {{p.fechaCls}}">{{p.fecha}}</span>
+            </span>
+            <svg class="ico mut" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </a>
+        </li>
+      </sc-for>
+    </ul>
+  </main>
+  <dc-import name="BarraInferior" activo="contactos" hint-size="390px,80px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      personas: [
+        { nombre: 'Ramón Félix Arce', busca: 'Comprar casa', zona: 'Rosarito', paso: 'Mandarle 3 opciones', fecha: 'Hoy · 16 oct', fechaCls: 'mut' },
+        { nombre: 'Sofía Arreola Peña', busca: 'Rentar departamento', zona: 'Zona Río', paso: 'Llamar para agendar visitas', fecha: 'Vencido · 14 oct', fechaCls: 'vencido' },
+        { nombre: 'Familia Ortega Ruiz', busca: 'Comprar casa', zona: 'Baja Malibú', paso: 'Visita a la casa de Héctor Valdivia', fecha: 'Hoy · 11:00', fechaCls: 'mut' },
+        { nombre: 'Alberto Cázares', busca: 'Invertir', zona: 'Otay y Zona Río', paso: 'Mandarle el análisis de renta', fecha: 'Lun · 19 oct', fechaCls: 'mut' },
+        { nombre: 'Daniela Ochoa Lizárraga', busca: 'Comprar terreno', zona: 'Tecate', paso: 'Confirmar su crédito', fecha: 'Mié · 21 oct', fechaCls: 'mut' },
+        { nombre: 'Andrés Fimbres', busca: 'Comprar departamento', zona: 'Zona Río', paso: 'Visita al departamento', fecha: 'Hoy · 17:00', fechaCls: 'mut' },
+        { nombre: 'Karla Beltrán Soto', busca: 'Rentar casa', zona: 'Ensenada', paso: 'Preguntarle si sigue buscando', fecha: 'Vencido · 9 oct', fechaCls: 'vencido' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

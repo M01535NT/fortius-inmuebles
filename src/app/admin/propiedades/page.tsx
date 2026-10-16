@@ -215,7 +215,7 @@ export default function AdminPropiedadesPage() {
           </div>}
         </>
       )}
-      <div className="admin-inventory-note"><DemoBanner show /></div>
+      <div className="admin-inventory-note"><DemoBanner /></div>
     </div>
   );
 }

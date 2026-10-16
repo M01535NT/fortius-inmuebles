@@ -5,19 +5,13 @@ import type { Property } from "@/data/propiedades";
 import type { Asesor, SiteContent, SiteSettings, Post } from "@/lib/domain/records";
 import { createServerClient } from "./auth";
 import { projectPublic } from "./validation";
-import { databaseError } from "./http";
+import { readAllPages } from "./http";
 import { resolveSiteContent } from "@/data/home-copy";
 
 const readPublic = cache(async (collection: string): Promise<Record<string, unknown>[]> => {
   const client = createServerClient();
-  const records: unknown[] = [];
-  for (let offset = 0; ; offset += 500) {
-    const { data, error } = await client.rpc("fortius_inmuebles_public_records", { p_collection: collection }).range(offset, offset + 499);
-    if (error) databaseError(error);
-    records.push(...(data ?? []).map((row: { data: unknown }) => row.data));
-    if (!data || data.length < 500) break;
-  }
-  return projectPublic(collection, records);
+  const rows = await readAllPages<{ data: unknown }>((from, to) => client.rpc("fortius_inmuebles_public_records", { p_collection: collection }).range(from, to));
+  return projectPublic(collection, rows.map(row => row.data));
 });
 
 export async function getPublicProperties(): Promise<Property[]> { return await readPublic("propiedades") as unknown as Property[]; }

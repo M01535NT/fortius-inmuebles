@@ -1,8 +1,74 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 14 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** Codex. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 14 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
+
+## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
+
+**Alcance:** mismo comportamiento con menos código y peso, decidido por el titular el 15/10/2026: quitar Finanzas, Análisis territorial y Portal de clientes, y eliminar las integraciones apagadas (firmas, OCR, consulta con IA y rutas). Rama `chore/limpieza-codigo`, sin migraciones ni cambios de permisos o datos. **Estado: comprobada localmente; sin push, PR ni publicación.**
+
+- **Código:** 35 archivos y 2,161 líneas menos en `src` (34,437 → 32,276). Se borraron componentes de la portada anterior y rutas `/zonas` que ya redirigían. Se quitaron exportaciones sin uso. Las utilidades repetidas se unificaron (`formatDate`, `formatAmount`, `fetchJson`, `loadAllDossiers`, `readAllPages`, etiquetas de operación y etapa).
+- **Peso:** 474 KB menos de JavaScript compilado (−10.7 %) y 17 KB menos de CSS. `public/` pasa de 6.3 MB a 3.5 MB; el retrato de Nosotros pasa de PNG de 2.5 MB, servido sin optimizar, a WebP de 118 KB. Una dependencia menos (`pdfjs-dist`).
+- **Integraciones:** quedan 16 apps. Las tablas y la migración de integraciones siguen en la base y en los respaldos; su prueba de seguridad en PostgreSQL se conserva.
+- **Pruebas:** lint, tipos y compilación aprobados; 700 pruebas de servidor, 328 del panel y 35 de herramientas, además del paquete de PDF. En navegador: 70 públicas, 44 del panel (las de CI más comercial, process-corrections y reportes, que entran a CI) y 6 de formularios. Las pruebas del panel se ejecutaron contra un servidor sin backend, como CI. Se retiraron ocho pruebas de navegador obsoletas que CI no ejecutaba.
+- **Respaldo:** los archivos retirados sin referencias quedan en `.superpowers/archivo-limpieza-2026-10-15/` con manifiesto SHA-256.
+- **Pendiente:** el titular decide el borrado de carpetas locales temporales; después siguen el PR y Verify remoto. La Fase B (bocetos del rediseño) espera aprobación.
+
+## Proceso de comercialización de un inmueble — definición del titular, 15/10/2026
+
+Este es el proceso que Fortius sigue para comercializar un inmueble y al que debe adaptarse el panel. Prevalece sobre cualquier nombre de etapa anterior. Aplica a la ruta del propietario (`captacion`); la ruta del comprador se une a él en «Visitas y ofertas».
+
+**Lógica del orden:** conocer → verificar → formalizar y preparar → promover → negociar → cerrar y entregar.
+
+| # | Etapa | Qué se hace | Para qué |
+|---|---|---|---|
+| 0 | **Captación** | Conocer al propietario, su objetivo y el inmueble; identificar quién puede autorizar la venta y reunir la información inicial. | Saber qué necesita el cliente y si podemos atender la operación. |
+| 1 | **Verificación y precio** | Revisar documentos, características y pendientes; comparar propiedades similares y acordar el precio de salida. | Detectar obstáculos y vender con un precio sustentado. |
+| 2 | **Contrato y preparación** | Formalizar el servicio, honorarios y autorizaciones; preparar ficha, fotografías y plan de publicación. | Dejar claras las responsabilidades y presentar el inmueble con información respaldada. |
+| 3 | **Publicación y seguimiento** | Publicar en los canales acordados, mantener los datos actualizados e informar al propietario sobre consultas y avance. | Generar interesados y evaluar cómo funciona la comercialización. |
+| 4 | **Visitas y ofertas** | Coordinar visitas con prospectos compatibles y revisar cada oferta: precio, forma de pago, plazos y condiciones. | Convertir el interés en una propuesta viable que el propietario decida informado. |
+| 5 | **Cierre y entrega** | Coordinar la firma con las partes y la notaría, verificar pagos, documentar llaves e inventario y seguir los pendientes. | La operación no termina al aceptar una oferta: debe concretarse y entregarse correctamente. |
+
+### Cómo lo cubre hoy el panel
+
+La guía actual del propietario tiene ocho estados internos (`captacion`, `documentacion`, `comercializacion`, `negociacion`, `cierre`, `entrega`, `postventa`, `cerrado`), validados también en PostgreSQL. La barra lateral muestra seis accesos con otros nombres: Captación, Preparación, Promoción, Negociación, Cierre y Postventa.
+
+| Etapa del proceso | Estado interno actual | Requisitos para salir de la etapa (ya existentes) | Diferencia con el proceso |
+|---|---|---|---|
+| 0 Captación | `captacion` | Entrevista 02 | Cubierta. Quién autoriza la venta se pregunta como dato opcional; se verifica en la etapa 1. |
+| 1 Verificación y precio | `documentacion` (primera mitad) | Titularidad 05, factibilidad 06 con vigencia, opinión de valor 07, precio 08 y decisión de captación | **Comparte estado con la etapa 2**; hoy no se distingue cuándo termina la verificación. |
+| 2 Contrato y preparación | `documentacion` (segunda mitad) | Intermediación 09, levantamiento y material 04B, plan 10 y autorización de publicación | Igual que arriba. El PDF del 09 sigue bloqueado; la autorización se acredita con evidencia externa. |
+| 3 Publicación y seguimiento | `comercializacion` | Comprador identificado para pasar a negociación | **Falta el seguimiento al propietario**: no hay registro visible del último informe (la app «Informe propietario» existe, pero no está ligada a la etapa). |
+| 4 Visitas y ofertas | `negociacion` | Oferta 14, revisión para cierre 06, instrumento 15 y contraparte | **Las visitas no aparecen en la ruta del propietario**; solo en la del comprador. |
+| 5 Cierre y entrega | `cierre` → `entrega` → `postventa` → `cerrado` | Firma y pago; entrega 16 con llaves e inventario; registro, honorarios y archivo | Cubierta, pero repartida en cuatro estados; el proceso la presenta como una sola etapa con pasos. |
+
+### Adaptación del panel propuesta (PROC)
+
+**Enfoque recomendado:** adaptar la presentación y derivar las seis etapas de los estados internos, **sin migración de base de datos**. Los requisitos y controles de PostgreSQL ya cumplen el orden del proceso; lo que no coincide son los nombres, la agrupación y dos registros visibles. Si después se quiere que la separación entre las etapas 1 y 2 también se valide en el servidor, se agrega un estado interno nuevo con su migración y su ensayo de respaldo (PROC-06, opcional).
+
+- [x] **PROC-01 · Una sola definición de etapas.** Crear en `src/lib/formatos/operation-workflow.ts` el catálogo de las seis etapas (nombre, qué se hace, para qué) y la función que obtiene la etapa a partir del estado interno y de los requisitos completos. Estando en `documentacion`, la operación está en «Verificación y precio» hasta completar titularidad, factibilidad, valor, precio y la decisión de captación; después pasa a «Contrato y preparación». Pruebas unitarias para cada estado interno y para operaciones históricas.
+- [x] **PROC-02 · Barra lateral y páginas de etapa.** Reemplazar los seis accesos de `module-catalog.ts` por las seis etapas del proceso, con sus nombres y su «para qué». Cada página `/admin/proceso/[etapa]` lista las operaciones de esa etapa, con las etapas 1 y 2 separadas y la 5 reuniendo cierre, entrega y postventa.
+- [x] **PROC-03 · Guía del expediente.** `operation-workflow-panel.tsx` muestra la línea de seis etapas, la actual destacada, y agrupa los requisitos bajo la etapa a la que pertenecen. En la etapa 2, los requisitos de la etapa 1 deben estar completos antes de capturar los de contrato y preparación. En la etapa 5 se muestran sus pasos (firma y pago → entrega → postventa → archivo).
+- [x] **PROC-04 · Seguimiento al propietario (etapa 3).** Mostrar en el expediente la fecha del último informe al propietario y abrir la app «Informe propietario» con el contexto del expediente. Avisar en Resumen cuando una operación publicada lleve más de un mes sin informe (mensual, confirmada por el titular el 15/10/2026). No bloquea el avance.
+- [x] **PROC-05 · Visitas y ofertas del inmueble (etapa 4).** Mostrar en el expediente del propietario las visitas agendadas y anteriores (agenda y formato 13) y las ofertas recibidas (formato 14 y app Ofertas) del inmueble vinculado, incluidas las que provienen de expedientes de compradores. No bloquea el avance.
+- [ ] **PROC-06 · Opcional: estado interno propio para «Contrato y preparación».** Solo si se requiere validación en servidor: nueva migración aditiva que agrega el estado, reparte los requisitos entre las etapas 1 y 2, migra los expedientes que están en `documentacion` y conserva publicación y rutas de compra, renta e inversión. Requiere respaldo, ensayo de restauración aislado y ventana autorizada.
+- [ ] **PROC-07 · Verificación y publicación.** Lint, tipos, pruebas, compilación y revisión en escritorio y móvil. Comprobar que los expedientes existentes conservan su avance. Publicar solo con autorización y registrar la entrega en este plan.
+
+**Fuera de este alcance:** las rutas de compra, renta e inversión conservan sus etapas actuales. El proceso no cambia los formatos, los permisos ni el bloqueo del PDF 09.
+
+**Decisiones del titular, 15/10/2026:** enfoque sin migración (PROC-01 a 05 y 07); PROC-06 queda fuera hasta nueva indicación. El informe al propietario es mensual.
+
+**Implementación local — 15/10/2026, rama `feat/proceso-comercializacion` (sin commit ni publicación todavía):**
+
+- PROC-01: `SALE_PROCESS`, `processPhase`, `processStageText`, `requirementPhase` y la regla mensual del informe en `operation-workflow.ts`. Compradores y arrendatarios se muestran en «Visitas y ofertas» mientras buscan y negocian; inversión conserva sus etapas y se agrupa en «Verificación y precio» hasta la decisión.
+- PROC-02: menú «Proceso de venta» con las seis etapas (`/admin/proceso/captacion`, `verificacion-precio`, `contrato-preparacion`, `publicacion-seguimiento`, `visitas-ofertas`, `cierre-entrega`). Las direcciones anteriores (`preparacion`, `promocion`, `negociacion`, `cierre`, `postventa`) redirigen a la etapa vigente. El Resumen muestra el conteo por etapa.
+- PROC-03: la guía del propietario muestra las seis etapas, qué se hace y por qué, y agrupa los requisitos por etapa. Los de «Contrato y preparación» quedan bloqueados en pantalla hasta completar la verificación y la decisión de captación. Este orden se aplica en la interfaz; el servidor sigue validando el avance acumulado (PROC-06 no implementado).
+- PROC-04: el expediente muestra el último informe preparado en la app y si está al día o vencido; Resumen y la página de etapa avisan de operaciones sin informe o con informe vencido. La fecha es la del último informe preparado, no un acuse de envío al propietario. `GET /api/admin/apps/runs` admite `expedienteId` y la vista `ultimo-por-expediente`, que devuelve solo fechas bajo las políticas RLS existentes.
+- PROC-05: el expediente reúne las visitas del inmueble en la agenda (próximas y anteriores; la agenda no registra si se realizaron), las ofertas analizadas en la app del expediente y de su contraparte, y los documentos del formato 14.
+- Sin migraciones ni cambios de permisos, formatos o datos. Las etiquetas internas del propietario de venta cambiaron a los nombres del proceso.
+- Comprobación local: lint y tipos sin errores; 734 pruebas backend y 343 del panel aprobadas, incluidas 12 nuevas del proceso, 4 del endpoint y 6 de navegación y guía. Una corrida del panel registró una falla aislada que no se reprodujo en tres corridas posteriores. Compilación de producción aprobada. Revisión en navegador con la sesión real en modo de solo lectura: Resumen, páginas de etapa, redirección, guía con requisitos agrupados y bloqueo, y ancho móvil de 375px sin desbordamiento. No se guardaron datos. Las pruebas de navegador Playwright se actualizaron, pero no se ejecutaron.
+- Pendiente: revisión del titular, commit, PR, Verify remoto y publicación.
 
 ## Regla de actualización en cada publicación
 
@@ -277,7 +343,7 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 ## Gobierno del proyecto
 
 - **Decisor y aceptación de negocio:** Moisés Núñez Tonalá.
-- **Responsable de ingeniería por entrega:** Codex en el checkout autorizado. No marcar aceptación humana desde una prueba automática.
+- **Responsable de ingeniería por entrega:** el agente de desarrollo, en el checkout autorizado. No marcar aceptación humana desde una prueba automática.
 - **Revisor jurídico/fiscal/contable:** profesional que designe Fortius. Su revisión es dependencia cuando la entrega fija reglas de esas materias.
 - **Usuarios piloto:** administrador y dos asesores controlados; datos sintéticos hasta autorización expresa de un piloto real.
 - **Enfoque:** entregas incrementales, un recorrido verificable por vez. Una tarea de implementación en curso y otra como máximo en revisión. Las dependencias externas se registran aparte.
@@ -285,7 +351,7 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 
 ## Orden y ventanas orientativas
 
-Ventanas expresadas en días de ingeniería: no son días calendario ni promesas de Codex. Supuestos: una persona de ingeniería, infraestructura actual, revisión de negocio disponible, datos de prueba y sin nuevas integraciones de pago. Los rangos no se suman automáticamente; hay solapamientos y varias entregas ampliables.
+Ventanas expresadas en días de ingeniería: no son días calendario ni promesas del agente. Supuestos: una persona de ingeniería, infraestructura actual, revisión de negocio disponible, datos de prueba y sin nuevas integraciones de pago. Los rangos no se suman automáticamente; hay solapamientos y varias entregas ampliables.
 
 | Fase | Resultado utilizable | Ventana inicial | Criterio para terminar |
 |---|---|---|---|
@@ -473,7 +539,7 @@ Comandos existentes útiles: `npm run lint`, `npm run typecheck`, `npm run test:
 |---|---|---|
 | A-01 | Asunto: consolidación técnica realizada; aceptación y continuidad pendientes | Fundamentos integrados en PR #15; revisar criterios restantes sin repetir las correcciones ya consolidadas. |
 | D-01 | Dependencia: permisos administrativos/entorno aislado | Moisés habilita acceso; ingeniería verifica operación. Bloquea pruebas/controles externos, no diseño o pruebas locales. |
-| R-01 | Riesgo: duplicidad cliente/operación/cartera | REL/OPS/COM con ID fuente y pruebas; Codex. |
+| R-01 | Riesgo: duplicidad cliente/operación/cartera | REL/OPS/COM con ID fuente y pruebas; agente de desarrollo. |
 | R-02 | Riesgo: migración de datos ambiguos | Inventario/simulación/reporte; revisión humana de coincidencias. Nunca fusionar todo por nombre/teléfono. |
 | R-03 | Riesgo: reglas jurídicas/fiscales no aprobadas | Revisor profesional; mantener bloqueos existentes, no habilitar contratos por casilla. |
 | R-04 | Riesgo: sesión/archivo sensible en dispositivo | PWA conectada inicial; almacenamiento local explícito y acotado; responsable de privacidad. |
@@ -791,7 +857,7 @@ El wrapper de creación inicial cubre venta; el endpoint mantiene los tipos ya a
 - [ ] Registrar tarea → commit → prueba → criterio → revisión humana; cada pendiente mantiene motivo y responsable.
 - [ ] Marcar `en_revision` al completar comprobación técnica; `aceptada` solo con evidencia del aprobador.
 - [ ] Detallar COM-01/VIS-01/OFE-01/DOC-01 usando entidades finalmente aprobadas; no construirlos con interfaces antiguas supuestas.
-- [ ] Ajustar rangos y capacidad con duración observada, sin atribuir a Codex plazos garantizados ni conversiones comerciales.
+- [ ] Ajustar rangos y capacidad con duración observada, sin atribuir al agente plazos garantizados ni conversiones comerciales.
 
 Las tareas de continuidad marcadas corresponden a la evidencia anterior; las tareas de captación permanecen pendientes. Cada nueva ejecución debe registrar su resultado, revisión y límites en este mismo plan.
 

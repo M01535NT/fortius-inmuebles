@@ -2,8 +2,9 @@ import type * as React from "react";
 import {
   Building2, CalendarDays, ChartNoAxesCombined, ContactRound, FileText,
   FolderOpen, History, LayoutDashboard, ListTodo, Newspaper, PenLine,
-  Settings, StickyNote, Users, UsersRound, BriefcaseBusiness, Wallet, MapPin,
+  Settings, StickyNote, Users, UsersRound, BriefcaseBusiness, ClipboardCheck,
 } from "lucide-react";
+import { SALE_PROCESS, type SalePhase } from "@/lib/formatos/operation-workflow";
 
 export type AdminModule = {
   href: string;
@@ -16,16 +17,13 @@ export type AdminModule = {
   tone?: "rose";
 };
 
-export const ADMIN_MODULES: AdminModule[] = [
+const ADMIN_MODULES: AdminModule[] = [
   { href: "/admin", label: "Resumen", icon: LayoutDashboard, group: "Inicio", primary: true, tone: "rose" },
   { href: "/admin/leads", label: "CRM", icon: Users, group: "Comercial", primary: true },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, group: "Comercial", primary: true },
   { href: "/admin/clientes", label: "Clientes", icon: UsersRound, group: "Equipo y administración", tone: "rose" },
   { href: "/admin/expedientes", label: "Operaciones", icon: FileText, group: "Comercial", primary: true },
   { href: "/admin/documentos", label: "Documentos", icon: FolderOpen, group: "Gestión", primary: true },
-  { href: "/admin/finanzas", label: "Finanzas", icon: Wallet, group: "Gestión", primary: true, adminOnly: true },
-  { href: "/admin/territorio", label: "Análisis territorial", icon: MapPin, group: "Herramientas", primary: true },
-  { href: "/admin/portal-clientes", label: "Portal de clientes", icon: ContactRound, group: "Herramientas", primary: true, adminOnly: true },
   { href: "/admin/control-comercial", label: "Control comercial", icon: BriefcaseBusiness, group: "Equipo y administración", adminOnly: true, tone: "rose" },
   { href: "/admin/reportes", label: "Reportes", icon: ChartNoAxesCombined, group: "Equipo y administración", adminOnly: true },
   { href: "/admin/tareas", label: "Tareas", icon: ListTodo, group: "Equipo y administración", tone: "rose" },
@@ -43,15 +41,18 @@ export function permittedModules(modules: AdminModule[], role: string) {
   return modules.filter(module => !module.adminOnly || role === "admin");
 }
 
-/** Etapas del procedimiento: accesibles, pero fuera del menú diario. */
-export const PROCESS_STAGES = [
-  { slug: "captacion", label: "Captación", etapa: "captacion", icon: ContactRound, description: "Revisa los expedientes en captación y da seguimiento a los contactos iniciales.", action: { href: "/admin/operaciones/nueva", label: "Nueva operación" } },
-  { slug: "preparacion", label: "Preparación", etapa: "documentacion", icon: FolderOpen, description: "Prepara los expedientes que están en documentación: soportes, revisiones y pendientes.", action: { href: "/admin/documentos", label: "Consultar documentos" } },
-  { slug: "promocion", label: "Promoción", etapa: "comercializacion", icon: Building2, description: "Consulta las operaciones en comercialización y coordina inventario, publicaciones y visitas.", action: { href: "/admin/propiedades", label: "Abrir inventario" } },
-  { slug: "negociacion", label: "Negociación", etapa: "negociacion", icon: BriefcaseBusiness, description: "Da seguimiento a las operaciones en negociación y sus próximos acuerdos.", action: { href: "/admin/tareas", label: "Ver tareas" } },
-  { slug: "cierre", label: "Cierre", etapa: "cierre", icon: FileText, description: "Revisa los expedientes en cierre y coordina los documentos, firmas y entregas pendientes.", action: { href: "/admin/calendario", label: "Abrir agenda" } },
-  { slug: "postventa", label: "Postventa", etapa: "cerrado", icon: CalendarDays, description: "Seguimiento de expedientes cerrados mediante la agenda y las tareas existentes.", action: { href: "/admin/calendario", label: "Abrir agenda" } },
-] as const;
+/** Etapas del proceso de comercialización: accesibles, pero fuera del menú diario. */
+const PROCESS_PRESENTATION: Record<SalePhase, { icon: AdminModule["icon"]; action: { href: string; label: string } }> = {
+  captacion: { icon: ContactRound, action: { href: "/admin/operaciones/nueva", label: "Nueva operación" } },
+  verificacion: { icon: ClipboardCheck, action: { href: "/admin/apps/comparables", label: "Comparar propiedades" } },
+  contrato: { icon: PenLine, action: { href: "/admin/apps/ficha-comercial", label: "Preparar ficha comercial" } },
+  publicacion: { icon: Building2, action: { href: "/admin/propiedades", label: "Abrir inventario" } },
+  visitas: { icon: CalendarDays, action: { href: "/admin/calendario", label: "Abrir agenda" } },
+  cierre: { icon: BriefcaseBusiness, action: { href: "/admin/tareas", label: "Ver tareas" } },
+};
+export const PROCESS_STAGES = SALE_PROCESS.map((phase, index) => ({ ...phase, numero: index, ...PROCESS_PRESENTATION[phase.key] }));
+/** Direcciones anteriores a la definición del 15/10/2026. */
+export const LEGACY_PROCESS_SLUGS: Record<string, string> = { preparacion: "verificacion-precio", promocion: "publicacion-seguimiento", negociacion: "visitas-ofertas", cierre: "cierre-entrega", postventa: "cierre-entrega" };
 export function getProcessStage(slug: string) { return PROCESS_STAGES.find(stage => stage.slug === slug); }
 
 const PRIMARY_HREFS = new Set(["/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario"]);
@@ -66,7 +67,7 @@ export const SIDEBAR_MODULES: AdminModule[] = [
     href: `/admin/proceso/${stage.slug}`,
     label: stage.label,
     icon: stage.icon,
-    group: "Procedimiento",
+    group: "Proceso de venta",
     primary: false,
     fixed: true,
   })),

@@ -74,6 +74,18 @@ export async function apiResponse(action: () => Promise<unknown>, successStatus 
   }
 }
 
+type PageResult<T> = { data: T[] | null; error: { code?: string; message?: string } | null };
+/** Lee todas las páginas de 500 filas hasta recibir una incompleta. */
+export async function readAllPages<T>(page: (from: number, to: number) => PromiseLike<PageResult<T>>): Promise<T[]> {
+  const rows: T[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await page(offset, offset + 499);
+    if (error) databaseError(error);
+    rows.push(...(data ?? []));
+    if (!data || data.length < 500) return rows;
+  }
+}
+
 export function databaseError(error: { code?: string; message?: string }): never {
   const status = /^PT(400|401|403|409|429)$/.test(error.code ?? "") ? Number(error.code!.slice(2))
     : error.code === "42501" ? 403 : ["23503", "23001", "23505"].includes(error.code ?? "") ? 409 : 503;

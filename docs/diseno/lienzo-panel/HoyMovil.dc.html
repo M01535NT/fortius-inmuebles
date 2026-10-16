@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hoy en celular</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp {{temaClase}}" style="width: 390px; min-height: 2050px; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 12px 0 20px">
+    <span style="display: flex; align-items: baseline; gap: 6px">
+      <span style="font-size: 22px; line-height: 1; font-weight: 700; font-variation-settings: 'wdth' 68; text-transform: uppercase">Fortius</span>
+    </span>
+    <button class="icon-btn" type="button" aria-label="Buscar">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    </button>
+  </header>
+
+  <main style="flex: 1; padding: 16px 20px 40px; display: flex; flex-direction: column; gap: 32px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <p class="mono xs mut" style="text-transform: uppercase; letter-spacing: 0.06em">Viernes 16 oct</p>
+      <h1 class="h1" style="font-size: 27px">Buenos días, Mariana</h1>
+      <p class="mut">3 operaciones esperan algo de ti, 4 tareas y 2 visitas hoy.</p>
+    </div>
+
+    <section aria-labelledby="m-esperan" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 id="m-esperan" class="h2">Esperan algo de ti</h2>
+      <ul class="card lista">
+        <sc-for list="{{esperan}}" as="o" hint-placeholder-count="3">
+          <li style="display: flex; flex-direction: column; gap: 10px; padding: 18px 16px">
+            <span style="display: flex; flex-direction: column; gap: 2px">
+              <span class="h3">{{o.cliente}}</span>
+              <span class="small mut">{{o.inmueble}}</span>
+            </span>
+            <span style="font-size: 15px">{{o.motivo}}</span>
+            <span style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+              <span class="mono xs {{o.cuandoCls}}">{{o.cuando}}</span>
+              <a class="btn btn-sec" href="{{o.href}}">Continuar
+                <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              </a>
+            </span>
+          </li>
+        </sc-for>
+      </ul>
+    </section>
+
+    <section aria-labelledby="m-entrevistas" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 id="m-entrevistas" class="h2">Entrevistas por terminar</h2>
+      <ul class="card lista">
+        <li style="display: flex; flex-direction: column; gap: 10px; padding: 16px">
+          <span style="display: flex; flex-direction: column; gap: 2px">
+            <span class="h3">Ramón Félix Arce</span>
+            <span class="small mut">Quiere vender · Faltan 2 de 4 secciones</span>
+          </span>
+          <a class="btn btn-sec" href="NuevaMovil3.dc.html" style="align-self: flex-start">Seguir la entrevista</a>
+        </li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="m-tareas" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 id="m-tareas" class="h2">Tareas de hoy <span class="mono mut" style="font-size: 15px; font-weight: 500">{{hechasTxt}}</span></h2>
+      <ul class="card lista">
+        <sc-for list="{{tareas}}" as="t" hint-placeholder-count="4">
+          <li>
+            <label style="display: flex; gap: 14px; align-items: flex-start; min-height: 56px; padding: 15px 16px; cursor: pointer">
+              <input type="checkbox" checked="{{t.hecha}}" onChange="{{t.toggle}}" style="width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: #8a1634">
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                <span class="{{t.cls}}">{{t.texto}}</span>
+                <span class="mono xs mut">{{t.meta}}</span>
+              </span>
+            </label>
+          </li>
+        </sc-for>
+      </ul>
+    </section>
+
+    <section aria-labelledby="m-agenda" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 id="m-agenda" class="h2">Agenda de hoy</h2>
+      <ol class="card" style="padding: 6px; display: flex; flex-direction: column; gap: 4px">
+        <li style="display: flex; gap: 14px; padding: 12px; border-radius: 4px; background: var(--sel)">
+          <span class="mono" style="font-weight: 600; width: 46px; flex: none">11:00</span>
+          <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span class="badge badge-pri" style="align-self: flex-start">Visita</span>
+            <span style="font-weight: 600">Casa en Baja Malibú, Rosarito</span>
+            <span class="small mut">Con la familia Ortega</span>
+          </span>
+        </li>
+        <li style="display: flex; gap: 14px; padding: 12px">
+          <span class="mono" style="font-weight: 600; width: 46px; flex: none">13:30</span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <span style="font-weight: 600">Entrevista con Lucía Mendoza</span>
+            <span class="small mut">Colinas de Agua Caliente</span>
+          </span>
+        </li>
+        <li style="display: flex; gap: 14px; padding: 12px; border-radius: 4px; background: var(--sel)">
+          <span class="mono" style="font-weight: 600; width: 46px; flex: none">17:00</span>
+          <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span class="badge badge-pri" style="align-self: flex-start">Visita</span>
+            <span style="font-weight: 600">Departamento en Zona Río</span>
+            <span class="small mut">Con Andrés Fimbres</span>
+          </span>
+        </li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="m-proximos" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 id="m-proximos" class="h2">Próximos 7 días</h2>
+      <ul class="card lista">
+        <sc-for list="{{proximos}}" as="p" hint-placeholder-count="4">
+          <li style="display: flex; gap: 12px; padding: 14px 16px">
+            <span class="mono xs" style="width: 50px; flex: none; font-weight: 600; padding-top: 2px">{{p.dia}}</span>
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span class="badge" style="align-self: flex-start">{{p.tipo}}</span>
+              <span style="font-weight: 600">{{p.texto}}</span>
+              <span class="small mut">{{p.meta}}</span>
+            </span>
+          </li>
+        </sc-for>
+      </ul>
+    </section>
+
+    <section aria-labelledby="m-informes" style="display: flex; flex-direction: column; gap: 12px">
+      <h2 id="m-informes" class="h2">Informes al propietario vencidos</h2>
+      <ul class="card lista">
+        <li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px">
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <span style="font-weight: 600">Familia Ibarra Cota</span>
+            <span class="mono xs vencido">Vencido · 10 oct</span>
+          </span>
+          <a class="btn btn-sec" href="#">Preparar</a>
+        </li>
+        <li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px">
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <span style="font-weight: 600">Familia Robles Ochoa</span>
+            <span class="mono xs vencido">Vencido · 14 oct</span>
+          </span>
+          <a class="btn btn-sec" href="#">Preparar</a>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <dc-import name="BarraInferior" activo="hoy" tema="{{tema}}" hint-size="390px,80px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["claro","oscuro"],"default":"claro"},"$preview":{"width":390,"height":2050}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { hechas: { t1: true } };
+  }
+  renderVals() {
+    const tema = this.props.tema === 'oscuro' ? 'oscuro' : 'claro';
+    const base = [
+      { id: 't1', texto: 'Confirmar la visita de las 11:00 con la familia Ortega', meta: 'EXP-2026-031 · 09:00' },
+      { id: 't2', texto: 'Llamar a la Sra. Castañeda para agendar la opinión de valor', meta: 'EXP-2026-041 · 10:00' },
+      { id: 't3', texto: 'Mandar las fotos finales a la familia Navarro', meta: 'EXP-2026-038 · Antes de las 14:00' },
+      { id: 't4', texto: 'Pedirle a Lucía Mendoza la boleta del predial 2026', meta: 'EXP-2026-046 · En la entrevista' }
+    ];
+    const hechas = this.state.hechas;
+    const tareas = base.map((t) => ({
+      ...t,
+      hecha: !!hechas[t.id],
+      cls: hechas[t.id] ? 'hecha' : '',
+      toggle: () => this.setState({ hechas: { ...this.state.hechas, [t.id]: !this.state.hechas[t.id] } })
+    }));
+    return {
+      tema,
+      temaClase: tema === 'oscuro' ? 'oscuro' : '',
+      tareas,
+      hechasTxt: tareas.filter((t) => t.hecha).length + ' de ' + tareas.length,
+      proximos: [
+        { dia: 'Lun 19', tipo: 'Tarea', texto: 'Llevar 3 casas parecidas a la Sra. Castañeda', meta: 'Verificación y precio' },
+        { dia: 'Mar 20', tipo: 'Vence', texto: 'Certificado de libertad de gravamen', meta: 'Familia Lizárraga' },
+        { dia: 'Mié 21', tipo: 'Tarea', texto: 'Opinión de valor en Valle Dorado', meta: 'Patricia Gámez' },
+        { dia: 'Vie 23', tipo: 'Informe', texto: 'Informe mensual al propietario', meta: 'Familia Lizárraga' }
+      ],
+      esperan: [
+        { cliente: 'Familia Navarro Lugo', inmueble: 'Departamento en Chapultepec', motivo: 'Falta la firma del copropietario para poder publicar.', cuando: 'Desde el 13 oct', cuandoCls: 'vencido', href: 'OperacionMovilContrato.dc.html' },
+        { cliente: 'Héctor Valdivia', inmueble: 'Casa en Baja Malibú, Rosarito', motivo: 'Llegó una oferta de $6,450,000 MXN. Revísala con el propietario.', cuando: 'Ayer', cuandoCls: 'mut', href: '#' },
+        { cliente: 'Familia Castañeda Ortiz', inmueble: 'Casa en Playas de Tijuana', motivo: 'Mandaron el certificado de libertad de gravamen. Revísalo.', cuando: 'Hoy', cuandoCls: 'mut', href: 'OperacionMovil.dc.html' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

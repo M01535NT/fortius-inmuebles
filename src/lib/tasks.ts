@@ -6,7 +6,6 @@ export const TASK_CATEGORIES = { captacion: "Captación", leads: "Seguimiento de
 const id = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/);
 const reference = id.or(z.literal("")).optional();
 const calendarDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => { const date = new Date(value + "T00:00:00.000Z"); return !Number.isNaN(date.getTime()) && date.toISOString().slice(0,10) === value && value.slice(0,4) !== "0000"; }, "Fecha inválida");
-export type TaskHistory = { fecha: string; actorId: string; actorEmail?: string; accion: string; texto?: string };
 export const taskSchema = z.object({
   id, titulo: z.string().trim().min(1).max(160), descripcion: z.string().max(20000).default(""),
   categoria: z.enum(Object.keys(TASK_CATEGORIES) as [keyof typeof TASK_CATEGORIES, ...Array<keyof typeof TASK_CATEGORIES>]),

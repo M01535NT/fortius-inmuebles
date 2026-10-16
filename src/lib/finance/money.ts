@@ -18,6 +18,13 @@ export function money(value: number, currency = "MXN"): string {
     maximumFractionDigits: 2,
   }).format(value);
 }
+/** Importe con dos decimales y separadores de México, sin símbolo de moneda. */
+export function formatAmount(value: number): string {
+  return new Intl.NumberFormat("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+}
+export function formatAmountOrPending(value: number | null): string {
+  return value === null ? "Pendiente" : formatAmount(value);
+}
 export function parseAmount(value: string, max = MAX_MONEY): number | null {
   if (!value.trim() || !/^\d+(?:\.\d{0,2})?$/.test(value.trim())) return null;
   const n = Number(value);

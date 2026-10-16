@@ -6,8 +6,7 @@ export function workspaceStores(pathname: string) {
   switch (section) {
     case "propiedades": return pathname.split("/").length > 3 ? operation : [db.propiedades, db.asesores];
     case "leads": return pathname.split("/").length > 3 ? operation : [db.leads, db.asesores];
-    case "documentos": case "finanzas": case "portal-clientes": return [];
-    case "territorio": return [db.propiedades];
+    case "documentos": return [];
     case "perfil": case "historial": return [];
     case "blog": return [db.posts];
     case "archivos": return [db.archivos];

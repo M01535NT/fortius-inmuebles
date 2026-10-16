@@ -1,7 +1,7 @@
 import { afterAll,beforeAll,expect,it } from 'vitest';
 import { readFile,readdir } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
-import { propiedades } from '@/data/propiedades';
+import { propiedades } from '../fixtures/propiedades';
 const user='70000000-0000-4000-8000-000000000001';
 let db:PGlite;
 const property=(slug:string,codigo='')=>({...propiedades[0],slug,codigo,asesorId:'',publicada:false,demo:false});

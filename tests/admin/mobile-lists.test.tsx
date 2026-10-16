@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import LeadsPage from "@/app/admin/leads/page";
 import PropiedadesPage from "@/app/admin/propiedades/page";
 import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
-import { propiedades } from "@/data/propiedades";
+import { propiedades } from "../fixtures/propiedades";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));

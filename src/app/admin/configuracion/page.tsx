@@ -5,7 +5,6 @@ import * as React from "react";
 
 import {
   AsyncForm,
-  DemoBanner,
   Field,
   PageHeader,
   btnPrimary,
@@ -59,7 +58,6 @@ function Editor({ initial }: { initial: SiteSettings }) {
         title="Configuración."
         description="Identidad, contacto y datos operativos del negocio."
       />
-      <DemoBanner />
 
       <AsyncForm onSubmit={guardar} className="space-y-6">
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">
