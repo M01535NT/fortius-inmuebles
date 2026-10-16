@@ -35,12 +35,12 @@ export function OperationWorkflowPanel<T extends GuidedOperation>({expediente,on
   }catch(cause){setError(cause instanceof Error?cause.message:"No se pudieron consultar las referencias del documento.");}
  }
 
- type SavedRun={id:string;title:string;updatedAt:string;context?:{expedienteId?:string}};
+ type SavedRun={id:string;title:string;updatedAt:string;result?:unknown;context?:{expedienteId?:string}};
  const [reportRuns,setReportRuns]=React.useState<SavedRun[]|null|undefined>(undefined);
  const [offerRuns,setOfferRuns]=React.useState<SavedRun[]|null|undefined>(undefined);
  const counterpartId=expediente.flujo?.contraparteId;
  React.useEffect(()=>{let active=true;
-  apiRequest<{runs?:SavedRun[]}>(`/api/admin/apps/runs?slug=informe-propietario&expedienteId=${encodeURIComponent(expediente.id)}`).then(r=>{if(active)setReportRuns(r.runs??[]);}).catch(()=>{if(active)setReportRuns(null);});
+  apiRequest<{runs?:SavedRun[]}>(`/api/admin/apps/runs?slug=informe-propietario&expedienteId=${encodeURIComponent(expediente.id)}`).then(r=>{if(active)setReportRuns((r.runs??[]).filter(run=>run.result!=null));}).catch(()=>{if(active)setReportRuns(null);});
   Promise.all([expediente.id,...(counterpartId?[counterpartId]:[])].map(id=>apiRequest<{runs?:SavedRun[]}>(`/api/admin/apps/runs?slug=ofertas&expedienteId=${encodeURIComponent(id)}`))).then(pages=>{if(active)setOfferRuns(pages.flatMap(page=>page.runs??[]).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)));}).catch(()=>{if(active)setOfferRuns(null);});
   return()=>{active=false;};},[expediente.id,counterpartId]);
  const [taskTitle,setTaskTitle]=React.useState(""),[taskDate,setTaskDate]=React.useState("");
