@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Operaciones</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp" style="width: 100%; min-height: 1000px; display: flex; flex-wrap: wrap; align-items: stretch">
+  <div style="flex: 0 0 248px; display: flex">
+    <dc-import name="Sidebar" activo="operaciones" hint-size="248px,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 40px 32px 56px; display: flex; flex-direction: column; gap: 28px">
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 class="h1">Operaciones</h1>
+        <p class="mut">11 en curso · <span class="vencido">4 con algo vencido</span></p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+        <label style="display: flex; align-items: center; gap: 10px; width: 280px; min-height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 6px; background: var(--field)">
+          <svg class="ico ico-s mut" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span class="mut" style="font-size: 15px">Buscar cliente o folio</span>
+        </label>
+        <div class="seg" role="radiogroup" aria-label="Mostrar operaciones de">
+          <button type="button" role="radio" aria-checked="true" class="on">Mías</button>
+          <button type="button" role="radio" aria-checked="false">Todo el equipo</button>
+        </div>
+      </div>
+    </header>
+
+    <div style="overflow-x: auto; margin: 0 -4px; padding: 0 4px 8px">
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(176px, 1fr)); gap: 12px; align-items: start">
+        <sc-for list="{{columnas}}" as="col" hint-placeholder-count="6">
+          <section aria-label="{{col.nombre}}" style="display: flex; flex-direction: column; gap: 10px; padding: 12px; min-height: 640px; border-radius: 8px; background: var(--sec)">
+            <header style="display: flex; flex-direction: column; gap: 4px; padding: 2px 4px 6px">
+              <span class="mono xs mut">Etapa {{col.n}}</span>
+              <h2 style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 15px; line-height: 1.3; font-weight: 700">
+                <span>{{col.nombre}}</span><span class="mono small mut" style="font-weight: 500">{{col.total}}</span>
+              </h2>
+            </header>
+            <sc-for list="{{col.tarjetas}}" as="c" hint-placeholder-count="2">
+              <a class="card" href="{{c.href}}" style="display: flex; flex-direction: column; gap: 8px; padding: 14px; text-decoration: none">
+                <span style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-weight: 650; font-size: 15px; line-height: 1.3">{{c.cliente}}</span>
+                  <span class="xs mut">{{c.inmueble}}</span>
+                </span>
+                <span class="hr"></span>
+                <span class="xs mut" style="font-weight: 600">Sigue</span>
+                <span class="small" style="margin-top: -6px">{{c.paso}}</span>
+                <span class="mono xs {{c.fechaCls}}">{{c.fecha}}</span>
+              </a>
+            </sc-for>
+          </section>
+        </sc-for>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const v = 'vencido', m = 'mut';
+    const columnas = [
+      { nombre: 'Captación', tarjetas: [
+        { cliente: 'Lucía Mendoza', inmueble: 'Casa en Colinas de Agua Caliente', paso: 'Entrevista con el propietario', fecha: 'Hoy · 13:30', fechaCls: m },
+        { cliente: 'Familia Torres Beltrán', inmueble: 'Departamento en Playas de Tijuana', paso: 'Llamar para agendar la entrevista', fecha: 'Vencido · 14 oct', fechaCls: v }
+      ] },
+      { nombre: 'Verificación y precio', tarjetas: [
+        { cliente: 'Familia Castañeda Ortiz', inmueble: 'Casa en Playas de Tijuana', paso: 'Revisar certificado de gravamen', fecha: 'Hoy · 16 oct', fechaCls: m, href: 'OperacionEscritorio.dc.html' },
+        { cliente: 'Patricia Gámez', inmueble: 'Casa en Valle Dorado, Ensenada', paso: 'Opinión de valor', fecha: 'Mié · 21 oct', fechaCls: m }
+      ] },
+      { nombre: 'Contrato y preparación', tarjetas: [
+        { cliente: 'Familia Navarro Lugo', inmueble: 'Departamento en Chapultepec', paso: 'Firma del copropietario', fecha: 'Vencido · 13 oct', fechaCls: v, href: 'OperacionEscritorioContrato.dc.html' }
+      ] },
+      { nombre: 'Publicación y seguimiento', tarjetas: [
+        { cliente: 'Familia Ibarra Cota', inmueble: 'Casa en Otay Universidad', paso: 'Informe mensual al propietario', fecha: 'Vencido · 10 oct', fechaCls: v },
+        { cliente: 'Familia Robles Ochoa', inmueble: 'Casa en Otay Constituyentes', paso: 'Informe mensual al propietario', fecha: 'Vencido · 14 oct', fechaCls: v },
+        { cliente: 'Familia Lizárraga', inmueble: 'Local en el centro de Tecate', paso: 'Actualizar el precio publicado', fecha: 'Mar · 20 oct', fechaCls: m }
+      ] },
+      { nombre: 'Visitas y ofertas', tarjetas: [
+        { cliente: 'Héctor Valdivia', inmueble: 'Casa en Baja Malibú, Rosarito', paso: 'Revisar la oferta con el propietario', fecha: 'Hoy · 16 oct', fechaCls: m },
+        { cliente: 'Familia Quintero', inmueble: 'Departamento en Rosarito centro', paso: 'Visita con compradores', fecha: 'Sáb · 17 oct · 10:00', fechaCls: m }
+      ] },
+      { nombre: 'Cierre y entrega', tarjetas: [
+        { cliente: 'Familia Esparza Medina', inmueble: 'Departamento en Zona Río', paso: 'Firma ante notario', fecha: 'Sáb · 24 oct · 12:00', fechaCls: m }
+      ] }
+    ];
+    return {
+      columnas: columnas.map((c, i) => ({
+        ...c, n: i + 1, total: c.tarjetas.length,
+        tarjetas: c.tarjetas.map((t) => ({ href: '#', ...t }))
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

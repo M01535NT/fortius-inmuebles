@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hoy</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="fortius-panel.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="fp {{temaClase}}" style="width: 100%; min-height: 1040px; display: flex; flex-wrap: wrap; align-items: stretch">
+  <div style="flex: 0 0 248px; display: flex">
+    <dc-import name="Sidebar" activo="hoy" tema="{{tema}}" hint-size="248px,1040px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; max-width: 1192px; padding: 40px 48px 64px; display: flex; flex-direction: column; gap: 36px">
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <p class="mono xs mut" style="text-transform: uppercase; letter-spacing: 0.06em">Viernes 16 oct 2026</p>
+        <h1 class="h1">Buenos días, Mariana</h1>
+        <p class="mut" style="font-size: 17px">3 operaciones esperan algo de ti, tienes 4 tareas y 2 visitas hoy.</p>
+      </div>
+      <label style="display: flex; align-items: center; gap: 10px; width: 320px; max-width: 100%; min-height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 6px; background: var(--field)">
+        <svg class="ico ico-s mut" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <span class="mut" style="font-size: 15px">Buscar cliente, inmueble o folio</span>
+      </label>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+      <div style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 36px">
+
+        <section aria-labelledby="t-esperan" style="display: flex; flex-direction: column; gap: 14px">
+          <h2 id="t-esperan" class="h2">Esperan algo de ti <span class="mono mut" style="font-size: 15px; font-weight: 500">3</span></h2>
+          <ul class="card lista">
+            <sc-for list="{{esperan}}" as="o" hint-placeholder-count="3">
+              <li style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding: 20px 24px">
+                <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+                  <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px">
+                    <h3 class="h3">{{o.cliente}}</h3>
+                    <span class="mono xs mut">{{o.folio}}</span>
+                  </div>
+                  <p class="small mut">{{o.inmueble}} · {{o.etapa}}</p>
+                  <p style="display: flex; gap: 8px; align-items: flex-start; font-size: 15px; margin-top: 4px">
+                    <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 3px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                    <span>{{o.motivo}} <span class="mono xs {{o.cuandoCls}}" style="margin-left: 4px">{{o.cuando}}</span></span>
+                  </p>
+                </div>
+                <a class="btn btn-sec" href="{{o.href}}">Continuar
+                  <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                </a>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+
+        <section aria-labelledby="t-entrevistas" style="display: flex; flex-direction: column; gap: 14px">
+          <h2 id="t-entrevistas" class="h2">Entrevistas por terminar <span class="mono mut" style="font-size: 15px; font-weight: 500">1</span></h2>
+          <ul class="card lista">
+            <li style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 18px 24px">
+              <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h3 class="h3">Ramón Félix Arce</h3>
+                <p class="small mut">Quiere vender · Casa en Playas de Tijuana · Faltan 2 de 4 secciones</p>
+              </div>
+              <a class="btn btn-sec" href="NuevaEscritorio3.dc.html">Seguir la entrevista
+                <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="t-tareas" style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+            <h2 id="t-tareas" class="h2">Tareas de hoy <span class="mono mut" style="font-size: 15px; font-weight: 500">{{hechasTxt}}</span></h2>
+            <a class="btn btn-ghost" href="AgendaEscritorio.dc.html" style="padding: 0 8px">Ver todas</a>
+          </div>
+          <ul class="card lista">
+            <sc-for list="{{tareas}}" as="t" hint-placeholder-count="4">
+              <li>
+                <label style="display: flex; gap: 14px; align-items: flex-start; min-height: 56px; padding: 16px 24px; cursor: pointer">
+                  <input type="checkbox" checked="{{t.hecha}}" onChange="{{t.toggle}}" style="width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: #8a1634">
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                    <span class="{{t.cls}}" style="font-size: 16px">{{t.texto}}</span>
+                    <span class="mono xs mut">{{t.meta}}</span>
+                  </span>
+                </label>
+              </li>
+            </sc-for>
+            <li>
+              <button class="btn btn-ghost" type="button" style="width: 100%; justify-content: flex-start; min-height: 52px; padding: 0 24px; color: var(--ptext)">
+                <svg class="ico ico-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+                Agregar tarea
+              </button>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 36px">
+        <section aria-labelledby="t-agenda" style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+            <h2 id="t-agenda" class="h2">Agenda de hoy</h2>
+            <a class="btn btn-ghost" href="AgendaEscritorio.dc.html" style="padding: 0 8px">Ver semana</a>
+          </div>
+          <ol class="card" style="padding: 8px; display: flex; flex-direction: column; gap: 4px">
+            <li style="display: flex; gap: 16px; padding: 14px 14px; border-radius: 4px; background: var(--sel)">
+              <span class="mono" style="font-weight: 600; width: 48px; flex: none">11:00</span>
+              <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                <span class="badge badge-pri" style="align-self: flex-start">Visita</span>
+                <span style="font-weight: 600">Casa en Baja Malibú, Rosarito</span>
+                <span class="small mut">Con la familia Ortega · EXP-2026-031</span>
+              </span>
+            </li>
+            <li style="display: flex; gap: 16px; padding: 14px 14px">
+              <span class="mono" style="font-weight: 600; width: 48px; flex: none">13:30</span>
+              <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                <span style="font-weight: 600">Entrevista con Lucía Mendoza</span>
+                <span class="small mut">Colinas de Agua Caliente · EXP-2026-046</span>
+              </span>
+            </li>
+            <li style="display: flex; gap: 16px; padding: 14px 14px; border-radius: 4px; background: var(--sel)">
+              <span class="mono" style="font-weight: 600; width: 48px; flex: none">17:00</span>
+              <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                <span class="badge badge-pri" style="align-self: flex-start">Visita</span>
+                <span style="font-weight: 600">Departamento en Zona Río</span>
+                <span class="small mut">Con Andrés Fimbres · EXP-2026-027</span>
+              </span>
+            </li>
+          </ol>
+        </section>
+
+        <section aria-labelledby="t-proximos" style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+            <h2 id="t-proximos" class="h2">Próximos 7 días</h2>
+            <a class="btn btn-ghost" href="AgendaEscritorio.dc.html" style="padding: 0 8px">Ver agenda</a>
+          </div>
+          <p class="small mut" style="margin-top: -6px">Tareas y documentos que vencen pronto, antes de que se vuelvan urgentes.</p>
+          <ul class="card lista">
+            <sc-for list="{{proximos}}" as="p" hint-placeholder-count="4">
+              <li style="display: flex; gap: 14px; padding: 14px 18px">
+                <span class="mono xs" style="width: 56px; flex: none; font-weight: 600; padding-top: 2px">{{p.dia}}</span>
+                <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                  <span class="badge" style="align-self: flex-start">{{p.tipo}}</span>
+                  <span style="font-weight: 600">{{p.texto}}</span>
+                  <span class="small mut">{{p.meta}}</span>
+                </span>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+
+        <section aria-labelledby="t-informes" style="display: flex; flex-direction: column; gap: 14px">
+          <h2 id="t-informes" class="h2">Informes al propietario vencidos</h2>
+          <p class="small mut" style="margin-top: -6px">Cada mes le contamos al propietario cómo va la venta.</p>
+          <ul class="card lista">
+            <li style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-weight: 600">Familia Ibarra Cota</span>
+                <span class="small mut">Casa en Otay Universidad</span>
+                <span class="mono xs vencido">Vencido desde el 10 oct</span>
+              </span>
+              <a class="btn btn-sec" href="#" style="align-self: flex-start">Preparar informe</a>
+            </li>
+            <li style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px">
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-weight: 600">Familia Robles Ochoa</span>
+                <span class="small mut">Casa en Otay Constituyentes</span>
+                <span class="mono xs vencido">Vencido desde el 14 oct</span>
+              </span>
+              <a class="btn btn-sec" href="#" style="align-self: flex-start">Preparar informe</a>
+            </li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["claro","oscuro"],"default":"claro"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { hechas: { t1: true } };
+  }
+  renderVals() {
+    const tema = this.props.tema === 'oscuro' ? 'oscuro' : 'claro';
+    const base = [
+      { id: 't1', texto: 'Confirmar la visita de las 11:00 con la familia Ortega', meta: 'EXP-2026-031 · 09:00' },
+      { id: 't2', texto: 'Llamar a la Sra. Castañeda para agendar la opinión de valor', meta: 'EXP-2026-041 · 10:00' },
+      { id: 't3', texto: 'Mandar las fotos finales a la familia Navarro', meta: 'EXP-2026-038 · Antes de las 14:00' },
+      { id: 't4', texto: 'Pedirle a Lucía Mendoza la boleta del predial 2026', meta: 'EXP-2026-046 · En la entrevista' }
+    ];
+    const hechas = this.state.hechas;
+    const tareas = base.map((t) => ({
+      ...t,
+      hecha: !!hechas[t.id],
+      cls: hechas[t.id] ? 'hecha' : '',
+      toggle: () => this.setState({ hechas: { ...this.state.hechas, [t.id]: !this.state.hechas[t.id] } })
+    }));
+    const n = tareas.filter((t) => t.hecha).length;
+    return {
+      tema,
+      temaClase: tema === 'oscuro' ? 'oscuro' : '',
+      tareas,
+      hechasTxt: n + ' de ' + tareas.length,
+      proximos: [
+        { dia: 'Lun 19', tipo: 'Tarea', texto: 'Llevar 3 casas parecidas a la Sra. Castañeda', meta: 'EXP-2026-041 · Verificación y precio' },
+        { dia: 'Mar 20', tipo: 'Vence', texto: 'Certificado de libertad de gravamen', meta: 'Familia Lizárraga · Local en Tecate' },
+        { dia: 'Mié 21', tipo: 'Tarea', texto: 'Opinión de valor de la casa en Valle Dorado', meta: 'EXP-2026-044 · Patricia Gámez' },
+        { dia: 'Vie 23', tipo: 'Informe', texto: 'Informe mensual al propietario', meta: 'Familia Lizárraga · se cumple el mes' }
+      ],
+      esperan: [
+        { cliente: 'Familia Navarro Lugo', folio: 'EXP-2026-038', inmueble: 'Departamento en Chapultepec', etapa: 'Contrato y preparación', motivo: 'Falta la firma del copropietario para poder publicar.', cuando: 'Detenida desde el 13 oct', cuandoCls: 'vencido', href: 'OperacionEscritorioContrato.dc.html' },
+        { cliente: 'Héctor Valdivia', folio: 'EXP-2026-031', inmueble: 'Casa en Baja Malibú, Rosarito', etapa: 'Visitas y ofertas', motivo: 'Llegó una oferta de $6,450,000 MXN. Revísala con el propietario.', cuando: 'Ayer', cuandoCls: 'mut', href: '#' },
+        { cliente: 'Familia Castañeda Ortiz', folio: 'EXP-2026-041', inmueble: 'Casa en Playas de Tijuana', etapa: 'Verificación y precio', motivo: 'El propietario mandó el certificado de libertad de gravamen. Revísalo.', cuando: 'Hoy', cuandoCls: 'mut', href: 'OperacionEscritorio.dc.html' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
