@@ -164,7 +164,7 @@ export function PeriodReport() {
                 items: metrics.visits.map((e) => ({
                   id: e.id,
                   label: `${e.titulo} · ${e.fecha}`,
-                  href: `/admin/calendario?fecha=${e.fecha}&evento=${e.id}`,
+                  href: `/admin/agenda?fecha=${e.fecha}&evento=${e.id}`,
                 })),
               },
             ].map((card) => (

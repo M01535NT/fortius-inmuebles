@@ -1,7 +1,7 @@
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import CalendarioPage from "@/app/admin/calendario/page";
+import CalendarioPage from "@/components/admin/screens/calendario";
 import { clearAdminCache } from "@/lib/admin/store";
 
 let data: Record<string, Record<string, unknown>[]>;
@@ -19,7 +19,7 @@ beforeEach(() => {
   data = {};
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2027-01-01T07:30:00Z"));
-  window.history.replaceState(null, "", "/admin/calendario");
+  window.history.replaceState(null, "", "/admin/agenda");
   vi.stubGlobal("fetch", async (url: string, options?: RequestInit) => {
     const name = url.split("/").at(-1)!;
     if (options?.method === "PUT") {
@@ -83,7 +83,7 @@ test("upcoming orders events by operating date and time and keeps the expediente
     "Visita de mañana", "Visita de tarde", "Revisión sin hora", "Firma de mañana",
   ]);
   expect(upcoming.queryByText("Evento de ayer")).toBeNull();
-  expect(upcoming.getByRole("link", { name: "Expediente: EXP-PRUEBA" }).getAttribute("href")).toBe("/admin/expedientes?expediente=exp1");
+  expect(upcoming.getByRole("link", { name: "Expediente: EXP-PRUEBA" }).getAttribute("href")).toBe("/admin/operaciones?expediente=exp1");
   expect(upcoming.getByText("Sin hora")).toBeTruthy();
   expect(writes).toBe(0);
 });
@@ -121,7 +121,7 @@ test("upcoming has a useful empty state", async () => {
 test("URL context is visible before saving and a rejected draft survives view changes", async () => {
   data.clientes = [{ id: "c1", nombre: "Cliente de prueba", telefono: "0000000000", tipo: "comprador", notas: "", creadoEl: "2026-12-01", actualizadoEl: "2026-12-01" }];
   data.expedientes = [{ id: "exp1", folio: "EXP-PRUEBA", cliente_id: "c1", propiedad_slug: null, asesor_id: "a1" }];
-  window.history.replaceState(null, "", "/admin/calendario?fecha=2027-01-02&expediente=exp1&nueva=1");
+  window.history.replaceState(null, "", "/admin/agenda?fecha=2027-01-02&expediente=exp1&nueva=1");
   render(<CalendarioPage />);
   const context = within(screen.getByRole("region", { name: "Contexto del evento" }));
   expect(await context.findByText("Expediente: EXP-PRUEBA")).toBeTruthy();
@@ -145,7 +145,7 @@ test("URL references populate selectors after their options arrive", async () =>
   data.clientes = [{ id: "c1", nombre: "Cliente de prueba", telefono: "0000000000", tipo: "comprador", notas: "", creadoEl: "2026-12-01", actualizadoEl: "2026-12-01" }];
   data.propiedades = [{ slug: "p1", codigo: "F-PRUEBA", titulo: "Casa de prueba" }];
   data.asesores = [{ id: "a1", nombre: "Asesora de prueba", cargo: "", iniciales: "AP", activo: true }];
-  window.history.replaceState(null, "", "/admin/calendario?nueva=1&leadId=l1&clienteId=c1&propiedadSlug=p1&asesorId=a1");
+  window.history.replaceState(null, "", "/admin/agenda?nueva=1&leadId=l1&clienteId=c1&propiedadSlug=p1&asesorId=a1");
   render(<CalendarioPage />);
   await screen.findByRole("option", { name: "Cliente de prueba" });
   await waitFor(() => expect((screen.getByLabelText("Cliente (opcional)") as HTMLSelectElement).value).toBe("c1"));
@@ -209,7 +209,7 @@ test("a late URL expediente cannot replace a client explicitly chosen while load
     { id: "c1", nombre: "Cliente del expediente", telefono: "0000000000", tipo: "comprador", notas: "", creadoEl: "2026-12-01", actualizadoEl: "2026-12-01" },
     { id: "c2", nombre: "Cliente elegido", telefono: "0000000000", tipo: "comprador", notas: "", creadoEl: "2026-12-01", actualizadoEl: "2026-12-01" },
   ];
-  window.history.replaceState(null, "", "/admin/calendario?expediente=exp1");
+  window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   await screen.findByRole("option", { name: "Cliente elegido" });
   fireEvent.change(screen.getByLabelText("Cliente (opcional)"), { target: { value: "c2" } });
@@ -231,7 +231,7 @@ test("editing a relation detaches the selected expediente and saves the visible 
     { id: "c2", nombre: "Cliente elegido", telefono: "0000000000", tipo: "comprador", notas: "", creadoEl: "2026-12-01", actualizadoEl: "2026-12-01" },
   ];
   data.expedientes = [{ id: "exp1", folio: "EXP-PRUEBA", cliente_id: "c1", propiedad_slug: null, asesor_id: "a1" }];
-  window.history.replaceState(null, "", "/admin/calendario?expediente=exp1");
+  window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   await waitFor(() => expect((screen.getByLabelText("Expediente (opcional)") as HTMLSelectElement).value).toBe("exp1"));
   await screen.findByRole("option", { name: "Cliente elegido" });
@@ -248,7 +248,7 @@ test("editing a relation detaches the selected expediente and saves the visible 
 
 test("an unresolved URL expediente blocks generic writes without clearing the capture", async () => {
   expedienteResponse = new Promise(() => {});
-  window.history.replaceState(null, "", "/admin/calendario?expediente=exp1");
+  window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita de expediente cargando" } });
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
@@ -262,7 +262,7 @@ test("an unresolved URL expediente blocks generic writes without clearing the ca
 
 test("a failed URL expediente lookup exposes error retry and explicit withdrawal", async () => {
   expedienteResponse = Promise.resolve(Response.json({ error: "Servicio temporalmente no disponible" }, { status: 503 }));
-  window.history.replaceState(null, "", "/admin/calendario?expediente=exp1");
+  window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita por recuperar" } });
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
@@ -279,7 +279,7 @@ test("retry resolves the requested expediente and saves its context with the pre
   expedienteResponse = Promise.resolve(Response.json({}, { status: 503 }));
   data.clientes = [{ id: "c1", nombre: "Cliente del expediente", telefono: "0000000000", tipo: "comprador", notas: "", creadoEl: "2026-12-01", actualizadoEl: "2026-12-01" }];
   data.expedientes = [{ id: "exp1", folio: "EXP-PRUEBA", cliente_id: "c1", propiedad_slug: null, asesor_id: "a1" }];
-  window.history.replaceState(null, "", "/admin/calendario?expediente=exp1");
+  window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita por recuperar" } });
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
@@ -297,7 +297,7 @@ test("retry resolves the requested expediente and saves its context with the pre
 });
 
 test("an absent requested expediente stays blocked until explicit withdrawal", async () => {
-  window.history.replaceState(null, "", "/admin/calendario?expediente=missing");
+  window.history.replaceState(null, "", "/admin/agenda?expediente=missing");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Evento sin expediente confirmado" } });
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });
@@ -314,7 +314,7 @@ test("an absent requested expediente stays blocked until explicit withdrawal", a
 test("explicit withdrawal while loading prevents later reattachment", async () => {
   let complete!: (response: Response) => void;
   expedienteResponse = new Promise(resolve => { complete = resolve; });
-  window.history.replaceState(null, "", "/admin/calendario?expediente=exp1");
+  window.history.replaceState(null, "", "/admin/agenda?expediente=exp1");
   render(<CalendarioPage />);
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Evento retirado explícitamente" } });
   fireEvent.change(screen.getByLabelText("Fecha"), { target: { value: "2026-11-20" } });

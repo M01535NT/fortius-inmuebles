@@ -56,7 +56,7 @@ const DIAS = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
 const DIAS_COMPLETOS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 export default function CalendarioPage() {
-  useQuickCreate("/admin/calendario", () => document.getElementById("cal-titulo")?.focus());
+  useQuickCreate("visita", () => document.getElementById("cal-titulo")?.focus());
   const eventos = useCollection(db.eventos);
   const leads = useCollection(db.leads);
   const clientes = useCollection(db.clientes);
@@ -424,7 +424,7 @@ export default function CalendarioPage() {
                         ) : null}
                         {cliente ? <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Cliente: {cliente.nombre}</Link> : null}
                         {propiedad ? <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Inmueble: {propiedad.codigo}</Link> : null}
-                        {expediente ? <Link href={`/admin/expedientes?expediente=${encodeURIComponent(expediente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Expediente: {expediente.folio}</Link> : null}
+                        {expediente ? <Link href={`/admin/operaciones?expediente=${encodeURIComponent(expediente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Expediente: {expediente.folio}</Link> : null}
                         {asesor ? <span>Asesor: {asesor.nombre}</span> : null}
                       </p>
                     </div>

@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import AdminDashboard from "@/app/admin/page";
 import ReportesPage from "@/app/admin/reportes/page";
-import ExpedientesPage from "@/app/admin/expedientes/page";
+import ExpedientesPage from "@/app/admin/operaciones/page";
 import { clearAdminCache } from "@/lib/admin/store";
 
 vi.mock("@/lib/admin/store", async original => ({ ...await original<typeof import("@/lib/admin/store")>(), useSession: () => ({ id: "admin", email: "admin@example.test", role: "admin" }) }));

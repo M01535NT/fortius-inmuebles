@@ -1,7 +1,7 @@
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import LeadsPage from "@/app/admin/leads/page";
+import LeadsPage from "@/components/admin/screens/prospectos";
 import LeadDetail from "@/app/admin/leads/[id]/page";
 import ClientDetail from "@/app/admin/clientes/[id]/page";
 import Dashboard from "@/app/admin/page";

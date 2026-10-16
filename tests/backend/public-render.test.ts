@@ -84,12 +84,26 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
-  expect(await config.redirects?.()).toHaveLength(5);
+  expect(await config.redirects?.()).toHaveLength(11);
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
     permanent: true,
   });
+});
+
+test("las listas anteriores del panel redirigen a sus secciones nuevas sin tocar las fichas de detalle", async () => {
+  const redirects = await (await import("../../next.config")).default.redirects!();
+  const panel = Object.fromEntries(redirects.filter(r => r.source.startsWith("/admin")).map(r => [r.source, r.destination]));
+  expect(panel).toEqual({
+    "/admin/expedientes": "/admin/operaciones",
+    "/admin/leads": "/admin/contactos",
+    "/admin/clientes": "/admin/contactos?tab=clientes",
+    "/admin/calendario": "/admin/agenda",
+    "/admin/tareas": "/admin/agenda?tab=tareas",
+    "/admin/apps": "/admin/herramientas",
+  });
+  expect(redirects.filter(r => r.source.startsWith("/admin")).every(r => r.permanent === false && !r.source.includes(":"))).toBe(true);
 });
 
 test("root metadata resolves relative images on production without imposing an inherited home canonical", async () => {

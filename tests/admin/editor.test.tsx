@@ -15,7 +15,7 @@ import EditPropertyPage from "@/app/admin/propiedades/[slug]/editar/page";
 import LeadPage from "@/app/admin/leads/[id]/page";
 import ConfigPage from "@/app/admin/configuracion/page";
 import ContenidoPage from "@/app/admin/contenido/page";
-import ClientesPage from "@/app/admin/clientes/page";
+import ClientesPage from "@/components/admin/screens/clientes";
 import {
   db,
   settingsStore,

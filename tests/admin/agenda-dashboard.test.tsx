@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import AdminDashboard from "@/app/admin/page";
-import CalendarioPage from "@/app/admin/calendario/page";
+import CalendarioPage from "@/components/admin/screens/calendario";
 import { clearAdminCache, type Evento } from "@/lib/admin/store";
 import type { Task } from "@/lib/tasks";
 
@@ -151,7 +151,7 @@ test("dashboard shows one overdue followup for a converted client with its advis
 test("calendar saves a linked event with client, property, expediente and adviser", async () => {
   let saved: Record<string, unknown> | null = null;
   const expedienteId = "51000000-0000-4000-8000-000000000010";
-  window.history.replaceState(null, "", `/admin/calendario?expediente=${expedienteId}`);
+  window.history.replaceState(null, "", `/admin/agenda?expediente=${expedienteId}`);
   vi.stubGlobal("fetch", async (url: string, options?: RequestInit) => {
     if (options?.method === "PUT") {
       saved = JSON.parse(String(options.body)).data;

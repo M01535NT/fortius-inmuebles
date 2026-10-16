@@ -299,7 +299,7 @@ export default function ExpedientesPage() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="display-soft text-xl">{selected.folio}</h2>
             <div className="flex flex-wrap gap-2">
-              {!selected.deleted_at && <a className={btnGhost} href={`/admin/calendario?expediente=${encodeURIComponent(selected.id)}`}>Programar evento</a>}
+              {!selected.deleted_at && <a className={btnGhost} href={`/admin/agenda?expediente=${encodeURIComponent(selected.id)}`}>Programar evento</a>}
               <button type="button" disabled={busy || pdfBusy} onClick={changeExpedienteState} className={selected.deleted_at ? btnPrimary : btnDanger}>{selected.deleted_at ? "Restaurar expediente" : "Eliminar expediente"}</button>
             </div>
           </div>

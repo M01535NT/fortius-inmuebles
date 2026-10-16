@@ -26,7 +26,7 @@ function TaskDetail({ id }: { id: string }) {
   if (!snapshot && latest) setSnapshot({ task: latest, version: db.tareas.version(latest) });
   const task = snapshot?.task;
   return <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
-    <Link href="/admin/tareas" className={btnGhost}>Volver a tareas</Link>
+    <Link href="/admin/agenda?tab=tareas" className={btnGhost}>Volver a tareas</Link>
     <PageHeader title={task?.titulo ?? "Tarea"} description="Actualiza el trabajo y conserva sus notas e historial. La fecha límite se interpreta con la fecha de Tijuana." />
     {!snapshot ? <EmptyState title="Tarea no disponible." hint="Puede estar cargando o ya no estar disponible." /> : <>
       {conflict && <section aria-label="Revisar conflicto" className="min-w-0 space-y-3 rounded-lg border border-warning-border bg-warning-surface p-4">
@@ -72,9 +72,9 @@ function TaskDetail({ id }: { id: string }) {
         }
       }} /></section>
       <nav aria-label="Registros relacionados" className="flex flex-wrap gap-2">
-        {task?.expedienteId && <Link className={btnGhost} href={`/admin/expedientes?expediente=${task.expedienteId}`}>Ver expediente</Link>}
+        {task?.expedienteId && <Link className={btnGhost} href={`/admin/operaciones?expediente=${task.expedienteId}`}>Ver expediente</Link>}
         {task?.leadId && <Link className={btnGhost} href={`/admin/leads/${task.leadId}`}>Ver lead</Link>}
-        {task?.clienteId && <Link className={btnGhost} href="/admin/clientes">Ver clientes</Link>}
+        {task?.clienteId && <Link className={btnGhost} href="/admin/contactos?tab=clientes">Ver clientes</Link>}
         {task?.propiedadSlug && <Link className={btnGhost} href={`/admin/propiedades/${task.propiedadSlug}/editar`}>Ver inmueble</Link>}
       </nav>
       <section className="min-w-0 space-y-3 rounded-lg border border-border p-4 sm:p-6">

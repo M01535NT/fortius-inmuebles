@@ -15,7 +15,7 @@ for(const width of [390,1440]){
    if(url.pathname.endsWith("/formatos"))return route.fulfill({json:{documentos:[]}});
    return route.fulfill({json:{records:[]}});
   });
-  await page.goto("/admin/expedientes");
+  await page.goto("/admin/operaciones");
   await page.getByRole("button",{name:/EXP-PRUEBA/}).click();
   await page.getByRole("button",{name:"Eliminar expediente",exact:true}).click();
   await page.getByRole("dialog").getByRole("button",{name:"Cancelar",exact:true}).click();

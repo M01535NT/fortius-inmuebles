@@ -29,7 +29,7 @@ for(const width of [390,768,1440]) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:info.outputPath('contacto-'+width+'.png'),fullPage:true});
   for(const [i,r] of routes.entries()){
-   await page.goto('/admin/expedientes?expediente='+ops[i].id);
+   await page.goto('/admin/operaciones?expediente='+ops[i].id);
    await expect(page.getByRole('heading',{name:ops[i].folio,exact:true})).toBeVisible();
    const guide=page.locator('#exp-guia');await expect(guide).toBeVisible();
    await guide.getByText('Decisión del encargo y siguiente acción',{exact:true}).click();

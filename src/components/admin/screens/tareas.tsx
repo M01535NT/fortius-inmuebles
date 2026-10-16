@@ -20,7 +20,7 @@ function Tasks() {
   const defaults = {expedienteId: params.get("expediente")?.toLowerCase() || undefined, leadId: leads.find(l=>l.id===params.get("leadId"))?.id, clienteId: clientes.find(c=>c.id===params.get("clienteId"))?.id, propiedadSlug: propiedades.find(p=>p.slug===params.get("propiedadSlug"))?.slug};
   const asesores = useCollection(db.asesores);
   const [creating, setCreating] = React.useState(params.get("nueva") === "1");
-  useQuickCreate("/admin/tareas", () => setCreating(true));
+  useQuickCreate("tarea", () => setCreating(true));
   const [query, setQuery] = React.useState("");
   const [responsible, setResponsible] = React.useState("todas");
   const [status, setStatus] = React.useState("abiertas");
@@ -45,7 +45,7 @@ function Tasks() {
     <section aria-label="Filtros de tareas" className="min-w-0 space-y-3">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       <Field label="Buscar tareas" htmlFor="tasks-search"><input id="tasks-search" className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Título o descripción" /></Field>
-      <Field label="Vencimiento" htmlFor="tasks-due"><select id="tasks-due" className={selectClass} value={due} onChange={(e) => { const next = new URLSearchParams(params.toString()); next.set("vence", e.target.value); router.replace(`/admin/tareas?${next}`, { scroll: false }); }}><option value="todas">Todas las fechas</option><option value="vencidas">Vencidas</option><option value="hoy">Hoy</option><option value="proximas">Próximos 7 días</option><option value="sin-fecha">Sin fecha</option></select></Field>
+      <Field label="Vencimiento" htmlFor="tasks-due"><select id="tasks-due" className={selectClass} value={due} onChange={(e) => { const next = new URLSearchParams(params.toString()); next.set("vence", e.target.value); next.set("tab", "tareas"); router.replace(`/admin/agenda?${next}`, { scroll: false }); }}><option value="todas">Todas las fechas</option><option value="vencidas">Vencidas</option><option value="hoy">Hoy</option><option value="proximas">Próximos 7 días</option><option value="sin-fecha">Sin fecha</option></select></Field>
       </div>
       <details className="min-w-0 rounded-md border border-border px-3">
         <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">Más filtros · {activeFilters} activos</summary>

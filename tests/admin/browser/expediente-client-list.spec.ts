@@ -27,7 +27,7 @@ for (const width of [390, 768, 1440]) {
       const data = url.pathname.endsWith("/clientes") ? clients : url.pathname.endsWith("/asesores") ? [{ id: "adviser", nombre: "Nallely De la Cruz", activo: true }] : [];
       return route.fulfill({ json: { records: data.map(item => ({ id: item.id, data: item, version: 1 })) } });
     });
-    await page.goto("/admin/expedientes");
+    await page.goto("/admin/operaciones");
     const panel = page.getByRole("complementary", { name: "Clientes y operaciones" });
     await expect(panel.getByRole("button", { name: /Ana Martínez/ })).toBeVisible();
     await panel.getByRole("button", { name: /Juan Ibarra/ }).click();

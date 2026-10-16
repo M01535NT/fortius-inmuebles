@@ -6,7 +6,7 @@ import {
   render,
   screen,
   waitFor,
-  within,
+
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import NotasPage from "@/app/admin/notas/page";
@@ -147,18 +147,14 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   const menu = screen.getByRole("button", { name: "Menú del panel" });
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
-  fireEvent.click(within(nav).getByRole("button", { name: "Más" }));
-  expect(
-    Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href")),
-  ).toContain("/admin/clientes");
-  expect(nav.querySelector('a[href="/admin/tareas"]')).toBeTruthy();
-  expect(nav.querySelector('a[href="/admin/expedientes"]')).toBeTruthy();
-  expect(nav.querySelector('a[href="/admin/control-comercial"]')).toBeTruthy();
-  expect(nav.querySelector('a[href="/admin/reportes"]')).toBeTruthy();
-  expect(nav.querySelector('a[href="/admin/historial"]')).toBeTruthy();
-  for (const href of ["documentos"]) expect(nav.querySelector(`a[href="/admin/${href}"]`)).toBeTruthy();
-  for (const href of ["finanzas", "territorio", "portal-clientes"]) expect(nav.querySelector(`a[href="/admin/${href}"]`)).toBeNull();
-  expect(nav.querySelectorAll("a")).toHaveLength(25);
+  expect(Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual([
+    "/admin/propiedades", "/admin/agenda", "/admin/herramientas",
+    "/admin/asesores", "/admin/contenido", "/admin/reportes", "/admin/historial", "/admin/configuracion",
+    "/admin/perfil", "/",
+  ]);
+  const tabs = screen.getByRole("navigation", { name: "Secciones principales" });
+  expect(Array.from(tabs.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/operaciones", "/admin/operaciones/nueva", "/admin/contactos"]);
+  for (const href of ["finanzas", "territorio", "portal-clientes", "expedientes", "leads", "tareas"]) expect(document.querySelector(`a[href="/admin/${href}"]`)).toBeNull();
   fireEvent.click(
     Array.from(nav.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Salir"),

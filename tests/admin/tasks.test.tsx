@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { TaskForm } from "@/components/admin/task-form";
 import type { Task } from "@/lib/tasks";
 import TaskDetailPage from "@/app/admin/tareas/[id]/page";
-import TasksPage from "@/app/admin/tareas/page";
+import TasksPage from "@/components/admin/screens/tareas";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 
 const store = vi.hoisted(() => ({ tasks: [] as unknown[], version: 7, put: vi.fn(), load: vi.fn(), search: "", request: vi.fn(), sequence: 0, records: {} as Record<string, unknown[]> }));

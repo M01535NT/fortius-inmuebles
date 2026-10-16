@@ -210,7 +210,7 @@ function InterviewEditor({ id }: { id: string }) {
           description="El contacto, responsable o inmueble de la operación cambió. Prepara una entrevista del contexto actual desde el expediente."
         />
         <Link
-          href={"/admin/expedientes?expediente=" + interview.expediente_id}
+          href={"/admin/operaciones?expediente=" + interview.expediente_id}
           className={btnPrimary}
         >
           Abrir expediente
@@ -242,7 +242,7 @@ function InterviewEditor({ id }: { id: string }) {
   const mandatory = fields.filter((f) => f.required),
     answered = mandatory.filter((f) => !!answers[f.key]?.trim()).length;
   const expHref = interview.expediente_id
-    ? "/admin/expedientes?expediente=" + interview.expediente_id
+    ? "/admin/operaciones?expediente=" + interview.expediente_id
     : undefined;
   return (
     <div className="mx-auto min-w-0 max-w-5xl space-y-5">

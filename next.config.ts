@@ -30,6 +30,13 @@ const nextConfig: NextConfig = {
       { source: "/zonas", destination: "/inventario", permanent: true },
       { source: "/zonas/:zona", destination: "/inventario", permanent: true },
       { source: "/descargas/checklist-venta-mnt.pdf", destination: "/descargas/checklist-venta-fortius.pdf", permanent: true },
+      // Panel guiado (Fase 2): las listas viejas viven ahora en secciones con pestañas; las fichas de detalle no cambian.
+      { source: "/admin/expedientes", destination: "/admin/operaciones", permanent: false },
+      { source: "/admin/leads", destination: "/admin/contactos", permanent: false },
+      { source: "/admin/clientes", destination: "/admin/contactos?tab=clientes", permanent: false },
+      { source: "/admin/calendario", destination: "/admin/agenda", permanent: false },
+      { source: "/admin/tareas", destination: "/admin/agenda?tab=tareas", permanent: false },
+      { source: "/admin/apps", destination: "/admin/herramientas", permanent: false },
     ];
   },
   images: {

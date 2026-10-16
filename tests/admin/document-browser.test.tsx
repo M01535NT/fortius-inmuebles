@@ -8,7 +8,7 @@ test("document browser shows metadata and opens the exact dossier and document",
   vi.stubGlobal("fetch",async()=>Response.json({documentos:[row],total:1,nextOffset:null}));
   render(<DocumentsPage/>);
   const link=await screen.findByRole("link",{name:/Abrir documento.*EXP-2026/});
-  expect(link.getAttribute("href")).toBe("/admin/expedientes?expediente=exp&documento=doc#exp-documentos");
+  expect(link.getAttribute("href")).toBe("/admin/operaciones?expediente=exp&documento=doc#exp-documentos");
   expect(screen.getByText(/Borrador v3/)).toBeTruthy();
 });
 test("folio search applies to server pagination and format filtering",async()=>{

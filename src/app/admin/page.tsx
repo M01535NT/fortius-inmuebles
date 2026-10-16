@@ -55,8 +55,8 @@ export default function AdminDashboard() {
 
   const kpis = [
     { label: "Inmuebles disponibles", value: disponibles, href: "/admin/propiedades" },
-    { label: "Prospectos nuevos", value: leadsNuevos, href: "/admin/leads" },
-    { label: "Eventos próximos", value: proximos.length, href: "/admin/calendario" },
+    { label: "Prospectos nuevos", value: leadsNuevos, href: "/admin/contactos" },
+    { label: "Eventos próximos", value: proximos.length, href: "/admin/agenda" },
   ];
 
   return (
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           ) : (
-            <Link href="/admin/expedientes" className={btnGhost}>
+            <Link href="/admin/operaciones" className={btnGhost}>
               Ver operaciones
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
@@ -139,7 +139,7 @@ export default function AdminDashboard() {
         <section aria-labelledby="dashboard-agenda" className="admin-card min-w-0 rounded-lg border border-border bg-card">
           <div className="admin-card-heading flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-agenda" className="min-w-0 display-soft text-lg text-foreground">Próximos días</h2>
-            <Link href="/admin/calendario" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
+            <Link href="/admin/agenda" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Calendario
             </Link>
           </div>
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
                     {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
                     {evento.hora ? ` ${evento.hora}` : ""}
                   </span>
-                  <Link href={`/admin/calendario?fecha=${evento.fecha}&evento=${evento.id}`} className="min-w-0 text-sm text-foreground underline-offset-4 hover:underline [overflow-wrap:anywhere]">{evento.titulo}</Link>
+                  <Link href={`/admin/agenda?fecha=${evento.fecha}&evento=${evento.id}`} className="min-w-0 text-sm text-foreground underline-offset-4 hover:underline [overflow-wrap:anywhere]">{evento.titulo}</Link>
                 </li>
               ))}
             </ul>
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
         <section aria-labelledby="dashboard-leads" className="admin-card min-w-0 rounded-lg border border-border bg-card">
           <div className="admin-card-heading flex items-center justify-between gap-3 border-b border-border px-4 py-2 sm:px-5">
             <h2 id="dashboard-leads" className="min-w-0 display-soft text-lg text-foreground">Prospectos recientes</h2>
-            <Link href="/admin/leads" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
+            <Link href="/admin/contactos" className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary-ink hover:text-foreground">
               Ver todos
             </Link>
           </div>

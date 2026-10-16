@@ -1,8 +1,7 @@
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
-import { LEGACY_PROCESS_SLUGS, SIDEBAR_MODULES, getProcessStage } from "@/components/admin/workspace/module-catalog";
+import { LEGACY_PROCESS_SLUGS, getProcessStage } from "@/components/admin/workspace/module-catalog";
 import { ProcessStageWorkspace } from "@/components/admin/workspace/process-stage";
 import { clearAdminCache } from "@/lib/admin/store";
 let failed = false; const requests: { url: string; method?: string }[] = [];
@@ -12,30 +11,10 @@ beforeEach(() => { failed = false; requests.length = 0; localStorage.clear(); cl
   return Response.json({ expedientes: [{ id: "c2", folio: "CAP-2", etapa: "captacion", operacion: "renta" }, { id: "closed", folio: "CERRADO-1", etapa: "cerrado", operacion: "venta" }], nextOffset: null });
 })); });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); clearAdminCache(); localStorage.clear(); });
-function sidebar(role = "admin", userId = "process") { return render(<WorkspaceNavigation modules={SIDEBAR_MODULES} userId={userId} role={role} pathname="/admin/proceso/verificacion-precio" onNavigate={() => {}} />); }
-test("menú diario corto y Más conserva procedimiento y módulos", () => {
-  localStorage.setItem("fortius:modules:process", JSON.stringify(["/admin/clientes", "/admin/reportes", "/admin", "/admin/propiedades"])); sidebar();
-  expect(screen.getAllByRole("link").slice(0, 4).map(link => link.getAttribute("href"))).toEqual(["/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario"]);
-  const more = screen.getByRole("button", { name: /más/i });
-  if (more.getAttribute("aria-expanded") !== "true") fireEvent.click(more);
-  expect(screen.getAllByRole("link").slice(0, 10).map(link => link.getAttribute("href"))).toEqual([
-    "/admin", "/admin/tareas", "/admin/expedientes", "/admin/calendario",
-    "/admin/proceso/captacion", "/admin/proceso/verificacion-precio", "/admin/proceso/contrato-preparacion",
-    "/admin/proceso/publicacion-seguimiento", "/admin/proceso/visitas-ofertas", "/admin/proceso/cierre-entrega",
-  ]);
-  expect(screen.getByRole("link", { name: "Verificación y precio" }).getAttribute("aria-current")).toBe("page");
-  for (const name of ["CRM", "Inmuebles", "Clientes", "Documentos", "Asesores", "Archivos", "Configuración"]) expect(screen.getByRole("link", { name })).toBeTruthy();
-});
-test("Más mantiene restricciones de rol y etapas no se reordenan", () => {
-  sidebar("editor", "process-editor"); fireEvent.click(screen.getByRole("button", { name: "Organizar módulos" }));
-  expect(screen.queryByRole("button", { name: "Subir Captación" })).toBeNull();
-  expect(screen.queryByRole("link", { name: "Finanzas" })).toBeNull(); expect(screen.queryByRole("link", { name: "Reportes" })).toBeNull();
-  expect(screen.getByRole("link", { name: "Clientes" })).toBeTruthy();
-});
 test("Captación filtra todas las páginas autorizadas y abre expedientes reales sin escribir", async () => {
   await act(async () => { render(<ProcessStageWorkspace stage="captacion" />); });
   const list = await screen.findByRole("list", { name: "Expedientes en Captación" });
-  expect(within(list).getAllByRole("link").map(link => link.getAttribute("href"))).toEqual(["/admin/expedientes?expediente=c1", "/admin/expedientes?expediente=c2"]);
+  expect(within(list).getAllByRole("link").map(link => link.getAttribute("href"))).toEqual(["/admin/operaciones?expediente=c1", "/admin/operaciones?expediente=c2"]);
   expect(screen.queryByText("DOC-1")).toBeNull(); expect(screen.queryByText("ELIMINADO")).toBeNull(); expect(screen.queryByText("SIN-ETAPA")).toBeNull();
   expect(screen.getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
   expect(requests.filter(request=>request.url.startsWith("/api/admin/expedientes"))).toHaveLength(2); expect(requests.every(request => !request.method || request.method === "GET")).toBe(true);
@@ -44,7 +23,7 @@ test("Verificación usa documentación y Cierre y entrega conserva cerrado con s
   const view = render(<ProcessStageWorkspace stage="verificacion-precio" />); expect(await screen.findByRole("link", { name: /DOC-1/ })).toBeTruthy(); expect(screen.queryByText("CAP-1")).toBeNull();
   expect(screen.getByRole("heading", { name: "1. Verificación y precio" })).toBeTruthy(); expect(screen.getByText("Detectar obstáculos y vender con un precio sustentado.")).toBeTruthy();
   view.rerender(<ProcessStageWorkspace stage="cierre-entrega" />); expect(await screen.findByRole("link", { name: /CERRADO-1/ })).toBeTruthy(); expect(screen.getByText(/Esta etapa reúne sus pasos: firma y pago, entrega, postventa y archivo/)).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Ver tareas" }).getAttribute("href")).toBe("/admin/tareas");
+  expect(screen.getByRole("link", { name: "Ver tareas" }).getAttribute("href")).toBe("/admin/agenda?tab=tareas");
   expect(within(screen.getByRole("navigation", { name: "Etapas del proceso de venta" })).getByRole("link", { name: "5. Cierre y entrega" }).getAttribute("aria-current")).toBe("page");
 });
 test("fallo de API se distingue de lista vacía y permite reintentar", async () => {

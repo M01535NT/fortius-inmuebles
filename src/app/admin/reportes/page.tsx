@@ -55,7 +55,7 @@ export default function ReportesPage() {
       <h2 id="report-current">Situación actual</h2><p className="mb-4 mt-1 text-sm text-muted-foreground">Pendientes de hoy. Los filtros de periodo no cambian estas cifras.</p>
       <div className="admin-report-metrics">
         <button type="button" className="admin-metric-action" aria-expanded={detail==="contacts"} aria-controls="report-contacts" onClick={()=>setDetail(detail==="contacts"?null:"contacts")}><span>Contactos vencidos</span><strong>{metrics.overdueContacts}</strong><small>Ver personas que requieren atención</small></button>
-        <Link className="admin-metric-action" href="/admin/tareas?vence=vencidas"><span>Tareas vencidas</span><strong>{metrics.overdueTasks}</strong><small>Abrir las tareas vencidas</small></Link>
+        <Link className="admin-metric-action" href="/admin/agenda?tab=tareas&vence=vencidas"><span>Tareas vencidas</span><strong>{metrics.overdueTasks}</strong><small>Abrir las tareas vencidas</small></Link>
       </div>
       {detail==="contacts" && <div id="report-contacts" className="admin-report-detail"><h3>Contactos vencidos</h3>{overdue.length?<ul>{overdue.map(contact=><li key={contact.id}><Link href={contact.href}>{contact.personName}<small>{contact.kind==="cliente"?"Cliente":"Prospecto"} · {contact.fecha}</small></Link></li>)}</ul>:<p>No hay contactos vencidos.</p>}</div>}
     </section>
@@ -78,6 +78,6 @@ export default function ReportesPage() {
         <tr><th scope="row" className="p-2 font-medium">Sin asesor</th><td className="p-2">{metrics.unassigned.leads}</td><td className="p-2">{metrics.unassigned.clientes}</td><td className="p-2">{metrics.unassigned.inmuebles}</td><td className="p-2">{metrics.unassigned.expedientes}</td><td className="p-2">{metrics.unassigned.contactosVencidos}</td><td className="p-2">{metrics.unassigned.tareasVencidas}</td></tr>
       </tbody></table></div>
     </section>
-    <section className="rounded-lg border border-border bg-card p-5"><h2 className="text-xl font-semibold">Etapas de operación</h2>{metrics.stages.length ? <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{metrics.stages.map(([stage, count]) => <li key={stage} className="flex justify-between rounded-md border border-border p-3"><span>{stageLabels[stage] ?? stage}</span><strong className="font-mono">{count}</strong></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">Sin expedientes activos.</p>}<Link href="/admin/expedientes" className="mt-4 inline-block text-sm text-primary-ink underline">Abrir expedientes</Link></section>
+    <section className="rounded-lg border border-border bg-card p-5"><h2 className="text-xl font-semibold">Etapas de operación</h2>{metrics.stages.length ? <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{metrics.stages.map(([stage, count]) => <li key={stage} className="flex justify-between rounded-md border border-border p-3"><span>{stageLabels[stage] ?? stage}</span><strong className="font-mono">{count}</strong></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">Sin expedientes activos.</p>}<Link href="/admin/operaciones" className="mt-4 inline-block text-sm text-primary-ink underline">Abrir expedientes</Link></section>
   </div>;
 }

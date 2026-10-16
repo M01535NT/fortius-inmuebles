@@ -6,7 +6,8 @@ import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { normalizedText } from "@/lib/admin/workspace";
 import { btnGhost, inputClass } from "@/components/admin/ui";
 
-export function WorkspaceSearch() {
+export function WorkspaceSearch({ label = "Buscar" }: { label?: string } = {}) {
+  const titleId = React.useId();
   const [opened, setOpened] = React.useState(false);
   const properties = useCollection(db.propiedades, opened),
     leads = useCollection(db.leads, opened),
@@ -69,7 +70,7 @@ export function WorkspaceSearch() {
       label: clients.find(c => c.id === e.cliente_id)?.nombre ?? e.folio,
       detail: `Operación · ${e.folio}`,
       text: `${e.folio} ${clients.find(c => c.id === e.cliente_id)?.nombre ?? ""}`,
-      href: `/admin/expedientes?expediente=${e.id}`,
+      href: `/admin/operaciones?expediente=${e.id}`,
     })),
   ].filter((item) => normalizedText(item.text).includes(normalizedText(query)));
   const close = () => dialog.current?.close();
@@ -83,17 +84,16 @@ export function WorkspaceSearch() {
         onClick={open}
       >
         <Search size={18} />
-        <span className="hidden sm:inline">Buscar inmueble, contacto o expediente…</span>
-        <span className="sm:hidden">Buscar</span>
+        <span className="truncate">{label}</span>
       </button>
       <dialog
         ref={dialog}
-        aria-labelledby="workspace-search-title"
+        aria-labelledby={titleId}
         onClose={() => trigger.current?.focus()}
         className="fixed inset-0 m-auto max-h-[85dvh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-xl border border-border bg-background p-5 text-foreground shadow-xl backdrop:bg-black/50"
       >
         <div className="flex items-center justify-between gap-3">
-          <h2 id="workspace-search-title" className="text-xl font-semibold">
+          <h2 id={titleId} className="text-xl font-semibold">
             Buscar en el panel
           </h2>
           <button
@@ -151,12 +151,12 @@ export function WorkspaceSearch() {
             <h3 className="text-sm font-semibold">Crear rápidamente</h3>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {[
-                ["Nueva operación", "/admin/operaciones/nueva"],
-                ["Nuevo prospecto", "/admin/leads?nuevo=1"],
-                ["Nuevo inmueble", "/admin/propiedades/nueva"],
-                ["Nueva tarea", "/admin/tareas?nueva=1"],
-                ["Agendar visita", "/admin/calendario?nueva=1"],
-              ].map(([label, href]) => (
+                ["Nueva operación", "/admin/operaciones/nueva", ""],
+                ["Nuevo prospecto", "/admin/contactos?nuevo=1", "prospecto"],
+                ["Nuevo inmueble", "/admin/propiedades/nueva", ""],
+                ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1", "tarea"],
+                ["Agendar visita", "/admin/agenda?nueva=1", "visita"],
+              ].map(([label, href, action]) => (
                 <Link
                   key={href}
                   href={href}
@@ -164,7 +164,7 @@ export function WorkspaceSearch() {
                     close();
                     window.dispatchEvent(
                       new CustomEvent("fortius:quick-create", {
-                        detail: href.split("?")[0],
+                        detail: action,
                       }),
                     );
                   }}

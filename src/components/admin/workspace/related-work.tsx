@@ -96,12 +96,12 @@ export function RelatedWork({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">Seguimiento conectado</h2>
         <div className="flex flex-wrap gap-2">
-          <Link className={btnGhost} href={`/admin/tareas?nueva=1&${query}`}>
+          <Link className={btnGhost} href={`/admin/agenda?tab=tareas&nueva=1&${query}`}>
             Crear tarea relacionada
           </Link>
           <Link
             className={btnGhost}
-            href={`/admin/calendario?nueva=1&${query}`}
+            href={`/admin/agenda?nueva=1&${query}`}
           >
             Agendar visita
           </Link>
@@ -244,7 +244,7 @@ export function RelatedWork({
               <li key={e.id}>
                 <Link
                   className="block break-words py-2 text-sm hover:underline"
-                  href={`/admin/calendario?fecha=${e.fecha}&evento=${e.id}`}
+                  href={`/admin/agenda?fecha=${e.fecha}&evento=${e.id}`}
                 >
                   {e.titulo}
                   <span className="block text-xs text-muted-foreground">
@@ -273,7 +273,7 @@ export function RelatedWork({
             <Link
               key={d.id}
               className="inline-flex min-h-11 items-center pr-4 text-sm underline"
-              href={`/admin/expedientes?expediente=${d.id}`}
+              href={`/admin/operaciones?expediente=${d.id}`}
             >
               {d.folio}
             </Link>

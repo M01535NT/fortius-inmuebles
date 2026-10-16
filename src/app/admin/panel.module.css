@@ -71,42 +71,21 @@
 .panel :is(input, textarea)::placeholder { color: var(--muted-foreground); opacity: 1; }
 .panel :is(button, a, input, textarea, select, [role=separator]):focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
 .panel :is(button, a):global(.admin-button) { border: 1px solid var(--border); box-shadow: none; font-weight: 600; }
-.panel :global(.admin-button-secondary), .panel :global(.admin-sidebar-toggle) { background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 6px; }
+.panel :global(.admin-button-secondary){ background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 6px; }
 .panel :global(.admin-button-primary) { background: #8a1634; color: #fff; border-color: #8a1634; }
 :global(.dark) .panel :global(.admin-button-primary) { border-color: #cf8b9c; }
 .panel :global(.admin-button):not(:disabled):hover { filter: brightness(.94); }
 :global(.dark) .panel :global(.admin-button):not(:disabled):hover { filter: brightness(1.15); }
 .panel :global(.admin-button):disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
-.panel :global(.admin-sidebar) { background: var(--card); }
-.panel :global(.admin-sidebar) > div:first-child { background: #fff; }
-.panel :global(.admin-sidebar) > div:first-child span { color: #43546b; }
-.panel :global(.admin-sidebar) [aria-current=page], .panel :global(.admin-mobile-nav) [aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); box-shadow: inset 3px 0 0 #8a1634; }
-.panel :global(.admin-sidebar) nav a:hover { background: var(--secondary); color: var(--foreground); }
-.panel :global(.admin-sidebar)[data-collapsed=true] :global(.admin-sidebar-label) { display: none; }
-.panel :global(.admin-sidebar)[data-collapsed=true] nav { padding-inline: 10px; }
-.panel :global(.admin-sidebar)[data-collapsed=true] :is(a, button) { justify-content: center; padding-inline: 8px; gap: 0; }
-.panel :global(.admin-sidebar-toggle) { align-items: center; justify-content: center; flex-shrink: 0; }
-.panel :global(.admin-sidebar-resize) { position: absolute; top: 0; right: -5px; bottom: 0; width: 10px; cursor: col-resize; touch-action: none; z-index: 40; }
-.panel :global(.admin-sidebar-resize)::after { content: ""; position: absolute; top: 45%; bottom: 45%; left: 3px; width: 3px; border-radius: 3px; background: var(--control-edge); }
-.panel :global(.admin-sidebar-resize):hover::after, .panel :global(.admin-sidebar-resize):focus-visible::after { top: 0; bottom: 0; background: var(--focus-color); }
 @media (prefers-reduced-motion: no-preference) { .panel :is(button, input, select, textarea) { transition: background-color 150ms, box-shadow 150ms; } }
 .panel button[aria-pressed=true], .panel button[aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); border-color: var(--panel-selected-ink); box-shadow: none; }
 .panel button[aria-pressed=false] { background: var(--card); color: var(--foreground); border-color: var(--border); box-shadow: none; }
 .panel [aria-invalid=true] { border-color: var(--destructive); outline: 2px solid var(--destructive); outline-offset: 1px; }
 .panel :global(.admin-saved) { border-left: 3px solid #27735d; padding: .65rem 1rem; background: var(--secondary); color: var(--foreground); }
-.panel :global(.admin-sidebar) nav { scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable; }
-.panel :global(.admin-sidebar) nav:hover, .panel :global(.admin-sidebar) nav:focus-within { scrollbar-color: var(--border) transparent; }
-.panel :global(.admin-sidebar) nav::-webkit-scrollbar { width: 4px; }
-.panel :global(.admin-sidebar) nav::-webkit-scrollbar-thumb { background: transparent; border-radius: 8px; }
-.panel :global(.admin-sidebar) nav:hover::-webkit-scrollbar-thumb { background: var(--border); }
 .panel :global(.admin-breadcrumbs) { color: var(--muted-foreground); font-size: .8rem; display: flex; flex-wrap: wrap; gap: .25rem; }
 .panel :global(.admin-breadcrumbs) a:hover { text-decoration: underline; }
-.panel :global(.admin-profile) { position: relative; margin-left: .5rem; }
 .panel :global(.admin-avatar) { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #061f3f; color: #fff; border: 1px solid var(--border); font-size: .9rem; font-weight: 700; flex-shrink: 0; }
 .panel :global(.admin-avatar) img { width: 100%; height: 100%; object-fit: cover; }
-.panel :global(.admin-profile-menu) { position: absolute; right: 0; top: calc(100% + 10px); width: min(300px, calc(100vw - 32px)); padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: 0 16px 40px #0003; z-index: 70; }
-.panel :global(.admin-profile-menu) a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px; font-size: .875rem; border-radius: 6px; }
-.panel :global(.admin-profile-menu) a:hover { background: var(--secondary); }
 .panel :global(.admin-confirm) { position: fixed; inset: 0; margin: auto; width: min(460px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; border-radius: 12px; padding: 24px; background: var(--card); color: var(--foreground); border: 1px solid var(--border); }
 .panel :global(.admin-confirm)::backdrop { background: #061325a6; }
 .panel :global(.admin-confirm) p { margin: 16px 0 24px; }
@@ -121,20 +100,12 @@
 .panel table th:last-child, .panel table td:last-child { position: sticky; right: 0; background: var(--card); box-shadow: -4px 0 8px #061f3f08; }
 .panel [data-density=compact] :is(td, th) { padding-block: 6px; }
 .panel input[type=file]::file-selector-button { background: var(--secondary); color: var(--foreground); border: 1px solid var(--control-edge); border-radius: 4px; margin-right: 10px; padding: 8px 12px; cursor: pointer; }
-.panel :global(.admin-sidebar) > div:first-child { background: var(--card); }
-.panel :global(.admin-sidebar) > div:first-child span:not([role=img]) { color: var(--muted-foreground); }
 
 /* Fortius workbench: quiet surfaces, operational hierarchy and one action accent. */
 .panel :global(.admin-workspace) { border-left: .375rem solid #061f3f; }
-.panel :global(.admin-sidebar-brand) { min-height: 7.75rem; justify-content: center; }
-.panel :global(.admin-topbar) { background: var(--card); }
-.panel :global(.admin-topbar-inner) { gap: .75rem; padding: .5rem 1rem; min-height: 3.75rem; }
-.panel :global(.admin-content) { width: 100%; max-width: 110rem; margin-inline: auto; padding: 1.25rem 1rem 3rem; }
+.panel :global(.admin-content) { width: 100%; max-width: 110rem; margin-inline: auto; padding: 1.25rem 1rem calc(6rem + env(safe-area-inset-bottom, 0px)); } /* abajo: altura de la barra inferior del celular */
 .panel :global(.admin-page-header) { align-items: center; border: 0; padding-bottom: .25rem; }
 .panel :global(.admin-page-header) p { margin-top: .5rem; font-size: .9375rem; }
-.panel :global(.admin-nav-group) { font-size: .6875rem; letter-spacing: .14em; }
-.panel :global(.admin-nav-link) { border-radius: .375rem; }
-.panel :global(.admin-nav-link) svg { width: 1.125rem; height: 1.125rem; }
 .panel :global(.admin-search-trigger) { flex: 1; min-width: 2.75rem; justify-content: flex-start; max-width: 44rem; background: var(--field-surface); color: var(--muted-foreground); font-weight: 400; }
 .panel :global(.admin-search-trigger) span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .panel :global(.admin-search-trigger) kbd { margin-left: auto; border: 1px solid var(--border); border-radius: .25rem; padding: .125rem .375rem; font-size: .75rem; }
@@ -277,17 +248,10 @@
 }
 @media (min-width: 768px) {
   .panel :global(.admin-content) { padding: 1.5rem 1.25rem 2rem; }
-  .panel :global(.admin-topbar-inner) { padding-inline: 1.25rem; }
 }
 
 /* Geometry of the approved image: compact header, operational table and side agenda. */
-.panel :global(.admin-more-tools), .panel :global(.admin-organize-button) { width: 100%; border: 0; background: transparent; text-align: left; justify-content: flex-start; padding-inline: .75rem; font-size: .8125rem; font-weight: 500; color: var(--muted-foreground); }
-.panel :global(.admin-more-tools) { margin-top: 1.25rem; }
-.panel :global(.admin-sidebar) nav { padding: 0 .625rem; }
-.panel :global(.admin-nav-link) { min-height: 3rem; font-size: .9375rem; }
-.panel :global(.admin-profile-trigger) { display: inline-flex; align-items: center; gap: .5rem; font-size: .8125rem; }
-.panel :global(.admin-profile-name), .panel :global(.admin-profile-chevron) { display: none; }
-.panel :global(.admin-alert-link) { display: inline-flex; min-width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; }
+
 .panel :global(.admin-coach-header) { display: grid; gap: 1.25rem; align-items: start; padding: 1.25rem 0 .25rem; }
 .panel :global(.admin-coach-header) h1 { font-size: clamp(1.75rem, 2.5vw, 2.25rem); line-height: 1.15; }
 .panel :global(.admin-coach-header) > div:first-child > p { margin-top: .75rem; max-width: 42rem; color: var(--muted-foreground); font-size: 1rem; line-height: 1.55; }
@@ -395,7 +359,6 @@
 }
 @media (max-width: 639px) { .panel :global(.admin-search-trigger) { flex: 0 0 2.75rem; width: 2.75rem; padding: 0; justify-content: center; }.panel :global(.admin-search-trigger) span { display: none; } }
 @media (min-width: 1024px) {
-  .panel :global(.admin-profile-name), .panel :global(.admin-profile-chevron) { display: inline; }
   .panel :global(.admin-coach-header) { grid-template-columns: minmax(0,1fr) auto; align-items: end; }
   .panel :global(.admin-coach-actions) { justify-content: flex-end; }
   .panel :global(.admin-executive-metrics) { grid-column: 1 / -1; grid-row: 2; }
@@ -418,62 +381,9 @@
   .panel :global(.admin-cycle) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
-/* Navigation and app launcher share the existing module catalogue. */
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) {
-  --foreground: #f5f8fd;
-  --muted-foreground: #c5d2e4;
-  --card: #061f3f;
-  --border: #304664;
-  --focus-color: #aacfff;
-  background: #061f3f;
-  color: #f5f8fd;
-}
-.panel :global(.admin-sidebar) > :global(.admin-sidebar-brand):first-child { min-height: 4.75rem; height: 4.75rem; flex-shrink: 0; background: #fff; border: 0; padding-inline: 1rem; }
-.panel :global(.admin-sidebar-brand) :global(.brand-mark) { background: transparent; }
-.panel :global(.admin-sidebar) > nav { min-height: 0; padding: .75rem .5rem; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link) { min-height: 2.75rem; color: #e3ebf6; padding: .5rem .75rem; font-size: .9375rem; font-weight: 450; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link) svg { width: 1.25rem; height: 1.25rem; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link):hover { background: #193654; color: #fff; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) [aria-current=page] { background: #8a1634; color: #fff; box-shadow: inset 3px 0 0 #e5829b; font-weight: 600; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-link)[aria-current=page]:hover { background: #8a1634; color: #fff; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-group) { color: #c5d2e4; font-size: .6875rem; letter-spacing: .035em; padding-top: .75rem; padding-bottom: .375rem; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-nav-group)[data-separated=true] { border-top: 1px solid #304664; margin-top: .75rem; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-more-tools) { display: flex; align-items: center; gap: .5rem; margin-top: .75rem; color: #e3ebf6; min-height: 2.75rem; }
-.panel :global(.admin-more-tools) > svg:last-child { margin-left: auto; }
-.panel :is(:global(.admin-sidebar), :global(.admin-mobile-nav)) :global(.admin-organize-button) { border: 0; border-top: 1px solid #304664; border-radius: 0; background: transparent; color: #e3ebf6; font-weight: 450; margin-top: .25rem; min-height: 3.25rem; gap: .5rem; }
-.panel :global(.admin-sidebar-footer) { flex-shrink: 0; border-top: 1px solid #304664; padding: .5rem .5rem 0; }
-.panel :global(.admin-sidebar-action) { display: flex; min-height: 2.75rem; gap: .75rem; align-items: center; padding: .5rem .75rem; font-size: .875rem; border-radius: .375rem; }
-.panel :global(.admin-sidebar-action):hover { background: #193654; }
-.panel :global(.admin-sidebar-controls) { display: flex; align-items: center; justify-content: space-between; gap: .25rem; border-top: 1px solid #304664; padding: .375rem 0; margin-top: .5rem; }
-.panel :global(.admin-sidebar-controls) :is(button, :global(.admin-sidebar-toggle)) { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .75rem; border: 0; background: transparent; color: #e3ebf6; font-size: .8125rem; font-weight: 450; }
-.panel :global(.admin-sidebar)[data-collapsed=true] :global(.admin-sidebar-controls) { flex-direction: column; }
-.panel :global(.admin-apps-trigger) { padding-inline: .75rem; gap: .5rem; }
-.panel :global(.admin-apps-trigger)[aria-expanded=true] { background: var(--secondary); border-color: var(--focus-color); }
-.panel :global(.admin-apps-trigger) > span, .panel :global(.admin-search-trigger) > span { display: none; }
-.panel :global(.admin-topbar-inner) { gap: .5rem; }
-.panel :global(.admin-apps-dialog) { position: fixed; inset: 4.5rem 1rem auto auto; margin: 0; width: min(34rem, calc(100vw - 2rem)); max-height: calc(100dvh - 6rem); overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); color: var(--foreground); box-shadow: 0 12px 36px #061f3f20; }
-.panel :global(.admin-apps-dialog)::backdrop { background: #061f3f08; }
-.panel :global(.admin-apps-heading) { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; position: sticky; top: -1.25rem; z-index: 1; background: var(--card); margin-top: -1.25rem; padding-top: 1.25rem; padding-bottom: .75rem; }
-.panel :global(.admin-apps-heading) h2 { font-size: 1.25rem; }
-.panel :global(.admin-apps-heading) p { color: var(--muted-foreground); font-size: .8125rem; margin-top: .125rem; }
-.panel :global(.admin-apps-heading) > button { flex-shrink: 0; border: 0; padding: .5rem; background: transparent; }
-.panel :global(.admin-apps-search) { position: relative; display: block; margin-bottom: 1rem; }
-.panel :global(.admin-apps-search) > svg { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground); }
-.panel :global(.admin-apps-search) > input { width: 100%; padding-left: 2.5rem; font-weight: 400; }
-.panel :global(.admin-apps-grid) { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); column-gap: .5rem; row-gap: .5rem; }
-.panel :global(.admin-app-link) { display: flex; flex-direction: column; align-items: center; gap: .375rem; padding: .5rem .25rem; border-radius: .5rem; text-align: center; min-width: 0; color: var(--foreground); font-size: .8125rem; line-height: 1.35; }
-.panel :global(.admin-app-link) > span:last-child { overflow-wrap: anywhere; }
-.panel :global(.admin-app-link):hover { background: var(--secondary); }
-.panel :global(.admin-app-icon) { width: 3.5rem; height: 3.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: .75rem; background: var(--secondary); color: var(--foreground); }
-.panel :global(.admin-app-icon)[data-tone=rose] { background: var(--panel-selected); color: var(--panel-selected-ink); }
-.panel :global(.admin-apps-empty) { padding: 2rem .5rem; text-align: center; color: var(--muted-foreground); }
+/* Búsqueda: solo el ícono en celular, con texto desde 640 px. */
+
+ .panel :global(.admin-search-trigger) > span { display: none; }
 @media (min-width: 640px) {
-  .panel :global(.admin-apps-grid) { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .panel :global(.admin-search-trigger) > span { display: inline; }
-}
-@media (min-width: 1024px) { .panel :global(.admin-apps-trigger) > span { display: inline; } }
-@media (max-width: 639px) { .panel :global(.admin-app-link) { font-size: .75rem; padding-inline: 0; } }
-@media (max-width: 374px) {
-  .panel :global(.admin-topbar-inner) { gap: .25rem; padding-inline: .375rem; }
-  .panel :global(.admin-apps-grid) { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }

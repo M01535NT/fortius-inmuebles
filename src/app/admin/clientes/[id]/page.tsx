@@ -21,11 +21,11 @@ function ClienteDetail({ id }: { id: string }) {
   if (!cliente) return <div className="space-y-6">
     <PageHeader title="Cliente." />
     {state.status === "idle" || state.status === "loading" ? <p role="status">Cargando cliente…</p> : state.error ? <ErrorNotice error={state.error} /> : <EmptyState title="Cliente no encontrado." />}
-    <Link href="/admin/clientes" className={btnGhost}>Volver a clientes</Link>
+    <Link href="/admin/contactos?tab=clientes" className={btnGhost}>Volver a clientes</Link>
   </div>;
   const asesor = asesores.find(item => item.id === cliente.asesorId);
   return <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
-    <Link href="/admin/clientes" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Volver a clientes</Link>
+    <Link href="/admin/contactos?tab=clientes" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Volver a clientes</Link>
     <PageHeader title={cliente.nombre} description="Ficha del cliente: contacto, perfil y seguimiento."
       actions={!editing ? <><Link className={btnPrimary} href={`/admin/operaciones/nueva?${new URLSearchParams({clienteId:id,intencion:cliente.tipo==="inversionista"?"invertir":cliente.tipo==="comprador"?"comprar":cliente.tipo==="arrendador"?"arrendar":cliente.tipo==="arrendatario"?"rentar":"vender"})}`}>Abrir operación</Link><button type="button" className={btnGhost} onClick={() => setEditing(true)}>Editar cliente</button></> : undefined} />
     {cliente.leadId ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/40 p-4">

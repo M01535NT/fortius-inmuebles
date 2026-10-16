@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import LeadsPage from "@/app/admin/leads/page";
+import LeadsPage from "@/components/admin/screens/prospectos";
 import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 

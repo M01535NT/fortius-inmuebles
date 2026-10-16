@@ -43,7 +43,7 @@ export default function AdminLeadsPage() {
   const [estado, setEstado] = React.useState<LeadEstado | "todos" | "convertidos">("todos");
   const [busqueda, setBusqueda] = React.useState("");
   const [capturaAbierta, setCapturaAbierta] = React.useState(()=>typeof window!=="undefined" && new URLSearchParams(window.location.search).get("nuevo")==="1");
-  useQuickCreate("/admin/leads", () => setCapturaAbierta(true));
+  useQuickCreate("prospecto", () => setCapturaAbierta(true));
   const [view,setView] = React.useState<"lista"|"etapas">("etapas");
   const [guardando, setGuardando] = React.useState(false);
   const nombreInput = React.useRef<HTMLInputElement>(null);
@@ -133,10 +133,6 @@ export default function AdminLeadsPage() {
 
       {/* Filtros */}
       <div className="admin-crm-toolbar flex min-w-0 flex-wrap gap-3">
-        <nav className="admin-view-switch" aria-label="Relaciones comerciales">
-          <Link href="/admin/leads" aria-current="page" className={btnGhost}>Prospectos</Link>
-          <Link href="/admin/clientes" className={btnGhost}>Clientes y propietarios</Link>
-        </nav>
         <input
           type="search"
           aria-label="Buscar prospecto"

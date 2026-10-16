@@ -6,10 +6,10 @@ vi.mock('@/lib/admin/store', async importOriginal => ({
   db: { clientes: clientCollection, propiedades: {}, asesores: {} },
   useCollection: (collection: object) => collection === clientCollection ? [{ id: 'c1', nombre: 'Cliente de prueba', asesorId: 'a1' }] : [],
 }));
-import ExpedientesPage from '@/app/admin/expedientes/page';
+import ExpedientesPage from '@/app/admin/operaciones/page';
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.history.replaceState(null, '', '/'); });
 it('creates an expediente without manually capturing its folio and displays the assigned value', async () => {
-  window.history.replaceState(null, '', '/admin/expedientes?nuevo=1');
+  window.history.replaceState(null, '', '/admin/operaciones?nuevo=1');
   const writes: Record<string, unknown>[] = [];
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
     if (init?.method === 'POST') {

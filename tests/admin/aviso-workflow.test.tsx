@@ -9,7 +9,7 @@ vi.mock("@/lib/admin/store", async importOriginal => {
   const clientes = {}, propiedades = {};
   return { ...actual, db: { ...actual.db, clientes, propiedades }, useCollection: (collection: unknown) => collection === clientes ? [{ id: "c-qa", nombre: "Cliente del expediente QA", tipo: "propietario" }] : [] };
 });
-import ExpedientesPage from "@/app/admin/expedientes/page";
+import ExpedientesPage from "@/app/admin/operaciones/page";
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 const values = {

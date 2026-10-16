@@ -2,7 +2,7 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import LeadsPage from "@/app/admin/leads/page";
+import LeadsPage from "@/components/admin/screens/prospectos";
 import PropiedadesPage from "@/app/admin/propiedades/page";
 import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
 import { propiedades } from "../fixtures/propiedades";

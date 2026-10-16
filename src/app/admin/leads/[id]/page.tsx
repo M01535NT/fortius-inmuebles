@@ -74,7 +74,7 @@ function LeadDetail({ id }: { id: string }) {
       <div className="space-y-6">
         <PageHeader title="Prospecto no encontrado." />
         <EmptyState title="Este lead no existe o fue eliminado." />
-        <Link href="/admin/leads" className={btnGhost}>
+        <Link href="/admin/contactos" className={btnGhost}>
           Volver a leads
         </Link>
       </div>
@@ -137,14 +137,14 @@ function LeadDetail({ id }: { id: string }) {
     if (!lead) return;
     if (await confirmAction(`¿Eliminar el lead "${lead.nombre}" y su historial?`)) {
       await removeById(db.leads, lead.id, db.leads.version(lead));
-      router.push("/admin/leads");
+      router.push("/admin/contactos");
     }
   }
 
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/leads"
+        href="/admin/contactos"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" strokeWidth={1.5} /> Volver a leads
