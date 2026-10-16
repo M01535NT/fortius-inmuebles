@@ -424,7 +424,7 @@ export default function CalendarioPage() {
                         ) : null}
                         {cliente ? <Link href={`/admin/clientes/${encodeURIComponent(cliente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Cliente: {cliente.nombre}</Link> : null}
                         {propiedad ? <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Inmueble: {propiedad.codigo}</Link> : null}
-                        {expediente ? <Link href={`/admin/operaciones?expediente=${encodeURIComponent(expediente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Expediente: {expediente.folio}</Link> : null}
+                        {expediente ? <Link href={`/admin/operaciones/${encodeURIComponent(expediente.id)}`} className="inline-flex min-h-11 items-center text-primary-ink hover:text-foreground">Expediente: {expediente.folio}</Link> : null}
                         {asesor ? <span>Asesor: {asesor.nombre}</span> : null}
                       </p>
                     </div>

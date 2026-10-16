@@ -3,9 +3,11 @@ import { afterEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import AdminDashboard from "@/app/admin/page";
 import ReportesPage from "@/app/admin/reportes/page";
-import ExpedientesPage from "@/app/admin/operaciones/page";
+import OperacionesPage from "@/app/admin/operaciones/page";
+import { OperationScreen } from "@/components/admin/operation/screen";
 import { clearAdminCache } from "@/lib/admin/store";
 
+vi.mock("next/navigation", () => ({ usePathname: () => "/admin/operaciones", useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
 vi.mock("@/lib/admin/store", async original => ({ ...await original<typeof import("@/lib/admin/store")>(), useSession: () => ({ id: "admin", email: "admin@example.test", role: "admin" }) }));
 const baseDate = "2026-10-13";
 function install(records: Record<string, unknown[]> = {}) {
@@ -13,7 +15,7 @@ function install(records: Record<string, unknown[]> = {}) {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(baseDate + "T18:00:00Z"));
   vi.stubGlobal("fetch", async (url: string) => {
-    if (url.startsWith("/api/admin/expedientes")) return Response.json({ expedientes: [] });
+    if (url.startsWith("/api/admin/expedientes")) return Response.json({ expedientes: [], nextOffset: null });
     if (url.startsWith("/api/admin/comercial")) return Response.json({ carteras: [] });
     const collection = url.split("/").pop() ?? "";
     return Response.json({ records: (records[collection] ?? []).map(data => ({ id: (data as { id?: string; slug?: string }).id ?? (data as {slug:string}).slug, data, version: 1, createdAt: baseDate, updatedAt: baseDate })) });
@@ -67,21 +69,21 @@ test("every task due today or overdue stays on Hoy, oldest deadline first", asyn
 });
 
 test("an empty operations module offers creation without forcing the form open", async () => {
-  install(); render(<ExpedientesPage/>);
-  await screen.findByText("Aún no hay expedientes activos visibles para tu cuenta.");
-  expect(screen.queryByRole("button",{name:"Crear expediente"})).toBeNull();
+  install(); render(<OperacionesPage/>);
+  await screen.findByText("Todavía no hay operaciones");
   expect(screen.getByRole("link",{name:"Nueva operación"}).getAttribute("href")).toBe("/admin/operaciones/nueva");
-  fireEvent.click(screen.getByRole("button", {name:"Alta directa"}));
-  expect(screen.getByRole("button",{name:"Crear expediente"})).toBeTruthy();
+  expect(screen.queryByRole("button",{name:"Abrir operación"})).toBeNull();
+  fireEvent.click(screen.getByRole("button", {name:"Alta directa, sin entrevista"}));
+  expect(screen.getByRole("button",{name:"Abrir operación"})).toBeTruthy();
 });
 
 test("operation overview exposes missing context and next task without inventing progress", async () => {
   install();
-  vi.stubGlobal("fetch",async(url:string)=>url==="/api/admin/expedientes"?Response.json({expedientes:[{id:"exp",folio:"EXP-1",cliente_id:"client",asesor_id:"advisor",propiedad_slug:null,etapa:"captacion",version:1}]}):url.endsWith("/formatos")?Response.json({documentos:[]}):Response.json({records:[]}));
-  render(<ExpedientesPage/>);
-  fireEvent.click(await screen.findByRole("button",{name:/EXP-1/}));
-  const brief=await screen.findByRole("region",{name:"Resumen de operación"});
-  expect(within(brief).getByText("Sin inmueble vinculado")).toBeTruthy();
-  expect(within(brief).getByText("Sin próxima tarea registrada")).toBeTruthy();
-  expect(within(brief).getByRole("link",{name:"Crear próxima tarea"}).getAttribute("href")).toContain("expediente=exp");
+  vi.stubGlobal("fetch",async(url:string)=>url.startsWith("/api/admin/expedientes?")||url==="/api/admin/expedientes"?Response.json({expedientes:[{id:"exp",folio:"EXP-1",cliente_id:"client",asesor_id:"advisor",operacion:"venta",propiedad_slug:null,etapa:"captacion",version:1}],nextOffset:null}):url.endsWith("/formatos")?Response.json({documentos:[]}):url.startsWith("/api/admin/entrevistas")?Response.json({entrevistas:[]}):Response.json({records:[]}));
+  render(<OperationScreen id="exp"/>);
+  expect(await screen.findByText("Sin inmueble vinculado")).toBeTruthy();
+  const next=screen.getByRole("region",{name:"Próxima tarea"});
+  expect(within(next).getByText(/no tiene una próxima tarea con fecha/)).toBeTruthy();
+  expect(within(next).getByRole("button",{name:"Agendar"})).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 1 de 6")).toBeTruthy();
 });

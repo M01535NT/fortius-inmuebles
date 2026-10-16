@@ -72,7 +72,7 @@ function TaskDetail({ id }: { id: string }) {
         }
       }} /></section>
       <nav aria-label="Registros relacionados" className="flex flex-wrap gap-2">
-        {task?.expedienteId && <Link className={btnGhost} href={`/admin/operaciones?expediente=${task.expedienteId}`}>Ver expediente</Link>}
+        {task?.expedienteId && <Link className={btnGhost} href={`/admin/operaciones/${encodeURIComponent(task.expedienteId)}`}>Ver expediente</Link>}
         {task?.leadId && <Link className={btnGhost} href={`/admin/leads/${task.leadId}`}>Ver lead</Link>}
         {task?.clienteId && <Link className={btnGhost} href="/admin/contactos?tab=clientes">Ver clientes</Link>}
         {task?.propiedadSlug && <Link className={btnGhost} href={`/admin/propiedades/${task.propiedadSlug}/editar`}>Ver inmueble</Link>}

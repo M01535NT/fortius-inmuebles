@@ -70,7 +70,7 @@ export function WorkspaceSearch({ label = "Buscar" }: { label?: string } = {}) {
       label: clients.find(c => c.id === e.cliente_id)?.nombre ?? e.folio,
       detail: `Operación · ${e.folio}`,
       text: `${e.folio} ${clients.find(c => c.id === e.cliente_id)?.nombre ?? ""}`,
-      href: `/admin/operaciones?expediente=${e.id}`,
+      href: `/admin/operaciones/${encodeURIComponent(e.id)}`,
     })),
   ].filter((item) => normalizedText(item.text).includes(normalizedText(query)));
   const close = () => dialog.current?.close();

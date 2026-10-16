@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { OperationWorkflowPanel } from "./operation-workflow-panel";
 import type { OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
 import { EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
@@ -34,11 +33,10 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
   const [notice, setNotice] = React.useState("");
-  const [workflowDirty,setWorkflowDirty] = React.useState(false);
   const guided=["venta","renta","inversion"].includes(expediente.operacion ?? "");
   const operationDirty = !guided && (etapa !== (expediente.etapa ?? "captacion") || fecha !== (expediente.fecha_objetivo ?? "")
     || checklistKey(checklist) !== checklistKey(expediente.checklist));
-  const dirty = operationDirty || workflowDirty || !!note.trim();
+  const dirty = operationDirty || !!note.trim();
   React.useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
   React.useEffect(() => {
     let active = true;
@@ -88,7 +86,6 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
     </div></details>
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="mt-3 text-sm">{notice}</p>}
-    {guided && <div hidden={view==="activity"}><OperationWorkflowPanel expediente={expediente} onDirtyChange={setWorkflowDirty} onSaved={value=>{onSaved(value);void refreshActivity().catch(()=>setError("Guía guardada; no se pudo actualizar la actividad."));}}/></div>}
     <form hidden={view==="activity"||guided} onSubmit={save} className="mt-5 space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Etapa

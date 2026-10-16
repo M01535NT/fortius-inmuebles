@@ -95,7 +95,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today 
     else if (flow?.estado !== "pausada" && !open.some(t => !!t.vence)) pick = { reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "", late: false, rank: 4 };
     if (!pick) continue;
     const property = names.property(dossier.propiedad_slug);
-    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, detail: [property, processStageText(dossier.etapa, flow, today)].filter(Boolean).join(" · "), href: `/admin/operaciones?expediente=${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
+    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, detail: [property, processStageText(dossier.etapa, flow, today)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
   }
   for (const contact of followups.filter(f => f.fecha <= today)) {
     items.push({ id: contact.id, who: contact.personName, detail: contact.kind === "lead" ? "Prospecto" : "Cliente", reason: "Toca darle seguimiento.", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 5, sort: contact.fecha });
@@ -139,7 +139,7 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
   }
   for (const d of dossiers.filter(active)) {
     for (const [key, r] of Object.entries(d.flujo?.requisitos ?? {}) as Array<[RequirementKey, NonNullable<OperationWorkflow["requisitos"][RequirementKey]>]>) {
-      if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key), meta: `${label(d)} · ${d.folio}`, href: `/admin/operaciones?expediente=${encodeURIComponent(d.id)}` });
+      if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key), meta: `${label(d)} · ${d.folio}`, href: `/admin/operaciones/${encodeURIComponent(d.id)}` });
     }
     if (reports && ownerReportApplies(d.etapa, d.flujo)) {
       const last = reports[d.id];

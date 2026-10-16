@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 for (const width of [390, 768, 1440]) {
-  test(`clientes y operaciones a ${width}px`, async ({ page }, testInfo) => {
+  test(`tablero de operaciones a ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 1000 });
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -10,54 +10,54 @@ for (const width of [390, 768, 1440]) {
       { id: "seller", nombre: "Juan Ibarra", tipo: "propietario", asesorId: "adviser" },
       { id: "seller2", nombre: "Liliana Tonalá Vargas", tipo: "propietario", asesorId: "adviser" },
     ];
+    const ids = ["51000000-0000-4000-8000-000000000001", "51000000-0000-4000-8000-000000000002", "51000000-0000-4000-8000-000000000003"];
     const operations = clients.map((client, index) => ({
-      id: `exp-${index}`, cliente_id: client.id, asesor_id: "adviser", propiedad_slug: null,
-      folio: `EXP-00000${index + 1}`, operacion: "venta", unidad: "", version: 1, etapa: "captacion",
+      id: ids[index], cliente_id: client.id, asesor_id: "adviser", propiedad_slug: null,
+      folio: `EXP-00000${index + 1}`, operacion: "venta", unidad: "", version: 1, etapa: index === 0 ? "documentacion" : "captacion",
+      flujo: { version: 1, ruta: index === 0 ? "compra" : "captacion", estado: "activa", motivo: "", requisitos: {} },
     }));
     await page.route("**/api/**", async route => {
       const request = route.request(), url = new URL(request.url());
+      if (request.method() !== "GET") return route.fulfill({ status: 405, json: { error: "Prueba sin escrituras" } });
       if (url.pathname === "/api/auth/session") return route.fulfill({ json: { user: { id: "qa", email: "qa@example.invalid", role: "admin" } } });
-      if (url.pathname === "/api/admin/expedientes") {
-        if (request.method() === "POST") return route.fulfill({ json: { expediente: { ...operations[0], id: "new-exp", folio: "EXP-NUEVA" } } });
-        return route.fulfill({ json: { expedientes: url.searchParams.has("estado") ? [] : operations } });
-      }
+      if (url.pathname === "/api/admin/mi-asesor") return route.fulfill({ json: { asesorId: "adviser" } });
+      if (url.pathname === "/api/admin/expedientes") return route.fulfill({ json: { expedientes: url.searchParams.has("estado") ? [] : operations, nextOffset: null } });
       if (url.pathname === "/api/admin/entrevistas") return route.fulfill({ json: { entrevistas: [] } });
       if (url.pathname.endsWith("/formatos")) return route.fulfill({ json: { documentos: [] } });
       if (url.pathname.endsWith("/actividad")) return route.fulfill({ json: { actividad: [] } });
+      if (url.pathname === "/api/admin/apps/runs") return route.fulfill({ json: { runs: [], nextOffset: null } });
       const data = url.pathname.endsWith("/clientes") ? clients : url.pathname.endsWith("/asesores") ? [{ id: "adviser", nombre: "Nallely De la Cruz", activo: true }] : [];
       return route.fulfill({ json: { records: data.map(item => ({ id: item.id, data: item, version: 1 })) } });
     });
     await page.goto("/admin/operaciones");
-    const panel = page.getByRole("complementary", { name: "Clientes y operaciones" });
-    await expect(panel.getByRole("button", { name: /Ana Martínez/ })).toBeVisible();
-    await panel.getByRole("button", { name: /Juan Ibarra/ }).click();
-    await expect(panel.getByRole("button", { name: /Juan Ibarra/ })).toHaveAttribute("aria-current", "true");
-    await expect(panel.getByRole("button", { name: /Juan Ibarra/ })).toHaveCSS("border-left-color", "rgb(138, 22, 52)");
-    await expect(panel.getByRole("button", { name: /Ana Martínez/ })).toHaveCSS("border-left-color", "rgba(0, 0, 0, 0)");
-    await expect(page.getByRole("heading", { name: "EXP-000002", exact: true })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Entrevista inicial" }).getByRole("link")).toBeVisible();
-    await page.getByRole("heading", { name: "Operaciones", exact: true }).scrollIntoViewIfNeeded();
-    await page.screenshot({ path: testInfo.outputPath(`clientes-${width}.png`), fullPage: true });
+    await expect(page.getByRole("heading", { name: "Operaciones", exact: true })).toBeVisible();
+    const capture = page.getByRole("listitem", { name: /^Captación/ });
+    await expect(capture.getByRole("link", { name: /Juan Ibarra/ })).toBeVisible();
+    const visits = page.getByRole("listitem", { name: /^Visitas y ofertas/ });
+    if (width < 1024) {
+      await expect(visits).toBeHidden();
+      await page.getByRole("tab", { name: /^5 Visitas/ }).click();
+      await expect(page).toHaveURL(/etapa=visitas-ofertas/);
+    }
+    await expect(visits.getByRole("link", { name: /Ana Martínez/ })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`tablero-${width}.png`), fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await panel.getByRole("searchbox").fill("martinez");
-    await expect(panel.getByRole("button", { name: /Ana Martínez/ })).toBeVisible();
-    await expect(panel.getByRole("button", { name: /Juan Ibarra/ })).toHaveCount(0);
-    await panel.getByRole("searchbox").fill("EXP-000002");
-    await expect(panel.getByRole("button", { name: /Juan Ibarra/ })).toBeVisible();
-    await panel.getByRole("searchbox").fill("sin coincidencia");
-    await expect(panel.getByRole("status")).toContainText("No hay coincidencias");
-    await panel.getByRole("searchbox").fill("");
-    const sellers = panel.locator("details").filter({ hasText: "Vendedores" });
-    await sellers.locator("summary").focus();
-    await page.keyboard.press("Enter");
-    await expect(panel.getByRole("button", { name: /Juan Ibarra/ })).not.toBeVisible();
-    await page.keyboard.press("Enter");
-    await expect(panel.getByRole("button", { name: /Juan Ibarra/ })).toBeVisible();
-    await expect(panel.getByRole("link", { name: "Nueva operación" })).toHaveAttribute("href", "/admin/operaciones/nueva");
-    await panel.getByRole("button", { name: "Eliminados", exact: true }).click();
-    await expect(panel).toContainText("No hay expedientes eliminados");
-    await panel.getByRole("link", { name: "Nueva operación" }).click();
-    await expect(page).toHaveURL(/operaciones[/]nueva$/);
+    const search = page.getByRole("textbox", { name: "Buscar cliente o folio" });
+    await search.fill("tonala");
+    if (width < 1024) await page.getByRole("tab", { name: /^1 Captación/ }).click();
+    await expect(capture.getByRole("link", { name: /Liliana Tonalá Vargas/ })).toBeVisible();
+    await expect(capture.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
+    await search.fill("EXP-000002");
+    await capture.getByRole("link", { name: /Juan Ibarra/ }).click();
+    await expect(page).toHaveURL(new RegExp(`/admin/operaciones/${ids[1]}$`));
+    await expect(page.getByRole("heading", { level: 1, name: "Juan Ibarra" })).toBeVisible();
+    await expect(page.getByText("Lo que sigue · Etapa 1 de 6")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });
+    await page.getByRole("link", { name: "Operaciones", exact: true }).first().click();
+    await page.getByRole("link", { name: "Ver operaciones eliminadas" }).click();
+    await expect(page.getByText("No hay operaciones eliminadas")).toBeVisible();
+    await page.goto("/admin/operaciones/nueva");
     await expect(page.getByRole("heading", { name: "¿Qué necesita esta persona?" })).toBeVisible();
     expect(errors).toEqual([]);
   });

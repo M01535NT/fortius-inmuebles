@@ -152,6 +152,8 @@ const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
  cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
 };
 const VERIFICATION_REQUIREMENTS = OWNER_PHASE_REQUIREMENTS.verificacion;
+/** Requisitos que cierran una etapa del propietario. */
+export function phaseRequirements(phase: SalePhase): readonly RequirementKey[] { return OWNER_PHASE_REQUIREMENTS[phase]; }
 export function requirementPhase(key: RequirementKey): SalePhase | undefined {
  return (Object.keys(OWNER_PHASE_REQUIREMENTS) as SalePhase[]).find(phase => OWNER_PHASE_REQUIREMENTS[phase].includes(key));
 }

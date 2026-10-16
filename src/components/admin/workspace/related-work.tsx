@@ -273,7 +273,7 @@ export function RelatedWork({
             <Link
               key={d.id}
               className="inline-flex min-h-11 items-center pr-4 text-sm underline"
-              href={`/admin/operaciones?expediente=${d.id}`}
+              href={`/admin/operaciones/${encodeURIComponent(d.id)}`}
             >
               {d.folio}
             </Link>

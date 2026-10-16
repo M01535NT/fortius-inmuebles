@@ -83,7 +83,7 @@ test("upcoming orders events by operating date and time and keeps the expediente
     "Visita de mañana", "Visita de tarde", "Revisión sin hora", "Firma de mañana",
   ]);
   expect(upcoming.queryByText("Evento de ayer")).toBeNull();
-  expect(upcoming.getByRole("link", { name: "Expediente: EXP-PRUEBA" }).getAttribute("href")).toBe("/admin/operaciones?expediente=exp1");
+  expect(upcoming.getByRole("link", { name: "Expediente: EXP-PRUEBA" }).getAttribute("href")).toBe("/admin/operaciones/exp1");
   expect(upcoming.getByText("Sin hora")).toBeTruthy();
   expect(writes).toBe(0);
 });

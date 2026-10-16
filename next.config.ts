@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
       { source: "/descargas/checklist-venta-mnt.pdf", destination: "/descargas/checklist-venta-fortius.pdf", permanent: true },
       // Panel guiado (Fase 2): las listas viejas viven ahora en secciones con pestañas; las fichas de detalle no cambian.
       { source: "/admin/expedientes", destination: "/admin/operaciones", permanent: false },
+      // Fase 4: cada operación tiene su propia dirección y las páginas de etapa son columnas del tablero.
+      { source: "/admin/operaciones", has: [{ type: "query" as const, key: "expediente", value: "(?<id>[0-9a-fA-F-]{36})" }], destination: "/admin/operaciones/:id", permanent: false },
+      ...Object.entries({ preparacion: "verificacion-precio", promocion: "publicacion-seguimiento", negociacion: "visitas-ofertas", cierre: "cierre-entrega", postventa: "cierre-entrega" })
+        .map(([legacy, slug]) => ({ source: `/admin/proceso/${legacy}`, destination: `/admin/operaciones?etapa=${slug}`, permanent: false })),
+      { source: "/admin/proceso/:etapa", destination: "/admin/operaciones?etapa=:etapa", permanent: false },
       { source: "/admin/leads", destination: "/admin/contactos", permanent: false },
       { source: "/admin/clientes", destination: "/admin/contactos?tab=clientes", permanent: false },
       { source: "/admin/calendario", destination: "/admin/agenda", permanent: false },

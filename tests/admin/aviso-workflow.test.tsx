@@ -9,7 +9,13 @@ vi.mock("@/lib/admin/store", async importOriginal => {
   const clientes = {}, propiedades = {};
   return { ...actual, db: { ...actual.db, clientes, propiedades }, useCollection: (collection: unknown) => collection === clientes ? [{ id: "c-qa", nombre: "Cliente del expediente QA", tipo: "propietario" }] : [] };
 });
-import ExpedientesPage from "@/app/admin/operaciones/page";
+import { DocumentsTab, type Documento } from "@/components/admin/operation/documents-tab";
+import type { OperationRecord } from "@/lib/admin/operation-view";
+const noop = () => {};
+function Docs({ initial }: { initial: Documento[] }) {
+  const [documents, setDocuments] = React.useState(initial);
+  return <DocumentsTab op={exp as unknown as OperationRecord} documents={documents} onDocumentsChange={update => setDocuments(update)} onDirtyChange={noop} />;
+}
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 const values = {
@@ -63,13 +69,11 @@ it("genera la plantilla actual cuando sólo hay un PDF archivado con el diseño 
     if (url.endsWith("/descargar")) { expect(url).toContain("pdf-current"); return new Response("%PDF-1.7 QA", { headers: { "Content-Type": "application/pdf" } }); }
     return Response.json({ documento: draft, emisiones: [{ id: "pdf-old", draft_version: 5, created_at: "2026-10-04" }] });
   });
-  render(<ExpedientesPage />);
-  fireEvent.click(await screen.findByRole("button", { name: /EXP-QA/ }));
-  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
+  render(<Docs initial={[draft as Documento]} />);
   fireEvent.click(await screen.findByRole("button", { name: /^01 ·/ }));
   await screen.findByLabelText("Nombre del titular");
   expect(screen.queryByRole("link", { name: "Descargar PDF del aviso" })).toBeNull();
-  expect(screen.getByRole("link", { name: /PDF emitido · versión 5/ }).getAttribute("href")).toContain("pdf-old");
+  expect(screen.getByRole("link", { name: /PDF de la versión 5/ }).getAttribute("href")).toContain("pdf-old");
   fireEvent.click(screen.getByRole("button", { name: "Guardar y descargar PDF" }));
   await waitFor(() => expect(clicked).toHaveLength(1));
   expect(emitted).toBe(1);
@@ -87,9 +91,7 @@ it("recupera el cliente y la operación al crear un aviso, sin presumir autoriza
     }
     return Response.json({ documentos: [] });
   });
-  render(<ExpedientesPage />);
-  fireEvent.click(await screen.findByRole("button", { name: /EXP-QA/ }));
-  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
+  render(<Docs initial={[]} />);
   fireEvent.change(screen.getByRole("combobox", { name: "Formato" }), { target: { value: "01" } });
   fireEvent.click(screen.getByRole("button", { name: "Crear borrador" }));
   await screen.findByLabelText("Nombre del titular");
@@ -123,9 +125,7 @@ async function setup(failure?: "save" | "emit" | "download") {
     }
     return Response.json({ documento: draft, emisiones: [] });
   });
-  render(<ExpedientesPage />);
-  fireEvent.click(await screen.findByRole("button", { name: /EXP-QA/ }));
-  fireEvent.click(await screen.findByRole("tab", { name: "Documentos" }));
+  render(<Docs initial={[draft as Documento]} />);
   fireEvent.click(await screen.findByRole("button", { name: /^01 ·/ }));
   fireEvent.change(await screen.findByLabelText("Nombre del titular"), { target: { value: "Titular actualizado QA" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar y descargar PDF" }));

@@ -29,7 +29,7 @@ export function CalendarEventContext({ references, context }: { references: Cale
     {lead && <Link href={"/admin/leads/" + encodeURIComponent(lead.id)}>{lead.nombre}</Link>}
     {cliente && <Link href={"/admin/clientes/" + encodeURIComponent(cliente.id)}>Cliente: {cliente.nombre}</Link>}
     {propiedad && <Link href={"/admin/propiedades/" + encodeURIComponent(propiedad.slug) + "/editar"}>Inmueble: {propiedad.codigo}</Link>}
-    {expediente && <Link href={"/admin/operaciones?expediente=" + encodeURIComponent(expediente.id)}>Expediente: {expediente.folio}</Link>}
+    {expediente && <Link href={"/admin/operaciones/" + encodeURIComponent(expediente.id)}>Expediente: {expediente.folio}</Link>}
     {asesor && <span>Asesor: {asesor.nombre}</span>}
   </div>;
 }

@@ -12,6 +12,8 @@ for(const width of [390,768,1440]) {
    const req=route.request(),u=new URL(req.url());if(req.method()!=='GET'){writes.push(u.pathname);return route.fulfill({status:405,json:{error:'Ensayo sin escrituras'}});}
    if(u.pathname==='/api/auth/session')return route.fulfill({json:{user:{id:'qa',email:'qa@example.invalid',role:'admin'}}});
    if(u.pathname==='/api/admin/expedientes')return route.fulfill({json:{expedientes:ops,nextOffset:null}});
+   if(u.pathname==='/api/admin/mi-asesor')return route.fulfill({json:{asesorId:adviser.id}});
+   if(u.pathname==='/api/admin/apps/runs')return route.fulfill({json:{runs:[],nextOffset:null}});
    if(u.pathname==='/api/admin/entrevistas')return route.fulfill({json:{entrevistas:[]}});
    if(u.pathname.endsWith('/formatos'))return route.fulfill({json:{documentos:[]}});
    if(u.pathname.endsWith('/actividad'))return route.fulfill({json:{actividad:[]}});
@@ -29,24 +31,28 @@ for(const width of [390,768,1440]) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:info.outputPath('contacto-'+width+'.png'),fullPage:true});
   for(const [i,r] of routes.entries()){
+   // La dirección anterior con ?expediente= abre la operación guiada.
    await page.goto('/admin/operaciones?expediente='+ops[i].id);
-   await expect(page.getByRole('heading',{name:ops[i].folio,exact:true})).toBeVisible();
-   const guide=page.locator('#exp-guia');await expect(guide).toBeVisible();
-   await guide.getByText('Decisión del encargo y siguiente acción',{exact:true}).click();
-   await expect(guide.getByRole('combobox',{name:'Resolución',exact:true})).toBeVisible();
-   if(r==='inversion')await expect(guide.getByText('Participantes y contraparte',{exact:true})).toHaveCount(0);
+   await expect(page).toHaveURL(new RegExp('/admin/operaciones/'+ops[i].id));
+   await expect(page.getByText(ops[i].folio,{exact:true})).toBeVisible();
+   const guide=page.getByRole('region',{name:'Lo que sigue'});await expect(guide).toBeVisible();
+   const states=guide.getByRole('radiogroup').first();await expect(states).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await guide.screenshot({path:info.outputPath(r+'-'+width+'.png')});
-   const reviews=guide.getByText('Requisitos para avanzar',{exact:true});
-   if(await reviews.count()) await reviews.click();
-   await guide.getByText('Evidencia y alcance de la revisión',{exact:true}).first().click();
-   await expect(guide.getByRole('combobox',{name:'Tipo de evidencia',exact:true}).first()).toBeVisible();
-   await guide.getByRole('combobox',{name:'Resolución',exact:true}).selectOption('pausada');
-   await guide.screenshot({path:info.outputPath(r+'-evidencia-pausa-'+width+'.png')});
-   const evidenceControl=guide.getByRole('combobox',{name:'Tipo de evidencia',exact:true}).first();
-   await evidenceControl.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
-   expect(await evidenceControl.evaluate(e=>{const b=e.getBoundingClientRect();const t=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return e===t||e.contains(t);})).toBe(true);
-   await page.screenshot({path:info.outputPath(r+'-viewport-'+width+'.png')});
+   await states.getByRole('radio',{name:/Revisado/}).click();
+   const sheet=page.getByRole('dialog');await expect(sheet.getByText('Documento fuera del sistema',{exact:true})).toBeVisible();
+   const outside=sheet.getByRole('radio',{name:/Documento fuera del sistema/});
+   await outside.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+   expect(await outside.evaluate(e=>{const b=e.getBoundingClientRect();const t=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return e===t||e.contains(t)||!!t?.closest('label')?.contains(e);})).toBe(true);
+   await page.screenshot({path:info.outputPath(r+'-revisado-'+width+'.png')});
+   await page.keyboard.press('Escape');
+   await page.getByRole('tab',{name:'Ajustes'}).click();
+   await expect(page.getByRole('combobox',{name:'Decisión',exact:true})).toBeVisible();
+   await page.getByRole('combobox',{name:'Decisión',exact:true}).selectOption('pausada');
+   await expect(page.getByRole('region',{name:'Contraparte'})).toHaveCount(r==='inversion'?0:1);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await page.screenshot({path:info.outputPath(r+'-ajustes-'+width+'.png')});
+   page.once('dialog',d=>void d.accept());
   }
   expect(errors).toEqual([]);expect(writes).toEqual([]);
  });

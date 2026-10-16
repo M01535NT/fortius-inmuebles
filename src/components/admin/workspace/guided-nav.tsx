@@ -22,7 +22,7 @@ import s from "./guided-nav.module.css";
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>; match: string[] };
 export const MAIN_NAV: NavItem[] = [
   { href: "/admin", label: "Hoy", icon: House, match: [] },
-  { href: "/admin/operaciones", label: "Operaciones", icon: Columns3, match: ["/admin/operaciones", "/admin/proceso", "/admin/entrevistas"] },
+  { href: "/admin/operaciones", label: "Operaciones", icon: Columns3, match: ["/admin/operaciones", "/admin/entrevistas"] },
   { href: "/admin/contactos", label: "Contactos", icon: Contact, match: ["/admin/contactos", "/admin/leads", "/admin/clientes"] },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
   { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },

@@ -94,6 +94,60 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
   - 70 públicas (1 omitida).
   - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro.
 
+**Fase 4 · Operaciones y operación guiada — 16/10/2026 (en la rama `feat/panel-guiado`; sin PR ni publicación):**
+- **Tablero** (`/admin/operaciones`, artboards `OperacionesEscritorio` y `OperacionesMovil`):
+  - seis columnas desde 1024 px, que se desplazan de lado si no caben; en celular, pestañas por etapa con su descripción;
+  - cada tarjeta muestra cliente, inmueble, «Sigue» (la próxima tarea) y su fecha; lo vencido va en guinda y lo dice con palabras;
+  - buscador sin acentos por cliente, folio o inmueble;
+  - «Mías / Todo el equipo» para el administrador que también es asesor;
+  - las operaciones archivadas quedan plegadas al final de «Cierre y entrega»;
+  - abajo están «Alta directa, sin entrevista» (protege la captura al salir) y «Ver operaciones eliminadas», donde se restauran con confirmación;
+  - `?etapa=<slug>` abre esa etapa.
+- **Operación guiada** (`/admin/operaciones/[id]`, artboards `OperacionEscritorio*` y `OperacionMovil*`):
+  - **Encabezado:** regreso a Operaciones, cliente, folio, inmueble, precio («Precio que espera» según la entrevista o «Precio de salida» según la ficha) y responsable.
+  - **Avance:** 6 etapas para el propietario; compra, renta e inversión muestran sus propios pasos. Por debajo de 1024 px se ve «Etapa N de M» con barra.
+  - **Pestañas:** Lo que sigue · Documentos · Tareas · Historial · Ajustes. Cambiar de pestaña con cambios sin guardar pide confirmación, y salir de la operación también.
+  - **Lo que sigue:** qué hacemos y para qué, y los requisitos de la etapa con su estado (Pendiente · Lo tengo · Revisado · Hay un problema · No aplica). «No aplica» solo aparece donde se admite. Cada cambio se guarda al momento con control de versión.
+    - Los requisitos de etapas anteriores que siguen abiertos aparecen al final.
+    - El contrato espera a que termine la verificación.
+  - **«Marcar como revisado»** (panel lateral en computadora, inferior en celular) pide:
+    - el documento que lo respalda: uno de la operación, la entrevista terminada o un documento fuera del sistema con su folio o ubicación;
+    - quién lo revisó y la fecha;
+    - la vigencia, cuando aplica;
+    - qué encontró.
+    - En «Más detalles» se puede elegir el PDF generado o un archivo del documento, y escribir límites o condiciones.
+  - **«Hay un problema»** guarda título y explicación en el soporte y muestra el aviso con la fecha. «Ya se resolvió» lo regresa a «Lo tengo» y deja constancia.
+  - **Próxima tarea:** con «Cambiar fecha», o para agendarla si no hay.
+  - **Barra fija «Te falta»:** enlaza cada pendiente a su requisito, a Ajustes o a la próxima tarea, con el motivo. «Pasar a: <siguiente>» se deshabilita mientras falte algo. El servidor vuelve a comprobar todo al avanzar.
+  - **Columna lateral:** las herramientas de la etapa con la operación ya elegida, el propietario o cliente (Llamar y WhatsApp) y «¿Qué significa?».
+  - **Lo que se conserva:** el informe mensual, las visitas y ofertas del inmueble, la comparación entre lo declarado y la ficha, y el acceso a la entrevista.
+  - **Ajustes:** decisión del encargo, ruta y situación, inmueble, fecha objetivo, contraparte (solo la de la ruta opuesta), corregir etapa con motivo y eliminar. El texto dice la verdad: la operación eliminada se puede restaurar.
+  - **Documentos:** crear borrador, capturar, generar PDF, copia firmada y fotografías, con la misma lógica de antes. Se aplicó el glosario: «Generar PDF», «PDF generados», «Versión N».
+  - **Historial:** cambios y notas del equipo.
+  - Las operaciones de administración u «otra» conservan su seguimiento simple.
+- **Rutas:**
+  - `/admin/operaciones?expediente=<id>` redirige a `/admin/operaciones/<id>`;
+  - `/admin/proceso/<etapa>` (y sus direcciones anteriores) a `/admin/operaciones?etapa=<etapa>`;
+  - los enlaces internos (Hoy, búsqueda, agenda, tareas, entrevistas, documentos, publicación y herramientas) ya apuntan a la dirección nueva.
+- **Código:**
+  - `expedientes/page.tsx` (362 líneas) y `operation-workflow-panel.tsx` (39 KB) se dividieron en `src/components/admin/operation/`: tablero, alta directa, pantalla, requisitos, lo que sigue, documentos, historial y ajustes;
+  - la lógica quedó en `src/lib/admin/operation-view.ts`.
+  - Se retiraron las páginas de proceso, `process-stage`, `module-catalog`, `expediente-client-list`, `operation-brief` y `dossier-tabs`.
+- **Pruebas:**
+  - las de la pantalla anterior se reescribieron sobre la nueva, cubriendo lo mismo: guardar sin perder captura, aperturas lentas, eliminar y restaurar, salir con cambios, aviso de privacidad, folio automático, contraparte por ruta, informe vencido y páginas de la consulta;
+  - se retiraron dos pruebas de componentes que ya no existen (pestañas del expediente y guía anterior); su comportamiento queda cubierto por 7 pruebas de lógica y 16 de pantalla nuevas.
+  - En navegador, las de CI de tablero, eliminación y rutas se adaptaron a la nueva pantalla.
+- **Resultados:**
+  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 333 del panel y 35 de herramientas, además del paquete de PDF;
+  - 44 de navegador del panel que corre CI, contra un servidor sin base de datos;
+  - 70 públicas (1 omitida).
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro: tablero, cada pestaña de la operación, el panel «Marcar como revisado» y las eliminadas.
+- **Límites y decisiones por confirmar:**
+  - las rutas de compra, renta e inversión muestran sus propios 7 pasos, no las 6 etapas del propietario;
+  - en «Verificación y precio» el botón no cambia la etapa interna: «Contrato y preparación» se abre sola al completar la verificación y registrar la decisión;
+  - «Ya se resolvió» deja el requisito en «Lo tengo» para que se revise de nuevo;
+  - los títulos de los formatos conservan su nombre de archivo, sin acentos (repaso del glosario en la Fase 7).
+
 ## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
 
 **Alcance:** mismo comportamiento con menos código y peso, decidido por el titular el 15/10/2026: quitar Finanzas, Análisis territorial y Portal de clientes, y eliminar las integraciones apagadas (firmas, OCR, consulta con IA y rutas). Rama `chore/limpieza-codigo`, sin migraciones ni cambios de permisos o datos. **Estado: comprobada localmente; sin push, PR ni publicación.**
