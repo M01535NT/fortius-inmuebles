@@ -95,11 +95,12 @@ class Writer {
     this.y -= size * 1.2 + after;
   }
   /** Formulario: celdas con borde fino, pregunta en negritas y respuesta debajo; altura mínima para escribir a mano. */
-  form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>) {
-    const pad = 4, qSize = 9, aSize = 10, qLead = qSize * 1.18, aLead = aSize * 1.22, minHeight = 30;
+  form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>, filled = false) {
+    const pad = 4, qSize = filled ? 8 : 9, aSize = 10, qLead = qSize * 1.18, aLead = aSize * 1.22, minHeight = filled ? 34 : 30;
     const measure = (row: Array<{ q: string; a: string; w: number }>) => {
       const total = row.reduce((s, c) => s + c.w, 0);
-      const cells = row.map(c => { const width = c.w / total * WIDTH; return { ...c, width, ql: wrap(c.q, this.fonts.bold, qSize, width - pad * 2), al: c.a ? wrap(c.a, this.fonts.regular, aSize, width - pad * 2) : [] }; });
+      const qFont = filled ? this.fonts.regular : this.fonts.bold;
+      const cells = row.map(c => { const width = c.w / total * WIDTH; return { ...c, width, ql: wrap(c.q, qFont, qSize, width - pad * 2), al: c.a ? wrap(c.a, this.fonts.regular, aSize, width - pad * 2) : [] }; });
       const height = Math.max(minHeight, ...cells.map(c => pad * 2 + c.ql.length * qLead + (c.al.length ? 3 + c.al.length * aLead : 0)));
       return { cells, height };
     };
@@ -114,11 +115,12 @@ class Writer {
       if (this.y - height < BOTTOM) this.newPage();
       let x = LEFT;
       for (const cell of cells) {
-        this.page.drawRectangle({ x, y: this.y - height, width: cell.width, height, borderColor: RULE, borderWidth: 0.5 });
+        if (filled) this.page.drawRectangle({ x: x + (x > LEFT ? 3 : 0), y: this.y - height + 3, width: cell.width - (x > LEFT ? 3 : 0), height: height - 3, color: hex(COLORS.cell) });
+        else this.page.drawRectangle({ x, y: this.y - height, width: cell.width, height, borderColor: RULE, borderWidth: 0.5 });
         let y = this.y - pad;
-        for (const line of cell.ql) { this.page.drawText(line, { x: x + pad, y: y - qSize, size: qSize, font: this.fonts.bold, color: NAVY }); y -= qLead; }
+        for (const line of cell.ql) { this.page.drawText(line, { x: x + pad + (filled && x > LEFT ? 3 : 0), y: y - qSize, size: qSize, font: filled ? this.fonts.regular : this.fonts.bold, color: NAVY }); y -= qLead; }
         y -= 3;
-        for (const line of cell.al) { this.page.drawText(line, { x: x + pad, y: y - aSize, size: aSize, font: this.fonts.regular, color: NAVY }); y -= aLead; }
+        for (const line of cell.al) { this.page.drawText(line, { x: x + pad + (filled && x > LEFT ? 3 : 0), y: y - aSize, size: aSize, font: this.fonts.regular, color: NAVY }); y -= aLead; }
         x += cell.width;
       }
       this.y -= height;
@@ -161,14 +163,35 @@ class Writer {
     for (const row of rows) draw(row, this.fonts.regular);
     this.y -= 6;
   }
+  /** Pregunta con opciones en casillas dibujadas; la elegida lleva una X. */
+  checks(q: string, options: Array<{ value: string; label: string }>, selected: unknown) {
+    const size = 9.5, box = 8, gap = 14;
+    this.ensure(36);
+    this.y -= 4;
+    this.page.drawText(q, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY });
+    this.y -= size + 6;
+    let x = LEFT;
+    for (const option of options) {
+      const w = box + 4 + this.fonts.regular.widthOfTextAtSize(option.label, size) + gap;
+      if (x + w > LEFT + WIDTH) { x = LEFT; this.y -= size + 6; }
+      this.page.drawRectangle({ x, y: this.y - box, width: box, height: box, borderColor: NAVY, borderWidth: 0.7 });
+      if (option.value === selected) {
+        this.page.drawLine({ start: { x: x + 1.5, y: this.y - box + 1.5 }, end: { x: x + box - 1.5, y: this.y - 1.5 }, thickness: 1, color: NAVY });
+        this.page.drawLine({ start: { x: x + 1.5, y: this.y - 1.5 }, end: { x: x + box - 1.5, y: this.y - box + 1.5 }, thickness: 1, color: NAVY });
+      }
+      this.page.drawText(option.label, { x: x + box + 4, y: this.y - box + 0.5, size, font: option.value === selected ? this.fonts.bold : this.fonts.regular, color: NAVY });
+      x += w;
+    }
+    this.y -= size + 8;
+  }
   /** Barra azul marino de hoja de cálculo con texto en mayúsculas y, si hay, un dato a la derecha sobre gris. */
-  bar(text: string, right?: string, big = false) {
+  bar(text: string, right?: string, big = false, raw = false) {
     const height = big ? 26 : 18, size = big ? 13 : 9.5;
     this.ensure(height + 40);
     this.y -= 4;
     const split = right !== undefined ? WIDTH * 8 / 12 : WIDTH;
     this.page.drawRectangle({ x: LEFT, y: this.y - height, width: split, height, color: NAVY });
-    this.page.drawText(text.toUpperCase(), { x: LEFT + 6, y: this.y - height / 2 - size / 2 + 1.5, size, font: this.fonts.bold, color: WHITE });
+    this.page.drawText(raw ? text : text.toUpperCase(), { x: LEFT + 6, y: this.y - height / 2 - size / 2 + 1.5, size, font: this.fonts.bold, color: WHITE });
     if (right !== undefined) {
       this.page.drawRectangle({ x: LEFT + split, y: this.y - height, width: WIDTH - split, height, color: hex(COLORS.band2) });
       const rsize = big ? 15 : 10, w = this.fonts.bold.widthOfTextAtSize(right, rsize);
@@ -203,12 +226,14 @@ class Writer {
     for (const line of wrap(text, this.fonts.regular, size, WIDTH)) { this.ensure(leading); this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY }); this.y -= leading; }
     this.y -= 4;
   }
-  signatures(parties: Array<{ role: string; name: string }>) {
+  signatures(parties: Array<{ role: string; name: string }>, line = false) {
     const col = WIDTH / parties.length, size = this.style.body;
     this.ensure(36 + size * 4);
     this.y -= 36;
     parties.forEach((party, i) => {
       const center = LEFT + col * i + col / 2;
+      // Línea de firma sobre el cargo, como en las actas.
+      if (line) this.page.drawLine({ start: { x: center - col / 2 + 20, y: this.y + 4 }, end: { x: center + col / 2 - 20, y: this.y + 4 }, thickness: 0.6, color: this.style.ink });
       const role = this.fonts.bold.widthOfTextAtSize(party.role, size);
       this.page.drawText(party.role, { x: center - role / 2, y: this.y - size, size, font: this.fonts.bold, color: this.style.ink });
       wrap(party.name, this.fonts.regular, size, col - 20).forEach((line, n) => {
@@ -265,13 +290,14 @@ class Writer {
   async render(block: Block) {
     switch (block.kind) {
       case "image": await this.image(block.label, block.image, block.height); break;
-      case "bar": this.bar(block.text, block.right, block.big); break;
+      case "bar": this.bar(block.text, block.right, block.big, block.raw); break;
+      case "checks": this.checks(block.q, block.options, block.selected); break;
       case "sheet": this.sheet(block.rows); break;
       case "grid": this.grid(block.widths, block.header, block.rows); break;
       // Salto de página de la plantilla; si la página apenas empezó (solo arrastra una nota), se continúa en ella.
       case "pagebreak": if (this.y < PAGE[1] / 2) this.newPage(); break;
       case "title": if (block.bold) { const size = block.size ?? 22; this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; this.page.drawText(block.text, { x: LEFT, y: this.y - size, size, font: this.fonts.bold, color: NAVY }); this.y -= size + 8; } else this.heading(block.text, 27, NAVY, 0, 8); break;
-      case "form": this.form(block.label, block.rows); break;
+      case "form": this.form(block.label, block.rows, block.filled); break;
       case "subtitle": this.centered(block.text, 12, 10, 2); break;
       case "note": this.note(block.text); break;
       case "h1": this.heading(block.text, 21, NAVY, 12, 6); break;
@@ -289,7 +315,7 @@ class Writer {
         this.y -= 20; break;
       }
       case "caption": this.heading(block.text, 9.5, hex(COLORS.gray), -4, 8); break;
-      case "signatures": this.signatures(block.parties); break;
+      case "signatures": this.signatures(block.parties, block.line); break;
       case "band": this.table(block.widths, undefined, block.rows.map(row => row.map(cell => `${cell.label.toUpperCase()}\n${cell.value}`)), true); break;
       case "table": this.table(block.widths, block.header, block.rows, false, false, false, !!block.small); break;
     }

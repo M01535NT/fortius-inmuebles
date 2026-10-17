@@ -39,19 +39,20 @@ function table(widths: number[], header: string[] | undefined, rows: string[][],
 }
 
 const rule = { style: BorderStyle.SINGLE, size: 4, color: COLORS.rule };
-function form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>): Array<Paragraph | Table> {
+function form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>, filled = false): Array<Paragraph | Table> {
+  const white = { style: BorderStyle.SINGLE, size: 24, color: COLORS.white };
   // Cuadrícula común de 60 columnas: cada renglón reparte sus celdas en proporción a w.
   const unit = TWIP_WIDTH / 60;
   const table = new Table({
     width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: Array(60).fill(Math.floor(unit)), layout: TableLayoutType.FIXED,
-    borders: { top: rule, bottom: rule, left: rule, right: rule, insideHorizontal: rule, insideVertical: rule },
+    borders: filled ? { top: white, bottom: white, left: white, right: white, insideHorizontal: white, insideVertical: white } : { top: rule, bottom: rule, left: rule, right: rule, insideHorizontal: rule, insideVertical: rule },
     rows: rows.map(row => {
       const total = row.reduce((s, c) => s + c.w, 0);
       let left = 60;
       return new TableRow({ cantSplit: true, height: { value: 600, rule: "atLeast" }, children: row.map((c, i) => {
         const span = i === row.length - 1 ? left : Math.round(c.w / total * 60); left -= span;
-        return new TableCell({ columnSpan: span, width: { size: Math.round(span * unit), type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 80, right: 80 }, children: [
-          new Paragraph({ spacing: { after: 40 }, children: run(c.q, { size: 9, bold: true }) }),
+        return new TableCell({ columnSpan: span, width: { size: Math.round(span * unit), type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 80, right: 80 }, ...(filled ? { shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.cell } } : {}), children: [
+          new Paragraph({ spacing: { after: 40 }, children: run(c.q, { size: filled ? 8 : 9, bold: !filled }) }),
           ...(c.a ? [new Paragraph({ children: run(c.a, { size: 10 }) })] : []),
         ] });
       }) });
@@ -87,7 +88,7 @@ function image(label: string, img: import("./imagen").ImagenDocumento | undefine
 
 function bar(text: string, right: string | undefined, big: boolean) {
   const left = right !== undefined ? Math.round(TWIP_WIDTH * 8 / 12) : TWIP_WIDTH;
-  const cells = [new TableCell({ width: { size: left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.navy }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ children: run(text.toUpperCase(), { size: big ? 13 : 9.5, bold: true, color: COLORS.white }) })] })];
+  const cells = [new TableCell({ width: { size: left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.navy }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ children: run(text, { size: big ? 13 : 9.5, bold: true, color: COLORS.white }) })] })];
   if (right !== undefined) cells.push(new TableCell({ width: { size: TWIP_WIDTH - left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.band2 }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: run(right, { size: big ? 15 : 10, bold: big }) })] }));
   return new Table({ width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: cells.length === 2 ? [left, TWIP_WIDTH - left] : [TWIP_WIDTH], layout: TableLayoutType.FIXED, borders, rows: [new TableRow({ children: cells })] });
 }
@@ -106,13 +107,17 @@ function sheet(rows: Array<Array<{ label?: string; value?: string; w: number; st
 
 function block(b: Block): Array<Paragraph | Table> {
   switch (b.kind) {
-    case "bar": return [new Paragraph({ spacing: { before: 80 }, children: [] }), bar(b.text, b.right, !!b.big)];
+    case "bar": return [new Paragraph({ spacing: { before: 80 }, children: [] }), bar(b.raw ? b.text : b.text.toUpperCase(), b.right, !!b.big)];
     case "sheet": return [sheet(b.rows)];
     case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "pagebreak": return [new Paragraph({ children: [new PageBreak()] })];
     case "title": return [new Paragraph({ keepNext: true, spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.size ?? (b.bold ? 22 : 27), bold: !!b.bold }) })];
-    case "form": return form(b.label, b.rows);
+    case "form": return form(b.label, b.rows, !!b.filled);
+    case "checks": return [
+      new Paragraph({ keepNext: true, spacing: { before: 80, after: 40 }, children: run(b.q, { size: 9.5 }) }),
+      new Paragraph({ spacing: { after: 100 }, children: b.options.flatMap(o => run(`${o.value === b.selected ? "☒" : "☐"} ${o.label}     `, { size: 9.5, bold: o.value === b.selected })) }),
+    ];
     case "subtitle": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 200, after: 40 }, children: run(b.text, { size: 12, bold: true }) })];
     case "note": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 60, after: 80 }, children: run(b.text, { size: 8.5 }) })];
     case "h1": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 120 }, children: run(b.text, { size: 21 }) })];
@@ -124,7 +129,8 @@ function block(b: Block): Array<Paragraph | Table> {
     case "center": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 80, after: 120 }, children: run(b.text, { size: BODY, bold: true }) })];
     case "fields": return [table(b.widths, undefined, b.rows, false, true, !!b.dark), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "signatures": return [new Table({ width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: b.parties.map(() => Math.round(TWIP_WIDTH / b.parties.length)), layout: TableLayoutType.FIXED, borders, rows: [new TableRow({ cantSplit: true, children: b.parties.map(p => new TableCell({ width: { size: Math.round(TWIP_WIDTH / b.parties.length), type: WidthType.DXA }, children: [
-      new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 720, after: 60 }, children: run(p.role, { size: BODY, bold: true }) }),
+      ...(b.line ? [new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 720 }, children: run("______________________________", { size: BODY }) })] : []),
+      new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: b.line ? 40 : 720, after: 60 }, children: run(p.role, { size: BODY, bold: true }) }),
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: run(p.name, { size: BODY }) }),
     ] })) })] })];
     case "band": return [table(b.widths, undefined, b.rows.map(row => row.map(c => `${c.label.toUpperCase()}\n${c.value}`)), true), new Paragraph({ spacing: { after: 80 }, children: [] })];

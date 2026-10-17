@@ -12,11 +12,13 @@ export type Block =
   | { kind: "title"; text: string; bold?: boolean; size?: number }
   | { kind: "pagebreak" }
   /** Barra azul de hoja de cálculo («01 / PRECIO Y DIFERENCIA»), con un dato opcional a la derecha. */
-  | { kind: "bar"; text: string; right?: string; big?: boolean }
+  | { kind: "bar"; text: string; right?: string; big?: boolean; raw?: boolean }
   /** Renglones de hoja: etiqueta sin fondo y valor sobre gris claro; w = ancho relativo (12 por renglón). */
   | { kind: "sheet"; rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>> }
   /** Formulario de preguntas (02, 12, 13…): sección «01 / …» y renglones de celdas con la pregunta arriba y la respuesta debajo; w = ancho relativo. */
-  | { kind: "form"; label?: string; rows: Array<Array<{ q: string; a: string; w: number }>> }
+  | { kind: "form"; label?: string; rows: Array<Array<{ q: string; a: string; w: number }>>; filled?: boolean }
+  /** Pregunta con opciones en casillas; la elegida va marcada (☒). */
+  | { kind: "checks"; q: string; options: Array<{ value: string; label: string }>; selected?: unknown }
   | { kind: "subtitle"; text: string }
   /** Recuadro de imagen con su barra de título (foto principal, croquis); vacío si no hay imagen. */
   | { kind: "image"; label: string; image?: ImagenDocumento; height: number }
@@ -37,12 +39,12 @@ export type Block =
   | { kind: "center"; text: string }
   | { kind: "clause"; lead: string; text: string }
   | { kind: "fields"; widths: [number, number]; rows: Array<[string, string]>; dark?: boolean }
-  | { kind: "signatures"; parties: Array<{ role: string; name: string }> };
+  | { kind: "signatures"; parties: Array<{ role: string; name: string }>; line?: boolean };
 
 /** «marca»: Archivo azul marino (planes, reportes, levantamientos). «contrato»: Times negro, como el 09 y la promesa. */
 export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato" | "opinion"; blocks: Block[] };
 
-export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", head: "F3F7F4", ink2: "08284C", value2: "F6F8FA", gray: "6B7280", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
+export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", head: "F3F7F4", cell: "F2F6F3", ink2: "08284C", value2: "F6F8FA", gray: "6B7280", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
 /** Datos extra que algunos formatos necesitan para dibujarse: imágenes adjuntas por ID. */
 export type DocumentoContexto = { imagenes?: Record<string, ImagenDocumento> };
 /** Espacio para completar a mano, como en la plantilla. */

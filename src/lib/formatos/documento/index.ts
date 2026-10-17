@@ -7,6 +7,8 @@ import { opinionJuridicaDocumento } from "./opinion-juridica";
 import { revisionJuridicaDocumento } from "./revision-juridica";
 import { netoDocumento } from "./neto";
 import { valorDocumento } from "./valor";
+import { compradorDocumento, visitaDocumento } from "./comprador";
+import { cierreDocumento, entregaDocumento, reciboDocumento } from "./cierre";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 
 /*
@@ -22,5 +24,10 @@ export const DOCUMENTOS: Partial<Record<string, (data: Record<string, unknown>, 
   "08": netoDocumento,
   "09": intermediacionDocumento,
   "10": planDocumento,
+  "12": compradorDocumento,
+  "13": visitaDocumento,
+  "16": entregaDocumento,
+  "17": cierreDocumento,
+  "18": reciboDocumento,
 };
 export const hasDocumento = (id: string) => !!DOCUMENTOS[id];
