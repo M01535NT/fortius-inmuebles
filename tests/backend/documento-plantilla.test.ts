@@ -50,17 +50,18 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(text(doc.blocks)).toContain("sesenta mil pesos");
     expect(text(doc.blocks)).toContain("Plazo: 90 días naturales");
   });
-  it("el 02 sigue las preguntas de la plantilla y muestra lo capturado, sin inventar respuestas", () => {
+  it("el 02 es la entrevista sencilla y muestra lo capturado, sin inventar respuestas", () => {
     const empty = entrevistaDocumento({});
-    expect(empty.blocks.filter(b => b.kind === "form" && b.label).map(b => b.kind === "form" && b.label)).toEqual(["01 / Identidad y contacto", "02 / Situación familiar y personas que deben intervenir", "03 / Ubicación, adquisición y facultades para vender", "04 / Ocupación, compromisos y problemas conocidos", "05 / Antecedentes fiscales · sólo para revisión posterior", "06 / Objetivo, expectativa y margen de negociación", "07 / Experiencia de venta y colaboración", "08 / Acuerdos de la entrevista · llena el asesor"]);
+    expect(empty.blocks.filter(b => b.kind === "form" && b.label).map(b => b.kind === "form" && b.label)).toEqual(["01 / Quién es", "02 / El inmueble", "03 / Por qué vende y cuánto espera", "04 / Siguiente paso · llena el asesor"]);
     expect(empty.blocks.flatMap(b => b.kind === "form" ? b.rows.flat().map(c => c.a) : []).every(answer => answer === "")).toBe(true);
-    const filled = entrevistaDocumento({ estadoCivilActual: "casado", conyuge: "Jorge Ruiz", fechaMatrimonio: "1998-06-20", gravamen: "infonavit", acreedor: "Infonavit", precioDeseado: 4600000, monedaPrecio: "MXN", documentosEstado: "registrados", documentosPrometidos: [{ documento: "Escritura", responsable: "Propietaria", fecha: "2026-10-20" }] });
+    const filled = entrevistaDocumento({ entrevistado: "Laura Méndez", relacion: "propietario", estadoCivilActual: "casado", gravamen: "infonavit", fechaNacimiento: "1980-03-15", precioDeseado: 4600000, monedaPrecio: "MXN" });
     const cells = filled.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []);
-    expect(cells.find(c => c.q === "¿Cuál es su estado civil actual?")?.a).toBe("Casado");
-    expect(cells.find(c => c.q.startsWith("Cónyuge de entonces"))?.a).toBe("Jorge Ruiz · 20 de junio de 1998");
-    expect(cells.find(c => c.q.startsWith("¿Tiene hipoteca"))?.a).toBe("Infonavit");
-    expect(cells.find(c => c.q === "¿Qué precio le gustaría obtener?")?.a).toBe("$4,600,000.00 MXN");
-    expect(cells.find(c => c.q.startsWith("¿Qué documentos puede aportar"))?.a).toBe("Escritura · Propietaria · 20 de octubre de 2026");
+    expect(cells.find(c => c.q === "Estado civil")?.a).toBe("Casado");
+    expect(cells.find(c => c.q.startsWith("¿Quién es el propietario?"))?.a).toBe("Laura Méndez");
+    expect(cells.find(c => c.q === "Fecha de nacimiento")?.a).toBe("15 de marzo de 1980");
+    expect(cells.find(c => c.q === "¿Tiene hipoteca o crédito?")?.a).toBe("Infonavit");
+    expect(cells.find(c => c.q === "¿Cuánto quiere por el inmueble?")?.a).toBe("$4,600,000.00 MXN");
+    expect(JSON.stringify(filled.blocks)).not.toMatch(/CURP|RFC|régimen|escritura inscrita|exención/i);
     expect(junta("Sí", "", "Sí", "correo")).toBe("Sí · correo");
   });
   it("los levantamientos siguen las secciones de su plantilla con superficies, foto y croquis", () => {
