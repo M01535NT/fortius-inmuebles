@@ -4,7 +4,7 @@
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
-**Cómo leer este plan:** primero «Dirección del producto y reglas vigentes» (qué se construye y con qué reglas); luego los paquetes listos para implementar, «Simplificación de la interfaz (SIM)» y «Navegación y productividad (NAV)»; después «Dónde nos quedamos» y «Qué sigue» (estado actual); el resto es alcance, backlog, tareas detalladas y el registro histórico de entregas. Si un registro histórico contradice una regla vigente, manda la regla vigente.
+**Cómo leer este plan:** primero «Dirección del producto y reglas vigentes» (qué se construye y con qué reglas); luego los paquetes listos para implementar, «Simplificación de la interfaz (SIM)», «Navegación y productividad (NAV)» y «Lenguaje visual (LV)»; después «Dónde nos quedamos» y «Qué sigue» (estado actual); el resto es alcance, backlog, tareas detalladas y el registro histórico de entregas. Si un registro histórico contradice una regla vigente, manda la regla vigente.
 
 ## Dirección del producto y reglas vigentes — 17/10/2026
 
@@ -101,7 +101,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 
 - **RP-50 · Una pantalla, una pregunta.** Cada pantalla responde una sola pregunta («¿qué hago hoy?», «¿qué sigue en esta operación?», «¿quién es esta persona?») y tiene una sola acción principal visible. (SIM)
 - **RP-51 · Nada se dice dos veces.** Una tarea, un pendiente o una acción aparece una sola vez por pantalla, con un solo nombre de botón. (SIM-03, SIM-05)
-- **RP-52 · Un color, un significado.** Guinda (`--primary`) solo para la acción principal y la sección activa; lo vencido o urgente en el rojo de alerta (`--destructive`) con ícono y palabra; los precios y las cifras en texto normal. (SIM-01)
+- **RP-52 · Un color, un significado.** Guinda (`--primary`) solo para la acción principal y la sección activa; lo vencido o urgente en el rojo de alerta (`--destructive`) con ícono y palabra; los precios y las cifras en texto normal. La paleta completa de cinco colores está en RP-70. (SIM-01, LV-01)
 - **RP-53 · Letra normal y fechas humanas.** Sin letra monoespaciada en el panel. Fechas como «Hoy», «Mañana», «Lun 19», «Vencida hace 2 días»; nunca «2026-10-17» en pantalla. (SIM-01)
 - **RP-54 · Explicar en el momento, no siempre.** Los textos de ayuda aparecen cuando la persona intenta la acción o al tocar «?»; los avisos permanentes y las notas al pie repetidas se retiran. (SIM-01)
 - **RP-55 · Mostrar lo actual, esconder lo posible.** Se muestra el estado actual y la siguiente acción obvia; las demás opciones van en «⋯». (SIM-05, SIM-06)
@@ -126,6 +126,14 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 - **RP-68 · Sin mensajes automáticos a clientes.** Ningún plan, lista o asistente envía WhatsApp, correo o SMS sin que una persona lo confirme (refuerza RP-22 y RP-44).
 - **RP-69 · Sin colores personalizados por usuario.** Rompería RP-52; solo se elige tema claro, oscuro o automático.
 
+**P. Lenguaje visual: que se entienda sin leer (aprobado el 17/10/2026)**
+
+- **RP-70 · Cinco colores con significado, siempre con ícono.** Guinda (`--primary`) para la acción principal y la sección activa; azul para información y agenda (incluidas las visitas); verde para lo listo o revisado; ámbar (`--warning`) para lo que necesita atención; rojo (`--destructive`) para lo vencido o con error. Ningún otro color comunica estado. Completa RP-52. (LV-01)
+- **RP-71 · Un ícono fijo por concepto.** Cada etapa, tipo de documento y estado tiene un solo ícono (de `lucide-react`, ya instalado), definido en un catálogo único y usado igual en el tablero, la barra de avance, Hoy, las listas y los documentos. (LV-02)
+- **RP-72 · El estado se reconoce sin color.** Todo estado combina forma, color y palabra (WCAG 1.4.1). (LV-02)
+- **RP-73 · El movimiento confirma, no decora.** Animaciones de 300 ms o menos que confirman una acción o muestran un cambio; ninguna en bucle continuo; todas se apagan con «reducir movimiento». (LV-03)
+- **RP-74 · Escala tipográfica fija de cuatro tamaños:** título de página, título de sección, texto y nota. Ningún otro tamaño en el panel. (LV-01)
+
 ### Etapa posterior: adaptación para otras inmobiliarias (en pausa)
 
 No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no perder lo ya pensado. Las entregas correspondientes están en el backlog como «en pausa».
@@ -145,7 +153,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 ### Orden vigente
 
 1. **Terminar lo que está en curso:** los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, DOC-09) y comprobar la publicación del rediseño.
-2. **Simplificación de la interfaz** (SIM-01 a SIM-12, en ese orden) junto con **confianza y velocidad** (UX-04, UX-03, UX-02, UX-05) y la **navegación de pantalla** (NAV-01, NAV-02, NAV-03, NAV-05, NAV-07, NAV-13): no tocan el modelo de datos salvo las preferencias por usuario de UX-02, y pueden empezar ya. SIM-01 va primero porque fija color, letra y fechas para todo lo demás.
+2. **Simplificación de la interfaz** (SIM-01 a SIM-12, en ese orden) junto con **confianza y velocidad** (UX-04, UX-03, UX-02, UX-05) y la **navegación de pantalla** (NAV-01, NAV-02, NAV-03, NAV-05, NAV-07, NAV-13): no tocan el modelo de datos salvo las preferencias por usuario de UX-02, y pueden empezar ya. SIM-01 va primero, junto con LV-01, porque fija color, letra y fechas para todo lo demás; después LV-02 a LV-04.
 3. **Núcleo del equipo y disciplina comercial:** REL-01 y SEG-01 con los roles de Fortius, CRM-01, CRM-02, CRM-03, INV-01, DAT-02, VIS-01, OFE-01, EXT-01, y las listas inteligentes, planes de seguimiento y calificación (NAV-04, NAV-06, NAV-09).
 4. **Dinero, aprobaciones, reglas fiscales y tableros:** FIN-01/02/03, APR-01, FIS-01, TAB-01 a TAB-05.
 5. **Documentos avanzados, portal de clientes de Fortius e IA:** DOC-10 a DOC-13, la cola de revisión y el trabajo de campo (NAV-08, NAV-10), EXT-05, EXT-10, EXT-06 y EXT-11. Las entregas con migración o decisión pendiente (NAV-11, NAV-12) y NAV-14 (espera PWA-03) se programan cuando se autoricen.
@@ -200,7 +208,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 
 | # | Hoy (lo que se vio) | Corrección |
 |---|---|---|
-| C01 | El guinda significa botón principal, sección activa, precio, vencido, visita y enlace. | Guinda solo para la acción principal y la sección activa. Vencido en `--destructive` con ícono y palabra. Precios en texto oscuro normal. Visitas con un color propio que no sea alerta (definirlo en los tokens, claro y oscuro, con contraste AA). |
+| C01 | El guinda significa botón principal, sección activa, precio, vencido, visita y enlace. | Guinda solo para la acción principal y la sección activa. Vencido en `--destructive` con ícono y palabra. Precios en texto oscuro normal. Visitas en el azul de información de RP-70 (tokens nuevos `--info` y `--success`, claro y oscuro, con contraste AA; ver LV-01). |
 | C02 | Fechas, precios, folios, contadores y «Paso 1 de 4» en letra monoespaciada (unos 20 archivos usan `font-mono`/monospace en `src/components/admin`). | Tipografía normal del panel en todo. El folio queda discreto en gris. Las horas de la agenda pueden usar números tabulares sin cambiar de letra. |
 | C03 | Conviven «2026-10-17», «Vie 16 oct», «Desde el 15 oct». | Una función única de fecha humana (junto a `formatDate` en `src/lib/utils.ts`): «Hoy», «Mañana», «Ayer», «Lun 19», «19 oct», «Vencida hace 2 días». La usan todas las pantallas del panel. |
 | C04 | Textos fijos repetidos: aviso amarillo de borradores en Inmuebles; «Al marcar Revisado te pedimos…» bajo cada requisito; notas al pie de Reportes; «La comunicación, las citas y las tareas conservan fechas propias…». | Retirar los textos permanentes; explicar en el momento (al intentar la acción) o detrás de «?». |
@@ -356,6 +364,34 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | NAV-12 | N21, N22 | Migración autorizada (N21), PRV-01 (N22) | Citas con duración y arrastre con alternativa de teclado; suscripción de solo lectura, revocable y con datos mínimos. |
 | NAV-13 | N23, N24 | SIM-01, SOP-01 | Papelera única que restaura con las reglas de cada tipo; «Primeros pasos» del asesor que desaparece al completarse. |
 | NAV-14 | N25 | PWA-03 | En espera hasta que existan avisos fuera del panel. |
+
+## Lenguaje visual (LV) — paquete listo para implementar, 17/10/2026
+
+**Origen:** propuesta del agente aprobada por el titular el 17/10/2026 (V01–V10). **Estado: pendiente; no hay código escrito.** Se trabaja igual que SIM y NAV: capturas antes y después a 390 y 1440 px en claro y oscuro, revisión de contraste AA con axe, pruebas afectadas y registro en este plan. Sin dependencias nuevas: íconos con `lucide-react` y animaciones con `motion`, ya instalados.
+
+### Las 10 mejoras y cómo conviven con el plan
+
+| # | Mejora | Cómo convive con el plan |
+|---|---|---|
+| V01 | **Un ícono por etapa y por tipo de documento**, siempre el mismo en el tablero, la barra de avance, Hoy y los documentos. | Catálogo único de íconos (RP-71). Cuando las etapas sean configurables, el ícono se elige al definir la etapa, de ese mismo catálogo. Sustituye los íconos sueltos de cada pantalla. |
+| V02 | **Cinco colores con significado fijo**, siempre con ícono. | Es RP-70. Completa RP-52 y C01: las visitas usan el azul de información. Hoy no existen tokens de verde ni de azul: se agregan `--success` e `--info` (con su superficie y borde), en claro y oscuro, con contraste AA sobre tarjeta y fondo. Se hace dentro de SIM-01. |
+| V03 | **Cada estado de requisito con su forma**: círculo vacío (Pendiente), medio lleno (Lo tengo), palomita (Revisado), triángulo (Hay un problema), guion (No aplica). | Es RP-72. Va en la pastilla de estado actual de C16. Los mismos símbolos se usan en la lista de documentos por pedir y en la cola de revisión (NAV-08). |
+| V04 | **Anillo de avance en cada operación** («6 de 10 pasos») en las tarjetas del tablero y en el encabezado de la operación. | Pequeño y con el texto al lado, para lectores de pantalla. Cuenta los pasos del proceso de esa operación, así que funciona igual con las 6 etapas de C12 y con procesos configurables. Verde al completar; sin color de alerta (lo vencido ya lo dice la tarjeta). |
+| V05 | **Tarjetas de documento con el ícono de su tipo y una insignia de estado**: Borrador, PDF listo, Firmado. | En la pestaña Documentos de la operación y en los pasos de C15. La insignia usa los colores de RP-70 (Borrador neutro, PDF listo azul, Firmado verde). «Firmado» aparece al subir la copia firmada. |
+| V06 | **Animaciones pequeñas que confirman**: la palomita que se dibuja al completar, la barra o el anillo que se llena, el panel que se desliza y un aviso breve de «Etapa completada». | Es RP-73. Se coordina con los avisos de «Guardado» y «Deshacer» (RP-15, RP-16): la animación no sustituye el mensaje. Con «reducir movimiento», todo cambia sin transición. |
+| V07 | **Ayuda con «?» de una línea** junto a lo que confunde, y la primera vez un punto que late sobre el botón clave («Empieza aquí») y desaparece al usarlo. | Es la forma visual de RP-54 y de C17 («¿Qué se hace aquí?»). El punto late como máximo tres veces y queda fijo (WCAG 2.2.2); se recuerda por usuario que ya lo vio (preferencias de RP-14). Se coordina con «Primeros pasos» (N24) y el recorrido de SOP-01 para no mostrar dos ayudas a la vez. |
+| V08 | **Ilustraciones de línea simples en las pantallas vacías**, con el color de la marca. | Acompañan a los estados vacíos que enseñan (C31). SVG en el propio código, una línea, adaptadas a claro y oscuro; no se usan en pantallas con datos. |
+| V09 | **Foto o iniciales del asesor responsable** en cada tarjeta, en un círculo neutro. | Sin un color por persona, para no competir con los colores de estado (RP-69, RP-70). Usa la foto de Mi perfil si existe. |
+| V10 | **Escala tipográfica de cuatro tamaños**. | Es RP-74. Se hace con SIM-01 (C02, C05): una sola letra, cuatro tamaños, y el peso para la jerarquía. Compatible con la letra Grande de N09, que aumenta los cuatro por igual. |
+
+### Entregas del paquete LV
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; cuatro tamaños de letra en todo el panel; axe sin fallas. |
+| LV-02 | V01, V03, V04, V05, V09 | LV-01, SIM-05 | Catálogo único de íconos usado en todas las pantallas; cada estado con forma, color y palabra; anillo de avance con texto; insignias de documento; avatar neutro del asesor. |
+| LV-03 | V06 | LV-02, UX-04 | Animaciones de confirmación de 300 ms o menos, sin bucles; con «reducir movimiento» no hay transiciones; los mensajes de guardado siguen apareciendo. |
+| LV-04 | V07, V08 | LV-01, SIM-12, SOP-01 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
 
 ## Rediseño guiado del panel (Fase C) — encargo y avance
 
@@ -766,7 +802,7 @@ Referencia de alcance: funciones de la imagen «Foto 1.jpg», incorporadas el 12
 | Información geográfica | Mapas interactivos del inventario y comparables, análisis de zonas, rutas de visitas y visualizaciones geoespaciales con fuente y fecha. | TEC-01, VIS-01 y EXT-09. |
 | Documentos y revisión jurídica | Generación de contratos y formularios PDF desde modelos revisados, expedientes digitales, revisión asistida de cláusulas y búsquedas documentales con RAG: respuestas que remitan al documento, versión y página utilizados. | DOC-01, LEG-01 y EXT-06. |
 | Etapa posterior, en pausa (17/10/2026) | Adaptación para otras inmobiliarias: datos separados por empresa, marca por empresa, flujo configurable, alta guiada, planes y piloto externo. | SAAS-01 a SAAS-03, SAAS-05, SAAS-06 y PIL-02. |
-| Trabajo diario profesional (17/10/2026) | Barra de comandos, atajos, acciones masivas, interfaz simplificada (32 correcciones), barra contraíble, fijados, vista previa lateral, listas inteligentes, planes de seguimiento, confianza al guardar, bandeja «Para ti», disciplina comercial, fichas 360°, aprobaciones, reglas fiscales con vigencia, metas, soporte e IA con revisión humana. | SIM-01 a SIM-12, NAV-01 a NAV-14, UX-02 a UX-05, CRM-02, CRM-03, INV-01, DAT-02, DOC-10 a DOC-13, FIN-03, APR-01, FIS-01, TAB-05, SOP-01, EXT-01 y EXT-11. |
+| Trabajo diario profesional (17/10/2026) | Barra de comandos, atajos, acciones masivas, interfaz simplificada (32 correcciones), barra contraíble, fijados, vista previa lateral, listas inteligentes, planes de seguimiento, lenguaje visual con íconos, colores y formas de estado, confianza al guardar, bandeja «Para ti», disciplina comercial, fichas 360°, aprobaciones, reglas fiscales con vigencia, metas, soporte e IA con revisión humana. | SIM-01 a SIM-12, NAV-01 a NAV-14, LV-01 a LV-04, UX-02 a UX-05, CRM-02, CRM-03, INV-01, DAT-02, DOC-10 a DOC-13, FIN-03, APR-01, FIS-01, TAB-05, SOP-01, EXT-01 y EXT-11. |
 
 La primera entrega sigue siendo captación y próxima acción dentro del panel. Después se amplían documentos, finanzas y tableros; el análisis de inversión, los mapas, el portal de clientes y la IA se entregan por módulos con sus pruebas. Estas cuatro capacidades forman parte del producto ampliado solicitado y siguen pendientes. El núcleo inicial puede aceptarse por separado; su aceptación no acredita que el producto ampliado esté completo.
 
@@ -1093,6 +1129,7 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | UX-04 P1/I | Confianza al guardar: estado de guardado, deshacer, conflicto lado a lado, siluetas y sesión vencida (RP-15 a RP-19) | kit, store, formularios | UX-01; 3–5d | Nunca «Guardado» antes de la confirmación del servidor; «Deshacer» solo donde el servidor restaura; conflicto campo por campo sin sobrescribir; sesión vencida conserva la captura. |
 | SIM-01 a SIM-12 P1/I | Simplificación de la interfaz: las 32 correcciones C01–C32 aprobadas el 17/10/2026 (RP-50 a RP-57) | ver la sección «Simplificación de la interfaz (SIM)» | UX-01; SIM-01 primero; 1–3d por entrega | La aceptación de cada entrega está en su tabla; ninguna cambia reglas del servidor, permisos ni datos. |
 | NAV-01 a NAV-14 P1/C | Navegación y productividad: las 25 mejoras N01–N25 aprobadas el 17/10/2026 (RP-58 a RP-69) | ver la sección «Navegación y productividad (NAV)» | dependencias por entrega en su tabla; 1–4d por entrega | La aceptación de cada entrega está en su tabla; NAV-12 lleva migración y NAV-14 espera PWA-03. |
+| LV-01 a LV-04 P1/C | Lenguaje visual: las 10 mejoras V01–V10 aprobadas el 17/10/2026 (RP-70 a RP-74) | ver la sección «Lenguaje visual (LV)» | LV-01 junto con SIM-01; 1–3d por entrega | La aceptación de cada entrega está en su tabla; sin dependencias nuevas. |
 | UX-05 P1/C | Bandeja «Para ti» en Hoy (RP-20) | Hoy, notas e historial, tareas, APR-01 | UX-04, SEG-01; 2–4d | Una mención avisa solo a quien puede ver el registro; el contador del menú suma la bandeja; marcar como leído; sin campana. |
 | PWA-01 P1/I | Instalación y apertura del panel | manifiesto específico admin/layout/iconos | AUT-01/UX-01; 2–4d | Identidad/start_url/scope probados; inicia admin; acceso normal tras actualización; matriz real iOS/Android/iPad/Windows/macOS. |
 | PWA-02 P2/C | Conectividad y captura de campo limitada | formularios, capa de conexión; SW solo alcance aprobado | PWA-01, DEC-08; 3–6d | Sin cache de API/Auth/PDF privados; caducidad/cierre de sesión; reintento no duplica. Offline de datos sensibles requiere diseño y aprobación adicionales. |
@@ -1117,7 +1154,7 @@ No se trabaja en estas entregas hasta que el titular abra la etapa posterior (DE
 
 ## Estado y dependencias de cada entrega
 
-Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM y las 14 del paquete NAV, para un total de 94. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
+Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM, las 14 del paquete NAV y las 4 del paquete LV, para un total de 98. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
 
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
@@ -1204,6 +1241,10 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | NAV-12 | 4 | pendiente | Migración autorizada, PRV-01 |
 | NAV-13 | 4 | pendiente | SIM-01, SOP-01 |
 | NAV-14 | 4 | pendiente | PWA-03 |
+| LV-01 | 4 | pendiente | SIM-01 (conjunta) |
+| LV-02 | 4 | pendiente | LV-01, SIM-05 |
+| LV-03 | 4 | pendiente | LV-02, UX-04 |
+| LV-04 | 4 | pendiente | LV-01, SIM-12, SOP-01 |
 | UX-03 | 4 | pendiente | UX-01 |
 | UX-04 | 4 | pendiente | UX-01 |
 | UX-05 | 4 | pendiente | UX-04, SEG-01 |
