@@ -48,7 +48,6 @@ export function FormatoEditor({ definition, values, onChange, images, extras = t
     {shownFields.map((field, index) => {
       const isOffer = definition.id === "14";
       if ((isLevantamiento(definition.id) || definition.id === "07") && ["fotoPrincipalId", "croquisId"].includes(field.key)) return null;
-      if (isLevantamiento(definition.id) && (field.key === "respaldos" && values.respaldosEstado !== "registrados" || field.key === "discrepancias" && values.discrepanciasEstado !== "registradas" || field.key === "unidades" && !["completo", "parcial"].includes(String(values.unidadesEstado)))) return null;
       const creditFields = ["institucionCredito", "estadoCredito"];
       const responseFields = ["lugarRespuesta", "fechaRespuesta", "horaRespuesta", "caracterPropietario", "decisionPropietario", "motivoRespuesta"];
       const counterFields = ["precioContraoferta", "monedaContraoferta", "impuestosContraoferta", "cambiosContraoferta", "fechaLimiteContraoferta", "horaLimiteContraoferta"];

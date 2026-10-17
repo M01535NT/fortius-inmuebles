@@ -31,6 +31,7 @@ type Copia = { id: string; emission_id: string; created_at: string; sha256: stri
 export type CaptureContext = { cliente?: string; inmueble?: string; etapa?: string };
 const post = (body: unknown, method = "POST") => ({ method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 const IMAGES = "Fotografías y croquis", WHOLE = "Aviso de privacidad";
+const IMAGE_KEYS = ["fotoPrincipalId", "croquisId"];
 const safeName = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const two = (n: number) => String(n).padStart(2, "0");
 /** Algunas secciones ya traen su número («01 / Encargo…»); en el índice se muestra una sola vez. */
@@ -51,11 +52,14 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const whole = definition.id === "01";
   const sections = React.useMemo(() => {
     if (definition.id === "01") return [WHOLE];
-    const names = [...new Set(definition.fields.map(f => f.section ?? "Datos"))];
-    if (!WITH_IMAGES.includes(definition.id)) return names;
-    const user = definition.fields.find(f => f.key === "fotografias")?.section;
-    const at = user ? names.indexOf(user) : -1;
-    return at < 0 ? [...names, IMAGES] : [...names.slice(0, at), IMAGES, ...names.slice(at)];
+    const all = [...new Set(definition.fields.map(f => f.section ?? "Datos"))];
+    if (!WITH_IMAGES.includes(definition.id)) return all;
+    // Las imágenes van antes de la sección que las usa (el reporte fotográfico del 07); si esa sección
+    // solo tenía las imágenes (levantamientos), ocupan su lugar. Si ninguna las usa, van al final.
+    const imageSection = (definition.fields.find(f => f.key === "fotografias") ?? definition.fields.find(f => f.key === "fotoPrincipalId"))?.section;
+    const visible = new Set(definition.fields.filter(f => !IMAGE_KEYS.includes(f.key)).map(f => f.section ?? "Datos"));
+    const names = all.flatMap(name => name === imageSection ? (visible.has(name) ? [IMAGES, name] : [IMAGES]) : [name]);
+    return names.includes(IMAGES) ? names : [...names, IMAGES];
   }, [definition]);
   const [adjuntos, setAdjuntos] = React.useState<Adjunto[]>([]);
   const [index, setIndex] = React.useState(0);
@@ -63,7 +67,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const dirty = JSON.stringify(values) !== JSON.stringify(doc.data);
   const data = { ...values, folio };
   const missing = validateFormato(definition.id, data);
-  const sectionOf = React.useMemo(() => new Map(definition.fields.map(f => [f.label, f.section ?? "Datos"])), [definition]);
+  const sectionOf = React.useMemo(() => new Map(definition.fields.map(f => [f.label, IMAGE_KEYS.includes(f.key) ? IMAGES : f.section ?? "Datos"])), [definition]);
   const pendingBySection = whole ? [missing.length] : sections.map(section => missing.filter(label => (sectionOf.get(label) ?? (label.startsWith("Selecciona") ? IMAGES : "")) === section).length);
   const section = sections[index], last = index === sections.length - 1;
   const valid = (e: Emision) => e.draft_version === doc.version && (definition.id !== "01" || e.plantillaVersion === AVISO_TEMPLATE_VERSION);

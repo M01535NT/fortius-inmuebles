@@ -37,11 +37,12 @@ export async function POST(request: Request, context: Context) {
     if (isLevantamiento(draft.formato_id) || draft.formato_id === "07") {
       // El 07 se emite aunque falten imágenes; usa las elegidas que sigan en el borrador.
       const valor = draft.formato_id === "07";
-      const assetIds = valor ? valorAssetIds(values) : z.array(z.uuid()).length(2).parse([values.fotoPrincipalId, values.croquisId]);
+      // Levantamientos: la fotografía principal es obligatoria; el croquis, solo si se eligió (decisión del titular, 17/10/2026).
+      const assetIds = valor ? valorAssetIds(values) : z.array(z.uuid()).min(1).max(2).parse([values.fotoPrincipalId, ...(values.croquisId ? [values.croquisId] : [])]);
       const found = assetIds.length ? await client.from("fortius_inmuebles_formato_assets").select("id,kind,caption,source,observed_on,mime,sha256,path").eq("draft_id", id).in("id", assetIds) : { data: [], error: null };
       if (found.error) databaseError(found.error);
       const images = { data: (found.data ?? []).filter((image) => image.kind === (image.id === values.croquisId ? "croquis" : "foto")) };
-      if (!valor && (images.data.length !== assetIds.length)) throw new ApiError(409, "Selecciona las fotografías y el croquis del borrador");
+      if (!valor && (images.data.length !== assetIds.length)) throw new ApiError(409, "Selecciona la fotografía principal del borrador y, si lo usas, su croquis");
       for (const image of images.data) {
         const file = await privileged.storage.from("fortius-inmuebles-expedientes").download(image.path);
         if (file.error || !file.data) throw new ApiError(503, "Una imagen del borrador no está disponible");

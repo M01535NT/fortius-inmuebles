@@ -37,7 +37,7 @@ export function FormatoImages({ documentId, values, onChange, disabled, source }
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
   return <div className="flex flex-col gap-5">
-    <p className="text-sm text-muted-foreground">Sube la fotografía principal y el croquis de ubicación y acceso. Anota de dónde viene cada imagen y cuándo se tomó. Solo se usan con autorización del propietario.</p>
+    <p className="text-sm text-muted-foreground">Sube la fotografía principal y, si lo tienes, el croquis o mapa de ubicación. Anota de dónde viene cada imagen y cuándo se tomó. Solo se usan con autorización del propietario.</p>
     <form onSubmit={upload} className="grid gap-3 rounded-[12px] border border-border p-4 md:grid-cols-2">
       <fieldset disabled={disabled || busy} className="contents">
         <label className="text-sm">Tipo<select name="tipo" required className={selectClass}><option value="foto">Fotografía</option><option value="croquis">Croquis o plano</option><option value="soporte">Soporte gráfico</option></select></label>

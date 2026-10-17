@@ -64,17 +64,24 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(JSON.stringify(filled.blocks)).not.toMatch(/CURP|RFC|régimen|escritura inscrita|exención/i);
     expect(junta("Sí", "", "Sí", "correo")).toBe("Sí · correo");
   });
-  it("los levantamientos siguen las secciones de su plantilla con superficies, foto y croquis", () => {
-    const casa = levantamientoDocumento("04B", { recamaras: "3", recamarasBase: "O", recamarasReferencia: "Recorrido", terrenoDeclarada: "160", terrenoFuente: "Escritura p. 3", murosCondicion: "Block sin fisuras" });
-    const titles = casa.blocks.filter(b => b.kind === "title").map(b => b.kind === "title" && b.text);
-    expect(titles).toEqual(["Levantamiento de casa habitación", "Características del inmueble", "Ubicación y evidencias"]);
+  it("los levantamientos son cortos: qué inmueble es, foto, visita, cómo es, superficies, materiales, servicios y entorno", () => {
+    const casa = levantamientoDocumento("04B", { usoSuelo: "habitacional", tipoVivienda: "sola", niveles: 2, recamaras: 3, banos: 2, superficieTerreno: 160, muros: "Block, sin fisuras", estadoGeneral: "bueno", agua: "si", pendientes: "Medir el patio" });
     const labels = casa.blocks.filter(b => b.kind === "form" && b.label).map(b => b.kind === "form" && b.label);
-    expect(labels).toEqual(expect.arrayContaining(["01 Fotografía principal", "02 Control de la visita", "03 Superficies y fuentes", "04 Distribución y características", "05 Componentes y condición visible", "06 Servicios e instalaciones", "07 Croquis de ubicación y acceso", "08 Documentos y fotografías de respaldo", "09 Discrepancias y pendientes"]));
-    const grids = casa.blocks.filter(b => b.kind === "grid").flatMap(b => b.kind === "grid" ? b.rows : []);
-    expect(grids).toEqual(expect.arrayContaining([["Terreno", "160", "", "", "Escritura p. 3"], ["Recámaras", "3", "O observado", "Recorrido"], ["Muros y estructura aparente", "Block sin fisuras", ""]]));
-    expect(casa.blocks.filter(b => b.kind === "image").map(b => b.kind === "image" && !!b.image)).toEqual([false, false]);
-    const nave = levantamientoDocumento("04F", {});
-    expect(nave.blocks.some(b => b.kind === "form" && b.label === "10 Croquis de ubicación y acceso")).toBe(true);
+    expect(labels).toEqual(["01 Qué inmueble es", "02 Fotografía principal", "03 La visita", "04 Cómo es", "05 Superficies, si las tienes a la mano", "06 Materiales y estado", "07 Servicios", "08 Croquis, entorno y observaciones"]);
+    const cells = casa.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []);
+    expect(cells.find(c => c.q === "Uso de suelo")?.a).toBe("Habitacional");
+    expect(cells.find(c => c.q === "Tipo de vivienda")?.a).toBe("Casa sola");
+    expect(cells.find(c => c.q === "Recámaras")?.a).toBe("3");
+    expect(cells.find(c => c.q === "Terreno en m²")?.a).toBe("160");
+    expect(cells.find(c => c.q === "Estado general a la vista")?.a).toBe("Bueno");
+    expect(cells.find(c => c.q === "Qué falta ver, medir o pedir")?.a).toBe("Medir el patio");
+    // Sin croquis no se dibuja su recuadro; la foto principal siempre tiene su lugar.
+    expect(casa.blocks.filter(b => b.kind === "image")).toHaveLength(1);
+    expect(JSON.stringify(casa.blocks)).not.toMatch(/Declarada|Documental|Base y referencia|Discrepancias/);
+    const plaza = levantamientoDocumento("04G", { tipoConjunto: "oficinas", unidades: [{ id: "P-3", tipo: "Oficina", uso: "Despacho", area: "80", ocupacion: "Ocupada" }] });
+    const grid = plaza.blocks.find(b => b.kind === "grid");
+    expect(grid?.kind === "grid" ? grid.rows : []).toEqual([["P-3", "Oficina", "Despacho", "80", "Ocupada"]]);
+    expect(plaza.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []).find(c => c.q === "Tipo de conjunto")?.a).toBe("Edificio de oficinas");
   });
   it("el 05 conserva sus 12 secciones y las 22 filas del control documental; el 06 acomoda la prosa en sus secciones", () => {
     const revision = revisionJuridicaDocumento({ documentos: [{ concepto: "D01", aplica: "si", estado: "recibido", referencia: "Escritura 4521" }] });
