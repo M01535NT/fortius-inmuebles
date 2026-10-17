@@ -21,3 +21,21 @@ export async function downloadFormatoWord(doc: SavedFormato, folio: string, clie
   const blob = await formatoDocxBlob(definition, { ...doc.data, folio }, { folio, cliente });
   saveBlob(blob, `Fortius-${definition.id}-${safeFileName(definition.title)}-${folio}-v${doc.version}.docx`);
 }
+
+/** Copia editable de cada formato: la opinión de valor (07) se trabaja en Excel, con su plantilla; los demás, en Word. */
+export const copiaEditable = (formatoId: string) => formatoId === "07" ? "Excel" : "Word";
+
+/** Opinión de valor en Excel: la plantilla del titular llenada con lo capturado. */
+export async function downloadValorExcel(data: Record<string, unknown>, nombre: string) {
+  const { valorExcel, PLANTILLA_07 } = await import("@/lib/formatos/valor-excel");
+  const response = await fetch(PLANTILLA_07, { cache: "no-store" });
+  if (!response.ok) throw new Error("No se pudo cargar la plantilla de Excel de la opinión de valor.");
+  const bytes = await valorExcel(data, await response.arrayBuffer());
+  saveBlob(new Blob([new Uint8Array(bytes)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `${nombre}.xlsx`);
+}
+
+/** Descarga la copia editable que corresponde al formato (Excel para el 07, Word para los demás). */
+export async function downloadFormatoCopia(doc: SavedFormato, folio: string, cliente?: string) {
+  if (doc.formato_id !== "07") return downloadFormatoWord(doc, folio, cliente);
+  await downloadValorExcel({ ...doc.data, folio }, `Fortius-07-Opinion-de-valor-${folio}-v${doc.version}`);
+}

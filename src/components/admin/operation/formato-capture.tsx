@@ -5,7 +5,7 @@ import { Button, Eyebrow, Notice } from "@/components/admin/kit";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
-import { downloadFormatoWord } from "@/lib/admin/download-word";
+import { copiaEditable, downloadFormatoCopia } from "@/lib/admin/download-word";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { cn } from "@/lib/utils";
@@ -107,11 +107,12 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
       setNotice("PDF generado y descargado. Queda guardado en Documentos.");
     });
   }
+  const copia = copiaEditable(definition.id);
   function word() {
-    void run("Preparando Word…", async () => {
+    void run(`Preparando ${copia}…`, async () => {
       const saved = await persist();
-      await downloadFormatoWord(saved, folio, cliente);
-      setNotice("Copia en Word descargada.");
+      await downloadFormatoCopia(saved, folio, cliente);
+      setNotice(`Copia en ${copia} descargada.`);
     });
   }
 
@@ -161,7 +162,9 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
         <Button disabled={!!busy || !dirty} onClick={() => void run("Guardando…", async () => { await persist(); setNotice("Guardado"); })}>{busy === "Guardando…" ? busy : "Guardar"}</Button>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === "Preparando Word…" ? busy : "Descargar Word"}</Button>
+        <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === `Preparando ${copia}…` ? busy : `Descargar ${copia}`}</Button>
+        {/* La opinión de valor se descarga en PDF desde cualquier sección, aunque falten datos. */}
+        {!last && definition.id === "07" && <Button variant="ghost" disabled={!!busy} onClick={pdf}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Descargar PDF"}</Button>}
         {last ? <Button variant="primary" disabled={!!busy || missing.length > 0 || !definition.readyForEmission} onClick={pdf}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Terminar y descargar PDF"}</Button>
           : <Button variant="primary" disabled={!!busy} onClick={() => go(index + 1)}>Siguiente sección<ArrowRight size={16} aria-hidden="true" /></Button>}
       </div>

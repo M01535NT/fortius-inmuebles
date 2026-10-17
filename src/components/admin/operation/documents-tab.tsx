@@ -10,7 +10,7 @@ import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { CARGOS_NETO, calcularNeto } from "@/lib/formatos/neto";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
-import { downloadFormatoWord } from "@/lib/admin/download-word";
+import { copiaEditable, downloadFormatoCopia } from "@/lib/admin/download-word";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 import { formatAmount } from "@/lib/finance/money";
 import { shortDate } from "@/lib/admin/today";
@@ -114,7 +114,7 @@ export function DocumentsTab({ op, documents, onDocumentsChange, initialDocument
   async function downloadWord() {
     if (!documento || working.current || dirty) return;
     setError(""); setBusy(true);
-    try { await downloadFormatoWord(documento, op.folio); }
+    try { await downloadFormatoCopia(documento, op.folio); }
     catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
   async function uploadSigned(emissionId: string, event: React.FormEvent<HTMLFormElement>) {
@@ -176,13 +176,13 @@ export function DocumentsTab({ op, documents, onDocumentsChange, initialDocument
         <div className="mt-5 flex flex-wrap gap-3">{definition.id === "01" ? <>
           <button type="button" onClick={() => void saveAndDownloadAviso()} disabled={busy || missing.length > 0} className={btnPrimary}>{pdfBusy ? "Preparando PDF…" : "Guardar y descargar PDF"}</button>
           <button type="button" onClick={() => void save()} disabled={busy} className={btnGhost}>Guardar borrador</button>
-          <button type="button" onClick={() => void downloadWord()} disabled={busy || dirty} className={btnGhost}>Descargar Word</button>
+          <button type="button" onClick={() => void downloadWord()} disabled={busy || dirty} className={btnGhost}>Descargar {copiaEditable(documento.formato_id)}</button>
         </> : <>
           <button type="button" onClick={() => void save()} disabled={busy} className={btnPrimary}>Guardar borrador</button>
           <button type="button" onClick={() => void emit()} disabled={busy || dirty || missing.length > 0 || !definition.readyForEmission} className={btnGhost}>Generar PDF</button>
-          <button type="button" onClick={() => void downloadWord()} disabled={busy || dirty} className={btnGhost}>Descargar Word</button>
+          <button type="button" onClick={() => void downloadWord()} disabled={busy || dirty} className={btnGhost}>Descargar {copiaEditable(documento.formato_id)}</button>
         </>}</div>
-        <p className="mt-2 text-sm text-muted-foreground">{dirty ? "Guarda los cambios para descargar el Word." : "Descárgalo en PDF o en Word, como prefieras. El Word sale de la versión guardada; el PDF queda archivado con su huella."}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{dirty ? `Guarda los cambios para descargar el ${copiaEditable(documento.formato_id)}.` : `Descárgalo en PDF o en ${copiaEditable(documento.formato_id)}, como prefieras. La copia editable sale de la versión guardada; el PDF queda archivado con su huella.`}</p>
         {definition.id === "01" && !dirty && avisoPdf && <p role="status" className="mt-3 text-sm"><a className="text-primary-ink underline" href={`/api/admin/emisiones/${avisoPdf.id}/descargar`}>Descargar PDF del aviso</a> · Versión {documento.version}</p>}
         {emisiones.length > 0 && <div className="mt-6 border-t border-border pt-4"><h3 className="font-semibold">PDF generados</h3><ul className="mt-2 space-y-5">{emisiones.map(item => <li key={item.id} className="rounded-md border border-border p-3">
           <a className="text-primary-ink underline" href={`/api/admin/emisiones/${item.id}/descargar`}>PDF de la versión {item.draft_version} · {new Date(item.created_at).toLocaleString("es-MX")}</a>

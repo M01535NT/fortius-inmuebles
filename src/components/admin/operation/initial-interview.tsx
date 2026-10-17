@@ -10,7 +10,7 @@ import { checklistFor, checklistTaskId, levantamientoFor } from "@/lib/formatos/
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
 import { formatoById } from "@/lib/formatos/catalog";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
-import { downloadFormatoWord, saveBlob } from "@/lib/admin/download-word";
+import { copiaEditable, downloadFormatoCopia, saveBlob } from "@/lib/admin/download-word";
 import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
 import type { OperationRecord } from "@/lib/admin/operation-view";
@@ -86,7 +86,7 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
   async function word(doc: Documento) {
     setBusy(true); setError("");
     try {
-      await downloadFormatoWord(doc, op.folio, cliente);
+      await downloadFormatoCopia(doc, op.folio, cliente);
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
   function formatRow(formatoId: FormatId, doc: Documento | undefined, icon: React.ReactNode, detail: string, primary = true) {
@@ -101,7 +101,7 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
   function downloads(doc: Documento | undefined, pdf: Emision | undefined) {
     return <>
       {pdf && <ButtonLink prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
-      {doc && <Button variant="ghost" disabled={lock} onClick={() => void word(doc)}><FileText size={16} aria-hidden="true" />Word</Button>}
+      {doc && <Button variant="ghost" disabled={lock} onClick={() => void word(doc)}><FileText size={16} aria-hidden="true" />{copiaEditable(doc.formato_id)}</Button>}
     </>;
   }
   async function openAviso() { const doc = aviso ?? await create("01"); if (doc) onOpenDocument(doc.id); }

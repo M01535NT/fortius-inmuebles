@@ -96,11 +96,11 @@ describe("documentos con el diseño de la plantilla", () => {
     const tabla = incompleto.blocks.find(b => b.kind === "table");
     expect(tabla?.kind === "table" && tabla.rows).toHaveLength(11);
   });
-  it("el 07 conserva sus diez secciones y marca los enfoques sin peso como no aplicados", () => {
-    const doc = valorDocumento({ folio: "QA-07", pesoMercado: 100, pesoIngresos: 0, pesoFisico: 0, baseMercado: "construccion" });
+  it("el 07 imprime sus diez secciones, como la plantilla, aunque falten datos", () => {
+    const doc = valorDocumento({ folio: "QA-07", pesoMercado: 100, pesoIngresos: 0, pesoFisico: 0, baseMercado: "Construcción" });
     const secciones = doc.blocks.filter(b => b.kind === "bar" && b.big && /^\d+\./.test(b.text)).map(b => b.kind === "bar" && b.text.split(".")[0]);
     expect(secciones).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
-    expect(doc.blocks.filter(b => b.kind === "note" && b.text.startsWith("Enfoque no aplicado"))).toHaveLength(3);
+    expect(valorDocumento({}).blocks.length).toBe(doc.blocks.length);
     expect(doc.blocks.find(b => b.kind === "bar" && b.text === "Valor comercial concluido")).toMatchObject({ right: "Pendiente" });
   });
   it("todos los formatos con plantilla se arman sin datos y en Word", async () => {

@@ -35,11 +35,13 @@ export async function POST(request: Request, context: Context) {
     const privileged = createServerClient(undefined, true);
     const assets: FormatoPdfAsset[] = [];
     if (isLevantamiento(draft.formato_id) || draft.formato_id === "07") {
-      const assetIds = z.array(z.uuid()).min(2).max(10).parse(draft.formato_id === "07" ? valorAssetIds(values) : [values.fotoPrincipalId, values.croquisId]);
-      const images = await client.from("fortius_inmuebles_formato_assets").select("id,kind,caption,source,observed_on,mime,sha256,path").eq("draft_id", id).in("id", assetIds);
-      if (images.error) databaseError(images.error);
-      if (images.data?.length !== assetIds.length || !assetIds.every((assetId) => images.data.some((image) => image.id === assetId && image.kind === (assetId === values.croquisId ? "croquis" : "foto")))) throw new ApiError(409, "Selecciona las fotografías y el croquis del propio borrador");
-      if (draft.formato_id === "07" && images.data.some((image) => image.kind === "foto" && (!image.observed_on || image.observed_on > String(values.fechaEmision)))) throw new ApiError(409, "Las fotografías de la opinión deben tener fecha anterior o igual a la emisión");
+      // El 07 se emite aunque falten imágenes; usa las elegidas que sigan en el borrador.
+      const valor = draft.formato_id === "07";
+      const assetIds = valor ? valorAssetIds(values) : z.array(z.uuid()).length(2).parse([values.fotoPrincipalId, values.croquisId]);
+      const found = assetIds.length ? await client.from("fortius_inmuebles_formato_assets").select("id,kind,caption,source,observed_on,mime,sha256,path").eq("draft_id", id).in("id", assetIds) : { data: [], error: null };
+      if (found.error) databaseError(found.error);
+      const images = { data: (found.data ?? []).filter((image) => image.kind === (image.id === values.croquisId ? "croquis" : "foto")) };
+      if (!valor && (images.data.length !== assetIds.length)) throw new ApiError(409, "Selecciona las fotografías y el croquis del borrador");
       for (const image of images.data) {
         const file = await privileged.storage.from("fortius-inmuebles-expedientes").download(image.path);
         if (file.error || !file.data) throw new ApiError(503, "Una imagen del borrador no está disponible");

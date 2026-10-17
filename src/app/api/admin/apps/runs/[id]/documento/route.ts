@@ -42,7 +42,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       const privileged = createServerClient(undefined, true);
       for (const id of ids) {
         const row = rows.data?.find(item => item.id === id), meta = adjuntos.find(item => item.id === id);
-        if (!row || !meta || row.expediente_id !== null || !["image/jpeg", "image/png"].includes(row.mime)) throw new ApiError(409, "Selecciona fotografías y croquis subidos en este documento");
+        // Una imagen elegida que ya no está en el documento se omite: el PDF sale igual.
+        if (!row || !meta || row.expediente_id !== null || !["image/jpeg", "image/png"].includes(row.mime)) continue;
         const file = await privileged.storage.from("fortius-inmuebles-private").download(row.path);
         if (file.error || !file.data) throw new ApiError(503, "Una imagen del documento no está disponible");
         const bytes = new Uint8Array(await file.data.arrayBuffer());

@@ -12,6 +12,8 @@ import { apiRequest, errorMessage, uploadFile } from "@/lib/admin/store";
 import { adjuntosDe, DOCUMENTOS_APP, FOLIO_INDEPENDIENTE, FORMATOS_INDEPENDIENTES } from "@/lib/apps/documentos";
 import type { AppRun } from "@/lib/apps/types";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
+import { VALOR_DEFAULTS } from "@/lib/formatos/valor-fields";
+import { copiaEditable, downloadValorExcel } from "@/lib/admin/download-word";
 import { cn } from "@/lib/utils";
 
 /*
@@ -96,7 +98,8 @@ export function DocumentosSinExpediente() {
 function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; onClose: () => void }) {
   const definition = formatoById(open.formatoId);
   const [run, setRun] = React.useState(open.run);
-  const saved = (run?.input.data ?? {}) as Values;
+  // Un documento nuevo trae los textos que su plantilla ya tiene escritos (07: empresa, contacto, supuestos…).
+  const saved = (run?.input.data ?? (definition.id === "07" ? VALOR_DEFAULTS : {})) as Values;
   const [values, setValues] = React.useState<Values>(saved);
   const [draftId] = React.useState(() => crypto.randomUUID());
   const [busy, setBusy] = React.useState(""), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
@@ -165,9 +168,15 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
       setNotice("PDF descargado. Como no pertenece a un expediente, no se archiva en Documentos.");
     });
   }
+  const copia = copiaEditable(definition.id);
   function word() {
-    void task("Preparando Word…", async () => {
+    void task(`Preparando ${copia}…`, async () => {
       const current = await persist();
+      if (definition.id === "07") {
+        await downloadValorExcel({ ...(current.input.data as Values), folio: FOLIO_INDEPENDIENTE }, `Fortius-07-${safeName(open.title)}-v${current.version}`);
+        setNotice("Copia en Excel descargada.");
+        return;
+      }
       const { formatoDocxBlob } = await import("@/lib/formatos/docx");
       const blob = await formatoDocxBlob(definition, { ...(current.input.data as Values), folio: FOLIO_INDEPENDIENTE }, { folio: FOLIO_INDEPENDIENTE, imageUrl });
       const url = URL.createObjectURL(blob), link = window.document.createElement("a");
@@ -222,7 +231,9 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
         <Button disabled={!!busy || !dirty} onClick={() => void task("Guardando…", async () => { await persist(); setNotice("Guardado"); })}>{busy === "Guardando…" ? busy : "Guardar"}</Button>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === "Preparando Word…" ? busy : "Descargar Word"}</Button>
+        <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === `Preparando ${copia}…` ? busy : `Descargar ${copia}`}</Button>
+        {/* La opinión de valor se descarga en PDF desde cualquier sección, aunque falten datos. */}
+        {!last && definition.id === "07" && <Button variant="ghost" disabled={!!busy} onClick={pdf}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Descargar PDF"}</Button>}
         {last ? <Button variant="primary" disabled={!!busy || missing.length > 0 || !definition.readyForEmission} onClick={pdf}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Terminar y descargar PDF"}</Button>
           : <Button variant="primary" disabled={!!busy} onClick={() => go(index + 1)}>Siguiente sección<ArrowRight size={16} aria-hidden="true" /></Button>}
       </div>

@@ -9,7 +9,6 @@ import { camposRepresentante, mostrarCampoAviso, validarAviso } from "./aviso";
 import { validarJuridica } from "./juridica";
 import { levantamientoFields, isLevantamiento, validarLevantamiento } from "./levantamiento";
 import { valorFields, mostrarCampoValor } from "./valor-fields";
-import { validarValor } from "./valor";
 import { promesaFields, mostrarCampoPromesa, validarPromesa } from "./promesa";
 import { intermediacionFields, mostrarCampoIntermediacion, validarIntermediacion } from "./intermediacion";
 
@@ -498,6 +497,8 @@ export function formatoById(id: string): FormatoDefinition {
 }
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
+  // La opinión de valor se descarga aunque falten datos (decisión del titular, 17/10/2026).
+  if (id === "07") return [];
   const errors = formatoById(id).fields.filter((item) => {
     if (id === "01" && !mostrarCampoAviso(item.key, data)) return false;
     if (id === "07" && !mostrarCampoValor(item.key, data)) return false;
@@ -529,7 +530,6 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "01") errors.push(...validarAviso(data));
   if (id === "05") errors.push(...validarJuridica(data));
   if (isLevantamiento(id)) errors.push(...validarLevantamiento(id, data));
-  if (id === "07") errors.push(...validarValor(data));
   if (id === "15") errors.push(...validarPromesa(data));
   if (id === "09") errors.push(...validarIntermediacion(data));
   if (id === "19") errors.push(...validarPresupuesto(data));

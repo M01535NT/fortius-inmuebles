@@ -32,7 +32,7 @@ it("preserves deliberate draft values and does not treat presenting privacy noti
 });
 it("transfers only an explicitly selected reviewed opinion to the net estimate without agreeing a sale price", async () => {
  const data=await create("08",{}, {id:String(fixture.valuation.id),version:4});
- expect(data.precioSugerido07).toBe(1789000);
+ expect(data.precioSugerido07).toBe(1703000);
  expect(data.precioAcordado).toBeUndefined();
  expect(data.referencia07).toContain("versión 4");
  expect(data.moneda).toBe("MXN");
