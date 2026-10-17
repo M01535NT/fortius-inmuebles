@@ -3,6 +3,8 @@ import { planDocumento } from "./plan";
 import { intermediacionDocumento } from "./intermediacion";
 import { entrevistaDocumento } from "./entrevista";
 import { levantamientoDocumento } from "./levantamiento";
+import { opinionJuridicaDocumento } from "./opinion-juridica";
+import { revisionJuridicaDocumento } from "./revision-juridica";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 
 /*
@@ -12,6 +14,8 @@ import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 export const DOCUMENTOS: Partial<Record<string, (data: Record<string, unknown>, contexto?: DocumentoContexto) => Documento>> = {
   "02": entrevistaDocumento,
   ...Object.fromEntries((Object.keys(LEVANTAMIENTO_TITLES) as LevantamientoId[]).map(id => [id, (data: Record<string, unknown>, contexto?: DocumentoContexto) => levantamientoDocumento(id, data, contexto)])),
+  "05": revisionJuridicaDocumento,
+  "06": opinionJuridicaDocumento,
   "09": intermediacionDocumento,
   "10": planDocumento,
 };

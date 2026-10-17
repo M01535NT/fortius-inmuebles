@@ -18,8 +18,9 @@ const hex = (value: string) => rgb(parseInt(value.slice(0, 2), 16) / 255, parseI
 const NAVY = hex(COLORS.navy), GREEN = hex(COLORS.green), WINE = hex(COLORS.wine), WHITE = hex(COLORS.white);
 const FILLS = [hex(COLORS.band2), hex(COLORS.band1)], BLACK = hex(COLORS.black), RULE = hex(COLORS.rule), HEAD = hex(COLORS.head);
 const BODY = 11, CELL = 9.5;
-type Style = { body: number; leading: number; after: number; ink: ReturnType<typeof rgb>; cell: number };
-const STYLES: Record<"marca" | "contrato", Style> = {
+type Style = { body: number; leading: number; after: number; ink: ReturnType<typeof rgb>; cell: number; h2?: { size: number; bold: boolean } };
+const STYLES: Record<"marca" | "contrato" | "opinion", Style> = {
+  opinion: { body: 10.5, leading: 1.25, after: 6, ink: BLACK, cell: 9.5, h2: { size: 11, bold: true } },
   marca: { body: BODY, leading: 1.22, after: 6, ink: NAVY, cell: CELL },
   contrato: { body: 10.5, leading: 1.1, after: 7, ink: BLACK, cell: 10.5 },
 };
@@ -60,23 +61,27 @@ class Writer {
   }
   ensure(height: number) { if (this.y - height < BOTTOM) this.newPage(); }
   /** Párrafo justificado con encabezado opcional en negritas (la última línea queda a la izquierda). */
-  paragraph(text: string, lead = "") {
+  paragraph(text: string, lead = "", options: { indent?: boolean; strong?: boolean } = {}) {
     const { body: size, ink: color, after } = this.style, leading = size * this.style.leading;
-    const tokens: Token[] = [...(lead ? lead.split(/ +/).map(word => ({ word, font: this.fonts.bold })) : []), ...text.split(/ +/).filter(Boolean).map(word => ({ word, font: this.fonts.regular }))];
+    const body = options.strong ? this.fonts.bold : this.fonts.regular;
+    const tokens: Token[] = [...(lead ? lead.split(/ +/).map(word => ({ word, font: this.fonts.bold })) : []), ...text.split(/ +/).filter(Boolean).map(word => ({ word, font: body }))];
     const space = this.fonts.regular.widthOfTextAtSize(" ", size), width = (t: Token) => t.font.widthOfTextAtSize(t.word, size);
     const lines: Token[][] = [];
     let line: Token[] = [], used = 0;
+    const firstIndent = options.indent ? 18 : 0;
     for (const token of tokens) {
       const w = width(token);
-      if (line.length && used + space + w > WIDTH) { lines.push(line); line = []; used = 0; }
+      if (line.length && used + space + w > WIDTH - (lines.length === 0 ? firstIndent : 0)) { lines.push(line); line = []; used = 0; }
       used += (line.length ? space : 0) + w; line.push(token);
     }
     if (line.length) lines.push(line);
+    const indent = options.indent ? 18 : 0;
     lines.forEach((words, index) => {
       this.ensure(leading);
       const last = index === lines.length - 1 || words.length < 2;
-      const gap = last ? space : (WIDTH - words.reduce((sum, t) => sum + width(t), 0)) / (words.length - 1);
-      let x = LEFT;
+      const start = index === 0 ? indent : 0;
+      const gap = last ? space : (WIDTH - start - words.reduce((sum, t) => sum + width(t), 0)) / (words.length - 1);
+      let x = LEFT + start;
       for (const t of words) { this.page.drawText(t.word, { x, y: this.y - size, size, font: t.font, color }); x += width(t) + gap; }
       this.y -= leading;
     });
@@ -176,15 +181,15 @@ class Writer {
     });
     this.y -= size * 5;
   }
-  heading(text: string, size: number, color: typeof NAVY, before: number, after: number) {
-    const lines = wrap(text, this.fonts.regular, size, WIDTH);
+  heading(text: string, size: number, color: typeof NAVY, before: number, after: number, font = this.fonts.regular) {
+    const lines = wrap(text, font, size, WIDTH);
     this.ensure(before + lines.length * size * 1.2 + BODY * 3); // no dejar un título solo al pie
     this.y -= before;
-    for (const line of lines) { this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color }); this.y -= size * 1.2; }
+    for (const line of lines) { this.page.drawText(line, { x: LEFT, y: this.y - size, size, font, color }); this.y -= size * 1.2; }
     this.y -= after;
   }
   /** Tabla de ancho completo: celdas con relleno, texto en 9.5 pt y encabezado repetido al cambiar de página. */
-  table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false) {
+  table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false) {
     const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => w / total * WIDTH);
     const CELL = this.style.cell, pad = 3.75, leading = CELL * (labels ? 1.12 : 1.25);
     const layout = (cells: string[], font: PDFFont) => cells.map((cell, i) => wrap(cell, labels && i === 0 ? this.fonts.bold : font, CELL, cols[i] - pad * 2));
@@ -192,8 +197,8 @@ class Writer {
     const drawRow = (cells: string[][], fill: ReturnType<typeof rgb>, color: ReturnType<typeof rgb>, font: PDFFont, rowHeight: number) => {
       let x = LEFT;
       cells.forEach((lines, i) => {
-        this.page.drawRectangle({ x, y: this.y - rowHeight, width: cols[i], height: rowHeight, color: labels ? (i === 0 ? hex(COLORS.band2) : hex(COLORS.band3)) : fill });
-        lines.forEach((line, n) => this.page.drawText(line, { x: x + pad, y: this.y - pad - (labels ? 1 : 3) - CELL - n * leading, size: CELL, font: labels && i === 0 ? this.fonts.bold : font, color }));
+        this.page.drawRectangle({ x, y: this.y - rowHeight, width: cols[i], height: rowHeight, color: labels ? (i === 0 ? hex(dark ? COLORS.ink2 : COLORS.band2) : hex(dark ? COLORS.value2 : COLORS.band3)) : fill, ...(dark ? { borderColor: hex("D7DEE8"), borderWidth: 0.5 } : {}) });
+        lines.forEach((line, n) => this.page.drawText(line, { x: x + pad, y: this.y - pad - (labels ? 1 : 3) - CELL - n * leading, size: dark && i === 0 ? 8 : CELL, font: labels && i === 0 ? this.fonts.bold : font, color: dark && i === 0 ? WHITE : color }));
         x += cols[i];
       });
       this.y -= rowHeight;
@@ -231,11 +236,20 @@ class Writer {
       case "subtitle": this.centered(block.text, 12, 10, 2); break;
       case "note": this.note(block.text); break;
       case "h1": this.heading(block.text, 21, NAVY, 12, 6); break;
-      case "h2": this.heading(block.text, 13, GREEN, 8, 4); break;
-      case "p": this.paragraph(block.text); break;
+      case "h2": if (this.style.h2) this.heading(block.text, this.style.h2.size, this.style.ink, 6, 4, this.fonts.bold); else this.heading(block.text, 13, GREEN, 8, 4); break;
+      case "p": this.paragraph(block.text, "", { indent: block.indent, strong: block.strong }); break;
       case "clause": this.paragraph(block.text, block.lead); break;
       case "center": this.centered(block.text, this.style.body, 4, 6); break;
-      case "fields": this.table(block.widths, undefined, block.rows, false, true); break;
+      case "fields": this.table(block.widths, undefined, block.dark ? block.rows.map(([l, v]) => [l.toUpperCase(), v]) : block.rows, false, true, !!block.dark); break;
+      case "numbered": {
+        this.ensure(14 + 13 + this.style.body * 4);
+        this.y -= 12;
+        const num = `${block.num}  `, w = this.fonts.bold.widthOfTextAtSize(num, 9);
+        this.page.drawText(num, { x: LEFT, y: this.y - 12, size: 9, font: this.fonts.bold, color: WINE });
+        this.page.drawText(block.text.toUpperCase(), { x: LEFT + w + 2, y: this.y - 12, size: 12, font: this.fonts.bold, color: BLACK });
+        this.y -= 20; break;
+      }
+      case "caption": this.heading(block.text, 9.5, hex(COLORS.gray), -4, 8); break;
       case "signatures": this.signatures(block.parties); break;
       case "band": this.table(block.widths, undefined, block.rows.map(row => row.map(cell => `${cell.label.toUpperCase()}\n${cell.value}`)), true); break;
       case "table": this.table(block.widths, block.header, block.rows); break;
@@ -249,12 +263,13 @@ export async function renderDocumentoPdf(doc: Documento, assets: DocumentoAssets
   if (doc.subject) pdf.setSubject(doc.subject);
   pdf.registerFontkit(fontkit);
   const contrato = doc.estilo === "contrato";
+  const estilo = doc.estilo ?? "marca";
   const [regular, bold, logo] = await Promise.all([
     contrato ? pdf.embedFont(StandardFonts.TimesRoman) : pdf.embedFont(assets.regular, { subset: true }),
     contrato ? pdf.embedFont(StandardFonts.TimesRomanBold) : pdf.embedFont(assets.bold, { subset: true }),
     pdf.embedPng(assets.logo),
   ]);
-  const writer = new Writer(pdf, { regular, bold }, logo, STYLES[contrato ? "contrato" : "marca"]);
+  const writer = new Writer(pdf, { regular, bold }, logo, STYLES[estilo]);
   for (const block of doc.blocks) await writer.render(block);
   writer.footers();
   return pdf.save();

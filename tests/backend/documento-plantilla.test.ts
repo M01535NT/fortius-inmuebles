@@ -10,6 +10,8 @@ import { entrevistaDocumento } from "@/lib/formatos/documento/entrevista";
 import { junta } from "@/lib/formatos/documento/modelo";
 import { levantamientoDocumento } from "@/lib/formatos/documento/levantamiento";
 import { imageInfo } from "@/lib/formatos/documento/imagen";
+import { revisionJuridicaDocumento } from "@/lib/formatos/documento/revision-juridica";
+import { opinionJuridicaDocumento } from "@/lib/formatos/documento/opinion-juridica";
 import { documentoDocx } from "@/lib/formatos/documento/docx";
 import { renderDocumentoPdf } from "@/lib/formatos/documento/pdf";
 import { INTERMEDIACION_CLAUSES } from "@/lib/formatos/intermediacion-text";
@@ -66,6 +68,19 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(casa.blocks.filter(b => b.kind === "image").map(b => b.kind === "image" && !!b.image)).toEqual([false, false]);
     const nave = levantamientoDocumento("04F", {});
     expect(nave.blocks.some(b => b.kind === "form" && b.label === "10 Croquis de ubicación y acceso")).toBe(true);
+  });
+  it("el 05 conserva sus 12 secciones y las 22 filas del control documental; el 06 acomoda la prosa en sus secciones", () => {
+    const revision = revisionJuridicaDocumento({ documentos: [{ concepto: "D01", aplica: "si", estado: "recibido", referencia: "Escritura 4521" }] });
+    const labels = revision.blocks.filter(b => b.kind === "form" && b.label && /^\d\d /.test(b.label)).map(b => b.kind === "form" && b.label?.slice(0, 2));
+    expect(labels).toEqual(["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]);
+    const control = revision.blocks.find(b => b.kind === "grid" && b.header[0] === "Documento");
+    expect(control?.kind === "grid" && control.rows).toHaveLength(22);
+    expect(control?.kind === "grid" && control.rows[0]).toEqual(["D01 · Escritura o título", "Sí", "Recibido", "Escritura 4521", ""]);
+    const opinion = opinionJuridicaDocumento({ conclusion: "Factible con condiciones.\n\nActualizar el certificado.", abogado: "Lic. Ana Torres", cedula: "1234567" });
+    expect(opinion.estilo).toBe("opinion");
+    expect(opinion.blocks.filter(b => b.kind === "numbered").map(b => b.kind === "numbered" && b.num)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+    expect(opinion.blocks.filter(b => b.kind === "p" && b.strong).map(b => b.kind === "p" && b.text)).toEqual(["Factible con condiciones.", "Actualizar el certificado."]);
+    expect(opinion.blocks.at(-1)).toEqual({ kind: "signatures", parties: [{ role: "Abogado responsable", name: "Lic. Ana Torres\nCédula profesional 1234567" }] });
   });
   it("lee tipo y tamaño de las imágenes PNG y JPEG", () => {
     const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 3, 0xe8, 0, 0, 1, 0xf4, 8]);

@@ -20,7 +20,7 @@ const TWIP_WIDTH = 10224;
 const run = (text: string, opts: { size: number; color?: string; bold?: boolean }) =>
   text.split("\n").map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: FONT, size: opts.size * 2, color: opts.color ?? INK, bold: opts.bold ?? false }));
 
-function table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false) {
+function table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false) {
   const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => Math.round(w / total * TWIP_WIDTH));
   const size = labels ? BODY : 9.5;
   const cell = (text: string, i: number, fill: string, color: string, bold: boolean) => new TableCell({
@@ -33,7 +33,7 @@ function table(widths: number[], header: string[] | undefined, rows: string[][],
     width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: cols, layout: TableLayoutType.FIXED, borders,
     rows: [
       ...(header ? [new TableRow({ tableHeader: true, cantSplit: true, children: header.map((h, i) => cell(h, i, COLORS.navy, COLORS.white, true)) })] : []),
-      ...rows.map((row, index) => new TableRow({ cantSplit: true, children: row.map((c, i) => labels ? cell(c, i, i === 0 ? COLORS.band2 : COLORS.band3, INK, i === 0) : cell(c, i, fills[(band ? index + 1 : index) % 2], INK, false)) })),
+      ...rows.map((row, index) => new TableRow({ cantSplit: true, children: row.map((c, i) => labels ? (dark ? cell(i === 0 ? c.toUpperCase() : c, i, i === 0 ? COLORS.ink2 : COLORS.value2, i === 0 ? COLORS.white : INK, i === 0) : cell(c, i, i === 0 ? COLORS.band2 : COLORS.band3, INK, i === 0)) : cell(c, i, fills[(band ? index + 1 : index) % 2], INK, false)) })),
     ],
   });
 }
@@ -95,11 +95,13 @@ function block(b: Block): Array<Paragraph | Table> {
     case "subtitle": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 200, after: 40 }, children: run(b.text, { size: 12, bold: true }) })];
     case "note": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 60, after: 80 }, children: run(b.text, { size: 8.5 }) })];
     case "h1": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 120 }, children: run(b.text, { size: 21 }) })];
-    case "h2": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: run(b.text, { size: 13, color: COLORS.green }) })];
-    case "p": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: BODY === 11 ? 120 : 140 }, children: run(b.text, { size: BODY }) })];
+    case "h2": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: INK === COLORS.black ? run(b.text, { size: 11, bold: true }) : run(b.text, { size: 13, color: COLORS.green }) })];
+    case "p": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, indent: b.indent ? { firstLine: 360 } : undefined, spacing: { after: BODY === 11 ? 120 : 140 }, children: run(b.text, { size: BODY, bold: !!b.strong }) })];
+    case "numbered": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 100 }, children: [...run(`${b.num}  `, { size: 9, bold: true, color: COLORS.wine }), ...run(b.text.toUpperCase(), { size: 12, bold: true })] })];
+    case "caption": return [new Paragraph({ spacing: { after: 160 }, children: run(b.text, { size: 9.5, bold: true, color: COLORS.gray }) })];
     case "clause": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 140, line: 250 }, children: [...run(`${b.lead} `, { size: BODY, bold: true }), ...run(b.text, { size: BODY })] })];
     case "center": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 80, after: 120 }, children: run(b.text, { size: BODY, bold: true }) })];
-    case "fields": return [table(b.widths, undefined, b.rows, false, true), new Paragraph({ spacing: { after: 60 }, children: [] })];
+    case "fields": return [table(b.widths, undefined, b.rows, false, true, !!b.dark), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "signatures": return [new Table({ width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: b.parties.map(() => Math.round(TWIP_WIDTH / b.parties.length)), layout: TableLayoutType.FIXED, borders, rows: [new TableRow({ cantSplit: true, children: b.parties.map(p => new TableCell({ width: { size: Math.round(TWIP_WIDTH / b.parties.length), type: WidthType.DXA }, children: [
       new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 720, after: 60 }, children: run(p.role, { size: BODY, bold: true }) }),
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: run(p.name, { size: BODY }) }),
@@ -110,8 +112,8 @@ function block(b: Block): Array<Paragraph | Table> {
 }
 
 export function documentoDocx(doc: Documento, assets: DocumentoDocxAssets): Document {
-  const contrato = doc.estilo === "contrato";
-  FONT = contrato ? "Times New Roman" : "Archivo"; INK = contrato ? COLORS.black : COLORS.navy; BODY = contrato ? 10.5 : 11;
+  const contrato = doc.estilo === "contrato", opinion = doc.estilo === "opinion";
+  FONT = contrato ? "Times New Roman" : "Archivo"; INK = contrato || opinion ? COLORS.black : COLORS.navy; BODY = contrato || opinion ? 10.5 : 11;
   const logoWidth = 240, logoHeight = Math.round(logoWidth * assets.logoSize.height / assets.logoSize.width);
   const header = () => new Header({ children: [new Paragraph({ children: [new ImageRun({ type: "png", data: assets.logo, transformation: { width: logoWidth, height: logoHeight } })] })] });
   const footer = () => new Footer({ children: [new Paragraph({ children: [

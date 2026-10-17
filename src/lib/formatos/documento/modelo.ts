@@ -19,7 +19,10 @@ export type Block =
   /** Tabla con encabezado claro (F3F7F4) y bordes finos, como las de los levantamientos. */
   | { kind: "grid"; widths: number[]; header: string[]; rows: string[][] }
   | { kind: "note"; text: string }
-  | { kind: "p"; text: string }
+  | { kind: "p"; text: string; indent?: boolean; strong?: boolean }
+  /** Encabezado de sección con número en vino y título en mayúsculas (opinión jurídica). */
+  | { kind: "numbered"; num: string; text: string }
+  | { kind: "caption"; text: string }
   | { kind: "h1"; text: string }
   | { kind: "h2"; text: string }
   /** Banda de datos: celdas con etiqueta en mayúsculas y su valor debajo. */
@@ -29,13 +32,13 @@ export type Block =
   /** Estilo contrato: título centrado en negritas, cláusula con encabezado en negritas, tabla etiqueta/valor y firmas. */
   | { kind: "center"; text: string }
   | { kind: "clause"; lead: string; text: string }
-  | { kind: "fields"; widths: [number, number]; rows: Array<[string, string]> }
+  | { kind: "fields"; widths: [number, number]; rows: Array<[string, string]>; dark?: boolean }
   | { kind: "signatures"; parties: Array<{ role: string; name: string }> };
 
 /** «marca»: Archivo azul marino (planes, reportes, levantamientos). «contrato»: Times negro, como el 09 y la promesa. */
-export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato"; blocks: Block[] };
+export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato" | "opinion"; blocks: Block[] };
 
-export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", head: "F3F7F4", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
+export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", head: "F3F7F4", ink2: "08284C", value2: "F6F8FA", gray: "6B7280", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
 /** Datos extra que algunos formatos necesitan para dibujarse: imágenes adjuntas por ID. */
 export type DocumentoContexto = { imagenes?: Record<string, ImagenDocumento> };
 /** Espacio para completar a mano, como en la plantilla. */
