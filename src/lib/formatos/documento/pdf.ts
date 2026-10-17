@@ -19,7 +19,8 @@ const NAVY = hex(COLORS.navy), GREEN = hex(COLORS.green), WINE = hex(COLORS.wine
 const FILLS = [hex(COLORS.band2), hex(COLORS.band1)], BLACK = hex(COLORS.black), RULE = hex(COLORS.rule), HEAD = hex(COLORS.head);
 const BODY = 11, CELL = 9.5;
 type Style = { body: number; leading: number; after: number; ink: ReturnType<typeof rgb>; cell: number; h2?: { size: number; bold: boolean } };
-const STYLES: Record<"marca" | "contrato" | "opinion", Style> = {
+const STYLES: Record<"marca" | "contrato" | "opinion" | "aviso", Style> = {
+  aviso: { body: 10.5, leading: 1.15, after: 5, ink: NAVY, cell: 9.5, h2: { size: 12, bold: true } },
   opinion: { body: 10.5, leading: 1.25, after: 6, ink: BLACK, cell: 9.5, h2: { size: 11, bold: true } },
   marca: { body: BODY, leading: 1.22, after: 6, ink: NAVY, cell: CELL },
   contrato: { body: 10.5, leading: 1.1, after: 7, ink: BLACK, cell: 10.5 },
@@ -336,7 +337,7 @@ export async function renderDocumentoPdf(doc: Documento, assets: DocumentoAssets
   pdf.setTitle(doc.title); pdf.setAuthor("Fortius Inmuebles"); pdf.setCreator("Panel Fortius · Formatos exclusivos");
   if (doc.subject) pdf.setSubject(doc.subject);
   pdf.registerFontkit(fontkit);
-  const contrato = doc.estilo === "contrato";
+  const contrato = doc.estilo === "contrato" || doc.estilo === "aviso";
   const estilo = doc.estilo ?? "marca";
   const [regular, bold, logo] = await Promise.all([
     contrato ? pdf.embedFont(StandardFonts.TimesRoman) : pdf.embedFont(assets.regular, { subset: true }),

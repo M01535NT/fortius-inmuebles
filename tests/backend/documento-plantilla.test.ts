@@ -103,8 +103,8 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(doc.blocks.filter(b => b.kind === "note" && b.text.startsWith("Enfoque no aplicado"))).toHaveLength(3);
     expect(doc.blocks.find(b => b.kind === "bar" && b.text === "Valor comercial concluido")).toMatchObject({ right: "Pendiente" });
   });
-  it("todos los formatos con plantilla, salvo el aviso, se arman sin datos y en Word", async () => {
-    expect(Object.keys(DOCUMENTOS).sort()).toEqual(["02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);
+  it("todos los formatos con plantilla se arman sin datos y en Word", async () => {
+    expect(Object.keys(DOCUMENTOS).sort()).toEqual(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);
     for (const [id, build] of Object.entries(DOCUMENTOS)) {
       const doc = build!({});
       expect(doc.blocks.length, id).toBeGreaterThan(3);

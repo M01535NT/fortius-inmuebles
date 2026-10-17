@@ -48,7 +48,7 @@ export type Block =
   | { kind: "signatures"; parties: Array<{ role: string; name: string }>; line?: boolean };
 
 /** «marca»: Archivo azul marino (planes, reportes, levantamientos). «contrato»: Times negro, como el 09 y la promesa. */
-export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato" | "opinion"; blocks: Block[] };
+export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato" | "opinion" | "aviso"; blocks: Block[] };
 
 export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", head: "F3F7F4", cell: "F2F6F3", ink2: "08284C", value2: "F6F8FA", gray: "6B7280", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
 /** Datos extra que algunos formatos necesitan para dibujarse: imágenes adjuntas por ID. */

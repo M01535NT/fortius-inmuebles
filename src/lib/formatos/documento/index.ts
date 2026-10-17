@@ -12,6 +12,7 @@ import { cierreDocumento, entregaDocumento, reciboDocumento } from "./cierre";
 import { reporteDocumento } from "./reporte";
 import { ofertaDocumento, promesaDocumento } from "./oferta-promesa";
 import { presupuestoDocumento } from "./presupuesto";
+import { avisoDocumento } from "./aviso";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 
 /*
@@ -19,6 +20,8 @@ import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
   conservan su PDF anterior y la copia en Word genérica hasta reproducirse.
 */
 export const DOCUMENTOS: Partial<Record<string, (data: Record<string, unknown>, contexto?: DocumentoContexto) => Documento>> = {
+  // El PDF del 01 lo genera aviso-pdf.ts (cotejado); este documento sólo arma su Word.
+  "01": avisoDocumento,
   "02": entrevistaDocumento,
   ...Object.fromEntries((Object.keys(LEVANTAMIENTO_TITLES) as LevantamientoId[]).map(id => [id, (data: Record<string, unknown>, contexto?: DocumentoContexto) => levantamientoDocumento(id, data, contexto)])),
   "05": revisionJuridicaDocumento,

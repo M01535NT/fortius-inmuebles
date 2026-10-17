@@ -12,13 +12,13 @@ import { COLORS, type Block, type Documento } from "./modelo";
 
 export type DocumentoDocxAssets = { logo: Uint8Array; logoSize: { width: number; height: number }; pie: Uint8Array; regular?: Uint8Array; bold?: Uint8Array };
 
-let FONT = "Archivo", INK: string = COLORS.navy, BODY = 11;
+let FONT = "Archivo", HFONT = "Archivo", INK: string = COLORS.navy, BODY = 11;
 const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const borders = { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none };
 const TWIP_WIDTH = 10224;
 
-const run = (text: string, opts: { size: number; color?: string; bold?: boolean }) =>
-  text.split("\n").map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: FONT, size: opts.size * 2, color: opts.color ?? INK, bold: opts.bold ?? false }));
+const run = (text: string, opts: { size: number; color?: string; bold?: boolean; heading?: boolean }) =>
+  text.split("\n").map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: opts.heading ? HFONT : FONT, size: opts.size * 2, color: opts.color ?? INK, bold: opts.bold ?? false }));
 
 function table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false, small = false) {
   const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => Math.round(w / total * TWIP_WIDTH));
@@ -109,13 +109,13 @@ function block(b: Block): Array<Paragraph | Table> {
   switch (b.kind) {
     case "bar": return [new Paragraph({ spacing: { before: 80 }, children: [] }), bar(b.raw ? b.text : b.text.toUpperCase(), b.right, !!b.big, !!b.center)];
     case "right": return [new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 160 }, children: run(b.text, { size: BODY }) })];
-    case "label": return [new Paragraph({ keepNext: true, spacing: { before: 120, after: 60 }, children: run(b.text, { size: b.size ?? BODY, bold: true }) })];
+    case "label": return [new Paragraph({ keepNext: true, spacing: { before: 120, after: 60 }, children: run(b.text, { size: b.size ?? BODY, bold: true, heading: true }) })];
     case "h3": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(b.text, { size: 13 }) })];
     case "sheet": return [sheet(b.rows)];
     case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "pagebreak": return [new Paragraph({ children: [new PageBreak()] })];
-    case "title": return [new Paragraph({ keepNext: true, spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.size ?? (b.bold ? 22 : 27), bold: !!b.bold }) })];
+    case "title": return [new Paragraph({ keepNext: true, spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.size ?? (b.bold ? 22 : 27), bold: !!b.bold, heading: true }) })];
     case "form": return form(b.label, b.rows, !!b.filled);
     case "checks": return [
       new Paragraph({ keepNext: true, spacing: { before: 80, after: 40 }, children: run(b.q, { size: 9.5 }) }),
@@ -124,7 +124,7 @@ function block(b: Block): Array<Paragraph | Table> {
     case "subtitle": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 200, after: 40 }, children: run(b.text, { size: 12, bold: true }) })];
     case "note": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 60, after: 80 }, children: run(b.text, { size: 8.5 }) })];
     case "h1": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 120 }, children: run(b.text, { size: 21 }) })];
-    case "h2": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: INK === COLORS.black ? run(b.text, { size: 11, bold: true }) : run(b.text, { size: 13, color: COLORS.green }) })];
+    case "h2": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: INK === COLORS.black ? run(b.text, { size: 11, bold: true }) : FONT === "Times New Roman" ? run(b.text, { size: 12, bold: true, heading: true }) : run(b.text, { size: 13, color: COLORS.green }) })];
     case "p": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, indent: b.indent ? { firstLine: 360 } : undefined, spacing: { after: BODY === 11 ? 120 : 140 }, children: run(b.text, { size: BODY, bold: !!b.strong }) })];
     case "numbered": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 100 }, children: [...run(`${b.num}  `, { size: 9, bold: true, color: COLORS.wine }), ...run(b.text.toUpperCase(), { size: 12, bold: true })] })];
     case "caption": return [new Paragraph({ spacing: { after: 160 }, children: run(b.text, { size: 9.5, bold: true, color: COLORS.gray }) })];
@@ -142,8 +142,9 @@ function block(b: Block): Array<Paragraph | Table> {
 }
 
 export function documentoDocx(doc: Documento, assets: DocumentoDocxAssets): Document {
-  const contrato = doc.estilo === "contrato", opinion = doc.estilo === "opinion";
-  FONT = contrato ? "Times New Roman" : "Archivo"; INK = contrato || opinion ? COLORS.black : COLORS.navy; BODY = contrato || opinion ? 10.5 : 11;
+  const contrato = doc.estilo === "contrato", opinion = doc.estilo === "opinion", aviso = doc.estilo === "aviso";
+  FONT = contrato || aviso ? "Times New Roman" : "Archivo"; HFONT = contrato ? FONT : "Archivo";
+  INK = contrato || opinion ? COLORS.black : COLORS.navy; BODY = contrato || opinion || aviso ? 10.5 : 11;
   const logoWidth = 240, logoHeight = Math.round(logoWidth * assets.logoSize.height / assets.logoSize.width);
   const header = () => new Header({ children: [new Paragraph({ children: [new ImageRun({ type: "png", data: assets.logo, transformation: { width: logoWidth, height: logoHeight } })] })] });
   const footer = () => new Footer({ children: [new Paragraph({ children: [
