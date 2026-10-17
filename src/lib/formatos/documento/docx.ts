@@ -86,9 +86,9 @@ function image(label: string, img: import("./imagen").ImagenDocumento | undefine
   });
 }
 
-function bar(text: string, right: string | undefined, big: boolean) {
+function bar(text: string, right: string | undefined, big: boolean, center = false) {
   const left = right !== undefined ? Math.round(TWIP_WIDTH * 8 / 12) : TWIP_WIDTH;
-  const cells = [new TableCell({ width: { size: left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.navy }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ children: run(text, { size: big ? 13 : 9.5, bold: true, color: COLORS.white }) })] })];
+  const cells = [new TableCell({ width: { size: left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.navy }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ alignment: center ? AlignmentType.CENTER : undefined, children: run(text, { size: big ? 13 : 9.5, bold: true, color: COLORS.white }) })] })];
   if (right !== undefined) cells.push(new TableCell({ width: { size: TWIP_WIDTH - left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.band2 }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: run(right, { size: big ? 15 : 10, bold: big }) })] }));
   return new Table({ width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: cells.length === 2 ? [left, TWIP_WIDTH - left] : [TWIP_WIDTH], layout: TableLayoutType.FIXED, borders, rows: [new TableRow({ children: cells })] });
 }
@@ -107,7 +107,10 @@ function sheet(rows: Array<Array<{ label?: string; value?: string; w: number; st
 
 function block(b: Block): Array<Paragraph | Table> {
   switch (b.kind) {
-    case "bar": return [new Paragraph({ spacing: { before: 80 }, children: [] }), bar(b.raw ? b.text : b.text.toUpperCase(), b.right, !!b.big)];
+    case "bar": return [new Paragraph({ spacing: { before: 80 }, children: [] }), bar(b.raw ? b.text : b.text.toUpperCase(), b.right, !!b.big, !!b.center)];
+    case "right": return [new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 160 }, children: run(b.text, { size: BODY }) })];
+    case "label": return [new Paragraph({ keepNext: true, spacing: { before: 120, after: 60 }, children: run(b.text, { size: b.size ?? BODY, bold: true }) })];
+    case "h3": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(b.text, { size: 13 }) })];
     case "sheet": return [sheet(b.rows)];
     case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 60 }, children: [] })];

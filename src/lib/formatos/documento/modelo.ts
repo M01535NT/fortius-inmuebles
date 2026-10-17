@@ -12,7 +12,13 @@ export type Block =
   | { kind: "title"; text: string; bold?: boolean; size?: number }
   | { kind: "pagebreak" }
   /** Barra azul de hoja de cálculo («01 / PRECIO Y DIFERENCIA»), con un dato opcional a la derecha. */
-  | { kind: "bar"; text: string; right?: string; big?: boolean; raw?: boolean }
+  | { kind: "bar"; text: string; right?: string; big?: boolean; raw?: boolean; center?: boolean }
+  /** Texto alineado a la derecha (lugar y fecha de una carta). */
+  | { kind: "right"; text: string }
+  /** Encabezado corto en negritas (destinatario, «Precio propuesto»). */
+  | { kind: "label"; text: string; size?: number }
+  /** Encabezado de cláusula «01   Objeto». */
+  | { kind: "h3"; text: string }
   /** Renglones de hoja: etiqueta sin fondo y valor sobre gris claro; w = ancho relativo (12 por renglón). */
   | { kind: "sheet"; rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>> }
   /** Formulario de preguntas (02, 12, 13…): sección «01 / …» y renglones de celdas con la pregunta arriba y la respuesta debajo; w = ancho relativo. */

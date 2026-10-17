@@ -185,13 +185,14 @@ class Writer {
     this.y -= size + 8;
   }
   /** Barra azul marino de hoja de cálculo con texto en mayúsculas y, si hay, un dato a la derecha sobre gris. */
-  bar(text: string, right?: string, big = false, raw = false) {
+  bar(text: string, right?: string, big = false, raw = false, center = false) {
     const height = big ? 26 : 18, size = big ? 13 : 9.5;
     this.ensure(height + 40);
     this.y -= 4;
     const split = right !== undefined ? WIDTH * 8 / 12 : WIDTH;
     this.page.drawRectangle({ x: LEFT, y: this.y - height, width: split, height, color: NAVY });
-    this.page.drawText(raw ? text : text.toUpperCase(), { x: LEFT + 6, y: this.y - height / 2 - size / 2 + 1.5, size, font: this.fonts.bold, color: WHITE });
+    const label = raw ? text : text.toUpperCase(), labelWidth = this.fonts.bold.widthOfTextAtSize(label, size);
+    this.page.drawText(label, { x: center ? LEFT + (split - labelWidth) / 2 : LEFT + 6, y: this.y - height / 2 - size / 2 + 1.5, size, font: this.fonts.bold, color: WHITE });
     if (right !== undefined) {
       this.page.drawRectangle({ x: LEFT + split, y: this.y - height, width: WIDTH - split, height, color: hex(COLORS.band2) });
       const rsize = big ? 15 : 10, w = this.fonts.bold.widthOfTextAtSize(right, rsize);
@@ -227,7 +228,8 @@ class Writer {
     this.y -= 4;
   }
   signatures(parties: Array<{ role: string; name: string }>, line = false) {
-    const col = WIDTH / parties.length, size = this.style.body;
+    // Una sola firma: línea corta a la izquierda, como en las cartas; varias: columnas iguales.
+    const col = parties.length === 1 ? 240 : WIDTH / parties.length, size = this.style.body;
     this.ensure(36 + size * 4);
     this.y -= 36;
     parties.forEach((party, i) => {
@@ -290,7 +292,14 @@ class Writer {
   async render(block: Block) {
     switch (block.kind) {
       case "image": await this.image(block.label, block.image, block.height); break;
-      case "bar": this.bar(block.text, block.right, block.big, block.raw); break;
+      case "bar": this.bar(block.text, block.right, block.big, block.raw, block.center); break;
+      case "right": {
+        const size = this.style.body;
+        for (const line of wrap(block.text, this.fonts.regular, size, WIDTH)) { this.ensure(size * 1.3); const w = this.fonts.regular.widthOfTextAtSize(line, size); this.page.drawText(line, { x: LEFT + WIDTH - w, y: this.y - size, size, font: this.fonts.regular, color: this.style.ink }); this.y -= size * 1.3; }
+        this.y -= 8; break;
+      }
+      case "label": this.heading(block.text, block.size ?? this.style.body, this.style.ink, 6, 4, this.fonts.bold); break;
+      case "h3": this.heading(block.text, 13, this.style.ink, 8, 4); break;
       case "checks": this.checks(block.q, block.options, block.selected); break;
       case "sheet": this.sheet(block.rows); break;
       case "grid": this.grid(block.widths, block.header, block.rows); break;

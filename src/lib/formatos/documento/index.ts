@@ -9,6 +9,8 @@ import { netoDocumento } from "./neto";
 import { valorDocumento } from "./valor";
 import { compradorDocumento, visitaDocumento } from "./comprador";
 import { cierreDocumento, entregaDocumento, reciboDocumento } from "./cierre";
+import { reporteDocumento } from "./reporte";
+import { ofertaDocumento, promesaDocumento } from "./oferta-promesa";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 
 /*
@@ -24,8 +26,11 @@ export const DOCUMENTOS: Partial<Record<string, (data: Record<string, unknown>, 
   "08": netoDocumento,
   "09": intermediacionDocumento,
   "10": planDocumento,
+  "11": reporteDocumento,
   "12": compradorDocumento,
   "13": visitaDocumento,
+  "14": ofertaDocumento,
+  "15": promesaDocumento,
   "16": entregaDocumento,
   "17": cierreDocumento,
   "18": reciboDocumento,
