@@ -16,6 +16,8 @@ import { DocumentsTab, type Documento } from "./documents-tab";
 import { HistoryTab } from "./history-tab";
 import { NextStepTab } from "./next-step";
 import type { Emision } from "./formato-capture";
+import { latestInterview, latestSurvey } from "./initial-interview";
+import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { SettingsTab } from "./settings-tab";
 import { useLeaveGuard, useOperation } from "./use-operation";
 import s from "./operation.module.css";
@@ -55,17 +57,10 @@ export function OperationScreen({ id }: { id: string }) {
     apiRequest<{ asesorId?: string | null }>("/api/admin/mi-asesor").then(r => { if (alive) setMe(r.asesorId ?? undefined); }).catch(() => undefined);
     return () => { alive = false; };
   }, [id]);
-  // Entrevista inicial (02): su borrador más reciente y si ya tiene PDF de esa versión.
-  const interview02 = documents.filter(d => d.formato_id === "02").sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
-  const [loaded02, setLoaded02] = React.useState<{ id: string; list: Emision[] } | null>(null);
-  const emissions02 = loaded02 && loaded02.id === interview02?.id ? loaded02.list : [];
-  React.useEffect(() => {
-    const draft = interview02?.id;
-    if (!draft) return;
-    let alive = true;
-    apiRequest<{ emisiones?: Emision[] }>(`/api/admin/formatos/${draft}`).then(r => { if (alive) setLoaded02({ id: draft, list: r.emisiones ?? [] }); }).catch(() => { if (alive) setLoaded02({ id: draft, list: [] }); });
-    return () => { alive = false; };
-  }, [interview02?.id]);
+  // Entrevista inicial (02) y levantamiento (04): su borrador más reciente y sus PDF.
+  const interview02 = latestInterview(documents), survey04 = latestSurvey(documents);
+  const [emissions02, addEmission02] = useEmissions(interview02?.id);
+  const [emissions04, addEmission04] = useEmissions(survey04?.id);
   const markDirty = React.useMemo(() => Object.fromEntries(TABS.map(t => [t.id, (value: boolean) => setDirty(old => old[t.id] === value ? old : { ...old, [t.id]: value })])) as Record<TabId, (value: boolean) => void>, []);
 
   async function changeTab(next: TabId) {
@@ -92,7 +87,12 @@ export function OperationScreen({ id }: { id: string }) {
   if (op === undefined) return <p role="status" className="p-4 text-sm text-muted-foreground">Consultando la operación…</p>;
   if (op === null) return <div className="flex flex-col gap-4"><BackLink />{loadError ? <div role="alert" className="flex flex-wrap items-center gap-3"><span>{loadError}</span><Button onClick={reload}>Reintentar</Button></div> : <EmptyBox title="No encontramos esta operación">Puede que ya no exista o que no tengas acceso a ella.</EmptyBox>}</div>;
 
-  const view: OperationRecord = { ...op, inicial: { iniciada: !!interview02, emitida: !!interview02 && emissions02.some(e => e.draft_version === interview02.version) } };
+  const checklist = tasks.find(t => t.id === checklistTaskId(op.id));
+  const view: OperationRecord = { ...op, inicial: {
+    iniciada: !!interview02, emitida: !!interview02 && emissions02.some(e => e.draft_version === interview02.version),
+    levantamiento: survey04 ? (emissions04.some(e => e.draft_version === survey04.version) ? "emitido" : "borrador") : undefined,
+    documentos: checklist ? (checklist.pasos.length > 0 && checklist.pasos.every(p => p.hecho) ? "completo" : "pendiente") : undefined,
+  } };
   const flow = flowOf(op);
   const client = clients.find(c => c.id === op.cliente_id);
   const property = properties.find(p => p.slug === op.propiedad_slug);
@@ -126,7 +126,7 @@ export function OperationScreen({ id }: { id: string }) {
       <div className="mb-5"><Tabs idPrefix="operacion" label="Secciones de la operación" value={tab} onChange={id => void changeTab(id)} items={TABS.map(t => ({ id: t.id, label: t.label, ...(t.id === "documentos" ? { count: docsCount } : t.id === "tareas" ? { count: taskCount } : {}) }))} /></div>
       <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
         {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} cliente={client?.nombre}
-          initial={{ documents, emissions: emissions02, onDocumentsChange: setDocuments, onEmitted: emision => interview02 && setLoaded02({ id: interview02.id, list: [emision, ...emissions02] }), onOpenDocument: documentId => router.replace(`${pathname}?tab=documentos&documento=${encodeURIComponent(documentId)}`, { scroll: false }) }} evidence={{ documents, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer }} interview={interview} onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={next => void changeTab(next === "documentos" ? "documentos" : next)} onDirtyChange={markDirty.sigue} />}
+          initial={{ documents, emissions: { entrevista: emissions02, levantamiento: emissions04 }, checklist, onDocumentsChange: setDocuments, onEmitted: (kind, emision) => (kind === "entrevista" ? addEmission02 : addEmission04)(emision), onOpenDocument: documentId => router.replace(`${pathname}?tab=documentos&documento=${encodeURIComponent(documentId)}`, { scroll: false }) }} evidence={{ documents, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer }} interview={interview} onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={next => void changeTab(next === "documentos" ? "documentos" : next)} onDirtyChange={markDirty.sigue} />}
         {tab === "documentos" && <div className="flex flex-col gap-5">
           <InterviewAccess key={op.id} expedienteId={op.id} clienteId={op.cliente_id} intencion={flow.ruta === "inversion" ? "invertir" : op.operacion === "renta" ? (flow.ruta === "arrendatario" ? "rentar" : "arrendar") : flow.ruta === "compra" ? "comprar" : "vender"} disabled={anyDirty} />
           <DocumentsTab op={op} documents={documents} onDocumentsChange={setDocuments} initialDocument={params.get("documento")} onDirtyChange={markDirty.documentos} />
@@ -137,6 +137,19 @@ export function OperationScreen({ id }: { id: string }) {
       </TabPanel>
     </>}
   </Surface>;
+}
+
+/** PDF emitidos de un borrador; se recargan al cambiar de borrador. */
+function useEmissions(draft: string | undefined): [Emision[], (emision: Emision) => void] {
+  const [loaded, setLoaded] = React.useState<{ id: string; list: Emision[] } | null>(null);
+  React.useEffect(() => {
+    if (!draft) return;
+    let alive = true;
+    apiRequest<{ emisiones?: Emision[] }>(`/api/admin/formatos/${draft}`).then(r => { if (alive) setLoaded({ id: draft, list: r.emisiones ?? [] }); }).catch(() => { if (alive) setLoaded({ id: draft, list: [] }); });
+    return () => { alive = false; };
+  }, [draft]);
+  const list = loaded && loaded.id === draft ? loaded.list : [];
+  return [list, emision => { if (draft) setLoaded({ id: draft, list: [emision, ...list] }); }];
 }
 
 function BackLink({ stage }: { stage?: string }) {

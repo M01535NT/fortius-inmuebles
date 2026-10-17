@@ -74,6 +74,8 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   if (!isOwnerRoute(flow.ruta)) return { target: next, label: stageLabel(next, flow.ruta) };
   const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial);
   if (phase === "prospecto") return { label: "Entrevista inicial" };
+  if (phase === "captacion" && isOwnerRoute(flow.ruta)) return { label: "Levantamiento" };
+  if (phase === "levantamiento") return { label: "Checklist de documentos" };
   if (phase === "verificacion") return { label: "Contrato y preparación" };
   if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar la operación" : stageLabel(next, "captacion").replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
   const following = SALE_PROCESS[SALE_PROCESS.findIndex(p => p.key === phase) + 1];
@@ -104,14 +106,21 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   const flow = flowOf(op), target = advanceTarget(op, today);
   if (!target) return [];
   const phase = isOwnerRoute(flow.ruta) ? processPhase(stageOf(op), op.flujo ?? flow, today, op.inicial) : undefined;
+  const inicial = op.inicial ?? {};
   if (phase === "prospecto") return [{ text: "Iniciar la entrevista inicial", why: "con el botón «Iniciar entrevista inicial»", place: "operacion" }];
+  if (phase === "captacion" && !target.target) return [inicial.emitida ? { text: "Iniciar el levantamiento", why: "con el botón «Iniciar levantamiento»", place: "operacion" } : { text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" }];
+  if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar el checklist de documentos", why: "con el botón «Iniciar checklist»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
   if (!target.target) {
     const items: Missing[] = phaseRequirements("verificacion").filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
     if (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo)) items.push({ text: "Registrar si tomas el encargo", why: "se decide en Ajustes", place: "ajustes" });
     return items;
   }
   const labels = new Map(Object.entries(WORKFLOW_REQUIREMENTS).map(([key, value]) => [value.label as string, key as RequirementKey]));
-  const initial: Missing[] = phase === "captacion" && !op.inicial?.emitida ? [{ text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" }] : [];
+  const initial: Missing[] = phase !== "documentos" ? [] : [
+    ...(inicial.documentos !== "completo" ? [{ text: "Recibir los documentos del checklist", why: "márcalos al recibirlos", place: "operacion" as const }] : []),
+    ...(!inicial.emitida ? [{ text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" as const }] : []),
+    ...(inicial.levantamiento !== "emitido" ? [{ text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" as const }] : []),
+  ];
   return initial.concat(workflowBlockers(flow, target.target, { id: op.id, asesor_id: op.asesor_id, propiedad_slug: propertySlug }, tasks, today).map(blocker => {
     const key = labels.get(blocker);
     if (key) return { text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" as const };
@@ -164,6 +173,8 @@ export function dueLabel(date: string | undefined, today: string) {
 /** Herramientas de cada etapa; se abren con el contexto de la operación. */
 const PHASE_TOOLS: Record<SalePhase, Array<[string, string]>> = {
   prospecto: [["comparables", "Comparar casas parecidas"]],
+  levantamiento: [["fotografias", "Fotografías"], ["ficha-comercial", "Ficha del inmueble"]],
+  documentos: [["revisor-expediente", "Pendientes documentales"]],
   captacion: [["revisor-expediente", "Pendientes documentales"], ["comparables", "Comparar casas parecidas"]],
   verificacion: [["comparables", "Comparar casas parecidas"], ["neto-propietario", "Neto del propietario"], ["revisor-expediente", "Pendientes documentales"]],
   contrato: [["ficha-comercial", "Ficha del inmueble"], ["fotografias", "Fotografías"], ["cotizador", "Cotizador de servicios"]],

@@ -9,6 +9,7 @@ import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { cn } from "@/lib/utils";
 import type { Documento } from "./documents-tab";
+import { FormatoImages, WITH_IMAGES } from "./formato-images";
 
 /*
   Captura guiada de un formato desde su etapa (decisión del titular, 16/10/2026):
@@ -19,6 +20,7 @@ import type { Documento } from "./documents-tab";
 
 export type Emision = { id: string; draft_version: number; created_at: string };
 const post = (body: unknown, method = "POST") => ({ method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+const IMAGES = "Fotografías y croquis";
 const safeName = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 export function FormatoCapture({ document: initial, folio, cliente, onSaved, onEmitted, onClose }: {
@@ -30,14 +32,14 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
   const [values, setValues] = React.useState<Record<string, unknown>>(initial.data);
   const [emisiones, setEmisiones] = React.useState<Emision[] | null>(null);
   const [busy, setBusy] = React.useState(""), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
-  const sections = React.useMemo(() => [...new Set(definition.fields.map(f => f.section ?? "Datos"))], [definition]);
+  const sections = React.useMemo(() => [...new Set(definition.fields.map(f => f.section ?? "Datos")), ...(WITH_IMAGES.includes(definition.id) ? [IMAGES] : [])], [definition]);
   const [index, setIndex] = React.useState(0);
   const heading = React.useRef<HTMLHeadingElement>(null);
   const dirty = JSON.stringify(values) !== JSON.stringify(doc.data);
   const data = { ...values, folio };
   const missing = validateFormato(definition.id, data);
   const sectionOf = React.useMemo(() => new Map(definition.fields.map(f => [f.label, f.section ?? "Datos"])), [definition]);
-  const pendingBySection = sections.map(section => missing.filter(label => sectionOf.get(label) === section).length);
+  const pendingBySection = sections.map(section => missing.filter(label => (sectionOf.get(label) ?? (label.startsWith("Selecciona") ? IMAGES : "")) === section).length);
   const section = sections[index], last = index === sections.length - 1;
   const current = emisiones?.find(e => e.draft_version === doc.version);
 
@@ -126,11 +128,12 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
           <p className="font-mono text-xs text-muted-foreground lg:hidden">Sección {index + 1} de {sections.length}</p>
           <h3 ref={heading} tabIndex={-1} className="m-0 text-xl font-bold">{section}</h3>
           {index === 0 && !!values.origenDatos && <Notice tone="info">Algunas respuestas vienen del primer contacto. Confírmalas con el propietario: lo declarado todavía debe comprobarse.</Notice>}
-          <fieldset disabled={!!busy} className="min-w-0">
-            <FormatoEditor key={`${doc.id}-${section}`} definition={sectionDefinition} values={data} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
-          </fieldset>
+          {section === IMAGES ? <FormatoImages documentId={doc.id} values={values} disabled={!!busy} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
+            : <fieldset disabled={!!busy} className="min-w-0">
+              <FormatoEditor key={`${doc.id}-${section}`} definition={sectionDefinition} values={data} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
+            </fieldset>}
           {last && <div className="flex flex-col gap-3 rounded-[12px] border border-border p-4">
-            <p className="font-semibold">{missing.length ? `Para generar el PDF faltan ${missing.length} ${missing.length === 1 ? "respuesta" : "respuestas"}:` : "Entrevista completa. Ya puedes generar el PDF."}</p>
+            <p className="font-semibold">{missing.length ? `Para generar el PDF faltan ${missing.length} ${missing.length === 1 ? "respuesta" : "respuestas"}:` : "Captura completa. Ya puedes generar el PDF."}</p>
             {missing.length > 0 && <p className="text-sm text-muted-foreground">{missing.slice(0, 12).join(" · ")}{missing.length > 12 ? ` y ${missing.length - 12} más` : ""}</p>}
             {current && <p className="text-sm">Ya hay un PDF de esta versión. <a className="font-semibold underline" href={`/api/admin/emisiones/${current.id}/descargar`}>Descargarlo otra vez</a></p>}
           </div>}

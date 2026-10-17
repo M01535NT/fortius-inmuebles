@@ -11,8 +11,8 @@ function verified(resolution = true): OperationWorkflow {
 }
 
 describe("proceso de comercialización", () => {
-  it("define siete etapas en el orden del titular", () => {
-    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Prospecto", "Entrevista inicial", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
+  it("define nueve etapas en el orden del titular", () => {
+    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
     expect(new Set(SALE_PROCESS.flatMap(p => p.etapas))).toEqual(new Set(WORKFLOW_STAGES));
   });
   it("cada estado interno del propietario corresponde a una etapa", () => {
@@ -26,6 +26,9 @@ describe("proceso de comercialización", () => {
     expect(processStageText("captacion", flow, today)).toBe("Prospecto");
     expect(processStageText("captacion", flow, today, { iniciada: true })).toBe("Entrevista inicial");
     expect(processPhase("captacion", emptyWorkflow("compra"), today)).toBe("captacion");
+    expect(processPhase("captacion", flow, today, { iniciada: true, emitida: true, levantamiento: "borrador" })).toBe("levantamiento");
+    expect(processPhase("captacion", flow, today, { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" })).toBe("documentos");
+    expect(processStageText("captacion", flow, today, { iniciada: true, levantamiento: "emitido", documentos: "pendiente" })).toBe("Checklist de documentos");
   });
   it("documentación pasa a contrato solo con verificación y decisión de captación", () => {
     expect(processPhase("documentacion", emptyWorkflow(), today)).toBe("verificacion");
