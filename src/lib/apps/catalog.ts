@@ -1,4 +1,5 @@
 export const APPS = [
+  { slug: "documentos", title: "Documentos sin expediente", description: "Opiniones, contratos y propuestas sin pasar por las etapas.", category: "Documentos", icon: "FileText" },
   { slug: "ficha-comercial", title: "Ficha comercial", description: "Presenta un inmueble con la identidad Fortius.", category: "Comercial", icon: "Building2" },
   { slug: "hipoteca", title: "Hipoteca", description: "Mensualidades, anticipos y tabla de amortización.", category: "Finanzas", icon: "Landmark" },
   { slug: "comparables", title: "Comparables", description: "Sustenta precios con fuentes y ajustes visibles.", category: "Comercial", icon: "Scale" },

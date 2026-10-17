@@ -81,7 +81,7 @@ async function bytes(url: string) {
 }
 
 /** Word del formato: con el diseño de su plantilla si ya está reproducido; si no, la copia genérica. */
-export async function formatoDocxBlob(definition: FormatoDefinition, values: Record<string, unknown>, context: { folio: string; cliente?: string }): Promise<Blob> {
+export async function formatoDocxBlob(definition: FormatoDefinition, values: Record<string, unknown>, context: { folio: string; cliente?: string; imageUrl?: (id: string) => string }): Promise<Blob> {
   const documento = DOCUMENTOS[definition.id];
   if (documento) {
     const [logo, pie, regular] = await Promise.all([bytes("/brand/fortius-logo.png"), bytes("/brand/pie-documento.png"), bytes("/fonts/Archivo-Regular.ttf")]);
@@ -90,7 +90,7 @@ export async function formatoDocxBlob(definition: FormatoDefinition, values: Rec
     const ids = [values.fotoPrincipalId, values.croquisId, ...(Array.isArray(values.fotografias) ? values.fotografias.map(row => (row as Record<string, unknown>)?.assetId) : [])];
     for (const assetId of ids) {
       if (typeof assetId !== "string" || !assetId) continue;
-      const image = await bytes(`/api/admin/adjuntos/${encodeURIComponent(assetId)}/descargar`).then(data => imagen(data)).catch(() => undefined);
+      const image = await bytes(context.imageUrl ? context.imageUrl(assetId) : `/api/admin/adjuntos/${encodeURIComponent(assetId)}/descargar`).then(data => imagen(data)).catch(() => undefined);
       if (image) imagenes[assetId] = image;
     }
     return documentoDocxBlob(documento(values, { imagenes }), { logo, logoSize: { width: 2550, height: 648 }, pie, regular });

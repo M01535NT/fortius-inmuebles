@@ -12,20 +12,25 @@ import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 
 export type Adjunto = { id: string; kind: "foto" | "croquis" | "soporte"; caption: string; source: string; observed_on: string | null };
 export const WITH_IMAGES = ["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07"];
+/** Origen de las imágenes cuando el documento no es un borrador de expediente (Documentos sin expediente). */
+export type ImagesSource = { list: Adjunto[]; upload: (form: FormData) => Promise<Adjunto>; href: (id: string) => string };
 
-export function FormatoImages({ documentId, values, onChange, disabled }: { documentId: string; values: Record<string, unknown>; onChange: (key: string, value: string) => void; disabled: boolean }) {
-  const [adjuntos, setAdjuntos] = React.useState<Adjunto[] | null>(null);
+export function FormatoImages({ documentId, values, onChange, disabled, source }: { documentId: string; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void; disabled: boolean; source?: ImagesSource }) {
+  const [loaded, setAdjuntos] = React.useState<Adjunto[] | null>(null);
+  const adjuntos = source ? source.list : loaded;
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState("");
   React.useEffect(() => {
+    if (source) return;
     let alive = true;
     json<{ adjuntos: Adjunto[] }>(`/api/admin/formatos/${documentId}/adjuntos`).then(r => { if (alive) setAdjuntos(r.adjuntos); }).catch(cause => { if (alive) { setAdjuntos([]); setError(errorMessage(cause)); } });
     return () => { alive = false; };
-  }, [documentId]);
+  }, [documentId, source]);
   async function upload(event: React.FormEvent<HTMLFormElement>) {
     const form = event.currentTarget; event.preventDefault(); setBusy(true); setError("");
     try {
-      const result = await json<{ adjunto: Adjunto }>(`/api/admin/formatos/${documentId}/adjuntos`, { method: "POST", body: new FormData(form) });
-      setAdjuntos(items => [...(items ?? []), result.adjunto]); form.reset();
+      const result = source ? { adjunto: await source.upload(new FormData(form)) } : await json<{ adjunto: Adjunto }>(`/api/admin/formatos/${documentId}/adjuntos`, { method: "POST", body: new FormData(form) });
+      if (source) onChange("adjuntos", [...source.list, result.adjunto]); else setAdjuntos(items => [...(items ?? []), result.adjunto]);
+      form.reset();
       // La primera imagen de cada tipo queda elegida para el PDF; se puede cambiar abajo.
       const slot = result.adjunto.kind === "foto" ? "fotoPrincipalId" : result.adjunto.kind === "croquis" ? "croquisId" : null;
       if (slot && !values[slot]) onChange(slot, result.adjunto.id);
@@ -44,7 +49,7 @@ export function FormatoImages({ documentId, values, onChange, disabled }: { docu
       </fieldset>
     </form>
     {adjuntos === null ? <p role="status" className="text-sm text-muted-foreground">Consultando imágenes…</p>
-      : adjuntos.length > 0 && <ul className="flex flex-col gap-1 text-sm">{adjuntos.map(item => <li key={item.id}><a className="underline" href={`/api/admin/adjuntos/${item.id}/descargar`} target="_blank" rel="noreferrer">{item.caption}</a> · {item.kind === "foto" ? "Fotografía" : item.kind === "croquis" ? "Croquis" : "Soporte"} · {item.source}{item.observed_on ? ` · ${item.observed_on}` : ""}</li>)}</ul>}
+      : adjuntos.length > 0 && <ul className="flex flex-col gap-1 text-sm">{adjuntos.map(item => <li key={item.id}><a className="underline" href={source ? source.href(item.id) : `/api/admin/adjuntos/${item.id}/descargar`} target="_blank" rel="noreferrer">{item.caption}</a> · {item.kind === "foto" ? "Fotografía" : item.kind === "croquis" ? "Croquis" : "Soporte"} · {item.source}{item.observed_on ? ` · ${item.observed_on}` : ""}</li>)}</ul>}
     <div className="grid gap-3 md:grid-cols-2">{[{ key: "fotoPrincipalId", kind: "foto", label: "Fotografía principal del PDF" }, { key: "croquisId", kind: "croquis", label: "Croquis del PDF" }].map(slot => <label key={slot.key} className="text-sm">{slot.label}
       <select value={String(values[slot.key] ?? "")} disabled={disabled} onChange={event => onChange(slot.key, event.target.value)} className={selectClass}><option value="">Elige una imagen</option>{(adjuntos ?? []).filter(item => item.kind === slot.kind).map(item => <option key={item.id} value={item.id}>{item.caption}</option>)}</select>
     </label>)}</div>
