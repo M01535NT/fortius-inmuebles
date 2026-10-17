@@ -1,6 +1,6 @@
 import * as React from "react";
 import { afterEach, expect, test, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Button, ProgressBar, Segmented, Sheet, StageProgress, StatusChip, Tabs } from "@/components/admin/kit";
 
 afterEach(cleanup);
@@ -17,6 +17,16 @@ test("el avance marca la etapa actual y numera del 1 al 6", () => {
   expect(current.textContent).toContain("2Verificación y precio");
   expect(current.textContent).toContain("Aquí vas");
   expect(screen.getAllByRole("listitem")[0].textContent).toContain("Lista");
+});
+
+test("una etapa pasada con algo pendiente lo dice y se puede abrir", () => {
+  const onSelect = vi.fn();
+  render(<StageProgress stages={STAGES} current={3} warnings={{ 1: "Falta el 02" }} selectable={[1]} onSelect={onSelect} />);
+  const [first, second] = screen.getAllByRole("listitem");
+  expect(first.textContent).toContain("Falta el 02");
+  expect(within(second).queryByRole("button")).toBeNull();
+  fireEvent.click(within(first).getByRole("button", { name: /Captación/ }));
+  expect(onSelect).toHaveBeenCalledWith(1);
 });
 
 test("en celular el avance se lee como «Etapa N de 6» con barra accesible", () => {

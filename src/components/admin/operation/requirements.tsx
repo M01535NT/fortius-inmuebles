@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
-import { Button, Notice, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
+import { AlertCircle, CheckCircle2, Circle, CircleDashed, MinusCircle, MoreHorizontal } from "lucide-react";
+import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
@@ -13,6 +14,7 @@ import s from "./operation.module.css";
 /*
   Requisitos de la etapa con su estado: Pendiente · Lo tengo · Revisado · Hay un problema · No aplica
   (pendiente, recibido, revisado, observado y no_aplica). «No aplica» solo donde WORKFLOW_REQUIREMENTS lo admite.
+  Al marcar «Revisado» se pide siempre el respaldo, quién lo revisó, la fecha y qué se encontró.
 */
 
 type Review = NonNullable<OperationWorkflow["requisitos"][RequirementKey]>;
@@ -21,56 +23,79 @@ type Change = (key: RequirementKey, review: Review | undefined) => Promise<void>
 
 const STATES: ReviewStateKey[] = ["pendiente", "recibido", "revisado", "observado", "no_aplica"];
 
-export function RequirementList({ flow, items, today, locked, busy, evidence, onChange, onAddDocument }: {
-  flow: OperationWorkflow; items: Array<{ key: RequirementKey; earlier: boolean }>; today: string; locked: boolean; busy: boolean;
-  evidence: Evidence; onChange: Change; onAddDocument: () => void;
+export type SheetKind = "revisado" | "observado" | "no_aplica";
+export type OpenSheet = { key: RequirementKey; kind: SheetKind } | null;
+
+/** «Lo tengo» y «Pendiente» se guardan al momento y conservan lo escrito; un problema resuelto deja constancia en el soporte. */
+export function quickReview(flow: OperationWorkflow, key: RequirementKey, state: "pendiente" | "recibido", today: string): Review {
+  const current = flow.requisitos[key];
+  const soporte = current?.estado === "observado" ? `Resuelto el ${shortDate(today)}: ${problemOf(current).title}` : current?.soporte ?? "";
+  return { estado: state, soporte, ...(current?.vigenteHasta ? { vigenteHasta: current.vigenteHasta } : {}) };
+}
+
+/**
+  Un requisito en «Para terminar la etapa»: su estado en palabras, «Marcar revisado» como acción
+  normal y, en «Más», los demás estados. Un problema marcado muestra qué pasó y cómo resolverlo.
+*/
+export function RequirementRow({ requirement, earlier, flow, today, locked, busy, onQuick, onSheet }: {
+  requirement: RequirementKey; earlier: boolean; flow: OperationWorkflow; today: string; locked: boolean; busy: boolean;
+  onQuick: (key: RequirementKey, state: "pendiente" | "recibido") => void; onSheet: (sheet: NonNullable<OpenSheet>) => void;
 }) {
-  const [sheet, setSheet] = React.useState<{ key: RequirementKey; kind: "revisado" | "observado" | "no_aplica" } | null>(null);
-  const reviewed = items.filter(i => !i.earlier && reviewComplete(flow, i.key, today)).length, total = items.filter(i => !i.earlier).length;
-  async function choose(key: RequirementKey, state: ReviewStateKey) {
-    if (state === "revisado" || state === "observado" || state === "no_aplica") { setSheet({ key, kind: state }); return; }
-    const current = flow.requisitos[key];
-    // «Lo tengo» y «Pendiente» conservan lo escrito; un problema resuelto deja constancia en el soporte.
-    const soporte = current?.estado === "observado" ? `Resuelto el ${shortDate(today)}: ${problemOf(current).title}` : current?.soporte ?? "";
-    // El error ya se muestra en la tarjeta; aquí solo se evita una promesa sin atender.
-    await onChange(key, { estado: state, soporte, ...(current?.vigenteHasta ? { vigenteHasta: current.vigenteHasta } : {}) }).catch(() => undefined);
+  const [more, setMore] = React.useState(false);
+  const state = reviewState(flow, requirement), review = flow.requisitos[requirement];
+  const done = reviewComplete(flow, requirement, today);
+  const expired = state === "revisado" && !done;
+  const problem = state === "observado" ? problemOf(review) : null;
+  const name = requirementName(requirement);
+  const detail = expired ? (review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
+    : problem ? problem.title : state === "recibido" ? "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
+  const options = STATES.filter(st => st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica");
+  const disabled = busy || locked;
+  function choose(st: ReviewStateKey) {
+    setMore(false);
+    if (st === "revisado" || st === "observado" || st === "no_aplica") onSheet({ key: requirement, kind: st });
+    else onQuick(requirement, st);
   }
-  return <div className="flex flex-col gap-1">
-    <div className="flex items-baseline justify-between gap-3 border-b border-border pb-3">
-      <h3 className="m-0 text-base font-bold">Requisitos de esta etapa</h3>
-      {total > 0 && <span className={s.mono}>{reviewed} de {total} revisados</span>}
+  return <li id={`req-${requirement}`} tabIndex={-1} className={s.item}>
+    <div className={s.itemMain}>
+      <StateIcon state={expired ? "observado" : state} done={done} />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className="flex flex-wrap items-center gap-2"><span className="font-semibold">{name}</span>{earlier && <span className={s.tag}>De una etapa anterior</span>}</p>
+        {detail && <p className={cn("text-sm [overflow-wrap:anywhere]", problem || expired ? "font-semibold text-[var(--warning)]" : "text-muted-foreground")}>{detail}</p>}
+      </div>
+      <div className={s.itemActions}>
+        {problem ? <>
+          <Button variant="ghost" disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "observado" })}>Escribir qué pasó</Button>
+          <Button disabled={disabled} onClick={() => onQuick(requirement, "recibido")}>Ya se resolvió</Button>
+        </> : !done && <Button disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "revisado" })}>Marcar revisado</Button>}
+        <Button variant="ghost" iconOnly aria-label={`Más estados de ${name}`} aria-expanded={more} disabled={disabled} onClick={() => setMore(open => !open)}><MoreHorizontal size={18} aria-hidden="true" /></Button>
+      </div>
     </div>
-    {locked && <Notice tone="info" className="mt-3">Primero termina el dictamen jurídico y la opinión de valor y registra si tomas el encargo. Después se capturan el contrato y la preparación.</Notice>}
-    {items.length === 0 && <p className="py-4 text-sm text-muted-foreground">Esta etapa no pide requisitos nuevos. Revisa «Te falta» abajo para pasar a la siguiente.</p>}
-    <ul className="flex flex-col">{items.map(({ key, earlier }) => {
-      const state = reviewState(flow, key), review = flow.requisitos[key];
-      const options = STATES.filter(st => st !== "no_aplica" || allowsNotApplicable(key) || state === "no_aplica");
-      const detail = requirementDetail(flow, key);
-      const problem = state === "observado" ? problemOf(review) : null;
-      const expired = state === "revisado" && !reviewComplete(flow, key, today);
-      return <li key={key} id={`req-${key}`} className={s.requirement} tabIndex={-1}>
-        <div className="flex min-w-0 flex-col gap-1">
-          <p className="flex flex-wrap items-center gap-2"><strong className="text-base">{requirementName(key)}</strong>{earlier && <span className={s.tag}>De una etapa anterior</span>}</p>
-          {detail && <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{detail}</p>}
-          {expired && <p className="text-sm font-semibold text-[var(--primary-text)]">{review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado."}</p>}
-        </div>
-        <div role="radiogroup" aria-label={`Estado de ${requirementName(key)}`} className={s.states}>
-          {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <button key={st} type="button" role="radio" aria-checked={st === state} disabled={busy || locked} className={cn(s.state, s[`st_${st}`])} onClick={() => void choose(key, st)}><Icon size={15} aria-hidden="true" />{label.replace(" ✓", "")}</button>; })}
-        </div>
-        {problem && <Notice title={problem.title} className="mt-1" actions={<>
-          <Button disabled={busy || locked} onClick={() => setSheet({ key, kind: "observado" })}>Escribir qué pasó</Button>
-          <Button variant="ghost" disabled={busy || locked} onClick={() => void choose(key, "recibido")}>Ya se resolvió</Button>
-        </>}>
-          {problem.body && <p className="whitespace-pre-line">{problem.body}</p>}
-          <p className={cn(s.mono, "mt-1")}>{review?.registradoEl ? `Desde el ${shortDate(review.registradoEl)}` : "Marcado sin fecha"}</p>
-        </Notice>}
-        {state === "pendiente" && !earlier && <p className={cn(s.hint)}>Al marcar «Revisado» te pedimos el documento que lo respalda.</p>}
-      </li>;
-    })}</ul>
-    {sheet?.kind === "revisado" && <ReviewSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} today={today} evidence={evidence} onClose={() => setSheet(null)} onAddDocument={() => { setSheet(null); onAddDocument(); }} onSave={review => onChange(sheet.key, review).then(() => setSheet(null))} />}
-    {sheet?.kind === "observado" && <ProblemSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} route={flow.ruta} onClose={() => setSheet(null)} onSave={review => onChange(sheet.key, review).then(() => setSheet(null))} />}
-    {sheet?.kind === "no_aplica" && <NotApplicableSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} onClose={() => setSheet(null)} onSave={review => onChange(sheet.key, review).then(() => setSheet(null))} />}
-  </div>;
+    {problem?.body && <p className={cn(s.itemExtra, "whitespace-pre-line text-sm")}>{problem.body}{review?.registradoEl ? ` · Desde el ${shortDate(review.registradoEl)}` : ""}</p>}
+    {more && <div role="radiogroup" aria-label={`Estado de ${name}`} className={cn(s.states, s.itemExtra)}>
+      {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <button key={st} type="button" role="radio" aria-checked={st === state} disabled={disabled} className={cn(s.state, s[`st_${st}`])} onClick={() => choose(st)}><Icon size={15} aria-hidden="true" />{label.replace(" ✓", "")}</button>; })}
+    </div>}
+  </li>;
+}
+
+/** Círculo vacío, medio lleno, palomita o alerta: el estado se distingue por forma, no solo por color. */
+export function StateIcon({ state, done }: { state: ReviewStateKey | "borrador"; done: boolean }) {
+  if (done) return <CheckCircle2 size={20} aria-label="Listo" className={s.iconDone} />;
+  if (state === "observado") return <AlertCircle size={20} aria-label="Hay un problema" className={s.iconWarn} />;
+  if (state === "recibido" || state === "borrador") return <CircleDashed size={20} aria-label="En proceso" className={s.iconDone} />;
+  if (state === "no_aplica") return <MinusCircle size={20} aria-label="No aplica" className={s.iconIdle} />;
+  return <Circle size={20} aria-label="Pendiente" className={s.iconIdle} />;
+}
+
+/** Los paneles «Marcar revisado», «Hay un problema» y «No aplica». */
+export function RequirementSheets({ sheet, flow, today, evidence, onClose, onChange, onAddDocument }: {
+  sheet: OpenSheet; flow: OperationWorkflow; today: string; evidence: Evidence; onClose: () => void; onChange: Change; onAddDocument: () => void;
+}) {
+  if (!sheet) return null;
+  const save = (review: Review) => onChange(sheet.key, review).then(onClose);
+  if (sheet.kind === "revisado") return <ReviewSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} today={today} evidence={evidence} onClose={onClose} onAddDocument={() => { onClose(); onAddDocument(); }} onSave={save} />;
+  if (sheet.kind === "observado") return <ProblemSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} route={flow.ruta} onClose={onClose} onSave={save} />;
+  return <NotApplicableSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} onClose={onClose} onSave={save} />;
 }
 
 function useSheetSave(onSave: (review: Review) => Promise<void>) {
@@ -131,12 +156,12 @@ export function ReviewSheet({ requirement, review, today, evidence, onClose, onS
     return reviewComplete({ version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: { [requirement]: next } }, requirement, today) ? next : "Faltan datos del respaldo. Revisa el documento elegido y vuelve a intentar.";
   }
   const name = requirementName(requirement);
-  return <Sheet open onClose={onClose} eyebrow="Marcar como revisado" title={name} description="Dinos con qué lo comprobaste. Así cualquiera del equipo puede verlo después." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="Marcar revisado" title={name} description="Queda registrado quién lo revisó, cuándo y con qué." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={() => void run(build())}>{busy ? "Guardando…" : "Guardar como revisado"}</Button>
   </>}>
     <fieldset className="flex flex-col gap-2.5" disabled={busy}>
-      <legend className="mb-2 text-sm font-semibold">Documento que lo respalda</legend>
+      <legend className="mb-2 text-sm font-semibold">¿Con qué lo comprobaste?</legend>
       {evidence.documents.map(d => <label key={d.id} className={s.option}><input type="radio" name="respaldo" checked={source === `doc:${d.id}`} onChange={() => setSource(`doc:${d.id}`)} /><span className="flex min-w-0 flex-col"><strong className="[overflow-wrap:anywhere]">{formatoById(d.formato_id).title}</strong><small className={s.mono}>Versión {d.version}{d.updated_at ? ` · Actualizado el ${shortDate(d.updated_at)}` : ""}</small></span></label>)}
       {evidence.interview && <label className={s.option}><input type="radio" name="respaldo" checked={source === "entrevista"} onChange={() => setSource("entrevista")} /><span className="flex flex-col"><strong>Entrevista terminada</strong><small className="text-muted-foreground">Lo que declaró el cliente en la entrevista</small></span></label>}
       <label className={s.option}><input type="radio" name="respaldo" checked={source === "externa"} onChange={() => setSource("externa")} /><span className="flex flex-col"><strong>Documento fuera del sistema</strong><small className="text-muted-foreground">Lo revisaste en papel o en la notaría</small></span></label>

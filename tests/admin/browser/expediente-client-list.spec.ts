@@ -31,27 +31,27 @@ for (const width of [390, 768, 1440]) {
     });
     await page.goto("/admin/operaciones");
     await expect(page.getByRole("heading", { name: "Operaciones", exact: true })).toBeVisible();
-    const capture = page.getByRole("listitem", { name: /^Prospecto/ });
-    await expect(capture.getByRole("link", { name: /Juan Ibarra/ })).toBeVisible();
-    const visits = page.getByRole("listitem", { name: /^Visitas y ofertas/ });
-    if (width < 1024) {
-      await expect(visits).toBeHidden();
-      await page.getByRole("tab", { name: /^9 Visitas/ }).click();
-      await expect(page).toHaveURL(/etapa=visitas-ofertas/);
-    }
-    await expect(visits.getByRole("link", { name: /Ana Martínez/ })).toBeVisible();
+    // Lista del boceto C: «Esperan algo de ti» y «Al día», con filtros por fase.
+    const waiting = page.getByRole("region", { name: /Esperan algo de ti/ });
+    await expect(waiting.getByRole("link", { name: /Juan Ibarra\. Etapa 1 de 10, Prospecto\. Sin próxima tarea/ })).toBeVisible();
+    await expect(waiting.getByRole("link", { name: /Ana Martínez\. Etapa 2 de 7, Opciones/ })).toBeVisible();
+    await page.getByRole("button", { name: /^Revisar/ }).click();
+    await expect(page).toHaveURL(/fase=revisar/);
+    await expect(waiting.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
+    await expect(waiting.getByRole("link", { name: /Ana Martínez/ })).toBeVisible();
+    await page.getByRole("button", { name: /^Todas/ }).click();
     await page.screenshot({ path: testInfo.outputPath(`tablero-${width}.png`), fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const search = page.getByRole("textbox", { name: "Buscar cliente o folio" });
+    const search = page.getByRole("textbox", { name: "Buscar operación" });
     await search.fill("tonala");
-    if (width < 1024) await page.getByRole("tab", { name: /^1 Prospecto/ }).click();
-    await expect(capture.getByRole("link", { name: /Liliana Tonalá Vargas/ })).toBeVisible();
-    await expect(capture.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
+    await expect(waiting.getByRole("link", { name: /Liliana Tonalá Vargas/ })).toBeVisible();
+    await expect(waiting.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
     await search.fill("EXP-000002");
-    await capture.getByRole("link", { name: /Juan Ibarra/ }).click();
+    await waiting.getByRole("link", { name: /Juan Ibarra/ }).click();
     await expect(page).toHaveURL(new RegExp(`/admin/operaciones/${ids[1]}$`));
     await expect(page.getByRole("heading", { level: 1, name: "Juan Ibarra" })).toBeVisible();
-    await expect(page.getByText("Lo que sigue · Etapa 1 de 10")).toBeVisible();
+    await expect(page.getByText(/^Etapa 1 de 10/).filter({ visible: true })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Hacer la entrevista inicial (02)" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });
     await page.getByRole("link", { name: "Operaciones", exact: true }).first().click();

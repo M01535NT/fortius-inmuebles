@@ -28,7 +28,7 @@ for(const width of [390,1440]){
   await expect(page.getByText("Esta operación está eliminada")).toBeVisible();
   await page.reload();
   await expect(page.getByRole("button",{name:"Restaurar operación",exact:true})).toBeVisible();
-  await expect(page.getByRole("button",{name:"Crear borrador",exact:true})).toHaveCount(0);
+  await expect(page.getByRole("button",{name:"Crear y abrir",exact:true})).toHaveCount(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath("operacion-eliminada-"+width+".png"),fullPage:true});
   await page.goto("/admin/operaciones?eliminadas=1");
@@ -36,7 +36,7 @@ for(const width of [390,1440]){
   await page.goto("/admin/operaciones/"+exp.id);
   await page.getByRole("button",{name:"Restaurar operación",exact:true}).click();
   await expect(page.getByRole("main").getByRole("status").first()).toContainText("Operación restaurada");
-  await page.getByRole("tab",{name:/^Documentos/}).click();
-  await expect(page.getByRole("button",{name:"Crear borrador",exact:true})).toBeVisible();
+  await page.getByRole("tab",{name:/^Expediente/}).click();
+  await expect(page.getByRole("button",{name:"Crear y abrir",exact:true})).toBeVisible();
  });
 }
