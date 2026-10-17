@@ -28,7 +28,7 @@ for(const width of [390,768,1440]) {
   await expect(page.getByRole('heading',{name:'¿Quién es?'})).toBeVisible();
   await page.getByLabel('Nombre completo').fill('Primer contacto sintético');
   await page.getByLabel(/^Correo/).fill('ensayo@example.invalid');
-  await page.getByText('Siguiente acción mientras termina la entrevista').click();
+  await page.getByText('Siguiente acción mientras terminas de capturarlo').click();
   await expect(page.getByLabel('Siguiente acción',{exact:true})).toHaveValue('Terminar la entrevista');
   await page.getByLabel('Siguiente acción',{exact:true}).fill('Entrevistar al titular');
   await page.getByLabel('Fecha de la siguiente acción').fill('2030-12-31');

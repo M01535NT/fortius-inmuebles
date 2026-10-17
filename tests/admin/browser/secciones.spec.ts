@@ -84,6 +84,8 @@ for (const width of [320, 390, 768, 1440]) {
         await page.screenshot({ path: info.outputPath(`${name}-${width}-${dark ? "oscuro" : "claro"}.png`), fullPage: true });
       }
       await page.evaluate(() => document.documentElement.classList.remove("dark"));
+      // Espera a que terminen las transiciones de color (150 ms) antes de medir el contraste.
+      await page.waitForTimeout(300);
       if (width === 1440) await noAxeViolations(page);
     };
 

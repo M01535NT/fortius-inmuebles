@@ -31,12 +31,12 @@ for (const width of [390, 768, 1440]) {
     });
     await page.goto("/admin/operaciones");
     await expect(page.getByRole("heading", { name: "Operaciones", exact: true })).toBeVisible();
-    const capture = page.getByRole("listitem", { name: /^Captación/ });
+    const capture = page.getByRole("listitem", { name: /^Prospecto/ });
     await expect(capture.getByRole("link", { name: /Juan Ibarra/ })).toBeVisible();
     const visits = page.getByRole("listitem", { name: /^Visitas y ofertas/ });
     if (width < 1024) {
       await expect(visits).toBeHidden();
-      await page.getByRole("tab", { name: /^5 Visitas/ }).click();
+      await page.getByRole("tab", { name: /^9 Visitas/ }).click();
       await expect(page).toHaveURL(/etapa=visitas-ofertas/);
     }
     await expect(visits.getByRole("link", { name: /Ana Martínez/ })).toBeVisible();
@@ -44,14 +44,14 @@ for (const width of [390, 768, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const search = page.getByRole("textbox", { name: "Buscar cliente o folio" });
     await search.fill("tonala");
-    if (width < 1024) await page.getByRole("tab", { name: /^1 Captación/ }).click();
+    if (width < 1024) await page.getByRole("tab", { name: /^1 Prospecto/ }).click();
     await expect(capture.getByRole("link", { name: /Liliana Tonalá Vargas/ })).toBeVisible();
     await expect(capture.getByRole("link", { name: /Juan Ibarra/ })).toHaveCount(0);
     await search.fill("EXP-000002");
     await capture.getByRole("link", { name: /Juan Ibarra/ }).click();
     await expect(page).toHaveURL(new RegExp(`/admin/operaciones/${ids[1]}$`));
     await expect(page.getByRole("heading", { level: 1, name: "Juan Ibarra" })).toBeVisible();
-    await expect(page.getByText("Lo que sigue · Etapa 1 de 6")).toBeVisible();
+    await expect(page.getByText("Lo que sigue · Etapa 1 de 10")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });
     await page.getByRole("link", { name: "Operaciones", exact: true }).first().click();

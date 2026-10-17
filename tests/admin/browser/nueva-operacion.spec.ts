@@ -43,8 +43,9 @@ async function answerScreen(page: Page) {
       if (!await group.locator('[aria-checked="true"]').count()) await group.getByRole("radio").first().click();
     for (const field of await page.locator('input[id^="pregunta-"]:not([disabled]):not([readonly]), textarea[id^="pregunta-"]:not([disabled]):not([readonly])').all()) {
       if (await field.inputValue()) continue;
-      const type = await field.getAttribute("type");
-      await field.fill(type === "date" ? "2030-12-31" : type === "number" ? "1500000" : "Dato de ensayo");
+      const type = await field.getAttribute("type"), mode = await field.getAttribute("inputmode");
+      // Los importes usan el campo de moneda (texto con teclado decimal).
+      await field.fill(type === "date" ? "2030-12-31" : type === "number" || mode === "decimal" ? "1500000" : "Dato de ensayo");
     }
   }
 }
@@ -70,6 +71,7 @@ for (const width of [320, 390, 768, 1440]) {
         await page.screenshot({ path: info.outputPath(`${name}-${width}-${dark ? "oscuro" : "claro"}.png`) });
       }
       await page.evaluate(() => document.documentElement.classList.remove("dark"));
+      await page.waitForTimeout(400); // vuelve al modo claro antes de medir el contraste
     };
 
     await page.goto("/admin/operaciones/nueva");
@@ -87,24 +89,17 @@ for (const width of [320, 390, 768, 1440]) {
     await page.getByRole("combobox", { name: "Asesor responsable" }).selectOption(adviser.id);
     await shot("paso-2");
     if (width === 1440) await noAxeViolations(page);
-    await page.getByRole("button", { name: /Continuar con la entrevista/ }).click();
+    // El propietario que vende se registra primero como prospecto (decisión del titular, 16/10/2026):
+    // una sola pantalla; la entrevista inicial (02) se hace después, desde la operación.
+    await page.getByRole("button", { name: /Continuar con los datos del prospecto/ }).click();
 
     await expect(page).toHaveURL(new RegExp(`entrevista=${id}`));
-    await expect(page.getByRole("heading", { name: "El propietario" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Datos del prospecto" })).toBeVisible();
     await expect(page.getByText("Paso 3 de 4")).toBeVisible();
-    await page.getByRole("button", { name: /^Continuar/ }).click();
-    await expect(page.getByText(/^Te falta:/)).toBeVisible();
-    await shot("paso-3-falta");
-    for (const title of ["El propietario", "El inmueble", "Lo que quiere"]) {
-      await expect(page.getByRole("heading", { name: title })).toBeVisible();
-      await answerScreen(page);
-      if (title === "El propietario") await shot("paso-3");
-      await page.getByRole("button", { name: /^Continuar/ }).click();
-    }
-    await expect(page.getByRole("heading", { name: "Documentos y lo que sigue" })).toBeVisible();
     await answerScreen(page);
+    await shot("paso-3");
     if (width === 1440) await noAxeViolations(page);
-    await page.getByRole("button", { name: /Terminar entrevista/ }).click();
+    await page.getByRole("button", { name: /Guardar prospecto/ }).click();
 
     await expect(page.getByRole("heading", { name: "Listo, la operación está creada" })).toBeVisible();
     await expect(page.getByText("Paso 4 de 4")).toBeVisible();
@@ -113,7 +108,7 @@ for (const width of [320, 390, 768, 1440]) {
     await shot("paso-4");
     if (width === 1440) await noAxeViolations(page);
 
-    expect(writes).toEqual(["inicio", "guardar", "guardar", "guardar", "terminar"]);
+    expect(writes).toEqual(["inicio", "terminar"]);
     expect(errors).toEqual([]);
   });
 }

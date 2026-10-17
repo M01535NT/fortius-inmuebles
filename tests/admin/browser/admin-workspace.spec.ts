@@ -66,14 +66,14 @@ test("la barra lateral guía por cinco secciones, Herramientas y Administración
   await fits(page);
 });
 
-test("un asesor no ve Administración y conserva las 16 herramientas", async ({ page }) => {
+test("un asesor no ve Administración y conserva las 17 herramientas", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { id: "editor-apps-test", email: "editor@example.invalid", role: "editor" } } }));
   await page.goto("/admin/herramientas");
   const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
   await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
   await expect(page.getByText("Asesor", { exact: true })).toBeVisible();
-  await expect(page.locator("main article")).toHaveCount(16);
+  await expect(page.locator("main article")).toHaveCount(17);
 });
 
 test("en celular la barra inferior y el menú llevan a todas las secciones", async ({ page }) => {
