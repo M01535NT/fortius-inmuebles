@@ -16,7 +16,7 @@ const LEFT = 50.4, RIGHT = 50.4, TOP = 75.6, BOTTOM = 62;
 const WIDTH = PAGE[0] - LEFT - RIGHT;
 const hex = (value: string) => rgb(parseInt(value.slice(0, 2), 16) / 255, parseInt(value.slice(2, 4), 16) / 255, parseInt(value.slice(4, 6), 16) / 255);
 const NAVY = hex(COLORS.navy), GREEN = hex(COLORS.green), WINE = hex(COLORS.wine), WHITE = hex(COLORS.white);
-const FILLS = [hex(COLORS.band2), hex(COLORS.band1)], BLACK = hex(COLORS.black);
+const FILLS = [hex(COLORS.band2), hex(COLORS.band1)], BLACK = hex(COLORS.black), RULE = hex(COLORS.rule);
 const BODY = 11, CELL = 9.5;
 type Style = { body: number; leading: number; after: number; ink: ReturnType<typeof rgb>; cell: number };
 const STYLES: Record<"marca" | "contrato", Style> = {
@@ -89,6 +89,42 @@ class Writer {
     this.page.drawText(text, { x: LEFT + (WIDTH - w) / 2, y: this.y - size, size, font, color: this.style.ink });
     this.y -= size * 1.2 + after;
   }
+  /** Formulario: celdas con borde fino, pregunta en negritas y respuesta debajo; altura mínima para escribir a mano. */
+  form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>) {
+    const pad = 4, qSize = 9, aSize = 10, qLead = qSize * 1.18, aLead = aSize * 1.22, minHeight = 30;
+    const measure = (row: Array<{ q: string; a: string; w: number }>) => {
+      const total = row.reduce((s, c) => s + c.w, 0);
+      const cells = row.map(c => { const width = c.w / total * WIDTH; return { ...c, width, ql: wrap(c.q, this.fonts.bold, qSize, width - pad * 2), al: c.a ? wrap(c.a, this.fonts.regular, aSize, width - pad * 2) : [] }; });
+      const height = Math.max(minHeight, ...cells.map(c => pad * 2 + c.ql.length * qLead + (c.al.length ? 3 + c.al.length * aLead : 0)));
+      return { cells, height };
+    };
+    const measured = rows.map(measure);
+    if (label) {
+      this.ensure(22 + (measured[0]?.height ?? 0));
+      this.y -= 8;
+      this.page.drawText(label, { x: LEFT, y: this.y - 10, size: 10, font: this.fonts.bold, color: NAVY });
+      this.y -= 15;
+    }
+    for (const { cells, height } of measured) {
+      if (this.y - height < BOTTOM) this.newPage();
+      let x = LEFT;
+      for (const cell of cells) {
+        this.page.drawRectangle({ x, y: this.y - height, width: cell.width, height, borderColor: RULE, borderWidth: 0.5 });
+        let y = this.y - pad;
+        for (const line of cell.ql) { this.page.drawText(line, { x: x + pad, y: y - qSize, size: qSize, font: this.fonts.bold, color: NAVY }); y -= qLead; }
+        y -= 3;
+        for (const line of cell.al) { this.page.drawText(line, { x: x + pad, y: y - aSize, size: aSize, font: this.fonts.regular, color: NAVY }); y -= aLead; }
+        x += cell.width;
+      }
+      this.y -= height;
+    }
+    this.y -= 4;
+  }
+  note(text: string) {
+    const size = 8.5, leading = size * 1.25;
+    for (const line of wrap(text, this.fonts.regular, size, WIDTH)) { this.ensure(leading); this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY }); this.y -= leading; }
+    this.y -= 4;
+  }
   signatures(parties: Array<{ role: string; name: string }>) {
     const col = WIDTH / parties.length, size = this.style.body;
     this.ensure(36 + size * 4);
@@ -150,7 +186,10 @@ class Writer {
   }
   render(block: Block) {
     switch (block.kind) {
-      case "title": this.heading(block.text, 27, NAVY, 0, 8); break;
+      case "title": if (block.bold) { this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; this.page.drawText(block.text, { x: LEFT, y: this.y - 22, size: 22, font: this.fonts.bold, color: NAVY }); this.y -= 30; } else this.heading(block.text, 27, NAVY, 0, 8); break;
+      case "form": this.form(block.label, block.rows); break;
+      case "subtitle": this.centered(block.text, 12, 10, 2); break;
+      case "note": this.note(block.text); break;
       case "h1": this.heading(block.text, 21, NAVY, 12, 6); break;
       case "h2": this.heading(block.text, 13, GREEN, 8, 4); break;
       case "p": this.paragraph(block.text); break;

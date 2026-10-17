@@ -38,9 +38,34 @@ function table(widths: number[], header: string[] | undefined, rows: string[][],
   });
 }
 
+const rule = { style: BorderStyle.SINGLE, size: 4, color: COLORS.rule };
+function form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>): Array<Paragraph | Table> {
+  // Cuadrícula común de 60 columnas: cada renglón reparte sus celdas en proporción a w.
+  const unit = TWIP_WIDTH / 60;
+  const table = new Table({
+    width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: Array(60).fill(Math.floor(unit)), layout: TableLayoutType.FIXED,
+    borders: { top: rule, bottom: rule, left: rule, right: rule, insideHorizontal: rule, insideVertical: rule },
+    rows: rows.map(row => {
+      const total = row.reduce((s, c) => s + c.w, 0);
+      let left = 60;
+      return new TableRow({ cantSplit: true, height: { value: 600, rule: "atLeast" }, children: row.map((c, i) => {
+        const span = i === row.length - 1 ? left : Math.round(c.w / total * 60); left -= span;
+        return new TableCell({ columnSpan: span, width: { size: Math.round(span * unit), type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 80, right: 80 }, children: [
+          new Paragraph({ spacing: { after: 40 }, children: run(c.q, { size: 9, bold: true }) }),
+          ...(c.a ? [new Paragraph({ children: run(c.a, { size: 10 }) })] : []),
+        ] });
+      }) });
+    }),
+  });
+  return [...(label ? [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(label, { size: 10, bold: true }) })] : []), table];
+}
+
 function block(b: Block): Array<Paragraph | Table> {
   switch (b.kind) {
-    case "title": return [new Paragraph({ spacing: { after: 160 }, children: run(b.text, { size: 27 }) })];
+    case "title": return [new Paragraph({ spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.bold ? 22 : 27, bold: !!b.bold }) })];
+    case "form": return form(b.label, b.rows);
+    case "subtitle": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 200, after: 40 }, children: run(b.text, { size: 12, bold: true }) })];
+    case "note": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 60, after: 80 }, children: run(b.text, { size: 8.5 }) })];
     case "h1": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 120 }, children: run(b.text, { size: 21 }) })];
     case "h2": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: run(b.text, { size: 13, color: COLORS.green }) })];
     case "p": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: BODY === 11 ? 120 : 140 }, children: run(b.text, { size: BODY }) })];

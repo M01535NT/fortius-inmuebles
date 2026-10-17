@@ -7,7 +7,11 @@
 */
 
 export type Block =
-  | { kind: "title"; text: string }
+  | { kind: "title"; text: string; bold?: boolean }
+  /** Formulario de preguntas (02, 12, 13…): sección «01 / …» y renglones de celdas con la pregunta arriba y la respuesta debajo; w = ancho relativo. */
+  | { kind: "form"; label?: string; rows: Array<Array<{ q: string; a: string; w: number }>> }
+  | { kind: "subtitle"; text: string }
+  | { kind: "note"; text: string }
   | { kind: "p"; text: string }
   | { kind: "h1"; text: string }
   | { kind: "h2"; text: string }
@@ -24,7 +28,7 @@ export type Block =
 /** «marca»: Archivo azul marino (planes, reportes, levantamientos). «contrato»: Times negro, como el 09 y la promesa. */
 export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato"; blocks: Block[] };
 
-export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", white: "FFFFFF", black: "000000" } as const;
+export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
 /** Espacio para completar a mano, como en la plantilla. */
 export const BLANK = "____________________";
 
@@ -47,6 +51,16 @@ export function dinero(value: unknown, moneda?: unknown): string {
   if (typeof value !== "number" || !Number.isFinite(value)) return v(value);
   const amount = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
   return `$${amount}${moneda ? ` ${String(moneda)}` : ""}`;
+}
+/** Respuesta de formulario: el dato o la celda vacía para escribir a mano. */
+export function a(value: unknown): string {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
+}
+/** Une las partes que tienen dato con « · ». */
+export function junta(...parts: unknown[]): string {
+  const seen = new Set<string>();
+  return parts.map(part => a(part)).filter(text => text && !seen.has(text.toLowerCase()) && seen.add(text.toLowerCase())).join(" · ");
 }
 /** Filas de una tabla capturada (arreglo de objetos), sin romper si viene vacía o mal formada. */
 export function filas(value: unknown): Array<Record<string, unknown>> {
