@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ArrowRight, CheckCircle2, Circle, ClipboardList, FileDown, FileText, Home, PlayCircle, ShieldCheck, Trash2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, ClipboardList, FileDown, FileText, Home, Landmark, PlayCircle, Scale, ShieldCheck, Trash2 } from "lucide-react";
 import { Button, ButtonLink, Notice } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { db, errorMessage, fetchJson as json, upsert } from "@/lib/admin/store";
@@ -8,6 +8,9 @@ import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
 import { shortDate } from "@/lib/admin/today";
 import { checklistFor, checklistTaskId, levantamientoFor } from "@/lib/formatos/checklist-documentos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
+import { formatoById } from "@/lib/formatos/catalog";
+import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
+import { CARGOS_NETO } from "@/lib/formatos/neto";
 import type { OperationRecord } from "@/lib/admin/operation-view";
 import type { Task } from "@/lib/tasks";
 import { FormatoCapture, type Emision } from "./formato-capture";
@@ -16,16 +19,24 @@ import s from "./operation.module.css";
 
 /*
   Etapas del propietario antes de verificación (decisión del titular, 16/10/2026):
-  Prospecto → Entrevista inicial (02) → Levantamiento (04A–04G) → Checklist de documentos.
+  Prospecto → Entrevista inicial (02) → Levantamiento (04A–04G) → Checklist de documentos
+  → Dictamen jurídico (05/06) → Opinión de valor (07) y neto (08).
   Cada etapa tiene su botón «Iniciar …»; la captura se hace por secciones y al terminar
   se descarga el PDF y una copia en Word.
 */
 
-export type IntakePhase = "prospecto" | "captacion" | "levantamiento" | "documentos";
+export type IntakePhase = "prospecto" | "captacion" | "levantamiento" | "documentos" | "dictamen" | "verificacion";
 const post = (body: unknown) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 const latest = (documents: Documento[], match: (formato: string) => boolean) => documents.filter(d => match(d.formato_id)).sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
 export const latestInterview = (documents: Documento[]) => latest(documents, f => f === "02");
 export const latestSurvey = (documents: Documento[]) => latest(documents, f => f.startsWith("04"));
+/** Control documental del 05 con lo marcado en el checklist: recibido o por recibir; lo demás queda por determinar. */
+export function juridicaDocumentsFrom(checklist?: Task) {
+  return (JURIDICA_TABLES.documentos.fixed ?? []).map(item => {
+    const paso = checklist?.pasos.find(p => p.id === item.key);
+    return paso ? { concepto: item.key, aplica: "si", estado: paso.hecho ? "recibido" : "no_recibido", referencia: "Checklist de documentos de la operación" } : { concepto: item.key };
+  });
+}
 function saveBlob(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob), link = document.createElement("a");
   link.href = url; link.download = name; document.body.appendChild(link); link.click(); link.remove();
@@ -34,27 +45,28 @@ function saveBlob(blob: Blob, name: string) {
 
 export function InitialInterviewCard({ op, phase, cliente, interview, documents, emissions, checklist, onDocumentsChange, onEmitted, onOpenDocument, disabled }: {
   op: OperationRecord; phase: IntakePhase; cliente?: string; interview: OperationalInterview | null;
-  documents: Documento[]; emissions: { entrevista: Emision[]; levantamiento: Emision[] }; checklist?: Task; disabled: boolean;
-  onDocumentsChange: (update: (items: Documento[]) => Documento[]) => void; onEmitted: (kind: "entrevista" | "levantamiento", emision: Emision) => void; onOpenDocument: (id: string) => void;
+  documents: Documento[]; emissions: Record<string, Emision[]>; checklist?: Task; disabled: boolean;
+  onDocumentsChange: (update: (items: Documento[]) => Documento[]) => void; onEmitted: (documentId: string, emision: Emision) => void; onOpenDocument: (id: string) => void;
 }) {
   const [open, setOpen] = React.useState<Documento | null>(null);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState("");
   const entrevista = latestInterview(documents), levantamiento = latestSurvey(documents), aviso = latest(documents, f => f === "01");
-  const pdf02 = entrevista ? emissions.entrevista.find(e => e.draft_version === entrevista.version) : undefined;
-  const pdf04 = levantamiento ? emissions.levantamiento.find(e => e.draft_version === levantamiento.version) : undefined;
+  const pdfOf = (doc?: Documento) => doc ? emissions[doc.id]?.find(e => e.draft_version === doc.version) : undefined;
+  const revision = latest(documents, f => f === "05"), dictamen = latest(documents, f => f === "06"), valor = latest(documents, f => f === "07"), neto = latest(documents, f => f === "08");
+  const pdf02 = pdfOf(entrevista), pdf04 = pdfOf(levantamiento);
   const a = interview?.respuestas ?? {};
   const answers02 = (entrevista?.data ?? {}) as Record<string, unknown>;
   const [surveyType, setSurveyType] = React.useState<LevantamientoId>(() => levantamientoFor(answers02.tipoInmueble ?? a.tipoInmueble));
 
-  async function create(formatoId: string) {
+  async function create(formatoId: string, seed: { data?: Record<string, unknown>; valorReferencia?: { id: string; version: number } } = {}) {
     setBusy(true); setError("");
     try {
       const today = new Date();
-      const data = formatoId === "01" ? {
+      const data = seed.data ?? (formatoId === "01" ? {
         fechaEmision: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
         consentimientoPatrimonial: "pendiente", consentimientoPublicidad: "pendiente", transferenciaAsesor: "pendiente", transferenciaFinanciera: "pendiente", transferenciaOperacion: "pendiente", acuseEstado: "pendiente",
-      } : {};
-      const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${op.id}/formatos`, post({ formatoId, data }));
+      } : {});
+      const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${op.id}/formatos`, post({ formatoId, data, ...(seed.valorReferencia ? { valorReferencia: seed.valorReferencia } : {}) }));
       onDocumentsChange(items => [result.documento, ...items]);
       return result.documento;
     } catch (cause) { setError(errorMessage(cause)); return null; }
@@ -62,6 +74,29 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
   }
   async function startInterview() { const doc = entrevista ?? await create("02"); if (doc) setOpen(doc); }
   async function startSurvey() { const doc = levantamiento ?? await create(surveyType); if (doc) setOpen(doc); }
+  async function startFormat(formatoId: "05" | "06" | "07" | "08") {
+    const existing = { "05": revision, "06": dictamen, "07": valor, "08": neto }[formatoId];
+    const seed = formatoId === "05" ? { data: { documentos: juridicaDocumentsFrom(checklist) } }
+      : formatoId === "08" ? { data: { erogaciones: CARGOS_NETO.map(item => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) }, ...(valor && pdfOf(valor) ? { valorReferencia: { id: valor.id, version: valor.version } } : {}) } : {};
+    const doc = existing ?? await create(formatoId, seed);
+    if (doc) setOpen(doc);
+  }
+  async function word(doc: Documento) {
+    setBusy(true); setError("");
+    try {
+      const { formatoDocxBlob } = await import("@/lib/formatos/docx");
+      saveBlob(await formatoDocxBlob(formatoById(doc.formato_id), { ...doc.data, folio: op.folio }, { folio: op.folio, cliente }), `Fortius-${doc.formato_id}-${op.folio}-v${doc.version}.docx`);
+    } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
+  }
+  function formatRow(formatoId: "05" | "06" | "07" | "08", doc: Documento | undefined, icon: React.ReactNode, detail: string, primary = true) {
+    const pdf = pdfOf(doc);
+    return <Step done={!!pdf} icon={icon} title={`${formatoId} · ${formatoById(formatoId).title}`}
+      detail={!doc ? detail : pdf ? `Terminado · PDF de la versión ${doc.version}` : `En captura · versión ${doc.version} · actualizado el ${shortDate(doc.updated_at)}`}>
+      <Button variant={pdf || !primary ? "secondary" : "primary"} disabled={lock} onClick={() => void startFormat(formatoId)}><PlayCircle size={16} aria-hidden="true" />{!doc ? "Iniciar" : pdf ? "Abrir" : "Continuar"}</Button>
+      {pdf && <ButtonLink prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
+      {doc && <Button variant="ghost" disabled={lock} onClick={() => void word(doc)}><FileText size={16} aria-hidden="true" />Word</Button>}
+    </Step>;
+  }
   async function openAviso() { const doc = aviso ?? await create("01"); if (doc) onOpenDocument(doc.id); }
   async function startChecklist() {
     setBusy(true); setError("");
@@ -83,7 +118,7 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
 
   const capture = open && <FormatoCapture document={open} folio={op.folio} cliente={cliente}
     onSaved={doc => onDocumentsChange(items => items.map(item => item.id === doc.id ? doc : item))}
-    onEmitted={emision => onEmitted(open.formato_id === "02" ? "entrevista" : "levantamiento", emision)} onClose={() => setOpen(null)} />;
+    onEmitted={emision => onEmitted(open.id, emision)} onClose={() => setOpen(null)} />;
   const lock = disabled || busy;
   const checklistDownloads = <>
     <Button disabled={lock} onClick={() => void download("pdf")}><FileDown size={16} aria-hidden="true" />Checklist PDF</Button>
@@ -148,6 +183,28 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
     {pdf04 ? <NextBox title="Siguiente: checklist de documentos" text="Se crea la lista de documentos que le corresponde al propietario. Ahí marcas cada uno al recibirlo.">
       <Button variant="primary" disabled={lock} onClick={() => void startChecklist()}><ArrowRight size={18} aria-hidden="true" />{busy ? "Preparando…" : "Iniciar checklist"}</Button>
     </NextBox> : levantamiento && <Notice tone="info" className="mt-2">Para seguir, termina el levantamiento y genera su PDF. Necesita la fotografía principal y el croquis (última sección).</Notice>}
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    {capture}
+  </div>;
+
+  if (phase === "dictamen") return <div className="flex flex-col gap-1">
+    <h3 className="m-0 border-b border-border pb-3 text-base font-bold">Lo que se hace en esta etapa</h3>
+    <ul className="flex flex-col">
+      {formatRow("05", revision, <Scale size={18} aria-hidden="true" />, "Revisión de los documentos recibidos: personas, cadena de titularidad, gravámenes y controles. Su control documental ya trae lo marcado en el checklist.")}
+      {formatRow("06", dictamen, <Landmark size={18} aria-hidden="true" />, "Opinión jurídica del inmueble, en prosa, con su conclusión y límites. La redacta el abogado responsable.", !!pdfOf(revision))}
+    </ul>
+    <Notice tone="info" className="mt-2">Con el PDF del 05 y del 06, marca abajo «Revisado» en cada requisito y elige el documento como respaldo. Al revisar los dos se abre «Opinión de valor y precio» sola. El panel no emite dictámenes: guarda lo que captura el profesional.</Notice>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    {capture}
+  </div>;
+
+  if (phase === "verificacion") return <div className="flex flex-col gap-1">
+    <h3 className="m-0 border-b border-border pb-3 text-base font-bold">Lo que se hace en esta etapa</h3>
+    <ul className="flex flex-col">
+      {formatRow("07", valor, <Scale size={18} aria-hidden="true" />, "Comparables, enfoques de valor, fotografías y conclusión. Usa el levantamiento para las superficies.")}
+      {formatRow("08", neto, <Landmark size={18} aria-hidden="true" />, "Cuánto le quedaría al propietario después de gastos e impuestos. Toma el valor del 07 si ya tiene PDF.", !!pdfOf(valor))}
+    </ul>
+    <Notice tone="info" className="mt-2">Con el 07 marca «Opinión de valor» como Revisado; después acuerda el precio de salida y registra en Ajustes si tomas el encargo. Al completar todo se abre «Contrato y preparación» sola.</Notice>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {capture}
   </div>;

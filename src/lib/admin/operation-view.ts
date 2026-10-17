@@ -1,5 +1,5 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { emptyWorkflow, isOwnerRoute, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { emptyWorkflow, isOwnerRoute, VERIFICATION_REQUIREMENTS, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 
 /*
@@ -67,7 +67,7 @@ export const reviewState = (flow: OperationWorkflow, key: RequirementKey) => flo
 export const allowsNotApplicable = (key: RequirementKey) => "noAplica" in WORKFLOW_REQUIREMENTS[key];
 export const hasValidity = (key: RequirementKey) => "vigencia" in WORKFLOW_REQUIREMENTS[key];
 
-/** Destino del botón «Pasar a». En «Verificación y precio» no hay cambio de etapa: se abre «Contrato» al completar la verificación. */
+/** Destino del botón «Pasar a». Del prospecto a la verificación las etapas se abren solas al completar lo anterior; solo cambia la etapa interna al pasar a «Dictamen jurídico» y a «Publicación». */
 export function advanceTarget(op: OperationRecord, today: string): { target?: WorkflowStage; label: string } | null {
   const flow = flowOf(op), stage = stageOf(op), next = nextWorkflowStage(stage);
   if (!next) return null;
@@ -76,6 +76,7 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   if (phase === "prospecto") return { label: "Entrevista inicial" };
   if (phase === "captacion" && isOwnerRoute(flow.ruta)) return { label: "Levantamiento" };
   if (phase === "levantamiento") return { label: "Checklist de documentos" };
+  if (phase === "dictamen") return { label: "Opinión de valor y precio" };
   if (phase === "verificacion") return { label: "Contrato y preparación" };
   if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar la operación" : stageLabel(next, "captacion").replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
   const following = SALE_PROCESS[SALE_PROCESS.findIndex(p => p.key === phase) + 1];
@@ -111,8 +112,8 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   if (phase === "captacion" && !target.target) return [inicial.emitida ? { text: "Iniciar el levantamiento", why: "con el botón «Iniciar levantamiento»", place: "operacion" } : { text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" }];
   if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar el checklist de documentos", why: "con el botón «Iniciar checklist»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
   if (!target.target) {
-    const items: Missing[] = phaseRequirements("verificacion").filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
-    if (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo)) items.push({ text: "Registrar si tomas el encargo", why: "se decide en Ajustes", place: "ajustes" });
+    const items: Missing[] = (phase === "dictamen" ? phaseRequirements("dictamen") : VERIFICATION_REQUIREMENTS).filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
+    if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "se decide en Ajustes", place: "ajustes" });
     return items;
   }
   const labels = new Map(Object.entries(WORKFLOW_REQUIREMENTS).map(([key, value]) => [value.label as string, key as RequirementKey]));
@@ -175,6 +176,7 @@ const PHASE_TOOLS: Record<SalePhase, Array<[string, string]>> = {
   prospecto: [["comparables", "Comparar casas parecidas"]],
   levantamiento: [["fotografias", "Fotografías"], ["ficha-comercial", "Ficha del inmueble"]],
   documentos: [["revisor-expediente", "Pendientes documentales"]],
+  dictamen: [["revisor-expediente", "Pendientes documentales"]],
   captacion: [["revisor-expediente", "Pendientes documentales"], ["comparables", "Comparar casas parecidas"]],
   verificacion: [["comparables", "Comparar casas parecidas"], ["neto-propietario", "Neto del propietario"], ["revisor-expediente", "Pendientes documentales"]],
   contrato: [["ficha-comercial", "Ficha del inmueble"], ["fotografias", "Fotografías"], ["cotizador", "Cotizador de servicios"]],

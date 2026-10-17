@@ -57,10 +57,11 @@ export function OperationScreen({ id }: { id: string }) {
     apiRequest<{ asesorId?: string | null }>("/api/admin/mi-asesor").then(r => { if (alive) setMe(r.asesorId ?? undefined); }).catch(() => undefined);
     return () => { alive = false; };
   }, [id]);
-  // Entrevista inicial (02) y levantamiento (04): su borrador más reciente y sus PDF.
+  // Borrador más reciente de cada formato del avance del propietario (02, 04, 05–08) y sus PDF.
   const interview02 = latestInterview(documents), survey04 = latestSurvey(documents);
-  const [emissions02, addEmission02] = useEmissions(interview02?.id);
-  const [emissions04, addEmission04] = useEmissions(survey04?.id);
+  const tracked = [interview02, survey04, ...["05", "06", "07", "08"].map(f => documents.filter(d => d.formato_id === f).sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0])].flatMap(d => d ? [d.id] : []);
+  const [emissions, addEmission] = useEmissions(tracked);
+  const emissions02 = interview02 ? emissions[interview02.id] ?? [] : [], emissions04 = survey04 ? emissions[survey04.id] ?? [] : [];
   const markDirty = React.useMemo(() => Object.fromEntries(TABS.map(t => [t.id, (value: boolean) => setDirty(old => old[t.id] === value ? old : { ...old, [t.id]: value })])) as Record<TabId, (value: boolean) => void>, []);
 
   async function changeTab(next: TabId) {
@@ -126,7 +127,7 @@ export function OperationScreen({ id }: { id: string }) {
       <div className="mb-5"><Tabs idPrefix="operacion" label="Secciones de la operación" value={tab} onChange={id => void changeTab(id)} items={TABS.map(t => ({ id: t.id, label: t.label, ...(t.id === "documentos" ? { count: docsCount } : t.id === "tareas" ? { count: taskCount } : {}) }))} /></div>
       <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
         {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} cliente={client?.nombre}
-          initial={{ documents, emissions: { entrevista: emissions02, levantamiento: emissions04 }, checklist, onDocumentsChange: setDocuments, onEmitted: (kind, emision) => (kind === "entrevista" ? addEmission02 : addEmission04)(emision), onOpenDocument: documentId => router.replace(`${pathname}?tab=documentos&documento=${encodeURIComponent(documentId)}`, { scroll: false }) }} evidence={{ documents, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer }} interview={interview} onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={next => void changeTab(next === "documentos" ? "documentos" : next)} onDirtyChange={markDirty.sigue} />}
+          initial={{ documents, emissions, checklist, onDocumentsChange: setDocuments, onEmitted: addEmission, onOpenDocument: documentId => router.replace(`${pathname}?tab=documentos&documento=${encodeURIComponent(documentId)}`, { scroll: false }) }} evidence={{ documents, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer }} interview={interview} onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={next => void changeTab(next === "documentos" ? "documentos" : next)} onDirtyChange={markDirty.sigue} />}
         {tab === "documentos" && <div className="flex flex-col gap-5">
           <InterviewAccess key={op.id} expedienteId={op.id} clienteId={op.cliente_id} intencion={flow.ruta === "inversion" ? "invertir" : op.operacion === "renta" ? (flow.ruta === "arrendatario" ? "rentar" : "arrendar") : flow.ruta === "compra" ? "comprar" : "vender"} disabled={anyDirty} />
           <DocumentsTab op={op} documents={documents} onDocumentsChange={setDocuments} initialDocument={params.get("documento")} onDirtyChange={markDirty.documentos} />
@@ -139,17 +140,18 @@ export function OperationScreen({ id }: { id: string }) {
   </Surface>;
 }
 
-/** PDF emitidos de un borrador; se recargan al cambiar de borrador. */
-function useEmissions(draft: string | undefined): [Emision[], (emision: Emision) => void] {
-  const [loaded, setLoaded] = React.useState<{ id: string; list: Emision[] } | null>(null);
+/** PDF emitidos de cada borrador seguido; se consultan una vez por borrador. */
+function useEmissions(drafts: string[]): [Record<string, Emision[]>, (draft: string, emision: Emision) => void] {
+  const [loaded, setLoaded] = React.useState<Record<string, Emision[]>>({});
+  const key = drafts.join(",");
   React.useEffect(() => {
-    if (!draft) return;
     let alive = true;
-    apiRequest<{ emisiones?: Emision[] }>(`/api/admin/formatos/${draft}`).then(r => { if (alive) setLoaded({ id: draft, list: r.emisiones ?? [] }); }).catch(() => { if (alive) setLoaded({ id: draft, list: [] }); });
+    for (const draft of key ? key.split(",") : []) {
+      apiRequest<{ emisiones?: Emision[] }>(`/api/admin/formatos/${draft}`).then(r => { if (alive) setLoaded(old => ({ ...old, [draft]: r.emisiones ?? [] })); }).catch(() => { if (alive) setLoaded(old => ({ ...old, [draft]: [] })); });
+    }
     return () => { alive = false; };
-  }, [draft]);
-  const list = loaded && loaded.id === draft ? loaded.list : [];
-  return [list, emision => { if (draft) setLoaded({ id: draft, list: [emision, ...list] }); }];
+  }, [key]);
+  return [loaded, (draft, emision) => setLoaded(old => ({ ...old, [draft]: [emision, ...(old[draft] ?? [])] }))];
 }
 
 function BackLink({ stage }: { stage?: string }) {

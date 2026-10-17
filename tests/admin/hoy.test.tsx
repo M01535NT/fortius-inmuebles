@@ -25,7 +25,7 @@ test("Esperan algo de ti shows one card per operation with its most urgent reaso
   ] });
   expect(items.map(i => i.folio)).toEqual(["EXP-2026-038", "EXP-2026-041"]);
   expect(items[0]).toMatchObject({ who: "Familia Navarro", reason: "Hay un problema con «Quién es dueño y quién firma»: Falta la firma del copropietario.", when: "Desde el 13 oct", late: true, href: "/admin/operaciones/d1" });
-  expect(items[0].detail).toBe("Casa en Playas · Verificación y precio");
+  expect(items[0].detail).toBe("Casa en Playas · Dictamen jurídico");
   expect(items[1]).toMatchObject({ reason: "Ya tienes «Opinión de valor». Revísalo.", when: "Hoy", late: false });
 });
 

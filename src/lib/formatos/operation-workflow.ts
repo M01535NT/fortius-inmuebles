@@ -135,7 +135,8 @@ export const SALE_PROCESS = [
  { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir el checklist de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
  { key: "levantamiento", slug: "levantamiento", label: "Levantamiento", hace: "Visitar el inmueble y capturar sus características con el levantamiento que corresponde a su tipo (04A–04G): superficies, niveles, espacios, instalaciones, fotografías y croquis.", para: "Tener los datos físicos comprobados para el dictamen, la opinión de valor y la publicación.", etapas: ["captacion"] },
  { key: "documentos", slug: "checklist-documentos", label: "Checklist de documentos", hace: "Entregar al propietario la lista de documentos que le corresponde y marcar cada uno al recibirlo.", para: "Reunir lo necesario para iniciar el dictamen jurídico.", etapas: ["captacion"] },
- { key: "verificacion", slug: "verificacion-precio", label: "Verificación y precio", hace: "Revisar documentos, características y pendientes; comparar propiedades similares y acordar el precio de salida.", para: "Detectar obstáculos y vender con un precio sustentado.", etapas: ["documentacion"] },
+ { key: "dictamen", slug: "dictamen-juridico", label: "Dictamen jurídico", hace: "Revisar los documentos recibidos con la revisión jurídica (05) y emitir la opinión jurídica del inmueble (06): quién es dueño, quién firma y si se puede vender sin obstáculos.", para: "Detectar a tiempo lo que impediría o retrasaría la venta.", etapas: ["documentacion"] },
+ { key: "verificacion", slug: "opinion-valor", label: "Opinión de valor y precio", hace: "Comparar propiedades similares con la opinión de valor (07), estimar el neto del propietario (08) y acordar el precio de salida; registrar si tomamos el encargo.", para: "Vender con un precio sustentado que el propietario entiende.", etapas: ["documentacion"] },
  { key: "contrato", slug: "contrato-preparacion", label: "Contrato y preparación", hace: "Formalizar el servicio, honorarios y autorizaciones; preparar ficha, fotografías y plan de publicación.", para: "Dejar claras las responsabilidades y presentar el inmueble con información respaldada.", etapas: ["documentacion"] },
  { key: "publicacion", slug: "publicacion-seguimiento", label: "Publicación y seguimiento", hace: "Publicar en los canales acordados, mantener los datos actualizados e informar al propietario sobre consultas y avance.", para: "Generar interesados y evaluar cómo está funcionando la comercialización.", etapas: ["comercializacion"] },
  { key: "visitas", slug: "visitas-ofertas", label: "Visitas y ofertas", hace: "Coordinar visitas con prospectos compatibles y revisar cada oferta: precio, forma de pago, plazos y condiciones.", para: "Convertir el interés en una propuesta viable que el propietario pueda decidir informado.", etapas: ["negociacion"] },
@@ -151,13 +152,15 @@ const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
  captacion: ["entrevista"],
  levantamiento: [],
  documentos: [],
- verificacion: ["titularidad","factibilidad","valor","precio"],
+ dictamen: ["titularidad","factibilidad"],
+ verificacion: ["valor","precio"],
  contrato: ["intermediacion","levantamiento","plan","publicacion"],
  publicacion: ["comprador","arrendatario"],
  visitas: ["oferta","revision_cierre","instrumento","contraparte","contrato_renta","garantias_renta"],
  cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
 };
-const VERIFICATION_REQUIREMENTS = OWNER_PHASE_REQUIREMENTS.verificacion;
+/** La verificación reúne el dictamen jurídico y la opinión de valor con el precio. */
+export const VERIFICATION_REQUIREMENTS = [...OWNER_PHASE_REQUIREMENTS.dictamen, ...OWNER_PHASE_REQUIREMENTS.verificacion] as readonly RequirementKey[];
 /** Requisitos que cierran una etapa del propietario. */
 export function phaseRequirements(phase: SalePhase): readonly RequirementKey[] { return OWNER_PHASE_REQUIREMENTS[phase]; }
 export function requirementPhase(key: RequirementKey): SalePhase | undefined {
@@ -184,7 +187,7 @@ export function processPhase(etapa: WorkflowStage | null | undefined, flow: Oper
  }
  if (flow && (flow.ruta === "compra" || flow.ruta === "arrendatario")) return "visitas";
  if (flow?.ruta === "inversion") return "verificacion";
- if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : "verificacion";
+ if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : flow && OWNER_PHASE_REQUIREMENTS.dictamen.every(key => reviewComplete(flow, key, today)) ? "verificacion" : "dictamen";
  return stage === "comercializacion" ? "publicacion" : "visitas";
 }
 /** Texto de la etapa actual: el proceso para el propietario de venta; la etiqueta propia para las demás rutas. */

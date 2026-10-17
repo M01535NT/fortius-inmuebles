@@ -11,13 +11,13 @@ function verified(resolution = true): OperationWorkflow {
 }
 
 describe("proceso de comercialización", () => {
-  it("define nueve etapas en el orden del titular", () => {
-    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
+  it("define diez etapas en el orden del titular", () => {
+    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
     expect(new Set(SALE_PROCESS.flatMap(p => p.etapas))).toEqual(new Set(WORKFLOW_STAGES));
   });
   it("cada estado interno del propietario corresponde a una etapa", () => {
     const flow = emptyWorkflow("captacion");
-    expect(WORKFLOW_STAGES.map(stage => processPhase(stage, flow, today))).toEqual(["prospecto", "verificacion", "publicacion", "visitas", "cierre", "cierre", "cierre", "cierre"]);
+    expect(WORKFLOW_STAGES.map(stage => processPhase(stage, flow, today))).toEqual(["prospecto", "dictamen", "publicacion", "visitas", "cierre", "cierre", "cierre", "cierre"]);
   });
   it("el propietario es prospecto hasta iniciar la entrevista inicial (02)", () => {
     const flow = emptyWorkflow("captacion");
@@ -31,24 +31,26 @@ describe("proceso de comercialización", () => {
     expect(processStageText("captacion", flow, today, { iniciada: true, levantamiento: "emitido", documentos: "pendiente" })).toBe("Checklist de documentos");
   });
   it("documentación pasa a contrato solo con verificación y decisión de captación", () => {
-    expect(processPhase("documentacion", emptyWorkflow(), today)).toBe("verificacion");
+    expect(processPhase("documentacion", emptyWorkflow(), today)).toBe("dictamen");
     expect(processPhase("documentacion", verified(false), today)).toBe("verificacion");
     expect(verificationComplete(verified(), today)).toBe(true);
     expect(processPhase("documentacion", verified(), today)).toBe("contrato");
     const rejected = { ...verified(), resolucion: { ...verified().resolucion!, tipo: "rechazada" as const } };
     expect(processPhase("documentacion", rejected, today)).toBe("verificacion");
   });
-  it("una factibilidad vencida regresa la operación a verificación", () => {
+  it("una factibilidad vencida regresa la operación al dictamen jurídico", () => {
     const flow = verified(); flow.requisitos.factibilidad = { ...reviewed, vigenteHasta: "2026-10-01" };
-    expect(processPhase("documentacion", flow, today)).toBe("verificacion");
+    expect(processPhase("documentacion", flow, today)).toBe("dictamen");
   });
   it("recibido no equivale a revisado", () => {
     const flow = verified(); flow.requisitos.titularidad = { estado: "recibido", soporte: "Copia recibida" };
-    expect(processPhase("documentacion", flow, today)).toBe("verificacion");
+    expect(processPhase("documentacion", flow, today)).toBe("dictamen");
+    const valued = verified(); valued.requisitos.valor = { estado: "recibido", soporte: "Opinión recibida" };
+    expect(processPhase("documentacion", valued, today)).toBe("verificacion");
   });
   it("expedientes históricos sin guía conservan su etapa equivalente", () => {
     expect(processPhase(undefined, null, today)).toBe("prospecto");
-    expect(processPhase("documentacion", null, today)).toBe("verificacion");
+    expect(processPhase("documentacion", null, today)).toBe("dictamen");
     expect(processPhase("negociacion", null, today)).toBe("visitas");
     expect(processStageText("comercializacion", null, today)).toBe("Publicación y seguimiento");
   });
@@ -60,13 +62,14 @@ describe("proceso de comercialización", () => {
     expect(processStageText("documentacion", buyer, today)).toBe("Opciones");
   });
   it("el texto de la etapa distingue verificación de contrato", () => {
-    expect(processStageText("documentacion", emptyWorkflow(), today)).toBe("Verificación y precio");
+    expect(processStageText("documentacion", emptyWorkflow(), today)).toBe("Dictamen jurídico");
     expect(processStageText("documentacion", verified(), today)).toBe("Contrato y preparación");
     expect(processStageText("entrega", emptyWorkflow(), today)).toBe("Cierre y entrega · entrega");
   });
   it("los requisitos se agrupan por la etapa que cierran", () => {
     expect(requirementPhase("entrevista")).toBe("captacion");
     expect(requirementPhase("valor")).toBe("verificacion");
+    expect(requirementPhase("titularidad")).toBe("dictamen");
     expect(requirementPhase("intermediacion")).toBe("contrato");
     expect(requirementPhase("comprador")).toBe("publicacion");
     expect(requirementPhase("oferta")).toBe("visitas");

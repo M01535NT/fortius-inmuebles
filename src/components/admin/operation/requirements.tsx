@@ -40,7 +40,7 @@ export function RequirementList({ flow, items, today, locked, busy, evidence, on
       <h3 className="m-0 text-base font-bold">Requisitos de esta etapa</h3>
       {total > 0 && <span className={s.mono}>{reviewed} de {total} revisados</span>}
     </div>
-    {locked && <Notice tone="info" className="mt-3">Primero termina «Verificación y precio» y registra si tomas el encargo. Después se capturan el contrato y la preparación.</Notice>}
+    {locked && <Notice tone="info" className="mt-3">Primero termina el dictamen jurídico y la opinión de valor y registra si tomas el encargo. Después se capturan el contrato y la preparación.</Notice>}
     {items.length === 0 && <p className="py-4 text-sm text-muted-foreground">Esta etapa no pide requisitos nuevos. Revisa «Te falta» abajo para pasar a la siguiente.</p>}
     <ul className="flex flex-col">{items.map(({ key, earlier }) => {
       const state = reviewState(flow, key), review = flow.requisitos[key];

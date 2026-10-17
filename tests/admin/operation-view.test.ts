@@ -14,7 +14,7 @@ const accepted = { resolucion: { tipo: "aceptada" as const, fecha: "2026-10-09",
 test("lo recibido sin revisar y la falta de próxima tarea no permiten pasar de etapa", () => {
   const done = { iniciada: true, emitida: true, levantamiento: "emitido" as const, documentos: "completo" as const };
   const current = op({ inicial: done, flujo: flow({ entrevista: { estado: "recibido", soporte: "Referencia ficticia v1" } }) });
-  expect(advanceTarget(current, today)).toEqual({ target: "documentacion", label: "Verificación y precio" });
+  expect(advanceTarget(current, today)).toEqual({ target: "documentacion", label: "Dictamen jurídico" });
   expect(missingItems(current, [], today).map(m => [m.text, m.why])).toEqual([["Entrevista con el propietario", "falta revisarlo"], ["Agendar la próxima tarea", "con fecha y responsable"]]);
   expect(missingItems(op({ inicial: done, flujo: flow({ entrevista: reviewed() }) }), [task()], today)).toEqual([]);
 });
@@ -40,20 +40,25 @@ test("levantamiento y checklist de documentos llevan a verificación solo con to
   expect(missingItems({ ...surveying, inicial: { ...surveying.inicial, levantamiento: "emitido" } }, [task()], today).map(m => m.text)).toEqual(["Iniciar el checklist de documentos"]);
   const collecting = op({ inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" }, flujo: flow({ entrevista: reviewed() }) });
   expect(routeStages(collecting, today)).toMatchObject({ current: 3, phase: "documentos" });
-  expect(advanceTarget(collecting, today)).toEqual({ target: "documentacion", label: "Verificación y precio" });
+  expect(advanceTarget(collecting, today)).toEqual({ target: "documentacion", label: "Dictamen jurídico" });
   expect(missingItems(collecting, [task()], today).map(m => m.text)).toEqual(["Recibir los documentos del checklist"]);
   expect(missingItems({ ...collecting, inicial: { ...collecting.inicial, documentos: "completo" } }, [task()], today)).toEqual([]);
 });
 
-test("el propietario ve las nueve etapas y el contrato queda bloqueado hasta terminar la verificación", () => {
+test("el propietario ve las diez etapas: dictamen, luego valor, y el contrato espera la verificación", () => {
   const checking = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), titularidad: reviewed() }) });
-  expect(routeStages(checking, today)).toMatchObject({ labels: ["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "verificacion" });
+  expect(routeStages(checking, today)).toMatchObject({ labels: ["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
   expect(contractLocked(checking, today)).toBe(true);
-  expect(currentRequirements(checking, today).map(r => r.key)).toEqual(["titularidad", "factibilidad", "valor", "precio"]);
-  expect(advanceTarget(checking, today)).toEqual({ label: "Contrato y preparación" });
-  expect(missingItems(checking, [task()], today).map(m => m.text)).toEqual(["Que se pueda vender sin obstáculos", "Opinión de valor", "Precio de salida acordado", "Registrar si tomas el encargo"]);
+  expect(currentRequirements(checking, today).map(r => r.key)).toEqual(["titularidad", "factibilidad"]);
+  expect(advanceTarget(checking, today)).toEqual({ label: "Opinión de valor y precio" });
+  expect(missingItems(checking, [task()], today).map(m => m.text)).toEqual(["Que se pueda vender sin obstáculos"]);
+  const valuing = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }) }) });
+  expect(routeStages(valuing, today)).toMatchObject({ current: 5, phase: "verificacion" });
+  expect(currentRequirements(valuing, today).map(r => r.key)).toEqual(["valor", "precio"]);
+  expect(advanceTarget(valuing, today)).toEqual({ label: "Contrato y preparación" });
+  expect(missingItems(valuing, [task()], today).map(m => m.text)).toEqual(["Opinión de valor", "Precio de salida acordado", "Registrar si tomas el encargo"]);
   const contract = op({ etapa: "documentacion", flujo: flow(verified, accepted) });
-  expect(routeStages(contract, today).current).toBe(5);
+  expect(routeStages(contract, today).current).toBe(6);
   expect(contractLocked(contract, today)).toBe(false);
   expect(currentRequirements(contract, today).map(r => r.key)).toEqual(["intermediacion", "levantamiento", "plan", "publicacion"]);
   expect(advanceTarget(contract, today)).toEqual({ target: "comercializacion", label: "Publicación y seguimiento" });

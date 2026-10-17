@@ -85,5 +85,5 @@ test("operation overview exposes missing context and next task without inventing
   const next=screen.getByRole("region",{name:"Próxima tarea"});
   expect(within(next).getByText(/no tiene una próxima tarea con fecha/)).toBeTruthy();
   expect(within(next).getByRole("button",{name:"Agendar"})).toBeTruthy();
-  expect(screen.getByText("Lo que sigue · Etapa 1 de 9")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 1 de 10")).toBeTruthy();
 });

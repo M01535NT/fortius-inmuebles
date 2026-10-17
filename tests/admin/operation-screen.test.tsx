@@ -88,7 +88,7 @@ const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(
 it("muestra la etapa y sus requisitos, y «Lo tengo» se guarda con la versión de la operación", async () => {
   interviewDone();
   await openOperation();
-  expect(await screen.findByText("Lo que sigue · Etapa 2 de 9")).toBeTruthy();
+  expect(await screen.findByText("Lo que sigue · Etapa 2 de 10")).toBeTruthy();
   expect(screen.getByRole("heading", { level: 2, name: "Entrevista inicial" })).toBeTruthy();
   const group = screen.getByRole("radiogroup", { name: "Estado de Entrevista con el propietario" });
   expect(within(group).queryByRole("radio", { name: /No aplica/ })).toBeNull();
@@ -100,7 +100,7 @@ it("muestra la etapa y sus requisitos, y «Lo tengo» se guarda con la versión 
 
 it("el prospecto se ve en su etapa y «Iniciar entrevista inicial» abre el 02 por secciones", async () => {
   await openOperation();
-  expect(await screen.findByText("Lo que sigue · Etapa 1 de 9")).toBeTruthy();
+  expect(await screen.findByText("Lo que sigue · Etapa 1 de 10")).toBeTruthy();
   expect(screen.getByRole("heading", { level: 2, name: "Prospecto" })).toBeTruthy();
   expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
   expect(screen.getByText("Al completarlo se abre «Entrevista inicial» sola.")).toBeTruthy();
@@ -112,7 +112,7 @@ it("el prospecto se ve en su etapa y «Iniciar entrevista inicial» abre el 02 p
   expect(within(capture).getByRole("button", { name: /Siguiente sección/ })).toBeTruthy();
   fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-  expect(await screen.findByText("Lo que sigue · Etapa 2 de 9")).toBeTruthy();
+  expect(await screen.findByText("Lo que sigue · Etapa 2 de 10")).toBeTruthy();
   expect(screen.getByRole("button", { name: /Continuar entrevista/ })).toBeTruthy();
   expect(screen.getByText(/Te falta:/).parentElement?.textContent).toContain("Terminar la entrevista inicial (02)");
 });
@@ -121,7 +121,7 @@ it("con la entrevista terminada se inicia el levantamiento según el tipo de inm
   interviewDone();
   server.docs[0].data = { tipoInmueble: "departamento" };
   await openOperation();
-  expect(await screen.findByText("Lo que sigue · Etapa 2 de 9")).toBeTruthy();
+  expect(await screen.findByText("Lo que sigue · Etapa 2 de 10")).toBeTruthy();
   const type = screen.getByLabelText("Tipo de levantamiento") as HTMLSelectElement;
   expect(type.value).toBe("04C");
   fireEvent.change(type, { target: { value: "04B" } });
@@ -129,7 +129,7 @@ it("con la entrevista terminada se inicia el levantamiento según el tipo de inm
   const capture = await screen.findByRole("dialog", { name: "Levantamiento de casa" });
   expect(within(capture).getByRole("button", { name: /Fotografías y croquis/ })).toBeTruthy();
   fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
-  expect(await screen.findByText("Lo que sigue · Etapa 3 de 9")).toBeTruthy();
+  expect(await screen.findByText("Lo que sigue · Etapa 3 de 10")).toBeTruthy();
   expect(screen.getByRole("button", { name: /Continuar levantamiento/ })).toBeTruthy();
 });
 
@@ -145,18 +145,36 @@ it("el checklist de documentos se arma con la entrevista y se marca al recibir c
   expect(created.id).toBe(`checklist-${ID}`);
   expect(created.pasos.map(p => p.id)).toEqual(expect.arrayContaining(["D01", "D09", "D12", "D17"]));
   expect(created.pasos.map(p => p.id)).not.toContain("D19");
-  expect(await screen.findByText("Lo que sigue · Etapa 4 de 9")).toBeTruthy();
+  expect(await screen.findByText("Lo que sigue · Etapa 4 de 10")).toBeTruthy();
   expect(screen.getByText(`0 de ${created.pasos.length} recibidos`)).toBeTruthy();
   fireEvent.click(screen.getByRole("checkbox", { name: /D01 · Escritura/ }));
   await waitFor(() => expect((server.tasks.at(-1) as { pasos: Array<{ id: string; hecho: boolean }> }).pasos.find(p => p.id === "D01")?.hecho).toBe(true));
   expect(screen.getByText(/Te falta:/).parentElement?.textContent).toContain("Recibir los documentos del checklist");
 });
 
+it("en el dictamen jurídico, «Iniciar» abre el 05 con lo recibido en el checklist", async () => {
+  server.ops = [base({ etapa: "documentacion", flujo: flow({ entrevista: reviewed() }) })];
+  server.tasks = [{ id: `checklist-${ID}`, titulo: "Reunir los documentos del propietario", estado: "en-curso", prioridad: "normal", categoria: "documentacion", pasos: [{ id: "D01", texto: "D01 · Escritura", hecho: true }, { id: "D06", texto: "D06 · Predial", hecho: false }], expedienteId: ID, asesorId: "a1" }];
+  await openOperation();
+  expect(await screen.findByText("Lo que sigue · Etapa 5 de 10")).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 2, name: "Dictamen jurídico" })).toBeTruthy();
+  expect(screen.getByText("Al completarlo se abre «Opinión de valor y precio» sola.")).toBeTruthy();
+  expect(screen.getByRole("radiogroup", { name: /Quién es dueño/ })).toBeTruthy();
+  fireEvent.click(screen.getAllByRole("button", { name: /^Iniciar$/ })[0]);
+  const capture = await screen.findByRole("dialog", { name: "Revisión jurídica y control de cierre" });
+  expect(capture).toBeTruthy();
+  const created = server.docs.find(d => d.formato_id === "05") as { data: { documentos: Array<Record<string, string>> } };
+  expect(created.data.documentos).toHaveLength(22);
+  expect(created.data.documentos[0]).toMatchObject({ concepto: "D01", aplica: "si", estado: "recibido" });
+  expect(created.data.documentos.find(d => d.concepto === "D06")).toMatchObject({ aplica: "si", estado: "no_recibido" });
+  expect(created.data.documentos.find(d => d.concepto === "D04")).toEqual({ concepto: "D04" });
+});
+
 it("un fallo al guardar se informa en palabras sencillas y no anuncia ningún avance", async () => {
   server.fail = (url, init) => init?.method === "PUT" && url.endsWith("/operacion") ? Response.json({ error: "Servicio no disponible" }, { status: 503 }) : undefined;
   interviewDone();
   await openOperation();
-  await screen.findByText("Lo que sigue · Etapa 2 de 9");
+  await screen.findByText("Lo que sigue · Etapa 2 de 10");
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Entrevista/ })).getByRole("radio", { name: /Lo tengo/ }));
   expect((await screen.findByRole("alert")).textContent).toBe("No se pudo guardar: Servicio no disponible");
   expect(screen.queryByText(/pasó a/)).toBeNull();
@@ -166,7 +184,7 @@ it("un fallo al guardar se informa en palabras sencillas y no anuncia ningún av
 it("Marcar como revisado pide qué se encontró y guarda el respaldo, quién y cuándo", async () => {
   interviewDone();
   await openOperation();
-  await screen.findByText("Lo que sigue · Etapa 2 de 9");
+  await screen.findByText("Lo que sigue · Etapa 2 de 10");
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Entrevista/ })).getByRole("radio", { name: /Revisado/ }));
   const sheet = await screen.findByRole("dialog", { name: "Entrevista con el propietario" });
   fireEvent.click(within(sheet).getByRole("radio", { name: /Documento fuera del sistema/ }));
@@ -184,7 +202,7 @@ it("Marcar como revisado pide qué se encontró y guarda el respaldo, quién y c
 it("Hay un problema guarda el título y la explicación, y se resuelve dejando constancia", async () => {
   interviewDone();
   await openOperation();
-  await screen.findByText("Lo que sigue · Etapa 2 de 9");
+  await screen.findByText("Lo que sigue · Etapa 2 de 10");
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Entrevista/ })).getByRole("radio", { name: /Hay un problema/ }));
   const sheet = await screen.findByRole("dialog");
   fireEvent.change(within(sheet).getByLabelText("Cuál es el problema"), { target: { value: "El propietario no tiene la escritura" } });
@@ -200,7 +218,7 @@ it("«Pasar a» se habilita solo con todo listo y registra el avance", async () 
   server.ops = [base({ flujo: flow({ entrevista: reviewed() }) })];
   intakeDone();
   await openOperation();
-  const advance = await screen.findByRole("button", { name: /Pasar a: Verificación y precio/ });
+  const advance = await screen.findByRole("button", { name: /Pasar a: Dictamen jurídico/ });
   expect((advance as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByRole("button", { name: "Agendar la próxima tarea" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Qué sigue"), { target: { value: "Pedir la escritura" } });
@@ -208,11 +226,11 @@ it("«Pasar a» se habilita solo con todo listo y registra el avance", async () 
   fireEvent.click(screen.getByRole("button", { name: "Agendar" }));
   await waitFor(() => expect(server.tasks).toHaveLength(2));
   expect(server.tasks[1]).toMatchObject({ titulo: "Pedir la escritura", vence: "2026-10-20", expedienteId: ID, asesorId: "a1", estado: "pendiente" });
-  await waitFor(() => expect((screen.getByRole("button", { name: /Pasar a: Verificación y precio/ }) as HTMLButtonElement).disabled).toBe(false));
-  fireEvent.click(screen.getByRole("button", { name: /Pasar a: Verificación y precio/ }));
-  expect(await screen.findByText("Listo: la operación pasó a «Verificación y precio».")).toBeTruthy();
+  await waitFor(() => expect((screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }) as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }));
+  expect(await screen.findByText("Listo: la operación pasó a «Dictamen jurídico».")).toBeTruthy();
   expect(lastFlow()).toMatchObject({ etapa: "documentacion", version: 3 });
-  expect(screen.getByText("Lo que sigue · Etapa 5 de 9")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 5 de 10")).toBeTruthy();
 });
 
 it("en Verificación el contrato espera; durante la publicación avisa el informe mensual vencido", async () => {
@@ -314,7 +332,7 @@ it("el tablero agrupa por etapa, busca sin acentos, filtra «Mías» y abre cada
   expect(within(screen.getByRole("listitem", { name: /^Prospecto/ })).getByRole("link", { name: /Familia Castañeda Ortiz/ }).getAttribute("href")).toBe(`/admin/operaciones/${ID}`);
   expect(screen.getByText("Vencido · 14 oct")).toBeTruthy();
   expect(screen.getByText(/1 con algo vencido/)).toBeTruthy();
-  expect(within(screen.getByRole("listitem", { name: /Verificación/ })).getByRole("link", { name: /EXP-SIN-CLIENTE/ })).toBeTruthy();
+  expect(within(screen.getByRole("listitem", { name: /Dictamen/ })).getByRole("link", { name: /EXP-SIN-CLIENTE/ })).toBeTruthy();
   expect(within(visits).queryByRole("link", { name: /Ángel Martínez/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
   expect(within(visits).getByRole("link", { name: /Ángel Martínez/ })).toBeTruthy();
@@ -383,7 +401,7 @@ it("en Verificación no hay un botón que nunca se activa: explica que «Contrat
   server.ops = [base({ etapa: "documentacion", flujo: flow(verifiedExcept, accepted) })];
   server.tasks = [{ id: "t1", titulo: "Firmar contrato", estado: "pendiente", prioridad: "normal", categoria: "captacion", pasos: [], vence: "2026-10-20", expedienteId: ID, asesorId: "a1" }];
   await openOperation();
-  expect(screen.getByText("Lo que sigue · Etapa 5 de 9")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 6 de 10")).toBeTruthy();
   expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
   expect(screen.getByText("Al completarlo se abre «Contrato y preparación» sola.")).toBeTruthy();
   fireEvent.click(within(screen.getByRole("radiogroup", { name: /Precio de salida/ })).getByRole("radio", { name: /Revisado/ }));
@@ -392,6 +410,6 @@ it("en Verificación no hay un botón que nunca se activa: explica que «Contrat
   fireEvent.change(within(sheet).getByLabelText("Folio o dónde está"), { target: { value: "Mensaje de WhatsApp del 15 oct" } });
   fireEvent.click(within(sheet).getByRole("button", { name: "Guardar como revisado" }));
   expect(await screen.findByText("Verificación terminada. Ya puedes trabajar el contrato y la preparación.")).toBeTruthy();
-  expect(screen.getByText("Lo que sigue · Etapa 6 de 9")).toBeTruthy();
+  expect(screen.getByText("Lo que sigue · Etapa 7 de 10")).toBeTruthy();
   expect(screen.getByRole("button", { name: /Pasar a: Publicación y seguimiento/ })).toBeTruthy();
 });

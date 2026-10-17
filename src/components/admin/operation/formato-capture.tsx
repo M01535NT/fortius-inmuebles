@@ -130,7 +130,7 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
           {index === 0 && !!values.origenDatos && <Notice tone="info">Algunas respuestas vienen del primer contacto. Confírmalas con el propietario: lo declarado todavía debe comprobarse.</Notice>}
           {section === IMAGES ? <FormatoImages documentId={doc.id} values={values} disabled={!!busy} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
             : <fieldset disabled={!!busy} className="min-w-0">
-              <FormatoEditor key={`${doc.id}-${section}`} definition={sectionDefinition} values={data} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
+              <FormatoEditor key={`${doc.id}-${section}`} definition={sectionDefinition} extras={sections.filter(name => name !== IMAGES).at(-1) === section} values={data} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
             </fieldset>}
           {last && <div className="flex flex-col gap-3 rounded-[12px] border border-border p-4">
             <p className="font-semibold">{missing.length ? `Para generar el PDF faltan ${missing.length} ${missing.length === 1 ? "respuesta" : "respuestas"}:` : "Captura completa. Ya puedes generar el PDF."}</p>

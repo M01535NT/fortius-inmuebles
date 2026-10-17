@@ -23,7 +23,7 @@ import s from "./operation.module.css";
 
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage }) => Promise<unknown>;
 /** Documentos de la entrevista inicial: los formatos de la operación y los PDF de la entrevista (02). */
-export type InitialDocs = { documents: Documento[]; emissions: { entrevista: Emision[]; levantamiento: Emision[] }; checklist?: Task; onDocumentsChange: (update: (items: Documento[]) => Documento[]) => void; onEmitted: (kind: "entrevista" | "levantamiento", emision: Emision) => void; onOpenDocument: (id: string) => void };
+export type InitialDocs = { documents: Documento[]; emissions: Record<string, Emision[]>; checklist?: Task; onDocumentsChange: (update: (items: Documento[]) => Documento[]) => void; onEmitted: (documentId: string, emision: Emision) => void; onOpenDocument: (id: string) => void };
 type Run = { id: string; title: string; updatedAt: string; result?: unknown; context?: { expedienteId?: string } };
 
 /** «Lo que sigue»: la etapa, sus requisitos, la próxima tarea y lo que falta para pasar a la siguiente. */
@@ -50,7 +50,8 @@ export function NextStepTab({ op, today, evidence, interview, initial, cliente, 
       if (review) requisitos[key] = review; else delete requisitos[key];
       const saved = await onSave({ flujo: { ...flow, requisitos } }) as OperationRecord;
       // «Contrato y preparación» se abre sola al terminar la verificación: se avisa para que no pase inadvertido.
-      setNotice(phase === "verificacion" && routeStages(saved, today).phase === "contrato" ? "Verificación terminada. Ya puedes trabajar el contrato y la preparación." : "Guardado");
+      const after = routeStages({ ...(saved as OperationRecord), inicial: op.inicial }, today).phase;
+      setNotice(phase === "verificacion" && after === "contrato" ? "Verificación terminada. Ya puedes trabajar el contrato y la preparación." : phase === "dictamen" && after === "verificacion" ? "Dictamen jurídico terminado. Sigue la opinión de valor y el precio." : "Guardado");
     } catch (cause) { const message = saveError(cause); setError(`No se pudo guardar: ${message}`); throw new Error(message); }
     finally { setBusy(false); }
   }
@@ -68,7 +69,7 @@ export function NextStepTab({ op, today, evidence, interview, initial, cliente, 
     else if (item.requirement) { const el = document.getElementById(`req-${item.requirement}`); el?.scrollIntoView({ block: "center" }); el?.focus({ preventScroll: true }); }
   }
   const items = currentRequirements(op, today);
-  const intake = !!phase && ["prospecto", "captacion", "levantamiento", "documentos"].includes(phase);
+  const intake = !!phase && ["prospecto", "captacion", "levantamiento", "documentos", "dictamen", "verificacion"].includes(phase);
   return <div className={s.layout}>
     <div className="flex min-w-0 flex-col gap-5">
       <Card className="flex flex-col gap-5 p-5 sm:p-7" aria-label="Lo que sigue">

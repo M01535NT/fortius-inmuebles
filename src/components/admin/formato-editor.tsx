@@ -28,11 +28,13 @@ import { mostrarCampoIntermediacion, INTERMEDIACION_TABLES, type IntermediacionT
 import { IntermediacionRowsEditor } from "./intermediacion-rows-editor";
 import { IntermediacionSummary } from "./intermediacion-summary";
 
-export function FormatoEditor({ definition, values, onChange, images }: {
+export function FormatoEditor({ definition, values, onChange, images, extras = true }: {
   definition: FormatoDefinition;
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
   images?: { id: string; kind: string; caption: string }[];
+  /** Cálculos y resúmenes al pie (07, 09, 15); la captura por secciones los muestra solo en la última. */
+  extras?: boolean;
 }) {
   if (definition.id === "01") return <AvisoEditor definition={definition} values={values} onChange={onChange} />;
   const shownFields = definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.fields;
@@ -89,8 +91,8 @@ export function FormatoEditor({ definition, values, onChange, images }: {
         </div>
       </Fragment>;
     })}
-    {definition.id === "07" && <ValorCalculation values={values} onChange={onChange} />}
-    {definition.id === "09" && <IntermediacionSummary values={values} />}
-    {definition.id === "15" && <PromesaReview values={values} onChange={onChange} />}
+    {extras && definition.id === "07" && <ValorCalculation values={values} onChange={onChange} />}
+    {extras && definition.id === "09" && <IntermediacionSummary values={values} />}
+    {extras && definition.id === "15" && <PromesaReview values={values} onChange={onChange} />}
   </div>;
 }
