@@ -10,7 +10,7 @@ import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { cn } from "@/lib/utils";
 import type { Documento } from "./documents-tab";
-import { FormatoImages, WITH_IMAGES } from "./formato-images";
+import { FormatoImages, WITH_IMAGES, type Adjunto } from "./formato-images";
 
 /*
   Captura guiada de un formato desde su etapa (decisión del titular, 16/10/2026):
@@ -33,7 +33,15 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
   const [values, setValues] = React.useState<Record<string, unknown>>(initial.data);
   const [emisiones, setEmisiones] = React.useState<Emision[] | null>(null);
   const [busy, setBusy] = React.useState(""), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
-  const sections = React.useMemo(() => [...new Set(definition.fields.map(f => f.section ?? "Datos")), ...(WITH_IMAGES.includes(definition.id) ? [IMAGES] : [])], [definition]);
+  // Las imágenes se suben antes de la sección que las usa (el reporte fotográfico del 07); si ninguna las usa, van al final.
+  const sections = React.useMemo(() => {
+    const names = [...new Set(definition.fields.map(f => f.section ?? "Datos"))];
+    if (!WITH_IMAGES.includes(definition.id)) return names;
+    const user = definition.fields.find(f => f.key === "fotografias")?.section;
+    const at = user ? names.indexOf(user) : -1;
+    return at < 0 ? [...names, IMAGES] : [...names.slice(0, at), IMAGES, ...names.slice(at)];
+  }, [definition]);
+  const [adjuntos, setAdjuntos] = React.useState<Adjunto[]>([]);
   const [index, setIndex] = React.useState(0);
   const heading = React.useRef<HTMLHeadingElement>(null);
   const dirty = JSON.stringify(values) !== JSON.stringify(doc.data);
@@ -49,6 +57,14 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
     json<{ emisiones: Emision[] }>(`/api/admin/formatos/${doc.id}`).then(r => { if (alive) setEmisiones(r.emisiones); }).catch(() => { if (alive) setEmisiones([]); });
     return () => { alive = false; };
   }, [doc.id]);
+  // Lista de imágenes para los campos que las eligen (p. ej. «Fotografías pertinentes» del 07); se renueva al salir de la sección de imágenes.
+  const withImages = WITH_IMAGES.includes(definition.id), onImages = section === IMAGES;
+  React.useEffect(() => {
+    if (!withImages || onImages) return;
+    let alive = true;
+    json<{ adjuntos: Adjunto[] }>(`/api/admin/formatos/${doc.id}/adjuntos`).then(r => { if (alive) setAdjuntos(r.adjuntos); }).catch(() => { /* la sección de imágenes muestra el error */ });
+    return () => { alive = false; };
+  }, [doc.id, withImages, onImages]);
   React.useEffect(() => {
     const before = (event: BeforeUnloadEvent) => { if (dirty) event.preventDefault(); };
     window.addEventListener("beforeunload", before);
@@ -126,7 +142,7 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
           {index === 0 && !!values.origenDatos && <Notice tone="info">Algunas respuestas vienen del primer contacto. Confírmalas con el propietario: lo declarado todavía debe comprobarse.</Notice>}
           {section === IMAGES ? <FormatoImages documentId={doc.id} values={values} disabled={!!busy} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
             : <fieldset disabled={!!busy} className="min-w-0">
-              <FormatoEditor key={`${doc.id}-${section}`} definition={sectionDefinition} extras={sections.filter(name => name !== IMAGES).at(-1) === section} values={data} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
+              <FormatoEditor key={`${doc.id}-${section}`} definition={sectionDefinition} extras={sections.filter(name => name !== IMAGES).at(-1) === section} values={data} images={adjuntos} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
             </fieldset>}
           {last && <div className="flex flex-col gap-3 rounded-[12px] border border-border p-4">
             <p className="font-semibold">{missing.length ? `Para generar el PDF faltan ${missing.length} ${missing.length === 1 ? "respuesta" : "respuestas"}:` : "Captura completa. Ya puedes generar el PDF."}</p>
