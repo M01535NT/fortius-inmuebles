@@ -8,6 +8,8 @@ import { planDocumento } from "@/lib/formatos/documento/plan";
 import { intermediacionDocumento } from "@/lib/formatos/documento/intermediacion";
 import { entrevistaDocumento } from "@/lib/formatos/documento/entrevista";
 import { junta } from "@/lib/formatos/documento/modelo";
+import { levantamientoDocumento } from "@/lib/formatos/documento/levantamiento";
+import { imageInfo } from "@/lib/formatos/documento/imagen";
 import { documentoDocx } from "@/lib/formatos/documento/docx";
 import { renderDocumentoPdf } from "@/lib/formatos/documento/pdf";
 import { INTERMEDIACION_CLAUSES } from "@/lib/formatos/intermediacion-text";
@@ -52,6 +54,23 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(cells.find(c => c.q === "¿Qué precio le gustaría obtener?")?.a).toBe("$4,600,000.00 MXN");
     expect(cells.find(c => c.q.startsWith("¿Qué documentos puede aportar"))?.a).toBe("Escritura · Propietaria · 20 de octubre de 2026");
     expect(junta("Sí", "", "Sí", "correo")).toBe("Sí · correo");
+  });
+  it("los levantamientos siguen las secciones de su plantilla con superficies, foto y croquis", () => {
+    const casa = levantamientoDocumento("04B", { recamaras: "3", recamarasBase: "O", recamarasReferencia: "Recorrido", terrenoDeclarada: "160", terrenoFuente: "Escritura p. 3", murosCondicion: "Block sin fisuras" });
+    const titles = casa.blocks.filter(b => b.kind === "title").map(b => b.kind === "title" && b.text);
+    expect(titles).toEqual(["Levantamiento de casa habitación", "Características del inmueble", "Ubicación y evidencias"]);
+    const labels = casa.blocks.filter(b => b.kind === "form" && b.label).map(b => b.kind === "form" && b.label);
+    expect(labels).toEqual(expect.arrayContaining(["01 Fotografía principal", "02 Control de la visita", "03 Superficies y fuentes", "04 Distribución y características", "05 Componentes y condición visible", "06 Servicios e instalaciones", "07 Croquis de ubicación y acceso", "08 Documentos y fotografías de respaldo", "09 Discrepancias y pendientes"]));
+    const grids = casa.blocks.filter(b => b.kind === "grid").flatMap(b => b.kind === "grid" ? b.rows : []);
+    expect(grids).toEqual(expect.arrayContaining([["Terreno", "160", "", "", "Escritura p. 3"], ["Recámaras", "3", "O observado", "Recorrido"], ["Muros y estructura aparente", "Block sin fisuras", ""]]));
+    expect(casa.blocks.filter(b => b.kind === "image").map(b => b.kind === "image" && !!b.image)).toEqual([false, false]);
+    const nave = levantamientoDocumento("04F", {});
+    expect(nave.blocks.some(b => b.kind === "form" && b.label === "10 Croquis de ubicación y acceso")).toBe(true);
+  });
+  it("lee tipo y tamaño de las imágenes PNG y JPEG", () => {
+    const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 3, 0xe8, 0, 0, 1, 0xf4, 8]);
+    expect(imageInfo(png)).toEqual({ tipo: "png", width: 1000, height: 500 });
+    expect(imageInfo(Uint8Array.from([1, 2, 3]))).toBeNull();
   });
   it("el PDF del 10 sale en tamaño carta con su título; el del 09 sigue bloqueado", async () => {
     const plan = await PDFDocument.load(await renderDocumentoPdf(planDocumento({}), assets));

@@ -1,3 +1,5 @@
+import type { ImagenDocumento } from "./imagen";
+
 /*
   Documento con el diseño de las plantillas de Fortius (Metodología, decisión del titular,
   16/10/2026): carta, logotipo arriba, título azul marino, banda de datos, secciones
@@ -7,10 +9,15 @@
 */
 
 export type Block =
-  | { kind: "title"; text: string; bold?: boolean }
+  | { kind: "title"; text: string; bold?: boolean; size?: number }
+  | { kind: "pagebreak" }
   /** Formulario de preguntas (02, 12, 13…): sección «01 / …» y renglones de celdas con la pregunta arriba y la respuesta debajo; w = ancho relativo. */
   | { kind: "form"; label?: string; rows: Array<Array<{ q: string; a: string; w: number }>> }
   | { kind: "subtitle"; text: string }
+  /** Recuadro de imagen con su barra de título (foto principal, croquis); vacío si no hay imagen. */
+  | { kind: "image"; label: string; image?: ImagenDocumento; height: number }
+  /** Tabla con encabezado claro (F3F7F4) y bordes finos, como las de los levantamientos. */
+  | { kind: "grid"; widths: number[]; header: string[]; rows: string[][] }
   | { kind: "note"; text: string }
   | { kind: "p"; text: string }
   | { kind: "h1"; text: string }
@@ -28,7 +35,9 @@ export type Block =
 /** «marca»: Archivo azul marino (planes, reportes, levantamientos). «contrato»: Times negro, como el 09 y la promesa. */
 export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato"; blocks: Block[] };
 
-export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
+export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", head: "F3F7F4", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
+/** Datos extra que algunos formatos necesitan para dibujarse: imágenes adjuntas por ID. */
+export type DocumentoContexto = { imagenes?: Record<string, ImagenDocumento> };
 /** Espacio para completar a mano, como en la plantilla. */
 export const BLANK = "____________________";
 

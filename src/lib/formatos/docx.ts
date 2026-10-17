@@ -3,6 +3,7 @@ import type { FormatoDefinition, FormatoField } from "./catalog";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista } from "./entrevista";
 import { DOCUMENTOS } from "./documento";
 import { documentoDocxBlob } from "./documento/docx";
+import { imagen, type ImagenDocumento } from "./documento/imagen";
 
 /*
   Copia editable en Word de un formato capturado (decisión del titular, 16/10/2026).
@@ -84,7 +85,15 @@ export async function formatoDocxBlob(definition: FormatoDefinition, values: Rec
   const documento = DOCUMENTOS[definition.id];
   if (documento) {
     const [logo, pie, regular] = await Promise.all([bytes("/brand/fortius-logo.png"), bytes("/brand/pie-documento.png"), bytes("/fonts/Archivo-Regular.ttf")]);
-    return documentoDocxBlob(documento(values), { logo, logoSize: { width: 2550, height: 648 }, pie, regular });
+    // Foto principal y croquis elegidos en el borrador (levantamientos); si no se pueden leer, queda el recuadro.
+    const imagenes: Record<string, ImagenDocumento> = {};
+    for (const key of ["fotoPrincipalId", "croquisId"]) {
+      const assetId = values[key];
+      if (typeof assetId !== "string" || !assetId) continue;
+      const image = await bytes(`/api/admin/adjuntos/${encodeURIComponent(assetId)}/descargar`).then(data => imagen(data)).catch(() => undefined);
+      if (image) imagenes[assetId] = image;
+    }
+    return documentoDocxBlob(documento(values, { imagenes }), { logo, logoSize: { width: 2550, height: 648 }, pie, regular });
   }
   return Packer.toBlob(formatoDocument(definition, values, context));
 }

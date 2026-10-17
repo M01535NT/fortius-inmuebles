@@ -23,6 +23,7 @@ import { promesaParagraphs } from "./promesa";
 import { formatAmount } from "@/lib/finance/money";
 import { DOCUMENTOS } from "./documento";
 import { renderDocumentoPdf } from "./documento/pdf";
+import { imagen, type ImagenDocumento } from "./documento/imagen";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -66,6 +67,8 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   if (id === "01") return createAvisoPdf(data);
+  if (isLevantamiento(id) && (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto") || !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis"))) throw new Error("Faltan la fotografía principal y el croquis autorizados del borrador");
+  if (id === "07" && valorAssetIds(data).some((assetId) => !assets.some((asset) => asset.id === assetId && asset.kind === (assetId === data.croquisId ? "croquis" : "foto") && (asset.kind !== "foto" || asset.observed_on && asset.observed_on <= String(data.fechaEmision))))) throw new Error("Faltan imágenes autorizadas y fotografías fechadas del borrador");
   // Formatos con el diseño de su plantilla (carta, banda de datos y tablas de marca).
   const documento = DOCUMENTOS[id];
   if (documento) {
@@ -74,10 +77,15 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       readFile(join(process.cwd(), "public/fonts/Archivo-SemiBold.ttf")),
       readFile(join(process.cwd(), "public/brand/fortius-logo.png")),
     ]);
-    return renderDocumentoPdf(documento(data), { regular, bold, logo });
+    // Imágenes adjuntas normalizadas (orientación EXIF, JPEG) para la foto principal y el croquis.
+    const imagenes: Record<string, ImagenDocumento> = {};
+    for (const asset of assets) {
+      const bytes = await sharp(asset.bytes, { limitInputPixels: 40_000_000 }).rotate().resize({ width: 1800, height: 1200, fit: "inside", withoutEnlargement: true }).flatten({ background: "#ffffff" }).jpeg({ quality: 88 }).toBuffer();
+      const image = imagen(new Uint8Array(bytes), { caption: asset.caption, source: asset.source, date: asset.observed_on });
+      if (image) imagenes[asset.id] = image;
+    }
+    return renderDocumentoPdf(documento(data, { imagenes }), { regular, bold, logo });
   }
-  if (isLevantamiento(id) && (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto") || !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis"))) throw new Error("Faltan la fotografía principal y el croquis autorizados del borrador");
-  if (id === "07" && valorAssetIds(data).some((assetId) => !assets.some((asset) => asset.id === assetId && asset.kind === (assetId === data.croquisId ? "croquis" : "foto") && (asset.kind !== "foto" || asset.observed_on && asset.observed_on <= String(data.fechaEmision))))) throw new Error("Faltan imágenes autorizadas y fotografías fechadas del borrador");
   const pdf = await PDFDocument.create();
   const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "07" ? "Opinión de valor comercial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
   pdf.setTitle(id === "15" ? "Contrato de promesa bilateral de compraventa" : displayTitle);

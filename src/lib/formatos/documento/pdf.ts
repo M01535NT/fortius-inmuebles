@@ -16,7 +16,7 @@ const LEFT = 50.4, RIGHT = 50.4, TOP = 75.6, BOTTOM = 62;
 const WIDTH = PAGE[0] - LEFT - RIGHT;
 const hex = (value: string) => rgb(parseInt(value.slice(0, 2), 16) / 255, parseInt(value.slice(2, 4), 16) / 255, parseInt(value.slice(4, 6), 16) / 255);
 const NAVY = hex(COLORS.navy), GREEN = hex(COLORS.green), WINE = hex(COLORS.wine), WHITE = hex(COLORS.white);
-const FILLS = [hex(COLORS.band2), hex(COLORS.band1)], BLACK = hex(COLORS.black), RULE = hex(COLORS.rule);
+const FILLS = [hex(COLORS.band2), hex(COLORS.band1)], BLACK = hex(COLORS.black), RULE = hex(COLORS.rule), HEAD = hex(COLORS.head);
 const BODY = 11, CELL = 9.5;
 type Style = { body: number; leading: number; after: number; ink: ReturnType<typeof rgb>; cell: number };
 const STYLES: Record<"marca" | "contrato", Style> = {
@@ -50,7 +50,7 @@ class Writer {
   pages: PDFPage[] = [];
   page!: PDFPage;
   y = 0;
-  constructor(private pdf: PDFDocument, private fonts: Fonts, private logo: PDFImage, private style: Style) { this.newPage(); }
+  constructor(public pdf: PDFDocument, private fonts: Fonts, private logo: PDFImage, private style: Style) { this.newPage(); }
   newPage() {
     this.page = this.pdf.addPage(PAGE);
     this.pages.push(this.page);
@@ -100,7 +100,7 @@ class Writer {
     };
     const measured = rows.map(measure);
     if (label) {
-      this.ensure(22 + (measured[0]?.height ?? 0));
+      this.ensure(22 + (measured[0]?.height ?? 70)); // el título nunca queda solo al pie de la página
       this.y -= 8;
       this.page.drawText(label, { x: LEFT, y: this.y - 10, size: 10, font: this.fonts.bold, color: NAVY });
       this.y -= 15;
@@ -119,6 +119,42 @@ class Writer {
       this.y -= height;
     }
     this.y -= 4;
+  }
+  /** Recuadro verde claro como en la plantilla: con la imagen ajustada y centrada, o con su leyenda si aún no hay imagen. */
+  async image(label: string, image: import("./imagen").ImagenDocumento | undefined, height: number) {
+    this.ensure(height + 4);
+    this.page.drawRectangle({ x: LEFT, y: this.y - height, width: WIDTH, height, color: HEAD, borderColor: RULE, borderWidth: 0.5 });
+    if (!image) {
+      const text = label.toUpperCase(), w = this.fonts.bold.widthOfTextAtSize(text, 11);
+      this.page.drawText(text, { x: LEFT + (WIDTH - w) / 2, y: this.y - height / 2 - 4, size: 11, font: this.fonts.bold, color: NAVY });
+    } else {
+      const embedded = image.tipo === "png" ? await this.pdf.embedPng(image.bytes) : await this.pdf.embedJpg(image.bytes);
+      const scale = Math.min((WIDTH - 12) / embedded.width, (height - 12) / embedded.height);
+      const w = embedded.width * scale, h = embedded.height * scale;
+      this.page.drawImage(embedded, { x: LEFT + (WIDTH - w) / 2, y: this.y - height + (height - h) / 2, width: w, height: h });
+    }
+    this.y -= height + 4;
+  }
+  /** Tabla de levantamiento: encabezado claro, bordes finos y celdas vacías para escribir a mano. */
+  grid(widths: number[], header: string[], rows: string[][]) {
+    const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => w / total * WIDTH);
+    const pad = 4, size = 9, leading = size * 1.2, minHeight = 18;
+    const draw = (cells: string[], font: PDFFont, fill?: ReturnType<typeof rgb>) => {
+      const lines = cells.map((cell, i) => wrap(cell, font, size, cols[i] - pad * 2));
+      const height = Math.max(minHeight, ...lines.map(l => l.length * leading + pad * 2));
+      if (this.y - height < BOTTOM) { this.newPage(); if (font !== this.fonts.bold) draw(header, this.fonts.bold, HEAD); }
+      let x = LEFT;
+      lines.forEach((ls, i) => {
+        this.page.drawRectangle({ x, y: this.y - height, width: cols[i], height, borderColor: RULE, borderWidth: 0.5, ...(fill ? { color: fill } : {}) });
+        ls.forEach((line, n) => this.page.drawText(line, { x: x + pad, y: this.y - pad - size - n * leading + 1, size, font, color: NAVY }));
+        x += cols[i];
+      });
+      this.y -= height;
+    };
+    this.ensure(minHeight * 2);
+    draw(header, this.fonts.bold, HEAD);
+    for (const row of rows) draw(row, this.fonts.regular);
+    this.y -= 6;
   }
   note(text: string) {
     const size = 8.5, leading = size * 1.25;
@@ -184,9 +220,13 @@ class Writer {
       page.drawText(`${index + 1} / ${total}`, { x: LEFT, y: 30, size: 9, font: this.fonts.regular, color: NAVY });
     });
   }
-  render(block: Block) {
+  async render(block: Block) {
     switch (block.kind) {
-      case "title": if (block.bold) { this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; this.page.drawText(block.text, { x: LEFT, y: this.y - 22, size: 22, font: this.fonts.bold, color: NAVY }); this.y -= 30; } else this.heading(block.text, 27, NAVY, 0, 8); break;
+      case "image": await this.image(block.label, block.image, block.height); break;
+      case "grid": this.grid(block.widths, block.header, block.rows); break;
+      // Salto de página de la plantilla; si la página apenas empezó (solo arrastra una nota), se continúa en ella.
+      case "pagebreak": if (this.y < PAGE[1] / 2) this.newPage(); break;
+      case "title": if (block.bold) { const size = block.size ?? 22; this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; this.page.drawText(block.text, { x: LEFT, y: this.y - size, size, font: this.fonts.bold, color: NAVY }); this.y -= size + 8; } else this.heading(block.text, 27, NAVY, 0, 8); break;
       case "form": this.form(block.label, block.rows); break;
       case "subtitle": this.centered(block.text, 12, 10, 2); break;
       case "note": this.note(block.text); break;
@@ -215,7 +255,7 @@ export async function renderDocumentoPdf(doc: Documento, assets: DocumentoAssets
     pdf.embedPng(assets.logo),
   ]);
   const writer = new Writer(pdf, { regular, bold }, logo, STYLES[contrato ? "contrato" : "marca"]);
-  for (const block of doc.blocks) writer.render(block);
+  for (const block of doc.blocks) await writer.render(block);
   writer.footers();
   return pdf.save();
 }

@@ -1,5 +1,5 @@
 import {
-  AlignmentType, BorderStyle, Document, Footer, Header, HorizontalPositionRelativeFrom, ImageRun, Packer, PageNumber,
+  AlignmentType, BorderStyle, Document, PageBreak, Footer, Header, HorizontalPositionRelativeFrom, ImageRun, Packer, PageNumber,
   Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TextRun, VerticalPositionRelativeFrom, WidthType,
 } from "docx";
 import { COLORS, type Block, type Documento } from "./modelo";
@@ -57,12 +57,40 @@ function form(label: string | undefined, rows: Array<Array<{ q: string; a: strin
       }) });
     }),
   });
-  return [...(label ? [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(label, { size: 10, bold: true }) })] : []), table];
+  return [...(label ? [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(label, { size: 10, bold: true }) })] : []), ...(rows.length ? [table] : [])];
+}
+
+function grid(widths: number[], header: string[], rows: string[][]) {
+  const total = widths.reduce((s, w) => s + w, 0), cols = widths.map(w => Math.round(w / total * TWIP_WIDTH));
+  const cell = (text: string, i: number, head: boolean) => new TableCell({
+    width: { size: cols[i], type: WidthType.DXA }, margins: { top: 40, bottom: 40, left: 80, right: 80 },
+    ...(head ? { shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.head } } : {}),
+    children: [new Paragraph({ children: run(text, { size: 9, bold: head }) })],
+  });
+  return new Table({
+    width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: cols, layout: TableLayoutType.FIXED,
+    borders: { top: rule, bottom: rule, left: rule, right: rule, insideHorizontal: rule, insideVertical: rule },
+    rows: [new TableRow({ tableHeader: true, children: header.map((h, i) => cell(h, i, true)) }), ...rows.map(row => new TableRow({ cantSplit: true, height: { value: 360, rule: "atLeast" }, children: row.map((c, i) => cell(c, i, false)) }))],
+  });
+}
+function image(label: string, img: import("./imagen").ImagenDocumento | undefined, height: number) {
+  const maxW = 660, maxH = Math.round(height * 96 / 72);
+  const scale = img ? Math.min(maxW / img.width, maxH / img.height) : 1;
+  return new Table({
+    width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: [TWIP_WIDTH], layout: TableLayoutType.FIXED,
+    borders: { top: rule, bottom: rule, left: rule, right: rule, insideHorizontal: rule, insideVertical: rule },
+    rows: [
+      new TableRow({ height: { value: Math.round(height * 20), rule: "atLeast" }, children: [new TableCell({ verticalAlign: "center", shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.head }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: img ? [new ImageRun({ type: img.tipo, data: img.bytes, transformation: { width: Math.round(img.width * scale), height: Math.round(img.height * scale) } })] : run(label.toUpperCase(), { size: 11, bold: true }) })] })] }),
+    ],
+  });
 }
 
 function block(b: Block): Array<Paragraph | Table> {
   switch (b.kind) {
-    case "title": return [new Paragraph({ spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.bold ? 22 : 27, bold: !!b.bold }) })];
+    case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
+    case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 60 }, children: [] })];
+    case "pagebreak": return [new Paragraph({ children: [new PageBreak()] })];
+    case "title": return [new Paragraph({ keepNext: true, spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.size ?? (b.bold ? 22 : 27), bold: !!b.bold }) })];
     case "form": return form(b.label, b.rows);
     case "subtitle": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 200, after: 40 }, children: run(b.text, { size: 12, bold: true }) })];
     case "note": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 60, after: 80 }, children: run(b.text, { size: 8.5 }) })];
