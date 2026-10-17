@@ -11,6 +11,10 @@ import type { ImagenDocumento } from "./imagen";
 export type Block =
   | { kind: "title"; text: string; bold?: boolean; size?: number }
   | { kind: "pagebreak" }
+  /** Barra azul de hoja de cálculo («01 / PRECIO Y DIFERENCIA»), con un dato opcional a la derecha. */
+  | { kind: "bar"; text: string; right?: string; big?: boolean }
+  /** Renglones de hoja: etiqueta sin fondo y valor sobre gris claro; w = ancho relativo (12 por renglón). */
+  | { kind: "sheet"; rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>> }
   /** Formulario de preguntas (02, 12, 13…): sección «01 / …» y renglones de celdas con la pregunta arriba y la respuesta debajo; w = ancho relativo. */
   | { kind: "form"; label?: string; rows: Array<Array<{ q: string; a: string; w: number }>> }
   | { kind: "subtitle"; text: string }
@@ -28,7 +32,7 @@ export type Block =
   /** Banda de datos: celdas con etiqueta en mayúsculas y su valor debajo. */
   | { kind: "band"; widths: number[]; rows: Array<Array<{ label: string; value: string }>> }
   /** Tabla con encabezado azul (opcional) y filas alternadas. Cada celda puede tener varias líneas. */
-  | { kind: "table"; widths: number[]; header?: string[]; rows: string[][] }
+  | { kind: "table"; widths: number[]; header?: string[]; rows: string[][]; small?: boolean }
   /** Estilo contrato: título centrado en negritas, cláusula con encabezado en negritas, tabla etiqueta/valor y firmas. */
   | { kind: "center"; text: string }
   | { kind: "clause"; lead: string; text: string }

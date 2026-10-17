@@ -20,9 +20,9 @@ const TWIP_WIDTH = 10224;
 const run = (text: string, opts: { size: number; color?: string; bold?: boolean }) =>
   text.split("\n").map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: FONT, size: opts.size * 2, color: opts.color ?? INK, bold: opts.bold ?? false }));
 
-function table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false) {
+function table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false, small = false) {
   const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => Math.round(w / total * TWIP_WIDTH));
-  const size = labels ? BODY : 9.5;
+  const size = labels ? BODY : small ? 7.5 : 9.5;
   const cell = (text: string, i: number, fill: string, color: string, bold: boolean) => new TableCell({
     width: { size: cols[i], type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill },
     margins: { top: labels ? 30 : 75, bottom: labels ? 30 : 75, left: 75, right: 75 },
@@ -85,8 +85,29 @@ function image(label: string, img: import("./imagen").ImagenDocumento | undefine
   });
 }
 
+function bar(text: string, right: string | undefined, big: boolean) {
+  const left = right !== undefined ? Math.round(TWIP_WIDTH * 8 / 12) : TWIP_WIDTH;
+  const cells = [new TableCell({ width: { size: left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.navy }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ children: run(text.toUpperCase(), { size: big ? 13 : 9.5, bold: true, color: COLORS.white }) })] })];
+  if (right !== undefined) cells.push(new TableCell({ width: { size: TWIP_WIDTH - left, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.band2 }, margins: { top: 60, bottom: 60, left: 100, right: 100 }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: run(right, { size: big ? 15 : 10, bold: big }) })] }));
+  return new Table({ width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: cells.length === 2 ? [left, TWIP_WIDTH - left] : [TWIP_WIDTH], layout: TableLayoutType.FIXED, borders, rows: [new TableRow({ children: cells })] });
+}
+function sheet(rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>>) {
+  const unit = TWIP_WIDTH / 12, white = { style: BorderStyle.SINGLE, size: 8, color: COLORS.white };
+  return new Table({
+    width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: Array(12).fill(Math.floor(unit)), layout: TableLayoutType.FIXED,
+    borders: { top: white, bottom: white, left: white, right: white, insideHorizontal: white, insideVertical: white },
+    rows: rows.map(row => new TableRow({ cantSplit: true, children: row.map(c => new TableCell({
+      columnSpan: c.w, width: { size: Math.round(c.w * unit), type: WidthType.DXA }, margins: { top: 50, bottom: 50, left: 80, right: 80 },
+      ...(c.label === undefined ? { shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.band2 } } : {}),
+      children: [new Paragraph({ children: run((c.label ?? c.value) ?? "", { size: c.big ? 14 : c.label !== undefined ? 9 : 10, bold: c.label !== undefined || !!c.strong || !!c.big }) })],
+    })) })),
+  });
+}
+
 function block(b: Block): Array<Paragraph | Table> {
   switch (b.kind) {
+    case "bar": return [new Paragraph({ spacing: { before: 80 }, children: [] }), bar(b.text, b.right, !!b.big)];
+    case "sheet": return [sheet(b.rows)];
     case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "pagebreak": return [new Paragraph({ children: [new PageBreak()] })];
@@ -107,7 +128,7 @@ function block(b: Block): Array<Paragraph | Table> {
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: run(p.name, { size: BODY }) }),
     ] })) })] })];
     case "band": return [table(b.widths, undefined, b.rows.map(row => row.map(c => `${c.label.toUpperCase()}\n${c.value}`)), true), new Paragraph({ spacing: { after: 80 }, children: [] })];
-    case "table": return [table(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 80 }, children: [] })];
+    case "table": return [table(b.widths, b.header, b.rows, false, false, false, !!b.small), new Paragraph({ spacing: { after: 80 }, children: [] })];
   }
 }
 

@@ -12,6 +12,8 @@ import { levantamientoDocumento } from "@/lib/formatos/documento/levantamiento";
 import { imageInfo } from "@/lib/formatos/documento/imagen";
 import { revisionJuridicaDocumento } from "@/lib/formatos/documento/revision-juridica";
 import { opinionJuridicaDocumento } from "@/lib/formatos/documento/opinion-juridica";
+import { netoDocumento } from "@/lib/formatos/documento/neto";
+import { valorDocumento } from "@/lib/formatos/documento/valor";
 import { documentoDocx } from "@/lib/formatos/documento/docx";
 import { renderDocumentoPdf } from "@/lib/formatos/documento/pdf";
 import { INTERMEDIACION_CLAUSES } from "@/lib/formatos/intermediacion-text";
@@ -81,6 +83,21 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(opinion.blocks.filter(b => b.kind === "numbered").map(b => b.kind === "numbered" && b.num)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
     expect(opinion.blocks.filter(b => b.kind === "p" && b.strong).map(b => b.kind === "p" && b.text)).toEqual(["Factible con condiciones.", "Actualizar el certificado."]);
     expect(opinion.blocks.at(-1)).toEqual({ kind: "signatures", parties: [{ role: "Abogado responsable", name: "Lic. Ana Torres\nCédula profesional 1234567" }] });
+  });
+  it("el 08 sigue las barras de su hoja y no inventa el neto si la estimación está incompleta", () => {
+    const incompleto = netoDocumento({ folio: "EXP-1", precioSugerido07: 4500000 });
+    const bars = incompleto.blocks.filter(b => b.kind === "bar").map(b => b.kind === "bar" && b.text);
+    expect(bars).toEqual(["08  /  Venta  /  Importes en MXN", "01  /  Precio y diferencia", "02  /  Erogaciones a cargo del propietario", "03  /  Lo que se estima recibirá el propietario", "Neto estimado"]);
+    expect(incompleto.blocks.find(b => b.kind === "bar" && b.text === "Neto estimado")).toMatchObject({ right: "" });
+    const tabla = incompleto.blocks.find(b => b.kind === "table");
+    expect(tabla?.kind === "table" && tabla.rows).toHaveLength(11);
+  });
+  it("el 07 conserva sus diez secciones y marca los enfoques sin peso como no aplicados", () => {
+    const doc = valorDocumento({ folio: "QA-07", pesoMercado: 100, pesoIngresos: 0, pesoFisico: 0, baseMercado: "construccion" });
+    const secciones = doc.blocks.filter(b => b.kind === "bar" && b.big && /^\d+\./.test(b.text)).map(b => b.kind === "bar" && b.text.split(".")[0]);
+    expect(secciones).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
+    expect(doc.blocks.filter(b => b.kind === "note" && b.text.startsWith("Enfoque no aplicado"))).toHaveLength(3);
+    expect(doc.blocks.find(b => b.kind === "bar" && b.text === "Valor comercial concluido")).toMatchObject({ right: "Pendiente" });
   });
   it("lee tipo y tamaño de las imágenes PNG y JPEG", () => {
     const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 3, 0xe8, 0, 0, 1, 0xf4, 8]);

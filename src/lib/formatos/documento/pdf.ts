@@ -161,6 +161,43 @@ class Writer {
     for (const row of rows) draw(row, this.fonts.regular);
     this.y -= 6;
   }
+  /** Barra azul marino de hoja de cálculo con texto en mayúsculas y, si hay, un dato a la derecha sobre gris. */
+  bar(text: string, right?: string, big = false) {
+    const height = big ? 26 : 18, size = big ? 13 : 9.5;
+    this.ensure(height + 40);
+    this.y -= 4;
+    const split = right !== undefined ? WIDTH * 8 / 12 : WIDTH;
+    this.page.drawRectangle({ x: LEFT, y: this.y - height, width: split, height, color: NAVY });
+    this.page.drawText(text.toUpperCase(), { x: LEFT + 6, y: this.y - height / 2 - size / 2 + 1.5, size, font: this.fonts.bold, color: WHITE });
+    if (right !== undefined) {
+      this.page.drawRectangle({ x: LEFT + split, y: this.y - height, width: WIDTH - split, height, color: hex(COLORS.band2) });
+      const rsize = big ? 15 : 10, w = this.fonts.bold.widthOfTextAtSize(right, rsize);
+      this.page.drawText(right, { x: LEFT + WIDTH - 6 - w, y: this.y - height / 2 - rsize / 2 + 1.5, size: rsize, font: big ? this.fonts.bold : this.fonts.regular, color: NAVY });
+    }
+    this.y -= height + 3;
+  }
+  /** Renglones de hoja de cálculo: etiquetas en negritas sin fondo y valores sobre gris claro. */
+  sheet(rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>>) {
+    const pad = 4;
+    for (const row of rows) {
+      const total = row.reduce((s, c) => s + c.w, 0) || 12;
+      const cells = row.map(c => {
+        const width = c.w / Math.max(total, 12) * WIDTH, isLabel = c.label !== undefined, size = c.big ? 14 : isLabel ? 9 : 10;
+        const font = isLabel || c.strong || c.big ? this.fonts.bold : this.fonts.regular;
+        return { ...c, width, size, font, lines: wrap((isLabel ? c.label : c.value) ?? "", font, size, width - pad * 2) };
+      });
+      const height = Math.max(18, ...cells.map(c => c.lines.length * c.size * 1.2 + pad * 2));
+      if (this.y - height < BOTTOM) this.newPage();
+      let x = LEFT;
+      for (const c of cells) {
+        if (c.label === undefined) this.page.drawRectangle({ x: x + 1, y: this.y - height + 1, width: c.width - 2, height: height - 2, color: hex(COLORS.band2) });
+        c.lines.forEach((line, n) => this.page.drawText(line, { x: x + pad, y: this.y - pad - c.size - n * c.size * 1.2 + 1, size: c.size, font: c.font, color: NAVY }));
+        x += c.width;
+      }
+      this.y -= height;
+    }
+    this.y -= 3;
+  }
   note(text: string) {
     const size = 8.5, leading = size * 1.25;
     for (const line of wrap(text, this.fonts.regular, size, WIDTH)) { this.ensure(leading); this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY }); this.y -= leading; }
@@ -189,9 +226,9 @@ class Writer {
     this.y -= after;
   }
   /** Tabla de ancho completo: celdas con relleno, texto en 9.5 pt y encabezado repetido al cambiar de página. */
-  table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false) {
+  table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false, small = false) {
     const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => w / total * WIDTH);
-    const CELL = this.style.cell, pad = 3.75, leading = CELL * (labels ? 1.12 : 1.25);
+    const CELL = small ? 7.5 : this.style.cell, pad = 3.75, leading = CELL * (labels ? 1.12 : 1.25);
     const layout = (cells: string[], font: PDFFont) => cells.map((cell, i) => wrap(cell, labels && i === 0 ? this.fonts.bold : font, CELL, cols[i] - pad * 2));
     const height = (lines: string[][]) => Math.max(...lines.map(l => l.length)) * leading + pad * 2 + (labels ? 3 : 7);
     const drawRow = (cells: string[][], fill: ReturnType<typeof rgb>, color: ReturnType<typeof rgb>, font: PDFFont, rowHeight: number) => {
@@ -228,6 +265,8 @@ class Writer {
   async render(block: Block) {
     switch (block.kind) {
       case "image": await this.image(block.label, block.image, block.height); break;
+      case "bar": this.bar(block.text, block.right, block.big); break;
+      case "sheet": this.sheet(block.rows); break;
       case "grid": this.grid(block.widths, block.header, block.rows); break;
       // Salto de página de la plantilla; si la página apenas empezó (solo arrastra una nota), se continúa en ella.
       case "pagebreak": if (this.y < PAGE[1] / 2) this.newPage(); break;
@@ -252,7 +291,7 @@ class Writer {
       case "caption": this.heading(block.text, 9.5, hex(COLORS.gray), -4, 8); break;
       case "signatures": this.signatures(block.parties); break;
       case "band": this.table(block.widths, undefined, block.rows.map(row => row.map(cell => `${cell.label.toUpperCase()}\n${cell.value}`)), true); break;
-      case "table": this.table(block.widths, block.header, block.rows); break;
+      case "table": this.table(block.widths, block.header, block.rows, false, false, false, !!block.small); break;
     }
   }
 }

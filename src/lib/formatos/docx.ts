@@ -87,8 +87,8 @@ export async function formatoDocxBlob(definition: FormatoDefinition, values: Rec
     const [logo, pie, regular] = await Promise.all([bytes("/brand/fortius-logo.png"), bytes("/brand/pie-documento.png"), bytes("/fonts/Archivo-Regular.ttf")]);
     // Foto principal y croquis elegidos en el borrador (levantamientos); si no se pueden leer, queda el recuadro.
     const imagenes: Record<string, ImagenDocumento> = {};
-    for (const key of ["fotoPrincipalId", "croquisId"]) {
-      const assetId = values[key];
+    const ids = [values.fotoPrincipalId, values.croquisId, ...(Array.isArray(values.fotografias) ? values.fotografias.map(row => (row as Record<string, unknown>)?.assetId) : [])];
+    for (const assetId of ids) {
       if (typeof assetId !== "string" || !assetId) continue;
       const image = await bytes(`/api/admin/adjuntos/${encodeURIComponent(assetId)}/descargar`).then(data => imagen(data)).catch(() => undefined);
       if (image) imagenes[assetId] = image;
