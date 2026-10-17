@@ -11,6 +11,7 @@ import { compradorDocumento, visitaDocumento } from "./comprador";
 import { cierreDocumento, entregaDocumento, reciboDocumento } from "./cierre";
 import { reporteDocumento } from "./reporte";
 import { ofertaDocumento, promesaDocumento } from "./oferta-promesa";
+import { presupuestoDocumento } from "./presupuesto";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 
 /*
@@ -34,5 +35,6 @@ export const DOCUMENTOS: Partial<Record<string, (data: Record<string, unknown>, 
   "16": entregaDocumento,
   "17": cierreDocumento,
   "18": reciboDocumento,
+  "19": presupuestoDocumento,
 };
 export const hasDocumento = (id: string) => !!DOCUMENTOS[id];

@@ -10,7 +10,7 @@ import type { ImagenDocumento } from "./imagen";
 
 export type Block =
   | { kind: "title"; text: string; bold?: boolean; size?: number }
-  | { kind: "pagebreak" }
+  | { kind: "pagebreak"; force?: boolean }
   /** Barra azul de hoja de cálculo («01 / PRECIO Y DIFERENCIA»), con un dato opcional a la derecha. */
   | { kind: "bar"; text: string; right?: string; big?: boolean; raw?: boolean; center?: boolean }
   /** Texto alineado a la derecha (lugar y fecha de una carta). */

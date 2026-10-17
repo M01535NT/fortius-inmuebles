@@ -3,12 +3,14 @@ import { drawFortiusLetterhead } from "../pdf-letterhead";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage } from "pdf-lib";
 import { decisionesRepresentante } from "./aviso";
 
 const navy = rgb(6 / 255, 31 / 255, 63 / 255);
 const green = rgb(239 / 255, 244 / 255, 239 / 255);
-const cream = rgb(1, 240 / 255, 209 / 255);
+// Recuadro de contacto gris claro y cuerpo en Times, como la plantilla vigente (09/10/2026).
+const cream = rgb(242 / 255, 245 / 255, 248 / 255);
+const wine = rgb(138 / 255, 22 / 255, 52 / 255);
 const white = rgb(1, 1, 1);
 const left = 50.5;
 const width = 511;
@@ -28,9 +30,10 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
     readFile(join(process.cwd(), "public/fonts/IBMPlexMono-Medium.ttf")),
     readFile(join(process.cwd(), "public/brand/fortius-logo.png")),
   ]);
-  const regular = await pdf.embedFont(regularBytes, { subset: true });
+  void regularBytes;
+  const regular = await pdf.embedFont(StandardFonts.TimesRoman);
   const bold = await pdf.embedFont(boldBytes, { subset: true });
-  const mono = await pdf.embedFont(monoBytes, { subset: true });
+  void monoBytes;
   const logo = await pdf.embedPng(logoBytes);
   let page: PDFPage;
   let top = 87;
@@ -40,7 +43,6 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   function newPage() {
     page = pdf.addPage(pageSize);
     if (!options.publicTemplate) page.drawImage(logo, { x: 64.85, y: 712.5, width: 188.65, height: 47.95 });
-    if (!options.publicTemplate) page.drawText("01 / PRIVACIDAD", { x: 484.35, y: 733.45, font: mono, size: 8, color: rgb(89 / 255, 99 / 255, 91 / 255) });
     top = 87;
   }
   function line(text: string, at: number, size = 10.5, font = regular, x = left, color = navy) {
@@ -93,9 +95,10 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
     });
     top += gap;
   }
+  /** Títulos y secciones alineados a la izquierda, como la plantilla vigente. */
   function centered(text: string, at: number, size: number, font = bold) {
     text = text.replace(/^([0-9]{2}|[A-D]) \/ /, "$1  /  ");
-    line(text, at, size, font, (612 - font.widthOfTextAtSize(text, size)) / 2);
+    line(text, at, size, font, left);
   }
   function title(first: string, second?: string) {
     centered(first, top, 20);
@@ -187,8 +190,8 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   }
 
   newPage();
-  line("Aviso de", 98.07, 32, bold, 241.75);
-  line("privacidad", 132.87, 32, bold, 227.8);
+  line("Aviso de", 98.07, 32, bold, left);
+  line("privacidad", 132.87, 32, bold, left);
   line("Propietarios · compradores · arrendatarios", 171.755, 10.5, regular, left, rgb(89 / 255, 99 / 255, 91 / 255));
   top = 195.455;
   box("RESPONSABLE Y CONTACTO", [
@@ -198,7 +201,12 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
     ...(options.publicTemplate ? ["Sitio web: https://fortiusinmuebles.com"] : []),
   ], cream);
   top -= 1.055;
-  if (!options.publicTemplate) paragraph(value("representante") ? `Para ${value("representante")}, ${value("calidadRepresentante") || "representante"} de ${value("titular")}` : `Para ${value("titular")}`, { size: 10, leading: 11.55, gap: 4.855, justify: false });
+  if (!options.publicTemplate) paragraph([
+    `Titular: ${value("titular")}`,
+    `Representante, si aplica: ${value("representante") ? `${value("representante")}, ${value("calidadRepresentante") || "representante"}` : "no aplica"}`,
+    `Operación e inmueble: ${value("operacion")}`,
+    `Folio del expediente: ${value("folio")}`,
+  ].join("\n"), { size: 10, leading: 11.55, gap: 4.855, justify: false });
   paragraph("La persona identificada arriba, que opera bajo el nombre comercial Fortius Inmuebles, es responsable del tratamiento de sus datos. Este aviso explica qué información utiliza, para qué la necesita y cómo puede usted decidir sobre ella. La marca comercial no sustituye la identidad del responsable.");
   section("01 / A quién se dirige y cómo obtenemos los datos");
   paragraph("Se dirige a quienes solicitan o reciben servicios de intermediación, valoración comercial o administración inmobiliaria, y a sus representantes, copropietarios y obligados solidarios. Recibimos información en entrevistas, visitas, documentos, llamadas, correo y mensajería; también de representantes autorizados, contrapartes de una operación y registros públicos consultados legítimamente. La información de terceros no autoriza usos ajenos a este aviso.");
@@ -298,7 +306,13 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   if (value("representante")) decisions(true);
   for (const [index, item] of pdf.getPages().entries()) {
     if (options.publicTemplate) drawFortiusLetterhead(item, logo, regular, bold, index + 1, pdf.getPageCount());
-    else item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: 63.65, y: 25.3, size: 10.5, font: regular, color: navy });
+    else {
+      // Franja de marca del pie (formas de la plantilla) y número de página.
+      item.drawRectangle({ x: 0, y: 0, width: 612, height: 19, color: navy });
+      item.drawSvgPath("M 40.95 0 L 117 0 L 117 31 L 0 31 Z", { x: 495, y: 40, color: navy });
+      item.drawSvgPath("M 35.52 0 L 148 0 L 113.96 13 L 0 13 Z", { x: 370, y: 32, color: wine });
+      item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: 63.65, y: 25.3, size: 10.5, font: regular, color: navy });
+    }
   }
   return pdf.save();
 }

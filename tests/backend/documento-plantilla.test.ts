@@ -14,6 +14,10 @@ import { revisionJuridicaDocumento } from "@/lib/formatos/documento/revision-jur
 import { opinionJuridicaDocumento } from "@/lib/formatos/documento/opinion-juridica";
 import { netoDocumento } from "@/lib/formatos/documento/neto";
 import { valorDocumento } from "@/lib/formatos/documento/valor";
+import { DOCUMENTOS } from "@/lib/formatos/documento";
+import { compradorDocumento } from "@/lib/formatos/documento/comprador";
+import { promesaDocumento } from "@/lib/formatos/documento/oferta-promesa";
+import { PROMESA_ORIGINAL } from "@/lib/formatos/promesa-text";
 import { documentoDocx } from "@/lib/formatos/documento/docx";
 import { renderDocumentoPdf } from "@/lib/formatos/documento/pdf";
 import { INTERMEDIACION_CLAUSES } from "@/lib/formatos/intermediacion-text";
@@ -98,6 +102,21 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(secciones).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
     expect(doc.blocks.filter(b => b.kind === "note" && b.text.startsWith("Enfoque no aplicado"))).toHaveLength(3);
     expect(doc.blocks.find(b => b.kind === "bar" && b.text === "Valor comercial concluido")).toMatchObject({ right: "Pendiente" });
+  });
+  it("todos los formatos con plantilla, salvo el aviso, se arman sin datos y en Word", async () => {
+    expect(Object.keys(DOCUMENTOS).sort()).toEqual(["02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);
+    for (const [id, build] of Object.entries(DOCUMENTOS)) {
+      const doc = build!({});
+      expect(doc.blocks.length, id).toBeGreaterThan(3);
+      expect((await Packer.toBuffer(documentoDocx(doc, docxAssets))).subarray(0, 2).toString(), id).toBe("PK");
+    }
+  });
+  it("el 12 marca la opción capturada y la promesa conserva sus 26 cláusulas aun incompleta", () => {
+    const perfil = compradorDocumento({ tipoInmueble: "casa" });
+    expect(perfil.blocks.find(b => b.kind === "checks" && b.q === "¿Qué tipo de inmueble busca?")).toMatchObject({ selected: "casa" });
+    const promesa = promesaDocumento({});
+    expect(promesa.blocks.filter(b => b.kind === "h3")).toHaveLength(PROMESA_ORIGINAL.filter(p => /^\d{2}\s/.test(p)).length);
+    expect(JSON.stringify(promesa.blocks)).not.toMatch(/\[[A-ZÁÉÍÓÚÑ]/);
   });
   it("lee tipo y tamaño de las imágenes PNG y JPEG", () => {
     const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 3, 0xe8, 0, 0, 1, 0xf4, 8]);

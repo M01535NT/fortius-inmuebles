@@ -304,7 +304,7 @@ class Writer {
       case "sheet": this.sheet(block.rows); break;
       case "grid": this.grid(block.widths, block.header, block.rows); break;
       // Salto de página de la plantilla; si la página apenas empezó (solo arrastra una nota), se continúa en ella.
-      case "pagebreak": if (this.y < PAGE[1] / 2) this.newPage(); break;
+      case "pagebreak": if (block.force ? this.y < PAGE[1] - TOP - 1 : this.y < PAGE[1] / 2) this.newPage(); break;
       case "title": if (block.bold) { const size = block.size ?? 22; this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; this.page.drawText(block.text, { x: LEFT, y: this.y - size, size, font: this.fonts.bold, color: NAVY }); this.y -= size + 8; } else this.heading(block.text, 27, NAVY, 0, 8); break;
       case "form": this.form(block.label, block.rows, block.filled); break;
       case "subtitle": this.centered(block.text, 12, 10, 2); break;
