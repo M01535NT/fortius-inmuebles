@@ -1,0 +1,85 @@
+import {
+  AlignmentType, BorderStyle, Document, Footer, Header, HorizontalPositionRelativeFrom, ImageRun, Packer, PageNumber,
+  Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TextRun, VerticalPositionRelativeFrom, WidthType,
+} from "docx";
+import { COLORS, type Block, type Documento } from "./modelo";
+
+/*
+  Word con el diseño de las plantillas: carta, márgenes 1008/1512/1080, logotipo en el
+  encabezado, títulos azul marino, subtítulos verdes, tablas con encabezado azul y franja
+  de marca en el pie (imagen). Las fuentes Archivo se incrustan cuando se pueden leer.
+*/
+
+export type DocumentoDocxAssets = { logo: Uint8Array; logoSize: { width: number; height: number }; pie: Uint8Array; regular?: Uint8Array; bold?: Uint8Array };
+
+let FONT = "Archivo", INK: string = COLORS.navy, BODY = 11;
+const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+const borders = { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none };
+const TWIP_WIDTH = 10224;
+
+const run = (text: string, opts: { size: number; color?: string; bold?: boolean }) =>
+  text.split("\n").map((line, i) => new TextRun({ text: line, break: i > 0 ? 1 : undefined, font: FONT, size: opts.size * 2, color: opts.color ?? INK, bold: opts.bold ?? false }));
+
+function table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false) {
+  const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => Math.round(w / total * TWIP_WIDTH));
+  const size = labels ? BODY : 9.5;
+  const cell = (text: string, i: number, fill: string, color: string, bold: boolean) => new TableCell({
+    width: { size: cols[i], type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, color: "auto", fill },
+    margins: { top: labels ? 30 : 75, bottom: labels ? 30 : 75, left: 75, right: 75 },
+    children: [new Paragraph({ alignment: labels && i > 0 ? AlignmentType.JUSTIFIED : undefined, spacing: { before: labels ? 0 : 60, after: labels ? 20 : 80 }, children: run(text, { size, color, bold }) })],
+  });
+  const fills = [COLORS.band2, COLORS.band1];
+  return new Table({
+    width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: cols, layout: TableLayoutType.FIXED, borders,
+    rows: [
+      ...(header ? [new TableRow({ tableHeader: true, cantSplit: true, children: header.map((h, i) => cell(h, i, COLORS.navy, COLORS.white, true)) })] : []),
+      ...rows.map((row, index) => new TableRow({ cantSplit: true, children: row.map((c, i) => labels ? cell(c, i, i === 0 ? COLORS.band2 : COLORS.band3, INK, i === 0) : cell(c, i, fills[(band ? index + 1 : index) % 2], INK, false)) })),
+    ],
+  });
+}
+
+function block(b: Block): Array<Paragraph | Table> {
+  switch (b.kind) {
+    case "title": return [new Paragraph({ spacing: { after: 160 }, children: run(b.text, { size: 27 }) })];
+    case "h1": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 120 }, children: run(b.text, { size: 21 }) })];
+    case "h2": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: run(b.text, { size: 13, color: COLORS.green }) })];
+    case "p": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: BODY === 11 ? 120 : 140 }, children: run(b.text, { size: BODY }) })];
+    case "clause": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 140, line: 250 }, children: [...run(`${b.lead} `, { size: BODY, bold: true }), ...run(b.text, { size: BODY })] })];
+    case "center": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 80, after: 120 }, children: run(b.text, { size: BODY, bold: true }) })];
+    case "fields": return [table(b.widths, undefined, b.rows, false, true), new Paragraph({ spacing: { after: 60 }, children: [] })];
+    case "signatures": return [new Table({ width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: b.parties.map(() => Math.round(TWIP_WIDTH / b.parties.length)), layout: TableLayoutType.FIXED, borders, rows: [new TableRow({ cantSplit: true, children: b.parties.map(p => new TableCell({ width: { size: Math.round(TWIP_WIDTH / b.parties.length), type: WidthType.DXA }, children: [
+      new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 720, after: 60 }, children: run(p.role, { size: BODY, bold: true }) }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: run(p.name, { size: BODY }) }),
+    ] })) })] })];
+    case "band": return [table(b.widths, undefined, b.rows.map(row => row.map(c => `${c.label.toUpperCase()}\n${c.value}`)), true), new Paragraph({ spacing: { after: 80 }, children: [] })];
+    case "table": return [table(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 80 }, children: [] })];
+  }
+}
+
+export function documentoDocx(doc: Documento, assets: DocumentoDocxAssets): Document {
+  const contrato = doc.estilo === "contrato";
+  FONT = contrato ? "Times New Roman" : "Archivo"; INK = contrato ? COLORS.black : COLORS.navy; BODY = contrato ? 10.5 : 11;
+  const logoWidth = 240, logoHeight = Math.round(logoWidth * assets.logoSize.height / assets.logoSize.width);
+  const header = () => new Header({ children: [new Paragraph({ children: [new ImageRun({ type: "png", data: assets.logo, transformation: { width: logoWidth, height: logoHeight } })] })] });
+  const footer = () => new Footer({ children: [new Paragraph({ children: [
+    new TextRun({ children: [PageNumber.CURRENT, " / ", PageNumber.TOTAL_PAGES], font: FONT, size: 18, color: COLORS.navy }),
+    new ImageRun({ type: "png", data: assets.pie, transformation: { width: 816, height: 53 }, floating: {
+      horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: 0 },
+      verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 752 * 12700 }, behindDocument: true, allowOverlap: true,
+    } }),
+  ] })] });
+  const fonts = !contrato && assets.regular ? [{ name: FONT, data: assets.regular as unknown as Buffer }] : undefined;
+  return new Document({
+    creator: "Fortius Inmuebles", title: doc.title, subject: doc.subject, ...(fonts ? { fonts } : {}),
+    styles: { default: { document: { run: { font: FONT, color: INK, size: BODY * 2 } } } },
+    sections: [{
+      properties: { titlePage: false, page: { size: { width: 12240, height: 15840 }, margin: { top: 1512, right: 1008, bottom: 1080, left: 1008, header: 331, footer: 691 } } },
+      headers: { default: header() }, footers: { default: footer() },
+      children: doc.blocks.flatMap(block),
+    }],
+  });
+}
+
+export async function documentoDocxBlob(doc: Documento, assets: DocumentoDocxAssets): Promise<Blob> {
+  return Packer.toBlob(documentoDocx(doc, assets));
+}

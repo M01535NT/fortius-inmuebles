@@ -1,6 +1,8 @@
 import { AlignmentType, BorderStyle, Document, HeadingLevel, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
 import type { FormatoDefinition, FormatoField } from "./catalog";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista } from "./entrevista";
+import { DOCUMENTOS } from "./documento";
+import { documentoDocxBlob } from "./documento/docx";
 
 /*
   Copia editable en Word de un formato capturado (decisión del titular, 16/10/2026).
@@ -71,6 +73,18 @@ export function formatoDocument(definition: FormatoDefinition, values: Record<st
   return new Document({ creator: "Fortius Inmuebles", title: `${definition.id} · ${definition.title}`, styles: { default: { document: { run: { font: "Calibri" } } } }, sections: [{ children }] });
 }
 
+async function bytes(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`No se pudo preparar el Word (${url})`);
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+/** Word del formato: con el diseño de su plantilla si ya está reproducido; si no, la copia genérica. */
 export async function formatoDocxBlob(definition: FormatoDefinition, values: Record<string, unknown>, context: { folio: string; cliente?: string }): Promise<Blob> {
+  const documento = DOCUMENTOS[definition.id];
+  if (documento) {
+    const [logo, pie, regular] = await Promise.all([bytes("/brand/fortius-logo.png"), bytes("/brand/pie-documento.png"), bytes("/fonts/Archivo-Regular.ttf")]);
+    return documentoDocxBlob(documento(values), { logo, logoSize: { width: 2550, height: 648 }, pie, regular });
+  }
   return Packer.toBlob(formatoDocument(definition, values, context));
 }

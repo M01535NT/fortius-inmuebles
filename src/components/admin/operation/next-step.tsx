@@ -69,7 +69,7 @@ export function NextStepTab({ op, today, evidence, interview, initial, cliente, 
     else if (item.requirement) { const el = document.getElementById(`req-${item.requirement}`); el?.scrollIntoView({ block: "center" }); el?.focus({ preventScroll: true }); }
   }
   const items = currentRequirements(op, today);
-  const intake = !!phase && ["prospecto", "captacion", "levantamiento", "documentos", "dictamen", "verificacion"].includes(phase);
+  const intake = !!phase && ["prospecto", "captacion", "levantamiento", "documentos", "dictamen", "verificacion", "contrato"].includes(phase);
   return <div className={s.layout}>
     <div className="flex min-w-0 flex-col gap-5">
       <Card className="flex flex-col gap-5 p-5 sm:p-7" aria-label="Lo que sigue">

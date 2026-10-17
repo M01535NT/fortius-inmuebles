@@ -135,6 +135,7 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
           {last && <div className="flex flex-col gap-3 rounded-[12px] border border-border p-4">
             <p className="font-semibold">{missing.length ? `Para generar el PDF faltan ${missing.length} ${missing.length === 1 ? "respuesta" : "respuestas"}:` : "Captura completa. Ya puedes generar el PDF."}</p>
             {missing.length > 0 && <p className="text-sm text-muted-foreground">{missing.slice(0, 12).join(" · ")}{missing.length > 12 ? ` y ${missing.length - 12} más` : ""}</p>}
+            {!definition.readyForEmission && <p className="text-sm text-muted-foreground">El PDF de este formato sigue bloqueado hasta cotejar el modelo registrado. Usa «Descargar Word».</p>}
             {current && <p className="text-sm">Ya hay un PDF de esta versión. <a className="font-semibold underline" href={`/api/admin/emisiones/${current.id}/descargar`}>Descargarlo otra vez</a></p>}
           </div>}
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

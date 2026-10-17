@@ -21,6 +21,8 @@ import { calcularValor, calcularConstruccion, valorAssetIds, type ValorRow } fro
 import { VALOR_TABLES, mostrarCampoValor } from "./valor-fields";
 import { promesaParagraphs } from "./promesa";
 import { formatAmount } from "@/lib/finance/money";
+import { DOCUMENTOS } from "./documento";
+import { renderDocumentoPdf } from "./documento/pdf";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -64,6 +66,16 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   if (id === "01") return createAvisoPdf(data);
+  // Formatos con el diseño de su plantilla (carta, banda de datos y tablas de marca).
+  const documento = DOCUMENTOS[id];
+  if (documento) {
+    const [regular, bold, logo] = await Promise.all([
+      readFile(join(process.cwd(), "public/fonts/Archivo-Regular.ttf")),
+      readFile(join(process.cwd(), "public/fonts/Archivo-SemiBold.ttf")),
+      readFile(join(process.cwd(), "public/brand/fortius-logo.png")),
+    ]);
+    return renderDocumentoPdf(documento(data), { regular, bold, logo });
+  }
   if (isLevantamiento(id) && (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto") || !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis"))) throw new Error("Faltan la fotografía principal y el croquis autorizados del borrador");
   if (id === "07" && valorAssetIds(data).some((assetId) => !assets.some((asset) => asset.id === assetId && asset.kind === (assetId === data.croquisId ? "croquis" : "foto") && (asset.kind !== "foto" || asset.observed_on && asset.observed_on <= String(data.fechaEmision))))) throw new Error("Faltan imágenes autorizadas y fotografías fechadas del borrador");
   const pdf = await PDFDocument.create();

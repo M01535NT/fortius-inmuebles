@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ArrowRight, CheckCircle2, Circle, ClipboardList, FileDown, FileText, Home, Landmark, PlayCircle, Scale, ShieldCheck, Trash2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, ClipboardList, FileDown, FileSignature, FileText, Home, Landmark, Megaphone, PlayCircle, Scale, ShieldCheck, Trash2 } from "lucide-react";
 import { Button, ButtonLink, Notice } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { db, errorMessage, fetchJson as json, upsert } from "@/lib/admin/store";
@@ -20,12 +20,12 @@ import s from "./operation.module.css";
 /*
   Etapas del propietario antes de verificación (decisión del titular, 16/10/2026):
   Prospecto → Entrevista inicial (02) → Levantamiento (04A–04G) → Checklist de documentos
-  → Dictamen jurídico (05/06) → Opinión de valor (07) y neto (08).
+  → Dictamen jurídico (05/06) → Opinión de valor (07) y neto (08) → Contrato (09) y plan (10).
   Cada etapa tiene su botón «Iniciar …»; la captura se hace por secciones y al terminar
   se descarga el PDF y una copia en Word.
 */
 
-export type IntakePhase = "prospecto" | "captacion" | "levantamiento" | "documentos" | "dictamen" | "verificacion";
+export type IntakePhase = "prospecto" | "captacion" | "levantamiento" | "documentos" | "dictamen" | "verificacion" | "contrato";
 const post = (body: unknown) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 const latest = (documents: Documento[], match: (formato: string) => boolean) => documents.filter(d => match(d.formato_id)).sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
 export const latestInterview = (documents: Documento[]) => latest(documents, f => f === "02");
@@ -43,6 +43,8 @@ function saveBlob(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
+type FormatId = "05" | "06" | "07" | "08" | "09" | "10";
+
 export function InitialInterviewCard({ op, phase, cliente, interview, documents, emissions, checklist, onDocumentsChange, onEmitted, onOpenDocument, disabled }: {
   op: OperationRecord; phase: IntakePhase; cliente?: string; interview: OperationalInterview | null;
   documents: Documento[]; emissions: Record<string, Emision[]>; checklist?: Task; disabled: boolean;
@@ -53,6 +55,7 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
   const entrevista = latestInterview(documents), levantamiento = latestSurvey(documents), aviso = latest(documents, f => f === "01");
   const pdfOf = (doc?: Documento) => doc ? emissions[doc.id]?.find(e => e.draft_version === doc.version) : undefined;
   const revision = latest(documents, f => f === "05"), dictamen = latest(documents, f => f === "06"), valor = latest(documents, f => f === "07"), neto = latest(documents, f => f === "08");
+  const contrato = latest(documents, f => f === "09"), plan = latest(documents, f => f === "10");
   const pdf02 = pdfOf(entrevista), pdf04 = pdfOf(levantamiento);
   const a = interview?.respuestas ?? {};
   const answers02 = (entrevista?.data ?? {}) as Record<string, unknown>;
@@ -74,8 +77,8 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
   }
   async function startInterview() { const doc = entrevista ?? await create("02"); if (doc) setOpen(doc); }
   async function startSurvey() { const doc = levantamiento ?? await create(surveyType); if (doc) setOpen(doc); }
-  async function startFormat(formatoId: "05" | "06" | "07" | "08") {
-    const existing = { "05": revision, "06": dictamen, "07": valor, "08": neto }[formatoId];
+  async function startFormat(formatoId: FormatId) {
+    const existing = { "05": revision, "06": dictamen, "07": valor, "08": neto, "09": contrato, "10": plan }[formatoId];
     const seed = formatoId === "05" ? { data: { documentos: juridicaDocumentsFrom(checklist) } }
       : formatoId === "08" ? { data: { erogaciones: CARGOS_NETO.map(item => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) }, ...(valor && pdfOf(valor) ? { valorReferencia: { id: valor.id, version: valor.version } } : {}) } : {};
     const doc = existing ?? await create(formatoId, seed);
@@ -88,10 +91,10 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
       saveBlob(await formatoDocxBlob(formatoById(doc.formato_id), { ...doc.data, folio: op.folio }, { folio: op.folio, cliente }), `Fortius-${doc.formato_id}-${op.folio}-v${doc.version}.docx`);
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
-  function formatRow(formatoId: "05" | "06" | "07" | "08", doc: Documento | undefined, icon: React.ReactNode, detail: string, primary = true) {
-    const pdf = pdfOf(doc);
+  function formatRow(formatoId: FormatId, doc: Documento | undefined, icon: React.ReactNode, detail: string, primary = true) {
+    const pdf = pdfOf(doc), blocked = !formatoById(formatoId).readyForEmission;
     return <Step done={!!pdf} icon={icon} title={`${formatoId} · ${formatoById(formatoId).title}`}
-      detail={!doc ? detail : pdf ? `Terminado · PDF de la versión ${doc.version}` : `En captura · versión ${doc.version} · actualizado el ${shortDate(doc.updated_at)}`}>
+      detail={!doc ? detail : pdf ? `Terminado · PDF de la versión ${doc.version}` : `En captura · versión ${doc.version} · actualizado el ${shortDate(doc.updated_at)}${blocked ? ". Su PDF sigue bloqueado: descarga el Word." : ""}`}>
       <Button variant={pdf || !primary ? "secondary" : "primary"} disabled={lock} onClick={() => void startFormat(formatoId)}><PlayCircle size={16} aria-hidden="true" />{!doc ? "Iniciar" : pdf ? "Abrir" : "Continuar"}</Button>
       {pdf && <ButtonLink prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
       {doc && <Button variant="ghost" disabled={lock} onClick={() => void word(doc)}><FileText size={16} aria-hidden="true" />Word</Button>}
@@ -205,6 +208,17 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
       {formatRow("08", neto, <Landmark size={18} aria-hidden="true" />, "Cuánto le quedaría al propietario después de gastos e impuestos. Toma el valor del 07 si ya tiene PDF.", !!pdfOf(valor))}
     </ul>
     <Notice tone="info" className="mt-2">Con el 07 marca «Opinión de valor» como Revisado; después acuerda el precio de salida y registra en Ajustes si tomas el encargo. Al completar todo se abre «Contrato y preparación» sola.</Notice>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    {capture}
+  </div>;
+
+  if (phase === "contrato") return <div className="flex flex-col gap-1">
+    <h3 className="m-0 border-b border-border pb-3 text-base font-bold">Lo que se hace en esta etapa</h3>
+    <ul className="flex flex-col">
+      {formatRow("09", contrato, <FileSignature size={18} aria-hidden="true" />, "Condiciones particulares, comisión, vigencia y cláusulas. Descárgalo en Word para firmarlo; su PDF espera el cotejo del modelo registrado.")}
+      {formatRow("10", plan, <Megaphone size={18} aria-hidden="true" />, "Estrategia, público, materiales, canales, los primeros 21 días y seguimiento, con el texto de tu plantilla.", !!contrato)}
+    </ul>
+    <Notice tone="info" className="mt-2">Con el contrato firmado marca «Contrato de servicio firmado» como Revisado; con el plan aceptado, «Plan de publicación aprobado». El levantamiento y la autorización de publicación completan la etapa.</Notice>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {capture}
   </div>;
