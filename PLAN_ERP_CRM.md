@@ -314,7 +314,22 @@ El titular pidió que cada paso del propietario que vende sea una etapa con su d
 - [ ] **DOC-06 · Completar la captura del 06.** Agregar como campos propios la tabla de antecedentes, las condiciones por etapa, el marco jurídico y la lista de documentos revisados, dentro de la misma captura por secciones (recomendación del 17/10/2026: no usar Excel ni una herramienta aparte). Sin migración.
 - [ ] **DOC-09 · Liberar el PDF del contrato 09.** Sigue bloqueado hasta cotejar el modelo registrado; el titular debe definir qué hace falta para darlo por final.
 
-**Avance al 17/10/2026:** la rama `feat/panel-guiado` lleva 41 commits sobre `main`, sin PR ni publicación. Comprobación más reciente: lint, tipos, 735 pruebas de servidor, 343 del panel y compilación aprobados; revisión en navegador de solo lectura (filas del 05 y 06, pestaña Documentos), porque el entorno local usa la base real. **Falta para cerrar el rediseño y el flujo del vendedor:** DOC-06, DOC-09 (decisión del titular), la revisión del titular en el panel, PR, Verify remoto y publicación autorizada. FLUJO-04b y PROC-06 son opcionales y requieren migración autorizada.
+**Dónde nos quedamos — cierre de la sesión del 17/10/2026**
+
+- **Rama y publicación:** todo está en `feat/panel-guiado` (44 commits sobre `main`, último `2fe90d0`), subido a GitHub. No hay PR, fusión ni despliegue: esperan la revisión y autorización del titular. El entorno local (puerto 3001) usa la base real de producción: revisar en el navegador solo leyendo, sin guardar.
+- **Comprobación más reciente:** tipos, lint, 738 pruebas de servidor, 347 del panel y compilación de producción aprobados. Revisado en el panel sin guardar: filas del 05/06, pestaña Documentos, captura del 07 en «Documentos sin expediente» y el monto del inmueble con formato de moneda.
+- **Hecho en esta sesión (17/10/2026):** Word del aviso 01 con su plantilla (`4e787f8`); candados del arranque en el servidor, FLUJO-04a (`a4c77c7`); PDF o Word en cada entregable, FLUJO-06 (`b54bab0`); fotografías del 07 en la captura (`9fba861`); herramienta «Documentos sin expediente» (`00bfb36`); montos con formato de moneda (`8449776`); opinión de valor 07 según su plantilla, en PDF y Excel, DOC-07 (`2fe90d0`).
+- **Plantilla del 07:** la original del titular está en `G:\Mi unidad\FORTIUS\04_Metodologia\01_Captacion\07_OpinionValor.xlsx`. La copia del proyecto (`public/plantillas/07_OpinionValor.xlsx`) tiene sus fórmulas simplificadas; si el titular cambia la plantilla, hay que regenerar la copia y revisar el mapa de celdas de `src/lib/formatos/valor-excel.ts`. La carpeta antigua `C:\Users\Moise\MNT\INMOBILIARIA\Plantillas\Metodologia` ya no está disponible en el equipo; las demás plantillas probablemente están en la misma carpeta de `G:\Mi unidad\FORTIUS\04_Metodologia`.
+- **Reglas del titular para los formatos:** capturar solo los campos que imprime la plantilla, nada inventado (opciones y textos con fuente verificable), PDF descargable aunque falten datos y ayuda breve en cada sección, pensada para asesores y no para peritos.
+
+**Qué sigue, en este orden sugerido:**
+1. **Diseño del PDF del 07** igual a la nueva plantilla: título centrado en mayúsculas, encabezado con «Opinión de valor comercial / Folio» y franja guinda y azul, subtítulos guinda, renglones compactos y doce páginas. Hoy sale con el diseño de la versión anterior (15 páginas), con los mismos datos y cifras.
+2. **Fotografías en el Excel del 07:** foto principal en la portada, croquis en «3. Urbanas» y las ocho fotos del reporte. Hoy solo se llenan sus pies.
+3. **DOC-06:** completar la captura del 06 (antecedentes, condiciones por etapa, marco jurídico y documentos revisados) dentro del flujo.
+4. **DOC-09:** el titular define qué hace falta para liberar el PDF del contrato 09.
+5. **Ayuda en otros formatos:** las notas y desplegables existen hoy solo en el 07 (`src/lib/formatos/ayuda.ts`); se pueden extender al 04, 05 y los demás, siempre con la plantilla como fuente.
+6. **Revisión del titular en el panel, PR, Verify remoto y publicación autorizada.** FLUJO-04b y PROC-06 son opcionales y requieren migración con respaldo y autorización.
+7. **Matriz de estados del ERP/CRM** («Estado y dependencias de cada entrega»): sigue con los estados del 14/10; revisarla contra lo construido antes de estimar cuánto falta del ERP completo.
 
 Notas de la fase 1: sin migraciones. El entorno local usa la base real, así que la revisión en navegador fue de solo lectura; el flujo de captura se comprobó con pruebas automáticas. La copia en Word se arma con los datos del borrador: no es el PDF emitido ni lleva su huella SHA-256.
 
