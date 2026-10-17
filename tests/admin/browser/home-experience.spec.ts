@@ -58,10 +58,12 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     await page.screenshot({ path: testInfo.outputPath(`hero-${width}.png`) });
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    const menuPanel = page.locator('[role="dialog"][aria-label="Menú"]');
     await page.keyboard.press("Escape");
-    // Closing must remain animated, and an interrupted entrance must reopen fully.
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await expect(page.getByRole("dialog")).toBeHidden();
+    // Sale del árbol accesible al cerrar, pero conserva la animación visual.
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(menuPanel).toBeVisible();
+    await expect(menuPanel).toBeHidden();
     await expect(page.getByRole("button", { name: "Abrir menú" })).toBeFocused();
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await expect(page.locator("[data-menu-item]").last()).toHaveCSS("opacity", "1");
