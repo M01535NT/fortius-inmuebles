@@ -84,12 +84,36 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
-  expect(await config.redirects?.()).toHaveLength(5);
+  expect(await config.redirects?.()).toHaveLength(19);
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
     permanent: true,
   });
+});
+
+test("las listas anteriores del panel redirigen a sus secciones nuevas sin tocar las fichas de detalle", async () => {
+  const redirects = await (await import("../../next.config")).default.redirects!();
+  const panel = redirects.filter(r => r.source.startsWith("/admin"));
+  const simple = Object.fromEntries(panel.filter(r => !("has" in r)).map(r => [r.source, r.destination]));
+  expect(simple).toEqual({
+    "/admin/expedientes": "/admin/operaciones",
+    "/admin/proceso/preparacion": "/admin/operaciones?etapa=verificacion-precio",
+    "/admin/proceso/promocion": "/admin/operaciones?etapa=publicacion-seguimiento",
+    "/admin/proceso/negociacion": "/admin/operaciones?etapa=visitas-ofertas",
+    "/admin/proceso/cierre": "/admin/operaciones?etapa=cierre-entrega",
+    "/admin/proceso/postventa": "/admin/operaciones?etapa=cierre-entrega",
+    "/admin/proceso/:etapa": "/admin/operaciones?etapa=:etapa",
+    "/admin/leads": "/admin/contactos",
+    "/admin/clientes": "/admin/contactos?tab=clientes",
+    "/admin/calendario": "/admin/agenda",
+    "/admin/tareas": "/admin/agenda?tab=tareas",
+    "/admin/apps": "/admin/herramientas",
+    "/admin/documentos": "/admin/herramientas?tab=documentos",
+  });
+  // Un expediente enlazado con ?expediente=<id> abre su operación; las fichas de detalle no se redirigen.
+  expect(panel.find(r => "has" in r)).toMatchObject({ source: "/admin/operaciones", destination: "/admin/operaciones/:id", has: [{ type: "query", key: "expediente" }] });
+  expect(panel.every(r => r.permanent === false && !/\/(leads|clientes|tareas|apps)\/:/.test(r.source))).toBe(true);
 });
 
 test("root metadata resolves relative images on production without imposing an inherited home canonical", async () => {

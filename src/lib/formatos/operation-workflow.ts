@@ -16,7 +16,7 @@ export const WORKFLOW_REQUIREMENTS = {
  escenarios_inversion: { label: "Escenarios, fuentes, supuestos y sensibilidad revisados", formato: "App Inversiones" },
  riesgos_inversion: { label: "Diligencia proporcional, limitaciones y riesgos documentados", formato: "05" },
  decision_inversion: { label: "Decisión informada y capital comprometido autorizados", formato: "Decisión de inversión" },
- ejecucion_inversion: { label: "Ejecución elegida y expediente correspondiente vinculados", formato: "Encargo de ejecución" },
+ ejecucion_inversion: { label: "Ejecución elegida y operación correspondiente vinculada", formato: "Encargo de ejecución" },
  seguimiento_inversion: { label: "Seguimiento de escenarios y resultados acordado", formato: "11" },
  entrevista: { label: "Entrevista y objetivo del propietario", formato: "02" },
  titularidad: { label: "Identidad, representación y antecedente de propiedad", formato: "05" },
@@ -42,7 +42,7 @@ export const WORKFLOW_REQUIREMENTS = {
  entrega: { label: "Entrega material y acta con pendientes asentados", formato: "16" },
  registro: { label: "Trámite registral y pendientes atendidos", formato: "17", noAplica: true },
  honorarios: { label: "Honorarios y cobros conforme al contrato", formato: "18", noAplica: true },
- archivo: { label: "Postventa, pendientes resueltos y expediente archivado", formato: "17" },
+ archivo: { label: "Postventa, pendientes resueltos y operación archivada", formato: "17" },
 } as const;
 export type RequirementKey = keyof typeof WORKFLOW_REQUIREMENTS;
 const evidence = z.object({ tipo: z.enum(["entrevista","documento","emision","adjunto","externa"]), referencia: z.string().max(1000), version: z.number().int().positive().optional(), fecha: z.iso.date().optional(), responsable: z.string().max(160).optional(), resultado: z.string().max(1000).optional(), limites: z.string().max(1000).optional() }).strict();
@@ -131,8 +131,12 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
 
 /** Proceso de comercialización definido por el titular (PLAN_ERP_CRM.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
 export const SALE_PROCESS = [
- { key: "captacion", slug: "captacion", label: "Captación", hace: "Conocer al propietario, su objetivo y el inmueble; identificar quién puede autorizar la venta y reunir la información inicial.", para: "Saber qué necesita el cliente y si podemos atender la operación.", etapas: ["captacion"] },
- { key: "verificacion", slug: "verificacion-precio", label: "Verificación y precio", hace: "Revisar documentos, características y pendientes; comparar propiedades similares y acordar el precio de salida.", para: "Detectar obstáculos y vender con un precio sustentado.", etapas: ["documentacion"] },
+ { key: "prospecto", slug: "prospecto", label: "Prospecto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
+ { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir el checklist de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
+ { key: "levantamiento", slug: "levantamiento", label: "Levantamiento", hace: "Visitar el inmueble y capturar sus características con el levantamiento que corresponde a su tipo (04A–04G): superficies, niveles, espacios, instalaciones, fotografías y croquis.", para: "Tener los datos físicos comprobados para el dictamen, la opinión de valor y la publicación.", etapas: ["captacion"] },
+ { key: "documentos", slug: "checklist-documentos", label: "Checklist de documentos", hace: "Entregar al propietario la lista de documentos que le corresponde y marcar cada uno al recibirlo.", para: "Reunir lo necesario para iniciar el dictamen jurídico.", etapas: ["captacion"] },
+ { key: "dictamen", slug: "dictamen-juridico", label: "Dictamen jurídico", hace: "Revisar los documentos recibidos con la revisión jurídica (05) y emitir la opinión jurídica del inmueble (06): quién es dueño, quién firma y si se puede vender sin obstáculos.", para: "Detectar a tiempo lo que impediría o retrasaría la venta.", etapas: ["documentacion"] },
+ { key: "verificacion", slug: "opinion-valor", label: "Opinión de valor y precio", hace: "Comparar propiedades similares con la opinión de valor (07), estimar el neto del propietario (08) y acordar el precio de salida; registrar si tomamos el encargo.", para: "Vender con un precio sustentado que el propietario entiende.", etapas: ["documentacion"] },
  { key: "contrato", slug: "contrato-preparacion", label: "Contrato y preparación", hace: "Formalizar el servicio, honorarios y autorizaciones; preparar ficha, fotografías y plan de publicación.", para: "Dejar claras las responsabilidades y presentar el inmueble con información respaldada.", etapas: ["documentacion"] },
  { key: "publicacion", slug: "publicacion-seguimiento", label: "Publicación y seguimiento", hace: "Publicar en los canales acordados, mantener los datos actualizados e informar al propietario sobre consultas y avance.", para: "Generar interesados y evaluar cómo está funcionando la comercialización.", etapas: ["comercializacion"] },
  { key: "visitas", slug: "visitas-ofertas", label: "Visitas y ofertas", hace: "Coordinar visitas con prospectos compatibles y revisar cada oferta: precio, forma de pago, plazos y condiciones.", para: "Convertir el interés en una propuesta viable que el propietario pueda decidir informado.", etapas: ["negociacion"] },
@@ -144,14 +148,21 @@ export function isOwnerRoute(route?: string | null) { return route === "captacio
 
 /** Requisitos que cierran cada etapa del propietario. Los de verificación deben completarse antes de capturar los de contrato. */
 const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
+ prospecto: [],
  captacion: ["entrevista"],
- verificacion: ["titularidad","factibilidad","valor","precio"],
+ levantamiento: [],
+ documentos: [],
+ dictamen: ["titularidad","factibilidad"],
+ verificacion: ["valor","precio"],
  contrato: ["intermediacion","levantamiento","plan","publicacion"],
  publicacion: ["comprador","arrendatario"],
  visitas: ["oferta","revision_cierre","instrumento","contraparte","contrato_renta","garantias_renta"],
  cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
 };
-const VERIFICATION_REQUIREMENTS = OWNER_PHASE_REQUIREMENTS.verificacion;
+/** La verificación reúne el dictamen jurídico y la opinión de valor con el precio. */
+export const VERIFICATION_REQUIREMENTS = [...OWNER_PHASE_REQUIREMENTS.dictamen, ...OWNER_PHASE_REQUIREMENTS.verificacion] as readonly RequirementKey[];
+/** Requisitos que cierran una etapa del propietario. */
+export function phaseRequirements(phase: SalePhase): readonly RequirementKey[] { return OWNER_PHASE_REQUIREMENTS[phase]; }
 export function requirementPhase(key: RequirementKey): SalePhase | undefined {
  return (Object.keys(OWNER_PHASE_REQUIREMENTS) as SalePhase[]).find(phase => OWNER_PHASE_REQUIREMENTS[phase].includes(key));
 }
@@ -160,20 +171,30 @@ export function verificationComplete(flow: OperationWorkflow | null | undefined,
  return !!flow && VERIFICATION_REQUIREMENTS.every(key => reviewComplete(flow, key, today)) && !!flow.resolucion && ["aceptada","condicionada"].includes(flow.resolucion.tipo);
 }
 /** Etapa del proceso para cualquier expediente. Compradores y arrendatarios se integran en «Visitas y ofertas»; inversión se agrupa por analogía. */
-export function processPhase(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string): SalePhase {
+/**
+  Avance del propietario antes de verificación: entrevista inicial (02), levantamiento (04) y
+  checklist de documentos. Lo conoce quien consulta los documentos y tareas de la operación.
+*/
+export type InitialInterviewStatus = { iniciada?: boolean; emitida?: boolean; levantamiento?: "borrador" | "emitido"; documentos?: "pendiente" | "completo" };
+export function processPhase(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string, initial?: InitialInterviewStatus): SalePhase {
  const stage = etapa ?? "captacion";
  if (["cierre","entrega","postventa","cerrado"].includes(stage)) return "cierre";
- if (stage === "captacion") return "captacion";
+ // El propietario es «Prospecto» hasta que se inicia su entrevista inicial (02); compradores y demás siguen su ruta.
+ if (stage === "captacion") {
+  if (flow && !isOwnerRoute(flow.ruta)) return "captacion";
+  if (!initial?.iniciada) return "prospecto";
+  return initial.documentos ? "documentos" : initial.levantamiento ? "levantamiento" : "captacion";
+ }
  if (flow && (flow.ruta === "compra" || flow.ruta === "arrendatario")) return "visitas";
  if (flow?.ruta === "inversion") return "verificacion";
- if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : "verificacion";
+ if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : flow && OWNER_PHASE_REQUIREMENTS.dictamen.every(key => reviewComplete(flow, key, today)) ? "verificacion" : "dictamen";
  return stage === "comercializacion" ? "publicacion" : "visitas";
 }
 /** Texto de la etapa actual: el proceso para el propietario de venta; la etiqueta propia para las demás rutas. */
-export function processStageText(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string) {
+export function processStageText(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string, initial?: InitialInterviewStatus) {
  const stage = etapa ?? "captacion";
  if (flow && flow.ruta !== "captacion") return stageLabel(stage, flow.ruta);
- if (stage === "documentacion") return salePhase(processPhase(stage, flow, today)).label;
+ if (stage === "documentacion" || stage === "captacion") return salePhase(processPhase(stage, flow, today, initial)).label;
  return stageLabel(stage, "captacion");
 }
 

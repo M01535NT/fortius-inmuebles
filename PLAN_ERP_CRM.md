@@ -1,8 +1,233 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 14 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 17 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
+
+## Rediseño guiado del panel (Fase C) — encargo y avance
+
+**Encargo vigente:** `docs/diseno/ENCARGO_REDISENO_PANEL.md`. La referencia visual es el lienzo aprobado en `docs/diseno/lienzo-panel/`. El titular decidió el 16/10/2026 construirlo con el agente de desarrollo en esta misma línea de trabajo, en la rama `feat/panel-guiado`, a partir de `chore/limpieza-codigo`. También pidió ver con anticipación las tareas y los vencimientos próximos («Próximos 7 días» en Hoy). Las notificaciones fuera del panel quedan como fase posterior.
+
+**Fase 1 · Base visual — 16/10/2026 (local, sin push):**
+- Los tokens del lienzo coinciden con los existentes del panel, en claro y oscuro. Se agregan `--primary-edge`, `--primary-hover` y `--scrim`.
+- El contenedor del panel lleva la clase global estable `admin-root`.
+- Componentes nuevos en `src/components/admin/kit.tsx` con `kit.module.css`:
+  - botones (principal, secundario, discreto, enlace, peligro y solo ícono);
+  - estados de requisito con nombres sencillos;
+  - avance de etapas (línea completa y «Etapa N de 6» con barra);
+  - pestañas con flechas del teclado;
+  - selector segmentado, tarjeta, aviso, vacío y panel lateral o inferior (cierra con Escape y con el velo).
+- Muestra interna en `/admin/sistema` (solo administrador, fuera del menú y sin datos), comparada con `Componentes.dc.html` a 1440 px en claro y oscuro y a 375 px en celular, sin desbordamiento.
+- Pruebas: 7 nuevas del kit; lint, tipos, 335 del panel, 701 de servidor y compilación aprobados.
+- Las pantallas existentes no cambian todavía. `panel.module.css` se retira conforme migren las pantallas (meta: menos de 15 KB).
+- **Ajuste de estilo, 16/10/2026, a pedido del titular:**
+  - esquinas redondeadas: 10 px en controles, 14 px en tarjetas y pastillas en los estados;
+  - fondo gris azulado de lienzo, con tarjetas blancas de borde y sombra suaves, y botones secundarios más visibles.
+  - Se aplica solo al panel guiado (componente `Surface` y `kit.tsx`). El lienzo de diseño se actualizó a su versión 38. Revisado en `/admin/sistema` a 1440 px en claro y oscuro y a 375 px, sin desbordamiento.
+
+**Fase 2 · Estructura y navegación — 16/10/2026 (en la rama `feat/panel-guiado`, commit `d644da0`; sin PR ni publicación):**
+- **Barra lateral nueva** (`workspace/guided-nav.tsx`):
+  - botón «Nueva operación» arriba;
+  - cinco secciones: Hoy, Operaciones, Contactos, Inmuebles y Agenda;
+  - Herramientas en un segundo nivel;
+  - Administración plegada y solo para el administrador: Equipo, Sitio web, Reportes, Historial y Configuración;
+  - el contador de Hoy (tareas de hoy o vencidas y contactos por atender) sustituye a la campana.
+- **En celular:** barra inferior con Hoy, Operaciones, «+», Contactos y Menú. El menú reúne Inmuebles, Agenda, Herramientas, Administración, perfil y salida. El contenido y las barras pegadas abajo («Guardar guía», «Avanzar», entrevista y ficha de inmueble) reservan la altura de esa barra para que no queden tapados.
+- **Secciones nuevas con pestañas en la dirección (`?tab=`):** Contactos (Prospectos y Clientes) y Agenda (Agenda y Tareas). `/admin/expedientes` pasa a `/admin/operaciones` y Aplicaciones pasa a Herramientas.
+- **Las direcciones anteriores redirigen** sin perder la consulta: leads, clientes, calendario, tareas, expedientes y apps. Las fichas de detalle (`leads/[id]`, `clientes/[id]`, `tareas/[id]`, `apps/[slug]`) no cambian.
+- **Se retiraron** «Más», «Organizar menú» (arrastrar), la ventana de aplicaciones, el menú de perfil y la barra vieja (`navigation`, `sidebar`, `app-launcher`, `profile-menu`), y sus estilos en `panel.module.css` (de 46.2 KB a 35.7 KB).
+- **Pendiente para fases siguientes:**
+  - las páginas `/admin/proceso/[etapa]` siguen activas fuera del menú y pasan a pestañas de Operaciones en la Fase 4;
+  - los asesores ya no ven Blog, Contenido ni Archivos en el menú, porque Administración es solo para el administrador.
+- **Pruebas:** lint, tipos, 330 del panel, 702 de servidor y compilación aprobados. Con el servidor sin base de datos pasan las 42 de navegador del panel que corre CI y las 70 públicas (1 omitida).
+- **Revisión contra el encargo, 16/10/2026 (en la nube, sin base de datos):**
+  - Se repitieron `npm run verify` (702 de servidor, 330 del panel y compilación), las 35 de herramientas, el paquete de PDF, las 70 públicas (1 omitida) y las 42 de navegador del panel que corre CI.
+  - La prueba de la barra inferior en celular fallaba siempre: medía a mitad del desplazamiento suave de la página. Ahora se desplaza al instante antes de medir. El diseño no cambió: el contenido termina 25 px por encima de la barra.
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro: Hoy, Operaciones, Contactos (dos pestañas), Agenda (dos pestañas), Inmuebles, Herramientas y el menú del celular.
+  - La barra lateral coincide con el artboard `Sidebar`.
+  - **Ajustes decididos por el titular el 16/10/2026** (dejó dos a criterio del agente):
+    - **Documentos pasa a ser una pestaña de Herramientas** (`/admin/herramientas?tab=documentos`). Conserva el buscador por folio y formato de todas las operaciones. Se retiró la página puente `/admin/documentos`, que ahora redirige a esa pestaña, junto con su componente `ModuleLink` y sus estilos. «Notas del equipo» sigue enlazada desde Herramientas.
+    - **El menú del celular sigue el artboard `MenuMovil`:**
+      - arriba, el nombre y el rol en lugar del correo;
+      - Inmuebles y Agenda con flecha; Agenda indica las visitas de hoy cuando las hay;
+      - Herramientas aparece como «Ver las 16 herramientas», con su explicación;
+      - Administración va plegada con la marca «Solo admin» y se abre sola si estás en una de sus páginas;
+      - «Salir» pasa a «Cerrar sesión», también en la barra lateral.
+      - Se conservan «Mi perfil» y «Ver sitio», porque en el celular no tienen otro acceso.
+    - **Administración sigue siendo solo para el administrador.** El titular confirmó que los asesores no necesitan Blog, Contenido ni Archivos en el menú.
+
+**Fase 3 · Hoy — 16/10/2026 (en la rama `feat/panel-guiado`; sin PR ni publicación):**
+- **Pantalla nueva** (`workspace/hoy.tsx`, artboards `Main` y `HoyMovil`). Arriba, la fecha, el saludo según la hora y un resumen en una línea. Después:
+  - **Esperan algo de ti:** una tarjeta por operación con su motivo más urgente y un solo botón «Continuar». El orden de prioridad es:
+    1. requisito con un problema;
+    2. tarea vencida;
+    3. documento recibido por revisar;
+    4. oferta registrada en los últimos 3 días;
+    5. operación sin próxima tarea con fecha.
+    - Al final van los contactos a los que toca dar seguimiento, que antes estaban en «Prioridades de hoy».
+    - Las operaciones archivadas, descartadas o en pausa no aparecen.
+  - **Entrevistas por terminar:** cada una dice qué quiere el cliente y cuántas secciones con preguntas obligatorias le faltan, con el botón «Seguir la entrevista».
+  - **Tareas de hoy:** las que vencen hoy o antes y las que se terminaron hoy. Se marcan en la misma pantalla y avisan «Guardado» o «No se pudo guardar: <motivo>».
+  - **Agenda de hoy:** todas las citas del día, con las visitas destacadas en guinda.
+  - **Próximos 7 días:** tareas con fecha en la semana, documentos revisados que dejan de estar vigentes e informes mensuales que se cumplen.
+  - **Informes al propietario vencidos,** incluidas las operaciones que nunca han tenido informe, con «Preparar informe».
+- **Lógica aparte y probada** en `src/lib/admin/today.ts`. Ahí también quedan los nombres sencillos de los requisitos, que la Fase 4 reutiliza.
+- **Lo que salió de Hoy:**
+  - los indicadores (inmuebles disponibles, prospectos nuevos y eventos próximos), el selector de inmuebles Demo y el tablero «Proceso de venta». El tablero regresa en Operaciones (Fase 4), y el conteo con o sin Demo sigue en Reportes;
+  - la lista «Sin próximo contacto». La Fase 6 muestra en Contactos el siguiente paso con fecha de cada persona;
+  - «Preparar tu espacio», que pasa a Configuración.
+  - Se retiraron `today.tsx`, `attention-queue.tsx` y sus estilos: `panel.module.css` baja de 35.1 KB a 25.0 KB.
+- **Corrección:** el lienzo de `/admin/sistema` se salía 4 px de la pantalla en computadora; ahora usa los mismos márgenes que Hoy.
+- **Límites:**
+  - Las ofertas «nuevas» se toman de las 20 consultas más recientes del comparador de ofertas.
+  - Hoy muestra todo lo que el servidor permite ver a cada usuario, sin filtro «Mías».
+  - El contador de «Hoy» en el menú cuenta las tareas vencidas o de hoy y los contactos por atender, así que no siempre coincide con el número de «Esperan algo de ti».
+  - «Continuar» abre la operación en `/admin/operaciones?expediente=…` hasta que exista la operación guiada (Fase 4).
+- **Pruebas actualizadas, sin borrar ninguna:**
+  - las que revisaban la pantalla anterior ahora cubren lo mismo en la nueva;
+  - la prueba de inmuebles Demo pasa a Reportes;
+  - la prueba de la pantalla de error usa Contactos, porque Hoy ya no se rompe con un prospecto mal formado.
+  - Se agregaron 7 pruebas de la lógica de Hoy y de marcar tareas, y 1 de navegador.
+- **Resultados:**
+  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 337 del panel y 35 de herramientas, además del paquete de PDF;
+  - 44 de navegador del panel que corre CI, contra un servidor sin base de datos;
+  - 70 públicas (1 omitida).
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro.
+
+**Fase 4 · Operaciones y operación guiada — 16/10/2026 (en la rama `feat/panel-guiado`; sin PR ni publicación):**
+- **Tablero** (`/admin/operaciones`, artboards `OperacionesEscritorio` y `OperacionesMovil`):
+  - seis columnas desde 1024 px, que se desplazan de lado si no caben; en celular, pestañas por etapa con su descripción;
+  - cada tarjeta muestra cliente, inmueble, «Sigue» (la próxima tarea) y su fecha; lo vencido va en guinda y lo dice con palabras;
+  - buscador sin acentos por cliente, folio o inmueble;
+  - «Mías / Todo el equipo» para el administrador que también es asesor;
+  - las operaciones archivadas quedan plegadas al final de «Cierre y entrega»;
+  - abajo están «Alta directa, sin entrevista» (protege la captura al salir) y «Ver operaciones eliminadas», donde se restauran con confirmación;
+  - `?etapa=<slug>` abre esa etapa.
+- **Operación guiada** (`/admin/operaciones/[id]`, artboards `OperacionEscritorio*` y `OperacionMovil*`):
+  - **Encabezado:** regreso a Operaciones, cliente, folio, inmueble, precio («Precio que espera» según la entrevista o «Precio de salida» según la ficha) y responsable.
+  - **Avance:** 6 etapas para el propietario; compra, renta e inversión muestran sus propios pasos. Por debajo de 1024 px se ve «Etapa N de M» con barra.
+  - **Pestañas:** Lo que sigue · Documentos · Tareas · Historial · Ajustes. Cambiar de pestaña con cambios sin guardar pide confirmación, y salir de la operación también.
+  - **Lo que sigue:** qué hacemos y para qué, y los requisitos de la etapa con su estado (Pendiente · Lo tengo · Revisado · Hay un problema · No aplica). «No aplica» solo aparece donde se admite. Cada cambio se guarda al momento con control de versión.
+    - Los requisitos de etapas anteriores que siguen abiertos aparecen al final.
+    - El contrato espera a que termine la verificación.
+  - **«Marcar como revisado»** (panel lateral en computadora, inferior en celular) pide:
+    - el documento que lo respalda: uno de la operación, la entrevista terminada o un documento fuera del sistema con su folio o ubicación;
+    - quién lo revisó y la fecha;
+    - la vigencia, cuando aplica;
+    - qué encontró.
+    - En «Más detalles» se puede elegir el PDF generado o un archivo del documento, y escribir límites o condiciones.
+  - **«Hay un problema»** guarda título y explicación en el soporte y muestra el aviso con la fecha. «Ya se resolvió» lo regresa a «Lo tengo» y deja constancia.
+  - **Próxima tarea:** con «Cambiar fecha», o para agendarla si no hay.
+  - **Barra fija «Te falta»:** enlaza cada pendiente a su requisito, a Ajustes o a la próxima tarea, con el motivo. «Pasar a: <siguiente>» se deshabilita mientras falte algo. El servidor vuelve a comprobar todo al avanzar.
+  - **Columna lateral:** las herramientas de la etapa con la operación ya elegida, el propietario o cliente (Llamar y WhatsApp) y «¿Qué significa?».
+  - **Lo que se conserva:** el informe mensual, las visitas y ofertas del inmueble, la comparación entre lo declarado y la ficha, y el acceso a la entrevista.
+  - **Ajustes:** decisión del encargo, ruta y situación, inmueble, fecha objetivo, contraparte (solo la de la ruta opuesta), corregir etapa con motivo y eliminar. El texto dice la verdad: la operación eliminada se puede restaurar.
+  - **Documentos:** crear borrador, capturar, generar PDF, copia firmada y fotografías, con la misma lógica de antes. Se aplicó el glosario: «Generar PDF», «PDF generados», «Versión N».
+  - **Historial:** cambios y notas del equipo.
+  - Las operaciones de administración u «otra» conservan su seguimiento simple.
+- **Rutas:**
+  - `/admin/operaciones?expediente=<id>` redirige a `/admin/operaciones/<id>`;
+  - `/admin/proceso/<etapa>` (y sus direcciones anteriores) a `/admin/operaciones?etapa=<etapa>`;
+  - los enlaces internos (Hoy, búsqueda, agenda, tareas, entrevistas, documentos, publicación y herramientas) ya apuntan a la dirección nueva.
+- **Código:**
+  - `expedientes/page.tsx` (362 líneas) y `operation-workflow-panel.tsx` (39 KB) se dividieron en `src/components/admin/operation/`: tablero, alta directa, pantalla, requisitos, lo que sigue, documentos, historial y ajustes;
+  - la lógica quedó en `src/lib/admin/operation-view.ts`.
+  - Se retiraron las páginas de proceso, `process-stage`, `module-catalog`, `expediente-client-list`, `operation-brief` y `dossier-tabs`.
+- **Pruebas:**
+  - las de la pantalla anterior se reescribieron sobre la nueva, cubriendo lo mismo: guardar sin perder captura, aperturas lentas, eliminar y restaurar, salir con cambios, aviso de privacidad, folio automático, contraparte por ruta, informe vencido y páginas de la consulta;
+  - se retiraron dos pruebas de componentes que ya no existen (pestañas del expediente y guía anterior); su comportamiento queda cubierto por 7 pruebas de lógica y 16 de pantalla nuevas.
+  - En navegador, las de CI de tablero, eliminación y rutas se adaptaron a la nueva pantalla.
+- **Resultados:**
+  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 334 del panel y 35 de herramientas, además del paquete de PDF;
+  - 44 de navegador del panel que corre CI, contra un servidor sin base de datos;
+  - 70 públicas (1 omitida).
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro: tablero, cada pestaña de la operación, el panel «Marcar como revisado» y las eliminadas.
+- **Límites y decisiones por confirmar:**
+  - las rutas de compra, renta e inversión muestran sus propios 7 pasos, no las 6 etapas del propietario;
+  - **Corrección a pedido del titular:** en «Verificación y precio» el botón «Pasar a» se quedaba apagado para siempre, porque «Contrato y preparación» se abre sola al completar la verificación y registrar la decisión. Ahora esa etapa no muestra el botón: explica que el contrato se abre solo y avisa cuando ocurre, ya sea desde los requisitos o desde Ajustes;
+  - «Ya se resolvió» deja el requisito en «Lo tengo» para que se revise de nuevo;
+  - los títulos de los formatos conservan su nombre de archivo, sin acentos (repaso del glosario en la Fase 7).
+
+**Fase 5 · Nueva operación en cuatro pasos — 16/10/2026 (en la rama `feat/panel-guiado`; sin PR ni publicación):**
+- **Asistente** (`/admin/operaciones/nueva`, artboards `NuevaEscritorio*` y `NuevaMovil*`): une crear la operación con la entrevista en cuatro pasos: Qué quiere hacer · Quién es · Entrevista · Listo.
+  - Ocupa toda la pantalla, como el lienzo: arriba «× Nueva operación», «Paso N de 4» y la barra de avance; abajo un pie fijo con Atrás, «Guardar y seguir después» (solo en la entrevista) y Continuar. Sin menú lateral, migas ni barra inferior; la × regresa a Hoy y pide confirmación si hay cambios sin guardar.
+  - **Paso 1:** cinco opciones grandes: Vender su inmueble, Ofrecer su inmueble en renta, Comprar, Rentar e Invertir. Muestra las entrevistas por terminar.
+  - **Paso 2:** nombre, teléfono y correo (si lo tiene). Conserva lo de antes:
+    - el aviso «Ya tenemos a alguien con ese teléfono/correo» con «Sí, es la misma persona» o «No, es otra persona»;
+    - elegir a alguien ya registrado de la lista, o llegar con él desde su ficha;
+    - el asesor responsable (solo el administrador lo elige) y «¿Cómo llegó?»;
+    - la siguiente acción queda plegada y por omisión es «Terminar la entrevista» con fecha de hoy, para que la entrevista guardada aparezca en Hoy;
+    - un envío a la vez y, si se pierde la respuesta, «Reintentar con los mismos datos» sin duplicar.
+  - **Paso 3:** la entrevista en pantallas cortas, una a la vez, con su lista de partes arriba:
+    - propietario: El propietario · El inmueble · Lo que quiere · Documentos y lo que sigue;
+    - compra, renta e inversión: Qué busca · Lo que necesita · Presupuesto (o Capital) y acuerdos · Lo que sigue.
+    - Las respuestas con opciones son botones; los textos llevan «No sabe». «Continuar» revisa la pantalla, dice «Te falta: …» y guarda el borrador. «Terminar entrevista» la completa y entonces se crea la operación (el servidor vuelve a revisar todo).
+  - **Paso 4:** «Listo, la operación está creada» con folio, cliente, qué quiere, inmueble y lo que sigue; «Abrir la operación», «Volver a Hoy», las respuestas en modo lectura y «Corregir la entrevista».
+- **«No sabe»:** usa la opción por aclarar o por definir cuando la pregunta la tiene. No se ofrece en fechas, cifras, el tipo de inmueble del propietario, el aviso de privacidad ni la siguiente acción, porque son datos que la operación necesita.
+- **Rutas:** `/admin/entrevistas/<id>` redirige a `/admin/operaciones/nueva?entrevista=<id>`, que retoma el borrador en su pantalla pendiente o muestra la entrevista terminada. Hoy y la operación ya enlazan a la dirección nueva. La corrección de una entrevista terminada usa el mismo asistente.
+- **Código:** `src/lib/intake/wizard.ts` (pantallas, «No sabe» y textos) y `src/components/admin/intake/` (asistente, entrevista y paso final). Las migas de Operaciones se retiraron porque ya no se usaban.
+- **Pruebas:**
+  - 7 de pantalla y lógica nuevas;
+  - una de navegador nueva en CI (`nueva-operacion.spec.ts`) que recorre los cuatro pasos a 320, 390, 768 y 1440 px, en claro y oscuro, sin escribir en la base, con revisión de accesibilidad a 1440 px;
+  - las de navegador de captación y del tablero se adaptaron a los textos nuevos.
+- **Resultados:**
+  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 337 del panel y 35 de herramientas, además del paquete de PDF;
+  - 48 de navegador del panel que corre CI (4 nuevas del asistente), contra un servidor sin base de datos.
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro, en los cuatro pasos; sin fallas de accesibilidad (WCAG 2.1 AA) a 1440 px.
+- **Límites y decisiones:**
+  - «Alta directa, sin entrevista» sigue en el tablero de Operaciones, como en la Fase 4;
+  - la siguiente acción mientras se termina la entrevista va plegada con su valor por omisión; se puede cambiar antes de continuar.
+  - las pruebas públicas de esta fase (70, 1 omitida) se volvieron a correr solas y pasaron; el primer intento chocó con otra corrida en el mismo puerto.
+
+**Fase 6 · Contactos, Inmuebles, Agenda, Herramientas y Administración — 16/10/2026 (en la rama `feat/panel-guiado`; sin PR ni publicación):**
+- **Contactos** (`/admin/contactos`, artboards `ContactosEscritorio` y `ContactosMovil`):
+  - pestañas Prospectos y Clientes con su número (`?tab=clientes`); tabla en computadora (Persona, Lo que busca, Zona y presupuesto, Siguiente paso) y lista en celular;
+  - «Lo que busca» y el presupuesto salen del perfil (o del tipo de cliente); el siguiente paso es lo más próximo entre sus tareas abiertas, sus citas y el próximo contacto, con «Hoy», «Vencido» o el día;
+  - búsqueda sin acentos por nombre, teléfono, correo o zona; filtro por estado del prospecto, incluido «Ya son clientes»; aviso de posibles repetidos;
+  - «Agregar contacto» abre la captura del prospecto (o del cliente en su pestaña) y conserva lo escrito al cerrarla, como antes.
+  - El estado del prospecto, «Convertir en cliente» y «Eliminar cliente» pasan a la ficha de cada persona (la lista ya no los tiene). Se retiraron la vista «Por etapas» de prospectos y su resumen lateral.
+- **Inmuebles** (`/admin/propiedades`, artboards `InmueblesEscritorio` e `InmueblesMovil`): «N inmuebles · N publicados», Todos / En venta / En renta, búsqueda y «Agregar inmueble»; cada inmueble con foto, operación, estado, zona, medidas, precio y código. Estado, destacada, ver en el sitio, editar y eliminar están en «Opciones»; asesor, publicación, estado y vistas guardadas, en «Más filtros». Se conservan la paginación de 24 y el aviso de código repetido.
+- **Agenda** (`/admin/agenda`, artboards `AgendaEscritorio` y `AgendaMovil`):
+  - semana por horas en computadora (de 8:00 a 19:00, o más si algún evento lo necesita) y tira de días con la lista del día en celular; las visitas van en guinda;
+  - las citas sin hora, las tareas con fecha y los seguimientos aparecen en «Sin hora» sin crear eventos;
+  - el día elegido muestra sus citas (con su persona, inmueble y operación), sus tareas y sus seguimientos; «Agendar» conserva todo lo de antes (vínculos desde la dirección, operación que aún carga, reintentos y la captura que no se pierde al cambiar de semana). El botón de guardar se llama «Guardar en la agenda».
+  - Se retiraron las vistas «Mes» y «Próximos»; la semana se mueve con las flechas y «Hoy».
+  - **Tareas:** misma pestaña, ahora en lista con fecha («Hoy», «Vencida» o el día), estado, prioridad si no es normal, responsable y pasos; filtros sin cambios.
+- **Herramientas:** el catálogo de las 16 y la pestaña Documentos con el marco y los estilos del panel guiado; la tarjeta completa abre la herramienta.
+- **Administración:** Equipo, Sitio web, Reportes, Historial y Configuración usan el mismo marco y encabezado. Sitio web reúne en pestañas Textos del sitio, Blog y Archivos; Reportes, Reportes y Control comercial. Las migas solo se muestran dentro de una ficha.
+- **Código:** `src/lib/admin/contacts-view.ts` y `src/lib/admin/agenda-view.ts` (lógica probada); `src/components/admin/contacts/`, `properties/` y `agenda/`; `GuidedPage` y `AdminFrame` como marcos. Se retiraron las pantallas anteriores de prospectos, clientes y calendario, el tablero de prospectos y unos 7 KB de CSS sin uso: `panel.module.css` queda en 13 KB (meta de la Fase 1: menos de 15 KB).
+- **Pruebas:**
+  - las de la lista de prospectos, la captura manual, la conversión, el perfil, el cliente y el calendario se reescribieron sobre las pantallas nuevas cubriendo lo mismo; la del tablero de prospectos se retiró con él;
+  - nueva prueba de navegador en CI (`secciones.spec.ts`): Contactos, Inmuebles, Agenda, Tareas, Herramientas y Administración a 320, 390, 768 y 1440 px, en claro y oscuro, sin escribir en la base y con revisión de accesibilidad a 1440 px.
+- **Resultados:**
+  - lint, tipos y compilación aprobados; 702 pruebas de servidor, 338 del panel (3 nuevas de la lógica de Contactos y Agenda) y 35 de herramientas, además del paquete de PDF;
+  - 52 de navegador del panel que corre CI (4 nuevas de estas secciones), contra un servidor sin base de datos;
+  - 70 públicas (1 omitida).
+  - Sin desbordamiento horizontal a 320, 390, 768 y 1440 px, en claro y oscuro, en Contactos, Inmuebles (también con «Opciones» abierto), Agenda, Tareas, Herramientas, Reportes, Sitio web y Equipo; sin fallas de accesibilidad (WCAG 2.1 AA) a 1440 px.
+  - Una prueba del formulario de inmuebles falló una vez con todo el conjunto corriendo y pasó sola y en la corrida completa siguiente; no tocó código de esta fase.
+- **Límites y decisiones por confirmar:**
+  - en Agenda, las flechas de semana y «Agendar» quedan debajo de las pestañas y no junto al título como en el lienzo, porque solo aplican a la pestaña Agenda;
+  - los eventos no guardan duración: en la semana ocupan una hora;
+  - quedan con la palabra «Expediente» los reportes y algunas fichas; se repasan en la Fase 7 con el glosario.
+
+**Fase 7 · Repaso final — 16/10/2026 (en la rama `feat/panel-guiado`; sin PR ni publicación):**
+- **Glosario en todo el panel:**
+  - «Operación» en vez de «expediente» en reportes, tareas, agenda, búsqueda, trabajo relacionado, documentos, herramientas (actividad, tareas y documentos de la operación), equipo y entrevistas. El folio `EXP-…` se conserva.
+  - «Prospecto» en vez de «lead» en las fichas, la conversión, el perfil, las migas, el equipo y las tareas («Seguimiento de prospectos»).
+  - El seguimiento simple de las operaciones de administración dice «Lo tengo» en vez de «Recibido».
+  - «Generar PDF» y «PDF generados» en Control comercial.
+  - Sin «servidor» en los mensajes: historial, tareas, carga de archivos, copia temporal del inmueble y descarga de PDF.
+  - «Revisor de expediente» se muestra como **«Pendientes documentales»** (el `slug` no cambia).
+  - Los formatos se muestran con su nombre con acentos («Opinión jurídica del inmueble»); el 17 se llama «Cierre de la operación». El nombre del archivo original no cambia. En el PDF, los formatos 09 y 15 a 19 toman ese mismo nombre.
+  - Se conserva el texto de los documentos generados (contratos, avisos y PDF): su redacción es la de cada formato.
+- **Código sin uso retirado:** la lógica de entrevista por fases que reemplazó el asistente, el orden del menú que se podía arrastrar (la opción ya no existe), el orden de actividades del calendario anterior, la entrada de entrevistas en la navegación (esa dirección ya redirige) y tres clases de CSS de herramientas. Todos los archivos de `src/` se alcanzan desde alguna página; `panel.module.css` queda en 13 KB.
+- **Rutas y enlaces:**
+  - prueba nueva (`tests/backend/panel-links.test.ts`): cada dirección del panel escrita en el código lleva a una página que existe o a una redirección, y cada redirección lleva a una página que existe;
+  - las únicas páginas sin enlace eran `/admin/entrevistas/<id>` (redirige, para enlaces viejos) y la muestra interna `/admin/sistema`, que ahora se abre desde Configuración.
+- **Resultados:**
+  - lint, tipos y compilación aprobados; 704 pruebas de servidor (2 nuevas de rutas), 336 del panel y 35 de herramientas, además del paquete de PDF;
+  - 52 de navegador del panel que corre CI (dos se adaptaron al botón «Generar PDF» y se volvieron a correr aparte); 70 públicas (1 omitida).
+- **Estado del rediseño:** las siete fases del encargo están en `feat/panel-guiado`. No hay PR, fusión ni publicación; eso espera la autorización del titular.
 
 ## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
 
@@ -69,6 +294,44 @@ La guía actual del propietario tiene ocho estados internos (`captacion`, `docum
 - Sin migraciones ni cambios de permisos, formatos o datos. Las etiquetas internas del propietario de venta cambiaron a los nombres del proceso.
 - Comprobación local: lint y tipos sin errores; 734 pruebas backend y 343 del panel aprobadas, incluidas 12 nuevas del proceso, 4 del endpoint y 6 de navegación y guía. Una corrida del panel registró una falla aislada que no se reprodujo en tres corridas posteriores. Compilación de producción aprobada. Revisión en navegador con la sesión real en modo de solo lectura: Resumen, páginas de etapa, redirección, guía con requisitos agrupados y bloqueo, y ancho móvil de 375px sin desbordamiento. No se guardaron datos. Las pruebas de navegador Playwright se actualizaron, pero no se ejecutaron.
 - Pendiente: revisión del titular, commit, PR, Verify remoto y publicación.
+
+### Flujo del vendedor por documento (FLUJO), pedido del titular el 16/10/2026
+
+El titular pidió que cada paso del propietario que vende sea una etapa con su documento: **Prospecto → Entrevista inicial (02) → Levantamiento (04A–04G) → Checklist de documentos → Dictamen jurídico (05/06) → Opinión de valor (07)**. Cada etapa tiene un botón «Iniciar …» que abre la captura y, al terminar, permite descargar el PDF y una copia en Word.
+
+- [x] **FLUJO-01 · Prospecto y entrevista inicial (fase 1).** En «Nueva operación», el propietario se registra con una sola pantalla de prospecto: domicilio del inmueble, municipio, tipo, qué quiere, plazo, precio que mencionó, notas, aviso de privacidad compartido y fecha de la entrevista inicial. Lo demás queda «por aclarar» para el 02. La etapa «Captación» se divide en «Prospecto» y «Entrevista inicial»: se pasa a la segunda al iniciar el 02 desde la operación. La entrevista se captura por secciones en pantalla completa, guarda al avanzar, genera el PDF y descarga una copia en Word (`docx`). La etapa reúne el aviso de privacidad (01) y el checklist de documentos. Para pasar a «Verificación y precio» se exige el PDF del 02 de la versión actual.
+- [x] **FLUJO-02 · Levantamiento y checklist de documentos.** Etapas propias «Levantamiento» y «Checklist de documentos» (nueve etapas en total). Al terminar el 02 se elige el levantamiento según el tipo de inmueble (04A–04G) y se captura por secciones, con fotografías y croquis, PDF y Word. El checklist se arma con las respuestas del 02 usando los códigos D01–D22 del control documental del 05; se descarga en PDF o Word y se guarda como tarea de la operación (cada documento es un paso; al recibir todos, la tarea se completa). Para pasar a «Verificación y precio» se exigen los PDF del 02 y del 04 de la versión actual y el checklist completo. El requisito «Levantamiento y material comercial» de «Contrato y preparación» no cambia.
+- [x] **FLUJO-03 · Dictamen jurídico y opinión de valor.** «Verificación y precio» se divide en «Dictamen jurídico» (requisitos de titularidad y factibilidad; formatos 05 y 06) y «Opinión de valor y precio» (valor y precio; formatos 07 y 08), para un total de diez etapas. Cada formato tiene «Iniciar», captura por secciones, PDF y Word. El 05 se crea con su control documental lleno a partir del checklist (recibido o por recibir) y el 08 toma el valor del 07 cuando este ya tiene PDF. Se pasa de una etapa a otra al marcar como revisados sus requisitos, con el documento como respaldo; las reglas del servidor no cambian.
+- [x] **FLUJO-05 · Contrato y preparación.** La etapa tiene «Iniciar» para el contrato 09 (captura y Word; su PDF sigue bloqueado hasta cotejar el modelo registrado) y para el plan 10 (PDF y Word).
+- [x] **DOC · PDF y Word con el diseño de las plantillas (pedido del titular, 16/10/2026).** Kit común en `src/lib/formatos/documento/`: carta, márgenes y logotipo de las plantillas, título azul marino, banda de datos, secciones numeradas, subtítulos verdes, tablas con encabezado azul y franja de marca en el pie; estilo «contrato» en Times negro para 09 y similares. Cada formato se reproduce con el texto de su plantilla. Hechos: 10 (PDF y Word), 09 (Word) 02 (PDF y Word, formulario de preguntas con la respuesta capturada debajo) y 04A–04G (PDF y Word con foto principal y croquis; un generador recorre las secciones de cada tipo), 05 (PDF y Word con sus 12 secciones) y 06 (PDF y Word en estilo opinión; el panel captura menos secciones que la plantilla: faltan tabla de antecedentes, condiciones por etapa y marco jurídico como campos propios). 07 (PDF y Word con sus 12 hojas: portada con foto y valor concluido, índice, resumen, antecedentes, zona, inmueble, comparables, ingresos, físico, conciliación y fotografías; enfoques sin peso marcados como no aplicados) y 08 (PDF y Word con las barras y cifras de su hoja). 11 a 19 (PDF y Word: reporte en estilo marca, perfil y visita como formularios grises con casillas, propuesta como cartas, promesa con sus 26 cláusulas, acta, cierre y recibo con prosa y barras, presupuesto con sus tres hojas). 01 conserva su generador cotejado, ajustado a la plantilla vigente del 09/10/2026 (cuerpo en Times, títulos a la izquierda, recuadro gris, bloque de titular y franja del pie; versión de plantilla carta-2026-10-09); su Word se arma con el mismo texto cotejado y el diseño de la plantilla (commit `4e787f8`, 17/10/2026). Todos los formatos, del 01 al 19, salen ya en PDF y Word con el diseño de su plantilla. Queda abierto solo lo que el 06 no captura todavía (DOC-06).
+- [x] **FLUJO-04a · Candados del arranque en el servidor, sin migración (17/10/2026, commit `a4c77c7`).** La ruta que cambia la etapa (`/api/admin/expedientes/[id]/operacion`) rechaza salir de captación en ventas y rentas del propietario si faltan el 02 o el 04 emitidos en su versión vigente, o el checklist de documentos completo. Son los mismos candados que muestra «Te falta». Lógica en `src/lib/formatos/operation-gates.ts`; 4 pruebas nuevas de la ruta.
+- [ ] **FLUJO-04b · Candados en la base de datos (opcional).** Llevar ese mismo candado a PostgreSQL y agregar «Redes sociales» como origen separado de «Página web» requiere migración, respaldo y ventana autorizada (como PROC-06), idealmente ensayada antes en una copia aislada. Mientras tanto ambos orígenes se muestran juntos.
+- [x] **FLUJO-06 · Cada entregable en PDF o en Word, a elección del asesor (17/10/2026, commit `b54bab0`).** En «Lo que sigue», las filas del 02, el levantamiento 04 y el aviso 01 suman Word junto al PDF (del 05 al 10 ya lo tenían), y la pestaña Documentos agrega «Descargar Word» para cualquier formato. El Word se arma con la versión guardada y no queda archivado; el PDF sí, con su huella. Las filas del aviso, el 09 y el 10 ya muestran su PDF cuando existe.
+- [x] **FLUJO-07 · Fotografías del 07 en la captura guiada (17/10/2026, commit `9fba861`).** «Fotografías pertinentes» del reporte fotográfico ya lista las imágenes del borrador, y la sección para subirlas va antes de ese reporte.
+- [x] **Herramienta «Documentos sin expediente» (17/10/2026, commit `00bfb36`).** Permite preparar una opinión de valor, un contrato o una propuesta sin abrir una operación, con sus propias imágenes y descarga en PDF o Word. No se vincula a ningún expediente y no requiere migración.
+- [x] **DOC-07 · Opinión de valor según su plantilla vigente (17/10/2026).** La captura tiene solo las celdas que imprime `07_OpinionValor.xlsx` (sin compatibilidad jurídica, referencias 04/05-06, estado ni revisión del responsable); las listas son las de la plantilla y el uso de suelo usa las zonas del Reglamento de Zonificación de Tijuana (arts. 43 y 49, reforma del 14/08/2020). Ningún campo es obligatorio: el PDF se descarga desde cualquier sección aunque falten datos, y el valor concluido aparece en cuanto los pesos suman 100 y los enfoques tienen datos. La copia editable es Excel, no Word: `public/plantillas/07_OpinionValor.xlsx` es una copia de la plantilla con sus fórmulas simplificadas a lo capturado (Excel recalcula al abrir; verificado: mismo valor y misma cifra en letra que el panel). Aplica a la etapa de la operación y a «Documentos sin expediente». Cada sección y campo de antecedentes tiene una nota de ayuda; las plantillas de texto van en un desplegable. Pendiente: el diseño visual del PDF del panel aún sigue la versión anterior de la plantilla (título centrado, encabezado con folio y subtítulos guinda de la nueva) y el Excel todavía no inserta las fotografías.
+- [x] **Montos con formato de moneda (17/10/2026).** Los importes del panel se muestran como `$5,000,000.00` y se editan como número limpio: precio del inmueble, perfil del prospecto, entrevista, campos de importe de los formatos, tablas de presupuesto, neto, plan, reporte, promesa y opinión de valor, y las herramientas comerciales y financieras.
+- [ ] **DOC-06 · Completar la captura del 06.** Agregar como campos propios la tabla de antecedentes, las condiciones por etapa, el marco jurídico y la lista de documentos revisados, dentro de la misma captura por secciones (recomendación del 17/10/2026: no usar Excel ni una herramienta aparte). Sin migración.
+- [ ] **DOC-09 · Liberar el PDF del contrato 09.** Sigue bloqueado hasta cotejar el modelo registrado; el titular debe definir qué hace falta para darlo por final.
+
+**Dónde nos quedamos — cierre de la sesión del 17/10/2026**
+
+- **Rama y publicación:** todo está en `feat/panel-guiado` (44 commits sobre `main`, último `2fe90d0`), subido a GitHub. No hay PR, fusión ni despliegue: esperan la revisión y autorización del titular. El entorno local (puerto 3001) usa la base real de producción: revisar en el navegador solo leyendo, sin guardar.
+- **Comprobación más reciente:** tipos, lint, 738 pruebas de servidor, 347 del panel y compilación de producción aprobados. Revisado en el panel sin guardar: filas del 05/06, pestaña Documentos, captura del 07 en «Documentos sin expediente» y el monto del inmueble con formato de moneda.
+- **Hecho en esta sesión (17/10/2026):** Word del aviso 01 con su plantilla (`4e787f8`); candados del arranque en el servidor, FLUJO-04a (`a4c77c7`); PDF o Word en cada entregable, FLUJO-06 (`b54bab0`); fotografías del 07 en la captura (`9fba861`); herramienta «Documentos sin expediente» (`00bfb36`); montos con formato de moneda (`8449776`); opinión de valor 07 según su plantilla, en PDF y Excel, DOC-07 (`2fe90d0`).
+- **Plantilla del 07:** la original del titular está en `G:\Mi unidad\FORTIUS\04_Metodologia\01_Captacion\07_OpinionValor.xlsx`. La copia del proyecto (`public/plantillas/07_OpinionValor.xlsx`) tiene sus fórmulas simplificadas; si el titular cambia la plantilla, hay que regenerar la copia y revisar el mapa de celdas de `src/lib/formatos/valor-excel.ts`. La carpeta antigua `C:\Users\Moise\MNT\INMOBILIARIA\Plantillas\Metodologia` ya no está disponible en el equipo; las demás plantillas probablemente están en la misma carpeta de `G:\Mi unidad\FORTIUS\04_Metodologia`.
+- **Reglas del titular para los formatos:** capturar solo los campos que imprime la plantilla, nada inventado (opciones y textos con fuente verificable), PDF descargable aunque falten datos y ayuda breve en cada sección, pensada para asesores y no para peritos.
+
+**Qué sigue, en este orden sugerido:**
+1. **Diseño del PDF del 07** igual a la nueva plantilla: título centrado en mayúsculas, encabezado con «Opinión de valor comercial / Folio» y franja guinda y azul, subtítulos guinda, renglones compactos y doce páginas. Hoy sale con el diseño de la versión anterior (15 páginas), con los mismos datos y cifras.
+2. **Fotografías en el Excel del 07:** foto principal en la portada, croquis en «3. Urbanas» y las ocho fotos del reporte. Hoy solo se llenan sus pies.
+3. **DOC-06:** completar la captura del 06 (antecedentes, condiciones por etapa, marco jurídico y documentos revisados) dentro del flujo.
+4. **DOC-09:** el titular define qué hace falta para liberar el PDF del contrato 09.
+5. **Ayuda en otros formatos:** las notas y desplegables existen hoy solo en el 07 (`src/lib/formatos/ayuda.ts`); se pueden extender al 04, 05 y los demás, siempre con la plantilla como fuente.
+6. **Revisión del titular en el panel, PR, Verify remoto y publicación autorizada.** FLUJO-04b y PROC-06 son opcionales y requieren migración con respaldo y autorización.
+7. **Matriz de estados del ERP/CRM** («Estado y dependencias de cada entrega»): sigue con los estados del 14/10; revisarla contra lo construido antes de estimar cuánto falta del ERP completo.
+
+Notas de la fase 1: sin migraciones. El entorno local usa la base real, así que la revisión en navegador fue de solo lectura; el flujo de captura se comprobó con pruebas automáticas. La copia en Word se arma con los datos del borrador: no es el PDF emitido ni lleva su huella SHA-256.
 
 ## Regla de actualización en cada publicación
 

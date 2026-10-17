@@ -15,7 +15,7 @@ import EditPropertyPage from "@/app/admin/propiedades/[slug]/editar/page";
 import LeadPage from "@/app/admin/leads/[id]/page";
 import ConfigPage from "@/app/admin/configuracion/page";
 import ContenidoPage from "@/app/admin/contenido/page";
-import ClientesPage from "@/app/admin/clientes/page";
+import { ContactsScreen } from "@/components/admin/contacts/contacts";
 import {
   db,
   settingsStore,
@@ -24,7 +24,7 @@ import {
 } from "@/lib/admin/store";
 import type { Property } from "@/data/propiedades";
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams("tab=clientes"), usePathname: () => "/admin/contactos" }));
 const property: Property = {
   slug: "real",
   codigo: "C-1",
@@ -324,8 +324,8 @@ test("singleton draft retains opening version and never shows success on conflic
   ).toBe("Mi cambio");
 });
 test("client failure preserves details and only acknowledged save closes its editor", async () => {
-  render(<ClientesPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo cliente" }));
+  render(<ContactsScreen />);
+  fireEvent.click(screen.getAllByRole("button", { name: "Agregar contacto" })[0]);
   fireEvent.change(screen.getByLabelText("Nombre"), {
     target: { value: "Cliente real" },
   });

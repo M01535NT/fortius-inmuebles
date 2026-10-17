@@ -1,4 +1,5 @@
 "use client";
+import { MoneyInput } from "@/components/admin/money-input";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import Image from "next/image";
 import { PropertyPublicationGate } from "./property-publication-gate";
@@ -386,17 +387,14 @@ export function PropertyForm({ initial: source }: Props) {
             htmlFor="pf-monto"
             hint="Solo aplica con precio público."
           >
-            <input
+            <MoneyInput
               id="pf-monto"
               name="monto"
-              type="number"
-              min={0}
               defaultValue={
                 initial?.precio.modalidad === "publico"
                   ? initial.precio.monto
                   : undefined
               }
-              className={inputClass}
             />
           </Field>
           <Field label="Moneda" htmlFor="pf-moneda">
@@ -766,7 +764,7 @@ export function PropertyForm({ initial: source }: Props) {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Publica únicamente material comercial. Estos archivos tienen una URL pública;
           el formulario de contacto no protege su confidencialidad. Guarda identificaciones
-          y documentos del expediente en archivos privados.
+          y documentos de la operación en archivos privados.
         </p>
         <UploadControl
           label="Subir PDF público"

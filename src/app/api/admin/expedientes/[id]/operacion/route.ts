@@ -12,6 +12,7 @@ const workflowMessages = new Set([
  "La captación debe corresponder al asesor titular del inmueble", "Contraparte incompatible o fuera de tu alcance",
 ]);
 import { WORKFLOW_REQUIREMENTS, type RequirementKey } from "@/lib/formatos/operation-workflow";
+import { initialBlockers, loadInitialStatus, needsInitialGate } from "@/lib/formatos/operation-gates";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -21,6 +22,14 @@ export async function PUT(request: Request, context: Context) {
     const { client } = await requireStaff();
     const id = z.uuid().parse((await context.params).id);
     const input = expedienteOperationWrite.parse(await readJson(request));
+    // Candado del arranque del propietario (02, 04 y checklist), el mismo que aplica el panel.
+    const current = await client.from("fortius_inmuebles_expedientes").select("etapa,operacion,flujo").eq("id", id).is("deleted_at", null).maybeSingle();
+    if (current.error) databaseError(current.error);
+    if (!current.data) throw new ApiError(404, "Expediente no encontrado");
+    if (needsInitialGate(current.data, input.etapa, input.flujo)) {
+      const pending = initialBlockers(await loadInitialStatus(client, id));
+      if (pending.length) throw new ApiError(409, `Antes de avanzar: ${pending.join("; ")}`);
+    }
     const { data, error } = await client.rpc("fortius_inmuebles_update_operation", {
       p_id:id,p_version:input.version,p_stage:input.etapa,p_date:input.fechaObjetivo,p_checklist:input.checklist,
       p_flow:input.flujo??null,p_slug:input.propiedadSlug??null,p_property_specified:input.propiedadSlug!==undefined,

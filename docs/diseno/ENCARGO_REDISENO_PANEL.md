@@ -60,6 +60,12 @@ Cada archivo se lee antes de reemplazarlo. Se conserva su lógica de carga, guar
 
 ## 4. Decisiones de diseño ya tomadas
 
+**Estilo: esquinas redondeadas y contraste** (decisión del titular, 16/10/2026)
+- **Esquinas:** 10 px en botones, campos y selector; 14 px en tarjetas y estados vacíos; 12 px en avisos y opciones grandes; 8 px en los elementos del menú. Los estados de requisito son pastillas, y el panel inferior en celular lleva 18 px arriba.
+- **Contraste:** las pantallas del panel guiado van sobre un fondo gris azulado (`--canvas`, #F3F5F9 en claro). Las tarjetas son blancas, con borde (`--border`) y sombra suaves (`--shadow-card`), para que no se pierdan con el fondo.
+- **Botones secundarios y selector:** borde suave (`--edge-soft`) y sombra mínima (`--shadow-control`). Los campos conservan el borde de control (#61738A), que cumple el contraste mínimo.
+- **Dónde se aplica:** solo en el panel guiado, con el componente `Surface` y los de `kit.tsx`. El sitio público no cambia, y las pantallas anteriores conservan su estilo hasta que se reemplazan.
+
 **Navegación** (lienzo: `Sidebar`, `SidebarAdmin`, `BarraInferior` y `MenuMovil`)
 - Barra lateral:
   - logotipo arriba y, debajo, el botón principal **«+ Nueva operación»**;

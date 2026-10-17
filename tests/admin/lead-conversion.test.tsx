@@ -1,13 +1,13 @@
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import LeadsPage from "@/app/admin/leads/page";
+import { ContactsScreen } from "@/components/admin/contacts/contacts";
 import LeadDetail from "@/app/admin/leads/[id]/page";
 import ClientDetail from "@/app/admin/clientes/[id]/page";
 import Dashboard from "@/app/admin/page";
 import { clearAdminCache, db, convertirLead, type Lead, type Cliente } from "@/lib/admin/store";
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/contactos" }));
 const original: Lead = { id: "l1", nombre: "Persona capturada", telefono: "6641234567", email: "persona@example.invalid", origen: "manual", estado: "contactado", asesorId: "a1", creadoEl: "2026-10-04", notas: [{ id: "n1", texto: "Seguimiento antes de convertir", fecha: "2026-10-04" }], zona: "Otay", tipoPropiedad: "casa", mensaje: "Consulta inicial", perfil: { operacion: "comprar", presupuestoMax: 250000, moneda: "USD", requisitos: "Acceso sin escalones", futureField: "conservar" } };
 const cliente: Cliente = { ...original, id: "c1", tipo: "comprador", notas: "", creadoEl: "2026-10-05", actualizadoEl: "2026-10-05", leadId: "l1", convertidoEl: "2026-10-05", leadOriginal: original };
 const record = <T extends { id: string }>(data: T, version: number) => ({ id: data.id, data, version, createdAt: "2026-10-04", updatedAt: "2026-10-05" });
@@ -38,19 +38,18 @@ async function detail(kind: "lead" | "client") {
   await act(async () => { render(<React.Suspense fallback={<p>Cargando</p>}>{kind === "lead" ? <LeadDetail params={Promise.resolve({ id: "l1" })} /> : <ClientDetail params={Promise.resolve({ id: "c1" })} />}</React.Suspense>); });
 }
 
-test("un botón en la lista convierte con la revisión y abre Clientes; el lead pasa a Convertidos", async () => {
-  render(<LeadsPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
-  const list = await screen.findByRole("list", { name: "Prospectos" });
-  fireEvent.click(within(list).getByRole("button", { name: /Convertir en cliente/ }));
+test("convertir desde la ficha abre al cliente; en Contactos el prospecto pasa a «Ya son clientes»", async () => {
+  await detail("lead");
+  fireEvent.click(await screen.findByRole("button", { name: /Convertir en cliente/ }));
   await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/clientes/c1"));
   expect(posts).toEqual([{ version: 7 }]);
   expect(db.clientes.list()[0].perfil).toEqual(original.perfil);
   expect(db.leads.version(db.leads.list()[0])).toBe(8);
-  expect(screen.queryByRole("list", { name: "Prospectos" })).toBeNull();
-  fireEvent.click(screen.getByText("Filtros de etapa"));
-  fireEvent.click(screen.getByRole("button", { name: "Convertidos (1)" }));
-  expect(within(screen.getByRole("list", { name: "Prospectos" })).getByRole("link", { name: "Ver cliente" }).getAttribute("href")).toBe("/admin/clientes/c1");
+  cleanup();
+  render(<ContactsScreen />);
+  expect(screen.getByText("Todavía no hay prospectos")).toBeTruthy();
+  fireEvent.change(screen.getByRole("combobox", { name: "Mostrar prospectos" }), { target: { value: "convertidos" } });
+  expect(within(screen.getByRole("list", { name: "Contactos" })).getByRole("link", { name: /Persona capturada/ }).getAttribute("href")).toBe("/admin/leads/l1");
 });
 
 test("preparar operación abre la entrevista sin convertir prematuramente",async()=>{
@@ -70,7 +69,7 @@ test("la ficha del cliente muestra el perfil, asesor, historial y contacto hered
   expect(screen.getByText("250,000 USD", { exact: true })).toBeTruthy();
   expect(screen.getByText("Ana Asesora", { exact: true })).toBeTruthy();
   expect(screen.getByText(original.notas[0].texto, { exact: true })).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Ver historial y agenda del lead" }).getAttribute("href")).toBe("/admin/leads/l1");
+  expect(screen.getByRole("link", { name: "Ver su historial como prospecto" }).getAttribute("href")).toBe("/admin/leads/l1");
   fireEvent.click(screen.getByRole("button", { name: "Editar cliente" }));
   expect((screen.getByLabelText("Correo electrónico", { exact: true }) as HTMLInputElement).value).toBe(original.email);
   fireEvent.change(screen.getByLabelText("Presupuesto máximo", { exact: true }), { target: { value: "260000" } });
@@ -94,11 +93,11 @@ test("una lectura anterior a la conversión no revierte la confirmación del ser
   expect(db.leads.version(db.leads.list()[0])).toBe(8);
 });
 
-test("el panel deja de contar y ofrecer como nuevo un lead convertido", async () => {
-  currentLead = { ...original, estado: "nuevo", clienteId: "c1" };
+test("Hoy deja de pedir seguimiento a un lead ya convertido", async () => {
+  currentLead = { ...original, estado: "nuevo", clienteId: "c1", perfil: { ...original.perfil, proximoContacto: "2020-01-01" } };
   await db.leads.load();
   render(<Dashboard />);
-  expect(screen.getByRole("link", { name: /Prospectos nuevos/ }).textContent).toContain("00");
+  await screen.findByRole("region", { name: /Esperan algo de ti/ });
   expect(screen.queryByRole("link", { name: new RegExp(original.nombre) })).toBeNull();
 });
 

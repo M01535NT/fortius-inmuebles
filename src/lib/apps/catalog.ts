@@ -1,4 +1,5 @@
 export const APPS = [
+  { slug: "documentos", title: "Documentos sin expediente", description: "Opiniones, contratos y propuestas sin pasar por las etapas.", category: "Documentos", icon: "FileText" },
   { slug: "ficha-comercial", title: "Ficha comercial", description: "Presenta un inmueble con la identidad Fortius.", category: "Comercial", icon: "Building2" },
   { slug: "hipoteca", title: "Hipoteca", description: "Mensualidades, anticipos y tabla de amortización.", category: "Finanzas", icon: "Landmark" },
   { slug: "comparables", title: "Comparables", description: "Sustenta precios con fuentes y ajustes visibles.", category: "Comercial", icon: "Scale" },
@@ -7,7 +8,7 @@ export const APPS = [
   { slug: "comisiones", title: "Comisiones y reparto", description: "Honorarios, participantes y distribución.", category: "Finanzas", icon: "HandCoins" },
   { slug: "informe-propietario", title: "Informe al propietario", description: "Actividades, resultados y próximos pasos.", category: "Comercial", icon: "ChartNoAxesCombined" },
   { slug: "pdf", title: "Plantillas y PDF", description: "Prepara formatos y organiza páginas.", category: "Documentos", icon: "Files" },
-  { slug: "revisor-expediente", title: "Revisor de expediente", description: "Requisitos, vencimientos y pendientes.", category: "Documentos", icon: "ClipboardCheck" },
+  { slug: "revisor-expediente", title: "Pendientes documentales", description: "Requisitos, vencimientos y pendientes.", category: "Documentos", icon: "ClipboardCheck" },
   { slug: "fotografias", title: "Fotografías", description: "Recorte, luz y copias listas para publicar.", category: "Productividad", icon: "Image" },
   { slug: "qr", title: "Enlaces y QR", description: "Comparte fichas y documentos seleccionados.", category: "Productividad", icon: "QrCode" },
   { slug: "conversor", title: "Unidades y monedas", description: "Superficies, longitudes y MXN / USD.", category: "Finanzas", icon: "ArrowLeftRight" },

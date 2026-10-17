@@ -31,10 +31,10 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
           return linked ? { ...old, ...taskExpedienteContext(linked) } : old;
         });
       })
-      .catch(() => { if (active) setExpedienteError("No se pudieron consultar los expedientes. Puedes guardar una tarea sin ese vínculo."); });
+      .catch(() => { if (active) setExpedienteError("No se pudieron consultar las operaciones. Puedes guardar la tarea sin vincularla."); });
     apiRequest<{ expedienteLinks: boolean }>("/api/admin/tareas/capacidades")
       .then((result) => { if (active) setExpedienteLinks(result.expedienteLinks); })
-      .catch(() => { if (active) setCapabilityError("No se pudo comprobar la disponibilidad del vínculo con expedientes. Puedes guardar una tarea sin ese vínculo."); });
+      .catch(() => { if (active) setCapabilityError("No se pudo comprobar el vínculo con operaciones. Puedes guardar la tarea sin vincularla."); });
     return () => { active = false; };
   // This context belongs to the editor session, as does its draft.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -54,9 +54,9 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const next = submitter?.name === "estado" ? { ...draft, estado: submitter.value as Task["estado"] } : draft;
     if (next.expedienteId) {
-      if (!expedienteLinks) throw new Error(expedienteLinks === false ? "El vínculo con expedientes requiere una actualización del servicio. Puedes guardar tareas sin ese vínculo." : "No se pudo confirmar la disponibilidad del vínculo. Reintenta o guarda la tarea sin ese vínculo.");
-      if (!expedientesLoaded || !expediente) throw new Error("Selecciona un expediente activo y disponible o retira el vínculo.");
-      if (!contextMatches) throw new Error("Actualiza cliente, inmueble y responsable con los vínculos actuales del expediente.");
+      if (!expedienteLinks) throw new Error(expedienteLinks === false ? "Vincular tareas con operaciones todavía no está disponible. Puedes guardar la tarea sin vincularla." : "No se pudo confirmar la disponibilidad del vínculo. Reintenta o guarda la tarea sin ese vínculo.");
+      if (!expedientesLoaded || !expediente) throw new Error("Elige una operación en curso o quita el vínculo.");
+      if (!contextMatches) throw new Error("Actualiza cliente, inmueble y responsable con los de la operación.");
     }
     const result = taskSchema.safeParse(next);
     if (!result.success) throw new Error(result.error.issues.map((issue) => issue.message).join(". "));
@@ -81,18 +81,18 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
       <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium">Descripción, categoría y vínculos</summary>
       <div className="mt-3 grid min-w-0 gap-4 sm:grid-cols-2">
         <Field label="Descripción" htmlFor="task-description" className="sm:col-span-2"><textarea id="task-description" maxLength={20000} rows={3} className={textareaClass} value={draft.descripcion ?? ""} onChange={(e) => change("descripcion", e.target.value)} /></Field>
-        <Field label="Expediente relacionado" htmlFor="task-dossier" className="sm:col-span-2" hint="Al vincularlo, cliente, inmueble y responsable corresponden a esa operación.">
+        <Field label="Operación relacionada" htmlFor="task-dossier" className="sm:col-span-2" hint="Al vincularlo, cliente, inmueble y responsable corresponden a esa operación.">
           <select id="task-dossier" className={selectClass} value={draft.expedienteId ?? ""} onChange={(e) => selectExpediente(e.target.value)}>
-            <option value="">Sin referencia a expediente</option>
-            {draft.expedienteId && !expediente && <option value={draft.expedienteId}>Expediente no disponible</option>}
+            <option value="">Sin operación vinculada</option>
+            {draft.expedienteId && !expediente && <option value={draft.expedienteId}>Operación no disponible</option>}
             {expedientes.map((item) => <option key={item.id} value={item.id} disabled={!expedienteLinks}>{item.folio}</option>)}
           </select>
-          {!expedientesLoaded && !expedienteError && <p role="status" className="text-sm text-muted-foreground">Cargando expedientes disponibles…</p>}
-          {expedienteLinks === false && <p role="status" className="text-sm text-muted-foreground">El vínculo con expedientes requiere una actualización del servicio. Puedes guardar tareas sin ese vínculo.</p>}
+          {!expedientesLoaded && !expedienteError && <p role="status" className="text-sm text-muted-foreground">Cargando operaciones…</p>}
+          {expedienteLinks === false && <p role="status" className="text-sm text-muted-foreground">Vincular tareas con operaciones todavía no está disponible. Puedes guardar la tarea sin vincularla.</p>}
           {capabilityError && <p role="status" className="text-sm text-muted-foreground">{capabilityError}</p>}
           {expedienteError && <p role="status" className="text-sm text-muted-foreground">{expedienteError}</p>}
-          {expedientesLoaded && draft.expedienteId && !expediente && <p className="text-sm text-muted-foreground">El expediente ya no está activo o disponible. Selecciona otro o retira el vínculo antes de guardar.</p>}
-          {expediente && !contextMatches && <button type="button" className={btnGhost} onClick={() => selectExpediente(expediente.id)}>Usar vínculos actuales del expediente</button>}
+          {expedientesLoaded && draft.expedienteId && !expediente && <p className="text-sm text-muted-foreground">La operación ya no está en curso o no está disponible. Elige otra o quita el vínculo antes de guardar.</p>}
+          {expediente && !contextMatches && <button type="button" className={btnGhost} onClick={() => selectExpediente(expediente.id)}>Usar los datos actuales de la operación</button>}
         </Field>
         <Field label="Categoría" htmlFor="task-category"><select id="task-category" className={selectClass} value={draft.categoria} onChange={(e) => change("categoria", e.target.value as Task["categoria"])}>{options(TASK_CATEGORIES)}</select></Field>
         <Field label="Prospecto relacionado" htmlFor="task-lead"><select id="task-lead" className={selectClass} value={draft.leadId ?? ""} onChange={(e) => change("leadId", e.target.value || undefined)}><option value="">Sin vínculo</option>{draft.leadId && !leads.some((l) => l.id === draft.leadId) && <option value={draft.leadId}>Prospecto no disponible</option>}{leads.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}</select></Field>

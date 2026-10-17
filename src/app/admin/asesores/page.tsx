@@ -183,8 +183,8 @@ export default function AsesoresPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Asesores."
-        description="El equipo que aparece en el sitio y recibe leads e inmuebles asignados."
+        title="Equipo"
+        description="El equipo que aparece en el sitio y recibe prospectos e inmuebles."
         actions={
           <button
             type="button"

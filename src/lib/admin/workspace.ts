@@ -1,24 +1,5 @@
 import type { Property } from "@/data/propiedades";
 
-export function normalizeOrder(value: unknown, allowed: string[]): string[] {
-  const saved = Array.isArray(value)
-    ? value.filter(
-        (id): id is string => typeof id === "string" && allowed.includes(id),
-      )
-    : [];
-  return [...new Set([...saved, ...allowed])];
-}
-export function moveModule(
-  order: string[],
-  source: string,
-  target: string,
-): string[] {
-  if (source === target || !order.includes(source) || !order.includes(target))
-    return order;
-  const next = order.filter((id) => id !== source);
-  next.splice(order.indexOf(target), 0, source);
-  return next;
-}
 export const normalizedText = (s: string) =>
   s
     .normalize("NFD")

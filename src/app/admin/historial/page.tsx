@@ -91,8 +91,8 @@ export default function HistoryPage() {
   return (
     <div className="min-w-0 space-y-5">
       <PageHeader
-        title="Historial y recuperación."
-        description="Cambios registrados por el servidor desde la activación del historial."
+        title="Historial"
+        description="Los cambios guardados desde que se activó el historial."
       />
       <div className="flex flex-wrap gap-2">
         {record && (

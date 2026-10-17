@@ -98,7 +98,8 @@ test("an admin render error offers a working exit to public navigation", async (
       : [];
     return route.fulfill({ json: { records } });
   });
-  await page.goto("/admin");
+  // Contactos muestra los prospectos; Hoy ya no lista prospectos y no se rompe con este dato.
+  await page.goto("/admin/contactos");
   await expect(page.getByRole("heading", { name: "No pudimos cargar esta página." })).toBeVisible();
   await page.getByRole("link", { name: "Volver al inicio", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);

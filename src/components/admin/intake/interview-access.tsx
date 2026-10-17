@@ -81,7 +81,7 @@ export function InterviewAccess({
           ? INTENTS[current.intencion].role +
             " · " +
             (current.estado === "completada"
-              ? "Respuestas guardadas en el expediente"
+              ? "Respuestas guardadas en la operación"
               : "Borrador por terminar")
           : "Define el perfil y captura sus objetivos, condiciones y siguiente acción."}
       </p>
@@ -105,7 +105,7 @@ export function InterviewAccess({
           className={btnPrimary}
           href={
             current
-              ? "/admin/entrevistas/" + current.id
+              ? "/admin/operaciones/nueva?entrevista=" + encodeURIComponent(current.id)
               : "/admin/operaciones/nueva?" + q
           }
         >

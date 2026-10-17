@@ -1,0 +1,42 @@
+/* Navegación del panel guiado. Prefijo :global(.admin-root): ver kit.module.css. */
+
+/* Barra lateral (computadora) */
+:global(.admin-root) .sidebar { position: sticky; top: 0; height: 100dvh; width: 248px; flex: none; display: none; flex-direction: column; gap: 1rem; padding: 1.25rem 1rem 1rem; background: var(--card); border-right: 1px solid var(--border); overflow-y: auto; }
+@media (min-width: 768px) { :global(.admin-root) .sidebar { display: flex; } }
+:global(.admin-root) .search { display: flex; }
+:global(.admin-root) .search > * { flex: 1; }
+:global(.admin-root) .link { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 8px; background: none; color: var(--foreground); font-size: .9375rem; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; }
+:global(.admin-root) .link:hover { background: var(--secondary); }
+:global(.admin-root) .link[aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .sub { font-size: .875rem; font-weight: 500; color: var(--muted-foreground); min-height: 2.5rem; }
+:global(.admin-root) .rule { height: 1px; background: var(--border); margin: .5rem .75rem; }
+:global(.admin-root) .meta { margin-left: auto; font-family: var(--font-mono); font-size: .75rem; font-weight: 500; color: var(--muted-foreground); }
+:global(.admin-root) .count { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; height: 1.375rem; padding: 0 .4375rem; border-radius: 999px; background: var(--primary); color: #fff; font-family: var(--font-mono); font-size: .75rem; font-weight: 600; }
+:global(.admin-root) .chevron { margin-left: auto; transition: transform .15s; }
+:global(.admin-root) .chevronOpen { transform: rotate(180deg); }
+:global(.admin-root) .footer { margin-top: auto; display: flex; align-items: center; gap: .75rem; padding: .875rem .5rem 0; border-top: 1px solid var(--border); }
+:global(.admin-root) .avatar { width: 2.25rem; height: 2.25rem; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--secondary); font-size: .875rem; font-weight: 700; color: var(--foreground); }
+
+/* Barra inferior (celular) */
+:global(.admin-root) .tabbar { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: .375rem max(.5rem, env(safe-area-inset-right, 0px)) calc(.5rem + env(safe-area-inset-bottom, 0px)) max(.5rem, env(safe-area-inset-left, 0px)); background: var(--card); border-top: 1px solid var(--border); box-shadow: 0 -4px 16px rgba(6, 31, 63, .06); }
+@media (min-width: 768px) { :global(.admin-root) .tabbar { display: none; } }
+/* La barra inferior es fija: lo que se desplaza o se pega abajo debe quedar por encima de ella. */
+@media (max-width: 767px) {
+  :global(html:has(.admin-root)) { scroll-padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+  :global(.admin-root) :global(.sticky.bottom-0) { bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)); }
+}
+:global(.admin-root) .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1875rem; min-height: 3.5rem; border: 0; border-radius: 10px; background: none; color: var(--muted-foreground); font-size: .75rem; font-weight: 500; text-decoration: none; cursor: pointer; }
+:global(.admin-root) .tab[aria-current=page], :global(.admin-root) .tab[aria-expanded=true] { color: var(--panel-selected-ink); font-weight: 700; background: var(--panel-selected); }
+:global(.admin-root) .tabCount { position: absolute; top: -.375rem; left: .875rem; min-width: 1.25rem; height: 1.125rem; padding: 0 .3125rem; border-radius: 999px; background: var(--primary); color: #fff; font-family: var(--font-mono); font-size: .6875rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+:global(.admin-root) .plus { justify-self: center; width: 3.5rem; height: 3.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; background: var(--primary); border: 1px solid var(--primary-edge); color: #fff; box-shadow: var(--shadow-control); }
+
+/* Menú (celular) */
+:global(.admin-root) .menu { position: fixed; z-index: 39; inset: 0; bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 1.25rem; padding: calc(1.25rem + env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) 1.25rem max(1.25rem, env(safe-area-inset-left, 0px)); background: var(--canvas); }
+@media (min-width: 768px) { :global(.admin-root) .menu { display: none; } }
+:global(.admin-root) .menuGroup { display: flex; flex-direction: column; padding: .375rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+:global(.admin-root) .menuLabel { padding: .5rem .75rem .25rem; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-foreground); }
+:global(.admin-root) .menuRow { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 3.25rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: var(--foreground); font-size: 1rem; font-weight: 550; text-align: left; text-decoration: none; cursor: pointer; }
+:global(.admin-root) .menuRow[aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .menuMeta { font-family: var(--font-mono); font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .menuChevron { color: var(--muted-foreground); flex: none; }
+:global(.admin-root) .menuBadge { padding: .125rem .5rem; border-radius: 6px; background: var(--secondary); font-family: var(--font-mono); font-size: .6875rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }

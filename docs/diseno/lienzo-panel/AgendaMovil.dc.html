@@ -26,7 +26,7 @@
 
     <div role="tablist" aria-label="Día" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 0 12px">
       <sc-for list="{{dias}}" as="d" hint-placeholder-count="7">
-        <button type="button" role="tab" aria-selected="{{d.sel}}" style="min-height: 60px; border-radius: 4px; border: 1px solid {{d.borde}}; background: {{d.fondo}}; color: {{d.tinta}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer">
+        <button type="button" role="tab" aria-selected="{{d.sel}}" style="min-height: 60px; border-radius: 8px; border: 1px solid {{d.borde}}; background: {{d.fondo}}; color: {{d.tinta}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer">
           <span class="xs" style="font-weight: 600">{{d.nombre}}</span>
           <span class="mono" style="font-size: 17px; font-weight: 600">{{d.num}}</span>
           <span aria-hidden="true" style="width: 5px; height: 5px; border-radius: 50%; background: {{d.punto}}"></span>
@@ -39,7 +39,7 @@
       <p class="small mut" style="margin-top: -6px">2 visitas y 1 entrevista</p>
       <ol style="display: flex; flex-direction: column; gap: 10px">
         <li>
-          <a href="#" style="display: flex; gap: 14px; padding: 16px; border-radius: 6px; background: var(--pri); border: 1px solid var(--pedge); color: #fff; text-decoration: none">
+          <a href="#" style="display: flex; gap: 14px; padding: 16px; border-radius: 10px; background: var(--pri); border: 1px solid var(--pedge); color: #fff; text-decoration: none">
             <span class="mono" style="font-weight: 600; width: 46px; flex: none">11:00</span>
             <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
               <span class="mono xs" style="text-transform: uppercase; letter-spacing: .06em; opacity: .9">Visita</span>
@@ -59,7 +59,7 @@
           </a>
         </li>
         <li>
-          <a href="#" style="display: flex; gap: 14px; padding: 16px; border-radius: 6px; background: var(--pri); border: 1px solid var(--pedge); color: #fff; text-decoration: none">
+          <a href="#" style="display: flex; gap: 14px; padding: 16px; border-radius: 10px; background: var(--pri); border: 1px solid var(--pedge); color: #fff; text-decoration: none">
             <span class="mono" style="font-weight: 600; width: 46px; flex: none">17:00</span>
             <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
               <span class="mono xs" style="text-transform: uppercase; letter-spacing: .06em; opacity: .9">Visita</span>

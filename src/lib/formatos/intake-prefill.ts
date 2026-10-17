@@ -1,6 +1,7 @@
 import { FORMATOS } from "./catalog";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { EXPEDIENTE_OPERACIONES } from "./expediente-operations";
+import { VALOR_DEFAULTS } from "./valor-fields";
 
 type Context = {
  expediente: { folio: string; unidad?: string; operacion?: string; flujo?: { ruta?: string } | null };
@@ -41,5 +42,7 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   result[field.key]=value;
  }
  if(entrevista)result.origenDatos=JSON.stringify({entrevistaId:entrevista.id,version:entrevista.version,intencion:entrevista.intencion,calidad:"Declaraciones iniciales; comprobar en la actividad correspondiente",campos:Object.keys(result)});
+ // Textos que la plantilla de la opinión de valor trae escritos (empresa, contacto, objeto, supuestos…).
+ if(formatoId==="07")for(const [key,value] of Object.entries(VALOR_DEFAULTS))if(result[key]===undefined)result[key]=value;
  return result;
 }

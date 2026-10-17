@@ -1,0 +1,45 @@
+/* Inmuebles (lienzo: InmueblesEscritorio e InmueblesMovil). Prefijo :global(.admin-root): ver kit.module.css. */
+:global(.admin-root) .mono { font-family: var(--font-mono); font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .search { position: relative; display: flex; align-items: center; min-width: 0; flex: 1 1 16rem; }
+:global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
+:global(.admin-root) .search input { padding-left: 2.5rem; width: 100%; }
+@media (min-width: 1024px) { :global(.admin-root) .search { flex: none; } :global(.admin-root) .search input { width: 16.25rem; } }
+/* En celular el selector ocupa todo el ancho, en tres partes iguales. */
+:global(.admin-root) .segmented[role=radiogroup] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+@media (min-width: 1024px) { :global(.admin-root) .segmented[role=radiogroup] { display: inline-flex; width: auto; } }
+
+:global(.admin-root) .more { margin-bottom: 1.25rem; }
+:global(.admin-root) .more > summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-size: .9375rem; font-weight: 600; }
+
+/* Lista: una fila por inmueble en computadora, tarjeta con foto arriba en celular. */
+:global(.admin-root) .listCard { overflow: hidden; }
+:global(.admin-root) .item + .item { border-top: 1px solid var(--border); }
+:global(.admin-root) .item { position: relative; }
+:global(.admin-root) .row { display: flex; flex-direction: column; gap: .875rem; padding: 0 0 1rem; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .row:hover { background: color-mix(in srgb, var(--secondary) 40%, transparent); }
+:global(.admin-root) .photo { display: block; width: 100%; height: 10.5rem; flex: none; overflow: hidden; background: var(--secondary); }
+:global(.admin-root) .photo img { width: 100%; height: 100%; object-fit: cover; }
+:global(.admin-root) .noPhoto { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem; width: 100%; height: 100%; color: var(--muted-foreground); }
+:global(.admin-root) .main { display: flex; flex-direction: column; gap: .375rem; min-width: 0; padding: 0 1rem; overflow-wrap: anywhere; }
+:global(.admin-root) .title { font-size: 1.0625rem; font-weight: 650; }
+:global(.admin-root) .price { display: flex; flex-direction: column; gap: .25rem; padding: 0 1rem; }
+:global(.admin-root) .amount { font-family: var(--font-mono); font-size: 1.0625rem; font-weight: 600; color: var(--primary-text); }
+@media (min-width: 768px) {
+  :global(.admin-root) .row { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; padding: 1rem 4.5rem 1rem 1.25rem; }
+  :global(.admin-root) .photo { width: 10rem; height: 6.875rem; border-radius: 10px; }
+  :global(.admin-root) .main { flex: 1 1 17.5rem; padding: 0; }
+  :global(.admin-root) .price { align-items: flex-end; min-width: 11.25rem; padding: 0; }
+}
+
+/* Opciones de cada inmueble */
+:global(.admin-root) .options > summary { position: absolute; right: .75rem; top: .75rem; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); cursor: pointer; list-style: none; }
+:global(.admin-root) .options > summary::-webkit-details-marker { display: none; }
+/* En computadora, a la altura del centro de la foto. */
+@media (min-width: 768px) { :global(.admin-root) .options > summary { right: 1.25rem; top: 4.4375rem; transform: translateY(-50%); } }
+:global(.admin-root) .options[open] > summary { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .optionsBody { display: flex; flex-direction: column; gap: .875rem; margin: 0 1rem 1rem; padding: 1rem; border-radius: 12px; background: var(--canvas); }
+@media (min-width: 768px) { :global(.admin-root) .optionsBody { margin: 0 1.25rem 1.25rem; } :global(.admin-root) .optionsBody label { max-width: 20rem; } }
+:global(.admin-root) .action { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.75rem; padding: 0 .875rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); font-size: .875rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+:global(.admin-root) .action[aria-pressed=true] { color: var(--primary-text); }
+:global(.admin-root) .pageButton { min-height: 2.75rem; padding: 0 1rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); font-weight: 600; }
+:global(.admin-root) .pageButton:disabled { opacity: .5; }

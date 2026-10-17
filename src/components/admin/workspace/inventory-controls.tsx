@@ -18,11 +18,14 @@ export function InventoryControls({
   onChange,
   advisers,
   count,
+  hideSearch = false,
 }: {
   value: InventoryFilters;
   onChange: (value: InventoryFilters) => void;
   advisers: Asesor[];
   count: number;
+  /** Inmuebles ya muestra la búsqueda arriba. */
+  hideSearch?: boolean;
 }) {
   const session = useSession();
   const key = `fortius:inventory-views:${session?.id ?? "anonymous"}`;
@@ -70,7 +73,7 @@ export function InventoryControls({
       aria-label="Filtros de inmuebles"
       className="admin-inventory-controls min-w-0 space-y-3 rounded-lg border border-border bg-card p-4"
     >
-      <Field label="Buscar inmuebles" htmlFor="inventory-query">
+      {!hideSearch && <Field label="Buscar inmuebles" htmlFor="inventory-query">
         <input
           id="inventory-query"
           type="search"
@@ -79,7 +82,7 @@ export function InventoryControls({
           onChange={(e) => change("q", e.target.value)}
           placeholder="Título, código o zona"
         />
-      </Field>
+      </Field>}
       {myAdvisor && (
         <button
           type="button"

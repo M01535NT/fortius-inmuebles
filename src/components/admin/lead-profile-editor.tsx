@@ -13,7 +13,7 @@ export function LeadProfileEditor({ lead, onDraftChange, readOnly = false }: { l
   const finish = () => { setDraft(null); onDraftChange?.(null); heading.current?.focus(); };
   return <section className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 ref={heading} tabIndex={-1} className="display-soft text-lg">Perfil del lead</h2>
+      <h2 ref={heading} tabIndex={-1} className="display-soft text-lg">Perfil del prospecto</h2>
       {!draft && !readOnly ? <button type="button" className={btnGhost} onClick={() => { setDraft({ lead, version: db.leads.version(lead) }); onDraftChange?.(lead); }}>Editar ficha</button> : null}
     </div>
     {draft ? <AsyncForm className="min-w-0 space-y-4" onSubmit={async event => {

@@ -37,3 +37,7 @@ next-env.d.ts
 /financial-source-report.json
 /test-results/
 /_local/
+
+# Configuraciones temporales de pruebas locales
+playwright.zz*.config.ts
+tests/admin/browser/zz-*.spec.ts

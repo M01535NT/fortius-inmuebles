@@ -73,9 +73,9 @@ function LeadDetail({ id }: { id: string }) {
     return (
       <div className="space-y-6">
         <PageHeader title="Prospecto no encontrado." />
-        <EmptyState title="Este lead no existe o fue eliminado." />
-        <Link href="/admin/leads" className={btnGhost}>
-          Volver a leads
+        <EmptyState title="Este prospecto no existe o se eliminó." />
+        <Link href="/admin/contactos" className={btnGhost}>
+          Volver a Contactos
         </Link>
       </div>
     );
@@ -135,19 +135,19 @@ function LeadDetail({ id }: { id: string }) {
 
   async function eliminar() {
     if (!lead) return;
-    if (await confirmAction(`¿Eliminar el lead "${lead.nombre}" y su historial?`)) {
+    if (await confirmAction(`¿Eliminar al prospecto "${lead.nombre}" y su historial?`)) {
       await removeById(db.leads, lead.id, db.leads.version(lead));
-      router.push("/admin/leads");
+      router.push("/admin/contactos");
     }
   }
 
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/leads"
+        href="/admin/contactos"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="size-4" strokeWidth={1.5} /> Volver a leads
+        <ArrowLeft className="size-4" strokeWidth={1.5} /> Volver a Contactos
       </Link>
 
       <InterviewAccess leadId={id} clienteId={lead.clienteId} intencion={lead.perfil?.operacion} disabled={!!profileDraft || noteDirty || agendaDirty}/>
@@ -158,6 +158,7 @@ function LeadDetail({ id }: { id: string }) {
         actions={
           <>
             <ConvertLeadButton lead={lead} openOperation disabled={!!profileDraft || noteDirty || agendaDirty} />
+            <ConvertLeadButton lead={lead} compact disabled={!!profileDraft || noteDirty || agendaDirty} />
             {!lead.clienteId ? <AsyncButton type="button" onClick={eliminar} className={btnDanger}>
               <Trash2 className="size-3.5" strokeWidth={1.5} /> Eliminar
             </AsyncButton> : null}
@@ -165,8 +166,8 @@ function LeadDetail({ id }: { id: string }) {
         }
       />
 
-      {profileDraft || noteDirty || agendaDirty ? <p role="status" className="text-sm text-muted-foreground">Guarda o cancela los cambios pendientes antes de convertir el lead.</p> : null}
-      {lead.clienteId ? <p className="text-sm text-muted-foreground">Convertido en cliente. Esta ficha conserva el historial y la agenda del lead.</p> : null}
+      {profileDraft || noteDirty || agendaDirty ? <p role="status" className="text-sm text-muted-foreground">Guarda o cancela los cambios pendientes antes de convertirlo en cliente.</p> : null}
+      {lead.clienteId ? <p className="text-sm text-muted-foreground">Ya es cliente. Esta ficha conserva su historial y su agenda como prospecto.</p> : null}
 
       <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
 
@@ -174,7 +175,7 @@ function LeadDetail({ id }: { id: string }) {
       <div
         className="flex flex-wrap gap-1.5"
         role="group"
-        aria-label="Estado del lead"
+        aria-label="Estado del prospecto"
       >
         {LEAD_ESTADOS.map((estado) => (
           <AsyncButton

@@ -1,6 +1,7 @@
 "use client";
 import { btnGhost, inputClass, selectClass } from "@/components/admin/ui";
 import { PLAN_TABLES, type PlanRow, type PlanTable } from "@/lib/formatos/plan";
+import { MoneyInput } from "@/components/admin/money-input";
 
 export function PlanRowsEditor({ kind, value, onChange }: { kind: PlanTable; value: unknown; onChange: (rows: PlanRow[]) => void }) {
   const config = PLAN_TABLES[kind];
@@ -13,7 +14,8 @@ export function PlanRowsEditor({ kind, value, onChange }: { kind: PlanTable; val
       {fixed.length > 0 && <h4 className="mb-3 font-semibold">{fixed[index].label}</h4>}
       <div className="grid gap-3 sm:grid-cols-2">{config.columns.map((column) => <label key={column.key} className="text-sm">{column.label}
         {kind === "extras" && column.key === "estado" ? <select className={selectClass} value={String(row.estado ?? "")} onChange={(event) => update(index, "estado", event.target.value)}><option value="">Selecciona</option><option value="propuesto">Propuesto</option><option value="autorizado">Autorizado</option></select>
-          : <input className={inputClass} type={kind === "extras" && column.key === "importe" ? "number" : column.key === "fecha" ? "date" : "text"} min={column.key === "importe" ? 0 : undefined} step={column.key === "importe" ? "0.01" : undefined} value={String(row[column.key] ?? "")} onChange={(event) => update(index, column.key, column.key === "importe" ? event.target.value === "" ? undefined : Number(event.target.value) : event.target.value)} />}
+          : column.key === "importe" ? <MoneyInput value={row.importe} onValueChange={(next) => update(index, "importe", next === "" ? undefined : next)} />
+          : <input className={inputClass} type={column.key === "fecha" ? "date" : "text"} value={String(row[column.key] ?? "")} onChange={(event) => update(index, column.key, event.target.value)} />}
       </label>)}</div>
       {!fixed.length && <button type="button" className={`${btnGhost} mt-3`} onClick={() => onChange(rows.filter((_, at) => at !== index))}>Quitar registro</button>}
     </div>)}

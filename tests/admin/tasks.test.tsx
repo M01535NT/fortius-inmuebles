@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { TaskForm } from "@/components/admin/task-form";
 import type { Task } from "@/lib/tasks";
 import TaskDetailPage from "@/app/admin/tareas/[id]/page";
-import TasksPage from "@/app/admin/tareas/page";
+import TasksPage from "@/components/admin/screens/tareas";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 
 const store = vi.hoisted(() => ({ tasks: [] as unknown[], version: 7, put: vi.fn(), load: vi.fn(), search: "", request: vi.fn(), sequence: 0, records: {} as Record<string, unknown[]> }));
@@ -145,7 +145,7 @@ function dossiers(ready = true) {
 test("choosing a dossier fixes task context and saves the direct reference", async () => {
   dossiers(); const save = vi.fn(async (value: Task) => value);
   render(<TaskForm onSave={save} />);
-  const selector = await screen.findByLabelText("Expediente relacionado");
+  const selector = await screen.findByLabelText("Operación relacionada");
   await waitFor(() => expect(screen.getByRole("option", { name: "VENTA-1" })).toBeTruthy());
   fireEvent.change(selector, { target: { value: dossierA.id } });
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Revisión de venta" } });
@@ -159,7 +159,7 @@ test("creation from a dossier URL retains the exact operation after the authoriz
   dossiers(); store.search = `nueva=1&expediente=${dossierB.id}`;
   store.put.mockReset().mockImplementation(async (_collection, value) => value);
   render(<TasksPage />);
-  await waitFor(() => expect((screen.getByLabelText("Expediente relacionado") as HTMLSelectElement).value).toBe(dossierB.id));
+  await waitFor(() => expect((screen.getByLabelText("Operación relacionada") as HTMLSelectElement).value).toBe(dossierB.id));
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Revisión de renta" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(store.put).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ expedienteId: dossierB.id, clienteId: "c-own", asesorId: "own" }), null));
@@ -167,10 +167,10 @@ test("creation from a dossier URL retains the exact operation after the authoriz
 test("missing migration blocks dossier references but permits legacy updates", async () => {
   dossiers(false); const save = vi.fn(async (value: Task) => value);
   render(<TaskForm initial={{ ...task, expedienteId: dossierA.id, clienteId: "c-own", asesorId: "own", propiedadSlug: "same-property" }} onSave={save} />);
-  await screen.findByText(/vínculo con expedientes requiere/);
+  await screen.findByText(/Vincular tareas con operaciones todavía no está disponible/);
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await screen.findByRole("alert"); expect(save).not.toHaveBeenCalled();
-  fireEvent.change(screen.getByLabelText("Expediente relacionado"), { target: { value: "" } });
+  fireEvent.change(screen.getByLabelText("Operación relacionada"), { target: { value: "" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(save).toHaveBeenCalledWith(expect.not.objectContaining({ expedienteId: dossierA.id })));
 });
@@ -183,14 +183,14 @@ test("dossier work shows its direct tasks and labels legacy property tasks witho
   render(<RelatedWork expedienteId={dossierA.id} clienteId="c-own" propertySlug="same-property" />);
   expect(screen.getByRole("link", { name: /Directa venta/ })).toBeTruthy();
   expect(screen.queryByRole("link", { name: /Directa renta/ })).toBeNull();
-  expect(screen.getByRole("link", { name: /Anterior inmueble.*Sin referencia a expediente/ })).toBeTruthy();
+  expect(screen.getByRole("link", { name: /Anterior inmueble.*Sin operación vinculada/ })).toBeTruthy();
   expect(screen.getByRole("link", { name: "Crear tarea relacionada" }).getAttribute("href")).toContain(`expediente=${dossierA.id}`);
 });
 
 test("a dossier outside the authorized list remains blocked and does not erase the written title", async () => {
   dossiers(); const save = vi.fn(async (value: Task) => value);
   render(<TaskForm defaults={{ expedienteId: "60000000-0000-4000-8000-000000000099" }} onSave={save} />);
-  await screen.findByText(/ya no está activo o disponible/);
+  await screen.findByText(/ya no está en curso o no está disponible/);
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Conservar título" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await screen.findByRole("alert"); expect(save).not.toHaveBeenCalled();
@@ -204,8 +204,8 @@ test("a failed capability check reports uncertainty without claiming the migrati
   });
   const save = vi.fn(async (value: Task) => value);
   render(<TaskForm initial={task} onSave={save} />);
-  await screen.findByText(/No se pudo comprobar la disponibilidad/);
-  expect(screen.queryByText(/vínculo con expedientes requiere/)).toBeNull();
+  await screen.findByText(/No se pudo comprobar el vínculo con operaciones/);
+  expect(screen.queryByText(/Vincular tareas con operaciones todavía no está disponible/)).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(save).toHaveBeenCalled());
 });

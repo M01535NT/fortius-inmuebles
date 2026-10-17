@@ -263,17 +263,6 @@ const end: Field[] = [
 export function isOwnerIntent(intent: IntakeIntent) {
   return intent === "vender" || intent === "arrendar";
 }
-const PERSONA_SECTIONS = [
-  "Objetivo",
-  "Situación personal",
-  "Acuerdos",
-  "Siguiente paso",
-] as const;
-export type OwnerPhase = "persona" | "inmueble";
-export function fieldInPhase(section: string, phase: OwnerPhase) {
-  const persona = (PERSONA_SECTIONS as readonly string[]).includes(section);
-  return phase === "persona" ? persona : !persona;
-}
 export function interviewFields(intent: IntakeIntent): Field[] {
   const isOwner = isOwnerIntent(intent);
   const label = isOwner
@@ -408,18 +397,6 @@ export function interviewIssues(
       message: "Pon el aviso de privacidad a disposición antes de continuar.",
     });
   return issues;
-}
-export function phaseIssues(
-  intent: IntakeIntent,
-  answers: InterviewAnswers,
-  phase: OwnerPhase,
-) {
-  const keys = new Set(
-    interviewFields(intent)
-      .filter((field) => fieldInPhase(field.section, phase))
-      .map((field) => field.key),
-  );
-  return interviewIssues(intent, answers).filter((issue) => keys.has(issue.key));
 }
 export const startIntakeSchema = z
   .object({

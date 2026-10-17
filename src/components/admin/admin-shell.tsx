@@ -4,26 +4,12 @@ import Link from "next/link";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
-import {
-  ExternalLink,
-  Eye,
-  EyeOff,
-  LogOut,
-  Settings,
-  Menu,
-  X,
-  Bell,
-} from "lucide-react";
-import { ThemeToggle } from "@/components/home/theme-toggle";
-import { WorkspaceNavigation } from "@/components/admin/workspace/navigation";
-import { SIDEBAR_MODULES } from "@/components/admin/workspace/module-catalog";
-import { AppLauncher } from "@/components/admin/workspace/app-launcher";
-import { ProfileMenu } from "@/components/admin/workspace/profile-menu";
+import { Eye, EyeOff } from "lucide-react";
 import { Breadcrumbs } from "@/components/admin/workspace/breadcrumbs";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
-import { SidebarResize, SidebarToggle, useSidebarPreference } from "@/components/admin/workspace/sidebar";
+import { GuidedSidebar, MobileMenu, MobileTabBar } from "@/components/admin/workspace/guided-nav";
 import {
   AsyncForm,
   AsyncButton,
@@ -197,7 +183,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const sessionId = session?.id;
   const [density] = useBrowserPreference(`fortius:density:${sessionId}`, "comfortable", value => value === "compact" ? "compact" : "comfortable");
-  const [sidebar, setSidebar] = useSidebarPreference(sessionId ?? "guest");
   const [checking, setChecking] = React.useState(true);
   const [passwordMode, setPasswordMode] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -336,102 +321,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         }}
       />
     );
-  const links = (mobile = false) => (
-    <>
-      <WorkspaceNavigation key={session.id} collapsed={!mobile && sidebar.collapsed} onExpand={() => setSidebar({ ...sidebar, collapsed: false })} modules={SIDEBAR_MODULES} userId={session.id} role={session.role} pathname={pathname} onNavigate={() => setMenu(false)} />
-      {mobile ? (
-        <>
-          <DocumentLink href="/admin/configuracion" aria-current={pathname.startsWith("/admin/configuracion") ? "page" : undefined} onClick={() => setMenu(false)} className="admin-sidebar-action"><Settings className="size-4"/>Configuración</DocumentLink>
-          <DocumentLink
-            href="/"
-            onClick={() => setMenu(false)}
-            className="flex min-h-11 items-center gap-3 px-3 text-sm"
-          >
-            <ExternalLink className="size-4" />
-            Ver sitio
-          </DocumentLink>
-          <AsyncButton type="button" onClick={leave} className={btnGhost}>
-            <LogOut className="size-4" />
-            Salir
-          </AsyncButton>
-        </>
-      ) : null}
-    </>
-  );
+  const name = session.name || session.email.split("@")[0];
+  const user = { name, email: session.email, initials: name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase() };
+  // Nueva operación ocupa toda la pantalla: sin menú, migas ni barra inferior; se sale con la ×.
+  const focus = pathname === "/admin/operaciones/nueva";
   return (
     <div data-density={density} className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
-      <aside id="admin-desktop-sidebar" data-collapsed={sidebar.collapsed} style={{ width: sidebar.collapsed ? 76 : sidebar.width }} className="admin-sidebar sticky top-0 hidden h-[100dvh] shrink-0 flex-col border-r border-border md:flex">
-        <div className="admin-sidebar-brand flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <BrandMark variant={sidebar.collapsed ? "symbol" : "full"} className="min-w-0 shrink" />
-        </div>
-        <nav
-          className="flex-1 overflow-y-auto p-3"
-          aria-label="Módulos del panel"
-        >
-          {links()}
-        </nav>
-        <div className="admin-sidebar-footer">
-          <DocumentLink href="/admin/configuracion" aria-label="Configuración" title="Configuración" aria-current={pathname.startsWith("/admin/configuracion") ? "page" : undefined} className="admin-sidebar-action"><Settings className="size-4"/><span className="admin-sidebar-label">Configuración</span></DocumentLink>
-          <DocumentLink
-            href="/"
-            aria-label="Ver sitio"
-            title="Ver sitio"
-            className="admin-sidebar-action"
-          >
-            <ExternalLink className="size-4" />
-            <span className="admin-sidebar-label">Ver sitio</span>
-          </DocumentLink>
-          <div className="admin-sidebar-controls">
-          <SidebarToggle collapsed={sidebar.collapsed} onToggle={() => setSidebar({ ...sidebar, collapsed: !sidebar.collapsed })} />
-          <AsyncButton
-            type="button"
-            onClick={leave}
-            aria-label="Salir"
-            title="Salir"
-            className={btnGhost + " admin-sidebar-exit"}
-          >
-            <LogOut className="size-4" />
-            <span className="admin-sidebar-label">Salir</span>
-          </AsyncButton>
-          </div>
-        </div>
-        {!sidebar.collapsed && <SidebarResize width={sidebar.width} onResize={(width) => setSidebar({ ...sidebar, width })} />}
-      </aside>
-      <div className="min-w-0 flex-1">
-        <header className="admin-topbar sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
-          <div className="admin-topbar-inner flex min-h-16 items-center justify-between gap-3 px-5 md:px-8">
-            <button
-              ref={menuTrigger}
-              type="button"
-              className={btnGhost + " md:hidden"}
-              aria-label="Menú del panel"
-              aria-expanded={menu}
-              aria-controls="admin-mobile-nav"
-              onClick={() => setMenu(!menu)}
-            >
-              {menu ? <X className="size-4" /> : <Menu className="size-4" />}
-              <span className="sr-only sm:not-sr-only">{menu ? "Cerrar" : "Módulos"}</span>
-            </button>
-            <WorkspaceSearch />
-            <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
-            <div className="flex shrink-0 items-center gap-1"><AppLauncher role={session.role} pathname={pathname} onOpen={() => setMenu(false)} /><Link className="admin-alert-link" href="/admin/tareas" aria-label="Tareas y avisos"><Bell size={20}/></Link><ThemeToggle /><ProfileMenu onLogout={leave} /></div>
-          </div>
-          {menu ? (
-            <nav
-              ref={mobileNav}
-              id="admin-mobile-nav"
-              aria-label="Módulos móviles"
-              className="admin-mobile-nav absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg md:hidden"
-            >
-              <p className="mb-3 break-all border-b border-border px-2 pb-3 text-sm text-muted-foreground">
-                {session.email}
-              </p>
-              <div className="space-y-2">{links(true)}</div>
-            </nav>
-          ) : null}
-        </header>
-        <main className="admin-content space-y-5 p-5 md:p-8">
-          <Breadcrumbs />
+      {!focus && <GuidedSidebar pathname={pathname} role={session.role} user={user} search={<WorkspaceSearch label="Buscar cliente o folio" />} onLogout={leave} />}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {!focus && <header className="admin-mobile-header sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-card px-4 md:hidden">
+          <Link href="/admin" aria-label="Fortius Inmuebles, ir a Hoy" className="flex items-center"><BrandMark variant="compact" className="h-7 w-28" /></Link>
+          <WorkspaceSearch />
+        </header>}
+        <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
+        <main className={focus ? "admin-content admin-focus flex-1" : "admin-content flex-1 space-y-5"}>
+          {!focus && <Breadcrumbs />}
           {error || refreshError ? (
             <div className="space-y-2">
               <ErrorNotice error={error ?? refreshError} />
@@ -445,15 +349,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               {error || refreshError ? "No se pudo cargar este módulo. Puedes reintentar o abrir otro desde el menú." : "Cargando módulo…"}
             </p>
           ) : (
-            <>
-              <span className="sr-only">
-                {adminStores.length} colecciones del servidor
-              </span>
-              {children}
-            </>
+            children
           )}
         </main>
       </div>
+      {menu && !focus && <MobileMenu panel={mobileNav} pathname={pathname} role={session.role} user={user} onNavigate={() => setMenu(false)} onLogout={leave} />}
+      {!focus && <MobileTabBar pathname={pathname} menuOpen={menu} menuButton={menuTrigger} onMenu={() => setMenu(open => !open)} />}
     </div>
   );
 }

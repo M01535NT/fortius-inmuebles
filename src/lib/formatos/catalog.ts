@@ -9,7 +9,6 @@ import { camposRepresentante, mostrarCampoAviso, validarAviso } from "./aviso";
 import { validarJuridica } from "./juridica";
 import { levantamientoFields, isLevantamiento, validarLevantamiento } from "./levantamiento";
 import { valorFields, mostrarCampoValor } from "./valor-fields";
-import { validarValor } from "./valor";
 import { promesaFields, mostrarCampoPromesa, validarPromesa } from "./promesa";
 import { intermediacionFields, mostrarCampoIntermediacion, validarIntermediacion } from "./intermediacion";
 
@@ -35,7 +34,16 @@ export type FormatoDefinition = {
 const field = (key: string, label: string, type: FormatoField["type"] = "text", required = true): FormatoField => ({ key, label, type, required });
 const choice = (key: string, label: string, options: readonly { value: string; label: string }[], required = true): FormatoField => ({ key, label, type: "choice", options, required });
 const sectionField = (section: string, key: string, label: string, type: FormatoField["type"] = "text"): FormatoField => ({ ...field(key, label, type), section });
-const f = (id: string, title: string, extension: "docx" | "xlsx", phase: FormatoDefinition["phase"], fields: FormatoField[], readyForEmission = false): FormatoDefinition => ({ id, title: title.replaceAll("_", " "), source: `${id}.${title}.${extension}`, phase, fields, readyForEmission });
+// Nombre en pantalla, con acentos; «source» conserva el nombre del archivo original.
+const TITLES: Record<string, string> = {
+  "01": "Aviso de privacidad", "02": "Entrevista inicial", "03": "Tablero y control comercial",
+  "04A": "Levantamiento de terreno", "04B": "Levantamiento de casa", "04C": "Levantamiento de departamento", "04D": "Levantamiento de oficina", "04E": "Levantamiento de local", "04F": "Levantamiento de nave o bodega", "04G": "Levantamiento de plaza o conjunto",
+  "05": "Revisión jurídica y control de cierre", "06": "Opinión jurídica del inmueble", "07": "Opinión de valor comercial", "08": "Estimación del neto del propietario",
+  "09": "Contrato de intermediación inmobiliaria para venta", "10": "Plan de comercialización", "11": "Reporte de comercialización al propietario", "12": "Entrevista y perfil del comprador",
+  "13": "Registro de visita y retroalimentación", "14": "Oferta de compra y respuesta del propietario", "15": "Promesa de compraventa", "16": "Acta de entrega y recepción del inmueble",
+  "17": "Cierre de la operación", "18": "Recibo de pago de honorarios", "19": "Presupuesto de rehabilitación",
+};
+const f = (id: string, title: string, extension: "docx" | "xlsx", phase: FormatoDefinition["phase"], fields: FormatoField[], readyForEmission = false): FormatoDefinition => ({ id, title: TITLES[id] ?? title.replaceAll("_", " "), source: `${id}.${title}.${extension}`, phase, fields, readyForEmission });
 const inmueble = field("inmueble", "Inmueble y domicilio");
 const fecha = field("fecha", "Fecha", "date");
 const asesor = field("asesor", "Asesor responsable");
@@ -489,6 +497,8 @@ export function formatoById(id: string): FormatoDefinition {
 }
 
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
+  // La opinión de valor se descarga aunque falten datos (decisión del titular, 17/10/2026).
+  if (id === "07") return [];
   const errors = formatoById(id).fields.filter((item) => {
     if (id === "01" && !mostrarCampoAviso(item.key, data)) return false;
     if (id === "07" && !mostrarCampoValor(item.key, data)) return false;
@@ -520,7 +530,6 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "01") errors.push(...validarAviso(data));
   if (id === "05") errors.push(...validarJuridica(data));
   if (isLevantamiento(id)) errors.push(...validarLevantamiento(id, data));
-  if (id === "07") errors.push(...validarValor(data));
   if (id === "15") errors.push(...validarPromesa(data));
   if (id === "09") errors.push(...validarIntermediacion(data));
   if (id === "19") errors.push(...validarPresupuesto(data));

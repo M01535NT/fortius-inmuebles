@@ -21,7 +21,7 @@
 
   <section aria-labelledby="t-color" style="display: flex; flex-direction: column; gap: 16px">
     <h2 id="t-color" class="h2">Color</h2>
-    <div style="display: grid; grid-template-columns: 260px repeat(2, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden">
+    <div style="display: grid; grid-template-columns: 260px repeat(2, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 14px; overflow: hidden">
       <div class="eyebrow" style="padding: 14px 20px; background: var(--sec)">Token</div>
       <div class="eyebrow" style="padding: 14px 20px; background: var(--sec)">Claro</div>
       <div class="eyebrow" style="padding: 14px 20px; background: var(--sec)">Oscuro</div>
@@ -31,11 +31,11 @@
           <span class="xs mut">{{c.uso}}</span>
         </div>
         <div style="padding: 12px 20px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 14px">
-          <span style="width: 56px; height: 36px; border-radius: 4px; border: 1px solid rgba(6,31,63,.18); background: {{c.claro}}"></span>
+          <span style="width: 56px; height: 36px; border-radius: 8px; border: 1px solid rgba(6,31,63,.18); background: {{c.claro}}"></span>
           <span class="mono small">{{c.claro}}</span>
         </div>
         <div style="padding: 12px 20px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 14px">
-          <span style="width: 56px; height: 36px; border-radius: 4px; border: 1px solid rgba(6,31,63,.18); background: {{c.oscuro}}"></span>
+          <span style="width: 56px; height: 36px; border-radius: 8px; border: 1px solid rgba(6,31,63,.18); background: {{c.oscuro}}"></span>
           <span class="mono small">{{c.oscuro}}</span>
         </div>
       </sc-for>
@@ -72,9 +72,9 @@
       <p class="small mut">Escala de 4 px. Pantallas con mucho aire: 48 px de margen en computadora, 20 px en celular.</p>
       <div style="display: flex; gap: 20px; flex-wrap: wrap">
         <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 2px"></span><span class="mono xs mut">2 · etiquetas</span></div>
-        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 4px"></span><span class="mono xs mut">4 · botones</span></div>
-        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 6px"></span><span class="mono xs mut">6 · campos</span></div>
-        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 8px"></span><span class="mono xs mut">8 · tarjetas</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 8px"></span><span class="mono xs mut">4 · botones</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 10px"></span><span class="mono xs mut">6 · campos</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span style="width: 72px; height: 48px; border: 2px solid var(--fg); border-radius: 14px"></span><span class="mono xs mut">8 · tarjetas</span></div>
       </div>
       <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap; padding-top: 8px">
         <button class="btn btn-sec foco" type="button">Foco visible</button>
@@ -92,7 +92,7 @@ class Component extends DCLogic {
     return {
       espacios: [4, 8, 12, 16, 24, 32, 48].map((px) => ({ px })),
       colores: [
-        { nombre: 'Fondo', uso: 'Lienzo del panel', claro: '#FBFCFE', oscuro: '#080F1C' },
+        { nombre: 'Fondo', uso: 'Lienzo del panel; las tarjetas blancas resaltan encima', claro: '#F3F5F9', oscuro: '#080F1C' },
         { nombre: 'Tarjeta', uso: 'Superficies, barra lateral, botón secundario', claro: '#FFFFFF', oscuro: '#121E30' },
         { nombre: 'Texto', uso: 'Títulos y texto principal', claro: '#061F3F', oscuro: '#F3F6FC' },
         { nombre: 'Texto de apoyo', uso: 'Descripciones y pistas', claro: '#52647A', oscuro: '#C1CCDB' },
@@ -101,8 +101,9 @@ class Component extends DCLogic {
         { nombre: 'Seleccionado', uso: 'Fila o estado elegido', claro: '#F4E9ED', oscuro: '#382333' },
         { nombre: 'Neutro', uso: 'Rellenos suaves, «Lo tengo»', claro: '#EDF2F8', oscuro: '#2C405A' },
         { nombre: 'Línea', uso: 'Divisiones', claro: '#DCE4EE', oscuro: '#35465D' },
-        { nombre: 'Borde de control', uso: 'Campos y botones secundarios', claro: '#61738A', oscuro: '#92A7C2' },
-        { nombre: 'Campo', uso: 'Fondo de campos', claro: '#F2F5FA', oscuro: '#24364E' },
+        { nombre: 'Borde de control', uso: 'Campos', claro: '#61738A', oscuro: '#92A7C2' },
+        { nombre: 'Borde suave', uso: 'Botones secundarios, selector y vacíos', claro: '#C5D0DD', oscuro: '#4A5D78' },
+        { nombre: 'Campo', uso: 'Fondo de campos', claro: '#FFFFFF', oscuro: '#24364E' },
         { nombre: 'Foco', uso: 'Contorno de foco', claro: '#174F94', oscuro: '#AACFFF' },
         { nombre: 'Aviso', uso: 'Texto de «Hay un problema»', claro: '#953D00', oscuro: '#FFD236' },
         { nombre: 'Aviso · fondo', uso: 'Fondo de «Hay un problema»', claro: '#FBF0DC', oscuro: '#30281A' },

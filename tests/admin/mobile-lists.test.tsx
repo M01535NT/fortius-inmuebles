@@ -2,13 +2,13 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import LeadsPage from "@/app/admin/leads/page";
+import { ContactsScreen } from "@/components/admin/contacts/contacts";
 import PropiedadesPage from "@/app/admin/propiedades/page";
 import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
 import { propiedades } from "../fixtures/propiedades";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/contactos" }));
 
 const lead: Lead = {
   id: "lead-movil",
@@ -62,27 +62,28 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const addButton = () => screen.getAllByRole("button", { name: "Agregar contacto" })[0];
+
 test("manual lead capture starts collapsed and keeps an unfinished draft when toggled", async () => {
-  render(<LeadsPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
-  const toggle = screen.getByRole("button", { name: "Nuevo prospecto" });
+  render(<ContactsScreen />);
+  const toggle = addButton();
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
   expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
   fireEvent.click(toggle);
   fireEvent.change(screen.getByRole("textbox", { name: "Nombre" }), { target: { value: "Borrador manual" } });
   fireEvent.change(screen.getByRole("textbox", { name: "Teléfono" }), { target: { value: "6641234567" } });
-  fireEvent.click(screen.getByRole("button", { name: "Cerrar captura" }));
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+  expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
+  fireEvent.click(addButton());
   expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("Borrador manual");
   expect((screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement).value).toBe("6641234567");
-  await screen.findByRole("list", { name: "Prospectos" });
+  await screen.findByRole("list", { name: "Contactos" });
   expect(writes).toHaveLength(0);
 });
 
 test("manual capture preserves failed input and only closes after acknowledged save", async () => {
-  render(<LeadsPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
+  render(<ContactsScreen />);
+  fireEvent.click(addButton());
   const name = screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement;
   const phone = screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement;
   expect(name.required).toBe(true);
@@ -90,43 +91,42 @@ test("manual capture preserves failed input and only closes after acknowledged s
   fireEvent.change(name, { target: { value: "Lead capturado" } });
   fireEvent.change(phone, { target: { value: "6641234567" } });
   rejectWrites = true;
-  fireEvent.click(screen.getByRole("button", { name: "Capturar prospecto" }));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
   expect((await screen.findByRole("alert")).textContent).toContain("No se guardó");
   expect(name.value).toBe("Lead capturado");
   expect(push).not.toHaveBeenCalled();
   rejectWrites = false;
-  fireEvent.click(screen.getByRole("button", { name: "Capturar prospecto" }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Nuevo prospecto" }).getAttribute("aria-expanded")).toBe("false"));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
+  await waitFor(() => expect(addButton().getAttribute("aria-expanded")).toBe("false"));
   const saved = db.leads.list().find((item) => item.nombre === "Lead capturado")!;
   expect(saved.telefono).toBe("6641234567");
   expect(push).toHaveBeenCalledWith(`/admin/leads/${saved.id}`);
   expect(writes.map((write) => write.version)).toEqual([null, null]);
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo prospecto" }));
+  fireEvent.click(addButton());
   expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("");
 });
 
-test("mobile lead rows retain details, filters and versioned status updates", async () => {
-  render(<LeadsPage />);
-  fireEvent.click(screen.getByRole("button", { name: "Lista" }));
-  const list = await screen.findByRole("list", { name: "Prospectos" });
-  expect(within(list).getByRole("link", { name: lead.nombre }).getAttribute("href")).toBe(`/admin/leads/${lead.id}`);
-  expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
-  fireEvent.change(within(list).getByRole("combobox", { name: `Estado de ${lead.nombre}` }), { target: { value: "en-evaluacion" } });
-  await waitFor(() => expect(db.leads.list()[0].estado).toBe("en-evaluacion"));
-  expect(writes[0]).toEqual({ url: `/api/admin/collections/leads/${lead.id}`, method: "PUT", version: 7 });
-  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar prospecto" }), { target: { value: "sin coincidencia" } });
-  expect(screen.getByText("Sin prospectos con esos criterios.")).toBeTruthy();
-  fireEvent.change(screen.getByRole("searchbox", { name: "Buscar prospecto" }), { target: { value: "" } });
-  fireEvent.click(screen.getByText("Filtros de etapa"));
-  fireEvent.click(screen.getByRole("button", { name: "Nuevo (0)" }));
-  expect(screen.getByText("Sin prospectos con esos criterios.")).toBeTruthy();
+test("mobile contact rows show what the person wants and the next step; search and status filter work", async () => {
+  render(<ContactsScreen />);
+  const list = await screen.findByRole("list", { name: "Contactos" });
+  const link = within(list).getByRole("link", { name: new RegExp(lead.nombre) });
+  expect(link.getAttribute("href")).toBe(`/admin/leads/${lead.id}`);
+  expect(link.textContent).toContain("Por preguntar");
+  expect(link.textContent).toContain("Sin siguiente paso");
+  fireEvent.change(screen.getAllByRole("searchbox", { name: "Buscar nombre o teléfono" })[0], { target: { value: "sin coincidencia" } });
+  expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
+  fireEvent.change(screen.getAllByRole("searchbox", { name: "Buscar nombre o teléfono" })[0], { target: { value: "123 45" } });
+  expect(within(screen.getByRole("list", { name: "Contactos" })).getByRole("link", { name: new RegExp(lead.nombre) })).toBeTruthy();
+  fireEvent.change(screen.getByRole("combobox", { name: "Mostrar prospectos" }), { target: { value: "contactado" } });
+  expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
+  expect(writes).toHaveLength(0);
 });
 
 test("mobile property rows expose full details and preserve versioned changes and errors", async () => {
   render(<PropiedadesPage />);
   const list = await screen.findByRole("list", { name: "Inmuebles" });
   fireEvent.click(within(list).getByLabelText(`Opciones de ${property.titulo}`));
-  expect(within(list).getByRole("link", { name: property.titulo }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
+  expect(within(list).getByRole("link", { name: new RegExp(`^Venta.*${property.titulo}`) }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
   expect(within(list).getByText("Publicado")).toBeTruthy();
   expect(within(list).getByText(/12,850,000 MXN/)).toBeTruthy();
   expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
@@ -158,6 +158,6 @@ test("mobile property deletion requires confirmation and retains the row when th
   expect(db.propiedades.list()).toHaveLength(1);
   rejectWrites = false;
   fireEvent.click(remove);
-  await screen.findByText("Sin inmuebles registrados.");
+  await screen.findByText("Todavía no hay inmuebles");
   expect(writes.at(-1)).toEqual({ url: `/api/admin/collections/propiedades/${property.slug}`, method: "DELETE", version: 7 });
 });

@@ -5,7 +5,6 @@ vi.mock("@/lib/formatos/pdf", () => ({ prepareFormatoEmission }));
 import { POST } from "@/app/api/admin/formatos/[id]/emitir/route";
 import { terrenoFields } from "@/lib/formatos/levantamiento";
 import { completeValorSample } from "./fixtures/valor";
-import { valorReviewSnapshot } from "@/lib/formatos/valor";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 
 const terrenoInput = {
@@ -95,21 +94,19 @@ it("identifica la plantilla del aviso en el archivo histórico y en la respuesta
   expect((await response.json()).emision.plantillaVersion).toBe(AVISO_TEMPLATE_VERSION);
 });
 
-it("comprueba todas las fotografías del reporte 07 antes de descargar imágenes", async () => {
+it("emite el 07 con las imágenes elegidas que sigan en el borrador y omite las que faltan", async () => {
   const id = "51000000-0000-4000-8000-000000000011";
   const data: Record<string, unknown> = { ...completeValorSample(), folio: "REAL", fotografias: [{ assetId: "51000000-0000-4000-8000-000000000023", pie: "Vista sintética adicional" }] };
-  Object.assign(data, { revisionDatos: valorReviewSnapshot(data) });
-  const images = [{ id: data.fotoPrincipalId, kind: "foto" }, { id: data.croquisId, kind: "croquis" }];
+  const images: Record<string, unknown>[] = [];
   const selected = vi.fn(async () => ({ data: images, error: null }));
   requireStaff.mockResolvedValue({ client: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id, expediente_id: id, formato_id: "07", data, folio: "REAL", version: 1 }, error: null }), in: selected }) }) }) }, user: { id } });
   const download = vi.fn();
-  createServerClient.mockReturnValue({ storage: { from: () => ({ download }) } });
+  createServerClient.mockReturnValue({ storage: { from: () => ({ download, upload: async () => ({ error: null }), remove: async () => ({}) }) }, from: () => ({ insert: () => ({ select: () => ({ single: async () => ({ data: { id: "e" }, error: null }) }) }) }) });
   prepareFormatoEmission.mockClear();
-  const response = await POST(emitRequest(id), { params: Promise.resolve({ id }) });
-  expect(response.status).toBe(409);
+  await POST(emitRequest(id), { params: Promise.resolve({ id }) });
   expect(selected).toHaveBeenCalledWith("id", expect.arrayContaining(["51000000-0000-4000-8000-000000000023"]));
   expect(download).not.toHaveBeenCalled();
-  expect(prepareFormatoEmission).not.toHaveBeenCalled();
+  expect(prepareFormatoEmission).toHaveBeenCalledWith("07", expect.objectContaining({ folio: "REAL" }));
 });
 
 it("rechaza seleccionar imágenes que no aparecen en el borrador autorizado", async () => {

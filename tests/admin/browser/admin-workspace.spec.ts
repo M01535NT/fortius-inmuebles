@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Locator } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { mobilePanelData, panelRecords } from "./fixtures/mobile-panel-data";
 test.beforeEach(async ({ page }) => {
   const data = mobilePanelData("2026-10-08");
@@ -47,127 +47,70 @@ async function fits(page: Page) {
   ).toBe(true);
 }
 
-test("app window searches, traps keyboard focus, closes and navigates", async ({ page }) => {
+test("la barra lateral guía por cinco secciones, Herramientas y Administración", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
-  const trigger = page.getByRole("button", { name: "Abrir aplicaciones" });
-  const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
-  await trigger.click();
-  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(16);
-  await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
-  const search = apps.getByRole("searchbox", { name: "Buscar aplicación" });
-  await expect(search).toBeFocused();
-  await search.fill("FOTOGRAFIAS");
-  await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(1);
-  await expect(apps.getByRole("link", { name: "Fotografías" })).toBeVisible();
-  await search.fill("zzzinexistente");
-  await expect(apps.getByRole("status")).toContainText("No hay aplicaciones");
-  await search.fill("");
-  const close = apps.getByRole("button", { name: "Cerrar aplicaciones" });
-  const last = apps.getByRole("link", { name: "Abrir catálogo completo" });
-  await last.focus();
-  await page.keyboard.press("Tab");
-  await expect(close).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
-  await expect(last).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(apps).not.toBeVisible();
-  await expect(trigger).toBeFocused();
-  await trigger.click();
-  await page.mouse.click(300, 100);
-  await expect(apps).not.toBeVisible();
-  await trigger.click();
-  await apps.getByRole("link", { name: "Fotografías", exact: true }).click();
-  await expect(page).toHaveURL(/\/admin\/apps\/fotografias$/);
-  await expect(page.getByLabel("Fotografía original")).toBeVisible();
-  await expect(apps).not.toBeVisible();
+  const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
+  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Hoy/ })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "Nueva operación" }).first()).toHaveAttribute("href", "/admin/operaciones/nueva");
+  for (const gone of ["Más", "Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
+  const admin = nav.getByRole("button", { name: /Administración/ });
+  await expect(admin).toHaveAttribute("aria-expanded", "false");
+  await admin.click();
+  for (const name of ["Equipo", "Sitio web", "Reportes", "Historial", "Configuración"]) await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
+  await nav.getByRole("link", { name: /^Herramientas/ }).click();
+  await expect(page).toHaveURL(/\/admin\/herramientas$/);
+  await expect(page.locator("main h1")).toHaveText("Herramientas");
+  await expect(nav.getByRole("link", { name: /^Herramientas/ })).toHaveAttribute("aria-current", "page");
+  await fits(page);
 });
 
-test("apps fit small phones and tablets and release the mobile menu", async ({ page }) => {
-  for (const width of [320, 375, 768]) {
-    await page.setViewportSize({ width, height: 812 });
-    await page.goto("/admin");
-    await expect(page.getByRole("heading", { name: "¿Qué vas a hacer hoy?" })).toBeVisible();
-    await fits(page);
-    if (width < 768) await page.getByRole("button", { name: "Menú del panel" }).click();
-    await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
-    const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
-    const box = await apps.boundingBox();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-    await expect(apps.getByRole("navigation", { name: "Aplicaciones del sistema" }).getByRole("link")).toHaveCount(16);
-    await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
-    if (width < 768) await expect(page.locator('button[aria-label="Menú del panel"]')).toHaveAttribute("aria-expanded", "false");
-    await apps.getByRole("link", { name: "Abrir catálogo completo" }).focus();
-    await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toBeInViewport();
-    await apps.getByRole("button", { name: "Cerrar aplicaciones" }).click();
-    await expect(apps).not.toBeVisible();
-    if (width < 768) {
-      await page.goto("/admin/configuracion");
-      await page.getByRole("button", { name: "Menú del panel" }).click();
-      const mobile = page.getByRole("navigation", { name: "Módulos móviles" });
-      await expect(mobile.getByRole("link", { name: "Configuración", exact: true }).and(mobile.locator(".admin-nav-link"))).toHaveAttribute("aria-current", "page");
-    }
-  }
-});
-
-test("editor has all twenty tools while Más excludes admin-only modules", async ({ page }) => {
+test("un asesor no ve Administración y conserva las 17 herramientas", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { id: "editor-apps-test", email: "editor@example.invalid", role: "editor" } } }));
-  await page.goto("/admin");
-  await page.getByRole("button", { name: "Abrir aplicaciones" }).click();
-  const apps = page.getByRole("dialog", { name: "Aplicaciones del sistema" });
-  const tools = apps.getByRole("navigation", { name: "Aplicaciones del sistema" });
-  await expect(tools.getByRole("link")).toHaveCount(16);
-  await expect(apps.getByRole("link", { name: "Abrir catálogo completo" })).toHaveAttribute("href", "/admin/apps");
-  await apps.getByRole("button", { name: "Finanzas", exact: true }).click();
-  await expect(tools.getByRole("link")).toHaveCount(6);
-  await expect(tools.getByRole("link", { name: "Hipoteca", exact: true })).toHaveAttribute("href", "/admin/apps/hipoteca");
-  await apps.getByRole("searchbox").fill("finanzas");
-  await expect(apps.getByRole("status")).toContainText("No hay aplicaciones");
-  await apps.getByRole("button", { name: "Cerrar aplicaciones" }).click();
-  const sidebar = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  await expect(sidebar.getByRole("link", { name: "Hoy", exact: true })).toBeVisible();
-  await expect(sidebar.getByRole("link", { name: "Agenda", exact: true })).toBeVisible();
-  await sidebar.getByRole("button", { name: "Más", exact: true }).click();
-  for (const name of ["Finanzas", "Portal de clientes", "Control comercial", "Reportes", "Historial"])
-    await expect(sidebar.getByRole("link", { name, exact: true })).toHaveCount(0);
-  for (const name of ["Inmuebles", "CRM", "Clientes"])
-    await expect(sidebar.getByRole("link", { name, exact: true })).toBeVisible();
+  await page.goto("/admin/herramientas");
+  const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
+  await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
+  await expect(page.getByText("Asesor", { exact: true })).toBeVisible();
+  await expect(page.locator("main article")).toHaveCount(17);
 });
-test("sidebar resizes, collapses and remembers its width", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/admin");
-  const sidebar = page.locator("#admin-desktop-sidebar");
-  await sidebar.getByRole("button", { name: "Más", exact: true }).click();
-  await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
-  const resize = page.getByRole("separator", { name: "Ancho de la barra lateral" });
-  await expect(resize).toHaveAttribute("aria-valuenow", "232");
-  await resize.focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(resize).toHaveAttribute("aria-valuenow", "248");
-  const box = await resize.boundingBox();
-  await page.mouse.move(box!.x + 5, box!.y + 100);
-  await page.mouse.down();
-  await page.mouse.move(box!.x + 45, box!.y + 100);
-  await page.mouse.up();
-  await expect(resize).toHaveAttribute("aria-valuenow", "288");
-  await page.getByRole("button", { name: "Contraer barra lateral" }).click();
-  await expect(sidebar).toHaveAttribute("data-collapsed", "true");
-  await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
-  await fits(page);
-  await page.reload();
-  await expect(sidebar).toHaveAttribute("data-collapsed", "true");
-  await page.getByRole("button", { name: "Expandir barra lateral" }).click();
-  await sidebar.getByRole("button", { name: "Más", exact: true }).click();
-  await expect(sidebar.getByRole("link", { name: "Inmuebles", exact: true })).toBeVisible();
-  await expect(resize).toHaveAttribute("aria-valuenow", "288");
-  await resize.focus();
-  await page.keyboard.press("End");
-  await expect(resize).toHaveAttribute("aria-valuenow", "360");
-  await page.keyboard.press("Home");
-  await expect(resize).toHaveAttribute("aria-valuenow", "224");
-  await fits(page);
+
+test("en celular la barra inferior y el menú llevan a todas las secciones", async ({ page }) => {
+  for (const width of [320, 375]) {
+    await page.setViewportSize({ width, height: 812 });
+    await page.goto("/admin");
+    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
+    const tabs = page.getByRole("navigation", { name: "Secciones principales" });
+    for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+    await fits(page);
+    // El sitio usa desplazamiento suave; se mide al llegar al final, no a mitad de la animación.
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+    const clearance = await page.evaluate(() => {
+      const last = document.querySelector("main")!.lastElementChild!.getBoundingClientRect().bottom;
+      return document.querySelector('nav[aria-label="Secciones principales"]')!.getBoundingClientRect().top - last;
+    });
+    expect(clearance, "el final del contenido queda por encima de la barra inferior").toBeGreaterThanOrEqual(0);
+    const trigger = page.getByRole("button", { name: "Menú del panel" });
+    await trigger.click();
+    const menu = page.getByRole("navigation", { name: "Módulos móviles" });
+    for (const name of ["Inmuebles", "Agenda", "Ver las 16 herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    const admin = menu.getByRole("button", { name: /Administración/ });
+    await expect(admin).toHaveAttribute("aria-expanded", "false");
+    await admin.click();
+    await expect(menu.getByRole("link", { name: "Configuración", exact: true })).toBeVisible();
+    await expect(menu.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await menu.getByRole("button", { name: /Administración/ }).click();
+    await menu.getByRole("link", { name: "Configuración", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/configuracion$/);
+    await trigger.click();
+    await expect(page.getByRole("navigation", { name: "Módulos móviles" }).getByRole("link", { name: "Configuración", exact: true })).toHaveAttribute("aria-current", "page");
+    await fits(page);
+  }
 });
 test("form controls have readable contrast in both themes", async ({ page }, info) => {
   await page.goto("/admin/propiedades/audit-casa/editar");
@@ -207,8 +150,8 @@ test("quick creation works repeatedly from the current module", async ({
   page,
 }) => {
   for (const [path, label, field, close] of [
-    ["/admin/leads", "Nuevo prospecto", "Nombre", "Cerrar captura"],
-    ["/admin/tareas", "Nueva tarea", "Título", "Cerrar captura"],
+    ["/admin/contactos", "Nuevo prospecto", "Nombre", "Cancelar"],
+    ["/admin/agenda?tab=tareas", "Nueva tarea", "Título", "Cerrar captura"],
   ]) {
     await page.goto(path);
     for (let i = 0; i < 2; i++) {
@@ -231,7 +174,7 @@ for (const width of [320, 390, 1440]) {
     for (const path of [
       "/admin",
       "/admin/propiedades",
-      "/admin/leads",
+      "/admin/contactos",
       "/admin/reportes",
       "/admin/historial",
     ]) {
@@ -266,67 +209,11 @@ for (const width of [320, 390, 1440]) {
     await expect(dialog).not.toBeVisible();
   });
 }
-async function expectFixedDaily(navigation: Locator) {
-  const names = ["Resumen", "Hoy", "Operaciones", "Agenda", "Captación", "Verificación y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"];
-  for (const [index, name] of names.entries())
-    await expect(navigation.getByRole("link").nth(index)).toHaveText(name);
-}
-/** Con orden personalizado el menú se abre solo y el botón pasa a «Ocultar más». */
-async function ensureMoreExpanded(navigation: Locator) {
-  const toggle = navigation.getByRole("button", { name: /^(Más|Ocultar más)$/ });
-  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-expanded", "true");
-}
-test("reorders Más by drag and touch, persists, restores and keeps daily/procedure fixed", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/admin");
-  const desktop = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  await ensureMoreExpanded(desktop);
-  await expectFixedDaily(desktop);
-  await desktop.getByRole("button", { name: "Organizar módulos" }).click();
-  await expect(desktop.getByTitle("Arrastrar Resumen")).toHaveCount(0);
-  await expect(desktop.getByRole("button", { name: "Subir Captación", exact: true })).toHaveCount(0);
-  await expect(desktop.getByRole("button", { name: "Subir CRM", exact: true })).toBeDisabled();
-  // Ambos extremos visibles: desplazar la barra durante un arrastre nativo lo cancela.
-  await desktop.getByRole("link", { name: "CRM", exact: true }).scrollIntoViewIfNeeded();
-  await desktop.getByTitle("Arrastrar Inmuebles").dragTo(desktop.getByRole("link", { name: "CRM", exact: true }));
-  await expect(desktop.getByRole("link").nth(10)).toHaveText("Inmuebles");
-  await expect(desktop.getByRole("link").nth(11)).toHaveText("CRM");
-  await expectFixedDaily(desktop);
-  await page.reload();
-  await ensureMoreExpanded(desktop);
-  await expect(desktop.getByRole("link").nth(10)).toHaveText("Inmuebles");
-  await expectFixedDaily(desktop);
-  await page.setViewportSize({ width: 390, height: 900 });
-  await page.getByRole("button", { name: "Menú del panel" }).click();
-  const mobile = page.getByRole("navigation", { name: "Módulos móviles" });
-  await mobile.getByRole("button", { name: "Organizar módulos" }).click();
-  await expect(mobile.getByRole("link").nth(10)).toHaveText("Inmuebles");
-  await mobile.getByRole("button", { name: "Subir CRM", exact: true }).click();
-  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
-  await expect(mobile.getByRole("link").nth(11)).toHaveText("Inmuebles");
-  await expectFixedDaily(mobile);
-  await page.reload();
-  await page.getByRole("button", { name: "Menú del panel" }).click();
-  await mobile.getByRole("button", { name: "Organizar módulos" }).click();
-  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
-  await mobile.getByRole("button", { name: "Bajar CRM", exact: true }).click();
-  await expect(mobile.getByRole("link").nth(10)).toHaveText("Inmuebles");
-  await mobile.getByRole("button", { name: "Restablecer", exact: true }).click();
-  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
-  await expectFixedDaily(mobile);
-  await expect(mobile.getByRole("status")).toContainText("Orden original restaurado.");
-  await page.reload();
-  await page.getByRole("button", { name: "Menú del panel" }).click();
-  await ensureMoreExpanded(mobile);
-  await expect(mobile.getByRole("link").nth(10)).toHaveText("CRM");
-  await expectFixedDaily(mobile);
-  await fits(page);
-});
 test("inventory saved view, related tasks and global search navigate with context", async ({
   page,
 }) => {
   await page.goto("/admin/propiedades");
+  await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
   await page
     .getByLabel("Publicación", { exact: true })
@@ -336,6 +223,7 @@ test("inventory saved view, related tasks and global search navigate with contex
     .getByRole("button", { name: "Guardar vista", exact: true })
     .click();
   await page.reload();
+  await page.getByText("Más filtros").click();
   await page.getByText(/Filtros y vistas guardadas/).click();
   await page.getByRole("button", { name: "Pendientes", exact: true }).click();
   await expect(page.getByLabel("Publicación", { exact: true })).toHaveValue(
@@ -365,13 +253,7 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
     return route.fulfill({json:{ok:true}});
   });
   await page.goto("/admin");
-  const menu = page.getByRole("button", {name:/Menú de usuario/});
-  await menu.click();
-  await page.keyboard.press("Escape");
-  await expect(menu).toBeFocused();
-  await expect(menu).toHaveAttribute("aria-expanded","false");
-  await menu.click();
-  await page.getByRole("link",{name:"Mi perfil y fotografía"}).click();
+  await page.getByRole("complementary").getByRole("link",{name:"Mi perfil"}).click();
   await page.getByLabel("Nombre visible").fill("Moisés Núñez");
   await page.getByLabel("Seleccionar fotografía").setInputFiles({
     name:"foto.png",mimeType:"image/png",
@@ -392,8 +274,8 @@ test("failed Blog loading does not block inventory navigation", async ({page}) =
   await page.route("**/api/admin/collections/posts", route => route.fulfill({status:503,json:{error:"Blog temporalmente no disponible"}}));
   await page.goto("/admin/blog");
   await expect(page.getByText(/No se pudo cargar este módulo/)).toBeVisible();
-  await page.locator("#admin-desktop-sidebar").getByRole("link",{name:"Inmuebles",exact:true}).click();
-  await expect(page.locator("main h1")).toHaveText("Cartera de inmuebles");
+  await page.getByRole("navigation",{name:"Módulos del panel",exact:true}).getByRole("link",{name:"Inmuebles",exact:true}).click();
+  await expect(page.locator("main h1")).toHaveText("Inmuebles");
   await expect(page.getByRole("link",{name:/Casa de prueba/}).first()).toBeVisible();
 });
 test("mobile editor reveals collapsed sections and confirms leaving through search", async ({page}, info) => {
@@ -410,7 +292,30 @@ test("mobile editor reveals collapsed sections and confirms leaving through sear
   await expect(page).toHaveURL(/audit-casa/);
   await page.getByRole("dialog").getByRole("link",{name:"Nueva tarea",exact:true}).click();
   await page.getByRole("dialog",{name:"Confirmar acción"}).getByRole("button",{name:"Confirmar",exact:true}).click();
-  await expect(page).toHaveURL(/admin\/tareas/);
+  await expect(page).toHaveURL(/admin\/agenda\?tab=tareas/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.screenshot({path:info.outputPath("mobile-task.png"),fullPage:true});
+});
+test("Documentos es una pestaña de Herramientas y la dirección anterior lleva a ella", async ({ page }) => {
+  await page.route("**/api/admin/documentos?**", route => route.fulfill({ json: { documentos: [], total: 0, nextOffset: null } }));
+  await page.goto("/admin/documentos");
+  await expect(page).toHaveURL(/\/admin\/herramientas\?tab=documentos$/);
+  await expect(page.getByRole("tab", { name: "Documentos" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByText(/Busca por folio o formato/)).toBeVisible();
+  await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
+  await page.getByRole("tab", { name: "Herramientas" }).click();
+  await expect(page).toHaveURL(/\/admin\/herramientas$/);
+  await expect(page.getByRole("textbox", { name: "Buscar herramienta" })).toBeVisible();
+});
+test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/admin");
+    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
+    for (const name of [/^Esperan algo de ti/, /^Tareas de hoy/, /^Agenda de hoy/, /^Próximos 7 días/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+    const tasks = page.getByRole("region", { name: "Tareas de hoy" });
+    await expect(tasks.getByRole("checkbox").first()).toBeVisible();
+    await expect(tasks.getByRole("link", { name: "Agregar tarea" })).toHaveAttribute("href", "/admin/agenda?tab=tareas&nueva=1");
+    await fits(page);
+  }
 });

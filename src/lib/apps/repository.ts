@@ -8,6 +8,7 @@ import type { AppRun } from "./types";
 import { FINANCIAL_APPS, COMMERCIAL_APPS } from "./catalog";
 import { calculateFinancial } from "./financial";
 import { calculateCommercial } from "./commercial";
+import { DOCUMENTOS_APP, documentoIndependienteInput } from "./documentos";
 export const RUNS = "fortius_inmuebles_app_runs";
 export function mapRun(row: Record<string, unknown>): AppRun {
   return { id: String(row.id), slug: String(row.slug), title: String(row.title), input: row.input as AppRun["input"], result: row.result as AppRun["result"], context: row.context as AppRun["context"], version: Number(row.version), updatedAt: String(row.updated_at) };
@@ -27,7 +28,14 @@ export async function saveRun(client: SupabaseClient, userId: string, body: unkn
       if (COMMERCIAL_APPS.has(input.slug)) input.result = calculateCommercial(input.slug, input.input);
     } catch (error) { throw new ApiError(400, error instanceof Error ? error.message : "Revisa la captura"); }
   }
-  if (input.slug === "ficha-comercial" && input.context.inmuebleId && input.input.propertySlug && input.context.inmuebleId !== input.input.propertySlug) throw new ApiError(400, "La ficha debe corresponder al inmueble del expediente");
+  if (input.slug === DOCUMENTOS_APP) {
+    // Siempre independientes: el documento de una operación se trabaja desde su etapa.
+    if (input.context.expedienteId || input.context.inmuebleId || input.context.clienteId || input.result) throw new ApiError(400, "Los documentos sin expediente no se vinculan a una operación");
+    const parsed = documentoIndependienteInput.safeParse(input.input);
+    if (!parsed.success) throw new ApiError(400, "Revisa la captura del documento");
+    input.input = parsed.data;
+  }
+  if (input.slug === "ficha-comercial" && input.context.inmuebleId && input.input.propertySlug && input.context.inmuebleId !== input.input.propertySlug) throw new ApiError(400, "La ficha debe ser del inmueble de la operación");
   const value = { title: input.title, input: input.input, result: input.result };
   const sameValue = (run: AppRun) => run.slug === input.slug && run.title === input.title && isDeepStrictEqual(run.input, input.input) && isDeepStrictEqual(run.result, input.result) && isDeepStrictEqual(run.context, input.context);
   if (input.id && input.version) {

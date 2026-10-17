@@ -8,6 +8,7 @@ import { calculateCommercial, commercialCalendarDate, commercialRows, COMPARABLE
 import type { AppEditorProps, AppInput } from "@/lib/apps/types";
 import { taskExpedienteContext, taskSchema, type Task, type TaskExpediente } from "@/lib/tasks";
 import { OPERACION_LABELS } from "@/data/propiedades";
+import { MoneyInput } from "@/components/admin/money-input";
 
 const panel = "min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5";
 const grid = "grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3";
@@ -27,12 +28,15 @@ const offerFields: FormField[] = [{ key: "name", label: "Referencia de oferta" }
 const quoteFields: FormField[] = [{ key: "concept", label: "Concepto" }, { key: "category", label: "Categoría", options: options({ servicios: "Servicios", honorarios: "Honorarios", gastos: "Gastos" }) }, { key: "quantity", label: "Cantidad", type: "number" }, { key: "unitPrice", label: "Precio unitario", type: "number", hint: "Máximo dos decimales; sin fracciones de centavo." }, { key: "discountPct", label: "Descuento %", type: "number" }, { key: "taxPct", label: "Impuesto %", type: "number", hint: "Captura la tasa aplicable; no se presume un impuesto." }];
 const activityFields: FormField[] = [{ key: "date", label: "Fecha", type: "date" }, { key: "kind", label: "Tipo de actividad", options: options({ actividad: "Actividad", visita: "Visita realizada", oferta: "Oferta recibida" }) }, { key: "detail", label: "Descripción de actividad", type: "textarea" }];
 const reviewFields: FormField[] = [{ key: "name", label: "Requisito" }, { key: "required", label: "Requerido para este caso", type: "checkbox" }, { key: "fileRef", label: "Archivo / versión / referencia", hint: "Registra el nombre y versión del soporte; no se carga ni certifica el archivo." }, { key: "reviewed", label: "Revisado por una persona", type: "checkbox" }, { key: "expires", label: "Vencimiento", type: "date" }, { key: "finding", label: "Hallazgo pendiente", type: "textarea" }];
+/** Importes de las herramientas comerciales: se muestran con formato de moneda. */
+const MONEY_KEYS = new Set(["creditBalance", "deposit", "expenses", "price", "unitPrice"]);
 function ValueField({ field, value, onChange, id, suffix = "" }: { field: FormField; value: unknown; onChange: (value: unknown) => void; id: string; suffix?: string }) {
   const label = field.label + suffix;
   if (field.type === "checkbox") return <label className="flex min-h-11 items-center gap-3 text-sm"><input id={id} className="h-4 w-4 accent-primary" type="checkbox" checked={value === true} onChange={event => onChange(event.target.checked)} />{label}</label>;
   return <Field label={label} htmlFor={id} hint={field.hint} className={field.type === "textarea" ? "sm:col-span-2" : undefined}>
     {field.options ? <select id={id} className={selectClass} value={txt(value)} onChange={event => onChange(event.target.value)}>{field.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
       : field.type === "textarea" ? <textarea id={id} rows={3} maxLength={10000} className={textareaClass} value={txt(value)} onChange={event => onChange(event.target.value)} />
+        : MONEY_KEYS.has(field.key) ? <MoneyInput id={id} value={txt(value) === "" ? "" : Number(txt(value))} onValueChange={next => onChange(next === "" ? "" : String(next))} />
         : <input id={id} className={inputClass} type={field.type ?? "text"} step={field.type === "number" ? "any" : undefined} maxLength={1000} value={txt(value)} onChange={event => onChange(event.target.value)} />}
   </Field>;
 }
@@ -81,26 +85,26 @@ export function CommercialEditor(props: AppEditorProps) {
     {inventoryState.loaded && !properties.length && <p className="text-sm text-muted-foreground">No hay inmuebles disponibles. Puedes realizar captura manual.</p>}
   </section>; }
   async function loadActivities() {
-    const expedienteId = context.expedienteId; if (!expedienteId) throw new Error("Selecciona un expediente en el contexto de la herramienta.");
+    const expedienteId = context.expedienteId; if (!expedienteId) throw new Error("Elige una operación arriba, en «Operación».");
     const result = await apiRequest<{ actividad: { id: string; descripcion: string; created_at: string }[] }>(`/api/admin/expedientes/${encodeURIComponent(expedienteId)}/actividad`);
-    if (latest.current.context.expedienteId !== expedienteId) throw new Error("El contexto cambió. Consulta la actividad del expediente actual.");
+    if (latest.current.context.expedienteId !== expedienteId) throw new Error("La operación cambió. Consulta su actividad de nuevo.");
     patchLatest({ activityCandidates: result.actividad.map(item => ({ sourceId: item.id, date: commercialCalendarDate(item.created_at), kind: "actividad", detail: item.descripcion, origin: "registrado", sourceExpedienteId: expedienteId })), selectedActivityIds: [] });
   }
   async function prepareTask() {
-    const expedienteId = context.expedienteId; if (!expedienteId) throw new Error("Vincula un expediente antes de crear una tarea.");
+    const expedienteId = context.expedienteId; if (!expedienteId) throw new Error("Elige una operación antes de crear la tarea.");
     const result = calculateCommercial(slug, input);
     const pendingRows = result.sections?.[0]?.rows?.filter(row => /Faltante|Sin revisar|Vencido|Hallazgo pendiente/.test(row[4])) ?? [];
     if (!pendingRows.length) throw new Error("No hay pendientes capturados para convertir en tarea.");
     if (pendingRows.length > 100) throw new Error("La tarea admite hasta 100 pendientes. Divide la revisión antes de crearla.");
     const [capabilities, response] = await Promise.all([apiRequest<{ expedienteLinks: boolean }>("/api/admin/tareas/capacidades"), apiRequest<{ expedientes: TaskExpediente[] }>("/api/admin/expedientes")]);
-    if (!capabilities.expedienteLinks) throw new Error("El vínculo de tareas con expedientes aún no está habilitado en el servicio.");
+    if (!capabilities.expedienteLinks) throw new Error("Vincular tareas con operaciones todavía no está disponible.");
     const expediente = response.expedientes.find(item => item.id === expedienteId && !item.deleted_at);
-    if (!expediente || latest.current.context.expedienteId !== expedienteId) throw new Error("El expediente cambió o no está disponible.");
+    if (!expediente || latest.current.context.expedienteId !== expedienteId) throw new Error("La operación cambió o no está disponible.");
     const draft: Task = { id: txt(input.pendingTaskId) || uid(), titulo: `Revisar pendientes · ${expediente.folio}`.slice(0, 160), descripcion: `Revisión documental, lista ${txt(input.checklistVersion)}, fecha ${txt(input.asOf)}.\n` + pendingRows.map(row => `${row[0]}: ${row[4]}. ${row[5]}`).join("\n"), categoria: "documentacion", estado: "pendiente", prioridad: "normal", ...taskExpedienteContext(expediente), pasos: pendingRows.map(row => ({ id: uid(), texto: `${row[0]}: ${row[4]}`.slice(0, 500), hecho: false })) };
     setTask(draft); setConfirmedTask(false); patchLatest({ pendingTaskId: draft.id });
   }
   async function createTask() {
-    if (!task || !confirmedTask || task.expedienteId !== context.expedienteId) throw new Error("Confirma la tarea y comprueba el expediente actual.");
+    if (!task || !confirmedTask || task.expedienteId !== context.expedienteId) throw new Error("Confirma la tarea y revisa la operación.");
     const result = await db.tareas.put(taskSchema.parse(task), null);
     patchLatest({ createdTaskId: result.id, createdTaskExpedienteId: task.expedienteId }); setTask(null); setConfirmedTask(false);
   }
@@ -130,7 +134,7 @@ export function CommercialEditor(props: AppEditorProps) {
       {slug === "cotizador" && <><section className={panel}><div className={grid}>{[{ key: "client", label: "Cliente / destinatario" }, { key: "currency", label: "Moneda", options: currencies }, { key: "issuedAt", label: "Fecha de emisión", type: "date" }, { key: "validUntil", label: "Vigencia hasta", type: "date" }].map(item => field(item as FormField))}</div><p className="text-sm text-muted-foreground">Descuentos sobre el subtotal de cada partida; impuestos sobre el importe descontado. Cotización informativa, sin CFDI ni contratación automática.</p></section><RowsEditor title="Partidas" id={id} rows={items} fields={quoteFields} onChange={value => patch({ items: value })} blank={{ concept: "", category: "servicios", quantity: 1, unitPrice: "", discountPct: 0, taxPct: "" }} />{field({ key: "terms", label: "Condiciones y alcance del servicio", type: "textarea" })}</>}
       {slug === "informe-propietario" && <>
         <section className={panel}><div className={grid}>{[{ key: "ownerLabel", label: "Destinatario" }, { key: "from", label: "Inicio del periodo", type: "date" }, { key: "to", label: "Fin del periodo", type: "date" }].map(item => field(item as FormField))}</div></section>
-        <section className={panel}><h2 className="text-lg font-semibold">Actividad del expediente</h2><p className="text-sm text-muted-foreground">Consulta hasta las 100 entradas más recientes. Selecciona sólo información pertinente para el propietario. Una entrada registrada no se cuenta automáticamente como visita u oferta.</p><button type="button" className={btnGhost} disabled={!context.expedienteId} onClick={() => void run(loadActivities)}>Consultar actividad del expediente</button>{!context.expedienteId && <p className="text-sm text-muted-foreground">Selecciona un expediente en el contexto para consultar su actividad.</p>}
+        <section className={panel}><h2 className="text-lg font-semibold">Actividad de la operación</h2><p className="text-sm text-muted-foreground">Consulta hasta las 100 entradas más recientes. Selecciona sólo información pertinente para el propietario. Una entrada registrada no se cuenta automáticamente como visita u oferta.</p><button type="button" className={btnGhost} disabled={!context.expedienteId} onClick={() => void run(loadActivities)}>Consultar actividad de la operación</button>{!context.expedienteId && <p className="text-sm text-muted-foreground">Elige una operación arriba para ver su actividad.</p>}
           {candidates.filter(row => row.sourceExpedienteId === context.expedienteId).map((row, index) => <label key={txt(row.sourceId)} className="flex min-h-11 items-start gap-3 rounded-md border border-border p-3"><input className="mt-1 h-4 w-4 shrink-0" type="checkbox" aria-label={`Incluir actividad ${index + 1}`} checked={selection.includes(txt(row.sourceId))} onChange={event => patch({ selectedActivityIds: event.target.checked ? [...selection, txt(row.sourceId)] : selection.filter(value => value !== row.sourceId) })} /><span className="min-w-0 break-words text-sm">{txt(row.date)} · {txt(row.detail)}</span></label>)}
           {!!candidates.length && <button type="button" className={btnGhost} disabled={!selection.length} onClick={() => { const additions = candidates.filter(row => row.sourceExpedienteId === context.expedienteId && selection.includes(txt(row.sourceId)) && !rows.some(existing => existing.sourceId === row.sourceId)); if (rows.length + additions.length > 200) { setError("El informe admite hasta 200 actividades."); return; } patch({ rows: [...rows, ...additions], selectedActivityIds: [] }); }}>Incorporar actividades seleccionadas</button>}
         </section>
@@ -140,9 +144,9 @@ export function CommercialEditor(props: AppEditorProps) {
       {slug === "revisor-expediente" && <>
         <section className={panel}><h2 className="text-lg font-semibold">Lista documental del caso</h2><p className="text-sm text-muted-foreground">Adapta requisitos y aplicabilidad a esta operación. Cada versión guardada conserva la lista; recibir un archivo no equivale a revisarlo ni certificarlo.</p><div className={grid}>{[{ key: "checklistVersion", label: "Versión de la lista" }, { key: "asOf", label: "Fecha de revisión", type: "date" }, { key: "reviewer", label: "Persona que revisa" }, { key: "operation", label: "Operación", options: operations }, { key: "propertyType", label: "Tipo de inmueble", options: propertyTypes }].map(item => field(item as FormField))}</div></section>
         <RowsEditor title="Requisitos" id={id} rows={rows} fields={reviewFields} onChange={value => { patch({ rows: value }); setTask(null); setConfirmedTask(false); }} blank={{ name: "", required: true, fileRef: "", reviewed: false, expires: "", finding: "" }} />
-        <section className={panel}><h2 className="text-lg font-semibold">Seguimiento de pendientes</h2><p className="text-sm text-muted-foreground">Prepara una tarea con los faltantes, documentos sin revisar, vencimientos y hallazgos. Revisa el contenido antes de confirmar su creación.</p><button type="button" className={btnGhost} disabled={!context.expedienteId || !!input.createdTaskId} onClick={() => void run(prepareTask)}>Preparar tarea de pendientes</button>{!context.expedienteId && <p className="text-sm text-muted-foreground">Vincula un expediente en el contexto para crear una tarea.</p>}
-          {task && task.expedienteId === context.expedienteId && <div className="space-y-3 rounded-md border border-border p-4"><p className="font-semibold">{task.titulo}</p><p className="whitespace-pre-wrap break-words text-sm">{task.descripcion}</p><p className="text-sm">Responsable: {task.asesorId} · Expediente: {task.expedienteId}</p><label className="flex min-h-11 items-center gap-3 text-sm"><input className="h-4 w-4" type="checkbox" checked={confirmedTask} onChange={event => setConfirmedTask(event.target.checked)} />Confirmo crear esta tarea en el expediente</label><button type="button" className={btnPrimary} disabled={!confirmedTask} onClick={() => void run(createTask)}>Crear tarea en el expediente</button></div>}
-          {!!input.createdTaskId && <p role="status" className="text-sm text-primary-ink">Tarea creada en el expediente.</p>}
+        <section className={panel}><h2 className="text-lg font-semibold">Seguimiento de pendientes</h2><p className="text-sm text-muted-foreground">Prepara una tarea con los faltantes, documentos sin revisar, vencimientos y hallazgos. Revisa el contenido antes de confirmar su creación.</p><button type="button" className={btnGhost} disabled={!context.expedienteId || !!input.createdTaskId} onClick={() => void run(prepareTask)}>Preparar tarea de pendientes</button>{!context.expedienteId && <p className="text-sm text-muted-foreground">Elige una operación arriba para crear una tarea.</p>}
+          {task && task.expedienteId === context.expedienteId && <div className="space-y-3 rounded-md border border-border p-4"><p className="font-semibold">{task.titulo}</p><p className="whitespace-pre-wrap break-words text-sm">{task.descripcion}</p><p className="text-sm">Responsable: {task.asesorId} · Expediente: {task.expedienteId}</p><label className="flex min-h-11 items-center gap-3 text-sm"><input className="h-4 w-4" type="checkbox" checked={confirmedTask} onChange={event => setConfirmedTask(event.target.checked)} />Confirmo crear esta tarea en la operación</label><button type="button" className={btnPrimary} disabled={!confirmedTask} onClick={() => void run(createTask)}>Crear tarea en la operación</button></div>}
+          {!!input.createdTaskId && <p role="status" className="text-sm text-primary-ink">Tarea creada en la operación.</p>}
         </section>
       </>}
       {error && <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}

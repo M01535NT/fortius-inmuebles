@@ -4,7 +4,7 @@ import { apiResponse, ApiError, assertSameOrigin, databaseError, readJson } from
 import { draftCreate } from "@/lib/formatos/schemas";
 import { prefillFormato } from "@/lib/formatos/intake-prefill";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { calcularValor, validarValor } from "@/lib/formatos/valor";
+import { calcularValor } from "@/lib/formatos/valor";
 
 type Context = { params: Promise<{ id: string }> };
 export async function GET(_request: Request, context: Context) {
@@ -48,7 +48,7 @@ export async function POST(request: Request, context: Context) {
       const opinion=source.data;
       if(!opinion||opinion.expediente_id!==id||opinion.formato_id!=="07"||opinion.version!==input.valorReferencia.version)throw new ApiError(409,"La opinión seleccionada cambió o no pertenece al expediente");
       const value=calcularValor(opinion.data);
-      if(validarValor(opinion.data).length||value.concluido===null)throw new ApiError(409,"La opinión requiere revisión vigente y congruente antes de incorporarla al neto");
+      if(value.concluido===null)throw new ApiError(409,"La opinión todavía no tiene valor concluido: completa sus enfoques y pesos");
       valorSeed={referencia07:`Opinión ${opinion.id} · versión ${opinion.version}`,fecha07:opinion.data.fechaValor,precioSugerido07:value.concluido,precioBase:"sugerido07",moneda:"MXN"};
     }
     const seeded=draftCreate.parse({formatoId:input.formatoId,data:{...proposed,...input.data,...valorSeed}});

@@ -5,8 +5,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { ClienteEditor, CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-editor";
 import { LeadProfileSummary } from "@/components/admin/lead-fields";
-import { Badge, EmptyState, ErrorNotice, PageHeader, btnGhost, btnPrimary } from "@/components/admin/ui";
-import { db, fechaCorta, useCollection, useLoadState } from "@/lib/admin/store";
+import { useRouter } from "next/navigation";
+import { AsyncButton, Badge, EmptyState, ErrorNotice, PageHeader, btnGhost, btnPrimary } from "@/components/admin/ui";
+import { confirmAction } from "@/components/admin/workspace/confirm";
+import { db, fechaCorta, removeById, useCollection, useLoadState } from "@/lib/admin/store";
 
 export default function ClienteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -17,20 +19,27 @@ function ClienteDetail({ id }: { id: string }) {
   const state = useLoadState(db.clientes);
   const asesores = useCollection(db.asesores);
   const [editing, setEditing] = React.useState(false);
+  const router = useRouter();
   const cliente = clientes.find(item => item.id === id);
   if (!cliente) return <div className="space-y-6">
     <PageHeader title="Cliente." />
     {state.status === "idle" || state.status === "loading" ? <p role="status">Cargando cliente…</p> : state.error ? <ErrorNotice error={state.error} /> : <EmptyState title="Cliente no encontrado." />}
-    <Link href="/admin/clientes" className={btnGhost}>Volver a clientes</Link>
+    <Link href="/admin/contactos?tab=clientes" className={btnGhost}>Volver a clientes</Link>
   </div>;
   const asesor = asesores.find(item => item.id === cliente.asesorId);
   return <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
-    <Link href="/admin/clientes" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Volver a clientes</Link>
+    <Link href="/admin/contactos?tab=clientes" className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Volver a clientes</Link>
     <PageHeader title={cliente.nombre} description="Ficha del cliente: contacto, perfil y seguimiento."
-      actions={!editing ? <><Link className={btnPrimary} href={`/admin/operaciones/nueva?${new URLSearchParams({clienteId:id,intencion:cliente.tipo==="inversionista"?"invertir":cliente.tipo==="comprador"?"comprar":cliente.tipo==="arrendador"?"arrendar":cliente.tipo==="arrendatario"?"rentar":"vender"})}`}>Abrir operación</Link><button type="button" className={btnGhost} onClick={() => setEditing(true)}>Editar cliente</button></> : undefined} />
+      actions={!editing ? <><Link className={btnPrimary} href={`/admin/operaciones/nueva?${new URLSearchParams({clienteId:id,intencion:cliente.tipo==="inversionista"?"invertir":cliente.tipo==="comprador"?"comprar":cliente.tipo==="arrendador"?"arrendar":cliente.tipo==="arrendatario"?"rentar":"vender"})}`}>Abrir operación</Link><button type="button" className={btnGhost} onClick={() => setEditing(true)}>Editar cliente</button>
+        {/* Quien vino de un prospecto conserva su historial; por eso solo se eliminan los capturados como cliente. */}
+        {!cliente.leadId && <AsyncButton className={btnGhost} onClick={async () => {
+          if (!await confirmAction(`¿Eliminar a ${cliente.nombre}?`)) return;
+          await removeById(db.clientes, cliente.id, db.clientes.version(cliente));
+          router.push("/admin/contactos?tab=clientes");
+        }}>Eliminar cliente</AsyncButton>}</> : undefined} />
     {cliente.leadId ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/40 p-4">
-      <p className="text-sm"><Badge tone="green">Convertido desde un lead</Badge>{cliente.convertidoEl ? ` · ${fechaCorta(cliente.convertidoEl)}` : ""}</p>
-      <Link href={`/admin/leads/${encodeURIComponent(cliente.leadId)}`} className={btnGhost}>Ver historial y agenda del lead</Link>
+      <p className="text-sm"><Badge tone="green">Antes era prospecto</Badge>{cliente.convertidoEl ? ` · ${fechaCorta(cliente.convertidoEl)}` : ""}</p>
+      <Link href={`/admin/leads/${encodeURIComponent(cliente.leadId)}`} className={btnGhost}>Ver su historial como prospecto</Link>
     </div> : null}
     {editing ? <ClienteEditor initial={cliente} onDone={() => setEditing(false)} /> : <>
       <RelatedWork clienteId={id}/>

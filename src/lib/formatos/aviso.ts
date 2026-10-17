@@ -1,6 +1,6 @@
 import type { FormatoField } from "./catalog";
 
-export const AVISO_TEMPLATE_VERSION = "carta-2026-10-04";
+export const AVISO_TEMPLATE_VERSION = "carta-2026-10-09";
 const representativeKeys = ["consentimientoPatrimonial", "consentimientoPublicidad", "publicidadCorreo", "publicidadTelefono", "publicidadMensajeria", "transferenciaAsesor", "asesorDestinatario", "asesorPais", "transferenciaFinanciera", "financieroDestinatario", "financieroPais", "transferenciaOperacion", "operacionDestinatario", "operacionPais", "acuseEstado", "fechaAcuse", "referenciaAcuse"];
 export const claveRepresentante = (key: string) => `representante${key[0].toUpperCase()}${key.slice(1)}`;
 export function decisionesRepresentante(data: Record<string, unknown>): Record<string, unknown> {

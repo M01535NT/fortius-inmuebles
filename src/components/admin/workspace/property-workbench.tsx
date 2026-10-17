@@ -189,7 +189,7 @@ export function PropertyWorkbench({
       setNotice("Copia temporal guardada en esta pestaña. No se ha publicado.");
     } catch {
       setNotice(
-        "No se pudo conservar la copia temporal. Guarda el inmueble en el servidor.",
+        "No se pudo conservar la copia temporal. Guarda el inmueble para no perder los cambios.",
       );
     }
   }

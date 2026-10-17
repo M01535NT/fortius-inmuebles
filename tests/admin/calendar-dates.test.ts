@@ -25,15 +25,3 @@ test("URL dates reject normalized impossible days and accept valid leap days", (
   expect(dates.isCalendarDate("2028-02-29")).toBe(true);
   expect(dates.isCalendarDate("0000-01-01")).toBe(false);
 });
-
-test("activity is ordered by date, then clock time, with untimed entries last", () => {
-  const items = [
-    { titulo: "Sin hora", fecha: "2026-12-31" },
-    { titulo: "Mañana", fecha: "2027-01-01", hora: "07:00" },
-    { titulo: "Tarde", fecha: "2026-12-31", hora: "18:00" },
-    { titulo: "Mañana de hoy", fecha: "2026-12-31", hora: "08:00" },
-  ];
-  expect([...items].sort(dates.compareCalendarEntries).map(item => item.titulo)).toEqual([
-    "Mañana de hoy", "Tarde", "Sin hora", "Mañana",
-  ]);
-});

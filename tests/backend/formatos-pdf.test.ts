@@ -79,7 +79,7 @@ describe("emisión de formatos", () => {
       custodiaOriginales: "No aplica", responsableRegistro: "Ana",
     });
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("Cierre del expediente");
+    expect(pdf.getTitle()).toBe("Cierre de la operación");
     expect(pdf.getPageCount()).toBeGreaterThan(0);
   });
 
@@ -108,7 +108,7 @@ describe("emisión de formatos", () => {
       pagos: [{ fechaPago: "2026-10-05", partidaId: "P-1", proveedor: "Proveedor A", concepto: "Anticipo", importe: 100, medio: "Transferencia", comprobante: "SPEI-1", estado: "Pagado" }],
     });
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("Presupuesto de rehabilitacion");
+    expect(pdf.getTitle()).toBe("Presupuesto de rehabilitación");
     expect(pdf.getPageCount()).toBe(3);
   });
 
@@ -142,14 +142,16 @@ describe("emisión de formatos", () => {
       quienRecibe: "Lic. José Francisco López Fernández, representante de Desarrollos Inmobiliarios de Baja California",
     });
     const { operators, text } = await lastPageGeometry(bytes);
-    const signatureLines = [...operators.matchAll(/45 ([\d.]+) m\s+245 ([\d.]+) l/g)];
-    expect(signatureLines.length).toBeGreaterThan(0);
-    const signatureOffset = signatureLines.at(-1)!.index!;
+    // Líneas de firma de las dos columnas (diseño de la plantilla 16: carta, márgenes de 50.4 pt).
+    const signatureLines = [...operators.matchAll(/([\d.]+) ([\d.]+) m\s+([\d.]+) \2 l/g)].filter(m => Math.abs(Number(m[3]) - Number(m[1]) - 215.6) < 1);
+    expect(signatureLines.length).toBe(2);
+    const signatureOffset = signatureLines[0].index!;
     const captions = text.filter(t => t.offset > signatureOffset && t.y > 40);
-    expect(captions.length).toBeGreaterThan(0);
+    expect(captions.length).toBeGreaterThan(2);
     for (const caption of captions) {
-      expect(caption.width).toBeLessThanOrEqual(200.01);
-      expect(caption.x + caption.width).toBeLessThanOrEqual(550.29);
+      expect(caption.width).toBeLessThanOrEqual(235.61);
+      expect(caption.x).toBeGreaterThanOrEqual(50.39);
+      expect(caption.x + caption.width).toBeLessThanOrEqual(561.61);
       expect(caption.y).toBeGreaterThan(45);
     }
   });
