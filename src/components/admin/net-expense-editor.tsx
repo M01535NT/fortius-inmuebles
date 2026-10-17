@@ -1,6 +1,7 @@
 "use client";
 import { btnGhost, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { CARGOS_NETO, type CargoNeto } from "@/lib/formatos/neto";
+import { MoneyInput } from "@/components/admin/money-input";
 
 const defaults: CargoNeto[] = CARGOS_NETO.map((item) => ({ concepto: item.key, estado: "Pendiente", justificacion: "" }));
 
@@ -17,7 +18,7 @@ export function NetExpenseEditor({ value, onChange }: { value: unknown; onChange
         <div className="grid gap-3 sm:grid-cols-2">
           {item.concepto.startsWith("otro") && <label className="text-sm sm:col-span-2">Concepto específico<input className={inputClass} value={item.descripcion ?? ""} onChange={(event) => update(item.concepto, { descripcion: event.target.value })} /></label>}
           <label className="text-sm">Estado<select className={selectClass} value={item.estado} onChange={(event) => update(item.concepto, event.target.value === "No aplica" ? { estado: "No aplica", importe: undefined } : { estado: event.target.value })}><option value="Pendiente">Pendiente</option><option value="Estimado">Estimado</option><option value="Confirmado">Confirmado</option><option value="No aplica">No aplica</option></select></label>
-          <label className="text-sm">Importe en MXN<input className={inputClass} type="number" min="0" step="0.01" disabled={item.estado === "No aplica"} value={item.estado === "No aplica" ? "" : item.importe ?? ""} onChange={(event) => update(item.concepto, { importe: event.target.value === "" ? undefined : Number(event.target.value) })} /></label>
+          <label className="text-sm">Importe en MXN<MoneyInput disabled={item.estado === "No aplica"} value={item.estado === "No aplica" ? "" : item.importe ?? ""} onValueChange={(next) => update(item.concepto, { importe: next === "" ? undefined : next })} /></label>
           <label className="text-sm sm:col-span-2">Justificación, fuente y fecha<textarea className={textareaClass} rows={2} value={item.justificacion} onChange={(event) => update(item.concepto, { justificacion: event.target.value })} /></label>
         </div>
       </div>;

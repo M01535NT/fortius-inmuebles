@@ -8,6 +8,7 @@ import { calculateCommercial, commercialCalendarDate, commercialRows, COMPARABLE
 import type { AppEditorProps, AppInput } from "@/lib/apps/types";
 import { taskExpedienteContext, taskSchema, type Task, type TaskExpediente } from "@/lib/tasks";
 import { OPERACION_LABELS } from "@/data/propiedades";
+import { MoneyInput } from "@/components/admin/money-input";
 
 const panel = "min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5";
 const grid = "grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3";
@@ -27,12 +28,15 @@ const offerFields: FormField[] = [{ key: "name", label: "Referencia de oferta" }
 const quoteFields: FormField[] = [{ key: "concept", label: "Concepto" }, { key: "category", label: "Categoría", options: options({ servicios: "Servicios", honorarios: "Honorarios", gastos: "Gastos" }) }, { key: "quantity", label: "Cantidad", type: "number" }, { key: "unitPrice", label: "Precio unitario", type: "number", hint: "Máximo dos decimales; sin fracciones de centavo." }, { key: "discountPct", label: "Descuento %", type: "number" }, { key: "taxPct", label: "Impuesto %", type: "number", hint: "Captura la tasa aplicable; no se presume un impuesto." }];
 const activityFields: FormField[] = [{ key: "date", label: "Fecha", type: "date" }, { key: "kind", label: "Tipo de actividad", options: options({ actividad: "Actividad", visita: "Visita realizada", oferta: "Oferta recibida" }) }, { key: "detail", label: "Descripción de actividad", type: "textarea" }];
 const reviewFields: FormField[] = [{ key: "name", label: "Requisito" }, { key: "required", label: "Requerido para este caso", type: "checkbox" }, { key: "fileRef", label: "Archivo / versión / referencia", hint: "Registra el nombre y versión del soporte; no se carga ni certifica el archivo." }, { key: "reviewed", label: "Revisado por una persona", type: "checkbox" }, { key: "expires", label: "Vencimiento", type: "date" }, { key: "finding", label: "Hallazgo pendiente", type: "textarea" }];
+/** Importes de las herramientas comerciales: se muestran con formato de moneda. */
+const MONEY_KEYS = new Set(["creditBalance", "deposit", "expenses", "price", "unitPrice"]);
 function ValueField({ field, value, onChange, id, suffix = "" }: { field: FormField; value: unknown; onChange: (value: unknown) => void; id: string; suffix?: string }) {
   const label = field.label + suffix;
   if (field.type === "checkbox") return <label className="flex min-h-11 items-center gap-3 text-sm"><input id={id} className="h-4 w-4 accent-primary" type="checkbox" checked={value === true} onChange={event => onChange(event.target.checked)} />{label}</label>;
   return <Field label={label} htmlFor={id} hint={field.hint} className={field.type === "textarea" ? "sm:col-span-2" : undefined}>
     {field.options ? <select id={id} className={selectClass} value={txt(value)} onChange={event => onChange(event.target.value)}>{field.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
       : field.type === "textarea" ? <textarea id={id} rows={3} maxLength={10000} className={textareaClass} value={txt(value)} onChange={event => onChange(event.target.value)} />
+        : MONEY_KEYS.has(field.key) ? <MoneyInput id={id} value={txt(value) === "" ? "" : Number(txt(value))} onValueChange={next => onChange(next === "" ? "" : String(next))} />
         : <input id={id} className={inputClass} type={field.type ?? "text"} step={field.type === "number" ? "any" : undefined} maxLength={1000} value={txt(value)} onChange={event => onChange(event.target.value)} />}
   </Field>;
 }

@@ -4,7 +4,10 @@ import * as React from "react";
 import { Field, inputClass, selectClass, textareaClass } from "./ui";
 import { db, useCollection, type Lead } from "@/lib/admin/store";
 import { leadProfileSchema, LEAD_PROFILE_OPTIONS, type LeadProfile } from "@/lib/lead-profile";
+import { MoneyInput } from "@/components/admin/money-input";
 
+/** Importes del perfil: se muestran con formato de moneda. */
+const MONEY_FIELDS: string[] = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo"];
 const numericFields = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo", "superficieMin", "superficieMax", "superficieTerreno", "superficieConstruccion", "recamaras", "estacionamientos", "recamarasInmueble", "estacionamientosInmueble"] as const;
 const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "caracteristicas", "plazo", "proximoContacto", "estrategiaInversion", "horizonteInversion", "criteriosInversion"] as const;
 
@@ -55,7 +58,7 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
     </select></Field>
   );
   const number = (name: typeof numericFields[number], label: string, max: number, step = "0.01") => (
-    <Field label={label} htmlFor={id(name)}><input id={id(name)} name={`perfil.${name}`} type="number" min="0" max={max} step={step} inputMode={step === "1" ? "numeric" : "decimal"} defaultValue={perfil[name] ?? ""} className={inputClass} /></Field>
+    <Field label={label} htmlFor={id(name)}>{MONEY_FIELDS.includes(name) ? <MoneyInput id={id(name)} name={`perfil.${name}`} defaultValue={perfil[name]} /> : <input id={id(name)} name={`perfil.${name}`} type="number" min="0" max={max} step={step} inputMode={step === "1" ? "numeric" : "decimal"} defaultValue={perfil[name] ?? ""} className={inputClass} />}</Field>
   );
   const types = { terreno: "Terreno", casa: "Casa", departamento: "Departamento", local: "Local", oficina: "Oficina", bodega: "Bodega", "nave-industrial": "Nave industrial", otro: "Otro" };
   return <div className="min-w-0 space-y-3" onInvalidCapture={event => {

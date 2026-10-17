@@ -6,6 +6,7 @@ import { btnDanger, btnGhost, btnPrimary, ErrorNotice, Field, inputClass, select
 import { calculateFinancial, getFinancialDefaults, rehabilitationTransfer } from "@/lib/apps/financial";
 import { localToday } from "@/lib/finance/money";
 import type { AppEditorProps, AppInput } from "@/lib/apps/types";
+import { MoneyInput } from "@/components/admin/money-input";
 
 type Option = [string, string];
 type Column = { key: string; label: string; type?: "text" | "number" | "date"; options?: Option[]; width?: string };
@@ -20,8 +21,11 @@ const evidence: Option[] = [["supuesto", "Supuesto"], ["declarado", "Declarado"]
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return <fieldset className="min-w-0 space-y-4 rounded-lg border border-border p-4 sm:p-5"><legend className="px-2 font-semibold text-foreground">{title}</legend>{hint && <p className="max-w-[90ch] text-sm leading-relaxed text-muted-foreground">{hint}</p>}{children}</fieldset>;
 }
-function Capture({ label, value, onChange, type = "number", hint }: { label: string; value: unknown; onChange: (value: string) => void; type?: "text" | "number" | "date"; hint?: string }) {
+/** Importes de las calculadoras: se muestran con formato de moneda. */
+const MONEY_KEYS = new Set(["amount", "base", "commission", "extraMonthly", "extraOnce", "fixed", "insurance", "loan", "monthlyFee", "openingFee", "prepaymentFee", "price", "salePrice", "taxes", "withholding"]);
+function Capture({ label, value, onChange, type = "number", hint, money = false }: { label: string; value: unknown; onChange: (value: string) => void; type?: "text" | "number" | "date"; hint?: string; money?: boolean }) {
   const id = useId();
+  if (money) return <Field label={label} htmlFor={id} hint={hint}><MoneyInput id={id} value={textValue(value) === "" ? "" : Number(textValue(value))} onValueChange={(next) => onChange(next === "" ? "" : String(next))} /></Field>;
   return <Field label={label} htmlFor={id} hint={hint}><input id={id} className={inputClass} type={type} step={type === "number" ? "any" : undefined} inputMode={type === "number" ? "decimal" : undefined} value={textValue(value)} onChange={(event) => onChange(event.target.value)} /></Field>;
 }
 function Choice({ label, value, onChange, options, hint }: { label: string; value: unknown; onChange: (value: string) => void; options: Option[]; hint?: string }) {
@@ -52,7 +56,7 @@ export function FinancialEditor({ slug, input, onChange, onResult, context }: Ap
     setPrepared(false);
     onChange({ ...data, ...patch });
   };
-  const field = (key: string, label: string, hint?: string, type: "number" | "text" | "date" = "number") => <Capture key={key} label={label} value={data[key]} hint={hint} type={type} onChange={(value) => change({ [key]: value })} />;
+  const field = (key: string, label: string, hint?: string, type: "number" | "text" | "date" = "number") => <Capture key={key} label={label} value={data[key]} hint={hint} type={type} money={type === "number" && MONEY_KEYS.has(key)} onChange={(value) => change({ [key]: value })} />;
   const choice = (key: string, label: string, options: Option[], hint?: string) => <Choice label={label} value={data[key]} options={options} hint={hint} onChange={(value) => change({ [key]: value })} />;
   const currencyField = choice("currency", "Moneda del cálculo", currencies, "Todos los importes deben estar en esta moneda.");
   const rates = record(data.rates);

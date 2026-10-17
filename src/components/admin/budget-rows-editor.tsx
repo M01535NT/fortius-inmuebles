@@ -1,5 +1,6 @@
 "use client";
 import { btnGhost, inputClass, selectClass } from "@/components/admin/ui";
+import { MoneyInput } from "@/components/admin/money-input";
 
 type Row = Record<string, unknown>;
 type Column = { key: string; label: string; type?: "number" | "date"; options?: readonly string[] };
@@ -29,6 +30,7 @@ export function BudgetRowsEditor({ kind, value, onChange }: { kind: "partidas" |
       <div className="mb-3 flex items-center justify-between gap-3"><h3 className="font-semibold">{kind === "partidas" ? "Partida" : "Pago"} {index + 1}</h3><button type="button" className={btnGhost} onClick={() => onChange(rows.filter((_, position) => position !== index))}>Eliminar</button></div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{columns.map((column) => <label key={column.key} className="text-sm">{column.label}
         {column.options ? <select className={selectClass} value={String(row[column.key] ?? "")} onChange={(event) => update(index, column.key, event.target.value)}><option value="">Selecciona</option>{column.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+          : ["precioUnitario", "importe"].includes(column.key) ? <MoneyInput value={row[column.key]} onValueChange={(next) => update(index, column.key, String(next))} />
           : <input className={inputClass} type={column.type ?? "text"} min={column.type === "number" ? 0 : undefined} step={column.key === "cantidad" ? "any" : column.type === "number" ? "0.01" : undefined} value={String(row[column.key] ?? "")} onChange={(event) => update(index, column.key, event.target.value)} />}
       </label>)}</div>
     </div>)}

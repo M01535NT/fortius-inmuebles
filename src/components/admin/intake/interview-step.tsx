@@ -9,6 +9,7 @@ import { interviewIssues, isOwnerIntent, type InterviewAnswers, type Operational
 import { DONT_KNOW, dontKnowValue, firstOpenScreen, interviewScreens, optionLabel, PROSPECT_SCREEN, screenFields, screenIssues, withProspectDefaults } from "@/lib/intake/wizard";
 import { cn } from "@/lib/utils";
 import s from "./wizard.module.css";
+import { MoneyInput } from "@/components/admin/money-input";
 
 type Field = ReturnType<typeof screenFields>[number];
 
@@ -91,7 +92,8 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
     const common = { id, disabled: busy || isUnknown, readOnly: locked, "aria-invalid": invalid || undefined, "aria-describedby": field.hint ? `ayuda-${field.key}` : undefined };
     const input = field.type === "textarea"
       ? <textarea {...common} rows={3} maxLength={2000} className={textareaClass} value={isUnknown ? "" : value} onChange={e => set(field.key, e.target.value)} />
-      : <input {...common} type={field.type ?? "text"} min={field.type === "number" ? "0.01" : undefined} step={field.type === "number" ? "0.01" : undefined} maxLength={2000} className={cn(inputClass, field.type === "number" && "max-w-[14rem]")} value={isUnknown ? "" : value} onChange={e => set(field.key, e.target.value)} />;
+      : field.type === "number" ? <MoneyInput {...common} className={cn(inputClass, "max-w-[14rem]")} value={isUnknown || value === "" ? "" : Number(value)} onValueChange={next => set(field.key, next === "" ? "" : String(next))} />
+      : <input {...common} type={field.type ?? "text"} maxLength={2000} className={inputClass} value={isUnknown ? "" : value} onChange={e => set(field.key, e.target.value)} />;
     if (!unknown) return input;
     return <div className={s.withDontKnow}>{input}<label className={s.dontKnow}><input type="checkbox" checked={isUnknown} disabled={busy} onChange={e => set(field.key, e.target.checked ? DONT_KNOW : "")} />No sabe</label></div>;
   }

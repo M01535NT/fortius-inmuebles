@@ -63,7 +63,7 @@ it("cambia de magnitud a moneda y conserva fuente y fecha del tipo de cambio", (
 });
 it("reabre hipoteca conservando anticipos y modo de aplicación", () => {
   render(<Harness slug="hipoteca" initial={{ price: 1200, downPercent: 0, annualRate: 0, months: 12, extraMonthly: 100, prepaymentMode: "payment" }} />);
-  expect((screen.getByLabelText("Anticipo mensual") as HTMLInputElement).value).toBe("100");
+  expect((screen.getByLabelText("Anticipo mensual") as HTMLInputElement).value).toBe("$100.00");
   expect((screen.getByLabelText("Aplicar anticipos a") as HTMLSelectElement).value).toBe("payment");
   fireEvent.click(screen.getByRole("button", { name: "Calcular hipoteca" }));
   expect(screen.getByLabelText("Resultado emitido").textContent).toContain("Amortización con anticipos");
