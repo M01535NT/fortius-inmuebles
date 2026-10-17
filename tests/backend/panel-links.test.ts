@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import { expect, test } from "vitest";
 import config from "../../next.config";
 
@@ -10,14 +10,16 @@ import config from "../../next.config";
 */
 
 const root = join(__dirname, "../..");
+// Rutas siempre con «/», también en Windows, para que los patrones de abajo valgan igual.
+const posix = (path: string) => path.split(sep).join("/");
 const walk = (dir: string): string[] => readdirSync(dir).flatMap(name => {
   const path = join(dir, name);
-  return statSync(path).isDirectory() ? walk(path) : [path];
+  return statSync(path).isDirectory() ? walk(path) : [posix(path)];
 });
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const pages = walk(join(root, "src/app/admin")).filter(f => /\/page\.tsx?$/.test(f)).map(f => {
-  const route = "/" + relative(join(root, "src/app"), f).replace(/\/?page\.tsx?$/, "");
+  const route = "/" + posix(relative(join(root, "src/app"), f)).replace(/\/?page\.tsx?$/, "");
   const pattern = route.split("/").map(seg => seg.startsWith("[...") ? ".+" : seg.startsWith("[") ? "[^/]+" : escape(seg)).join("/");
   return { route, regex: new RegExp(`^${pattern}/?$`) };
 });
@@ -34,7 +36,7 @@ function linksInCode() {
     const text = readFileSync(file, "utf8").replace(/\$\{[^{}]*\}/g, "x");
     for (const match of text.matchAll(/["'`](\/admin(?:\/[^"'`\s?#]*)?)/g)) {
       const path = match[1].replace(/\/$/, "") || "/admin";
-      found.set(path, [...(found.get(path) ?? []), relative(root, file)]);
+      found.set(path, [...(found.get(path) ?? []), posix(relative(root, file))]);
     }
   }
   return found;
