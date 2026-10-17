@@ -337,6 +337,16 @@ Notas de la fase 1: sin migraciones. El entorno local usa la base real, así que
 
 Por instrucción de Moisés del 13/10/2026, este plan debe actualizarse con cada entrega a GitHub y cada despliegue. Registrar fecha local, alcance real, PR, commit funcional, migraciones aplicadas, comprobaciones y límites, enlace y estado del despliegue. Distinguir preparación, publicación comprobada y pendientes; no marcar publicado por haber hecho push. Los commits que solo actualizan este registro no requieren reconstruir un producto cuyo código permanece idéntico. Actualizar también las tareas realizadas y pendientes del mismo plan.
 
+### Panel guiado y flujo del vendedor publicados — 17/10/2026
+
+**Estado: integrado en main y publicado el 17/10/2026, America/Los_Angeles.** [PR #39](https://github.com/M01535NT/fortius-inmuebles/pull/39) (rama `feat/panel-guiado`), commit de fusión `58bdafd`, despliegue de producción `dpl_6mGokWD7AamPh2VkmkDH9Tmkpfiw`, servido en https://fortiusinmuebles.com.
+
+- **Alcance:** panel guiado (fases 1–7), flujo del vendedor en diez etapas con «Iniciar» y descargas, formatos 01–19 con el diseño de sus plantillas, opinión de valor 07 en PDF y Excel, candados del arranque en el servidor, montos con formato de moneda y la herramienta «Documentos sin expediente». Incluye lo que `main` ya traía del PR #36.
+- **Comprobaciones:** `npm run verify` en local (lint, tipos, 738 pruebas de servidor, 347 del panel y compilación) y Verify remoto aprobado, con las 52 pruebas de navegador del panel y las 70 públicas. Se actualizaron 12 pruebas de navegador que esperaban el panel anterior (columna «Prospecto», diez etapas, 17 herramientas, prospecto del propietario y una espera tras volver al modo claro antes de medir contraste); se corrieron antes en una copia aislada sin `.env.local`.
+- **Sin migraciones** ni cambios de credenciales o permisos.
+- **Hallazgo del despliegue:** el dominio seguía fijado al despliegue del 14/10 (`dpl_8hobqhkN8TLwoto1yq7PvKC6DD2m`), así que los despliegues nuevos de `main` quedaban listos sin publicarse. Se promovió el nuevo a producción; el despliegue anterior queda como opción de recuperación. Verificado en el dominio: `/admin`, `/brand/pie-documento.png` y `/plantillas/07_OpinionValor.xlsx` responden 200. El interior del panel no se revisó en producción porque requiere iniciar sesión.
+- **Pendiente:** que el titular revise el panel en producción con su sesión. Si algo falla, se puede volver a promover `dpl_8hobqhkN8TLwoto1yq7PvKC6DD2m` en Vercel.
+
 ### Consolidación de main y publicación — 14/10/2026
 
 **Alcance:** concentrar en main el trabajo vigente y publicar el proyecto actualizado. La portada panorámica y su revelado al desplazarse, Apps, folios, flujo guiado, entrevistas y aviso de privacidad ya tienen su versión vigente en main; las ramas históricas no se reaplican sobre el producto actual.
