@@ -1,30 +1,30 @@
 # Panel operativo Fortius
 
-Corte documental: 12/10/2026. El desarrollo se dirige desde [el plan único](../PLAN_ERP_CRM.md).
+Corte documental: 17/10/2026, después del rediseño guiado (PR #39). El desarrollo se dirige desde [el plan único](../PLAN_ERP_CRM.md); las reglas de producto, desde su sección «Dirección del producto y reglas vigentes».
 
-## Organización personal
+## Navegación
 
-El botón junto al encabezado contrae la barra lateral a iconos o vuelve a expandirla. El borde derecho permite ajustar el ancho entre 224 y 360 px; también admite foco con Tab, flechas izquierda/derecha y Home/End. Doble clic recupera 264 px. El ancho y el estado se conservan por cuenta en ese navegador. En celular se mantiene el menú desplegable con nombres completos.
+La barra lateral tiene arriba el botón **Nueva operación** y cinco secciones: **Hoy** (con el número de pendientes), **Operaciones**, **Contactos**, **Inmuebles** y **Agenda**. Debajo, **Herramientas** reúne las 17 herramientas (incluida «Documentos sin expediente») y la pestaña Documentos. **Administración** va plegada y solo la ve el administrador: Equipo, Sitio web, Reportes, Historial y Configuración. Al pie están el usuario, su rol y Cerrar sesión.
 
-En el menú lateral, **Organizar módulos** habilita el arrastre en escritorio y los botones Subir/Bajar para teclado y celular. **Restablecer orden** recupera los grupos originales. El orden y las vistas de inventario se conservan por usuario en ese navegador; no se sincronizan entre dispositivos ni alteran los permisos.
+En celular, la barra inferior lleva Hoy, Operaciones, «+», Contactos y Menú. El menú reúne Inmuebles, Agenda, Herramientas, Administración, Mi perfil, Ver sitio y Cerrar sesión.
 
-La búsqueda del encabezado reúne los registros que el usuario puede consultar y permite crear un inmueble, prospecto, tarea o visita. El panel del día enlaza pendientes, contactos, visitas programadas y expedientes fuera de fecha.
+Las direcciones anteriores (prospectos, clientes, calendario, tareas, expedientes, apps, proceso por etapa y entrevistas) redirigen a la sección nueva sin perder la consulta.
 
-## Navegación del diseño corporativo
+## Preferencias
 
-**Resumen** abre el tablero de pendientes y etapas reales; **CRM** abre los prospectos y enlaza clientes/propietarios; **Operaciones** abre los expedientes existentes. El inventario permite alternar **Tarjetas** y **Lista**, conservando filtros y acciones. **Documentos** reúne accesos a expedientes, biblioteca, notas y documentos del inmueble.
+La densidad cómoda o compacta se elige en **Mi perfil**. Las vistas guardadas del inventario están en «Más filtros». Hoy ambas se guardan en ese navegador: no siguen al usuario a otro equipo ni alteran permisos. La regla RP-14 del plan las llevará al servidor por usuario (entrega UX-02).
 
-**Finanzas** reúne herramientas disponibles, con contabilidad, flujo de efectivo y TIR/VAN señalados como pendientes. **Análisis territorial** muestra inmuebles por zona; mapas y comparables siguen pendientes. **Portal de clientes** muestra el alcance previsto en una pantalla interna de administración: todavía no habilita usuarios externos, comparte documentos ni envía invitaciones. Los módulos financieros y del portal requieren administrador.
+La búsqueda reúne los registros que el usuario puede consultar y permite crear un inmueble, prospecto, tarea o visita.
 
 ## Edición y seguimiento
 
-- El inventario permite buscar, filtrar, paginar y guardar vistas. “Mis inmuebles” usa la vinculación de asesor de la sesión, no coincidencias de correo.
+- El inventario permite buscar, filtrar (Todos, En venta, En renta y «Más filtros»), paginar de 24 en 24 y guardar vistas. “Mis inmuebles” usa la vinculación de asesor de la sesión, no coincidencias de correo.
 - Guardar un inmueble conserva su estado de publicación. Publicar o retirar requiere una acción explícita.
 - La vista previa es una representación de la captura, no una publicación ni una reproducción exacta de la página pública.
 - **Guardar copia temporal** conserva la captura en esta pestaña. No es un autoguardado en el servidor. Cerrar la sesión borra estas copias. Tras un conflicto, se puede conservar la copia y recargar: una copia de otra versión se consulta completa sin sobrescribir los datos más recientes.
-- Prospectos permite lista o etapas. Las coincidencias de teléfono/correo son avisos, no fusiones automáticas.
-- Los vínculos entre personas, inmuebles, tareas, agenda y expedientes usan las relaciones existentes.
-- En expedientes, marcar un documento como recibido no acredita su revisión. La revisión se describe y guarda en la actividad.
+- Contactos tiene las pestañas Prospectos y Clientes, en tabla (computadora) o lista (celular). Las coincidencias de teléfono/correo son avisos, no fusiones automáticas.
+- Los vínculos entre personas, inmuebles, tareas, agenda y operaciones usan las relaciones existentes.
+- En una operación, «Lo tengo» no acredita la revisión. «Revisado» pide el documento que lo respalda, quién lo revisó, la fecha, la vigencia cuando aplica y qué se encontró.
 
 ## Activación de historial y recuperación
 
@@ -48,4 +48,4 @@ Ofertas y registros de cierre provienen de la cartera comercial elegida. Se excl
 
 `npm run verify` comprueba lint, TypeScript, backend, interfaz y compilación.
 
-`npm run test:admin:browser -- tests/admin/browser/admin-workspace.spec.ts` prueba navegación reorganizable, acciones rápidas repetidas, vistas guardadas, enlaces relacionados y vista previa a 320, 390 y 1440 px con API simulada, sin escrituras reales.
+`npm run test:admin:browser -- tests/admin/browser/admin-workspace.spec.ts` prueba la barra lateral y la barra inferior, lo que ve un asesor, acciones rápidas repetidas, vistas guardadas, enlaces relacionados y vista previa a 320, 390 y 1440 px con API simulada, sin escrituras reales.

@@ -4,6 +4,133 @@
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
+**Cómo leer este plan:** primero «Dirección del producto y reglas vigentes» (qué se construye y con qué reglas); después «Dónde nos quedamos» y «Qué sigue» (estado actual); el resto es alcance, backlog, tareas detalladas y el registro histórico de entregas. Si un registro histórico contradice una regla vigente, manda la regla vigente.
+
+## Dirección del producto y reglas vigentes — 17/10/2026
+
+**Decisión del titular, 17/10/2026:** el ERP/CRM se convierte en un producto profesional para comercializarse a otras inmobiliarias. Fortius Inmuebles es la primera empresa que lo usa y la dueña del flujo de referencia. Las reglas de esta sección prevalecen sobre cualquier regla anterior del plan, del encargo del rediseño o de los manuales.
+
+### Cómo se mantiene este plan (regla del titular)
+
+El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio:
+
+1. Una idea aprobada se escribe como regla (RP-xx) y, si necesita trabajo, como entrega del backlog con su aceptación. No se abre otro plan ni otra bitácora.
+2. **Si una regla nueva contradice a una anterior, la anterior se reescribe en su lugar** y el cambio se anota en «Reglas reemplazadas» al final de esta sección. No conviven dos reglas contradictorias.
+3. Los registros históricos de entregas no se reescriben (son evidencia), pero cuando quedan superados llevan una nota que dice qué los reemplaza.
+4. Una idea sin decidir no se presenta como regla: va a «Decisiones propuestas» con lo que falta para decidirla.
+
+### Reglas de producto (RP)
+
+**A. Producto comercializable**
+
+- **RP-01 · Varias inmobiliarias.** El sistema se diseña para varias empresas. Fortius es la empresa 1 y su sitio público no cambia por esto. (DEC-15, SAAS-01)
+- **RP-02 · Datos separados por empresa.** Cada registro, archivo, folio, respaldo, caché e índice pertenece a una empresa; el servidor y RLS lo hacen cumplir. Ninguna búsqueda, exportación, reporte o consulta de IA cruza empresas. (SAAS-01)
+- **RP-03 · Marca por empresa.** Logo, colores, dominio o subdominio y datos de los documentos (razón social, responsable, pie) son configurables. Fortius conserva su identidad como su propio tema. Contraste, teclado, foco visible y movimiento reducido se exigen en cualquier tema. (SAAS-02)
+- **RP-04 · Flujo configurable a partir de plantilla.** El flujo de Fortius (proceso de comercialización y requisitos) es la plantilla recomendada. Cada empresa puede renombrar etapas, agregar requisitos y elegir cuáles son obligatorios. Los cambios se versionan; una operación en curso conserva la versión con la que empezó. Los requisitos marcados como protección (quién es dueño y quién firma, firma ante notario, pago completo antes de entregar) solo los desactiva un administrador con motivo registrado. El servidor sigue validando el avance con la versión de la operación. (SAAS-03)
+- **RP-05 · Roles finos y permisos por acción.** Papeles previstos: director, coordinador, asesor, asistente, jurídico, contabilidad y aliado externo (otra inmobiliaria que comparte comisión). Acciones con permiso propio: ver precio mínimo, ver comisiones, aprobar descuentos, eliminar y exportar. (SEG-01, DEC-03)
+- **RP-06 · Reglas fiscales y notariales por lugar.** ISAI, derechos de registro, honorarios notariales y demás reglas se guardan por municipio y estado, con vigencia, fuente y responsable. Sin regla vigente para el lugar, el cálculo dice «pendiente»; nunca usa una tasa supuesta. (SAAS-04)
+- **RP-07 · Una empresa nueva arranca sola.** Asistente de alta: elegir plantilla de flujo, cargar su marca, invitar al equipo e importar contactos e inmuebles desde Excel/CSV con simulación previa y revisión de duplicados. (SAAS-05, DAT-01)
+- **RP-08 · Planes y límites claros.** Usuarios y almacenamiento visibles, con aviso antes del límite. Una cuenta sin pago pasa a solo lectura con exportación disponible; nunca se borran datos por falta de pago. (SAAS-06)
+
+**B. Dos ritmos de uso**
+
+- **RP-09 · Guiado por omisión, rápido para quien ya sabe.** Las mismas pantallas sirven al asesor nuevo y al usuario experto. Los atajos no saltan validaciones ni la guía de la operación.
+- **RP-10 · Barra de comandos (Ctrl+K / Cmd+K).** Busca y actúa («nueva visita para…», «ir a EXP-…», «marcar tarea como hecha»); solo ofrece lo que el usuario puede ver y hacer. (UX-03)
+- **RP-11 · Atajos de teclado** visibles en menús y en una hoja de ayuda («?»). Los de una sola tecla no actúan dentro de campos y se pueden desactivar (WCAG 2.1.4). (UX-03)
+- **RP-12 · Acciones masivas** (reasignar, cambiar estado, exportar) con resultado por registro: cuántos se aplicaron, cuáles fallaron y por qué. Reintentar no repite los ya aplicados. (UX-03)
+- **RP-13 · Edición directa en la tabla** para estado, responsable y fecha, con el mismo control de versión que la ficha. (UX-03)
+- **RP-14 · Preferencias que siguen al usuario.** Densidad (cómoda o compacta), columnas, orden y vistas guardadas se guardan en el servidor por usuario y aparecen en cualquier equipo. El navegador solo guarda comodidades del dispositivo (última pestaña abierta, borradores temporales). Hoy la densidad (en Mi perfil) y las vistas del inventario existen, pero se guardan en el navegador. (UX-02)
+
+**C. Confianza: que nunca parezca que algo se perdió**
+
+- **RP-15 · Estado de guardado siempre visible:** «Guardado», «Guardando…» o «Sin conexión: tus cambios siguen en pantalla, todavía no se guardan». Nunca se dice «Guardado» antes de que el servidor lo confirme. (UX-04)
+- **RP-16 · Deshacer en lugar de confirmar** cuando el servidor puede revertir la acción (completar tarea, archivar, quitar un vínculo, eliminación recuperable): aviso con «Deshacer» durante al menos 5 segundos, anunciado al lector de pantalla y alcanzable con teclado. La confirmación se reserva para lo grave o irreversible: eliminar una operación, cambiar o corregir etapa, enviar algo a un tercero, borrado definitivo. (UX-04)
+- **RP-17 · Conflicto de versión explicado.** Si otra persona guardó antes, se muestran «tu cambio» y «el cambio de <persona>» campo por campo para elegir. Nunca se sobrescribe sin elegir. (UX-04)
+- **RP-18 · Carga y respuesta inmediata.** Siluetas del tamaño del contenido en vez de pantallas en blanco; los cambios se ven al instante y, si el servidor los rechaza, se revierten con aviso y motivo. (UX-04)
+- **RP-19 · Sesión vencida sin pérdida.** Se pide entrar de nuevo y lo capturado en pantalla se conserva. (UX-04, AUT-01)
+- **RP-20 · Bandeja «Para ti» dentro de Hoy.** Menciones (@persona en notas), asignaciones, aprobaciones pendientes y respuestas. El contador del menú las suma. No regresa la campana; los avisos fuera del panel siguen en PWA-03. (UX-05)
+
+**D. Disciplina comercial**
+
+- **RP-21 · Ningún contacto sin siguiente paso.** Registrar un contacto toma dos toques («Llamé», «No contestó», «Mandé WhatsApp», «Visitó») y pide el siguiente paso con fecha o un motivo explícito para no tenerlo. (CRM-02)
+- **RP-22 · Plantillas de mensaje** de WhatsApp y correo con nombre, inmueble, precio y liga a la ficha. Abren la aplicación del usuario con el texto listo; el envío se registra cuando el asesor lo confirma, no al abrir el enlace. La integración por API es EXT-04. (CRM-02)
+- **RP-23 · Reloj de primera atención** en cada prospecto nuevo («Lleva 2 h sin respuesta»), con umbral configurable por empresa. Mide con la definición de «Primera atención» del diccionario. (CRM-02)
+- **RP-24 · Coincidencias explicadas entre comprador e inmueble** (zona, presupuesto, tipo, recámaras), en los dos sentidos. Son sugerencias; nada se envía solo. (EXT-01)
+- **RP-25 · Visita desde el celular:** llegada, opinión del comprador en menos de un minuto (le gustó, precio alto, quiere segunda visita) y foto. Alimenta el informe al propietario. Una visita programada no es una visita realizada. (VIS-01)
+- **RP-26 · Negociación como línea de tiempo:** oferta, contraoferta y respuesta, con vencimiento de cada oferta y diferencia contra el precio de salida. Un acuerdo no es un contrato firmado. (OFE-01)
+
+**E. Fichas 360°**
+
+- **RP-27 · Persona:** una sola línea de tiempo con contactos, mensajes registrados, visitas, documentos, ofertas, cambios y notas, con filtros. Una persona con varios papeles no se duplica. (CRM-03, REL-01)
+- **RP-28 · Inmueble:** salud de la ficha (qué tan completa está, días publicado, visitas, prospectos y ofertas), alertas con umbral configurable («60 días sin ofertas: revisa el precio con el propietario») enlazadas a Comparables, e historial de precio con quién, cuándo y por qué. (INV-01)
+
+**F. El dinero a la vista**
+
+- **RP-29 · Tarjeta de dinero en cada operación:** honorario esperado, reparto, cobrado y por cobrar. Cuatro estados que siempre usan la misma palabra, color e ícono: Estimado, Pactado, Facturado y Cobrado. Nunca se suman entre sí. (FIN-01, FIN-02)
+- **RP-30 · Pronóstico de ingresos por mes:** honorario por la probabilidad de la etapa que defina cada empresa, rotulado «Estimación» y separado de lo cobrado. (FIN-03, DEC-17)
+- **RP-31 · Aprobaciones:** comisión bajo el mínimo, descuentos y desactivar un requisito protegido requieren aprobación del rol que corresponda, con motivo y constancia. El servidor no aplica la acción hasta que se aprueba. (APR-01)
+- **RP-32 · Cuenta por asesor:** comisiones generadas, cobradas y pagadas, con estado de cuenta descargable. (FIN-02)
+
+**G. Tableros que llevan a actuar**
+
+- **RP-33 · Tableros por rol.** Director: embudo, tiempo promedio en cada etapa, carga por asesor, inventario envejecido, conversión por origen y metas. Asesor: sus metas, su embudo y sus pendientes. (TAB-02, TAB-05)
+- **RP-34 · Toda cifra se abre** en los registros que la forman y se compara con el periodo anterior y con la meta. Sin fuente suficiente dice «pendiente», nunca cero. (TAB-01)
+
+**H. Documentos**
+
+- **RP-35 · Revisión lado a lado:** el documento y «Marcar como revisado» en la misma vista. (DOC-10)
+- **RP-36 · Carga de varios archivos** arrastrando; el sistema propone a qué requisito pertenece cada uno y la persona confirma. Cargar no es revisar. (DOC-11)
+- **RP-37 · Pedir un documento al cliente** con una liga segura que vence y se puede revocar; lo recibido entra como «Lo tengo», nunca como revisado. (DOC-12)
+- **RP-38 · Vencimientos de toda la empresa** en un solo tablero, por fecha y responsable. (DOC-13)
+- **RP-39 · Firma electrónica** integrada cuando se apruebe proveedor (EXT-05). Una firma capturada en pantalla no es firma electrónica.
+
+**I. Calidad de los datos**
+
+- **RP-40 · Fusión asistida de duplicados:** el sistema propone, la persona elige campo por campo, queda historial y se puede deshacer. Nunca es automática. (DAT-02)
+- **RP-41 · Validar al capturar:** teléfono con lada (+52 por omisión), correo, RFC, CURP y código postal. (DAT-02)
+- **RP-42 · Colonias y códigos postales de catálogo oficial** (SEPOMEX) con fecha de corte; el texto libre solo como «otra», marcado. (DAT-02)
+- **RP-43 · Todo monto lleva moneda;** una conversión guarda tipo de cambio, fuente y fecha. (DAT-02, FIN-01)
+
+**J. Inteligencia artificial**
+
+- **RP-44 · IA siempre con revisión humana:** resumen de la operación, lectura de INE o escritura para llenar campos (confirmados uno por uno), descripción del anuncio y sugerencia de siguiente paso. Cita su fuente, respeta permisos y empresa, y nunca cambia estados, aprueba requisitos ni envía nada por sí sola. (EXT-11, EXT-06, DEC-14)
+
+**K. Calidad del producto y soporte**
+
+- **RP-45 · Meta realista de calidad.** No se promete «cero fallas». La meta es detectar los errores antes que el cliente y corregirlos rápido: monitoreo de errores en producción con alertas y sin datos personales. (OBS-01, DEC-19)
+- **RP-46 · Piloto externo antes de vender:** 2 o 3 inmobiliarias reales, con datos autorizados. (PIL-02)
+- **RP-47 · Pruebas de uso medidas** con al menos 5 asesores: tiempo para crear una operación, registrar una visita y marcar un requisito como revisado, contra metas fijadas antes de medir. (PIL-02)
+- **RP-48 · Soporte dentro del panel:** ayuda por pantalla (se conserva «¿Qué significa?»), centro de ayuda, «Reportar un problema» con contexto técnico sin datos personales y recorrido inicial que se puede saltar. (SOP-01)
+
+**L. Propiedad intelectual**
+
+- **RP-49 · No se presenta como patentado.** La ley mexicana de propiedad industrial no considera invención a los programas de cómputo por sí mismos. Protección prevista: registro de obra ante INDAUTOR, marca ante IMPI, secreto industrial con convenios de confidencialidad y licencias de uso. Requiere confirmación de un abogado de propiedad intelectual (DEC-16). Ningún texto del producto dice «patentado» sin título otorgado.
+
+### Orden vigente
+
+1. **Terminar lo que está en curso:** los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, DOC-09) y comprobar la publicación del rediseño.
+2. **Decidir DEC-15 antes de las migraciones de REL-01 y SEG-01.** La frontera por empresa (SAAS-01) toca cada tabla y cada política RLS; se diseña junto con SEG-01 porque agregarla después cuesta más.
+3. **Confianza y velocidad** (UX-04, UX-03, UX-02, UX-05): mejoran lo existente y casi no tocan el modelo de datos; pueden empezar ya.
+4. **Disciplina comercial y fichas 360°:** CRM-02, CRM-03, INV-01, DAT-02, VIS-01, OFE-01 y EXT-01.
+5. **Dinero, aprobaciones y tableros:** FIN-01/02/03, APR-01, TAB-01 a TAB-05.
+6. **Producto comercializable:** SAAS-02 a SAAS-06, SOP-01 y PIL-02, antes de vender.
+7. **Documentos avanzados, portal e IA:** DOC-10 a DOC-13, EXT-05, EXT-10, EXT-06 y EXT-11.
+
+### Reglas reemplazadas
+
+| Fecha | Regla anterior (dónde estaba) | Regla vigente |
+|---|---|---|
+| 17/10/2026 | «Un sistema operativo dentro de `/admin`» solo para Fortius («Qué vamos a construir») y «Conservar identidad Fortius» como restricción global. | Producto para varias inmobiliarias con marca por empresa (RP-01 a RP-03). Fortius conserva su identidad como su tema y su sitio público. |
+| 17/10/2026 | «La estructura de la guía (`flujo`) no cambia» y «sin migraciones ni endpoints nuevos» (encargo del rediseño, §2). | Esas reglas valían para la Fase C, ya terminada. El flujo pasa a ser una plantilla configurable y versionada, con el servidor validando cada versión (RP-04). Las migraciones siguen requiriendo respaldo, ensayo y autorización. |
+| 17/10/2026 | Roles `admin` y `editor` como modelo de permisos (encargo y manual). | Roles finos y permisos por acción (RP-05, DEC-03, SEG-01). |
+| 17/10/2026 | Orden de menú, vistas y preferencias guardados «por usuario en ese navegador» (`docs/admin-workspace.md`) y sincronización opcional (UX-02). | Preferencias y vistas en el servidor por usuario (RP-14). El navegador solo guarda comodidades del dispositivo. |
+| 17/10/2026 | «No convertir ponderaciones en probabilidades» (COM-01). | Las ponderaciones de la cartera comercial siguen sin presentarse como probabilidad. El pronóstico usa probabilidades por etapa definidas por la empresa y rotuladas «Estimación» (RP-30). |
+| 17/10/2026 | Avisos «solo dentro del panel» con el contador de Hoy como único aviso (encargo del rediseño). | Se agrega la bandeja «Para ti» en Hoy (RP-20). Sigue sin campana; los avisos fuera del panel siguen en PWA-03. |
+| 17/10/2026 | Firmas con DocuSeal, OCR con Document AI, consulta con OpenAI y rutas con Google (sección «20 apps»). | Esas integraciones se retiraron del código el 15/10/2026 (Fase A). Si se retoman, entran por EXT-05 (firma), EXT-11 y EXT-06 (lectura de documentos e IA) y EXT-09 (rutas), con proveedor decidido de nuevo. |
+| 17/10/2026 | Usuarios piloto: administrador y dos asesores (Gobierno). | Se agrega el piloto con 2 o 3 inmobiliarias externas antes de vender (RP-46, PIL-02). |
+| 17/10/2026 | Ruta principal BAS-01 → REL-01/SEG-01 → CRM-01… y «Siguiente acción: continuar con REL-01 y SEG-01». | «Orden vigente» de esta sección; SAAS-01 se diseña junto con SEG-01. |
+| 17/10/2026 | EXT-01 (coincidencias) como extensión condicionada. | Solicitada (RP-24). |
+
 ## Rediseño guiado del panel (Fase C) — encargo y avance
 
 **Encargo vigente:** `docs/diseno/ENCARGO_REDISENO_PANEL.md`. La referencia visual es el lienzo aprobado en `docs/diseno/lienzo-panel/`. El titular decidió el 16/10/2026 construirlo con el agente de desarrollo en esta misma línea de trabajo, en la rama `feat/panel-guiado`, a partir de `chore/limpieza-codigo`. También pidió ver con anticipación las tareas y los vencimientos próximos («Próximos 7 días» en Hoy). Las notificaciones fuera del panel quedan como fase posterior.
@@ -227,7 +354,7 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 - **Resultados:**
   - lint, tipos y compilación aprobados; 704 pruebas de servidor (2 nuevas de rutas), 336 del panel y 35 de herramientas, además del paquete de PDF;
   - 52 de navegador del panel que corre CI (dos se adaptaron al botón «Generar PDF» y se volvieron a correr aparte); 70 públicas (1 omitida).
-- **Estado del rediseño:** las siete fases del encargo están en `feat/panel-guiado`. No hay PR, fusión ni publicación; eso espera la autorización del titular.
+- **Estado del rediseño:** las siete fases del encargo se fusionaron en `main` con el [PR #39](https://github.com/M01535NT/fortius-inmuebles/pull/39) el 17/10/2026 (commit `58bdafd`). El despliegue a producción no está comprobado en este registro.
 
 ## Limpieza del código (Fase A del plan de rediseño) — 15/10/2026
 
@@ -316,7 +443,7 @@ El titular pidió que cada paso del propietario que vende sea una etapa con su d
 
 **Dónde nos quedamos — cierre de la sesión del 17/10/2026**
 
-- **Rama y publicación:** todo está en `feat/panel-guiado` (44 commits sobre `main`, último `2fe90d0`), subido a GitHub. No hay PR, fusión ni despliegue: esperan la revisión y autorización del titular. El entorno local (puerto 3001) usa la base real de producción: revisar en el navegador solo leyendo, sin guardar.
+- **Rama y publicación:** `feat/panel-guiado` se fusionó en `main` con el [PR #39](https://github.com/M01535NT/fortius-inmuebles/pull/39) el 17/10/2026 (commit `58bdafd`). El despliegue a producción falta comprobarlo y registrarlo. El entorno local (puerto 3001) usa la base real de producción: revisar en el navegador solo leyendo, sin guardar.
 - **Comprobación más reciente:** tipos, lint, 738 pruebas de servidor, 347 del panel y compilación de producción aprobados. Revisado en el panel sin guardar: filas del 05/06, pestaña Documentos, captura del 07 en «Documentos sin expediente» y el monto del inmueble con formato de moneda.
 - **Hecho en esta sesión (17/10/2026):** Word del aviso 01 con su plantilla (`4e787f8`); candados del arranque en el servidor, FLUJO-04a (`a4c77c7`); PDF o Word en cada entregable, FLUJO-06 (`b54bab0`); fotografías del 07 en la captura (`9fba861`); herramienta «Documentos sin expediente» (`00bfb36`); montos con formato de moneda (`8449776`); opinión de valor 07 según su plantilla, en PDF y Excel, DOC-07 (`2fe90d0`).
 - **Plantilla del 07:** la original del titular está en `G:\Mi unidad\FORTIUS\04_Metodologia\01_Captacion\07_OpinionValor.xlsx`. La copia del proyecto (`public/plantillas/07_OpinionValor.xlsx`) tiene sus fórmulas simplificadas; si el titular cambia la plantilla, hay que regenerar la copia y revisar el mapa de celdas de `src/lib/formatos/valor-excel.ts`. La carpeta antigua `C:\Users\Moise\MNT\INMOBILIARIA\Plantillas\Metodologia` ya no está disponible en el equipo; las demás plantillas probablemente están en la misma carpeta de `G:\Mi unidad\FORTIUS\04_Metodologia`.
@@ -328,8 +455,9 @@ El titular pidió que cada paso del propietario que vende sea una etapa con su d
 3. **DOC-06:** completar la captura del 06 (antecedentes, condiciones por etapa, marco jurídico y documentos revisados) dentro del flujo.
 4. **DOC-09:** el titular define qué hace falta para liberar el PDF del contrato 09.
 5. **Ayuda en otros formatos:** las notas y desplegables existen hoy solo en el 07 (`src/lib/formatos/ayuda.ts`); se pueden extender al 04, 05 y los demás, siempre con la plantilla como fuente.
-6. **Revisión del titular en el panel, PR, Verify remoto y publicación autorizada.** FLUJO-04b y PROC-06 son opcionales y requieren migración con respaldo y autorización.
+6. **Comprobar el despliegue del PR #39** (fusionado el 17/10/2026) y registrarlo. FLUJO-04b y PROC-06 son opcionales y requieren migración con respaldo y autorización.
 7. **Matriz de estados del ERP/CRM** («Estado y dependencias de cada entrega»): sigue con los estados del 14/10; revisarla contra lo construido antes de estimar cuánto falta del ERP completo.
+8. **Después, el «Orden vigente»** de «Dirección del producto y reglas vigentes», al inicio de este plan.
 
 Notas de la fase 1: sin migraciones. El entorno local usa la base real, así que la revisión en navegador fue de solo lectura; el flujo de captura se comprobó con pruebas automáticas. La copia en Word se arma con los datos del borrador: no es el PDF emitido ni lleva su huella SHA-256.
 
@@ -397,9 +525,9 @@ La revisión automática bloqueó el ensayo ficticio productivo y exigió verifi
 
 ## Qué vamos a construir
 
-Un sistema operativo dentro de `/admin` para conducir cada operación desde el primer contacto hasta el cierre: personas, inmuebles, expedientes, documentos, tareas, visitas, ofertas y cobros relacionados. La dirección tendrá cuatro tableros: comercial, financiero, jurídico y técnico. Cada cifra deberá poder explicarse con sus registros de origen.
+Un ERP/CRM inmobiliario profesional, comercializable a otras inmobiliarias, para conducir cada operación desde el primer contacto hasta el cierre: personas, inmuebles, operaciones, documentos, tareas, visitas, ofertas y cobros relacionados. La dirección tendrá tableros comercial, financiero, jurídico y técnico, además de los de cada rol. Cada cifra deberá poder explicarse con sus registros de origen. Las reglas de producto están en «Dirección del producto y reglas vigentes».
 
-El sitio público y el panel siguen siendo una sola aplicación Fortius. Se conserva lo que funciona y se amplía por módulos; no se vuelve a construir desde cero.
+Fortius Inmuebles es la primera empresa que lo usa: su sitio público y el panel siguen siendo una sola aplicación, y el panel se prepara para atender a varias empresas con sus datos separados (RP-01, RP-02). Se conserva lo que funciona y se amplía por módulos; no se vuelve a construir desde cero.
 
 ## Funciones del producto ampliado
 
@@ -411,6 +539,8 @@ Referencia de alcance: funciones de la imagen «Foto 1.jpg», incorporadas el 12
 | Tableros e inversión | Cuatro tableros de dirección; calculadoras de inversión con TIR y VAN, flujos de efectivo, presupuestos y escenarios de rentabilidad guardados por operación. | TAB-01/02/03/04, FIN-01/02 y EXT-08. |
 | Información geográfica | Mapas interactivos del inventario y comparables, análisis de zonas, rutas de visitas y visualizaciones geoespaciales con fuente y fecha. | TEC-01, VIS-01 y EXT-09. |
 | Documentos y revisión jurídica | Generación de contratos y formularios PDF desde modelos revisados, expedientes digitales, revisión asistida de cláusulas y búsquedas documentales con RAG: respuestas que remitan al documento, versión y página utilizados. | DOC-01, LEG-01 y EXT-06. |
+| Producto comercializable (17/10/2026) | Varias inmobiliarias con datos separados, marca por empresa, flujo configurable, reglas fiscales por lugar, alta guiada, planes, soporte y piloto externo. | SAAS-01 a SAAS-06, SOP-01 y PIL-02. |
+| Trabajo diario profesional (17/10/2026) | Barra de comandos, atajos, acciones masivas, confianza al guardar, bandeja «Para ti», disciplina comercial, fichas 360°, aprobaciones, metas e IA con revisión humana. | UX-02 a UX-05, CRM-02, CRM-03, INV-01, DAT-02, DOC-10 a DOC-13, FIN-03, APR-01, TAB-05, EXT-01 y EXT-11. |
 
 La primera entrega sigue siendo captación y próxima acción dentro del panel. Después se amplían documentos, finanzas y tableros; el análisis de inversión, los mapas, el portal de clientes y la IA se entregan por módulos con sus pruebas. Estas cuatro capacidades forman parte del producto ampliado solicitado y siguen pendientes. El núcleo inicial puede aceptarse por separado; su aceptación no acredita que el producto ampliado esté completo.
 
@@ -468,6 +598,8 @@ Diagnóstico revisado y aprobado para ejecución por Moisés: avisos de seguimie
 
 ### Barra lateral y aplicaciones — 13/10/2026
 
+*Registro histórico, reemplazado por la Fase C · 2 del rediseño (16/10/2026): ya no existen el orden personalizado, la ventana de aplicaciones ni los grupos Comercial/Gestión.*
+
 Diseño aprobado: barra azul institucional con selección guinda, módulos agrupados en Comercial, Gestión y Herramientas; controles de configuración, sitio, contraer y salir al pie. Se conservan el orden personalizado, el ancho y los accesos existentes. El botón superior Aplicaciones abre una ventana con iconos y búsqueda local de los módulos disponibles para cada rol. Estos accesos no implementan las capacidades financieras, geográficas o de portal que siguen pendientes.
 
 - [x] Aplicar barra lateral y ventana de aplicaciones; reutilizar un catálogo de rutas y permisos.
@@ -477,6 +609,8 @@ Diseño aprobado: barra azul institucional con selección guinda, módulos agrup
 Publicado en `main`, commit `90fb26c`, y confirmado Ready en Vercel. Acceso principal: `fortiusinmuebles.com/admin`. La evidencia técnica se conserva fuera de la carpeta activa.
 
 ### Diseño aprobado del panel — 12/10/2026
+
+*Registro histórico, reemplazado por el rediseño guiado (Fase C) y por la Fase A, que retiró los accesos de Finanzas, Análisis territorial y Portal de clientes.*
 
 Aplicar las propuestas visuales aprobadas: fondo claro, azul `#061F3F`, borgoña `#8A1634`, navegación lateral, búsqueda superior, tablas legibles y tarjetas de inmuebles. Conservar el logotipo vectorial vigente y los permisos, formularios y operaciones existentes. No incorporar los datos ficticios de las imágenes a la base real.
 
@@ -533,6 +667,8 @@ El ensayo completo del proveedor no frena el desarrollo funcional inicial con da
 
 ## Siguiente fase — captación dentro del panel
 
+*Nota del 17/10/2026: el orden vigente está en «Dirección del producto y reglas vigentes»; DEC-15 y SAAS-01 se resuelven junto con REL-01 y SEG-01.*
+
 Después de la preparación local, comenzar por relaciones persona/inmueble (REL-01), permisos (SEG-01), equipo (USR-01), captación/conversión (CRM-01), expediente y próxima acción (OPS-01), publicación separada (PUB-01) e importación validada (DAT-01).
 
 Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: recorrido inicial, capacidades, papeles/representación, criterios de avance y fuente de verdad. La aprobación general del ERP no decide por sí sola esas reglas. Se pueden preparar pruebas y diseños locales; no activar una política nueva por inferencia.
@@ -558,10 +694,13 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 15. Geografía: inventario y comparables en mapas, análisis de zonas, rutas y capas con procedencia; límites y permisos para ubicaciones privadas.
 16. Portal de clientes: acceso externo restringido a información y documentos compartidos de su operación, separado de las cuentas del equipo.
 17. IA documental: búsqueda con fuentes y revisión asistida de cláusulas; propuestas revisables, vinculadas al expediente y sin aprobación jurídica automática.
+18. Multiempresa y comercialización: frontera de datos por empresa, marca, flujo configurable, reglas por lugar, alta de empresas, planes y límites.
+19. Calidad y soporte: monitoreo de errores, pruebas de uso medidas, ayuda y reporte de problemas dentro del panel, piloto externo.
 
 ## Restricciones globales
 
-- Conservar identidad Fortius, tipografías internas, contraste claro, animaciones pertinentes y accesibilidad.
+- Conservar la identidad Fortius en su sitio público y como tema de Fortius en el panel. El panel admite la marca de cada empresa (RP-03) y en cualquier tema se exigen contraste, teclado, foco visible, movimiento reducido y accesibilidad.
+- Ninguna consulta, archivo, exportación, caché o índice cruza la frontera entre empresas (RP-02).
 - Conservar web pública, SEO, formularios, herramientas financieras, PDFs, inventario, rutas y edición de contenido.
 - Conservar propiedades demo; excluir o incluirlas explícitamente en reportes operativos sin eliminarlas.
 - Reutilizar componentes y contratos existentes; evitar dependencias nuevas sin una necesidad comprobada.
@@ -578,7 +717,7 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 |---|---|---|
 | DEC-01 | Mantener un monolito modular Next.js/Supabase | Recomendación técnica base del plan. |
 | DEC-02 | Empezar por captación y venta; luego compra y renta | Prioridad propuesta; confirmar antes del primer diseño de operación. |
-| DEC-03 | Administrador/asesor actuales conservados; capacidades de coordinación, jurídico, técnico y finanzas | Diseñar matriz; confirmar responsables y visibilidad antes de activar permisos. |
+| DEC-03 | Roles finos y permisos por acción (RP-05): director, coordinador, asesor, asistente, jurídico, contabilidad y aliado externo; permisos propios para ver precio mínimo, ver comisiones, aprobar descuentos, eliminar y exportar | Diseñar matriz por empresa; confirmar responsables y visibilidad antes de activar permisos. Las cuentas `admin` y `editor` actuales se transfieren a los papeles nuevos sin perder acceso. |
 | DEC-04 | Propiedad/persona puede tener varias relaciones; una persona puede tener varios papeles | Aprobar vocabulario y pruebas. La vinculación registrada no certifica titularidad. |
 | DEC-05 | Distinguir estados comercial, documental y financiero | Confirmar criterios de avance/cierre, excepciones y responsables. |
 | DEC-06 | RPO/RTO, retención y tratamiento de archivos | Copia diaria/RPO 24 h y RTO 8 h aprobados como objetivos; custodia, retención y capacidad demostrada pendientes. |
@@ -589,7 +728,12 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 | DEC-11 | Fuentes, precisión y servicios de mapas/rutas/comparables | Definir datos disponibles, permisos de uso, cobertura, precisión y costos antes de contratar un proveedor o publicar una ubicación. |
 | DEC-12 | Modelos de inversión y supuestos por escenario | Definir periodicidad, fechas, monedas, tasa de descuento y alcance de proyecto/financiación/inversionista; validar método y casos de prueba. |
 | DEC-13 | Información y acciones disponibles para clientes externos | Aprobar quién accede, qué documentos se comparten, qué puede solicitar y cómo se concede o revoca acceso. No reutilizar permisos de asesor. |
-| DEC-14 | Corpus y tratamiento por el servicio de IA | Definir documentos autorizados, proveedor, conservación, costo y evaluación de citas, abstención y aislamiento antes de procesar información real. |
+| DEC-14 | Corpus y tratamiento por el servicio de IA | Definir documentos autorizados, proveedor, conservación, costo y evaluación de citas, abstención y aislamiento antes de procesar información real. Aplica también a EXT-11. |
+| DEC-15 | Multiempresa y nombre comercial del producto | Decidido el 17/10/2026: se comercializa a otras inmobiliarias. Falta decidir el nombre comercial (Fortius u otra marca), el modelo (recomendado: una base con frontera por empresa en RLS; alternativa: una instalación por cliente) y que Fortius quede como empresa 1. Bloquea las migraciones de SAAS-01 y SEG-01. |
+| DEC-16 | Protección de la propiedad intelectual | Confirmar con abogado de propiedad intelectual: registro de obra (INDAUTOR), marca (IMPI), secreto industrial, convenios de confidencialidad y modelo de licencia para clientes. |
+| DEC-17 | Probabilidad por etapa y metas | Cada empresa define probabilidades por etapa y metas por asesor y periodo; Fortius propone sus valores iniciales. |
+| DEC-18 | Cobro de suscripciones | Proveedor de cobro, moneda, facturación (CFDI) de la suscripción y política de solo lectura por falta de pago. |
+| DEC-19 | Monitoreo de errores en producción | Proveedor, retención, alertas y filtro de datos personales (OBS-01). |
 
 ## Criterios de producto terminado para la primera versión operativa
 
@@ -608,7 +752,7 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 - **Decisor y aceptación de negocio:** Moisés Núñez Tonalá.
 - **Responsable de ingeniería por entrega:** el agente de desarrollo, en el checkout autorizado. No marcar aceptación humana desde una prueba automática.
 - **Revisor jurídico/fiscal/contable:** profesional que designe Fortius. Su revisión es dependencia cuando la entrega fija reglas de esas materias.
-- **Usuarios piloto:** administrador y dos asesores controlados; datos sintéticos hasta autorización expresa de un piloto real.
+- **Usuarios piloto:** administrador y dos asesores de Fortius (PIL-01); antes de vender, 2 o 3 inmobiliarias externas (PIL-02). Datos sintéticos hasta la autorización expresa de cada piloto real.
 - **Enfoque:** entregas incrementales, un recorrido verificable por vez. Una tarea de implementación en curso y otra como máximo en revisión. Las dependencias externas se registran aparte.
 - **Cadencia:** revisión al finalizar cada iteración; recalibración de la siguiente con evidencia. No llamar al trabajo individual Scrum ni dar fechas firmes sin capacidad y accesos.
 
@@ -624,11 +768,12 @@ Ventanas expresadas en días de ingeniería: no son días calendario ni promesas
 | 3 — Finanzas y tableros | Hechos financieros y cuatro vistas con desglose | 15–30 días | Totales reconciliados; cifras sin fuente explícitamente pendientes; acceso por capacidad. |
 | 4 — Producto multidispositivo | Interfaz consistente e instalación del panel | 8–16 días para uso conectado | Pruebas reales por plataforma, teclado, accesibilidad, sesión y conexión. Offline/push aparte. |
 | 5 — Escala y adopción | Consultas por necesidad, continuidad y piloto aceptado | 8–16 días | Carga medida, restauración repetible, manual y recorrido de usuario aceptado. |
-| 6 — Nuevas capacidades | Inversión, mapas, portal de clientes e IA documental; demás extensiones según caso de negocio | Por capacidad; rangos por estimar | Las cuatro capacidades solicitadas tienen alcance, costo y aceptación propios. Deben completarse para aceptar el producto ampliado; el núcleo se acepta por separado. |
+| 6 — Nuevas capacidades | Inversión, mapas, portal de clientes, IA documental y asistente IA; demás extensiones según caso de negocio | Por capacidad; rangos por estimar | Las capacidades solicitadas tienen alcance, costo y aceptación propios. Deben completarse para aceptar el producto ampliado; el núcleo se acepta por separado. |
+| 7 — Producto comercializable | Marca por empresa, flujo configurable, reglas por lugar, alta de empresas, planes, soporte y piloto externo | Por estimar tras DEC-15 | Dos o tres inmobiliarias externas operan en piloto con datos separados, recorridos aceptados y tiempos medidos. |
 
-M1: operación de captación utilizable tras fases 0–1. M2: operación de venta de extremo a extremo tras fase 2. M3: dirección con cuatro tableros tras fase 3. M4: versión operativa instalable y transferida tras fases 4–5. Se puede adelantar UX y prueba de dispositivos de un módulo desde su primera entrega.
+M1: operación de captación utilizable tras fases 0–1. M2: operación de venta de extremo a extremo tras fase 2. M3: dirección con tableros tras fase 3. M4: versión operativa instalable y transferida tras fases 4–5. M5: producto listo para vender tras fase 7 y PIL-02. Se puede adelantar UX y prueba de dispositivos de un módulo desde su primera entrega; UX-03 y UX-04 pueden empezar ya.
 
-Ruta principal: BAS-01 → REL-01/SEG-01 → CRM-01 → OPS-01 → COM-01/DOC-01/LEG-01/TEC-01 → FIN-01 → TAB-01 → PIL-01. Recuperación REC-01, permisos SEG-01 y controles CI-01 son condiciones para pilotar datos sensibles en producción.
+Ruta principal: BAS-01 → DEC-15 → REL-01/SEG-01 con SAAS-01 → CRM-01/CRM-02 → OPS-01 → COM-01/DOC-01/LEG-01/TEC-01 → FIN-01 → TAB-01 → PIL-01 → SAAS-02 a SAAS-06 → PIL-02. El detalle y el orden por bloques están en «Orden vigente». Recuperación REC-01, permisos SEG-01, frontera por empresa SAAS-01 y controles CI-01 son condiciones para pilotar datos sensibles en producción.
 
 ## Mapa de módulos y archivos
 
@@ -677,18 +822,27 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | OPS-01 P1/I | Expediente como operación coherente y centro de trabajo | operaciones nuevo, expedientes, tareas/eventos/related-work | DEC-02/05, CRM-01; 3–5d | Contexto compartido y enlaces durables; conflicto conserva captura; tarea vincula expediente explícitamente. |
 | PUB-01 P1/I | Inventario interno separado de publicación; captación web conectada | property-form, public.ts, `/api/public/leads`, layout config | SEG-01, CRM-01; 2–4d | Alta no publica; datos privados no aparecen en web/PDF; formulario sintético llega al CRM si se autoriza activar captación. Demo se conserva. |
 | DAT-01 P1/I | Revisar datos heredados e importaciones/exportaciones permitidas | validadores/domain, utilidades de importación y reporte de simulación | REL-01/SEG-01/PRV-01; 2–4d | Simulación sin escrituras detecta referencias ambiguas, duplicados y errores; usuario decide fusiones; ejecución idempotente y export restringido. Nunca importar ejemplos como actividad real. |
+| SAAS-01 P0/I | Empresa como frontera de datos (RP-01, RP-02) | migración aditiva, RLS, Storage, folios, respaldo/restauración, búsqueda y cachés | DEC-15; se diseña junto con SEG-01; por estimar | Con dos empresas sintéticas, ninguna lee, busca, exporta ni descarga datos de la otra por API, SQL directo, enlace o ID modificado. Fortius queda como empresa 1 sin cambiar sus datos. Folios por empresa; respaldo y restauración por empresa ensayados en aislado. |
+| CRM-02 P1/I | Registro rápido de contacto, siguiente paso obligatorio, plantillas de mensaje y reloj de primera atención (RP-21 a RP-23) | contactos, fichas, followups, tareas | CRM-01; 3–5d | Registrar un contacto en dos toques; sin siguiente paso pide fecha o motivo. La plantilla abre WhatsApp o correo y el envío no se registra hasta que el asesor lo confirma. El reloj usa la definición de «Primera atención». |
+| CRM-03 P1/C | Ficha 360° de la persona con línea de tiempo unificada (RP-27) | fichas de prospecto y cliente, historial, eventos, tareas, documentos, ofertas | REL-01, CRM-02; 3–5d | Cada hecho aparece una sola vez, con fuente y enlace; filtros por tipo; respeta permisos y empresa. |
+| INV-01 P1/C | Salud del inmueble, alertas de precio e historial de precio (RP-28) | propiedades, historial de cambios, eventos, ofertas, Comparables | PUB-01; 2–4d | Indicadores con fuente; umbrales configurables por empresa; historial de precio con autor, fecha y motivo; la alerta abre Comparables con el inmueble. |
+| DAT-02 P1/I | Calidad de captura: validaciones, catálogo de colonias, montos con moneda y fusión asistida (RP-40 a RP-43) | validadores, formularios, catálogo SEPOMEX con fecha de corte, personas | REL-01, DAT-01; 3–6d | Mensajes de validación claros; catálogo con fecha de corte y «otra» marcada; fusión campo por campo con historial y deshacer, nunca automática. |
 
 ### Fase 2 — operación de venta y revisiones
 
 | ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
 |---|---|---|---|---|
-| COM-01 P1/I | Conectar cartera/oportunidad/expediente sin duplicar hechos | comercial server/types, operación y vínculos SQL | OPS-01, DEC-05/09; 3–5d | Reconciliar vínculos por ID; no convertir ponderaciones en probabilidades; libro emitido histórico intacto. |
-| VIS-01 P1/I | Visita con resultado, asistencia, autorización y próxima acción | calendario/eventos, formato 13, operación | OPS-01; 2–4d | Visita programada distinta de realizada/cancelada; no contar doble al corregir; acceso y seguimiento correctos. |
-| OFE-01 P1/I | Ofertas/contraofertas, vigencia y respuesta autorizada | formato 14/oferta, operación, historial | COM-01, VIS-01; 3–5d | Versiones y plazos; respuesta del propietario identificada; acuerdo comercial no se presenta como contrato firmado. |
+| COM-01 P1/I | Conectar cartera/oportunidad/expediente sin duplicar hechos | comercial server/types, operación y vínculos SQL | OPS-01, DEC-05/09; 3–5d | Reconciliar vínculos por ID; las ponderaciones de la cartera no se presentan como probabilidad (el pronóstico por etapa es FIN-03); libro emitido histórico intacto. |
+| VIS-01 P1/I | Visita con resultado, asistencia, autorización y próxima acción; captura desde el celular (RP-25) | calendario/eventos, formato 13, operación, informe al propietario | OPS-01; 2–4d | Visita programada distinta de realizada/cancelada; llegada, opinión del comprador y foto en menos de un minuto; alimenta el informe al propietario; no contar doble al corregir; acceso y seguimiento correctos. |
+| OFE-01 P1/I | Ofertas/contraofertas como línea de tiempo, vigencia y respuesta autorizada (RP-26) | formato 14/oferta, operación, historial | COM-01, VIS-01; 3–5d | Versiones, vencimiento de cada oferta y diferencia contra el precio de salida; respuesta del propietario identificada; acuerdo comercial no se presenta como contrato firmado. |
 | DOC-01 P1/I | Unificar fuente documental/revisión/emisión/copia firmada | formatos catalog/server/API, assets, snapshots | OPS-01, SEG-01; 3–6d | Hash/versión verificables; cambio invalida revisión afectada; firma capturada no equivale a firma electrónica. |
 | LEG-01 P1/I | Requisitos, hallazgos, excepciones y conclusión profesional por etapa | juridica, formato 05/06, transitions propuesto | DOC-01, DEC-05, revisión jurídica; 3–5d | Recibido/revisado separados; no avanzar por casilla vacía; excepción tiene autor, fundamento y fecha. Modelo 09 sigue bloqueado hasta cotejo externo requerido. |
 | TEC-01 P1/I | Levantamientos y discrepancias con fuente/fecha/evidencia | levantamiento y variantes 04, assets, property facts | DOC-01; 3–5d | Superficies no se mezclan ni suman indebidamente; medición, declaración y dato documental diferenciados; foto vinculada. |
 | CIE-01 P1/I | Condiciones, formalización, entrega, pendientes y archivo | formatos 15/16/17, operación, transiciones | OFE-01/LEG-01/TEC-01; 3–5d | Cierre comercial/documental/cobro distintos; entrega con evidencia; poscierre pendiente no desaparece por cerrar. |
+| DOC-10 P1/C | Revisión lado a lado (RP-35) | operación guiada, visor de PDF e imagen, panel «Marcar como revisado» | DOC-01; 2–4d | En computadora se ve el documento y se captura la revisión sin cambiar de pantalla; en celular se alterna sin perder la captura. |
+| DOC-11 P1/C | Carga de varios archivos con requisito propuesto (RP-36) | carga de archivos, requisitos de la operación | DOC-01; 2–3d | Se arrastran varios archivos; se propone el requisito por tipo y nombre y la persona confirma; ningún archivo queda revisado por cargarse. La propuesta por contenido llega con EXT-11. |
+| DOC-12 P2/C | Pedir un documento al cliente por liga segura (RP-37) | ruta pública acotada, Storage privado, requisitos | DOC-01, SEG-01, SAAS-01, PRV-01; 3–5d | Liga con vencimiento y revocable que solo permite subir a ese requisito; lo recibido queda «Lo tengo»; la liga no da acceso a ningún otro dato. |
+| DOC-13 P1/C | Tablero de vencimientos de la empresa (RP-38) | «Pendientes documentales», requisitos con vigencia | DOC-01; 1–3d | Lista por fecha y responsable que enlaza a cada requisito; respeta permisos. |
 
 ### Fase 3 — finanzas y tableros
 
@@ -700,23 +854,41 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | TAB-02 P1/I | Comercial accionable | dashboard/Today/reportes, analytics | CRM-01/COM-01/VIS-01/TAB-01; 2–4d | Cohortes y primera atención explícitas; venta no equivale a conversión de lead; pendientes enlazan acción. |
 | TAB-03 P1/I | Financiero por operación, moneda y periodo | nueva vista financiera, analytics | FIN-02/TAB-01; 3–5d | Cobros conciliados vs potencial; no sumar monedas sin conversión válida; detalle y export reconciliados. |
 | TAB-04 P1/I | Jurídico y técnico con pendientes por responsable | nuevas vistas y queries | LEG-01/TEC-01/TAB-01; 3–5d | Estados derivados de revisión explícita; sin dictamen automático; hallazgo lleva a su evidencia. |
+| FIN-03 P2/C | Pronóstico de ingresos por mes (RP-30) | analytics, operaciones, configuración de etapas | FIN-01, DEC-17; 2–3d | Rotulado «Estimación»; probabilidades por etapa configurables por empresa; nunca se suma a lo cobrado. |
+| APR-01 P1/I | Aprobaciones con bandeja (RP-31) | solicitud de aprobación, bandeja «Para ti», comisiones y requisitos protegidos | SEG-01, FIN-02, UX-05; 3–5d | Solicitud con motivo; aprobador según rol; constancia del resultado; el servidor no aplica la acción antes de aprobarse. |
+| TAB-05 P2/C | Metas por asesor y tableros por rol (RP-33, RP-34) | metas por periodo, TAB-02 | TAB-01, DEC-17; 2–3d | Metas por asesor y periodo; avance calculado desde registros; comparación con el periodo anterior y con la meta; tiempo promedio por etapa e inventario envejecido con desglose. |
 
 ### Fases 4–5 — interfaz, escala y adopción
 
 | ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
 |---|---|---|---|---|
 | UX-01 P1/I | Sistema de interfaz y captura comprensible en todos los módulos | admin/UI/shell/form-section/formularios | Desde fase 1; 3–6d iniciales | Contraste y jerarquía; foco y teclado; estados cargando/vacío/error/conflicto/sin permiso; no pérdida silenciosa. |
-| UX-02 P2/C | Búsqueda, vistas/preferencias y dashboard personal modular | workspace/search/preferences/sidebar, SQL si se sincroniza | SEG-01/PAG-01/TAB-01; 2–4d | Filtra en servidor; orden accesible; preferencia personal no altera permisos ni muestra widgets prohibidos. |
+| UX-02 P1/C | Búsqueda, vistas y preferencias guardadas en el servidor por usuario, y tablero personal (RP-14) | workspace/search/preferences, migración de preferencias | SEG-01/PAG-01/TAB-01; 2–4d | Filtra en servidor; densidad, columnas y vistas siguen al usuario entre equipos; el navegador solo guarda comodidades del dispositivo; orden accesible; una preferencia no altera permisos ni muestra widgets prohibidos. |
+| UX-03 P1/C | Velocidad: barra de comandos, atajos, acciones masivas, edición en tabla, densidad y columnas (RP-09 a RP-13) | workspace/search, listas, kit | UX-01; 4–7d | Ctrl/Cmd+K busca y actúa solo con lo permitido; atajos documentados y desactivables, sin actuar dentro de campos; acciones masivas informan por registro y no duplican al reintentar; edición en tabla con control de versión; probado con teclado y lector de pantalla. |
+| UX-04 P1/I | Confianza al guardar: estado de guardado, deshacer, conflicto lado a lado, siluetas y sesión vencida (RP-15 a RP-19) | kit, store, formularios | UX-01; 3–5d | Nunca «Guardado» antes de la confirmación del servidor; «Deshacer» solo donde el servidor restaura; conflicto campo por campo sin sobrescribir; sesión vencida conserva la captura. |
+| UX-05 P1/C | Bandeja «Para ti» en Hoy (RP-20) | Hoy, notas e historial, tareas, APR-01 | UX-04, SEG-01; 2–4d | Una mención avisa solo a quien puede ver el registro; el contador del menú suma la bandeja; marcar como leído; sin campana. |
 | PWA-01 P1/I | Instalación y apertura del panel | manifiesto específico admin/layout/iconos | AUT-01/UX-01; 2–4d | Identidad/start_url/scope probados; inicia admin; acceso normal tras actualización; matriz real iOS/Android/iPad/Windows/macOS. |
 | PWA-02 P2/C | Conectividad y captura de campo limitada | formularios, capa de conexión; SW solo alcance aprobado | PWA-01, DEC-08; 3–6d | Sin cache de API/Auth/PDF privados; caducidad/cierre de sesión; reintento no duplica. Offline de datos sensibles requiere diseño y aprobación adicionales. |
 | PWA-03 P3/O | Notificaciones de tareas y citas con consentimiento | registro push por dispositivo, preferencias y disparador confiable | PWA-01/SEG-01/PRV-01 y canal acordado; 2–5d preliminares | Usuario opt-in; mensaje sin datos sensibles; horario operativo, revocación y duplicados probados; compatibilidad iOS instalada confirmada. No prometer entrega garantizada. |
 | PAG-01 P1/I | Búsqueda/paginación de servidor y agregados | backend/repository, collections, expedientes, store y listas | SEG-01 y contratos por módulo; 4–7d | No descargar toda colección para una página; orden estable; RLS; filas sin pérdida ni duplicación; ningún cliente legacy se trunca. |
 | ESC-01 P2/C | Medir volumen, consultas, concurrencia y PDFs | SQL/queries/tools, pruebas aisladas | PAG-01/FIN-01; 2–4d | Línea base y límites documentados; índices/locks/worker solo tras medición; integridad preservada. |
 | PIL-01 P1/I | Piloto, capacitación, manual y soporte | pruebas/fixtures/docs, datos autorizados | Recorrido M2, tableros, continuidad y PWA; 3–6d más uso real | Recorridos aceptados por usuario; incidencias priorizadas; soporte/backup/responsable definidos; ningún módulo se declara terminado por tener pantalla. |
+| SOP-01 P1/C | Soporte y ayuda dentro del panel (RP-48) | ayuda por pantalla, centro de ayuda, «Reportar un problema», recorrido inicial | OBS-01; 2–4d | El reporte lleva contexto técnico sin datos personales; ayuda por pantalla; recorrido inicial que se puede saltar y retomar. |
+
+### Fase 7 — producto comercializable
+
+| ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
+|---|---|---|---|---|
+| SAAS-02 P1/I | Marca por empresa (RP-03) | tema del panel, PDF y Word, correos, dominio o subdominio | SAAS-01; por estimar | Logo, colores y datos de documentos cambian sin tocar código; el contraste AA se valida al guardar el tema; cada documento sale con los datos de su empresa. |
+| SAAS-03 P1/I | Plantillas de flujo configurables y versionadas (RP-04) | `operation-workflow`, configuración, validación en servidor y PostgreSQL | SAAS-01, SEG-01; por estimar | El flujo de Fortius funciona como plantilla; cambios versionados; una operación en curso conserva su versión; los requisitos protegidos solo se desactivan por administrador con motivo; el servidor valida con la versión de cada operación. |
+| SAAS-04 P1/I | Reglas fiscales y notariales por lugar (RP-06) | catálogo de reglas, calculadoras, costos de cierre | SAAS-01, revisión fiscal; por estimar | Cada regla con lugar, vigencia, fuente y responsable; sin regla vigente el cálculo dice «pendiente». |
+| SAAS-05 P1/I | Alta guiada de empresa e importación (RP-07) | asistente de alta, DAT-01, USR-01, SAAS-02/03 | SAAS-01 a SAAS-03, DAT-01, USR-01; por estimar | Una empresa sintética queda operando sin intervención técnica; la importación se simula y se revisa antes de escribir. |
+| SAAS-06 P2/C | Planes, suscripción y límites (RP-08) | cobro, límites de usuarios y almacenamiento | SAAS-01, DEC-18; por estimar | Límites visibles con aviso previo; sin pago, solo lectura con exportación disponible; nunca se borran datos. |
+| PIL-02 P1/I | Piloto con 2 o 3 inmobiliarias externas y pruebas de uso medidas (RP-46, RP-47) | empresas piloto con datos separados, guía de pruebas | SAAS-01 a SAAS-05, PIL-01, REC-01, OBS-01; por estimar | Recorridos aceptados por cada empresa; tiempos medidos contra metas fijadas antes; incidencias priorizadas y cerradas antes de vender. |
 
 ## Estado y dependencias de cada entrega
 
-Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original e incorpora tres entregas del producto ampliado: EXT-08, EXT-09 y EXT-10, para un total de 45. EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
+Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto», para un total de 68. EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
 
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
@@ -765,6 +937,29 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | EXT-08 | 6 | pendiente | FIN-02, TAB-01, OPS-01, SEG-01 |
 | EXT-09 | 6 | pendiente | REL-01, TEC-01, VIS-01, SEG-01 |
 | EXT-10 | 6 | pendiente | REL-01, OPS-01, DOC-01, SEG-01, AUT-01, PRV-01 |
+| SAAS-01 | 1 | pendiente | DEC-15, SEG-01 (diseño conjunto) |
+| CRM-02 | 1 | pendiente | CRM-01 |
+| CRM-03 | 1 | pendiente | REL-01, CRM-02 |
+| INV-01 | 1 | pendiente | PUB-01 |
+| DAT-02 | 1 | pendiente | REL-01, DAT-01 |
+| DOC-10 | 2 | pendiente | DOC-01 |
+| DOC-11 | 2 | pendiente | DOC-01 |
+| DOC-12 | 2 | pendiente | DOC-01, SEG-01, SAAS-01, PRV-01 |
+| DOC-13 | 2 | pendiente | DOC-01 |
+| FIN-03 | 3 | pendiente | FIN-01, DEC-17 |
+| APR-01 | 3 | pendiente | SEG-01, FIN-02, UX-05 |
+| TAB-05 | 3 | pendiente | TAB-01, DEC-17 |
+| UX-03 | 4 | pendiente | UX-01 |
+| UX-04 | 4 | pendiente | UX-01 |
+| UX-05 | 4 | pendiente | UX-04, SEG-01 |
+| SOP-01 | 5 | pendiente | OBS-01 |
+| EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01, SAAS-01 |
+| SAAS-02 | 7 | pendiente | SAAS-01 |
+| SAAS-03 | 7 | pendiente | SAAS-01, SEG-01 |
+| SAAS-04 | 7 | pendiente | SAAS-01 |
+| SAAS-05 | 7 | pendiente | SAAS-01, SAAS-02, SAAS-03, DAT-01, USR-01 |
+| SAAS-06 | 7 | pendiente | SAAS-01, DEC-18 |
+| PIL-02 | 7 | pendiente | SAAS-01 a SAAS-05, PIL-01, REC-01, OBS-01 |
 
 **Discrepancia pendiente de EXT-03:** el backlog condiciona proveedores/mantenimiento a EXT-02 o a un caso de venta concreto; el seguimiento exige OPS-01 y FIN-01. Conservar ambas referencias y resolver su dependencia al diseñar esa extensión, sin iniciar por una equivalencia supuesta.
 
@@ -780,6 +975,10 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | Saldo por cobrar | Obligación vigente menos pagos aplicados y ajustes aprobados | Fuente contractual y movimientos; sin base mostrar pendiente. |
 | Documentos por revisar | Requisitos aplicables recibidos sin revisión vigente | DOC-01/LEG-01; recibido no acredita aprobado. |
 | Discrepancias técnicas | Hallazgos abiertos con fuente y responsable | TEC-01; no emitir diagnóstico pericial. |
+| Tiempo en etapa | Días entre la entrada y la salida de cada etapa; mediana por etapa y operaciones aún abiertas aparte | Historial de cambios de etapa; una corrección de etapa con motivo no cuenta como avance. |
+| Días en mercado | Días desde la publicación del inmueble hasta hoy, el retiro o la oferta aceptada | Fechas de publicación y oferta; sin fecha de publicación se muestra pendiente. |
+| Pronóstico ponderado | Honorario pactado o estimado por la probabilidad de la etapa definida por la empresa, por mes esperado | FIN-03/DEC-17; rotulado «Estimación»; nunca se suma a cobros. |
+| Avance contra meta | Resultado del periodo entre la meta del asesor para ese periodo | TAB-05; sin meta registrada se muestra pendiente. |
 
 Cada ficha incluye unidad/grano, fórmula, filtros, zona horaria operativa, responsable de dato, último corte, permisos, anulaciones y lista de IDs. La UI nunca completa cero por falta de datos.
 
@@ -810,6 +1009,9 @@ Comandos existentes útiles: `npm run lint`, `npm run typecheck`, `npm run test:
 | R-06 | Riesgo: resultado de inversión con supuestos incompletos o TIR ambigua | EXT-08; conservar escenarios y método, explicar ausencia de resultado y cotejar casos por cálculo independiente. |
 | R-07 | Riesgo: comparables desactualizados, ubicación imprecisa o ruta sin cobertura | EXT-09; procedencia/fecha/precisión, permisos, tratamiento de faltantes y alternativa en lista. |
 | R-08 | Riesgo: acceso de clientes o IA a expedientes ajenos | EXT-10/EXT-06; autorizaciones efectivas, proyecciones mínimas, revocación e índices privados probados entre dos identidades. |
+| R-09 | Riesgo: una empresa ve datos de otra | SAAS-01; pruebas entre dos empresas sintéticas en API, SQL directo, archivos, búsqueda, exportación, cachés e índices de IA antes de cualquier piloto externo. |
+| R-10 | Riesgo: un flujo configurado por una empresa deja de proteger la operación | SAAS-03; requisitos protegidos, versiones por operación y validación en servidor; desactivar uno exige administrador y motivo. |
+| R-11 | Riesgo: prometer una protección legal inexistente (por ejemplo, «patentado») | DEC-16; abogado de propiedad intelectual; ningún texto comercial la afirma sin título otorgado. |
 | S-01 | Supuesto: equipo inicial de una persona de ingeniería | Reestimar tras iteración 1; asignar por entrega, no prometer fechas calendario. |
 | S-02 | Supuesto: sin reescritura completa ni proveedores nuevos en núcleo | Revisar si evidencia técnica demuestra necesidad. |
 
@@ -824,11 +1026,11 @@ Comandos existentes útiles: `npm run lint`, `npm run typecheck`, `npm run test:
 
 ## Capacidades adicionales y disparadores
 
-Paquetes de fase 6: EXT-06, EXT-08, EXT-09 y EXT-10 están solicitados para el producto ampliado. Las demás extensiones entran al backlog de ejecución por decisión de negocio o necesidad demostrada. Descubrimiento de 1–3 días orientativos por paquete; esfuerzo de implementación se estima después de validar modelos, proveedor y alcance. Las ventanas originales cubren el núcleo y no estiman estas cuatro capacidades.
+Paquetes de fase 6: EXT-01, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solicitados para el producto ampliado. Las demás extensiones entran al backlog de ejecución por decisión de negocio o necesidad demostrada. Descubrimiento de 1–3 días orientativos por paquete; esfuerzo de implementación se estima después de validar modelos, proveedor y alcance. Las ventanas originales cubren el núcleo y no estiman estas cuatro capacidades.
 
 | ID / capacidad | Cuándo evaluarla / dependencias | Resultado de descubrimiento antes de programar |
 |---|---|---|
-| EXT-01 — Compradores y matching | Equipo requiere seguimiento de requisitos contra varios inmuebles; CRM-01/OPS-01 | Reglas aprobadas, coincidencias explicables y permisos. |
+| EXT-01 — Compradores y matching | Solicitada el 17/10/2026 (RP-24); CRM-01/OPS-01 | Reglas aprobadas, coincidencias explicables en los dos sentidos (inmueble → prospectos y prospecto → inmuebles) y permisos. |
 | EXT-02 — Renta/administración | Hay contratos recurrentes administrados por Fortius; FIN-02/CIE-01/LEG-01 | Ciclo de renta/depósitos/renovación/mora/entrega y reparto de cobros definido. |
 | EXT-03 — Proveedores/mantenimiento | Hay órdenes, presupuestos y trabajos que coordinar; EXT-02 o caso de venta concreto | Responsable, autorización, evidencia y enlace a operación/arrendamiento. |
 | EXT-04 — Portales/correo/calendario/WhatsApp API | Doble captura real y proveedor con acceso API; OPS-01/PRV-01 | IDs externos, consentimiento, idempotencia, reintentos y costo. Enlace WhatsApp no equivale a integración. |
@@ -837,7 +1039,8 @@ Paquetes de fase 6: EXT-06, EXT-08, EXT-09 y EXT-10 están solicitados para el p
 | EXT-07 — Cola/worker/eventos | Trabajos duran o reintentos superan límites medidos; ESC-01 | Métrica, idempotencia, reconciliación y plan de operación. |
 | EXT-08 — Análisis de inversión | Solicitado; DEC-12 y FIN-02/TAB-01/OPS-01/SEG-01 | Escenarios con TIR/VAN, flujo, presupuesto, supuestos, separación de financiación y resultados comprobables. |
 | EXT-09 — Mapas, comparables, zonas y rutas | Solicitados; DEC-11 y REL-01/TEC-01/VIS-01/SEG-01 | Fuentes/precisión/cobertura, uso permitido, motor/costo, capas autorizadas y recorrido sintético de visitas. |
-| EXT-10 — Portal privado de clientes | Solicitado; DEC-13 y REL-01/OPS-01/DOC-01/SEG-01/AUT-01/PRV-01 | Identidad externa, información compartida, solicitudes, permisos efectivos, revocación y uso móvil. |
+| EXT-10 — Portal privado de clientes | Solicitado; DEC-13 y REL-01/OPS-01/DOC-01/SEG-01/AUT-01/PRV-01 | Identidad externa, información compartida, solicitudes, permisos efectivos, revocación y uso móvil. DOC-12 es su primera pieza. |
+| EXT-11 — Asistente IA operativo | Solicitado el 17/10/2026 (RP-44); DEC-14, EXT-06, SEG-01, SAAS-01 | Resumen de operación, lectura de INE y escritura con confirmación campo por campo, descripción de anuncio y sugerencia de siguiente paso; citas, permisos por empresa, evaluación, costo y abstención. Nunca cambia estados ni envía nada por sí solo. |
 
 ### EXT-08 — inversión, flujos y rentabilidad
 
@@ -1132,6 +1335,7 @@ Las tareas de continuidad marcadas corresponden a la evidencia anterior; las tar
 4. Registrar en este archivo el cambio, el commit o estado local, la prueba real, la fecha y los límites. No crear otro roadmap, bitácora de desarrollo o JSON de seguimiento paralelo.
 5. Una decisión menor de ingeniería puede resolverse y explicarse aquí. Política de negocio, interpretación jurídica, infraestructura productiva y datos reales requieren su autorización específica.
 6. Revisar cada entrega sobre los archivos finales. Aprobación técnica, aceptación humana y publicación son hechos distintos.
+7. Antes de diseñar una pantalla o entrega, leer «Dirección del producto y reglas vigentes». Si el titular aprueba una idea que contradice una regla, reescribir la regla anterior en su lugar y anotarlo en «Reglas reemplazadas».
 
 La carpeta de trabajo se conserva única por indicación del titular; esta preparación usa una rama local. La evidencia voluminosa, capturas y archivos de ejecución van fuera del repositorio. Mantener credenciales y copias privadas fuera de Git; no incluirlas en commits o PR.
 
@@ -1147,9 +1351,11 @@ La carpeta de trabajo se conserva única por indicación del titular; esta prepa
 
 **Decisiones de ejecución de esta preparación:** mantener una sola carpeta y trabajar en rama local; conservar código y migraciones históricos que siguen siendo necesarios; guardar evidencia y copias fuera del repositorio. La prueba de escape conservó symlink de archivo en Linux y usa junction de directorio en Windows, comprobando primero que los bytes externos son accesibles y después que el verificador los rechaza. No se omitió ese caso ni se cambió la protección del respaldo. La referencia de API es [Node.js, fsPromises.symlink](https://nodejs.org/docs/latest-v24.x/api/fs.html#fspromisessymlinktarget-path-type).
 
-**Preparación local terminada y comprobada. Siguiente acción:** continuar la fase de captación, empezando por REL-01 y SEG-01, con DEC-02/03/04/05/09 resueltas antes de activar sus políticas. Los pendientes del proveedor siguen abiertos; el ERP completo no se declara terminado por ordenar archivos.
+**Preparación local terminada y comprobada.** *(Siguiente acción reemplazada el 17/10/2026 por el «Orden vigente» al inicio del plan.)* La siguiente acción registrada entonces era continuar la fase de captación, empezando por REL-01 y SEG-01, con DEC-02/03/04/05/09 resueltas antes de activar sus políticas. Los pendientes del proveedor siguen abiertos; el ERP completo no se declara terminado por ordenar archivos.
 
 ## Implementación aprobada — 20 apps para asesores (13/10/2026)
+
+*Registro histórico. Desde el 15/10/2026 (Fase A) quedaron 16 herramientas, y 17 desde que se agregó «Documentos sin expediente» el 17/10/2026: firmas, OCR, consulta documental y rutas se retiraron del código. Si se retoman, entran por EXT-05, EXT-06/EXT-11 y EXT-09 con proveedor decidido de nuevo; los proveedores, costos y el orden de entregas de esta sección ya no aplican.*
 
 Objetivo: veinte herramientas funcionales en /admin/apps/[slug], con captura, resultados, guardado privado, reapertura y exportación. Menú superior exclusivo de herramientas; barra lateral para operación. Conservar identidad Fortius, web pública, funciones existentes y permisos. Contexto de inmueble/cliente/expediente validado en servidor; un expediente único. No mover automáticamente etapas por emitir un documento o recibir una firma.
 

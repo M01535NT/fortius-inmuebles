@@ -1,5 +1,7 @@
 # Rediseño guiado del panel (Fase C) — encargo para el agente de desarrollo
 
+> **Estado: cumplido.** Las siete fases se fusionaron en `main` con el PR #39 el 17/10/2026. Las reglas de este encargo (sin migraciones, flujo sin cambios, roles `admin`/`editor`, avisos solo con el contador de Hoy) valían para esa fase. Las reglas vigentes del producto están en «Dirección del producto y reglas vigentes» de `PLAN_ERP_CRM.md`; si algo de aquí las contradice, mandan aquellas. El diseño visual, el glosario y los nombres sencillos de este encargo siguen vigentes.
+
 **Aprobado por el titular (Moisés Núñez Tonalá) el 15 y 16/10/2026.** Este archivo es el encargo completo. El agente lo lee entero antes de escribir código y vuelve a él al empezar cada fase.
 
 ## 1. Qué se construye
