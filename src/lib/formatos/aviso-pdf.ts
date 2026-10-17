@@ -1,5 +1,7 @@
 import "server-only";
-import { drawFortiusLetterhead } from "../pdf-letterhead";
+import { drawFortiusLetterhead, embedFortiusLetterhead } from "../pdf-letterhead";
+import { letterheadBounds } from "../letterhead";
+import { loadLetterhead } from "../letterhead-server";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
@@ -10,11 +12,12 @@ const navy = rgb(6 / 255, 31 / 255, 63 / 255);
 const green = rgb(239 / 255, 244 / 255, 239 / 255);
 // Recuadro de contacto gris claro y cuerpo en Times, como la plantilla vigente (09/10/2026).
 const cream = rgb(242 / 255, 245 / 255, 248 / 255);
-const wine = rgb(138 / 255, 22 / 255, 52 / 255);
 const white = rgb(1, 1, 1);
 const left = 50.5;
 const width = 511;
 const pageSize: [number, number] = [612, 792];
+const body = letterheadBounds();
+const bodyEnd = pageSize[1] - body.bottom;
 
 /** Reconstructs the supplied Letter template. Personal data are always supplied by the draft. */
 export async function createAvisoPdf(data: Record<string, unknown>, options: { publicTemplate?: boolean } = {}): Promise<Uint8Array> {
@@ -24,26 +27,18 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius");
   pdf.setSubject(`Expediente ${String(data.folio ?? "")}`);
-  const [regularBytes, boldBytes, monoBytes, logoBytes] = await Promise.all([
-    readFile(join(process.cwd(), "public/fonts/Archivo-Regular.ttf")),
-    readFile(join(process.cwd(), "public/fonts/Archivo-SemiBold.ttf")),
-    readFile(join(process.cwd(), "public/fonts/IBMPlexMono-Medium.ttf")),
-    readFile(join(process.cwd(), "public/brand/fortius-logo.png")),
-  ]);
-  void regularBytes;
+  const boldBytes = await readFile(join(process.cwd(), "public/fonts/Archivo-SemiBold.ttf"));
   const regular = await pdf.embedFont(StandardFonts.TimesRoman);
   const bold = await pdf.embedFont(boldBytes, { subset: true });
-  void monoBytes;
-  const logo = await pdf.embedPng(logoBytes);
+  const art = await embedFortiusLetterhead(pdf, await loadLetterhead());
   let page: PDFPage;
-  let top = 87;
+  let top = body.top;
   const characters = new Set(regular.getCharacterSet());
   const clean = (text: unknown) => Array.from(String(text ?? "").trim()).filter(c => c === "\n" || characters.has(c.codePointAt(0)!)).join("");
   const value = (key: string) => clean(data[key]);
   function newPage() {
     page = pdf.addPage(pageSize);
-    if (!options.publicTemplate) page.drawImage(logo, { x: 64.85, y: 712.5, width: 188.65, height: 47.95 });
-    top = 87;
+    top = body.top;
   }
   function line(text: string, at: number, size = 10.5, font = regular, x = left, color = navy) {
     page.drawText(text, { x, y: 792 - at - size * 0.79, size, font, color });
@@ -68,7 +63,7 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
     return lines;
   }
   function ensure(height: number) {
-    if (top + height > 730) newPage();
+    if (top + height > bodyEnd) newPage();
   }
   function wrapped(text: string, size: number, font: PDFFont, available: number) {
     return text.split("\n").flatMap(part => {
@@ -114,11 +109,11 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   function box(label: string, content: string[], fill: typeof green) {
     const rows = content.flatMap(text => wrap(text, 10.5, regular, width - 15));
     const totalHeight = 26.2 + rows.length * 11.75;
-    if (totalHeight <= 630) ensure(totalHeight + 5);
+    if (totalHeight <= bodyEnd - body.top) ensure(totalHeight + 5);
     for (let offset = 0; offset < rows.length;) {
       ensure(50);
       const start = top - 7.455;
-      const count = Math.min(rows.length - offset, Math.floor((730 - start - 26.2) / 11.75));
+      const count = Math.min(rows.length - offset, Math.floor((bodyEnd - start - 26.2) / 11.75));
       const height = 26.2 + count * 11.75;
       page.drawRectangle({ x: 50.4, y: 792 - start - height, width: 511.15, height, color: fill });
       centered(label, start + 8.35, 10);
@@ -150,10 +145,10 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
       const leading = row.decisions ? 10.65 : 10.95;
       const count = Math.max(...lines.map(cell => cell.length));
       const totalHeight = Math.max(row.height, count * leading + padding);
-      if (totalHeight <= 616 && top + totalHeight > 730) { newPage(); header(); }
+      if (totalHeight <= bodyEnd - body.top - 27 && top + totalHeight > bodyEnd) { newPage(); header(); }
       for (let offset = 0; offset < count;) {
-        if (top + row.height > 730) { newPage(); header(); }
-        const amount = Math.min(count - offset, Math.floor((730 - top - padding) / leading));
+        if (top + row.height > bodyEnd) { newPage(); header(); }
+        const amount = Math.min(count - offset, Math.floor((bodyEnd - top - padding) / leading));
         const height = Math.max(row.height, amount * leading + padding);
         const at = top;
         paint(at, height - 0.05, index % 2 === 0 ? green : white);
@@ -190,10 +185,10 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   }
 
   newPage();
-  line("Aviso de", 98.07, 32, bold, left);
-  line("privacidad", 132.87, 32, bold, left);
-  line("Propietarios · compradores · arrendatarios", 171.755, 10.5, regular, left, rgb(89 / 255, 99 / 255, 91 / 255));
-  top = 195.455;
+  line("Aviso de", body.top + 11.07, 32, bold, left);
+  line("privacidad", body.top + 45.87, 32, bold, left);
+  line("Propietarios · compradores · arrendatarios", body.top + 84.755, 10.5, regular, left, rgb(89 / 255, 99 / 255, 91 / 255));
+  top = body.top + 108.455;
   box("RESPONSABLE Y CONTACTO", [
     `Responsable: ${value("responsable")}`,
     `Domicilio: ${value("domicilioResponsable")}`,
@@ -218,7 +213,7 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   ]);
   paragraph("No se solicitan datos sensibles ni biométricos para la atención ordinaria. No envíe información de salud, creencias, origen étnico o vida sexual. Si un supuesto excepcional exigiera tratar datos sensibles, se informarán previamente los datos, la finalidad y el consentimiento escrito que corresponda. No se pide todo el expediente en el primer contacto.");
 
-  newPage(); title("Uso y comunicación", "de sus datos"); top -= 5.165;
+  ensure(120); title("Uso y comunicación", "de sus datos"); top -= 5.165;
   section("03 / Finalidades necesarias");
   paragraph("Los datos se utilizarán según el servicio solicitado y la etapa de la operación:", { justify: false });
   for (const text of [
@@ -239,7 +234,7 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   ]);
   paragraph("Las transferencias se limitarán a los datos necesarios y a la finalidad informada. Se comunicará al receptor el aviso y las obligaciones correspondientes. No se autoriza con este documento la venta de bases de datos. Los proveedores que procesen información por instrucciones del responsable deberán estar sujetos a deberes de seguridad y confidencialidad. Si se prevé una transferencia internacional no descrita aquí, se informará previamente su destinatario y finalidad, y se recabará el consentimiento cuando proceda.");
 
-  newPage(); title("Sus derechos", "y cómo ejercerlos"); top -= 5.165;
+  ensure(120); title("Sus derechos", "y cómo ejercerlos"); top -= 5.165;
   section("06 / Acceso, rectificación, cancelación y oposición");
   paragraph("Puede conocer los datos que conservamos y sus condiciones de uso; corregir información inexacta o incompleta; pedir su cancelación cuando proceda, u oponerse al tratamiento por causa legítima. Estos derechos pueden ejercerse por separado.");
   top += 6.6;
@@ -305,14 +300,7 @@ export async function createAvisoPdf(data: Record<string, unknown>, options: { p
   decisions(false);
   if (value("representante")) decisions(true);
   for (const [index, item] of pdf.getPages().entries()) {
-    if (options.publicTemplate) drawFortiusLetterhead(item, logo, regular, bold, index + 1, pdf.getPageCount());
-    else {
-      // Franja de marca del pie (formas de la plantilla) y número de página.
-      item.drawRectangle({ x: 0, y: 0, width: 612, height: 19, color: navy });
-      item.drawSvgPath("M 40.95 0 L 117 0 L 117 31 L 0 31 Z", { x: 495, y: 40, color: navy });
-      item.drawSvgPath("M 35.52 0 L 148 0 L 113.96 13 L 0 13 Z", { x: 370, y: 32, color: wine });
-      item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: 63.65, y: 25.3, size: 10.5, font: regular, color: navy });
-    }
+    drawFortiusLetterhead(item, art, bold, "Aviso de privacidad", index + 1, pdf.getPageCount());
   }
   return pdf.save();
 }

@@ -1,4 +1,5 @@
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
+import { readFile } from 'node:fs/promises';
 import {
   decodePDFRawStream,
   PDFArray,
@@ -6,7 +7,9 @@ import {
   PDFRawStream,
 } from "pdf-lib";
 import { createFinancialPdf } from "@/lib/finance/report";
+afterEach(()=>vi.restoreAllMocks());
 test("local financial PDF paginates and preserves first/last schedule amounts and missing fees", async () => {
+  vi.spyOn(globalThis,'fetch').mockImplementation(async input=>new Response(await readFile(`public${String(input)}`)));
   const pdf = await PDFDocument.load(
     await createFinancialPdf({
       title: "Hipoteca de prueba",

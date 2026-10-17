@@ -345,6 +345,8 @@ El titular pidió que cada paso del propietario que vende sea una etapa con su d
 - [ ] **DOC-06 · Completar la captura del 06.** Agregar como campos propios la tabla de antecedentes, las condiciones por etapa, el marco jurídico y la lista de documentos revisados, dentro de la misma captura por secciones (recomendación del 17/10/2026: no usar Excel ni una herramienta aparte). Sin migración.
 - [ ] **DOC-09 · Liberar el PDF del contrato 09.** Sigue bloqueado hasta cotejar el modelo registrado; el titular debe definir qué hace falta para darlo por final.
 
+**Integración autorizada — 17/10/2026.** El titular autorizó commit, push y fusión en `main` de los cambios pendientes: operaciones según el boceto C y ventana de entregables, entrevista y levantamiento simplificados, menú lateral y membrete general. La preparación incluye las instrucciones del repositorio y los bocetos de referencia. Las muestras de descarga de `output/` quedan locales. El cierre de CI, fusión y despliegue se documentará en el PR correspondiente; la autorización no acredita todavía su publicación.
+
 **Dónde nos quedamos — cierre de la sesión del 17/10/2026**
 
 - **Rama y publicación:** todo está en `feat/panel-guiado` (44 commits sobre `main`, último `2fe90d0`), subido a GitHub. No hay PR, fusión ni despliegue: esperan la revisión y autorización del titular. El entorno local (puerto 3001) usa la base real de producción: revisar en el navegador solo leyendo, sin guardar.

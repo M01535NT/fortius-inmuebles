@@ -2,6 +2,8 @@ import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, PDFName, PDFString, StandardFonts } from "pdf-lib";
 import { FinancialLayout } from "./report-layout";
 import type { FinancialReport, ReportAssets } from "./report-model";
+import { fetchLetterhead } from '../letterhead';
+import { embedFortiusLetterhead } from '../pdf-letterhead';
 export type { FinancialReport, ReportAssets } from "./report-model";
 /** Financial inputs stay in memory; PDF generation never uploads them. */
 export async function createFinancialPdf(
@@ -14,20 +16,19 @@ export async function createFinancialPdf(
   pdf.setCreator("Fortius · Herramientas inmobiliarias");
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
   pdf.registerFontkit(fontkit);
-  const [regular, bold, mono, logo] = assets
+  const art = await embedFortiusLetterhead(pdf, assets ?? await fetchLetterhead());
+  const [regular, bold, mono] = assets
     ? await Promise.all([
         pdf.embedFont(assets.regular, { subset: true }),
         pdf.embedFont(assets.bold, { subset: true }),
         pdf.embedFont(assets.mono, { subset: true }),
-        pdf.embedPng(assets.logo),
       ])
     : await Promise.all([
         pdf.embedFont(StandardFonts.Helvetica),
         pdf.embedFont(StandardFonts.HelveticaBold),
         pdf.embedFont(StandardFonts.Courier),
-        Promise.resolve(undefined),
       ]);
-  new FinancialLayout(pdf, { regular, bold, mono }, report, logo).render();
+  new FinancialLayout(pdf, { regular, bold, mono }, report, art).render();
   return pdf.save();
 }
 let assetPromise: Promise<ReportAssets> | undefined;
@@ -38,7 +39,8 @@ function reportAssets(): Promise<ReportAssets> {
       "/fonts/Archivo-Regular.ttf",
       "/fonts/Archivo-SemiBold.ttf",
       "/fonts/IBMPlexMono-Medium.ttf",
-      "/brand/fortius-logo.png",
+      "/brand/membrete-encabezado.png",
+      "/brand/membrete-pie.png",
     ].map(async (path) => {
       const response = await fetch(path);
       if (!response.ok)
@@ -48,7 +50,7 @@ function reportAssets(): Promise<ReportAssets> {
       return new Uint8Array(await response.arrayBuffer());
     }),
   )
-    .then(([regular, bold, mono, logo]) => ({ regular, bold, mono, logo }))
+    .then(([regular, bold, mono, encabezado, pie]) => ({ regular, bold, mono, encabezado, pie }))
     .catch((error: unknown) => {
       assetPromise = undefined;
       throw error;

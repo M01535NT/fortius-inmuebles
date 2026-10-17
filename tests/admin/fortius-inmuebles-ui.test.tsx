@@ -6,6 +6,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import ContactoPage from "@/app/contacto/page";
 import InventarioPage from "@/app/inventario/page";
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
+import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
 import { ClosingCostsCalculator } from "@/components/tools/closing-costs-calculator";
 import { InventoryExplorer } from "@/components/property/inventory-explorer";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
@@ -120,6 +121,17 @@ test("inventory and contact routes expose one page H1", async () => {
   const contact = renderToStaticMarkup(<ContactoPage />);
   expect((inventory.match(/<h1/g) ?? [])).toHaveLength(1);
   expect((contact.match(/<h1/g) ?? [])).toHaveLength(1);
+});
+
+test("side menu preserves all configured contact channels", () => {
+  render(<PublicFeaturesProvider publicLeadsEnabled={false} settings={{
+    nombreComercial: "Fortius", telefono: "", whatsapp: "+52 664 123 4567",
+    email: "contacto@example.com", horario: "", facebook: "https://m.me/fortius.fixture",
+    instagram: "", videoInstitucionalUrl: "",
+  }}><FullscreenMenu open onClose={() => {}} /></PublicFeaturesProvider>);
+  expect(screen.getByRole("link", { name: "WhatsApp" }).getAttribute("href")).toMatch(/^https:\/\/wa.me\/526641234567/);
+  expect(screen.getByRole("link", { name: "Messenger" }).getAttribute("href")).toBe("https://m.me/fortius.fixture");
+  expect(screen.getByRole("link", { name: "Correo" }).getAttribute("href")).toMatch(/^mailto:contacto@example.com/);
 });
 
 test("fullscreen menu traps Tab, closes with Escape and restores prior focus", async () => {

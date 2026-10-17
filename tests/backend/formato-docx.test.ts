@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Packer } from "docx";
+import { readFileSync } from "node:fs";
 import { formatoById } from "@/lib/formatos/catalog";
 import { answerText, formatoDocument, shownFields } from "@/lib/formatos/docx";
 
@@ -20,7 +21,8 @@ describe("copia en Word de un formato", () => {
   });
   it("genera un .docx válido con las secciones y la tabla de documentos por entregar", async () => {
     const values = { folio: "EXP-2026-041", entrevistado: "Familia Castañeda Ortiz", tipoInmueble: "casa", documentosEstado: "registrados", documentosPrometidos: [{ documento: "Escritura", responsable: "Propietario", fecha: "2026-10-20" }] };
-    const buffer = await Packer.toBuffer(formatoDocument(entrevista, values, { folio: "EXP-2026-041", cliente: "Familia Castañeda Ortiz" }));
+    const assets={encabezado:readFileSync('public/brand/membrete-encabezado.png'),pie:readFileSync('public/brand/membrete-pie.png')};
+    const buffer = await Packer.toBuffer(formatoDocument(entrevista, values, { folio: "EXP-2026-041", cliente: "Familia Castañeda Ortiz" }, assets));
     expect(buffer.subarray(0, 2).toString()).toBe("PK");
     expect(buffer.includes(Buffer.from("word/document.xml"))).toBe(true);
   });

@@ -15,6 +15,32 @@ const pages = [
 ];
 
 for (const width of [375, 1440]) {
+  test(`side menu keeps the page visible and closes from the backdrop at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const trigger = page.getByRole("button", { name: "Abrir menú" });
+    await trigger.click();
+    const menu = page.getByRole("dialog", { name: "Menú", exact: true });
+    await expect(menu.getByRole("link", { name: "Contacto directo" })).toHaveCSS("opacity", "1");
+    await expect.poll(async () => Math.round((await menu.boundingBox())!.x + (await menu.boundingBox())!.width)).toBe(width);
+    const bounds = (await menu.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(24);
+    expect(Math.round(bounds.width)).toBeLessThanOrEqual(460);
+    await expect(menu.getByRole("link", { name: "Vender mi propiedad" })).toHaveAttribute("href", "/vender-propiedad");
+    await expect(menu.getByRole("link", { name: "Comprar una propiedad" })).toBeVisible();
+    await page.mouse.click(8, 200);
+    await expect(menu).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await expect(page.locator("html")).not.toHaveCSS("overflow", "hidden");
+    await trigger.click();
+    await expect(menu.getByRole("button", { name: "Cerrar menú" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+}
+
+for (const width of [375, 1440]) {
   test(`every public page keeps a working menu at ${width}px`, async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width, height: width === 375 ? 667 : 900 });

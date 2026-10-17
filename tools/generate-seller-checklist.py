@@ -5,11 +5,11 @@ from pathlib import Path
 from reportlab.lib.colors import HexColor
 from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph
+from pdf_letterhead import draw_letterhead
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,32 +45,31 @@ pdf.setSubject("Diez preguntas para organizar una venta inmobiliaria")
 pdf.setFillColor(paper)
 pdf.rect(0, 0, width, height, fill=1, stroke=0)
 
-logo = ImageReader(str(ROOT / "public/brand/fortius-logo.png"))
-pdf.drawImage(logo, 43, 724, width=185, height=47, mask="auto")
+draw_letterhead(pdf, 'Guía para propietarios', font='ArchivoBold')
 pdf.setFillColor(burgundy)
 pdf.setFont("ArchivoBold", 9)
-pdf.drawRightString(569, 741, "GUÍA PARA PROPIETARIOS")
+pdf.drawRightString(569, 656, "GUÍA PARA PROPIETARIOS")
 
 pdf.setFillColor(navy)
 pdf.setFont("ArchivoBold", 25)
-pdf.drawString(43, 684, "Antes de poner tu propiedad")
-pdf.drawString(43, 651, "en venta")
+pdf.drawString(43, 627, "Antes de poner tu propiedad")
+pdf.drawString(43, 594, "en venta")
 
 intro_style = ParagraphStyle("intro", fontName="Archivo", fontSize=10.5, leading=15.5, textColor=muted, alignment=TA_JUSTIFY)
 intro = Paragraph("Estas preguntas ayudan a detectar qué está claro y qué necesita verificación antes de publicar. Marca lo que ya conoces y anota los pendientes.", intro_style)
 intro.wrapOn(pdf, 526, 70)
-intro.drawOn(pdf, 43, 604)
+intro.drawOn(pdf, 43, 547)
 
 body_style = ParagraphStyle("item", fontName="Archivo", fontSize=8.5, leading=11.5, textColor=ink, alignment=TA_JUSTIFY)
 columns = [(43, "Información del inmueble", items[:5]), (315, "Preparación de la venta", items[5:])]
 for x, heading, entries in columns:
     pdf.setFillColor(burgundy)
     pdf.setFont("ArchivoBold", 10)
-    pdf.drawString(x, 567, heading.upper())
+    pdf.drawString(x, 512, heading.upper())
     pdf.setStrokeColor(line)
-    pdf.line(x, 557, x + 254, 557)
+    pdf.line(x, 502, x + 254, 502)
     for index, (title, body) in enumerate(entries):
-        top = 539 - index * 86
+        top = 484 - index * 64
         pdf.setStrokeColor(burgundy)
         pdf.setLineWidth(1)
         pdf.rect(x, top - 11, 12, 12, fill=0, stroke=1)
@@ -82,13 +81,10 @@ for x, heading, entries in columns:
         paragraph.drawOn(pdf, x + 21, top - 16 - used)
 
 pdf.setStrokeColor(line)
-pdf.line(43, 98, 569, 98)
+pdf.line(43, 164, 569, 164)
 footer_style = ParagraphStyle("footer", fontName="Archivo", fontSize=9.2, leading=13.5, textColor=muted, alignment=TA_JUSTIFY)
 footer = Paragraph("Si algo falta, anótalo. En la primera conversación podemos ordenar contigo qué conviene resolver y quién debe confirmarlo.", footer_style)
 footer.wrapOn(pdf, 526, 35)
-footer.drawOn(pdf, 43, 57)
-pdf.setFillColor(navy)
-pdf.setFont("ArchivoBold", 8)
-pdf.drawString(43, 29, "FORTIUS INMUEBLES")
+footer.drawOn(pdf, 43, 132)
 pdf.showPage()
 pdf.save()

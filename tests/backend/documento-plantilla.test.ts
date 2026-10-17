@@ -23,8 +23,8 @@ import { renderDocumentoPdf } from "@/lib/formatos/documento/pdf";
 import { INTERMEDIACION_CLAUSES } from "@/lib/formatos/intermediacion-text";
 
 const text = (blocks: ReturnType<typeof planDocumento>["blocks"]) => JSON.stringify(blocks);
-const assets = { regular: readFileSync("public/fonts/Archivo-Regular.ttf"), bold: readFileSync("public/fonts/Archivo-SemiBold.ttf"), logo: readFileSync("public/brand/fortius-logo.png") };
-const docxAssets = { logo: assets.logo, logoSize: { width: 2550, height: 648 }, pie: readFileSync("public/brand/pie-documento.png") };
+const docxAssets = { encabezado: readFileSync("public/brand/membrete-encabezado.png"), pie: readFileSync("public/brand/membrete-pie.png") };
+const assets = { ...docxAssets, regular: readFileSync("public/fonts/Archivo-Regular.ttf"), bold: readFileSync("public/fonts/Archivo-SemiBold.ttf") };
 
 describe("documentos con el diseño de la plantilla", () => {
   it("el 10 usa el texto de la plantilla y deja la línea donde falta un dato", () => {

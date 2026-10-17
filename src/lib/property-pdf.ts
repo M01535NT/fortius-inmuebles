@@ -5,6 +5,9 @@ import { PDFDocument, rgb, PDFName, PDFString, pushGraphicsState, popGraphicsSta
 import { ESTADO_LABELS, FUENTE_SUPERFICIE_LABELS, OPERACION_LABELS, TIPO_LABELS, formatPrecio, type Property } from "@/data/propiedades";
 import type { Asesor, SiteSettings } from "@/lib/domain/records";
 import { publicContact } from "@/lib/public-contact";
+import { letterheadBounds } from "./letterhead";
+import { loadLetterhead } from "./letterhead-server";
+import { drawFortiusLetterhead, embedFortiusLetterhead } from "./pdf-letterhead";
 
 type Options = { settings: SiteSettings | null; adviser?: Asesor; siteUrl: string; loadImage: (src: string) => Promise<Uint8Array | null> };
 const burgundy = rgb(138 / 255, 22 / 255, 52 / 255);
@@ -12,7 +15,8 @@ const ink = rgb(.08, .09, .1);
 const muted = rgb(.34, .36, .39);
 // Letter paper, with the same generous margins as the supplied editorial reference.
 const width = 612, height = 792, margin = 46, content = width - margin * 2;
-const bottom = height - 54, start = 83;
+const body = letterheadBounds(width,height);
+const bottom = height - body.bottom - 10, start = body.top;
 
 /** An editorial sheet of explicit public fields. Never serialize private records. */
 export async function createPropertyPdf(p: Property, options: Options): Promise<Uint8Array> {
@@ -23,7 +27,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
       pdf.embedFont(await readFile(join(process.cwd(), "public", "fonts", name)), { subset: true })
     )
   );
-  const logo = await pdf.embedPng(await readFile(join(process.cwd(), "public", "brand", "fortius-logo.png")));
+  const art = await embedFortiusLetterhead(pdf, await loadLetterhead());
   const supported = new Map<PDFFont, Set<number>>();
   for (const font of [regular, bold, serif]) supported.set(font, new Set(font.getCharacterSet()));
   const clean = (s: string, font = regular) => Array.from(s.normalize("NFC").replace(/[\u2010-\u2015]/g, "-")).filter(c => supported.get(font)!.has(c.codePointAt(0)!)).join("");
@@ -48,10 +52,6 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     page.drawText(clean(value, font), { x, y: height - top - size, size, font, color });
   };
   const header = () => {
-    const logoWidth = 121;
-    page.drawImage(logo, { x: margin, y: height - 34 - logoWidth * logo.height / logo.width, width: logoWidth, height: logoWidth * logo.height / logo.width });
-    const label = "FICHA TÉCNICA";
-    draw(label, width - margin - regular.widthOfTextAtSize(label, 8), 42, 8, regular, muted);
     y = start;
   };
   const next = () => { page = pdf.addPage([width, height]); header(); };
@@ -300,9 +300,8 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   pages.forEach((sheet, index) => {
     page = sheet;
     const footer = `Fortius · ${p.codigo}${p.demo ? " · Demostración" : ""}`;
-    wrap(footer, 8, regular, content - 70).slice(0, 2).forEach((line, i) => draw(line, margin, height - 35 + i * 10, 8, regular, muted));
-    const count = `${index + 1} / ${pages.length}`;
-    draw(count, width - margin - regular.widthOfTextAtSize(count, 8), height - 35, 8, regular, muted);
+    wrap(footer, 8, regular, content - 70).slice(0, 2).forEach((line, i) => draw(line, margin, height - body.footer - 24 + i * 10, 8, regular, muted));
+    drawFortiusLetterhead(sheet,art,bold,'Ficha técnica',index+1,pages.length);
   });
   return pdf.save();
 }

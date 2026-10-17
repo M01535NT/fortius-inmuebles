@@ -1,3 +1,5 @@
+import type { LetterheadAssets } from '../letterhead';
+
 export type ReportTable = {
   columns: {
     label: string;
@@ -33,9 +35,8 @@ export type FinancialReport = {
   sections: ReportSection[];
   appendix?: { title: string; note: string; table: ReportTable };
 };
-export type ReportAssets = {
+export type ReportAssets = LetterheadAssets & {
   regular: Uint8Array;
   bold: Uint8Array;
   mono: Uint8Array;
-  logo: Uint8Array;
 };

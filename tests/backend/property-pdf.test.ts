@@ -60,11 +60,11 @@ test("editorial sheets omit empty fields and filler without losing public facts"
   expect(text).not.toContain("Terreno");
 });
 
-test("the reference template produces a compact two-page sheet with the property photographs", async () => {
+test("the new stationery produces a three-page sheet preserving the property photographs and facts", async () => {
   const property = { ...propiedades[0], demo: false, documentos: [] };
   const bytes = await createPropertyPdf(property, { settings: null, siteUrl: "https://example.com", loadImage: loadPdfImage });
   const pdf = await PDFDocument.load(bytes);
-  expect(pdf.getPageCount()).toBe(2);
+  expect(pdf.getPageCount()).toBe(3);
   const text = financialPdfPages(pdf).join(" ").replace(/\s+/g, " ");
   for (const paragraph of property.descripcion) expect(text).toContain(paragraph);
   for (const amenity of property.amenidades) expect(text).toContain(amenity);
@@ -106,8 +106,10 @@ test("the cover photograph fills the printable width at its natural landscape as
   const page = pdf.getPage(0);
   const streams = pageContent(pdf, 0);
   const images = [...streams.matchAll(/([\d.]+) 0 0 ([\d.]+) 0 0 cm\n1 0 0 1 0 0 cm\n\/(Image-[^ ]+) Do/g)];
-  // The first image is the brand logo; the second is the property's cover photo.
-  const [, drawnWidth, drawnHeight, resource] = images[1];
+  // El membrete añade dos imágenes. Identificar la fotografía por su ancho de impresión.
+  const cover=images.find(([,drawnWidth])=>Math.abs(Number(drawnWidth)-520)<0.001);
+  expect(cover).toBeDefined();
+  const [, drawnWidth, drawnHeight, resource] = cover!;
   expect(Number(drawnWidth)).toBeCloseTo(520, 3);
   expect(Number(drawnHeight)).toBeGreaterThan(280);
   const objects = page.node.Resources()!.lookup(PDFName.of("XObject"), PDFDict);
@@ -133,11 +135,11 @@ test("portrait covers retain their complete original in the printed gallery", as
   expect(financialPdfPages(pdf).join(" ")).toContain(property.galeria[0].alt);
 });
 
-test("a long opening begins on the cover and continues without losing any words", async () => {
+test("a long opening flows after the full-width cover photograph without losing any words", async () => {
   const property = { ...propiedades[0], demo: false, descripcion: ["Primer párrafo. " + "Espacios amplios con ventanas hacia el jardín y una distribución funcional. ".repeat(12) + "Final de la descripción."] };
   const bytes = await createPropertyPdf(property, { settings: null, siteUrl: "https://example.com", loadImage: loadPdfImage });
   const pages = financialPdfPages(await PDFDocument.load(bytes));
-  expect(pages[0]).toContain("Primer párrafo.");
+  expect(pages[1]).toContain("Primer párrafo.");
   const text = pages.join(" ").replace(/\s+/g, " ");
   expect(text).toContain("Final de la descripción.");
   expect(text.match(/ventanas/g)).toHaveLength(12);
