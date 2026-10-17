@@ -57,9 +57,9 @@ export function OperationScreen({ id }: { id: string }) {
     apiRequest<{ asesorId?: string | null }>("/api/admin/mi-asesor").then(r => { if (alive) setMe(r.asesorId ?? undefined); }).catch(() => undefined);
     return () => { alive = false; };
   }, [id]);
-  // Borrador más reciente de cada formato del avance del propietario (02, 04, 05–08) y sus PDF.
+  // Borrador más reciente de cada formato del avance del propietario (01, 02, 04, 05–10) y sus PDF.
   const interview02 = latestInterview(documents), survey04 = latestSurvey(documents);
-  const tracked = [interview02, survey04, ...["05", "06", "07", "08"].map(f => documents.filter(d => d.formato_id === f).sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0])].flatMap(d => d ? [d.id] : []);
+  const tracked = [interview02, survey04, ...["01", "05", "06", "07", "08", "09", "10"].map(f => documents.filter(d => d.formato_id === f).sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0])].flatMap(d => d ? [d.id] : []);
   const [emissions, addEmission] = useEmissions(tracked);
   const emissions02 = interview02 ? emissions[interview02.id] ?? [] : [], emissions04 = survey04 ? emissions[survey04.id] ?? [] : [];
   const markDirty = React.useMemo(() => Object.fromEntries(TABS.map(t => [t.id, (value: boolean) => setDirty(old => old[t.id] === value ? old : { ...old, [t.id]: value })])) as Record<TabId, (value: boolean) => void>, []);

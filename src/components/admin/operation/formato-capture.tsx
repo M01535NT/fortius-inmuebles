@@ -5,6 +5,7 @@ import { Button, Eyebrow, Notice } from "@/components/admin/kit";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
+import { downloadFormatoWord } from "@/lib/admin/download-word";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,7 @@ import { FormatoImages, WITH_IMAGES } from "./formato-images";
   y, en las fases siguientes, para levantamiento, dictamen jurídico y opinión de valor.
 */
 
-export type Emision = { id: string; draft_version: number; created_at: string };
+export type Emision = { id: string; draft_version: number; created_at: string; plantillaVersion?: string };
 const post = (body: unknown, method = "POST") => ({ method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 const IMAGES = "Fotografías y croquis";
 const safeName = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -93,12 +94,7 @@ export function FormatoCapture({ document: initial, folio, cliente, onSaved, onE
   function word() {
     void run("Preparando Word…", async () => {
       const saved = await persist();
-      const { formatoDocxBlob } = await import("@/lib/formatos/docx");
-      const blob = await formatoDocxBlob(definition, { ...saved.data, folio }, { folio, cliente });
-      const url = URL.createObjectURL(blob), link = window.document.createElement("a");
-      link.href = url; link.download = `Fortius-${definition.id}-${safeName(definition.title)}-${folio}-v${saved.version}.docx`;
-      window.document.body.appendChild(link); link.click(); link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      await downloadFormatoWord(saved, folio, cliente);
       setNotice("Copia en Word descargada.");
     });
   }

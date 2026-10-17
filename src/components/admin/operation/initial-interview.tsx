@@ -9,6 +9,8 @@ import { shortDate } from "@/lib/admin/today";
 import { checklistFor, checklistTaskId, levantamientoFor } from "@/lib/formatos/checklist-documentos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
 import { formatoById } from "@/lib/formatos/catalog";
+import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
+import { downloadFormatoWord, saveBlob } from "@/lib/admin/download-word";
 import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
 import type { OperationRecord } from "@/lib/admin/operation-view";
@@ -37,11 +39,6 @@ export function juridicaDocumentsFrom(checklist?: Task) {
     return paso ? { concepto: item.key, aplica: "si", estado: paso.hecho ? "recibido" : "no_recibido", referencia: "Checklist de documentos de la operación" } : { concepto: item.key };
   });
 }
-function saveBlob(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob), link = document.createElement("a");
-  link.href = url; link.download = name; document.body.appendChild(link); link.click(); link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 30000);
-}
 
 type FormatId = "05" | "06" | "07" | "08" | "09" | "10";
 
@@ -57,6 +54,8 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
   const revision = latest(documents, f => f === "05"), dictamen = latest(documents, f => f === "06"), valor = latest(documents, f => f === "07"), neto = latest(documents, f => f === "08");
   const contrato = latest(documents, f => f === "09"), plan = latest(documents, f => f === "10");
   const pdf02 = pdfOf(entrevista), pdf04 = pdfOf(levantamiento);
+  // El PDF del aviso vale sólo si se generó con la plantilla vigente.
+  const avisoPdf = aviso ? emissions[aviso.id]?.find(e => e.draft_version === aviso.version && e.plantillaVersion === AVISO_TEMPLATE_VERSION) : undefined;
   const a = interview?.respuestas ?? {};
   const answers02 = (entrevista?.data ?? {}) as Record<string, unknown>;
   const [surveyType, setSurveyType] = React.useState<LevantamientoId>(() => levantamientoFor(answers02.tipoInmueble ?? a.tipoInmueble));
@@ -87,8 +86,7 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
   async function word(doc: Documento) {
     setBusy(true); setError("");
     try {
-      const { formatoDocxBlob } = await import("@/lib/formatos/docx");
-      saveBlob(await formatoDocxBlob(formatoById(doc.formato_id), { ...doc.data, folio: op.folio }, { folio: op.folio, cliente }), `Fortius-${doc.formato_id}-${op.folio}-v${doc.version}.docx`);
+      await downloadFormatoWord(doc, op.folio, cliente);
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
   function formatRow(formatoId: FormatId, doc: Documento | undefined, icon: React.ReactNode, detail: string, primary = true) {
@@ -96,9 +94,15 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
     return <Step done={!!pdf} icon={icon} title={`${formatoId} · ${formatoById(formatoId).title}`}
       detail={!doc ? detail : pdf ? `Terminado · PDF de la versión ${doc.version}` : `En captura · versión ${doc.version} · actualizado el ${shortDate(doc.updated_at)}${blocked ? ". Su PDF sigue bloqueado: descarga el Word." : ""}`}>
       <Button variant={pdf || !primary ? "secondary" : "primary"} disabled={lock} onClick={() => void startFormat(formatoId)}><PlayCircle size={16} aria-hidden="true" />{!doc ? "Iniciar" : pdf ? "Abrir" : "Continuar"}</Button>
+      {downloads(doc, pdf)}
+    </Step>;
+  }
+  /** Cada entregable se descarga en PDF (el archivado, si ya se generó) o en Word, como prefiera el asesor. */
+  function downloads(doc: Documento | undefined, pdf: Emision | undefined) {
+    return <>
       {pdf && <ButtonLink prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
       {doc && <Button variant="ghost" disabled={lock} onClick={() => void word(doc)}><FileText size={16} aria-hidden="true" />Word</Button>}
-    </Step>;
+    </>;
   }
   async function openAviso() { const doc = aviso ?? await create("01"); if (doc) onOpenDocument(doc.id); }
   async function startChecklist() {
@@ -150,11 +154,12 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
       <Step done={!!pdf02} icon={<ClipboardList size={18} aria-hidden="true" />} title="Entrevista inicial (02)"
         detail={!entrevista ? "Todavía no empieza." : pdf02 ? `Terminada · PDF de la versión ${entrevista.version}` : `En captura · versión ${entrevista.version} · actualizada el ${shortDate(entrevista.updated_at)}`}>
         <Button variant={pdf02 ? "secondary" : "primary"} disabled={lock} onClick={() => void startInterview()}><PlayCircle size={16} aria-hidden="true" />{!entrevista ? "Iniciar entrevista" : pdf02 ? "Abrir entrevista" : "Continuar entrevista"}</Button>
-        {pdf02 && <ButtonLink prefetch={false} href={`/api/admin/emisiones/${pdf02.id}/descargar`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
+        {downloads(entrevista, pdf02)}
       </Step>
       <Step done={!!aviso} icon={<ShieldCheck size={18} aria-hidden="true" />} title="Aviso de privacidad (01)"
         detail={aviso ? `Preparado · versión ${aviso.version}. Entrégalo y guarda la copia firmada en Documentos.` : "Se le entrega en la entrevista. En la sección «Datos de la entrevista» del 02 anota cuándo y por qué medio."}>
         <Button disabled={lock} onClick={() => void openAviso()}><FileText size={16} aria-hidden="true" />{aviso ? "Abrir aviso" : "Preparar aviso"}</Button>
+        {downloads(aviso, avisoPdf)}
       </Step>
       <Step done={false} icon={<ClipboardList size={18} aria-hidden="true" />} title="Checklist de documentos para el propietario"
         detail="Se arma con lo que contestó en la entrevista (estado civil, crédito, tipo de inmueble…). Entrégaselo para que reúna sus documentos.">
@@ -177,10 +182,11 @@ export function InitialInterviewCard({ op, phase, cliente, interview, documents,
       <Step done={!!pdf04} icon={<Home size={18} aria-hidden="true" />} title={levantamiento ? `${levantamiento.formato_id} · ${LEVANTAMIENTO_TITLES[levantamiento.formato_id as LevantamientoId] ?? "Levantamiento"}` : "Levantamiento"}
         detail={!levantamiento ? "Todavía no empieza." : pdf04 ? `Terminado · PDF de la versión ${levantamiento.version}` : `En captura · versión ${levantamiento.version} · actualizado el ${shortDate(levantamiento.updated_at)}. Superficies, niveles, recámaras, baños, estacionamientos, instalaciones, fotografías y croquis.`}>
         <Button variant={pdf04 ? "secondary" : "primary"} disabled={lock} onClick={() => void startSurvey()}><PlayCircle size={16} aria-hidden="true" />{pdf04 ? "Abrir levantamiento" : "Continuar levantamiento"}</Button>
-        {pdf04 && <ButtonLink prefetch={false} href={`/api/admin/emisiones/${pdf04.id}/descargar`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
+        {downloads(levantamiento, pdf04)}
       </Step>
       <Step done={!!pdf02} icon={<ClipboardList size={18} aria-hidden="true" />} title="Entrevista inicial (02)" detail={pdf02 ? "Terminada." : "Tiene cambios sin PDF: genera su PDF otra vez."}>
         {entrevista && <Button variant="ghost" disabled={lock} onClick={() => void startInterview()}>Abrir</Button>}
+        {downloads(entrevista, pdf02)}
       </Step>
     </ul>
     {pdf04 ? <NextBox title="Siguiente: checklist de documentos" text="Se crea la lista de documentos que le corresponde al propietario. Ahí marcas cada uno al recibirlo.">
