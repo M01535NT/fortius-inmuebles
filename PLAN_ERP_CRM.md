@@ -4,7 +4,7 @@
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
-**Cómo leer este plan:** primero «Dirección del producto y reglas vigentes» (qué se construye y con qué reglas); luego los paquetes listos para implementar, «Simplificación de la interfaz (SIM)», «Navegación y productividad (NAV)» y «Lenguaje visual (LV)»; después «Dónde nos quedamos» y «Qué sigue» (estado actual); el resto es alcance, backlog, tareas detalladas y el registro histórico de entregas. Si un registro histórico contradice una regla vigente, manda la regla vigente.
+**Cómo leer este plan:** primero «Dirección del producto y reglas vigentes» (qué se construye y con qué reglas); luego los paquetes listos para implementar, «Simplificación de la interfaz (SIM)», «Navegación y productividad (NAV)», «Lenguaje visual (LV)» y «Proceso, captura y documentos» (correcciones COR, captura CAP, ficha única FCH y motor de procesos MOT); después «Dónde nos quedamos» y «Qué sigue» (estado actual); el resto es alcance, backlog, tareas detalladas y el registro histórico de entregas. Si un registro histórico contradice una regla vigente, manda la regla vigente.
 
 ## Dirección del producto y reglas vigentes — 17/10/2026
 
@@ -134,6 +134,16 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 - **RP-73 · El movimiento confirma, no decora.** Animaciones de 300 ms o menos que confirman una acción o muestran un cambio; ninguna en bucle continuo; todas se apagan con «reducir movimiento». (LV-03)
 - **RP-74 · Escala tipográfica fija de cuatro tamaños:** título de página, título de sección, texto y nota. Ningún otro tamaño en el panel. (LV-01)
 
+**Q. Proceso, captura y documentos (aprobado el 17/10/2026)**
+
+- **RP-75 · Capturar una vez.** Los datos compartidos de una operación (personas, inmueble, datos legales y condiciones) viven en su ficha única; todos los documentos los leen de ahí. Nadie vuelve a escribir el mismo nombre, RFC, dirección o folio real en otro documento. (FCH-01, FCH-02)
+- **RP-76 · Un documento emitido es una foto fija.** Si la ficha cambia después de emitir un PDF, el documento avisa y ofrece una versión nueva; nunca se reescribe solo. Las revisiones que dependían de él se invalidan como ya pide DOC-01. (FCH-02)
+- **RP-77 · Descargar siempre, avisando lo que falta.** Todo documento se descarga en PDF o Word aunque falten datos: lo faltante sale como línea en blanco; si falta un dato crítico, se pide confirmación y queda registrado. Excepciones legales que no son por datos: el PDF del contrato 09 (DOC-09) y la promesa 15 cuando exige el modelo registrado. Un PDF emitido con datos críticos faltantes no cuenta para los candados de avance (FLUJO-04a) ni como respaldo de «Revisado». (FCH-04)
+- **RP-78 · Rápido con el cliente, completo en oficina.** Cada pregunta y cada campo se marca «en la llamada», «en la cita» u «en oficina»; frente al cliente solo aparece lo de ese momento, y lo ya dicho se confirma, no se vuelve a preguntar. (CAP-01, CAP-03)
+- **RP-79 · Cada operación sigue el proceso de su tipo.** Un proceso base por tipo de operación más módulos que se activan con las respuestas de la entrevista. Fortius los ajusta desde el propio sistema, sin programar; cada operación conserva la versión con la que empezó y el servidor valida con esa versión. Es RP-04 aplicado a Fortius. (MOT-01 a MOT-04)
+- **RP-80 · La opinión de valor se captura en el sistema.** El sistema es la fuente y el Excel es una salida. No se lee un Excel subido; si se ajusta en Excel, el archivo final se adjunta y el valor concluido se escribe una vez en la ficha. (FCH-11)
+- **RP-81 · Datos mínimos y confidenciales.** Se pregunta solo lo que el proceso de esa operación necesita; el precio mínimo del propietario solo lo ve quien tiene ese permiso (RP-05); enviar el aviso de privacidad no equivale a consentimiento. (CAP-02, CAP-03)
+
 ### Etapa posterior: adaptación para otras inmobiliarias (en pausa)
 
 No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no perder lo ya pensado. Las entregas correspondientes están en el backlog como «en pausa».
@@ -142,7 +152,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 
 - **RP-02 · Datos separados por empresa.** Cada registro, archivo, folio, respaldo, caché e índice pertenecería a una empresa, con servidor y RLS haciéndolo cumplir. (SAAS-01)
 - **RP-03 · Marca por empresa:** logo, colores, dominio y datos de documentos configurables, con Fortius como su propio tema. (SAAS-02)
-- **RP-04 · Flujo configurable a partir de la plantilla de Fortius,** versionado por operación y con requisitos protegidos. (SAAS-03)
+- **RP-04 · Flujo configurable a partir de la plantilla de Fortius,** versionado por operación y con requisitos protegidos. Para Fortius ya está activo como motor de procesos (RP-79, MOT-01 a MOT-04); en esta etapa solo quedaría adaptarlo por empresa. (SAAS-03)
 - **RP-07 · Alta guiada de una empresa nueva** con importación y revisión de duplicados. (SAAS-05)
 - **RP-08 · Planes y límites;** sin pago, solo lectura con exportación, nunca borrar datos. (SAAS-06)
 - **RP-46 · Piloto externo** con 2 o 3 inmobiliarias antes de vender. (PIL-02)
@@ -152,20 +162,21 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 
 ### Orden vigente
 
-1. **Terminar lo que está en curso:** los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, DOC-09) y comprobar la publicación del rediseño.
-2. **Simplificación de la interfaz** (SIM-01 a SIM-12, en ese orden) junto con **confianza y velocidad** (UX-04, UX-03, UX-02, UX-05) y la **navegación de pantalla** (NAV-01, NAV-02, NAV-03, NAV-05, NAV-07, NAV-13): no tocan el modelo de datos salvo las preferencias por usuario de UX-02, y pueden empezar ya. SIM-01 va primero, junto con LV-01, porque fija color, letra y fechas para todo lo demás; después LV-02 a LV-04.
-3. **Núcleo del equipo y disciplina comercial:** REL-01 y SEG-01 con los roles de Fortius, CRM-01, CRM-02, CRM-03, INV-01, DAT-02, VIS-01, OFE-01, EXT-01, y las listas inteligentes, planes de seguimiento y calificación (NAV-04, NAV-06, NAV-09).
-4. **Dinero, aprobaciones, reglas fiscales y tableros:** FIN-01/02/03, APR-01, FIS-01, TAB-01 a TAB-05.
-5. **Documentos avanzados, portal de clientes de Fortius e IA:** DOC-10 a DOC-13, la cola de revisión y el trabajo de campo (NAV-08, NAV-10), EXT-05, EXT-10, EXT-06 y EXT-11. Las entregas con migración o decisión pendiente (NAV-11, NAV-12) y NAV-14 (espera PWA-03) se programan cuando se autoricen.
-6. **Piloto con el equipo de Fortius, soporte y pruebas de uso** (PIL-01, SOP-01), y operación real durante un buen tiempo.
-7. **Etapa posterior** (en pausa): solo cuando el titular la abra.
+1. **Terminar lo que está en curso y corregir fallas:** las correcciones COR-01 y COR-02, los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, DOC-09) y comprobar la publicación del rediseño.
+2. **Simplificación de la interfaz** (SIM-01 a SIM-12, en ese orden) junto con **confianza y velocidad** (UX-04, UX-03, UX-02, UX-05) y la **navegación de pantalla** (NAV-01, NAV-02, NAV-03, NAV-05, NAV-07, NAV-13): no tocan el modelo de datos salvo las preferencias por usuario de UX-02, y pueden empezar ya. En este bloque entran también, porque no dependen de la ficha, la descarga con advertencia (FCH-04), el expediente en un archivo (FCH-06) y los datos de Fortius y el membrete (FCH-03). SIM-01 va primero, junto con LV-01, porque fija color, letra y fechas para todo lo demás; después LV-02 a LV-04.
+3. **Núcleo del equipo y disciplina comercial:** REL-01 y SEG-01 con los roles de Fortius, CRM-01, CRM-02, CRM-03, INV-01, DAT-02, VIS-01, OFE-01, EXT-01, y las listas inteligentes, planes de seguimiento y calificación (NAV-04, NAV-06, NAV-09), y la llamada, la entrevista y su cierre (CAP-01 a CAP-04).
+4. **Ficha única y motor de procesos:** FCH-01 (junto con REL-01), FCH-02, FCH-05, FCH-10, FCH-11 y después MOT-01 a MOT-04, en ese orden. Llevan migración y la autorización del titular.
+5. **Dinero, aprobaciones, reglas fiscales y tableros:** FIN-01/02/03, APR-01, FIS-01, TAB-01 a TAB-05.
+6. **Documentos avanzados, portal de clientes de Fortius e IA:** DOC-10 a DOC-13, FCH-07 a FCH-09, la cola de revisión y el trabajo de campo (NAV-08, NAV-10), EXT-05, EXT-10, EXT-06 y EXT-11. Las entregas con migración o decisión pendiente (NAV-11, NAV-12) y NAV-14 (espera PWA-03) se programan cuando se autoricen.
+7. **Piloto con el equipo de Fortius, soporte y pruebas de uso** (PIL-01, SOP-01), y operación real durante un buen tiempo.
+8. **Etapa posterior** (en pausa): solo cuando el titular la abra.
 
 ### Reglas reemplazadas
 
 | Fecha | Regla anterior (dónde estaba) | Regla vigente |
 |---|---|---|
 | 17/10/2026 | «Un sistema operativo dentro de `/admin`» («Qué vamos a construir»). | ERP/CRM profesional exclusivo de Fortius, con su marca (RP-01). |
-| 17/10/2026 | «La estructura de la guía (`flujo`) no cambia» y «sin migraciones ni endpoints nuevos» (encargo del rediseño, §2). | Esas reglas valían para la Fase C, ya terminada. El flujo sigue siendo el de Fortius y se cambia con desarrollo; las migraciones siguen requiriendo respaldo, ensayo y autorización. El flujo configurable queda en la etapa posterior (RP-04). |
+| 17/10/2026 | «La estructura de la guía (`flujo`) no cambia» y «sin migraciones ni endpoints nuevos» (encargo del rediseño, §2). | Esas reglas valían para la Fase C, ya terminada. Los procesos de Fortius se ajustarán desde el propio sistema con el motor de procesos (RP-79, MOT); las migraciones siguen requiriendo respaldo, ensayo y autorización. |
 | 17/10/2026 | Roles `admin` y `editor` como modelo de permisos (encargo y manual). | Roles del equipo de Fortius y permisos por acción (RP-05, DEC-03, SEG-01). |
 | 17/10/2026 | Orden de menú, vistas y preferencias guardados «por usuario en ese navegador» (`docs/admin-workspace.md`) y sincronización opcional (UX-02). | Preferencias y vistas en el servidor por usuario (RP-14). El navegador solo guarda comodidades del dispositivo. |
 | 17/10/2026 | «No convertir ponderaciones en probabilidades» (COM-01). | Las ponderaciones de la cartera comercial siguen sin presentarse como probabilidad. El pronóstico usa probabilidades por etapa definidas por Fortius y rotuladas «Estimación» (RP-30). |
@@ -187,6 +198,11 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | 17/10/2026 | «Hoy» como pantalla de inicio para todos los roles (encargo, decisiones por defecto). | Inicio por rol: Hoy para el asesor y el tablero para el director cuando exista; cada quien puede cambiarla (N11). |
 | 17/10/2026 | La lista de arranque «Preparar tu espacio» solo para el administrador, en Configuración (Fase C · 3). | Se conserva para el administrador y se agrega «Primeros pasos» del asesor en Hoy, unida al recorrido de SOP-01 (N24). |
 | 17/10/2026 | «Ver operaciones eliminadas» en el tablero y recuperaciones repartidas en Historial. | Una sola Papelera en Administración (N23); las reglas de cada restauración no cambian. |
+| 17/10/2026 | Flujo configurable en pausa para la etapa posterior (RP-04, SAAS-03); procesos escritos en el código. | Motor de procesos para Fortius: procesos base por tipo de operación y módulos activados por respuestas, editables desde el sistema (RP-79, MOT). SAAS-03 queda solo para adaptarlo por empresa. |
+| 17/10/2026 | El PDF se emite solo con la captura completa, salvo el 07 (regla del catálogo de formatos). | Descargar siempre con advertencia por dato crítico; 09 y 15 conservan su bloqueo legal; un PDF con críticos faltantes no cuenta para candados ni revisión (RP-77). |
+| 17/10/2026 | Cada documento guarda su copia de los datos y se llena solo al crearse. | Ficha única de la operación de la que leen todos los documentos (RP-75, RP-76). |
+| 17/10/2026 | Lista de documentos fija D01–D22, levantamientos 04A–04G y listas de intenciones y tipos escritos en el código. | Salen del motor de procesos según el tipo de operación y sus módulos (MOT-02). |
+| 17/10/2026 | Pantalla de prospecto del propietario sin fecha visible y sin envío del aviso (FLUJO-01). | Primer contacto con fecha editable, envío del aviso y cita en la misma pantalla (CAP-01, CAP-02). |
 | 17/10/2026 | Primera versión de esta sección: producto comercializable a otras inmobiliarias desde ahora, con multiempresa, marca por empresa, flujo configurable, planes y piloto externo; DEC-15 bloqueando REL-01 y SEG-01. | Segunda indicación del titular el mismo día: exclusivo de Fortius y solo con su marca. Lo de otras inmobiliarias pasa a «Etapa posterior (en pausa)»; DEC-15 ya no bloquea nada; las reglas fiscales por lugar se quedan para Fortius (FIS-01). |
 
 ## Simplificación de la interfaz (SIM) — paquete listo para implementar, 17/10/2026
@@ -392,6 +408,108 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | LV-02 | V01, V03, V04, V05, V09 | LV-01, SIM-05 | Catálogo único de íconos usado en todas las pantallas; cada estado con forma, color y palabra; anillo de avance con texto; insignias de documento; avatar neutro del asesor. |
 | LV-03 | V06 | LV-02, UX-04 | Animaciones de confirmación de 300 ms o menos, sin bucles; con «reducir movimiento» no hay transiciones; los mensajes de guardado siguen apareciendo. |
 | LV-04 | V07, V08 | LV-01, SIM-12, SOP-01 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
+
+## Proceso, captura y documentos — paquete listo para implementar, 17/10/2026
+
+**Origen:** el titular describió su proceso real (llamada → cita → entrevista → lista de documentos → levantamiento → recepción de documentos → dictamen → opinión de valor → contrato) y pidió capturar una vez, descargar aunque falten datos y procesos distintos por tipo de operación. El agente revisó el código y propuso este paquete; el titular lo aprobó completo el 17/10/2026. **Estado: pendiente; no hay código escrito.**
+
+**Lo que ya existe y se conserva:** la lista de documentos se arma con las respuestas del 02 y sale en PDF o Word; el levantamiento lleva fotos y croquis en PDF o Word; el 07 se captura en el panel y se exporta a Excel; el 05 toma la lista de documentos y el 08 el valor del 07; el Word nunca se bloquea por datos faltantes.
+
+**Lo que se encontró en el código (17/10/2026):** no existe una ficha única; cada borrador guarda su copia y se llena solo al crearse (`src/app/api/admin/expedientes/[id]/formatos/route.ts:40-55`, `src/lib/formatos/intake-prefill.ts`). El PDF se bloquea si falta un dato en 01, 02, 04, 05, 06, 08 y 10–19 (`src/app/api/admin/formatos/[id]/emitir/route.ts:27-44`, `src/lib/formatos/catalog.ts:500-582`); solo el 07 admite PDF incompleto. No hay envío del aviso ni de la lista de documentos, ni expediente en un solo archivo, ni membrete o plantillas cargables desde el panel.
+
+**Cómo trabajarlo:** igual que SIM, NAV y LV (capturas antes y después con datos simulados, pruebas afectadas, registro aquí). FCH-01 y MOT-01 llevan migración: respaldo, ensayo aislado de restauración y autorización del titular antes de aplicarse, como cualquier cambio de base. Las listas exactas de requisitos y documentos por módulo las valida el titular; el agente no las inventa.
+
+### Correcciones inmediatas (fallas encontradas)
+
+| ID | Falla | Corrección | Aceptación |
+|---|---|---|---|
+| COR-01 | El nombre del propietario casi nunca llega al 07, 08 y 10: el llenado automático solo copia `propietario` si la relación es propietario o copropietario (`src/lib/formatos/intake-prefill.ts:21`) y el registro del prospecto la guarda como «por_aclarar» (`src/lib/intake/wizard.ts:48`). | Preguntar la relación con el inmueble en la cita (CAP-03) y, mientras tanto, copiar el nombre como propietario cuando la intención es vender u ofrecer en renta y la relación no se ha aclarado, marcado «por confirmar». | Prueba: un prospecto propietario nuevo llega con su nombre al 07, 08 y 10. |
+| COR-02 | El tipo de inmueble se pierde al pasar al 07: la entrevista guarda «casa» y el 07 espera «Casa» (`src/lib/formatos/valor-fields.ts:17`). | Comparar sin distinguir mayúsculas al llenar, o unificar los valores. | Prueba: cada tipo de la entrevista llega al 07. |
+
+### A. Llamada, entrevista y cierre (CAP)
+
+| # | Mejora | Cómo convive con el plan |
+|---|---|---|
+| F01 | **Primer contacto en una pantalla con botones:** nombre y teléfono escritos; qué quiere (vender, rentar su inmueble, busca comprar, busca rentar, aportar terreno, coinversión); tipo (casa, departamento, terreno, local, oficina, nave, bodega, edificio); zona; medio (llamada, WhatsApp, Facebook, referido). | Sustituye la pantalla de prospecto de FLUJO-01 conservando su lógica (borrador en Hoy, operación creada al terminar la entrevista). Las listas de qué quiere y tipos salen del motor de procesos (MOT-02); mientras no exista, quedan en código con los valores nuevos. |
+| F02 | **Fecha y hora del contacto** con «ahora» puesto y editable. | Hoy se guarda la fecha de hoy sin mostrarla (`interview-step.tsx:26`). Alimenta «Primera atención» del diccionario. |
+| F03 | **Enviar el aviso de privacidad con un toque** (WhatsApp o correo con texto corto y liga a la página de privacidad); queda «aviso enviado». | Plantilla de mensaje de RP-22 (CRM-02): se registra cuando el asesor confirma. «Aviso enviado» no es consentimiento (RP-81). El formato 01 personalizado se sigue preparando en la entrevista. |
+| F04 | **Agendar la entrevista en la misma pantalla** y enviar la confirmación de la cita junto con el aviso en un solo mensaje. | Crea la cita con el panel de agendar (C25) y la tarea «Terminar la entrevista» de hoy, como ahora. |
+| F06 | **Preguntas marcadas «en la llamada», «en la cita» u «en oficina».** | Es RP-78. El servidor exige para «Terminar entrevista» solo las obligatorias de la cita; las de oficina pasan a requisitos de la etapa siguiente. |
+| F07 | **No volver a preguntar lo de la llamada:** aparece ya puesto para confirmar. | Usa la ficha (FCH-01) cuando exista; antes, las respuestas del borrador. |
+| — | **Preguntas ampliadas de la entrevista** (ver la lista abajo). | Cada respuesta puede activar un módulo del proceso (MOT-02). Lo confidencial sigue RP-81. |
+| F08 | **Cierre de la entrevista con tres acciones:** descargar la entrevista (PDF o Word), enviar la lista de documentos (WhatsApp o correo, con el correo o WhatsApp de recepción de Fortius) y agendar el levantamiento. | Envío por plantilla (RP-22). La lista sigue guardándose como tarea con un paso por documento (FLUJO-02). |
+| F09 | **Modo cita:** botones y letra grandes, sin menú lateral, para celular o tableta frente al cliente. | Reutiliza el marco de pantalla completa del asistente de Nueva operación; compatible con la letra Grande (N09). |
+
+**Preguntas de la entrevista con el propietario** (contenido base; el titular lo valida):
+
+| Momento | Preguntas |
+|---|---|
+| Llamada | Nombre, teléfono, qué quiere, tipo de inmueble, zona, medio, fecha y hora. |
+| Cita | Relación con el inmueble (único dueño, copropietario, heredero, apoderado) · cuántos dueños y si alguno falleció o vive fuera · estado civil y régimen · si tiene la escritura · si está a su nombre o en fideicomiso · hipoteca o crédito vigente, con quién y saldo aproximado · ejido o regularización · condominio · adeudos de predial, agua o cuotas · ocupación (lo habita, rentado con contrato hasta cuándo, desocupado) · ampliaciones sin permiso · motivo, plazo y urgencia · precio que espera y precio mínimo (confidencial) · formas de pago que acepta (contado, Infonavit, Fovissste, crédito bancario) · si otra inmobiliaria lo trabaja, si se publicó antes y a qué precio, si daría exclusiva · quién enseña, llaves y horarios · si es su casa habitación, año y precio aproximado de compra · si deja muebles y cuándo podría entregar. |
+| Oficina (de documentos) | RFC, CURP, domicilio fiscal · escritura, notario y fecha · folio real, partida y clave catastral · superficies según escritura · gravámenes según certificado de libertad · valor catastral. |
+| Comprador, en corto | Presupuesto · forma de pago y precalificación (Infonavit o banco, monto) · zona · indispensables · plazo · quién decide · si necesita vender otro inmueble. |
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| CAP-01 | F01, F02, F04 | SIM-01, COR-01 | Primer contacto completo en menos de un minuto en celular (prueba de uso, RP-47); fecha editable; cita creada sin salir de la pantalla. |
+| CAP-02 | F03 | CRM-02 | Aviso enviado por WhatsApp o correo con liga; registro al confirmar; sin lenguaje de consentimiento. |
+| CAP-03 | F06, F07 y preguntas ampliadas | COR-01 | Preguntas por momento; lo ya respondido se confirma; el servidor exige solo lo obligatorio de la cita; precio mínimo restringido por permiso. |
+| CAP-04 | F08, F09 | CAP-03, CRM-02 | Cierre con descarga, envío de la lista y agenda del levantamiento; modo cita usable a 390 px con objetivos táctiles grandes. |
+
+### B. Ficha única y documentos (FCH)
+
+| # | Mejora | Cómo convive con el plan |
+|---|---|---|
+| F10 | **Ficha única de la operación** con cuatro bloques: Personas (propietario, cónyuge, representante), Inmueble (dirección, superficies, características, uso de suelo), Datos legales (escritura, notario, folio real, partida, clave catastral) y Condiciones (precio, honorarios, plazo). | Es RP-75. Se diseña junto con REL-01 (las personas se vinculan, no se copian) y es la base de CRM-03 y del motor (los campos por tipo de inmueble los agrega MOT-02). Con migración. |
+| F11 | **Corregir un dato dentro de un documento** pregunta si se actualiza en la ficha y en qué documentos se usa. | Con control de versión y conflicto explicado (RP-17). |
+| F12 | **Cada dato muestra su origen y estado** (confirmado, por confirmar, falta) con un ícono. | Íconos y formas de LV-02; sin texto extra. |
+| F13 | **El PDF emitido no cambia solo;** si la ficha cambió, aviso y «Generar versión nueva». | Es RP-76; respeta la huella del PDF emitido y la invalidación de revisiones de DOC-01. |
+| F14 | **Datos de Fortius una sola vez** en Configuración (razón social, RFC, domicilio, representante). | Llenan el 01, el 09 y los demás documentos; hoy se teclean en cada uno. |
+| F15 | **Captura en oficina al lado del documento:** la escritura a un lado y «Datos legales» de la ficha al otro. | Vista lado a lado de DOC-10. La propuesta automática de datos llega con EXT-11, siempre con confirmación (RP-44). |
+| F16 | **Descargar siempre, con advertencia si falta un dato crítico** («Completar» o «Descargar de todos modos»). | Es RP-77. Deja intactos los bloqueos legales de 09 y 15 y no relaja candados ni revisiones. |
+| F17 | **Fortius define qué datos son críticos** en cada documento. | En Configuración; por omisión, los que hoy son obligatorios. |
+| F18 | **Expediente del propietario en un solo archivo:** portada, índice y los PDF emitidos en orden; también ZIP. | Usa `pdf-lib`, ya instalado; solo documentos de esa operación y con permiso; la descarga queda en el historial. |
+| F19 | **Recibir el archivo en cada documento de la lista** (no solo la palomita). | Usa la carga de DOC-11; el propietario puede subirlo con la liga de DOC-12. Recibido es «Lo tengo», nunca revisado. |
+| F20 | **Dictamen con biblioteca de párrafos** y resultado: Vendible, Vendible con condiciones o No vendible. | Completa DOC-06. El abogado elige y redacta; el sistema no dictamina (LEG-01, R-03). «No vendible» ofrece pausar o descartar con motivo. |
+| F21 | **Copia firmada como último paso** de cada documento. | Ya existe la carga de copia firmada; se presenta como paso final con la insignia «Firmado» (V05). |
+| F22 | **Membrete propio** (logo, pie, colores) cargable en Configuración. | Solo marca Fortius (RP-01); los colores del membrete no cambian la paleta del panel (RP-70). |
+| F23 | **Plantillas Word propias con campos** (por ejemplo `{{propietario.nombre}}`) llenadas desde la ficha. | Después de FCH-01. Campos simples con `jszip`, ya instalado. Una plantilla propia del contrato puede ser la vía para liberar DOC-09 si el titular confirma que es el modelo registrado. |
+| — | **Opinión de valor:** captura en el sistema, Excel como salida, archivo final adjunto y valor concluido en la ficha. | Es RP-80. Siguen pendientes el diseño del PDF del 07 y las fotos del Excel («Qué sigue»). |
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| FCH-01 | F10, F12 | REL-01 (diseño conjunto); migración autorizada | Ficha con cuatro bloques por operación; operaciones existentes migradas sin perder datos; origen y estado por dato; respaldo y restauración ensayados. |
+| FCH-02 | F11, F13 | FCH-01, DOC-01 | Los documentos leen de la ficha; corregir en un documento actualiza la ficha con confirmación; PDF emitido fijo con aviso de versión nueva. |
+| FCH-03 | F14, F22 | — | Datos de Fortius y membrete en Configuración; todos los documentos los usan. |
+| FCH-04 | F16, F17 | — | PDF descargable con faltantes; confirmación por dato crítico; registro en historial; 09 y 15 conservan su bloqueo legal; candados y «Revisado» no aceptan PDF con críticos faltantes. |
+| FCH-05 | F15 | FCH-01, DOC-10 | Documento y «Datos legales» lado a lado; guardar actualiza la ficha. |
+| FCH-06 | F18 | — | Un PDF con portada, índice y emisiones en orden, y ZIP; solo con permiso. |
+| FCH-07 | F19 | DOC-11, DOC-12 | Archivo por documento de la lista; el cliente puede subirlo con liga; queda «Lo tengo». |
+| FCH-08 | F20 | DOC-06 | Biblioteca de párrafos editable; resultado explícito; PDF y Word. |
+| FCH-09 | F21 | LV-02 | Copia firmada como paso final con insignia «Firmado». |
+| FCH-10 | F23 | FCH-01 | Plantilla Word subida con campos que se llenan desde la ficha; campos desconocidos se avisan. |
+| FCH-11 | Opinión de valor | FCH-01 | Excel final como adjunto; valor concluido en la ficha; 08 y contrato lo toman de ahí. |
+
+### C. Motor de procesos por tipo de operación (MOT)
+
+**Por qué:** no es lo mismo vender una casa que un terreno; vender con Infonavit que con crédito bancario o Fovissste; un local vacío que uno con inquilinos; una bodega para flipping que una ya rehabilitada; una nave que un parque industrial; un terreno en breña para lotificar que uno con memorias descriptivas. El titular quiere los procesos más comunes de fábrica y poder adaptarlos desde el sistema, sin pedir cambios de código. **Sustituye a F24 y F25** de la ronda de ideas.
+
+**Diseño:** un proceso base por tipo de operación más módulos que se agregan solos según las respuestas de la entrevista. Así no se multiplican procesos casi iguales por cada combinación.
+
+- **Procesos base de fábrica:** venta habitacional; venta de terreno; venta comercial (local u oficina); venta industrial (bodega o nave); renta habitacional; renta comercial o industrial; compra (representar al comprador); inversión o flipping; aportación de terreno o coinversión.
+- **Módulos (se activan con una respuesta):** crédito Infonavit; crédito Fovissste; crédito bancario; hipoteca vigente por liberar; inmueble rentado (contratos, rentas, aviso y derechos del inquilino si aplican); condominio; parque industrial; copropiedad o herencia; régimen conyugal con firma del cónyuge; apoderado; propietario extranjero o fideicomiso; ejido; ampliaciones sin registrar; terreno en breña para lotificar (uso de suelo, factibilidades, topografía, deslinde; reducido si ya hay memorias descriptivas); inmueble para rehabilitar (enlaza la herramienta Rehabilitación).
+- **El motor define:** etapas y pasos; requisitos y si bloquean el avance; el documento de cada paso; las preguntas de la entrevista; la lista de documentos por pedir (hoy fija D01–D22); los campos del levantamiento y de la ficha por tipo (hoy 04A–04G en código); y las listas de «qué quiere» y tipos de inmueble (F05).
+- **Editor (Administración → Procesos):** lista de etapas y pasos con nombre, una línea de «para qué», documento, requisitos, preguntas, ícono (catálogo de RP-71) y si bloquea; duplicar un proceso para crear una variante; módulos con «cuándo se activa» y «qué agrega»; **Probar** con respuestas de ejemplo sin tocar operaciones reales; **Publicar** crea una versión nueva; ordenar con botones Subir/Bajar accesibles (RP-63).
+- **Protecciones:** los requisitos de protección (quién es dueño y quién firma, firma ante notario, pago completo antes de entregar) solo se quitan con motivo registrado por un administrador; cada operación conserva su versión y el servidor (y PostgreSQL, como hoy) valida con ella; pasar una operación a una versión nueva es manual y muestra qué cambia.
+
+**Cómo convive:** activa RP-04 para Fortius (RP-79); SAAS-03 sigue en pausa solo para adaptarlo por empresa. La presentación en 6 etapas de C12 se conserva: cada proceso define sus etapas y pasos. La ficha (FCH-01) es la base: MOT-02 le agrega los campos por tipo. Los candados actuales (FLUJO-04a, GUIA-01) se reproducen exactamente en la versión 1. R-10 aplica desde ahora a Fortius.
+
+| ID | Alcance | Depende de | Aceptación |
+|---|---|---|---|
+| MOT-01 | Fase 1: los procesos actuales pasan a datos (venta del propietario = «Venta habitacional, versión 1»; compra, renta e inversión igual), sin cambio visible. | FCH-01; migración autorizada | Las pruebas existentes de avance, candados y publicación pasan igual; las operaciones actuales conservan etapa y requisitos; respaldo y restauración ensayados. |
+| MOT-02 | Fase 2: módulos activados por respuestas; entrevista, lista de documentos, campos de levantamiento y ficha, y listas de intenciones y tipos salen del motor. | MOT-01, CAP-03 | Una respuesta agrega su módulo; la lista de documentos y las preguntas cambian según el proceso; los D01–D22 actuales siguen disponibles. |
+| MOT-03 | Fase 3: editor con duplicar, módulos, Probar, Publicar y versiones. | MOT-02, SEG-01 | Solo el administrador edita; Probar no escribe en operaciones; una operación en curso no cambia al publicar; requisitos protegidos con motivo. |
+| MOT-04 | Fase 4: procesos base y módulos de fábrica con el contenido validado por el titular. | MOT-03, revisión del titular (y jurídica cuando aplique) | Los nueve procesos base y los módulos listados existen y pasan una operación sintética de punta a punta cada uno. |
 
 ## Rediseño guiado del panel (Fase C) — encargo y avance
 
@@ -802,7 +920,7 @@ Referencia de alcance: funciones de la imagen «Foto 1.jpg», incorporadas el 12
 | Información geográfica | Mapas interactivos del inventario y comparables, análisis de zonas, rutas de visitas y visualizaciones geoespaciales con fuente y fecha. | TEC-01, VIS-01 y EXT-09. |
 | Documentos y revisión jurídica | Generación de contratos y formularios PDF desde modelos revisados, expedientes digitales, revisión asistida de cláusulas y búsquedas documentales con RAG: respuestas que remitan al documento, versión y página utilizados. | DOC-01, LEG-01 y EXT-06. |
 | Etapa posterior, en pausa (17/10/2026) | Adaptación para otras inmobiliarias: datos separados por empresa, marca por empresa, flujo configurable, alta guiada, planes y piloto externo. | SAAS-01 a SAAS-03, SAAS-05, SAAS-06 y PIL-02. |
-| Trabajo diario profesional (17/10/2026) | Barra de comandos, atajos, acciones masivas, interfaz simplificada (32 correcciones), barra contraíble, fijados, vista previa lateral, listas inteligentes, planes de seguimiento, lenguaje visual con íconos, colores y formas de estado, confianza al guardar, bandeja «Para ti», disciplina comercial, fichas 360°, aprobaciones, reglas fiscales con vigencia, metas, soporte e IA con revisión humana. | SIM-01 a SIM-12, NAV-01 a NAV-14, LV-01 a LV-04, UX-02 a UX-05, CRM-02, CRM-03, INV-01, DAT-02, DOC-10 a DOC-13, FIN-03, APR-01, FIS-01, TAB-05, SOP-01, EXT-01 y EXT-11. |
+| Trabajo diario profesional (17/10/2026) | Barra de comandos, atajos, acciones masivas, interfaz simplificada (32 correcciones), barra contraíble, fijados, vista previa lateral, listas inteligentes, planes de seguimiento, lenguaje visual con íconos, colores y formas de estado, captura rápida, ficha única de la operación, descarga con advertencia, expediente en un archivo, motor de procesos por tipo de operación, confianza al guardar, bandeja «Para ti», disciplina comercial, fichas 360°, aprobaciones, reglas fiscales con vigencia, metas, soporte e IA con revisión humana. | SIM-01 a SIM-12, NAV-01 a NAV-14, LV-01 a LV-04, COR-01/02, CAP-01 a CAP-04, FCH-01 a FCH-11, MOT-01 a MOT-04, UX-02 a UX-05, CRM-02, CRM-03, INV-01, DAT-02, DOC-10 a DOC-13, FIN-03, APR-01, FIS-01, TAB-05, SOP-01, EXT-01 y EXT-11. |
 
 La primera entrega sigue siendo captación y próxima acción dentro del panel. Después se amplían documentos, finanzas y tableros; el análisis de inversión, los mapas, el portal de clientes y la IA se entregan por módulos con sus pruebas. Estas cuatro capacidades forman parte del producto ampliado solicitado y siguen pendientes. El núcleo inicial puede aceptarse por separado; su aceptación no acredita que el producto ampliado esté completo.
 
@@ -1098,6 +1216,10 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | DOC-01 P1/I | Unificar fuente documental/revisión/emisión/copia firmada | formatos catalog/server/API, assets, snapshots | OPS-01, SEG-01; 3–6d | Hash/versión verificables; cambio invalida revisión afectada; firma capturada no equivale a firma electrónica. |
 | LEG-01 P1/I | Requisitos, hallazgos, excepciones y conclusión profesional por etapa | juridica, formato 05/06, transitions propuesto | DOC-01, DEC-05, revisión jurídica; 3–5d | Recibido/revisado separados; no avanzar por casilla vacía; excepción tiene autor, fundamento y fecha. Modelo 09 sigue bloqueado hasta cotejo externo requerido. |
 | TEC-01 P1/I | Levantamientos y discrepancias con fuente/fecha/evidencia | levantamiento y variantes 04, assets, property facts | DOC-01; 3–5d | Superficies no se mezclan ni suman indebidamente; medición, declaración y dato documental diferenciados; foto vinculada. |
+| COR-01, COR-02 P0/I | Fallas: el nombre del propietario y el tipo de inmueble no llegan al 07 (y el nombre al 08 y 10) | ver «Proceso, captura y documentos» | ninguna; menos de 1d | Pruebas de llenado automático para cada caso. |
+| CAP-01 a CAP-04 P1/I | Llamada en menos de un minuto, aviso y cita, entrevista por momentos con preguntas ampliadas, cierre y modo cita (F01–F09) | ver «Proceso, captura y documentos» | dependencias en su tabla; 1–3d por entrega | Aceptación en su tabla. |
+| FCH-01 a FCH-11 P1/I | Ficha única, documentos que leen de ella, descarga con advertencia, expediente en un archivo, membrete, plantillas propias, dictamen con párrafos (F10–F23) | ver «Proceso, captura y documentos» | FCH-01 con REL-01 y migración; 1–5d por entrega | Aceptación en su tabla. |
+| MOT-01 a MOT-04 P1/I | Motor de procesos por tipo de operación con módulos y editor | ver «Proceso, captura y documentos» | FCH-01; migración; por estimar tras MOT-01 | Aceptación en su tabla; la versión 1 reproduce exactamente los candados actuales. |
 | CIE-01 P1/I | Condiciones, formalización, entrega, pendientes y archivo | formatos 15/16/17, operación, transiciones | OFE-01/LEG-01/TEC-01; 3–5d | Cierre comercial/documental/cobro distintos; entrega con evidencia; poscierre pendiente no desaparece por cerrar. |
 | DOC-10 P1/C | Revisión lado a lado (RP-35) | operación guiada, visor de PDF e imagen, panel «Marcar como revisado» | DOC-01; 2–4d | En computadora se ve el documento y se captura la revisión sin cambiar de pantalla; en celular se alterna sin perder la captura. |
 | DOC-11 P1/C | Carga de varios archivos con requisito propuesto (RP-36) | carga de archivos, requisitos de la operación | DOC-01; 2–3d | Se arrastran varios archivos; se propone el requisito por tipo y nombre y la persona confirma; ningún archivo queda revisado por cargarse. La propuesta por contenido llega con EXT-11. |
@@ -1154,7 +1276,7 @@ No se trabaja en estas entregas hasta que el titular abra la etapa posterior (DE
 
 ## Estado y dependencias de cada entrega
 
-Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM, las 14 del paquete NAV y las 4 del paquete LV, para un total de 98. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
+Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM, las 14 del paquete NAV las 4 del paquete LV y las 21 de «Proceso, captura y documentos» (COR, CAP, FCH y MOT), para un total de 119. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
 
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
@@ -1245,6 +1367,27 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | LV-02 | 4 | pendiente | LV-01, SIM-05 |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
 | LV-04 | 4 | pendiente | LV-01, SIM-12, SOP-01 |
+| COR-01 | 2 | pendiente | ninguna |
+| COR-02 | 2 | pendiente | ninguna |
+| CAP-01 | 1 | pendiente | SIM-01, COR-01 |
+| CAP-02 | 1 | pendiente | CRM-02 |
+| CAP-03 | 1 | pendiente | COR-01 |
+| CAP-04 | 1 | pendiente | CAP-03, CRM-02 |
+| FCH-01 | 2 | pendiente | REL-01 (diseño conjunto), migración autorizada |
+| FCH-02 | 2 | pendiente | FCH-01, DOC-01 |
+| FCH-03 | 2 | pendiente | ninguna |
+| FCH-04 | 2 | pendiente | ninguna |
+| FCH-05 | 2 | pendiente | FCH-01, DOC-10 |
+| FCH-06 | 2 | pendiente | ninguna |
+| FCH-07 | 2 | pendiente | DOC-11, DOC-12 |
+| FCH-08 | 2 | pendiente | DOC-06 |
+| FCH-09 | 2 | pendiente | LV-02 |
+| FCH-10 | 2 | pendiente | FCH-01 |
+| FCH-11 | 2 | pendiente | FCH-01 |
+| MOT-01 | 2 | pendiente | FCH-01, migración autorizada |
+| MOT-02 | 2 | pendiente | MOT-01, CAP-03 |
+| MOT-03 | 2 | pendiente | MOT-02, SEG-01 |
+| MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
 | UX-03 | 4 | pendiente | UX-01 |
 | UX-04 | 4 | pendiente | UX-01 |
 | UX-05 | 4 | pendiente | UX-04, SEG-01 |
@@ -1306,7 +1449,7 @@ Comandos existentes útiles: `npm run lint`, `npm run typecheck`, `npm run test:
 | R-07 | Riesgo: comparables desactualizados, ubicación imprecisa o ruta sin cobertura | EXT-09; procedencia/fecha/precisión, permisos, tratamiento de faltantes y alternativa en lista. |
 | R-08 | Riesgo: acceso de clientes o IA a expedientes ajenos | EXT-10/EXT-06; autorizaciones efectivas, proyecciones mínimas, revocación e índices privados probados entre dos identidades. |
 | R-09 | Riesgo (etapa posterior): una empresa ve datos de otra | SAAS-01; pruebas entre dos empresas sintéticas en API, SQL directo, archivos, búsqueda, exportación, cachés e índices de IA antes de cualquier piloto externo. |
-| R-10 | Riesgo (etapa posterior): un flujo configurado por una empresa deja de proteger la operación | SAAS-03; requisitos protegidos, versiones por operación y validación en servidor; desactivar uno exige administrador y motivo. |
+| R-10 | Riesgo: un proceso configurado deja de proteger la operación (aplica ya a Fortius por el motor de procesos y, en la etapa posterior, a cada empresa) | MOT-03 y SAAS-03; requisitos protegidos, versiones por operación y validación en servidor; desactivar uno exige administrador y motivo. |
 | R-11 | Riesgo: prometer una protección legal inexistente (por ejemplo, «patentado») | DEC-16; abogado de propiedad intelectual; ningún texto comercial la afirma sin título otorgado. |
 | S-01 | Supuesto: equipo inicial de una persona de ingeniería | Reestimar tras iteración 1; asignar por entrega, no prometer fechas calendario. |
 | S-02 | Supuesto: sin reescritura completa ni proveedores nuevos en núcleo | Revisar si evidencia técnica demuestra necesidad. |
