@@ -1,52 +1,46 @@
-import type { Property } from "@/data/propiedades";
+"use client";
+
+import * as React from "react";
+import { CATEGORIA_PUNTO_LABELS, type CategoriaPunto, type Property } from "@/data/propiedades";
 
 /*
-  Ubicación: mapa siempre visible (embed de Google Maps por zona; se afina a
-  la dirección exacta cuando el cliente la cargue) + puntos de interés
-  cercanos con tiempos aproximados.
+  Ubicación y zona (ficha «Escenario»): embed de Google Maps por zona en un
+  marco propio, sin API ni ubicación exacta, y lugares cercanos con tiempos
+  aproximados en auto, filtrables por categoría cuando el panel las define.
 */
 export function PropertyLocation({ property }: { property: Property }) {
   const query = encodeURIComponent(`${property.zona}, Tijuana, Baja California, México`);
+  const lugares = property.puntosDeInteres;
+  const categorias = Array.from(new Set(lugares.map(lugar => lugar.categoria).filter((c): c is CategoriaPunto => Boolean(c))));
+  const [filtro, setFiltro] = React.useState<CategoriaPunto | "todos">("todos");
+  const visibles = filtro === "todos" ? lugares : lugares.filter(lugar => lugar.categoria === filtro);
 
   return (
-    <div className="mt-12">
-      <h2 className="display-soft text-2xl text-foreground">Ubicación y zona</h2>
-      <p className="mt-3 max-w-[62ch] text-base leading-relaxed text-muted-foreground">
-        El mapa muestra la zona de la propiedad. La ubicación exacta se
-        comparte al agendar tu visita.
-      </p>
-
-      <div className="mt-5 overflow-hidden rounded-lg border border-border">
-        <iframe
-          src={`https://www.google.com/maps?q=${query}&z=14&output=embed`}
-          title={`Mapa de ${property.zona}`}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          className="h-[300px] w-full md:h-[340px]"
-        />
-      </div>
-
-      {property.puntosDeInteres.length > 0 ? (
-        <div className="mt-6 max-w-[560px]">
-          <p className="text-base font-medium text-foreground">A pocos minutos</p>
-          <dl className="mt-2">
-            {property.puntosDeInteres.map((poi) => (
-              <div
-                key={poi.lugar}
-                className="flex items-baseline justify-between gap-6 border-b border-border py-3"
-              >
-                <dt className="text-sm text-muted-foreground">{poi.lugar}</dt>
-                <dd className="font-mono text-sm text-foreground">
-                  {String(poi.minutos).padStart(2, "0")} min
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Tiempos aproximados en auto, según tráfico.
-          </p>
+    <div className="fe-location">
+      {categorias.length > 1 && (
+        <div className="fe-filter" role="group" aria-label="Filtrar lugares cercanos">
+          <button type="button" aria-pressed={filtro === "todos"} onClick={() => setFiltro("todos")}>Todos</button>
+          {categorias.map(categoria => <button key={categoria} type="button" aria-pressed={filtro === categoria} onClick={() => setFiltro(categoria)}>{CATEGORIA_PUNTO_LABELS[categoria]}</button>)}
         </div>
-      ) : null}
+      )}
+      <div className={"fe-location-grid" + (lugares.length ? "" : " is-map-only")}>
+        <figure className="fe-map">
+          <iframe src={`https://www.google.com/maps?q=${query}&z=14&output=embed`} title={`Mapa de ${property.zona}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+          <figcaption>Zona aproximada · la ubicación exacta se comparte al agendar la visita</figcaption>
+        </figure>
+        {lugares.length > 0 && (
+          <ol className="fe-places" aria-label="Lugares cercanos">
+            {visibles.map((lugar, index) => (
+              <li key={lugar.lugar} className="fe-card">
+                <span className="fe-place-number" aria-hidden="true">{index + 1}</span>
+                <span className="fe-place-name"><strong>{lugar.lugar}</strong>{lugar.categoria ? <span>{CATEGORIA_PUNTO_LABELS[lugar.categoria]}</span> : null}</span>
+                <span className="fe-place-time">{lugar.minutos} min</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+      {lugares.length > 0 && <p className="fe-note">Tiempos aproximados en auto; varían según la hora y el tráfico.</p>}
     </div>
   );
 }
