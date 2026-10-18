@@ -93,6 +93,7 @@ export const Trash2 = adapt(I.Trash, "Trash");
 export const TrendingUp = adapt(I.GraphUp, "GraphUp");
 export const UserRound = adapt(I.User, "User");
 export const UserRoundCheck = adapt(I.UserBadgeCheck, "UserBadgeCheck");
+export const UserPlus = adapt(I.UserPlus, "UserPlus");
 export const Wallet = adapt(I.Wallet, "Wallet");
 export const X = adapt(I.Xmark, "Xmark");
 export const Film = adapt(I.MediaVideo, "MediaVideo");

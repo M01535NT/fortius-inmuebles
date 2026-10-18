@@ -2,8 +2,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, Plus, Search, X } from "@/components/admin/icons";
+import { ChevronRight, Plus, Search, UserPlus, X } from "@/components/admin/icons";
 import { Avatar, Button, Card, EmptyBox, Pill, TabPanel, Tabs } from "@/components/admin/kit";
+import f from "@/components/admin/form.module.css";
 import { AsyncForm, inputClass, selectClass } from "@/components/admin/ui";
 import { LeadFields, readLeadFields } from "@/components/admin/lead-fields";
 import { ClienteEditor } from "@/components/admin/cliente-editor";
@@ -87,14 +88,23 @@ export function ContactsScreen() {
   </>}>
     {searching && <div className="mb-4 lg:hidden">{searchField}</div>}
     {/* La captura del prospecto solo se oculta al cerrarla, para no perder lo escrito. */}
-    {tab === "prospectos" && <div hidden={!adding}><Card as="div" className="mb-5 p-4 sm:p-6">
+    {tab === "prospectos" && <div hidden={!adding} className="mb-5"><section className={f.window} aria-label="Nuevo prospecto">
+      <div className={f.windowHead}>
+        <div className={f.windowTitle}><span className={f.windowIcon}><UserPlus size={22} aria-hidden="true" /></span><div><h2>Nuevo prospecto</h2><p>Al guardarlo se abre su ficha para seguirlo.</p></div></div>
+        <Button variant="ghost" iconOnly aria-label="Cerrar captura" onClick={() => setAdding(false)}><X size={20} aria-hidden="true" /></Button>
+      </div>
       <AsyncForm onSubmit={captureLead} className="flex min-w-0 flex-col gap-4" aria-label="Nuevo prospecto">
-        <h2 className="m-0 text-lg">Nuevo prospecto</h2>
         <LeadFields nombreRef={nameInput} />
-        <div className="flex flex-wrap gap-3"><Button type="submit" variant="primary" disabled={saving}>{saving ? "Guardando…" : "Guardar prospecto"}</Button><Button variant="ghost" onClick={() => setAdding(false)}>Cancelar</Button></div>
+        <div className={f.windowFoot}><Button type="submit" variant="primary" disabled={saving}>{saving ? "Guardando…" : "Guardar prospecto"}</Button><Button variant="ghost" onClick={() => setAdding(false)}>Cancelar</Button></div>
       </AsyncForm>
-    </Card></div>}
-    {tab === "clientes" && adding && <Card as="div" className="mb-5 p-4 sm:p-6"><ClienteEditor key="nuevo" onDone={() => setAdding(false)} /></Card>}
+    </section></div>}
+    {tab === "clientes" && adding && <section className={cn(f.window, "mb-5")} aria-label="Nuevo cliente">
+      <div className={f.windowHead}>
+        <div className={f.windowTitle}><span className={f.windowIcon}><UserPlus size={22} aria-hidden="true" /></span><div><h2>Nuevo cliente</h2><p>Para alguien que ya es cliente sin pasar por prospecto.</p></div></div>
+        <Button variant="ghost" iconOnly aria-label="Cerrar captura" onClick={() => setAdding(false)}><X size={20} aria-hidden="true" /></Button>
+      </div>
+      <ClienteEditor key="nuevo" title={false} onDone={() => setAdding(false)} />
+    </section>}
     <div className={s.tabsRow}>
       <Tabs idPrefix="contactos" label="Tipo de contacto" value={tab} onChange={choose} items={[{ id: "prospectos", label: "Prospectos", count: open.length }, { id: "clientes", label: "Clientes", count: clients.length }]} />
       {tab === "prospectos" && <label className={s.filter}><span className="sr-only">Mostrar prospectos</span><select className={selectClass} value={filter} onChange={e => setFilter(e.target.value as Filter)}>

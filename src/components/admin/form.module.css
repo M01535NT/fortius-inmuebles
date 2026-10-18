@@ -1,0 +1,79 @@
+/*
+  Formularios del panel (rediseño del 18/10/2026, misma escala admin-* que el resto): grupos de
+  campos con su título, secciones plegables, pasos como lista de verificación con avance,
+  acciones al pie, el historial como línea de tiempo y la «ventana» de captura que se abre
+  dentro de una pantalla (nuevo prospecto, nuevo cliente). Reutiliza los tokens de .panel y el kit.
+*/
+
+/* Ventana de captura dentro de una pantalla */
+:global(.admin-root) .window { display: flex; flex-direction: column; gap: 1.25rem; padding: 1.25rem; border: 1px solid var(--card-edge); border-radius: var(--radius-panel); background: var(--canvas); box-shadow: var(--shadow-lift); }
+:global(.dark) :global(.admin-root) .window { background: color-mix(in srgb, var(--card) 55%, var(--canvas)); }
+@media (min-width: 640px) { :global(.admin-root) .window { padding: 1.5rem; } }
+:global(.admin-root) .windowHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+:global(.admin-root) .windowTitle { display: flex; align-items: center; gap: .875rem; min-width: 0; }
+:global(.admin-root) .windowTitle h2 { margin: 0; font-size: 1.25rem; font-weight: 620; letter-spacing: -.02em; line-height: 1.2; }
+:global(.admin-root) .windowTitle p { margin: .125rem 0 0; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .windowIcon { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; flex: none; border-radius: var(--radius-thumb); background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .windowFoot { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem; padding-top: .25rem; }
+@media (prefers-reduced-motion: no-preference) {
+  :global(.admin-root) .window { animation: windowIn 220ms var(--ease-out); }
+  @keyframes windowIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+}
+
+/* Grupos de campos */
+:global(.admin-root) .group { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; border: 1px solid var(--card-edge); border-radius: var(--radius-card); background: var(--card); box-shadow: var(--shadow-rest); }
+:global(.admin-root) .groupHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; }
+:global(.admin-root) .groupHead h2 { margin: 0; font-size: 1.0625rem; font-weight: 600; letter-spacing: -.01em; }
+:global(.admin-root) .groupHead p { margin: 0; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+:global(.admin-root) .span2 { grid-column: 1 / -1; }
+@media (min-width: 640px) { :global(.admin-root) .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { :global(.admin-root) .grid4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Vínculos plegados en una captura nueva */
+:global(.admin-root) details.group > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 2.75rem; margin: -.25rem 0; font-weight: 600; }
+:global(.admin-root) details.group > summary::-webkit-details-marker { display: none; }
+:global(.admin-root) details.group > summary svg { color: var(--muted-foreground); flex: none; transition: transform 160ms var(--ease-out); }
+:global(.admin-root) details.group[open] > summary svg { transform: rotate(180deg); }
+:global(.admin-root) details.group > summary:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; border-radius: 6px; }
+:global(.admin-root) details.group[open] > summary { margin-bottom: .25rem; }
+:global(.admin-root) details.group:not([open]) { padding-block: .625rem; }
+@media (prefers-reduced-motion: reduce) { :global(.admin-root) details.group > summary svg { transition: none; } }
+
+/* Pasos */
+:global(.admin-root) .steps { display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .step { display: flex; align-items: center; gap: .625rem; min-width: 0; }
+:global(.admin-root) .stepCheck { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; flex: none; cursor: pointer; }
+:global(.admin-root) .stepCheck input { width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--primary); cursor: pointer; }
+:global(.admin-root) .step input[type=text] { flex: 1; min-width: 8rem; }
+:global(.admin-root) .step[data-done=true] input[type=text] { color: var(--muted-foreground); text-decoration: line-through; }
+:global(.admin-root) .stepRemove { width: 2.75rem; flex: none; }
+:global(.admin-root) .progressRow { display: flex; align-items: center; gap: .75rem; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .progressRow > :first-child { flex: 1; max-width: 16rem; }
+
+/* Acciones */
+:global(.admin-root) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem; }
+:global(.admin-root) .actions > :first-child { margin-right: .25rem; }
+
+/* Encabezado de la ficha */
+:global(.admin-root) .back { display: inline-flex; align-items: center; gap: .25rem; min-height: 2.25rem; padding: 0 .875rem 0 .5rem; border-radius: var(--radius-pill); background: var(--card); border: 1px solid var(--card-edge); box-shadow: var(--shadow-rest); color: var(--foreground); font-size: .875rem; font-weight: 540; text-decoration: none; }
+:global(.admin-root) .back:hover { background: var(--secondary); }
+:global(.admin-root) .head { display: flex; flex-direction: column; gap: .625rem; min-width: 0; }
+:global(.admin-root) .head h1 { margin: 0; overflow-wrap: anywhere; }
+:global(.admin-root) .meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; font-size: .9375rem; color: var(--muted-foreground); }
+:global(.admin-root) .who { display: inline-flex; align-items: center; gap: .5rem; color: var(--foreground); }
+:global(.admin-root) .layout { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1180px) { :global(.admin-root) .layout { grid-template-columns: minmax(0, 1fr) 19rem; } }
+:global(.admin-root) .side { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+:global(.admin-root) .related { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* Historial como línea de tiempo */
+:global(.admin-root) .timeline { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .event { position: relative; display: flex; flex-direction: column; gap: .125rem; padding: 0 0 1rem 1.375rem; min-width: 0; font-size: .875rem; }
+:global(.admin-root) .event::before { content: ""; position: absolute; left: .3125rem; top: .4375rem; width: .5rem; height: .5rem; border-radius: 50%; background: var(--primary); }
+:global(.admin-root) .event::after { content: ""; position: absolute; left: .5rem; top: 1.125rem; bottom: 0; width: 2px; background: var(--track); }
+:global(.admin-root) .event:last-child { padding-bottom: 0; }
+:global(.admin-root) .event:last-child::after { display: none; }
+:global(.admin-root) .event strong { font-weight: 560; overflow-wrap: anywhere; }
+:global(.admin-root) .event p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+:global(.admin-root) .when { font-size: .8125rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
