@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import styles from "./panel.module.css";
+import "./panel-uplift.css";
 
 export const metadata: Metadata = {
   title: { default: "Panel", template: "%s | Panel Fortius" },

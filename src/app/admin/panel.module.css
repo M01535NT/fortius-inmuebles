@@ -47,6 +47,7 @@
   --alert: #b3352c;
   --alert-surface: #fff0ed;
   --field-surface: #ffffff;
+  --field-radius: var(--radius-control);
   font-size: 16px;
   line-height: 1.55;
 }

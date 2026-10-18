@@ -14,14 +14,16 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { clientRows, leadRows, matches, type ContactRow } from "@/lib/admin/contacts-view";
 import { LEAD_ESTADOS, LEAD_ESTADO_LABELS, db, uid, upsert, useCollection, type Lead, type LeadEstado } from "@/lib/admin/store";
 import { cn } from "@/lib/utils";
+import { ContactPreview } from "./contact-preview";
 import s from "./contacts.module.css";
 
 /*
   Contactos (boceto aprobado por el titular, 17/10/2026). Pestañas Prospectos y Clientes en
   «?tab=»; una sola lista de personas con sus iniciales, lo que buscan, la zona y el
   presupuesto, y el siguiente paso con su fecha; en computadora se lee en columnas. El estado
-  del prospecto, la conversión y la edición se hacen en la ficha de cada persona. El perfil de
-  leads compradores con coincidencias del boceto no existe todavía en el sistema.
+  del prospecto, la conversión y la edición se hacen en la ficha de cada persona. En
+  computadora, a la derecha se ve la vista previa de la persona señalada (con el puntero o el
+  teclado); los «inmuebles que coinciden» del boceto no existen todavía en el sistema (EXT-01).
 */
 
 type Tab = "prospectos" | "clientes";
@@ -36,6 +38,7 @@ export function ContactsScreen() {
   const [searching, setSearching] = React.useState(false);
   const [filter, setFilter] = React.useState<Filter>("todos");
   const [adding, setAdding] = React.useState(() => params.get("nuevo") === "1");
+  const [selected, setSelected] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
   const nameInput = React.useRef<HTMLInputElement>(null);
   const searchInput = React.useRef<HTMLInputElement>(null);
@@ -58,6 +61,7 @@ export function ContactsScreen() {
     ? leadRows(leadList, tasks, events, today).filter(r => { const l = leadList.find(x => x.id === r.id)!; return matches(query, l.nombre, l.telefono, l.email, l.zona, l.tipoPropiedad, l.mensaje, l.perfil?.requisitos, r.wants); })
     : clientRows(clients, tasks, events, today).filter(r => { const c = clients.find(x => x.id === r.id)!; return matches(query, c.nombre, c.telefono, c.email, c.zona, c.tipoPropiedad, r.wants); });
   const duplicates = tab === "prospectos" ? leads.filter(l => duplicateContacts(l, leads).length > 0).length : 0;
+  const previewRow = rows.find(r => r.id === selected) ?? rows[0];
 
   async function captureLead(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,7 +106,10 @@ export function ContactsScreen() {
     <TabPanel idPrefix="contactos" id={tab} className="mt-5 min-w-0">
       {rows.length === 0 ? <EmptyBox title={query.trim() || filter !== "todos" ? "Nadie coincide con la búsqueda" : tab === "prospectos" ? "Todavía no hay prospectos" : "Todavía no hay clientes"}>
         {query.trim() || filter !== "todos" ? "Prueba con otro nombre, teléfono o estado." : tab === "prospectos" ? "Llegan solos desde los formularios del sitio, o agrégalos con «Agregar contacto»." : "Un prospecto se vuelve cliente desde su ficha, o agrégalo con «Agregar contacto»."}
-      </EmptyBox> : <ContactList rows={rows} />}
+      </EmptyBox> : <div className={s.frame}>
+        <ContactList rows={rows} onPreview={setSelected} />
+        {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} />}
+      </div>}
       {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
     </TabPanel>
   </GuidedPage>;
@@ -112,10 +119,10 @@ function Due({ row }: { row: ContactRow }) {
   return row.when ? <Pill size="sm" tone={row.late ? "alert" : "muted"}>{row.when}</Pill> : <Pill size="sm" tone="muted">Sin fecha</Pill>;
 }
 
-function ContactList({ rows }: { rows: ContactRow[] }) {
+function ContactList({ rows, onPreview }: { rows: ContactRow[]; onPreview: (id: string) => void }) {
   return <Card as="div" className={s.listCard}>
     <div className={s.head} aria-hidden="true"><span>Persona</span><span>Lo que busca</span><span>Siguiente paso</span><span>Fecha</span></div>
-    <ul className={s.list} aria-label="Contactos">{rows.map(row => <li key={row.id}><Link href={row.href} className={s.item}>
+    <ul className={s.list} aria-label="Contactos">{rows.map(row => <li key={row.id}><Link href={row.href} className={s.item} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>
       <Avatar name={row.name} size={44} />
       <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{row.phone}</span></span>
       <span className={s.wants}><span className="[overflow-wrap:anywhere]">{row.wants}</span><span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span></span>

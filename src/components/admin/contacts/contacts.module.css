@@ -9,6 +9,22 @@
 :global(.admin-root) .tabsRow > :first-child { flex: 1 1 auto; min-width: 0; }
 :global(.admin-root) .filter select { min-width: 12rem; background: var(--card); border-color: var(--edge-soft); }
 
+/* Lista a la izquierda y vista previa de la persona a la derecha (computadora ancha). */
+:global(.admin-root) .frame { display: grid; gap: 1rem; align-items: start; }
+@media (min-width: 1180px) { :global(.admin-root) .frame { grid-template-columns: minmax(0, 1fr) 21rem; } }
+:global(.admin-root) .preview { display: none; position: sticky; top: .875rem; flex-direction: column; gap: 1rem; padding: 1.125rem 1.25rem; }
+@media (min-width: 1180px) { :global(.admin-root) .preview { display: flex; } }
+:global(.admin-root) .previewTitle { margin: 0; font-size: .75rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+:global(.admin-root) .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; margin: 0; }
+:global(.admin-root) .facts > div { display: flex; flex-direction: column; gap: .125rem; padding: .625rem .75rem; border-radius: var(--radius-control); background: var(--canvas); }
+:global(.admin-root) .facts dt { font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .facts dd { margin: 0; font-size: .9375rem; font-weight: 600; overflow-wrap: anywhere; }
+:global(.admin-root) .quote { margin: 0; padding: .625rem .875rem; border-radius: var(--radius-control); background: var(--canvas); font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .activity { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: .875rem; }
+:global(.admin-root) .activity a, :global(.admin-root) .activityRow { display: flex; gap: .625rem; align-items: flex-start; padding: .25rem 0; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .activity a:hover { text-decoration: underline; text-underline-offset: 3px; }
+:global(.admin-root) .activityWhen { flex: none; width: 5.5rem; font-size: .8125rem; color: var(--muted-foreground); }
+
 /* Lista: una fila por persona; en computadora, columnas. */
 :global(.admin-root) .listCard { padding: .375rem; }
 :global(.admin-root) .list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
@@ -23,7 +39,7 @@
 :global(.admin-root) .end { grid-column: 3; grid-row: 1 / span 3; display: flex; flex-direction: column; align-items: flex-end; gap: .25rem; }
 :global(.admin-root) .chevron { color: var(--muted-foreground); }
 @media (min-width: 1024px) {
-  :global(.admin-root) .head, :global(.admin-root) .item { grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 1.2fr) 7rem 1.25rem; gap: 1rem; }
+  :global(.admin-root) .head, :global(.admin-root) .item { grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 1.2fr) 6.5rem 1.25rem; gap: .875rem; }
   :global(.admin-root) .head { display: grid; padding: .5rem 1rem .625rem; margin: 0 .375rem; border-bottom: 1px solid var(--border); font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
   :global(.admin-root) .head > :first-child { grid-column: 1 / 3; }
   :global(.admin-root) .item { min-height: 4.25rem; }

@@ -1,0 +1,37 @@
+/*
+  Estilo nuevo para las pantallas del panel que todavía no tienen boceto propio (fichas de
+  personas, Agenda, Herramientas, Administración, Mi perfil): las tarjetas, botones, campos y
+  títulos construidos con las utilidades anteriores toman la escala admin-* (esquinas 10/16/20 px,
+  borde al 6 %, sombra en reposo y acción principal en guinda). Se retira cuando cada pantalla
+  reciba su rediseño. Vive aparte de panel.module.css, que se está retirando.
+*/
+
+/* Tarjetas y secciones con borde */
+.admin-root .rounded-lg, .admin-root .rounded-xl, .admin-root .admin-card { border-radius: var(--radius-card); }
+.admin-root .rounded-lg.border.bg-card, .admin-root .rounded-xl.border.bg-card, .admin-root .admin-card { border-color: var(--card-edge); box-shadow: var(--shadow-rest); }
+.admin-root .rounded-lg.bg-card:not(.border) { border: 1px solid var(--card-edge); box-shadow: var(--shadow-rest); }
+.admin-root .admin-card-heading { border-bottom-color: var(--border); }
+.admin-root .rounded-md { border-radius: var(--radius-control); }
+.admin-root .rounded { border-radius: 8px; }
+.admin-root .admin-confirm { border-radius: var(--radius-panel); border-color: var(--card-edge); box-shadow: var(--shadow-raised); }
+
+/* Botones anteriores */
+.admin-root .admin-button { border-radius: var(--radius-control); }
+.admin-root .admin-button-primary { box-shadow: var(--shadow-cta); border-color: var(--primary); }
+.admin-root .admin-button-secondary { border-color: var(--edge-soft); }
+.admin-root .admin-metric-action { border-radius: var(--radius-card); border-color: var(--card-edge); box-shadow: var(--shadow-rest); }
+@media (prefers-reduced-motion: no-preference) {
+  .admin-root .admin-button { transition: transform 160ms var(--ease-out), background-color 150ms, filter 150ms; }
+  .admin-root .admin-button:not(:disabled):active { transform: scale(.97); }
+}
+
+/* Títulos de página y encabezados de ficha */
+.admin-root .admin-page-header h1 { font-size: clamp(1.75rem, 2.6vw, 2.5rem); font-weight: 650; line-height: 1.1; letter-spacing: -.03em; }
+.admin-root .admin-breadcrumbs { font-size: .8125rem; }
+
+/* Insignias anteriores, en pastilla */
+.admin-root .admin-badge { border-radius: var(--radius-pill); padding-inline: .625rem; border-color: transparent; }
+
+/* Avatares anteriores */
+.admin-root .admin-avatar { border-radius: var(--radius-pill); border: 0; background: #dbe4f0; color: #061f3f; }
+.dark .admin-root .admin-avatar { background: var(--secondary); color: var(--foreground); }
