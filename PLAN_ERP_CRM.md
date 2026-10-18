@@ -18,6 +18,8 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 
 **Siguiente entrega:** MRP-01 y COR-01 a COR-03.
 
+**Integración de este plan:** las reglas y paquetes del 17 y 18/10/2026 se integran en `main` con el [PR #41](https://github.com/M01535NT/fortius-inmuebles/pull/41) (solo documentación; Verify aprobado sobre el contenido revisado).
+
 ## Etapas por ruta: qué ve el asesor y qué cierra cada etapa (referencia vigente, 18/10/2026)
 
 La base guarda ocho estados internos (`captacion`, `documentacion`, `comercializacion`, `negociacion`, `cierre`, `entrega`, `postventa`, `cerrado`). Cada ruta los muestra con sus nombres. «Qué la cierra» son los requisitos revisados que exige el servidor para pasar a la etapa siguiente (`requiredReviews`), más los candados de arranque (FLUJO-04a). Con RP-82, un campo vacío no detiene: detienen estos requisitos. La matriz de reglas MRP-01 detallará evidencia, quién revisa, trabajo en paralelo y excepciones.
