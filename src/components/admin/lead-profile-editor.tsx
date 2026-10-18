@@ -1,8 +1,10 @@
 "use client";
 import * as React from "react";
 import { db, upsert, type Lead } from "@/lib/admin/store";
-import { AsyncForm, btnGhost, btnPrimary } from "./ui";
+import { Button } from "@/components/admin/kit";
+import { AsyncForm } from "./ui";
 import { LeadFields, LeadProfileSummary, readLeadFields } from "./lead-fields";
+import s from "./form.module.css";
 
 export function LeadProfileEditor({ lead, onDraftChange, readOnly = false }: { lead: Lead; onDraftChange?: (lead: Lead | null) => void; readOnly?: boolean }) {
   const [draft, setDraft] = React.useState<{ lead: Lead; version: number | null } | null>(null);
@@ -11,12 +13,13 @@ export function LeadProfileEditor({ lead, onDraftChange, readOnly = false }: { l
   const name = React.useRef<HTMLInputElement>(null);
   React.useEffect(() => { if (draft) name.current?.focus(); }, [draft]);
   const finish = () => { setDraft(null); onDraftChange?.(null); heading.current?.focus(); };
-  return <section className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
+  // Al editar, los grupos de campos son las tarjetas; la ficha en lectura conserva su tarjeta.
+  return <section className={draft ? "flex min-w-0 flex-col gap-4" : "min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5"}>
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h2 ref={heading} tabIndex={-1} className="display-soft text-lg">Perfil del prospecto</h2>
-      {!draft && !readOnly ? <button type="button" className={btnGhost} onClick={() => { setDraft({ lead, version: db.leads.version(lead) }); onDraftChange?.(lead); }}>Editar ficha</button> : null}
+      {!draft && !readOnly ? <Button onClick={() => { setDraft({ lead, version: db.leads.version(lead) }); onDraftChange?.(lead); }}>Editar ficha</Button> : null}
     </div>
-    {draft ? <AsyncForm className="min-w-0 space-y-4" onSubmit={async event => {
+    {draft ? <AsyncForm className="flex min-w-0 flex-col gap-4" onSubmit={async event => {
       event.preventDefault();
       const fields = readLeadFields(event.currentTarget, draft.lead);
       setSaving(true);
@@ -24,9 +27,9 @@ export function LeadProfileEditor({ lead, onDraftChange, readOnly = false }: { l
       finally { setSaving(false); }
     }}>
       <LeadFields lead={draft.lead} nombreRef={name} />
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" className={btnPrimary}>Guardar ficha</button>
-        <button type="button" disabled={saving} className={btnGhost} onClick={finish}>Cancelar edición</button>
+      <div className={s.windowFoot}>
+        <Button type="submit" variant="primary">Guardar ficha</Button>
+        <Button variant="ghost" disabled={saving} onClick={finish}>Cancelar edición</Button>
       </div>
     </AsyncForm> : <LeadProfileSummary perfil={lead.perfil} />}
   </section>;

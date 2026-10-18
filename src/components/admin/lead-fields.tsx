@@ -1,10 +1,18 @@
 "use client";
 
 import * as React from "react";
+import { ChevronDown } from "@/components/admin/icons";
 import { Field, inputClass, selectClass, textareaClass } from "./ui";
 import { db, useCollection, type Lead } from "@/lib/admin/store";
 import { leadProfileSchema, LEAD_PROFILE_OPTIONS, type LeadProfile } from "@/lib/lead-profile";
 import { MoneyInput } from "@/components/admin/money-input";
+import s from "./form.module.css";
+
+/*
+  Campos de un prospecto (captura en Contactos y edición de la ficha). Rediseño del 18/10/2026:
+  «Contacto» siempre abierto; lo demás en secciones plegables con la misma escala que el resto
+  de los formularios del panel. Los nombres de los campos y las reglas de lectura no cambian.
+*/
 
 /** Importes del perfil: se muestran con formato de moneda. */
 const MONEY_FIELDS: string[] = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo"];
@@ -47,6 +55,7 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
   const renting = operacion === "rentar" || operacion === "arrendar";
   const owner = operacion === "vender" || operacion === "arrendar";
   const buyer = operacion === "comprar" || operacion === "";
+  const editing = !!lead;
   const id = (name: string) => `${prefix}-${name}`;
   const text = (name: string, label: string, value?: string, type = "text", maxLength = 500) => (
     <Field label={label} htmlFor={id(name)}><input id={id(name)} name={name} type={type} defaultValue={value ?? ""} maxLength={maxLength} className={inputClass} /></Field>
@@ -61,21 +70,20 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
     <Field label={label} htmlFor={id(name)}>{MONEY_FIELDS.includes(name) ? <MoneyInput id={id(name)} name={`perfil.${name}`} defaultValue={perfil[name]} /> : <input id={id(name)} name={`perfil.${name}`} type="number" min="0" max={max} step={step} inputMode={step === "1" ? "numeric" : "decimal"} defaultValue={perfil[name] ?? ""} className={inputClass} />}</Field>
   );
   const types = { terreno: "Terreno", casa: "Casa", departamento: "Departamento", local: "Local", oficina: "Oficina", bodega: "Bodega", "nave-industrial": "Nave industrial", otro: "Otro" };
-  return <div className="min-w-0 space-y-3" onInvalidCapture={event => {
+  return <div className="flex min-w-0 flex-col gap-4" onInvalidCapture={event => {
     const input = event.target as HTMLElement;
     const section = input.closest("details");
     if (section) section.open = true;
   }}>
-    <section className="min-w-0 rounded-lg border border-border p-4">
-      <h2 className="text-base font-semibold">Contacto</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Registra el nombre y al menos un medio: teléfono o correo electrónico. Los demás datos se completan según el encargo.</p>
-      <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
-        <Field label="Nombre" htmlFor={id("nombre")}><input ref={nombreRef} id={id("nombre")} name="nombre" required maxLength={160} defaultValue={lead?.nombre ?? ""} autoComplete="name" className={inputClass} /></Field>
+    <section className={s.group} aria-label="Contacto">
+      <div className={s.groupHead}><h2>Contacto</h2><p>Con el nombre y un teléfono o correo basta; lo demás se completa según el encargo.</p></div>
+      <div className={s.grid}>
+        <Field label="Nombre" htmlFor={id("nombre")} className={s.span2}><input ref={nombreRef} id={id("nombre")} name="nombre" required maxLength={160} defaultValue={lead?.nombre ?? ""} autoComplete="name" className={inputClass} /></Field>
         <Field label="Teléfono" htmlFor={id("telefono")}><input id={id("telefono")} name="telefono" type="tel" maxLength={40} defaultValue={lead?.telefono ?? ""} autoComplete="tel" className={inputClass} /></Field>
         {text("email", "Correo electrónico", lead?.email, "email", 254)}
       </div>
     </section>
-    <LeadSection title={owner ? "Inmueble que ofrece" : "Qué busca y características"}>
+    <LeadSection title={owner ? "Inmueble que ofrece" : "Qué busca y características"} open={editing}>
       {choice("operacion", "Operación")}{choice("uso", "Uso del inmueble")}
       <Field label="Tipo de inmueble" htmlFor={id("tipoPropiedad")}><select id={id("tipoPropiedad")} name="tipoPropiedad" defaultValue={lead?.tipoPropiedad ?? ""} className={selectClass}>
         <option value="">Por confirmar</option>
@@ -83,7 +91,7 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
         {Object.entries(types).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select></Field>
       {text("zona", owner ? "Ubicación del inmueble" : "Zonas de interés", lead?.zona)}
-      <Field label={owner ? "Inmueble del inventario" : "Inmueble de interés"} htmlFor={id("propiedadSlug")}><select id={id("propiedadSlug")} name="propiedadSlug" defaultValue={lead?.propiedadSlug ?? ""} className={selectClass}>
+      <Field label={owner ? "Inmueble del inventario" : "Inmueble de interés"} htmlFor={id("propiedadSlug")} className={s.span2}><select id={id("propiedadSlug")} name="propiedadSlug" defaultValue={lead?.propiedadSlug ?? ""} className={selectClass}>
         <option value="">Sin inmueble específico</option>
         {lead?.propiedadSlug && !propiedades.some(p => p.slug === lead.propiedadSlug) ? <option value={lead.propiedadSlug}>{lead.propiedadSlug}</option> : null}
         {propiedades.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}
@@ -91,38 +99,38 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
       {owner ? <>
         {number("superficieTerreno", "Superficie de terreno (m²)", 1e9)}{number("superficieConstruccion", "Superficie construida (m²)", 1e9)}
         {number("recamarasInmueble", "Recámaras del inmueble", 1000, "1")}{number("estacionamientosInmueble", "Estacionamientos del inmueble", 1000, "1")}
-        <Field label="Características y condiciones" htmlFor={id("caracteristicas")} className="sm:col-span-2"><textarea id={id("caracteristicas")} name="perfil.caracteristicas" rows={3} maxLength={20000} defaultValue={perfil.caracteristicas ?? ""} placeholder="Estado, equipamiento, disponibilidad, condiciones…" className={textareaClass} /></Field>
+        <Field label="Características y condiciones" htmlFor={id("caracteristicas")} className={s.span2}><textarea id={id("caracteristicas")} name="perfil.caracteristicas" rows={3} maxLength={20000} defaultValue={perfil.caracteristicas ?? ""} placeholder="Estado, equipamiento, disponibilidad, condiciones…" className={textareaClass} /></Field>
       </> : <>
         {number("superficieMin", "Superficie mínima (m²)", 1e9)}{number("superficieMax", "Superficie máxima (m²)", 1e9)}
         {number("recamaras", "Recámaras mínimas", 1000, "1")}{number("estacionamientos", "Estacionamientos mínimos", 1000, "1")}
-        <Field label="Requisitos adicionales" htmlFor={id("requisitos")} className="sm:col-span-2"><textarea id={id("requisitos")} name="perfil.requisitos" rows={3} maxLength={20000} defaultValue={perfil.requisitos ?? ""} placeholder="Accesos, altura libre, patio, servicios, accesibilidad…" className={textareaClass} /></Field>
+        <Field label="Requisitos adicionales" htmlFor={id("requisitos")} className={s.span2}><textarea id={id("requisitos")} name="perfil.requisitos" rows={3} maxLength={20000} defaultValue={perfil.requisitos ?? ""} placeholder="Accesos, altura libre, patio, servicios, accesibilidad…" className={textareaClass} /></Field>
       </>}
     </LeadSection>
-    <LeadSection title={owner ? (renting ? "Renta solicitada" : "Precio esperado") : renting ? "Presupuesto de renta" : "Presupuesto y financiamiento"}>
-      <p className="text-sm text-muted-foreground sm:col-span-2">{owner ? renting ? "Monto mensual que espera recibir el propietario." : "Precio total de venta que espera el propietario." : renting ? "Presupuesto de renta mensual del interesado." : "Presupuesto total de compra del interesado."} Selecciona la moneda al capturar un monto.</p>
+    <LeadSection title={owner ? (renting ? "Renta solicitada" : "Precio esperado") : renting ? "Presupuesto de renta" : "Presupuesto y financiamiento"} open={editing}>
+      <p className={`text-sm text-muted-foreground ${s.span2}`}>{owner ? renting ? "Monto mensual que espera recibir el propietario." : "Precio total de venta que espera el propietario." : renting ? "Presupuesto de renta mensual del interesado." : "Presupuesto total de compra del interesado."} Selecciona la moneda al capturar un monto.</p>
       {owner ? number("precioObjetivo", renting ? "Renta mensual esperada" : "Precio de venta esperado", 1e13) : <>
         {number("presupuestoMin", renting ? "Renta mensual mínima" : "Presupuesto mínimo", 1e13)}{number("presupuestoMax", renting ? "Renta mensual máxima" : "Presupuesto máximo", 1e13)}
       </>}
       {choice("moneda", "Moneda")}
       {buyer ? <>{choice("formaPago", "Forma de pago")}{(formaPago === "credito" || formaPago === "mixto") && <>{choice("tipoCredito", "Tipo de crédito")}{choice("estadoCredito", "Estado del crédito")}</>}{choice("origenIngresos", "Origen de ingresos")}</> : operacion === "rentar" ? choice("origenIngresos", "Origen de ingresos") : null}
     </LeadSection>
-    {operacion==="invertir"&&<LeadSection title="Criterios de inversión">{number("capitalDeclarado","Capital declarado",1e13)}<Field label="Estrategia" htmlFor={id("estrategiaInversion")}><select id={id("estrategiaInversion")} name="perfil.estrategiaInversion" defaultValue={perfil.estrategiaInversion??""} className={selectClass}><option value="">Por confirmar</option><option value="renta">Renta</option><option value="reventa">Reventa</option><option value="mixta">Mixta</option><option value="por_definir">Por definir</option></select></Field>{text("perfil.horizonteInversion","Horizonte",perfil.horizonteInversion,"text",2000)}{text("perfil.criteriosInversion","Criterios y límites",perfil.criteriosInversion,"text",2000)}<p className="text-sm text-muted-foreground sm:col-span-2">El capital es declarado; los recursos, escenarios y riesgos se comprueban en el encargo. Invertir no obliga a registrar una compra.</p></LeadSection>}
-    {["comprar","rentar"].includes(operacion)&&perfil.presupuestoDeclarado!==undefined&&<LeadSection title="Presupuesto declarado">{number("presupuestoDeclarado","Presupuesto declarado",1e13)}<p className="text-sm text-muted-foreground">Es una declaración inicial, distinta de capacidad comprobada o presupuesto máximo acordado.</p></LeadSection>}
-    <LeadSection title="Seguimiento">
+    {operacion==="invertir"&&<LeadSection title="Criterios de inversión" open>{number("capitalDeclarado","Capital declarado",1e13)}<Field label="Estrategia" htmlFor={id("estrategiaInversion")}><select id={id("estrategiaInversion")} name="perfil.estrategiaInversion" defaultValue={perfil.estrategiaInversion??""} className={selectClass}><option value="">Por confirmar</option><option value="renta">Renta</option><option value="reventa">Reventa</option><option value="mixta">Mixta</option><option value="por_definir">Por definir</option></select></Field>{text("perfil.horizonteInversion","Horizonte",perfil.horizonteInversion,"text",2000)}{text("perfil.criteriosInversion","Criterios y límites",perfil.criteriosInversion,"text",2000)}<p className={`text-sm text-muted-foreground ${s.span2}`}>El capital es declarado; los recursos, escenarios y riesgos se comprueban en el encargo. Invertir no obliga a registrar una compra.</p></LeadSection>}
+    {["comprar","rentar"].includes(operacion)&&perfil.presupuestoDeclarado!==undefined&&<LeadSection title="Presupuesto declarado" open>{number("presupuestoDeclarado","Presupuesto declarado",1e13)}<p className="text-sm text-muted-foreground">Es una declaración inicial, distinta de capacidad comprobada o presupuesto máximo acordado.</p></LeadSection>}
+    <LeadSection title="Seguimiento" open={editing}>
       {text("perfil.plazo", "Plazo previsto", perfil.plazo)}
       {text("perfil.proximoContacto", "Próximo contacto", perfil.proximoContacto, "date", 10)}
-      <Field label="Asesor responsable" htmlFor={id("asesorId")}><select id={id("asesorId")} name="asesorId" defaultValue={lead?.asesorId ?? ""} className={selectClass}>
+      <Field label="Asesor responsable" htmlFor={id("asesorId")} className={s.span2}><select id={id("asesorId")} name="asesorId" defaultValue={lead?.asesorId ?? ""} className={selectClass}>
         <option value="">Sin asignar</option>
         {lead?.asesorId && !asesores.some(a => a.id === lead.asesorId) ? <option value={lead.asesorId}>{lead.asesorId}</option> : null}
         {asesores.filter(a => a.activo || a.id === lead?.asesorId).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
       </select></Field>
-      <Field label="Mensaje / notas iniciales" htmlFor={id("mensaje")} className="sm:col-span-2"><textarea id={id("mensaje")} name="mensaje" rows={3} maxLength={20000} defaultValue={lead?.mensaje ?? ""} className={textareaClass} /></Field>
+      <Field label="Mensaje / notas iniciales" htmlFor={id("mensaje")} className={s.span2}><textarea id={id("mensaje")} name="mensaje" rows={3} maxLength={20000} defaultValue={lead?.mensaje ?? ""} className={textareaClass} /></Field>
     </LeadSection>
   </div>;
 }
 
-function LeadSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return <details className="min-w-0 rounded-lg border border-border p-4"><summary className="min-h-11 cursor-pointer content-center text-base font-semibold">{title}</summary><div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">{children}</div></details>;
+function LeadSection({ title, open, children }: { title: string; open?: boolean; children: React.ReactNode }) {
+  return <details className={s.group} open={open || undefined}><summary>{title}<ChevronDown size={18} aria-hidden="true" /></summary><div className={s.grid}>{children}</div></details>;
 }
 
 export function LeadProfileSummary({ perfil }: { perfil?: LeadProfile }) {

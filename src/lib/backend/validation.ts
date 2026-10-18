@@ -1,5 +1,5 @@
 import { HOME_TEXT_KEYS } from "@/data/home-copy";
-import { estadoValido, type Property } from "@/data/propiedades";
+import { CATEGORIAS_PUNTO, GRUPOS_CARACTERISTICAS, estadoValido, type Property } from "@/data/propiedades";
 import { z } from "zod";
 import { leadProfileSchema } from "@/lib/lead-profile";
 import { taskSchema } from "@/lib/tasks";
@@ -31,11 +31,14 @@ const informacionPublica = z.object({
   ocupacionEntrega: short.optional(),
 }).passthrough();
 const price = z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }).passthrough(), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() }).passthrough()]);
-const point = z.object({ lugar: short, minutos: amount }).passthrough();
+const point = z.object({ lugar: short, minutos: amount, categoria: z.enum(CATEGORIAS_PUNTO).optional() }).passthrough();
+const benefit = z.object({ titulo: z.string().trim().min(1).max(80), texto: z.string().trim().max(240) }).passthrough();
+const featureGroup = z.object({ grupo: z.enum(GRUPOS_CARACTERISTICAS), elementos: z.array(z.string().trim().min(1).max(120)).max(30) }).passthrough();
+const costs = z.object({ predialAnual: amount.optional(), mantenimientoMensual: amount.optional() }).passthrough();
 const propertySchema = z.object({
   slug: id, codigo: z.string().trim().max(160).default(""), titulo: name, tipo: z.enum(["casa", "departamento", "terreno", "local", "oficina", "nave-industrial"]), operacion: z.enum(["venta", "renta"]), precio: price,
   zona: short, direccionAproximada: short, descripcion: z.array(text).max(100), ficha, informacionPublica: informacionPublica.optional(), amenidades: z.array(short).max(100), galeria: z.array(image).max(100), videoUrl: optionalUrl, tour360Url: optionalUrl,
-  documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), destacada: z.boolean(), estado: z.enum(["evaluacion", "disponible", "apartada", "vendida", "rentada"]), publicadaEl: date.or(z.literal("")),
+  documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), beneficios: z.array(benefit).max(4).optional(), caracteristicas: z.array(featureGroup).max(GRUPOS_CARACTERISTICAS.length).optional(), costos: costs.optional(), destacada: z.boolean(), estado: z.enum(["evaluacion", "disponible", "apartada", "vendida", "rentada"]), publicadaEl: date.or(z.literal("")),
   demo: z.boolean(), publicada: z.boolean().default(false),
 }).passthrough();
 const adviserProfileSchema = z.object({
@@ -110,7 +113,7 @@ const publicWhatsapp = z.string().transform((value) => isPublicUrl(value) || /^[
 const publicSettings = settingsSchema.strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
 // This second allowlist also protects server components against malformed DB data.
 const publicProperty = propertySchema.strip().extend({
-  codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()) });
+  codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });
 export function projectPublic(collection: string, values: unknown[]): Record<string, unknown>[] {
   const schema = collection === "propiedades" ? publicProperty : collection === "asesores" ? adviserSchema.pick({ id: true, nombre: true, cargo: true, iniciales: true, activo: true }).strip()
     : collection === "contenido" ? contentSchema.strip() : collection === "config" ? publicSettings : collection === "posts" ? postSchema.strip() : null;
