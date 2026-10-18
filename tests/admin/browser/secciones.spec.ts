@@ -92,11 +92,13 @@ for (const width of [320, 390, 768, 1440]) {
     await page.goto("/admin/contactos");
     await expect(page.getByRole("heading", { level: 1, name: "Contactos" })).toBeVisible();
     await expect(page.getByRole("tab", { name: /Prospectos/ })).toHaveAttribute("aria-selected", "true");
-    const people = width >= 1024 ? page.getByRole("table") : page.getByRole("list", { name: "Contactos" });
-    const contact = width >= 1024 ? people.getByRole("row", { name: /Ramón Félix Arce/ }) : people.getByRole("link", { name: /Ramón Félix Arce/ });
+    // Una sola lista de personas en todos los anchos (rediseño del 18/10/2026); en computadora ancha, con vista previa al lado.
+    const people = page.getByRole("list", { name: "Contactos" });
+    const contact = people.getByRole("link", { name: /Ramón Félix Arce/ });
     await expect(contact).toContainText("Comprar casa");
     await expect(contact).toContainText("Mandarle 3 opciones");
     await expect(people.getByText(/Vencido ·/).first()).toBeVisible();
+    if (width >= 1180) await expect(page.getByRole("complementary", { name: /Vista previa de/ }).getByRole("link", { name: /Abrir ficha de/ })).toBeVisible();
     await shot("contactos");
     await page.getByRole("tab", { name: /Clientes/ }).click();
     await expect(page).toHaveURL(/tab=clientes/);

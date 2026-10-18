@@ -143,7 +143,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       <div className={s.heroBottom}>
         <div className="min-w-0">
           <h1 className={s.heroTitle}>{client?.nombre ?? op.folio}</h1>
-          <p className={s.heroFacts}>{facts.join(" · ")} · {op.folio}</p>
+          <p className={s.heroFacts}>{facts.join(" · ")} · <span>{op.folio}</span></p>
         </div>
         {isGuided(op) && isOwnerRoute(flow.ruta) && <ol className={s.phases} aria-label="Fases de la venta">{PHASE_GROUPS.map(group => <li key={group.id} aria-current={group.id === track.group ? "step" : undefined}>{group.label}</li>)}</ol>}
       </div>

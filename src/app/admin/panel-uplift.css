@@ -41,3 +41,8 @@
 /* Avatares anteriores */
 .admin-root .admin-avatar { border-radius: var(--radius-pill); border: 0; background: #dbe4f0; color: #061f3f; }
 .dark .admin-root .admin-avatar { background: var(--secondary); color: var(--foreground); }
+
+/* Logotipo en modo oscuro: la versión inversa (letras blancas, portal en acento claro), sin placa. */
+.dark .admin-root .brand-mark { background: transparent; }
+.dark .admin-root .brand-mark path[fill="#061f3f"] { fill: #ffffff; }
+.dark .admin-root .brand-mark path[fill="#8a1634"] { fill: #e5829b; }
