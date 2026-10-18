@@ -6,7 +6,7 @@ import { PropertyPublicationGate } from "./property-publication-gate";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, ArrowUp, ArrowDown } from "@/components/admin/icons";
 import { LibraryPicker } from "@/components/admin/workspace/library-picker";
 import { FormSection, revealSection } from "@/components/admin/workspace/form-section";
 import { PropertyWorkbench, readDraftFields, type PropertyDraft } from "@/components/admin/workspace/property-workbench";

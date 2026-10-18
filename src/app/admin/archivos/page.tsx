@@ -11,7 +11,7 @@ import {
   Paperclip,
   Plus,
   Trash2,
-} from "lucide-react";
+} from "@/components/admin/icons";
 
 import {
   AsyncForm,

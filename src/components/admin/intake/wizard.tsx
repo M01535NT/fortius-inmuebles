@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, X } from "@/components/admin/icons";
 import { Button, Card, Notice, ProgressBar, Surface } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState } from "@/lib/admin/store";

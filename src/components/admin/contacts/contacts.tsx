@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, Plus, Search, X } from "lucide-react";
+import { ChevronRight, Plus, Search, X } from "@/components/admin/icons";
 import { Avatar, Button, Card, EmptyBox, Pill, TabPanel, Tabs } from "@/components/admin/kit";
 import { AsyncForm, inputClass, selectClass } from "@/components/admin/ui";
 import { LeadFields, readLeadFields } from "@/components/admin/lead-fields";

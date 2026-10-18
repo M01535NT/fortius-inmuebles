@@ -2,7 +2,7 @@
 import * as React from "react";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/admin/icons";
 import { ClienteEditor, CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-editor";
 import { LeadProfileSummary } from "@/components/admin/lead-fields";
 import { useRouter } from "next/navigation";

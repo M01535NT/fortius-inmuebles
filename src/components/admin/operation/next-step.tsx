@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Clock, FileDown, FileText, Mail, MessageCircle, Phone, PlayCircle, Trash2 } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock, FileDown, FileText, Mail, MessageCircle, Phone, PlayCircle, Trash2 } from "@/components/admin/icons";
 import { Button, ButtonLink, Card, Eyebrow, Notice, Pill } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";

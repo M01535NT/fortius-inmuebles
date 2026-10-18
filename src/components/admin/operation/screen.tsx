@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { ChevronLeft, ClipboardList, FileText, History, ListChecks, MessageCircle, Phone, Settings2, UserRound } from "lucide-react";
+import { ChevronLeft, ClipboardList, FileText, History, ListChecks, MessageCircle, Phone, Settings2, UserRound } from "@/components/admin/icons";
 import { Button, Card, EmptyBox, Notice, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction } from "@/components/admin/workspace/confirm";

@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { CircleHelp } from "lucide-react";
+import { CircleHelp } from "@/components/admin/icons";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import type { Plantilla } from "@/lib/formatos/ayuda";
 

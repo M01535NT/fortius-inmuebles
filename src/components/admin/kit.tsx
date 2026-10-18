@@ -2,7 +2,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, Building2, Check, Circle, CircleDot, Info, MinusCircle, X } from "lucide-react";
+import { AlertTriangle, Building2, Check, Circle, CircleDot, Info, MinusCircle, X } from "@/components/admin/icons";
 import { cn } from "@/lib/utils";
 import s from "./kit.module.css";
 

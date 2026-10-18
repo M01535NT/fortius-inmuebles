@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { AlertCircle, Check, ChevronRight, FileDown, FileText } from "lucide-react";
+import { AlertCircle, Check, ChevronRight, FileDown, FileText } from "@/components/admin/icons";
 import { Button, ButtonLink, Card, Pill, Sheet } from "@/components/admin/kit";
 import { PHASE_FORMATS, PHASE_GROUPS, pastGaps, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";

@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ArrowRight, Columns3 } from "lucide-react";
+import { ArrowRight, Columns3 } from "@/components/admin/icons";
 import { useSession } from "@/lib/admin/store";
 import { SALE_PROCESS } from "@/lib/formatos/operation-workflow";
 import { Button, Card, EmptyBox, Eyebrow, Notice, Segmented, Sheet, StageProgress, StatusChip, Surface, Tabs, TabPanel } from "@/components/admin/kit";

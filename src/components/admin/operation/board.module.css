@@ -31,7 +31,7 @@
 :global(.admin-root) .whoText strong { font-weight: 540; overflow-wrap: anywhere; }
 :global(.admin-root) .whoText span { font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
 @media (min-width: 1024px) {
-  :global(.admin-root) .head, :global(.admin-root) .row { grid-template-columns: minmax(0, 1.35fr) minmax(11rem, .9fr) minmax(0, 1.2fr) 8.5rem 1.25rem; gap: 1.25rem; }
+  :global(.admin-root) .head, :global(.admin-root) .row { grid-template-columns: minmax(15rem, 1.5fr) minmax(10rem, 1fr) minmax(0, 1fr) 7.75rem 1.25rem; gap: 1rem; }
   :global(.admin-root) .head { display: grid; padding: .5rem 1rem .625rem; margin: 0 .375rem; border-bottom: 1px solid var(--border); font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
   :global(.admin-root) .row { min-height: 4.5rem; }
   :global(.admin-root) .row > :nth-child(n) { grid-column: auto; grid-row: auto; text-align: left; }

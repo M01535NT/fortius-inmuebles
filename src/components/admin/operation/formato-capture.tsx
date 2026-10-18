@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ArrowLeft, ArrowRight, Check, FileDown, FileText, Save, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileDown, FileText, Save, X } from "@/components/admin/icons";
 import { Button, Notice, Pill, Ring } from "@/components/admin/kit";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { inputClass, selectClass } from "@/components/admin/ui";

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Star, Search } from "lucide-react";
+import { Star, Search } from "@/components/admin/icons";
 import { APPS } from "@/lib/apps/catalog";
 import { inputClass } from "@/components/admin/ui";
 import { useSession } from "@/lib/admin/store";

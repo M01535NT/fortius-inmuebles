@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Building2, CalendarPlus, ClipboardList, Contact, Plus, Search, X } from "lucide-react";
+import { Building2, CalendarPlus, ClipboardList, Contact, Plus, Search, X } from "@/components/admin/icons";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { normalizedText } from "@/lib/admin/workspace";
 import { Button, Kbd } from "@/components/admin/kit";

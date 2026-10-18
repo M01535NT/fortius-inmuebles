@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, MessageCircle, Phone } from "lucide-react";
+import { ArrowUpRight, MessageCircle, Phone } from "@/components/admin/icons";
 import { Avatar, ButtonLink, Card, Pill } from "@/components/admin/kit";
 import { LEAD_PROFILE_OPTIONS } from "@/lib/lead-profile";
 import { LEAD_ESTADO_LABELS, LEAD_ORIGEN_LABELS, fechaCorta, type Cliente, type Evento, type Lead } from "@/lib/admin/store";

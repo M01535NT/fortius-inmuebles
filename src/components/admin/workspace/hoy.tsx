@@ -2,7 +2,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Building2, MapPin, Plus } from "lucide-react";
+import { ArrowRight, Building2, MapPin, Plus } from "@/components/admin/icons";
 import { Avatar, ButtonLink, Card, CardLink, EmptyBox, Pill, Ring, Surface, Thumb, type PillTone } from "@/components/admin/kit";
 import { apiRequest, db, upsert, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";

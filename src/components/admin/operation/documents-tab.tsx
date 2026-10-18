@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus } from "@/components/admin/icons";
 import { Button, Card } from "@/components/admin/kit";
 import { selectClass } from "@/components/admin/ui";
 import { FORMATOS } from "@/lib/formatos/catalog";

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, FileDown, History, Plus, RotateCcw } from "lucide-react";
+import { ArrowLeft, Save, FileDown, History, Plus, RotateCcw } from "@/components/admin/icons";
 import { getApp, FINANCIAL_APPS, COMMERCIAL_APPS } from "@/lib/apps/catalog";
 import { appRunSchema } from "@/lib/apps/contracts";
 import type { AppContext, AppInput, AppResult, AppRun } from "@/lib/apps/types";

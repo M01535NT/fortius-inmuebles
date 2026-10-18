@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from "@/components/admin/icons";
 import { Button, Card } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, ErrorNotice, Field, inputClass, selectClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";

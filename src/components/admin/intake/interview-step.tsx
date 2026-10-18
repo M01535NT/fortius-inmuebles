@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ArrowLeft, ArrowRight, Check, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Info } from "@/components/admin/icons";
 import { Button, Card } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, errorMessage, useCollection } from "@/lib/admin/store";

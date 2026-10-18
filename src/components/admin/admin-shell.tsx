@@ -3,7 +3,7 @@ import * as React from "react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "@/components/admin/icons";
 import { Breadcrumbs } from "@/components/admin/workspace/breadcrumbs";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
