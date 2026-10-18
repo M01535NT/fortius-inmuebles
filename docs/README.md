@@ -5,6 +5,7 @@ El desarrollo del ERP/CRM se dirige únicamente desde [PLAN_ERP_CRM.md](../PLAN_
 | Tema | Referencia |
 |---|---|
 | Producto | [Propósito y capacidades](PRODUCT.md). |
+| Preguntas abiertas | [Preguntas para el titular](erp-crm/PREGUNTAS_TITULAR.md); cada respuesta se integra en el plan. |
 | Panel | [Manual](admin-manual.md), [espacio de trabajo](admin-workspace.md). |
 | Marca | [Marca](brand.md), [identidad técnica](fortius-inmuebles-identity.md). |
 | Publicación | [Despliegue](deployment-fortius.md), [entornos](erp-crm/environment-release.md). |
