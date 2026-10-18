@@ -144,8 +144,7 @@ export function Tabs<K extends string>({ items, value, onChange, label, idPrefix
   const refs = React.useRef<Array<HTMLButtonElement | null>>([]);
   const vertical = orientation === "vertical";
   function onKey(event: React.KeyboardEvent, index: number) {
-    const [forward, back] = vertical ? ["ArrowDown", "ArrowUp"] : ["ArrowRight", "ArrowLeft"];
-    const step = event.key === forward ? 1 : event.key === back ? -1 : 0;
+    const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
     if (!step) return;
     event.preventDefault();
     const target = (index + step + items.length) % items.length;

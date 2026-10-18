@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { AlertCircle, Check, ChevronRight, FileDown, FileText } from "lucide-react";
-import { Button, ButtonLink, Card, Sheet } from "@/components/admin/kit";
+import { Button, ButtonLink, Card, Pill, Sheet } from "@/components/admin/kit";
 import { PHASE_FORMATS, PHASE_GROUPS, pastGaps, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
@@ -13,9 +13,10 @@ import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
 /*
-  Avance de la operación (boceto C): un número por etapa, la etapa actual con su nombre y su
-  fase, y un aviso cuando a una etapa anterior le falta su documento. «Ver etapas» abre el panel
-  con las 10 etapas en cuatro fases y los documentos de cada una, con PDF y Word.
+  Avance de la operación (boceto «Una operación, versión elegida»): línea de tiempo vertical con
+  las etapas, la actual resaltada y un aviso cuando a una etapa anterior le falta su documento.
+  Una etapa pasada se abre para ver sus documentos. «Ver etapas» abre el panel con las etapas
+  en cuatro fases y los documentos de cada una, con PDF y Word.
 */
 
 const two = (n: number) => String(n).padStart(2, "0");
@@ -35,27 +36,27 @@ export function StageCard({ op, today, docs, checklist, onOpenStages }: { op: Op
   const groupLabel = PHASE_GROUPS.find(g => g.id === group)?.label;
   const first = gaps[0];
   return <Card className={s.track} aria-label="Avance de la operación">
-    <div className="flex items-center gap-4">
-      <span className={s.stageBadge} aria-hidden="true">{two(current + 1)}</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[1.0625rem] font-bold leading-tight">{here?.label}</p>
-        <p className="text-sm text-muted-foreground">Etapa {current + 1} de {stages.length}{groupLabel ? ` · ${groupLabel}` : ""}</p>
-      </div>
-      <ol aria-label="Etapas" className={s.dots}>{stages.map((stage, i) => {
-        const gap = gapAt.get(stage.n), done = i < current, now = i === current;
-        const label = `${stage.n} · ${stage.label}: ${now ? "aquí vas" : gap ? gap.gap.toLowerCase() : done ? "lista" : "pendiente"}`;
-        const dot = <span className={s.dot} data-state={now ? "now" : gap ? "warn" : done ? "done" : "next"} aria-hidden="true">{now ? stage.n : gap ? "!" : done ? <Check size={13} strokeWidth={3} /> : stage.n}</span>;
-        return <li key={stage.n} aria-current={now ? "step" : undefined}>
-          {done && stage.key ? <button type="button" className={s.dotButton} title={label} aria-label={label} onClick={() => onOpenStages(stage.key)}>{dot}</button> : <span title={label}>{dot}<span className="sr-only">{label}</span></span>}
-        </li>;
-      })}</ol>
-      <Button className="shrink-0" onClick={() => onOpenStages()}>Ver etapas<ChevronRight size={16} aria-hidden="true" /></Button>
+    <div className="flex items-center justify-between gap-3 px-1">
+      <p className="text-sm font-semibold text-muted-foreground">Etapa {current + 1} de {stages.length}{groupLabel ? ` · ${groupLabel}` : ""}</p>
+      <span className="sr-only">{here?.label}</span>
     </div>
+    <ol aria-label="Etapas" className={s.timeline}>{stages.map((stage, i) => {
+      const gap = gapAt.get(stage.n), done = i < current, now = i === current;
+      const state = now ? "now" : gap ? "warn" : done ? "done" : "next";
+      const label = `${stage.n} · ${stage.label}: ${now ? "aquí vas" : gap ? gap.gap.toLowerCase() : done ? "lista" : "pendiente"}`;
+      const dot = <span className={s.dot} data-state={state} aria-hidden="true">{now ? <span className={s.dotCore} /> : gap ? "!" : done ? <Check size={12} strokeWidth={3} /> : null}</span>;
+      return <li key={stage.n} aria-current={now ? "step" : undefined} className={s.timelineItem} data-state={state}>
+        {done && stage.key
+          ? <button type="button" className={s.stageLink} title={label} aria-label={label} onClick={() => onOpenStages(stage.key)}>{dot}<span className={s.stageName}>{stage.label}</span>{gap && <AlertCircle size={15} aria-hidden="true" className={s.iconWarn} />}</button>
+          : <span className={s.stageLink} title={label}>{dot}<span className={s.stageName}>{stage.label}</span><span className="sr-only">{label}</span></span>}
+      </li>;
+    })}</ol>
     {first && <div className={s.gapNotice} role="status">
       <AlertCircle size={18} aria-hidden="true" />
       <span className="min-w-0 flex-1">A la etapa {first.n}, {first.label.toLowerCase()}, le {first.gap.replace(/^Falta(n?)/, (_, n) => `falta${n}`)}.{gaps.length > 1 ? ` Hay ${gaps.length - 1} más en «Ver etapas».` : ""}</span>
       <button type="button" className={s.gapAction} disabled={docs.busy} onClick={() => fixGap(first.key, docs, checklist, onOpenStages)}>Hacerlo ahora</button>
     </div>}
+    <Button className="w-full" onClick={() => onOpenStages()}>Ver etapas<ChevronRight size={16} aria-hidden="true" /></Button>
   </Card>;
 }
 
@@ -118,8 +119,8 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
             <p tabIndex={-1} data-stage={stage.key} className={s.stageRow} data-state={now ? "now" : gap ? "warn" : done ? "done" : "next"}>
               <span className={s.dot} data-state={now ? "now" : gap ? "warn" : done ? "done" : "next"} aria-hidden="true">{now ? stage.n : gap ? "!" : done ? <Check size={13} strokeWidth={3} /> : stage.n}</span>
               <span className="min-w-0 flex-1">{stage.n} · {stage.label}</span>
-              {now && <span className="text-xs font-semibold">Aquí vas</span>}
-              {gap && <span className="text-xs font-semibold text-[var(--warning)]">{gap}</span>}
+              {now && <Pill tone="brand" size="sm">Aquí vas</Pill>}
+              {gap && <Pill tone="warn" size="sm">{gap}</Pill>}
             </p>
             {stageDocs(stage)}
           </li>;
