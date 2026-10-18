@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { TiltCard } from "@/components/magicui/tilt-card";
 
@@ -11,7 +12,7 @@ import {
   type Property,
 } from "@/data/propiedades";
 
-export function PropertyCard({ property }: { property: Property }) {
+export function PropertyCard({ property, extra }: { property: Property; extra?: ReactNode }) {
   const href = `/inventario/${property.slug}`;
   const noDisponible = property.estado !== "disponible";
   const facts = [
@@ -59,6 +60,7 @@ export function PropertyCard({ property }: { property: Property }) {
             <span className="sr-only">Ver detalle</span><ArrowUpRight className="size-5" strokeWidth={1.5} aria-hidden="true" />
           </Link>
         </div>
+        {extra ? <div className="property-card-extra">{extra}</div> : null}
       </div>
     </article>
     </TiltCard>

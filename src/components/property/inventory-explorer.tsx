@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { ChevronDown, LayoutGrid, Map as MapIcon, SlidersHorizontal, X } from "lucide-react";
 
 import { PropertyCard } from "@/components/property/property-card";
 import {
@@ -87,6 +87,9 @@ export function InventoryExplorer({ propiedades }: Props) {
   const [comparadas, setComparadas] = React.useState<string[]>([]);
   const [comparisonHydrated, setComparisonHydrated] = React.useState(false);
   const [comparacionVisible, setComparacionVisible] = React.useState(false);
+  const [masFiltros, setMasFiltros] = React.useState(false);
+  const [vista, setVista] = React.useState<"cuadricula" | "mapa">("cuadricula");
+  const [mapaZona, setMapaZona] = React.useState<string | null>(null);
   const inicializado = React.useRef(false);
   const comparisonRef = React.useRef<HTMLElement>(null);
   const comparisonButtonRef = React.useRef<HTMLButtonElement>(null);
@@ -231,268 +234,176 @@ export function InventoryExplorer({ propiedades }: Props) {
     window.requestAnimationFrame(() => comparisonRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 
-  const chipBase =
-    "inline-flex h-9 items-center rounded-md border px-3.5 text-sm font-medium transition-colors";
-  const chipOff = " border-border text-foreground/75 hover:bg-secondary hover:text-foreground";
-  const chipOn = " border-primary/50 bg-secondary text-foreground";
-  const fieldClass =
-    "h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground";
+  const total = propiedades.length;
+  const mapaZonaActiva = mapaZona ?? (filtros.zona !== "todas" ? filtros.zona : resultados[0]?.zona);
+  const mapQuery = encodeURIComponent(`${mapaZonaActiva ?? "Tijuana"}, Baja California, México`);
+  const zonasResultado = Array.from(new Set(resultados.map((p) => p.zona)));
 
   return (
-    <div>
-      {/* Filtros */}
-      <div className="border-b border-border pb-6">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Operación">
-            {(["todas", "venta", "renta"] as const).map((op) => (
-              <button
-                key={op}
-                type="button"
-                aria-pressed={filtros.operacion === op}
-                onClick={() => set("operacion", op)}
-                className={chipBase + (filtros.operacion === op ? chipOn : chipOff)}
-              >
-                {op === "todas" ? "Todas" : OPERACION_LABELS[op]}
-              </button>
-            ))}
-          </div>
+    <>
+      {/* Cabecera nocturna con los filtros (boceto InventarioNocturno) */}
+      <section className="pg-hero inv-hero">
+        <div className="pg-container pg-hero-body">
+          <p className="pg-eyebrow">Inventario · {total} {total === 1 ? "propiedad" : "propiedades"}</p>
+          <h1 className="pg-title">Propiedades.</h1>
+          <p className="pg-lead">Consulta las características de cada inmueble y pregunta por su disponibilidad, documentos y condiciones antes de decidir.</p>
 
-          <span aria-hidden="true" className="hidden h-6 w-px bg-border sm:block" />
-
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Tipo de propiedad">
-            <button
-              type="button"
-              aria-pressed={filtros.tipo === "todos"}
-              onClick={() => set("tipo", "todos")}
-              className={chipBase + (filtros.tipo === "todos" ? chipOn : chipOff)}
-            >
-              Todos
-            </button>
-            {tipos.map((t) => (
-              <button
-                key={t}
-                type="button"
-                aria-pressed={filtros.tipo === t}
-                onClick={() => set("tipo", t)}
-                className={chipBase + (filtros.tipo === t ? chipOn : chipOff)}
-              >
-                {TIPO_LABELS[t]}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-zona" className="text-sm font-medium text-muted-foreground">
-              Zona
-            </label>
-            <select
-              id="filtro-zona"
-              value={filtros.zona}
-              onChange={(e) => set("zona", e.target.value)}
-              className={fieldClass}
-            >
-              <option value="todas">Todas las zonas</option>
-              {zonas.map((z) => (
-                <option key={z} value={z}>
-                  {z}
-                </option>
+          <div className="inv-filters">
+            <div className="inv-segment" role="group" aria-label="Operación">
+              {(["todas", "venta", "renta"] as const).map((op) => (
+                <button key={op} type="button" aria-pressed={filtros.operacion === op} onClick={() => set("operacion", op)}>
+                  {op === "todas" ? "Todas" : OPERACION_LABELS[op]}
+                </button>
               ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-moneda" className="text-sm font-medium text-muted-foreground">
-              Moneda
+            </div>
+            <div className="pg-pills" role="group" aria-label="Tipo de propiedad">
+              <button type="button" aria-pressed={filtros.tipo === "todos"} onClick={() => set("tipo", "todos")} className={"pg-pill" + (filtros.tipo === "todos" ? " is-active" : "")}>Todos</button>
+              {tipos.map((t) => (
+                <button key={t} type="button" aria-pressed={filtros.tipo === t} onClick={() => set("tipo", t)} className={"pg-pill" + (filtros.tipo === t ? " is-active" : "")}>{TIPO_LABELS[t]}</button>
+              ))}
+            </div>
+            <label className="inv-select">
+              <span>Zona</span>
+              <select id="filtro-zona" value={filtros.zona} onChange={(e) => set("zona", e.target.value)}>
+                <option value="todas">Todas las zonas</option>
+                {zonas.map((z) => <option key={z} value={z}>{z}</option>)}
+              </select>
+              <ChevronDown size={16} aria-hidden="true" />
             </label>
-            <select
-              id="filtro-moneda"
-              value={filtros.moneda}
-              onChange={(e) => set("moneda", e.target.value as Moneda)}
-              className={fieldClass}
-            >
-              <option value="todas">Todas</option>
-              <option value="MXN">MXN</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-min" className="text-sm font-medium text-muted-foreground">
-              Precio desde {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}
-            </label>
-            <input
-              id="filtro-min"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              placeholder="0"
-              value={filtros.min}
-              onChange={(e) => set("min", e.target.value)}
-              className={fieldClass + " w-[130px]"}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-max" className="text-sm font-medium text-muted-foreground">
-              Precio hasta {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}
-            </label>
-            <input
-              id="filtro-max"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              placeholder="Sin límite"
-              value={filtros.max}
-              onChange={(e) => set("max", e.target.value)}
-              className={fieldClass + " w-[130px]"}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="filtro-orden" className="text-sm font-medium text-muted-foreground">
-              Ordenar por
-            </label>
-            <select
-              id="filtro-orden"
-              value={filtros.orden}
-              onChange={(e) => set("orden", e.target.value as Orden)}
-              className={fieldClass}
-            >
-              <option value="recientes">Más recientes</option>
-              <option value="precio-asc">Menor precio</option>
-              <option value="precio-desc">Mayor precio</option>
-            </select>
-          </div>
-
-          {hayFiltros ? (
-            <button
-              type="button"
-              onClick={() => setFiltros(DEFAULTS)}
-              className="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-primary-ink transition-colors hover:text-foreground"
-            >
-              Limpiar filtros
+            <button type="button" className={"pg-pill" + (masFiltros ? " is-active" : "")} aria-expanded={masFiltros} aria-controls="inv-mas-filtros" onClick={() => setMasFiltros((v) => !v)}>
+              <SlidersHorizontal size={16} aria-hidden="true" />Más filtros{activeFilters.filter((f) => ["moneda", "min", "max", "orden"].includes(f.key)).length > 0 ? ` · ${activeFilters.filter((f) => ["moneda", "min", "max", "orden"].includes(f.key)).length}` : ""}
             </button>
-          ) : null}
-        </div>
+            <div className="inv-views" role="group" aria-label="Vista de resultados">
+              <button type="button" aria-pressed={vista === "cuadricula"} onClick={() => setVista("cuadricula")}><LayoutGrid size={16} aria-hidden="true" />Cuadrícula</button>
+              <button type="button" aria-pressed={vista === "mapa"} onClick={() => setVista("mapa")}><MapIcon size={16} aria-hidden="true" />Con mapa</button>
+            </div>
+          </div>
 
-        {min !== null || max !== null ? (
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Al filtrar por precio, las propiedades con valor a consulta no se
-            muestran.
-          </p>
+          <div id="inv-mas-filtros" className="inv-more" hidden={!masFiltros}>
+            <div className="pg-field">
+              <label htmlFor="filtro-moneda">Moneda</label>
+              <select id="filtro-moneda" value={filtros.moneda} onChange={(e) => set("moneda", e.target.value as Moneda)}>
+                <option value="todas">Todas</option>
+                <option value="MXN">MXN</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+            <div className="pg-field">
+              <label htmlFor="filtro-min">Precio desde {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}</label>
+              <input id="filtro-min" type="number" inputMode="numeric" min={0} placeholder="0" value={filtros.min} onChange={(e) => set("min", e.target.value)} />
+            </div>
+            <div className="pg-field">
+              <label htmlFor="filtro-max">Precio hasta {filtros.moneda === "todas" ? "" : `(${filtros.moneda})`}</label>
+              <input id="filtro-max" type="number" inputMode="numeric" min={0} placeholder="Sin límite" value={filtros.max} onChange={(e) => set("max", e.target.value)} />
+            </div>
+            <div className="pg-field">
+              <label htmlFor="filtro-orden">Ordenar por</label>
+              <select id="filtro-orden" value={filtros.orden} onChange={(e) => set("orden", e.target.value as Orden)}>
+                <option value="recientes">Más recientes</option>
+                <option value="precio-asc">Menor precio</option>
+                <option value="precio-desc">Mayor precio</option>
+              </select>
+            </div>
+            {min !== null || max !== null ? <p className="inv-note">Al filtrar por precio, las propiedades con valor a consulta no se muestran.</p> : null}
+          </div>
+
+          <div className="inv-status">
+            <p aria-live="polite" className="inv-count">
+              {String(resultados.length).padStart(2, "0")} {resultados.length === 1 ? "resultado" : "resultados"}
+            </p>
+            {activeFilters.length > 0 ? <div className="inv-active" aria-label="Filtros activos">
+              {activeFilters.map((filter) => <button key={filter.key} type="button" onClick={() => clearFilter(filter.key)}>{filter.label}<X size={14} aria-hidden="true" /><span className="sr-only">Quitar filtro</span></button>)}
+              {hayFiltros ? <button type="button" className="inv-clear" onClick={() => setFiltros(DEFAULTS)}>Limpiar filtros</button> : null}
+            </div> : null}
+          </div>
+        </div>
+      </section>
+
+      <div className="pg-container inv-results">
+        {comparadas.length > 0 ? (
+          <div className="inv-compare-bar">
+            <p>Selecciona hasta 3 propiedades para compararlas.</p>
+            <button ref={comparisonButtonRef} type="button" onClick={showComparison} className="pg-btn" style={{ minHeight: 44 }}>
+              Ver comparación ({comparadas.length})
+            </button>
+          </div>
         ) : null}
 
-        {activeFilters.length > 0 ? <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtros activos">
-          {activeFilters.map((filter) => <button key={filter.key} type="button" onClick={() => clearFilter(filter.key)} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border px-3 text-xs text-foreground hover:bg-secondary">{filter.label}<X className="size-3.5" aria-hidden="true" /><span className="sr-only">Quitar filtro</span></button>)}
-        </div> : null}
-      </div>
-
-      {/* Contador */}
-      <p
-        aria-live="polite"
-        className="mt-5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground"
-      >
-        {String(resultados.length).padStart(2, "0")}{" "}
-        {resultados.length === 1 ? "resultado" : "resultados"}
-      </p>
-
-      {comparadas.length > 0 ? (
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-y border-border py-3">
-          <p className="text-sm text-muted-foreground">Selecciona hasta 3 propiedades para compararlas.</p>
-          <button ref={comparisonButtonRef} type="button" onClick={showComparison} className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90">
-            Ver comparación ({comparadas.length})
-          </button>
-        </div>
-      ) : null}
-
-      {comparacionVisible && propiedadesComparadas.length > 0 ? (
-        <section ref={comparisonRef} className="scroll-mt-24 border-b border-border py-8" aria-labelledby="comparison-title">
-          <div className="flex items-center justify-between gap-4">
-            <h2 id="comparison-title" className="display-soft text-2xl text-foreground">Comparación de inmuebles</h2>
-            <button type="button" onClick={() => { setComparacionVisible(false); window.requestAnimationFrame(() => comparisonButtonRef.current?.focus()); }} className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-              <X className="size-4" aria-hidden="true" /> Cerrar
-            </button>
-          </div>
-          <div className="mt-5 overflow-x-auto">
-            <table className="min-w-[720px] w-full border-collapse text-left text-sm" aria-label="Comparación de inmuebles">
-              <thead><tr className="border-b border-border"><th className="py-3 pr-5 font-medium text-muted-foreground">Dato</th>{propiedadesComparadas.map((property) => <th key={property.slug} className="px-4 py-3 font-medium text-foreground"><Link href={`/inventario/${property.slug}`} className="underline decoration-primary/40 underline-offset-4">{property.titulo}</Link></th>)}</tr></thead>
-              <tbody>
-                {[
-                  ["Precio", (property: Property) => formatPrecio(property.precio)],
-                  ["Terreno", (property: Property) => property.ficha.terrenoM2 != null ? `${property.ficha.terrenoM2} m²` : "No informado"],
-                  ["Construcción", (property: Property) => property.ficha.construccionM2 != null ? `${property.ficha.construccionM2} m²` : "No informado"],
-                  ["Recámaras", (property: Property) => property.ficha.recamaras?.toString() ?? "No informado"],
-                  ["Estacionamientos", (property: Property) => property.ficha.estacionamientos?.toString() ?? "No informado"],
-                  ["Ubicación", (property: Property) => property.zona],
-                ].map(([label, value]) => <tr key={label as string} className="border-b border-border/70"><th className="py-3 pr-5 font-normal text-muted-foreground">{label as string}</th>{propiedadesComparadas.map((property) => <td key={property.slug} className="px-4 py-3 text-foreground">{(value as (property: Property) => string)(property)}</td>)}</tr>)}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
-
-      {/* Grid o vacío */}
-      {resultados.length > 0 ? (
-        <div className="property-catalog-grid mt-8">
-          {resultados.map((p) => (
-            <div key={p.slug} onClickCapture={(event) => {
-              if ((event.target as HTMLElement).closest("a[href^='/inventario/']")) {
-                window.history.replaceState({ ...window.history.state, fortiusInventoryScroll: window.scrollY }, "", window.location.href);
-                try {
-                  window.sessionStorage.setItem("fortius-inventory-return", JSON.stringify({ url: `${window.location.pathname}${window.location.search}`, scrollY: window.scrollY }));
-                } catch {
-                  // El enlace de regreso conserva /inventario como alternativa.
-                }
-              }
-            }}>
-              <PropertyCard property={p} />
-              <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-                <input type="checkbox" checked={comparadas.includes(p.slug)} disabled={!comparadas.includes(p.slug) && comparadas.length >= 3} onChange={() => toggleComparada(p.slug)} className="size-4 accent-primary" />
-                Comparar {p.titulo}
-              </label>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="mt-6 rounded-lg border border-border p-10 md:p-14">
-          <p className="display-soft text-2xl text-foreground">
-            No hay propiedades con esos criterios.
-          </p>
-          <p className="mt-3 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
-            El inventario cambia con frecuencia. Cuéntanos qué buscas y te
-            avisamos cuando entre algo que encaje.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            {hayFiltros ? (
-              <button
-                type="button"
-                onClick={() => setFiltros(DEFAULTS)}
-                className="inline-flex h-11 items-center rounded-md border border-border px-5 text-base font-medium text-foreground transition-colors hover:bg-secondary"
-              >
-                Limpiar filtros
+        {comparacionVisible && propiedadesComparadas.length > 0 ? (
+          <section ref={comparisonRef} className="inv-compare" aria-labelledby="comparison-title">
+            <div className="pg-head" style={{ marginBottom: 16 }}>
+              <h2 id="comparison-title" className="pg-h3">Comparación de inmuebles</h2>
+              <button type="button" onClick={() => { setComparacionVisible(false); window.requestAnimationFrame(() => comparisonButtonRef.current?.focus()); }} className="pg-pill">
+                <X size={16} aria-hidden="true" /> Cerrar
               </button>
-            ) : null}
-            <Link
-              href="/contacto"
-              className="inline-flex h-11 items-center rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
-            >
-              Cuéntanos qué buscas
-            </Link>
-          </div>
-        </div>
-      )}
+            </div>
+            <div className="inv-table-wrap">
+              <table className="inv-table" aria-label="Comparación de inmuebles">
+                <thead><tr><th>Dato</th>{propiedadesComparadas.map((property) => <th key={property.slug}><Link href={`/inventario/${property.slug}`}>{property.titulo}</Link></th>)}</tr></thead>
+                <tbody>
+                  {[
+                    ["Precio", (property: Property) => formatPrecio(property.precio)],
+                    ["Terreno", (property: Property) => property.ficha.terrenoM2 != null ? `${property.ficha.terrenoM2} m²` : "No informado"],
+                    ["Construcción", (property: Property) => property.ficha.construccionM2 != null ? `${property.ficha.construccionM2} m²` : "No informado"],
+                    ["Recámaras", (property: Property) => property.ficha.recamaras?.toString() ?? "No informado"],
+                    ["Estacionamientos", (property: Property) => property.ficha.estacionamientos?.toString() ?? "No informado"],
+                    ["Ubicación", (property: Property) => property.zona],
+                  ].map(([label, value]) => <tr key={label as string}><th scope="row">{label as string}</th>{propiedadesComparadas.map((property) => <td key={property.slug}>{(value as (property: Property) => string)(property)}</td>)}</tr>)}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : null}
 
-      {/* CTA persistente en mobile */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 pb-[calc(env(safe-area-inset-bottom)+12px)] backdrop-blur md:hidden">
-        <Link
-          href="/contacto"
-          className="flex h-12 w-full items-center justify-center rounded-md bg-primary text-base font-semibold text-primary-foreground active:scale-[0.99]"
-        >
-          Cuéntanos qué buscas
-        </Link>
+        {resultados.length > 0 ? (
+          <div className={"inv-layout" + (vista === "mapa" ? " has-map" : "")}>
+            <div className="property-catalog-grid inv-grid">
+              {resultados.map((p) => (
+                <div key={p.slug} className="inv-item" onMouseEnter={() => vista === "mapa" && setMapaZona(p.zona)} onFocusCapture={() => vista === "mapa" && setMapaZona(p.zona)} onClickCapture={(event) => {
+                  if ((event.target as HTMLElement).closest("a[href^='/inventario/']")) {
+                    window.history.replaceState({ ...window.history.state, fortiusInventoryScroll: window.scrollY }, "", window.location.href);
+                    try {
+                      window.sessionStorage.setItem("fortius-inventory-return", JSON.stringify({ url: `${window.location.pathname}${window.location.search}`, scrollY: window.scrollY }));
+                    } catch {
+                      // El enlace de regreso conserva /inventario como alternativa.
+                    }
+                  }
+                }}>
+                  <PropertyCard property={p} extra={<label className="inv-compare-choice">
+                    <input type="checkbox" checked={comparadas.includes(p.slug)} disabled={!comparadas.includes(p.slug) && comparadas.length >= 3} onChange={() => toggleComparada(p.slug)} />
+                    <span>Comparar <span className="sr-only">{p.titulo}</span></span>
+                  </label>} />
+                </div>
+              ))}
+            </div>
+            {vista === "mapa" ? (
+              <aside className="inv-map" aria-label="Mapa de resultados">
+                <div className="inv-map-frame">
+                  <iframe key={mapQuery} src={`https://www.google.com/maps?q=${mapQuery}&z=13&output=embed`} title={`Mapa de ${mapaZonaActiva ?? "la zona"}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                </div>
+                <p className="inv-map-note">Ubicación aproximada por zona. La dirección exacta se comparte al agendar la visita.</p>
+                <div className="inv-map-zones" role="group" aria-label="Zonas con resultados">
+                  {zonasResultado.map((zona) => <button key={zona} type="button" aria-pressed={mapaZonaActiva === zona} onClick={() => setMapaZona(zona)} className={"pg-pill" + (mapaZonaActiva === zona ? " is-active" : "")}>{zona}<span>{resultados.filter((p) => p.zona === zona).length}</span></button>)}
+                </div>
+              </aside>
+            ) : null}
+          </div>
+        ) : (
+          <div className="pg-empty">
+            <h2>No hay propiedades con esos criterios.</h2>
+            <p>El inventario cambia con frecuencia. Cuéntanos qué buscas y te avisamos cuando entre algo que encaje.</p>
+            <div className="pg-pills" style={{ justifyContent: "center", marginTop: 24 }}>
+              {hayFiltros ? <button type="button" onClick={() => setFiltros(DEFAULTS)} className="pg-btn pg-btn-ghost">Limpiar filtros</button> : null}
+              <Link href="/contacto" className="pg-btn">Cuéntanos qué buscas</Link>
+            </div>
+          </div>
+        )}
+
+        {/* CTA persistente en mobile */}
+        <div className="inv-mobile-cta">
+          <Link href="/contacto" className="pg-btn">Cuéntanos qué buscas</Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

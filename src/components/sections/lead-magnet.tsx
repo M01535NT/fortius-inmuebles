@@ -3,14 +3,13 @@
 import * as React from "react";
 import { ArrowDownToLine, FileCheck2 } from "lucide-react";
 
-import { Container } from "@/components/layout/container";
-import { BlurFade } from "@/components/magicui/blur-fade";
 import { captureLead } from "@/lib/admin/store";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 
 /*
   Lead magnet: checklist de venta a cambio de nombre y WhatsApp.
   La descarga se libera solo tras confirmar la persistencia en el backend de MNT.
+  Boceto Vender: banda azul noche «¿Está lista tu propiedad para venderse?».
 */
 const PREVIEW = [
   "Identificar al propietario o representante y reunir el título disponible.",
@@ -44,109 +43,41 @@ export function LeadMagnet() {
   }
 
   return (
-    <section className="border-y border-border">
-      <Container className="py-16 md:py-20">
-        <BlurFade>
-          <div className="grid gap-10 lg:grid-cols-12">
-            {/* Pitch */}
-            <div className="lg:col-span-6">
-              <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                Guía para propietarios
-              </p>
-              <h2 className="display-title mt-3 max-w-[18ch] text-3xl text-foreground sm:text-4xl">
-                ¿Está lista tu propiedad para venderse?
-              </h2>
-              <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted-foreground">
-                Diez preguntas para preparar una venta. Algunas se resuelven
-                de inmediato; otras requieren revisar documentos o consultar
-                a un especialista antes de publicar.
-              </p>
-              <ul className="mt-6 space-y-2.5">
-                {PREVIEW.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-base text-foreground/85">
-                    <FileCheck2 className="mt-0.5 size-4 shrink-0 text-primary-ink" strokeWidth={1.5} />
-                    {item}
-                  </li>
-                ))}
-                <li className="pl-7 text-sm text-muted-foreground">…y 7 puntos más en el PDF.</li>
-              </ul>
+    <section className="pg-container pg-section" aria-labelledby="lead-magnet">
+      <div className="lm-band">
+        <div>
+          <p className="pg-eyebrow">Guía para propietarios</p>
+          <h2 id="lead-magnet" className="pg-h2">¿Está lista tu propiedad para venderse?</h2>
+          <p className="lm-text">Diez preguntas para preparar una venta. Algunas se resuelven de inmediato; otras requieren revisar documentos o consultar a un especialista antes de publicar.</p>
+          <ul className="lm-list">
+            {PREVIEW.map((item) => <li key={item}><FileCheck2 size={18} strokeWidth={1.5} aria-hidden="true" />{item}</li>)}
+            <li className="lm-more">…y 7 puntos más en el PDF.</li>
+          </ul>
+        </div>
+        <div className="lm-card">
+          {sent ? (
+            <div>
+              <p className="pg-h3">Listo. Aquí está tu checklist.</p>
+              <p className="pg-muted" style={{ marginTop: 8, fontSize: 14 }}>También lo usaremos para dar seguimiento a tu caso, sin spam y sin compartir tus datos.</p>
+              <a href="/descargas/checklist-venta-fortius.pdf" download className="pg-btn" style={{ marginTop: 20 }}>
+                <ArrowDownToLine size={18} strokeWidth={1.5} aria-hidden="true" />Descargar PDF
+              </a>
             </div>
-
-            {/* Captura / descarga */}
-            <div className="self-center lg:col-span-5 lg:col-start-8">
-              {sent ? (
-                <div className="rounded-lg border border-border bg-card p-6 md:p-7">
-                  <p className="display-soft text-xl text-foreground">Listo. Aquí está tu checklist.</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    También lo usaremos para dar seguimiento a tu caso, sin
-                    spam y sin compartir tus datos.
-                  </p>
-                  <a
-                    href="/descargas/checklist-venta-fortius.pdf"
-                    download
-                    className="mt-5 inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
-                  >
-                    <ArrowDownToLine className="size-4" strokeWidth={1.5} />
-                    Descargar PDF
-                  </a>
-                </div>
-              ) : (
-                <PublicLeadForm onSubmit={onSubmit} className="rounded-lg border border-border bg-card p-6 md:p-7">
-                  <div className="grid gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label htmlFor="lm-nombre" className="text-sm font-medium text-foreground">
-                        Nombre
-                      </label>
-                      <input
-                        id="lm-nombre"
-                        name="nombre"
-                        required
-                        autoComplete="name"
-                        placeholder="Tu nombre"
-                        className="h-11 rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label htmlFor="lm-telefono" className="text-sm font-medium text-foreground">
-                        Teléfono o WhatsApp
-                      </label>
-                      <input
-                        id="lm-telefono"
-                        name="telefono"
-                        type="tel"
-                        required
-                        autoComplete="tel"
-                        placeholder="664 000 0000"
-                        className="h-11 rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={enviando}
-                    className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
-                  >
-                    <ArrowDownToLine className="size-4" strokeWidth={1.5} />
-                    {enviando ? "Enviando…" : "Obtener el checklist"}
-                  </button>
-                  {error ? (
-                    <p
-                      role="alert"
-                      className="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-destructive"
-                    >
-                      {error}
-                    </p>
-                  ) : null}
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    Sin costo. Usamos tus datos solo para dar seguimiento; no
-                    los compartimos.
-                  </p>
-                </PublicLeadForm>
-              )}
-            </div>
-          </div>
-        </BlurFade>
-      </Container>
+          ) : (
+            <PublicLeadForm onSubmit={onSubmit}>
+              <div className="lm-fields">
+                <div className="pg-field"><label htmlFor="lm-nombre">Nombre</label><input id="lm-nombre" name="nombre" required autoComplete="name" placeholder="Tu nombre" /></div>
+                <div className="pg-field"><label htmlFor="lm-telefono">Teléfono o WhatsApp</label><input id="lm-telefono" name="telefono" type="tel" required autoComplete="tel" placeholder="664 000 0000" /></div>
+              </div>
+              <button type="submit" disabled={enviando} className="pg-btn" style={{ width: "100%", marginTop: 16 }}>
+                <ArrowDownToLine size={18} strokeWidth={1.5} aria-hidden="true" />{enviando ? "Enviando…" : "Obtener el checklist"}
+              </button>
+              {error ? <p role="alert" className="pg-notice" style={{ marginTop: 12, color: "var(--primary-text, #8a1634)" }}>{error}</p> : null}
+              <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Sin costo. Usamos tus datos solo para dar seguimiento; no los compartimos.</p>
+            </PublicLeadForm>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

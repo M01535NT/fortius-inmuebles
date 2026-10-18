@@ -1,29 +1,31 @@
 import type { Metadata } from "next";
-import { MethodTimeline } from "@/components/home/method-timeline";
-import { EditorialImageReveal } from "@/components/home/editorial-image-reveal";
-import { EditorialHero } from "@/components/home/editorial-hero";
-import { EditorialHome } from "@/components/home/editorial-home";
-import { EditorialDocuments, EditorialIntro, EditorialProperties, EditorialSellerGateway } from "@/components/home/editorial-sections";
+import { NocturnoHero } from "@/components/home/nocturno-hero";
+import { NocturnoExpediente } from "@/components/home/nocturno-expediente";
+import { NocturnoMetodo } from "@/components/home/nocturno-metodo";
+import { NocturnoDestacadas } from "@/components/home/nocturno-sections";
+import { entregablesDe, etapasDe, pilaresDe } from "@/components/home/nocturno-content";
 import { Respuestas } from "@/components/home/respuestas";
-import { Segmentos } from "@/components/home/segmentos";
+import { homeText } from "@/data/home-copy";
+import { TIPO_LABELS } from "@/data/propiedades";
 import { getPublicContent } from "@/lib/backend/public";
+import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-/* Editorial home; shared backend, navigation, inventory and contact flows. */
+/* Inicio · dirección Nocturno (LV-05): oscuro en ambos temas, como el footer. */
 export default async function HomePage() {
-  const content = await getPublicContent();
+  const [content, propiedades, destacadas] = await Promise.all([getPublicContent(), getPropiedades(), getFeaturedProperties()]);
+  // El buscador solo ofrece zonas y tipos que existen en el inventario publicado.
+  const zonas = [...new Set(propiedades.map((p) => p.zona).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+  const tipos = [...new Set(propiedades.map((p) => p.tipo))].map((value) => ({ value, label: TIPO_LABELS[value] }));
+  const entregables = entregablesDe(content);
   return (
-    <EditorialHome>
-      <EditorialHero />
-      <EditorialSellerGateway />
-      <div className="editorial-featured"><EditorialProperties /></div>
-      <div className="editorial-segments"><Segmentos /></div>
-      <EditorialIntro content={content} />
-      <EditorialImageReveal />
-      <MethodTimeline content={content} />
-      <EditorialDocuments content={content} />
-      <Respuestas content={content} />
-    </EditorialHome>
+    <main className="nocturno-home dark">
+      <NocturnoHero zonas={zonas} tipos={tipos} />
+      <NocturnoDestacadas properties={destacadas.slice(0, 3)} />
+      <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />
+      <NocturnoMetodo title={homeText(content, "metodoTitulo")} stages={etapasDe(content)} />
+      <div className="nx-faq"><Respuestas content={content} /></div>
+    </main>
   );
 }

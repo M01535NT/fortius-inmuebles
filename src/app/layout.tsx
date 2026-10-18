@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 
 import "@/app/globals.css";
 import "@/app/editorial.css";
+import "@/app/nocturno.css";
+import "@/app/publico.css";
 import { SiteFooter } from "@/components/home/site-footer";
 import { SiteNav } from "@/components/home/site-nav";
 import { PublicFeaturesProvider } from "@/components/providers/public-features-provider";
@@ -111,7 +113,7 @@ export default async function RootLayout({
               this server layout and its settings persist during soft navigation. */}
           {isAdmin ? <div className="relative z-10 bg-background">{children}</div> : (
             <PublicExperience>
-              <SiteNav settings={settings} solidHome />
+              <SiteNav />
               {process.env.VERCEL === "1" ? <PublicPerformance /> : null}
               <div className="relative z-10 bg-background">{children}</div>
               <div className="public-footer relative z-0"><SiteFooter settings={settings} /></div>

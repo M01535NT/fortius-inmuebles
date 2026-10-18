@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { Container } from "@/components/layout/container";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 
 export const metadata: Metadata = {
@@ -14,35 +13,19 @@ export const metadata: Metadata = {
 
 export default function HipotecaPage() {
   return (
-    <main className="bg-background pt-28 md:pt-32">
-      <Container className="pb-20 md:pb-28">
-        <Link
-          href="/herramientas"
-          className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" strokeWidth={1.5} />
-          Herramientas
-        </Link>
-        <h1 className="display-title mt-6 max-w-[16ch] text-4xl text-foreground md:text-5xl">
-          Calculadora de hipoteca.
-        </h1>
-        <p className="mt-5 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
-          Compara cuotas, intereses y abonos anticipados. Guarda hasta tres
-          escenarios y descarga el detalle de cada pago.
-        </p>
-
-        <div className="mt-9">
-          <MortgageCalculator precio={3000000} moneda="MXN" precioEditable />
+    <main className="pg-page">
+      <section className="pg-hero">
+        <div className="pg-container pg-hero-body tl-tool-head">
+          <Link href="/herramientas" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Herramientas</Link>
+          <p className="pg-eyebrow">01 · Crédito</p>
+          <h1 className="pg-title pg-title-sm">Calculadora de hipoteca.</h1>
+          <p className="pg-lead">Compara cuotas, intereses y abonos anticipados. Guarda hasta tres escenarios y descarga el detalle de cada pago.</p>
         </div>
-
-        <p className="mt-8 text-base text-muted-foreground">
-          ¿Ya sabes qué buscas?{" "}
-          <Link href="/inventario" className="font-medium text-primary-ink underline-offset-4 hover:underline">
-            Explora el inventario
-          </Link>
-          .
-        </p>
-      </Container>
+      </section>
+      <div className="pg-container tl-tool-body">
+        <MortgageCalculator precio={3000000} moneda="MXN" precioEditable />
+        <p className="tl-tool-foot pg-muted">¿Ya sabes qué buscas? <Link href="/inventario">Explora el inventario</Link>.</p>
+      </div>
     </main>
   );
 }
