@@ -31,6 +31,9 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
   const saving = React.useRef(false), heading = React.useRef<HTMLHeadingElement>(null);
   const dirty = JSON.stringify(answers) !== JSON.stringify(interview.respuestas);
   React.useEffect(() => { onDirtyChange(dirty, busy); }, [dirty, busy, onDirtyChange]);
+  // Al terminar, la pantalla se desmonta antes de que `busy` vuelva a falso: se libera el candado
+  // para que «Abrir la operación» y los demás enlaces del paso Listo funcionen.
+  React.useEffect(() => () => onDirtyChange(false, false), [onDirtyChange]);
   const screen = screens[index], last = index === screens.length - 1, prospect = screen.title === PROSPECT_SCREEN;
   const fields = screenFields(intent, answers, screen);
   const issues = validate ? screenIssues(intent, answers, screen) : [];
