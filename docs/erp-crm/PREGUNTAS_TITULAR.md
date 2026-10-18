@@ -53,7 +53,7 @@ El grupo A solo pregunta los detalles que faltan para aplicarla.
 | B-09 | Otra inmobiliaria trae al comprador | MRP-01, FIN-02 | Abierta |
 | B-10 | Ruta de inversión | MRP-01 | Abierta |
 | B-11 | Postventa y archivo | MRP-01 | Abierta |
-| B-12 | Informe al propietario | MRP-01, COR-08 | Abierta |
+| B-12 | Informe al propietario: por qué medio | COR-08 | Abierta |
 | B-13 | Quién autoriza saltar un requisito | MRP-01, APR-01 | Abierta |
 | C-01 | Preguntas necesarias de la entrevista | CAP-03 | Abierta |
 | C-02 | Aviso de privacidad: cuándo y cómo | CAP-02 | Abierta |
@@ -70,7 +70,7 @@ El grupo A solo pregunta los detalles que faltan para aplicarla.
 | D-08 | Lista de documentos del propietario | COR-06 | Abierta |
 | E-01 | Notas del equipo | NAV | Abierta |
 | E-02 | Aviso de edición simultánea | NAV-11 | Abierta |
-| E-03 | Pantalla de inicio del director | NAV, TAB-02 | Abierta |
+| E-03 | Resumen del director en Hoy | NAV, TAB-02 | Abierta |
 | E-04 | Qué se hace desde el celular | SIM, PWA-01 | Abierta |
 | E-05 | Sitio web dentro del panel | NAV | Abierta |
 | E-06 | Reportes y Control comercial | SIM (C29), TAB-02 | Abierta |
@@ -427,13 +427,13 @@ Fuera del margen se puede tomar el encargo, pero con motivo.
 
 **Respuesta:**
 
-### B-12 · Informe al propietario
+### B-12 · Informe al propietario: por qué medio
 
-**Pregunta:** ¿Cada cuánto envías el informe al propietario y por qué medio?
+**Pregunta:** ¿Por qué medio envías el informe al propietario?
 
-**Por qué importa:** el sistema avisa cuando el informe está vencido (COR-08).
+**Por qué importa:** la frecuencia ya está decidida: el informe es mensual (decisión del titular del 15/10/2026, PROC-04). Falta el medio, que el asesor registrará al entregarlo (COR-08).
 
-**Propuesta:** cada mes por WhatsApp o correo. El asesor registra la fecha y el medio de envío.
+**Propuesta:** WhatsApp o correo, a elección del asesor en cada envío. Se registran la fecha, el medio y quién lo envió.
 
 **Respuesta:**
 
@@ -611,12 +611,9 @@ Fuera del margen se puede tomar el encargo, pero con motivo.
 
 ### E-03 · Pantalla de inicio del director
 
-**Pregunta:** Como director, ¿qué quieres ver primero al abrir el panel?
+**Pregunta:** Ya está decidido que el director abrirá en su tablero cuando exista (N11). Mientras tanto abre en Hoy: ¿qué resumen quieres ver arriba?
 
-**Propuesta:**
-
-- Hoy, con un resumen arriba: captaciones del mes, operaciones atoradas y cobros pendientes.
-- Cuando exista el tablero del director (TAB-02), ese tablero.
+**Propuesta:** captaciones del mes, operaciones atoradas y cobros pendientes.
 
 **Respuesta:**
 
@@ -850,9 +847,9 @@ Fuera del margen se puede tomar el encargo, pero con motivo.
 
 ### I-04 · Quién autoriza publicar
 
-**Pregunta:** ¿Quieres autorizar cada publicación a producción, o el agente puede publicar cuando todas las comprobaciones pasan?
+**Pregunta:** El 18/10/2026 dijiste «manda todo a main», y `main` es lo que Vercel publica en el dominio. ¿Eso vale para todo cambio, incluido el código que cambia lo que ven los usuarios, o solo para documentos?
 
-**Propuesta:** tú autorizas cada publicación a producción. Las ramas y vistas previas no necesitan permiso.
+**Propuesta:** los documentos y el plan se fusionan en `main` cuando pasa la verificación. Los cambios de código que se ven en el panel o en la página, y cualquier migración de base de datos, esperan tu autorización. Las ramas y vistas previas no necesitan permiso.
 
 **Respuesta:**
 
