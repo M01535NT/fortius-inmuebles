@@ -61,7 +61,7 @@
 :global(.admin-root) .add:hover { background: var(--secondary); }
 
 /* Tu día: horas a la izquierda; las visitas llevan su color. */
-:global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); row-gap: .25rem; padding: .375rem; }
+:global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); row-gap: .25rem; margin: 0; padding: .375rem; list-style: none; }
 :global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem .75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .event:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
 :global(.admin-root) .time { font-size: .9375rem; color: var(--muted-foreground); font-variant-numeric: tabular-nums; padding-top: .0625rem; }

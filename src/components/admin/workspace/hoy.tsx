@@ -88,11 +88,13 @@ export function HoyScreen() {
   const firstName = session?.name?.trim().split(/\s+/)[0];
   const heroPhoto = [...waiting.map(item => item.propertySlug), ...inProgress.map(d => d.propiedad_slug)].map(photo).find(Boolean);
   const tail = dossiers === undefined ? "Consultando tus operaciones…" : waiting.length ? `${waiting.length === 1 ? "Hay 1 pendiente esperándote." : `Hay ${waiting.length} pendientes esperándote.`}` : "Nada espera por ti.";
+  const summary = `${waiting.length ? `${plural(waiting.length, "pendiente espera", "pendientes esperan")} algo de ti` : "Nada espera por ti"}, tienes ${plural(openToday, "tarea", "tareas")} y ${plural(visits.length, "visita", "visitas")} hoy.`;
 
   return <Surface className="pb-4">
-    <header className="flex flex-col">
+    <header className="flex flex-col gap-1">
       <p className={s.date}><time dateTime={today}>{longDate(today)}</time></p>
       <h1 className={s.hello}>{hour === null ? "Hola" : greeting(hour)}{firstName ? `, ${firstName}` : ""}. <span className={s.helloTail}>{tail}</span></h1>
+      <p className="text-muted-foreground">{summary}</p>
     </header>
 
     <section aria-label="Resumen del día" className={s.summary}>
@@ -136,14 +138,14 @@ export function HoyScreen() {
               {dossiers === null && failed("las operaciones")}
               {waiting.length ? <Card as="div" className={s.list}>{waiting.map(item => {
                 const pill = waitingPill(item);
-                return <Link key={item.id} href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
+                return <article key={item.id}><Link href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
                   {item.folio ? <Thumb src={photo(item.propertySlug)} size={52} icon={<Building2 size={22} aria-hidden="true" />} /> : <Avatar name={item.who} size={52} />}
                   <span className={s.rowBody}>
                     <span className={s.rowTitle}>{item.reason}</span>
                     <span className={s.rowText}>{item.who}{item.detail ? ` · ${item.detail}` : ""}</span>
                   </span>
                   <span className={s.rowEnd}><Pill tone={pill.tone}>{pill.text}</Pill>{item.when && <span className={cn(s.meta, item.late && s.late)}>{item.when}</span>}</span>
-                </Link>;
+                </Link></article>;
               })}</Card>
                 : dossiers !== null && <EmptyBox title="Nada espera por ti">Las operaciones tienen su siguiente paso con fecha y no hay contactos pendientes.</EmptyBox>}
             </>}
@@ -162,13 +164,13 @@ export function HoyScreen() {
 
       <div className="flex min-w-0 flex-col gap-7">
         <Section id="hoy-agenda" title="Agenda de hoy" action={more("/admin/agenda", "Ver semana")}>
-          {agenda.length ? <Card as="div" className={s.agenda}>{agenda.map(event => {
+          {agenda.length ? <Card as="ul" className={s.agenda}>{agenda.map(event => {
             const visit = event.tipo === "visita";
             const context = [names.client(event.clienteId) ?? leads.find(l => l.id === event.leadId)?.nombre, names.property(event.propiedadSlug)].filter(text => text && text !== event.titulo).join(" · ");
-            return <Link key={event.id} href={`/admin/agenda?fecha=${today}&evento=${encodeURIComponent(event.id)}`} className={cn(s.event, visit && s.visit)}>
+            return <li key={event.id} className="contents"><Link href={`/admin/agenda?fecha=${today}&evento=${encodeURIComponent(event.id)}`} className={cn(s.event, visit && s.visit)}>
               <time className={s.time}>{event.hora ?? "—"}</time>
               <span className="flex min-w-0 flex-col gap-0.5">{visit && <span className={s.visitTag}><MapPin size={12} aria-hidden="true" />Visita</span>}<strong className="[overflow-wrap:anywhere]">{event.titulo}</strong>{context && <small className="text-muted-foreground">{visit ? `Con ${context}` : context}</small>}</span>
-            </Link>;
+            </Link></li>;
           })}</Card> : <EmptyBox title="Sin citas hoy">Las visitas y citas del día aparecen aquí.</EmptyBox>}
         </Section>
 

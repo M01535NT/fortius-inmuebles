@@ -57,7 +57,7 @@ export function Surface({ className, ...props }: React.HTMLAttributes<HTMLDivEle
 
 type CardTone = "navy" | "alert" | "soft";
 /** Tarjeta blanca con borde al 6 % y sombra en reposo. `lift` la levanta 2 px al pasar el puntero; `panel` usa la esquina de 20 px. */
-export function Card({ as: Tag = "section", tone, lift, panel, className, ...props }: { as?: "section" | "div" | "article" | "aside" | "li"; tone?: CardTone; lift?: boolean; panel?: boolean } & React.HTMLAttributes<HTMLElement>) {
+export function Card({ as: Tag = "section", tone, lift, panel, className, ...props }: { as?: "section" | "div" | "article" | "aside" | "li" | "ul"; tone?: CardTone; lift?: boolean; panel?: boolean } & React.HTMLAttributes<HTMLElement>) {
   return <Tag className={cn(s.card, lift && s.lift, panel && s.panelRadius, className)} data-tone={tone} {...props} />;
 }
 
