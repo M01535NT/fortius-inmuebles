@@ -20,6 +20,8 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 
 **Preguntas abiertas para el titular:** [`docs/erp-crm/PREGUNTAS_TITULAR.md`](docs/erp-crm/PREGUNTAS_TITULAR.md). Cada pregunta dice qué entrega bloquea y trae una propuesta; cada respuesta se integra en este plan como regla o decisión, según «Cómo se mantiene este plan». El archivo no es un plan paralelo: solo guarda preguntas y respuestas.
 
+**Complemento de la revisión del panel:** [P01–P84](PREGUNTAS_PLAN_ERP_CRM.md), conciliado sobre la integración del PR #42 (`1de616e`). Conserva las referencias de la revisión inicial, marca los temas resueltos por las reglas vigentes y remite las coincidencias al cuestionario anterior. Se responde primero A y B; el complemento no modifica las reglas, el orden ni las 73 preguntas del cuestionario vigente.
+
 **Integración de este plan:** las reglas y paquetes del 17 y 18/10/2026 se integran en `main` con el [PR #41](https://github.com/M01535NT/fortius-inmuebles/pull/41) (solo documentación; Verify aprobado sobre el contenido revisado).
 
 ## Etapas por ruta: qué ve el asesor y qué cierra cada etapa (referencia vigente, 18/10/2026)
@@ -1052,6 +1054,14 @@ Notas de la fase 1: sin migraciones. El entorno local usa la base real, así que
 ## Regla de actualización en cada publicación
 
 Por instrucción de Moisés del 13/10/2026, este plan debe actualizarse con cada entrega a GitHub y cada despliegue. Registrar fecha local, alcance real, PR, commit funcional, migraciones aplicadas, comprobaciones y límites, enlace y estado del despliegue. Distinguir preparación, publicación comprobada y pendientes; no marcar publicado por haber hecho push. Los commits que solo actualizan este registro no requieren reconstruir un producto cuyo código permanece idéntico. Actualizar también las tareas realizadas y pendientes del mismo plan.
+
+### Cuestionario complementario — entrega documental 17/10/2026
+
+**Entrega a GitHub:** [PR #43](https://github.com/M01535NT/fortius-inmuebles/pull/43), commit documental `43815d70470e02aeab2f6efc9442ca440b3702f9`, preparado sobre `main` después del PR #42 (`1de616e`). El estado de Verify y de la fusión se comprueba en el PR; este registro no acredita por sí solo un despliegue.
+
+- **Alcance:** complemento P01–P84 conciliado con las reglas vigentes: nueve temas resueltos, dos remisiones completas y 73 campos de respuesta (16 detalles complementarios y 57 preguntas directas). Se conservan las 73 preguntas del cuestionario vigente y la prioridad de A y B. No cambia el orden de implementación.
+- **Comprobaciones locales:** lectura completa, revisión independiente aprobada, identificadores y correspondencias comprobados, 99 referencias locales existentes y diff sin errores de espacios. Los documentos locales ajenos a esta entrega se preservaron y quedaron fuera del commit.
+- **Límites:** solo Markdown; sin cambios de código, pruebas, dependencias o migraciones, ni escrituras en datos productivos. La revisión documental no acredita la implementación de los paquetes pendientes ni requiere reconstruir el producto. CI, integración y publicación se verifican por separado.
 
 ### Panel guiado y flujo del vendedor publicados — 17/10/2026
 
