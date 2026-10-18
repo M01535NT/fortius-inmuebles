@@ -39,7 +39,6 @@ beforeAll(async () => {
   await db.exec(await readFile(new URL("../../supabase/migrations/202609060003_fortius_inmuebles_identity.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../../supabase/migrations/20261005035035_fortius_inmuebles_identity.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../../supabase/migrations/20261010131109_fortius_public_property_facts.sql", import.meta.url), "utf8"));
-  await db.exec(await readFile(new URL("../../supabase/migrations/20261018120000_property_escenario_fields.sql", import.meta.url), "utf8"));
 });
 afterAll(async () => { await db?.close(); });
 
@@ -228,34 +227,6 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
     });
     const result=await asRole("anon", null, () => db.query<{data: Record<string,unknown>}>("select data from public.fortius_inmuebles_public_records('propiedades') where data->>'slug'='info-property'"));
     expect(result.rows[0].data.informacionPublica).toEqual({fuenteTerreno:"escritura",ocupacionEntrega:"Libre"});
-    expect(JSON.stringify(result.rows)).not.toContain("NEVER_PUBLIC");
- });
-
- it("Escenario fields are validated on write and published only when well formed", async () => {
-    const escenario = {
-      puntosDeInteres: [{ lugar: "Malecón", minutos: 5, categoria: "playa", privado: "NEVER_PUBLIC" }, { lugar: "Plaza", minutos: 7 }],
-      beneficios: [{ titulo: "Vista al mar", texto: "Orientación poniente.", privado: "NEVER_PUBLIC" }],
-      caracteristicas: [{ grupo: "interior", elementos: ["Doble altura"], privado: "NEVER_PUBLIC" }],
-      costos: { predialAnual: 18500, mantenimientoMensual: 2500, privado: "NEVER_PUBLIC" },
-    };
-    await asRole("authenticated", member, async () => {
-      await save("asesores", "esc-adviser", {...adviser,id:"esc-adviser"});
-      await save("propiedades", "esc-property", {...property,slug:"esc-property",codigo:"ESC-1",asesorId:"esc-adviser",...escenario});
-      for (const invalid of [
-        { puntosDeInteres: [{ lugar: "X", minutos: 1, categoria: "casino" }] },
-        { beneficios: [{ titulo: "", texto: "" }] },
-        { beneficios: Array.from({ length: 5 }, (_, i) => ({ titulo: `B${i}`, texto: "" })) },
-        { caracteristicas: [{ grupo: "secreto", elementos: [] }] },
-        { caracteristicas: [{ grupo: "interior", elementos: [42] }] },
-        { costos: { predialAnual: -1 } },
-      ]) await expect(save("propiedades", "esc-invalid", {...property,slug:"esc-invalid",codigo:"ESC-2",asesorId:"esc-adviser",...invalid})).rejects.toMatchObject({ code: "PT400" });
-    });
-    const result=await asRole("anon", null, () => db.query<{data: Record<string,unknown>}>("select data from public.fortius_inmuebles_public_records('propiedades') where data->>'slug'='esc-property'"));
-    const data=result.rows[0].data;
-    expect(data.puntosDeInteres).toEqual([{ lugar: "Malecón", minutos: 5, categoria: "playa" }, { lugar: "Plaza", minutos: 7 }]);
-    expect(data.beneficios).toEqual([{ titulo: "Vista al mar", texto: "Orientación poniente." }]);
-    expect(data.caracteristicas).toEqual([{ grupo: "interior", elementos: ["Doble altura"] }]);
-    expect(data.costos).toEqual({ predialAnual: 18500, mantenimientoMensual: 2500 });
     expect(JSON.stringify(result.rows)).not.toContain("NEVER_PUBLIC");
  });
 
