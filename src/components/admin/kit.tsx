@@ -170,9 +170,9 @@ export function TabPanel({ idPrefix, id, children, className }: { idPrefix: stri
   return <div role="tabpanel" id={`${idPrefix}-panel-${id}`} aria-labelledby={`${idPrefix}-tab-${id}`} className={className}>{children}</div>;
 }
 
-export function Segmented<K extends string>({ options, value, onChange, label, className }: { options: Array<{ id: K; label: string; disabled?: boolean }>; value: K; onChange: (id: K) => void; label: string; className?: string }) {
+export function Segmented<K extends string>({ options, value, onChange, label, className }: { options: Array<{ id: K; label: string; disabled?: boolean; icon?: React.ReactNode }>; value: K; onChange: (id: K) => void; label: string; className?: string }) {
   return <div className={cn(s.seg, className)} role="radiogroup" aria-label={label}>
-    {options.map(o => <button key={o.id} type="button" role="radio" aria-checked={o.id === value} disabled={o.disabled} className={s.segItem} onClick={() => onChange(o.id)}>{o.label}</button>)}
+    {options.map(o => <button key={o.id} type="button" role="radio" aria-checked={o.id === value} disabled={o.disabled} className={s.segItem} onClick={() => onChange(o.id)}>{o.icon}{o.label}</button>)}
   </div>;
 }
 
