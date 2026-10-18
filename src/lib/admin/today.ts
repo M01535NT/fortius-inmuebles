@@ -68,7 +68,7 @@ export function greeting(hour: number) { return hour < 12 ? "Buenos días" : hou
 
 const active = (d: TodayDossier) => d.etapa !== "cerrado" && d.flujo?.estado !== "descartada";
 
-export type WaitingItem = { id: string; who: string; folio?: string; detail?: string; reason: string; when: string; late: boolean; href: string; rank: number; sort: string };
+export type WaitingItem = { id: string; who: string; folio?: string; detail?: string; reason: string; when: string; late: boolean; href: string; rank: number; sort: string; propertySlug?: string | null };
 
 /**
   «Esperan algo de ti»: una tarjeta por operación o contacto, con el motivo más
@@ -95,7 +95,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today 
     else if (flow?.estado !== "pausada" && !open.some(t => !!t.vence)) pick = { reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "", late: false, rank: 4 };
     if (!pick) continue;
     const property = names.property(dossier.propiedad_slug);
-    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, detail: [property, processStageText(dossier.etapa, flow, today)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
+    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [property, processStageText(dossier.etapa, flow, today)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
   }
   for (const contact of followups.filter(f => f.fecha <= today)) {
     items.push({ id: contact.id, who: contact.personName, detail: contact.kind === "lead" ? "Prospecto" : "Cliente", reason: "Toca darle seguimiento.", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 5, sort: contact.fecha });

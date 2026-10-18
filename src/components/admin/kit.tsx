@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { AlertTriangle, Building2, Check, Circle, CircleDot, Info, MinusCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -81,7 +82,7 @@ export function Counter({ value, label }: { value: number; label?: string }) {
 export function Thumb({ src, alt = "", size = 52, ratio, icon, className, children }: { src?: string | null; alt?: string; size?: number; ratio?: string; icon?: React.ReactNode; className?: string; children?: React.ReactNode }) {
   const style = ratio ? { width: "100%", aspectRatio: ratio } : { width: size, height: size };
   return <span className={cn(s.thumb, className)} style={style} aria-hidden={alt ? undefined : true}>
-    {src ? <img src={src} alt={alt} loading="lazy" decoding="async" /> : icon ?? <Building2 size={Math.max(18, Math.round(size * 0.4))} aria-hidden="true" />}
+    {src ? <Image unoptimized fill sizes="(max-width: 767px) 50vw, 320px" src={src} alt={alt} /> : icon ?? <Building2 size={Math.max(18, Math.round(size * 0.4))} aria-hidden="true" />}
     {children}
   </span>;
 }
@@ -91,7 +92,7 @@ export function initialsOf(name: string) {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "·";
 }
 export function Avatar({ name, src, size = 36, className }: { name: string; src?: string | null; size?: number; className?: string }) {
-  return <span className={cn(s.avatar, className)} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <img src={src} alt="" /> : initialsOf(name)}</span>;
+  return <span className={cn(s.avatar, className)} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
 }
 
 /** Anillo de avance pequeño («6 de 10»), con el texto para lectores de pantalla. */
