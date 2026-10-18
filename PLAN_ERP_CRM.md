@@ -10,13 +10,15 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 
 **Qué hay construido (en `main`):** panel guiado (Fase C, PR #39, publicado en el dominio el 17/10/2026); Operaciones según el boceto C (lista «Esperan algo de ti / Al día» con filtros por fase, «Ahora toca», ventana de captura por documento); las 10 etapas del vendedor agrupadas en cuatro fases en pantalla (Conocer · Revisar · Preparar y publicar · Vender y cerrar); entrevista 02 y levantamiento 04 sencillos; menú lateral y membrete común en Word y PDF; formatos 01–19 en PDF y Word, salvo el PDF del contrato 09, que sigue bloqueado hasta resolver DOC-09 y por ahora sale solo en Word; opinión de valor 07 en PDF y Excel; «Documentos sin expediente». Los cambios del boceto C en adelante se integraron en `main` el 17/10/2026; su publicación en el dominio no está comprobada en este registro.
 
-**Qué es este plan desde el 17/10/2026:** reglas de producto (RP-01 a RP-89) y paquetes listos para implementar (SIM, NAV, LV, COR, CAP, FCH, MOT, HER, MRP). Nada de esos paquetes está construido salvo lo que el boceto C ya resolvió (ver el estado de cada corrección en SIM).
+**Qué es este plan desde el 17/10/2026:** reglas de producto (RP-01 a RP-92) y paquetes listos para implementar (SIM, NAV, LV, COR, CAP, FCH, MOT, HER, MRP). Nada de esos paquetes está construido salvo lo que el boceto C ya resolvió (ver el estado de cada corrección en SIM).
 
-**Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla.
+**Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92).
 
-**Pendientes reales, en orden:** USO-01 (observar el panel actual con tres personas) y MRP-01 (matriz de reglas por ruta); correcciones COR-01 a COR-09; pendientes de formatos (diseño y fotos del 07, DOC-06, decisión de DOC-09); después, el bloque 2 del «Orden vigente». En paralelo, la continuidad del bloque 0, en especial la recuperación completa: los respaldos de base de datos de Supabase no incluyen los archivos de Storage (REC-01).
+**Pendientes reales, en orden:** USO-01 (observar el panel actual con tres personas) y MRP-01 (matriz de reglas por ruta); correcciones COR-01 a COR-10; pendientes de formatos (diseño y fotos del 07, DOC-06, decisión de DOC-09); después, el bloque 2 del «Orden vigente». En paralelo, la continuidad del bloque 0, en especial la recuperación completa: los respaldos de base de datos de Supabase no incluyen los archivos de Storage (REC-01).
 
-**Siguiente entrega:** MRP-01 y COR-01 a COR-03.
+**Siguiente entrega:** MRP-01 (con las respuestas de los grupos A y B de las preguntas al titular) y COR-01 a COR-03.
+
+**Preguntas abiertas para el titular:** [`docs/erp-crm/PREGUNTAS_TITULAR.md`](docs/erp-crm/PREGUNTAS_TITULAR.md). Cada pregunta dice qué entrega bloquea y trae una propuesta; cada respuesta se integra en este plan como regla o decisión, según «Cómo se mantiene este plan». El archivo no es un plan paralelo: solo guarda preguntas y respuestas.
 
 **Integración de este plan:** las reglas y paquetes del 17 y 18/10/2026 se integran en `main` con el [PR #41](https://github.com/M01535NT/fortius-inmuebles/pull/41) (solo documentación; Verify aprobado sobre el contenido revisado).
 
@@ -34,7 +36,7 @@ La base guarda ocho estados internos (`captacion`, `documentacion`, `comercializ
 | Conocer | 4 Checklist de documentos | `captacion` | Lista de documentos completa (con «No aplica» justificado tras COR-06). Para salir de `captacion`: entrevista revisada, 02 y 04 emitidos y lista completa. |
 | Revisar | 5 Dictamen jurídico | `documentacion` | Titularidad (05) y factibilidad (06, con vigencia) revisadas. |
 | Revisar | 6 Opinión de valor y precio | `documentacion` | Valor (07) y precio (08) revisados y decisión de tomar el encargo. |
-| Preparar y publicar | 7 Contrato y preparación | `documentacion` | Intermediación (09), levantamiento y material, plan (10) y autorización de publicación revisados. |
+| Preparar y publicar | 7 Contrato y preparación | `documentacion` | Intermediación (09) **firmada** y revisada (desde la firma el inmueble está captado y el propietario es cliente, RP-90 y RP-91); levantamiento y material, plan (10) y autorización de publicación revisados. |
 | Preparar y publicar | 8 Publicación y seguimiento | `comercializacion` | Comprador identificado con capacidad comprobada. Informe mensual al propietario: avisa, no detiene. |
 | Vender y cerrar | 9 Visitas y ofertas | `negociacion` | Oferta aceptada (14), revisión actualizada para cerrar (06), instrumento (15) y contraparte. |
 | Vender y cerrar | 10 Cierre y entrega · firma y pago | `cierre` | Firma acreditada y pagos para entregar cumplidos según contrato. |
@@ -44,12 +46,14 @@ La base guarda ocho estados internos (`captacion`, `documentacion`, `comercializ
 
 La etapa 10 muestra sus cuatro pasos visibles (COR-09) para no dar la venta por terminada al firmar.
 
+**Prospecto o cliente en la venta (RP-90 a RP-92):** en las etapas 1 a 7 el propietario es prospecto y el inmueble está «en captación»; desde que firma el 09 es cliente y el inmueble está captado. El comprador es prospecto hasta firmar la promesa (15) o la compraventa. Hoy el sistema no registra la firma de contratos ni distingue así al prospecto del cliente: lo corrige COR-10.
+
 **Renta del propietario** (ruta `arrendador`). Hoy el servidor le aplica los requisitos de la venta hasta `comercializacion` y la operación muestra las 10 etapas de venta, mientras Hoy usa los nombres de renta. COR-04 la separa con la tabla que defina MRP-01.
 
 | Estado interno | Etapa (nombre de renta) | Qué la cierra hoy |
 |---|---|---|
 | `captacion` | Captación para renta | Entrevista; candados de arranque. |
-| `documentacion` | Revisión y preparación | Los mismos requisitos de la venta (titularidad, factibilidad, valor, precio, intermediación, levantamiento, plan, publicación): **por revisar en MRP-01**. |
+| `documentacion` | Revisión y preparación | Los mismos requisitos de la venta (titularidad, factibilidad, valor, precio, intermediación, levantamiento, plan, publicación): **por revisar en MRP-01**. Con RP-91, la intermediación de renta firmada capta el inmueble; el catálogo no tiene ese contrato (el 09 es para venta, DEC-28). |
 | `comercializacion` | Oferta de renta | Arrendatario identificado con capacidad. |
 | `negociacion` | Selección del arrendatario | Oferta, revisión para cerrar, contrato de renta, contraparte y garantías (admite «No aplica»). |
 | `cierre` | Contrato y garantías | Firma acreditada y pagos según contrato. |
@@ -59,11 +63,11 @@ La etapa 10 muestra sus cuatro pasos visibles (COR-09) para no dar la venta por 
 
 Los nombres de renta están desfasados un lugar respecto a lo que cierra cada estado (por ejemplo, `cierre` se llama «Contrato y garantías» pero pide firma y pagos): COR-04 los alinea.
 
-**Compra** (ruta `compra`): Perfil y capacidad (perfil y privacidad) → Opciones (opciones) → Visitas (visitas y capacidad) → Oferta y negociación (oferta, revisión, instrumento, contraparte) → Firma y pago → Entrega → Postventa (registro, honorarios, archivo) → Archivado.
+**Compra** (ruta `compra`): Perfil y capacidad (perfil y privacidad) → Opciones (opciones) → Visitas (visitas y capacidad) → Oferta y negociación (oferta, revisión, instrumento, contraparte) → Firma y pago → Entrega → Postventa (registro, honorarios, archivo) → Archivado. El comprador es prospecto hasta firmar la promesa o la compraventa (RP-90).
 
-**Búsqueda de renta** (ruta `arrendatario`): Necesidades de renta → Opciones → Visitas → Solicitud y condiciones → Contrato y garantías → Firma y pagos → Entrega y seguimiento → Archivo del encargo, con los requisitos de compra adaptados a renta (contrato de renta, garantías, inventario, término).
+**Búsqueda de renta** (ruta `arrendatario`): Necesidades de renta → Opciones → Visitas → Solicitud y condiciones → Contrato y garantías → Firma y pagos → Entrega y seguimiento → Archivo del encargo, con los requisitos de compra adaptados a renta (contrato de renta, garantías, inventario, término). El arrendatario es prospecto hasta firmar el contrato de arrendamiento (RP-90).
 
-**Inversión** (ruta `inversion`): Mandato y criterios → Alternativas → Diligencia y riesgos → Escenarios → Decisión y capital → Ejecución vinculada → Seguimiento de resultados → Archivado (perfil y privacidad; criterios; riesgos; escenarios y capacidad; decisión y ejecución; seguimiento; honorarios y archivo).
+**Inversión** (ruta `inversion`): Mandato y criterios → Alternativas → Diligencia y riesgos → Escenarios → Decisión y capital → Ejecución vinculada → Seguimiento de resultados → Archivado (perfil y privacidad; criterios; riesgos; escenarios y capacidad; decisión y ejecución; seguimiento; honorarios y archivo). Qué contrato convierte al inversionista en cliente queda en DEC-28.
 
 **Lo que falta definir y queda en MRP-01:** qué puede empezar en paralelo (la entrevista y el levantamiento se hacen en la misma visita; publicación, visitas y negociación coexisten), qué ciclos se admiten (una oferta rechazada regresa a seguimiento sin perder historial) y qué excepciones se aceptan con motivo.
 
@@ -118,7 +122,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 
 **E. Fichas 360°**
 
-- **RP-27 · Persona:** una sola línea de tiempo con contactos, mensajes registrados, visitas, documentos, ofertas, cambios y notas, con filtros. Una persona con varios papeles no se duplica. (CRM-03, REL-01)
+- **RP-27 · Persona:** una sola línea de tiempo con contactos, mensajes registrados, visitas, documentos, ofertas, cambios y notas, con filtros. Una persona con varios papeles no se duplica; en cada operación se ve su papel y si es prospecto o cliente (RP-92). (CRM-03, REL-01)
 - **RP-28 · Inmueble:** salud de la ficha (qué tan completa está, días publicado, visitas, prospectos y ofertas), alertas con umbral ajustable en Configuración («60 días sin ofertas: revisa el precio con el propietario») enlazadas a Comparables, e historial de precio con quién, cuándo y por qué. (INV-01)
 
 **F. El dinero a la vista**
@@ -130,7 +134,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 
 **G. Tableros que llevan a actuar**
 
-- **RP-33 · Tableros por rol.** Director: embudo, tiempo promedio en cada etapa, carga por asesor, inventario envejecido, conversión por origen y metas. Asesor: sus metas, su embudo y sus pendientes. (TAB-02, TAB-05)
+- **RP-33 · Tableros por rol.** Director: embudo, tiempo promedio en cada etapa, carga por asesor, inventario envejecido, captaciones y conversión a cliente por origen (contrato firmado, RP-90 y RP-91) y metas. Asesor: sus metas, su embudo y sus pendientes. (TAB-02, TAB-05)
 - **RP-34 · Toda cifra se abre** en los registros que la forman y se compara con el periodo anterior y con la meta. Sin fuente suficiente dice «pendiente», nunca cero. (TAB-01)
 
 **H. Documentos**
@@ -216,6 +220,18 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 - **RP-88 · Preparado no es entregado.** El informe al propietario registra «último preparado» y, aparte, fecha, canal y responsable de entrega (captura manual; no exige integrar WhatsApp ni correo). Lo mismo para visitas: programada, realizada o cancelada (VIS-01). (COR-08)
 - **RP-89 · Entrevista con lo necesario y opción «Ampliar».** Mínimo no significa poco: la entrevista pide todo lo que el proceso necesita para funcionar (cada respuesta que alimenta la lista de documentos, el levantamiento, un módulo del proceso o un documento obligatorio) y nada que no se use. Una sección plegada **«Ampliar»** permite capturar el resto (régimen y datos del matrimonio, adquisición, compromisos previos, precio mínimo, condiciones de pago y entrega, datos fiscales) cuando el asesor lo considere útil. Lo que en la cita no se sepa se toma de los documentos en oficina. Si una condición de la lista de documentos depende de un dato no capturado, el documento aparece «por confirmar», no se omite. Respeta la decisión del titular del 17/10/2026 (entrevista para conocer al propietario) y la completa. (CAP-03, COR-06)
 
+**S. Prospecto y cliente (regla del titular, 18/10/2026)**
+
+- **RP-90 · Cliente es quien firmó su contrato.** Una persona es **prospecto** hasta que firma el contrato que corresponde a su papel; desde esa firma es **cliente**. Antes de la firma ninguna de las partes está obligada a hacer negocios. Contrato que convierte en cliente:
+  - propietario que vende u ofrece en renta: el **contrato de intermediación** (09 para venta; el de renta está por definir, DEC-28);
+  - comprador: la **promesa de compraventa** (15) o la **compraventa**, la que se firme primero;
+  - arrendatario: el **contrato de arrendamiento**;
+  - inversionista: por definir (DEC-28).
+
+  Completar la entrevista, emitir documentos, abrir una operación o registrar una oferta no convierten a nadie en cliente. (COR-10, CRM-01)
+- **RP-91 · Inmueble captado = intermediación firmada.** Un inmueble está **captado** desde que el propietario firma el contrato de intermediación; antes está «en captación». Sin esa firma no se publica como inmueble de Fortius (etapa 7 de la venta); si se puede ofrecer en privado antes de firmar lo decide el titular (DEC-28). La fecha de captación es la fecha de firma, y con ella cuentan los tableros. La firma se registra en la operación con fecha, firmantes y el contrato firmado adjunto, y se admite firmado fuera del panel (el PDF del 09 sigue bloqueado por DOC-09, así que hoy se firma desde Word o un original). Registrar la firma no es revisarla: el requisito de intermediación pide las dos cosas. (COR-10, MRP-01)
+- **RP-92 · La condición se calcula, no se elige.** «Prospecto» o «Cliente» sale del contrato firmado registrado; no se cambia a mano ni depende de la tabla técnica donde está guardada la persona (`leads` o `clientes`, que no cambian). La condición es por operación: la misma persona puede ser cliente en una venta y prospecto en una compra; la lista de personas la muestra como «Cliente» si lo es en alguna operación vigente. Antes de la firma siguen los estados de seguimiento del prospecto (nuevo, contactado, en evaluación, descartado). Qué pasa cuando el contrato vence, se rescinde o la operación se cancela lo decide el titular (DEC-28). (COR-10, C24)
+
 ### Etapa posterior: adaptación para otras inmobiliarias (en pausa)
 
 No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no perder lo ya pensado. Las entregas correspondientes están en el backlog como «en pausa».
@@ -237,7 +253,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 **Este orden manda.** La columna «Fase» de la matriz y la tabla «Orden y ventanas orientativas» agrupan por tema y sirven de referencia; si difieren, se sigue este orden. Cada entrega está en un bloque igual o posterior al de todo lo que necesita.
 
 0. **Continuidad, en paralelo y sin frenar lo demás:** BAS-01, REC-01, CI-01, AUT-01, OBS-01, ENV-01 y PRV-01. Varias dependen de accesos externos; son condición para el piloto con datos reales (bloque 7), no para trabajar con datos simulados.
-1. **Coherencia y fallas, antes de programar más:** USO-01 y MRP-01; COR-01 a COR-09 (COR-04 después de MRP-01); los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, y la decisión de DOC-09); comprobar la publicación del rediseño.
+1. **Coherencia y fallas, antes de programar más:** USO-01 y MRP-01; COR-01 a COR-10 (COR-04 y COR-10 después de MRP-01); los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, y la decisión de DOC-09); comprobar la publicación del rediseño.
 2. **Interfaz, confianza y trabajo suelto** (pueden empezar ya):
    - primero SIM-01 junto con LV-01 (color, letra, fechas); con ellos se da por cumplida la base de UX-01, que el kit de la Fase C ya cubre en buena parte;
    - SIM-02 a SIM-12 en orden; LV-02 a LV-04; UX-04, UX-03, UX-02 y UX-05;
@@ -294,6 +310,10 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | 18/10/2026 | «Ficha comercial» como herramienta (catálogo HER). | Sale del catálogo: la ficha técnica PDF se descarga en la página pública del inmueble y desde el menú del inmueble en el panel. |
 | 18/10/2026 | «09 y 15 conservan su bloqueo legal» (RP-77, F16, FCH-04). | Solo el 09 está bloqueado (DOC-09); la 15 conserva sus reglas legales y de congruencia, no un bloqueo general (RP-77). |
 | 18/10/2026 | UX-02 con «tablero personal» y dependiente de SEG-01, PAG-01 y TAB-01. | Solo búsqueda, vistas y preferencias por usuario, sin tablero armable (RP-66), y sin esas dependencias. |
+| 18/10/2026 | Al completar la entrevista el contacto «se convierte a cliente» (registro del 13/10/2026 y código actual) y el botón «Convertir en cliente» lo hace a mano. | Completar la entrevista abre la operación; la persona sigue siendo prospecto hasta firmar su contrato. La conversión de `leads` a `clientes` queda como mecanismo técnico y el botón cambia de nombre (RP-90, RP-92, COR-10). |
+| 18/10/2026 | La etapa 7 de la venta se cerraba con la intermediación (09) revisada. | Intermediación firmada y revisada; desde la firma el inmueble está captado (RP-91). |
+| 18/10/2026 | «Cliente» como una etapa más de la lista de personas (C24) y «Conversión CRM: leads convertidos a cliente» (diccionario). | «Cliente» se calcula del contrato firmado (C24, RP-92); la conversión a cliente y las captaciones se miden por fecha de firma (diccionario). |
+| 18/10/2026 | CRM-01: «captar, calificar, convertir» con la conversión como acción del asesor. | La conversión técnica se conserva; la condición de cliente la da la firma (CRM-01, RP-90). |
 | 17/10/2026 | Primera versión de esta sección: producto comercializable a otras inmobiliarias desde ahora, con multiempresa, marca por empresa, flujo configurable, planes y piloto externo; DEC-15 bloqueando REL-01 y SEG-01. | Segunda indicación del titular el mismo día: exclusivo de Fortius y solo con su marca. Lo de otras inmobiliarias pasa a «Etapa posterior (en pausa)»; DEC-15 ya no bloquea nada; las reglas fiscales por lugar se quedan para Fortius (FIS-01). |
 
 ## Simplificación de la interfaz (SIM) — paquete listo para implementar, 17/10/2026
@@ -366,7 +386,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | # | Hoy | Corrección |
 |---|---|---|
 | C23 | La ficha del prospecto no se rediseñó: estilo viejo con esquinas rectas; migas «Inicio / Prospectos / Registro»; el nombre aparece debajo de «Entrevista inicial» y «Seguimiento conectado»; dice «Agenda del lead»; fecha «2026-10-17»; botón de agenda solo con ícono; cinco acciones principales compitiendo; estados sueltos como fila de botones. | Ficha nueva con el marco del panel guiado: encabezado con nombre, teléfono, estado (selector), Llamar y WhatsApp; tarjeta «Siguiente paso» (base para CRM-02); línea de tiempo con notas, contactos, citas y tareas (CRM-03 puede crecer sobre ella); datos y asignación en una columna; Preparar operación como acción principal; Convertir y Eliminar en «⋯»; la cita se agenda con el mismo panel de C25. La ficha del cliente sigue la misma estructura. |
-| C24 | Pestañas Prospectos y Clientes: un usuario nuevo no sabe dónde buscar a una persona. | Una sola lista de personas con etiqueta de etapa (Nuevo, En seguimiento, Cliente, Descartado…) y filtro. **Solo de pantalla:** las tablas `leads` y `clientes` no cambian; la lista las une y cada fila abre su ficha. `?tab=` sigue funcionando como filtro. |
+| C24 | Pestañas Prospectos y Clientes: un usuario nuevo no sabe dónde buscar a una persona. | Una sola lista de personas con etiqueta de etapa y filtro: prospecto (nuevo, en seguimiento, descartado…) o **Cliente**, que se calcula del contrato firmado y no se elige a mano (RP-90 a RP-92). **Solo de pantalla:** las tablas `leads` y `clientes` no cambian; la lista las une y cada fila abre su ficha. `?tab=` sigue funcionando como filtro. |
 
 **F. Agenda, Inmuebles, Herramientas, Reportes y error**
 
@@ -396,7 +416,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | SIM-04 | C12, C13, C22 | Alta rápida dentro de Nueva operación; nombres de fase y etapa unificados | Lo que queda tras el boceto C: «Alta directa» dentro de Nueva operación; mismos nombres de fase y etapa en Reportes y en todo el panel; `?etapa=<slug>` sigue funcionando. |
 | SIM-05 | C14–C17 | Quitar números de formato de la vista principal | Lo que queda tras el boceto C: sin números de formato en la vista principal (C15); «Marcar como revisado» pide la misma evidencia; el servidor rechaza lo mismo que antes. |
 | SIM-06 | C18–C21 | Celular, columna lateral y menú «⋯» | Lo que queda tras el boceto C: Llamar y WhatsApp en el encabezado en celular (C19); «¿Qué significa?» como enlace (C20); pestaña Ajustes retirada sin perder ninguna acción (C21). |
-| SIM-07 | C23 | Ficha de persona (prospecto y cliente) | Mismo marco que la operación; una acción principal; sin «lead» ni «Seguimiento conectado»; fechas humanas; conversión y eliminación con sus protecciones actuales. |
+| SIM-07 | C23 | Ficha de persona (prospecto y cliente) | Mismo marco que la operación; una acción principal; sin «lead» ni «Seguimiento conectado»; fechas humanas; conversión técnica y eliminación con sus protecciones actuales; «Cliente» solo con contrato firmado (RP-92, COR-10). |
 | SIM-08 | C24 | Lista única de personas | Una lista con etapa y filtro; las fichas y las direcciones anteriores funcionan; sin cambios de base. |
 | SIM-09 | C25, C26 | Agendar y eliminar citas | Panel de agendar desde hueco o botón; un campo de búsqueda de vínculo; eliminar con deshacer. |
 | SIM-10 | C27, C28 | Inmuebles y Herramientas | Cada inmueble dice qué le falta; catálogo en tres grupos sin filtros; «Documentos sueltos». |
@@ -520,7 +540,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 
 ### Correcciones inmediatas (fallas encontradas)
 
-COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a partir de revisiones externas (Grok y ChatGPT) verificadas en el código de `main` y en capturas del panel actual.
+COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a partir de revisiones externas (Grok y ChatGPT) verificadas en el código de `main` y en capturas del panel actual; COR-10, el 18/10/2026, por la regla del titular sobre prospecto y cliente (RP-90 a RP-92).
 
 | ID | Falla | Corrección | Aceptación |
 |---|---|---|---|
@@ -533,12 +553,13 @@ COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a p
 | COR-07 | Las etiquetas sencillas dicen más que la regla: «Firma ante notario», «Pago completo antes de entregar», «Aviso de privacidad firmado» (`src/lib/admin/today.ts`). | Etiquetas de RP-86 en todas las pantallas y documentos. | Prueba de textos; ninguna etiqueta contradice su requisito. |
 | COR-08 | El informe al propietario solo registra la fecha en que se preparó. | Agregar fecha, canal y responsable de entrega, capturados a mano (RP-88). | El aviso de informe vencido usa la entrega cuando existe. |
 | COR-09 | La etapa 10 «Cierre y entrega» oculta firma, entrega, postventa y archivo en un solo círculo. | Mostrar sus cuatro pasos dentro de la etapa, con el actual marcado. | Prueba: una operación en `entrega` dice «Cierre y entrega · entrega». |
+| COR-10 | El sistema no sigue la regla de prospecto y cliente (RP-90 a RP-92): completar la entrevista convierte al contacto en cliente (registro del 13/10/2026); el botón «Convertir en cliente» lo hace a mano (`src/components/admin/convert-lead-button.tsx`); listas, agenda y búsqueda llaman «Cliente» a quien está en la tabla `clientes`; el requisito de intermediación se cumple con «revisado», sin registro de firma (`src/lib/formatos/operation-workflow.ts`); y quien ya tiene operación deja de aparecer en el seguimiento de prospectos aunque no haya firmado (`src/lib/admin/followups.ts` y `commercial-metrics.ts` excluyen a quien tiene `clienteId`). | Registrar en la operación la firma del contrato (tipo, fecha, firmantes y archivo; admite firmado fuera del panel). Calcular «Prospecto/Cliente» y «Captado» a partir de esa firma en Contactos, fichas, agenda, búsqueda, Hoy y Reportes. Cambiar el nombre de «Convertir en cliente» por uno que no prometa la condición (DEC-28). Pedir la firma registrada, además de revisada, para pasar de «Contrato y preparación» a «Publicación». Mantener en el seguimiento de prospectos a quien tiene operación sin contrato firmado. Se conservan las tablas `leads` y `clientes`, sus IDs y la conversión idempotente. Si cambia la validación del servidor: migración aditiva con respaldo, ensayo y autorización. | Pruebas: una entrevista completada deja a la persona como «Prospecto» con su operación; registrar la firma del 09 la muestra como «Cliente» y el inmueble como «Captado» en todas las vistas; sin firma registrada no se pasa a Publicación; un comprador pasa a cliente al registrar la promesa o la compraventa firmada; convertir dos veces sigue devolviendo el mismo registro. |
 
 ### Matriz de reglas por ruta y observación de uso (MRP, USO)
 
 | ID | Alcance | Depende de | Aceptación |
 |---|---|---|---|
-| MRP-01 | **Matriz de reglas por ruta** (documento dentro de este plan, sin código): para venta, renta, compra, búsqueda de renta e inversión, por etapa: actividad · evidencia · quién revisa · desde cuándo puede empezar · qué la termina · qué autoriza avanzar, publicar o formalizar · excepción admitida y con qué motivo · qué puede ir en paralelo y qué ciclos se admiten (RP-87). Parte de la tabla «Etapas por ruta» y de `requiredReviews`. | — | El titular la aprueba (DEC-26). Es la fuente de COR-04, de la lista de documentos de COR-06 y del contenido de MOT-01 (versión 1 del motor). |
+| MRP-01 | **Matriz de reglas por ruta** (documento dentro de este plan, sin código): para venta, renta, compra, búsqueda de renta e inversión, por etapa: actividad · evidencia · quién revisa · desde cuándo puede empezar · qué la termina · qué autoriza avanzar, publicar o formalizar · excepción admitida y con qué motivo · qué puede ir en paralelo y qué ciclos se admiten (RP-87) · qué contrato firmado convierte en cliente (RP-90). Parte de la tabla «Etapas por ruta» y de `requiredReviews`. | — | El titular la aprueba (DEC-26). Es la fuente de COR-04, de la lista de documentos de COR-06 y del contenido de MOT-01 (versión 1 del motor). |
 | USO-01 | **Observar el panel actual** con el director y dos asesores resolviendo casos sintéticos sin ayuda (crear operación, avanzar una etapa, marcar revisado, encontrar qué falta), anotando dónde se detienen y si distinguen preparado, revisado y aprobado. | — | Hallazgos registrados aquí; ajustan la prioridad de SIM antes de implementarla. Sin datos reales. |
 
 ### A. Llamada, entrevista y cierre (CAP)
@@ -1063,6 +1084,8 @@ Por instrucción de Moisés del 13/10/2026, este plan debe actualizarse con cada
 **Problema:** Nueva operación exigía un cliente existente y la guía pedía entrevista sin ofrecer dónde realizarla. **Alcance autorizado:** Resumen → elegir vender/ofrecer renta/comprar/buscar renta/invertir → contacto nuevo o existente → cuestionario correspondiente → guardar borrador/reabrir → completar y continuar en el expediente.
 
 - Nueva tabla privada `fortius_inmuebles_interviews`: intención por operación, contacto/asesor autorizado, respuestas versionadas, expediente y entrevista anterior. Capturas completadas inmutables; correcciones vinculadas al mismo expediente. Se conservan los formatos documentales02/12.
+> **Nota (18/10/2026):** la conversión a cliente al completar la entrevista queda superada por RP-90 a RP-92: completar abre la operación, pero la persona sigue como prospecto hasta firmar su contrato (COR-10).
+
 - El nuevo contacto permanece en Prospectos durante el borrador. Solo al completar se convierte a cliente, crea expediente con folio automático y próxima tarea fechada; todo ocurre en una transacción. Un cliente existente conserva ficha, tipo, perfil, responsable y operaciones anteriores; inversionista tiene clasificación propia cuando se crea desde esta captura.
 - La entrevista admite evaluación. Titularidad/factibilidad/autorizaciones se revisan antes de comercializar; capacidad comprobada antes de oferta. Precio/capital por definir no se registra como cero. Aviso presentado no significa consentimiento.
 - Reintentos del mismo ingreso/contenido producen el mismo resultado; claves con contenido distinto se rechazan. Teléfono compartido requiere confirmación expresa de persona distinta. Reanudar un borrador no se considera una creación exitosa de otra solicitud.
@@ -1320,6 +1343,7 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 | DEC-25 | Lugar de «Notas del equipo» | El titular decide si queda en Herramientas, pasa a Hoy o se retira. |
 | DEC-26 | Aprobación de la matriz de reglas por ruta (MRP-01) | El titular la revisa y aprueba antes de COR-04 y MOT-01. |
 | DEC-27 | Nombres sencillos de los requisitos (RP-86) | El titular confirma los textos nuevos de firma, pagos y privacidad antes de COR-07. |
+| DEC-28 | Detalles de prospecto y cliente (RP-90 a RP-92) | El titular responde el grupo A de [`docs/erp-crm/PREGUNTAS_TITULAR.md`](docs/erp-crm/PREGUNTAS_TITULAR.md) antes de COR-10: contrato de intermediación para renta, cuándo es cliente el inversionista, evidencia y responsable de la firma, copropietarios, qué pasa al vencer o rescindirse el contrato, promoción antes de firmar y nuevo nombre del botón «Convertir en cliente». |
 
 ## Criterios de producto terminado para la primera versión operativa
 
@@ -1404,7 +1428,7 @@ Prioridad P0 = continuidad/protección; P1 = núcleo diario; P2 = completar prod
 | REL-01 P1/I | Persona con varios papeles, representantes y varios propietarios por inmueble; datos de organización | personas nuevo, clientes/propiedades/expedientes, migración aditiva | DEC-04/09, BAS-01; 3–5d | Vínculo versionado y con fuente; no certificar titularidad; persona no se duplica por papel. Legacy sigue legible. |
 | SEG-01 P0/I | Matriz de capacidades por función y por registro | identity nuevo, auth, staff, RLS y Storage | DEC-03, REL-01; 3–5d | Dos asesores, administrador y capacidad especializada probados en API/DB; reasignación elimina acceso indebido. |
 | USR-01 P1/I | Administrar cuentas del equipo desde el panel | nueva vista/API de personal, perfil asesor y adviser-accounts | SEG-01/AUT-01; 3–5d | Invitar, vincular y desactivar personal con trazabilidad; perfil público separado de cuenta; evitar dejar cero administradores activos; no pedir ni mostrar contraseña del usuario. |
-| CRM-01 P1/I | Captar, calificar, convertir y programar próxima acción; coincidencias revisables | leads/clientes/lead-profile, conversion, followups | REL-01, SEG-01; 3–5d | Conversión idempotente, fuente/consentimiento trazados, sin fusión automática por teléfono. |
+| CRM-01 P1/I | Captar, calificar, abrir operación y programar próxima acción; coincidencias revisables; la condición de cliente sale del contrato firmado (RP-90) | leads/clientes/lead-profile, conversion, followups | REL-01, SEG-01; 3–5d | Conversión idempotente, fuente/consentimiento trazados, sin fusión automática por teléfono; convertir no muestra «Cliente» sin contrato firmado. |
 | OPS-01 P1/I | Expediente como operación coherente y centro de trabajo | operaciones nuevo, expedientes, tareas/eventos/related-work | DEC-02/05, CRM-01; 3–5d | Contexto compartido y enlaces durables; conflicto conserva captura; tarea vincula expediente explícitamente. |
 | PUB-01 P1/I | Inventario interno separado de publicación; captación web conectada | property-form, public.ts, `/api/public/leads`, layout config | SEG-01, CRM-01; 2–4d | Alta no publica; datos privados no aparecen en web/PDF; formulario sintético llega al CRM si se autoriza activar captación. Demo se conserva. |
 | DAT-01 P1/I | Revisar datos heredados e importaciones/exportaciones permitidas | validadores/domain, utilidades de importación y reporte de simulación | REL-01/SEG-01/PRV-01; 2–4d | Simulación sin escrituras detecta referencias ambiguas, duplicados y errores; usuario decide fusiones; ejecución idempotente y export restringido. Nunca importar ejemplos como actividad real. |
@@ -1484,7 +1508,7 @@ No se trabaja en estas entregas hasta que el titular abra la etapa posterior (DE
 
 ## Estado y dependencias de cada entrega
 
-Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM, las 14 del paquete NAV las 4 del paquete LV las 21 de «Proceso, captura y documentos» (COR, CAP, FCH y MOT) las 4 de «Herramientas para trabajo suelto» (HER) y los pendientes de formatos DOC-06 y DOC-09 y, desde el 18/10/2026, COR-03 a COR-09, MRP-01 y USO-01, para un total de 134. **Estados revisados el 18/10/2026:** «parcial» significa que una parte ya existe — OPS-01 (tareas vinculadas a la operación y apertura transaccional desde la entrevista, 13/10), CRM-01 (conversión idempotente), PUB-01 (publicación condicionada a la operación de captación), DOC-01 (emisiones con huella, versiones y copia firmada), UX-01 (kit del panel guiado) y SIM-04 a SIM-06 (boceto C). Lo demás sigue pendiente aunque tenga piezas sueltas. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
+Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM, las 14 del paquete NAV las 4 del paquete LV las 21 de «Proceso, captura y documentos» (COR, CAP, FCH y MOT) las 4 de «Herramientas para trabajo suelto» (HER) y los pendientes de formatos DOC-06 y DOC-09 y, desde el 18/10/2026, COR-03 a COR-09, MRP-01, USO-01 y COR-10 (prospecto y cliente), para un total de 135. **Estados revisados el 18/10/2026:** «parcial» significa que una parte ya existe — OPS-01 (tareas vinculadas a la operación y apertura transaccional desde la entrevista, 13/10), CRM-01 (conversión idempotente), PUB-01 (publicación condicionada a la operación de captación), DOC-01 (emisiones con huella, versiones y copia firmada), UX-01 (kit del panel guiado) y SIM-04 a SIM-06 (boceto C). Lo demás sigue pendiente aunque tenga piezas sueltas. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
 
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
@@ -1584,6 +1608,7 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | COR-07 | 2 | pendiente | ninguna |
 | COR-08 | 2 | pendiente | ninguna |
 | COR-09 | 2 | pendiente | ninguna |
+| COR-10 | 2 | pendiente | MRP-01, DEC-28 |
 | MRP-01 | 2 | pendiente | DEC-26 |
 | USO-01 | 4 | pendiente | ninguna |
 | CAP-01 | 1 | pendiente | SIM-01, SIM-09, COR-01 |
@@ -1631,7 +1656,8 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 |---|---|---|
 | Contactos vencidos | Contactos activos con próxima fecha anterior a corte local | Followups autorizados; fecha ausente se cuenta aparte, no como vencido. |
 | Primera atención | Tiempo desde recepción hasta contacto registrado; mediana y población sin medición | `creadoEl` y `firstContactedAt`; no inferir de clics WhatsApp. |
-| Conversión CRM | Leads convertidos / leads de cohorte de recepción, con periodo de observación | Conversiones; nombre exacto «a cliente», no cierre. |
+| Conversión a cliente | Prospectos que firmaron su contrato (RP-90) / prospectos de la cohorte de recepción, con periodo de observación | Fecha de firma registrada (COR-10); abrir operación o completar la entrevista no cuenta. Nombre exacto «a cliente», no cierre. |
+| Captaciones | Inmuebles con contrato de intermediación firmado en el periodo (RP-91) | Fecha de firma; los inmuebles en captación sin firma se muestran aparte. |
 | Visitas realizadas | Eventos con realización confirmada, excluyendo cancelados/reemplazados | Fuente VIS-01; agendados se muestran aparte. |
 | Cobros confirmados | Suma de pagos conciliados por moneda/periodo menos anulaciones aplicables | FIN-01/02; no sumar honorarios potenciales. |
 | Saldo por cobrar | Obligación vigente menos pagos aplicados y ajustes aprobados | Fuente contractual y movimientos; sin base mostrar pendiente. |
@@ -1917,6 +1943,8 @@ export declare function requireOperationAccess(expedienteId: string,
 
 ### CRM-01 — conversión y próxima acción
 
+**Regla vigente (18/10/2026):** la conversión de `leads` a `clientes` es un mecanismo técnico para abrir la operación; no hace cliente a nadie. La condición «Cliente» la da el contrato firmado (RP-90 a RP-92, COR-10).
+
 **Modificar:** `src/lib/backend/lead-conversion.ts`, rutas de conversión, `src/components/admin/convert-lead-button.tsx`, perfiles de lead/cliente, `src/lib/admin/followups.ts`, enlaces RelatedWork.
 
 **Tests existentes:** `tests/backend/lead-conversion-database.test.ts`, `tests/backend/lead-conversion-route.test.ts`, `tests/admin/lead-conversion.test.tsx`. Añadir prueba de recorrido CRM si el escenario completo no existe.
@@ -1929,7 +1957,7 @@ export declare function requireOperationAccess(expedienteId: string,
 - [ ] Añadir siguiente acción con fecha/responsable o motivo explícito de pendiente, reutilizando tareas/seguimiento. Contacto confirmado se registra, no se infiere de abrir WhatsApp.
 - [ ] Comprobar resultado tras recarga y en alcance del asesor correcto; preservar firstContactedAt y snapshot de lead original.
 
-**Aceptación:** convertir dos veces produce el mismo cliente autorizado; perfil y próxima acción permanecen tras recarga; sin venta/income inferida por conversión.
+**Aceptación:** convertir dos veces produce el mismo registro autorizado; perfil y próxima acción permanecen tras recarga; sin venta/income inferida por conversión.
 
 ### OPS-01 — apertura operativa y tareas vinculadas
 
