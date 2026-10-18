@@ -1,13 +1,16 @@
 "use client";
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, Check, Circle, CircleDot, Info, MinusCircle, X } from "lucide-react";
+import { AlertTriangle, Building2, Check, Circle, CircleDot, Info, MinusCircle, X } from "@/components/admin/icons";
 import { cn } from "@/lib/utils";
 import s from "./kit.module.css";
 
 /*
-  Componentes del panel guiado. Referencia visual:
-  docs/diseno/lienzo-panel/Componentes.dc.html
+  Componentes del panel. Referencia visual: bocetos aprobados por el titular el 17/10/2026
+  (lienzo «Bocetos del panel Fortius») y, para estados y formularios,
+  docs/diseno/lienzo-panel/Componentes.dc.html. Escala admin-*: 10 px controles, 12 px fotos,
+  16 px tarjetas, 20 px paneles y pastilla en estados; sombras azul marino.
   Sus estilos (kit.module.css) están fuera de las capas de Tailwind: una clase de
   Tailwind sirve para acomodar (márgenes, alineación, flex) pero no reemplaza el
   relleno, el tamaño ni los colores del componente. Para eso, agrega una variante.
@@ -47,14 +50,62 @@ export function Eyebrow({ as: Tag = "p", className, ...props }: { as?: "p" | "h2
   return <Tag className={cn(s.eyebrow, className)} {...props} />;
 }
 
-/** Fondo de lienzo de una pantalla del panel guiado: tarjetas blancas encima, campos con esquinas de 10 px. */
+/** Una pantalla del panel: el fondo de lienzo lo pone el marco; aquí los campos toman esquinas de 10 px. */
 export function Surface({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn(s.surface, className)} {...props} />;
 }
 
-export function Card({ as: Tag = "section", className, ...props }: { as?: "section" | "div" | "article" | "aside" } & React.HTMLAttributes<HTMLElement>) {
-  return <Tag className={cn(s.card, className)} {...props} />;
+type CardTone = "navy" | "alert" | "soft";
+/** Tarjeta blanca con borde al 6 % y sombra en reposo. `lift` la levanta 2 px al pasar el puntero; `panel` usa la esquina de 20 px. */
+export function Card({ as: Tag = "section", tone, lift, panel, className, ...props }: { as?: "section" | "div" | "article" | "aside" | "li" | "ul"; tone?: CardTone; lift?: boolean; panel?: boolean } & React.HTMLAttributes<HTMLElement>) {
+  return <Tag className={cn(s.card, lift && s.lift, panel && s.panelRadius, className)} data-tone={tone} {...props} />;
 }
+
+/** Tarjeta que es un enlace completo (tablero, galería, resumen de Hoy). */
+export function CardLink({ tone, panel, className, ...props }: { tone?: CardTone; panel?: boolean; className?: string } & React.ComponentProps<typeof Link>) {
+  return <Link className={cn(s.card, s.lift, panel && s.panelRadius, className)} data-tone={tone} {...props} />;
+}
+
+export type PillTone = "neutral" | "brand" | "warn" | "alert" | "success" | "info" | "muted" | "solid" | "onDark";
+/** Pastilla de estado o fecha: un color con significado fijo, texto corto. */
+export function Pill({ tone = "neutral", size, className, ...props }: { tone?: PillTone; size?: "sm" } & React.HTMLAttributes<HTMLSpanElement>) {
+  return <span className={cn(s.pill, className)} data-tone={tone === "neutral" ? undefined : tone} data-size={size} {...props} />;
+}
+
+/** Contador en guinda (pendientes de Hoy). */
+export function Counter({ value, label }: { value: number; label?: string }) {
+  if (value <= 0) return null;
+  return <span className={s.counter}>{value > 99 ? "99+" : value}{label && <span className="sr-only"> {label}</span>}</span>;
+}
+
+/** Foto de un inmueble con esquinas de 12 px; sin foto muestra el ícono. `ratio` la hace fluida («4 / 3»). */
+export function Thumb({ src, alt = "", size = 52, ratio, icon, className, children }: { src?: string | null; alt?: string; size?: number; ratio?: string; icon?: React.ReactNode; className?: string; children?: React.ReactNode }) {
+  const style = ratio ? { width: "100%", aspectRatio: ratio } : { width: size, height: size };
+  return <span className={cn(s.thumb, className)} style={style} aria-hidden={alt ? undefined : true}>
+    {src ? <Image unoptimized fill sizes="(max-width: 767px) 50vw, 320px" src={src} alt={alt} /> : icon ?? <Building2 size={Math.max(18, Math.round(size * 0.4))} aria-hidden="true" />}
+    {children}
+  </span>;
+}
+
+/** Iniciales (o foto) de una persona, en un círculo neutro para no competir con los colores de estado. */
+export function initialsOf(name: string) {
+  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "·";
+}
+export function Avatar({ name, src, size = 36, className }: { name: string; src?: string | null; size?: number; className?: string }) {
+  return <span className={cn(s.avatar, className)} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
+}
+
+/** Anillo de avance pequeño («6 de 10»), con el texto para lectores de pantalla. */
+export function Ring({ value, max, size = 64, stroke = 7, label, className, trackClass, valueClass }: { value: number; max: number; size?: number; stroke?: number; label: string; className?: string; trackClass?: string; valueClass?: string }) {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const share = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
+  return <svg className={cn(s.ring, className)} width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label}>
+    <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className={cn(s.ringTrack, trackClass)} />
+    <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${c * share} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} className={cn(s.ringValue, valueClass)} />
+  </svg>;
+}
+
+export function Kbd({ children }: { children: React.ReactNode }) { return <kbd className={s.kbd}>{children}</kbd>; }
 
 /**
   Avance de etapas: línea completa en computadora, «Etapa N de M» con barra en celular.
@@ -87,20 +138,22 @@ export function ProgressBar({ value, max, label }: { value: number; max: number;
   return <div className={s.bar} role="progressbar" aria-valuemin={0} aria-valuemax={max} aria-valuenow={value} aria-label={label}><span style={{ width: `${Math.max(0, Math.min(100, (value / max) * 100))}%` }} /></div>;
 }
 
-export type TabItem<K extends string> = { id: K; label: string; count?: number };
-export function Tabs<K extends string>({ items, value, onChange, label, idPrefix }: { items: TabItem<K>[]; value: K; onChange: (id: K) => void; label: string; idPrefix: string }) {
+export type TabItem<K extends string> = { id: K; label: string; count?: number; icon?: React.ReactNode };
+/** Pestañas en fila (subrayado) o en lista vertical (`orientation="vertical"`, dentro de una operación). */
+export function Tabs<K extends string>({ items, value, onChange, label, idPrefix, orientation = "horizontal", className }: { items: TabItem<K>[]; value: K; onChange: (id: K) => void; label: string; idPrefix: string; orientation?: "horizontal" | "vertical"; className?: string }) {
   const refs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  const vertical = orientation === "vertical";
   function onKey(event: React.KeyboardEvent, index: number) {
-    const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+    const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
     if (!step) return;
     event.preventDefault();
-    const next = (index + step + items.length) % items.length;
-    refs.current[next]?.focus();
-    onChange(items[next].id);
+    const target = (index + step + items.length) % items.length;
+    refs.current[target]?.focus();
+    onChange(items[target].id);
   }
-  return <div className={s.tabs} role="tablist" aria-label={label}>
+  return <div className={cn(vertical ? s.tabsVertical : s.tabs, className)} role="tablist" aria-label={label} aria-orientation={vertical ? "vertical" : undefined}>
     {items.map((item, i) => <button key={item.id} ref={el => { refs.current[i] = el; }} type="button" role="tab" id={`${idPrefix}-tab-${item.id}`} aria-controls={`${idPrefix}-panel-${item.id}`} aria-selected={item.id === value} tabIndex={item.id === value ? 0 : -1} className={s.tab} onClick={() => onChange(item.id)} onKeyDown={e => onKey(e, i)}>
-      {item.label}{item.count !== undefined && <span className="font-mono text-xs">{item.count}</span>}
+      {vertical ? <span className="flex min-w-0 items-center gap-2.5">{item.icon}{item.label}</span> : <>{item.icon}{item.label}</>}{item.count !== undefined && <span className={s.tabCount}>{item.count}</span>}
     </button>)}
   </div>;
 }
@@ -116,9 +169,9 @@ export function TabPanel({ idPrefix, id, children, className }: { idPrefix: stri
   return <div role="tabpanel" id={`${idPrefix}-panel-${id}`} aria-labelledby={`${idPrefix}-tab-${id}`} className={className}>{children}</div>;
 }
 
-export function Segmented<K extends string>({ options, value, onChange, label, className }: { options: Array<{ id: K; label: string; disabled?: boolean }>; value: K; onChange: (id: K) => void; label: string; className?: string }) {
+export function Segmented<K extends string>({ options, value, onChange, label, className }: { options: Array<{ id: K; label: string; disabled?: boolean; icon?: React.ReactNode }>; value: K; onChange: (id: K) => void; label: string; className?: string }) {
   return <div className={cn(s.seg, className)} role="radiogroup" aria-label={label}>
-    {options.map(o => <button key={o.id} type="button" role="radio" aria-checked={o.id === value} disabled={o.disabled} className={s.segItem} onClick={() => onChange(o.id)}>{o.label}</button>)}
+    {options.map(o => <button key={o.id} type="button" role="radio" aria-checked={o.id === value} disabled={o.disabled} className={s.segItem} onClick={() => onChange(o.id)}>{o.icon}{o.label}</button>)}
   </div>;
 }
 

@@ -9,7 +9,7 @@ import { AsyncForm, AsyncButton, AsyncSelect } from "@/components/admin/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Trash2 } from "@/components/admin/icons";
 
 import {
   Badge,

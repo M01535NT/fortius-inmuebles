@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UserRoundCheck } from "lucide-react";
+import { UserRoundCheck } from "@/components/admin/icons";
 import { convertirLead, type Lead } from "@/lib/admin/store";
 import { AsyncButton, btnGhost, btnPrimary } from "./ui";
 export function ConvertLeadButton({lead,disabled=false,compact=false,openOperation=false}:{lead:Lead;disabled?:boolean;compact?:boolean;openOperation?:boolean}){

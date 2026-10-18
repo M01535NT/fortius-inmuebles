@@ -3,7 +3,7 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "@/components/admin/icons";
 
 import {
   EmptyState,

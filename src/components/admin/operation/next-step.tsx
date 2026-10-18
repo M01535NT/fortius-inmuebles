@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Clock, FileDown, FileText, Mail, MessageCircle, Phone, PlayCircle, Trash2 } from "lucide-react";
-import { Button, ButtonLink, Card, Eyebrow, Notice } from "@/components/admin/kit";
+import { ArrowRight, CalendarDays, Clock, FileDown, FileText, Mail, MessageCircle, Phone, PlayCircle, Trash2 } from "@/components/admin/icons";
+import { Button, ButtonLink, Card, Eyebrow, Notice, Pill } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
@@ -226,7 +226,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
 
 function NowCard({ title, text, children }: { title: string; text?: string; children?: React.ReactNode }) {
   return <div className="flex flex-col gap-2">
-    <Eyebrow>Ahora toca</Eyebrow>
+    <span className="self-start"><Pill tone="brand">Ahora toca</Pill></span>
     <h2 className={s.nowTitle}>{title}</h2>
     {text && <p className="text-muted-foreground">{text}</p>}
     {children && <div className="mt-3">{children}</div>}

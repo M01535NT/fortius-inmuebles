@@ -1,55 +1,98 @@
 /*
-  Componentes del panel guiado (docs/diseno/lienzo-panel/Componentes.dc.html).
+  Componentes del panel. Dirección clara aprobada por el titular (17/10/2026): esquinas suaves
+  (10 px controles, 12 px fotos, 16 px tarjetas, 20 px paneles, pastilla en estados), sombras
+  azul marino que suben al pasar el puntero y la acción principal en guinda con su sombra.
   Usan los tokens de .panel; el prefijo :global(.admin-root), clase global del contenedor
   del panel, les da precedencia sobre las reglas genéricas heredadas de panel.module.css.
-  Estilo: esquinas redondeadas (10 px controles, 14 px tarjetas, pastilla en estados),
-  tarjetas blancas con borde y sombra suaves sobre el fondo de lienzo.
 */
 
 /* Botones */
-:global(.admin-root) .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem; border-radius: var(--radius-control); border: 1px solid transparent; font-size: .9375rem; font-weight: 600; line-height: 1; text-decoration: none; cursor: pointer; white-space: nowrap; background: none; color: var(--foreground); }
-:global(.admin-root) .lg { min-height: 3.25rem; padding: 0 1.5rem; font-size: 1rem; }
-:global(.admin-root) .primary { background: var(--primary); border-color: var(--primary-edge); color: #fff; box-shadow: var(--shadow-control); }
-:global(.admin-root) .primary:not(:disabled):hover { background: var(--primary-hover); }
-:global(.admin-root) .secondary { background: var(--card); border-color: var(--edge-soft); color: var(--foreground); box-shadow: var(--shadow-control); }
+:global(.admin-root) .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem; border-radius: var(--radius-control); border: 1px solid transparent; font-size: .9375rem; font-weight: 560; line-height: 1; text-decoration: none; cursor: pointer; white-space: nowrap; background: none; color: var(--foreground); }
+:global(.admin-root) .lg { min-height: 3rem; padding: 0 1.375rem; font-size: 1rem; }
+:global(.admin-root) .primary { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: var(--shadow-cta); }
+:global(.admin-root) .primary:not(:disabled):hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+:global(.dark) :global(.admin-root) .primary { border-color: var(--primary-edge); }
+:global(.admin-root) .secondary { background: var(--card); border-color: var(--edge-soft); color: var(--foreground); }
 :global(.admin-root) .secondary:not(:disabled):hover { background: var(--secondary); }
 :global(.admin-root) .ghost { background: none; color: var(--foreground); }
 :global(.admin-root) .ghost:not(:disabled):hover { background: var(--secondary); }
 :global(.admin-root) .link { color: var(--primary-text); padding: 0 .25rem; text-decoration: underline; text-underline-offset: 3px; min-height: 2.75rem; }
-:global(.admin-root) .danger { background: var(--card); border-color: var(--destructive); color: var(--destructive); box-shadow: var(--shadow-control); }
-:global(.admin-root) .dangerSolid { background: #b3352c; border-color: #b3352c; color: #fff; }
+:global(.admin-root) .danger { background: var(--card); border-color: var(--destructive); color: var(--destructive); }
+:global(.admin-root) .dangerSolid { background: var(--alert); border-color: var(--alert); color: #fff; }
 :global(.admin-root) .iconOnly { width: 2.75rem; padding: 0; flex: none; }
-:global(.admin-root) .btn:disabled, :global(.admin-root) .btn[aria-disabled=true] { opacity: .55; cursor: not-allowed; }
+:global(.admin-root) .btn:disabled, :global(.admin-root) .btn[aria-disabled=true] { opacity: .55; cursor: not-allowed; box-shadow: none; }
+@media (prefers-reduced-motion: no-preference) {
+  :global(.admin-root) .btn { transition: transform 160ms var(--ease-out), background-color 150ms, border-color 150ms, box-shadow 150ms; }
+  :global(.admin-root) .btn:not(:disabled):active { transform: scale(.97); }
+}
 
 /* Estados de requisito: se distinguen por relleno, borde e ícono */
-:global(.admin-root) .chip { display: inline-flex; align-items: center; gap: .375rem; min-height: 1.75rem; padding: 0 .75rem; border-radius: 999px; border: 1px solid transparent; font-size: .8125rem; font-weight: 600; line-height: 1; white-space: nowrap; }
+:global(.admin-root) .chip { display: inline-flex; align-items: center; gap: .375rem; min-height: 1.75rem; padding: 0 .75rem; border-radius: var(--radius-pill); border: 1px solid transparent; font-size: .8125rem; font-weight: 540; line-height: 1; white-space: nowrap; }
 :global(.admin-root) .pendiente { border-color: var(--control-edge); color: var(--muted-foreground); }
-:global(.admin-root) .recibido { background: var(--secondary); color: var(--foreground); }
-:global(.admin-root) .revisado { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .recibido { background: var(--info-surface); color: var(--info); }
+:global(.admin-root) .revisado { background: var(--success-surface); color: var(--success); }
 :global(.admin-root) .observado { background: var(--warning-surface); color: var(--warning); border-color: var(--warning-border); }
 :global(.admin-root) .no_aplica { border: 1px dashed var(--control-edge); color: var(--muted-foreground); }
 
-/* Superficies. .surface es el fondo de lienzo de las pantallas del panel guiado:
-   las tarjetas blancas resaltan sobre él y los campos usan esquinas de 10 px. */
-:global(.admin-root) .surface { background: var(--canvas); --field-radius: var(--radius-control); --field-surface: var(--card); }
-:global(.admin-root) .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
-:global(.admin-root) .eyebrow { font-size: .75rem; line-height: 1.2; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-foreground); }
+/* Pastillas de estado y contadores */
+:global(.admin-root) .pill { display: inline-flex; align-items: center; gap: .3125rem; min-height: 1.75rem; padding: 0 .75rem; border-radius: var(--radius-pill); font-size: .8125rem; font-weight: 540; line-height: 1; white-space: nowrap; background: var(--track); color: var(--foreground); }
+:global(.admin-root) .pill[data-tone=brand] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .pill[data-tone=warn] { background: var(--warning-surface); color: var(--warning); }
+:global(.admin-root) .pill[data-tone=alert] { background: var(--alert-surface); color: var(--alert); }
+:global(.admin-root) .pill[data-tone=success] { background: var(--success-surface); color: var(--success); }
+:global(.admin-root) .pill[data-tone=info] { background: var(--info-surface); color: var(--info); }
+:global(.admin-root) .pill[data-tone=muted] { background: var(--track); color: var(--muted-foreground); }
+:global(.admin-root) .pill[data-tone=solid] { background: var(--foreground); color: var(--card); }
+:global(.admin-root) .pill[data-tone=onDark] { background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25); color: #fff; }
+:global(.admin-root) .pill[data-size=sm] { min-height: 1.375rem; padding: 0 .5rem; font-size: .75rem; }
+:global(.admin-root) .counter { display: inline-flex; align-items: center; justify-content: center; min-width: 1.375rem; height: 1.375rem; padding: 0 .4375rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: .75rem; font-weight: 600; }
 
-/* Pestañas */
+/* Fotos, iniciales y teclas */
+:global(.admin-root) .thumb { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; overflow: hidden; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--muted-foreground); }
+:global(.admin-root) .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+:global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: #dbe4f0; color: #061f3f; font-size: .75rem; font-weight: 700; letter-spacing: .02em; overflow: hidden; }
+:global(.dark) :global(.admin-root) .avatar { background: var(--secondary); color: var(--foreground); }
+:global(.admin-root) .avatar { position: relative; }
+:global(.admin-root) .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+:global(.admin-root) .kbd { display: inline-flex; align-items: center; padding: .25rem .5rem; border-radius: 8px; background: var(--track); color: var(--muted-foreground); font: inherit; font-size: .75rem; font-weight: 600; letter-spacing: .02em; }
+
+/* Superficies. .surface delimita una pantalla del panel: el fondo de lienzo lo pone el marco. */
+:global(.admin-root) .surface { --field-radius: var(--radius-control); }
+:global(.admin-root) .card { background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); color: var(--foreground); }
+:global(.admin-root) .card[data-tone=navy] { background: #061f3f; border-color: transparent; color: #fff; }
+:global(.admin-root) .card[data-tone=alert] { background: var(--alert-surface); border-color: color-mix(in srgb, var(--alert) 16%, transparent); }
+:global(.admin-root) .card[data-tone=soft] { background: color-mix(in srgb, var(--card) 55%, transparent); box-shadow: none; }
+:global(.admin-root) .panelRadius { border-radius: var(--radius-panel); }
+:global(.admin-root) .lift { text-decoration: none; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :global(.admin-root) .lift { transition: transform 350ms var(--ease-out), box-shadow 350ms var(--ease-out); }
+  :global(.admin-root) .lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+}
+:global(.admin-root) .eyebrow { font-size: .75rem; line-height: 1.2; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
+
+/* Pestañas: subrayado en una fila; lista vertical dentro de una operación. */
 :global(.admin-root) .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-:global(.admin-root) .tabs .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font-size: .9375rem; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none; border-radius: 0; }
+:global(.admin-root) .tabs .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font-size: .9375rem; font-weight: 540; cursor: pointer; white-space: nowrap; text-decoration: none; border-radius: 0; }
 :global(.admin-root) .tabs .tab[aria-selected=true], :global(.admin-root) .tabs .tab[aria-current=page] { color: var(--foreground); border-bottom-color: var(--primary); background: none; }
+:global(.admin-root) .tabsVertical { display: flex; flex-direction: column; gap: .125rem; }
+:global(.admin-root) .tabsVertical .tab { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-control); background: none; color: var(--foreground); font-size: .9375rem; font-weight: 500; text-align: left; cursor: pointer; }
+:global(.admin-root) .tabsVertical .tab:hover { background: var(--secondary); }
+:global(.admin-root) .tabsVertical .tab[aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); font-weight: 600; }
+:global(.admin-root) .tabCount { font-size: .8125rem; font-weight: 500; color: var(--muted-foreground); }
+:global(.admin-root) .tabsVertical .tab[aria-selected=true] .tabCount { color: inherit; opacity: .8; }
 
-/* Selector segmentado */
-:global(.admin-root) .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--edge-soft); border-radius: var(--radius-control); overflow: hidden; background: var(--card); box-shadow: var(--shadow-control); }
-:global(.admin-root) .seg .segItem { min-height: 2.625rem; padding: 0 .875rem; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: none; font-size: .875rem; font-weight: 600; color: var(--muted-foreground); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .375rem; white-space: nowrap; }
-:global(.admin-root) .seg .segItem:last-child { border-right: 0; }
-:global(.admin-root) .seg .segItem[aria-checked=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+/* Selector segmentado: una pista con la opción elegida en blanco. */
+:global(.admin-root) .seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--radius-control); background: var(--track); }
+:global(.admin-root) .seg .segItem { min-height: 2.5rem; padding: 0 .875rem; border: 0; border-radius: 7px; background: none; font-size: .875rem; font-weight: 540; color: var(--muted-foreground); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .375rem; white-space: nowrap; }
+:global(.admin-root) .seg .segItem[aria-checked=true], :global(.admin-root) .seg .segItem[aria-pressed=true] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px rgba(6, 31, 63, .1); }
+:global(.admin-root) .seg .segItem:disabled { opacity: .5; cursor: not-allowed; }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .seg .segItem { transition: background-color 150ms, color 150ms; } }
 
 /* Avance */
-:global(.admin-root) .bar { height: 6px; border-radius: 3px; background: var(--secondary); overflow: hidden; }
-:global(.admin-root) .bar > span { display: block; height: 100%; background: var(--primary); }
-:global(.admin-root) .stepLine { height: 4px; border-radius: 2px; background: var(--border); }
+:global(.admin-root) .bar { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+:global(.admin-root) .bar > span { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .bar > span { transition: width 300ms var(--ease-out); } }
+:global(.admin-root) .stepLine { height: 4px; border-radius: 2px; background: var(--track); }
 :global(.admin-root) .stepLine[data-on=true] { background: var(--primary); }
 /* Con diez etapas una palabra larga («Levantamiento») no cabe: se divide con guion y nunca invade la columna de al lado. */
 :global(.admin-root) .stepName { min-width: 0; hyphens: auto; overflow-wrap: anywhere; }
@@ -57,6 +100,10 @@
 :global(.admin-root) .stepButton:hover .stepName { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .stepButton:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 3px; }
 :global(.admin-root) .stepWarning { color: var(--warning); font-weight: 600; }
+:global(.admin-root) .ring { flex: none; }
+:global(.admin-root) .ringTrack { stroke: var(--track); }
+:global(.admin-root) .ringValue { stroke: var(--primary); }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .ringValue { transition: stroke-dasharray 500ms var(--ease-out); } }
 
 /* Avisos y vacíos */
 :global(.admin-root) .notice { display: flex; gap: .75rem; padding: .875rem 1rem; border-radius: 12px; border: 1px solid var(--warning-border); background: var(--warning-surface); color: var(--foreground); }
@@ -67,15 +114,17 @@
 
 /* Panel lateral (computadora) o inferior (celular) */
 :global(.admin-root) .scrim { position: fixed; inset: 0; z-index: 60; background: var(--scrim); border: 0; padding: 0; cursor: default; }
-:global(.admin-root) .sheet { position: fixed; z-index: 61; display: flex; flex-direction: column; background: var(--card); color: var(--foreground); box-shadow: var(--shadow-raised); top: 0; right: 0; bottom: 0; width: min(460px, 100%); border-left: 1px solid var(--border); padding-top: env(safe-area-inset-top, 0px); }
+:global(.admin-root) .sheet { position: fixed; z-index: 61; display: flex; flex-direction: column; background: var(--card); color: var(--foreground); box-shadow: var(--shadow-raised); top: .75rem; right: .75rem; bottom: .75rem; width: min(460px, calc(100% - 1.5rem)); border-radius: var(--radius-panel); border: 1px solid var(--card-edge); padding-top: env(safe-area-inset-top, 0px); overflow: hidden; }
 @media (max-width: 767px) {
-  :global(.admin-root) .sheet { top: auto; left: 0; width: 100%; max-height: 92%; border-left: 0; border-radius: 18px 18px 0 0; box-shadow: var(--shadow-raised); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  :global(.admin-root) .sheet { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92%; border: 0; border-radius: var(--radius-panel) var(--radius-panel) 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  :global(.admin-root) .sheet { animation: sheetIn .2s ease; }
+  :global(.admin-root) .sheet { animation: sheetIn .22s var(--ease-out); }
+  :global(.admin-root) .scrim { animation: fadeIn .2s ease; }
 }
 @media (prefers-reduced-motion: no-preference) and (max-width: 767px) {
   :global(.admin-root) .sheet { animation-name: sheetUp; }
 }
 @keyframes sheetIn { from { transform: translateX(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 @keyframes sheetUp { from { transform: translateY(32px); opacity: .4; } to { transform: none; opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

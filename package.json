@@ -28,6 +28,7 @@
     "decimal.js": "10.6.0",
     "docx": "9.8.1",
     "gsap": "^3.15.0",
+    "iconoir-react": "7.12.1",
     "jszip": "^3.10.2",
     "lucide-react": "1.23.0",
     "motion": "12.42.2",

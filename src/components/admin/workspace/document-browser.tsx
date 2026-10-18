@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { FileText, ArrowUpRight } from "lucide-react";
+import { FileText, ArrowUpRight } from "@/components/admin/icons";
 import { EmptyState, Badge, btnGhost, inputClass, selectClass } from "@/components/admin/ui";
 import { apiRequest } from "@/lib/admin/store";
 import { FORMATOS } from "@/lib/formatos/catalog";

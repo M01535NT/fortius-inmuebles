@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "@/components/admin/icons";
 import { ButtonLink, Card } from "@/components/admin/kit";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { isOwnerIntent, type OperationalInterview } from "@/lib/intake/interview";

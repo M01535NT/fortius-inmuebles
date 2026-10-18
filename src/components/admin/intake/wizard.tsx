@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, ArrowLeft, ArrowRight, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, X } from "@/components/admin/icons";
 import { Button, Card, Notice, ProgressBar, Surface } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState } from "@/lib/admin/store";
@@ -12,13 +12,15 @@ import { INTENT_CHOICES, intentTitle, wizardSteps } from "@/lib/intake/wizard";
 import { useInterviewGuard } from "./use-interview-guard";
 import { InterviewStep } from "./interview-step";
 import { DoneStep } from "./done-step";
+import { cn } from "@/lib/utils";
 import s from "./wizard.module.css";
 
 /*
-  Nueva operación (lienzo: NuevaEscritorio* y NuevaMovil*). Paso 1: qué quiere hacer
+  Nueva operación (boceto aprobado por el titular, 17/10/2026). Paso 1: qué quiere hacer
   el cliente. Paso 2: quién es (avisa si ya está registrado). Paso 3: la entrevista.
-  Paso 4: listo. La operación se crea al terminar la entrevista, como antes; mientras
-  tanto queda como borrador en Hoy › «Entrevistas por terminar».
+  Paso 4: listo. En computadora los pasos van a la izquierda y las entrevistas a medias a la
+  derecha. La operación se crea al terminar la entrevista, como antes; mientras tanto queda
+  como borrador en Hoy › «Entrevistas por terminar».
   «?entrevista=<id>» retoma una entrevista (o muestra una terminada).
 */
 
@@ -48,10 +50,15 @@ export function NewOperationWizard() {
     {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin/operaciones/nueva?entrevista=${encodeURIComponent(started.id)}`, { scroll: false }); }} onGuard={onGuard} />
       : <div className={s.shell}>
         <Header step={step === 0 ? 3 : step} intent={interview?.intencion} />
-        {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
-          : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble de la operación. Prepara una entrevista con los datos actuales desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
-          : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
-          : <DoneStep interview={interview!} fresh={fresh} />}
+        <div className={s.frame}>
+          <StepsNav step={step === 0 ? 3 : step} intent={interview?.intencion} />
+          <div className={s.main}>
+            {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
+              : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble de la operación. Prepara una entrevista con los datos actuales desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
+              : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+              : <DoneStep interview={interview!} fresh={fresh} />}
+          </div>
+        </div>
       </div>}
   </Surface>;
 }
@@ -60,14 +67,27 @@ function Header({ step, intent }: { step: number; intent?: IntakeIntent | null }
   const WIZARD_STEPS = wizardSteps(intent);
   return <div className={s.top}>
     <div className={s.topRow}>
-      <Link href="/admin" className={s.close} aria-label="Salir de Nueva operación"><X size={20} aria-hidden="true" />Nueva operación</Link>
-      <span className={s.mono}>Paso {step} de {WIZARD_STEPS.length}</span>
+      <Link href="/admin" className={s.close} aria-label="Salir de Nueva operación"><span className={s.closeIcon}><X size={18} aria-hidden="true" /></span>Nueva operación</Link>
+      <span className="flex items-center gap-3"><span className={cn(s.hint, "hidden sm:inline")}>Se guarda solo mientras capturas</span><span className={s.meta}>Paso {step} de {WIZARD_STEPS.length}</span></span>
     </div>
     <div className={s.progress}>
       <ProgressBar value={step} max={WIZARD_STEPS.length} label={`Paso ${step} de ${WIZARD_STEPS.length}: ${WIZARD_STEPS[step - 1]}`} />
-      <span className={s.mono}>{WIZARD_STEPS[step - 1]}</span>
+      <span className={s.meta}>{WIZARD_STEPS[step - 1]}</span>
     </div>
   </div>;
+}
+
+/** Los pasos a la izquierda en computadora; en celular los dice la barra del encabezado. */
+function StepsNav({ step, intent }: { step: number; intent?: IntakeIntent | null }) {
+  const WIZARD_STEPS = wizardSteps(intent);
+  return <ol className={s.steps} aria-label="Pasos" aria-hidden="true">
+    {WIZARD_STEPS.map((name, i) => {
+      const n = i + 1, done = n < step;
+      return <li key={name} className={s.stepRow} aria-current={n === step ? "step" : undefined} data-done={done || undefined}>
+        <span className={s.stepNumber}>{done ? <Check size={13} strokeWidth={3} /> : n}</span>{name}
+      </li>;
+    })}
+  </ol>;
 }
 
 /** Pasos 1 y 2. Al continuar en el paso 2 se guarda el contacto y empieza la entrevista. */
@@ -152,6 +172,9 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
 
   return <div className={s.shell}>
     <Header step={step} intent={intent} />
+    <div className={s.frame}>
+    <StepsNav step={step} intent={intent} />
+    <div className={s.main}>
     <div className={s.body}>
       {step === 1 ? <>
         <h1 className={s.title}>¿Qué quiere hacer el cliente?</h1>
@@ -161,7 +184,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
             <span className={s.dot} aria-hidden="true" /><span className="flex flex-col gap-0.5"><strong>{choice.title}</strong><span className="text-sm text-muted-foreground">{choice.description}</span></span>
           </button>)}
         </div>
-        {pending.length > 0 && <Card as="div" className="p-4 text-sm"><p className="font-semibold">También tienes {pending.length === 1 ? "una entrevista" : `${pending.length} entrevistas`} por terminar.</p><ul className="mt-2 flex flex-col gap-1">{pending.slice(0, 5).map(p => <li key={p.id}><Link className="underline underline-offset-4" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(p.id)}`}>{p.contacto.nombre} · {intentTitle(p.intencion)}</Link></li>)}</ul></Card>}
+        {pending.length > 0 && <div className="xl:hidden"><PendingCard pending={pending} /></div>}
       </> : <>
         <h1 className={s.title}>¿Quién es?</h1>
         <p className={s.lead}>{intent ? `${intentTitle(intent)}. ` : ""}Con el nombre y el teléfono basta para empezar.</p>
@@ -208,5 +231,16 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
       {step === 1 ? <Button variant="primary" disabled={!intent} onClick={() => setStep(2)}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button>
         : <Button variant="primary" disabled={busy || !intent || !config} onClick={() => void start()}>{busy ? "Guardando…" : uncertain ? "Reintentar con los mismos datos" : intent === "vender" || intent === "arrendar" ? "Continuar con los datos del prospecto" : "Continuar con la entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>}
     </div></div>
+    </div>
+    {pending.length > 0 && step === 1 && <aside className={s.aside} aria-label="Entrevistas por terminar"><PendingCard pending={pending} /></aside>}
+    </div>
   </div>;
+}
+
+/** Entrevistas a medias: se retoman desde aquí sin volver a capturar al contacto. */
+function PendingCard({ pending }: { pending: OperationalInterview[] }) {
+  return <Card as="div" className="flex flex-col gap-2 p-4 text-sm">
+    <p className="font-semibold">También tienes {pending.length === 1 ? "una entrevista" : `${pending.length} entrevistas`} por terminar.</p>
+    <ul className="flex flex-col gap-1">{pending.slice(0, 5).map(p => <li key={p.id}><Link className="inline-flex min-h-9 items-center font-semibold text-[var(--primary-text)] underline underline-offset-4" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(p.id)}`}>{p.contacto.nombre} · {intentTitle(p.intencion)}</Link></li>)}</ul>
+  </Card>;
 }

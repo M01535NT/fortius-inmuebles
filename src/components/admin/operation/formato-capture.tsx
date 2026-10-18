@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
-import { ArrowLeft, ArrowRight, Check, FileDown, FileText, Save, X } from "lucide-react";
-import { Button, Notice } from "@/components/admin/kit";
+import { ArrowLeft, ArrowRight, Check, FileDown, FileText, Save, X } from "@/components/admin/icons";
+import { Button, Notice, Pill, Ring } from "@/components/admin/kit";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -20,10 +20,11 @@ import { FormatoImages, WITH_IMAGES, type Adjunto } from "./formato-images";
 import s from "./operation.module.css";
 
 /*
-  Ventana de captura de un documento de trabajo (decisión del titular, 17/10/2026; boceto
-  docs/diseno/boceto-entregable-juridico*.png). La operación queda detrás, limpia: aquí se
-  captura por secciones, se guarda al cambiar de sección y se descarga en Word o PDF. La
-  pestaña «PDF y copias firmadas» reúne los PDF generados y sus copias firmadas.
+  Ventana de captura de un documento de trabajo (boceto «Captura de un documento», aprobado
+  el 17/10/2026). La operación queda detrás, limpia: a la izquierda las secciones con su
+  avance («2 de 5 completas»), al centro la sección en curso, se guarda al cambiar de sección
+  y se descarga en Word o PDF. La pestaña «PDF y copias firmadas» reúne los PDF generados y
+  sus copias firmadas.
 */
 
 export type Emision = { id: string; draft_version: number; created_at: string; plantillaVersion?: string };
@@ -160,21 +161,22 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const sectionDefinition = whole ? definition : { ...definition, fields: definition.fields.filter(f => (f.section ?? "Datos") === section) };
   const saveState = busy === "Guardando…" ? "Guardando…" : dirty ? "Sin guardar" : "Guardado";
   const where = [context.etapa, context.cliente, folio].filter(Boolean).join(" · ");
+  const completeSections = pendingBySection.filter(count => count === 0).length;
 
   return <>
     <div className={s.windowScrim} aria-hidden="true" />
     <div role="dialog" aria-modal="true" aria-labelledby="captura-titulo" aria-describedby="captura-contexto" className={s.window}>
-      <header className="flex items-start gap-4 border-b border-border px-4 py-4 sm:px-7">
+      <header className="flex flex-wrap items-start gap-3 border-b border-border px-4 py-4 sm:gap-4 sm:px-7">
         <span className={s.formatBadge} aria-hidden="true">{definition.id}</span>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 basis-40 flex-col gap-0.5">
           <h2 id="captura-titulo" className="m-0 text-xl font-bold leading-tight [overflow-wrap:anywhere]">{definition.title}</h2>
           <p id="captura-contexto" className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{where}</p>
         </div>
         <div className="flex items-center gap-3">
           {current ? <a className={cn(s.pill, s.pillDone)} aria-label="Descargar el PDF de esta versión" href={`/api/admin/emisiones/${current.id}/descargar`}><FileDown size={14} aria-hidden="true" /><span className="ml-1 hidden sm:inline">PDF de esta versión</span><span className="ml-1 sm:hidden">PDF</span></a> : <span className={cn(s.pill, s.pillDraft, "hidden sm:inline-flex")}>Borrador</span>}
-          <span className="hidden text-sm text-muted-foreground sm:inline">{saveState}</span>
+          <Pill tone={saveState === "Sin guardar" ? "warn" : "success"} size="sm" className="hidden sm:inline-flex">{saveState}</Pill>
         </div>
-        <Button variant="ghost" iconOnly aria-label="Cerrar" disabled={!!busy} onClick={() => void close()}><X size={20} aria-hidden="true" /></Button>
+        <Button variant="ghost" iconOnly aria-label="Cerrar" disabled={!!busy} className="order-first ml-auto sm:order-none sm:ml-0" onClick={() => void close()}><X size={20} aria-hidden="true" /></Button>
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 sm:px-7">
@@ -187,24 +189,27 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
 
       {view === "pdf" ? <div className="min-h-0 flex-1 overflow-auto px-4 py-6 sm:px-7"><Emissions emisiones={emisiones} current={current} disabled={!!busy} /></div>
         : <div className="flex min-h-0 flex-1">
-          <nav aria-label="Secciones del documento" className="hidden w-64 shrink-0 flex-col border-r border-border lg:flex">
-            <p className="px-5 pb-2 pt-5 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Contenido</p>
-            <ol className="flex flex-1 flex-col gap-1 overflow-auto px-3">{sections.map((name, i) => <li key={name}>
+          <nav aria-label="Secciones del documento" className={cn(s.sectionsNav, "hidden lg:flex")}>
+            <div className={s.sectionsProgress}>
+              <Ring value={completeSections} max={sections.length} size={48} stroke={6} label={`${completeSections} de ${sections.length} secciones completas`} />
+              <span className="flex flex-col"><strong className="text-lg leading-tight">{completeSections} de {sections.length}</strong><span className="text-xs text-muted-foreground">secciones completas</span></span>
+            </div>
+            <ol className="flex flex-1 flex-col gap-0.5 overflow-auto px-2">{sections.map((name, i) => <li key={name}>
               <button type="button" aria-current={i === index ? "step" : undefined} disabled={!!busy} onClick={() => i !== index && go(i)} className={s.sectionLink}>
                 {pendingBySection[i] === 0 ? <Check size={15} aria-hidden="true" className={s.sectionDone} /> : <span className={s.sectionNumber}>{i + 1}</span>}
                 <span className="flex-1">{plain(name)}</span>
-                {pendingBySection[i] > 0 && <span className="font-mono text-xs text-muted-foreground" aria-label={`${pendingBySection[i]} pendientes`}>{pendingBySection[i]}</span>}
+                {pendingBySection[i] === 0 ? <Pill size="sm" tone="success">Listo</Pill> : <Pill size="sm" tone="muted" aria-label={`${pendingBySection[i]} pendientes`}>{pendingBySection[i]}</Pill>}
               </button>
             </li>)}</ol>
-            <p className="border-t border-border px-5 py-4 text-xs text-muted-foreground">Se guarda al cambiar de sección. Puedes cerrar y seguir después.</p>
+            <p className="border-t border-border px-4 py-3 text-xs text-muted-foreground">Se guarda al cambiar de sección. Puedes cerrar y seguir después.</p>
           </nav>
 
           <div ref={scroller} className="min-w-0 flex-1 overflow-auto">
             <div className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6 sm:px-8">
               <label className="text-sm font-semibold lg:hidden">Sección<select className={selectClass} value={index} disabled={!!busy} onChange={e => go(Number(e.target.value))}>{sections.map((name, i) => <option key={name} value={i}>{two(i + 1)} · {plain(name)}{pendingBySection[i] ? ` (${pendingBySection[i]} pendientes)` : ""}</option>)}</select></label>
               <div className="flex flex-col gap-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Sección {two(index + 1)} de {two(sections.length)}</p>
-                <h3 ref={heading} tabIndex={-1} className="m-0 text-2xl font-bold focus:outline-none">{plain(section)}</h3>
+                <p className="text-sm font-semibold text-muted-foreground">Sección {two(index + 1)} de {two(sections.length)}</p>
+                <h3 ref={heading} tabIndex={-1} className={cn(s.sectionTitle, "focus:outline-none")}>{plain(section)}</h3>
               </div>
               {index === 0 && !!values.origenDatos && <Notice tone="info">Algunas respuestas vienen del primer contacto. Confírmalas con el propietario: lo declarado todavía debe comprobarse.</Notice>}
               {section === IMAGES ? <FormatoImages documentId={doc.id} values={values} disabled={!!busy} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />

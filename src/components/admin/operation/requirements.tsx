@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { AlertCircle, CheckCircle2, Circle, CircleDashed, MinusCircle, MoreHorizontal } from "lucide-react";
+import { AlertCircle, CheckCircle2, Circle, CircleDashed, MinusCircle, MoreHorizontal } from "@/components/admin/icons";
 import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";

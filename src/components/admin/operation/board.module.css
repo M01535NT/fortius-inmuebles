@@ -1,37 +1,66 @@
-/* Lista de operaciones (boceto C). Prefijo :global(.admin-root): ver kit.module.css. */
-:global(.admin-root) .search { position: relative; display: flex; align-items: center; min-width: 0; }
+/* Operaciones: lista y tablero por fase (bocetos aprobados, 17/10/2026). Prefijo :global(.admin-root): ver kit.module.css. */
+:global(.admin-root) .head1 { margin: 0; font-size: clamp(1.75rem, 2.6vw, 2.5rem); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; }
+:global(.admin-root) .search { position: relative; display: flex; align-items: center; min-width: 0; flex: 1 1 14rem; }
 :global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
-:global(.admin-root) .search input { padding-left: 2.5rem; min-width: min(20rem, 100%); }
-:global(.admin-root) .filters { display: flex; gap: .5rem; margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; padding-bottom: .125rem; }
-:global(.admin-root) .filter { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border-radius: 999px; border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; box-shadow: var(--shadow-control); }
-:global(.admin-root) .filter:hover { border-color: var(--control-edge); }
-:global(.admin-root) .filter[aria-pressed=true] { background: var(--foreground); border-color: var(--foreground); color: var(--card); }
-:global(.admin-root) .count { font-size: .75rem; font-weight: 500; opacity: .75; }
+:global(.admin-root) .search input { padding-left: 2.5rem; width: 100%; background: var(--card); border-color: var(--edge-soft); }
+@media (min-width: 1024px) { :global(.admin-root) .search { flex: none; } :global(.admin-root) .search input { width: 17rem; } }
+:global(.admin-root) .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem; margin-bottom: 1.25rem; }
+:global(.admin-root) .filters { display: flex; gap: 2px; padding: 3px; border-radius: var(--radius-control); background: var(--track); overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+:global(.admin-root) .filter { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 2.5rem; padding: 0 .875rem; border: 0; border-radius: 7px; background: none; color: var(--muted-foreground); font: inherit; font-size: .875rem; font-weight: 540; cursor: pointer; white-space: nowrap; }
+:global(.admin-root) .filter[aria-pressed=true] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px rgba(6, 31, 63, .1); }
+:global(.admin-root) .filter[aria-pressed=false] { background: none; color: var(--muted-foreground); }
+:global(.admin-root) .filter[aria-pressed=false]:hover { color: var(--foreground); }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .filter { transition: background-color 150ms, color 150ms; } }
+:global(.admin-root) .count { font-size: .75rem; font-weight: 600; opacity: .7; }
+:global(.admin-root) .groupTitle { display: flex; align-items: center; gap: .625rem; margin: 0; padding: 0 .25rem; font-size: 1.0625rem; font-weight: 600; letter-spacing: -.01em; }
+
+/* Lista */
+:global(.admin-root) .list { padding: .375rem; }
 :global(.admin-root) .head { display: none; }
-:global(.admin-root) .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; align-items: center; padding: 1rem 1.25rem; color: var(--foreground); text-decoration: none; border-top: 1px solid var(--border); }
-:global(.admin-root) li:first-child > .row { border-top: 0; }
-:global(.admin-root) .row:hover { background: var(--secondary); }
+:global(.admin-root) .row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; align-items: center; padding: .75rem .75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .row:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .row { transition: background-color 150ms; } }
 :global(.admin-root) .row > :nth-child(1) { grid-column: 1; }
 :global(.admin-root) .row > :nth-child(2) { grid-column: 1 / -1; }
 :global(.admin-root) .row > :nth-child(3) { grid-column: 1; }
-:global(.admin-root) .row > :nth-child(4) { grid-column: 2; grid-row: 3; text-align: right; }
+:global(.admin-root) .row > :nth-child(4) { grid-column: 2; grid-row: 3; justify-self: end; }
 :global(.admin-root) .chevron { grid-column: 2; grid-row: 1; justify-self: end; color: var(--muted-foreground); }
 :global(.admin-root) .mobileLabel { color: var(--muted-foreground); }
+:global(.admin-root) .who { display: flex; min-width: 0; align-items: center; gap: .875rem; }
+:global(.admin-root) .whoText { display: flex; min-width: 0; flex-direction: column; }
+:global(.admin-root) .whoText strong { font-weight: 540; overflow-wrap: anywhere; }
+:global(.admin-root) .whoText span { font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
 @media (min-width: 1024px) {
-  :global(.admin-root) .head, :global(.admin-root) .row { grid-template-columns: minmax(0, 1.25fr) minmax(12rem, .95fr) minmax(0, 1.25fr) 9.5rem 1.25rem; gap: 1.5rem; }
-  :global(.admin-root) .head { display: grid; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
-  :global(.admin-root) .row { min-height: 4.75rem; }
+  :global(.admin-root) .head, :global(.admin-root) .row { grid-template-columns: minmax(15rem, 1.5fr) minmax(10rem, 1fr) minmax(0, 1fr) 7.75rem 1.25rem; gap: 1rem; }
+  :global(.admin-root) .head { display: grid; padding: .5rem 1rem .625rem; margin: 0 .375rem; border-bottom: 1px solid var(--border); font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+  :global(.admin-root) .row { min-height: 4.5rem; }
   :global(.admin-root) .row > :nth-child(n) { grid-column: auto; grid-row: auto; text-align: left; }
+  :global(.admin-root) .row > :nth-child(4) { justify-self: end; }
   :global(.admin-root) .chevron { justify-self: end; }
   :global(.admin-root) .mobileLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 }
-:global(.admin-root) .reason { display: inline-flex; align-items: center; min-height: 1.375rem; padding: 0 .5rem; border-radius: 999px; background: var(--warning-surface); color: var(--warning); font-size: .75rem; font-weight: 650; white-space: nowrap; }
-:global(.admin-root) .reason[data-late] { background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .bar { display: grid; gap: 3px; max-width: 13rem; }
-:global(.admin-root) .bar > span { height: 4px; border-radius: 2px; background: var(--border); }
+:global(.admin-root) .stageText { font-size: .875rem; font-weight: 560; }
+:global(.admin-root) .reason { display: inline-flex; align-items: center; min-height: 1.375rem; padding: 0 .5rem; border-radius: var(--radius-pill); background: var(--warning-surface); color: var(--warning); font-size: .75rem; font-weight: 650; white-space: nowrap; }
+:global(.admin-root) .reason[data-late] { background: var(--alert-surface); color: var(--alert); }
+:global(.admin-root) .bar { display: grid; gap: 3px; max-width: 11rem; }
+:global(.admin-root) .bar > span { height: 6px; border-radius: 3px; background: var(--track); }
 :global(.admin-root) .bar > span[data-state=on] { background: var(--primary); }
 :global(.admin-root) .bar > span[data-state=warn] { background: var(--warning); }
-:global(.admin-root) .late { color: var(--primary-text); font-weight: 650; }
+
+/* Tablero: una columna por fase, con desplazamiento horizontal si no caben. */
+:global(.admin-root) .boardScroll { overflow-x: auto; padding-bottom: .5rem; margin: 0 -1rem; padding-inline: 1rem; }
+:global(.admin-root) .board { display: grid; grid-template-columns: repeat(4, minmax(16rem, 1fr)); gap: .875rem; min-width: 68rem; }
+:global(.admin-root) .column { display: flex; flex-direction: column; gap: .75rem; padding: .875rem; border-radius: var(--radius-panel); background: color-mix(in srgb, var(--card) 55%, transparent); border: 1px solid var(--card-edge); }
+:global(.admin-root) .columnTitle { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin: 0; padding: .25rem .375rem; font-size: 1rem; font-weight: 600; }
+:global(.admin-root) .columnEmpty { padding: .75rem .375rem 1rem; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .cardPhoto { display: block; width: 100%; height: 6.875rem; border-radius: 0; }
+:global(.admin-root) .cardBody { display: flex; flex-direction: column; gap: .375rem; padding: .875rem; }
+:global(.admin-root) .cardFoot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .25rem; }
+:global(.admin-root) .boardCard { display: flex; flex-direction: column; overflow: hidden; color: var(--foreground); }
+:global(.admin-root) .boardCard[data-late=true] { border-color: color-mix(in srgb, var(--alert) 35%, transparent); }
+
+/* Pie y lista de eliminadas */
+:global(.admin-root) .late { color: var(--alert); font-weight: 650; }
 :global(.admin-root) .toggle { border: 0; background: none; padding: 0; font-weight: 650; color: var(--foreground); cursor: pointer; min-height: 2.75rem; text-align: left; }
 :global(.admin-root) .toggle::after { content: " ▾"; color: var(--muted-foreground); }
 :global(.admin-root) .toggle[aria-expanded=true]::after { content: " ▴"; }
@@ -39,6 +68,3 @@
 :global(.admin-root) .archivedLink { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 .25rem; font-size: .875rem; color: var(--foreground); }
 :global(.admin-root) .deletedRow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; }
 :global(.admin-root) .deletedRow + .deletedRow { border-top: 1px solid var(--border); }
-:global(.admin-root) .filter[aria-pressed=false] { background: var(--card); color: var(--foreground); border-color: var(--edge-soft); box-shadow: var(--shadow-control); }
-:global(.admin-root) .filter[aria-pressed=false]:hover { background: var(--secondary); }
-:global(.admin-root) .filter[aria-pressed=true] { background: var(--foreground); border-color: var(--foreground); color: var(--card); }
