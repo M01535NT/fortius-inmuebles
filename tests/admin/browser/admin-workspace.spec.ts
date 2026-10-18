@@ -238,7 +238,7 @@ test("inventory saved view, related tasks and global search navigate with contex
   await page.getByRole("link", { name: "Crear tarea relacionada" }).click();
   await expect(page).toHaveURL(/propiedadSlug=audit-casa/);
   await page
-    .getByText("Descripción, categoría y vínculos", { exact: true })
+    .getByText("Descripción y vínculos", { exact: true }).first()
     .click();
   await expect(
     page.getByLabel("Inmueble relacionado", { exact: true }),
@@ -306,7 +306,7 @@ test("Documentos es una pestaña de Herramientas y la dirección anterior lleva 
   await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
   await page.getByRole("tab", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
-  await expect(page.getByRole("textbox", { name: "Buscar herramienta" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toBeVisible();
 });
 test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {
   for (const width of [390, 1440]) {

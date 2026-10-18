@@ -74,6 +74,24 @@ export type DocumentoPropiedad = {
   url: string; // PDF en /descargas o storage cuando exista backend
 };
 
+export const CATEGORIAS_PUNTO = ["playa", "escuelas", "comercio", "salud", "restaurantes", "transporte", "parques", "otros"] as const;
+export type CategoriaPunto = (typeof CATEGORIAS_PUNTO)[number];
+export const CATEGORIA_PUNTO_LABELS: Record<CategoriaPunto, string> = {
+  playa: "Playa", escuelas: "Escuelas", comercio: "Comercio", salud: "Salud",
+  restaurantes: "Restaurantes", transporte: "Transporte", parques: "Parques", otros: "Otros",
+};
+export type PuntoDeInteres = { lugar: string; minutos: number; categoria?: CategoriaPunto };
+
+export const GRUPOS_CARACTERISTICAS = ["interior", "exterior", "servicios", "seguridad", "otros"] as const;
+export type GrupoCaracteristica = (typeof GRUPOS_CARACTERISTICAS)[number];
+export const GRUPO_CARACTERISTICA_LABELS: Record<GrupoCaracteristica, string> = {
+  interior: "Interior", exterior: "Exterior", servicios: "Servicios y estacionamiento", seguridad: "Seguridad y acceso", otros: "Otros",
+};
+export type GrupoCaracteristicas = { grupo: GrupoCaracteristica; elementos: string[] };
+export type BeneficioPropiedad = { titulo: string; texto: string };
+/* Montos recurrentes que el propietario autoriza publicar, en la moneda del precio. */
+export type CostosPropiedad = { predialAnual?: number; mantenimientoMensual?: number };
+
 export type Property = {
   slug: string;
   codigo: string; // "FORTIUS-001", se muestra en mono
@@ -98,7 +116,11 @@ export type Property = {
   asesorId: string; // ver src/data/asesores.ts
   creditoDisponible: boolean; // habilita la calculadora de hipoteca (solo venta)
   /* Puntos de interés cercanos (placeholder demo; tiempos aproximados en auto). */
-  puntosDeInteres: { lugar: string; minutos: number }[];
+  puntosDeInteres: PuntoDeInteres[];
+  /* Ficha «Escenario»: secciones opcionales; si faltan, no se muestran. */
+  beneficios?: BeneficioPropiedad[];
+  caracteristicas?: GrupoCaracteristicas[]; // si falta, se usan las amenidades
+  costos?: CostosPropiedad;
   destacada: boolean;
   estado: EstadoPropiedad;
   publicadaEl: string; // ISO
