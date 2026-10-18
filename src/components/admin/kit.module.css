@@ -35,7 +35,7 @@
 :global(.admin-root) .no_aplica { border: 1px dashed var(--control-edge); color: var(--muted-foreground); }
 
 /* Pastillas de estado y contadores */
-:global(.admin-root) .pill { display: inline-flex; align-items: center; gap: .3125rem; min-height: 1.75rem; padding: 0 .75rem; border-radius: var(--radius-pill); font-size: .8125rem; font-weight: 600; line-height: 1; white-space: nowrap; background: var(--track); color: var(--foreground); }
+:global(.admin-root) .pill { display: inline-flex; align-items: center; gap: .3125rem; min-height: 1.75rem; padding: 0 .75rem; border-radius: var(--radius-pill); font-size: .8125rem; font-weight: 560; line-height: 1; white-space: nowrap; background: var(--track); color: var(--foreground); }
 :global(.admin-root) .pill[data-tone=brand] { background: var(--panel-selected); color: var(--panel-selected-ink); }
 :global(.admin-root) .pill[data-tone=warn] { background: var(--warning-surface); color: var(--warning); }
 :global(.admin-root) .pill[data-tone=alert] { background: var(--alert-surface); color: var(--alert); }

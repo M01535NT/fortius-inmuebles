@@ -10,7 +10,7 @@
 :global(.admin-root) .logo { display: flex; align-items: center; margin: 0 .5rem 1rem; }
 :global(.admin-root) .link { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-thumb); background: none; color: var(--foreground); font-size: .9375rem; font-weight: 500; text-align: left; text-decoration: none; cursor: pointer; }
 :global(.admin-root) .link:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
-:global(.admin-root) .link[aria-current=page] { background: #061f3f; color: #fff; font-weight: 600; }
+:global(.admin-root) .link[aria-current=page] { background: #061f3f; color: #fff; font-weight: 560; }
 :global(.dark) :global(.admin-root) .link[aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); }
 :global(.admin-root) .link[aria-current=page] .count { background: var(--primary); color: #fff; }
 :global(.admin-root) .sub { font-size: .875rem; min-height: 2.5rem; color: var(--muted-foreground); }

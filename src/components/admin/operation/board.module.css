@@ -1,5 +1,5 @@
 /* Operaciones: lista y tablero por fase (bocetos aprobados, 17/10/2026). Prefijo :global(.admin-root): ver kit.module.css. */
-:global(.admin-root) .head1 { margin: 0; font-size: clamp(1.75rem, 2.6vw, 2.5rem); line-height: 1.1; font-weight: 650; letter-spacing: -.03em; }
+:global(.admin-root) .head1 { margin: 0; font-size: clamp(1.75rem, 2.6vw, 2.5rem); line-height: 1.1; font-weight: 700; letter-spacing: -.03em; }
 :global(.admin-root) .search { position: relative; display: flex; align-items: center; min-width: 0; flex: 1 1 14rem; }
 :global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
 :global(.admin-root) .search input { padding-left: 2.5rem; width: 100%; background: var(--card); border-color: var(--edge-soft); }
@@ -28,7 +28,7 @@
 :global(.admin-root) .mobileLabel { color: var(--muted-foreground); }
 :global(.admin-root) .who { display: flex; min-width: 0; align-items: center; gap: .875rem; }
 :global(.admin-root) .whoText { display: flex; min-width: 0; flex-direction: column; }
-:global(.admin-root) .whoText strong { overflow-wrap: anywhere; }
+:global(.admin-root) .whoText strong { font-weight: 560; overflow-wrap: anywhere; }
 :global(.admin-root) .whoText span { font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
 @media (min-width: 1024px) {
   :global(.admin-root) .head, :global(.admin-root) .row { grid-template-columns: minmax(0, 1.35fr) minmax(11rem, .9fr) minmax(0, 1.2fr) 8.5rem 1.25rem; gap: 1.25rem; }
@@ -39,7 +39,7 @@
   :global(.admin-root) .chevron { justify-self: end; }
   :global(.admin-root) .mobileLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 }
-:global(.admin-root) .stageText { font-size: .875rem; font-weight: 600; }
+:global(.admin-root) .stageText { font-size: .875rem; font-weight: 560; }
 :global(.admin-root) .reason { display: inline-flex; align-items: center; min-height: 1.375rem; padding: 0 .5rem; border-radius: var(--radius-pill); background: var(--warning-surface); color: var(--warning); font-size: .75rem; font-weight: 650; white-space: nowrap; }
 :global(.admin-root) .reason[data-late] { background: var(--alert-surface); color: var(--alert); }
 :global(.admin-root) .bar { display: grid; gap: 3px; max-width: 11rem; }
