@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { ClosingCostsCalculator } from "@/components/tools/closing-costs-calculator";
-import { Container } from "@/components/layout/container";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/herramientas/gastos-de-cierre" },
@@ -14,35 +13,19 @@ export const metadata: Metadata = {
 
 export default function GastosDeCierrePage() {
   return (
-    <main className="bg-background pt-28 md:pt-32">
-      <Container className="pb-20 md:pb-28">
-        <Link
-          href="/herramientas"
-          className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" strokeWidth={1.5} />
-          Herramientas
-        </Link>
-        <h1 className="display-title mt-6 max-w-[16ch] text-4xl text-foreground md:text-5xl">
-          Gastos de cierre.
-        </h1>
-        <p className="mt-5 max-w-[56ch] text-base leading-relaxed text-muted-foreground">
-          Calcula cuánto efectivo necesitas para comprar o cuánto recibirías
-          al vender. Completa las cotizaciones y descarga tu presupuesto.
-        </p>
-
-        <div className="mt-9">
-          <ClosingCostsCalculator />
+    <main className="pg-page">
+      <section className="pg-hero">
+        <div className="pg-container pg-hero-body tl-tool-head">
+          <Link href="/herramientas" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Herramientas</Link>
+          <p className="pg-eyebrow">02 · Operación</p>
+          <h1 className="pg-title pg-title-sm">Gastos de cierre.</h1>
+          <p className="pg-lead">Calcula cuánto efectivo necesitas para comprar o cuánto recibirías al vender. Completa las cotizaciones y descarga tu presupuesto.</p>
         </div>
-
-        <p className="mt-8 text-base text-muted-foreground">
-          ¿Quieres preparar los números de tu operación?{" "}
-          <Link href="/vender-propiedad" className="font-medium text-primary-ink underline-offset-4 hover:underline">
-            Empieza con una evaluación
-          </Link>
-          .
-        </p>
-      </Container>
+      </section>
+      <div className="pg-container tl-tool-body">
+        <ClosingCostsCalculator />
+        <p className="tl-tool-foot pg-muted">¿Quieres preparar los números de tu operación? <Link href="/vender-propiedad">Empieza con una evaluación</Link>.</p>
+      </div>
     </main>
   );
 }

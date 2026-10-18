@@ -2,16 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { ArrowUpRight, CheckCircle2 } from "lucide-react";
 
-import { Container } from "@/components/layout/container";
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 import { captureLead } from "@/lib/admin/store";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
 
-const inputClass = "h-11 w-full rounded-md border border-input bg-background px-3.5 text-base text-foreground placeholder:text-muted-foreground";
-const labelClass = "mb-2 block text-sm font-medium text-foreground";
-
+/* Boceto Comprar: «Cuéntanos qué buscas» en tarjeta con campos grandes. */
 export function BuyerBrief() {
   const { publicLeadsEnabled } = usePublicFeatures();
   const [sent, setSent] = React.useState(false);
@@ -47,49 +44,50 @@ export function BuyerBrief() {
   }
 
   return (
-    <section id="busqueda" className="scroll-mt-20 border-t border-border bg-secondary/50 py-20 md:py-28">
-      <Container className="grid gap-10 lg:grid-cols-[0.8fr_1fr] lg:gap-20">
+    <section id="busqueda" className="pg-container pg-section pg-section-last bb-section">
+      <div className="bb-grid">
         <div>
-          <h2 className="display-title max-w-[15ch] text-4xl text-foreground md:text-5xl">Cuéntanos qué buscas.</h2>
-          <p className="mt-5 max-w-[48ch] text-base leading-relaxed text-muted-foreground">
+          <p className="pg-eyebrow pg-eyebrow-ink">Tu búsqueda</p>
+          <h2 className="pg-h2">Cuéntanos qué buscas.</h2>
+          <p className="pg-muted bb-text">
             {publicLeadsEnabled
               ? "El uso, presupuesto y momento de compra nos ayudan a descartar opciones que no te sirven. Puedes dejar el presupuesto o la forma de pago por definir."
               : "Define el uso, el presupuesto total y tu momento de compra. Con esos datos podrás comparar inmuebles con más claridad."}
           </p>
-          <p className="mt-5 text-sm leading-relaxed text-muted-foreground">También puedes <Link href="/inventario" className="text-primary-ink underline underline-offset-4">explorar las propiedades publicadas</Link> antes de escribirnos.</p>
+          <p className="pg-muted bb-text" style={{ fontSize: 14 }}>También puedes <Link href="/inventario" className="bb-inline-link">explorar las propiedades publicadas</Link> antes de escribirnos.</p>
         </div>
         {!publicLeadsEnabled ? (
-          <div className="rounded-lg border border-border bg-card p-6 md:p-8">
-            <h3 className="display-soft text-2xl text-foreground">Tres datos para empezar</h3>
-            <ol className="mt-5 space-y-5 border-t border-border pt-5 text-sm leading-relaxed text-foreground/85">
-              <li><strong className="block text-foreground">1. Uso</strong>Vivir, invertir o instalar un negocio: cada objetivo cambia qué conviene revisar.</li>
-              <li><strong className="block text-foreground">2. Presupuesto total</strong>Incluye gastos de cierre y, si usarás crédito, una mensualidad sostenible.</li>
-              <li><strong className="block text-foreground">3. Plazo y pago</strong>Una fecha tentativa y la forma de pago ayudan a ordenar las visitas y ofertas.</li>
+          <div className="pg-card pg-card-pad">
+            <h3 className="pg-h3">Tres datos para empezar</h3>
+            <ol className="bb-list">
+              <li><span className="pg-number" aria-hidden="true">01</span><div><strong>Uso</strong><p>Vivir, invertir o instalar un negocio: cada objetivo cambia qué conviene revisar.</p></div></li>
+              <li><span className="pg-number" aria-hidden="true">02</span><div><strong>Presupuesto total</strong><p>Incluye gastos de cierre y, si usarás crédito, una mensualidad sostenible.</p></div></li>
+              <li><span className="pg-number" aria-hidden="true">03</span><div><strong>Plazo y pago</strong><p>Una fecha tentativa y la forma de pago ayudan a ordenar las visitas y ofertas.</p></div></li>
             </ol>
-            <Link href="/inventario" className="mt-7 inline-flex min-h-11 items-center rounded-md bg-primary px-6 text-sm font-semibold text-primary-foreground">Explorar inventario</Link>
+            <Link href="/inventario" className="pg-btn" style={{ marginTop: 24 }}>Explorar inventario <ArrowUpRight size={18} aria-hidden="true" /></Link>
           </div>
         ) : sent ? (
-          <div role="status" className="flex min-h-56 flex-col justify-center rounded-lg border border-border bg-card p-8">
-            <CheckCircle2 className="size-8 text-primary-ink" strokeWidth={1.5} />
-            <h3 className="display-soft mt-5 text-2xl text-foreground">Recibimos tu búsqueda.</h3>
-            <p className="mt-2 text-base text-muted-foreground">Revisaremos lo que nos compartiste y te contactaremos para precisar las opciones.</p>
+          <div role="status" className="pg-card pg-card-pad bb-sent">
+            <CheckCircle2 size={32} strokeWidth={1.5} aria-hidden="true" />
+            <h3 className="pg-h3">Recibimos tu búsqueda.</h3>
+            <p className="pg-muted">Revisaremos lo que nos compartiste y te contactaremos para precisar las opciones.</p>
           </div>
         ) : (
-          <PublicLeadForm onSubmit={onSubmit} className="grid gap-5 rounded-lg border border-border bg-card p-6 sm:grid-cols-2 md:p-8">
-            <label className="block"><span className={labelClass}>Nombre</span><input name="nombre" required autoComplete="name" className={inputClass} /></label>
-            <label className="block"><span className={labelClass}>Teléfono o WhatsApp</span><input name="telefono" type="tel" required autoComplete="tel" className={inputClass} /></label>
-            <label className="block sm:col-span-2"><span className={labelClass}>¿Para qué necesitas el inmueble?</span><input name="uso" required placeholder="Vivir, invertir o instalar un negocio" className={inputClass} /></label>
-            <label className="block"><span className={labelClass}>Presupuesto aproximado</span><input name="presupuesto" placeholder="Monto y moneda, si ya lo tienes" className={inputClass} /></label>
-            <label className="block"><span className={labelClass}>¿Cuándo quieres comprar?</span><select name="plazo" defaultValue="" className={inputClass}><option value="">Por definir</option><option>En 3 meses</option><option>Entre 3 y 6 meses</option><option>Después de 6 meses</option></select></label>
-            <label className="block sm:col-span-2"><span className={labelClass}>Forma de pago prevista</span><select name="pago" defaultValue="" className={inputClass}><option value="">Por definir</option><option>Recursos propios</option><option>Crédito</option><option>Combinación de ambos</option></select></label>
-            {error ? <p role="alert" className="text-sm text-destructive sm:col-span-2">{error}</p> : null}
-            <div className="sm:col-span-2">
-              <button type="submit" disabled={sending} className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-base font-semibold text-primary-foreground disabled:opacity-60">{sending ? "Enviando…" : "Enviar mi búsqueda"}</button>
-              <p className="mt-3 text-sm text-muted-foreground">Usamos estos datos para responder a tu búsqueda.</p>
+          <PublicLeadForm onSubmit={onSubmit} className="pg-card pg-card-pad bb-form">
+            <div className="pg-field"><label htmlFor="bb-nombre">Nombre</label><input id="bb-nombre" name="nombre" required autoComplete="name" /></div>
+            <div className="pg-field"><label htmlFor="bb-telefono">Teléfono o WhatsApp</label><input id="bb-telefono" name="telefono" type="tel" required autoComplete="tel" /></div>
+            <div className="pg-field bb-span"><label htmlFor="bb-uso">¿Para qué necesitas el inmueble?</label><input id="bb-uso" name="uso" required placeholder="Vivir, invertir o instalar un negocio" /></div>
+            <div className="pg-field"><label htmlFor="bb-presupuesto">Presupuesto aproximado</label><input id="bb-presupuesto" name="presupuesto" placeholder="Monto y moneda, si ya lo tienes" /></div>
+            <div className="pg-field"><label htmlFor="bb-plazo">¿Cuándo quieres comprar?</label><select id="bb-plazo" name="plazo" defaultValue=""><option value="">Por definir</option><option>En 3 meses</option><option>Entre 3 y 6 meses</option><option>Después de 6 meses</option></select></div>
+            <div className="pg-field bb-span"><label htmlFor="bb-pago">Forma de pago prevista</label><select id="bb-pago" name="pago" defaultValue=""><option value="">Por definir</option><option>Recursos propios</option><option>Crédito</option><option>Combinación de ambos</option></select></div>
+            {error ? <p role="alert" className="bb-span pg-notice" style={{ color: "var(--primary-text, #8a1634)" }}>{error}</p> : null}
+            <div className="bb-span">
+              <button type="submit" disabled={sending} className="pg-btn">{sending ? "Enviando…" : "Enviar mi búsqueda"}</button>
+              <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Usamos estos datos para responder a tu búsqueda.</p>
             </div>
           </PublicLeadForm>
         )}
-      </Container>
+      </div>
     </section>
   );
 }

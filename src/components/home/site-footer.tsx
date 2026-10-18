@@ -61,64 +61,60 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <footer className="editorial-footer">
-      <div className="editorial-container">
-        <motion.div className="editorial-footer-intro" initial={false}
+    <footer className="nx-footer">
+      <div className="nx-container">
+        <motion.div className="nx-footer-intro" initial={false}
           whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.65 }}>
-          <div className="editorial-footer-invitation">
-            <p className="editorial-footer-eyebrow">Tu próxima propiedad empieza con una conversación.</p>
-            <h2>{pathname === "/" ? <>Hablemos de tu<br /><em>próxima operación.</em></> : <>Hablemos de<br /><em>lo que sigue.</em></>}</h2>
-            <Link href="/contacto" className="editorial-footer-cta">Contactar a Fortius <ArrowUpRight size={22} aria-hidden="true" /></Link>
+          <div className="nx-footer-invitation">
+            <p className="nx-footer-eyebrow">Tu próxima propiedad empieza con una conversación.</p>
+            <h2>{pathname === "/" ? "Hablemos de tu próxima operación." : "Hablemos de lo que sigue."}</h2>
+            <div className="nx-footer-actions">
+              <Link href="/vender-propiedad" className="nx-footer-pill nx-footer-pill-primary">Quiero vender <ArrowUpRight size={18} aria-hidden="true" /></Link>
+              <Link href="/inventario" className="nx-footer-pill">{pathname === "/" ? "Explorar inmuebles" : "Buscar propiedad"} <ArrowUpRight size={18} aria-hidden="true" /></Link>
+              <Link href="/contacto" className="nx-footer-pill">Contactar a Fortius</Link>
+            </div>
           </div>
-          <nav className="editorial-footer-directions" aria-label="Comprar o vender">
-            <Link href="/vender-propiedad"><span><small>Para propietarios</small>Quiero vender</span><ArrowUpRight aria-hidden="true" /></Link>
-            <Link href="/inventario"><span><small>Para compradores</small>{pathname === "/" ? "Explorar inmuebles" : "Buscar propiedad"}</span><ArrowUpRight aria-hidden="true" /></Link>
-          </nav>
+          <div className="nx-footer-contact">
+            <h3>Contacto</h3>
+            <ul>
+              {contact.whatsapp && <li><a href={contact.whatsapp} className="nx-footer-link">WhatsApp: {contact.whatsappLabel}</a></li>}
+              {contact.phoneHref && <li><a href={contact.phoneHref} className="nx-footer-link">Teléfono: {contact.phone}</a></li>}
+              {contact.messenger && <li><a href={contact.messenger} className="nx-footer-link">Messenger</a></li>}
+              {email && <li><a href={`mailto:${email}`} className="nx-footer-link">{email}</a></li>}
+              {settings?.horario?.trim() && <li className="nx-footer-hours">{settings.horario}</li>}
+              <li><Link href="/contacto" className="nx-footer-link">Opciones de contacto</Link></li>
+            </ul>
+            {socialLinks.length > 0 && <nav className="nx-footer-socials" aria-label="Redes sociales de Fortius">
+              {socialLinks.map(({ name, href, Icon }) => href ? <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} de Fortius (abre en otra pestaña)`} title={name}>
+                <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
+              </a> : <span key={name} className="nx-footer-social-pending" role="img" aria-label={`${name} de Fortius: enlace pendiente`} title={`${name}: próximamente`}>
+                <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
+              </span>)}
+            </nav>}
+          </div>
         </motion.div>
-        <div className="editorial-footer-columns">
+        <div className="nx-footer-columns">
           {sections.map((section) => (
             <nav key={section.title} aria-label={section.title}>
               <h3>{section.title}</h3>
               <ul>{section.links.map((link) => <li key={link.href}>
-                <Link href={link.href} className="editorial-footer-link">{link.label}</Link>
+                <Link href={link.href} className="nx-footer-link">{link.label}</Link>
               </li>)}</ul>
             </nav>
           ))}
-          <div className="editorial-footer-contact">
-            <h3>Contacto</h3>
-            <ul>
-              {contact.whatsapp && <li><a href={contact.whatsapp} className="editorial-footer-link">WhatsApp: {contact.whatsappLabel}</a></li>}
-              {contact.phoneHref && <li><a href={contact.phoneHref} className="editorial-footer-link">Teléfono: {contact.phone}</a></li>}
-              {contact.messenger && <li><a href={contact.messenger} className="editorial-footer-link">Messenger</a></li>}
-              {email && <li><a href={`mailto:${email}`} className="editorial-footer-link">{email}</a></li>}
-              {settings?.horario?.trim() && <li className="editorial-footer-hours">{settings.horario}</li>}
-              <li><Link href="/contacto" className="editorial-footer-link">Opciones de contacto</Link></li>
-            </ul>
-          </div>
         </div>
-        <div className="editorial-footer-masthead">
-          <div className="editorial-footer-identity">
-            <Link href="/" aria-label="Inicio de Fortius Inmuebles" className="editorial-footer-brand"><BrandMark /></Link>
-            {socialLinks.length > 0 && <nav className="editorial-footer-socials" aria-label="Redes sociales de Fortius">
-              {socialLinks.map(({ name, href, Icon }) => href ? <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${name} de Fortius (abre en otra pestaña)`} title={name}>
-                <Icon size={20} strokeWidth={1.7} aria-hidden="true" />
-              </a> : <span key={name} className="editorial-footer-social-pending" role="img" aria-label={`${name} de Fortius: enlace pendiente`} title={`${name}: próximamente`}>
-                <Icon size={20} strokeWidth={1.7} aria-hidden="true" />
-              </span>)}
-            </nav>}
-          </div>
-          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
-            Volver arriba <ArrowUp size={18} aria-hidden="true" />
-          </button>
-        </div>
-        <div className="editorial-footer-bottom">
-          <p>© {new Date().getFullYear()} Fortius Inmuebles.</p>
+        <div className="nx-footer-bottom">
+          <Link href="/" aria-label="Inicio de Fortius Inmuebles" className="nx-footer-brand"><BrandMark inverse /></Link>
           <nav aria-label="Información legal y administración">
-            <Link href="/avisos" className="editorial-footer-link">Avisos y documentos</Link>
-            <Link href="/privacidad" className="editorial-footer-link">Aviso de privacidad</Link>
-            <Link href="/terminos" className="editorial-footer-link">Términos y condiciones</Link>
-            <DocumentLink href="/admin" className="editorial-footer-link">Acceso al panel</DocumentLink>
+            <Link href="/avisos" className="nx-footer-link">Avisos y documentos</Link>
+            <Link href="/privacidad" className="nx-footer-link">Aviso de privacidad</Link>
+            <Link href="/terminos" className="nx-footer-link">Términos y condiciones</Link>
+            <DocumentLink href="/admin" className="nx-footer-link">Acceso al panel</DocumentLink>
           </nav>
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" })}>
+            Volver arriba <ArrowUp size={16} aria-hidden="true" />
+          </button>
+          <p>© {new Date().getFullYear()} Fortius Inmuebles.</p>
         </div>
       </div>
     </footer>

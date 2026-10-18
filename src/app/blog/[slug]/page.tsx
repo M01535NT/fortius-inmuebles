@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 
-import { Container } from "@/components/layout/container";
 import { BlogContent, blogHeadings } from "@/components/blog/blog-content";
 import { BlogCoverCredit } from "@/components/blog/blog-cover-credit";
+import { ShareArticle } from "@/components/blog/share-article";
 import { siteConfig } from "@/data/site";
 import { getBlogPostBySlug, getBlogPosts } from "@/lib/blog";
 import { getBlogCover } from "@/data/blog-covers";
@@ -48,6 +48,8 @@ export async function generateMetadata({
   };
 }
 
+/* Artículo (boceto BlogArticulo): cabecera sobre la portada, índice fijo con
+   compartir, cuerpo de lectura, fuente, siguiente paso y lecturas relacionadas. */
 export default async function BlogPostPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
   const posts = await getBlogPosts();
@@ -57,85 +59,84 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   const headings = blogHeadings(post.contenido);
   const category = postCategory(post);
   const related = category ? posts.filter((candidate) => candidate.slug !== post.slug && postCategory(candidate) === category).slice(0, 3) : [];
-  const nextAction = postCategory(post) === "vender"
+  const nextAction = category === "vender"
     ? { href: "/vender-propiedad", label: "Revisar cómo vendemos una propiedad" }
-    : postCategory(post) === "comprar" || postCategory(post) === "rentar"
+    : category === "comprar" || category === "rentar"
       ? { href: "/inventario", label: "Consultar propiedades disponibles" }
       : { href: "/herramientas", label: "Usar las herramientas de Fortius" };
+  const url = new URL(`/blog/${post.slug}`, siteConfig.url).href;
+  const updated = post.actualizadoEl !== post.publicadoEl
+    ? new Intl.DateTimeFormat("es-MX", { dateStyle: "long", timeZone: "America/Tijuana" }).format(new Date(post.actualizadoEl))
+    : null;
 
   return (
-    <main className="bg-background pb-24 pt-28 md:pb-0 md:pt-32">
-      <Container className="pb-16 md:pb-24">
-        <article className="mx-auto max-w-3xl">
-          <Link
-            href="/blog"
-            className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" strokeWidth={1.5} aria-hidden="true" />
-            Volver al Blog
-          </Link>
-
-          <header className="mt-8 border-b border-border pb-10">
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-primary-ink">
-              {postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}{postCategory(post) ? ` · ${BLOG_CATEGORIES[postCategory(post)!]}` : ""}
+    <main className="pg-page">
+      <section className="pg-hero ba-hero">
+        <div className="pg-container pg-hero-body">
+          <Link href="/blog" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Volver al Blog</Link>
+          <header style={{ marginTop: 32 }}>
+            <p className="pg-pills" style={{ marginBottom: 20 }}>
+              <span className="pg-chip">{postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}</span>
+              {category && <span className="pg-chip">{BLOG_CATEGORIES[category]}</span>}
             </p>
-            <h1 className="display-title mt-4 text-4xl text-foreground sm:text-5xl md:text-6xl">
-              {post.titulo}
-            </h1>
-            <p className="mt-6 max-w-[62ch] text-lg leading-relaxed text-muted-foreground">
-              {post.resumen}
-            </p>
-            <p className="mt-5 text-sm leading-6 text-muted-foreground">
+            <h1 className="pg-title">{post.titulo}</h1>
+            <p className="pg-hero-meta">
               {[post.autor, post.ambito, `${readingMinutes(post)} min de lectura`].filter(Boolean).join(" · ")}
+              {post.publicadoEl && <> · Publicado el <time dateTime={post.publicadoEl}>{formatBlogDate(post.publicadoEl)}</time></>}
+              {updated && <> · Actualizado el <time dateTime={post.actualizadoEl}>{updated}</time></>}
             </p>
-            {post.publicadoEl && <p className="mt-2 text-sm text-muted-foreground">Publicado el <time dateTime={post.publicadoEl}>{formatBlogDate(post.publicadoEl)}</time></p>}
-            {post.actualizadoEl !== post.publicadoEl && <p className="mt-2 text-sm text-muted-foreground">
-              Actualizado el{" "}
-              <time dateTime={post.actualizadoEl}>
-                {new Intl.DateTimeFormat("es-MX", {
-                  dateStyle: "long",
-                  timeZone: "America/Tijuana",
-                }).format(new Date(post.actualizadoEl))}
-              </time>
-            </p>}
           </header>
+        </div>
+      </section>
 
-          {cover && (
-            <figure className="mt-10">
-              <Image
-                src={cover.src}
-                width={cover.width}
-                height={cover.height}
-                alt={cover.alt}
-                sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 815px) calc(100vw - 3rem), 768px"
-                className="h-auto w-full rounded-sm object-contain"
-              />
-              {cover.credit && <figcaption className="mt-3 text-sm leading-6 text-muted-foreground">
-                <BlogCoverCredit cover={cover} linked />
-              </figcaption>}
-            </figure>
-          )}
-
-          {headings.length >= 2 ? <details className="mt-8 rounded-md border border-border bg-card p-5">
-            <summary className="cursor-pointer font-medium text-foreground">En este artículo</summary>
-            <nav aria-label="Contenido del artículo" className="mt-4">
-              <ol className="space-y-2 text-sm text-muted-foreground">{headings.map((heading) => <li key={heading.id} className={heading.level === "h3" ? "pl-4" : ""}><a href={`#${heading.id}`} className="underline decoration-primary/30 underline-offset-4 hover:text-foreground">{heading.text}</a></li>)}</ol>
-            </nav>
-          </details> : null}
-          <BlogContent content={post.contenido} figures={getBlogFigures(post.slug)} />
-          {post.fuenteUrl && <aside className="mt-10 rounded-md border border-border bg-card p-5 text-sm leading-7 [overflow-wrap:anywhere]" aria-label="Fuente principal">
-            <span className="font-medium">Fuente principal: </span><a href={post.fuenteUrl} className="text-primary-ink underline underline-offset-4">{post.fuenteNombre || "Consultar documento original"}</a>
-          </aside>}
-          <aside className="mt-12 border-y border-border py-8">
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">Siguiente paso</p>
-            <Link href={nextAction.href} className="display-soft mt-3 inline-block text-2xl text-foreground underline decoration-primary/40 underline-offset-8">{nextAction.label}</Link>
+      <div className="pg-container">
+        {cover && <figure className="ba-cover">
+          <Image src={cover.src} width={cover.width} height={cover.height} alt={cover.alt} priority sizes="(max-width: 1320px) calc(100vw - 40px), 1256px" />
+          {cover.credit && <figcaption className="ba-credit"><BlogCoverCredit cover={cover} linked /></figcaption>}
+        </figure>}
+        <div className="ba-layout">
+          <aside className="ba-index">
+            {headings.length >= 2 && <nav aria-label="Contenido del artículo">
+              <p className="pg-eyebrow pg-eyebrow-ink">En este artículo</p>
+              <ol>{headings.map((heading) => <li key={heading.id} className={heading.level === "h3" ? "is-sub" : undefined}><a href={`#${heading.id}`}>{heading.text}</a></li>)}</ol>
+            </nav>}
+            <ShareArticle title={post.titulo} text={post.resumen} url={url} />
           </aside>
-          {related.length > 0 ? <aside className="mt-12" aria-labelledby="related-reading">
-            <h2 id="related-reading" className="display-soft text-2xl text-foreground">Lecturas relacionadas</h2>
-            <ul className="mt-5 divide-y divide-border border-y border-border">{related.map((candidate) => <li key={candidate.slug}><Link href={`/blog/${candidate.slug}`} className="flex min-h-16 items-center justify-between gap-4 py-3 text-foreground hover:text-primary-ink"><span>{candidate.titulo}</span><ArrowLeft className="size-4 rotate-180" aria-hidden="true" /></Link></li>)}</ul>
-          </aside> : null}
-        </article>
-      </Container>
+          <article className="ba-article">
+            <p className="ba-summary">{post.resumen}</p>
+            <BlogContent content={post.contenido} figures={getBlogFigures(post.slug)} />
+            {post.fuenteUrl && <aside className="ba-source" aria-label="Fuente principal">
+              <span style={{ fontWeight: 600 }}>Fuente principal: </span><a href={post.fuenteUrl}>{post.fuenteNombre || "Consultar documento original"}</a>
+            </aside>}
+            <Link href={nextAction.href} className="ba-next">
+              <span className="ba-next-media" aria-hidden="true"><ArrowUpRight size={28} /></span>
+              <span><span className="pg-eyebrow pg-eyebrow-ink">Siguiente paso</span><strong>{nextAction.label}</strong></span>
+              <ArrowUpRight size={22} aria-hidden="true" style={{ color: "var(--primary-text, #8a1634)" }} />
+            </Link>
+            <div className="ba-author">
+              <span className="ba-author-mark" aria-hidden="true">FI</span>
+              <span><strong>{post.autor || "Redacción Fortius Inmuebles"}</strong><span>Guías revisadas con fuentes oficiales y fecha de consulta.</span></span>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      {related.length > 0 && <section className="ba-related" aria-labelledby="related-reading">
+        <div className="pg-container">
+          <div className="pg-head">
+            <h2 id="related-reading" className="pg-h2">Lecturas relacionadas</h2>
+            <Link href="/blog" className="pg-link">Ver el blog <ArrowUpRight size={18} aria-hidden="true" /></Link>
+          </div>
+          <div className="pg-grid-3">{related.map((candidate) => {
+            const relatedCover = getBlogCover(candidate.slug);
+            const relatedCategory = postCategory(candidate);
+            return <Link key={candidate.slug} href={`/blog/${candidate.slug}`} className="ba-related-card">
+              <span className="ba-related-media" style={{ display: "block" }}>{relatedCover && <Image src={relatedCover.src} alt="" fill sizes="(max-width: 639px) 100vw, 33vw" />}</span>
+              <div><p className="pg-chip">{postFormat(candidate) === "actualidad" ? "Actualidad" : "Guía"}{relatedCategory ? ` · ${BLOG_CATEGORIES[relatedCategory]}` : ""}</p><p>{candidate.titulo}</p></div>
+            </Link>;
+          })}</div>
+        </div>
+      </section>}
     </main>
   );
 }

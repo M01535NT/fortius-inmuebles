@@ -4,13 +4,14 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
   test(`commercial home order and buyer/seller journeys at ${viewport.width}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
-    const journeys = page.locator("#recorridos");
-    await expect(journeys.getByRole("heading", { name: "¿Qué necesitas hacer?" })).toBeVisible();
-    const order = await page.locator("main section, main .editorial-image-reveal").evaluateAll((nodes) => nodes.map((node) =>
-      node.id || (node.classList.contains("editorial-hero") ? "hero" : node.classList.contains("editorial-image-reveal") ? "photo" : "unknown")));
-    expect(order).toEqual(["hero", "recorridos", "destacadas", "especialidades", "por-que-fortius", "photo", "metodo", "entregables", "respuestas"]);
-    await expect(journeys.getByRole("link", { name: /Soy propietario/ })).toHaveAttribute("href", "/vender-propiedad");
-    await expect(journeys.getByRole("link", { name: /Busco un inmueble/ })).toHaveAttribute("href", "/inventario");
+    const hero = page.locator(".nx-hero");
+    const order = await page.locator("main section").evaluateAll((nodes) => nodes.map((node) =>
+      node.id || (node.classList.contains("nx-hero") ? "hero" : "unknown")));
+    expect(order).toEqual(["hero", "destacadas", "por-que-fortius", "metodo", "respuestas"]);
+    // Buyers start with the search; owners with the valuation link.
+    await expect(hero.getByRole("search", { name: "Buscar propiedades" })).toHaveAttribute("action", "/inventario");
+    const seller = hero.getByRole("link", { name: /Pide una opinión de valor/ });
+    await expect(seller).toHaveAttribute("href", "/vender-propiedad");
     await expect(page.locator("#destacadas [data-property-card]")).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText(/Demostración/)).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText("Apartada · Demostración", { exact: true })).toBeVisible();
@@ -33,7 +34,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await expect(page).toHaveURL(/\/inventario$/);
     await expect(page.locator("[data-page-curtain]")).toBeHidden();
     await page.goBack();
-    await journeys.getByRole("link", { name: /Soy propietario/ }).click();
+    await seller.click();
     await expect(page).toHaveURL(/\/vender-propiedad$/);
     await expect(page.locator("#diagnostico form")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
