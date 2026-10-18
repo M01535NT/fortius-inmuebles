@@ -75,13 +75,13 @@ export function GuidedSidebar({ pathname, role, user, onLogout }: { pathname: st
     <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className="h-8 w-32" /></Link>
     <nav aria-label="Módulos del panel" className="flex flex-col gap-0.5">
       {MAIN_NAV.map(item => <Link key={item.href} href={item.href} className={s.link} aria-current={isNavActive(pathname, item) ? "page" : undefined}>
-        <item.icon size={20} aria-hidden={true} />{item.label}{item.href === "/admin" && <Count value={pending} />}
+        <item.icon size={19} aria-hidden={true} />{item.label}{item.href === "/admin" && <Count value={pending} />}
       </Link>)}
       <span className={s.rule} aria-hidden="true" />
-      <Link href={TOOLS_NAV.href} className={s.link} aria-current={isNavActive(pathname, TOOLS_NAV) ? "page" : undefined}><TOOLS_NAV.icon size={20} aria-hidden={true} />{TOOLS_NAV.label}<span className={s.meta}>16</span></Link>
+      <Link href={TOOLS_NAV.href} className={s.link} aria-current={isNavActive(pathname, TOOLS_NAV) ? "page" : undefined}><TOOLS_NAV.icon size={19} aria-hidden={true} />{TOOLS_NAV.label}<span className={s.meta}>16</span></Link>
       {role === "admin" && <>
         <button type="button" className={s.link} aria-expanded={adminOpen} aria-controls="admin-nav-administracion" onClick={() => setAdminOpen(open => !open)}>
-          <ShieldCheck size={20} aria-hidden="true" />Administración<ChevronDown size={16} aria-hidden="true" className={cn(s.chevron, adminOpen && s.chevronOpen)} />
+          <ShieldCheck size={19} aria-hidden="true" />Administración<ChevronDown size={16} aria-hidden="true" className={cn(s.chevron, adminOpen && s.chevronOpen)} />
         </button>
         {adminOpen && <div id="admin-nav-administracion" className="flex flex-col gap-0.5 pl-8">
           {ADMIN_NAV.map(item => <Link key={item.href} href={item.href} className={cn(s.link, s.sub)} aria-current={isNavActive(pathname, item) ? "page" : undefined}>{item.label}</Link>)}

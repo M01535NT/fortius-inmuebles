@@ -26,7 +26,13 @@
 }
 
 /* Títulos de página y encabezados de ficha */
-.admin-root .admin-page-header h1 { font-size: clamp(1.75rem, 2.6vw, 2.5rem); font-weight: 700; line-height: 1.1; letter-spacing: -.03em; }
+.admin-root .admin-page-header h1 { font-size: clamp(1.75rem, 2.6vw, 2.5rem); font-weight: 620; line-height: 1.1; letter-spacing: -.025em; }
+
+/* Íconos (lucide): trazo fino y uniforme, como en Geist; el tamaño lo pone cada uso. */
+.admin-root svg.lucide { stroke-width: 1.5; }
+.admin-root strong, .admin-root b { font-weight: 560; }
+.admin-root .font-semibold { font-weight: 560; }
+.admin-root .font-bold { font-weight: 600; }
 .admin-root .admin-breadcrumbs { font-size: .8125rem; }
 
 /* Insignias anteriores, en pastilla */

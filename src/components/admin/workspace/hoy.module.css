@@ -1,6 +1,6 @@
 /* Hoy (bocetos aprobados, 17/10/2026: Main y HoyBandeja). Prefijo :global(.admin-root): ver kit.module.css. */
 :global(.admin-root) .date { font-size: .875rem; color: var(--muted-foreground); }
-:global(.admin-root) .hello { margin: .25rem 0 0; font-size: clamp(1.75rem, 2.6vw, 2.5rem); line-height: 1.1; font-weight: 700; letter-spacing: -.03em; text-wrap: balance; }
+:global(.admin-root) .hello { margin: .25rem 0 0; font-size: clamp(1.75rem, 2.6vw, 2.5rem); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; text-wrap: balance; }
 :global(.admin-root) .helloTail { color: var(--muted-foreground); font-weight: 500; }
 
 /* Resumen: una tarjeta grande en azul marino y cuatro cifras */
@@ -12,7 +12,7 @@
 :global(.admin-root) .heroScrim { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(6, 31, 63, .55) 0%, rgba(6, 31, 63, .95) 70%); }
 :global(.admin-root) .heroTop { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; font-size: .9375rem; color: rgba(255, 255, 255, .8); }
 :global(.admin-root) .heroBody { position: relative; }
-:global(.admin-root) .heroNumber { display: block; font-size: clamp(2.75rem, 4vw, 4.25rem); line-height: 1; font-weight: 700; letter-spacing: -.04em; }
+:global(.admin-root) .heroNumber { display: block; font-size: clamp(2.75rem, 4vw, 4.25rem); line-height: 1; font-weight: 620; letter-spacing: -.04em; }
 :global(.admin-root) .heroNumber small { font-size: .45em; font-weight: 500; color: rgba(255, 255, 255, .6); letter-spacing: -.01em; }
 :global(.admin-root) .heroText { display: block; margin-top: .625rem; font-size: .9375rem; color: rgba(255, 255, 255, .82); }
 :global(.admin-root) .heroRingTrack { stroke: rgba(255, 255, 255, .18); }
@@ -20,7 +20,7 @@
 :global(.admin-root) .stat { display: flex; flex-direction: column; gap: .5rem; padding: 1.125rem 1.25rem; color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .statLabel { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-size: .875rem; color: var(--muted-foreground); }
 :global(.admin-root) .stat[data-tone=alert] .statLabel { color: var(--alert); }
-:global(.admin-root) .statValue { font-size: 2.125rem; line-height: 1; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .statValue { font-size: 2.125rem; line-height: 1; font-weight: 620; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 :global(.admin-root) .stat[data-tone=alert] .statValue { color: var(--alert); }
 :global(.admin-root) .statText { font-size: .875rem; color: var(--foreground); overflow-wrap: anywhere; }
 :global(.admin-root) .statBar { display: flex; gap: 3px; height: 6px; }
@@ -31,7 +31,7 @@
 :global(.admin-root) .layout { display: grid; gap: 1.5rem; align-items: start; }
 @media (min-width: 1100px) { :global(.admin-root) .layout { grid-template-columns: minmax(0, 1fr) 20rem; gap: 1.25rem; } }
 @media (min-width: 1280px) { :global(.admin-root) .layout { grid-template-columns: minmax(0, 1fr) 22rem; } }
-:global(.admin-root) .title { display: flex; align-items: baseline; gap: .5rem; margin: 0; font-size: 1.1875rem; font-weight: 650; letter-spacing: -.015em; }
+:global(.admin-root) .title { display: flex; align-items: baseline; gap: .5rem; margin: 0; font-size: 1.1875rem; font-weight: 600; letter-spacing: -.015em; }
 :global(.admin-root) .count { font-size: .8125rem; font-weight: 600; padding: .125rem .5rem; border-radius: var(--radius-pill); background: var(--track); color: var(--muted-foreground); }
 :global(.admin-root) .more { flex: none; font-size: .875rem; font-weight: 560; color: var(--primary-text); text-decoration: none; }
 :global(.admin-root) .more:hover { text-decoration: underline; text-underline-offset: 4px; }
@@ -45,7 +45,7 @@
 :global(.admin-root) .row:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .row { transition: background-color 150ms; } }
 :global(.admin-root) .rowBody { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .125rem; }
-:global(.admin-root) .rowTitle { font-weight: 560; overflow-wrap: anywhere; }
+:global(.admin-root) .rowTitle { font-weight: 540; overflow-wrap: anywhere; }
 :global(.admin-root) .rowText { font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
 :global(.admin-root) .rowEnd { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: .25rem; }
 /* En celular la pastilla y la fecha bajan a su propia línea para no estrechar el texto. */

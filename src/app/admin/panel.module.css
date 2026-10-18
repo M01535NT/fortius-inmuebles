@@ -50,6 +50,8 @@
   --field-radius: var(--radius-control);
   font-size: 16px;
   line-height: 1.55;
+  font-variation-settings: "wdth" 96;
+  font-variant-numeric: tabular-nums;
 }
 :global(.dark) .panel {
   --background: #080f1c;
@@ -84,11 +86,12 @@
   --alert: #ff8a7a;
   --alert-surface: #3a1c1a;
 }
-.panel :is(h1, h2, h3) { font-variation-settings: "wdth" 100; }
-.panel h1 { font-family: var(--font-sans); font-size: clamp(1.75rem, 2.3vw, 2rem); font-weight: 700; line-height: 1.15; letter-spacing: -.03em; text-transform: none; }
-.panel h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 650; line-height: 1.35; letter-spacing: -.015em; }
-.panel h3 { font-family: var(--font-sans); font-size: 1.125rem; font-weight: 600; line-height: 1.4; }
-.panel label { font-weight: 560; color: var(--foreground); }
+.panel h1 { font-variation-settings: "wdth" 92; }
+.panel :is(h2, h3) { font-variation-settings: "wdth" 94; }
+.panel h1 { font-family: var(--font-sans); font-size: clamp(1.75rem, 2.3vw, 2rem); font-weight: 620; line-height: 1.15; letter-spacing: -.025em; text-transform: none; }
+.panel h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 600; line-height: 1.35; letter-spacing: -.015em; }
+.panel h3 { font-family: var(--font-sans); font-size: 1.125rem; font-weight: 560; line-height: 1.4; }
+.panel label { font-weight: 500; color: var(--foreground); }
 .panel label ~ p { font-size: .875rem; line-height: 1.5; }
 .panel :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]), textarea, select) {
   background: var(--field-surface);

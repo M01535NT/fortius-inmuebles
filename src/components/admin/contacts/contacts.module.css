@@ -33,7 +33,7 @@
 :global(.admin-root) .item:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .item { transition: background-color 150ms; } }
 :global(.admin-root) .person { display: flex; min-width: 0; flex-direction: column; }
-:global(.admin-root) .person strong { font-size: 1rem; font-weight: 560; overflow-wrap: anywhere; }
+:global(.admin-root) .person strong { font-size: 1rem; font-weight: 540; overflow-wrap: anywhere; }
 :global(.admin-root) .wants { grid-column: 2; display: flex; min-width: 0; flex-direction: column; font-size: .875rem; overflow-wrap: anywhere; }
 :global(.admin-root) .step { grid-column: 2; display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; font-size: .875rem; overflow-wrap: anywhere; }
 :global(.admin-root) .end { grid-column: 3; grid-row: 1 / span 3; display: flex; flex-direction: column; align-items: flex-end; gap: .25rem; }

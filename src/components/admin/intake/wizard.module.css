@@ -28,7 +28,7 @@
 @media (min-width: 1280px) { :global(.admin-root) .aside { display: flex; } }
 :global(.admin-root) .body { flex: 1; width: 100%; max-width: 43rem; margin: 0 auto; padding: 1.5rem 1.25rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
 @media (min-width: 768px) { :global(.admin-root) .body { padding: 2.5rem 1.5rem 3rem; } }
-:global(.admin-root) .title { margin: 0; font-size: clamp(1.625rem, 3vw, 2.125rem); line-height: 1.1; font-weight: 700; letter-spacing: -.03em; text-wrap: balance; }
+:global(.admin-root) .title { margin: 0; font-size: clamp(1.625rem, 3vw, 2.125rem); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; text-wrap: balance; }
 :global(.admin-root) .lead { color: var(--muted-foreground); margin-top: -.5rem; }
 
 /* Paso 1: opciones grandes */
