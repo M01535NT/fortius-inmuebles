@@ -1055,6 +1055,14 @@ Notas de la fase 1: sin migraciones. El entorno local usa la base real, así que
 
 Por instrucción de Moisés del 13/10/2026, este plan debe actualizarse con cada entrega a GitHub y cada despliegue. Registrar fecha local, alcance real, PR, commit funcional, migraciones aplicadas, comprobaciones y límites, enlace y estado del despliegue. Distinguir preparación, publicación comprobada y pendientes; no marcar publicado por haber hecho push. Los commits que solo actualizan este registro no requieren reconstruir un producto cuyo código permanece idéntico. Actualizar también las tareas realizadas y pendientes del mismo plan.
 
+### Cuestionario complementario — entrega documental 17/10/2026
+
+**Entrega a GitHub:** [PR #43](https://github.com/M01535NT/fortius-inmuebles/pull/43), commit documental `43815d70470e02aeab2f6efc9442ca440b3702f9`, preparado sobre `main` después del PR #42 (`1de616e`). El estado de Verify y de la fusión se comprueba en el PR; este registro no acredita por sí solo un despliegue.
+
+- **Alcance:** complemento P01–P84 conciliado con las reglas vigentes: nueve temas resueltos, dos remisiones completas y 73 campos de respuesta (16 detalles complementarios y 57 preguntas directas). Se conservan las 73 preguntas del cuestionario vigente y la prioridad de A y B. No cambia el orden de implementación.
+- **Comprobaciones locales:** lectura completa, revisión independiente aprobada, identificadores y correspondencias comprobados, 99 referencias locales existentes y diff sin errores de espacios. Los documentos locales ajenos a esta entrega se preservaron y quedaron fuera del commit.
+- **Límites:** solo Markdown; sin cambios de código, pruebas, dependencias o migraciones, ni escrituras en datos productivos. La revisión documental no acredita la implementación de los paquetes pendientes ni requiere reconstruir el producto. CI, integración y publicación se verifican por separado.
+
 ### Panel guiado y flujo del vendedor publicados — 17/10/2026
 
 **Estado: integrado en main y publicado el 17/10/2026, America/Los_Angeles.** [PR #39](https://github.com/M01535NT/fortius-inmuebles/pull/39) (rama `feat/panel-guiado`), commit de fusión `58bdafd`, despliegue de producción `dpl_6mGokWD7AamPh2VkmkDH9Tmkpfiw`, servido en https://fortiusinmuebles.com.
