@@ -176,6 +176,20 @@ test("staff can save the public source and delivery facts on a property", async 
     ocupacionEntrega: "Entrega por acordar",
   }));
 });
+test("staff can fill the public Escenario sections and empty ones are left out", async () => {
+  await db.propiedades.load();
+  render(<PropertyForm initial={db.propiedades.list()[0]} />);
+  fireEvent.change(screen.getByLabelText("Beneficio 1"), { target: { value: "Vista al mar" } });
+  fireEvent.change(screen.getByLabelText("Detalle del beneficio 1"), { target: { value: "Orientación poniente." } });
+  fireEvent.change(screen.getByLabelText("Interior"), { target: { value: "Doble altura\n\nCocina integral" } });
+  fireEvent.change(screen.getByLabelText("Predial anual"), { target: { value: "18500" } });
+  fireEvent.change(screen.getByLabelText("Categoría 1"), { target: { value: "escuelas" } });
+  fireEvent.submit(screen.getByRole("button", { name: "Guardar cambios" }).closest("form")!);
+  await waitFor(() => expect(sent?.data.beneficios).toEqual([{ titulo: "Vista al mar", texto: "Orientación poniente." }]));
+  expect(sent?.data.caracteristicas).toEqual([{ grupo: "interior", elementos: ["Doble altura", "Cocina integral"] }]);
+  expect(sent?.data.costos).toEqual({ predialAnual: 18500 });
+  expect(sent?.data.puntosDeInteres).toEqual([{ lugar: "Escuela", minutos: 5, categoria: "escuelas" }]);
+});
 test("new real property defaults unpublished and not demo", async () => {
   render(<PropertyForm />);
   expect(screen.getByText("Borrador · no visible en el sitio")).toBeTruthy();

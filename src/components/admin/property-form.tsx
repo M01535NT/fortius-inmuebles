@@ -22,8 +22,13 @@ import {
   textareaClass,
 } from "@/components/admin/ui";
 import {
+  CATEGORIA_PUNTO_LABELS,
+  CATEGORIAS_PUNTO,
   ESTADO_LABELS,
   ESTADOS_POR_OPERACION,
+  GRUPO_CARACTERISTICA_LABELS,
+  GRUPOS_CARACTERISTICAS,
+  type CategoriaPunto,
   estadoValido,
   TIPO_LABELS,
   type DocumentoPropiedad,
@@ -50,6 +55,7 @@ const formSections = [
   { id: "pf-precio", label: "Precio" },
   { id: "pf-ubicacion", label: "Ubicación" },
   { id: "pf-contenido", label: "Descripción y ficha" },
+  { id: "pf-escenario", label: "Ficha pública" },
   { id: "pf-multimedia", label: "Multimedia" },
   { id: "pf-documentos", label: "Documentos" },
 ];
@@ -149,6 +155,17 @@ export function PropertyForm({ initial: source }: Props) {
     };
     const base = { ...initial };
     delete base.informacionPublica;
+    // Ficha «Escenario»: secciones opcionales; una sección vacía se retira de la ficha.
+    const beneficios = [0, 1, 2, 3]
+      .map((i) => ({ titulo: v(`beneficio-titulo-${i}`), texto: v(`beneficio-texto-${i}`) }))
+      .filter((b) => b.titulo);
+    const caracteristicas = GRUPOS_CARACTERISTICAS
+      .map((grupo) => ({ grupo, elementos: v(`caracteristicas-${grupo}`).split("\n").map((e) => e.trim()).filter(Boolean).slice(0, 30) }))
+      .filter((g) => g.elementos.length);
+    const costos: NonNullable<Property["costos"]> = {
+      ...(num("predialAnual") != null ? { predialAnual: num("predialAnual") } : {}),
+      ...(num("mantenimientoMensual") != null ? { mantenimientoMensual: num("mantenimientoMensual") } : {}),
+    };
     const property: Property = {
       ...base,
       slug,
@@ -193,7 +210,10 @@ export function PropertyForm({ initial: source }: Props) {
       documentos: documentos.filter((d) => d.url.trim() && d.nombre.trim()),
       asesorId: v("asesorId"),
       creditoDisponible: f.get("credito") === "on",
-      puntosDeInteres: pois.filter((p) => p.lugar.trim()),
+      puntosDeInteres: pois.filter((p) => p.lugar.trim()).map(({ categoria, ...p }) => (categoria ? { ...p, categoria } : p)),
+      beneficios: beneficios.length ? beneficios : undefined,
+      caracteristicas: caracteristicas.length ? caracteristicas : undefined,
+      costos: Object.keys(costos).length ? costos : undefined,
       destacada: f.get("destacada") === "on",
       estado,
       publicadaEl:
@@ -484,6 +504,21 @@ export function PropertyForm({ initial: source }: Props) {
                   }
                   className={inputClass + " w-[90px]"}
                 />
+                <select
+                  aria-label={`Categoría ${i + 1}`}
+                  value={poi.categoria ?? ""}
+                  onChange={(e) =>
+                    setPois(
+                      pois.map((p, j) =>
+                        j === i ? { ...p, categoria: (e.target.value || undefined) as CategoriaPunto | undefined } : p,
+                      ),
+                    )
+                  }
+                  className={selectClass + " w-[150px] shrink-0"}
+                >
+                  <option value="">Sin categoría</option>
+                  {CATEGORIAS_PUNTO.map((categoria) => <option key={categoria} value={categoria}>{CATEGORIA_PUNTO_LABELS[categoria]}</option>)}
+                </select>
                 <button
                   type="button"
                   aria-label="Quitar punto"
@@ -624,6 +659,47 @@ export function PropertyForm({ initial: source }: Props) {
               </Field>
             </div>
           </div>
+        </div>
+      </FormSection>
+
+      {/* Ficha pública «Escenario» */}
+      <FormSection id="pf-escenario" aria-labelledby="pf-escenario-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-escenario-heading" className="display-soft text-lg text-foreground">Ficha pública</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Todo es opcional. Lo que dejes vacío no aparece en la ficha del sitio.</p>
+        <div className="mt-5 space-y-6">
+          <fieldset>
+            <legend className="text-sm font-medium text-foreground">Beneficios <span className="font-normal text-muted-foreground">· hasta 4, «Por qué destaca»</span></legend>
+            <div className="mt-2 space-y-2">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="grid gap-2 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+                  <input aria-label={`Beneficio ${i + 1}`} name={`beneficio-titulo-${i}`} maxLength={80} defaultValue={initial?.beneficios?.[i]?.titulo} placeholder="Vista abierta al mar" className={inputClass} />
+                  <input aria-label={`Detalle del beneficio ${i + 1}`} name={`beneficio-texto-${i}`} maxLength={240} defaultValue={initial?.beneficios?.[i]?.texto} placeholder="Una frase que lo explique" className={inputClass} />
+                </div>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="text-sm font-medium text-foreground">Características por grupo <span className="font-normal text-muted-foreground">· una por línea; si no llenas ninguna, se usan las amenidades</span></legend>
+            <div className="mt-2 grid gap-4 sm:grid-cols-2">
+              {GRUPOS_CARACTERISTICAS.map((grupo) => (
+                <Field key={grupo} label={GRUPO_CARACTERISTICA_LABELS[grupo]} htmlFor={`pf-caracteristicas-${grupo}`}>
+                  <textarea id={`pf-caracteristicas-${grupo}`} name={`caracteristicas-${grupo}`} rows={3}
+                    defaultValue={initial?.caracteristicas?.find((g) => g.grupo === grupo)?.elementos.join("\n")} className={textareaClass} />
+                </Field>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="text-sm font-medium text-foreground">Costos recurrentes <span className="font-normal text-muted-foreground">· en la moneda del precio; solo si el propietario autoriza publicarlos</span></legend>
+            <div className="mt-2 grid gap-4 sm:grid-cols-2">
+              <Field label="Predial anual" htmlFor="pf-predialAnual">
+                <input id="pf-predialAnual" name="predialAnual" type="number" min={0} step="0.01" defaultValue={initial?.costos?.predialAnual} className={inputClass} />
+              </Field>
+              <Field label="Mantenimiento mensual" htmlFor="pf-mantenimientoMensual">
+                <input id="pf-mantenimientoMensual" name="mantenimientoMensual" type="number" min={0} step="0.01" defaultValue={initial?.costos?.mantenimientoMensual} className={inputClass} />
+              </Field>
+            </div>
+          </fieldset>
         </div>
       </FormSection>
 

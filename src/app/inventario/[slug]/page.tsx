@@ -1,36 +1,35 @@
 import type { Metadata } from "next";
-import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
+import Link from "next/link";
+import QRCode from "qrcode";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Check, MapPin } from "lucide-react";
 
-import { AgentProfile } from "@/components/property/agent-profile";
-import { MessagingContact } from "@/components/contact/messaging-actions";
+import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import { ContactDock } from "@/components/property/contact-dock";
-import { Container } from "@/components/layout/container";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 import { PropertyCard } from "@/components/property/property-card";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyFaq } from "@/components/property/property-faq";
 import { PropertyGallery } from "@/components/property/property-gallery";
 import { InventoryBackLink } from "@/components/property/inventory-back-link";
-import { PropertyInterestForm } from "@/components/property/property-interest-form";
 import { PropertyLocation } from "@/components/property/property-location";
 import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
+import { SharePanel } from "@/components/property/share-panel";
+import { VisitPlanner } from "@/components/property/visit-planner";
 import { getPublicAdvisers, getPublicSettings } from "@/lib/backend/public";
+import { publicContact } from "@/lib/public-contact";
 import {
   ESTADO_LABELS,
   FUENTE_SUPERFICIE_LABELS,
+  GRUPO_CARACTERISTICA_LABELS,
   formatPrecio,
-
   OPERACION_LABELS,
   TIPO_LABELS,
   type Property,
 } from "@/data/propiedades";
-import {
-  getPropertyBySlug,
-  getRelatedProperties,
-} from "@/lib/inventario";
+import { getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
+import "./ficha.css";
 
 type Params = { slug: string };
 
@@ -44,17 +43,28 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   return propertyShareMetadata(property);
 }
 
-/* Ficha técnica: solo filas con dato; números en mono. */
-function fichaRows(p: Property): { label: string; value: string; source?: string }[] {
+type FichaRow = { label: string; value: string; source?: string; confirmed?: boolean };
+
+/* Ficha técnica: solo filas con dato; las superficies dicen de dónde salen. */
+function fichaRows(p: Property): FichaRow[] {
   const f = p.ficha;
-  const rows: { label: string; value: string; source?: string }[] = [];
-  if (f.terrenoM2 != null) rows.push({ label: "Terreno", value: `${f.terrenoM2} m²`, source: p.informacionPublica?.fuenteTerreno ? FUENTE_SUPERFICIE_LABELS[p.informacionPublica.fuenteTerreno] : "Fuente por confirmar" });
-  if (f.construccionM2 != null) rows.push({ label: "Construcción", value: `${f.construccionM2} m²`, source: p.informacionPublica?.fuenteConstruccion ? FUENTE_SUPERFICIE_LABELS[p.informacionPublica.fuenteConstruccion] : "Fuente por confirmar" });
+  const fuente = (key?: keyof typeof FUENTE_SUPERFICIE_LABELS) => key
+    ? { source: `Fuente: ${FUENTE_SUPERFICIE_LABELS[key]}`, confirmed: key === "escritura" || key === "catastro" || key === "plano" }
+    : { source: "Fuente por confirmar", confirmed: false };
+  const rows: FichaRow[] = [];
+  if (f.terrenoM2 != null) rows.push({ label: "Terreno", value: `${f.terrenoM2} m²`, ...fuente(p.informacionPublica?.fuenteTerreno) });
+  if (f.construccionM2 != null) rows.push({ label: "Construcción", value: `${f.construccionM2} m²`, ...fuente(p.informacionPublica?.fuenteConstruccion) });
   if (f.recamaras) rows.push({ label: "Recámaras", value: String(f.recamaras) });
   if (f.banos) rows.push({ label: "Baños", value: String(f.banos) });
   if (f.estacionamientos) rows.push({ label: "Estacionamientos", value: String(f.estacionamientos) });
   if (f.antiguedad) rows.push({ label: "Antigüedad", value: f.antiguedad });
   return rows;
+}
+
+/* Montos recurrentes en la moneda del precio publicado (MXN si es a consulta). */
+function money(amount: number, p: Property) {
+  const moneda = p.precio.modalidad === "publico" ? p.precio.moneda : "MXN";
+  return `$${amount.toLocaleString("en-US")} ${moneda}`;
 }
 
 function jsonLd(p: Property): string {
@@ -90,6 +100,20 @@ function jsonLd(p: Property): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
+async function qrSvg(url: string) {
+  try {
+    return await QRCode.toString(url, { type: "svg", margin: 1, width: 180, color: { dark: "#061f3f", light: "#ffffff" } });
+  } catch {
+    return undefined;
+  }
+}
+
+/*
+  Ficha del inmueble · «Escenario» (titular, 18/10/2026): banda oscura con
+  título, precio y visor; franja de datos clave; secciones con índice fijo y
+  tarjeta de visita fija; similares al final. Las secciones sin datos no se
+  muestran.
+*/
 export default async function PropertyDetailPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
   const property = await getPropertyBySlug(slug);
@@ -99,200 +123,196 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
     getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(),
   ]);
   const ficha = fichaRows(property);
-  const enquiryMessage = `Hola, me interesa ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`;
+  const share = propertyShare(property);
+  const pageUrl = new URL(`/inventario/${property.slug}`, siteConfig.url).href;
+  const enquiryMessage = `Hola, me interesa ${property.titulo} (${property.codigo}). ${pageUrl}`;
+  const contact = publicContact(settings, enquiryMessage);
   const asesor = advisers.find((a) => a.id === property.asesorId);
-  const muestraCalculadora =
-    property.creditoDisponible &&
-    property.operacion === "venta" &&
-    property.precio.modalidad === "publico";
+  const muestraCalculadora = property.creditoDisponible && property.operacion === "venta" && property.precio.modalidad === "publico";
+  const grupos = property.caracteristicas?.filter(grupo => grupo.elementos.length) ?? [];
+  const beneficios = property.beneficios ?? [];
+  const documentos = property.documentos ?? [];
+  const costos = property.costos ?? {};
+  const qr = await qrSvg(share.url);
+
+  const secciones = [
+    { id: "descripcion", label: "Descripción", show: property.descripcion.length > 0 },
+    { id: "caracteristicas", label: "Características", show: grupos.length > 0 || property.amenidades.length > 0 },
+    { id: "beneficios", label: "Beneficios", show: beneficios.length > 0 },
+    { id: "ubicacion", label: "Ubicación", show: true },
+    { id: "ficha-tecnica", label: "Ficha técnica", show: ficha.length > 0 },
+    { id: "documentos", label: "Documentos", show: documentos.length > 0 },
+    { id: "costos", label: "Costos", show: true },
+    { id: "preguntas", label: "Preguntas", show: true },
+  ].filter(section => section.show);
 
   return (
-    <main className="bg-background pb-24 pt-24 md:pb-0 md:pt-28">
+    <main className="pg-page fe-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(property) }} />
 
-      <Container className="pb-16 md:pb-24">
-        <InventoryBackLink />
+      <section className="pg-hero fe-hero" aria-labelledby="fe-title">
+        <div className="pg-container fe-hero-body">
+          <nav className="fe-crumbs" aria-label="Ruta">
+            <InventoryBackLink />
+            <span aria-hidden="true">/</span>
+            <Link href={`/inventario?tipo=${property.tipo}&op=${property.operacion}`}>{TIPO_LABELS[property.tipo]} en {OPERACION_LABELS[property.operacion].toLowerCase()}</Link>
+            <span aria-hidden="true">/</span>
+            <span>{property.zona}</span>
+          </nav>
 
-        {property.demo && (
-          <p className="mt-5 rounded-md border border-border bg-secondary px-4 py-3 text-sm leading-relaxed text-foreground">
-            <strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.
-          </p>
-        )}
+          <div className="fe-hero-head">
+            <div>
+              <p className="fe-chips">
+                <span className="fe-chip is-solid">{OPERACION_LABELS[property.operacion]}</span>
+                {property.demo && <span className="fe-chip is-demo">Demostración · datos de ejemplo</span>}
+                <span className="fe-chip">{property.codigo}</span>
+                <span className="fe-chip">{property.estado === "disponible" ? "Disponible para visitas" : ESTADO_LABELS[property.estado]}</span>
+              </p>
+              <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
+              <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona} · {property.direccionAproximada}</p>
+            </div>
+            <div className="fe-price-block">
+              <p className="fe-price">{formatPrecio(property.precio)}</p>
+              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario · <a href="#costos">Calcular mensualidad</a></p>}
+              {property.operacion === "renta" && <p className="fe-price-note">Renta mensual · <a href="#costos">Ver costos</a></p>}
+            </div>
+          </div>
 
-        {/* Galería editorial con imagen principal y vistas complementarias. */}
-        <div className="mt-5">
+          {property.demo && <p className="fe-demo-note"><strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.</p>}
+
           <PropertyGallery
             imagenes={property.galeria}
             titulo={property.titulo}
-            share={propertyShare(property)}
+            share={share}
             videoUrl={property.videoUrl}
             tour360Url={property.tour360Url}
             fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
+            ficha={{ titulo: property.titulo, codigo: property.codigo, zona: property.zona, precio: formatPrecio(property.precio), filas: ficha.slice(0, 4).map(({ label, value }) => ({ label, value })), demo: property.demo }}
           />
         </div>
+      </section>
 
-        {/* Encabezado debajo del medio */}
-        <div className="mt-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b border-border pb-8">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-              {property.codigo} · {TIPO_LABELS[property.tipo]} ·{" "}
-              {OPERACION_LABELS[property.operacion]}
-            </p>
-            <h1 className="display-title mt-3 max-w-[26ch] text-4xl text-foreground md:text-5xl">
-              {property.titulo}
-            </h1>
-            <p className="mt-2.5 flex items-center gap-2 text-base text-muted-foreground">
-              <MapPin className="size-4 shrink-0 text-primary-ink" strokeWidth={1.5} />
-              {property.zona} · {property.direccionAproximada}
-            </p>
-          </div>
-          <div className="text-left md:text-right">
-            <p className="display-soft text-2xl text-foreground md:text-3xl">
-              {formatPrecio(property.precio)}
-            </p>
-            {property.estado !== "disponible" ? (
-              <p className="mt-1.5 inline-block rounded-sm border border-border bg-secondary px-2.5 py-1 font-mono text-xs uppercase tracking-[0.06em] text-foreground">
-                {ESTADO_LABELS[property.estado]}
-              </p>
-            ) : null}
-          </div>
-        </div>
+      {ficha.length > 0 && <section className="fe-facts" aria-label="Características principales">
+        <dl className="pg-container property-key-facts">
+          {ficha.map((row) => <div key={row.label}><dd>{row.value}</dd><dt>{row.label}</dt></div>)}
+        </dl>
+      </section>}
 
-        {ficha.length > 0 && <dl className="property-key-facts" aria-label="Características principales">
-          {ficha.slice(0, 5).map((row) => <div key={row.label}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}
-        </dl>}
-        <a href="#interes" className="editorial-text-link property-enquiry-link">Consultar este inmueble <ArrowUpRight size={18} aria-hidden="true" /></a>
+      <div className="pg-container fe-layout">
+        <div className="fe-main">
+          <nav className="fe-sections" aria-label="Secciones del inmueble">
+            {secciones.map(section => <a key={section.id} href={`#${section.id}`}>{section.label}</a>)}
+          </nav>
 
-        <nav className="mt-6 flex gap-x-6 gap-y-2 overflow-x-auto border-y border-border py-3 text-sm" aria-label="Secciones del inmueble">
-          <a href="#caracteristicas" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Características</a>
-          <a href="#ubicacion" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Ubicación</a>
-          {(property.documentos?.length ?? 0) > 0 ? <a href="#documentos" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Documentos</a> : null}
-          <a href="#interes" className="whitespace-nowrap text-muted-foreground hover:text-foreground">Contacto</a>
-        </nav>
+          {property.estado === "apartada" && <p className="fe-alert">Esta propiedad está apartada. Podemos avisarte si vuelve a estar disponible o mostrarte opciones similares.</p>}
+          {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
 
-        {/* Cuerpo */}
-        {/* min-w-0 en ambas columnas: sin él, cualquier texto nowrap
-            (truncate) dentro propaga su min-content y ensancha la página. */}
-        <div className="property-detail-layout">
-          <div id="interes" className="property-detail-contact scroll-mt-24 border border-border bg-card p-6">
-            <MessagingContact settings={settings} title="Hablemos de esta propiedad." message={enquiryMessage}>
-              <PropertyInterestForm
-                slug={property.slug}
-                codigo={property.codigo}
-                titulo={property.titulo}
-              />
-            </MessagingContact>
-          </div>
+          {property.descripcion.length > 0 && <section id="descripcion" className="fe-section" aria-label="Descripción">
+            <p className="pg-eyebrow pg-eyebrow-ink">Descripción</p>
+            <div className="fe-description">
+              {property.descripcion.map((parrafo, index) => <p key={parrafo.slice(0, 32)} className={index === 0 ? "is-lead" : undefined}>{parrafo}</p>)}
+            </div>
+          </section>}
 
-          <div id="caracteristicas" className="property-detail-main min-w-0 scroll-mt-24">
-            {property.estado === "apartada" ? (
-              <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-sm leading-relaxed text-foreground/85">
-                Esta propiedad está apartada. Podemos avisarte si vuelve a
-                estar disponible o mostrarte opciones similares.
-              </p>
-            ) : null}
-            {property.estado === "rentada" ? (
-              <p className="mb-8 rounded-md border border-border bg-secondary/60 px-4 py-3 text-sm leading-relaxed text-foreground/85">
-                Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.
-              </p>
-            ) : null}
-
-            <div className="space-y-5">
-              {property.descripcion.map((parrafo) => (
-                <p key={parrafo.slice(0, 32)} className="max-w-[68ch] text-base leading-relaxed text-foreground/85">
-                  {parrafo}
-                </p>
+          {(grupos.length > 0 || property.amenidades.length > 0) && <section id="caracteristicas" className="fe-section" aria-labelledby="fe-features">
+            <p className="pg-eyebrow pg-eyebrow-ink">Características</p>
+            <h2 id="fe-features" className="fe-h2">Todo lo que tiene</h2>
+            <div className="fe-groups">
+              {(grupos.length ? grupos.map(grupo => ({ titulo: GRUPO_CARACTERISTICA_LABELS[grupo.grupo], elementos: grupo.elementos })) : [{ titulo: "Lo que ofrece", elementos: property.amenidades }]).map(grupo => (
+                <div key={grupo.titulo} className="fe-card fe-group">
+                  <h3>{grupo.titulo}</h3>
+                  <ul>{grupo.elementos.map(elemento => <li key={elemento}><Check size={16} strokeWidth={2.4} aria-hidden="true" />{elemento}</li>)}</ul>
+                </div>
               ))}
             </div>
+          </section>}
 
-            {/* Ficha técnica */}
-            {ficha.length > 0 ? (
-              <div className="mt-12">
-                <h2 className="display-soft text-2xl text-foreground">Ficha técnica</h2>
-                <dl className="mt-5 max-w-[560px]">
-                  {ficha.map((row) => (
-                    <div
-                      key={row.label}
-                      className="flex items-baseline justify-between gap-6 border-b border-border py-3.5"
-                    >
-                      <dt className="text-sm text-muted-foreground">{row.label}</dt>
-                      <dd className="text-right font-mono text-sm text-foreground">{row.value}{row.source ? <span className="mt-1 block font-sans text-xs text-muted-foreground">{row.source}</span> : null}</dd>
-                    </div>
-                  ))}
+          {beneficios.length > 0 && <section id="beneficios" className="fe-section" aria-labelledby="fe-benefits">
+            <p className="pg-eyebrow pg-eyebrow-ink">Beneficios</p>
+            <h2 id="fe-benefits" className="fe-h2">Por qué destaca</h2>
+            <ol className="fe-benefits">
+              {beneficios.map((beneficio, index) => <li key={beneficio.titulo}>
+                <span className="pg-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <h3>{beneficio.titulo}</h3>
+                {beneficio.texto && <p>{beneficio.texto}</p>}
+              </li>)}
+            </ol>
+          </section>}
+
+          <section id="ubicacion" className="fe-section" aria-labelledby="fe-location">
+            <p className="pg-eyebrow pg-eyebrow-ink">Ubicación y zona</p>
+            <h2 id="fe-location" className="fe-h2">Qué hay cerca</h2>
+            <PropertyLocation property={property} />
+          </section>
+
+          {ficha.length > 0 && <section id="ficha-tecnica" className="fe-section" aria-labelledby="fe-tech">
+            <p className="pg-eyebrow pg-eyebrow-ink">Datos con fuente</p>
+            <h2 id="fe-tech" className="fe-h2">Ficha técnica</h2>
+            <dl className="fe-card fe-tech">
+              {ficha.map((row) => <div key={row.label}>
+                <dt>{row.label}</dt>
+                <dd>{row.value}</dd>
+                {row.source ? <span className={"fe-source" + (row.confirmed ? " is-confirmed" : "")}>{row.source}</span> : <span />}
+              </div>)}
+            </dl>
+            <div className="fe-card fe-availability">
+              <h3>Disponibilidad y entrega</h3>
+              <p>{property.informacionPublica?.disponibilidadRevisadaEl
+                ? `Disponibilidad revisada el ${new Date(`${property.informacionPublica.disponibilidadRevisadaEl}T12:00:00Z`).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}. Confírmala antes de programar una visita.`
+                : "Confirma la disponibilidad antes de programar una visita."}</p>
+              {property.informacionPublica?.ocupacionEntrega ? <p>{property.informacionPublica.ocupacionEntrega}</p> : null}
+            </div>
+          </section>}
+
+          <section id="documentos" className="fe-section" aria-labelledby="fe-docs">
+            <p className="pg-eyebrow pg-eyebrow-ink">{documentos.length ? "Documentos y costos" : "Costos"}</p>
+            <h2 id="fe-docs" className="fe-h2">Para decidir con números</h2>
+            <div className={"fe-docs-grid" + (documentos.length ? "" : " is-single")}>
+              {documentos.length > 0 && <div className="fe-docs">
+                <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
+              </div>}
+              <div id="costos" className="fe-card fe-costs">
+                <dl>
+                  <div><dt>{property.operacion === "renta" ? "Renta" : "Precio"}</dt><dd>{formatPrecio(property.precio)}</dd></div>
+                  {costos.predialAnual != null && <div><dt>Predial anual</dt><dd>{money(costos.predialAnual, property)}</dd></div>}
+                  {costos.mantenimientoMensual != null && <div><dt>Mantenimiento mensual</dt><dd>{money(costos.mantenimientoMensual, property)}</dd></div>}
                 </dl>
+                {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="pg-link">Calcular gastos de cierre <ArrowUpRight size={18} aria-hidden="true" /></Link>}
+                {muestraCalculadora && property.precio.modalidad === "publico" ? (
+                  <details className="fe-mortgage">
+                    <summary>Calcular mi mensualidad</summary>
+                    <div className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
+                  </details>
+                ) : null}
               </div>
-            ) : null}
-
-            <div className="mt-10 max-w-[560px] border-t border-border pt-5">
-              <h2 className="display-soft text-xl text-foreground">Disponibilidad y entrega</h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {property.informacionPublica?.disponibilidadRevisadaEl
-                  ? `Disponibilidad revisada el ${new Date(`${property.informacionPublica.disponibilidadRevisadaEl}T12:00:00Z`).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}. Confírmala antes de programar una visita.`
-                  : "Confirma la disponibilidad antes de programar una visita."}
-              </p>
-              {property.informacionPublica?.ocupacionEntrega ? <p className="mt-2 text-sm leading-relaxed text-foreground/85">{property.informacionPublica.ocupacionEntrega}</p> : null}
             </div>
+          </section>
 
-            {/* Amenidades */}
-            {property.amenidades.length > 0 ? (
-              <div className="mt-12">
-                <h2 className="display-soft text-2xl text-foreground">Amenidades</h2>
-                <ul className="mt-5 grid max-w-[560px] gap-x-8 gap-y-3 sm:grid-cols-2">
-                  {property.amenidades.map((a) => (
-                    <li key={a} className="flex items-start gap-2.5 text-base text-foreground/85">
-                      <Check className="mt-0.5 size-4 shrink-0 text-primary-ink" strokeWidth={1.5} />
-                      {a}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {/* Ubicación: mapa por zona + puntos de interés */}
-            <div id="ubicacion" className="scroll-mt-24"><PropertyLocation property={property} /></div>
-
-            {/* Perfil completo del asesor titular */}
-            {asesor ? <AgentProfile asesor={asesor} settings={settings} message={enquiryMessage} /> : null}
-
+          <section id="preguntas" className="fe-section" aria-labelledby="fe-faq">
+            <p className="pg-eyebrow pg-eyebrow-ink">Preguntas</p>
+            <h2 id="fe-faq" className="fe-h2">Antes de visitarla</h2>
             <PropertyFaq />
-          </div>
-
-          {/* Recursos complementarios después de la información y el contacto. */}
-          <aside className="property-detail-extras min-w-0 space-y-4">
-            {muestraCalculadora && property.precio.modalidad === "publico" ? (
-              <details className="rounded-lg border border-border bg-card p-5">
-                <summary className="cursor-pointer display-soft text-xl text-foreground">Calcular mi mensualidad</summary>
-                <div className="mt-5"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
-              </details>
-            ) : null}
-
-            {/* Documentos en PDF (se administran desde el panel) */}
-            <div id="documentos" className="scroll-mt-24">
-              <PropertyDocuments
-                documentos={property.documentos ?? []}
-                slug={property.slug}
-                codigo={property.codigo}
-              />
-            </div>
-          </aside>
+          </section>
         </div>
 
-        {/* Relacionadas */}
-        {related.length > 0 ? (
-          <div className="mt-20 border-t border-border pt-12 md:mt-28">
-            <h2 className="display-title text-3xl text-foreground sm:text-4xl">
-              Otras propiedades.
-            </h2>
-            <div className="property-catalog-grid mt-8">
-              {related.map((p) => (
-                <PropertyCard key={p.slug} property={p} />
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </Container>
+        <aside className="fe-aside" aria-label="Visita y contacto">
+          <VisitPlanner slug={property.slug} codigo={property.codigo} titulo={property.titulo}
+            asesor={asesor ? { nombre: asesor.nombre, cargo: asesor.cargo, iniciales: asesor.iniciales } : undefined}
+            channels={{ whatsapp: contact.whatsapp, phoneHref: contact.phoneHref, emailHref: contact.emailHref }} />
+          <SharePanel title={share.title} text={share.text} url={share.url} qrSvg={qr} />
+        </aside>
+      </div>
 
-      <PropertyMobileCta settings={settings} message={`Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${new URL(`/inventario/${property.slug}`, siteConfig.url).href}`} />
+      {related.length > 0 && <section className="fe-related dark inv-page" aria-labelledby="fe-related">
+        <div className="pg-container">
+          <h2 id="fe-related" className="fe-h2">También te puede interesar</h2>
+          <div className="property-catalog-grid">
+            {related.map((p) => <PropertyCard key={p.slug} property={p} />)}
+          </div>
+        </div>
+      </section>}
+
+      <PropertyMobileCta settings={settings} message={`Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${pageUrl}`} />
       <ContactDock settings={settings} message={enquiryMessage} />
     </main>
   );

@@ -12,12 +12,14 @@ const subscribeToLocation = () => () => {};
   Formulario de interés por propiedad. El BFF confirma el lead persistido
   en MNT antes de mostrar la recepción; los fallos conservan los datos.
 */
-export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; codigo: string; titulo: string }) {
+/* `intent` fija la intención desde la ficha; si falta, se lee de ?intencion=visita.
+   `proposedDay` es el día que propone el interesado; el asesor lo confirma. */
+export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay }: { slug: string; codigo: string; titulo: string; intent?: "visita" | "interes"; proposedDay?: string }) {
   const [sent, setSent] = React.useState(false);
   const [enviando, setEnviando] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const search = React.useSyncExternalStore(subscribeToLocation, () => window.location.search, () => "");
-  const intencion = new URLSearchParams(search).get("intencion") === "visita" ? "visita" : "interes";
+  const intencion = intent ?? (new URLSearchParams(search).get("intencion") === "visita" ? "visita" : "interes");
 
   if (sent) {
     return (
@@ -46,7 +48,7 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
             telefono: String(data.get("telefono") ?? ""),
             mensaje:
               intencion === "visita"
-                ? `Solicitud de visita${String(data.get("mensaje") ?? "").trim() ? `: ${String(data.get("mensaje")).trim()}` : ""}`
+                ? [`Solicitud de visita${proposedDay ? ` · Día propuesto: ${proposedDay} (por confirmar con el asesor)` : ""}`, String(data.get("mensaje") ?? "").trim()].filter(Boolean).join(": ")
                 : String(data.get("mensaje") ?? "") || undefined,
             propiedadSlug: slug,
             origen: "interes-propiedad",
@@ -64,6 +66,7 @@ export function PropertyInterestForm({ slug, codigo, titulo }: { slug: string; c
       </p>
       <input type="hidden" name="propiedad" value={slug} />
       <input type="hidden" name="intencion" value={intencion} />
+      {proposedDay ? <input type="hidden" name="dia" value={proposedDay} /> : null}
       <div className="mt-4 grid gap-4">
         <div className="flex flex-col gap-2">
           <label htmlFor="interes-nombre" className="text-sm font-medium text-foreground">

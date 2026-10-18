@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 const QA = [
   {
     q: "¿Cómo agendo una visita?",
-    a: "Envía el formulario de esta página. Confirmamos la disponibilidad y coordinamos contigo día, hora y condiciones de la visita.",
+    a: "Propón un día en la tarjeta de visita de esta página. Confirmamos la disponibilidad y coordinamos contigo la hora y las condiciones de la visita.",
   },
   {
     q: "¿Puedo comprar con crédito hipotecario?",
@@ -25,24 +25,16 @@ const QA = [
 
 export function PropertyFaq() {
   return (
-    <div className="mt-12">
-      <h2 className="display-soft text-2xl text-foreground">Preguntas frecuentes</h2>
-      <div className="mt-4 max-w-[640px] divide-y divide-border border-y border-border">
-        {QA.map((item) => (
-          <details key={item.q} className="group">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-left [&::-webkit-details-marker]:hidden">
-              <span className="text-base font-medium text-foreground">{item.q}</span>
-              <Plus
-                className="h-4 w-4 shrink-0 text-primary-ink transition-transform duration-300 group-open:rotate-45"
-                strokeWidth={1.5}
-              />
-            </summary>
-            <p className="max-w-[60ch] pb-5 text-base leading-relaxed text-muted-foreground">
-              {item.a}
-            </p>
-          </details>
-        ))}
-      </div>
+    <div className="fe-faq">
+      {QA.map((item) => (
+        <details key={item.q} className="fe-card">
+          <summary>
+            <span>{item.q}</span>
+            <Plus size={18} strokeWidth={1.8} aria-hidden="true" />
+          </summary>
+          <p>{item.a}</p>
+        </details>
+      ))}
     </div>
   );
 }
