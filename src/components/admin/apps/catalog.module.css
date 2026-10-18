@@ -1,0 +1,39 @@
+/*
+  Catálogo de herramientas (rediseño del 18/10/2026): buscador y categorías en pista, y las
+  herramientas agrupadas por categoría en tarjetas horizontales con un ícono de color por
+  familia. Prefijo :global(.admin-root): ver kit.module.css.
+*/
+
+:global(.admin-root) .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; }
+:global(.admin-root) .search { position: relative; display: flex; align-items: center; flex: 1 1 16rem; max-width: 26rem; }
+:global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
+:global(.admin-root) .search input { width: 100%; padding-left: 2.5rem; background: var(--card); border-color: var(--edge-soft); border-radius: var(--radius-thumb); }
+:global(.admin-root) .toolbar > :last-child { margin-left: auto; }
+:global(.admin-root) .filters { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+:global(.admin-root) .count { font-size: .875rem; color: var(--muted-foreground); }
+
+/* Secciones por categoría */
+:global(.admin-root) .sections { display: flex; flex-direction: column; gap: 1.75rem; }
+:global(.admin-root) .section { display: flex; flex-direction: column; gap: .875rem; min-width: 0; }
+:global(.admin-root) .sectionHead { display: flex; align-items: baseline; gap: .625rem; }
+:global(.admin-root) .sectionHead h2 { margin: 0; font-size: 1.0625rem; font-weight: 600; letter-spacing: -.01em; }
+:global(.admin-root) .sectionHead span { font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); }
+
+/* Tarjeta de herramienta: el enlace cubre toda la tarjeta; la estrella queda encima. */
+:global(.admin-root) .tile { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .25rem .875rem; align-items: start; padding: .875rem 1rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); }
+:global(.admin-root) .tile:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+:global(.admin-root) .tile:has(a:focus-visible) { outline: 3px solid var(--focus-color); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .tile { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); } }
+:global(.admin-root) .icon { grid-row: 1 / span 2; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-thumb); background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .tile[data-category="Finanzas"] .icon { background: var(--success-surface); color: var(--success); }
+:global(.admin-root) .tile[data-category="Documentos"] .icon { background: var(--info-surface); color: var(--info); }
+:global(.admin-root) .tile[data-category="Productividad"] .icon { background: var(--warning-surface); color: var(--warning); }
+:global(.admin-root) .tile a { grid-column: 2; min-width: 0; padding-top: .125rem; font-size: 1rem; font-weight: 560; line-height: 1.3; color: var(--foreground); text-decoration: none; overflow-wrap: anywhere; }
+:global(.admin-root) .tile a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+:global(.admin-root) .tile a:focus-visible { outline: none; }
+:global(.admin-root) .tile p { grid-column: 2; margin: 0; font-size: .8125rem; line-height: 1.5; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .favorite { grid-column: 3; grid-row: 1 / span 2; position: relative; z-index: 1; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; margin: -.375rem -.5rem 0 0; border: 0; border-radius: var(--radius-control); background: none; color: var(--muted-foreground); cursor: pointer; }
+:global(.admin-root) .favorite:hover { background: var(--secondary); color: var(--foreground); }
+:global(.admin-root) .favorite[aria-pressed=true] { color: var(--primary); background: none; border: 0; }
+:global(.admin-root) .favorite:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 2px; }
