@@ -8,7 +8,7 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 
 ## Estado vigente — 18/10/2026
 
-**Qué hay construido (en `main`):** panel guiado (Fase C, PR #39, publicado en el dominio el 17/10/2026); Operaciones según el boceto C (lista «Esperan algo de ti / Al día» con filtros por fase, «Ahora toca», ventana de captura por documento); las 10 etapas del vendedor agrupadas en cuatro fases en pantalla (Conocer · Revisar · Preparar y publicar · Vender y cerrar); entrevista 02 y levantamiento 04 sencillos; menú lateral y membrete común en Word y PDF; formatos 01–19 en PDF y Word; opinión de valor 07 en PDF y Excel; «Documentos sin expediente». Los cambios del boceto C en adelante se integraron en `main` el 17/10/2026; su publicación en el dominio no está comprobada en este registro.
+**Qué hay construido (en `main`):** panel guiado (Fase C, PR #39, publicado en el dominio el 17/10/2026); Operaciones según el boceto C (lista «Esperan algo de ti / Al día» con filtros por fase, «Ahora toca», ventana de captura por documento); las 10 etapas del vendedor agrupadas en cuatro fases en pantalla (Conocer · Revisar · Preparar y publicar · Vender y cerrar); entrevista 02 y levantamiento 04 sencillos; menú lateral y membrete común en Word y PDF; formatos 01–19 en PDF y Word, salvo el PDF del contrato 09, que sigue bloqueado hasta resolver DOC-09 y por ahora sale solo en Word; opinión de valor 07 en PDF y Excel; «Documentos sin expediente». Los cambios del boceto C en adelante se integraron en `main` el 17/10/2026; su publicación en el dominio no está comprobada en este registro.
 
 **Qué es este plan desde el 17/10/2026:** reglas de producto (RP-01 a RP-89) y paquetes listos para implementar (SIM, NAV, LV, COR, CAP, FCH, MOT, HER, MRP). Nada de esos paquetes está construido salvo lo que el boceto C ya resolvió (ver el estado de cada corrección en SIM).
 
@@ -620,7 +620,7 @@ COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a p
 
 | ID | Alcance | Depende de | Aceptación |
 |---|---|---|---|
-| MOT-01 | Fase 1: las reglas aprobadas en MRP-01 pasan a datos (venta del propietario = «Venta habitacional, versión 1»; compra, renta e inversión igual), sin cambio visible. | FCH-01; migración autorizada | Las pruebas existentes de avance, candados y publicación pasan igual; las operaciones actuales conservan etapa y requisitos; respaldo y restauración ensayados. |
+| MOT-01 | Fase 1: las reglas aprobadas en MRP-01 pasan a datos (venta del propietario = «Venta habitacional, versión 1»; compra, renta e inversión igual), sin cambio visible. | FCH-01, FCH-04, MRP-01; migración autorizada | Las pruebas existentes de avance, candados y publicación pasan igual; las operaciones actuales conservan etapa y requisitos; respaldo y restauración ensayados. |
 | MOT-02 | Fase 2: módulos activados por respuestas; entrevista, lista de documentos, campos de levantamiento y ficha, y listas de intenciones y tipos salen del motor. | MOT-01, CAP-03 | Una respuesta agrega su módulo; la lista de documentos y las preguntas cambian según el proceso; los D01–D22 actuales siguen disponibles. |
 | MOT-03 | Fase 3: editor con duplicar, módulos, Probar, Publicar y versiones. | MOT-02, SEG-01 | Solo el administrador edita; Probar no escribe en operaciones; una operación en curso no cambia al publicar; requisitos protegidos con motivo. |
 | MOT-04 | Fase 4: procesos base y módulos de fábrica con el contenido validado por el titular. | MOT-03, revisión del titular (y jurídica cuando aplique) | Los nueve procesos base y los módulos listados existen y pasan una operación sintética de punta a punta cada uno. |
@@ -1599,7 +1599,7 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | FCH-09 | 2 | pendiente | LV-02 |
 | FCH-10 | 2 | pendiente | FCH-01 |
 | FCH-11 | 2 | pendiente | FCH-01 |
-| MOT-01 | 2 | pendiente | FCH-01, MRP-01, migración autorizada |
+| MOT-01 | 2 | pendiente | FCH-01, FCH-04, MRP-01, migración autorizada |
 | MOT-02 | 2 | pendiente | MOT-01, CAP-03 |
 | MOT-03 | 2 | pendiente | MOT-02, SEG-01 |
 | MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
@@ -1616,7 +1616,7 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
 | SAAS-01 | posterior | en_pausa | DEC-15 |
 | SAAS-02 | posterior | en_pausa | SAAS-01 |
-| SAAS-03 | posterior | en_pausa | SAAS-01, SEG-01 |
+| SAAS-03 | posterior | en_pausa | SAAS-01, MOT-03 |
 | SAAS-05 | posterior | en_pausa | SAAS-01, SAAS-02, SAAS-03, DAT-01, USR-01 |
 | SAAS-06 | posterior | en_pausa | SAAS-01, DEC-18 |
 | PIL-02 | posterior | en_pausa | SAAS-01 a SAAS-03, SAAS-05, PIL-01, REC-01, OBS-01 |
