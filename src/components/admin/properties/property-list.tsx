@@ -1,10 +1,9 @@
 "use client";
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Building2, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
-import { ButtonLink, Card, EmptyBox, Segmented } from "@/components/admin/kit";
-import { AsyncButton, AsyncSelect, Badge, DemoBanner, inputClass } from "@/components/admin/ui";
+import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
+import { AsyncButton, AsyncSelect, DemoBanner, inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
@@ -14,10 +13,11 @@ import { db, removePropiedad, upsertPropiedad, useCollection } from "@/lib/admin
 import s from "./properties.module.css";
 
 /*
-  Inmuebles (lienzo: InmueblesEscritorio e InmueblesMovil). Lista con foto, operación,
-  estado, medidas y precio. El estado, la marca de destacada, ver, editar y eliminar
-  están en «Opciones» de cada inmueble; los filtros por asesor, estado, publicación y
-  las vistas guardadas, en «Más filtros».
+  Inmuebles en galería (boceto aprobado por el titular, 17/10/2026): tarjetas con la foto,
+  la operación y el estado encima, el título, la zona, las medidas y el precio. El estado,
+  la marca de destacada, ver, editar y eliminar están en «⋯» de cada inmueble; los filtros
+  por asesor, estado, publicación y las vistas guardadas, en «Más filtros». El mapa entra
+  después (EXT-09).
 */
 
 const PAGE = 24;
@@ -54,7 +54,7 @@ export function PropertyList() {
   return <GuidedPage title="Inmuebles" subtitle={`${properties.length} ${properties.length === 1 ? "inmueble" : "inmuebles"} · ${published} ${published === 1 ? "publicado" : "publicados"}`} actions={<>
     <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />
     <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
-    <ButtonLink href="/admin/propiedades/nueva"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
+    <ButtonLink href="/admin/propiedades/nueva" variant="primary"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
   </>}>
     <details className={s.more}>
       <summary>Más filtros{extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}</summary>
@@ -63,7 +63,7 @@ export function PropertyList() {
 
     {properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" action={<Link href="/admin/propiedades/nueva" className="font-semibold underline underline-offset-4">Agregar inmueble</Link>}>Agrégalo aquí o al terminar la entrevista con el propietario.</EmptyBox>
       : shown.length === 0 ? <EmptyBox title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
-      : <Card as="div" className={s.listCard}><ul aria-label="Inmuebles" className={s.list}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul></Card>}
+      : <ul aria-label="Inmuebles" className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul>}
 
     {results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
       <button type="button" className={s.pageButton} disabled={current === 0} onClick={() => setPage(current - 1)}>Anterior</button>
@@ -77,17 +77,23 @@ export function PropertyList() {
 function PropertyItem({ property: p, duplicated, adviser }: { property: Property; duplicated: boolean; adviser?: string }) {
   const state = propertyState(p);
   const href = `/admin/propiedades/${p.slug}/editar`;
-  return <li className={s.item}>
-    <Link href={href} className={s.row}>
-      <span className={s.photo}>{p.galeria[0] ? <Image unoptimized width={480} height={330} src={p.galeria[0].src} alt="" loading="lazy" /> : <span className={s.noPhoto}><Building2 size={28} aria-hidden="true" /><span className="font-mono text-xs">Sin foto</span></span>}</span>
-      <span className={s.main}>
-        <span className="flex flex-wrap gap-1.5"><Badge>{OPERACION_LABELS[p.operacion]}</Badge><Badge tone={state.strong ? "amber" : "neutral"}>{state.label}</Badge>{p.destacada && <Badge tone="green">Destacada</Badge>}{p.demo && <Badge tone="amber">Demo</Badge>}</span>
-        <span className={s.title}>{p.titulo}</span>
-        <span className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin size={15} aria-hidden="true" className="shrink-0" />{[p.zona, p.direccionAproximada].filter(Boolean).join(", ")}</span>
-        {propertyFacts(p) && <span className={s.mono}>{propertyFacts(p)}</span>}
-        {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
+  const pending = p.precio.modalidad === "consulta";
+  return <Card as="li" lift className={s.item}>
+    <Link href={href} className={s.link}>
+      <span className={s.photoWrap}>
+        <Thumb src={p.galeria[0]?.src} ratio="4 / 3" className={s.photo} icon={<span className={s.noPhoto}><Building2 size={28} aria-hidden="true" /><span>Sin foto</span></span>} />
+        <span className={s.overlay}>
+          <span className="flex flex-wrap gap-1.5"><Pill size="sm" className={s.onPhoto}>{OPERACION_LABELS[p.operacion]}</Pill>{p.destacada && <Pill size="sm" tone="brand"><Star size={12} aria-hidden="true" fill="currentColor" />Destacada</Pill>}{p.demo && <Pill size="sm" tone="warn">Demo</Pill>}</span>
+          <Pill size="sm" className={s.onPhoto} data-strong={state.strong || undefined}>{state.label}</Pill>
+        </span>
       </span>
-      <span className={s.price}><span className={s.amount}>{formatPrecio(p.precio)}</span><span className={s.mono}>{p.codigo}</span></span>
+      <span className={s.body}>
+        <span className={s.title}>{p.titulo}</span>
+        <span className={s.zone}><MapPin size={14} aria-hidden="true" className="shrink-0" />{[p.zona, p.direccionAproximada].filter(Boolean).join(", ") || "Sin zona"}</span>
+        {propertyFacts(p) && <span className={s.meta}>{propertyFacts(p)}</span>}
+        {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
+        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><span className={s.meta}>{p.codigo}</span></span>
+      </span>
     </Link>
     <details className={s.options}>
       <summary aria-label={`Opciones de ${p.titulo}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
@@ -104,7 +110,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: Property
         </div>
       </div>
     </details>
-  </li>;
+  </Card>;
 }
 
 function PropertyStatus({ property }: { property: Property }) {
