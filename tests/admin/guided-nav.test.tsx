@@ -8,20 +8,27 @@ vi.mock("@/lib/admin/store", async original => {
   return { ...actual, useCollection: (store: unknown) => store === actual.db.tareas ? tasks : store === actual.db.leads ? leads : store === actual.db.clientes ? clients : [] };
 });
 vi.mock("@/lib/admin/operational-date", () => ({ operationalDate: () => "2026-10-16" }));
-import { GuidedSidebar, MobileTabBar, isNavActive, MAIN_NAV } from "@/components/admin/workspace/guided-nav";
+import { GuidedSidebar, MobileTabBar, Topbar, isNavActive, MAIN_NAV } from "@/components/admin/workspace/guided-nav";
 
 const user = { name: "Mariana Ruiz", email: "mariana@example.invalid", initials: "MR" };
-const sidebar = (role: string, pathname = "/admin") => render(<GuidedSidebar pathname={pathname} role={role} user={user} search={<button type="button">Buscar</button>} onLogout={async () => {}} />);
+const sidebar = (role: string, pathname = "/admin") => render(<GuidedSidebar pathname={pathname} role={role} user={user} onLogout={async () => {}} />);
 beforeEach(() => { tasks.length = 0; leads.length = 0; clients.length = 0; });
 afterEach(cleanup);
 
-test("la barra lateral muestra cinco secciones, Herramientas y el botón de nueva operación", () => {
+test("la barra lateral muestra cinco secciones, Herramientas y la cuenta; la barra superior lleva el buscador y Nueva operación", () => {
   sidebar("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
   expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Herramientas16"]);
-  expect(screen.getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
   expect(within(nav).queryByRole("button", { name: /Administración/ })).toBeNull();
   expect(screen.getByText("Asesor")).toBeTruthy();
+  const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
+  expect(account.getAttribute("aria-expanded")).toBe("false");
+  fireEvent.click(account);
+  expect(screen.getByRole("link", { name: "Mi perfil" }).getAttribute("href")).toBe("/admin/perfil");
+  expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeTruthy();
+  cleanup();
+  render(<Topbar search={<button type="button">Buscar</button>} />);
+  expect(screen.getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
 });
 
 test("Administración solo aparece al administrador, plegada, con sus cinco accesos", () => {

@@ -6,7 +6,7 @@ import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { AsyncButton } from "@/components/admin/ui";
-import { ButtonLink } from "@/components/admin/kit";
+import { Avatar, ButtonLink } from "@/components/admin/kit";
 import { db, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { projectFollowups } from "@/lib/admin/followups";
@@ -15,8 +15,9 @@ import { cn } from "@/lib/utils";
 import s from "./guided-nav.module.css";
 
 /*
-  Navegación del panel guiado (docs/diseno/lienzo-panel: Sidebar, SidebarAdmin,
-  BarraInferior y MenuMovil). Cinco secciones, Herramientas y Administración (solo admin).
+  Marco del panel (bocetos aprobados por el titular, 17/10/2026): menú lateral flotante con el
+  logotipo, cinco secciones, Herramientas y Administración (solo admin); barra superior con el
+  buscador rápido (Ctrl K) y «Nueva operación»; en celular, barra inferior flotante con «+».
 */
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>; match: string[] };
@@ -54,14 +55,24 @@ function Count({ value }: { value: number }) {
   return value > 0 ? <span className={s.count}>{value > 99 ? "99+" : value}<span className="sr-only"> {value === 1 ? "pendiente" : "pendientes"}</span></span> : null;
 }
 
-export function GuidedSidebar({ pathname, role, user, search, onLogout }: { pathname: string; role: string; user: { name: string; email: string; initials: string }; search: React.ReactNode; onLogout: () => Promise<void> }) {
+type User = { name: string; email: string; initials: string; avatar?: string };
+const roleLabel = (role: string) => role === "admin" ? "Administrador" : "Asesor";
+
+export function GuidedSidebar({ pathname, role, user, onLogout }: { pathname: string; role: string; user: User; onLogout: () => Promise<void> }) {
   const pending = usePendingCount();
   const adminActive = ADMIN_NAV.some(item => isNavActive(pathname, item));
   const [adminOpen, setAdminOpen] = React.useState(adminActive);
+  const [account, setAccount] = React.useState(false);
+  const accountRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!account) return;
+    const close = (event: Event) => { if (event.target instanceof Node && !accountRef.current?.contains(event.target)) setAccount(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { setAccount(false); accountRef.current?.querySelector("button")?.focus(); } };
+    document.addEventListener("pointerdown", close); document.addEventListener("focusin", close); document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("focusin", close); document.removeEventListener("keydown", escape); };
+  }, [account]);
   return <aside className={s.sidebar} aria-label="Panel">
-    <Link href="/admin" className="flex items-center px-2 py-1" aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className="h-9 w-36" /></Link>
-    <ButtonLink href="/admin/operaciones/nueva" variant="primary" size="lg" className="w-full"><Plus size={20} aria-hidden="true" />Nueva operación</ButtonLink>
-    <div className={s.search}>{search}</div>
+    <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className="h-8 w-32" /></Link>
     <nav aria-label="Módulos del panel" className="flex flex-col gap-0.5">
       {MAIN_NAV.map(item => <Link key={item.href} href={item.href} className={s.link} aria-current={isNavActive(pathname, item) ? "page" : undefined}>
         <item.icon size={20} aria-hidden={true} />{item.label}{item.href === "/admin" && <Count value={pending} />}
@@ -77,17 +88,41 @@ export function GuidedSidebar({ pathname, role, user, search, onLogout }: { path
         </div>}
       </>}
     </nav>
-    <div className={s.footer}>
-      <span className={s.avatar} aria-hidden="true">{user.initials}</span>
-      <span className="flex min-w-0 flex-1 flex-col"><span className="truncate text-sm font-semibold">{user.name}</span><span className="text-xs text-muted-foreground">{role === "admin" ? "Administrador" : "Asesor"}</span></span>
-      <ThemeToggle />
-    </div>
-    <div className="flex flex-col gap-0.5">
-      <Link href="/admin/perfil" className={cn(s.link, s.sub)} aria-current={pathname.startsWith("/admin/perfil") ? "page" : undefined}><UserRound size={18} aria-hidden="true" />Mi perfil</Link>
-      <DocumentLink href="/" className={cn(s.link, s.sub)}><ExternalLink size={18} aria-hidden="true" />Ver sitio</DocumentLink>
-      <AsyncButton type="button" onClick={onLogout} className={cn(s.link, s.sub)}><LogOut size={18} aria-hidden="true" />Cerrar sesión</AsyncButton>
+    <div ref={accountRef} className={cn(s.footerMenu, "mt-auto")}>
+      {account && <div id="admin-account-menu" className={s.footerPop}>
+        <Link href="/admin/perfil" className={cn(s.link, s.sub)} aria-current={pathname.startsWith("/admin/perfil") ? "page" : undefined} onClick={() => setAccount(false)}><UserRound size={18} aria-hidden="true" />Mi perfil</Link>
+        <DocumentLink href="/" className={cn(s.link, s.sub)}><ExternalLink size={18} aria-hidden="true" />Ver sitio</DocumentLink>
+        <div className={cn(s.link, s.sub, "cursor-default hover:bg-transparent")}><Moon size={18} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle className="h-9 w-9 rounded-[8px]" /></div>
+        <AsyncButton type="button" onClick={onLogout} className={cn(s.link, s.sub)}><LogOut size={18} aria-hidden="true" />Cerrar sesión</AsyncButton>
+      </div>}
+      <button type="button" className={cn(s.footer, "w-full border-0 text-left")} aria-expanded={account} aria-controls="admin-account-menu" aria-label={`${user.name}, ${roleLabel(role)}. Cuenta y sesión`} onClick={() => setAccount(open => !open)}>
+        <Avatar name={user.name} src={user.avatar} size={36} />
+        <span className="flex min-w-0 flex-1 flex-col" aria-hidden="true"><span className="truncate text-sm font-semibold">{user.name}</span><span className="text-xs text-muted-foreground">{roleLabel(role)}</span></span>
+        <ChevronDown size={16} aria-hidden="true" className={cn("text-muted-foreground", s.chevron, account && s.chevronOpen)} />
+      </button>
     </div>
   </aside>;
+}
+
+/** Barra superior de la computadora: buscador rápido a la izquierda y la acción principal a la derecha. */
+export function Topbar({ search, children }: { search: React.ReactNode; children?: React.ReactNode }) {
+  return <div className={s.topbar}>
+    {search}
+    <span className={s.topbarSpace} />
+    {children}
+    <ButtonLink href="/admin/operaciones/nueva" variant="primary"><Plus size={18} aria-hidden="true" />Nueva operación</ButtonLink>
+  </div>;
+}
+
+/** Encabezado del celular: logotipo, búsqueda y la cuenta. */
+export function MobileHeader({ search, user }: { search: React.ReactNode; user: User }) {
+  return <header className={cn(s.mobileHead, "admin-mobile-header")}>
+    <Link href="/admin" aria-label="Fortius Inmuebles, ir a Hoy" className="flex items-center"><BrandMark variant="compact" className="h-7 w-28" /></Link>
+    <div className="flex items-center gap-1">
+      {search}
+      <Link href="/admin/perfil" aria-label={`Mi perfil, ${user.name}`} className="inline-flex h-11 w-11 items-center justify-center rounded-full"><Avatar name={user.name} src={user.avatar} size={36} /></Link>
+    </div>
+  </header>;
 }
 
 export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathname: string; menuOpen: boolean; onMenu: () => void; menuButton: React.Ref<HTMLButtonElement> }) {
@@ -101,13 +136,13 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
   };
   return <nav className={s.tabbar} aria-label="Secciones principales">
     {tab(hoy, pending)}{tab(operaciones)}
-    <Link href="/admin/operaciones/nueva" className={s.plus} aria-label="Nueva operación"><Plus size={26} aria-hidden="true" /></Link>
+    <Link href="/admin/operaciones/nueva" className={s.plus} aria-label="Nueva operación"><Plus size={24} aria-hidden="true" /></Link>
     {tab(contactos)}
     <button ref={menuButton} type="button" className={s.tab} aria-expanded={menuOpen} aria-controls="admin-mobile-menu" aria-label="Menú del panel" onClick={onMenu}><Menu size={22} aria-hidden="true" />Menú</button>
   </nav>;
 }
 
-export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: { name: string; email: string; initials: string }; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
+export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
   const [, , , inmuebles, agenda] = MAIN_NAV;
   const events = useCollection(db.eventos);
   const today = operationalDate();
@@ -117,7 +152,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     {icon}<span className="flex-1">{label}</span>{meta && <span className={s.menuMeta}>{meta}</span>}{icon && <ChevronRight size={18} aria-hidden="true" className={s.menuChevron} />}
   </Link>;
   return <nav ref={panel} id="admin-mobile-menu" className={s.menu} aria-label="Módulos móviles">
-    <div className="flex items-center gap-3 px-1"><span className={s.avatar} aria-hidden="true">{user.initials}</span><span className="flex min-w-0 flex-col"><span className="truncate font-semibold">{user.name}</span><span className="text-sm text-muted-foreground">{role === "admin" ? "Administrador" : "Asesor"}</span></span></div>
+    <div className="flex items-center gap-3 px-1"><Avatar name={user.name} src={user.avatar} size={40} /><span className="flex min-w-0 flex-col"><span className="truncate font-semibold">{user.name}</span><span className="text-sm text-muted-foreground">{roleLabel(role)}</span></span></div>
     <div className={s.menuGroup}>
       {row(inmuebles.href, inmuebles.label, <inmuebles.icon size={20} aria-hidden={true} />, isNavActive(pathname, inmuebles))}
       {row(agenda.href, agenda.label, <agenda.icon size={20} aria-hidden={true} />, isNavActive(pathname, agenda), visits ? `${visits} ${visits === 1 ? "visita" : "visitas"} hoy` : undefined)}

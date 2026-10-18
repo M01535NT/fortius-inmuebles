@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-import Link from "next/link";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
@@ -9,7 +8,7 @@ import { Breadcrumbs } from "@/components/admin/workspace/breadcrumbs";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
-import { GuidedSidebar, MobileMenu, MobileTabBar } from "@/components/admin/workspace/guided-nav";
+import { GuidedSidebar, MobileHeader, MobileMenu, MobileTabBar, Topbar } from "@/components/admin/workspace/guided-nav";
 import {
   AsyncForm,
   AsyncButton,
@@ -322,19 +321,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       />
     );
   const name = session.name || session.email.split("@")[0];
-  const user = { name, email: session.email, initials: name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase() };
+  const user = { name, email: session.email, initials: name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase(), avatar: session.avatar };
   // Nueva operación ocupa toda la pantalla: sin menú, migas ni barra inferior; se sale con la ×.
   const focus = pathname === "/admin/operaciones/nueva";
   return (
     <div data-density={density} className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
-      {!focus && <GuidedSidebar pathname={pathname} role={session.role} user={user} search={<WorkspaceSearch label="Buscar cliente o folio" />} onLogout={leave} />}
+      {!focus && <GuidedSidebar pathname={pathname} role={session.role} user={user} onLogout={leave} />}
       <div className="flex min-w-0 flex-1 flex-col">
-        {!focus && <header className="admin-mobile-header sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-border bg-card px-4 md:hidden">
-          <Link href="/admin" aria-label="Fortius Inmuebles, ir a Hoy" className="flex items-center"><BrandMark variant="compact" className="h-7 w-28" /></Link>
-          <WorkspaceSearch />
-        </header>}
+        {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}
         <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
         <main className={focus ? "admin-content admin-focus flex-1" : "admin-content flex-1 space-y-5"}>
+          {!focus && <Topbar search={<WorkspaceSearch variant="field" />} />}
           {!focus && <Breadcrumbs />}
           {error || refreshError ? (
             <div className="space-y-2">
