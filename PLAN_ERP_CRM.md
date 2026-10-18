@@ -20,6 +20,8 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 
 **Preguntas abiertas para el titular:** [`docs/erp-crm/PREGUNTAS_TITULAR.md`](docs/erp-crm/PREGUNTAS_TITULAR.md). Cada pregunta dice qué entrega bloquea y trae una propuesta; cada respuesta se integra en este plan como regla o decisión, según «Cómo se mantiene este plan». El archivo no es un plan paralelo: solo guarda preguntas y respuestas.
 
+**Complemento de la revisión del panel:** [P01–P84](PREGUNTAS_PLAN_ERP_CRM.md), conciliado sobre la integración del PR #42 (`1de616e`). Conserva las referencias de la revisión inicial, marca los temas resueltos por las reglas vigentes y remite las coincidencias al cuestionario anterior. Se responde primero A y B; el complemento no modifica las reglas, el orden ni las 73 preguntas del cuestionario vigente.
+
 **Integración de este plan:** las reglas y paquetes del 17 y 18/10/2026 se integran en `main` con el [PR #41](https://github.com/M01535NT/fortius-inmuebles/pull/41) (solo documentación; Verify aprobado sobre el contenido revisado).
 
 ## Etapas por ruta: qué ve el asesor y qué cierra cada etapa (referencia vigente, 18/10/2026)
