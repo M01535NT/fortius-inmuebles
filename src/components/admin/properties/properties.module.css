@@ -25,7 +25,7 @@
 :global(.admin-root) .body { display: flex; flex-direction: column; gap: .3125rem; padding: .875rem 1rem 1rem; overflow-wrap: anywhere; }
 :global(.admin-root) .title { font-size: 1rem; font-weight: 650; line-height: 1.3; }
 :global(.admin-root) .zone { display: flex; align-items: center; gap: .25rem; font-size: .875rem; color: var(--muted-foreground); }
-:global(.admin-root) .priceRow { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-top: .375rem; }
+:global(.admin-root) .priceRow { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-top: .375rem; padding-right: 3rem; }
 :global(.admin-root) .amount { font-size: 1.0625rem; font-weight: 650; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 :global(.admin-root) .amount[data-pending] { font-weight: 500; color: var(--muted-foreground); }
 

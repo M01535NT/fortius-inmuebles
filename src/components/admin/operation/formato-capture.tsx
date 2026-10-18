@@ -166,9 +166,9 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   return <>
     <div className={s.windowScrim} aria-hidden="true" />
     <div role="dialog" aria-modal="true" aria-labelledby="captura-titulo" aria-describedby="captura-contexto" className={s.window}>
-      <header className="flex items-start gap-4 border-b border-border px-4 py-4 sm:px-7">
+      <header className="flex flex-wrap items-start gap-3 border-b border-border px-4 py-4 sm:gap-4 sm:px-7">
         <span className={s.formatBadge} aria-hidden="true">{definition.id}</span>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 basis-40 flex-col gap-0.5">
           <h2 id="captura-titulo" className="m-0 text-xl font-bold leading-tight [overflow-wrap:anywhere]">{definition.title}</h2>
           <p id="captura-contexto" className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{where}</p>
         </div>
@@ -176,7 +176,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
           {current ? <a className={cn(s.pill, s.pillDone)} aria-label="Descargar el PDF de esta versión" href={`/api/admin/emisiones/${current.id}/descargar`}><FileDown size={14} aria-hidden="true" /><span className="ml-1 hidden sm:inline">PDF de esta versión</span><span className="ml-1 sm:hidden">PDF</span></a> : <span className={cn(s.pill, s.pillDraft, "hidden sm:inline-flex")}>Borrador</span>}
           <Pill tone={saveState === "Sin guardar" ? "warn" : "success"} size="sm" className="hidden sm:inline-flex">{saveState}</Pill>
         </div>
-        <Button variant="ghost" iconOnly aria-label="Cerrar" disabled={!!busy} onClick={() => void close()}><X size={20} aria-hidden="true" /></Button>
+        <Button variant="ghost" iconOnly aria-label="Cerrar" disabled={!!busy} className="order-first ml-auto sm:order-none sm:ml-0" onClick={() => void close()}><X size={20} aria-hidden="true" /></Button>
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 sm:px-7">

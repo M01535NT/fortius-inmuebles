@@ -45,8 +45,8 @@
 @media (min-width: 1024px) { :global(.admin-root) .side { position: sticky; top: .875rem; } }
 :global(.admin-root) .navCard { padding: .375rem; }
 @media (max-width: 1023px) {
-  :global(.admin-root) .navTabs { flex-direction: row; overflow-x: auto; scrollbar-width: none; }
-  :global(.admin-root) .navTabs > * { flex: none; width: auto; }
+  :global(.admin-root) .navTabs { flex-direction: row; gap: .25rem; overflow-x: auto; scrollbar-width: none; }
+  :global(.admin-root) .navCard .navTabs > [role=tab] { flex: none; width: auto; min-height: 2.5rem; padding: 0 .625rem; }
 }
 :global(.admin-root) .timeline { position: relative; display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .timeline::before { content: ""; position: absolute; left: 1.375rem; top: .875rem; bottom: .875rem; width: 2px; background: var(--track); }

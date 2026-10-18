@@ -48,6 +48,11 @@
 :global(.admin-root) .rowTitle { font-weight: 600; overflow-wrap: anywhere; }
 :global(.admin-root) .rowText { font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
 :global(.admin-root) .rowEnd { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: .25rem; }
+/* En celular la pastilla y la fecha bajan a su propia línea para no estrechar el texto. */
+@media (max-width: 639px) {
+  :global(.admin-root) .row { flex-wrap: wrap; }
+  :global(.admin-root) .rowEnd { flex-basis: 100%; flex-direction: row; align-items: center; justify-content: space-between; padding-left: calc(52px + .875rem); }
+}
 :global(.admin-root) .report { display: flex; flex-direction: column; gap: .875rem; padding: .75rem .75rem; }
 @media (min-width: 640px) { :global(.admin-root) .report { flex-direction: row; align-items: center; justify-content: space-between; gap: 1.5rem; } }
 

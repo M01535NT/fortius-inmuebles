@@ -184,7 +184,7 @@ export function HoyScreen() {
 
         {(reports === null || lateReports.length > 0) && <Section id="hoy-informes" title="Informes al propietario vencidos" count={lateReports.length} description="Cada mes le contamos al propietario cómo va la venta.">
           {reports === null ? failed("los informes al propietario") : <Card as="div" className={s.list}>{lateReports.map(report => <article key={report.id} className={s.report}>
-            <div className="flex min-w-0 items-center gap-3"><Avatar name={report.who} size={40} /><span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{report.who}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{report.property}</small><span className={cn(s.meta, s.late)}>{report.status}</span></span></div>
+            <div className="flex min-w-0 flex-1 items-center gap-3"><Avatar name={report.who} size={40} /><span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{report.who}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{report.property}</small><span className={cn(s.meta, s.late)}>{report.status}</span></span></div>
             <ButtonLink href={report.href} className="shrink-0 self-start" aria-label={`Preparar informe de ${report.who}`}>Preparar informe</ButtonLink>
           </article>)}</Card>}
         </Section>}
