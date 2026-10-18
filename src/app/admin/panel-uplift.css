@@ -42,7 +42,8 @@
 .admin-root .admin-avatar { border-radius: var(--radius-pill); border: 0; background: #dbe4f0; color: #061f3f; }
 .dark .admin-root .admin-avatar { background: var(--secondary); color: var(--foreground); }
 
-/* Logotipo en modo oscuro: la versión inversa (letras blancas, portal en acento claro), sin placa. */
+/* Logotipo en modo oscuro, sin placa: letras blancas; el portal conserva su azul marino y su guinda (decisión del titular, 18/10/2026). */
 .dark .admin-root .brand-mark { background: transparent; }
 .dark .admin-root .brand-mark path[fill="#061f3f"] { fill: #ffffff; }
-.dark .admin-root .brand-mark path[fill="#8a1634"] { fill: #e5829b; }
+.dark .admin-root .brand-mark path[fill="#061f3f"]:nth-child(-n + 2) { fill: #061f3f; stroke: rgba(255, 255, 255, .35); stroke-width: 6; paint-order: stroke; }
+.dark .admin-root .brand-mark path[fill="#8a1634"] { fill: #8a1634; }
