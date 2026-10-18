@@ -4,7 +4,9 @@ Corte documental: 12 de octubre de 2026. [Índice y plan vigente](README.md).
 
 ## Usuarios y propósito
 
-Propietarios, compradores y arrendadores de Tijuana y Baja California consultan propiedades, servicios, guías y herramientas en el sitio público. El personal autorizado usa `/admin` para mantener los datos y conducir el trabajo diario. Ambas superficies pertenecen al mismo producto; Cualquier integración con otro sistema requiere diseño y autorización propios.
+Propietarios, compradores y arrendadores de Tijuana y Baja California consultan propiedades, servicios, guías y herramientas en el sitio público. El personal autorizado usa `/admin` para mantener los datos y conducir el trabajo diario. Ambas superficies pertenecen al mismo producto; cualquier integración con otro sistema requiere diseño y autorización propios.
+
+Desde el 17/10/2026, el panel se desarrolla como un ERP/CRM inmobiliario profesional, exclusivo de Fortius Inmuebles y solo con su marca. Adaptarlo para otras inmobiliarias es una etapa posterior, en pausa hasta que el sistema haya demostrado que funciona en la operación de Fortius. Las reglas de producto están en [«Dirección del producto y reglas vigentes»](../PLAN_ERP_CRM.md) del plan.
 
 ## Capacidades actuales y evolución
 
@@ -12,7 +14,7 @@ Existen inventario y publicación, prospectos/clientes, agenda/tareas, expedient
 
 ## Identidad
 
-Logo Fortius con portal bicolor, tipografía Archivo, azul `#061F3F`, borgoña `#8A1634`, blanco y acento `#E5829B`; temas claro y oscuro. Conservar el diseño y los recursos de [la guía de marca](brand.md).
+Logo Fortius con portal bicolor, tipografía Archivo, azul `#061F3F`, borgoña `#8A1634`, blanco y acento `#E5829B`; temas claro y oscuro. Conservar el diseño y los recursos de [la guía de marca](brand.md) en el sitio público y en el panel.
 
 ## Principios
 
