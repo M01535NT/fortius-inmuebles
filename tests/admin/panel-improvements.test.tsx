@@ -81,9 +81,9 @@ test("operation overview exposes missing context and next task without inventing
   install();
   vi.stubGlobal("fetch",async(url:string)=>url.startsWith("/api/admin/expedientes?")||url==="/api/admin/expedientes"?Response.json({expedientes:[{id:"exp",folio:"EXP-1",cliente_id:"client",asesor_id:"advisor",operacion:"venta",propiedad_slug:null,etapa:"captacion",version:1}],nextOffset:null}):url.endsWith("/formatos")?Response.json({documentos:[]}):url.startsWith("/api/admin/entrevistas")?Response.json({entrevistas:[]}):Response.json({records:[]}));
   render(<OperationScreen id="exp"/>);
-  expect(await screen.findByText("Sin inmueble vinculado")).toBeTruthy();
+  expect(await screen.findByText(/Sin inmueble vinculado/)).toBeTruthy();
   const next=screen.getByRole("region",{name:"Próxima tarea"});
   expect(within(next).getByText(/no tiene una próxima tarea con fecha/)).toBeTruthy();
   expect(within(next).getByRole("button",{name:"Agendar"})).toBeTruthy();
-  expect(screen.getByText("Lo que sigue · Etapa 1 de 10")).toBeTruthy();
+  expect(screen.getAllByText(/^Etapa 1 de 10/).length).toBeGreaterThan(0);
 });

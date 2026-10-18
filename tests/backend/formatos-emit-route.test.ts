@@ -8,8 +8,7 @@ import { completeValorSample } from "./fixtures/valor";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 
 const terrenoInput = {
-  ...Object.fromEntries(terrenoFields.filter((field) => field.type !== "levantamientoRows").map((field) => [field.key, field.type === "date" ? "2026-10-04" : field.type === "time" ? "10:00" : "NV"])),
-  horaTermino: "11:00", permisoFoto: "autorizado", permisoMedicion: "NV", respaldosEstado: "sin_respaldo", discrepanciasEstado: "ninguna",
+  ...Object.fromEntries(terrenoFields.filter((field) => field.required).map((field) => [field.key, field.type === "date" ? "2026-10-04" : field.type === "number" ? 1 : field.type === "choice" ? field.options![0].value : "Dato de prueba"])),
   fotoPrincipalId: "51000000-0000-4000-8000-000000000021", croquisId: "51000000-0000-4000-8000-000000000022",
 };
 

@@ -51,6 +51,12 @@
 :global(.admin-root) .bar > span { display: block; height: 100%; background: var(--primary); }
 :global(.admin-root) .stepLine { height: 4px; border-radius: 2px; background: var(--border); }
 :global(.admin-root) .stepLine[data-on=true] { background: var(--primary); }
+/* Con diez etapas una palabra larga («Levantamiento») no cabe: se divide con guion y nunca invade la columna de al lado. */
+:global(.admin-root) .stepName { min-width: 0; hyphens: auto; overflow-wrap: anywhere; }
+:global(.admin-root) .stepButton { display: flex; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 4px; }
+:global(.admin-root) .stepButton:hover .stepName { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
+:global(.admin-root) .stepButton:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 3px; }
+:global(.admin-root) .stepWarning { color: var(--warning); font-weight: 600; }
 
 /* Avisos y vacíos */
 :global(.admin-root) .notice { display: flex; gap: .75rem; padding: .875rem 1rem; border-radius: 12px; border: 1px solid var(--warning-border); background: var(--warning-surface); color: var(--foreground); }

@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { decodePDFRawStream, PDFArray, PDFDocument, PDFRawStream } from "pdf-lib";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { createFormatoPdf } from "@/lib/formatos/pdf";
+import { financialPdfPages } from '../helpers/financial-pdf';
 
 const aviso = {
   folio: "EXP-01", fechaEmision: "2026-10-04", responsable: "Moisés Núñez Tonalá",
@@ -25,14 +26,15 @@ it("emite el aviso sin presumir autorizaciones ni recepción firmada", async () 
   expect(validateFormato("01", aviso)).toEqual([]);
   const pdf = await PDFDocument.load(await createFormatoPdf("01", aviso));
   expect(pdf.getTitle()).toBe("Aviso de privacidad");
-  expect(pdf.getPageCount()).toBe(4);
-  expect(pdf.getPages().map(page => page.getSize())).toEqual(Array(4).fill({ width: 612, height: 792 }));
+  // El membrete reserva 126/128 pt; la versión capturada ocupa cinco hojas.
+  expect(pdf.getPageCount()).toBe(5);
+  expect(pdf.getPages().map(page => page.getSize())).toEqual(Array(5).fill({ width: 612, height: 792 }));
 });
 
 it("añade una hoja independiente para los datos propios del representante", async () => {
   const pdf = await PDFDocument.load(await createFormatoPdf("01", { ...aviso, representante: "Ana López QA", documentoRepresentante: "Poder QA, pendiente de cotejo" }));
-  expect(pdf.getPageCount()).toBe(5);
-  expect(pdf.getPages().map(page => page.getSize())).toEqual(Array(5).fill({ width: 612, height: 792 }));
+  expect(pdf.getPageCount()).toBe(7);
+  expect(pdf.getPages().map(page => page.getSize())).toEqual(Array(7).fill({ width: 612, height: 792 }));
 });
 
 it("valida por separado las autorizaciones del representante sin heredarlas del titular", () => {
@@ -45,12 +47,18 @@ it("deja sin marcar la hoja del representante aunque el titular tenga decisiones
   const data = { ...aviso, consentimientoPatrimonial: "si", representante: "Ana López QA", documentoRepresentante: "Poder QA" };
   async function tickCounts(values: Record<string, unknown>) {
     const pdf = await PDFDocument.load(await createFormatoPdf("01", values));
-    return pdf.getPages().slice(3).map(page => {
+    const text=financialPdfPages(pdf);
+    const titular=text.findIndex(page=>page.includes('Decisiones de María Ramírez'));
+    const representante=text.findIndex(page=>page.includes('Decisiones de Ana López QA'));
+    expect(titular).toBeGreaterThan(0);
+    expect(representante).toBeGreaterThan(titular);
+    const counts=pdf.getPages().map(page => {
       const content = page.node.Contents();
       const streams = content instanceof PDFArray ? content.asArray().map(ref => pdf.context.lookup(ref) as PDFRawStream) : [content as PDFRawStream];
       const operators = streams.map(stream => Buffer.from(decodePDFRawStream(stream).decode()).toString("latin1")).join("\n");
       return (operators.match(/0\.9 w/g) ?? []).length / 2;
     });
+    return [counts.slice(titular,representante).reduce((a,b)=>a+b,0),counts.slice(representante).reduce((a,b)=>a+b,0)];
   }
   expect(await tickCounts(data)).toEqual([5, 0]);
   expect(await tickCounts({ ...data, representanteConsentimientoPatrimonial: "no" })).toEqual([5, 1]);
@@ -79,12 +87,11 @@ it("pagina nombres, domicilios, destinatarios y documentos que exceden una hoja"
 });
 
 
-it("publica una plantilla de cuatro páginas sin marcar consentimientos", async () => {
+it("publica una plantilla de cinco páginas con el nuevo membrete sin marcar consentimientos", async () => {
   const { createAvisoPdf } = await import("@/lib/formatos/aviso-pdf");
   const pdf = await PDFDocument.load(await createAvisoPdf({ responsable: aviso.responsable, domicilioResponsable: aviso.domicilioResponsable, contactoPrivacidad: aviso.contactoPrivacidad, correoPrivacidad: aviso.correoPrivacidad }, { publicTemplate: true }));
-  expect(pdf.getPageCount()).toBe(4);
-  const content = pdf.getPages()[3].node.Contents();
-  const streams = content instanceof PDFArray ? content.asArray().map(ref => pdf.context.lookup(ref) as PDFRawStream) : [content as PDFRawStream];
+  expect(pdf.getPageCount()).toBe(5);
+  const streams=pdf.getPages().flatMap(page=>{const content=page.node.Contents();return content instanceof PDFArray?content.asArray().map(ref=>pdf.context.lookup(ref) as PDFRawStream):[content as PDFRawStream];});
   const operators = streams.map(stream => Buffer.from(decodePDFRawStream(stream).decode()).toString("latin1")).join("\n");
   expect(operators.match(/0\.9 w/g) ?? []).toHaveLength(0);
 });

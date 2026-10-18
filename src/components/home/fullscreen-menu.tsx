@@ -3,15 +3,13 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigationGroups } from "@/data/navigation";
-import { ArrowUpRight, ChevronDown, X } from "lucide-react";
-
-import { EASE_OUT, gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { ArrowRight, ChevronDown, X } from "lucide-react";
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
 import { publicContact } from "@/lib/public-contact";
-import { MessagingActions } from "@/components/contact/messaging-actions";
+import styles from "./side-menu.module.css";
 
-/* Full-width curtain from the top; content follows in a short descending stagger. */
 const PRIMARY = [
   { href: "/", label: "Inicio" },
   { href: "/inventario", label: "Propiedades" },
@@ -23,199 +21,150 @@ const PRIMARY = [
   { href: "/contacto", label: "Contacto" },
 ];
 
-const CLIP_CLOSED = "inset(0% 0% 100% 0%)";
-const CLIP_OPEN = "inset(0% 0% 0% 0%)";
-
 type Props = { open: boolean; onClose: () => void };
 
+// Keep the existing export so all public navigation entry points share this drawer.
 export function FullscreenMenu({ open, onClose }: Props) {
   const pathname = usePathname() ?? "/";
-  const [expandedGroup, setExpandedGroup] = React.useState<string | null>(null);
+  const [expandedGroup, setExpandedGroup] = React.useState<string | null>("Propiedades");
   const ref = React.useRef<HTMLDivElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
+  const timelineRef = React.useRef<gsap.core.Timeline | null>(null);
+  const initializedRef = React.useRef(false);
   const { settings } = usePublicFeatures();
   const contact = publicContact(settings, "Hola, quiero conversar sobre una propiedad con Fortius.");
-  const routes = [
-    { label: "Vender propiedad", href: "/vender-propiedad", text: "Conoce qué revisamos y cómo preparamos tu venta." },
-    { label: "Opinión de valor", href: "/vender-propiedad#precio-y-condiciones", text: "Un precio de salida respaldado por las características y el mercado." },
-    { label: "Ver inventario", href: "/inventario", text: "Fotografías, precios y características de cada propiedad." },
-    { label: "Contacto directo", href: contact.whatsapp || contact.messenger || "/contacto", text: "Cuéntanos qué quieres vender o qué estás buscando.", external: !!(contact.whatsapp || contact.messenger) },
-  ];
+  const directHref = contact.whatsapp || contact.messenger || contact.emailHref || "/contacto";
   const isCurrent = (href: string) => href === pathname || (href !== "/" && !href.includes("#") && pathname.startsWith(`${href}/`));
 
-  /* Bloqueo de scroll + Escape mientras el menú está abierto. */
   React.useEffect(() => {
     if (!open) return;
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const prev = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
         onClose();
         return;
       }
-      if (e.key !== "Tab") return;
+      if (event.key !== "Tab") return;
       const focusable = Array.from(
-        ref.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [],
-      ).filter((element) => !element.hasAttribute("disabled") && element.getClientRects().length > 0);
-      if (!focusable.length) return;
+        panelRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [],
+      ).filter(element => element.getClientRects().length > 0);
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
       }
     };
     window.addEventListener("keydown", onKey);
-    // The reveal hook removes `visibility:hidden` during the same commit.
-    // Defer focus one frame so real browsers can focus the now-visible control.
-    const focusFrame = window.requestAnimationFrame(() => closeRef.current?.focus());
+    const frame = window.requestAnimationFrame(() => closeRef.current?.focus({ preventScroll: true }));
     return () => {
-      window.cancelAnimationFrame(focusFrame);
+      window.cancelAnimationFrame(frame);
       document.documentElement.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
-      previousFocusRef.current?.focus();
+      previousFocusRef.current?.focus({ preventScroll: true });
       previousFocusRef.current = null;
     };
   }, [open, onClose]);
 
-  useGSAP(
-    () => {
-      const el = ref.current;
-      if (!el) return;
-      const reduce = prefersReducedMotion();
-      gsap.killTweensOf([el, ...el.querySelectorAll("[data-menu-item], [data-menu-panel]")]);
-
-      if (open) {
-        const tl = gsap.timeline();
-        tl.set(el, { visibility: "visible" });
-        if (reduce) {
-          tl.set(el, { clipPath: CLIP_OPEN });
-          tl.set("[data-menu-item], [data-menu-panel]", { clearProps: "all" });
-          return;
-        }
-        tl.to(el, { clipPath: CLIP_OPEN, duration: 0.65, ease: "power3.inOut" })
-          .fromTo(
-            "[data-menu-item]",
-            { y: -24, rotation: 0, opacity: 0 },
-            {
-              y: 0,
-              rotation: 0,
-              opacity: 1,
-              duration: 0.5,
-              ease: EASE_OUT,
-              stagger: 0.045,
-              transformOrigin: "0% 100%",
-            },
-            "-=0.35",
-          )
-          .fromTo(
-            "[data-menu-panel]",
-            { y: -18, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.55, stagger: 0.04, ease: EASE_OUT },
-            "<0.1",
-          );
+  useGSAP(() => {
+    const root = ref.current;
+    const panel = panelRef.current;
+    if (!root || !panel) return;
+    const veil = root.querySelector("[data-menu-veil]");
+    const items = root.querySelectorAll("[data-menu-item]");
+    timelineRef.current?.kill();
+    if (!initializedRef.current) {
+      gsap.set(panel, { xPercent: 100, x: 0 });
+      gsap.set(veil, { opacity: 0 });
+      initializedRef.current = true;
+    }
+    const reduce = prefersReducedMotion();
+    const timeline = gsap.timeline();
+    timelineRef.current = timeline;
+    if (open) {
+      const fullyClosed = getComputedStyle(root).visibility === "hidden";
+      gsap.set(root, { visibility: "visible" });
+      timeline.to(veil, { opacity: 1, duration: reduce ? 0 : 0.3 }, 0)
+        .to(panel, { xPercent: 0, duration: reduce ? 0 : 0.62, ease: "power4.out" }, 0);
+      if (reduce) {
+        gsap.set(items, { x: 0, opacity: 1 });
       } else {
-        gsap
-          .timeline()
-          .to(el, {
-            clipPath: CLIP_CLOSED,
-            duration: reduce ? 0 : 0.55,
-            ease: "power3.inOut",
-          })
-          .set(el, { visibility: "hidden" });
+        if (fullyClosed) gsap.set(items, { x: 18, opacity: 0 });
+        timeline.to(items, {
+          x: 0, opacity: 1, duration: 0.35, stagger: 0.025, ease: "power2.out",
+        }, 0.16);
       }
-    },
-    { scope: ref, dependencies: [open] },
-  );
+    } else {
+      timeline.to(panel, { xPercent: 100, duration: reduce ? 0 : 0.32, ease: "power3.inOut" }, 0)
+        .to(veil, { opacity: 0, duration: reduce ? 0 : 0.28 }, 0)
+        .set(root, { visibility: "hidden" });
+    }
+    return () => {
+      timeline.kill();
+      initializedRef.current = false;
+    };
+  }, { scope: ref, dependencies: [open] });
 
   return (
-    <div
-      ref={ref}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Menú"
-      style={{ clipPath: CLIP_CLOSED }}
-      className="menu-curtain invisible fixed inset-0 z-50 overflow-y-auto scroll-pt-20 bg-background"
-    >
-      {/* Cabecera del overlay: marca + cerrar en el mismo punto del botón. */}
-      <div className="sticky top-0 z-10 border-b border-border bg-background">
-        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">
-          <BrandMark />
-          <button
-            ref={closeRef}
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar menú"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground active:scale-[0.97]"
-          >
-            <X className="h-5 w-5" strokeWidth={1.5} />
+    <div ref={ref} className={styles.overlay} inert={!open} aria-hidden={!open}>
+      <div className={styles.veil} data-menu-veil onClick={onClose} aria-hidden="true" />
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-label="Menú" className={styles.panel}>
+        <header className={styles.header}>
+          <BrandMark className={styles.brand} />
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar menú" className={styles.close}>
+            Cerrar <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
-        </div>
-      </div>
-
-      <div className="menu-editorial-layout">
-        <div className="menu-editorial-grid">
-          {/* Enlaces principales */}
-          <div className="menu-editorial-primary">
-            <nav aria-label="Menú principal">
-              <ol>
-                {PRIMARY.map((item, i) => {
-                  const group = navigationGroups.find(group => group.href === item.href || (group.label === "Servicios" && item.href === "/#metodo"));
-                  const expanded = expandedGroup === group?.label;
-                  return (
-                  <li key={item.href} data-menu-item>
-                    <div className="flex items-center gap-2">
-                    <Link
-                      href={item.href}
-                      prefetch={open ? null : false}
-                      onClick={onClose}
-                      aria-current={isCurrent(item.href) ? "page" : undefined}
-                      className="group flex min-w-0 flex-1 items-baseline gap-4 border-b border-border py-2.5 md:py-3.5 aria-[current=page]:border-primary"
-                    >
-                      <span className="display-title text-[clamp(1.875rem,6.5vw,3.5rem)] text-foreground/85 transition-colors duration-300 group-hover:text-foreground">
-                        {item.label}
-                      </span>
-                      <ArrowUpRight
-                        className="ml-auto size-5 self-center text-primary-ink opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
-                        strokeWidth={1.5}
-                      />
+        </header>
+        <div className={styles.content}>
+          <p className={styles.eyebrow}>Explora Fortius</p>
+          <nav aria-label="Menú principal">
+            <ol className={styles.list}>
+              {PRIMARY.map((item, i) => {
+                const group = navigationGroups.find(group => group.href === item.href || (group.label === "Servicios" && item.href === "/#metodo"));
+                const expanded = expandedGroup === group?.label;
+                return <li key={item.href} data-menu-item>
+                  <div className={styles.row}>
+                    <Link href={item.href} prefetch={open ? null : false} onClick={onClose}
+                      aria-current={isCurrent(item.href) ? "page" : undefined} className={styles.link}>
+                      {item.label}<ArrowRight size={17} strokeWidth={1.5} aria-hidden="true" />
                     </Link>
-                    {group && <button type="button" aria-label={`Desplegar ${group.label}`} aria-expanded={expanded} aria-controls={`menu-group-${i}`} onClick={() => setExpandedGroup(expanded ? null : group.label)} className="menu-group-toggle"><ChevronDown size={20} aria-hidden="true" /></button>}
-                    </div>
-                    {group && <ul id={`menu-group-${i}`} hidden={!expanded} className="menu-group-links">{group.links.map(link => <li key={link.href}><Link href={link.href} onClick={onClose}>{link.label}<ArrowUpRight size={14} aria-hidden="true" /></Link></li>)}</ul>}
-                  </li>
-                ); })}
-              </ol>
-
-            </nav>
-            {(contact.whatsapp || contact.emailHref || contact.messenger) && (
-              <nav aria-label="Canales de contacto" className="mt-6" data-menu-panel>
-                <MessagingActions settings={settings} message="Hola, quiero conversar sobre una propiedad con Fortius." />
-              </nav>
-            )}
-          </div>
-
-          <nav aria-label="Accesos destacados" className="menu-route-grid">
-            {routes.map((route) => (
-              <Link key={route.label} href={route.href} onClick={onClose}
-                prefetch={open ? null : false}
-                target={route.external ? "_blank" : undefined}
-                rel={route.external ? "noopener noreferrer" : undefined}
-                data-menu-panel className="menu-route-card">
-                <ArrowUpRight size={23} strokeWidth={1.4} aria-hidden="true" />
-                <span className="menu-route-title">{route.label}</span>
-                <span className="menu-route-description">{route.text}</span>
-              </Link>
-            ))}
+                    {group && <button type="button" aria-label={`Desplegar ${group.label}`} aria-expanded={expanded}
+                      aria-controls={`menu-group-${i}`} onClick={() => setExpandedGroup(expanded ? null : group.label)} className={styles.toggle}>
+                      <ChevronDown size={16} aria-hidden="true" />
+                    </button>}
+                  </div>
+                  {group && <ul id={`menu-group-${i}`} hidden={!expanded} className={styles.sublinks}>
+                    {group.links.map(link => <li key={link.href}><Link href={link.href} prefetch={open ? null : false} onClick={onClose}>{link.label}</Link></li>)}
+                  </ul>}
+                </li>;
+              })}
+            </ol>
           </nav>
+          <section className={styles.sell} data-menu-item aria-label="Servicios para propietarios">
+            <h2>¿Tienes una propiedad?</h2>
+            <Link href="/vender-propiedad" prefetch={open ? null : false} onClick={onClose} className={styles.cta}>Vender mi propiedad <ArrowRight size={15} aria-hidden="true" /></Link>
+            <Link href="/vender-propiedad#precio-y-condiciones" prefetch={open ? null : false} onClick={onClose} className={styles.value}>Opinión de valor <ArrowRight size={14} aria-hidden="true" /></Link>
+          </section>
+          <section className={styles.contact} data-menu-item aria-label="Contacto con Fortius">
+            <h2>Hablemos de tu próxima operación.</h2>
+            <div className={styles.channels}>
+              {contact.whatsapp && <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" onClick={onClose}>WhatsApp <ArrowRight size={14} aria-hidden="true" /></a>}
+              {contact.messenger && <a href={contact.messenger} target="_blank" rel="noopener noreferrer" onClick={onClose}>Messenger <ArrowRight size={14} aria-hidden="true" /></a>}
+              {contact.emailHref && <a href={contact.emailHref} onClick={onClose}>Correo <ArrowRight size={14} aria-hidden="true" /></a>}
+            </div>
+            {contact.phoneHref && <a href={contact.phoneHref} onClick={onClose}>{contact.phone}</a>}
+            <p>Antes de prometer, revisamos.</p>
+            <Link href={directHref} prefetch={false} onClick={onClose} className={styles.direct}>Contacto directo <ArrowRight size={14} aria-hidden="true" /></Link>
+          </section>
         </div>
-
       </div>
     </div>
   );

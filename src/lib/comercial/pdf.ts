@@ -9,21 +9,25 @@ import { calculateComercial } from "./calculate";
 import { comercialDataSchema } from "./schema";
 import { CRITERIA_C,CRITERIA_I,type ComercialBookData } from "./types";
 import { formatAmountOrPending } from "@/lib/finance/money";
+import { letterheadBounds } from "../letterhead";
+import { loadLetterhead } from "../letterhead-server";
+import { drawFortiusLetterhead, embedFortiusLetterhead } from "../pdf-letterhead";
 export async function createComercialPdf(name:string,version:number,input:ComercialBookData,today?:string){
  const data=comercialDataSchema.parse(input),result=calculateComercial(data,today);if(result.configuracionErrors.length)throw new ApiError(409,result.configuracionErrors.join("; "));
  const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit);pdf.setTitle(`Control comercial · ${name} · v${version}`);pdf.setAuthor("Fortius Inmuebles");
- const [regular,bold,logo]=await Promise.all([pdf.embedFont(await readFile(join(process.cwd(),"public/fonts/Archivo-Regular.ttf")),{subset:true}),pdf.embedFont(await readFile(join(process.cwd(),"public/fonts/Archivo-SemiBold.ttf")),{subset:true}),pdf.embedPng(await readFile(join(process.cwd(),"public/brand/fortius-logo.png")))]);
+ const [regular,bold,art]=await Promise.all([pdf.embedFont(await readFile(join(process.cwd(),"public/fonts/Archivo-Regular.ttf")),{subset:true}),pdf.embedFont(await readFile(join(process.cwd(),"public/fonts/Archivo-SemiBold.ttf")),{subset:true}),loadLetterhead().then(assets=>embedFortiusLetterhead(pdf,assets))]);
  const width=595.28,height=841.89,margin=45,ink=rgb(.09,.12,.16),accent=rgb(.39,.09,.16),muted=rgb(.38,.42,.45);let page:PDFPage,y=0;
  const supported=new Set(regular.getCharacterSet());const clean=(s:string)=>[...s.normalize("NFC")].map(c=>supported.has(c.codePointAt(0)!)?c:" ").join("");
- const start=()=>{page=pdf.addPage([width,height]);page.drawImage(logo,{x:margin,y:height-70,width:138,height:40});page.drawText(`03 · Corte ${result.corte} · v${version}`,{x:330,y:height-56,size:8,font:regular,color:muted});page.drawLine({start:{x:margin,y:height-84},end:{x:width-margin,y:height-84},color:accent,thickness:1});y=height-110;};start();
+ const body=letterheadBounds(width,height);
+ const start=()=>{page=pdf.addPage([width,height]);page.drawText(`03 · Corte ${result.corte} · v${version}`,{x:margin,y:body.bodyTop-8,size:8,font:regular,color:muted});y=body.bodyTop-32;};start();
  const write=(text:string,size=9,strong=false)=>{
   const font=strong?bold:regular;
   for(const paragraph of clean(text).split(/\r?\n/)){let line="";const lines:string[]=[];
    for(const word of paragraph.split(/\s+/)){if(line && font.widthOfTextAtSize(line+" "+word,size)>width-2*margin){lines.push(line);line="";}if(font.widthOfTextAtSize(word,size)>width-2*margin){let part="";for(const char of word){if(part && font.widthOfTextAtSize(part+char,size)>width-2*margin){lines.push(part);part="";}part+=char;}line=part;}else line=line?line+" "+word:word;}lines.push(line);
-   for(const l of lines){if(y<72+size*1.5)start();page.drawText(l,{x:margin,y,size,font,color:strong?accent:ink});y-=size*1.5;}y-=4;
+   for(const l of lines){if(y<body.bottom+size*1.5)start();page.drawText(l,{x:margin,y,size,font,color:strong?accent:ink});y-=size*1.5;}y-=4;
   }
  };
- const section=(s:string)=>{if(y<140)start();y-=8;write(s,13,true);};
+ const section=(s:string)=>{if(y<body.bottom+68)start();y-=8;write(s,13,true);};
  const field=(label:string,value:unknown)=>write(`${label}: ${value===null || value==="" || value===undefined?"Pendiente":String(value)}`);
  write("Tablero y control comercial",19,true);write(name,13,true);write(`Versión guardada ${version} · ${data.oportunidades.length} oportunidades · ${data.eventos.length} eventos · ${data.documentos.length} documentos`);
  write("Los importes son indicadores brutos potenciales, antes de gastos e impuestos. La puntuación no es probabilidad. El indicador combinado conserva bases distintas de inmuebles y compradores; no es ingreso cobrado, utilidad ni pronóstico.");
@@ -40,5 +44,5 @@ export async function createComercialPdf(name:string,version:number,input:Comerc
  section("Control y conciliación del origen");field("Estado de conciliación",data.origen.estado);field("Fuente de origen",data.origen.fuente);field("Motivo",data.origen.motivo);for(const segment of ["Inmueble","Comprador"] as const)for(const [key,v] of Object.entries(data.origen[segment]))field(`${segment} · ${key} de origen`,v);write("Las sumas originales de control no son comparables monetariamente cuando mezclan monedas; sirven exclusivamente para conciliación.");for(const control of result.controles)write(`• ${control}`);write("Un control sin alertas técnicas no demuestra autenticidad documental ni que todos los hechos se hayan capturado.");
  section("Bitácora · registros y correcciones conservados");if(!data.eventos.length)write("Sin eventos capturados.");for(const [i,e] of data.eventos.entries()){write(`${e.id} · ${e.oportunidad} · ${e.actividad}`,10,true);field("Fecha",e.fecha);field("Detalle / resultado",e.detalle);field("Importe original",e.importe===null?null:`${formatAmountOrPending(e.importe)} ${e.moneda||"moneda pendiente"}`);field("Estado",e.estado);field("Responsable",e.responsable);field("Base del dato",e.base);field("Referencia / evidencia",e.evidencia);field("Corrige evento",e.anterior||"Sin anterior");field("Vigencia",result.eventos[i].vigente?"Registro vigente":`Histórico, sustituido por ${result.eventos[i].sustituidoPor}`);field(result.eventos[i].vigente?"Control":"Control histórico",result.eventos[i].controles.join("; ")||"Sin alertas técnicas");}
  section("Documentos · referencias y versiones conservadas");if(!data.documentos.length)write("Sin documentos capturados. No se presume expediente completo.");for(const [i,d] of data.documentos.entries()){write(`${d.id} · ${d.oportunidad} · ${d.nombre}`,10,true);field("Aplicabilidad",d.aplicabilidad);field("Estado documental",d.estado);field("Fuente / referencia",d.fuente);field("Fecha de revisión",d.fecha);field("Responsable",d.responsable);field("Observación / pendiente",d.observacion);field("Versiona documento",d.anterior||"Sin anterior");field("Vigencia",result.documentos[i].vigente?"Registro vigente":`Histórico, sustituido por ${result.documentos[i].sustituidoPor}`);field(result.documentos[i].vigente?"Control":"Control histórico",result.documentos[i].controles.join("; ")||"Sin alertas técnicas");}
- const pages=pdf.getPages();pages.forEach((p,i)=>p.drawText(`Fortius · Control comercial · Versión ${version} · ${i+1} / ${pages.length}`,{x:margin,y:38,size:8,font:regular,color:muted}));const bytes=await pdf.save();return {bytes,sha256:createHash("sha256").update(bytes).digest("hex"),result};
+ const pages=pdf.getPages();pages.forEach((p,i)=>drawFortiusLetterhead(p,art,bold,'Control comercial',i+1,pages.length));const bytes=await pdf.save();return {bytes,sha256:createHash("sha256").update(bytes).digest("hex"),result};
 }

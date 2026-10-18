@@ -4,6 +4,8 @@ import { ENTREVISTA_TABLES, mostrarCampoEntrevista } from "./entrevista";
 import { DOCUMENTOS } from "./documento";
 import { documentoDocxBlob } from "./documento/docx";
 import { imagen, type ImagenDocumento } from "./documento/imagen";
+import { fetchLetterhead, type LetterheadAssets } from "@/lib/letterhead";
+import { fortiusDocxSection } from "@/lib/docx-letterhead";
 
 /*
   Copia editable en Word de un formato capturado (decisión del titular, 16/10/2026).
@@ -47,7 +49,7 @@ function rowsTable(field: FormatoField, rows: Record<string, unknown>[]) {
   });
 }
 
-export function formatoDocument(definition: FormatoDefinition, values: Record<string, unknown>, context: { folio: string; cliente?: string }) {
+export function formatoDocument(definition: FormatoDefinition, values: Record<string, unknown>, context: { folio: string; cliente?: string }, assets: LetterheadAssets) {
   const children: Array<Paragraph | Table> = [
     new Paragraph({ heading: HeadingLevel.TITLE, alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${definition.id} · ${definition.title}` })] }),
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 240 }, children: [new TextRun({ text: `Fortius Inmuebles · Operación ${context.folio}${context.cliente ? ` · ${context.cliente}` : ""}`, size: 20, color: "595959" })] }),
@@ -71,7 +73,7 @@ export function formatoDocument(definition: FormatoDefinition, values: Record<st
     ] }));
   }
   children.push(new Paragraph({ spacing: { before: 360 }, children: [new TextRun({ text: "Copia editable generada desde el panel con los datos del borrador. Los datos declarados deben comprobarse; este archivo no registra consentimiento, aprobación ni firmas.", italics: true, size: 18, color: "595959" })] }));
-  return new Document({ creator: "Fortius Inmuebles", title: `${definition.id} · ${definition.title}`, styles: { default: { document: { run: { font: "Calibri" } } } }, sections: [{ children }] });
+  return new Document({ creator: "Fortius Inmuebles", title: `${definition.id} · ${definition.title}`, styles: { default: { document: { run: { font: "Calibri" } } } }, sections: [{ ...fortiusDocxSection(assets, definition.title), children }] });
 }
 
 async function bytes(url: string) {
@@ -83,8 +85,9 @@ async function bytes(url: string) {
 /** Word del formato: con el diseño de su plantilla si ya está reproducido; si no, la copia genérica. */
 export async function formatoDocxBlob(definition: FormatoDefinition, values: Record<string, unknown>, context: { folio: string; cliente?: string; imageUrl?: (id: string) => string }): Promise<Blob> {
   const documento = DOCUMENTOS[definition.id];
+  const stationery = await fetchLetterhead();
   if (documento) {
-    const [logo, pie, regular] = await Promise.all([bytes("/brand/fortius-logo.png"), bytes("/brand/pie-documento.png"), bytes("/fonts/Archivo-Regular.ttf")]);
+    const regular = await bytes("/fonts/Archivo-Regular.ttf");
     // Foto principal y croquis elegidos en el borrador (levantamientos); si no se pueden leer, queda el recuadro.
     const imagenes: Record<string, ImagenDocumento> = {};
     const ids = [values.fotoPrincipalId, values.croquisId, ...(Array.isArray(values.fotografias) ? values.fotografias.map(row => (row as Record<string, unknown>)?.assetId) : [])];
@@ -93,7 +96,7 @@ export async function formatoDocxBlob(definition: FormatoDefinition, values: Rec
       const image = await bytes(context.imageUrl ? context.imageUrl(assetId) : `/api/admin/adjuntos/${encodeURIComponent(assetId)}/descargar`).then(data => imagen(data)).catch(() => undefined);
       if (image) imagenes[assetId] = image;
     }
-    return documentoDocxBlob(documento(values, { imagenes }), { logo, logoSize: { width: 2550, height: 648 }, pie, regular });
+    return documentoDocxBlob(documento(values, { imagenes }), { ...stationery, regular });
   }
-  return Packer.toBlob(formatoDocument(definition, values, context));
+  return Packer.toBlob(formatoDocument(definition, values, context, stationery));
 }

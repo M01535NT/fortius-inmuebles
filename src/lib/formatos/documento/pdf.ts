@@ -1,18 +1,19 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage } from "pdf-lib";
 import { COLORS, type Block, type Documento } from "./modelo";
+import { letterheadBounds, type LetterheadAssets } from "@/lib/letterhead";
+import { drawFortiusLetterhead, embedFortiusLetterhead, type PdfLetterhead } from "@/lib/pdf-letterhead";
 
 /*
-  PDF con el diseño de las plantillas: carta (612 × 792 pt), márgenes de 50.4 pt a los
-  lados, logotipo de 180 pt en el encabezado de cada página y franja de marca en el pie.
-  Medidas tomadas de los .docx originales (tblW 10224, pgMar 1008/1512/1080, extent del logo).
+  Cuerpo de las plantillas en Carta con el membrete aprobado del Plan de negocio.
+  Los márgenes laterales y la tipografía del contenido se conservan.
 */
 
-export type DocumentoAssets = { regular: Uint8Array; bold: Uint8Array; logo: Uint8Array };
+export type DocumentoAssets = LetterheadAssets & { regular: Uint8Array; bold: Uint8Array };
 type Fonts = { regular: PDFFont; bold: PDFFont };
 
 const PAGE: [number, number] = [612, 792];
-const LEFT = 50.4, RIGHT = 50.4, TOP = 75.6, BOTTOM = 62;
+const LEFT = 50.4, RIGHT = 50.4, { top: TOP, bottom: BOTTOM } = letterheadBounds();
 const WIDTH = PAGE[0] - LEFT - RIGHT;
 const hex = (value: string) => rgb(parseInt(value.slice(0, 2), 16) / 255, parseInt(value.slice(2, 4), 16) / 255, parseInt(value.slice(4, 6), 16) / 255);
 const NAVY = hex(COLORS.navy), GREEN = hex(COLORS.green), WINE = hex(COLORS.wine), WHITE = hex(COLORS.white);
@@ -52,15 +53,28 @@ class Writer {
   pages: PDFPage[] = [];
   page!: PDFPage;
   y = 0;
-  constructor(public pdf: PDFDocument, private fonts: Fonts, private logo: PDFImage, private style: Style) { this.newPage(); }
+  constructor(public pdf: PDFDocument, private fonts: Fonts, private art: PdfLetterhead, private title: string, private style: Style, private headerFont: PDFFont, private compact = false) { this.newPage(); }
   newPage() {
     this.page = this.pdf.addPage(PAGE);
     this.pages.push(this.page);
-    const height = 180 * this.logo.height / this.logo.width;
-    this.page.drawImage(this.logo, { x: LEFT, y: PAGE[1] - 16.5 - height, width: 180, height });
     this.y = PAGE[1] - TOP;
   }
   ensure(height: number) { if (this.y - height < BOTTOM) this.newPage(); }
+  /** Una fila mayor que la caja de texto continúa sin quedar cubierta por el membrete. */
+  splitRow<T>(cells: T[][], leading: number, overhead: number, draw: (part:T[][],height:number)=>void, restart:()=>void, minimum=0, freshHeight=PAGE[1]-TOP-BOTTOM) {
+    const count=Math.max(...cells.map(cell=>cell.length));
+    const fullHeight=Math.max(minimum,count*leading+overhead);
+    if(fullHeight<=freshHeight && this.y-fullHeight<BOTTOM) restart();
+    for(let offset=0;offset<count;) {
+      if(this.y-BOTTOM<Math.max(minimum,leading+overhead)) restart();
+      const amount=Math.min(count-offset,Math.floor((this.y-BOTTOM-overhead)/leading));
+      if(amount<1) throw new Error('El encabezado de la tabla excede el área imprimible');
+      const part=cells.map(cell=>cell.slice(offset,offset+amount));
+      draw(part,Math.max(minimum,amount*leading+overhead));
+      offset+=amount;
+      if(offset<count) restart();
+    }
+  }
   /** Párrafo justificado con encabezado opcional en negritas (la última línea queda a la izquierda). */
   paragraph(text: string, lead = "", options: { indent?: boolean; strong?: boolean } = {}) {
     const { body: size, ink: color, after } = this.style, leading = size * this.style.leading;
@@ -77,8 +91,9 @@ class Writer {
     }
     if (line.length) lines.push(line);
     const indent = options.indent ? 18 : 0;
+    this.ensure(Math.min(2,lines.length)*leading);
     lines.forEach((words, index) => {
-      this.ensure(leading);
+      this.ensure((index===lines.length-2?2:1)*leading);
       const last = index === lines.length - 1 || words.length < 2;
       const start = index === 0 ? indent : 0;
       const gap = last ? space : (WIDTH - start - words.reduce((sum, t) => sum + width(t), 0)) / (words.length - 1);
@@ -96,7 +111,7 @@ class Writer {
     this.y -= size * 1.2 + after;
   }
   /** Formulario: celdas con borde fino, pregunta en negritas y respuesta debajo; altura mínima para escribir a mano. */
-  form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>, filled = false) {
+  form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>, filled = false, tailHeight = 0) {
     const pad = 4, qSize = filled ? 8 : 9, aSize = 10, qLead = qSize * 1.18, aLead = aSize * 1.22, minHeight = filled ? 34 : 30;
     const measure = (row: Array<{ q: string; a: string; w: number }>) => {
       const total = row.reduce((s, c) => s + c.w, 0);
@@ -107,13 +122,28 @@ class Writer {
     };
     const measured = rows.map(measure);
     if (label) {
-      this.ensure(22 + (measured[0]?.height ?? 70)); // el título nunca queda solo al pie de la página
+      const firstHeight=measured[0]?.height??70;
+      this.ensure(22 + (firstHeight>PAGE[1]-TOP-BOTTOM?70:firstHeight));
       this.y -= 8;
       this.page.drawText(label, { x: LEFT, y: this.y - 10, size: 10, font: this.fonts.bold, color: NAVY });
       this.y -= 15;
     }
-    for (const { cells, height } of measured) {
-      if (this.y - height < BOTTOM) this.newPage();
+    for (const [index,{ cells, height }] of measured.entries()) {
+      if(height>PAGE[1]-TOP-BOTTOM) {
+        const leading=Math.max(qLead,aLead);
+        const content=cells.map(cell=>[...cell.ql.map(text=>({text,size:qSize,font:filled?this.fonts.regular:this.fonts.bold})),...cell.al.map(text=>({text,size:aSize,font:this.fonts.regular}))]);
+        this.splitRow(content,leading,pad*2,(part,h)=>{
+          let x=LEFT;
+          part.forEach((lines,i)=>{
+            this.page.drawRectangle({x,y:this.y-h,width:cells[i].width,height:h,...(filled?{color:hex(COLORS.cell)}:{borderColor:RULE,borderWidth:0.5})});
+            lines.forEach((line,n)=>this.page.drawText(line.text,{x:x+pad,y:this.y-pad-line.size-n*leading,size:line.size,font:line.font,color:NAVY}));
+            x+=cells[i].width;
+          });
+          this.y-=h;
+        },()=>this.newPage(),minHeight);
+        continue;
+      }
+      if (this.y - height - (index===measured.length-1?tailHeight:0) < BOTTOM) this.newPage();
       let x = LEFT;
       for (const cell of cells) {
         if (filled) this.page.drawRectangle({ x: x + (x > LEFT ? 3 : 0), y: this.y - height + 3, width: cell.width - (x > LEFT ? 3 : 0), height: height - 3, color: hex(COLORS.cell) });
@@ -146,11 +176,8 @@ class Writer {
   /** Tabla de levantamiento: encabezado claro, bordes finos y celdas vacías para escribir a mano. */
   grid(widths: number[], header: string[], rows: string[][]) {
     const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => w / total * WIDTH);
-    const pad = 4, size = 9, leading = size * 1.2, minHeight = 18;
-    const draw = (cells: string[], font: PDFFont, fill?: ReturnType<typeof rgb>) => {
-      const lines = cells.map((cell, i) => wrap(cell, font, size, cols[i] - pad * 2));
-      const height = Math.max(minHeight, ...lines.map(l => l.length * leading + pad * 2));
-      if (this.y - height < BOTTOM) { this.newPage(); if (font !== this.fonts.bold) draw(header, this.fonts.bold, HEAD); }
+    const pad = this.compact ? 3 : 4, size = 9, leading = size * 1.2, minHeight = this.compact ? 16 : 18;
+    const drawLines = (lines:string[][],font:PDFFont,height:number,fill?:ReturnType<typeof rgb>) => {
       let x = LEFT;
       lines.forEach((ls, i) => {
         this.page.drawRectangle({ x, y: this.y - height, width: cols[i], height, borderColor: RULE, borderWidth: 0.5, ...(fill ? { color: fill } : {}) });
@@ -159,9 +186,12 @@ class Writer {
       });
       this.y -= height;
     };
+    const headLines=header.map((cell,i)=>wrap(cell,this.fonts.bold,size,cols[i]-pad*2));
+    const headHeight=Math.max(minHeight,...headLines.map(lines=>lines.length*leading+pad*2));
+    const restart=()=>{this.newPage();drawLines(headLines,this.fonts.bold,headHeight,HEAD);};
     this.ensure(minHeight * 2);
-    draw(header, this.fonts.bold, HEAD);
-    for (const row of rows) draw(row, this.fonts.regular);
+    drawLines(headLines,this.fonts.bold,headHeight,HEAD);
+    for (const row of rows) this.splitRow(row.map((cell,i)=>wrap(cell,this.fonts.regular,size,cols[i]-pad*2)),leading,pad*2,(part,height)=>drawLines(part,this.fonts.regular,height),restart,minHeight,PAGE[1]-TOP-BOTTOM-headHeight);
     this.y -= 6;
   }
   /** Pregunta con opciones en casillas dibujadas; la elegida lleva una X. */
@@ -187,7 +217,7 @@ class Writer {
   }
   /** Barra azul marino de hoja de cálculo con texto en mayúsculas y, si hay, un dato a la derecha sobre gris. */
   bar(text: string, right?: string, big = false, raw = false, center = false) {
-    const height = big ? 26 : 18, size = big ? 13 : 9.5;
+    const height = big ? 26 : this.compact ? 16 : 18, size = big ? 13 : 9.5;
     this.ensure(height + 40);
     this.y -= 4;
     const split = right !== undefined ? WIDTH * 8 / 12 : WIDTH;
@@ -199,7 +229,7 @@ class Writer {
       const rsize = big ? 15 : 10, w = this.fonts.bold.widthOfTextAtSize(right, rsize);
       this.page.drawText(right, { x: LEFT + WIDTH - 6 - w, y: this.y - height / 2 - rsize / 2 + 1.5, size: rsize, font: big ? this.fonts.bold : this.fonts.regular, color: NAVY });
     }
-    this.y -= height + 3;
+    this.y -= height + (this.compact ? 2 : 3);
   }
   /** Renglones de hoja de cálculo: etiquetas en negritas sin fondo y valores sobre gris claro. */
   sheet(rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>>) {
@@ -225,14 +255,17 @@ class Writer {
   }
   note(text: string) {
     const size = 8.5, leading = size * 1.25;
-    for (const line of wrap(text, this.fonts.regular, size, WIDTH)) { this.ensure(leading); this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY }); this.y -= leading; }
+    const lines = wrap(text, this.fonts.regular, size, WIDTH);
+    if(lines.length*leading<PAGE[1]-TOP-BOTTOM) this.ensure(lines.length*leading+4);
+    for (const line of lines) { this.ensure(leading); this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY }); this.y -= leading; }
     this.y -= 4;
   }
   signatures(parties: Array<{ role: string; name: string }>, line = false) {
     // Una sola firma: línea corta a la izquierda, como en las cartas; varias: columnas iguales.
     const col = parties.length === 1 ? 240 : WIDTH / parties.length, size = this.style.body;
-    this.ensure(36 + size * 4);
-    this.y -= 36;
+    const gap = this.compact ? 20 : 36;
+    this.ensure(gap + size * 4);
+    this.y -= gap;
     parties.forEach((party, i) => {
       const center = LEFT + col * i + col / 2;
       // Línea de firma sobre el cargo, como en las actas.
@@ -274,23 +307,26 @@ class Writer {
     this.ensure(headHeight + first);
     drawHead();
     rows.forEach((row, index) => {
-      const lines = layout(row, this.fonts.regular), rowHeight = height(lines);
-      if (this.y - rowHeight < BOTTOM) { this.newPage(); drawHead(); }
-      drawRow(lines, FILLS[(band ? index + 1 : index) % 2], this.style.ink, this.fonts.regular, rowHeight);
+      const lines = layout(row, this.fonts.regular);
+      this.splitRow(lines,leading,pad*2+(labels?3:7),(part,rowHeight)=>drawRow(part,FILLS[(band ? index + 1 : index) % 2],this.style.ink,this.fonts.regular,rowHeight),()=>{this.newPage();drawHead();},0,PAGE[1]-TOP-BOTTOM-headHeight);
     });
     this.y -= 8;
   }
   footers() {
     const total = this.pages.length;
     this.pages.forEach((page, index) => {
-      // Franja de marca del pie (formas Fortius_base, _blue y _wine de la plantilla).
-      page.drawRectangle({ x: 0, y: 0, width: 612, height: 19, color: NAVY });
-      page.drawSvgPath("M 40.95 0 L 117 0 L 117 31 L 0 31 Z", { x: 495, y: 40, color: NAVY });
-      page.drawSvgPath("M 35.52 0 L 148 0 L 113.96 13 L 0 13 Z", { x: 370, y: 32, color: WINE });
-      page.drawText(`${index + 1} / ${total}`, { x: LEFT, y: 30, size: 9, font: this.fonts.regular, color: NAVY });
+      drawFortiusLetterhead(page, this.art, this.headerFont, this.title, index + 1, total);
     });
   }
-  async render(block: Block) {
+  async render(block: Block, next?: Block, afterNext?: Block, lastNext = false) {
+    const paragraphHeight=(text:string)=>wrap(text,this.fonts.regular,this.style.body,WIDTH).length*this.style.body*this.style.leading+this.style.after;
+    const signatureHeight=(this.compact?20:36)+this.style.body*5;
+    if(block.kind==='p') {
+      if(next?.kind==='signatures') this.ensure(paragraphHeight(block.text)+signatureHeight);
+      else if(next?.kind==='bar' && afterNext?.kind==='signatures') this.ensure(paragraphHeight(block.text)+30+signatureHeight);
+      else if(lastNext && next?.kind==='p') this.ensure(paragraphHeight(block.text)+paragraphHeight(next.text));
+    }
+    if(block.kind==='bar' && next?.kind==='signatures') this.ensure(30+signatureHeight);
     switch (block.kind) {
       case "image": await this.image(block.label, block.image, block.height); break;
       case "bar": this.bar(block.text, block.right, block.big, block.raw, block.center); break;
@@ -307,7 +343,7 @@ class Writer {
       // Salto de página de la plantilla; si la página apenas empezó (solo arrastra una nota), se continúa en ella.
       case "pagebreak": if (block.force ? this.y < PAGE[1] - TOP - 1 : this.y < PAGE[1] / 2) this.newPage(); break;
       case "title": if (block.bold) { const size = block.size ?? 22; this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; this.page.drawText(block.text, { x: LEFT, y: this.y - size, size, font: this.fonts.bold, color: NAVY }); this.y -= size + 8; } else this.heading(block.text, 27, NAVY, 0, 8); break;
-      case "form": this.form(block.label, block.rows, block.filled); break;
+      case "form": this.form(block.label, block.rows, block.filled,next?.kind==='note'?wrap(next.text,this.fonts.regular,8.5,WIDTH).length*8.5*1.25+8:0); break;
       case "subtitle": this.centered(block.text, 12, 10, 2); break;
       case "note": this.note(block.text); break;
       case "h1": this.heading(block.text, 21, NAVY, 12, 6); break;
@@ -339,13 +375,16 @@ export async function renderDocumentoPdf(doc: Documento, assets: DocumentoAssets
   pdf.registerFontkit(fontkit);
   const contrato = doc.estilo === "contrato" || doc.estilo === "aviso";
   const estilo = doc.estilo ?? "marca";
-  const [regular, bold, logo] = await Promise.all([
+  const [regular, bold, art] = await Promise.all([
     contrato ? pdf.embedFont(StandardFonts.TimesRoman) : pdf.embedFont(assets.regular, { subset: true }),
     contrato ? pdf.embedFont(StandardFonts.TimesRomanBold) : pdf.embedFont(assets.bold, { subset: true }),
-    pdf.embedPng(assets.logo),
+    embedFortiusLetterhead(pdf, assets),
   ]);
-  const writer = new Writer(pdf, { regular, bold }, logo, STYLES[estilo]);
-  for (const block of doc.blocks) await writer.render(block);
+  const headerFont = contrato ? await pdf.embedFont(assets.bold, { subset:true }) : bold;
+  const compact = doc.subject?.startsWith('Formato 18 ·') ?? false;
+  const style = compact ? {...STYLES[estilo],leading:1.15,after:3.5} : STYLES[estilo];
+  const writer = new Writer(pdf, { regular, bold }, art, doc.title, style, headerFont, compact);
+  for (const [index,block] of doc.blocks.entries()) await writer.render(block,doc.blocks[index+1],doc.blocks[index+2],index===doc.blocks.length-2);
   writer.footers();
   return pdf.save();
 }

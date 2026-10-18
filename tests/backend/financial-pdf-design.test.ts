@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "vitest";
-import { PDFDocument, PDFName } from "pdf-lib";
+import { PDFDocument, PDFName, PDFArray, PDFRawStream, decodePDFRawStream } from "pdf-lib";
 import { calculateMortgage } from "@/lib/finance/mortgage";
 import { calculateClosingBudget } from "@/lib/finance/closing";
 import { mortgageReport, closingReport } from "@/lib/finance/report-content";
@@ -22,16 +22,26 @@ const input = {
   prepaymentMode: "term" as const,
 };
 async function assets() {
-  const [regular, bold, mono, logo] = await Promise.all(
+  const [regular, bold, mono, encabezado, pie] = await Promise.all(
     [
       "public/fonts/Archivo-Regular.ttf",
       "public/fonts/Archivo-SemiBold.ttf",
       "public/fonts/IBMPlexMono-Medium.ttf",
-      "public/brand/fortius-logo.png",
+      "public/brand/membrete-encabezado.png",
+      "public/brand/membrete-pie.png",
     ].map((path) => readFile(path)),
   );
-  return { regular, bold, mono, logo };
+  return { regular, bold, mono, encabezado, pie };
 }
+test('a landscape cell longer than a page continues above the stationery footer',async()=>{
+  const pdf=await PDFDocument.load(await createFinancialPdf({title:'Reporte de ejemplo',sections:[],appendix:{title:'Detalle',note:'Datos de prueba',table:{columns:[{label:'Referencia'},{label:'Importe'}],rows:[['Dato con soporte '.repeat(900)+'Fin del registro','$125,430.50']]}}},await assets()));
+  expect(financialPdfPages(pdf).join(' ')).toContain('Fin del registro');
+  for(const page of pdf.getPages()) {
+    const content=page.node.Contents(),refs=content instanceof PDFArray?content.asArray():[content];
+    const raw=refs.map(ref=>pdf.context.lookup(ref)).filter((item):item is PDFRawStream=>item instanceof PDFRawStream).map(stream=>new TextDecoder().decode(decodePDFRawStream(stream).decode())).join('\n');
+    for(const match of raw.matchAll(/1 0 0 1 [\d.-]+ ([\d.-]+) Tm/g)) expect(Number(match[1])).toBeGreaterThanOrEqual(108*page.getWidth()/612);
+  }
+});
 test("branded mortgage PDF has a financial overview, language, outline and repeated landscape payment headers", async () => {
   const result = calculateMortgage(input);
   const report = mortgageReport({
@@ -53,6 +63,8 @@ test("branded mortgage PDF has a financial overview, language, outline and repea
   expect(pages[0]).toContain("Evolución del saldo");
   expect(pages.join("\n")).toContain("Banco de prueba · México");
   expect(pages.join("\n")).toMatch(/Seguro mensual\s+Pendiente/);
+  const breakdownPage=pages.find(page=>page.includes('Composición del costo conocido'))!;
+  expect(breakdownPage).toContain('Datos y condiciones del crédito');
   const landscape = pdf
     .getPages()
     .map((p, i) => (p.getWidth() > p.getHeight() ? pages[i] : ""))

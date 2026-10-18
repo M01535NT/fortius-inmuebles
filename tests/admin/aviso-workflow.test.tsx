@@ -1,6 +1,6 @@
 import * as React from "react";
 import { afterEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { formatoById } from "@/lib/formatos/catalog";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
@@ -9,12 +9,20 @@ vi.mock("@/lib/admin/store", async importOriginal => {
   const clientes = {}, propiedades = {};
   return { ...actual, db: { ...actual.db, clientes, propiedades }, useCollection: (collection: unknown) => collection === clientes ? [{ id: "c-qa", nombre: "Cliente del expediente QA", tipo: "propietario" }] : [] };
 });
-import { DocumentsTab, type Documento } from "@/components/admin/operation/documents-tab";
+import { DocumentsTab } from "@/components/admin/operation/documents-tab";
+import { useOperationDocuments } from "@/components/admin/operation/use-documents";
 import type { OperationRecord } from "@/lib/admin/operation-view";
-const noop = () => {};
-function Docs({ initial }: { initial: Documento[] }) {
-  const [documents, setDocuments] = React.useState(initial);
-  return <DocumentsTab op={exp as unknown as OperationRecord} documents={documents} onDocumentsChange={update => setDocuments(update)} onDirtyChange={noop} />;
+/** El expediente con su controlador de documentos: abrir o crear un formato lleva a su ventana de captura. */
+function Docs() {
+  const docs = useOperationDocuments({ op: exp as unknown as OperationRecord, interviewAnswers: {}, cliente: "Cliente del expediente QA" });
+  return <><DocumentsTab op={exp as unknown as OperationRecord} docs={docs} />{docs.capture({ cliente: "Cliente del expediente QA" })}</>;
+}
+/** Abre el aviso en su ventana: su editor reúne todo el formulario en una sola pantalla. */
+async function openNotice() {
+  fireEvent.click(await screen.findByRole("button", { name: "Abrir" }));
+  const capture = await screen.findByRole("dialog", { name: "Aviso de privacidad" });
+  await screen.findByLabelText("Nombre del titular");
+  return capture;
 }
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -69,12 +77,14 @@ it("genera la plantilla actual cuando sólo hay un PDF archivado con el diseño 
     if (url.endsWith("/descargar")) { expect(url).toContain("pdf-current"); return new Response("%PDF-1.7 QA", { headers: { "Content-Type": "application/pdf" } }); }
     return Response.json({ documento: draft, emisiones: [{ id: "pdf-old", draft_version: 5, created_at: "2026-10-04" }] });
   });
-  render(<Docs initial={[draft as Documento]} />);
-  fireEvent.click(await screen.findByRole("button", { name: /^01 ·/ }));
-  await screen.findByLabelText("Nombre del titular");
-  expect(screen.queryByRole("link", { name: "Descargar PDF del aviso" })).toBeNull();
-  expect(screen.getByRole("link", { name: /PDF de la versión 5/ }).getAttribute("href")).toContain("pdf-old");
-  fireEvent.click(screen.getByRole("button", { name: "Guardar y descargar PDF" }));
+  render(<Docs />);
+  const capture = await openNotice();
+  // El PDF archivado con el diseño anterior no cuenta como PDF de esta versión, pero se conserva en su pestaña.
+  expect(screen.queryByRole("link", { name: "Descargar el PDF de esta versión" })).toBeNull();
+  fireEvent.click(within(capture).getByRole("tab", { name: /PDF y copias firmadas/ }));
+  expect((await screen.findByRole("link", { name: /^Descargar ·/ })).getAttribute("href")).toContain("pdf-old");
+  fireEvent.click(within(capture).getByRole("tab", { name: /Captura/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Generar PDF" }));
   await waitFor(() => expect(clicked).toHaveLength(1));
   expect(emitted).toBe(1);
 });
@@ -91,9 +101,10 @@ it("recupera el cliente y la operación al crear un aviso, sin presumir autoriza
     }
     return Response.json({ documentos: [] });
   });
-  render(<Docs initial={[]} />);
+  render(<Docs />);
   fireEvent.change(screen.getByRole("combobox", { name: "Formato" }), { target: { value: "01" } });
-  fireEvent.click(screen.getByRole("button", { name: "Crear borrador" }));
+  fireEvent.click(screen.getByRole("button", { name: "Crear y abrir" }));
+  await screen.findByRole("dialog", { name: "Aviso de privacidad" });
   await screen.findByLabelText("Nombre del titular");
   expect((screen.getByLabelText("Nombre del titular") as HTMLInputElement).value).toBe("Cliente del expediente QA");
   expect(initial).not.toHaveProperty("titular");
@@ -125,10 +136,10 @@ async function setup(failure?: "save" | "emit" | "download") {
     }
     return Response.json({ documento: draft, emisiones: [] });
   });
-  render(<Docs initial={[draft as Documento]} />);
-  fireEvent.click(await screen.findByRole("button", { name: /^01 ·/ }));
-  fireEvent.change(await screen.findByLabelText("Nombre del titular"), { target: { value: "Titular actualizado QA" } });
-  fireEvent.click(screen.getByRole("button", { name: "Guardar y descargar PDF" }));
+  render(<Docs />);
+  await openNotice();
+  fireEvent.change(screen.getByLabelText("Nombre del titular"), { target: { value: "Titular actualizado QA" } });
+  fireEvent.click(screen.getByRole("button", { name: "Generar PDF" }));
   return { steps, clicked };
 }
 
@@ -137,7 +148,7 @@ it("guarda la captura actual, emite esa versión y descarga el PDF con un botón
   await waitFor(() => expect(result.clicked).toHaveLength(1));
   expect(result.steps).toEqual(["save", "emit", "download"]);
   expect(result.clicked[0]).toMatch(/Aviso.*\.pdf$/);
-  expect(screen.getByRole("link", { name: "Descargar PDF del aviso" }).getAttribute("href")).toBe("/api/admin/emisiones/pdf-qa/descargar");
+  expect(screen.getByRole("link", { name: "Descargar el PDF de esta versión" }).getAttribute("href")).toBe("/api/admin/emisiones/pdf-qa/descargar");
 });
 
 it.each(["save", "emit", "download"] as const)("conserva los datos si falla %s y ofrece el PDF archivado cuando existe", async failure => {
@@ -146,5 +157,5 @@ it.each(["save", "emit", "download"] as const)("conserva los datos si falla %s y
   expect((screen.getByLabelText("Nombre del titular") as HTMLInputElement).value).toBe("Titular actualizado QA");
   expect(result.clicked).toEqual([]);
   expect(result.steps).toEqual(failure === "save" ? ["save"] : failure === "emit" ? ["save", "emit"] : ["save", "emit", "download"]);
-  expect(Boolean(screen.queryByRole("link", { name: "Descargar PDF del aviso" }))).toBe(failure === "download");
+  expect(Boolean(screen.queryByRole("link", { name: "Descargar el PDF de esta versión" }))).toBe(failure === "download");
 });

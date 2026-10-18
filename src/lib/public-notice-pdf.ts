@@ -1,5 +1,7 @@
 import 'server-only';
-import { drawFortiusLetterhead } from './pdf-letterhead';
+import { drawFortiusLetterhead, embedFortiusLetterhead } from './pdf-letterhead';
+import { letterheadBounds } from './letterhead';
+import { loadLetterhead } from './letterhead-server';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import fontkit from '@pdf-lib/fontkit';
@@ -10,10 +12,11 @@ export async function createNoticePdf(content: NonNullable<ReturnType<typeof not
   pdf.setTitle(content.title); pdf.setAuthor('Fortius Inmuebles'); pdf.setLanguage('es-MX');
   const regular=await pdf.embedFont(await readFile(join(process.cwd(),'public/fonts/Archivo-Regular.ttf')), {subset:true});
   const bold=await pdf.embedFont(await readFile(join(process.cwd(),'public/fonts/Archivo-SemiBold.ttf')), {subset:true});
-  const logo=await pdf.embedPng(await readFile(join(process.cwd(),'public/brand/fortius-logo.png')));
-  const width=483; let page=pdf.addPage([595,842]);let y=730;
+  const art=await embedFortiusLetterhead(pdf,await loadLetterhead());
+  const body=letterheadBounds(595,842);
+  const width=483; let page=pdf.addPage([595,842]);let y=body.bodyTop-25;
 
-  function room(height:number){if(y-height<66){page=pdf.addPage([595,842]);y=725;}}
+  function room(height:number){if(y-height<body.bottom){page=pdf.addPage([595,842]);y=body.bodyTop-13;}}
   function paragraph(text:string,size=11,heading=false){
     const font=heading?bold:regular;const words=text.split(/\s+/);const lines:string[][]=[];let line:string[]=[];
     for(const word of words){if(line.length && font.widthOfTextAtSize([...line,word].join(' '),size)>width){lines.push(line);line=[];}line.push(word);}if(line.length)lines.push(line);
@@ -24,6 +27,6 @@ export async function createNoticePdf(content: NonNullable<ReturnType<typeof not
   }
   paragraph(content.title,25,true);y-=8;
   for(const section of content.sections){paragraph(section.title,13,true);for(const text of section.paragraphs)paragraph(text);y-=8;}
-  pdf.getPages().forEach((p,i)=>drawFortiusLetterhead(p,logo,regular,bold,i+1,pdf.getPageCount()));
+  pdf.getPages().forEach((p,i)=>drawFortiusLetterhead(p,art,bold,content.title,i+1,pdf.getPageCount()));
   return pdf.save();
 }

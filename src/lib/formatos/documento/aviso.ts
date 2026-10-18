@@ -61,7 +61,6 @@ export function avisoDocumento(d: Data): Documento {
     ] },
     { kind: "p", text: "No se solicitan datos sensibles ni biométricos para la atención ordinaria. No envíe información de salud, creencias, origen étnico o vida sexual. Si un supuesto excepcional exigiera tratar datos sensibles, se informarán previamente los datos, la finalidad y el consentimiento escrito que corresponda. No se pide todo el expediente en el primer contacto." },
 
-    { kind: "pagebreak", force: true },
     { kind: "title", text: "Uso y comunicación\nde sus datos", bold: true, size: 20 },
     { kind: "h2", text: "03  /  Finalidades necesarias" },
     { kind: "p", text: "Los datos se utilizarán según el servicio solicitado y la etapa de la operación:" },
@@ -83,7 +82,6 @@ export function avisoDocumento(d: Data): Documento {
     ] },
     { kind: "p", text: "Las transferencias se limitarán a los datos necesarios y a la finalidad informada. Se comunicará al receptor el aviso y las obligaciones correspondientes. No se autoriza con este documento la venta de bases de datos. Los proveedores que procesen información por instrucciones del responsable deberán estar sujetos a deberes de seguridad y confidencialidad. Si se prevé una transferencia internacional no descrita aquí, se informará previamente su destinatario y finalidad, y se recabará el consentimiento cuando proceda." },
 
-    { kind: "pagebreak", force: true },
     { kind: "title", text: "Sus derechos\ny cómo ejercerlos", bold: true, size: 20 },
     { kind: "h2", text: "06  /  Acceso, rectificación, cancelación y oposición" },
     { kind: "p", text: "Puede conocer los datos que conservamos y sus condiciones de uso; corregir información inexacta o incompleta; pedir su cancelación cuando proceda, u oponerse al tratamiento por causa legítima. Estos derechos pueden ejercerse por separado." },

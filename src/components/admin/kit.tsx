@@ -56,8 +56,15 @@ export function Card({ as: Tag = "section", className, ...props }: { as?: "secti
   return <Tag className={cn(s.card, className)} {...props} />;
 }
 
-/** Avance de etapas: línea completa en computadora, «Etapa N de M» con barra en celular. */
-export function StageProgress({ stages, current, notes, compact = false }: { stages: readonly string[]; current: number; notes?: Partial<Record<number, string>>; compact?: boolean }) {
+/**
+  Avance de etapas: línea completa en computadora, «Etapa N de M» con barra en celular.
+  `warnings` sustituye «Lista» en una etapa pasada a la que le falta algo; con `onSelect`,
+  las etapas pasadas que indica `selectable` se pueden abrir para consultarlas.
+*/
+export function StageProgress({ stages, current, notes, warnings, selectable, onSelect, compact = false }: {
+  stages: readonly string[]; current: number; notes?: Partial<Record<number, string>>; warnings?: Partial<Record<number, string>>;
+  selectable?: readonly number[]; onSelect?: (n: number) => void; compact?: boolean;
+}) {
   const total = stages.length;
   if (compact) return <div className="flex flex-col gap-2">
     <p className="flex justify-between gap-3 text-[0.9375rem]"><span className="font-semibold">{stages[current - 1]}</span><span className="font-mono text-sm text-muted-foreground">Etapa {current} de {total}</span></p>
@@ -65,11 +72,12 @@ export function StageProgress({ stages, current, notes, compact = false }: { sta
   </div>;
   return <ol aria-label="Avance de la operación" className="grid gap-2" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}>
     {stages.map((name, i) => {
-      const n = i + 1, done = n < current, here = n === current;
+      const n = i + 1, done = n < current, here = n === current, warning = done ? warnings?.[n] : undefined;
+      const label = <span className="flex min-w-0 items-baseline gap-1.5"><span className="font-mono text-xs text-muted-foreground">{n}</span><span className={cn(s.stepName, "text-sm leading-snug", here ? "font-bold" : "font-medium text-muted-foreground")}>{name}</span></span>;
       return <li key={name} aria-current={here ? "step" : undefined} className="flex min-w-0 flex-col gap-2">
         <span className={s.stepLine} data-on={done || here} />
-        <span className="flex items-baseline gap-1.5"><span className="font-mono text-xs text-muted-foreground">{n}</span><span className={cn("text-sm leading-snug", here ? "font-bold" : "font-medium text-muted-foreground")}>{name}</span></span>
-        <span className="text-xs text-muted-foreground">{notes?.[n] ?? (done ? "Lista" : here ? "Aquí vas" : "")}{done && <span className="sr-only"> (terminada)</span>}</span>
+        {done && onSelect && selectable?.includes(n) ? <button type="button" className={s.stepButton} onClick={() => onSelect(n)}>{label}<span className="sr-only"> · ver sus documentos</span></button> : label}
+        <span className={cn("text-xs", warning ? s.stepWarning : "text-muted-foreground")}>{warning ?? notes?.[n] ?? (done ? "Lista" : here ? "Aquí vas" : "")}{done && <span className="sr-only"> (terminada)</span>}</span>
       </li>;
     })}
   </ol>;

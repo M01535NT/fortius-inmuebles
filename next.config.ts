@@ -7,13 +7,17 @@ const nextConfig: NextConfig = {
     ? { experimental: { reactDebugChannel: false } }
     : {}),
   outputFileTracingIncludes: {
-    "/api/admin/apps/runs/*/export": ["./public/fonts/*.ttf", "./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
-    "/avisos/*": ["./public/fonts/*.ttf", "./public/brand/fortius-logo.png"],
+    "/api/admin/formatos/*/emitir": ["./public/fonts/*.ttf", "./public/brand/membrete-*.png"],
+    "/api/admin/comercial/*/emitir": ["./public/fonts/*.ttf", "./public/brand/membrete-*.png"],
+    "/api/admin/apps/runs/*/documento": ["./public/fonts/*.ttf", "./public/brand/membrete-*.png"],
+    "/api/admin/apps/runs/*/export": ["./public/fonts/*.ttf", "./public/brand/membrete-*.png", "./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
+    "/avisos/*": ["./public/fonts/*.ttf", "./public/brand/membrete-*.png"],
     "/inventario/*/imagen-social": ["./public/hero/**/*", "./node_modules/@img/sharp-*/**/*"],
     "/inventario/*/ficha-tecnica": [
       "./public/hero/**/*",
       "./public/fonts/*.ttf",
       "./public/brand/fortius-logo.png",
+      "./public/brand/membrete-*.png",
       // Native Sharp binaries and libvips are loaded dynamically in Vercel's Linux runtime.
       "./node_modules/@img/sharp-*/**/*",
     ],

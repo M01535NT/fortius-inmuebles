@@ -4,7 +4,6 @@ import {
   PDFString,
   PDFHexString,
   type PDFFont,
-  type PDFImage,
   type PDFPage,
   rgb,
 } from "pdf-lib";
@@ -13,6 +12,8 @@ import {
   FINANCIAL_VERSION,
 } from "@/data/financial-rules";
 import { money } from "./money";
+import { letterheadBounds } from '../letterhead';
+import { drawFortiusLetterhead, type PdfLetterhead } from '../pdf-letterhead';
 import type {
   FinancialReport,
   ReportOverview,
@@ -37,7 +38,7 @@ export class FinancialLayout {
     private pdf: PDFDocument,
     private fonts: Fonts,
     private report: FinancialReport,
-    private logo?: PDFImage,
+    private art: PdfLetterhead,
   ) {
     this.date = new Intl.DateTimeFormat("es-MX", {
       day: "2-digit",
@@ -122,15 +123,7 @@ export class FinancialLayout {
     this.landscape = landscape;
     this.margin = landscape ? 36 : 44;
     this.page = this.pdf.addPage(landscape ? [792, 612] : [612, 792]);
-    const top = this.page.getHeight() - 36;
-    if (this.logo) {
-      const width = 158;
-      const height = width * this.logo.height / this.logo.width;
-      this.page.drawImage(this.logo, { x: this.margin, y: top - height, width, height });
-    } else {
-      this.text("Fortius", this.margin, top - 1, 24, this.fonts.bold);
-      this.text("REAL ESTATE & INVESTMENTS", this.margin, top - 28, 7, this.fonts.regular, muted);
-    }
+    const top = letterheadBounds(this.page.getWidth(),this.page.getHeight()).bodyTop;
     const dateSize = 8;
     this.text(
       this.date,
@@ -142,10 +135,11 @@ export class FinancialLayout {
       this.fonts.regular,
       muted,
     );
-    this.y = top - 65;
+    this.y = top - 24;
   }
+  private bottom() { return letterheadBounds(this.page.getWidth(),this.page.getHeight()).bottom; }
   private ensure(height: number) {
-    if (this.y - height < 58) this.newPage(this.landscape);
+    if (this.y - height < this.bottom()) this.newPage(this.landscape);
   }
   private mark(title: string) {
     this.marks.push({ title, page: this.page, y: this.y });
@@ -502,9 +496,9 @@ export class FinancialLayout {
           lines: this.wrap(row[i] ?? "", widths[i] - padding * 2, size, font),
         };
       });
-      const height =
+      const fullHeight =
         Math.max(...cells.map((c) => c.lines.length * 12)) + padding * 2;
-      if (this.y - height - (!started ? headerHeight : 0) < 58) {
+      const continuation=()=>{
         this.newPage(appendix);
         this.text(
           `${title} · continuación`,
@@ -516,11 +510,20 @@ export class FinancialLayout {
         this.y -= 28;
         if (appendix) this.paragraph(note, 8.5);
         started = false;
-      }
+      };
+      const bounds=letterheadBounds(this.page.getWidth(),this.page.getHeight());
+      const freshHeight=bounds.bodyTop-24-this.bottom()-headerHeight-28-(appendix?this.wrap(note,this.width(),8.5).length*13.5+8:0);
+      if (fullHeight<=freshHeight && this.y - fullHeight - (!started ? headerHeight : 0) < this.bottom()) continuation();
       if (!started) {
         header();
         started = true;
       }
+      const length=Math.max(...cells.map(cell=>cell.lines.length));
+      for(let offset=0;offset<length;) {
+        if(this.y-this.bottom()<12+padding*2) {continuation();header();started=true;}
+        const amount=Math.min(length-offset,Math.floor((this.y-this.bottom()-padding*2)/12));
+        if(amount<1) throw new Error('El encabezado de la tabla excede el área imprimible');
+        const height=amount*12+padding*2;
       if (index % 2 === 1)
         this.page.drawRectangle({
           x: this.margin,
@@ -531,7 +534,7 @@ export class FinancialLayout {
         });
       let x = this.margin;
       cells.forEach((cell, i) => {
-        cell.lines.forEach((line, j) => {
+        cell.lines.slice(offset,offset+amount).forEach((line, j) => {
           const tx =
             table.columns[i].align === "right"
               ? x +
@@ -550,6 +553,9 @@ export class FinancialLayout {
         color: rule,
       });
       this.y -= height;
+      offset+=amount;
+      if(offset<length) {continuation();header();started=true;}
+      }
     }
     this.y -= 16;
   }
@@ -584,7 +590,10 @@ export class FinancialLayout {
     this.y -= 10;
     if (this.report.overview) this.overview(this.report.overview);
     for (const section of this.report.sections) {
-      if (section.newPage) this.newPage();
+      // Una continuación breve del resumen no debe quedar sola en una hoja.
+      // Conserve el salto cuando la página anterior ya contiene al menos medio cuerpo.
+      const bounds=letterheadBounds(this.page.getWidth(),this.page.getHeight());
+      if (section.newPage && this.y<(bounds.bodyTop+bounds.bottom)/2) this.newPage();
       else this.y -= 12;
       this.heading(
         section.title,
@@ -609,22 +618,7 @@ export class FinancialLayout {
     }
     const count = this.pdf.getPageCount();
     this.pdf.getPages().forEach((page, index) => {
-      const m = page.getWidth() > page.getHeight() ? 36 : 44;
-      page.drawText(`Fortius · ${this.report.title}`, {
-        x: m,
-        y: 29,
-        size: 8,
-        font: this.fonts.regular,
-        color: muted,
-      });
-      const label = `${index + 1} / ${count}`;
-      page.drawText(label, {
-        x: page.getWidth() - m - this.fonts.mono.widthOfTextAtSize(label, 8),
-        y: 29,
-        size: 8,
-        font: this.fonts.mono,
-        color: muted,
-      });
+      drawFortiusLetterhead(page,this.art,this.fonts.bold,this.report.title,index+1,count);
     });
     this.pdf.setSubject(
       `Motor ${FINANCIAL_VERSION}; fuentes revisadas ${FINANCIAL_REVIEW_DATE}`,

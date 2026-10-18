@@ -1,18 +1,19 @@
 import {
-  AlignmentType, BorderStyle, Document, PageBreak, Footer, Header, HorizontalPositionRelativeFrom, ImageRun, Packer, PageNumber,
-  Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TextRun, VerticalPositionRelativeFrom, WidthType,
+  AlignmentType, BorderStyle, Document, PageBreak, ImageRun, Packer, LineRuleType,
+  Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType,
 } from "docx";
 import { COLORS, type Block, type Documento } from "./modelo";
+import { fortiusDocxSection } from "@/lib/docx-letterhead";
+import type { LetterheadAssets } from "@/lib/letterhead";
 
 /*
-  Word con el diseño de las plantillas: carta, márgenes 1008/1512/1080, logotipo en el
-  encabezado, títulos azul marino, subtítulos verdes, tablas con encabezado azul y franja
-  de marca en el pie (imagen). Las fuentes Archivo se incrustan cuando se pueden leer.
+  Cuerpo editable de las plantillas, con el membrete aprobado del Plan de negocio.
+  Las fuentes Archivo se incrustan cuando se pueden leer.
 */
 
-export type DocumentoDocxAssets = { logo: Uint8Array; logoSize: { width: number; height: number }; pie: Uint8Array; regular?: Uint8Array; bold?: Uint8Array };
+export type DocumentoDocxAssets = LetterheadAssets & { regular?: Uint8Array; bold?: Uint8Array };
 
-let FONT = "Archivo", HFONT = "Archivo", INK: string = COLORS.navy, BODY = 11;
+let FONT = "Archivo", HFONT = "Archivo", INK: string = COLORS.navy, BODY = 11, COMPACT = false;
 const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const borders = { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none };
 const TWIP_WIDTH = 10224;
@@ -46,14 +47,14 @@ function form(label: string | undefined, rows: Array<Array<{ q: string; a: strin
   const table = new Table({
     width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: Array(60).fill(Math.floor(unit)), layout: TableLayoutType.FIXED,
     borders: filled ? { top: white, bottom: white, left: white, right: white, insideHorizontal: white, insideVertical: white } : { top: rule, bottom: rule, left: rule, right: rule, insideHorizontal: rule, insideVertical: rule },
-    rows: rows.map(row => {
+    rows: rows.map((row,rowIndex) => {
       const total = row.reduce((s, c) => s + c.w, 0);
       let left = 60;
       return new TableRow({ cantSplit: true, height: { value: 600, rule: "atLeast" }, children: row.map((c, i) => {
         const span = i === row.length - 1 ? left : Math.round(c.w / total * 60); left -= span;
         return new TableCell({ columnSpan: span, width: { size: Math.round(span * unit), type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 80, right: 80 }, ...(filled ? { shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.cell } } : {}), children: [
-          new Paragraph({ spacing: { after: 40 }, children: run(c.q, { size: filled ? 8 : 9, bold: !filled }) }),
-          ...(c.a ? [new Paragraph({ children: run(c.a, { size: 10 }) })] : []),
+          new Paragraph({ keepNext: rows.length<=3 && rowIndex<rows.length-1, spacing: { after: 40 }, children: run(c.q, { size: filled ? 8 : 9, bold: !filled }) }),
+          ...(c.a ? [new Paragraph({ keepNext: rows.length<=3 && rowIndex<rows.length-1, children: run(c.a, { size: 10 }) })] : []),
         ] });
       }) });
     }),
@@ -105,15 +106,15 @@ function sheet(rows: Array<Array<{ label?: string; value?: string; w: number; st
   });
 }
 
-function block(b: Block): Array<Paragraph | Table> {
+function block(b: Block, keepNext = false): Array<Paragraph | Table> {
   switch (b.kind) {
-    case "bar": return [new Paragraph({ spacing: { before: 80 }, children: [] }), bar(b.raw ? b.text : b.text.toUpperCase(), b.right, !!b.big, !!b.center)];
+    case "bar": return [new Paragraph({ spacing: { before: COMPACT ? 40 : 80, ...(COMPACT?{line:20,lineRule:LineRuleType.EXACT}:{}) }, children: [] }), bar(b.raw ? b.text : b.text.toUpperCase(), b.right, !!b.big, !!b.center)];
     case "right": return [new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 160 }, children: run(b.text, { size: BODY }) })];
     case "label": return [new Paragraph({ keepNext: true, spacing: { before: 120, after: 60 }, children: run(b.text, { size: b.size ?? BODY, bold: true, heading: true }) })];
     case "h3": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(b.text, { size: 13 }) })];
     case "sheet": return [sheet(b.rows)];
     case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
-    case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: 60 }, children: [] })];
+    case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: COMPACT ? 40 : 60, ...(COMPACT?{line:20,lineRule:LineRuleType.EXACT}:{}) }, children: [] })];
     case "pagebreak": return [new Paragraph({ children: [new PageBreak()] })];
     case "title": return [new Paragraph({ keepNext: true, spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.size ?? (b.bold ? 22 : 27), bold: !!b.bold, heading: true }) })];
     case "form": return form(b.label, b.rows, !!b.filled);
@@ -125,14 +126,14 @@ function block(b: Block): Array<Paragraph | Table> {
     case "note": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 60, after: 80 }, children: run(b.text, { size: 8.5 }) })];
     case "h1": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 120 }, children: run(b.text, { size: 21 }) })];
     case "h2": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: INK === COLORS.black ? run(b.text, { size: 11, bold: true }) : FONT === "Times New Roman" ? run(b.text, { size: 12, bold: true, heading: true }) : run(b.text, { size: 13, color: COLORS.green }) })];
-    case "p": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, indent: b.indent ? { firstLine: 360 } : undefined, spacing: { after: BODY === 11 ? 120 : 140 }, children: run(b.text, { size: BODY, bold: !!b.strong }) })];
+    case "p": return [new Paragraph({ keepNext, alignment: AlignmentType.JUSTIFIED, indent: b.indent ? { firstLine: 360 } : undefined, spacing: { after: COMPACT ? 70 : BODY === 11 ? 120 : 140 }, children: run(b.text, { size: BODY, bold: !!b.strong }) })];
     case "numbered": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 100 }, children: [...run(`${b.num}  `, { size: 9, bold: true, color: COLORS.wine }), ...run(b.text.toUpperCase(), { size: 12, bold: true })] })];
     case "caption": return [new Paragraph({ spacing: { after: 160 }, children: run(b.text, { size: 9.5, bold: true, color: COLORS.gray }) })];
     case "clause": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 140, line: 250 }, children: [...run(`${b.lead} `, { size: BODY, bold: true }), ...run(b.text, { size: BODY })] })];
     case "center": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 80, after: 120 }, children: run(b.text, { size: BODY, bold: true }) })];
     case "fields": return [table(b.widths, undefined, b.rows, false, true, !!b.dark), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "signatures": return [new Table({ width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: b.parties.map(() => Math.round(TWIP_WIDTH / b.parties.length)), layout: TableLayoutType.FIXED, borders, rows: [new TableRow({ cantSplit: true, children: b.parties.map(p => new TableCell({ width: { size: Math.round(TWIP_WIDTH / b.parties.length), type: WidthType.DXA }, children: [
-      ...(b.line ? [new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 720 }, children: run("______________________________", { size: BODY }) })] : []),
+      ...(b.line ? [new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: COMPACT ? 400 : 720 }, children: run("______________________________", { size: BODY }) })] : []),
       new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: b.line ? 40 : 720, after: 60 }, children: run(p.role, { size: BODY, bold: true }) }),
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: run(p.name, { size: BODY }) }),
     ] })) })] })];
@@ -145,23 +146,17 @@ export function documentoDocx(doc: Documento, assets: DocumentoDocxAssets): Docu
   const contrato = doc.estilo === "contrato", opinion = doc.estilo === "opinion", aviso = doc.estilo === "aviso";
   FONT = contrato || aviso ? "Times New Roman" : "Archivo"; HFONT = contrato ? FONT : "Archivo";
   INK = contrato || opinion ? COLORS.black : COLORS.navy; BODY = contrato || opinion || aviso ? 10.5 : 11;
-  const logoWidth = 240, logoHeight = Math.round(logoWidth * assets.logoSize.height / assets.logoSize.width);
-  const header = () => new Header({ children: [new Paragraph({ children: [new ImageRun({ type: "png", data: assets.logo, transformation: { width: logoWidth, height: logoHeight } })] })] });
-  const footer = () => new Footer({ children: [new Paragraph({ children: [
-    new TextRun({ children: [PageNumber.CURRENT, " / ", PageNumber.TOTAL_PAGES], font: FONT, size: 18, color: COLORS.navy }),
-    new ImageRun({ type: "png", data: assets.pie, transformation: { width: 816, height: 53 }, floating: {
-      horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: 0 },
-      verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 752 * 12700 }, behindDocument: true, allowOverlap: true,
-    } }),
-  ] })] });
+  COMPACT = doc.subject?.startsWith('Formato 18 ·') ?? false;
+  // El 05 fluye con sus títulos: los saltos sugeridos de la plantilla no deben
+  // dejar una sola fila en una hoja al aumentar el área reservada del membrete.
+  const blocks = doc.subject?.startsWith('Formato 05 ·') ? doc.blocks.filter(b=>b.kind!=='pagebreak'||b.force) : doc.blocks;
   const fonts = !contrato && assets.regular ? [{ name: FONT, data: assets.regular as unknown as Buffer }] : undefined;
   return new Document({
     creator: "Fortius Inmuebles", title: doc.title, subject: doc.subject, ...(fonts ? { fonts } : {}),
     styles: { default: { document: { run: { font: FONT, color: INK, size: BODY * 2 } } } },
     sections: [{
-      properties: { titlePage: false, page: { size: { width: 12240, height: 15840 }, margin: { top: 1512, right: 1008, bottom: 1080, left: 1008, header: 331, footer: 691 } } },
-      headers: { default: header() }, footers: { default: footer() },
-      children: doc.blocks.flatMap(block),
+      ...fortiusDocxSection(assets, doc.title),
+      children: blocks.flatMap((b,index) => block(b,blocks[index+1]?.kind==='signatures' || (index===blocks.length-2 && blocks[index+1]?.kind==='p') || (blocks[index+1]?.kind==='bar' && blocks[index+2]?.kind==='signatures'))),
     }],
   });
 }

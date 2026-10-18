@@ -28,3 +28,18 @@ if (process.platform === "linux") assert(appLibraries.some(file => file.includes
 for (const file of appLibraries) assert(existsSync(resolve(dirname(appManifest), file)), `Missing app PDF image library: ${file}`);
 assert(appFiles.some(file => file.endsWith("public/hero/casa-playa.webp")), "Adviser app PDF must include local gallery images");
 console.log("Adviser app PDF bundle includes its fonts, gallery assets and native image libraries.");
+
+for(const route of [
+  'inventario/[slug]/ficha-tecnica', 'avisos/[documento]',
+  'api/admin/apps/runs/[id]/export', 'api/admin/apps/runs/[id]/documento',
+  'api/admin/formatos/[id]/emitir', 'api/admin/comercial/[id]/emitir',
+]) {
+  const trace=`.next/server/app/${route}/route.js.nft.json`;
+  const tracedFiles=JSON.parse(readFileSync(trace,'utf8')).files;
+  for(const name of ['membrete-encabezado.png','membrete-pie.png']) {
+    const matches=tracedFiles.filter(file=>file.endsWith(`public/brand/${name}`));
+    assert(matches.length>0,`${route} must bundle ${name}`);
+    for(const file of matches) assert(existsSync(resolve(dirname(trace),file)),`Missing letterhead: ${file}`);
+  }
+}
+console.log('All six PDF server routes include both approved letterhead graphics.');

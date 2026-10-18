@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { readFile } from 'node:fs/promises';
 import { checklistFor, checklistTaskId, levantamientoFor } from "@/lib/formatos/checklist-documentos";
 import { checklistPdf } from "@/lib/formatos/checklist-print";
 
@@ -22,3 +23,5 @@ describe("checklist de documentos del propietario", () => {
     expect(Buffer.from(bytes.subarray(0, 5)).toString()).toBe("%PDF-");
   });
 });
+beforeEach(()=>{vi.spyOn(globalThis,'fetch').mockImplementation(async input=>new Response(await readFile(`public${String(input)}`)));});
+afterEach(()=>vi.restoreAllMocks());

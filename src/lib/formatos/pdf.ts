@@ -22,6 +22,9 @@ import { formatAmount } from "@/lib/finance/money";
 import { DOCUMENTOS } from "./documento";
 import { renderDocumentoPdf } from "./documento/pdf";
 import { imagen, type ImagenDocumento } from "./documento/imagen";
+import { letterheadBounds } from "@/lib/letterhead";
+import { loadLetterhead } from "@/lib/letterhead-server";
+import { drawFortiusLetterhead, embedFortiusLetterhead } from "@/lib/pdf-letterhead";
 
 const ink = rgb(0.09, 0.12, 0.16);
 const muted = rgb(0.38, 0.42, 0.45);
@@ -65,14 +68,16 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   const missing = validateFormato(id, data);
   if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   if (id === "01") return createAvisoPdf(data);
-  if (isLevantamiento(id) && (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto") || !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis"))) throw new Error("Faltan la fotografía principal y el croquis autorizados del borrador");
+  if (isLevantamiento(id)) {
+    if (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto")) throw new Error("Falta la fotografía principal del levantamiento");
+    if (data.croquisId && !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis")) throw new Error("Falta el croquis elegido para el levantamiento");
+  }
   // Formatos con el diseño de su plantilla (carta, banda de datos y tablas de marca).
   const documento = DOCUMENTOS[id];
   if (documento) {
-    const [regular, bold, logo] = await Promise.all([
+    const [regular, bold] = await Promise.all([
       readFile(join(process.cwd(), "public/fonts/Archivo-Regular.ttf")),
       readFile(join(process.cwd(), "public/fonts/Archivo-SemiBold.ttf")),
-      readFile(join(process.cwd(), "public/brand/fortius-logo.png")),
     ]);
     // Imágenes adjuntas normalizadas (orientación EXIF, JPEG) para la foto principal y el croquis.
     const imagenes: Record<string, ImagenDocumento> = {};
@@ -81,7 +86,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       const image = imagen(new Uint8Array(bytes), { caption: asset.caption, source: asset.source, date: asset.observed_on });
       if (image) imagenes[asset.id] = image;
     }
-    return renderDocumentoPdf(documento(data, { imagenes }), { regular, bold, logo });
+    return renderDocumentoPdf(documento(data, { imagenes }), { regular, bold, ...await loadLetterhead() });
   }
   const pdf = await PDFDocument.create();
   const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "07" ? "Opinión de valor comercial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
@@ -89,22 +94,21 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   pdf.setAuthor("Fortius Inmuebles");
   pdf.setCreator("Panel Fortius · Formatos exclusivos");
   pdf.registerFontkit(fontkit);
-  const [regular, bold, logo] = await Promise.all([
+  const [regular, bold, art] = await Promise.all([
     pdf.embedFont(await readFile(join(process.cwd(), "public/fonts/Archivo-Regular.ttf")), { subset: true }),
     pdf.embedFont(await readFile(join(process.cwd(), "public/fonts/Archivo-SemiBold.ttf")), { subset: true }),
-    pdf.embedPng(await readFile(join(process.cwd(), "public/brand/fortius-logo.png"))),
+    loadLetterhead().then(assets => embedFortiusLetterhead(pdf, assets)),
   ]);
   const supported = new Set(regular.getCharacterSet());
   const clean = (value: string) => [...value.normalize("NFC")].map((character) => supported.has(character.codePointAt(0)!) ? character : " ").join("");
   let page: PDFPage = pdf.addPage(a4);
-  let y = a4[1] - 115;
+  const body = letterheadBounds(...a4);
+  let y = body.bodyTop - 19;
   const startPage = () => {
-    page.drawImage(logo, { x: margin, y: a4[1] - 72, width: 138, height: 40 });
-    page.drawLine({ start: { x: margin, y: a4[1] - 85 }, end: { x: a4[0] - margin, y: a4[1] - 85 }, color: accent, thickness: 1 });
-    y = a4[1] - 115;
+    y = body.bodyTop - 19;
   };
   startPage();
-  const ensure = (height: number) => { if (y - height < 72) { page = pdf.addPage(a4); startPage(); } };
+  const ensure = (height: number) => { if (y - height < body.bottom) { page = pdf.addPage(a4); startPage(); } };
   const wrap = (content: string, font: PDFFont, size: number, width = a4[0] - 2 * margin): string[] => {
     const result: string[] = [];
     for (const paragraph of content.split(/\r?\n/)) {
@@ -649,7 +653,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     right.forEach((line, index) => page.drawText(line, { x: a4[0] - margin - 200, y: y - index * 12, size: 8, font: regular, color: muted }));
     y -= captionHeight;
   }
-  for (const [index, item] of pdf.getPages().entries()) item.drawText(`${index + 1} / ${pdf.getPageCount()}`, { x: a4[0] - margin - 30, y: 35, size: 8, font: regular, color: muted });
+  for (const [index, item] of pdf.getPages().entries()) drawFortiusLetterhead(item, art, bold, displayTitle, index + 1, pdf.getPageCount());
   return pdf.save();
 }
 
