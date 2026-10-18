@@ -1,28 +1,49 @@
-/* Asistente de Nueva operación (lienzo: NuevaEscritorio* y NuevaMovil*). Prefijo :global(.admin-root): ver kit.module.css. */
-:global(.admin-root) .shell { display: flex; flex-direction: column; flex: 1; min-height: 100dvh; }
-:global(.admin-root) .top { display: flex; flex-direction: column; gap: .75rem; padding: .5rem 1rem .875rem .5rem; border-bottom: 1px solid var(--border); background: var(--card); }
-@media (min-width: 768px) { :global(.admin-root) .top { padding: 1rem 2rem 1.125rem 1.5rem; } }
-:global(.admin-root) .progress { width: 100%; max-width: 40rem; align-self: center; display: flex; flex-direction: column; gap: .5rem; }
+/* Asistente de Nueva operación (boceto aprobado, 17/10/2026). Prefijo :global(.admin-root): ver kit.module.css. */
+:global(.admin-root) .shell { display: flex; flex-direction: column; flex: 1; min-height: 100dvh; background: var(--canvas); }
+:global(.admin-root) .top { display: flex; flex-direction: column; gap: .75rem; padding: .5rem 1rem .75rem .5rem; border-bottom: 1px solid var(--card-edge); background: var(--card); }
+@media (min-width: 768px) { :global(.admin-root) .top { padding: .75rem 1.5rem .75rem 1rem; } }
 :global(.admin-root) .topRow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-:global(.admin-root) .close { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 .5rem; color: var(--foreground); font-size: 1.0625rem; font-weight: 700; text-decoration: none; }
-:global(.admin-root) .mono { font-family: var(--font-mono); font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .close { display: inline-flex; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .5rem; border-radius: var(--radius-control); color: var(--foreground); font-size: 1.0625rem; font-weight: 700; text-decoration: none; }
+:global(.admin-root) .close:hover { background: var(--secondary); }
+:global(.admin-root) .closeIcon { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-control); background: var(--track); }
+:global(.admin-root) .hint { font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .progress { width: 100%; max-width: 40rem; align-self: center; display: flex; flex-direction: column; gap: .5rem; }
+@media (min-width: 1024px) { :global(.admin-root) .progress { display: none; } }
+:global(.admin-root) .meta { font-size: .8125rem; color: var(--muted-foreground); }
+
+/* Cuerpo: pasos a la izquierda, formulario al centro, apoyo a la derecha en computadora. */
+:global(.admin-root) .frame { display: grid; flex: 1; width: 100%; max-width: 84rem; margin: 0 auto; gap: 1rem; align-items: start; }
+@media (min-width: 1024px) { :global(.admin-root) .frame { grid-template-columns: 15rem minmax(0, 1fr); padding: 1.5rem 1.5rem 0; } }
+@media (min-width: 1280px) { :global(.admin-root) .frame { grid-template-columns: 15rem minmax(0, 1fr) 17rem; } }
+:global(.admin-root) .steps { display: none; position: sticky; top: 1rem; flex-direction: column; gap: .125rem; margin: 0; padding: .5rem; list-style: none; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); }
+@media (min-width: 1024px) { :global(.admin-root) .steps { display: flex; } }
+:global(.admin-root) .stepRow { display: flex; align-items: center; gap: .75rem; min-height: 2.75rem; padding: 0 .75rem; border-radius: var(--radius-control); font-size: .9375rem; color: var(--muted-foreground); }
+:global(.admin-root) .stepRow[aria-current=step] { background: var(--panel-selected); color: var(--panel-selected-ink); font-weight: 650; }
+:global(.admin-root) .stepRow[data-done] { color: var(--foreground); }
+:global(.admin-root) .stepNumber { display: inline-flex; align-items: center; justify-content: center; width: 1.625rem; height: 1.625rem; border-radius: 999px; border: 2px solid var(--edge-soft); font-size: .75rem; font-weight: 700; flex: none; }
+:global(.admin-root) .stepRow[aria-current=step] .stepNumber { border-color: var(--primary); background: var(--primary); color: #fff; }
+:global(.admin-root) .stepRow[data-done] .stepNumber { border-color: var(--primary); color: var(--primary-text); }
+:global(.admin-root) .main { display: flex; min-width: 0; flex-direction: column; }
+:global(.admin-root) .aside { display: none; position: sticky; top: 1rem; flex-direction: column; gap: .75rem; }
+@media (min-width: 1280px) { :global(.admin-root) .aside { display: flex; } }
 :global(.admin-root) .body { flex: 1; width: 100%; max-width: 43rem; margin: 0 auto; padding: 1.5rem 1.25rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
-@media (min-width: 768px) { :global(.admin-root) .body { padding: 3.5rem 1.5rem 3rem; } }
-:global(.admin-root) .title { margin: 0; font-size: clamp(1.625rem, 3vw, 2rem); }
+@media (min-width: 768px) { :global(.admin-root) .body { padding: 2.5rem 1.5rem 3rem; } }
+:global(.admin-root) .title { margin: 0; font-size: clamp(1.625rem, 3vw, 2.125rem); line-height: 1.1; font-weight: 650; letter-spacing: -.03em; text-wrap: balance; }
 :global(.admin-root) .lead { color: var(--muted-foreground); margin-top: -.5rem; }
 
 /* Paso 1: opciones grandes */
-:global(.admin-root) .choices { display: flex; flex-direction: column; gap: .75rem; }
-:global(.admin-root) .choice { display: flex; align-items: center; gap: 1rem; padding: 1.125rem 1.25rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-card); background: var(--card); box-shadow: var(--shadow-card); cursor: pointer; text-align: left; color: var(--foreground); }
-:global(.admin-root) .choice:hover { border-color: var(--control-edge); }
+:global(.admin-root) .choices { display: flex; flex-direction: column; gap: .625rem; }
+:global(.admin-root) .choice { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.125rem; border: 1px solid var(--card-edge); border-radius: var(--radius-card); background: var(--card); box-shadow: var(--shadow-rest); cursor: pointer; text-align: left; color: var(--foreground); }
+:global(.admin-root) .choice:hover { border-color: var(--edge-soft); }
 :global(.admin-root) .choice[aria-checked=true] { border-color: var(--primary-edge); box-shadow: inset 0 0 0 1px var(--primary-edge); background: var(--panel-selected); }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .choice { transition: border-color 150ms, background-color 150ms, transform 160ms var(--ease-out); } :global(.admin-root) .choice:active { transform: scale(.99); } }
 :global(.admin-root) .dot { flex: none; width: 1.375rem; height: 1.375rem; border-radius: 999px; border: 2px solid var(--control-edge); display: inline-flex; align-items: center; justify-content: center; }
 :global(.admin-root) .choice[aria-checked=true] .dot { border-color: var(--primary); }
 :global(.admin-root) .choice[aria-checked=true] .dot::after { content: ""; width: .625rem; height: .625rem; border-radius: 999px; background: var(--primary); }
 
 /* Respuestas con opciones: botones en fila */
 :global(.admin-root) .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
-:global(.admin-root) .chip { min-height: 2.75rem; padding: 0 1.125rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); font-size: .9375rem; cursor: pointer; box-shadow: var(--shadow-control); }
+:global(.admin-root) .chip { min-height: 2.75rem; padding: 0 1.125rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); font-size: .9375rem; cursor: pointer; }
 :global(.admin-root) .chip:hover:not(:disabled) { border-color: var(--control-edge); }
 :global(.admin-root) .chip[aria-checked=true] { border-color: var(--primary-edge); background: var(--panel-selected); color: var(--panel-selected-ink); box-shadow: inset 0 0 0 1px var(--primary-edge); font-weight: 600; }
 :global(.admin-root) .question { display: flex; flex-direction: column; gap: .5rem; }
@@ -39,13 +60,14 @@
 :global(.admin-root) .substeps [aria-current=step] { color: var(--foreground); font-weight: 700; }
 
 /* Pie fijo con Atrás, Guardar y seguir después y Continuar */
-:global(.admin-root) .footer { position: sticky; bottom: 0; z-index: 5; padding: .875rem 1rem calc(1.125rem + env(safe-area-inset-bottom, 0px)); background: var(--card); border-top: 1px solid var(--border); }
+:global(.admin-root) .footer { position: sticky; bottom: 0; z-index: 5; padding: .875rem 1rem calc(1.125rem + env(safe-area-inset-bottom, 0px)); background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--card-edge); }
 @media (min-width: 768px) { :global(.admin-root) .footer { padding: 1rem 1.5rem; } }
+@media (min-width: 1024px) { :global(.admin-root) .footer { border-radius: var(--radius-card) var(--radius-card) 0 0; } }
 :global(.admin-root) .footerRow { width: 100%; max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column-reverse; gap: .625rem; }
 @media (min-width: 640px) { :global(.admin-root) .footerRow { flex-direction: row; align-items: center; } :global(.admin-root) .footerRow > :first-child { margin-right: auto; } }
 
 /* Paso 4 */
-:global(.admin-root) .doneMark { width: 3.5rem; height: 3.5rem; border-radius: 12px; background: var(--primary); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+:global(.admin-root) .doneMark { width: 3.5rem; height: 3.5rem; border-radius: var(--radius-thumb); background: var(--primary); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--shadow-cta); }
 :global(.admin-root) .summary { display: grid; grid-template-columns: minmax(6rem, max-content) minmax(0, 1fr); }
 :global(.admin-root) .summary > * { padding: .875rem 1.25rem; border-bottom: 1px solid var(--border); }
 :global(.admin-root) .summary > :nth-last-child(-n + 2) { border-bottom: 0; }

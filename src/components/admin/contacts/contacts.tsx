@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, Plus, Search, X } from "lucide-react";
-import { Button, Card, EmptyBox, TabPanel, Tabs } from "@/components/admin/kit";
+import { Avatar, Button, Card, EmptyBox, Pill, TabPanel, Tabs } from "@/components/admin/kit";
 import { AsyncForm, inputClass, selectClass } from "@/components/admin/ui";
 import { LeadFields, readLeadFields } from "@/components/admin/lead-fields";
 import { ClienteEditor } from "@/components/admin/cliente-editor";
@@ -17,9 +17,11 @@ import { cn } from "@/lib/utils";
 import s from "./contacts.module.css";
 
 /*
-  Contactos (lienzo: ContactosEscritorio y ContactosMovil). Pestañas Prospectos y
-  Clientes en «?tab=»; tabla en computadora y lista en celular. El estado del prospecto,
-  la conversión y la edición se hacen en la ficha de cada persona.
+  Contactos (boceto aprobado por el titular, 17/10/2026). Pestañas Prospectos y Clientes en
+  «?tab=»; una sola lista de personas con sus iniciales, lo que buscan, la zona y el
+  presupuesto, y el siguiente paso con su fecha; en computadora se lee en columnas. El estado
+  del prospecto, la conversión y la edición se hacen en la ficha de cada persona. El perfil de
+  leads compradores con coincidencias del boceto no existe todavía en el sistema.
 */
 
 type Tab = "prospectos" | "clientes";
@@ -77,7 +79,7 @@ export function ContactsScreen() {
       <Button iconOnly variant="ghost" aria-label={searching ? "Cerrar búsqueda" : "Buscar"} aria-expanded={searching} onClick={() => { setSearching(v => !v); if (searching) setQuery(""); }}>{searching ? <X size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}</Button>
       <Button iconOnly aria-label="Agregar contacto" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
     </div>
-    <div className="hidden lg:block"><Button aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar contacto"}</Button></div>
+    <div className="hidden lg:block"><Button variant={adding ? "secondary" : "primary"} aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar contacto"}</Button></div>
   </>}>
     {searching && <div className="mb-4 lg:hidden">{searchField}</div>}
     {/* La captura del prospecto solo se oculta al cerrarla, para no perder lo escrito. */}
@@ -100,41 +102,26 @@ export function ContactsScreen() {
     <TabPanel idPrefix="contactos" id={tab} className="mt-5 min-w-0">
       {rows.length === 0 ? <EmptyBox title={query.trim() || filter !== "todos" ? "Nadie coincide con la búsqueda" : tab === "prospectos" ? "Todavía no hay prospectos" : "Todavía no hay clientes"}>
         {query.trim() || filter !== "todos" ? "Prueba con otro nombre, teléfono o estado." : tab === "prospectos" ? "Llegan solos desde los formularios del sitio, o agrégalos con «Agregar contacto»." : "Un prospecto se vuelve cliente desde su ficha, o agrégalo con «Agregar contacto»."}
-      </EmptyBox> : <>
-        <ContactTable rows={rows} />
-        <ContactList rows={rows} />
-      </>}
+      </EmptyBox> : <ContactList rows={rows} />}
       {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
     </TabPanel>
   </GuidedPage>;
 }
 
 function Due({ row }: { row: ContactRow }) {
-  return row.when ? <span className={cn(s.mono, row.late && s.late)}>{row.when}</span> : <span className={s.mono}>Sin fecha</span>;
-}
-
-function ContactTable({ rows }: { rows: ContactRow[] }) {
-  return <Card as="div" className={s.tableCard}><table className={s.table}>
-    <colgroup><col className={s.colPerson} /><col /><col /><col /><col className={s.colOpen} /></colgroup>
-    <thead><tr><th scope="col">Persona</th><th scope="col">Lo que busca</th><th scope="col">Zona y presupuesto</th><th scope="col">Siguiente paso</th><th scope="col"><span className="sr-only">Abrir</span></th></tr></thead>
-    <tbody>{rows.map(row => <tr key={row.id}>
-      <th scope="row"><span className="flex flex-col gap-0.5"><Link href={row.href} className={s.name}>{row.name}</Link><span className={s.mono}>{row.phone}</span></span></th>
-      <td>{row.wants}</td>
-      <td><span className="flex flex-col gap-0.5"><span>{row.zone}</span>{row.budget && <span className={s.mono}>{row.budget}</span>}</span></td>
-      <td><span className="flex flex-col gap-0.5"><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span><Due row={row} /></span></td>
-      <td className="text-right"><Link href={row.href} className={s.open} tabIndex={-1} aria-hidden="true"><ChevronRight size={20} /></Link></td>
-    </tr>)}</tbody>
-  </table></Card>;
+  return row.when ? <Pill size="sm" tone={row.late ? "alert" : "muted"}>{row.when}</Pill> : <Pill size="sm" tone="muted">Sin fecha</Pill>;
 }
 
 function ContactList({ rows }: { rows: ContactRow[] }) {
-  return <ul className={s.list} aria-label="Contactos">{rows.map(row => <li key={row.id}><Link href={row.href} className={s.item}>
-    <span className="flex min-w-0 flex-1 flex-col gap-1">
-      <strong className="[overflow-wrap:anywhere]">{row.name}</strong>
-      <span className="text-sm [overflow-wrap:anywhere]">{row.wants} · <span className="text-muted-foreground">{row.zone}</span></span>
-      <span className="text-sm [overflow-wrap:anywhere]"><span className="text-muted-foreground">Sigue:</span> {row.step}</span>
-      <Due row={row} />
-    </span>
-    <ChevronRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
-  </Link></li>)}</ul>;
+  return <Card as="div" className={s.listCard}>
+    <div className={s.head} aria-hidden="true"><span>Persona</span><span>Lo que busca</span><span>Siguiente paso</span><span>Fecha</span></div>
+    <ul className={s.list} aria-label="Contactos">{rows.map(row => <li key={row.id}><Link href={row.href} className={s.item}>
+      <Avatar name={row.name} size={44} />
+      <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{row.phone}</span></span>
+      <span className={s.wants}><span className="[overflow-wrap:anywhere]">{row.wants}</span><span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span></span>
+      <span className={s.step}><span className={cn("lg:hidden", s.meta)}>Sigue:</span><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span></span>
+      <span className={s.end}><Due row={row} /></span>
+      <ChevronRight size={18} aria-hidden="true" className={cn(s.chevron, "hidden lg:block")} />
+    </Link></li>)}</ul>
+  </Card>;
 }
