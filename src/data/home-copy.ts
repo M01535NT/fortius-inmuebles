@@ -5,7 +5,7 @@ import type { SiteContent } from "@/lib/admin/store";
 export const HOME_FIELDS = {
   relatoTexto: { group: "Por qué Fortius", label: "Pendientes identificados", value: "Revisamos la documentación disponible antes de ofrecer el inmueble." },
   relatoApoyo: { group: "Por qué Fortius", label: "Promoción acordada", value: "Definimos contigo los canales y las acciones para presentar tu propiedad." },
-  metodoTitulo: { group: "Método", label: "Título", value: "Nuestro método.\nSeis etapas para coordinar tu venta." },
+  metodoTitulo: { group: "Método", label: "Título", value: "Seis etapas.\nUn responsable." },
   metodoTexto: { group: "Método", label: "Introducción", value: "Desde la primera revisión hasta la entrega, te explicamos qué sigue y qué necesitamos de ti." },
   captacionTexto: { group: "Método", label: "Captación", value: "Conocemos tu objetivo y la propiedad. Identificamos quién puede autorizar la venta y qué documentos necesitamos para revisarla." },
   diagnosticoTexto: { group: "Método", label: "Verificación y precio", value: "Revisamos documentos, características y pendientes. Comparamos inmuebles similares para proponerte un rango y acordar contigo el precio de salida." },
@@ -64,6 +64,7 @@ const PREVIOUS_HOME_TEXTS: Record<HomeTextKey, string> = {
 };
 
 const PREVIOUS_NOTES: Partial<Record<HomeTextKey, string>> = {
+  metodoTitulo: "Nuestro método.\nSeis etapas para coordinar tu venta.",
   metodoTexto: "El contrato establece las tareas incluidas y los honorarios.",
   captacionTexto: "Revisamos los documentos y los datos del inmueble para identificar pendientes. Acordamos contigo el precio de salida y las condiciones del servicio.",
   preparacionTexto: "Acordamos las mejoras que conviene valorar y organizamos la fotografía y el video. Reunimos las características del inmueble y elegimos los canales donde se publicará.",

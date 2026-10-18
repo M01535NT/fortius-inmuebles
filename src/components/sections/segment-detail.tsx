@@ -1,13 +1,17 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
-import { Container } from "@/components/layout/container";
-import { BlurFade } from "@/components/magicui/blur-fade";
 import { ConceptualPropertyPlan } from "@/components/sections/conceptual-property-plan";
+import { PropertyCard } from "@/components/property/property-card";
+import { getPropiedades } from "@/lib/inventario";
+import type { TipoPropiedad } from "@/data/propiedades";
 
 type Segment = "residencial" | "comercial" | "industrial";
 
-const details: Record<Segment, { intro: string; checks: { title: string; body: string }[]; decision: string }> = {
+const details: Record<Segment, { label: string; tipos: TipoPropiedad[]; intro: string; checks: { title: string; body: string }[]; decision: string }> = {
   residencial: {
+    label: "Residencial",
+    tipos: ["casa", "departamento"],
     intro: "Una vivienda debe funcionar para la vida diaria y para el presupuesto completo de quien la compra o renta.",
     checks: [
       { title: "Habitarla", body: "Distribución, luz, conservación observable, servicios y entorno inmediato. Lo que importa cambia según quién vivirá ahí." },
@@ -17,6 +21,8 @@ const details: Record<Segment, { intro: string; checks: { title: string; body: s
     decision: "Antes de una oferta, compara el costo total y pide claridad sobre los datos que sigan pendientes.",
   },
   comercial: {
+    label: "Comercial",
+    tipos: ["local", "oficina"],
     intro: "En un local u oficina, la ubicación solo sirve si el espacio permite la actividad y los números de ocupación tienen sentido.",
     checks: [
       { title: "Actividad prevista", body: "Uso permitido por verificar, visibilidad, acceso de clientes y posibilidades de adaptación del espacio." },
@@ -26,6 +32,8 @@ const details: Record<Segment, { intro: string; checks: { title: string; body: s
     decision: "Si falta confirmar un permiso o condición de uso, la decisión debe esperar esa verificación con la autoridad o especialista competente.",
   },
   industrial: {
+    label: "Industrial",
+    tipos: ["nave-industrial", "terreno"],
     intro: "Una nave o terreno industrial se evalúa desde la operación concreta que deberá recibir, no solo por metros cuadrados.",
     checks: [
       { title: "Acceso y logística", body: "Entradas, maniobras, carga y conexiones relevantes para el proceso previsto." },
@@ -36,36 +44,52 @@ const details: Record<Segment, { intro: string; checks: { title: string; body: s
   },
 };
 
-export function SegmentDetail({ segment }: { segment: Segment }) {
+/* Boceto Segmento: lectura del espacio, tres criterios y el inventario del segmento. */
+export async function SegmentDetail({ segment }: { segment: Segment }) {
   const detail = details[segment];
+  const inventario = (await getPropiedades().catch(() => [])).filter(property => detail.tipos.includes(property.tipo)).slice(0, 3);
   return (
-    <section className="border-t border-border bg-secondary/40 py-20 md:py-28">
-      <Container>
-        <BlurFade className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-          <h2 className="display-title max-w-[15ch] text-4xl text-foreground md:text-5xl">Lo que conviene mirar.</h2>
-          <p className="max-w-[56ch] self-end text-lg leading-relaxed text-foreground/85">{detail.intro}</p>
-        </BlurFade>
-        <div className="mt-12"><ConceptualPropertyPlan segment={segment} /></div>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {detail.checks.map((check, index) => (
-            <BlurFade key={check.title} delay={index * 0.08} className="border-t border-border pt-5">
-              <span className="font-mono text-xs text-primary-ink">0{index + 1}</span>
-              <h3 className="display-soft mt-4 text-2xl text-foreground">{check.title}</h3>
-              <p className="mt-3 text-base leading-relaxed text-muted-foreground">{check.body}</p>
-            </BlurFade>
-          ))}
+    <>
+      <section className="pg-container pg-section" aria-labelledby="segment-look">
+        <div className="pg-head">
+          <h2 id="segment-look" className="pg-h2">Lo que conviene mirar.</h2>
+          <p className="pg-muted seg-intro">{detail.intro}</p>
         </div>
-        <BlurFade className="mt-14 grid gap-4 border-t border-border pt-8 md:grid-cols-[0.8fr_1.2fr]">
-          <h3 className="display-soft text-xl text-foreground">Antes de decidir</h3>
+        <ConceptualPropertyPlan segment={segment} />
+        <ol className="seg-checks">
+          {detail.checks.map((check, index) => (
+            <li key={check.title} className="pg-step">
+              <span className="pg-number" aria-hidden="true">0{index + 1}</span>
+              <div><h3>{check.title}</h3><p className="pg-muted">{check.body}</p></div>
+            </li>
+          ))}
+        </ol>
+        <div className="seg-decision">
+          <h3 className="pg-h3">Antes de decidir</h3>
           <div>
-            <p className="max-w-[65ch] text-base leading-relaxed text-muted-foreground">{detail.decision}</p>
-            <div className="mt-5 flex flex-wrap gap-x-7 gap-y-2">
-              <Link href="/inventario" className="inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline underline-offset-4">Ver propiedades</Link>
-              <Link href="/contacto" className="inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline underline-offset-4">Consultar un caso</Link>
+            <p className="pg-muted">{detail.decision}</p>
+            <div className="pg-pills">
+              <Link href="/inventario" className="pg-link">Ver propiedades <ArrowUpRight size={18} aria-hidden="true" /></Link>
+              <Link href="/contacto" className="pg-link">Consultar un caso <ArrowUpRight size={18} aria-hidden="true" /></Link>
             </div>
           </div>
-        </BlurFade>
-      </Container>
-    </section>
+        </div>
+      </section>
+      <section className="pg-container pg-section pg-section-last inv-page" aria-labelledby="segment-inventory">
+        <div className="pg-head">
+          <h2 id="segment-inventory" className="pg-h2">{detail.label} en inventario.</h2>
+          <Link href={`/inventario?tipo=${detail.tipos[0]}`} className="pg-link">Ver todo <ArrowUpRight size={18} aria-hidden="true" /></Link>
+        </div>
+        {inventario.length > 0 ? (
+          <div className="property-catalog-grid">{inventario.map(property => <PropertyCard key={property.slug} property={property} />)}</div>
+        ) : (
+          <div className="pg-empty">
+            <h3>Por ahora no hay inmuebles publicados en este segmento.</h3>
+            <p>El inventario cambia con frecuencia. Cuéntanos qué buscas y te avisamos cuando entre algo que encaje.</p>
+            <div className="pg-pills" style={{ justifyContent: "center", marginTop: 24 }}><Link href="/contacto" className="pg-btn">Cuéntanos qué buscas</Link></div>
+          </div>
+        )}
+      </section>
+    </>
   );
 }

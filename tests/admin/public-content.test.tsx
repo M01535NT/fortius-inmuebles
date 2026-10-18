@@ -28,7 +28,7 @@ test("footer uses public settings and hides unconfigured contact channels", () =
   expect(placeholders).not.toContain('href="https://wa.me/');
 });
 test("public navigation does not expose a panel shortcut", () => {
-  const { container } = render(<SiteNav settings={settings} />);
+  const { container } = render(<SiteNav />);
   expect(container.querySelector('a[href="/admin"]')).toBeNull();
 });
 test("contact form retains input on rejected remote write and confirms acknowledged persistence", async () => {

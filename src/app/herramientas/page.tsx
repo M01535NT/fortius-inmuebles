@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, Calculator, ReceiptText } from "lucide-react";
-
-import { Container } from "@/components/layout/container";
+import { ArrowUpRight } from "lucide-react";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/herramientas" },
@@ -11,65 +9,38 @@ export const metadata: Metadata = {
     "Calcula una mensualidad hipotecaria y estima gastos de compraventa en Tijuana y Baja California.",
 };
 
-const TOOLS = [
-  {
-    icon: Calculator,
-    title: "Calculadora de hipoteca",
-    text: "Compara escenarios, prueba abonos anticipados y descarga la amortización completa.",
-    href: "/herramientas/hipoteca",
-  },
-  {
-    icon: ReceiptText,
-    title: "Gastos de cierre",
-    text: "Prepara el efectivo de compra o el neto de venta, con impuestos locales y tus cotizaciones.",
-    href: "/herramientas/gastos-de-cierre",
-  },
-];
-
+/* Boceto Herramientas: dos tarjetas grandes con vista previa de cada calculadora. */
 export default function HerramientasPage() {
   return (
-    <main className="bg-background pt-28 md:pt-32">
-      <Container className="pb-20 md:pb-28">
-        <h1 className="display-title max-w-[16ch] text-5xl text-foreground md:text-6xl">
-          Calculadoras inmobiliarias.
-        </h1>
-        <p className="mt-6 max-w-[54ch] text-base leading-relaxed text-muted-foreground">
-          Estima una mensualidad o los gastos de compraventa, sin registrarte.
-        </p>
-
-        <div className="mt-12 grid gap-4 md:grid-cols-2">
-          {TOOLS.map(({ icon: Icon, title, text, href }) => (
-            <Link
-              key={href}
-              href={href}
-              className="group flex flex-col justify-between rounded-lg border border-border bg-card p-7 transition-colors hover:border-primary/50"
-            >
-              <div>
-                <Icon className="h-7 w-7 text-primary-ink" strokeWidth={1.5} />
-                <h2 className="display-soft mt-5 text-2xl text-foreground">{title}</h2>
-                <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-muted-foreground">
-                  {text}
-                </p>
-              </div>
-              <span className="mt-8 inline-flex items-center gap-1.5 text-base font-medium text-primary-ink">
-                Abrir herramienta
-                <ArrowUpRight
-                  className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  strokeWidth={1.5}
-                />
+    <main className="pg-page">
+      <section className="pg-hero">
+        <div className="pg-container pg-hero-body">
+          <p className="pg-eyebrow">Herramientas · sin registro</p>
+          <h1 className="pg-title">Haz los números antes de decidir.</h1>
+          <p className="pg-lead">Estima una mensualidad o los gastos de compraventa, sin registrarte.</p>
+          <div className="tl-grid">
+            <Link href="/herramientas/hipoteca" className="tl-card">
+              <span className="tl-card-head"><span className="pg-chip">01 · Crédito</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
+              <span className="tl-card-title">Calculadora de hipoteca</span>
+              <span className="tl-card-text">Compara escenarios, prueba abonos anticipados y descarga la amortización completa.</span>
+              <span className="tl-preview">
+                <span><span className="tl-preview-label">Mensualidad de ejemplo</span><span className="tl-preview-value">$23,961</span></span>
+                <svg viewBox="0 0 200 80" width="200" height="80" aria-hidden="true"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="#E5829B" strokeWidth="3" /><path d="M0 8 C60 14 120 34 200 76 L200 80 L0 80Z" fill="rgba(229,130,155,.12)" /></svg>
               </span>
             </Link>
-          ))}
+            <Link href="/herramientas/gastos-de-cierre" className="tl-card">
+              <span className="tl-card-head"><span className="pg-chip">02 · Operación</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
+              <span className="tl-card-title">Gastos de cierre</span>
+              <span className="tl-card-text">Prepara el efectivo de compra o el neto de venta, con impuestos locales y tus cotizaciones.</span>
+              <span className="tl-preview">
+                <span className="tl-bars" aria-hidden="true"><span style={{ flex: 4 }} /><span style={{ flex: 3 }} /><span style={{ flex: 1.2 }} /><span style={{ flex: 1 }} /></span>
+                <span className="tl-legend" aria-hidden="true"><span>ISAI</span><span>Notaría</span><span>Registro</span><span>Avalúo</span></span>
+              </span>
+            </Link>
+          </div>
+          <p className="tl-foot">¿Quieres vender tu propiedad? <Link href="/vender-propiedad">Solicita una evaluación sin compromiso</Link>.</p>
         </div>
-
-        <p className="mt-10 text-base text-muted-foreground">
-          ¿Quieres vender tu propiedad?{" "}
-          <Link href="/vender-propiedad" className="font-medium text-primary-ink underline-offset-4 hover:underline">
-            Solicita una evaluación sin compromiso
-          </Link>
-          .
-        </p>
-      </Container>
+      </section>
     </main>
   );
 }

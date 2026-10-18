@@ -14,24 +14,25 @@ test("the six timeline stages remain readable on touch screens and show reading 
   for (const stage of await stages.all()) {
     await stage.scrollIntoViewIfNeeded();
     await expect(stage.getByRole("heading")).toBeInViewport();
-    await stage.getByRole("button").tap();
-    await expect(stage.getByRole("region")).toBeVisible();
+    await expect(stage.locator("p")).toBeVisible();
   }
-  const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
-  expect(boxes[1].top).toBeGreaterThanOrEqual(boxes[0].bottom - 1);
+  // On phones the stages stack: each one sticks a little below the previous.
+  expect(await stages.first().evaluate((node) => getComputedStyle(node).position)).toBe("sticky");
+  await expect(page.locator("[data-method-timeline] li.is-active")).toHaveCount(1);
   await expect.poll(async () => Number(await progress.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.locator("[data-custom-cursor]")).toHaveCount(0);
   await context.close();
 });
 
-test("desktop timeline presents all six stages together and passes accessibility checks", async ({ page }) => {
+test("desktop timeline runs the six stages in one row and passes accessibility checks", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await page.locator("#metodo").scrollIntoViewIfNeeded();
   const stages = page.locator("[data-method-timeline] li");
   await expect(stages).toHaveCount(6);
   await expect(stages.last()).toHaveCSS("transform", "none");
+  await expect(stages.last()).toHaveCSS("opacity", "1");
   const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
   expect(boxes[1].left).toBeGreaterThan(boxes[0].right);
   expect(Math.abs(boxes[1].top - boxes[0].top)).toBeLessThan(10);
@@ -51,7 +52,7 @@ test("reduced motion keeps the deliverables in normal reading order and navigati
   }
   await expect(page.locator("[data-custom-cursor]")).toHaveCount(0);
   await page.getByRole("link", { name: "Fortius Inmuebles, inicio" }).click();
-  await page.locator(".editorial-cover-actions").getByRole("link", { name: "Ver propiedades", exact: true }).click();
+  await page.getByRole("search", { name: "Buscar propiedades" }).getByRole("button", { name: "Buscar" }).click();
   await expect(page).toHaveURL(/\/inventario$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
@@ -67,7 +68,12 @@ test("desktop property interaction and route curtain preserve functional navigat
   await expect(page.locator("[data-custom-cursor]")).toHaveCSS("opacity", "1");
   await expect(page.locator("[data-custom-cursor]")).toContainText("Ver");
   for (const theme of ["light", "dark"]) {
-    if (theme === "dark") await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
+    if (theme === "dark") {
+      await page.getByRole("button", { name: "Abrir menú" }).click();
+      await page.getByRole("dialog").getByRole("button", { name: "Cambiar a tema oscuro" }).click();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+    }
     await image.hover();
     // GSAP entrances run on ancestors and are separate from native transitions.
     await expect.poll(() => page.locator("[data-property-card]").evaluateAll((cards) => cards.every((card) => {
@@ -116,21 +122,23 @@ test("reading progress follows the new page height after inventory filtering", a
 });
 
 for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }]) {
-test(`stacked deliverables keep readable text contrast during animated phone scrolling at ${viewport.width}x${viewport.height}`, async ({ browser }) => {
+test(`stacked method stages and the example file keep readable contrast during animated phone scrolling at ${viewport.width}x${viewport.height}`, async ({ browser }) => {
   const context = await browser.newContext({ viewport, isMobile: true, hasTouch: true, reducedMotion: "no-preference" });
   const page = await context.newPage();
   await page.goto("/");
-  const cards = page.locator("#entregables [data-deliverable-card]");
+  const cards = page.locator("[data-method-timeline] li");
   await expect(cards.first()).toHaveCSS("position", "sticky");
   await cards.first().evaluate((node) => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 140, behavior: "instant" }));
   await page.evaluate(() => window.scrollBy({ top: 320, behavior: "instant" }));
-  await expect.poll(() => cards.first().evaluate((node) => Math.round(node.getBoundingClientRect().top))).toBeGreaterThanOrEqual(86);
-  await expect.poll(() => cards.first().evaluate((node) => Math.round(node.getBoundingClientRect().top))).toBeLessThanOrEqual(90);
-  await cards.nth(1).evaluate((node) => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 300, behavior: "instant" }));
-  await expect.poll(() => cards.first().evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a)).toBeLessThan(1);
-  await expect(cards.first().locator("h3")).toBeVisible();
-  const result = await new AxeBuilder({ page }).include("#entregables").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
-  expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+  // The first stage sticks below the header while the next one slides over it.
+  await expect.poll(() => cards.first().evaluate((node) => Math.round(node.getBoundingClientRect().top))).toBeGreaterThanOrEqual(82);
+  await expect.poll(() => cards.first().evaluate((node) => Math.round(node.getBoundingClientRect().top))).toBeLessThanOrEqual(86);
+  await expect(cards.nth(1).locator("h3")).toBeVisible();
+  for (const region of ["#metodo", "#por-que-fortius"]) {
+    await page.locator(region).scrollIntoViewIfNeeded();
+    const result = await new AxeBuilder({ page }).include(region).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+    expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
+  }
   await context.close();
 });
 }

@@ -1,10 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("the hero has a single image and no obsolete carousel or service-strip controls", async ({ page }) => {
+test("the hero has a single image, one search and a pausable coverage marquee", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
-  const hero = page.locator(".editorial-hero");
+  const hero = page.locator(".nx-hero");
   await expect(hero.locator("img")).toHaveCount(1);
-  await expect(hero.locator("button, .hero-marquee, .editorial-photo-controls")).toHaveCount(0);
+  await expect(hero.getByRole("search")).toHaveCount(1);
+  await expect(hero.locator(".hero-marquee, .editorial-photo-controls")).toHaveCount(0);
+  await expect(hero.getByRole("list", { name: "Zonas de cobertura" })).toBeVisible();
+  const toggle = hero.getByRole("button", { name: "Pausar el movimiento de zonas" });
+  await toggle.click();
+  await expect(hero.locator(".nx-marquee-track")).toHaveCSS("animation-play-state", "paused");
+  await expect(hero.getByRole("button", { name: "Reanudar el movimiento de zonas" })).toBeFocused();
 });
 
 test("dark link hover retains readable ink while buttons remain burgundy", async ({ page }) => {
@@ -22,12 +28,13 @@ for (const width of [390, 1440]) {
     const logo = page.locator('header [role="img"]').first();
     const fills = () => logo.locator("path").evaluateAll((nodes) => nodes.map((node) => getComputedStyle(node).fill));
     const original = await fills();
-    await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
+    await page.getByRole("button", { name: "Abrir menú" }).click();
+    const menu = page.getByRole("dialog", { name: "Menú", exact: true });
+    // On the night home the theme switch lives inside the menu.
+    await menu.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
     expect(await fills()).toEqual(original);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())).toBe("#8a1634");
-    await page.getByRole("button", { name: "Abrir menú" }).click();
-    const menu = page.getByRole("dialog", { name: "Menú", exact: true });
     const primary = menu.getByRole("navigation", { name: "Menú principal", exact: true });
     await expect(primary.locator(":scope > ol > li > div > a")).toHaveCount(8);
     const owner = menu.getByRole("region", { name: "Servicios para propietarios" });
@@ -46,32 +53,35 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
-  test(`home keeps six timeline stages and the fixed image below the simplified hero at ${width}px`, async ({ page }) => {
+  test(`home keeps six method stages that light up while scrolling at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/", { waitUntil: "networkidle" });
-    await expect(page.locator(".hero-marquee-track")).toHaveCount(0);
     const timeline = page.locator("[data-method-timeline]");
     await expect(timeline.locator("li")).toHaveCount(6);
-    await expect(timeline.getByRole("heading", { name: "Cierre y entrega" })).toBeVisible();
-    const photo = page.locator(".editorial-fixed-photo");
-    await photo.scrollIntoViewIfNeeded();
-    await expect(photo).toHaveCSS("position", "fixed");
-    const top = await photo.evaluate((node) => node.getBoundingClientRect().top);
-    await page.evaluate(() => window.scrollBy({ top: 150, behavior: "instant" }));
-    expect(await photo.evaluate((node) => node.getBoundingClientRect().top)).toBe(top);
+    await expect(page.getByRole("heading", { name: "Seis etapas. Un responsable." })).toBeAttached();
+    await page.locator("#metodo").scrollIntoViewIfNeeded();
+    await expect(timeline.locator("li.is-active")).toHaveCount(1);
+    for (let step = 0; step < 30 && !(await timeline.locator("li").last().evaluate((node) => node.classList.contains("is-active"))); step++) {
+      await page.mouse.wheel(0, 250);
+      await page.waitForTimeout(60); // Pace wheel input for the scrubbed timeline; not a layout wait.
+    }
+    await expect(timeline.locator("li").last()).toHaveClass(/is-active/);
+    await expect(timeline.getByRole("heading", { name: "Cierre y entrega" })).toBeInViewport();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(timeline.locator("li").last()).toHaveCSS("opacity", "1");
-    await expect(page.locator(".editorial-cover-title")).toBeVisible();
+    await expect(page.locator(".nx-hero-title")).toBeAttached();
   });
 
   test(`property photographs use editorial proportions across the catalog at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    for (const route of ["/", "/inventario"]) {
+    // The night home shows 5:4 photographs; the catalog uses compact 3:2 cards (titular, 18/10/2026).
+    for (const [route, ratio] of [["/", 5 / 4], ["/inventario", 3 / 2]] as const) {
       await page.goto(route);
       const photo = page.locator("[data-property-card] img").first();
+      await photo.scrollIntoViewIfNeeded();
       await expect(photo).toBeVisible();
       const box = await photo.boundingBox();
-      expect(box!.width / box!.height).toBeCloseTo(4 / 5, 2);
+      expect(box!.width / box!.height).toBeCloseTo(ratio, 1);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.locator("[data-property-card] a").first().click();
@@ -87,25 +97,18 @@ for (const width of [390, 1440]) {
 }
 
 for (const width of [390, 1440]) {
-  test(`method details open by keyboard and close without hiding stage names at ${width}px`, async ({ page }) => {
+  test(`method stages show their descriptions without hidden regions at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
-    const stages = page.locator('[data-method-timeline]');
-    const buttons = stages.getByRole('button');
-    await expect(buttons).toHaveCount(6);
-    await expect(buttons.first()).toHaveAttribute('aria-expanded', 'false');
-    await buttons.first().focus();
-    await page.keyboard.press('Enter');
-    await expect(buttons.first()).toHaveAttribute('aria-expanded', 'true');
-    await expect(stages.getByRole('region', { name: 'Captación' })).toBeVisible();
-    await buttons.nth(1).click();
-    await expect(buttons.first()).toHaveAttribute('aria-expanded', 'false');
-    await expect(buttons.nth(1)).toHaveAttribute('aria-expanded', 'true');
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await buttons.nth(1).click();
-    await expect(buttons.nth(1)).toHaveAttribute('aria-expanded', 'false');
-    await expect(buttons).toHaveCount(6);
+    const stages = page.locator("[data-method-timeline] li");
+    await expect(stages).toHaveCount(6);
+    await expect(page.locator("[data-method-timeline] [role=region], [data-method-timeline] button")).toHaveCount(0);
+    for (const stage of await stages.all()) {
+      await stage.scrollIntoViewIfNeeded();
+      await expect(stage.getByRole("heading")).toBeInViewport();
+      await expect(stage.locator("p")).toBeVisible();
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
@@ -160,7 +163,7 @@ test("stale comparison choices never block current inventory", async ({ page }) 
 test("interior routes provide useful next actions and honest media", async ({ page }) => {
   await page.goto('/contacto', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: '¿Compras o vendes? Hablemos.' })).toBeVisible();
-  await page.getByText('Quiero vender', { exact: true }).click();
+  await page.getByLabel('Opciones de contacto').getByText('Quiero vender', { exact: true }).click();
   await expect(page.getByLabel('Quiero vender')).toBeChecked();
 
   await page.goto('/nosotros', { waitUntil: 'domcontentloaded' });
