@@ -504,8 +504,8 @@
 .ct-intents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .ct-intent { position: relative; display: grid; gap: 6px; align-content: start; min-height: 150px; padding: 18px; border: 1px solid color-mix(in srgb, var(--ns-ink) 12%, transparent); border-radius: 20px; background: var(--ns-card); color: var(--ns-ink); cursor: pointer; transition: border-color 0.3s, transform 0.4s var(--pg-ease); }
 .ct-intent:hover { border-color: color-mix(in srgb, var(--ns-ink) 40%, transparent); transform: translateY(-2px); }
-.ct-intent[data-selected="true"] { border-color: var(--pg-rose); background: linear-gradient(160deg, #8a1634, #4a0c1d); }
-html:not(.dark) .ct-intent[data-selected="true"] { background: #8a1634; }
+.ct-intent[data-selected="true"] { border-color: var(--pg-rose); background: #8a1634; }
+.dark .ct-intent[data-selected="true"] { background: linear-gradient(160deg, #8a1634, #4a0c1d); }
 .ct-intent:has(input:focus-visible) { outline: 2px solid var(--ns-ink); outline-offset: 3px; }
 .ct-intent-top { display: flex; align-items: center; justify-content: space-between; }
 .ct-intent-number { font-family: var(--font-mono); font-size: 12px; color: var(--ns-accent); }

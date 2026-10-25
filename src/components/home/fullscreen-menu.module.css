@@ -3,8 +3,8 @@
 .panel { --ink: var(--ns-ink); --muted: color-mix(in srgb, var(--ns-ink) 72%, transparent); --rose: var(--ns-accent); position: absolute; inset: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; background: var(--ns-bg); color: var(--ink); clip-path: circle(0% at 94% 4%); }
 :global(.dark) .panel { background: #061325; }
 .glowFrame { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.glow { position: absolute; right: -20vw; bottom: -30vw; width: 70vw; height: 70vw; border-radius: 50%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.45), transparent); pointer-events: none; }
-:global(html:not(.dark)) .glow { display: none; }
+.glow { display: none; position: absolute; right: -20vw; bottom: -30vw; width: 70vw; height: 70vw; border-radius: 50%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.45), transparent); pointer-events: none; }
+:global(.dark) .glow { display: block; }
 .header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 24px; max-width: 1320px; margin-inline: auto; padding: max(16px, env(safe-area-inset-top)) clamp(20px, 4vw, 32px) 16px; background: linear-gradient(var(--ns-bg) 70%, color-mix(in srgb, var(--ns-bg) 0%, transparent)); }
 :global(.dark) .header { background: linear-gradient(#061325 70%, rgba(6, 19, 37, 0)); }
 .brand { width: 150px; }
