@@ -1,22 +1,23 @@
 /*
   Nosotros · dirección «Nocturno» (lienzo, artboard Nosotros).
-  La portada es oscura en ambos temas, como el Inicio; el resto sigue el tema
-  del sitio con tarjetas de esquinas suaves (excepción documentada en el plan).
+  Todo sigue el tema del sitio (desde el 25/10/2026, titular): la portada es
+  crema en claro y noche con resplandor vino en oscuro; tarjetas de esquinas suaves.
 */
 .about-page { --ab-ease: cubic-bezier(0.16, 1, 0.3, 1); --ab-rose: #e5829b; --ab-wine: #8a1634; padding-top: 64px; }
 .about-page :is(#agentes, #identidad, #valores, #video, #mision, #vision) { scroll-margin-top: 88px; }
 .about-page a:focus-visible, .about-page video:focus-visible { outline: 2px solid var(--primary-text, #8a1634); outline-offset: 3px; }
 
 /* Portada */
-.ab-hero { position: relative; overflow: hidden; background: #060c14; color: #f5f1eb; }
-.ab-hero::before { content: ""; position: absolute; inset: auto -10% -40% 30%; height: 70%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.45), transparent 70%); pointer-events: none; }
+.ab-hero { position: relative; overflow: hidden; background: var(--ns-bg); color: var(--ns-ink); }
+.ab-hero::before { display: none; content: ""; position: absolute; inset: auto -10% -40% 30%; height: 70%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.45), transparent 70%); pointer-events: none; }
+.dark .ab-hero::before { display: block; }
 .ab-hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: end; gap: clamp(32px, 5vw, 64px); padding-top: clamp(48px, 7vw, 96px); }
 .ab-hero-copy { padding-bottom: clamp(48px, 7vw, 96px); }
 .ab-hero-title { max-width: 12ch; margin: 0; font-size: clamp(44px, 6.4vw, 88px); line-height: 0.96; font-weight: 600; font-variation-settings: "wdth" 90; letter-spacing: -0.04em; text-wrap: balance; }
-.ab-hero-lead { max-width: 50ch; margin: 24px 0 0; color: rgba(245, 241, 235, 0.74); font-size: 18px; line-height: 1.6; }
+.ab-hero-lead { max-width: 50ch; margin: 24px 0 0; color: color-mix(in srgb, var(--ns-ink) 74%, transparent); font-size: 18px; line-height: 1.6; }
 .ab-index { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
-.ab-index a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 999px; color: #f5f1eb; font-size: 14px; font-weight: 500; transition: background-color 0.3s, border-color 0.3s; }
-.ab-index a:hover { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.1); }
+.ab-index a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid color-mix(in srgb, var(--ns-ink) 22%, transparent); border-radius: 999px; color: var(--ns-ink); font-size: 14px; font-weight: 500; transition: background-color 0.3s, border-color 0.3s; }
+.ab-index a:hover { border-color: color-mix(in srgb, var(--ns-ink) 50%, transparent); background: color-mix(in srgb, var(--ns-ink) 10%, transparent); }
 .ab-portrait { position: relative; align-self: end; margin: 0; }
 .ab-portrait-media { position: relative; aspect-ratio: 4 / 5; max-height: 600px; overflow: hidden; border-radius: 28px 28px 0 0; background: #0c1622; }
 .ab-portrait-media img, .ab-member-media img { object-fit: cover; }

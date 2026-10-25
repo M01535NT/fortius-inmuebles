@@ -12,7 +12,7 @@ import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-/* Inicio · dirección Nocturno (LV-05): oscuro en ambos temas, como el footer. */
+/* Inicio · dirección Nocturno (LV-05): las secciones siguen el tema; la portada conserva su foto. */
 export default async function HomePage() {
   const [content, propiedades, destacadas] = await Promise.all([getPublicContent(), getPropiedades(), getFeaturedProperties()]);
   // El buscador solo ofrece zonas y tipos que existen en el inventario publicado.
@@ -20,7 +20,7 @@ export default async function HomePage() {
   const tipos = [...new Set(propiedades.map((p) => p.tipo))].map((value) => ({ value, label: TIPO_LABELS[value] }));
   const entregables = entregablesDe(content);
   return (
-    <main className="nocturno-home dark">
+    <main className="nocturno-home">
       <NocturnoHero zonas={zonas} tipos={tipos} />
       <NocturnoDestacadas properties={destacadas.slice(0, 3)} />
       <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />

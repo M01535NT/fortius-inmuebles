@@ -56,7 +56,7 @@ export default async function NosotrosPage() {
 
   return <main className="about-page">
     <AboutReveal>
-    <section className="ab-hero dark" aria-labelledby="about-title">
+    <section className="ab-hero" aria-labelledby="about-title">
       <div className="nx-container ab-hero-grid">
         <div className="ab-hero-copy" data-reveal>
           <p className="nx-eyebrow" data-reveal-item>Nosotros</p>

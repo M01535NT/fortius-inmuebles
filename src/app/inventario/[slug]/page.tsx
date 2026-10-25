@@ -303,7 +303,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         </aside>
       </div>
 
-      {related.length > 0 && <section className="fe-related dark inv-page" aria-labelledby="fe-related">
+      {related.length > 0 && <section className="fe-related inv-page" aria-labelledby="fe-related">
         <div className="pg-container">
           <h2 id="fe-related" className="fe-h2">También te puede interesar</h2>
           <div className="property-catalog-grid">
