@@ -34,6 +34,8 @@ Esta rama comparte datos reales y permite las operaciones de los usuarios autori
 
 ## Protección main preparada
 
+**Configuración vigente en GitHub (comprobada el 25/10/2026):** `main` no tiene la protección de rama descrita en esta sección; la controla la regla «main exige verify» (creada el 17/10/2026): el check `verify` debe aprobarse para integrar, no exige rama actualizada y los administradores pueden saltarla. El repositorio permite integración automática y, desde el 25/10/2026, borra la rama de cada PR al integrarlo. Quién decide publicar está en `AGENTS.md` (I-04).
+
 Archivo revisable: [configuración](github-main-protection.json).
 
 Requiere PR, check `verify` de GitHub Actions (app 15368), rama actualizada, conversaciones resueltas y aplica también a administradores. Prohíbe force-push y eliminar main. Revisión humana obligatoria: cero aprobaciones por ahora, para evitar exigir a Moisés una segunda cuenta inexistente; el requisito de PR y pruebas se mantiene. Incorporar revisión por otra persona cuando exista un equipo autorizado.
