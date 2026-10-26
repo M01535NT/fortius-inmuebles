@@ -65,7 +65,6 @@
 .nx-props-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .nx-props-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr); gap: 20px; align-items: stretch; }
 .nx-props-rows { display: flex; flex-direction: column; gap: 16px; }
-.nocturno-home .property-card-feature .property-card-image { aspect-ratio: 16 / 11; }
 .nocturno-home .property-card-row { display: grid; grid-template-columns: 156px minmax(0, 1fr); align-items: stretch; }
 .nocturno-home .property-card-row .property-card-image { width: 100%; min-width: 0; max-width: 100%; aspect-ratio: 1; height: auto; }
 .nocturno-home .property-card-row .property-card-copy { min-width: 0; padding: 16px 18px; }
@@ -126,7 +125,7 @@
 .nx-method-track { display: flex; gap: 20px; width: max-content; margin: 0; padding: 0 clamp(20px, 4vw, 32px); list-style: none; }
 .nx-stage { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: space-between; width: min(420px, 78vw); min-height: 400px; padding: 32px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 22px; background: var(--nx-card); transition: border-color 0.6s var(--nx-ease), box-shadow 0.6s var(--nx-ease), opacity 0.6s var(--nx-ease), translate 0.6s var(--nx-ease); }
 .nx-stage::before { content: ""; position: absolute; inset: 0; z-index: -1; background: #8a1634; opacity: 0; transition: opacity 0.6s var(--nx-ease); }
-.nx-stage-number { display: block; color: rgba(245, 241, 235, 0.22); font-size: 120px; line-height: 0.9; font-weight: 600; font-variation-settings: "wdth" 66; transform-origin: left top; transform: scale(0.55); transition: transform 0.7s var(--nx-ease), color 0.6s; }
+.nx-stage-number { display: block; color: rgba(245, 241, 235, 0.55); font-size: 120px; line-height: 0.9; font-weight: 600; font-variation-settings: "wdth" 66; transform-origin: left top; transform: scale(0.55); transition: transform 0.7s var(--nx-ease), color 0.6s; }
 .nx-stage h3 { font-size: 26px; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
 .nx-stage p { margin-top: 12px; color: var(--nx-muted); font-size: 15px; line-height: 1.6; }
 .nx-stage-step { display: block; margin-top: 18px; color: rgba(245, 241, 235, 0.72); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; }
