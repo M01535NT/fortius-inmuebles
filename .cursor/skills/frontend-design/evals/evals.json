@@ -1,0 +1,8 @@
+{
+  "skill": "frontend-design",
+  "test_cases": [
+    {"name": "landing_inmobiliaria", "input": "Crea una landing page para una inmobiliaria en Tijuana", "assertions": ["Debe elegir tipografía y paleta deliberadas, no genéricas", "Debe evitar tarjetas idénticas y labels en mayúsculas"]},
+    {"name": "rediseño_hero", "input": "Mejora el hero de esta página, se ve genérico", "assertions": ["Debe proponer un hero más característico del tema", "Debe criticar el look actual"]},
+    {"name": "no_trigger_backend", "input": "Escribe una función en Python para ordenar una lista", "assertions": ["No debe activar este skill"]}
+  ]
+}

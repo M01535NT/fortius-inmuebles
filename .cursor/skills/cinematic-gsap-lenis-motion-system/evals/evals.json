@@ -1,0 +1,8 @@
+{
+  "skill": "cinematic-gsap-lenis-motion-system",
+  "test_cases": [
+    {"name": "scroll_story", "input": "Quiero un hero con scroll storytelling elegante", "assertions": ["Debe proponer GSAP + Lenis y tokens de duración/stagger"]},
+    {"name": "moderation_note", "input": "Aplica motion cinematográfico a una inmobiliaria", "assertions": ["Debe sugerir moderación"]},
+    {"name": "no_trigger", "input": "Analiza este contrato de arrendamiento", "assertions": ["No debe activar"]}
+  ]
+}

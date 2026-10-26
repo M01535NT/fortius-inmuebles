@@ -1,0 +1,8 @@
+{
+  "skill": "design-taste-frontend",
+  "test_cases": [
+    {"name": "landing_premium", "input": "Haz una página de inicio que se vea premium y no genérica", "assertions": ["Debe evitar el look promedio de IA", "Debe forzar dirección visual clara"]},
+    {"name": "revisión_slop", "input": "Esta página se ve hecha por IA, arréglala", "assertions": ["Debe identificar tells y proponer correcciones"]},
+    {"name": "no_trigger_legal", "input": "Redacta un contrato de arrendamiento", "assertions": ["No debe activar este skill"]}
+  ]
+}

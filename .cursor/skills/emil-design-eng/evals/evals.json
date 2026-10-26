@@ -1,0 +1,8 @@
+{
+  "skill": "emil-design-eng",
+  "test_cases": [
+    {"name": "review_button", "input": "Revisa este botón y su hover", "assertions": ["Debe devolver tabla Before/After/Why", "Debe mencionar scale en active y propiedades específicas"]},
+    {"name": "should_animate", "input": "Anima la apertura del command palette", "assertions": ["Debe decir que no se anime por frecuencia alta"]},
+    {"name": "no_trigger_contract", "input": "Redacta un contrato", "assertions": ["No debe activar este skill"]}
+  ]
+}

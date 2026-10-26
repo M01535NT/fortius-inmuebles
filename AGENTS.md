@@ -31,6 +31,7 @@ Estas instrucciones orientan el trabajo en todo el repositorio. Respeta las inst
 | Formatos inmobiliarios | `docs/formatos-admin-status.md` |
 | Calculadoras y fuentes | `docs/financial-method.md`, `docs/legal/financial-tools-2026-10-04.md` |
 | Contenido editorial | `docs/mercado-inmobiliario-editorial.md` |
+| Diseño de interfaz y motion | `.cursor/skills/frontend-design/SKILL.md`, `.cursor/skills/design-taste-frontend/SKILL.md`, `.cursor/skills/emil-design-eng/SKILL.md`, `.cursor/skills/animate/SKILL.md`, `.cursor/skills/cinematic-gsap-lenis-motion-system/SKILL.md` |
 
 Las propuestas de acceso/privacidad y las fuentes jurídicas fechadas conservan sus límites. Verifica fuentes primarias, vigencia, jurisdicción y fecha cuando el encargo cambie reglas legales, fiscales o financieras. No conviertas un formato generado en una aprobación jurídica o autorización para firmar.
 
@@ -58,6 +59,7 @@ Las propuestas de acceso/privacidad y las fuentes jurídicas fechadas conservan 
 ## Interfaz y experiencia
 
 - Conserva el diseño aprobado, los recursos de marca y los textos solicitados. Fortius usa Archivo, azul `#061F3F`, borgoña `#8A1634`, blanco y acento `#E5829B`; reutiliza los tokens existentes y sus variantes de tema.
+- Al crear o cambiar presentación, composición o movimiento, lee antes las skills de `.cursor/skills/`: `frontend-design` y `design-taste-frontend` para dirección visual; `emil-design-eng` y `animate` para pulido y animación de interfaz; `cinematic-gsap-lenis-motion-system` solo si el encargo pide un lenguaje de movimiento por scroll en el sitio público. La marca, el lienzo aprobado y los tokens existentes mandan cuando ya fijan paleta, tipografía o layout. Esas skills no autorizan dependencias nuevas: GSAP y Motion ya están instalados; Lenis no.
 - Para trabajo del panel guiado, lee completo `docs/diseno/ENCARGO_REDISENO_PANEL.md` y la fase correspondiente del plan antes de editar. El lienzo aprobado es la referencia visual principal; los bocetos son secundarios. Reutiliza `src/components/admin/kit.tsx` y sus tokens; no agregues estilos al `panel.module.css` que se está retirando. Respeta los límites específicos del encargo sobre API, base de datos, dependencias y sitio público; no los extiendas a encargos ajenos al rediseño.
 - Usa lenguaje sencillo orientado al asesor y una acción principal clara. Los detalles técnicos pertenecen a la implementación, salvo que ayuden al usuario a decidir. Mantén el significado de requisitos, evidencia, revisiones y bloqueos del servidor.
 - Conserva claro/oscuro, navegación por teclado, foco visible, nombres accesibles, contraste, objetivos táctiles de al menos 44 px y `prefers-reduced-motion`. Comprueba móvil y escritorio; evita que barras fijas tapen contenido o acciones.

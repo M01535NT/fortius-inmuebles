@@ -1,0 +1,9 @@
+{
+  "skill": "animate",
+  "test_cases": [
+    {"input": "anima este botón al hacer hover", "should_trigger": true},
+    {"input": "haz que el modal aparezca con transición", "should_trigger": true},
+    {"input": "agrega motion a este componente", "should_trigger": true},
+    {"input": "redacta un listing", "should_trigger": false}
+  ]
+}

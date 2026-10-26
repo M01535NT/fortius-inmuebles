@@ -1,0 +1,9 @@
+{
+  "skill": "frontend-design",
+  "test_cases": [
+    {"input": "diseña una página web profesional", "should_trigger": true},
+    {"input": "crea un mockup de landing page", "should_trigger": true},
+    {"input": "mejora el diseño de este sitio", "should_trigger": true},
+    {"input": "calcula la comisión de esta venta", "should_trigger": false}
+  ]
+}

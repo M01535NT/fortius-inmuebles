@@ -1,0 +1,9 @@
+{
+  "skill": "design-taste-frontend",
+  "test_cases": [
+    {"input": "crea una página web que no se vea genérica", "should_trigger": true},
+    {"input": "mejora el diseño de esta landing", "should_trigger": true},
+    {"input": "haz un sitio con buen gusto visual", "should_trigger": true},
+    {"input": "analiza este contrato", "should_trigger": false}
+  ]
+}

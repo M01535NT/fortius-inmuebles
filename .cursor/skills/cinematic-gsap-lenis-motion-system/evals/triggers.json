@@ -1,0 +1,9 @@
+{
+  "skill": "cinematic-gsap-lenis-motion-system",
+  "test_cases": [
+    {"input": "haz un sistema de motion cinematográfico con GSAP y Lenis", "should_trigger": true},
+    {"input": "quiero scroll storytelling elegante", "should_trigger": true},
+    {"input": "anima el sitio con parallax y reveals suaves", "should_trigger": true},
+    {"input": "investiga precios en Tijuana", "should_trigger": false}
+  ]
+}

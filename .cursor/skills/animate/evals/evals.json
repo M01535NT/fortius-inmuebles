@@ -1,0 +1,8 @@
+{
+  "skill": "animate",
+  "test_cases": [
+    {"name": "build_toast", "input": "Anima la entrada de un toast", "assertions": ["Debe seguir la secuencia: propósito, herramienta, duración corta"]},
+    {"name": "no_animate_keyboard", "input": "Anima el toggle del menú con teclado", "assertions": ["Debe rechazar la animación"]},
+    {"name": "no_trigger", "input": "Busca propiedades en Lamudi", "assertions": ["No debe activar"]}
+  ]
+}

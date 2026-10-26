@@ -1,0 +1,9 @@
+{
+  "skill": "emil-design-eng",
+  "test_cases": [
+    {"input": "mejora la animación de este modal", "should_trigger": true},
+    {"input": "pulir el hover de los botones", "should_trigger": true},
+    {"input": "revisa el motion de esta UI", "should_trigger": true},
+    {"input": "calcula el precio por m2", "should_trigger": false}
+  ]
+}
