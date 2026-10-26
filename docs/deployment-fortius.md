@@ -10,7 +10,7 @@
 
 ## Variables
 
-Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. Consultar [controles y evidencia](erp-crm/environment-release.md).
+Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. Las excepciones por rama están en [controles y evidencia](erp-crm/environment-release.md): `codex/erp-crm-preview` y, desde el 26/10/2026, `cursor/sitio-publico-portal-b656` (URL y clave anónima; sin secreto de servidor ni recepción pública).
 
 El sitio público y el panel son un mismo producto. Los nombres de los proyectos cambiaron conservando sus IDs, datos, secretos y dominio público. La conexión Git existente identifica el repositorio por su ID y conserva la rama main.
 

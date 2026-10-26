@@ -32,6 +32,12 @@ El 12/10/2026 Moisés autorizó conectar únicamente `codex/erp-crm-preview` a l
 
 Esta rama comparte datos reales y permite las operaciones de los usuarios autorizados; no es una base de pruebas aislada. La clave privada no usa prefijo público y se guarda como Secret. La copia temporal utilizada para importarla se eliminó, sin modificar `.env.local`. La verificación de la conexión no autoriza cuentas nuevas, correos ni escrituras de ensayo sobre expedientes reales. Los cambios de variables requieren un despliegue nuevo; el anterior conserva su configuración.
 
+### Excepción autorizada: cursor/sitio-publico-portal-b656
+
+El 26/10/2026 Moisés autorizó conectar únicamente la vista previa de `cursor/sitio-publico-portal-b656` a la base actual de Fortius. En esa fecha la base sigue siendo de prueba (autorización del 17/10/2026, DEC-10 e I-01). En Vercel se añadieron entradas independientes para `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`, con ámbito Preview y restricción a esa rama. Las entradas de Production se conservaron. No se habilitó el backend para el resto de previews ni se activó `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED`.
+
+`SUPABASE_SERVICE_ROLE_KEY` no se copió: en Vercel está guardada como secreto sensible y la API no devuelve su valor. Las lecturas públicas usan la clave anónima. Sin el secreto de servidor, Nosotros muestra el perfil ilustrativo; la recepción de solicitudes y las operaciones privilegiadas del panel siguen sin esa clave en esta vista previa. No se imprimieron ni versionaron claves. Los cambios de variables requieren un despliegue nuevo.
+
 ## Protección main preparada
 
 Archivo revisable: [configuración](github-main-protection.json).
