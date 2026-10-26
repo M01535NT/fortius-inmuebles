@@ -42,7 +42,7 @@ export function PropertyCard({ property, extra }: { property: Property; extra?: 
         />
         <span className="property-card-badge">
           {noDisponible ? ESTADO_LABELS[property.estado] : OPERACION_LABELS[property.operacion]}
-          {property.demo ? " · Demostración" : ""}
+          {property.demo ? " de ejemplo" : ""}
         </span>
       </Link>
       <div className="property-card-copy">

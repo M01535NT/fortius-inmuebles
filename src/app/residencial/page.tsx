@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function ResidencialPage() {
   return <main className="pg-page">
-    <InteriorPage {...routePages.residencial} eyebrow="01 · Residencial" title="Casas y departamentos para vivir." siblings={segmentLinks("/residencial")}
+    <InteriorPage {...routePages.residencial} eyebrow="Residencial" title="Casas y departamentos para vivir." siblings={segmentLinks("/residencial")}
       media={{ src: "/hero/edificio-ciudad.webp", alt: "Torre residencial iluminada de noche" }}
       primary={{ href: "/inventario?tipo=casa", label: "Ver casas y departamentos" }} secondary={{ href: "/comprar-propiedad/#busqueda", label: "Contar qué busco" }} />
     <SegmentDetail segment="residencial" />

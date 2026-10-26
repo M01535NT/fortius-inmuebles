@@ -52,7 +52,7 @@ export function VisitPlanner({ slug, codigo, titulo, asesor, channels }: Props) 
     <div id="interes" className="fe-visit">
       {asesor ? <div className="fe-visit-agent">
         <span className="fe-visit-avatar" aria-hidden="true">{asesor.iniciales}</span>
-        <span><strong>{asesor.nombre}</strong><span>{asesor.cargo} · responde en horario de oficina</span></span>
+        <span><strong>{asesor.nombre}</strong><span>{asesor.cargo}, responde en horario de oficina</span></span>
       </div> : <p className="fe-visit-title">Hablemos de esta propiedad.</p>}
 
       <p className="fe-visit-lead"><CalendarDays size={16} aria-hidden="true" />Propón un día; el asesor lo confirma contigo</p>

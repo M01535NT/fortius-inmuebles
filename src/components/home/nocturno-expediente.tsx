@@ -62,7 +62,7 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
           <span className="nx-exp-sheet nx-exp-sheet-mid" aria-hidden="true" />
           <div id="entregables" className="nx-exp-card" aria-labelledby="entregables-title">
             <div className="nx-exp-card-head">
-              <h3 id="entregables-title">Documentos de tu operación <span>· ejemplo</span></h3>
+              <h3 id="entregables-title">Documentos de tu operación <span>(ejemplo)</span></h3>
               <span className="nx-exp-chip" aria-hidden="true">{ready} de {total} listos</span>
             </div>
             <div className="nx-exp-progress" aria-hidden="true"><span style={{ transform: `scaleX(${total ? ready / total : 0})` }} /></div>

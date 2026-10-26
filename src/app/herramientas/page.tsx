@@ -15,12 +15,12 @@ export default function HerramientasPage() {
     <main className="pg-page">
       <section className="pg-hero">
         <div className="pg-container pg-hero-body">
-          <p className="pg-eyebrow">Herramientas · sin registro</p>
+          <p className="pg-eyebrow">Herramientas sin registro</p>
           <h1 className="pg-title">Haz los números antes de decidir.</h1>
           <p className="pg-lead">Estima una mensualidad o los gastos de compraventa, sin registrarte.</p>
           <div className="tl-grid">
             <Link href="/herramientas/hipoteca" className="tl-card">
-              <span className="tl-card-head"><span className="pg-chip">01 · Crédito</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
+              <span className="tl-card-head"><span className="pg-chip">Crédito</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
               <span className="tl-card-title">Calculadora de hipoteca</span>
               <span className="tl-card-text">Compara escenarios, prueba abonos anticipados y descarga la amortización completa.</span>
               <span className="tl-preview">
@@ -29,7 +29,7 @@ export default function HerramientasPage() {
               </span>
             </Link>
             <Link href="/herramientas/gastos-de-cierre" className="tl-card">
-              <span className="tl-card-head"><span className="pg-chip">02 · Operación</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
+              <span className="tl-card-head"><span className="pg-chip">Operación</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
               <span className="tl-card-title">Gastos de cierre</span>
               <span className="tl-card-text">Prepara el efectivo de compra o el neto de venta, con impuestos locales y tus cotizaciones.</span>
               <span className="tl-preview">

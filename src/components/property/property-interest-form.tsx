@@ -61,7 +61,7 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
         }
       }}
     >
-      <p className="font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+      <p className="text-sm font-semibold text-muted-foreground">
         Sobre: {codigo}
       </p>
       <input type="hidden" name="propiedad" value={slug} />

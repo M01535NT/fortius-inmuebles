@@ -38,7 +38,7 @@ export function ContactDock({ settings, message }: { settings?: SiteSettings | n
           transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
           className="fixed bottom-6 right-6 z-40 hidden items-center gap-1.5 rounded-lg border border-border bg-background/95 p-1.5 backdrop-blur md:flex"
         >
-          <span className="px-2.5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+          <span className="px-2.5 text-sm font-semibold text-muted-foreground">
             Contactar
           </span>
           <MessagingActions settings={settings} message={message} />

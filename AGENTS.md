@@ -85,7 +85,7 @@ Consulta los scripts reales en `package.json` y `.github/workflows/verify.yml`; 
 
 Antes de iniciar un servidor revisa el puerto y los procesos existentes; no detengas procesos ajenos. Respeta el puerto solicitado o ya acordado y alinea las variables del entorno de prueba. Comprueba una respuesta de la ruta: obtener un PID o una línea «Ready» no acredita que funcione.
 
-Escala las comprobaciones al cambio: una edición de Markdown requiere lectura completa, enlaces/rutas y diff; no exige compilar la aplicación. Para cambios de código ejecuta las pruebas afectadas y `npm run verify` antes de integrar. Añade las suites de navegador, herramientas o PDF que correspondan; evita repetir checks aprobados sin una razón nueva. No borres ni debilites pruebas para obtener verde.
+Escala las comprobaciones al cambio: una edición de Markdown requiere lectura completa, enlaces/rutas y diff; no exige compilar la aplicación. Para cambios de código corre lint, tipos y las pruebas de lo que tocaste. **Regla del titular (25/10/2026):** no ejecutes `npm run verify`, la build ni las suites de navegador por tu cuenta; pregunta antes y di cuánto tardan. Antes de integrar, propón la verificación completa (`npm run verify` y las suites de navegador, herramientas o PDF que correspondan) y córrela cuando el titular acepte. Evita repetir checks aprobados sin una razón nueva. No borres ni debilites pruebas para obtener verde.
 
 Para cambios visuales inspecciona las vistas reales en móvil y escritorio, claro/oscuro, teclado y movimiento reducido. Una captura sin desbordamiento no basta para evaluar composición y utilidad. Lighthouse mide laboratorio; HTTP 200, mocks y pruebas locales no acreditan rendimiento de usuarios, permisos remotos ni un flujo productivo completo.
 

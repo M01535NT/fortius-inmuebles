@@ -164,17 +164,17 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <div>
               <p className="fe-chips">
                 <span className="fe-chip is-solid">{OPERACION_LABELS[property.operacion]}</span>
-                {property.demo && <span className="fe-chip is-demo">Demostración · datos de ejemplo</span>}
+                {property.demo && <span className="fe-chip is-demo">Datos de ejemplo</span>}
                 <span className="fe-chip">{property.codigo}</span>
                 <span className="fe-chip">{property.estado === "disponible" ? "Disponible para visitas" : ESTADO_LABELS[property.estado]}</span>
               </p>
               <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
-              <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona} · {property.direccionAproximada}</p>
+              <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
             </div>
             <div className="fe-price-block">
               <p className="fe-price">{formatPrecio(property.precio)}</p>
-              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario · <a href="#costos">Calcular mensualidad</a></p>}
-              {property.operacion === "renta" && <p className="fe-price-note">Renta mensual · <a href="#costos">Ver costos</a></p>}
+              {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <a href="#costos">Calcular mensualidad</a></p>}
+              {property.operacion === "renta" && <p className="fe-price-note">Renta mensual. <a href="#costos">Ver costos</a></p>}
             </div>
           </div>
 
