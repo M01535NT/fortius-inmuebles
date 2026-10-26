@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 
 const stages = [
   { title: "Quién puede vender", text: "Confirmamos quién es el propietario o representante y qué documentos respaldan el encargo. Si falta algo, lo señalamos antes de anunciar.", doc: "Análisis de factibilidad" },
@@ -35,12 +35,12 @@ export function SellerProcess() {
         <div className="pg-card pg-card-pad">
           <h3 className="pg-h3">Lo que recibes</h3>
           <p className="pg-muted">Una respuesta sobre lo que ya puede avanzar, los pendientes que requieren atención y una propuesta de siguientes pasos.</p>
-          <Link href="/#entregables" className="pg-link">Ver entregables del método <ArrowUpRight size={18} aria-hidden="true" /></Link>
+          <Link href="/#entregables" className="pg-link">Ver entregables del método</Link>
         </div>
         <div className="pg-card pg-card-pad">
           <h3 className="pg-h3">Si hay pendientes</h3>
           <p className="pg-muted">Te decimos cuáles afectan el precio, la promoción o el cierre y qué información se necesita para resolverlos. No tienes que adivinar si conviene anunciar de inmediato.</p>
-          <Link href="/herramientas/gastos-de-cierre" className="pg-link">Estimar gastos y neto de venta <ArrowUpRight size={18} aria-hidden="true" /></Link>
+          <Link href="/herramientas/gastos-de-cierre" className="pg-link">Estimar gastos y neto de venta</Link>
         </div>
       </div>
     </section>

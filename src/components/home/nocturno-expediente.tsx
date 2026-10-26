@@ -35,7 +35,11 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
         .fromTo(".nx-exp-sheet-back", { rotate: 0, x: 0 }, { rotate: 7, x: 36, ease: "none" }, 0)
         .fromTo(".nx-exp-sheet-mid", { rotate: 0, x: 0 }, { rotate: 3.5, x: 18, ease: "none" }, 0)
         .fromTo(".nx-exp-card", { y: 60 }, { y: 0, ease: "none" }, 0);
-      gsap.from(".nx-exp-copy > *", {
+      gsap.from(".nx-title-mask > span", {
+        yPercent: 110, duration: 1.1, ease: "expo.out",
+        scrollTrigger: { trigger: ref.current, start: "top 82%", once: true },
+      });
+      gsap.from(".nx-exp-copy > :not(h2)", {
         y: 32, opacity: 0, duration: 1, stagger: 0.08, ease: "expo.out",
         scrollTrigger: { trigger: ref.current, start: "top 80%", toggleActions: "play none none reverse" },
       });
@@ -49,7 +53,7 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
       <div className="nx-exp">
         <div className="nx-exp-copy">
           <p className="nx-eyebrow">Por qué Fortius</p>
-          <h2 id="por-que-title" className="nx-title">Tu venta, en un expediente que puedes ver.</h2>
+          <h2 id="por-que-title" className="nx-title"><span className="nx-title-mask"><span>Tu venta, en un expediente que puedes ver.</span></span></h2>
           <p className="nx-lead">{intro}</p>
           <ol className="nx-exp-pillars">
             {pillars.map((item, index) => <li key={item.title} className={index === pillar ? "is-active" : undefined}>

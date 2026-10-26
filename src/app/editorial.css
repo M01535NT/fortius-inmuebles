@@ -205,11 +205,11 @@
 .property-editorial-card { display: flex; flex-direction: column; height: 100%; background: var(--background); }
 .property-card-image { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 5; flex-shrink: 0; }
 .property-card-image::after { position: absolute; content: ""; inset: 65% 0 0; pointer-events: none; background: linear-gradient(transparent, rgba(6,31,63,.2)); }
-.property-card-badge { position: absolute; top: 16px; left: 16px; max-width: calc(100% - 32px); padding: 7px 10px; background: #f5f1eb; color: #061f3f; font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
+.property-card-badge { position: absolute; top: 16px; left: 16px; max-width: calc(100% - 32px); padding: 7px 10px; background: #f5f1eb; color: #061f3f; font-size: 12px; font-weight: 560; letter-spacing: 0; text-transform: none; }
 .property-card-badge::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: 8px; vertical-align: 1px; background: #8a1634; }
 .property-card-copy { display: flex; flex: 1; flex-direction: column; padding-top: 20px; }
 .property-card-heading { display: flex; flex: 1; flex-direction: column; }
-.property-card-location { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.property-card-location { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 13px; text-transform: none; letter-spacing: 0; }
 .property-card-title { margin-block: 12px; font-size: 24px; font-weight: 500; letter-spacing: -.03em; line-height: 1.15; text-wrap: balance; }
 .property-card-title a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .property-card-price { margin-top: auto; font-size: 19px; font-weight: 600; line-height: 1.4; color: var(--primary-text); }

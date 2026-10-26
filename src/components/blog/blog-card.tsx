@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import type { Post } from "@/lib/admin/store";
 import { getBlogCover } from "@/data/blog-covers";
 import { BlogCoverCredit } from "@/components/blog/blog-cover-credit";
@@ -29,7 +28,6 @@ export function BlogCard({ post, featured = false, view = "cuadricula" }: { post
               {post.publicadoEl ? "" : "Actualizado · "}<time dateTime={postDate(post)}>{formatBlogDate(postDate(post))}</time>
               {" · "}{readingMinutes(post)} min de lectura
             </span>
-            <ArrowUpRight aria-hidden="true" size={20} />
           </span>
         </span>
         {cover?.credit && <span className="bp-card-credit"><BlogCoverCredit cover={cover} /></span>}

@@ -4,21 +4,21 @@
   esquinas suaves, píldoras y campos. Cada página añade sus bloques propios.
 */
 :root { --pg-ease: cubic-bezier(0.16, 1, 0.3, 1); --pg-rose: #e5829b; --pg-wine: #8a1634; --pg-night: #060c14; }
-.pg-page { padding-top: 64px; }
+.pg-page { padding-top: 72px; }
 .pg-page :is(a, button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--primary-text, #8a1634); outline-offset: 3px; }
 .pg-container { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 32px); }
 .pg-narrow { max-width: 980px; }
 
 /* Cabecera oscura de página (siempre nocturna) */
 .pg-hero { position: relative; isolation: isolate; overflow: hidden; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: var(--pg-night); color: #f5f1eb; }
-.pg-hero::before { content: ""; position: absolute; inset: auto -10% -45% 35%; z-index: -1; height: 75%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.42), transparent 70%); pointer-events: none; }
+.pg-hero::before { content: none; }
 .pg-hero-media { position: absolute; inset: 0; z-index: -2; }
 .pg-hero-media img { object-fit: cover; }
 .pg-hero-scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 12, 20, 0.55) 0%, rgba(6, 12, 20, 0.25) 35%, rgba(6, 12, 20, 0.88) 100%); }
 .pg-hero-body { padding-block: clamp(48px, 7vw, 96px); }
 .pg-hero-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: end; gap: clamp(32px, 5vw, 64px); }
 .pg-hero :is(a, button):focus-visible { outline-color: #f5f1eb; }
-.pg-eyebrow { margin: 0 0 16px; font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.12em; line-height: 1.5; text-transform: uppercase; color: var(--pg-rose); }
+.pg-eyebrow { margin: 0 0 12px; font-family: var(--font-sans); font-size: 15px; font-weight: 560; letter-spacing: 0; line-height: 1.4; text-transform: none; color: #e8c4ce; }
 .pg-eyebrow-ink { color: var(--primary-text, #8a1634); }
 .pg-title { max-width: 14ch; margin: 0; font-size: clamp(42px, 6vw, 84px); line-height: 0.96; font-weight: 600; font-variation-settings: "wdth" 90; letter-spacing: -0.04em; text-wrap: balance; }
 .pg-title-sm { font-size: clamp(34px, 4.2vw, 56px); line-height: 1; letter-spacing: -0.035em; }
@@ -45,7 +45,7 @@
 .pg-btn-light:hover { background: #fff; border-color: #fff; }
 .pg-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--primary-text, #8a1634); font-weight: 600; transition: gap 0.3s var(--pg-ease); }
 .pg-link:hover { gap: 12px; }
-.pg-chip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(138, 22, 52, 0.1); color: var(--primary-text, #8a1634); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.pg-chip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(138, 22, 52, 0.1); color: var(--primary-text, #8a1634); font-family: var(--font-sans); font-size: 13px; font-weight: 560; letter-spacing: 0; text-transform: none; }
 .pg-hero .pg-chip { background: rgba(229, 130, 155, 0.18); color: var(--pg-rose); }
 
 /* Secciones y tarjetas */
@@ -242,7 +242,10 @@
 .inv-more .pg-field input:focus, .inv-more .pg-field select:focus { border-color: #f5f1eb; box-shadow: none; }
 .inv-note { grid-column: 1 / -1; margin: 0; color: rgba(245, 241, 235, 0.72); font-size: 13px; line-height: 1.6; }
 .inv-status { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-top: 20px; }
-.inv-count { margin: 0; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245, 241, 235, 0.72); }
+.inv-count { margin: 0; font-family: var(--font-sans); font-size: 14px; letter-spacing: 0; text-transform: none; color: rgba(245, 241, 235, 0.72); }
+.inv-hero .pg-hero-body { padding-block: 28px 24px; }
+.inv-hero .pg-title { max-width: none; font-size: clamp(36px, 4vw, 56px); }
+.inv-hero .pg-lead { margin-top: 12px; }
 .inv-active { display: flex; flex-wrap: wrap; gap: 8px; }
 .inv-active button { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 999px; color: #f5f1eb; font-size: 12px; cursor: pointer; transition: background-color 0.2s; }
 .inv-active button:hover { background: rgba(255, 255, 255, 0.1); }
@@ -482,13 +485,13 @@
 
 /* Contacto (página nocturna) */
 .ct-head { max-width: 760px; }
-.ct-accent { color: var(--pg-rose); }
+.ct-accent { color: inherit; }
 .ct-workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: 20px; align-items: start; margin-top: clamp(32px, 4vw, 48px); }
 .ct-choices { min-width: 0; margin: 0; padding: 0; border: 0; }
 .ct-intents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.ct-intent { position: relative; display: grid; gap: 6px; align-content: start; min-height: 150px; padding: 18px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; background: #0c1622; color: #f5f1eb; cursor: pointer; transition: border-color 0.3s, transform 0.4s var(--pg-ease); }
-.ct-intent:hover { border-color: rgba(255, 255, 255, 0.4); transform: translateY(-2px); }
-.ct-intent[data-selected="true"] { border-color: var(--pg-rose); background: linear-gradient(160deg, #8a1634, #4a0c1d); }
+.ct-intent { position: relative; display: grid; gap: 4px; align-content: start; min-height: 0; padding: 16px 18px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px; background: transparent; color: #f5f1eb; cursor: pointer; transition: border-color 0.3s, background-color 0.3s, transform 0.4s var(--pg-ease); }
+.ct-intent:hover { border-color: rgba(255, 255, 255, 0.45); transform: translateY(-2px); }
+.ct-intent[data-selected="true"] { border-color: #8a1634; background: #8a1634; }
 .ct-intent:has(input:focus-visible) { outline: 2px solid #f5f1eb; outline-offset: 3px; }
 .ct-intent-top { display: flex; align-items: center; justify-content: space-between; }
 .ct-intent-number { font-family: var(--font-mono); font-size: 12px; color: var(--pg-rose); }

@@ -50,11 +50,15 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
         .to(track, { x: () => -distance(), ease: "none" }, 0)
         .fromTo(".nx-progress-fill", { scaleX: 0 }, { scaleX: 1, ease: "none" }, 0)
         .to(".nx-method-ghost", { xPercent: -38, ease: "none" }, 0)
-        .to(".nx-method-glow", { xPercent: 95, ease: "none" }, 0);
+        .to(".nx-method-glow", { xPercent: 257, ease: "none" }, 0);
       // Entrance, created after the pin so its start accounts for the pin spacer.
-      gsap.fromTo(cards, { y: 90, opacity: 0, rotate: 2 }, {
-        y: 0, opacity: 1, rotate: 0, duration: 1.2, stagger: 0.08, ease: "expo.out", clearProps: "opacity,transform,translate,rotate,scale",
-        scrollTrigger: { trigger: viewport, start: "top 92%", toggleActions: "play none none reverse" },
+      gsap.from(".nx-title-mask > span", {
+        yPercent: 110, duration: 1.1, ease: "expo.out",
+        scrollTrigger: { trigger: section, start: "top 82%", once: true },
+      });
+      gsap.fromTo(cards, { y: 48, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1.05, stagger: 0.08, ease: "expo.out", clearProps: "opacity,transform",
+        scrollTrigger: { trigger: viewport, start: "top 90%", once: true },
       });
       return () => setActive(-1);
     });
@@ -82,7 +86,7 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
         <div className="nx-method-head">
           <div>
             <p className="nx-eyebrow">Nuestro método</p>
-            <h2 id="metodo-title" className="nx-title">{title}</h2>
+            <h2 id="metodo-title" className="nx-title"><span className="nx-title-mask"><span>{title}</span></span></h2>
           </div>
           <p className="nx-method-count" aria-hidden="true">{String(Math.max(active, 0) + 1).padStart(2, "0")}<span> / {String(stages.length).padStart(2, "0")}</span></p>
         </div>
