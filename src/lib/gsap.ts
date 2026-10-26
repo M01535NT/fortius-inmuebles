@@ -14,8 +14,8 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 }
 
-/* Equivalente a cubic-bezier(0.16,1,0.3,1), el ease de la casa. */
-export const EASE_OUT = "expo.out";
+/* Ease de la casa: salida suave (como cubic-bezier(0.25,1,0.5,1) en CSS), sin el arranque brusco de expo. */
+export const EASE_OUT = "power3.out";
 
 export function prefersReducedMotion() {
   return (

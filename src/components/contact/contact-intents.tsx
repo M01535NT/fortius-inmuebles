@@ -46,10 +46,10 @@ export function ContactIntents() {
         <fieldset className="ct-choices">
           <legend className="sr-only">¿Qué necesitas?</legend>
           <div className="ct-intents">
-            {(Object.entries(intents) as [Intent, (typeof intents)[Intent]][]).map(([key, item], index) => (
+            {(Object.entries(intents) as [Intent, (typeof intents)[Intent]][]).map(([key, item]) => (
               <label key={key} className="ct-intent" data-selected={intent === key}>
                 <input className="sr-only" type="radio" name="contact-intent" value={key} checked={intent === key} onChange={() => setIntent(key)} aria-controls="contact-conversation" />
-                <span className="ct-intent-top"><span className="ct-intent-number">0{index + 1}</span>{intent === key && <span className="ct-intent-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}</span>
+                <span className="ct-intent-top">{intent === key && <span className="ct-intent-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}</span>
                 <strong>{item.label}</strong>
                 <small>{item.detail}</small>
               </label>

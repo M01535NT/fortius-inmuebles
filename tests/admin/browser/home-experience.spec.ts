@@ -24,7 +24,8 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("La venta empieza antes del anuncio.");
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCount(1);
-    await expect(hero.locator(".nx-eyebrow")).toHaveText("Inmobiliaria en Baja California");
+    // Sin etiqueta sobre el titular (titular, 25/10/2026).
+    await expect(hero.locator(".nx-eyebrow")).toHaveCount(0);
     await expect(hero.locator("img")).toHaveCount(1);
     expect(await hero.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     // The header floats transparent over the photograph until the page scrolls.

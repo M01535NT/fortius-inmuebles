@@ -18,8 +18,8 @@
 :global(.admin-root) .dot { width: 5px; height: 5px; border-radius: 50%; background: transparent; }
 :global(.admin-root) .dotVisit { background: var(--primary); }
 :global(.admin-root) .dotOther { background: var(--muted-foreground); }
-:global(.admin-root) .dayButton[aria-pressed=true] .dotVisit { background: #e5829b; }
-:global(.admin-root) .dayButton[aria-pressed=true] .dotOther { background: #fff; }
+:global(.admin-root) .dayButton[aria-pressed=true] .dotVisit { background: #f5f1eb; }
+:global(.admin-root) .dayButton[aria-pressed=true] .dotOther { background: rgba(255, 255, 255, 0.45); }
 :global(.admin-root) .allDay, :global(.admin-root) .grid { display: none; }
 
 @media (min-width: 1024px) {

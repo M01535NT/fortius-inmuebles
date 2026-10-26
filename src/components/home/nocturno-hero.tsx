@@ -21,12 +21,11 @@ export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[
   useGSAP(() => {
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.timeline({ defaults: { ease: "expo.out" } })
-        .from(".nx-eyebrow", { opacity: 0, y: 12, duration: 0.8 }, 0.15)
-        .from(".nx-hero-line > span", { yPercent: 110, duration: 1.2, stagger: 0.12 }, 0.2)
-        .from(".nx-search", { opacity: 0, y: 24, duration: 1 }, 0.55)
-        .from(".nx-hero-seller", { opacity: 0, duration: 0.8 }, 0.8)
-        .from(".nx-marquee", { opacity: 0, duration: 1 }, 0.9);
+      gsap.timeline({ defaults: { ease: "power3.out" } })
+        .from(".nx-hero-line > span", { yPercent: 110, duration: 1.6, stagger: 0.18 }, 0.2)
+        .from(".nx-search", { opacity: 0, y: 24, duration: 1.3 }, 0.8)
+        .from(".nx-hero-seller", { opacity: 0, duration: 1.1 }, 1.1)
+        .from(".nx-marquee", { opacity: 0, duration: 1.4 }, 1.3);
     });
     return () => media.revert();
   }, { scope: ref });
@@ -47,7 +46,6 @@ export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[
       </div>
       <div className="nx-hero-scrim" aria-hidden="true" />
       <div className="nx-hero-body nx-container">
-        <p className="nx-eyebrow">Inmobiliaria en Baja California</p>
         <h1 id="hero-title" className="nx-hero-title">
           <span className="nx-hero-line"><span>La venta empieza</span></span>{" "}
           <span className="nx-hero-line"><span>antes del anuncio.</span></span>

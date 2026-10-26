@@ -3,7 +3,7 @@
   elegida por el titular el 18/10/2026). Banda de cabecera con el visor (sigue el tema), franja
   azul de datos clave, cuerpo claro con índice y tarjeta de visita fijos.
 */
-.fe-page { --fe-ease: cubic-bezier(0.16, 1, 0.3, 1); overflow-x: clip; }
+.fe-page { --fe-ease: cubic-bezier(0.25, 1, 0.5, 1); overflow-x: clip; }
 .fe-page :is(#descripcion, #caracteristicas, #beneficios, #ubicacion, #ficha-tecnica, #documentos, #costos, #preguntas, #interes) { scroll-margin-top: 140px; }
 
 /* Banda de cabecera: crema en claro, noche con resplandor vino en oscuro */
@@ -43,7 +43,7 @@
 .fe-visor-actions > a:hover, .fe-visor-actions > button:hover { border-color: color-mix(in srgb, var(--ns-ink) 50%, transparent); background: color-mix(in srgb, var(--ns-ink) 8%, transparent); color: var(--ns-strong); }
 .fe-visor-actions > p { flex-basis: 100%; margin: 0; color: color-mix(in srgb, var(--ns-ink) 70%, transparent) !important; font-size: 13px; text-align: right; }
 .fe-visor-actions > input { flex-basis: 100%; border-color: color-mix(in srgb, var(--ns-ink) 20%, transparent) !important; background: var(--ns-deep) !important; color: var(--ns-strong); }
-.fe-visor-pdf { border-color: rgba(229, 130, 155, 0.5) !important; color: var(--ns-accent) !important; }
+.fe-visor-pdf { border-color: color-mix(in srgb, var(--ns-accent) 50%, transparent) !important; color: var(--ns-accent) !important; }
 .fe-visor-stage { position: relative; }
 .fe-visor .property-gallery-main { position: relative; height: clamp(280px, 52vw, 620px); overflow: hidden; background: #060c14; }
 .fe-visor-zoom { position: absolute; inset: 0; z-index: 1; cursor: zoom-in; }
@@ -80,6 +80,7 @@
 
 /* Franja de datos clave */
 .fe-facts { background: #061f3f; color: #fff; }
+.fe-facts, .fe-benefits li, .fe-visit { --ns-accent: #f5f1eb; }
 .fe-facts .property-key-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; padding-block: 0; }
 .fe-facts .property-key-facts > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 4px; padding: 24px 22px; border-left: 1px solid rgba(255, 255, 255, 0.12); }
 .fe-facts .property-key-facts > div:first-child { border-left: 0; padding-left: 0; }
@@ -109,7 +110,7 @@
 .fe-group li svg { flex: none; margin-top: 3px; color: var(--primary-text, #8a1634); }
 .fe-benefits { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
 .fe-benefits li { display: grid; gap: 10px; align-content: start; padding: 24px; border-radius: 20px; background: #061f3f; color: #f5f1eb; }
-.fe-benefits .pg-number { -webkit-text-stroke-color: #e5829b; }
+.fe-benefits .pg-number { -webkit-text-stroke-color: var(--ns-accent); }
 .fe-benefits h3 { margin: 0; font-size: 19px; font-weight: 620; line-height: 1.25; }
 .fe-benefits p { margin: 0; color: rgba(245, 241, 235, 0.75); font-size: 15px; line-height: 1.55; }
 .fe-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
@@ -166,13 +167,13 @@
 .fe-visit-agent span span { display: block; color: rgba(245, 241, 235, 0.7); font-size: 13px; }
 .fe-visit-title { margin: 0; font-size: 20px; font-weight: 620; }
 .fe-visit-lead { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; color: rgba(245, 241, 235, 0.85); font-size: 14px; }
-.fe-visit-lead svg { flex: none; color: #e5829b; }
+.fe-visit-lead svg { flex: none; color: var(--ns-accent); }
 .fe-visit-days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .fe-visit-days button, .fe-visit-day-placeholder { display: grid; justify-items: center; gap: 2px; min-height: 60px; padding: 8px 0; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 14px; color: #f5f1eb; cursor: pointer; transition: background-color 0.25s, border-color 0.25s; }
 .fe-visit-days button span { color: rgba(245, 241, 235, 0.7); font-size: 12px; text-transform: capitalize; }
 .fe-visit-days button strong { font-size: 18px; font-weight: 650; }
 .fe-visit-days button:hover { border-color: rgba(255, 255, 255, 0.5); }
-.fe-visit-days button[aria-pressed="true"] { border-color: #e5829b; background: rgba(229, 130, 155, 0.18); }
+.fe-visit-days button[aria-pressed="true"] { border-color: var(--ns-accent); background: color-mix(in srgb, var(--ns-accent) 18%, transparent); }
 .fe-visit-cta { width: 100%; min-height: 54px; border-radius: 14px; }
 .fe-visit-form { padding: 18px; border-radius: 18px; background: #f5f1eb; color: #061f3f; --foreground: #061f3f; --muted-foreground: #40536b; --border: rgba(6, 31, 63, 0.16); --input: rgba(6, 31, 63, 0.2); --background: #fff; --card: #fff; --primary-text: #8a1634; }
 .fe-visit-channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }

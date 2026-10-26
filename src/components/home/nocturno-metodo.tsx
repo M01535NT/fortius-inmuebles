@@ -30,7 +30,7 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
       gsap.timeline({
         scrollTrigger: {
           trigger: section, start: "top top", end: () => `+=${distance() + innerHeight * 0.75}`,
-          pin: true, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true,
+          pin: true, scrub: 1.2, anticipatePin: 1, invalidateOnRefresh: true,
           // The lit stage is the card nearest a focus point that travels with the
           // scroll. Layout offsets (not the scrubbed transform) keep it exact.
           onUpdate: (self) => {
@@ -49,13 +49,14 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
       })
         .to(track, { x: () => -distance(), ease: "none" }, 0)
         .fromTo(".nx-progress-fill", { scaleX: 0 }, { scaleX: 1, ease: "none" }, 0)
-        .to(".nx-method-ghost", { xPercent: -38, ease: "none" }, 0)
         .to(".nx-method-glow", { xPercent: 95, ease: "none" }, 0);
       // Entrance, created after the pin so its start accounts for the pin spacer.
-      gsap.fromTo(cards, { y: 90, opacity: 0, rotate: 2 }, {
-        y: 0, opacity: 1, rotate: 0, duration: 1.2, stagger: 0.08, ease: "expo.out", clearProps: "opacity,transform,translate,rotate,scale",
-        scrollTrigger: { trigger: viewport, start: "top 92%", toggleActions: "play none none reverse" },
+      // Movimiento pausado; la opacidad llega antes para que el texto se lea mientras entra.
+      const enter = { trigger: viewport, start: "top 92%", toggleActions: "play none none reverse" };
+      gsap.fromTo(cards, { y: 90, rotate: 2 }, {
+        y: 0, rotate: 0, duration: 1.6, stagger: 0.14, ease: "power3.out", clearProps: "transform,translate,rotate,scale", scrollTrigger: enter,
       });
+      gsap.fromTo(cards, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.14, ease: "power1.out", clearProps: "opacity", scrollTrigger: enter });
       return () => setActive(-1);
     });
 
@@ -76,7 +77,6 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
 
   return (
     <section ref={ref} id="metodo" aria-labelledby="metodo-title" className="nx-method">
-      <span className="nx-method-ghost" aria-hidden="true">MÉTODO FORTIUS · MÉTODO FORTIUS · MÉTODO FORTIUS ·</span>
       <span className="nx-method-glow" aria-hidden="true" />
       <div className="nx-container">
         <div className="nx-method-head">
