@@ -10,9 +10,10 @@ import { loadLetterhead } from "./letterhead-server";
 import { drawFortiusLetterhead, embedFortiusLetterhead } from "./pdf-letterhead";
 
 type Options = { settings: SiteSettings | null; adviser?: Asesor; siteUrl: string; loadImage: (src: string) => Promise<Uint8Array | null> };
+// Marca Fortius: azul para el texto, gris azulado para lo secundario y borgoña como acento.
 const burgundy = rgb(138 / 255, 22 / 255, 52 / 255);
-const ink = rgb(.08, .09, .1);
-const muted = rgb(.34, .36, .39);
+const ink = rgb(6 / 255, 31 / 255, 63 / 255);
+const muted = rgb(64 / 255, 83 / 255, 107 / 255);
 // Letter paper, with the same generous margins as the supplied editorial reference.
 const width = 612, height = 792, margin = 46, content = width - margin * 2;
 const body = letterheadBounds(width,height);
@@ -22,14 +23,15 @@ const bottom = height - body.bottom - 10, start = body.top;
 export async function createPropertyPdf(p: Property, options: Options): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
-  const [regular, bold, serif] = await Promise.all(
-    ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf", "LibreCaslonText-Regular.ttf"].map(async name =>
+  // Solo sans serif (Archivo): seminegrita para títulos y cifras.
+  const [regular, bold] = await Promise.all(
+    ["Archivo-Regular.ttf", "Archivo-SemiBold.ttf"].map(async name =>
       pdf.embedFont(await readFile(join(process.cwd(), "public", "fonts", name)), { subset: true })
     )
   );
   const art = await embedFortiusLetterhead(pdf, await loadLetterhead());
   const supported = new Map<PDFFont, Set<number>>();
-  for (const font of [regular, bold, serif]) supported.set(font, new Set(font.getCharacterSet()));
+  for (const font of [regular, bold]) supported.set(font, new Set(font.getCharacterSet()));
   const clean = (s: string, font = regular) => Array.from(s.normalize("NFC").replace(/[\u2010-\u2015]/g, "-")).filter(c => supported.get(font)!.has(c.codePointAt(0)!)).join("");
   const wrap = (value: string, size: number, font = regular, max = content) => {
     const result: string[] = [];
@@ -57,7 +59,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   const next = () => { page = pdf.addPage([width, height]); header(); };
   const ensure = (space: number) => { if (y + space > bottom && y > start) next(); };
   const text = (value: string, size = 10.5, font = regular, color = ink, gap = 7) => {
-    const leading = size * (font === serif ? 1.18 : 1.45);
+    const leading = size * (size >= 16 ? 1.15 : 1.45);
     const lines = wrap(value, size, font);
     for (const [index, line] of lines.entries()) {
       // Keep at least two opening/closing lines of a paragraph together in print.
@@ -69,10 +71,14 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     }
     y += gap;
   };
+  // Barra corta borgoña sobre cada título de sección.
+  const accent = (x: number, top: number) => page.drawRectangle({ x, y: height - top - 3, width: 24, height: 3, color: burgundy });
   const section = (label: string, minimum = 35) => {
-    ensure(39 + minimum);
+    ensure(42 + minimum);
     y += 9;
-    text(label, 21, serif, ink, 7);
+    accent(margin, y);
+    y += 11;
+    text(label, 17, bold, ink, 8);
   };
   const safeUrl = (value: string, contact = false) => {
     try {
@@ -97,10 +103,10 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   pdf.catalog.set(PDFName.of("Lang"), PDFString.of("es-MX"));
   header();
   text(`${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()} · ${ESTADO_LABELS[p.estado]}`, 10, regular, muted, 7);
-  const titleSize = wrap(p.titulo, 33, serif).length > 2 ? 28 : 33;
-  text(p.titulo, titleSize, serif, ink, 7);
+  const titleSize = wrap(p.titulo, 30, bold).length > 2 ? 25 : 30;
+  text(p.titulo, titleSize, bold, ink, 7);
   text([p.zona, p.direccionAproximada].filter(Boolean).join(" · "), 10, regular, muted, 9);
-  text(formatPrecio(p.precio), 23, serif, burgundy, 12);
+  text(formatPrecio(p.precio), 21, bold, burgundy, 12);
   if (p.demo) text("Demostración · Datos y precio de ejemplo, sin oferta real.", 9, bold, burgundy, 8);
 
   // Use the first available property photograph as the cover, preserving order.
@@ -127,23 +133,24 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     break;
   }
 
-  type Row = { value: string; font: PDFFont; size: number; color: typeof ink; space: number; href?: string };
+  type Row = { value: string; font: PDFFont; size: number; color: typeof ink; space: number; href?: string; accent?: boolean };
   const row = (value: string, font = regular, size = 10.5, color = ink, space = 0): Row => ({ value, font, size, color, space });
   const linkedRow = (label: string, value: string, contact = false): Row[] => {
     const href = safeUrl(value, contact);
     return href ? [{ ...row(label, regular, 10, burgundy, 4), href }] : [];
   };
   const expand = (rows: Row[], max: number) => rows.flatMap(r => wrap(r.value, r.size, r.font, max).map((value, index, lines) => ({ ...r, value, space: index === lines.length - 1 ? r.space : 0 })));
-  const rowHeight = (r: Row) => r.size * (r.font === serif ? 1.25 : 1.45) + r.space;
+  const rowHeight = (r: Row) => r.size * (r.size >= 16 ? 1.2 : 1.45) + r.space + (r.accent ? 14 : 0);
   const renderRows = (rows: Row[], x: number, top: number) => {
     for (const r of rows) {
+      if (r.accent) { accent(x, top); top += 14; }
       draw(r.value, x, top, r.size, r.font, r.color);
       // Each wrapped link line gets its own correctly positioned annotation.
       if (r.href) page.node.addAnnot(pdf.context.register(pdf.context.obj({
         Type: "Annot", Subtype: "Link", Rect: [x, height - top - r.size - 3, x + r.font.widthOfTextAtSize(r.value, r.size), height - top + 2], Border: [0, 0, 0],
         A: { Type: "Action", S: "URI", URI: PDFString.of(r.href) },
       })));
-      top += rowHeight(r);
+      top += rowHeight(r) - (r.accent ? 14 : 0);
     }
     return top;
   };
@@ -152,7 +159,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   const leftWidth = 306, rightWidth = 176, rightX = width - margin - rightWidth;
   const specs: Row[] = [];
   for (const [label, value, source] of [["Construcción", p.ficha.construccionM2, p.informacionPublica?.fuenteConstruccion], ["Terreno", p.ficha.terrenoM2, p.informacionPublica?.fuenteTerreno]] as const) {
-    if (value != null) specs.push(row(`${value} m²`, serif, 22), row(`${label} · ${source ? FUENTE_SUPERFICIE_LABELS[source] : "fuente por confirmar"}`, regular, 9, muted, 7));
+    if (value != null) specs.push(row(`${value} m²`, bold, 20), row(`${label} · ${source ? FUENTE_SUPERFICIE_LABELS[source] : "fuente por confirmar"}`, regular, 9, muted, 7));
   }
   if (p.ficha.recamaras != null) specs.push(row(`${p.ficha.recamaras} ${p.ficha.recamaras === 1 ? "recámara" : "recámaras"}`));
   if (p.ficha.banos != null) specs.push(row(`${p.ficha.banos} ${p.ficha.banos === 1 ? "baño" : "baños"}`));
@@ -167,8 +174,9 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     const remaining = [...description];
     const narrativeWidth = specLines.length ? leftWidth : content;
     if (description.length) {
-      draw("La propiedad", margin, narrativeY, 21, serif);
-      narrativeY += 38;
+      accent(margin, narrativeY);
+      draw("La propiedad", margin, narrativeY + 14, 17, bold);
+      narrativeY += 46;
       // Prefer complete paragraphs; a long opening still needs a readable cover excerpt.
       for (const paragraph of description) {
         const normalized = clean(paragraph).replace(/\s+/g, " ").trim();
@@ -236,8 +244,8 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
     }
   };
   columns(
-    p.amenidades.length ? [row("Amenidades", serif, 21, ink, 9), ...p.amenidades.map(a => row(a, regular, 10, ink, 3))] : [],
-    p.puntosDeInteres.length ? [row("Alrededores", serif, 21, ink, 9), row("Tiempo aproximado en auto", regular, 8.5, muted, 6), ...p.puntosDeInteres.map(point => row(`${point.lugar} · ${point.minutos} min`, regular, 10, ink, 3))] : []
+    p.amenidades.length ? [{ ...row("Amenidades", bold, 17, ink, 9), accent: true }, ...p.amenidades.map(a => row(a, regular, 10, ink, 3))] : [],
+    p.puntosDeInteres.length ? [{ ...row("Alrededores", bold, 17, ink, 9), accent: true }, row("Tiempo aproximado en auto", regular, 8.5, muted, 6), ...p.puntosDeInteres.map(point => row(`${point.lugar} · ${point.minutos} min`, regular, 10, ink, 3))] : []
   );
   if (p.operacion === "venta") text(p.creditoDisponible ? "Crédito sujeto a evaluación" : "Crédito: consultar con el asesor", 9, regular, muted, 10);
   section("Disponibilidad y entrega");
@@ -277,7 +285,7 @@ export async function createPropertyPdf(p: Property, options: Options): Promise<
   }
   if (gallery.length) galleryRow();
 
-  const contactRows: Row[] = [row("Contacto", serif, 21, ink, 9)];
+  const contactRows: Row[] = [{ ...row("Contacto", bold, 17, ink, 9), accent: true }];
   if (options.adviser) {
     contactRows.push(row(options.adviser.nombre, bold, 11, ink, 1));
     if (options.adviser.cargo) contactRows.push(row(options.adviser.cargo, regular, 9, muted, 7));
