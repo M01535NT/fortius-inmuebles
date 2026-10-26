@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Download, FileText, Images, Maximize2, Play, Rotate3d, X, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Images, Maximize2, Play, Rotate3d, X, type LucideIcon } from "lucide-react";
 
 import type { ImagenPropiedad } from "@/data/propiedades";
 import { PropertyShare } from "@/components/property/property-share";
@@ -74,9 +74,6 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
           ))}
         </div>
         <div className="fe-visor-actions">
-          {fichaUrl && <a href={fichaUrl} download aria-label="Ficha técnica (descargar PDF)" className="fe-visor-pdf">
-            <Download size={16} strokeWidth={1.8} aria-hidden="true" />PDF
-          </a>}
           {share && <PropertyShare {...share} />}
         </div>
       </div>

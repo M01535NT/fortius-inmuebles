@@ -86,7 +86,7 @@ for (const width of [390, 1440]) {
     }
     await page.locator("[data-property-card] a").first().click();
     await expect(page.locator(".property-gallery-photos")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Ficha técnica (descargar PDF)", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ficha técnica", exact: true })).toBeVisible();
     const second = page.getByRole("button", { name: "Ver imagen 2", exact: true });
     if (await second.count()) {
       await second.click();

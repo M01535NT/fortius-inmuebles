@@ -43,7 +43,6 @@
 .fe-visor-actions > a:hover, .fe-visor-actions > button:hover { border-color: color-mix(in srgb, var(--ns-ink) 50%, transparent); background: color-mix(in srgb, var(--ns-ink) 8%, transparent); color: var(--ns-strong); }
 .fe-visor-actions > p { flex-basis: 100%; margin: 0; color: color-mix(in srgb, var(--ns-ink) 70%, transparent) !important; font-size: 13px; text-align: right; }
 .fe-visor-actions > input { flex-basis: 100%; border-color: color-mix(in srgb, var(--ns-ink) 20%, transparent) !important; background: var(--ns-deep) !important; color: var(--ns-strong); }
-.fe-visor-pdf { border-color: color-mix(in srgb, var(--ns-accent) 50%, transparent) !important; color: var(--ns-accent) !important; }
 .fe-visor-stage { position: relative; }
 .fe-visor .property-gallery-main { position: relative; height: clamp(280px, 52vw, 620px); overflow: hidden; background: #060c14; }
 .fe-visor-zoom { position: absolute; inset: 0; z-index: 1; cursor: zoom-in; }
