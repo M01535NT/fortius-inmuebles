@@ -13,7 +13,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     const seller = hero.getByRole("link", { name: /Pide una opinión de valor/ });
     await expect(seller).toHaveAttribute("href", "/vender-propiedad");
     await expect(page.locator("#destacadas [data-property-card]")).toHaveCount(3);
-    await expect(page.locator("#destacadas").getByText(/Demostración/)).toHaveCount(3);
+    await expect(page.locator("#destacadas").getByText(/de ejemplo$/)).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText("Apartada de ejemplo", { exact: true })).toBeVisible();
     await expect(page.locator("[data-method-timeline] li")).toHaveCount(6);
     await expect(page.locator("#entregables article")).toHaveCount(6);

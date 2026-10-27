@@ -38,7 +38,7 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
       // El desplazamiento es pausado; la opacidad llega antes para que el texto se lea mientras se mueve.
       const enter = { trigger: ref.current, start: "top 80%", toggleActions: "play none none reverse" };
       gsap.from(".nx-exp-copy > *", { y: 32, duration: 1.4, stagger: 0.14, ease: "power3.out", scrollTrigger: enter });
-      gsap.from(".nx-exp-copy > *", { opacity: 0, duration: 0.5, stagger: 0.14, ease: "power1.out", scrollTrigger: enter });
+      gsap.from(".nx-exp-copy > *", { opacity: 0, duration: 0.5, stagger: 0.06, ease: "expo.out", scrollTrigger: enter });
       return () => { setReady(EXAMPLE_READY); setPillar(-1); };
     });
     return () => media.revert();
