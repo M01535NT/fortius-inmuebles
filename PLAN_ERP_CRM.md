@@ -155,7 +155,7 @@ Los nombres de renta están desfasados un lugar respecto a lo que cierra cada es
 ### Pendiente del titular para cerrar la matriz
 
 - **B-06 · Formas de pago y sus documentos:** propuesta del agente a partir de fuentes oficiales consultadas el 26/10/2026, **pendiente de aprobación del titular** (ver la tabla siguiente). Es la fuente de COR-06 para los documentos de cada forma de pago.
-- **B-07 · Tipos de inmueble y municipios:** la lista de documentos por tipo y por municipio. Sin ella, COR-06 sigue con la lista actual más «No aplica».
+- **B-07 · Tipos de inmueble y municipios:** propuesta del agente a partir de fuentes oficiales consultadas el 26/10/2026, **pendiente de aprobación del titular** (ver la segunda tabla). Falta que el titular diga en qué municipios trabaja Fortius además de Tijuana.
 
 **Documentos del vendedor según la forma de pago del comprador (B-06, propuesta del 26/10/2026).** Solo lo que entrega el vendedor (el cliente de Fortius); lo que el comprador presenta a su instituto o banco no entra en la lista del propietario. Cada grupo se suma al grupo A.
 
@@ -168,6 +168,22 @@ Los nombres de renta están desfasados un lugar respecto a lo que cierra cada es
 | E · Contado | No hay lista oficial: los requisitos los fija el notario. Aplica el grupo A, más lo que el notario pida para el impuesto de traslado de dominio y el cálculo del ISR. | — |
 
 **Por confirmar antes de aprobar:** la constancia de no adeudo predial de Tijuana (no aparece en la página del Ayuntamiento; consultar a la Tesorería Municipal); si el notario de Fortius pide el certificado de libertad de gravámenes fiscales de la Junta de Urbanización ([trámite](https://www.bajacalifornia.gob.mx/junta_urbanizacion/Servicios/CLGF), $586.59 en Tijuana); la lista vigente de Infonavit. Costos y plazos son los publicados en la fecha de consulta y pueden cambiar.
+
+**Documentos adicionales del vendedor según el tipo de inmueble y el municipio (B-07, propuesta del 26/10/2026).** Se suman al grupo A de B-06.
+
+| Caso | Documentos | Fuente oficial y fecha |
+|---|---|---|
+| Departamento o local en condominio | Constancia de no adeudo de cuotas (mantenimiento, administración, fondo de reserva y extraordinarias) expedida por el administrador; reglamento del condominio. Sin la constancia, el comprador responde solidariamente por esos adeudos y el notario debe advertirlo. | [Ley sobre el Régimen de Propiedad en Condominio de Inmuebles para el Estado de Baja California](https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_IV/LEYINMUEBLE_28ABR2017.PDF) (versión del 28/04/2017; no se confirmó si hay reformas posteriores). |
+| Terreno | Deslinde catastral o levantamiento certificado por catastro, hecho por perito registrado (Tijuana: $808, vigencia de un año). Sin toma de agua no se pide la constancia del organismo de agua. | [Tijuana, certificación de deslinde](https://www.tijuana.gob.mx/tramite.aspx?tramite=124); [Reglamento del catastro inmobiliario](https://www.tijuana.gob.mx/normatividad/documentos/Reglamentos/40_202111261471588_wp.pdf). |
+| Local, oficina, nave o plaza | Dictamen de uso de suelo (vigencia de un año) o constancia de zonificación (seis meses); licencia de construcción. | [Tijuana, dictamen de uso de suelo](https://www.tijuana.gob.mx/tramite.aspx?tramite=103); [Uso de suelo, Administración Urbana](https://www.tijuana.gob.mx/dependencias/sdue/dau/usodesuelo.aspx). |
+| Casa | Sin documentos adicionales. | — |
+| Terreno o vivienda del INDIVI | Constancia de no adeudo del INDIVI (precio pagado completo al instituto). | [INDIVI, constancia de no adeudo](https://retys.bajacalifornia.gob.mx/Portal/TyS/749?perfilId=1). |
+| Tijuana y Rosarito | Constancia de no adeudo de la CESPT (vigencia de seis meses). | [CESPT, constancia de no adeudo](https://retys.bajacalifornia.gob.mx/Portal/TyS/1594?temaId=10). |
+| Ensenada | Constancia de la CESPE: pide deslinde reciente y cuenta sin adeudo (unos $251). | [CESPE, expedición de constancias](https://retys.bajacalifornia.gob.mx/Portal/TyS/867?temaId=10); [trámites de la CESPE](https://retys.bajacalifornia.gob.mx/Portal/TySByOrganismo/76). |
+| Tecate | Certificado de libertad de gravamen de la CESPTE (ficha oficial sin requisitos ni costo). | Portal estatal de trámites; **confirmar por teléfono**. |
+| Mexicali | Firma de libre gravamen de la CESPM (ficha oficial sin requisitos ni costo). | Portal estatal de trámites; **confirmar por teléfono**. |
+
+**Por confirmar antes de aprobar B-07:** en qué municipios trabaja Fortius además de Tijuana (si solo Tijuana y Rosarito, se retiran las filas de los demás); requisitos de alineamiento y número oficial en Tijuana (no hay ficha oficial; consultar a Administración Urbana); si la ley de condominios tiene reformas posteriores a 2017.
 
 Ya resuelto el 26/10/2026:
 
@@ -1849,7 +1865,7 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | IA-01 | 1 | pendiente | clave de API del titular |
 | DOC-15 | 2 | pendiente | COR-06 |
 | LV-05 | 2 | terminada | PR #45, #46 y #47 (18/10/2026) |
-| MRP-01 | 2 | en_revision | DEC-26: venta, renta y B-16 aprobados el 26/10/2026; faltan B-06 (propuesta con fuentes) y B-07 |
+| MRP-01 | 2 | en_revision | DEC-26: venta, renta y B-16 aprobados el 26/10/2026; faltan aprobar B-06 y B-07 (propuestas con fuentes) |
 | USO-01 | 4 | pendiente | ninguna |
 | CAP-01 | 1 | pendiente | SIM-01, SIM-09, COR-01 |
 | CAP-02 | 1 | pendiente | CRM-02 |
