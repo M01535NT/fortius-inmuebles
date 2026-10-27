@@ -83,6 +83,19 @@ test("interviews report the sections still missing, dates and greetings read nat
   expect([greeting(8), greeting(13), greeting(21)]).toEqual(["Buenos días", "Buenas tardes", "Buenas noches"]);
 });
 
+test("COR-03: Hoy names the stage with the operation's documents instead of calling it «Prospecto»", async () => {
+  const started = dossier({ etapa: "captacion", propiedad_slug: null, cliente_id: undefined, requisitos: {} });
+  vi.stubGlobal("fetch", async (url: string) => {
+    if (url.includes("/api/admin/expedientes")) return Response.json({ expedientes: [started] });
+    if (url.includes("/api/admin/documentos")) return Response.json({ documentos: [{ id: "doc", expedienteId: "d1", folio: started.folio, formatoId: "02", version: 1, actualizadoEl: today, emitido: true }], total: 1, nextOffset: null });
+    return Response.json({ records: [], expedientes: [], entrevistas: [], runs: [], ultimos: {} });
+  });
+  render(<AdminDashboard />);
+  const card = await screen.findByRole("link", { name: `Continuar con ${started.folio}` });
+  await waitFor(() => expect(card.textContent).toContain("Entrevista inicial"));
+  expect(card.textContent).not.toContain("Prospecto");
+});
+
 test("a task is marked done from Hoy and the change is saved", async () => {
   const writes: Array<Record<string, unknown>> = [];
   vi.useFakeTimers({ toFake: ["Date"] });

@@ -1,12 +1,12 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 25 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 26 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
 **Cómo leer este plan:** primero «Estado vigente» y «Etapas por ruta»; después «Dirección del producto y reglas vigentes» (qué se construye y con qué reglas); luego los paquetes listos para implementar, «Simplificación de la interfaz (SIM)», «Navegación y productividad (NAV)», «Lenguaje visual (LV)», «Proceso, captura y documentos» (correcciones COR, captura CAP, ficha única FCH y motor de procesos MOT) y «Herramientas para trabajo suelto (HER)»; después «Dónde nos quedamos» y «Qué sigue» (estado actual); el resto es alcance, backlog, tareas detalladas y el registro histórico de entregas. Si un registro histórico contradice una regla vigente, manda la regla vigente.
 
-## Estado vigente — 18/10/2026
+## Estado vigente — 26/10/2026
 
 **Qué hay construido (en `main`):** panel guiado (Fase C, PR #39, publicado en el dominio el 17/10/2026); Operaciones según el boceto C (lista «Esperan algo de ti / Al día» con filtros por fase, «Ahora toca», ventana de captura por documento); las 10 etapas del vendedor agrupadas en cuatro fases en pantalla (Conocer · Revisar · Preparar y publicar · Vender y cerrar); entrevista 02 y levantamiento 04 sencillos; menú lateral y membrete común en Word y PDF; formatos 01–19 en PDF y Word, salvo el PDF del contrato 09, que sigue bloqueado hasta resolver DOC-09 y por ahora sale solo en Word; opinión de valor 07 en PDF y Excel; «Documentos sin expediente». Los cambios del boceto C en adelante se integraron en `main` el 17/10/2026; su publicación en el dominio no está comprobada en este registro.
 
@@ -16,7 +16,9 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 
 **Pendientes reales, en orden:** USO-01 (observar el panel actual con tres personas) y MRP-01 (matriz de reglas por ruta); correcciones COR-01 a COR-10; pendientes de formatos (diseño y fotos del 07, DOC-06, decisión de DOC-09); después, el bloque 2 del «Orden vigente». En paralelo, la continuidad del bloque 0, en especial la recuperación completa: los respaldos de base de datos de Supabase no incluyen los archivos de Storage (REC-01).
 
-**Siguiente entrega:** MRP-01 (los grupos A y B del cuestionario ya están respondidos y escritos como RP-90 a RP-98) y COR-01 a COR-03.
+**Siguiente entrega (en curso desde el 26/10/2026, rama `feat/mrp01-cor01-03`):** MRP-01, COR-01 a COR-03 y COR-13. La matriz «Matriz de reglas por ruta (MRP-01)» quedó **aprobada por el titular el 26/10/2026 (DEC-26)**, con las listas B-06 y B-07; con ella pueden empezar COR-04, COR-06 y MOT-01. COR-01 a COR-03 no cambian la base de datos; COR-13 lleva una migración que se aplica en remoto solo con autorización del titular.
+
+**Seguridad de dependencias, 25/10/2026:** Next.js 16.4.3 y zod 4.6.7 por avisos de seguridad, integrados en `main` con el [PR #51](https://github.com/M01535NT/fortius-inmuebles/pull/51).
 
 **Preguntas abiertas para el titular:** [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md), cuestionario único que reúne y depura los tres anteriores (preguntas al titular A–K, complemento P01–P84 y preguntas para precisar el panel); conserva los identificadores A–K y una tabla de procedencia. Cada pregunta dice qué entrega bloquea y trae una propuesta; cada respuesta se integra en este plan como regla o decisión, según «Cómo se mantiene este plan». El archivo no es un plan paralelo: solo guarda preguntas y respuestas.
 
@@ -77,7 +79,130 @@ Los nombres de renta están desfasados un lugar respecto a lo que cierra cada es
 
 **Inversión** (ruta `inversion`): Mandato y criterios → Alternativas → Diligencia y riesgos → Escenarios → Decisión y capital → Ejecución vinculada → Seguimiento de resultados → Archivado (perfil y privacidad; criterios; riesgos; escenarios y capacidad; decisión y ejecución; seguimiento; honorarios y archivo). El inversionista es la excepción a RP-93: es cliente de Fortius desde que firma un contrato de asesoría o mandato (RP-90). La ruta se queda como está, sin trabajo nuevo hasta que haya un caso real (RP-98).
 
-**Lo que falta definir y queda en MRP-01:** qué puede empezar en paralelo (la entrevista y el levantamiento se hacen en la misma visita; publicación, visitas y negociación coexisten) y qué excepciones se aceptan con motivo. Los ciclos de oferta rechazada y promesa caída, los estados de pausa y regularización y el cierre ya están decididos (RP-96 y RP-98).
+**Lo que falta definir y queda en MRP-01:** qué puede empezar en paralelo (la entrevista y el levantamiento se hacen en la misma visita; publicación, visitas y negociación coexisten) y qué excepciones se aceptan con motivo. Los ciclos de oferta rechazada y promesa caída, los estados de pausa y regularización y el cierre ya están decididos (RP-96 y RP-98). La matriz siguiente lo resuelve.
+
+## Matriz de reglas por ruta (MRP-01) — aprobada por el titular el 26/10/2026 (DEC-26)
+
+**Estado: aprobada por el titular el 26/10/2026 (DEC-26).** Venta, renta, quién revisa y B-16 los revisó punto por punto; B-06 y B-07 los aprobó como están, dejando al agente decidir lo pendiente: los puntos por confirmar quedan como tareas de COR-06, no como bloqueos. Reúne en un solo lugar lo que ya decidió el titular (RP-82 a RP-99 y las respuestas B-01 a B-17 de [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md)) y lo compara con lo que hoy exige el servidor (`requiredReviews` y los candados de arranque en `src/lib/formatos/operation-workflow.ts` y `operation-gates.ts`). No cambia código. Cuando el titular la apruebe (DEC-26) es la fuente de COR-04 (renta), de la lista de documentos de COR-06 y del contenido de la versión 1 del motor (MOT-01). Hasta entonces, manda «Etapas por ruta».
+
+**Cómo leerla.** «Decidido» cita la regla o la respuesta del titular; **«Propuesta»** es un hueco que el agente llenó y que el titular confirma o corrige. Cada etapa dice qué se hace y con qué evidencia, quién revisa, desde cuándo puede empezar, qué la termina, qué autoriza avanzar, publicar o firmar, qué excepción se admite y qué puede ir en paralelo.
+
+**Reglas comunes a todas las rutas.**
+
+- **Un dato faltante nunca detiene** (RP-82). Detienen los requisitos revisados de la etapa y los requisitos de protección.
+- **Capturar no espera; avanzar sí.** El asesor puede capturar o subir el documento de otra etapa en cuanto lo tenga; solo avanzar de etapa, publicar y firmar esperan su candado (B-04, RP-87).
+- **Revisado necesita respaldo.** Un requisito cuenta como revisado con soporte escrito y evidencia: documento con versión, PDF emitido, adjunto o evidencia externa con fecha, responsable y resultado. Los que tienen vigencia (factibilidad y revisión para cerrar) deben estar vigentes (código actual, RP-85).
+- **Requisitos de protección, que nunca se saltan** (B-13, RP-96): quién es dueño y quién firma (titularidad); opinión jurídica y comercial antes de firmar la intermediación; firma acreditada; pagos para entregar cumplidos según contrato.
+- **Saltar cualquier otro requisito:** solo el director, con motivo escrito y constancia en el historial (B-13, RP-31).
+- **Estado de la operación**, aparte de la etapa (B-16, RP-98): Activa, En pausa, En regularización o Descartada.
+- **Ciclos** (B-05, RP-98): una oferta rechazada no mueve la etapa; una promesa caída regresa a «Publicación y seguimiento» sin perder historial; dictamen, opinión de valor y contrato siguen valiendo salvo un cambio que obligue a revisarlos; una revisión que descubre faltantes abre pendientes sin reiniciar la operación (RP-87).
+- **Alta directa** (B-15): entra en la etapa elegida con nota de antecedentes; los documentos que ya existan se suben como recibidos. Los requisitos de protección de las etapas posteriores siguen aplicando.
+- **Quién revisa** (aprobado el 26/10/2026, salvo donde se cita otra cosa): el asesor de la operación prepara y registra; el director marca «Revisado» en lo jurídico, el precio, la decisión de tomar el encargo, la firma de contratos y la autorización de publicar. El asesor marca revisado lo operativo (entrevista, levantamiento, lista de documentos, visitas, entrega). Hoy cualquier usuario del panel con rol de personal puede marcar revisado; separar por rol es SEG-01.
+
+### Venta del propietario (ruta `captacion`)
+
+**Contrato que convierte en cliente:** la intermediación (09) firmada y registrada (RP-90, RP-91, RP-97). Antes, el propietario es prospecto y el inmueble está «En captación». El comprador nunca es cliente: es lead y, al firmar promesa o compraventa, contraparte (RP-93).
+
+| Etapa | Qué se hace y con qué evidencia | Quién revisa | Desde cuándo puede empezar | Qué la termina | Qué autoriza | Excepción admitida | En paralelo y ciclos |
+|---|---|---|---|---|---|---|---|
+| 1 Primer contacto | Nombre, un medio de contacto, qué quiere y tipo de inmueble; fecha y medio del contacto (RP-82, F01). | Asesor. | Al primer contacto. | Iniciar la entrevista 02. | — | Alta directa (B-15). | Agendar la cita y enviar el aviso de privacidad en la misma llamada (F03, F04). |
+| 2 Entrevista inicial | Entrevista 02 con lo necesario y «Ampliar» (RP-89); aviso de privacidad presentado. Evidencia: 02 emitido en su versión vigente. | Asesor marca revisada la entrevista. | Al iniciar la 02. | 02 emitido. | — | — | El levantamiento puede hacerse en la misma visita (RP-87). |
+| 3 Levantamiento | Levantamiento 04 de su tipo (04A–04G), fotos y croquis. Evidencia: 04 emitido. | Asesor. | Junto con la entrevista. | 04 emitido. | — | — | Se pide la lista de documentos al cerrar la entrevista (F08). |
+| 4 Lista de documentos | Lista preliminar según la entrevista; cada documento recibido o «No aplica» con motivo (COR-06). | Asesor. | Al terminar la entrevista. | Lista completa. Para salir de `captacion`: entrevista revisada, 02 y 04 emitidos y lista completa (candado de arranque actual). | Avanzar a Revisar. | Documentos «por confirmar» cuando dependen de un dato no capturado (RP-89). | Los documentos que lleguen se pueden revisar ya para el dictamen. |
+| 5 Dictamen jurídico | Titularidad (05) y opinión jurídica o factibilidad (06, con vigencia). | Director (aprobado el 26/10/2026; con el equipo legal). | En cuanto haya documentos suficientes. | 05 y 06 revisados, con resultado: pasa, pasa con condición o no pasa. | Si no pasa, la operación se descarta sin opinión de valor (RP-96). | Ninguna: titularidad es de protección. | La opinión de valor puede hacerse al mismo tiempo (B-04); pero se emite como conclusión solo si la jurídica pasa o pasa con condición (RP-96, D-11). |
+| 6 Opinión de valor y precio | Opinión de valor 07 con comparables; precio y condiciones 08 acordados; decisión de tomar el encargo. | Director decide tomar el encargo (B-03). | Junto con el dictamen. | 07 y 08 revisados y decisión registrada: precio dentro de ±10 % de la opinión de valor y sin impedimentos graves. | Tomar el encargo. | Fuera del ±10 %, el director lo toma con motivo escrito (RP-96). Con condición jurídica, la operación queda «En regularización» (B-03). | — |
+| 7 Contrato y preparación | Intermediación 09 **firmada** (contrato completo, fecha y firmantes, RP-97); levantamiento y material comercial verificados; plan de comercialización 10; autorización de publicación. | Asesor registra la firma; director la marca revisada (RP-97). | Después de las etapas 5 y 6 (protección: no se firma antes, B-04). | 09 firmado y revisado; material, plan y publicación revisados. | Desde la firma revisada: inmueble captado y propietario cliente; publicar. Mientras la firma no se revise: «Captado, por revisar», sin publicar (RP-97). | Varios propietarios: «Firma incompleta» hasta que firmen todos (RP-97). En regularización, publicar necesita autorización del director (RP-96). | Fotos y material pueden prepararse antes de la firma; no se publica ni se ofrece en privado sin ella (RP-91). |
+| 8 Publicación y seguimiento | Publicación en el sitio y portales; informe mensual al propietario con fecha, medio y quién lo envió (RP-88, RP-98). | Asesor. | Con la firma revisada y la publicación autorizada. | Comprador identificado con capacidad comprobada (12). | — | El informe vencido avisa, no detiene. | Publicación, visitas y negociación coexisten (RP-87). Pausa: se retira de la publicación (RP-98). |
+| 9 Visitas y ofertas | Visitas (13) y ofertas (14); revisión actualizada para cerrar (06 vigente); instrumento (15, promesa) y contraparte. | Director revisa la revisión para cerrar y el instrumento (aprobado el 26/10/2026). | Al publicar. | Oferta aceptada, revisión para cerrar vigente, instrumento definido y contraparte identificada. | Firmar la promesa: solo con la condición jurídica resuelta o resuelta por el propio instrumento (RP-96). | Otra inmobiliaria trae al comprador: aliado externo con su porcentaje y acuerdo (B-09). | Oferta rechazada: sigue en esta etapa con la publicación viva. Promesa caída: vuelve a la etapa 8, el comprador vuelve a lead (B-05, RP-93). |
+| 10a Cierre · firma y pago | Firma acreditada del instrumento; pagos para entregar cumplidos según contrato (18). | Director. | Con el instrumento definido. | Firma acreditada y pagos cumplidos. | Entregar. | Ninguna: ambos son de protección. | — |
+| 10b Cierre · entrega | Entrega material con acta (16) y pendientes asentados. | Asesor. | Con firma y pagos. | Acta de entrega. | — | — | — |
+| 10c Cierre · postventa | Registro de la escritura (17, admite «No aplica»); honorarios (18, admite «No aplica»); pedir opinión y referidos (B-11). | Asesor; honorarios, director (aprobado el 26/10/2026). | Tras la entrega. | Registro, honorarios y pendientes resueltos. | Archivar. | — | — |
+| 10d Archivo | Se archiva a los 30 días de la entrega si no queda nada pendiente (B-11). | — | — | — | — | Descartada: se archiva con su motivo sin pasar por postventa (B-11, RP-98). | — |
+
+### Renta del propietario (ruta `arrendador`)
+
+**Contrato que convierte en cliente:** la intermediación para renta firmada y registrada (RP-90, RP-97). Su plantilla todavía no está en el catálogo: se hará a partir de la del titular. El arrendatario es lead y contraparte, nunca cliente (RP-93). Camino aprobado por el titular el 17/10/2026 (B-01, RP-97): **sin** dictamen jurídico completo ni plan de comercialización, salvo que el caso lo necesite y alguien lo agregue; el informe mensual al propietario sí aplica mientras se promueve.
+
+| Paso | Qué se hace y con qué evidencia | Quién revisa | Desde cuándo puede empezar | Qué lo termina | Qué autoriza | Excepción admitida | En paralelo y ciclos |
+|---|---|---|---|---|---|---|---|
+| 1 Entrevista y levantamiento | Entrevista 02 y levantamiento 04 en la misma visita. | Asesor. | Al primer contacto. | 02 y 04 emitidos. | — | Alta directa (B-15). | Se pide la lista de documentos básicos al cerrar la entrevista. |
+| 2 Documentos básicos | Identificación, prueba de propiedad y predial al corriente (B-01). | Asesor; titularidad, director (aprobado el 26/10/2026). | Al terminar la entrevista. | Los tres recibidos y titularidad revisada. | — | Ninguna sobre titularidad (protección). Un dictamen completo se agrega solo si el caso lo pide. | La opinión de renta puede hacerse al mismo tiempo. |
+| 3 Opinión de renta | Opinión de renta con comparables (el mismo 07 con «Operación: Renta», que su plantilla ya admite; decidido el 26/10/2026). | Director. | Junto con los documentos. | Opinión revisada y renta acordada con el propietario. | Tomar el encargo (mismo criterio de ±10 %, **Propuesta**). | Fuera del margen, con motivo del director. | — |
+| 4 Intermediación para renta | Contrato firmado con prueba completa (RP-97). | Asesor registra; director revisa. | Después de los pasos 2 y 3 (protección: no se firma sin opinión jurídica básica y comercial). | Contrato firmado y revisado. | Inmueble captado, propietario cliente, publicar. | Varios propietarios: «Firma incompleta» (RP-97). | — |
+| 5 Publicación | Publicación e informe mensual al propietario. | Asesor. | Con la firma revisada. | Arrendatario interesado. | — | El informe vencido avisa, no detiene. | Publicación, visitas y selección coexisten. |
+| 6 Selección del arrendatario | Investigación: identificación, comprobantes de ingreso y referencias; garantía elegida: fiador con inmueble, póliza jurídica o depósito doble (B-02, RP-97). | Director (aprobado el 26/10/2026). | Al recibir una solicitud. | Arrendatario aceptado con su garantía. | Firmar el contrato de arrendamiento. | Garantía «No aplica» con motivo (código actual). | Solicitud rechazada: sigue publicado. |
+| 7 Contrato de arrendamiento | Contrato firmado con el arrendatario como contraparte. | Director. | Con el arrendatario aceptado. | Contrato firmado (firma acreditada, protección). | — | Ninguna sobre la firma. | — |
+| 8 Depósito y garantías | Recepción del depósito y constitución de la garantía (nota del registro de B-01). | Asesor. | Con el contrato firmado. | Depósito y garantía recibidos (pagos para entregar, protección). | Entregar. | — | — |
+| 9 Entrega con inventario | Acta de entrega con inventario, estado físico y llaves (16). | Asesor. | Con depósito y garantía. | Acta firmada. | — | — | — |
+| 10 Honorarios | Cobro de honorarios (18, admite «No aplica»). | Director (aprobado el 26/10/2026). | Tras la firma o la entrega, según contrato. | Honorarios cobrados. | — | — | — |
+| 11 Seguimiento y archivo | Postventa breve, no administración (RP-97, RP-98). | Asesor. | Tras la entrega. | Término del encargo registrado; archivo a los 30 días si nada queda pendiente (aprobado el 26/10/2026, igual que la venta). | Archivar. | Descartada con su motivo (RP-98). | — |
+
+### Inversión (ruta `inversion`)
+
+**Contrato que convierte en cliente:** el contrato de asesoría o mandato firmado con Fortius (RP-90). Es la única operación que no parte de un inmueble del cliente (RP-94). **Decidido (B-10, RP-98):** la ruta se queda como está (mandato y criterios → alternativas → diligencia y riesgos → escenarios → decisión y capital → ejecución vinculada → seguimiento → archivo), sin trabajo nuevo hasta que haya un caso real. Esta matriz no la detalla más; cuando haya un caso, se agrega con el mismo formato.
+
+### Seguimiento del lead comprador o arrendatario (sin operación)
+
+**Decidido (RP-93, B-08, B-17):** no abre operación ni expediente, no firma contrato con Fortius y nunca pasa a cliente.
+
+| Paso | Qué se hace | Qué lo termina | En paralelo y ciclos |
+|---|---|---|---|
+| Perfilamiento | Qué busca, zona, presupuesto, forma de pago, plazo y capacidad («Quiere comprar» o «Quiere rentar» en Nueva operación, COR-11). | Lead guardado con su próxima acción. | — |
+| Seguimiento | Próxima acción con fecha; si busca algo que Fortius no tiene, se contacta al propietario para captarlo (RP-93). | Visita o descarte con motivo. | Puede seguir varios inmuebles a la vez. |
+| Visitas y ofertas | Se registran en la operación del propietario (13 y 14). | Oferta aceptada. | Oferta rechazada: vuelve a seguimiento sin perder historial. |
+| Contraparte | Al firmar promesa, compraventa o arrendamiento con el cliente, queda como contraparte de esa operación. | Firma del instrumento. | Promesa caída: vuelve a lead en seguimiento (B-05, RP-93). |
+
+### Listas de documentos y pendientes por confirmar
+
+- **B-06 · Formas de pago y sus documentos:** propuesta del agente a partir de fuentes oficiales consultadas el 26/10/2026, **aprobada por el titular el 26/10/2026** (ver la tabla siguiente). Es la fuente de COR-06 para los documentos de cada forma de pago.
+- **B-07 · Tipos de inmueble y municipios:** propuesta del agente a partir de fuentes oficiales consultadas el 26/10/2026, **aprobada por el titular el 26/10/2026** (ver la segunda tabla). Municipios: Tijuana, Rosarito, Ensenada y Tecate (titular, 26/10/2026).
+
+**Documentos del vendedor según la forma de pago del comprador (B-06, aprobada el 26/10/2026).** Solo lo que entrega el vendedor (el cliente de Fortius); lo que el comprador presenta a su instituto o banco no entra en la lista del propietario. Cada grupo se suma al grupo A.
+
+| Grupo | Documentos | Fuente oficial y fecha |
+|---|---|---|
+| A · Siempre | Título o escritura de propiedad **inscrito** en el Registro Público; certificado de inscripción con o sin gravámenes del Registro Público de Baja California (costo consultado: $515, unos 5 días hábiles); predial al corriente; constancia de no adeudo del organismo de agua del municipio (CESPT en Tijuana y Rosarito, CESPE en Ensenada, CESPTE en Tecate; ver B-07); identificación oficial vigente del vendedor; si hay hipoteca, carta del acreedor con el saldo y la instrucción de cancelación. | [Certificado de inscripción con o sin gravámenes, Gobierno de Baja California](https://retys.bajacalifornia.gob.mx/Portal/TyS/539); [Constancia de no adeudo CESPT](https://retys.bajacalifornia.gob.mx/Portal/TyS/1594?temaId=10); [SHF, guía para vender vivienda usada con crédito hipotecario](https://www.gob.mx/shf/documentos/guia-para-vender-vivienda-usada-con-credito-hipotecario) (28/07/2017). |
+| B · Infonavit | Estado de cuenta del vendedor con CLABE, de no más de 2 meses; carta de instrucción y manifestación de saldo si la vivienda está hipotecada; el notario pide el **original del primer testimonio** inscrito (con solo copia certificada, prueba de cinco años de posesión con prediales y recibos). | [Infonavit, Quiero comprar](https://portalmx.infonavit.org.mx/wps/portal/infonavitmx/mx2/derechohabientes/quiero_credito/quiero_comprar/); [Requisitos y documentos para comprar (PDF)](https://portalmx.infonavit.org.mx/wps/wcm/connect/5533bb6b-262f-4855-b9ec-d3106baaa141/Requisitos_y_documentos_Comprar.pdf?MOD=AJPERES); [Lineamientos de titulación](https://portalmx.infonavit.org.mx/wps/wcm/connect/46f309a8-3a1f-4161-9b14-52a0dadd6a54/6_Lineamientos_operativos_relativos_a_la_titulacion.pdf?MOD=AJPERES&CVID=nSsQm6d). Sin fecha visible; el PDF no se pudo abrir directamente (se tomó del extracto del buscador): **confirmar en Mi Cuenta Infonavit**. |
+| C · Fovissste | Avalúo vigente de un valuador del padrón del Fovissste; certificado de libertad de gravamen vigente para la firma del contrato de mutuo; carta de entrega-recepción firmada por las partes; datos bancarios del vendedor (constancia de nivel cuatro) si el pago se le deposita. | [Fovissste, política de créditos hipotecarios](https://fovissste.gob.mx/politica-de-creditos-hipotecarios/); [Reglas para el otorgamiento de créditos](https://informacion.fovissste.gob.mx/construccion/pdf/Reglas_de_Otrogamiento_de_Credito_FOVISSSTE-27DIC22.pdf) (DOF 27/12/2022, Acuerdo 63.1379.2022; no se encontró versión posterior). |
+| D · Crédito bancario | Comprobantes al corriente de luz y, en condominio, de cuotas de mantenimiento; licencia de construcción, planos, alineamiento y número oficial; el avalúo lo pide el banco. Cada banco tiene su propia lista. | [SHF, guía para vender vivienda usada con crédito hipotecario](https://www.gob.mx/shf/documentos/guia-para-vender-vivienda-usada-con-credito-hipotecario) (28/07/2017, la única guía oficial encontrada; está vieja). |
+| E · Contado | No hay lista oficial: los requisitos los fija el notario. Aplica el grupo A, más lo que el notario pida para el impuesto de traslado de dominio y el cálculo del ISR. | — |
+
+**Por confirmar al programar COR-06:** la constancia de no adeudo predial de Tijuana (no aparece en la página del Ayuntamiento; consultar a la Tesorería Municipal); si el notario de Fortius pide el certificado de libertad de gravámenes fiscales de la Junta de Urbanización ([trámite](https://www.bajacalifornia.gob.mx/junta_urbanizacion/Servicios/CLGF), $586.59 en Tijuana); la lista vigente de Infonavit. Costos y plazos son los publicados en la fecha de consulta y pueden cambiar.
+
+**Documentos adicionales del vendedor según el tipo de inmueble y el municipio (B-07, aprobada el 26/10/2026).** Se suman al grupo A de B-06.
+
+| Caso | Documentos | Fuente oficial y fecha |
+|---|---|---|
+| Departamento o local en condominio | Constancia de no adeudo de cuotas (mantenimiento, administración, fondo de reserva y extraordinarias) expedida por el administrador; reglamento del condominio. Sin la constancia, el comprador responde solidariamente por esos adeudos y el notario debe advertirlo. | [Ley sobre el Régimen de Propiedad en Condominio de Inmuebles para el Estado de Baja California](https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_IV/LEYINMUEBLE_28ABR2017.PDF) (versión del 28/04/2017; no se confirmó si hay reformas posteriores). |
+| Terreno | Deslinde catastral o levantamiento certificado por catastro, hecho por perito registrado (Tijuana: $808, vigencia de un año). Sin toma de agua no se pide la constancia del organismo de agua. | [Tijuana, certificación de deslinde](https://www.tijuana.gob.mx/tramite.aspx?tramite=124); [Reglamento del catastro inmobiliario](https://www.tijuana.gob.mx/normatividad/documentos/Reglamentos/40_202111261471588_wp.pdf). |
+| Local, oficina, nave o plaza | Dictamen de uso de suelo (vigencia de un año) o constancia de zonificación (seis meses); licencia de construcción. | [Tijuana, dictamen de uso de suelo](https://www.tijuana.gob.mx/tramite.aspx?tramite=103); [Uso de suelo, Administración Urbana](https://www.tijuana.gob.mx/dependencias/sdue/dau/usodesuelo.aspx). |
+| Casa | Sin documentos adicionales. | — |
+| Terreno o vivienda del INDIVI | Constancia de no adeudo del INDIVI (precio pagado completo al instituto). | [INDIVI, constancia de no adeudo](https://retys.bajacalifornia.gob.mx/Portal/TyS/749?perfilId=1). |
+| Tijuana y Rosarito | Constancia de no adeudo de la CESPT (vigencia de seis meses). | [CESPT, constancia de no adeudo](https://retys.bajacalifornia.gob.mx/Portal/TyS/1594?temaId=10). |
+| Ensenada | Constancia de la CESPE: pide deslinde reciente y cuenta sin adeudo (unos $251). | [CESPE, expedición de constancias](https://retys.bajacalifornia.gob.mx/Portal/TyS/867?temaId=10); [trámites de la CESPE](https://retys.bajacalifornia.gob.mx/Portal/TySByOrganismo/76). |
+| Tecate | Certificado de libertad de gravamen de la CESPTE (ficha oficial sin requisitos ni costo). | Portal estatal de trámites; **confirmar por teléfono**. |
+
+**Municipios (titular, 26/10/2026):** Fortius trabaja en Tijuana, Rosarito, Ensenada y Tecate. **Por confirmar al programar COR-06:** requisitos y costo de la constancia de la CESPTE en Tecate; requisitos de alineamiento y número oficial en Tijuana (no hay ficha oficial; consultar a Administración Urbana); si la ley de condominios tiene reformas posteriores a 2017. El deslinde, el uso de suelo y la licencia se investigaron en Tijuana; en Rosarito, Ensenada y Tecate se tramitan en su ayuntamiento, con el mismo documento y otros costos y plazos.
+
+Ya resuelto el 26/10/2026:
+
+- ~~B-16 · ¿Vendida, Apartada y Rentada?~~ **Aprobado por el titular el 26/10/2026:** no son estados de la operación sino del inmueble en el inventario: «En captación» → «Disponible» (captado) → «Apartado» (promesa firmada) → «Vendido» o «Rentado» (firma acreditada). La operación conserva solo Activa, En pausa, En regularización y Descartada, y su avance lo dice la etapa. Así el sitio público puede mostrar «Apartado» sin confundirlo con la etapa interna. Si la promesa se cae, el inmueble regresa a «Disponible».
+- ~~Confirmar quién revisa y el ±10 % en renta~~: **aprobado por el titular el 26/10/2026**, junto con el archivo a los 30 días en renta y la opinión de valor preparada durante el dictamen pero terminada solo si la jurídica pasa.
+
+### Diferencias con lo que hace el sistema hoy
+
+| Diferencia | Dónde está | Qué la corrige |
+|---|---|---|
+| La renta usa las 10 etapas de venta en la operación y los requisitos de venta hasta publicar (titularidad, factibilidad, valor, precio, intermediación, levantamiento, plan y publicación). Sus nombres de etapa están corridos un lugar. | `isOwnerRoute` y `requiredReviews` en `operation-workflow.ts`; `routeStages` en `operation-view.ts`. | COR-04, con la tabla de renta de esta matriz. |
+| La intermediación cuenta con «revisado», sin registro de firma (contrato, fecha y firmantes). | Requisito `intermediacion`. | COR-10. |
+| El catálogo no tiene la intermediación para renta. | `src/lib/formatos/catalog.ts`. | Plantilla del titular (RP-97). |
+| Las garantías de renta no tienen la lista de B-02. | Requisito `garantias_renta`. | COR-04. |
+| La lista de documentos no admite «No aplica» y depende de datos que la entrevista ya no pide. | `checklist-documentos.ts`. | COR-06, con B-06 y B-07. |
+| La opinión de valor no espera a que la jurídica pase: el servidor pide las dos para salir de `documentacion`, sin orden entre ellas. | `requiredReviews`. | MOT-01 (o COR-04 si el titular lo prefiere antes). |
+| No hay registro de la decisión de tomar el encargo ni del margen de ±10 %. | — | APR-01 o MOT-01. |
+| Cualquier usuario del panel marca revisado; no hay papel de director. | Roles actuales. | SEG-01. |
+| No existe la acción «saltar requisito con motivo del director». | — | APR-01. |
+| Las operaciones de compra y búsqueda de renta todavía se abren. | Nueva operación, rutas `compra` y `arrendatario`. | COR-11. |
 
 ## Dirección del producto y reglas vigentes — 17/10/2026
 
@@ -626,7 +751,7 @@ COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a p
 |---|---|---|---|
 | COR-01 | El nombre del propietario casi nunca llega al 07, 08 y 10: el llenado automático solo copia `propietario` si la relación es propietario o copropietario (`src/lib/formatos/intake-prefill.ts:21`) y el registro del prospecto la guarda como «por_aclarar» (`src/lib/intake/wizard.ts:48`). | Preguntar la relación con el inmueble en la cita (CAP-03) y, mientras tanto, copiar el nombre como propietario cuando la intención es vender u ofrecer en renta y la relación no se ha aclarado, marcado «por confirmar». | Prueba: un prospecto propietario nuevo llega con su nombre al 07, 08 y 10. |
 | COR-02 | El tipo de inmueble se pierde al pasar al 07: la entrevista guarda «casa» y el 07 espera «Casa» (`src/lib/formatos/valor-fields.ts:17`). | Comparar sin distinguir mayúsculas al llenar, o unificar los valores. | Prueba: cada tipo de la entrevista llega al 07. |
-| COR-03 | Hoy llama «Prospecto» a operaciones que ya avanzaron dentro de captación: la etapa fina (entrevista, levantamiento, lista de documentos) depende de datos que Hoy no carga. | Hoy calcula la etapa con la misma función y los mismos datos que la operación (`operation-view.ts`), o muestra la fase («Conocer») cuando no tenga el detalle. | Prueba: una operación con 02 emitido aparece en Hoy como «Levantamiento», igual que dentro de la operación. |
+| COR-03 | Hoy llama «Prospecto» a operaciones que ya avanzaron dentro de captación: la etapa fina (entrevista, levantamiento, lista de documentos) depende de datos que Hoy no carga. | Hoy calcula la etapa con la misma función y los mismos datos que la operación (`operation-view.ts`), o muestra la fase («Conocer») cuando no tenga el detalle. | Prueba: una operación con la 02 iniciada o terminada aparece en Hoy con la misma etapa que dentro de la operación. **Titular, 26/10/2026:** la etapa cambia cuando se empieza el siguiente documento, así que con la 02 terminada sigue «Entrevista inicial» (con el botón «Iniciar levantamiento») hasta que se empieza el 04. |
 | COR-04 | La renta usa el camino de la venta: `isOwnerRoute` incluye «arrendador», así que la operación muestra las 10 etapas de venta mientras Hoy usa los nombres de renta, y el servidor le pide hasta publicación los requisitos de compraventa. Además los nombres de renta están corridos un lugar respecto a lo que cierra cada estado. El comentario del código aún habla de «6 etapas». | La renta del propietario tiene su propio recorrido y sus propios requisitos según MRP-01, con nombres alineados a lo que cierra cada estado; Hoy y la operación usan los mismos nombres. Corregir el comentario. Si cambian requisitos en el servidor, migración con respaldo y autorización. | Pruebas: una renta muestra el mismo nombre de etapa en Hoy y en la operación y no pide formatos de compraventa que MRP-01 no exija. |
 | COR-05 | «Esperan algo de ti» ordena distinto en Hoy (`today.ts`) y en Operaciones (`operation-view.ts`), y el número del menú no coincide con las tarjetas. | Una sola función con el orden de RP-84 para las tres vistas. | Prueba: mismas operaciones, mismo orden y mismo número en Hoy, Operaciones y menú. |
 | COR-06 | La lista de documentos pide siempre el recibo de agua de CESPT (también para un terreno) y no admite «No aplica»; varias condiciones dependen de claves que la entrevista sencilla ya no captura (`adquisicion`, `promesaPrevia`, `acuerdoOcupacion`, `cambioEstadoCivil`, `estadoCivilAdquisicion`), así que documentos como los de herencia o promesa previa casi nunca se piden (`src/lib/formatos/checklist-documentos.ts`). | Lista preliminar revisable: cada documento admite «No aplica» con motivo, se puede agregar otro, las condiciones usan solo datos que existen (entrevista necesaria o «Ampliar», RP-89) y lo que dependa de un dato no capturado aparece «por confirmar». El candado acepta «No aplica» justificado como completo. | Pruebas: un terreno no exige CESPT sin preguntar; un heredero o una promesa previa generan su documento; «No aplica» con motivo cierra el punto. |
@@ -636,6 +761,7 @@ COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a p
 | COR-10 | El sistema no sigue la regla de prospecto y cliente (RP-90 a RP-92): completar la entrevista convierte al contacto en cliente (registro del 13/10/2026); el botón «Convertir en cliente» lo hace a mano (`src/components/admin/convert-lead-button.tsx`); listas, agenda y búsqueda llaman «Cliente» a quien está en la tabla `clientes`; el requisito de intermediación se cumple con «revisado», sin registro de firma (`src/lib/formatos/operation-workflow.ts`); y quien ya tiene operación deja de aparecer en el seguimiento de prospectos aunque no haya firmado (`src/lib/admin/followups.ts` y `commercial-metrics.ts` excluyen a quien tiene `clienteId`). | Registrar en la operación la firma del contrato (tipo, fecha, firmantes y archivo; admite firmado fuera del panel). Calcular «Prospecto/Cliente» y «Captado» a partir de esa firma en Contactos, fichas, agenda, búsqueda, Hoy y Reportes. Cambiar «Convertir en cliente» por «Abrir operación», la etapa 1 por «Primer contacto» y el estado «evaluación» del inmueble por «En captación» (RP-97). Mostrar «Cliente anterior» al vencer o rescindirse el contrato y «Contraparte» al comprador o arrendatario que firma con el cliente (RP-93, RP-97). Pedir la firma registrada, además de revisada, para pasar de «Contrato y preparación» a «Publicación». Mantener en el seguimiento de prospectos a quien tiene operación sin contrato firmado. Se conservan las tablas `leads` y `clientes`, sus IDs y la conversión idempotente. Si cambia la validación del servidor: migración aditiva con respaldo, ensayo y autorización. | Pruebas: una entrevista completada deja a la persona como «Prospecto» con su operación; registrar la firma del 09 la muestra como «Cliente» y el inmueble como «Captado» en todas las vistas; sin firma registrada no se pasa a Publicación; un comprador queda como contraparte, no como cliente, al registrar la promesa o la compraventa firmada (RP-93); vencer o rescindir el contrato deja a la persona como «Cliente anterior» (RP-97); convertir dos veces sigue devolviendo el mismo registro. |
 | COR-11 | «Quiere comprar» y «Quiere rentar» abren una operación con las rutas `compra` y `arrendatario` y su expediente, aunque Fortius solo representa al propietario (RP-93). | Al elegir esas intenciones, Nueva operación hace el perfilamiento (C-04 del cuestionario) y guarda un lead con próxima acción, sin abrir operación. El lead se liga a las operaciones de los propietarios por visitas y ofertas; al firmar la promesa, la compraventa o el arrendamiento queda como contraparte. Las operaciones de compra o búsqueda de renta que ya existan no se borran: se muestran como históricas y su contenido se conserva. Si cambia la validación del servidor: migración aditiva con respaldo, ensayo y autorización. | Pruebas: «Quiere comprar» crea un lead con su perfil y no una operación; una visita y una oferta del lead aparecen en la operación del propietario; una promesa firmada lo muestra como contraparte; las operaciones de compra existentes siguen abriéndose. |
 | COR-12 | El formato 09 pide el «Estado del registro PROFECO» y sus datos (`src/lib/formatos/intermediacion.ts`), y su bloqueo cuenta con ese registro. Fortius no tiene registro ante PROFECO y no lo tendrá en 2026 (titular, 17/10/2026). | Quitar del 09 la captura y la revisión del registro PROFECO y ajustar su texto. El PDF se libera a partir del modelo de contrato que enviará el titular (DOC-09); antes, el abogado de Fortius confirma si ese registro es obligatorio. | Prueba: el 09 ya no pide PROFECO; con el modelo del titular cargado, el PDF sale de esa plantilla. |
+| COR-13 | Las operaciones nuevas empiezan en la etapa 5, «Dictamen jurídico»: al terminar el primer contacto, la base las pasa de `captacion` a `documentacion` (regla del 14/10/2026 en `fortius_inmuebles_save_intake`) y se saltan Prospecto, Entrevista inicial, Levantamiento y Checklist con su candado. La pantalla final de Nueva operación dice «etapa Prospecto». Encontrado el 26/10/2026 al revisar COR-03. | Migración `supabase/migrations/20261026120000_intake_starts_in_captacion.sql`: la operación nueva se queda en captación y el historial dice «Primer contacto completado; la operación sigue en captación». El requisito «Entrevista y objetivo del propietario» se sigue marcando revisado. No cambia datos existentes. **Aplicarla en la base remota requiere autorización del titular.** | Pruebas de base local: el primer contacto deja la operación en captación; los recorridos de venta, renta e inversión avanzan desde ahí una etapa a la vez. |
 
 ### Matriz de reglas por ruta y observación de uso (MRP, USO)
 
@@ -1450,7 +1576,7 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 | DEC-23 | Contenido de los procesos y módulos de fábrica | El titular (y revisión jurídica cuando aplique) valida requisitos y documentos de cada proceso y módulo antes de MOT-04. |
 | DEC-24 | Metas de las pruebas de uso | El titular fija los tiempos meta (por ejemplo, primer contacto en menos de un minuto) antes de medir (RP-47). |
 | DEC-25 | Lugar de «Notas del equipo» | **Decidida el 17/10/2026:** se retira la página aparte; notas en un botón discreto del inmueble y de la operación (RP-99). |
-| DEC-26 | Aprobación de la matriz de reglas por ruta (MRP-01) | El titular la revisa y aprueba antes de COR-04 y MOT-01. |
+| DEC-26 | Aprobación de la matriz de reglas por ruta (MRP-01) | El titular la revisa y aprueba antes de COR-04 y MOT-01. **Aprobada el 26/10/2026.** |
 | DEC-27 | Nombres sencillos de los requisitos (RP-86) | El titular confirma los textos nuevos de firma, pagos y privacidad antes de COR-07. |
 | DEC-28 | Detalles de prospecto y cliente (RP-90 a RP-92) | **Decidida el 17/10/2026:** el titular respondió los grupos A y B de [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md); quedan en RP-90 a RP-98. Pendiente solo agregar al catálogo el contrato de intermediación para renta (RP-97). |
 | DEC-29 | Formas de pago, tipos de inmueble y municipios (B-06, B-07) | El titular manda la lista de pasos y documentos de cada forma de pago y de cada tipo de inmueble y municipio; el agente la ordena en una tabla para su aprobación. Alimenta MRP-01 y MOT-02. |
@@ -1626,6 +1752,10 @@ No se trabaja en estas entregas hasta que el titular abra la etapa posterior (DE
 
 Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM, las 14 del paquete NAV las 4 del paquete LV las 21 de «Proceso, captura y documentos» (COR, CAP, FCH y MOT) las 4 de «Herramientas para trabajo suelto» (HER) y los pendientes de formatos DOC-06 y DOC-09 y, desde el 18/10/2026, COR-03 a COR-09, MRP-01, USO-01 y COR-10 (prospecto y cliente), para un total de 135. **Estados revisados el 18/10/2026:** «parcial» significa que una parte ya existe — OPS-01 (tareas vinculadas a la operación y apertura transaccional desde la entrevista, 13/10), CRM-01 (conversión idempotente), PUB-01 (publicación condicionada a la operación de captación), DOC-01 (emisiones con huella, versiones y copia firmada), UX-01 (kit del panel guiado) y SIM-04 a SIM-06 (boceto C). Lo demás sigue pendiente aunque tenga piezas sueltas. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
 
+**Revisión del 26/10/2026.** Se agrega el estado **«terminada»**: la entrega está integrada en `main` y cumple su aceptación. Antes no existía, por eso los resúmenes contaban cero terminadas. LV-05 pasa a «terminada» (PR #45, #46 y #47) y MRP-01 a «en_revision» (borrador en «Matriz de reglas por ruta», espera DEC-26). El resto de los estados no se revisó contra el código en esta pasada.
+
+**Entregas sin bloque en el «Orden vigente»** (el titular decide dónde van; el agente no las acomoda): COR-11 (compra y búsqueda de renta como lead), COR-12 (quitar PROFECO del 09), DOC-14, DOC-15, PUB-02 (inmuebles compartidos), FIR-01, EXT-12 (captura con vista previa) y EXT-13 (conexión a IA con tope). EXT-02, EXT-03, EXT-04 y EXT-07 sí están en el bloque 7, «solo por decisión de negocio».
+
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
 | BAS-01 | 0 | en_revision | Ninguna |
@@ -1715,9 +1845,9 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | LV-02 | 4 | pendiente | LV-01, SIM-05 |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
 | LV-04 | 4 | pendiente | LV-01, SIM-12 |
-| COR-01 | 2 | pendiente | ninguna |
-| COR-02 | 2 | pendiente | ninguna |
-| COR-03 | 2 | pendiente | ninguna |
+| COR-01 | 2 | en_revision | rama `feat/mrp01-cor01-03` (26/10/2026), sin integrar |
+| COR-02 | 2 | en_revision | rama `feat/mrp01-cor01-03` (26/10/2026), sin integrar |
+| COR-03 | 2 | en_revision | rama `feat/mrp01-cor01-03` (26/10/2026), sin integrar |
 | COR-04 | 2 | pendiente | MRP-01 |
 | COR-05 | 2 | pendiente | ninguna |
 | COR-06 | 2 | pendiente | ninguna |
@@ -1728,12 +1858,13 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | COR-11 | 2 | pendiente | MRP-01 |
 | PUB-02 | 3 | pendiente | PUB-01 |
 | COR-12 | 2 | pendiente | modelo del 09 del titular |
+| COR-13 | 2 | en_revision | migración en la rama `feat/mrp01-cor01-03`, sin aplicar en remoto (autorización del titular) |
 | DOC-14 | 2 | pendiente | modelos del titular |
 | FIR-01 | 6 | pendiente | COR-10, DOC-01, PRV-01, DEC-30 |
 | IA-01 | 1 | pendiente | clave de API del titular |
 | DOC-15 | 2 | pendiente | COR-06 |
-| LV-05 | 2 | en_revision | PR del rediseño del 18/10/2026 |
-| MRP-01 | 2 | pendiente | DEC-26 |
+| LV-05 | 2 | terminada | PR #45, #46 y #47 (18/10/2026) |
+| MRP-01 | 2 | en_revision | DEC-26 aprobada por el titular el 26/10/2026; se integra con el PR de la rama `feat/mrp01-cor01-03` |
 | USO-01 | 4 | pendiente | ninguna |
 | CAP-01 | 1 | pendiente | SIM-01, SIM-09, COR-01 |
 | CAP-02 | 1 | pendiente | CRM-02 |

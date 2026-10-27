@@ -1,5 +1,5 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { addMonths, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { addMonths, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { interviewFields, INTENTS, type OperationalInterview } from "@/lib/intake/interview";
 import type { Followup } from "@/lib/admin/followups";
 
@@ -9,7 +9,9 @@ import type { Followup } from "@/lib/admin/followups";
   ofertas e informes al propietario. No hay servidor nuevo.
 */
 
-export type TodayDossier = { id: string; folio: string; etapa?: WorkflowStage; propiedad_slug?: string | null; asesor_id?: string; cliente_id?: string; flujo?: OperationWorkflow | null };
+export type TodayDossier = { id: string; folio: string; etapa?: WorkflowStage; propiedad_slug?: string | null; asesor_id?: string; cliente_id?: string; flujo?: OperationWorkflow | null;
+  /** No viene de la base: Hoy lo calcula con `initialStatus`, igual que Operaciones (COR-03). */
+  inicial?: InitialInterviewStatus };
 export type OfferRun = { id: string; updatedAt: string; context?: { expedienteId?: string } };
 type Names = { client: (id?: string) => string | undefined; property: (slug?: string | null) => string | undefined };
 
@@ -95,7 +97,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today 
     else if (flow?.estado !== "pausada" && !open.some(t => !!t.vence)) pick = { reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "", late: false, rank: 4 };
     if (!pick) continue;
     const property = names.property(dossier.propiedad_slug);
-    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [property, processStageText(dossier.etapa, flow, today)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
+    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [property, processStageText(dossier.etapa, flow, today, dossier.inicial)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
   }
   for (const contact of followups.filter(f => f.fecha <= today)) {
     items.push({ id: contact.id, who: contact.personName, detail: contact.kind === "lead" ? "Prospecto" : "Cliente", reason: "Toca darle seguimiento.", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 5, sort: contact.fecha });

@@ -27,6 +27,19 @@ export function defaultRoute(operacion?: string): OperationWorkflow["ruta"] { re
 export function flowOf(op: Pick<OperationRecord, "flujo" | "operacion">): OperationWorkflow { return op.flujo ?? emptyWorkflow(defaultRoute(op.operacion)); }
 export const stageOf = (op: Pick<OperationRecord, "etapa">): WorkflowStage => op.etapa ?? "captacion";
 
+/**
+  Arranque del propietario con lo que sabe cada pantalla: por formato, si existe y si su versión
+  actual está emitida (true), más la tarea del checklist. Hoy, Operaciones y la operación usan
+  esta misma función para nombrar la etapa igual (COR-03).
+*/
+export function initialStatus(formats: ReadonlyMap<string, boolean> | undefined, checklist?: Pick<Task, "pasos">): InitialInterviewStatus {
+  return {
+    iniciada: !!formats?.has("02"), emitida: formats?.get("02") === true,
+    levantamiento: formats?.has("04") ? (formats.get("04") ? "emitido" : "borrador") : undefined,
+    documentos: checklist ? (checklist.pasos.length > 0 && checklist.pasos.every(p => p.hecho) ? "completo" : "pendiente") : undefined,
+  };
+}
+
 /** Etapas del avance: las 6 del propietario; las demás rutas usan sus propios pasos (sin «archivado»). */
 export function routeStages(op: OperationRecord, today: string) {
   const flow = flowOf(op), stage = stageOf(op);

@@ -23,6 +23,12 @@ async function start(intent = "vender", contact?: Record<string, unknown>, exp: 
 async function complete(id: unknown, data: Record<string, string> = answers()) {
   return (await db.query<{ r: Record<string, unknown> }>("select public.fortius_inmuebles_save_intake($1,1,$2::jsonb,true) r", [id, JSON.stringify(data)])).rows[0].r;
 }
+/** El primer contacto deja la operación en captación (26/10/2026); el panel la pasa a documentación como cualquier avance. */
+async function admit<T extends Record<string, unknown>>(done: T) {
+  const current = (await db.query<{ version: number }>("select version from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0];
+  await db.query("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,null,null,false)", [done.expediente_id, current.version]);
+  return done;
+}
 async function property(slug: unknown) {
   return (await db.query<{ data: Record<string, unknown>; version: number }>("select data,version from public.fortius_inmuebles_records where collection='propiedades' and id=$1", [slug])).rows[0];
 }
@@ -48,7 +54,7 @@ it.each([ ["vender", "terreno"], ["arrendar", "local"] ])("requires capture auth
 it("prevents a rent from jumping to archive while its evidence and tasks remain pending", async () => {
   const done = await complete((await start("arrendar")).id);
   await expect(db.query("update public.fortius_inmuebles_expedientes set etapa='cerrado',version=version+1 where id=$1", [done.expediente_id])).rejects.toMatchObject({ code: "PT409" });
-  expect((await db.query<{ etapa: string }>("select etapa from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0].etapa).toBe("documentacion");
+  expect((await db.query<{ etapa: string }>("select etapa from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0].etapa).toBe("captacion");
 });
 it("saves an email-only first contact with origin and action, then reuses its open task", async () => {
   const first = await start("vender", { tipo: "nuevo", nombre: "Contacto por correo", telefono: "", email: "contacto@example.invalid", asesorId: "process-adviser", telefonoCompartido: false, seguimiento: { origen: "correo", accion: "Revisar antecedentes", fecha: "2030-12-31" } });
@@ -105,7 +111,7 @@ it("does not accept unlinked text or a nonexistent document as completed review 
   } finally { await db.exec("set role authenticated"); }
 });
 it("permits preparation despite a later registration observation while retaining its evidence", async () => {
-  const done = await complete((await start()).id);
+  const done = await admit(await complete((await start()).id));
   const exp = (await db.query<{ version: number; flujo: { requisitos: Record<string, unknown> } }>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0];
   const reviewed = { estado: "revisado", soporte: "Revisión externa sintética registrada", evidencia: { tipo: "externa", referencia: "Archivo sintético de ensayo · versión 1", fecha: "2026-10-14", responsable: "Responsable de ensayo", resultado: "Apto dentro del alcance declarado", limites: "Ensayo sin efectos reales" } };
   for (const key of ["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion"]) exp.flujo.requisitos[key] = { ...reviewed, ...(key === "factibilidad" ? { vigenteHasta: "2030-12-31" } : {}) };
@@ -118,6 +124,8 @@ it("permits preparation despite a later registration observation while retaining
 it.each(["arrendar","rentar","invertir"])("walks %s through its evidenced process and archives only after resolving tasks", async intent => {
  const intakeAnswers={...answers(),uso:"Uso o inversión",necesidades:"Criterios de ensayo",financiamiento:"por_definir",estrategia:"por_definir",horizonte:"Tres años"};
  let done=await complete((await start(intent)).id,intakeAnswers);
+ // Avanzar de etapa y cambiar el inmueble van en movimientos separados.
+ await admit(done);
  if(intent==="rentar") {
   const owner=await complete((await start("arrendar")).id);
   const current=(await db.query<{version:number}>("select version from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
@@ -146,7 +154,7 @@ it.each(["arrendar","rentar","invertir"])("walks %s through its evidenced proces
  expect(final.rows[0].r.etapa).toBe("cerrado");
 });
 it("schedules the next action of a paused decision without cancelling existing obligations",async()=>{
- const done=await complete((await start()).id);
+ const done=await admit(await complete((await start()).id));
  const row=(await db.query<{version:number;flujo:Record<string,unknown>}>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
  const flow={...row.flujo,resolucion:{tipo:"pausada",fecha:"2026-10-14",motivo:"Esperar documentación del titular",siguienteAccion:"Revisar condiciones de la pausa",fechaSiguiente:"2030-10-31"}};
  await db.query("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,$3::jsonb,null,false)",[done.expediente_id,row.version,JSON.stringify(flow)]);

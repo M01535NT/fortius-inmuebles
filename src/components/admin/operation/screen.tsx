@@ -12,7 +12,7 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { isOwnerRoute, SALE_PROCESS, type SalePhase } from "@/lib/formatos/operation-workflow";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { flowOf, isGuided, PHASE_GROUPS, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
+import { flowOf, initialStatus, isGuided, PHASE_GROUPS, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DocumentsTab } from "./documents-tab";
 import { HistoryTab } from "./history-tab";
@@ -77,11 +77,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const checklist = tasks.find(t => t.id === checklistTaskId(op.id));
   const flow = flowOf(op);
   const docs = useOperationDocuments({ op, checklist, interviewAnswers: (interview?.respuestas ?? {}) as Record<string, unknown>, cliente: client?.nombre });
-  const view: OperationRecord = { ...op, inicial: {
-    iniciada: !!docs.latest("02"), emitida: docs.status("02") === "terminado",
-    levantamiento: docs.latest("04") ? (docs.status("04") === "terminado" ? "emitido" : "borrador") : undefined,
-    documentos: checklist ? (checklist.pasos.length > 0 && checklist.pasos.every(p => p.hecho) ? "completo" : "pendiente") : undefined,
-  } };
+  const view: OperationRecord = { ...op, inicial: initialStatus(new Map(["02", "04"].filter(f => docs.latest(f)).map(f => [f, docs.status(f) === "terminado"])), checklist) };
   const { phase } = routeStages(view, today);
   const track = stageTrack(view, today);
   const markDirty = React.useMemo(() => Object.fromEntries(TABS.map(t => [t.id, (value: boolean) => setDirty(old => old[t.id] === value ? old : { ...old, [t.id]: value })])) as Record<TabId, (value: boolean) => void>, []);

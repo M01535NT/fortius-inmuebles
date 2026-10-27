@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, groupOfPhase, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
-import { emptyWorkflow, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
+import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, groupOfPhase, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
+import { emptyWorkflow, processStageText, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
 
 const today = "2026-10-16";
@@ -30,6 +30,23 @@ test("el prospecto pasa a entrevista inicial al iniciar el 02 y no avanza sin su
   expect(advanceTarget(started, today)).toEqual({ label: "Levantamiento" });
   expect(missingItems(started, [task()], today).map(m => m.text)).toEqual(["Terminar la entrevista inicial (02)"]);
   expect(missingItems({ ...started, inicial: { iniciada: true, emitida: true } }, [task()], today).map(m => m.text)).toEqual(["Iniciar el levantamiento"]);
+});
+
+test("COR-03: Hoy, Operaciones y la operación nombran igual la etapa con el mismo estado inicial", () => {
+  const checklist = { pasos: [{ id: "p1", texto: "INE", hecho: false }] } as Pick<Task, "pasos">;
+  expect(initialStatus(undefined)).toEqual({ iniciada: false, emitida: false, levantamiento: undefined, documentos: undefined });
+  expect(initialStatus(new Map([["02", true], ["04", false]]), checklist)).toEqual({ iniciada: true, emitida: true, levantamiento: "borrador", documentos: "pendiente" });
+  const cases: Array<[Map<string, boolean> | undefined, string]> = [
+    // La etapa cambia al empezar el siguiente documento (titular, 26/10/2026): con la 02 terminada sigue «Entrevista inicial».
+    [undefined, "Prospecto"], [new Map([["02", false]]), "Entrevista inicial"], [new Map([["02", true]]), "Entrevista inicial"],
+    [new Map([["02", true], ["04", false]]), "Levantamiento"],
+  ];
+  for (const [formats, label] of cases) {
+    const record = op({ inicial: initialStatus(formats), flujo: flow({ entrevista: reviewed() }) });
+    expect(processStageText(record.etapa, record.flujo, today, record.inicial)).toBe(label);
+    const track = stageTrack(record, today);
+    expect(track.stages[track.current].label).toBe(label);
+  }
 });
 
 test("levantamiento y checklist de documentos llevan a verificación solo con todo recibido", () => {

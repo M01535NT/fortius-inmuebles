@@ -10,6 +10,9 @@ import { projectFollowups } from "@/lib/admin/followups";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { greeting, interviewSummary, longDate, overdueReports, shortDate, todayTasks, upcomingItems, waitingItems, weekdayDate, type OfferRun, type TodayDossier, type WaitingItem } from "@/lib/admin/today";
+import { initialStatus } from "@/lib/admin/operation-view";
+import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
+import { useOperationFormats } from "@/components/admin/operation/use-operation-formats";
 import { cn } from "@/lib/utils";
 import s from "./hoy.module.css";
 
@@ -74,7 +77,10 @@ export function HoyScreen() {
     property: (slug?: string | null) => slug ? properties.find(p => p.slug === slug)?.titulo : undefined,
   };
   const photo = (slug?: string | null) => slug ? properties.find(p => p.slug === slug)?.galeria[0]?.src : undefined;
-  const waiting = dossiers === undefined ? [] : waitingItems({ dossiers: dossiers ?? [], tasks, offers: offers ?? null, followups: projectFollowups(leads, clients), names, today });
+  // Misma etapa que Operaciones: documentos de cada operación y su checklist (COR-03).
+  const formats = useOperationFormats();
+  const staged = (dossiers ?? []).map(d => ({ ...d, inicial: initialStatus(formats.get(d.id), tasks.find(t => t.id === checklistTaskId(d.id))) }));
+  const waiting = dossiers === undefined ? [] : waitingItems({ dossiers: staged, tasks, offers: offers ?? null, followups: projectFollowups(leads, clients), names, today });
   const lateCount = waiting.filter(item => item.late).length;
   const inProgress = (dossiers ?? []).filter(active);
   const waitingOps = new Set(waiting.filter(item => item.folio).map(item => item.id));
