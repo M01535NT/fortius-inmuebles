@@ -136,7 +136,8 @@ it.each(["vender", "arrendar", "comprar", "rentar", "invertir"])(
       expect(exp.operacion).toBe(
         ["arrendar", "rentar"].includes(intent) ? "renta" : intent === "invertir" ? "inversion" : "venta",
       );
-      expect(exp.etapa).toBe("documentacion");
+      // El primer contacto deja la operación en captación (titular, 26/10/2026).
+      expect(exp.etapa).toBe("captacion");
       const owner = ["vender", "arrendar"].includes(intent);
       const linked = (
         await db.query<{ propiedad_slug: string | null; unidad: string }>(
