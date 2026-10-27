@@ -155,7 +155,7 @@ Los nombres de renta están desfasados un lugar respecto a lo que cierra cada es
 ### Pendiente del titular para cerrar la matriz
 
 - **B-06 · Formas de pago y sus documentos:** propuesta del agente a partir de fuentes oficiales consultadas el 26/10/2026, **pendiente de aprobación del titular** (ver la tabla siguiente). Es la fuente de COR-06 para los documentos de cada forma de pago.
-- **B-07 · Tipos de inmueble y municipios:** propuesta del agente a partir de fuentes oficiales consultadas el 26/10/2026, **pendiente de aprobación del titular** (ver la segunda tabla). Falta que el titular diga en qué municipios trabaja Fortius además de Tijuana.
+- **B-07 · Tipos de inmueble y municipios:** propuesta del agente a partir de fuentes oficiales consultadas el 26/10/2026, **pendiente de aprobación del titular** (ver la segunda tabla). Municipios: Tijuana, Rosarito, Ensenada y Tecate (titular, 26/10/2026).
 
 **Documentos del vendedor según la forma de pago del comprador (B-06, propuesta del 26/10/2026).** Solo lo que entrega el vendedor (el cliente de Fortius); lo que el comprador presenta a su instituto o banco no entra en la lista del propietario. Cada grupo se suma al grupo A.
 
@@ -181,9 +181,8 @@ Los nombres de renta están desfasados un lugar respecto a lo que cierra cada es
 | Tijuana y Rosarito | Constancia de no adeudo de la CESPT (vigencia de seis meses). | [CESPT, constancia de no adeudo](https://retys.bajacalifornia.gob.mx/Portal/TyS/1594?temaId=10). |
 | Ensenada | Constancia de la CESPE: pide deslinde reciente y cuenta sin adeudo (unos $251). | [CESPE, expedición de constancias](https://retys.bajacalifornia.gob.mx/Portal/TyS/867?temaId=10); [trámites de la CESPE](https://retys.bajacalifornia.gob.mx/Portal/TySByOrganismo/76). |
 | Tecate | Certificado de libertad de gravamen de la CESPTE (ficha oficial sin requisitos ni costo). | Portal estatal de trámites; **confirmar por teléfono**. |
-| Mexicali | Firma de libre gravamen de la CESPM (ficha oficial sin requisitos ni costo). | Portal estatal de trámites; **confirmar por teléfono**. |
 
-**Por confirmar antes de aprobar B-07:** en qué municipios trabaja Fortius además de Tijuana (si solo Tijuana y Rosarito, se retiran las filas de los demás); requisitos de alineamiento y número oficial en Tijuana (no hay ficha oficial; consultar a Administración Urbana); si la ley de condominios tiene reformas posteriores a 2017.
+**Municipios (titular, 26/10/2026):** Fortius trabaja en Tijuana, Rosarito, Ensenada y Tecate. **Por confirmar antes de aprobar B-07:** requisitos y costo de la constancia de la CESPTE en Tecate; requisitos de alineamiento y número oficial en Tijuana (no hay ficha oficial; consultar a Administración Urbana); si la ley de condominios tiene reformas posteriores a 2017.
 
 Ya resuelto el 26/10/2026:
 
