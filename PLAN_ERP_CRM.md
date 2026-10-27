@@ -1,6 +1,6 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 25 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 26 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
@@ -1765,6 +1765,8 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | UX-05 | 4 | pendiente | UX-04 |
 | SOP-01 | 5 | pendiente | OBS-01 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
+| EXT-12 | por decidir | idea, no aprobada | FCH-01, FCH-05 |
+| EXT-13 | por decidir | idea, no aprobada | DEC-14, SEG-01, PRV-01 |
 | SAAS-01 | posterior | en_pausa | DEC-15 |
 | SAAS-02 | posterior | en_pausa | SAAS-01 |
 | SAAS-03 | posterior | en_pausa | SAAS-01, MOT-03 |
@@ -1853,6 +1855,61 @@ Paquetes de fase 6: EXT-01, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solic
 | EXT-09 — Mapas, comparables, zonas y rutas | Solicitados; DEC-11 y REL-01/TEC-01/VIS-01/SEG-01 | Fuentes/precisión/cobertura, uso permitido, motor/costo, capas autorizadas y recorrido sintético de visitas. **Titular, 17/10/2026:** sin Google Maps por costo; propuesta: MapLibre con mapas de OpenStreetMap, o el nivel gratuito de Mapbox o MapTiler. Primer uso: inventario por zona; ubicación aproximada en público (H-05). |
 | EXT-10 — Portal privado de clientes | Solicitado; DEC-13 y REL-01/OPS-01/DOC-01/SEG-01/AUT-01/PRV-01 | Identidad externa, información compartida, solicitudes, permisos efectivos, revocación y uso móvil. DOC-12 es su primera pieza. |
 | EXT-11 — Asistente IA operativo | Solicitado el 17/10/2026 (RP-44); DEC-14, EXT-06, SEG-01 | Resumen de operación, lectura de INE y escritura con confirmación campo por campo, descripción de anuncio y sugerencia de siguiente paso; citas, permisos, evaluación, costo y abstención. Nunca cambia estados ni envía nada por sí solo. **Titular, 17/10/2026:** se programa sin atarse a un proveedor; el titular solo carga la clave de la API y elige proveedor y modelo (Claude, DeepSeek u otro). Antes de elegir: precio vigente, prueba con documentos reales y lugar donde se procesan los datos (transferencia a revisar en el aviso de privacidad). La IA propone y una persona confirma; tope de gasto mensual (H-03). |
+| EXT-12 — Captura con vista previa del documento | **Idea del titular, 26/10/2026; no aprobada.** FCH-01, FCH-05 y el membrete común; relacionada con FCH-10, DOC-10 y F09 | Elegir de dónde sale la plantilla, probar la vista previa con los formatos 02 y 15 y fijar el criterio de aceptación; ver «EXT-12» abajo. |
+| EXT-13 — Conexión a servicios de IA con tope mensual | **Idea del titular, 26/10/2026; no aprobada.** Base común de EXT-11, IA-01, EXT-06 y EXT-12; DEC-14, SEG-01 y PRV-01 | Elegir proveedor inicial y tope, confirmar precios vigentes y probar con documentos sintéticos; ver «EXT-13» abajo. |
+
+### EXT-12 — captura con vista previa del documento
+
+**Estado: idea del titular (26/10/2026), sin aprobar y sin código.** Moisés decide si entra y qué desplaza (ver «Cómo incorporar lo que vaya haciendo falta»). Se aterriza en Claude Code, con plan previo.
+
+**Idea del titular:** en vez de capturar solo en campos sueltos, ver el documento (la plantilla con el membrete oficial) y llenarlo ahí mismo: los campos a un lado, el documento al otro, y lo que se escribe aparece de inmediato en el documento.
+
+**Refinamiento propuesto (a validar al aterrizarla):**
+
+1. **Pantalla dividida.** A la izquierda, los campos agrupados igual que las secciones del formato. A la derecha, el documento tal como se va a descargar: membrete, tablas y una línea en blanco donde todavía falta un dato (RP-77).
+2. **Texto en vivo.** Lo que se escribe se refleja en el documento sin esperar a guardar.
+3. **Clic en el documento para saltar al campo.** Al pulsar una parte del documento, el cursor pasa al campo que la llena, y el campo activo se resalta en el documento. Así se logra «llenar sobre el documento» sin dejar que se escriba texto libre que rompa el formato. La edición directa sobre el documento queda como una etapa posterior, solo si esto no basta.
+4. **Lo que se ve es lo que se descarga.** La vista previa y el PDF o Word salen del mismo contenido y del mismo membrete, no de dos copias, para que no haya diferencias.
+5. **Reglas que se conservan.** Un dato faltante nunca detiene el flujo (RP-82), se descarga siempre avisando qué falta (RP-77) y descargar no es aprobar (RP-85). El 09 y la promesa 15 mantienen sus bloqueos legales.
+6. **Celular y modo cita (F09).** En pantalla chica, dos pestañas, «Campos» y «Documento», en lugar de lado a lado.
+7. **Con la ficha única (FCH-01).** Los campos llegan ya llenos con lo que la ficha sabe (F07) y lo que se captura regresa a la ficha con su origen (FCH-05).
+
+**Decisiones por tomar al aterrizarla:**
+
+- **De dónde sale la plantilla.** Hoy la página genera cada documento desde su propio código (`src/lib/formatos/`). Partir de esas plantillas es lo más seguro, porque la vista previa y la descarga comparten contenido. Cargar un Word propio con campos marcados es FCH-10; mostrar un Word con fidelidad dentro del navegador exige convertirlo antes (por ejemplo a PDF en el servidor), así que conviene resolverlo aparte.
+- **Cómo se dibuja la vista previa.** Opción A: una página con el mismo diseño, rápida al teclear, con riesgo de pequeñas diferencias frente al Word y al PDF. Opción B: PDF generado en el servidor con una pausa breve al teclear, exacto pero con uno o dos segundos de retraso. Propuesta: A para escribir y un botón «Ver PDF exacto» con B; se decide probando con el 02 y el 15.
+- **Con qué formatos empezar.** Propuesta: la entrevista 02 y la promesa 15. Los formatos 01 a 19 se agregan después.
+
+**Alternativa simple (primera etapa):** mostrar el PDF del documento junto al formulario que ya existe, con actualización al guardar, sin cambiar cómo se captura. Sirve para decidir si vale la pena la versión en vivo.
+
+**Aceptación (borrador):** con el formato 02, escribir en un campo cambia el documento en menos de un segundo; la descarga coincide con lo que se ve; un campo vacío sale como línea en blanco; cerrar sin guardar no pierde lo escrito; funciona en celular y con teclado; las pruebas del formato no se debilitan. **Costo:** sin estimar; el descubrimiento de 1 a 3 días orientativos de esta sección aplica.
+
+### EXT-13 — conexión a servicios de IA con tope mensual
+
+**Estado: idea del titular (26/10/2026), sin aprobar y sin código.** Es la base técnica de EXT-11 (asistente), IA-01 (lectura de documentos), EXT-06 (búsqueda documental) y EXT-12 (captura con vista previa). Se aterriza en Claude Code, con plan previo.
+
+**Idea del titular:** que el panel de administración pueda conectarse a un servicio de IA (Claude, ChatGPT, Grok, Gemini u otro) para ayudar en el trabajo diario, solo dentro del panel y con un límite de gasto al mes. Como ejemplo de tope mencionó los 100 dólares mensuales de su API de Claude.
+
+**Propuesta de diseño:**
+
+1. **Una sola capa de proveedor en el servidor.** El panel nunca habla directo con un proveedor: pide a una capa interna «resume esto», «lee este documento» o «redacta este mensaje», y la capa decide con qué proveedor y modelo lo resuelve. Cambiar de Claude a ChatGPT, Grok, Gemini o DeepSeek es un cambio de configuración, no de pantallas. Para construirla se propone evaluar el AI SDK de Vercel, cuya lista de proveedores incluye Anthropic, OpenAI, Google, xAI y DeepSeek; al aterrizar hay que confirmar versión, soporte de lectura de PDF e imágenes y que entregue el conteo de tokens de cada llamada.
+2. **Claves solo en el servidor.** Cada clave se guarda como variable secreta del servidor (nunca en el navegador ni en el código), se configura en Configuración o en el entorno y solo la usan las rutas del servidor. Sin clave, la función aparece desactivada y el panel sigue igual (H-03).
+3. **Dos topes, uno afuera y otro adentro.**
+   - **Tope en el proveedor (el que corta de verdad).** Anthropic permite fijar un límite mensual propio en su consola, en Facturación, «Spend limits», siempre por debajo del tope de su nivel; al llegar al límite, las llamadas se rechazan con error hasta el mes siguiente (verificado en su documentación el 26/10/2026). Los demás proveedores tienen controles parecidos que se confirman al elegirlos.
+   - **Tope en el panel (el que avisa).** Una tabla de uso con fecha, usuario, proveedor, modelo, tokens de entrada y salida, costo estimado y función que lo pidió. El titular fija el tope mensual; al 80 % avisa, al 100 % la función se pausa con un mensaje claro y vuelve el día 1. Opcional: tope por persona y por día, y un máximo de tokens por llamada. El costo estimado sale de una tabla de precios por modelo con fecha de vigencia que se actualiza a mano, porque los precios cambian.
+4. **Qué hace y qué no.** Ayuda con resumen de una operación, redacción de mensajes de seguimiento a partir de las plantillas, lectura de escrituras e identificaciones (IA-01), descripción de anuncio y sugerencia de siguiente paso. La IA propone y una persona confirma (RP-44): nunca cambia estados, aprueba requisitos, envía mensajes ni guarda datos por sí sola.
+5. **Si falla o se acaba el tope.** El panel funciona igual. Solo esa ayuda queda no disponible y lo dice.
+6. **Privacidad.** Enviar un documento a un proveedor es un tratamiento de datos personales: debe estar en el aviso de privacidad y en el registro de tratamiento (DEC-14). Se evitan los niveles gratuitos que pueden usar los datos para mejorar sus productos (H-03). El registro de uso guarda solo datos de control, no el contenido de lo enviado, salvo que el titular decida otra cosa.
+7. **Quién puede usarla.** Solo usuarios con permiso (SEG-01), y cada uso queda atribuido a quien lo pidió.
+
+**Puntos por confirmar con el titular:**
+
+- **Monto del tope.** En H-03 el presupuesto mensual era de 2,000 pesos; ahora menciona 100 dólares. Hay que fijar la cifra y si es del panel completo o por persona. Los 100 dólares no los confirmé como límite de su cuenta: la documentación de Anthropic describe topes por nivel y límites propios que cada organización fija, así que el límite real se ve en su consola.
+- **Proveedor inicial.** H-03 recomienda Claude con el modelo más barato para documentos y el intermedio para los difíciles; los precios de aquel día deben verificarse otra vez al elegir.
+- **Suscripción frente a API.** ChatGPT Plus o Claude Pro no sirven para esto: el panel necesita la API, que se cobra aparte por uso.
+- **Qué conservar del uso** y cuántos meses.
+
+**Aceptación (borrador):** con una clave de prueba, una función de ejemplo responde por el proveedor elegido y cambiar de proveedor no cambia ninguna pantalla; el uso queda registrado con costo estimado; al llegar al tope la función se pausa con aviso y el panel sigue operando; sin clave la función aparece desactivada; ninguna clave ni contenido sensible llega al navegador ni a los registros; un usuario sin permiso no puede usarla. **Costo:** sin estimar; descubrimiento de 1 a 3 días orientativos.
 
 ### EXT-08 — inversión, flujos y rentabilidad
 
