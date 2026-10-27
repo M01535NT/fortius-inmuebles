@@ -244,7 +244,7 @@ export function InventoryExplorer({ propiedades }: Props) {
       {/* Cabecera nocturna con los filtros (boceto InventarioNocturno) */}
       <section className="pg-hero inv-hero">
         <div className="pg-container pg-hero-body">
-          <p className="pg-eyebrow">Inventario · {total} {total === 1 ? "propiedad" : "propiedades"}</p>
+          <p className="pg-eyebrow">{total} {total === 1 ? "propiedad" : "propiedades"}</p>
           <h1 className="pg-title">Propiedades.</h1>
           <p className="pg-lead">Consulta las características de cada inmueble y pregunta por su disponibilidad, documentos y condiciones antes de decidir.</p>
 
@@ -309,7 +309,7 @@ export function InventoryExplorer({ propiedades }: Props) {
 
           <div className="inv-status">
             <p aria-live="polite" className="inv-count">
-              {String(resultados.length).padStart(2, "0")} {resultados.length === 1 ? "resultado" : "resultados"}
+              {resultados.length} {resultados.length === 1 ? "resultado" : "resultados"}
             </p>
             {activeFilters.length > 0 ? <div className="inv-active" aria-label="Filtros activos">
               {activeFilters.map((filter) => <button key={filter.key} type="button" onClick={() => clearFilter(filter.key)}>{filter.label}<X size={14} aria-hidden="true" /><span className="sr-only">Quitar filtro</span></button>)}

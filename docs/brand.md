@@ -7,9 +7,11 @@ La marca comercial del producto es **Fortius Inmuebles**. La referencia es el lo
 | Azul principal | `#061F3F` |
 | Borgoña | `#8A1634` |
 | Blanco | `#FFFFFF` |
-| Acento sobre fondos oscuros | `#E5829B` |
+| Crema (texto y acento sobre fondos oscuros) | `#F5F1EB` |
 
-`BrandMark` comparte la geometría SVG entre cabecera, footer y administración. La versión inversa utiliza letras blancas y borgoña claro para conservar contraste sobre fotografía o azul. En modo oscuro los enlaces usan borgoña claro; sobre blanco usan borgoña oscuro. Los tonos grises son neutros azulados.
+**La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es crema, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados; en tema oscuro las barras usan `#A2223F`.
+
+`BrandMark` comparte la geometría SVG entre cabecera, footer y administración. Sobre fondo claro: letras y portal izquierdo azules, portal derecho borgoña. Sobre fotografía o en tema oscuro, sin placa: letras y portal izquierdo blancos, portal derecho borgoña. Los tonos grises son neutros azulados.
 
 Los maestros están en `public/brand/fortius-{logo,compact,symbol}.svg`, con versiones inversas. `fortius-logo.png` conserva transparencia y se incrusta proporcionalmente en los PDF. El icono usa únicamente el portal y la imagen Open Graph utiliza el logotipo completo sobre azul.
 

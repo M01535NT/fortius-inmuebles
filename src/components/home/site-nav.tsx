@@ -43,27 +43,36 @@ export function SiteNav() {
   const openMenu = () => { setOpenGroup(null); setMenuReady(true); setMenuOpen(true); };
   const menu = menuReady ? <FullscreenMenu open={menuOpen} onClose={closeMenu} /> : null;
 
-  /* Inicio es nocturno en ambos temas: la barra flota transparente sobre la
-     foto y, al desplazar, se vuelve vidrio oscuro. */
+  /* Inicio: la barra flota transparente sobre la foto de portada y, al
+     desplazar, se vuelve vidrio del tema (blanco en claro, noche en oscuro). */
   if (pathname === "/") {
+    const pill = scrolled
+      ? "border-[#061f3f]/20 bg-[#061f3f]/5 text-[#061f3f] hover:bg-[#061f3f]/10 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+      : "border-white/20 bg-white/10 text-white hover:bg-white/20";
     return (
       <>
-      <header className={"fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-500 " +
-        (scrolled ? "border-b border-white/10 bg-[#060c14]/75 backdrop-blur-xl" : "border-b border-transparent")}>
+      <header className={"fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-700 " +
+        (scrolled ? "border-b border-[#061f3f]/10 bg-white/85 backdrop-blur-xl dark:border-white/10 dark:bg-[#060c14]/75" : "")}>
         <div className="mx-auto flex h-[72px] max-w-[1320px] items-center justify-between gap-6 px-5 md:px-8">
-          <Link href="/" aria-label="Fortius Inmuebles, inicio"><BrandMark inverse /></Link>
-          <nav aria-label="Principal" className="hidden items-center gap-1 rounded-full border border-white/15 bg-white/10 p-1.5 backdrop-blur-xl lg:flex">
+          <Link href="/" aria-label="Fortius Inmuebles, inicio"><BrandMark inverse={!scrolled} /></Link>
+          <nav aria-label="Principal" className={"hidden items-center gap-1 rounded-full border p-1.5 backdrop-blur-xl lg:flex " +
+            (scrolled ? "border-[#061f3f]/15 bg-[#061f3f]/5 dark:border-white/15 dark:bg-white/10" : "border-white/15 bg-white/10")}>
             {HOME_LINKS.map(link => <Link key={link.href} href={link.href}
-              className="rounded-full px-4 py-2 text-sm font-medium text-white/85 transition-colors hover:bg-white/15 hover:text-white">{link.label}</Link>)}
+              className={"rounded-full px-4 py-2 text-sm font-medium transition-colors " +
+                (scrolled ? "text-[#061f3f]/80 hover:bg-[#061f3f]/10 hover:text-[#061f3f] dark:text-white/85 dark:hover:bg-white/15 dark:hover:text-white" : "text-white/85 hover:bg-white/15 hover:text-white")}>{link.label}</Link>)}
           </nav>
+          <div className="flex items-center gap-2">
+          <ThemeToggle className={"h-12 w-12 rounded-full backdrop-blur-xl " + pill} />
           <button type="button" onClick={openMenu} aria-label="Abrir menú" aria-haspopup="dialog" aria-expanded={menuOpen}
-            className="group inline-flex h-12 items-center gap-3 rounded-full border border-white/20 bg-white/10 pl-5 pr-1.5 text-sm font-semibold text-white backdrop-blur-xl transition-colors hover:bg-white/20 active:scale-[0.97]">
+            className={"group inline-flex h-12 items-center gap-3 rounded-full border pl-5 pr-1.5 text-sm font-semibold backdrop-blur-xl transition-colors active:scale-[0.97] " + pill}>
             Menú
-            <span aria-hidden="true" className="flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-full bg-[#f5f1eb] transition-transform duration-500 group-hover:rotate-90">
-              <span className="h-[1.5px] w-3.5 bg-[#061f3f] transition-transform duration-300 group-hover:translate-y-[3.25px] group-hover:rotate-45" />
-              <span className="h-[1.5px] w-3.5 bg-[#061f3f] transition-transform duration-300 group-hover:-translate-y-[3.25px] group-hover:-rotate-45" />
+            <span aria-hidden="true" className={"flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-full transition-transform duration-500 group-hover:rotate-90 " +
+              (scrolled ? "bg-[#061f3f] dark:bg-[#f5f1eb]" : "bg-[#f5f1eb]")}>
+              <span className={"h-[1.5px] w-3.5 transition-transform duration-300 group-hover:translate-y-[3.25px] group-hover:rotate-45 " + (scrolled ? "bg-[#f5f1eb] dark:bg-[#061f3f]" : "bg-[#061f3f]")} />
+              <span className={"h-[1.5px] w-3.5 transition-transform duration-300 group-hover:-translate-y-[3.25px] group-hover:-rotate-45 " + (scrolled ? "bg-[#f5f1eb] dark:bg-[#061f3f]" : "bg-[#061f3f]")} />
             </span>
           </button>
+          </div>
         </div>
       </header>
       {menu}
@@ -78,7 +87,7 @@ export function SiteNav() {
     <motion.header
       initial={false}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: reduce ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: reduce ? 0 : 0.8, ease: [0.25, 1, 0.5, 1] }}
       className="fixed inset-x-0 top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md transition-colors duration-300"
     >
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-5 md:px-8">

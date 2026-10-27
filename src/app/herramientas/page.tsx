@@ -15,21 +15,21 @@ export default function HerramientasPage() {
     <main className="pg-page">
       <section className="pg-hero">
         <div className="pg-container pg-hero-body">
-          <p className="pg-eyebrow">Herramientas · sin registro</p>
+          <p className="pg-eyebrow">Herramientas sin registro</p>
           <h1 className="pg-title">Haz los números antes de decidir.</h1>
           <p className="pg-lead">Estima una mensualidad o los gastos de compraventa, sin registrarte.</p>
           <div className="tl-grid">
             <Link href="/herramientas/hipoteca" className="tl-card">
-              <span className="tl-card-head"><span className="pg-chip">01 · Crédito</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
+              <span className="tl-card-head"><span className="pg-chip">Crédito</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
               <span className="tl-card-title">Calculadora de hipoteca</span>
               <span className="tl-card-text">Compara escenarios, prueba abonos anticipados y descarga la amortización completa.</span>
               <span className="tl-preview">
                 <span><span className="tl-preview-label">Mensualidad de ejemplo</span><span className="tl-preview-value">$23,961</span></span>
-                <svg viewBox="0 0 200 80" width="200" height="80" aria-hidden="true"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="#E5829B" strokeWidth="3" /><path d="M0 8 C60 14 120 34 200 76 L200 80 L0 80Z" fill="rgba(229,130,155,.12)" /></svg>
+                <svg viewBox="0 0 200 80" width="200" height="80" aria-hidden="true"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="currentColor" strokeWidth="3" /><path d="M0 8 C60 14 120 34 200 76 L200 80 L0 80Z" fill="rgba(229,130,155,.12)" /></svg>
               </span>
             </Link>
             <Link href="/herramientas/gastos-de-cierre" className="tl-card">
-              <span className="tl-card-head"><span className="pg-chip">02 · Operación</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
+              <span className="tl-card-head"><span className="pg-chip">Operación</span><span className="tl-open">Abrir <ArrowUpRight size={16} aria-hidden="true" /></span></span>
               <span className="tl-card-title">Gastos de cierre</span>
               <span className="tl-card-text">Prepara el efectivo de compra o el neto de venta, con impuestos locales y tus cotizaciones.</span>
               <span className="tl-preview">

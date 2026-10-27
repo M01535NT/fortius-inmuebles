@@ -132,7 +132,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             const relatedCategory = postCategory(candidate);
             return <Link key={candidate.slug} href={`/blog/${candidate.slug}`} className="ba-related-card">
               <span className="ba-related-media" style={{ display: "block" }}>{relatedCover && <Image src={relatedCover.src} alt="" fill sizes="(max-width: 639px) 100vw, 33vw" />}</span>
-              <div><p className="pg-chip">{postFormat(candidate) === "actualidad" ? "Actualidad" : "Guía"}{relatedCategory ? ` · ${BLOG_CATEGORIES[relatedCategory]}` : ""}</p><p>{candidate.titulo}</p></div>
+              <div><p className="pg-chip">{relatedCategory ? BLOG_CATEGORIES[relatedCategory] : postFormat(candidate) === "actualidad" ? "Actualidad" : "Guía"}</p><p>{candidate.titulo}</p></div>
             </Link>;
           })}</div>
         </div>

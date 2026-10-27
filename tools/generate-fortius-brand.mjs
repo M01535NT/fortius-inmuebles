@@ -34,7 +34,7 @@ const descriptor = run.glyphs.map((glyph, i) => {
 const geometry = { symbol, wordmark, descriptor };
 await writeFile(resolve(root, 'src/components/brand/brand-paths.ts'), `// Shared vector geometry, reconstructed from the Fortius reference image.\nexport const fortiusPaths = ${JSON.stringify(geometry, null, 2)} as const;\n`);
 function svg(variant = 'full', inverse = false) {
-  const ink = inverse ? '#FFFFFF' : navy, accent = inverse ? '#E5829B' : burgundy;
+  const ink = inverse ? '#FFFFFF' : navy, accent = burgundy;
   const viewBox = variant === 'symbol' ? '174 -4 228 250' : variant === 'compact' ? '-4 -4 1275 250' : '-4 -4 1275 324';
   const paths = symbol.map((d, i) => `<path fill="${i < 2 ? ink : accent}" d="${d}"/>`).join('') + (variant === 'symbol' ? '' : wordmark.map(d => `<path fill="${ink}" d="${d}"/>`).join('')) + (variant === 'full' ? descriptor.map(p => `<path fill="${ink}" d="${p.d}" transform="${p.transform}"/>`).join('') : '');
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" role="img" aria-label="Fortius — Real Estate &amp; Investments">${paths}</svg>\n`;

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function ComercialPage() {
   return <main className="pg-page">
-    <InteriorPage {...routePages.comercial} eyebrow="02 · Comercial" title="Locales y oficinas para tu negocio." siblings={segmentLinks("/comercial")}
+    <InteriorPage {...routePages.comercial} eyebrow="Comercial" title="Locales y oficinas para tu negocio." siblings={segmentLinks("/comercial")}
       media={{ src: "/hero/plaza.webp", alt: "Plaza comercial iluminada al anochecer" }}
       primary={{ href: "/inventario?tipo=local", label: "Ver locales y oficinas" }} secondary={{ href: "/contacto", label: "Consultar un caso" }} />
     <SegmentDetail segment="comercial" />

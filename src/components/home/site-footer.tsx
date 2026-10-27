@@ -64,7 +64,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
     <footer className="nx-footer">
       <div className="nx-container">
         <motion.div className="nx-footer-intro" initial={false}
-          whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 0.65 }}>
+          whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 1, ease: [0.25, 1, 0.5, 1] }}>
           <div className="nx-footer-invitation">
             <p className="nx-footer-eyebrow">Tu próxima propiedad empieza con una conversación.</p>
             <h2>{pathname === "/" ? "Hablemos de tu próxima operación." : "Hablemos de lo que sigue."}</h2>
@@ -104,7 +104,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
           ))}
         </div>
         <div className="nx-footer-bottom">
-          <Link href="/" aria-label="Inicio de Fortius Inmuebles" className="nx-footer-brand"><BrandMark inverse /></Link>
+          <Link href="/" aria-label="Inicio de Fortius Inmuebles" className="nx-footer-brand"><BrandMark /></Link>
           <nav aria-label="Información legal y administración">
             <Link href="/avisos" className="nx-footer-link">Avisos y documentos</Link>
             <Link href="/privacidad" className="nx-footer-link">Aviso de privacidad</Link>

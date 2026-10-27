@@ -26,7 +26,7 @@ export function PropertyLocation({ property }: { property: Property }) {
       <div className={"fe-location-grid" + (lugares.length ? "" : " is-map-only")}>
         <figure className="fe-map">
           <iframe src={`https://www.google.com/maps?q=${query}&z=14&output=embed`} title={`Mapa de ${property.zona}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-          <figcaption>Zona aproximada · la ubicación exacta se comparte al agendar la visita</figcaption>
+          <figcaption>Zona aproximada: la ubicación exacta se comparte al agendar la visita</figcaption>
         </figure>
         {lugares.length > 0 && (
           <ol className="fe-places" aria-label="Lugares cercanos">

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function IndustrialPage() {
   return <main className="pg-page">
-    <InteriorPage {...routePages.industrial} eyebrow="03 · Industrial" title="Inmuebles industriales con revisión previa." siblings={segmentLinks("/industrial")}
+    <InteriorPage {...routePages.industrial} eyebrow="Industrial" title="Inmuebles industriales con revisión previa." siblings={segmentLinks("/industrial")}
       media={{ src: "/hero/nave-tijuana.webp", alt: "Nave industrial en Tijuana" }}
       primary={{ href: "/inventario?tipo=nave-industrial", label: "Ver naves y terrenos" }} secondary={{ href: "/contacto", label: "Consultar un caso" }} />
     <SegmentDetail segment="industrial" />

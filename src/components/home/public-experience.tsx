@@ -93,7 +93,7 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
     pending.current = false;
     cursorOpacity.set(0);
     gsap.to(veil, {
-      yPercent: -105, duration: reduce ? 0 : 0.55, ease: "power4.inOut",
+      yPercent: -105, duration: reduce ? 0 : 0.8, ease: "power3.inOut",
       onComplete: () => { gsap.set(veil, { visibility: "hidden" }); },
     });
     return () => { gsap.killTweensOf(veil); };
@@ -116,12 +116,12 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
       gsap.killTweensOf(veil);
       gsap.set(veil, { visibility: "visible", yPercent: 105 });
       gsap.to(veil, {
-        yPercent: 0, duration: 0.28, ease: "power3.inOut",
+        yPercent: 0, duration: 0.5, ease: "power3.inOut",
         onComplete: () => {
           router.push(url.pathname + url.search + url.hash);
           fallback.current = setTimeout(() => {
             pending.current = false;
-            gsap.to(veil, { yPercent: -105, duration: 0.35, onComplete: () => { gsap.set(veil, { visibility: "hidden" }); } });
+            gsap.to(veil, { yPercent: -105, duration: 0.6, onComplete: () => { gsap.set(veil, { visibility: "hidden" }); } });
           }, 4500);
         },
       });

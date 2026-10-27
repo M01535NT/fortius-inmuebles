@@ -41,7 +41,8 @@ test("downloaded property sheets embed the brand fonts for portable rendering", 
     return resources.values().map(ref => pdf.context.lookup(ref, PDFDict).get(PDFName.of("BaseFont"))!.toString());
   });
   expect(fonts.some(font => font.includes("Archivo"))).toBe(true);
-  expect(fonts.some(font => font.includes("LibreCaslonText"))).toBe(true);
+  // Solo sans serif de marca (titular, 25/10/2026).
+  expect(fonts.some(font => font.includes("LibreCaslonText"))).toBe(false);
   expect(fonts.some(font => font.includes("Helvetica"))).toBe(false);
 });
 

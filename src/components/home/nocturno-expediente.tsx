@@ -25,7 +25,7 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
       setReady(0);
       gsap.timeline({
         scrollTrigger: {
-          trigger: ".nx-exp-stack", start: "top 75%", end: "bottom 55%", scrub: 0.7,
+          trigger: ".nx-exp-stack", start: "top 75%", end: "bottom 55%", scrub: 1.2,
           onUpdate: (self) => {
             setReady(Math.min(total, Math.floor(self.progress * (total + 0.99))));
             setPillar(Math.min(pillars.length - 1, Math.floor(self.progress * pillars.length)));
@@ -35,10 +35,10 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
         .fromTo(".nx-exp-sheet-back", { rotate: 0, x: 0 }, { rotate: 7, x: 36, ease: "none" }, 0)
         .fromTo(".nx-exp-sheet-mid", { rotate: 0, x: 0 }, { rotate: 3.5, x: 18, ease: "none" }, 0)
         .fromTo(".nx-exp-card", { y: 60 }, { y: 0, ease: "none" }, 0);
-      gsap.from(".nx-exp-copy > *", {
-        y: 32, opacity: 0, duration: 1, stagger: 0.08, ease: "expo.out",
-        scrollTrigger: { trigger: ref.current, start: "top 80%", toggleActions: "play none none reverse" },
-      });
+      // El desplazamiento es pausado; la opacidad llega antes para que el texto se lea mientras se mueve.
+      const enter = { trigger: ref.current, start: "top 80%", toggleActions: "play none none reverse" };
+      gsap.from(".nx-exp-copy > *", { y: 32, duration: 1.4, stagger: 0.14, ease: "power3.out", scrollTrigger: enter });
+      gsap.from(".nx-exp-copy > *", { opacity: 0, duration: 0.5, stagger: 0.06, ease: "expo.out", scrollTrigger: enter });
       return () => { setReady(EXAMPLE_READY); setPillar(-1); };
     });
     return () => media.revert();
@@ -53,7 +53,6 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
           <p className="nx-lead">{intro}</p>
           <ol className="nx-exp-pillars">
             {pillars.map((item, index) => <li key={item.title} className={index === pillar ? "is-active" : undefined}>
-              <span className="nx-exp-pillar-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
               <div><h3>{item.title}</h3><p>{item.text}</p></div>
             </li>)}
           </ol>
@@ -63,7 +62,7 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
           <span className="nx-exp-sheet nx-exp-sheet-mid" aria-hidden="true" />
           <div id="entregables" className="nx-exp-card" aria-labelledby="entregables-title">
             <div className="nx-exp-card-head">
-              <h3 id="entregables-title">Documentos de tu operación <span>· ejemplo</span></h3>
+              <h3 id="entregables-title">Documentos de tu operación <span>(ejemplo)</span></h3>
               <span className="nx-exp-chip" aria-hidden="true">{ready} de {total} listos</span>
             </div>
             <div className="nx-exp-progress" aria-hidden="true"><span style={{ transform: `scaleX(${total ? ready / total : 0})` }} /></div>

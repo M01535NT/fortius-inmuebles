@@ -46,9 +46,9 @@ export function ConceptualPropertyPlan({ segment }: { segment: Segment }) {
       <div className="seg-plan-canvas">
         <svg viewBox="0 0 160 110" role="img" aria-label={`${drawing.label}: ${drawing.zones[active].title}`}>
           {drawing.paths.map((path, index) => (
-            <motion.path key={path} d={path} fill="none" stroke={index === active + 1 ? "#e5829b" : "rgba(245,241,235,0.45)"} strokeWidth={index === active + 1 ? 2.8 : 1.4} vectorEffect="non-scaling-stroke" initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 1 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.8, delay: index * 0.08 }} />
+            <motion.path key={path} d={path} fill="none" stroke={index === active + 1 ? "#f5f1eb" : "rgba(245,241,235,0.4)"} strokeWidth={index === active + 1 ? 2.8 : 1.4} vectorEffect="non-scaling-stroke" initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 1 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 1.4, delay: index * 0.14, ease: [0.25, 1, 0.5, 1] }} />
           ))}
-          <motion.circle cx={[42, 82, 124][active]} cy={[70, 43, 76][active]} r="4" fill="#e5829b" initial={{ scale: 0 }} animate={{ scale: 1 }} />
+          <motion.circle cx={[42, 82, 124][active]} cy={[70, 43, 76][active]} r="4" fill="#f5f1eb" initial={{ scale: 0 }} animate={{ scale: 1 }} />
         </svg>
         <p className="seg-plan-note">Esquema conceptual para ordenar preguntas. No representa el plano ni las medidas de un inmueble real.</p>
       </div>

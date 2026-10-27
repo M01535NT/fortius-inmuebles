@@ -14,7 +14,7 @@ export default function ContactoPage() {
     <section className="pg-hero ct-hero">
       <div className="pg-container pg-hero-body">
         <header className="ct-head">
-          <p className="pg-eyebrow">Contacto · Fortius Inmuebles</p>
+          <p className="pg-eyebrow">Contacto</p>
           <h1 className="pg-title">¿Compras o vendes? <span className="ct-accent">Hablemos.</span></h1>
           <p className="pg-lead">Cuéntanos qué buscas o qué propiedad quieres vender. Elige el motivo de tu consulta para empezar.</p>
         </header>

@@ -20,13 +20,14 @@ export function BlogCard({ post, featured = false, view = "cuadricula" }: { post
         <span className="bp-card-body">
           <span className="bp-card-kicker">
             {featured && <span className="bp-featured-tag">Destacado</span>}
-            <span className="pg-chip">{postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}{category ? ` · ${BLOG_CATEGORIES[category]}` : ""}</span>
+            <span className="pg-chip">{postFormat(post) === "actualidad" ? "Actualidad" : "Guía"}</span>
+            {category && <span className="pg-chip">{BLOG_CATEGORIES[category]}</span>}
           </span>
           <h2>{post.titulo}</h2>
           <span className="bp-card-summary">{post.resumen}</span>
           <span className="bp-card-meta">
             <span>
-              {post.publicadoEl ? "" : "Actualizado · "}<time dateTime={postDate(post)}>{formatBlogDate(postDate(post))}</time>
+              {post.publicadoEl ? "" : "Actualizado el "}<time dateTime={postDate(post)}>{formatBlogDate(postDate(post))}</time>
               {" · "}{readingMinutes(post)} min de lectura
             </span>
             <ArrowUpRight aria-hidden="true" size={20} />

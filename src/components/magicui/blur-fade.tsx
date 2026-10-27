@@ -24,7 +24,7 @@ export function BlurFade({
   children,
   className,
   delay = 0,
-  duration = 0.55,
+  duration = 0.9,
   yOffset = 18,
   blur = "8px",
   inView = true,

@@ -136,6 +136,9 @@ test(`stacked method stages and the example file keep readable contrast during a
   await expect(cards.nth(1).locator("h3")).toBeVisible();
   for (const region of ["#metodo", "#por-que-fortius"]) {
     await page.locator(region).scrollIntoViewIfNeeded();
+    // Contrast is measured once the entrance fade ends; a text still appearing is not its resting color.
+    await expect.poll(() => page.locator(region).evaluate((node) => [...node.querySelectorAll<HTMLElement>("*")]
+      .filter((el) => el.style.opacity !== "" && Number(el.style.opacity) < 1 && !el.closest("[aria-hidden='true']")).length)).toBe(0);
     const result = await new AxeBuilder({ page }).include(region).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(result.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target) }))).toEqual([]);
   }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Download, FileText, Images, Maximize2, Play, Rotate3d, X, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Images, Maximize2, Play, Rotate3d, X, type LucideIcon } from "lucide-react";
 
 import type { ImagenPropiedad } from "@/data/propiedades";
 import { PropertyShare } from "@/components/property/property-share";
@@ -74,9 +74,6 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
           ))}
         </div>
         <div className="fe-visor-actions">
-          {fichaUrl && <a href={fichaUrl} download aria-label="Ficha técnica (descargar PDF)" className="fe-visor-pdf">
-            <Download size={16} strokeWidth={1.8} aria-hidden="true" />PDF
-          </a>}
           {share && <PropertyShare {...share} />}
         </div>
       </div>
@@ -113,13 +110,13 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
             <div className="fe-sheet">
               <div className="fe-sheet-head"><span>Fortius Inmuebles</span><span>Ficha técnica</span></div>
               <p className="fe-sheet-title">{ficha.titulo}</p>
-              <p className="fe-sheet-sub">{ficha.zona} · {ficha.codigo}</p>
+              <p className="fe-sheet-sub">{ficha.zona}, {ficha.codigo}</p>
               {imagenes[0] && <div className="fe-sheet-photo"><Image src={imagenes[0].src} alt="" fill sizes="420px" /></div>}
               <dl className="fe-sheet-rows">
                 {ficha.filas.map(row => <div key={row.label}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}
                 <div><dt>Precio</dt><dd>{ficha.precio}</dd></div>
               </dl>
-              {ficha.demo && <p className="fe-sheet-demo">Demostración · datos de ejemplo</p>}
+              {ficha.demo && <p className="fe-sheet-demo">Datos de ejemplo</p>}
             </div>
             <div className="fe-sheet-side">
               <p>La ficha técnica resume superficies, distribución y precio en un PDF para imprimir o compartir.</p>

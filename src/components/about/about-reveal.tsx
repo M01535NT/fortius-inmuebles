@@ -22,7 +22,7 @@ export function AboutReveal({ children }: { children: React.ReactNode }) {
         // Blocks already on screen play at once; the rest wait for the scroll.
         const visible = block.getBoundingClientRect().top < window.innerHeight * 0.85;
         gsap.fromTo(targets, { y: 40, opacity: 0 }, {
-          y: 0, opacity: 1, duration: 1, stagger: 0.09, ease: "expo.out", clearProps: "opacity,transform",
+          y: 0, opacity: 1, duration: 1.4, stagger: 0.14, ease: "power3.out", clearProps: "opacity,transform",
           scrollTrigger: visible ? undefined : { trigger: block, start: "top 85%", once: true },
         });
       });

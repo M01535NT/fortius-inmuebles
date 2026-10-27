@@ -53,7 +53,7 @@ test("health and inventory expose backend unavailability without a false empty r
   await expect(page.getByRole("heading", { name: "No pudimos cargar esta página." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reintentar" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
-  await expect(page.getByText(/00 resultados/i)).toHaveCount(0);
+  await expect(page.getByText(/(^|\D)0 resultados/i)).toHaveCount(0);
 });
 
 test("global not-found state provides useful navigation", async ({ page }) => {

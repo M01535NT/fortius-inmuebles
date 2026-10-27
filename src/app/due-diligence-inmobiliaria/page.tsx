@@ -31,7 +31,7 @@ export default function DueDiligencePage() {
   return <main className="pg-page">
     <InteriorPage {...routePages.dueDiligence} eyebrow="Revisión documental" title="Antes de avanzar, revisa lo que firmas."
       aside={<div className="dd-report" aria-label="Reporte de revisión de ejemplo">
-        <div className="dd-report-head"><span>Reporte de revisión <em>· ejemplo</em></span><span className="pg-chip">{pending} pendientes</span></div>
+        <div className="dd-report-head"><span>Reporte de revisión <em>(ejemplo)</em></span><span className="pg-chip">{pending} pendientes</span></div>
         <ul>
           {EXAMPLE.map(area => <li key={area.title} className={`is-${area.status}`}>
             <span className="dd-dot" aria-hidden="true" />

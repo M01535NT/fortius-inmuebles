@@ -181,7 +181,7 @@ Caminos por ruta:
 | I-01 | Base de pruebas separada | ENV-01 | Respondida 17/10 · DEC-10 |
 | I-02 | Respaldo de archivos y quién lo custodia | REC-01 | Respondida 17/10 · por pasar al plan (REC-01) |
 | I-03 | Monitoreo de errores | OBS-01 | Respondida 17/10 · falta crear la cuenta (OBS-01) |
-| I-04 | Quién autoriza publicar | ENV-01 | Respondida 17/10 · en AGENTS.md |
+| I-04 | Quién autoriza publicar | ENV-01 | Respondida 17/10, actualizada 25/10 · en AGENTS.md |
 | I-05 | Datos que hoy están fuera del panel | DAT-01 | Respondida 17/10 · DAT-01 no se necesita por ahora |
 | J-01 | Pruebas de uso | USO-01 | Respondida 17/10 · depende de USR-01 |
 | J-02 | Tres trabajos que lo vuelven útil | USO-01 | Respondida 17/10 · criterio de USO-01 |
@@ -1513,6 +1513,8 @@ Nota del agente: el titular tiene que crear la cuenta del servicio (por ejemplo,
 
 - se integra y publica con la verificación aprobada;
 - antes de una migración de base de datos, el agente avisa y explica qué cambia.
+
+**Actualización (titular, 25/10/2026):** reemplaza la respuesta anterior. Nada se integra en `main` sin su acuerdo: el agente trabaja en una sola rama, el titular revisa los cambios en localhost y, cuando aprueba publicar, se abre un solo PR. Lo urgente se avisa y se pregunta antes. La regla vigente está en `AGENTS.md`.
 
 ### I-05 · Datos que hoy están fuera del panel
 

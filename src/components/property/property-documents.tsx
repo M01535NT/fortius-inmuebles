@@ -62,22 +62,26 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           <li key={doc.codigo + doc.url} className="flex items-center gap-3 px-5 py-3.5">
             <FileText className="size-4.5 shrink-0 text-primary-ink" strokeWidth={1.5} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground">{doc.nombre}</p>
+              <p className="text-sm font-medium text-foreground">{doc.nombre} <span className="whitespace-nowrap text-xs font-normal text-muted-foreground">{doc.codigo}</span></p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                <span className="font-mono text-xs">{doc.codigo}</span> · {doc.descripcion}
+                {doc.descripcion}
               </p>
             </div>
             {unlocked ? (
               <a
                 href={doc.url}
                 download
+                // Los archivos del panel viven en Storage (otro dominio): el navegador los abre; mejor en otra pestaña.
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${doc.nombre} en PDF (se abre en otra pestaña)`}
                 className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
               >
                 <ArrowDownToLine className="size-3.5" strokeWidth={1.5} />
                 PDF
               </a>
             ) : (
-              <span className="font-mono text-xs text-muted-foreground">PDF</span>
+              <span className="text-xs font-semibold text-muted-foreground">PDF</span>
             )}
           </li>
         ))}

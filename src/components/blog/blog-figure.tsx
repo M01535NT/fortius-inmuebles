@@ -14,9 +14,9 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
       className="my-10 min-w-0 overflow-hidden rounded-lg border border-border bg-card font-sans text-foreground [overflow-wrap:anywhere]"
     >
       <div className="border-b border-border p-5 sm:p-7">
-        <p className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide text-primary-ink">
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary-ink">
           <Icon aria-hidden="true" className="size-5 shrink-0" />
-          {isInfographic ? "GUÍA VISUAL" : data.type === "monthly-comparison" ? "EJEMPLO FICTICIO" : "EJEMPLO ILUSTRATIVO"}
+          {isInfographic ? "Guía visual" : data.type === "monthly-comparison" ? "Ejemplo ficticio" : "Ejemplo ilustrativo"}
         </p>
         <h3 id={`${figure.id}-title`} className="text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
           {figure.title}

@@ -29,7 +29,7 @@ export default async function NosotrosPage() {
   const contact = publicContact(settings);
   const videoUrl = settings?.videoInstitucionalUrl;
   const profiles = team.length ? team : [{
-    id: "moises", nombre: SITE_TERMS.responsible, cargo: "Asesor inmobiliario · Fortius", iniciales: "MN",
+    id: "moises", nombre: SITE_TERMS.responsible, cargo: "Asesor inmobiliario en Fortius", iniciales: "MN",
     descripcion: "Soy tu contacto para revisar lo que buscas o la propiedad que quieres vender. Coordino las visitas y reviso las propuestas contigo; tú decides qué condiciones aceptar.",
     foto: "/images/team/advisor-example.webp", telefono: settings?.telefono, whatsapp: settings?.whatsapp,
     email: contact.email || SITE_TERMS.email, instagram: undefined, facebook: undefined, linkedin: undefined,
@@ -56,7 +56,7 @@ export default async function NosotrosPage() {
 
   return <main className="about-page">
     <AboutReveal>
-    <section className="ab-hero dark" aria-labelledby="about-title">
+    <section className="ab-hero" aria-labelledby="about-title">
       <div className="nx-container ab-hero-grid">
         <div className="ab-hero-copy" data-reveal>
           <p className="nx-eyebrow" data-reveal-item>Nosotros</p>
@@ -135,7 +135,7 @@ export default async function NosotrosPage() {
       <div className="nx-container">
         <div className="ab-video dark" data-reveal>
           <div className="ab-video-head">
-            <p className="nx-eyebrow">VID-INS-001 · Video</p>
+            <p className="nx-eyebrow">Video institucional</p>
             <h2 id="video-heading">Cómo trabajamos, en video.</h2>
           </div>
           <video src={videoUrl} controls preload="metadata" className="ab-video-player">Tu navegador no puede reproducir este video.</video>

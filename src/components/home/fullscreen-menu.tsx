@@ -121,8 +121,8 @@ export function FullscreenMenu({ open, onClose }: Props) {
         timeline.set(panel, { clipPath: "none" }).set(items, { yPercent: 0, opacity: 1 });
       } else {
         timeline.set(items, { yPercent: 60, opacity: 0 })
-          .fromTo(panel, { clipPath: closed }, { clipPath: full, duration: 0.85, ease: "power4.inOut" }, 0)
-          .to(items, { yPercent: 0, opacity: 1, duration: 0.7, stagger: 0.045, ease: "expo.out" }, 0.32)
+          .fromTo(panel, { clipPath: closed }, { clipPath: full, duration: 1.1, ease: "power3.inOut" }, 0)
+          .to(items, { yPercent: 0, opacity: 1, duration: 1, stagger: 0.06, ease: "power3.out" }, 0.4)
           .set(panel, { clipPath: "none" });
       }
     } else if (getComputedStyle(root).visibility !== "hidden") {
@@ -130,7 +130,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
       if (reduce) {
         timeline.set(root, { visibility: "hidden" });
       } else {
-        timeline.fromTo(panel, { clipPath: `circle(150% at ${originRef.current})` }, { clipPath: closed, duration: 0.6, ease: "power3.inOut" })
+        timeline.fromTo(panel, { clipPath: `circle(150% at ${originRef.current})` }, { clipPath: closed, duration: 0.8, ease: "power3.inOut" })
           .set(root, { visibility: "hidden" });
       }
     }
@@ -142,7 +142,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
       <div ref={panelRef} role="dialog" aria-modal="true" aria-label="Menú" className={styles.panel}>
         <div className={styles.glowFrame} aria-hidden="true"><div className={styles.glow} /></div>
         <header className={styles.header}>
-          <BrandMark inverse className={styles.brand} />
+          <BrandMark className={styles.brand} />
           <button ref={closeRef} type="button" onClick={onClose} aria-label="Cerrar menú" className={styles.close}>
             Cerrar <span className={styles.closeIcon} aria-hidden="true"><X size={16} strokeWidth={2} /></span>
           </button>
@@ -157,7 +157,6 @@ export function FullscreenMenu({ open, onClose }: Props) {
                   <div className={styles.row}>
                     <Link href={item.href} prefetch={open ? null : false} onClick={(event) => followAnchor(event, item.href)}
                       aria-current={isCurrent(item.href) ? "page" : undefined} className={styles.link}>
-                      <span className={styles.number} aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
                       <span className={styles.label}>{item.label}</span>
                       <ArrowUpRight size={32} strokeWidth={1.5} aria-hidden="true" className={styles.arrow} />
                     </Link>
@@ -179,7 +178,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
                 <Image src="/hero/interior-depa.webp" alt="" fill sizes="(max-width: 899px) 100vw, 480px" />
                 <span className={styles.sellScrim} aria-hidden="true" />
                 <span className={styles.sellCopy}>
-                  <span className={styles.sellEyebrow}>PARA PROPIETARIOS</span>
+                  <span className={styles.sellEyebrow}>Para propietarios</span>
                   <span className={styles.sellTitle}>Vender mi propiedad</span>
                 </span>
               </Link>
@@ -194,7 +193,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
               </div>
               <div className={styles.meta}>
                 {contact.phoneHref ? <a href={contact.phoneHref} onClick={onClose}>{contact.phone}</a> : <span>Antes de prometer, revisamos.</span>}
-                <ThemeToggle className="border-white/20 text-[#f5f1eb] hover:bg-white/10 hover:text-white" />
+                <ThemeToggle className="rounded-full" />
               </div>
               <Link href={directHref} prefetch={false} onClick={onClose} className={styles.direct}>Contacto directo <ArrowRight size={14} aria-hidden="true" /></Link>
             </section>

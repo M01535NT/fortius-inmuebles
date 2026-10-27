@@ -64,7 +64,7 @@ describe("editorial blog figures", () => {
     expect(html).toContain("28,000 MXN");
     expect(html).toContain("18,000 MXN");
     expect(html).toContain("10,000 MXN");
-    expect(html).toContain("EJEMPLO FICTICIO");
+    expect(html).toContain("Ejemplo ficticio");
     expect(html).toContain("no mide patrimonio");
     expect(html).toContain("width:100%");
     expect(html).toContain("width:64.28571428571429%");
@@ -81,7 +81,7 @@ describe("editorial blog figures", () => {
     expect(result.max).toBe(1250);
     expect(result.rows.map(({ label }) => label)).toEqual(["20 MXN por USD", "18 MXN por USD", "16 MXN por USD"]);
     const html = renderToStaticMarkup(createElement(BlogFigureView, { figure }));
-    expect(html).toContain("EJEMPLO ILUSTRATIVO");
+    expect(html).toContain("Ejemplo ilustrativo");
     expect(html).toContain("20,000 MXN");
     expect(html).toContain("1,111.11 USD");
     expect(html).toContain("no son cotizaciones vigentes");

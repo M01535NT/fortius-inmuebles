@@ -55,7 +55,7 @@ export function SplitHeading({
             if (soft) {
               if (softEntranceDone.current) return;
               return gsap.fromTo(self.lines, { y: 18, opacity: 0, filter: "blur(3px)" }, {
-                y: 0, opacity: 1, filter: "blur(0px)", duration: 0.8, delay, stagger: 0.18, ease: "power3.out",
+                y: 0, opacity: 1, filter: "blur(0px)", duration: 1.2, delay, stagger: 0.22, ease: "power3.out",
                 onComplete: () => {
                   softEntranceDone.current = true;
                   gsap.set(self.lines, { clearProps: "filter,transform" });
@@ -63,7 +63,7 @@ export function SplitHeading({
               });
             }
             return gsap.from(self.lines, {
-              yPercent: 105, duration: 1.05, delay, stagger: 0.11, ease: "power4.out",
+              yPercent: 105, duration: 1.5, delay, stagger: 0.16, ease: "power3.out",
               scrollTrigger: { trigger: el, start: "top 88%", toggleActions: actions(once) },
             });
           },
@@ -82,7 +82,7 @@ export function SplitHeading({
         opacity: 0,
         filter: compact ? undefined : "blur(8px)",
         transformOrigin: "0% 100%",
-        duration: 0.7,
+        duration: 1.1,
         delay,
         ease: EASE_OUT,
         stagger: Math.min(charDelay, (compact ? 0.55 : 0.85) / Math.max(split.chars.length, 1)),

@@ -5,8 +5,10 @@ for (const width of [390, 1280]) {
   test(`gallery downloads the current property PDF at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 912 });
     await page.goto("/inventario/residencia-vista-al-mar-playas");
+    // La descarga vive en la pestaña «Ficha técnica» del visor (sin botón PDF aparte).
     const gallery = page.getByRole("group", { name: "Modo de galería", exact: true });
-    const button = gallery.getByRole("link", { name: "Ficha técnica (descargar PDF)", exact: true });
+    await gallery.getByRole("button", { name: "Ficha técnica", exact: true }).click();
+    const button = page.getByRole("link", { name: "Descargar ficha técnica en PDF", exact: true });
     await expect(button).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const downloaded = page.waitForEvent("download");

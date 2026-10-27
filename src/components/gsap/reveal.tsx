@@ -36,7 +36,7 @@ export function Reveal({
   blur = 0,
   delay = 0,
   once = false,
-  duration = 0.9,
+  duration = 1.4,
 }: Props) {
   const ref = React.useRef<HTMLDivElement>(null);
   const nearViewport = useInView(ref, { once: true, margin: "200px" });
@@ -67,7 +67,7 @@ export function Reveal({
         ease: EASE_OUT,
         scrollTrigger: {
           trigger: el,
-          start: "top 80%",
+          start: "top 85%",
           toggleActions: actions(once),
         },
         onComplete: () => gsap.set(el, { clearProps: "filter" }),
