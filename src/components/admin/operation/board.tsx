@@ -10,9 +10,10 @@ import { useBrowserPreference } from "@/components/admin/workspace/browser-prefe
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { SALE_PROCESS } from "@/lib/formatos/operation-workflow";
-import { attentionOf, boardCard, dueLabel, flowOf, groupOfPhase, PHASE_GROUPS, pastGaps, stageTrack, type Attention, type GroupId, type OperationRecord } from "@/lib/admin/operation-view";
+import { attentionOf, boardCard, dueLabel, flowOf, groupOfPhase, initialStatus, PHASE_GROUPS, pastGaps, stageTrack, type Attention, type GroupId, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DirectCreate } from "./direct-create";
+import { useOperationFormats } from "./use-operation-formats";
 import { useLeaveGuard } from "./use-operation";
 import s from "./board.module.css";
 
@@ -60,21 +61,8 @@ export function OperationsBoard() {
       .catch(cause => { if (alive) { setRecords(null); setError(errorMessage(cause)); } });
     return () => { alive = false; };
   }, [deleted, attempt]);
-  // Formatos iniciados por operación: separan las primeras etapas del propietario y muestran lo que falta de etapas anteriores.
-  const [started, setStarted] = React.useState<Map<string, Set<string>>>(new Map());
-  React.useEffect(() => {
-    let alive = true;
-    (async () => {
-      const byOperation = new Map<string, Set<string>>();
-      for (let offset: number | null = 0; offset !== null && offset < 5000;) {
-        const page: { documentos?: Array<{ expedienteId: string; formatoId: string }>; nextOffset?: number | null } = await apiRequest(`/api/admin/documentos?limit=100&offset=${offset}`);
-        for (const d of page.documentos ?? []) { if (!byOperation.has(d.expedienteId)) byOperation.set(d.expedienteId, new Set()); byOperation.get(d.expedienteId)!.add(d.formatoId.startsWith("04") ? "04" : d.formatoId); }
-        offset = page.nextOffset ?? null;
-      }
-      if (alive) setStarted(byOperation);
-    })().catch(() => undefined);
-    return () => { alive = false; };
-  }, [attempt]);
+  // Formatos por operación: separan las primeras etapas del propietario y muestran lo que falta de etapas anteriores.
+  const started = useOperationFormats(attempt);
   React.useEffect(() => {
     let alive = true;
     apiRequest<{ asesorId?: string | null }>("/api/admin/mi-asesor").then(r => { if (alive) { setMe(r.asesorId ?? undefined); if (!r.asesorId) setScope("equipo"); } }).catch(() => { if (alive) setScope("equipo"); });
@@ -87,7 +75,7 @@ export function OperationsBoard() {
   };
   const rows: Row[] = (records ?? []).map(op => {
     const formats = started.get(op.id), checklist = tasks.find(t => t.id === checklistTaskId(op.id));
-    const view: OperationRecord = { ...op, inicial: { iniciada: !!formats?.has("02"), levantamiento: formats?.has("04") ? "borrador" : undefined, documentos: checklist ? (checklist.pasos.length > 0 && checklist.pasos.every(p => p.hecho) ? "completo" : "pendiente") : undefined } };
+    const view: OperationRecord = { ...op, inicial: initialStatus(formats, checklist) };
     const card = boardCard(view, tasks, today, names, me);
     const { stages, current } = stageTrack(view, today);
     // Aquí solo se sabe qué formatos existen: se avisa del que falta por completo, no del que espera su PDF.

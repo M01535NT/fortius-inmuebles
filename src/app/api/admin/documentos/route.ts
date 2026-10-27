@@ -23,12 +23,19 @@ export async function GET(request: Request) {
     const rows=data??[];
     const total=count??offset+rows.length;
     if(!rows.length&&offset>0)throw new ApiError(409,"La lista cambió; vuelve al inicio de los documentos");
+    // «emitido»: la versión actual del borrador ya tiene su PDF (misma regla que los candados de arranque, operation-gates.ts).
+    let emitted=new Set<string>();
+    if(rows.length){
+      const emissions=await client.from("fortius_inmuebles_formato_emissions").select("draft_id,draft_version").in("draft_id",rows.map(row=>row.id));
+      if(emissions.error)databaseError(emissions.error);
+      emitted=new Set((emissions.data??[]).map(e=>`${e.draft_id}:${e.draft_version}`));
+    }
     return {
       documentos:rows.map(row=>{
         const relation=row.expediente as unknown as {folio:string}|{folio:string}[];
         const parent=Array.isArray(relation)?relation[0]:relation;
         if(typeof parent?.folio!=="string")throw new ApiError(503,"No se pudo consultar el contexto de los documentos");
-        return {id:row.id,expedienteId:row.expediente_id,folio:parent.folio,formatoId:row.formato_id,version:row.version,actualizadoEl:row.updated_at};
+        return {id:row.id,expedienteId:row.expediente_id,folio:parent.folio,formatoId:row.formato_id,version:row.version,actualizadoEl:row.updated_at,emitido:emitted.has(`${row.id}:${row.version}`)};
       }),
       total,nextOffset:offset+rows.length<total ? offset+rows.length : null,
     };
