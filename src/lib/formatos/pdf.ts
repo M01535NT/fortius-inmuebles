@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import { formatoById, validateFormato, type FormatoField } from "./catalog";
+import { formatoById, validateFormato, type FormatoField, emiteIncompleto, avisoIncompleto } from "./catalog";
 import { calcularPresupuesto, importePartida, type Partida, type Pago } from "./presupuesto";
 import { CARGOS_NETO, calcularNeto, type CargoNeto } from "./neto";
 import { ENTREGA_TABLAS, type EntregaRow, type EntregaTabla } from "./entrega";
@@ -12,7 +12,6 @@ import { respuestaRequiereRatificacion } from "./oferta";
 import { calcularExtras, PLAN_TABLES, type PlanRow, type PlanTable } from "./plan";
 import { calcularPublicidadReporte, REPORTE_TABLES, type ReporteRow, type ReporteTable } from "./reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable, type EntrevistaRow } from "./entrevista";
-import { createAvisoPdf } from "./aviso-pdf";
 import { JURIDICA_TABLES, mostrarColumnaJuridica, type JuridicaRow } from "./juridica";
 import sharp from "sharp";
 import { isLevantamiento, LEVANTAMIENTO_TITLES, LEVANTAMIENTO_TABLES, type LevantamientoTable, type LevantamientoRow } from "./levantamiento";
@@ -62,14 +61,16 @@ export function receiptParagraphs(data: Record<string, unknown>): string[] {
   ];
 }
 
-export async function createFormatoPdf(id: string, data: Record<string, unknown>, assets: FormatoPdfAsset[] = []): Promise<Uint8Array> {
+/** «incompleto»: se emite aunque falten datos (si el formato lo admite) y cada hoja lo dice al pie. */
+export async function createFormatoPdf(id: string, data: Record<string, unknown>, assets: FormatoPdfAsset[] = [], options: { incompleto?: boolean } = {}): Promise<Uint8Array> {
   const definition = formatoById(id);
   if (!definition.readyForEmission) throw new Error("Formato pendiente de cotejo con el original");
   const missing = validateFormato(id, data);
-  if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
-  if (id === "01") return createAvisoPdf(data);
+  const incompleto = missing.length > 0 && !!options.incompleto && emiteIncompleto(id);
+  if (missing.length && !incompleto) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   if (isLevantamiento(id)) {
-    if (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto")) throw new Error("Falta la fotografía principal del levantamiento");
+    // Sin fotografía elegida, el PDF incompleto deja su recuadro vacío; una elegida debe venir y estar íntegra.
+    if ((!incompleto || data.fotoPrincipalId) && !assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto")) throw new Error("Falta la fotografía principal del levantamiento");
     if (data.croquisId && !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis")) throw new Error("Falta el croquis elegido para el levantamiento");
   }
   // Formatos con el diseño de su plantilla (carta, banda de datos y tablas de marca).
@@ -86,7 +87,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       const image = imagen(new Uint8Array(bytes), { caption: asset.caption, source: asset.source, date: asset.observed_on });
       if (image) imagenes[asset.id] = image;
     }
-    return renderDocumentoPdf(documento(data, { imagenes }), { regular, bold, ...await loadLetterhead() });
+    return renderDocumentoPdf({ ...documento(data, { imagenes }), ...(incompleto ? { aviso: avisoIncompleto(missing) } : {}) }, { regular, bold, ...await loadLetterhead() });
   }
   const pdf = await PDFDocument.create();
   const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "07" ? "Opinión de valor comercial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
@@ -657,7 +658,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   return pdf.save();
 }
 
-export async function prepareFormatoEmission(id: string, data: Record<string, unknown>, assets?: FormatoPdfAsset[]) {
-  const bytes = await createFormatoPdf(id, data, assets);
+export async function prepareFormatoEmission(id: string, data: Record<string, unknown>, assets?: FormatoPdfAsset[], options: { incompleto?: boolean } = {}) {
+  const bytes = await createFormatoPdf(id, data, assets, options);
   return { bytes, sha256: createHash("sha256").update(bytes).digest("hex") };
 }

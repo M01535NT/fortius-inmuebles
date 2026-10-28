@@ -12,7 +12,7 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { isOwnerRoute, SALE_PROCESS, type SalePhase } from "@/lib/formatos/operation-workflow";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { flowOf, initialStatus, isGuided, PHASE_GROUPS, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
+import { flowOf, initialStatus, isGuided, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DocumentsTab } from "./documents-tab";
 import { HistoryTab } from "./history-tab";
@@ -141,7 +141,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
           <h1 className={s.heroTitle}>{client?.nombre ?? op.folio}</h1>
           <p className={s.heroFacts}>{facts.join(" · ")} · <span>{op.folio}</span></p>
         </div>
-        {isGuided(op) && isOwnerRoute(flow.ruta) && <ol className={s.phases} aria-label="Fases de la venta">{PHASE_GROUPS.map(group => <li key={group.id} aria-current={group.id === track.group ? "step" : undefined}>{group.label}</li>)}</ol>}
+        {isGuided(op) && track.stages[track.current] && <p className={s.phases}><span>Etapa {track.current + 1} de {track.stages.length} · {track.stages[track.current].label}</span></p>}
       </div>
     </header>
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}

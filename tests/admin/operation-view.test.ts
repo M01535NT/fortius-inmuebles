@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, groupOfPhase, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
+import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageDocuments, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
 import { emptyWorkflow, processStageText, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
 
@@ -8,7 +8,7 @@ const reviewed = (extra: Record<string, unknown> = {}) => ({ estado: "revisado" 
 const flow = (requisitos: Partial<Record<RequirementKey, unknown>> = {}, extra: Partial<OperationWorkflow> = {}, ruta: OperationWorkflow["ruta"] = "captacion") => ({ ...emptyWorkflow(ruta), requisitos, ...extra }) as OperationWorkflow;
 const op = (over: Partial<OperationRecord> = {}): OperationRecord => ({ id: "51000000-0000-4000-8000-000000000001", folio: "EXP-1", version: 1, cliente_id: "c1", asesor_id: "a1", operacion: "venta", propiedad_slug: "casa", etapa: "captacion", flujo: flow(), ...over });
 const task = (over: Partial<Task> = {}): Task => ({ id: "t1", titulo: "Llamar al propietario", descripcion: "", categoria: "captacion", estado: "pendiente", prioridad: "normal", pasos: [], expedienteId: "51000000-0000-4000-8000-000000000001", asesorId: "a1", vence: "2026-10-20", ...over });
-const verified = { entrevista: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: reviewed() };
+const verified = { entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: reviewed() };
 const accepted = { resolucion: { tipo: "aceptada" as const, fecha: "2026-10-09", motivo: "Encargo aceptado", siguienteAccion: "Firmar", fechaSiguiente: "2026-10-12" } };
 
 test("lo recibido sin revisar y la falta de próxima tarea no permiten pasar de etapa", () => {
@@ -16,16 +16,16 @@ test("lo recibido sin revisar y la falta de próxima tarea no permiten pasar de 
   const current = op({ inicial: done, flujo: flow({ entrevista: { estado: "recibido", soporte: "Referencia ficticia v1" } }) });
   expect(advanceTarget(current, today)).toEqual({ target: "documentacion", label: "Dictamen jurídico" });
   expect(missingItems(current, [], today).map(m => [m.text, m.why])).toEqual([["Entrevista con el propietario", "falta revisarlo"], ["Agendar la próxima tarea", "con fecha y responsable"]]);
-  expect(missingItems(op({ inicial: done, flujo: flow({ entrevista: reviewed() }) }), [task()], today)).toEqual([]);
+  expect(missingItems(op({ inicial: done, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) }), [task()], today)).toEqual([]);
 });
 
 test("el prospecto pasa a entrevista inicial al iniciar el 02 y no avanza sin su PDF", () => {
-  const prospect = op({ flujo: flow({ entrevista: reviewed() }) });
+  const prospect = op({ flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(prospect, today)).toMatchObject({ current: 0, phase: "prospecto" });
   expect(advanceTarget(prospect, today)).toEqual({ label: "Entrevista inicial" });
   expect(currentRequirements(prospect, today)).toEqual([]);
   expect(missingItems(prospect, [task()], today).map(m => m.text)).toEqual(["Iniciar la entrevista inicial"]);
-  const started = op({ inicial: { iniciada: true }, flujo: flow({ entrevista: reviewed() }) });
+  const started = op({ inicial: { iniciada: true }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(started, today)).toMatchObject({ current: 1, phase: "captacion" });
   expect(advanceTarget(started, today)).toEqual({ label: "Levantamiento" });
   expect(missingItems(started, [task()], today).map(m => m.text)).toEqual(["Terminar la entrevista inicial (02)"]);
@@ -42,7 +42,7 @@ test("COR-03: Hoy, Operaciones y la operación nombran igual la etapa con el mis
     [new Map([["02", true], ["04", false]]), "Levantamiento"],
   ];
   for (const [formats, label] of cases) {
-    const record = op({ inicial: initialStatus(formats), flujo: flow({ entrevista: reviewed() }) });
+    const record = op({ inicial: initialStatus(formats), flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
     expect(processStageText(record.etapa, record.flujo, today, record.inicial)).toBe(label);
     const track = stageTrack(record, today);
     expect(track.stages[track.current].label).toBe(label);
@@ -50,12 +50,12 @@ test("COR-03: Hoy, Operaciones y la operación nombran igual la etapa con el mis
 });
 
 test("levantamiento y checklist de documentos llevan a verificación solo con todo recibido", () => {
-  const surveying = op({ inicial: { iniciada: true, emitida: true, levantamiento: "borrador" }, flujo: flow({ entrevista: reviewed() }) });
+  const surveying = op({ inicial: { iniciada: true, emitida: true, levantamiento: "borrador" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(surveying, today)).toMatchObject({ current: 2, phase: "levantamiento" });
   expect(advanceTarget(surveying, today)).toEqual({ label: "Checklist de documentos" });
   expect(missingItems(surveying, [task()], today).map(m => m.text)).toEqual(["Terminar el levantamiento (04)"]);
   expect(missingItems({ ...surveying, inicial: { ...surveying.inicial, levantamiento: "emitido" } }, [task()], today).map(m => m.text)).toEqual(["Iniciar el checklist de documentos"]);
-  const collecting = op({ inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" }, flujo: flow({ entrevista: reviewed() }) });
+  const collecting = op({ inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(collecting, today)).toMatchObject({ current: 3, phase: "documentos" });
   expect(advanceTarget(collecting, today)).toEqual({ target: "documentacion", label: "Dictamen jurídico" });
   expect(missingItems(collecting, [task()], today).map(m => m.text)).toEqual(["Recibir los documentos del checklist"]);
@@ -63,13 +63,13 @@ test("levantamiento y checklist de documentos llevan a verificación solo con to
 });
 
 test("el propietario ve las diez etapas: dictamen, luego valor, y el contrato espera la verificación", () => {
-  const checking = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), titularidad: reviewed() }) });
+  const checking = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed() }) });
   expect(routeStages(checking, today)).toMatchObject({ labels: ["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
   expect(contractLocked(checking, today)).toBe(true);
   expect(currentRequirements(checking, today).map(r => r.key)).toEqual(["titularidad", "factibilidad"]);
   expect(advanceTarget(checking, today)).toEqual({ label: "Opinión de valor y precio" });
   expect(missingItems(checking, [task()], today).map(m => m.text)).toEqual(["Que se pueda vender sin obstáculos"]);
-  const valuing = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }) }) });
+  const valuing = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }) }) });
   expect(routeStages(valuing, today)).toMatchObject({ current: 5, phase: "verificacion" });
   expect(currentRequirements(valuing, today).map(r => r.key)).toEqual(["valor", "precio"]);
   expect(advanceTarget(valuing, today)).toEqual({ label: "Contrato y preparación" });
@@ -77,7 +77,9 @@ test("el propietario ve las diez etapas: dictamen, luego valor, y el contrato es
   const contract = op({ etapa: "documentacion", flujo: flow(verified, accepted) });
   expect(routeStages(contract, today).current).toBe(6);
   expect(contractLocked(contract, today)).toBe(false);
-  expect(currentRequirements(contract, today).map(r => r.key)).toEqual(["intermediacion", "levantamiento", "plan", "publicacion"]);
+  // El levantamiento se confirma en su etapa (3), ya no en la del contrato.
+  expect(currentRequirements(contract, today).map(r => r.key)).toEqual(["intermediacion", "plan", "publicacion"]);
+  expect(currentRequirements(op({ etapa: "captacion", flujo: flow({ entrevista: reviewed() }), inicial: { iniciada: true, emitida: true, levantamiento: "borrador" } }), today).map(r => r.key)).toEqual(["levantamiento"]);
   expect(advanceTarget(contract, today)).toEqual({ target: "comercializacion", label: "Publicación y seguimiento" });
 });
 
@@ -132,20 +134,19 @@ test("una etapa pasada dice qué documento le falta: el formato, su PDF o el che
   expect(phaseGap("prospecto", status({}))).toBe("");
 });
 
-test("las etapas se leen en cuatro fases; compra, renta e inversión usan sus propios pasos", () => {
-  const owner = stageTrack(op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed() }) }), today);
+test("las etapas se nombran por sí mismas, sin fases; compra, renta e inversión usan sus propios pasos", () => {
+  const owner = stageTrack(op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) }), today);
   expect(owner.stages).toHaveLength(10);
   expect(owner.current).toBe(4);
-  expect(owner.group).toBe("revisar");
-  expect(owner.stages.map(st => st.group)).toEqual(["conocer", "conocer", "conocer", "conocer", "revisar", "revisar", "preparar", "preparar", "vender", "vender"]);
-  expect(groupOfPhase("visitas")).toBe("vender");
+  expect(owner.stages[owner.current]).toMatchObject({ n: 5, label: "Dictamen jurídico", key: "dictamen" });
+  expect(owner.stages.every(st => !("group" in st))).toBe(true);
   const buyer = stageTrack(op({ etapa: "negociacion", flujo: flow({}, {}, "compra") }), today);
   expect(buyer.stages).toHaveLength(7);
-  expect(buyer.stages[buyer.current]).toMatchObject({ n: 4, label: "Oferta y negociación", group: "vender" });
+  expect(buyer.stages[buyer.current]).toMatchObject({ n: 4, label: "Oferta y negociación" });
 });
 
 test("a las etapas pasadas se les pide su documento y el motivo de atención es el más urgente", () => {
-  const dictamen = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed() }), inicial: { iniciada: true, emitida: true } });
+  const dictamen = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }), inicial: { iniciada: true, emitida: true } });
   const status = (f: string) => f === "02" ? "terminado" as const : undefined;
   expect(pastGaps(dictamen, today, status).map(g => [g.n, g.gap])).toEqual([[3, "Falta el 04"], [4, "Falta el checklist"]]);
   expect(attentionOf(dictamen, [task({ vence: "2026-10-20" })], today, "Falta el 04")).toEqual({ label: "Falta el 04", rank: 2, late: false });
@@ -158,16 +159,27 @@ test("a las etapas pasadas se les pide su documento y el motivo de atención es 
 });
 
 test("«Para terminar la etapa» junta documentos, revisiones y lo demás; «Ahora toca» es lo primero sin terminar", () => {
-  const dictamen = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed() }), inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "completo" } });
+  const dictamen = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }), inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "completo" } });
   const items = stageItems(dictamen, [task()], today, f => f === "05" ? "borrador" : undefined);
   expect(items.map(i => i.kind === "documento" ? i.formato : i.kind === "requisito" ? i.key : i.kind)).toEqual(["05", "06", "titularidad", "factibilidad"]);
   expect(nowItem(items)).toMatchObject({ kind: "documento", formato: "05" });
   expect(items.filter(itemCounted).filter(itemDone)).toHaveLength(0);
-  const problem = op({ ...dictamen, flujo: flow({ entrevista: reviewed(), titularidad: { estado: "observado", soporte: "Copropietario sin firma" } }) });
+  const problem = op({ ...dictamen, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed(), titularidad: { estado: "observado", soporte: "Copropietario sin firma" } }) });
   expect(nowItem(stageItems(problem, [task()], today, () => "terminado"))).toMatchObject({ kind: "requisito", key: "titularidad" });
   const interview = op({ inicial: { iniciada: true, emitida: true } });
   const intake = stageItems(interview, [task()], today, f => f === "02" ? "terminado" : undefined);
   expect(intake.map(i => i.kind)).toEqual(["documento", "documento", "inicio", "requisito"]);
   expect(nowItem(intake)).toMatchObject({ kind: "inicio", step: "levantamiento" });
   expect(itemCounted(intake[1])).toBe(false);
+});
+
+test("cada etapa ofrece su documento; de la publicación al cierre no detienen y la renta no recibe los de compraventa", () => {
+  const formatos = (phase: Parameters<typeof stageDocuments>[0], ruta: Parameters<typeof stageDocuments>[1]) => stageDocuments(phase, ruta).map(item => item.formato);
+  expect(formatos("levantamiento", "captacion")).toEqual(["04"]);
+  expect(formatos("publicacion", "captacion")).toEqual(["11"]);
+  expect(formatos("visitas", "captacion")).toEqual(["12", "13", "14"]);
+  expect(formatos("cierre", "captacion")).toEqual(["15", "16", "17", "18"]);
+  expect(formatos("visitas", "arrendador")).toEqual(["13"]);
+  expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18"]);
+  expect(stageDocuments("cierre", "captacion").every(item => item.optional)).toBe(true);
 });

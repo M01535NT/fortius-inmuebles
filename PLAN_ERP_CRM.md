@@ -1,6 +1,6 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 26 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 27 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
@@ -15,6 +15,21 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 **Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **Fortius solo representa al propietario: compradores y arrendatarios son leads de Fortius y contraparte de sus clientes, nunca clientes de Fortius** (RP-93).
 
 **Pendientes reales, en orden:** USO-01 (observar el panel actual con tres personas) y MRP-01 (matriz de reglas por ruta); correcciones COR-01 a COR-10; pendientes de formatos (diseño y fotos del 07, DOC-06, decisión de DOC-09); después, el bloque 2 del «Orden vigente». En paralelo, la continuidad del bloque 0, en especial la recuperación completa: los respaldos de base de datos de Supabase no incluyen los archivos de Storage (REC-01).
+
+**Nueva forma de llenar los formatos (titular, 27/10/2026, DEC-31):** cada etapa muestra su formato de Fortius tal como sale en PDF, y se llena desde el sistema pulsando sobre el documento; lo capturado aparece en la hoja al momento y el PDF sale igual a lo que se ve. Están construidos y probados los siete levantamientos (04A–04G), con el acomodo del Word del 04A y casillas en lugar de listas con diagonales, en la rama `feat/levantamiento-04b-en-vivo`, sin integrar a `main` y en revisión del titular en localhost. Los demás formatos siguen por grupos en el orden de las etapas (ver «EXT-12» en «Capacidades adicionales y disparadores»). Los folios no se capturan: el sistema asigna el de la operación (`EXP-…`) y el del inmueble (`FORTIUS-…`), y los documentos los imprimen solos.
+
+**Revisión del flujo (27/10/2026, rama `feat/levantamiento-04b-en-vivo`):** dos revisiones del código, una por tipo de cliente y otra por tipo de inmueble, quedaron resumidas en el diagrama [`docs/diseno/flujos-procedimientos.html`](docs/diseno/flujos-procedimientos.html). Lo que señalaron ya tiene entrega en este plan:
+- la renta con su propio recorrido (COR-04);
+- «No aplica» en el checklist (COR-06);
+- el cierre dividido en pasos (COR-09);
+- compra y búsqueda de renta como prospectos (COR-11).
+
+Ya decidido: la lista única de tipos de inmueble, con la plaza publicable (DEC-32), y la plaza con varios locales «según el caso» (DEC-33); ambas en la rama. Hacen falta decisiones nuevas del titular:
+- los modelos de contrato e intermediación para renta (DOC-14);
+- la opinión de renta mensual;
+- los documentos por tipo según B-07 (condominio, deslinde, uso de suelo, agua por municipio), con el abogado.
+
+Corregido en la rama: el botón principal de «Ahora toca» se apagaba en el dictamen y en la opinión de valor.
 
 **Siguiente entrega (en curso desde el 26/10/2026, rama `feat/mrp01-cor01-03`):** MRP-01, COR-01 a COR-03 y COR-13. La matriz «Matriz de reglas por ruta (MRP-01)» quedó **aprobada por el titular el 26/10/2026 (DEC-26)**, con las listas B-06 y B-07; con ella pueden empezar COR-04, COR-06 y MOT-01. COR-01 a COR-03 no cambian la base de datos; COR-13 lleva una migración que se aplica en remoto solo con autorización del titular.
 
@@ -435,7 +450,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 **Este orden manda.** La columna «Fase» de la matriz y la tabla «Orden y ventanas orientativas» agrupan por tema y sirven de referencia; si difieren, se sigue este orden. Cada entrega está en un bloque igual o posterior al de todo lo que necesita.
 
 0. **Continuidad, en paralelo y sin frenar lo demás:** BAS-01, REC-01, CI-01, AUT-01, OBS-01, ENV-01 y PRV-01. Varias dependen de accesos externos; son condición para el piloto con datos reales (bloque 7), no para trabajar con datos simulados.
-1. **Coherencia y fallas, antes de programar más:** USO-01 y MRP-01; COR-01 a COR-10 (COR-04 y COR-10 después de MRP-01); **IA-01, prioritaria por decisión del titular (17/10/2026), en cuanto haya clave de API**; los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, y la decisión de DOC-09); comprobar la publicación del rediseño.
+1. **Coherencia y fallas, antes de programar más:** USO-01 y MRP-01; COR-01 a COR-10 (COR-04 y COR-10 después de MRP-01); **IA-01, prioritaria por decisión del titular (17/10/2026), en cuanto haya clave de API**; los pendientes de formatos de «Qué sigue» (diseño y fotos del 07, DOC-06, y la decisión de DOC-09); comprobar la publicación del rediseño; **EXT-12, captura sobre el documento, formato por formato en el orden de las etapas (DEC-31, 27/10/2026): es el trabajo en curso** y absorbe los pendientes de diseño de cada formato que toque.
 2. **Interfaz, confianza y trabajo suelto** (pueden empezar ya):
    - primero SIM-01 junto con LV-01 (color, letra, fechas); con ellos se da por cumplida la base de UX-01, que el kit de la Fase C ya cubre en buena parte;
    - SIM-02 a SIM-12 en orden; LV-02 a LV-04; UX-04, UX-03, UX-02 y UX-05;
@@ -453,6 +468,8 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 
 | Fecha | Regla anterior (dónde estaba) | Regla vigente |
 |---|---|---|
+| 27/10/2026 | Las 10 etapas del vendedor agrupadas en cuatro fases en pantalla: Conocer · Revisar · Preparar y publicar · Vender y cerrar (boceto C, 17/10/2026). | Sin fases: cada operación dice «Etapa N de M · nombre». Operaciones filtra por etapa y su tablero pone una columna por etapa (titular, 27/10/2026). El requisito del levantamiento se confirma en la etapa 3 y no en la 7. Las etapas 8 a 10 ofrecen sus documentos (11; 12, 13 y 14; 15 a 18) sin detenerse. «Confirma lo que revisaste» se llama «Antes de seguir, confirma» y su panel llega lleno. |
+| 27/10/2026 | Captura de cada formato en una ventana por secciones con campos sueltos (boceto «Captura de un documento», 17/10/2026). | La ventana se conserva, pero abre en el documento tal como sale en PDF y se llena pulsando sobre él (EXT-12, DEC-31). El formulario por secciones queda solo para los formatos que aún no se pasan. |
 | 17/10/2026 | «Un sistema operativo dentro de `/admin`» («Qué vamos a construir»). | ERP/CRM profesional exclusivo de Fortius, con su marca (RP-01). |
 | 17/10/2026 | «La estructura de la guía (`flujo`) no cambia» y «sin migraciones ni endpoints nuevos» (encargo del rediseño, §2). | Esas reglas valían para la Fase C, ya terminada. Los procesos de Fortius se ajustarán desde el propio sistema con el motor de procesos (RP-79, MOT); las migraciones siguen requiriendo respaldo, ensayo y autorización. |
 | 17/10/2026 | Roles `admin` y `editor` como modelo de permisos (encargo y manual). | Roles del equipo de Fortius y permisos por acción (RP-05, DEC-03, SEG-01). |
@@ -1581,6 +1598,9 @@ Antes de convertir propuestas en reglas efectivas, resolver DEC-02/03/04/05/09: 
 | DEC-28 | Detalles de prospecto y cliente (RP-90 a RP-92) | **Decidida el 17/10/2026:** el titular respondió los grupos A y B de [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md); quedan en RP-90 a RP-98. Pendiente solo agregar al catálogo el contrato de intermediación para renta (RP-97). |
 | DEC-29 | Formas de pago, tipos de inmueble y municipios (B-06, B-07) | El titular manda la lista de pasos y documentos de cada forma de pago y de cada tipo de inmueble y municipio; el agente la ordena en una tabla para su aprobación. Alimenta MRP-01 y MOT-02. |
 | DEC-30 | Validez jurídica de la firma electrónica propia (FIR-01) | El abogado de Fortius confirma para qué contratos sirve en Baja California y qué evidencia debe guardarse, antes de usarla con clientes. Mientras, se firma en papel y se sube el archivo (RP-97). |
+| DEC-33 | Plaza o conjunto con varios locales | **Decidida el 28/10/2026: según el caso.** Si la plaza se vende o renta completa, es un solo inmueble con una operación y su levantamiento 04G. Si los locales u oficinas se comercializan por separado, cada uno es su propio inmueble, con su operación y su folio (RP-94), y se liga a su plaza con el campo «Pertenece a la plaza o conjunto» (`conjunto`, slug de la plaza). La plaza guarda los datos comunes; en el panel muestra sus locales y permite agregar otro, y en el sitio su página muestra los locales publicados y cada local enlaza a su plaza. Una plaza no puede pertenecer a otra. Migración `supabase/migrations/20261028130000_property_conjunto.sql` (validación y proyección pública), que se aplica al integrar en `main`. |
+| DEC-32 | Lista de tipos de inmueble | **Decidida el 27/10/2026:** una sola lista en todo el sistema, con los siete tipos de las plantillas y su levantamiento: Terreno (04A), Casa (04B), Departamento (04C), Oficina (04D), Local comercial (04E), Nave o bodega (04F) y Plaza o conjunto (04G). No lleva «Otro»; el primer contacto conserva «Todavía no lo sé». La plaza o conjunto se publica en el sitio como un inmueble más. Código en `src/lib/inmueble-tipos.ts`; migración `supabase/migrations/20261028120000_property_type_plaza.sql`, que se aplica al integrar en `main`. |
+| DEC-31 | Cómo se capturan los formatos (EXT-12) | **Decidida el 27/10/2026:** cada etapa muestra su formato de Fortius tal como sale en PDF y se llena desde el sistema pulsando sobre el documento, como la prueba del 04B. En el 04B se quitan base y referencia, respaldos y discrepancias, y se agrega el uso de suelo. Folios e identificadores los pone el sistema. |
 
 ## Criterios de producto terminado para la primera versión operativa
 
@@ -1754,7 +1774,7 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 
 **Revisión del 26/10/2026.** Se agrega el estado **«terminada»**: la entrega está integrada en `main` y cumple su aceptación. Antes no existía, por eso los resúmenes contaban cero terminadas. LV-05 pasa a «terminada» (PR #45, #46 y #47) y MRP-01 a «en_revision» (borrador en «Matriz de reglas por ruta», espera DEC-26). El resto de los estados no se revisó contra el código en esta pasada.
 
-**Entregas sin bloque en el «Orden vigente»** (el titular decide dónde van; el agente no las acomoda): COR-11 (compra y búsqueda de renta como lead), COR-12 (quitar PROFECO del 09), DOC-14, DOC-15, PUB-02 (inmuebles compartidos), FIR-01, EXT-12 (captura con vista previa) y EXT-13 (conexión a IA con tope). EXT-02, EXT-03, EXT-04 y EXT-07 sí están en el bloque 7, «solo por decisión de negocio».
+**Entregas sin bloque en el «Orden vigente»** (el titular decide dónde van; el agente no las acomoda): COR-11 (compra y búsqueda de renta como lead), COR-12 (quitar PROFECO del 09), DOC-14, DOC-15, PUB-02 (inmuebles compartidos), FIR-01 y EXT-13 (conexión a IA con tope). EXT-12 (captura sobre el documento) entró al bloque 1 por decisión del titular (DEC-31, 27/10/2026). EXT-02, EXT-03, EXT-04 y EXT-07 sí están en el bloque 7, «solo por decisión de negocio».
 
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
@@ -1896,7 +1916,7 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | UX-05 | 4 | pendiente | UX-04 |
 | SOP-01 | 5 | pendiente | OBS-01 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
-| EXT-12 | por decidir | idea, no aprobada | FCH-01, FCH-05 |
+| EXT-12 | 1 | en_curso (04B en la rama `feat/levantamiento-04b-en-vivo`) | Ninguna; FCH-01 y FCH-05 la mejoran después |
 | EXT-13 | por decidir | idea, no aprobada | DEC-14, SEG-01, PRV-01 |
 | SAAS-01 | posterior | en_pausa | DEC-15 |
 | SAAS-02 | posterior | en_pausa | SAAS-01 |
@@ -1986,34 +2006,63 @@ Paquetes de fase 6: EXT-01, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solic
 | EXT-09 — Mapas, comparables, zonas y rutas | Solicitados; DEC-11 y REL-01/TEC-01/VIS-01/SEG-01 | Fuentes/precisión/cobertura, uso permitido, motor/costo, capas autorizadas y recorrido sintético de visitas. **Titular, 17/10/2026:** sin Google Maps por costo; propuesta: MapLibre con mapas de OpenStreetMap, o el nivel gratuito de Mapbox o MapTiler. Primer uso: inventario por zona; ubicación aproximada en público (H-05). |
 | EXT-10 — Portal privado de clientes | Solicitado; DEC-13 y REL-01/OPS-01/DOC-01/SEG-01/AUT-01/PRV-01 | Identidad externa, información compartida, solicitudes, permisos efectivos, revocación y uso móvil. DOC-12 es su primera pieza. |
 | EXT-11 — Asistente IA operativo | Solicitado el 17/10/2026 (RP-44); DEC-14, EXT-06, SEG-01 | Resumen de operación, lectura de INE y escritura con confirmación campo por campo, descripción de anuncio y sugerencia de siguiente paso; citas, permisos, evaluación, costo y abstención. Nunca cambia estados ni envía nada por sí solo. **Titular, 17/10/2026:** se programa sin atarse a un proveedor; el titular solo carga la clave de la API y elige proveedor y modelo (Claude, DeepSeek u otro). Antes de elegir: precio vigente, prueba con documentos reales y lugar donde se procesan los datos (transferencia a revisar en el aviso de privacidad). La IA propone y una persona confirma; tope de gasto mensual (H-03). |
-| EXT-12 — Captura con vista previa del documento | **Idea del titular, 26/10/2026; no aprobada.** FCH-01, FCH-05 y el membrete común; relacionada con FCH-10, DOC-10 y F09 | Elegir de dónde sale la plantilla, probar la vista previa con los formatos 02 y 15 y fijar el criterio de aceptación; ver «EXT-12» abajo. |
+| EXT-12 — Captura sobre el documento en vivo | **Aprobada por el titular el 27/10/2026 (DEC-31) para todos los formatos.** 04B construido en la rama `feat/levantamiento-04b-en-vivo`, sin integrar. Usa el membrete común; FCH-01 y FCH-05 la mejoran después; relacionada con FCH-10, DOC-10 y F09 | Revisión del 04B por el titular en localhost; después, los formatos por etapa en el orden de «EXT-12» abajo. |
 | EXT-13 — Conexión a servicios de IA con tope mensual | **Idea del titular, 26/10/2026; no aprobada.** Base común de EXT-11, IA-01, EXT-06 y EXT-12; DEC-14, SEG-01 y PRV-01 | Elegir proveedor inicial y tope, confirmar precios vigentes y probar con documentos sintéticos; ver «EXT-13» abajo. |
 
 ### EXT-12 — captura con vista previa del documento
 
-**Estado: idea del titular (26/10/2026), sin aprobar y sin código.** Moisés decide si entra y qué desplaza (ver «Cómo incorporar lo que vaya haciendo falta»). Se aterriza en Claude Code, con plan previo.
+**Estado: aprobada por el titular el 27/10/2026 (DEC-31) como la forma de capturar todos los formatos.** Va en el bloque 1 del «Orden vigente». La prueba del 04B está en la rama `feat/levantamiento-04b-en-vivo`, sin integrar a `main`.
 
-**Idea del titular:** en vez de capturar solo en campos sueltos, ver el documento (la plantilla con el membrete oficial) y llenarlo ahí mismo: los campos a un lado, el documento al otro, y lo que se escribe aparece de inmediato en el documento.
+**Decisión del titular (27/10/2026):** «Cada etapa va a tener su archivo cargado y lo vamos a llenar desde el sistema, así como esta prueba». En cada etapa, el asesor ve el formato de Fortius tal como sale en PDF, pulsa la parte que va a llenar, captura el dato y lo ve integrado en el documento al momento. Así se detecta qué falta o qué conviene cambiar. Al final descarga el PDF, que sale igual a lo que vio. El formulario por secciones deja de ser la forma de captura de los formatos.
 
-**Refinamiento propuesto (a validar al aterrizarla):**
+**Cómo funciona (construido y probado con el 04B):**
 
-1. **Pantalla dividida.** A la izquierda, los campos agrupados igual que las secciones del formato. A la derecha, el documento tal como se va a descargar: membrete, tablas y una línea en blanco donde todavía falta un dato (RP-77).
-2. **Texto en vivo.** Lo que se escribe se refleja en el documento sin esperar a guardar.
-3. **Clic en el documento para saltar al campo.** Al pulsar una parte del documento, el cursor pasa al campo que la llena, y el campo activo se resalta en el documento. Así se logra «llenar sobre el documento» sin dejar que se escriba texto libre que rompa el formato. La edición directa sobre el documento queda como una etapa posterior, solo si esto no basta.
-4. **Lo que se ve es lo que se descarga.** La vista previa y el PDF o Word salen del mismo contenido y del mismo membrete, no de dos copias, para que no haya diferencias.
-5. **Reglas que se conservan.** Un dato faltante nunca detiene el flujo (RP-82), se descarga siempre avisando qué falta (RP-77) y descargar no es aprobar (RP-85). El 09 y la promesa 15 mantienen sus bloqueos legales.
-6. **Celular y modo cita (F09).** En pantalla chica, dos pestañas, «Campos» y «Documento», en lugar de lado a lado.
-7. **Con la ficha única (FCH-01).** Los campos llegan ya llenos con lo que la ficha sabe (F07) y lo que se captura regresa a la ficha con su origen (FCH-05).
+- **Pantalla.** La ventana del formato abre en la pestaña «Documento» con sus hojas. Cada espacio por llenar es pulsable y abre su campo a un lado (abajo en celular, con «Ver más grande»). Lo que se escribe aparece en la hoja al teclear. «Aceptar» lo integra y lo guarda con la versión del borrador; un conflicto 409 deja abierta la captura con el aviso. Lo que falta para el PDF lleva borde vino y aparece en la lista «Qué falta». Siguen igual «Generar PDF», «Word», el historial de versiones y la protección de cambios sin guardar. Funciona con teclado (Tab y Enter) y en claro y oscuro.
+- **Lo que se ve es lo que se descarga.** La pantalla usa el mismo escritor del PDF (`crearMaquetador` en `src/lib/formatos/documento/pdf.ts`). En vez de una página de pdf-lib recibe una superficie que anota los trazos, así que vista y PDF comparten medidas, cortes de línea y saltos de página; una prueba lo compara. Cada celda del documento declara qué campos la llenan (`keys` en `src/lib/formatos/documento/modelo.ts`), y una prueba exige que todo campo tenga su parte pulsable.
+- **De dónde sale cada documento.** Se reproduce en código el archivo del titular de `G:\Mi unidad\FORTIUS\04_Metodologia\01_Captacion\` (y las demás carpetas de la metodología), como el 04B. Así la vista, el PDF y el Word salen del mismo contenido. Subir un Word propio con campos marcados sigue siendo FCH-10, para después.
+- **Componente.** `src/components/admin/operation/documento-en-vivo.tsx`. Un formato entra a la captura en vivo al agregarse a `EN_VIVO`.
 
-**Decisiones por tomar al aterrizarla:**
+**Folios e identificadores: nadie los inventa.** El sistema ya asigna solos el folio de la operación (`EXP-000001`, al crearla) y el código del inmueble (`FORTIUS-000001`, al darlo de alta), con la migración `supabase/migrations/20261014031535_automatic_folios.sql`. Los documentos los imprimen sin captura y esas celdas no son pulsables. En el 04B, el «ID inmueble» toma el código del inmueble vinculado, y el «ID de fotografía» sale del archivo elegido (`FOTO-` y su identificador). Al pasar cada formato se revisa qué folios o números pide (por ejemplo, el número de recibo del 18). Si el panel no tiene ya ese consecutivo, se propone uno automático al titular antes de construirlo.
 
-- **De dónde sale la plantilla.** Hoy la página genera cada documento desde su propio código (`src/lib/formatos/`). Partir de esas plantillas es lo más seguro, porque la vista previa y la descarga comparten contenido. Cargar un Word propio con campos marcados es FCH-10; mostrar un Word con fidelidad dentro del navegador exige convertirlo antes (por ejemplo a PDF en el servidor), así que conviene resolverlo aparte.
-- **Cómo se dibuja la vista previa.** Opción A: una página con el mismo diseño, rápida al teclear, con riesgo de pequeñas diferencias frente al Word y al PDF. Opción B: PDF generado en el servidor con una pausa breve al teclear, exacto pero con uno o dos segundos de retraso. Propuesta: A para escribir y un botón «Ver PDF exacto» con B; se decide probando con el 02 y el 15.
-- **Con qué formatos empezar.** Propuesta: la entrevista 02 y la promesa 15. Los formatos 01 a 19 se agregan después.
+**Levantamientos 04A–04G (grupo A, titular 27/10/2026, en la rama):** los siete se capturan en vivo. Cada uno sigue los espacios de su Word (`04x_Levantamiento*.docx`) con lo decidido en el 04B: sin columnas de base y referencia (D/O/M/C/NV/NA), sin las tablas de respaldos ni de discrepancias, con uso de suelo (lista del Reglamento de Zonificación de Tijuana, la misma del 07) y con superficies opcionales («si las tienes a la mano»). Las casillas comunes son las del Word del 04A; «NV» se lee «No se pudo ver». Cada tipo se describe una sola vez en `PLANTILLAS` (`src/lib/formatos/levantamiento.ts`), y de ahí salen sus campos y su documento (`src/lib/formatos/documento/levantamiento.ts`).
 
-**Alternativa simple (primera etapa):** mostrar el PDF del documento junto al formulario que ya existe, con actualización al guardar, sin cambiar cómo se captura. Sirve para decidir si vale la pena la versión en vivo.
+**Estilo 04A para todos los formatos (titular, 27/10/2026):** el modelo es el Word del 04A, limpio y sin grandes saltos de página.
+- El título del formato va solo en el membrete; en la hoja quedan los títulos de grupo («Características del inmueble», «Ubicación y evidencias»).
+- Un salto de página de la plantilla solo abre hoja nueva si queda menos del 35 % libre (`Writer` en `documento/pdf.ts`). En Word no se fuerzan los saltos condicionales.
+- Prueba automática: salvo la última, cada hoja debe usarse al menos en un 70 % (`tests/backend/documento-en-vivo.test.ts`). El presupuesto 19 ya bajó de 3 a 2 hojas con esta regla.
 
-**Aceptación (borrador):** con el formato 02, escribir en un campo cambia el documento en menos de un segundo; la descarga coincide con lo que se ve; un campo vacío sale como línea en blanco; cerrar sin guardar no pierde lo escrito; funciona en celular y con teclado; las pruebas del formato no se debilitan. **Costo:** sin estimar; el descubrimiento de 1 a 3 días orientativos de esta sección aplica.
+**Casillas y menús en lugar de «opción 1 / opción 2»:**
+- Una lista con diagonales cuyas opciones vienen escritas en la plantilla se vuelve casillas: el campo «varias opciones» (`multi`) si se puede marcar más de una, o un menú (`choice`) si es solo una. Ejemplo: «Sala / comedor / lavado / bodega / patio / jardín / terraza».
+- Si la lista pide varios datos («Tipo / autoridad / folio / fecha»), se parte en campos separados, cada uno con su rótulo impreso.
+- Si una lista pide la fuente del dato («base», «soporte», «referencia»), se quita, como base y referencia.
+- Si faltan opciones, no se inventan: se proponen al titular antes de construir ese formato.
+
+**Cómo se pasa cada formato (lista de trabajo):**
+
+1. Leer completo el archivo del titular y mapear cada espacio impreso para llenar: ni más ni menos (regla de formatos).
+2. Contrastarlo con las reglas del panel (RP-82 datos que no detienen, RP-77 descarga con aviso, RP-85 descargar no es aprobar, decisiones de cada formato). Preparar la tabla de cambios: diagonales a casillas, menús o campos, y discrepancias. Mostrarla al titular antes de cambiar un significado o de proponer opciones nuevas.
+3. Escribir el documento con el estilo 04A y `keys` en cada celda; una tabla de filas variables o una cláusula se vuelve pulsable entera con `zona`. Llenar solos los folios, el asesor, el propietario y lo que ya sabe la operación; esas celdas no se capturan.
+4. Agregar el formato a `EN_VIVO` (`documento-en-vivo.tsx`). Conservar los bloqueos legales del 09 y de la promesa 15, el Excel del 07 (su vista en vivo es su PDF) y la foto obligatoria de los levantamientos. La vista en vivo ya dibuja también los formatos en Times (01, 09 y 14).
+5. Pruebas: cada campo con su zona pulsable, las mismas hojas en la vista y en el PDF, hojas llenas al 70 % y las pruebas del formato al día, sin debilitarlas. Revisión en celular y escritorio, en claro y oscuro.
+
+**Grupos, en el orden de las etapas (cada uno se revisa en localhost antes de seguir):**
+
+| Grupo | Formatos | Estado |
+|---|---|---|
+| A | 04A, 04B, 04C, 04D, 04E, 04F, 04G | Construido en la rama; en revisión del titular. |
+| B | 02 entrevista, 01 aviso | **En la rama (28/10/2026), pendiente de revisión del titular.** El 02 conserva su versión corta (excepción del 17/10): cada celda es pulsable y las listas cortas (aviso entregado, tipo de propietario, estado civil, hipoteca) son casillas. El 01 se captura en vivo (opción A del titular): su PDF del expediente sale del escritor común, en Times, y sus secciones 01–08 se cotejaron palabra por palabra con `01_AvisoPrivacidad.docx` del 26/10/2026. Las hojas de decisiones siguen la redacción de ese Word y cada una cabe en una página para firmar; se agregaron sus dos espacios impresos «Datos del instrumento, fecha y fedatario» y «Facultades y vigencia comprobadas mediante». Los datos del responsable se llenan solos con los del aviso publicado en el sitio. El aviso público (`/avisos/privacidad`) sigue en `aviso-pdf.ts`. El 01 sigue sin emitirse incompleto. |
+| C | 05 revisión jurídica, 06 opinión jurídica | **En la rama (28/10/2026), pendiente de revisión del titular.** El 05 se cotejó con `05_RevisionJuridica.docx` del 26/10/2026: el título va en el membrete; «Operación y etapa a decidir» (Venta, Renta, Otra), «Alcance de revisión» (Preliminar, Comercialización, Cierre) y el resultado del abogado son casillas, como en el Word; se agregaron las frases de sus notas que faltaban (referencia y verificación, fecha de corte, PLD, «Asigne H01, H02…», «No marque una conclusión sin sustento»). Cada tabla se pulsa completa y abre su editor. El 06 no tiene Word en G:: conserva su plantilla del código y cada párrafo abre el campo que lo llena. |
+| D | 07 opinión de valor, 08 neto | **En la rama (28/10/2026), pendiente de revisión del titular.** Sus Excel del 17/10/2026 ya traen menús en lugar de listas con diagonales, así que el contenido no cambió: cada celda capturada se pulsa y abre su campo; los totales, el valor concluido y el neto los calcula el panel y no se pulsan. Lo que la hoja no imprime (base de mercado, tipo de cambio, área privativa, redondeo) se abre con la parte que afecta. El reporte fotográfico del 07 permite subir y elegir varias fotos desde el documento. El 08 lleva el título en el membrete; el 07 conserva su portada. El Excel sigue como descarga. |
+| E | 09 contrato, 10 plan | Pendiente. El 09 se llena en vivo, pero su PDF sigue bloqueado (DOC-09). |
+| F | 11, 12, 13, 14 | Pendiente. El 14 en G: se llama «Carta intención» y en el catálogo «Oferta de compra»: confirmar con el titular. |
+| G | 15, 16, 17, 18 | Pendiente. La 15 conserva su revisión obligatoria; el 18 llevará número de recibo automático (se propone antes). |
+| H | 19 presupuesto | Pendiente. Ya cabe en 2 hojas con la regla de saltos. |
+
+**Reglas que se conservan.** Un dato faltante nunca detiene el flujo (RP-82); el PDF se descarga avisando qué falta (RP-77) y descargarlo no es aprobarlo (RP-85). Guardar y publicar siguen siendo acciones distintas. Cuando exista la ficha única (FCH-01), los campos llegarán llenos con lo que la ficha sabe y lo capturado regresará a ella con su origen (FCH-05); la captura en vivo no depende de eso para empezar.
+
+**Pendiente de los grupos A y B:** revisión del titular en localhost. Del 01, el domicilio del responsable es el del sitio, «C. Dos, 4063, Benedetti B45, Villa Fontana, C.P. 22205, Tijuana, B. C.» (titular, 28/10/2026; el Word traía otra redacción). La hoja de decisiones del representante sale solo cuando hay representante (titular, 28/10/2026; el Word la trae siempre, en blanco). Revisión en localhost (`http://127.0.0.1:3002/admin`). Al terminar los grupos, `npm run verify` y las suites de navegador, solo con su autorización, antes de abrir un único PR.
+
+**Idea original (26/10/2026):** ver el documento con el membrete oficial y llenarlo ahí mismo, con lo escrito reflejado de inmediato. Se resolvió con la opción «clic en el documento para abrir el campo» y sin pantalla dividida fija: el campo se abre a un lado solo cuando se pulsa una parte del documento.
 
 ### EXT-13 — conexión a servicios de IA con tope mensual
 

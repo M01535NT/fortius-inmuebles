@@ -1,16 +1,33 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage } from "pdf-lib";
-import { COLORS, type Block, type Documento } from "./modelo";
-import { letterheadBounds, type LetterheadAssets } from "@/lib/letterhead";
+import { ColorTypes, PDFDocument, rgb, StandardFonts, type Color, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
+import { COLORS, type Block, type Documento, type FormCell, type Marca } from "./modelo";
+import type { ImagenDocumento } from "./imagen";
+import { LETTERHEAD_PATHS, letterheadBounds, type LetterheadAssets } from "@/lib/letterhead";
 import { drawFortiusLetterhead, embedFortiusLetterhead, type PdfLetterhead } from "@/lib/pdf-letterhead";
 
 /*
   Cuerpo de las plantillas en Carta con el membrete aprobado del Plan de negocio.
   Los márgenes laterales y la tipografía del contenido se conservan.
+  El mismo escritor arma la vista en vivo de la captura (EXT-12): en vez de una página de
+  pdf-lib recibe una superficie que anota cada trazo, así la pantalla y el PDF comparten
+  medidas, cortes de línea y saltos de página.
 */
 
 export type DocumentoAssets = LetterheadAssets & { regular: Uint8Array; bold: Uint8Array };
 type Fonts = { regular: PDFFont; bold: PDFFont };
+/** Lo que el escritor usa de una página: una de pdf-lib o la que anota trazos para la pantalla. */
+type Surface = Pick<PDFPage, "drawText" | "drawRectangle" | "drawLine" | "drawImage" | "getSize">;
+/** Trazos de una página en puntos PDF (origen abajo a la izquierda); los colores, en hexadecimal sin «#». */
+export type Trazo =
+  /** «w»: ancho medido por el PDF; la pantalla lo respeta. «serif»: Times (contratos y aviso). */
+  | { kind: "text"; text: string; x: number; y: number; size: number; bold: boolean; serif: boolean; w: number; color: string }
+  | { kind: "rect"; x: number; y: number; w: number; h: number; fill?: string; stroke?: string; strokeWidth?: number }
+  | { kind: "line"; x1: number; y1: number; x2: number; y2: number; color: string; width: number }
+  | { kind: "image"; x: number; y: number; w: number; h: number; href: string };
+/** Parte pulsable del documento: la celda o el recuadro que llenan esos campos. */
+export type Zona = { page: number; x: number; y: number; w: number; h: number; keys: string[]; label: string };
+export type Maqueta = { width: number; height: number; pages: Trazo[][]; zonas: Zona[] };
+type Options = { surface?: () => Surface; zonas?: Zona[]; hrefs?: WeakMap<object, string>; images?: Map<ImagenDocumento, PDFImage> };
 
 const PAGE: [number, number] = [612, 792];
 const LEFT = 50.4, RIGHT = 50.4, { top: TOP, bottom: BOTTOM } = letterheadBounds();
@@ -49,15 +66,62 @@ export function wrap(text: string, font: PDFFont, size: number, width: number): 
   return lines;
 }
 
+/** Casillas y texto de una celda, acomodados en renglones que caben en el ancho. */
+type Placed = { x: number; text: string; check?: boolean };
+function placeMarks(marks: Marca[][], font: PDFFont, size: number, width: number, box: number): Placed[][] {
+  const lines: Placed[][] = [], gap = size * 0.9, space = font.widthOfTextAtSize(" ", size);
+  for (const line of marks) {
+    let current: Placed[] = [], x = 0;
+    const push = (item: Placed, w: number, before: number) => {
+      if (current.length && x + before + w > width) { lines.push(current); current = []; x = 0; before = 0; }
+      current.push({ ...item, x: x + before }); x += before + w;
+    };
+    for (const part of line) {
+      if (part.check !== undefined) push({ text: part.text, check: part.check, x: 0 }, box + 3 + font.widthOfTextAtSize(part.text, size), current.length ? gap : 0);
+      else part.text.split(/ +/).filter(Boolean).forEach((word, n) => {
+        for (const piece of wrap(word, font, size, width)) push({ text: piece, x: 0 }, font.widthOfTextAtSize(piece, size), current.length ? (n === 0 ? gap : space) : 0);
+      });
+    }
+    lines.push(current);
+  }
+  return lines;
+}
+
 class Writer {
-  pages: PDFPage[] = [];
-  page!: PDFPage;
+  pages: Surface[] = [];
+  page!: Surface;
   y = 0;
-  constructor(public pdf: PDFDocument, private fonts: Fonts, private art: PdfLetterhead, private title: string, private style: Style, private headerFont: PDFFont, private compact = false) { this.newPage(); }
+  constructor(public pdf: PDFDocument, private fonts: Fonts, private art: PdfLetterhead, private title: string, private style: Style, private headerFont: PDFFont, private compact = false, private options: Options = {}) { this.newPage(); }
+  /** Trazos dibujados en cada hoja (solo en la vista en vivo). */
+  draws: number[] = [];
   newPage() {
-    this.page = this.pdf.addPage(PAGE);
+    const surface = this.options.surface?.();
+    if (surface) {
+      const index = this.pages.length, count = () => { this.draws[index] = (this.draws[index] ?? 0) + 1; };
+      this.page = {
+        getSize: () => surface.getSize(),
+        drawText: (text, options) => { count(); surface.drawText(text, options); },
+        drawRectangle: options => { count(); surface.drawRectangle(options); },
+        drawLine: options => { count(); surface.drawLine(options); },
+        drawImage: (image, options) => { count(); surface.drawImage(image, options); },
+      };
+    } else this.page = this.pdf.addPage(PAGE);
     this.pages.push(this.page);
     this.y = PAGE[1] - TOP;
+  }
+  /** Zona de un bloque completo, hoja por hoja si se parte; no toma el final vacío de la hoja donde no alcanzó a empezar. */
+  blockZone(zona: { keys: string[]; label: string }, start: { page: number; y: number; draws: number }) {
+    if (!this.options.zonas || !zona.keys.length) return;
+    const last = this.pages.length - 1;
+    for (let page = start.page; page <= last; page++) {
+      if (page === start.page && page < last && (this.draws[page] ?? 0) === start.draws) continue;
+      const top = page === start.page ? start.y : PAGE[1] - TOP, bottom = page === last ? this.y : BOTTOM;
+      if (top - bottom > 2) this.options.zonas.push({ page, x: LEFT, y: bottom, w: WIDTH, h: top - bottom, keys: zona.keys, label: zona.label });
+    }
+  }
+  /** Anota la celda que llenan esos campos; solo la vista en vivo la usa. */
+  zone(keys: string[] | undefined, label: string, x: number, top: number, w: number, h: number) {
+    if (keys?.length && this.options.zonas) this.options.zonas.push({ page: this.pages.length - 1, x, y: top - h, w, h, keys, label });
   }
   ensure(height: number) { if (this.y - height < BOTTOM) this.newPage(); }
   /** Una fila mayor que la caja de texto continúa sin quedar cubierta por el membrete. */
@@ -75,26 +139,31 @@ class Writer {
       if(offset<count) restart();
     }
   }
-  /** Párrafo justificado con encabezado opcional en negritas (la última línea queda a la izquierda). */
+  /**
+    Párrafo justificado con encabezado opcional en negritas (la última línea queda a la izquierda).
+    Un salto de línea («Titular: …\nOperación: …») termina el renglón sin justificarlo.
+  */
   paragraph(text: string, lead = "", options: { indent?: boolean; strong?: boolean } = {}) {
     const { body: size, ink: color, after } = this.style, leading = size * this.style.leading;
     const body = options.strong ? this.fonts.bold : this.fonts.regular;
-    const tokens: Token[] = [...(lead ? lead.split(/ +/).map(word => ({ word, font: this.fonts.bold })) : []), ...text.split(/ +/).filter(Boolean).map(word => ({ word, font: body }))];
     const space = this.fonts.regular.widthOfTextAtSize(" ", size), width = (t: Token) => t.font.widthOfTextAtSize(t.word, size);
-    const lines: Token[][] = [];
-    let line: Token[] = [], used = 0;
+    const lines: Token[][] = [], ends = new Set<number>();
     const firstIndent = options.indent ? 18 : 0;
-    for (const token of tokens) {
-      const w = width(token);
-      if (line.length && used + space + w > WIDTH - (lines.length === 0 ? firstIndent : 0)) { lines.push(line); line = []; used = 0; }
-      used += (line.length ? space : 0) + w; line.push(token);
-    }
-    if (line.length) lines.push(line);
+    text.split("\n").forEach((segment, part) => {
+      const tokens: Token[] = [...(lead && part === 0 ? lead.split(/ +/).map(word => ({ word, font: this.fonts.bold })) : []), ...segment.split(/ +/).filter(Boolean).map(word => ({ word, font: body }))];
+      let line: Token[] = [], used = 0;
+      for (const token of tokens) {
+        const w = width(token);
+        if (line.length && used + space + w > WIDTH - (lines.length === 0 ? firstIndent : 0)) { lines.push(line); line = []; used = 0; }
+        used += (line.length ? space : 0) + w; line.push(token);
+      }
+      if (line.length) { lines.push(line); ends.add(lines.length - 1); }
+    });
     const indent = options.indent ? 18 : 0;
     this.ensure(Math.min(2,lines.length)*leading);
     lines.forEach((words, index) => {
       this.ensure((index===lines.length-2?2:1)*leading);
-      const last = index === lines.length - 1 || words.length < 2;
+      const last = ends.has(index) || words.length < 2;
       const start = index === 0 ? indent : 0;
       const gap = last ? space : (WIDTH - start - words.reduce((sum, t) => sum + width(t), 0)) / (words.length - 1);
       let x = LEFT + start;
@@ -111,13 +180,20 @@ class Writer {
     this.y -= size * 1.2 + after;
   }
   /** Formulario: celdas con borde fino, pregunta en negritas y respuesta debajo; altura mínima para escribir a mano. */
-  form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>, filled = false, tailHeight = 0) {
+  form(label: string | undefined, rows: Array<Array<FormCell>>, filled = false, tailHeight = 0) {
     const pad = 4, qSize = filled ? 8 : 9, aSize = 10, qLead = qSize * 1.18, aLead = aSize * 1.22, minHeight = filled ? 34 : 30;
-    const measure = (row: Array<{ q: string; a: string; w: number }>) => {
+    const mSize = 9.5, mLead = mSize * 1.3, box = 7;
+    // Una fila que no cabe en una hoja se corta en texto corrido; ahí las casillas se escriben.
+    const plainMarks = (marks: Marca[][]) => marks.map(line => line.map(p => p.check === undefined ? p.text : `${p.check ? "(X)" : "( )"} ${p.text}`).join("  ")).join("\n");
+    const measure = (row: Array<FormCell>) => {
       const total = row.reduce((s, c) => s + c.w, 0);
       const qFont = filled ? this.fonts.regular : this.fonts.bold;
-      const cells = row.map(c => { const width = c.w / total * WIDTH; return { ...c, width, ql: wrap(c.q, qFont, qSize, width - pad * 2), al: c.a ? wrap(c.a, this.fonts.regular, aSize, width - pad * 2) : [] }; });
-      const height = Math.max(minHeight, ...cells.map(c => pad * 2 + c.ql.length * qLead + (c.al.length ? 3 + c.al.length * aLead : 0)));
+      const cells = row.map(c => {
+        const width = c.w / total * WIDTH, inner = width - pad * 2;
+        const ml = c.marks ? placeMarks(c.marks, this.fonts.regular, mSize, inner, box) : [];
+        return { ...c, width, ql: wrap(c.q, qFont, qSize, inner), al: c.a ? wrap(c.a, this.fonts.regular, aSize, inner) : [], ml, plain: c.marks ? wrap(plainMarks(c.marks), this.fonts.regular, aSize, inner) : [] };
+      });
+      const height = Math.max(minHeight, ...cells.map(c => pad * 2 + c.ql.length * qLead + (c.al.length ? 3 + c.al.length * aLead : 0) + (c.ml.length ? 3 + c.ml.length * mLead : 0)));
       return { cells, height };
     };
     const measured = rows.map(measure);
@@ -131,10 +207,11 @@ class Writer {
     for (const [index,{ cells, height }] of measured.entries()) {
       if(height>PAGE[1]-TOP-BOTTOM) {
         const leading=Math.max(qLead,aLead);
-        const content=cells.map(cell=>[...cell.ql.map(text=>({text,size:qSize,font:filled?this.fonts.regular:this.fonts.bold})),...cell.al.map(text=>({text,size:aSize,font:this.fonts.regular}))]);
+        const content=cells.map(cell=>[...cell.ql.map(text=>({text,size:qSize,font:filled?this.fonts.regular:this.fonts.bold})),...[...cell.al,...cell.plain].map(text=>({text,size:aSize,font:this.fonts.regular}))]);
         this.splitRow(content,leading,pad*2,(part,h)=>{
           let x=LEFT;
           part.forEach((lines,i)=>{
+            this.zone(cells[i].keys,cells[i].q,x,this.y,cells[i].width,h);
             this.page.drawRectangle({x,y:this.y-h,width:cells[i].width,height:h,...(filled?{color:hex(COLORS.cell)}:{borderColor:RULE,borderWidth:0.5})});
             lines.forEach((line,n)=>this.page.drawText(line.text,{x:x+pad,y:this.y-pad-line.size-n*leading,size:line.size,font:line.font,color:NAVY}));
             x+=cells[i].width;
@@ -146,12 +223,28 @@ class Writer {
       if (this.y - height - (index===measured.length-1?tailHeight:0) < BOTTOM) this.newPage();
       let x = LEFT;
       for (const cell of cells) {
+        this.zone(cell.keys, cell.q, x, this.y, cell.width, height);
         if (filled) this.page.drawRectangle({ x: x + (x > LEFT ? 3 : 0), y: this.y - height + 3, width: cell.width - (x > LEFT ? 3 : 0), height: height - 3, color: hex(COLORS.cell) });
         else this.page.drawRectangle({ x, y: this.y - height, width: cell.width, height, borderColor: RULE, borderWidth: 0.5 });
         let y = this.y - pad;
         for (const line of cell.ql) { this.page.drawText(line, { x: x + pad + (filled && x > LEFT ? 3 : 0), y: y - qSize, size: qSize, font: filled ? this.fonts.regular : this.fonts.bold, color: NAVY }); y -= qLead; }
         y -= 3;
         for (const line of cell.al) { this.page.drawText(line, { x: x + pad + (filled && x > LEFT ? 3 : 0), y: y - aSize, size: aSize, font: this.fonts.regular, color: NAVY }); y -= aLead; }
+        // Casillas dibujadas como en la plantilla: la elegida lleva una X y su texto en negritas.
+        for (const line of cell.ml) {
+          const base = y - mSize;
+          for (const item of line) {
+            const left = x + pad + item.x;
+            if (item.check === undefined) { this.page.drawText(item.text, { x: left, y: base, size: mSize, font: this.fonts.regular, color: NAVY }); continue; }
+            this.page.drawRectangle({ x: left, y: base - 0.5, width: box, height: box, borderColor: NAVY, borderWidth: 0.6 });
+            if (item.check) {
+              this.page.drawLine({ start: { x: left + 1.3, y: base + 0.8 }, end: { x: left + box - 1.3, y: base + box - 1.8 }, thickness: 0.9, color: NAVY });
+              this.page.drawLine({ start: { x: left + 1.3, y: base + box - 1.8 }, end: { x: left + box - 1.3, y: base + 0.8 }, thickness: 0.9, color: NAVY });
+            }
+            this.page.drawText(item.text, { x: left + box + 3, y: base, size: mSize, font: item.check ? this.fonts.bold : this.fonts.regular, color: NAVY });
+          }
+          y -= mLead;
+        }
         x += cell.width;
       }
       this.y -= height;
@@ -159,29 +252,37 @@ class Writer {
     this.y -= 4;
   }
   /** Recuadro verde claro como en la plantilla: con la imagen ajustada y centrada, o con su leyenda si aún no hay imagen. */
-  async image(label: string, image: import("./imagen").ImagenDocumento | undefined, height: number) {
+  async image(label: string, image: ImagenDocumento | undefined, height: number, keys?: string[]) {
     this.ensure(height + 4);
+    this.zone(keys, label, LEFT, this.y, WIDTH, height);
     this.page.drawRectangle({ x: LEFT, y: this.y - height, width: WIDTH, height, color: HEAD, borderColor: RULE, borderWidth: 0.5 });
     if (!image) {
       const text = label.toUpperCase(), w = this.fonts.bold.widthOfTextAtSize(text, 11);
       this.page.drawText(text, { x: LEFT + (WIDTH - w) / 2, y: this.y - height / 2 - 4, size: 11, font: this.fonts.bold, color: NAVY });
     } else {
-      const embedded = image.tipo === "png" ? await this.pdf.embedPng(image.bytes) : await this.pdf.embedJpg(image.bytes);
-      const scale = Math.min((WIDTH - 12) / embedded.width, (height - 12) / embedded.height);
-      const w = embedded.width * scale, h = embedded.height * scale;
+      // La vista en vivo reutiliza la imagen ya incrustada y la dibuja desde su dirección.
+      const { images, hrefs } = this.options;
+      const embedded = images?.get(image) ?? (image.tipo === "png" ? await this.pdf.embedPng(image.bytes) : await this.pdf.embedJpg(image.bytes));
+      images?.set(image, embedded);
+      if (image.href) hrefs?.set(embedded, image.href);
+      // Medidas de la imagen ya orientada: en el servidor coinciden con las incrustadas; en pantalla, con la foto girada.
+      const scale = Math.min((WIDTH - 12) / image.width, (height - 12) / image.height);
+      const w = image.width * scale, h = image.height * scale;
       this.page.drawImage(embedded, { x: LEFT + (WIDTH - w) / 2, y: this.y - height + (height - h) / 2, width: w, height: h });
     }
     this.y -= height + 4;
   }
   /** Tabla de levantamiento: encabezado claro, bordes finos y celdas vacías para escribir a mano. */
-  grid(widths: number[], header: string[], rows: string[][]) {
+  grid(widths: number[], header: string[], rows: string[][], options: { labels?: boolean; minRow?: number; keys?: Array<Array<string[] | undefined>> } = {}) {
     const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => w / total * WIDTH);
-    const pad = this.compact ? 3 : 4, size = 9, leading = size * 1.2, minHeight = this.compact ? 16 : 18;
-    const drawLines = (lines:string[][],font:PDFFont,height:number,fill?:ReturnType<typeof rgb>) => {
+    const pad = this.compact ? 3 : 4, size = 9, leading = size * 1.2, minHeight = this.compact ? 16 : 18, rowHeight = Math.max(minHeight, options.minRow ?? 0);
+    const fontOf = (i: number) => options.labels && i === 0 ? this.fonts.bold : this.fonts.regular;
+    const drawLines = (lines:string[][],font:PDFFont|null,height:number,fill?:ReturnType<typeof rgb>,keys?:Array<string[]|undefined>,row?:string[]) => {
       let x = LEFT;
       lines.forEach((ls, i) => {
+        this.zone(keys?.[i], options.labels && row && i > 0 ? `${row[0]} · ${header[i]}` : header[i], x, this.y, cols[i], height);
         this.page.drawRectangle({ x, y: this.y - height, width: cols[i], height, borderColor: RULE, borderWidth: 0.5, ...(fill ? { color: fill } : {}) });
-        ls.forEach((line, n) => this.page.drawText(line, { x: x + pad, y: this.y - pad - size - n * leading + 1, size, font, color: NAVY }));
+        ls.forEach((line, n) => this.page.drawText(line, { x: x + pad, y: this.y - pad - size - n * leading + 1, size, font: font ?? fontOf(i), color: NAVY }));
         x += cols[i];
       });
       this.y -= height;
@@ -189,28 +290,33 @@ class Writer {
     const headLines=header.map((cell,i)=>wrap(cell,this.fonts.bold,size,cols[i]-pad*2));
     const headHeight=Math.max(minHeight,...headLines.map(lines=>lines.length*leading+pad*2));
     const restart=()=>{this.newPage();drawLines(headLines,this.fonts.bold,headHeight,HEAD);};
-    this.ensure(minHeight * 2);
+    this.ensure(options.minRow ? headHeight + rowHeight : minHeight * 2);
     drawLines(headLines,this.fonts.bold,headHeight,HEAD);
-    for (const row of rows) this.splitRow(row.map((cell,i)=>wrap(cell,this.fonts.regular,size,cols[i]-pad*2)),leading,pad*2,(part,height)=>drawLines(part,this.fonts.regular,height),restart,minHeight,PAGE[1]-TOP-BOTTOM-headHeight);
+    rows.forEach((row, r) => this.splitRow(row.map((cell,i)=>wrap(cell,fontOf(i),size,cols[i]-pad*2)),leading,pad*2,(part,height)=>drawLines(part,null,height,undefined,options.keys?.[r],row),restart,rowHeight,PAGE[1]-TOP-BOTTOM-headHeight));
     this.y -= 6;
   }
   /** Pregunta con opciones en casillas dibujadas; la elegida lleva una X. */
   checks(q: string, options: Array<{ value: string; label: string }>, selected: unknown) {
     const size = 9.5, box = 8, gap = 14;
-    this.ensure(36);
+    // Varias casillas pueden ir marcadas (los canales de publicidad del aviso).
+    const on = (value: string) => Array.isArray(selected) ? selected.includes(value) : value === selected;
+    const widthOf = (option: { label: string }) => box + 4 + this.fonts.regular.widthOfTextAtSize(option.label, size) + gap;
+    // Sin pregunta, las casillas van solas; una pregunta corta («Canales autorizados:») comparte renglón con ellas.
+    const qWidth = q ? this.fonts.regular.widthOfTextAtSize(q, size) + 8 : 0, inline = !!q && qWidth + options.reduce((sum, o) => sum + widthOf(o), 0) <= WIDTH;
+    this.ensure(q && !inline ? 36 : 22);
     this.y -= 4;
-    this.page.drawText(q, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY });
-    this.y -= size + 6;
-    let x = LEFT;
+    if (q) this.page.drawText(q, { x: LEFT, y: inline ? this.y - box + 0.5 : this.y - size, size, font: this.fonts.regular, color: NAVY });
+    if (q && !inline) this.y -= size + 6;
+    let x = LEFT + (inline ? qWidth : 0);
     for (const option of options) {
-      const w = box + 4 + this.fonts.regular.widthOfTextAtSize(option.label, size) + gap;
+      const w = widthOf(option);
       if (x + w > LEFT + WIDTH) { x = LEFT; this.y -= size + 6; }
       this.page.drawRectangle({ x, y: this.y - box, width: box, height: box, borderColor: NAVY, borderWidth: 0.7 });
-      if (option.value === selected) {
+      if (on(option.value)) {
         this.page.drawLine({ start: { x: x + 1.5, y: this.y - box + 1.5 }, end: { x: x + box - 1.5, y: this.y - 1.5 }, thickness: 1, color: NAVY });
         this.page.drawLine({ start: { x: x + 1.5, y: this.y - 1.5 }, end: { x: x + box - 1.5, y: this.y - box + 1.5 }, thickness: 1, color: NAVY });
       }
-      this.page.drawText(option.label, { x: x + box + 4, y: this.y - box + 0.5, size, font: option.value === selected ? this.fonts.bold : this.fonts.regular, color: NAVY });
+      this.page.drawText(option.label, { x: x + box + 4, y: this.y - box + 0.5, size, font: on(option.value) ? this.fonts.bold : this.fonts.regular, color: NAVY });
       x += w;
     }
     this.y -= size + 8;
@@ -232,9 +338,11 @@ class Writer {
     this.y -= height + (this.compact ? 2 : 3);
   }
   /** Renglones de hoja de cálculo: etiquetas en negritas sin fondo y valores sobre gris claro. */
-  sheet(rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>>) {
+  sheet(rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean; keys?: string[] }>>) {
     const pad = 4;
     for (const row of rows) {
+      // La zona de un valor lleva el nombre de la etiqueta que lo precede en el renglón.
+      let rotulo = "";
       const total = row.reduce((s, c) => s + c.w, 0) || 12;
       const cells = row.map(c => {
         const width = c.w / Math.max(total, 12) * WIDTH, isLabel = c.label !== undefined, size = c.big ? 14 : isLabel ? 9 : 10;
@@ -247,6 +355,8 @@ class Writer {
       for (const c of cells) {
         if (c.label === undefined) this.page.drawRectangle({ x: x + 1, y: this.y - height + 1, width: c.width - 2, height: height - 2, color: hex(COLORS.band2) });
         c.lines.forEach((line, n) => this.page.drawText(line, { x: x + pad, y: this.y - pad - c.size - n * c.size * 1.2 + 1, size: c.size, font: c.font, color: NAVY }));
+        if (c.label !== undefined) rotulo = c.label;
+        else this.zone(c.keys, rotulo, x, this.y, c.width, height);
         x += c.width;
       }
       this.y -= height;
@@ -312,10 +422,12 @@ class Writer {
     });
     this.y -= 8;
   }
-  footers() {
-    const total = this.pages.length;
+  /** Membrete y paginación; con «aviso», una leyenda en vino a la izquierda del número de hoja. */
+  footers(aviso?: string) {
+    const total = this.pages.length, y = letterheadBounds().footer + 6;
     this.pages.forEach((page, index) => {
       drawFortiusLetterhead(page, this.art, this.headerFont, this.title, index + 1, total);
+      if (aviso) page.drawText(aviso, { x: LEFT, y, size: 8, font: this.headerFont, color: WINE });
     });
   }
   async render(block: Block, next?: Block, afterNext?: Block, lastNext = false) {
@@ -327,8 +439,9 @@ class Writer {
       else if(lastNext && next?.kind==='p') this.ensure(paragraphHeight(block.text)+paragraphHeight(next.text));
     }
     if(block.kind==='bar' && next?.kind==='signatures') this.ensure(30+signatureHeight);
+    const start = { page: this.pages.length - 1, y: this.y, draws: this.draws[this.pages.length - 1] ?? 0 };
     switch (block.kind) {
-      case "image": await this.image(block.label, block.image, block.height); break;
+      case "image": await this.image(block.label, block.image, block.height, block.keys); break;
       case "bar": this.bar(block.text, block.right, block.big, block.raw, block.center); break;
       case "right": {
         const size = this.style.body;
@@ -339,10 +452,13 @@ class Writer {
       case "h3": this.heading(block.text, 13, this.style.ink, 8, 4); break;
       case "checks": this.checks(block.q, block.options, block.selected); break;
       case "sheet": this.sheet(block.rows); break;
-      case "grid": this.grid(block.widths, block.header, block.rows); break;
-      // Salto de página de la plantilla; si la página apenas empezó (solo arrastra una nota), se continúa en ella.
-      case "pagebreak": if (block.force ? this.y < PAGE[1] - TOP - 1 : this.y < PAGE[1] / 2) this.newPage(); break;
-      case "title": if (block.bold) { const size = block.size ?? 22; this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; this.page.drawText(block.text, { x: LEFT, y: this.y - size, size, font: this.fonts.bold, color: NAVY }); this.y -= size + 8; } else this.heading(block.text, 27, NAVY, 0, 8); break;
+      case "grid": this.grid(block.widths, block.header, block.rows, { labels: block.labels, minRow: block.minRow, keys: block.keys }); break;
+      // Salto de la plantilla, estilo 04A (titular, 27/10/2026): solo abre hoja si queda menos del 35 % libre;
+      // si hay más espacio, el grupo sigue en la misma hoja y no quedan huecos grandes.
+      // «hoja»: una hoja para firmar (las decisiones del aviso) empieza siempre en hoja nueva.
+      case "pagebreak": if (block.hoja || this.y - BOTTOM < 0.35 * (PAGE[1] - TOP - BOTTOM)) this.newPage(); break;
+      // Un título de varias líneas («Aviso de / privacidad») se dibuja renglón por renglón.
+      case "title": if (block.bold) { const size = block.size ?? 22; this.ensure(110); this.y -= this.y < PAGE[1] - TOP - 1 ? 10 : 2; for (const line of block.text.split("\n")) { this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.bold, color: NAVY }); this.y -= size * 1.1; } this.y -= 8 - size * 0.1; } else this.heading(block.text, 27, NAVY, 0, 8); break;
       case "form": this.form(block.label, block.rows, block.filled,next?.kind==='note'?wrap(next.text,this.fonts.regular,8.5,WIDTH).length*8.5*1.25+8:0); break;
       case "subtitle": this.centered(block.text, 12, 10, 2); break;
       case "note": this.note(block.text); break;
@@ -365,7 +481,15 @@ class Writer {
       case "band": this.table(block.widths, undefined, block.rows.map(row => row.map(cell => `${cell.label.toUpperCase()}\n${cell.value}`)), true); break;
       case "table": this.table(block.widths, block.header, block.rows, false, false, false, !!block.small); break;
     }
+    if (block.zona) this.blockZone(block.zona, start);
   }
+}
+
+/** Contrato y aviso van en Times; los demás, en Archivo. El membrete siempre usa Archivo. */
+const serifDe = (doc: Documento) => doc.estilo === "contrato" || doc.estilo === "aviso";
+function estiloDe(doc: Documento) {
+  const compact = doc.subject?.startsWith('Formato 18 ·') ?? false, base = STYLES[doc.estilo ?? "marca"];
+  return { compact, style: compact ? { ...base, leading: 1.15, after: 3.5 } : base };
 }
 
 export async function renderDocumentoPdf(doc: Documento, assets: DocumentoAssets): Promise<Uint8Array> {
@@ -373,18 +497,57 @@ export async function renderDocumentoPdf(doc: Documento, assets: DocumentoAssets
   pdf.setTitle(doc.title); pdf.setAuthor("Fortius Inmuebles"); pdf.setCreator("Panel Fortius · Formatos exclusivos");
   if (doc.subject) pdf.setSubject(doc.subject);
   pdf.registerFontkit(fontkit);
-  const contrato = doc.estilo === "contrato" || doc.estilo === "aviso";
-  const estilo = doc.estilo ?? "marca";
+  const contrato = serifDe(doc);
   const [regular, bold, art] = await Promise.all([
     contrato ? pdf.embedFont(StandardFonts.TimesRoman) : pdf.embedFont(assets.regular, { subset: true }),
     contrato ? pdf.embedFont(StandardFonts.TimesRomanBold) : pdf.embedFont(assets.bold, { subset: true }),
     embedFortiusLetterhead(pdf, assets),
   ]);
   const headerFont = contrato ? await pdf.embedFont(assets.bold, { subset:true }) : bold;
-  const compact = doc.subject?.startsWith('Formato 18 ·') ?? false;
-  const style = compact ? {...STYLES[estilo],leading:1.15,after:3.5} : STYLES[estilo];
+  const { compact, style } = estiloDe(doc);
   const writer = new Writer(pdf, { regular, bold }, art, doc.title, style, headerFont, compact);
   for (const [index,block] of doc.blocks.entries()) await writer.render(block,doc.blocks[index+1],doc.blocks[index+2],index===doc.blocks.length-2);
-  writer.footers();
+  writer.footers(doc.aviso);
   return pdf.save();
+}
+
+const hexOf = (color: Color | undefined) => color?.type === ColorTypes.RGB ? [color.red, color.green, color.blue].map(c => Math.round(c * 255).toString(16).padStart(2, "0")).join("").toUpperCase() : undefined;
+
+/** Página que no dibuja: anota cada trazo para repetirlo en la pantalla. */
+function recorder(trazos: Trazo[], fonts: { bold: Set<PDFFont>; serif: Set<PDFFont> }, hrefs: WeakMap<object, string>): Surface {
+  return {
+    getSize: () => ({ width: PAGE[0], height: PAGE[1] }),
+    drawText(text, o = {}) {
+      const size = o.size ?? 24;
+      trazos.push({ kind: "text", text, x: o.x ?? 0, y: o.y ?? 0, size, bold: !!o.font && fonts.bold.has(o.font), serif: !!o.font && fonts.serif.has(o.font), w: o.font ? o.font.widthOfTextAtSize(text, size) : 0, color: hexOf(o.color) ?? COLORS.black });
+    },
+    // Como en pdf-lib: sin color ni borde, el rectángulo se rellena de negro.
+    drawRectangle(o = {}) { trazos.push({ kind: "rect", x: o.x ?? 0, y: o.y ?? 0, w: o.width ?? 150, h: o.height ?? 100, fill: o.color ? hexOf(o.color) : o.borderColor ? undefined : COLORS.black, stroke: hexOf(o.borderColor), strokeWidth: o.borderWidth }); },
+    drawLine(o) { trazos.push({ kind: "line", x1: o.start.x, y1: o.start.y, x2: o.end.x, y2: o.end.y, color: hexOf(o.color) ?? COLORS.black, width: o.thickness ?? 1 }); },
+    drawImage(image, o = {}) { const href = hrefs.get(image); if (href) trazos.push({ kind: "image", x: o.x ?? 0, y: o.y ?? 0, w: o.width ?? image.width, h: o.height ?? image.height, href }); },
+  };
+}
+
+/**
+  Vista en vivo de la captura (EXT-12): arma el documento con el mismo escritor del PDF, sin
+  generar el archivo. Las fuentes y el membrete se incrustan una sola vez; cada llamada devuelve
+  los trazos de cada página y las zonas pulsables, en Archivo o en Times según el estilo del
+  documento. Las imágenes del documento deben traer su «href».
+*/
+export async function crearMaquetador(assets: DocumentoAssets): Promise<(doc: Documento) => Promise<Maqueta>> {
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+  const [regular, bold, times, timesBold, art] = await Promise.all([pdf.embedFont(assets.regular, { subset: true }), pdf.embedFont(assets.bold, { subset: true }), pdf.embedFont(StandardFonts.TimesRoman), pdf.embedFont(StandardFonts.TimesRomanBold), embedFortiusLetterhead(pdf, assets)]);
+  const hrefs = new WeakMap<object, string>([[art.encabezado, LETTERHEAD_PATHS.encabezado], [art.pie, LETTERHEAD_PATHS.pie]]);
+  const images = new Map<ImagenDocumento, PDFImage>();
+  const fonts = { bold: new Set([bold, timesBold]), serif: new Set([times, timesBold]) };
+  return async doc => {
+    const pages: Trazo[][] = [], zonas: Zona[] = [];
+    const surface = () => { const trazos: Trazo[] = []; pages.push(trazos); return recorder(trazos, fonts, hrefs); };
+    const serif = serifDe(doc), { compact, style } = estiloDe(doc);
+    const writer = new Writer(pdf, serif ? { regular: times, bold: timesBold } : { regular, bold }, art, doc.title, style, bold, compact, { surface, zonas, hrefs, images });
+    for (const [index, block] of doc.blocks.entries()) await writer.render(block, doc.blocks[index + 1], doc.blocks[index + 2], index === doc.blocks.length - 2);
+    writer.footers(doc.aviso);
+    return { width: PAGE[0], height: PAGE[1], pages, zonas };
+  };
 }

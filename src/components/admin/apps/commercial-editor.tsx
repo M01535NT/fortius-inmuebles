@@ -1,5 +1,6 @@
 "use client";
 
+import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import * as React from "react";
 import Image from "next/image";
 import { Field, btnGhost, btnPrimary, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
@@ -14,7 +15,7 @@ const panel = "min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:
 const grid = "grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3";
 const txt = (value: unknown) => typeof value === "string" || typeof value === "number" ? String(value) : "";
 const options = (values: Record<string, string>) => Object.entries(values).map(([value, label]) => ({ value, label }));
-const propertyTypes = options({ casa: "Casa", departamento: "Departamento", terreno: "Terreno", local: "Local", oficina: "Oficina", "nave-industrial": "Nave industrial" });
+const propertyTypes = options(TIPO_INMUEBLE_LABELS);
 const currencies = options({ MXN: "MXN", USD: "USD" });
 const operations = options(OPERACION_LABELS);
 type FormField = { key: string; label: string; type?: "number" | "date" | "textarea" | "checkbox"; options?: { value: string; label: string }[]; hint?: string };

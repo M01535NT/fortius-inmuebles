@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { PDFDocument } from "pdf-lib";
 import { validateFormato } from "@/lib/formatos/catalog";
 import { prepareFormatoEmission } from "@/lib/formatos/pdf";
-import { LEVANTAMIENTO_TITLES, levantamientoFields, USO_SUELO, type LevantamientoId } from "@/lib/formatos/levantamiento";
+import { LEVANTAMIENTO_TITLES, levantamientoFields, OPCIONES, USO_SUELO, type LevantamientoId } from "@/lib/formatos/levantamiento";
 import type { FormatoPdfAsset } from "@/lib/formatos/assets";
 
 const PHOTO = "51000000-0000-4000-8000-000000000021", MAP = "51000000-0000-4000-8000-000000000022";
@@ -28,38 +28,47 @@ async function assets(withMap: boolean): Promise<FormatoPdfAsset[]> {
   return list;
 }
 
-it("cada levantamiento es corto y empieza por qué inmueble es y su uso de suelo", () => {
+it("los siete levantamientos siguen su Word sin base y referencia, respaldos ni discrepancias, y con uso de suelo (27/10/2026)", () => {
   for (const id of IDS) {
-    const fields = levantamientoFields(id);
-    const keys = fields.map(field => field.key);
-    expect(fields.length, id).toBeLessThanOrEqual(45);
-    expect(new Set(keys).size).toBe(keys.length);
-    expect(keys).toEqual(expect.arrayContaining(["usoSuelo", "fotoPrincipalId", "croquisId", "fechaVisita", "ocupacion", "observaciones", "pendientes"]));
-    expect(fields.find(field => field.key === "usoSuelo")?.options).toBe(USO_SUELO);
-    // Sin claves de «base y referencia», respaldos ni discrepancias: no es un peritaje.
-    expect(keys.some(key => /Base$|Referencia$|Declarada$|Documental$|Medida$/.test(key) || ["respaldos", "discrepancias", "permisoMedicion"].includes(key))).toBe(false);
-    expect(fields.filter(field => field.required).length, id).toBeLessThanOrEqual(16);
+    const fields = levantamientoFields(id), keys = fields.map(field => field.key);
+    expect(new Set(keys).size, id).toBe(keys.length);
+    // Las etiquetas no se repiten: la lista «Qué falta» lleva a cada campo por su nombre.
+    expect(new Set(fields.map(field => field.label)).size, id).toBe(fields.length);
+    expect(keys, id).toEqual(expect.arrayContaining(["idInmueble", "folio", "usoSuelo", "fotoPrincipalId", "croquisId", "fechaVisita", "ocupacion", "alcance", "permisoFoto", "incidente", "siguienteAccion"]));
+    expect(fields.find(field => field.key === "usoSuelo"), id).toMatchObject({ required: true, options: USO_SUELO });
+    expect(keys.some(key => /Base$|Referencia$|Declarada$|Documental$|Medida$/.test(key) || /^(respaldo|discrepancia)/.test(key)), id).toBe(false);
+    expect(JSON.stringify(fields), id).not.toMatch(/ \/ /);
+    expect(fields.find(field => field.key === "ocupacion")?.options, id).toBe(OPCIONES.ocupacion);
+    expect(fields.filter(field => field.required).length, id).toBeLessThanOrEqual(12);
   }
-  expect(levantamientoFields("04B").map(field => field.key)).toEqual(expect.arrayContaining(["tipoVivienda", "niveles", "recamaras", "banos", "estadoGeneral", "superficieConstruccion"]));
+  expect(levantamientoFields("04B").filter(field => field.required).map(field => field.key)).toEqual(["folio", "inmueble", "usoSuelo", "tipoVivienda", "niveles", "fechaVisita", "asesor", "ocupacion", "alcance", "recamaras", "banos"]);
+  expect(levantamientoFields("04C").map(field => field.key)).toEqual(expect.arrayContaining(["piso", "recamaras", "banos", "superficiePrivativa", "espacios", "elevador"]));
+  expect(levantamientoFields("04F").map(field => field.key)).toEqual(expect.arrayContaining(["alturaLibre", "andenes", "puertasCarga", "superficieNave", "alimentacion", "origenAgua", "limitaciones"]));
   expect(levantamientoFields("04G").find(field => field.key === "tipoConjunto")?.options?.map(option => option.value)).toEqual(expect.arrayContaining(["oficinas", "departamentos", "plaza", "industrial"]));
-  expect(levantamientoFields("04F").map(field => field.key)).toEqual(expect.arrayContaining(["alturaLibre", "andenes", "puertasCarga", "superficieNave"]));
+  // Las listas con diagonales del Word son casillas con sus mismas opciones.
+  expect(levantamientoFields("04B").find(field => field.key === "espaciosServicio")).toMatchObject({ type: "multi" });
+  expect(levantamientoFields("04B").find(field => field.key === "espaciosServicio")?.options?.map(option => option.label)).toEqual(["Sala", "Comedor", "Lavado", "Bodega", "Patio", "Jardín", "Terraza"]);
+  expect(levantamientoFields("04D").find(field => field.key === "circulacion")?.options?.map(option => option.label)).toEqual(["Rampas", "Escaleras", "Elevador"]);
 });
 
-it("exige la fotografía principal y rechaza cantidades negativas; el croquis y las superficies son opcionales", () => {
+it("exige la fotografía principal y rechaza cantidades negativas u opciones ajenas; el croquis y las superficies son opcionales", () => {
   const casa = variantSample("04B");
   expect(validateFormato("04B", casa)).toEqual([]);
   expect(validateFormato("04B", { ...casa, fotoPrincipalId: undefined })).toContain("Selecciona la fotografía principal adjunta");
+  expect(validateFormato("04B", { ...casa, usoSuelo: undefined })).toContain("Uso de suelo");
   expect(validateFormato("04B", { ...casa, recamaras: -1 })).toContain("Recámaras");
   expect(validateFormato("04B", { ...casa, superficieTerreno: -5 })).toContain("Terreno en m²");
-  expect(validateFormato("04B", { ...casa, croquisId: "no-es-un-id" })).toContain("Selecciona el croquis adjunto");
-  expect(validateFormato("04B", { ...casa, croquisId: MAP, superficieTerreno: 160 })).toEqual([]);
+  expect(validateFormato("04B", { ...casa, horaInicio: "25:00" })).toContain("Hora de inicio");
+  expect(validateFormato("04B", { ...casa, espaciosServicio: ["sala", "alberca"] })).toContain("Espacios de servicio");
+  expect(validateFormato("04B", { ...casa, espaciosServicio: ["sala", "patio"], croquisId: "no-es-un-id" })).toEqual(["Selecciona el croquis adjunto"]);
+  expect(validateFormato("04B", { ...casa, espaciosServicio: [], superficieTerreno: 160, croquisId: MAP })).toEqual([]);
 });
 
 it("las unidades de una plaza se revisan fila por fila", () => {
   const plaza = variantSample("04G");
-  expect(validateFormato("04G", { ...plaza, unidades: [{ id: "L-01", tipo: "Local", uso: "Café", area: "45", ocupacion: "Ocupado" }] })).toEqual([]);
-  expect(validateFormato("04G", { ...plaza, unidades: [{ id: "", area: "45" }] })).toContain("Unidades, fila 1: Unidad");
-  expect(validateFormato("04G", { ...plaza, unidades: [{ id: "L-02", area: "muchos" }] })).toContain("Unidades, fila 1: m² aproximados");
+  expect(validateFormato("04G", { ...plaza, unidades: [{ id: "L-01", tipo: "Local, café", area: "45", ocupacion: "Ocupado", acceso: "Medidor propio" }] })).toEqual([]);
+  expect(validateFormato("04G", { ...plaza, unidades: [{ id: "", area: "45" }] })).toContain("Unidades, fila 1: ID unidad");
+  expect(validateFormato("04G", { ...plaza, unidades: [{ id: "L-02", area: "muchos" }] })).toContain("Unidades, fila 1: Área m²");
 });
 
 it("produce cada variante con solo la fotografía principal, y con croquis cuando se eligió", async () => {

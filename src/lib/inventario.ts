@@ -17,6 +17,15 @@ export async function getFeaturedProperties(): Promise<Property[]> {
   return (await getPropiedades()).filter((p) => p.destacada && (p.demo || p.estado === "disponible"));
 }
 
+/** Plaza o conjunto: sus locales publicados, o la plaza publicada a la que pertenece un local. */
+export async function getConjunto(property: Property): Promise<{ locales: Property[]; plaza?: Property }> {
+  const todas = await getPropiedades();
+  return {
+    locales: property.tipo === "plaza" ? todas.filter((p) => p.conjunto === property.slug) : [],
+    plaza: property.conjunto ? todas.find((p) => p.slug === property.conjunto && p.tipo === "plaza") : undefined,
+  };
+}
+
 export async function getRelatedProperties(slug: string, limit = 3): Promise<Property[]> {
   const todas = await getPropiedades();
   const actual = todas.find((p) => p.slug === slug);

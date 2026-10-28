@@ -86,7 +86,7 @@ async function openOperation(tab?: string) {
 const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(-1)!.body;
 /** La etapa en curso se lee en la tarjeta de avance («Etapa N de 10 · fase»). */
 const stage = (n: number) => screen.findAllByText(new RegExp(`^Etapa ${n} de 10`));
-/** Los demás estados de un requisito están en «Más», junto a «Marcar revisado». */
+/** Los demás estados de un requisito están en «Más», junto a «Confirmar». */
 function moreStates(name: string) {
   fireEvent.click(screen.getByRole("button", { name: `Más estados de ${name}` }));
   return screen.getByRole("radiogroup", { name: `Estado de ${name}` });
@@ -106,7 +106,7 @@ it("muestra la etapa y lo que falta, y «Lo tengo» se guarda con la versión de
   expect(screen.getByText("Ya tienes el documento · falta revisarlo")).toBeTruthy();
 });
 
-it("el prospecto se ve en su etapa y «Iniciar entrevista» abre el 02 en su ventana, por secciones", async () => {
+it("el prospecto se ve en su etapa y «Iniciar entrevista» abre el 02 en su ventana, sobre el documento", async () => {
   await openOperation();
   await stage(1);
   expect(screen.getByRole("heading", { level: 2, name: "Hacer la entrevista inicial (02)" })).toBeTruthy();
@@ -115,9 +115,11 @@ it("el prospecto se ve en su etapa y «Iniciar entrevista» abre el 02 en su ven
   fireEvent.click(screen.getByRole("button", { name: "Iniciar entrevista" }));
   const capture = await screen.findByRole("dialog", { name: "Entrevista inicial" });
   expect(server.methods).toContain("POST");
-  expect(within(capture).getByRole("heading", { level: 3, name: "Datos de la entrevista" })).toBeTruthy();
-  expect(within(capture).getByRole("button", { name: "Word" })).toBeTruthy();
-  expect(within(capture).getByRole("button", { name: /^Siguiente/ })).toBeTruthy();
+  // Se llena pulsando el documento (EXT-12, 28/10/2026), sin secciones.
+  expect(within(capture).getByText("Pulsa una parte del documento para llenarla. Lo que se ve es lo que sale en el PDF.")).toBeTruthy();
+  // Los formatos se entregan en PDF; el Word solo queda para el contrato 09 (titular, 27/10/2026).
+  expect(within(capture).queryByRole("button", { name: "Word" })).toBeNull();
+  expect(within(capture).queryByRole("button", { name: "Siguiente" })).toBeNull();
   fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   await stage(2);
@@ -135,8 +137,9 @@ it("con la entrevista terminada se inicia el levantamiento según el tipo de inm
   await waitFor(() => expect(type.value).toBe("04C"));
   fireEvent.change(type, { target: { value: "04B" } });
   fireEvent.click(screen.getByRole("button", { name: /Iniciar levantamiento/ }));
+  // El 04B se captura sobre su documento (EXT-12): la ventana abre en la pestaña «Documento».
   const capture = await screen.findByRole("dialog", { name: "Levantamiento de casa" });
-  expect(within(capture).getAllByRole("button", { name: /Fotografías y croquis/ }).length).toBeGreaterThan(0);
+  expect(within(capture).getByRole("tab", { name: "Documento" }).getAttribute("aria-selected")).toBe("true");
   fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
   await stage(3);
   expect(screen.getByRole("button", { name: "Continuar" })).toBeTruthy();
@@ -164,7 +167,7 @@ it("el checklist de documentos se arma con la entrevista y se marca al recibir c
 
 it("en el dictamen, la barra dice qué les falta a las etapas anteriores y «Ver etapas» muestra sus documentos", async () => {
   interviewDone();
-  server.ops = [base({ etapa: "documentacion", flujo: flow({ entrevista: reviewed() }) })];
+  server.ops = [base({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) })];
   await openOperation();
   await stage(5);
   expect(await screen.findByRole("button", { name: "3 · Levantamiento: falta el 04" })).toBeTruthy();
@@ -188,7 +191,7 @@ it("en el dictamen, la barra dice qué les falta a las etapas anteriores y «Ver
 });
 
 it("en el dictamen jurídico, «Iniciar» abre el 05 en su ventana con lo recibido en el checklist", async () => {
-  server.ops = [base({ etapa: "documentacion", flujo: flow({ entrevista: reviewed() }) })];
+  server.ops = [base({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) })];
   server.tasks = [{ id: `checklist-${ID}`, titulo: "Reunir los documentos del propietario", estado: "en-curso", prioridad: "normal", categoria: "documentacion", pasos: [{ id: "D01", texto: "D01 · Escritura", hecho: true }, { id: "D06", texto: "D06 · Predial", hecho: false }], expedienteId: ID, asesorId: "a1" }];
   await openOperation();
   await stage(5);
@@ -206,7 +209,7 @@ it("en el dictamen jurídico, «Iniciar» abre el 05 en su ventana con lo recibi
 });
 
 it("en contrato y preparación se inician el 09 (sólo Word) y el 10", async () => {
-  const verified = { entrevista: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: reviewed() };
+  const verified = { entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: reviewed() };
   server.ops = [base({ etapa: "documentacion", flujo: flow(verified, accepted) })];
   await openOperation();
   await stage(7);
@@ -230,19 +233,19 @@ it("un fallo al guardar se informa en palabras sencillas y no anuncia ningún av
   expect(screen.getAllByText("Pendiente").length).toBeGreaterThan(0);
 });
 
-it("Marcar revisado pide qué se encontró y guarda el respaldo, quién y cuándo", async () => {
+it("Confirmar pide qué se encontró y guarda el respaldo, quién y cuándo", async () => {
   interviewDone();
   await openOperation();
   await stage(2);
-  fireEvent.click(screen.getByRole("button", { name: "Marcar revisado" }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
   const sheet = await screen.findByRole("dialog", { name: "Entrevista con el propietario" });
   fireEvent.click(within(sheet).getByRole("radio", { name: /Documento fuera del sistema/ }));
-  fireEvent.click(within(sheet).getByRole("button", { name: "Guardar como revisado" }));
+  fireEvent.click(within(sheet).getByRole("button", { name: "Confirmar" }));
   expect(within(sheet).getByRole("alert").textContent).toBe("Escribe qué encontraste.");
   fireEvent.change(within(sheet).getByLabelText("Qué encontraste"), { target: { value: "Quiere vender en seis meses" } });
   fireEvent.change(within(sheet).getByLabelText("Folio o dónde está"), { target: { value: "Carpeta física 12, oficina Tijuana" } });
   expect((within(sheet).getByLabelText("Quién lo revisó") as HTMLInputElement).value).toBe("Mariana Ruiz");
-  fireEvent.click(within(sheet).getByRole("button", { name: "Guardar como revisado" }));
+  fireEvent.click(within(sheet).getByRole("button", { name: "Confirmar" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   expect(lastFlow()).toMatchObject({ flujo: { requisitos: { entrevista: { estado: "revisado", soporte: "Quiere vender en seis meses", evidencia: { tipo: "externa", referencia: "Carpeta física 12, oficina Tijuana", fecha: "2026-10-16", responsable: "Mariana Ruiz", resultado: "Quiere vender en seis meses" } } } } });
   expect(screen.getByText("Quiere vender en seis meses · Revisó Mariana Ruiz el 16 oct")).toBeTruthy();
@@ -265,7 +268,7 @@ it("Hay un problema guarda el título y la explicación, pasa a «Ahora toca» y
 });
 
 it("«Pasar a» se habilita solo con todo listo y registra el avance", async () => {
-  server.ops = [base({ flujo: flow({ entrevista: reviewed() }) })];
+  server.ops = [base({ flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) })];
   intakeDone();
   await openOperation();
   const advance = await screen.findByRole("button", { name: /Pasar a: Dictamen jurídico/ });
@@ -370,7 +373,7 @@ it("Expediente: cerrar una ventana guarda y abrir otra no mezcla las capturas", 
   expect(within(second).queryByLabelText("Quien paga")).toBeNull();
 });
 
-it("la lista separa lo que espera algo de ti, filtra por fase, busca sin acentos y filtra «Mías»", async () => {
+it("la lista separa lo que espera algo de ti, filtra por etapa, busca sin acentos y filtra «Mías»", async () => {
   server.ops = [
     base(), base({ id: ID2, folio: "EXP-COMPRA", cliente_id: "c2", asesor_id: "a2", etapa: "negociacion", flujo: flow({}, { ruta: "compra" }) }),
     base({ id: "51000000-0000-4000-8000-000000000003", folio: "EXP-CERRADO", etapa: "cerrado" }),
@@ -379,13 +382,15 @@ it("la lista separa lo que espera algo de ti, filtra por fase, busca sin acentos
   server.tasks = [{ id: "t1", titulo: "Pedir la escritura", estado: "pendiente", prioridad: "normal", categoria: "captacion", pasos: [], vence: "2026-10-14", expedienteId: ID }];
   nav.search = new URLSearchParams({ etapa: "visitas-ofertas" });
   render(<OperationsBoard />);
-  const sell = await screen.findByRole("button", { name: /Vender y cerrar/ });
-  expect(sell.getAttribute("aria-pressed")).toBe("true");
-  // En «Vender y cerrar» no aparece la operación del prospecto; la archivada va aparte.
+  // «?etapa=visitas-ofertas» sigue funcionando: filtra por esa etapa (ya no hay fases).
+  const etapa = await screen.findByLabelText("Etapa") as HTMLSelectElement;
+  expect(etapa.value).toBe("Visitas y ofertas");
   expect(within(screen.getByRole("region", { name: /Esperan algo de ti/ })).queryByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
+  fireEvent.change(etapa, { target: { value: "Oferta y negociación" } });
+  await waitFor(() => expect(nav.search.get("etapa")).toBe("Oferta y negociación"));
   expect(screen.getByRole("link", { name: /Ángel Martínez\. Etapa 4 de 7, Oferta y negociación/ })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: /^Todas/ }));
+  fireEvent.change(etapa, { target: { value: "todas" } });
   await waitFor(() => expect(nav.search.get("etapa")).toBeNull());
   const waiting = screen.getByRole("region", { name: /Esperan algo de ti/ });
   const castaneda = within(waiting).getByRole("link", { name: /Familia Castañeda Ortiz/ });
@@ -457,7 +462,7 @@ it("el tablero reúne todas las páginas de la consulta y solo lee, sin escribir
 });
 
 it("en Verificación no hay un botón que nunca se activa: explica que «Contrato» se abre sola y lo avisa al ocurrir", async () => {
-  const verifiedExcept = { entrevista: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: { estado: "recibido", soporte: "Acordado por WhatsApp" } };
+  const verifiedExcept = { entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: { estado: "recibido", soporte: "Acordado por WhatsApp" } };
   server.ops = [base({ etapa: "documentacion", flujo: flow(verifiedExcept, accepted) })];
   server.tasks = [{ id: "t1", titulo: "Firmar contrato", estado: "pendiente", prioridad: "normal", categoria: "captacion", pasos: [], vence: "2026-10-20", expedienteId: ID, asesorId: "a1" }];
   await openOperation();
@@ -465,12 +470,12 @@ it("en Verificación no hay un botón que nunca se activa: explica que «Contrat
   expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
   expect(screen.getAllByText((_, el) => el?.textContent === "Con todo listo se abre sola Contrato y preparación.").length).toBeGreaterThan(0);
   expect(screen.getByRole("heading", { level: 2, name: "Iniciar opinión de valor comercial (07)" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Marcar revisado" }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
   const sheet = await screen.findByRole("dialog", { name: "Precio de salida acordado" });
   fireEvent.change(within(sheet).getByLabelText("Qué encontraste"), { target: { value: "Precio acordado de 4.5 millones" } });
   fireEvent.click(within(sheet).getByRole("radio", { name: /Documento fuera del sistema/ }));
   fireEvent.change(within(sheet).getByLabelText("Folio o dónde está"), { target: { value: "Mensaje de WhatsApp del 15 oct" } });
-  fireEvent.click(within(sheet).getByRole("button", { name: "Guardar como revisado" }));
+  fireEvent.click(within(sheet).getByRole("button", { name: "Confirmar" }));
   expect(await screen.findByText("Verificación terminada. Ya puedes trabajar el contrato y la preparación.")).toBeTruthy();
   await stage(7);
   expect(screen.getByRole("button", { name: /Pasar a: Publicación y seguimiento/ })).toBeTruthy();

@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { Button } from "@/components/admin/kit";
+import { Camera } from "@/components/admin/icons";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 
@@ -15,10 +16,12 @@ export const WITH_IMAGES = ["04A", "04B", "04C", "04D", "04E", "04F", "04G", "07
 /** Origen de las imágenes cuando el documento no es un borrador de expediente (Documentos sin expediente). */
 export type ImagesSource = { list: Adjunto[]; upload: (form: FormData) => Promise<Adjunto>; href: (id: string) => string };
 
-export function FormatoImages({ documentId, values, onChange, disabled, source }: { documentId: string; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void; disabled: boolean; source?: ImagesSource }) {
+/** «onChosen»: avisa qué imagen quedó elegida para la foto principal o el croquis (la captura en vivo toma su fecha). «onUploaded»: avisa de cada imagen nueva (el reporte fotográfico del 07 la ofrece enseguida). */
+export function FormatoImages({ documentId, values, onChange, onChosen, onUploaded, disabled, source }: { documentId: string; values: Record<string, unknown>; onChange: (key: string, value: unknown) => void; onChosen?: (key: "fotoPrincipalId" | "croquisId", adjunto: Adjunto) => void; onUploaded?: (adjunto: Adjunto) => void; disabled: boolean; source?: ImagesSource }) {
   const [loaded, setAdjuntos] = React.useState<Adjunto[] | null>(null);
   const adjuntos = source ? source.list : loaded;
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState("");
+  const archivo = React.useRef<HTMLInputElement>(null);
   React.useEffect(() => {
     if (source) return;
     let alive = true;
@@ -31,9 +34,10 @@ export function FormatoImages({ documentId, values, onChange, disabled, source }
       const result = source ? { adjunto: await source.upload(new FormData(form)) } : await json<{ adjunto: Adjunto }>(`/api/admin/formatos/${documentId}/adjuntos`, { method: "POST", body: new FormData(form) });
       if (source) onChange("adjuntos", [...source.list, result.adjunto]); else setAdjuntos(items => [...(items ?? []), result.adjunto]);
       form.reset();
+      onUploaded?.(result.adjunto);
       // La primera imagen de cada tipo queda elegida para el PDF; se puede cambiar abajo.
       const slot = result.adjunto.kind === "foto" ? "fotoPrincipalId" : result.adjunto.kind === "croquis" ? "croquisId" : null;
-      if (slot && !values[slot]) onChange(slot, result.adjunto.id);
+      if (slot && !values[slot]) { onChange(slot, result.adjunto.id); onChosen?.(slot, result.adjunto); }
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
   return <div className="flex flex-col gap-5">
@@ -44,14 +48,24 @@ export function FormatoImages({ documentId, values, onChange, disabled, source }
         <label className="text-sm">Fecha en que se tomó<input name="fechaObservacion" type="date" className={inputClass} /></label>
         <label className="text-sm">Descripción<input name="descripcion" required maxLength={240} className={inputClass} placeholder="Fachada principal" /></label>
         <label className="text-sm">Fuente o autor<input name="fuente" required maxLength={240} className={inputClass} placeholder="Tomada por el asesor en la visita" /></label>
-        <label className="text-sm md:col-span-2">Imagen JPEG o PNG, máximo 10 MB<input name="archivo" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required className={inputClass} /></label>
+        <label className="text-sm md:col-span-2">Imagen JPEG o PNG, máximo 10 MB<input ref={archivo} name="archivo" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required className={inputClass} /></label>
+        {/* En la visita: abrir la cámara del celular; la foto tomada queda como el archivo a subir. También se puede elegir una de la galería arriba. */}
+        <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 self-start rounded-md border border-input px-3 text-sm font-semibold md:col-span-2">
+          <Camera size={16} aria-hidden="true" />Tomar foto con la cámara
+          <input type="file" accept="image/jpeg,image/png" capture="environment" className="sr-only" onChange={event => {
+            const file = event.target.files?.[0];
+            if (!file || !archivo.current) return;
+            const list = new DataTransfer(); list.items.add(file); archivo.current.files = list.files;
+            event.target.value = "";
+          }} />
+        </label>
         <Button type="submit" className="self-start">{busy ? "Subiendo…" : "Subir imagen"}</Button>
       </fieldset>
     </form>
     {adjuntos === null ? <p role="status" className="text-sm text-muted-foreground">Consultando imágenes…</p>
       : adjuntos.length > 0 && <ul className="flex flex-col gap-1 text-sm">{adjuntos.map(item => <li key={item.id}><a className="underline" href={source ? source.href(item.id) : `/api/admin/adjuntos/${item.id}/descargar`} target="_blank" rel="noreferrer">{item.caption}</a> · {item.kind === "foto" ? "Fotografía" : item.kind === "croquis" ? "Croquis" : "Soporte"} · {item.source}{item.observed_on ? ` · ${item.observed_on}` : ""}</li>)}</ul>}
     <div className="grid gap-3 md:grid-cols-2">{[{ key: "fotoPrincipalId", kind: "foto", label: "Fotografía principal del PDF" }, { key: "croquisId", kind: "croquis", label: "Croquis del PDF" }].map(slot => <label key={slot.key} className="text-sm">{slot.label}
-      <select value={String(values[slot.key] ?? "")} disabled={disabled} onChange={event => onChange(slot.key, event.target.value)} className={selectClass}><option value="">Elige una imagen</option>{(adjuntos ?? []).filter(item => item.kind === slot.kind).map(item => <option key={item.id} value={item.id}>{item.caption}</option>)}</select>
+      <select value={String(values[slot.key] ?? "")} disabled={disabled} onChange={event => { onChange(slot.key, event.target.value); const chosen = (adjuntos ?? []).find(item => item.id === event.target.value); if (chosen) onChosen?.(slot.key as "fotoPrincipalId" | "croquisId", chosen); }} className={selectClass}><option value="">Elige una imagen</option>{(adjuntos ?? []).filter(item => item.kind === slot.kind).map(item => <option key={item.id} value={item.id}>{item.caption}</option>)}</select>
     </label>)}</div>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </div>;

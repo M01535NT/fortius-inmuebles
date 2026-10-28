@@ -14,10 +14,10 @@ export const terrenoSample: Record<string, unknown> = {
   folio: "EXP-04A-001", idInmueble: "INM-TER-001", inmueble: "Predio de prueba, acceso por calle principal", colonia: "Zona de prueba", municipioEstado: "Tijuana, Baja California",
   usoSuelo: "habitacional", usoActual: "Terreno sin construcción", formaPendiente: "Irregular, con pendiente hacia el sur", accesoFisico: "Por vialidad pavimentada",
   fotoPrincipalId: photoId, croquisId: mapId,
-  fechaVisita: "2026-10-04", asesor: "Ana, asesora responsable", ocupacion: "desocupado", alcance: "completo",
-  frente: 20, fondo: 25, cercas: "Malla en el acceso", superficieTerreno: 500,
-  agua: "si", drenaje: "no_sabe", electricidad: "si", pavimento: "si",
-  accesoEntorno: "Acceso por calle principal; entorno residencial", pendientes: "Pedir el plano para confirmar medidas y colindancias",
+  fechaVisita: "2026-10-04", asesor: "Ana, asesora responsable", ocupacion: "vacio", alcance: "completa",
+  frente: 20, fondo: 25, cercas: "Malla en el acceso", superficieTerreno: 500, usoDocumento: "pendiente",
+  aguaEstado: "Toma en la banqueta", electricidadEstado: "Poste frente al predio", vialidadEstado: "Calle pavimentada",
+  ruta: "Por calle principal", referencias: "Frente a la escuela", siguienteAccion: "Pedir el plano para confirmar medidas y colindancias",
 };
 
 async function assets(): Promise<FormatoPdfAsset[]> {
@@ -30,9 +30,9 @@ async function assets(): Promise<FormatoPdfAsset[]> {
 }
 
 it("el terreno pide lo que el asesor ve en la visita y deja medidas y colindancias para la escritura", () => {
-  expect(terrenoFields.filter(field => field.required).map(field => field.key)).toEqual(["folio", "inmueble", "usoSuelo", "usoActual", "fechaVisita", "asesor", "ocupacion", "alcance", "agua", "drenaje", "electricidad", "pavimento"]);
+  expect(terrenoFields.filter(field => field.required).map(field => field.key)).toEqual(["folio", "inmueble", "usoSuelo", "usoActual", "fechaVisita", "asesor", "ocupacion", "alcance"]);
   expect(validateFormato("04A", terrenoSample)).toEqual([]);
-  expect(validateFormato("04A", { ...terrenoSample, frente: -2 })).toContain("Frente en metros");
+  expect(validateFormato("04A", { ...terrenoSample, frente: -2 })).toContain("Frente en m");
   expect(validateFormato("04A", { ...terrenoSample, superficieTerreno: undefined, croquisId: undefined })).toEqual([]);
 });
 

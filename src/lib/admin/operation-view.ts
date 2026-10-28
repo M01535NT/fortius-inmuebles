@@ -67,34 +67,20 @@ export function phaseGap(phase: SalePhase, status: (formato: string) => FormatSt
 }
 
 /*
-  Boceto C del rediseño de Operaciones (aprobado por el titular el 17/10/2026): las etapas
-  se agrupan en cuatro fases para leerlas de un vistazo; la etapa interna no cambia.
+  Las etapas se nombran por sí mismas (titular, 27/10/2026): se retiraron las cuatro fases
+  del boceto C («Conocer», «Revisar», «Preparar y publicar», «Vender y cerrar») porque eran un
+  segundo vocabulario que confundía; cada operación dice «Etapa 3 de 10 · Levantamiento».
 */
-export type GroupId = "conocer" | "revisar" | "preparar" | "vender";
-export const PHASE_GROUPS: ReadonlyArray<{ id: GroupId; label: string }> = [
-  { id: "conocer", label: "Conocer" }, { id: "revisar", label: "Revisar" }, { id: "preparar", label: "Preparar y publicar" }, { id: "vender", label: "Vender y cerrar" },
-];
-const SALE_GROUP: Record<SalePhase, GroupId> = {
-  prospecto: "conocer", captacion: "conocer", levantamiento: "conocer", documentos: "conocer",
-  dictamen: "revisar", verificacion: "revisar", contrato: "preparar", publicacion: "preparar", visitas: "vender", cierre: "vender",
-};
-/** Pasos de compra, renta e inversión (WORKFLOW_STAGES sin «archivado») en las mismas cuatro fases. */
-const ROUTE_GROUPS: Partial<Record<OperationWorkflow["ruta"], readonly GroupId[]>> = {
-  compra: ["conocer", "revisar", "vender", "vender", "vender", "vender", "vender"],
-  arrendatario: ["conocer", "revisar", "vender", "vender", "vender", "vender", "vender"],
-  inversion: ["conocer", "revisar", "revisar", "revisar", "vender", "vender", "vender"],
-};
-export const groupOfPhase = (key: SalePhase): GroupId => SALE_GROUP[key];
-export type TrackStage = { n: number; label: string; key?: SalePhase; group: GroupId };
+export type TrackStage = { n: number; label: string; key?: SalePhase };
 
 /** Etapas de la operación con su número y su fase: las 10 del propietario o los pasos de su ruta. */
 export function stageTrack(op: OperationRecord, today: string) {
   const flow = flowOf(op), owner = isOwnerRoute(flow.ruta);
   const { labels, current, phase } = routeStages(op, today);
   const stages: TrackStage[] = labels.map((label, i) => owner
-    ? { n: i + 1, label, key: SALE_PROCESS[i].key, group: SALE_GROUP[SALE_PROCESS[i].key] }
-    : { n: i + 1, label, group: ROUTE_GROUPS[flow.ruta]?.[i] ?? "vender" });
-  return { stages, current, phase, group: stages[current]?.group ?? "conocer" };
+    ? { n: i + 1, label, key: SALE_PROCESS[i].key }
+    : { n: i + 1, label });
+  return { stages, current, phase };
 }
 
 /** Etapas ya pasadas a las que les falta su documento, en orden («Falta el 04»). */
@@ -127,10 +113,23 @@ export function attentionOf(op: OperationRecord, tasks: Task[], today: string, g
 }
 
 /** Formatos que se trabajan en cada etapa del propietario; el aviso (01) se entrega en la entrevista y no detiene el avance. */
-const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; optional?: true }>>> = {
+/*
+  Una etapa, sus documentos (titular, 27/10/2026): cada etapa abre su formato en vivo. De la
+  publicación al cierre los documentos se ofrecen sin detener la etapa (RP-82), porque el avance
+  lo marcan sus confirmaciones; «venta» los deja fuera de la renta del propietario (perfil del
+  comprador, oferta de compra y promesa de compraventa).
+*/
+const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; optional?: true; venta?: true }>>> = {
   prospecto: [{ formato: "02" }], captacion: [{ formato: "02" }, { formato: "01", optional: true }], levantamiento: [{ formato: "04" }],
   dictamen: [{ formato: "05" }, { formato: "06" }], verificacion: [{ formato: "07" }, { formato: "08" }], contrato: [{ formato: "09" }, { formato: "10" }],
+  publicacion: [{ formato: "11", optional: true }],
+  visitas: [{ formato: "12", optional: true, venta: true }, { formato: "13", optional: true }, { formato: "14", optional: true, venta: true }],
+  cierre: [{ formato: "15", optional: true, venta: true }, { formato: "16", optional: true }, { formato: "17", optional: true }, { formato: "18", optional: true }],
 };
+/** Formatos de una etapa del propietario según su ruta (la renta no usa los de compraventa). */
+export function stageDocuments(phase: SalePhase, ruta: OperationWorkflow["ruta"]) {
+  return (PHASE_ITEMS[phase] ?? []).filter(item => !(item.venta && ruta === "arrendador"));
+}
 export type StageItem =
   | { kind: "documento"; formato: string; status: FormatStatus; optional?: true }
   | { kind: "checklist"; status: InitialInterviewStatus["documentos"] }
@@ -144,7 +143,7 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
   const flow = flowOf(op), { phase } = routeStages(op, today);
   const items: StageItem[] = [];
   if (isOwnerRoute(flow.ruta) && phase) {
-    for (const item of PHASE_ITEMS[phase] ?? []) items.push({ kind: "documento", formato: item.formato, status: status(item.formato), ...(item.optional ? { optional: true as const } : {}) });
+    for (const item of stageDocuments(phase, flow.ruta)) items.push({ kind: "documento", formato: item.formato, status: status(item.formato), ...(item.optional ? { optional: true as const } : {}) });
     if (phase === "documentos") items.push({ kind: "checklist", status: op.inicial?.documentos });
     if (phase === "captacion" && status("02") === "terminado") items.push({ kind: "inicio", step: "levantamiento" });
     if (phase === "levantamiento" && status("04") === "terminado") items.push({ kind: "inicio", step: "checklist" });

@@ -1,5 +1,6 @@
 "use client";
 
+import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import * as React from "react";
 import { ChevronDown } from "@/components/admin/icons";
 import { Field, inputClass, selectClass, textareaClass } from "./ui";
@@ -69,7 +70,7 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
   const number = (name: typeof numericFields[number], label: string, max: number, step = "0.01") => (
     <Field label={label} htmlFor={id(name)}>{MONEY_FIELDS.includes(name) ? <MoneyInput id={id(name)} name={`perfil.${name}`} defaultValue={perfil[name]} /> : <input id={id(name)} name={`perfil.${name}`} type="number" min="0" max={max} step={step} inputMode={step === "1" ? "numeric" : "decimal"} defaultValue={perfil[name] ?? ""} className={inputClass} />}</Field>
   );
-  const types = { terreno: "Terreno", casa: "Casa", departamento: "Departamento", local: "Local", oficina: "Oficina", bodega: "Bodega", "nave-industrial": "Nave industrial", otro: "Otro" };
+  const types: Record<string, string> = TIPO_INMUEBLE_LABELS;
   return <div className="flex min-w-0 flex-col gap-4" onInvalidCapture={event => {
     const input = event.target as HTMLElement;
     const section = input.closest("details");

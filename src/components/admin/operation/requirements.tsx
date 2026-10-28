@@ -5,7 +5,7 @@ import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/component
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
-import { reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirementDetail, reviewState } from "@/lib/admin/operation-view";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { cn } from "@/lib/utils";
@@ -56,18 +56,19 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
     if (st === "revisado" || st === "observado" || st === "no_aplica") onSheet({ key: requirement, kind: st });
     else onQuick(requirement, st);
   }
+  const originKey = requirementPhase(requirement), origin = originKey ? SALE_PROCESS.find(p => p.key === originKey)?.label : undefined;
   return <li id={`req-${requirement}`} tabIndex={-1} className={s.item}>
     <div className={s.itemMain}>
       <StateIcon state={expired ? "observado" : state} done={done} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="flex flex-wrap items-center gap-2"><span className="font-semibold">{name}</span>{earlier && <span className={s.tag}>De una etapa anterior</span>}</p>
+        <p className="flex flex-wrap items-center gap-2"><span className="font-semibold">{name}</span>{earlier && <span className={s.tag}>{origin ? `De la etapa ${origin}` : "Pendiente de antes"}</span>}</p>
         {detail && <p className={cn("text-sm [overflow-wrap:anywhere]", problem || expired ? "font-semibold text-[var(--warning)]" : "text-muted-foreground")}>{detail}</p>}
       </div>
       <div className={s.itemActions}>
         {problem ? <>
           <Button variant="ghost" disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "observado" })}>Escribir qué pasó</Button>
           <Button disabled={disabled} onClick={() => onQuick(requirement, "recibido")}>Ya se resolvió</Button>
-        </> : !done && <Button disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "revisado" })}>Marcar revisado</Button>}
+        </> : !done && <Button disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "revisado" })}>Confirmar</Button>}
         <Button variant="ghost" iconOnly aria-label={`Más estados de ${name}`} aria-expanded={more} disabled={disabled} onClick={() => setMore(open => !open)}><MoreHorizontal size={18} aria-hidden="true" /></Button>
       </div>
     </div>
@@ -87,7 +88,13 @@ export function StateIcon({ state, done }: { state: ReviewStateKey | "borrador";
   return <Circle size={20} aria-label="Pendiente" className={s.iconIdle} />;
 }
 
-/** Los paneles «Marcar revisado», «Hay un problema» y «No aplica». */
+/** El documento de la operación que respalda un punto: el de su formato (cualquier 04 para el levantamiento). */
+function ownDocument(requirement: RequirementKey, documents: Evidence["documents"]) {
+  const formato = String(WORKFLOW_REQUIREMENTS[requirement].formato);
+  return documents.find(d => d.formato_id === formato || (/^04[A-G]$/.test(formato) && /^04[A-G]$/.test(d.formato_id)));
+}
+
+/** Los paneles «Confirmar», «Hay un problema» y «No aplica». */
 export function RequirementSheets({ sheet, flow, today, evidence, onClose, onChange, onAddDocument }: {
   sheet: OpenSheet; flow: OperationWorkflow; today: string; evidence: Evidence; onClose: () => void; onChange: Change; onAddDocument: () => void;
 }) {
@@ -112,7 +119,9 @@ function useSheetSave(onSave: (review: Review) => Promise<void>) {
 export function ReviewSheet({ requirement, review, today, evidence, onClose, onSave, onAddDocument }: { requirement: RequirementKey; review?: Review; today: string; evidence: Evidence; onClose: () => void; onSave: (review: Review) => Promise<void>; onAddDocument: () => void }) {
   const advisers = useCollection(db.asesores);
   const previous = review?.evidencia;
-  const [source, setSource] = React.useState<string>(() => previous?.tipo === "externa" ? "externa" : previous?.tipo === "entrevista" ? "entrevista" : previous && ["documento", "emision", "adjunto"].includes(previous.tipo) ? `doc:${evidence.documents.find(d => d.id === previous.referencia)?.id ?? ""}` : evidence.documents[0] ? `doc:${evidence.documents[0].id}` : "externa");
+  // Ya viene elegido el documento que respalda este punto (el 02 para la entrevista, el 04 para el levantamiento…).
+  const own = ownDocument(requirement, evidence.documents);
+  const [source, setSource] = React.useState<string>(() => previous?.tipo === "externa" ? "externa" : previous?.tipo === "entrevista" ? "entrevista" : previous && ["documento", "emision", "adjunto"].includes(previous.tipo) ? `doc:${evidence.documents.find(d => d.id === previous.referencia)?.id ?? ""}` : own ? `doc:${own.id}` : evidence.documents[0] ? `doc:${evidence.documents[0].id}` : "externa");
   const [who, setWho] = React.useState(previous?.responsable ?? evidence.reviewer);
   const [date, setDate] = React.useState(previous?.fecha ?? today);
   const [until, setUntil] = React.useState(review?.vigenteHasta ?? "");
@@ -156,10 +165,17 @@ export function ReviewSheet({ requirement, review, today, evidence, onClose, onS
     return reviewComplete({ version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: { [requirement]: next } }, requirement, today) ? next : "Faltan datos del respaldo. Revisa el documento elegido y vuelve a intentar.";
   }
   const name = requirementName(requirement);
-  return <Sheet open onClose={onClose} eyebrow="Marcar revisado" title={name} description="Queda registrado quién lo revisó, cuándo y con qué." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="Confirmar" title={name} description="El documento, quién lo revisó y la fecha ya vienen llenos. Escribe qué encontraste y confirma; queda registrado." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
-    <Button variant="primary" disabled={busy} onClick={() => void run(build())}>{busy ? "Guardando…" : "Guardar como revisado"}</Button>
+    <Button variant="primary" disabled={busy} onClick={() => void run(build())}>{busy ? "Guardando…" : "Confirmar"}</Button>
   </>}>
+    <div>
+      <label className="text-sm font-semibold">Qué encontraste<textarea className={textareaClass} rows={3} maxLength={1000} value={found} aria-describedby="encontraste-ayuda" onChange={e => setFound(e.target.value)} /></label>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Button disabled={busy} onClick={() => setFound("Todo coincide con lo que dijo el propietario y con el documento.")}>Todo coincide</Button>
+        <p id="encontraste-ayuda" className="text-sm text-muted-foreground">O escríbelo como se lo contarías al propietario.</p>
+      </div>
+    </div>
     <fieldset className="flex flex-col gap-2.5" disabled={busy}>
       <legend className="mb-2 text-sm font-semibold">¿Con qué lo comprobaste?</legend>
       {evidence.documents.map(d => <label key={d.id} className={s.option}><input type="radio" name="respaldo" checked={source === `doc:${d.id}`} onChange={() => setSource(`doc:${d.id}`)} /><span className="flex min-w-0 flex-col"><strong className="[overflow-wrap:anywhere]">{formatoById(d.formato_id).title}</strong><small className={s.mono}>Versión {d.version}{d.updated_at ? ` · Actualizado el ${shortDate(d.updated_at)}` : ""}</small></span></label>)}
@@ -174,7 +190,6 @@ export function ReviewSheet({ requirement, review, today, evidence, onClose, onS
       {hasValidity(requirement) && <label className="text-sm font-semibold">Vigente hasta<input type="date" className={inputClass} value={until} onChange={e => setUntil(e.target.value)} /></label>}
     </div>
     {hasValidity(requirement) && <p className="-mt-3 text-sm text-muted-foreground">Una semana antes de que venza aparece en Hoy, en «Próximos 7 días».</p>}
-    <div><label className="text-sm font-semibold">Qué encontraste<textarea className={textareaClass} rows={3} maxLength={1000} value={found} aria-describedby="encontraste-ayuda" onChange={e => setFound(e.target.value)} /></label><p id="encontraste-ayuda" className="mt-1 text-sm text-muted-foreground">Escríbelo como se lo contarías al propietario.</p></div>
     <details className={s.more}><summary>Más detalles</summary><div className="mt-3 flex flex-col gap-4">
       {document && <label className="text-sm font-semibold">Usar el PDF generado o un archivo de este documento<select className={selectClass} value={kept} onChange={e => setKept(e.target.value)}><option value="">El documento en su versión {document.version}</option>{(sources?.emisiones ?? []).map(e => <option key={e.id} value={`emision:${e.id}`}>PDF generado · versión {e.draft_version}</option>)}{(sources?.adjuntos ?? []).map(a => <option key={a.id} value={`adjunto:${a.id}`}>Archivo · {a.caption}</option>)}</select></label>}
       <label className="text-sm font-semibold">Límites o condiciones<textarea className={textareaClass} rows={2} maxLength={1000} value={limits} onChange={e => setLimits(e.target.value)} /></label>

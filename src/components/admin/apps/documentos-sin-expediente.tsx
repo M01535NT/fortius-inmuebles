@@ -231,7 +231,7 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
         <Button disabled={!!busy || !dirty} onClick={() => void task("Guardando…", async () => { await persist(); setNotice("Guardado"); })}>{busy === "Guardando…" ? busy : "Guardar"}</Button>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === `Preparando ${copia}…` ? busy : `Descargar ${copia}`}</Button>
+        {copia && <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === `Preparando ${copia}…` ? busy : `Descargar ${copia}`}</Button>}
         {/* La opinión de valor se descarga en PDF desde cualquier sección, aunque falten datos. */}
         {!last && definition.id === "07" && <Button variant="ghost" disabled={!!busy} onClick={pdf}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Descargar PDF"}</Button>}
         {last ? <Button variant="primary" disabled={!!busy || missing.length > 0 || !definition.readyForEmission} onClick={pdf}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Terminar y descargar PDF"}</Button>

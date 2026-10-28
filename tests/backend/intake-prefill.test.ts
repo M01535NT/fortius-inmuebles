@@ -37,3 +37,26 @@ describe("COR-02 · tipo de inmueble al 07", () => {
     expect(prefillFormato("07", context({ tipoInmueble: "por_definir" })).tipoInmueble).toBeUndefined();
   });
 });
+
+describe("Levantamiento · datos que el sistema ya sabe", () => {
+  it("el levantamiento nace con la fecha de hoy y el asesor como quien lo elabora; los demás formatos no", () => {
+    const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const conAsesor = { ...context({}), asesor: { nombre: "Asesor de ensayo" }, inmueble: { codigo: "FORTIUS-000004", slug: "casa-ensayo" } } as Parameters<typeof prefillFormato>[1];
+    const casa = prefillFormato("04B", conAsesor);
+    expect(casa).toMatchObject({ fechaVisita: hoy, elaboro: "Asesor de ensayo", asesor: "Asesor de ensayo", idInmueble: "FORTIUS-000004", folio: "EXP-ENSAYO" });
+    expect(prefillFormato("13", conAsesor)).not.toHaveProperty("elaboro");
+  });
+});
+
+describe("aviso de privacidad (01)", () => {
+  it("un aviso nuevo llega con los datos del responsable del aviso publicado y la fecha de hoy, sin decisiones", async () => {
+    const { SITE_TERMS } = await import("@/data/site-terms");
+    const { privacyAddress } = await import("@/data/privacy-notice");
+    const aviso = prefillFormato("01", context({}));
+    expect(aviso).toMatchObject({ responsable: SITE_TERMS.responsible, domicilioResponsable: privacyAddress, contactoPrivacidad: SITE_TERMS.responsible, correoPrivacidad: SITE_TERMS.email, titular: "Persona de ensayo", folio: "EXP-ENSAYO" });
+    expect(aviso.fechaEmision).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // Nunca se proponen consentimientos ni firmas.
+    for (const key of ["consentimientoPatrimonial", "consentimientoPublicidad", "transferenciaAsesor", "acuseEstado"]) expect(aviso).not.toHaveProperty(key);
+    expect(prefillFormato("02", context({}))).not.toHaveProperty("responsable");
+  });
+});

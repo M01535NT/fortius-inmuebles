@@ -68,7 +68,11 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   // Lo que contestó el propietario: la entrevista inicial (02) y, si todavía no hay, el primer contacto.
   const answers = (latest("02")?.data ?? interviewAnswers) as Record<string, unknown>;
   const pdfOf = React.useCallback((doc?: Documento) => pdfFor(doc, emissions), [emissions]);
-  /** Terminado: tiene PDF de su última versión; el contrato (09) todavía no genera PDF y cuenta con existir. */
+  /**
+    Terminado: tiene PDF de su última versión; el contrato (09) todavía no genera PDF y cuenta con existir.
+    Un PDF con datos faltantes también deja avanzar (RP-82: ningún dato faltante detiene el flujo);
+    la lista de etapas lo señala como «PDF incompleto».
+  */
   const status = React.useCallback((formato: string): FormatStatus => {
     const doc = latest(formato);
     if (!doc) return undefined;

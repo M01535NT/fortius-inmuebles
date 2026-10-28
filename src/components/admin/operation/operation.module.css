@@ -35,8 +35,7 @@
 :global(.admin-root) .heroTitle { margin: 0; font-size: clamp(1.625rem, 2.8vw, 2.375rem); line-height: 1.05; font-weight: 620; letter-spacing: -.025em; color: #fff; overflow-wrap: anywhere; text-wrap: balance; }
 :global(.admin-root) .heroFacts { margin: .5rem 0 0; font-size: .9375rem; color: rgba(255, 255, 255, .86); overflow-wrap: anywhere; }
 :global(.admin-root) .phases { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .3125rem; list-style: none; border-radius: var(--radius-card); background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2); }
-:global(.admin-root) .phases li { padding: .375rem .75rem; border-radius: var(--radius-control); font-size: .8125rem; font-weight: 540; color: rgba(255, 255, 255, .8); white-space: nowrap; }
-:global(.admin-root) .phases li[aria-current=step] { background: #fff; color: #061f3f; font-weight: 600; }
+:global(.admin-root) .phases span { display: block; padding: .375rem .75rem; border-radius: var(--radius-control); background: #fff; color: #061f3f; font-size: .875rem; font-weight: 600; }
 
 /* Cuerpo: etapas y secciones a la izquierda, el contenido al centro. */
 :global(.admin-root) .body { display: grid; gap: 1rem; align-items: start; }

@@ -4,6 +4,8 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { formatoById } from "@/lib/formatos/catalog";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 vi.mock("@/lib/admin/store", async importOriginal => {
   const actual=await importOriginal<typeof import("@/lib/admin/store")>();
   const clientes = {}, propiedades = {};
@@ -17,14 +19,25 @@ function Docs() {
   const docs = useOperationDocuments({ op: exp as unknown as OperationRecord, interviewAnswers: {}, cliente: "Cliente del expediente QA" });
   return <><DocumentsTab op={exp as unknown as OperationRecord} docs={docs} />{docs.capture({ cliente: "Cliente del expediente QA" })}</>;
 }
-/** Abre el aviso en su ventana: su editor reúne todo el formulario en una sola pantalla. */
+/** Letras y membrete reales: la vista en vivo dibuja el aviso con el mismo escritor del PDF. */
+function asset(url: string) {
+  return /^\/(fonts|brand)\//.test(url) ? new Response(readFileSync(join(process.cwd(), "public", url))) : null;
+}
+/** Pulsa «Titular y operación» sobre el documento: se abren sus campos a un lado. */
+async function openTitular(capture: HTMLElement) {
+  fireEvent.click(await within(capture).findByRole("button", { name: /^Titular y operación/ }, { timeout: 8000 }));
+  await screen.findByLabelText("Nombre del titular");
+}
+/** Abre el aviso en su ventana; se captura sobre el documento (EXT-12, 28/10/2026). */
 async function openNotice() {
   fireEvent.click(await screen.findByRole("button", { name: "Abrir" }));
   const capture = await screen.findByRole("dialog", { name: "Aviso de privacidad" });
-  await screen.findByLabelText("Nombre del titular");
+  await openTitular(capture);
   return capture;
 }
 
+// jsdom no desplaza elementos; la vista en vivo lleva la celda pulsada a la vista.
+Element.prototype.scrollIntoView ??= () => undefined;
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 const values = {
   fechaEmision: "2026-10-04", responsable: "Persona responsable QA", domicilioResponsable: "Calle Prueba 123, Centro, Tijuana, Baja California",
@@ -66,6 +79,7 @@ it("genera la plantilla actual cuando sólo hay un PDF archivado con el diseño 
   vi.stubGlobal("URL", class extends URL { static createObjectURL = () => "blob:qa-pdf"; static revokeObjectURL = vi.fn(); });
   vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) { clicked.push(this.download); });
   vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+    const file = asset(url); if (file) return file;
     if (url === "/api/admin/expedientes") return Response.json({ expedientes: [exp] });
     if (url.endsWith("/formatos")) return Response.json({ documentos: [draft] });
     if (url.endsWith("/firmado")) return Response.json({ copias: [] });
@@ -83,7 +97,7 @@ it("genera la plantilla actual cuando sólo hay un PDF archivado con el diseño 
   expect(screen.queryByRole("link", { name: "Descargar el PDF de esta versión" })).toBeNull();
   fireEvent.click(within(capture).getByRole("tab", { name: /PDF y copias firmadas/ }));
   expect((await screen.findByRole("link", { name: /^Descargar ·/ })).getAttribute("href")).toContain("pdf-old");
-  fireEvent.click(within(capture).getByRole("tab", { name: /Captura/ }));
+  fireEvent.click(within(capture).getByRole("tab", { name: /Documento/ }));
   fireEvent.click(screen.getByRole("button", { name: "Generar PDF" }));
   await waitFor(() => expect(clicked).toHaveLength(1));
   expect(emitted).toBe(1);
@@ -94,6 +108,7 @@ const draft = { id: "draft-qa", expediente_id: exp.id, formato_id: "01", data: v
 it("recupera el cliente y la operación al crear un aviso, sin presumir autorizaciones ni firma", async () => {
   let initial: Record<string, unknown> = {};
   vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+    const file = asset(url); if (file) return file;
     if (url === "/api/admin/expedientes") return Response.json({ expedientes: [exp] });
     if (init?.method === "POST") {
       initial = JSON.parse(String(init.body)).data;
@@ -104,8 +119,7 @@ it("recupera el cliente y la operación al crear un aviso, sin presumir autoriza
   render(<Docs />);
   fireEvent.change(screen.getByRole("combobox", { name: "Formato" }), { target: { value: "01" } });
   fireEvent.click(screen.getByRole("button", { name: "Crear y abrir" }));
-  await screen.findByRole("dialog", { name: "Aviso de privacidad" });
-  await screen.findByLabelText("Nombre del titular");
+  await openTitular(await screen.findByRole("dialog", { name: "Aviso de privacidad" }));
   expect((screen.getByLabelText("Nombre del titular") as HTMLInputElement).value).toBe("Cliente del expediente QA");
   expect(initial).not.toHaveProperty("titular");
   expect(initial).toMatchObject({ consentimientoPatrimonial: "pendiente", consentimientoPublicidad: "pendiente", transferenciaAsesor: "pendiente", transferenciaFinanciera: "pendiente", transferenciaOperacion: "pendiente", acuseEstado: "pendiente" });
@@ -118,6 +132,7 @@ async function setup(failure?: "save" | "emit" | "download") {
   vi.stubGlobal("URL", class extends URL { static createObjectURL = () => "blob:qa-pdf"; static revokeObjectURL = vi.fn(); });
   vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) { clicked.push(this.download); });
   vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+    const file = asset(url); if (file) return file;
     if (url === "/api/admin/expedientes") return Response.json({ expedientes: [exp] });
     if (url.endsWith("/formatos")) return Response.json({ documentos: [draft] });
     if (init?.method === "PUT") {
@@ -139,7 +154,14 @@ async function setup(failure?: "save" | "emit" | "download") {
   render(<Docs />);
   await openNotice();
   fireEvent.change(screen.getByLabelText("Nombre del titular"), { target: { value: "Titular actualizado QA" } });
-  fireEvent.click(screen.getByRole("button", { name: "Generar PDF" }));
+  // «Aceptar» integra el dato y lo guarda con la versión; después se genera el PDF de esa versión.
+  fireEvent.click(screen.getByRole("button", { name: "Aceptar" }));
+  if (failure === "save") await screen.findAllByRole("alert");
+  else {
+    await waitFor(() => expect(steps).toEqual(["save"]));
+    await waitFor(() => expect(screen.queryByLabelText("Nombre del titular")).toBeNull());
+    fireEvent.click(screen.getByRole("button", { name: "Generar PDF" }));
+  }
   return { steps, clicked };
 }
 
@@ -153,8 +175,10 @@ it("guarda la captura actual, emite esa versión y descarga el PDF con un botón
 
 it.each(["save", "emit", "download"] as const)("conserva los datos si falla %s y ofrece el PDF archivado cuando existe", async failure => {
   const result = await setup(failure);
-  await screen.findByRole("alert");
-  expect((screen.getByLabelText("Nombre del titular") as HTMLInputElement).value).toBe("Titular actualizado QA");
+  await screen.findAllByRole("alert");
+  // Si falla el guardado, la captura sigue abierta con lo escrito; si falla el PDF, el dato ya quedó en el documento.
+  if (failure === "save") expect((screen.getByLabelText("Nombre del titular") as HTMLInputElement).value).toBe("Titular actualizado QA");
+  else expect(screen.queryByLabelText("Nombre del titular")).toBeNull();
   expect(result.clicked).toEqual([]);
   expect(result.steps).toEqual(failure === "save" ? ["save"] : failure === "emit" ? ["save", "emit"] : ["save", "emit", "download"]);
   expect(Boolean(screen.queryByRole("link", { name: "Descargar el PDF de esta versión" }))).toBe(failure === "download");

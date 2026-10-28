@@ -23,7 +23,7 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   valor: "Opinión de valor",
   precio: "Precio de salida acordado",
   intermediacion: "Contrato de servicio firmado",
-  levantamiento: "Fotos, medidas y datos revisados",
+  levantamiento: "Datos del levantamiento confirmados",
   plan: "Plan de publicación aprobado",
   publicacion: "Permiso para publicar",
   comprador: "Comprador con capacidad de pago",

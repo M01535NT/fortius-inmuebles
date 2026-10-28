@@ -1,3 +1,4 @@
+import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import { answerLabel, interviewFields, interviewIssues, isOwnerIntent, type IntakeIntent, type InterviewAnswers } from "@/lib/intake/interview";
 
 /*
@@ -110,7 +111,7 @@ export function dontKnowValue(intent: IntakeIntent, field: Field): string | null
   if (field.type === "date" || field.type === "number" || field.section === "Siguiente paso") return null;
   return DONT_KNOW;
 }
-const LABELS: Record<string, string> = { por_aclarar: DONT_KNOW, por_definir: DONT_KNOW, conocido: "Ya tiene una cifra", "nave-industrial": "Nave industrial", presentado: "Ya se lo presenté", pendiente: "Todavía no" };
+const LABELS: Record<string, string> = { por_aclarar: DONT_KNOW, por_definir: DONT_KNOW, conocido: "Ya tiene una cifra", ...TIPO_INMUEBLE_LABELS, presentado: "Ya se lo presenté", pendiente: "Todavía no" };
 export function optionLabel(field: Field, value: string) {
   if (field.key === "privacidad") return LABELS[value];
   return LABELS[value] ?? answerLabel(value);

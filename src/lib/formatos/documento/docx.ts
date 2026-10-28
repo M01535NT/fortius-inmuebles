@@ -2,7 +2,7 @@ import {
   AlignmentType, BorderStyle, Document, PageBreak, ImageRun, Packer, LineRuleType,
   Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType,
 } from "docx";
-import { COLORS, type Block, type Documento } from "./modelo";
+import { COLORS, marcasTexto, type Block, type Documento, type FormCell } from "./modelo";
 import { fortiusDocxSection } from "@/lib/docx-letterhead";
 import type { LetterheadAssets } from "@/lib/letterhead";
 
@@ -40,7 +40,7 @@ function table(widths: number[], header: string[] | undefined, rows: string[][],
 }
 
 const rule = { style: BorderStyle.SINGLE, size: 4, color: COLORS.rule };
-function form(label: string | undefined, rows: Array<Array<{ q: string; a: string; w: number }>>, filled = false): Array<Paragraph | Table> {
+function form(label: string | undefined, rows: Array<Array<FormCell>>, filled = false): Array<Paragraph | Table> {
   const white = { style: BorderStyle.SINGLE, size: 24, color: COLORS.white };
   // Cuadrícula común de 60 columnas: cada renglón reparte sus celdas en proporción a w.
   const unit = TWIP_WIDTH / 60;
@@ -52,9 +52,10 @@ function form(label: string | undefined, rows: Array<Array<{ q: string; a: strin
       let left = 60;
       return new TableRow({ cantSplit: true, height: { value: 600, rule: "atLeast" }, children: row.map((c, i) => {
         const span = i === row.length - 1 ? left : Math.round(c.w / total * 60); left -= span;
+        const answer = c.marks ? marcasTexto(c.marks) : c.a;
         return new TableCell({ columnSpan: span, width: { size: Math.round(span * unit), type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 80, right: 80 }, ...(filled ? { shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.cell } } : {}), children: [
           new Paragraph({ keepNext: rows.length<=3 && rowIndex<rows.length-1, spacing: { after: 40 }, children: run(c.q, { size: filled ? 8 : 9, bold: !filled }) }),
-          ...(c.a ? [new Paragraph({ keepNext: rows.length<=3 && rowIndex<rows.length-1, children: run(c.a, { size: 10 }) })] : []),
+          ...(answer ? [new Paragraph({ keepNext: rows.length<=3 && rowIndex<rows.length-1, children: run(answer, { size: 10 }) })] : []),
         ] });
       }) });
     }),
@@ -62,17 +63,17 @@ function form(label: string | undefined, rows: Array<Array<{ q: string; a: strin
   return [...(label ? [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(label, { size: 10, bold: true }) })] : []), ...(rows.length ? [table] : [])];
 }
 
-function grid(widths: number[], header: string[], rows: string[][]) {
+function grid(widths: number[], header: string[], rows: string[][], labels = false, minRow = 0) {
   const total = widths.reduce((s, w) => s + w, 0), cols = widths.map(w => Math.round(w / total * TWIP_WIDTH));
-  const cell = (text: string, i: number, head: boolean) => new TableCell({
+  const cell = (text: string, i: number, head: boolean, strong = head) => new TableCell({
     width: { size: cols[i], type: WidthType.DXA }, margins: { top: 40, bottom: 40, left: 80, right: 80 },
     ...(head ? { shading: { type: ShadingType.CLEAR, color: "auto", fill: COLORS.head } } : {}),
-    children: [new Paragraph({ children: run(text, { size: 9, bold: head }) })],
+    children: [new Paragraph({ children: run(text, { size: 9, bold: strong }) })],
   });
   return new Table({
     width: { size: TWIP_WIDTH, type: WidthType.DXA }, columnWidths: cols, layout: TableLayoutType.FIXED,
     borders: { top: rule, bottom: rule, left: rule, right: rule, insideHorizontal: rule, insideVertical: rule },
-    rows: [new TableRow({ tableHeader: true, children: header.map((h, i) => cell(h, i, true)) }), ...rows.map(row => new TableRow({ cantSplit: true, height: { value: 360, rule: "atLeast" }, children: row.map((c, i) => cell(c, i, false)) }))],
+    rows: [new TableRow({ tableHeader: true, children: header.map((h, i) => cell(h, i, true)) }), ...rows.map(row => new TableRow({ cantSplit: true, height: { value: Math.max(360, minRow * 20), rule: "atLeast" }, children: row.map((c, i) => cell(c, i, false, labels && i === 0)) }))],
   });
 }
 function image(label: string, img: import("./imagen").ImagenDocumento | undefined, height: number) {
@@ -114,14 +115,17 @@ function block(b: Block, keepNext = false): Array<Paragraph | Table> {
     case "h3": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(b.text, { size: 13 }) })];
     case "sheet": return [sheet(b.rows)];
     case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
-    case "grid": return [grid(b.widths, b.header, b.rows), new Paragraph({ spacing: { after: COMPACT ? 40 : 60, ...(COMPACT?{line:20,lineRule:LineRuleType.EXACT}:{}) }, children: [] })];
+    case "grid": return [grid(b.widths, b.header, b.rows, !!b.labels, b.minRow ?? 0), new Paragraph({ spacing: { after: COMPACT ? 40 : 60, ...(COMPACT?{line:20,lineRule:LineRuleType.EXACT}:{}) }, children: [] })];
     case "pagebreak": return [new Paragraph({ children: [new PageBreak()] })];
     case "title": return [new Paragraph({ keepNext: true, spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.size ?? (b.bold ? 22 : 27), bold: !!b.bold, heading: true }) })];
     case "form": return form(b.label, b.rows, !!b.filled);
-    case "checks": return [
-      new Paragraph({ keepNext: true, spacing: { before: 80, after: 40 }, children: run(b.q, { size: 9.5 }) }),
-      new Paragraph({ spacing: { after: 100 }, children: b.options.flatMap(o => run(`${o.value === b.selected ? "☒" : "☐"} ${o.label}     `, { size: 9.5, bold: o.value === b.selected })) }),
-    ];
+    case "checks": {
+      const on = (value: string) => Array.isArray(b.selected) ? b.selected.includes(value) : value === b.selected;
+      return [
+        new Paragraph({ keepNext: true, spacing: { before: 80, after: 40 }, children: run(b.q, { size: 9.5 }) }),
+        new Paragraph({ spacing: { after: 100 }, children: b.options.flatMap(o => run(`${on(o.value) ? "☒" : "☐"} ${o.label}     `, { size: 9.5, bold: on(o.value) })) }),
+      ];
+    }
     case "subtitle": return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 200, after: 40 }, children: run(b.text, { size: 12, bold: true }) })];
     case "note": return [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 60, after: 80 }, children: run(b.text, { size: 8.5 }) })];
     case "h1": return [new Paragraph({ keepNext: true, spacing: { before: 240, after: 120 }, children: run(b.text, { size: 21 }) })];
@@ -147,9 +151,9 @@ export function documentoDocx(doc: Documento, assets: DocumentoDocxAssets): Docu
   FONT = contrato || aviso ? "Times New Roman" : "Archivo"; HFONT = contrato ? FONT : "Archivo";
   INK = contrato || opinion ? COLORS.black : COLORS.navy; BODY = contrato || opinion || aviso ? 10.5 : 11;
   COMPACT = doc.subject?.startsWith('Formato 18 ·') ?? false;
-  // El 05 fluye con sus títulos: los saltos sugeridos de la plantilla no deben
-  // dejar una sola fila en una hoja al aumentar el área reservada del membrete.
-  const blocks = doc.subject?.startsWith('Formato 05 ·') ? doc.blocks.filter(b=>b.kind!=='pagebreak'||b.force) : doc.blocks;
+  // Estilo 04A (titular, 27/10/2026): el texto fluye con sus títulos; los saltos sugeridos
+  // de la plantilla no se fuerzan en Word para no dejar hojas a medias.
+  const blocks = doc.blocks.filter(b=>b.kind!=='pagebreak'||b.force);
   const fonts = !contrato && assets.regular ? [{ name: FONT, data: assets.regular as unknown as Buffer }] : undefined;
   return new Document({
     creator: "Fortius Inmuebles", title: doc.title, subject: doc.subject, ...(fonts ? { fonts } : {}),

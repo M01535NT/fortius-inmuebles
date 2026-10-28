@@ -15,7 +15,8 @@ import { intermediacionFields, mostrarCampoIntermediacion, validarIntermediacion
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows" | "intermediacionRows";
+  /** «multi»: varias opciones a la vez (casillas); se guarda como lista de valores. */
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "multi" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows" | "intermediacionRows";
   required: boolean;
   section?: string;
   options?: readonly { value: string; label: string }[];
@@ -72,6 +73,9 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     { ...sectionField("Titular y operación", "representante", "Nombre del representante"), required: false },
     { ...sectionField("Titular y operación", "calidadRepresentante", "Carácter del representante (por ejemplo, apoderada)"), required: false },
     { ...sectionField("Titular y operación", "documentoRepresentante", "Documento de representación"), required: false },
+    // Espacios impresos en la hoja de decisiones de la plantilla del 26/10/2026; si quedan vacíos se llenan a mano.
+    { ...sectionField("Titular y operación", "instrumentoRepresentante", "Datos del instrumento, fecha y fedatario"), required: false },
+    { ...sectionField("Titular y operación", "facultadesRepresentante", "Facultades y vigencia comprobadas mediante"), required: false },
     { ...choice("consentimientoPatrimonial", "Datos patrimoniales y financieros", [{ value: "si", label: "Consiente expresamente" }, { value: "no", label: "No consiente" }, { value: "no_aplica", label: "No aplica en esta etapa" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
     { ...choice("consentimientoPublicidad", "Publicidad y oportunidades adicionales", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
     { ...choice("publicidadCorreo", "Publicidad por correo", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }], false), section: "Decisiones del titular" },
@@ -109,8 +113,9 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     sectionField("01 / Encargo e identificación", "claveCatastral", "Clave catastral o pendiente"),
     sectionField("01 / Encargo e identificación", "folioReal", "Folio real o antecedente"),
     sectionField("01 / Encargo e identificación", "solicitante", "Parte solicitante y calidad"),
-    sectionField("01 / Encargo e identificación", "operacion", "Operación y etapa a decidir"),
-    sectionField("01 / Encargo e identificación", "alcance", "Alcance de la revisión"),
+    // Casillas impresas en la plantilla del 26/10/2026; los valores de operación son los del expediente.
+    { ...choice("operacion", "Operación y etapa a decidir", [{ value: "Venta", label: "Venta" }, { value: "Renta", label: "Renta" }, { value: "Otra", label: "Otra" }]), section: "01 / Encargo e identificación" },
+    { ...choice("alcance", "Alcance de la revisión", [{ value: "preliminar", label: "Preliminar" }, { value: "comercializacion", label: "Comercialización" }, { value: "cierre", label: "Cierre" }]), section: "01 / Encargo e identificación" },
     sectionField("02 / Personas y facultades", "personas", "Personas y facultades", "juridicaRows"),
     sectionField("02 / Personas y facultades", "estadoCivilAdquisicion", "Estado civil al adquirir y fecha"),
     sectionField("02 / Personas y facultades", "estadoCivilActual", "Estado civil actual y cambios acreditados"),
@@ -496,6 +501,16 @@ export function formatoById(id: string): FormatoDefinition {
   return formato;
 }
 
+/**
+  PDF con datos faltantes (titular, 27/10/2026): se descarga avisando y pidiendo confirmación, y
+  sale marcado como incompleto. No aplica al aviso de privacidad (01), documento legal cotejado,
+  ni a la promesa (15), que exige su revisión jurídica; el PDF del 09 sigue bloqueado aparte.
+*/
+const SIN_INCOMPLETO = new Set(["01", "15"]);
+export const emiteIncompleto = (id: string) => !SIN_INCOMPLETO.has(id);
+/** Leyenda del pie de un PDF al que le faltan datos. */
+export const avisoIncompleto = (missing: readonly string[]) => missing.length ? `Documento incompleto: ${missing.length === 1 ? "falta 1 dato" : `faltan ${missing.length} datos`}` : undefined;
+
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   // La opinión de valor se descarga aunque falten datos (decisión del titular, 17/10/2026).
   if (id === "07") return [];
@@ -519,6 +534,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     }
     if (item.type === "time") return typeof value !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(value);
     if (item.type === "choice") return typeof value !== "string" || !item.options?.some((option) => option.value === value);
+    if (item.type === "multi") return !Array.isArray(value) || value.some((entry) => typeof entry !== "string" || !item.options?.some((option) => option.value === entry));
     return typeof value !== "string";
   }).map((item) => item.label);
   if (id === "08") errors.push(...validarNeto(data));

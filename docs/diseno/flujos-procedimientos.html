@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flujos de Fortius</title>
+<style>
+  :root {
+    --navy: #061f3f; --wine: #8a1634; --cream: #f5f1eb; --ink: #061f3f; --muted: #526176;
+    --line: rgba(6, 31, 63, .16); --card: #ffffff; --bg: #f5f1eb; --warn-bg: #fbeef1; --ok: #0f6b4e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --ink: #f5f1eb; --muted: #b8c2d0; --line: rgba(245, 241, 235, .18); --card: #0b2a52; --bg: #061f3f; --warn-bg: #3a1424; --wine: #f0a3b6; --navy: #f5f1eb; --ok: #7fd1b0; }
+  }
+  :root[data-theme="dark"] { --ink: #f5f1eb; --muted: #b8c2d0; --line: rgba(245, 241, 235, .18); --card: #0b2a52; --bg: #061f3f; --warn-bg: #3a1424; --wine: #f0a3b6; --navy: #f5f1eb; --ok: #7fd1b0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Archivo, "Segoe UI", system-ui, sans-serif; line-height: 1.45; }
+  main { max-width: 1240px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin: 0 0 6px; letter-spacing: -.02em; }
+  h2 { font-size: 1.375rem; margin: 48px 0 6px; letter-spacing: -.01em; }
+  h3 { font-size: 1.0625rem; margin: 0; }
+  p.lead { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
+  .note { color: var(--muted); font-size: .875rem; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; font-size: .875rem; margin: 12px 0 8px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); font-size: .8125rem; font-weight: 600; white-space: nowrap; }
+  .chip.doc { background: var(--navy); color: var(--bg); border-color: transparent; }
+  .chip.opt { background: transparent; }
+  .chip.check { border-color: var(--ok); color: var(--ok); }
+  .flag { color: var(--wine); font-weight: 700; }
+
+  /* Entrada: de la primera llamada a la ruta */
+  .entry { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 12px; }
+  .entry div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .entry b { display: block; margin-bottom: 4px; }
+
+  /* Carril de una ruta: las etapas en orden, con flechas */
+  .lane { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin-top: 16px; }
+  .lane header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 14px; }
+  .lane header .who { color: var(--muted); font-size: .9375rem; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 22px 22px; counter-reset: paso; }
+  .step { position: relative; border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 10px; background: var(--bg); }
+  .step::after { content: "→"; position: absolute; right: -18px; top: 14px; color: var(--muted); font-weight: 700; }
+  .step:last-child::after { content: ""; }
+  .step .n { font-size: .75rem; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+  .step h4 { margin: 2px 0 8px; font-size: 1rem; }
+  .step dl { margin: 0; display: grid; gap: 6px; font-size: .8125rem; }
+  .step dt { color: var(--muted); font-weight: 600; }
+  .step dd { margin: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+  .step.warn { border-color: var(--wine); background: var(--warn-bg); }
+  .step.new { box-shadow: inset 0 0 0 2px var(--ok); }
+  .lane .issues { margin: 14px 0 0; padding-left: 20px; font-size: .875rem; }
+  .lane .issues li { margin: 4px 0; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: .875rem; margin-top: 12px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { background: var(--navy); color: var(--bg); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  .scroll { overflow-x: auto; }
+  ol.recs { padding-left: 22px; }
+  ol.recs li { margin: 8px 0; }
+  .tag { display: inline-block; font-size: .75rem; font-weight: 700; padding: 0 6px; border-radius: 6px; border: 1px solid currentColor; margin-left: 6px; }
+  @media (max-width: 640px) { .step::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -20px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Flujos de los procedimientos</h1>
+  <p class="lead">Vista general de cómo avanza una operación en el panel según el tipo de cliente y el tipo de inmueble. Refleja el código de la rama <code>feat/levantamiento-04b-en-vivo</code> al 27/10/2026, incluidos los cambios de hoy. Lo que la revisión encontró por corregir aparece en vino.</p>
+  <div class="legend">
+    <span><span class="chip doc">02</span> documento de la etapa (se llena en vivo y se descarga en PDF)</span>
+    <span><span class="chip opt">13</span> documento que se ofrece, no detiene</span>
+    <span><span class="chip check">✓ Entrevista</span> punto que se confirma («Antes de seguir, confirma»)</span>
+    <span><span class="flag">⚠</span> problema encontrado en la revisión</span>
+  </div>
+
+  <h2>1. Cómo entra cada cliente</h2>
+  <p class="lead">Todo empieza en <b>Nueva operación</b>: qué quiere hacer el cliente, quién es y sus datos. Según la respuesta, la operación sigue una de estas rutas.</p>
+  <div class="entry">
+    <div><b>Quiere vender</b>Ruta <i>Venta del propietario</i>: 10 etapas. Fortius lo representa.</div>
+    <div><b>Quiere rentar su inmueble</b>Ruta <i>Renta del propietario</i>: hoy usa las mismas 10 etapas de la venta. <span class="flag">⚠</span></div>
+    <div><b>Quiere comprar</b>Ruta <i>Compra</i>: 7 pasos. <span class="flag">⚠ Por la regla RP-93 debería ser prospecto (lead), no operación.</span></div>
+    <div><b>Busca una renta</b>Ruta <i>Búsqueda de renta</i>: 7 pasos. <span class="flag">⚠ Igual que la compra: debería ser lead.</span></div>
+    <div><b>Quiere invertir</b>Ruta <i>Inversión</i>: 7 pasos, sin documentos por etapa (congelada por RP-98).</div>
+  </div>
+
+  <h2>2. Venta del propietario: las 10 etapas</h2>
+  <section class="lane" aria-label="Venta del propietario">
+    <header><h3>Venta del propietario</h3><span class="who">Cliente: propietario · Contraparte: el comprador (lead)</span></header>
+    <div class="steps">
+      <article class="step"><div class="n">ETAPA 1</div><h4>Prospecto</h4><dl><dt>Documento</dt><dd><span class="chip doc">02 Entrevista</span></dd><dt>Termina</dt><dd>Al iniciar la entrevista</dd></dl></article>
+      <article class="step"><div class="n">ETAPA 2</div><h4>Entrevista inicial</h4><dl><dt>Documentos</dt><dd><span class="chip doc">02</span><span class="chip opt">01 Aviso</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Entrevista</span></dd><dt>Termina</dt><dd>Al iniciar el levantamiento</dd></dl></article>
+      <article class="step new"><div class="n">ETAPA 3</div><h4>Levantamiento</h4><dl><dt>Documento</dt><dd><span class="chip doc">04A–04G según el tipo</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Datos del levantamiento</span></dd><dt>Termina</dt><dd>Al crear el checklist</dd></dl></article>
+      <article class="step warn"><div class="n">ETAPA 4</div><h4>Checklist de documentos</h4><dl><dt>Documento</dt><dd>Lista D01–D20 según la entrevista</dd><dt>Termina</dt><dd>02 y 04 con PDF y <b>todos</b> los documentos recibidos <span class="flag">⚠</span></dd></dl></article>
+      <article class="step"><div class="n">ETAPA 5</div><h4>Dictamen jurídico</h4><dl><dt>Documentos</dt><dd><span class="chip doc">05</span><span class="chip doc">06</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Titularidad</span><span class="chip check">✓ Factibilidad (vigencia)</span></dd><dt>Termina</dt><dd>Se abre sola la etapa 6</dd></dl></article>
+      <article class="step"><div class="n">ETAPA 6</div><h4>Opinión de valor y precio</h4><dl><dt>Documentos</dt><dd><span class="chip doc">07</span><span class="chip doc">08</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Valor</span><span class="chip check">✓ Precio</span><span class="chip check">✓ Tomar el encargo</span></dd><dt>Termina</dt><dd>Se abre sola la etapa 7</dd></dl></article>
+      <article class="step"><div class="n">ETAPA 7</div><h4>Contrato y preparación</h4><dl><dt>Documentos</dt><dd><span class="chip doc">09 (Word)</span><span class="chip doc">10</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Intermediación</span><span class="chip check">✓ Plan</span><span class="chip check">✓ Publicación</span></dd><dt>Termina</dt><dd>«Pasar a» etapa 8</dd></dl></article>
+      <article class="step new"><div class="n">ETAPA 8</div><h4>Publicación y seguimiento</h4><dl><dt>Documento</dt><dd><span class="chip opt">11 Reporte</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Comprador (12)</span></dd><dt>Termina</dt><dd>«Pasar a» etapa 9</dd></dl></article>
+      <article class="step new"><div class="n">ETAPA 9</div><h4>Visitas y ofertas</h4><dl><dt>Documentos</dt><dd><span class="chip opt">12</span><span class="chip opt">13</span><span class="chip opt">14</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Oferta</span><span class="chip check">✓ Revisión para cerrar</span><span class="chip check">✓ Promesa</span><span class="chip check">✓ Contraparte</span></dd><dt>Termina</dt><dd>«Pasar a» etapa 10</dd></dl></article>
+      <article class="step new warn"><div class="n">ETAPA 10</div><h4>Cierre y entrega</h4><dl><dt>Documentos</dt><dd><span class="chip opt">15</span><span class="chip opt">16</span><span class="chip opt">17</span><span class="chip opt">18</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Firma</span><span class="chip check">✓ Pago</span><span class="chip check">✓ Entrega</span><span class="chip check">✓ Registro</span><span class="chip check">✓ Honorarios</span><span class="chip check">✓ Archivo</span></dd><dt>Termina</dt><dd>Todo a la vez <span class="flag">⚠</span></dd></dl></article>
+    </div>
+    <p class="note">En verde, lo que cambió hoy: el levantamiento se confirma en su etapa y las etapas 8 a 10 ya ofrecen sus documentos.</p>
+    <ul class="issues">
+      <li><span class="flag">⚠</span> <b>Etapa 4:</b> exige todos los documentos del checklist, sin «No aplica»; un CURP que no llega detiene la operación, contra la regla RP-82 (pendiente COR-06).</li>
+      <li><span class="flag">⚠</span> <b>Etapa 10:</b> pide las seis confirmaciones juntas y «Ahora toca» señala el paso equivocado (pendiente COR-09: partirla en firma y pago, entrega, registro y archivo).</li>
+      <li><span class="flag">⚠</span> En todas las etapas también detienen dos cosas: una próxima tarea con fecha y, desde la negociación, el inmueble vinculado.</li>
+      <li>Corregido hoy: en las etapas 5 y 6, el botón principal de «Ahora toca» quedaba apagado por error.</li>
+    </ul>
+  </section>
+
+  <h2>3. Renta del propietario</h2>
+  <section class="lane" aria-label="Renta del propietario">
+    <header><h3>Renta del propietario</h3><span class="who">Cliente: propietario que renta · Contraparte: el arrendatario (lead)</span></header>
+    <div class="steps">
+      <article class="step"><div class="n">1–4</div><h4>Igual que la venta</h4><dl><dt>Documentos</dt><dd><span class="chip doc">02</span><span class="chip doc">04</span>checklist</dd></dl></article>
+      <article class="step warn"><div class="n">5–7</div><h4>Dictamen, valor y contrato</h4><dl><dt>Documentos</dt><dd><span class="chip doc">05</span><span class="chip doc">06</span><span class="chip doc">07</span><span class="chip doc">08</span><span class="chip doc">09 de venta</span><span class="chip doc">10</span></dd><dt>Problema</dt><dd><span class="flag">⚠ Pide lo de la venta</span></dd></dl></article>
+      <article class="step"><div class="n">8</div><h4>Publicación</h4><dl><dt>Confirma</dt><dd><span class="chip check">✓ Arrendatario</span></dd></dl></article>
+      <article class="step"><div class="n">9</div><h4>Visitas y condiciones</h4><dl><dt>Documento</dt><dd><span class="chip opt">13</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Contrato de renta</span><span class="chip check">✓ Garantías</span><span class="chip check">✓ Contraparte</span></dd></dl></article>
+      <article class="step"><div class="n">10</div><h4>Entrega y término</h4><dl><dt>Documentos</dt><dd><span class="chip opt">16</span><span class="chip opt">17</span><span class="chip opt">18</span></dd><dt>Confirma</dt><dd><span class="chip check">✓ Inventario</span><span class="chip check">✓ Término</span><span class="chip check">✓ Honorarios</span></dd></dl></article>
+    </div>
+    <ul class="issues">
+      <li><span class="flag">⚠</span> La renta usa los 10 pasos de la venta y pide dictamen 06, plan 10 y el contrato 09 de venta. La matriz aprobada (MRP-01) le da 11 pasos propios y solo 3 documentos básicos (pendiente COR-04).</li>
+      <li><span class="flag">⚠</span> Faltan modelos: no hay contrato de arrendamiento ni intermediación para renta en la carpeta de metodología (DOC-14, RP-97).</li>
+      <li><span class="flag">⚠</span> La entrevista 02 pregunta «¿Por qué vende?» y «¿Cuánto quiere?»; la 07 da valor de venta, no renta mensual; Hoy y Operaciones nombran distinto la misma etapa.</li>
+    </ul>
+  </section>
+
+  <h2>4. Compra, búsqueda de renta e inversión</h2>
+  <section class="lane" aria-label="Compra">
+    <header><h3>Compra</h3><span class="who">Hoy se abre como operación · <span class="flag">⚠ RP-93: el comprador es lead y contraparte, no cliente</span></span></header>
+    <div class="steps">
+      <article class="step"><div class="n">1</div><h4>Perfil y capacidad</h4><dl><dt>Confirma</dt><dd><span class="chip check">✓ Perfil</span><span class="chip check">✓ Privacidad</span></dd></dl></article>
+      <article class="step"><div class="n">2</div><h4>Opciones</h4></article>
+      <article class="step"><div class="n">3</div><h4>Visitas</h4><dl><dt>Confirma</dt><dd><span class="chip check">✓ Capacidad de pago</span></dd></dl></article>
+      <article class="step"><div class="n">4</div><h4>Oferta y negociación</h4></article>
+      <article class="step"><div class="n">5</div><h4>Firma y pago</h4></article>
+      <article class="step"><div class="n">6</div><h4>Entrega</h4></article>
+      <article class="step"><div class="n">7</div><h4>Postventa</h4></article>
+    </div>
+  </section>
+  <section class="lane" aria-label="Búsqueda de renta">
+    <header><h3>Búsqueda de renta</h3><span class="who"><span class="flag">⚠ Igual que la compra: debería ser lead</span></span></header>
+    <div class="steps">
+      <article class="step"><div class="n">1</div><h4>Necesidades de renta</h4></article>
+      <article class="step"><div class="n">2</div><h4>Opciones</h4></article>
+      <article class="step"><div class="n">3</div><h4>Visitas</h4></article>
+      <article class="step"><div class="n">4</div><h4>Solicitud y condiciones</h4></article>
+      <article class="step"><div class="n">5</div><h4>Contrato y garantías</h4></article>
+      <article class="step"><div class="n">6</div><h4>Firma y pagos</h4></article>
+      <article class="step"><div class="n">7</div><h4>Entrega y seguimiento</h4></article>
+    </div>
+  </section>
+  <section class="lane" aria-label="Inversión">
+    <header><h3>Inversión</h3><span class="who">Congelada por decisión del titular (RP-98)</span></header>
+    <div class="steps">
+      <article class="step"><div class="n">1</div><h4>Mandato y criterios</h4></article>
+      <article class="step"><div class="n">2</div><h4>Alternativas</h4></article>
+      <article class="step"><div class="n">3</div><h4>Diligencia y riesgos</h4></article>
+      <article class="step"><div class="n">4</div><h4>Escenarios</h4></article>
+      <article class="step"><div class="n">5</div><h4>Decisión y capital</h4></article>
+      <article class="step"><div class="n">6</div><h4>Ejecución vinculada</h4></article>
+      <article class="step"><div class="n">7</div><h4>Seguimiento de resultados</h4></article>
+    </div>
+    <p class="note">Ninguna de estas tres rutas tiene documento por etapa. En compra e inversión algunos nombres de paso no coinciden con lo que piden: la capacidad de pago se pide al salir de «Visitas».</p>
+  </section>
+
+  <h2>5. Qué cambia según el tipo de inmueble</h2>
+  <p class="lead">El tipo de inmueble decide el levantamiento y algunos documentos del checklist. El resto del proceso es igual para todos.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Tipo</th><th>Levantamiento</th><th>Documentos extra en el checklist</th><th>Observaciones</th></tr></thead>
+    <tbody>
+      <tr><td><b>Casa</b></td><td>04B</td><td>Ninguno</td><td><span class="flag">⚠</span> En condominio horizontal no pide reglamento ni cuotas (lo debe decidir el abogado).</td></tr>
+      <tr><td><b>Departamento</b></td><td>04C</td><td>D19 Reglamento y cuotas de condominio</td><td>Torre, indiviso y áreas comunes en el 04C.</td></tr>
+      <tr><td><b>Terreno</b></td><td>04A</td><td>D07 agua (siempre CESPT)</td><td><span class="flag">⚠</span> Falta el deslinde catastral; el organismo de agua cambia por municipio (Ensenada, Tecate).</td></tr>
+      <tr><td><b>Local</b></td><td>04E</td><td>D20 Licencias</td><td>El giro autorizado del 04E no se compara con el giro del inquilino.</td></tr>
+      <tr><td><b>Oficina</b></td><td>04D</td><td>D20 Licencias</td><td>Corregido (28/10): la entrevista 02 ya ofrece «oficina» y ya no hay «otro».</td></tr>
+      <tr><td><b>Nave o bodega</b></td><td>04F</td><td>D20 Licencias</td><td>Corregido (28/10): el D20 se pide venga de donde venga el tipo.</td></tr>
+      <tr><td><b>Plaza o conjunto</b></td><td>04G (tabla de unidades)</td><td>D19 y D20</td><td>Se publica como un inmueble más (decisión del 27/10). Según el caso (28/10): completa, es una operación con su 04G; por locales, cada local es su propio inmueble y operación, ligado a la plaza.</td></tr>
+      <tr><td colspan="4" class="note">Desde el 28/10 hay una sola lista de tipos (los siete de esta tabla) en el primer contacto, la entrevista, la ficha, el sitio y la opinión de valor. Igual para todos los tipos: revisión jurídica 05 (los mismos 22 documentos), opinión de valor 07 (la base de mercado se elige a mano), neto 08, contrato 09 (solo venta), promesa 15 y acta de entrega 16. El uso de suelo se captura en el levantamiento, pero todavía no activa nada más.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>6. Lo que conviene decidir o corregir</h2>
+  <ol class="recs">
+    <li><b>Una sola lista de tipos de inmueble:</b> hecho en la rama. Son los siete de las plantillas, sin «Otro», y la plaza se publica como un inmueble más (DEC-32).</li>
+    <li><b>Checklist según la regla B-07</b>: preguntar «¿está en condominio?», deslinde para terreno, uso de suelo separado de la licencia de construcción, y organismo de agua por municipio. <span class="tag">abogado</span></li>
+    <li><b>Usar el uso de suelo</b> del levantamiento: si es comercial o industrial, pedir licencias y avisarlo en la revisión jurídica y en la opinión de valor.</li>
+    <li><b>«No aplica» con motivo en el checklist</b> (COR-06), para que un documento que no llega no detenga la operación.</li>
+    <li><b>Renta con recorrido propio</b> (COR-04, matriz MRP-01): 11 pasos, 3 documentos básicos, entrevista redactada para renta y opinión de renta mensual. <span class="tag">tus modelos de contrato de renta</span></li>
+    <li><b>Compra y búsqueda de renta como prospectos</b>, no como operaciones (COR-11, RP-93).</li>
+    <li><b>Partir el cierre</b> en firma y pago, entrega, registro y archivo (COR-09).</li>
+    <li><b>Plazas con varios locales:</b> hecho en la rama, según el caso (DEC-33). La plaza completa es una operación; cada local suelto es su propio inmueble, operación y folio, ligado a su plaza, que lo muestra en el panel y en el sitio.</li>
+    <li><b>Corregir formatos mal asignados en los requisitos:</b> el pago apunta al recibo de honorarios (18) y el arrendatario al perfil del comprador (12).</li>
+  </ol>
+  <p class="note">Fuente: revisión del código del 27/10/2026, hecha por dos agentes y contrastada con el plan (PLAN_ERP_CRM.md). No incluye pruebas en el sitio publicado.</p>
+</main>
+</body>
+</html>

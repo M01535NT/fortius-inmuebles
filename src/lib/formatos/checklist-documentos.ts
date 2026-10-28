@@ -1,3 +1,4 @@
+import { TIPOS_INMUEBLE, tipoInmueble } from "@/lib/inmueble-tipos";
 import type { LevantamientoId } from "./levantamiento";
 
 /*
@@ -28,8 +29,8 @@ const DOCUMENTS: Array<{ code: string; label: string; when?: (data: Data) => boo
   { code: "D16", label: "Documentos de la sucesión o adjudicación", when: d => is(d, "adquisicion", "herencia", "adjudicacion") || is(d, "relacion", "heredero") },
   { code: "D17", label: "Estado de cuenta del crédito o carta de no adeudo", when: d => !is(d, "gravamen", "no", "") },
   { code: "D18", label: "Contrato de arrendamiento u otros compromisos", when: d => is(d, "ocupacion", "inquilino") || is(d, "acuerdoOcupacion", "si") || is(d, "promesaPrevia", "si") },
-  { code: "D19", label: "Reglamento de condominio y constancia de no adeudo de cuotas", when: d => is(d, "tipoInmueble", "departamento", "plaza") },
-  { code: "D20", label: "Licencias de uso de suelo o de construcción", when: d => is(d, "tipoInmueble", "local", "nave", "plaza", "oficina") },
+  { code: "D19", label: "Reglamento de condominio y constancia de no adeudo de cuotas", when: d => ["departamento", "plaza"].includes(tipoInmueble(d.tipoInmueble) ?? "") },
+  { code: "D20", label: "Licencias de uso de suelo o de construcción", when: d => ["local", "nave-industrial", "plaza", "oficina"].includes(tipoInmueble(d.tipoInmueble) ?? "") },
 ];
 
 /** Documentos que se le piden al propietario según su entrevista inicial. */
@@ -39,6 +40,7 @@ export function checklistFor(entrevista: Data): ChecklistItem[] {
 export const checklistTaskId = (expedienteId: string) => `checklist-${expedienteId}`;
 /** Formato de levantamiento que corresponde al tipo de inmueble de la entrevista. */
 export function levantamientoFor(tipo: unknown): LevantamientoId {
-  const map: Record<string, LevantamientoId> = { terreno: "04A", casa: "04B", departamento: "04C", oficina: "04D", local: "04E", nave: "04F", "nave-industrial": "04F", plaza: "04G" };
-  return map[String(tipo ?? "")] ?? "04B";
+  // Si el tipo todavía no se sabe, la operación propone casa y el asesor elige el levantamiento antes de iniciarlo.
+  const key = tipoInmueble(tipo);
+  return (TIPOS_INMUEBLE.find(item => item.key === key)?.levantamiento ?? "04B") as LevantamientoId;
 }

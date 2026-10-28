@@ -151,7 +151,7 @@ Se actualizan los enlaces internos, la búsqueda y las pruebas a las rutas nueva
 | valor | Opinión de valor |
 | precio | Precio de salida acordado |
 | intermediacion | Contrato de servicio firmado |
-| levantamiento | Fotos, medidas y datos revisados |
+| levantamiento | Datos del levantamiento confirmados (antes «Fotos, medidas y datos revisados», cambiado el 27/10/2026) |
 | plan | Plan de publicación aprobado |
 | publicacion | Permiso para publicar |
 | comprador | Comprador con capacidad de pago |

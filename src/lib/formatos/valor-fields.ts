@@ -17,7 +17,7 @@ const S5 = "05 / Comparables de terreno", S6 = "06 / Comparables de inmuebles co
 export const TIPOS_INMUEBLE = ["Terreno", "Casa", "Departamento", "Oficina", "Local", "Nave o bodega", "Plaza o conjunto"];
 /** La entrevista guarda claves en minúsculas; el 07 usa las palabras de la plantilla (COR-02). «por_definir» no tiene equivalente. */
 export const TIPO_INMUEBLE_DESDE_ENTREVISTA: Record<string, string> = {
-  casa: "Casa", departamento: "Departamento", terreno: "Terreno", local: "Local", oficina: "Oficina", "nave-industrial": "Nave o bodega",
+  casa: "Casa", departamento: "Departamento", terreno: "Terreno", local: "Local", oficina: "Oficina", "nave-industrial": "Nave o bodega", nave: "Nave o bodega", plaza: "Plaza o conjunto",
 };
 export const OPERACIONES = ["Venta", "Renta", "Administración", "Desarrollo"];
 export const BASES_MERCADO = ["Terreno", "Construcción", "Privativa"];

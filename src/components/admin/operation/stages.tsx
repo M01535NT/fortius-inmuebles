@@ -3,12 +3,13 @@ import * as React from "react";
 import Link from "next/link";
 import { AlertCircle, Check, ChevronRight, FileDown, FileText } from "@/components/admin/icons";
 import { Button, ButtonLink, Card, Pill, Sheet } from "@/components/admin/kit";
-import { PHASE_FORMATS, PHASE_GROUPS, pastGaps, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
+import { flowOf, PHASE_FORMATS, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
 import { formatTitle, draftProgress } from "./next-step";
 import type { DocumentsController } from "./use-documents";
+import { copiaEditable } from "@/lib/admin/download-word";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
@@ -29,16 +30,14 @@ function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | und
 }
 
 export function StageCard({ op, today, docs, checklist, onOpenStages }: { op: OperationRecord; today: string; docs: DocumentsController; checklist?: Task; onOpenStages: (key?: SalePhase) => void }) {
-  const { stages, current, group } = stageTrack(op, today);
+  const { stages, current } = stageTrack(op, today);
   const gaps = pastGaps(op, today, docs.status);
   const gapAt = new Map(gaps.map(g => [g.n, g]));
   const here = stages[current];
-  const groupLabel = PHASE_GROUPS.find(g => g.id === group)?.label;
   const first = gaps[0];
   return <Card className={s.track} aria-label="Avance de la operación">
     <div className="flex items-center justify-between gap-3 px-1">
-      <p className="text-sm font-semibold text-muted-foreground">Etapa {current + 1} de {stages.length}{groupLabel ? ` · ${groupLabel}` : ""}</p>
-      <span className="sr-only">{here?.label}</span>
+      <p className="text-sm font-semibold text-muted-foreground">Etapa {current + 1} de {stages.length}{here ? <> · <span className="text-foreground">{here.label}</span></> : null}</p>
     </div>
     <ol aria-label="Etapas" className={s.timeline}>{stages.map((stage, i) => {
       const gap = gapAt.get(stage.n), done = i < current, now = i === current;
@@ -94,26 +93,25 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
           : <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.startChecklist())}>Crear</button>}
       </li></ul>;
     }
-    const formats = stage.key === "captacion" ? ["02", "01"] : PHASE_FORMATS[stage.key] ?? [];
+    // La 02 se muestra en «Entrevista inicial»; el prospecto no repite documentos.
+    const formats = stage.key === "captacion" ? ["02", "01"] : stage.key && stage.key !== "prospecto" ? stageDocuments(stage.key, flowOf(op).ruta).map(item => item.formato) : [];
     if (!formats.length) return null;
     return <ul className={s.stageDocs}>{formats.map(formato => {
       const doc = docs.latest(formato), pdf = docs.pdfOf(doc);
-      const text = !doc ? "No se generó" : pdf ? "Terminado" : draftProgress(doc).missing ? "En captura" : "Falta su PDF";
+      const faltan = doc ? draftProgress(doc).missing : 0;
+      const text = !doc ? "No se generó" : faltan ? (pdf ? "PDF incompleto" : "En captura") : pdf ? "Terminado" : "Falta su PDF";
       return <li key={formato} className={s.stageDoc}>
         <span className="flex min-w-0 flex-1 flex-col"><span className="[overflow-wrap:anywhere]">{formatTitle(formato, doc)}</span><span className={cn("text-xs", doc ? "text-muted-foreground" : "font-semibold text-[var(--warning)]")}>{text}</span></span>
         <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.start(formato))}>{doc ? "Abrir" : "Iniciar"}</button>
         {pdf && <a className={s.docLink} href={`/api/admin/emisiones/${pdf.id}/descargar`}>PDF</a>}
-        {doc && <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => docs.word(doc)}>Word</button>}
+        {doc && copiaEditable(doc.formato_id) && <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => docs.word(doc)}>{copiaEditable(doc.formato_id)}</button>}
       </li>;
     })}</ul>;
   }
   return <Sheet open onClose={onClose} title="Etapas" description="Toca Abrir para ver o completar el documento de una etapa.">
-    {PHASE_GROUPS.map(group => {
-      const list = stages.filter(stage => stage.group === group.id);
-      if (!list.length) return null;
-      return <section key={group.id} aria-labelledby={`fase-${group.id}`} className="flex flex-col gap-1">
-        <h3 id={`fase-${group.id}`} className={s.groupTitle}>{group.label}</h3>
-        <ol className="flex flex-col gap-1">{list.map(stage => {
+    {(() => {
+      return <section aria-label="Etapas de la operación" className="flex flex-col gap-1">
+        <ol className="flex flex-col gap-1">{stages.map(stage => {
           const i = stage.n - 1, gap = gaps.get(stage.n), now = i === current, done = i < current;
           return <li key={stage.n}>
             <p tabIndex={-1} data-stage={stage.key} className={s.stageRow} data-state={now ? "now" : gap ? "warn" : done ? "done" : "next"}>
@@ -126,7 +124,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
           </li>;
         })}</ol>
       </section>;
-    })}
+    })()}
   </Sheet>;
 }
 
@@ -146,7 +144,7 @@ export function DocumentsByStage({ docs, folio }: { docs: DocumentsController; f
       <div className={s.itemActions}>
         <Button disabled={docs.busy} onClick={() => docs.openDocument(doc)}>Abrir</Button>
         {pdf && <ButtonLink variant="ghost" prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
-        <Button variant="ghost" disabled={docs.busy} onClick={() => docs.word(doc)}><FileText size={16} aria-hidden="true" />Word</Button>
+        {copiaEditable(doc.formato_id) && <Button variant="ghost" disabled={docs.busy} onClick={() => docs.word(doc)}><FileText size={16} aria-hidden="true" />{copiaEditable(doc.formato_id)}</Button>}
       </div>
     </div></li>;
   })}</ul>;

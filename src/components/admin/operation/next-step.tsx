@@ -18,6 +18,7 @@ import { requirementName, shortDate, weekdayDate } from "@/lib/admin/today";
 import { problemOf } from "@/lib/admin/operation-view";
 import { quickReview, RequirementRow, RequirementSheets, StateIcon, type Evidence, type OpenSheet } from "./requirements";
 import type { DocumentsController } from "./use-documents";
+import { copiaEditable } from "@/lib/admin/download-word";
 import type { Documento } from "./documents-tab";
 import { saveError } from "./use-operation";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ import s from "./operation.module.css";
 */
 
 /** Requisitos del contrato y la preparación: se capturan después de terminar la verificación. */
-const CONTRACT_KEYS: RequirementKey[] = ["intermediacion", "levantamiento", "plan", "publicacion"];
+const CONTRACT_KEYS: RequirementKey[] = ["intermediacion", "plan", "publicacion"];
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage }) => Promise<unknown>;
 type Run = { id: string; title: string; updatedAt: string; result?: unknown; context?: { expedienteId?: string } };
 
@@ -136,13 +137,13 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
         <div className="flex flex-wrap items-end gap-2">
           {now.formato === "04" && !doc && surveySelect}
           <Button variant="primary" size="lg" disabled={lock} onClick={() => void docs.start(now.formato, survey)}><PlayCircle size={18} aria-hidden="true" />{startLabel}</Button>
-          {doc && <Button size="lg" disabled={lock} onClick={() => docs.word(doc)}><FileText size={18} aria-hidden="true" />Word</Button>}
+          {doc && copiaEditable(doc.formato_id) && <Button size="lg" disabled={lock} onClick={() => docs.word(doc)}><FileText size={18} aria-hidden="true" />{copiaEditable(doc.formato_id)}</Button>}
         </div>
       </NowCard>;
     }
     if (now.kind === "checklist") return checklist
       ? <NowCard title="Reunir los documentos del propietario" text={`${checklist.pasos.filter(p => p.hecho).length} de ${checklist.pasos.length} recibidos. Márcalos abajo al recibirlos.`}>
-        <div className="flex flex-wrap gap-2"><Button disabled={lock} onClick={() => docs.checklistFile("pdf")}><FileDown size={16} aria-hidden="true" />Checklist PDF</Button><Button variant="ghost" disabled={lock} onClick={() => docs.checklistFile("docx")}><FileText size={16} aria-hidden="true" />Word</Button></div>
+        <div className="flex flex-wrap gap-2"><Button disabled={lock} onClick={() => docs.checklistFile("pdf")}><FileDown size={16} aria-hidden="true" />Checklist PDF</Button></div>
       </NowCard>
       : <NowCard title="Crear el checklist de documentos" text="Se arma con lo que contestó en la entrevista: estado civil, crédito, tipo de inmueble…">
         <Button variant="primary" size="lg" disabled={lock} onClick={() => void docs.startChecklist()}>Crear checklist</Button>
@@ -150,10 +151,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
     if (now.kind === "requisito") {
       const name = requirementName(now.key);
       if (now.state === "observado") return <NowCard title={`Resolver: ${name}`} text={problemOf(flow.requisitos[now.key]).title}>
-        <div className="flex flex-wrap gap-2"><Button variant="primary" size="lg" disabled={lock || locked} onClick={() => quick(now.key, "recibido")}>Ya se resolvió</Button><Button size="lg" disabled={lock || locked} onClick={() => setSheet({ key: now.key, kind: "observado" })}>Escribir qué pasó</Button></div>
+        <div className="flex flex-wrap gap-2"><Button variant="primary" size="lg" disabled={lock || (locked && CONTRACT_KEYS.includes(now.key))} onClick={() => quick(now.key, "recibido")}>Ya se resolvió</Button><Button size="lg" disabled={lock || (locked && CONTRACT_KEYS.includes(now.key))} onClick={() => setSheet({ key: now.key, kind: "observado" })}>Escribir qué pasó</Button></div>
       </NowCard>;
-      return <NowCard title={`Confirmar: ${name}`} text={now.state === "recibido" ? "Ya tienes el documento. Márcalo como revisado con su respaldo." : "Al marcarlo como revisado te pedimos con qué lo comprobaste."}>
-        <Button variant="primary" size="lg" disabled={lock || locked} onClick={() => setSheet({ key: now.key, kind: "revisado" })}>Marcar revisado</Button>
+      return <NowCard title={`Confirmar: ${name}`} text={now.state === "recibido" ? "Ya tienes el documento. Confírmalo: solo escribe qué encontraste." : "Confírmalo con su documento: ya viene elegido, solo escribe qué encontraste."}>
+        <Button variant="primary" size="lg" disabled={lock || (locked && CONTRACT_KEYS.includes(now.key))} onClick={() => setSheet({ key: now.key, kind: "revisado" })}>Confirmar</Button>
       </NowCard>;
     }
     return <NowCard title={now.text} text={now.why ? now.why.replace(/^./, c => c.toUpperCase()) + "." : ""}>
@@ -184,7 +185,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
               : <DocumentRow key={item.formato} item={item} now={item === now} docs={docs} disabled={lock} survey={survey} />)}</ul>
           </>}
           {reviewsGroup.length > 0 && <>
-            <h3 className={s.group}>{documentsGroup.length ? "2 · " : ""}Confirma lo que revisaste</h3>
+            <h3 className={s.group}>{documentsGroup.length ? "2 · " : ""}Antes de seguir, confirma</h3>
+            <p className="-mt-1 mb-2 text-sm text-muted-foreground">Confirma cada punto con su documento; queda quién, cuándo y con qué.</p>
             <ul className={s.items}>{reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} onQuick={quick} onSheet={setSheet} />)}</ul>
           </>}
           {otherGroup.length > 0 && <>

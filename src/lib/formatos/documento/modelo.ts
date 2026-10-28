@@ -8,9 +8,12 @@ import type { ImagenDocumento } from "./imagen";
   de PDF y de Word dibujan el mismo modelo.
 */
 
-export type Block =
+/** Bloque completo pulsable en la vista en vivo (una tabla con filas, una cláusula): abre esos campos. */
+export type ZonaBloque = { keys: string[]; label: string };
+export type Block = ({ zona?: ZonaBloque }) & (
   | { kind: "title"; text: string; bold?: boolean; size?: number }
-  | { kind: "pagebreak"; force?: boolean }
+  /** force: también en Word; hoja: en PDF abre hoja nueva aunque quede espacio (una hoja para firmar). */
+  | { kind: "pagebreak"; force?: boolean; hoja?: boolean }
   /** Barra azul de hoja de cálculo («01 / PRECIO Y DIFERENCIA»), con un dato opcional a la derecha. */
   | { kind: "bar"; text: string; right?: string; big?: boolean; raw?: boolean; center?: boolean }
   /** Texto alineado a la derecha (lugar y fecha de una carta). */
@@ -20,16 +23,17 @@ export type Block =
   /** Encabezado de cláusula «01   Objeto». */
   | { kind: "h3"; text: string }
   /** Renglones de hoja: etiqueta sin fondo y valor sobre gris claro; w = ancho relativo (12 por renglón). */
-  | { kind: "sheet"; rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean }>> }
+  | { kind: "sheet"; rows: Array<Array<{ label?: string; value?: string; w: number; strong?: boolean; big?: boolean; keys?: string[] }>> }
   /** Formulario de preguntas (02, 12, 13…): sección «01 / …» y renglones de celdas con la pregunta arriba y la respuesta debajo; w = ancho relativo. */
-  | { kind: "form"; label?: string; rows: Array<Array<{ q: string; a: string; w: number }>>; filled?: boolean }
+  | { kind: "form"; label?: string; rows: Array<Array<FormCell>>; filled?: boolean }
   /** Pregunta con opciones en casillas; la elegida va marcada (☒). */
   | { kind: "checks"; q: string; options: Array<{ value: string; label: string }>; selected?: unknown }
   | { kind: "subtitle"; text: string }
   /** Recuadro de imagen con su barra de título (foto principal, croquis); vacío si no hay imagen. */
-  | { kind: "image"; label: string; image?: ImagenDocumento; height: number }
+  | { kind: "image"; label: string; image?: ImagenDocumento; height: number; keys?: string[] }
   /** Tabla con encabezado claro (F3F7F4) y bordes finos, como las de los levantamientos. */
-  | { kind: "grid"; widths: number[]; header: string[]; rows: string[][] }
+  /** labels: primera columna en negritas, como «Terreno» o «Muros»; minRow: alto mínimo de renglón en puntos. */
+  | { kind: "grid"; widths: number[]; header: string[]; rows: string[][]; labels?: boolean; minRow?: number; keys?: Array<Array<string[] | undefined>> }
   | { kind: "note"; text: string }
   | { kind: "p"; text: string; indent?: boolean; strong?: boolean }
   /** Encabezado de sección con número en vino y título en mayúsculas (opinión jurídica). */
@@ -45,10 +49,20 @@ export type Block =
   | { kind: "center"; text: string }
   | { kind: "clause"; lead: string; text: string }
   | { kind: "fields"; widths: [number, number]; rows: Array<[string, string]>; dark?: boolean }
-  | { kind: "signatures"; parties: Array<{ role: string; name: string }>; line?: boolean };
+  | { kind: "signatures"; parties: Array<{ role: string; name: string }>; line?: boolean });
+
+/** Parte de un renglón con casillas: con «check» es una casilla dibujada (marcada si es true); sin él, texto. */
+export type Marca = { text: string; check?: boolean };
+/**
+  Celda de formulario. «marks» sustituye a la respuesta cuando la plantilla imprime casillas
+  («☐ Sí ☐ Pendiente  Rol: …»), un renglón por arreglo. «keys» son los campos que llenan la celda:
+  la vista en vivo la vuelve pulsable; el PDF y el Word las ignoran.
+*/
+export type FormCell = { q: string; a: string; w: number; marks?: Marca[][]; keys?: string[] };
 
 /** «marca»: Archivo azul marino (planes, reportes, levantamientos). «contrato»: Times negro, como el 09 y la promesa. */
-export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato" | "opinion" | "aviso"; blocks: Block[] };
+/** «aviso»: leyenda al pie de cada hoja, como «Documento incompleto: faltan 3 datos». */
+export type Documento = { title: string; subject?: string; estilo?: "marca" | "contrato" | "opinion" | "aviso"; blocks: Block[]; aviso?: string };
 
 export const COLORS = { navy: "061F3F", green: "0F6B4E", wine: "8A1634", band1: "F6F8F6", band2: "F0F3F7", band3: "F7F9F7", head: "F3F7F4", cell: "F2F6F3", ink2: "08284C", value2: "F6F8FA", gray: "6B7280", white: "FFFFFF", black: "000000", rule: "B4C7BB" } as const;
 /** Datos extra que algunos formatos necesitan para dibujarse: imágenes adjuntas por ID. */
@@ -89,4 +103,8 @@ export function junta(...parts: unknown[]): string {
 /** Filas de una tabla capturada (arreglo de objetos), sin romper si viene vacía o mal formada. */
 export function filas(value: unknown): Array<Record<string, unknown>> {
   return Array.isArray(value) ? value.filter((row): row is Record<string, unknown> => !!row && typeof row === "object" && !Array.isArray(row)) : [];
+}
+/** Casillas como texto (Word): ☒ la marcada, ☐ las demás. */
+export function marcasTexto(marks: Marca[][]): string {
+  return marks.map(line => line.map(part => part.check === undefined ? part.text : `${part.check ? "☒" : "☐"} ${part.text}`).join("  ")).join("\n");
 }
