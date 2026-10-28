@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as motion from "motion/react-m";
-import { ArrowUp, ArrowUpRight, MessageCircle } from "lucide-react";
+import { ArrowUp, MessageCircle } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { useReducedMotionSafe } from "@/lib/use-reduced-motion-safe";
@@ -69,8 +69,8 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
             <p className="nx-footer-eyebrow">Tu próxima propiedad empieza con una conversación.</p>
             <h2>{pathname === "/" ? "Hablemos de tu próxima operación." : "Hablemos de lo que sigue."}</h2>
             <div className="nx-footer-actions">
-              <Link href="/vender-propiedad" className="nx-footer-pill nx-footer-pill-primary">Quiero vender <ArrowUpRight size={18} aria-hidden="true" /></Link>
-              <Link href="/inventario" className="nx-footer-pill">{pathname === "/" ? "Explorar inmuebles" : "Buscar propiedad"} <ArrowUpRight size={18} aria-hidden="true" /></Link>
+              <Link href="/vender-propiedad" className="nx-footer-pill nx-footer-pill-primary">Quiero vender</Link>
+              <Link href="/inventario" className="nx-footer-pill">{pathname === "/" ? "Explorar inmuebles" : "Buscar propiedad"}</Link>
               <Link href="/contacto" className="nx-footer-pill">Contactar a Fortius</Link>
             </div>
           </div>

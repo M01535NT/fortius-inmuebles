@@ -72,6 +72,10 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
       return () => setActive(-1);
     });
 
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.from(".nx-title-mask > span", { yPercent: 110, duration: 1.4, ease: "power3.out", scrollTrigger: { trigger: ref.current, start: "top 82%", once: true } });
+    });
+
     return () => media.revert();
   }, { scope: ref, dependencies: [stages.length] });
 
@@ -82,7 +86,7 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
         <div className="nx-method-head">
           <div>
             <p className="nx-eyebrow">Nuestro método</p>
-            <h2 id="metodo-title" className="nx-title">{title}</h2>
+            <h2 id="metodo-title" className="nx-title"><span className="nx-title-mask"><span>{title}</span></span></h2>
           </div>
           <p className="nx-method-count" aria-hidden="true">{String(Math.max(active, 0) + 1).padStart(2, "0")}<span> / {String(stages.length).padStart(2, "0")}</span></p>
         </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, Calculator, FileCheck2 } from "lucide-react";
+import { Calculator, FileCheck2 } from "lucide-react";
 
 import { InteriorPage } from "@/components/sections/interior-page";
 import { DiagnosticCTA } from "@/components/sections/diagnostic-cta";
@@ -40,7 +40,7 @@ export default function VenderInmueblePage() {
           <Link href="/contacto" className="pg-card pg-card-pad pg-card-wine vp-tool">
             <span className="pg-eyebrow">Siguiente paso</span>
             <strong>Habla con un asesor</strong>
-            <span className="pg-muted">Escribir ahora <ArrowUpRight size={16} aria-hidden="true" /></span>
+            <span className="pg-muted">Escribir ahora</span>
           </Link>
         </div>
       </section>
