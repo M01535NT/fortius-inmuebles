@@ -42,7 +42,7 @@ export type Block = ({ zona?: ZonaBloque }) & (
   | { kind: "h1"; text: string }
   | { kind: "h2"; text: string }
   /** Banda de datos: celdas con etiqueta en mayúsculas y su valor debajo. */
-  | { kind: "band"; widths: number[]; rows: Array<Array<{ label: string; value: string }>> }
+  | { kind: "band"; widths: number[]; rows: Array<Array<{ label: string; value: string }>>; keys?: Array<string[] | undefined> }
   /** Tabla con encabezado azul (opcional) y filas alternadas. Cada celda puede tener varias líneas. */
   | { kind: "table"; widths: number[]; header?: string[]; rows: string[][]; small?: boolean }
   /** Estilo contrato: título centrado en negritas, cláusula con encabezado en negritas, tabla etiqueta/valor y firmas. */

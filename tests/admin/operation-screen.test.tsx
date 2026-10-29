@@ -1,4 +1,6 @@
 import * as React from "react";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
@@ -29,7 +31,11 @@ const collections: Record<string, () => Record<string, unknown>[]> = {
   asesores: () => [{ id: "a1", nombre: "Mariana Ruiz", activo: true }, { id: "a2", nombre: "Jorge Salcedo", activo: true }],
   tareas: () => server.tasks, eventos: () => [], leads: () => [],
 };
+// jsdom no desplaza elementos; la vista en vivo lleva la celda pulsada a la vista.
+Element.prototype.scrollIntoView ??= () => undefined;
 function respond(url: string, init?: RequestInit): Response | Promise<Response> {
+  // Letras y membrete reales: los documentos se dibujan con el mismo escritor del PDF.
+  if (/^\/(fonts|brand)\//.test(url)) return new Response(readFileSync(join(process.cwd(), "public", url)));
   const failed = server.fail?.(url, init); if (failed) return failed;
   const method = init?.method ?? "GET"; if (method !== "GET") server.methods.push(method);
   const body = init?.body && typeof init.body === "string" ? JSON.parse(init.body) : undefined;
@@ -340,6 +346,12 @@ it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña
 
 const docA = { id: "doc-a", expediente_id: ID, formato_id: "18", data: { pagador: "Cliente A" }, version: 1, updated_at: "2026-10-04" };
 const docB = { ...docA, id: "doc-b", formato_id: "02", data: { nombre: "Cliente B" } };
+/** Pulsa sobre el documento la parte donde va «Quien paga» del recibo (captura en vivo, 29/10/2026). */
+async function openPayer(capture: HTMLElement) {
+  fireEvent.click(await within(capture).findByRole("button", { name: /^Pago recibido/ }, { timeout: 8000 }));
+  return within(capture).findByLabelText("Quien paga");
+}
+
 it("Expediente: cada documento se abre en su ventana y un fallo al guardar conserva la captura", async () => {
   server.docs = [docA, docB];
   let finish!: (response: Response) => void;
@@ -349,13 +361,13 @@ it("Expediente: cada documento se abre en su ventana y un fallo al guardar conse
   expect(screen.getByRole("link", { name: /03 · Control comercial/ }).getAttribute("href")).toBe("/admin/control-comercial");
   fireEvent.click(screen.getAllByRole("button", { name: "Abrir" })[1]);
   const capture = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
-  const field = within(capture).getByLabelText("Quien paga");
-  fireEvent.change(field, { target: { value: "Captura pendiente" } });
-  fireEvent.click(within(capture).getByRole("button", { name: "Guardar borrador" }));
+  fireEvent.change(await openPayer(capture), { target: { value: "Captura pendiente" } });
+  // «Aceptar» guarda con la versión del borrador; mientras guarda, la captura queda bloqueada.
+  fireEvent.click(within(capture).getByRole("button", { name: "Aceptar" }));
   await waitFor(() => expect(within(capture).getByLabelText("Quien paga").closest("fieldset")?.disabled).toBe(true));
   await act(async () => finish(Response.json({ error: "Servicio temporalmente no disponible" }, { status: 503 })));
   expect((within(capture).getByLabelText("Quien paga") as HTMLInputElement).value).toBe("Captura pendiente");
-  expect(within(capture).getByRole("alert").textContent).toContain("Servicio temporalmente no disponible");
+  await waitFor(() => expect(within(capture).getAllByRole("alert").map(alert => alert.textContent).join(" | ")).toContain("Servicio temporalmente no disponible"));
 });
 
 it("Expediente: cerrar una ventana guarda y abrir otra no mezcla las capturas", async () => {
@@ -363,11 +375,11 @@ it("Expediente: cerrar una ventana guarda y abrir otra no mezcla las capturas", 
   await openOperation("documentos");
   fireEvent.click((await screen.findAllByRole("button", { name: "Abrir" }))[1]);
   const first = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
-  fireEvent.change(within(first).getByLabelText("Quien paga"), { target: { value: "Cliente A corregido" } });
+  fireEvent.change(await openPayer(first), { target: { value: "Cliente A corregido" } });
+  // Un dato abierto sin aceptar se confirma antes de cerrar la ventana.
   fireEvent.click(within(first).getByRole("button", { name: "Cerrar" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-  expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Guardarlas y cerrar"));
-  expect(server.methods).toContain("PUT");
+  expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Cerrar y descartarlo"));
   fireEvent.click(screen.getAllByRole("button", { name: "Abrir" })[0]);
   const second = await screen.findByRole("dialog", { name: "Entrevista inicial" });
   expect(within(second).queryByLabelText("Quien paga")).toBeNull();

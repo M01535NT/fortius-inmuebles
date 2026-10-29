@@ -119,6 +119,29 @@ describe("captura sobre el documento", () => {
     }
   });
 
+  it("en los formatos 11 a 19 todo campo tiene su zona y la vista tiene las hojas del PDF", async () => {
+    const { DOCUMENTOS } = await import("@/lib/formatos/documento");
+    const { formatoById } = await import("@/lib/formatos/catalog");
+    const { mostrarCampoPromesa } = await import("@/lib/formatos/promesa");
+    const files = await assets(), maquetar = await crearMaquetador(files);
+    // Con cada sección condicional activada (respuesta registrada con contraoferta, pagos, publicidad contratada…).
+    const activar: Record<string, Record<string, unknown>> = {
+      "11": { publicidadEstado: "contratada", registroVisitas: "comprobado", contactosEstado: "comprobado", visitasEstado: "comprobado", ofertasEstado: "comprobado", estadoRespuestaPropietario: "recibida", entregaInformeEstado: "entregado" },
+      "14": { estadoRespuesta: "registrada", decisionPropietario: "contraoferta", confirmacionVigencia: "Confirmada por escrito" },
+    };
+    for (const id of ["11", "12", "13", "14", "15", "16", "17", "18", "19"]) {
+      const build = DOCUMENTOS[id], fields = formatoById(id).fields;
+      expect(build, id).toBeDefined();
+      if (!build) continue;
+      const lleno = { ...Object.fromEntries(fields.filter(field => !/Rows$|^partidas$|^pagos$|^netoCargos$/.test(field.type)).map(field => [field.key, field.type === "choice" ? field.options![0].value : field.type === "date" ? "2026-10-28" : field.type === "time" ? "10:00" : field.type === "money" || field.type === "number" ? 1000 : `Ejemplo ${field.key}`])), ...activar[id] };
+      const doc = build(lleno, {}), maqueta = await maquetar(doc);
+      expect(maqueta.pages.length, id).toBe((await PDFDocument.load(await renderDocumentoPdf(doc, files))).getPageCount());
+      const covered = new Set(maqueta.zonas.flatMap(zona => zona.keys));
+      // El folio y el número de recibo los asigna el sistema.
+      expect(fields.filter(field => !["folio", "numeroRecibo"].includes(field.key) && (id !== "15" || mostrarCampoPromesa(field.key, lleno)) && !covered.has(field.key)).map(field => field.key), id).toEqual([]);
+    }
+  });
+
   it("una tabla de filas variables es pulsable completa", async () => {
     const maqueta = await (await crearMaquetador(await assets()))(levantamientoDocumento("04G", { folio: "EXP-000021", unidades: [{ id: "L-1", tipo: "Local", area: "45", ocupacion: "Ocupado", acceso: "Medidor propio" }] }));
     expect(maqueta.zonas.filter(zona => zona.keys.includes("unidades"))).toHaveLength(1);

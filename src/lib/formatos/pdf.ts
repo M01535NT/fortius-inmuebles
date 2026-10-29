@@ -469,45 +469,6 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     else write("No se recabó una decisión del interesado durante esta cita.", 10, regular, muted, 12);
     write("03 / Seguimiento del asesor", 13, bold, accent, 10);
     for (const field of definition.fields.slice(17)) fieldLine(field);
-  } else if (id === "14") {
-    const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
-    const cash = (amount: unknown, currency: string) => `${formatAmount(amount as number)} ${currency}`;
-    const signature = (name: string, role: string) => {
-      ensure(88);
-      y -= 30;
-      page.drawLine({ start: { x: margin, y }, end: { x: margin + 240, y }, thickness: 0.7, color: ink });
-      y -= 15;
-      write(`${name} · ${role}`, 8, regular, muted, 10);
-    };
-    write(`${val("lugarPropuesta")}, ${val("fechaPropuesta")} · Folio ${val("folio")}`, 9, regular, muted, 10);
-    write(`${val("propietario")}\nPresente`, 10, bold, ink, 10);
-    write(`Soy ${val("comprador")}, ${val("representacionComprador")}. Le propongo adquirir ${val("derechoAdquirir")} sobre el inmueble ubicado en ${val("inmueble")}, identificado con ${val("folioInmueble")}.`, 10, regular, ink, 12);
-    write("Precio propuesto", 13, bold, accent, 5);
-    write(cash(data.precioPropuesto, val("moneda")), 18, bold, accent, 10);
-    write(`Tratamiento de impuestos del precio: ${val("impuestosPrecio")}. Bienes y accesorios incluidos: ${val("bienesIncluidos")}; excluidos: ${val("bienesExcluidos")}.`, 10, regular, ink, 10);
-    write("Pago y condiciones", 13, bold, accent, 8);
-    write(`Propongo cubrir el precio con ${cash(data.recursosPropios, val("moneda"))} de recursos propios${data.credito === 0 ? ", sin crédito previsto" : ` y ${cash(data.credito, val("moneda"))} mediante ${val("institucionCredito")}; estado del crédito: ${val("estadoCredito")}`}. El calendario de pagos sería ${val("calendarioPagos")}.`, 10, regular, ink, 9);
-    write(`La operación quedaría sujeta a estas condiciones: ${val("condiciones")}. Deberían resolverse a más tardar el ${val("fechaCondiciones")}. Propongo formalizar el ${val("fechaFormalizacion")} y recibir el inmueble el ${val("fechaEntrega")}. Gastos a mi cargo: ${val("gastosComprador")}; a cargo del propietario: ${val("gastosPropietario")}.`, 10, regular, ink, 10);
-    write("Respuesta y alcance", 13, bold, accent, 7);
-    write(`Agradeceré su respuesta hasta el ${val("fechaLimitePropuesta")}, a las ${val("horaLimitePropuesta")} (${val("zonaHoraria")}). Una respuesta posterior requerirá confirmar que mantengo esta propuesta; el silencio no expresa conformidad.`, 10, regular, ink, 8);
-    write("Estas bases sirven sólo para negociar. No asumo aquí la obligación de comprar ni de celebrar un contrato futuro. Cualquier compromiso requerirá un instrumento independiente firmado por personas con facultades. Esta carta no pacta apartado, depósito, pena ni entrega de posesión.", 9, regular, muted, 9);
-    write("Atentamente,", 10, regular, ink, 4);
-    signature(val("comprador"), "Comprador o representante");
-    if (data.estadoRespuesta === "registrada") {
-      page = pdf.addPage(a4); startPage();
-      write("Respuesta del propietario", 19, bold, accent, 10);
-      write(`${val("lugarRespuesta")}, ${val("fechaRespuesta")} a las ${val("horaRespuesta")} · Propuesta folio ${val("folio")}`, 9, regular, muted, 13);
-      write(`${val("comprador")}\nPresente`, 10, bold, ink, 13);
-      write(`Recibí su propuesta de fecha ${val("fechaPropuesta")} respecto del inmueble ubicado en ${val("inmueble")}, identificado con ${val("folioInmueble")}. Respondo en mi carácter de ${val("caracterPropietario")}.`, 10, regular, ink, 15);
-      write("Mi respuesta", 13, bold, accent, 8);
-      const decision = data.decisionPropietario === "aceptar" ? "aceptar las bases para negociar" : data.decisionPropietario === "contraoferta" ? "proponer cambios" : "rechazar la propuesta";
-      write(`He decidido ${decision}. El motivo es: ${val("motivoRespuesta")}.`, 10, regular, ink, 10);
-      if (respuestaRequiereRatificacion(data)) write(`El comprador confirmó que mantiene vigente su propuesta según ${val("confirmacionVigencia")}.`, 9, regular, ink, 10);
-      if (data.decisionPropietario === "contraoferta") write(`Mi contraoferta es de ${cash(data.precioContraoferta, val("monedaContraoferta"))}. Impuestos: ${val("impuestosContraoferta")}. Cambios precisos: ${val("cambiosContraoferta")}. Espero respuesta hasta el ${val("fechaLimiteContraoferta")} a las ${val("horaLimiteContraoferta")} (${val("zonaHoraria")}).`, 10, regular, ink, 13);
-      write("Esta respuesta, aun si es favorable, conserva el alcance de negociación de la propuesta y no obliga por sí sola a vender ni a celebrar un contrato futuro. Cualquier compromiso requerirá el instrumento correspondiente.", 9, regular, muted, 15);
-      write("Atentamente,", 10, regular, ink, 4);
-      signature(val("propietario"), "Propietario o representante");
-    }
   } else if (id === "16") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
     const section = (title: string) => { ensure(60); write(title, 13, bold, accent, 9); };

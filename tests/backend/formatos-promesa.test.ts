@@ -96,3 +96,11 @@ it("bloquea una revisión futura, clasificación sin resolver y receptor distint
   expect(validateFormato("15", { ...promesaSample, marcoConsumo: "pendiente" })).toContain("Resolver la clasificación de la operación antes de usar este modelo");
   expect(validateFormato("15", { ...promesaSample, garantia: 10000, custodioTipo: "parte", receptorGarantia: "Otra persona" })).toContain("El receptor debe ser la parte vendedora o un tercero con acuerdo independiente");
 });
+
+it("cada marcador de la promesa sabe qué campos lo llenan, para abrirlos sobre el documento", async () => {
+  const { PROMESA_MARCADORES, camposParrafoPromesa } = await import("@/lib/formatos/promesa");
+  const { PROMESA_ORIGINAL } = await import("@/lib/formatos/promesa-text");
+  const marcadores = new Set(PROMESA_ORIGINAL.flatMap(text => [...text.matchAll(/\[([^\]]+)\]/g)].map(([, m]) => m)));
+  expect([...marcadores].filter(m => !PROMESA_MARCADORES[m]?.length)).toEqual([]);
+  expect(camposParrafoPromesa(PROMESA_ORIGINAL[0])).toEqual(expect.arrayContaining(["vendedor", "comprador", "entidad"]));
+});

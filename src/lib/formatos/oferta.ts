@@ -23,7 +23,6 @@ export function validarOferta(data: Record<string, unknown>): string[] {
   if (hasText(data.fechaPropuesta) && hasText(data.fechaLimitePropuesta) && String(data.fechaLimitePropuesta) < String(data.fechaPropuesta)) errors.push("Límite de respuesta a la propuesta");
   if (hasText(data.fechaPropuesta) && hasText(data.fechaFormalizacion) && String(data.fechaFormalizacion) < String(data.fechaPropuesta)) errors.push("Fecha propuesta para formalizar");
   if (hasText(data.fechaCondiciones) && hasText(data.fechaFormalizacion) && String(data.fechaCondiciones) > String(data.fechaFormalizacion)) errors.push("Límite para resolver condiciones");
-  if (hasText(data.fechaFormalizacion) && hasText(data.fechaEntrega) && String(data.fechaEntrega) < String(data.fechaFormalizacion)) errors.push("Fecha propuesta para la entrega");
   if (data.estadoRespuesta === "registrada") {
     if (respuestaRequiereRatificacion(data) && !hasText(data.confirmacionVigencia)) errors.push("Confirmación de vigencia por el comprador");
     for (const [key, label] of [

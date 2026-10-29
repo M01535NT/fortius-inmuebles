@@ -40,6 +40,12 @@ export async function POST(request: Request, context: Context) {
     const [persona,asesor,inmueble,interviews]=await Promise.all([record("clientes",exp.cliente_id),record("asesores",exp.asesor_id),record("propiedades",exp.propiedad_slug),client.from("fortius_inmuebles_interviews").select("id,version,intencion,respuestas").eq("expediente_id",id).eq("estado","completada").order("completed_at",{ascending:false}).limit(1)]);
     if(interviews.error)databaseError(interviews.error);
     const proposed=prefillFormato(input.formatoId,{expediente:exp,persona,asesor,inmueble,entrevista:interviews.data?.[0] as OperationalInterview|undefined});
+    // Recibo 18: número automático, folio del expediente y consecutivo de sus recibos (nadie lo inventa).
+    if(input.formatoId==="18"){
+      const previos=await client.from("fortius_inmuebles_formato_drafts").select("id",{count:"exact",head:true}).eq("expediente_id",id).eq("formato_id","18");
+      if(previos.error)databaseError(previos.error);
+      proposed.numeroRecibo=`${exp.folio}-R${String((previos.count??0)+1).padStart(2,"0")}`;
+    }
     let valorSeed: Record<string,string|number>={};
     if(input.valorReferencia) {
       if(input.formatoId!=="08")throw new ApiError(400,"La referencia 07 se incorpora al formato 08");

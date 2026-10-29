@@ -26,7 +26,7 @@ El 10 sigue la plantilla del 26/10/2026 (DEC-34, en la rama `feat/levantamiento-
 
 El 11 distingue cifras comprobadas de datos pendientes, registra canales, oportunidades y decisiones, y calcula el saldo de fondos de publicidad sin restar pagos directos al portal por segunda vez.
 
-El 14 genera primero una carta de propuesta en prosa y, cuando se registra la contestación, agrega una carta de respuesta; exige que recursos propios y crédito sumen el precio y registra ratificación del comprador si una aceptación o contraoferta llega después del plazo.
+El 14 genera primero una carta de propuesta en prosa y, cuando se registra la contestación, agrega una carta de respuesta; exige que recursos propios y crédito sumen el precio y registra ratificación del comprador si una aceptación o contraoferta llega después del plazo. Desde el 29/10/2026 (en la rama) sigue `14_CartaIntencion.docx` del 26/10/2026: «Folio Real» y «Partida» separados, el precio también en letra y sin los apartados que esa plantilla ya no trae.
 
 El 16 registra resultado, alcance revisado, diferencias, accesos, documentos, servicios, pendientes, reservas y líneas de firma.
 
@@ -95,3 +95,5 @@ Oportunidades con ID y segmento estables, gestión integrada, relación y refere
 Las emisiones utilizan exactamente una revisión guardada, con corte efectivo, entradas, resultados y SHA-256. PDF y metadata se conservan en almacenamiento separado privado. Se revisaron muestras sintéticas vacía, mixta y extensa (23 páginas en total), incluidas continuidad de textos largos y marcas finales. Son pruebas locales; no acreditan fuentes externas ni una migración o descarga real en Supabase.
 
 Ruling: sólo venta habilita el cálculo por valor y porcentaje. Renta/Otro muestran honorario pendiente y la necesidad de revisar su base. La conciliación histórica requiere fuente y ocho cifras explícitas o motivo de no aplicación; las sumas de origen con distintas monedas no se presentan como total económico.
+
+**Captura sobre el documento (29/10/2026, rama `feat/levantamiento-04b-en-vivo`, sin integrar):** todos los formatos de expediente, del 01 al 19 salvo el 03, se llenan pulsando el documento; la vista y el PDF salen del mismo escritor. El 18 asigna su número de recibo automático (folio del expediente y consecutivo).

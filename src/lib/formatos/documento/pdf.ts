@@ -422,7 +422,8 @@ class Writer {
       const start = { page: this.pages.length - 1, y: this.y, draws: this.draws[this.pages.length - 1] ?? 0 };
       this.splitRow(lines,leading,pad*2+(labels?3:7),(part,rowHeight)=>drawRow(part,FILLS[(band ? index + 1 : index) % 2],this.style.ink,this.fonts.regular,rowHeight),()=>{this.newPage();drawHead();},0,PAGE[1]-TOP-BOTTOM-headHeight);
       const keys = rowKeys?.[index];
-      if (keys?.length) this.blockZone({ keys, label: row[0] }, start);
+      // El nombre de la zona es el rótulo del renglón (en una banda, su primera línea).
+      if (keys?.length) this.blockZone({ keys, label: row[0].split("\n")[0] }, start);
     });
     this.y -= 8;
   }
@@ -482,7 +483,7 @@ class Writer {
       }
       case "caption": this.heading(block.text, 9.5, hex(COLORS.gray), -4, 8); break;
       case "signatures": this.signatures(block.parties, block.line); break;
-      case "band": this.table(block.widths, undefined, block.rows.map(row => row.map(cell => `${cell.label.toUpperCase()}\n${cell.value}`)), true); break;
+      case "band": this.table(block.widths, undefined, block.rows.map(row => row.map(cell => `${cell.label.toUpperCase()}\n${cell.value}`)), true, false, false, false, block.keys); break;
       case "table": this.table(block.widths, block.header, block.rows, false, false, false, !!block.small); break;
     }
     if (block.zona) this.blockZone(block.zona, start);

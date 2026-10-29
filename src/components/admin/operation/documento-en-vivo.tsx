@@ -21,7 +21,7 @@ import s from "./documento-en-vivo.module.css";
 */
 
 /** Formatos que se capturan sobre el documento en vivo. */
-export const EN_VIVO = new Set(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10"]);
+export const EN_VIVO = new Set(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);
 const IMAGE_KEYS = ["fotoPrincipalId", "croquisId"];
 const IMAGE_ERRORS: Record<string, string> = { "Selecciona la fotografía principal adjunta": "fotoPrincipalId", "Selecciona el croquis adjunto": "croquisId" };
 type Render = (doc: Documento) => Promise<Maqueta>;
@@ -216,7 +216,8 @@ export function DocumentoEnVivo({ definition, documentId, values, missing, disab
                 {editing.zona.keys.includes("fotografias") && <FormatoImages documentId={documentId} values={{ ...values, ...editing.draft }} disabled={saving || disabled}
                   onChange={(key, value) => setEditing(old => old && IMAGE_KEYS.includes(key) ? { ...old, draft: { ...old.draft, [key]: value } } : old)}
                   onUploaded={adjunto => setAdjuntos(list => list.some(item => item.id === adjunto.id) ? list : [...list, adjunto])} />}
-                <form id={formId} onSubmit={accept}><FormatoEditor narrow definition={{ ...definition, fields: editFields }} images={adjuntos} values={{ ...values, ...editing.draft }} onChange={(key, value) => setEditing(old => old && { ...old, draft: { ...old.draft, [key]: value } })} /></form>
+                {/* Sin validación del navegador: un dato faltante no impide guardar lo capturado (RP-82); lo que falta queda marcado. */}
+                <form id={formId} noValidate onSubmit={accept}><FormatoEditor narrow definition={{ ...definition, fields: editFields }} images={adjuntos} values={{ ...values, ...editing.draft }} onChange={(key, value) => setEditing(old => old && { ...old, draft: { ...old.draft, [key]: value } })} /></form>
               </>}
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           </fieldset>
