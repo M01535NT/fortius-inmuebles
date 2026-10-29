@@ -11,7 +11,7 @@ import { EntregaRowsEditor } from "@/components/admin/entrega-rows-editor";
 import { ENTREGA_TABLAS, type EntregaTabla } from "@/lib/formatos/entrega";
 import { respuestaRequiereRatificacion } from "@/lib/formatos/oferta";
 import { PlanRowsEditor } from "@/components/admin/plan-rows-editor";
-import { PLAN_TABLES, type PlanTable } from "@/lib/formatos/plan";
+import { mostrarCampoPlan, PLAN_TABLES, type PlanTable } from "@/lib/formatos/plan";
 import { ReporteRowsEditor } from "@/components/admin/reporte-rows-editor";
 import { REPORTE_TABLES, type ReporteTable } from "@/lib/formatos/reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable } from "@/lib/formatos/entrevista";
@@ -71,7 +71,7 @@ export function FormatoEditor({ definition, values, onChange, images, extras = t
       if (isOffer && [...responseFields, ...counterFields].includes(field.key) && values.estadoRespuesta !== "registrada") return null;
       if (isOffer && counterFields.includes(field.key) && values.decisionPropietario !== "contraoferta") return null;
       if (isOffer && field.key === "confirmacionVigencia" && !respuestaRequiereRatificacion(values)) return null;
-      if (definition.id === "10" && ["nombreAprobador", "fechaAprobacion", "acuseAprobacion"].includes(field.key) && values.estadoAprobacion !== "registrada") return null;
+      if (definition.id === "10" && !mostrarCampoPlan(field.key, values)) return null;
       const isReport = definition.id === "11";
       if (isReport && [["contactos", "contactosEstado"], ["visitas", "visitasEstado"], ["ofertas", "ofertasEstado"]].some(([key, state]) => field.key === key && values[state] !== "comprobado")) return null;
       if (isReport && ["agendadas", "realizadas", "canceladas", "reprogramadas", "pendientes"].includes(field.key) && values.registroVisitas !== "comprobado") return null;

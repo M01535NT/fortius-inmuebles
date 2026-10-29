@@ -60,3 +60,11 @@ describe("aviso de privacidad (01)", () => {
     expect(prefillFormato("02", context({}))).not.toHaveProperty("responsable");
   });
 });
+
+describe("plan de comercialización (10)", () => {
+  it("un plan nuevo llega con la operación, el tipo de inmueble y la fecha de hoy", () => {
+    const plan = prefillFormato("10", context({ tipoInmueble: "casa" }));
+    expect(plan).toMatchObject({ operacion: "Venta", tipoInmueble: "casa", propietario: "Persona de ensayo", folio: "EXP-ENSAYO" });
+    expect(plan.fecha).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});

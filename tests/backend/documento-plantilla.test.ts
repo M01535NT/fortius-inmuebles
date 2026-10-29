@@ -27,15 +27,16 @@ const docxAssets = { encabezado: readFileSync("public/brand/membrete-encabezado.
 const assets = { ...docxAssets, regular: readFileSync("public/fonts/Archivo-Regular.ttf"), bold: readFileSync("public/fonts/Archivo-SemiBold.ttf") };
 
 describe("documentos con el diseño de la plantilla", () => {
-  it("el 10 usa el texto de la plantilla y deja la línea donde falta un dato", () => {
+  it("el 10 sigue la plantilla del 26/10/2026: sus nueve secciones, sin título repetido y con los espacios en blanco", () => {
     const empty = planDocumento({});
-    expect(empty.blocks[0]).toEqual({ kind: "title", text: "Plan de comercialización" });
-    expect(empty.blocks[1]).toEqual({ kind: "p", text: `Proponemos ${BLANK} para alcanzar ${BLANK}. Este plan explica qué comunicaremos, cómo atenderemos a los interesados y qué revisaremos durante el lanzamiento. Encargo: ${BLANK}.` });
-    expect(empty.blocks.filter(b => b.kind === "h1").map(b => "text" in b && b.text)).toEqual(["01 La estrategia para su inmueble", "02 Del anuncio a la oferta", "03 Preparación de la campaña", "04 Los primeros 21 días", "05 Seguimiento y decisiones"]);
-    const filled = planDocumento({ estrategia: "Presentar la casa con fotografías", objetivo: "Vender en seis meses", propietario: "María Ramírez", folio: "EXP-10", fecha: "2026-10-04" });
-    expect(text(filled.blocks)).toContain("Proponemos presentar la casa con fotografías para alcanzar vender en seis meses.");
-    expect(text(filled.blocks)).toContain("\"label\":\"Propietario\",\"value\":\"María Ramírez\"");
-    expect(text(filled.blocks)).toContain("4 de octubre de 2026");
+    expect(empty.blocks.some(b => b.kind === "title")).toBe(false);
+    expect(empty.blocks.flatMap(b => b.kind === "form" && b.label ? [b.label] : []).filter(label => /^\d  /.test(label))).toEqual(["1  El inmueble  ·  Datos físicos y legales", "2  Precio de salida", "3  A quién se dirigirá la comercialización", "4  Del anuncio a la oferta", "5  Preparación y materiales", "6  Dónde se publicará", "7  Calendario y revisiones", "8  Seguimiento y responsabilidades", "9  Decisiones para iniciar y aprobación"]);
+    const cells = (doc: ReturnType<typeof planDocumento>) => doc.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []);
+    expect(cells(empty).find(c => c.q === "Propietario")?.a).toBe("");
+    const filled = planDocumento({ propietario: "María Ramírez", folio: "EXP-10", fecha: "2026-10-04" });
+    expect(cells(filled).find(c => c.q === "Propietario")?.a).toBe("María Ramírez");
+    expect(cells(filled).find(c => c.q === "Fecha de elaboración")?.a).toBe("4 de octubre de 2026");
+    expect(text(filled.blocks)).toContain("90 días, con revisión cada 30 días");
   });
   it("los datos a mitad de frase empiezan en minúscula, salvo siglas", () => {
     expect([m("Cocina renovada"), m("OVC-07"), m("IVA incluido"), m("")]).toEqual(["cocina renovada", "OVC-07", "IVA incluido", BLANK]);

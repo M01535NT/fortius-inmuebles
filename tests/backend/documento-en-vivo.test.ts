@@ -98,12 +98,14 @@ describe("captura sobre el documento", () => {
     }
   });
 
-  it("en los formatos 05 a 08 todo campo tiene su zona y la vista tiene las hojas del PDF", async () => {
+  it("en los formatos 05 a 10 todo campo tiene su zona y la vista tiene las hojas del PDF", async () => {
     const { DOCUMENTOS } = await import("@/lib/formatos/documento");
     const { mostrarCampoValor } = await import("@/lib/formatos/valor-fields");
+    const { mostrarCampoIntermediacion } = await import("@/lib/formatos/intermediacion");
+    const { mostrarCampoPlan } = await import("@/lib/formatos/plan");
     const { formatoById } = await import("@/lib/formatos/catalog");
     const files = await assets(), maquetar = await crearMaquetador(files);
-    for (const id of ["05", "06", "07", "08"]) {
+    for (const id of ["05", "06", "07", "08", "09", "10"]) {
       const build = DOCUMENTOS[id], fields = formatoById(id).fields;
       expect(build, id).toBeDefined();
       if (!build) continue;
@@ -112,7 +114,7 @@ describe("captura sobre el documento", () => {
         const doc = build(data, {}), maqueta = await maquetar(doc);
         expect(maqueta.pages.length, id).toBe((await PDFDocument.load(await renderDocumentoPdf(doc, files))).getPageCount());
         const covered = new Set(maqueta.zonas.flatMap(zona => zona.keys));
-        expect(fields.filter(field => field.key !== "folio" && mostrarCampoValor(field.key, data) && !covered.has(field.key)).map(field => field.key), id).toEqual([]);
+        expect(fields.filter(field => field.key !== "folio" && mostrarCampoValor(field.key, data) && mostrarCampoIntermediacion(field.key, data) && mostrarCampoPlan(field.key, data) && !covered.has(field.key)).map(field => field.key), id).toEqual([]);
       }
     }
   });

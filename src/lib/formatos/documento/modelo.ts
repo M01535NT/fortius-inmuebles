@@ -48,7 +48,8 @@ export type Block = ({ zona?: ZonaBloque }) & (
   /** Estilo contrato: título centrado en negritas, cláusula con encabezado en negritas, tabla etiqueta/valor y firmas. */
   | { kind: "center"; text: string }
   | { kind: "clause"; lead: string; text: string }
-  | { kind: "fields"; widths: [number, number]; rows: Array<[string, string]>; dark?: boolean }
+  /** keys: los campos que llenan cada renglón, en el mismo orden (la captura en vivo lo pulsa completo). */
+  | { kind: "fields"; widths: [number, number]; rows: Array<[string, string]>; dark?: boolean; keys?: Array<string[] | undefined> }
   | { kind: "signatures"; parties: Array<{ role: string; name: string }>; line?: boolean });
 
 /** Parte de un renglón con casillas: con «check» es una casilla dibujada (marcada si es true); sin él, texto. */

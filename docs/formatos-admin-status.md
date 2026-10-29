@@ -22,7 +22,7 @@ El 06 redacta una opinión jurídica en prosa con conclusión sustentada, alcanc
 
 El 08 reproduce el precio sugerido por la opinión 07, el precio acordado, la selección de base, las once posibles erogaciones, los controles del respaldo fiscal y el neto; no aplica tasas fiscales por defecto. La referencia a la opinión 07 y el respaldo fiscal son datos capturados y revisados por el responsable, sin comprobación automática contra esos documentos.
 
-El 10 incorpora estrategia, precio autorizado, evidencias, materiales, canales, calendario de 21 días, extras, seguimiento y decisiones; las referencias al 07 y al contrato 09 son capturadas, sin cotejo automático.
+El 10 sigue la plantilla del 26/10/2026 (DEC-34, en la rama `feat/levantamiento-04b-en-vivo`, sin integrar): un formulario con casillas para el inmueble, comparables con precio promedio por m² y precio técnico calculados, perfiles de comprador, AIDA, materiales, canales autorizados, publicidad pagada, calendario de 21 días, revisiones, seguimiento y aprobación. Se captura sobre el documento; las referencias al 07 y al 09 se proponen al crearlo y se confirman.
 
 El 11 distingue cifras comprobadas de datos pendientes, registra canales, oportunidades y decisiones, y calcula el saldo de fondos de publicidad sin restar pagos directos al portal por segunda vez.
 

@@ -6,6 +6,7 @@ import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 import { checklistFor, checklistTaskId, levantamientoFor } from "@/lib/formatos/checklist-documentos";
 import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
+import { calcularValor } from "@/lib/formatos/valor";
 import type { LevantamientoId } from "@/lib/formatos/levantamiento";
 import { downloadFormatoCopia, saveBlob } from "@/lib/admin/download-word";
 import type { FormatStatus, OperationRecord } from "@/lib/admin/operation-view";
@@ -93,9 +94,10 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
       const valor = latest("07");
       return { data: { erogaciones: CARGOS_NETO.map(item => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) }, ...(valor && pdfOf(valor) ? { valorReferencia: { id: valor.id, version: valor.version } } : {}) };
     }
+    if (formatoId === "10") return { data: planSeed(latest("04")?.data, latest("07")?.data, latest("09")?.data) };
     return { data: {} };
   }
-  /** Crea un borrador del formato; el 05 y el 08 nacen con lo que ya se sabe de la operación. */
+  /** Crea un borrador del formato; el 05, el 08 y el 10 nacen con lo que ya se sabe de la operación. */
   async function create(formatoId: string, seed: { data?: Record<string, unknown>; valorReferencia?: { id: string; version: number } } = seedFor(formatoId)) {
     return guard(async () => {
       const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${op.id}/formatos`, post({ formatoId, data: seed.data ?? {}, ...(seed.valorReferencia ? { valorReferencia: seed.valorReferencia } : {}) }));
@@ -141,4 +143,25 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     onClose={() => setOpen(null)} />;
 
   return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, busy, error, capture, isOpen: !!open };
+}
+
+/**
+  Plan 10: lo que ya saben el levantamiento, la opinión de valor y el contrato. Solo propone
+  datos para un borrador nuevo; el asesor los confirma o corrige sobre el documento.
+*/
+function planSeed(levantamiento?: Record<string, unknown>, valor?: Record<string, unknown>, contrato?: Record<string, unknown>): Record<string, unknown> {
+  const l = levantamiento ?? {}, o = valor ?? {}, c = contrato ?? {};
+  const numero = (...values: unknown[]) => values.find(value => typeof value === "number" && Number.isFinite(value) && value >= 0);
+  const texto = (...values: unknown[]) => values.find(value => typeof value === "string" && value.trim());
+  let concluido: number | null = null;
+  try { concluido = valor ? calcularValor(o).concluido : null; } catch { /* opinión incompleta */ }
+  const firma = typeof c.fecha === "string" && /^\d{4}-\d{2}-\d{2}$/.test(c.fecha) ? new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${c.fecha}T00:00:00Z`)) : "";
+  const seed: Record<string, unknown> = {
+    terreno: numero(l.superficieTerreno, o.terreno), construccion: numero(l.superficieConstruccion, l.superficieConstrucciones, o.construccion),
+    recamaras: numero(l.recamaras, o.recamaras), banos: numero(l.banos, o.banos), mediosBanos: numero(l.mediosBanos),
+    claveCatastral: texto(c.claveCatastral, o.cuentaCatastral), folioReal: texto(c.folioReal),
+    valorReferencia07: concluido ?? undefined,
+    contrato09: contrato ? [texto(c.folio), firma].filter(Boolean).join(" · ") || undefined : undefined,
+  };
+  return Object.fromEntries(Object.entries(seed).filter(([, value]) => value !== undefined && value !== ""));
 }

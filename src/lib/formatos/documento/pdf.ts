@@ -397,7 +397,8 @@ class Writer {
     this.y -= after;
   }
   /** Tabla de ancho completo: celdas con relleno, texto en 9.5 pt y encabezado repetido al cambiar de página. */
-  table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false, small = false) {
+  /** «rowKeys»: los campos que llenan cada renglón (condiciones particulares del contrato); el renglón se pulsa completo. */
+  table(widths: number[], header: string[] | undefined, rows: string[][], band = false, labels = false, dark = false, small = false, rowKeys?: Array<string[] | undefined>) {
     const total = widths.reduce((a, b) => a + b, 0), cols = widths.map(w => w / total * WIDTH);
     const CELL = small ? 7.5 : this.style.cell, pad = 3.75, leading = CELL * (labels ? 1.12 : 1.25);
     const layout = (cells: string[], font: PDFFont) => cells.map((cell, i) => wrap(cell, labels && i === 0 ? this.fonts.bold : font, CELL, cols[i] - pad * 2));
@@ -418,7 +419,10 @@ class Writer {
     drawHead();
     rows.forEach((row, index) => {
       const lines = layout(row, this.fonts.regular);
+      const start = { page: this.pages.length - 1, y: this.y, draws: this.draws[this.pages.length - 1] ?? 0 };
       this.splitRow(lines,leading,pad*2+(labels?3:7),(part,rowHeight)=>drawRow(part,FILLS[(band ? index + 1 : index) % 2],this.style.ink,this.fonts.regular,rowHeight),()=>{this.newPage();drawHead();},0,PAGE[1]-TOP-BOTTOM-headHeight);
+      const keys = rowKeys?.[index];
+      if (keys?.length) this.blockZone({ keys, label: row[0] }, start);
     });
     this.y -= 8;
   }
@@ -467,7 +471,7 @@ class Writer {
       case "p": this.paragraph(block.text, "", { indent: block.indent, strong: block.strong }); break;
       case "clause": this.paragraph(block.text, block.lead); break;
       case "center": this.centered(block.text, this.style.body, 4, 6); break;
-      case "fields": this.table(block.widths, undefined, block.dark ? block.rows.map(([l, v]) => [l.toUpperCase(), v]) : block.rows, false, true, !!block.dark); break;
+      case "fields": this.table(block.widths, undefined, block.dark ? block.rows.map(([l, v]) => [l.toUpperCase(), v]) : block.rows, false, true, !!block.dark, false, block.keys); break;
       case "numbered": {
         this.ensure(14 + 13 + this.style.body * 4);
         this.y -= 12;

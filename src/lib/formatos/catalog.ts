@@ -2,7 +2,7 @@ import { validarPresupuesto } from "./presupuesto";
 import { validarNeto } from "./neto";
 import { validarEntrega } from "./entrega";
 import { validarOferta } from "./oferta";
-import { validarPlan } from "./plan";
+import { mostrarCampoPlan, planFields, validarPlan } from "./plan";
 import { validarReporte } from "./reporte";
 import { entrevistaFields, validarEntrevista } from "./entrevista";
 import { camposRepresentante, mostrarCampoAviso, validarAviso } from "./aviso";
@@ -200,50 +200,8 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     field("responsableEstimacion", "Responsable de la estimación"),
   ], true),
   f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, intermediacionFields),
-  f("10", "Plan_de_comercializacion", "docx", 3, [
-    folio, inmueble, propietario, asesor, field("contactoAsesor", "Contacto del asesor"), fecha,
-    choice("operacion", "Operación", [{ value: "venta", label: "Venta" }, { value: "renta", label: "Renta" }]),
-    field("modalidadEncargo", "Modalidad del encargo"),
-    field("valorReferencia07", "Valor de referencia 07", "money"), field("referencia07", "Referencia y fecha de la opinión 07"),
-    field("precioSalida", "Precio de salida autorizado", "money"), moneda,
-    field("baseFiscal", "Base fiscal y alcance del precio"), field("autorizacionPrecio", "Soporte de autorización del precio"),
-    field("decisionPrecio", "Siguiente decisión de precio"), field("justificacionDiferencia", "Justificación de diferencia entre valor y precio", "long"),
-    field("objetivo", "Objetivo del propietario", "long"), field("estrategia", "Estrategia propuesta", "long"),
-    field("periodo", "Primer periodo de trabajo"), field("fechaRevision", "Fecha de revisión", "date"),
-    field("condicionesLanzamiento", "Condiciones para lanzar", "long"),
-    field("diferenciador", "Fortaleza comprobable", "long"), field("objecionRespuesta", "Objeción y respuesta sustentada", "long"),
-    field("competencia", "Competencia y referencia del 07", "long"), field("pendientesCampana", "Pendientes que limitan la campaña", "long"),
-    field("atributos", "Atributos, evidencia y mensaje", "planRows"),
-    field("publicoPrimario", "Público prioritario: uso, presupuesto, zona y plazo", "long"),
-    field("publicoSecundario", "Público secundario o no aplica", "long"),
-    field("mensajePrueba", "Mensaje a probar", "long"), field("evidenciaValidacion", "Evidencia para validar el público", "long"),
-    field("fechaLanzamiento", "Fecha prevista de lanzamiento", "date"), field("aprobadorContenido", "Responsable de aprobar contenidos"),
-    field("preparacion", "Trabajos previos: acción, responsable y fecha", "long"),
-    field("hitos", "Preparación y calendario", "planRows"), field("piezas", "Materiales de difusión", "planRows"),
-    field("contactoPublico", "Contacto público autorizado"), field("ubicacionPublicable", "Ubicación que puede difundirse"),
-    field("colaboracion", "Referidos y colaboración autorizados", "long"), field("canales", "Canales y piezas seleccionados", "planRows"),
-    field("corte7", "Corte del día 7", "date"), field("corte14", "Corte del día 14", "date"), field("corte21", "Corte del día 21", "date"),
-    choice("estadoPublicidad", "Estado de la publicidad pagada", [
-      { value: "no_contratada", label: "No contratada" }, { value: "contratada", label: "Contratada con autorización" },
-    ]),
-    field("extras", "Publicidad pagada y extras", "planRows", false), field("unidadesFases", "Unidades y fases o no aplica", "long"),
-    field("mediosAtencion", "Medios para atender consultas"), field("tiempoRespuesta", "Tiempo de respuesta y horario"),
-    field("horariosVisita", "Horarios y condiciones de visita"), field("responsableAcceso", "Responsable de acceso"),
-    field("formasPago", "Formas de pago a evaluar y condiciones", "long"),
-    field("documentosRestringidos", "Documentación de acceso restringido", "long"), field("custodioDocumentos", "Custodio de documentos"),
-    field("medioReporte", "Medio de entrega del reporte 11"), field("frecuencia09", "Frecuencia pactada en el 09"),
-    field("proximoCorte", "Próximo corte", "date"), field("destinatarioReporte", "Destinatario del reporte"),
-    field("criterioRevision", "Criterio acordado para revisar la estrategia", "long"),
-    field("decisiones", "Decisiones para iniciar", "planRows"),
-    choice("estadoAprobacion", "Estado de aceptación del plan", [
-      { value: "pendiente", label: "Pendiente de aceptación expresa" }, { value: "registrada", label: "Aceptación registrada" },
-    ]),
-    field("nombreAprobador", "Propietario o representante que aceptó", "text", false),
-    field("fechaAprobacion", "Fecha de aceptación", "date", false),
-    field("acuseAprobacion", "Firma o referencia del acuse", "text", false),
-    field("siguienteAccion", "Siguiente acción"), field("responsableSiguiente", "Responsable de la siguiente acción"),
-    field("fechaSiguiente", "Fecha de la siguiente acción", "date"),
-  ], true),
+  // Plantilla del 26/10/2026, aprobada por el titular el 29/10/2026 (src/lib/formatos/plan.ts).
+  f("10", "Plan_de_comercializacion", "docx", 3, planFields, true),
   f("11", "Reporte_de_comercializacion_al_propietario", "docx", 3, [
     folio, field("numeroReporte", "Número de reporte"), inmueble, propietario,
     field("periodoInicio", "Inicio del periodo informado", "date"), field("periodoFin", "Fin del periodo informado", "date"),
@@ -519,6 +477,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     if (id === "07" && !mostrarCampoValor(item.key, data)) return false;
     if (id === "15" && !mostrarCampoPromesa(item.key, data)) return false;
     if (id === "09" && !mostrarCampoIntermediacion(item.key, data)) return false;
+    if (id === "10" && !mostrarCampoPlan(item.key, data)) return false;
     if (item.type === "valorRows" || item.type === "promesaRows" || item.type === "intermediacionRows") return false;
     if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows" || item.type === "levantamientoRows") return false;
     const value = data[item.key];

@@ -41,6 +41,8 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   motivoSiguiente:a.siguienteAccion,fechaSeguimiento:a.siguienteFecha,responsableSeguimiento:asesor?.nombre,
   // Levantamiento (04A–04G): se hace el mismo día de la entrevista y lo elabora el asesor; ambos se pueden corregir.
   ...(/^04[A-G]$/.test(formatoId)?{fechaVisita:hoyTijuana(),elaboro:asesor?.nombre}:{}),
+  // Plan (10): se elabora hoy; lo demás lo proponen el levantamiento, el 07 y el 09 al crearlo.
+  ...(formatoId==="10"?{fecha:hoyTijuana()}:{}),
   // Aviso (01): los datos del responsable son los del aviso publicado en el sitio; la fecha de emisión, hoy.
   ...(formatoId==="01"?{responsable:SITE_TERMS.responsible,domicilioResponsable:privacyAddress,contactoPrivacidad:SITE_TERMS.responsible,correoPrivacidad:SITE_TERMS.email,fechaEmision:hoyTijuana()}:{}),
  };
