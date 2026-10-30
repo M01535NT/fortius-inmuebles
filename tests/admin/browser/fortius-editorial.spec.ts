@@ -41,7 +41,7 @@ for (const width of [390, 1440]) {
     const owner = menu.getByRole("region", { name: "Vender con Fortius" });
     const sell = owner.getByRole("link", { name: "Vender mi propiedad" });
     await expect(sell).toHaveAttribute("href", "/vender-propiedad");
-    await expect(owner.getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
+    await expect(menu.getByRole("region", { name: "Guías y herramientas" }).getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
     await expect(primary.getByRole("link", { name: "Propiedades", exact: true })).toHaveAttribute("href", "/inventario");
     await expect(menu.getByRole("link", { name: "Contacto directo" })).toHaveAttribute("href", "/contacto");
     await sell.scrollIntoViewIfNeeded();

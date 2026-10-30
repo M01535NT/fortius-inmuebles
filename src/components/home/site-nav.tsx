@@ -16,12 +16,11 @@ import styles from "./site-nav.module.css";
 /* Una sola barra para todo el sitio (boceto 2): blanca con línea inferior. En
    la portada flota sobre la foto hasta que se desplaza la página. El menú
    desplegable conserva el resto de las rutas. */
-const LINKS: { href: string; label: string; wide?: boolean }[] = [
+const LINKS: { href: string; label: string; wide?: boolean; match?: string[] }[] = [
   { href: "/inventario", label: "Propiedades" },
   { href: "/comprar-propiedad", label: "Comprar" },
   { href: "/vender-propiedad", label: "Vender" },
-  { href: "/opinion-de-valor", label: "Opinión de valor" },
-  { href: "/herramientas", label: "Herramientas", wide: true },
+  { href: "/herramientas", label: "Herramientas", match: ["/opinion-de-valor"] },
   { href: "/nosotros", label: "Nosotros" },
 ];
 
@@ -58,7 +57,7 @@ export function SiteNav() {
         <Link href="/" aria-label="Fortius Inmuebles, inicio" className={styles.logo}><BrandMark inverse={!solid} /></Link>
         <nav aria-label="Principal" className={styles.nav}>
           {LINKS.map((link) => (
-            <Link key={link.href} href={link.href} aria-current={isCurrent(pathname, link.href) ? "page" : undefined}
+            <Link key={link.href} href={link.href} aria-current={[link.href, ...(link.match ?? [])].some((href) => isCurrent(pathname, href)) ? "page" : undefined}
               className={`${styles.link} ${link.wide ? styles.wide : ""}`}>{link.label}</Link>
           ))}
         </nav>

@@ -19,7 +19,6 @@ const sections = [
   ] },
   { title: "Trabajar con Fortius", links: [
     { href: "/#metodo", label: "Método" },
-    { href: "/opinion-de-valor", label: "Opinión de valor" },
     { href: "/#revision", label: "Revisión documental" },
     { href: "/preguntas-frecuentes", label: "Preguntas frecuentes" },
     { href: "/nosotros", label: "Nosotros" },
@@ -30,6 +29,7 @@ const sections = [
     { href: "/blog", label: "Blog" },
     { href: "/herramientas/hipoteca", label: "Calculadora de hipoteca" },
     { href: "/herramientas/gastos-de-cierre", label: "Calculadora de gastos de cierre" },
+    { href: "/opinion-de-valor", label: "Opinión de valor" },
   ] },
 ];
 
