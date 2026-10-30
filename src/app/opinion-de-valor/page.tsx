@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const INCLUDES = [
   { title: "Propiedades comparables", text: "Inmuebles parecidos al tuyo en zona, superficie, características y estado." },
-  { title: "Fuentes de la información", text: "De dónde sale cada dato, y si es un precio anunciado o una operación documentada." },
+  { title: "Fuentes de la información", text: "De dónde sale cada dato y cuáles quedan por confirmar." },
   { title: "Rango de precio propuesto", text: "Un precio de salida y el margen razonable para negociar." },
   { title: "Límites de la información", text: "Qué datos faltan por confirmar y cómo podrían cambiar la propuesta." },
 ];

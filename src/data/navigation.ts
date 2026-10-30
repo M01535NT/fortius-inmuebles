@@ -7,8 +7,8 @@ export const navigationGroups = [
   ] },
   { label: "Servicios", href: "/vender-propiedad", heading: "Tu operación, paso a paso.", featured: "Vender mi propiedad", links: [
     { href: "/#metodo", label: "Método", detail: "Cómo coordinamos cada etapa." },
-    { href: "/#entregables", label: "Entregables", detail: "Los documentos de tu operación." },
-    { href: "/due-diligence-inmobiliaria", label: "Revisión documental", detail: "Qué revisamos antes de vender." },
+    { href: "/#promocion", label: "Cómo promovemos", detail: "Fotos, video, recorrido y más." },
+    { href: "/#revision", label: "Revisión documental", detail: "Qué revisamos antes de vender." },
     { href: "/opinion-de-valor", label: "Opinión de valor", detail: "Cómo proponemos el precio de salida." },
   ] },
   { label: "Nosotros", href: "/nosotros", heading: "Conoce a Fortius.", featured: "Nuestro equipo", links: [

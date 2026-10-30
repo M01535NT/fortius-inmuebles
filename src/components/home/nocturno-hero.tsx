@@ -24,7 +24,7 @@ export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[
       gsap.timeline({ defaults: { ease: "power3.out" } })
         .from(".nx-hero-line > span", { yPercent: 110, duration: 1.6, stagger: 0.18 }, 0.2)
         .from(".nx-search", { opacity: 0, y: 24, duration: 1.3 }, 0.8)
-        .from(".nx-hero-seller", { opacity: 0, duration: 1.1 }, 1.1)
+        .from(".nx-hero-sub, .nx-hero-actions", { opacity: 0, y: 16, duration: 1.1, stagger: 0.12 }, 0.7)
         .from(".nx-marquee", { opacity: 0, duration: 1.4 }, 1.3);
       // La foto se acerca con el desplazamiento en lugar de moverse sola al cargar.
       gsap.fromTo(".nx-hero-media img", { scale: 1.12 }, {
@@ -55,6 +55,11 @@ export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[
           <span className="nx-hero-line"><span>La venta empieza</span></span>{" "}
           <span className="nx-hero-line"><span>antes del anuncio.</span></span>
         </h1>
+        <p className="nx-hero-sub">Revisamos, valuamos, preparamos y promovemos tu propiedad, de la primera conversación a la firma.</p>
+        <div className="nx-hero-actions">
+          <Link href="/vender-propiedad#diagnostico" className="nx-btn nx-btn-primary">Pide tu opinión de valor</Link>
+          <Link href="/#metodo" className="nx-btn">Ver cómo trabajamos</Link>
+        </div>
         <form role="search" aria-label="Buscar propiedades" action="/inventario" onSubmit={submit} className="nx-search">
           <label className="nx-field">
             <span className="nx-field-label">Operación</span>
@@ -83,9 +88,6 @@ export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[
           </label>
           <button type="submit" className="nx-search-submit"><Search size={18} aria-hidden="true" />Buscar</button>
         </form>
-        <Link href="/vender-propiedad" className="nx-hero-seller">
-          ¿Quieres vender? <strong>Pide una opinión de valor</strong>
-        </Link>
       </div>
       <div className="nx-marquee" data-paused={paused}>
         <div className="nx-marquee-window">

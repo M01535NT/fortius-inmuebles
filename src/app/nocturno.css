@@ -248,13 +248,14 @@
 .nx-post > span { color: var(--nx-muted); font-size: 14px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .nx-post time { color: var(--nx-muted); font-size: 13px; }
 
-.nx-team { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.nx-team { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 280px)); gap: 28px 20px; }
 .nx-person { display: flex; flex-direction: column; gap: 4px; }
 .nx-person-photo { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 5; margin-bottom: 12px; overflow: hidden; border-radius: 18px; background: #e8ecf2; color: #061f3f; font-size: 44px; font-weight: 600; }
 .nx-person-photo img { object-fit: cover; }
 .nx-person strong { font-size: 18px; font-weight: 600; }
-.nx-person > span:last-child { color: var(--nx-muted); font-size: 14px; }
-.nx-team-note { margin-top: 0; }
+.nx-person-role { color: var(--nx-muted); font-size: 14px; }
+.nx-person-bio { margin-top: 6px; color: var(--nx-muted); font-size: 14px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.nx-person-photo.is-mark { background: #061f3f; }
 @media (max-width: 1023px) {
   .nx-segments { grid-template-columns: 1fr; }
   .nx-segment { min-height: 0; }
@@ -263,6 +264,45 @@
   .nx-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) { .nx-segment, .nx-segment-foot svg, .nx-btn { transition: none; } .nx-segment:hover, .nx-btn:hover { transform: none; } }
+
+/* Inicio · revisión documental, opinión de valor y promoción */
+.nx-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: clamp(32px, 6vw, 88px); }
+.nx-checks, .nx-steps, .nx-feats, .nx-report ul { margin: 0; padding: 0; list-style: none; }
+.nx-checks { display: flex; flex-direction: column; gap: 10px; margin: 24px 0 20px; }
+.nx-checks li { position: relative; padding-left: 28px; font-size: 16px; line-height: 1.5; }
+.nx-checks li::before { content: ""; position: absolute; top: 0.55em; left: 0; width: 14px; height: 2px; background: var(--ns-accent); }
+.nx-link svg { flex: none; }
+.nx-report { overflow: hidden; border: 1px solid var(--nx-line); border-radius: 24px; background: var(--nx-card); }
+.nx-report-head { margin: 0; padding: 20px 24px; border-bottom: 1px solid var(--nx-line); font-size: 16px; font-weight: 600; }
+.nx-report-head span { color: var(--nx-muted); font-weight: 400; }
+.nx-report li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--nx-line); font-size: 16px; }
+.nx-report-status { display: inline-flex; align-items: center; gap: 8px; color: var(--nx-muted); font-size: 14px; white-space: nowrap; }
+.nx-report-status i { width: 10px; height: 10px; border-radius: 99px; background: #2f7d4f; }
+.nx-report li.is-pending .nx-report-status i { background: #b7791f; }
+.nx-report li.is-expert .nx-report-status i { background: #3b5b8c; }
+.nx-report-foot { margin: 0; padding: 16px 24px 20px; color: var(--nx-muted); font-size: 13px; line-height: 1.55; }
+.nx-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; counter-reset: step; }
+.nx-steps li { display: flex; flex-direction: column; gap: 8px; padding: 22px; border: 1px solid var(--nx-line); border-radius: 18px; background: var(--nx-card); }
+.nx-step-n { color: var(--ns-accent); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.nx-steps h3, .nx-feats h3 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.3; }
+.nx-steps p, .nx-feats p { margin: 0; color: var(--nx-muted); font-size: 14px; line-height: 1.55; }
+.nx-note { max-width: 70ch; margin: 24px 0 0; color: var(--nx-muted); font-size: 15px; line-height: 1.6; }
+.nx-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.nx-feats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.nx-feats li { display: flex; flex-direction: column; gap: 8px; padding: 26px; border: 1px solid var(--nx-line); border-radius: 18px; background: var(--nx-card); transition: border-color 0.3s; }
+.nx-feats li:hover { border-color: color-mix(in srgb, var(--ns-accent) 55%, transparent); }
+.nx-hero-sub { max-width: 46ch; margin: 20px 0 0; color: rgba(255, 255, 255, 0.88); font-size: clamp(16px, 1.6vw, 20px); line-height: 1.5; }
+.nx-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.nx-hero .nx-btn { border-color: rgba(255, 255, 255, 0.45); color: #fff; }
+.nx-hero .nx-btn:hover { background: rgba(255, 255, 255, 0.12); border-color: #fff; }
+.nx-hero .nx-btn-primary { border-color: #8a1634; background: #8a1634; }
+.nx-hero .nx-btn-primary:hover { border-color: #a2223f; background: #a2223f; }
+@media (max-width: 1023px) {
+  .nx-split { grid-template-columns: 1fr; }
+  .nx-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nx-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) { .nx-steps, .nx-feats { grid-template-columns: 1fr; } }
 
 /* Footer nocturno: cierre común de todo el sitio (boceto HomeNocturno) */
 .public-footer:has(.nx-footer) { position: relative; bottom: auto; }

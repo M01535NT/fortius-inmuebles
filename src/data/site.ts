@@ -51,16 +51,4 @@ export const routePages = {
       "Oferta y condiciones por escrito.",
     ],
   },
-  dueDiligence: {
-    title: "Due diligence inmobiliaria antes de avanzar",
-    eyebrow: "Due diligence",
-    description:
-      "Revisamos la documentación disponible para identificar pendientes y riesgos que conviene resolver antes de comprometerte.",
-    bullets: [
-      "Revisión documental inicial.",
-      "Identificación de riesgos comerciales.",
-      "Criterio para precio y negociación.",
-      "Recomendación de siguiente paso.",
-    ],
-  },
 };

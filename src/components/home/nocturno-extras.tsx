@@ -7,7 +7,7 @@ import type { Post, Testimonio } from "@/lib/domain/records";
 import { formatBlogDate, postDate } from "@/lib/blog-editorial";
 import { SEGMENTOS_INMUEBLE, inventarioDeSegmento } from "@/lib/inmueble-segmentos";
 
-type Perfil = { id: string; nombre: string; cargo: string; iniciales: string; foto?: string };
+type Perfil = { id: string; nombre: string; cargo: string; iniciales: string; foto?: string; descripcion?: string };
 
 /* Atajos por tipo: cada tarjeta abre el inventario con el filtro aplicado. */
 export function NocturnoSegmentos({ properties }: { properties: Property[] }) {
@@ -112,27 +112,30 @@ export function NocturnoRecursos({ posts }: { posts: Post[] }) {
   </section>;
 }
 
-/* Equipo: solo perfiles publicados desde el panel; sin ninguno, invita a conocer al asesor. */
-export function NocturnoEquipo({ team }: { team: Perfil[] }) {
+/* Equipo: perfiles publicados desde el panel, con foto y una descripción breve. Sin ninguno,
+   se muestra el perfil ilustrativo (con el símbolo de la marca en lugar de foto). */
+export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; ilustrativo?: boolean }) {
   return <section id="equipo" aria-labelledby="equipo-title" className="nx-section nx-container">
     <div className="nx-head">
       <div>
-        <h2 id="equipo-title" className="nx-title">Un asesor a cargo de cada operación.</h2>
+        <h2 id="equipo-title" className="nx-title">El equipo que acompaña tu operación.</h2>
+        <p className="nx-lead">Captar una propiedad y venderla son dos etapas, y pueden atenderlas personas distintas. Conoce a quienes forman el equipo.</p>
       </div>
       <Link href="/nosotros#agentes" className="nx-link">Conocer al equipo</Link>
     </div>
-    {team.length
-      ? <ul className="nx-team">
-          {team.slice(0, 4).map((person) => <li key={person.id}>
-            <Link href="/nosotros#agentes" className="nx-person">
-              <span className="nx-person-photo">{person.foto
-                ? <Image unoptimized src={person.foto} alt="" fill sizes="(max-width: 767px) 50vw, 240px" />
-                : <span aria-hidden="true">{person.iniciales}</span>}</span>
-              <strong>{person.nombre}</strong>
-              <span>{person.cargo}</span>
-            </Link>
-          </li>)}
-        </ul>
-      : <p className="nx-lead nx-team-note">Tu asesor coordina la información, las visitas y la negociación, desde la primera conversación hasta la entrega.</p>}
+    <ul className="nx-team">
+      {team.slice(0, 6).map((person) => <li key={person.id}>
+        <Link href="/nosotros#agentes" className="nx-person">
+          <span className={"nx-person-photo" + (ilustrativo ? " is-mark" : "")}>{ilustrativo
+            ? <Image src="/brand/fortius-symbol-inverse.svg" alt="" width={74} height={94} />
+            : person.foto
+              ? <Image unoptimized src={person.foto} alt={`Foto de ${person.nombre}`} fill sizes="(max-width: 767px) 50vw, 300px" />
+              : <span aria-hidden="true">{person.iniciales}</span>}</span>
+          <strong>{person.nombre}</strong>
+          <span className="nx-person-role">{person.cargo}</span>
+          {person.descripcion && <span className="nx-person-bio">{person.descripcion}</span>}
+        </Link>
+      </li>)}
+    </ul>
   </section>;
 }

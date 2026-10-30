@@ -71,7 +71,7 @@ export default function ComprarInmueblePage() {
           <p className="pg-muted">{item.text}</p>
         </li>)}
       </ul>
-      <p className="gd-note">Si el estado civil de quien vende o la forma en que adquirió el inmueble lo requieren, puede hacer falta la firma de más personas. <Link href="/due-diligence-inmobiliaria" className="editorial-text-link">Conoce nuestra revisión documental</Link>.</p>
+      <p className="gd-note">Si el estado civil de quien vende o la forma en que adquirió el inmueble lo requieren, puede hacer falta la firma de más personas. <Link href="/#revision" className="editorial-text-link">Conoce nuestra revisión documental</Link>.</p>
     </section>
 
     <section id="gastos" className="pg-container pg-section" aria-labelledby="gd-gastos">

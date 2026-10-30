@@ -7,11 +7,11 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     const hero = page.locator(".nx-hero");
     const order = await page.locator("main section").evaluateAll((nodes) => nodes.map((node) =>
       node.id || (node.classList.contains("nx-hero") ? "hero" : "unknown")));
-    expect(order).toEqual(["hero", "segmentos", "destacadas", "por-que-fortius", "metodo", "comprar", "recursos", "equipo", "respuestas"]);
+    expect(order).toEqual(["hero", "por-que-fortius", "metodo", "revision", "opinion", "promocion", "destacadas", "segmentos", "comprar", "equipo", "recursos", "respuestas"]);
     // Buyers start with the search; owners with the valuation link.
     await expect(hero.getByRole("search", { name: "Buscar propiedades" })).toHaveAttribute("action", "/inventario");
-    const seller = hero.getByRole("link", { name: /Pide una opinión de valor/ });
-    await expect(seller).toHaveAttribute("href", "/vender-propiedad");
+    const seller = hero.getByRole("link", { name: /Pide tu opinión de valor/ });
+    await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
     await expect(page.locator("#destacadas [data-property-card]")).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText(/de ejemplo$/)).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText("Apartada de ejemplo", { exact: true })).toBeVisible();
@@ -35,7 +35,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await expect(page.locator("[data-page-curtain]")).toBeHidden();
     await page.goBack();
     await seller.click();
-    await expect(page).toHaveURL(/\/vender-propiedad$/);
+    await expect(page).toHaveURL(/\/vender-propiedad#diagnostico$/);
     await expect(page.locator("#diagnostico form")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
