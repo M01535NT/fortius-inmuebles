@@ -98,7 +98,7 @@ export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefi
   return brandCopy(value && !isOldDefault ? value : HOME_FIELDS[key].value);
 }
 
-export const SITE_COPY: Omit<SiteContent, "homeTexts"> = {
+export const SITE_COPY: Omit<SiteContent, "homeTexts" | "preguntas" | "testimonios"> = {
   heroTitulo: "Tu propiedad merece\nuna estrategia,\nno solo un anuncio.",
   heroSubtitulo: "Somos una inmobiliaria en Baja California. Comercializamos inmuebles residenciales, comerciales e industriales con análisis de mercado, revisión documental y seguimiento de la operación.",
   manifiestoTitulo: "Información para decidir.\nUn asesor para coordinar.",

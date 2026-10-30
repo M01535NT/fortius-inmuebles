@@ -27,42 +27,6 @@ export const siteConfig = {
 // El inventario público se lee del backend independiente del panel MNT.
 
 export const routePages = {
-  residencial: {
-    title: "Casas y departamentos para vivir",
-    eyebrow: "Residencial",
-    description:
-      "Te acompañamos al comprar, vender o rentar. Revisamos las características del inmueble, su precio y la documentación disponible.",
-    bullets: [
-      "Distribución y estado físico observable.",
-      "Superficies y documentos según su fuente.",
-      "Presupuesto total y forma de pago.",
-      "Condiciones de ocupación y entrega.",
-    ],
-  },
-  comercial: {
-    title: "Locales y oficinas para tu negocio",
-    eyebrow: "Comercial",
-    description:
-      "Revisamos ubicación, accesos y condiciones del espacio según la actividad que buscas desarrollar o el inmueble que quieres ofrecer.",
-    bullets: [
-      "Uso previsto y restricciones del espacio.",
-      "Acceso, visibilidad y adaptación necesaria.",
-      "Renta o precio más gastos de ocupación.",
-      "Condiciones del contrato y entrega.",
-    ],
-  },
-  industrial: {
-    title: "Inmuebles industriales con revisión previa",
-    eyebrow: "Industrial",
-    description:
-      "Atendemos naves, terrenos y espacios operativos con foco en documentación, uso previsto, accesos y viabilidad comercial.",
-    bullets: [
-      "Uso previsto y documentación disponible.",
-      "Acceso para carga y maniobras.",
-      "Energía, instalaciones y capacidad comprobable.",
-      "Adecuaciones, costos y plazos de ocupación.",
-    ],
-  },
   vender: {
     title: "Prepara tu propiedad para vender",
     eyebrow: "Vender inmueble",

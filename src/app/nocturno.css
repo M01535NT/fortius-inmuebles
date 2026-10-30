@@ -195,6 +195,63 @@
 }
 .nx-faq .editorial-eyebrow { margin: 0 0 16px; font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--muted-foreground); }
 
+/* Inicio · secciones de entrada: tipos, compra, testimonios, recursos y equipo */
+.nx-segments, .nx-quotes, .nx-tools, .nx-posts, .nx-team { margin: 0; padding: 0; list-style: none; }
+.nx-segments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.nx-segment { display: flex; flex-direction: column; gap: 6px; min-height: 220px; padding: clamp(22px, 3vw, 32px); border: 1px solid var(--nx-line); border-radius: 18px; background: var(--nx-card); transition: border-color 0.4s, transform 0.4s var(--nx-ease); }
+.nx-segment:hover { border-color: color-mix(in srgb, var(--ns-accent) 55%, transparent); transform: translateY(-3px); }
+.nx-segment-name { font-size: clamp(26px, 2.6vw, 34px); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+.nx-segment-detail { color: var(--nx-muted); font-size: 16px; line-height: 1.5; }
+.nx-segment-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 28px; color: var(--ns-accent); font-size: 15px; font-weight: 600; }
+.nx-segment-foot svg { flex: none; transition: transform 0.3s var(--nx-ease); }
+.nx-segment:hover .nx-segment-foot svg { transform: translate(3px, -3px); }
+
+.nx-band { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: center; gap: clamp(28px, 5vw, 72px); padding: clamp(28px, 5vw, 64px); border: 1px solid var(--nx-line); border-radius: 24px; background: color-mix(in srgb, var(--ns-ink) 5%, var(--nx-card)); }
+.nx-band-title { max-width: 20ch; margin: 0; font-size: clamp(30px, 3.8vw, 52px); line-height: 1.04; font-weight: 600; font-variation-settings: "wdth" 92; letter-spacing: -0.03em; text-wrap: balance; }
+.nx-band-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.nx-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border: 1px solid color-mix(in srgb, var(--ns-ink) 28%, transparent); border-radius: 999px; color: var(--ns-ink); font-weight: 500; transition: background-color 0.25s, border-color 0.25s, transform 0.25s var(--nx-ease); }
+.nx-btn:hover { background: color-mix(in srgb, var(--ns-ink) 8%, transparent); border-color: color-mix(in srgb, var(--ns-ink) 55%, transparent); transform: translateY(-2px); }
+.nx-btn-primary { border-color: #8a1634; background: #8a1634; color: #fff; font-weight: 600; }
+.nx-btn-primary:hover { border-color: #a2223f; background: #a2223f; }
+
+.nx-quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.nx-quote { display: flex; flex-direction: column; justify-content: space-between; gap: 28px; height: 100%; margin: 0; padding: clamp(24px, 3vw, 32px); border: 1px solid var(--nx-line); border-radius: 18px; background: var(--nx-card); }
+.nx-quote blockquote { margin: 0; }
+.nx-quote p { margin: 0; font-size: 18px; line-height: 1.55; text-wrap: pretty; }
+.nx-quote figcaption { display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--nx-muted); }
+.nx-quote figcaption strong { color: var(--ns-ink); font-size: 16px; font-weight: 600; }
+
+.nx-resources { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: clamp(32px, 6vw, 88px); }
+.nx-sub { margin: 0 0 16px; font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--nx-muted); }
+.nx-tools { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.nx-tool { display: flex; align-items: flex-start; gap: 16px; padding: 20px; border: 1px solid var(--nx-line); border-radius: 16px; background: var(--nx-card); transition: border-color 0.3s; }
+.nx-tool:hover { border-color: color-mix(in srgb, var(--ns-accent) 55%, transparent); }
+.nx-tool svg { flex: none; margin-top: 2px; color: var(--ns-accent); }
+.nx-tool strong { display: block; font-size: 17px; font-weight: 600; }
+.nx-tool span span { display: block; margin-top: 2px; color: var(--nx-muted); font-size: 14px; line-height: 1.5; }
+.nx-posts { margin-bottom: 12px; border-top: 1px solid var(--nx-line); }
+.nx-post { display: flex; flex-direction: column; gap: 4px; padding: 18px 0; border-bottom: 1px solid var(--nx-line); }
+.nx-post strong { font-size: 18px; font-weight: 600; line-height: 1.35; }
+.nx-post:hover strong { color: var(--ns-strong); text-decoration: underline; text-decoration-color: var(--ns-accent); text-underline-offset: 5px; }
+.nx-post > span { color: var(--nx-muted); font-size: 14px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nx-post time { color: var(--nx-muted); font-size: 13px; }
+
+.nx-team { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.nx-person { display: flex; flex-direction: column; gap: 4px; }
+.nx-person-photo { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 5; margin-bottom: 12px; overflow: hidden; border-radius: 18px; background: #e8ecf2; color: #061f3f; font-size: 44px; font-weight: 600; }
+.nx-person-photo img { object-fit: cover; }
+.nx-person strong { font-size: 18px; font-weight: 600; }
+.nx-person > span:last-child { color: var(--nx-muted); font-size: 14px; }
+.nx-team-note { margin-top: 0; }
+@media (max-width: 1023px) {
+  .nx-segments { grid-template-columns: 1fr; }
+  .nx-segment { min-height: 0; }
+  .nx-band, .nx-resources { grid-template-columns: 1fr; }
+  .nx-band-actions { justify-content: flex-start; }
+  .nx-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .nx-segment, .nx-segment-foot svg, .nx-btn { transition: none; } .nx-segment:hover, .nx-btn:hover { transform: none; } }
+
 /* Footer nocturno: cierre común de todo el sitio (boceto HomeNocturno) */
 .public-footer:has(.nx-footer) { position: relative; bottom: auto; }
 .nx-footer { --nx-ease: cubic-bezier(0.25, 1, 0.5, 1); border-top: 4px solid #8a1634; background: var(--ns-bg); color: var(--ns-ink); padding-block: clamp(64px, 8vw, 112px) 28px; }

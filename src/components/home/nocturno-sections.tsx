@@ -21,7 +21,6 @@ export function NocturnoDestacadas({ properties }: { properties: Property[] }) {
   return <section ref={ref} id="destacadas" aria-labelledby="destacadas-title" className="nx-section nx-container">
     <div className="nx-head">
       <div>
-        <p className="nx-eyebrow">Inventario</p>
         <h2 id="destacadas-title" className="nx-title"><span className="nx-title-mask"><span>Propiedades destacadas</span></span></h2>
       </div>
       <Link href="/inventario" className="nx-link">Explorar el inventario</Link>

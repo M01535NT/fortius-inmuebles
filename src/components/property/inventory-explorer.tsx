@@ -13,6 +13,7 @@ import {
   type Property,
   type TipoPropiedad,
 } from "@/data/propiedades";
+import { SEGMENTOS_INMUEBLE, SEGMENTO_LABELS, segmentoInmueble, tiposDeSegmento, type SegmentoInmueble } from "@/lib/inmueble-segmentos";
 
 /*
   Explorador con filtros client-side: operación, tipo, zona, rango de precio
@@ -26,6 +27,7 @@ type Moneda = "todas" | "MXN" | "USD";
 
 type Filtros = {
   operacion: Operacion | "todas";
+  segmento: SegmentoInmueble | "todos"; // atajo Residencial / Comercial / Industrial
   tipo: TipoPropiedad | "todos";
   zona: string; // "todas" o nombre exacto
   moneda: Moneda;
@@ -36,6 +38,7 @@ type Filtros = {
 
 const DEFAULTS: Filtros = {
   operacion: "todas",
+  segmento: "todos",
   tipo: "todos",
   zona: "todas",
   moneda: "todas",
@@ -48,13 +51,15 @@ function filtrosDesdeUrl(search: string, zonas: string[], tipos: string[]): Filt
   const p = new URLSearchParams(search);
   const op = p.get("op");
   const tipo = p.get("tipo");
+  const segmento = segmentoInmueble(p.get("segmento"));
   const zona = p.get("zona");
   const orden = p.get("orden");
   const monedaParam = p.get("moneda");
   const usaPrecio = Boolean(p.get("min") || p.get("max") || orden === "precio-asc" || orden === "precio-desc");
   return {
     operacion: op === "venta" || op === "renta" ? op : "todas",
-    tipo: tipo && tipos.includes(tipo) ? (tipo as TipoPropiedad) : "todos",
+    segmento: segmento ?? "todos",
+    tipo: tipo && tipos.includes(tipo) && (!segmento || (tiposDeSegmento(segmento) as readonly string[]).includes(tipo)) ? (tipo as TipoPropiedad) : "todos",
     zona: zona && zonas.includes(zona) ? zona : "todas",
     moneda: monedaParam === "MXN" || monedaParam === "USD" ? monedaParam : usaPrecio ? "MXN" : "todas",
     min: /^\d+$/.test(p.get("min") ?? "") ? (p.get("min") as string) : "",
@@ -66,6 +71,7 @@ function filtrosDesdeUrl(search: string, zonas: string[], tipos: string[]): Filt
 function urlDesdeFiltros(f: Filtros): string {
   const p = new URLSearchParams();
   if (f.operacion !== "todas") p.set("op", f.operacion);
+  if (f.segmento !== "todos") p.set("segmento", f.segmento);
   if (f.tipo !== "todos") p.set("tipo", f.tipo);
   if (f.zona !== "todas") p.set("zona", f.zona);
   if (f.moneda !== "todas") p.set("moneda", f.moneda);
@@ -165,6 +171,11 @@ export function InventoryExplorer({ propiedades }: Props) {
           ? { ...f, moneda, min: "", max: "", orden: "recientes" }
           : { ...f, moneda };
       }
+      if (key === "segmento") {
+        const segmento = value as Filtros["segmento"];
+        const conserva = f.tipo !== "todos" && segmento !== "todos" && (tiposDeSegmento(segmento) as readonly string[]).includes(f.tipo);
+        return { ...f, segmento, tipo: conserva ? f.tipo : "todos" };
+      }
       const necesitaMoneda =
         (key === "orden" && value !== "recientes") ||
         ((key === "min" || key === "max") && value !== "");
@@ -178,6 +189,7 @@ export function InventoryExplorer({ propiedades }: Props) {
   const resultados = propiedades
     .filter((p) => {
       if (filtros.operacion !== "todas" && p.operacion !== filtros.operacion) return false;
+      if (filtros.segmento !== "todos" && !(tiposDeSegmento(filtros.segmento) as readonly string[]).includes(p.tipo)) return false;
       if (filtros.tipo !== "todos" && p.tipo !== filtros.tipo) return false;
       if (filtros.zona !== "todas" && p.zona !== filtros.zona) return false;
       if (
@@ -210,6 +222,7 @@ export function InventoryExplorer({ propiedades }: Props) {
     .filter((property): property is Property => Boolean(property));
   const activeFilters = [
     filtros.operacion !== "todas" ? { key: "operacion", label: OPERACION_LABELS[filtros.operacion] } : null,
+    filtros.segmento !== "todos" ? { key: "segmento", label: SEGMENTO_LABELS[filtros.segmento] } : null,
     filtros.tipo !== "todos" ? { key: "tipo", label: TIPO_LABELS[filtros.tipo] } : null,
     filtros.zona !== "todas" ? { key: "zona", label: filtros.zona } : null,
     filtros.moneda !== "todas" ? { key: "moneda", label: filtros.moneda } : null,
@@ -219,7 +232,7 @@ export function InventoryExplorer({ propiedades }: Props) {
   ].filter((filter): filter is { key: keyof Filtros; label: string } => Boolean(filter));
 
   function clearFilter(key: keyof Filtros) {
-    const defaults = { operacion: "todas", tipo: "todos", zona: "todas", moneda: "todas", min: "", max: "", orden: "recientes" } as const;
+    const defaults = { operacion: "todas", segmento: "todos", tipo: "todos", zona: "todas", moneda: "todas", min: "", max: "", orden: "recientes" } as const;
     set(key, defaults[key] as Filtros[typeof key]);
   }
 
@@ -256,9 +269,15 @@ export function InventoryExplorer({ propiedades }: Props) {
                 </button>
               ))}
             </div>
+            <div className="pg-pills" role="group" aria-label="Segmento">
+              <button type="button" aria-pressed={filtros.segmento === "todos"} onClick={() => set("segmento", "todos")} className={"pg-pill" + (filtros.segmento === "todos" ? " is-active" : "")}>Todos</button>
+              {SEGMENTOS_INMUEBLE.map((segmento) => (
+                <button key={segmento.key} type="button" aria-pressed={filtros.segmento === segmento.key} onClick={() => set("segmento", segmento.key)} className={"pg-pill" + (filtros.segmento === segmento.key ? " is-active" : "")}>{segmento.label}</button>
+              ))}
+            </div>
             <div className="pg-pills" role="group" aria-label="Tipo de propiedad">
-              <button type="button" aria-pressed={filtros.tipo === "todos"} onClick={() => set("tipo", "todos")} className={"pg-pill" + (filtros.tipo === "todos" ? " is-active" : "")}>Todos</button>
-              {tipos.map((t) => (
+              <button type="button" aria-pressed={filtros.tipo === "todos"} onClick={() => set("tipo", "todos")} className={"pg-pill" + (filtros.tipo === "todos" ? " is-active" : "")}>Todos los tipos</button>
+              {tipos.filter((t) => filtros.segmento === "todos" || (tiposDeSegmento(filtros.segmento) as readonly string[]).includes(t)).map((t) => (
                 <button key={t} type="button" aria-pressed={filtros.tipo === t} onClick={() => set("tipo", t)} className={"pg-pill" + (filtros.tipo === t ? " is-active" : "")}>{TIPO_LABELS[t]}</button>
               ))}
             </div>

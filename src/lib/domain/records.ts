@@ -167,8 +167,27 @@ export type Archivo = {
   visibility?: "private" | "public";
 };
 
+export type PreguntaFrecuente = {
+  id: string;
+  grupo: "vender" | "comprar" | "general";
+  pregunta: string;
+  respuesta: string;
+};
+
+/** Solo se muestra con `autorizado`: la persona dio permiso por escrito para publicar su testimonio. */
+export type Testimonio = {
+  id: string;
+  texto: string;
+  nombre: string;
+  detalle: string;
+  autorizado: boolean;
+};
+
 export type SiteContent = {
   homeTexts?: import("@/data/home-copy").HomeTexts;
+  /** Preguntas que el equipo agrega desde el panel; se suman a las preguntas base de la página. */
+  preguntas?: PreguntaFrecuente[];
+  testimonios?: Testimonio[];
   heroTitulo: string;
   heroSubtitulo: string;
   manifiestoTitulo: string;

@@ -8,12 +8,11 @@ import { getBlogPosts } from "@/lib/blog";
 export const dynamic = "force-dynamic";
 const routes = [
   "",
-  "/residencial",
-  "/comercial",
-  "/industrial",
   "/vender-propiedad",
+  "/opinion-de-valor",
   "/comprar-propiedad",
   "/due-diligence-inmobiliaria",
+  "/preguntas-frecuentes",
   "/inventario",
   "/blog",
   "/herramientas",

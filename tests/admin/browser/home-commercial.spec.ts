@@ -7,7 +7,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     const hero = page.locator(".nx-hero");
     const order = await page.locator("main section").evaluateAll((nodes) => nodes.map((node) =>
       node.id || (node.classList.contains("nx-hero") ? "hero" : "unknown")));
-    expect(order).toEqual(["hero", "destacadas", "por-que-fortius", "metodo", "respuestas"]);
+    expect(order).toEqual(["hero", "segmentos", "destacadas", "por-que-fortius", "metodo", "comprar", "recursos", "equipo", "respuestas"]);
     // Buyers start with the search; owners with the valuation link.
     await expect(hero.getByRole("search", { name: "Buscar propiedades" })).toHaveAttribute("action", "/inventario");
     const seller = hero.getByRole("link", { name: /Pide una opinión de valor/ });

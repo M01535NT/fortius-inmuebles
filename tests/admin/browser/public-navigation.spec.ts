@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 const sections = [
-  "/", "/inventario", "/residencial", "/comercial", "/industrial",
-  "/vender-propiedad", "/comprar-propiedad", "/due-diligence-inmobiliaria",
+  "/", "/inventario",
+  "/vender-propiedad", "/opinion-de-valor", "/comprar-propiedad", "/due-diligence-inmobiliaria", "/preguntas-frecuentes",
   "/blog", "/herramientas", "/nosotros", "/contacto",
   "/privacidad", "/terminos",
 ];
@@ -212,18 +212,17 @@ test("buyers, sellers and segment pages lead to the right next step on mobile", 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/comprar-propiedad");
-  await page.getByRole("link", { name: "Preparar mi búsqueda" }).click();
-  await expect(page).toHaveURL(/\/comprar-propiedad#busqueda$/);
-  await expect(page.getByRole("heading", { name: "Tres datos para empezar" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Explorar inventario" })).toHaveAttribute("href", "/inventario");
+  await expect(page.getByRole("heading", { name: "Lo que se suma al precio." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Explorar inventario" }).last()).toHaveAttribute("href", "/inventario");
 
   await page.goto("/vender-propiedad");
   await expect(page.getByRole("heading", { name: "Antes de publicar." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Estimar gastos y neto de venta" })).toHaveAttribute("href", "/herramientas/gastos-de-cierre");
 
-  for (const [route, heading] of [["residencial", "Habitarla"], ["comercial", "Costo de ocupar"], ["industrial", "Capacidad técnica"]]) {
+  for (const route of ["residencial", "comercial", "industrial"]) {
     await page.goto(`/${route}`);
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/inventario\\?segmento=${route}$`));
+    await expect(page.getByRole("button", { name: new RegExp(route, "i"), pressed: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });
@@ -241,9 +240,9 @@ test("the footer reaches every property type from an interior page", async ({ pa
   await page.goto("/blog");
   const footer = page.locator("footer");
   for (const route of ["residencial", "comercial", "industrial"]) {
-    await expect(footer.locator(`a[href="/${route}"]`)).toHaveCount(1);
+    await expect(footer.locator(`a[href="/inventario?segmento=${route}"]`)).toHaveCount(1);
   }
   await footer.getByRole("link", { name: "Comercial", exact: true }).click();
-  await expect(page).toHaveURL(/\/comercial$/);
-  await expect(page.getByRole("heading", { name: "Costo de ocupar" })).toBeVisible();
+  await expect(page).toHaveURL(/\/inventario\?segmento=comercial$/);
+  await expect(page.getByRole("button", { name: "Comercial", pressed: true })).toBeVisible();
 });

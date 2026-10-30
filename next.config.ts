@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
         destination: "https://fortiusinmuebles.com/:path*",
         permanent: true,
       })),
+      // Las tres páginas por especialidad eran el inventario filtrado: ahora son atajos del propio inventario.
+      ...["residencial", "comercial", "industrial"].map((segmento) => ({ source: `/${segmento}`, destination: `/inventario?segmento=${segmento}`, permanent: true })),
       { source: "/zonas", destination: "/inventario", permanent: true },
       { source: "/zonas/:zona", destination: "/inventario", permanent: true },
       { source: "/descargas/checklist-venta-mnt.pdf", destination: "/descargas/checklist-venta-fortius.pdf", permanent: true },
