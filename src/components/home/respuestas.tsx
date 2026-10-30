@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Plus, ArrowUpRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { homeText, type HomeTextKey } from "@/data/home-copy";
 import type { SiteContent } from "@/lib/admin/store";
 import { Reveal } from "@/components/gsap/reveal";
@@ -39,7 +39,7 @@ function Item({ item, index }: { item: Question; index: number }) {
         <div className="min-h-0 overflow-hidden">
           <div className="pb-7">
             <p className="max-w-[62ch] text-base leading-relaxed text-muted-foreground">{item.a}</p>
-            {item.link && <Link href={item.link.href} className="editorial-text-link mt-3">{item.link.label}<ArrowUpRight size={18} aria-hidden="true" /></Link>}
+            {item.link && <Link href={item.link.href} className="editorial-text-link mt-3">{item.link.label}</Link>}
           </div>
         </div>
       </div>

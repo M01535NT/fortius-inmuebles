@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, Check, MapPin } from "lucide-react";
+import { Check, MapPin } from "lucide-react";
 
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import { ContactDock } from "@/components/property/contact-dock";
@@ -166,7 +166,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 <span className="fe-chip is-solid">{OPERACION_LABELS[property.operacion]}</span>
                 {property.demo && <span className="fe-chip is-demo">Datos de ejemplo</span>}
                 <span className="fe-chip">{property.codigo}</span>
-                <span className="fe-chip">{property.estado === "disponible" ? "Disponible para visitas" : ESTADO_LABELS[property.estado]}</span>
+                {property.estado !== "disponible" && <span className="fe-chip">{ESTADO_LABELS[property.estado]}</span>}
               </p>
               <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
               <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
@@ -278,7 +278,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                   {costos.predialAnual != null && <div><dt>Predial anual</dt><dd>{money(costos.predialAnual, property)}</dd></div>}
                   {costos.mantenimientoMensual != null && <div><dt>Mantenimiento mensual</dt><dd>{money(costos.mantenimientoMensual, property)}</dd></div>}
                 </dl>
-                {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="pg-link">Calcular gastos de cierre <ArrowUpRight size={18} aria-hidden="true" /></Link>}
+                {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="pg-link">Calcular gastos de cierre</Link>}
                 {muestraCalculadora && property.precio.modalidad === "publico" ? (
                   <details className="fe-mortgage">
                     <summary>Calcular mi mensualidad</summary>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 import { PublicLeadForm } from "@/components/forms/public-lead-form";
 import { captureLead } from "@/lib/admin/store";
@@ -64,7 +64,7 @@ export function BuyerBrief() {
               <li><span className="pg-number" aria-hidden="true">02</span><div><strong>Presupuesto total</strong><p>Incluye gastos de cierre y, si usarás crédito, una mensualidad sostenible.</p></div></li>
               <li><span className="pg-number" aria-hidden="true">03</span><div><strong>Plazo y pago</strong><p>Una fecha tentativa y la forma de pago ayudan a ordenar las visitas y ofertas.</p></div></li>
             </ol>
-            <Link href="/inventario" className="pg-btn" style={{ marginTop: 24 }}>Explorar inventario <ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <Link href="/inventario" className="pg-btn" style={{ marginTop: 24 }}>Explorar inventario</Link>
           </div>
         ) : sent ? (
           <div role="status" className="pg-card pg-card-pad bb-sent">

@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, ChevronDown, Pause, Play, Search } from "lucide-react";
+import { ChevronDown, Pause, Play, Search } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
 
 type Option = { value: string; label: string };
@@ -12,7 +12,7 @@ type Option = { value: string; label: string };
 /* Zonas de cobertura del marquee: texto de presentación, no un filtro. */
 const COVERAGE = ["Playas de Tijuana", "Zona Río", "Otay", "Chapultepec", "Rosarito", "Tecate", "Ensenada"];
 
-/** Inicio nocturno: foto a sangre, titular, buscador de vidrio y marquee al pie. */
+/** Inicio nocturno: foto a sangre, titular, buscador sólido y marquee al pie. */
 export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[] }) {
   const ref = React.useRef<HTMLElement>(null);
   const router = useRouter();
@@ -26,6 +26,11 @@ export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[
         .from(".nx-search", { opacity: 0, y: 24, duration: 1.3 }, 0.8)
         .from(".nx-hero-seller", { opacity: 0, duration: 1.1 }, 1.1)
         .from(".nx-marquee", { opacity: 0, duration: 1.4 }, 1.3);
+      // La foto se acerca con el desplazamiento en lugar de moverse sola al cargar.
+      gsap.fromTo(".nx-hero-media img", { scale: 1.12 }, {
+        scale: 1, ease: "none",
+        scrollTrigger: { trigger: ref.current, start: "top top", end: "bottom top", scrub: 1.2 },
+      });
     });
     return () => media.revert();
   }, { scope: ref });
@@ -79,7 +84,7 @@ export function NocturnoHero({ zonas, tipos }: { zonas: string[]; tipos: Option[
           <button type="submit" className="nx-search-submit"><Search size={18} aria-hidden="true" />Buscar</button>
         </form>
         <Link href="/vender-propiedad" className="nx-hero-seller">
-          ¿Quieres vender? <strong>Pide una opinión de valor</strong><ArrowUpRight size={16} aria-hidden="true" />
+          ¿Quieres vender? <strong>Pide una opinión de valor</strong>
         </Link>
       </div>
       <div className="nx-marquee" data-paused={paused}>

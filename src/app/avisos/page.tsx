@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowUpRight, Download, FileText } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 import { notices, noticeContent } from '@/lib/public-notices';
 
 export const metadata: Metadata = { title: 'Avisos y documentos', description: 'Consulta y descarga privacidad, derechos del consumidor, no discriminación, términos, honorarios y canales de atención de Fortius Inmuebles.', alternates: { canonical: '/avisos' } };
@@ -24,7 +24,7 @@ export default function AvisosPage() {
           <h2 className="pg-h3">{notice.title}</h2>
           <p className="pg-muted">{notice.description}</p>
           <div className="nt-actions">
-            {!INLINE.includes(notice.id) && <Link href={notice.href} className="pg-pill">Consultar <ArrowUpRight size={16} aria-hidden="true" /></Link>}
+            {!INLINE.includes(notice.id) && <Link href={notice.href} className="pg-pill">Consultar</Link>}
             <a href={`/avisos/${notice.id}.pdf`} download className="pg-pill pg-pill-download">Descargar PDF <Download size={16} aria-hidden="true" /></a>
           </div>
           {INLINE.includes(notice.id) && <details className="nt-reading">
