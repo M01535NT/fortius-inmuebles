@@ -7,6 +7,7 @@ import { getPublishedTeam } from "@/lib/backend/public-team";
 import { getPublicSettings } from "@/lib/backend/public";
 import { publicContact } from "@/lib/public-contact";
 import { SITE_TERMS } from "@/data/site-terms";
+import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
 import "./nosotros.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
    asesor, misión y visión como dos tarjetas, valores numerados y video. */
 const values: { title: string; text: string; wide?: boolean }[] = [
   { title: "Claridad", text: "Explicamos el precio, los honorarios y las condiciones antes de que tomes una decisión. Si falta información, lo decimos." },
-  { title: "Responsabilidad", text: "Cada operación tiene un asesor a cargo, acuerdos por escrito y seguimiento de los pendientes." },
+  { title: "Responsabilidad", text: "Cada operación tiene responsables claros, acuerdos por escrito y seguimiento de los pendientes." },
   { title: "Discreción", text: "Coordinamos el acceso al inmueble y compartimos documentos únicamente con quienes intervienen en la operación y necesitan consultarlos." },
   { title: "Criterio", text: "Revisamos documentos y datos de mercado. Distinguimos lo comprobado de lo que aún necesita verificarse.", wide: true },
   { title: "Respeto a tu decisión", text: "Presentamos opciones y explicamos sus implicaciones. Tú decides el precio y las condiciones que aceptas.", wide: true },
@@ -29,9 +30,7 @@ export default async function NosotrosPage() {
   const contact = publicContact(settings);
   const videoUrl = settings?.videoInstitucionalUrl;
   const profiles = team.length ? team : [{
-    id: "moises", nombre: SITE_TERMS.responsible, cargo: "Asesor inmobiliario en Fortius", iniciales: "MN",
-    descripcion: "Soy tu contacto para revisar lo que buscas o la propiedad que quieres vender. Coordino las visitas y reviso las propuestas contigo; tú decides qué condiciones aceptar.",
-    foto: "/images/team/advisor-example.webp", telefono: settings?.telefono, whatsapp: settings?.whatsapp,
+    ...PERFIL_ILUSTRATIVO, telefono: settings?.telefono, whatsapp: settings?.whatsapp,
     email: contact.email || SITE_TERMS.email, instagram: undefined, facebook: undefined, linkedin: undefined,
   }];
   const [lead, ...rest] = profiles;
@@ -61,7 +60,7 @@ export default async function NosotrosPage() {
         <div className="ab-hero-copy" data-reveal>
           <p className="nx-eyebrow" data-reveal-item>Nosotros</p>
           <h1 id="about-title" className="ab-hero-title" data-reveal-item>Personas detrás de cada operación.</h1>
-          <p className="ab-hero-lead" data-reveal-item>Somos Fortius Inmuebles. Acompañamos a propietarios y compradores con un asesor que coordina la información, las visitas y la negociación, desde la primera conversación hasta la entrega.</p>
+          <p className="ab-hero-lead" data-reveal-item>Somos Fortius Inmuebles. Acompañamos a propietarios y compradores con un equipo que coordina la información, las visitas y la negociación, desde la primera conversación hasta la entrega.</p>
           <nav className="ab-index" aria-label="En esta página" data-reveal-item>
             <a href="#agentes">Agentes</a><a href="#identidad">Misión y visión</a><a href="#valores">Valores</a>{videoUrl && <a href="#video">Video</a>}
           </nav>

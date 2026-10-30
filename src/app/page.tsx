@@ -9,6 +9,7 @@ import { Respuestas } from "@/components/home/respuestas";
 import { homeText } from "@/data/home-copy";
 import { TIPO_LABELS } from "@/data/propiedades";
 import { getPublicContent } from "@/lib/backend/public";
+import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
 import { getPublishedTeam } from "@/lib/backend/public-team";
 import { getBlogPosts } from "@/lib/blog";
 import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
@@ -34,7 +35,7 @@ export default async function HomePage() {
       <NocturnoTestimonios items={content.testimonios ?? []} />
       <NocturnoComprar />
       <NocturnoRecursos posts={posts} />
-      <NocturnoEquipo team={team} />
+      <NocturnoEquipo team={team.length ? team : [PERFIL_ILUSTRATIVO]} ilustrativo={!team.length} />
       <div className="nx-faq"><Respuestas content={content} /></div>
     </main>
   );
