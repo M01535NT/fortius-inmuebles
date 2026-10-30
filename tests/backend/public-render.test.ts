@@ -93,7 +93,7 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
-  expect(await config.redirects?.()).toHaveLength(22);
+  expect(await config.redirects?.()).toHaveLength(23);
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
@@ -141,7 +141,6 @@ const publicPages: [string, () => Promise<{ metadata: Metadata } >][] = [
   ["/comprar-propiedad", () => import("@/app/comprar-propiedad/page")],
   ["/vender-propiedad", () => import("@/app/vender-propiedad/page")],
   ["/vender-propiedad/gracias", () => import("@/app/vender-propiedad/gracias/page")],
-  ["/due-diligence-inmobiliaria", () => import("@/app/due-diligence-inmobiliaria/page")],
   ["/herramientas", () => import("@/app/herramientas/page")],
   ["/herramientas/hipoteca", () => import("@/app/herramientas/hipoteca/page")],
   ["/herramientas/gastos-de-cierre", () => import("@/app/herramientas/gastos-de-cierre/page")],

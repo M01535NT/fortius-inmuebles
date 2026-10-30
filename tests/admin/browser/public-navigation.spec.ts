@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const sections = [
   "/", "/inventario",
-  "/vender-propiedad", "/opinion-de-valor", "/comprar-propiedad", "/due-diligence-inmobiliaria", "/preguntas-frecuentes",
+  "/vender-propiedad", "/opinion-de-valor", "/comprar-propiedad", "/preguntas-frecuentes",
   "/blog", "/herramientas", "/nosotros", "/contacto",
   "/privacidad", "/terminos",
 ];

@@ -18,7 +18,6 @@ const LINKS: { href: string; label: string; wide?: boolean }[] = [
   { href: "/comprar-propiedad", label: "Comprar" },
   { href: "/vender-propiedad", label: "Vender" },
   { href: "/opinion-de-valor", label: "Opinión de valor" },
-  { href: "/due-diligence-inmobiliaria", label: "Revisión documental", wide: true },
   { href: "/herramientas", label: "Herramientas", wide: true },
   { href: "/blog", label: "Blog", wide: true },
   { href: "/nosotros", label: "Nosotros" },

@@ -11,7 +11,6 @@ const routes = [
   "/vender-propiedad",
   "/opinion-de-valor",
   "/comprar-propiedad",
-  "/due-diligence-inmobiliaria",
   "/preguntas-frecuentes",
   "/inventario",
   "/blog",

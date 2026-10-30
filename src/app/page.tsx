@@ -3,6 +3,7 @@ import { NocturnoHero } from "@/components/home/nocturno-hero";
 import { NocturnoExpediente } from "@/components/home/nocturno-expediente";
 import { NocturnoMetodo } from "@/components/home/nocturno-metodo";
 import { NocturnoDestacadas } from "@/components/home/nocturno-sections";
+import { NocturnoOpinion, NocturnoPromocion, NocturnoRevision } from "@/components/home/nocturno-servicios";
 import { NocturnoComprar, NocturnoEquipo, NocturnoRecursos, NocturnoSegmentos, NocturnoTestimonios } from "@/components/home/nocturno-extras";
 import { entregablesDe, etapasDe, pilaresDe } from "@/components/home/nocturno-content";
 import { Respuestas } from "@/components/home/respuestas";
@@ -28,14 +29,17 @@ export default async function HomePage() {
   return (
     <main className="nocturno-home">
       <NocturnoHero zonas={zonas} tipos={tipos} />
-      <NocturnoSegmentos properties={propiedades} />
-      <NocturnoDestacadas properties={destacadas} />
       <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />
       <NocturnoMetodo title={homeText(content, "metodoTitulo")} stages={etapasDe(content)} />
+      <NocturnoRevision />
+      <NocturnoOpinion />
+      <NocturnoPromocion />
+      <NocturnoDestacadas properties={destacadas} />
       <NocturnoTestimonios items={content.testimonios ?? []} />
+      <NocturnoSegmentos properties={propiedades} />
       <NocturnoComprar />
-      <NocturnoRecursos posts={posts} />
       <NocturnoEquipo team={team.length ? team : [PERFIL_ILUSTRATIVO]} ilustrativo={!team.length} />
+      <NocturnoRecursos posts={posts} />
       <div className="nx-faq"><Respuestas content={content} /></div>
     </main>
   );
