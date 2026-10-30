@@ -36,8 +36,9 @@ for (const width of [390, 1440]) {
     expect(await fills()).toEqual(original);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())).toBe("#8a1634");
     const primary = menu.getByRole("navigation", { name: "Menú principal", exact: true });
-    await expect(primary.locator(":scope > ol > li > div > a")).toHaveCount(9);
-    const owner = menu.getByRole("region", { name: "Servicios para propietarios" });
+    await expect(primary.locator(":scope > section")).toHaveCount(4);
+    await expect(primary.locator("a")).toHaveCount(20);
+    const owner = menu.getByRole("region", { name: "Vender con Fortius" });
     const sell = owner.getByRole("link", { name: "Vender mi propiedad" });
     await expect(sell).toHaveAttribute("href", "/vender-propiedad");
     await expect(owner.getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
