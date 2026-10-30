@@ -19,7 +19,7 @@ export function lecturaDisponible(): boolean {
 type TipoImagen = "image/jpeg" | "image/png" | "image/webp";
 
 export function extractorClaude(): Extractor {
-  if (!lecturaDisponible()) throw new ApiError(503, "La lectura con IA aún no está activada");
+  if (!lecturaDisponible()) throw new ApiError(503, "La lectura de documentos aún no está activada");
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 4 * 60_000, maxRetries: 2 });
   return async ({ bytes, mime, titulo }) => {
     const data = bytes.toString("base64");
@@ -37,7 +37,7 @@ export function extractorClaude(): Extractor {
         system: instruccionesLectura(),
         messages: [{ role: "user", content: [archivo, { type: "text", text: `Documento del expediente: «${titulo}». Di qué tipo de documento es y extrae los datos de la lista que aparezcan en él.` }] }],
       });
-      if (mensaje.stop_reason === "refusal") throw new ApiError(502, "El proveedor no quiso leer este documento; captura sus datos a mano");
+      if (mensaje.stop_reason === "refusal") throw new ApiError(502, "Este documento no se pudo leer; captura sus datos a mano");
       if (mensaje.stop_reason === "max_tokens") throw new ApiError(502, "La lectura quedó incompleta; inténtalo otra vez");
       const uso = mensaje.usage;
       // Las lecturas en caché se cuentan como entrada completa: el costo anotado nunca queda por debajo del real.
@@ -45,10 +45,10 @@ export function extractorClaude(): Extractor {
       return { respuesta: mensaje.parsed_output, uso: { input_tokens: entrada, output_tokens: uso.output_tokens }, modelo: mensaje.model };
     } catch (error) {
       if (error instanceof ApiError) throw error;
-      if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) throw new ApiError(503, "La clave de la API de IA no es válida; revísala en la configuración del servidor");
-      if (error instanceof Anthropic.RateLimitError) throw new ApiError(503, "El proveedor de IA está saturado; inténtalo en unos minutos");
-      if (error instanceof Anthropic.BadRequestError) throw new ApiError(502, "El proveedor no pudo abrir este archivo; revisa que el PDF o la imagen se vean bien");
-      if (error instanceof Anthropic.APIError) throw new ApiError(502, "El proveedor de IA no respondió; inténtalo más tarde");
+      if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) throw new ApiError(503, "La clave del servicio de lectura no es válida; revísala en la configuración del servidor");
+      if (error instanceof Anthropic.RateLimitError) throw new ApiError(503, "El servicio de lectura está saturado; inténtalo en unos minutos");
+      if (error instanceof Anthropic.BadRequestError) throw new ApiError(502, "No se pudo abrir este archivo; revisa que el PDF o la imagen se vean bien");
+      if (error instanceof Anthropic.APIError) throw new ApiError(502, "El servicio de lectura no respondió; inténtalo más tarde");
       throw new ApiError(502, "No se pudo leer el documento; inténtalo más tarde");
     }
   };

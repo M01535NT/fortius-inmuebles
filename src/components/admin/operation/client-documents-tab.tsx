@@ -13,8 +13,9 @@ import { ExpedienteDatosPanel } from "./expediente-datos-panel";
   predial…— sin acomodarlos por tipo. Cada archivo se sube directo a la carga privada con un
   permiso de un solo uso y el servidor lo comprueba antes de guardarlo. Nada se borra de golpe:
   va a la papelera y se puede restaurar.
-  Con la lectura activada (IA-01), cada documento se lee al subirlo y sus datos aparecen abajo como
-  propuestas para confirmar; un error de lectura no detiene nada y se puede volver a leer.
+  Con la lectura activada (IA-01), cada documento se lee al subirlo y sus datos aparecen abajo por
+  confirmar; un error de lectura no detiene nada y se puede volver a leer.
+  Regla del titular (29/10/2026): la pantalla nunca dice que algo fue propuesto o creado por la IA.
 */
 
 export type ArchivoCliente = { id: string; titulo: string; nombre_original: string; mime: string; byte_length: number; uploaded_by: string; created_at: string; deleted_at: string | null;
@@ -64,7 +65,7 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
       setLecturas(n => n + 1);
       const n = lectura.propuestos.length;
       const distintos = lectura.distintos.map(d => d.etiqueta.toLowerCase()).join(", ");
-      return `«${archivo.titulo}»: ${n ? `${n === 1 ? "1 dato propuesto" : `${n} datos propuestos`} para confirmar en «Datos del expediente».` : "no se encontraron datos nuevos."}${distintos ? ` Dice otra cosa que lo ya confirmado en: ${distintos}; lo confirmado no se cambió.` : ""}`;
+      return `«${archivo.titulo}»: ${n ? `${n === 1 ? "se encontró 1 dato; confírmalo" : `se encontraron ${n} datos; confírmalos`} en «Datos del expediente».` : "no se encontraron datos nuevos."}${distintos ? ` Dice otra cosa que lo ya confirmado en: ${distintos}; lo confirmado no se cambió.` : ""}`;
     } catch (cause) {
       actualizar(archivo.id, { lectura_estado: "error", lectura_error: errorMessage(cause) });
       throw new Error(`«${archivo.titulo}»: ${errorMessage(cause)}`);
@@ -163,7 +164,7 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
               : null}
           </div>
           {editando?.id !== archivo.id && <span className="flex flex-wrap gap-1">
-            {lista?.ia && archivo.lectura_estado !== "leyendo" && <Button variant="ghost" onClick={() => void leerUno(archivo)}>{archivo.lectura_estado === "leido" || archivo.lectura_estado === "error" ? "Volver a leer" : "Leer con IA"}</Button>}
+            {lista?.ia && archivo.lectura_estado !== "leyendo" && <Button variant="ghost" onClick={() => void leerUno(archivo)}>{archivo.lectura_estado === "leido" || archivo.lectura_estado === "error" ? "Volver a leer" : "Leer datos"}</Button>}
             <a className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium hover:bg-muted" href={`/api/admin/archivos-cliente/${archivo.id}/descargar`} target="_blank" rel="noopener"><FileDown size={16} aria-hidden="true" />Abrir</a>
             <Button variant="ghost" iconOnly aria-label={`Cambiar el nombre de ${archivo.titulo}`} onClick={() => setEditando({ id: archivo.id, titulo: archivo.titulo })}><Pencil size={16} aria-hidden="true" /></Button>
             <Button variant="ghost" iconOnly aria-label={`Mandar ${archivo.titulo} a la papelera`} onClick={() => void cambiar(archivo.id, { papelera: true }, "Se movió a la papelera; puedes restaurarlo.")}><Trash2 size={16} aria-hidden="true" /></Button>

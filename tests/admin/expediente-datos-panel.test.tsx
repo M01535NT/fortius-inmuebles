@@ -29,6 +29,9 @@ it("muestra lo propuesto con su fuente y al confirmarlo avisa cuántos formatos 
   render(<ExpedienteDatosPanel operationId={OP} />);
   expect(await screen.findByText("María Ramírez")).toBeTruthy();
   expect(screen.getByText(/De Escritura, página 2/)).toBeTruthy();
+  expect(screen.getByText("Por confirmar")).toBeTruthy();
+  // Regla del titular (29/10/2026): nada en pantalla dice «propuesto» ni que algo lo hizo la IA.
+  expect(document.body.textContent).not.toMatch(/propuest|\bIA\b|inteligencia artificial/i);
   fireEvent.click(screen.getByRole("button", { name: "Confirmar nombre del propietario o razón social" }));
   await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Se llenaron 3 formatos."));
   expect(puts[0]).toMatchObject({ version: 1, datos: { propietarioNombre: { valor: "María Ramírez", estado: "confirmado" } } });

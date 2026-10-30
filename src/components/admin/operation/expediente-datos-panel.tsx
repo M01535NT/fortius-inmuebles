@@ -8,8 +8,9 @@ import { DATOS_EXPEDIENTE, type DatoExpediente, type DatoGuardado, type DatosGua
 
 /*
   Datos del expediente (titular, 29/10/2026): se confirman una sola vez y llenan todos los formatos
-  del cliente. Los que propone la lectura de documentos traen su fuente (documento y página); el
-  asesor los confirma, corrige o descarta. Confirmar llena solo celdas vacías de los formatos.
+  del cliente. Los que salen de la lectura de documentos traen su fuente (documento y página) y
+  quedan por confirmar; el asesor los confirma, corrige o descarta. Confirmar llena solo celdas
+  vacías de los formatos. Regla del titular: la pantalla nunca dice «propuesto» ni que algo lo hizo la IA.
 */
 
 type Respuesta = { datos: DatosGuardados; version: number | null; formatosActualizados?: number };
@@ -79,7 +80,7 @@ export function ExpedienteDatosPanel({ operationId, refresh = 0 }: { operationId
         <h2 id="datos-expediente-titulo" className="m-0 text-lg font-semibold">Datos del expediente</h2>
         <p className="text-sm text-muted-foreground">Se confirman una sola vez y llenan todos los formatos de este cliente. Lo que ya se escribió en un formato no se cambia: si es distinto, el formato lo avisa.</p>
       </div>
-      {propuestos.length > 1 && <Button variant="primary" disabled={busy} onClick={() => confirmar(propuestos)}><Check size={16} aria-hidden="true" />Confirmar los {propuestos.length} propuestos</Button>}
+      {propuestos.length > 1 && <Button variant="primary" disabled={busy} onClick={() => confirmar(propuestos)}><Check size={16} aria-hidden="true" />Confirmar los {propuestos.length} pendientes</Button>}
     </div>
     {notice && <p role="status" className="mt-3 text-sm text-muted-foreground">{notice}</p>}
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
@@ -104,7 +105,7 @@ export function ExpedienteDatosPanel({ operationId, refresh = 0 }: { operationId
               {dato?.fuente && editando?.clave !== def.clave && <span className="text-xs text-muted-foreground">De {dato.fuente.documento ?? "un documento"}{dato.fuente.pagina ? `, página ${dato.fuente.pagina}` : ""}{dato.fuente.cita ? ` · «${dato.fuente.cita}»` : ""}</span>}
             </div>
             {editando?.clave !== def.clave && <span className="flex flex-wrap items-center gap-1">
-              {dato && <Pill size="sm" tone={dato.estado === "confirmado" ? "success" : "warn"}>{dato.estado === "confirmado" ? "Confirmado" : "Propuesto"}</Pill>}
+              {dato && <Pill size="sm" tone={dato.estado === "confirmado" ? "success" : "warn"}>{dato.estado === "confirmado" ? "Confirmado" : "Por confirmar"}</Pill>}
               {dato?.estado === "propuesto" && <Button variant="ghost" disabled={busy} aria-label={`Confirmar ${def.etiqueta.toLowerCase()}`} onClick={() => confirmar([def.clave])}><Check size={16} aria-hidden="true" />Confirmar</Button>}
               <Button variant="ghost" iconOnly disabled={busy} aria-label={`${dato ? "Corregir" : "Escribir"} ${def.etiqueta.toLowerCase()}`} onClick={() => setEditando({ clave: def.clave, valor: dato ? String(dato.valor) : "" })}><Pencil size={16} aria-hidden="true" /></Button>
               {dato?.estado === "propuesto" && <Button variant="ghost" iconOnly disabled={busy} aria-label={`Descartar ${def.etiqueta.toLowerCase()}`} onClick={() => descartar(def.clave)}><X size={16} aria-hidden="true" /></Button>}

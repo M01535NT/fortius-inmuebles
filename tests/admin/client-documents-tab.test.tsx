@@ -19,7 +19,7 @@ function servidor(ia = false) {
     if (url === `/api/admin/expedientes/${OP}/archivos` && init?.method === "POST") return Response.json({ signedUrl: "https://storage.example/upload?token=t", ticket: "ticket" });
     if (url === `/api/admin/expedientes/${OP}/datos`) return Response.json({ datos: {}, version: null });
     if (url === "/api/admin/archivos-cliente/a2/leer" && init?.method === "POST") return Response.json({ lectura: { tipoDocumento: "curp", propuestos: ["propietarioCurp", "propietarioNacimiento"], distintos: [{ etiqueta: "Nombre del propietario o razón social" }], costoUsd: 0.01 } });
-    if (url === "/api/admin/archivos-cliente/a1/leer" && init?.method === "POST") return Response.json({ error: "El proveedor de IA está saturado; inténtalo en unos minutos" }, { status: 503 });
+    if (url === "/api/admin/archivos-cliente/a1/leer" && init?.method === "POST") return Response.json({ error: "El servicio de lectura está saturado; inténtalo en unos minutos" }, { status: 503 });
     if (url.startsWith("https://storage.example/")) return new Response(null, { status: 200 });
     if (url.endsWith("/archivos/completar")) return Response.json({ archivo: { ...escritura, id: "a2", titulo: "CURP", nombre_original: "CURP.pdf", created_at: "2026-10-29T11:00:00Z" } }, { status: 201 });
     if (url === "/api/admin/archivos-cliente/a1" && init?.method === "PATCH") {
@@ -67,7 +67,7 @@ it("sin la lectura activada no ofrece leer con IA", async () => {
   servidor();
   render(<ClientDocumentsTab operationId={OP} />);
   await screen.findByText("Escritura");
-  expect(screen.queryByRole("button", { name: "Leer con IA" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Leer datos" })).toBeNull();
 });
 
 it("con la lectura activada, lee cada documento al subirlo y avisa qué propuso y qué choca con lo confirmado", async () => {
@@ -75,9 +75,11 @@ it("con la lectura activada, lee cada documento al subirlo y avisa qué propuso 
   render(<ClientDocumentsTab operationId={OP} />);
   await screen.findByText("Escritura");
   fireEvent.change(screen.getByLabelText("Elegir archivos"), { target: { files: [new File(["%PDF-1.7"], "CURP.pdf", { type: "application/pdf" })] } });
-  await waitFor(() => expect(screen.getAllByRole("status").map(s => s.textContent).join(" ")).toContain("«CURP»: 2 datos propuestos para confirmar en «Datos del expediente»."));
+  await waitFor(() => expect(screen.getAllByRole("status").map(s => s.textContent).join(" ")).toContain("«CURP»: se encontraron 2 datos; confírmalos en «Datos del expediente»."));
   expect(screen.getAllByRole("status").map(s => s.textContent).join(" ")).toContain("Dice otra cosa que lo ya confirmado en: nombre del propietario o razón social; lo confirmado no se cambió.");
   expect(screen.getByText("Leído · CURP")).toBeTruthy();
+  // Regla del titular (29/10/2026): nada en pantalla dice «propuesto» ni que algo lo hizo la IA.
+  expect(document.body.textContent).not.toMatch(/propuest|\bIA\b|inteligencia artificial/i);
   expect(calls).toContain("POST /api/admin/archivos-cliente/a2/leer");
   // El panel de datos se vuelve a consultar para mostrar lo propuesto.
   await waitFor(() => expect(calls.filter(call => call === `GET /api/admin/expedientes/${OP}/datos`).length).toBeGreaterThanOrEqual(2));
@@ -87,9 +89,9 @@ it("si la lectura falla, el documento queda guardado con el aviso y se puede vol
   servidor(true);
   render(<ClientDocumentsTab operationId={OP} />);
   await screen.findByText("Escritura");
-  fireEvent.click(screen.getByRole("button", { name: "Leer con IA" }));
-  expect((await screen.findByRole("alert")).textContent).toContain("«Escritura»: El proveedor de IA está saturado");
-  expect(screen.getByText(/No se pudo leer: El proveedor de IA está saturado/)).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Leer datos" }));
+  expect((await screen.findByRole("alert")).textContent).toContain("«Escritura»: El servicio de lectura está saturado");
+  expect(screen.getByText(/No se pudo leer: El servicio de lectura está saturado/)).toBeTruthy();
   expect(screen.getByRole("button", { name: "Volver a leer" })).toBeTruthy();
   expect(screen.getByRole("link", { name: /Abrir/ })).toBeTruthy();
 });

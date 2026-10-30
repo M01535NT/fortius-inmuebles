@@ -59,7 +59,7 @@ describe("leer un documento del cliente con IA", () => {
 
   it("si el proveedor falla, avisa con su mensaje y no cobra nada", async () => {
     const { client, anotadas } = privilegiado();
-    const extraer: Extractor = async () => { throw new ApiError(503, "El proveedor de IA está saturado; inténtalo en unos minutos"); };
+    const extraer: Extractor = async () => { throw new ApiError(503, "El servicio de lectura está saturado; inténtalo en unos minutos"); };
     await expect(leerArchivoConIa(sesion, client, "u1", ARCHIVO.id, extraer)).rejects.toThrow("saturado");
     expect(anotadas[0]).toMatchObject({ estado: "error", costo_usd: 0 });
   });
