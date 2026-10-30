@@ -22,8 +22,12 @@ export async function downloadFormatoWord(doc: SavedFormato, folio: string, clie
   saveBlob(blob, `Fortius-${definition.id}-${safeFileName(definition.title)}-${folio}-v${doc.version}.docx`);
 }
 
-/** Copia editable de cada formato: la opinión de valor (07) se trabaja en Excel, con su plantilla; los demás, en Word. */
-export const copiaEditable = (formatoId: string) => formatoId === "07" ? "Excel" : "Word";
+/**
+  Copia editable (titular, 27/10/2026: «quitar la opción de descargar el Word»). Los formatos se
+  entregan en PDF; solo quedan la opinión de valor (07), que se trabaja en su Excel, y el
+  contrato 09, cuyo PDF sigue bloqueado (DOC-09) y por eso se descarga en Word.
+*/
+export const copiaEditable = (formatoId: string): "Excel" | "Word" | null => formatoId === "07" ? "Excel" : formatoId === "09" ? "Word" : null;
 
 /** Opinión de valor en Excel: la plantilla del titular llenada con lo capturado. */
 export async function downloadValorExcel(data: Record<string, unknown>, nombre: string) {

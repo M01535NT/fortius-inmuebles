@@ -10,21 +10,24 @@ export const suffixes = ['staff','records','record_references','rate_limits','re
 export const historicalCurrentSuffixes = ['staff','records','record_revisions','rate_limits','adviser_accounts','expedientes','record_references','file_uploads','formato_drafts','formato_assets','formato_emissions','signed_copies','comercial_books','comercial_revisions','comercial_emissions','lead_conversions','record_history','expediente_actividad'];
 export const appSuffixes = ['app_runs','app_run_versions','app_files','app_shares','integration_jobs','integration_artifacts','integration_pages','signature_events'];
 export const appsCurrentSuffixes = [...historicalCurrentSuffixes,...appSuffixes];
-export const currentSuffixes = [...appsCurrentSuffixes,"interviews"];
-export const currentSchemaVersion = 3;
+export const interviewsCurrentSuffixes = [...appsCurrentSuffixes,"interviews"];
+// Schema v4 (29/10/2026): documentos del cliente por expediente, datos confirmados y lecturas de IA.
+export const expedienteFileSuffixes = ['expediente_archivos','expediente_datos','ia_lecturas'];
+export const currentSuffixes = [...interviewsCurrentSuffixes,...expedienteFileSuffixes];
+export const currentSchemaVersion = 4;
 export function ownerSchemaVersion(data) {
   if (data.prefix !== 'fortius_inmuebles') return undefined;
   if (Object.hasOwn(data,'schema_version')) {
-    if (![1,2,currentSchemaVersion].includes(data.schema_version)) throw Error('Unsupported owner backup schema version');
+    if (![1,2,3,currentSchemaVersion].includes(data.schema_version)) throw Error('Unsupported owner backup schema version');
     return data.schema_version;
   }
   // Only the complete pre-Apps inventory is historical. A partial Apps export
   // must fail instead of silently replacing omitted tables with empty arrays.
-  return Object.hasOwn(data.tables ?? {},'fortius_inmuebles_interviews') ? 3 : appSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 2 : 1;
+  return expedienteFileSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 4 : Object.hasOwn(data.tables ?? {},'fortius_inmuebles_interviews') ? 3 : appSuffixes.some(s => Object.hasOwn(data.tables ?? {},'fortius_inmuebles_'+s)) ? 2 : 1;
 }
 export function tableOrderKeys(suffix) {
   if (!currentSuffixes.includes(suffix)) throw Error('Unknown backup table');
-  const keys={staff:['user_id'],adviser_accounts:['user_id'],rate_limits:['key'],record_references:['source_collection','source_id','field'],records:['collection','id'],record_revisions:['collection','id'],comercial_revisions:['book_id','version'],lead_conversions:['lead_id'],app_run_versions:['run_id','version'],signature_events:['hash']};
+  const keys={staff:['user_id'],adviser_accounts:['user_id'],rate_limits:['key'],record_references:['source_collection','source_id','field'],records:['collection','id'],record_revisions:['collection','id'],comercial_revisions:['book_id','version'],lead_conversions:['lead_id'],expediente_datos:['expediente_id'],app_run_versions:['run_id','version'],signature_events:['hash']};
   return keys[suffix] ?? ['id'];
 }
 export function isBackupBucket(prefix,id) {
@@ -62,7 +65,7 @@ export function ownerExport(raw) {
     data={format:'mnt-owner-export-v1',prefix,exported_at:data.created_at,tables:{[`${prefix}_staff`]:data.staff,[`${prefix}_records`]:data.records,[`${prefix}_record_references`]:data.references,[`${prefix}_rate_limits`]:data.rate_limits,[`${prefix}_record_revisions`]:data.revisions}};
   }
   if(data.format!=='mnt-owner-export-v1'||!['cota','mnt','fortius_inmuebles'].includes(data.prefix)) throw Error('Invalid owner backup format');
-  const required=data.prefix==='fortius_inmuebles'?(ownerSchemaVersion(data)===3?currentSuffixes:ownerSchemaVersion(data)===2?appsCurrentSuffixes:historicalCurrentSuffixes):suffixes;
+  const required=data.prefix==='fortius_inmuebles'?(ownerSchemaVersion(data)===4?currentSuffixes:ownerSchemaVersion(data)===3?interviewsCurrentSuffixes:ownerSchemaVersion(data)===2?appsCurrentSuffixes:historicalCurrentSuffixes):suffixes;
   for(const suffix of required) if(!Array.isArray(data.tables?.[`${data.prefix}_${suffix}`])) throw Error('Incomplete owner backup tables');
   if(data.prefix==='fortius_inmuebles') {
     const allowed=new Set(required.map(s=>data.prefix+'_'+s));
@@ -117,6 +120,7 @@ function reconcileObjects(manifest, database) {
   for (const suffix of ['formato_emissions', 'signed_copies', 'formato_assets']) {
     for (const row of table(suffix)) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
   }
+  for (const row of table('expediente_archivos')) requireObject('fortius-inmuebles-expedientes', row.path, row.sha256, row.byte_length);
   for (const row of table('comercial_emissions')) requireObject('fortius-inmuebles-comercial', row.path, row.sha256);
   for (const row of table('app_files')) requireObject('fortius-inmuebles-private', row.path, row.sha256, row.size_bytes);
   for (const row of table('integration_artifacts')) requireObject('fortius-app-integrations', row.storage_path, row.sha256, row.size_bytes);

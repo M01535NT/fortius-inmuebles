@@ -8,9 +8,17 @@ import { fortiusDocxSection } from "@/lib/docx-letterhead";
 /*
   Checklist de documentos para entregar al propietario, en PDF o Word. Lista simple
   con casillas; marca los ya recibidos. No es un formato emitido ni lleva huella.
+  Debajo de cada documento: si no aplica, su motivo; si aún no se sabe, la pregunta (COR-06).
 */
 
-type Context = { folio: string; cliente?: string; recibidos?: string[] };
+type Context = { folio: string; cliente?: string; recibidos?: string[]; noAplica?: Record<string, string>; porConfirmar?: Record<string, string> };
+/** Nota bajo el documento: «No aplica» con su motivo o «Solo si aplica» con la pregunta. */
+function nota(item: ChecklistItem, context: Context): string | undefined {
+  const motivo = context.noAplica?.[item.id];
+  if (motivo) return `No aplica: ${motivo}`;
+  const pregunta = context.porConfirmar?.[item.id] ?? (context.recibidos?.includes(item.id) ? undefined : item.porConfirmar);
+  return pregunta ? `Solo si aplica: ${pregunta}` : undefined;
+}
 const INTRO = "Para revisar su inmueble y preparar el dictamen jurídico necesitamos copia de estos documentos. Si alguno no aplica o no lo tiene, coméntelo con su asesor.";
 
 function wrap(text: string, width: number, measure: (t: string) => number) {
@@ -43,6 +51,8 @@ export async function checklistPdf(items: ChecklistItem[], context: Context): Pr
     page.drawRectangle({ x: margin, y: y - 3, width: 11, height: 11, borderColor: wine, borderWidth: 1 });
     if (done) page.drawText("X", { x: margin + 2.5, y: y - 1, size: 9, font: bold, color: wine });
     for(const line of lines) {room(15);page.drawText(line, { x: margin + 22, y, size: 11.5, font: regular, color: navy });y-=15;}
+    const extra = nota(item, context);
+    if (extra) for (const line of wrap(extra, width - 24, t => regular.widthOfTextAtSize(t, 9.5))) { room(13); page.drawText(line, { x: margin + 22, y, size: 9.5, font: regular, color: grey }); y -= 13; }
     y -= 12;
   }
   room(18);
@@ -57,7 +67,7 @@ export async function checklistDocx(items: ChecklistItem[], context: Context): P
     new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: "Checklist de documentos" })] }),
     new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: `Fortius Inmuebles · Operación ${context.folio}${context.cliente ? ` · ${context.cliente}` : ""}`, size: 20, color: "595959" })] }),
     new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: INTRO, size: 22 })] }),
-    ...items.map(item => new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: `${context.recibidos?.includes(item.id) ? "☒" : "☐"}  ${item.texto}`, size: 24 })] })),
+    ...items.map(item => { const extra = nota(item, context); return new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: `${context.recibidos?.includes(item.id) ? "☒" : "☐"}  ${item.texto}`, size: 24 }), ...(extra ? [new TextRun({ text: extra, size: 18, color: "595959", break: 1 })] : [])] }); }),
     new Paragraph({ alignment: AlignmentType.LEFT, spacing: { before: 360 }, children: [new TextRun({ text: "Las copias se usan solo para revisar la operación, conforme al aviso de privacidad.", italics: true, size: 18, color: "595959" })] }),
   ] }] });
   return Packer.toBlob(document);

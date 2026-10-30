@@ -4,15 +4,14 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import { formatoById, validateFormato, type FormatoField } from "./catalog";
+import { formatoById, validateFormato, type FormatoField, emiteIncompleto, avisoIncompleto } from "./catalog";
 import { calcularPresupuesto, importePartida, type Partida, type Pago } from "./presupuesto";
 import { CARGOS_NETO, calcularNeto, type CargoNeto } from "./neto";
 import { ENTREGA_TABLAS, type EntregaRow, type EntregaTabla } from "./entrega";
 import { respuestaRequiereRatificacion } from "./oferta";
-import { calcularExtras, PLAN_TABLES, type PlanRow, type PlanTable } from "./plan";
+
 import { calcularPublicidadReporte, REPORTE_TABLES, type ReporteRow, type ReporteTable } from "./reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable, type EntrevistaRow } from "./entrevista";
-import { createAvisoPdf } from "./aviso-pdf";
 import { JURIDICA_TABLES, mostrarColumnaJuridica, type JuridicaRow } from "./juridica";
 import sharp from "sharp";
 import { isLevantamiento, LEVANTAMIENTO_TITLES, LEVANTAMIENTO_TABLES, type LevantamientoTable, type LevantamientoRow } from "./levantamiento";
@@ -62,14 +61,16 @@ export function receiptParagraphs(data: Record<string, unknown>): string[] {
   ];
 }
 
-export async function createFormatoPdf(id: string, data: Record<string, unknown>, assets: FormatoPdfAsset[] = []): Promise<Uint8Array> {
+/** «incompleto»: se emite aunque falten datos (si el formato lo admite) y cada hoja lo dice al pie. */
+export async function createFormatoPdf(id: string, data: Record<string, unknown>, assets: FormatoPdfAsset[] = [], options: { incompleto?: boolean } = {}): Promise<Uint8Array> {
   const definition = formatoById(id);
   if (!definition.readyForEmission) throw new Error("Formato pendiente de cotejo con el original");
   const missing = validateFormato(id, data);
-  if (missing.length) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
-  if (id === "01") return createAvisoPdf(data);
+  const incompleto = missing.length > 0 && !!options.incompleto && emiteIncompleto(id);
+  if (missing.length && !incompleto) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
   if (isLevantamiento(id)) {
-    if (!assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto")) throw new Error("Falta la fotografía principal del levantamiento");
+    // Sin fotografía elegida, el PDF incompleto deja su recuadro vacío; una elegida debe venir y estar íntegra.
+    if ((!incompleto || data.fotoPrincipalId) && !assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto")) throw new Error("Falta la fotografía principal del levantamiento");
     if (data.croquisId && !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis")) throw new Error("Falta el croquis elegido para el levantamiento");
   }
   // Formatos con el diseño de su plantilla (carta, banda de datos y tablas de marca).
@@ -86,7 +87,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
       const image = imagen(new Uint8Array(bytes), { caption: asset.caption, source: asset.source, date: asset.observed_on });
       if (image) imagenes[asset.id] = image;
     }
-    return renderDocumentoPdf(documento(data, { imagenes }), { regular, bold, ...await loadLetterhead() });
+    return renderDocumentoPdf({ ...documento(data, { imagenes }), ...(incompleto ? { aviso: avisoIncompleto(missing) } : {}) }, { regular, bold, ...await loadLetterhead() });
   }
   const pdf = await PDFDocument.create();
   const displayTitle = id === "01" ? "Aviso de privacidad" : id === "02" ? "Entrevista inicial" : isLevantamiento(id) ? LEVANTAMIENTO_TITLES[id] : id === "05" ? "Revisión jurídica y control de cierre" : id === "06" ? "Opinión jurídica del inmueble" : id === "07" ? "Opinión de valor comercial" : id === "08" ? "Estimación del neto" : id === "10" ? "Plan de comercialización" : id === "11" ? "Reporte de comercialización" : id === "12" ? "Perfil del comprador" : id === "13" ? "Visita y retroalimentación" : id === "14" ? "Propuesta de compra" : definition.title;
@@ -346,78 +347,6 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     else write("Estimación revisada. Puede variar al concretarse la operación.", 10, regular, ink, 8);
     write("Estimación, no garantía de cobro. El precio, impuestos, adeudos y gastos pueden cambiar. Total conjunto antes de repartir entre copropietarios.", 9, regular, muted, 8);
     write("No equivale al saldo por cobrar en firma: los anticipos recibidos deben conciliarse por separado. Evita duplicar cargos.", 9, regular, muted, 8);
-  } else if (id === "10") {
-    const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
-    const cash = (amount: number, currency = val("moneda")) => `${formatAmount(amount)} ${currency}`;
-    const section = (title: string) => { ensure(65); write(title, 13, bold, accent, 9); };
-    const rows = (key: PlanTable) => data[key] as PlanRow[];
-    const list = (key: PlanTable) => {
-      const config = PLAN_TABLES[key];
-      const fixed = config.fixed as readonly { key: string; label: string }[];
-      for (const [index, row] of rows(key).entries()) {
-        ensure(56);
-        const title = fixed.find((item) => item.key === row.concepto)?.label ?? (key === "atributos" ? `Atributo ${index + 1}` : `Extra ${index + 1}`);
-        write(title, 9, bold, ink, 2);
-        write(config.columns.map((column) => {
-          const value = row[column.key];
-          const rendered = column.key === "fecha" && typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
-            ? new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${value}T00:00:00Z`))
-            : String(value ?? "");
-          return `${column.label}: ${rendered}`;
-        }).join(" · "), 8.5, regular, muted, 7);
-      }
-    };
-    write(`Estrategia y acciones propuestas para ${val("inmueble")}. Encargo: ${val("modalidadEncargo")}.`, 10, regular, muted, 12);
-    write(`Expediente ${val("folio")} · ${val("operacion")} · ${val("fecha")} · Propietario: ${val("propietario")} · Asesor: ${val("asesor")} (${val("contactoAsesor")})`, 9, regular, ink, 13);
-    section("01 / La estrategia propuesta");
-    write(`Estrategia propuesta: ${val("estrategia")}. Objetivo del propietario: ${val("objetivo")}. El primer periodo de trabajo será ${val("periodo")}, con revisión el ${val("fechaRevision")}. Condiciones para lanzar: ${val("condicionesLanzamiento")}. El plazo es de trabajo y evaluación; no garantiza comprador, precio ni fecha de cierre.`, 10, regular, ink, 11);
-    write(`Referencia de valor: ${cash(data.valorReferencia07 as number)} según ${val("referencia07")}. Precio de salida autorizado: ${cash(data.precioSalida as number)}. Base y alcance: ${val("baseFiscal")}. Soporte: ${val("autorizacionPrecio")}. Justificación de la diferencia: ${val("justificacionDiferencia")}. Próxima decisión de precio: ${val("decisionPrecio")}.`, 10, regular, ink, 11);
-    write("Cada oferta y cualquier cambio de precio requieren aceptación expresa del propietario. El neto, si se solicitó, se presenta por separado en el formato 08.", 9, regular, muted, 12);
-    section("02 / Qué vamos a comunicar");
-    write(`Fortaleza comprobable: ${val("diferenciador")}. Objeción y respuesta sustentada: ${val("objecionRespuesta")}. Competencia relevante: ${val("competencia")}. Pendientes que limitan la campaña: ${val("pendientesCampana")}. La información declarada se identifica como tal; lo pendiente no se anuncia como comprobado.`, 10, regular, ink, 10);
-    list("atributos");
-    section("03 / A quién queremos llegar");
-    write(`Público prioritario: ${val("publicoPrimario")}. Público secundario: ${val("publicoSecundario")}. Mensaje a probar: ${val("mensajePrueba")}. Evidencia para validar esta hipótesis: ${val("evidenciaValidacion")}. La selección se basa en compatibilidad con el inmueble y capacidad de realizar la operación; no promete créditos o rendimientos.`, 10, regular, ink, 12);
-    page = pdf.addPage(a4); startPage();
-    write("Campaña y presupuesto", 16, bold, accent, 11);
-    write(`Lanzamiento previsto: ${val("fechaLanzamiento")}. Responsable de aprobar contenidos: ${val("aprobadorContenido")}. Sólo se activan acciones con alcance, fecha y autorización expresos.`, 10, regular, ink, 12);
-    section("04 / Preparación y calendario");
-    write(`Preparación del inmueble: ${val("preparacion")}. Retirar de las imágenes documentos y objetos personales. No ocultar daños o condiciones relevantes mediante edición de fotografías.`, 9, regular, ink, 9);
-    list("hitos");
-    section("Materiales de difusión");
-    list("piezas");
-    ensure(260);
-    section("05 / Canales y piezas seleccionados");
-    write(`Cada anuncio mostrará tipo de inmueble, ubicación autorizada, precio, moneda, atributos comprobables y contacto. Contacto público: ${val("contactoPublico")}. Ubicación publicable: ${val("ubicacionPublicable")}. Referidos y colaboración: ${val("colaboracion")}. No se difunden datos personales ni se crean interesados, urgencia o beneficios ficticios.`, 9, regular, ink, 10);
-    list("canales");
-    section("AIDA y lanzamiento de 21 días");
-    write("Atención: anuncios aprobados y consultas por canal. Interés: ficha e información pertinente; respuestas y citas. Deseo: visitas y atención de objeciones con evidencia. Acción: oferta escrita y decisión documentada del propietario. Las etapas pueden repetirse o superponerse.", 9, regular, ink, 10);
-    write(`Día 1: ${val("fechaLanzamiento")}. Cortes previstos: día 7, ${val("corte7")}; día 14, ${val("corte14")}; día 21, ${val("corte21")}. Se revisarán contactos únicos, visitas realizadas, ofertas y objeciones. La ventana inicial no garantiza mayor demanda, venta ni cierre. Las pausas y fechas reales se registrarán.`, 9, regular, ink, 10);
-    write("Días 1 a 7: publicar piezas aprobadas, verificar anuncios, activar referidos autorizados y responder consultas. Decisión: corregir información, imágenes o contacto si hace falta.", 9, regular, ink, 7);
-    write("Días 8 a 14: dar seguimiento, realizar visitas y recoger objeciones. Decisión: mejorar presentación, mensaje o atención según las respuestas obtenidas.", 9, regular, ink, 7);
-    write("Días 15 a 21: retomar interesados, resolver dudas y facilitar ofertas escritas. Decisión: mantener el plan o proponer cambios sustentados de contenido, canales, acceso o precio.", 9, regular, ink, 9);
-    write("En cada corte se acordarán la acción siguiente, responsable y fecha. Ningún corte activa descuentos o publicidad pagada por sí mismo; cualquier cambio requiere autorización.", 9, regular, muted, 10);
-    section("06 / Publicidad pagada y extras opcionales");
-    const extraTotals = calcularExtras(rows("extras"));
-    write(`Estado: ${val("estadoPublicidad")}. Extras propuestos: ${cash(extraTotals.propuesto, "MXN")}. Extras autorizados: ${cash(extraTotals.autorizado, "MXN")}.`, 10, bold, accent, 9);
-    if (rows("extras").length) list("extras");
-    else write("No contratado; total autorizado de 0 MXN.", 9, regular, ink, 9);
-    write(`Alcance para varias unidades: ${val("unidadesFases")}. La difusión gratuita se usa cuando está disponible. La publicidad pagada no está incluida: requiere autorización previa de canal, periodo, máximo con impuestos y forma de pago. Este presupuesto no modifica la comisión ni la pena del contrato 09.`, 9, regular, muted, 10);
-    page = pdf.addPage(a4); startPage();
-    write("Atención, seguimiento y decisiones", 16, bold, accent, 11);
-    section("07 / Atención y visitas");
-    write(`Atenderemos consultas por ${val("mediosAtencion")}. Tiempo de respuesta y horario: ${val("tiempoRespuesta")}. Confirmaremos necesidad, plazo y forma prevista de pago antes de las visitas en ${val("horariosVisita")}, con ${val("responsableAcceso")}. Después registraremos objeciones y acordaremos la siguiente acción con el interesado.`, 10, regular, ink, 10);
-    write(`Formas de pago a evaluar: ${val("formasPago")}. Documentación restringida: ${val("documentosRestringidos")}. Custodio: ${val("custodioDocumentos")}. Se registran prospectos y visitas en los formatos 12 y 13; las ofertas por escrito, en el 14. El asesor no acepta ofertas ni recibe apartados por este plan.`, 9, regular, ink, 11);
-    section("08 / Qué recibirá en cada reporte");
-    write(`El reporte 11 se entregará por ${val("medioReporte")}, con la frecuencia pactada en el 09: ${val("frecuencia09")}. Próximo corte: ${val("proximoCorte")}. Destinatario: ${val("destinatarioReporte")}. Los registros permanecen en el 03. Se informarán resultados, objeciones y acciones ejecutadas.`, 10, regular, ink, 10);
-    write(`Criterio de revisión: ${val("criterioRevision")}. En los cortes de los días 7, 14 y 21 se localizará dónde se detiene el avance AIDA. Con pocos datos se indicará la limitación. Los ajustes de precio se sustentan en el 07 y requieren autorización expresa.`, 9, regular, ink, 10);
-    write("Indicadores: contar interesados únicos y distinguir consultas, visitas agendadas y realizadas; no duplicar revisiones de una oferta. Usar alcances o clics sólo si la plataforma los informa y sin sumar audiencias como personas únicas. Si no hubo visitas, no calcular ofertas por visita. En publicidad contratada, separar presupuesto, fondos, gasto comprobado y saldo.", 9, regular, muted, 10);
-    section("09 / Decisiones para iniciar");
-    list("decisiones");
-    if (data.estadoAprobacion === "registrada") write(`Aceptación registrada por ${val("nombreAprobador")} el ${val("fechaAprobacion")}. Firma o acuse: ${val("acuseAprobacion")}. Sólo se consideran aceptados los alcances identificados expresamente.`, 10, regular, ink, 10);
-    else write("Aceptación expresa pendiente. Las acciones propuestas no autorizan publicación, acceso, gasto ni difusión de datos hasta documentar su aprobación.", 10, bold, accent, 10);
-    write(`Siguiente paso: ${val("siguienteAccion")}. Responsable: ${val("responsableSiguiente")}. Fecha: ${val("fechaSiguiente")}.`, 10, regular, ink, 10);
-    write("Este plan no amplía facultades, honorarios, penalizaciones ni licencias del contrato de intermediación.", 9, regular, muted, 10);
   } else if (id === "11") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
     const money = (amount: number, currency = val("moneda")) => `${formatAmount(amount)} ${currency}`;
@@ -540,45 +469,6 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
     else write("No se recabó una decisión del interesado durante esta cita.", 10, regular, muted, 12);
     write("03 / Seguimiento del asesor", 13, bold, accent, 10);
     for (const field of definition.fields.slice(17)) fieldLine(field);
-  } else if (id === "14") {
-    const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
-    const cash = (amount: unknown, currency: string) => `${formatAmount(amount as number)} ${currency}`;
-    const signature = (name: string, role: string) => {
-      ensure(88);
-      y -= 30;
-      page.drawLine({ start: { x: margin, y }, end: { x: margin + 240, y }, thickness: 0.7, color: ink });
-      y -= 15;
-      write(`${name} · ${role}`, 8, regular, muted, 10);
-    };
-    write(`${val("lugarPropuesta")}, ${val("fechaPropuesta")} · Folio ${val("folio")}`, 9, regular, muted, 10);
-    write(`${val("propietario")}\nPresente`, 10, bold, ink, 10);
-    write(`Soy ${val("comprador")}, ${val("representacionComprador")}. Le propongo adquirir ${val("derechoAdquirir")} sobre el inmueble ubicado en ${val("inmueble")}, identificado con ${val("folioInmueble")}.`, 10, regular, ink, 12);
-    write("Precio propuesto", 13, bold, accent, 5);
-    write(cash(data.precioPropuesto, val("moneda")), 18, bold, accent, 10);
-    write(`Tratamiento de impuestos del precio: ${val("impuestosPrecio")}. Bienes y accesorios incluidos: ${val("bienesIncluidos")}; excluidos: ${val("bienesExcluidos")}.`, 10, regular, ink, 10);
-    write("Pago y condiciones", 13, bold, accent, 8);
-    write(`Propongo cubrir el precio con ${cash(data.recursosPropios, val("moneda"))} de recursos propios${data.credito === 0 ? ", sin crédito previsto" : ` y ${cash(data.credito, val("moneda"))} mediante ${val("institucionCredito")}; estado del crédito: ${val("estadoCredito")}`}. El calendario de pagos sería ${val("calendarioPagos")}.`, 10, regular, ink, 9);
-    write(`La operación quedaría sujeta a estas condiciones: ${val("condiciones")}. Deberían resolverse a más tardar el ${val("fechaCondiciones")}. Propongo formalizar el ${val("fechaFormalizacion")} y recibir el inmueble el ${val("fechaEntrega")}. Gastos a mi cargo: ${val("gastosComprador")}; a cargo del propietario: ${val("gastosPropietario")}.`, 10, regular, ink, 10);
-    write("Respuesta y alcance", 13, bold, accent, 7);
-    write(`Agradeceré su respuesta hasta el ${val("fechaLimitePropuesta")}, a las ${val("horaLimitePropuesta")} (${val("zonaHoraria")}). Una respuesta posterior requerirá confirmar que mantengo esta propuesta; el silencio no expresa conformidad.`, 10, regular, ink, 8);
-    write("Estas bases sirven sólo para negociar. No asumo aquí la obligación de comprar ni de celebrar un contrato futuro. Cualquier compromiso requerirá un instrumento independiente firmado por personas con facultades. Esta carta no pacta apartado, depósito, pena ni entrega de posesión.", 9, regular, muted, 9);
-    write("Atentamente,", 10, regular, ink, 4);
-    signature(val("comprador"), "Comprador o representante");
-    if (data.estadoRespuesta === "registrada") {
-      page = pdf.addPage(a4); startPage();
-      write("Respuesta del propietario", 19, bold, accent, 10);
-      write(`${val("lugarRespuesta")}, ${val("fechaRespuesta")} a las ${val("horaRespuesta")} · Propuesta folio ${val("folio")}`, 9, regular, muted, 13);
-      write(`${val("comprador")}\nPresente`, 10, bold, ink, 13);
-      write(`Recibí su propuesta de fecha ${val("fechaPropuesta")} respecto del inmueble ubicado en ${val("inmueble")}, identificado con ${val("folioInmueble")}. Respondo en mi carácter de ${val("caracterPropietario")}.`, 10, regular, ink, 15);
-      write("Mi respuesta", 13, bold, accent, 8);
-      const decision = data.decisionPropietario === "aceptar" ? "aceptar las bases para negociar" : data.decisionPropietario === "contraoferta" ? "proponer cambios" : "rechazar la propuesta";
-      write(`He decidido ${decision}. El motivo es: ${val("motivoRespuesta")}.`, 10, regular, ink, 10);
-      if (respuestaRequiereRatificacion(data)) write(`El comprador confirmó que mantiene vigente su propuesta según ${val("confirmacionVigencia")}.`, 9, regular, ink, 10);
-      if (data.decisionPropietario === "contraoferta") write(`Mi contraoferta es de ${cash(data.precioContraoferta, val("monedaContraoferta"))}. Impuestos: ${val("impuestosContraoferta")}. Cambios precisos: ${val("cambiosContraoferta")}. Espero respuesta hasta el ${val("fechaLimiteContraoferta")} a las ${val("horaLimiteContraoferta")} (${val("zonaHoraria")}).`, 10, regular, ink, 13);
-      write("Esta respuesta, aun si es favorable, conserva el alcance de negociación de la propuesta y no obliga por sí sola a vender ni a celebrar un contrato futuro. Cualquier compromiso requerirá el instrumento correspondiente.", 9, regular, muted, 15);
-      write("Atentamente,", 10, regular, ink, 4);
-      signature(val("propietario"), "Propietario o representante");
-    }
   } else if (id === "16") {
     const val = (key: string) => displayValue(definition.fields.find((field) => field.key === key)!, data[key]);
     const section = (title: string) => { ensure(60); write(title, 13, bold, accent, 9); };
@@ -657,7 +547,7 @@ export async function createFormatoPdf(id: string, data: Record<string, unknown>
   return pdf.save();
 }
 
-export async function prepareFormatoEmission(id: string, data: Record<string, unknown>, assets?: FormatoPdfAsset[]) {
-  const bytes = await createFormatoPdf(id, data, assets);
+export async function prepareFormatoEmission(id: string, data: Record<string, unknown>, assets?: FormatoPdfAsset[], options: { incompleto?: boolean } = {}) {
+  const bytes = await createFormatoPdf(id, data, assets, options);
   return { bytes, sha256: createHash("sha256").update(bytes).digest("hex") };
 }

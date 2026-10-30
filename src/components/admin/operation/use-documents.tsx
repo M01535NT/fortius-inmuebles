@@ -3,9 +3,10 @@ import * as React from "react";
 import { apiRequest, db, errorMessage, fetchJson as json, upsert } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
-import { checklistFor, checklistTaskId, levantamientoFor } from "@/lib/formatos/checklist-documentos";
+import { checklistFor, checklistTaskId, levantamientoFor, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
+import { calcularValor } from "@/lib/formatos/valor";
 import type { LevantamientoId } from "@/lib/formatos/levantamiento";
 import { downloadFormatoCopia, saveBlob } from "@/lib/admin/download-word";
 import type { FormatStatus, OperationRecord } from "@/lib/admin/operation-view";
@@ -25,11 +26,23 @@ const byNewest = (a: Documento, b: Documento) => b.updated_at.localeCompare(a.up
 /** «04» es el levantamiento de cualquier tipo (04A–04G). */
 const matches = (formato: string, id: string) => formato === "04" ? id.startsWith("04") : id === formato;
 
-/** Control documental del 05 con lo marcado en el checklist: recibido o por recibir; lo demás queda por determinar. */
+/**
+  Control documental del 05 con lo marcado en el checklist: recibido, por recibir, no aplica con su
+  motivo o por determinar si aún está por confirmar; lo agregado a mano va en «Otros documentos» (D22).
+*/
 export function juridicaDocumentsFrom(checklist?: Task) {
+  const referencia = "Checklist de documentos de la operación";
+  const otros = checklist?.pasos.filter(p => !/^D\d{2}$/.test(p.id) || p.id === "D22") ?? [];
   return (JURIDICA_TABLES.documentos.fixed ?? []).map(item => {
+    if (item.key === "D22" && otros.length) {
+      const nombres = otros.map(p => `${p.texto.replace(/^D22 · /, "")}${p.hecho ? " (recibido)" : p.noAplica ? " (no aplica)" : ""}`).join("; ");
+      return { concepto: item.key, aplica: "si", estado: otros.every(pasoCompleto) ? "recibido" : "no_recibido", referencia, verificacion: nombres.slice(0, 2000) };
+    }
     const paso = checklist?.pasos.find(p => p.id === item.key);
-    return paso ? { concepto: item.key, aplica: "si", estado: paso.hecho ? "recibido" : "no_recibido", referencia: "Checklist de documentos de la operación" } : { concepto: item.key };
+    if (!paso) return { concepto: item.key };
+    if (paso.noAplica?.trim()) return { concepto: item.key, aplica: "no", verificacion: paso.noAplica.trim() };
+    if (paso.porConfirmar && !paso.hecho) return { concepto: item.key, aplica: "pendiente", verificacion: paso.porConfirmar };
+    return { concepto: item.key, aplica: "si", estado: paso.hecho ? "recibido" : "no_recibido", referencia };
   });
 }
 
@@ -68,7 +81,11 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   // Lo que contestó el propietario: la entrevista inicial (02) y, si todavía no hay, el primer contacto.
   const answers = (latest("02")?.data ?? interviewAnswers) as Record<string, unknown>;
   const pdfOf = React.useCallback((doc?: Documento) => pdfFor(doc, emissions), [emissions]);
-  /** Terminado: tiene PDF de su última versión; el contrato (09) todavía no genera PDF y cuenta con existir. */
+  /**
+    Terminado: tiene PDF de su última versión; el contrato (09) todavía no genera PDF y cuenta con existir.
+    Un PDF con datos faltantes también deja avanzar (RP-82: ningún dato faltante detiene el flujo);
+    la lista de etapas lo señala como «PDF incompleto».
+  */
   const status = React.useCallback((formato: string): FormatStatus => {
     const doc = latest(formato);
     if (!doc) return undefined;
@@ -89,9 +106,10 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
       const valor = latest("07");
       return { data: { erogaciones: CARGOS_NETO.map(item => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) }, ...(valor && pdfOf(valor) ? { valorReferencia: { id: valor.id, version: valor.version } } : {}) };
     }
+    if (formatoId === "10") return { data: planSeed(latest("04")?.data, latest("07")?.data, latest("09")?.data) };
     return { data: {} };
   }
-  /** Crea un borrador del formato; el 05 y el 08 nacen con lo que ya se sabe de la operación. */
+  /** Crea un borrador del formato; el 05, el 08 y el 10 nacen con lo que ya se sabe de la operación. */
   async function create(formatoId: string, seed: { data?: Record<string, unknown>; valorReferencia?: { id: string; version: number } } = seedFor(formatoId)) {
     return guard(async () => {
       const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${op.id}/formatos`, post({ formatoId, data: seed.data ?? {}, ...(seed.valorReferencia ? { valorReferencia: seed.valorReferencia } : {}) }));
@@ -122,8 +140,8 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   }
   function checklistFile(kind: "pdf" | "docx") {
     void guard(async () => {
-      const items = checklist?.pasos.map(p => ({ id: p.id, texto: p.texto })) ?? checklistFor(answers);
-      const fileContext = { folio: op.folio, cliente, recibidos: checklist?.pasos.filter(p => p.hecho).map(p => p.id) };
+      const items = checklist?.pasos.map(p => ({ id: p.id, texto: p.texto, ...(p.porConfirmar ? { porConfirmar: p.porConfirmar } : {}) })) ?? checklistFor(answers);
+      const fileContext = { folio: op.folio, cliente, recibidos: checklist?.pasos.filter(p => p.hecho).map(p => p.id), noAplica: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.noAplica?.trim()).map(p => [p.id, p.noAplica!.trim()])), porConfirmar: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.porConfirmar && !pasoCompleto(p)).map(p => [p.id, p.porConfirmar!])) };
       const { checklistPdf, checklistDocx } = await import("@/lib/formatos/checklist-print");
       if (kind === "pdf") saveBlob(new Blob([new Uint8Array(await checklistPdf(items, fileContext))], { type: "application/pdf" }), `Fortius-Checklist-documentos-${op.folio}.pdf`);
       else saveBlob(await checklistDocx(items, fileContext), `Fortius-Checklist-documentos-${op.folio}.docx`);
@@ -136,5 +154,26 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     onEmitted={emision => setEmissions(old => ({ ...old, [open.id]: [emision, ...(old[open.id] ?? [])] }))}
     onClose={() => setOpen(null)} />;
 
-  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, busy, error, capture, isOpen: !!open };
+  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error, capture, isOpen: !!open };
+}
+
+/**
+  Plan 10: lo que ya saben el levantamiento, la opinión de valor y el contrato. Solo propone
+  datos para un borrador nuevo; el asesor los confirma o corrige sobre el documento.
+*/
+function planSeed(levantamiento?: Record<string, unknown>, valor?: Record<string, unknown>, contrato?: Record<string, unknown>): Record<string, unknown> {
+  const l = levantamiento ?? {}, o = valor ?? {}, c = contrato ?? {};
+  const numero = (...values: unknown[]) => values.find(value => typeof value === "number" && Number.isFinite(value) && value >= 0);
+  const texto = (...values: unknown[]) => values.find(value => typeof value === "string" && value.trim());
+  let concluido: number | null = null;
+  try { concluido = valor ? calcularValor(o).concluido : null; } catch { /* opinión incompleta */ }
+  const firma = typeof c.fecha === "string" && /^\d{4}-\d{2}-\d{2}$/.test(c.fecha) ? new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${c.fecha}T00:00:00Z`)) : "";
+  const seed: Record<string, unknown> = {
+    terreno: numero(l.superficieTerreno, o.terreno), construccion: numero(l.superficieConstruccion, l.superficieConstrucciones, o.construccion),
+    recamaras: numero(l.recamaras, o.recamaras), banos: numero(l.banos, o.banos), mediosBanos: numero(l.mediosBanos),
+    claveCatastral: texto(c.claveCatastral, o.cuentaCatastral), folioReal: texto(c.folioReal),
+    valorReferencia07: concluido ?? undefined,
+    contrato09: contrato ? [texto(c.folio), firma].filter(Boolean).join(" · ") || undefined : undefined,
+  };
+  return Object.fromEntries(Object.entries(seed).filter(([, value]) => value !== undefined && value !== ""));
 }

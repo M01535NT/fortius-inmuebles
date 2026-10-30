@@ -2,11 +2,12 @@ import { z } from "zod";
 import { requireStaff } from "@/lib/backend/auth";
 import {
   apiResponse,
+  ApiError,
   assertSameOrigin,
   databaseError,
   readJson,
 } from "@/lib/backend/http";
-import { startIntakeSchema } from "@/lib/intake/interview";
+import { BUYER_INTENT_MESSAGE, isBuyerIntent, startIntakeSchema } from "@/lib/intake/interview";
 const fields =
   "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,propiedad_slug,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
 export async function GET(request: Request) {
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
     assertSameOrigin(request);
     const { client } = await requireStaff();
     const input = startIntakeSchema.parse(await readJson(request, 8192));
+    if (isBuyerIntent(input.intencion)) throw new ApiError(400, BUYER_INTENT_MESSAGE);
     const { data, error } = await client.rpc("fortius_inmuebles_start_intake", {
       p_id: input.id,
       p_intent: input.intencion,

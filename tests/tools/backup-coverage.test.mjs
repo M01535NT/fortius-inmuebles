@@ -4,8 +4,9 @@ import { readFile } from 'node:fs/promises';
 import * as tools from '../../tools/fortius-inmuebles-backup.mjs';
 const historical=['staff','records','record_references','rate_limits','record_revisions','adviser_accounts','comercial_books','comercial_emissions','comercial_revisions','expedientes','file_uploads','formato_assets','formato_drafts','formato_emissions','lead_conversions','signed_copies','record_history','expediente_actividad'];
 const apps=['app_runs','app_run_versions','app_files','app_shares','integration_jobs','integration_artifacts','integration_pages','signature_events'];
-const names=[...historical,...apps,"interviews"];
-const backup=()=>({format:'mnt-owner-export-v1',prefix:'fortius_inmuebles',schema_version:3,tables:Object.fromEntries(names.map(n=>['fortius_inmuebles_'+n,[]]))});
+const v4=['expediente_archivos','expediente_datos','ia_lecturas'];
+const names=[...historical,...apps,"interviews",...v4];
+const backup=()=>({format:'mnt-owner-export-v1',prefix:'fortius_inmuebles',schema_version:4,tables:Object.fromEntries(names.map(n=>['fortius_inmuebles_'+n,[]]))});
 
 test('current owner export includes every app, ledger, document and history table and rejects any omission',async()=>{
  const sql=await readFile(new URL('../../tools/fortius-inmuebles-owner-export.sql',import.meta.url),'utf8');
@@ -18,10 +19,10 @@ test('current owner export includes every app, ledger, document and history tabl
 });
 
 test('keeps the complete historical 18-table format unchanged, rejecting partial apps, unknown tables and versions',()=>{
- const old=backup();delete old.schema_version;for(const name of [...apps,'interviews'])delete old.tables['fortius_inmuebles_'+name];
+ const old=backup();delete old.schema_version;for(const name of [...apps,'interviews',...v4])delete old.tables['fortius_inmuebles_'+name];
  const original=structuredClone(old);assert.deepEqual(tools.ownerExport(old),original);assert.deepEqual(old,original);
  const partial=structuredClone(old);partial.tables.fortius_inmuebles_app_runs=[];assert.throws(()=>tools.ownerExport(partial),/Incomplete/);
- const future=backup();future.schema_version=4;assert.throws(()=>tools.ownerExport(future),/Unsupported.*schema/i);
+ const future=backup();future.schema_version=5;assert.throws(()=>tools.ownerExport(future),/Unsupported.*schema/i);
  const extra=backup();extra.tables.fortius_inmuebles_future_table=[];assert.throws(()=>tools.ownerExport(extra),/Unexpected.*table/i);
  for(const prefix of ['mnt','cota'])assert.equal(tools.ownerExport({format:'mnt-owner-export-v1',prefix,tables:Object.fromEntries(tools.suffixes.map(s=>[prefix+'_'+s,[]]))}).prefix,prefix);
 });
@@ -56,7 +57,7 @@ test('denied internal ledgers remain explicitly incomplete REST evidence with a 
  }
 });
 test('REST failures cannot be hidden by an absent, historical, incomplete or wrong owner snapshot',async()=>{
- const historical=backup();historical.schema_version=1;for(const name of [...apps,"interviews"])delete historical.tables['fortius_inmuebles_'+name];
+ const historical=backup();historical.schema_version=1;for(const name of [...apps,"interviews",...v4])delete historical.tables['fortius_inmuebles_'+name];
  const missing=backup();delete missing.tables.fortius_inmuebles_app_runs;
  const wrong={format:'mnt-owner-export-v1',prefix:'mnt',tables:Object.fromEntries(tools.suffixes.map(s=>['mnt_'+s,[]]))};
  for(const source of [undefined,historical,missing,wrong])await assert.rejects(tools.readRestSnapshot(restClient([{error:{code:'42501'}}]),'fortius_inmuebles','record_revisions',source));

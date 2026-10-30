@@ -54,7 +54,7 @@ before(async()=>{
 test('restores the current schema with history, activity and document snapshots; rejects orphan relationships',async()=>{
   const source=structuredClone(backup);
   const result=await rehearseCurrent(backup);
-  assert.equal(result.passed,true);assert.equal(Object.keys(result.tables).length,27);
+  assert.equal(result.passed,true);assert.equal(Object.keys(result.tables).length,30);
   assert.equal(result.tables.formato_drafts.rows,1);assert.equal(result.tables.formato_emissions.rows,1);assert.equal(result.tables.expediente_actividad.rows,4);assert.equal(result.tables.interviews.rows,1);assert.ok(result.tables.record_history.rows>0);
   const broken=structuredClone(backup);broken.tables.fortius_inmuebles_formato_drafts[0].expediente_id='51000000-0000-4000-8000-000000000099';
   await assert.rejects(rehearseCurrent(broken),/foreign key/i);
@@ -110,19 +110,19 @@ test('revalidates the calculated foreign key even when an older backup omits tha
 
 
 test('exports and restores app originals, output files, versions, OCR corrections, signature evidence and the budget ledger',async()=>{
- assert.equal(backup.schema_version,3);
+ assert.equal(backup.schema_version,4);
  const counts={app_runs:1,app_run_versions:2,app_files:2,app_shares:1,integration_jobs:2,integration_artifacts:3,integration_pages:4,signature_events:1};
  for(const [name,count] of Object.entries(counts))assert.equal(backup.tables['fortius_inmuebles_'+name]?.length,count,name);
  const original=structuredClone(backup),result=await rehearseCurrent(backup);
  for(const [name,count] of Object.entries(counts)){assert.equal(result.tables[name].rows,count);assert.equal(result.tables[name].exactContentAndDates,true);}
  for(const [parent,child] of [['expedientes','app_runs'],['app_runs','app_run_versions'],['app_files','app_shares'],['integration_jobs','integration_pages'],['integration_jobs','integration_artifacts'],['integration_jobs','signature_events']])assert.ok(result.restoreOrder.indexOf(parent)<result.restoreOrder.indexOf(child),parent+' before '+child);
- assert.equal(result.sourceSchemaVersion,3);assert.deepEqual(result.emptyTablesAdded,[]);assert.deepEqual(backup,original);
+ assert.equal(result.sourceSchemaVersion,4);assert.deepEqual(result.emptyTablesAdded,[]);assert.deepEqual(backup,original);
 });
 
 test('restores the historical 18-table backup while reporting only the new empty tables and preserving the source',async()=>{
- const old=structuredClone(backup);delete old.schema_version;for(const name of [...apps,'interviews'])delete old.tables['fortius_inmuebles_'+name];
+ const old=structuredClone(backup);delete old.schema_version;for(const name of [...apps,'interviews','expediente_archivos','expediente_datos','ia_lecturas'])delete old.tables['fortius_inmuebles_'+name];
  const original=structuredClone(old),result=await rehearseCurrent(old);
- assert.equal(result.sourceSchemaVersion,1);assert.deepEqual([...result.emptyTablesAdded].sort(),[...apps,"interviews"].sort());
+ assert.equal(result.sourceSchemaVersion,1);assert.deepEqual([...result.emptyTablesAdded].sort(),[...apps,"interviews",'expediente_archivos','expediente_datos','ia_lecturas'].sort());
  for(const name of apps)assert.equal(result.tables[name].rows,0);
  assert.deepEqual(old,original);
 });
@@ -175,11 +175,16 @@ test('restores historical counterpart evidence but rejects an orphan JSON relati
 });
 
 test('restores complete schema v2 as 26 preserved tables plus empty interviews',async()=>{
- const old=structuredClone(backup);old.schema_version=2;delete old.tables.fortius_inmuebles_interviews;
+ const old=structuredClone(backup);old.schema_version=2;for(const name of ['interviews','expediente_archivos','expediente_datos','ia_lecturas'])delete old.tables['fortius_inmuebles_'+name];
  const original=structuredClone(old),result=await rehearseCurrent(old);
- assert.equal(result.sourceSchemaVersion,2);assert.deepEqual(result.emptyTablesAdded,['interviews']);assert.equal(result.tables.interviews.rows,0);assert.deepEqual(old,original);
+ assert.equal(result.sourceSchemaVersion,2);assert.deepEqual(result.emptyTablesAdded,['interviews','expediente_archivos','expediente_datos','ia_lecturas']);assert.equal(result.tables.interviews.rows,0);assert.deepEqual(old,original);
 });
-test('rejects a version3 export that omits interview snapshots',async()=>{
+test('restores complete schema v3 adding only the empty client document tables',async()=>{
+ const old=structuredClone(backup);old.schema_version=3;for(const name of ['expediente_archivos','expediente_datos','ia_lecturas'])delete old.tables['fortius_inmuebles_'+name];
+ const original=structuredClone(old),result=await rehearseCurrent(old);
+ assert.equal(result.sourceSchemaVersion,3);assert.deepEqual(result.emptyTablesAdded,['expediente_archivos','expediente_datos','ia_lecturas']);assert.equal(result.tables.expediente_archivos.rows,0);assert.deepEqual(old,original);
+});
+test('rejects a version 4 export that omits interview snapshots',async()=>{
  const missing=structuredClone(backup);delete missing.tables.fortius_inmuebles_interviews;
  await assert.rejects(rehearseCurrent(missing),/Incomplete owner backup tables/);
 });

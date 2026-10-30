@@ -18,9 +18,12 @@
 }
 .nx-container { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 32px); }
 .nx-eyebrow { margin: 0 0 16px; font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--ns-accent); }
+/* El titular de cada sección sube desde una máscara al entrar. */
+.nx-title-mask { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.nx-title-mask > span { display: block; }
 .nx-title { font-size: clamp(38px, 5.2vw, 72px); line-height: 0.98; font-weight: 600; font-variation-settings: "wdth" 90; letter-spacing: -0.04em; text-wrap: balance; white-space: pre-line; }
 .nx-lead { margin-top: 18px; max-width: 52ch; color: var(--nx-muted); font-size: 17px; line-height: 1.6; }
-.nx-section { padding-top: clamp(88px, 10vw, 144px); }
+.nx-section { padding-top: clamp(88px, 10vw, 144px); scroll-margin-top: 84px; }
 .nx-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 40px; }
 .nx-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--ns-accent); font-weight: 600; transition: gap 0.3s var(--nx-ease); }
 .nx-link:hover { gap: 12px; }
@@ -29,7 +32,7 @@
 .nx-hero { position: relative; isolation: isolate; display: flex; flex-direction: column; min-height: max(680px, 100svh); overflow: hidden; }
 .nx-hero, .nx-stage.is-active { --ns-accent: #f5f1eb; }
 .nx-hero-media { position: absolute; inset: 0; z-index: -2; }
-.nx-hero-media img { object-fit: cover; animation: nx-kenburns 14s var(--nx-ease) both; }
+.nx-hero-media img { object-fit: cover; transform-origin: center 40%; }
 /* En claro el velo termina con la foto y empieza la página blanca; en oscuro se funde en la noche. */
 .nx-hero-scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 12, 20, 0.55) 0%, rgba(6, 12, 20, 0.12) 28%, rgba(6, 12, 20, 0.45) 62%, rgba(6, 12, 20, 0.72) 100%); }
 .dark .nx-hero-scrim { background: linear-gradient(180deg, rgba(6, 12, 20, 0.62) 0%, rgba(6, 12, 20, 0.12) 28%, rgba(6, 12, 20, 0.5) 62%, #060c14 100%); }
@@ -37,14 +40,14 @@
 .nx-hero-title { max-width: 13ch; margin: 0; color: #fff; font-size: clamp(44px, 7.4vw, 104px); line-height: 0.94; font-weight: 600; font-variation-settings: "wdth" 90; letter-spacing: -0.045em; text-wrap: balance; }
 .nx-hero-line { display: block; overflow: hidden; padding-bottom: 0.06em; }
 .nx-hero-line > span { display: inline-block; }
-.nx-search { display: flex; flex-wrap: wrap; gap: 8px; max-width: 980px; margin-top: clamp(28px, 4vw, 40px); padding: 8px; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); }
+.nx-search { display: flex; flex-wrap: wrap; gap: 8px; max-width: 980px; margin-top: clamp(28px, 4vw, 40px); padding: 8px; border-radius: 16px; background: #f5f1eb; color: #061f3f; }
 .nx-field { position: relative; display: flex; flex: 1 1 180px; flex-direction: column; justify-content: center; min-height: 60px; padding: 8px 40px 8px 18px; border-radius: 14px; transition: background-color 0.2s; }
-.nx-field:hover, .nx-field:focus-within { background: rgba(255, 255, 255, 0.08); }
-.nx-field:focus-within { outline: 2px solid #f5f1eb; outline-offset: 2px; }
-.nx-field-label { color: rgba(255, 255, 255, 0.72); font-size: 12px; font-weight: 600; line-height: 1.4; }
-.nx-field select { width: 100%; padding: 0; border: 0; outline: none; background: transparent; color: #fff; font: inherit; font-size: 16px; line-height: 1.5; cursor: pointer; appearance: none; }
+.nx-field:hover, .nx-field:focus-within { background: rgba(6, 31, 63, 0.06); }
+.nx-field:focus-within { outline: 2px solid #8a1634; outline-offset: 2px; }
+.nx-field-label { color: #40536b; font-size: 12px; font-weight: 600; line-height: 1.4; }
+.nx-field select { width: 100%; padding: 0; border: 0; outline: none; background: transparent; color: #061f3f; font: inherit; font-size: 16px; line-height: 1.5; cursor: pointer; appearance: none; }
 .nx-field select option { color: #061f3f; background: #fff; }
-.nx-field svg { position: absolute; top: 50%; right: 14px; translate: 0 -50%; pointer-events: none; color: rgba(255, 255, 255, 0.72); }
+.nx-field svg { position: absolute; top: 50%; right: 14px; translate: 0 -50%; pointer-events: none; color: #061f3f; }
 .nx-search-submit { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 0 28px; border-radius: 14px; background: #8a1634; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.25s, transform 0.25s var(--nx-ease); }
 .nx-search-submit:hover { background: #a2223f; }
 .nx-search-submit:active { transform: scale(0.98); }
@@ -64,6 +67,14 @@
 
 /* Propiedades destacadas: la tarjeta compartida en versión nocturna */
 .nx-props-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.nx-props-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr); gap: 20px; align-items: stretch; }
+.nx-props-rows { display: flex; flex-direction: column; gap: 16px; }
+.nocturno-home .property-card-row { display: grid; grid-template-columns: 156px minmax(0, 1fr); align-items: stretch; }
+.nocturno-home .property-card-row .property-card-image { width: 100%; min-width: 0; max-width: 100%; aspect-ratio: 1; height: auto; }
+.nocturno-home .property-card-row .property-card-copy { min-width: 0; padding: 16px 18px; }
+.nocturno-home .property-card-row .property-card-badge { position: static; display: inline-flex; max-width: none; margin-bottom: 8px; padding: 0; border-radius: 0; background: transparent; color: color-mix(in srgb, var(--ns-ink) 78%, transparent); backdrop-filter: none; }
+.nocturno-home .property-card-row .property-card-badge::before { background: var(--ns-fill); }
+.nocturno-home .property-card-row .property-card-title { margin-block: 6px 2px; font-size: 18px; }
 .nocturno-home .property-card-motion { border-radius: 18px; }
 .nocturno-home .property-editorial-card { overflow: hidden; border: 1px solid var(--nx-line); border-radius: 18px; background: var(--nx-card); transition: border-color 0.4s, box-shadow 0.4s; }
 .nocturno-home .property-editorial-card:hover { border-color: color-mix(in srgb, var(--ns-accent) 50%, transparent); box-shadow: 0 30px 60px -30px rgba(138, 22, 52, 0.75); }
@@ -84,7 +95,7 @@
 .nx-exp-pillars h3 { font-size: 18px; font-weight: 600; line-height: 1.35; }
 .nx-exp-pillars p { margin-top: 4px; color: var(--nx-muted); font-size: 14px; line-height: 1.55; }
 .nx-exp-stack { position: relative; padding: 24px 40px 40px 0; }
-.nx-exp-sheet { position: absolute; inset: 24px 40px 40px 0; border-radius: 24px; transform-origin: 30% 100%; }
+.nx-exp-sheet { position: absolute; inset: 24px 40px 40px 0; border-radius: 4px; transform-origin: 30% 100%; }
 .nx-exp-sheet-back { background: #f5f1eb; transform: rotate(7deg) translateX(36px); }
 .nx-exp-sheet-mid { background: #e8ecf2; transform: rotate(3.5deg) translateX(18px); }
 .nx-exp-card { position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, var(--ns-ink) 12%, transparent); border-radius: 24px; background: var(--nx-card); box-shadow: 0 40px 80px -40px rgba(6, 31, 63, 0.35); }
@@ -107,7 +118,7 @@
 .nx-exp-row.is-done .nx-exp-state { color: var(--ns-accent); }
 
 /* Método: recorrido horizontal fijado en escritorio; tarjetas apiladas en móvil */
-.nx-method { position: relative; isolation: isolate; margin-top: clamp(88px, 10vw, 144px); padding-block: clamp(72px, 8vw, 104px); overflow: clip; background: var(--ns-bg); }
+.nx-method { position: relative; isolation: isolate; margin-top: clamp(88px, 10vw, 144px); padding-block: clamp(72px, 8vw, 104px); overflow: clip; background: var(--ns-bg); scroll-margin-top: 84px; }
 .nx-method-glow { display: none; position: absolute; z-index: -1; bottom: -45%; left: -10%; width: 70%; height: 110%; border-radius: 50%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.42), transparent); pointer-events: none; }
 .dark .nx-method-glow { display: block; }
 .nx-method-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
@@ -146,11 +157,14 @@
   color: #061f3f;
 }
 
-@keyframes nx-kenburns { from { transform: scale(1.12); } to { transform: scale(1); } }
 @keyframes nx-marquee { to { transform: translateX(-50%); } }
+@keyframes nx-title-in { from { transform: translateY(22px); } to { transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .pg-title, .fe-title { animation: nx-title-in 1.4s cubic-bezier(0.25, 1, 0.5, 1) both; }
+}
 
 @media (max-width: 1023px) {
-  .nx-props-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nx-props-grid, .nx-props-layout { grid-template-columns: 1fr; }
   .nx-exp { grid-template-columns: 1fr; }
   /* Sin recorrido horizontal: las etapas se apilan al desplazar. */
   .nx-method-track { flex-direction: column; width: auto; gap: 16px; }
@@ -171,6 +185,7 @@
   .nx-stage, .nx-stage::before, .nx-stage-number, .nx-link, .nx-exp-pillars li, .nx-exp-progress span, .nx-exp-row, .nx-exp-icon { transition: none; }
   .nx-stage { position: relative; top: auto; }
   .nx-stage.is-past, .dark .nx-stage.is-past { filter: none; }
+  .nx-title-mask > span, .pg-title, .ab-hero-title, .fe-title { animation: none; }
   .nx-marquee-toggle { display: none; }
 }
 /* Sin recorrido animado en escritorio, las seis etapas se acomodan en rejilla. */

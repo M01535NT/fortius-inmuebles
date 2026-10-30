@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowLeft } from "@/components/admin/icons";
 import { ClienteEditor, CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-editor";
 import { LeadProfileSummary } from "@/components/admin/lead-fields";
+import { MatchingProperties } from "@/components/admin/properties/matching-properties";
+import { seekersFrom } from "@/lib/admin/buyer-matches";
 import { useRouter } from "next/navigation";
 import { AsyncButton, Badge, EmptyState, ErrorNotice, PageHeader, btnGhost, btnPrimary } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -43,6 +45,7 @@ function ClienteDetail({ id }: { id: string }) {
     </div> : null}
     {editing ? <ClienteEditor initial={cliente} onDone={() => setEditing(false)} /> : <>
       <RelatedWork clienteId={id}/>
+      {seekersFrom([], [cliente]).map(seeker => <MatchingProperties key={seeker.id} seeker={seeker} />)}
       <section className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5">
         <h2 className="display-soft text-lg">Datos del cliente</h2>
         <dl className="grid min-w-0 gap-4 text-sm sm:grid-cols-2">

@@ -7,15 +7,12 @@
   el panel utilizan este array como fuente operativa.
 */
 
+import { TIPO_INMUEBLE_LABELS, type TipoInmueble } from "@/lib/inmueble-tipos";
+
 export type Operacion = "venta" | "renta";
 
-export type TipoPropiedad =
-  | "casa"
-  | "departamento"
-  | "terreno"
-  | "local"
-  | "oficina"
-  | "nave-industrial";
+/** Los siete tipos de la lista única (src/lib/inmueble-tipos.ts). */
+export type TipoPropiedad = TipoInmueble;
 
 type EstadoPropiedad = "evaluacion" | "disponible" | "apartada" | "vendida" | "rentada";
 
@@ -97,6 +94,12 @@ export type Property = {
   codigo: string; // "FORTIUS-001", se muestra en mono
   titulo: string;
   tipo: TipoPropiedad;
+  /**
+    Plaza o conjunto al que pertenece este local u oficina (slug de la plaza). Decisión del titular
+    (27/10/2026): una plaza completa se comercializa como un inmueble; un local suelto es su propio
+    inmueble y operación, ligado a su plaza, que lo muestra entre sus locales.
+  */
+  conjunto?: string;
   operacion: Operacion;
   precio: PrecioPropiedad;
   zona: string;
@@ -128,14 +131,7 @@ export type Property = {
   publicada?: boolean; // solo se publica por decisión explícita
 };
 
-export const TIPO_LABELS: Record<TipoPropiedad, string> = {
-  casa: "Casa",
-  departamento: "Departamento",
-  terreno: "Terreno",
-  local: "Local",
-  oficina: "Oficina",
-  "nave-industrial": "Nave industrial",
-};
+export const TIPO_LABELS: Record<TipoPropiedad, string> = TIPO_INMUEBLE_LABELS;
 
 export const OPERACION_LABELS: Record<Operacion, string> = {
   venta: "Venta",

@@ -109,7 +109,8 @@ describe("emisión de formatos", () => {
     });
     const pdf = await PDFDocument.load(bytes);
     expect(pdf.getTitle()).toBe("Presupuesto de rehabilitación");
-    expect(pdf.getPageCount()).toBe(3);
+    // Estilo 04A (27/10/2026): los saltos de la plantilla ya no dejan hojas a medias; cabe en dos.
+    expect(pdf.getPageCount()).toBe(2);
   });
 
   it("genera la estimación del neto con precio, cargos justificados y respaldo fiscal", async () => {

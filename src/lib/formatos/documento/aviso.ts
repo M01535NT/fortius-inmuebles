@@ -1,45 +1,66 @@
-import { decisionesRepresentante } from "../aviso";
-import { BLANK, a, type Block, type Documento } from "./modelo";
+import { claveRepresentante, decisionesRepresentante } from "../aviso";
+import { BLANK, a, fecha, type Block, type Documento, type FormCell } from "./modelo";
 
 /*
-  01 · Aviso de privacidad para el Word, con el texto cotejado y el diseño de la plantilla
-  vigente (Metodología/01.Aviso_de_privacidad.docx, 09/10/2026): cuerpo en Times, títulos en
-  Archivo a la izquierda, recuadro de contacto, tablas y hojas de decisiones. El PDF lo
-  sigue generando aviso-pdf.ts con este mismo texto; si uno cambia, debe cambiar el otro.
+  01 · Aviso de privacidad del expediente, con el texto cotejado contra la plantilla vigente
+  (04_Metodologia/01_Captacion/01_AvisoPrivacidad.docx, 26/10/2026): cuerpo en Times, recuadro
+  de contacto, tablas y hojas de decisiones. Se captura sobre el documento y el PDF sale de
+  este mismo modelo (EXT-12, 28/10/2026). El aviso público del sitio lo sigue generando
+  aviso-pdf.ts; si cambia el texto de las secciones 01 a 08, debe cambiar en ambos.
 */
 
 type Data = Record<string, unknown>;
 const SI_NO = [{ value: "si", label: "Sí" }, { value: "no", label: "No" }, { value: "no_aplica", label: "No aplica" }];
+const RAYA = "______________________________";
+const canales = [["Correo", "publicidadCorreo"], ["Teléfono", "publicidadTelefono"], ["Mensajería", "publicidadMensajeria"]] as const;
 
+/*
+  Hojas de decisiones con el texto de la plantilla del 26/10/2026 (01_AvisoPrivacidad.docx): la del
+  titular y, si hay representante, la de sus propios datos. Cada parte dice qué campos la llenan
+  («zona») para la captura sobre el documento; las casillas se dibujan, no se escriben.
+*/
 function decisiones(d: Data, own: boolean): Block[] {
   const choices = own ? decisionesRepresentante(d) : d;
-  const person = own ? a(d.representante) : a(d.titular) || BLANK;
-  const destino = (key: string, target: string, country: string) => choices[key] === "si" ? `${a(choices[target])} / ${a(choices[country])}` : BLANK;
-  const decision = (key: string) => SI_NO.map(o => `${o.value === choices[key] ? "☒" : "☐"} ${o.label}`).join("   ");
-  const signed = choices.acuseEstado === "firmado_fuera" ? a(choices.fechaAcuse) : "";
-  const signer = own ? `${person}, por su propio derecho` : a(d.representante) ? `${a(d.representante)}, en representación de ${person}` : `${person}, por su propio derecho`;
+  const k = (key: string) => own ? claveRepresentante(key) : key;
+  const titular = a(d.titular), representante = a(d.representante);
+  const signed = choices.acuseEstado === "firmado_fuera" ? fecha(a(choices.fechaAcuse)) : "";
+  const destino = (key: string, target: string, country: string) => `Destinatario / país: ${choices[key] === "si" ? `${a(choices[target])} / ${a(choices[country])}` : RAYA}`;
+  const transferencia = (texto: string, key: string, target: string, country: string): FormCell[] => [
+    { q: texto, a: destino(key, target, country), w: 7, keys: [k(key), k(target), k(country)] },
+    { q: "Decisión", a: "", w: 3, keys: [k(key), k(target), k(country)], marks: [SI_NO.map(o => ({ text: o.label, check: o.value === choices[key] }))] },
+  ];
+  const recepcion = { keys: [k("acuseEstado"), k("fechaAcuse"), k("referenciaAcuse")], label: "Fecha de recepción y firma" };
   return [
-    { kind: "pagebreak", force: true },
-    { kind: "title", text: `Decisiones de ${person}`, bold: true, size: 20 },
-    { kind: "p", text: [`Titular: ${person}${own ? ", por su propio derecho" : ""}`, ...(!own && a(d.representante) ? [`Representante: ${a(d.representante)}`] : []), `Operación: ${a(d.operacion) || BLANK}`, `Fecha de recepción y decisiones: ${signed || BLANK}`].join("\n") },
-    { kind: "p", text: own ? `Esta hoja se refiere únicamente a los datos personales propios de ${person}. Sus decisiones no sustituyen las de ${a(d.titular)}.` : a(d.representante) ? `Esta hoja corresponde a los datos de ${person}. ${/a$/i.test(a(d.calidadRepresentante)) ? "La representante" : "El representante"} sólo podrá decidir dentro de las facultades que acredite.` : `Esta hoja corresponde a los datos de ${person}.` },
+    { kind: "pagebreak", force: true, hoja: true },
+    { kind: "title", text: own ? "Decisiones del representante sobre sus propios datos" : "Decisiones del titular de los datos", bold: true, size: 18 },
+    // Los datos cortos van en pareja por renglón, para que la hoja completa quepa en una página.
+    { kind: "p", zona: recepcion, text: (own
+      ? [`Titular de los datos personales: ${representante || BLANK}`, `Operación: ${a(d.operacion) || BLANK} · Expediente: ${a(d.folio) || BLANK}`, `Fecha de recepción y decisiones: ${signed || BLANK}`]
+      : [`Titular: ${titular || BLANK} · Representante, si aplica: ${representante || "no aplica"}`, `Operación: ${a(d.operacion) || BLANK} · Expediente: ${a(d.folio) || BLANK}`, `Fecha de recepción y decisiones: ${signed || BLANK}`]).join("\n") },
+    { kind: "p", text: own ? "Complete esta hoja cuando también se traten datos personales propios del representante. Sus decisiones sobre esos datos no sustituyen las del titular representado." : "Esta hoja corresponde a los datos del titular identificado arriba. Quien lo represente sólo podrá decidir dentro de las facultades que acredite." },
     { kind: "h2", text: "A  /  Tratamiento de datos patrimoniales o financieros" },
     { kind: "p", text: "Para evaluar y tramitar mi operación y, en su caso, administrar los servicios contratados, consiento expresamente el tratamiento de los datos patrimoniales y financieros descritos en el aviso. Si existe una excepción legal al consentimiento, el responsable deberá identificarla y documentarla; no se presume por firmar la recepción." },
-    { kind: "checks", q: "", options: [{ value: "si", label: "Sí consiento" }, { value: "no", label: "No consiento" }, { value: "no_aplica", label: "No aplica en esta etapa" }], selected: choices.consentimientoPatrimonial },
+    { kind: "checks", zona: { keys: [k("consentimientoPatrimonial")], label: "Datos patrimoniales y financieros" }, q: "", options: [{ value: "si", label: "Sí consiento" }, { value: "no", label: "No consiento" }, { value: "no_aplica", label: "No aplica en esta etapa" }], selected: choices.consentimientoPatrimonial },
     { kind: "h2", text: "B  /  Publicidad y oportunidades adicionales" },
-    { kind: "checks", q: "Acepto recibir novedades y promociones no relacionadas con mi solicitud vigente:", options: [{ value: "si", label: "Sí autorizo" }, { value: "no", label: "No autorizo" }], selected: choices.consentimientoPublicidad },
-    { kind: "p", text: `Canales autorizados:   ${[["Correo", "publicidadCorreo"], ["Teléfono", "publicidadTelefono"], ["Mensajería", "publicidadMensajeria"]].map(([label, key]) => `${choices.consentimientoPublicidad === "si" && choices[key] === "si" ? "☒" : "☐"} ${label}`).join("   ")}` },
+    { kind: "checks", zona: { keys: [k("consentimientoPublicidad"), ...canales.map(([, key]) => k(key))], label: "Publicidad y oportunidades adicionales" }, q: "Acepto recibir novedades y promociones no relacionadas con mi solicitud vigente:", options: [{ value: "si", label: "Sí autorizo" }, { value: "no", label: "No autorizo" }], selected: choices.consentimientoPublicidad },
+    { kind: "checks", zona: { keys: [k("consentimientoPublicidad"), ...canales.map(([, key]) => k(key))], label: "Canales autorizados" }, q: "Canales autorizados:", options: canales.map(([label, key]) => ({ value: key, label })), selected: choices.consentimientoPublicidad === "si" ? canales.filter(([, key]) => choices[key] === "si").map(([, key]) => key) : [] },
     { kind: "h2", text: "C  /  Transferencias que requieren mi autorización" },
     { kind: "p", text: "Autorizo únicamente las transferencias seleccionadas, para los fines indicados. El destinatario y el país deben quedar identificados antes del envío." },
-    { kind: "table", widths: [7, 3], header: ["Transferencia", "Decisión"], rows: [
-      [`Asesor inmobiliario independiente, para atender mi búsqueda o comercialización.\nDestinatario / país: ${destino("transferenciaAsesor", "asesorDestinatario", "asesorPais")}`, decision("transferenciaAsesor")],
-      [`Entidad de financiamiento, para evaluar una opción de crédito que solicité.\nDestinatario / país: ${destino("transferenciaFinanciera", "financieroDestinatario", "financieroPais")}`, decision("transferenciaFinanciera")],
-      [`Contraparte o notaría, para evaluar o formalizar mi operación, cuando se requiera consentimiento.\nDestinatario / país: ${destino("transferenciaOperacion", "operacionDestinatario", "operacionPais")}`, decision("transferenciaOperacion")],
+    { kind: "form", rows: [
+      transferencia("Asesor inmobiliario independiente, para atender mi búsqueda o comercialización.", "transferenciaAsesor", "asesorDestinatario", "asesorPais"),
+      transferencia("Entidad de financiamiento, para evaluar una opción de crédito que solicité.", "transferenciaFinanciera", "financieroDestinatario", "financieroPais"),
+      transferencia("Contraparte o notaría, para evaluar o formalizar mi operación, cuando se requiera consentimiento.", "transferenciaOperacion", "operacionDestinatario", "operacionPais"),
     ] },
     { kind: "h2", text: "D  /  Recepción del aviso" },
     { kind: "p", text: "Se puso a mi disposición este aviso de privacidad. La firma acredita su recepción y, exclusivamente, las autorizaciones afirmativas que marqué. No implica renuncia a mis derechos ni autorización para obtener un reporte de crédito." },
-    { kind: "signatures", line: true, parties: [{ role: "Firma", name: signer }] },
-    { kind: "note", text: own || !a(d.representante) ? "Carácter en esta hoja: titular de sus propios datos personales." : `Documento de representación referido: ${a(d.documentoRepresentante).replace(/[.\s]+$/, "") || BLANK}. Facultades y vigencia sujetas al cotejo del testimonio íntegro.` },
+    ...(own ? [
+      { kind: "p", zona: recepcion, text: `Nombre del representante, por su propio derecho: ${representante || BLANK}\nFirma: ${RAYA}` },
+      { kind: "note", text: "Carácter en esta hoja: titular de sus propios datos personales." },
+    ] satisfies Block[] : [
+      // Firma el titular por su propio derecho o, si lo hay, su representante con el carácter que acredite.
+      { kind: "p", zona: { keys: ["representante", "calidadRepresentante", ...recepcion.keys], label: "Quién firma" }, text: `Nombre del titular o representante: ${representante || titular || BLANK} · Carácter en que firma: ${representante ? a(d.calidadRepresentante) || BLANK : titular ? "por su propio derecho" : BLANK}\nFirma: ${RAYA}` },
+      { kind: "p", zona: { keys: ["documentoRepresentante", "instrumentoRepresentante", "facultadesRepresentante"], label: "Documento de representación" }, text: `Documento que acredita la representación, si aplica: ${a(d.documentoRepresentante).replace(/[.\s]+$/, "") || BLANK}. Datos del instrumento, fecha y fedatario: ${a(d.instrumentoRepresentante).replace(/[.\s]+$/, "") || BLANK}. Facultades y vigencia comprobadas mediante: ${a(d.facultadesRepresentante).replace(/[.\s]+$/, "") || BLANK}.` },
+    ] satisfies Block[]),
   ];
 }
 
@@ -48,8 +69,9 @@ export function avisoDocumento(d: Data): Documento {
   const blocks: Block[] = [
     { kind: "title", text: "Aviso de\nprivacidad", bold: true, size: 32 },
     { kind: "caption", text: "Propietarios · compradores · arrendatarios" },
-    { kind: "band", widths: [1], rows: [[{ label: "Responsable y contacto", value: [`Responsable: ${a(d.responsable) || BLANK}`, `Domicilio: ${a(d.domicilioResponsable) || BLANK}`, `Atención de privacidad: ${contacto} · ${correo}`].join("\n") }]] },
-    { kind: "p", text: [`Titular: ${a(d.titular) || BLANK}`, `Representante, si aplica: ${a(d.representante) ? `${a(d.representante)}, ${a(d.calidadRepresentante) || "representante"}` : "no aplica"}`, `Operación e inmueble: ${a(d.operacion) || BLANK}`, `Folio del expediente: ${a(d.folio) || BLANK}`].join("\n") },
+    { kind: "band", zona: { keys: ["responsable", "domicilioResponsable", "contactoPrivacidad", "correoPrivacidad"], label: "Responsable y contacto" }, widths: [1], rows: [[{ label: "Responsable y contacto", value: [`Responsable: ${a(d.responsable) || BLANK}`, `Domicilio: ${a(d.domicilioResponsable) || BLANK}`, `Atención de privacidad: ${contacto} · ${correo}`].join("\n") }]] },
+    // La fecha de emisión y la calidad del titular no se imprimen; se capturan con el titular.
+    { kind: "p", zona: { keys: ["titular", "tipoTitular", "representante", "calidadRepresentante", "operacion", "fechaEmision"], label: "Titular y operación" }, text: [`Titular: ${a(d.titular) || BLANK}`, `Representante, si aplica: ${a(d.representante) ? `${a(d.representante)}, ${a(d.calidadRepresentante) || "representante"}` : "no aplica"}`, `Operación e inmueble: ${a(d.operacion) || BLANK}`, `Folio del expediente: ${a(d.folio) || BLANK}`].join("\n") },
     { kind: "p", text: "La persona identificada arriba, que opera bajo el nombre comercial Fortius Inmuebles, es responsable del tratamiento de sus datos. Este aviso explica qué información utiliza, para qué la necesita y cómo puede usted decidir sobre ella. La marca comercial no sustituye la identidad del responsable." },
     { kind: "h2", text: "01  /  A quién se dirige y cómo obtenemos los datos" },
     { kind: "p", text: "Se dirige a quienes solicitan o reciben servicios de intermediación, valoración comercial o administración inmobiliaria, y a sus representantes, copropietarios y obligados solidarios. Recibimos información en entrevistas, visitas, documentos, llamadas, correo y mensajería; también de representantes autorizados, contrapartes de una operación y registros públicos consultados legítimamente. La información de terceros no autoriza usos ajenos a este aviso." },

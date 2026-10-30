@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, Check, MapPin } from "lucide-react";
+import { Check, MapPin } from "lucide-react";
 
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import { ContactDock } from "@/components/property/contact-dock";
@@ -27,7 +27,7 @@ import {
   TIPO_LABELS,
   type Property,
 } from "@/data/propiedades";
-import { getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
+import { getConjunto, getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
 import "./ficha.css";
 
@@ -119,8 +119,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
 
-  const [related, advisers, settings] = await Promise.all([
-    getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(),
+  const [related, advisers, settings, conjunto] = await Promise.all([
+    getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(), getConjunto(property),
   ]);
   const ficha = fichaRows(property);
   const share = propertyShare(property);
@@ -166,7 +166,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 <span className="fe-chip is-solid">{OPERACION_LABELS[property.operacion]}</span>
                 {property.demo && <span className="fe-chip is-demo">Datos de ejemplo</span>}
                 <span className="fe-chip">{property.codigo}</span>
-                <span className="fe-chip">{property.estado === "disponible" ? "Disponible para visitas" : ESTADO_LABELS[property.estado]}</span>
+                {property.estado !== "disponible" && <span className="fe-chip">{ESTADO_LABELS[property.estado]}</span>}
               </p>
               <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
               <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
@@ -206,6 +206,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
 
           {property.estado === "apartada" && <p className="fe-alert">Esta propiedad está apartada. Podemos avisarte si vuelve a estar disponible o mostrarte opciones similares.</p>}
           {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
+          {conjunto.plaza && <p className="fe-alert">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`} className="font-semibold underline underline-offset-4">{conjunto.plaza.titulo}</Link>.</p>}
 
           {property.descripcion.length > 0 && <section id="descripcion" className="fe-section" aria-label="Descripción">
             <p className="pg-eyebrow pg-eyebrow-ink">Descripción</p>
@@ -277,7 +278,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                   {costos.predialAnual != null && <div><dt>Predial anual</dt><dd>{money(costos.predialAnual, property)}</dd></div>}
                   {costos.mantenimientoMensual != null && <div><dt>Mantenimiento mensual</dt><dd>{money(costos.mantenimientoMensual, property)}</dd></div>}
                 </dl>
-                {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="pg-link">Calcular gastos de cierre <ArrowUpRight size={18} aria-hidden="true" /></Link>}
+                {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="pg-link">Calcular gastos de cierre</Link>}
                 {muestraCalculadora && property.precio.modalidad === "publico" ? (
                   <details className="fe-mortgage">
                     <summary>Calcular mi mensualidad</summary>
@@ -302,6 +303,15 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <SharePanel title={share.title} text={share.text} url={share.url} qrSvg={qr} />
         </aside>
       </div>
+
+      {conjunto.locales.length > 0 && <section className="fe-related inv-page" aria-labelledby="fe-units">
+        <div className="pg-container">
+          <h2 id="fe-units" className="fe-h2">Locales de esta plaza</h2>
+          <div className="property-catalog-grid">
+            {conjunto.locales.map((p) => <PropertyCard key={p.slug} property={p} />)}
+          </div>
+        </div>
+      </section>}
 
       {related.length > 0 && <section className="fe-related inv-page" aria-labelledby="fe-related">
         <div className="pg-container">

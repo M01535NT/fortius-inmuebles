@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, emptyWorkflow, ownerReportApplies, ownerReportStatus, processPhase, processStageText, requirementPhase, SALE_PROCESS, verificationComplete, WORKFLOW_STAGES, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
+import { addMonths, emptyWorkflow, lastOwnerReport, operationWorkflowSchema, ownerReportApplies, ownerReportStatus, processPhase, processStageText, requirementPhase, SALE_PROCESS, verificationComplete, WORKFLOW_STAGES, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 
 const today = "2026-10-15";
 const reviewed = { estado: "revisado" as const, soporte: "Revisión ficticia", evidencia: { tipo: "externa" as const, referencia: "Carpeta ficticia v1", fecha: "2026-10-10", responsable: "Revisor ficticio", resultado: "Sin observaciones" }, vigenteHasta: "2026-12-31" };
@@ -87,6 +87,16 @@ describe("informe mensual al propietario", () => {
     expect(ownerReportStatus(null, today)).toEqual({ estado: "sin_informe" });
     expect(ownerReportStatus("2026-09-15T18:00:00Z", today)).toEqual({ estado: "al_dia", proximo: "2026-10-15" });
     expect(ownerReportStatus("2026-09-14", today)).toEqual({ estado: "vencido", proximo: "2026-10-14" });
+  });
+  it("preparado no es entregado: el aviso cuenta desde la última entrega cuando existe (COR-08)", () => {
+    const entregas = [{ fecha: "2026-09-20", canal: "correo" as const, responsable: "Ana" }, { fecha: "2026-10-02", canal: "whatsapp" as const, responsable: "Ana" }];
+    expect(lastOwnerReport({ entregasInforme: entregas }, "2026-09-01T10:00:00Z")).toBe("2026-10-02");
+    expect(lastOwnerReport({}, "2026-09-01T10:00:00Z")).toBe("2026-09-01");
+    expect(lastOwnerReport(null, null)).toBeUndefined();
+    expect(ownerReportStatus(lastOwnerReport({ entregasInforme: entregas }, "2026-08-01"), today).estado).toBe("al_dia");
+    expect(operationWorkflowSchema.safeParse({ ...emptyWorkflow(), entregasInforme: entregas }).success).toBe(true);
+    expect(operationWorkflowSchema.safeParse({ ...emptyWorkflow(), entregasInforme: [{ ...entregas[0], canal: "fax" }] }).success).toBe(false);
+    expect(operationWorkflowSchema.safeParse({ ...emptyWorkflow(), entregasInforme: [{ ...entregas[0], responsable: " " }] }).success).toBe(false);
   });
   it("aplica solo al propietario mientras se promueve o negocia", () => {
     expect(ownerReportApplies("comercializacion", emptyWorkflow())).toBe(true);

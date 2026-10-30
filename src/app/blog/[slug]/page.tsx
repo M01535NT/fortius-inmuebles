@@ -125,7 +125,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
         <div className="pg-container">
           <div className="pg-head">
             <h2 id="related-reading" className="pg-h2">Lecturas relacionadas</h2>
-            <Link href="/blog" className="pg-link">Ver el blog <ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <Link href="/blog" className="pg-link">Ver el blog</Link>
           </div>
           <div className="pg-grid-3">{related.map((candidate) => {
             const relatedCover = getBlogCover(candidate.slug);

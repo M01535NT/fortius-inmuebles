@@ -3,6 +3,7 @@ import { decodePDFRawStream, PDFArray, PDFDocument, PDFRawStream } from "pdf-lib
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { createFormatoPdf } from "@/lib/formatos/pdf";
 import { financialPdfPages } from '../helpers/financial-pdf';
+import type { Block } from "@/lib/formatos/documento/modelo";
 
 const aviso = {
   folio: "EXP-01", fechaEmision: "2026-10-04", responsable: "Moisés Núñez Tonalá",
@@ -26,15 +27,22 @@ it("emite el aviso sin presumir autorizaciones ni recepción firmada", async () 
   expect(validateFormato("01", aviso)).toEqual([]);
   const pdf = await PDFDocument.load(await createFormatoPdf("01", aviso));
   expect(pdf.getTitle()).toBe("Aviso de privacidad");
-  // El membrete reserva 126/128 pt; la versión capturada ocupa cinco hojas.
+  // Cuatro hojas de aviso y la hoja de decisiones del titular, completa en una página para firmar.
   expect(pdf.getPageCount()).toBe(5);
   expect(pdf.getPages().map(page => page.getSize())).toEqual(Array(5).fill({ width: 612, height: 792 }));
+  const pages = financialPdfPages(pdf).map(page => page.replace(/\s+/g, " "));
+  expect(pages[4]).toContain("Decisiones del titular de los datos");
+  expect(pages[4]).toContain("Firma:");
+  expect(pages[4]).toContain("Facultades y vigencia comprobadas mediante");
 });
 
 it("añade una hoja independiente para los datos propios del representante", async () => {
   const pdf = await PDFDocument.load(await createFormatoPdf("01", { ...aviso, representante: "Ana López QA", documentoRepresentante: "Poder QA, pendiente de cotejo" }));
-  expect(pdf.getPageCount()).toBe(7);
-  expect(pdf.getPages().map(page => page.getSize())).toEqual(Array(7).fill({ width: 612, height: 792 }));
+  expect(pdf.getPageCount()).toBe(6);
+  expect(pdf.getPages().map(page => page.getSize())).toEqual(Array(6).fill({ width: 612, height: 792 }));
+  const pages = financialPdfPages(pdf).map(page => page.replace(/\s+/g, " "));
+  expect(pages[5]).toContain("Decisiones del representante sobre sus propios datos");
+  expect(pages[5]).toContain("Nombre del representante, por su propio derecho: Ana López QA");
 });
 
 it("valida por separado las autorizaciones del representante sin heredarlas del titular", () => {
@@ -44,24 +52,23 @@ it("valida por separado las autorizaciones del representante sin heredarlas del 
 });
 
 it("deja sin marcar la hoja del representante aunque el titular tenga decisiones capturadas", async () => {
+  const { avisoDocumento } = await import("@/lib/formatos/documento/aviso");
   const data = { ...aviso, consentimientoPatrimonial: "si", representante: "Ana López QA", documentoRepresentante: "Poder QA" };
-  async function tickCounts(values: Record<string, unknown>) {
-    const pdf = await PDFDocument.load(await createFormatoPdf("01", values));
-    const text=financialPdfPages(pdf);
-    const titular=text.findIndex(page=>page.includes('Decisiones de María Ramírez'));
-    const representante=text.findIndex(page=>page.includes('Decisiones de Ana López QA'));
-    expect(titular).toBeGreaterThan(0);
-    expect(representante).toBeGreaterThan(titular);
-    const counts=pdf.getPages().map(page => {
-      const content = page.node.Contents();
-      const streams = content instanceof PDFArray ? content.asArray().map(ref => pdf.context.lookup(ref) as PDFRawStream) : [content as PDFRawStream];
-      const operators = streams.map(stream => Buffer.from(decodePDFRawStream(stream).decode()).toString("latin1")).join("\n");
-      return (operators.match(/0\.9 w/g) ?? []).length / 2;
-    });
-    return [counts.slice(titular,representante).reduce((a,b)=>a+b,0),counts.slice(representante).reduce((a,b)=>a+b,0)];
+  // Casillas marcadas en cada hoja de decisiones (cada una empieza en hoja nueva).
+  function marcadas(values: Record<string, unknown>) {
+    const hojas: Block[][] = [];
+    for (const block of avisoDocumento(values).blocks) {
+      if (block.kind === "pagebreak" && block.hoja) hojas.push([]);
+      else hojas.at(-1)?.push(block);
+    }
+    return hojas.map(hoja => hoja.reduce((sum, block) => sum + (block.kind === "checks" ? block.options.filter(o => Array.isArray(block.selected) ? block.selected.includes(o.value) : o.value === block.selected).length
+      : block.kind === "form" ? block.rows.flat().flatMap(cell => cell.marks?.flat() ?? []).filter(mark => mark.check).length : 0), 0));
   }
-  expect(await tickCounts(data)).toEqual([5, 0]);
-  expect(await tickCounts({ ...data, representanteConsentimientoPatrimonial: "no" })).toEqual([5, 1]);
+  expect(marcadas(data)).toEqual([5, 0]);
+  expect(marcadas({ ...data, representanteConsentimientoPatrimonial: "no" })).toEqual([5, 1]);
+  // El PDF sale del mismo modelo: la hoja del titular y la del representante.
+  const pages = financialPdfPages(await PDFDocument.load(await createFormatoPdf("01", data)));
+  expect(pages.findIndex(page => page.includes("Decisiones del representante"))).toBeGreaterThan(pages.findIndex(page => page.includes("Decisiones del titular")));
 });
 
 it("pagina nombres, domicilios, destinatarios y documentos que exceden una hoja", async () => {

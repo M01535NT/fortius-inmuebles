@@ -23,6 +23,8 @@ Si aparece un conflicto `409`, otra sesión guardó una versión posterior. Cons
 
 Los inmuebles nuevos permanecen sin publicar. Revisa título, operación, precio, zona, descripción, ficha, galería, asesor y documentos antes de activar **Publicar en el sitio**. La galería pública exige al menos una imagen accesible desde el bucket público. Despublicar retira la ficha pública en la siguiente consulta, pero conserva el registro operativo.
 
+En **⋯ → Llaves y compradores** de cada inmueble (también desde **Editar**) se registra dónde se guardan las llaves y a quién se prestan, se marca su regreso y se lleva la preparación para promoverlo (fotos, video, recorrido 360, plano, letrero y texto del anuncio). Si el inmueble está publicado y disponible, la misma pantalla propone a los prospectos y clientes que buscan algo parecido: el botón de WhatsApp solo abre el mensaje y **Ya le avisé** registra el aviso; si el precio baja después, la persona vuelve a aparecer por avisar. Nada de esto se publica en el sitio. **Hoy** muestra las llaves sin regresar, los compradores por avisar y los contratos de servicio (09 emitido) y licencias por vencer (30 y 60 días antes).
+
 ## Mercado inmobiliario
 
 En **Mercado inmobiliario**, crea título, slug, resumen, contenido y estado. Clasifica la entrada como **Guías** o **Actualidad**, elige su tema y completa autor, ámbito y fuente original cuando corresponda. Puedes destacarla en portada. El slug admite minúsculas, números y guiones simples; queda fijo después de crear la entrada. Usa líneas en blanco para separar párrafos; se admiten encabezados, listas y enlaces Markdown, sin interpretar HTML.
@@ -33,7 +35,7 @@ La primera publicación se registra automáticamente y se conserva al editar. La
 
 ## Prospectos, expedientes y control comercial
 
-El perfil del prospecto se adapta a comprar, rentar, vender o dar en arrendamiento. La conversión vincula el cliente y, cuando corresponde, el expediente; revisar antes las coincidencias advertidas por el panel. La vinculación de cuenta con asesor determina el acceso privado a los expedientes, mientras el control comercial global requiere administrador.
+El perfil del prospecto se adapta a comprar, rentar, vender o dar en arrendamiento. **Cómo llegó** registra el canal (sitio, WhatsApp, portal, referido, letrero, etc.); **Reportes** cuenta los prospectos del periodo por canal. La conversión vincula el cliente y, cuando corresponde, el expediente; revisar antes las coincidencias advertidas por el panel. La vinculación de cuenta con asesor determina el acceso privado a los expedientes, mientras el control comercial global requiere administrador.
 
 **Eliminar expediente** conserva sus documentos y permite recuperarlo desde **Eliminados**. Mientras está eliminado se bloquean escrituras y descargas documentales. La recuperación mantiene su identidad y archivos; una eliminación recuperable no equivale a borrado definitivo.
 

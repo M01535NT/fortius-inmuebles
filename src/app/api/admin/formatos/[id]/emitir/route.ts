@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { apiResponse, ApiError, assertSameOrigin, databaseError, readJson } from "@/lib/backend/http";
-import { formatoById, validateFormato } from "@/lib/formatos/catalog";
+import { emiteIncompleto, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { prepareFormatoEmission } from "@/lib/formatos/pdf";
 import { MAX_ASSET_BYTES, type FormatoPdfAsset } from "@/lib/formatos/assets";
 import { isLevantamiento } from "@/lib/formatos/levantamiento";
@@ -17,7 +17,8 @@ export async function POST(request: Request, context: Context) {
     assertSameOrigin(request);
     const id = z.uuid().parse((await context.params).id);
     const { client, user } = await requireStaff();
-    const expected = z.object({ version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) }).strict().parse(await readJson(request, 1024));
+    // «incompleto»: quien emite ya confirmó que faltan datos; el PDF lo dirá en cada hoja.
+    const expected = z.object({ version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER), incompleto: z.literal(true).optional() }).strict().parse(await readJson(request, 1024));
     const result = await client.from("fortius_inmuebles_formato_drafts").select("id,expediente_id,formato_id,data,version").eq("id", id).maybeSingle();
     if (result.error) databaseError(result.error);
     if (!result.data) throw new ApiError(404, "Documento no encontrado");
@@ -31,14 +32,17 @@ export async function POST(request: Request, context: Context) {
     if (!draft.data || typeof draft.data !== "object" || Array.isArray(draft.data)) throw new ApiError(400, "Datos del documento inválidos");
     const values: Record<string, unknown> = { ...(draft.data as Record<string, unknown>), folio: parent.data.folio };
     const missing = validateFormato(draft.formato_id, values);
-    if (missing.length) throw new ApiError(409, `Faltan datos: ${missing.join(", ")}`);
+    const incompleto = missing.length > 0 && !!expected.incompleto && emiteIncompleto(draft.formato_id);
+    if (missing.length && !incompleto) throw new ApiError(409, `Faltan datos: ${missing.join(", ")}`);
     const privileged = createServerClient(undefined, true);
     const assets: FormatoPdfAsset[] = [];
     if (isLevantamiento(draft.formato_id) || draft.formato_id === "07") {
       // El 07 se emite aunque falten imágenes; usa las elegidas que sigan en el borrador.
       const valor = draft.formato_id === "07";
       // Levantamientos: la fotografía principal es obligatoria; el croquis, solo si se eligió (decisión del titular, 17/10/2026).
-      const assetIds = valor ? valorAssetIds(values) : z.array(z.uuid()).min(1).max(2).parse([values.fotoPrincipalId, ...(values.croquisId ? [values.croquisId] : [])]);
+      // Un levantamiento incompleto puede no tener fotografía elegida todavía: su recuadro sale vacío.
+      const chosen = [values.fotoPrincipalId, ...(values.croquisId ? [values.croquisId] : [])].filter((value) => !(incompleto && !value));
+      const assetIds = valor ? valorAssetIds(values) : z.array(z.uuid()).min(incompleto ? 0 : 1).max(2).parse(chosen);
       const found = assetIds.length ? await client.from("fortius_inmuebles_formato_assets").select("id,kind,caption,source,observed_on,mime,sha256,path").eq("draft_id", id).in("id", assetIds) : { data: [], error: null };
       if (found.error) databaseError(found.error);
       const images = { data: (found.data ?? []).filter((image) => image.kind === (image.id === values.croquisId ? "croquis" : "foto")) };
@@ -51,14 +55,15 @@ export async function POST(request: Request, context: Context) {
         assets.push({ ...image, bytes });
       }
     }
-    const emission = assets.length ? await prepareFormatoEmission(draft.formato_id, values, assets) : await prepareFormatoEmission(draft.formato_id, values);
+    const emission = incompleto ? await prepareFormatoEmission(draft.formato_id, values, assets.length ? assets : undefined, { incompleto: true })
+      : assets.length ? await prepareFormatoEmission(draft.formato_id, values, assets) : await prepareFormatoEmission(draft.formato_id, values);
     const emissionId = randomUUID();
     const path = `${draft.expediente_id}/${emissionId}.pdf`;
     const upload = await privileged.storage.from("fortius-inmuebles-expedientes").upload(path, Buffer.from(emission.bytes), { contentType: "application/pdf", upsert: false });
     if (upload.error) databaseError(upload.error);
     const saved = await privileged.from("fortius_inmuebles_formato_emissions").insert({
       id: emissionId, draft_id: id, draft_version: draft.version,
-      snapshot: { ...values, formatoId: draft.formato_id, source: definition.source, ...(draft.formato_id === "01" ? { plantillaVersion: AVISO_TEMPLATE_VERSION } : {}), ...(assets.length ? { imagenes: assets.map((image) => ({ id: image.id, kind: image.kind, caption: image.caption, source: image.source, observed_on: image.observed_on, mime: image.mime, sha256: image.sha256 })) } : {}) },
+      snapshot: { ...values, formatoId: draft.formato_id, source: definition.source, ...(incompleto ? { datosFaltantes: missing } : {}), ...(draft.formato_id === "01" ? { plantillaVersion: AVISO_TEMPLATE_VERSION } : {}), ...(assets.length ? { imagenes: assets.map((image) => ({ id: image.id, kind: image.kind, caption: image.caption, source: image.source, observed_on: image.observed_on, mime: image.mime, sha256: image.sha256 })) } : {}) },
       sha256: emission.sha256, path, created_by: user.id,
     }).select("id,draft_id,draft_version,sha256,created_by,created_at").single();
     if (saved.error) {

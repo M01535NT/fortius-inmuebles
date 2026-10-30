@@ -37,8 +37,10 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
         .fromTo(".nx-exp-card", { y: 60 }, { y: 0, ease: "none" }, 0);
       // El desplazamiento es pausado; la opacidad llega antes para que el texto se lea mientras se mueve.
       const enter = { trigger: ref.current, start: "top 80%", toggleActions: "play none none reverse" };
-      gsap.from(".nx-exp-copy > *", { y: 32, duration: 1.4, stagger: 0.14, ease: "power3.out", scrollTrigger: enter });
-      gsap.from(".nx-exp-copy > *", { opacity: 0, duration: 0.5, stagger: 0.06, ease: "expo.out", scrollTrigger: enter });
+      // El titular sube desde su máscara; el resto del texto entra como antes.
+      gsap.from(".nx-title-mask > span", { yPercent: 110, duration: 1.4, ease: "power3.out", scrollTrigger: { trigger: ref.current, start: "top 82%", once: true } });
+      gsap.from(".nx-exp-copy > :not(h2)", { y: 32, duration: 1.4, stagger: 0.14, ease: "power3.out", scrollTrigger: enter });
+      gsap.from(".nx-exp-copy > :not(h2)", { opacity: 0, duration: 0.5, stagger: 0.06, ease: "expo.out", scrollTrigger: enter });
       return () => { setReady(EXAMPLE_READY); setPillar(-1); };
     });
     return () => media.revert();
@@ -49,7 +51,7 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
       <div className="nx-exp">
         <div className="nx-exp-copy">
           <p className="nx-eyebrow">Por qué Fortius</p>
-          <h2 id="por-que-title" className="nx-title">Tu venta, en un expediente que puedes ver.</h2>
+          <h2 id="por-que-title" className="nx-title"><span className="nx-title-mask"><span>Tu venta, en un expediente que puedes ver.</span></span></h2>
           <p className="nx-lead">{intro}</p>
           <ol className="nx-exp-pillars">
             {pillars.map((item, index) => <li key={item.title} className={index === pillar ? "is-active" : undefined}>

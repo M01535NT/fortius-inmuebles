@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 
 import { ConceptualPropertyPlan } from "@/components/sections/conceptual-property-plan";
 import { PropertyCard } from "@/components/property/property-card";
@@ -69,8 +68,8 @@ export async function SegmentDetail({ segment }: { segment: Segment }) {
           <div>
             <p className="pg-muted">{detail.decision}</p>
             <div className="pg-pills">
-              <Link href="/inventario" className="pg-link">Ver propiedades <ArrowUpRight size={18} aria-hidden="true" /></Link>
-              <Link href="/contacto" className="pg-link">Consultar un caso <ArrowUpRight size={18} aria-hidden="true" /></Link>
+              <Link href="/inventario" className="pg-link">Ver propiedades</Link>
+              <Link href="/contacto" className="pg-link">Consultar un caso</Link>
             </div>
           </div>
         </div>
@@ -78,7 +77,7 @@ export async function SegmentDetail({ segment }: { segment: Segment }) {
       <section className="pg-container pg-section pg-section-last inv-page" aria-labelledby="segment-inventory">
         <div className="pg-head">
           <h2 id="segment-inventory" className="pg-h2">{detail.label} en inventario.</h2>
-          <Link href={`/inventario?tipo=${detail.tipos[0]}`} className="pg-link">Ver todo <ArrowUpRight size={18} aria-hidden="true" /></Link>
+          <Link href={`/inventario?tipo=${detail.tipos[0]}`} className="pg-link">Ver todo</Link>
         </div>
         {inventario.length > 0 ? (
           <div className="property-catalog-grid">{inventario.map(property => <PropertyCard key={property.slug} property={property} />)}</div>

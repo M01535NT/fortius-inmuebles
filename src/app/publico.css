@@ -24,7 +24,7 @@
 }
 /* Superficies oscuras en ambos temas (azul, noche, vino o foto): el acento es crema. */
 .pg-card-dark, .pg-card-wine, .pg-step:hover, .bp-card.is-featured, .bp-guides, .ba-next-media, .lm-band, .ct-intent[data-selected="true"], .property-card-badge, .seg-plan-canvas { --ns-accent: #f5f1eb; }
-.pg-page { padding-top: 64px; }
+.pg-page { padding-top: 72px; }
 .pg-page :is(a, button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--primary-text, #8a1634); outline-offset: 3px; }
 .pg-container { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 32px); }
 .pg-narrow { max-width: 980px; }
@@ -240,7 +240,9 @@
 }
 
 /* Inventario · cabecera con filtros (boceto InventarioNocturno) */
-.inv-hero .pg-hero-body { padding-bottom: clamp(28px, 4vw, 40px); }
+.inv-hero .pg-hero-body { padding-block: 28px 24px; }
+.inv-hero .pg-title { max-width: none; font-size: clamp(36px, 4vw, 56px); }
+.inv-hero .pg-lead { margin-top: 12px; }
 .inv-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: clamp(28px, 4vw, 40px); }
 .inv-segment { display: inline-flex; padding: 4px; border: 1px solid color-mix(in srgb, var(--ns-ink) 18%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--ns-ink) 8%, transparent); }
 .inv-segment button { min-height: 40px; padding: 0 18px; border-radius: 999px; color: color-mix(in srgb, var(--ns-ink) 85%, transparent); font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 0.25s, color 0.25s; }
@@ -508,10 +510,9 @@
 .ct-workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: 20px; align-items: start; margin-top: clamp(32px, 4vw, 48px); }
 .ct-choices { min-width: 0; margin: 0; padding: 0; border: 0; }
 .ct-intents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.ct-intent { position: relative; display: grid; gap: 6px; align-content: start; min-height: 150px; padding: 18px; border: 1px solid color-mix(in srgb, var(--ns-ink) 12%, transparent); border-radius: 20px; background: var(--ns-card); color: var(--ns-ink); cursor: pointer; transition: border-color 0.3s, transform 0.4s var(--pg-ease); }
-.ct-intent:hover { border-color: color-mix(in srgb, var(--ns-ink) 40%, transparent); transform: translateY(-2px); }
-.ct-intent[data-selected="true"] { border-color: var(--ns-accent); background: #8a1634; }
-.dark .ct-intent[data-selected="true"] { background: linear-gradient(160deg, #8a1634, #4a0c1d); }
+.ct-intent { position: relative; display: grid; gap: 4px; align-content: start; min-height: 0; padding: 16px 18px; border: 1px solid color-mix(in srgb, var(--ns-ink) 16%, transparent); border-radius: 12px; background: transparent; color: var(--ns-ink); cursor: pointer; transition: border-color 0.3s, background-color 0.3s, transform 0.4s var(--pg-ease); }
+.ct-intent:hover { border-color: color-mix(in srgb, var(--ns-ink) 45%, transparent); transform: translateY(-2px); }
+.ct-intent[data-selected="true"] { border-color: #8a1634; background: #8a1634; color: #fff; }
 .ct-intent:has(input:focus-visible) { outline: 2px solid var(--ns-ink); outline-offset: 3px; }
 .ct-intent-top { display: flex; align-items: center; justify-content: flex-end; min-height: 22px; }
 .ct-intent-check { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 999px; background: #f5f1eb; color: #8a1634; }

@@ -2,7 +2,10 @@ export const STAGES = ["Por definir", "Prospección", "Calificación", "Preparac
 export const PRIORITIES = ["Por definir", "Alta", "Media", "Baja"] as const;
 export const TASKS = ["Abierto", "Completado", "Cancelado"] as const;
 export const OPERATIONS = ["Por definir", "Venta", "Renta", "Otro"] as const;
-export const PROPERTY_TYPES = ["Por definir", "Departamento", "Terreno", "Casa", "Local comercial", "Oficina", "Nave industrial", "Otro"] as const;
+/** «Por definir» y los siete tipos de la lista única (src/lib/inmueble-tipos.ts). */
+export const PROPERTY_TYPES = ["Por definir", "Terreno", "Casa", "Departamento", "Oficina", "Local comercial", "Nave o bodega", "Plaza o conjunto"] as const;
+/** Palabras guardadas antes del 27/10/2026 y su equivalente. */
+export const LEGACY_PROPERTY_TYPES: Record<string, typeof PROPERTY_TYPES[number]> = { "Nave industrial": "Nave o bodega", Otro: "Por definir" };
 export const ACTIVITIES = ["Llamada", "Visita", "Oferta", "Seguimiento", "Cambio", "Cancelación", "Cierre", "Entrega", "Otro"] as const;
 export const EVENT_STATES = ["Registrado", "Pendiente", "Aceptado", "Rechazado", "Cancelado"] as const;
 export const BASES = ["Declarado", "Observado", "Comprobado"] as const;

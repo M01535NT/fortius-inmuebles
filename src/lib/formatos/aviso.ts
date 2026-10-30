@@ -1,6 +1,7 @@
 import type { FormatoField } from "./catalog";
 
-export const AVISO_TEMPLATE_VERSION = "carta-2026-10-09";
+// Cambia cuando cambia el PDF del aviso: un PDF anterior deja de contar como vigente y se vuelve a generar.
+export const AVISO_TEMPLATE_VERSION = "en-vivo-2026-10-28";
 const representativeKeys = ["consentimientoPatrimonial", "consentimientoPublicidad", "publicidadCorreo", "publicidadTelefono", "publicidadMensajeria", "transferenciaAsesor", "asesorDestinatario", "asesorPais", "transferenciaFinanciera", "financieroDestinatario", "financieroPais", "transferenciaOperacion", "operacionDestinatario", "operacionPais", "acuseEstado", "fechaAcuse", "referenciaAcuse"];
 export const claveRepresentante = (key: string) => `representante${key[0].toUpperCase()}${key.slice(1)}`;
 export function decisionesRepresentante(data: Record<string, unknown>): Record<string, unknown> {
@@ -22,7 +23,7 @@ export function mostrarCampoAviso(key: string, data: Record<string, unknown>): b
   if (["financieroDestinatario", "financieroPais"].includes(key)) return data.transferenciaFinanciera === "si";
   if (["operacionDestinatario", "operacionPais"].includes(key)) return data.transferenciaOperacion === "si";
   if (["fechaAcuse", "referenciaAcuse"].includes(key)) return data.acuseEstado === "firmado_fuera";
-  if (key === "documentoRepresentante") return data.tipoTitular === "representante" || Boolean(String(data.representante ?? "").trim());
+  if (["documentoRepresentante", "instrumentoRepresentante", "facultadesRepresentante"].includes(key)) return data.tipoTitular === "representante" || Boolean(String(data.representante ?? "").trim());
   return true;
 }
 

@@ -2,15 +2,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronRight, Columns3, List, Search } from "@/components/admin/icons";
+import { Building2, ChevronRight, Columns3, List, Search, Trash2 } from "@/components/admin/icons";
 import { Avatar, Button, Card, CardLink, EmptyBox, Pill, Segmented, Surface, Thumb } from "@/components/admin/kit";
-import { inputClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { inputClass, selectClass } from "@/components/admin/ui";
+import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { SALE_PROCESS } from "@/lib/formatos/operation-workflow";
-import { attentionOf, boardCard, dueLabel, flowOf, groupOfPhase, initialStatus, PHASE_GROUPS, pastGaps, stageTrack, type Attention, type GroupId, type OperationRecord } from "@/lib/admin/operation-view";
+import { RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
+import { attentionOf, boardCard, dueLabel, flowOf, initialStatus, pastGaps, stageTrack, type Attention, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DirectCreate } from "./direct-create";
 import { useOperationFormats } from "./use-operation-formats";
@@ -21,13 +21,20 @@ import s from "./board.module.css";
   Operaciones (bocetos aprobados por el titular el 17/10/2026): dos vistas con selector.
   La lista (inicial) va en dos grupos, «Esperan algo de ti» —con el motivo en una palabra—
   y «Al día», con la foto del inmueble, la etapa numerada según su ruta, lo que sigue y su
-  fecha. El tablero pone una columna por fase. La última vista se recuerda en este navegador
-  como comodidad del dispositivo. «?etapa=<slug>» sigue funcionando: filtra por la fase.
+  fecha. Se filtra por etapa y el tablero pone una columna por etapa (titular, 27/10/2026: sin
+  las cuatro fases). La última vista se recuerda en este navegador como comodidad del
+  dispositivo. «?etapa=<slug o nombre>» filtra por esa etapa.
 */
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const VERB: Record<string, string> = { captacion: "Vende", arrendador: "Renta su inmueble", compra: "Compra", arrendatario: "Busca una renta", inversion: "Invierte" };
-type Row = { op: OperationRecord; who: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; group: GroupId; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string };
+type Row = { op: OperationRecord; who: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string };
+/** Etapas presentes entre las operaciones, en su orden (las de venta y las de cada ruta conviven). */
+function stagesOf(rows: Row[]) {
+  const seen = new Map<string, number>();
+  for (const row of rows) if (!seen.has(row.stage)) seen.set(row.stage, row.n);
+  return [...seen].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0], "es")).map(([label, n]) => ({ label, n }));
+}
 type View = "lista" | "tablero";
 const asView = (value: unknown): View => value === "tablero" ? "tablero" : "lista";
 
@@ -49,9 +56,8 @@ export function OperationsBoard() {
   const [creating, setCreating] = React.useState(params.get("nuevo") === "1");
   const [draftDirty, setDraftDirty] = React.useState(false);
   useLeaveGuard(creating && draftDirty);
-  const requestedStage = SALE_PROCESS.find(p => p.slug === params.get("etapa"));
-  const requestedGroup = PHASE_GROUPS.find(g => g.id === params.get("fase"))?.id ?? (requestedStage ? groupOfPhase(requestedStage.key) : undefined);
-  const group = requestedGroup ?? "todas";
+  const requested = params.get("etapa");
+  const stageFilter = requested ? [...SALE_PROCESS, ...RENT_PROCESS].find(p => p.slug === requested)?.label ?? requested : "todas";
   React.useEffect(() => {
     let alive = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -84,23 +90,33 @@ export function OperationsBoard() {
     return {
       op, who: card.who, meta: [VERB[flow.ruta] ?? "", card.property].filter(Boolean).join(" · "),
       photo: op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.galeria[0]?.src : undefined, adviser: advisers.find(a => a.id === op.asesor_id)?.nombre,
-      n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", group: stages[current]?.group ?? "conocer", gapAt: new Set(gaps.map(g => g.n)),
+      n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", gapAt: new Set(gaps.map(g => g.n)),
       next: card.next, date: card.date, late: card.late, attention: attentionOf(view, tasks, today, gaps[0]?.gap), mine: card.mine, href: card.href,
     };
   });
   const visible = rows.filter(row => (!admin || scope === "equipo" || !me || row.mine) && (!query.trim() || normalize(`${row.who} ${row.op.folio} ${row.meta}`).includes(normalize(query.trim()))));
   const active = visible.filter(row => row.op.etapa !== "cerrado");
   const archived = visible.filter(row => row.op.etapa === "cerrado");
-  const inGroup = active.filter(row => group === "todas" || row.group === group);
+  const inGroup = active.filter(row => stageFilter === "todas" || row.stage === stageFilter);
   const byDate = (a: Row, b: Row) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.who.localeCompare(b.who, "es");
   const waiting = inGroup.filter(row => row.attention).sort((a, b) => a.attention!.rank - b.attention!.rank || byDate(a, b));
   const fine = inGroup.filter(row => !row.attention).sort(byDate);
 
-  function chooseGroup(id: GroupId | "todas") {
-    const next = new URLSearchParams(params.toString()); next.delete("etapa");
-    if (id === "todas") next.delete("fase"); else next.set("fase", id);
+  function chooseStage(label: string) {
+    const next = new URLSearchParams(params.toString()); next.delete("fase");
+    const slug = [...SALE_PROCESS, ...RENT_PROCESS].find(p => p.label === label)?.slug;
+    if (label === "todas") next.delete("etapa"); else next.set("etapa", slug ?? label);
     const search = next.toString();
     router.replace(search ? `/admin/operaciones?${search}` : "/admin/operaciones", { scroll: false });
+  }
+  async function remove(row: Row) {
+    if (!await confirmDeleteOperation(row.op.folio, row.who)) return;
+    setError(""); setNotice("");
+    try {
+      await json(`/api/admin/expedientes/${row.op.id}`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: row.op.version }) });
+      setRecords(items => items?.filter(item => item.id !== row.op.id));
+      setNotice(`Operación ${row.op.folio} eliminada. Puedes restaurarla desde «Operaciones eliminadas».`);
+    } catch (cause) { setError(errorMessage(cause)); }
   }
   async function restore(op: OperationRecord) {
     if (!await confirmAction(`¿Restaurar la operación ${op.folio}? Volverá a Operaciones con sus documentos y tareas.`)) return;
@@ -131,19 +147,19 @@ export function OperationsBoard() {
       : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" action={<Link href="/admin/operaciones/nueva" className="font-semibold underline underline-offset-4">Nueva operación</Link>}>Empieza con la entrevista del cliente; la operación se crea al terminarla.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
-          <div role="group" aria-label="Filtrar por fase" className={s.filters}>
-            {[{ id: "todas" as const, label: "Todas" }, ...PHASE_GROUPS].map(g => {
-              const count = g.id === "todas" ? active.length : active.filter(row => row.group === g.id).length;
-              return <button key={g.id} type="button" aria-pressed={group === g.id} className={s.filter} onClick={() => chooseGroup(g.id)}>{g.label}<span className={s.count}>{count}</span></button>;
-            })}
-          </div>
+          <span className="flex items-center gap-2"><label htmlFor="operaciones-etapa" className="text-sm font-semibold">Etapa</label>
+            <select id="operaciones-etapa" className={selectClass} value={stageFilter} onChange={e => chooseStage(e.target.value)}>
+              <option value="todas">Todas las etapas ({active.length})</option>
+              {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <option key={stage.label} value={stage.label}>{stage.n ? `${stage.n} · ` : ""}{stage.label} ({active.filter(row => row.stage === stage.label).length})</option>)}
+            </select>
+          </span>
           <span className="flex-1" />
           <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
         </div>
         {view === "tablero" ? <PhaseBoard rows={inGroup} today={today} />
           : <>
-            <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} empty="Nada pendiente por ahora." />
-            <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta fase."} />
+            <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} empty="Nada pendiente por ahora." onRemove={row => void remove(row)} />
+            <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} onRemove={row => void remove(row)} />
           </>}
         {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide con la búsqueda o el filtro.</p>}
         {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="font-mono text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
@@ -164,12 +180,12 @@ function DuePill({ date, late, today }: { date?: string; late: boolean; today: s
   return <Pill tone={late ? "alert" : date === today ? "brand" : "muted"}>{dueLabel(date, today)}</Pill>;
 }
 
-function OperationGroup({ id, title, rows, today, empty }: { id: string; title: string; rows: Row[]; today: string; empty: string }) {
+function OperationGroup({ id, title, rows, today, empty, onRemove }: { id: string; title: string; rows: Row[]; today: string; empty: string; onRemove: (row: Row) => void }) {
   return <section aria-labelledby={`grupo-${id}`} className="mb-6 flex flex-col gap-3">
     <h2 id={`grupo-${id}`} className={s.groupTitle}>{title}<Pill tone={id === "esperan" && rows.length ? "alert" : "muted"} size="sm">{rows.length}</Pill></h2>
     {rows.length ? <Card as="div" className={s.list}>
       <div className={s.head} aria-hidden="true"><span>Operación</span><span>Etapa</span><span>Lo que sigue</span><span>Fecha</span></div>
-      <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
+      <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
         <span className={s.who}><Thumb src={row.photo} size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}>{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}</span>
@@ -178,20 +194,19 @@ function OperationGroup({ id, title, rows, today, empty }: { id: string; title: 
         <span className="min-w-0 text-[0.9375rem] text-muted-foreground [overflow-wrap:anywhere]"><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
         <DuePill date={row.date} late={row.late} today={today} />
         <ChevronRight size={18} aria-hidden="true" className={s.chevron} />
-      </Link></li>)}</ul>
+      </Link><button type="button" className={s.rowDelete} aria-label={`Eliminar la operación de ${row.who}`} title="Eliminar operación" onClick={() => onRemove(row)}><Trash2 size={18} aria-hidden="true" /></button></li>)}</ul>
     </Card> : <p className="px-1 text-sm text-muted-foreground">{empty}</p>}
   </section>;
 }
 
-/** Tablero: una columna por fase; cada tarjeta lleva la foto, lo que sigue, su fecha y el responsable. */
+/** Tablero: una columna por etapa presente; cada tarjeta lleva la foto, lo que sigue, su fecha y el responsable. */
 function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
   const byDate = (a: Row, b: Row) => (a.attention?.rank ?? 9) - (b.attention?.rank ?? 9) || (a.date ?? "9999").localeCompare(b.date ?? "9999");
-  return <div className={s.boardScroll}><div className={s.board} role="list" aria-label="Operaciones por fase">
-    {PHASE_GROUPS.map(group => {
-      const cards = rows.filter(row => row.group === group.id).sort(byDate);
-      return <section key={group.id} role="listitem" aria-labelledby={`columna-${group.id}`} className={s.column}>
-        <h2 id={`columna-${group.id}`} className={s.columnTitle}>{group.label}<Pill tone="muted" size="sm">{cards.length}</Pill></h2>
-        {cards.length === 0 && <p className={s.columnEmpty}>Sin operaciones en esta fase.</p>}
+  return <div className={s.boardScroll}><div className={s.board} role="list" aria-label="Operaciones por etapa">
+    {stagesOf(rows).map((stage, index) => {
+      const cards = rows.filter(row => row.stage === stage.label).sort(byDate);
+      return <section key={stage.label} role="listitem" aria-labelledby={`columna-${index}`} className={s.column}>
+        <h2 id={`columna-${index}`} className={s.columnTitle}>{stage.n} · {stage.label}<Pill tone="muted" size="sm">{cards.length}</Pill></h2>
         {cards.map(row => <CardLink key={row.op.id} href={row.href} className={s.boardCard} data-late={row.late || row.attention?.late || undefined} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
           {row.photo && <Thumb src={row.photo} ratio="16 / 9" className={s.cardPhoto} />}
           <span className={s.cardBody}>

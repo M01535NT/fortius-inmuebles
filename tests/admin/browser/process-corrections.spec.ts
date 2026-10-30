@@ -40,7 +40,7 @@ for(const width of [390,768,1440]) {
    await expect(page).toHaveURL(new RegExp('/admin/operaciones/'+ops[i].id));
    await expect(page.getByText(ops[i].folio,{exact:true})).toBeVisible();
    const guide=page.getByRole('region',{name:'Esta etapa'});await expect(guide).toBeVisible();
-   // Los estados de cada requisito están en «Más», junto a «Marcar revisado».
+   // Los estados de cada requisito están en «Más», junto a «Confirmar».
    await guide.getByRole('button',{name:/^Más estados de/}).first().click();
    const states=guide.getByRole('radiogroup').first();await expect(states).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

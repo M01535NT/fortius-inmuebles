@@ -1,3 +1,4 @@
+import { TIPO_INMUEBLE_KEYS, TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import { z } from "zod";
 export const INTENTS = {
   vender: {
@@ -84,15 +85,7 @@ const common: Field[] = [
     key: "tipoInmueble",
     label: "Tipo de inmueble",
     section: "Inmueble",
-    options: [
-      "casa",
-      "departamento",
-      "terreno",
-      "local",
-      "oficina",
-      "nave-industrial",
-      "por_definir",
-    ],
+    options: [...TIPO_INMUEBLE_KEYS, "por_definir"],
     required: true,
   },
 ];
@@ -263,6 +256,14 @@ const end: Field[] = [
 export function isOwnerIntent(intent: IntakeIntent) {
   return intent === "vender" || intent === "arrendar";
 }
+/**
+  Quien busca comprar o rentar es interesado de Fortius y contraparte del propietario, nunca
+  cliente (RP-93, COR-11): se guarda como lead con su perfil, sin entrevista ni operación.
+*/
+export function isBuyerIntent(intent: IntakeIntent): intent is "comprar" | "rentar" {
+  return intent === "comprar" || intent === "rentar";
+}
+export const BUYER_INTENT_MESSAGE = "Quien busca comprar o rentar se guarda como interesado; no se abre operación.";
 export function interviewFields(intent: IntakeIntent): Field[] {
   const isOwner = isOwnerIntent(intent);
   const label = isOwner
@@ -341,7 +342,8 @@ const OPTION_LABELS: Record<string, string> = {
   recursos_propios: "Recursos propios",
   credito: "Crédito",
   mixto: "Recursos y crédito",
-  nave_industrial: "Nave industrial",
+  nave_industrial: "Nave o bodega",
+  ...TIPO_INMUEBLE_LABELS,
   soltero: "Soltero",
   casado: "Casado",
   divorciado: "Divorciado",

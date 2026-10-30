@@ -1,3 +1,4 @@
+import { TIPOS_INMUEBLE } from "@/lib/inmueble-tipos";
 import type { FormatoField } from "./catalog";
 
 /*
@@ -42,7 +43,7 @@ export const entrevistaFields: FormatoField[] = [
   base(QUIEN, "medioContacto", "¿Cómo prefiere que le contactemos?", "text", false),
   base(QUIEN, "horarioContacto", "¿A qué hora?", "text", false),
 
-  select(INMUEBLE, "tipoInmueble", "Tipo de inmueble", options([["casa", "Casa"], ["departamento", "Departamento"], ["terreno", "Terreno"], ["local", "Local"], ["plaza", "Plaza o conjunto"], ["nave", "Nave o bodega"], ["otro", "Otro"]])),
+  select(INMUEBLE, "tipoInmueble", "Tipo de inmueble", TIPOS_INMUEBLE.map(tipo => ({ value: tipo.key, label: tipo.label }))),
   base(INMUEBLE, "inmueble", "Domicilio del inmueble"),
   select(INMUEBLE, "ocupacion", "¿Quién vive o lo ocupa hoy?", options([["propietario", "El propietario"], ["familia", "Su familia"], ["inquilino", "Un inquilino"], ["desocupado", "Está desocupado"], ["otro", "Otra persona"]])),
   select(INMUEBLE, "gravamen", "¿Tiene hipoteca o crédito?", options([["no", "No"], ["banco", "Banco"], ["infonavit", "Infonavit"], ["fovissste", "Fovissste"], ["otro", "Otro"], ["no_sabe", "No sabe"]])),

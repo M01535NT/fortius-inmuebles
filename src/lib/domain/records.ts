@@ -2,7 +2,9 @@
 import type { Asesor as AsesorBase } from "@/data/asesores";
 import type { Property } from "@/data/propiedades";
 import type { LeadProfile } from "@/lib/lead-profile";
-export type AdminProperty = Property;
+import type { PropertyFollowup } from "@/lib/propiedad-seguimiento";
+/** Inmueble del panel: la ficha pública más el seguimiento privado (llaves, preparación y avisos). */
+export type AdminProperty = Property & PropertyFollowup;
 
 export type Asesor = AsesorBase & {
   perfilPublico?: { publicado: boolean; descripcion: string; foto?: string; telefono?: string; whatsapp?: string; email?: string; instagram?: string; facebook?: string; linkedin?: string };
@@ -48,6 +50,30 @@ export const LEAD_ORIGEN_LABELS: Record<LeadOrigen, string> = {
   manual: "Captura manual",
 };
 
+/*
+  Canal por el que llegó la persona (titular, 29/10/2026). El origen dice qué
+  formulario o captura creó el registro; el canal, de dónde vino el interés. Si
+  falta, los formularios del sitio cuentan como «Sitio web» y la captura manual
+  queda «Sin dato».
+*/
+export const LEAD_CANALES = ["sitio", "whatsapp", "llamada", "portal", "referido", "letrero", "redes", "visita-oficina", "otro"] as const;
+export type LeadCanal = (typeof LEAD_CANALES)[number];
+export const LEAD_CANAL_LABELS: Record<LeadCanal, string> = {
+  sitio: "Sitio web",
+  whatsapp: "WhatsApp",
+  llamada: "Llamada",
+  portal: "Portal inmobiliario",
+  referido: "Referido",
+  letrero: "Letrero o lona",
+  redes: "Redes sociales",
+  "visita-oficina": "Visita a la oficina",
+  otro: "Otro",
+};
+/** Canal efectivo: el capturado o, si falta, el que se deduce del origen. */
+export function leadCanal(lead: Pick<Lead, "canal" | "origen">): LeadCanal | "sin-dato" {
+  return lead.canal ?? (lead.origen === "manual" ? "sin-dato" : "sitio");
+}
+
 type LeadNota = { id: string; texto: string; fecha: string };
 
 export type Lead = {
@@ -56,6 +82,7 @@ export type Lead = {
   telefono: string;
   email?: string;
   origen: LeadOrigen;
+  canal?: LeadCanal;
   estado: LeadEstado;
   propiedadSlug?: string;
   zona?: string;

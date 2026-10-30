@@ -8,7 +8,7 @@ export async function embedFortiusLetterhead(pdf: PDFDocument, assets: Letterhea
 }
 
 /** Sólo arte, título del documento y paginación; no modifica datos de negocio. */
-export function drawFortiusLetterhead(page: PDFPage, art: PdfLetterhead, font: PDFFont, title: string, pageNumber: number, totalPages: number) {
+export function drawFortiusLetterhead(page: Pick<PDFPage, 'getSize' | 'drawImage' | 'drawText'>, art: PdfLetterhead, font: PDFFont, title: string, pageNumber: number, totalPages: number) {
   const { width, height } = page.getSize();
   const bounds = letterheadBounds(width, height), scale = width / 612;
   const navy = rgb(6 / 255, 31 / 255, 63 / 255);

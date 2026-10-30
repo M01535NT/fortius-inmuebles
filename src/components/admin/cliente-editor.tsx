@@ -56,7 +56,7 @@ export function ClienteEditor({ initial, onDone, title }: { initial?: Cliente; o
       }}
     >
       {title !== false && <h2 className="m-0 text-xl font-[600] tracking-[-0.015em]">{cliente ? "Editar cliente" : "Nuevo cliente"}</h2>}
-      {cliente?.leadId ? <LeadFields lead={cliente} /> : <section className={s.group} aria-label="Contacto">
+      {cliente?.leadId ? <LeadFields lead={cliente} channel={false} /> : <section className={s.group} aria-label="Contacto">
         <div className={s.groupHead}><h2>Contacto</h2><p>Nombre y teléfono para poder localizarlo.</p></div>
         <div className={s.grid}>
           <Field label="Nombre" htmlFor="cl-nombre" className={s.span2}><input id="cl-nombre" name="nombre" required defaultValue={cliente?.nombre} autoComplete="name" className={inputClass} /></Field>

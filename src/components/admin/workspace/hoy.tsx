@@ -3,13 +3,15 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Building2, MapPin, Plus } from "@/components/admin/icons";
+import { lastNotice, pendingNotices, priceDroppedSince, seekersFrom } from "@/lib/admin/buyer-matches";
+import { keyDueDate, keyLoanLate, openKeyLoans } from "@/lib/propiedad-seguimiento";
 import { Avatar, ButtonLink, Card, CardLink, EmptyBox, Pill, Ring, Surface, Thumb, type PillTone } from "@/components/admin/kit";
 import { apiRequest, db, upsert, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { projectFollowups } from "@/lib/admin/followups";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { greeting, interviewSummary, longDate, overdueReports, shortDate, todayTasks, upcomingItems, waitingItems, weekdayDate, type OfferRun, type TodayDossier, type WaitingItem } from "@/lib/admin/today";
+import { expiryItems, greeting, interviewSummary, longDate, overdueReports, shortDate, todayTasks, upcomingItems, waitingItems, weekdayDate, type ContractDates, type OfferRun, type TodayDossier, type WaitingItem } from "@/lib/admin/today";
 import { initialStatus } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { useOperationFormats } from "@/components/admin/operation/use-operation-formats";
@@ -58,6 +60,7 @@ export function HoyScreen() {
   const [interviews, setInterviews] = React.useState<Load<OperationalInterview[]>>(undefined);
   const [offers, setOffers] = React.useState<Load<OfferRun[]>>(undefined);
   const [reports, setReports] = React.useState<Load<Record<string, string>>>(undefined);
+  const [contracts, setContracts] = React.useState<Load<ContractDates[]>>(undefined);
   const [hour, setHour] = React.useState<number | null>(null);
   React.useEffect(() => {
     let alive = true;
@@ -66,6 +69,7 @@ export function HoyScreen() {
     settle(apiRequest<{ entrevistas?: OperationalInterview[] }>("/api/admin/entrevistas").then(r => (r.entrevistas ?? []).filter(i => i.estado === "borrador")), setInterviews);
     settle(apiRequest<{ runs?: OfferRun[] }>("/api/admin/apps/runs?slug=ofertas").then(r => r.runs ?? []), setOffers);
     settle(apiRequest<{ ultimos?: Record<string, string> }>("/api/admin/apps/runs?slug=informe-propietario&vista=ultimo-por-expediente").then(r => r.ultimos ?? {}), setReports);
+    settle(apiRequest<{ contratos?: ContractDates[] }>("/api/admin/vencimientos").then(r => r.contratos ?? []), setContracts);
     // La hora se toma en el navegador para no saludar con la hora del servidor.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHour(new Date().getHours());
@@ -91,6 +95,10 @@ export function HoyScreen() {
   const visits = agenda.filter(e => e.tipo === "visita");
   const upcoming = upcomingItems({ tasks, dossiers: dossiers ?? [], reports, names, today });
   const lateReports = dossiers && reports ? overdueReports({ dossiers, reports, names, today }) : [];
+  const expiring = dossiers && contracts ? expiryItems({ contracts, dossiers, names, today }) : [];
+  const toDay = (instant: string) => operationalDate(new Date(instant));
+  const lateKeys = properties.flatMap(p => openKeyLoans(p.llaves).filter(loan => keyLoanLate(loan, today, toDay)).map(loan => ({ property: p, loan })));
+  const notices = pendingNotices(properties, seekersFrom(leads, clients)).slice(0, 5);
   const firstName = session?.name?.trim().split(/\s+/)[0];
   const heroPhoto = [...waiting.map(item => item.propertySlug), ...inProgress.map(d => d.propiedad_slug)].map(photo).find(Boolean);
   const tail = dossiers === undefined ? "Consultando tus operaciones…" : waiting.length ? `${waiting.length === 1 ? "Hay 1 pendiente esperándote." : `Hay ${waiting.length} pendientes esperándote.`}` : "Nada espera por ti.";
@@ -187,6 +195,27 @@ export function HoyScreen() {
             <span className="flex min-w-0 flex-col gap-0.5"><span className={s.kind}>{item.kind}</span><strong className="[overflow-wrap:anywhere]">{item.text}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{item.meta}</small></span>
           </Link></li>)}</ul></Card> : <EmptyBox title="Nada vence esta semana" />}
         </Section>
+
+        {(contracts === null || expiring.length > 0) && <Section id="hoy-contratos" title="Contratos y licencias por vencer" count={expiring.length} description="El contrato de servicio avisa 30 días antes y la licencia estatal, 60.">
+          {contracts === null ? failed("los contratos de servicio") : <Card as="div" className={s.list}><ul>{expiring.map(item => <li key={item.id}><Link href={item.href} className={s.upcoming}>
+            <span className={cn(s.day, item.late && s.late)}>{shortDate(item.date)}</span>
+            <span className="flex min-w-0 flex-col gap-0.5"><span className={s.kind}>{item.late ? `${item.kind} vencido` : item.kind}</span><strong className="[overflow-wrap:anywhere]">{item.text}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{item.meta}</small></span>
+          </Link></li>)}</ul></Card>}
+        </Section>}
+
+        {lateKeys.length > 0 && <Section id="hoy-llaves" title="Llaves sin regresar" count={lateKeys.length} description="Préstamos que ya debían volver a la oficina o al propietario.">
+          <Card as="div" className={s.list}><ul>{lateKeys.map(({ property, loan }) => <li key={`${property.slug}:${loan.id}`}><Link href={`/admin/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=llaves`} className={s.upcoming}>
+            <span className={cn(s.day, s.late)}>{shortDate(keyDueDate(loan, toDay))}</span>
+            <span className="flex min-w-0 flex-col gap-0.5"><span className={s.kind}>Llaves</span><strong className="[overflow-wrap:anywhere]">Las tiene {loan.persona} desde el {shortDate(toDay(loan.salida))}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{[property.titulo, loan.motivo].filter(Boolean).join(" · ")}</small></span>
+          </Link></li>)}</ul></Card>
+        </Section>}
+
+        {notices.length > 0 && <Section id="hoy-compradores" title="Compradores por avisar" count={notices.length} description="Inmuebles publicados que le pueden servir a alguien que busca.">
+          <Card as="div" className={s.list}>{notices.map(({ property, pending }) => <article key={property.slug} className={s.report}>
+            <div className="flex min-w-0 flex-1 items-center gap-3"><Thumb src={property.galeria[0]?.src} size={40} icon={<Building2 size={18} aria-hidden="true" />} /><span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{property.titulo}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{pending.some(m => priceDroppedSince(property, lastNotice(property, m.seeker))) ? "Bajó de precio · " : ""}{pending.length === 1 ? `Le puede servir a ${pending[0].seeker.nombre}` : `Le puede servir a ${pending[0].seeker.nombre} y ${pending.length - 1} más`}</small></span></div>
+            <ButtonLink href={`/admin/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=compradores`} className="shrink-0 self-start" aria-label={`Avisar a compradores de ${property.titulo}`}>Avisar</ButtonLink>
+          </article>)}</Card>
+        </Section>}
 
         {(reports === null || lateReports.length > 0) && <Section id="hoy-informes" title="Informes al propietario vencidos" count={lateReports.length} description="Cada mes le contamos al propietario cómo va la venta.">
           {reports === null ? failed("los informes al propietario") : <Card as="div" className={s.list}>{lateReports.map(report => <article key={report.id} className={s.report}>

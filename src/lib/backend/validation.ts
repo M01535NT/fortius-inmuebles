@@ -1,7 +1,10 @@
+import { TIPO_INMUEBLE_KEYS } from "@/lib/inmueble-tipos";
 import { HOME_TEXT_KEYS } from "@/data/home-copy";
 import { CATEGORIAS_PUNTO, GRUPOS_CARACTERISTICAS, estadoValido, type Property } from "@/data/propiedades";
 import { z } from "zod";
 import { leadProfileSchema } from "@/lib/lead-profile";
+import { buyerNoticesSchema, keysSchema, prepSchema } from "@/lib/propiedad-seguimiento";
+import { LEAD_CANALES } from "@/lib/domain/records";
 import { taskSchema } from "@/lib/tasks";
 import { COLLECTIONS, type CollectionName } from "./contracts";
 import { ApiError } from "./http";
@@ -36,10 +39,12 @@ const benefit = z.object({ titulo: z.string().trim().min(1).max(80), texto: z.st
 const featureGroup = z.object({ grupo: z.enum(GRUPOS_CARACTERISTICAS), elementos: z.array(z.string().trim().min(1).max(120)).max(30) }).passthrough();
 const costs = z.object({ predialAnual: amount.optional(), mantenimientoMensual: amount.optional() }).passthrough();
 const propertySchema = z.object({
-  slug: id, codigo: z.string().trim().max(160).default(""), titulo: name, tipo: z.enum(["casa", "departamento", "terreno", "local", "oficina", "nave-industrial"]), operacion: z.enum(["venta", "renta"]), precio: price,
+  slug: id, codigo: z.string().trim().max(160).default(""), titulo: name, tipo: z.enum(TIPO_INMUEBLE_KEYS), conjunto: id.optional(), operacion: z.enum(["venta", "renta"]), precio: price,
   zona: short, direccionAproximada: short, descripcion: z.array(text).max(100), ficha, informacionPublica: informacionPublica.optional(), amenidades: z.array(short).max(100), galeria: z.array(image).max(100), videoUrl: optionalUrl, tour360Url: optionalUrl,
   documentos: z.array(document).max(100).optional(), asesorId: id.or(z.literal("")), creditoDisponible: z.boolean(), puntosDeInteres: z.array(point).max(100), beneficios: z.array(benefit).max(4).optional(), caracteristicas: z.array(featureGroup).max(GRUPOS_CARACTERISTICAS.length).optional(), costos: costs.optional(), destacada: z.boolean(), estado: z.enum(["evaluacion", "disponible", "apartada", "vendida", "rentada"]), publicadaEl: date.or(z.literal("")),
   demo: z.boolean(), publicada: z.boolean().default(false),
+  // Seguimiento privado: se valida al guardar y nunca entra en la proyección pública.
+  llaves: keysSchema.optional(), preparacion: prepSchema.optional(), avisosCompradores: buyerNoticesSchema.optional(),
 }).passthrough();
 const adviserProfileSchema = z.object({
   publicado: z.boolean(), descripcion: z.string().max(2000),
@@ -74,7 +79,7 @@ const recordSchemas = {
   tareas: taskSchema,
   propiedades: propertySchema,
   asesores: adviserSchema,
-  leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500), clienteId: reference, convertidoEl: date.optional(), convertidoPor: reference }).passthrough(),
+  leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), canal: z.enum(LEAD_CANALES).optional(), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500), clienteId: reference, convertidoEl: date.optional(), convertidoPor: reference }).passthrough(),
   clientes: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), tipo: z.enum(["propietario", "comprador", "arrendador", "arrendatario", "inversionista", "otro"]), asesorId: reference, notas: text, creadoEl: date, actualizadoEl: date, leadId: reference, convertidoEl: date.optional(), convertidoPor: reference, leadOriginal: z.object({ id, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough().optional() }).passthrough(),
   eventos: z.object({ id, titulo: name, fecha: z.iso.date(), hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(), tipo: z.enum(["visita", "llamada", "firma", "reunion", "otro"]), leadId: reference, propiedadSlug: reference, clienteId: reference, expedienteId: z.uuid().or(z.literal("")).optional(), asesorId: reference, notas: text.optional() }).passthrough(),
   notas: z.object({ id, titulo: name, texto: text, actualizadoEl: date }).passthrough(),
@@ -93,6 +98,7 @@ export function parseRecord(collection: CollectionName, recordId: string, value:
   const limit = (collection === "clientes" && data.leadId) || (collection === "leads" && data.clienteId) ? 260000 : 250000;
   if (new TextEncoder().encode(JSON.stringify(data)).byteLength > limit) throw new ApiError(413, "Registro demasiado grande");
   if (collection === "propiedades" && !estadoValido(data.operacion as Property["operacion"], data.estado as Property["estado"])) throw new ApiError(400, "Estado incompatible con la operación");
+  if (collection === "propiedades" && data.tipo === "plaza" && data.conjunto) throw new ApiError(400, "Plaza o conjunto inválido");
   if (collection === "propiedades" && data.publicada === true && !(data.galeria as unknown[]).length) throw new ApiError(400, "Publicar requiere al menos una imagen");
   if (collection === "propiedades" && data.estado === "evaluacion" && (data.publicada === true || data.publicadaEl !== "")) throw new ApiError(400, "Un inmueble en evaluación permanece privado y sin fecha de publicación");
   if (collection === "propiedades" && data.publicada === true && !data.publicadaEl) throw new ApiError(400, "Publicar requiere fecha de publicación");
@@ -112,7 +118,7 @@ const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? v
 const publicWhatsapp = z.string().transform((value) => isPublicUrl(value) || /^[+]?[0-9 ()-]{7,40}$/.test(value) ? value : "");
 const publicSettings = settingsSchema.strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
 // This second allowlist also protects server components against malformed DB data.
-const publicProperty = propertySchema.strip().extend({
+const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, avisosCompradores: true }).strip().extend({
   codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });
 export function projectPublic(collection: string, values: unknown[]): Record<string, unknown>[] {
   const schema = collection === "propiedades" ? publicProperty : collection === "asesores" ? adviserSchema.pick({ id: true, nombre: true, cargo: true, iniciales: true, activo: true }).strip()

@@ -3,7 +3,8 @@
   sin depender del navegador ni de sharp, para que sirva igual en el servidor y en el Word.
 */
 
-export type ImagenDocumento = { bytes: Uint8Array; tipo: "jpg" | "png"; width: number; height: number; caption?: string; source?: string; date?: string | null };
+/** «href»: dirección de la imagen en el navegador, para la vista en vivo de la captura. */
+export type ImagenDocumento = { bytes: Uint8Array; tipo: "jpg" | "png"; width: number; height: number; caption?: string; source?: string; date?: string | null; href?: string };
 
 export function imageInfo(bytes: Uint8Array): { tipo: "jpg" | "png"; width: number; height: number } | null {
   if (bytes.length > 24 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {

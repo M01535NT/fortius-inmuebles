@@ -52,7 +52,11 @@ export async function prepareUpload(client: StorageClient, userId: string, input
   return { signedUrl: signed.data.signedUrl, path, ticket };
 }
 
-export async function completeUpload(client: UploadClient, userId: string, ticket: unknown) {
+/**
+  Toma la carga temporal autorizada por el ticket, comprueba tamaño y contenido y devuelve el
+  archivo listo para guardarse. La usan los archivos del sitio y los documentos del cliente.
+*/
+export async function takeStagedUpload(client: StorageClient, userId: string, ticket: unknown) {
   const claims = parseTicket(ticket, userId);
   const staged = await client.storage.from("fortius-inmuebles-staging").download(claims.path);
   if (staged.error) throw new ApiError(409, "La carga temporal no está disponible; vuelve a seleccionar el archivo");
@@ -60,6 +64,15 @@ export async function completeUpload(client: UploadClient, userId: string, ticke
   const file = new File([staged.data], claims.name, { type: claims.contentType });
   const { type, extension } = await validateFile(file);
   if (!claims.path.endsWith(`.${extension}`)) throw new ApiError(400, "Tipo de archivo incongruente");
+  return { claims, file, type, extension };
+}
+/** Retira la carga temporal; si falla, el objeto temporal sigue privado y no afecta el resultado. */
+export async function dropStagedUpload(client: StorageClient, path: string) {
+  await client.storage.from("fortius-inmuebles-staging").remove([path]);
+}
+
+export async function completeUpload(client: UploadClient, userId: string, ticket: unknown) {
+  const { claims, file, type } = await takeStagedUpload(client, userId, ticket);
   const bucket = claims.visibility === "public" ? "fortius-inmuebles-public" : "fortius-inmuebles-private";
   // Copy the exact bytes just validated, not a mutable remote object. Immutable
   // final names make concurrent completion/replayed tickets unable to overwrite.
@@ -71,7 +84,7 @@ export async function completeUpload(client: UploadClient, userId: string, ticke
   await registerUpload(client, userId, bucket, claims.path);
   // Only this ticket's temporary object is removed. A cleanup outage must not
   // misreport a successfully persisted final file; abandoned staging is private.
-  await client.storage.from("fortius-inmuebles-staging").remove([claims.path]);
+  await dropStagedUpload(client, claims.path);
   const url = bucket === "fortius-inmuebles-public" ? client.storage.from(bucket).getPublicUrl(claims.path).data.publicUrl
     : `/api/admin/files?bucket=${bucket}&path=${encodeURIComponent(claims.path)}`;
   return { bucket, path: claims.path, url, name: claims.name, type };

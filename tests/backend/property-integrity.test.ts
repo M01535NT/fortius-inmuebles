@@ -59,3 +59,11 @@ test("database keeps old duplicates reviewable but rejects new case-insensitive 
   await expect(save("third", property("third", "INM-2026-0003", "renta", "vendida"))).rejects.toMatchObject({ code: "PT400" });
   await expect(save("third", property("third", "INM-2026-0003", "renta", "rentada"))).resolves.toBeTruthy();
 });
+
+test("a loose local keeps its plaza through validation and the public projection; a plaza cannot belong to another", () => {
+  const local = { ...sample, slug: "local-de-plaza", codigo: "LOC-01", tipo: "local" as const, conjunto: "plaza-ejemplo" };
+  expect(parseRecord("propiedades", local.slug, local).conjunto).toBe("plaza-ejemplo");
+  expect(projectPublic("propiedades", [{ ...local, publicada: true }])[0]?.conjunto).toBe("plaza-ejemplo");
+  expect(() => parseRecord("propiedades", local.slug, { ...local, conjunto: "../plaza" })).toThrow();
+  expect(() => parseRecord("propiedades", local.slug, { ...local, tipo: "plaza" })).toThrow("Plaza o conjunto inválido");
+});

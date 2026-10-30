@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { dateInPeriod, periodMetrics } from "@/lib/admin/period-report";
+import { channelMetrics, dateInPeriod, periodMetrics } from "@/lib/admin/period-report";
 import {
   Field,
   inputClass,
@@ -62,6 +62,7 @@ export function PeriodReport() {
   const valid = (!from || !to || from <= to) && (!to || to <= today);
   const filter = { from, to, advisor };
   const metrics = periodMetrics(leads, events, filter);
+  const channels = channelMetrics(metrics.leads);
   const advisorName = advisers.find((a) => a.id === advisor)?.nombre;
   const checked = book ? calculateComercial(book.data, to || today) : null;
   const commercialEvents =
@@ -203,6 +204,42 @@ export function PeriodReport() {
             {metrics.unmeasured} sin medición. Las visitas corresponden a la
             agenda, no acreditan asistencia.
           </p>
+          <div className="min-w-0 space-y-2">
+            <h3 className="text-base font-semibold">Prospectos por canal</h3>
+            {channels.length ? (
+              <div className="overflow-x-auto rounded-md border border-border">
+                <table className="w-full min-w-[30rem] text-left text-sm">
+                  <caption className="sr-only">Prospectos recibidos en el periodo por canal</caption>
+                  <thead className="text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 font-medium">Canal</th>
+                      <th scope="col" className="px-3 py-2 text-right font-medium">Recibidos</th>
+                      <th scope="col" className="px-3 py-2 text-right font-medium">Atendidos</th>
+                      <th scope="col" className="px-3 py-2 text-right font-medium">Descartados</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {channels.map((row) => (
+                      <tr key={row.canal} className="border-t border-border">
+                        <th scope="row" className="px-3 py-2 font-medium">{row.label}</th>
+                        <td className="px-3 py-2 text-right tabular-nums">{row.recibidos}</td>
+                        <td className="px-3 py-2 text-right tabular-nums">{row.atendidos}</td>
+                        <td className="px-3 py-2 text-right tabular-nums">{row.descartados}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Sin prospectos en este periodo.</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              El canal se captura en la ficha del prospecto («Cómo llegó»). Si
+              falta, los formularios del sitio cuentan como Sitio web y la
+              captura manual como Sin dato. Atendidos: con primer contacto
+              registrado o que ya no están en «Nuevo».
+            </p>
+          </div>
           <Field label="Cartera para ofertas y cierres" htmlFor="report-book">
             <select
               id="report-book"
