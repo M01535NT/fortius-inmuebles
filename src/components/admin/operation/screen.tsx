@@ -3,10 +3,10 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { ChevronLeft, ClipboardList, FileText, Folder, History, ListChecks, MessageCircle, Phone, Settings2, UserRound } from "@/components/admin/icons";
+import { ChevronLeft, ClipboardList, FileText, Folder, History, ListChecks, MessageCircle, Phone, Settings2, UserRound, Trash2 } from "@/components/admin/icons";
 import { Button, Card, EmptyBox, Notice, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { isOwnerRoute, SALE_PROCESS, type SalePhase } from "@/lib/formatos/operation-workflow";
@@ -108,6 +108,12 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     setChanges(n => n + 1);
     return saved;
   }
+  /** Eliminar desde el encabezado: pide confirmar en su ventana y no pierde cambios sin guardar. */
+  async function removeFromHeader() {
+    if (anyDirty) { setNotice("Guarda o descarta los cambios antes de eliminar la operación."); return; }
+    if (!await confirmDeleteOperation(op.folio, client?.nombre)) return;
+    await changeLifecycle(true).catch(cause => setNotice(errorMessage(cause)));
+  }
   async function changeLifecycle(remove: boolean) {
     const result = await json<{ expediente: OperationRecord }>(`/api/admin/expedientes/${op.id}`, { method: remove ? "DELETE" : "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: op.version }) });
     setOp(result.expediente); setDirty({}); setChanges(n => n + 1);
@@ -137,6 +143,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         <span className="flex-1" />
         {client && <Link href={`/admin/clientes/${encodeURIComponent(client.id)}`} className={s.heroAction}><UserRound size={16} aria-hidden="true" />{role}</Link>}
         {digits && <a href={`tel:${digits}`} className={s.heroAction}><Phone size={16} aria-hidden="true" />Llamar</a>}
+        {!op.deleted_at && <button type="button" className={s.heroAction} onClick={() => void removeFromHeader()}><Trash2 size={16} aria-hidden="true" />Eliminar</button>}
         {digits && <a href={`https://wa.me/${digits.length === 10 ? `52${digits}` : digits}`} target="_blank" rel="noreferrer" className={cn(s.heroAction, s.heroActionSolid)}><MessageCircle size={16} aria-hidden="true" />WhatsApp</a>}
       </div>
       <div className={s.heroBottom}>

@@ -11,7 +11,10 @@ vi.mock("next/navigation", async () => {
   const replace = (url: string) => { const u = new URL(url, "http://localhost"); nav.path = u.pathname; nav.search = u.searchParams; nav.listeners.forEach(cb => cb()); };
   return { usePathname: () => nav.path, useSearchParams: () => react.useSyncExternalStore(subscribe, () => nav.search), useRouter: () => ({ push: nav.push, replace }), useParams: () => ({}) };
 });
-vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
+vi.mock("@/components/admin/workspace/confirm", () => {
+  const confirmAction = vi.fn().mockResolvedValue(true);
+  return { confirmAction, confirmDeleteOperation: (folio: string, who?: string) => confirmAction(`¿Eliminar la operación ${folio}${who ? ` de ${who}` : ""}? Puedes restaurarla.`, { title: "Eliminar operación", confirmLabel: "Eliminar", danger: true }) };
+});
 vi.mock("@/lib/admin/store", async original => ({ ...await original<typeof import("@/lib/admin/store")>(), useSession: () => ({ id: "u1", email: "mariana@example.test", role: "admin", name: "Mariana Ruiz" }) }));
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { clearAdminCache } from "@/lib/admin/store";
@@ -372,7 +375,7 @@ it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin
   await openOperation("ajustes");
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
   fireEvent.click(screen.getByRole("button", { name: "Eliminar operación" }));
-  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Puedes restaurarla")));
+  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Puedes restaurarla"), expect.objectContaining({ title: "Eliminar operación" })));
   expect(server.methods).toEqual([]);
   fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
   expect((screen.getByRole("button", { name: "Eliminar operación" }) as HTMLButtonElement).disabled).toBe(true);
@@ -382,6 +385,35 @@ it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin
   fireEvent.click(screen.getByRole("button", { name: "Restaurar operación" }));
   expect(await screen.findByText("Operación restaurada.")).toBeTruthy();
   expect(server.methods).toEqual(["DELETE", "PATCH"]);
+});
+
+it("el encabezado elimina la operación tras confirmarlo en su ventana, y no con cambios sin guardar", async () => {
+  await openOperation("ajustes");
+  fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
+  fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+  expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar la operación.")).toBeTruthy();
+  expect(confirmAction).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Descartar cambios" }));
+  vi.mocked(confirmAction).mockResolvedValueOnce(false);
+  fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("de Familia Castañeda Ortiz"), expect.objectContaining({ title: "Eliminar operación", confirmLabel: "Eliminar" })));
+  expect(server.methods).toEqual([]);
+  fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+  expect(await screen.findByText("Esta operación está eliminada")).toBeTruthy();
+  expect(server.methods).toEqual(["DELETE"]);
+});
+
+it("la lista de operaciones elimina un renglón tras confirmarlo", async () => {
+  render(<OperationsBoard />);
+  const remove = await screen.findByRole("button", { name: "Eliminar la operación de Familia Castañeda Ortiz" });
+  vi.mocked(confirmAction).mockResolvedValueOnce(false);
+  fireEvent.click(remove);
+  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("EXP-2026-041"), expect.objectContaining({ confirmLabel: "Eliminar" })));
+  expect(server.methods).toEqual([]);
+  fireEvent.click(remove);
+  expect(await screen.findByText("Operación EXP-2026-041 eliminada. Puedes restaurarla desde «Operaciones eliminadas».")).toBeTruthy();
+  expect(server.methods).toEqual(["DELETE"]);
+  expect(screen.queryByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeNull();
 });
 
 it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña", async () => {

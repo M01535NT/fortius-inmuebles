@@ -19,6 +19,12 @@
 :global(.admin-root) .head { display: none; }
 :global(.admin-root) .row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; align-items: center; padding: .75rem .75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .row:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+/* Renglón con su botón de eliminar al lado: el botón no va dentro del enlace. */
+:global(.admin-root) .rowItem { display: flex; align-items: center; gap: .25rem; }
+:global(.admin-root) .rowItem > a { flex: 1; min-width: 0; }
+:global(.admin-root) .rowDelete { flex: none; display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; margin-right: .25rem; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--muted-foreground); cursor: pointer; }
+:global(.admin-root) .rowDelete:hover { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 8%, transparent); }
+:global(.admin-root) .rowDelete:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .row { transition: background-color 150ms; } }
 :global(.admin-root) .row > :nth-child(1) { grid-column: 1; }
 :global(.admin-root) .row > :nth-child(2) { grid-column: 1 / -1; }

@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Button, Card, Notice } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { db, useCollection, useSession } from "@/lib/admin/store";
 import { RESOLUTION_TYPES, stageLabel, WORKFLOW_ROUTES, WORKFLOW_STAGES, WORKFLOW_STATES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { flowOf, isGuided, routeStages, stageOf, type OperationRecord } from "@/lib/admin/operation-view";
@@ -59,7 +59,7 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
     await run(() => onSave({ flujo: flow, etapa: back, propiedadSlug: property || null, fechaObjetivo: date || null }).then(() => setBack("")), "Etapa corregida");
   }
   async function remove() {
-    if (!await confirmAction(`¿Eliminar la operación ${op.folio}? Se mueve a «Operaciones eliminadas» con sus documentos, PDF y tareas. Puedes restaurarla desde ahí cuando quieras.`)) return;
+    if (!await confirmDeleteOperation(op.folio)) return;
     await run(onRemove, "");
   }
   return <form onSubmit={save} className="flex max-w-[56rem] flex-col gap-5">

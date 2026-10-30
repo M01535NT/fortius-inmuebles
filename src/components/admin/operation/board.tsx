@@ -2,10 +2,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronRight, Columns3, List, Search } from "@/components/admin/icons";
+import { Building2, ChevronRight, Columns3, List, Search, Trash2 } from "@/components/admin/icons";
 import { Avatar, Button, Card, CardLink, EmptyBox, Pill, Segmented, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -109,6 +109,15 @@ export function OperationsBoard() {
     const search = next.toString();
     router.replace(search ? `/admin/operaciones?${search}` : "/admin/operaciones", { scroll: false });
   }
+  async function remove(row: Row) {
+    if (!await confirmDeleteOperation(row.op.folio, row.who)) return;
+    setError(""); setNotice("");
+    try {
+      await json(`/api/admin/expedientes/${row.op.id}`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: row.op.version }) });
+      setRecords(items => items?.filter(item => item.id !== row.op.id));
+      setNotice(`Operación ${row.op.folio} eliminada. Puedes restaurarla desde «Operaciones eliminadas».`);
+    } catch (cause) { setError(errorMessage(cause)); }
+  }
   async function restore(op: OperationRecord) {
     if (!await confirmAction(`¿Restaurar la operación ${op.folio}? Volverá a Operaciones con sus documentos y tareas.`)) return;
     setError(""); setNotice("");
@@ -149,8 +158,8 @@ export function OperationsBoard() {
         </div>
         {view === "tablero" ? <PhaseBoard rows={inGroup} today={today} />
           : <>
-            <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} empty="Nada pendiente por ahora." />
-            <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} />
+            <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} empty="Nada pendiente por ahora." onRemove={row => void remove(row)} />
+            <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} onRemove={row => void remove(row)} />
           </>}
         {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide con la búsqueda o el filtro.</p>}
         {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="font-mono text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
@@ -171,12 +180,12 @@ function DuePill({ date, late, today }: { date?: string; late: boolean; today: s
   return <Pill tone={late ? "alert" : date === today ? "brand" : "muted"}>{dueLabel(date, today)}</Pill>;
 }
 
-function OperationGroup({ id, title, rows, today, empty }: { id: string; title: string; rows: Row[]; today: string; empty: string }) {
+function OperationGroup({ id, title, rows, today, empty, onRemove }: { id: string; title: string; rows: Row[]; today: string; empty: string; onRemove: (row: Row) => void }) {
   return <section aria-labelledby={`grupo-${id}`} className="mb-6 flex flex-col gap-3">
     <h2 id={`grupo-${id}`} className={s.groupTitle}>{title}<Pill tone={id === "esperan" && rows.length ? "alert" : "muted"} size="sm">{rows.length}</Pill></h2>
     {rows.length ? <Card as="div" className={s.list}>
       <div className={s.head} aria-hidden="true"><span>Operación</span><span>Etapa</span><span>Lo que sigue</span><span>Fecha</span></div>
-      <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
+      <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
         <span className={s.who}><Thumb src={row.photo} size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}>{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}</span>
@@ -185,7 +194,7 @@ function OperationGroup({ id, title, rows, today, empty }: { id: string; title: 
         <span className="min-w-0 text-[0.9375rem] text-muted-foreground [overflow-wrap:anywhere]"><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
         <DuePill date={row.date} late={row.late} today={today} />
         <ChevronRight size={18} aria-hidden="true" className={s.chevron} />
-      </Link></li>)}</ul>
+      </Link><button type="button" className={s.rowDelete} aria-label={`Eliminar la operación de ${row.who}`} title="Eliminar operación" onClick={() => onRemove(row)}><Trash2 size={18} aria-hidden="true" /></button></li>)}</ul>
     </Card> : <p className="px-1 text-sm text-muted-foreground">{empty}</p>}
   </section>;
 }
