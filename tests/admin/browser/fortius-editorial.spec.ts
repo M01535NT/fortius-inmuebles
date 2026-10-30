@@ -1,16 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-test("the hero has a single image, one search and a pausable coverage marquee", async ({ page }) => {
+test("the hero keeps a single photograph and one sentence", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
   const hero = page.locator(".nx-hero");
   await expect(hero.locator("img")).toHaveCount(1);
-  await expect(hero.getByRole("search")).toHaveCount(1);
-  await expect(hero.locator(".hero-marquee, .editorial-photo-controls")).toHaveCount(0);
-  await expect(hero.getByRole("list", { name: "Zonas de cobertura" })).toBeVisible();
-  const toggle = hero.getByRole("button", { name: "Pausar el movimiento de zonas" });
-  await toggle.click();
-  await expect(hero.locator(".nx-marquee-track")).toHaveCSS("animation-play-state", "paused");
-  await expect(hero.getByRole("button", { name: "Reanudar el movimiento de zonas" })).toBeFocused();
+  await expect(hero.getByRole("search")).toHaveCount(0);
+  await expect(hero.locator(".hero-marquee, .editorial-photo-controls, .nx-marquee-track")).toHaveCount(0);
+  await expect(hero.locator("h1")).toHaveText("Compra, vende o renta con cada paso documentado.");
 });
 
 test("dark link hover retains readable ink while buttons remain burgundy", async ({ page }) => {

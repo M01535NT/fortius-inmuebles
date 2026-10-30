@@ -26,7 +26,7 @@ export function NocturnoDestacadas({ properties }: { properties: Property[] }) {
     <div className="nx-container">
       <div className="nx-head">
         <div>
-          <h2 id="destacadas-title" className="nx-title"><span className="nx-title-mask"><span>Propiedades destacadas</span></span></h2>
+          <h2 id="destacadas-title" className="nx-title"><span className="nx-title-mask"><span>Propiedades destacadas.</span></span></h2>
         </div>
         <Link href="/inventario" className="nx-link">Explorar el inventario</Link>
       </div>

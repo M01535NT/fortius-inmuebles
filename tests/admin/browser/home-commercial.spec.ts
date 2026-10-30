@@ -4,13 +4,12 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
   test(`commercial home order and buyer/seller journeys at ${viewport.width}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
-    const hero = page.locator(".nx-hero");
     const order = await page.locator("main section").evaluateAll((nodes) => nodes.map((node) =>
       node.id || (node.classList.contains("nx-hero") ? "hero" : "unknown")));
     expect(order).toEqual(["hero", "por-que-fortius", "metodo", "revision", "opinion", "promocion", "destacadas", "segmentos", "comprar", "equipo", "recursos", "respuestas"]);
-    // Buyers start with the search; owners with the valuation link.
-    await expect(hero.getByRole("search", { name: "Buscar propiedades" })).toHaveAttribute("action", "/inventario");
-    const seller = hero.getByRole("link", { name: /Pide tu opinión de valor/ });
+    // The hero only carries the photograph and one sentence (boceto 2); owners ask for the valuation below.
+    await expect(page.locator(".nx-hero").getByRole("search")).toHaveCount(0);
+    const seller = page.locator("#opinion").getByRole("link", { name: "Pedir mi opinión de valor" });
     await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
     await expect(page.locator("#destacadas [data-property-card]")).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText(/de ejemplo$/)).toHaveCount(3);

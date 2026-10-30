@@ -8,7 +8,6 @@ import { NocturnoComprar, NocturnoEquipo, NocturnoRecursos, NocturnoSegmentos, N
 import { entregablesDe, etapasDe, pilaresDe } from "@/components/home/nocturno-content";
 import { Respuestas } from "@/components/home/respuestas";
 import { homeText } from "@/data/home-copy";
-import { TIPO_LABELS } from "@/data/propiedades";
 import { getPublicContent } from "@/lib/backend/public";
 import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
 import { getPublishedTeam } from "@/lib/backend/public-team";
@@ -22,13 +21,10 @@ export default async function HomePage() {
   const [content, propiedades, destacadas, team, posts] = await Promise.all([
     getPublicContent(), getPropiedades(), getFeaturedProperties(), getPublishedTeam().catch(() => []), getBlogPosts().catch(() => []),
   ]);
-  // El buscador solo ofrece zonas y tipos que existen en el inventario publicado.
-  const zonas = [...new Set(propiedades.map((p) => p.zona).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
-  const tipos = [...new Set(propiedades.map((p) => p.tipo))].map((value) => ({ value, label: TIPO_LABELS[value] }));
   const entregables = entregablesDe(content);
   return (
     <main className="nocturno-home">
-      <NocturnoHero zonas={zonas} tipos={tipos} />
+      <NocturnoHero />
       <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />
       <NocturnoMetodo title={homeText(content, "metodoTitulo")} stages={etapasDe(content)} />
       <NocturnoRevision />

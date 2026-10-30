@@ -1,19 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 }]) {
-  test(`night home searches the inventory and keeps document and calculator routes usable at ${viewport.width}`, async ({ browser }) => {
+  test(`night home leads to the inventory and keeps document and calculator routes usable at ${viewport.width}`, async ({ browser }) => {
     const context = await browser.newContext({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
     const page = await context.newPage();
     await page.goto("/");
     await expect(page.locator(".nocturno-home h1")).toBeVisible();
     await expect(page.locator("h1")).toHaveCSS("font-family", /Archivo/);
-    const seller = page.locator(".nx-hero").getByRole("link", { name: /Pide tu opinión de valor/ });
+    const seller = page.locator("#opinion").getByRole("link", { name: "Pedir mi opinión de valor" });
     await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
-    const search = page.getByRole("search", { name: "Buscar propiedades" });
-    await search.getByLabel("Operación").selectOption("venta");
-    await search.getByRole("button", { name: "Buscar" }).click();
-    await expect(page).toHaveURL(/\/inventario\?op=venta$/);
-    await expect(page.getByRole("group", { name: "Operación", exact: true }).getByRole("button", { name: "Venta", exact: true })).toHaveAttribute("aria-pressed", "true");
+    // Segments with listings open the filtered inventory; empty ones invite to contact.
+    const segment = page.locator('#segmentos a[href^="/inventario"]').first();
+    await segment.scrollIntoViewIfNeeded();
+    await segment.click();
+    await expect(page).toHaveURL(/\/inventario\?segmento=(residencial|comercial|industrial)$/);
     await page.goBack();
     await expect(page.locator(".nocturno-home")).toBeAttached();
     await page.locator("#entregables").scrollIntoViewIfNeeded();

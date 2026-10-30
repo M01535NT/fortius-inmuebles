@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Calculator, Landmark } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Calculator, Landmark, Scale } from "lucide-react";
 
 import type { Property } from "@/data/propiedades";
 import type { Post, Testimonio } from "@/lib/domain/records";
@@ -9,7 +9,14 @@ import { SEGMENTOS_INMUEBLE, inventarioDeSegmento } from "@/lib/inmueble-segment
 
 type Perfil = { id: string; nombre: string; cargo: string; iniciales: string; foto?: string; descripcion?: string };
 
-/* Atajos por tipo: cada tarjeta abre el inventario con el filtro aplicado. */
+const FOTO_SEGMENTO: Record<string, string> = {
+  residencial: "/hero/interior-depa.webp",
+  comercial: "/hero/edificio-ciudad.webp",
+  industrial: "/hero/nave-tijuana.webp",
+};
+
+/* Atajos por tipo (boceto 2): tarjeta con foto que abre el inventario filtrado; sin propiedades
+   del tipo, invita a pedir aviso por contacto. */
 export function NocturnoSegmentos({ properties }: { properties: Property[] }) {
   return <section id="segmentos" aria-labelledby="segmentos-title" className="nx-section nx-container">
     <div className="nx-head">
@@ -21,12 +28,16 @@ export function NocturnoSegmentos({ properties }: { properties: Property[] }) {
       {SEGMENTOS_INMUEBLE.map((segmento) => {
         const total = properties.filter((property) => (segmento.tipos as readonly string[]).includes(property.tipo)).length;
         return <li key={segmento.key}>
-          <Link href={inventarioDeSegmento(segmento.key)} className="nx-segment">
-            <span className="nx-segment-name">{segmento.label}</span>
-            <span className="nx-segment-detail">{segmento.detalle}</span>
-            <span className="nx-segment-foot">
-              <span>{total === 0 ? "Sin propiedades por ahora" : `${total} ${total === 1 ? "propiedad" : "propiedades"}`}</span>
-              <ArrowUpRight size={20} aria-hidden="true" />
+          <Link href={total === 0 ? "/contacto" : inventarioDeSegmento(segmento.key)} className="nx-segment">
+            <Image src={FOTO_SEGMENTO[segmento.key]} alt="" fill sizes="(max-width: 1023px) 100vw, 400px" className="nx-segment-img" />
+            <span className="nx-segment-body">
+              <span className="nx-segment-name">{segmento.label}</span>
+              <span className="nx-segment-detail">{segmento.detalle}</span>
+              <span className="nx-segment-foot">
+                {total === 0
+                  ? <>Avísame cuando haya disponibles <ArrowRight size={16} aria-hidden="true" /></>
+                  : <>Ver {segmento.label.toLowerCase()} ({total}) <ArrowUpRight size={16} aria-hidden="true" /></>}
+              </span>
             </span>
           </Link>
         </li>;
@@ -71,7 +82,7 @@ export function NocturnoTestimonios({ items }: { items: Testimonio[] }) {
   </section>;
 }
 
-/* Herramientas y blog: dos calculadoras y las últimas lecturas. */
+/* Herramientas y blog: calculadoras, opinión de valor y las últimas lecturas. */
 export function NocturnoRecursos({ posts }: { posts: Post[] }) {
   const latest = posts.slice(0, 3);
   return <section id="recursos" aria-labelledby="recursos-title" className="nx-section nx-container">
@@ -84,14 +95,15 @@ export function NocturnoRecursos({ posts }: { posts: Post[] }) {
       <div>
         <h3 className="nx-sub">Calculadoras</h3>
         <ul className="nx-tools">
-          <li><Link href="/herramientas/hipoteca" className="nx-tool">
-            <Landmark size={22} aria-hidden="true" />
-            <span><strong>Calculadora de hipoteca</strong><span>Compara escenarios y descarga la amortización.</span></span>
-          </Link></li>
-          <li><Link href="/herramientas/gastos-de-cierre" className="nx-tool">
-            <Calculator size={22} aria-hidden="true" />
-            <span><strong>Gastos de cierre</strong><span>Efectivo de compra o neto de venta.</span></span>
-          </Link></li>
+          {[
+            { href: "/herramientas/hipoteca", Icon: Landmark, title: "Calculadora de hipoteca", detail: "Compara escenarios y descarga la tabla de amortización." },
+            { href: "/herramientas/gastos-de-cierre", Icon: Calculator, title: "Gastos de cierre", detail: "Cuánto necesitas para comprar o cuánto recibes al vender." },
+            { href: "/opinion-de-valor", Icon: Scale, title: "Opinión de valor", detail: "Un precio de salida con comparables, fuentes y límites." },
+          ].map(({ href, Icon, title, detail }) => <li key={href}><Link href={href} className="nx-tool">
+            <span className="nx-tool-icon"><Icon size={20} strokeWidth={1.6} aria-hidden="true" /></span>
+            <span><strong>{title}</strong><span>{detail}</span></span>
+            <ArrowUpRight size={20} strokeWidth={1.6} aria-hidden="true" className="nx-tool-go" />
+          </Link></li>)}
         </ul>
         <Link href="/herramientas" className="nx-link">Ver todas las herramientas</Link>
       </div>

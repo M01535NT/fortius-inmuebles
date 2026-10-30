@@ -82,7 +82,7 @@ test("leaving an initially loaded admin page restores public navigation", async 
   await page.getByRole("link", { name: "Ver sitio", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
-  await page.getByRole("search", { name: "Buscar propiedades" }).getByRole("button", { name: "Buscar" }).click();
+  await page.locator("footer").getByRole("link", { name: "Explorar inmuebles" }).click();
   await expect(page).toHaveURL(/\/inventario$/);
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
