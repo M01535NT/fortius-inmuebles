@@ -119,7 +119,7 @@ async function saveOwner(f){
 async function appFixture(){
  const f=await fixture();
  for(const suffix of ['app_runs','app_run_versions','app_files','app_shares','integration_jobs','integration_artifacts','integration_pages','signature_events'])f.owner.tables['fortius_inmuebles_'+suffix]=[];
- f.owner.schema_version=3;
+ f.owner.schema_version=4;
  for(const [bucket,path,kind] of [
   ['fortius-inmuebles-private',appOwner+'/52000000-0000-4000-8000-000000000003.pdf','app'],
   ['fortius-inmuebles-private',appOwner+'/52000000-0000-4000-8000-000000000004.pdf','app'],
@@ -225,16 +225,16 @@ test('validates metadata and uniqueness of buckets even without any objects in t
 
 test('rejects manifest schema downgrades and mismatches while accepting a genuine historical backup',async()=>{
  const f=await fixture();try{
-  for(const suffix of [...backupTools.appSuffixes,'interviews'])delete f.owner.tables['fortius_inmuebles_'+suffix];
-  delete f.owner.schema_version;f.manifest.database.schemaVersion=3;await saveOwner(f);
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes])delete f.owner.tables['fortius_inmuebles_'+suffix];
+  delete f.owner.schema_version;f.manifest.database.schemaVersion=4;await saveOwner(f);
   await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);
   f.manifest.database.schemaVersion=1;await f.save();await backupTools.verifyBackup(f.root);
   delete f.manifest.database.schemaVersion;await f.save();await backupTools.verifyBackup(f.root);
   const target=join(f.parent,'legacy-restored');assert.equal((await backupTools.restoreBackupObjects(f.root,target)).objects,1);
-  for(const suffix of [...backupTools.appSuffixes,'interviews'])f.owner.tables['fortius_inmuebles_'+suffix]=[];
-  f.owner.schema_version=3;
-  for(const version of [1,2,'3',null]){f.manifest.database.schemaVersion=version;await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);}
-  f.manifest.database.schemaVersion=3;await f.save();await backupTools.verifyBackup(f.root);
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes])f.owner.tables['fortius_inmuebles_'+suffix]=[];
+  f.owner.schema_version=4;
+  for(const version of [1,2,3,'4',null]){f.manifest.database.schemaVersion=version;await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);}
+  f.manifest.database.schemaVersion=4;await f.save();await backupTools.verifyBackup(f.root);
  }finally{await f.close();}
 });
 
