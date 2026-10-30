@@ -183,3 +183,19 @@ test("cada etapa ofrece su documento; de la publicación al cierre no detienen y
   expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18"]);
   expect(stageDocuments("cierre", "captacion").every(item => item.optional)).toBe(true);
 });
+
+test("la etapa 10 dice en qué paso va y muestra sus cuatro pasos con el actual marcado (COR-09)", () => {
+  const at = (etapa: OperationRecord["etapa"]) => stageTrack(op({ etapa, flujo: flow(verified, accepted) }), today);
+  const entrega = at("entrega");
+  expect(entrega.stages[entrega.current].label).toBe("Cierre y entrega · entrega");
+  expect(entrega.stages[entrega.current].pasos?.map(p => [p.label, p.state])).toEqual([["Firma y pago", "done"], ["Entrega", "now"], ["Postventa", "next"], ["Archivo", "next"]]);
+  expect(at("cierre").stages[9].label).toBe("Cierre y entrega · firma y pago");
+  expect(at("cerrado").stages[9].pasos?.every(p => p.state === "done")).toBe(true);
+  // Antes del cierre, la etapa 10 conserva su nombre y sus pasos quedan pendientes.
+  const antes = at("comercializacion");
+  expect(antes.stages[9]).toMatchObject({ label: "Cierre y entrega" });
+  expect(antes.stages[9].pasos?.every(p => p.state === "next")).toBe(true);
+  // En renta, los pasos llevan sus propios nombres.
+  const renta = stageTrack(op({ operacion: "renta", etapa: "postventa", flujo: flow(verified, accepted, "arrendador") }), today);
+  expect(renta.stages[renta.current].pasos?.find(p => p.state === "now")?.label).toBe("Entrega y seguimiento");
+});

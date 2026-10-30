@@ -22,6 +22,17 @@ import s from "./operation.module.css";
 
 const two = (n: number) => String(n).padStart(2, "0");
 
+/** Los cuatro pasos de «Cierre y entrega», con el actual marcado (COR-09). */
+function CloseSteps({ stage }: { stage: TrackStage }) {
+  if (!stage.pasos) return null;
+  return <ol aria-label={`Pasos de ${stage.label.split(" · ")[0].toLowerCase()}`} className="mb-1 ml-11 mt-0.5 flex flex-col gap-0.5 text-sm">{stage.pasos.map(paso =>
+    <li key={paso.stage} aria-current={paso.state === "now" ? "step" : undefined} className={cn("flex min-h-8 items-center gap-2", paso.state === "now" ? "font-semibold text-foreground" : "text-muted-foreground")}>
+      <span aria-hidden="true" className={cn("inline-flex size-4 shrink-0 items-center justify-center rounded-full border", paso.state === "done" ? "border-[var(--primary)] bg-[var(--primary)] text-white" : paso.state === "now" ? "border-2 border-[var(--primary)] bg-[var(--card)]" : "border-[var(--edge-soft)] bg-[var(--card)]")}>{paso.state === "done" && <Check size={10} strokeWidth={3} />}</span>
+      <span>{paso.label}</span>
+      <span className="sr-only">{paso.state === "now" ? ": aquí vas" : paso.state === "done" ? ": listo" : ": pendiente"}</span>
+    </li>)}</ol>;
+}
+
 /** Qué hacer con lo que le falta a una etapa anterior: abrir su documento o crear el checklist. */
 function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | undefined, openStages: (key: SalePhase) => void) {
   if (key === "documentos") { if (!checklist) void docs.startChecklist(); else openStages(key); return; }
@@ -48,6 +59,7 @@ export function StageCard({ op, today, docs, checklist, onOpenStages }: { op: Op
         {done && stage.key
           ? <button type="button" className={s.stageLink} title={label} aria-label={label} onClick={() => onOpenStages(stage.key)}>{dot}<span className={s.stageName}>{stage.label}</span>{gap && <AlertCircle size={15} aria-hidden="true" className={s.iconWarn} />}</button>
           : <span className={s.stageLink} title={label}>{dot}<span className={s.stageName}>{stage.label}</span><span className="sr-only">{label}</span></span>}
+        {now && <CloseSteps stage={stage} />}
       </li>;
     })}</ol>
     {first && <div className={s.gapNotice} role="status">
@@ -120,6 +132,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
               {now && <Pill tone="brand" size="sm">Aquí vas</Pill>}
               {gap && <Pill tone="warn" size="sm">{gap}</Pill>}
             </p>
+            {(now || done) && <CloseSteps stage={stage} />}
             {stageDocs(stage)}
           </li>;
         })}</ol>

@@ -518,3 +518,13 @@ it("en Verificación no hay un botón que nunca se activa: explica que «Contrat
   await stage(7);
   expect(screen.getByRole("button", { name: /Pasar a: Publicación y seguimiento/ })).toBeTruthy();
 });
+
+it("en el cierre, la etapa 10 dice en qué paso va y muestra los cuatro pasos (COR-09)", async () => {
+  interviewDone();
+  server.ops = [base({ etapa: "entrega", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) })];
+  await openOperation();
+  expect((await screen.findAllByText("Cierre y entrega · entrega")).length).toBeGreaterThan(0);
+  const pasos = screen.getByRole("list", { name: "Pasos de cierre y entrega" });
+  expect(within(pasos).getAllByRole("listitem").map(li => li.textContent)).toEqual(["Firma y pago: listo", "Entrega: aquí vas", "Postventa: pendiente", "Archivo: pendiente"]);
+  expect(within(pasos).getByText("Entrega").closest("li")?.getAttribute("aria-current")).toBe("step");
+});

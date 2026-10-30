@@ -72,15 +72,31 @@ export function phaseGap(phase: SalePhase, status: (formato: string) => FormatSt
   del boceto C («Conocer», «Revisar», «Preparar y publicar», «Vender y cerrar») porque eran un
   segundo vocabulario que confundía; cada operación dice «Etapa 3 de 10 · Levantamiento».
 */
-export type TrackStage = { n: number; label: string; key?: SalePhase };
+export type CloseStep = { stage: WorkflowStage; label: string; state: "done" | "now" | "next" };
+export type TrackStage = { n: number; label: string; key?: SalePhase; pasos?: CloseStep[] };
+
+/** Los cuatro pasos de «Cierre y entrega» (COR-09): firma y pago, entrega, postventa y archivo. */
+const CLOSE_STAGES = ["cierre", "entrega", "postventa", "cerrado"] as const satisfies readonly WorkflowStage[];
+export function closeSteps(op: OperationRecord): CloseStep[] {
+  const flow = flowOf(op), at = CLOSE_STAGES.indexOf(stageOf(op) as typeof CLOSE_STAGES[number]);
+  return CLOSE_STAGES.map((stage, i) => {
+    const label = flow.ruta === "arrendador" ? stageLabel(stage, "arrendador") : stageLabel(stage, "captacion").replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase());
+    return { stage, label, state: at < 0 || i > at ? "next" : i < at || stage === "cerrado" ? "done" : "now" };
+  });
+}
 
 /** Etapas de la operación con su número y su fase: las 10 del propietario o los pasos de su ruta. */
 export function stageTrack(op: OperationRecord, today: string) {
   const flow = flowOf(op), owner = isOwnerRoute(flow.ruta);
   const { labels, current, phase } = routeStages(op, today);
-  const stages: TrackStage[] = labels.map((label, i) => owner
-    ? { n: i + 1, label, key: SALE_PROCESS[i].key }
-    : { n: i + 1, label });
+  const stages: TrackStage[] = labels.map((label, i) => {
+    if (!owner) return { n: i + 1, label };
+    const key = SALE_PROCESS[i].key;
+    if (key !== "cierre") return { n: i + 1, label, key };
+    // La etapa 10 dice en qué paso va: «Cierre y entrega · entrega».
+    const pasos = closeSteps(op), actual = phase === "cierre" ? pasos.find(p => p.state === "now") ?? pasos.at(-1) : undefined;
+    return { n: i + 1, label: actual ? `${label} · ${actual.label.charAt(0).toLowerCase()}${actual.label.slice(1)}` : label, key, pasos };
+  });
   return { stages, current, phase };
 }
 
