@@ -2,6 +2,7 @@
 import { MoneyInput } from "@/components/admin/money-input";
 import { Fragment } from "react";
 import { AvisoEditor } from "./aviso-editor";
+import { mostrarCampoAviso } from "@/lib/formatos/aviso";
 import type { FormatoDefinition } from "@/lib/formatos/catalog";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { BudgetRowsEditor } from "@/components/admin/budget-rows-editor";
@@ -10,7 +11,7 @@ import { EntregaRowsEditor } from "@/components/admin/entrega-rows-editor";
 import { ENTREGA_TABLAS, type EntregaTabla } from "@/lib/formatos/entrega";
 import { respuestaRequiereRatificacion } from "@/lib/formatos/oferta";
 import { PlanRowsEditor } from "@/components/admin/plan-rows-editor";
-import { PLAN_TABLES, type PlanTable } from "@/lib/formatos/plan";
+import { mostrarCampoPlan, PLAN_TABLES, type PlanTable } from "@/lib/formatos/plan";
 import { ReporteRowsEditor } from "@/components/admin/reporte-rows-editor";
 import { REPORTE_TABLES, type ReporteTable } from "@/lib/formatos/reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable } from "@/lib/formatos/entrevista";
@@ -32,19 +33,34 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 import { AssistedLabel, ChoiceOrOther, TemplateMenu } from "@/components/admin/field-assist";
 import { aplicarPlantilla, ayudaCampo, ayudaSeccion, plantillasCampo } from "@/lib/formatos/ayuda";
 
-export function FormatoEditor({ definition, values, onChange, images, extras = true }: {
+/** Varias opciones a la vez: casillas de 44 px, con su texto pulsable y en el orden de la plantilla. */
+function MultiChoice({ id, label, options, value, describedBy, onChange }: { id: string; label: string; options: readonly { value: string; label: string }[]; value: unknown; describedBy?: string; onChange: (value: string[]) => void }) {
+  const chosen = Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
+  return <div id={id} role="group" aria-label={label} aria-describedby={describedBy} className="flex flex-wrap gap-x-4 gap-y-1">
+    {options.map((option) => <label key={option.value} className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+      <input type="checkbox" className="size-5 accent-[var(--primary)]" checked={chosen.includes(option.value)}
+        onChange={(event) => onChange(event.target.checked ? options.filter((item) => item.value === option.value || chosen.includes(item.value)).map((item) => item.value) : chosen.filter((entry) => entry !== option.value))} />
+      {option.label}
+    </label>)}
+  </div>;
+}
+
+export function FormatoEditor({ definition, values, onChange, images, extras = true, narrow = false }: {
   definition: FormatoDefinition;
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
   images?: { id: string; kind: string; caption: string }[];
   /** Cálculos y resúmenes al pie (07, 09, 15); la captura por secciones los muestra solo en la última. */
   extras?: boolean;
+  /** Una sola columna, para un panel angosto (captura sobre el documento). */
+  narrow?: boolean;
 }) {
-  if (definition.id === "01") return <AvisoEditor definition={definition} values={values} onChange={onChange} />;
-  const shownFields = definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.fields;
+  // Sobre el documento (panel angosto) el aviso abre solo los campos de la parte pulsada; fuera de él, su editor completo.
+  if (definition.id === "01" && !narrow) return <AvisoEditor definition={definition} values={values} onChange={onChange} />;
+  const shownFields = definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.fields;
   // En la captura por secciones la pantalla ya lleva el título de la sección; no se repite.
   const singleSection = new Set(shownFields.map(field => field.section)).size === 1;
-  return <div className="grid gap-5 md:grid-cols-2">
+  return <div className={narrow ? "grid gap-5" : "grid gap-5 md:grid-cols-2"}>
     {shownFields.map((field, index) => {
       const isOffer = definition.id === "14";
       if ((isLevantamiento(definition.id) || definition.id === "07") && ["fotoPrincipalId", "croquisId"].includes(field.key)) return null;
@@ -55,7 +71,7 @@ export function FormatoEditor({ definition, values, onChange, images, extras = t
       if (isOffer && [...responseFields, ...counterFields].includes(field.key) && values.estadoRespuesta !== "registrada") return null;
       if (isOffer && counterFields.includes(field.key) && values.decisionPropietario !== "contraoferta") return null;
       if (isOffer && field.key === "confirmacionVigencia" && !respuestaRequiereRatificacion(values)) return null;
-      if (definition.id === "10" && ["nombreAprobador", "fechaAprobacion", "acuseAprobacion"].includes(field.key) && values.estadoAprobacion !== "registrada") return null;
+      if (definition.id === "10" && !mostrarCampoPlan(field.key, values)) return null;
       const isReport = definition.id === "11";
       if (isReport && [["contactos", "contactosEstado"], ["visitas", "visitasEstado"], ["ofertas", "ofertasEstado"]].some(([key, state]) => field.key === key && values[state] !== "comprobado")) return null;
       if (isReport && ["agendadas", "realizadas", "canceladas", "reprogramadas", "pendientes"].includes(field.key) && values.registroVisitas !== "comprobado") return null;
@@ -72,7 +88,7 @@ export function FormatoEditor({ definition, values, onChange, images, extras = t
         if (current && current !== next && !await confirmAction("Esto reemplaza lo que ya escribiste en este campo. ¿Usar la plantilla?")) return;
         onChange(field.key, next);
       }
-      const wide = field.type === "intermediacionRows" || field.type === "promesaRows" || field.type === "valorRows" || field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows";
+      const wide = field.type === "multi" || field.type === "intermediacionRows" || field.type === "promesaRows" || field.type === "valorRows" || field.type === "long" || field.type === "partidas" || field.type === "pagos" || field.type === "netoCargos" || field.type === "entregaRows" || field.type === "planRows" || field.type === "reporteRows" || field.type === "entrevistaRows" || field.type === "juridicaRows" || field.type === "levantamientoRows";
       return <Fragment key={field.key}>
         {field.section && (index === 0 || shownFields[index - 1].section !== field.section) && <div className={singleSection ? "md:col-span-2" : "mt-3 md:col-span-2"}>{!singleSection && <h2 className="border-b border-border pb-2 text-base font-semibold text-foreground">{field.section}</h2>}{ayudaSeccion(definition.id, field.section) && <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">{ayudaSeccion(definition.id, field.section)}</p>}</div>}
         <div className={`group ${wide ? "md:col-span-2" : ""}`}>
@@ -91,6 +107,7 @@ export function FormatoEditor({ definition, values, onChange, images, extras = t
         : field.type === "netoCargos" ? <NetExpenseEditor value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "partidas" || field.type === "pagos" ? <BudgetRowsEditor kind={field.type} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.key === "folio" ? <input id={id} type="text" readOnly value={String(value)} className={inputClass} />
+        : field.type === "multi" ? <MultiChoice id={id} label={field.label} options={field.options ?? []} value={value} describedBy={describedBy} onChange={(next) => onChange(field.key, next)} />
         : field.type === "choice" ? <select id={id} aria-describedby={describedBy} required={required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>
           <option value="">Selecciona</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select> : field.key === "pagoParcialTotal" ? <select id={id} required={required} value={String(value)} onChange={(event) => onChange(field.key, event.target.value)} className={selectClass}>

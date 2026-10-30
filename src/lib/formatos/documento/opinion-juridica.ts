@@ -1,3 +1,4 @@
+import { formatoById } from "../catalog";
 import { a, fecha, type Block, type Documento } from "./modelo";
 
 /*
@@ -5,13 +6,15 @@ import { a, fecha, type Block, type Documento } from "./modelo";
   (Metodología/06.Opinion_juridica_del_inmueble.docx): título, banda de destinatario,
   secciones numeradas en prosa y firma del abogado. El contenido lo redacta el profesional
   en el panel; aquí sólo se acomoda en la sección que corresponde.
+  Captura sobre el documento (EXT-12, 28/10/2026): cada párrafo dice qué campo lo llena («zona»).
 */
 
 type Data = Record<string, unknown>;
-/** Un párrafo con sangría por cada párrafo capturado; si falta, la línea para completarlo. */
-const prosa = (value: unknown, strong = false): Block[] => {
-  const parts = a(value).split(/\n\s*\n|\n/).map(p => p.trim()).filter(Boolean);
-  return (parts.length ? parts : ["____________________"]).map(text => ({ kind: "p", text, indent: true, strong }));
+const etiqueta = (key: string) => formatoById("06").fields.find(field => field.key === key)?.label ?? key;
+/** Un párrafo con sangría por cada párrafo capturado; si falta, la línea para completarlo. Pulsarlo abre su campo. */
+const prosa = (d: Data, key: string, strong = false): Block[] => {
+  const parts = a(d[key]).split(/\n\s*\n|\n/).map(p => p.trim()).filter(Boolean);
+  return (parts.length ? parts : ["____________________"]).map(text => ({ kind: "p", text, indent: true, strong, zona: { keys: [key], label: etiqueta(key) } }));
 };
 
 export function opinionJuridicaDocumento(d: Data): Documento {
@@ -19,33 +22,33 @@ export function opinionJuridicaDocumento(d: Data): Documento {
   const blocks: Block[] = [
     { kind: "title", text: "Opinión jurídica del inmueble", bold: true },
     { kind: "caption", text: "Factibilidad para comercialización y cierre notarial" },
-    { kind: "fields", dark: true, widths: [2200, 8024], rows: [["Destinatario", a(d.destinatario) || "____________________"], ["Inmueble", a(d.inmueble) || "____________________"], ["Operación y etapa", a(d.operacion) || "____________________"], ["Fecha de corte", corte]] },
+    { kind: "fields", zona: { keys: ["destinatario", "inmueble", "operacion", "fechaEmision"], label: "Destinatario, inmueble y fecha" }, dark: true, widths: [2200, 8024], rows: [["Destinatario", a(d.destinatario) || "____________________"], ["Inmueble", a(d.inmueble) || "____________________"], ["Operación y etapa", a(d.operacion) || "____________________"], ["Fecha de corte", corte]] },
     { kind: "numbered", num: "01", text: "Conclusión" },
-    ...prosa(d.conclusion, true),
-    ...prosa(d.sustento),
+    ...prosa(d, "conclusion", true),
+    ...prosa(d, "sustento"),
     { kind: "numbered", num: "02", text: "Objeto y alcance del análisis" },
-    ...prosa(d.objeto),
-    ...prosa(d.alcance),
+    ...prosa(d, "objeto"),
+    ...prosa(d, "alcance"),
     { kind: "p", indent: true, text: "Los puntos que requieran certificación registral, intervención notarial, cálculo fiscal o revisión física se identifican como pendientes cuando afecten la conclusión." },
     { kind: "numbered", num: "03", text: "Antecedentes documentales relevantes" },
-    ...prosa(d.antecedentes),
+    ...prosa(d, "antecedentes"),
     { kind: "numbered", num: "04", text: "Análisis jurídico" },
     { kind: "h2", text: "Titularidad y facultades para disponer" },
-    ...prosa(d.titularidad),
+    ...prosa(d, "titularidad"),
     { kind: "h2", text: "Situación registral e identidad del inmueble" },
-    ...prosa(d.registro),
+    ...prosa(d, "registro"),
     { kind: "h2", text: "Impedimentos y condiciones de la operación" },
-    ...prosa(d.impedimentos),
+    ...prosa(d, "impedimentos"),
     { kind: "numbered", num: "05", text: "Recomendaciones y condiciones" },
-    ...prosa(d.recomendaciones),
-    ...prosa(d.responsables),
+    ...prosa(d, "recomendaciones"),
+    ...prosa(d, "responsables"),
     { kind: "numbered", num: "06", text: "Documentos revisados" },
-    ...prosa(d.documentos),
+    ...prosa(d, "documentos"),
     { kind: "numbered", num: "07", text: "Vigencia y límites de la opinión" },
     { kind: "p", indent: true, text: `Esta opinión tiene fecha de corte ${corte}. Las condiciones pendientes continúan hasta que su cumplimiento quede acreditado.` },
-    ...prosa(d.actualizacion),
-    ...prosa(d.limites),
-    { kind: "signatures", parties: [{ role: "Abogado responsable", name: [a(d.abogado) || "____________________", d.cedula ? `Cédula profesional ${a(d.cedula)}` : ""].filter(Boolean).join("\n") }] },
+    ...prosa(d, "actualizacion"),
+    ...prosa(d, "limites"),
+    { kind: "signatures", zona: { keys: ["abogado", "cedula"], label: "Abogado responsable" }, parties: [{ role: "Abogado responsable", name: [a(d.abogado) || "____________________", d.cedula ? `Cédula profesional ${a(d.cedula)}` : ""].filter(Boolean).join("\n") }] },
   ];
   return { title: "Opinión jurídica del inmueble", subject: `Formato 06 · ${a(d.folio)}`, estilo: "opinion", blocks };
 }

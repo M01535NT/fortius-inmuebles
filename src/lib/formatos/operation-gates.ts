@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { databaseError } from "@/lib/backend/http";
 import { defaultRoute } from "@/lib/admin/operation-view";
-import { checklistTaskId } from "./checklist-documentos";
+import { checklistCompleto, checklistTaskId, type PasoChecklist } from "./checklist-documentos";
 import { isOwnerRoute, type InitialInterviewStatus, type OperationWorkflow } from "./operation-workflow";
 
 /*
@@ -50,10 +50,11 @@ export async function loadInitialStatus(client: SupabaseClient, expedienteId: st
     emitted = new Set((emissions.data ?? []).map(e => `${e.draft_id}:${e.draft_version}`));
   }
   const current = (d?: Draft) => !!d && emitted.has(`${d.id}:${d.version}`);
-  const pasos = (task.data?.data as { pasos?: { hecho?: boolean }[] } | undefined)?.pasos;
+  const pasos = (task.data?.data as { pasos?: PasoChecklist[] } | undefined)?.pasos;
   return {
     iniciada: !!interview, emitida: current(interview),
     levantamiento: survey ? (current(survey) ? "emitido" : "borrador") : undefined,
-    documentos: task.data ? (Array.isArray(pasos) && pasos.length > 0 && pasos.every(p => p?.hecho === true) ? "completo" : "pendiente") : undefined,
+    // «No aplica» con su motivo cuenta como completo (COR-06).
+    documentos: task.data ? (Array.isArray(pasos) && checklistCompleto(pasos.filter(Boolean)) ? "completo" : "pendiente") : undefined,
   };
 }

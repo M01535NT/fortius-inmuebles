@@ -7,7 +7,7 @@ import {
   databaseError,
   readJson,
 } from "@/lib/backend/http";
-import { interviewIssues, saveIntakeSchema } from "@/lib/intake/interview";
+import { BUYER_INTENT_MESSAGE, interviewIssues, isBuyerIntent, saveIntakeSchema } from "@/lib/intake/interview";
 type Context = { params: Promise<{ id: string }> };
 const fields =
   "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,propiedad_slug,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
@@ -39,6 +39,7 @@ export async function PUT(request: Request, c: Context) {
         .maybeSingle();
       if (current.error) databaseError(current.error);
       if (!current.data) throw new ApiError(404, "Entrevista no disponible");
+      if (isBuyerIntent(current.data.intencion)) throw new ApiError(400, BUYER_INTENT_MESSAGE);
       const issues = interviewIssues(current.data.intencion, input.respuestas);
       if (issues.length) throw new ApiError(400, issues[0].message);
     }

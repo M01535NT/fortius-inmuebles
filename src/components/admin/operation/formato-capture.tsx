@@ -10,13 +10,14 @@ import { copiaEditable, downloadFormatoCopia } from "@/lib/admin/download-word";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { shortDate } from "@/lib/admin/today";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
-import { formatoById, validateFormato } from "@/lib/formatos/catalog";
+import { emiteIncompleto, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { calcularNeto } from "@/lib/formatos/neto";
 import { formatAmount } from "@/lib/finance/money";
 import { cn } from "@/lib/utils";
 import type { Documento } from "./documents-tab";
 import { FormatoImages, WITH_IMAGES, type Adjunto } from "./formato-images";
+import { DocumentoEnVivo, EN_VIVO } from "./documento-en-vivo";
 import s from "./operation.module.css";
 
 /*
@@ -24,7 +25,8 @@ import s from "./operation.module.css";
   el 17/10/2026). La operación queda detrás, limpia: a la izquierda las secciones con su
   avance («2 de 5 completas»), al centro la sección en curso, se guarda al cambiar de sección
   y se descarga en Word o PDF. La pestaña «PDF y copias firmadas» reúne los PDF generados y
-  sus copias firmadas.
+  sus copias firmadas. Los formatos de EN_VIVO (04B) se capturan sobre el documento: la
+  pestaña «Documento» muestra la plantilla y cada parte pulsable abre su campo.
 */
 
 export type Emision = { id: string; draft_version: number; created_at: string; plantillaVersion?: string };
@@ -51,6 +53,10 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   // Las imágenes se suben antes de la sección que las usa (el reporte fotográfico del 07); si ninguna las usa, van al final.
   // El aviso (01) tiene su propio editor, que agrupa todo el formulario en una sola pantalla.
   const whole = definition.id === "01";
+  const live = EN_VIVO.has(definition.id);
+  // Captura abierta sobre el documento con cambios todavía sin aceptar.
+  const liveDraft = React.useRef(false);
+  const onLiveDraft = React.useCallback((dirty: boolean) => { liveDraft.current = dirty; }, []);
   const sections = React.useMemo(() => {
     if (definition.id === "01") return [WHOLE];
     const all = [...new Set(definition.fields.map(f => f.section ?? "Datos"))];
@@ -66,7 +72,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const [index, setIndex] = React.useState(0);
   const heading = React.useRef<HTMLHeadingElement>(null), scroller = React.useRef<HTMLDivElement>(null);
   const dirty = JSON.stringify(values) !== JSON.stringify(doc.data);
-  const data = { ...values, folio };
+  const data = React.useMemo(() => ({ ...values, folio }), [values, folio]);
   const missing = validateFormato(definition.id, data);
   const sectionOf = React.useMemo(() => new Map(definition.fields.map(f => [f.label, IMAGE_KEYS.includes(f.key) ? IMAGES : f.section ?? "Datos"])), [definition]);
   const pendingBySection = whole ? [missing.length] : sections.map(section => missing.filter(label => (sectionOf.get(label) ?? (label.startsWith("Selecciona") ? IMAGES : "")) === section).length);
@@ -74,7 +80,8 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   const valid = (e: Emision) => e.draft_version === doc.version && (definition.id !== "01" || e.plantillaVersion === AVISO_TEMPLATE_VERSION);
   const current = emisiones?.find(valid);
   const copia = copiaEditable(definition.id);
-  const canPdf = definition.readyForEmission && missing.length === 0;
+  // Con datos faltantes se descarga avisando y pidiendo confirmación, salvo el aviso (01) y la promesa (15).
+  const canPdf = definition.readyForEmission && (missing.length === 0 || emiteIncompleto(definition.id));
 
   React.useEffect(() => {
     let alive = true;
@@ -90,7 +97,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
     return () => { alive = false; };
   }, [doc.id, withImages, onImages]);
   React.useEffect(() => {
-    const before = (event: BeforeUnloadEvent) => { if (dirty) event.preventDefault(); };
+    const before = (event: BeforeUnloadEvent) => { if (dirty || liveDraft.current) event.preventDefault(); };
     window.addEventListener("beforeunload", before);
     return () => window.removeEventListener("beforeunload", before);
   }, [dirty]);
@@ -102,9 +109,9 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
     return () => { document.body.style.overflow = overflow; previous?.focus?.(); };
   }, []);
 
-  async function persist() {
-    if (!dirty) return doc;
-    const result = await json<{ documento: Documento }>(`/api/admin/formatos/${doc.id}`, post({ version: doc.version, data: values }, "PUT"));
+  async function persist(next = values) {
+    if (JSON.stringify(next) === JSON.stringify(doc.data)) return doc;
+    const result = await json<{ documento: Documento }>(`/api/admin/formatos/${doc.id}`, post({ version: doc.version, data: next }, "PUT"));
     setDoc(result.documento); setValues(result.documento.data); onSaved(result.documento);
     return result.documento;
   }
@@ -125,22 +132,29 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
     if (busy || closing.current) return;
     closing.current = true;
     try {
+      if (live && liveDraft.current && !await confirmAction("Hay un dato abierto sin aceptar. ¿Cerrar y descartarlo? (Cancela para seguir capturando)")) return;
       if (dirty && !await confirmAction("Hay respuestas sin guardar. ¿Guardarlas y cerrar? (Cancela para seguir capturando)")) return;
       await run("Guardando…", async () => { await persist(); onClose(); });
     } finally { closing.current = false; }
   }
-  function pdf() {
+  async function pdf() {
+    if (busy) return;
+    if (missing.length) {
+      const lista = `${missing.slice(0, 5).join(", ")}${missing.length > 5 ? ` y ${missing.length - 5} más` : ""}`;
+      if (!await confirmAction(`Faltan ${missing.length} ${missing.length === 1 ? "dato" : "datos"}: ${lista}. El PDF saldrá marcado «Documento incompleto» en cada hoja. ¿Descargarlo de todos modos?`)) return;
+    }
     void run("Preparando PDF…", async () => {
       const saved = await persist();
-      if (validateFormato(definition.id, { ...saved.data, folio }).length) throw new Error("Faltan respuestas obligatorias para generar el PDF.");
+      const faltan = validateFormato(definition.id, { ...saved.data, folio }).length;
+      if (faltan && !emiteIncompleto(definition.id)) throw new Error("Faltan respuestas obligatorias para generar el PDF.");
       let emision = emisiones?.find(e => e.draft_version === saved.version && (definition.id !== "01" || e.plantillaVersion === AVISO_TEMPLATE_VERSION));
       if (!emision) {
-        emision = (await json<{ emision: Emision }>(`/api/admin/formatos/${saved.id}/emitir`, post({ version: saved.version }))).emision;
+        emision = (await json<{ emision: Emision }>(`/api/admin/formatos/${saved.id}/emitir`, post({ version: saved.version, ...(faltan ? { incompleto: true } : {}) }))).emision;
         const created = emision;
         setEmisiones(items => [created, ...(items ?? [])]); onEmitted(created);
       }
       await downloadAdminPdf(`/api/admin/emisiones/${emision.id}/descargar`, `Fortius-${definition.id}-${safeName(definition.title)}-${folio}-v${saved.version}.pdf`);
-      setNotice("PDF generado y descargado. Queda guardado en «PDF y copias firmadas».");
+      setNotice(faltan ? "PDF incompleto descargado. Queda en «PDF y copias firmadas»; al completar los datos genera el definitivo." : "PDF generado y descargado. Queda guardado en «PDF y copias firmadas».");
     });
   }
   function word() {
@@ -181,13 +195,20 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 sm:px-7">
         <div role="tablist" aria-label="Partes del documento" className="flex">
-          <button type="button" role="tab" aria-selected={view === "captura"} className={s.windowTab} onClick={() => setView("captura")}><FileText size={16} aria-hidden="true" />Captura</button>
+          <button type="button" role="tab" aria-selected={view === "captura"} className={s.windowTab} onClick={() => setView("captura")}><FileText size={16} aria-hidden="true" />{live ? "Documento" : "Captura"}</button>
           <button type="button" role="tab" aria-selected={view === "pdf"} className={s.windowTab} onClick={() => setView("pdf")}><FileDown size={16} aria-hidden="true" />PDF y copias firmadas{emisiones && emisiones.length > 0 && <span className="font-mono text-xs">{emisiones.length}</span>}</button>
         </div>
-        <p className="py-2 text-sm text-muted-foreground">{definition.id === "07" ? "El PDF se descarga aunque falten datos." : missing.length ? `Faltan ${missing.length} ${missing.length === 1 ? "dato" : "datos"} para el PDF` : "Captura completa"}</p>
+        <p className="py-2 text-sm text-muted-foreground">{definition.id === "07" ? "El PDF se descarga aunque falten datos." : missing.length ? `Faltan ${missing.length} ${missing.length === 1 ? "dato" : "datos"}${emiteIncompleto(definition.id) ? "; el PDF sale como incompleto" : " para el PDF"}` : "Captura completa"}</p>
       </div>
 
       {view === "pdf" ? <div className="min-h-0 flex-1 overflow-auto px-4 py-6 sm:px-7"><Emissions emisiones={emisiones} current={current} disabled={!!busy} /></div>
+        : live ? <DocumentoEnVivo definition={definition} documentId={doc.id} expedienteId={doc.expediente_id || undefined} values={data} missing={missing} disabled={!!busy} onDraft={onLiveDraft}
+          onAccept={async patch => {
+            // Se integra al documento y se guarda con la versión del borrador (un conflicto 409 deja la captura abierta con el aviso).
+            const next = { ...values, ...patch };
+            setValues(next); setError(""); setNotice("");
+            await persist(next);
+          }} />
         : <div className="flex min-h-0 flex-1">
           <nav aria-label="Secciones del documento" className={cn(s.sectionsNav, "hidden lg:flex")}>
             <div className={s.sectionsProgress}>
@@ -248,10 +269,13 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3 sm:px-7">
         <p className="text-sm text-muted-foreground sm:hidden" role="status">{saveState}</p>
         <p className="hidden text-sm text-muted-foreground sm:block">Versión {doc.version}{current ? " · con PDF" : ""}</p>
+        {/* Sobre el documento no hay pie de sección: el aviso de un PDF o guardado fallido va aquí. */}
+        {live && error && <p role="alert" className="basis-full text-sm text-destructive sm:order-none sm:basis-auto sm:flex-1">{error}</p>}
+        {live && !error && notice && <p role="status" className="basis-full text-sm text-muted-foreground sm:basis-auto sm:flex-1">{notice}</p>}
         <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === `Preparando ${copia}…` ? busy : copia}</Button>
+          {copia && <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === `Preparando ${copia}…` ? busy : copia}</Button>}
           <Button disabled={!!busy || !dirty} onClick={() => void run("Guardando…", async () => { await persist(); setNotice("Guardado"); })}><Save size={16} aria-hidden="true" />Guardar borrador</Button>
-          <Button variant="primary" disabled={!!busy || !canPdf} title={!definition.readyForEmission ? "Este formato todavía no genera PDF" : missing.length ? "Faltan datos para generar el PDF" : undefined} onClick={pdf}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Generar PDF"}</Button>
+          <Button variant="primary" disabled={!!busy || !canPdf} title={!definition.readyForEmission ? "Este formato todavía no genera PDF" : missing.length ? (emiteIncompleto(definition.id) ? "Faltan datos: el PDF saldrá marcado como incompleto" : "Faltan datos para generar el PDF") : undefined} onClick={() => void pdf()}><FileDown size={16} aria-hidden="true" />{busy === "Preparando PDF…" ? busy : "Generar PDF"}</Button>
         </div>
       </footer>
     </div>

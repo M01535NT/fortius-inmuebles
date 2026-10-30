@@ -27,15 +27,16 @@ const docxAssets = { encabezado: readFileSync("public/brand/membrete-encabezado.
 const assets = { ...docxAssets, regular: readFileSync("public/fonts/Archivo-Regular.ttf"), bold: readFileSync("public/fonts/Archivo-SemiBold.ttf") };
 
 describe("documentos con el diseño de la plantilla", () => {
-  it("el 10 usa el texto de la plantilla y deja la línea donde falta un dato", () => {
+  it("el 10 sigue la plantilla del 26/10/2026: sus nueve secciones, sin título repetido y con los espacios en blanco", () => {
     const empty = planDocumento({});
-    expect(empty.blocks[0]).toEqual({ kind: "title", text: "Plan de comercialización" });
-    expect(empty.blocks[1]).toEqual({ kind: "p", text: `Proponemos ${BLANK} para alcanzar ${BLANK}. Este plan explica qué comunicaremos, cómo atenderemos a los interesados y qué revisaremos durante el lanzamiento. Encargo: ${BLANK}.` });
-    expect(empty.blocks.filter(b => b.kind === "h1").map(b => "text" in b && b.text)).toEqual(["01 La estrategia para su inmueble", "02 Del anuncio a la oferta", "03 Preparación de la campaña", "04 Los primeros 21 días", "05 Seguimiento y decisiones"]);
-    const filled = planDocumento({ estrategia: "Presentar la casa con fotografías", objetivo: "Vender en seis meses", propietario: "María Ramírez", folio: "EXP-10", fecha: "2026-10-04" });
-    expect(text(filled.blocks)).toContain("Proponemos presentar la casa con fotografías para alcanzar vender en seis meses.");
-    expect(text(filled.blocks)).toContain("\"label\":\"Propietario\",\"value\":\"María Ramírez\"");
-    expect(text(filled.blocks)).toContain("4 de octubre de 2026");
+    expect(empty.blocks.some(b => b.kind === "title")).toBe(false);
+    expect(empty.blocks.flatMap(b => b.kind === "form" && b.label ? [b.label] : []).filter(label => /^\d  /.test(label))).toEqual(["1  El inmueble  ·  Datos físicos y legales", "2  Precio de salida", "3  A quién se dirigirá la comercialización", "4  Del anuncio a la oferta", "5  Preparación y materiales", "6  Dónde se publicará", "7  Calendario y revisiones", "8  Seguimiento y responsabilidades", "9  Decisiones para iniciar y aprobación"]);
+    const cells = (doc: ReturnType<typeof planDocumento>) => doc.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []);
+    expect(cells(empty).find(c => c.q === "Propietario")?.a).toBe("");
+    const filled = planDocumento({ propietario: "María Ramírez", folio: "EXP-10", fecha: "2026-10-04" });
+    expect(cells(filled).find(c => c.q === "Propietario")?.a).toBe("María Ramírez");
+    expect(cells(filled).find(c => c.q === "Fecha de elaboración")?.a).toBe("4 de octubre de 2026");
+    expect(text(filled.blocks)).toContain("90 días, con revisión cada 30 días");
   });
   it("los datos a mitad de frase empiezan en minúscula, salvo siglas", () => {
     expect([m("Cocina renovada"), m("OVC-07"), m("IVA incluido"), m("")]).toEqual(["cocina renovada", "OVC-07", "IVA incluido", BLANK]);
@@ -56,32 +57,51 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(empty.blocks.flatMap(b => b.kind === "form" ? b.rows.flat().map(c => c.a) : []).every(answer => answer === "")).toBe(true);
     const filled = entrevistaDocumento({ entrevistado: "Laura Méndez", relacion: "propietario", estadoCivilActual: "casado", gravamen: "infonavit", fechaNacimiento: "1980-03-15", precioDeseado: 4600000, monedaPrecio: "MXN" });
     const cells = filled.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []);
-    expect(cells.find(c => c.q === "Estado civil")?.a).toBe("Casado");
+    const marcadas = (q: string) => cells.find(c => c.q === q)?.marks?.flat().filter(m => m.check).map(m => m.text);
+    expect(marcadas("Estado civil")).toEqual(["Casado"]);
     expect(cells.find(c => c.q.startsWith("¿Quién es el propietario?"))?.a).toBe("Laura Méndez");
     expect(cells.find(c => c.q === "Fecha de nacimiento")?.a).toBe("15 de marzo de 1980");
-    expect(cells.find(c => c.q === "¿Tiene hipoteca o crédito?")?.a).toBe("Infonavit");
+    expect(marcadas("¿Tiene hipoteca o crédito?")).toEqual(["Infonavit"]);
+    expect(empty.blocks.some(b => b.kind === "title")).toBe(false);
     expect(cells.find(c => c.q === "¿Cuánto quiere por el inmueble?")?.a).toBe("$4,600,000.00 MXN");
     expect(JSON.stringify(filled.blocks)).not.toMatch(/CURP|RFC|régimen|escritura inscrita|exención/i);
     expect(junta("Sí", "", "Sí", "correo")).toBe("Sí · correo");
   });
-  it("los levantamientos son cortos: qué inmueble es, foto, visita, cómo es, superficies, materiales, servicios y entorno", () => {
-    const casa = levantamientoDocumento("04B", { usoSuelo: "habitacional", tipoVivienda: "sola", niveles: 2, recamaras: 3, banos: 2, superficieTerreno: 160, muros: "Block, sin fisuras", estadoGeneral: "bueno", agua: "si", pendientes: "Medir el patio" });
+  it("los levantamientos siguen su Word con el acomodo del 04A: sin título repetido, base y referencia, respaldos ni discrepancias", () => {
+    const casa = levantamientoDocumento("04B", { folio: "EXP-000021", idInmueble: "FORTIUS-000004", usoSuelo: "habitacional", tipoVivienda: "Casa sola", niveles: 2, finalidad: "venta", ocupacion: "ocupado", alcance: "completa", accesoAutorizado: "pendiente", acompananteRol: "Propietario", superficieTerreno: 160, murosEstado: "Block", plantaBaja: "Sala", espaciosServicio: ["sala", "patio"], horaInicio: "10:00", horaTermino: "11:30", fotoPrincipalId: "51000000-0000-4000-8000-000000000021" });
     const labels = casa.blocks.filter(b => b.kind === "form" && b.label).map(b => b.kind === "form" && b.label);
-    expect(labels).toEqual(["01 Qué inmueble es", "02 Fotografía principal", "03 La visita", "04 Cómo es", "05 Superficies, si las tienes a la mano", "06 Materiales y estado", "07 Servicios", "08 Croquis, entorno y observaciones"]);
+    expect(labels).toEqual(["01 Fotografía principal", "02 Control de la visita", "03 Superficies, si las tienes a la mano", "04 Distribución y características", "05 Componentes y condición visible", "06 Servicios e instalaciones", "07 Croquis de ubicación y acceso", "08 Pendientes y siguiente acción"]);
+    // El título del formato va en el membrete; en la hoja solo los títulos de grupo, como en el 04A.
+    expect(casa.blocks.filter(b => b.kind === "title").map(b => b.kind === "title" && b.text)).toEqual(["Características del inmueble", "Ubicación y evidencias"]);
+    expect(casa.blocks.some(b => b.kind === "pagebreak")).toBe(false);
     const cells = casa.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []);
+    // Los ID los pone el sistema: no son pulsables.
+    expect(cells.find(c => c.q === "ID operación")).toMatchObject({ a: "EXP-000021" });
+    expect(cells.find(c => c.q === "ID operación")?.keys).toBeUndefined();
+    expect(cells.find(c => c.q === "ID inmueble")?.keys).toBeUndefined();
+    expect(cells.find(c => c.q === "ID de fotografía")?.a).toBe("FOTO-51000000");
     expect(cells.find(c => c.q === "Uso de suelo")?.a).toBe("Habitacional");
-    expect(cells.find(c => c.q === "Tipo de vivienda")?.a).toBe("Casa sola");
-    expect(cells.find(c => c.q === "Recámaras")?.a).toBe("3");
     expect(cells.find(c => c.q === "Terreno en m²")?.a).toBe("160");
-    expect(cells.find(c => c.q === "Estado general a la vista")?.a).toBe("Bueno");
-    expect(cells.find(c => c.q === "Qué falta ver, medir o pedir")?.a).toBe("Medir el patio");
-    // Sin croquis no se dibuja su recuadro; la foto principal siempre tiene su lugar.
-    expect(casa.blocks.filter(b => b.kind === "image")).toHaveLength(1);
-    expect(JSON.stringify(casa.blocks)).not.toMatch(/Declarada|Documental|Base y referencia|Discrepancias/);
-    const plaza = levantamientoDocumento("04G", { tipoConjunto: "oficinas", unidades: [{ id: "P-3", tipo: "Oficina", uso: "Despacho", area: "80", ocupacion: "Ocupada" }] });
-    const grid = plaza.blocks.find(b => b.kind === "grid");
-    expect(grid?.kind === "grid" ? grid.rows : []).toEqual([["P-3", "Oficina", "Despacho", "80", "Ocupada"]]);
-    expect(plaza.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []).find(c => c.q === "Tipo de conjunto")?.a).toBe("Edificio de oficinas");
+    expect(cells.find(c => c.q === "Hora inicio y término")?.a).toMatch(/^Inicio: 10:00  {3} Término: 11:30$/);
+    const distribucion = cells.find(c => c.q === "Distribución por planta y espacios de servicio");
+    expect(distribucion?.marks?.map(line => line.map(m => `${m.check === undefined ? "" : m.check ? "x" : "-"}${m.text}`))).toEqual([
+      ["Planta baja: Sala", "Alta:", "Otros niveles:"],
+      ["xSala", "-Comedor", "-Lavado", "-Bodega", "xPatio", "-Jardín", "-Terraza"],
+    ]);
+    expect(cells.find(c => c.q === "Finalidad del levantamiento")?.marks?.flat().map(m => `${m.check ? "x" : "-"}${m.text}`)).toEqual(["xVenta", "-Renta", "-Valoración", "-Administración", "-Actualización"]);
+    expect(cells.find(c => c.q === "Acceso autorizado y acompañante por rol")?.marks?.[0].map(m => m.text)).toEqual(["Sí", "No", "Pendiente", "Rol: Propietario"]);
+    const grids = casa.blocks.filter(b => b.kind === "grid");
+    expect(grids.map(g => g.kind === "grid" && g.header)).toEqual([["Componente", "Material o acabado y estado visible"], ["Servicio", "Características y estado de disponibilidad"]]);
+    expect(grids[0].kind === "grid" && grids[0].rows[0]).toEqual(["Muros y estructura aparente", "Block"]);
+    expect(grids[0].kind === "grid" && grids[0].keys?.[0]).toEqual([undefined, ["murosEstado"]]);
+    expect(casa.blocks.filter(b => b.kind === "image").map(b => b.kind === "image" && b.keys)).toEqual([["fotoPrincipalId"], ["croquisId"]]);
+    expect(JSON.stringify(casa.blocks)).not.toMatch(/Declarada|Documental|Base y|base y referencia|respaldo|Discrepancia|NV no verificado/);
+    // La nave conserva su grupo de instalaciones industriales; la plaza, su tabla de unidades.
+    expect(levantamientoDocumento("04F", {}).blocks.filter(b => b.kind === "title").map(b => b.kind === "title" && b.text)).toEqual(["Características del inmueble", "Instalaciones industriales", "Ubicación y evidencias"]);
+    const plaza = levantamientoDocumento("04G", { tipoConjunto: "oficinas", unidades: [{ id: "P-3", tipo: "Oficina", area: "80", ocupacion: "Ocupada", acceso: "Común" }] });
+    const unidades = plaza.blocks.find(b => b.kind === "grid" && b.zona?.keys.includes("unidades"));
+    expect(unidades?.kind === "grid" ? unidades.rows : []).toEqual([["P-3", "Oficina", "80", "Ocupada", "Común"]]);
+    expect(plaza.blocks.flatMap(b => b.kind === "form" ? b.rows.flat() : []).find(c => c.q === "Tipo y uso del conjunto")?.a).toMatch(/^Tipo: Edificio de oficinas/);
   });
   it("el 05 conserva sus 12 secciones y las 22 filas del control documental; el 06 acomoda la prosa en sus secciones", () => {
     const revision = revisionJuridicaDocumento({ documentos: [{ concepto: "D01", aplica: "si", estado: "recibido", referencia: "Escritura 4521" }] });
@@ -94,7 +114,7 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(opinion.estilo).toBe("opinion");
     expect(opinion.blocks.filter(b => b.kind === "numbered").map(b => b.kind === "numbered" && b.num)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
     expect(opinion.blocks.filter(b => b.kind === "p" && b.strong).map(b => b.kind === "p" && b.text)).toEqual(["Factible con condiciones.", "Actualizar el certificado."]);
-    expect(opinion.blocks.at(-1)).toEqual({ kind: "signatures", parties: [{ role: "Abogado responsable", name: "Lic. Ana Torres\nCédula profesional 1234567" }] });
+    expect(opinion.blocks.at(-1)).toMatchObject({ kind: "signatures", parties: [{ role: "Abogado responsable", name: "Lic. Ana Torres\nCédula profesional 1234567" }] });
   });
   it("el 08 sigue las barras de su hoja y no inventa el neto si la estimación está incompleta", () => {
     const incompleto = netoDocumento({ folio: "EXP-1", precioSugerido07: 4500000 });

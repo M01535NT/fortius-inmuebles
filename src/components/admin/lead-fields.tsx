@@ -1,5 +1,6 @@
 "use client";
 
+import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import * as React from "react";
 import { ChevronDown } from "@/components/admin/icons";
 import { Field, inputClass, selectClass, textareaClass } from "./ui";
@@ -17,7 +18,7 @@ import s from "./form.module.css";
 /** Importes del perfil: se muestran con formato de moneda. */
 const MONEY_FIELDS: string[] = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo"];
 const numericFields = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo", "superficieMin", "superficieMax", "superficieTerreno", "superficieConstruccion", "recamaras", "estacionamientos", "recamarasInmueble", "estacionamientosInmueble"] as const;
-const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "caracteristicas", "plazo", "proximoContacto", "estrategiaInversion", "horizonteInversion", "criteriosInversion"] as const;
+const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "caracteristicas", "plazo", "proximoContacto", "proximaAccion", "estrategiaInversion", "horizonteInversion", "criteriosInversion"] as const;
 
 export function readLeadFields(form: HTMLFormElement, base?: Pick<Lead, "perfil">) {
   const data = new FormData(form);
@@ -70,7 +71,7 @@ export function LeadFields({ lead, nombreRef, channel = true }: { lead?: Pick<Le
   const number = (name: typeof numericFields[number], label: string, max: number, step = "0.01") => (
     <Field label={label} htmlFor={id(name)}>{MONEY_FIELDS.includes(name) ? <MoneyInput id={id(name)} name={`perfil.${name}`} defaultValue={perfil[name]} /> : <input id={id(name)} name={`perfil.${name}`} type="number" min="0" max={max} step={step} inputMode={step === "1" ? "numeric" : "decimal"} defaultValue={perfil[name] ?? ""} className={inputClass} />}</Field>
   );
-  const types = { terreno: "Terreno", casa: "Casa", departamento: "Departamento", local: "Local", oficina: "Oficina", bodega: "Bodega", "nave-industrial": "Nave industrial", otro: "Otro" };
+  const types: Record<string, string> = TIPO_INMUEBLE_LABELS;
   return <div className="flex min-w-0 flex-col gap-4" onInvalidCapture={event => {
     const input = event.target as HTMLElement;
     const section = input.closest("details");
@@ -123,7 +124,7 @@ export function LeadFields({ lead, nombreRef, channel = true }: { lead?: Pick<Le
     {["comprar","rentar"].includes(operacion)&&perfil.presupuestoDeclarado!==undefined&&<LeadSection title="Presupuesto declarado" open>{number("presupuestoDeclarado","Presupuesto declarado",1e13)}<p className="text-sm text-muted-foreground">Es una declaración inicial, distinta de capacidad comprobada o presupuesto máximo acordado.</p></LeadSection>}
     <LeadSection title="Seguimiento" open={editing}>
       {text("perfil.plazo", "Plazo previsto", perfil.plazo)}
-      {text("perfil.proximoContacto", "Próximo contacto", perfil.proximoContacto, "date", 10)}
+      {text("perfil.proximaAccion", "Próxima acción", perfil.proximaAccion, "text", 160)}{text("perfil.proximoContacto", "Próximo contacto", perfil.proximoContacto, "date", 10)}
       <Field label="Asesor responsable" htmlFor={id("asesorId")} className={s.span2}><select id={id("asesorId")} name="asesorId" defaultValue={lead?.asesorId ?? ""} className={selectClass}>
         <option value="">Sin asignar</option>
         {lead?.asesorId && !asesores.some(a => a.id === lead.asesorId) ? <option value={lead.asesorId}>{lead.asesorId}</option> : null}
@@ -140,7 +141,7 @@ function LeadSection({ title, open, children }: { title: string; open?: boolean;
 
 export function LeadProfileSummary({ perfil }: { perfil?: LeadProfile }) {
   if (!perfil || !Object.values(perfil).some(value => value !== undefined && value !== "")) return <p className="text-sm text-muted-foreground">Perfil pendiente. Edita la ficha para registrar la necesidad del lead y sus datos.</p>;
-  const labels: Record<string, string> = { capitalDeclarado: "Capital declarado", presupuestoDeclarado: "Presupuesto declarado", estrategiaInversion: "Estrategia de inversión", horizonteInversion: "Horizonte", criteriosInversion: "Criterios y límites", operacion: "Operación", uso: "Uso", moneda: "Moneda", formaPago: "Forma de pago", tipoCredito: "Crédito", estadoCredito: "Estado del crédito", origenIngresos: "Origen de ingresos", presupuestoMin: "Presupuesto mínimo", presupuestoMax: "Presupuesto máximo", precioObjetivo: perfil.operacion === "arrendar" ? "Renta mensual esperada" : "Precio de venta esperado", superficieMin: "Superficie mínima (m²)", superficieMax: "Superficie máxima (m²)", superficieTerreno: "Superficie de terreno (m²)", superficieConstruccion: "Superficie construida (m²)", recamaras: "Recámaras mínimas", estacionamientos: "Estacionamientos mínimos", recamarasInmueble: "Recámaras del inmueble", estacionamientosInmueble: "Estacionamientos del inmueble", requisitos: "Requisitos", caracteristicas: "Características y condiciones", plazo: "Plazo previsto", proximoContacto: "Próximo contacto" };
+  const labels: Record<string, string> = { capitalDeclarado: "Capital declarado", presupuestoDeclarado: "Presupuesto declarado", estrategiaInversion: "Estrategia de inversión", horizonteInversion: "Horizonte", criteriosInversion: "Criterios y límites", operacion: "Operación", uso: "Uso", moneda: "Moneda", formaPago: "Forma de pago", tipoCredito: "Crédito", estadoCredito: "Estado del crédito", origenIngresos: "Origen de ingresos", presupuestoMin: "Presupuesto mínimo", presupuestoMax: "Presupuesto máximo", precioObjetivo: perfil.operacion === "arrendar" ? "Renta mensual esperada" : "Precio de venta esperado", superficieMin: "Superficie mínima (m²)", superficieMax: "Superficie máxima (m²)", superficieTerreno: "Superficie de terreno (m²)", superficieConstruccion: "Superficie construida (m²)", recamaras: "Recámaras mínimas", estacionamientos: "Estacionamientos mínimos", recamarasInmueble: "Recámaras del inmueble", estacionamientosInmueble: "Estacionamientos del inmueble", requisitos: "Requisitos", caracteristicas: "Características y condiciones", plazo: "Plazo previsto", proximoContacto: "Próximo contacto", proximaAccion: "Próxima acción", avisoPrivacidad: "Aviso de privacidad compartido" };
   return <><p className="mb-3 text-sm text-muted-foreground">Perfil principal de la persona. Cada encargo conserva su entrevista y sus condiciones propias.</p><dl className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">{Object.entries(labels).map(([key, label]) => {
     const value = perfil[key as keyof LeadProfile];
     if (value === undefined || value === "") return null;

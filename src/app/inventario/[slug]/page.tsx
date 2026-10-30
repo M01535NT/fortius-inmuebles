@@ -27,7 +27,7 @@ import {
   TIPO_LABELS,
   type Property,
 } from "@/data/propiedades";
-import { getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
+import { getConjunto, getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
 import "./ficha.css";
 
@@ -119,8 +119,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const property = await getPropertyBySlug(slug);
   if (!property) notFound();
 
-  const [related, advisers, settings] = await Promise.all([
-    getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(),
+  const [related, advisers, settings, conjunto] = await Promise.all([
+    getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(), getConjunto(property),
   ]);
   const ficha = fichaRows(property);
   const share = propertyShare(property);
@@ -206,6 +206,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
 
           {property.estado === "apartada" && <p className="fe-alert">Esta propiedad está apartada. Podemos avisarte si vuelve a estar disponible o mostrarte opciones similares.</p>}
           {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
+          {conjunto.plaza && <p className="fe-alert">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`} className="font-semibold underline underline-offset-4">{conjunto.plaza.titulo}</Link>.</p>}
 
           {property.descripcion.length > 0 && <section id="descripcion" className="fe-section" aria-label="Descripción">
             <p className="pg-eyebrow pg-eyebrow-ink">Descripción</p>
@@ -302,6 +303,15 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <SharePanel title={share.title} text={share.text} url={share.url} qrSvg={qr} />
         </aside>
       </div>
+
+      {conjunto.locales.length > 0 && <section className="fe-related inv-page" aria-labelledby="fe-units">
+        <div className="pg-container">
+          <h2 id="fe-units" className="fe-h2">Locales de esta plaza</h2>
+          <div className="property-catalog-grid">
+            {conjunto.locales.map((p) => <PropertyCard key={p.slug} property={p} />)}
+          </div>
+        </div>
+      </section>}
 
       {related.length > 0 && <section className="fe-related inv-page" aria-labelledby="fe-related">
         <div className="pg-container">

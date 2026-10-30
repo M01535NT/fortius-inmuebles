@@ -14,6 +14,8 @@
 .admin-root .rounded-md { border-radius: var(--radius-control); }
 .admin-root .rounded { border-radius: 8px; }
 .admin-root .admin-confirm { border-radius: var(--radius-panel); border-color: var(--card-edge); box-shadow: var(--shadow-raised); }
+/* Acción que elimina: se distingue de la principal en la ventana de confirmación. */
+.admin-root .admin-confirm .admin-button-danger { background: var(--destructive); border-color: var(--destructive); color: var(--destructive-foreground, #fff); box-shadow: none; }
 
 /* Botones anteriores */
 .admin-root .admin-button { border-radius: var(--radius-control); }

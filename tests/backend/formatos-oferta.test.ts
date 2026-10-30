@@ -6,14 +6,12 @@ import { createFormatoPdf, prepareFormatoEmission } from "@/lib/formatos/pdf";
 const oferta = {
   folio: "EXP-14", lugarPropuesta: "Tijuana", fechaPropuesta: "2026-10-04",
   propietario: "María Ramírez", comprador: "Luis García", representacionComprador: "Por cuenta propia",
-  derechoAdquirir: "pleno dominio", inmueble: "Casa en Tijuana", folioInmueble: "Folio real 123",
-  precioPropuesto: 3000000, moneda: "MXN", impuestosPrecio: "Excluye gastos e impuestos de escrituración",
-  bienesIncluidos: "Cocina integral", bienesExcluidos: "Muebles personales",
+  inmueble: "Casa en Tijuana", folioInmueble: "123", partida: "456",
+  precioPropuesto: 3000000, moneda: "MXN",
   recursosPropios: 1000000, credito: 2000000, institucionCredito: "Banco A", estadoCredito: "En trámite",
-  calendarioPagos: "Un pago de 3,000,000 MXN al formalizar", condiciones: "Revisión de título y aprobación de crédito",
-  fechaCondiciones: "2026-11-01", fechaFormalizacion: "2026-12-01", fechaEntrega: "2026-12-01",
-  gastosComprador: "Escrituración", gastosPropietario: "Cancelación de gravamen",
-  fechaLimitePropuesta: "2026-10-10", horaLimitePropuesta: "17:00", zonaHoraria: "America/Tijuana",
+  condiciones: "Revisión de título y aprobación de crédito",
+  fechaCondiciones: "2026-11-01", fechaFormalizacion: "2026-12-01",
+  fechaLimitePropuesta: "2026-10-10", horaLimitePropuesta: "17:00",
   estadoRespuesta: "pendiente",
 };
 
@@ -46,4 +44,12 @@ it("exige detalles de una contraoferta solo cuando el propietario la registra", 
   expect(validateFormato("14", { ...response, cambiosContraoferta: "" })).toContain("Cambios precisos de la contraoferta");
   const bytes = await createFormatoPdf("14", response);
   expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(1);
+});
+
+it("la carta sigue la plantilla del 26/10/2026: derechos de propiedad, folio real y partida, y el precio en letra", async () => {
+  const { ofertaDocumento } = await import("@/lib/formatos/documento/oferta-promesa");
+  const text = JSON.stringify(ofertaDocumento(oferta).blocks);
+  expect(text).toContain("Le propongo adquirir los derechos de propiedad sobre el inmueble ubicado en Casa en Tijuana, identificado con Folio Real: 123 y Partida: 456.");
+  expect(text).toContain("tres millones de pesos 00/100 MXN");
+  expect(text).not.toMatch(/Bienes y accesorios|Calendario|recibir el inmueble|Gastos a cargo/);
 });

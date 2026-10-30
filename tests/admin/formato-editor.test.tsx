@@ -14,6 +14,19 @@ it("captura cada concepto del recibo en un campo separado", () => {
   expect(onChange).toHaveBeenCalledWith("importeRecibido", 12000);
 });
 
+it("las opciones de varias a la vez son casillas que se suman y se quitan en el orden de la plantilla", () => {
+  const onChange = vi.fn();
+  const definition = formatoById("04B");
+  render(<FormatoEditor narrow definition={{ ...definition, fields: definition.fields.filter(field => field.key === "espaciosServicio") }} values={{ espaciosServicio: ["patio"] }} onChange={onChange} />);
+  const group = screen.getByRole("group", { name: "Espacios de servicio" });
+  expect((screen.getByRole("checkbox", { name: "Patio" }) as HTMLInputElement).checked).toBe(true);
+  expect(group.querySelectorAll("input[type=checkbox]")).toHaveLength(7);
+  fireEvent.click(screen.getByRole("checkbox", { name: "Sala" }));
+  expect(onChange).toHaveBeenLastCalledWith("espaciosServicio", ["sala", "patio"]);
+  fireEvent.click(screen.getByRole("checkbox", { name: "Patio" }));
+  expect(onChange).toHaveBeenLastCalledWith("espaciosServicio", []);
+});
+
 it("muestra el folio del expediente como dato no editable", () => {
   render(<FormatoEditor definition={formatoById("12")} values={{ folio: "EXP-204" }} onChange={vi.fn()} />);
   expect(screen.getByLabelText("Folio del expediente").getAttribute("readonly")).toBe("");

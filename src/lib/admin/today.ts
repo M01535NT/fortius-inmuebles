@@ -1,5 +1,5 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { addMonths, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { addMonths, lastOwnerReport, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { interviewFields, INTENTS, type OperationalInterview } from "@/lib/intake/interview";
 import type { Followup } from "@/lib/admin/followups";
 
@@ -23,7 +23,7 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   valor: "Opinión de valor",
   precio: "Precio de salida acordado",
   intermediacion: "Contrato de servicio firmado",
-  levantamiento: "Fotos, medidas y datos revisados",
+  levantamiento: "Datos del levantamiento confirmados",
   plan: "Plan de publicación aprobado",
   publicacion: "Permiso para publicar",
   comprador: "Comprador con capacidad de pago",
@@ -54,7 +54,20 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   ejecucion_inversion: "Operación de compra vinculada",
   seguimiento_inversion: "Seguimiento de resultados",
 };
-export function requirementName(key: RequirementKey) { return REQUIREMENT_PLAIN_LABELS[key] ?? WORKFLOW_REQUIREMENTS[key].label; }
+/** En la renta del propietario algunos requisitos se llaman por lo que son en una renta (COR-04). */
+const RENT_PLAIN_LABELS: Partial<Record<RequirementKey, string>> = {
+  titularidad: "Identificación y prueba de propiedad revisadas",
+  valor: "Opinión de renta con comparables",
+  precio: "Renta acordada con el propietario",
+  intermediacion: "Intermediación para renta firmada",
+  oferta: "Arrendatario aceptado tras su investigación",
+  contraparte: "Arrendatario identificado como contraparte",
+  firma: "Contrato de arrendamiento firmado",
+  pago: "Depósito y primera renta recibidos",
+};
+export function requirementName(key: RequirementKey, route?: string | null) {
+  return (route === "arrendador" ? RENT_PLAIN_LABELS[key] : undefined) ?? REQUIREMENT_PLAIN_LABELS[key] ?? WORKFLOW_REQUIREMENTS[key].label;
+}
 
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const WEEKDAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -90,9 +103,9 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today 
     const offer = offers?.filter(o => o.context?.expedienteId === dossier.id && o.updatedAt.slice(0, 10) >= recentOffer).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
     const since = (value?: string) => value ? (value.slice(0, 10) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
     let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank"> | null = null;
-    if (problem) pick = { reason: `Hay un problema con «${requirementName(problem[0])}»${problem[1].soporte.trim() ? `: ${problem[1].soporte.trim()}` : "."}`, when: since(problem[1].registradoEl), late: true, rank: 0 };
+    if (problem) pick = { reason: `Hay un problema con «${requirementName(problem[0], flow?.ruta)}»${problem[1].soporte.trim() ? `: ${problem[1].soporte.trim()}` : "."}`, when: since(problem[1].registradoEl), late: true, rank: 0 };
     else if (overdue.length) pick = { reason: `Tarea vencida: ${overdue[0].titulo}`, when: `Vencida desde el ${shortDate(overdue[0].vence!)}`, late: true, rank: 1 };
-    else if (received) pick = { reason: `Ya tienes «${requirementName(received[0])}». Revísalo.`, when: since(received[1].registradoEl), late: false, rank: 2 };
+    else if (received) pick = { reason: `Ya tienes «${requirementName(received[0], flow?.ruta)}». Revísalo.`, when: since(received[1].registradoEl), late: false, rank: 2 };
     else if (offer) pick = { reason: "Se registró una oferta. Revísala con el propietario.", when: offer.updatedAt.slice(0, 10) === today ? "Hoy" : `El ${shortDate(offer.updatedAt)}`, late: false, rank: 3 };
     else if (flow?.estado !== "pausada" && !open.some(t => !!t.vence)) pick = { reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "", late: false, rank: 4 };
     if (!pick) continue;
@@ -144,8 +157,8 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
       if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key), meta: `${label(d)} · ${d.folio}`, href: `/admin/operaciones/${encodeURIComponent(d.id)}` });
     }
     if (reports && ownerReportApplies(d.etapa, d.flujo)) {
-      const last = reports[d.id];
-      const next = last ? addMonths(last.slice(0, 10), 1) : undefined;
+      const last = lastOwnerReport(d.flujo, reports[d.id]);
+      const next = last ? addMonths(last, 1) : undefined;
       if (inRange(next)) items.push({ id: `informe:${d.id}`, date: next!, kind: "Informe", text: "Informe mensual al propietario", meta: `${label(d)} · se cumple el mes`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` });
     }
   }
@@ -154,7 +167,7 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
 
 /** Informes al propietario vencidos o que nunca se han preparado, mientras el inmueble se promueve o negocia. */
 export function overdueReports({ dossiers, reports, names, today }: { dossiers: TodayDossier[]; reports: Record<string, string>; names: Names; today: string }) {
-  return dossiers.filter(d => active(d) && ownerReportApplies(d.etapa, d.flujo)).map(d => ({ d, status: ownerReportStatus(reports[d.id], today) }))
+  return dossiers.filter(d => active(d) && ownerReportApplies(d.etapa, d.flujo)).map(d => ({ d, status: ownerReportStatus(lastOwnerReport(d.flujo, reports[d.id]), today) }))
     .filter(({ status }) => status.estado !== "al_dia")
     .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? d.folio, status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
 }

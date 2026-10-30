@@ -99,6 +99,10 @@ export function PropertyForm({ initial: source }: Props) {
   );
   const asesores = useCollection(db.asesores);
   const propiedades = useCollection(db.propiedades);
+  // Plaza o conjunto al que pertenece (también llega como «?conjunto=» al agregar un local desde su plaza).
+  const [tipoSel, setTipoSel] = React.useState<string>(source?.tipo ?? "casa");
+  const [conjunto, setConjunto] = React.useState(() => source?.conjunto ?? (typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("conjunto") ?? ""));
+  const plazas = propiedades.filter((p) => p.tipo === "plaza" && p.slug !== source?.slug);
   const session = useSession();
   const [publicationReady,setPublicationReady]=React.useState(false);
   const [dirty,setDirty] = React.useState(false);
@@ -155,6 +159,7 @@ export function PropertyForm({ initial: source }: Props) {
     };
     const base = { ...initial };
     delete base.informacionPublica;
+    delete base.conjunto;
     // Ficha «Escenario»: secciones opcionales; una sección vacía se retira de la ficha.
     const beneficios = [0, 1, 2, 3]
       .map((i) => ({ titulo: v(`beneficio-titulo-${i}`), texto: v(`beneficio-texto-${i}`) }))
@@ -172,6 +177,7 @@ export function PropertyForm({ initial: source }: Props) {
       codigo,
       titulo: titulo.trim(),
       tipo: v("tipo") as TipoPropiedad,
+      ...(v("tipo") !== "plaza" && conjunto ? { conjunto } : {}),
       operacion,
       precio:
         modalidad === "publico"
@@ -291,6 +297,7 @@ export function PropertyForm({ initial: source }: Props) {
               id="pf-tipo"
               name="tipo"
               defaultValue={initial?.tipo ?? "casa"}
+              onChange={(event) => setTipoSel(event.target.value)}
               className={selectClass}
             >
               {Object.entries(TIPO_LABELS).map(([value, label]) => (
@@ -300,6 +307,15 @@ export function PropertyForm({ initial: source }: Props) {
               ))}
             </select>
           </Field>
+          {tipoSel !== "plaza" && (plazas.length > 0 || conjunto) ? (
+            <Field label="Pertenece a la plaza o conjunto" htmlFor="pf-conjunto" hint="Si es un local u oficina dentro de una plaza registrada, elígela: la plaza lo mostrará entre sus locales, en el panel y en el sitio.">
+              <select id="pf-conjunto" value={conjunto} onChange={(event) => setConjunto(event.target.value)} className={selectClass}>
+                <option value="">No pertenece a una plaza</option>
+                {plazas.map((plaza) => <option key={plaza.slug} value={plaza.slug}>{plaza.titulo}{plaza.codigo ? ` · ${plaza.codigo}` : ""}</option>)}
+                {conjunto && !plazas.some((plaza) => plaza.slug === conjunto) ? <option value={conjunto}>Plaza {conjunto}</option> : null}
+              </select>
+            </Field>
+          ) : null}
           <Field label="Operación" htmlFor="pf-operacion">
             <select
               id="pf-operacion"

@@ -2,16 +2,19 @@ import { FORMATOS } from "./catalog";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { EXPEDIENTE_OPERACIONES } from "./expediente-operations";
 import { TIPO_INMUEBLE_DESDE_ENTREVISTA, VALOR_DEFAULTS } from "./valor-fields";
+import { SITE_TERMS } from "@/data/site-terms";
+import { privacyAddress } from "@/data/privacy-notice";
 
 type Context = {
  expediente: { folio: string; unidad?: string; operacion?: string; flujo?: { ruta?: string } | null };
  persona?: { nombre?: string; telefono?: string; email?: string };
  asesor?: { nombre?: string };
- inmueble?: { direccionAproximada?: string; zona?: string; slug?: string };
+ inmueble?: { direccionAproximada?: string; zona?: string; slug?: string; codigo?: string };
  entrevista?: Pick<OperationalInterview,"id"|"version"|"intencion"|"respuestas">;
 };
 /** Propose declarations to a new draft only. Never attest ownership, approve
  * money/consent or overwrite an existing/issued document. */
+const hoyTijuana = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 export function prefillFormato(formatoId: string, context: Context): Record<string,string|number> {
  const {expediente,persona,asesor,inmueble,entrevista}=context, a=entrevista?.respuestas??{};
  const name=persona?.nombre??"", owner=entrevista?.intencion==="vender"||entrevista?.intencion==="arrendar";
@@ -24,7 +27,7 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   comprador:entrevista?.intencion==="comprar"?name:undefined,
   telefono:persona?.telefono, correo:persona?.email,
   inmueble:expediente.unidad||inmueble?.direccionAproximada||a.ubicacion,
-  idInmueble:inmueble?.slug, colonia:inmueble?.zona||a.zona,
+  idInmueble:inmueble?.codigo||inmueble?.slug, colonia:inmueble?.zona||a.zona,
   operacion:(EXPEDIENTE_OPERACIONES as Record<string,string>)[expediente.operacion??""],
   fechaEntrevista:a.fecha, origenContacto:a.origenContacto, relacion:a.relacion,
   tipoTitular:a.relacion==="representante"?"representante":expediente.flujo?.ruta==="compra"?"comprador":expediente.flujo?.ruta==="arrendatario"?"arrendatario":owner?"propietario":"otro",
@@ -36,6 +39,12 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   avisoPrivacidad:a.privacidad==="presentado"?"si":undefined,
   expectativas:a.objetivo, observaciones:a.detalleAlertas,
   motivoSiguiente:a.siguienteAccion,fechaSeguimiento:a.siguienteFecha,responsableSeguimiento:asesor?.nombre,
+  // Levantamiento (04A–04G): se hace el mismo día de la entrevista y lo elabora el asesor; ambos se pueden corregir.
+  ...(/^04[A-G]$/.test(formatoId)?{fechaVisita:hoyTijuana(),elaboro:asesor?.nombre}:{}),
+  // Plan (10): se elabora hoy; lo demás lo proponen el levantamiento, el 07 y el 09 al crearlo.
+  ...(formatoId==="10"?{fecha:hoyTijuana()}:{}),
+  // Aviso (01): los datos del responsable son los del aviso publicado en el sitio; la fecha de emisión, hoy.
+  ...(formatoId==="01"?{responsable:SITE_TERMS.responsible,domicilioResponsable:privacyAddress,contactoPrivacidad:SITE_TERMS.responsible,correoPrivacidad:SITE_TERMS.email,fechaEmision:hoyTijuana()}:{}),
  };
  const result: Record<string,string|number> = {};
  for(const field of FORMATOS.find(f=>f.id===formatoId)?.fields??[]) {

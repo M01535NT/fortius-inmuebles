@@ -20,6 +20,7 @@
     "check:financial-sources": "node tools/check-financial-sources.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
     "@gsap/react": "^2.1.2",
     "@pdf-lib/fontkit": "1.1.1",
     "@supabase/supabase-js": "^2.110.3",

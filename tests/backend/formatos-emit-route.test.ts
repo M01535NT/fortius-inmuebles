@@ -140,3 +140,29 @@ it("no emite un levantamiento si una imagen archivada perdió su integridad", as
   expect(prepareFormatoEmission).not.toHaveBeenCalled();
   expect(upload).not.toHaveBeenCalled();
 });
+
+it("emite con datos faltantes solo si quien emite lo confirmó, lo anota en el archivo y nunca en el aviso ni la promesa", async () => {
+  const id = "51000000-0000-4000-8000-000000000011", expedienteId = "51000000-0000-4000-8000-000000000010";
+  const setup = (formato: string) => {
+    const client = { from: vi.fn((table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({
+      data: table === "fortius_inmuebles_formato_drafts" ? { id, expediente_id: expedienteId, formato_id: formato, data: { numeroRecibo: "R-1" }, version: 1 } : { id: expedienteId, folio: "REAL" }, error: null,
+    }) }) }) })) };
+    requireStaff.mockResolvedValue({ client, user: { id: "51000000-0000-4000-8000-000000000002" } });
+    const insert = vi.fn((payload: Record<string, unknown>) => ({ select: () => ({ single: async () => ({ data: { id: payload.id }, error: null }) }) }));
+    createServerClient.mockReturnValue({ storage: { from: () => ({ upload: async () => ({ error: null }) }) }, from: () => ({ insert }) });
+    prepareFormatoEmission.mockClear().mockResolvedValue({ bytes: new Uint8Array([37, 80, 68, 70, 45]), sha256: "a".repeat(64) });
+    return insert;
+  };
+  const request = (body: Record<string, unknown>) => new Request(`https://panel.test/api/admin/formatos/${id}/emitir`, { method: "POST", headers: { origin: "https://panel.test", "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  setup("18");
+  expect((await POST(request({ version: 1 }), { params: Promise.resolve({ id }) })).status).toBe(409);
+  const insert = setup("18");
+  expect((await POST(request({ version: 1, incompleto: true }), { params: Promise.resolve({ id }) })).status).toBe(201);
+  expect(prepareFormatoEmission).toHaveBeenCalledWith("18", expect.objectContaining({ folio: "REAL" }), undefined, { incompleto: true });
+  expect(insert).toHaveBeenCalledWith(expect.objectContaining({ snapshot: expect.objectContaining({ datosFaltantes: expect.arrayContaining(["Lugar de emisión"]) }) }));
+  for (const formato of ["01", "15"]) {
+    setup(formato);
+    expect((await POST(request({ version: 1, incompleto: true }), { params: Promise.resolve({ id }) })).status, formato).toBe(409);
+    expect(prepareFormatoEmission).not.toHaveBeenCalled();
+  }
+});

@@ -2,7 +2,7 @@ import { validarPresupuesto } from "./presupuesto";
 import { validarNeto } from "./neto";
 import { validarEntrega } from "./entrega";
 import { validarOferta } from "./oferta";
-import { validarPlan } from "./plan";
+import { mostrarCampoPlan, planFields, validarPlan } from "./plan";
 import { validarReporte } from "./reporte";
 import { entrevistaFields, validarEntrevista } from "./entrevista";
 import { camposRepresentante, mostrarCampoAviso, validarAviso } from "./aviso";
@@ -15,7 +15,8 @@ import { intermediacionFields, mostrarCampoIntermediacion, validarIntermediacion
 export type FormatoField = {
   key: string;
   label: string;
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows" | "intermediacionRows";
+  /** «multi»: varias opciones a la vez (casillas); se guarda como lista de valores. */
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "multi" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows" | "intermediacionRows";
   required: boolean;
   section?: string;
   options?: readonly { value: string; label: string }[];
@@ -40,7 +41,7 @@ const TITLES: Record<string, string> = {
   "04A": "Levantamiento de terreno", "04B": "Levantamiento de casa", "04C": "Levantamiento de departamento", "04D": "Levantamiento de oficina", "04E": "Levantamiento de local", "04F": "Levantamiento de nave o bodega", "04G": "Levantamiento de plaza o conjunto",
   "05": "Revisión jurídica y control de cierre", "06": "Opinión jurídica del inmueble", "07": "Opinión de valor comercial", "08": "Estimación del neto del propietario",
   "09": "Contrato de intermediación inmobiliaria para venta", "10": "Plan de comercialización", "11": "Reporte de comercialización al propietario", "12": "Entrevista y perfil del comprador",
-  "13": "Registro de visita y retroalimentación", "14": "Oferta de compra y respuesta del propietario", "15": "Promesa de compraventa", "16": "Acta de entrega y recepción del inmueble",
+  "13": "Registro de visita y retroalimentación", "14": "Propuesta de compra y respuesta del propietario", "15": "Promesa de compraventa", "16": "Acta de entrega y recepción del inmueble",
   "17": "Cierre de la operación", "18": "Recibo de pago de honorarios", "19": "Presupuesto de rehabilitación",
 };
 const f = (id: string, title: string, extension: "docx" | "xlsx", phase: FormatoDefinition["phase"], fields: FormatoField[], readyForEmission = false): FormatoDefinition => ({ id, title: TITLES[id] ?? title.replaceAll("_", " "), source: `${id}.${title}.${extension}`, phase, fields, readyForEmission });
@@ -72,6 +73,9 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     { ...sectionField("Titular y operación", "representante", "Nombre del representante"), required: false },
     { ...sectionField("Titular y operación", "calidadRepresentante", "Carácter del representante (por ejemplo, apoderada)"), required: false },
     { ...sectionField("Titular y operación", "documentoRepresentante", "Documento de representación"), required: false },
+    // Espacios impresos en la hoja de decisiones de la plantilla del 26/10/2026; si quedan vacíos se llenan a mano.
+    { ...sectionField("Titular y operación", "instrumentoRepresentante", "Datos del instrumento, fecha y fedatario"), required: false },
+    { ...sectionField("Titular y operación", "facultadesRepresentante", "Facultades y vigencia comprobadas mediante"), required: false },
     { ...choice("consentimientoPatrimonial", "Datos patrimoniales y financieros", [{ value: "si", label: "Consiente expresamente" }, { value: "no", label: "No consiente" }, { value: "no_aplica", label: "No aplica en esta etapa" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
     { ...choice("consentimientoPublicidad", "Publicidad y oportunidades adicionales", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }, { value: "pendiente", label: "Pendiente de decisión" }]), section: "Decisiones del titular" },
     { ...choice("publicidadCorreo", "Publicidad por correo", [{ value: "si", label: "Autoriza" }, { value: "no", label: "No autoriza" }], false), section: "Decisiones del titular" },
@@ -109,8 +113,9 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     sectionField("01 / Encargo e identificación", "claveCatastral", "Clave catastral o pendiente"),
     sectionField("01 / Encargo e identificación", "folioReal", "Folio real o antecedente"),
     sectionField("01 / Encargo e identificación", "solicitante", "Parte solicitante y calidad"),
-    sectionField("01 / Encargo e identificación", "operacion", "Operación y etapa a decidir"),
-    sectionField("01 / Encargo e identificación", "alcance", "Alcance de la revisión"),
+    // Casillas impresas en la plantilla del 26/10/2026; los valores de operación son los del expediente.
+    { ...choice("operacion", "Operación y etapa a decidir", [{ value: "Venta", label: "Venta" }, { value: "Renta", label: "Renta" }, { value: "Otra", label: "Otra" }]), section: "01 / Encargo e identificación" },
+    { ...choice("alcance", "Alcance de la revisión", [{ value: "preliminar", label: "Preliminar" }, { value: "comercializacion", label: "Comercialización" }, { value: "cierre", label: "Cierre" }]), section: "01 / Encargo e identificación" },
     sectionField("02 / Personas y facultades", "personas", "Personas y facultades", "juridicaRows"),
     sectionField("02 / Personas y facultades", "estadoCivilAdquisicion", "Estado civil al adquirir y fecha"),
     sectionField("02 / Personas y facultades", "estadoCivilActual", "Estado civil actual y cambios acreditados"),
@@ -195,50 +200,8 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     field("responsableEstimacion", "Responsable de la estimación"),
   ], true),
   f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, intermediacionFields),
-  f("10", "Plan_de_comercializacion", "docx", 3, [
-    folio, inmueble, propietario, asesor, field("contactoAsesor", "Contacto del asesor"), fecha,
-    choice("operacion", "Operación", [{ value: "venta", label: "Venta" }, { value: "renta", label: "Renta" }]),
-    field("modalidadEncargo", "Modalidad del encargo"),
-    field("valorReferencia07", "Valor de referencia 07", "money"), field("referencia07", "Referencia y fecha de la opinión 07"),
-    field("precioSalida", "Precio de salida autorizado", "money"), moneda,
-    field("baseFiscal", "Base fiscal y alcance del precio"), field("autorizacionPrecio", "Soporte de autorización del precio"),
-    field("decisionPrecio", "Siguiente decisión de precio"), field("justificacionDiferencia", "Justificación de diferencia entre valor y precio", "long"),
-    field("objetivo", "Objetivo del propietario", "long"), field("estrategia", "Estrategia propuesta", "long"),
-    field("periodo", "Primer periodo de trabajo"), field("fechaRevision", "Fecha de revisión", "date"),
-    field("condicionesLanzamiento", "Condiciones para lanzar", "long"),
-    field("diferenciador", "Fortaleza comprobable", "long"), field("objecionRespuesta", "Objeción y respuesta sustentada", "long"),
-    field("competencia", "Competencia y referencia del 07", "long"), field("pendientesCampana", "Pendientes que limitan la campaña", "long"),
-    field("atributos", "Atributos, evidencia y mensaje", "planRows"),
-    field("publicoPrimario", "Público prioritario: uso, presupuesto, zona y plazo", "long"),
-    field("publicoSecundario", "Público secundario o no aplica", "long"),
-    field("mensajePrueba", "Mensaje a probar", "long"), field("evidenciaValidacion", "Evidencia para validar el público", "long"),
-    field("fechaLanzamiento", "Fecha prevista de lanzamiento", "date"), field("aprobadorContenido", "Responsable de aprobar contenidos"),
-    field("preparacion", "Trabajos previos: acción, responsable y fecha", "long"),
-    field("hitos", "Preparación y calendario", "planRows"), field("piezas", "Materiales de difusión", "planRows"),
-    field("contactoPublico", "Contacto público autorizado"), field("ubicacionPublicable", "Ubicación que puede difundirse"),
-    field("colaboracion", "Referidos y colaboración autorizados", "long"), field("canales", "Canales y piezas seleccionados", "planRows"),
-    field("corte7", "Corte del día 7", "date"), field("corte14", "Corte del día 14", "date"), field("corte21", "Corte del día 21", "date"),
-    choice("estadoPublicidad", "Estado de la publicidad pagada", [
-      { value: "no_contratada", label: "No contratada" }, { value: "contratada", label: "Contratada con autorización" },
-    ]),
-    field("extras", "Publicidad pagada y extras", "planRows", false), field("unidadesFases", "Unidades y fases o no aplica", "long"),
-    field("mediosAtencion", "Medios para atender consultas"), field("tiempoRespuesta", "Tiempo de respuesta y horario"),
-    field("horariosVisita", "Horarios y condiciones de visita"), field("responsableAcceso", "Responsable de acceso"),
-    field("formasPago", "Formas de pago a evaluar y condiciones", "long"),
-    field("documentosRestringidos", "Documentación de acceso restringido", "long"), field("custodioDocumentos", "Custodio de documentos"),
-    field("medioReporte", "Medio de entrega del reporte 11"), field("frecuencia09", "Frecuencia pactada en el 09"),
-    field("proximoCorte", "Próximo corte", "date"), field("destinatarioReporte", "Destinatario del reporte"),
-    field("criterioRevision", "Criterio acordado para revisar la estrategia", "long"),
-    field("decisiones", "Decisiones para iniciar", "planRows"),
-    choice("estadoAprobacion", "Estado de aceptación del plan", [
-      { value: "pendiente", label: "Pendiente de aceptación expresa" }, { value: "registrada", label: "Aceptación registrada" },
-    ]),
-    field("nombreAprobador", "Propietario o representante que aceptó", "text", false),
-    field("fechaAprobacion", "Fecha de aceptación", "date", false),
-    field("acuseAprobacion", "Firma o referencia del acuse", "text", false),
-    field("siguienteAccion", "Siguiente acción"), field("responsableSiguiente", "Responsable de la siguiente acción"),
-    field("fechaSiguiente", "Fecha de la siguiente acción", "date"),
-  ], true),
+  // Plantilla del 26/10/2026, aprobada por el titular el 29/10/2026 (src/lib/formatos/plan.ts).
+  f("10", "Plan_de_comercializacion", "docx", 3, planFields, true),
   f("11", "Reporte_de_comercializacion_al_propietario", "docx", 3, [
     folio, field("numeroReporte", "Número de reporte"), inmueble, propietario,
     field("periodoInicio", "Inicio del periodo informado", "date"), field("periodoFin", "Fin del periodo informado", "date"),
@@ -362,28 +325,20 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     field("accionAcordada", "Acción acordada", "long"), field("responsableSeguimiento", "Responsable del seguimiento"),
     field("fechaSeguimiento", "Fecha de seguimiento", "date"), field("pendientesComprobar", "Pendientes por comprobar", "long"),
   ], true),
+  // Plantilla del 26/10/2026 (14_CartaIntencion.docx, «Propuesta de compra»): solo los espacios que imprime.
   f("14", "Oferta_de_compra_y_respuesta_del_propietario", "docx", 3, [
     folio, field("lugarPropuesta", "Lugar de la propuesta"), field("fechaPropuesta", "Fecha de la propuesta", "date"),
-    propietario, comprador, field("representacionComprador", "Representación del comprador o cuenta propia"),
-    field("derechoAdquirir", "Derecho que se propone adquirir"), inmueble,
-    field("folioInmueble", "Folio del inmueble y unidad o no aplica"),
+    propietario, comprador, field("representacionComprador", "Representación del comprador o cuenta propia", "text", false), inmueble,
+    field("folioInmueble", "Folio Real"), field("partida", "Partida", "text", false),
     field("precioPropuesto", "Precio propuesto", "money"), moneda,
-    field("impuestosPrecio", "Impuestos incluidos o excluidos del precio"),
-    field("bienesIncluidos", "Bienes y accesorios incluidos o ninguno", "long"),
-    field("bienesExcluidos", "Bienes y accesorios excluidos o ninguno", "long"),
     field("recursosPropios", "Recursos propios", "money"), field("credito", "Crédito previsto", "money"),
     field("institucionCredito", "Institución del crédito", "text", false),
     field("estadoCredito", "Estado del crédito", "text", false),
-    field("calendarioPagos", "Importe y momento de cada pago", "long"),
     field("condiciones", "Condiciones, documentos o revisiones pendientes", "long"),
     field("fechaCondiciones", "Límite para resolver condiciones", "date"),
     field("fechaFormalizacion", "Fecha propuesta para formalizar", "date"),
-    field("fechaEntrega", "Fecha propuesta para la entrega", "date"),
-    field("gastosComprador", "Gastos a cargo del comprador", "long"),
-    field("gastosPropietario", "Gastos a cargo del propietario", "long"),
     field("fechaLimitePropuesta", "Límite de respuesta a la propuesta", "date"),
     field("horaLimitePropuesta", "Hora límite de la propuesta", "time"),
-    field("zonaHoraria", "Zona horaria"),
     choice("estadoRespuesta", "Estado de la respuesta del propietario", [
       { value: "pendiente", label: "Pendiente: emitir sólo la propuesta" },
       { value: "registrada", label: "Respuesta registrada" },
@@ -496,6 +451,16 @@ export function formatoById(id: string): FormatoDefinition {
   return formato;
 }
 
+/**
+  PDF con datos faltantes (titular, 27/10/2026): se descarga avisando y pidiendo confirmación, y
+  sale marcado como incompleto. No aplica al aviso de privacidad (01), documento legal cotejado,
+  ni a la promesa (15), que exige su revisión jurídica; el PDF del 09 sigue bloqueado aparte.
+*/
+const SIN_INCOMPLETO = new Set(["01", "15"]);
+export const emiteIncompleto = (id: string) => !SIN_INCOMPLETO.has(id);
+/** Leyenda del pie de un PDF al que le faltan datos. */
+export const avisoIncompleto = (missing: readonly string[]) => missing.length ? `Documento incompleto: ${missing.length === 1 ? "falta 1 dato" : `faltan ${missing.length} datos`}` : undefined;
+
 export function validateFormato(id: string, data: Record<string, unknown>): string[] {
   // La opinión de valor se descarga aunque falten datos (decisión del titular, 17/10/2026).
   if (id === "07") return [];
@@ -504,6 +469,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     if (id === "07" && !mostrarCampoValor(item.key, data)) return false;
     if (id === "15" && !mostrarCampoPromesa(item.key, data)) return false;
     if (id === "09" && !mostrarCampoIntermediacion(item.key, data)) return false;
+    if (id === "10" && !mostrarCampoPlan(item.key, data)) return false;
     if (item.type === "valorRows" || item.type === "promesaRows" || item.type === "intermediacionRows") return false;
     if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows" || item.type === "levantamientoRows") return false;
     const value = data[item.key];
@@ -519,6 +485,7 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     }
     if (item.type === "time") return typeof value !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(value);
     if (item.type === "choice") return typeof value !== "string" || !item.options?.some((option) => option.value === value);
+    if (item.type === "multi") return !Array.isArray(value) || value.some((entry) => typeof entry !== "string" || !item.options?.some((option) => option.value === entry));
     return typeof value !== "string";
   }).map((item) => item.label);
   if (id === "08") errors.push(...validarNeto(data));

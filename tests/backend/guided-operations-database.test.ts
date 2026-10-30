@@ -130,3 +130,14 @@ it('replaces a supplied recording actor with the authenticated user and does not
 it.each([{version:'1'},{motivo:123},{contraparteExterna:123},{estado:true}])('rejects direct guide data incompatible with the visible schema: %j',async(patch)=>{
  await asUser(own,async()=>{const f=await fixture();await expect(update(f.id,'captacion',{...completeFlow(),...patch})).rejects.toMatchObject({code:'PT400'});});
 });
+
+it('registers owner report deliveries in the guide and rejects malformed ones (COR-08)',async()=>{
+ await asUser(own,async()=>{
+  const f=await fixture();
+  const entrega={fecha:'2026-10-20',canal:'whatsapp',responsable:'Ana',registradoEl:'2026-10-20T18:00:00Z'};
+  const saved=await update(f.id,'documentacion',{...completeFlow(),entregasInforme:[entrega]});
+  expect((saved.flujo as {entregasInforme:unknown[]}).entregasInforme).toEqual([entrega]);
+  for(const bad of [[{...entrega,canal:'fax'}],[{...entrega,responsable:' '}],[{...entrega,fecha:'20/10/2026'}],[{...entrega,nota:'x'}],{fecha:'2026-10-20'}])
+   await expect(update(f.id,'documentacion',{...completeFlow(),entregasInforme:bad})).rejects.toMatchObject({code:'PT400'});
+ });
+});
