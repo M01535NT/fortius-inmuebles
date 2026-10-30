@@ -1,5 +1,5 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { addMonths, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { addMonths, lastOwnerReport, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { interviewFields, INTENTS, type OperationalInterview } from "@/lib/intake/interview";
 import type { Followup } from "@/lib/admin/followups";
 
@@ -144,8 +144,8 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
       if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key), meta: `${label(d)} · ${d.folio}`, href: `/admin/operaciones/${encodeURIComponent(d.id)}` });
     }
     if (reports && ownerReportApplies(d.etapa, d.flujo)) {
-      const last = reports[d.id];
-      const next = last ? addMonths(last.slice(0, 10), 1) : undefined;
+      const last = lastOwnerReport(d.flujo, reports[d.id]);
+      const next = last ? addMonths(last, 1) : undefined;
       if (inRange(next)) items.push({ id: `informe:${d.id}`, date: next!, kind: "Informe", text: "Informe mensual al propietario", meta: `${label(d)} · se cumple el mes`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` });
     }
   }
@@ -154,7 +154,7 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
 
 /** Informes al propietario vencidos o que nunca se han preparado, mientras el inmueble se promueve o negocia. */
 export function overdueReports({ dossiers, reports, names, today }: { dossiers: TodayDossier[]; reports: Record<string, string>; names: Names; today: string }) {
-  return dossiers.filter(d => active(d) && ownerReportApplies(d.etapa, d.flujo)).map(d => ({ d, status: ownerReportStatus(reports[d.id], today) }))
+  return dossiers.filter(d => active(d) && ownerReportApplies(d.etapa, d.flujo)).map(d => ({ d, status: ownerReportStatus(lastOwnerReport(d.flujo, reports[d.id]), today) }))
     .filter(({ status }) => status.estado !== "al_dia")
     .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? d.folio, status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
 }

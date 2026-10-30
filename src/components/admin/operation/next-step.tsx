@@ -7,7 +7,7 @@ import { inputClass, selectClass } from "@/components/admin/ui";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
-import { isOwnerRoute, ownerReportApplies, ownerReportStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { CANALES_INFORME, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { actualizarChecklist, checklistCompleto, checklistDesactualizado, checklistFor, CODIGOS_POR_TIPO_DOCUMENTO, levantamientoFor, motivoNoAplica, pasoCompleto, type PasoChecklist } from "@/lib/formatos/checklist-documentos";
@@ -210,7 +210,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
         {notice && <p role="status" className="mt-4 text-sm text-muted-foreground">{notice}</p>}
       </Card>
       {owner && interview && (phase === "captacion" || phase === "verificacion" || phase === "contrato") && <Declared op={op} interview={interview} />}
-      {owner && ownerReportApplies(stageOf(op), op.flujo ?? flow) && <OwnerReport op={op} today={today} />}
+      {owner && ownerReportApplies(stageOf(op), op.flujo ?? flow) && <OwnerReport op={op} today={today} disabled={lock} onSave={onSave} />}
       {owner && (phase === "publicacion" || phase === "visitas") && <VisitsAndOffers op={op} today={today} documents={evidence.documents} />}
     </div>
     <aside className="flex min-w-0 flex-col gap-5" aria-label="Apoyo de la etapa">
@@ -464,16 +464,63 @@ function useRuns(slug: string, ids: string[]) {
   return runs;
 }
 
-/** Informe mensual al propietario mientras el inmueble se promueve o negocia. */
-function OwnerReport({ op, today }: { op: OperationRecord; today: string }) {
+/**
+  Informe mensual al propietario mientras el inmueble se promueve o negocia. Preparado no es
+  entregado (RP-88, COR-08): la entrega se registra aparte, a mano, con fecha, canal y quién lo
+  entregó; el aviso de vencido cuenta desde la última entrega y, si no hay, desde el preparado.
+*/
+function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; today: string; disabled: boolean; onSave: Save }) {
   const runs = useRuns("informe-propietario", [op.id]);
+  const advisers = useCollection(db.asesores);
+  const flow = flowOf(op);
   const prepared = runs?.filter(run => run.result != null);
-  const status = prepared ? ownerReportStatus(prepared[0]?.updatedAt, today) : undefined;
+  const entregas = [...(flow.entregasInforme ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const ultima = entregas[0];
+  const status = prepared || ultima ? ownerReportStatus(lastOwnerReport(flow, prepared?.[0]?.updatedAt), today) : undefined;
+  const [form, setForm] = React.useState<{ fecha: string; canal: EntregaInforme["canal"] | ""; responsable: string } | null>(null);
+  const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
+  const abrir = () => { setNotice(""); setError(""); setForm({ fecha: today, canal: "", responsable: advisers.find(a => a.id === op.asesor_id)?.nombre ?? "" }); };
+  async function registrar(event: React.FormEvent) {
+    event.preventDefault();
+    if (!form || !form.canal || !form.responsable.trim() || busy) return;
+    setBusy(true); setError("");
+    try {
+      const entrega: EntregaInforme = { fecha: form.fecha, canal: form.canal, responsable: form.responsable.trim().slice(0, 160), registradoEl: new Date().toISOString() };
+      await onSave({ flujo: { ...flow, entregasInforme: [...(flow.entregasInforme ?? []), entrega].slice(-120) } });
+      setForm(null); setNotice("Entrega registrada.");
+    } catch (cause) { setError(saveError(cause)); } finally { setBusy(false); }
+  }
+  const lock = disabled || busy;
+  const preparado = prepared?.[0]?.updatedAt;
   return <Card className="flex flex-col gap-2 p-5" aria-label="Informe al propietario">
     <h2 className="m-0 flex items-center gap-2 text-base"><FileText size={18} aria-hidden="true" />Informe mensual al propietario</h2>
-    <p className={cn("text-sm", status?.estado !== "al_dia" && prepared && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !prepared?.length ? "Todavía no hay un informe preparado para esta operación." : status?.estado === "vencido" ? `Vencido desde el ${shortDate(status.proximo!)}. El último se preparó el ${shortDate(prepared[0].updatedAt)}.` : `Al día. El último se preparó el ${shortDate(prepared[0].updatedAt)}; el siguiente toca el ${shortDate(status?.proximo ?? today)}.`}</p>
-    <p className="text-sm text-muted-foreground">Cada mes le contamos al propietario las consultas, visitas, ofertas y lo que sigue. Cuenta la fecha del último informe preparado en la herramienta.</p>
-    <ButtonLink className="self-start" href={`/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(op.id)}`}>Preparar informe del mes</ButtonLink>
+    <p className={cn("text-sm", status && status.estado !== "al_dia" && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null && !ultima ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !status ? "Todavía no hay un informe preparado para esta operación."
+      : status.estado === "vencido" ? `Vencido desde el ${shortDate(status.proximo!)}.` : `Al día; el siguiente toca el ${shortDate(status.proximo ?? today)}.`}</p>
+    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+      <dt className="text-muted-foreground">Último preparado</dt><dd>{preparado ? shortDate(preparado) : "Ninguno"}</dd>
+      <dt className="text-muted-foreground">Última entrega</dt><dd>{ultima ? `${shortDate(ultima.fecha)} · ${CANALES_INFORME[ultima.canal]} · ${ultima.responsable}` : "Sin registrar"}</dd>
+    </dl>
+    {preparado && (!ultima || ultima.fecha < preparado.slice(0, 10)) && !form && <p className="text-sm text-[var(--warning)]">El último informe preparado todavía no se registra como entregado.</p>}
+    {form ? <form onSubmit={registrar} className="mt-1 grid gap-2 sm:grid-cols-3" aria-label="Registrar entrega del informe">
+      <label className="text-sm">Fecha de entrega<input type="date" className={inputClass} required max={today} value={form.fecha} disabled={lock} onChange={e => setForm({ ...form, fecha: e.target.value })} /></label>
+      <label className="text-sm">Canal<select className={selectClass} required value={form.canal} disabled={lock} onChange={e => setForm({ ...form, canal: e.target.value as EntregaInforme["canal"] })}>
+        <option value="">Elige…</option>{Object.entries(CANALES_INFORME).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select></label>
+      <label className="text-sm">Quién lo entregó<input className={inputClass} required maxLength={160} value={form.responsable} disabled={lock} onChange={e => setForm({ ...form, responsable: e.target.value })} /></label>
+      <span className="flex flex-wrap gap-2 sm:col-span-3">
+        <Button type="submit" variant="primary" disabled={lock || !form.fecha || !form.canal || !form.responsable.trim()}>Guardar entrega</Button>
+        <Button disabled={lock} onClick={() => setForm(null)}>Cancelar</Button>
+      </span>
+    </form> : <span className="flex flex-wrap gap-2">
+      <ButtonLink href={`/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(op.id)}`}>Preparar informe del mes</ButtonLink>
+      <Button disabled={lock} onClick={abrir}>Registrar entrega</Button>
+    </span>}
+    {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    {entregas.length > 1 && <details className="text-sm"><summary className="cursor-pointer">Entregas anteriores</summary>
+      <ul className="mt-1 flex flex-col gap-0.5">{entregas.slice(1).map(e => <li key={`${e.fecha}-${e.registradoEl ?? e.responsable}`}>{shortDate(e.fecha)} · {CANALES_INFORME[e.canal]} · {e.responsable}</li>)}</ul>
+    </details>}
+    <p className="text-sm text-muted-foreground">Cada mes le contamos al propietario las consultas, visitas, ofertas y lo que sigue. Preparar el informe no es entregarlo: registra cuándo, por dónde y quién se lo entregó.</p>
   </Card>;
 }
 

@@ -49,12 +49,17 @@ const evidence = z.object({ tipo: z.enum(["entrevista","documento","emision","ad
 const review = z.object({ estado: z.enum(["pendiente","recibido","revisado","observado","no_aplica"]), soporte: z.string().max(1000), evidencia: evidence.optional(), bloquea: z.array(z.enum(WORKFLOW_STAGES)).max(8).optional(), vigenteHasta: z.iso.date().optional(), registradoPor: z.uuid().optional(), registradoEl: z.string().max(80).optional() }).strict();
 export const RESOLUTION_TYPES = { aceptada: "Aceptada", condicionada: "Aceptada con condiciones", pausada: "Pausada", rechazada: "Rechazada", referida: "Referida", cancelada: "Cancelada" } as const;
 const resolution = z.object({ tipo: z.enum(["aceptada","condicionada","pausada","rechazada","referida","cancelada"]), fecha: z.iso.date(), motivo: z.string().trim().min(3).max(1000), condiciones: z.string().max(1000).optional(), permitidas: z.array(z.enum(WORKFLOW_STAGES)).max(8).optional(), siguienteAccion: z.string().trim().min(1).max(160), fechaSiguiente: z.iso.date() }).strict().refine(r=>r.tipo!=="condicionada" || !!r.condiciones?.trim(), "Describe las condiciones de aceptación");
+/** Canales de entrega del informe al propietario (COR-08, RP-88): se capturan a mano. */
+export const CANALES_INFORME = { whatsapp: "WhatsApp", correo: "Correo", en_persona: "En persona", telefono: "Teléfono", otro: "Otro" } as const;
+const entregaInforme = z.object({ fecha: z.iso.date(), canal: z.enum(Object.keys(CANALES_INFORME) as [keyof typeof CANALES_INFORME, ...Array<keyof typeof CANALES_INFORME>]), responsable: z.string().trim().min(1).max(160), registradoEl: z.string().max(80).optional() }).strict();
+export type EntregaInforme = z.infer<typeof entregaInforme>;
 export const operationWorkflowSchema = z.object({
  version: z.literal(1), ruta: z.enum(["captacion","compra","arrendador","arrendatario","inversion"]), estado: z.enum(["activa","pausada","regularizacion","descartada"]),
  motivo: z.string().max(1000).default(""),
  requisitos: z.partialRecord(z.enum(Object.keys(WORKFLOW_REQUIREMENTS) as [RequirementKey,...RequirementKey[]]), review),
  contraparteId: z.uuid().optional(), contraparteExterna: z.string().max(1000).optional(),
  resolucion: resolution.optional(),
+ entregasInforme: z.array(entregaInforme).max(120).optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
@@ -205,6 +210,11 @@ export function addMonths(date: string, months: number) {
  const last = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
  target.setUTCDate(Math.min(d, last));
  return target.toISOString().slice(0, 10);
+}
+/** Última entrega registrada del informe; si no hay, cuenta el último preparado (RP-88: preparado no es entregado). */
+export function lastOwnerReport(flow: Pick<OperationWorkflow, "entregasInforme"> | null | undefined, prepared?: string | null): string | undefined {
+ const delivered = (flow?.entregasInforme ?? []).map(e => e.fecha).sort().at(-1);
+ return delivered ?? prepared?.slice(0, 10) ?? undefined;
 }
 export function ownerReportStatus(lastReport: string | null | undefined, today: string): { estado: "al_dia" | "vencido" | "sin_informe"; proximo?: string } {
  if (!lastReport) return { estado: "sin_informe" };

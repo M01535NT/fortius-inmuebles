@@ -323,8 +323,20 @@ it("en Verificación el contrato espera; durante la publicación avisa el inform
   server.ops = [base({ etapa: "comercializacion", flujo: flow({}, accepted) })];
   server.runs["informe-propietario"] = [{ id: "r1", title: "Informe", updatedAt: "2026-09-01T12:00:00Z", result: { title: "ok", summary: [] } }];
   await openOperation();
-  expect(await screen.findByText("Vencido desde el 1 oct. El último se preparó el 1 sep.")).toBeTruthy();
+  expect(await screen.findByText("Vencido desde el 1 oct.")).toBeTruthy();
   expect(screen.getByRole("region", { name: "Visitas y ofertas del inmueble" })).toBeTruthy();
+  // Preparado no es entregado (COR-08): la entrega se registra a mano y desde ahí cuenta el mes.
+  const informe = screen.getByRole("region", { name: "Informe al propietario" });
+  expect(within(informe).getByText("Sin registrar")).toBeTruthy();
+  expect(within(informe).getByText("El último informe preparado todavía no se registra como entregado.")).toBeTruthy();
+  fireEvent.click(within(informe).getByRole("button", { name: "Registrar entrega" }));
+  expect((within(informe).getByRole("button", { name: "Guardar entrega" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.change(within(informe).getByLabelText("Canal"), { target: { value: "whatsapp" } });
+  fireEvent.change(within(informe).getByLabelText("Quién lo entregó"), { target: { value: "Ana Torres" } });
+  fireEvent.click(within(informe).getByRole("button", { name: "Guardar entrega" }));
+  await waitFor(() => expect((lastFlow().flujo as { entregasInforme?: unknown[] }).entregasInforme).toEqual([expect.objectContaining({ fecha: "2026-10-16", canal: "whatsapp", responsable: "Ana Torres" })]));
+  expect(await within(informe).findByText("Al día; el siguiente toca el 16 nov.")).toBeTruthy();
+  expect(within(informe).getByText("16 oct · WhatsApp · Ana Torres")).toBeTruthy();
 });
 
 it("Ajustes ofrece solo la contraparte de la ruta opuesta y nombra su papel", async () => {

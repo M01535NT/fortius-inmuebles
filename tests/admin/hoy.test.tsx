@@ -64,6 +64,11 @@ test("overdue owner reports include operations without any report, only while pr
     dossier({ id: "d3", folio: "EXP-3", etapa: "comercializacion" }), dossier({ id: "d4", folio: "EXP-4", etapa: "documentacion" }),
   ] });
   expect(reports.map(r => [r.who, r.status])).toEqual([["Familia Navarro", "Vencido desde el 10 oct"], ["EXP-2", "Sin informe preparado"]]);
+  // Con una entrega registrada después, el informe ya no está vencido (COR-08).
+  const entregado = overdueReports({ today, names, reports: { d1: "2026-09-10T12:00:00Z" }, dossiers: [
+    dossier({ etapa: "comercializacion", flujo: { version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: {}, entregasInforme: [{ fecha: "2026-10-01", canal: "en_persona", responsable: "Ana" }] } as TodayDossier["flujo"] }),
+  ] });
+  expect(entregado).toEqual([]);
 });
 
 test("today's tasks keep the ones finished today, below the open ones", () => {
