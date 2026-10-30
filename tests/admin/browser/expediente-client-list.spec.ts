@@ -50,7 +50,7 @@ for (const width of [390, 768, 1440]) {
     await waiting.getByRole("link", { name: /Juan Ibarra/ }).click();
     await expect(page).toHaveURL(new RegExp(`/admin/operaciones/${ids[1]}$`));
     await expect(page.getByRole("heading", { level: 1, name: "Juan Ibarra" })).toBeVisible();
-    await expect(page.getByText(/^Etapa 1 de 10/).filter({ visible: true })).toBeVisible();
+    await expect(page.getByText(/^Etapa 1 de 10/).filter({ visible: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Hacer la entrevista inicial (02)" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });

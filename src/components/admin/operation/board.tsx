@@ -147,12 +147,12 @@ export function OperationsBoard() {
       : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" action={<Link href="/admin/operaciones/nueva" className="font-semibold underline underline-offset-4">Nueva operación</Link>}>Empieza con la entrevista del cliente; la operación se crea al terminarla.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
-          <label className="flex items-center gap-2 text-sm font-semibold">Etapa
-            <select className={selectClass} value={stageFilter} onChange={e => chooseStage(e.target.value)}>
+          <span className="flex items-center gap-2"><label htmlFor="operaciones-etapa" className="text-sm font-semibold">Etapa</label>
+            <select id="operaciones-etapa" className={selectClass} value={stageFilter} onChange={e => chooseStage(e.target.value)}>
               <option value="todas">Todas las etapas ({active.length})</option>
               {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <option key={stage.label} value={stage.label}>{stage.n ? `${stage.n} · ` : ""}{stage.label} ({active.filter(row => row.stage === stage.label).length})</option>)}
             </select>
-          </label>
+          </span>
           <span className="flex-1" />
           <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
         </div>
