@@ -4,6 +4,7 @@ import { Camera, FileDown, FileText, Pencil, RotateCcw, Trash2, Upload } from "@
 import { Button, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { db, errorMessage, fetchJson as json, useCollection } from "@/lib/admin/store";
+import { TIPOS_DOCUMENTO, type TipoDocumento } from "@/lib/ia/lectura";
 import { ExpedienteDatosPanel } from "./expediente-datos-panel";
 
 /*
@@ -12,9 +13,14 @@ import { ExpedienteDatosPanel } from "./expediente-datos-panel";
   predial…— sin acomodarlos por tipo. Cada archivo se sube directo a la carga privada con un
   permiso de un solo uso y el servidor lo comprueba antes de guardarlo. Nada se borra de golpe:
   va a la papelera y se puede restaurar.
+  Con la lectura activada (IA-01), cada documento se lee al subirlo y sus datos aparecen abajo como
+  propuestas para confirmar; un error de lectura no detiene nada y se puede volver a leer.
 */
 
-export type ArchivoCliente = { id: string; titulo: string; nombre_original: string; mime: string; byte_length: number; uploaded_by: string; created_at: string; deleted_at: string | null };
+export type ArchivoCliente = { id: string; titulo: string; nombre_original: string; mime: string; byte_length: number; uploaded_by: string; created_at: string; deleted_at: string | null;
+  lectura_estado?: "pendiente" | "leyendo" | "leido" | "error"; lectura_error?: string | null; tipo_documento?: string | null };
+type Lista = { archivos: ArchivoCliente[]; papelera: ArchivoCliente[]; ia?: boolean };
+type Lectura = { tipoDocumento: TipoDocumento; propuestos: string[]; distintos: { etiqueta: string }[] };
 const TIPOS = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 const MAX = 20 * 1024 * 1024;
 const tamano = (bytes: number) => bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -33,39 +39,66 @@ async function subir(operationId: string, file: File): Promise<ArchivoCliente> {
 
 export function ClientDocumentsTab({ operationId }: { operationId: string }) {
   const advisers = useCollection(db.asesores);
-  const [lista, setLista] = React.useState<{ archivos: ArchivoCliente[]; papelera: ArchivoCliente[] } | null | undefined>(undefined);
+  const [lista, setLista] = React.useState<Lista | null | undefined>(undefined);
   const [subiendo, setSubiendo] = React.useState<string[]>([]);
   const [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const [arrastrando, setArrastrando] = React.useState(false);
   const [editando, setEditando] = React.useState<{ id: string; titulo: string } | null>(null);
   const [verPapelera, setVerPapelera] = React.useState(false);
   // Cada lectura de documentos puede proponer datos nuevos: el panel de datos se vuelve a consultar.
-  const [lecturas] = React.useState(0);
+  const [lecturas, setLecturas] = React.useState(0);
   const elegir = React.useRef<HTMLInputElement>(null), camara = React.useRef<HTMLInputElement>(null);
 
-  const cargar = React.useCallback(() => json<{ archivos: ArchivoCliente[]; papelera: ArchivoCliente[] }>(`/api/admin/expedientes/${operationId}/archivos`)
-    .then(r => setLista({ archivos: r.archivos ?? [], papelera: r.papelera ?? [] }))
+  const cargar = React.useCallback(() => json<Lista>(`/api/admin/expedientes/${operationId}/archivos`)
+    .then(r => setLista({ archivos: r.archivos ?? [], papelera: r.papelera ?? [], ia: Boolean(r.ia) }))
     .catch(cause => { setLista(null); setError(errorMessage(cause)); }), [operationId]);
   React.useEffect(() => { void cargar(); }, [cargar]);
+
+  const actualizar = (id: string, patch: Partial<ArchivoCliente>) => setLista(old => old ? { ...old, archivos: old.archivos.map(a => a.id === id ? { ...a, ...patch } : a) } : old);
+  /** Lee un documento con IA; lo leído queda como propuesta en «Datos del expediente». */
+  async function leer(archivo: ArchivoCliente) {
+    actualizar(archivo.id, { lectura_estado: "leyendo", lectura_error: null });
+    try {
+      const { lectura } = await json<{ lectura: Lectura }>(`/api/admin/archivos-cliente/${archivo.id}/leer`, { method: "POST" });
+      actualizar(archivo.id, { lectura_estado: "leido", tipo_documento: lectura.tipoDocumento });
+      setLecturas(n => n + 1);
+      const n = lectura.propuestos.length;
+      const distintos = lectura.distintos.map(d => d.etiqueta.toLowerCase()).join(", ");
+      return `«${archivo.titulo}»: ${n ? `${n === 1 ? "1 dato propuesto" : `${n} datos propuestos`} para confirmar en «Datos del expediente».` : "no se encontraron datos nuevos."}${distintos ? ` Dice otra cosa que lo ya confirmado en: ${distintos}; lo confirmado no se cambió.` : ""}`;
+    } catch (cause) {
+      actualizar(archivo.id, { lectura_estado: "error", lectura_error: errorMessage(cause) });
+      throw new Error(`«${archivo.titulo}»: ${errorMessage(cause)}`);
+    }
+  }
+  async function leerUno(archivo: ArchivoCliente) {
+    setError(""); setNotice("");
+    try { setNotice(await leer(archivo)); } catch (cause) { setError(errorMessage(cause)); }
+  }
 
   async function agregar(files: FileList | File[] | null) {
     const todos = Array.from(files ?? []);
     if (!todos.length) return;
     setError(""); setNotice("");
-    const fallas: string[] = [];
+    const fallas: string[] = [], nuevos: ArchivoCliente[] = [];
     let listos = 0;
     // Uno por uno: si uno falla, los demás siguen.
     for (const file of todos) {
       setSubiendo(names => [...names, file.name]);
       try {
         const archivo = await subir(operationId, file);
-        listos++;
+        listos++; nuevos.push(archivo);
         setLista(old => old ? { ...old, archivos: [archivo, ...old.archivos] } : { archivos: [archivo], papelera: [] });
       } catch (cause) { fallas.push(errorMessage(cause)); }
       finally { setSubiendo(names => names.filter(name => name !== file.name)); }
     }
-    if (listos) setNotice(listos === 1 ? "Se guardó 1 documento." : `Se guardaron ${listos} documentos.`);
+    const avisos = listos ? [listos === 1 ? "Se guardó 1 documento." : `Se guardaron ${listos} documentos.`] : [];
+    if (listos) setNotice(avisos.join(" "));
     if (fallas.length) setError(fallas.join(" "));
+    // Con la lectura activada, cada documento nuevo se lee en seguida, uno tras otro.
+    if (!lista?.ia) return;
+    for (const archivo of nuevos) {
+      try { avisos.push(await leer(archivo)); setNotice(avisos.join(" ")); } catch (cause) { fallas.push(errorMessage(cause)); setError(fallas.join(" ")); }
+    }
   }
   async function cambiar(id: string, body: Record<string, unknown>, mensaje: string) {
     setError(""); setNotice("");
@@ -124,8 +157,13 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
               </form>
               : <span className="font-semibold [overflow-wrap:anywhere]">{archivo.titulo}</span>}
             <span className="text-xs text-muted-foreground">{archivo.mime === "application/pdf" ? "PDF" : "Imagen"} · {tamano(archivo.byte_length)} · {fecha(archivo.created_at)} · {quien(archivo.uploaded_by)}</span>
+            {archivo.lectura_estado === "leyendo" ? <span role="status" className="text-xs text-muted-foreground">Leyendo el documento…</span>
+              : archivo.lectura_estado === "leido" ? <span className="text-xs text-muted-foreground">Leído{archivo.tipo_documento && archivo.tipo_documento in TIPOS_DOCUMENTO ? ` · ${TIPOS_DOCUMENTO[archivo.tipo_documento as TipoDocumento]}` : ""}</span>
+              : archivo.lectura_estado === "error" ? <span className="text-xs text-destructive">No se pudo leer{archivo.lectura_error ? `: ${archivo.lectura_error}` : ""}</span>
+              : null}
           </div>
-          {editando?.id !== archivo.id && <span className="flex gap-1">
+          {editando?.id !== archivo.id && <span className="flex flex-wrap gap-1">
+            {lista?.ia && archivo.lectura_estado !== "leyendo" && <Button variant="ghost" onClick={() => void leerUno(archivo)}>{archivo.lectura_estado === "leido" || archivo.lectura_estado === "error" ? "Volver a leer" : "Leer con IA"}</Button>}
             <a className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium hover:bg-muted" href={`/api/admin/archivos-cliente/${archivo.id}/descargar`} target="_blank" rel="noopener"><FileDown size={16} aria-hidden="true" />Abrir</a>
             <Button variant="ghost" iconOnly aria-label={`Cambiar el nombre de ${archivo.titulo}`} onClick={() => setEditando({ id: archivo.id, titulo: archivo.titulo })}><Pencil size={16} aria-hidden="true" /></Button>
             <Button variant="ghost" iconOnly aria-label={`Mandar ${archivo.titulo} a la papelera`} onClick={() => void cambiar(archivo.id, { papelera: true }, "Se movió a la papelera; puedes restaurarlo.")}><Trash2 size={16} aria-hidden="true" /></Button>

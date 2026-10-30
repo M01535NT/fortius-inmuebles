@@ -2,17 +2,18 @@ import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { exigirExpediente, listarArchivos, prepararArchivo } from "@/lib/backend/expediente-archivos";
 import { apiResponse, assertSameOrigin, readJson } from "@/lib/backend/http";
+import { lecturaDisponible } from "@/lib/ia/claude";
 
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
 
-/** Documentos del cliente del expediente y su papelera. */
+/** Documentos del cliente del expediente, su papelera y si la lectura con IA está activada. */
 export async function GET(_request: Request, context: Context) {
   return apiResponse(async () => {
     const id = z.uuid().parse((await context.params).id);
     const { client } = await requireStaff();
     await exigirExpediente(client, id);
-    return listarArchivos(client, id);
+    return { ...await listarArchivos(client, id), ia: lecturaDisponible() };
   });
 }
 
