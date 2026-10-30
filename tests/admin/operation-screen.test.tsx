@@ -29,7 +29,8 @@ const collections: Record<string, () => Record<string, unknown>[]> = {
   clientes: () => [{ id: "c1", nombre: "Familia Castañeda Ortiz", tipo: "propietario", telefono: "6642184471", asesorId: "a1" }, { id: "c2", nombre: "Ángel Martínez", tipo: "comprador", asesorId: "a2" }],
   propiedades: () => [{ slug: "casa", codigo: "F-1", titulo: "Casa en Playas", estado: "disponible", galeria: [], precio: { modalidad: "consulta" }, asesorId: "a1" }],
   asesores: () => [{ id: "a1", nombre: "Mariana Ruiz", activo: true }, { id: "a2", nombre: "Jorge Salcedo", activo: true }],
-  tareas: () => server.tasks, eventos: () => [], leads: () => [],
+  tareas: () => server.tasks, eventos: () => [],
+  leads: () => [{ id: "lead-renta", nombre: "Lucía Interesada", telefono: "6640001111", origen: "manual", estado: "contactado", creadoEl: "2026-10-01", notas: [], perfil: { operacion: "rentar" } }, { id: "lead-compra", nombre: "Pedro Comprador", telefono: "6640002222", origen: "manual", estado: "contactado", creadoEl: "2026-10-01", notas: [], perfil: { operacion: "comprar" } }],
 };
 // jsdom no desplaza elementos; la vista en vivo lleva la celda pulsada a la vista.
 Element.prototype.scrollIntoView ??= () => undefined;
@@ -339,16 +340,32 @@ it("en Verificación el contrato espera; durante la publicación avisa el inform
   expect(within(informe).getByText("16 oct · WhatsApp · Ana Torres")).toBeTruthy();
 });
 
-it("Ajustes ofrece solo la contraparte de la ruta opuesta y nombra su papel", async () => {
+it("Ajustes ofrece como contraparte al interesado que busca esa operación, no una operación de comprador (COR-11)", async () => {
   server.ops = [
     base({ operacion: "renta", flujo: flow({}, { ruta: "arrendador" }) }),
     base({ id: ID2, folio: "EXP-RENTA", operacion: "renta", cliente_id: "c2", flujo: flow({}, { ruta: "arrendatario" }) }),
-    base({ id: "51000000-0000-4000-8000-000000000003", folio: "EXP-OTRO", operacion: "renta", cliente_id: "c2", flujo: flow({}, { ruta: "arrendador" }) }),
   ];
   await openOperation("ajustes");
-  const select = screen.getByLabelText("Operación de la contraparte");
-  expect(within(select).getAllByRole("option").map(o => o.textContent)).toEqual(["Ninguna del panel", "EXP-RENTA · Arrendatario"]);
+  const select = screen.getByLabelText("Interesado que firma");
+  expect(within(select).getAllByRole("option").map(o => o.textContent)).toEqual(["Ninguno del panel", "Lucía Interesada · 6640001111"]);
+  expect(screen.queryByLabelText("Operación de la contraparte")).toBeNull();
+  // Las rutas de búsqueda ya no se ofrecen para una operación del propietario.
+  expect(within(screen.getByLabelText("Ruta")).getAllByRole("option").map(o => o.textContent)).not.toContain("Arrendatario");
+  fireEvent.change(select, { target: { value: "lead-renta" } });
+  expect((screen.getByLabelText("Contraparte externa y respaldo") as HTMLTextAreaElement).disabled).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: "Guardar ajustes" }));
+  await waitFor(() => expect(server.puts.at(-1)?.body).toMatchObject({ flujo: { contraparteLeadId: "lead-renta" } }));
   expect(screen.getByRole("link", { name: "Programar una cita" }).getAttribute("href")).toBe(`/admin/agenda?expediente=${ID}`);
+});
+
+it("una operación de búsqueda de renta ya abierta se muestra como histórica y conserva su contraparte (COR-11)", async () => {
+  server.ops = [
+    base({ operacion: "renta", flujo: flow({}, { ruta: "arrendatario" }) }),
+    base({ id: ID2, folio: "EXP-RENTA", operacion: "renta", cliente_id: "c2", flujo: flow({}, { ruta: "arrendador" }) }),
+  ];
+  await openOperation("ajustes");
+  expect(screen.getByText("Operación histórica")).toBeTruthy();
+  expect(within(screen.getByLabelText("Operación de la contraparte")).getAllByRole("option").map(o => o.textContent)).toEqual(["Ninguna del panel", "EXP-RENTA · Propietario arrendador"]);
 });
 
 it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin guardar", async () => {

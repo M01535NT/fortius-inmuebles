@@ -256,6 +256,14 @@ const end: Field[] = [
 export function isOwnerIntent(intent: IntakeIntent) {
   return intent === "vender" || intent === "arrendar";
 }
+/**
+  Quien busca comprar o rentar es interesado de Fortius y contraparte del propietario, nunca
+  cliente (RP-93, COR-11): se guarda como lead con su perfil, sin entrevista ni operación.
+*/
+export function isBuyerIntent(intent: IntakeIntent): intent is "comprar" | "rentar" {
+  return intent === "comprar" || intent === "rentar";
+}
+export const BUYER_INTENT_MESSAGE = "Quien busca comprar o rentar se guarda como interesado; no se abre operación.";
 export function interviewFields(intent: IntakeIntent): Field[] {
   const isOwner = isOwnerIntent(intent);
   const label = isOwner

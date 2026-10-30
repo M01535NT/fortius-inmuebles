@@ -148,7 +148,9 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       </div>
     </header>
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}
-    {op.deleted_at ? <Notice title="Esta operación está eliminada" actions={<Button variant="primary" onClick={() => void changeLifecycle(false).catch(cause => setNotice(errorMessage(cause)))}>Restaurar operación</Button>}>Sus documentos, PDF y tareas se conservan. Restáurala para seguir trabajando en ella.</Notice> : <div className={s.body}>
+    {op.deleted_at ? <Notice title="Esta operación está eliminada" actions={<Button variant="primary" onClick={() => void changeLifecycle(false).catch(cause => setNotice(errorMessage(cause)))}>Restaurar operación</Button>}>Sus documentos, PDF y tareas se conservan. Restáurala para seguir trabajando en ella.</Notice> : <>
+    {["compra", "arrendatario"].includes(op.flujo?.ruta ?? "") && <div className="mb-4"><Notice title="Operación histórica">Se abrió antes de que Fortius dejara de abrir operaciones para quien busca comprar o rentar. Se conserva con todo su contenido. Los interesados nuevos se guardan en Contactos y se ligan a la operación del propietario.</Notice></div>}
+    <div className={s.body}>
       <aside className={s.side} aria-label="Etapas y secciones">
         {isGuided(op) && <>
           <div className="hidden lg:block"><StageCard op={view} today={today} docs={docs} checklist={checklist} onOpenStages={focus => setStagesOpen({ focus })} /></div>
@@ -166,7 +168,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         {tab === "historial" && <HistoryTab operationId={op.id} refresh={changes} onDirtyChange={markDirty.historial} />}
         {tab === "ajustes" && <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onRemove={() => changeLifecycle(true)} onDirtyChange={markDirty.ajustes} />}
       </TabPanel>
-    </div>}
+    </div></>}
     {stagesOpen && isGuided(op) && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
     {docs.capture({ cliente: client?.nombre, inmueble: property?.titulo, etapa: stageName })}
   </Surface>;

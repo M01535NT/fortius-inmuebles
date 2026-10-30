@@ -51,6 +51,8 @@ export const leadProfileSchema = z.object({
   horizonteInversion: z.string().max(2000).optional(),
   criteriosInversion: z.string().max(2000).optional(),
   proximoContacto: calendarDate.optional(),
+  proximaAccion: z.string().max(160).optional(),
+  avisoPrivacidad: calendarDate.optional(),
 }).passthrough().superRefine((profile, context) => {
   if ((profile.presupuestoMin !== undefined || profile.presupuestoMax !== undefined || profile.presupuestoDeclarado !== undefined || profile.capitalDeclarado !== undefined || profile.precioObjetivo !== undefined) && profile.moneda === undefined) {
     context.addIssue({ code: "custom", path: ["moneda"], message: "Selecciona la moneda del monto" });

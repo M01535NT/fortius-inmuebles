@@ -3,15 +3,16 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, X } from "@/components/admin/icons";
-import { Button, Card, Notice, ProgressBar, Surface } from "@/components/admin/kit";
+import { Button, ButtonLink, Card, Notice, ProgressBar, Surface } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
-import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState } from "@/lib/admin/store";
+import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState, type Lead } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { INTENTS, type IntakeIntent, type OperationalInterview } from "@/lib/intake/interview";
+import { INTENTS, isBuyerIntent, type IntakeIntent, type OperationalInterview } from "@/lib/intake/interview";
 import { INTENT_CHOICES, intentTitle, wizardSteps } from "@/lib/intake/wizard";
 import { useInterviewGuard } from "./use-interview-guard";
 import { InterviewStep } from "./interview-step";
 import { DoneStep } from "./done-step";
+import { InterestedDone, InterestedStep, type InterestedContact } from "./interested-step";
 import { cn } from "@/lib/utils";
 import s from "./wizard.module.css";
 
@@ -22,6 +23,8 @@ import s from "./wizard.module.css";
   derecha. La operación se crea al terminar la entrevista, como antes; mientras tanto queda
   como borrador en Hoy › «Entrevistas por terminar».
   «?entrevista=<id>» retoma una entrevista (o muestra una terminada).
+  «Quiere comprar» y «Quiere rentar» no abren operación (COR-11, RP-93): el paso 3 es el perfil
+  del interesado y se guarda como prospecto con su próxima acción.
 */
 
 const ORIGINS = { llamada: "Llamada", whatsapp: "WhatsApp", correo: "Correo electrónico", referido: "Referido", web: "Página web o redes sociales", presencial: "En persona", otro: "Otro" } as const;
@@ -54,6 +57,7 @@ export function NewOperationWizard() {
           <StepsNav step={step === 0 ? 3 : step} intent={interview?.intencion} />
           <div className={s.main}>
             {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
+              : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre operación">Fortius representa al propietario: quien busca comprar o rentar se guarda como interesado, con lo que busca y su próxima acción.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
               : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble de la operación. Prepara una entrevista con los datos actuales desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
               : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
               : <DoneStep interview={interview!} fresh={fresh} />}
@@ -110,14 +114,18 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
   const [pending, setPending] = React.useState<OperationalInterview[]>([]);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [uncertain, setUncertain] = React.useState(false);
   const requestId = React.useRef<string | null>(null), sent = React.useRef(false);
-  const dirty = !contact && (!!name || !!phone || !!email);
-  React.useEffect(() => { onGuard(dirty, busy); }, [dirty, busy, onGuard]);
+  const [profileGuard, setProfileGuard] = React.useState({ dirty: false, busy: false });
+  const [interested, setInterested] = React.useState<Lead | null>(null);
+  const buyer = !!intent && isBuyerIntent(intent);
+  const dirty = (!contact && (!!name || !!phone || !!email) && !interested) || profileGuard.dirty;
+  React.useEffect(() => { onGuard(dirty, busy || profileGuard.busy); }, [dirty, busy, profileGuard.busy, onGuard]);
+  const onProfileGuard = React.useCallback((d: boolean, b: boolean) => setProfileGuard(old => old.dirty === d && old.busy === b ? old : { dirty: d, busy: b }), []);
   React.useEffect(() => {
     let alive = true;
     Promise.all([apiRequest<{ administrador: boolean; asesorId: string | null }>("/api/admin/entrevistas/config"), apiRequest<{ entrevistas: OperationalInterview[] }>("/api/admin/entrevistas")])
       .then(([c, p]) => {
         if (!Array.isArray(p.entrevistas) || typeof c.administrador !== "boolean") throw new Error("No se pudo cargar la configuración de captación.");
-        if (alive) { setConfig(c); if (c.asesorId) setAdviser(c.asesorId); setPending(p.entrevistas); }
+        if (alive) { setConfig(c); if (c.asesorId) setAdviser(c.asesorId); setPending(p.entrevistas.filter(e => !isBuyerIntent(e.intencion))); }
       })
       .catch(cause => { if (alive) setError(errorMessage(cause)); });
     return () => { alive = false; };
@@ -133,16 +141,33 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
   const chosen = contact ? people.find(p => p.kind === contact.kind && p.id === contact.id) : undefined;
   const adviserOptions = advisers.filter(a => a.activo && (config?.administrador || a.id === config?.asesorId));
 
+  /** Comprueba el contacto nuevo antes de guardarlo; enfoca el campo que falta. */
+  function contactReady() {
+    if (!contact) {
+      if (!name.trim()) { setError("Escribe el nombre completo."); document.getElementById("nueva-nombre")?.focus(); return false; }
+      if (digits.length < 7 && !mail) { setError("Escribe un teléfono o un correo para poder contactarlo."); document.getElementById("nueva-telefono")?.focus(); return false; }
+      if (!loaded || !config) { setError("Espera a que carguen los contactos y responsables."); return false; }
+      if (matches.length && !shared) { setError("Dinos si es la misma persona que ya tenemos o si es otra."); return false; }
+      if (!adviser) { setError(config.administrador ? "Elige al asesor responsable." : "Tu cuenta necesita un asesor asignado por el administrador."); return false; }
+    }
+    return true;
+  }
+  /** Interesado (compra o renta): el contacto pasa al perfil, sin entrevista ni operación. */
+  function toProfile() {
+    setError("");
+    if (!intent || !contactReady()) return;
+    if (contact && !chosen) { setError("Espera a que cargue su ficha."); return; }
+    setStep(3);
+  }
+  const interestedContact: InterestedContact | null = !buyer ? null
+    : contact?.kind === "lead" ? (() => { const lead = leads.find(l => l.id === contact.id); return lead ? { kind: "lead" as const, lead, version: db.leads.version(lead) } : null; })()
+    : contact?.kind === "cliente" ? (() => { const c = clients.find(x => x.id === contact.id); return c ? { kind: "cliente" as const, nombre: c.nombre, telefono: c.telefono, email: c.email, asesorId: c.asesorId } : null; })()
+    : { kind: "nuevo", nombre: name.trim(), telefono: phone.trim(), email: email.trim() || undefined, asesorId: adviser };
+
   async function start() {
     if (!intent || busy || sent.current) return;
     setError("");
-    if (!contact) {
-      if (!name.trim()) { setError("Escribe el nombre completo."); document.getElementById("nueva-nombre")?.focus(); return; }
-      if (digits.length < 7 && !mail) { setError("Escribe un teléfono o un correo para poder contactarlo."); document.getElementById("nueva-telefono")?.focus(); return; }
-      if (!loaded || !config) { setError("Espera a que carguen los contactos y responsables."); return; }
-      if (matches.length && !shared) { setError("Dinos si es la misma persona que ya tenemos o si es otra."); return; }
-      if (!adviser) { setError(config.administrador ? "Elige al asesor responsable." : "Tu cuenta necesita un asesor asignado por el administrador."); return; }
-    }
+    if (!contactReady()) return;
     if (!correctionOf && (!action.trim() || !actionDate)) { setError("Escribe la siguiente acción y su fecha."); return; }
     if (contact) {
       const current = pending.find(p => p.intencion === intent && (correctionOf ? p.expediente_id === correctionOf : contact.kind === "lead" ? p.lead_id === contact.id : p.cliente_id === contact.id));
@@ -169,6 +194,18 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
       sent.current = false; setBusy(false);
     }
   }
+
+  if (buyer && intent && (step === 3 || step === 4)) return <div className={s.shell}>
+    <Header step={interested ? 4 : 3} intent={intent} />
+    <div className={s.frame}>
+    <StepsNav step={interested ? 4 : 3} intent={intent} />
+    <div className={s.main}>
+      {interested ? <InterestedDone intent={intent as "comprar" | "rentar"} lead={interested} />
+        : interestedContact ? <InterestedStep intent={intent as "comprar" | "rentar"} contact={interestedContact} origin={ORIGINS[origin]} onBack={() => setStep(2)} onDirtyChange={onProfileGuard} onSaved={lead => { setProfileGuard({ dirty: false, busy: false }); setInterested(lead); setStep(4); void db.leads.load().catch(() => {}); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+        : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando su ficha…</p></div>}
+    </div>
+    </div>
+  </div>;
 
   return <div className={s.shell}>
     <Header step={step} intent={intent} />
@@ -214,11 +251,11 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
           </>}
           {!correctionOf && <>
             <label className="flex flex-col gap-2 text-sm font-semibold">¿Cómo llegó?<select className={selectClass} value={origin} onChange={e => { setOrigin(e.target.value as keyof typeof ORIGINS); changed(); }}>{Object.entries(ORIGINS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <details className="text-sm"><summary className="cursor-pointer font-semibold">Siguiente acción mientras terminas de capturarlo</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {!buyer && <details className="text-sm"><summary className="cursor-pointer font-semibold">Siguiente acción mientras terminas de capturarlo</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-2">Siguiente acción<input required maxLength={160} className={inputClass} value={action} onChange={e => { setAction(e.target.value); changed(); }} /></label>
               <label className="flex flex-col gap-2">Fecha de la siguiente acción<input required type="date" className={inputClass} value={actionDate} onChange={e => { setActionDate(e.target.value); changed(); }} /></label>
               <p className="text-muted-foreground sm:col-span-2">El contacto y esta acción se guardan al empezar la entrevista, para no perderlo de vista.</p>
-            </div></details>
+            </div></details>}
           </>}
           {!loaded && <p role="status" className="text-sm text-muted-foreground">Cargando contactos y responsables…</p>}
         </fieldset>
@@ -229,6 +266,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
     <div className={s.footer}><div className={s.footerRow}>
       {step === 2 && !correctionOf ? <Button variant="ghost" disabled={busy} onClick={() => setStep(1)}><ArrowLeft size={16} aria-hidden="true" />Atrás</Button> : <span />}
       {step === 1 ? <Button variant="primary" disabled={!intent} onClick={() => setStep(2)}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button>
+        : buyer ? <Button variant="primary" disabled={!config} onClick={toProfile}>Continuar con lo que busca<ArrowRight size={16} aria-hidden="true" /></Button>
         : <Button variant="primary" disabled={busy || !intent || !config} onClick={() => void start()}>{busy ? "Guardando…" : uncertain ? "Reintentar con los mismos datos" : intent === "vender" || intent === "arrendar" ? "Continuar con los datos del prospecto" : "Continuar con la entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>}
     </div></div>
     </div>

@@ -1,5 +1,5 @@
 import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
-import { answerLabel, interviewFields, interviewIssues, isOwnerIntent, type IntakeIntent, type InterviewAnswers } from "@/lib/intake/interview";
+import { answerLabel, interviewFields, interviewIssues, isBuyerIntent, isOwnerIntent, type IntakeIntent, type InterviewAnswers } from "@/lib/intake/interview";
 
 /*
   Asistente de Nueva operación (encargo del panel guiado, sección 4; lienzo:
@@ -11,14 +11,15 @@ import { answerLabel, interviewFields, interviewIssues, isOwnerIntent, type Inta
 export const WIZARD_STEPS = ["Qué quiere hacer", "Quién es", "Entrevista", "Listo"] as const;
 /** Pasos del asistente: con el propietario, el paso 3 es la ficha rápida del prospecto (la entrevista inicial va en su etapa). */
 export function wizardSteps(intent?: IntakeIntent | null): readonly string[] {
+  if (intent && isBuyerIntent(intent)) return ["Qué quiere hacer", "Quién es", "Lo que busca", "Listo"];
   return intent && isOwnerIntent(intent) ? ["Qué quiere hacer", "Quién es", "Datos del prospecto", "Listo"] : WIZARD_STEPS;
 }
 
 export const INTENT_CHOICES: Array<{ id: IntakeIntent; title: string; description: string }> = [
   { id: "vender", title: "Vender su inmueble", description: "Casa, departamento, terreno o local que quiere vender." },
   { id: "arrendar", title: "Ofrecer su inmueble en renta", description: "Busca inquilino para su propiedad." },
-  { id: "comprar", title: "Comprar", description: "Busca un inmueble para comprar." },
-  { id: "rentar", title: "Rentar", description: "Busca dónde vivir o trabajar en renta." },
+  { id: "comprar", title: "Quiere comprar", description: "Busca un inmueble para comprar. Se guarda como interesado, sin abrir operación." },
+  { id: "rentar", title: "Quiere rentar", description: "Busca dónde vivir o trabajar en renta. Se guarda como interesado, sin abrir operación." },
   { id: "invertir", title: "Invertir", description: "Quiere comprar para rentar o revender." },
 ];
 export const intentTitle = (intent: IntakeIntent) => INTENT_CHOICES.find(choice => choice.id === intent)?.title ?? intent;

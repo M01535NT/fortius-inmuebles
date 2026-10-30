@@ -526,17 +526,21 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
 
 /** Visitas de la agenda y ofertas comparadas del inmueble. */
 function VisitsAndOffers({ op, today, documents }: { op: OperationRecord; today: string; documents: Evidence["documents"] }) {
-  const events = useCollection(db.eventos);
+  const events = useCollection(db.eventos), leads = useCollection(db.leads);
   const counterpart = op.flujo?.contraparteId;
+  // El interesado (lead) de cada visita y el que firma: contraparte del propietario (RP-93, COR-11).
+  const who = (leadId?: string) => leads.find(l => l.id === leadId)?.nombre;
+  const signer = who(op.flujo?.contraparteLeadId);
   const offers = useRuns("ofertas", counterpart ? [op.id, counterpart] : [op.id]);
   const visits = events.filter(e => e.tipo === "visita" && (e.expedienteId === op.id || !!op.propiedad_slug && e.propiedadSlug === op.propiedad_slug)).sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? "")));
   const upcoming = visits.filter(e => e.fecha >= today), past = visits.filter(e => e.fecha < today);
   const offerDocs = documents.filter(d => d.formato_id === "14").length;
   return <Card className="flex flex-col gap-4 p-5" aria-label="Visitas y ofertas del inmueble">
     <h2 className="m-0 flex items-center gap-2 text-base"><CalendarDays size={18} aria-hidden="true" />Visitas y ofertas del inmueble</h2>
+    {signer && <p className="text-sm">Contraparte: <Link className="font-semibold underline underline-offset-4" href={`/admin/leads/${encodeURIComponent(op.flujo!.contraparteLeadId!)}`}>{signer}</Link> (interesado que firma con el propietario).</p>}
     <div className="grid gap-5 sm:grid-cols-2">
       <div className="flex flex-col gap-2 text-sm"><p className="font-semibold">Próximas visitas</p>
-        {upcoming.length ? <ul className="flex flex-col gap-1">{upcoming.slice(0, 5).map(e => <li key={e.id}><Link className="underline" href={`/admin/agenda?fecha=${e.fecha}&evento=${encodeURIComponent(e.id)}`}>{e.titulo}</Link> · {shortDate(e.fecha)}{e.hora ? ` ${e.hora}` : ""}</li>)}</ul> : <p className="text-muted-foreground">{op.propiedad_slug ? "Sin visitas próximas en la agenda." : "Vincula el inmueble para ver sus visitas."}</p>}
+        {upcoming.length ? <ul className="flex flex-col gap-1">{upcoming.slice(0, 5).map(e => <li key={e.id}><Link className="underline" href={`/admin/agenda?fecha=${e.fecha}&evento=${encodeURIComponent(e.id)}`}>{e.titulo}</Link> · {shortDate(e.fecha)}{e.hora ? ` ${e.hora}` : ""}{who(e.leadId) ? ` · ${who(e.leadId)}` : ""}</li>)}</ul> : <p className="text-muted-foreground">{op.propiedad_slug ? "Sin visitas próximas en la agenda." : "Vincula el inmueble para ver sus visitas."}</p>}
         <p className="text-muted-foreground">{past.length ? `${past.length} ${past.length === 1 ? "visita anterior" : "visitas anteriores"}; la última el ${shortDate(past[past.length - 1].fecha)}. Registra el resultado de cada una en el formato 13.` : "Sin visitas anteriores."}</p>
         <Link className="font-semibold underline underline-offset-4" href={`/admin/agenda?expediente=${encodeURIComponent(op.id)}`}>Agendar una visita</Link>
       </div>

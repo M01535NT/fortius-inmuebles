@@ -58,6 +58,8 @@ export const operationWorkflowSchema = z.object({
  motivo: z.string().max(1000).default(""),
  requisitos: z.partialRecord(z.enum(Object.keys(WORKFLOW_REQUIREMENTS) as [RequirementKey,...RequirementKey[]]), review),
  contraparteId: z.uuid().optional(), contraparteExterna: z.string().max(1000).optional(),
+ // Interesado (lead) que firma con el propietario: contraparte, nunca cliente (RP-93, COR-11).
+ contraparteLeadId: z.string().min(1).max(200).optional(),
  resolucion: resolution.optional(),
  entregasInforme: z.array(entregaInforme).max(120).optional(),
 }).strict();
@@ -127,7 +129,7 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  result.push(...resolutionBlockers(flow,target));
  const index=WORKFLOW_STAGES.indexOf(target);
  if(flow.ruta!=="inversion" && index>=3 && !context.propiedad_slug) result.push("Captura los datos del inmueble.");
- if(flow.ruta!=="inversion" && index>=4 && !flow.contraparteId && (flow.contraparteExterna?.trim().length??0)<3) result.push("Identificar la contraparte interna o externa.");
+ if(flow.ruta!=="inversion" && index>=4 && !flow.contraparteId && !flow.contraparteLeadId && (flow.contraparteExterna?.trim().length??0)<3) result.push("Identificar la contraparte interna o externa.");
  const open=tasks.filter(t=>t.expedienteId===context.id && !["completada","cancelada"].includes(t.estado));
  if(target==="cerrado") { if(open.length) result.push("Resolver o descartar las tareas pendientes antes de archivar."); }
  else if(!open.some(t=>t.asesorId===context.asesor_id && !!t.vence)) result.push("Agendar una próxima tarea con fecha y responsable.");

@@ -115,7 +115,16 @@ it("persists partial answers without converting the prospect and detects another
       code: "PT409",
     });
   }));
-it.each(["vender", "arrendar", "comprar", "rentar", "invertir"])(
+it.each(["comprar", "rentar"])(
+  "does not open an interview or operation for %s: the buyer is an interested lead (COR-11)",
+  async (intent) =>
+    asUser(own, async () => {
+      const before = (await db.query("select id from public.fortius_inmuebles_interviews")).rows.length;
+      await expect(start(intent)).rejects.toMatchObject({ code: "PT400", message: expect.stringContaining("interesado") });
+      expect((await db.query("select id from public.fortius_inmuebles_interviews")).rows).toHaveLength(before);
+    }),
+);
+it.each(["vender", "arrendar", "invertir"])(
   "completes %s with one snapshot, operation and dated task",
   async (intent) =>
     asUser(own, async () => {
@@ -185,10 +194,10 @@ it("reuses an existing client without changing its profile and corrects without 
         "select data,version from public.fortius_inmuebles_records where collection='clientes' and id='existing'",
       )
     ).rows[0];
-    const r = await start("comprar", { tipo: "cliente", id: "existing" });
-    const done = await save(r.id, 1, answers("comprar"), true);
+    const r = await start("invertir", { tipo: "cliente", id: "existing" });
+    const done = await save(r.id, 1, answers("invertir"), true);
     const correction = await start(
-      "comprar",
+      "invertir",
       { tipo: "cliente", id: "existing" },
       crypto.randomUUID(),
       done.expediente_id as string,
@@ -197,7 +206,7 @@ it("reuses an existing client without changing its profile and corrects without 
     const fixed = await save(
       correction.id,
       1,
-      { ...answers("comprar"), necesidades: "Tres recámaras" },
+      { ...answers("invertir"), necesidades: "Tres recámaras" },
       true,
     );
     expect(fixed.expediente_id).toBe(done.expediente_id);
@@ -223,7 +232,7 @@ it("uses a stable intake ID, rejects changed retry payloads and shared phones wi
       c = contact("6649901122");
     const first = await start("vender", c, id);
     expect((await start("vender", c, id)).id).toBe(first.id);
-    await expect(start("comprar", c, id)).rejects.toMatchObject({
+    await expect(start("arrendar", c, id)).rejects.toMatchObject({
       code: "PT409",
     });
     await expect(

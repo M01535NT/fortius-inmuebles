@@ -19,7 +19,7 @@ const OPPOSITE: Record<string, string> = { captacion: "compra", compra: "captaci
 */
 export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }: { op: OperationRecord; all: OperationRecord[]; today: string; onSave: Save; onRemove: () => Promise<void>; onDirtyChange: (dirty: boolean) => void }) {
   const session = useSession();
-  const properties = useCollection(db.propiedades), tasks = useCollection(db.tareas);
+  const properties = useCollection(db.propiedades), tasks = useCollection(db.tareas), leads = useCollection(db.leads);
   const original = flowOf(op), stage = stageOf(op);
   const [flow, setFlow] = React.useState(original);
   const [property, setProperty] = React.useState(op.propiedad_slug ?? "");
@@ -32,6 +32,10 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
   const openTasks = tasks.filter(t => t.expedienteId === op.id && !["completada", "cancelada"].includes(t.estado));
   const routes = Object.entries(WORKFLOW_ROUTES).filter(([k]) => op.operacion === "inversion" ? k === "inversion" : op.operacion === "renta" ? ["arrendador", "arrendatario"].includes(k) : ["captacion", "compra"].includes(k));
   const available = properties.filter(p => ["compra", "arrendatario", "inversion"].includes(flow.ruta) || session?.role === "admin" || p.asesorId === op.asesor_id);
+  // Interesados que buscan esta operación: contraparte del propietario, nunca clientes (RP-93, COR-11).
+  const interested = leads.filter(l => l.perfil?.operacion === (op.operacion === "renta" ? "rentar" : "comprar") && l.estado !== "descartado");
+  const historical = ["compra", "arrendatario"].includes(original.ruta);
+  const routeChoices = routes.filter(([k]) => historical ? k === original.ruta || !["compra", "arrendatario"].includes(k) : !["compra", "arrendatario"].includes(k));
   const compatible = all.filter(e => e.id !== op.id && e.propiedad_slug === property && e.operacion === op.operacion && e.flujo?.ruta === OPPOSITE[flow.ruta] && e.flujo?.estado === "activa" && e.cliente_id !== op.cliente_id);
   function resolution(patch: Partial<NonNullable<OperationWorkflow["resolucion"]>>) {
     setFlow(old => ({ ...old, resolucion: { tipo: "aceptada", fecha: today, motivo: "", siguienteAccion: openTasks[0]?.titulo ?? "", fechaSiguiente: openTasks[0]?.vence || today, ...old.resolucion, ...patch } }));
@@ -77,7 +81,7 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
 
       <Card className="grid gap-4 p-5 sm:grid-cols-2" aria-label="Datos de la operación">
         <h2 className="m-0 text-lg sm:col-span-2">Datos de la operación</h2>
-        {guided && <label className="text-sm font-semibold">Ruta<select className={selectClass} value={flow.ruta} onChange={e => setFlow(old => ({ ...old, ruta: e.target.value as OperationWorkflow["ruta"] }))}>{routes.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
+        {guided && <label className="text-sm font-semibold">Ruta<select className={selectClass} value={flow.ruta} onChange={e => setFlow(old => ({ ...old, ruta: e.target.value as OperationWorkflow["ruta"] }))}>{routeChoices.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
         {guided && <label className="text-sm font-semibold">Situación<select className={selectClass} value={flow.estado} onChange={e => setFlow(old => ({ ...old, estado: e.target.value as OperationWorkflow["estado"] }))}>{Object.entries(WORKFLOW_STATES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
         <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={property} onChange={e => setProperty(e.target.value)}><option value="">Sin vincular todavía</option>{property && !available.some(p => p.slug === property) && <option value={property}>Inmueble vinculado no disponible</option>}{available.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select></label>
         <label className="text-sm font-semibold">Fecha objetivo<input type="date" value={date} className={inputClass} onChange={e => setDate(e.target.value)} /></label>
@@ -85,10 +89,11 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
       </Card>
 
       {guided && flow.ruta !== "inversion" && <Card className="flex flex-col gap-4 p-5" aria-label="Contraparte">
-        <div><h2 className="m-0 text-lg">Contraparte</h2><p className="mt-1 text-sm text-muted-foreground">Relaciona la operación del comprador o arrendatario del mismo inmueble, o describe a la contraparte externa y su respaldo. Cada operación conserva sus permisos.</p></div>
+        <div><h2 className="m-0 text-lg">Contraparte</h2><p className="mt-1 text-sm text-muted-foreground">Elige al interesado que firma la promesa, la compraventa o el arrendamiento con el propietario, o describe a la contraparte externa y su respaldo. El interesado queda como contraparte, no como cliente de Fortius.</p></div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-sm font-semibold">Operación de la contraparte<select className={selectClass} value={flow.contraparteId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteId: e.target.value || undefined, contraparteExterna: undefined }))}><option value="">Ninguna del panel</option>{flow.contraparteId && !compatible.some(e => e.id === flow.contraparteId) && <option value={flow.contraparteId}>Vínculo actual · comprobar</option>}{compatible.map(e => <option key={e.id} value={e.id}>{e.folio} · {ROLE[e.flujo?.ruta ?? ""]}</option>)}</select></label>
-          <label className="text-sm font-semibold">Contraparte externa y respaldo<textarea rows={2} maxLength={1000} disabled={!!flow.contraparteId} className={textareaClass} value={flow.contraparteExterna ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteExterna: e.target.value || undefined }))} /></label>
+          {!historical && <label className="text-sm font-semibold">Interesado que firma<select className={selectClass} value={flow.contraparteLeadId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteLeadId: e.target.value || undefined, contraparteId: undefined, contraparteExterna: e.target.value ? undefined : old.contraparteExterna }))}><option value="">Ninguno del panel</option>{flow.contraparteLeadId && !interested.some(l => l.id === flow.contraparteLeadId) && <option value={flow.contraparteLeadId}>{leads.find(l => l.id === flow.contraparteLeadId)?.nombre ?? "Interesado vinculado"}</option>}{interested.map(l => <option key={l.id} value={l.id}>{l.nombre}{l.telefono ? ` · ${l.telefono}` : ""}</option>)}</select></label>}
+          {(historical || flow.contraparteId) && <label className="text-sm font-semibold">Operación de la contraparte<select className={selectClass} value={flow.contraparteId ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteId: e.target.value || undefined, contraparteLeadId: undefined, contraparteExterna: undefined }))}><option value="">Ninguna del panel</option>{flow.contraparteId && !compatible.some(e => e.id === flow.contraparteId) && <option value={flow.contraparteId}>Vínculo actual · comprobar</option>}{compatible.map(e => <option key={e.id} value={e.id}>{e.folio} · {ROLE[e.flujo?.ruta ?? ""]}</option>)}</select></label>}
+          <label className="text-sm font-semibold">Contraparte externa y respaldo<textarea rows={2} maxLength={1000} disabled={!!flow.contraparteId || !!flow.contraparteLeadId} className={textareaClass} value={flow.contraparteExterna ?? ""} onChange={e => setFlow(old => ({ ...old, contraparteExterna: e.target.value || undefined }))} /></label>
         </div>
       </Card>}
 
