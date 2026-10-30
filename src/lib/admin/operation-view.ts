@@ -1,6 +1,6 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
-import { emptyWorkflow, isOwnerRoute, VERIFICATION_REQUIREMENTS, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { emptyWorkflow, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 
 /*
@@ -41,12 +41,12 @@ export function initialStatus(formats: ReadonlyMap<string, boolean> | undefined,
   };
 }
 
-/** Etapas del avance: las 6 del propietario; las demás rutas usan sus propios pasos (sin «archivado»). */
+/** Etapas del avance: las 10 del propietario, de venta o de renta (COR-04); las demás rutas usan sus propios pasos (sin «archivado»). */
 export function routeStages(op: OperationRecord, today: string) {
   const flow = flowOf(op), stage = stageOf(op);
   if (isOwnerRoute(flow.ruta)) {
-    const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial);
-    return { labels: SALE_PROCESS.map(p => p.label), current: SALE_PROCESS.findIndex(p => p.key === phase), phase };
+    const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial), process = ownerProcess(flow.ruta);
+    return { labels: process.map(p => p.label), current: process.findIndex(p => p.key === phase), phase };
   }
   const steps = WORKFLOW_STAGES.filter(s => s !== "cerrado");
   return { labels: steps.map(s => stageLabel(s, flow.ruta)), current: Math.min(WORKFLOW_STAGES.indexOf(stage), steps.length - 1), phase: undefined };
@@ -56,14 +56,21 @@ export function routeStages(op: OperationRecord, today: string) {
 export const PHASE_FORMATS: Partial<Record<SalePhase, readonly string[]>> = {
   captacion: ["02"], levantamiento: ["04"], dictamen: ["05", "06"], verificacion: ["07", "08"], contrato: ["09", "10"],
 };
+/** En la renta (MRP-01) la titularidad se revisa sin dictamen completo y la opinión de renta es el 07; la intermediación para renta aún no tiene plantilla. */
+const RENT_PHASE_FORMATS: Partial<Record<SalePhase, readonly string[]>> = {
+  captacion: ["02"], levantamiento: ["04"], verificacion: ["07"], contrato: ["10"],
+};
+export function phaseFormats(phase: SalePhase, ruta?: string | null): readonly string[] {
+  return (ruta === "arrendador" ? RENT_PHASE_FORMATS : PHASE_FORMATS)[phase] ?? [];
+}
 /** Etapas del propietario que dejan documentos y se pueden consultar después. */
 export const PHASES_WITH_DOCUMENTS: readonly SalePhase[] = ["captacion", "levantamiento", "documentos", "dictamen", "verificacion", "contrato"];
 export type FormatStatus = "terminado" | "borrador" | undefined;
 
 /** Lo que dejó pendiente una etapa ya pasada («Falta el 02»); vacío si está completa o no deja documentos. */
-export function phaseGap(phase: SalePhase, status: (formato: string) => FormatStatus, checklist?: InitialInterviewStatus["documentos"]) {
+export function phaseGap(phase: SalePhase, status: (formato: string) => FormatStatus, checklist?: InitialInterviewStatus["documentos"], ruta?: string | null) {
   if (phase === "documentos") return checklist === "completo" ? "" : checklist ? "Faltan documentos" : "Falta el checklist";
-  const missing = (PHASE_FORMATS[phase] ?? []).filter(f => status(f) !== "terminado").map(f => status(f) ? `el PDF del ${f}` : `el ${f}`);
+  const missing = phaseFormats(phase, ruta).filter(f => status(f) !== "terminado").map(f => status(f) ? `el PDF del ${f}` : `el ${f}`);
   return missing.length ? `Falta ${missing.length > 1 ? `${missing.slice(0, -1).join(", ")} y ${missing.at(-1)}` : missing[0]}` : "";
 }
 
@@ -80,7 +87,7 @@ const CLOSE_STAGES = ["cierre", "entrega", "postventa", "cerrado"] as const sati
 export function closeSteps(op: OperationRecord): CloseStep[] {
   const flow = flowOf(op), at = CLOSE_STAGES.indexOf(stageOf(op) as typeof CLOSE_STAGES[number]);
   return CLOSE_STAGES.map((stage, i) => {
-    const label = flow.ruta === "arrendador" ? stageLabel(stage, "arrendador") : stageLabel(stage, "captacion").replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase());
+    const label = stageLabel(stage, flow.ruta === "arrendador" ? "arrendador" : "captacion").replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase());
     return { stage, label, state: at < 0 || i > at ? "next" : i < at || stage === "cerrado" ? "done" : "now" };
   });
 }
@@ -91,7 +98,7 @@ export function stageTrack(op: OperationRecord, today: string) {
   const { labels, current, phase } = routeStages(op, today);
   const stages: TrackStage[] = labels.map((label, i) => {
     if (!owner) return { n: i + 1, label };
-    const key = SALE_PROCESS[i].key;
+    const key = ownerProcess(flow.ruta)[i].key;
     if (key !== "cierre") return { n: i + 1, label, key };
     // La etapa 10 dice en qué paso va: «Cierre y entrega · entrega».
     const pasos = closeSteps(op), actual = phase === "cierre" ? pasos.find(p => p.state === "now") ?? pasos.at(-1) : undefined;
@@ -105,7 +112,7 @@ export function pastGaps(op: OperationRecord, today: string, status: (formato: s
   const { stages, current } = stageTrack(op, today);
   return stages.slice(0, current).flatMap(stage => {
     if (!stage.key || !PHASES_WITH_DOCUMENTS.includes(stage.key)) return [];
-    const gap = phaseGap(stage.key, status, op.inicial?.documentos);
+    const gap = phaseGap(stage.key, status, op.inicial?.documentos, op.flujo?.ruta);
     return gap ? [{ ...stage, key: stage.key, gap }] : [];
   });
 }
@@ -136,16 +143,18 @@ export function attentionOf(op: OperationRecord, tasks: Task[], today: string, g
   lo marcan sus confirmaciones; «venta» los deja fuera de la renta del propietario (perfil del
   comprador, oferta de compra y promesa de compraventa).
 */
-const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; optional?: true; venta?: true }>>> = {
+const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; optional?: true; venta?: true; renta?: "opcional" }>>> = {
   prospecto: [{ formato: "02" }], captacion: [{ formato: "02" }, { formato: "01", optional: true }], levantamiento: [{ formato: "04" }],
-  dictamen: [{ formato: "05" }, { formato: "06" }], verificacion: [{ formato: "07" }, { formato: "08" }], contrato: [{ formato: "09" }, { formato: "10" }],
+  dictamen: [{ formato: "05", renta: "opcional" }, { formato: "06", venta: true }], verificacion: [{ formato: "07" }, { formato: "08", venta: true }], contrato: [{ formato: "09", renta: "opcional" }, { formato: "10" }],
   publicacion: [{ formato: "11", optional: true }],
   visitas: [{ formato: "12", optional: true, venta: true }, { formato: "13", optional: true }, { formato: "14", optional: true, venta: true }],
   cierre: [{ formato: "15", optional: true, venta: true }, { formato: "16", optional: true }, { formato: "17", optional: true }, { formato: "18", optional: true }],
 };
 /** Formatos de una etapa del propietario según su ruta (la renta no usa los de compraventa). */
 export function stageDocuments(phase: SalePhase, ruta: OperationWorkflow["ruta"]) {
-  return (PHASE_ITEMS[phase] ?? []).filter(item => !(item.venta && ruta === "arrendador"));
+  const rent = ruta === "arrendador";
+  // En la renta: sin dictamen (06) ni neto de venta (08); la revisión (05) y el 09 se ofrecen sin detener la etapa.
+  return (PHASE_ITEMS[phase] ?? []).filter(item => !(item.venta && rent)).map(({ formato, optional, renta }) => ({ formato, ...(optional || (rent && renta) ? { optional: true as const } : {}) }));
 }
 export type StageItem =
   | { kind: "documento"; formato: string; status: FormatStatus; optional?: true }
@@ -185,7 +194,7 @@ export function nowItem(items: StageItem[]) {
 /** Qué hacemos y para qué en la etapa actual. */
 export function stageGuide(op: OperationRecord, today: string) {
   const { phase, labels, current } = routeStages(op, today);
-  const sale = phase ? SALE_PROCESS.find(p => p.key === phase) : undefined;
+  const sale = phase ? ownerProcess(flowOf(op).ruta).find(p => p.key === phase) : undefined;
   return { title: labels[current], que: sale?.hace, para: sale?.para };
 }
 
@@ -195,9 +204,10 @@ export function currentRequirements(op: OperationRecord, today: string): Array<{
   const routeKeys = new Set(requiredReviews(flow.ruta, "cerrado"));
   let own: RequirementKey[], before: RequirementKey[];
   if (isOwnerRoute(flow.ruta)) {
-    const index = SALE_PROCESS.findIndex(p => p.key === processPhase(stage, op.flujo ?? flow, today, op.inicial));
-    own = phaseRequirements(SALE_PROCESS[index].key).filter(k => routeKeys.has(k));
-    before = [...routeKeys].filter(k => { const phase = requirementPhase(k); return !!phase && SALE_PROCESS.findIndex(p => p.key === phase) < index; });
+    const process = ownerProcess(flow.ruta);
+    const index = process.findIndex(p => p.key === processPhase(stage, op.flujo ?? flow, today, op.inicial));
+    own = phaseRequirements(process[index].key, flow.ruta).filter(k => routeKeys.has(k));
+    before = [...routeKeys].filter(k => { const phase = requirementPhase(k, flow.ruta); return !!phase && process.findIndex(p => p.key === phase) < index; });
   } else {
     before = requiredReviews(flow.ruta, stage);
     own = next ? requiredReviews(flow.ruta, next).filter(k => !before.includes(k)) : [];
@@ -216,14 +226,15 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   const flow = flowOf(op), stage = stageOf(op), next = nextWorkflowStage(stage);
   if (!next) return null;
   if (!isOwnerRoute(flow.ruta)) return { target: next, label: stageLabel(next, flow.ruta) };
-  const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial);
-  if (phase === "prospecto") return { label: "Entrevista inicial" };
-  if (phase === "captacion" && isOwnerRoute(flow.ruta)) return { label: "Levantamiento" };
-  if (phase === "levantamiento") return { label: "Checklist de documentos" };
-  if (phase === "dictamen") return { label: "Opinión de valor y precio" };
-  if (phase === "verificacion") return { label: "Contrato y preparación" };
-  if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar la operación" : stageLabel(next, "captacion").replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
-  const following = SALE_PROCESS[SALE_PROCESS.findIndex(p => p.key === phase) + 1];
+  const phase = processPhase(stage, op.flujo ?? flow, today, op.inicial), process = ownerProcess(flow.ruta);
+  const label = (key: SalePhase) => process.find(p => p.key === key)!.label;
+  if (phase === "prospecto") return { label: label("captacion") };
+  if (phase === "captacion") return { label: label("levantamiento") };
+  if (phase === "levantamiento") return { label: label("documentos") };
+  if (phase === "dictamen") return { label: label("verificacion") };
+  if (phase === "verificacion") return { label: label("contrato") };
+  if (phase === "cierre") return { target: next, label: next === "cerrado" ? "Archivar la operación" : stageLabel(next, flow.ruta).replace("Cierre y entrega · ", "").replace(/^./, c => c.toUpperCase()) };
+  const following = process[process.findIndex(p => p.key === phase) + 1];
   return { target: next, label: following?.label ?? stageLabel(next, flow.ruta) };
 }
 
@@ -256,7 +267,7 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   if (phase === "captacion" && !target.target) return [inicial.emitida ? { text: "Iniciar el levantamiento", why: "con el botón «Iniciar levantamiento»", place: "operacion" } : { text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" }];
   if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar el checklist de documentos", why: "con el botón «Iniciar checklist»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
   if (!target.target) {
-    const items: Missing[] = (phase === "dictamen" ? phaseRequirements("dictamen") : VERIFICATION_REQUIREMENTS).filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
+    const items: Missing[] = (phase === "dictamen" ? phaseRequirements("dictamen", flow.ruta) : verificationRequirements(flow.ruta)).filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key, flow.ruta), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
     if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "se decide en Ajustes", place: "ajustes" });
     return items;
   }
@@ -268,7 +279,7 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   ];
   return initial.concat(workflowBlockers(flow, target.target, { id: op.id, asesor_id: op.asesor_id, propiedad_slug: propertySlug }, tasks, today).map(blocker => {
     const key = labels.get(blocker);
-    if (key) return { text: requirementName(key), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" as const };
+    if (key) return { text: requirementName(key, flow.ruta), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" as const };
     return BLOCKER_TEXT[blocker] ?? { text: blocker, why: "", place: "operacion" as const };
   }));
 }
@@ -301,7 +312,7 @@ export type BoardCard = { id: string; who: string; property: string; next: strin
 export function boardCard(op: OperationRecord, tasks: Task[], today: string, names: { client: (id?: string) => string | undefined; property: (slug?: string | null) => string | undefined }, me?: string): BoardCard {
   const next = tasks.filter(t => t.expedienteId === op.id && isTaskOpen(t)).sort((a, b) => (a.vence || "9999").localeCompare(b.vence || "9999"))[0];
   const stage = stageOf(op);
-  const column = SALE_PROCESS.findIndex(p => p.key === processPhase(stage, op.flujo, today, op.inicial));
+  const column = ownerProcess(op.flujo?.ruta).findIndex(p => p.key === processPhase(stage, op.flujo, today, op.inicial));
   return {
     id: op.id, who: names.client(op.cliente_id) ?? op.folio,
     property: names.property(op.propiedad_slug) ?? (op.propiedad_slug ? "Inmueble no disponible" : "Sin inmueble vinculado"),

@@ -5,7 +5,7 @@ import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/component
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
-import { requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { ownerProcess, requirementPhase, reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirementDetail, reviewState } from "@/lib/admin/operation-view";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,7 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const done = reviewComplete(flow, requirement, today);
   const expired = state === "revisado" && !done;
   const problem = state === "observado" ? problemOf(review) : null;
-  const name = requirementName(requirement);
+  const name = requirementName(requirement, flow.ruta);
   const detail = expired ? (review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
     : problem ? problem.title : state === "recibido" ? "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
   const options = STATES.filter(st => st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica");
@@ -56,7 +56,7 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
     if (st === "revisado" || st === "observado" || st === "no_aplica") onSheet({ key: requirement, kind: st });
     else onQuick(requirement, st);
   }
-  const originKey = requirementPhase(requirement), origin = originKey ? SALE_PROCESS.find(p => p.key === originKey)?.label : undefined;
+  const originKey = requirementPhase(requirement, flow.ruta), origin = originKey ? ownerProcess(flow.ruta).find(p => p.key === originKey)?.label : undefined;
   return <li id={`req-${requirement}`} tabIndex={-1} className={s.item}>
     <div className={s.itemMain}>
       <StateIcon state={expired ? "observado" : state} done={done} />
@@ -100,9 +100,9 @@ export function RequirementSheets({ sheet, flow, today, evidence, onClose, onCha
 }) {
   if (!sheet) return null;
   const save = (review: Review) => onChange(sheet.key, review).then(onClose);
-  if (sheet.kind === "revisado") return <ReviewSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} today={today} evidence={evidence} onClose={onClose} onAddDocument={() => { onClose(); onAddDocument(); }} onSave={save} />;
+  if (sheet.kind === "revisado") return <ReviewSheet requirement={sheet.key} route={flow.ruta} review={flow.requisitos[sheet.key]} today={today} evidence={evidence} onClose={onClose} onAddDocument={() => { onClose(); onAddDocument(); }} onSave={save} />;
   if (sheet.kind === "observado") return <ProblemSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} route={flow.ruta} onClose={onClose} onSave={save} />;
-  return <NotApplicableSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} onClose={onClose} onSave={save} />;
+  return <NotApplicableSheet requirement={sheet.key} route={flow.ruta} review={flow.requisitos[sheet.key]} onClose={onClose} onSave={save} />;
 }
 
 function useSheetSave(onSave: (review: Review) => Promise<void>) {
@@ -116,7 +116,7 @@ function useSheetSave(onSave: (review: Review) => Promise<void>) {
 }
 
 /** «Marcar como revisado»: con qué se comprobó, quién y cuándo lo revisó, la vigencia y qué se encontró. */
-export function ReviewSheet({ requirement, review, today, evidence, onClose, onSave, onAddDocument }: { requirement: RequirementKey; review?: Review; today: string; evidence: Evidence; onClose: () => void; onSave: (review: Review) => Promise<void>; onAddDocument: () => void }) {
+export function ReviewSheet({ requirement, route, review, today, evidence, onClose, onSave, onAddDocument }: { requirement: RequirementKey; route?: OperationWorkflow["ruta"]; review?: Review; today: string; evidence: Evidence; onClose: () => void; onSave: (review: Review) => Promise<void>; onAddDocument: () => void }) {
   const advisers = useCollection(db.asesores);
   const previous = review?.evidencia;
   // Ya viene elegido el documento que respalda este punto (el 02 para la entrevista, el 04 para el levantamiento…).
@@ -164,7 +164,7 @@ export function ReviewSheet({ requirement, review, today, evidence, onClose, onS
     const next: Review = { estado: "revisado", soporte: found.trim(), evidencia, ...(hasValidity(requirement) && until ? { vigenteHasta: until } : {}), ...(review?.bloquea ? { bloquea: review.bloquea } : {}) };
     return reviewComplete({ version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: { [requirement]: next } }, requirement, today) ? next : "Faltan datos del respaldo. Revisa el documento elegido y vuelve a intentar.";
   }
-  const name = requirementName(requirement);
+  const name = requirementName(requirement, route);
   return <Sheet open onClose={onClose} eyebrow="Confirmar" title={name} description="El documento, quién lo revisó y la fecha ya vienen llenos. Escribe qué encontraste y confirma; queda registrado." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={() => void run(build())}>{busy ? "Guardando…" : "Confirmar"}</Button>
@@ -210,7 +210,7 @@ function ProblemSheet({ requirement, review, route, onClose, onSave }: { require
     if (title.trim().length < 3) return "Escribe en pocas palabras cuál es el problema.";
     return { estado: "observado", soporte: encodeProblem(title, body), ...(blocks.length ? { bloquea: blocks } : {}), ...(review?.vigenteHasta ? { vigenteHasta: review.vigenteHasta } : {}) };
   }
-  return <Sheet open onClose={onClose} eyebrow="Hay un problema" title={requirementName(requirement)} description="Escribe qué pasó para que el equipo sepa por qué está detenida." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="Hay un problema" title={requirementName(requirement, route)} description="Escribe qué pasó para que el equipo sepa por qué está detenida." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={() => void run(build())}>{busy ? "Guardando…" : "Guardar"}</Button>
   </>}>
@@ -221,10 +221,10 @@ function ProblemSheet({ requirement, review, route, onClose, onSave }: { require
   </Sheet>;
 }
 
-function NotApplicableSheet({ requirement, review, onClose, onSave }: { requirement: RequirementKey; review?: Review; onClose: () => void; onSave: (review: Review) => Promise<void> }) {
+function NotApplicableSheet({ requirement, route, review, onClose, onSave }: { requirement: RequirementKey; route: OperationWorkflow["ruta"]; review?: Review; onClose: () => void; onSave: (review: Review) => Promise<void> }) {
   const [why, setWhy] = React.useState(review?.estado === "no_aplica" ? review.soporte : "");
   const { busy, error, run } = useSheetSave(onSave);
-  return <Sheet open onClose={onClose} eyebrow="No aplica" title={requirementName(requirement)} description="Explica por qué esta operación no lo necesita." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="No aplica" title={requirementName(requirement, route)} description="Explica por qué esta operación no lo necesita." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={() => void run(why.trim().length < 3 ? "Escribe por qué no aplica." : { estado: "no_aplica", soporte: why.trim() })}>{busy ? "Guardando…" : "Guardar"}</Button>
   </>}>

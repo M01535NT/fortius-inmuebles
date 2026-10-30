@@ -67,7 +67,8 @@ export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
 export function stageLabel(stage: WorkflowStage, route?: OperationWorkflow["ruta"]) {
  if (route === "inversion") return ["Mandato y criterios","Alternativas","Diligencia y riesgos","Escenarios","Decisión y capital","Ejecución vinculada","Seguimiento de resultados","Archivado"][WORKFLOW_STAGES.indexOf(stage)] ?? stage;
- if (route === "arrendador") return ["Captación para renta","Revisión y preparación","Oferta de renta","Selección del arrendatario","Contrato y garantías","Firma y pagos","Entrega y seguimiento","Archivo del encargo"][WORKFLOW_STAGES.indexOf(stage)] ?? stage;
+ // Renta del propietario (COR-04, MRP-01): cada estado se nombra por lo que se trabaja en él.
+ if (route === "arrendador") return ["Captación","Documentos, opinión de renta e intermediación","Publicación y seguimiento","Selección del arrendatario","Cierre y entrega · contrato, depósito y garantías","Cierre y entrega · entrega con inventario","Cierre y entrega · honorarios y seguimiento","Cierre y entrega · archivo"][WORKFLOW_STAGES.indexOf(stage)] ?? stage;
  if (route === "arrendatario") return ["Necesidades de renta","Opciones","Visitas","Solicitud y condiciones","Contrato y garantías","Firma y pagos","Entrega y seguimiento","Archivo del encargo"][WORKFLOW_STAGES.indexOf(stage)] ?? stage;
  const labels = route === "compra" ? ["Perfil y capacidad","Opciones","Visitas","Oferta y negociación","Firma y pago","Entrega","Postventa","Archivado"] : ["Captación","Verificación y precio","Publicación y seguimiento","Visitas y ofertas","Cierre y entrega · firma y pago","Cierre y entrega · entrega","Cierre y entrega · postventa","Cierre y entrega · archivo"];
  return labels[WORKFLOW_STAGES.indexOf(stage)] ?? stage;
@@ -86,7 +87,18 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
   if(n>=7) keys.push("honorarios","archivo");
   return keys;
  }
- const owner = route === "captacion" || route === "arrendador", rent = route === "arrendador" || route === "arrendatario";
+ if (route === "arrendador") {
+  // Camino de renta aprobado (RP-97, MRP-01): sin dictamen completo ni plan de comercialización.
+  const keys: RequirementKey[] = ["entrevista"];
+  if(n>=2) keys.push("titularidad","valor","precio","intermediacion","levantamiento","publicacion");
+  if(n>=3) keys.push("arrendatario");
+  if(n>=4) keys.push("oferta","garantias_renta","contraparte");
+  if(n>=5) keys.push("contrato_renta","firma","pago");
+  if(n>=6) keys.push("entrega","inventario_entrega");
+  if(n>=7) keys.push("termino_renta","honorarios","archivo");
+  return keys;
+ }
+ const owner = route === "captacion", rent = route === "arrendatario";
  const keys: RequirementKey[] = owner ? ["entrevista"] : ["perfil","privacidad"];
  if(n>=2) keys.push(...(owner ? ["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion"] as RequirementKey[] : ["opciones"] as RequirementKey[]));
  if(n>=3) keys.push(...(owner ? [rent ? "arrendatario" : "comprador"] as RequirementKey[] : ["visitas","capacidad"] as RequirementKey[]));
@@ -150,7 +162,27 @@ export const SALE_PROCESS = [
  { key: "cierre", slug: "cierre-entrega", label: "Cierre y entrega", hace: "Coordinar la firma con las partes y la notaría, verificar pagos, documentar llaves e inventario y seguir los pendientes.", para: "La operación no termina al aceptar una oferta: debe concretarse y entregarse correctamente.", etapas: ["cierre","entrega","postventa","cerrado"] },
 ] as const satisfies ReadonlyArray<{ key: string; slug: string; label: string; hace: string; para: string; etapas: readonly WorkflowStage[] }>;
 export type SalePhase = typeof SALE_PROCESS[number]["key"];
-function salePhase(key: SalePhase) { return SALE_PROCESS.find(phase => phase.key === key)!; }
+type ProcessStep = { key: SalePhase; slug: string; label: string; hace: string; para: string; etapas: readonly WorkflowStage[] };
+/**
+  Renta del propietario (COR-04, MRP-01 aprobada el 26/10/2026, RP-97): diez etapas con las
+  mismas claves que la venta para compartir la pantalla, pero con sus propios nombres, textos
+  y requisitos. Sin dictamen jurídico completo ni plan de comercialización.
+*/
+export const RENT_PROCESS: readonly ProcessStep[] = [
+ { key: "prospecto", slug: "prospecto", label: "Prospecto", hace: "Registrar el primer contacto: quién es, qué inmueble quiere rentar, dónde está y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
+ { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: qué renta espera, condiciones y situación del inmueble; entregar el aviso de privacidad.", para: "Conocer al propietario y su inmueble antes de revisar documentos y renta.", etapas: ["captacion"] },
+ { key: "levantamiento", slug: "levantamiento", label: "Levantamiento", hace: "En la misma visita, capturar el inmueble con el levantamiento de su tipo (04A–04G): espacios, estado, fotografías e inventario básico.", para: "Tener los datos físicos para la opinión de renta y la publicación.", etapas: ["captacion"] },
+ { key: "documentos", slug: "checklist-documentos", label: "Documentos básicos", hace: "Pedir y marcar la identificación del propietario, la prueba de propiedad y el predial al corriente.", para: "Saber que quien renta es el dueño o puede rentar.", etapas: ["captacion"] },
+ { key: "dictamen", slug: "titularidad", label: "Revisión de titularidad", hace: "Revisar que la identificación y la prueba de propiedad correspondan a quien firma. Un dictamen completo solo se agrega si el caso lo pide.", para: "No captar un inmueble que el propietario no puede rentar.", etapas: ["documentacion"] },
+ { key: "verificacion", slug: "opinion-renta", label: "Opinión de renta", hace: "Comparar rentas de inmuebles parecidos con el formato 07 en «Renta», acordar la renta con el propietario y registrar si tomamos el encargo.", para: "Rentar con una renta sustentada que el propietario entiende.", etapas: ["documentacion"] },
+ { key: "contrato", slug: "intermediacion-renta", label: "Intermediación para renta", hace: "Firmar el contrato de intermediación para renta y autorizar la información y la publicación.", para: "Dejar claras las responsabilidades y los honorarios antes de publicar.", etapas: ["documentacion"] },
+ { key: "publicacion", slug: "publicacion-seguimiento", label: "Publicación y seguimiento", hace: "Publicar en los canales acordados, atender a los interesados e informar cada mes al propietario.", para: "Encontrar un arrendatario adecuado y que el propietario sepa cómo va.", etapas: ["comercializacion"] },
+ { key: "visitas", slug: "seleccion-arrendatario", label: "Selección del arrendatario", hace: "Coordinar visitas, recibir solicitudes e investigar al interesado (identificación, ingresos y referencias) y acordar su garantía: fiador con inmueble, póliza jurídica o depósito doble.", para: "Elegir a un arrendatario que pueda pagar y cumpla, con una garantía real.", etapas: ["negociacion"] },
+ { key: "cierre", slug: "cierre-entrega", label: "Cierre y entrega", hace: "Firmar el contrato de arrendamiento, recibir el depósito y la garantía, entregar con acta e inventario, cobrar los honorarios y archivar.", para: "La renta no termina al elegir arrendatario: se firma, se cobra y se entrega bien.", etapas: ["cierre","entrega","postventa","cerrado"] },
+];
+/** Etapas del propietario según su ruta: venta o renta (COR-04). */
+export function ownerProcess(route?: string | null): readonly ProcessStep[] { return route === "arrendador" ? RENT_PROCESS : SALE_PROCESS; }
+function salePhase(key: SalePhase, route?: string | null) { return ownerProcess(route).find(phase => phase.key === key)!; }
 export function isOwnerRoute(route?: string | null) { return route === "captacion" || route === "arrendador"; }
 
 /** Requisitos que cierran cada etapa del propietario. Los de verificación deben completarse antes de capturar los de contrato. */
@@ -166,16 +198,36 @@ const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
  visitas: ["oferta","revision_cierre","instrumento","contraparte","contrato_renta","garantias_renta"],
  cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
 };
-/** La verificación reúne el dictamen jurídico y la opinión de valor con el precio. */
+/** Requisitos que cierran cada etapa de la renta del propietario (MRP-01). */
+const RENT_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
+ prospecto: [],
+ captacion: ["entrevista"],
+ levantamiento: ["levantamiento"],
+ documentos: [],
+ dictamen: ["titularidad"],
+ verificacion: ["valor","precio"],
+ contrato: ["intermediacion","publicacion"],
+ publicacion: ["arrendatario"],
+ visitas: ["oferta","garantias_renta","contraparte"],
+ cierre: ["contrato_renta","firma","pago","entrega","inventario_entrega","termino_renta","honorarios","archivo"],
+};
+const phaseTable = (route?: string | null) => route === "arrendador" ? RENT_PHASE_REQUIREMENTS : OWNER_PHASE_REQUIREMENTS;
+/** La verificación de la venta reúne el dictamen jurídico y la opinión de valor con el precio. */
 export const VERIFICATION_REQUIREMENTS = [...OWNER_PHASE_REQUIREMENTS.dictamen, ...OWNER_PHASE_REQUIREMENTS.verificacion] as readonly RequirementKey[];
+/** Verificación según la ruta: en la renta, titularidad, opinión de renta y renta acordada. */
+export function verificationRequirements(route?: string | null): readonly RequirementKey[] {
+ const table = phaseTable(route);
+ return [...table.dictamen, ...table.verificacion];
+}
 /** Requisitos que cierran una etapa del propietario. */
-export function phaseRequirements(phase: SalePhase): readonly RequirementKey[] { return OWNER_PHASE_REQUIREMENTS[phase]; }
-export function requirementPhase(key: RequirementKey): SalePhase | undefined {
- return (Object.keys(OWNER_PHASE_REQUIREMENTS) as SalePhase[]).find(phase => OWNER_PHASE_REQUIREMENTS[phase].includes(key));
+export function phaseRequirements(phase: SalePhase, route?: string | null): readonly RequirementKey[] { return phaseTable(route)[phase]; }
+export function requirementPhase(key: RequirementKey, route?: string | null): SalePhase | undefined {
+ const table = phaseTable(route);
+ return (Object.keys(table) as SalePhase[]).find(phase => table[phase].includes(key));
 }
 /** Verificación terminada: revisiones de la etapa 1 completas y decisión de captación registrada. */
 export function verificationComplete(flow: OperationWorkflow | null | undefined, today: string) {
- return !!flow && VERIFICATION_REQUIREMENTS.every(key => reviewComplete(flow, key, today)) && !!flow.resolucion && ["aceptada","condicionada"].includes(flow.resolucion.tipo);
+ return !!flow && verificationRequirements(flow.ruta).every(key => reviewComplete(flow, key, today)) && !!flow.resolucion && ["aceptada","condicionada"].includes(flow.resolucion.tipo);
 }
 /** Etapa del proceso para cualquier expediente. Compradores y arrendatarios se integran en «Visitas y ofertas»; inversión se agrupa por analogía. */
 /**
@@ -194,15 +246,16 @@ export function processPhase(etapa: WorkflowStage | null | undefined, flow: Oper
  }
  if (flow && (flow.ruta === "compra" || flow.ruta === "arrendatario")) return "visitas";
  if (flow?.ruta === "inversion") return "verificacion";
- if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : flow && OWNER_PHASE_REQUIREMENTS.dictamen.every(key => reviewComplete(flow, key, today)) ? "verificacion" : "dictamen";
+ if (stage === "documentacion") return verificationComplete(flow, today) ? "contrato" : flow && phaseTable(flow.ruta).dictamen.every(key => reviewComplete(flow, key, today)) ? "verificacion" : "dictamen";
  return stage === "comercializacion" ? "publicacion" : "visitas";
 }
-/** Texto de la etapa actual: el proceso para el propietario de venta; la etiqueta propia para las demás rutas. */
+/** Texto de la etapa actual: el proceso del propietario (venta o renta); la etiqueta propia para las demás rutas. Hoy y la operación usan el mismo (COR-04). */
 export function processStageText(etapa: WorkflowStage | null | undefined, flow: OperationWorkflow | null | undefined, today: string, initial?: InitialInterviewStatus) {
  const stage = etapa ?? "captacion";
- if (flow && flow.ruta !== "captacion") return stageLabel(stage, flow.ruta);
- if (stage === "documentacion" || stage === "captacion") return salePhase(processPhase(stage, flow, today, initial)).label;
- return stageLabel(stage, "captacion");
+ if (flow && !isOwnerRoute(flow.ruta)) return stageLabel(stage, flow.ruta);
+ const route = flow?.ruta ?? "captacion";
+ if (stage === "documentacion" || stage === "captacion") return salePhase(processPhase(stage, flow, today, initial), route).label;
+ return stageLabel(stage, route);
 }
 
 /** Informe al propietario: periodicidad mensual (decisión del titular, 15/10/2026). */

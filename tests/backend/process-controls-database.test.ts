@@ -169,6 +169,20 @@ it("registers an interested lead as the counterparty of the owner's operation (C
  const saved=await update({contraparteLeadId:"interesado-ensayo"});
  expect(saved.rows[0].r.flujo.contraparteLeadId).toBe("interesado-ensayo");
 });
+it("publishes an owner's rent with its own requirements, without the sale's feasibility or marketing plan (COR-04)",async()=>{
+ const done=await admit(await complete((await start("arrendar")).id));
+ const row=(await db.query<{version:number;flujo:{requisitos:Record<string,unknown>;[key:string]:unknown}}>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
+ const evidence={tipo:"externa",referencia:"Documento externo sintético revisado v1",fecha:"2026-10-29",responsable:"Responsable del ensayo",resultado:"Revisado dentro del alcance de prueba"};
+ const requisitos={...row.flujo.requisitos};
+ for(const key of ["titularidad","valor","precio","intermediacion","levantamiento"])requisitos[key]={estado:"revisado",soporte:"Revisión de ensayo",evidencia:evidence};
+ const flow={...row.flujo,requisitos,resolucion:{tipo:"aceptada",fecha:"2026-10-29",motivo:"Encargo de renta aceptado",siguienteAccion:"Publicar",fechaSiguiente:"2030-12-31"}};
+ const move=(f:unknown,version:number)=>db.query<{r:{version:number;etapa:string}}>("select public.fortius_inmuebles_update_operation($1,$2,'comercializacion',null,'{}'::jsonb,$3::jsonb,null,false) r",[done.expediente_id,version,JSON.stringify(f)]);
+ // Sin la publicación autorizada no se publica; factibilidad y plan nunca se piden.
+ await expect(move(flow,row.version)).rejects.toMatchObject({code:"PT409",message:expect.stringContaining("publicacion")});
+ const current=(await db.query<{version:number}>("select version from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
+ const ready={...flow,requisitos:{...requisitos,publicacion:{estado:"revisado",soporte:"Revisión de ensayo",evidencia:evidence}}};
+ expect((await move(ready,current.version)).rows[0].r.etapa).toBe("comercializacion");
+});
 it("schedules the next action of a paused decision without cancelling existing obligations",async()=>{
  const done=await admit(await complete((await start()).id));
  const row=(await db.query<{version:number;flujo:Record<string,unknown>}>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];

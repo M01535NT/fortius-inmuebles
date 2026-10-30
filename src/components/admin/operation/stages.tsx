@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { AlertCircle, Check, ChevronRight, FileDown, FileText } from "@/components/admin/icons";
 import { Button, ButtonLink, Card, Pill, Sheet } from "@/components/admin/kit";
-import { flowOf, PHASE_FORMATS, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
+import { flowOf, phaseFormats, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
@@ -34,9 +34,9 @@ function CloseSteps({ stage }: { stage: TrackStage }) {
 }
 
 /** Qué hacer con lo que le falta a una etapa anterior: abrir su documento o crear el checklist. */
-function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | undefined, openStages: (key: SalePhase) => void) {
+function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | undefined, openStages: (key: SalePhase) => void, ruta?: string | null) {
   if (key === "documentos") { if (!checklist) void docs.startChecklist(); else openStages(key); return; }
-  const formato = (PHASE_FORMATS[key] ?? []).find(f => docs.status(f) !== "terminado");
+  const formato = phaseFormats(key, ruta).find(f => docs.status(f) !== "terminado");
   if (formato) void docs.start(formato);
 }
 
@@ -65,7 +65,7 @@ export function StageCard({ op, today, docs, checklist, onOpenStages }: { op: Op
     {first && <div className={s.gapNotice} role="status">
       <AlertCircle size={18} aria-hidden="true" />
       <span className="min-w-0 flex-1">A la etapa {first.n}, {first.label.toLowerCase()}, le {first.gap.replace(/^Falta(n?)/, (_, n) => `falta${n}`)}.{gaps.length > 1 ? ` Hay ${gaps.length - 1} más en «Ver etapas».` : ""}</span>
-      <button type="button" className={s.gapAction} disabled={docs.busy} onClick={() => fixGap(first.key, docs, checklist, onOpenStages)}>Hacerlo ahora</button>
+      <button type="button" className={s.gapAction} disabled={docs.busy} onClick={() => fixGap(first.key, docs, checklist, onOpenStages, op.flujo?.ruta)}>Hacerlo ahora</button>
     </div>}
     <Button className="w-full" onClick={() => onOpenStages()}>Ver etapas<ChevronRight size={16} aria-hidden="true" /></Button>
   </Card>;

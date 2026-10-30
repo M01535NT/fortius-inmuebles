@@ -9,7 +9,7 @@ import { confirmAction, confirmDeleteOperation } from "@/components/admin/worksp
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { SALE_PROCESS } from "@/lib/formatos/operation-workflow";
+import { RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
 import { attentionOf, boardCard, dueLabel, flowOf, initialStatus, pastGaps, stageTrack, type Attention, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DirectCreate } from "./direct-create";
@@ -57,7 +57,7 @@ export function OperationsBoard() {
   const [draftDirty, setDraftDirty] = React.useState(false);
   useLeaveGuard(creating && draftDirty);
   const requested = params.get("etapa");
-  const stageFilter = requested ? SALE_PROCESS.find(p => p.slug === requested)?.label ?? requested : "todas";
+  const stageFilter = requested ? [...SALE_PROCESS, ...RENT_PROCESS].find(p => p.slug === requested)?.label ?? requested : "todas";
   React.useEffect(() => {
     let alive = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -104,7 +104,7 @@ export function OperationsBoard() {
 
   function chooseStage(label: string) {
     const next = new URLSearchParams(params.toString()); next.delete("fase");
-    const slug = SALE_PROCESS.find(p => p.label === label)?.slug;
+    const slug = [...SALE_PROCESS, ...RENT_PROCESS].find(p => p.label === label)?.slug;
     if (label === "todas") next.delete("etapa"); else next.set("etapa", slug ?? label);
     const search = next.toString();
     router.replace(search ? `/admin/operaciones?${search}` : "/admin/operaciones", { scroll: false });

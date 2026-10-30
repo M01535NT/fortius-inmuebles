@@ -9,7 +9,7 @@ import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { isOwnerRoute, SALE_PROCESS, type SalePhase } from "@/lib/formatos/operation-workflow";
+import { isOwnerRoute, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { flowOf, initialStatus, isGuided, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
@@ -120,7 +120,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     setNotice(remove ? "Operación eliminada. Puedes restaurarla aquí o desde «Operaciones eliminadas»." : "Operación restaurada.");
   }
 
-  const laterPhase = !!phase && SALE_PROCESS.findIndex(p => p.key === phase) >= 2;
+  const laterPhase = !!phase && ownerProcess(op.flujo?.ruta).findIndex(p => p.key === phase) >= 2;
   const price = laterPhase && property?.precio.modalidad === "publico" && property.precio.monto ? `Precio de salida ${money(property.precio.monto)} ${property.precio.moneda}`
     : interview?.respuestas.presupuestoEstado === "conocido" && interview.respuestas.importe ? `${isOwnerRoute(flow.ruta) ? "Espera" : "Presupuesto"} ${money(Number(interview.respuestas.importe))} ${interview.respuestas.moneda ?? ""}`.trim() : null;
   const reviewer = advisers.find(a => a.id === me)?.nombre ?? session?.name ?? session?.email ?? "";
@@ -139,7 +139,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       {photo && <Image unoptimized fill sizes="100vw" src={photo} alt="" className={s.heroPhoto} />}
       <span className={s.heroScrim} aria-hidden="true" />
       <div className={s.heroTop}>
-        <BackLink stage={phase ? SALE_PROCESS.find(p => p.key === phase)?.slug : undefined} />
+        <BackLink stage={phase ? ownerProcess(op.flujo?.ruta).find(p => p.key === phase)?.slug : undefined} />
         <span className="flex-1" />
         {client && <Link href={`/admin/clientes/${encodeURIComponent(client.id)}`} className={s.heroAction}><UserRound size={16} aria-hidden="true" />{role}</Link>}
         {digits && <a href={`tel:${digits}`} className={s.heroAction}><Phone size={16} aria-hidden="true" />Llamar</a>}

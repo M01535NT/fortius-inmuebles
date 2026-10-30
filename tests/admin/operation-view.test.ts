@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageDocuments, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
-import { emptyWorkflow, processStageText, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
+import { emptyWorkflow, processStageText, requiredReviews, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
 
 const today = "2026-10-16";
@@ -197,5 +197,32 @@ test("la etapa 10 dice en qué paso va y muestra sus cuatro pasos con el actual 
   expect(antes.stages[9].pasos?.every(p => p.state === "next")).toBe(true);
   // En renta, los pasos llevan sus propios nombres.
   const renta = stageTrack(op({ operacion: "renta", etapa: "postventa", flujo: flow(verified, accepted, "arrendador") }), today);
-  expect(renta.stages[renta.current].pasos?.find(p => p.state === "now")?.label).toBe("Entrega y seguimiento");
+  expect(renta.stages[renta.current].pasos?.find(p => p.state === "now")?.label).toBe("Honorarios y seguimiento");
+});
+
+test("la renta del propietario sigue su propio camino y nombra igual sus etapas en Hoy y en la operación (COR-04)", () => {
+  const rent = (etapa: OperationRecord["etapa"], requisitos: Partial<Record<RequirementKey, unknown>> = {}, extra: Partial<OperationWorkflow> = {}) =>
+    op({ operacion: "renta", etapa, inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "completo" }, flujo: flow(requisitos, extra, "arrendador") });
+  const track = stageTrack(rent("documentacion"), today);
+  expect(track.stages.map(s => s.label)).toEqual(["Prospecto", "Entrevista inicial", "Levantamiento", "Documentos básicos", "Revisión de titularidad", "Opinión de renta", "Intermediación para renta", "Publicación y seguimiento", "Selección del arrendatario", "Cierre y entrega"]);
+  // Hoy y la operación dicen lo mismo en cada estado.
+  for (const [etapa, requisitos, extra] of [["documentacion", {}, {}], ["documentacion", { titularidad: reviewed() }, {}], ["documentacion", { titularidad: reviewed(), valor: reviewed(), precio: reviewed() }, accepted], ["comercializacion", {}, {}], ["negociacion", {}, {}]] as const) {
+    const current = rent(etapa, requisitos, extra), t = stageTrack(current, today);
+    expect(processStageText(etapa, current.flujo, today, current.inicial)).toBe(t.stages[t.current].label);
+  }
+  expect(processStageText("negociacion", rent("negociacion").flujo, today)).toBe("Selección del arrendatario");
+  // Sin dictamen completo ni plan de comercialización, ni revisión jurídica para el cierre (MRP-01).
+  const all = requiredReviews("arrendador", "cerrado");
+  for (const key of ["factibilidad", "plan", "revision_cierre", "comprador", "instrumento", "registro"] as RequirementKey[]) expect(all).not.toContain(key);
+  expect(requiredReviews("arrendador", "comercializacion")).toEqual(["entrevista", "titularidad", "valor", "precio", "intermediacion", "levantamiento", "publicacion"]);
+  expect(requiredReviews("arrendador", "entrega")).toEqual(expect.arrayContaining(["contrato_renta", "garantias_renta", "firma", "pago"]));
+  // La titularidad basta para pasar a la opinión de renta; el 06 y el 08 no se piden.
+  expect(routeStages(rent("documentacion", { titularidad: reviewed() }), today).phase).toBe("verificacion");
+  expect(stageDocuments("dictamen", "arrendador")).toEqual([{ formato: "05", optional: true }]);
+  expect(stageDocuments("verificacion", "arrendador").map(d => d.formato)).toEqual(["07"]);
+  expect(advanceTarget(rent("documentacion", { titularidad: reviewed() }), today)).toEqual({ label: "Intermediación para renta" });
+  // Lo que falta se dice con palabras de renta.
+  expect(missingItems(rent("documentacion", { titularidad: reviewed() }), [task()], today).map(m => m.text)).toEqual(["Opinión de renta con comparables", "Renta acordada con el propietario", "Registrar si tomas el encargo"]);
+  // La venta no cambia.
+  expect(requiredReviews("captacion", "comercializacion")).toContain("factibilidad");
 });

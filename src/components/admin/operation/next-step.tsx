@@ -150,7 +150,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
         <Button variant="primary" size="lg" disabled={lock} onClick={() => void docs.startChecklist()}>Crear checklist</Button>
       </NowCard>;
     if (now.kind === "requisito") {
-      const name = requirementName(now.key);
+      const name = requirementName(now.key, flow.ruta);
       if (now.state === "observado") return <NowCard title={`Resolver: ${name}`} text={problemOf(flow.requisitos[now.key]).title}>
         <div className="flex flex-wrap gap-2"><Button variant="primary" size="lg" disabled={lock || (locked && CONTRACT_KEYS.includes(now.key))} onClick={() => quick(now.key, "recibido")}>Ya se resolvió</Button><Button size="lg" disabled={lock || (locked && CONTRACT_KEYS.includes(now.key))} onClick={() => setSheet({ key: now.key, kind: "observado" })}>Escribir qué pasó</Button></div>
       </NowCard>;
