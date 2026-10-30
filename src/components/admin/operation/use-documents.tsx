@@ -3,7 +3,7 @@ import * as React from "react";
 import { apiRequest, db, errorMessage, fetchJson as json, upsert } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
-import { checklistFor, checklistTaskId, levantamientoFor } from "@/lib/formatos/checklist-documentos";
+import { checklistFor, checklistTaskId, levantamientoFor, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
 import { calcularValor } from "@/lib/formatos/valor";
@@ -26,11 +26,23 @@ const byNewest = (a: Documento, b: Documento) => b.updated_at.localeCompare(a.up
 /** «04» es el levantamiento de cualquier tipo (04A–04G). */
 const matches = (formato: string, id: string) => formato === "04" ? id.startsWith("04") : id === formato;
 
-/** Control documental del 05 con lo marcado en el checklist: recibido o por recibir; lo demás queda por determinar. */
+/**
+  Control documental del 05 con lo marcado en el checklist: recibido, por recibir, no aplica con su
+  motivo o por determinar si aún está por confirmar; lo agregado a mano va en «Otros documentos» (D22).
+*/
 export function juridicaDocumentsFrom(checklist?: Task) {
+  const referencia = "Checklist de documentos de la operación";
+  const otros = checklist?.pasos.filter(p => !/^D\d{2}$/.test(p.id) || p.id === "D22") ?? [];
   return (JURIDICA_TABLES.documentos.fixed ?? []).map(item => {
+    if (item.key === "D22" && otros.length) {
+      const nombres = otros.map(p => `${p.texto.replace(/^D22 · /, "")}${p.hecho ? " (recibido)" : p.noAplica ? " (no aplica)" : ""}`).join("; ");
+      return { concepto: item.key, aplica: "si", estado: otros.every(pasoCompleto) ? "recibido" : "no_recibido", referencia, verificacion: nombres.slice(0, 2000) };
+    }
     const paso = checklist?.pasos.find(p => p.id === item.key);
-    return paso ? { concepto: item.key, aplica: "si", estado: paso.hecho ? "recibido" : "no_recibido", referencia: "Checklist de documentos de la operación" } : { concepto: item.key };
+    if (!paso) return { concepto: item.key };
+    if (paso.noAplica?.trim()) return { concepto: item.key, aplica: "no", verificacion: paso.noAplica.trim() };
+    if (paso.porConfirmar && !paso.hecho) return { concepto: item.key, aplica: "pendiente", verificacion: paso.porConfirmar };
+    return { concepto: item.key, aplica: "si", estado: paso.hecho ? "recibido" : "no_recibido", referencia };
   });
 }
 
@@ -128,8 +140,8 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   }
   function checklistFile(kind: "pdf" | "docx") {
     void guard(async () => {
-      const items = checklist?.pasos.map(p => ({ id: p.id, texto: p.texto })) ?? checklistFor(answers);
-      const fileContext = { folio: op.folio, cliente, recibidos: checklist?.pasos.filter(p => p.hecho).map(p => p.id) };
+      const items = checklist?.pasos.map(p => ({ id: p.id, texto: p.texto, ...(p.porConfirmar ? { porConfirmar: p.porConfirmar } : {}) })) ?? checklistFor(answers);
+      const fileContext = { folio: op.folio, cliente, recibidos: checklist?.pasos.filter(p => p.hecho).map(p => p.id), noAplica: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.noAplica?.trim()).map(p => [p.id, p.noAplica!.trim()])), porConfirmar: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.porConfirmar && !pasoCompleto(p)).map(p => [p.id, p.porConfirmar!])) };
       const { checklistPdf, checklistDocx } = await import("@/lib/formatos/checklist-print");
       if (kind === "pdf") saveBlob(new Blob([new Uint8Array(await checklistPdf(items, fileContext))], { type: "application/pdf" }), `Fortius-Checklist-documentos-${op.folio}.pdf`);
       else saveBlob(await checklistDocx(items, fileContext), `Fortius-Checklist-documentos-${op.folio}.docx`);
@@ -142,7 +154,7 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     onEmitted={emision => setEmissions(old => ({ ...old, [open.id]: [emision, ...(old[open.id] ?? [])] }))}
     onClose={() => setOpen(null)} />;
 
-  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, busy, error, capture, isOpen: !!open };
+  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error, capture, isOpen: !!open };
 }
 
 /**

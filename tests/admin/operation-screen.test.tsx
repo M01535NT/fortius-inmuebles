@@ -154,6 +154,9 @@ it("con la entrevista terminada se inicia el levantamiento según el tipo de inm
 it("el checklist de documentos se arma con la entrevista y se marca al recibir cada documento", async () => {
   interviewDone();
   server.docs[0].data = { estadoCivilActual: "casado", gravamen: "infonavit", tipoInmueble: "casa" };
+  // Una CURP ya subida y reconocida en «Documentos del cliente».
+  const curp = "71000000-0000-4000-8000-000000000001";
+  server.fail = url => url === `/api/admin/expedientes/${ID}/archivos` ? Response.json({ archivos: [{ id: curp, titulo: "CURP de María", nombre_original: "curp.pdf", mime: "application/pdf", byte_length: 900, uploaded_by: "u1", created_at: "2026-10-29T10:00:00Z", deleted_at: null, lectura_estado: "leido", tipo_documento: "curp" }], papelera: [] }) : undefined;
   server.docs.push({ id: "d04", expediente_id: ID, formato_id: "04B", data: {}, version: 3, updated_at: "2026-10-15T19:00:00Z" });
   server.emissions.d04 = [{ id: "e04", draft_version: 3, created_at: "2026-10-15T19:00:00Z" }];
   await openOperation();
@@ -162,13 +165,36 @@ it("el checklist de documentos se arma con la entrevista y se marca al recibir c
   const created = server.tasks[0] as { id: string; pasos: Array<{ id: string; hecho: boolean }> };
   expect(created.id).toBe(`checklist-${ID}`);
   expect(created.pasos.map(p => p.id)).toEqual(expect.arrayContaining(["D01", "D09", "D12", "D17"]));
-  expect(created.pasos.map(p => p.id)).not.toContain("D19");
+  // En una casa, el condominio no se pregunta en la entrevista: queda por confirmar (COR-06).
+  expect((created.pasos as Array<{ id: string; porConfirmar?: string }>).find(p => p.id === "D19")?.porConfirmar).toBe("¿Está en un condominio o fraccionamiento con cuotas?");
   await stage(4);
   expect(screen.getByRole("heading", { level: 2, name: "Reunir los documentos del propietario" })).toBeTruthy();
-  expect(screen.getByText(`0 de ${created.pasos.length} recibidos`)).toBeTruthy();
+  expect(screen.getByText(`0 de ${created.pasos.length} listos`)).toBeTruthy();
   fireEvent.click(screen.getByRole("checkbox", { name: /D01 · Escritura/ }));
   await waitFor(() => expect((server.tasks.at(-1) as { pasos: Array<{ id: string; hecho: boolean }> }).pasos.find(p => p.id === "D01")?.hecho).toBe(true));
   expect(screen.getByRole("button", { name: /Pasar a: Dictamen jurídico/ }).hasAttribute("disabled")).toBe(true);
+  type Paso = { id: string; hecho: boolean; noAplica?: string; porConfirmar?: string; aplica?: boolean };
+  const last = () => (server.tasks.at(-1) as { pasos: Paso[] }).pasos;
+  // Lo por confirmar se responde con un clic; «No» deja el motivo escrito.
+  fireEvent.click(await screen.findByRole("button", { name: "No aplica: D21 · Constancia de no adeudo del INDIVI" }));
+  await waitFor(() => expect(last().find(p => p.id === "D21")).toMatchObject({ noAplica: "No viene del INDIVI" }));
+  expect(last().find(p => p.id === "D21")?.porConfirmar).toBeUndefined();
+  fireEvent.click(await screen.findByRole("button", { name: /^Sí aplica: D19/ }));
+  await waitFor(() => expect(last().find(p => p.id === "D19")).toMatchObject({ aplica: true }));
+  // «No aplica» de un documento común pide por qué.
+  fireEvent.click(await screen.findByRole("button", { name: /^No aplica: D11/ }));
+  const motivo = await screen.findByLabelText("Por qué no aplica");
+  expect((screen.getByRole("button", { name: "Guardar" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.change(motivo, { target: { value: "La empresa entrega su constancia con el acta" } });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  await waitFor(() => expect(last().find(p => p.id === "D11")?.noAplica).toBe("La empresa entrega su constancia con el acta"));
+  expect(await screen.findByText("No aplica: La empresa entrega su constancia con el acta")).toBeTruthy();
+  // El documento que ya está en «Documentos del cliente» se marca recibido con un clic, ligado al archivo.
+  expect(screen.getByText("Ya está en «Documentos del cliente»: «CURP de María».")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Marcar recibido" }));
+  await waitFor(() => expect(last().find(p => p.id === "D10")).toMatchObject({ hecho: true, archivoId: curp }));
+  expect((await screen.findByRole("link", { name: "Ver el documento" })).getAttribute("href")).toBe(`/api/admin/archivos-cliente/${curp}/descargar`);
+  expect(document.body.textContent).not.toMatch(/propuest/i);
 });
 
 it("en el dictamen, la barra dice qué les falta a las etapas anteriores y «Ver etapas» muestra sus documentos", async () => {

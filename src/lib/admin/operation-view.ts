@@ -1,4 +1,5 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
+import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
 import { emptyWorkflow, isOwnerRoute, VERIFICATION_REQUIREMENTS, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, SALE_PROCESS, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 
@@ -36,7 +37,7 @@ export function initialStatus(formats: ReadonlyMap<string, boolean> | undefined,
   return {
     iniciada: !!formats?.has("02"), emitida: formats?.get("02") === true,
     levantamiento: formats?.has("04") ? (formats.get("04") ? "emitido" : "borrador") : undefined,
-    documentos: checklist ? (checklist.pasos.length > 0 && checklist.pasos.every(p => p.hecho) ? "completo" : "pendiente") : undefined,
+    documentos: checklist ? (checklistCompleto(checklist.pasos) ? "completo" : "pendiente") : undefined,
   };
 }
 

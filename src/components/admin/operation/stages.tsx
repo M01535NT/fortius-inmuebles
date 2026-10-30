@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AlertCircle, Check, ChevronRight, FileDown, FileText } from "@/components/admin/icons";
 import { Button, ButtonLink, Card, Pill, Sheet } from "@/components/admin/kit";
 import { flowOf, PHASE_FORMATS, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
-import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
+import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
 import { formatTitle, draftProgress } from "./next-step";
@@ -86,9 +86,9 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
   function stageDocs(stage: TrackStage) {
     if (!stage.key || stage.n - 1 > current) return null;
     if (stage.key === "documentos") {
-      const received = checklist?.pasos.filter(p => p.hecho).length ?? 0, total = checklist?.pasos.length ?? 0;
+      const received = checklist?.pasos.filter(pasoCompleto).length ?? 0, total = checklist?.pasos.length ?? 0;
       return <ul className={s.stageDocs}><li className={s.stageDoc}>
-        <span className="min-w-0 flex-1">{checklist ? `Checklist · ${received} de ${total} recibidos` : <span className="font-semibold text-[var(--warning)]">Falta el checklist</span>}</span>
+        <span className="min-w-0 flex-1">{checklist ? `Checklist · ${received} de ${total} listos` : <span className="font-semibold text-[var(--warning)]">Falta el checklist</span>}</span>
         {checklist ? <><Link className={s.docLink} href={`/admin/tareas/${encodeURIComponent(checklistTaskId(op.id))}`}>Ver</Link><button type="button" className={s.docLink} onClick={() => docs.checklistFile("pdf")}>PDF</button></>
           : <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.startChecklist())}>Crear</button>}
       </li></ul>;

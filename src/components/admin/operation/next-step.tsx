@@ -10,7 +10,7 @@ import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/
 import { isOwnerRoute, ownerReportApplies, ownerReportStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
-import { levantamientoFor } from "@/lib/formatos/checklist-documentos";
+import { actualizarChecklist, checklistCompleto, checklistDesactualizado, checklistFor, CODIGOS_POR_TIPO_DOCUMENTO, levantamientoFor, motivoNoAplica, pasoCompleto, type PasoChecklist } from "@/lib/formatos/checklist-documentos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { advanceTarget, contractLocked, flowOf, isGuided, itemCounted, itemDone, missingItems, nowItem, routeStages, stageGuide, stageItems, stageOf, type OperationRecord, type StageItem } from "@/lib/admin/operation-view";
@@ -20,6 +20,7 @@ import { quickReview, RequirementRow, RequirementSheets, StateIcon, type Evidenc
 import type { DocumentsController } from "./use-documents";
 import { copiaEditable } from "@/lib/admin/download-word";
 import type { Documento } from "./documents-tab";
+import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
@@ -142,7 +143,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
       </NowCard>;
     }
     if (now.kind === "checklist") return checklist
-      ? <NowCard title="Reunir los documentos del propietario" text={`${checklist.pasos.filter(p => p.hecho).length} de ${checklist.pasos.length} recibidos. Márcalos abajo al recibirlos.`}>
+      ? <NowCard title="Reunir los documentos del propietario" text={`${checklist.pasos.filter(pasoCompleto).length} de ${checklist.pasos.length} listos. Márcalos abajo al recibirlos; si uno no aplica, escribe por qué.`}>
         <div className="flex flex-wrap gap-2"><Button disabled={lock} onClick={() => docs.checklistFile("pdf")}><FileDown size={16} aria-hidden="true" />Checklist PDF</Button></div>
       </NowCard>
       : <NowCard title="Crear el checklist de documentos" text="Se arma con lo que contestó en la entrevista: estado civil, crédito, tipo de inmueble…">
@@ -181,7 +182,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
             <ul className={s.items}>{documentsGroup.map(item => item.kind === "inicio"
               ? <li key={item.step} className={s.item}><div className={s.itemMain}><ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" /><div className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="font-semibold">{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: checklist de documentos"}</span><span className="text-sm text-muted-foreground">Al iniciarlo pasa a la siguiente etapa.</span></div><div className={s.itemActions}>{item === now ? <span className={s.nowTag}>Ahora</span> : null}</div></div></li>
               : item.kind === "checklist"
-              ? <li key="checklist" className={s.item}>{checklist ? <Checklist task={checklist} disabled={lock} onError={setError} /> : <div className={s.itemMain}><StateIcon state="pendiente" done={false} /><div className="flex-1"><p className="font-semibold">Checklist de documentos</p><p className="text-sm text-muted-foreground">Todavía no se crea.</p></div></div>}</li>
+              ? <li key="checklist" className={s.item}>{checklist ? <Checklist task={checklist} answers={docs.checklistAnswers} expedienteId={op.id} disabled={lock} onError={setError} /> : <div className={s.itemMain}><StateIcon state="pendiente" done={false} /><div className="flex-1"><p className="font-semibold">Checklist de documentos</p><p className="text-sm text-muted-foreground">Todavía no se crea.</p></div></div>}</li>
               : <DocumentRow key={item.formato} item={item} now={item === now} docs={docs} disabled={lock} survey={survey} />)}</ul>
           </>}
           {reviewsGroup.length > 0 && <>
@@ -266,41 +267,104 @@ function FirstContact({ interview, op, disabled }: { interview: OperationalInter
   </div></details>;
 }
 
-/** Lista de documentos guardada como pasos de la tarea de la operación; al recibir todos, la tarea se completa. */
-function Checklist({ task, disabled, onError }: { task: Task; disabled: boolean; onError: (message: string) => void }) {
+/**
+  Lista de documentos guardada como pasos de la tarea de la operación (COR-06). Cada renglón se
+  recibe, no aplica con su motivo o, si depende de algo que la entrevista no pregunta, se resuelve
+  respondiendo su pregunta. Si ya está en «Documentos del cliente», se marca recibido con un clic.
+  Al quedar todos listos, la tarea se completa.
+*/
+function Checklist({ task, answers, expedienteId, disabled, onError }: { task: Task; answers: Record<string, unknown>; expedienteId: string; disabled: boolean; onError: (message: string) => void }) {
   const [busy, setBusy] = React.useState(false), [extra, setExtra] = React.useState("");
-  const received = task.pasos.filter(p => p.hecho).length, total = task.pasos.length;
-  async function save(pasos: Task["pasos"]) {
+  const [motivo, setMotivo] = React.useState<{ id: string; texto: string } | null>(null);
+  const [archivos, setArchivos] = React.useState<ArchivoCliente[]>([]);
+  React.useEffect(() => {
+    let alive = true;
+    apiRequest<{ archivos?: ArchivoCliente[] }>(`/api/admin/expedientes/${expedienteId}/archivos`).then(r => { if (alive) setArchivos(r.archivos ?? []); }).catch(() => undefined);
+    return () => { alive = false; };
+  }, [expedienteId]);
+  const pasos = task.pasos as PasoChecklist[];
+  const listos = pasos.filter(pasoCompleto).length, total = pasos.length;
+  const sugeridos = React.useMemo(() => checklistFor(answers), [answers]);
+  const desactualizado = checklistDesactualizado(pasos, sugeridos);
+  async function save(next: PasoChecklist[]) {
     setBusy(true); onError("");
     try {
-      const complete = pasos.length > 0 && pasos.every(p => p.hecho);
-      await upsert(db.tareas, { ...task, pasos, estado: complete ? "completada" : task.estado === "completada" ? "en-curso" : task.estado }, db.tareas.version(task));
-    } catch (cause) { onError(`No se pudo guardar: ${errorMessage(cause)}`); } finally { setBusy(false); }
+      const complete = checklistCompleto(next);
+      await upsert(db.tareas, { ...task, pasos: next, estado: complete ? "completada" : task.estado === "completada" ? "en-curso" : task.estado }, db.tareas.version(task));
+      return true;
+    } catch (cause) { onError(`No se pudo guardar: ${errorMessage(cause)}`); return false; } finally { setBusy(false); }
   }
+  /** Cambia un renglón; un valor `undefined` quita ese dato del renglón. */
+  const cambiar = (id: string, patch: Partial<PasoChecklist>) => save(pasos.map(p => {
+    if (p.id !== id) return p;
+    const next = { ...p, ...patch } as Record<string, unknown>;
+    for (const key of Object.keys(next)) if (next[key] === undefined) delete next[key];
+    return next as PasoChecklist;
+  }));
   function add(event: React.FormEvent) {
     event.preventDefault();
     const texto = extra.trim(); if (!texto) return;
-    let n = 1; while (task.pasos.some(p => p.id === `X${n}`)) n++;
-    void save([...task.pasos, { id: `X${n}`, texto: `D22 · ${texto}`, hecho: false }]).then(() => setExtra(""));
+    let n = 1; while (pasos.some(p => p.id === `X${n}`)) n++;
+    void save([...pasos, { id: `X${n}`, texto: `D22 · ${texto}`, hecho: false }]).then(ok => { if (ok) setExtra(""); });
   }
+  function guardarMotivo(event: React.FormEvent) {
+    event.preventDefault();
+    if (!motivo?.texto.trim()) return;
+    void cambiar(motivo.id, { noAplica: motivo.texto.trim().slice(0, 500), hecho: false, porConfirmar: undefined, archivoId: undefined }).then(ok => { if (ok) setMotivo(null); });
+  }
+  // Un documento del cliente ya leído que corresponde al renglón.
+  const enDocumentos = (paso: PasoChecklist) => archivos.find(a => !a.deleted_at && a.tipo_documento && CODIGOS_POR_TIPO_DOCUMENTO[a.tipo_documento]?.includes(paso.id));
   const lock = disabled || busy;
   return <div className="flex w-full flex-col gap-1">
     <div className="flex items-baseline justify-between gap-3">
       <p className="font-semibold">Documentos del propietario</p>
-      <span className="text-sm text-muted-foreground">{received} de {total} recibidos</span>
+      <span className="text-sm text-muted-foreground">{listos} de {total} listos</span>
     </div>
-    <ul className="flex flex-col">{task.pasos.map(paso => <li key={paso.id} className="flex items-center justify-between gap-3 border-b border-border py-1.5 last:border-b-0">
-      <label className="flex min-h-11 flex-1 cursor-pointer items-center gap-3">
-        <input type="checkbox" className="size-5 shrink-0" checked={paso.hecho} disabled={lock} onChange={e => void save(task.pasos.map(p => p.id === paso.id ? { ...p, hecho: e.target.checked } : p))} />
-        <span className={paso.hecho ? "text-muted-foreground" : ""}>{paso.texto}</span>
-      </label>
-      <Button variant="ghost" iconOnly aria-label={`Quitar ${paso.texto} (no aplica)`} disabled={lock} onClick={() => void save(task.pasos.filter(p => p.id !== paso.id))}><Trash2 size={16} aria-hidden="true" /></Button>
-    </li>)}</ul>
+    {desactualizado && <div className="flex flex-wrap items-center gap-2 rounded-[12px] border border-border p-3 text-sm">
+      <span className="min-w-0 flex-1">La entrevista cambió y la lista ya no corresponde del todo. Se conserva lo recibido y lo que no aplica.</span>
+      <Button disabled={lock} onClick={() => void save(actualizarChecklist(pasos, sugeridos))}>Actualizar la lista</Button>
+    </div>}
+    <ul className="flex flex-col">{pasos.map(paso => {
+      const archivo = !paso.hecho && !paso.noAplica ? enDocumentos(paso) : undefined;
+      const agregado = !/^D\d{2}$/.test(paso.id);
+      const pregunta = !pasoCompleto(paso) && paso.porConfirmar;
+      return <li key={paso.id} className="flex flex-col gap-1 border-b border-border py-1.5 last:border-b-0">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {paso.noAplica || pregunta
+            ? <div className="flex min-h-11 min-w-0 flex-1 flex-col justify-center">
+              <span className={paso.noAplica ? "text-muted-foreground line-through" : ""}>{paso.texto}</span>
+              {paso.noAplica ? <span className="text-sm text-muted-foreground">No aplica: {paso.noAplica}</span> : <span className="text-sm text-[var(--warning)]">Por confirmar: {paso.porConfirmar}</span>}
+            </div>
+            : <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3">
+              <input type="checkbox" className="size-5 shrink-0" checked={paso.hecho} disabled={lock} onChange={e => void cambiar(paso.id, { hecho: e.target.checked, ...(e.target.checked ? {} : { archivoId: undefined }) })} />
+              <span className={paso.hecho ? "text-muted-foreground" : ""}>{paso.texto}</span>
+            </label>}
+          <span className="flex flex-wrap gap-1">
+            {pregunta ? <>
+              <Button variant="ghost" disabled={lock} aria-label={`Sí aplica: ${paso.texto}`} onClick={() => void cambiar(paso.id, { aplica: true, porConfirmar: undefined })}>Sí aplica</Button>
+              <Button variant="ghost" disabled={lock} aria-label={`No aplica: ${paso.texto}`} onClick={() => void cambiar(paso.id, { noAplica: motivoNoAplica(answers, paso.id), porConfirmar: undefined })}>No aplica</Button>
+            </> : paso.noAplica ? <Button variant="ghost" disabled={lock} aria-label={`Sí aplica: ${paso.texto}`} onClick={() => void cambiar(paso.id, { noAplica: undefined, aplica: true })}>Sí aplica</Button>
+              : !paso.hecho && <Button variant="ghost" disabled={lock} aria-label={`No aplica: ${paso.texto}`} onClick={() => setMotivo({ id: paso.id, texto: "" })}>No aplica</Button>}
+            {agregado && <Button variant="ghost" iconOnly aria-label={`Quitar ${paso.texto}`} disabled={lock} onClick={() => void save(pasos.filter(p => p.id !== paso.id))}><Trash2 size={16} aria-hidden="true" /></Button>}
+          </span>
+        </div>
+        {archivo && <div className="flex flex-wrap items-center gap-2 pl-8 text-sm">
+          <span className="min-w-0 flex-1 text-muted-foreground">Ya está en «Documentos del cliente»: «{archivo.titulo}».</span>
+          <Button disabled={lock} onClick={() => void cambiar(paso.id, { hecho: true, archivoId: archivo.id, porConfirmar: undefined })}>Marcar recibido</Button>
+        </div>}
+        {paso.hecho && paso.archivoId && <a className="pl-8 text-sm underline" href={`/api/admin/archivos-cliente/${paso.archivoId}/descargar`} target="_blank" rel="noopener">Ver el documento</a>}
+        {motivo?.id === paso.id && <form onSubmit={guardarMotivo} className="flex flex-wrap items-end gap-2 pl-8">
+          <label className="min-w-0 flex-1 text-sm">Por qué no aplica<input className={inputClass} autoFocus maxLength={500} value={motivo.texto} disabled={lock} onChange={e => setMotivo({ id: paso.id, texto: e.target.value })} onKeyDown={e => { if (e.key === "Escape") setMotivo(null); }} placeholder="Ej. El inmueble no tiene toma de agua" /></label>
+          <Button type="submit" variant="primary" disabled={lock || !motivo.texto.trim()}>Guardar</Button>
+          <Button disabled={lock} onClick={() => setMotivo(null)}>Cancelar</Button>
+        </form>}
+      </li>;
+    })}</ul>
     <form onSubmit={add} className="mt-2 flex flex-wrap items-end gap-2">
       <label className="min-w-0 flex-1 text-sm">Agregar otro documento<input className={inputClass} maxLength={200} value={extra} disabled={lock} onChange={e => setExtra(e.target.value)} placeholder="Ej. Constancia de no adeudo de mantenimiento" /></label>
       <Button type="submit" disabled={lock || !extra.trim()}>Agregar</Button>
     </form>
-    <p className="mt-1 text-sm text-muted-foreground">{received === total && total > 0 ? "Todos los documentos están recibidos." : "Si uno no aplica, quítalo de la lista. «Recibido» no quiere decir revisado: eso se hace en el dictamen jurídico."}</p>
+    <p className="mt-1 text-sm text-muted-foreground">{listos === total && total > 0 ? "Todos los documentos están listos." : "Si uno no aplica, márcalo «No aplica» y escribe por qué. «Recibido» no quiere decir revisado: eso se hace en el dictamen jurídico."}</p>
   </div>;
 }
 
