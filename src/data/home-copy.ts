@@ -5,7 +5,7 @@ import type { SiteContent } from "@/lib/admin/store";
 export const HOME_FIELDS = {
   relatoTexto: { group: "Por qué Fortius", label: "Pendientes identificados", value: "Revisamos la documentación disponible antes de ofrecer el inmueble." },
   relatoApoyo: { group: "Por qué Fortius", label: "Promoción acordada", value: "Definimos contigo los canales y las acciones para presentar tu propiedad." },
-  metodoTitulo: { group: "Método", label: "Título", value: "Seis etapas.\nUn responsable." },
+  metodoTitulo: { group: "Método", label: "Título", value: "Así vendemos tu propiedad." },
   metodoTexto: { group: "Método", label: "Introducción", value: "Desde la primera revisión hasta la entrega, te explicamos qué sigue y qué necesitamos de ti." },
   captacionTexto: { group: "Método", label: "Captación", value: "Conocemos tu objetivo y la propiedad. Identificamos quién puede autorizar la venta y qué documentos necesitamos para revisarla." },
   diagnosticoTexto: { group: "Método", label: "Verificación y precio", value: "Revisamos documentos, características y pendientes. Comparamos inmuebles similares para proponerte un rango y acordar contigo el precio de salida." },
@@ -91,10 +91,14 @@ const PREVIOUS_EDITORIAL_TEXTS: Partial<Record<HomeTextKey, string>> = {
   inicioRespuesta: "La ubicación, el tipo de inmueble y un teléfono para contactarte. Con esos datos podemos indicarte los documentos necesarios.",
 };
 
+/* Retired by the titular on 30/10/2026: it promised one adviser for the whole sale, which is not always true. */
+const RETIRED_METHOD_TITLE = "Seis etapas.\nUn responsable.";
+
 export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefined, key: HomeTextKey): string {
   const value = content?.homeTexts?.[key]?.trim();
   const isOldDefault = value === PREVIOUS_HOME_TEXTS[key] || value === PREVIOUS_NOTES[key] || value === PREVIOUS_EDITORIAL_TEXTS[key]
-    || (key === "cierreTexto" && value === OLDER_CLOSURE_NOTE);
+    || (key === "cierreTexto" && value === OLDER_CLOSURE_NOTE)
+    || (key === "metodoTitulo" && value === RETIRED_METHOD_TITLE);
   return brandCopy(value && !isOldDefault ? value : HOME_FIELDS[key].value);
 }
 

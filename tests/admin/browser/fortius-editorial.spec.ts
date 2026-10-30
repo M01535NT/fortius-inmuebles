@@ -58,7 +58,7 @@ for (const width of [390, 1440]) {
     await page.goto("/", { waitUntil: "networkidle" });
     const timeline = page.locator("[data-method-timeline]");
     await expect(timeline.locator("li")).toHaveCount(6);
-    await expect(page.getByRole("heading", { name: "Seis etapas. Un responsable." })).toBeAttached();
+    await expect(page.getByRole("heading", { name: "Así vendemos tu propiedad." })).toBeAttached();
     await page.locator("#metodo").scrollIntoViewIfNeeded();
     await expect(timeline.locator("li.is-active")).toHaveCount(1);
     for (let step = 0; step < 30 && !(await timeline.locator("li").last().evaluate((node) => node.classList.contains("is-active"))); step++) {
@@ -74,16 +74,23 @@ for (const width of [390, 1440]) {
 
   test(`property photographs use editorial proportions across the catalog at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    // The night home shows 5:4 photographs; the catalog uses compact 3:2 cards (titular, 18/10/2026).
-    for (const [route, ratio] of [["/", 5 / 4], ["/inventario", 3 / 2]] as const) {
-      await page.goto(route);
-      const photo = page.locator("[data-property-card] img").first();
-      await photo.scrollIntoViewIfNeeded();
-      await expect(photo).toBeVisible();
-      const box = await photo.boundingBox();
-      expect(box!.width / box!.height).toBeCloseTo(ratio, 1);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    }
+    // The home deck spreads each featured photo across the screen (titular, 30/10/2026).
+    await page.goto("/");
+    const deckPhoto = page.locator("#destacadas [data-property-card] img").first();
+    await deckPhoto.scrollIntoViewIfNeeded();
+    await expect(deckPhoto).toBeVisible();
+    const deckBox = await deckPhoto.boundingBox();
+    expect(Math.abs(deckBox!.width - await page.evaluate(() => document.documentElement.clientWidth))).toBeLessThanOrEqual(1);
+    expect(deckBox!.height).toBeGreaterThanOrEqual(520);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    // The catalog uses compact 3:2 cards (titular, 18/10/2026).
+    await page.goto("/inventario");
+    const photo = page.locator("[data-property-card] img").first();
+    await photo.scrollIntoViewIfNeeded();
+    await expect(photo).toBeVisible();
+    const box = await photo.boundingBox();
+    expect(box!.width / box!.height).toBeCloseTo(3 / 2, 1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.locator("[data-property-card] a").first().click();
     await expect(page.locator(".property-gallery-photos")).toBeVisible();
     await expect(page.getByRole("button", { name: "Ficha técnica", exact: true })).toBeVisible();

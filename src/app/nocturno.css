@@ -65,26 +65,37 @@
 .nx-marquee-toggle { display: grid; flex: none; place-items: center; width: 44px; height: 44px; margin-inline: 8px clamp(12px, 3vw, 24px); border-radius: 999px; color: rgba(245, 241, 235, 0.8); cursor: pointer; transition: background-color 0.2s; }
 .nx-marquee-toggle:hover { background: rgba(255, 255, 255, 0.08); }
 
-/* Propiedades destacadas: la tarjeta compartida en versión nocturna */
-.nx-props-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.nx-props-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr); gap: 20px; align-items: stretch; }
-.nx-props-rows { display: flex; flex-direction: column; gap: 16px; }
-.nocturno-home .property-card-row { display: grid; grid-template-columns: 156px minmax(0, 1fr); align-items: stretch; }
-.nocturno-home .property-card-row .property-card-image { width: 100%; min-width: 0; max-width: 100%; aspect-ratio: 1; height: auto; }
-.nocturno-home .property-card-row .property-card-copy { min-width: 0; padding: 16px 18px; }
-.nocturno-home .property-card-row .property-card-badge { position: static; display: inline-flex; max-width: none; margin-bottom: 8px; padding: 0; border-radius: 0; background: transparent; color: color-mix(in srgb, var(--ns-ink) 78%, transparent); backdrop-filter: none; }
-.nocturno-home .property-card-row .property-card-badge::before { background: var(--ns-fill); }
-.nocturno-home .property-card-row .property-card-title { margin-block: 6px 2px; font-size: 18px; }
-.nocturno-home .property-card-motion { border-radius: 18px; }
-.nocturno-home .property-editorial-card { overflow: hidden; border: 1px solid var(--nx-line); border-radius: 18px; background: var(--nx-card); transition: border-color 0.4s, box-shadow 0.4s; }
-.nocturno-home .property-editorial-card:hover { border-color: color-mix(in srgb, var(--ns-accent) 50%, transparent); box-shadow: 0 30px 60px -30px rgba(138, 22, 52, 0.75); }
-.nocturno-home .property-card-image { aspect-ratio: 5 / 4; }
-.nocturno-home .property-card-image img { transition: transform 0.9s var(--nx-ease); }
-.nocturno-home .property-editorial-card:hover .property-card-image img { transform: scale(1.05); }
-.nocturno-home .property-card-copy { padding: 20px 22px 10px; }
-.nocturno-home .property-card-badge { border-radius: 6px; background: rgba(6, 12, 20, 0.66); color: #f5f1eb; backdrop-filter: blur(8px); }
-.nocturno-home .property-card-badge::before { background: var(--ns-accent); }
-.nocturno-home .property-card-price { color: var(--ns-strong); }
+/*
+  Propiedades destacadas como baraja (titular, 30/10/2026; boceto H1 del lienzo «Bocetos de
+  Propiedades destacadas»). Cada carta ocupa la pantalla bajo la barra fija de 72 px y se queda
+  arriba; la siguiente sube y la cubre. Botones de tipo cuando hay destacadas de varios tipos.
+*/
+.nx-deck-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: -12px 0 32px; }
+.nx-deck-filter button { min-height: 44px; padding: 0 20px; border: 1px solid color-mix(in srgb, var(--ns-ink) 22%, transparent); border-radius: 999px; background: transparent; color: var(--nx-ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.16s ease-out; }
+.nx-deck-filter button:hover { border-color: color-mix(in srgb, var(--ns-ink) 50%, transparent); }
+.nx-deck-filter button:active { transform: scale(0.97); }
+.nx-deck-filter button[aria-pressed="true"] { border-color: var(--ns-invert); background: var(--ns-invert); color: var(--ns-invert-ink); }
+.nx-deck { margin: 0; padding: 0; list-style: none; }
+.nx-deck-item { position: sticky; top: 72px; height: clamp(520px, calc(100svh - 72px), 900px); }
+.nx-deck-card, .nx-deck-link { height: 100%; }
+.nx-deck-link { position: relative; isolation: isolate; display: block; overflow: hidden; background: #0f1a28; color: #fff; }
+.nx-deck-link::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 12, 20, 0.5) 0%, rgba(6, 12, 20, 0) 24%, rgba(6, 12, 20, 0) 48%, rgba(6, 12, 20, 0.85) 100%); }
+.nx-deck-link:focus-visible { outline: 3px solid #f5f1eb; outline-offset: -8px; }
+.nx-deck-img { z-index: -2; object-fit: cover; transition: transform 1.2s var(--nx-ease); }
+.nx-deck-img.is-closed { opacity: 0.8; }
+.nx-deck-link:hover .nx-deck-img { transform: scale(1.03); }
+.nx-deck-top, .nx-deck-bottom { position: absolute; left: 0; right: 0; width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 32px); box-sizing: border-box; }
+.nx-deck-top { top: clamp(20px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; font-size: 15px; font-weight: 600; }
+.nx-deck-badge { padding: 6px 10px; border-radius: 6px; background: rgba(6, 12, 20, 0.66); }
+.nx-deck-count { margin-left: auto; font-variant-numeric: tabular-nums; }
+.nx-deck-bottom { bottom: clamp(24px, 4vw, 56px); display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 48px; }
+.nx-deck-name { max-width: 12ch; font-size: clamp(44px, 7.4vw, 112px); line-height: 0.92; font-weight: 600; font-variation-settings: "wdth" 76; letter-spacing: -0.035em; text-wrap: balance; }
+.nx-deck-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 16px; text-align: right; color: rgba(255, 255, 255, 0.9); }
+.nx-deck-price { color: #fff; font-size: clamp(24px, 2.4vw, 34px); font-weight: 600; font-variant-numeric: tabular-nums; }
+.nx-deck-cta { display: inline-flex; align-items: center; min-height: 52px; margin-top: 10px; padding: 0 28px; border-radius: 999px; background: #8a1634; color: #fff; font-weight: 600; transition: background-color 0.2s, transform 0.16s ease-out; }
+.nx-deck-link:hover .nx-deck-cta { background: #a2223f; }
+.nx-deck-link:active .nx-deck-cta { transform: scale(0.97); }
+.nx-deck-more { position: relative; z-index: 6; padding-top: 24px; background: var(--nx-bg); }
 .nx-empty { padding: 32px; border: 1px solid var(--nx-line); border-radius: 18px; color: var(--nx-muted); }
 
 /* Por qué Fortius · expediente que se completa al desplazar */
@@ -164,7 +175,6 @@
 }
 
 @media (max-width: 1023px) {
-  .nx-props-grid, .nx-props-layout { grid-template-columns: 1fr; }
   .nx-exp { grid-template-columns: 1fr; }
   /* Sin recorrido horizontal: las etapas se apilan al desplazar. */
   .nx-method-track { flex-direction: column; width: auto; gap: 16px; }
@@ -172,7 +182,8 @@
   .nx-stage.is-active { translate: none; }
 }
 @media (max-width: 639px) {
-  .nx-props-grid { grid-template-columns: 1fr; }
+  .nx-deck-bottom { flex-direction: column; align-items: flex-start; }
+  .nx-deck-meta { align-items: flex-start; text-align: left; }
   .nx-exp-stack { padding: 16px 20px 28px 0; }
   .nx-exp-sheet { inset: 16px 20px 28px 0; }
   .nx-exp-row p { -webkit-line-clamp: 2; }
@@ -182,6 +193,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .nx-hero-media img, .nx-marquee-track { animation: none; }
+  .nx-deck-img, .nx-deck-filter button, .nx-deck-cta { transition: none; }
   .nx-stage, .nx-stage::before, .nx-stage-number, .nx-link, .nx-exp-pillars li, .nx-exp-progress span, .nx-exp-row, .nx-exp-icon { transition: none; }
   .nx-stage { position: relative; top: auto; }
   .nx-stage.is-past, .dark .nx-stage.is-past { filter: none; }

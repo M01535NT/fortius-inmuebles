@@ -28,7 +28,7 @@ export default async function HomePage() {
     <main className="nocturno-home">
       <NocturnoHero zonas={zonas} tipos={tipos} />
       <NocturnoSegmentos properties={propiedades} />
-      <NocturnoDestacadas properties={destacadas.slice(0, 3)} />
+      <NocturnoDestacadas properties={destacadas} />
       <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />
       <NocturnoMetodo title={homeText(content, "metodoTitulo")} stages={etapasDe(content)} />
       <NocturnoTestimonios items={content.testimonios ?? []} />
