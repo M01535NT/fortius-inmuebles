@@ -7,8 +7,8 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     await page.goto("/");
     await expect(page.locator(".nocturno-home h1")).toBeVisible();
     await expect(page.locator("h1")).toHaveCSS("font-family", /Archivo/);
-    const seller = page.locator(".nx-hero").getByRole("link", { name: /Pide una opinión de valor/ });
-    await expect(seller).toHaveAttribute("href", "/vender-propiedad");
+    const seller = page.locator(".nx-hero").getByRole("link", { name: /Pide tu opinión de valor/ });
+    await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
     const search = page.getByRole("search", { name: "Buscar propiedades" });
     await search.getByLabel("Operación").selectOption("venta");
     await search.getByRole("button", { name: "Buscar" }).click();

@@ -32,8 +32,8 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     await expect(page.locator("header").first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     const search = hero.getByRole("search", { name: "Buscar propiedades" });
     const submit = search.getByRole("button", { name: "Buscar" });
-    const seller = hero.getByRole("link", { name: /Pide una opinión de valor/ });
-    await expect(seller).toHaveAttribute("href", "/vender-propiedad");
+    const seller = hero.getByRole("link", { name: /Pide tu opinión de valor/ });
+    await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
     await expect(submit).toHaveCSS("opacity", "1");
     for (const control of [search.locator(".nx-field").first(), submit, seller]) {
       const box = (await control.boundingBox())!;
@@ -148,8 +148,8 @@ test("hero remains readable before hydration with reduced motion and without Jav
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCSS("opacity", "1");
     await expect(hero.locator("img")).toHaveCSS("animation-name", "none");
-    await hero.getByRole("link", { name: /Pide una opinión de valor/ }).click();
-    await expect(page).toHaveURL(/\/vender-propiedad$/);
+    await hero.getByRole("link", { name: /Pide tu opinión de valor/ }).click();
+    await expect(page).toHaveURL(/\/vender-propiedad#diagnostico$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prepara tu propiedad para vender.");
     await page.goto("/");
     await hero.getByRole("button", { name: "Buscar" }).click();
