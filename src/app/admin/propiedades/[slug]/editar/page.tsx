@@ -50,7 +50,7 @@ function PropertyEditor({ slug }: { slug: string }) {
       <PageHeader
         title="Editar inmueble."
         description={`${property.codigo} · ${property.titulo}`}
-        actions={<HistoryLink collection="propiedades" id={slug}/>}
+        actions={<><Link href={`/admin/propiedades/${encodeURIComponent(slug)}/seguimiento`} className={btnGhost}>Llaves y compradores</Link><HistoryLink collection="propiedades" id={slug}/></>}
       />
       {!current ? (
         <p role="alert" className="text-sm text-destructive">

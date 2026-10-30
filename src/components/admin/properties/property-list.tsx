@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Building2, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
+import { Building2, Key, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
 import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
 import { AsyncButton, AsyncSelect, DemoBanner, inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -9,7 +9,8 @@ import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
 import { emptyInventoryFilters, filterInventory, type InventoryFilters } from "@/lib/admin/workspace";
 import { ESTADO_LABELS, ESTADOS_POR_OPERACION, OPERACION_LABELS, estadoValido, formatPrecio, type Property } from "@/data/propiedades";
-import { db, removePropiedad, upsertPropiedad, useCollection } from "@/lib/admin/store";
+import { db, removePropiedad, upsertPropiedad, useCollection, type AdminProperty } from "@/lib/admin/store";
+import { openKeyLoans, prepProgress } from "@/lib/propiedad-seguimiento";
 import s from "./properties.module.css";
 
 /*
@@ -74,8 +75,11 @@ export function PropertyList() {
   </GuidedPage>;
 }
 
-function PropertyItem({ property: p, duplicated, adviser }: { property: Property; duplicated: boolean; adviser?: string }) {
+function PropertyItem({ property: p, duplicated, adviser }: { property: AdminProperty; duplicated: boolean; adviser?: string }) {
   const state = propertyState(p);
+  const lent = openKeyLoans(p.llaves)[0];
+  const prep = prepProgress(p), preparing = (p.estado === "evaluacion" || p.estado === "disponible") && prep.done < prep.total;
+  const followup = `/admin/propiedades/${p.slug}/seguimiento`;
   const href = `/admin/propiedades/${p.slug}/editar`;
   const pending = p.precio.modalidad === "consulta";
   return <Card as="li" lift className={s.item}>
@@ -92,6 +96,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: Property
         <span className={s.zone}><MapPin size={14} aria-hidden="true" className="shrink-0" />{[p.zona, p.direccionAproximada].filter(Boolean).join(", ") || "Sin zona"}</span>
         {propertyFacts(p) && <span className={s.meta}>{propertyFacts(p)}</span>}
         {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
+        {(lent || preparing) && <span className={s.meta}>{[lent && `Llaves con ${lent.persona}`, preparing && `Preparación ${prep.done} de ${prep.total}`].filter(Boolean).join(" · ")}</span>}
         <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><span className={s.meta}>{p.codigo}</span></span>
       </span>
     </Link>
@@ -104,6 +109,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: Property
           <FeaturedButton property={p} />
           <Link href={`/inventario/${p.slug}`} target="_blank" className={s.action} aria-label={`Ver ${p.titulo} en el sitio`}>Ver en el sitio</Link>
           <Link href={href} className={s.action} aria-label={`Editar ${p.titulo}`}><Pencil size={15} aria-hidden="true" />Editar</Link>
+          <Link href={followup} className={s.action} aria-label={`Llaves, preparación y compradores de ${p.titulo}`}><Key size={15} aria-hidden="true" />Llaves y compradores</Link>
           <AsyncButton type="button" className={s.action} aria-label={`Eliminar ${p.titulo}`} onClick={async () => {
             if (await confirmAction(`¿Eliminar "${p.titulo}"? Un administrador podrá recuperarlo desde Historial.`)) await removePropiedad(p.slug, db.propiedades.version(p));
           }}><Trash2 size={15} aria-hidden="true" />Eliminar</AsyncButton>

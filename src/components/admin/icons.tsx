@@ -58,6 +58,7 @@ export const Hammer = adapt(I.Hammer, "Hammer");
 export const HandCoins = adapt(I.HandCash, "HandCash");
 export const History = adapt(I.ClockRotateRight, "ClockRotateRight");
 export const House = adapt(I.Home, "Home");
+export const Key = adapt(I.Key, "Key");
 export const Image = adapt(I.MediaImage, "MediaImage");
 export const Info = adapt(I.InfoCircle, "InfoCircle");
 export const Landmark = adapt(I.Bank, "Bank");

@@ -4,6 +4,7 @@ import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
+import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { AsyncForm, AsyncButton, AsyncSelect } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -28,6 +29,7 @@ import {
   EVENTO_TIPO_LABELS,
   LEAD_ESTADOS,
   LEAD_ESTADO_LABELS,
+  LEAD_CANAL_LABELS,
   LEAD_ORIGEN_LABELS,
   db,
   fechaCorta,
@@ -154,7 +156,7 @@ function LeadDetail({ id }: { id: string }) {
       <RelatedWork leadId={id}/>
       <PageHeader
         title={lead.nombre}
-        description={`${LEAD_ORIGEN_LABELS[lead.origen]} · recibido el ${fechaCorta(lead.creadoEl)}`}
+        description={`${LEAD_ORIGEN_LABELS[lead.origen]}${lead.canal ? ` · llegó por ${LEAD_CANAL_LABELS[lead.canal].toLowerCase()}` : ""} · recibido el ${fechaCorta(lead.creadoEl)}`}
         actions={
           <>
             <ConvertLeadButton lead={lead} openOperation disabled={!!profileDraft || noteDirty || agendaDirty} />
@@ -170,6 +172,8 @@ function LeadDetail({ id }: { id: string }) {
       {lead.clienteId ? <p className="text-sm text-muted-foreground">Ya es cliente. Esta ficha conserva su historial y su agenda como prospecto.</p> : null}
 
       <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
+
+      {!lead.clienteId && lead.estado !== "descartado" && lead.estado !== "cerrado" ? <MatchingProperties seeker={{ id: lead.id, kind: "lead", nombre: lead.nombre, telefono: lead.telefono, email: lead.email, zona: lead.zona, tipoPropiedad: lead.tipoPropiedad, perfil: lead.perfil, asesorId: lead.asesorId, href: `/admin/leads/${encodeURIComponent(lead.id)}` }} /> : null}
 
       {/* Pipeline */}
       <div

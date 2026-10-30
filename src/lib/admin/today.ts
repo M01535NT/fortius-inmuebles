@@ -158,3 +158,44 @@ export function overdueReports({ dossiers, reports, names, today }: { dossiers: 
     .filter(({ status }) => status.estado !== "al_dia")
     .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? d.folio, status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
 }
+
+/** Fechas del contrato de intermediación (09) que entrega /api/admin/vencimientos. */
+export type ContractDates = { expedienteId: string; folio: string; emitido: boolean; inicio?: string; fin?: string; exclusiva: boolean; licencia?: { numero?: string; vigencia?: string } };
+export type ExpiryItem = { id: string; date: string; kind: "Contrato" | "Licencia"; text: string; meta: string; late: boolean; href: string };
+
+const daysBetween = (from: string, to: string) => Math.round((dayOf(to).getTime() - dayOf(from).getTime()) / 86400000);
+const inDays = (n: number) => n === 0 ? "hoy" : n === 1 ? "mañana" : `en ${n} días`;
+/** Etapas en que el contrato firmado sostiene el encargo: desde la firma hasta antes de entregar. */
+const CONTRACT_STAGES: WorkflowStage[] = ["documentacion", "comercializacion", "negociacion", "cierre"];
+
+/**
+  Contratos y licencias por vencer (titular, 29/10/2026). El contrato de servicio (09)
+  avisa 30 días antes de su fin y la licencia estatal, 60; ambos siguen avisando ya
+  vencidos. Solo cuentan los 09 con su versión actual emitida y operaciones activas.
+*/
+export function expiryItems({ contracts, dossiers, names, today }: { contracts: ContractDates[]; dossiers: TodayDossier[]; names: Names; today: string }): ExpiryItem[] {
+  const items: ExpiryItem[] = [], licences = new Set<string>();
+  for (const contract of contracts.filter(c => c.emitido)) {
+    const d = dossiers.find(x => x.id === contract.expedienteId);
+    if (!d || !active(d)) continue;
+    const who = names.client(d.cliente_id) ?? names.property(d.propiedad_slug) ?? d.folio;
+    const href = `/admin/operaciones/${encodeURIComponent(d.id)}`;
+    if (contract.fin && CONTRACT_STAGES.includes(d.etapa ?? "captacion")) {
+      const left = daysBetween(today, contract.fin);
+      if (left <= 30) items.push({ id: `contrato:${d.id}`, date: contract.fin, kind: "Contrato", late: left < 0, href,
+        text: left < 0 ? `El contrato de servicio venció el ${shortDate(contract.fin)}. Renuévalo o retira la publicación.` : `El contrato de servicio vence ${inDays(left)}, el ${shortDate(contract.fin)}. Habla con el propietario para renovarlo.`,
+        meta: [who, names.property(d.propiedad_slug) !== who ? names.property(d.propiedad_slug) : undefined, contract.exclusiva ? "Exclusiva" : undefined, d.folio].filter(Boolean).join(" · ") });
+    }
+    const vigencia = contract.licencia?.vigencia, key = contract.licencia?.numero ?? vigencia;
+    if (vigencia && key && !licences.has(key)) {
+      const left = daysBetween(today, vigencia);
+      if (left <= 60) {
+        licences.add(key);
+        items.push({ id: `licencia:${key}`, date: vigencia, kind: "Licencia", late: left < 0, href,
+          text: left < 0 ? `La licencia estatal venció el ${shortDate(vigencia)}. Renuévala antes de firmar más contratos.` : `La licencia estatal vence ${inDays(left)}, el ${shortDate(vigencia)}. Tramita la renovación.`,
+          meta: [contract.licencia?.numero ? `Licencia ${contract.licencia.numero}` : undefined, `aparece en ${d.folio}`].filter(Boolean).join(" · ") });
+      }
+    }
+  }
+  return items.sort((a, b) => a.date.localeCompare(b.date) || a.kind.localeCompare(b.kind));
+}

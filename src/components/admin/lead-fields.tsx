@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ChevronDown } from "@/components/admin/icons";
 import { Field, inputClass, selectClass, textareaClass } from "./ui";
-import { db, useCollection, type Lead } from "@/lib/admin/store";
+import { LEAD_CANALES, LEAD_CANAL_LABELS, db, useCollection, type Lead, type LeadCanal } from "@/lib/admin/store";
 import { leadProfileSchema, LEAD_PROFILE_OPTIONS, type LeadProfile } from "@/lib/lead-profile";
 import { MoneyInput } from "@/components/admin/money-input";
 import s from "./form.module.css";
@@ -41,11 +41,12 @@ export function readLeadFields(form: HTMLFormElement, base?: Pick<Lead, "perfil"
     nombre: String(data.get("nombre") ?? "").trim(), telefono: String(data.get("telefono") ?? "").trim(),
     email: optional("email"), zona: optional("zona"), tipoPropiedad: optional("tipoPropiedad"),
     propiedadSlug: optional("propiedadSlug"), asesorId: optional("asesorId"), mensaje: optional("mensaje"),
+    ...(data.has("canal") ? { canal: optional("canal") as LeadCanal | undefined } : {}),
     perfil: result.data,
   };
 }
 
-export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "telefono" | "email" | "perfil" | "zona" | "tipoPropiedad" | "propiedadSlug" | "asesorId" | "mensaje">; nombreRef?: React.Ref<HTMLInputElement> }) {
+export function LeadFields({ lead, nombreRef, channel = true }: { lead?: Pick<Lead, "nombre" | "telefono" | "email" | "perfil" | "zona" | "tipoPropiedad" | "propiedadSlug" | "asesorId" | "mensaje"> & Partial<Pick<Lead, "canal" | "origen">>; nombreRef?: React.Ref<HTMLInputElement>; channel?: boolean }) {
   const prefix = React.useId();
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);
@@ -81,6 +82,10 @@ export function LeadFields({ lead, nombreRef }: { lead?: Pick<Lead, "nombre" | "
         <Field label="Nombre" htmlFor={id("nombre")} className={s.span2}><input ref={nombreRef} id={id("nombre")} name="nombre" required maxLength={160} defaultValue={lead?.nombre ?? ""} autoComplete="name" className={inputClass} /></Field>
         <Field label="Teléfono" htmlFor={id("telefono")}><input id={id("telefono")} name="telefono" type="tel" maxLength={40} defaultValue={lead?.telefono ?? ""} autoComplete="tel" className={inputClass} /></Field>
         {text("email", "Correo electrónico", lead?.email, "email", 254)}
+        {channel && <Field label="Cómo llegó" htmlFor={id("canal")} hint={!lead?.canal && lead?.origen && lead.origen !== "manual" ? "Llegó por un formulario del sitio; cámbialo si te dijo otra cosa." : undefined}><select id={id("canal")} name="canal" defaultValue={lead?.canal ?? ""} className={selectClass}>
+          <option value="">{lead?.origen && lead.origen !== "manual" ? "Sitio web (formulario)" : "Por confirmar"}</option>
+          {LEAD_CANALES.map(value => <option key={value} value={value}>{LEAD_CANAL_LABELS[value]}</option>)}
+        </select></Field>}
       </div>
     </section>
     <LeadSection title={owner ? "Inmueble que ofrece" : "Qué busca y características"} open={editing}>
