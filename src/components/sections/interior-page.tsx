@@ -13,8 +13,6 @@ type InteriorPageProps = {
   media?: { src: string; alt: string };
   /* Bloque propio a la derecha (asistente, pasos, reporte); sustituye la lista. */
   aside?: ReactNode;
-  /* Enlaces hermanos de la sección (Residencial · Comercial · Industrial). */
-  siblings?: { href: string; label: string; current?: boolean }[];
   className?: string;
 };
 
@@ -23,13 +21,10 @@ type InteriorPageProps = {
   oscura con el titular, la descripción y las acciones; a la derecha una foto,
   un bloque propio o la lista de criterios de trabajo.
 */
-export function InteriorPage({ eyebrow, title, description, bullets, primary = { href: "/vender-propiedad", label: "Evaluar mi propiedad" }, secondary = { href: "/#metodo", label: "Conocer el método" }, media, aside, siblings, className = "" }: InteriorPageProps) {
+export function InteriorPage({ eyebrow, title, description, bullets, primary = { href: "/vender-propiedad", label: "Evaluar mi propiedad" }, secondary = { href: "/#metodo", label: "Conocer el método" }, media, aside, className = "" }: InteriorPageProps) {
   return (
     <section className={"pg-hero ip-hero " + className}>
       <div className="pg-container pg-hero-body">
-        {siblings && <nav aria-label="Especialidades" className="pg-pills ip-siblings">
-          {siblings.map(link => <Link key={link.href} href={link.href} aria-current={link.current ? "page" : undefined} className="pg-pill">{link.label}</Link>)}
-        </nav>}
         <div className="pg-hero-grid ip-grid">
           <div>
             <p className="pg-eyebrow">{eyebrow}</p>

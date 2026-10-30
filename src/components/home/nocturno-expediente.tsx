@@ -50,7 +50,6 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
     <section ref={ref} id="por-que-fortius" aria-labelledby="por-que-title" className="nx-section nx-container">
       <div className="nx-exp">
         <div className="nx-exp-copy">
-          <p className="nx-eyebrow">Por qué Fortius</p>
           <h2 id="por-que-title" className="nx-title"><span className="nx-title-mask"><span>Tu venta, en un expediente que puedes ver.</span></span></h2>
           <p className="nx-lead">{intro}</p>
           <ol className="nx-exp-pillars">

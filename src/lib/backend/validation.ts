@@ -64,7 +64,9 @@ const adviserSchema = z.object({ id, nombre: name, cargo: short, iniciales: z.st
 const origins = ["evaluar", "contacto", "interes-propiedad", "checklist", "documentos", "manual"] as const;
 const leadFields = { nombre: name, telefono: phone.or(z.literal("")), email, propiedadSlug: reference, zona: short.optional(), tipoPropiedad: short.optional(), mensaje: text.optional() };
 const homeTextsSchema = z.object(Object.fromEntries(HOME_TEXT_KEYS.map((key) => [key, z.string().max(4000).optional()]))).strip();
-const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short, homeTexts: homeTextsSchema.optional() }).passthrough();
+const faqSchema = z.object({ id, grupo: z.enum(["vender", "comprar", "general"]), pregunta: z.string().trim().min(1).max(300), respuesta: z.string().trim().min(1).max(4000) }).strip();
+const testimonialSchema = z.object({ id, texto: z.string().trim().min(1).max(1200), nombre: z.string().trim().min(1).max(120), detalle: z.string().max(160), autorizado: z.boolean() }).strip();
+const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short, homeTexts: homeTextsSchema.optional(), preguntas: z.array(faqSchema).max(60).optional(), testimonios: z.array(testimonialSchema).max(30).optional() }).passthrough();
 const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")) }).passthrough();
 const postSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
 const postSchema = z.object({
@@ -138,6 +140,8 @@ export function projectPublic(collection: string, values: unknown[]): Record<str
       for (const key of ["videoUrl", "tour360Url"]) if (data[key] && !isPublicUrl(data[key] as string)) delete data[key];
     }
     if (collection === "asesores" && data.activo !== true) continue;
+    // Un testimonio sin autorización escrita no sale del panel.
+    if (collection === "contenido" && Array.isArray(data.testimonios)) data.testimonios = data.testimonios.filter((item: { autorizado?: boolean }) => item.autorizado === true);
     if (collection === "posts") {
       if (data.estado !== "publicado") continue;
       if (data.fuenteUrl && !isPublicUrl(data.fuenteUrl as string)) delete data.fuenteUrl;

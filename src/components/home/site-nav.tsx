@@ -13,13 +13,16 @@ import { ThemeToggle } from "@/components/home/theme-toggle";
    transparente sobre la foto; en las demás páginas, y al desplazar, toma el
    vidrio del tema (blanco en claro, noche en oscuro). El menú a pantalla
    completa conserva el resto de las rutas. */
-const LINKS = [
+const LINKS: { href: string; label: string; wide?: boolean }[] = [
   { href: "/inventario", label: "Propiedades" },
+  { href: "/comprar-propiedad", label: "Comprar" },
   { href: "/vender-propiedad", label: "Vender" },
-  { href: "/#metodo", label: "Método" },
-  { href: "/herramientas", label: "Herramientas" },
-  { href: "/blog", label: "Blog" },
+  { href: "/opinion-de-valor", label: "Opinión de valor" },
+  { href: "/due-diligence-inmobiliaria", label: "Revisión documental", wide: true },
+  { href: "/herramientas", label: "Herramientas", wide: true },
+  { href: "/blog", label: "Blog", wide: true },
   { href: "/nosotros", label: "Nosotros" },
+  { href: "/contacto", label: "Contacto" },
 ];
 
 function isCurrent(pathname: string, href: string) {
@@ -60,7 +63,7 @@ export function SiteNav() {
           {LINKS.map((link) => {
             const current = isCurrent(pathname, link.href);
             return <Link key={link.href} href={link.href} aria-current={current ? "page" : undefined}
-              className={"rounded-full px-4 py-2 text-sm font-medium transition-colors " + (current
+              className={(link.wide ? "hidden xl:inline-flex " : "") + "whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors xl:px-3.5 " + (current
                 ? "bg-[#061f3f] text-[#f5f1eb] dark:bg-[#f5f1eb] dark:text-[#061f3f]"
                 : solid
                   ? "text-[#061f3f]/80 hover:bg-[#061f3f]/10 hover:text-[#061f3f] dark:text-white/85 dark:hover:bg-white/15 dark:hover:text-white"

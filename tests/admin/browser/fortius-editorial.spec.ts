@@ -36,11 +36,11 @@ for (const width of [390, 1440]) {
     expect(await fills()).toEqual(original);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())).toBe("#8a1634");
     const primary = menu.getByRole("navigation", { name: "Menú principal", exact: true });
-    await expect(primary.locator(":scope > ol > li > div > a")).toHaveCount(8);
+    await expect(primary.locator(":scope > ol > li > div > a")).toHaveCount(9);
     const owner = menu.getByRole("region", { name: "Servicios para propietarios" });
     const sell = owner.getByRole("link", { name: "Vender mi propiedad" });
     await expect(sell).toHaveAttribute("href", "/vender-propiedad");
-    await expect(owner.getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/vender-propiedad#precio-y-condiciones");
+    await expect(owner.getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
     await expect(primary.getByRole("link", { name: "Propiedades", exact: true })).toHaveAttribute("href", "/inventario");
     await expect(menu.getByRole("link", { name: "Contacto directo" })).toHaveAttribute("href", "/contacto");
     await sell.scrollIntoViewIfNeeded();
@@ -177,10 +177,6 @@ test("interior routes provide useful next actions and honest media", async ({ pa
   await expect(page.getByRole('heading', { name: 'Personas detrás de cada operación.' })).toBeVisible();
   await expect(page.getByText('Espacio reservado para el video institucional.')).toHaveCount(0);
 
-  await page.goto('/residencial', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('img', { name: /Esquema de vivienda/ })).toBeVisible();
-  await page.getByRole('button', { name: 'Descanso' }).click();
-  await expect(page.getByRole('img', { name: /Descanso/ })).toBeVisible();
 });
 
 test("financial tools expose interactive visual explanations", async ({ page }) => {

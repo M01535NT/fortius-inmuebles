@@ -7,8 +7,11 @@ import {
   AsyncForm,
   Field,
   PageHeader,
+  btnDanger,
+  btnGhost,
   btnPrimary,
   inputClass,
+  selectClass,
   textareaClass,
 } from "@/components/admin/ui";
 import {
@@ -16,6 +19,10 @@ import {
   useSingleton,
   type SiteContent,
 } from "@/lib/admin/store";
+import type { PreguntaFrecuente, Testimonio } from "@/lib/domain/records";
+
+const newId = () => crypto.randomUUID();
+const GRUPO_LABELS: Record<PreguntaFrecuente["grupo"], string> = { vender: "Para vender", comprar: "Para comprar", general: "En general" };
 
 /*
   Contenido editorial de las secciones clave, persistido en el servidor.
@@ -30,6 +37,8 @@ function Editor({ initial }: { initial: SiteContent }) {
     contentStore.version("singleton"),
   );
   const [guardado, setGuardado] = React.useState(false);
+  const [preguntas, setPreguntas] = React.useState<PreguntaFrecuente[]>(() => content.preguntas ?? []);
+  const [testimonios, setTestimonios] = React.useState<Testimonio[]>(() => content.testimonios ?? []);
 
   if (!content) return <PageHeader title="Textos del sitio" />;
 
@@ -43,6 +52,8 @@ function Editor({ initial }: { initial: SiteContent }) {
       ]),
     ) };
     next.homeTexts = Object.fromEntries(HOME_TEXT_KEYS.map((key) => [key, String(data.get(`home-${key}`) ?? "").trim()]));
+    next.preguntas = preguntas.map((item) => ({ ...item, pregunta: item.pregunta.trim(), respuesta: item.respuesta.trim() })).filter((item) => item.pregunta && item.respuesta);
+    next.testimonios = testimonios.map((item) => ({ ...item, texto: item.texto.trim(), nombre: item.nombre.trim(), detalle: item.detalle.trim() })).filter((item) => item.texto && item.nombre);
     const saved = await contentStore.save(next, version);
     setVersion(contentStore.version(saved));
     setGuardado(true);
@@ -148,6 +159,63 @@ function Editor({ initial }: { initial: SiteContent }) {
             </div>
           </details>
         ))}
+        <details className="rounded-lg border border-border bg-card p-5">
+          <summary className="min-h-11 cursor-pointer font-semibold text-foreground">Preguntas frecuentes adicionales ({preguntas.length})</summary>
+          <p className="mt-3 text-sm text-muted-foreground">Se suman a las preguntas base en la página «Preguntas frecuentes». Las respuestas deben poder respaldarse.</p>
+          <ul className="mt-4 space-y-4">
+            {preguntas.map((item, index) => (
+              <li key={item.id} className="space-y-3 rounded-md border border-border p-4">
+                <Field label="Grupo" htmlFor={`faq-grupo-${item.id}`}>
+                  <select id={`faq-grupo-${item.id}`} value={item.grupo} className={selectClass}
+                    onChange={(e) => setPreguntas((list) => list.map((row, i) => i === index ? { ...row, grupo: e.target.value as PreguntaFrecuente["grupo"] } : row))}>
+                    {(Object.keys(GRUPO_LABELS) as PreguntaFrecuente["grupo"][]).map((key) => <option key={key} value={key}>{GRUPO_LABELS[key]}</option>)}
+                  </select>
+                </Field>
+                <Field label="Pregunta" htmlFor={`faq-pregunta-${item.id}`}>
+                  <input id={`faq-pregunta-${item.id}`} value={item.pregunta} maxLength={300} className={inputClass}
+                    onChange={(e) => setPreguntas((list) => list.map((row, i) => i === index ? { ...row, pregunta: e.target.value } : row))} />
+                </Field>
+                <Field label="Respuesta" htmlFor={`faq-respuesta-${item.id}`}>
+                  <textarea id={`faq-respuesta-${item.id}`} value={item.respuesta} rows={3} maxLength={4000} className={textareaClass}
+                    onChange={(e) => setPreguntas((list) => list.map((row, i) => i === index ? { ...row, respuesta: e.target.value } : row))} />
+                </Field>
+                <button type="button" className={btnDanger} onClick={() => setPreguntas((list) => list.filter((_, i) => i !== index))}>Quitar pregunta</button>
+              </li>
+            ))}
+          </ul>
+          <button type="button" className={btnGhost + " mt-4"} onClick={() => setPreguntas((list) => [...list, { id: newId(), grupo: "vender", pregunta: "", respuesta: "" }])}>Agregar pregunta</button>
+        </details>
+
+        <details className="rounded-lg border border-border bg-card p-5">
+          <summary className="min-h-11 cursor-pointer font-semibold text-foreground">Testimonios ({testimonios.length})</summary>
+          <p className="mt-3 text-sm text-muted-foreground">Aparecen en el inicio solo cuando marcas que tienes la autorización por escrito de la persona. Sin testimonios autorizados, la sección no se muestra.</p>
+          <ul className="mt-4 space-y-4">
+            {testimonios.map((item, index) => (
+              <li key={item.id} className="space-y-3 rounded-md border border-border p-4">
+                <Field label="Testimonio" htmlFor={`tes-texto-${item.id}`}>
+                  <textarea id={`tes-texto-${item.id}`} value={item.texto} rows={3} maxLength={1200} className={textareaClass}
+                    onChange={(e) => setTestimonios((list) => list.map((row, i) => i === index ? { ...row, texto: e.target.value } : row))} />
+                </Field>
+                <Field label="Nombre" htmlFor={`tes-nombre-${item.id}`}>
+                  <input id={`tes-nombre-${item.id}`} value={item.nombre} maxLength={120} className={inputClass}
+                    onChange={(e) => setTestimonios((list) => list.map((row, i) => i === index ? { ...row, nombre: e.target.value } : row))} />
+                </Field>
+                <Field label="Detalle (opcional)" htmlFor={`tes-detalle-${item.id}`} hint="Por ejemplo: vendió una casa en Tijuana.">
+                  <input id={`tes-detalle-${item.id}`} value={item.detalle} maxLength={160} className={inputClass}
+                    onChange={(e) => setTestimonios((list) => list.map((row, i) => i === index ? { ...row, detalle: e.target.value } : row))} />
+                </Field>
+                <label className="flex min-h-11 items-center gap-3 text-sm text-foreground">
+                  <input type="checkbox" checked={item.autorizado} className="h-5 w-5"
+                    onChange={(e) => setTestimonios((list) => list.map((row, i) => i === index ? { ...row, autorizado: e.target.checked } : row))} />
+                  Tengo autorización por escrito de esta persona para publicarlo
+                </label>
+                <button type="button" className={btnDanger} onClick={() => setTestimonios((list) => list.filter((_, i) => i !== index))}>Quitar testimonio</button>
+              </li>
+            ))}
+          </ul>
+          <button type="button" className={btnGhost + " mt-4"} onClick={() => setTestimonios((list) => [...list, { id: newId(), texto: "", nombre: "", detalle: "", autorizado: false }])}>Agregar testimonio</button>
+        </details>
+
         <div className="flex items-center gap-4">
           <button type="submit" className={btnPrimary}>
             Guardar contenido

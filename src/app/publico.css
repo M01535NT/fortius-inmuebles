@@ -337,7 +337,6 @@
 @media (prefers-reduced-motion: reduce) { .inv-segment button, .inv-views button, .inv-page .property-editorial-card { transition: none; } }
 
 /* Cabecera interior (InteriorPage) */
-.ip-siblings { margin-bottom: 28px; }
 .ip-grid { align-items: center; }
 .ip-actions { margin-top: 28px; }
 .ip-criteria { justify-self: end; max-width: 380px; padding: 24px 28px; border: 1px solid color-mix(in srgb, var(--ns-ink) 14%, transparent); border-radius: 24px; background: color-mix(in srgb, var(--ns-ink) 5%, transparent); }
@@ -567,3 +566,24 @@
 }
 @media (max-width: 639px) { .ct-intents { grid-template-columns: 1fr; } .ct-intent { min-height: 0; } .tl-preview { flex-direction: column; align-items: stretch; } .tl-preview svg { max-width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .tl-card, .ct-intent { transition: none; } .tl-card:hover, .ct-intent:hover { transform: none; } }
+
+/* Guía para comprar y páginas explicativas: tarjetas, listas con términos y cierre */
+.gd-cards { margin: 32px 0 0; padding: 0; list-style: none; }
+.gd-cards .pg-h3 { margin-bottom: 8px; }
+.gd-cards p { margin: 0; line-height: 1.6; }
+.gd-list { margin: 32px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.gd-list li { display: grid; grid-template-columns: minmax(200px, 0.45fr) minmax(0, 1fr); gap: 8px 32px; padding: 20px 0; border-bottom: 1px solid var(--border); }
+.gd-list strong { font-size: 18px; font-weight: 600; line-height: 1.35; }
+.gd-list li > span { color: var(--muted-foreground); line-height: 1.6; }
+.gd-steps strong span { margin-right: 10px; color: var(--primary-text, #8a1634); font-variant-numeric: tabular-nums; }
+.gd-note { max-width: 70ch; margin: 24px 0 0; color: var(--muted-foreground); font-size: 15px; line-height: 1.6; }
+.gd-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; }
+.gd-cta .pg-h2 { max-width: 18ch; margin-bottom: 12px; }
+.gd-cta .pg-muted { max-width: 52ch; margin: 0; }
+.gd-cta-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.gd-cta-link { display: inline-flex; align-items: center; min-height: 44px; color: #fff; font-weight: 500; text-decoration: underline; text-underline-offset: 5px; }
+@media (max-width: 767px) { .gd-list li { grid-template-columns: 1fr; } }
+.faq-groups { display: grid; gap: clamp(40px, 5vw, 64px); }
+.faq-group .pg-h2 { margin-bottom: 8px; }
+.faq-more { display: grid; justify-items: start; gap: 12px; margin-top: clamp(40px, 5vw, 64px); }
+.faq-more .pg-muted { margin: 0; }

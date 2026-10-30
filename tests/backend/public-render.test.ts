@@ -93,7 +93,7 @@ test("image optimization allows only the configured public bucket and existing e
 
 test("legacy public PDF keeps a permanent route to the Fortius asset", async () => {
   const config = (await import("../../next.config")).default;
-  expect(await config.redirects?.()).toHaveLength(19);
+  expect(await config.redirects?.()).toHaveLength(22);
   expect(await config.redirects?.()).toContainEqual({
     source: "/descargas/checklist-venta-mnt.pdf",
     destination: "/descargas/checklist-venta-fortius.pdf",
@@ -136,9 +136,8 @@ const publicPages: [string, () => Promise<{ metadata: Metadata } >][] = [
   ["/", () => import("@/app/page")],
   ["/contacto", () => import("@/app/contacto/page")],
   ["/inventario", () => import("@/app/inventario/page")],
-  ["/residencial", () => import("@/app/residencial/page")],
-  ["/comercial", () => import("@/app/comercial/page")],
-  ["/industrial", () => import("@/app/industrial/page")],
+  ["/opinion-de-valor", () => import("@/app/opinion-de-valor/page")],
+  ["/preguntas-frecuentes", () => import("@/app/preguntas-frecuentes/page")],
   ["/comprar-propiedad", () => import("@/app/comprar-propiedad/page")],
   ["/vender-propiedad", () => import("@/app/vender-propiedad/page")],
   ["/vender-propiedad/gracias", () => import("@/app/vender-propiedad/gracias/page")],
@@ -167,6 +166,13 @@ test.each([
   });
   expect(metadata.robots).toEqual({ index: false, follow: true });
   expect(JSON.stringify(metadata)).not.toContain("mnt.example");
+});
+test("the three specialty pages became inventory filters", async () => {
+  const config = (await import("../../next.config")).default;
+  const redirects = await config.redirects?.();
+  for (const segmento of ["residencial", "comercial", "industrial"]) {
+    expect(redirects).toContainEqual({ source: `/${segmento}`, destination: `/inventario?segmento=${segmento}`, permanent: true });
+  }
 });
 test("retired zone pages redirect to inventory and leave the sitemap", async () => {
   const config = (await import("../../next.config")).default;

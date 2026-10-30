@@ -15,6 +15,7 @@ import styles from "./fullscreen-menu.module.css";
 const PRIMARY = [
   { href: "/", label: "Inicio" },
   { href: "/inventario", label: "Propiedades" },
+  { href: "/comprar-propiedad", label: "Comprar" },
   { href: "/#metodo", label: "Método" },
   { href: "/herramientas", label: "Herramientas" },
   { href: "/blog", label: "Blog" },
@@ -182,7 +183,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
                   <span className={styles.sellTitle}>Vender mi propiedad</span>
                 </span>
               </Link>
-              <Link href="/vender-propiedad#precio-y-condiciones" prefetch={open ? null : false} onClick={onClose} className={styles.value}>Opinión de valor <ArrowRight size={15} aria-hidden="true" /></Link>
+              <Link href="/opinion-de-valor" prefetch={open ? null : false} onClick={onClose} className={styles.value}>Opinión de valor <ArrowRight size={15} aria-hidden="true" /></Link>
             </section>
             <section className={styles.contact} data-menu-item aria-label="Contacto con Fortius">
               <h2>Hablemos de tu próxima operación.</h2>

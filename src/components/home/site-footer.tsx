@@ -13,14 +13,15 @@ import { publicContact } from "@/lib/public-contact";
 const sections = [
   { title: "Propiedades", links: [
     { href: "/comprar-propiedad", label: "Comprar una propiedad" },
-    { href: "/residencial", label: "Residencial" },
-    { href: "/comercial", label: "Comercial" },
-    { href: "/industrial", label: "Industrial" },
+    { href: "/inventario?segmento=residencial", label: "Residencial" },
+    { href: "/inventario?segmento=comercial", label: "Comercial" },
+    { href: "/inventario?segmento=industrial", label: "Industrial" },
   ] },
   { title: "Trabajar con Fortius", links: [
     { href: "/#metodo", label: "Método" },
+    { href: "/opinion-de-valor", label: "Opinión de valor" },
     { href: "/due-diligence-inmobiliaria", label: "Revisión documental" },
-    { href: "/#respuestas", label: "Preguntas frecuentes" },
+    { href: "/preguntas-frecuentes", label: "Preguntas frecuentes" },
     { href: "/nosotros", label: "Nosotros" },
     { href: "/nosotros#agentes", label: "Agentes" },
     { href: "/nosotros#identidad", label: "Misión, visión y valores" },
