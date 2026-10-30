@@ -5,6 +5,8 @@ import { draftCreate } from "@/lib/formatos/schemas";
 import { prefillFormato } from "@/lib/formatos/intake-prefill";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { calcularValor } from "@/lib/formatos/valor";
+import { llenarDesdeDatos } from "@/lib/formatos/datos-expediente";
+import { leerDatos } from "@/lib/backend/expediente-datos";
 
 type Context = { params: Promise<{ id: string }> };
 export async function GET(_request: Request, context: Context) {
@@ -57,7 +59,12 @@ export async function POST(request: Request, context: Context) {
       if(value.concluido===null)throw new ApiError(409,"La opinión todavía no tiene valor concluido: completa sus enfoques y pesos");
       valorSeed={referencia07:`Opinión ${opinion.id} · versión ${opinion.version}`,fecha07:opinion.data.fechaValor,precioSugerido07:value.concluido,precioBase:"sugerido07",moneda:"MXN"};
     }
-    const seeded=draftCreate.parse({formatoId:input.formatoId,data:{...proposed,...input.data,...valorSeed}});
+    // Datos del expediente ya confirmados: llenan lo que la propuesta dejó vacío (nunca la reemplazan).
+    // Si no se pueden leer, el formato nace igual con su propuesta.
+    let confirmados: Awaited<ReturnType<typeof leerDatos>>["datos"]={};
+    try{confirmados=(await leerDatos(client,id)).datos;}catch{/* sin datos del expediente */}
+    const base={...proposed,...input.data,...valorSeed};
+    const seeded=draftCreate.parse({formatoId:input.formatoId,data:{...base,...llenarDesdeDatos(input.formatoId,base,confirmados).patch}});
     const { data, error } = await client.from("fortius_inmuebles_formato_drafts").insert({ expediente_id: id, formato_id: input.formatoId, data: seeded.data }).select("id,expediente_id,formato_id,data,version,created_at,updated_at").single();
     if (error) databaseError(error);
     return { documento: data };

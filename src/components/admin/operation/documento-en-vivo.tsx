@@ -6,6 +6,7 @@ import { FormatoEditor } from "@/components/admin/formato-editor";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { fetchLetterhead } from "@/lib/letterhead";
 import { avisoIncompleto, emiteIncompleto, type FormatoDefinition, type FormatoField } from "@/lib/formatos/catalog";
+import { llenarDesdeDatos, type DatosGuardados } from "@/lib/formatos/datos-expediente";
 import { DOCUMENTOS } from "@/lib/formatos/documento";
 import type { Documento } from "@/lib/formatos/documento/modelo";
 import { imageInfo, type ImagenDocumento } from "@/lib/formatos/documento/imagen";
@@ -46,8 +47,10 @@ async function imagenDe(adjunto: Adjunto): Promise<ImagenDocumento | undefined> 
   return { bytes, tipo: info.tipo, ...size, caption: adjunto.caption, source: adjunto.source, date: adjunto.observed_on, href: URL.createObjectURL(blob) };
 }
 
-export function DocumentoEnVivo({ definition, documentId, values, missing, disabled, onAccept, onDraft }: {
+export function DocumentoEnVivo({ definition, documentId, expedienteId, values, missing, disabled, onAccept, onDraft }: {
   definition: FormatoDefinition; documentId: string; values: Record<string, unknown>; missing: string[]; disabled: boolean;
+  /** Expediente del formato: sus datos confirmados se ofrecen para llenar lo vacío y avisan si algo es distinto. */
+  expedienteId?: string;
   /** Integra lo capturado y lo guarda; si falla, la captura sigue abierta con el error. */
   onAccept: (patch: Record<string, unknown>) => Promise<void>;
   /** Avisa si hay una captura abierta con cambios, para no perderla al cerrar la ventana. */
@@ -65,6 +68,13 @@ export function DocumentoEnVivo({ definition, documentId, values, missing, disab
   // «Ajustar al ancho» la vuelve a encoger.
   const [large, setLarge] = React.useState(() => narrowScreen());
   const [refresh, setRefresh] = React.useState(0);
+  const [datosExp, setDatosExp] = React.useState<DatosGuardados | null>(null);
+  React.useEffect(() => {
+    if (!expedienteId) return;
+    let alive = true;
+    json<{ datos: DatosGuardados }>(`/api/admin/expedientes/${expedienteId}/datos`).then(r => { if (alive) setDatosExp(r.datos ?? {}); }).catch(() => { /* sin datos del expediente, el formato se llena a mano */ });
+    return () => { alive = false; };
+  }, [expedienteId]);
   const zoneRefs = React.useRef(new Map<string, HTMLButtonElement>());
   const panelRef = React.useRef<HTMLDivElement>(null);
   const formId = React.useId();
@@ -162,6 +172,14 @@ export function DocumentoEnVivo({ definition, documentId, values, missing, disab
   // Reglas que no son un solo campo (p. ej. «Al menos un canal autorizado para publicidad» del aviso) también cuentan.
   const sueltos = missing.filter(label => !byLabel.has(label) && !IMAGE_ERRORS[label]);
   const faltan = pending.length + sueltos.length;
+  // Datos del expediente: lo que puede llenar celdas vacías y lo que ya está escrito distinto (nunca se cambia solo).
+  const desdeExpediente = React.useMemo(() => datosExp ? llenarDesdeDatos(definition.id, values, datosExp) : { patch: {}, conflictos: [] }, [datosExp, definition.id, values]);
+  const porLlenar = Object.keys(desdeExpediente.patch).length;
+  async function usarExpediente(patch: Record<string, unknown>) {
+    if (saving || disabled) return;
+    setSaving(true); setError("");
+    try { await onAccept(patch); } catch (cause) { setError(errorMessage(cause)); } finally { setSaving(false); }
+  }
   const panelOpen = !!editing || listOpen;
   const editFields: FormatoField[] = editing ? editing.zona.keys.filter(key => !IMAGE_KEYS.includes(key)).map(key => fields.get(key)).filter((field): field is FormatoField => !!field) : [];
   const imageKey = editing?.zona.keys.find(key => IMAGE_KEYS.includes(key));
@@ -235,6 +253,18 @@ export function DocumentoEnVivo({ definition, documentId, values, missing, disab
             <span className="lg:hidden"><Button variant="ghost" iconOnly aria-label="Cerrar la lista" onClick={() => setListOpen(false)}><X size={18} aria-hidden="true" /></Button></span>
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-3 py-4">
+            {(porLlenar > 0 || desdeExpediente.conflictos.length > 0) && <section aria-label="Datos del expediente" className="flex flex-col gap-2 rounded-[12px] border border-border p-3">
+              <p className="text-sm font-semibold">Datos del expediente</p>
+              {porLlenar > 0 && <div className="flex flex-col gap-2">
+                <p className="text-sm text-muted-foreground">{porLlenar === 1 ? "Hay 1 dato confirmado" : `Hay ${porLlenar} datos confirmados`} que puede llenar celdas vacías de este formato.</p>
+                <Button variant="primary" disabled={disabled || saving} onClick={() => void usarExpediente(desdeExpediente.patch)}><Check size={16} aria-hidden="true" />Llenar con los datos del expediente</Button>
+              </div>}
+              {desdeExpediente.conflictos.length > 0 && <ul className="flex flex-col gap-2">{desdeExpediente.conflictos.map(conflicto => <li key={conflicto.key} className="flex flex-col gap-1 text-sm">
+                <span><strong>{label(conflicto.key)}</strong>: aquí dice «{String(conflicto.actual)}»; el expediente tiene «{String(conflicto.propuesto)}».</span>
+                <span><Button disabled={disabled || saving} onClick={() => void usarExpediente({ [conflicto.key]: conflicto.propuesto })}>Usar el del expediente</Button></span>
+              </li>)}</ul>}
+              {error && !editing && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            </section>}
             {faltan ? <ul className="flex flex-col gap-0.5">{pending.map(key => <li key={key}><button type="button" className={s.missingItem} disabled={disabled || !maqueta} onClick={() => openKey(key)}><span className="flex-1">{label(key)}</span></button></li>)}
               {sueltos.map(text => <li key={text} className="px-3 py-2 text-sm">{text}</li>)}</ul>
               : <p className="px-2 text-sm text-muted-foreground">Ya tiene lo indispensable para generar el PDF. Puedes seguir llenando lo demás.</p>}

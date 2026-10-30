@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { ChevronLeft, ClipboardList, FileText, History, ListChecks, MessageCircle, Phone, Settings2, UserRound } from "@/components/admin/icons";
+import { ChevronLeft, ClipboardList, FileText, Folder, History, ListChecks, MessageCircle, Phone, Settings2, UserRound } from "@/components/admin/icons";
 import { Button, Card, EmptyBox, Notice, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -14,6 +14,7 @@ import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { flowOf, initialStatus, isGuided, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
+import { ClientDocumentsTab } from "./client-documents-tab";
 import { DocumentsTab } from "./documents-tab";
 import { HistoryTab } from "./history-tab";
 import { NextStepTab } from "./next-step";
@@ -27,13 +28,15 @@ import s from "./operation.module.css";
 /*
   Una operación (boceto «Una operación, versión elegida», aprobado por el titular el 17/10/2026):
   portada con la foto del inmueble, el nombre, el precio y las cuatro fases; a la izquierda la
-  línea de tiempo de las etapas y las secciones (Esta etapa · Expediente · Tareas · Historial ·
-  Ajustes); al centro, lo que pide la etapa actual. Los documentos se capturan en su propia
+  línea de tiempo de las etapas y las secciones (Esta etapa · Expediente · Documentos del cliente ·
+  Tareas · Historial · Ajustes); al centro, lo que pide la etapa actual. Los documentos se capturan en su propia
   ventana. La dirección conserva ?tab=documentos y ?documento=<id> para los enlaces que ya existen.
 */
 
 const TABS = [
-  { id: "sigue", label: "Esta etapa", icon: ListChecks }, { id: "documentos", label: "Expediente", icon: FileText }, { id: "tareas", label: "Tareas", icon: ClipboardList },
+  { id: "sigue", label: "Esta etapa", icon: ListChecks }, { id: "documentos", label: "Expediente", icon: FileText },
+  // Documentos del cliente (titular, 29/10/2026): el repositorio de todo lo que entrega el cliente.
+  { id: "cliente", label: "Documentos del cliente", icon: Folder }, { id: "tareas", label: "Tareas", icon: ClipboardList },
   { id: "historial", label: "Historial", icon: History }, { id: "ajustes", label: "Ajustes", icon: Settings2 },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
@@ -158,6 +161,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
           evidence={{ documents: docs.list, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer }} interview={interview}
           onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={next => void changeTab(next)} onDirtyChange={markDirty.sigue} />}
         {tab === "documentos" && <DocumentsTab op={op} docs={docs} />}
+        {tab === "cliente" && <ClientDocumentsTab operationId={op.id} />}
         {tab === "tareas" && <RelatedWork expedienteId={op.id} clienteId={op.cliente_id} propertySlug={op.propiedad_slug ?? undefined} />}
         {tab === "historial" && <HistoryTab operationId={op.id} refresh={changes} onDirtyChange={markDirty.historial} />}
         {tab === "ajustes" && <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onRemove={() => changeLifecycle(true)} onDirtyChange={markDirty.ajustes} />}

@@ -198,3 +198,28 @@ it("valida vínculos de agenda y oculta eventos de clientes y expedientes ajenos
     expect((await db.query("select id from public.fortius_inmuebles_records where collection='eventos' and id=$1", [linked.id])).rows).toEqual([]);
   });
 });
+
+it("los documentos del cliente solo los ve quien tiene acceso al expediente y no se escriben directo", async () => {
+  const archivo = "51000000-0000-4000-8000-000000000020";
+  const row = [archivo, expediente, "Escritura", "escritura.pdf", "application/pdf", 1024, "b".repeat(64), `${expediente}/cliente/${archivo}.pdf`, own];
+  const insert = "insert into public.fortius_inmuebles_expediente_archivos(id,expediente_id,titulo,nombre_original,mime,byte_length,sha256,path,uploaded_by) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)";
+  await asUser(own, () => expect(db.query(insert, row)).rejects.toMatchObject({ code: "42501" }));
+  // Solo el servidor (rol de servicio) registra el archivo, después de comprobar el acceso.
+  await db.query(insert, row);
+  await expect(db.query(insert, [...row.slice(0, 4), "application/zip", ...row.slice(5)])).rejects.toBeTruthy();
+  await asUser(own, async () => {
+    expect((await db.query("select id,titulo from public.fortius_inmuebles_expediente_archivos")).rows).toEqual([{ id: archivo, titulo: "Escritura" }]);
+    await expect(db.query("update public.fortius_inmuebles_expediente_archivos set titulo='Otro' where id=$1", [archivo])).rejects.toMatchObject({ code: "42501" });
+  });
+  await asUser(admin, async () => expect((await db.query("select id from public.fortius_inmuebles_expediente_archivos")).rows).toHaveLength(1));
+  await asUser(other, async () => expect((await db.query("select id from public.fortius_inmuebles_expediente_archivos")).rows).toEqual([]));
+  await asUser(null, () => expect(db.query("select id from public.fortius_inmuebles_expediente_archivos")).rejects.toMatchObject({ code: "42501" }));
+});
+
+it("los datos del expediente solo los ve quien tiene acceso y no se escriben directo", async () => {
+  await asUser(own, () => expect(db.query("insert into public.fortius_inmuebles_expediente_datos(expediente_id,datos) values ($1,'{}')", [expediente])).rejects.toMatchObject({ code: "42501" }));
+  await db.query("insert into public.fortius_inmuebles_expediente_datos(expediente_id,datos) values ($1,$2::jsonb)", [expediente, JSON.stringify({ folioReal: { valor: "123", estado: "confirmado" } })]);
+  await asUser(own, async () => expect((await db.query<{ datos: Record<string, { valor: string }> }>("select datos from public.fortius_inmuebles_expediente_datos")).rows[0].datos.folioReal.valor).toBe("123"));
+  await asUser(other, async () => expect((await db.query("select * from public.fortius_inmuebles_expediente_datos")).rows).toEqual([]));
+  await expect(db.query("insert into public.fortius_inmuebles_expediente_datos(expediente_id,datos) values ($1,'[]')", ["51000000-0000-4000-8000-000000000099"])).rejects.toBeTruthy();
+});

@@ -183,3 +183,31 @@ it.each(["save", "emit", "download"] as const)("conserva los datos si falla %s y
   expect(result.steps).toEqual(failure === "save" ? ["save"] : failure === "emit" ? ["save", "emit"] : ["save", "emit", "download"]);
   expect(Boolean(screen.queryByRole("link", { name: "Descargar el PDF de esta versión" }))).toBe(failure === "download");
 });
+
+/* Datos del expediente (titular, 29/10/2026): lo confirmado llena lo vacío; lo escrito distinto solo se avisa. */
+it.each([
+  ["vacío", "", "Llenar con los datos del expediente"],
+  ["escrito distinto", "Titular QA", "Usar el del expediente"],
+] as const)("con el titular %s, la ventana ofrece el dato confirmado del expediente y lo guarda solo al pulsarlo", async (_caso, titular, boton) => {
+  const puts: Record<string, unknown>[] = [];
+  vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+    const file = asset(url); if (file) return file;
+    if (url === "/api/admin/expedientes") return Response.json({ expedientes: [exp] });
+    if (url.endsWith("/formatos")) return Response.json({ documentos: [{ ...draft, data: { ...values, titular } }] });
+    if (url === `/api/admin/expedientes/${exp.id}/datos`) return Response.json({ datos: { propietarioNombre: { valor: "María Ramírez", estado: "confirmado" } }, version: 2 });
+    if (init?.method === "PUT") {
+      const body = JSON.parse(String(init.body)); puts.push(body);
+      return Response.json({ documento: { ...draft, version: 6, data: body.data } });
+    }
+    return Response.json({ documento: { ...draft, data: { ...values, titular } }, emisiones: [] });
+  });
+  render(<Docs />);
+  fireEvent.click(await screen.findByRole("button", { name: "Abrir" }));
+  const capture = await screen.findByRole("dialog", { name: "Aviso de privacidad" });
+  const aviso = await within(capture).findByRole("region", { name: "Datos del expediente" }, { timeout: 8000 });
+  if (titular) expect(aviso.textContent).toContain("aquí dice «Titular QA»; el expediente tiene «María Ramírez»");
+  expect(puts).toEqual([]);
+  fireEvent.click(within(aviso).getByRole("button", { name: boton }));
+  await waitFor(() => expect(puts).toHaveLength(1));
+  expect(puts[0]).toMatchObject({ version: 5, data: { titular: "María Ramírez", operacion: "Venta" } });
+});

@@ -202,7 +202,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
       </div>
 
       {view === "pdf" ? <div className="min-h-0 flex-1 overflow-auto px-4 py-6 sm:px-7"><Emissions emisiones={emisiones} current={current} disabled={!!busy} /></div>
-        : live ? <DocumentoEnVivo definition={definition} documentId={doc.id} values={data} missing={missing} disabled={!!busy} onDraft={onLiveDraft}
+        : live ? <DocumentoEnVivo definition={definition} documentId={doc.id} expedienteId={doc.expediente_id || undefined} values={data} missing={missing} disabled={!!busy} onDraft={onLiveDraft}
           onAccept={async patch => {
             // Se integra al documento y se guarda con la versión del borrador (un conflicto 409 deja la captura abierta con el aviso).
             const next = { ...values, ...patch };
