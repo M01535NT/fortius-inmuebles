@@ -129,9 +129,10 @@ test("side menu preserves all configured contact channels", () => {
     email: "contacto@example.com", horario: "", facebook: "https://m.me/fortius.fixture",
     instagram: "", videoInstitucionalUrl: "",
   }}><FullscreenMenu open onClose={() => {}} /></PublicFeaturesProvider>);
-  expect(screen.getByRole("link", { name: "WhatsApp" }).getAttribute("href")).toMatch(/^https:\/\/wa.me\/526641234567/);
+  // Boceto 2: each channel reads as its visible text in the «Hablemos» column.
+  expect(screen.getByRole("link", { name: /^WhatsApp/ }).getAttribute("href")).toMatch(/^https:\/\/wa.me\/526641234567/);
   expect(screen.getByRole("link", { name: "Messenger" }).getAttribute("href")).toBe("https://m.me/fortius.fixture");
-  expect(screen.getByRole("link", { name: "Correo" }).getAttribute("href")).toMatch(/^mailto:contacto@example.com/);
+  expect(screen.getByRole("link", { name: "contacto@example.com" }).getAttribute("href")).toMatch(/^mailto:contacto@example.com/);
 });
 
 test("fullscreen menu traps Tab, closes with Escape and restores prior focus", async () => {
@@ -145,13 +146,14 @@ test("fullscreen menu traps Tab, closes with Escape and restores prior focus", a
   const onClose = vi.fn();
   const view = render(<FullscreenMenu open onClose={onClose} />);
   const close = screen.getByRole("button", { name: "Cerrar menú" });
-  const links = screen.getAllByRole("link");
+  // The theme switch closes the «Hablemos» column, so the last stop may be a button.
+  const last = [...screen.getByRole("dialog").querySelectorAll<HTMLElement>("a[href], button:not([disabled])")].at(-1)!;
   await waitFor(() => expect(document.activeElement).toBe(close));
-  links.at(-1)!.focus();
+  last.focus();
   fireEvent.keyDown(window, { key: "Tab" });
   expect(document.activeElement).toBe(close);
   fireEvent.keyDown(window, { key: "Tab", shiftKey: true });
-  expect(document.activeElement).toBe(links.at(-1));
+  expect(document.activeElement).toBe(last);
   fireEvent.keyDown(window, { key: "Escape" });
   expect(onClose).toHaveBeenCalledOnce();
   view.rerender(<FullscreenMenu open={false} onClose={onClose} />);
