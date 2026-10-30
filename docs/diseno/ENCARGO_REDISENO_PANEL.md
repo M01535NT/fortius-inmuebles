@@ -113,6 +113,8 @@ Se actualizan los enlaces internos, la búsqueda y las pruebas a las rutas nueva
 - Filtro «Mías / Todo el equipo»: «Todo el equipo» solo para admin.
 
 **Operación guiada** (lienzo: `OperacionEscritorio*` y `OperacionMovil*`)
+
+> **Nueva disposición elegida por el titular (29/10/2026):** la pantalla de una operación pasará al boceto D «Moderno» (`docs/diseno/operacion-boceto-d/OperacionModerno.dc.html`), especificado como LV-06 en `PLAN_ERP_CRM.md`. Cambia la disposición y el estilo; el contenido y las reglas de esta sección (requisitos, chips, «Marcar como revisado», próxima tarea, candados para pasar de etapa, pestañas, Ajustes) se conservan. Se construye cuando el titular lo pida.
 - **Encabezado:** regreso a Operaciones, cliente, folio, inmueble, precio («Precio que espera» o «Precio de salida», según la etapa) y responsable.
 - **Avance de 6 etapas** numeradas del 1 al 6 («Lista», «Aquí vas»). En celular se lee «Etapa N de 6» con barra. Cambia también la numeración 0–5 que hoy usan las páginas de proceso.
 - **Pestañas:** Lo que sigue · Documentos · Tareas · Historial · Ajustes.

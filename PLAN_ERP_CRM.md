@@ -1,6 +1,6 @@
 # Fortius — plan único de implementación del ERP/CRM
 
-**Actualizado:** 26 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
+**Actualizado:** 29 de octubre de 2026, America/Los_Angeles. **Responsable de negocio:** Moisés Núñez Tonalá. **Desarrollo:** agente de desarrollo. **Carpeta:** `C:\Paginas-web\fortius-inmuebles`.
 
 Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del ERP/CRM. Es el único plan vigente de desarrollo. Los manuales de `docs/` son referencias de operación, no planes alternativos.
 
@@ -17,6 +17,8 @@ Este archivo reúne el alcance, el orden de trabajo, las tareas y el avance del 
 **Pendientes reales, en orden:** USO-01 (observar el panel actual con tres personas) y MRP-01 (matriz de reglas por ruta); correcciones COR-01 a COR-10; pendientes de formatos (diseño y fotos del 07, DOC-06, decisión de DOC-09); después, el bloque 2 del «Orden vigente». En paralelo, la continuidad del bloque 0, en especial la recuperación completa: los respaldos de base de datos de Supabase no incluyen los archivos de Storage (REC-01).
 
 **Siguiente entrega (en curso desde el 26/10/2026, rama `feat/mrp01-cor01-03`):** MRP-01, COR-01 a COR-03 y COR-13. La matriz «Matriz de reglas por ruta (MRP-01)» quedó **aprobada por el titular el 26/10/2026 (DEC-26)**, con las listas B-06 y B-07; con ella pueden empezar COR-04, COR-06 y MOT-01. COR-01 a COR-03 no cambian la base de datos; COR-13 lleva una migración que se aplica en remoto solo con autorización del titular.
+
+**Pantalla de una operación, boceto D (titular, 29/10/2026):** el titular eligió el boceto D «Moderno» entre cuatro propuestas. Está especificado como **LV-06** (sección «Lenguaje visual») y su fuente en `docs/diseno/operacion-boceto-d/`. No está construido: se empieza cuando el titular lo pida.
 
 **Seguridad de dependencias, 25/10/2026:** Next.js 16.4.3 y zod 4.6.7 por avisos de seguridad, integrados en `main` con el [PR #51](https://github.com/M01535NT/fortius-inmuebles/pull/51).
 
@@ -506,6 +508,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | 17/10/2026 | La opinión de valor podía hacerse al mismo tiempo que el dictamen (B-04). | Primero la opinión jurídica; la de valor solo si el inmueble pasa o pasa con condiciones (RP-96, D-11). |
 | 17/10/2026 | Cada asesor ve sus operaciones; «Notas del equipo» como página aparte (F-03 propuesto, DEC-25). | El inventario captado es del equipo y cualquier asesor puede venderlo; notas en un botón discreto del inmueble y de la operación (RP-99). |
 | 17/10/2026 | Primera versión de esta sección: producto comercializable a otras inmobiliarias desde ahora, con multiempresa, marca por empresa, flujo configurable, planes y piloto externo; DEC-15 bloqueando REL-01 y SEG-01. | Segunda indicación del titular el mismo día: exclusivo de Fortius y solo con su marca. Lo de otras inmobiliarias pasa a «Etapa posterior (en pausa)»; DEC-15 ya no bloquea nada; las reglas fiscales por lugar se quedan para Fortius (FIS-01). |
+| 29/10/2026 | Una operación con portada azul con foto, línea de tiempo de las 10 etapas a la izquierda y «Ahora toca» al centro (LV-05, «Dirección aprobada»; encargo del rediseño, «Operación guiada»). | Boceto D «Moderno»: panel azul con el número de etapa y las etapas como barras, piezas de la etapa en rejilla y barra de acción flotante (LV-06). Lo construido sigue vigente en pantalla hasta que el titular pida el cambio. |
 
 ## Simplificación de la interfaz (SIM) — paquete listo para implementar, 17/10/2026
 
@@ -721,8 +724,26 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 - **Hoy:** tablero del director con cifras arriba y «Necesitan tu decisión»; la misma pantalla se acomoda al celular, con barra inferior y botón «+».
 - **Operaciones:** dos vistas con selector, **lista** (la de inicio) y **tablero** por fase; el sistema recuerda la última vista de cada usuario.
 - **Inmuebles:** dos vistas, **galería** (primero) y **mapa** (cuando entre EXT-09).
-- **Una operación:** una sola pantalla que combina portada (foto, nombre, precio y las 4 fases), línea de tiempo de las 10 etapas a la izquierda y, al centro, lo que pide la etapa actual. Boceto «Una operación, versión elegida».
+- **Una operación:** se reemplaza por el boceto D «Moderno» (titular, 29/10/2026); ver **LV-06** abajo. Lo construido el 18/10/2026 (portada azul con foto, línea de tiempo a la izquierda y «Ahora toca» al centro) sigue en `main` hasta que el titular pida el cambio.
 - **Contactos, Nueva operación y captura de documentos:** según sus bocetos.
+
+**LV-06 · Una operación según el boceto D «Moderno» (titular, 29/10/2026). Lista para construir; se empieza solo cuando el titular lo pida.** El agente propuso cuatro direcciones para la pantalla de una operación en el lienzo «Bocetos de una operación» (claude.ai, privado del titular): A · Ruta arriba, B · Mesa de trabajo, C · Minimalista y **D · Moderno**. El titular eligió la **D**. La fuente del boceto está en `docs/diseno/operacion-boceto-d/OperacionModerno.dc.html`, con los datos de una operación de prueba (EXP-000006, etapa 5 «Dictamen jurídico»). Solo cambia la presentación de `/admin/operaciones/[id]`; no cambian rutas, API, base de datos, candados de avance, requisitos, 409, protección de cambios sin guardar ni permisos.
+
+- **Disposición en computadora:** pantalla partida. A la izquierda, un **panel azul marino** (#061F3F, esquina 28 px, de 380 a 460 px de ancho, alto de la vista) y a la derecha las piezas de la etapa en una **rejilla de 6 columnas con piezas de distinto tamaño** (esquina 22 px, sin borde, fondo blanco sobre el lienzo `--canvas`).
+- **Panel azul, de arriba abajo:** regreso a Operaciones (círculo de 44 px) y folio; una línea con la persona y lo que quiere («Moises Nuñez vende su casa»); el **número de etapa enorme** en Archivo condensado (anchura 62, peso 700, unos 168 px) con «/10» tenue al lado y, debajo, el nombre de la etapa (anchura 80, peso 600) y el nombre de la fase en texto secundario; las **10 etapas como barras**: hechas en guinda, la actual blanca, más gruesa y con letra mayor, las siguientes tenues; cada etapa conserva su botón y su nombre accesible actual («N · etapa: lista / aquí vas / pendiente»). Al pie, el **propietario** con iniciales o foto, «Propietario», y Llamar y WhatsApp como botones redondos de 44 px con `aria-label`.
+- **Piezas de la derecha:**
+  - **Documentos de la etapa** (4 columnas): cada formato con su número grande en Archivo condensado, nombre y avance («0 de 12 secciones · versión 1»); el que toca va sobre `--panel-selected` y abre su **ventana de captura propia** (regla vigente: nunca incrustado); el que espera a otro va con borde punteado y dice cuándo se abre («Se abre al terminar el 05»). Sin números de formato fuera de esta pieza (C15).
+  - **Próxima tarea** (2 columnas): título, fecha con palabras y «Cambiar fecha». Fondo **rojo sólido** (`--alert`) con texto blanco **solo si está vencida**; si no, tarjeta blanca normal. Sin tarea, la pieza no aparece y la de documentos toma las 6 columnas.
+  - **Antes de seguir, confirma** (3 columnas): los requisitos reales de la etapa con sus chips de estado vigentes (Pendiente, Lo tengo, Revisado, Hay un problema, No aplica) y «Marcar revisado» con la misma evidencia que hoy. Nunca texto de relleno.
+  - **Inmueble** (3 columnas): la primera foto de la galería a sangre con una píldora blanca «Tipo · precio» (o «Precio por definir»). Sin foto: fondo `--track` con el ícono de casa y la ubicación; nunca un recuadro de «foto pendiente».
+  - **Fila completa al pie:** responsable y los accesos a Expediente, Tareas, Historial y Ajustes, que abren las pestañas que ya existen.
+- **Barra de acción flotante:** píldora blanca centrada abajo (máx. 760 px, sombra `--shadow-float`) con un anillo de los requisitos de la etapa («N de M para pasar a <siguiente etapa>»), lo que toca en una línea y el botón guinda. El botón dice **«Continuar»** y abre la ventana del documento que toca; cuando todo está listo cambia a **«Pasar a <siguiente etapa>»** con los mismos candados de hoy (`workflowBlockers`). El contenido deja espacio debajo para que la barra no tape nada.
+- **Celular (390 y 320 px):** el panel azul va arriba y compacto (número de etapa de unos 72 px y las 10 etapas como barra horizontal de 10 tramos); las piezas en una columna; la barra flotante se apoya sobre la barra inferior del panel sin taparla.
+- **Oscuro:** el panel azul pasa a `--card` con borde `--card-edge`; la tarea vencida conserva rojo con contraste AA; el resto usa los tokens del panel.
+- **Se conserva sin cambios:** «Ver etapas», la vista de una etapa anterior, los cuatro pasos dentro de «Cierre y entrega» (COR-09), las pestañas y su contenido, el informe mensual y las visitas y ofertas, el panel de «Marcar revisado», la eliminación recuperable y las pruebas de navegador que leen la portada (folio como texto propio, nombres accesibles de las etapas).
+- **Marca:** Archivo con los pesos del panel (620/600/540/400) salvo el número de etapa; íconos Iconoir por `icons.tsx`; sin rosa, sin etiquetas en mayúsculas y sin animaciones de entrada en cada pieza (RP-73: solo las que confirman).
+- **Archivos previstos:** `src/components/admin/operation/screen.tsx`, `stages.tsx`, `next-step.tsx`, `requirements.tsx` y `operation.module.css`; el kit solo si hace falta una variante.
+- **Aceptación:** revisión en el navegador a 1440, 1024, 390 y 320 px, en claro y oscuro, con teclado y con «reducir movimiento»; sin desbordamiento horizontal; la barra flotante no tapa contenido ni la barra inferior; operaciones con y sin foto, con y sin tarea, con tarea vencida y en «Cierre y entrega»; lint, tipos y pruebas del panel; Verify en CI antes de integrar, con el acuerdo del titular para fusionar.
 
 ### Entregas del paquete LV
 
@@ -731,6 +752,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; cuatro tamaños de letra en todo el panel; axe sin fallas. |
 | LV-02 | V01, V03, V04, V05, V09 | LV-01, SIM-05 | Catálogo único de íconos usado en todas las pantallas; cada estado con forma, color y palabra; anillo de avance con texto; insignias de documento; avatar neutro del asesor. |
 | LV-03 | V06 | LV-02, UX-04 | Animaciones de confirmación de 300 ms o menos, sin bucles; con «reducir movimiento» no hay transiciones; los mensajes de guardado siguen apareciendo. |
+| LV-06 | Una operación según el boceto D «Moderno» | Ninguna; se empieza cuando el titular lo pida | Lo descrito en «LV-06» arriba: pantalla partida con panel azul y número de etapa, piezas de la etapa en rejilla, barra de acción flotante; mismas reglas, candados y pruebas; revisado en 1440, 1024, 390 y 320 px, claro y oscuro. |
 | LV-04 | V07, V08 | LV-01, SIM-12 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
 
 ## Proceso, captura y documentos — paquete listo para implementar, 17/10/2026
