@@ -85,7 +85,6 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
       <div className="nx-container">
         <div className="nx-method-head">
           <div>
-            <p className="nx-eyebrow">Nuestro método</p>
             <h2 id="metodo-title" className="nx-title"><span className="nx-title-mask"><span>{title}</span></span></h2>
           </div>
           <p className="nx-method-count" aria-hidden="true">{String(Math.max(active, 0) + 1).padStart(2, "0")}<span> / {String(stages.length).padStart(2, "0")}</span></p>
