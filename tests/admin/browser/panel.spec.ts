@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
     return route.fulfill({ json: { records: [] } });
   });
 });
-test("Fortius Inmuebles mark remains visible through email login and sidebar", async ({ page }, testInfo) => {
+test("Fortius Inmuebles mark remains visible through email login and top bar", async ({ page }, testInfo) => {
   let logged = false;
   await page.route("**/api/auth/**", (route) => {
     const pathname = new URL(route.request().url()).pathname;
@@ -39,7 +39,7 @@ test("Fortius Inmuebles mark remains visible through email login and sidebar", a
   await page.getByLabel("Contraseña", { exact: true }).fill("local-fixture-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
-  const sidebarMark = page.getByRole("complementary").getByRole("img", { name: "Fortius Inmuebles" });
+  const sidebarMark = page.getByRole("banner").getByRole("link", { name: /Fortius Inmuebles/ });
   await expect(sidebarMark).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("fortius-inmuebles-sidebar.png"), fullPage: true });
 });
