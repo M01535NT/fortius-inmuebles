@@ -39,3 +39,11 @@
 :global(.admin-root) .action[aria-pressed=true] { color: var(--primary-text); }
 :global(.admin-root) .pageButton { min-height: 2.75rem; padding: 0 1rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); font-weight: 600; }
 :global(.admin-root) .pageButton:disabled { opacity: .5; }
+
+/* «Les falta algo»: filtro rápido y aviso en cada tarjeta (boceto v2, 31/10/2026) */
+:global(.admin-root) .gapChip { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 560; cursor: pointer; }
+:global(.admin-root) .gapChip:hover { background: var(--secondary); }
+:global(.admin-root) .gapChip[aria-pressed=true] { background: #061f3f; color: #fff; }
+:global(.dark) :global(.admin-root) .gapChip[aria-pressed=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .gapChip span { font-size: .8125rem; opacity: .7; }
+:global(.admin-root) .gap { font-size: .8125rem; font-weight: 600; color: var(--warning); }
