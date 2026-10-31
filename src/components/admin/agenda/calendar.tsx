@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "@/components/admin/icons";
+import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Trash2 } from "@/components/admin/icons";
 import { Button, Card } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, ErrorNotice, Field, inputClass, selectClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -220,9 +220,12 @@ export function AgendaCalendar() {
             <span className="font-semibold [overflow-wrap:anywhere]">{evento.titulo}</span>
             <EventContext references={evento} context={calendarContext} />
           </span>
-          <AsyncButton type="button" aria-label={`Eliminar ${evento.titulo}`} className={s.remove} onClick={async () => {
-            if (await confirmAction("¿Eliminar este evento?")) await removeById(db.eventos, evento.id, db.eventos.version(evento));
-          }}><Trash2 size={16} aria-hidden="true" /></AsyncButton>
+          <details className={s.eventMenu}>
+            <summary aria-label={`Más opciones de ${evento.titulo}`}><MoreHorizontal size={18} aria-hidden="true" /></summary>
+            <div className={s.eventMenuBody}><AsyncButton type="button" aria-label={`Eliminar ${evento.titulo}`} className={s.eventDelete} onClick={async () => {
+              if (await confirmAction("¿Eliminar este evento?")) await removeById(db.eventos, evento.id, db.eventos.version(evento));
+            }}><Trash2 size={16} aria-hidden="true" />Eliminar</AsyncButton></div>
+          </details>
         </li>)}</ol> : <div className={s.free}><p className="font-semibold text-foreground">Sin citas este día</p><Button onClick={focusCapture}>Agendar algo</Button></div>}
         {tareasDelDia.length > 0 && <section aria-label="Vencimientos de tareas"><h3 className="text-sm font-semibold">Tareas que vencen este día</h3>
           <ul className="mt-1">{tareasDelDia.map(t => <li key={t.id}><Link href={`/admin/tareas/${t.id}`} className={s.link}><span>{t.titulo}</span><span className="text-xs text-muted-foreground">{TASK_STATUSES[t.estado]}</span></Link></li>)}</ul>
