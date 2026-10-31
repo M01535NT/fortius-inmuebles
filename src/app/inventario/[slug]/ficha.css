@@ -25,6 +25,8 @@
 .fe-place svg { flex: none; color: var(--ns-accent); }
 .fe-price-block { text-align: right; }
 .fe-price { margin: 0; color: var(--ns-strong); font-size: clamp(28px, 3.2vw, 42px); line-height: 1.05; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; }
+.fe-price-m2 { margin: 6px 0 0; color: var(--ns-ink); font-size: 15px; font-weight: 500; }
+.fe-dates { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 10px 0 0; color: color-mix(in srgb, var(--ns-ink) 72%, transparent); font-size: 14px; }
 .fe-price-note { margin: 8px 0 0; color: color-mix(in srgb, var(--ns-ink) 70%, transparent); font-size: 14px; }
 .fe-price-note a { color: var(--ns-accent); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
 .fe-demo-note { max-width: 72ch; margin: 20px 0 0; padding: 12px 16px; border-left: 3px solid var(--ns-accent); border-radius: 4px; background: color-mix(in srgb, var(--ns-ink) 5%, transparent); color: color-mix(in srgb, var(--ns-ink) 88%, transparent); font-size: 14px; line-height: 1.55; }
@@ -151,7 +153,7 @@
 .fe-costs-list > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
 .fe-costs-list > div:last-child { border-bottom: 0; }
 .fe-costs-list dt { color: var(--muted-foreground); font-size: 15px; }
-.fe-costs-list dd { margin: 0; color: var(--foreground); font-size: 18px; font-weight: 600; text-align: right; }
+.fe-costs-list dd { margin: 0; color: var(--foreground); font-size: 18px; font-weight: 600; text-align: right; white-space: nowrap; }
 .fe-costs-tools { display: grid; gap: 10px; padding: 18px 22px 22px; border-top: 1px solid var(--border); background: var(--fe-tint); }
 .fe-costs-tool { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--card, var(--background)); color: var(--foreground); list-style: none; cursor: pointer; transition: border-color 0.2s; }
 .fe-costs-tool::-webkit-details-marker { display: none; }
@@ -174,7 +176,7 @@
 .fe-faq details[open] summary svg { transform: rotate(45deg); }
 .fe-faq details p { margin: 0; padding-bottom: 18px; color: var(--muted-foreground); font-size: 15px; line-height: 1.65; }
 
-/* Tarjeta fija de visita y compartir */
+/* Tarjeta fija de visita */
 .fe-aside { position: sticky; top: 92px; display: grid; gap: 14px; margin-top: 32px; }
 .fe-visit { display: grid; gap: 14px; padding: 24px; border-radius: 8px; background: #061f3f; color: #fff; box-shadow: 0 40px 80px -30px rgba(6, 31, 63, 0.55); }
 .fe-visit-agent { display: flex; align-items: center; gap: 14px; }
@@ -196,16 +198,6 @@
 .fe-visit-channels a { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 4px; color: #f5f1eb; font-size: 13px; font-weight: 500; transition: background-color 0.25s; }
 .fe-visit-channels a:hover { background: rgba(255, 255, 255, 0.1); }
 .fe-visit :is(a, button):focus-visible { outline: 2px solid #f5f1eb; outline-offset: 3px; }
-.fe-share { display: grid; gap: 12px; padding: 20px; }
-.fe-share-title { margin: 0; font-size: 15px; font-weight: 600; }
-.fe-share-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.fe-share-actions > * { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--foreground); font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color 0.25s, border-color 0.25s; }
-.fe-share-actions > *:hover { border-color: #061f3f; background: var(--secondary); }
-.fe-share-status { margin: 0; color: var(--muted-foreground); font-size: 13px; }
-.fe-share-input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--background); font-size: 13px; }
-.fe-share-qr { display: grid; justify-items: center; gap: 8px; padding: 14px; border-radius: 6px; background: #fff; color: #061f3f; text-align: center; }
-.fe-share-qr svg { display: block; width: 180px; height: 180px; }
-.fe-share-qr p { margin: 0; color: #40536b; font-size: 12px; }
 
 /* Similares */
 .fe-related { padding-block: clamp(56px, 7vw, 96px); background: var(--ns-bg); color: var(--ns-ink); }

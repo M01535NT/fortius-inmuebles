@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import QRCode from "qrcode";
 import { notFound } from "next/navigation";
 import { ArrowRight, Calculator, Check, ChevronDown, MapPin } from "lucide-react";
 
@@ -13,7 +12,6 @@ import { PropertyGallery } from "@/components/property/property-gallery";
 import { InventoryBackLink } from "@/components/property/inventory-back-link";
 import { PropertyLocation } from "@/components/property/property-location";
 import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
-import { SharePanel } from "@/components/property/share-panel";
 import { VisitPlanner } from "@/components/property/visit-planner";
 import { getPublicAdvisers, getPublicSettings } from "@/lib/backend/public";
 import { publicContact } from "@/lib/public-contact";
@@ -66,6 +64,27 @@ function money(amount: number, p: Property) {
   return `$${amount.toLocaleString("en-US")} ${moneda}`;
 }
 
+/* Fechas largas en español; las fechas sin hora se leen a mediodía UTC para no cambiar de día. */
+function fechaLarga(value: string | undefined, conAnio = true) {
+  if (!value) return "";
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00Z` : value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("es-MX", { day: "numeric", month: "long", ...(conAnio ? { year: "numeric" } : {}), timeZone: "America/Tijuana" });
+}
+
+/* Precio por m²: solo con precio publicado y la superficie que corresponde (terreno en terrenos, construcción en lo demás). */
+function precioPorM2(p: Property) {
+  if (p.precio.modalidad !== "publico") return null;
+  const esTerreno = p.tipo === "terreno";
+  const m2 = esTerreno ? p.ficha.terrenoM2 : p.ficha.construccionM2;
+  if (!m2 || m2 <= 0) return null;
+  const monto = Math.round(p.precio.monto / m2).toLocaleString("en-US");
+  return {
+    valor: `$${monto} ${p.precio.moneda}${p.operacion === "renta" ? " al mes" : ""}`,
+    base: esTerreno ? "por m² de terreno" : "por m² de construcción",
+  };
+}
+
 function jsonLd(p: Property): string {
   const data = {
     "@context": "https://schema.org",
@@ -99,14 +118,6 @@ function jsonLd(p: Property): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
-async function qrSvg(url: string) {
-  try {
-    return await QRCode.toString(url, { type: "svg", margin: 1, width: 180, color: { dark: "#061f3f", light: "#ffffff" } });
-  } catch {
-    return undefined;
-  }
-}
-
 /*
   Ficha del inmueble · «Escenario» (titular, 18/10/2026): banda oscura con
   título, precio y visor; franja de datos clave; secciones con índice fijo y
@@ -122,6 +133,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
     getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(), getConjunto(property),
   ]);
   const ficha = fichaRows(property);
+  const porM2 = precioPorM2(property);
+  const publicada = fechaLarga(property.publicadaEl);
+  const revisada = fechaLarga(property.informacionPublica?.disponibilidadRevisadaEl, false);
   const share = propertyShare(property);
   const pageUrl = new URL(`/inventario/${property.slug}`, siteConfig.url).href;
   const enquiryMessage = `Hola, me interesa ${property.titulo} (${property.codigo}). ${pageUrl}`;
@@ -132,7 +146,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const beneficios = property.beneficios ?? [];
   const documentos = property.documentos ?? [];
   const costos = property.costos ?? {};
-  const qr = await qrSvg(share.url);
 
   const secciones = [
     { id: "descripcion", label: "Descripción", show: property.descripcion.length > 0 },
@@ -179,9 +192,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               </p>
               <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
               <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
+              {(publicada || revisada) && <p className="fe-dates">
+                {publicada && <span>Publicada el {publicada}</span>}
+                {revisada && <span>Disponibilidad revisada el {revisada}</span>}
+              </p>}
             </div>
             <div className="fe-price-block">
               <p className="fe-price">{formatPrecio(property.precio)}</p>
+              {porM2 && <p className="fe-price-m2">{porM2.valor} {porM2.base}</p>}
               {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <a href="#costos">Calcular mensualidad</a></p>}
               {property.operacion === "renta" && <p className="fe-price-note">Renta mensual. <a href="#costos">Ver costos</a></p>}
             </div>
@@ -274,6 +292,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
                 </div>
                 <dl className="fe-costs-list">
                   <div><dt>{property.operacion === "renta" ? "Renta mensual" : "Precio"}</dt><dd>{formatPrecio(property.precio)}</dd></div>
+                  {porM2 && <div><dt>Precio {porM2.base}</dt><dd>{porM2.valor}</dd></div>}
                   {costos.predialAnual != null && <div><dt>Predial anual</dt><dd>{money(costos.predialAnual, property)}</dd></div>}
                   {costos.mantenimientoMensual != null && <div><dt>Mantenimiento mensual</dt><dd>{money(costos.mantenimientoMensual, property)}</dd></div>}
                 </dl>
@@ -312,7 +331,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <VisitPlanner slug={property.slug} codigo={property.codigo} titulo={property.titulo}
             asesor={asesor ? { nombre: asesor.nombre, cargo: asesor.cargo, iniciales: asesor.iniciales } : undefined}
             channels={{ whatsapp: contact.whatsapp, phoneHref: contact.phoneHref, emailHref: contact.emailHref }} />
-          <SharePanel title={share.title} text={share.text} url={share.url} qrSvg={qr} />
         </aside>
       </div>
 
