@@ -53,7 +53,7 @@ export function LeadMagnet() {
           {sent ? (
             <div>
               <p className="pg-h3">Listo. Aquí está tu checklist.</p>
-              <p className="pg-muted" style={{ marginTop: 8, fontSize: 14 }}>También lo usaremos para dar seguimiento a tu caso, sin spam y sin compartir tus datos.</p>
+              <p className="pg-muted" style={{ marginTop: 8, fontSize: 14 }}>Sin spam. No compartimos tus datos.</p>
               <a href="/descargas/checklist-venta-fortius.pdf" download className="pg-btn" style={{ marginTop: 20 }}>
                 <ArrowDownToLine size={18} strokeWidth={1.5} aria-hidden="true" />Descargar PDF
               </a>

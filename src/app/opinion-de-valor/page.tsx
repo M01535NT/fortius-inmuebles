@@ -10,24 +10,24 @@ export const metadata: Metadata = {
 };
 
 const INCLUDES = [
-  { title: "Propiedades comparables", text: "Inmuebles parecidos al tuyo en zona, superficie, características y estado." },
-  { title: "Fuentes de la información", text: "De dónde sale cada dato y cuáles quedan por confirmar." },
-  { title: "Rango de precio propuesto", text: "Un precio de salida y el margen razonable para negociar." },
-  { title: "Límites de la información", text: "Qué datos faltan por confirmar y cómo podrían cambiar la propuesta." },
+  { title: "Propiedades comparables", text: "Inmuebles parecidos al tuyo." },
+  { title: "Fuentes de la información", text: "De dónde sale cada dato." },
+  { title: "Rango de precio propuesto", text: "Precio de salida y margen para negociar." },
+  { title: "Límites de la información", text: "Qué falta confirmar y cómo cambiaría el precio." },
 ];
 
 const NEEDS = [
   "Ubicación y tipo de inmueble.",
   "Superficies de terreno y construcción.",
   "Características y estado de conservación.",
-  "Los documentos que tengas a la mano, como escritura y predial.",
+  "Escritura y predial, si los tienes.",
 ];
 
 /* Qué es una opinión de valor, qué incluye y qué no sustituye. */
 export default function OpinionDeValorPage() {
   return <main className="pg-page">
     <InteriorPage eyebrow="Para propietarios" title="Conoce con qué precio salir al mercado."
-      description="La opinión de valor propone un precio de salida con inmuebles comparables, fuentes y límites explicados. Sirve para decidir con información."
+      description="Un precio de salida con comparables y fuentes a la vista."
       bullets={[]}
       primary={{ href: "/vender-propiedad#diagnostico", label: "Solicitar mi opinión de valor" }} secondary={{ href: "/preguntas-frecuentes", label: "Resolver dudas" }}
       aside={<div className="ip-criteria">
@@ -47,15 +47,15 @@ export default function OpinionDeValorPage() {
 
     <section className="pg-container pg-section" aria-labelledby="ov-limites">
       <h2 id="ov-limites" className="pg-h2">Qué no es.</h2>
-      <p className="pg-lead pg-lead-ink">Una opinión de valor es informativa y ayuda a fijar el precio de salida. No es un avalúo y no tiene efectos fiscales, hipotecarios ni judiciales.</p>
-      <p className="gd-note">Si necesitas un avalúo para un crédito, un trámite fiscal o un juicio, lo elabora un perito valuador registrado. Te indicamos cuándo conviene solicitarlo y lo coordinamos contigo. La vigencia de la opinión depende de las condiciones del mercado y de la información disponible en ese momento.</p>
+      <p className="pg-lead pg-lead-ink">Es informativa. No es un avalúo ni tiene efectos fiscales, hipotecarios ni judiciales.</p>
+      <p className="gd-note">Para crédito, trámite fiscal o juicio se necesita un avalúo de perito registrado; te decimos cuándo y lo coordinamos. Su vigencia depende del mercado y de la información disponible.</p>
     </section>
 
     <section className="pg-container pg-section pg-section-last" aria-labelledby="ov-cta">
       <div className="pg-card pg-card-wine pg-card-pad gd-cta">
         <div>
           <h2 id="ov-cta" className="pg-h2">Empieza contándonos tu caso.</h2>
-          <p className="pg-muted">Con la ubicación y el tipo de inmueble te decimos qué documentos necesitamos para preparar tu opinión.</p>
+          <p className="pg-muted">Con ubicación y tipo de inmueble, te decimos qué documentos faltan.</p>
         </div>
         <div className="gd-cta-actions">
           <Link href="/vender-propiedad#diagnostico" className="pg-btn pg-btn-light">Solicitar mi opinión de valor</Link>

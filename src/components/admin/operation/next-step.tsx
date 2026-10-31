@@ -124,10 +124,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
       return <NowCard title={stageOf(op) === "cerrado" ? "Operación archivada" : "Todo listo en esta etapa"} text={target ? `La siguiente etapa, «${target.label}», se abre sola.` : "No hay más pasos en esta operación."} />;
     }
     if (now.kind === "inicio") return now.step === "levantamiento"
-      ? <NowCard title="Iniciar el levantamiento" text="La entrevista está terminada. Elige el levantamiento según el tipo de inmueble; se captura en la visita, con fotografías y croquis.">
+      ? <NowCard title="Iniciar el levantamiento" text="Elige el levantamiento según el tipo de inmueble. Se captura en la visita.">
         <div className="flex flex-wrap items-end gap-2">{surveySelect}<Button variant="primary" size="lg" disabled={lock} onClick={() => void docs.start("04", survey)}><PlayCircle size={18} aria-hidden="true" />Iniciar levantamiento</Button></div>
       </NowCard>
-      : <NowCard title="Iniciar el checklist de documentos" text="Se arma la lista de documentos que le corresponde al propietario. Ahí marcas cada uno al recibirlo.">
+      : <NowCard title="Iniciar el checklist de documentos" text="La lista de documentos del propietario. Marca cada uno al recibirlo.">
         <Button variant="primary" size="lg" disabled={lock} onClick={() => void docs.startChecklist()}>Iniciar checklist<ArrowRight size={18} aria-hidden="true" /></Button>
       </NowCard>;
     if (now.kind === "documento") {
@@ -176,7 +176,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
             {counted.length > 0 && <span className="text-sm font-semibold text-muted-foreground">{done} de {counted.length}</span>}
           </div>
           {guide.que && <details className={s.why}><summary>Qué hacemos y para qué</summary><p className="mt-2 text-sm text-muted-foreground">{guide.que} {guide.para}</p></details>}
-          {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <Notice tone="info">Primero termina el dictamen jurídico y la opinión de valor y registra si tomas el encargo. Después se capturan el contrato y la preparación.</Notice>}
+          {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <Notice tone="info">Primero dictamen jurídico, opinión de valor y decisión del encargo. Luego, contrato y preparación.</Notice>}
           {documentsGroup.length > 0 && <>
             <h3 className={s.group}>1 · Llena los documentos</h3>
             <ul className={s.items}>{documentsGroup.map(item => item.kind === "inicio"
@@ -321,7 +321,7 @@ function Checklist({ task, answers, expedienteId, disabled, onError }: { task: T
       <span className="text-sm text-muted-foreground">{listos} de {total} listos</span>
     </div>
     {desactualizado && <div className="flex flex-wrap items-center gap-2 rounded-[12px] border border-border p-3 text-sm">
-      <span className="min-w-0 flex-1">La entrevista cambió y la lista ya no corresponde del todo. Se conserva lo recibido y lo que no aplica.</span>
+      <span className="min-w-0 flex-1">La entrevista cambió. Se conserva lo recibido y lo que no aplica.</span>
       <Button disabled={lock} onClick={() => void save(actualizarChecklist(pasos, sugeridos))}>Actualizar la lista</Button>
     </div>}
     <ul className="flex flex-col">{pasos.map(paso => {
@@ -364,7 +364,7 @@ function Checklist({ task, answers, expedienteId, disabled, onError }: { task: T
       <label className="min-w-0 flex-1 text-sm">Agregar otro documento<input className={inputClass} maxLength={200} value={extra} disabled={lock} onChange={e => setExtra(e.target.value)} placeholder="Ej. Constancia de no adeudo de mantenimiento" /></label>
       <Button type="submit" disabled={lock || !extra.trim()}>Agregar</Button>
     </form>
-    <p className="mt-1 text-sm text-muted-foreground">{listos === total && total > 0 ? "Todos los documentos están listos." : "Si uno no aplica, márcalo «No aplica» y escribe por qué. «Recibido» no quiere decir revisado: eso se hace en el dictamen jurídico."}</p>
+    <p className="mt-1 text-sm text-muted-foreground">{listos === total && total > 0 ? "Todos los documentos están listos." : "Si no aplica, márcalo y di por qué. «Recibido» no es revisado: eso va en el dictamen jurídico."}</p>
   </div>;
 }
 
@@ -446,7 +446,7 @@ function Declared({ op, interview }: { op: OperationRecord; interview: Operation
       <dt>Precio que espera</dt><dd>{interview.respuestas.presupuestoEstado === "conocido" ? `${interview.respuestas.importe} ${interview.respuestas.moneda}` : "Por definir"}</dd>
       <dt>Precio en la ficha</dt><dd>{property?.precio.modalidad === "publico" ? `${property.precio.monto} ${property.precio.moneda}` : "A consultar"}</dd>
     </dl>
-    <p className="mt-3 text-sm text-muted-foreground">Si no coinciden, corrige la ficha y registra el acuerdo. Corregir no cambia los documentos ya generados.</p>
+    <p className="mt-3 text-sm text-muted-foreground">Si no coinciden, corrige la ficha y registra el acuerdo. Los documentos generados no cambian.</p>
     {op.propiedad_slug && <Link className="mt-2 inline-block text-sm font-semibold underline underline-offset-4" href={`/admin/propiedades/${encodeURIComponent(op.propiedad_slug)}/editar`}>Revisar la ficha del inmueble</Link>}
   </details></Card>;
 }
@@ -520,7 +520,7 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
     {entregas.length > 1 && <details className="text-sm"><summary className="cursor-pointer">Entregas anteriores</summary>
       <ul className="mt-1 flex flex-col gap-0.5">{entregas.slice(1).map(e => <li key={`${e.fecha}-${e.registradoEl ?? e.responsable}`}>{shortDate(e.fecha)} · {CANALES_INFORME[e.canal]} · {e.responsable}</li>)}</ul>
     </details>}
-    <p className="text-sm text-muted-foreground">Cada mes le contamos al propietario las consultas, visitas, ofertas y lo que sigue. Preparar el informe no es entregarlo: registra cuándo, por dónde y quién se lo entregó.</p>
+    <p className="text-sm text-muted-foreground">Informe mensual al propietario. Prepararlo no es entregarlo: registra cuándo, por dónde y quién.</p>
   </Card>;
 }
 

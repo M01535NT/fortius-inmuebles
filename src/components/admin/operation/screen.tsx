@@ -156,7 +156,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     </header>
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}
     {op.deleted_at ? <Notice title="Esta operación está eliminada" actions={<Button variant="primary" onClick={() => void changeLifecycle(false).catch(cause => setNotice(errorMessage(cause)))}>Restaurar operación</Button>}>Sus documentos, PDF y tareas se conservan. Restáurala para seguir trabajando en ella.</Notice> : <>
-    {["compra", "arrendatario"].includes(op.flujo?.ruta ?? "") && <div className="mb-4"><Notice title="Operación histórica">Se abrió antes de que Fortius dejara de abrir operaciones para quien busca comprar o rentar. Se conserva con todo su contenido. Los interesados nuevos se guardan en Contactos y se ligan a la operación del propietario.</Notice></div>}
+    {["compra", "arrendatario"].includes(op.flujo?.ruta ?? "") && <div className="mb-4"><Notice title="Operación histórica">Operación de comprador o arrendatario anterior al cambio; se conserva completa. Los interesados nuevos van en Contactos.</Notice></div>}
     <div className={s.body}>
       <aside className={s.side} aria-label="Etapas y secciones">
         {isGuided(op) && <>

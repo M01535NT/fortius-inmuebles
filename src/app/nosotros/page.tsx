@@ -18,11 +18,11 @@ export const metadata: Metadata = {
 /* Dirección «Nocturno» (lienzo, artboard Nosotros): portada oscura con el
    asesor, misión y visión como dos tarjetas, valores numerados y video. */
 const values: { title: string; text: string; wide?: boolean }[] = [
-  { title: "Claridad", text: "Explicamos el precio, los honorarios y las condiciones antes de que tomes una decisión. Si falta información, lo decimos." },
-  { title: "Responsabilidad", text: "Cada operación tiene responsables claros, acuerdos por escrito y seguimiento de los pendientes." },
-  { title: "Discreción", text: "Coordinamos el acceso al inmueble y compartimos documentos únicamente con quienes intervienen en la operación y necesitan consultarlos." },
-  { title: "Criterio", text: "Revisamos documentos y datos de mercado. Distinguimos lo comprobado de lo que aún necesita verificarse.", wide: true },
-  { title: "Respeto a tu decisión", text: "Presentamos opciones y explicamos sus implicaciones. Tú decides el precio y las condiciones que aceptas.", wide: true },
+  { title: "Claridad", text: "Precio, honorarios y condiciones, antes de decidir. Si falta algo, lo decimos." },
+  { title: "Responsabilidad", text: "Responsables claros y acuerdos por escrito." },
+  { title: "Discreción", text: "Tus documentos, solo con quien participa en la operación." },
+  { title: "Criterio", text: "Separamos lo comprobado de lo que falta verificar.", wide: true },
+  { title: "Respeto a tu decisión", text: "Te damos opciones. Tú decides precio y condiciones.", wide: true },
 ];
 
 export default async function NosotrosPage() {
@@ -60,7 +60,7 @@ export default async function NosotrosPage() {
         <div className="ab-hero-copy" data-reveal>
           <p className="nx-eyebrow" data-reveal-item>Nosotros</p>
           <h1 id="about-title" className="ab-hero-title" data-reveal-item>Personas detrás de cada operación.</h1>
-          <p className="ab-hero-lead" data-reveal-item>Somos Fortius Inmuebles. Acompañamos a propietarios y compradores con un equipo que coordina la información, las visitas y la negociación, desde la primera conversación hasta la entrega.</p>
+          <p className="ab-hero-lead" data-reveal-item>Un equipo que te acompaña de la primera llamada a la entrega.</p>
           <nav className="ab-index" aria-label="En esta página" data-reveal-item>
             <a href="#agentes">Agentes</a><a href="#identidad">Misión y visión</a><a href="#valores">Valores</a>{videoUrl && <a href="#video">Video</a>}
           </nav>
@@ -109,12 +109,12 @@ export default async function NosotrosPage() {
         <article id="mision" className="ab-purpose-card" data-reveal-item>
           <p className="ab-eyebrow">Misión</p>
           <h2>Decidir con información. Avanzar con respaldo.</h2>
-          <p>Acompañar la venta y compra de inmuebles con información comprobable, coordinación documental y representación cercana, para que cada cliente entienda sus opciones y decida con claridad.</p>
+          <p>Comprar y vender con información comprobable, para que cada cliente decida con claridad.</p>
         </article>
         <article id="vision" className="ab-purpose-card ab-purpose-card-accent" data-reveal-item>
           <p className="ab-eyebrow">Visión</p>
           <h2>Crecer por la confianza que construimos.</h2>
-          <p>Ser una inmobiliaria de referencia en Baja California por la calidad de su asesoría, el orden de sus operaciones y relaciones que continúen después de la firma.</p>
+          <p>Ser referencia en Baja California por asesoría, orden y relaciones que siguen después de la firma.</p>
         </article>
       </div>
     </section>

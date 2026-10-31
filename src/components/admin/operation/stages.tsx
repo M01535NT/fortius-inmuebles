@@ -120,7 +120,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
       </li>;
     })}</ul>;
   }
-  return <Sheet open onClose={onClose} title="Etapas" description="Toca Abrir para ver o completar el documento de una etapa.">
+  return <Sheet open onClose={onClose} title="Etapas" description="Abre el documento de cada etapa.">
     {(() => {
       return <section aria-label="Etapas de la operación" className="flex flex-col gap-1">
         <ol className="flex flex-col gap-1">{stages.map(stage => {

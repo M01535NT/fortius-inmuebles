@@ -97,7 +97,7 @@ export function AgendaCalendar() {
   const expedientesError = expedientesStatus === "error"
     ? "No se pudieron consultar las operaciones. Reintenta la consulta."
     : requestedExpedienteUnavailable
-      ? "La operación solicitada no está disponible. Reintenta la consulta o quita ese vínculo para continuar."
+      ? "Esa operación no está disponible. Reintenta o quita el vínculo."
       : null;
   const formReferences = formContext ?? (selectedExpediente ? { clienteId: selectedExpediente.cliente_id, propiedadSlug: selectedExpediente.propiedad_slug ?? "", asesorId: selectedExpediente.asesor_id, leadId: "" } : context);
   const selectedReferences: References = selectedExpediente

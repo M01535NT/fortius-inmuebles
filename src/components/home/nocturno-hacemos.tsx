@@ -4,9 +4,9 @@ import { ArrowRight } from "lucide-react";
 
 /* Inicio · «Qué hacemos»: tres caminos con foto, una frase cada uno. */
 const CAMINOS = [
-  { n: "01", title: "Vender tu propiedad", text: "La revisamos, fijamos el precio, la publicamos y negociamos contigo cada oferta.", href: "/vender-propiedad", label: "Cómo vendemos", src: "/hero/que-hacemos-vender.webp", alt: "Casa de dos niveles con jardín al atardecer" },
-  { n: "02", title: "Comprar una propiedad", text: "Buscamos con tu presupuesto, revisamos documentos y gastos, y te acompañamos hasta las llaves.", href: "/comprar-propiedad", label: "Cómo compramos", src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" },
-  { n: "03", title: "Rentar", text: "Publicamos tu inmueble o te ayudamos a encontrar uno, con contrato y documentos revisados.", href: "/inventario?op=renta", label: "Ver rentas", src: "/hero/que-hacemos-rentar.webp", alt: "Planta baja de un edificio de oficinas con fachada de vidrio" },
+  { n: "01", title: "Vender tu propiedad", text: "Precio, anuncio y cada oferta, contigo.", href: "/vender-propiedad", label: "Cómo vendemos", src: "/hero/que-hacemos-vender.webp", alt: "Casa de dos niveles con jardín al atardecer" },
+  { n: "02", title: "Comprar una propiedad", text: "Con tu presupuesto, documentos revisados, hasta las llaves.", href: "/comprar-propiedad", label: "Cómo compramos", src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" },
+  { n: "03", title: "Rentar", text: "Publicamos o buscamos, con contrato revisado.", href: "/inventario?op=renta", label: "Ver rentas", src: "/hero/que-hacemos-rentar.webp", alt: "Planta baja de un edificio de oficinas con fachada de vidrio" },
 ];
 
 export function NocturnoHacemos() {
@@ -16,7 +16,7 @@ export function NocturnoHacemos() {
         <p className="nx-eyebrow">Qué hacemos</p>
         <h2 id="hacemos-title" className="nx-title">Tres formas de ayudarte.</h2>
       </div>
-      <p className="nx-lead nx-head-lead">Fortius es una inmobiliaria de Baja California. Trabajamos casas, departamentos, locales, oficinas, naves y terrenos.</p>
+      <p className="nx-lead nx-head-lead">Casas, departamentos, locales, oficinas, naves y terrenos en Baja California.</p>
     </div>
     <ul className="nx-caminos">
       {CAMINOS.map((camino) => <li key={camino.n}>

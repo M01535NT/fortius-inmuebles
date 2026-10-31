@@ -15,10 +15,10 @@ export default function ContactoPage() {
         <header className="ct-head">
           <p className="pg-eyebrow">Contacto</p>
           <h1 className="pg-title">¿Compras o vendes? Hablemos.</h1>
-          <p className="pg-lead">Cuéntanos qué buscas o qué propiedad quieres vender. Elige el motivo de tu consulta para empezar.</p>
+          <p className="pg-lead">Elige el motivo y te respondemos.</p>
         </header>
         <section aria-label="Opciones de contacto"><ContactIntents /></section>
-        <div className="ct-team"><p>Conoce a las personas detrás de Fortius.</p><Link href="/nosotros#agentes" className="pg-btn pg-btn-ghost">Conocer al equipo</Link></div>
+        <div className="ct-team"><p>Quién te atiende.</p><Link href="/nosotros#agentes" className="pg-btn pg-btn-ghost">Conocer al equipo</Link></div>
       </div>
     </section>
   </main>;

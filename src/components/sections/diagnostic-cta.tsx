@@ -11,8 +11,8 @@ export function DiagnosticCTA({ headingLevel = "h2", general = false }: { headin
           <Heading className="pg-h2">{general ? "Cuéntanos qué necesitas." : "Empieza con una evaluación."}</Heading>
           <p className="pg-muted dc-text">
             {general
-              ? "Dinos si quieres vender, comprar o consultar sobre un inmueble. Te contactaremos para entender el caso y proponer un siguiente paso."
-              : "Cuéntanos qué quieres resolver. La primera conversación aclara precio, tiempos, condición del inmueble y el siguiente paso."}
+              ? "Vender, comprar o consultar. Te proponemos el siguiente paso."
+              : "La primera llamada aclara precio, tiempos y siguiente paso."}
           </p>
         </div>
         <div className="pg-card pg-card-pad">

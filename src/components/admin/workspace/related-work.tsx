@@ -113,7 +113,7 @@ export function RelatedWork({
           <strong>{person.perfil?.proximoContacto ?? "Por programar"}</strong>
         </p>
       )}
-      <p className="text-sm text-muted-foreground">La comunicación, las citas y las tareas conservan fechas propias. No todas las tareas requieren contactar a la persona.</p>
+      <p className="text-sm text-muted-foreground">Mensajes, citas y tareas llevan su propia fecha.</p>
       {lead && (
         <div className="text-sm">
           {lead.firstContactedAt ? (

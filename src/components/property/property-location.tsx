@@ -40,7 +40,7 @@ export function PropertyLocation({ property }: { property: Property }) {
           </ol>
         )}
       </div>
-      {lugares.length > 0 && <p className="fe-note">Tiempos aproximados en auto; varían según la hora y el tráfico.</p>}
+      {lugares.length > 0 && <p className="fe-note">Tiempos aproximados en auto.</p>}
     </div>
   );
 }

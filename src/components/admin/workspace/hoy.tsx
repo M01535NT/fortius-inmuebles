@@ -188,7 +188,7 @@ export function HoyScreen() {
           })}</Card> : <EmptyBox title="Sin citas hoy">Las visitas y citas del día aparecen aquí.</EmptyBox>}
         </Section>
 
-        <Section id="hoy-proximos" title="Próximos 7 días" action={more("/admin/agenda", "Ver agenda")} description="Tareas y documentos que vencen pronto, antes de que se vuelvan urgentes.">
+        <Section id="hoy-proximos" title="Próximos 7 días" action={more("/admin/agenda", "Ver agenda")} description="Lo que vence pronto.">
           {dossiers === null && failed("los documentos de las operaciones")}
           {upcoming.length ? <Card as="div" className={s.list}><ul>{upcoming.map(item => <li key={item.id}><Link href={item.href} className={s.upcoming}>
             <span className={s.day}>{weekdayDate(item.date)}</span>
@@ -203,21 +203,21 @@ export function HoyScreen() {
           </Link></li>)}</ul></Card>}
         </Section>}
 
-        {lateKeys.length > 0 && <Section id="hoy-llaves" title="Llaves sin regresar" count={lateKeys.length} description="Préstamos que ya debían volver a la oficina o al propietario.">
+        {lateKeys.length > 0 && <Section id="hoy-llaves" title="Llaves sin regresar" count={lateKeys.length} description="Préstamos que ya debían volver.">
           <Card as="div" className={s.list}><ul>{lateKeys.map(({ property, loan }) => <li key={`${property.slug}:${loan.id}`}><Link href={`/admin/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=llaves`} className={s.upcoming}>
             <span className={cn(s.day, s.late)}>{shortDate(keyDueDate(loan, toDay))}</span>
             <span className="flex min-w-0 flex-col gap-0.5"><span className={s.kind}>Llaves</span><strong className="[overflow-wrap:anywhere]">Las tiene {loan.persona} desde el {shortDate(toDay(loan.salida))}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{[property.titulo, loan.motivo].filter(Boolean).join(" · ")}</small></span>
           </Link></li>)}</ul></Card>
         </Section>}
 
-        {notices.length > 0 && <Section id="hoy-compradores" title="Compradores por avisar" count={notices.length} description="Inmuebles publicados que le pueden servir a alguien que busca.">
+        {notices.length > 0 && <Section id="hoy-compradores" title="Compradores por avisar" count={notices.length} description="Inmuebles que le sirven a alguien que busca.">
           <Card as="div" className={s.list}>{notices.map(({ property, pending }) => <article key={property.slug} className={s.report}>
             <div className="flex min-w-0 flex-1 items-center gap-3"><Thumb src={property.galeria[0]?.src} size={40} icon={<Building2 size={18} aria-hidden="true" />} /><span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{property.titulo}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{pending.some(m => priceDroppedSince(property, lastNotice(property, m.seeker))) ? "Bajó de precio · " : ""}{pending.length === 1 ? `Le puede servir a ${pending[0].seeker.nombre}` : `Le puede servir a ${pending[0].seeker.nombre} y ${pending.length - 1} más`}</small></span></div>
             <ButtonLink href={`/admin/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=compradores`} className="shrink-0 self-start" aria-label={`Avisar a compradores de ${property.titulo}`}>Avisar</ButtonLink>
           </article>)}</Card>
         </Section>}
 
-        {(reports === null || lateReports.length > 0) && <Section id="hoy-informes" title="Informes al propietario vencidos" count={lateReports.length} description="Cada mes le contamos al propietario cómo va la venta.">
+        {(reports === null || lateReports.length > 0) && <Section id="hoy-informes" title="Informes al propietario vencidos" count={lateReports.length} description="Cómo va la venta, cada mes.">
           {reports === null ? failed("los informes al propietario") : <Card as="div" className={s.list}>{lateReports.map(report => <article key={report.id} className={s.report}>
             <div className="flex min-w-0 flex-1 items-center gap-3"><Avatar name={report.who} size={40} /><span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{report.who}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{report.property}</small><span className={cn(s.meta, s.late)}>{report.status}</span></span></div>
             <ButtonLink href={report.href} className="shrink-0 self-start" aria-label={`Preparar informe de ${report.who}`}>Preparar informe</ButtonLink>

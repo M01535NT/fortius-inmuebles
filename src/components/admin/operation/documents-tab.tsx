@@ -31,7 +31,7 @@ export function DocumentsTab({ op, docs }: { op: OperationRecord; docs: Document
   return <div className="flex min-w-0 flex-col gap-5">
     <Card className="flex flex-col gap-4 p-5 sm:p-6" aria-label="Documentos de la operación">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1"><h2 className="m-0 text-lg font-bold">Expediente</h2><p className="text-sm text-muted-foreground">Cada documento se abre en su propia ventana. Cada vez que guardas se crea una versión nueva.</p></div>
+        <div className="flex flex-col gap-1"><h2 className="m-0 text-lg font-bold">Expediente</h2><p className="text-sm text-muted-foreground">Cada documento abre en su ventana; cada guardado crea una versión.</p></div>
       </div>
       <DocumentsByStage docs={docs} folio={op.folio} />
       {docs.error && <p role="alert" className="text-sm text-destructive">{docs.error}</p>}

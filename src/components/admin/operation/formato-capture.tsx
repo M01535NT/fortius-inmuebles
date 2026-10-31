@@ -154,7 +154,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
         setEmisiones(items => [created, ...(items ?? [])]); onEmitted(created);
       }
       await downloadAdminPdf(`/api/admin/emisiones/${emision.id}/descargar`, `Fortius-${definition.id}-${safeName(definition.title)}-${folio}-v${saved.version}.pdf`);
-      setNotice(faltan ? "PDF incompleto descargado. Queda en «PDF y copias firmadas»; al completar los datos genera el definitivo." : "PDF generado y descargado. Queda guardado en «PDF y copias firmadas».");
+      setNotice(faltan ? "PDF incompleto en «PDF y copias firmadas». Completa los datos para el definitivo." : "PDF generado y descargado. Queda guardado en «PDF y copias firmadas».");
     });
   }
   function word() {
@@ -232,7 +232,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
                 <p className="text-sm font-semibold text-muted-foreground">Sección {two(index + 1)} de {two(sections.length)}</p>
                 <h3 ref={heading} tabIndex={-1} className={cn(s.sectionTitle, "focus:outline-none")}>{plain(section)}</h3>
               </div>
-              {index === 0 && !!values.origenDatos && <Notice tone="info">Algunas respuestas vienen del primer contacto. Confírmalas con el propietario: lo declarado todavía debe comprobarse.</Notice>}
+              {index === 0 && !!values.origenDatos && <Notice tone="info">Algunas respuestas vienen del primer contacto. Confírmalas: lo declarado aún no está comprobado.</Notice>}
               {section === IMAGES ? <FormatoImages documentId={doc.id} values={values} disabled={!!busy} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
                 : <fieldset disabled={!!busy} className="min-w-0">
                   <FormatoEditor key={`${doc.id}-${section}`} definition={sectionDefinition} extras={sections.filter(name => name !== IMAGES).at(-1) === section} values={data} images={adjuntos} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
@@ -299,7 +299,7 @@ function Emissions({ emisiones, current, disabled }: { emisiones: Emision[] | nu
     catch (cause) { setMessage(`No se pudo guardar: ${errorMessage(cause)}`); }
   }
   if (emisiones === null) return <p role="status" className="text-sm text-muted-foreground">Consultando los PDF…</p>;
-  if (!emisiones.length) return <p className="text-sm text-muted-foreground">Todavía no hay PDF de este documento. Se genera con «Generar PDF» cuando la captura está completa.</p>;
+  if (!emisiones.length) return <p className="text-sm text-muted-foreground">Sin PDF. Usa «Generar PDF» al completar la captura.</p>;
   return <div className="mx-auto flex max-w-3xl flex-col gap-4">
     {message && <p role="status" className="text-sm">{message}</p>}
     <ul className="flex flex-col gap-3">{emisiones.map(item => <li key={item.id} className="flex flex-col gap-3 rounded-[12px] border border-border p-4">

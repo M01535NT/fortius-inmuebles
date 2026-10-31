@@ -64,7 +64,7 @@ function Editor({ initial }: { initial: SiteContent }) {
     <div className="max-w-[760px] space-y-6">
       <PageHeader
         title="Textos del sitio"
-        description="Edita los textos del sitio. Publica servicios y afirmaciones que puedas respaldar; los saltos de línea se conservan en los títulos."
+        description="Textos del sitio. Publica solo lo que puedas respaldar."
       />
 
       <AsyncForm onSubmit={guardar} className="space-y-6">
@@ -161,7 +161,7 @@ function Editor({ initial }: { initial: SiteContent }) {
         ))}
         <details className="rounded-lg border border-border bg-card p-5">
           <summary className="min-h-11 cursor-pointer font-semibold text-foreground">Preguntas frecuentes adicionales ({preguntas.length})</summary>
-          <p className="mt-3 text-sm text-muted-foreground">Se suman a las preguntas base en la página «Preguntas frecuentes». Las respuestas deben poder respaldarse.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Se suman a «Preguntas frecuentes». Respuestas que puedas respaldar.</p>
           <ul className="mt-4 space-y-4">
             {preguntas.map((item, index) => (
               <li key={item.id} className="space-y-3 rounded-md border border-border p-4">
@@ -188,7 +188,7 @@ function Editor({ initial }: { initial: SiteContent }) {
 
         <details className="rounded-lg border border-border bg-card p-5">
           <summary className="min-h-11 cursor-pointer font-semibold text-foreground">Testimonios ({testimonios.length})</summary>
-          <p className="mt-3 text-sm text-muted-foreground">Aparecen en el inicio solo cuando marcas que tienes la autorización por escrito de la persona. Sin testimonios autorizados, la sección no se muestra.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Salen en el inicio solo con autorización por escrito. Sin ninguno, la sección no aparece.</p>
           <ul className="mt-4 space-y-4">
             {testimonios.map((item, index) => (
               <li key={item.id} className="space-y-3 rounded-md border border-border p-4">

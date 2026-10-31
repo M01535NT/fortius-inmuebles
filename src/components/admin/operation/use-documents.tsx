@@ -135,7 +135,7 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   function startChecklist() {
     return guard(async () => {
       const vence = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
-      await upsert(db.tareas, { id: checklistTaskId(op.id), titulo: "Reunir los documentos del propietario", descripcion: "Checklist de documentos de la operación. Marca cada documento al recibirlo; con ellos se hace el dictamen jurídico.", categoria: "documentacion", estado: "en-curso", prioridad: "normal", pasos: checklistFor(answers).map(item => ({ ...item, hecho: false })), asesorId: op.asesor_id, expedienteId: op.id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "", vence }, null);
+      await upsert(db.tareas, { id: checklistTaskId(op.id), titulo: "Reunir los documentos del propietario", descripcion: "Marca cada documento al recibirlo. Con ellos se hace el dictamen jurídico.", categoria: "documentacion", estado: "en-curso", prioridad: "normal", pasos: checklistFor(answers).map(item => ({ ...item, hecho: false })), asesorId: op.asesor_id, expedienteId: op.id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "", vence }, null);
     });
   }
   function checklistFile(kind: "pdf" | "docx") {

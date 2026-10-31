@@ -79,7 +79,7 @@ export default function ArchivosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Archivos."
-        description="Catálogo de imágenes, PDFs y videos. Carga validada de hasta 20 MB; archivos privados solo para personal autorizado."
+        description="Imágenes, PDF y videos de hasta 20 MB. Los privados solo los ve el personal autorizado."
       />
       <UploadControl
         onUploaded={async (file) => {

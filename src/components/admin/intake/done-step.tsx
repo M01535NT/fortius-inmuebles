@@ -9,8 +9,8 @@ import { intentTitle, optionLabel, visibleFields } from "@/lib/intake/wizard";
 import s from "./wizard.module.css";
 
 const NEXT: Record<string, string> = {
-  vender: "Hacer la entrevista inicial en persona: desde la operación se abre el formato 02 para capturarla.",
-  arrendar: "Hacer la entrevista inicial en persona: desde la operación se abre el formato 02 para capturarla.",
+  vender: "Entrevista en persona: se captura con el formato 02 desde la operación.",
+  arrendar: "Entrevista en persona: se captura con el formato 02 desde la operación.",
   comprar: "Revisar su perfil y buscarle opciones.",
   rentar: "Revisar lo que necesita y buscarle opciones.",
   invertir: "Revisar su mandato y buscar alternativas.",

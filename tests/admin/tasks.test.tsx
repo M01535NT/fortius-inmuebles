@@ -190,7 +190,7 @@ test("dossier work shows its direct tasks and labels legacy property tasks witho
 test("a dossier outside the authorized list remains blocked and does not erase the written title", async () => {
   dossiers(); const save = vi.fn(async (value: Task) => value);
   render(<TaskForm defaults={{ expedienteId: "60000000-0000-4000-8000-000000000099" }} onSave={save} />);
-  await screen.findByText(/ya no está en curso o no está disponible/);
+  await screen.findByText(/Esa operación ya no está disponible/);
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Conservar título" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await screen.findByRole("alert"); expect(save).not.toHaveBeenCalled();

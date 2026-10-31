@@ -42,7 +42,7 @@ export function NocturnoHero() {
           <span className="nx-hero-line"><span className="nx-hero-rise">tu propiedad, con cada paso por escrito.</span></span>
         </h1>
         <div className="nx-hero-foot">
-          <p className="nx-hero-lead nx-hero-fade">Revisamos los documentos, fijamos el precio con datos y te decimos qué sigue en cada etapa.</p>
+          <p className="nx-hero-lead nx-hero-fade">Documentos revisados y precio con datos.</p>
           <div className="nx-hero-actions nx-hero-fade">
             <Link href="/vender-propiedad" className="nx-btn nx-btn-primary">Quiero vender</Link>
             <Link href="/inventario" className="nx-btn nx-btn-light">Quiero comprar</Link>

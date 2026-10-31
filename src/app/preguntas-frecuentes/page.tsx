@@ -20,7 +20,7 @@ export default async function PreguntasFrecuentesPage() {
       <div className="pg-container pg-hero-body">
         <p className="pg-eyebrow">Preguntas frecuentes</p>
         <h1 className="pg-title">Resuelve tus dudas antes de avanzar.</h1>
-        <p className="pg-lead">Reunimos lo que más nos preguntan al vender o comprar. Si no encuentras tu duda, escríbenos.</p>
+        <p className="pg-lead">Lo que más nos preguntan. ¿No está tu duda? Escríbenos.</p>
       </div>
     </section>
     <section className="pg-container pg-section pg-section-last" aria-label="Preguntas y respuestas">
@@ -34,7 +34,7 @@ export default async function PreguntasFrecuentesPage() {
       </div>
       <div className="pg-card pg-card-pad faq-more">
         <h2 className="pg-h3">¿Sigues con dudas?</h2>
-        <p className="pg-muted">Cuéntanos qué necesitas y un asesor te responde.</p>
+        <p className="pg-muted">Un asesor te responde.</p>
         <Link href="/contacto" className="pg-btn">Hablar con un asesor</Link>
       </div>
     </section>

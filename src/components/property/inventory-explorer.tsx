@@ -406,7 +406,7 @@ export function InventoryExplorer({ propiedades }: Props) {
                 <div className="inv-map-frame">
                   <iframe key={mapQuery} src={`https://www.google.com/maps?q=${mapQuery}&z=13&output=embed`} title={`Mapa de ${mapaZonaActiva ?? "la zona"}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                 </div>
-                <p className="inv-map-note">Ubicación aproximada por zona. La dirección exacta se comparte al agendar la visita.</p>
+                <p className="inv-map-note">Zona aproximada. La dirección se da al agendar.</p>
                 <div className="inv-map-zones" role="group" aria-label="Zonas con resultados">
                   {zonasResultado.map((zona) => <button key={zona} type="button" aria-pressed={mapaZonaActiva === zona} onClick={() => setMapaZona(zona)} className={"pg-pill" + (mapaZonaActiva === zona ? " is-active" : "")}>{zona}<span>{resultados.filter((p) => p.zona === zona).length}</span></button>)}
                 </div>
@@ -416,7 +416,7 @@ export function InventoryExplorer({ propiedades }: Props) {
         ) : (
           <div className="pg-empty">
             <h2>No hay propiedades con esos criterios.</h2>
-            <p>El inventario cambia con frecuencia. Cuéntanos qué buscas y te avisamos cuando entre algo que encaje.</p>
+            <p>Dinos qué buscas y te avisamos cuando entre.</p>
             <div className="pg-pills" style={{ justifyContent: "center", marginTop: 24 }}>
               {hayFiltros ? <button type="button" onClick={() => setFiltros(DEFAULTS)} className="pg-btn pg-btn-ghost">Limpiar filtros</button> : null}
               <Link href="/contacto" className="pg-btn">Cuéntanos qué buscas</Link>

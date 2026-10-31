@@ -57,8 +57,8 @@ export function NewOperationWizard() {
           <StepsNav step={step === 0 ? 3 : step} intent={interview?.intencion} />
           <div className={s.main}>
             {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
-              : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre operación">Fortius representa al propietario: quien busca comprar o rentar se guarda como interesado, con lo que busca y su próxima acción.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
-              : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble de la operación. Prepara una entrevista con los datos actuales desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
+              : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre operación">Fortius representa al propietario: quien compra o renta se guarda como interesado.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
+              : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble. Prepara la entrevista desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
               : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
               : <DoneStep interview={interview!} fresh={fresh} />}
           </div>
@@ -259,7 +259,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
           </>}
           {!loaded && <p role="status" className="text-sm text-muted-foreground">Cargando contactos y responsables…</p>}
         </fieldset>
-        {uncertain && <Notice title="Todavía no se pudo confirmar el guardado">Reintenta con los mismos datos antes de cambiarlos, para no registrar dos veces al contacto.</Notice>}
+        {uncertain && <Notice title="Todavía no se pudo confirmar el guardado">Reintenta sin cambiar los datos para no duplicar el contacto.</Notice>}
       </>}
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </div>

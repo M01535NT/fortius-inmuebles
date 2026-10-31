@@ -19,7 +19,7 @@ export default function HipotecaPage() {
           <Link href="/herramientas" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Herramientas</Link>
           <p className="pg-eyebrow">Crédito hipotecario</p>
           <h1 className="pg-title pg-title-sm">Calculadora de hipoteca.</h1>
-          <p className="pg-lead">Compara cuotas, intereses y abonos anticipados. Guarda hasta tres escenarios y descarga el detalle de cada pago.</p>
+          <p className="pg-lead">Compara hasta tres escenarios y descarga cada pago.</p>
         </div>
       </section>
       <div className="pg-container tl-tool-body">

@@ -42,7 +42,7 @@ export function DirectCreate({ onDirtyChange }: { onDirtyChange?: (dirty: boolea
     form.current?.reset(); setClient(""); setProperty(""); setOperation("venta"); setRoute("captacion"); setDirty(false); setError("");
   }
   return <form ref={form} id="alta-directa" onChange={() => setDirty(true)} onSubmit={create} className="grid gap-4 md:grid-cols-2" aria-label="Alta directa">
-    <p className="text-sm text-muted-foreground md:col-span-2">Abre una operación sin entrevista. Puedes empezar con documentos pendientes y vincular el inmueble después; la operación te dirá qué falta.</p>
+    <p className="text-sm text-muted-foreground md:col-span-2">Sin entrevista. El inmueble se liga después y la operación te dice qué falta.</p>
     {error && <p role="alert" className="text-sm text-destructive md:col-span-2">{error}</p>}
     <label className="text-sm">Cliente<select name="clienteId" required disabled={busy} value={client} onChange={e => { setClient(e.target.value); setRoute(clientes.find(c => c.id === e.target.value)?.tipo === "comprador" ? "compra" : "captacion"); }} className={selectClass}><option value="">Selecciona</option>{clientes.map(item => <option key={item.id} value={item.id}>{item.nombre}{item.asesorId ? "" : " · sin asesor"}</option>)}</select></label>
     <label className="text-sm">Operación<select name="operacion" disabled={busy} value={operation} onChange={e => { setOperation(e.target.value); setRoute(e.target.value === "inversion" ? "inversion" : e.target.value === "renta" ? "arrendador" : "captacion"); }} className={selectClass}>{Object.entries(EXPEDIENTE_OPERACIONES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>

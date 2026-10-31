@@ -221,7 +221,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             {secciones.map(section => <a key={section.id} href={`#${section.id}`}>{section.label}</a>)}
           </nav>
 
-          {property.estado === "apartada" && <p className="fe-alert">Esta propiedad está apartada. Podemos avisarte si vuelve a estar disponible o mostrarte opciones similares.</p>}
+          {property.estado === "apartada" && <p className="fe-alert">Apartada. Te avisamos si se libera o te mostramos opciones similares.</p>}
           {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
           {conjunto.plaza && <p className="fe-alert">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`} className="font-semibold underline underline-offset-4">{conjunto.plaza.titulo}</Link>.</p>}
 

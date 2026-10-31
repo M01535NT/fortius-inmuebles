@@ -16,12 +16,12 @@ export default function HerramientasPage() {
         <div className="pg-container pg-hero-body">
           <p className="pg-eyebrow">Herramientas sin registro</p>
           <h1 className="pg-title">Haz los números antes de decidir.</h1>
-          <p className="pg-lead">Estima una mensualidad o los gastos de compraventa, y conoce cómo se prepara una opinión de valor, sin registrarte.</p>
+          <p className="pg-lead">Mensualidad, gastos y precio, sin registro.</p>
           <div className="tl-grid">
             <Link href="/herramientas/hipoteca" className="tl-card">
               <span className="tl-card-head"><span className="pg-chip">Crédito</span><span className="tl-open">Abrir</span></span>
               <span className="tl-card-title">Calculadora de hipoteca</span>
-              <span className="tl-card-text">Compara escenarios, prueba abonos anticipados y descarga la amortización completa.</span>
+              <span className="tl-card-text">Escenarios, abonos y tabla de pagos.</span>
               <span className="tl-preview">
                 <span><span className="tl-preview-label">Mensualidad de ejemplo</span><span className="tl-preview-value">$23,961</span></span>
                 <svg viewBox="0 0 200 80" width="200" height="80" aria-hidden="true"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="currentColor" strokeWidth="3" /><path d="M0 79.5 H200" stroke="currentColor" strokeOpacity="0.2" /></svg>
@@ -30,7 +30,7 @@ export default function HerramientasPage() {
             <Link href="/herramientas/gastos-de-cierre" className="tl-card">
               <span className="tl-card-head"><span className="pg-chip">Operación</span><span className="tl-open">Abrir</span></span>
               <span className="tl-card-title">Gastos de cierre</span>
-              <span className="tl-card-text">Prepara el efectivo de compra o el neto de venta, con impuestos locales y tus cotizaciones.</span>
+              <span className="tl-card-text">Efectivo para comprar o neto al vender.</span>
               <span className="tl-preview">
                 <span className="tl-preview-label">Incluye</span>
                 <span className="tl-legend"><span>ISAI</span><span>Notaría</span><span>Registro</span><span>Avalúo</span></span>
@@ -39,14 +39,14 @@ export default function HerramientasPage() {
             <Link href="/opinion-de-valor" className="tl-card">
               <span className="tl-card-head"><span className="pg-chip">Precio</span><span className="tl-open">Abrir</span></span>
               <span className="tl-card-title">Opinión de valor</span>
-              <span className="tl-card-text">Conoce cómo proponemos el precio de salida con inmuebles comparables y fuentes explicadas.</span>
+              <span className="tl-card-text">Cómo proponemos el precio de salida.</span>
               <span className="tl-preview">
                 <span className="tl-preview-label">Incluye</span>
                 <span className="tl-legend"><span>Comparables</span><span>Fuentes</span><span>Rango de precio</span></span>
               </span>
             </Link>
           </div>
-          <p className="tl-foot">¿Quieres vender tu propiedad? <Link href="/vender-propiedad">Solicita una evaluación sin compromiso</Link>.</p>
+          <p className="tl-foot">¿Vendes? <Link href="/vender-propiedad">Pide una evaluación</Link>.</p>
         </div>
       </section>
     </main>

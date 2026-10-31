@@ -165,7 +165,7 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
     return reviewComplete({ version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: { [requirement]: next } }, requirement, today) ? next : "Faltan datos del respaldo. Revisa el documento elegido y vuelve a intentar.";
   }
   const name = requirementName(requirement, route);
-  return <Sheet open onClose={onClose} eyebrow="Confirmar" title={name} description="El documento, quién lo revisó y la fecha ya vienen llenos. Escribe qué encontraste y confirma; queda registrado." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="Confirmar" title={name} description="Documento, revisor y fecha ya vienen llenos. Escribe qué encontraste y confirma." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={() => void run(build())}>{busy ? "Guardando…" : "Confirmar"}</Button>
   </>}>
@@ -210,7 +210,7 @@ function ProblemSheet({ requirement, review, route, onClose, onSave }: { require
     if (title.trim().length < 3) return "Escribe en pocas palabras cuál es el problema.";
     return { estado: "observado", soporte: encodeProblem(title, body), ...(blocks.length ? { bloquea: blocks } : {}), ...(review?.vigenteHasta ? { vigenteHasta: review.vigenteHasta } : {}) };
   }
-  return <Sheet open onClose={onClose} eyebrow="Hay un problema" title={requirementName(requirement, route)} description="Escribe qué pasó para que el equipo sepa por qué está detenida." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="Hay un problema" title={requirementName(requirement, route)} description="Qué pasó y por qué está detenida." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={() => void run(build())}>{busy ? "Guardando…" : "Guardar"}</Button>
   </>}>
@@ -224,7 +224,7 @@ function ProblemSheet({ requirement, review, route, onClose, onSave }: { require
 function NotApplicableSheet({ requirement, route, review, onClose, onSave }: { requirement: RequirementKey; route: OperationWorkflow["ruta"]; review?: Review; onClose: () => void; onSave: (review: Review) => Promise<void> }) {
   const [why, setWhy] = React.useState(review?.estado === "no_aplica" ? review.soporte : "");
   const { busy, error, run } = useSheetSave(onSave);
-  return <Sheet open onClose={onClose} eyebrow="No aplica" title={requirementName(requirement, route)} description="Explica por qué esta operación no lo necesita." footer={<>
+  return <Sheet open onClose={onClose} eyebrow="No aplica" title={requirementName(requirement, route)} description="Por qué no se necesita." footer={<>
     <Button onClick={onClose} disabled={busy}>Cancelar</Button>
     <Button variant="primary" disabled={busy} onClick={() => void run(why.trim().length < 3 ? "Escribe por qué no aplica." : { estado: "no_aplica", soporte: why.trim() })}>{busy ? "Guardando…" : "Guardar"}</Button>
   </>}>

@@ -108,11 +108,11 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
       </li>)}</ol>
       <h1 ref={heading} tabIndex={-1} className={s.title}>{screen.title}</h1>
       <p className={s.lead}>{interview.contacto.nombre}. {prospect ? "Lo básico del primer contacto: la entrevista completa se hace en persona." : "Si no sabe algo, márcalo y seguimos; lo completas después."}</p>
-      {!correction && <p className="flex items-start gap-2 text-sm text-muted-foreground"><Info size={16} aria-hidden="true" className="mt-0.5 shrink-0" />{prospect ? "Al guardar el prospecto se crea la operación en la etapa Prospecto. Si lo guardas para después, lo encuentras en Hoy, en «Entrevistas por terminar»." : "La operación se crea al terminar la entrevista. Si la guardas para después, la encuentras en Hoy, en «Entrevistas por terminar»."}</p>}
+      {!correction && <p className="flex items-start gap-2 text-sm text-muted-foreground"><Info size={16} aria-hidden="true" className="mt-0.5 shrink-0" />{prospect ? "Al guardar se crea la operación. Si la dejas para después, está en Hoy › «Entrevistas por terminar»." : "La operación se crea al terminar. Si la dejas para después, está en Hoy › «Entrevistas por terminar»."}</p>}
       {correction && <p className="text-sm text-muted-foreground">Estás corrigiendo una entrevista ya terminada. La anterior se conserva en la operación.</p>}
       {owner && (screen.title === "El inmueble" || prospect) && !correction && <Card as="div" className="p-4">
         <label className="flex flex-col gap-2 text-sm font-semibold">¿Ya tenemos este inmueble registrado?<select className={selectClass} value={answers.propiedadExistente ?? ""} disabled={busy} onChange={e => set("propiedadExistente", e.target.value)}><option value="">No, registrar uno nuevo con estos datos</option>{properties.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select></label>
-        <p className="mt-2 text-sm text-muted-foreground">Elígelo solo si es la misma unidad; compartir dirección no basta. Las medidas y las fotos se capturan en el levantamiento.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Solo si es la misma unidad, no basta la dirección. Medidas y fotos van en el levantamiento.</p>
       </Card>}
       <Card as="div" className="flex flex-col gap-6 p-5 sm:p-7">
         {fields.map(field => <div key={field.key} className={s.question}>

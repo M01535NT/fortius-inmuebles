@@ -21,35 +21,35 @@ const STEPS = [
 ];
 
 const DOCUMENTS = [
-  { title: "Escritura y titularidad", text: "Que quien vende sea el propietario y que el inmueble esté inscrito a su nombre." },
-  { title: "Libertad de gravamen", text: "Certificado vigente que indica si el inmueble tiene hipotecas, embargos u otras cargas." },
-  { title: "Predial, agua y luz", text: "Recibos al corriente. Cualquier adeudo debe aclararse antes de firmar." },
-  { title: "Uso de suelo y permisos", text: "Que el uso que piensas darle sea compatible y que las construcciones cuenten con sus permisos." },
-  { title: "Superficies", text: "Que la escritura, el catastro y lo que ves en el inmueble coincidan." },
-  { title: "Cuotas y reglamento", text: "En condominios y fraccionamientos, cuotas de mantenimiento al corriente y reglamento interno." },
+  { title: "Escritura y titularidad", text: "Que quien vende sea el dueño inscrito." },
+  { title: "Libertad de gravamen", text: "Si tiene hipotecas, embargos u otras cargas." },
+  { title: "Predial, agua y luz", text: "Al corriente antes de firmar." },
+  { title: "Uso de suelo y permisos", text: "Que permita el uso que le darás y que lo construido tenga permisos." },
+  { title: "Superficies", text: "Que escritura, catastro y realidad coincidan." },
+  { title: "Cuotas y reglamento", text: "En condominio: cuotas al corriente y reglamento." },
 ];
 
 const COSTS = [
-  { title: "Impuesto de adquisición (ISAI)", text: "Se paga al municipio por adquirir el inmueble. Depende del valor de la operación y del municipio." },
-  { title: "Honorarios notariales", text: "Por preparar y formalizar la escritura. Se cotizan con la notaría que elijas." },
-  { title: "Derechos de registro", text: "Por inscribir la escritura en el Registro Público de la Propiedad." },
-  { title: "Avalúo", text: "Determina el valor del inmueble. Lo solicita el banco cuando hay crédito." },
-  { title: "Gastos del crédito", text: "Comisión de apertura, seguros y otros cargos que fije la institución financiera." },
-  { title: "Honorarios de la inmobiliaria", text: "Si aplican, deben quedar por escrito antes de avanzar, con su monto y condiciones." },
+  { title: "Impuesto de adquisición (ISAI)", text: "Al municipio. Depende del valor y del municipio." },
+  { title: "Honorarios notariales", text: "Por la escritura. Los cotiza tu notaría." },
+  { title: "Derechos de registro", text: "Inscripción en el Registro Público." },
+  { title: "Avalúo", text: "Lo pide el banco si hay crédito." },
+  { title: "Gastos del crédito", text: "Apertura, seguros y cargos del banco." },
+  { title: "Honorarios de la inmobiliaria", text: "Si aplican, por escrito antes de avanzar." },
 ];
 
 const PAYMENT = [
-  { title: "De contado", text: "Necesitas el precio y los gastos de la operación. Es la forma más directa de cerrar." },
-  { title: "Crédito bancario", text: "El banco evalúa tu capacidad de pago y solicita un avalúo. La mensualidad depende del plazo y la tasa." },
-  { title: "Infonavit o Fovissste", text: "Si cuentas con una subcuenta de vivienda, puedes consultar cuánto crédito te corresponde. Sujeto a aprobación de la institución." },
+  { title: "De contado", text: "Precio más gastos. El cierre más directo." },
+  { title: "Crédito bancario", text: "El banco evalúa tu capacidad y pide avalúo." },
+  { title: "Infonavit o Fovissste", text: "Con tu subcuenta de vivienda, sujeto a aprobación." },
 ];
 
 const CLOSING = [
-  { title: "Oferta por escrito", text: "Precio, forma de pago, plazos y condiciones, antes de apartar." },
-  { title: "Apartado y contrato", text: "Se formaliza el compromiso de compra y venta, con sus penalidades y fechas." },
-  { title: "Revisión final", text: "Se confirman los documentos, los pagos pendientes y el estado del inmueble." },
-  { title: "Firma ante notario", text: "Se firma la escritura y se pagan impuestos y honorarios." },
-  { title: "Registro y entrega", text: "Se inscribe la escritura y se entregan llaves e inventario." },
+  { title: "Oferta por escrito", text: "Precio, pago y plazos." },
+  { title: "Apartado y contrato", text: "Compromiso con fechas y penalidades." },
+  { title: "Revisión final", text: "Documentos, pagos y estado del inmueble." },
+  { title: "Firma ante notario", text: "Escritura, impuestos y honorarios." },
+  { title: "Registro y entrega", text: "Inscripción, llaves e inventario." },
 ];
 
 /*
@@ -59,8 +59,8 @@ const CLOSING = [
 export default async function ComprarInmueblePage() {
   const [propiedades, destacadas] = await Promise.all([getPropiedades(), getFeaturedProperties()]);
   return <main className="pg-page">
-    <InteriorPage {...routePages.comprar} eyebrow="Para compradores" title="Antes de comprar, esto es lo que debes saber."
-      description="Comprar bien empieza por revisar los documentos y conocer todos los gastos, no solo el precio."
+    <InteriorPage {...routePages.comprar} eyebrow="Para compradores" title="Compra sin sorpresas."
+      description="Documentos y gastos, antes del precio."
       primary={{ href: "/inventario", label: "Explorar inventario" }} secondary={{ href: "/herramientas/gastos-de-cierre", label: "Calcular gastos de cierre" }}
       aside={<ol className="ip-steps" aria-label="Qué cubre esta guía">
         {STEPS.map((step, index) => <li key={step.title} className={index === 0 ? "is-current" : undefined}>
@@ -75,23 +75,23 @@ export default async function ComprarInmueblePage() {
 
     <section id="documentos" className="pg-container pg-section" aria-labelledby="gd-documentos">
       <h2 id="gd-documentos" className="pg-h2">Revisa la documentación.</h2>
-      <p className="pg-lead pg-lead-ink">Pídela antes de apartar. Lo que falte o no coincida cambia el precio, el crédito o la fecha de cierre.</p>
+      <p className="pg-lead pg-lead-ink">Antes de apartar. Lo que falte cambia precio, crédito o fecha.</p>
       <ul className="pg-grid-3 gd-cards">
         {DOCUMENTS.map(item => <li key={item.title} className="pg-card pg-card-pad">
           <h3 className="pg-h3">{item.title}</h3>
           <p className="pg-muted">{item.text}</p>
         </li>)}
       </ul>
-      <p className="gd-note">Si el estado civil de quien vende o la forma en que adquirió el inmueble lo requieren, puede hacer falta la firma de más personas. <Link href="/#revision" className="editorial-text-link">Conoce nuestra revisión documental</Link>.</p>
+      <p className="gd-note">Según el estado civil de quien vende, pueden firmar más personas. <Link href="/#revision" className="editorial-text-link">Conoce nuestra revisión documental</Link>.</p>
     </section>
 
     <section id="gastos" className="pg-container pg-section" aria-labelledby="gd-gastos">
       <h2 id="gd-gastos" className="pg-h2">Lo que se suma al precio.</h2>
-      <p className="pg-lead pg-lead-ink">Al precio del inmueble súmale los gastos de la operación. Conocerlos desde el principio evita sorpresas el día de la firma.</p>
+      <p className="pg-lead pg-lead-ink">Conócelos antes de la firma.</p>
       <ul className="gd-list">
         {COSTS.map(item => <li key={item.title}><strong>{item.title}</strong><span>{item.text}</span></li>)}
       </ul>
-      <p className="gd-note">Los importes dependen de cada operación y se confirman con la notaría y con cada institución. La calculadora te da una referencia inicial. <Link href="/herramientas/gastos-de-cierre" className="editorial-text-link">Estimar mis gastos de cierre</Link>.</p>
+      <p className="gd-note">La notaría y el banco confirman los importes. <Link href="/herramientas/gastos-de-cierre" className="editorial-text-link">Estimar mis gastos de cierre</Link>.</p>
     </section>
 
     <section id="pago" className="pg-container pg-section" aria-labelledby="gd-pago">
@@ -102,7 +102,7 @@ export default async function ComprarInmueblePage() {
           <p className="pg-muted">{item.text}</p>
         </li>)}
       </ul>
-      <p className="gd-note">Las condiciones del crédito las confirma la institución financiera. <Link href="/herramientas/hipoteca" className="editorial-text-link">Estimar mi mensualidad</Link>.</p>
+      <p className="gd-note">La institución confirma las condiciones. <Link href="/herramientas/hipoteca" className="editorial-text-link">Estimar mi mensualidad</Link>.</p>
     </section>
 
     <section id="cierre" className="pg-container pg-section" aria-labelledby="gd-cierre">
@@ -110,7 +110,7 @@ export default async function ComprarInmueblePage() {
       <ol className="gd-list gd-steps">
         {CLOSING.map((item, index) => <li key={item.title}><strong><span aria-hidden="true">0{index + 1}</span> {item.title}</strong><span>{item.text}</span></li>)}
       </ol>
-      <p className="gd-note">Cada operación puede variar según el inmueble, la forma de pago y las partes. ¿Tienes dudas? Revisa las <Link href="/preguntas-frecuentes" className="editorial-text-link">preguntas frecuentes</Link>.</p>
+      <p className="gd-note">¿Dudas? Revisa las <Link href="/preguntas-frecuentes" className="editorial-text-link">preguntas frecuentes</Link>.</p>
     </section>
 
     <div className="nocturno-home gd-destacadas"><NocturnoDestacadas properties={destacadas} /></div>
@@ -119,7 +119,7 @@ export default async function ComprarInmueblePage() {
       <div className="pg-card pg-card-wine pg-card-pad gd-cta">
         <div>
           <h2 id="gd-cta" className="pg-h2">¿Buscas algo que no está aquí?</h2>
-          <p className="pg-muted">Cuéntanos qué necesitas y con qué presupuesto. Cada ficha muestra las características, la documentación disponible y cómo pedir una visita.</p>
+          <p className="pg-muted">Dinos qué buscas y con qué presupuesto.</p>
         </div>
         <div className="gd-cta-actions">
           <Link href="/contacto" className="pg-btn pg-btn-light">Hablar con un asesor</Link>

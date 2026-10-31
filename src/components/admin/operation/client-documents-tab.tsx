@@ -121,7 +121,7 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
     <Card className="p-5" aria-labelledby="docs-cliente-titulo">
       <div className="flex flex-col gap-1">
         <h2 id="docs-cliente-titulo" className="m-0 text-lg font-semibold">Documentos del cliente</h2>
-        <p className="text-sm text-muted-foreground">Sube aquí todo lo que entregue el cliente: escrituras, certificado de libertad de gravámenes, avalúo, identificaciones, CURP, predial, agua, actas, poderes. No hace falta acomodarlos. PDF o imagen, hasta 20 MB cada uno.</p>
+        <p className="text-sm text-muted-foreground">Todo lo que entregue el cliente, sin acomodar. PDF o imagen, hasta 20 MB cada uno.</p>
       </div>
       {/* Zona para soltar archivos; también se eligen o se toma la foto desde el celular. */}
       <div role="group" aria-label="Subir documentos" data-active={arrastrando}

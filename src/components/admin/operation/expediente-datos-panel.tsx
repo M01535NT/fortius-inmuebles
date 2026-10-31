@@ -78,7 +78,7 @@ export function ExpedienteDatosPanel({ operationId, refresh = 0 }: { operationId
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="flex min-w-0 flex-col gap-1">
         <h2 id="datos-expediente-titulo" className="m-0 text-lg font-semibold">Datos del expediente</h2>
-        <p className="text-sm text-muted-foreground">Se confirman una sola vez y llenan todos los formatos de este cliente. Lo que ya se escribió en un formato no se cambia: si es distinto, el formato lo avisa.</p>
+        <p className="text-sm text-muted-foreground">Se confirman una vez y llenan todos los formatos. Lo ya escrito no cambia; si difiere, el formato avisa.</p>
       </div>
       {propuestos.length > 1 && <Button variant="primary" disabled={busy} onClick={() => confirmar(propuestos)}><Check size={16} aria-hidden="true" />Confirmar los {propuestos.length} pendientes</Button>}
     </div>

@@ -58,7 +58,7 @@ export function DocumentosSinExpediente() {
 
   return <div className="flex flex-col gap-6">
     <Link href="/admin/herramientas" className="inline-flex items-center gap-2 text-sm"><ArrowLeft size={16} aria-hidden="true" />Todas las aplicaciones</Link>
-    <PageHeader title="Documentos sin expediente" description="Prepara una opinión, un contrato o una propuesta sin pasar por las etapas de una operación. Se captura igual y sale con el diseño de su plantilla." />
+    <PageHeader title="Documentos sin expediente" description="Opiniones, contratos o propuestas sin abrir una operación, con el diseño de su plantilla." />
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
     <section aria-labelledby="nuevo-documento" className="flex flex-col gap-3">

@@ -268,7 +268,7 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
             {faltan ? <ul className="flex flex-col gap-0.5">{pending.map(key => <li key={key}><button type="button" className={s.missingItem} disabled={disabled || !maqueta} onClick={() => openKey(key)}><span className="flex-1">{label(key)}</span></button></li>)}
               {sueltos.map(text => <li key={text} className="px-3 py-2 text-sm">{text}</li>)}</ul>
               : <p className="px-2 text-sm text-muted-foreground">Ya tiene lo indispensable para generar el PDF. Puedes seguir llenando lo demás.</p>}
-            <p className="mt-auto px-2 text-xs text-muted-foreground">Las partes con borde vino faltan; las demás son opcionales. Cada dato se guarda al aceptar.</p>
+            <p className="mt-auto px-2 text-xs text-muted-foreground">Lo de borde vino falta. Cada dato se guarda al aceptar.</p>
           </div>
         </div>}
     </aside>

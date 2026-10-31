@@ -9,8 +9,8 @@ type Perfil = { id: string; nombre: string; cargo: string; iniciales: string; fo
 
 const PASOS_COMPRA = [
   "Nos dices qué buscas y con qué presupuesto.",
-  "Revisamos los documentos y calculamos los gastos antes de que ofertes.",
-  "Te acompañamos en la visita, la oferta y la firma.",
+  "Revisamos documentos y gastos antes de ofertar.",
+  "Te acompañamos hasta la firma.",
 ];
 
 const PRESUPUESTOS = [
@@ -67,7 +67,7 @@ export function NocturnoTestimonios({ items }: { items: Testimonio[] }) {
   return <section id="testimonios" aria-labelledby="testimonios-title" className="nx-section nx-container">
     <div className="nx-head">
       <div>
-        <h2 id="testimonios-title" className="nx-title">Lo que dicen quienes ya trabajaron con nosotros.</h2>
+        <h2 id="testimonios-title" className="nx-title">Lo que dicen nuestros clientes.</h2>
       </div>
     </div>
     <ul className="nx-quotes">
@@ -94,9 +94,9 @@ export function NocturnoRecursos() {
       </div>
       <ul className="nx-tools">
         {[
-          { href: "/herramientas/hipoteca", Icon: Landmark, title: "Calculadora de hipoteca", detail: "Cuánto pagarías al mes según enganche, plazo y tasa." },
-          { href: "/herramientas/gastos-de-cierre", Icon: Calculator, title: "Gastos de cierre", detail: "Cuánto necesitas para comprar o cuánto te queda al vender." },
-          { href: "/opinion-de-valor", Icon: Scale, title: "Opinión de valor", detail: "Cómo calculamos el precio de salida de tu propiedad." },
+          { href: "/herramientas/hipoteca", Icon: Landmark, title: "Calculadora de hipoteca", detail: "Tu pago mensual estimado." },
+          { href: "/herramientas/gastos-de-cierre", Icon: Calculator, title: "Gastos de cierre", detail: "Cuánto pagas o cuánto recibes." },
+          { href: "/opinion-de-valor", Icon: Scale, title: "Opinión de valor", detail: "Cómo fijamos el precio." },
         ].map(({ href, Icon, title, detail }) => <li key={href}><Link href={href} className="nx-tool">
           <span className="nx-tool-icon"><Icon size={20} strokeWidth={1.6} aria-hidden="true" /></span>
           <span><strong>{title}</strong><span>{detail}</span></span>
@@ -122,8 +122,8 @@ export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; 
     <div className="nx-head">
       <div>
         <p className="nx-eyebrow">Quién te atiende</p>
-        <h2 id="equipo-title" className="nx-title">Una persona lleva tu caso de principio a fin.</h2>
-        <p className="nx-lead">Revisa la propiedad, coordina las visitas y negocia contigo.</p>
+        <h2 id="equipo-title" className="nx-title">Una persona lleva tu caso.</h2>
+        <p className="nx-lead">De la revisión a la firma.</p>
       </div>
       <Link href="/nosotros#agentes" className="nx-link">Conocer al equipo <ArrowRight size={18} aria-hidden="true" /></Link>
     </div>

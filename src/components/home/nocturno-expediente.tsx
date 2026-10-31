@@ -51,7 +51,7 @@ export function NocturnoExpediente({ intro, pillars, documents }: { intro: strin
       <div className="nx-exp">
         <div className="nx-exp-copy">
           <p className="nx-eyebrow">Lo que recibes</p>
-          <h2 id="por-que-title" className="nx-title"><span className="nx-title-mask"><span>Tu venta queda en un expediente que puedes ver.</span></span></h2>
+          <h2 id="por-que-title" className="nx-title"><span className="nx-title-mask"><span>Tu venta, en un expediente a la vista.</span></span></h2>
           <p className="nx-lead">{intro}</p>
           <ol className="nx-exp-pillars">
             {pillars.map((item, index) => <li key={item.title} className={index === pillar ? "is-active" : undefined}>

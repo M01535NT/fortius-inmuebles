@@ -11,7 +11,7 @@ export function pilaresDe(content?: SiteContent | null) {
     { title: "El precio, explicado", text: copy.manifiestoTexto },
     { title: "Lo que falta, a tiempo", text: homeText(content, "relatoTexto") },
     { title: "Dónde se publica", text: homeText(content, "relatoApoyo") },
-    { title: "Qué pasó con tu venta", text: "Qué consultas, visitas y ofertas hubo, por escrito." },
+    { title: "Qué pasó con tu venta", text: "Consultas, visitas y ofertas, por escrito." },
   ];
 }
 

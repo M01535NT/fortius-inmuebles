@@ -44,7 +44,7 @@ export default async function BlogPage({ searchParams }: Props = {}) {
             <p className="pg-eyebrow pg-eyebrow-ink">Tijuana y Baja California</p>
             <h1 className="pg-title">Blog</h1>
           </div>
-          <p className="pg-lead pg-lead-ink">Lo que pasa en el sector y lo que necesitas saber para tu próxima decisión. Guías, análisis y actualidad con contexto local.</p>
+          <p className="pg-lead pg-lead-ink">Guías y noticias del mercado local.</p>
         </header>
 
         <section aria-label="Buscar y filtrar artículos">
