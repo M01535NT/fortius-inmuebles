@@ -83,7 +83,9 @@ export function greeting(hour: number) { return hour < 12 ? "Buenos días" : hou
 
 const active = (d: TodayDossier) => d.etapa !== "cerrado" && d.flujo?.estado !== "descartada";
 
-export type WaitingItem = { id: string; who: string; folio?: string; detail?: string; reason: string; when: string; late: boolean; href: string; rank: number; sort: string; propertySlug?: string | null };
+export type WaitingItem = { id: string; who: string; folio?: string; detail?: string; reason: string; when: string; late: boolean; href: string; rank: number; sort: string; propertySlug?: string | null;
+  /** La tarea vencida que motiva la tarjeta: «Tareas de hoy» no la repite (C10). */
+  taskId?: string };
 
 /**
   «Esperan algo de ti»: una tarjeta por operación o contacto, con el motivo más
@@ -102,9 +104,9 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today 
     const received = requirements.find(([, r]) => r.estado === "recibido");
     const offer = offers?.filter(o => o.context?.expedienteId === dossier.id && o.updatedAt.slice(0, 10) >= recentOffer).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
     const since = (value?: string) => value ? (value.slice(0, 10) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
-    let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank"> | null = null;
+    let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank" | "taskId"> | null = null;
     if (problem) pick = { reason: `Hay un problema con «${requirementName(problem[0], flow?.ruta)}»${problem[1].soporte.trim() ? `: ${problem[1].soporte.trim()}` : "."}`, when: since(problem[1].registradoEl), late: true, rank: 0 };
-    else if (overdue.length) pick = { reason: `Tarea vencida: ${overdue[0].titulo}`, when: `Vencida desde el ${shortDate(overdue[0].vence!)}`, late: true, rank: 1 };
+    else if (overdue.length) pick = { reason: `Tarea vencida: ${overdue[0].titulo}`, when: `Vencida desde el ${shortDate(overdue[0].vence!)}`, late: true, rank: 1, taskId: overdue[0].id };
     else if (received) pick = { reason: `Ya tienes «${requirementName(received[0], flow?.ruta)}». Revísalo.`, when: since(received[1].registradoEl), late: false, rank: 2 };
     else if (offer) pick = { reason: "Se registró una oferta. Revísala con el propietario.", when: offer.updatedAt.slice(0, 10) === today ? "Hoy" : `El ${shortDate(offer.updatedAt)}`, late: false, rank: 3 };
     else if (flow?.estado !== "pausada" && !open.some(t => !!t.vence)) pick = { reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "", late: false, rank: 4 };
@@ -116,6 +118,21 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today 
     items.push({ id: contact.id, who: contact.personName, detail: contact.kind === "lead" ? "Prospecto" : "Cliente", reason: "Toca darle seguimiento.", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 5, sort: contact.fecha });
   }
   return items.sort((a, b) => a.rank - b.rank || a.sort.localeCompare(b.sort));
+}
+
+/** Operaciones en curso por etapa, de la más poblada a la menos (bloque azul de Hoy, LV-07). */
+export function stageCounts(dossiers: TodayDossier[], today: string) {
+  const counts = new Map<string, number>();
+  for (const d of dossiers.filter(active)) {
+    const label = processStageText(d.etapa, d.flujo, today, d.inicial) || "Sin etapa";
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  return [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "es"));
+}
+
+/** Los siete días que siguen a hoy, en orden. */
+export function weekDays(today: string) {
+  return Array.from({ length: 7 }, (_, i) => addDays(today, i + 1));
 }
 
 /** Avance de una entrevista: secciones con preguntas obligatorias que ya tienen todas sus respuestas. */

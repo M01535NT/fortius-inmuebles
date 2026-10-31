@@ -8,42 +8,56 @@ vi.mock("@/lib/admin/store", async original => {
   return { ...actual, useCollection: (store: unknown) => store === actual.db.tareas ? tasks : store === actual.db.leads ? leads : store === actual.db.clientes ? clients : [] };
 });
 vi.mock("@/lib/admin/operational-date", () => ({ operationalDate: () => "2026-10-16" }));
-import { GuidedSidebar, MobileTabBar, Topbar, isNavActive, MAIN_NAV } from "@/components/admin/workspace/guided-nav";
+import { TopNav, MobileTabBar, isNavActive, MAIN_NAV, MORE_NAV } from "@/components/admin/workspace/guided-nav";
 
 const user = { name: "Mariana Ruiz", email: "mariana@example.invalid", initials: "MR" };
-const sidebar = (role: string, pathname = "/admin") => render(<GuidedSidebar pathname={pathname} role={role} user={user} onLogout={async () => {}} />);
+const topnav = (role: string, pathname = "/admin") => render(<TopNav pathname={pathname} role={role} user={user} onLogout={async () => {}} search={<button type="button">Buscar</button>} />);
 beforeEach(() => { tasks.length = 0; leads.length = 0; clients.length = 0; });
 afterEach(cleanup);
 
-test("la barra lateral muestra cinco secciones, Herramientas y la cuenta; la barra superior lleva el buscador y Nueva operación", () => {
-  sidebar("editor");
+test("la barra superior lleva seis píldoras, el buscador, «Nuevo» y la cuenta; sin Administración a la vista del asesor", () => {
+  topnav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
-  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Herramientas16"]);
-  expect(within(nav).queryByRole("button", { name: /Administración/ })).toBeNull();
-  expect(screen.getByText("Asesor")).toBeTruthy();
+  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Más"]);
+  expect(within(nav).getByRole("link", { name: "Más" }).getAttribute("href")).toBe("/admin/herramientas");
+  expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
   const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
   expect(account.getAttribute("aria-expanded")).toBe("false");
   fireEvent.click(account);
-  expect(screen.getByRole("link", { name: "Mi perfil" }).getAttribute("href")).toBe("/admin/perfil");
-  expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeTruthy();
-  cleanup();
-  render(<Topbar search={<button type="button">Buscar</button>} />);
-  expect(screen.getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
+  const menu = document.getElementById("admin-account-menu")!;
+  expect(within(menu).getByRole("link", { name: "Mi perfil" }).getAttribute("href")).toBe("/admin/perfil");
+  expect(within(menu).queryByRole("link", { name: "Administración" })).toBeNull();
+  expect(within(menu).getByRole("button", { name: "Cerrar sesión" })).toBeTruthy();
+  expect(screen.getByText("Asesor")).toBeTruthy();
 });
 
-test("Administración solo aparece al administrador, plegada, con sus cinco accesos", () => {
-  sidebar("admin");
-  const toggle = screen.getByRole("button", { name: /Administración/ });
-  expect(toggle.getAttribute("aria-expanded")).toBe("false");
-  fireEvent.click(toggle);
-  const group = document.getElementById("admin-nav-administracion")!;
-  expect(Array.from(group.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Equipo", "Sitio web", "Reportes", "Historial", "Configuración"]);
+test("«+ Nuevo» abre las cinco altas, la operación primero, y avisa a la pantalla destino", () => {
+  topnav("editor");
+  const heard: string[] = [];
+  window.addEventListener("fortius:quick-create", event => heard.push((event as CustomEvent<string>).detail));
+  const trigger = screen.getByRole("button", { name: "Nuevo" });
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  fireEvent.click(trigger);
+  const menu = screen.getByRole("menu", { name: "Qué quieres crear" });
+  expect(within(menu).getAllByRole("menuitem").map(item => [item.textContent, item.getAttribute("href")])).toEqual([
+    ["Nueva operación", "/admin/operaciones/nueva"], ["Nuevo prospecto", "/admin/contactos?nuevo=1"], ["Nuevo inmueble", "/admin/propiedades/nueva"], ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin/agenda?nueva=1"],
+  ]);
+  fireEvent.click(within(menu).getByRole("menuitem", { name: "Nuevo prospecto" }));
+  expect(heard).toEqual(["prospecto"]);
+  expect(screen.queryByRole("menu")).toBeNull();
+  fireEvent.click(trigger);
+  fireEvent.keyDown(document, { key: "Escape" });
+  expect(screen.queryByRole("menu")).toBeNull();
+  expect(document.activeElement).toBe(trigger);
 });
 
-test("Administración se abre sola si la página actual está dentro de ella", () => {
-  sidebar("admin", "/admin/blog");
-  expect(screen.getByRole("button", { name: /Administración/ }).getAttribute("aria-expanded")).toBe("true");
-  expect(screen.getByRole("link", { name: "Sitio web" }).getAttribute("aria-current")).toBe("page");
+test("el administrador encuentra Administración en su cuenta y «Más» se marca dentro de esas páginas", () => {
+  topnav("admin", "/admin/blog");
+  fireEvent.click(screen.getByRole("button", { name: /Mariana Ruiz, Administrador/ }));
+  const link = within(document.getElementById("admin-account-menu")!).getByRole("link", { name: "Administración" });
+  expect(link.getAttribute("href")).toBe("/admin/asesores");
+  expect(link.getAttribute("aria-current")).toBe("page");
+  expect(screen.getByRole("link", { name: "Más" }).getAttribute("aria-current")).toBe("page");
 });
 
 test("la sección activa incluye sus fichas de detalle y las direcciones anteriores", () => {
@@ -54,21 +68,25 @@ test("la sección activa incluye sus fichas de detalle y las direcciones anterio
   expect(isNavActive("/admin/leads/123", contactos)).toBe(true);
   expect(isNavActive("/admin/tareas/9", agenda)).toBe(true);
   expect(isNavActive("/admin/agendas", agenda)).toBe(false);
+  for (const path of ["/admin/herramientas", "/admin/apps/hipoteca", "/admin/notas", "/admin/reportes", "/admin/configuracion", "/admin/perfil"]) expect(isNavActive(path, MORE_NAV)).toBe(true);
+  expect(isNavActive("/admin/propiedades", MORE_NAV)).toBe(false);
 });
 
 test("el contador de Hoy suma tareas vencidas o de hoy y contactos por atender", () => {
   tasks.push({ id: "t1", estado: "pendiente", vence: "2026-10-15" }, { id: "t2", estado: "pendiente", vence: "2026-10-16" }, { id: "t3", estado: "completada", vence: "2026-10-10" }, { id: "t4", estado: "pendiente", vence: "2026-10-20" });
-  sidebar("editor");
+  topnav("editor");
   expect(screen.getByRole("link", { name: /^Hoy/ }).textContent).toBe("Hoy2 pendientes");
 });
 
-test("la barra inferior del celular marca la sección y abre el menú", () => {
+test("la barra inferior del celular marca la sección y abre el menú «Más»", () => {
   const onMenu = vi.fn();
   render(<MobileTabBar pathname="/admin/contactos" menuOpen={false} onMenu={onMenu} menuButton={React.createRef()} />);
   const tabs = screen.getByRole("navigation", { name: "Secciones principales" });
   expect(within(tabs).getByRole("link", { name: "Contactos" }).getAttribute("aria-current")).toBe("page");
   expect(within(tabs).getByRole("link", { name: "Nueva operación" }).getAttribute("href")).toBe("/admin/operaciones/nueva");
-  fireEvent.click(within(tabs).getByRole("button", { name: "Menú del panel" }));
+  const more = within(tabs).getByRole("button", { name: "Menú del panel" });
+  expect(more.textContent).toBe("Más");
+  fireEvent.click(more);
   expect(onMenu).toHaveBeenCalled();
 });
 

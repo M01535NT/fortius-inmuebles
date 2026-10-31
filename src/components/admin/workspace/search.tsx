@@ -1,27 +1,20 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Building2, CalendarPlus, ClipboardList, Contact, Plus, Search, X } from "@/components/admin/icons";
+import { Search, X } from "@/components/admin/icons";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { normalizedText } from "@/lib/admin/workspace";
 import { Button, Kbd } from "@/components/admin/kit";
+import { QUICK_CREATE } from "./guided-nav";
 import s from "./guided-nav.module.css";
 
 /*
-  Buscador rápido (boceto aprobado, 17/10/2026): un campo en la barra superior que abre la
-  ventana con Ctrl K; en celular, solo el ícono. Busca personas, inmuebles, tareas y folios
+  Buscador rápido: un botón en la barra superior (y en el encabezado del celular) que abre la
+  ventana; Ctrl K la abre desde cualquier pantalla. Busca personas, inmuebles, tareas y folios
   y ofrece crear rápidamente. La ventana no anima al abrir con el teclado.
 */
 
-const QUICK: Array<[string, string, string, React.ReactNode]> = [
-  ["Nueva operación", "/admin/operaciones/nueva", "", <Plus size={18} aria-hidden="true" key="op" />],
-  ["Nuevo prospecto", "/admin/contactos?nuevo=1", "prospecto", <Contact size={18} aria-hidden="true" key="lead" />],
-  ["Nuevo inmueble", "/admin/propiedades/nueva", "", <Building2 size={18} aria-hidden="true" key="prop" />],
-  ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1", "tarea", <ClipboardList size={18} aria-hidden="true" key="task" />],
-  ["Agendar visita", "/admin/agenda?nueva=1", "visita", <CalendarPlus size={18} aria-hidden="true" key="visit" />],
-];
-
-export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", variant = "icon" }: { label?: string; variant?: "field" | "icon" } = {}) {
+export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", variant = "icon", hotkey = variant === "field" }: { label?: string; variant?: "field" | "icon"; hotkey?: boolean } = {}) {
   const titleId = React.useId();
   const [opened, setOpened] = React.useState(false);
   const properties = useCollection(db.propiedades, opened),
@@ -42,15 +35,15 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
       .then(result => setDossiers(result.expedientes ?? []))
       .catch(() => setError("No se pudieron buscar operaciones. Los demás resultados siguen disponibles."));
   }, []);
-  // Ctrl K (o ⌘K) abre la búsqueda desde cualquier pantalla; solo el campo de la barra superior escucha, para abrir una sola ventana.
+  // Ctrl K (o ⌘K) abre la búsqueda desde cualquier pantalla; solo el botón de la barra superior escucha, para abrir una sola ventana.
   React.useEffect(() => {
-    if (variant !== "field") return;
+    if (!hotkey) return;
     const onKey = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); open(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [variant, open]);
+  }, [hotkey, open]);
   const results = [
     ...properties.map(p => ({ id: `p:${p.slug}`, label: p.titulo, detail: `Inmueble · ${p.codigo}`, text: `${p.titulo} ${p.codigo} ${p.zona}`, href: `/admin/propiedades/${p.slug}/editar` })),
     ...leads.filter(l => !l.clienteId).map(l => ({ id: `l:${l.id}`, label: l.nombre, detail: "Prospecto", text: `${l.nombre} ${l.telefono} ${l.email ?? ""}`, href: `/admin/leads/${l.id}` })),
@@ -62,8 +55,8 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
   const stores = [db.propiedades, db.leads, db.clientes, db.tareas];
   return <>
     {variant === "field"
-      ? <button ref={trigger} type="button" className={s.searchField} aria-label="Buscar en el panel" onClick={open}><Search size={18} aria-hidden="true" /><span>{label}</span><Kbd>Ctrl K</Kbd></button>
-      : <button ref={trigger} type="button" className={s.searchIcon} aria-label="Buscar en el panel" onClick={open}><Search size={20} aria-hidden="true" /></button>}
+      ? <button ref={trigger} type="button" className={s.searchIcon} aria-label="Buscar en el panel" title={`${label} (Ctrl K)`} onClick={open}><Search size={20} aria-hidden="true" /></button>
+      : <button ref={trigger} type="button" className={s.searchIcon} aria-label="Buscar en el panel" title={label} onClick={open}><Search size={20} aria-hidden="true" /></button>}
     <dialog ref={dialog} aria-labelledby={titleId} onClose={() => { trigger.current?.focus(); setQuery(""); }} className={s.palette}>
       <div className={s.paletteHead}>
         <Search size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
@@ -82,7 +75,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
           </Link></li>)}</ul>
         </> : <>
           <p className={s.paletteTitle}>Crear rápidamente</p>
-          <div className={s.quick}>{QUICK.map(([text, href, action, icon]) => <Link key={href} href={href} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: action })); }}>{icon}{text}</Link>)}</div>
+          <div className={s.quick}>{QUICK_CREATE.map(item => <Link key={item.href} href={item.href} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}</div>
         </>}
       </div>
       <p className={s.paletteFoot}><span><Kbd>Esc</Kbd> cierra</span><span><Kbd>Ctrl K</Kbd> abre desde cualquier pantalla</span></p>

@@ -142,7 +142,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   await screen.findByText("Privado");
   expect(
     screen
-      .getByRole("complementary")
+      .getByRole("banner", { name: "Barra del panel" })
       .querySelector('[role="img"][aria-label="Fortius Inmuebles"]'),
   ).toBeTruthy();
   const menu = screen.getByRole("button", { name: "Menú del panel" });

@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import AdminDashboard from "@/app/admin/page";
 import { clearAdminCache } from "@/lib/admin/store";
-import { greeting, interviewProgress, interviewSummary, longDate, overdueReports, todayTasks, upcomingItems, waitingItems, type TodayDossier } from "@/lib/admin/today";
+import { greeting, interviewProgress, interviewSummary, longDate, overdueReports, stageCounts, todayTasks, upcomingItems, waitingItems, weekDays, type TodayDossier } from "@/lib/admin/today";
 import type { Task } from "@/lib/tasks";
 
 const today = "2026-10-16";
@@ -69,6 +69,21 @@ test("overdue owner reports include operations without any report, only while pr
     dossier({ etapa: "comercializacion", flujo: { version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos: {}, entregasInforme: [{ fecha: "2026-10-01", canal: "en_persona", responsable: "Ana" }] } as TodayDossier["flujo"] }),
   ] });
   expect(entregado).toEqual([]);
+});
+
+test("the overdue task behind a waiting card is named so «Tareas de hoy» does not repeat it (C10)", () => {
+  const items = waitingItems({ today, names, offers: [], followups: [], tasks: [task({ id: "late", expedienteId: "d1", vence: "2026-10-13", titulo: "Pedir el predial" })], dossiers: [dossier({})] });
+  expect(items[0].taskId).toBe("late");
+});
+
+test("operations in progress are counted by stage, the busiest first; the week lists the seven days after today", () => {
+  const counts = stageCounts([
+    dossier({ etapa: "comercializacion" }), dossier({ id: "d2", folio: "EXP-2", etapa: "comercializacion" }),
+    dossier({ id: "d3", folio: "EXP-3", etapa: "negociacion" }), dossier({ id: "d4", folio: "EXP-4", etapa: "cerrado" }),
+    dossier({ id: "d5", folio: "EXP-5", flujo: { version: 1, ruta: "captacion", estado: "descartada", motivo: "", requisitos: {} } }),
+  ], today);
+  expect(counts).toEqual([{ label: "Publicación y seguimiento", count: 2 }, { label: "Visitas y ofertas", count: 1 }]);
+  expect(weekDays(today)).toEqual(["2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
 });
 
 test("today's tasks keep the ones finished today, below the open ones", () => {

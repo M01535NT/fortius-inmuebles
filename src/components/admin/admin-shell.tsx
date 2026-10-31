@@ -4,11 +4,10 @@ import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
 import { Eye, EyeOff } from "@/components/admin/icons";
-import { Breadcrumbs } from "@/components/admin/workspace/breadcrumbs";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
-import { GuidedSidebar, MobileHeader, MobileMenu, MobileTabBar, Topbar } from "@/components/admin/workspace/guided-nav";
+import { MobileHeader, MobileMenu, MobileTabBar, TopNav } from "@/components/admin/workspace/guided-nav";
 import {
   AsyncForm,
   AsyncButton,
@@ -325,14 +324,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   // Nueva operación ocupa toda la pantalla: sin menú, migas ni barra inferior; se sale con la ×.
   const focus = pathname === "/admin/operaciones/nueva";
   return (
-    <div data-density={density} className="admin-workspace flex min-h-[100dvh] bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
-      {!focus && <GuidedSidebar pathname={pathname} role={session.role} user={user} onLogout={leave} />}
+    <div data-density={density} className="admin-workspace flex min-h-[100dvh] flex-col bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
+      {!focus && <TopNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch hotkey />} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}
         <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
         <main className={focus ? "admin-content admin-focus flex-1" : "admin-content flex-1 space-y-5"}>
-          {!focus && <Topbar search={<WorkspaceSearch variant="field" />} />}
-          {!focus && <Breadcrumbs />}
           {error || refreshError ? (
             <div className="space-y-2">
               <ErrorNotice error={error ?? refreshError} />

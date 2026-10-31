@@ -19,18 +19,18 @@
   --primary-hover: #70112a;
   --scrim: rgba(6, 31, 63, .45);
   /*
-    Panel: dirección clara aprobada por el titular (17/10/2026). Escala admin-* del sistema
-    de diseño «Fortius Inmuebles»: esquinas 10/12/16/20 px y pastilla; sombras azul marino
-    en reposo, al levantar y en la acción principal. El sitio público conserva su escala.
+    Panel: dirección clara aprobada por el titular (17/10/2026) y versión 2 (30/10/2026,
+    LV-08): lienzo crema, tarjetas de 20 px y bloques de 24 px; sombras azul marino en reposo,
+    al levantar y en la acción principal. El sitio público conserva su escala.
   */
-  --canvas: #eef1f6;
+  --canvas: #f5f1eb;
   --card-edge: rgba(6, 31, 63, .06);
   --edge-soft: #c5d0dd;
   --track: #e3e8f0;
   --radius-control: 10px;
   --radius-thumb: 12px;
-  --radius-card: 16px;
-  --radius-panel: 20px;
+  --radius-card: 20px;
+  --radius-panel: 24px;
   --radius-pill: 999px;
   --shadow-rest: 0 1px 2px rgba(6, 31, 63, .04);
   --shadow-lift: 0 2px 4px rgba(6, 31, 63, .05), 0 18px 40px -18px rgba(6, 31, 63, .28);
@@ -115,8 +115,6 @@
 .panel button[aria-pressed=false] { background: var(--card); color: var(--foreground); border-color: var(--border); box-shadow: none; }
 .panel [aria-invalid=true] { border-color: var(--destructive); outline: 2px solid var(--destructive); outline-offset: 1px; }
 .panel :global(.admin-saved) { border-left: 3px solid #27735d; padding: .65rem 1rem; background: var(--secondary); color: var(--foreground); }
-.panel :global(.admin-breadcrumbs) { color: var(--muted-foreground); font-size: .8rem; display: flex; flex-wrap: wrap; gap: .25rem; }
-.panel :global(.admin-breadcrumbs) a:hover { text-decoration: underline; }
 .panel :global(.admin-avatar) { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #061f3f; color: #fff; border: 1px solid var(--border); font-size: .9rem; font-weight: 700; flex-shrink: 0; }
 .panel :global(.admin-avatar) img { width: 100%; height: 100%; object-fit: cover; }
 .panel :global(.admin-confirm) { position: fixed; inset: 0; margin: auto; width: min(460px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; border-radius: 12px; padding: 24px; background: var(--card); color: var(--foreground); border: 1px solid var(--border); }
@@ -194,7 +192,7 @@
 .panel table th { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-size: .8125rem; font-weight: 600; background: var(--secondary); }
 .panel table td { padding-block: .875rem; }
 @media (min-width: 768px) {
-  .panel :global(.admin-content) { padding: .5rem 1.5rem 2.5rem 1rem; }
+  .panel :global(.admin-content) { padding: .75rem 2rem 2.5rem; }
 }
 .panel :global(.admin-content.admin-focus) { max-width: none; padding: 0; display: flex; flex-direction: column; } /* Nueva operación a pantalla completa */
 

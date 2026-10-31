@@ -37,6 +37,8 @@ Corregido en la rama: el botón principal de «Ahora toca» se apagaba en el dic
 
 **Pantalla de una operación, boceto D (titular, 29/10/2026):** el titular eligió el boceto D «Moderno» entre cuatro propuestas. Está especificado como **LV-06** (sección «Lenguaje visual») y su fuente en `docs/diseno/operacion-boceto-d/`. No está construido: se empieza cuando el titular lo pida.
 
+**Panel versión 2 (titular, 30/10/2026):** tras una crítica de las 18 pantallas, el titular aprobó la barra superior para todo el panel (DEC-35), la lista única de personas (DEC-36) y eliminar solo desde dentro (DEC-37); los bocetos por sección están en el lienzo «Bocetos del panel Fortius, versión 2» y la entrega es **LV-08** (sección «Lenguaje visual»), que ordena LV-06 y LV-07. En construcción desde ese día en la rama `feat/inicio-claro`: marco común y Hoy.
+
 **Seguridad de dependencias, 25/10/2026:** Next.js 16.4.3 y zod 4.6.7 por avisos de seguridad, integrados en `main` con el [PR #51](https://github.com/M01535NT/fortius-inmuebles/pull/51).
 
 **Preguntas abiertas para el titular:** [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md), cuestionario único que reúne y depura los tres anteriores (preguntas al titular A–K, complemento P01–P84 y preguntas para precisar el panel); conserva los identificadores A–K y una tabla de procedencia. Cada pregunta dice qué entrega bloquea y trae una propuesta; cada respuesta se integra en este plan como regla o decisión, según «Cómo se mantiene este plan». El archivo no es un plan paralelo: solo guarda preguntas y respuestas.
@@ -777,6 +779,18 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 - **Archivos previstos:** `src/components/admin/operation/screen.tsx`, `stages.tsx`, `next-step.tsx`, `requirements.tsx` y `operation.module.css`; el kit solo si hace falta una variante.
 - **Aceptación:** revisión en el navegador a 1440, 1024, 390 y 320 px, en claro y oscuro, con teclado y con «reducir movimiento»; sin desbordamiento horizontal; la barra flotante no tapa contenido ni la barra inferior; operaciones con y sin foto, con y sin tarea, con tarea vencida y en «Cierre y entrega»; lint, tipos y pruebas del panel; Verify en CI antes de integrar, con el acuerdo del titular para fusionar.
 
+**LV-08 · Panel versión 2: marco común y bocetos por sección (titular, 30/10/2026).** El titular pidió una crítica del panel completo (botones, textos, organización) porque lo sentía plano, con mucho texto y pocas imágenes, y bocetos por sección. El agente revisó las 18 pantallas en escritorio y celular y entregó el lienzo «Bocetos del panel Fortius, versión 2» (claude.ai, privado del titular): un artboard de diagnóstico y 17 bocetos (Hoy, Operaciones, Una operación, Nueva operación, Contactos y ficha de persona, Inmuebles, Agenda y Tareas, Herramientas, Administración), con versión de celular en los cinco principales. **El titular aprobó el mismo día las tres decisiones que cambian la forma del panel:**
+
+- **DEC-35 · Barra superior en lugar de barra lateral.** La barra del Hoy «Mosaico cálido» (LV-07) se aplica a todo el panel: logotipo, píldoras **Hoy** (con el contador) · **Operaciones** · **Contactos** · **Inmuebles** · **Agenda** · **Más**, buscar (Ctrl K), **«+ Nuevo»** con menú corto (operación, prospecto, inmueble, tarea, cita; cumple C08) y la cuenta (Mi perfil, Administración para el administrador, Ver sitio, Modo oscuro, Cerrar sesión). «Más» abre Herramientas, que además enlaza Administración y Notas del equipo. Desaparecen la barra lateral, el contador «16», el desplegable de Administración, las migas y el segundo buscador de la barra. En celular la barra inferior sigue siendo Hoy · Operaciones · + · Contactos · **Más** (antes «Menú»).
+- **DEC-36 · Una sola lista de personas** con su etapa como chip (Nuevo · En seguimiento · Cliente · Descartado), en lugar de las pestañas Prospectos y Clientes (C24, SIM-08). Las fichas y las direcciones anteriores se conservan.
+- **DEC-37 · Eliminar solo desde dentro.** Desaparecen el bote de basura de cada fila en Operaciones y el de cada cita en Agenda; eliminar queda en el «⋯» de la operación o la cita, con «Deshacer» (RP-16, C26). La operación eliminada sigue siendo recuperable.
+
+Ocho reglas para todas las pantallas (del artboard de diagnóstico): cada dato una sola vez; una acción principal por pantalla, en guinda; foto antes que ícono (toda operación, cita o aviso lleva la foto del inmueble; las personas, sus iniciales); títulos sin subtítulo ni encabezados de columna; números grandes en Archivo condensado para lo que cuenta (etapa, pendientes, cifras); lo vencido en rojo con palabra y lo demás sin color; formularios cerrados hasta que se piden (agendar, filtros, alta); nada técnico en pantalla (sin códigos «(05)», IDs, slugs, versiones ni «Las fechas son de Tijuana»). Lenguaje visual: lienzo crema `#F5F1EB` en claro (azul noche en oscuro), tarjetas blancas sin borde visible con esquinas de 20–24 px, bloques azul marino de 28 px para lo que manda en cada pantalla, guinda solo en la acción principal y el contador de Hoy; Archivo 620/600/540/400 e Iconoir. Hoy «Mosaico cálido» (LV-07) y Una operación «Moderno» (LV-06) se conservan y solo se afinan con estas reglas. Los demás bocetos resuelven lo que SIM ya había anotado: C09–C11 (Hoy), C12–C22 (Operaciones y operación), C23–C24 (personas), C25–C26 (agenda), C27–C28 (inmuebles y herramientas), C29 (reportes) y C31–C32 (vacíos y Nueva operación).
+
+- **Orden de construcción:** 1) marco común y lienzo crema; 2) Hoy; 3) Operaciones; 4) Una operación (LV-06); 5) Nueva operación; 6) Contactos y ficha de persona; 7) Inmuebles; 8) Agenda y Tareas; 9) Herramientas; 10) Administración (Equipo, Reportes, Sitio web, Historial, Configuración y Mi cuenta en una sola sección con índice). Cada sección se revisa en localhost antes de seguir con la siguiente.
+- **Límites:** solo cambia la presentación. No cambian rutas, API, base de datos, permisos, candados de avance, 409 ni la protección de cambios sin guardar; las direcciones anteriores siguen funcionando. Sin dependencias nuevas.
+- **Estado (30/10/2026):** marco común y Hoy en construcción en la rama `feat/inicio-claro`, junto con el sitio público; nada integrado en `main`.
+
 ### Entregas del paquete LV
 
 | ID | Mejoras | Depende de | Aceptación |
@@ -787,6 +801,7 @@ No se trabaja en esto hasta que el titular lo decida. Se conserva aquí para no 
 | LV-06 | Una operación según el boceto D «Moderno» | Ninguna; se empieza cuando el titular lo pida | Lo descrito en «LV-06» arriba: pantalla partida con panel azul y número de etapa, piezas de la etapa en rejilla, barra de acción flotante; mismas reglas, candados y pruebas; revisado en 1440, 1024, 390 y 320 px, claro y oscuro. |
 | LV-04 | V07, V08 | LV-01, SIM-12 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
 | LV-07 | Tablero «Hoy», boceto D «Mosaico cálido» | ninguna | «Hoy» igual al boceto D en claro y oscuro, a 390 y 1440 px; las reglas de volumen alto de LV-07 se cumplen con 200 pendientes de ensayo sin que el tablero crezca; axe sin fallas; pruebas de «Hoy» actualizadas sin debilitarlas. |
+| LV-08 | Panel versión 2: marco común (DEC-35), lista única de personas (DEC-36), eliminar desde dentro (DEC-37) y bocetos por sección | LV-06 y LV-07 se construyen dentro de este orden | Cada sección igual a su boceto en claro y oscuro, a 390 y 1440 px, con las ocho reglas; pruebas del panel actualizadas sin debilitarlas; sin desbordamiento; teclado, foco y 44 px conservados. |
 
 ## Proceso, captura y documentos — paquete listo para implementar, 17/10/2026
 
@@ -1947,7 +1962,8 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | IA-02 | 2 | en_curso | falta el tope y el gasto del mes en «Ajustes» |
 | DOC-15 | 2 | pendiente | COR-06 |
 | LV-05 | 2 | terminada | PR #45, #46 y #47 (18/10/2026) |
-| LV-07 | 2 | pendiente | ninguna (boceto D elegido el 29/10/2026) |
+| LV-07 | 2 | en_curso | se construye dentro de LV-08 (marco y Hoy, 30/10/2026) |
+| LV-08 | 2 | en_curso | DEC-35 a DEC-37 aprobadas el 30/10/2026; rama `feat/inicio-claro` |
 | SIA-01 a SIA-06 | 2 | en_revision | PR de la rama `feat/sitio-pildora-sobria` hacia `main` (29/10/2026) |
 | MRP-01 | 2 | en_revision | DEC-26 aprobada por el titular el 26/10/2026; se integra con el PR de la rama `feat/mrp01-cor01-03` |
 | USO-01 | 4 | pendiente | ninguna |

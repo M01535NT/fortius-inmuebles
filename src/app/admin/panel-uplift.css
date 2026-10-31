@@ -35,7 +35,6 @@
 .admin-root strong, .admin-root b { font-weight: 560; }
 .admin-root .font-semibold { font-weight: 560; }
 .admin-root .font-bold { font-weight: 600; }
-.admin-root .admin-breadcrumbs { font-size: .8125rem; }
 
 /* Insignias anteriores, en pastilla */
 .admin-root .admin-badge { border-radius: var(--radius-pill); padding-inline: .625rem; border-color: transparent; }

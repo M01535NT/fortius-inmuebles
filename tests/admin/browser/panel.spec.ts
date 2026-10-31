@@ -58,7 +58,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await page.getByRole("button", { name: "Menú del panel" }).click();
         const menu = page.getByRole("navigation", { name: "Módulos móviles" });
         await menu.getByRole("button", { name: /Administración/ }).click();
-        for (const name of ["Inmuebles", "Agenda", "Ver las 16 herramientas", "Equipo", "Sitio web", "Reportes", "Historial", "Configuración"])
+        for (const name of ["Inmuebles", "Agenda", "Herramientas", "Equipo", "Sitio web", "Reportes", "Historial", "Configuración"])
           await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
         await expect(menu.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
         await page.screenshot({ path: testInfo.outputPath("navigation-" + width + ".png"), fullPage: true });
@@ -66,12 +66,12 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await tabs.getByRole("link", { name: "Contactos" }).click();
       } else {
         const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-        for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Herramientas"])
+        for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Más"])
           await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
-        await nav.getByRole("button", { name: /Administración/ }).click();
-        for (const name of ["Equipo", "Sitio web", "Reportes", "Historial", "Configuración"])
-          await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
+        await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
+        await expect(page.getByRole("link", { name: "Administración", exact: true })).toHaveAttribute("href", "/admin/asesores");
         await page.screenshot({ path: testInfo.outputPath("navigation-" + width + ".png"), fullPage: true });
+        await page.keyboard.press("Escape");
         await nav.getByRole("link", { name: "Contactos" }).click();
       }
       await page.getByRole("tab", { name: "Clientes" }).click();
