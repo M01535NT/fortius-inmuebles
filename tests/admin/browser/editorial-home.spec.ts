@@ -6,14 +6,15 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     const page = await context.newPage();
     await page.goto("/");
     await expect(page.locator(".nocturno-home h1")).toBeVisible();
-    await expect(page.locator("h1")).toHaveCSS("font-family", /Archivo/);
-    const seller = page.locator("#opinion").getByRole("link", { name: "Pedir mi opinión de valor" });
-    await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
-    // Segments with listings open the filtered inventory; empty ones invite to contact.
-    const segment = page.locator('#segmentos a[href^="/inventario"]').first();
-    await segment.scrollIntoViewIfNeeded();
-    await segment.click();
-    await expect(page).toHaveURL(/\/inventario\?segmento=(residencial|comercial|industrial)$/);
+    // The public site uses Schibsted Grotesk; the panel keeps Archivo (30/10/2026).
+    await expect(page.locator("h1")).toHaveCSS("font-family", /Schibsted Grotesk/);
+    const seller = page.locator(".nx-hero").getByRole("link", { name: "Quiero vender" });
+    await expect(seller).toHaveAttribute("href", "/vender-propiedad");
+    // The buyer band opens the inventory.
+    const inventory = page.locator("#comprar").getByRole("link", { name: "Ver propiedades" });
+    await inventory.scrollIntoViewIfNeeded();
+    await inventory.click();
+    await expect(page).toHaveURL(/\/inventario$/);
     await page.goBack();
     await expect(page.locator(".nocturno-home")).toBeAttached();
     await page.locator("#entregables").scrollIntoViewIfNeeded();
@@ -26,7 +27,7 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     await page.goBack();
     await expect(page).toHaveURL(/\/$/);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(page.locator(".nx-hero-media img")).toHaveCSS("animation-name", "none");
+    await expect.poll(() => page.locator(".nx-hero-media video").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await context.close();
   });

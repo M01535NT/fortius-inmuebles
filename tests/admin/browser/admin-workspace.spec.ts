@@ -302,7 +302,7 @@ test("Documentos es una pestaña de Herramientas y la dirección anterior lleva 
   await page.goto("/admin/documentos");
   await expect(page).toHaveURL(/\/admin\/herramientas\?tab=documentos$/);
   await expect(page.getByRole("tab", { name: "Documentos" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByText(/Busca por folio o formato/)).toBeVisible();
+  await expect(page.getByText(/Busca documentos por folio o formato/)).toBeVisible();
   await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
   await page.getByRole("tab", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);

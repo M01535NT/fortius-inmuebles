@@ -24,8 +24,10 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     }
     await page.getByRole("navigation", { name: "Tipo de contenido" }).getByRole("link", { name: "Actualidad" }).click();
     await expect(page.getByRole("navigation", { name: "Tipo de contenido" }).getByRole("link", { name: "Actualidad" })).toHaveAttribute("aria-current", "page");
+    // Topics are chips (30/10/2026); the chosen one travels with the search form.
+    await page.getByRole("navigation", { name: "Temas" }).getByRole("link", { name: "Valor y mercado" }).click();
+    await expect(page).toHaveURL((url) => url.searchParams.get("tema") === "mercado");
     await page.getByLabel("Buscar un tema").fill("CREDITO");
-    await page.getByLabel("Tema", { exact: true }).selectOption("mercado");
     await page.getByRole("button", { name: "Buscar", exact: true }).click();
     // The unsearched Actualidad fixture also has one result. Wait for the submitted
     // URL before reloading, otherwise the reload can cancel the pending navigation.
@@ -47,7 +49,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await page.getByRole("link", { name: "Limpiar filtros" }).first().click();
     await expect(page.getByRole("region", { name: "Artículo destacado" })).toBeVisible();
     await expect(page.getByLabel("Buscar un tema")).toHaveValue("");
-    await expect(page.getByLabel("Tema", { exact: true })).toHaveValue("");
+    await expect(page.getByRole("navigation", { name: "Temas" }).getByRole("link", { name: "Todos los temas" })).toHaveAttribute("aria-current", "page");
     await page.getByRole("link", { name: "Siguiente", exact: true }).click();
     await expect(page.getByText("Página 2 de 2")).toBeVisible();
     await page.goto("/blog");
@@ -68,6 +70,8 @@ test("search and filters also work without JavaScript", async ({ browser }) => {
   await page.goto("http://127.0.0.1:3100/blog?tipo=actualidad");
   await page.getByRole("link", { name: "Vista de lista", exact: true }).click();
   await page.getByLabel("Buscar un tema").fill("credito");
+  // Dates and order fold under «Fechas y orden»; the native disclosure works without JavaScript.
+  await page.getByText("Fechas y orden").click();
   await page.getByLabel("Desde", { exact: true }).fill("2026-09-23");
   await page.getByLabel("Hasta", { exact: true }).fill("2026-09-23");
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
@@ -82,6 +86,7 @@ for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 950 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/blog");
+    await page.getByText("Fechas y orden").click();
     await page.getByLabel("Desde", { exact: true }).fill("2026-09-18");
     await page.getByLabel("Hasta", { exact: true }).fill("2026-09-20");
     await page.getByLabel("Ordenar por").selectOption("antiguos");
@@ -121,6 +126,7 @@ for (const width of [375, 1440]) {
     await page.getByRole("link", { name: "Limpiar filtros" }).first().click();
     await expect(page.getByRole("status")).toContainText("13 artículos");
     await expect(page.getByRole("link", { name: "Vista de lista", exact: true })).toHaveAttribute("aria-current", "page");
+    await page.getByText("Fechas y orden").click();
     await page.getByLabel("Desde", { exact: true }).fill("2026-09-09");
     await page.getByLabel("Hasta", { exact: true }).fill("2026-09-23");
     await page.getByLabel("Ordenar por").selectOption("antiguos");

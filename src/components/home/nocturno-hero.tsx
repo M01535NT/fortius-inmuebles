@@ -7,7 +7,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 /*
   Portada (30/10/2026): video a sangre en bucle y sin sonido, con el titular que sube
   desde su máscara. Dice dónde trabaja Fortius, qué hace y qué puede hacer quien llega.
-  Con movimiento reducido el video queda quieto en su primer cuadro.
+  Solo se reproduce desde JavaScript y sin movimiento reducido; si no, queda el póster quieto.
 */
 export function NocturnoHero() {
   const ref = React.useRef<HTMLElement>(null);
@@ -32,7 +32,7 @@ export function NocturnoHero() {
   return (
     <section ref={ref} aria-labelledby="hero-title" className="nx-hero">
       <div className="nx-hero-media">
-        <video ref={video} src="/hero/portada.mp4" poster="/hero/portada-poster.webp" autoPlay muted loop playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />
+        <video ref={video} src="/hero/portada.mp4" poster="/hero/portada-poster.webp" muted loop playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />
       </div>
       <div className="nx-hero-scrim" aria-hidden="true" />
       <div className="nx-hero-body nx-container">

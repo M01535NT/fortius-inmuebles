@@ -8,7 +8,7 @@ import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 type Stage = { n: string; title: string; text: string; doc: string; src: string; alt: string };
 
 /*
-  Método: en escritorio la sección se fija y las seis etapas recorren la
+  Método: en escritorio la sección se fija y las cuatro etapas recorren la
   pantalla en horizontal mientras avanza la barra; la etapa activa se enciende
   en borgoña. En móvil las tarjetas se apilan al desplazar. Con movimiento
   reducido se muestran todas, sin fijar ni animar.

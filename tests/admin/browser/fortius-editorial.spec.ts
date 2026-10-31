@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test("the hero keeps a single photograph and one sentence", async ({ page }) => {
+test("the hero keeps a single silent video and one sentence", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
   const hero = page.locator(".nx-hero");
-  await expect(hero.locator("img")).toHaveCount(1);
+  // Portada (30/10/2026): a muted looping video with a poster replaces the photograph.
+  await expect(hero.locator("img")).toHaveCount(0);
+  await expect(hero.locator("video")).toHaveCount(1);
+  await expect(hero.locator("video")).toHaveAttribute("poster", "/hero/portada-poster.webp");
+  expect(await hero.locator("video").evaluate((video: HTMLVideoElement) => video.muted)).toBe(true);
   await expect(hero.getByRole("search")).toHaveCount(0);
   await expect(hero.locator(".hero-marquee, .editorial-photo-controls, .nx-marquee-track")).toHaveCount(0);
   await expect(hero.locator("h1")).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
@@ -50,7 +54,7 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
-  test(`home keeps six method stages that light up while scrolling at ${width}px`, async ({ page }) => {
+  test(`home keeps four method stages that light up while scrolling at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/", { waitUntil: "networkidle" });
     const timeline = page.locator("[data-method-timeline]");
@@ -63,7 +67,7 @@ for (const width of [390, 1440]) {
       await page.waitForTimeout(60); // Pace wheel input for the scrubbed timeline; not a layout wait.
     }
     await expect(timeline.locator("li").last()).toHaveClass(/is-active/);
-    await expect(timeline.getByRole("heading", { name: "Cierre y entrega" })).toBeInViewport();
+    await expect(timeline.getByRole("heading", { name: "Cerramos contigo" })).toBeInViewport();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(timeline.locator("li").last()).toHaveCSS("opacity", "1");
     await expect(page.locator(".nx-hero-title")).toBeAttached();
