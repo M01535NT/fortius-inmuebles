@@ -3,13 +3,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/herramientas/hipoteca" },
-  title: "Calculadora de hipoteca",
+export const metadata: Metadata = pageMetadata({
+  path: "/herramientas/hipoteca",
+  title: "Calculadora de hipoteca en México",
   description:
-    "Estima la mensualidad de tu crédito hipotecario con enganche, plazo y tasa editables.",
-};
+    "Estima la mensualidad de tu crédito hipotecario con enganche, plazo y tasa editables. Compara hasta tres escenarios y descarga cada tabla de pagos en PDF.",
+});
 
 export default function HipotecaPage() {
   return (

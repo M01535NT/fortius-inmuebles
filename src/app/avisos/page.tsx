@@ -2,8 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Download, FileText } from 'lucide-react';
 import { notices, noticeContent } from '@/lib/public-notices';
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = { title: 'Avisos y documentos', description: 'Consulta y descarga privacidad, derechos del consumidor, no discriminación, términos, honorarios y canales de atención de Fortius Inmuebles.', alternates: { canonical: '/avisos' } };
+export const metadata: Metadata = pageMetadata({
+  path: "/avisos",
+  title: "Avisos y documentos",
+  description:
+    "Consulta y descarga privacidad, derechos del consumidor, no discriminación, términos, honorarios y canales de atención de Fortius Inmuebles.",
+});
 
 const INLINE = ['derechos', 'no-discriminacion'];
 

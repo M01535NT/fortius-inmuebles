@@ -19,6 +19,7 @@ const routes = [
   "/herramientas/gastos-de-cierre",
   "/nosotros",
   "/contacto",
+  "/avisos",
   "/privacidad",
   "/terminos",
 ];

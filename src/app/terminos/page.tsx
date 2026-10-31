@@ -3,12 +3,14 @@ import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
 import { SITE_TERMS } from "@/data/site-terms";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/terminos" },
+export const metadata: Metadata = pageMetadata({
+  path: "/terminos",
   title: "Términos y condiciones",
-  description: "Términos de uso de Fortius Inmuebles: publicaciones, solicitudes, herramientas, contratación y canales de aclaración.",
-};
+  description:
+    "Términos de uso de Fortius Inmuebles: publicaciones, solicitudes, herramientas, contratación y canales de aclaración.",
+});
 
 export default function TerminosPage() {
   return (

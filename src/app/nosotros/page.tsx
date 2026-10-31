@@ -9,11 +9,14 @@ import { publicContact } from "@/lib/public-contact";
 import { SITE_TERMS } from "@/data/site-terms";
 import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
 import "./nosotros.css";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/nosotros" }, title: "Nosotros · Equipo y valores",
-  description: "Conoce al equipo de Fortius Inmuebles, sus datos de contacto y los principios con los que acompañamos tu operación.",
-};
+export const metadata: Metadata = pageMetadata({
+  path: "/nosotros",
+  title: "Quiénes somos: inmobiliaria en Tijuana",
+  description:
+    "Conoce al equipo de Fortius Inmuebles en Tijuana, cómo trabajamos y los principios con los que acompañamos tu compra o venta, siempre con acuerdos por escrito.",
+});
 
 /* Dirección «Nocturno» (lienzo, artboard Nosotros): portada oscura con el
    asesor, misión y visión como dos tarjetas, valores numerados y video. */

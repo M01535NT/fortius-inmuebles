@@ -185,7 +185,11 @@ test("rendered listing structured data uses production URLs for local assets and
   const page = await PropertyDetailPage({ params: Promise.resolve({ slug: propiedades[0].slug }) });
   const script = (Children.toArray(page.props.children) as ReactElement[]).find((child) => child.type === "script")!;
   const html = renderToStaticMarkup(script);
-  const data = JSON.parse(html.slice(html.indexOf(">") + 1, html.lastIndexOf("</script>")));
+  const graph = JSON.parse(html.slice(html.indexOf(">") + 1, html.lastIndexOf("</script>")))["@graph"];
+  const data = graph.find((node: { "@type": string }) => node["@type"] === "RealEstateListing");
+  const crumbs = graph.find((node: { "@type": string }) => node["@type"] === "BreadcrumbList");
+  expect(data.address.addressLocality).toBe("Tijuana");
+  expect(crumbs.itemListElement.at(-1).item).toBe(`${siteConfig.url}/inventario/residencia-vista-al-mar-playas`);
   expect(data.url).toBe(`${siteConfig.url}/inventario/residencia-vista-al-mar-playas`);
   expect(data.image).toEqual([`${siteConfig.url}/hero/casa-playa.webp`, "https://images.unsplash.com/remote.jpg"]);
   expect(html).not.toContain("mnt.example");

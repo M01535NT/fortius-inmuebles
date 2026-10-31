@@ -96,8 +96,7 @@ export function NocturnoHero() {
       </div>
       <div className="nx-hero-scrim" aria-hidden="true" />
       <div className="nx-hero-body nx-container">
-        <p className="sr-only">Inmobiliaria en Tijuana, Rosarito, Tecate y Ensenada.</p>
-        <h1 id="hero-title" className="sr-only">Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.</h1>
+        <h1 id="hero-title" className="sr-only">Inmobiliaria en Tijuana: te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.</h1>
         <div className={`nx-hero-slides${playing ? " is-live" : ""}`} aria-hidden="true">
           {SCENES.map((scene) => (
             <div key={scene.label} className="nx-hero-slide">

@@ -3,12 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { InteriorPage } from "@/components/sections/interior-page";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/opinion-de-valor" },
-  title: "Opinión de valor",
-  description: "La opinión de valor se entrega dentro de nuestro método, después de la entrevista, el levantamiento y la revisión de documentos. No sustituye un avalúo.",
-};
+export const metadata: Metadata = pageMetadata({
+  path: "/opinion-de-valor",
+  title: "Opinión de valor de tu casa en Tijuana",
+  description:
+    "La opinión de valor de tu casa en Tijuana se entrega después de la entrevista, el levantamiento y la revisión de documentos. No sustituye un avalúo bancario.",
+});
 
 /* El procedimiento del titular (30/10/2026): sin estos pasos no se entrega opinión de valor. */
 const STEPS = [

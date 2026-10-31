@@ -7,12 +7,14 @@ import { NocturnoDestacadas } from "@/components/home/nocturno-sections";
 import { InteriorPage } from "@/components/sections/interior-page";
 import { routePages } from "@/data/site";
 import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/comprar-propiedad" },
-  title: "Guía para comprar un inmueble",
-  description: routePages.comprar.description,
-};
+export const metadata: Metadata = pageMetadata({
+  path: "/comprar-propiedad",
+  title: "Guía para comprar casa en Tijuana",
+  description:
+    "Antes de comprar casa en Tijuana revisa escritura, gravámenes, predial y uso de suelo. Te decimos qué pedir, cuánto cuesta el cierre y cómo evitar sorpresas.",
+});
 
 const DOCUMENTS = [
   { title: "Escritura y titularidad", text: "Que quien vende sea el dueño inscrito." },
