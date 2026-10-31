@@ -101,8 +101,13 @@ for (const width of [320, 390, 768, 1440]) {
     await expect(people.getByText(/Vencido ·/).first()).toBeVisible();
     if (width >= 1180) await expect(page.getByRole("complementary", { name: /Vista previa de/ }).getByRole("link", { name: /Abrir ficha de/ })).toBeVisible();
     await shot("contactos");
-    await page.getByRole("tab", { name: /Clientes/ }).click();
-    await expect(page).toHaveURL(/tab=clientes/);
+    // DEC-36: la etapa es un filtro de la misma lista; «?tab=clientes» sigue abriendo los clientes.
+    await filtros.getByRole("button", { name: /^Clientes/ }).click();
+    await expect(filtros.getByRole("button", { name: /^Clientes/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(people.getByText("Familia Ortega Ruiz").first()).toBeVisible();
+    await expect(people.getByRole("link", { name: /Ramón Félix Arce/ })).toHaveCount(0);
+    await page.goto("/admin/contactos?tab=clientes");
+    await expect(filtros.getByRole("button", { name: /^Clientes/ })).toHaveAttribute("aria-pressed", "true");
     await expect(people.getByText("Familia Ortega Ruiz").first()).toBeVisible();
 
     await page.goto("/admin/propiedades");
