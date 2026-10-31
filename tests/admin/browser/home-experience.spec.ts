@@ -135,7 +135,7 @@ test("hero remains readable before hydration with reduced motion and without Jav
     await expect(hero.locator(".nx-hero-line > span").last()).toBeInViewport();
     await page.locator("#metodo").getByRole("link", { name: "Pedir mi opinión de valor" }).click();
     await expect(page).toHaveURL(/\/vender-propiedad#diagnostico$/);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prepara tu propiedad para vender.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vende con todo en orden.");
     expect(errors).toEqual([]);
     await context.close();
   }

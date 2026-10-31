@@ -11,7 +11,7 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
     <figure
       aria-labelledby={`${figure.id}-title`}
       aria-describedby={`${figure.id}-caption`}
-      className="my-10 min-w-0 overflow-hidden rounded-lg border border-border bg-card font-sans text-foreground [overflow-wrap:anywhere]"
+      className="my-10 min-w-0 overflow-hidden rounded-lg border border-border bg-card text-foreground [overflow-wrap:anywhere]"
     >
       <div className="border-b border-border p-5 sm:p-7">
         <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary-ink">

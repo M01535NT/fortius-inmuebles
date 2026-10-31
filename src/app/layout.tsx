@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, Schibsted_Grotesk } from "next/font/google";
 import { connection } from "next/server";
 import { headers } from "next/headers";
 
@@ -20,6 +20,14 @@ const archivo = Archivo({
   subsets: ["latin"],
   axes: ["wdth"],
   variable: "--font-archivo",
+  display: "swap",
+});
+
+// Sitio público (30/10/2026): Schibsted Grotesk en 400/600/700. El panel conserva Archivo.
+const schibsted = Schibsted_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-public",
   display: "swap",
 });
 
@@ -96,7 +104,7 @@ export default async function RootLayout({
       lang="es-MX"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${archivo.variable} ${plexMono.variable}`}
+      className={`${archivo.variable} ${plexMono.variable}${isAdmin ? "" : ` ${schibsted.variable}`}`}
     >
       <head>
         {/* Browsers hide the nonce content attribute before hydration; the nonce property and CSP remain intact. */}

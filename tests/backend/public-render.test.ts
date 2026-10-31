@@ -12,7 +12,7 @@ import { propiedades } from "../fixtures/propiedades";
 import { siteConfig } from "@/data/site";
 import PropertyDetailPage, { generateMetadata as propertyMetadata } from "@/app/inventario/[slug]/page";
 
-vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }) }));
+vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }), Schibsted_Grotesk: () => ({ variable: "schibsted" }) }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-fortius-inmuebles-pathname": "/" }) }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/", useRouter: () => ({ push() {} }) }));
 vi.mock("@/lib/backend/public-team", () => ({ getPublishedTeam: async () => [] })); // sin asesores publicados: perfil de ejemplo

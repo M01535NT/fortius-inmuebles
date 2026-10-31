@@ -2,6 +2,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Sitio público (30/10/2026): layout.tsx define --font-public (Schibsted Grotesk) solo fuera del panel; el panel cae en Archivo. */
+:root { --font-sans: var(--font-public, var(--font-archivo)), ui-sans-serif, system-ui, sans-serif; }
+
 /*
   Fortius Inmuebles design tokens.
   One palette, two themes. Light is primary, dark is secondary.

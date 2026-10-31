@@ -7,7 +7,7 @@
 .inner { display: flex; align-items: center; gap: 24px; width: 100%; max-width: 1240px; height: 72px; margin-inline: auto; padding-inline: clamp(20px, 4.2vw, 60px); }
 .logo { display: inline-flex; flex: none; }
 .nav { display: none; align-items: center; gap: 2px; margin-inline: auto; }
-.link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; color: var(--ink); font-size: 15px; font-weight: 500; white-space: nowrap; transition: color 0.2s, box-shadow 0.2s; }
+.link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; color: var(--ink); font-size: 15px; font-weight: 600; white-space: nowrap; transition: color 0.2s, box-shadow 0.2s; }
 .link:hover, .link[aria-current="page"] { color: var(--accent); }
 .link[aria-current="page"] { box-shadow: inset 0 -2px 0 currentColor; }
 .actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }

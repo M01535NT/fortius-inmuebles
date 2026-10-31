@@ -14,7 +14,7 @@ Existen inventario y publicación, prospectos/clientes, agenda/tareas, expedient
 
 ## Identidad
 
-Logo Fortius con portal bicolor, tipografía Archivo, azul `#061F3F`, borgoña `#8A1634`, blanco y crema `#F5F1EB`, sin rosa; temas claro y oscuro. Conservar el diseño y los recursos de [la guía de marca](brand.md) en el sitio público y en el panel.
+Logo Fortius con portal bicolor, tipografía Schibsted Grotesk en el sitio público y Archivo en el panel, azul `#061F3F`, borgoña `#8A1634`, blanco y crema `#F5F1EB`, sin rosa; temas claro y oscuro. Conservar el diseño y los recursos de [la guía de marca](brand.md) en el sitio público y en el panel.
 
 ## Principios
 

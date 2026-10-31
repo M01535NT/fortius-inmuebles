@@ -10,7 +10,7 @@
 .editorial-cover-copy { display: grid; justify-items: center; gap: 1.5rem; min-width: 0; }
 .editorial-cover-heading { width: 100%; min-width: 0; }
 .editorial-cover-eyebrow { margin-bottom: 1.25rem; color: #8a1634; font-size: .6875rem; font-weight: 600; letter-spacing: .16em; line-height: 1.7; }
-.editorial-cover-title { margin-inline: auto; font-family: var(--font-sans); font-size: clamp(2.125rem, 7.4vw, 6.25rem); font-weight: 600; font-variation-settings: "wdth" 96; letter-spacing: -.05em; line-height: 1.05; }
+.editorial-cover-title { margin-inline: auto; font-family: var(--font-sans); font-size: clamp(2.125rem, 7.4vw, 6.25rem); font-weight: 700; letter-spacing: -.05em; line-height: 1.05; }
 .editorial-title-line { display: block; }
 .editorial-cover-emphasis { color: #8a1634; }
 .editorial-cover-description { max-width: 62ch; margin: 0; color: #40536b; font-size: 1rem; line-height: 1.65; text-wrap: pretty; }
@@ -193,7 +193,7 @@
 .timeline-node { position: relative; z-index: 1; display: block; height: 25px; width: 25px; margin-bottom: 32px; border: 1px solid var(--border); background: var(--background); border-radius: 50%; }
 .timeline-node::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #8a1634; }
 .timeline-number { display: block; margin-bottom: 16px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted-foreground); }
-.method-timeline h3 { min-height: 3.3em; font-size: 19px; font-weight: 550; line-height: 1.15; letter-spacing: -.025em; }
+.method-timeline h3 { min-height: 3.3em; font-size: 19px; font-weight: 600; line-height: 1.15; letter-spacing: -.025em; }
 .method-timeline p { margin-top: 16px; color: var(--muted-foreground); font-size: 14px; line-height: 1.8; }
 
 /* A slightly shorter portrait crop gives property cards a broader silhouette. */
@@ -205,12 +205,12 @@
 .property-editorial-card { display: flex; flex-direction: column; height: 100%; background: var(--background); }
 .property-card-image { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 5; flex-shrink: 0; }
 .property-card-image::after { position: absolute; content: ""; inset: 65% 0 0; pointer-events: none; background: linear-gradient(transparent, rgba(6,31,63,.2)); }
-.property-card-badge { position: absolute; top: 16px; left: 16px; max-width: calc(100% - 32px); padding: 7px 10px; background: #f5f1eb; color: #061f3f; font-size: 12px; font-weight: 500; }
+.property-card-badge { position: absolute; top: 16px; left: 16px; max-width: calc(100% - 32px); padding: 7px 10px; background: #f5f1eb; color: #061f3f; font-size: 12px; font-weight: 600; }
 .property-card-badge::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: 8px; vertical-align: 1px; background: #8a1634; }
 .property-card-copy { display: flex; flex: 1; flex-direction: column; padding-top: 20px; }
 .property-card-heading { display: flex; flex: 1; flex-direction: column; }
 .property-card-location { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 12px; font-weight: 600; }
-.property-card-title { margin-block: 12px; font-size: 24px; font-weight: 500; letter-spacing: -.03em; line-height: 1.15; text-wrap: balance; }
+.property-card-title { margin-block: 12px; font-size: 24px; font-weight: 600; letter-spacing: -.03em; line-height: 1.15; text-wrap: balance; }
 .property-card-title a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .property-card-price { margin-top: auto; font-size: 19px; font-weight: 600; line-height: 1.4; color: var(--primary-text); }
 .property-card-facts { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--border); margin-top: 16px; padding-block: 6px; }
@@ -319,7 +319,7 @@
 .nav-disclosure-feature svg { flex-shrink: 0; }
 .nav-disclosure-content ul { padding: 10px; }
 .nav-disclosure-content li > a { display: block; padding: 12px; min-height: 60px; }
-.nav-disclosure-content li > a > span { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 500; }
+.nav-disclosure-content li > a > span { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 600; }
 .nav-disclosure-content small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--muted-foreground); }
 .nav-disclosure-content li > a:hover, .nav-disclosure-content li > a:focus-visible { background: var(--secondary); }
 .nav-disclosure :is(a,button):focus-visible { outline: 2px solid var(--primary-text); outline-offset: 2px; }
@@ -341,7 +341,7 @@
 .menu-curtain .menu-group-toggle { border-radius: 50%; border-color: transparent; background: var(--secondary); }
 .menu-curtain .menu-route-grid { align-self: stretch; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, 1fr); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); padding-top: 0; }
 .menu-curtain .menu-route-card { min-height: 240px; padding: clamp(20px, 2.4vw, 32px); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.menu-curtain .menu-route-title { font-family: var(--font-sans); font-weight: var(--weight-editorial); font-variation-settings: "wdth" var(--width-editorial); font-size: clamp(25px, 2.6vw, 36px); line-height: 1.12; letter-spacing: -.025em; margin-block: 20px; }
+.menu-curtain .menu-route-title { font-family: var(--font-sans); font-weight: var(--weight-editorial); font-size: clamp(25px, 2.6vw, 36px); line-height: 1.12; letter-spacing: -.025em; margin-block: 20px; }
 @media (max-width: 1023px) {
   .menu-curtain .menu-editorial-grid { grid-template-columns: 1fr; gap: 32px; }
   .menu-curtain .menu-editorial-primary .display-title { font-size: clamp(32px, 6vw, 48px); }
@@ -360,7 +360,7 @@
 .privacy-page { max-width: 920px; padding-block: 128px 64px; }
 .privacy-page h1 { font-size: clamp(38px, 5vw, 64px); }
 .privacy-page section { padding-top: 32px; }
-.privacy-page h2 { font-size: 23px; font-weight: 600; }
+.privacy-page h2 { font-size: 23px; font-weight: 700; }
 .privacy-page section p { font-size: 15px; line-height: 1.85; margin-top: 16px; white-space: pre-line; overflow-wrap: anywhere; }
 .privacy-download { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; margin-top: 24px; color: var(--primary-text); text-decoration: underline; text-underline-offset: 4px; }
 

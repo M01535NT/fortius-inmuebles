@@ -87,7 +87,7 @@ export function Metric({
       <dd className="mt-2 break-words font-mono text-2xl tracking-tight text-foreground md:text-3xl">
         {value}
         {note && (
-          <p className="mt-2 font-sans text-xs leading-relaxed tracking-normal text-muted-foreground">
+          <p className="mt-2 text-xs leading-relaxed tracking-normal text-muted-foreground">
             {note}
           </p>
         )}

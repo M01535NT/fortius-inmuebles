@@ -1,17 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Building2, Home, Store, Warehouse, type LucideIcon } from "lucide-react";
 import { SELLER_START_KEY } from "@/components/sections/contact-form";
 
-const TIPOS = [
-  { label: "Casa", group: "Residencial" },
-  { label: "Departamento", group: "Residencial" },
-  { label: "Local u oficina", group: "Comercial" },
-  { label: "Nave o terreno", group: "Industrial" },
+const TIPOS: { label: string; Icon: LucideIcon }[] = [
+  { label: "Casa", Icon: Home },
+  { label: "Departamento", Icon: Building2 },
+  { label: "Local u oficina", Icon: Store },
+  { label: "Nave o terreno", Icon: Warehouse },
 ];
 
-/* Boceto Vender: arranque en dos preguntas; «Continuar» lleva al formulario de
+/* Vender (30/10/2026): arranque en dos preguntas; «Continuar» lleva al formulario de
    evaluación con el tipo y la zona ya anotados. Nada se envía desde aquí. */
 export function SellerStarter() {
   const [tipo, setTipo] = React.useState(TIPOS[0].label);
@@ -27,13 +27,12 @@ export function SellerStarter() {
 
   return (
     <form className="ss-card" aria-label="Cuéntanos de tu propiedad" onSubmit={continuar}>
-      <div className="ss-meta"><span>Paso 1 de 2</span><span>Toma 2 minutos</span></div>
-      <div className="ss-progress" aria-hidden="true"><span /></div>
-      <h2 className="ss-title">¿Qué tipo de propiedad quieres vender?</h2>
+      <p className="ss-meta"><span>Paso 1 de 2</span><span>2 minutos</span></p>
+      <h2 className="ss-title">¿Qué quieres vender?</h2>
       <div role="radiogroup" aria-label="Tipo de propiedad" className="ss-types">
-        {TIPOS.map(option => (
-          <button key={option.label} type="button" role="radio" aria-checked={tipo === option.label} onClick={() => setTipo(option.label)}>
-            <span>{option.label}</span><span>{option.group}</span>
+        {TIPOS.map(({ label, Icon }) => (
+          <button key={label} type="button" role="radio" aria-checked={tipo === label} onClick={() => setTipo(label)}>
+            <Icon size={24} strokeWidth={1.6} aria-hidden="true" /><span>{label}</span>
           </button>
         ))}
       </div>
@@ -41,10 +40,7 @@ export function SellerStarter() {
         <label htmlFor="ss-zona">Zona o colonia</label>
         <input id="ss-zona" value={zona} onChange={event => setZona(event.target.value)} placeholder="Ej. Playas de Tijuana" autoComplete="off" />
       </div>
-      <div className="ss-foot">
-        <span>Sin compromiso. No compartimos tus datos.</span>
-        <button type="submit" className="pg-btn">Continuar <ArrowRight size={18} aria-hidden="true" /></button>
-      </div>
+      <button type="submit" className="ss-submit">Continuar <ArrowRight size={18} aria-hidden="true" /></button>
     </form>
   );
 }

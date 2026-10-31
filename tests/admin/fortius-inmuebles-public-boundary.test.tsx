@@ -13,7 +13,7 @@ import { proxy } from "@/proxy";
 
 const { requestHeaders, rpc } = vi.hoisted(() => ({ requestHeaders: new Headers(), rpc: vi.fn() }));
 vi.mock("server-only", () => ({}));
-vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }) }));
+vi.mock("next/font/google", () => ({ Archivo: () => ({ variable: "archivo" }), IBM_Plex_Mono: () => ({ variable: "plex" }), Schibsted_Grotesk: () => ({ variable: "schibsted" }) }));
 vi.mock("next/headers", () => ({ headers: async () => requestHeaders }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin", useRouter: () => ({ push() {} }) }));
 vi.mock("next/server", async (original) => ({ ...await original<typeof import("next/server")>(), connection: async () => {} }));
