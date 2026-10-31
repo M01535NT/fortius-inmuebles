@@ -93,6 +93,8 @@ async function openOperation(tab?: string) {
   render(<OperationScreen id={ID} />);
   await screen.findByRole("heading", { level: 1, name: "Familia Castañeda Ortiz" });
 }
+/** Eliminar vive en «Más opciones» del panel azul (DEC-37). */
+const eliminar = () => { fireEvent.click(screen.getByRole("button", { name: "Más opciones" })); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar operación" })); };
 const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(-1)!.body;
 /** La etapa en curso se lee en la tarjeta de avance («Etapa N de 10 · fase»). */
 const stage = (n: number) => screen.findAllByText(new RegExp(`^Etapa ${n} de 10`));
@@ -107,7 +109,7 @@ it("muestra la etapa y lo que falta, y «Lo tengo» se guarda con la versión de
   await openOperation();
   await stage(2);
   expect(screen.getAllByText("Entrevista inicial").length).toBeGreaterThan(0);
-  expect(screen.getByRole("heading", { level: 2, name: "Para terminar la etapa" })).toBeTruthy();
+  expect(screen.getByRole("region", { name: "Esta etapa" })).toBeTruthy();
   const group = moreStates("Entrevista con el propietario");
   expect(within(group).queryByRole("radio", { name: /No aplica/ })).toBeNull();
   fireEvent.click(within(group).getByRole("radio", { name: /Lo tengo/ }));
@@ -119,7 +121,7 @@ it("muestra la etapa y lo que falta, y «Lo tengo» se guarda con la versión de
 it("el prospecto se ve en su etapa y «Iniciar entrevista» abre el 02 en su ventana, sobre el documento", async () => {
   await openOperation();
   await stage(1);
-  expect(screen.getByRole("heading", { level: 2, name: "Hacer la entrevista inicial (02)" })).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 2, name: "Hacer la entrevista inicial" })).toBeTruthy();
   expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
   expect(screen.getAllByText((_, el) => el?.textContent === "Con todo listo se abre sola Entrevista inicial.").length).toBeGreaterThan(0);
   fireEvent.click(screen.getByRole("button", { name: "Iniciar entrevista" }));
@@ -133,7 +135,7 @@ it("el prospecto se ve en su etapa y «Iniciar entrevista» abre el 02 en su ven
   fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   await stage(2);
-  expect(screen.getByRole("heading", { level: 2, name: "Terminar entrevista inicial (02)" })).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 2, name: "Terminar entrevista inicial" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Continuar" })).toBeTruthy();
 });
 
@@ -232,7 +234,7 @@ it("en el dictamen jurídico, «Iniciar» abre el 05 en su ventana con lo recibi
   await openOperation();
   await stage(5);
   expect(screen.getAllByText("Dictamen jurídico").length).toBeGreaterThan(0);
-  expect(screen.getByRole("heading", { level: 2, name: "Iniciar revisión jurídica y control de cierre (05)" })).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 2, name: "Iniciar revisión jurídica y control de cierre" })).toBeTruthy();
   expect(screen.getAllByText((_, el) => el?.textContent === "Con todo listo se abre sola Opinión de valor y precio.").length).toBeGreaterThan(0);
   expect(screen.getByRole("button", { name: "Más estados de Quién es dueño y quién firma" })).toBeTruthy();
   fireEvent.click(screen.getAllByRole("button", { name: /^Iniciar$/ })[0]);
@@ -249,8 +251,8 @@ it("en contrato y preparación se inician el 09 (sólo Word) y el 10", async () 
   server.ops = [base({ etapa: "documentacion", flujo: flow(verified, accepted) })];
   await openOperation();
   await stage(7);
-  expect(screen.getByText("09 · Contrato de intermediación inmobiliaria para venta")).toBeTruthy();
-  expect(screen.getByText("10 · Plan de comercialización")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Iniciar Contrato de intermediación inmobiliaria para venta" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Iniciar Plan de comercialización" })).toBeTruthy();
   fireEvent.click(screen.getAllByRole("button", { name: /^Iniciar$/ })[0]);
   const capture = await screen.findByRole("dialog", { name: "Contrato de intermediación inmobiliaria para venta" });
   expect(server.docs.some(d => d.formato_id === "09")).toBe(true);
@@ -390,15 +392,15 @@ it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin
 it("el encabezado elimina la operación tras confirmarlo en su ventana, y no con cambios sin guardar", async () => {
   await openOperation("ajustes");
   fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
-  fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+  eliminar();
   expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar la operación.")).toBeTruthy();
   expect(confirmAction).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Descartar cambios" }));
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+  eliminar();
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("de Familia Castañeda Ortiz"), expect.objectContaining({ title: "Eliminar operación", confirmLabel: "Eliminar" })));
   expect(server.methods).toEqual([]);
-  fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+  eliminar();
   expect(await screen.findByText("Esta operación está eliminada")).toBeTruthy();
   expect(server.methods).toEqual(["DELETE"]);
 });
@@ -421,7 +423,7 @@ it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña
   const note = await screen.findByLabelText("Nueva nota");
   fireEvent.change(note, { target: { value: "Comprobar antecedente original" } });
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(screen.getByRole("link", { name: "Operaciones" }));
+  fireEvent.click(screen.getByRole("link", { name: "Volver a Operaciones" }));
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Descartar los cambios y salir")));
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
   fireEvent.click(screen.getByRole("tab", { name: "Esta etapa" }));
@@ -568,7 +570,7 @@ it("en Verificación no hay un botón que nunca se activa: explica que «Contrat
   await stage(6);
   expect(screen.queryByRole("button", { name: /Pasar a/ })).toBeNull();
   expect(screen.getAllByText((_, el) => el?.textContent === "Con todo listo se abre sola Contrato y preparación.").length).toBeGreaterThan(0);
-  expect(screen.getByRole("heading", { level: 2, name: "Iniciar opinión de valor comercial (07)" })).toBeTruthy();
+  expect(screen.getByRole("heading", { level: 2, name: "Iniciar opinión de valor comercial" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
   const sheet = await screen.findByRole("dialog", { name: "Precio de salida acordado" });
   fireEvent.change(within(sheet).getByLabelText("Qué encontraste"), { target: { value: "Precio acordado de 4.5 millones" } });
