@@ -221,6 +221,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
             <span className={s.dot} aria-hidden="true" /><span className="flex flex-col gap-0.5"><strong>{choice.title}</strong><span className="text-sm text-muted-foreground">{choice.description}</span></span>
           </button>)}
         </div>
+        <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin/operaciones?nuevo=1" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
         {pending.length > 0 && <div className="xl:hidden"><PendingCard pending={pending} /></div>}
       </> : <>
         <h1 className={s.title}>¿Quién es?</h1>
@@ -250,7 +251,9 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
             {picking && <label className="flex flex-col gap-2 text-sm font-semibold">Prospecto o cliente<select className={selectClass} value="" onChange={e => { const [kind, id] = e.target.value.split(":"); if (id) { setContact({ kind: kind as Contact["kind"], id }); setPicking(false); changed(); } }}><option value="">Elige un contacto</option><optgroup label="Prospectos">{people.filter(p => p.kind === "lead").map(p => <option key={p.id} value={`lead:${p.id}`}>{p.nombre} · {p.telefono}</option>)}</optgroup><optgroup label="Clientes">{people.filter(p => p.kind === "cliente").map(p => <option key={p.id} value={`cliente:${p.id}`}>{p.nombre} · {p.telefono}</option>)}</optgroup></select></label>}
           </>}
           {!correctionOf && <>
-            <label className="flex flex-col gap-2 text-sm font-semibold">¿Cómo llegó?<select className={selectClass} value={origin} onChange={e => { setOrigin(e.target.value as keyof typeof ORIGINS); changed(); }}>{Object.entries(ORIGINS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <div className="flex flex-col gap-2"><span id="nueva-origen" className="text-sm font-semibold">¿Cómo llegó?</span>
+              <div role="radiogroup" aria-labelledby="nueva-origen" className={s.chips}>{Object.entries(ORIGINS).map(([value, label]) => <button key={value} type="button" role="radio" aria-checked={origin === value} className={s.chip} onClick={() => { setOrigin(value as keyof typeof ORIGINS); changed(); }}>{label}</button>)}</div>
+            </div>
             {!buyer && <details className="text-sm"><summary className="cursor-pointer font-semibold">Siguiente acción mientras terminas de capturarlo</summary><div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-2">Siguiente acción<input required maxLength={160} className={inputClass} value={action} onChange={e => { setAction(e.target.value); changed(); }} /></label>
               <label className="flex flex-col gap-2">Fecha de la siguiente acción<input required type="date" className={inputClass} value={actionDate} onChange={e => { setActionDate(e.target.value); changed(); }} /></label>
