@@ -49,15 +49,15 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
 
   return (
     <div className="rounded-lg border border-border bg-card">
-      <div className="p-5 pb-0">
-        <h2 className="display-soft text-xl text-foreground">Documentos comerciales</h2>
+      <div className="fe-card-head p-5">
+        <h2 className="text-lg font-semibold text-foreground">Documentos comerciales</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Estos PDFs son material público. Comparte tu contacto para recibir
           seguimiento. Los documentos privados del expediente se comparten por un canal autorizado.
         </p>
       </div>
 
-      <ul className="mt-4 divide-y divide-border border-t border-border">
+      <ul className="divide-y divide-border">
         {documentos.map((doc) => (
           <li key={doc.codigo + doc.url} className="flex items-center gap-3 px-5 py-3.5">
             <FileText className="size-4.5 shrink-0 text-primary-ink" strokeWidth={1.5} />

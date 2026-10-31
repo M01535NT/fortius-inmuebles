@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { notFound } from "next/navigation";
-import { Check, MapPin } from "lucide-react";
+import { ArrowRight, Calculator, Check, ChevronDown, MapPin } from "lucide-react";
 
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
@@ -159,6 +159,16 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <span>{property.zona}</span>
           </nav>
 
+          <PropertyGallery
+            imagenes={property.galeria}
+            titulo={property.titulo}
+            share={share}
+            videoUrl={property.videoUrl}
+            tour360Url={property.tour360Url}
+            fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
+            ficha={{ titulo: property.titulo, codigo: property.codigo, zona: property.zona, precio: formatPrecio(property.precio), filas: ficha.slice(0, 4).map(({ label, value }) => ({ label, value })), demo: property.demo }}
+          />
+
           <div className="fe-hero-head">
             <div>
               <p className="fe-chips">
@@ -178,16 +188,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </div>
 
           {property.demo && <p className="fe-demo-note"><strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.</p>}
-
-          <PropertyGallery
-            imagenes={property.galeria}
-            titulo={property.titulo}
-            share={share}
-            videoUrl={property.videoUrl}
-            tour360Url={property.tour360Url}
-            fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
-            ficha={{ titulo: property.titulo, codigo: property.codigo, zona: property.zona, precio: formatPrecio(property.precio), filas: ficha.slice(0, 4).map(({ label, value }) => ({ label, value })), demo: property.demo }}
-          />
         </div>
       </section>
 
@@ -267,24 +267,37 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <section id="documentos" className="fe-section" aria-labelledby="fe-docs">
             <p className="pg-eyebrow pg-eyebrow-ink">{documentos.length ? "Documentos y costos" : "Costos"}</p>
             <h2 id="fe-docs" className="fe-h2">Para decidir con números</h2>
-            <div className={"fe-docs-grid" + (documentos.length ? "" : " is-single")}>
-              {documentos.length > 0 && <div className="fe-docs">
-                <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
-              </div>}
+            <div className="fe-docs-grid">
               <div id="costos" className="fe-card fe-costs">
-                <dl>
-                  <div><dt>{property.operacion === "renta" ? "Renta" : "Precio"}</dt><dd>{formatPrecio(property.precio)}</dd></div>
+                <div className="fe-card-head">
+                  <h3>{property.operacion === "renta" ? "Costos de la renta" : "Costos"}</h3>
+                </div>
+                <dl className="fe-costs-list">
+                  <div><dt>{property.operacion === "renta" ? "Renta mensual" : "Precio"}</dt><dd>{formatPrecio(property.precio)}</dd></div>
                   {costos.predialAnual != null && <div><dt>Predial anual</dt><dd>{money(costos.predialAnual, property)}</dd></div>}
                   {costos.mantenimientoMensual != null && <div><dt>Mantenimiento mensual</dt><dd>{money(costos.mantenimientoMensual, property)}</dd></div>}
                 </dl>
-                {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="pg-link">Calcular gastos de cierre</Link>}
-                {muestraCalculadora && property.precio.modalidad === "publico" ? (
-                  <details className="fe-mortgage">
-                    <summary>Calcular mi mensualidad</summary>
-                    <div className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
-                  </details>
-                ) : null}
+                {(property.operacion === "venta" || muestraCalculadora) && <div className="fe-costs-tools">
+                  {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="fe-costs-tool">
+                    <Calculator size={18} strokeWidth={1.7} aria-hidden="true" />
+                    <span><strong>Gastos de cierre</strong><span>Cuánto necesitas además del precio.</span></span>
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </Link>}
+                  {muestraCalculadora && property.precio.modalidad === "publico" ? (
+                    <details className="fe-mortgage">
+                      <summary className="fe-costs-tool">
+                        <Calculator size={18} strokeWidth={1.7} aria-hidden="true" />
+                        <span><strong>Mensualidad con crédito</strong><span>Según enganche, plazo y tasa.</span></span>
+                        <ChevronDown size={18} aria-hidden="true" className="fe-mortgage-icon" />
+                      </summary>
+                      <div className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
+                    </details>
+                  ) : null}
+                </div>}
               </div>
+              {documentos.length > 0 && <div className="fe-docs">
+                <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
+              </div>}
             </div>
           </section>
 

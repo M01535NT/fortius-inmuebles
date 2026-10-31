@@ -138,17 +138,34 @@
 .fe-availability { margin-top: 14px; padding: 18px 22px; }
 .fe-availability h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
 .fe-availability p { margin: 6px 0 0; color: var(--muted-foreground); font-size: 14px; line-height: 1.6; }
-.fe-docs-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
-.fe-docs-grid.is-single { grid-template-columns: minmax(0, 560px); }
+/* Documentos y costos: tarjetas apiladas, cada una con encabezado crema; las calculadoras son filas propias */
+.fe-page { --fe-tint: #f5f1eb; }
+.dark .fe-page { --fe-tint: rgba(245, 241, 235, 0.06); }
+.fe-docs-grid { display: grid; gap: 20px; }
 .fe-docs > * { overflow: hidden; border-radius: 8px !important; }
-.fe-costs { display: grid; gap: 14px; padding: 22px; }
-.fe-costs dl { display: grid; margin: 0; }
-.fe-costs dl > div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.fe-costs dt { color: var(--muted-foreground); font-size: 15px; }
-.fe-costs dd { margin: 0; font-weight: 600; text-align: right; }
-.fe-mortgage { border-top: 1px solid var(--border); padding-top: 4px; }
-.fe-mortgage summary { min-height: 44px; padding: 12px 0; color: var(--primary-text, #8a1634); font-weight: 600; cursor: pointer; }
-.fe-mortgage-body { padding-top: 8px; }
+.fe-card-head { padding: 16px 22px; border-bottom: 1px solid var(--border); background: var(--fe-tint); }
+.fe-card-head :is(h2, h3) { margin: 0; color: var(--foreground); font-size: 18px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; }
+.fe-card-head p { margin: 6px 0 0; max-width: 62ch; color: var(--muted-foreground); font-size: 14px; line-height: 1.6; }
+.fe-costs { overflow: hidden; }
+.fe-costs-list { display: grid; margin: 0; padding: 4px 22px; }
+.fe-costs-list > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.fe-costs-list > div:last-child { border-bottom: 0; }
+.fe-costs-list dt { color: var(--muted-foreground); font-size: 15px; }
+.fe-costs-list dd { margin: 0; color: var(--foreground); font-size: 18px; font-weight: 600; text-align: right; }
+.fe-costs-tools { display: grid; gap: 10px; padding: 18px 22px 22px; border-top: 1px solid var(--border); background: var(--fe-tint); }
+.fe-costs-tool { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--card, var(--background)); color: var(--foreground); list-style: none; cursor: pointer; transition: border-color 0.2s; }
+.fe-costs-tool::-webkit-details-marker { display: none; }
+.fe-costs-tool:hover { border-color: color-mix(in srgb, var(--foreground) 55%, transparent); }
+.fe-costs-tool > svg { flex: none; color: var(--primary-text, #8a1634); }
+.fe-costs-tool > span { display: grid; flex: 1; gap: 2px; min-width: 0; }
+.fe-costs-tool strong { font-size: 15px; font-weight: 600; }
+.fe-costs-tool > span > span { color: var(--muted-foreground); font-size: 13px; }
+.fe-mortgage-icon { transition: transform 0.25s var(--fe-ease); }
+.fe-mortgage[open] .fe-mortgage-icon { transform: rotate(180deg); }
+.fe-mortgage[open] > .fe-costs-tool { border-color: color-mix(in srgb, var(--foreground) 55%, transparent); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.fe-mortgage-body { padding: clamp(16px, 3vw, 24px); border: 1px solid color-mix(in srgb, var(--foreground) 55%, transparent); border-top: 0; border-radius: 0 0 6px 6px; background: var(--card, var(--background)); }
+.fe-mortgage-body > div > section[aria-label="Simulador de crédito hipotecario"] { padding: 0; border: 0; border-radius: 0; background: transparent; }
+.fe-mortgage-body h2 { font-size: 20px; }
 .fe-faq { display: grid; gap: 10px; max-width: 760px; }
 .fe-faq details { padding: 0 20px; }
 .fe-faq summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; font-size: 16px; font-weight: 600; list-style: none; cursor: pointer; }
@@ -218,5 +235,5 @@
   .fe-layout { padding-bottom: 120px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fe-visor-tabs button, .fe-visor-thumbs button, .fe-visor-arrow, .fe-sections a, .fe-visit-days button, .fe-faq summary svg { transition: none; }
+  .fe-visor-tabs button, .fe-visor-thumbs button, .fe-visor-arrow, .fe-sections a, .fe-visit-days button, .fe-faq summary svg, .fe-costs-tool, .fe-mortgage-icon { transition: none; }
 }
