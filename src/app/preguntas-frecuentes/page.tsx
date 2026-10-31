@@ -18,7 +18,6 @@ export default async function PreguntasFrecuentesPage() {
   return <main className="pg-page">
     <section className="pg-hero">
       <div className="pg-container pg-hero-body">
-        <p className="pg-eyebrow">Preguntas frecuentes</p>
         <h1 className="pg-title">Resuelve tus dudas antes de avanzar.</h1>
         <p className="pg-lead">Lo que más nos preguntan. ¿No está tu duda? Escríbenos.</p>
       </div>

@@ -13,7 +13,6 @@ export function NocturnoHacemos() {
   return <section id="que-hacemos" aria-labelledby="hacemos-title" className="nx-section nx-container">
     <div className="nx-head">
       <div>
-        <p className="nx-eyebrow">Qué hacemos</p>
         <h2 id="hacemos-title" className="nx-title">Tres formas de ayudarte.</h2>
       </div>
       <p className="nx-lead nx-head-lead">Casas, departamentos, locales, oficinas, naves y terrenos en Baja California.</p>

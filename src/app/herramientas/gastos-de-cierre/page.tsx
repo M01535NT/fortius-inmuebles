@@ -17,7 +17,6 @@ export default function GastosDeCierrePage() {
       <section className="pg-hero">
         <div className="pg-container pg-hero-body tl-tool-head">
           <Link href="/herramientas" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Herramientas</Link>
-          <p className="pg-eyebrow">Gastos de compraventa</p>
           <h1 className="pg-title pg-title-sm">Gastos de cierre.</h1>
           <p className="pg-lead">Cuánto necesitas para comprar o cuánto recibes al vender.</p>
         </div>

@@ -233,7 +233,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </section>}
 
           {(grupos.length > 0 || property.amenidades.length > 0) && <section id="caracteristicas" className="fe-section" aria-labelledby="fe-features">
-            <p className="pg-eyebrow pg-eyebrow-ink">Características</p>
             <h2 id="fe-features" className="fe-h2">Todo lo que tiene</h2>
             <div className="fe-groups">
               {(grupos.length ? grupos.map(grupo => ({ titulo: GRUPO_CARACTERISTICA_LABELS[grupo.grupo], elementos: grupo.elementos })) : [{ titulo: "Lo que ofrece", elementos: property.amenidades }]).map(grupo => (
@@ -246,7 +245,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </section>}
 
           {beneficios.length > 0 && <section id="beneficios" className="fe-section" aria-labelledby="fe-benefits">
-            <p className="pg-eyebrow pg-eyebrow-ink">Beneficios</p>
             <h2 id="fe-benefits" className="fe-h2">Por qué destaca</h2>
             <ol className="fe-benefits">
               {beneficios.map((beneficio, index) => <li key={beneficio.titulo}>
@@ -258,13 +256,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </section>}
 
           <section id="ubicacion" className="fe-section" aria-labelledby="fe-location">
-            <p className="pg-eyebrow pg-eyebrow-ink">Ubicación y zona</p>
             <h2 id="fe-location" className="fe-h2">Qué hay cerca</h2>
             <PropertyLocation property={property} />
           </section>
 
           {ficha.length > 0 && <section id="ficha-tecnica" className="fe-section" aria-labelledby="fe-tech">
-            <p className="pg-eyebrow pg-eyebrow-ink">Datos con fuente</p>
             <h2 id="fe-tech" className="fe-h2">Ficha técnica</h2>
             <dl className="fe-card fe-tech">
               {ficha.map((row) => <div key={row.label}>
@@ -283,7 +279,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </section>}
 
           <section id="documentos" className="fe-section" aria-labelledby="fe-docs">
-            <p className="pg-eyebrow pg-eyebrow-ink">{documentos.length ? "Documentos y costos" : "Costos"}</p>
             <h2 id="fe-docs" className="fe-h2">Para decidir con números</h2>
             <div className="fe-docs-grid">
               <div id="costos" className="fe-card fe-costs">
@@ -321,7 +316,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </section>
 
           <section id="preguntas" className="fe-section" aria-labelledby="fe-faq">
-            <p className="pg-eyebrow pg-eyebrow-ink">Preguntas</p>
             <h2 id="fe-faq" className="fe-h2">Antes de visitarla</h2>
             <PropertyFaq />
           </section>

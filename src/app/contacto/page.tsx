@@ -13,7 +13,6 @@ export default function ContactoPage() {
     <section className="pg-hero ct-hero">
       <div className="pg-container pg-hero-body">
         <header className="ct-head">
-          <p className="pg-eyebrow">Contacto</p>
           <h1 className="pg-title">¿Compras o vendes? Hablemos.</h1>
           <p className="pg-lead">Elige el motivo y te respondemos.</p>
         </header>

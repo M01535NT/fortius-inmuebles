@@ -12,7 +12,6 @@ export default function AvisosPage() {
   return <main className="pg-page">
     <section className="pg-hero">
       <div className="pg-container pg-hero-body">
-        <p className="pg-eyebrow">{notices.length} documentos disponibles</p>
         <h1 className="pg-title">Información para tener a la mano.</h1>
         <p className="pg-lead">Consulta nuestros documentos o guarda una copia en PDF.</p>
       </div>

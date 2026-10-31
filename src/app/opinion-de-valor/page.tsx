@@ -31,7 +31,7 @@ const INCLUDES = [
 */
 export default function OpinionDeValorPage() {
   return <main className="pg-page">
-    <InteriorPage eyebrow="Para propietarios" title="El precio sale de revisar tu propiedad."
+    <InteriorPage title="El precio sale de revisar tu propiedad."
       description="Es parte del método: llega con el dictamen de factibilidad, después de conocer el inmueble."
       bullets={[]}
       primary={{ href: "/vender-propiedad#diagnostico", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Ver el método" }}

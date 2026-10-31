@@ -3,7 +3,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 type InteriorPageProps = {
-  eyebrow: string;
   title: string;
   description: string;
   bullets: string[];
@@ -21,13 +20,12 @@ type InteriorPageProps = {
   oscura con el titular, la descripción y las acciones; a la derecha una foto,
   un bloque propio o la lista de criterios de trabajo.
 */
-export function InteriorPage({ eyebrow, title, description, bullets, primary = { href: "/vender-propiedad", label: "Quiero vender" }, secondary = { href: "/#metodo", label: "Conocer el método" }, media, aside, className = "" }: InteriorPageProps) {
+export function InteriorPage({ title, description, bullets, primary = { href: "/vender-propiedad", label: "Quiero vender" }, secondary = { href: "/#metodo", label: "Conocer el método" }, media, aside, className = "" }: InteriorPageProps) {
   return (
     <section className={"pg-hero ip-hero " + className}>
       <div className="pg-container pg-hero-body">
         <div className="pg-hero-grid ip-grid">
           <div>
-            <p className="pg-eyebrow">{eyebrow}</p>
             <h1 className="pg-title">{title}</h1>
             <p className="pg-lead">{description}</p>
             <div className="pg-pills ip-actions">
