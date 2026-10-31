@@ -1,21 +1,20 @@
 import { DocumentLink } from "@/components/navigation/document-link";
 
+/* 404 con la misma letra y botones que las páginas interiores. */
 export default function NotFound() {
   return (
-    <main className="flex min-h-[70vh] items-center bg-background px-5 py-32 text-foreground">
-      <div className="mx-auto w-full max-w-2xl">
-        <p className="text-sm font-semibold text-primary-ink">404</p>
-        <h1 className="display-title mt-4 text-4xl md:text-6xl">Página no encontrada.</h1>
-        <p className="mt-4 max-w-[52ch] leading-7 text-muted-foreground">
-          La dirección puede haber cambiado o el contenido ya no está disponible.
-        </p>
-        <DocumentLink
-          href="/"
-          className="mt-7 inline-flex min-h-11 items-center rounded-md bg-primary px-5 font-semibold text-primary-foreground"
-        >
-          Volver al inicio
-        </DocumentLink>
-      </div>
+    <main className="pg-page">
+      <section className="pg-hero nf-hero">
+        <div className="pg-container pg-hero-body">
+          <p className="pg-eyebrow">Error 404</p>
+          <h1 className="pg-title">Página no encontrada.</h1>
+          <p className="pg-lead">La dirección puede haber cambiado o el contenido ya no está disponible.</p>
+          <div className="nf-actions">
+            <DocumentLink href="/" className="pg-btn">Volver al inicio</DocumentLink>
+            <DocumentLink href="/inventario" className="pg-btn pg-btn-ghost">Ver propiedades</DocumentLink>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

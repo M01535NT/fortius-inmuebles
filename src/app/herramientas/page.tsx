@@ -24,7 +24,7 @@ export default function HerramientasPage() {
               <span className="tl-card-text">Compara escenarios, prueba abonos anticipados y descarga la amortización completa.</span>
               <span className="tl-preview">
                 <span><span className="tl-preview-label">Mensualidad de ejemplo</span><span className="tl-preview-value">$23,961</span></span>
-                <svg viewBox="0 0 200 80" width="200" height="80" aria-hidden="true"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="currentColor" strokeWidth="3" /><path d="M0 8 C60 14 120 34 200 76 L200 80 L0 80Z" fill="rgba(229,130,155,.12)" /></svg>
+                <svg viewBox="0 0 200 80" width="200" height="80" aria-hidden="true"><path d="M0 8 C60 14 120 34 200 76" fill="none" stroke="currentColor" strokeWidth="3" /><path d="M0 79.5 H200" stroke="currentColor" strokeOpacity="0.2" /></svg>
               </span>
             </Link>
             <Link href="/herramientas/gastos-de-cierre" className="tl-card">
@@ -32,8 +32,8 @@ export default function HerramientasPage() {
               <span className="tl-card-title">Gastos de cierre</span>
               <span className="tl-card-text">Prepara el efectivo de compra o el neto de venta, con impuestos locales y tus cotizaciones.</span>
               <span className="tl-preview">
-                <span className="tl-bars" aria-hidden="true"><span style={{ flex: 4 }} /><span style={{ flex: 3 }} /><span style={{ flex: 1.2 }} /><span style={{ flex: 1 }} /></span>
-                <span className="tl-legend" aria-hidden="true"><span>ISAI</span><span>Notaría</span><span>Registro</span><span>Avalúo</span></span>
+                <span className="tl-preview-label">Incluye</span>
+                <span className="tl-legend"><span>ISAI</span><span>Notaría</span><span>Registro</span><span>Avalúo</span></span>
               </span>
             </Link>
             <Link href="/opinion-de-valor" className="tl-card">
@@ -41,8 +41,8 @@ export default function HerramientasPage() {
               <span className="tl-card-title">Opinión de valor</span>
               <span className="tl-card-text">Conoce cómo proponemos el precio de salida con inmuebles comparables y fuentes explicadas.</span>
               <span className="tl-preview">
-                <span className="tl-bars" aria-hidden="true"><span style={{ flex: 1 }} /><span style={{ flex: 1 }} /><span style={{ flex: 1 }} /><span style={{ flex: 1 }} /></span>
-                <span className="tl-legend" aria-hidden="true"><span>Inmueble</span><span>Comparables</span><span>Fuentes</span><span>Rango</span></span>
+                <span className="tl-preview-label">Incluye</span>
+                <span className="tl-legend"><span>Comparables</span><span>Fuentes</span><span>Rango de precio</span></span>
               </span>
             </Link>
           </div>

@@ -20,13 +20,29 @@ const PRESUPUESTOS = [
   { value: "15000000", label: "Hasta $15,000,000 MXN" },
 ];
 
+/* Buscador sin script: manda al inventario con los filtros en la URL. También lo usa la guía para comprar. */
+export function BuscadorPropiedades({ properties, className = "nx-search" }: { properties: Property[]; className?: string }) {
+  const zonas = Array.from(new Set(properties.map((property) => property.zona))).sort();
+  const tipos = Array.from(new Set(properties.map((property) => property.tipo)));
+  return (
+    <form action="/inventario" method="get" role="search" aria-label="Buscar propiedad" className={className}>
+      <h3>Buscar propiedad</h3>
+      <div className="nx-search-fields">
+        <label><span>Operación</span><select name="op" defaultValue=""><option value="">Comprar o rentar</option><option value="venta">Comprar</option><option value="renta">Rentar</option></select></label>
+        <label><span>Tipo</span><select name="tipo" defaultValue=""><option value="">Todos los tipos</option>{tipos.map((tipo) => <option key={tipo} value={tipo}>{TIPO_LABELS[tipo]}</option>)}</select></label>
+        <label><span>Zona</span><select name="zona" defaultValue=""><option value="">Todas las zonas</option>{zonas.map((zona) => <option key={zona} value={zona}>{zona}</option>)}</select></label>
+        <label><span>Presupuesto</span><select name="max" defaultValue="">{PRESUPUESTOS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+      </div>
+      <button type="submit" className="nx-btn nx-btn-primary"><Search size={18} aria-hidden="true" />Buscar</button>
+    </form>
+  );
+}
+
 /*
   Inicio · «Cómo te ayudamos a comprar»: banda azul con tres pasos y el buscador.
   El formulario manda al inventario con los filtros en la URL; no necesita script.
 */
 export function NocturnoComprar({ properties }: { properties: Property[] }) {
-  const zonas = Array.from(new Set(properties.map((property) => property.zona))).sort();
-  const tipos = Array.from(new Set(properties.map((property) => property.tipo)));
   return <section id="comprar" aria-labelledby="comprar-title" className="nx-band-navy">
     <div className="nx-container nx-comprar">
       <div>
@@ -40,16 +56,7 @@ export function NocturnoComprar({ properties }: { properties: Property[] }) {
           <Link href="/comprar-propiedad" className="nx-link">Leer la guía para comprar <ArrowRight size={18} aria-hidden="true" /></Link>
         </div>
       </div>
-      <form action="/inventario" method="get" role="search" aria-label="Buscar propiedad" className="nx-search">
-        <h3>Buscar propiedad</h3>
-        <div className="nx-search-fields">
-          <label><span>Operación</span><select name="op" defaultValue=""><option value="">Comprar o rentar</option><option value="venta">Comprar</option><option value="renta">Rentar</option></select></label>
-          <label><span>Tipo</span><select name="tipo" defaultValue=""><option value="">Todos los tipos</option>{tipos.map((tipo) => <option key={tipo} value={tipo}>{TIPO_LABELS[tipo]}</option>)}</select></label>
-          <label><span>Zona</span><select name="zona" defaultValue=""><option value="">Todas las zonas</option>{zonas.map((zona) => <option key={zona} value={zona}>{zona}</option>)}</select></label>
-          <label><span>Presupuesto</span><select name="max" defaultValue="">{PRESUPUESTOS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-        </div>
-        <button type="submit" className="nx-btn nx-btn-primary"><Search size={18} aria-hidden="true" />Buscar</button>
-      </form>
+      <BuscadorPropiedades properties={properties} />
     </div>
   </section>;
 }

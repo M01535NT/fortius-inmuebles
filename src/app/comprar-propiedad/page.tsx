@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BuscadorPropiedades } from "@/components/home/nocturno-extras";
+import { NocturnoDestacadas } from "@/components/home/nocturno-sections";
 import { InteriorPage } from "@/components/sections/interior-page";
 import { routePages } from "@/data/site";
+import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/comprar-propiedad" },
@@ -49,8 +52,12 @@ const CLOSING = [
   { title: "Registro y entrega", text: "Se inscribe la escritura y se entregan llaves e inventario." },
 ];
 
-/* Guía para compradores: documentos, gastos, forma de pago y pasos al cierre; termina en el inventario. */
-export default function ComprarInmueblePage() {
+/*
+  Guía para compradores: el buscador arriba (para quien ya sabe qué quiere), luego
+  documentos, gastos, forma de pago y pasos al cierre; al final, las propiedades actuales.
+*/
+export default async function ComprarInmueblePage() {
+  const [propiedades, destacadas] = await Promise.all([getPropiedades(), getFeaturedProperties()]);
   return <main className="pg-page">
     <InteriorPage {...routePages.comprar} eyebrow="Para compradores" title="Antes de comprar, esto es lo que debes saber."
       description="Comprar bien empieza por revisar los documentos y conocer todos los gastos, no solo el precio."
@@ -61,6 +68,10 @@ export default function ComprarInmueblePage() {
           <strong>{step.title}</strong><span>{step.text}</span>
         </li>)}
       </ol>} />
+
+    <div className="pg-container gd-search-wrap">
+      <BuscadorPropiedades properties={propiedades} className="nx-search gd-search" />
+    </div>
 
     <section id="documentos" className="pg-container pg-section" aria-labelledby="gd-documentos">
       <h2 id="gd-documentos" className="pg-h2">Revisa la documentación.</h2>
@@ -102,15 +113,17 @@ export default function ComprarInmueblePage() {
       <p className="gd-note">Cada operación puede variar según el inmueble, la forma de pago y las partes. ¿Tienes dudas? Revisa las <Link href="/preguntas-frecuentes" className="editorial-text-link">preguntas frecuentes</Link>.</p>
     </section>
 
+    <div className="nocturno-home gd-destacadas"><NocturnoDestacadas properties={destacadas} /></div>
+
     <section className="pg-container pg-section pg-section-last" aria-labelledby="gd-cta">
       <div className="pg-card pg-card-wine pg-card-pad gd-cta">
         <div>
-          <h2 id="gd-cta" className="pg-h2">Cuando estés listo, explora el inventario.</h2>
-          <p className="pg-muted">Cada ficha muestra las características, la documentación disponible y cómo pedir una visita.</p>
+          <h2 id="gd-cta" className="pg-h2">¿Buscas algo que no está aquí?</h2>
+          <p className="pg-muted">Cuéntanos qué necesitas y con qué presupuesto. Cada ficha muestra las características, la documentación disponible y cómo pedir una visita.</p>
         </div>
         <div className="gd-cta-actions">
-          <Link href="/inventario" className="pg-btn pg-btn-light">Explorar inventario</Link>
-          <Link href="/contacto" className="gd-cta-link">Hablar con un asesor</Link>
+          <Link href="/contacto" className="pg-btn pg-btn-light">Hablar con un asesor</Link>
+          <Link href="/inventario" className="gd-cta-link">Ver todo el inventario</Link>
         </div>
       </div>
     </section>

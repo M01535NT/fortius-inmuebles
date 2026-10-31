@@ -6,7 +6,9 @@ import { gsap, useGSAP } from "@/lib/gsap";
 /*
   Nosotros: entradas al desplazar. Cada bloque con [data-reveal] sube y se
   enciende al entrar en pantalla; los hijos con [data-reveal-item] llegan
-  escalonados. Con movimiento reducido todo se muestra de inmediato.
+  escalonados. Lo que ya se ve al abrir la página no se oculta ni se anima
+  (ningún texto depende del script para verse). Con movimiento reducido
+  todo se muestra de inmediato.
 */
 export function AboutReveal({ children }: { children: React.ReactNode }) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -19,11 +21,11 @@ export function AboutReveal({ children }: { children: React.ReactNode }) {
       root.querySelectorAll<HTMLElement>("[data-reveal]").forEach(block => {
         const items = block.querySelectorAll<HTMLElement>("[data-reveal-item]");
         const targets = items.length ? items : [block];
-        // Blocks already on screen play at once; the rest wait for the scroll.
-        const visible = block.getBoundingClientRect().top < window.innerHeight * 0.85;
+        // Lo que ya está en pantalla se queda como llegó del servidor; el resto entra al desplazar.
+        if (block.getBoundingClientRect().top < window.innerHeight * 0.85) return;
         gsap.fromTo(targets, { y: 40, opacity: 0 }, {
-          y: 0, opacity: 1, duration: 1.4, stagger: 0.14, ease: "power3.out", clearProps: "opacity,transform",
-          scrollTrigger: visible ? undefined : { trigger: block, start: "top 85%", once: true },
+          y: 0, opacity: 1, duration: 0.9, stagger: 0.12, ease: "power3.out", clearProps: "opacity,transform",
+          scrollTrigger: { trigger: block, start: "top 85%", once: true },
         });
       });
     });

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Calculator, FileText, LayoutGrid, List } from "lucide-react";
+import { ArrowRight, Calculator, ChevronDown, FileText, LayoutGrid, List, Search } from "lucide-react";
 import { BlogCard } from "@/components/blog/blog-card";
 import { getBlogPosts } from "@/lib/blog";
 import { BLOG_CATEGORIES, BLOG_FORMATS, blogHref, filterBlogPosts, normalizeBlogSearch, postFormat } from "@/lib/blog-editorial";
@@ -18,8 +18,8 @@ export async function generateMetadata({ searchParams }: Props = {}): Promise<Me
 export const revalidate = 0;
 const PAGE_SIZE = 9;
 
-/* Portada del blog en formato revista (boceto Blog): título grande con el
-   buscador, píldoras por tipo, destacado nocturno, rejilla y herramientas al pie. */
+/* Portada del blog en formato revista: título, una sola caja de búsqueda (fechas y
+   orden plegados), temas y tipo como chips, destacado, rejilla y herramientas al pie. */
 export default async function BlogPage({ searchParams }: Props = {}) {
   const [posts, params] = await Promise.all([getBlogPosts(), searchParams]);
   const search = normalizeBlogSearch(params ?? {});
@@ -48,46 +48,51 @@ export default async function BlogPage({ searchParams }: Props = {}) {
         </header>
 
         <section aria-label="Buscar y filtrar artículos">
-          <form key={blogHref(search)} action="/blog" method="get" role="search" className="pg-sheet bp-search">
+          <form key={blogHref(search)} action="/blog" method="get" role="search" className="bp-search">
+            {search.tema && <input type="hidden" name="tema" value={search.tema} />}
             {search.tipo && <input type="hidden" name="tipo" value={search.tipo} />}
             {listView && <input type="hidden" name="vista" value="lista" />}
-            <div className="pg-field">
-              <label htmlFor="blog-search">Buscar un tema</label>
-              <input id="blog-search" name="q" type="search" maxLength={200} defaultValue={search.q} placeholder="Precio, documentos, crédito…" />
+            <div className="bp-search-box">
+              <Search size={18} aria-hidden="true" />
+              <label htmlFor="blog-search" className="sr-only">Buscar un tema</label>
+              <input id="blog-search" name="q" type="search" maxLength={200} defaultValue={search.q} placeholder="Buscar: precio, documentos, crédito…" />
+              <button type="submit" className="pg-btn">Buscar</button>
             </div>
-            <div className="pg-field">
-              <label htmlFor="blog-topic">Tema</label>
-              <select id="blog-topic" name="tema" defaultValue={search.tema}>
-                <option value="">Todos los temas</option>
-                {Object.entries(BLOG_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-              </select>
-            </div>
-            <div className="pg-field">
-              <label htmlFor="blog-from">Desde</label>
-              <input id="blog-from" name="desde" type="date" defaultValue={search.desde} aria-invalid={invalidRange || undefined} aria-describedby={invalidRange ? "blog-date-error" : undefined} />
-            </div>
-            <div className="pg-field">
-              <label htmlFor="blog-until">Hasta</label>
-              <input id="blog-until" name="hasta" type="date" defaultValue={search.hasta} aria-invalid={invalidRange || undefined} aria-describedby={invalidRange ? "blog-date-error" : undefined} />
-            </div>
-            <div className="pg-field">
-              <label htmlFor="blog-order">Ordenar por</label>
-              <select id="blog-order" name="orden" defaultValue={search.orden}>
-                <option value="recientes">Más recientes</option>
-                <option value="antiguos">Más antiguos</option>
-              </select>
-            </div>
-            <button type="submit" className="pg-btn">Buscar</button>
+            <details className="bp-more" open={Boolean(search.desde || search.hasta || search.orden === "antiguos") || undefined}>
+              <summary>Fechas y orden <ChevronDown size={16} aria-hidden="true" /></summary>
+              <div className="bp-more-fields">
+                <div className="pg-field">
+                  <label htmlFor="blog-from">Desde</label>
+                  <input id="blog-from" name="desde" type="date" defaultValue={search.desde} aria-invalid={invalidRange || undefined} aria-describedby={invalidRange ? "blog-date-error" : undefined} />
+                </div>
+                <div className="pg-field">
+                  <label htmlFor="blog-until">Hasta</label>
+                  <input id="blog-until" name="hasta" type="date" defaultValue={search.hasta} aria-invalid={invalidRange || undefined} aria-describedby={invalidRange ? "blog-date-error" : undefined} />
+                </div>
+                <div className="pg-field">
+                  <label htmlFor="blog-order">Ordenar por</label>
+                  <select id="blog-order" name="orden" defaultValue={search.orden}>
+                    <option value="recientes">Más recientes</option>
+                    <option value="antiguos">Más antiguos</option>
+                  </select>
+                </div>
+              </div>
+            </details>
             {invalidRange && <p id="blog-date-error" role="alert" className="bp-search-error">La fecha desde debe ser anterior o igual a la fecha hasta.</p>}
           </form>
           <div className="bp-toolbar">
-            <nav aria-label="Tipo de contenido" className="pg-pills">
-              {[["", "Todo"], ...Object.entries(BLOG_FORMATS)].map(([value, label]) => <Link key={value} href={blogHref({ ...search, tipo: value, pagina: "1" })} aria-current={search.tipo === value ? "page" : undefined} className="pg-pill">{label}</Link>)}
-              {(isFiltered || search.orden === "antiguos") && <Link href={clearHref} className="pg-link">Limpiar filtros</Link>}
+            <nav aria-label="Temas" className="bp-chips">
+              {[["", "Todos los temas"], ...Object.entries(BLOG_CATEGORIES)].map(([value, label]) => <Link key={value} href={blogHref({ ...search, tema: value, pagina: "1" })} aria-current={search.tema === value ? "page" : undefined}>{label}</Link>)}
             </nav>
-            <nav aria-label="Vista de artículos" className="bp-views">
-              {([{ value: "cuadricula", label: "Cuadrícula", Icon: LayoutGrid }, { value: "lista", label: "Lista", Icon: List }] as const).map(({ value, label, Icon }) => <Link key={value} href={blogHref({ ...search, vista: value })} aria-label={`Vista de ${label.toLowerCase()}`} aria-current={search.vista === value ? "page" : undefined}><Icon aria-hidden="true" size={16} />{label}</Link>)}
-            </nav>
+            <div className="bp-toolbar-end">
+              <nav aria-label="Tipo de contenido" className="bp-chips">
+                {[["", "Todo"], ...Object.entries(BLOG_FORMATS)].map(([value, label]) => <Link key={value} href={blogHref({ ...search, tipo: value, pagina: "1" })} aria-current={search.tipo === value ? "page" : undefined}>{label}</Link>)}
+                {(isFiltered || search.orden === "antiguos") && <Link href={clearHref} className="pg-link">Limpiar filtros</Link>}
+              </nav>
+              <nav aria-label="Vista de artículos" className="bp-views">
+                {([{ value: "cuadricula", label: "Cuadrícula", Icon: LayoutGrid }, { value: "lista", label: "Lista", Icon: List }] as const).map(({ value, label, Icon }) => <Link key={value} href={blogHref({ ...search, vista: value })} aria-label={`Vista de ${label.toLowerCase()}`} aria-current={search.vista === value ? "page" : undefined} title={label}><Icon aria-hidden="true" size={16} /></Link>)}
+              </nav>
+            </div>
           </div>
         </section>
 
