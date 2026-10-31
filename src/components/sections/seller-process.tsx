@@ -15,7 +15,6 @@ const stages = [
 export function SellerProcess() {
   return (
     <section id="pasos" className="pg-container vd-section" aria-labelledby="seller-process">
-      <p className="pg-eyebrow pg-eyebrow-ink">Cómo funciona</p>
       <h2 id="seller-process" className="pg-h2">Cuatro pasos antes de publicar.</h2>
       <ol className="sp-steps">
         {stages.map((stage, index) => (

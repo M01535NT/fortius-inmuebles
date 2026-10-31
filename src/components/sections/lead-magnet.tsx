@@ -42,7 +42,6 @@ export function LeadMagnet() {
     <section className="lm-band" aria-labelledby="lead-magnet">
       <div className="pg-container lm-grid">
         <div>
-          <p className="pg-eyebrow">Checklist sin costo</p>
           <h2 id="lead-magnet" className="pg-h2">¿Está lista tu propiedad para venderse?</h2>
           <ul className="lm-list">
             {PREVIEW.map((item) => <li key={item}><FileCheck2 size={20} strokeWidth={1.6} aria-hidden="true" />{item}</li>)}

@@ -57,6 +57,7 @@ Las propuestas de acceso/privacidad y las fuentes jurídicas fechadas conservan 
 
 ## Interfaz y experiencia
 
+- **Regla del titular (31/10/2026):** el sitio público no lleva cejas (antetítulos pequeños sobre un título, como «Qué hacemos» o «Propiedades»); delatan diseño hecho con IA. Los títulos van solos. Un dato (el cargo de una persona) o la etiqueta que es el único encabezado de un bloque no cuentan como ceja.
 - Conserva el diseño aprobado, los recursos de marca y los textos solicitados. Fortius usa Schibsted Grotesk en el sitio público (pesos 400/600/700, sin ejes de ancho) y Archivo en el panel, azul `#061F3F`, borgoña `#8A1634`, blanco y crema `#F5F1EB`; la marca no lleva rosa (ver `docs/brand.md`). Reutiliza los tokens existentes y sus variantes de tema.
 - Para trabajo del panel guiado, lee completo `docs/diseno/ENCARGO_REDISENO_PANEL.md` y la fase correspondiente del plan antes de editar. El lienzo aprobado es la referencia visual principal; los bocetos son secundarios. Reutiliza `src/components/admin/kit.tsx` y sus tokens; no agregues estilos al `panel.module.css` que se está retirando. Respeta los límites específicos del encargo sobre API, base de datos, dependencias y sitio público; no los extiendas a encargos ajenos al rediseño.
 - Usa lenguaje sencillo orientado al asesor y una acción principal clara. Los detalles técnicos pertenecen a la implementación, salvo que ayuden al usuario a decidir. Mantén el significado de requisitos, evidencia, revisiones y bloqueos del servidor.

@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, Calculator, Landmark, Search } from "lucide-r
 
 import { TIPO_LABELS, type Property } from "@/data/propiedades";
 import type { Testimonio } from "@/lib/domain/records";
+import { SectionVideo } from "@/components/home/section-video";
 
 type Perfil = { id: string; nombre: string; cargo: string; iniciales: string; foto?: string; descripcion?: string };
 
@@ -38,15 +39,29 @@ export function BuscadorPropiedades({ properties, className = "nx-search" }: { p
   );
 }
 
+/* Cierre de la portada (31/10/2026): sala frente al mar al atardecer, una frase y una sola acción. */
+export function NocturnoCierre() {
+  return <section id="hablemos" aria-labelledby="cierre-title" className="nx-cierre nx-band-media">
+    <SectionVideo src="/hero/cierre.mp4" mobileSrc="/hero/cierre-movil.mp4" poster="/hero/cierre-poster.webp" />
+    <div className="nx-cierre-scrim" aria-hidden="true" />
+    <div className="nx-container nx-cierre-body">
+      <h2 id="cierre-title" className="nx-cierre-title">¿Hablamos de tu propiedad?</h2>
+      <Link href="/contacto" className="nx-btn nx-btn-light">Contáctanos</Link>
+    </div>
+  </section>;
+}
+
 /*
-  Inicio · «Cómo te ayudamos a comprar»: banda azul con tres pasos y el buscador.
+  Inicio · «Cómo te ayudamos a comprar»: banda azul con tres pasos y el buscador, sobre el
+  video de una entrada a una casa (31/10/2026; generado con IA, bucle con fundido de 1 s).
   El formulario manda al inventario con los filtros en la URL; no necesita script.
 */
 export function NocturnoComprar({ properties }: { properties: Property[] }) {
-  return <section id="comprar" aria-labelledby="comprar-title" className="nx-band-navy">
+  return <section id="comprar" aria-labelledby="comprar-title" className="nx-band-navy nx-band-media">
+    <SectionVideo src="/hero/comprar.mp4" mobileSrc="/hero/comprar-movil.mp4" poster="/hero/comprar-poster.webp" />
+    <div className="nx-band-scrim" aria-hidden="true" />
     <div className="nx-container nx-comprar">
       <div>
-        <p className="nx-eyebrow">Cómo te ayudamos a comprar</p>
         <h2 id="comprar-title" className="nx-title">Comprar también empieza por revisar.</h2>
         <ol className="nx-pasos">
           {PASOS_COMPRA.map((paso, index) => <li key={paso}><span aria-hidden="true">0{index + 1}</span>{paso}</li>)}
@@ -87,7 +102,6 @@ export function NocturnoRecursos() {
     <div className="nx-container">
       <div className="nx-head">
         <div>
-          <p className="nx-eyebrow">Herramientas sin registro</p>
           <h2 id="recursos-title" className="nx-title">Haz números antes de decidir.</h2>
         </div>
         <Link href="/blog" className="nx-link">Ir al blog <ArrowRight size={18} aria-hidden="true" /></Link>
@@ -120,7 +134,6 @@ export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; 
     <div>
     <div className="nx-head">
       <div>
-        <p className="nx-eyebrow">Quién te atiende</p>
         <h2 id="equipo-title" className="nx-title">Una persona lleva tu caso.</h2>
         <p className="nx-lead">De la revisión a la firma.</p>
       </div>
@@ -142,7 +155,6 @@ export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; 
     </ul>
     </div>
     <div>
-      <p className="nx-eyebrow">Dónde trabajamos</p>
       <h3 className="nx-title nx-title-sm">De Tijuana a Ensenada.</h3>
       <ul className="nx-ciudades">
         {CIUDADES.map((ciudad) => <li key={ciudad.name}>

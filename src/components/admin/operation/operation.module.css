@@ -135,3 +135,162 @@
 /* «Ahora toca» se lee primero: su título es más grande que los de las tarjetas. */
 :global(.admin-root) .nowTitle { margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 620; letter-spacing: -.02em; overflow-wrap: anywhere; }
 @media (min-width: 640px) { :global(.admin-root) .nowTitle { font-size: 1.75rem; } }
+
+/* ---------- Una operación, boceto D «Moderno» (LV-06, 31/10/2026) ---------- */
+:global(.admin-root) .screen { padding-bottom: 6.5rem; }
+:global(.admin-root) .split { display: flex; flex-wrap: wrap; gap: 1rem; align-items: stretch; }
+:global(.admin-root) .main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
+
+/* Panel azul */
+:global(.admin-root) .navy { flex: 1 1 100%; display: flex; flex-direction: column; gap: 1.25rem; padding: 1.25rem; border-radius: 28px; background: #061f3f; color: #fff; min-width: 0; }
+@media (min-width: 1024px) {
+  :global(.admin-root) .navy { flex: 1 1 380px; max-width: 440px; padding: 1.75rem; position: sticky; top: .875rem; align-self: flex-start; max-height: calc(100vh - 1.75rem); overflow: auto; scrollbar-width: thin; }
+  :global(.admin-root) .navyCompact { max-width: 360px; }
+}
+:global(.dark) :global(.admin-root) .navy { background: var(--card); border: 1px solid var(--card-edge); color: var(--foreground); }
+:global(.admin-root) .navyTop { display: flex; align-items: center; gap: .625rem; }
+:global(.admin-root) .round { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .12); color: inherit; cursor: pointer; text-decoration: none; }
+:global(.admin-root) .round:hover { background: rgba(255, 255, 255, .22); }
+:global(.dark) :global(.admin-root) .round { background: var(--secondary); }
+:global(.admin-root) .onNavyMuted { color: rgba(255, 255, 255, .7); }
+:global(.dark) :global(.admin-root) .onNavyMuted { color: var(--muted-foreground); }
+:global(.admin-root) .menu { position: absolute; right: 0; top: calc(100% + .375rem); z-index: 5; min-width: 13rem; padding: .375rem; border-radius: 14px; background: var(--card); color: var(--foreground); border: 1px solid var(--card-edge); box-shadow: var(--shadow-raised); }
+:global(.admin-root) .menuItem { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-weight: 560; text-align: left; cursor: pointer; }
+:global(.admin-root) .menuItem:hover { background: var(--secondary); }
+:global(.admin-root) .who { font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; }
+:global(.admin-root) .whoName { display: inline; margin: 0; font: inherit; font-weight: 600; }
+:global(.admin-root) .whoLink { color: inherit; text-decoration: none; }
+:global(.admin-root) .whoLink:hover { text-decoration: underline; text-underline-offset: 4px; }
+:global(.admin-root) .stageHead { display: flex; flex-direction: column; gap: .25rem; }
+:global(.admin-root) .bigRow { display: flex; align-items: flex-end; gap: .625rem; }
+:global(.admin-root) .bigNum { font-size: clamp(4.5rem, 10vw, 9.5rem); line-height: .82; font-weight: 700; letter-spacing: -.04em; font-variation-settings: "wdth" 62; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .ofTen { padding-bottom: .375rem; font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1; font-weight: 300; opacity: .5; font-variation-settings: "wdth" 62; }
+:global(.admin-root) .stageTitle { margin: .5rem 0 0; font-size: clamp(1.375rem, 2.4vw, 2rem); line-height: 1.05; font-weight: 600; letter-spacing: -.02em; font-variation-settings: "wdth" 80; text-wrap: balance; }
+:global(.admin-root) .navyCompact .bigNum { font-size: 4rem; }
+:global(.admin-root) .navyCompact .ofTen { font-size: 1.375rem; }
+:global(.admin-root) .navyCompact .stageTitle { font-size: 1.25rem; }
+/* Las diez etapas como barras */
+:global(.admin-root) .stages { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: .8125rem; }
+:global(.admin-root) .stage { color: rgba(255, 255, 255, .55); }
+:global(.dark) :global(.admin-root) .stage { color: var(--muted-foreground); }
+:global(.admin-root) .stage[data-state=done], :global(.admin-root) .stage[data-state=warn] { color: rgba(255, 255, 255, .78); }
+:global(.admin-root) .stage[data-state=now] { color: #fff; font-weight: 600; font-size: .9375rem; }
+:global(.dark) :global(.admin-root) .stage[data-state=done], :global(.dark) :global(.admin-root) .stage[data-state=warn], :global(.dark) :global(.admin-root) .stage[data-state=now] { color: var(--foreground); }
+:global(.admin-root) .stageBtn { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); align-items: center; gap: .625rem; width: 100%; min-height: 1.875rem; padding: .125rem .25rem; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; text-align: left; }
+:global(.admin-root) button.stageBtn { cursor: pointer; }
+:global(.admin-root) button.stageBtn:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+:global(.dark) :global(.admin-root) button.stageBtn:hover { color: var(--foreground); background: var(--secondary); }
+:global(.admin-root) .stage[data-state=now] .stageBtn { min-height: 2.5rem; }
+:global(.admin-root) .stageNum { font-variant-numeric: tabular-nums; }
+:global(.admin-root) .stageLine { display: flex; align-items: center; gap: .625rem; min-width: 0; }
+:global(.admin-root) .stageBar { flex: none; width: 2.5rem; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, .18); }
+:global(.admin-root) .stage[data-state=done] .stageBar, :global(.admin-root) .stage[data-state=warn] .stageBar { background: #8a1634; }
+:global(.dark) :global(.admin-root) .stage[data-state=done] .stageBar, :global(.dark) :global(.admin-root) .stage[data-state=warn] .stageBar { background: var(--primary-text); }
+:global(.admin-root) .stage[data-state=now] .stageBar { width: 4.5rem; height: 6px; background: #fff; }
+:global(.dark) :global(.admin-root) .stage[data-state=now] .stageBar { background: var(--foreground); }
+:global(.admin-root) .stageLabel { min-width: 0; overflow-wrap: anywhere; }
+:global(.admin-root) .stageWarn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.125rem; height: 1.125rem; border-radius: 999px; background: #f5c26b; color: #061f3f; font-size: .6875rem; font-weight: 700; }
+:global(.admin-root) .closeStepsDark { margin-left: 2.125rem; color: rgba(255, 255, 255, .8); }
+:global(.admin-root) .closeStepsDark li { color: inherit; }
+/* En celular: las etapas como una barra de diez tramos; la actual, más alta */
+@media (max-width: 1023px) {
+  :global(.admin-root) .stages { flex-direction: row; align-items: flex-end; gap: .25rem; }
+  :global(.admin-root) .stage { flex: 1 1 0; min-width: 0; }
+  :global(.admin-root) .stageBtn, :global(.admin-root) .stage[data-state=now] .stageBtn { display: block; min-height: 0; padding: 0; }
+  :global(.admin-root) .stageNum, :global(.admin-root) .stageLabel, :global(.admin-root) .closeStepsDark { display: none; }
+  :global(.admin-root) .stageLine { gap: .25rem; }
+  :global(.admin-root) .stageBar, :global(.admin-root) .stage[data-state=now] .stageBar { width: 100%; height: 6px; }
+  :global(.admin-root) .stage[data-state=now] .stageBar { height: 10px; }
+  :global(.admin-root) .stageWarn { position: absolute; margin-top: -1.75rem; }
+}
+:global(.admin-root) .navy .gapNotice { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .22); color: #fff; }
+:global(.admin-root) .navy .gapNotice > svg { color: #f5c26b; }
+:global(.admin-root) .navy .gapAction { color: #fff; }
+:global(.dark) :global(.admin-root) .navy .gapNotice { background: var(--warning-surface); border-color: var(--warning-border); color: var(--foreground); }
+:global(.dark) :global(.admin-root) .navy .gapAction { color: var(--foreground); }
+:global(.admin-root) .navyLink { display: inline-flex; align-items: center; gap: .25rem; align-self: flex-start; min-height: 2.75rem; padding: 0 .25rem; border: 0; background: none; color: inherit; font: inherit; font-weight: 560; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(255, 255, 255, .4); }
+:global(.admin-root) .navyTabs { gap: .25rem; }
+:global(.admin-root) .navyTabs > [role=tab] { color: rgba(255, 255, 255, .78); }
+:global(.admin-root) .navyTabs > [role=tab]:hover { background: rgba(255, 255, 255, .08); }
+:global(.admin-root) .navyTabs > [role=tab][aria-selected=true] { background: #fff; color: #061f3f; }
+:global(.dark) :global(.admin-root) .navyTabs > [role=tab] { color: var(--muted-foreground); }
+:global(.dark) :global(.admin-root) .navyTabs > [role=tab]:hover { background: var(--secondary); }
+:global(.dark) :global(.admin-root) .navyTabs > [role=tab][aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .owner { margin-top: auto; display: flex; align-items: center; gap: .75rem; padding: .875rem; border-radius: 18px; background: rgba(255, 255, 255, .07); }
+:global(.dark) :global(.admin-root) .owner { background: var(--secondary); }
+:global(.admin-root) .ownerAvatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 999px; background: #fff; color: #061f3f; font-size: .875rem; font-weight: 600; }
+:global(.admin-root) .ownerName { font-weight: 560; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+:global(.admin-root) .ownerName:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* Piezas de la etapa: rejilla de seis columnas */
+:global(.admin-root) .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-content: start; }
+@media (min-width: 900px) {
+  :global(.admin-root) .grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  :global(.admin-root) .span2 { grid-column: span 2; }
+  :global(.admin-root) .span3 { grid-column: span 3; }
+  :global(.admin-root) .span4 { grid-column: span 4; }
+  :global(.admin-root) .span6 { grid-column: span 6; }
+}
+@media (min-width: 900px) and (max-width: 1279px) {
+  :global(.admin-root) .span2, :global(.admin-root) .span3, :global(.admin-root) .span4 { grid-column: span 6; }
+}
+:global(.admin-root) .piece { display: flex; flex-direction: column; gap: .75rem; min-width: 0; padding: 1.25rem 1.375rem; border-radius: 22px; background: var(--card); color: var(--foreground); }
+:global(.dark) :global(.admin-root) .piece { border: 1px solid var(--card-edge); }
+:global(.admin-root) .pieceHead { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+:global(.admin-root) .pieceTitle { margin: 0; font-size: 1.125rem; font-weight: 600; letter-spacing: -.01em; }
+:global(.admin-root) .pieceCount { flex: none; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .docList { display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .docRowWrap { display: flex; align-items: center; gap: .25rem; }
+:global(.admin-root) .docRow { display: flex; flex: 1; align-items: center; gap: 1rem; min-width: 0; min-height: 3.5rem; padding: .75rem 1rem; border: 0; border-radius: 16px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+:global(.admin-root) .docRow:hover:not(:disabled) { background: var(--secondary); }
+:global(.admin-root) .docRow[data-now=true] { background: var(--panel-selected); }
+:global(.admin-root) .docRow[data-now=true] .docNum { color: var(--primary); }
+:global(.dark) :global(.admin-root) .docRow[data-now=true] .docNum { color: var(--panel-selected-ink); }
+:global(.admin-root) .docRow:disabled { cursor: not-allowed; }
+:global(.admin-root) .docRowWait { border: 1px dashed var(--control-edge); color: var(--muted-foreground); }
+:global(.admin-root) .docNum { flex: none; min-width: 2.75rem; font-size: 2rem; line-height: 1; font-weight: 700; letter-spacing: -.03em; font-variation-settings: "wdth" 62; }
+:global(.admin-root) .docWait { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1rem; padding: .75rem 1rem; border-radius: 16px; border: 1px dashed var(--control-edge); }
+:global(.admin-root) .docChecklist { padding: .25rem .25rem 0; }
+/* Próxima tarea: roja solo si venció */
+:global(.admin-root) .taskPiece { gap: .5rem; }
+:global(.admin-root) .taskTitle { font-size: 1.125rem; line-height: 1.2; font-weight: 600; color: inherit; overflow-wrap: anywhere; text-decoration: none; }
+:global(.admin-root) .taskTitle:hover { text-decoration: underline; text-underline-offset: 4px; }
+:global(.admin-root) .taskPiece[data-late=true] { background: var(--alert); color: #fff; border-color: transparent; }
+:global(.admin-root) .taskPiece[data-late=true] .lateText { color: #fff !important; opacity: .9; }
+:global(.admin-root) .taskPiece[data-late=true] .linkButton { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
+:global(.admin-root) .taskPiece[data-late=true] :global(.text-muted-foreground) { color: rgba(255, 255, 255, .85); }
+:global(.dark) :global(.admin-root) .taskPiece[data-late=true] { color: #1a0a08; }
+:global(.dark) :global(.admin-root) .taskPiece[data-late=true] .lateText, :global(.dark) :global(.admin-root) .taskPiece[data-late=true] .linkButton { color: #1a0a08 !important; }
+:global(.dark) :global(.admin-root) .taskPiece[data-late=true] :global(.text-muted-foreground) { color: rgba(26, 10, 8, .8); }
+/* Inmueble: la foto a sangre */
+:global(.admin-root) .photoPiece { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; min-height: 15rem; padding: 1.25rem; border-radius: 22px; overflow: hidden; background: var(--track); color: var(--foreground); }
+:global(.admin-root) .photoPiece[data-photo=true] { color: #fff; }
+:global(.admin-root) .photoImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+:global(.admin-root) .photoScrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 19, 37, 0) 30%, rgba(6, 19, 37, .8) 100%); }
+:global(.admin-root) .photoIcon { color: var(--muted-foreground); }
+:global(.admin-root) .photoChip { position: relative; align-self: flex-start; padding: .375rem .875rem; border-radius: 999px; background: rgba(255, 255, 255, .94); color: #061f3f; font-size: .875rem; font-weight: 560; }
+:global(.admin-root) .photoTitle { font-size: 1.25rem; line-height: 1.15; font-weight: 620; letter-spacing: -.015em; overflow-wrap: anywhere; }
+:global(.admin-root) .photoMeta { font-size: .875rem; opacity: .85; }
+:global(.admin-root) .photoLink { align-self: flex-start; margin-top: .25rem; font-size: .875rem; font-weight: 600; color: inherit; text-decoration: underline; text-underline-offset: 4px; }
+/* Pie: responsable y las partes de la operación */
+:global(.admin-root) .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .625rem 1rem; padding: .25rem .5rem; }
+:global(.admin-root) .footWho { display: inline-flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .footAvatar { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 999px; background: var(--secondary); color: var(--foreground); font-size: .6875rem; font-weight: 600; }
+:global(.admin-root) .footTabs { border-bottom: 0; }
+:global(.admin-root) .footTabs > [role=tab] { min-height: 2.5rem; border-bottom: 0; border-radius: var(--radius-pill); }
+:global(.admin-root) .footTabs > [role=tab][aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+/* Barra flotante: lo que toca y un solo botón */
+:global(.admin-root) .float { position: fixed; z-index: 30; left: 50%; bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; align-items: center; gap: .875rem; width: min(760px, calc(100% - 2rem)); padding: .625rem .625rem .625rem 1rem; border-radius: 999px; background: var(--card); color: var(--foreground); border: 1px solid var(--card-edge); box-shadow: var(--shadow-float); }
+@media (max-width: 1023px) { :global(.admin-root) .float { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); border-radius: 22px; flex-wrap: wrap; width: calc(100% - 1.5rem); padding: .75rem .875rem; } }
+:global(.admin-root) .ring { position: relative; flex: none; display: grid; place-items: center; }
+:global(.admin-root) .ring svg { display: block; }
+:global(.admin-root) .ringText { position: absolute; font-size: .6875rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .floatTitle { margin: 0; font-size: 1rem; line-height: 1.2; font-weight: 600; overflow-wrap: anywhere; }
+:global(.admin-root) .floatSub { font-size: .8125rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .floatActions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
+@media (max-width: 1023px) { :global(.admin-root) .floatActions { width: 100%; } }
+@media (max-width: 1023px) {
+  :global(.admin-root) .screen { padding-bottom: 11rem; }
+  :global(.admin-root) .floatSub { display: none; }
+  :global(.admin-root) .floatTitle { font-size: .9375rem; }
+}

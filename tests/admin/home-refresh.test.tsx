@@ -25,7 +25,7 @@ test("the commercial refresh updates shipped defaults without mutating stored co
   expect(resolved.heroSubtitulo).toContain("Somos una inmobiliaria en Baja California.");
   expect(resolved.manifiestoTitulo.replaceAll("\n", " ")).toBe("Información para decidir. Un asesor para coordinar.");
   expect(resolved.manifiestoTexto).toBe(stored.manifiestoTexto);
-  expect(homeText(resolved, "metodoTitulo")).toBe("Cuatro etapas, cada una con su documento.");
+  expect(homeText(resolved, "metodoTitulo")).toBe("Cinco etapas, y lo que recibes en cada una.");
   expect(homeText(resolved, "entregablesTitulo").replaceAll("\n", " ")).toBe("Documentos y seguimiento.");
   expect(homeText(resolved, "preguntasTitulo").replaceAll("\n", " ")).toBe("Lo que más nos preguntan.");
   expect(homeText(resolved, "gastosTexto")).toBe(stored.homeTexts.gastosTexto);
@@ -100,8 +100,8 @@ test("the alternative refreshes previously published defaults while preserving c
   expect(old.heroTitulo).toBe("Tu propiedad merece\nuna estrategia,\nno solo un anuncio.");
   expect(old.manifiestoTitulo).toBe("Información para decidir.\nUn asesor para coordinar.");
   expect(old.manifiestoTexto).toBe("Texto específico del equipo");
-  expect(homeText(old, "metodoTitulo")).toBe("Cuatro etapas, cada una con su documento.");
-  expect(homeText({ homeTexts: { metodoTitulo: "Seis etapas.\nUn responsable." } }, "metodoTitulo")).toBe("Cuatro etapas, cada una con su documento.");
+  expect(homeText(old, "metodoTitulo")).toBe("Cinco etapas, y lo que recibes en cada una.");
+  expect(homeText({ homeTexts: { metodoTitulo: "Seis etapas.\nUn responsable." } }, "metodoTitulo")).toBe("Cinco etapas, y lo que recibes en cada una.");
   expect(homeText(old, "relatoTexto")).toBe("Contenido aprobado por el equipo");
   expect(old.seoTitle).toBe("SEO propio");
   expect(old.seoDescription).toBe("Descripción propia");

@@ -8,8 +8,9 @@ for (const viewport of [{ width: 375, height: 667 }, { width: 1440, height: 900 
     await expect(page.locator(".nocturno-home h1")).toBeVisible();
     // The public site uses Schibsted Grotesk; the panel keeps Archivo (30/10/2026).
     await expect(page.locator("h1")).toHaveCSS("font-family", /Schibsted Grotesk/);
-    const seller = page.locator(".nx-hero").getByRole("link", { name: "Quiero vender" });
-    await expect(seller).toHaveAttribute("href", "/vender-propiedad");
+    // Clean cover (31/10/2026): no buttons on the hero; owners start from «Qué hacemos».
+    await expect(page.locator(".nx-hero a")).toHaveCount(0);
+    await expect(page.locator('#que-hacemos a[href="/vender-propiedad"]').first()).toBeAttached();
     // The buyer band opens the inventory.
     const inventory = page.locator("#comprar").getByRole("link", { name: "Ver propiedades" });
     await inventory.scrollIntoViewIfNeeded();

@@ -23,6 +23,16 @@ import s from "./properties.module.css";
 
 const PAGE = 24;
 
+/** Lo que le falta a un inmueble para promoverse: «fotos», «medidas», «precio». Sin faltantes, lista vacía. */
+export function propertyGaps(p: Property) {
+  const gaps: string[] = [];
+  if (!p.galeria?.length) gaps.push("fotos");
+  if (p.ficha.construccionM2 === undefined && p.ficha.terrenoM2 === undefined) gaps.push("medidas");
+  if (p.precio.modalidad === "consulta") gaps.push("precio");
+  return gaps;
+}
+const gapText = (gaps: string[]) => `${gaps.length === 1 ? "Falta" : "Faltan"} ${gaps.length > 1 ? gaps.slice(0, -1).join(", ") + " y " + gaps.at(-1) : gaps[0]}`;
+
 /** «180 m² const. · 220 m² terreno · 3 rec. · 2.5 baños». */
 export function propertyFacts(p: Property) {
   const f = p.ficha;
@@ -44,7 +54,9 @@ export function PropertyList() {
   const properties = useCollection(db.propiedades), advisers = useCollection(db.asesores);
   const [filters, setFilters] = React.useState<InventoryFilters>(emptyInventoryFilters);
   const [page, setPage] = React.useState(0);
-  const results = filterInventory(properties, filters);
+  const [missingOnly, setMissingOnly] = React.useState(false);
+  const incomplete = properties.filter(p => p.estado !== "vendida" && p.estado !== "rentada" && propertyGaps(p).length > 0);
+  const results = filterInventory(properties, filters).filter(p => !missingOnly || propertyGaps(p).length > 0);
   const pages = Math.max(1, Math.ceil(results.length / PAGE));
   const current = Math.min(page, pages - 1);
   const shown = results.slice(current * PAGE, (current + 1) * PAGE);
@@ -53,6 +65,7 @@ export function PropertyList() {
   const extra = [filters.advisor, filters.publication, filters.status].filter(Boolean).length;
 
   return <GuidedPage title="Inmuebles" subtitle={`${properties.length} ${properties.length === 1 ? "inmueble" : "inmuebles"} · ${published} ${published === 1 ? "publicado" : "publicados"}`} actions={<>
+    <button type="button" className={s.gapChip} aria-pressed={missingOnly} onClick={() => { setMissingOnly(on => !on); setPage(0); }}>Les falta algo<span>{incomplete.length}</span></button>
     <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />
     <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
     <ButtonLink href="/admin/propiedades/nueva" variant="primary"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
@@ -95,6 +108,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
         <span className={s.title}>{p.titulo}</span>
         <span className={s.zone}><MapPin size={14} aria-hidden="true" className="shrink-0" />{[p.zona, p.direccionAproximada].filter(Boolean).join(", ") || "Sin zona"}</span>
         {propertyFacts(p) && <span className={s.meta}>{propertyFacts(p)}</span>}
+        {propertyGaps(p).length > 0 && <span className={s.gap}>{gapText(propertyGaps(p))}</span>}
         {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
         {(lent || preparing) && <span className={s.meta}>{[lent && `Llaves con ${lent.persona}`, preparing && `Preparación ${prep.done} de ${prep.total}`].filter(Boolean).join(" · ")}</span>}
         <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><span className={s.meta}>{p.codigo}</span></span>

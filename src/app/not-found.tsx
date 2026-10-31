@@ -6,7 +6,6 @@ export default function NotFound() {
     <main className="pg-page">
       <section className="pg-hero nf-hero">
         <div className="pg-container pg-hero-body">
-          <p className="pg-eyebrow">Error 404</p>
           <h1 className="pg-title">Página no encontrada.</h1>
           <p className="pg-lead">La dirección cambió o ya no existe.</p>
           <div className="nf-actions">

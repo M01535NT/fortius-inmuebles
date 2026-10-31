@@ -39,13 +39,13 @@ export function DoneStep({ interview, fresh }: { interview: OperationalInterview
     <span className={s.doneMark} aria-hidden="true"><Check size={28} /></span>
     <h1 ref={heading} tabIndex={-1} className={s.title}>{!fresh ? "Entrevista terminada" : correction ? "Listo, la corrección quedó guardada" : "Listo, la operación está creada"}</h1>
     <p className={s.lead}>{!fresh ? `Se terminó el ${interview.completed_at ? new Date(interview.completed_at).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) : "día registrado"}. Sus respuestas se conservan sin cambios.` : correction ? "La entrevista anterior se conserva en la misma operación." : owner ? "La encuentras en Operaciones, en la etapa Prospecto." : "La encuentras en Operaciones, en la etapa Captación."}</p>
-    <Card as="div" className="overflow-hidden"><dl className={s.summary} aria-label="Resumen de la operación">
+    <div className={s.doneCard}>{owner && fresh && !correction && <p className={s.doneStage} aria-hidden="true"><span>02</span><small>Entrevista inicial</small></p>}<dl className={s.summary} aria-label="Resumen de la operación">
       <dt>Folio</dt><dd className="font-mono font-semibold">{folio === undefined && href ? "Consultando…" : folio ?? "—"}</dd>
       <dt>Cliente</dt><dd>{who}</dd>
       <dt>Quiere</dt><dd>{intentTitle(interview.intencion)}</dd>
       {owner && <><dt>Inmueble</dt><dd>{property?.titulo ?? (interview.propiedad_slug ? "Inmueble registrado" : "Sin inmueble vinculado: vincúlalo en la operación, en Ajustes.")}</dd></>}
       <dt>Lo que sigue</dt><dd>{NEXT[interview.intencion]} Los documentos, quién es dueño y los recursos todavía deben comprobarse.</dd>
-    </dl></Card>
+    </dl></div>
     <div className="flex flex-wrap items-center gap-3">
       {href && <ButtonLink variant="primary" href={href}>Abrir la operación<ArrowRight size={16} aria-hidden="true" /></ButtonLink>}
       <Link href="/admin" className="font-semibold text-foreground underline-offset-4 hover:underline">Volver a Hoy</Link>

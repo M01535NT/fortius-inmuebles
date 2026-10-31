@@ -47,9 +47,10 @@ test("convertir desde la ficha abre al cliente; en Contactos el prospecto pasa a
   expect(db.leads.version(db.leads.list()[0])).toBe(8);
   cleanup();
   render(<ContactsScreen />);
-  expect(screen.getByText("Todavía no hay prospectos")).toBeTruthy();
-  fireEvent.change(screen.getByRole("combobox", { name: "Mostrar prospectos" }), { target: { value: "convertidos" } });
-  expect(within(screen.getByRole("list", { name: "Contactos" })).getByRole("link", { name: /Persona capturada/ }).getAttribute("href")).toBe("/admin/leads/l1");
+  fireEvent.click(within(screen.getByRole("group", { name: "Mostrar personas" })).getByRole("button", { name: /^Nuevos/ }));
+  expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
+  fireEvent.click(within(screen.getByRole("group", { name: "Mostrar personas" })).getByRole("button", { name: /^Clientes/ }));
+  expect(within(screen.getByRole("list", { name: "Contactos" })).getByRole("link", { name: /Persona capturada/ }).getAttribute("href")).toBe("/admin/clientes/c1");
 });
 
 test("preparar operación abre la entrevista sin convertir prematuramente",async()=>{

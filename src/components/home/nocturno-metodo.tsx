@@ -5,13 +5,15 @@ import Image from "next/image";
 import { FileText } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
-type Stage = { n: string; title: string; text: string; doc: string; src: string; alt: string };
+type Doc = { name: string; note: string };
+type Stage = { n: string; title: string; text: string; docs: Doc[]; src: string; alt: string };
 
 /*
-  Método: en escritorio la sección se fija y las cuatro etapas recorren la
-  pantalla en horizontal mientras avanza la barra; la etapa activa se enciende
-  en borgoña. En móvil las tarjetas se apilan al desplazar. Con movimiento
-  reducido se muestran todas, sin fijar ni animar.
+  Método: en escritorio la sección se fija y las etapas recorren la pantalla en
+  horizontal mientras avanza la barra; la etapa activa se enciende en borgoña. La
+  sección fijada mide una pantalla y la foto de cada tarjeta cede espacio para que la
+  tarjeta no se corte en pantallas bajas. En móvil las tarjetas se apilan al desplazar.
+  Con movimiento reducido se muestran todas, sin fijar ni animar.
 */
 export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage[] }) {
   const ref = React.useRef<HTMLElement>(null);
@@ -87,7 +89,6 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
       <div className="nx-container">
         <div className="nx-method-head">
           <div>
-            <p className="nx-eyebrow">Cómo te ayudamos a vender</p>
             <h2 id="metodo-title" className="nx-title"><span className="nx-title-mask"><span>{title}</span></span></h2>
           </div>
           <p className="nx-method-count" aria-hidden="true">{String(Math.max(active, 0) + 1).padStart(2, "0")}<span> / {String(stages.length).padStart(2, "0")}</span></p>
@@ -104,7 +105,13 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
             <div>
               <h3>{stage.title}</h3>
               <p>{stage.text}</p>
-              <span className="nx-stage-doc"><FileText size={16} strokeWidth={1.8} aria-hidden="true" />Recibes: {stage.doc}</span>
+              <div className="nx-stage-docs" role="list" aria-label="Recibes">
+                {stage.docs.map((doc) => (
+                  <span key={doc.name} role="listitem" className="nx-stage-doc" title={doc.note}>
+                    <FileText size={16} strokeWidth={1.8} aria-hidden="true" />{doc.name}
+                  </span>
+                ))}
+              </div>
               <span className="nx-stage-step">Etapa {Number(stage.n)} de {stages.length}</span>
             </div>
           </li>)}

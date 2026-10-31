@@ -58,7 +58,6 @@ export default async function NosotrosPage() {
     <section className="ab-hero" aria-labelledby="about-title">
       <div className="nx-container ab-hero-grid">
         <div className="ab-hero-copy" data-reveal>
-          <p className="nx-eyebrow" data-reveal-item>Nosotros</p>
           <h1 id="about-title" className="ab-hero-title" data-reveal-item>Personas detrás de cada operación.</h1>
           <p className="ab-hero-lead" data-reveal-item>De la primera llamada a la entrega.</p>
           <nav className="ab-index" aria-label="En esta página" data-reveal-item>
@@ -84,7 +83,6 @@ export default async function NosotrosPage() {
       <div className="nx-container">
         <div className="ab-agent-intro" data-reveal>
           <div data-reveal-item>
-            <p className="ab-eyebrow">Tu asesor</p>
             <h2 id="agent-heading" className="ab-title">Un contacto directo para tu operación.</h2>
           </div>
           {lead.descripcion && <p className="ab-agent-text" data-reveal-item>{lead.descripcion}</p>}
@@ -138,7 +136,6 @@ export default async function NosotrosPage() {
       <div className="nx-container">
         <div className="ab-video dark" data-reveal>
           <div className="ab-video-head">
-            <p className="nx-eyebrow">Video institucional</p>
             <h2 id="video-heading">Cómo trabajamos, en video.</h2>
           </div>
           <video src={videoUrl} controls preload="metadata" className="ab-video-player">Tu navegador no puede reproducir este video.</video>

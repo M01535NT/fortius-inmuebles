@@ -74,3 +74,14 @@
 :global(.admin-root) .summary dt { color: var(--muted-foreground); font-size: .875rem; }
 :global(.admin-root) .answers { display: grid; gap: .75rem; margin-top: .75rem; font-size: .9375rem; }
 :global(.admin-root) .answers dt { color: var(--muted-foreground); font-size: .8125rem; }
+
+/* Listo: la tarjeta azul con el folio, el número de etapa y lo que sigue (boceto v2, 31/10/2026) */
+:global(.admin-root) .doneCard { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; border-radius: 28px; background: #061f3f; color: #fff; }
+:global(.dark) :global(.admin-root) .doneCard { background: var(--card); border: 1px solid var(--card-edge); color: var(--foreground); }
+:global(.admin-root) .doneStage { display: flex; align-items: flex-end; gap: .75rem; margin: 0; }
+:global(.admin-root) .doneStage span { font-size: 5rem; line-height: .85; font-weight: 700; letter-spacing: -.04em; font-variation-settings: "wdth" 62; }
+:global(.admin-root) .doneStage small { padding-bottom: .375rem; font-size: 1.125rem; opacity: .8; }
+:global(.admin-root) .doneCard .summary > * { border-bottom-color: rgba(255, 255, 255, .14); }
+:global(.admin-root) .doneCard .summary dt { color: rgba(255, 255, 255, .7); }
+:global(.dark) :global(.admin-root) .doneCard .summary > * { border-bottom-color: var(--border); }
+:global(.dark) :global(.admin-root) .doneCard .summary dt { color: var(--muted-foreground); }

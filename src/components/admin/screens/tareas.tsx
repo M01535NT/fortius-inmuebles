@@ -41,10 +41,31 @@ function Tasks() {
       && `${task.titulo} ${task.descripcion ?? ""}`.toLocaleLowerCase("es").includes(query.trim().toLocaleLowerCase("es"));
   }).sort((a, b) => (a.vence ?? "9999").localeCompare(b.vence ?? "9999") || a.titulo.localeCompare(b.titulo, "es"));
   const activeFilters = Number(responsible !== "todas") + Number(status !== "todas") + Number(priority !== "todas") + Number(category !== "todas");
+  const renderTask = (task: (typeof filtered)[number]) => {
+      const date = task.vence ? stepDate(task.vence, today) : null;
+      const open = !["completada", "cancelada"].includes(task.estado);
+      return <li key={task.id} className="flex min-w-0 flex-col gap-1.5 border-b border-border px-4 py-4 last:border-b-0 sm:px-5">
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+          <h3 className="m-0 min-w-0 text-base font-semibold"><Link className="inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h3>
+          <span className={"font-mono text-xs " + (open && date?.late ? "font-semibold text-primary-ink" : "text-muted-foreground")}>{!date ? "Sin fecha" : !date.late ? date.label : open ? date.label.replace("Vencido", "Vencida") : shortDate(task.vence!)}</span>
+        </div>
+        {task.descripcion && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{task.descripcion}</p>}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+          <Badge tone={task.estado === "completada" ? "green" : "neutral"}>{TASK_STATUSES[task.estado]}</Badge>
+          {task.prioridad !== "normal" && <Badge tone={task.prioridad === "urgente" ? "red" : "neutral"}>Prioridad {TASK_PRIORITIES[task.prioridad].toLowerCase()}</Badge>}
+          <span className="text-muted-foreground">{asesores.find((a) => a.id === task.asesorId)?.nombre ?? (task.asesorId ? "Responsable no disponible" : "Sin asignar")} · {TASK_CATEGORIES[task.categoria]}{task.pasos.length ? ` · ${task.pasos.filter((p) => p.hecho).length} de ${task.pasos.length} pasos` : ""}</span>
+        </div>
+      </li>;
+    };
+  const GROUPS: Array<{ id: string; title: string; buckets: string[] }> = [
+    { id: "vencidas", title: "Vencidas", buckets: ["vencidas"] }, { id: "hoy", title: "Hoy", buckets: ["hoy"] },
+    { id: "semana", title: "Esta semana", buckets: ["proximas"] }, { id: "despues", title: "Más adelante", buckets: ["futuras"] },
+    { id: "sin-fecha", title: "Sin fecha", buckets: ["sin-fecha"] }, { id: "hechas", title: "Hechas y canceladas", buckets: ["cerradas"] },
+  ];
   const options = (record: Record<string, string>) => Object.entries(record).map(([value, label]) => <option key={value} value={value}>{label}</option>);
   return <div className="min-w-0 space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"} · Las fechas son de Tijuana.</p>
+      <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"}</p>
       <Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button>
     </div>
     {creating && <section className="min-w-0" aria-label="Nueva tarea"><h2 className="mb-4 text-xl font-[600] tracking-[-0.015em]">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
@@ -63,21 +84,13 @@ function Tasks() {
         </div>
       </details>
     </section>
-    {filtered.length ? <Card as="div" className="overflow-hidden"><ul aria-label="Tareas">{filtered.map((task) => {
-      const date = task.vence ? stepDate(task.vence, today) : null;
-      const open = !["completada", "cancelada"].includes(task.estado);
-      return <li key={task.id} className="flex min-w-0 flex-col gap-1.5 border-b border-border px-4 py-4 last:border-b-0 sm:px-5">
-        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-          <h2 className="m-0 min-w-0 text-base font-semibold"><Link className="inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h2>
-          <span className={"font-mono text-xs " + (open && date?.late ? "font-semibold text-primary-ink" : "text-muted-foreground")}>{!date ? "Sin fecha" : !date.late ? date.label : open ? date.label.replace("Vencido", "Vencida") : shortDate(task.vence!)}</span>
-        </div>
-        {task.descripcion && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{task.descripcion}</p>}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-          <Badge tone={task.estado === "completada" ? "green" : "neutral"}>{TASK_STATUSES[task.estado]}</Badge>
-          {task.prioridad !== "normal" && <Badge tone={task.prioridad === "urgente" ? "red" : "neutral"}>Prioridad {TASK_PRIORITIES[task.prioridad].toLowerCase()}</Badge>}
-          <span className="text-muted-foreground">{asesores.find((a) => a.id === task.asesorId)?.nombre ?? (task.asesorId ? "Responsable no disponible" : "Sin asignar")} · {TASK_CATEGORIES[task.categoria]}{task.pasos.length ? ` · ${task.pasos.filter((p) => p.hecho).length} de ${task.pasos.length} pasos` : ""}</span>
-        </div>
-      </li>;
-    })}</ul></Card> : <EmptyBox title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>}
+    {filtered.length ? <div className="flex flex-col gap-6">{GROUPS.map(group => {
+      const items = filtered.filter(task => group.buckets.includes(taskBucket(task, today)));
+      if (!items.length) return null;
+      return <section key={group.id} aria-labelledby={"grupo-tareas-" + group.id} className="flex flex-col gap-3">
+        <h2 id={"grupo-tareas-" + group.id} className="m-0 flex items-baseline gap-2 px-1 text-lg font-semibold">{group.title}<span className="text-sm font-semibold text-muted-foreground">{items.length}</span></h2>
+        <Card as="div" className="overflow-hidden"><ul aria-label={group.title}>{items.map(renderTask)}</ul></Card>
+      </section>;
+    })}</div> : <EmptyBox title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>}
   </div>;
 }

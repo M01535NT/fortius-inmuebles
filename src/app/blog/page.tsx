@@ -41,7 +41,6 @@ export default async function BlogPage({ searchParams }: Props = {}) {
       <div className="pg-container pg-section-last">
         <header className="bp-head">
           <div>
-            <p className="pg-eyebrow pg-eyebrow-ink">Tijuana y Baja California</p>
             <h1 className="pg-title">Blog</h1>
           </div>
           <p className="pg-lead pg-lead-ink">Guías y noticias del mercado local.</p>
@@ -125,7 +124,6 @@ export default async function BlogPage({ searchParams }: Props = {}) {
               <Link href="/herramientas/gastos-de-cierre" className="bp-tool"><span className="bp-tool-icon"><FileText size={22} aria-hidden="true" /></span><span><strong>Gastos de cierre</strong><span>ISAI, notaría y avalúo estimados</span></span></Link>
             </nav>
             {guides.length > 0 && <aside aria-labelledby="blog-guides-heading" className="bp-guides">
-              <p className="pg-eyebrow">Tu punto de partida</p>
               <h2 id="blog-guides-heading" className="pg-h2">Guías para decidir.</h2>
               <ul>{guides.map((post) => <li key={post.id}><Link href={`/blog/${post.slug}`}><span>{post.titulo}</span><ArrowRight aria-hidden="true" size={18} /></Link></li>)}</ul>
             </aside>}

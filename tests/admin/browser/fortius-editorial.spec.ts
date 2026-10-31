@@ -54,12 +54,12 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
-  test(`home keeps four method stages that light up while scrolling at ${width}px`, async ({ page }) => {
+  test(`home keeps five method stages that light up while scrolling at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/", { waitUntil: "networkidle" });
     const timeline = page.locator("[data-method-timeline]");
-    await expect(timeline.locator("li")).toHaveCount(4);
-    await expect(page.getByRole("heading", { name: "Cuatro etapas, cada una con su documento." })).toBeAttached();
+    await expect(timeline.locator("li")).toHaveCount(5);
+    await expect(page.getByRole("heading", { name: "Cinco etapas, y lo que recibes en cada una." })).toBeAttached();
     await page.locator("#metodo").scrollIntoViewIfNeeded();
     await expect(timeline.locator("li.is-active")).toHaveCount(1);
     for (let step = 0; step < 30 && !(await timeline.locator("li").last().evaluate((node) => node.classList.contains("is-active"))); step++) {
@@ -67,10 +67,10 @@ for (const width of [390, 1440]) {
       await page.waitForTimeout(60); // Pace wheel input for the scrubbed timeline; not a layout wait.
     }
     await expect(timeline.locator("li").last()).toHaveClass(/is-active/);
-    await expect(timeline.getByRole("heading", { name: "Cerramos contigo" })).toBeInViewport();
+    await expect(timeline.getByRole("heading", { name: "Firma y entrega" })).toBeInViewport();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(timeline.locator("li").last()).toHaveCSS("opacity", "1");
-    await expect(page.locator(".nx-hero-title")).toBeAttached();
+    await expect(page.locator(".nx-hero-title").first()).toBeAttached();
   });
 
   test(`property photographs use editorial proportions across the catalog at ${width}px`, async ({ page }) => {
@@ -110,7 +110,7 @@ for (const width of [390, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
     const stages = page.locator("[data-method-timeline] li");
-    await expect(stages).toHaveCount(4);
+    await expect(stages).toHaveCount(5);
     await expect(page.locator("[data-method-timeline] [role=region], [data-method-timeline] button")).toHaveCount(0);
     for (const stage of await stages.all()) {
       await stage.scrollIntoViewIfNeeded();

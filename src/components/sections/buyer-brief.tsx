@@ -47,7 +47,6 @@ export function BuyerBrief() {
     <section id="busqueda" className="pg-container pg-section pg-section-last bb-section">
       <div className="bb-grid">
         <div>
-          <p className="pg-eyebrow pg-eyebrow-ink">Tu búsqueda</p>
           <h2 className="pg-h2">Cuéntanos qué buscas.</h2>
           <p className="pg-muted bb-text">
             {publicLeadsEnabled

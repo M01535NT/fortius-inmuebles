@@ -33,7 +33,6 @@ export default function VenderInmueblePage() {
       <section className="vd-hero" aria-labelledby="vd-title">
         <div className="pg-container vd-hero-grid">
           <div className="vd-hero-copy">
-            <p className="pg-eyebrow pg-eyebrow-ink">Vender con Fortius</p>
             <h1 id="vd-title" className="vd-title">Vende con todo en orden.</h1>
             <p className="vd-lead">Documentos y precio en orden antes de publicar.</p>
             <div className="vd-actions">

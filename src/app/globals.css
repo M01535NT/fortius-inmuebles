@@ -258,21 +258,20 @@ select {
   box-shadow: 0 8px 28px #0002;
 }
 
+/* Transición entre páginas (31/10/2026): candado y llave minimalistas de un color, sin fondo propio; la página se desvanece detrás. */
 .page-curtain {
+  --lock-ink: #061f3f;
   position: fixed;
   z-index: 100;
   inset: 0;
   display: grid;
   place-items: center;
-  background: var(--block);
-  color: var(--block-foreground);
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  transform: translateY(-105%);
   visibility: hidden;
+  opacity: 0;
   pointer-events: none;
 }
+.dark .page-curtain { --lock-ink: #f5f1eb; }
+.lock-svg { width: clamp(15px, 1.625vw, 21px); height: auto; overflow: visible; }
 
 .interactive-card {
   transition: box-shadow 450ms ease;

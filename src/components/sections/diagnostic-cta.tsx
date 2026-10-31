@@ -7,7 +7,6 @@ export function DiagnosticCTA({ headingLevel = "h2", general = false }: { headin
     <section id="diagnostico" className="pg-container pg-section pg-section-last dc-section">
       <div className="dc-grid">
         <div>
-          <p className="pg-eyebrow pg-eyebrow-ink">{general ? "Contacto" : "Primer paso"}</p>
           <Heading className="pg-h2">{general ? "Cuéntanos qué necesitas." : "Empieza con la entrevista inicial."}</Heading>
           <p className="pg-muted dc-text">
             {general

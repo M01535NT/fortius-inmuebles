@@ -16,16 +16,16 @@ export function pilaresDe(content?: SiteContent | null) {
 }
 
 export function etapasDe(content?: SiteContent | null) {
-  return FASES.map((stage) => ({ n: stage.n, title: stage.title, text: homeText(content, stage.copy), doc: stage.doc, src: stage.src, alt: stage.alt }));
+  return FASES.map((stage) => ({ n: stage.n, title: stage.title, text: homeText(content, stage.copy), docs: stage.docs, src: stage.src, alt: stage.alt }));
 }
 
 const DOCS: { title: string; copy: HomeTextKey }[] = [
-  { title: "Análisis de factibilidad", copy: "factibilidadTexto" },
+  { title: "Opinión jurídica", copy: "factibilidadTexto" },
   { title: "Opinión de valor", copy: "valorTexto" },
-  { title: "Contrato de servicios", copy: "contratoTexto" },
+  { title: "Estimación de lo que recibes", copy: "gastosTexto" },
+  { title: "Contrato de intermediación", copy: "contratoTexto" },
   { title: "Plan de comercialización", copy: "planTexto" },
-  { title: "Reportes de seguimiento", copy: "reportesTexto" },
-  { title: "Estimación de gastos", copy: "gastosTexto" },
+  { title: "Reporte de comercialización", copy: "reportesTexto" },
 ];
 
 export function entregablesDe(content?: SiteContent | null) {

@@ -53,7 +53,7 @@ const CLOSING = [
 export default async function ComprarInmueblePage() {
   const [propiedades, destacadas] = await Promise.all([getPropiedades(), getFeaturedProperties()]);
   return <main className="pg-page">
-    <InteriorPage {...routePages.comprar} bullets={[]} eyebrow="Para compradores" title="Compra sin sorpresas."
+    <InteriorPage {...routePages.comprar} bullets={[]} title="Compra sin sorpresas."
       description="Documentos y gastos, antes del precio."
       primary={{ href: "/inventario", label: "Explorar inventario" }} secondary={{ href: "/herramientas/gastos-de-cierre", label: "Calcular gastos de cierre" }}
       media={{ src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" }} />

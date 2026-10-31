@@ -14,7 +14,6 @@ export default function HerramientasPage() {
     <main className="pg-page">
       <section className="pg-hero">
         <div className="pg-container pg-hero-body">
-          <p className="pg-eyebrow">Herramientas sin registro</p>
           <h1 className="pg-title">Haz los números antes de decidir.</h1>
           <p className="pg-lead">Mensualidad y gastos, sin registro.</p>
           <div className="tl-grid">
