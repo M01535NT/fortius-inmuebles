@@ -17,7 +17,7 @@ test("footer uses public settings and hides unconfigured contact channels", () =
   const html = renderToStaticMarkup(<SiteFooter settings={settings} />);
   expect(html).toContain('aria-label="Fortius Inmuebles"');
   expect(html).toContain('href="tel:+526641234567"');
-  expect(html).toContain('href="https://wa.me/526647654321"');
+  expect(html).toContain('href="https://wa.me/526647654321?text=');
   for (const route of ["residencial", "comercial", "industrial"]) {
     expect(html).toContain(`href="/inventario?segmento=${route}"`);
   }
