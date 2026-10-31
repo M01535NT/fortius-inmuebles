@@ -405,17 +405,10 @@ it("el encabezado elimina la operación tras confirmarlo en su ventana, y no con
   expect(server.methods).toEqual(["DELETE"]);
 });
 
-it("la lista de operaciones elimina un renglón tras confirmarlo", async () => {
+it("la lista de operaciones ya no trae un bote por renglón: eliminar vive dentro de la operación", async () => {
   render(<OperationsBoard />);
-  const remove = await screen.findByRole("button", { name: "Eliminar la operación de Familia Castañeda Ortiz" });
-  vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(remove);
-  await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("EXP-2026-041"), expect.objectContaining({ confirmLabel: "Eliminar" })));
-  expect(server.methods).toEqual([]);
-  fireEvent.click(remove);
-  expect(await screen.findByText("Operación EXP-2026-041 eliminada. Puedes restaurarla desde «Operaciones eliminadas».")).toBeTruthy();
-  expect(server.methods).toEqual(["DELETE"]);
-  expect(screen.queryByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeNull();
+  await screen.findByRole("link", { name: /Familia Castañeda Ortiz/ });
+  expect(screen.queryByRole("button", { name: /^Eliminar la operación de/ })).toBeNull();
 });
 
 it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña", async () => {
@@ -484,14 +477,14 @@ it("la lista separa lo que espera algo de ti, filtra por etapa, busca sin acento
   nav.search = new URLSearchParams({ etapa: "visitas-ofertas" });
   render(<OperationsBoard />);
   // «?etapa=visitas-ofertas» sigue funcionando: filtra por esa etapa (ya no hay fases).
-  const etapa = await screen.findByLabelText("Etapa") as HTMLSelectElement;
-  expect(etapa.value).toBe("Visitas y ofertas");
+  const etapa = await screen.findByRole("group", { name: "Etapa" });
+  expect(within(etapa).getByRole("button", { name: /Visitas y ofertas/ }).getAttribute("aria-pressed")).toBe("true");
   expect(within(screen.getByRole("region", { name: /Esperan algo de ti/ })).queryByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
-  fireEvent.change(etapa, { target: { value: "Oferta y negociación" } });
+  fireEvent.click(within(etapa).getByRole("button", { name: /Oferta y negociación/ }));
   await waitFor(() => expect(nav.search.get("etapa")).toBe("Oferta y negociación"));
   expect(screen.getByRole("link", { name: /Ángel Martínez\. Etapa 4 de 7, Oferta y negociación/ })).toBeTruthy();
-  fireEvent.change(etapa, { target: { value: "todas" } });
+  fireEvent.click(within(etapa).getByRole("button", { name: /^Todas/ }));
   await waitFor(() => expect(nav.search.get("etapa")).toBeNull());
   const waiting = screen.getByRole("region", { name: /Esperan algo de ti/ });
   const castaneda = within(waiting).getByRole("link", { name: /Familia Castañeda Ortiz/ });
