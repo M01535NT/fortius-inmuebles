@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { InteriorPage } from "@/components/sections/interior-page";
@@ -31,7 +32,7 @@ const INCLUDES = [
 export default function OpinionDeValorPage() {
   return <main className="pg-page">
     <InteriorPage eyebrow="Para propietarios" title="El precio sale de revisar tu propiedad."
-      description="La opinión de valor es parte de nuestro método. La entregamos con el dictamen de factibilidad, después de conocer el inmueble y sus documentos."
+      description="Es parte del método: llega con el dictamen de factibilidad, después de conocer el inmueble."
       bullets={[]}
       primary={{ href: "/vender-propiedad#diagnostico", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Ver el método" }}
       aside={<ol className="ip-steps" aria-label="Cómo llegamos al precio">
@@ -42,13 +43,15 @@ export default function OpinionDeValorPage() {
       </ol>} />
 
     <section className="pg-container pg-section" aria-labelledby="ov-incluye">
-      <h2 id="ov-incluye" className="pg-h2">Qué incluye.</h2>
-      <ul className="pg-grid-4 gd-cards">
-        {INCLUDES.map(item => <li key={item.title} className="pg-card pg-card-pad">
-          <h3 className="pg-h3">{item.title}</h3>
-          <p className="pg-muted">{item.text}</p>
-        </li>)}
-      </ul>
+      <div className="pg-split pg-split-reverse">
+        <div>
+          <h2 id="ov-incluye" className="pg-h2">Qué incluye.</h2>
+          <ul className="gd-list">
+            {INCLUDES.map(item => <li key={item.title}><strong>{item.title}</strong><span>{item.text}</span></li>)}
+          </ul>
+        </div>
+        <figure className="pg-split-media"><Image src="/hero/etapa-02-precio.webp" alt="Cinta métrica sobre un plano" fill sizes="(max-width: 1023px) 100vw, 40vw" /></figure>
+      </div>
     </section>
 
     <section className="pg-container pg-section" aria-labelledby="ov-limites">

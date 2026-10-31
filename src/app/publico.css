@@ -561,3 +561,14 @@
 .faq-group .pg-h2 { margin-bottom: 8px; }
 .faq-more { display: grid; justify-items: start; gap: 12px; margin-top: clamp(40px, 5vw, 64px); }
 .faq-more .pg-muted { margin: 0; }
+
+/* Texto junto a una foto (30/10/2026): la imagen sustituye párrafos de contexto. */
+.pg-split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px clamp(32px, 5vw, 72px); align-items: center; }
+.pg-split-reverse > figure { order: -1; }
+.pg-split-media { position: relative; margin: 0; aspect-ratio: 4 / 5; max-height: 560px; overflow: hidden; border-radius: 8px; background: var(--secondary); }
+.pg-split-media img { object-fit: cover; }
+@media (max-width: 1023px) {
+  .pg-split { grid-template-columns: 1fr; }
+  .pg-split-reverse > figure { order: 0; }
+  .pg-split-media { aspect-ratio: 16 / 10; }
+}

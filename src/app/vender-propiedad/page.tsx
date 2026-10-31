@@ -35,7 +35,7 @@ export default function VenderInmueblePage() {
           <div className="vd-hero-copy">
             <p className="pg-eyebrow pg-eyebrow-ink">Vender con Fortius</p>
             <h1 id="vd-title" className="vd-title">Vende con todo en orden.</h1>
-            <p className="vd-lead">Revisamos documentos y precio antes de publicar. Tú decides con números claros.</p>
+            <p className="vd-lead">Documentos y precio en orden antes de publicar.</p>
             <div className="vd-actions">
               <Link href="/vender-propiedad/#diagnostico" className="pg-btn">Agendar entrevista</Link>
               <Link href="/vender-propiedad/#pasos" className="pg-btn pg-btn-ghost">Ver cómo funciona</Link>

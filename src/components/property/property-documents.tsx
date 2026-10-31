@@ -52,8 +52,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
       <div className="fe-card-head p-5">
         <h2 className="text-lg font-semibold text-foreground">Documentos comerciales</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Estos PDFs son material público. Comparte tu contacto para recibir
-          seguimiento. Los documentos privados del expediente se comparten por un canal autorizado.
+          Material público. Los documentos privados se comparten por un canal autorizado.
         </p>
       </div>
 

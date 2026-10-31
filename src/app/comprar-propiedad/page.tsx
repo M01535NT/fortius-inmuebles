@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { BuscadorPropiedades } from "@/components/home/nocturno-extras";
@@ -13,18 +14,11 @@ export const metadata: Metadata = {
   description: routePages.comprar.description,
 };
 
-const STEPS = [
-  { title: "Documentos", text: "Qué revisar antes de apartar o firmar." },
-  { title: "Gastos", text: "Lo que se suma al precio de compra." },
-  { title: "Forma de pago", text: "Contado o crédito, y cuánto cuesta cada uno." },
-  { title: "Oferta y firma", text: "Del acuerdo por escrito a la entrega de llaves." },
-];
-
 const DOCUMENTS = [
   { title: "Escritura y titularidad", text: "Que quien vende sea el dueño inscrito." },
   { title: "Libertad de gravamen", text: "Si tiene hipotecas, embargos u otras cargas." },
   { title: "Predial, agua y luz", text: "Al corriente antes de firmar." },
-  { title: "Uso de suelo y permisos", text: "Que permita el uso que le darás y que lo construido tenga permisos." },
+  { title: "Uso de suelo y permisos", text: "Uso permitido y construcción con permisos." },
   { title: "Superficies", text: "Que escritura, catastro y realidad coincidan." },
   { title: "Cuotas y reglamento", text: "En condominio: cuotas al corriente y reglamento." },
 ];
@@ -59,15 +53,10 @@ const CLOSING = [
 export default async function ComprarInmueblePage() {
   const [propiedades, destacadas] = await Promise.all([getPropiedades(), getFeaturedProperties()]);
   return <main className="pg-page">
-    <InteriorPage {...routePages.comprar} eyebrow="Para compradores" title="Compra sin sorpresas."
+    <InteriorPage {...routePages.comprar} bullets={[]} eyebrow="Para compradores" title="Compra sin sorpresas."
       description="Documentos y gastos, antes del precio."
       primary={{ href: "/inventario", label: "Explorar inventario" }} secondary={{ href: "/herramientas/gastos-de-cierre", label: "Calcular gastos de cierre" }}
-      aside={<ol className="ip-steps" aria-label="Qué cubre esta guía">
-        {STEPS.map((step, index) => <li key={step.title} className={index === 0 ? "is-current" : undefined}>
-          <span className="ip-step-dot" aria-hidden="true" /><span className="ip-step-number">0{index + 1}</span>
-          <strong>{step.title}</strong><span>{step.text}</span>
-        </li>)}
-      </ol>} />
+      media={{ src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" }} />
 
     <div className="pg-container gd-search-wrap">
       <BuscadorPropiedades properties={propiedades} className="nx-search gd-search" />
@@ -106,10 +95,15 @@ export default async function ComprarInmueblePage() {
     </section>
 
     <section id="cierre" className="pg-container pg-section" aria-labelledby="gd-cierre">
-      <h2 id="gd-cierre" className="pg-h2">De la oferta a las llaves.</h2>
-      <ol className="gd-list gd-steps">
-        {CLOSING.map((item, index) => <li key={item.title}><strong><span aria-hidden="true">0{index + 1}</span> {item.title}</strong><span>{item.text}</span></li>)}
-      </ol>
+      <div className="pg-split">
+        <div>
+          <h2 id="gd-cierre" className="pg-h2">De la oferta a las llaves.</h2>
+          <ol className="gd-list gd-steps">
+            {CLOSING.map((item, index) => <li key={item.title}><strong><span aria-hidden="true">0{index + 1}</span> {item.title}</strong><span>{item.text}</span></li>)}
+          </ol>
+        </div>
+        <figure className="pg-split-media"><Image src="/hero/etapa-04-cerramos.webp" alt="Llaves sobre un contrato firmado" fill sizes="(max-width: 1023px) 100vw, 40vw" /></figure>
+      </div>
       <p className="gd-note">¿Dudas? Revisa las <Link href="/preguntas-frecuentes" className="editorial-text-link">preguntas frecuentes</Link>.</p>
     </section>
 

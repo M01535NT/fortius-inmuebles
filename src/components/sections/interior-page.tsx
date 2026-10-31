@@ -38,9 +38,9 @@ export function InteriorPage({ eyebrow, title, description, bullets, primary = {
           {aside ? <div className="ip-aside">{aside}</div> : media ? (
             <figure className="ip-media">
               <Image src={media.src} alt={media.alt} fill priority sizes="(max-width: 1023px) 100vw, 40vw" />
-              <figcaption className="ip-chips" aria-label="Criterios de trabajo">
+              {bullets.length > 0 && <figcaption className="ip-chips" aria-label="Criterios de trabajo">
                 {bullets.map(bullet => <span key={bullet}>{bullet}</span>)}
-              </figcaption>
+              </figcaption>}
             </figure>
           ) : (
             <div className="ip-criteria">

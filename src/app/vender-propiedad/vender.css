@@ -82,3 +82,8 @@
   .ss-types button, .ss-submit, .vd-tools a, .vd-tools svg { transition: none; }
   .vd-tools a:hover svg { transform: none; }
 }
+
+/* Fotos de los pasos (30/10/2026): la imagen explica el paso; el texto queda en una línea. */
+.sp-step-photo { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 6px; background: var(--vd-cream); }
+.sp-step-photo img { object-fit: cover; }
+@media (max-width: 639px) { .sp-step-photo { aspect-ratio: 16 / 9; } }
