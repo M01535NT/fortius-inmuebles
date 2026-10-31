@@ -117,7 +117,7 @@ test("mobile contact rows show what the person wants and the next step; search a
   expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
   fireEvent.change(screen.getAllByRole("searchbox", { name: "Buscar nombre o teléfono" })[0], { target: { value: "123 45" } });
   expect(within(screen.getByRole("list", { name: "Contactos" })).getByRole("link", { name: new RegExp(lead.nombre) })).toBeTruthy();
-  fireEvent.change(screen.getByRole("combobox", { name: "Mostrar prospectos" }), { target: { value: "contactado" } });
+  fireEvent.click(within(screen.getByRole("group", { name: "Mostrar personas" })).getByRole("button", { name: /^En seguimiento/ }));
   expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
   expect(writes).toHaveLength(0);
 });

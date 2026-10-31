@@ -46,3 +46,11 @@
   :global(.admin-root) .wants, :global(.admin-root) .step, :global(.admin-root) .end { grid-column: auto; grid-row: auto; }
   :global(.admin-root) .end { align-items: flex-start; }
 }
+
+/* Filtros de etapa en una sola lista de personas (DEC-36) */
+:global(.admin-root) .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+:global(.admin-root) .chipBtn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 560; cursor: pointer; }
+:global(.admin-root) .chipBtn:hover { background: var(--secondary); }
+:global(.admin-root) .chipBtn[aria-pressed=true] { background: #061f3f; color: #fff; }
+:global(.dark) :global(.admin-root) .chipBtn[aria-pressed=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .chipCount { font-size: .8125rem; font-weight: 600; opacity: .7; }
