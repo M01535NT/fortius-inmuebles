@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { Check, MapPin } from "lucide-react";
 
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
-import { ContactDock } from "@/components/property/contact-dock";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 import { PropertyCard } from "@/components/property/property-card";
 import { PropertyDocuments } from "@/components/property/property-documents";
@@ -323,7 +322,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
       </section>}
 
       <PropertyMobileCta settings={settings} message={`Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${pageUrl}`} />
-      <ContactDock settings={settings} message={enquiryMessage} />
     </main>
   );
 }
