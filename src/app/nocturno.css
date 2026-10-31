@@ -425,3 +425,20 @@
 .nx-stage > div { margin-top: 12px; }
 @media (max-width: 639px) { .nx-stage-photo { margin: 0 -24px 16px; } }
 @media (prefers-reduced-motion: reduce) { .nx-stage-photo img { transition: none; } .nx-stage.is-active .nx-stage-photo img { transform: none; } }
+
+/* Quién te atiende + Dónde trabajamos (30/10/2026): asesor a la izquierda, cuatro ciudades a la derecha. */
+.nx-equipo { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: clamp(40px, 6vw, 80px); align-items: start; }
+.nx-equipo .nx-head { margin-bottom: 28px; }
+.nx-equipo .nx-team { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 240px)); }
+.nx-title-sm { font-size: clamp(30px, 3vw, 40px); }
+.nx-ciudades { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 24px 0 0; padding: 0; list-style: none; }
+.nx-ciudad { margin: 0; }
+.nx-ciudad-photo { position: relative; display: block; aspect-ratio: 3 / 2; overflow: hidden; border-radius: 10px; background: #0f1a28; }
+.nx-ciudad-photo img { object-fit: cover; transition: transform 0.9s var(--nx-ease); }
+.nx-ciudad:hover .nx-ciudad-photo img { transform: scale(1.04); }
+.nx-ciudad figcaption { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
+.nx-ciudad figcaption strong { font-size: 17px; font-weight: 600; }
+.nx-ciudad figcaption span { color: var(--nx-muted); font-size: 13px; line-height: 1.45; }
+@media (max-width: 1023px) { .nx-equipo { grid-template-columns: 1fr; } }
+@media (max-width: 479px) { .nx-ciudades { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .nx-ciudad-photo img { transition: none; } .nx-ciudad:hover .nx-ciudad-photo img { transform: none; } }

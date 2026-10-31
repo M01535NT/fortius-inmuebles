@@ -100,14 +100,23 @@ export function NocturnoRecursos() {
   </section>;
 }
 
-/* Quién te atiende: perfiles publicados desde el panel. Sin ninguno, el perfil ilustrativo con el símbolo. */
+const CIUDADES = [
+  { name: "Tijuana", detail: "Playas, Zona Río, Otay y Chapultepec", src: "/hero/ciudad-tijuana.webp", alt: "Zona Río de Tijuana con el Centro Cultural y los cerros al fondo" },
+  { name: "Rosarito", detail: "Costa y zona residencial", src: "/hero/ciudad-rosarito.webp", alt: "Muelle de madera sobre la playa de Rosarito al atardecer" },
+  { name: "Tecate", detail: "Residencial e industrial", src: "/hero/ciudad-tecate.webp", alt: "Kiosco del parque de Tecate con las montañas al fondo" },
+  { name: "Ensenada", detail: "Residencial", src: "/hero/ciudad-ensenada.webp", alt: "Costa rocosa de Ensenada con el oleaje" },
+];
+
+/* Quién te atiende: perfiles publicados desde el panel (sin ninguno, el perfil ilustrativo) y las cuatro ciudades. */
 export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; ilustrativo?: boolean }) {
   return <section id="equipo" aria-labelledby="equipo-title" className="nx-section nx-container">
+    <div className="nx-equipo">
+    <div>
     <div className="nx-head">
       <div>
         <p className="nx-eyebrow">Quién te atiende</p>
         <h2 id="equipo-title" className="nx-title">Una persona lleva tu caso de principio a fin.</h2>
-        <p className="nx-lead">Revisa la propiedad, coordina las visitas y negocia contigo. Captar y vender pueden atenderlas personas distintas del equipo.</p>
+        <p className="nx-lead">Revisa la propiedad, coordina las visitas y negocia contigo.</p>
       </div>
       <Link href="/nosotros#agentes" className="nx-link">Conocer al equipo <ArrowRight size={18} aria-hidden="true" /></Link>
     </div>
@@ -125,5 +134,19 @@ export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; 
         </Link>
       </li>)}
     </ul>
+    </div>
+    <div>
+      <p className="nx-eyebrow">Dónde trabajamos</p>
+      <h3 className="nx-title nx-title-sm">De Tijuana a Ensenada.</h3>
+      <ul className="nx-ciudades">
+        {CIUDADES.map((ciudad) => <li key={ciudad.name}>
+          <figure className="nx-ciudad">
+            <span className="nx-ciudad-photo"><Image src={ciudad.src} alt={ciudad.alt} fill sizes="(max-width: 1023px) 50vw, 300px" /></span>
+            <figcaption><strong>{ciudad.name}</strong><span>{ciudad.detail}</span></figcaption>
+          </figure>
+        </li>)}
+      </ul>
+    </div>
+    </div>
   </section>;
 }
