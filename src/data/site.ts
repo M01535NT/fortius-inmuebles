@@ -33,8 +33,8 @@ export const routePages = {
     description:
       "Revisamos contigo el precio, los documentos y las condiciones de la venta antes de acordar cómo presentar la propiedad.",
     bullets: [
-      "Opinión inicial de valor.",
-      "Revisión de información básica.",
+      "Entrevista inicial y levantamiento.",
+      "Checklist y dictamen de factibilidad.",
       "Preparación comercial del inmueble.",
       "Filtro y seguimiento de prospectos.",
     ],

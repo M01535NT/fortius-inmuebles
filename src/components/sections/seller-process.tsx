@@ -1,13 +1,13 @@
 import { FileText } from "lucide-react";
 
 const stages = [
-  { title: "Quién vende", text: "Confirmamos al propietario y sus documentos.", doc: "Análisis de factibilidad" },
-  { title: "Qué se ofrece", text: "Medidas y estado del inmueble, con su fuente.", doc: "Ficha con fuentes" },
-  { title: "Precio", text: "Una opinión de precio con evidencia de mercado.", doc: "Opinión de valor" },
-  { title: "Publicación", text: "Canales, visitas y seguimiento con fechas.", doc: "Plan de comercialización" },
+  { title: "Entrevista inicial", text: "Nos cuentas del inmueble y qué esperas.", doc: "Entrevista inicial" },
+  { title: "Levantamiento", text: "Visitamos, medimos y fotografiamos.", doc: "Levantamiento" },
+  { title: "Documentos", text: "Reunimos y revisamos el checklist.", doc: "Checklist de documentos" },
+  { title: "Dictamen y precio", text: "Si se puede vender y en cuánto.", doc: "Factibilidad y opinión de valor" },
 ];
 
-/* Vender (30/10/2026): cuatro pasos en columnas; cada uno en una línea y con el documento que recibes. */
+/* Vender (30/10/2026): el procedimiento del titular en cuatro pasos; la opinión de valor llega al final, con el dictamen. */
 export function SellerProcess() {
   return (
     <section id="pasos" className="pg-container vd-section" aria-labelledby="seller-process">
@@ -15,7 +15,7 @@ export function SellerProcess() {
       <h2 id="seller-process" className="pg-h2">Cuatro pasos antes de publicar.</h2>
       <ol className="sp-steps">
         {stages.map((stage, index) => (
-          <li key={stage.title} id={index === 2 ? "precio-y-condiciones" : undefined} className="sp-step">
+          <li key={stage.title} id={index === 3 ? "precio-y-condiciones" : undefined} className="sp-step">
             <span className="sp-step-number" aria-hidden="true">0{index + 1}</span>
             <h3>{stage.title}</h3>
             <p>{stage.text}</p>

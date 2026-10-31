@@ -18,7 +18,7 @@ test("production security headers use a nonce without browser CSP violations", a
 test("disabled public leads remain explicit after hydration", async ({ page }) => {
   await page.goto("/contacto");
   await expect(page.getByText("El contacto directo estará disponible próximamente.").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Solicitar evaluación" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Pedir entrevista" })).toHaveCount(0);
 });
 
 test("admin renders independently while the public backend is unavailable", async ({ page }) => {

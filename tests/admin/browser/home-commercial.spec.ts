@@ -36,7 +36,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await page.goBack();
     await seller.click();
     await expect(page).toHaveURL(/\/vender-propiedad$/);
-    await page.getByRole("link", { name: "Empezar evaluación" }).click();
+    await page.getByRole("link", { name: "Agendar entrevista" }).click();
     await expect(page).toHaveURL(/\/vender-propiedad\/?#diagnostico$/);
     await expect(page.locator("#diagnostico form")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

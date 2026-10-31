@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     "Calcula una mensualidad hipotecaria y estima gastos de compraventa en Tijuana y Baja California.",
 };
 
-/* Boceto Herramientas: tarjetas grandes con vista previa de cada calculadora y la opinión de valor. */
+/* Boceto Herramientas: tarjetas grandes con vista previa de cada calculadora. La opinión de valor no es una herramienta: se entrega dentro del método (30/10/2026). */
 export default function HerramientasPage() {
   return (
     <main className="pg-page">
@@ -16,7 +16,7 @@ export default function HerramientasPage() {
         <div className="pg-container pg-hero-body">
           <p className="pg-eyebrow">Herramientas sin registro</p>
           <h1 className="pg-title">Haz los números antes de decidir.</h1>
-          <p className="pg-lead">Mensualidad, gastos y precio, sin registro.</p>
+          <p className="pg-lead">Mensualidad y gastos, sin registro.</p>
           <div className="tl-grid">
             <Link href="/herramientas/hipoteca" className="tl-card">
               <span className="tl-card-head"><span className="pg-chip">Crédito</span><span className="tl-open">Abrir</span></span>
@@ -36,17 +36,8 @@ export default function HerramientasPage() {
                 <span className="tl-legend"><span>ISAI</span><span>Notaría</span><span>Registro</span><span>Avalúo</span></span>
               </span>
             </Link>
-            <Link href="/opinion-de-valor" className="tl-card">
-              <span className="tl-card-head"><span className="pg-chip">Precio</span><span className="tl-open">Abrir</span></span>
-              <span className="tl-card-title">Opinión de valor</span>
-              <span className="tl-card-text">Cómo proponemos el precio de salida.</span>
-              <span className="tl-preview">
-                <span className="tl-preview-label">Incluye</span>
-                <span className="tl-legend"><span>Comparables</span><span>Fuentes</span><span>Rango de precio</span></span>
-              </span>
-            </Link>
           </div>
-          <p className="tl-foot">¿Vendes? <Link href="/vender-propiedad">Pide una evaluación</Link>.</p>
+          <p className="tl-foot">¿Vendes? <Link href="/vender-propiedad">Empieza con la entrevista</Link>.</p>
         </div>
       </section>
     </main>

@@ -6,8 +6,16 @@ import { InteriorPage } from "@/components/sections/interior-page";
 export const metadata: Metadata = {
   alternates: { canonical: "/opinion-de-valor" },
   title: "Opinión de valor",
-  description: "Una opinión de valor propone un precio de salida con propiedades comparables, fuentes y límites. No sustituye un avalúo.",
+  description: "La opinión de valor se entrega dentro de nuestro método, después de la entrevista, el levantamiento y la revisión de documentos. No sustituye un avalúo.",
 };
+
+/* El procedimiento del titular (30/10/2026): sin estos pasos no se entrega opinión de valor. */
+const STEPS = [
+  { title: "Entrevista inicial", text: "Nos cuentas del inmueble y qué esperas." },
+  { title: "Levantamiento", text: "Visitamos, medimos y fotografiamos." },
+  { title: "Documentos", text: "Reunimos y revisamos el checklist completo." },
+  { title: "Dictamen y precio", text: "Factibilidad jurídica y opinión de valor comercial." },
+];
 
 const INCLUDES = [
   { title: "Propiedades comparables", text: "Inmuebles parecidos al tuyo." },
@@ -16,24 +24,22 @@ const INCLUDES = [
   { title: "Límites de la información", text: "Qué falta confirmar y cómo cambiaría el precio." },
 ];
 
-const NEEDS = [
-  "Ubicación y tipo de inmueble.",
-  "Superficies de terreno y construcción.",
-  "Características y estado de conservación.",
-  "Escritura y predial, si los tienes.",
-];
-
-/* Qué es una opinión de valor, qué incluye y qué no sustituye. */
+/*
+  Qué es la opinión de valor y cómo se llega a ella. No se solicita por separado:
+  es parte del método y se entrega junto con el dictamen de factibilidad.
+*/
 export default function OpinionDeValorPage() {
   return <main className="pg-page">
-    <InteriorPage eyebrow="Para propietarios" title="Conoce con qué precio salir al mercado."
-      description="Un precio de salida con comparables y fuentes a la vista."
+    <InteriorPage eyebrow="Para propietarios" title="El precio sale de revisar tu propiedad."
+      description="La opinión de valor es parte de nuestro método. La entregamos con el dictamen de factibilidad, después de conocer el inmueble y sus documentos."
       bullets={[]}
-      primary={{ href: "/vender-propiedad#diagnostico", label: "Solicitar mi opinión de valor" }} secondary={{ href: "/preguntas-frecuentes", label: "Resolver dudas" }}
-      aside={<div className="ip-criteria">
-        <p className="pg-eyebrow">Qué necesitamos de ti</p>
-        <ul>{NEEDS.map(item => <li key={item}>{item}</li>)}</ul>
-      </div>} />
+      primary={{ href: "/vender-propiedad#diagnostico", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Ver el método" }}
+      aside={<ol className="ip-steps" aria-label="Cómo llegamos al precio">
+        {STEPS.map((step, index) => <li key={step.title} className={index === STEPS.length - 1 ? "is-current" : undefined}>
+          <span className="ip-step-dot" aria-hidden="true" /><span className="ip-step-number">0{index + 1}</span>
+          <strong>{step.title}</strong><span>{step.text}</span>
+        </li>)}
+      </ol>} />
 
     <section className="pg-container pg-section" aria-labelledby="ov-incluye">
       <h2 id="ov-incluye" className="pg-h2">Qué incluye.</h2>
@@ -54,11 +60,11 @@ export default function OpinionDeValorPage() {
     <section className="pg-container pg-section pg-section-last" aria-labelledby="ov-cta">
       <div className="pg-card pg-card-wine pg-card-pad gd-cta">
         <div>
-          <h2 id="ov-cta" className="pg-h2">Empieza contándonos tu caso.</h2>
-          <p className="pg-muted">Con ubicación y tipo de inmueble, te decimos qué documentos faltan.</p>
+          <h2 id="ov-cta" className="pg-h2">Todo empieza con la entrevista.</h2>
+          <p className="pg-muted">Sin entrevista, levantamiento y documentos no hay opinión de valor.</p>
         </div>
         <div className="gd-cta-actions">
-          <Link href="/vender-propiedad#diagnostico" className="pg-btn pg-btn-light">Solicitar mi opinión de valor</Link>
+          <Link href="/vender-propiedad#diagnostico" className="pg-btn pg-btn-light">Agendar entrevista</Link>
           <Link href="/contacto" className="gd-cta-link">Hablar con un asesor</Link>
         </div>
       </div>

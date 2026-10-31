@@ -24,7 +24,7 @@ export default function GastosDeCierrePage() {
       </section>
       <div className="pg-container tl-tool-body">
         <ClosingCostsCalculator />
-        <p className="tl-tool-foot pg-muted">¿Vendes? <Link href="/vender-propiedad">Pide una evaluación</Link>.</p>
+        <p className="tl-tool-foot pg-muted">¿Vendes? <Link href="/vender-propiedad">Empieza con la entrevista</Link>.</p>
       </div>
     </main>
   );

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Calculator, Landmark, Scale, Search } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Calculator, Landmark, Search } from "lucide-react";
 
 import { TIPO_LABELS, type Property } from "@/data/propiedades";
 import type { Testimonio } from "@/lib/domain/records";
@@ -96,7 +96,6 @@ export function NocturnoRecursos() {
         {[
           { href: "/herramientas/hipoteca", Icon: Landmark, title: "Calculadora de hipoteca", detail: "Tu pago mensual estimado." },
           { href: "/herramientas/gastos-de-cierre", Icon: Calculator, title: "Gastos de cierre", detail: "Cuánto pagas o cuánto recibes." },
-          { href: "/opinion-de-valor", Icon: Scale, title: "Opinión de valor", detail: "Cómo fijamos el precio." },
         ].map(({ href, Icon, title, detail }) => <li key={href}><Link href={href} className="nx-tool">
           <span className="nx-tool-icon"><Icon size={20} strokeWidth={1.6} aria-hidden="true" /></span>
           <span><strong>{title}</strong><span>{detail}</span></span>

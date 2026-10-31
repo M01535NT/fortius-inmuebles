@@ -21,3 +21,5 @@ Logo Fortius con portal bicolor, tipografía Schibsted Grotesk en el sitio públ
 Comunicación directa y documentada; contacto por canales válidos configurados; publicación explícita; separación de datos privados y públicos; control de versiones y permisos efectivos en servidor/RLS. Conservar teclado, contraste, movimiento reducido y adaptación móvil.
 
 Identificar demo como prueba; no inventar contactos ni presentar ejemplos como ofertas vigentes. La captación pública permanece desactivada según el estado documentado. Un documento recibido, una revisión profesional, una firma y un pago son hechos distintos.
+
+La opinión de valor no se ofrece ni se solicita por separado (decisión del titular, 30/10/2026). Es parte del método: entrevista inicial, levantamiento y checklist documental; solo después se entregan el dictamen de factibilidad (jurídico) y la opinión de valor comercial. El sitio puede explicarla, pero ningún botón invita a pedirla; las acciones llevan a agendar la entrevista. Una calculadora pública de valor, si se construye, debe presentarse como estimación orientativa distinta de esa opinión.

@@ -12,7 +12,7 @@ const TIPOS: { label: string; Icon: LucideIcon }[] = [
 ];
 
 /* Vender (30/10/2026): arranque en dos preguntas; «Continuar» lleva al formulario de
-   evaluación con el tipo y la zona ya anotados. Nada se envía desde aquí. */
+   entrevista con el tipo y la zona ya anotados. Nada se envía desde aquí. */
 export function SellerStarter() {
   const [tipo, setTipo] = React.useState(TIPOS[0].label);
   const [zona, setZona] = React.useState("");
