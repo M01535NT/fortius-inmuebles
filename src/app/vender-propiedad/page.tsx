@@ -6,14 +6,15 @@ import { DiagnosticCTA } from "@/components/sections/diagnostic-cta";
 import { LeadMagnet } from "@/components/sections/lead-magnet";
 import { SellerProcess } from "@/components/sections/seller-process";
 import { SellerStarter } from "@/components/sections/seller-starter";
-import { routePages } from "@/data/site";
 import "./vender.css";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/vender-propiedad" },
-  title: "Vender inmueble",
-  description: routePages.vender.description,
-};
+export const metadata: Metadata = pageMetadata({
+  path: "/vender-propiedad",
+  title: "Vender tu casa en Tijuana con asesoría",
+  description:
+    "Vende tu casa en Tijuana, Rosarito, Tecate o Ensenada. Revisamos documentos y precio antes de publicar y te damos seguimiento por escrito hasta la firma.",
+});
 
 const TRUST = ["Sin compromiso", "Respuesta por WhatsApp", "Tijuana, Rosarito, Tecate y Ensenada"];
 const PENDIENTES = [

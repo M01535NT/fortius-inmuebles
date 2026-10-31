@@ -12,6 +12,9 @@ import { getBlogPostBySlug, getBlogPosts } from "@/lib/blog";
 import { getBlogCover } from "@/data/blog-covers";
 import { getBlogFigures } from "@/data/blog-figures";
 import { BLOG_CATEGORIES, postCategory, postFormat, formatBlogDate, readingMinutes } from "@/lib/blog-editorial";
+import { JsonLd } from "@/components/seo/json-ld";
+import { blogPostingLd, breadcrumbLd } from "@/lib/seo/json-ld";
+import { fullTitle } from "@/lib/seo/page-metadata";
 
 type Params = { slug: string };
 
@@ -28,13 +31,17 @@ export async function generateMetadata({
   const path = `/blog/${post.slug}`;
   const cover = getBlogCover(post.slug);
   const coverUrl = cover ? new URL(cover.src, siteConfig.url).href : undefined;
+  // Un título largo va sin el sufijo de la marca para que Google no lo corte.
+  const shown = fullTitle(post.titulo);
   return {
-    title: post.titulo,
+    title: shown === post.titulo ? { absolute: post.titulo } : post.titulo,
     description: post.resumen,
     alternates: { canonical: path },
     openGraph: {
       type: "article",
-      title: post.titulo,
+      title: shown,
+      siteName: "Fortius Inmuebles",
+      locale: "es_MX",
       description: post.resumen,
       url: new URL(path, siteConfig.url).href,
       modifiedTime: post.actualizadoEl,
@@ -43,7 +50,7 @@ export async function generateMetadata({
       ...(cover && coverUrl ? { images: [{ url: coverUrl, width: cover.width, height: cover.height, alt: cover.alt }] } : {}),
     },
     ...(coverUrl ? {
-      twitter: { card: "summary_large_image", title: post.titulo, description: post.resumen, images: [coverUrl] },
+      twitter: { card: "summary_large_image", title: shown, description: post.resumen, images: [coverUrl] },
     } : {}),
   };
 }
@@ -71,6 +78,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
 
   return (
     <main className="pg-page">
+      <JsonLd data={[blogPostingLd(post, cover?.src), breadcrumbLd([{ name: "Inicio", path: "/" }, { name: "Blog", path: "/blog" }, { name: post.titulo, path: `/blog/${post.slug}` }])]} />
       <section className="pg-hero ba-hero">
         <div className="pg-container pg-hero-body">
           <Link href="/blog" className="ba-back"><ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />Volver al Blog</Link>

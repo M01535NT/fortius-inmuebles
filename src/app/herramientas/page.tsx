@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/herramientas" },
-  title: "Herramientas",
+export const metadata: Metadata = pageMetadata({
+  path: "/herramientas",
+  title: "Calculadoras inmobiliarias en Tijuana",
   description:
-    "Calcula una mensualidad hipotecaria y estima gastos de compraventa en Tijuana y Baja California.",
-};
+    "Calcula la mensualidad de tu crédito hipotecario y los gastos de compraventa en Tijuana, Rosarito, Tecate y Ensenada. Gratis, sin registro y en minutos.",
+});
 
 /* Boceto Herramientas: tarjetas grandes con vista previa de cada calculadora. La opinión de valor no es una herramienta: se entrega dentro del método (30/10/2026). */
 export default function HerramientasPage() {

@@ -21,7 +21,7 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Inmobiliaria en Tijuana: te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCount(1);
     // Portada (31/10/2026): silent video with poster and a headline per scene; no eyebrow, buttons, search or marquee.

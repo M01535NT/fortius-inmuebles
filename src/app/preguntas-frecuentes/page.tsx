@@ -4,12 +4,14 @@ import Link from "next/link";
 import { PreguntaItem } from "@/components/home/respuestas";
 import { preguntasPorGrupo } from "@/data/preguntas-frecuentes";
 import { getPublicContent } from "@/lib/backend/public";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/preguntas-frecuentes" },
-  title: "Preguntas frecuentes",
-  description: "Respuestas sobre cómo vender, comprar y revisar un inmueble con Fortius Inmuebles: precio, documentos, gastos y plazos.",
-};
+export const metadata: Metadata = pageMetadata({
+  path: "/preguntas-frecuentes",
+  title: "Dudas al vender o comprar en Tijuana",
+  description:
+    "Respuestas sobre vender o comprar un inmueble en Tijuana con Fortius Inmuebles: cómo se fija el precio, qué documentos pedir, gastos, crédito y plazos.",
+});
 
 /* Las preguntas base viven en el código y las que agrega el equipo, en Textos del sitio del panel. */
 export default async function PreguntasFrecuentesPage() {

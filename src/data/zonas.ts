@@ -12,3 +12,18 @@ export const zonas = [
   { slug: "tecate", nombre: "Tecate" },
   { slug: "ensenada", nombre: "Ensenada" },
 ] as const;
+
+/*
+  Municipio de una zona capturada, para los datos estructurados (Google pide la ciudad, no la
+  colonia). Las zonas que no son Rosarito, Tecate ni Ensenada son colonias de Tijuana.
+*/
+const MUNICIPIOS_FUERA_DE_TIJUANA = [
+  { clave: "rosarito", municipio: "Playas de Rosarito" },
+  { clave: "tecate", municipio: "Tecate" },
+  { clave: "ensenada", municipio: "Ensenada" },
+] as const;
+
+export function municipioDeZona(zona: string): string {
+  const texto = zona.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  return MUNICIPIOS_FUERA_DE_TIJUANA.find(({ clave }) => texto.includes(clave))?.municipio ?? "Tijuana";
+}
