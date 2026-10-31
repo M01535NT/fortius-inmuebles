@@ -12,31 +12,30 @@ import styles from "./fullscreen-menu.module.css";
 
 /* Columnas del menú desplegable (boceto 2). */
 const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
+  { title: "Vender", links: [
+    { href: "/vender-propiedad", label: "Vender mi propiedad" },
+    { href: "/opinion-de-valor", label: "Opinión de valor" },
+    { href: "/herramientas/gastos-de-cierre", label: "Gastos y neto de venta" },
+    { href: "/preguntas-frecuentes", label: "Preguntas frecuentes" },
+  ] },
+  { title: "Comprar", links: [
+    { href: "/comprar-propiedad", label: "Guía para comprar" },
+    { href: "/inventario?op=venta", label: "Propiedades en venta" },
+    { href: "/inventario?op=renta", label: "Propiedades en renta" },
+    { href: "/herramientas/hipoteca", label: "Calculadora de hipoteca" },
+    { href: "/herramientas", label: "Todas las herramientas" },
+  ] },
   { title: "Propiedades", links: [
-    { href: "/inventario", label: "Propiedades" },
-    { href: "/comprar-propiedad", label: "Comprar una propiedad" },
+    { href: "/inventario", label: "Ver todas" },
     { href: "/inventario?segmento=residencial", label: "Residencial" },
     { href: "/inventario?segmento=comercial", label: "Comercial" },
     { href: "/inventario?segmento=industrial", label: "Industrial" },
-  ] },
-  { title: "Vender con Fortius", links: [
-    { href: "/vender-propiedad", label: "Vender mi propiedad" },
-    { href: "/#metodo", label: "Método" },
-    { href: "/#revision", label: "Revisión documental" },
-    { href: "/#promocion", label: "Promoción" },
-  ] },
-  { title: "Guías y herramientas", links: [
-    { href: "/herramientas", label: "Herramientas" },
-    { href: "/herramientas/hipoteca", label: "Calculadora de hipoteca" },
-    { href: "/herramientas/gastos-de-cierre", label: "Gastos de cierre" },
-    { href: "/opinion-de-valor", label: "Opinión de valor" },
-    { href: "/blog", label: "Blog" },
-    { href: "/preguntas-frecuentes", label: "Preguntas frecuentes" },
   ] },
   { title: "Fortius", links: [
     { href: "/", label: "Inicio" },
     { href: "/nosotros", label: "Nosotros" },
     { href: "/nosotros#agentes", label: "Agentes" },
+    { href: "/blog", label: "Blog" },
     { href: "/avisos", label: "Avisos y documentos" },
     { href: "/contacto", label: "Contacto" },
   ] },
@@ -192,7 +191,7 @@ export function FullscreenMenu({ open, onClose }: Props) {
             {contact.messenger && <a href={contact.messenger} target="_blank" rel="noopener noreferrer" onClick={onClose} className={styles.channel}>Messenger</a>}
             {contact.phoneHref && <a href={contact.phoneHref} onClick={onClose} className={styles.channel}>Teléfono {contact.phone}</a>}
             {settings?.horario?.trim() && <p className={styles.hours}>{settings.horario}</p>}
-            <Link href="/opinion-de-valor" prefetch={open ? null : false} onClick={onClose} className={styles.primary}>Pide tu opinión de valor</Link>
+            <Link href="/vender-propiedad" prefetch={open ? null : false} onClick={onClose} className={styles.primary}>Quiero vender</Link>
             <Link href={directHref} prefetch={false} onClick={onClose} className={styles.direct}>Contacto directo <ArrowRight size={16} aria-hidden="true" /></Link>
             <ThemeToggle className={styles.square} />
           </section>

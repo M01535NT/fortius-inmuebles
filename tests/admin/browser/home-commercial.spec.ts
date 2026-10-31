@@ -17,7 +17,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await expect(page.locator("[data-method-timeline] li")).toHaveCount(4);
     await expect(page.locator("#entregables article")).toHaveCount(6);
     await expect(page.locator("main .editorial-tools")).toHaveCount(0);
-    await expect(page.locator("footer").getByRole("heading", { name: "Hablemos de tu próxima operación." })).toBeVisible();
+    await expect(page.locator("footer").getByRole("heading", { name: "¿Vendes o compras? Hablemos." })).toBeVisible();
 
     const costs = page.locator("#respuestas").getByRole("button", { name: "¿Qué gastos debo considerar al vender?" });
     await costs.click();

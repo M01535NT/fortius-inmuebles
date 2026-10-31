@@ -51,7 +51,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
     await page.getByRole("link", { name: "Siguiente", exact: true }).click();
     await expect(page.getByText("Página 2 de 2")).toBeVisible();
     await page.goto("/blog");
-    await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
+    await page.locator("footer").getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
     if (width === 375 || width === 1440) {
       await page.screenshot({ path: testInfo.outputPath(`mercado-oscuro-${width}.png`), fullPage: true });
@@ -142,7 +142,7 @@ for (const width of [375, 1440]) {
     await page.getByRole("button", { name: "Buscar", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("1 artículo");
     await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
-    await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
+    await page.locator("footer").getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
     const darkAxe = await new AxeBuilder({ page }).include("main").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(darkAxe.violations).toEqual([]);

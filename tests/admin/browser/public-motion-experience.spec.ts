@@ -52,7 +52,7 @@ test("reduced motion keeps the deliverables in normal reading order and navigati
   }
   await expect(page.locator("[data-custom-cursor]")).toHaveCount(0);
   await page.getByRole("link", { name: "Fortius Inmuebles, inicio" }).click();
-  await page.locator("footer").getByRole("link", { name: "Explorar inmuebles" }).click();
+  await page.locator("footer").getByRole("link", { name: "Ver propiedades" }).click();
   await expect(page).toHaveURL(/\/inventario$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });

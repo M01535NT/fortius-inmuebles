@@ -11,7 +11,7 @@ test("the hero keeps a single photograph and one sentence", async ({ page }) => 
 
 test("dark link hover retains readable ink while buttons remain burgundy", async ({ page }) => {
   await page.goto("/terminos", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
+  await page.locator("footer").getByRole("button", { name: "Cambiar a tema oscuro" }).click();
   const indexLink = page.locator('main a[href^="#"]').first();
   await indexLink.hover();
   await expect(indexLink).toHaveCSS("color", "rgb(245, 241, 235)");
@@ -33,12 +33,12 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())).toBe("#8a1634");
     const primary = menu.getByRole("navigation", { name: "Menú principal", exact: true });
     await expect(primary.locator(":scope > section")).toHaveCount(4);
-    await expect(primary.locator("a")).toHaveCount(20);
-    const owner = menu.getByRole("region", { name: "Vender con Fortius" });
+    await expect(primary.locator("a")).toHaveCount(19);
+    const owner = menu.getByRole("region", { name: "Vender" });
     const sell = owner.getByRole("link", { name: "Vender mi propiedad" });
     await expect(sell).toHaveAttribute("href", "/vender-propiedad");
-    await expect(menu.getByRole("region", { name: "Guías y herramientas" }).getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
-    await expect(primary.getByRole("link", { name: "Propiedades", exact: true })).toHaveAttribute("href", "/inventario");
+    await expect(menu.getByRole("region", { name: "Vender" }).getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
+    await expect(primary.getByRole("link", { name: "Ver todas", exact: true })).toHaveAttribute("href", "/inventario");
     await expect(menu.getByRole("link", { name: "Contacto directo" })).toHaveAttribute("href", "/contacto");
     await sell.scrollIntoViewIfNeeded();
     await sell.click();
