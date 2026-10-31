@@ -67,6 +67,9 @@
 .ab-purpose-card-accent { border-color: var(--ab-wine); background: var(--ab-wine); color: #fff; }
 .ab-purpose-card-accent .ab-eyebrow { color: var(--ns-accent); }
 .ab-purpose-card-accent p:last-child { color: rgba(255, 255, 255, 0.86); }
+/* Foto de cada tarjeta (30/10/2026): la imagen sostiene la idea y el texto queda en una línea. */
+.ab-purpose-photo { position: relative; display: block; aspect-ratio: 16 / 9; margin-bottom: 24px; overflow: hidden; border-radius: 6px; background: var(--secondary); }
+.ab-purpose-photo img { object-fit: cover; }
 
 /* Valores */
 .ab-values-title { margin-bottom: 28px; }

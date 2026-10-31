@@ -471,6 +471,9 @@
 .nf-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .ct-accent { color: var(--ns-accent); }
 .ct-workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: 20px; align-items: start; margin-top: clamp(32px, 4vw, 48px); }
+.ct-side { display: grid; gap: 20px; }
+.ct-photo { position: relative; margin: 0; height: 332px; overflow: hidden; border-radius: 8px; background: var(--secondary); }
+.ct-photo img { object-fit: cover; }
 .ct-choices { min-width: 0; margin: 0; padding: 0; border: 0; }
 .ct-intents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .ct-intent { position: relative; display: grid; gap: 4px; align-content: start; min-height: 0; padding: 16px 18px; border: 1px solid color-mix(in srgb, var(--ns-ink) 16%, transparent); border-radius: 6px; background: transparent; color: var(--ns-ink); cursor: pointer; transition: border-color 0.3s, background-color 0.3s, transform 0.4s var(--pg-ease); }
@@ -525,6 +528,7 @@
 
 @media (max-width: 1023px) {
   .tl-grid, .ct-workspace { grid-template-columns: 1fr; }
+  .ct-photo { display: none; }
   .ct-direct { position: static; }
   .gr-steps { grid-template-columns: 1fr; }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Check, Clock3 } from "lucide-react";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
 
@@ -10,24 +11,27 @@ import { ContactForm } from "@/components/sections/contact-form";
 const intents = {
   comprar: {
     label: "Quiero comprar",
-    detail: "Encuentra una propiedad que se ajuste a tus planes.",
+    detail: "Te ayudamos a encontrarla.",
     title: "Hablemos de tu próxima propiedad.",
     objective: "Comprar una propiedad",
     message: "Hola, quiero recibir orientación para comprar una propiedad.",
+    photo: { src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" },
   },
   vender: {
     label: "Quiero vender",
-    detail: "Conoce cómo podemos acompañarte en la venta.",
+    detail: "Empezamos con una entrevista.",
     title: "Hablemos de la venta de tu propiedad.",
     objective: "Vender mi propiedad",
     message: "Hola, quiero revisar la venta de mi propiedad.",
+    photo: { src: "/hero/que-hacemos-vender.webp", alt: "Casa de dos niveles con jardín" },
   },
   inmueble: {
     label: "Consultar un inmueble",
-    detail: "Pregunta por disponibilidad, características o visitas.",
+    detail: "Disponibilidad y visitas.",
     title: "Resuelve tus dudas sobre ese inmueble.",
     objective: "Consultar un inmueble publicado",
     message: "Hola, quiero información sobre un inmueble publicado por Fortius.",
+    photo: { src: "/hero/interior-depa.webp", alt: "Sala de un departamento con vista al mar al anochecer" },
   },
 } as const;
 
@@ -60,10 +64,14 @@ export function ContactIntents() {
           <ContactForm key={intent} submitLabel="Enviar consulta" initialObjective={selected.objective} initialMessage={selected.message} />
         </div>
       </div>
-      <aside className="ct-direct">
-        <MessagingContact title={selected.title} message={selected.message} />
-        {settings?.horario?.trim() && <p className="ct-hours"><Clock3 size={17} aria-hidden="true" /><span>{settings.horario}</span></p>}
-      </aside>
+      <div className="ct-side">
+        <aside className="ct-direct">
+          <MessagingContact title={selected.title} message={selected.message} />
+          {settings?.horario?.trim() && <p className="ct-hours"><Clock3 size={17} aria-hidden="true" /><span>{settings.horario}</span></p>}
+        </aside>
+        {/* La foto cambia con el motivo elegido; en móvil se omite para no alejar el formulario. */}
+        <figure className="ct-photo"><Image src={selected.photo.src} alt={selected.photo.alt} fill sizes="(max-width: 1023px) 0px, 30vw" /></figure>
+      </div>
     </div>
   );
 }

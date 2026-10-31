@@ -18,11 +18,11 @@ export const metadata: Metadata = {
 /* Dirección «Nocturno» (lienzo, artboard Nosotros): portada oscura con el
    asesor, misión y visión como dos tarjetas, valores numerados y video. */
 const values: { title: string; text: string; wide?: boolean }[] = [
-  { title: "Claridad", text: "Precio, honorarios y condiciones, antes de decidir. Si falta algo, lo decimos." },
-  { title: "Responsabilidad", text: "Responsables claros y acuerdos por escrito." },
-  { title: "Discreción", text: "Tus documentos, solo con quien participa en la operación." },
-  { title: "Criterio", text: "Separamos lo comprobado de lo que falta verificar.", wide: true },
-  { title: "Respeto a tu decisión", text: "Te damos opciones. Tú decides precio y condiciones.", wide: true },
+  { title: "Claridad", text: "Precio, honorarios y condiciones, antes de decidir." },
+  { title: "Responsabilidad", text: "Acuerdos por escrito." },
+  { title: "Discreción", text: "Tus documentos, solo con quien participa." },
+  { title: "Criterio", text: "Lo comprobado, separado de lo pendiente.", wide: true },
+  { title: "Respeto a tu decisión", text: "Tú decides precio y condiciones.", wide: true },
 ];
 
 export default async function NosotrosPage() {
@@ -60,7 +60,7 @@ export default async function NosotrosPage() {
         <div className="ab-hero-copy" data-reveal>
           <p className="nx-eyebrow" data-reveal-item>Nosotros</p>
           <h1 id="about-title" className="ab-hero-title" data-reveal-item>Personas detrás de cada operación.</h1>
-          <p className="ab-hero-lead" data-reveal-item>Un equipo que te acompaña de la primera llamada a la entrega.</p>
+          <p className="ab-hero-lead" data-reveal-item>De la primera llamada a la entrega.</p>
           <nav className="ab-index" aria-label="En esta página" data-reveal-item>
             <a href="#agentes">Agentes</a><a href="#identidad">Misión y visión</a><a href="#valores">Valores</a>{videoUrl && <a href="#video">Video</a>}
           </nav>
@@ -107,14 +107,16 @@ export default async function NosotrosPage() {
     <section id="identidad" className="ab-band" aria-label="Misión y visión">
       <div className="nx-container ab-purpose" data-reveal>
         <article id="mision" className="ab-purpose-card" data-reveal-item>
+          <span className="ab-purpose-photo"><Image src="/hero/etapa-01-revisamos.webp" alt="Escritura y pluma sobre un escritorio" fill sizes="(max-width: 899px) 100vw, 50vw" /></span>
           <p className="ab-eyebrow">Misión</p>
           <h2>Decidir con información. Avanzar con respaldo.</h2>
-          <p>Comprar y vender con información comprobable, para que cada cliente decida con claridad.</p>
+          <p>Información comprobable para decidir con claridad.</p>
         </article>
         <article id="vision" className="ab-purpose-card ab-purpose-card-accent" data-reveal-item>
+          <span className="ab-purpose-photo"><Image src="/hero/ciudad-tijuana.webp" alt="Zona Río de Tijuana con el Centro Cultural y los cerros al fondo" fill sizes="(max-width: 899px) 100vw, 50vw" /></span>
           <p className="ab-eyebrow">Visión</p>
           <h2>Crecer por la confianza que construimos.</h2>
-          <p>Ser referencia en Baja California por asesoría, orden y relaciones que siguen después de la firma.</p>
+          <p>Referencia en Baja California, también después de la firma.</p>
         </article>
       </div>
     </section>
