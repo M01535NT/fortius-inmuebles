@@ -7,21 +7,20 @@ import { useMotionValueEvent, useScroll } from "motion/react";
 
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { BrandMark } from "@/components/brand/brand-mark";
-import { ThemeToggle } from "@/components/home/theme-toggle";
+import styles from "./site-nav.module.css";
 
-/* Una sola barra para todo el sitio: la píldora de Inicio. En la portada flota
-   transparente sobre la foto; en las demás páginas, y al desplazar, toma el
-   vidrio del tema (blanco en claro, noche en oscuro). El menú a pantalla
-   completa conserva el resto de las rutas. */
-const LINKS: { href: string; label: string; wide?: boolean }[] = [
-  { href: "/inventario", label: "Propiedades" },
+/*
+  Barra pública (30/10/2026): cinco enlaces y el botón Menú; sin WhatsApp ni «Quiero vender»
+  por decisión del titular. Blanca con línea inferior; en la portada flota sobre el video
+  hasta que se desplaza la página. El menú desplegable guarda el resto de las rutas y
+  el cambio de tema; el tema también vive en el pie.
+*/
+const LINKS: { href: string; label: string; match?: string[] }[] = [
+  { href: "/vender-propiedad", label: "Vender", match: ["/opinion-de-valor"] },
   { href: "/comprar-propiedad", label: "Comprar" },
-  { href: "/vender-propiedad", label: "Vender" },
-  { href: "/opinion-de-valor", label: "Opinión de valor" },
-  { href: "/herramientas", label: "Herramientas", wide: true },
-  { href: "/blog", label: "Blog", wide: true },
+  { href: "/inventario", label: "Propiedades" },
   { href: "/nosotros", label: "Nosotros" },
-  { href: "/contacto", label: "Contacto" },
+  { href: "/blog", label: "Blog" },
 ];
 
 function isCurrent(pathname: string, href: string) {
@@ -47,39 +46,24 @@ export function SiteNav() {
   const solid = pathname !== "/" || scrolled;
   const openMenu = () => { setMenuReady(true); setMenuOpen(true); };
   const menu = menuReady ? <FullscreenMenu open={menuOpen} onClose={closeMenu} /> : null;
-  const pill = solid
-    ? "border-[#061f3f]/20 bg-[#061f3f]/5 text-[#061f3f] hover:bg-[#061f3f]/10 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
-    : "border-white/20 bg-white/10 text-white hover:bg-white/20";
 
   return (
     <>
-    <header className={"fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-700 " +
-      (solid ? "border-b border-[#061f3f]/10 bg-white/85 backdrop-blur-xl dark:border-white/10 dark:bg-[#060c14]/80" : "")}>
-      <div className="mx-auto flex h-[72px] max-w-[1320px] items-center justify-between gap-6 px-5 md:px-8">
-        <Link href="/" aria-label="Fortius Inmuebles, inicio"><BrandMark inverse={!solid} /></Link>
-        <nav aria-label="Principal" className={"hidden items-center gap-1 rounded-full border p-1.5 backdrop-blur-xl lg:flex " +
-          (solid ? "border-[#061f3f]/15 bg-[#061f3f]/5 dark:border-white/15 dark:bg-white/10" : "border-white/15 bg-white/10")}>
-          {LINKS.map((link) => {
-            const current = isCurrent(pathname, link.href);
-            return <Link key={link.href} href={link.href} aria-current={current ? "page" : undefined}
-              className={(link.wide ? "hidden xl:inline-flex " : "") + "whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors xl:px-3.5 " + (current
-                ? "bg-[#061f3f] text-[#f5f1eb] dark:bg-[#f5f1eb] dark:text-[#061f3f]"
-                : solid
-                  ? "text-[#061f3f]/80 hover:bg-[#061f3f]/10 hover:text-[#061f3f] dark:text-white/85 dark:hover:bg-white/15 dark:hover:text-white"
-                  : "text-white/85 hover:bg-white/15 hover:text-white")}>{link.label}</Link>;
-          })}
+    <header className={`${styles.header} ${solid ? styles.solid : styles.onImage}`}>
+      <div className={styles.inner}>
+        <Link href="/" aria-label="Fortius Inmuebles, inicio" className={styles.logo}><BrandMark inverse={!solid} /></Link>
+        <nav aria-label="Principal" className={styles.nav}>
+          {LINKS.map((link) => (
+            <Link key={link.href} href={link.href} aria-current={[link.href, ...(link.match ?? [])].some((href) => isCurrent(pathname, href)) ? "page" : undefined}
+              className={styles.link}>{link.label}</Link>
+          ))}
         </nav>
-        <div className="flex items-center gap-2">
-        <ThemeToggle className={"h-12 w-12 rounded-full backdrop-blur-xl " + pill} />
-        <button type="button" onClick={openMenu} aria-label="Abrir menú" aria-haspopup="dialog" aria-expanded={menuOpen}
-          className={"group inline-flex h-12 items-center gap-3 rounded-full border pl-5 pr-1.5 text-sm font-semibold backdrop-blur-xl transition-colors active:scale-[0.97] " + pill}>
-          Menú
-          <span aria-hidden="true" className={"flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-full transition-transform duration-500 group-hover:rotate-90 " +
-            (solid ? "bg-[#061f3f] dark:bg-[#f5f1eb]" : "bg-[#f5f1eb]")}>
-            <span className={"h-[1.5px] w-3.5 transition-transform duration-300 group-hover:translate-y-[3.25px] group-hover:rotate-45 " + (solid ? "bg-[#f5f1eb] dark:bg-[#061f3f]" : "bg-[#061f3f]")} />
-            <span className={"h-[1.5px] w-3.5 transition-transform duration-300 group-hover:-translate-y-[3.25px] group-hover:-rotate-45 " + (solid ? "bg-[#f5f1eb] dark:bg-[#061f3f]" : "bg-[#061f3f]")} />
-          </span>
-        </button>
+        <div className={styles.actions}>
+          <button type="button" onClick={openMenu} aria-label="Abrir menú" aria-haspopup="dialog" aria-expanded={menuOpen}
+            className={styles.menu}>
+            Menú
+            <span aria-hidden="true" className={styles.lines}><span /><span /></span>
+          </button>
         </div>
       </div>
     </header>

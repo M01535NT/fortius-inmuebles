@@ -66,5 +66,5 @@ export function useLeaveGuard(dirty: boolean) {
 /** Mensaje claro para un error de guardado. */
 export function saveError(cause: unknown) {
   const message = errorMessage(cause);
-  return /cambió|version|versión/i.test(message) ? "La operación cambió en otra pantalla. Recarga para ver la versión más reciente antes de seguir." : message.replace(/^Requisito pendiente: /, "Falta: ");
+  return /cambió|version|versión/i.test(message) ? "La operación cambió en otra pantalla. Recarga antes de seguir." : message.replace(/^Requisito pendiente: /, "Falta: ");
 }

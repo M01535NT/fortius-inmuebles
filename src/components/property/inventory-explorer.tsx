@@ -254,14 +254,17 @@ export function InventoryExplorer({ propiedades }: Props) {
 
   return (
     <>
-      {/* Cabecera nocturna con los filtros (boceto InventarioNocturno) */}
-      <section className="pg-hero inv-hero">
-        <div className="pg-container pg-hero-body">
-          <p className="pg-eyebrow">{total} {total === 1 ? "propiedad" : "propiedades"}</p>
-          <h1 className="pg-title">Propiedades.</h1>
-          <p className="pg-lead">Consulta las características de cada inmueble y pregunta por su disponibilidad, documentos y condiciones antes de decidir.</p>
+      {/* Cabecera compacta: título, conteo y una sola fila de filtros (30/10/2026) */}
+      <section className="inv-hero" aria-labelledby="inv-title">
+        <div className="pg-container">
+          <div className="inv-head">
+            <h1 id="inv-title" className="inv-title">Propiedades</h1>
+            <p aria-live="polite" className="inv-count">
+              {resultados.length} de {total} {total === 1 ? "propiedad" : "propiedades"}
+            </p>
+          </div>
 
-          <div className="inv-filters">
+          <div className="inv-bar">
             <div className="inv-segment" role="group" aria-label="Operación">
               {(["todas", "venta", "renta"] as const).map((op) => (
                 <button key={op} type="button" aria-pressed={filtros.operacion === op} onClick={() => set("operacion", op)}>
@@ -269,32 +272,40 @@ export function InventoryExplorer({ propiedades }: Props) {
                 </button>
               ))}
             </div>
-            <div className="pg-pills" role="group" aria-label="Segmento">
-              <button type="button" aria-pressed={filtros.segmento === "todos"} onClick={() => set("segmento", "todos")} className={"pg-pill" + (filtros.segmento === "todos" ? " is-active" : "")}>Todos</button>
-              {SEGMENTOS_INMUEBLE.map((segmento) => (
-                <button key={segmento.key} type="button" aria-pressed={filtros.segmento === segmento.key} onClick={() => set("segmento", segmento.key)} className={"pg-pill" + (filtros.segmento === segmento.key ? " is-active" : "")}>{segmento.label}</button>
-              ))}
-            </div>
-            <div className="pg-pills" role="group" aria-label="Tipo de propiedad">
-              <button type="button" aria-pressed={filtros.tipo === "todos"} onClick={() => set("tipo", "todos")} className={"pg-pill" + (filtros.tipo === "todos" ? " is-active" : "")}>Todos los tipos</button>
-              {tipos.filter((t) => filtros.segmento === "todos" || (tiposDeSegmento(filtros.segmento) as readonly string[]).includes(t)).map((t) => (
-                <button key={t} type="button" aria-pressed={filtros.tipo === t} onClick={() => set("tipo", t)} className={"pg-pill" + (filtros.tipo === t ? " is-active" : "")}>{TIPO_LABELS[t]}</button>
-              ))}
-            </div>
-            <label className="inv-select">
-              <span>Zona</span>
+            <label className={"inv-select" + (filtros.tipo !== "todos" || filtros.segmento !== "todos" ? " is-active" : "")}>
+              <span className="sr-only">Tipo de propiedad</span>
+              <select id="filtro-tipo" value={filtros.tipo !== "todos" ? `tipo:${filtros.tipo}` : filtros.segmento !== "todos" ? `seg:${filtros.segmento}` : "todos"} onChange={(e) => {
+                const [clase, valor] = e.target.value.split(":");
+                setFiltros((f) => clase === "seg"
+                  ? { ...f, segmento: valor as SegmentoInmueble, tipo: "todos" }
+                  : clase === "tipo"
+                    ? { ...f, tipo: valor as TipoPropiedad, segmento: "todos" }
+                    : { ...f, tipo: "todos", segmento: "todos" });
+              }}>
+                <option value="todos">Todos los tipos</option>
+                <optgroup label="Uso">
+                  {SEGMENTOS_INMUEBLE.map((segmento) => <option key={segmento.key} value={`seg:${segmento.key}`}>{segmento.label}</option>)}
+                </optgroup>
+                <optgroup label="Tipo">
+                  {tipos.map((t) => <option key={t} value={`tipo:${t}`}>{TIPO_LABELS[t]}</option>)}
+                </optgroup>
+              </select>
+              <ChevronDown size={14} aria-hidden="true" />
+            </label>
+            <label className={"inv-select" + (filtros.zona !== "todas" ? " is-active" : "")}>
+              <span className="sr-only">Zona</span>
               <select id="filtro-zona" value={filtros.zona} onChange={(e) => set("zona", e.target.value)}>
                 <option value="todas">Todas las zonas</option>
                 {zonas.map((z) => <option key={z} value={z}>{z}</option>)}
               </select>
-              <ChevronDown size={16} aria-hidden="true" />
+              <ChevronDown size={14} aria-hidden="true" />
             </label>
-            <button type="button" className={"pg-pill" + (masFiltros ? " is-active" : "")} aria-expanded={masFiltros} aria-controls="inv-mas-filtros" onClick={() => setMasFiltros((v) => !v)}>
-              <SlidersHorizontal size={16} aria-hidden="true" />Más filtros{activeFilters.filter((f) => ["moneda", "min", "max", "orden"].includes(f.key)).length > 0 ? ` · ${activeFilters.filter((f) => ["moneda", "min", "max", "orden"].includes(f.key)).length}` : ""}
+            <button type="button" className={"inv-toggle" + (masFiltros || activeFilters.some((f) => ["moneda", "min", "max", "orden"].includes(f.key)) ? " is-active" : "")} aria-expanded={masFiltros} aria-controls="inv-mas-filtros" onClick={() => setMasFiltros((v) => !v)}>
+              <SlidersHorizontal size={14} aria-hidden="true" />Más filtros{activeFilters.filter((f) => ["moneda", "min", "max", "orden"].includes(f.key)).length > 0 ? ` · ${activeFilters.filter((f) => ["moneda", "min", "max", "orden"].includes(f.key)).length}` : ""}
             </button>
             <div className="inv-views" role="group" aria-label="Vista de resultados">
-              <button type="button" aria-pressed={vista === "cuadricula"} onClick={() => setVista("cuadricula")}><LayoutGrid size={16} aria-hidden="true" />Cuadrícula</button>
-              <button type="button" aria-pressed={vista === "mapa"} onClick={() => setVista("mapa")}><MapIcon size={16} aria-hidden="true" />Con mapa</button>
+              <button type="button" aria-pressed={vista === "cuadricula"} aria-label="Cuadrícula" title="Cuadrícula" onClick={() => setVista("cuadricula")}><LayoutGrid size={16} aria-hidden="true" /></button>
+              <button type="button" aria-pressed={vista === "mapa"} aria-label="Con mapa" title="Con mapa" onClick={() => setVista("mapa")}><MapIcon size={16} aria-hidden="true" /></button>
             </div>
           </div>
 
@@ -326,15 +337,10 @@ export function InventoryExplorer({ propiedades }: Props) {
             {min !== null || max !== null ? <p className="inv-note">Al filtrar por precio, las propiedades con valor a consulta no se muestran.</p> : null}
           </div>
 
-          <div className="inv-status">
-            <p aria-live="polite" className="inv-count">
-              {resultados.length} {resultados.length === 1 ? "resultado" : "resultados"}
-            </p>
-            {activeFilters.length > 0 ? <div className="inv-active" aria-label="Filtros activos">
-              {activeFilters.map((filter) => <button key={filter.key} type="button" onClick={() => clearFilter(filter.key)}>{filter.label}<X size={14} aria-hidden="true" /><span className="sr-only">Quitar filtro</span></button>)}
-              {hayFiltros ? <button type="button" className="inv-clear" onClick={() => setFiltros(DEFAULTS)}>Limpiar filtros</button> : null}
-            </div> : null}
-          </div>
+          {activeFilters.length > 0 ? <div className="inv-active" aria-label="Filtros activos">
+            {activeFilters.map((filter) => <button key={filter.key} type="button" onClick={() => clearFilter(filter.key)}>{filter.label}<X size={12} aria-hidden="true" /><span className="sr-only">Quitar filtro</span></button>)}
+            {hayFiltros ? <button type="button" className="inv-clear" onClick={() => setFiltros(DEFAULTS)}>Limpiar filtros</button> : null}
+          </div> : null}
         </div>
       </section>
 
@@ -400,7 +406,7 @@ export function InventoryExplorer({ propiedades }: Props) {
                 <div className="inv-map-frame">
                   <iframe key={mapQuery} src={`https://www.google.com/maps?q=${mapQuery}&z=13&output=embed`} title={`Mapa de ${mapaZonaActiva ?? "la zona"}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                 </div>
-                <p className="inv-map-note">Ubicación aproximada por zona. La dirección exacta se comparte al agendar la visita.</p>
+                <p className="inv-map-note">Zona aproximada. La dirección se da al agendar.</p>
                 <div className="inv-map-zones" role="group" aria-label="Zonas con resultados">
                   {zonasResultado.map((zona) => <button key={zona} type="button" aria-pressed={mapaZonaActiva === zona} onClick={() => setMapaZona(zona)} className={"pg-pill" + (mapaZonaActiva === zona ? " is-active" : "")}>{zona}<span>{resultados.filter((p) => p.zona === zona).length}</span></button>)}
                 </div>
@@ -410,7 +416,7 @@ export function InventoryExplorer({ propiedades }: Props) {
         ) : (
           <div className="pg-empty">
             <h2>No hay propiedades con esos criterios.</h2>
-            <p>El inventario cambia con frecuencia. Cuéntanos qué buscas y te avisamos cuando entre algo que encaje.</p>
+            <p>Dinos qué buscas y te avisamos cuando entre.</p>
             <div className="pg-pills" style={{ justifyContent: "center", marginTop: 24 }}>
               {hayFiltros ? <button type="button" onClick={() => setFiltros(DEFAULTS)} className="pg-btn pg-btn-ghost">Limpiar filtros</button> : null}
               <Link href="/contacto" className="pg-btn">Cuéntanos qué buscas</Link>

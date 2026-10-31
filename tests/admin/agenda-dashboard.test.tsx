@@ -92,7 +92,11 @@ test("Hoy's agenda shows only the operating day, not later or past days", async 
 
   const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
   await agenda.findByText("Sin citas hoy");
-  expect(screen.queryByText("Visita 1")).toBeNull();
+  // Sin citas hoy, la agenda anuncia la siguiente con su día; no la presenta como de hoy ni muestra las pasadas.
+  expect(agenda.queryAllByRole("listitem")).toHaveLength(0);
+  expect(agenda.getByText(/La siguiente: Jue 24 · 23:52 · Visita/)).toBeTruthy();
+  expect(agenda.getByText("Visita 1")).toBeTruthy();
+  expect(screen.queryByText("Visita 8")).toBeNull();
   expect(screen.queryByText("Visita de ayer")).toBeNull();
 });
 

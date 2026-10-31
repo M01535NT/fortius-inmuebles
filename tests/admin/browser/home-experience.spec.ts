@@ -21,28 +21,20 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("La venta empieza antes del anuncio.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCount(1);
-    // Sin etiqueta sobre el titular (titular, 25/10/2026).
-    await expect(hero.locator(".nx-eyebrow")).toHaveCount(0);
-    await expect(hero.locator("img")).toHaveCount(1);
-    expect(await hero.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    // Portada (30/10/2026): silent video with poster, one sentence and two actions, without search or zone marquee.
+    await expect(hero.locator(".nx-hero-eyebrow")).toHaveCount(1);
+    await expect(hero.getByRole("search")).toHaveCount(0);
+    await expect(hero.locator("a")).toHaveCount(2);
+    await expect(hero.locator("video")).toHaveCount(1);
+    expect(await page.request.get("/hero/portada-poster.webp").then((response) => response.status())).toBe(200);
     // The header floats transparent over the photograph until the page scrolls.
     await expect(page.locator("header").first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-    const search = hero.getByRole("search", { name: "Buscar propiedades" });
-    const submit = search.getByRole("button", { name: "Buscar" });
-    const seller = hero.getByRole("link", { name: /Pide tu opinión de valor/ });
-    await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
-    await expect(submit).toHaveCSS("opacity", "1");
-    for (const control of [search.locator(".nx-field").first(), submit, seller]) {
-      const box = (await control.boundingBox())!;
-      expect(box.height).toBeGreaterThanOrEqual(44);
-      expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(width);
-    }
-    await search.getByLabel("Operación").focus();
-    await expect(search.locator(".nx-field").first()).toHaveCSS("outline-style", "solid");
+    const title = (await hero.locator("h1").boundingBox())!;
+    expect(title.x).toBeGreaterThanOrEqual(0);
+    expect(title.x + title.width).toBeLessThanOrEqual(width);
     await page.screenshot({ path: testInfo.outputPath(`hero-${width}.png`) });
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
@@ -57,15 +49,13 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     await expect.poll(() => page.locator("[data-menu-item]").last().evaluate((node) => getComputedStyle(node).transform)).toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
-    await page.getByRole("button", { name: "Abrir menú" }).click();
-    await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
+    await page.locator("#metodo").scrollIntoViewIfNeeded();
     await expect(page.locator("#metodo")).toBeInViewport();
     await expect(page.locator("#evaluar")).toHaveCount(0);
     await expect(page.locator('a[href$="#evaluar"]')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(hero.locator("img")).toHaveCSS("animation-name", "none");
-    await expect(hero.locator(".nx-marquee-track")).toHaveCSS("animation-name", "none");
+    await expect.poll(() => hero.locator("video").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Cambiar a tema oscuro" }).click();
     await expect(page.locator("html")).toHaveClass(/dark/);
@@ -96,27 +86,20 @@ test("public homepage passes automatic WCAG AA checks in both themes", async ({ 
 });
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
-  test(`hero fills the first screen and its marquee can pause at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+  test(`hero opens the page under the transparent header at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
     await page.waitForLoadState("networkidle");
     const hero = page.locator(".nx-hero");
     const box = (await hero.boundingBox())!;
     expect(box.y).toBe(0);
-    expect(box.height).toBeGreaterThanOrEqual(viewport.height);
-    const track = hero.locator(".nx-marquee-track");
-    await expect(track).toHaveCSS("animation-play-state", "running");
-    await hero.getByRole("button", { name: "Pausar el movimiento de zonas" }).click();
-    await expect(track).toHaveCSS("animation-play-state", "paused");
-    await hero.getByRole("button", { name: "Reanudar el movimiento de zonas" }).click();
-    await expect(track).toHaveCSS("animation-play-state", "running");
+    // The cover fills the screen between 640 and 900 px (portada, 30/10/2026).
+    expect(box.height).toBeGreaterThanOrEqual(Math.min(Math.max(viewport.height, 640), 900));
+    await expect(hero.locator(".nx-marquee-track")).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath("cover.png") });
     await page.mouse.wheel(0, 400);
     await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(300);
     await expect(page.locator("header").first()).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(track).toHaveCSS("animation-name", "none");
-    await expect(hero.getByRole("button", { name: /movimiento de zonas/ })).toBeHidden();
   });
 }
 
@@ -147,14 +130,11 @@ test("hero remains readable before hydration with reduced motion and without Jav
     await page.goto("/");
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCSS("opacity", "1");
-    await expect(hero.locator("img")).toHaveCSS("animation-name", "none");
-    await hero.getByRole("link", { name: /Pide tu opinión de valor/ }).click();
-    await expect(page).toHaveURL(/\/vender-propiedad#diagnostico$/);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prepara tu propiedad para vender.");
-    await page.goto("/");
-    await hero.getByRole("button", { name: "Buscar" }).click();
-    // Without JavaScript the native form sends its empty fields; the catalog ignores them.
-    await expect(page).toHaveURL(/\/inventario(\?op=&tipo=&zona=)?$/);
+    expect(await hero.locator("video").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
+    await expect(hero.locator(".nx-hero-line > span").last()).toBeInViewport();
+    await hero.getByRole("link", { name: "Quiero vender" }).click();
+    await expect(page).toHaveURL(/\/vender-propiedad$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vende con todo en orden.");
     expect(errors).toEqual([]);
     await context.close();
   }

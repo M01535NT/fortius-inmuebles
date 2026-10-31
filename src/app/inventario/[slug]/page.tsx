@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import QRCode from "qrcode";
 import { notFound } from "next/navigation";
-import { Check, MapPin } from "lucide-react";
+import { ArrowRight, Calculator, Check, ChevronDown, MapPin } from "lucide-react";
 
 import { propertyShare, propertyShareMetadata } from "@/lib/property-share";
-import { ContactDock } from "@/components/property/contact-dock";
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 import { PropertyCard } from "@/components/property/property-card";
 import { PropertyDocuments } from "@/components/property/property-documents";
@@ -14,7 +12,6 @@ import { PropertyGallery } from "@/components/property/property-gallery";
 import { InventoryBackLink } from "@/components/property/inventory-back-link";
 import { PropertyLocation } from "@/components/property/property-location";
 import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
-import { SharePanel } from "@/components/property/share-panel";
 import { VisitPlanner } from "@/components/property/visit-planner";
 import { getPublicAdvisers, getPublicSettings } from "@/lib/backend/public";
 import { publicContact } from "@/lib/public-contact";
@@ -67,6 +64,27 @@ function money(amount: number, p: Property) {
   return `$${amount.toLocaleString("en-US")} ${moneda}`;
 }
 
+/* Fechas largas en español; las fechas sin hora se leen a mediodía UTC para no cambiar de día. */
+function fechaLarga(value: string | undefined, conAnio = true) {
+  if (!value) return "";
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00Z` : value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("es-MX", { day: "numeric", month: "long", ...(conAnio ? { year: "numeric" } : {}), timeZone: "America/Tijuana" });
+}
+
+/* Precio por m²: solo con precio publicado y la superficie que corresponde (terreno en terrenos, construcción en lo demás). */
+function precioPorM2(p: Property) {
+  if (p.precio.modalidad !== "publico") return null;
+  const esTerreno = p.tipo === "terreno";
+  const m2 = esTerreno ? p.ficha.terrenoM2 : p.ficha.construccionM2;
+  if (!m2 || m2 <= 0) return null;
+  const monto = Math.round(p.precio.monto / m2).toLocaleString("en-US");
+  return {
+    valor: `$${monto} ${p.precio.moneda}${p.operacion === "renta" ? " al mes" : ""}`,
+    base: esTerreno ? "por m² de terreno" : "por m² de construcción",
+  };
+}
+
 function jsonLd(p: Property): string {
   const data = {
     "@context": "https://schema.org",
@@ -100,14 +118,6 @@ function jsonLd(p: Property): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
-async function qrSvg(url: string) {
-  try {
-    return await QRCode.toString(url, { type: "svg", margin: 1, width: 180, color: { dark: "#061f3f", light: "#ffffff" } });
-  } catch {
-    return undefined;
-  }
-}
-
 /*
   Ficha del inmueble · «Escenario» (titular, 18/10/2026): banda oscura con
   título, precio y visor; franja de datos clave; secciones con índice fijo y
@@ -123,6 +133,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
     getRelatedProperties(slug), getPublicAdvisers(), getPublicSettings(), getConjunto(property),
   ]);
   const ficha = fichaRows(property);
+  const porM2 = precioPorM2(property);
+  const publicada = fechaLarga(property.publicadaEl);
+  const revisada = fechaLarga(property.informacionPublica?.disponibilidadRevisadaEl, false);
   const share = propertyShare(property);
   const pageUrl = new URL(`/inventario/${property.slug}`, siteConfig.url).href;
   const enquiryMessage = `Hola, me interesa ${property.titulo} (${property.codigo}). ${pageUrl}`;
@@ -133,7 +146,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const beneficios = property.beneficios ?? [];
   const documentos = property.documentos ?? [];
   const costos = property.costos ?? {};
-  const qr = await qrSvg(share.url);
 
   const secciones = [
     { id: "descripcion", label: "Descripción", show: property.descripcion.length > 0 },
@@ -160,6 +172,16 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             <span>{property.zona}</span>
           </nav>
 
+          <PropertyGallery
+            imagenes={property.galeria}
+            titulo={property.titulo}
+            share={share}
+            videoUrl={property.videoUrl}
+            tour360Url={property.tour360Url}
+            fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
+            ficha={{ titulo: property.titulo, codigo: property.codigo, zona: property.zona, precio: formatPrecio(property.precio), filas: ficha.slice(0, 4).map(({ label, value }) => ({ label, value })), demo: property.demo }}
+          />
+
           <div className="fe-hero-head">
             <div>
               <p className="fe-chips">
@@ -170,25 +192,20 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               </p>
               <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
               <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
+              {(publicada || revisada) && <p className="fe-dates">
+                {publicada && <span>Publicada el {publicada}</span>}
+                {revisada && <span>Disponibilidad revisada el {revisada}</span>}
+              </p>}
             </div>
             <div className="fe-price-block">
               <p className="fe-price">{formatPrecio(property.precio)}</p>
+              {porM2 && <p className="fe-price-m2">{porM2.valor} {porM2.base}</p>}
               {muestraCalculadora && <p className="fe-price-note">Con crédito hipotecario. <a href="#costos">Calcular mensualidad</a></p>}
               {property.operacion === "renta" && <p className="fe-price-note">Renta mensual. <a href="#costos">Ver costos</a></p>}
             </div>
           </div>
 
           {property.demo && <p className="fe-demo-note"><strong>Propiedad de demostración.</strong> Los datos y el precio son de ejemplo; esta ficha no anuncia una oferta real.</p>}
-
-          <PropertyGallery
-            imagenes={property.galeria}
-            titulo={property.titulo}
-            share={share}
-            videoUrl={property.videoUrl}
-            tour360Url={property.tour360Url}
-            fichaUrl={`/inventario/${encodeURIComponent(property.slug)}/ficha-tecnica`}
-            ficha={{ titulo: property.titulo, codigo: property.codigo, zona: property.zona, precio: formatPrecio(property.precio), filas: ficha.slice(0, 4).map(({ label, value }) => ({ label, value })), demo: property.demo }}
-          />
         </div>
       </section>
 
@@ -204,7 +221,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             {secciones.map(section => <a key={section.id} href={`#${section.id}`}>{section.label}</a>)}
           </nav>
 
-          {property.estado === "apartada" && <p className="fe-alert">Esta propiedad está apartada. Podemos avisarte si vuelve a estar disponible o mostrarte opciones similares.</p>}
+          {property.estado === "apartada" && <p className="fe-alert">Apartada. Te avisamos si se libera o te mostramos opciones similares.</p>}
           {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
           {conjunto.plaza && <p className="fe-alert">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`} className="font-semibold underline underline-offset-4">{conjunto.plaza.titulo}</Link>.</p>}
 
@@ -268,24 +285,38 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <section id="documentos" className="fe-section" aria-labelledby="fe-docs">
             <p className="pg-eyebrow pg-eyebrow-ink">{documentos.length ? "Documentos y costos" : "Costos"}</p>
             <h2 id="fe-docs" className="fe-h2">Para decidir con números</h2>
-            <div className={"fe-docs-grid" + (documentos.length ? "" : " is-single")}>
-              {documentos.length > 0 && <div className="fe-docs">
-                <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
-              </div>}
+            <div className="fe-docs-grid">
               <div id="costos" className="fe-card fe-costs">
-                <dl>
-                  <div><dt>{property.operacion === "renta" ? "Renta" : "Precio"}</dt><dd>{formatPrecio(property.precio)}</dd></div>
+                <div className="fe-card-head">
+                  <h3>{property.operacion === "renta" ? "Costos de la renta" : "Costos"}</h3>
+                </div>
+                <dl className="fe-costs-list">
+                  <div><dt>{property.operacion === "renta" ? "Renta mensual" : "Precio"}</dt><dd>{formatPrecio(property.precio)}</dd></div>
+                  {porM2 && <div><dt>Precio {porM2.base}</dt><dd>{porM2.valor}</dd></div>}
                   {costos.predialAnual != null && <div><dt>Predial anual</dt><dd>{money(costos.predialAnual, property)}</dd></div>}
                   {costos.mantenimientoMensual != null && <div><dt>Mantenimiento mensual</dt><dd>{money(costos.mantenimientoMensual, property)}</dd></div>}
                 </dl>
-                {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="pg-link">Calcular gastos de cierre</Link>}
-                {muestraCalculadora && property.precio.modalidad === "publico" ? (
-                  <details className="fe-mortgage">
-                    <summary>Calcular mi mensualidad</summary>
-                    <div className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
-                  </details>
-                ) : null}
+                {(property.operacion === "venta" || muestraCalculadora) && <div className="fe-costs-tools">
+                  {property.operacion === "venta" && <Link href="/herramientas/gastos-de-cierre" className="fe-costs-tool">
+                    <Calculator size={18} strokeWidth={1.7} aria-hidden="true" />
+                    <span><strong>Gastos de cierre</strong><span>Cuánto necesitas además del precio.</span></span>
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </Link>}
+                  {muestraCalculadora && property.precio.modalidad === "publico" ? (
+                    <details className="fe-mortgage">
+                      <summary className="fe-costs-tool">
+                        <Calculator size={18} strokeWidth={1.7} aria-hidden="true" />
+                        <span><strong>Mensualidad con crédito</strong><span>Según enganche, plazo y tasa.</span></span>
+                        <ChevronDown size={18} aria-hidden="true" className="fe-mortgage-icon" />
+                      </summary>
+                      <div className="fe-mortgage-body"><MortgageCalculator precio={property.precio.monto} moneda={property.precio.moneda} /></div>
+                    </details>
+                  ) : null}
+                </div>}
               </div>
+              {documentos.length > 0 && <div className="fe-docs">
+                <PropertyDocuments documentos={documentos} slug={property.slug} codigo={property.codigo} />
+              </div>}
             </div>
           </section>
 
@@ -300,7 +331,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <VisitPlanner slug={property.slug} codigo={property.codigo} titulo={property.titulo}
             asesor={asesor ? { nombre: asesor.nombre, cargo: asesor.cargo, iniciales: asesor.iniciales } : undefined}
             channels={{ whatsapp: contact.whatsapp, phoneHref: contact.phoneHref, emailHref: contact.emailHref }} />
-          <SharePanel title={share.title} text={share.text} url={share.url} qrSvg={qr} />
         </aside>
       </div>
 
@@ -323,7 +353,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
       </section>}
 
       <PropertyMobileCta settings={settings} message={`Hola, quiero agendar una visita a ${property.titulo} (${property.codigo}). ${pageUrl}`} />
-      <ContactDock settings={settings} message={enquiryMessage} />
     </main>
   );
 }

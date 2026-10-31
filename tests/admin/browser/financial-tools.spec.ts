@@ -159,7 +159,7 @@ test("property detail retains the compact planner and explicit dollar conversion
 }) => {
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto("/inventario/residencia-vista-al-mar-playas");
-  await page.getByText("Calcular mi mensualidad", { exact: true }).click();
+  await page.getByText("Mensualidad con crédito", { exact: true }).click();
   const planner = page.getByRole("region", {
     name: "Simulador de crédito hipotecario",
   });

@@ -47,22 +47,24 @@ async function fits(page: Page) {
   ).toBe(true);
 }
 
-test("la barra lateral guía por cinco secciones, Herramientas y Administración", async ({ page }) => {
+test("la barra superior guía por cinco secciones y «Más»; «Nuevo» y la cuenta abren sus menús", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Más"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^Hoy/ })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("link", { name: "Nueva operación" }).first()).toHaveAttribute("href", "/admin/operaciones/nueva");
-  for (const gone of ["Más", "Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
-  const admin = nav.getByRole("button", { name: /Administración/ });
-  await expect(admin).toHaveAttribute("aria-expanded", "false");
-  await admin.click();
-  for (const name of ["Equipo", "Sitio web", "Reportes", "Historial", "Configuración"]) await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
-  await nav.getByRole("link", { name: /^Herramientas/ }).click();
+  for (const gone of ["Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
+  await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(page.getByRole("menu", { name: "Qué quieres crear" }).getByRole("menuitem", { name: "Nueva operación" })).toHaveAttribute("href", "/admin/operaciones/nueva");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
+  for (const name of ["Mi perfil", "Administración", "Ver sitio"]) await expect(page.getByRole("link", { name, exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await nav.getByRole("link", { name: "Más" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
   await expect(page.locator("main h1")).toHaveText("Herramientas");
-  await expect(nav.getByRole("link", { name: /^Herramientas/ })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Más" })).toHaveAttribute("aria-current", "page");
   await fits(page);
 });
 
@@ -70,9 +72,10 @@ test("un asesor no ve Administración y conserva las 17 herramientas", async ({ 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { id: "editor-apps-test", email: "editor@example.invalid", role: "editor" } } }));
   await page.goto("/admin/herramientas");
-  const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
+  await page.getByRole("button", { name: /Cuenta y sesión/ }).click();
+  await expect(page.getByRole("link", { name: "Administración", exact: true })).toHaveCount(0);
   await expect(page.getByText("Asesor", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(page.locator("main article")).toHaveCount(17);
 });
 
@@ -94,7 +97,7 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
     const trigger = page.getByRole("button", { name: "Menú del panel" });
     await trigger.click();
     const menu = page.getByRole("navigation", { name: "Módulos móviles" });
-    for (const name of ["Inmuebles", "Agenda", "Ver las 16 herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    for (const name of ["Inmuebles", "Agenda", "Herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
     const admin = menu.getByRole("button", { name: /Administración/ });
     await expect(admin).toHaveAttribute("aria-expanded", "false");
     await admin.click();
@@ -253,8 +256,8 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
     return route.fulfill({json:{ok:true}});
   });
   await page.goto("/admin");
-  await page.getByRole("complementary").getByRole("button",{name:/Cuenta y sesión/}).click();
-  await page.getByRole("complementary").getByRole("link",{name:"Mi perfil"}).click();
+  await page.getByRole("banner").getByRole("button",{name:/Cuenta y sesión/}).click();
+  await page.getByRole("banner").getByRole("link",{name:"Mi perfil"}).click();
   await page.getByLabel("Nombre visible").fill("Moisés Núñez");
   await page.getByLabel("Seleccionar fotografía").setInputFiles({
     name:"foto.png",mimeType:"image/png",
@@ -302,7 +305,7 @@ test("Documentos es una pestaña de Herramientas y la dirección anterior lleva 
   await page.goto("/admin/documentos");
   await expect(page).toHaveURL(/\/admin\/herramientas\?tab=documentos$/);
   await expect(page.getByRole("tab", { name: "Documentos" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByText(/Busca por folio o formato/)).toBeVisible();
+  await expect(page.getByText(/Busca documentos por folio o formato/)).toBeVisible();
   await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
   await page.getByRole("tab", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);

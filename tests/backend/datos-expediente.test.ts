@@ -1,6 +1,34 @@
 import { describe, expect, it } from "vitest";
 import { FORMATOS } from "@/lib/formatos/catalog";
-import { DATOS_EXPEDIENTE, datosGuardados, llenarDesdeDatos, type DatosGuardados } from "@/lib/formatos/datos-expediente";
+import { DATOS_EXPEDIENTE, datosAutomaticos, datosGuardados, fechasDeHoy, llenarDesdeDatos, mezclarDatos, sinAutomaticosIguales, type DatosGuardados } from "@/lib/formatos/datos-expediente";
+
+/* Datos automáticos con dueño (CSR-02): la ficha de la persona manda; las medidas de la del inmueble entran por confirmar. */
+describe("datos automáticos", () => {
+  const AHORA = "2026-10-31T12:00:00.000Z";
+  it("toma de la ficha de la persona lo confirmado y de la del inmueble lo que queda por confirmar", () => {
+    const datos = datosAutomaticos({ persona: { nombre: " María Ramírez ", telefono: "6641234567", curp: "RAMM800512MBCRRR09", fechaNacimiento: "1980-05-12", email: "" }, inmueble: { tipo: "casa", ficha: { terrenoM2: 160, construccionM2: 210, recamaras: 3, banos: 2.5 } }, ahora: AHORA });
+    expect(datos.propietarioNombre).toEqual({ valor: "María Ramírez", estado: "confirmado", fuente: { documento: "Ficha de la persona" }, actualizadoEl: AHORA });
+    expect(datos.propietarioCurp?.valor).toBe("RAMM800512MBCRRR09");
+    expect(datos.propietarioNacimiento?.valor).toBe("1980-05-12");
+    expect(datos.propietarioCorreo).toBeUndefined();
+    expect(datos.inmuebleTipo).toMatchObject({ valor: "casa", estado: "confirmado" });
+    expect(datos.superficieTerreno).toMatchObject({ valor: 160, estado: "propuesto", fuente: { documento: "Ficha del inmueble" } });
+    expect(datos.banos?.valor).toBe(2);
+    expect(datos.mediosBanos?.valor).toBe(1);
+  });
+  it("lo guardado en el expediente gana, y al guardar se omite lo automático que no cambió", () => {
+    const auto = datosAutomaticos({ persona: { nombre: "María" }, ahora: AHORA });
+    const guardado: DatosGuardados = { propietarioNombre: { valor: "María Ramírez López", estado: "confirmado" } };
+    expect(mezclarDatos(auto, guardado).propietarioNombre.valor).toBe("María Ramírez López");
+    expect(sinAutomaticosIguales({ ...auto, folioReal: { valor: "1", estado: "confirmado" } }, auto)).toEqual({ folioReal: { valor: "1", estado: "confirmado" } });
+    expect(sinAutomaticosIguales(guardado, auto)).toEqual(guardado);
+  });
+  it("un formato nace con las fechas que son hoy, sin tocar plazos ni lo ya escrito", () => {
+    expect(fechasDeHoy("05", {}, "2026-10-31")).toEqual({ fechaCorte: "2026-10-31" });
+    expect(fechasDeHoy("05", { fechaCorte: "2026-10-01" }, "2026-10-31")).toEqual({});
+    expect(fechasDeHoy("14", {}, "2026-10-31")).not.toHaveProperty("fechaLimitePropuesta");
+  });
+});
 
 /* Datos del expediente (titular, 29/10/2026): se confirman una vez y llenan todos los formatos. */
 const confirmado = (valor: string | number) => ({ valor, estado: "confirmado" as const });

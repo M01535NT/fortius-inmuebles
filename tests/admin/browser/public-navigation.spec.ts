@@ -6,7 +6,7 @@ const sections = [
   "/blog", "/herramientas", "/nosotros", "/contacto",
   "/privacidad", "/terminos",
 ];
-const menuRoutes = ["/", "/inventario", "/#metodo", "/herramientas", "/blog", "/contacto"];
+const menuRoutes = ["/", "/inventario", "/vender-propiedad", "/comprar-propiedad", "/herramientas", "/blog", "/contacto"];
 const pages = [
   ...sections, "/herramientas/hipoteca", "/herramientas/gastos-de-cierre",
   "/inventario/residencia-vista-al-mar-playas",
@@ -28,7 +28,7 @@ for (const width of [375, 1440]) {
     expect(Math.round(bounds.x)).toBe(0);
     expect(Math.round(bounds.width)).toBe(width);
     await expect(menu.getByRole("link", { name: "Vender mi propiedad" })).toHaveAttribute("href", "/vender-propiedad");
-    await expect(menu.getByRole("link", { name: "Comprar una propiedad" })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Guía para comprar" })).toHaveAttribute("href", "/comprar-propiedad");
     expect(await menu.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
     await menu.getByRole("button", { name: "Cerrar menú" }).click();
     await expect(menu).toBeHidden();
@@ -58,9 +58,9 @@ for (const width of [375, 1440]) {
       const menu = page.getByRole("dialog", { name: "Menú", exact: true });
       await expect(menu, path).toBeVisible();
       for (const destination of menuRoutes) {
-        await expect(menu.locator(`nav[aria-label="Menú principal"] > ol > li > div > a[href="${destination}"]`), `${path} → ${destination}`).toHaveCount(1);
+        await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${destination}"]`), `${path} → ${destination}`).toHaveCount(1);
       }
-      if (menuRoutes.includes(path)) await expect(menu.locator(`nav[aria-label="Menú principal"] > ol > li > div > a[href="${path}"]`)).toHaveAttribute("aria-current", "page");
+      if (menuRoutes.includes(path)) await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${path}"]`)).toHaveAttribute("aria-current", "page");
       await menu.getByRole("button", { name: "Cerrar menú" }).click();
       await expect(menu).toBeHidden();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
@@ -82,11 +82,11 @@ test("leaving an initially loaded admin page restores public navigation", async 
   await page.getByRole("link", { name: "Ver sitio", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
-  await page.getByRole("search", { name: "Buscar propiedades" }).getByRole("button", { name: "Buscar" }).click();
+  await page.locator("footer").getByRole("link", { name: "Ver propiedades" }).click();
   await expect(page).toHaveURL(/\/inventario$/);
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
-  await menu.locator('nav[aria-label="Menú principal"] > ol > li > div > a[href="/contacto"]').click();
+  await menu.locator('nav[aria-label="Menú principal"] a[href="/contacto"]').click();
   await expect(page).toHaveURL(/\/contacto$/);
   await expect(menu).toBeHidden();
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
@@ -154,9 +154,9 @@ test("inventory menu keeps primary links accessible and restores focus when clos
   await page.goto("/inventario");
   await page.getByRole("button", { name: "Abrir menú" }).click();
   const menu = page.getByRole("dialog", { name: "Menú", exact: true });
-  for (const destination of menuRoutes) await expect(menu.locator(`nav[aria-label="Menú principal"] > ol > li > div > a[href="${destination}"]`)).toHaveCount(1);
+  for (const destination of menuRoutes) await expect(menu.locator(`nav[aria-label="Menú principal"] a[href="${destination}"]`)).toHaveCount(1);
   await expect(menu.locator("[data-menu-item]").last()).toHaveCSS("opacity", "1");
-  const contact = menu.locator('nav[aria-label="Menú principal"] > ol > li > div > a[href="/contacto"]');
+  const contact = menu.locator('nav[aria-label="Menú principal"] a[href="/contacto"]');
   await contact.scrollIntoViewIfNeeded();
   const close = menu.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeInViewport();
@@ -168,7 +168,7 @@ test("inventory menu keeps primary links accessible and restores focus when clos
   await expect(lastFocusable).toBeFocused();
   await close.focus();
   await page.keyboard.press("Tab");
-  const firstLink = menu.locator('nav[aria-label="Menú principal"] > ol > li > div > a[href="/"]');
+  const firstLink = menu.locator('nav[aria-label="Menú principal"] a').first();
   await expect(firstLink).toBeFocused();
   await expect.poll(() => firstLink.evaluate((node) => {
     const rect = node.getBoundingClientRect();
@@ -222,7 +222,8 @@ test("buyers, sellers and segment pages lead to the right next step on mobile", 
   for (const route of ["residencial", "comercial", "industrial"]) {
     await page.goto(`/${route}`);
     await expect(page).toHaveURL(new RegExp(`/inventario\\?segmento=${route}$`));
-    await expect(page.getByRole("button", { name: new RegExp(route, "i"), pressed: true })).toBeVisible();
+    // Compact filters (30/10/2026): the segment is the selected option of the type filter.
+    await expect(page.getByLabel("Tipo de propiedad")).toHaveValue(`seg:${route}`);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });
@@ -244,5 +245,5 @@ test("the footer reaches every property type from an interior page", async ({ pa
   }
   await footer.getByRole("link", { name: "Comercial", exact: true }).click();
   await expect(page).toHaveURL(/\/inventario\?segmento=comercial$/);
-  await expect(page.getByRole("button", { name: "Comercial", pressed: true })).toBeVisible();
+  await expect(page.getByLabel("Tipo de propiedad")).toHaveValue("seg:comercial");
 });

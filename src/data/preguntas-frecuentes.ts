@@ -20,19 +20,19 @@ const OWNER_QUESTIONS: { q: string; copy: HomeTextKey; link?: AnswerLink }[] = [
 ];
 
 export const BUYER_QUESTIONS: Pregunta[] = [
-  { id: "inventario", q: "¿Dónde consulto las propiedades?", a: "En el inventario puedes explorar las fichas, revisar fotografías y características y consultar la disponibilidad.", link: { href: "/inventario", label: "Explorar propiedades" } },
-  { id: "visita", q: "¿Cómo solicito información o una visita?", a: "Abre la ficha del inmueble y utiliza su opción de contacto para consultar esa propiedad y coordinar una visita." },
+  { id: "inventario", q: "¿Dónde consulto las propiedades?", a: "En el inventario: fotos, características y disponibilidad.", link: { href: "/inventario", label: "Explorar propiedades" } },
+  { id: "visita", q: "¿Cómo solicito información o una visita?", a: "Desde la ficha del inmueble, con su botón de contacto." },
 ];
 
 /* Preguntas base de la página completa; el equipo agrega más desde el panel. */
 const BUYER_EXTRA: Pregunta[] = [
-  { id: "documentos", q: "¿Qué documentos debo pedir antes de comprar?", a: "Escritura, certificado de libertad de gravamen, recibos de predial, agua y luz al corriente, y la identificación de quien vende. Conviene revisarlos antes de apartar o firmar.", link: { href: "/comprar-propiedad#documentos", label: "Ver qué revisar" } },
-  { id: "gastos", q: "¿Qué gastos se suman al precio de compra?", a: "Además del precio, considera el impuesto de adquisición (ISAI), honorarios notariales, derechos de registro, avalúo y, si hay crédito, los gastos de la institución financiera. Los importes se confirman con la notaría.", link: { href: "/herramientas/gastos-de-cierre", label: "Estimar gastos de cierre" } },
-  { id: "credito", q: "¿Puedo comprar con crédito?", a: "Sí, con crédito bancario o de instituciones como Infonavit o Fovissste, sujeto a su aprobación. Puedes estimar la mensualidad como referencia; las condiciones las confirma la institución.", link: { href: "/herramientas/hipoteca", label: "Calcular mi mensualidad" } },
+  { id: "documentos", q: "¿Qué documentos debo pedir antes de comprar?", a: "Escritura, libertad de gravamen, predial, agua y luz al corriente, e identificación de quien vende. Revísalos antes de apartar.", link: { href: "/comprar-propiedad#documentos", label: "Ver qué revisar" } },
+  { id: "gastos", q: "¿Qué gastos se suman al precio de compra?", a: "ISAI, notaría, registro, avalúo y, con crédito, los gastos del banco. La notaría confirma los importes.", link: { href: "/herramientas/gastos-de-cierre", label: "Estimar gastos de cierre" } },
+  { id: "credito", q: "¿Puedo comprar con crédito?", a: "Sí: bancario, Infonavit o Fovissste, sujeto a aprobación. La institución confirma las condiciones.", link: { href: "/herramientas/hipoteca", label: "Calcular mi mensualidad" } },
 ];
 
 const GENERAL_QUESTIONS: Pregunta[] = [
-  { id: "contacto", q: "¿Cómo puedo contactarlos?", a: "Desde la página de contacto puedes elegir el canal que prefieras y contarnos si quieres comprar, vender o preguntar por un inmueble.", link: { href: "/contacto", label: "Ir a contacto" } },
+  { id: "contacto", q: "¿Cómo puedo contactarlos?", a: "En la página de contacto, por el canal que prefieras.", link: { href: "/contacto", label: "Ir a contacto" } },
 ];
 
 export function preguntasPorGrupo(content?: SiteContent | null): { key: GrupoPregunta; title: string; questions: Pregunta[] }[] {

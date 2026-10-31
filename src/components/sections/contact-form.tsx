@@ -43,7 +43,7 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
       <div role="status" className="cf-sent">
         <CheckCircle2 size={32} strokeWidth={1.5} aria-hidden="true" />
         <h3 className="pg-h3">Recibimos tu solicitud.</h3>
-        <p className="pg-muted">Revisamos la información y te contactamos para decirte cuál es el siguiente paso.</p>
+        <p className="pg-muted">Te contactamos con el siguiente paso.</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
           });
           setSent(true);
         } catch {
-          setError("No pudimos enviar tus datos. Revisa tu conexión e inténtalo otra vez, o escríbenos por WhatsApp.");
+          setError("No se enviaron tus datos. Inténtalo otra vez o escríbenos por WhatsApp.");
         } finally {
           setEnviando(false);
         }
@@ -82,7 +82,7 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
       </div>
       {error ? <p role="alert" className="pg-notice" style={{ marginTop: 16, color: "var(--primary-text, #8a1634)" }}>{error}</p> : null}
       <button type="submit" disabled={enviando} className="pg-btn" style={{ marginTop: 20 }}>{enviando ? "Enviando…" : submitLabel}</button>
-      <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Sin compromiso. Usamos tus datos solo para dar seguimiento a tu solicitud.</p>
+      <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Sin compromiso. Tus datos, solo para esta solicitud.</p>
     </PublicLeadForm>
   );
 }

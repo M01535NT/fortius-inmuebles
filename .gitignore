@@ -41,3 +41,4 @@ next-env.d.ts
 # Configuraciones temporales de pruebas locales
 playwright.zz*.config.ts
 tests/admin/browser/zz-*.spec.ts
+src/data/codigos-postales-bc.json

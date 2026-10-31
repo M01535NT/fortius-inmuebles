@@ -4,7 +4,12 @@ import { Button } from "@/components/admin/kit";
 import { AsyncForm, Field, inputClass, selectClass, textareaClass } from "./ui";
 import { LeadFields, readLeadFields } from "./lead-fields";
 import { db, useCollection, upsert, uid, type Cliente } from "@/lib/admin/store";
+import { CpHelper } from "./cp-helper";
+import { datosDeCurp, domicilioDesde } from "@/lib/formatos/deducir";
 import s from "./form.module.css";
+
+/** Estados civiles como los piden los formatos; el texto es el que se imprime. */
+export const ESTADOS_CIVILES = ["Soltero(a)", "Casado(a) por sociedad conyugal", "Casado(a) por separación de bienes", "Unión libre", "Divorciado(a)", "Viudo(a)"] as const;
 
 export const CLIENTE_TIPO_LABELS: Record<Cliente["tipo"], string> = {
   propietario: "Propietario",
@@ -21,6 +26,17 @@ export function ClienteEditor({ initial, onDone, title }: { initial?: Cliente; o
   const [saving, setSaving] = React.useState(false);
   const [version] = React.useState(() => initial ? db.clientes.version(initial) : null);
   const asesores = useCollection(db.asesores);
+  // Datos para el expediente (CSR-02): se escriben una vez aquí; la CURP deduce la fecha de nacimiento y el código postal, la colonia.
+  const nacimiento = React.useRef<HTMLInputElement>(null), domicilio = React.useRef<HTMLInputElement>(null);
+  const [curpAviso, setCurpAviso] = React.useState("");
+  function deducirCurp(event: React.FocusEvent<HTMLInputElement>) {
+    const texto = event.target.value.trim();
+    if (!texto) { setCurpAviso(""); return; }
+    const datos = datosDeCurp(texto);
+    if (!datos) { setCurpAviso("La CURP no tiene la forma correcta; revísala."); return; }
+    if (nacimiento.current && !nacimiento.current.value) nacimiento.current.value = datos.fechaNacimiento;
+    setCurpAviso(`De la CURP: ${datos.sexo.toLowerCase()}, ${datos.entidad}.`);
+  }
   return (
     <AsyncForm
       className="flex min-w-0 flex-col gap-4"
@@ -40,6 +56,12 @@ export function ClienteEditor({ initial, onDone, title }: { initial?: Cliente; o
             tipo: v("tipo") as Cliente["tipo"],
             asesorId: v("asesorId") || undefined,
             notas: v("notas"),
+            curp: v("curp").toUpperCase().replace(/\s+/g, "") || undefined,
+            rfc: v("rfc").toUpperCase().replace(/\s+/g, "") || undefined,
+            estadoCivil: v("estadoCivil") || undefined,
+            fechaNacimiento: v("fechaNacimiento") || undefined,
+            domicilio: v("domicilio") || undefined,
+            identificacion: v("identificacion") || undefined,
             creadoEl: cliente?.creadoEl ?? now,
             actualizadoEl: now,
             ...(cliente?.leadId ? readLeadFields(e.currentTarget, cliente) : {}),
@@ -70,6 +92,23 @@ export function ClienteEditor({ initial, onDone, title }: { initial?: Cliente; o
           </Field>
         </div>
       </section>}
+      <section className={s.group} aria-label="Datos para el expediente">
+        <div className={s.groupHead}><h2>Datos para el expediente</h2><p>Se escriben una vez y los formatos de todas sus operaciones los toman.</p></div>
+        <div className={s.grid}>
+          <Field label="CURP" htmlFor="cl-curp" hint={curpAviso || "Con la CURP se deduce la fecha de nacimiento."}><input id="cl-curp" name="curp" maxLength={18} defaultValue={cliente?.curp} autoComplete="off" className={`${inputClass} uppercase`} onBlur={deducirCurp} /></Field>
+          <Field label="RFC" htmlFor="cl-rfc"><input id="cl-rfc" name="rfc" maxLength={13} defaultValue={cliente?.rfc} autoComplete="off" className={`${inputClass} uppercase`} /></Field>
+          <Field label="Fecha de nacimiento" htmlFor="cl-nacimiento"><input ref={nacimiento} id="cl-nacimiento" name="fechaNacimiento" type="date" defaultValue={cliente?.fechaNacimiento} className={inputClass} /></Field>
+          <Field label="Estado civil" htmlFor="cl-estadoCivil">
+            <select id="cl-estadoCivil" name="estadoCivil" defaultValue={cliente?.estadoCivil ?? ""} className={selectClass}>
+              <option value="">Sin dato</option>
+              {ESTADOS_CIVILES.map(estado => <option key={estado} value={estado}>{estado}</option>)}
+            </select>
+          </Field>
+          <Field label="Identificación oficial" htmlFor="cl-identificacion" hint="Tipo y número, por ejemplo INE 1234567890."><input id="cl-identificacion" name="identificacion" maxLength={160} defaultValue={cliente?.identificacion} className={inputClass} /></Field>
+          <Field label="Domicilio" htmlFor="cl-domicilio" className={s.span2} hint="Calle y número; con el código postal se completa la colonia y el municipio."><input ref={domicilio} id="cl-domicilio" name="domicilio" maxLength={400} defaultValue={cliente?.domicilio} className={inputClass} /></Field>
+          <CpHelper className={s.span2} onPick={colonia => { if (domicilio.current) domicilio.current.value = domicilioDesde(domicilio.current.value.split(",")[0], colonia); }} />
+        </div>
+      </section>
       <section className={s.group} aria-label="Relación y notas">
         <div className={s.groupHead}><h2>Relación y notas</h2></div>
         <div className={s.grid}>

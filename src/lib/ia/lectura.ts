@@ -116,9 +116,18 @@ export function aPropuestas(respuesta: RespuestaLectura, archivo: ArchivoLeido, 
   return { datos, propuestos, distintos };
 }
 
-/** Precio por millón de tokens del modelo de lectura (Claude Opus 5.5, consultado el 29/10/2026). */
-export const MODELO_LECTURA = "claude-opus-5-5";
-const USD_POR_MTOK = { entrada: 4, salida: 20 };
-export function costoAproximado(uso: { input_tokens: number; output_tokens: number }): number {
-  return Math.round(((uso.input_tokens * USD_POR_MTOK.entrada + uso.output_tokens * USD_POR_MTOK.salida) / 1_000_000) * 10_000) / 10_000;
+/**
+  Modelo de Claude para la lectura: ANTHROPIC_MODELO o, si no, Opus 5.5. El titular pidió Haiku 5.5
+  para esta tarea el 31/10/2026 (en .env.local). Precios por millón de tokens, consultados el 31/10/2026:
+  Opus 5.5 $4/$20; Sonnet 5.5 $2/$10; Haiku 5.5 $0.10/$0.50 (hasta 100 mil tokens de entrada); grok-4.7 $2/$6.
+*/
+export const MODELO_LECTURA = process.env.ANTHROPIC_MODELO?.trim() || "claude-opus-5-5";
+export const USD_POR_MTOK = { opus: { entrada: 4, salida: 20 }, sonnet: { entrada: 2, salida: 10 }, haiku: { entrada: 0.1, salida: 0.5 }, grok: { entrada: 2, salida: 6 } };
+export function tarifaDe(modelo: string) {
+  const nombre = modelo.toLowerCase();
+  return nombre.startsWith("grok") ? USD_POR_MTOK.grok : nombre.includes("haiku") ? USD_POR_MTOK.haiku : nombre.includes("sonnet") ? USD_POR_MTOK.sonnet : USD_POR_MTOK.opus;
+}
+export function costoAproximado(uso: { input_tokens: number; output_tokens: number }, modelo = MODELO_LECTURA): number {
+  const precio = tarifaDe(modelo);
+  return Math.round(((uso.input_tokens * precio.entrada + uso.output_tokens * precio.salida) / 1_000_000) * 10_000) / 10_000;
 }

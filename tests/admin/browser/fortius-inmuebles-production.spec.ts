@@ -18,7 +18,7 @@ test("production security headers use a nonce without browser CSP violations", a
 test("disabled public leads remain explicit after hydration", async ({ page }) => {
   await page.goto("/contacto");
   await expect(page.getByText("El contacto directo estará disponible próximamente.").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Solicitar evaluación" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Pedir entrevista" })).toHaveCount(0);
 });
 
 test("admin renders independently while the public backend is unavailable", async ({ page }) => {
@@ -37,7 +37,8 @@ test("Fortius fullscreen menu traps keyboard focus and restores its trigger", as
   const close = dialog.getByRole("button", { name: "Cerrar menú" });
   await expect(close).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("link", { name: /Contacto directo/ })).toBeFocused();
+  // The theme switch closes the menu's contact column, so it is the last stop.
+  await expect(dialog.getByRole("button", { name: /Cambiar a tema/ })).toBeFocused();
   await expect(dialog.getByRole("link", { name: "Términos y condiciones" })).toHaveCount(0);
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();

@@ -1,21 +1,21 @@
 import { expect, test } from "@playwright/test";
 
-test("the hero has a single image, one search and a pausable coverage marquee", async ({ page }) => {
+test("the hero keeps a single silent video and one sentence", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
   const hero = page.locator(".nx-hero");
-  await expect(hero.locator("img")).toHaveCount(1);
-  await expect(hero.getByRole("search")).toHaveCount(1);
-  await expect(hero.locator(".hero-marquee, .editorial-photo-controls")).toHaveCount(0);
-  await expect(hero.getByRole("list", { name: "Zonas de cobertura" })).toBeVisible();
-  const toggle = hero.getByRole("button", { name: "Pausar el movimiento de zonas" });
-  await toggle.click();
-  await expect(hero.locator(".nx-marquee-track")).toHaveCSS("animation-play-state", "paused");
-  await expect(hero.getByRole("button", { name: "Reanudar el movimiento de zonas" })).toBeFocused();
+  // Portada (30/10/2026): a muted looping video with a poster replaces the photograph.
+  await expect(hero.locator("img")).toHaveCount(0);
+  await expect(hero.locator("video")).toHaveCount(1);
+  await expect(hero.locator("video")).toHaveAttribute("poster", "/hero/portada-poster.webp");
+  expect(await hero.locator("video").evaluate((video: HTMLVideoElement) => video.muted)).toBe(true);
+  await expect(hero.getByRole("search")).toHaveCount(0);
+  await expect(hero.locator(".hero-marquee, .editorial-photo-controls, .nx-marquee-track")).toHaveCount(0);
+  await expect(hero.locator("h1")).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
 });
 
 test("dark link hover retains readable ink while buttons remain burgundy", async ({ page }) => {
   await page.goto("/terminos", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Cambiar a tema oscuro" }).click();
+  await page.locator("footer").getByRole("button", { name: "Cambiar a tema oscuro" }).click();
   const indexLink = page.locator('main a[href^="#"]').first();
   await indexLink.hover();
   await expect(indexLink).toHaveCSS("color", "rgb(245, 241, 235)");
@@ -36,12 +36,13 @@ for (const width of [390, 1440]) {
     expect(await fills()).toEqual(original);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())).toBe("#8a1634");
     const primary = menu.getByRole("navigation", { name: "Menú principal", exact: true });
-    await expect(primary.locator(":scope > ol > li > div > a")).toHaveCount(9);
-    const owner = menu.getByRole("region", { name: "Servicios para propietarios" });
+    await expect(primary.locator(":scope > section")).toHaveCount(4);
+    await expect(primary.locator("a")).toHaveCount(19);
+    const owner = menu.getByRole("region", { name: "Vender" });
     const sell = owner.getByRole("link", { name: "Vender mi propiedad" });
     await expect(sell).toHaveAttribute("href", "/vender-propiedad");
-    await expect(owner.getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
-    await expect(primary.getByRole("link", { name: "Propiedades", exact: true })).toHaveAttribute("href", "/inventario");
+    await expect(menu.getByRole("region", { name: "Vender" }).getByRole("link", { name: "Opinión de valor" })).toHaveAttribute("href", "/opinion-de-valor");
+    await expect(primary.getByRole("link", { name: "Ver todas", exact: true })).toHaveAttribute("href", "/inventario");
     await expect(menu.getByRole("link", { name: "Contacto directo" })).toHaveAttribute("href", "/contacto");
     await sell.scrollIntoViewIfNeeded();
     await sell.click();
@@ -53,12 +54,12 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
-  test(`home keeps six method stages that light up while scrolling at ${width}px`, async ({ page }) => {
+  test(`home keeps four method stages that light up while scrolling at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/", { waitUntil: "networkidle" });
     const timeline = page.locator("[data-method-timeline]");
-    await expect(timeline.locator("li")).toHaveCount(6);
-    await expect(page.getByRole("heading", { name: "Así vendemos tu propiedad." })).toBeAttached();
+    await expect(timeline.locator("li")).toHaveCount(4);
+    await expect(page.getByRole("heading", { name: "Cuatro etapas, cada una con su documento." })).toBeAttached();
     await page.locator("#metodo").scrollIntoViewIfNeeded();
     await expect(timeline.locator("li.is-active")).toHaveCount(1);
     for (let step = 0; step < 30 && !(await timeline.locator("li").last().evaluate((node) => node.classList.contains("is-active"))); step++) {
@@ -66,7 +67,7 @@ for (const width of [390, 1440]) {
       await page.waitForTimeout(60); // Pace wheel input for the scrubbed timeline; not a layout wait.
     }
     await expect(timeline.locator("li").last()).toHaveClass(/is-active/);
-    await expect(timeline.getByRole("heading", { name: "Cierre y entrega" })).toBeInViewport();
+    await expect(timeline.getByRole("heading", { name: "Cerramos contigo" })).toBeInViewport();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(timeline.locator("li").last()).toHaveCSS("opacity", "1");
     await expect(page.locator(".nx-hero-title")).toBeAttached();
@@ -109,7 +110,7 @@ for (const width of [390, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
     const stages = page.locator("[data-method-timeline] li");
-    await expect(stages).toHaveCount(6);
+    await expect(stages).toHaveCount(4);
     await expect(page.locator("[data-method-timeline] [role=region], [data-method-timeline] button")).toHaveCount(0);
     for (const stage of await stages.all()) {
       await stage.scrollIntoViewIfNeeded();

@@ -1,0 +1,32 @@
+/* Barra pública (30/10/2026): blanca con línea inferior; en la portada flota sobre el video hasta desplazar. */
+.header { --ink: #061f3f; --accent: #8a1634; --line: rgba(6, 31, 63, 0.14); position: fixed; inset: 0 0 auto; z-index: 40; color: var(--ink); transition: background-color 0.4s, border-color 0.4s, color 0.3s; border-bottom: 1px solid transparent; }
+.solid { background: #fff; border-bottom-color: var(--line); }
+:global(.dark) .header { --ink: #f5f1eb; --accent: #f5f1eb; --line: rgba(245, 241, 235, 0.14); }
+:global(.dark) .solid { background: #060c14; }
+.onImage { --ink: #fff; --accent: #fff; --line: rgba(255, 255, 255, 0.7); }
+.inner { display: flex; align-items: center; gap: 24px; width: 100%; max-width: 1240px; height: 72px; margin-inline: auto; padding-inline: clamp(20px, 4.2vw, 60px); }
+.logo { display: inline-flex; flex: none; }
+.nav { display: none; align-items: center; gap: 2px; margin-inline: auto; }
+.link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; color: var(--ink); font-size: 15px; font-weight: 600; white-space: nowrap; transition: color 0.2s, box-shadow 0.2s; }
+.link:hover, .link[aria-current="page"] { color: var(--accent); }
+.link[aria-current="page"] { box-shadow: inset 0 -2px 0 currentColor; }
+.actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* Menú: secundario, con las dos líneas. */
+.menu { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 0 12px 0 16px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--ink); font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+.menu:hover { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.lines { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 20px; height: 20px; }
+.lines span { width: 16px; height: 1.5px; background: currentColor; }
+.header :is(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (min-width: 1024px) {
+  .nav { display: flex; }
+  .nav + .actions { margin-left: 0; }
+}
+@media (max-width: 639px) {
+  .inner { gap: 12px; }
+  .logo :global(.brand-mark) { width: 128px; height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header, .menu { transition: none; }
+}

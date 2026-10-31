@@ -139,7 +139,7 @@ function Editor({
       </div>
       <fieldset className="space-y-4 rounded-lg border border-border p-4">
         <legend className="px-2 font-semibold">Ficha pública en Nosotros</legend>
-        <p className="text-sm text-muted-foreground">Estos datos se publican solo si activas la ficha. Los contactos internos de arriba no se muestran automáticamente.</p>
+        <p className="text-sm text-muted-foreground">Se publican solo si activas la ficha. Los contactos internos no se muestran.</p>
         <Field label="Descripción profesional" htmlFor="as-descripcion"><textarea id="as-descripcion" name="descripcion" maxLength={2000} rows={4} defaultValue={asesor?.perfilPublico?.descripcion} className={inputClass} /></Field>
         <div className="grid gap-4 sm:grid-cols-2">
           {([['foto', 'URL de fotografía pública'], ['telefono', 'Teléfono público'], ['whatsapp', 'WhatsApp público (URL o número)'], ['email', 'Correo público'], ['instagram', 'Instagram (URL)'], ['facebook', 'Facebook (URL)'], ['linkedin', 'LinkedIn (URL)']] as const).map(([key, label]) => <Field key={key} label={label} htmlFor={`as-publico-${key}`}><input id={`as-publico-${key}`} name={`publico-${key}`} type={key === 'email' ? 'email' : ['foto', 'instagram', 'facebook', 'linkedin'].includes(key) ? 'url' : 'text'} defaultValue={asesor?.perfilPublico?.[key]} className={inputClass} /></Field>)}
@@ -184,7 +184,7 @@ export default function AsesoresPage() {
     <div className="space-y-6">
       <PageHeader
         title="Equipo"
-        description="El equipo que aparece en el sitio y recibe prospectos e inmuebles."
+        description="Quién sale en el sitio y atiende contactos."
         actions={
           <button
             type="button"
@@ -276,7 +276,7 @@ export default function AsesoresPage() {
                     aria-label={`Eliminar ${a.nombre}`}
                     onClick={async () => {
                       if (leadsAsignados + inmuebles + clientesAsignados > 0) {
-                        throw new Error("Este asesor tiene prospectos, clientes o inmuebles asignados. Reasígnalos antes de eliminarlo.");
+                        throw new Error("Tiene contactos o inmuebles asignados. Reasígnalos antes de eliminarlo.");
                       }
                       if (await confirmAction(`¿Eliminar a ${a.nombre}?`))
                         await removeById(

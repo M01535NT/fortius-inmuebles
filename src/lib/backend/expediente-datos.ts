@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { datosGuardados, llenarDesdeDatos, type DatosGuardados } from "@/lib/formatos/datos-expediente";
+import { datosAutomaticos, datosGuardados, llenarDesdeDatos, mezclarDatos, sinAutomaticosIguales, type DatosGuardados, type InmuebleDatos, type PersonaDatos } from "@/lib/formatos/datos-expediente";
 import { ApiError, databaseError } from "./http";
 
 /*
@@ -19,6 +19,36 @@ export async function leerDatos(client: SupabaseClient, expedienteId: string): P
   if (!result.data) return { datos: {}, version: null };
   const parsed = datosGuardados.safeParse(result.data.datos);
   return { datos: parsed.success ? parsed.data : {}, version: result.data.version as number };
+}
+
+/**
+  Datos automáticos con dueño (CSR-02): lo que dicen la ficha de la persona y la del inmueble de la
+  operación. Si algo no se puede consultar, se sigue sin ello: el expediente funciona igual a mano.
+*/
+export async function datosAutomaticosDe(client: SupabaseClient, expedienteId: string, ahora = new Date().toISOString()): Promise<DatosGuardados> {
+  try {
+    const exp = await client.from("fortius_inmuebles_expedientes").select("cliente_id,propiedad_slug").eq("id", expedienteId).maybeSingle();
+    if (exp.error || !exp.data) return {};
+    const ids = [exp.data.cliente_id, exp.data.propiedad_slug].filter((value): value is string => typeof value === "string" && !!value);
+    if (!ids.length) return {};
+    const rows = await client.from("fortius_inmuebles_records").select("id,collection,data").in("id", ids);
+    if (rows.error) return {};
+    const persona = rows.data?.find(row => row.collection === "clientes" && row.id === exp.data!.cliente_id)?.data as PersonaDatos | undefined;
+    const inmueble = rows.data?.find(row => row.collection === "propiedades" && row.id === exp.data!.propiedad_slug)?.data as InmuebleDatos | undefined;
+    return datosAutomaticos({ persona, inmueble, ahora });
+  } catch { return {}; }
+}
+
+/** Lo guardado en el expediente sobre lo automático: lo que ven el panel y los formatos. */
+export async function leerDatosCompletos(client: SupabaseClient, expedienteId: string): Promise<{ datos: DatosGuardados; version: number | null; automaticos: DatosGuardados }> {
+  const [guardados, automaticos] = await Promise.all([leerDatos(client, expedienteId), datosAutomaticosDe(client, expedienteId)]);
+  return { datos: mezclarDatos(automaticos, guardados.datos), version: guardados.version, automaticos };
+}
+
+/** Guarda sin repetir lo automático que no cambió, para que la ficha siga mandando si se corrige allá. */
+export async function guardarDatosSinAutomaticos(privileged: SupabaseClient, userId: string, expedienteId: string, input: unknown, automaticos: DatosGuardados) {
+  const { version, datos } = escrituraDatos.parse(input);
+  return guardarDatos(privileged, userId, expedienteId, { version, datos: sinAutomaticosIguales(datos, automaticos) });
 }
 
 export async function guardarDatos(privileged: SupabaseClient, userId: string, expedienteId: string, input: unknown) {

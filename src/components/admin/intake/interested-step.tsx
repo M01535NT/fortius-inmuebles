@@ -134,12 +134,12 @@ export function InterestedDone({ intent, lead }: { intent: Intent; lead: Lead })
   return <div className={s.body}>
     <span className={s.doneMark} aria-hidden="true"><Check size={28} /></span>
     <h1 ref={heading} tabIndex={-1} className={s.title}>Listo, {lead.nombre} quedó como interesado</h1>
-    <p className={s.lead}>No se abrió operación: Fortius representa al propietario. Lo encuentras en Contactos, con su próxima acción.</p>
+    <p className={s.lead}>Sin operación: Fortius representa al propietario. Está en Contactos.</p>
     <Card as="div" className="overflow-hidden"><dl className={s.summary} aria-label="Resumen del interesado">
       <dt>Interesado</dt><dd>{lead.nombre}</dd>
       <dt>Quiere</dt><dd>{label(intent)}</dd>
       <dt>Próxima acción</dt><dd>{lead.perfil?.proximaAccion} · {lead.perfil?.proximoContacto}</dd>
-      <dt>Lo que sigue</dt><dd>Cuando visite un inmueble o haga una oferta, regístrala en la operación del propietario. Si firma la promesa, la compraventa o el arrendamiento, queda como contraparte de esa operación.</dd>
+      <dt>Lo que sigue</dt><dd>Sus visitas y ofertas van en la operación del propietario. Si firma, queda como contraparte.</dd>
     </dl></Card>
     <div className="flex flex-wrap items-center gap-3">
       <ButtonLink variant="primary" href={`/admin/leads/${encodeURIComponent(lead.id)}`}>Ver su ficha<ArrowRight size={16} aria-hidden="true" /></ButtonLink>

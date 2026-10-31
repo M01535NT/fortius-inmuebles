@@ -3,31 +3,29 @@ import type { SiteContent } from "@/lib/admin/store";
 
 /** Shared editorial defaults; the panel owns any explicitly edited value. */
 export const HOME_FIELDS = {
-  relatoTexto: { group: "Por qué Fortius", label: "Pendientes identificados", value: "Revisamos la documentación disponible antes de ofrecer el inmueble." },
-  relatoApoyo: { group: "Por qué Fortius", label: "Promoción acordada", value: "Definimos contigo los canales y las acciones para presentar tu propiedad." },
-  metodoTitulo: { group: "Método", label: "Título", value: "Así vendemos tu propiedad." },
-  metodoTexto: { group: "Método", label: "Introducción", value: "Desde la primera revisión hasta la entrega, te explicamos qué sigue y qué necesitamos de ti." },
-  captacionTexto: { group: "Método", label: "Captación", value: "Conocemos tu objetivo y la propiedad. Identificamos quién puede autorizar la venta y qué documentos necesitamos para revisarla." },
-  diagnosticoTexto: { group: "Método", label: "Verificación y precio", value: "Revisamos documentos, características y pendientes. Comparamos inmuebles similares para proponerte un rango y acordar contigo el precio de salida." },
-  preparacionTexto: { group: "Método", label: "Contrato y preparación", value: "Dejamos por escrito el servicio, los honorarios y las autorizaciones. Preparamos la ficha, las fotografías y el plan de publicación con información que se pueda respaldar." },
-  comercializacionTexto: { group: "Método", label: "Publicación y seguimiento", value: "Publicamos la propiedad en los canales acordados y comprobamos que los anuncios muestren datos y disponibilidad vigentes. Te informamos de las consultas y del avance de la campaña." },
-  visitasOfertasTexto: { group: "Método", label: "Visitas y ofertas", value: "Coordinamos visitas con interesados compatibles y registramos sus dudas. Cuando llega una oferta, revisamos contigo precio, forma de pago, plazos y condiciones antes de responder." },
-  cierreTexto: { group: "Método", label: "Cierre y entrega", value: "Coordinamos la firma con las partes y la notaría. Verificamos los pagos, documentamos la entrega de llaves e inventario y damos seguimiento a los trámites pendientes." },
+  relatoTexto: { group: "Lo que recibes", label: "Lo que falta, a tiempo", value: "Qué falta, antes de anunciar." },
+  relatoApoyo: { group: "Lo que recibes", label: "Dónde se publica", value: "Canales y fechas, acordados contigo." },
+  metodoTitulo: { group: "Método", label: "Título", value: "Cuatro etapas, cada una con su documento." },
+  metodoTexto: { group: "Método", label: "Introducción", value: "Te decimos qué sigue y qué necesitamos de ti." },
+  captacionTexto: { group: "Método", label: "Revisamos tu propiedad", value: "Quién vende, escritura, adeudos y medidas." },
+  diagnosticoTexto: { group: "Método", label: "Fijamos el precio con datos", value: "Comparamos propiedades parecidas. Tú decides el precio." },
+  comercializacionTexto: { group: "Método", label: "La publicamos y la mostramos", value: "Fotos, anuncios y visitas. Te avisamos de cada consulta." },
+  cierreTexto: { group: "Método", label: "Cerramos contigo", value: "Revisamos ofertas, notaría y entrega." },
   entregablesTitulo: { group: "Entregables", label: "Título", value: "Documentos\ny seguimiento." },
-  entregablesTexto: { group: "Entregables", label: "Introducción", value: "El contrato establece qué documentos preparamos y entregamos durante tu operación." },
-  factibilidadTexto: { group: "Entregables", label: "Revisión del expediente", value: "Documentos pendientes y aspectos que deben revisarse antes de ofrecer el inmueble." },
-  valorTexto: { group: "Entregables", label: "Opinión de valor", value: "Precio propuesto, propiedades comparadas, fuentes y límites de la información disponible." },
-  planTexto: { group: "Entregables", label: "Plan de comercialización", value: "Dónde se publicará el inmueble, qué acciones se realizarán y en qué fechas." },
-  gastosTexto: { group: "Entregables", label: "Estimación de gastos", value: "Impuestos, comisión y otros gastos estimados para calcular cuánto podrías recibir. Los importes se confirman para cada operación." },
-  contratoTexto: { group: "Entregables", label: "Contrato", value: "Servicio contratado, honorarios y obligaciones del propietario y de Fortius." },
-  reportesTexto: { group: "Entregables", label: "Reportes", value: "Consultas, visitas y ofertas recibidas, con las acciones realizadas en el periodo." },
-  preguntasTitulo: { group: "Preguntas frecuentes", label: "Título", value: "Preguntas\nantes de avanzar." },
-  tiempoRespuesta: { group: "Preguntas frecuentes", label: "Plazo de venta", value: "Depende del precio, la ubicación, el estado del inmueble y la demanda. Revisamos las consultas y ofertas para valorar los siguientes pasos." },
-  precioRespuesta: { group: "Preguntas frecuentes", label: "Precio de salida", value: "Comparamos la propiedad con inmuebles similares y explicamos las referencias disponibles. El precio de publicación se acuerda contigo." },
-  gastosRespuesta: { group: "Preguntas frecuentes", label: "Gastos de cierre", value: "Preparamos una estimación de impuestos, honorarios y otros gastos según la operación. Puedes consultar la calculadora como referencia inicial." },
-  inicioRespuesta: { group: "Preguntas frecuentes", label: "Cómo empezar", value: "La ubicación, el tipo de inmueble y un medio de contacto. Con esa información te indicamos qué documentos necesitamos revisar." },
+  entregablesTexto: { group: "Entregables", label: "Introducción", value: "Cada etapa deja un documento." },
+  factibilidadTexto: { group: "Entregables", label: "Análisis de factibilidad", value: "Qué se revisó y qué falta." },
+  valorTexto: { group: "Entregables", label: "Opinión de valor", value: "Precio propuesto y comparables." },
+  planTexto: { group: "Entregables", label: "Plan de comercialización", value: "Dónde y cuándo se publica." },
+  gastosTexto: { group: "Entregables", label: "Estimación de gastos", value: "Cuánto recibes al final, estimado." },
+  contratoTexto: { group: "Entregables", label: "Contrato", value: "Alcance y honorarios." },
+  reportesTexto: { group: "Entregables", label: "Reportes", value: "Consultas, visitas y ofertas." },
+  preguntasTitulo: { group: "Preguntas frecuentes", label: "Título", value: "Lo que más\nnos preguntan." },
+  tiempoRespuesta: { group: "Preguntas frecuentes", label: "Plazo de venta", value: "Depende del precio, la zona, el estado y la demanda." },
+  precioRespuesta: { group: "Preguntas frecuentes", label: "Precio de salida", value: "Comparamos con inmuebles similares. El precio lo acuerdas tú." },
+  gastosRespuesta: { group: "Preguntas frecuentes", label: "Gastos de cierre", value: "Te damos una estimación por concepto. La calculadora sirve de referencia." },
+  inicioRespuesta: { group: "Preguntas frecuentes", label: "Cómo empezar", value: "Ubicación, tipo de inmueble y un teléfono." },
   evaluarTitulo: { group: "Contacto", label: "Título", value: "¿Quieres vender\ntu propiedad?" },
-  evaluarTexto: { group: "Contacto", label: "Introducción", value: "Dinos la ubicación y el tipo de inmueble. Te contactamos para pedir los documentos necesarios para revisarlo." },
+  evaluarTexto: { group: "Contacto", label: "Introducción", value: "Dinos dónde está y qué tipo de inmueble es." },
 } as const;
 
 export type HomeTextKey = keyof typeof HOME_FIELDS;
@@ -42,9 +40,7 @@ const PREVIOUS_HOME_TEXTS: Record<HomeTextKey, string> = {
   metodoTexto: "Cuatro fases, con tareas y documentos definidos. Revisamos contigo el alcance del servicio antes de empezar.",
   captacionTexto: "Conocemos la propiedad, revisamos la documentación disponible y analizamos inmuebles comparables. Te explicamos qué información respalda el precio propuesto y qué falta por confirmar.",
   diagnosticoTexto: "",
-  preparacionTexto: "Acordamos las mejoras que conviene valorar, organizamos la fotografía y reunimos la información que necesitará un comprador.",
   comercializacionTexto: "Revisamos las necesidades de los interesados y coordinamos las visitas. Recibes un reporte cada 30 días; cuando llega una oferta, analizamos contigo el precio, la forma de pago y las condiciones.",
-  visitasOfertasTexto: "",
   cierreTexto: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Los gastos se presentan como estimaciones hasta que los confirme quien corresponda.",
   entregablesTitulo: "Lo que recibes\ndurante la venta.",
   entregablesTexto: "El trabajo queda por escrito. Estos documentos te ayudan a conocer la situación de tu propiedad, tomar decisiones y seguir el avance.",
@@ -67,7 +63,6 @@ const PREVIOUS_NOTES: Partial<Record<HomeTextKey, string>> = {
   metodoTitulo: "Nuestro método.\nSeis etapas para coordinar tu venta.",
   metodoTexto: "El contrato establece las tareas incluidas y los honorarios.",
   captacionTexto: "Revisamos los documentos y los datos del inmueble para identificar pendientes. Acordamos contigo el precio de salida y las condiciones del servicio.",
-  preparacionTexto: "Acordamos las mejoras que conviene valorar y organizamos la fotografía y el video. Reunimos las características del inmueble y elegimos los canales donde se publicará.",
   comercializacionTexto: "Revisamos las necesidades de los interesados antes de coordinar visitas. Recibes un reporte cada 30 días. Cuando recibimos una oferta por escrito, analizamos contigo el precio, la forma de pago y las condiciones.",
   cierreTexto: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Estimamos los gastos de cierre y documentamos la entrega de posesión.",
   tiempoRespuesta: "El plazo depende del precio, la zona, el estado del inmueble y la demanda. No se puede asegurar una fecha de venta.",
@@ -94,9 +89,52 @@ const PREVIOUS_EDITORIAL_TEXTS: Partial<Record<HomeTextKey, string>> = {
 /* Retired by the titular on 30/10/2026: it promised one adviser for the whole sale, which is not always true. */
 const RETIRED_METHOD_TITLE = "Seis etapas.\nUn responsable.";
 
+/* Defaults shipped with the six-stage home (boceto 2, 29/10/2026); replaced by the four-stage copy on 30/10/2026. */
+const PREVIOUS_SIX_STAGE_TEXTS: Partial<Record<HomeTextKey, string>> = {
+  relatoTexto: "Revisamos la documentación disponible antes de ofrecer el inmueble.",
+  relatoApoyo: "Definimos contigo los canales y las acciones para presentar tu propiedad.",
+  metodoTitulo: "Así vendemos tu propiedad.",
+  metodoTexto: "Desde la primera revisión hasta la entrega, te explicamos qué sigue y qué necesitamos de ti.",
+  captacionTexto: "Conocemos tu objetivo y la propiedad. Identificamos quién puede autorizar la venta y qué documentos necesitamos para revisarla.",
+  diagnosticoTexto: "Revisamos documentos, características y pendientes. Comparamos inmuebles similares para proponerte un rango y acordar contigo el precio de salida.",
+  comercializacionTexto: "Publicamos la propiedad en los canales acordados y comprobamos que los anuncios muestren datos y disponibilidad vigentes. Te informamos de las consultas y del avance de la campaña.",
+  cierreTexto: "Coordinamos la firma con las partes y la notaría. Verificamos los pagos, documentamos la entrega de llaves e inventario y damos seguimiento a los trámites pendientes.",
+  entregablesTexto: "El contrato establece qué documentos preparamos y entregamos durante tu operación.",
+  factibilidadTexto: "Documentos pendientes y aspectos que deben revisarse antes de ofrecer el inmueble.",
+  valorTexto: "Precio propuesto, propiedades comparadas, fuentes y límites de la información disponible.",
+  planTexto: "Dónde se publicará el inmueble, qué acciones se realizarán y en qué fechas.",
+  gastosTexto: "Impuestos, comisión y otros gastos estimados para calcular cuánto podrías recibir. Los importes se confirman para cada operación.",
+  contratoTexto: "Servicio contratado, honorarios y obligaciones del propietario y de Fortius.",
+  reportesTexto: "Consultas, visitas y ofertas recibidas, con las acciones realizadas en el periodo.",
+  preguntasTitulo: "Preguntas\nantes de avanzar.",
+};
+
+/* Defaults before the word cut of 30/10/2026 (shorter copy across the site). */
+const PREVIOUS_LONG_TEXTS: Partial<Record<HomeTextKey, string>> = {
+  relatoTexto: "Qué se revisó y qué falta por resolver, antes de anunciar.",
+  relatoApoyo: "Los canales y las fechas de publicación, acordados contigo.",
+  metodoTexto: "Desde la primera revisión hasta la entrega, te decimos qué sigue y qué necesitamos de ti.",
+  captacionTexto: "Quién puede vender, escritura, adeudos y medidas. Lo que falte, lo resolvemos antes de anunciar.",
+  diagnosticoTexto: "Comparamos propiedades parecidas y te proponemos un rango. Tú decides el precio de salida.",
+  comercializacionTexto: "Fotos, ficha y anuncios en los canales acordados. Coordinamos las visitas y te informamos de cada consulta.",
+  cierreTexto: "Revisamos cada oferta, coordinamos la notaría y documentamos la entrega.",
+  entregablesTexto: "Cada etapa deja un documento. Así sabes en qué va tu venta sin tener que preguntar.",
+  factibilidadTexto: "Qué se revisó y qué falta por resolver.",
+  valorTexto: "Precio propuesto y propiedades comparadas.",
+  gastosTexto: "Cuánto recibes al final, con impuestos y gastos estimados.",
+  contratoTexto: "Alcance y honorarios por escrito.",
+  reportesTexto: "Consultas, visitas y ofertas del periodo.",
+  tiempoRespuesta: "Depende del precio, la ubicación, el estado del inmueble y la demanda. Revisamos las consultas y ofertas para valorar los siguientes pasos.",
+  precioRespuesta: "Comparamos la propiedad con inmuebles similares y explicamos las referencias disponibles. El precio de publicación se acuerda contigo.",
+  gastosRespuesta: "Preparamos una estimación de impuestos, honorarios y otros gastos según la operación. Puedes consultar la calculadora como referencia inicial.",
+  inicioRespuesta: "La ubicación, el tipo de inmueble y un medio de contacto. Con esa información te indicamos qué documentos necesitamos revisar.",
+  evaluarTexto: "Dinos la ubicación y el tipo de inmueble. Te contactamos para pedir los documentos necesarios para revisarlo.",
+};
+
 export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefined, key: HomeTextKey): string {
   const value = content?.homeTexts?.[key]?.trim();
   const isOldDefault = value === PREVIOUS_HOME_TEXTS[key] || value === PREVIOUS_NOTES[key] || value === PREVIOUS_EDITORIAL_TEXTS[key]
+    || value === PREVIOUS_SIX_STAGE_TEXTS[key] || value === PREVIOUS_LONG_TEXTS[key]
     || (key === "cierreTexto" && value === OLDER_CLOSURE_NOTE)
     || (key === "metodoTitulo" && value === RETIRED_METHOD_TITLE);
   return brandCopy(value && !isOldDefault ? value : HOME_FIELDS[key].value);
@@ -106,7 +144,7 @@ export const SITE_COPY: Omit<SiteContent, "homeTexts" | "preguntas" | "testimoni
   heroTitulo: "Tu propiedad merece\nuna estrategia,\nno solo un anuncio.",
   heroSubtitulo: "Somos una inmobiliaria en Baja California. Comercializamos inmuebles residenciales, comerciales e industriales con análisis de mercado, revisión documental y seguimiento de la operación.",
   manifiestoTitulo: "Información para decidir.\nUn asesor para coordinar.",
-  manifiestoTexto: "Conoce qué información sustenta la propuesta y qué falta por confirmar.",
+  manifiestoTexto: "Por qué ese precio y con qué se comparó.",
   seoTitle: "Fortius Inmuebles | Venta en Tijuana, Rosarito, Tecate y Ensenada",
   seoDescription: "Venta de propiedades en Tijuana, Rosarito, Tecate y Ensenada. Revisión documental, precio de salida, publicación, visitas y análisis de ofertas con Fortius Inmuebles.",
 };
@@ -116,7 +154,7 @@ const LEGACY: Partial<Record<keyof typeof SITE_COPY, string[]>> = {
   heroTitulo: ["Inmobiliaria para\ncomprar y vender.", "Vende tu propiedad.", "Vende tu propiedad\nen Tijuana.", "Tu propiedad en Tijuana.\nUn plan para venderla.", "Vende con plan, no con anuncios."],
   heroSubtitulo: ["En Fortius te ayudamos a comparar propiedades, coordinar visitas y negociar las condiciones de tu compra o venta. Tu asesor reúne la información y da seguimiento a la operación para que puedas decidir.", "Trabajamos en Tijuana, Rosarito, Tecate y Ensenada. Revisamos los documentos, proponemos el precio de venta y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.", "Proponemos el precio de venta, revisamos los documentos y coordinamos la publicación y las visitas. Analizamos contigo las ofertas.", "Revisamos la documentación, analizamos el mercado y acordamos contigo cómo presentar la propiedad. Durante la venta, recibes seguimiento por escrito y acompañamiento para evaluar las ofertas.", "Precio con datos, expediente revisado y seguimiento por escrito. De la captación a la firma ante notario, en Tijuana y Baja California."],
   manifiestoTitulo: ["Cómo proponemos\nel precio de venta.", "Cada decisión,\ncon información.", "No prometemos resultados. Documentamos el proceso.", "No nos limitamos a tomar fotos. Creamos un proceso."],
-  manifiestoTexto: ["Comparamos ubicación, superficie y estado con propiedades similares. Te explicamos las referencias utilizadas y distinguimos precios anunciados de ventas documentadas cuando hay datos disponibles.", "Conoce el precio propuesto, los documentos pendientes y los siguientes pasos. El plan se acuerda contigo y el avance queda por escrito.", "Cada operación sigue el mismo método por escrito, de la captación a la firma. Por eso siempre sabes en qué paso va la tuya, y qué sigue después."],
+  manifiestoTexto: ["Por qué ese precio y con qué propiedades se comparó.", "Conoce qué información sustenta la propuesta y qué falta por confirmar.", "Comparamos ubicación, superficie y estado con propiedades similares. Te explicamos las referencias utilizadas y distinguimos precios anunciados de ventas documentadas cuando hay datos disponibles.", "Conoce el precio propuesto, los documentos pendientes y los siguientes pasos. El plan se acuerda contigo y el avance queda por escrito.", "Cada operación sigue el mismo método por escrito, de la captación a la firma. Por eso siempre sabes en qué paso va la tuya, y qué sigue después."],
   seoTitle: ["MNT Inmuebles | Venta de propiedades en Tijuana", "MNT Inmuebles | Metodología Inmobiliaria", "MNT Inmuebles | Vende tu propiedad en Tijuana con método"],
 };
 

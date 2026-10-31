@@ -29,7 +29,7 @@ export function AdviserAccountLinks({ isAdmin, advisers }: { isAdmin: boolean; a
   }
   return <section className="mt-8 rounded-lg border border-border bg-card p-5">
     <h2 className="display-soft text-xl">Cuentas de asesores</h2>
-    <p className="mt-2 text-sm text-muted-foreground">Vincula cada cuenta editor con su ficha de asesor. La cuenta verá solo los clientes y operaciones asignados a esa ficha.</p>
+    <p className="mt-2 text-sm text-muted-foreground">Liga cada cuenta con su ficha de asesor. Verá solo lo asignado a esa ficha.</p>
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
     <div className="mt-4 space-y-3">{accounts.filter((account) => account.role === "editor" && account.active).map((account) => <form key={account.user_id} onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); void link(account.user_id, String(data.get("asesorId"))); }} className="flex flex-wrap items-end gap-3 rounded-md border border-border p-3">
       <div className="min-w-[190px] flex-1"><strong className="block text-sm">{account.email || account.user_id}</strong><span className="font-mono text-xs text-muted-foreground">{account.user_id}</span></div>

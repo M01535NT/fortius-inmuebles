@@ -9,13 +9,9 @@ import { PublicLeadForm } from "@/components/forms/public-lead-form";
 /*
   Lead magnet: checklist de venta a cambio de nombre y WhatsApp.
   La descarga se libera solo tras confirmar la persistencia en el backend de MNT.
-  Boceto Vender: banda azul noche «¿Está lista tu propiedad para venderse?».
+  Vender (30/10/2026): banda azul noche con tres puntos visibles y dos campos.
 */
-const PREVIEW = [
-  "Identificar al propietario o representante y reunir el título disponible.",
-  "Revisar adeudos, gravámenes y diferencias documentales que deban resolverse.",
-  "Sustentar el precio con la evidencia de mercado que exista.",
-];
+const PREVIEW = ["Propietario y título", "Adeudos y gravámenes", "Precio con evidencia"];
 
 export function LeadMagnet() {
   const [sent, setSent] = React.useState(false);
@@ -43,22 +39,21 @@ export function LeadMagnet() {
   }
 
   return (
-    <section className="pg-container pg-section" aria-labelledby="lead-magnet">
-      <div className="lm-band">
+    <section className="lm-band" aria-labelledby="lead-magnet">
+      <div className="pg-container lm-grid">
         <div>
-          <p className="pg-eyebrow">Guía para propietarios</p>
+          <p className="pg-eyebrow">Checklist sin costo</p>
           <h2 id="lead-magnet" className="pg-h2">¿Está lista tu propiedad para venderse?</h2>
-          <p className="lm-text">Diez preguntas para preparar una venta. Algunas se resuelven de inmediato; otras requieren revisar documentos o consultar a un especialista antes de publicar.</p>
           <ul className="lm-list">
-            {PREVIEW.map((item) => <li key={item}><FileCheck2 size={18} strokeWidth={1.5} aria-hidden="true" />{item}</li>)}
-            <li className="lm-more">…y 7 puntos más en el PDF.</li>
+            {PREVIEW.map((item) => <li key={item}><FileCheck2 size={20} strokeWidth={1.6} aria-hidden="true" />{item}</li>)}
           </ul>
+          <p className="lm-more">Y 7 puntos más en el PDF.</p>
         </div>
         <div className="lm-card">
           {sent ? (
             <div>
               <p className="pg-h3">Listo. Aquí está tu checklist.</p>
-              <p className="pg-muted" style={{ marginTop: 8, fontSize: 14 }}>También lo usaremos para dar seguimiento a tu caso, sin spam y sin compartir tus datos.</p>
+              <p className="pg-muted" style={{ marginTop: 8, fontSize: 14 }}>Sin spam. No compartimos tus datos.</p>
               <a href="/descargas/checklist-venta-fortius.pdf" download className="pg-btn" style={{ marginTop: 20 }}>
                 <ArrowDownToLine size={18} strokeWidth={1.5} aria-hidden="true" />Descargar PDF
               </a>
@@ -70,10 +65,10 @@ export function LeadMagnet() {
                 <div className="pg-field"><label htmlFor="lm-telefono">Teléfono o WhatsApp</label><input id="lm-telefono" name="telefono" type="tel" required autoComplete="tel" placeholder="664 000 0000" /></div>
               </div>
               <button type="submit" disabled={enviando} className="pg-btn" style={{ width: "100%", marginTop: 16 }}>
-                <ArrowDownToLine size={18} strokeWidth={1.5} aria-hidden="true" />{enviando ? "Enviando…" : "Obtener el checklist"}
+                <ArrowDownToLine size={18} strokeWidth={1.5} aria-hidden="true" />{enviando ? "Enviando…" : "Recibir el checklist"}
               </button>
               {error ? <p role="alert" className="pg-notice" style={{ marginTop: 12, color: "var(--primary-text, #8a1634)" }}>{error}</p> : null}
-              <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Sin costo. Usamos tus datos solo para dar seguimiento; no los compartimos.</p>
+              <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Sin costo. No compartimos tus datos.</p>
             </PublicLeadForm>
           )}
         </div>

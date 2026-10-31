@@ -20,7 +20,8 @@ import { ExpedienteDatosPanel } from "./expediente-datos-panel";
 
 export type ArchivoCliente = { id: string; titulo: string; nombre_original: string; mime: string; byte_length: number; uploaded_by: string; created_at: string; deleted_at: string | null;
   lectura_estado?: "pendiente" | "leyendo" | "leido" | "error"; lectura_error?: string | null; tipo_documento?: string | null };
-type Lista = { archivos: ArchivoCliente[]; papelera: ArchivoCliente[]; ia?: boolean };
+/** `legibles`: qué tipos de archivo recibe el servicio de lectura; si no recibe PDF, el panel manda sus páginas como imágenes. */
+type Lista = { archivos: ArchivoCliente[]; papelera: ArchivoCliente[]; ia?: boolean; legibles?: string[] };
 type Lectura = { tipoDocumento: TipoDocumento; propuestos: string[]; distintos: { etiqueta: string }[] };
 const TIPOS = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 const MAX = 20 * 1024 * 1024;
@@ -51,7 +52,7 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
   const elegir = React.useRef<HTMLInputElement>(null), camara = React.useRef<HTMLInputElement>(null);
 
   const cargar = React.useCallback(() => json<Lista>(`/api/admin/expedientes/${operationId}/archivos`)
-    .then(r => setLista({ archivos: r.archivos ?? [], papelera: r.papelera ?? [], ia: Boolean(r.ia) }))
+    .then(r => setLista({ archivos: r.archivos ?? [], papelera: r.papelera ?? [], ia: Boolean(r.ia), legibles: r.legibles }))
     .catch(cause => { setLista(null); setError(errorMessage(cause)); }), [operationId]);
   React.useEffect(() => { void cargar(); }, [cargar]);
 
@@ -60,7 +61,18 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
   async function leer(archivo: ArchivoCliente) {
     actualizar(archivo.id, { lectura_estado: "leyendo", lectura_error: null });
     try {
-      const { lectura } = await json<{ lectura: Lectura }>(`/api/admin/archivos-cliente/${archivo.id}/leer`, { method: "POST" });
+      // Si el servicio no recibe PDF, el navegador dibuja sus páginas y las manda como imágenes.
+      let body: string | undefined;
+      if (archivo.mime === "application/pdf" && lista?.legibles && !lista.legibles.includes("application/pdf")) {
+        setNotice(`Preparando las páginas de «${archivo.titulo}»…`);
+        const response = await fetch(`/api/admin/archivos-cliente/${archivo.id}/descargar`, { credentials: "same-origin" });
+        if (!response.ok) throw new Error("No se pudo abrir el PDF para leerlo.");
+        const { paginasComoImagenes } = await import("@/lib/admin/pdf-paginas");
+        const { paginas, total } = await paginasComoImagenes(await response.arrayBuffer());
+        if (total > paginas.length) setNotice(`«${archivo.titulo}» tiene ${total} páginas; se leen las primeras ${paginas.length}.`);
+        body = JSON.stringify({ paginas });
+      }
+      const { lectura } = await json<{ lectura: Lectura }>(`/api/admin/archivos-cliente/${archivo.id}/leer`, { method: "POST", ...(body ? { headers: { "Content-Type": "application/json" }, body } : {}) });
       actualizar(archivo.id, { lectura_estado: "leido", tipo_documento: lectura.tipoDocumento });
       setLecturas(n => n + 1);
       const n = lectura.propuestos.length;
@@ -121,7 +133,7 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
     <Card className="p-5" aria-labelledby="docs-cliente-titulo">
       <div className="flex flex-col gap-1">
         <h2 id="docs-cliente-titulo" className="m-0 text-lg font-semibold">Documentos del cliente</h2>
-        <p className="text-sm text-muted-foreground">Sube aquí todo lo que entregue el cliente: escrituras, certificado de libertad de gravámenes, avalúo, identificaciones, CURP, predial, agua, actas, poderes. No hace falta acomodarlos. PDF o imagen, hasta 20 MB cada uno.</p>
+        <p className="text-sm text-muted-foreground">Todo lo que entregue el cliente, sin acomodar. PDF o imagen, hasta 20 MB cada uno.</p>
       </div>
       {/* Zona para soltar archivos; también se eligen o se toma la foto desde el celular. */}
       <div role="group" aria-label="Subir documentos" data-active={arrastrando}

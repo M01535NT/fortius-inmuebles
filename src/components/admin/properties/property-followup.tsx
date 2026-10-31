@@ -153,8 +153,8 @@ function BuyersBlock({ property, save }: BlockProps) {
   const record = (personaId: string, tipo: "lead" | "cliente", medio: NoticeChannel) => save({ avisosCompradores: [...(property.avisosCompradores ?? []), { id: uid(), personaId, tipo, medio, fecha: new Date().toISOString(), registradoPor: session?.name ?? session?.email, precio: property.precio.modalidad === "publico" ? { monto: property.precio.monto, moneda: property.precio.moneda } : undefined }] });
   return <section id="compradores" aria-labelledby="compradores-title" className={`${f.group} scroll-mt-24`}>
     <div className={f.groupHead}><h2 id="compradores-title">Compradores que podrían interesarse</h2><p>{offerable ? `${matches.length} ${matches.length === 1 ? "persona" : "personas"}` : "Sin avisos por ahora"}</p></div>
-    {!offerable ? <Notice tone="info" title="Publícalo para poder ofrecerlo">Solo se avisa de inmuebles publicados y disponibles: sin contrato de servicio firmado no se ofrece a nadie, tampoco en privado.</Notice>
-      : !matches.length ? <EmptyBox title="Nadie coincide todavía">Aparecen aquí los prospectos y clientes que buscan este tipo de inmueble, en esta zona o con este presupuesto.</EmptyBox>
+    {!offerable ? <Notice tone="info" title="Publícalo para poder ofrecerlo">Solo inmuebles publicados y disponibles: sin contrato firmado no se ofrece a nadie.</Notice>
+      : !matches.length ? <EmptyBox title="Nadie coincide todavía">Contactos que buscan algo así, en esta zona o con este presupuesto.</EmptyBox>
       : <ul className="flex flex-col gap-2" aria-label="Compradores que podrían interesarse">{matches.map(({ seeker, reasons }) => {
         const notice = lastNotice(property, seeker), dropped = priceDroppedSince(property, notice), wa = whatsappDigits(seeker.telefono);
         return <li key={`${seeker.kind}:${seeker.id}`} className="flex flex-col gap-3 rounded-[10px] border border-border p-3">

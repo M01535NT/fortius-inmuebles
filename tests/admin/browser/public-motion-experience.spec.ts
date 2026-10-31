@@ -1,16 +1,15 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("the six timeline stages remain readable on touch screens and show reading progress", async ({ browser }) => {
+test("the four timeline stages remain readable on touch screens and show reading progress", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await context.newPage();
   await page.goto("/", { waitUntil: "networkidle" });
   const progress = page.getByRole("progressbar", { name: "Avance de lectura" });
   await expect(progress).toBeAttached();
-  await page.getByRole("button", { name: "Abrir menú" }).click();
-  await page.getByRole("dialog").getByRole("link", { name: /Método/ }).click();
+  await page.locator("#metodo").scrollIntoViewIfNeeded();
   const stages = page.locator("[data-method-timeline] li");
-  await expect(stages).toHaveCount(6);
+  await expect(stages).toHaveCount(4);
   for (const stage of await stages.all()) {
     await stage.scrollIntoViewIfNeeded();
     await expect(stage.getByRole("heading")).toBeInViewport();
@@ -25,12 +24,12 @@ test("the six timeline stages remain readable on touch screens and show reading 
   await context.close();
 });
 
-test("desktop timeline runs the six stages in one row and passes accessibility checks", async ({ page }) => {
+test("desktop timeline runs the four stages in one row and passes accessibility checks", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await page.locator("#metodo").scrollIntoViewIfNeeded();
   const stages = page.locator("[data-method-timeline] li");
-  await expect(stages).toHaveCount(6);
+  await expect(stages).toHaveCount(4);
   await expect(stages.last()).toHaveCSS("transform", "none");
   await expect(stages.last()).toHaveCSS("opacity", "1");
   const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
@@ -52,7 +51,7 @@ test("reduced motion keeps the deliverables in normal reading order and navigati
   }
   await expect(page.locator("[data-custom-cursor]")).toHaveCount(0);
   await page.getByRole("link", { name: "Fortius Inmuebles, inicio" }).click();
-  await page.getByRole("search", { name: "Buscar propiedades" }).getByRole("button", { name: "Buscar" }).click();
+  await page.locator("footer").getByRole("link", { name: "Ver propiedades" }).click();
   await expect(page).toHaveURL(/\/inventario$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });

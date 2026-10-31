@@ -8,15 +8,15 @@ export function DiagnosticCTA({ headingLevel = "h2", general = false }: { headin
       <div className="dc-grid">
         <div>
           <p className="pg-eyebrow pg-eyebrow-ink">{general ? "Contacto" : "Primer paso"}</p>
-          <Heading className="pg-h2">{general ? "Cuéntanos qué necesitas." : "Empieza con una evaluación."}</Heading>
+          <Heading className="pg-h2">{general ? "Cuéntanos qué necesitas." : "Empieza con la entrevista inicial."}</Heading>
           <p className="pg-muted dc-text">
             {general
-              ? "Dinos si quieres vender, comprar o consultar sobre un inmueble. Te contactaremos para entender el caso y proponer un siguiente paso."
-              : "Cuéntanos qué quieres resolver. La primera conversación aclara precio, tiempos, condición del inmueble y el siguiente paso."}
+              ? "Vender, comprar o consultar. Te proponemos el siguiente paso."
+              : "Nos cuentas del inmueble y agendamos el levantamiento."}
           </p>
         </div>
         <div className="pg-card pg-card-pad">
-          <MessagingContact><ContactForm submitLabel={general ? "Enviar consulta" : "Solicitar evaluación"} /></MessagingContact>
+          <MessagingContact><ContactForm submitLabel={general ? "Enviar consulta" : "Pedir entrevista"} /></MessagingContact>
         </div>
       </div>
     </section>

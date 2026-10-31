@@ -21,7 +21,7 @@ type InteriorPageProps = {
   oscura con el titular, la descripción y las acciones; a la derecha una foto,
   un bloque propio o la lista de criterios de trabajo.
 */
-export function InteriorPage({ eyebrow, title, description, bullets, primary = { href: "/vender-propiedad", label: "Evaluar mi propiedad" }, secondary = { href: "/#metodo", label: "Conocer el método" }, media, aside, className = "" }: InteriorPageProps) {
+export function InteriorPage({ eyebrow, title, description, bullets, primary = { href: "/vender-propiedad", label: "Quiero vender" }, secondary = { href: "/#metodo", label: "Conocer el método" }, media, aside, className = "" }: InteriorPageProps) {
   return (
     <section className={"pg-hero ip-hero " + className}>
       <div className="pg-container pg-hero-body">
@@ -38,9 +38,9 @@ export function InteriorPage({ eyebrow, title, description, bullets, primary = {
           {aside ? <div className="ip-aside">{aside}</div> : media ? (
             <figure className="ip-media">
               <Image src={media.src} alt={media.alt} fill priority sizes="(max-width: 1023px) 100vw, 40vw" />
-              <figcaption className="ip-chips" aria-label="Criterios de trabajo">
+              {bullets.length > 0 && <figcaption className="ip-chips" aria-label="Criterios de trabajo">
                 {bullets.map(bullet => <span key={bullet}>{bullet}</span>)}
-              </figcaption>
+              </figcaption>}
             </figure>
           ) : (
             <div className="ip-criteria">

@@ -113,7 +113,7 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
         <input type="checkbox" name="destacado" defaultChecked={post?.destacado} className="size-5 accent-primary" />
         Destacar en portada
       </label>
-      <p className="text-sm text-muted-foreground">Si hay varios destacados, se muestra primero el más reciente. Sin destacados, se presenta la última publicación.</p>
+      <p className="text-sm text-muted-foreground">Se muestra el destacado más reciente; sin destacados, la última publicación.</p>
       <Field label="Título" htmlFor="post-titulo">
         <input
           id="post-titulo"
@@ -160,7 +160,7 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
       </Field>
       <fieldset className="space-y-4 rounded-md border border-border p-4">
         <legend className="px-2 text-sm font-medium">Fuente principal</legend>
-        <p className="text-sm text-muted-foreground">En actualidad, indica qué ocurrió, cuándo y a quién afecta. Enlaza la fuente original; puedes añadir más fuentes en el contenido.</p>
+        <p className="text-sm text-muted-foreground">En actualidad: qué pasó, cuándo y a quién afecta, con enlace a la fuente.</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nombre de la fuente" htmlFor="post-fuente-nombre">
             <input id="post-fuente-nombre" name="fuenteNombre" maxLength={500} defaultValue={post?.fuenteNombre} className={inputClass} />
@@ -171,7 +171,7 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
         </div>
       </fieldset>
       <p className="text-sm text-muted-foreground">
-        {post?.publicadoEl ? `Publicado el ${formatBlogDate(post.publicadoEl)}. La fecha se conserva al editar.` : post?.estado === "publicado" ? "Artículo anterior sin fecha de primera publicación registrada. Se muestra su última actualización." : "La fecha de publicación se registra automáticamente al publicar por primera vez."}
+        {post?.publicadoEl ? `Publicado el ${formatBlogDate(post.publicadoEl)}. La fecha se conserva al editar.` : post?.estado === "publicado" ? "Sin fecha de primera publicación; se muestra la última actualización." : "La fecha de publicación se registra automáticamente al publicar por primera vez."}
       </p>
       <div className="flex gap-3">
         <button type="submit" className={btnPrimary}>
@@ -198,7 +198,7 @@ export default function BlogAdminPage() {
     <div className="space-y-6">
       <PageHeader
         title="Blog"
-        description="Publica guías y actualidad, clasifica los temas y elige el destacado de portada. Los borradores permanecen en el panel."
+        description="Guías y actualidad. Los borradores no salen del panel."
         actions={
           <button
             type="button"

@@ -51,8 +51,8 @@ export function BuyerBrief() {
           <h2 className="pg-h2">Cuéntanos qué buscas.</h2>
           <p className="pg-muted bb-text">
             {publicLeadsEnabled
-              ? "El uso, presupuesto y momento de compra nos ayudan a descartar opciones que no te sirven. Puedes dejar el presupuesto o la forma de pago por definir."
-              : "Define el uso, el presupuesto total y tu momento de compra. Con esos datos podrás comparar inmuebles con más claridad."}
+              ? "Uso, presupuesto y fecha. Lo que no sepas, déjalo por definir."
+              : "Uso, presupuesto y fecha: con eso comparas mejor."}
           </p>
           <p className="pg-muted bb-text" style={{ fontSize: 14 }}>También puedes <Link href="/inventario" className="bb-inline-link">explorar las propiedades publicadas</Link> antes de escribirnos.</p>
         </div>
@@ -60,9 +60,9 @@ export function BuyerBrief() {
           <div className="pg-card pg-card-pad">
             <h3 className="pg-h3">Tres datos para empezar</h3>
             <ol className="bb-list">
-              <li><span className="pg-number" aria-hidden="true">01</span><div><strong>Uso</strong><p>Vivir, invertir o instalar un negocio: cada objetivo cambia qué conviene revisar.</p></div></li>
-              <li><span className="pg-number" aria-hidden="true">02</span><div><strong>Presupuesto total</strong><p>Incluye gastos de cierre y, si usarás crédito, una mensualidad sostenible.</p></div></li>
-              <li><span className="pg-number" aria-hidden="true">03</span><div><strong>Plazo y pago</strong><p>Una fecha tentativa y la forma de pago ayudan a ordenar las visitas y ofertas.</p></div></li>
+              <li><span className="pg-number" aria-hidden="true">01</span><div><strong>Uso</strong><p>Vivir, invertir o negocio.</p></div></li>
+              <li><span className="pg-number" aria-hidden="true">02</span><div><strong>Presupuesto total</strong><p>Con gastos de cierre y mensualidad, si hay crédito.</p></div></li>
+              <li><span className="pg-number" aria-hidden="true">03</span><div><strong>Plazo y pago</strong><p>Fecha tentativa y forma de pago.</p></div></li>
             </ol>
             <Link href="/inventario" className="pg-btn" style={{ marginTop: 24 }}>Explorar inventario</Link>
           </div>
@@ -70,7 +70,7 @@ export function BuyerBrief() {
           <div role="status" className="pg-card pg-card-pad bb-sent">
             <CheckCircle2 size={32} strokeWidth={1.5} aria-hidden="true" />
             <h3 className="pg-h3">Recibimos tu búsqueda.</h3>
-            <p className="pg-muted">Revisaremos lo que nos compartiste y te contactaremos para precisar las opciones.</p>
+            <p className="pg-muted">Te contactamos con opciones.</p>
           </div>
         ) : (
           <PublicLeadForm onSubmit={onSubmit} className="pg-card pg-card-pad bb-form">

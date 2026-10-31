@@ -234,7 +234,7 @@ export function PropertyForm({ initial: source }: Props) {
       property.publicada &&
       !property.galeria.some((image) => publicGalleryUrl(image.src))
     ) {
-      throw new Error("Para publicar, agrega al menos una imagen pública a la galería. Los enlaces privados no aparecen en el sitio.");
+      throw new Error("Para publicar, agrega al menos una imagen pública. Lo privado no sale en el sitio.");
     }
 
     try {await upsertPropiedad(property, version);}catch(cause){if(cause instanceof AdminApiError && cause.status===409)setConflict(true);throw cause;}
@@ -255,7 +255,7 @@ export function PropertyForm({ initial: source }: Props) {
       className="max-w-[880px] space-y-8 [&_input]:scroll-mt-24 [&_input]:scroll-mb-52 [&_select]:scroll-mt-24 [&_select]:scroll-mb-52 [&_textarea]:scroll-mt-24 [&_textarea]:scroll-mb-52"
     >
       <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={formSections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
-      {initial ? <PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">Primero guarda el inmueble privado. Después vincula su captación y completa la autorización para publicarlo.</p>}
+      {initial ? <PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">Guárdalo privado; luego liga su captación y la autorización para publicar.</p>}
       {/* Básicos */}
       <FormSection id="pf-basicos" aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
         <h2 id="pf-basicos-heading" className="display-soft text-lg text-foreground">Datos básicos</h2>
@@ -308,7 +308,7 @@ export function PropertyForm({ initial: source }: Props) {
             </select>
           </Field>
           {tipoSel !== "plaza" && (plazas.length > 0 || conjunto) ? (
-            <Field label="Pertenece a la plaza o conjunto" htmlFor="pf-conjunto" hint="Si es un local u oficina dentro de una plaza registrada, elígela: la plaza lo mostrará entre sus locales, en el panel y en el sitio.">
+            <Field label="Pertenece a la plaza o conjunto" htmlFor="pf-conjunto" hint="Si está dentro de una plaza registrada, elígela para mostrarlo entre sus locales.">
               <select id="pf-conjunto" value={conjunto} onChange={(event) => setConjunto(event.target.value)} className={selectClass}>
                 <option value="">No pertenece a una plaza</option>
                 {plazas.map((plaza) => <option key={plaza.slug} value={plaza.slug}>{plaza.titulo}{plaza.codigo ? ` · ${plaza.codigo}` : ""}</option>)}
@@ -655,7 +655,7 @@ export function PropertyForm({ initial: source }: Props) {
           </div>
           <div className="border-t border-border pt-5">
             <h3 className="display-soft text-base text-foreground">Información para la ficha pública</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Publica solo datos autorizados. Identifica la fuente de cada superficie y registra la fecha únicamente cuando alguien verificó la disponibilidad.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Solo datos autorizados. Anota la fuente de cada superficie y la fecha solo si se verificó la disponibilidad.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Fuente de terreno" htmlFor="pf-fuenteTerreno">
                 <select id="pf-fuenteTerreno" name="fuenteTerreno" defaultValue={initial?.informacionPublica?.fuenteTerreno ?? ""} className={inputClass}>

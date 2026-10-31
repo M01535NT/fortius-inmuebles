@@ -75,7 +75,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
       {expedienteLinks === false && <p role="status" className="text-sm text-muted-foreground">Vincular tareas con operaciones todavía no está disponible. Puedes guardar la tarea sin vincularla.</p>}
       {capabilityError && <p role="status" className="text-sm text-muted-foreground">{capabilityError}</p>}
       {expedienteError && <p role="status" className="text-sm text-muted-foreground">{expedienteError}</p>}
-      {expedientesLoaded && draft.expedienteId && !expediente && <p className="text-sm text-muted-foreground">La operación ya no está en curso o no está disponible. Elige otra o quita el vínculo antes de guardar.</p>}
+      {expedientesLoaded && draft.expedienteId && !expediente && <p className="text-sm text-muted-foreground">Esa operación ya no está disponible. Elige otra o quita el vínculo.</p>}
       {expediente && !contextMatches && <Button className="self-start" onClick={() => selectExpediente(expediente.id)}>Usar los datos actuales de la operación</Button>}
     </Field>
     <Field label="Categoría" htmlFor="task-category"><select id="task-category" className={selectClass} value={draft.categoria} onChange={(e) => change("categoria", e.target.value as Task["categoria"])}>{options(TASK_CATEGORIES)}</select></Field>
@@ -87,7 +87,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const next = submitter?.name === "estado" ? { ...draft, estado: submitter.value as Task["estado"] } : draft;
     if (next.expedienteId) {
-      if (!expedienteLinks) throw new Error(expedienteLinks === false ? "Vincular tareas con operaciones todavía no está disponible. Puedes guardar la tarea sin vincularla." : "No se pudo confirmar la disponibilidad del vínculo. Reintenta o guarda la tarea sin ese vínculo.");
+      if (!expedienteLinks) throw new Error(expedienteLinks === false ? "Vincular tareas con operaciones todavía no está disponible. Puedes guardar la tarea sin vincularla." : "No se pudo comprobar el vínculo. Reintenta o guarda sin él.");
       if (!expedientesLoaded || !expediente) throw new Error("Elige una operación en curso o quita el vínculo.");
       if (!contextMatches) throw new Error("Actualiza cliente, inmueble y responsable con los de la operación.");
     }

@@ -36,3 +36,9 @@
   .aside[data-open="true"] { animation: rise .2s ease-out; }
 }
 @keyframes rise { from { transform: translateY(24px); opacity: .5; } to { transform: none; opacity: 1; } }
+
+/* Documentos del cliente al lado del formato (CSR-05); en pantallas angostas cubre la hoja. */
+.viewer { width: 30rem; flex: none; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid var(--border); background: var(--card); }
+@media (max-width: 1279px) {
+  .viewer { position: absolute; inset: 0; z-index: 3; width: auto; border-left: 0; }
+}

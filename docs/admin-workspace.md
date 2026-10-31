@@ -4,7 +4,7 @@ Corte documental: 17/10/2026, después del rediseño guiado (PR #39). El desarro
 
 ## Navegación
 
-La barra lateral tiene arriba el botón **Nueva operación** y cinco secciones: **Hoy** (con el número de pendientes), **Operaciones**, **Contactos**, **Inmuebles** y **Agenda**. Debajo, **Herramientas** reúne las 17 herramientas (incluida «Documentos sin expediente») y la pestaña Documentos. **Administración** va plegada y solo la ve el administrador: Equipo, Sitio web, Reportes, Historial y Configuración. Al pie están el usuario, su rol y Cerrar sesión.
+La barra superior (versión 2, 30/10/2026) lleva el logotipo y seis píldoras: **Hoy** (con el número de pendientes), **Operaciones**, **Contactos**, **Inmuebles**, **Agenda** y **Más**, que abre Herramientas (las 17, incluida «Documentos sin expediente», y la pestaña Documentos). A la derecha están el buscador (Ctrl K), **«+ Nuevo»** con un menú corto (operación, prospecto, inmueble, tarea, visita) y la cuenta: Mi perfil, **Administración** (solo el administrador: Equipo, Sitio web, Reportes, Historial y Configuración), Ver sitio, Modo oscuro y Cerrar sesión. En celular, la barra inferior es Hoy · Operaciones · + · Contactos · Más.
 
 En celular, la barra inferior lleva Hoy, Operaciones, «+», Contactos y Menú. El menú reúne Inmuebles, Agenda, Herramientas, Administración, Mi perfil, Ver sitio y Cerrar sesión.
 
