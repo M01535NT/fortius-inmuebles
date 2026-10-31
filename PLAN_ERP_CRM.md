@@ -1997,7 +1997,7 @@ Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento o
 | DOC-15 | 2 | pendiente | COR-06 |
 | LV-05 | 2 | terminada | PR #45, #46 y #47 (18/10/2026) |
 | LV-07 | 2 | en_curso | se construye dentro de LV-08 (marco y Hoy, 30/10/2026) |
-| LV-08 | 2 | en_curso | DEC-35 a DEC-37 aprobadas el 30/10/2026; rama `feat/inicio-claro` |
+| LV-08 | 2 | en_revision | DEC-35 a DEC-37 aprobadas el 30/10/2026. En `main`: marco y Hoy. Construido el 31/10/2026, solo en local (ramas `feat/operaciones-lista` → `feat/nueva-operacion`, sin subir; el PR #64 de la primera sigue abierto): una operación (LV-06), Operaciones, Nueva operación, Contactos con una sola lista (DEC-36), Inmuebles con «Les falta algo», Agenda sin bote por cita (DEC-37), Tareas por fecha, Administración con índice, Herramientas. Falta la revisión del titular; sin revisar en celular y modo oscuro salvo la operación en celular |
 | SIA-01 a SIA-06 | 2 | en_revision | PR de la rama `feat/sitio-pildora-sobria` hacia `main` (29/10/2026) |
 | MRP-01 | 2 | en_revision | DEC-26 aprobada por el titular el 26/10/2026; se integra con el PR de la rama `feat/mrp01-cor01-03` |
 | USO-01 | 4 | pendiente | ninguna |
