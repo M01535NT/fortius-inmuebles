@@ -21,13 +21,13 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Compra, vende o renta con cada paso documentado.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCount(1);
     // Boceto 2: photograph and one sentence, without eyebrow, search or zone marquee.
-    await expect(hero.locator(".nx-eyebrow")).toHaveCount(0);
+    await expect(hero.locator(".nx-hero-eyebrow")).toHaveCount(1);
     await expect(hero.getByRole("search")).toHaveCount(0);
-    await expect(hero.locator("a, button")).toHaveCount(0);
+    await expect(hero.locator("a")).toHaveCount(2);
     await expect(hero.locator("img")).toHaveCount(1);
     expect(await hero.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     // The header floats transparent over the photograph until the page scrolls.
@@ -133,7 +133,7 @@ test("hero remains readable before hydration with reduced motion and without Jav
     await expect(hero.locator("h1")).toHaveCSS("opacity", "1");
     await expect(hero.locator("img")).toHaveCSS("animation-name", "none");
     await expect(hero.locator(".nx-hero-line > span").last()).toBeInViewport();
-    await page.locator("#opinion").getByRole("link", { name: "Pedir mi opinión de valor" }).click();
+    await page.locator("#metodo").getByRole("link", { name: "Pedir mi opinión de valor" }).click();
     await expect(page).toHaveURL(/\/vender-propiedad#diagnostico$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prepara tu propiedad para vender.");
     expect(errors).toEqual([]);

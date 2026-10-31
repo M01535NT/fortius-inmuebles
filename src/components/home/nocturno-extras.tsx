@@ -1,63 +1,55 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Calculator, Landmark, Scale } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Calculator, Landmark, Scale, Search } from "lucide-react";
 
-import type { Property } from "@/data/propiedades";
-import type { Post, Testimonio } from "@/lib/domain/records";
-import { formatBlogDate, postDate } from "@/lib/blog-editorial";
-import { SEGMENTOS_INMUEBLE, inventarioDeSegmento } from "@/lib/inmueble-segmentos";
+import { TIPO_LABELS, type Property } from "@/data/propiedades";
+import type { Testimonio } from "@/lib/domain/records";
 
 type Perfil = { id: string; nombre: string; cargo: string; iniciales: string; foto?: string; descripcion?: string };
 
-const FOTO_SEGMENTO: Record<string, string> = {
-  residencial: "/hero/interior-depa.webp",
-  comercial: "/hero/edificio-ciudad.webp",
-  industrial: "/hero/nave-tijuana.webp",
-};
+const PASOS_COMPRA = [
+  "Nos dices qué buscas y con qué presupuesto.",
+  "Revisamos los documentos y calculamos los gastos antes de que ofertes.",
+  "Te acompañamos en la visita, la oferta y la firma.",
+];
 
-/* Atajos por tipo (boceto 2): tarjeta con foto que abre el inventario filtrado; sin propiedades
-   del tipo, invita a pedir aviso por contacto. */
-export function NocturnoSegmentos({ properties }: { properties: Property[] }) {
-  return <section id="segmentos" aria-labelledby="segmentos-title" className="nx-section nx-container">
-    <div className="nx-head">
-      <div>
-        <h2 id="segmentos-title" className="nx-title">Explora por tipo.</h2>
-      </div>
-    </div>
-    <ul className="nx-segments">
-      {SEGMENTOS_INMUEBLE.map((segmento) => {
-        const total = properties.filter((property) => (segmento.tipos as readonly string[]).includes(property.tipo)).length;
-        return <li key={segmento.key}>
-          <Link href={total === 0 ? "/contacto" : inventarioDeSegmento(segmento.key)} className="nx-segment">
-            <Image src={FOTO_SEGMENTO[segmento.key]} alt="" fill sizes="(max-width: 1023px) 100vw, 400px" className="nx-segment-img" />
-            <span className="nx-segment-body">
-              <span className="nx-segment-name">{segmento.label}</span>
-              <span className="nx-segment-detail">{segmento.detalle}</span>
-              <span className="nx-segment-foot">
-                {total === 0
-                  ? <>Avísame cuando haya disponibles <ArrowRight size={16} aria-hidden="true" /></>
-                  : <>Ver {segmento.label.toLowerCase()} ({total}) <ArrowUpRight size={16} aria-hidden="true" /></>}
-              </span>
-            </span>
-          </Link>
-        </li>;
-      })}
-    </ul>
-  </section>;
-}
+const PRESUPUESTOS = [
+  { value: "", label: "Cualquiera" },
+  { value: "3000000", label: "Hasta $3,000,000 MXN" },
+  { value: "8000000", label: "Hasta $8,000,000 MXN" },
+  { value: "15000000", label: "Hasta $15,000,000 MXN" },
+];
 
-/* Franja para quien viene a comprar: lleva a la guía y al inventario. */
-export function NocturnoComprar() {
-  return <section id="comprar" aria-labelledby="comprar-title" className="nx-section nx-container">
-    <div className="nx-band">
+/*
+  Inicio · «Cómo te ayudamos a comprar»: banda azul con tres pasos y el buscador.
+  El formulario manda al inventario con los filtros en la URL; no necesita script.
+*/
+export function NocturnoComprar({ properties }: { properties: Property[] }) {
+  const zonas = Array.from(new Set(properties.map((property) => property.zona))).sort();
+  const tipos = Array.from(new Set(properties.map((property) => property.tipo)));
+  return <section id="comprar" aria-labelledby="comprar-title" className="nx-band-navy">
+    <div className="nx-container nx-comprar">
       <div>
-        <h2 id="comprar-title" className="nx-band-title">Antes de comprar, conoce lo que se suma al precio.</h2>
-        <p className="nx-lead">Los documentos que se revisan, los gastos de la operación y los pasos hasta la firma, explicados sin tecnicismos.</p>
+        <p className="nx-eyebrow">Cómo te ayudamos a comprar</p>
+        <h2 id="comprar-title" className="nx-title">Comprar también empieza por revisar.</h2>
+        <ol className="nx-pasos">
+          {PASOS_COMPRA.map((paso, index) => <li key={paso}><span aria-hidden="true">0{index + 1}</span>{paso}</li>)}
+        </ol>
+        <div className="nx-actions">
+          <Link href="/inventario" className="nx-btn nx-btn-light">Ver propiedades</Link>
+          <Link href="/comprar-propiedad" className="nx-link">Leer la guía para comprar <ArrowRight size={18} aria-hidden="true" /></Link>
+        </div>
       </div>
-      <div className="nx-band-actions">
-        <Link href="/comprar-propiedad" className="nx-btn nx-btn-primary">Leer la guía para comprar <ArrowRight size={18} aria-hidden="true" /></Link>
-        <Link href="/inventario" className="nx-btn">Explorar inventario</Link>
-      </div>
+      <form action="/inventario" method="get" role="search" aria-label="Buscar propiedad" className="nx-search">
+        <h3>Buscar propiedad</h3>
+        <div className="nx-search-fields">
+          <label><span>Operación</span><select name="op" defaultValue=""><option value="">Comprar o rentar</option><option value="venta">Comprar</option><option value="renta">Rentar</option></select></label>
+          <label><span>Tipo</span><select name="tipo" defaultValue=""><option value="">Todos los tipos</option>{tipos.map((tipo) => <option key={tipo} value={tipo}>{TIPO_LABELS[tipo]}</option>)}</select></label>
+          <label><span>Zona</span><select name="zona" defaultValue=""><option value="">Todas las zonas</option>{zonas.map((zona) => <option key={zona} value={zona}>{zona}</option>)}</select></label>
+          <label><span>Presupuesto</span><select name="max" defaultValue="">{PRESUPUESTOS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+        </div>
+        <button type="submit" className="nx-btn nx-btn-primary"><Search size={18} aria-hidden="true" />Buscar</button>
+      </form>
     </div>
   </section>;
 }
@@ -82,58 +74,42 @@ export function NocturnoTestimonios({ items }: { items: Testimonio[] }) {
   </section>;
 }
 
-/* Herramientas y blog: calculadoras, opinión de valor y las últimas lecturas. */
-export function NocturnoRecursos({ posts }: { posts: Post[] }) {
-  const latest = posts.slice(0, 3);
-  return <section id="recursos" aria-labelledby="recursos-title" className="nx-section nx-container">
-    <div className="nx-head">
-      <div>
-        <h2 id="recursos-title" className="nx-title">Herramientas y guías.</h2>
+/* Herramientas sin registro: tres tarjetas y el enlace al blog. */
+export function NocturnoRecursos() {
+  return <section id="recursos" aria-labelledby="recursos-title" className="nx-band-cream">
+    <div className="nx-container">
+      <div className="nx-head">
+        <div>
+          <p className="nx-eyebrow">Herramientas sin registro</p>
+          <h2 id="recursos-title" className="nx-title">Haz números antes de decidir.</h2>
+        </div>
+        <Link href="/blog" className="nx-link">Ir al blog <ArrowRight size={18} aria-hidden="true" /></Link>
       </div>
-    </div>
-    <div className="nx-resources">
-      <div>
-        <h3 className="nx-sub">Calculadoras</h3>
-        <ul className="nx-tools">
-          {[
-            { href: "/herramientas/hipoteca", Icon: Landmark, title: "Calculadora de hipoteca", detail: "Compara escenarios y descarga la tabla de amortización." },
-            { href: "/herramientas/gastos-de-cierre", Icon: Calculator, title: "Gastos de cierre", detail: "Cuánto necesitas para comprar o cuánto recibes al vender." },
-            { href: "/opinion-de-valor", Icon: Scale, title: "Opinión de valor", detail: "Un precio de salida con comparables, fuentes y límites." },
-          ].map(({ href, Icon, title, detail }) => <li key={href}><Link href={href} className="nx-tool">
-            <span className="nx-tool-icon"><Icon size={20} strokeWidth={1.6} aria-hidden="true" /></span>
-            <span><strong>{title}</strong><span>{detail}</span></span>
-            <ArrowUpRight size={20} strokeWidth={1.6} aria-hidden="true" className="nx-tool-go" />
-          </Link></li>)}
-        </ul>
-        <Link href="/herramientas" className="nx-link">Ver todas las herramientas</Link>
-      </div>
-      <div>
-        <h3 className="nx-sub">Del blog</h3>
-        {latest.length
-          ? <ul className="nx-posts">
-              {latest.map((post) => <li key={post.slug}><Link href={`/blog/${post.slug}`} className="nx-post">
-                <strong>{post.titulo}</strong>
-                <span>{post.resumen}</span>
-                <time dateTime={postDate(post)}>{formatBlogDate(postDate(post))}</time>
-              </Link></li>)}
-            </ul>
-          : <p className="nx-empty">Por ahora no hay artículos publicados.</p>}
-        <Link href="/blog" className="nx-link">Ir al blog</Link>
-      </div>
+      <ul className="nx-tools">
+        {[
+          { href: "/herramientas/hipoteca", Icon: Landmark, title: "Calculadora de hipoteca", detail: "Cuánto pagarías al mes según enganche, plazo y tasa." },
+          { href: "/herramientas/gastos-de-cierre", Icon: Calculator, title: "Gastos de cierre", detail: "Cuánto necesitas para comprar o cuánto te queda al vender." },
+          { href: "/opinion-de-valor", Icon: Scale, title: "Opinión de valor", detail: "Cómo calculamos el precio de salida de tu propiedad." },
+        ].map(({ href, Icon, title, detail }) => <li key={href}><Link href={href} className="nx-tool">
+          <span className="nx-tool-icon"><Icon size={20} strokeWidth={1.6} aria-hidden="true" /></span>
+          <span><strong>{title}</strong><span>{detail}</span></span>
+          <ArrowUpRight size={20} strokeWidth={1.6} aria-hidden="true" className="nx-tool-go" />
+        </Link></li>)}
+      </ul>
     </div>
   </section>;
 }
 
-/* Equipo: perfiles publicados desde el panel, con foto y una descripción breve. Sin ninguno,
-   se muestra el perfil ilustrativo (con el símbolo de la marca en lugar de foto). */
+/* Quién te atiende: perfiles publicados desde el panel. Sin ninguno, el perfil ilustrativo con el símbolo. */
 export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; ilustrativo?: boolean }) {
   return <section id="equipo" aria-labelledby="equipo-title" className="nx-section nx-container">
     <div className="nx-head">
       <div>
-        <h2 id="equipo-title" className="nx-title">El equipo que acompaña tu operación.</h2>
-        <p className="nx-lead">Captar una propiedad y venderla son dos etapas, y pueden atenderlas personas distintas. Conoce a quienes forman el equipo.</p>
+        <p className="nx-eyebrow">Quién te atiende</p>
+        <h2 id="equipo-title" className="nx-title">Una persona lleva tu caso de principio a fin.</h2>
+        <p className="nx-lead">Revisa la propiedad, coordina las visitas y negocia contigo. Captar y vender pueden atenderlas personas distintas del equipo.</p>
       </div>
-      <Link href="/nosotros#agentes" className="nx-link">Conocer al equipo</Link>
+      <Link href="/nosotros#agentes" className="nx-link">Conocer al equipo <ArrowRight size={18} aria-hidden="true" /></Link>
     </div>
     <ul className="nx-team">
       {team.slice(0, 6).map((person) => <li key={person.id}>

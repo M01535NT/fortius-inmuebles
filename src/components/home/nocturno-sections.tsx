@@ -26,9 +26,10 @@ export function NocturnoDestacadas({ properties }: { properties: Property[] }) {
     <div className="nx-container">
       <div className="nx-head">
         <div>
-          <h2 id="destacadas-title" className="nx-title"><span className="nx-title-mask"><span>Propiedades destacadas.</span></span></h2>
+          <p className="nx-eyebrow">Propiedades</p>
+          <h2 id="destacadas-title" className="nx-title"><span className="nx-title-mask"><span>Lo que tenemos ahora.</span></span></h2>
         </div>
-        <Link href="/inventario" className="nx-link">Explorar el inventario</Link>
+        <Link href="/inventario" className="nx-link">Ver todas las propiedades</Link>
       </div>
       {barajas.length > 1 && <div role="group" aria-label="Tipo de propiedad" className="nx-deck-filter">
         {barajas.map((b) => <button key={b.key} type="button" aria-pressed={b.key === baraja.key} onClick={() => setElegida(b.key)}>{b.label}</button>)}

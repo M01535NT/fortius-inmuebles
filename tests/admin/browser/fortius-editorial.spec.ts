@@ -6,7 +6,7 @@ test("the hero keeps a single photograph and one sentence", async ({ page }) => 
   await expect(hero.locator("img")).toHaveCount(1);
   await expect(hero.getByRole("search")).toHaveCount(0);
   await expect(hero.locator(".hero-marquee, .editorial-photo-controls, .nx-marquee-track")).toHaveCount(0);
-  await expect(hero.locator("h1")).toHaveText("Compra, vende o renta con cada paso documentado.");
+  await expect(hero.locator("h1")).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
 });
 
 test("dark link hover retains readable ink while buttons remain burgundy", async ({ page }) => {
@@ -54,8 +54,8 @@ for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/", { waitUntil: "networkidle" });
     const timeline = page.locator("[data-method-timeline]");
-    await expect(timeline.locator("li")).toHaveCount(6);
-    await expect(page.getByRole("heading", { name: "Así vendemos tu propiedad." })).toBeAttached();
+    await expect(timeline.locator("li")).toHaveCount(4);
+    await expect(page.getByRole("heading", { name: "Cuatro etapas, cada una con su documento." })).toBeAttached();
     await page.locator("#metodo").scrollIntoViewIfNeeded();
     await expect(timeline.locator("li.is-active")).toHaveCount(1);
     for (let step = 0; step < 30 && !(await timeline.locator("li").last().evaluate((node) => node.classList.contains("is-active"))); step++) {
@@ -106,7 +106,7 @@ for (const width of [390, 1440]) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
     const stages = page.locator("[data-method-timeline] li");
-    await expect(stages).toHaveCount(6);
+    await expect(stages).toHaveCount(4);
     await expect(page.locator("[data-method-timeline] [role=region], [data-method-timeline] button")).toHaveCount(0);
     for (const stage of await stages.all()) {
       await stage.scrollIntoViewIfNeeded();

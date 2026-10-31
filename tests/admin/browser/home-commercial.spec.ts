@@ -6,15 +6,15 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await page.goto("/");
     const order = await page.locator("main section").evaluateAll((nodes) => nodes.map((node) =>
       node.id || (node.classList.contains("nx-hero") ? "hero" : "unknown")));
-    expect(order).toEqual(["hero", "por-que-fortius", "metodo", "revision", "opinion", "promocion", "destacadas", "segmentos", "comprar", "equipo", "recursos", "respuestas"]);
+    expect(order).toEqual(["hero", "que-hacemos", "metodo", "por-que-fortius", "comprar", "destacadas", "equipo", "recursos", "respuestas"]);
     // The hero only carries the photograph and one sentence (boceto 2); owners ask for the valuation below.
     await expect(page.locator(".nx-hero").getByRole("search")).toHaveCount(0);
-    const seller = page.locator("#opinion").getByRole("link", { name: "Pedir mi opinión de valor" });
+    const seller = page.locator("#metodo").getByRole("link", { name: "Pedir mi opinión de valor" });
     await expect(seller).toHaveAttribute("href", "/vender-propiedad#diagnostico");
     await expect(page.locator("#destacadas [data-property-card]")).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText(/de ejemplo$/)).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText("Apartada de ejemplo", { exact: true })).toBeVisible();
-    await expect(page.locator("[data-method-timeline] li")).toHaveCount(6);
+    await expect(page.locator("[data-method-timeline] li")).toHaveCount(4);
     await expect(page.locator("#entregables article")).toHaveCount(6);
     await expect(page.locator("main .editorial-tools")).toHaveCount(0);
     await expect(page.locator("footer").getByRole("heading", { name: "Hablemos de tu próxima operación." })).toBeVisible();

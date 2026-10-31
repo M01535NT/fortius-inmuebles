@@ -1,41 +1,42 @@
 import type { Metadata } from "next";
 import { NocturnoHero } from "@/components/home/nocturno-hero";
+import { NocturnoHacemos } from "@/components/home/nocturno-hacemos";
 import { NocturnoExpediente } from "@/components/home/nocturno-expediente";
 import { NocturnoMetodo } from "@/components/home/nocturno-metodo";
 import { NocturnoDestacadas } from "@/components/home/nocturno-sections";
-import { NocturnoOpinion, NocturnoPromocion, NocturnoRevision } from "@/components/home/nocturno-servicios";
-import { NocturnoComprar, NocturnoEquipo, NocturnoRecursos, NocturnoSegmentos, NocturnoTestimonios } from "@/components/home/nocturno-extras";
+import { NocturnoComprar, NocturnoEquipo, NocturnoRecursos, NocturnoTestimonios } from "@/components/home/nocturno-extras";
 import { entregablesDe, etapasDe, pilaresDe } from "@/components/home/nocturno-content";
 import { Respuestas } from "@/components/home/respuestas";
 import { homeText } from "@/data/home-copy";
 import { getPublicContent } from "@/lib/backend/public";
 import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
 import { getPublishedTeam } from "@/lib/backend/public-team";
-import { getBlogPosts } from "@/lib/blog";
 import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-/* Inicio · dirección Nocturno (LV-05): las secciones siguen el tema; la portada conserva su foto. */
+/*
+  Inicio (30/10/2026): cada sección responde una pregunta, en este orden: qué hacemos,
+  cómo te ayudamos a vender (método), lo que recibes (expediente), cómo te ayudamos a
+  comprar (buscador), qué tenemos (baraja), quién te atiende, herramientas y preguntas.
+  Los componentes con movimiento se conservan; la portada lleva video.
+*/
 export default async function HomePage() {
-  const [content, propiedades, destacadas, team, posts] = await Promise.all([
-    getPublicContent(), getPropiedades(), getFeaturedProperties(), getPublishedTeam().catch(() => []), getBlogPosts().catch(() => []),
+  const [content, propiedades, destacadas, team] = await Promise.all([
+    getPublicContent(), getPropiedades(), getFeaturedProperties(), getPublishedTeam().catch(() => []),
   ]);
   const entregables = entregablesDe(content);
   return (
     <main className="nocturno-home">
       <NocturnoHero />
-      <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />
+      <NocturnoHacemos />
       <NocturnoMetodo title={homeText(content, "metodoTitulo")} stages={etapasDe(content)} />
-      <NocturnoRevision />
-      <NocturnoOpinion />
-      <NocturnoPromocion />
+      <NocturnoExpediente intro={entregables.intro} pillars={pilaresDe(content)} documents={entregables.documents} />
+      <NocturnoComprar properties={propiedades} />
       <NocturnoDestacadas properties={destacadas} />
       <NocturnoTestimonios items={content.testimonios ?? []} />
-      <NocturnoSegmentos properties={propiedades} />
-      <NocturnoComprar />
       <NocturnoEquipo team={team.length ? team : [PERFIL_ILUSTRATIVO]} ilustrativo={!team.length} />
-      <NocturnoRecursos posts={posts} />
+      <NocturnoRecursos />
       <div className="nx-faq"><Respuestas content={content} /></div>
     </main>
   );
