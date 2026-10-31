@@ -96,7 +96,7 @@ export function reciboDocumento(d: Data): Documento {
   try { if (!letra && typeof d.importeRecibido === "number") letra = importePromesaLetra(d.importeRecibido, a(d.moneda) || "MXN"); } catch { /* importe o moneda fuera de rango */ }
   const blocks: Block[] = [
     { kind: "title", text: "Recibo de pago de honorarios" },
-    { kind: "grid", zona: { keys: ["lugarEmision"], label: "Datos de esta tabla" }, widths: [1, 1], header: ["Número de recibo", "Lugar de emisión"], rows: [[a(d.numeroRecibo), a(d.lugarEmision)]] },
+    { kind: "grid", zona: { keys: ["numeroRecibo", "lugarEmision"], label: "Número de recibo y lugar de emisión" }, widths: [1, 1], header: ["Número de recibo", "Lugar de emisión"], rows: [[a(d.numeroRecibo), a(d.lugarEmision)]] },
     { kind: "p", zona: { keys: ["fechaPago", "pagador", "importeRecibido", "moneda", "importeLetra", "concepto"], label: "Pago recibido" }, text: `Con fecha de recepción ${f(d.fechaPago)}, recibí de ${v(d.pagador)} la cantidad de ${importe} ${v(d.moneda)}, equivalente a ${v(letra)}, por concepto de ${m(d.concepto)}.` },
     { kind: "p", zona: { keys: ["contratoFecha", "inmueble"], label: "Datos de este párrafo" }, text: `Los honorarios corresponden a los servicios pactados en ${v(d.contratoFecha)}, relativos al inmueble ubicado en ${v(d.inmueble)}, expediente ${v(d.folio)}.` },
     { kind: "p", zona: { keys: ["beneficiario", "representacionBeneficiario", "caracter"], label: "Datos de este párrafo" }, text: `El beneficiario del pago es ${v(d.beneficiario)}. Quien suscribe recibe ${m(d.representacionBeneficiario)}, en carácter de ${m(d.caracter)}.` },

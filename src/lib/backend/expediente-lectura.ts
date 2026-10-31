@@ -47,7 +47,7 @@ export async function leerArchivoConIa(client: SupabaseClient, privileged: Supab
   await marcar(privileged, archivo.id, { lectura_estado: "leyendo", lectura_error: null });
   const anotar = (estado: "leido" | "error", resultado?: ResultadoExtractor, propuestos = 0) => privileged.from("fortius_inmuebles_ia_lecturas").insert({
     archivo_id: archivo.id, expediente_id: archivo.expediente_id, requested_by: userId, modelo: resultado?.modelo ?? "sin respuesta", estado,
-    input_tokens: resultado?.uso.input_tokens ?? 0, output_tokens: resultado?.uso.output_tokens ?? 0, costo_usd: resultado ? costoAproximado(resultado.uso) : 0, datos_propuestos: propuestos,
+    input_tokens: resultado?.uso.input_tokens ?? 0, output_tokens: resultado?.uso.output_tokens ?? 0, costo_usd: resultado ? costoAproximado(resultado.uso, resultado.modelo) : 0, datos_propuestos: propuestos,
   });
   const fallar = async (mensaje: string, resultado?: ResultadoExtractor): Promise<never> => {
     await marcar(privileged, archivo.id, { lectura_estado: "error", lectura_error: mensaje });
@@ -68,7 +68,7 @@ export async function leerArchivoConIa(client: SupabaseClient, privileged: Supab
     const { datos, propuestos, distintos } = aPropuestas(parsed.data, archivo, actuales.datos, new Date().toISOString());
     try {
       if (propuestos.length) await guardarDatos(privileged, userId, archivo.expediente_id, { version: actuales.version, datos });
-      lectura = { tipoDocumento: parsed.data.tipoDocumento, propuestos, distintos, costoUsd: costoAproximado(resultado.uso) };
+      lectura = { tipoDocumento: parsed.data.tipoDocumento, propuestos, distintos, costoUsd: costoAproximado(resultado.uso, resultado.modelo) };
     } catch (error) {
       if (!(error instanceof ApiError && error.status === 409) || intento === 1) throw error;
     }

@@ -60,9 +60,16 @@ function draftText(doc: Documento, hasPdf: boolean) {
 
 export function NextStepTab({ op, today, evidence, interview, docs, checklist, onSave, onSavedLegacy, onGoTo, onDirtyChange }: {
   op: OperationRecord; today: string; evidence: Evidence; interview: OperationalInterview | null; docs: DocumentsController; checklist?: Task; onSave: Save;
-  onSavedLegacy: (value: OperationRecord) => void; onGoTo: (tab: "documentos" | "ajustes" | "tareas") => void; onDirtyChange: (dirty: boolean) => void;
+  onSavedLegacy: (value: OperationRecord) => void; onGoTo: (tab: "documentos" | "ajustes" | "tareas" | "cliente") => void; onDirtyChange: (dirty: boolean) => void;
 }) {
   const tasks = useCollection(db.tareas);
+  // CSR-02: datos del expediente que esperan revisión (llegaron de una ficha, un documento o un texto).
+  const [porConfirmar, setPorConfirmar] = React.useState(0);
+  React.useEffect(() => {
+    let alive = true;
+    apiRequest<{ datos?: Record<string, { estado: string }> }>(`/api/admin/expedientes/${op.id}/datos`).then(r => { if (alive) setPorConfirmar(Object.values(r.datos ?? {}).filter(dato => dato.estado === "propuesto").length); }).catch(() => undefined);
+    return () => { alive = false; };
+  }, [op.id, op.version]);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const [sheet, setSheet] = React.useState<OpenSheet>(null);
   const flow = flowOf(op), owner = isOwnerRoute(flow.ruta);
@@ -168,6 +175,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, o
       <Card className={s.stageCard} aria-label="Esta etapa">
         {flow.estado !== "activa" && <p className="mb-3 font-semibold text-[var(--warning)]">Operación {flow.estado === "pausada" ? "en pausa" : flow.estado === "regularizacion" ? "en regularización" : "descartada"}{flow.motivo ? `: ${flow.motivo}` : ""}</p>}
         {nowBlock()}
+        {porConfirmar > 0 && <Notice tone="info" className="mt-4" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice>}
         {phase === "prospecto" && owner && <FirstContact interview={interview} op={op} disabled={lock} />}
 
         {items.length > 0 && <section aria-labelledby="terminar-etapa" className={s.finish}>

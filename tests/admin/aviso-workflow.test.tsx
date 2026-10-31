@@ -185,10 +185,11 @@ it.each(["save", "emit", "download"] as const)("conserva los datos si falla %s y
 });
 
 /* Datos del expediente (titular, 29/10/2026): lo confirmado llena lo vacío; lo escrito distinto solo se avisa. */
+/* CSR-01 (31/10/2026): una celda vacía se llena sola con lo confirmado; una escrita distinta solo cambia al pulsarlo. */
 it.each([
-  ["vacío", "", "Llenar con los datos del expediente"],
-  ["escrito distinto", "Titular QA", "Usar el del expediente"],
-] as const)("con el titular %s, la ventana ofrece el dato confirmado del expediente y lo guarda solo al pulsarlo", async (_caso, titular, boton) => {
+  ["vacío", ""],
+  ["escrito distinto", "Titular QA"],
+] as const)("con el titular %s, la ventana usa el dato confirmado del expediente: solo llena lo vacío y lo distinto espera al asesor", async (_caso, titular) => {
   const puts: Record<string, unknown>[] = [];
   vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
     const file = asset(url); if (file) return file;
@@ -204,10 +205,15 @@ it.each([
   render(<Docs />);
   fireEvent.click(await screen.findByRole("button", { name: "Abrir" }));
   const capture = await screen.findByRole("dialog", { name: "Aviso de privacidad" });
-  const aviso = await within(capture).findByRole("region", { name: "Datos del expediente" }, { timeout: 8000 });
-  if (titular) expect(aviso.textContent).toContain("aquí dice «Titular QA»; el expediente tiene «María Ramírez»");
-  expect(puts).toEqual([]);
-  fireEvent.click(within(aviso).getByRole("button", { name: boton }));
-  await waitFor(() => expect(puts).toHaveLength(1));
+  if (!titular) {
+    await waitFor(() => expect(puts).toHaveLength(1), { timeout: 8000 });
+    expect(await within(capture).findByText("Se llenaron 1 dato con el expediente.")).toBeTruthy();
+  } else {
+    const aviso = await within(capture).findByRole("region", { name: "Datos del expediente" }, { timeout: 8000 });
+    expect(aviso.textContent).toContain("aquí dice «Titular QA»; el expediente tiene «María Ramírez»");
+    expect(puts).toEqual([]);
+    fireEvent.click(within(aviso).getByRole("button", { name: "Usar el del expediente" }));
+    await waitFor(() => expect(puts).toHaveLength(1));
+  }
   expect(puts[0]).toMatchObject({ version: 5, data: { titular: "María Ramírez", operacion: "Venta" } });
 });

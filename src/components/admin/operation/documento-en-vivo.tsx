@@ -1,12 +1,14 @@
 "use client";
 import * as React from "react";
-import { Check, ListChecks, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
+import { Check, Files, ListChecks, Mic, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
 import { Button, Pill } from "@/components/admin/kit";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
 import { fetchLetterhead } from "@/lib/letterhead";
 import { avisoIncompleto, emiteIncompleto, type FormatoDefinition, type FormatoField } from "@/lib/formatos/catalog";
-import { llenarDesdeDatos, type DatosGuardados } from "@/lib/formatos/datos-expediente";
+import { datoParaCelda, llenarDesdeDatos, type DatosGuardados } from "@/lib/formatos/datos-expediente";
+import { ExpedienteDatosPanel } from "./expediente-datos-panel";
+import type { ArchivoCliente } from "./client-documents-tab";
 import { DOCUMENTOS } from "@/lib/formatos/documento";
 import type { Documento } from "@/lib/formatos/documento/modelo";
 import { imageInfo, type ImagenDocumento } from "@/lib/formatos/documento/imagen";
@@ -19,7 +21,31 @@ import s from "./documento-en-vivo.module.css";
   PDF —se dibuja con el mismo escritor, así coinciden cortes de línea y de página— y cada parte
   que se llena es pulsable: abre su campo a un lado (abajo en celular); al aceptar, el dato
   entra al documento y se guarda con la versión del borrador. Lo que falta queda marcado.
+
+  Captura sin repetir (CSR, 31/10/2026): al abrir, los datos confirmados del expediente llenan
+  solos las celdas vacías y se avisa cuántas; lo que falta se separa entre lo propio del formato y
+  lo que se resuelve una vez en el expediente (se completa aquí mismo); los documentos del cliente
+  se pueden ver al lado; y los campos de texto se pueden dictar donde el navegador lo permite.
 */
+
+/** Reconocimiento de voz del navegador (Chrome, Edge, Safari); donde no existe, el botón no aparece. */
+type Reconocedor = { lang: string; interimResults: boolean; continuous: boolean; start(): void; stop(): void; onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
+function crearReconocedor(): Reconocedor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: new () => Reconocedor; webkitSpeechRecognition?: new () => Reconocedor };
+  const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+  return Ctor ? new Ctor() : null;
+}
+const dictadoDisponible = () => typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+/** Escribe en un campo controlado por React como si el usuario lo hubiera teclado. */
+function escribirEn(campo: HTMLInputElement | HTMLTextAreaElement, texto: string) {
+  const proto = campo instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+  const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+  const actual = campo.value;
+  const siguiente = actual && !/\s$/.test(actual) ? `${actual} ${texto}` : `${actual}${texto}`;
+  if (setter) setter.call(campo, siguiente); else campo.value = siguiente;
+  campo.dispatchEvent(new Event("input", { bubbles: true }));
+}
 
 /** Formatos que se capturan sobre el documento en vivo. */
 export const EN_VIVO = new Set(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);
@@ -47,7 +73,7 @@ async function imagenDe(adjunto: Adjunto): Promise<ImagenDocumento | undefined> 
   return { bytes, tipo: info.tipo, ...size, caption: adjunto.caption, source: adjunto.source, date: adjunto.observed_on, href: URL.createObjectURL(blob) };
 }
 
-export function DocumentoEnVivo({ definition, documentId, expedienteId, values, missing, disabled, onAccept, onDraft }: {
+export function DocumentoEnVivo({ definition, documentId, expedienteId, values, missing, disabled, onAccept, onDraft, onExpedienteSaved }: {
   definition: FormatoDefinition; documentId: string; values: Record<string, unknown>; missing: string[]; disabled: boolean;
   /** Expediente del formato: sus datos confirmados se ofrecen para llenar lo vacío y avisan si algo es distinto. */
   expedienteId?: string;
@@ -55,6 +81,8 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
   onAccept: (patch: Record<string, unknown>) => Promise<void>;
   /** Avisa si hay una captura abierta con cambios, para no perderla al cerrar la ventana. */
   onDraft: (dirty: boolean) => void;
+  /** Se confirmaron datos del expediente desde aquí: el servidor ya llenó este formato, hay que volver a leerlo antes de seguir. */
+  onExpedienteSaved?: () => Promise<void> | void;
 }) {
   const [render, setRender] = React.useState<Render | null>(null);
   const [maqueta, setMaqueta] = React.useState<Maqueta | null>(null);
@@ -69,12 +97,29 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
   const [large, setLarge] = React.useState(() => narrowScreen());
   const [refresh, setRefresh] = React.useState(0);
   const [datosExp, setDatosExp] = React.useState<DatosGuardados | null>(null);
+  const [datosRefresh, setDatosRefresh] = React.useState(0);
+  const [autoNotice, setAutoNotice] = React.useState("");
+  const [completando, setCompletando] = React.useState(false);
+  const [verDocs, setVerDocs] = React.useState(false);
+  const [archivos, setArchivos] = React.useState<ArchivoCliente[] | null>(null);
+  const [archivoAbierto, setArchivoAbierto] = React.useState<ArchivoCliente | null>(null);
+  const [dictando, setDictando] = React.useState(false);
+  const reconocedor = React.useRef<Reconocedor | null>(null);
+  const ultimoCampo = React.useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   React.useEffect(() => {
     if (!expedienteId) return;
     let alive = true;
     json<{ datos: DatosGuardados }>(`/api/admin/expedientes/${expedienteId}/datos`).then(r => { if (alive) setDatosExp(r.datos ?? {}); }).catch(() => { /* sin datos del expediente, el formato se llena a mano */ });
     return () => { alive = false; };
-  }, [expedienteId]);
+  }, [expedienteId, datosRefresh]);
+  // Documentos del cliente, solo cuando se piden.
+  React.useEffect(() => {
+    if (!verDocs || !expedienteId || archivos) return;
+    let alive = true;
+    json<{ archivos: ArchivoCliente[] }>(`/api/admin/expedientes/${expedienteId}/archivos`).then(r => { if (alive) setArchivos(r.archivos ?? []); }).catch(() => { if (alive) setArchivos([]); });
+    return () => { alive = false; };
+  }, [verDocs, expedienteId, archivos]);
+  React.useEffect(() => () => reconocedor.current?.stop(), []);
   const zoneRefs = React.useRef(new Map<string, HTMLButtonElement>());
   const panelRef = React.useRef<HTMLDivElement>(null);
   const formId = React.useId();
@@ -180,6 +225,38 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
     setSaving(true); setError("");
     try { await onAccept(patch); } catch (cause) { setError(errorMessage(cause)); } finally { setSaving(false); }
   }
+  // CSR-01: lo confirmado en el expediente entra solo en las celdas vacías, al abrir y cada vez que el expediente cambia desde aquí.
+  const onAcceptRef = React.useRef(onAccept);
+  React.useEffect(() => { onAcceptRef.current = onAccept; }, [onAccept]);
+  const patchAuto = desdeExpediente.patch, patchAutoKey = JSON.stringify(patchAuto);
+  React.useEffect(() => {
+    if (!datosExp || disabled || !Object.keys(patchAuto).length) return;
+    let alive = true;
+    onAcceptRef.current(patchAuto)
+      .then(() => { if (alive) setAutoNotice(`Se llenaron ${Object.keys(patchAuto).length === 1 ? "1 dato" : `${Object.keys(patchAuto).length} datos`} con el expediente.`); })
+      .catch(cause => { if (alive) setError(errorMessage(cause)); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- el parche se compara por contenido
+  }, [datosExp, disabled, patchAutoKey]);
+  // CSR-05: lo que falta se separa entre lo propio del formato y lo que se resuelve una vez en el expediente.
+  const pendingExp = pending.filter(key => datoParaCelda(definition.id, key));
+  const pendingPropio = pending.filter(key => !datoParaCelda(definition.id, key));
+  const clavesExp = [...new Set(pendingExp.map(key => datoParaCelda(definition.id, key)!.clave))];
+  // CSR-08: dictar en el último campo de texto que tuvo el foco.
+  function dictar() {
+    if (dictando) { reconocedor.current?.stop(); return; }
+    const campo = ultimoCampo.current ?? panelRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>("textarea, input[type=text]");
+    if (!campo) { setError("Pulsa primero el campo donde quieres dictar."); return; }
+    const rec = crearReconocedor();
+    if (!rec) return;
+    rec.lang = "es-MX"; rec.interimResults = false; rec.continuous = false;
+    rec.onresult = event => { const texto = Array.from(event.results, r => r[0]?.transcript ?? "").join(" ").trim(); if (texto) escribirEn(campo, texto); };
+    rec.onend = () => { setDictando(false); reconocedor.current = null; };
+    rec.onerror = () => { setDictando(false); setError("No se pudo escuchar; revisa el permiso del micrófono."); };
+    reconocedor.current = rec;
+    setError(""); setDictando(true);
+    try { rec.start(); } catch { setDictando(false); }
+  }
   const panelOpen = !!editing || listOpen;
   const editFields: FormatoField[] = editing ? editing.zona.keys.filter(key => !IMAGE_KEYS.includes(key)).map(key => fields.get(key)).filter((field): field is FormatoField => !!field) : [];
   const imageKey = editing?.zona.keys.find(key => IMAGE_KEYS.includes(key));
@@ -187,8 +264,12 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
   return <div className="relative flex min-h-0 flex-1">
     <div className={`${s.desk} min-w-0 flex-1 overflow-auto`}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card px-4 py-2 sm:px-6">
-        <p className="text-sm text-muted-foreground">Pulsa una parte del documento para llenarla. Lo que se ve es lo que sale en el PDF.</p>
-        <span className="flex gap-1 lg:hidden"><Button variant="ghost" aria-pressed={large} onClick={() => setLarge(value => !value)}>{large ? <ZoomOut size={16} aria-hidden="true" /> : <ZoomIn size={16} aria-hidden="true" />}{large ? "Ajustar al ancho" : "Ver más grande"}</Button><Button variant="ghost" aria-expanded={listOpen} onClick={() => { setEditing(null); setListOpen(open => !open); }}><ListChecks size={16} aria-hidden="true" />Qué falta{faltan ? ` (${faltan})` : ""}</Button></span>
+        {error && !editing ? <p role="alert" className="text-sm text-destructive">{error}</p>
+          : <p className="text-sm text-muted-foreground">{autoNotice || "Pulsa una parte del documento para llenarla. Lo que se ve es lo que sale en el PDF."}</p>}
+        <span className="flex flex-wrap gap-1">
+          {expedienteId && <Button variant="ghost" aria-expanded={verDocs} onClick={() => setVerDocs(open => !open)}><Files size={16} aria-hidden="true" />Documentos del cliente</Button>}
+          <span className="flex gap-1 lg:hidden"><Button variant="ghost" aria-pressed={large} onClick={() => setLarge(value => !value)}>{large ? <ZoomOut size={16} aria-hidden="true" /> : <ZoomIn size={16} aria-hidden="true" />}{large ? "Ajustar al ancho" : "Ver más grande"}</Button><Button variant="ghost" aria-expanded={listOpen} onClick={() => { setEditing(null); setListOpen(open => !open); }}><ListChecks size={16} aria-hidden="true" />Qué falta{faltan ? ` (${faltan})` : ""}</Button></span>
+        </span>
       </div>
       {failure ? <p role="alert" className="p-6 text-sm text-destructive">{failure}</p>
         : !maqueta ? <p role="status" className="p-6 text-sm text-muted-foreground">Preparando el documento…</p>
@@ -208,9 +289,26 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
         </div>)}</div>}
     </div>
 
-    <aside aria-label={editing ? "Captura" : "Qué falta"} className={s.aside} data-open={panelOpen}>
+    {/* CSR-05: los documentos que entregó el cliente, a la vista mientras se captura. */}
+    {verDocs && <section aria-label="Documentos del cliente" className={s.viewer}>
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <h3 className="m-0 flex-1 text-base font-semibold">{archivoAbierto ? archivoAbierto.titulo : "Documentos del cliente"}</h3>
+        {archivoAbierto && <Button variant="ghost" onClick={() => setArchivoAbierto(null)}>Todos</Button>}
+        <Button variant="ghost" iconOnly aria-label="Cerrar los documentos" onClick={() => { setVerDocs(false); setArchivoAbierto(null); }}><X size={18} aria-hidden="true" /></Button>
+      </div>
+      {archivoAbierto ? archivoAbierto.mime === "application/pdf"
+        ? <iframe title={archivoAbierto.titulo} src={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} className="min-h-0 flex-1 border-0 bg-white" />
+        : <div className="min-h-0 flex-1 overflow-auto bg-[color:var(--muted)] p-2"><img src={`/api/admin/archivos-cliente/${archivoAbierto.id}/descargar`} alt={archivoAbierto.titulo} className="mx-auto h-auto max-w-full" /></div>
+        : <div className="min-h-0 flex-1 overflow-auto px-3 py-3">
+          {!archivos ? <p role="status" className="px-2 text-sm text-muted-foreground">Consultando…</p>
+            : !archivos.length ? <p className="px-2 text-sm text-muted-foreground">Este expediente todavía no tiene documentos del cliente. Se suben en la operación, en «Documentos del cliente».</p>
+            : <ul className="flex flex-col gap-0.5">{archivos.map(archivo => <li key={archivo.id}><button type="button" className={s.missingItem} onClick={() => setArchivoAbierto(archivo)}><span className="flex-1 [overflow-wrap:anywhere]">{archivo.titulo}</span><span className="text-xs text-muted-foreground">{archivo.mime === "application/pdf" ? "PDF" : "Imagen"}</span></button></li>)}</ul>}
+        </div>}
+    </section>}
+
+    <aside aria-label={editing ? "Captura" : completando ? "Completar en el expediente" : "Qué falta"} className={s.aside} data-open={panelOpen || completando}>
       {/* Las imágenes traen su propio formulario de carga: el panel no es un <form> y «Aceptar» apunta al de los campos. */}
-      {editing ? <div ref={panelRef} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); closePanel(); } }} className="flex min-h-0 flex-1 flex-col">
+      {editing ? <div ref={panelRef} onFocusCapture={event => { const t = event.target; if (t instanceof HTMLTextAreaElement || (t instanceof HTMLInputElement && (t.type === "text" || t.type === "search"))) ultimoCampo.current = t; }} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); closePanel(); } }} className="flex min-h-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex min-w-0 flex-col gap-0.5">
             <p className="text-xs font-semibold text-muted-foreground">Hoja {editing.zona.page + 1}</p>
@@ -240,12 +338,24 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           </fieldset>
         </div>
-        <div className="flex justify-end gap-2 border-t border-border px-5 py-3">
+        <div className="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-3">
+          {!imageKey && dictadoDisponible() && <Button variant="ghost" aria-pressed={dictando} disabled={saving || disabled} onClick={dictar}><Mic size={16} aria-hidden="true" />{dictando ? "Escuchando… pulsa para parar" : "Dictar"}</Button>}
+          <span className="flex-1" />
           <Button variant="ghost" onClick={closePanel}>Cancelar</Button>
           {imageKey ? <Button variant="primary" disabled={saving || disabled} onClick={() => void accept()}><Check size={16} aria-hidden="true" />{saving ? "Guardando…" : "Aceptar"}</Button>
             : <Button type="submit" form={formId} variant="primary" disabled={saving || disabled}><Check size={16} aria-hidden="true" />{saving ? "Guardando…" : "Aceptar"}</Button>}
         </div>
       </div>
+        : completando && expedienteId ? <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+            <h3 className="m-0 flex-1 text-lg font-semibold">Completar en el expediente</h3>
+            <Button variant="ghost" iconOnly aria-label="Volver a qué falta" onClick={() => setCompletando(false)}><X size={18} aria-hidden="true" /></Button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-auto p-3">
+            <p className="mb-3 px-2 text-sm text-muted-foreground">Lo que confirmes aquí llena este formato y los demás del expediente.</p>
+            <ExpedienteDatosPanel operationId={expedienteId} solo={clavesExp.length ? clavesExp : undefined} titulo="Datos que faltan" onSaved={() => { void Promise.resolve(onExpedienteSaved?.()).catch(cause => setError(errorMessage(cause))).finally(() => setDatosRefresh(n => n + 1)); }} />
+          </div>
+        </div>
         : <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
             <h3 className="m-0 flex-1 text-lg font-semibold">Qué falta para el PDF</h3>
@@ -265,7 +375,12 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
               </li>)}</ul>}
               {error && !editing && <p role="alert" className="text-sm text-destructive">{error}</p>}
             </section>}
-            {faltan ? <ul className="flex flex-col gap-0.5">{pending.map(key => <li key={key}><button type="button" className={s.missingItem} disabled={disabled || !maqueta} onClick={() => openKey(key)}><span className="flex-1">{label(key)}</span></button></li>)}
+            {pendingExp.length > 0 && expedienteId && <section aria-label="Se completan en el expediente" className="flex flex-col gap-2 rounded-[12px] border border-border p-3">
+              <p className="text-sm font-semibold">Se completan una vez en el expediente</p>
+              <ul className="flex flex-col gap-0.5">{pendingExp.map(key => <li key={key}><button type="button" className={s.missingItem} disabled={disabled || !maqueta} onClick={() => openKey(key)}><span className="flex-1">{label(key)}</span></button></li>)}</ul>
+              <Button variant="primary" disabled={disabled || saving} onClick={() => { setListOpen(false); setCompletando(true); }}>Completar en el expediente</Button>
+            </section>}
+            {faltan ? <ul className="flex flex-col gap-0.5">{pendingPropio.map(key => <li key={key}><button type="button" className={s.missingItem} disabled={disabled || !maqueta} onClick={() => openKey(key)}><span className="flex-1">{label(key)}</span></button></li>)}
               {sueltos.map(text => <li key={text} className="px-3 py-2 text-sm">{text}</li>)}</ul>
               : <p className="px-2 text-sm text-muted-foreground">Ya tiene lo indispensable para generar el PDF. Puedes seguir llenando lo demás.</p>}
             <p className="mt-auto px-2 text-xs text-muted-foreground">Lo de borde vino falta. Cada dato se guarda al aceptar.</p>

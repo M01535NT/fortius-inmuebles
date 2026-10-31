@@ -208,6 +208,11 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
             const next = { ...values, ...patch };
             setValues(next); setError(""); setNotice("");
             await persist(next);
+          }}
+          // Al confirmar datos del expediente desde la ventana, el servidor ya llenó este borrador: se vuelve a leer para no pisarlo con una versión vieja.
+          onExpedienteSaved={async () => {
+            const result = await json<{ documento: Documento }>(`/api/admin/formatos/${doc.id}`);
+            setDoc(result.documento); setValues(result.documento.data); onSaved(result.documento);
           }} />
         : <div className="flex min-h-0 flex-1">
           <nav aria-label="Secciones del documento" className={cn(s.sectionsNav, "hidden lg:flex")}>

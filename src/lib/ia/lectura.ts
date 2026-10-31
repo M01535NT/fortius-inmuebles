@@ -116,9 +116,10 @@ export function aPropuestas(respuesta: RespuestaLectura, archivo: ArchivoLeido, 
   return { datos, propuestos, distintos };
 }
 
-/** Precio por millón de tokens del modelo de lectura (Claude Opus 5.5, consultado el 29/10/2026). */
+/** Precio por millón de tokens de cada modelo de lectura (Claude Opus 5.5 consultado el 29/10/2026; grok-4.7 el 31/10/2026, hasta 200 mil tokens de entrada). */
 export const MODELO_LECTURA = "claude-opus-5-5";
-const USD_POR_MTOK = { entrada: 4, salida: 20 };
-export function costoAproximado(uso: { input_tokens: number; output_tokens: number }): number {
-  return Math.round(((uso.input_tokens * USD_POR_MTOK.entrada + uso.output_tokens * USD_POR_MTOK.salida) / 1_000_000) * 10_000) / 10_000;
+export const USD_POR_MTOK = { claude: { entrada: 4, salida: 20 }, grok: { entrada: 2, salida: 6 } };
+export function costoAproximado(uso: { input_tokens: number; output_tokens: number }, modelo = MODELO_LECTURA): number {
+  const precio = modelo.toLowerCase().startsWith("grok") ? USD_POR_MTOK.grok : USD_POR_MTOK.claude;
+  return Math.round(((uso.input_tokens * precio.entrada + uso.output_tokens * precio.salida) / 1_000_000) * 10_000) / 10_000;
 }

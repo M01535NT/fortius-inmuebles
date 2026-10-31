@@ -5,8 +5,9 @@ import { draftCreate } from "@/lib/formatos/schemas";
 import { prefillFormato } from "@/lib/formatos/intake-prefill";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { calcularValor } from "@/lib/formatos/valor";
-import { llenarDesdeDatos } from "@/lib/formatos/datos-expediente";
-import { leerDatos } from "@/lib/backend/expediente-datos";
+import { fechasDeHoy, llenarDesdeDatos } from "@/lib/formatos/datos-expediente";
+import { operationalDate } from "@/lib/admin/operational-date";
+import { leerDatosCompletos } from "@/lib/backend/expediente-datos";
 
 type Context = { params: Promise<{ id: string }> };
 export async function GET(_request: Request, context: Context) {
@@ -61,10 +62,12 @@ export async function POST(request: Request, context: Context) {
     }
     // Datos del expediente ya confirmados: llenan lo que la propuesta dejó vacío (nunca la reemplazan).
     // Si no se pueden leer, el formato nace igual con su propuesta.
-    let confirmados: Awaited<ReturnType<typeof leerDatos>>["datos"]={};
-    try{confirmados=(await leerDatos(client,id)).datos;}catch{/* sin datos del expediente */}
+    let confirmados: Awaited<ReturnType<typeof leerDatosCompletos>>["datos"]={};
+    try{confirmados=(await leerDatosCompletos(client,id)).datos;}catch{/* sin datos del expediente */}
+    // Las fechas que son «hoy» (emisión, corte, registro…) nacen puestas con la fecha de Tijuana (CSR-02).
     const base={...proposed,...input.data,...valorSeed};
-    const seeded=draftCreate.parse({formatoId:input.formatoId,data:{...base,...llenarDesdeDatos(input.formatoId,base,confirmados).patch}});
+    const conFechas={...base,...fechasDeHoy(input.formatoId,base,operationalDate())};
+    const seeded=draftCreate.parse({formatoId:input.formatoId,data:{...conFechas,...llenarDesdeDatos(input.formatoId,conFechas,confirmados).patch}});
     const { data, error } = await client.from("fortius_inmuebles_formato_drafts").insert({ expediente_id: id, formato_id: input.formatoId, data: seeded.data }).select("id,expediente_id,formato_id,data,version,created_at,updated_at").single();
     if (error) databaseError(error);
     return { documento: data };

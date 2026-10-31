@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { leerArchivoConIa } from "@/lib/backend/expediente-lectura";
 import { apiResponse, assertSameOrigin } from "@/lib/backend/http";
-import { extractorClaude } from "@/lib/ia/claude";
+import { extractor } from "@/lib/ia/proveedor";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -14,6 +14,6 @@ export async function POST(request: Request, context: Context) {
     assertSameOrigin(request);
     const id = z.uuid().parse((await context.params).id);
     const { client, user } = await requireStaff();
-    return { lectura: await leerArchivoConIa(client, createServerClient(undefined, true), user.id, id, extractorClaude()) };
+    return { lectura: await leerArchivoConIa(client, createServerClient(undefined, true), user.id, id, extractor()) };
   });
 }

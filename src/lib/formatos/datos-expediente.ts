@@ -61,11 +61,83 @@ export const DATOS_EXPEDIENTE: DatoExpediente[] = [
 ];
 const POR_CLAVE = new Map(DATOS_EXPEDIENTE.map(dato => [dato.clave, dato]));
 
+/*
+  Datos automáticos con dueño (CSR-02, titular, 31/10/2026): lo que ya vive en la ficha de la
+  persona o del inmueble no se captura otra vez. La ficha de la persona manda (sus datos entran
+  confirmados); las medidas de la ficha del inmueble entran por confirmar, porque la escritura o el
+  levantamiento pueden corregirlas. Lo guardado en el expediente siempre gana sobre lo automático.
+*/
+export type OrigenAutomatico = "persona" | "inmueble";
+export const ORIGEN_AUTOMATICO: Partial<Record<string, OrigenAutomatico>> = {
+  propietarioNombre: "persona", propietarioTelefono: "persona", propietarioCorreo: "persona", propietarioCurp: "persona", propietarioRfc: "persona",
+  propietarioEstadoCivil: "persona", propietarioNacimiento: "persona", propietarioDomicilio: "persona", propietarioIdentificacion: "persona",
+  inmuebleTipo: "inmueble", superficieTerreno: "inmueble", superficieConstruccion: "inmueble", recamaras: "inmueble", banos: "inmueble", mediosBanos: "inmueble",
+};
+export const FUENTE_PERSONA = "Ficha de la persona", FUENTE_INMUEBLE = "Ficha del inmueble";
+export type PersonaDatos = { nombre?: string; telefono?: string; email?: string; curp?: string; rfc?: string; estadoCivil?: string; fechaNacimiento?: string; domicilio?: string; identificacion?: string };
+export type InmuebleDatos = { tipo?: string; ficha?: { terrenoM2?: number; construccionM2?: number; recamaras?: number; banos?: number } };
+
+export function datosAutomaticos({ persona, inmueble, ahora }: { persona?: PersonaDatos | null; inmueble?: InmuebleDatos | null; ahora: string }): DatosGuardados {
+  const datos: DatosGuardados = {};
+  const texto = (valor: unknown) => typeof valor === "string" && valor.trim() ? valor.trim().slice(0, 2000) : undefined;
+  const numero = (valor: unknown) => typeof valor === "number" && Number.isFinite(valor) && valor >= 0 ? valor : undefined;
+  const pon = (clave: string, valor: string | number | undefined, estado: DatoGuardado["estado"], documento: string) => { if (valor !== undefined) datos[clave] = { valor, estado, fuente: { documento }, actualizadoEl: ahora }; };
+  if (persona) {
+    pon("propietarioNombre", texto(persona.nombre), "confirmado", FUENTE_PERSONA);
+    pon("propietarioTelefono", texto(persona.telefono), "confirmado", FUENTE_PERSONA);
+    pon("propietarioCorreo", texto(persona.email), "confirmado", FUENTE_PERSONA);
+    pon("propietarioCurp", texto(persona.curp), "confirmado", FUENTE_PERSONA);
+    pon("propietarioRfc", texto(persona.rfc), "confirmado", FUENTE_PERSONA);
+    pon("propietarioEstadoCivil", texto(persona.estadoCivil), "confirmado", FUENTE_PERSONA);
+    pon("propietarioNacimiento", /^\d{4}-\d{2}-\d{2}$/.test(persona.fechaNacimiento ?? "") ? persona.fechaNacimiento : undefined, "confirmado", FUENTE_PERSONA);
+    pon("propietarioDomicilio", texto(persona.domicilio), "confirmado", FUENTE_PERSONA);
+    pon("propietarioIdentificacion", texto(persona.identificacion), "confirmado", FUENTE_PERSONA);
+  }
+  if (inmueble) {
+    pon("inmuebleTipo", texto(inmueble.tipo), "confirmado", FUENTE_INMUEBLE);
+    pon("superficieTerreno", numero(inmueble.ficha?.terrenoM2), "propuesto", FUENTE_INMUEBLE);
+    pon("superficieConstruccion", numero(inmueble.ficha?.construccionM2), "propuesto", FUENTE_INMUEBLE);
+    pon("recamaras", numero(inmueble.ficha?.recamaras), "propuesto", FUENTE_INMUEBLE);
+    const banos = numero(inmueble.ficha?.banos);
+    if (banos !== undefined) {
+      pon("banos", Math.floor(banos), "propuesto", FUENTE_INMUEBLE);
+      if (banos % 1 > 0) pon("mediosBanos", 1, "propuesto", FUENTE_INMUEBLE);
+    }
+  }
+  return datos;
+}
+
+/** Fechas que son «hoy» cuando nace un formato (emisión, corte, registro, entrevista, valor); nunca los plazos ni las citas. */
+export const FECHAS_DE_HOY = ["fecha", "fechaEmision", "fechaCorte", "fechaRegistro", "fechaEntrevista", "fechaValor"] as const;
+export function fechasDeHoy(formatoId: string, data: Record<string, unknown>, hoy: string): Record<string, string> {
+  let fields: FormatoField[];
+  try { fields = formatoById(formatoId).fields; } catch { return {}; }
+  const patch: Record<string, string> = {};
+  for (const field of fields) if (field.type === "date" && (FECHAS_DE_HOY as readonly string[]).includes(field.key) && vacio(data[field.key])) patch[field.key] = hoy;
+  return patch;
+}
+
+/** Lo guardado en el expediente sobre lo automático. */
+export function mezclarDatos(automaticos: DatosGuardados, guardados: DatosGuardados): DatosGuardados {
+  return { ...automaticos, ...guardados };
+}
+
+/** Quita de lo que se va a guardar las entradas iguales a las automáticas: así la ficha sigue mandando si cambia. */
+export function sinAutomaticosIguales(datos: DatosGuardados, automaticos: DatosGuardados): DatosGuardados {
+  const salida: DatosGuardados = {};
+  for (const [clave, dato] of Object.entries(datos)) {
+    const auto = automaticos[clave];
+    if (auto && auto.valor === dato.valor && auto.estado === dato.estado && auto.fuente?.documento === dato.fuente?.documento) continue;
+    salida[clave] = dato;
+  }
+  return salida;
+}
+
 /** Un dato guardado: su valor, si está confirmado y de qué documento salió. */
 export const datoGuardado = z.object({
   valor: z.union([z.string().trim().min(1).max(2000), z.number().finite().nonnegative()]),
   estado: z.enum(["propuesto", "confirmado"]),
-  fuente: z.object({ archivoId: z.uuid().optional(), documento: z.string().max(240).optional(), pagina: z.number().int().positive().max(2000).optional(), cita: z.string().max(500).optional() }).strict().optional(),
+  fuente: z.object({ archivoId: z.uuid().optional(), documento: z.string().max(240).optional(), pagina: z.number().int().positive().max(2000).optional(), cita: z.string().max(500).optional(), operacionId: z.uuid().optional() }).strict().optional(),
   actualizadoEl: z.string().max(40).optional(),
 }).strict();
 export type DatoGuardado = z.infer<typeof datoGuardado>;
@@ -129,3 +201,8 @@ export function llenarDesdeDatos(formatoId: string, data: Record<string, unknown
 }
 
 export function datoDe(clave: string): DatoExpediente | undefined { return POR_CLAVE.get(clave); }
+
+/** El dato del expediente que llena una celda del formato, si alguno la tiene como destino (CSR-05). */
+export function datoParaCelda(formatoId: string, key: string): DatoExpediente | undefined {
+  return DATOS_EXPEDIENTE.find(def => def.destinos.some(destino => destino.key === key && aplica(destino, formatoId)));
+}
