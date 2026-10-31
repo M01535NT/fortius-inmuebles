@@ -12,7 +12,8 @@ import { ApiError, databaseError } from "./http";
   Sin clave de API la lectura no está disponible y el resto del sistema funciona igual.
 */
 
-export type EntradaLectura = { bytes: Buffer; mime: string; titulo: string };
+/** `paginas`: el PDF ya dibujado como imágenes por el navegador, para los servicios que no reciben PDF. */
+export type EntradaLectura = { bytes: Buffer; mime: string; titulo: string; paginas?: Array<{ bytes: Buffer; mime: string }> };
 export type ResultadoExtractor = { respuesta: unknown; uso: { input_tokens: number; output_tokens: number }; modelo: string };
 /** El proveedor de lectura; las pruebas lo simulan. */
 export type Extractor = (entrada: EntradaLectura) => Promise<ResultadoExtractor>;
@@ -37,7 +38,7 @@ async function marcar(privileged: SupabaseClient, id: string, patch: Record<stri
 
 export type Lectura = { tipoDocumento: RespuestaLectura["tipoDocumento"]; propuestos: string[]; distintos: ValorDistinto[]; costoUsd: number };
 
-export async function leerArchivoConIa(client: SupabaseClient, privileged: SupabaseClient, userId: string, archivoId: string, extraer: Extractor): Promise<Lectura> {
+export async function leerArchivoConIa(client: SupabaseClient, privileged: SupabaseClient, userId: string, archivoId: string, extraer: Extractor, paginas?: EntradaLectura["paginas"]): Promise<Lectura> {
   const { archivo, bytes } = await descargarArchivo(client, privileged, archivoId);
   if (archivo.deleted_at) throw new ApiError(409, "Restaura el documento antes de leerlo");
   await exigirExpediente(client, archivo.expediente_id);
@@ -56,7 +57,7 @@ export async function leerArchivoConIa(client: SupabaseClient, privileged: Supab
   };
 
   let resultado: ResultadoExtractor;
-  try { resultado = await extraer({ bytes, mime: archivo.mime, titulo: archivo.titulo }); }
+  try { resultado = await extraer({ bytes, mime: archivo.mime, titulo: archivo.titulo, ...(paginas?.length ? { paginas } : {}) }); }
   catch (error) { return fallar(error instanceof ApiError ? error.message : "No se pudo leer el documento; inténtalo más tarde"); }
   const parsed = respuestaLectura.safeParse(resultado.respuesta);
   if (!parsed.success) return fallar("La lectura no devolvió datos válidos; inténtalo otra vez", resultado);

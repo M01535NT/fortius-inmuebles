@@ -32,16 +32,18 @@ const cuerpoRespuesta = z.object({
 
 export function extractorGrok(fetchFn: typeof fetch = fetch): Extractor {
   if (!grokDisponible()) throw new ApiError(503, "La lectura de documentos aún no está activada");
-  return async ({ bytes, mime, titulo }) => {
-    if (!IMAGENES.has(mime)) throw new ApiError(502, "Este servicio de lectura solo lee imágenes JPG, PNG o WEBP; toma una foto del documento o súbelo como imagen");
+  return async ({ bytes, mime, titulo, paginas }) => {
+    // Un PDF llega como sus páginas dibujadas por el panel; sin ellas, solo entran imágenes.
+    const imagenes = paginas?.length ? paginas : [{ bytes, mime }];
+    if (imagenes.some(imagen => !IMAGENES.has(imagen.mime))) throw new ApiError(502, mime === "application/pdf" ? "Este servicio lee el PDF por páginas desde el panel; vuelve a pulsar «Leer datos» en Documentos del cliente" : "Este servicio de lectura solo lee imágenes JPG, PNG o WEBP; toma una foto del documento o súbelo como imagen");
     const cuerpo = {
       model: MODELO_GROK,
       temperature: 0,
       messages: [
         { role: "system", content: instruccionesLectura() },
         { role: "user", content: [
-          { type: "image_url", image_url: { url: `data:${mime};base64,${bytes.toString("base64")}`, detail: "high" } },
-          { type: "text", text: `Documento del expediente: «${titulo.slice(0, 200)}». Di qué tipo de documento es y extrae los datos de la lista que aparezcan en él.` },
+          ...imagenes.map(imagen => ({ type: "image_url", image_url: { url: `data:${imagen.mime};base64,${imagen.bytes.toString("base64")}`, detail: "high" } })),
+          { type: "text", text: `Documento del expediente: «${titulo.slice(0, 200)}»${imagenes.length > 1 ? ` (${imagenes.length} páginas, en orden)` : ""}. Di qué tipo de documento es y extrae los datos de la lista que aparezcan en él; la página es el número de imagen, empezando en 1.` },
         ] },
       ],
       response_format: { type: "json_schema", json_schema: { name: "lectura_documento", schema: esquemaRespuesta(), strict: true } },
@@ -50,11 +52,18 @@ export function extractorGrok(fetchFn: typeof fetch = fetch): Extractor {
     try {
       response = await fetchFn(URL_GROK, { method: "POST", headers: { Authorization: `Bearer ${process.env.XAI_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(cuerpo), signal: AbortSignal.timeout(4 * 60_000) });
     } catch { throw new ApiError(502, "El servicio de lectura no respondió; inténtalo más tarde"); }
-    if (response.status === 401 || response.status === 403) throw new ApiError(503, "La clave del servicio de lectura no es válida; revísala en la configuración del servidor");
+    const CLAVE = "La clave del servicio de lectura no es válida; revísala en la configuración del servidor";
+    if (response.status === 401 || response.status === 403) throw new ApiError(503, CLAVE);
     if (response.status === 429) throw new ApiError(503, "El servicio de lectura está saturado; inténtalo en unos minutos");
-    if (response.status === 400 || response.status === 413 || response.status === 422) throw new ApiError(502, "No se pudo abrir este archivo; revisa que la imagen se vea bien");
-    if (!response.ok) throw new ApiError(502, "El servicio de lectura no respondió; inténtalo más tarde");
-    const parsed = cuerpoRespuesta.safeParse(await response.json().catch(() => null));
+    const json: unknown = await response.json().catch(() => null);
+    if (!response.ok) {
+      // xAI responde 400 también cuando la clave no es suya; el motivo viene en el cuerpo.
+      const motivo = json && typeof json === "object" && "error" in json && typeof json.error === "string" ? json.error : "";
+      if (/api key/i.test(motivo)) throw new ApiError(503, CLAVE);
+      if (response.status === 400 || response.status === 413 || response.status === 422) throw new ApiError(502, "No se pudo abrir este archivo; revisa que la imagen se vea bien");
+      throw new ApiError(502, "El servicio de lectura no respondió; inténtalo más tarde");
+    }
+    const parsed = cuerpoRespuesta.safeParse(json);
     if (!parsed.success) throw new ApiError(502, "La lectura no devolvió datos válidos; inténtalo otra vez");
     const eleccion = parsed.data.choices[0];
     if (eleccion.message.refusal || eleccion.finish_reason === "content_filter") throw new ApiError(502, "Este documento no se pudo leer; captura sus datos a mano");

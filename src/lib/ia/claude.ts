@@ -27,12 +27,12 @@ export function extractorClaude(): Extractor {
       ? { type: "document" as const, source: { type: "base64" as const, media_type: "application/pdf" as const, data }, title: titulo.slice(0, 200) }
       : { type: "image" as const, source: { type: "base64" as const, media_type: mime as TipoImagen, data } };
     try {
+      // Si el modelo declina por sus filtros de seguridad, la API intenta con otro modelo en la misma llamada (Haiku no lo ofrece).
+      const respaldo = /haiku/i.test(MODELO_LECTURA) ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const };
       const mensaje = await client.beta.messages.parse({
         model: MODELO_LECTURA,
         max_tokens: 16000,
-        // Si el modelo declina por sus filtros de seguridad, la API intenta con otro modelo en la misma llamada.
-        betas: ["server-side-fallback-2026-07-01"],
-        fallbacks: "default",
+        ...respaldo,
         output_config: { effort: "medium", format: zodOutputFormat(respuestaLectura) },
         system: instruccionesLectura(),
         messages: [{ role: "user", content: [archivo, { type: "text", text: `Documento del expediente: «${titulo}». Di qué tipo de documento es y extrae los datos de la lista que aparezcan en él.` }] }],

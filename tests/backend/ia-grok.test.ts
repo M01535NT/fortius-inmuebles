@@ -27,11 +27,17 @@ describe("extractorGrok", () => {
     expect(r.respuesta).toMatchObject({ tipoDocumento: "curp" });
   });
 
-  it("no manda PDF: pide una foto del documento", async () => {
+  it("un PDF entra como sus páginas dibujadas por el panel; sin ellas, avisa", async () => {
     const { extractorGrok } = await import("@/lib/ia/grok");
-    const fetchFn = vi.fn() as unknown as typeof fetch;
-    await expect(extractorGrok(fetchFn)({ bytes: Buffer.from("%PDF"), mime: "application/pdf", titulo: "Escritura" })).rejects.toThrow(/solo lee imágenes/);
-    expect(fetchFn).not.toHaveBeenCalled();
+    const sinPaginas = vi.fn() as unknown as typeof fetch;
+    await expect(extractorGrok(sinPaginas)({ bytes: Buffer.from("%PDF"), mime: "application/pdf", titulo: "Escritura" })).rejects.toThrow(/por páginas desde el panel/);
+    expect(sinPaginas).not.toHaveBeenCalled();
+    const llamadas: RequestInit[] = [];
+    const conPaginas = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => { llamadas.push(init!); return respuestaOk({ tipoDocumento: "escritura", datos: [] }); }) as unknown as typeof fetch;
+    await extractorGrok(conPaginas)({ bytes: Buffer.from("%PDF"), mime: "application/pdf", titulo: "Escritura", paginas: [{ bytes: Buffer.from("p1"), mime: "image/jpeg" }, { bytes: Buffer.from("p2"), mime: "image/jpeg" }] });
+    const contenido = JSON.parse(String(llamadas[0].body)).messages[1].content;
+    expect(contenido.filter((parte: { type: string }) => parte.type === "image_url")).toHaveLength(2);
+    expect(contenido.at(-1).text).toContain("2 páginas");
   });
 
   it("traduce los errores del servicio a mensajes del panel sin exponer la clave", async () => {
@@ -41,6 +47,8 @@ describe("extractorGrok", () => {
     await expect(extractorGrok(con(401))(entrada)).rejects.toMatchObject({ status: 503, message: expect.stringMatching(/clave del servicio/) });
     await expect(extractorGrok(con(429))(entrada)).rejects.toMatchObject({ status: 503, message: expect.stringMatching(/saturado/) });
     await expect(extractorGrok(con(400))(entrada)).rejects.toMatchObject({ status: 502 });
+    const claveAjena = (async () => Response.json({ code: "invalid-argument", error: "Incorrect API key provided. You can obtain an API key from https://console.x.ai." }, { status: 400 })) as unknown as typeof fetch;
+    await expect(extractorGrok(claveAjena)(entrada)).rejects.toMatchObject({ status: 503, message: expect.stringMatching(/clave del servicio/) });
     const rechaza = (async () => Response.json({ choices: [{ message: { content: null, refusal: "no" }, finish_reason: "stop" }] })) as unknown as typeof fetch;
     await expect(extractorGrok(rechaza)(entrada)).rejects.toThrow(/captura sus datos a mano/);
   });
@@ -76,5 +84,14 @@ describe("proveedor de lectura", () => {
     const { costoAproximado } = await import("@/lib/ia/lectura");
     expect(costoAproximado({ input_tokens: 1_000_000, output_tokens: 0 }, "grok-4.7")).toBe(2);
     expect(costoAproximado({ input_tokens: 1_000_000, output_tokens: 0 })).toBe(4);
+  });
+});
+
+describe("tarifa por modelo de Claude", () => {
+  it("Haiku, Sonnet y Opus se cobran con su precio", async () => {
+    const { costoAproximado } = await import("@/lib/ia/lectura");
+    expect(costoAproximado({ input_tokens: 1_000_000, output_tokens: 1_000_000 }, "claude-haiku-5-5")).toBe(0.6);
+    expect(costoAproximado({ input_tokens: 1_000_000, output_tokens: 0 }, "claude-sonnet-5-5")).toBe(2);
+    expect(costoAproximado({ input_tokens: 1_000_000, output_tokens: 0 }, "claude-opus-5-5")).toBe(4);
   });
 });
