@@ -289,3 +289,8 @@
 :global(.admin-root) .floatSub { font-size: .8125rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
 :global(.admin-root) .floatActions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
 @media (max-width: 1023px) { :global(.admin-root) .floatActions { width: 100%; } }
+@media (max-width: 1023px) {
+  :global(.admin-root) .screen { padding-bottom: 11rem; }
+  :global(.admin-root) .floatSub { display: none; }
+  :global(.admin-root) .floatTitle { font-size: .9375rem; }
+}

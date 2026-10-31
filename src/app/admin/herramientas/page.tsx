@@ -6,7 +6,7 @@ import { AppsCatalog } from "@/components/admin/apps/catalog";
 import { DocumentBrowser } from "@/components/admin/workspace/document-browser";
 
 export default function HerramientasPage() {
-  return <GuidedPage title="Herramientas" subtitle="Cada operación muestra las de su etapa.">
+  return <GuidedPage title="Herramientas">
     <React.Suspense fallback={null}>
       <RouteTabs label="Herramientas y documentos" idPrefix="herramientas" tabs={[
         { id: "herramientas", label: "Herramientas", render: () => <AppsCatalog /> },
