@@ -5,20 +5,21 @@ import type { SiteContent } from "@/lib/admin/store";
 export const HOME_FIELDS = {
   relatoTexto: { group: "Lo que recibes", label: "Lo que falta, a tiempo", value: "Qué falta, antes de anunciar." },
   relatoApoyo: { group: "Lo que recibes", label: "Dónde se publica", value: "Canales y fechas, acordados contigo." },
-  metodoTitulo: { group: "Método", label: "Título", value: "Cuatro etapas, cada una con su documento." },
-  metodoTexto: { group: "Método", label: "Introducción", value: "Te decimos qué sigue y qué necesitamos de ti." },
-  captacionTexto: { group: "Método", label: "Revisamos tu propiedad", value: "Quién vende, escritura, adeudos y medidas." },
-  diagnosticoTexto: { group: "Método", label: "Fijamos el precio con datos", value: "Comparamos propiedades parecidas. Tú decides el precio." },
-  comercializacionTexto: { group: "Método", label: "La publicamos y la mostramos", value: "Fotos, anuncios y visitas. Te avisamos de cada consulta." },
-  cierreTexto: { group: "Método", label: "Cerramos contigo", value: "Revisamos ofertas, notaría y entrega." },
+  metodoTitulo: { group: "Método", label: "Título", value: "Cinco etapas, y lo que recibes en cada una." },
+  metodoTexto: { group: "Método", label: "Introducción", value: "Cada paso queda en un documento que puedes revisar." },
+  captacionTexto: { group: "Método", label: "Conocemos tu caso", value: "Platicamos qué buscas, quién puede firmar y qué papeles tienes." },
+  diagnosticoTexto: { group: "Método", label: "Revisamos papeles y precio", value: "Medimos la propiedad, revisamos escritura y adeudos y la comparamos con otras parecidas. Tú decides el precio." },
+  comercializacionTexto: { group: "Método", label: "La publicamos", value: "Fotos, ficha y anuncios en los canales acordados. Te decimos qué pasó con cada consulta." },
+  ofertasTexto: { group: "Método", label: "Visitas y ofertas", value: "Acompañamos cada visita. Las ofertas llegan por escrito y tú decides si aceptas, contraofertas o no." },
+  cierreTexto: { group: "Método", label: "Firma y entrega", value: "Firmamos la promesa, coordinamos la notaría y el pago y entregamos la propiedad con acta." },
   entregablesTitulo: { group: "Entregables", label: "Título", value: "Documentos\ny seguimiento." },
   entregablesTexto: { group: "Entregables", label: "Introducción", value: "Cada etapa deja un documento." },
-  factibilidadTexto: { group: "Entregables", label: "Análisis de factibilidad", value: "Qué se revisó y qué falta." },
+  factibilidadTexto: { group: "Entregables", label: "Opinión jurídica", value: "Qué se revisó y qué falta." },
   valorTexto: { group: "Entregables", label: "Opinión de valor", value: "Precio propuesto y comparables." },
   planTexto: { group: "Entregables", label: "Plan de comercialización", value: "Dónde y cuándo se publica." },
-  gastosTexto: { group: "Entregables", label: "Estimación de gastos", value: "Cuánto recibes al final, estimado." },
-  contratoTexto: { group: "Entregables", label: "Contrato", value: "Alcance y honorarios." },
-  reportesTexto: { group: "Entregables", label: "Reportes", value: "Consultas, visitas y ofertas." },
+  gastosTexto: { group: "Entregables", label: "Estimación de lo que recibes", value: "Cuánto recibes al final, estimado." },
+  contratoTexto: { group: "Entregables", label: "Contrato de intermediación", value: "Alcance y honorarios." },
+  reportesTexto: { group: "Entregables", label: "Reporte de comercialización", value: "Consultas, visitas y ofertas." },
   preguntasTitulo: { group: "Preguntas frecuentes", label: "Título", value: "Lo que más\nnos preguntan." },
   tiempoRespuesta: { group: "Preguntas frecuentes", label: "Plazo de venta", value: "Depende del precio, la zona, el estado y la demanda." },
   precioRespuesta: { group: "Preguntas frecuentes", label: "Precio de salida", value: "Comparamos con inmuebles similares. El precio lo acuerdas tú." },
@@ -42,6 +43,7 @@ const PREVIOUS_HOME_TEXTS: Record<HomeTextKey, string> = {
   diagnosticoTexto: "",
   comercializacionTexto: "Revisamos las necesidades de los interesados y coordinamos las visitas. Recibes un reporte cada 30 días; cuando llega una oferta, analizamos contigo el precio, la forma de pago y las condiciones.",
   cierreTexto: "Damos seguimiento a los documentos y requisitos con la notaría y las partes. Los gastos se presentan como estimaciones hasta que los confirme quien corresponda.",
+  ofertasTexto: "",
   entregablesTitulo: "Lo que recibes\ndurante la venta.",
   entregablesTexto: "El trabajo queda por escrito. Estos documentos te ayudan a conocer la situación de tu propiedad, tomar decisiones y seguir el avance.",
   factibilidadTexto: "Identificamos documentos pendientes y aspectos que requieren revisión antes de ofrecer la propiedad.",
@@ -131,10 +133,20 @@ const PREVIOUS_LONG_TEXTS: Partial<Record<HomeTextKey, string>> = {
   evaluarTexto: "Dinos la ubicación y el tipo de inmueble. Te contactamos para pedir los documentos necesarios para revisarlo.",
 };
 
+/* Defaults of the four-stage method (30/10/2026), replaced by the five real stages on 31/10/2026. */
+const PREVIOUS_FOUR_STAGE_TEXTS: Partial<Record<HomeTextKey, string>> = {
+  metodoTitulo: "Cuatro etapas, cada una con su documento.",
+  metodoTexto: "Te decimos qué sigue y qué necesitamos de ti.",
+  captacionTexto: "Quién vende, escritura, adeudos y medidas.",
+  diagnosticoTexto: "Comparamos propiedades parecidas. Tú decides el precio.",
+  comercializacionTexto: "Fotos, anuncios y visitas. Te avisamos de cada consulta.",
+  cierreTexto: "Revisamos ofertas, notaría y entrega.",
+};
+
 export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefined, key: HomeTextKey): string {
   const value = content?.homeTexts?.[key]?.trim();
   const isOldDefault = value === PREVIOUS_HOME_TEXTS[key] || value === PREVIOUS_NOTES[key] || value === PREVIOUS_EDITORIAL_TEXTS[key]
-    || value === PREVIOUS_SIX_STAGE_TEXTS[key] || value === PREVIOUS_LONG_TEXTS[key]
+    || value === PREVIOUS_SIX_STAGE_TEXTS[key] || value === PREVIOUS_LONG_TEXTS[key] || value === PREVIOUS_FOUR_STAGE_TEXTS[key]
     || (key === "cierreTexto" && value === OLDER_CLOSURE_NOTE)
     || (key === "metodoTitulo" && value === RETIRED_METHOD_TITLE);
   return brandCopy(value && !isOldDefault ? value : HOME_FIELDS[key].value);

@@ -4,7 +4,7 @@ import { NocturnoHacemos } from "@/components/home/nocturno-hacemos";
 import { NocturnoExpediente } from "@/components/home/nocturno-expediente";
 import { NocturnoMetodo } from "@/components/home/nocturno-metodo";
 import { NocturnoDestacadas } from "@/components/home/nocturno-sections";
-import { NocturnoComprar, NocturnoEquipo, NocturnoRecursos, NocturnoTestimonios } from "@/components/home/nocturno-extras";
+import { NocturnoCierre, NocturnoComprar, NocturnoEquipo, NocturnoRecursos, NocturnoTestimonios } from "@/components/home/nocturno-extras";
 import { entregablesDe, etapasDe, pilaresDe } from "@/components/home/nocturno-content";
 import { Respuestas } from "@/components/home/respuestas";
 import { homeText } from "@/data/home-copy";
@@ -18,8 +18,8 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 /*
   Inicio (30/10/2026): cada sección responde una pregunta, en este orden: qué hacemos,
   cómo te ayudamos a vender (método), lo que recibes (expediente), cómo te ayudamos a
-  comprar (buscador), qué tenemos (baraja), quién te atiende, herramientas y preguntas.
-  Los componentes con movimiento se conservan; la portada lleva video.
+  comprar (buscador), qué tenemos (baraja), quién te atiende, herramientas y preguntas;
+  cierra una invitación a hablar. La portada, «Comprar» y el cierre llevan video.
 */
 export default async function HomePage() {
   const [content, propiedades, destacadas, team] = await Promise.all([
@@ -38,6 +38,7 @@ export default async function HomePage() {
       <NocturnoEquipo team={team.length ? team : [PERFIL_ILUSTRATIVO]} ilustrativo={!team.length} />
       <NocturnoRecursos />
       <div className="nx-faq"><Respuestas content={content} /></div>
+      <NocturnoCierre />
     </main>
   );
 }

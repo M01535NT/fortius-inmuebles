@@ -37,10 +37,22 @@
 /* Velo arriba para la barra transparente y abajo para el texto. */
 .nx-hero-scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 19, 37, 0.6) 0%, rgba(6, 19, 37, 0.14) 28%, rgba(6, 19, 37, 0.2) 52%, rgba(6, 19, 37, 0.88) 100%); }
 .nx-hero-body { margin-top: auto; padding-top: 140px; padding-bottom: 56px; }
-.nx-hero-eyebrow { margin: 0 0 16px; color: #f5f1eb; font-size: 14px; font-weight: 600; line-height: 1.4; }
 .nx-hero-title { max-width: 21ch; margin: 0; color: #fff; font-size: clamp(40px, 4.6vw, 64px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; text-wrap: balance; }
 .nx-hero-line { display: block; overflow: hidden; padding-bottom: 0.08em; }
 .nx-hero-line > span { display: inline-block; }
+/* Un titular por escena del video, apilados en la misma celda; los que no tocan esperan bajo su máscara. */
+.nx-hero-slides { display: grid; }
+.nx-hero-slide { grid-area: 1 / 1; align-self: end; }
+.nx-hero-slides:not(.is-live) .nx-hero-slide + .nx-hero-slide { visibility: hidden; }
+/* Escenas: una barra por escena que se llena con el tiempo del video. */
+.nx-hero-scenes { display: flex; gap: 8px; margin: 48px 0 0; padding: 0; list-style: none; }
+.nx-hero-scenes li { flex: 0 1 160px; }
+.nx-hero-scene { display: flex; align-items: center; width: 100%; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; }
+.nx-hero-scene:hover .nx-hero-scene-bar { background: rgba(245, 241, 235, 0.5); }
+.nx-hero-scene:focus-visible { outline: 2px solid #f5f1eb; outline-offset: 2px; }
+.nx-hero-scene-bar { display: block; height: 2px; background: rgba(245, 241, 235, 0.3); overflow: hidden; }
+.nx-hero-scene-bar > span { display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; }
+.nx-hero-scene[aria-current="true"] .nx-hero-scene-bar > span { transform: scaleX(var(--nx-scene-progress, 0)); }
 .nx-hero-foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px 48px; margin-top: 24px; }
 .nx-hero-lead { max-width: 46ch; margin: 0; color: #e6eaf0; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.55; }
 .nx-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -190,7 +202,7 @@
   .nx-stage.is-past, .dark .nx-stage.is-past { filter: none; }
   .nx-title-mask > span, .pg-title, .ab-hero-title, .fe-title { animation: none; }
 }
-/* Sin recorrido animado en escritorio, las seis etapas se acomodan en rejilla. */
+/* Sin recorrido animado en escritorio, las etapas se acomodan en rejilla. */
 @media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
   .nx-method-track { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: auto; max-width: 1240px; margin-inline: auto; padding-inline: clamp(20px, 4.2vw, 60px); }
   .nx-stage { width: auto; }
@@ -319,6 +331,7 @@
 .nx-camino-link svg { transition: transform 0.3s var(--nx-ease); }
 .nx-camino:hover .nx-camino-link svg { transform: translateX(4px); }
 
+
 .nx-stage-doc { display: flex; align-items: center; gap: 8px; margin-top: 18px; color: var(--ns-accent); font-size: 13px; font-weight: 600; }
 .nx-stage-doc svg { flex: none; }
 .nx-stage.is-active .nx-stage-doc { color: #f5f1eb; }
@@ -326,6 +339,21 @@
 .nx-band-navy { --nx-ink: #f5f1eb; --nx-muted: rgba(245, 241, 235, 0.78); --ns-accent: #f5f1eb; --ns-ink: #f5f1eb; margin-top: clamp(72px, 8vw, 112px); padding-block: clamp(64px, 7vw, 96px); background: #061f3f; color: #f5f1eb; }
 .dark .nx-band-navy { background: #0c1622; }
 .nx-band-navy .nx-title { color: #fff; }
+/* Banda con video de fondo: el velo azul es más denso a la izquierda, donde va el texto. */
+.nx-band-media { position: relative; isolation: isolate; overflow: hidden; }
+.nx-band-video { position: absolute; inset: 0; z-index: -2; }
+.nx-band-video video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.nx-band-scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(6, 31, 63, 0.92) 0%, rgba(6, 31, 63, 0.78) 45%, rgba(6, 31, 63, 0.42) 100%); }
+.dark .nx-band-scrim { background: linear-gradient(90deg, rgba(6, 12, 20, 0.94) 0%, rgba(6, 12, 20, 0.8) 45%, rgba(6, 12, 20, 0.5) 100%); }
+/* Cierre: casi pantalla completa, la frase centrada sobre un velo que oscurece abajo. */
+.nx-cierre { display: flex; align-items: center; min-height: clamp(520px, 86svh, 820px); margin-top: clamp(72px, 8vw, 112px); background: #061325; color: #fff; }
+.nx-cierre-scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 19, 37, 0.35) 0%, rgba(6, 19, 37, 0.45) 50%, rgba(6, 19, 37, 0.8) 100%); }
+.nx-cierre-body { display: flex; flex-direction: column; align-items: center; gap: 32px; text-align: center; }
+.nx-cierre-title { max-width: 14ch; margin: 0; color: #fff; font-size: clamp(40px, 6vw, 84px); line-height: 1; font-weight: 700; letter-spacing: -0.04em; text-wrap: balance; }
+@media (max-width: 899px) {
+  .nx-band-scrim { background: rgba(6, 31, 63, 0.84); }
+  .dark .nx-band-scrim { background: rgba(6, 12, 20, 0.86); }
+}
 .nx-band-cream { margin-top: clamp(72px, 8vw, 112px); padding-block: clamp(64px, 7vw, 96px); background: var(--ns-bg); }
 .nx-band-cream .nx-head { margin-bottom: 32px; }
 .nx-comprar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); align-items: center; gap: clamp(40px, 6vw, 80px); }
@@ -435,4 +463,86 @@
 }
 @media (max-width: 639px) {
   .nx-footer-columns { grid-template-columns: 1fr; gap: 32px; padding-block: 48px 40px; }
+}
+
+
+/*
+  Método, 31/10/2026: cinco etapas, cada tarjeta con la lista de documentos que recibe el
+  propietario. En escritorio la sección fijada mide exactamente una pantalla y la foto de
+  cada tarjeta cede espacio, así la tarjeta completa siempre se ve, aunque la pantalla sea baja.
+*/
+.nx-stage-docs { display: grid; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; }
+.nx-stage-docs .nx-stage-doc { margin-top: 0; align-items: flex-start; line-height: 1.35; }
+.nx-stage-docs .nx-stage-doc svg { margin-top: 1px; }
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .nx-method { display: flex; flex-direction: column; height: 100svh; min-height: 600px; padding-block: clamp(84px, 11svh, 112px) clamp(24px, 4svh, 48px); }
+  .nx-method .nx-title { font-size: clamp(36px, min(4.2vw, 6.4svh), 64px); }
+  .nx-method-count { font-size: clamp(32px, min(4.2vw, 6.4svh), 64px); }
+  .nx-progress { margin-top: clamp(16px, 3svh, 40px); }
+  .nx-method-viewport { flex: 1; min-height: 0; margin-top: clamp(16px, 3svh, 40px); padding-top: 8px; }
+  .nx-method-track { height: 100%; align-items: stretch; }
+  .nx-stage { height: 100%; }
+  .nx-stage-photo { flex: 1 1 0; min-height: 56px; aspect-ratio: auto; }
+  .nx-stage > div { flex: none; }
+  .nx-stage-number { font-size: clamp(44px, 7svh, 72px); }
+  .nx-stage p { margin-top: 8px; }
+  .nx-stage-step { margin-top: 12px; }
+}
+/* En móvil la siguiente tarjeta llega más tarde, para leer completa la que quedó fija. */
+@media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+  .nx-method-track { gap: 35svh; }
+}
+@media (max-width: 1023px) { .nx-stage-photo { aspect-ratio: 16 / 8; } }
+
+/*
+  Expediente (31/10/2026): la palomita se dibuja al marcarse la fila, el estado cambia con
+  un relevo y a la izquierda una línea avanza con el recorrido y enciende el punto que toca.
+*/
+.nx-exp-pillars-wrap { position: relative; }
+.nx-exp-rail { display: none; }
+.nx-exp-dot { display: none; }
+.nx-exp-icon { position: relative; }
+.nx-exp-icon > svg { position: absolute; transition: opacity 0.3s, transform 0.45s var(--nx-ease); }
+.nx-exp-check path { stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 0.5s var(--nx-ease) 0.08s; }
+.nx-exp-row.is-done .nx-exp-check path { stroke-dashoffset: 0; }
+.nx-exp-row .nx-exp-file { opacity: 1; }
+.nx-exp-row.is-done .nx-exp-file { opacity: 0; transform: scale(0.6); }
+.nx-exp-row.is-done .nx-exp-icon { animation: nx-exp-pop 0.5s var(--nx-ease); }
+@keyframes nx-exp-pop { 0% { transform: scale(0.82); } 55% { transform: scale(1.12); } 100% { transform: none; } }
+.nx-exp-state { position: relative; display: grid; overflow: hidden; }
+.nx-exp-state > span { grid-area: 1 / 1; text-align: right; transition: transform 0.45s var(--nx-ease), opacity 0.3s; }
+.nx-exp-done { transform: translateY(100%); opacity: 0; }
+.nx-exp-row.is-done .nx-exp-pending { transform: translateY(-100%); opacity: 0; }
+.nx-exp-row.is-done .nx-exp-done { transform: none; opacity: 1; }
+.nx-exp-row { position: relative; }
+.nx-exp-row::before { content: ""; position: absolute; inset: 0; z-index: 0; background: color-mix(in srgb, var(--ns-accent) 7%, transparent); transform: scaleX(0); transform-origin: left; opacity: 0; pointer-events: none; }
+.nx-exp-row > * { position: relative; z-index: 1; }
+.nx-exp-row.is-done::before { animation: nx-exp-sweep 0.9s var(--nx-ease); }
+@keyframes nx-exp-sweep { 0% { transform: scaleX(0); opacity: 1; } 60% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+.nx-exp-chip-n { display: inline-block; animation: nx-exp-count 0.45s var(--nx-ease); }
+@keyframes nx-exp-count { from { transform: translateY(60%); opacity: 0; } to { transform: none; opacity: 1; } }
+.nx-exp-sheet { position: absolute; inset: 40px 32px 0; display: block; border: 1px solid color-mix(in srgb, var(--ns-ink) 10%, transparent); border-bottom: 0; border-radius: 12px 12px 0 0; background: var(--nx-card); transform-origin: 50% 100%; }
+.nx-exp-sheet-back { opacity: 0.5; }
+.nx-exp-sheet-mid { opacity: 0.8; }
+/* Izquierda: línea que avanza y puntos que se encienden. */
+.nx-exp-section.is-animated .nx-exp-rail { position: absolute; top: 30px; bottom: 30px; left: 20px; display: block; width: 2px; background: color-mix(in srgb, var(--ns-ink) 12%, transparent); }
+.nx-exp-section.is-animated .nx-exp-rail > span { position: absolute; inset: 0; background: #8a1634; transform-origin: top; transform: scaleY(var(--exp-progress, 0)); }
+.dark .nx-exp-section.is-animated .nx-exp-rail > span { background: #e8a0b2; }
+.nx-exp-section.is-animated .nx-exp-pillars li { position: relative; padding-left: 52px; border-color: transparent; background: none; opacity: 0.42; transition: opacity 0.6s var(--nx-ease), transform 0.6s var(--nx-ease); }
+.nx-exp-section.is-animated .nx-exp-pillars li.is-past { opacity: 0.7; }
+.nx-exp-section.is-animated .nx-exp-pillars li.is-active { opacity: 1; transform: translateX(8px); }
+.nx-exp-section.is-animated .nx-exp-dot { position: absolute; top: 24px; left: 14px; display: block; width: 14px; height: 14px; border: 2px solid color-mix(in srgb, var(--ns-ink) 30%, transparent); border-radius: 50%; background: var(--background); transition: border-color 0.5s, background-color 0.5s, transform 0.5s var(--nx-ease); }
+.nx-exp-section.is-animated li.is-past .nx-exp-dot { border-color: #8a1634; background: #8a1634; }
+.nx-exp-section.is-animated li.is-active .nx-exp-dot { border-color: #8a1634; background: #8a1634; transform: scale(1.35); box-shadow: 0 0 0 6px color-mix(in srgb, #8a1634 18%, transparent); }
+.nx-exp-section.is-animated li.is-active h3 { color: #8a1634; }
+.dark .nx-exp-section.is-animated li.is-active h3 { color: #e8a0b2; }
+@media (prefers-reduced-motion: reduce) {
+  .nx-exp-icon > svg, .nx-exp-check path, .nx-exp-state > span { transition: none; }
+  .nx-exp-row.is-done .nx-exp-icon, .nx-exp-row.is-done::before, .nx-exp-chip-n { animation: none; }
+}
+/* En móvil los puntos quedan arriba del expediente: se leen completos, sin línea ni atenuado. */
+@media (max-width: 1023px) {
+  .nx-exp-section.is-animated .nx-exp-rail, .nx-exp-section.is-animated .nx-exp-dot { display: none; }
+  .nx-exp-section.is-animated .nx-exp-pillars li { padding-left: 20px; opacity: 1; transform: none; }
+  .nx-exp-section.is-animated li.is-active h3 { color: inherit; }
 }
