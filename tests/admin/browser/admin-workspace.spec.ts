@@ -256,8 +256,8 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
     return route.fulfill({json:{ok:true}});
   });
   await page.goto("/admin");
-  await page.getByRole("complementary").getByRole("button",{name:/Cuenta y sesión/}).click();
-  await page.getByRole("complementary").getByRole("link",{name:"Mi perfil"}).click();
+  await page.getByRole("banner").getByRole("button",{name:/Cuenta y sesión/}).click();
+  await page.getByRole("banner").getByRole("link",{name:"Mi perfil"}).click();
   await page.getByLabel("Nombre visible").fill("Moisés Núñez");
   await page.getByLabel("Seleccionar fotografía").setInputFiles({
     name:"foto.png",mimeType:"image/png",
