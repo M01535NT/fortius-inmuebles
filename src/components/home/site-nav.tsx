@@ -4,17 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMotionValueEvent, useScroll } from "motion/react";
-import { MessageCircle } from "lucide-react";
 
 import { FullscreenMenu } from "@/components/home/fullscreen-menu";
 import { BrandMark } from "@/components/brand/brand-mark";
-import { usePublicFeatures } from "@/components/providers/public-features-provider";
-import { publicContact } from "@/lib/public-contact";
 import styles from "./site-nav.module.css";
 
 /*
-  Barra pública (30/10/2026): cinco enlaces, WhatsApp como secundario y «Quiero vender»
-  como único primario. Blanca con línea inferior; en la portada flota sobre el video
+  Barra pública (30/10/2026): cinco enlaces y el botón Menú; sin WhatsApp ni «Quiero vender»
+  por decisión del titular. Blanca con línea inferior; en la portada flota sobre el video
   hasta que se desplaza la página. El menú desplegable guarda el resto de las rutas y
   el cambio de tema; el tema también vive en el pie.
 */
@@ -38,8 +35,6 @@ export function SiteNav() {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [menuReady, setMenuReady] = React.useState(false);
   const closeMenu = React.useCallback(() => setMenuOpen(false), []);
-  const { settings } = usePublicFeatures();
-  const contact = publicContact(settings, "Hola, quiero conversar sobre una propiedad con Fortius.");
 
   useMotionValueEvent(scrollY, "change", (v) => {
     setScrolled(v > 24);
@@ -64,10 +59,6 @@ export function SiteNav() {
           ))}
         </nav>
         <div className={styles.actions}>
-          {contact.whatsapp && <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp" className={styles.whatsapp}>
-            <MessageCircle size={18} strokeWidth={2} aria-hidden="true" /><span>WhatsApp</span>
-          </a>}
-          <Link href="/vender-propiedad" className={styles.primary}>Quiero vender</Link>
           <button type="button" onClick={openMenu} aria-label="Abrir menú" aria-haspopup="dialog" aria-expanded={menuOpen}
             className={styles.menu}>
             Menú

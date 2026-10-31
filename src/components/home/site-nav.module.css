@@ -11,17 +11,6 @@
 .link:hover, .link[aria-current="page"] { color: var(--accent); }
 .link[aria-current="page"] { box-shadow: inset 0 -2px 0 currentColor; }
 .actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-.nav + .actions { margin-left: 0; }
-
-/* WhatsApp: secundario, solo icono en pantallas chicas. */
-.whatsapp { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink); font-size: 15px; font-weight: 600; white-space: nowrap; transition: background-color 0.2s, border-color 0.2s; }
-.whatsapp:hover { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent); }
-.whatsapp span { display: none; }
-
-/* Único primario de la barra: borgoña, con la esquina «hoja» al pasar el puntero. */
-.primary { display: none; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border: 1px solid #8a1634; border-radius: 4px; background: #8a1634; color: #fff; font-size: 15px; font-weight: 600; white-space: nowrap; transition: border-radius 0.4s, transform 0.4s, background-color 0.2s; }
-.primary:hover { border-color: #70112a; background: #70112a; border-radius: 20px 0 20px 0; transform: translateY(-2px); }
-.primary:active { transform: translateY(0) scale(0.98); }
 
 /* Menú: secundario, con las dos líneas. */
 .menu { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 0 12px 0 16px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--ink); font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
@@ -30,19 +19,14 @@
 .lines span { width: 16px; height: 1.5px; background: currentColor; }
 .header :is(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-@media (min-width: 640px) {
-  .primary { display: inline-flex; }
-}
 @media (min-width: 1024px) {
   .nav { display: flex; }
-  .whatsapp { padding-inline: 14px; }
-  .whatsapp span { display: inline; }
+  .nav + .actions { margin-left: 0; }
 }
 @media (max-width: 639px) {
   .inner { gap: 12px; }
   .logo :global(.brand-mark) { width: 128px; height: 32px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .header, .primary, .whatsapp, .menu { transition: none; }
-  .primary:hover, .primary:active { transform: none; }
+  .header, .menu { transition: none; }
 }
