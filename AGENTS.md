@@ -32,6 +32,26 @@ Estas instrucciones orientan el trabajo en todo el repositorio. Respeta las inst
 | Calculadoras y fuentes | `docs/financial-method.md`, `docs/legal/financial-tools-2026-10-04.md` |
 | Contenido editorial | `docs/mercado-inmobiliario-editorial.md` |
 
+### Skills por tarea
+
+Las skills generales son de la cuenta del titular; las propias de Fortius viven en `.claude/skills/` y van en git. Lee la skill antes de empezar la tarea; si choca con este archivo, manda este archivo.
+
+| Tarea | Skills |
+| --- | --- |
+| Diseño del sitio público | `design-taste-frontend`, `impeccable`, `emil-design-eng`; movimiento: `animation-vocabulary` |
+| Textos del sitio y anuncios | `copywriting` y después `humanizer` |
+| SEO y metadatos | `seo-auditor`, `local-seo`, `metadata-optimizer`, `structured-data` |
+| Rendimiento | `web-vitals-nextjs` |
+| Pruebas | `testing-nextjs` |
+| Supabase, SQL y RLS | `supabase`, `supabase-postgres-best-practices` |
+| API y rutas del servidor | `api-conventions` |
+| Imágenes para la web | `web-ready`, `convert-to-avif`, `scrub-metadata` |
+| Proceso inmobiliario y formatos | `ciclo-operacion-inmobiliaria-mx`, `opiniones-valor`, `costos-cierre-bc`, `arquitecto-contratos-bc`, `lfpiorpi-inmobiliario-mx` |
+| Revisión antes de cerrar algo amplio | `gauntlet-review` (de este repo) |
+| Commits | `conventional-commits` |
+
+Las skills inmobiliarias y de contratos orientan, pero no sustituyen la plantilla del titular ni la revisión del abogado (ver la regla de formatos inmobiliarios en «Interfaz y experiencia»).
+
 Las propuestas de acceso/privacidad y las fuentes jurídicas fechadas conservan sus límites. Verifica fuentes primarias, vigencia, jurisdicción y fecha cuando el encargo cambie reglas legales, fiscales o financieras. No conviertas un formato generado en una aprobación jurídica o autorización para firmar.
 
 ## Arquitectura y código
@@ -48,6 +68,7 @@ Las propuestas de acceso/privacidad y las fuentes jurídicas fechadas conservan 
 
 - Trata `.env.local` como potencial acceso a datos reales. Verifica el destino sin imprimir credenciales antes de cualquier escritura externa. No presupongas aislamiento por ejecutar en localhost o en un preview.
 - **Autorización vigente del titular (17/10/2026, DEC-10 e I-01 del cuestionario):** la base de Supabase actual solo contiene datos de prueba. Mientras siga así, se pueden crear, guardar y borrar datos de ensayo, ejecutar pruebas con escritura y publicar inmuebles de prueba en el sitio para revisar cómo se ve; identifícalos como ejemplo y no los presentes como ofertas vigentes. No envíes correos ni mensajes a personas reales. Cuando el titular borre los datos de prueba y cargue el inventario real, la autorización termina y vuelve la regla de solo lectura en el navegador conectado a esa base.
+- El conector `supabase-fortius` de `.mcp.json` está limitado al proyecto de Fortius y es de solo lectura: sirve para consultar esquema, registros y avisos. Las migraciones siguen siendo archivos nuevos en `supabase/migrations/`, con aviso previo al titular.
 - Cambios en Supabase, GitHub o Vercel (permisos, configuración, migraciones): hazlos cuando el titular los pida o cuando el encargo los necesite, explicando antes qué vas a cambiar y por qué. Si una indicación nueva contradice una regla vigente, señálalo y deja que el titular decida.
 - Nunca muestres ni versiones `.env.local`, tokens, cookies, contraseñas, estados de autenticación o datos personales de clientes. Comprueba presencia y configuración con salida redactada. `SUPABASE_SERVICE_ROLE_KEY` permanece exclusivamente en servidor y nunca lleva prefijo `NEXT_PUBLIC_*`.
 - Usa fixtures locales, API simulada o backend aislado para pruebas. `test:live` crea y elimina datos: no lo incluyas en la verificación rutinaria ni lo ejecutes contra producción por defecto. Requiere autorización para las escrituras y destino dedicado comprobado. No envíes correos, invitaciones ni mensajes de ensayo sin autorización explícita.

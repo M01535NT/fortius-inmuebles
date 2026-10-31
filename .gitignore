@@ -32,7 +32,11 @@ next-env.d.ts
 # local verification reports, browser artifacts and disposable fixtures
 /.superpowers/
 /tmp/
-/.claude/
+# Claude Code: solo las skills del proyecto y la configuración compartida van en git;
+# permisos locales, worktrees, napkin y lanzadores se quedan en cada máquina.
+/.claude/*
+!/.claude/skills/
+!/.claude/settings.json
 /supabase/.temp/
 /financial-source-report.json
 /test-results/
