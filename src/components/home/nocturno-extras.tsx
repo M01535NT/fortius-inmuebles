@@ -41,7 +41,7 @@ export function BuscadorPropiedades({ properties, className = "nx-search" }: { p
 
 /* Cierre de la portada (31/10/2026): sala frente al mar al atardecer, una frase y una sola acción. */
 export function NocturnoCierre() {
-  return <section aria-labelledby="cierre-title" className="nx-cierre nx-band-media">
+  return <section id="hablemos" aria-labelledby="cierre-title" className="nx-cierre nx-band-media">
     <SectionVideo src="/hero/cierre.mp4" mobileSrc="/hero/cierre-movil.mp4" poster="/hero/cierre-poster.webp" />
     <div className="nx-cierre-scrim" aria-hidden="true" />
     <div className="nx-container nx-cierre-body">

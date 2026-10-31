@@ -24,10 +24,10 @@ for (const width of [320, 375, 390, 768, 1024, 1280, 1440]) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCount(1);
-    // Portada (30/10/2026): silent video with poster, one sentence and two actions, without search or zone marquee.
-    await expect(hero.locator(".nx-hero-eyebrow")).toHaveCount(1);
+    // Portada (31/10/2026): silent video with poster and a headline per scene; no eyebrow, buttons, search or marquee.
+    await expect(hero.locator(".nx-hero-eyebrow")).toHaveCount(0);
     await expect(hero.getByRole("search")).toHaveCount(0);
-    await expect(hero.locator("a")).toHaveCount(2);
+    await expect(hero.locator("a")).toHaveCount(0);
     await expect(hero.locator("video")).toHaveCount(1);
     expect(await page.request.get("/hero/portada-poster.webp").then((response) => response.status())).toBe(200);
     // The header floats transparent over the photograph until the page scrolls.
@@ -131,8 +131,9 @@ test("hero remains readable before hydration with reduced motion and without Jav
     const hero = page.locator(".nx-hero");
     await expect(hero.locator("h1")).toHaveCSS("opacity", "1");
     expect(await hero.locator("video").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
-    await expect(hero.locator(".nx-hero-line > span").last()).toBeInViewport();
-    await hero.getByRole("link", { name: "Quiero vender" }).click();
+    // Without the video running, the first scene's headline stays on screen.
+    await expect(hero.locator(".nx-hero-slide").first().locator(".nx-hero-line > span").last()).toBeInViewport();
+    await page.locator('#que-hacemos a[href="/vender-propiedad"]').first().click();
     await expect(page).toHaveURL(/\/vender-propiedad$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vende con todo en orden.");
     expect(errors).toEqual([]);

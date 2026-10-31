@@ -6,12 +6,15 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await page.goto("/");
     const order = await page.locator("main section").evaluateAll((nodes) => nodes.map((node) =>
       node.id || (node.classList.contains("nx-hero") ? "hero" : "unknown")));
-    expect(order).toEqual(["hero", "que-hacemos", "metodo", "por-que-fortius", "comprar", "destacadas", "equipo", "recursos", "respuestas"]);
-    // The hero carries the video, one sentence and the two journeys; owners start from «Quiero vender».
+    expect(order).toEqual(["hero", "que-hacemos", "metodo", "por-que-fortius", "comprar", "destacadas", "equipo", "recursos", "respuestas", "hablemos"]);
+    // Clean cover (31/10/2026): video and a headline per scene, no buttons. Owners start from
+    // «Qué hacemos», buyers from the «Comprar» band, and the page closes with a contact band.
     await expect(page.locator(".nx-hero").getByRole("search")).toHaveCount(0);
-    const seller = page.locator(".nx-hero").getByRole("link", { name: "Quiero vender" });
-    await expect(seller).toHaveAttribute("href", "/vender-propiedad");
-    await expect(page.locator(".nx-hero").getByRole("link", { name: "Quiero comprar" })).toHaveAttribute("href", "/inventario");
+    await expect(page.locator(".nx-hero a")).toHaveCount(0);
+    const seller = page.locator('#que-hacemos a[href="/vender-propiedad"]').first();
+    await expect(seller).toBeAttached();
+    await expect(page.locator("#comprar").getByRole("link", { name: "Ver propiedades" })).toHaveAttribute("href", "/inventario");
+    await expect(page.locator("#hablemos").getByRole("link", { name: "Contáctanos" })).toHaveAttribute("href", "/contacto");
     await expect(page.locator("#destacadas [data-property-card]")).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText(/de ejemplo$/)).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText("Apartada de ejemplo", { exact: true })).toBeVisible();
@@ -34,6 +37,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await expect(page).toHaveURL(/\/inventario$/);
     await expect(page.locator("[data-page-curtain]")).toBeHidden();
     await page.goBack();
+    await seller.scrollIntoViewIfNeeded();
     await seller.click();
     await expect(page).toHaveURL(/\/vender-propiedad$/);
     await page.getByRole("link", { name: "Agendar entrevista" }).click();

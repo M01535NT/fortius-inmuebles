@@ -24,6 +24,7 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
   const curtain = React.useRef<HTMLDivElement>(null);
   const pending = React.useRef(false);
   const played = React.useRef(false);
+  const running = React.useRef<gsap.core.Timeline | null>(null);
   const arrived = React.useRef<(() => void) | null>(null);
   const fallback = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
@@ -110,7 +111,19 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
     const page = stage.current;
     const target = new URL(href, location.href);
     if (reduce || !veil || !page || target.pathname === location.pathname) { router.push(href); return; }
-    if (pending.current) return;
+    if (pending.current) {
+      // Un clic nuevo con el candado en pantalla (p. ej. tras volver atrás) no se pierde:
+      // se corta la transición y se va directo a la nueva ruta.
+      running.current?.kill();
+      running.current = null;
+      if (fallback.current) clearTimeout(fallback.current);
+      pending.current = false;
+      arrived.current = null;
+      gsap.set(veil, { autoAlpha: 0, scale: 1 });
+      gsap.set(page, { opacity: 1 });
+      router.push(href);
+      return;
+    }
     pending.current = true;
     cursorOpacity.set(0);
 
@@ -121,6 +134,7 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
       if (!pending.current || !animDone || !routeDone) return;
       pending.current = false;
       arrived.current = null;
+      running.current = null;
       if (fallback.current) clearTimeout(fallback.current);
       gsap.timeline()
         .to(veil, { autoAlpha: 0, scale: 1.06, duration: 0.35, ease: "power2.in" })
@@ -151,6 +165,7 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
       .to(shackle, { y: -18, duration: 0.22, ease: "back.out(3)" }, "+=0.02")
       .to(shackle, { scaleX: 0.3, duration: 0.42, ease: "power2.inOut" }, "-=0.04")
       .to({}, { duration: 0.18 });
+    running.current = timeline;
     if (played.current) timeline.timeScale(1.7);
     played.current = true;
   }, [reduce, router, cursorOpacity]);

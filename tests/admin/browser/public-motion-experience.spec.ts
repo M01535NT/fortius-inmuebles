@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("the four timeline stages remain readable on touch screens and show reading progress", async ({ browser }) => {
+test("the five timeline stages remain readable on touch screens and show reading progress", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await context.newPage();
   await page.goto("/", { waitUntil: "networkidle" });
@@ -9,7 +9,7 @@ test("the four timeline stages remain readable on touch screens and show reading
   await expect(progress).toBeAttached();
   await page.locator("#metodo").scrollIntoViewIfNeeded();
   const stages = page.locator("[data-method-timeline] li");
-  await expect(stages).toHaveCount(4);
+  await expect(stages).toHaveCount(5);
   for (const stage of await stages.all()) {
     await stage.scrollIntoViewIfNeeded();
     await expect(stage.getByRole("heading")).toBeInViewport();
@@ -24,12 +24,12 @@ test("the four timeline stages remain readable on touch screens and show reading
   await context.close();
 });
 
-test("desktop timeline runs the four stages in one row and passes accessibility checks", async ({ page }) => {
+test("desktop timeline runs the five stages in one row and passes accessibility checks", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await page.locator("#metodo").scrollIntoViewIfNeeded();
   const stages = page.locator("[data-method-timeline] li");
-  await expect(stages).toHaveCount(4);
+  await expect(stages).toHaveCount(5);
   await expect(stages.last()).toHaveCSS("transform", "none");
   await expect(stages.last()).toHaveCSS("opacity", "1");
   const boxes = await stages.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
