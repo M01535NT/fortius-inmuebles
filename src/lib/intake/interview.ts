@@ -1,5 +1,6 @@
 import { TIPO_INMUEBLE_KEYS, TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import { z } from "zod";
+import { CREDIT_OPTIONS, PROBLEM_OPTIONS, conditionOf } from "@/lib/intake/condition";
 export const INTENTS = {
   vender: {
     label: "Vender un inmueble",
@@ -174,6 +175,19 @@ const owner: Field[] = [
     section: "Documentos y condiciones",
     options: ["ninguna_declarada", "declaradas", "por_aclarar"],
     required: true,
+  },
+  // CAP-05: lo que contó en la llamada. Con un problema, el abogado revisa antes del levantamiento.
+  {
+    key: "problema",
+    label: "¿Mencionó algún problema con el inmueble?",
+    section: "Documentos y condiciones",
+    options: Object.keys(PROBLEM_OPTIONS),
+  },
+  {
+    key: "creditoInmueble",
+    label: "¿Debe un crédito o hipoteca del inmueble?",
+    section: "Documentos y condiciones",
+    options: Object.keys(CREDIT_OPTIONS),
   },
   {
     key: "detalleAlertas",
@@ -380,7 +394,7 @@ export function interviewIssues(
     if (!["MXN", "USD"].includes(answers.moneda ?? ""))
       issues.push({ key: "moneda", message: "Elige la moneda." });
   }
-  if (answers.alertas === "declaradas" && !answers.detalleAlertas?.trim())
+  if ((answers.alertas === "declaradas" || conditionOf(answers)) && !answers.detalleAlertas?.trim())
     issues.push({
       key: "detalleAlertas",
       message: "Describe las condiciones declaradas.",

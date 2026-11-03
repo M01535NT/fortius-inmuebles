@@ -21,6 +21,8 @@
 :global(.admin-root) .dangerSolid { background: var(--alert); border-color: var(--alert); color: #fff; }
 :global(.admin-root) .iconOnly { width: 2.75rem; padding: 0; flex: none; }
 :global(.admin-root) .btn:disabled, :global(.admin-root) .btn[aria-disabled=true] { opacity: .55; cursor: not-allowed; box-shadow: none; }
+/* El guinda con transparencia se veía rosa (C32, C39): inactivo, el principal va en neutro. */
+:global(.admin-root) .primary:disabled, :global(.admin-root) .primary[aria-disabled=true] { opacity: 1; background: var(--track); border-color: var(--track); color: var(--muted-foreground); }
 @media (prefers-reduced-motion: no-preference) {
   :global(.admin-root) .btn { transition: transform 160ms var(--ease-out), background-color 150ms, border-color 150ms, box-shadow 150ms; }
   :global(.admin-root) .btn:not(:disabled):active { transform: scale(.97); }

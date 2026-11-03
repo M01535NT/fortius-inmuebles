@@ -70,6 +70,7 @@ test("manual lead capture starts collapsed and keeps an unfinished draft when to
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
   expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
   fireEvent.click(toggle);
+  fireEvent.click(screen.getByRole("button", { name: "Busca comprar o rentar" }));
   fireEvent.change(screen.getByRole("textbox", { name: "Nombre" }), { target: { value: "Borrador manual" } });
   fireEvent.change(screen.getByRole("textbox", { name: "Teléfono" }), { target: { value: "6641234567" } });
   fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
@@ -84,6 +85,7 @@ test("manual lead capture starts collapsed and keeps an unfinished draft when to
 test("manual capture preserves failed input and only closes after acknowledged save", async () => {
   render(<ContactsScreen />);
   fireEvent.click(addButton());
+  fireEvent.click(screen.getByRole("button", { name: "Busca comprar o rentar" }));
   const name = screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement;
   const phone = screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement;
   expect(name.required).toBe(true);
@@ -111,8 +113,8 @@ test("mobile contact rows show what the person wants and the next step; search a
   const list = await screen.findByRole("list", { name: "Contactos" });
   const link = within(list).getByRole("link", { name: new RegExp(lead.nombre) });
   expect(link.getAttribute("href")).toBe(`/admin/leads/${lead.id}`);
-  expect(link.textContent).toContain("Por preguntar");
-  expect(link.textContent).toContain("Sin siguiente paso");
+  // C40: hueco vacío en lugar de relleno.
+  for (const filler of ["Por preguntar", "Zona por definir", "Sin siguiente paso", "Sin fecha"]) expect(link.textContent).not.toContain(filler);
   fireEvent.change(screen.getAllByRole("searchbox", { name: "Buscar nombre o teléfono" })[0], { target: { value: "sin coincidencia" } });
   expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
   fireEvent.change(screen.getAllByRole("searchbox", { name: "Buscar nombre o teléfono" })[0], { target: { value: "123 45" } });
@@ -160,4 +162,14 @@ test("mobile property deletion requires confirmation and retains the row when th
   fireEvent.click(remove);
   await screen.findByText("Todavía no hay inmuebles");
   expect(writes.at(-1)).toEqual({ url: `/api/admin/collections/propiedades/${property.slug}`, method: "DELETE", version: 7 });
+});
+
+test("COR-15: quien vende u ofrece en renta va a Nueva operación desde Agregar contacto", async () => {
+  render(<ContactsScreen />);
+  fireEvent.click(addButton());
+  expect(screen.getByRole("link", { name: "Vender su inmueble" }).getAttribute("href")).toBe("/admin/operaciones/nueva?intencion=vender");
+  expect(screen.getByRole("link", { name: "Ofrecer su inmueble en renta" }).getAttribute("href")).toBe("/admin/operaciones/nueva?intencion=arrendar");
+  // El formulario del interesado espera a que se elija «Busca comprar o rentar».
+  expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
+  await screen.findByRole("list", { name: "Contactos" });
 });

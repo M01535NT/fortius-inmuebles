@@ -88,7 +88,7 @@ describe("contratos y licencias por vencer", () => {
     expect(items.map(i => [i.kind, i.date, i.late])).toEqual([["Contrato", "2026-10-25", true], ["Contrato", "2026-11-20", false], ["Licencia", "2026-12-20", false]]);
     expect(items[0].text).toBe("El contrato de servicio venció el 25 oct. Renuévalo o retira la publicación.");
     expect(items[1].text).toBe("El contrato de servicio vence en 22 días, el 20 nov. Habla con el propietario para renovarlo.");
-    expect(items[1].meta).toBe("Familia Navarro · Casa en Playas · Exclusiva · EXP-1");
+    expect(items[1].meta).toBe("Familia Navarro · Casa en Playas · Exclusiva"); // sin folio como subtítulo (C35)
   });
   test("un 09 sin emitir, lejano o de una operación descartada no avisa", () => {
     expect(expiryItems({ today, names, dossiers: [dossier(), dossier({ id: "d2", flujo: { version: 1, ruta: "captacion", estado: "descartada", motivo: "", requisitos: {} } as TodayDossier["flujo"] })], contracts: [

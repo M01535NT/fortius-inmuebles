@@ -68,3 +68,20 @@ describe("plan de comercialización (10)", () => {
     expect(plan.fecha).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
+
+describe("COR-15 · notas de la llamada", () => {
+  it("lo que contó en el primer contacto llega a «Notas del asesor» de la 02", () => {
+    const notas = "Casa ocupada por un familiar; mandó fotos por WhatsApp.";
+    expect(prefillFormato("02", context({ condiciones: notas, siguienteAccion: "Entrevista inicial en persona" })).motivoSiguiente).toBe(notas);
+    expect(prefillFormato("02", context({ siguienteAccion: "Entrevista inicial en persona" }))).not.toHaveProperty("motivoSiguiente");
+  });
+});
+
+describe("CAP-05 · la 02 recibe lo que dijo en la llamada", () => {
+  it("ocupación, crédito y el problema en las notas", () => {
+    const data = prefillFormato("02", context({ ocupacion: "otro", creditoInmueble: "infonavit", problema: "ocupado_sin_permiso", detalleAlertas: "Invadida desde 2025.", condiciones: "Llamó por recomendación." }));
+    expect(data).toMatchObject({ ocupacion: "otro", gravamen: "infonavit" });
+    expect(data.motivoSiguiente).toBe("Llamó por recomendación.\n\nProblema que mencionó: lo ocupa alguien sin permiso. Invadida desde 2025.");
+    expect(prefillFormato("02", context({ ocupacion: "por_aclarar" }))).not.toHaveProperty("ocupacion");
+  });
+});

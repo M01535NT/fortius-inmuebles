@@ -103,7 +103,8 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
   const correctionOf = params.get("expedienteId");
   const seed = params.get("intencion");
   const [intent, setIntent] = React.useState<IntakeIntent | null>(seed && Object.hasOwn(INTENTS, seed) ? seed as IntakeIntent : null);
-  const [step, setStep] = React.useState(intent && (params.has("clienteId") || params.has("leadId")) ? 2 : 1);
+  // Con la intención ya elegida (Contactos › Agregar contacto, COR-15) se empieza por quién es.
+  const [step, setStep] = React.useState(intent ? 2 : 1);
   const [contact, setContact] = React.useState<Contact | null>(params.get("clienteId") ? { kind: "cliente", id: params.get("clienteId")! } : params.get("leadId") ? { kind: "lead", id: params.get("leadId")! } : null);
   const [picking, setPicking] = React.useState(false);
   const [name, setName] = React.useState(""), [phone, setPhone] = React.useState(""), [email, setEmail] = React.useState("");

@@ -11,7 +11,7 @@ const workflowMessages = new Set([
  "Resuelve o descarta las tareas pendientes antes de archivar", "Agenda una próxima tarea con fecha y responsable",
  "La captación debe corresponder al asesor titular del inmueble", "Contraparte incompatible o fuera de tu alcance",
 ]);
-import { WORKFLOW_REQUIREMENTS, type RequirementKey } from "@/lib/formatos/operation-workflow";
+import { discardReasonOf, DISCARD_REASONS, WORKFLOW_REQUIREMENTS, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import { initialBlockers, loadInitialStatus, needsInitialGate } from "@/lib/formatos/operation-gates";
 
 type Context = { params: Promise<{ id: string }> };
@@ -26,6 +26,10 @@ export async function PUT(request: Request, context: Context) {
     const current = await client.from("fortius_inmuebles_expedientes").select("etapa,operacion,flujo").eq("id", id).is("deleted_at", null).maybeSingle();
     if (current.error) databaseError(current.error);
     if (!current.data) throw new ApiError(404, "Expediente no encontrado");
+    // COR-14 (RP-97): al descartar, el motivo sale de la lista fija; los ya descartados conservan el suyo.
+    const before = (current.data.flujo as { estado?: string } | null)?.estado;
+    if (input.flujo?.estado === "descartada" && before !== "descartada" && !discardReasonOf(input.flujo.motivo.trim()))
+      throw new ApiError(400, `Elige el motivo del descarte: ${DISCARD_REASONS.join(", ")}.`);
     if (needsInitialGate(current.data, input.etapa, input.flujo)) {
       const pending = initialBlockers(await loadInitialStatus(client, id));
       if (pending.length) throw new ApiError(409, `Antes de avanzar: ${pending.join("; ")}`);

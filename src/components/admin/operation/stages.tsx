@@ -49,12 +49,14 @@ export const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).sl
   pasó, abre «Ver etapas» en ella), lo que quedó pendiente de etapas anteriores y, al pie, la persona
   con Llamar y WhatsApp. En las demás pestañas va compacto, con las partes de la operación.
 */
-export function StagePanel({ op, today, docs, checklist, compact, back, who, person, onOpenStages, onRemove, children }: {
+export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, onOpenStages, onRemove, children }: {
   op: OperationRecord; today: string; docs: DocumentsController; checklist?: Task; compact: boolean;
   /** A dónde vuelve el círculo de regreso. */
   back: string;
   /** «Iliana Tonala vende su casa»: el nombre (h1) y lo que quiere. */
   who: { name: string; wants: string; href?: string };
+  /** Situación y condición declarada (COR-14): «En pausa», «Ocupado sin permiso». */
+  tags?: Array<{ text: string; detail?: string }>;
   person?: { name: string; role: string; digits: string; email?: string; href: string };
   onOpenStages: (focus?: SalePhase) => void;
   onRemove?: () => void;
@@ -81,6 +83,7 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, per
     <div className={s.who}>
       <h1 className={s.whoName}>{who.href ? <Link href={who.href} className={s.whoLink}>{who.name}</Link> : who.name}</h1>
       {who.wants && <span className={s.onNavyMuted}> {who.wants}</span>}
+      {tags.length > 0 && <span className={s.navyTags}>{tags.map(tag => <span key={tag.text} className={s.navyTag} title={tag.detail}>{tag.text}</span>)}</span>}
     </div>
     {guided && here && <div className={s.stageHead}>
       <div className={s.bigRow}><span className={s.bigNum}>{two(current + 1)}</span><span className={s.ofTen}>/{stages.length}</span></div>

@@ -267,11 +267,8 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
   await page.getByRole("button",{name:"Guardar perfil",exact:true}).click();
   await expect(page.getByText("Perfil guardado en tu cuenta.")).toBeVisible();
   expect(profile.avatar).toMatch(/^data:image\/jpeg;base64,/);
-  await page.getByRole("button",{name:"Compacta",exact:true}).click();
-  await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density","compact");
   await page.reload();
   await expect(page.getByLabel("Nombre visible")).toHaveValue("Moisés Núñez");
-  await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density","compact");
   await page.screenshot({path:info.outputPath("profile.png"),fullPage:true});
 });
 test("failed Blog loading does not block inventory navigation", async ({page}) => {
@@ -309,7 +306,8 @@ test("Documentos es una pestaña de Herramientas y la dirección anterior lleva 
   await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
   await page.getByRole("tab", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
-  await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Comercial", level: 2 })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toHaveCount(0);
 });
 test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {
   for (const width of [390, 1440]) {

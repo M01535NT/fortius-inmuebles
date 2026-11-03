@@ -44,17 +44,26 @@ export function stepDate(date: string, today: string, time?: string) {
 }
 
 export type NextStep = { text: string; date?: string; time?: string };
+/** Una operación activa de la persona: su identificador, a quién pertenece y en qué etapa va. */
+export type PersonOperation = { id: string; clienteId?: string; stage: string };
 
-/** Lo más próximo entre sus tareas abiertas, sus citas pendientes y el próximo contacto. */
-export function nextStep(person: { id: string; perfil?: LeadProfile }, kind: "lead" | "cliente", tasks: Task[], events: Evento[], today: string): NextStep | null {
-  const mine = (ref: { leadId?: string; clienteId?: string }) => kind === "lead" ? ref.leadId === person.id : ref.clienteId === person.id;
+/**
+  Lo más próximo entre sus tareas abiertas, sus citas pendientes y el próximo contacto. Si la
+  persona tiene una operación activa, manda la operación (C40): cuentan sus tareas y citas, el
+  «próximo contacto» del perfil ya no, y sin nada con fecha se dice en qué etapa va.
+*/
+export function nextStep(person: { id: string; perfil?: LeadProfile }, kind: "lead" | "cliente", tasks: Task[], events: Evento[], today: string, operations: PersonOperation[] = []): NextStep | null {
+  const ops = kind === "cliente" ? operations.filter(op => op.clienteId === person.id) : [];
+  const opIds = new Set(ops.map(op => op.id));
+  const mine = (ref: { leadId?: string; clienteId?: string; expedienteId?: string }) => (kind === "lead" ? ref.leadId === person.id : ref.clienteId === person.id) || (!!ref.expedienteId && opIds.has(ref.expedienteId));
   const options: Array<NextStep & { sort: string }> = [];
   for (const task of tasks) if (isTaskOpen(task) && mine(task)) options.push({ text: task.titulo, date: task.vence || undefined, sort: task.vence || "9999" });
   for (const event of events) if (mine(event) && event.fecha >= today) options.push({ text: event.titulo, date: event.fecha, time: event.hora, sort: `${event.fecha} ${event.hora ?? ""}` });
-  if (person.perfil?.proximoContacto) options.push({ text: "Darle seguimiento", date: person.perfil.proximoContacto, sort: person.perfil.proximoContacto });
+  if (person.perfil?.proximoContacto && !ops.length) options.push({ text: "Darle seguimiento", date: person.perfil.proximoContacto, sort: person.perfil.proximoContacto });
   options.sort((a, b) => a.sort.localeCompare(b.sort));
   const first = options[0];
-  return first ? { text: first.text, date: first.date, time: first.time } : null;
+  if (first) return { text: first.text, date: first.date, time: first.time };
+  return ops.length ? { text: `Operación en ${ops[0].stage.charAt(0).toLowerCase()}${ops[0].stage.slice(1)}` } : null;
 }
 
 export type ContactRow = {
@@ -63,16 +72,17 @@ export type ContactRow = {
   step: string; when: string | null; late: boolean; sort: string;
 };
 
-function row(kind: "lead" | "cliente", person: Lead | Cliente, verb: string | undefined, tasks: Task[], events: Evento[], today: string): ContactRow {
-  const step = nextStep(person, kind, tasks, events, today);
+function row(kind: "lead" | "cliente", person: Lead | Cliente, verb: string | undefined, tasks: Task[], events: Evento[], today: string, operations: PersonOperation[] = []): ContactRow {
+  const step = nextStep(person, kind, tasks, events, today, operations);
   const date = step?.date ? stepDate(step.date, today, step.time) : null;
   return {
     id: person.id, kind, name: person.nombre, phone: person.telefono,
     href: kind === "lead" ? `/admin/leads/${encodeURIComponent(person.id)}` : `/admin/clientes/${encodeURIComponent(person.id)}`,
-    wants: wants(person, verb) ?? "Por preguntar",
-    zone: person.zona?.trim() || "Zona por definir",
+    // Hueco vacío en lugar de relleno («Por preguntar», «Zona por definir», «Sin siguiente paso», C40).
+    wants: wants(person, verb) ?? "",
+    zone: person.zona?.trim() ?? "",
     budget: budget(person.perfil),
-    step: step?.text ?? "Sin siguiente paso",
+    step: step?.text ?? "",
     when: date?.label ?? null, late: date?.late ?? false,
     sort: step?.date ? `${step.date} ${step.time ?? ""}` : "9999",
   };
@@ -80,7 +90,7 @@ function row(kind: "lead" | "cliente", person: Lead | Cliente, verb: string | un
 
 const bySort = (a: ContactRow, b: ContactRow) => a.sort.localeCompare(b.sort) || a.name.localeCompare(b.name, "es");
 export const leadRows = (leads: Lead[], tasks: Task[], events: Evento[], today: string) => leads.map(l => row("lead", l, undefined, tasks, events, today)).sort(bySort);
-export const clientRows = (clients: Cliente[], tasks: Task[], events: Evento[], today: string) => clients.map(c => row("cliente", c, CLIENT_VERB[c.tipo], tasks, events, today)).sort(bySort);
+export const clientRows = (clients: Cliente[], tasks: Task[], events: Evento[], today: string, operations: PersonOperation[] = []) => clients.map(c => row("cliente", c, CLIENT_VERB[c.tipo], tasks, events, today, operations)).sort(bySort);
 
 /** Busca sin acentos por nombre, teléfono, correo, zona o lo que busca. */
 export function matches(query: string, ...values: Array<string | null | undefined>) {

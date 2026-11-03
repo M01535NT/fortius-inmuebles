@@ -4,6 +4,10 @@ import type { Task } from "@/lib/tasks";
 export const WORKFLOW_STAGES = ["captacion","documentacion","comercializacion","negociacion","cierre","entrega","postventa","cerrado"] as const;
 export type WorkflowStage = typeof WORKFLOW_STAGES[number];
 export const WORKFLOW_ROUTES = { captacion: "Propietario · captación y venta", compra: "Comprador · búsqueda y compra", arrendador: "Arrendador · captación y renta", arrendatario: "Arrendatario · búsqueda y renta", inversion: "Inversionista · evaluación y ejecución" } as const;
+/** Motivos de descarte (RP-97, COR-14): lista fija para poder contar por qué no se capta. */
+export const DISCARD_REASONS = ["No contesta", "Precio fuera de mercado", "No acepta las condiciones", "Se fue con otra inmobiliaria", "Documentación inviable", "Desistió", "Referida", "Otro"] as const;
+/** El motivo guardado empieza con uno de la lista; después puede llevar el detalle. */
+export const discardReasonOf = (motivo: string) => DISCARD_REASONS.find(r => motivo === r || motivo.startsWith(`${r}:`));
 export const WORKFLOW_STATES = { activa: "Activa", pausada: "En pausa", regularizacion: "En regularización", descartada: "Descartada" } as const;
 export const REVIEW_STATES = { pendiente: "Pendiente", recibido: "Recibido", revisado: "Revisado con soporte", observado: "Observado", no_aplica: "No aplica, justificado" } as const;
 export const WORKFLOW_REQUIREMENTS = {

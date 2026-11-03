@@ -24,8 +24,12 @@ test("Esperan algo de ti shows one card per operation with its most urgent reaso
     dossier({ id: "d3", folio: "EXP-2026-050", etapa: "cerrado" }),
   ] });
   expect(items.map(i => i.folio)).toEqual(["EXP-2026-038", "EXP-2026-041"]);
-  expect(items[0]).toMatchObject({ who: "Familia Navarro", reason: "Hay un problema con «Quién es dueño y quién firma»: Falta la firma del copropietario.", when: "Desde el 13 oct", late: true, href: "/admin/operaciones/d1" });
-  expect(items[0].detail).toBe("Casa en Playas · Dictamen jurídico");
+  // C35: el título es el problema y el requisito va en la línea secundaria, sin folio.
+  expect(items[0]).toMatchObject({ who: "Familia Navarro", reason: "Falta la firma del copropietario.", when: "Desde el 13 oct", late: true, href: "/admin/operaciones/d1" });
+  expect(items[0].detail).toBe("Quién es dueño y quién firma · Casa en Playas · Dictamen jurídico");
+  const silent = waitingItems({ today, names, offers: [], followups: [], tasks: [], dossiers: [dossier({ requisitos: { titularidad: review("observado", { soporte: " " }) } })] });
+  expect(silent[0].reason).toBe("Hay un problema con «Quién es dueño y quién firma».");
+  expect(silent[0].detail).toBe("Casa en Playas · Dictamen jurídico");
   expect(items[1]).toMatchObject({ reason: "Ya tienes «Opinión de valor». Revísalo.", when: "Hoy", late: false });
 });
 
@@ -55,7 +59,8 @@ test("Próximos 7 días lists tasks, expiring reviewed documents and monthly rep
     ["2026-10-20", "Informe", "Informe mensual al propietario"],
     ["2026-10-20", "Vence", "Que se pueda vender sin obstáculos"],
   ]);
-  expect(items[0].meta).toBe("EXP-2026-038 · Familia Navarro");
+  expect(items[0].meta).toBe("Familia Navarro");
+  expect(items.every(item => !item.meta.includes("EXP-"))).toBe(true);
 });
 
 test("overdue owner reports include operations without any report, only while promoting or negotiating", () => {
@@ -111,7 +116,7 @@ test("COR-03: Hoy names the stage with the operation's documents instead of call
     return Response.json({ records: [], expedientes: [], entrevistas: [], runs: [], ultimos: {} });
   });
   render(<AdminDashboard />);
-  const card = await screen.findByRole("link", { name: `Continuar con ${started.folio}` });
+  const card = await within(await screen.findByRole("region", { name: "Lo siguiente" })).findByRole("link", { name: new RegExp(started.folio) });
   await waitFor(() => expect(card.textContent).toContain("Entrevista inicial"));
   expect(card.textContent).not.toContain("Prospecto");
 });
@@ -131,4 +136,32 @@ test("a task is marked done from Hoy and the change is saved", async () => {
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ id: "t1", estado: "completada" });
   expect(await region.findByText("Guardado")).toBeTruthy();
+});
+
+test("C40: a client with an active operation is not listed again for the profile follow-up", () => {
+  const followup = { id: "f1", kind: "cliente" as const, personId: "c1", personName: "Familia Navarro", fecha: "2026-10-10", href: "/admin/clientes/c1" };
+  const scheduled = [task({ expedienteId: "d1", vence: "2026-10-20" })];
+  expect(waitingItems({ today, names, offers: [], tasks: scheduled, followups: [followup], dossiers: [dossier({})] })).toEqual([]);
+  expect(waitingItems({ today, names, offers: [], tasks: [], followups: [followup], dossiers: [] }).map(i => i.reason)).toEqual(["Darle seguimiento"]);
+});
+
+test("COR-21: los prospectos del sitio sin atender le tocan a su asesor, al del inmueble o al director", async () => {
+  const { unattendedLeads } = await import("@/lib/admin/today");
+  const now = new Date("2026-11-02T18:00:00Z");
+  const base = { estado: "nuevo", origen: "contacto", notas: [] };
+  const leads = [
+    { ...base, id: "w1", nombre: "Llegó por la nave", creadoEl: "2026-11-02T15:30:00Z", propiedadSlug: "nave" },
+    { ...base, id: "w2", nombre: "Sin inmueble", creadoEl: "2026-11-02T17:40:00Z", mensaje: "Quiero vender mi casa" },
+    { ...base, id: "w3", nombre: "Ya contactado", creadoEl: "2026-11-01T10:00:00Z", firstContactedAt: "2026-11-01T11:00:00Z" },
+    { ...base, id: "w4", nombre: "Capturado a mano", origen: "manual", creadoEl: "2026-11-01T10:00:00Z" },
+    { ...base, id: "w5", nombre: "Ya en seguimiento", estado: "contactado", creadoEl: "2026-11-01T10:00:00Z" },
+  ];
+  const properties = [{ slug: "nave", titulo: "Nave en Otay", asesorId: "a2" }];
+  const director = unattendedLeads({ leads, properties, me: "a1", admin: true, now, adviserName: id => id === "a2" ? "Rubén" : undefined });
+  expect(director.map(i => [i.id, i.since, i.late])).toEqual([["w1", "Lleva 2 h sin respuesta", true], ["w2", "Llegó hace 20 min", false]]);
+  expect(director[0].detail).toBe("Le interesa Nave en Otay · le toca a Rubén");
+  expect(director[1].detail).toBe("«Quiero vender mi casa» · sin asesor: te toca a ti");
+  // El asesor del inmueble ve el suyo; otro asesor no ve nada.
+  expect(unattendedLeads({ leads, properties, me: "a2", admin: false, now }).map(i => i.id)).toEqual(["w1"]);
+  expect(unattendedLeads({ leads, properties, me: "a3", admin: false, now })).toEqual([]);
 });

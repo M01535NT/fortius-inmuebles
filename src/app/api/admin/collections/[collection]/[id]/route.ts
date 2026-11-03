@@ -3,6 +3,7 @@ import { ApiError, apiResponse, assertSameOrigin, readJson } from "@/lib/backend
 import { putRecord, deleteRecord } from "@/lib/backend/repository";
 import { parseRecord, parseWrite } from "@/lib/backend/validation";
 import { taskExpedienteLinksReady } from "@/lib/backend/task-links";
+import { assertPropertyPublicationAllowed } from "@/lib/backend/publication-gate";
 type Context = { params: Promise<{ collection: string; id: string }> };
 export async function PUT(request: Request, context: Context) {
   return apiResponse(async () => {
@@ -16,6 +17,10 @@ export async function PUT(request: Request, context: Context) {
       if (task.expedienteId && !await taskExpedienteLinksReady(client)) {
         throw new ApiError(503, "El vínculo con expedientes requiere una actualización del servicio. Puedes guardar tareas sin ese vínculo.");
       }
+    }
+    if (collection === "propiedades") {
+      const { data } = parseWrite(input);
+      await assertPropertyPublicationAllowed(client, id, parseRecord(collection, id, data));
     }
     return { record: await putRecord(client, collection, id, input) };
   });

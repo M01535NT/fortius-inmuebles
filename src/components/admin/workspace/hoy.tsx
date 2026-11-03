@@ -11,8 +11,9 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { projectFollowups } from "@/lib/admin/followups";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { expiryItems, greeting, interviewSummary, longDate, overdueReports, shortDate, stageCounts, todayTasks, upcomingItems, waitingItems, weekDays, weekdayDate, type ContractDates, type OfferRun, type TodayDossier, type WaitingItem } from "@/lib/admin/today";
-import { initialStatus } from "@/lib/admin/operation-view";
+import { unattendedLeads, expiryItems, greeting, interviewSummary, longDate, overdueReports, shortDate, stageCounts, todayTasks, upcomingItems, waitingItems, weekDays, weekdayDate, type ContractDates, type OfferRun, type TodayDossier, type WaitingItem } from "@/lib/admin/today";
+import { initialStatus, operationTags } from "@/lib/admin/operation-view";
+import { useConditions } from "@/lib/admin/conditions";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { useOperationFormats } from "@/components/admin/operation/use-operation-formats";
 import { cn } from "@/lib/utils";
@@ -29,7 +30,7 @@ import s from "./hoy.module.css";
 type Load<T> = T | undefined | null; // undefined: cargando · null: no se pudo consultar
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const active = (d: TodayDossier) => d.etapa !== "cerrado" && d.flujo?.estado !== "descartada";
-const PHOTO_CARDS = 4, LIST_ROWS = 6, TASK_ROWS = 5, STAGE_ROWS = 4;
+const PHOTO_CARDS = 4, LIST_ROWS = 6, TASK_ROWS = 5, STAGE_ROWS = 5;
 /** Pastilla corta por motivo (rango de WaitingItem): problema, vencida, revisar, oferta, agendar, seguimiento. */
 function waitingPill(item: WaitingItem): { text: string; tone: PillTone } {
   if (item.rank === 0) return { text: "Problema", tone: "alert" };
@@ -60,11 +61,15 @@ export function HoyScreen() {
   const tasks = useCollection(db.tareas), events = useCollection(db.eventos), leads = useCollection(db.leads), clients = useCollection(db.clientes), properties = useCollection(db.propiedades);
   const today = operationalDate();
   const [dossiers, setDossiers] = React.useState<Load<TodayDossier[]>>(undefined);
+  const conditions = useConditions();
   const [interviews, setInterviews] = React.useState<Load<OperationalInterview[]>>(undefined);
   const [offers, setOffers] = React.useState<Load<OfferRun[]>>(undefined);
   const [reports, setReports] = React.useState<Load<Record<string, string>>>(undefined);
   const [contracts, setContracts] = React.useState<Load<ContractDates[]>>(undefined);
   const [hour, setHour] = React.useState<number | null>(null);
+  // COR-21: quién soy y si dirijo, para los prospectos del sitio que me tocan.
+  const [who, setWho] = React.useState<{ administrador: boolean; asesorId: string | null } | null>(null);
+  const advisers = useCollection(db.asesores);
   React.useEffect(() => {
     let alive = true;
     const settle = <T,>(promise: Promise<T>, set: (value: T | null) => void) => promise.then(value => { if (alive) set(value); }).catch(() => { if (alive) set(null); });
@@ -73,6 +78,7 @@ export function HoyScreen() {
     settle(apiRequest<{ runs?: OfferRun[] }>("/api/admin/apps/runs?slug=ofertas").then(r => r.runs ?? []), setOffers);
     settle(apiRequest<{ ultimos?: Record<string, string> }>("/api/admin/apps/runs?slug=informe-propietario&vista=ultimo-por-expediente").then(r => r.ultimos ?? {}), setReports);
     settle(apiRequest<{ contratos?: ContractDates[] }>("/api/admin/vencimientos").then(r => r.contratos ?? []), setContracts);
+    settle(apiRequest<{ administrador: boolean; asesorId: string | null }>("/api/admin/entrevistas/config"), setWho);
     // La hora se toma en el navegador para no saludar con la hora del servidor.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHour(new Date().getHours());
@@ -106,14 +112,21 @@ export function HoyScreen() {
   const lateKeys = properties.flatMap(p => openKeyLoans(p.llaves).filter(loan => keyLoanLate(loan, today, toDay)).map(loan => ({ property: p, loan })));
   const notices = pendingNotices(properties, seekersFrom(leads, clients)).slice(0, 5);
   const firstName = session?.name?.trim().split(/\s+/)[0];
+  const newLeads = who ? unattendedLeads({ leads, properties, me: who.asesorId, admin: who.administrador, now: new Date(), adviserName: id => advisers.find(a => a.id === id)?.nombre }) : [];
   const weekItems = (day: string) => [
     ...events.filter(e => e.fecha === day).map(e => ({ id: `evento:${e.id}`, text: `${e.hora ? `${e.hora} · ` : ""}${e.titulo}`, href: `/admin/agenda?fecha=${day}&evento=${encodeURIComponent(e.id)}`, visit: e.tipo === "visita" })),
     ...upcoming.filter(item => item.date === day).map(item => ({ id: item.id, text: item.text, href: item.href, visit: false })),
     ...expiring.filter(item => item.date === day).map(item => ({ id: item.id, text: item.kind === "Contrato" ? "Vence el contrato de servicio" : "Vence la licencia estatal", href: item.href, visit: false })),
   ];
   const weekCount = week.reduce((sum, day) => sum + weekItems(day).length, 0);
-  const summary = dossiers === undefined ? "Consultando tus operaciones…" : `${plural(waiting.length, "pendiente", "pendientes")} · ${plural(openToday, "tarea", "tareas")} · ${plural(visits.length, "visita", "visitas")} hoy`;
-  const photoCards = waiting.slice(0, PHOTO_CARDS), listRows = waiting.slice(PHOTO_CARDS, PHOTO_CARDS + LIST_ROWS);
+  const summary = dossiers === undefined ? "Consultando tus operaciones…" : [plural(waiting.length, "pendiente", "pendientes"), newLeads.length ? plural(newLeads.length, "nuevo sin atender", "nuevos sin atender") : "", lateCount ? plural(lateCount, "vencido", "vencidos") : "", plural(openToday, "tarea", "tareas"), `${plural(visits.length, "visita", "visitas")} hoy`].filter(Boolean).join(" · ");
+  // C34: la portada no se repite abajo; con foto del inmueble van en tarjeta, las personas sin foto en la lista.
+  const rest = waiting.slice(1);
+  const withPhoto = (item: WaitingItem) => !!item.folio && !!photo(item.propertySlug);
+  const photoCards = rest.filter(withPhoto).slice(0, PHOTO_CARDS);
+  const listRows = rest.filter(item => !photoCards.includes(item)).slice(0, LIST_ROWS);
+  // COR-14: la situación y la condición de la llamada, como chip en cada operación.
+  const tagsOf = (item: WaitingItem) => { const d = item.folio ? dossiers?.find(x => x.folio === item.folio) : undefined; return d ? operationTags(d, conditions.ofOperation(d.id)) : []; };
 
   return <Surface className={s.page}>
     <header className={s.top}>
@@ -128,29 +141,31 @@ export function HoyScreen() {
           {photo(next.propertySlug) && <Image unoptimized fill sizes="(max-width: 899px) 100vw, 60vw" src={photo(next.propertySlug)!} alt="" className={s.nextPhoto} />}
           <span className={s.nextScrim} aria-hidden="true" />
           <span className={s.nextBody}>
-            <span className={s.nextTags}>{next.late && <Pill tone="alert">{next.when || "Vencida"}</Pill>}<Pill tone="onDark">Lo siguiente</Pill></span>
+            <span className={s.nextTags}>{next.late && <Pill tone="alert">{next.when || "Vencida"}</Pill>}<Pill tone="onDark">Lo siguiente</Pill>{tagsOf(next).map(tag => <Pill key={tag} tone="onDark">{tag}</Pill>)}</span>
             <strong className={s.nextTitle}>{reasonText(next)}</strong>
             <span className={s.nextFoot}><span className={s.nextWho}>{next.who}{next.detail ? ` · ${next.detail}` : ""}</span><span className={s.nextGo}>Continuar<ArrowRight size={18} aria-hidden="true" /></span></span>
           </span>
         </Link>
         : <div className={s.nextEmpty}><strong className={s.nextTitle}>Nada espera por ti.</strong><span className={s.nextWho}>{inProgress.length ? "Cada operación tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: la operación se crea al terminarla."}</span>{!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nueva operación</ButtonLink>}</div>}
     </section>
+    {newLeads.length > 0 && <Section id="hoy-nuevos" title="Nuevos sin atender" count={newLeads.length} className={s.waitingBox} action={newLeads.length > LIST_ROWS ? more("/admin/contactos", "Ver todos") : undefined}>
+      <Card as="ul" className={s.list}>{newLeads.slice(0, LIST_ROWS).map(item => <li key={item.id}><Link href={item.href} className={s.row} aria-label={"Atender a " + item.who + ". " + item.since + "."}>
+        <Avatar name={item.who} size={44} />
+        <span className={s.rowBody}><span className={s.rowTitle}>{item.who}</span><span className={s.rowText}>{item.detail}</span></span>
+        <span className={s.rowEnd}><Pill tone={item.late ? "alert" : "muted"} size="sm">{item.since}</Pill></span>
+      </Link></li>)}</Card>
+    </Section>}
 
     <section aria-label="Operaciones en curso" className={s.navy}>
       <div className="flex items-baseline justify-between gap-3"><h2 className={s.navyTitle}>Operaciones en curso</h2>{more("/admin/operaciones", "Ver todas")}</div>
       <p className={s.big}>{dossiers === undefined ? "…" : dossiers === null ? "—" : inProgress.length}</p>
       {dossiers === null ? <p className={s.navyNote}>No se pudieron consultar las operaciones.</p>
         : stages.length > 0 && <ul className={s.bars}>
-          {stages.slice(0, STAGE_ROWS).map(stage => <li key={stage.label}><span>{stage.label}</span><span className={s.bar} aria-hidden="true"><span style={{ width: `${Math.round(stage.count / inProgress.length * 100)}%` }} /></span><span>{stage.count}</span></li>)}
+          {stages.slice(0, STAGE_ROWS).map(stage => <li key={stage.label}><span>{stage.label}</span><span>{stage.count}</span></li>)}
           {stages.length > STAGE_ROWS && <li className={s.navyNote}>{plural(stages.slice(STAGE_ROWS).reduce((sum, stage) => sum + stage.count, 0), "más en otra etapa", "más en otras etapas")}</li>}
         </ul>}
     </section>
 
-    <a href="#hoy-esperan" className={s.late} aria-label={`${plural(lateCount, "pendiente vencido o con problema", "pendientes vencidos o con problema")}, ver`}>
-      <span className={s.lateTitle}>Vencidas</span>
-      <span className={s.big}>{dossiers === undefined ? "…" : lateCount}</span>
-      <span className={s.lateGo}>Ver<ArrowRight size={18} aria-hidden="true" /></span>
-    </a>
 
     <TodayTasks tasks={dayTasks} today={today} />
 
@@ -185,33 +200,33 @@ export function HoyScreen() {
       })}</Card>
     </Section>
 
-    <Section id="hoy-esperan" title="Esperan algo de ti" count={waiting.length} className={s.waitingBox} action={waiting.length > 0 ? more("/admin/operaciones", waiting.length > PHOTO_CARDS + LIST_ROWS ? `Ver las ${waiting.length}` : "Ver operaciones") : undefined}>
+    {(dossiers === undefined || dossiers === null || rest.length > 0 || !next) && <Section id="hoy-esperan" title={waiting.length ? "También esperan algo de ti" : "Esperan algo de ti"} count={rest.length} className={s.waitingBox} action={rest.length > photoCards.length + listRows.length ? more("/admin/operaciones", `Ver las ${rest.length}`) : undefined}>
       {dossiers === undefined ? <p className={s.note} role="status">Consultando operaciones…</p>
         : <>
           {dossiers === null && failed("las operaciones")}
-          {waiting.length ? <>
-            <ul className={s.cards}>{photoCards.map(item => {
+          {rest.length ? <>
+            {photoCards.length > 0 && <ul className={s.cards}>{photoCards.map(item => {
               const pill = waitingPill(item), src = item.folio ? photo(item.propertySlug) : undefined;
               return <li key={item.id}><article className={s.photoCard}><Link href={item.href} className={s.photoLink} aria-label={`Continuar con ${item.who}`}>
                 <span className={cn(s.cardPhoto, !src && s.cardInitials)}>{src ? <Image unoptimized fill sizes="(max-width: 899px) 50vw, 25vw" src={src} alt="" /> : <span aria-hidden="true">{item.folio ? <Building2 size={32} aria-hidden="true" /> : <Avatar name={item.who} size={56} />}</span>}</span>
                 <span className={s.cardBody}>
-                  <span className={s.cardTags}>{item.rank !== 1 && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}{item.when && <span className={cn(s.meta, item.late && s.lateText)}>{item.when}</span>}</span>
+                  <span className={s.cardTags}>{item.rank !== 1 && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.when && <span className={cn(s.meta, item.late && s.lateText)}>{item.when}</span>}</span>
                   <strong className={s.cardWho}>{item.who}</strong>
                   <span className={s.cardText}>{reasonText(item)}{item.detail ? ` · ${item.detail}` : ""}</span>
                 </span>
               </Link></article></li>;
-            })}</ul>
+            })}</ul>}
             {listRows.length > 0 && <Card as="ul" className={s.list}>{listRows.map(item => {
               const pill = waitingPill(item);
               return <li key={item.id}><article><Link href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
                 {item.folio ? <Thumb src={photo(item.propertySlug)} size={44} icon={<Building2 size={20} aria-hidden="true" />} /> : <Avatar name={item.who} size={44} />}
                 <span className={s.rowBody}><span className={s.rowTitle}>{item.who}</span><span className={s.rowText}>{reasonText(item)}{item.detail ? ` · ${item.detail}` : ""}</span></span>
-                <span className={s.rowEnd}>{item.rank !== 1 && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}{item.when && <span className={cn(s.meta, item.late && s.lateText)}>{item.when}</span>}</span>
+                <span className={s.rowEnd}>{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.rank !== 1 && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}{item.when && <span className={cn(s.meta, item.late && s.lateText)}>{item.when}</span>}</span>
               </Link></article></li>;
             })}</Card>}
-          </> : dossiers !== null && <EmptyBox title="Nada espera por ti">Las operaciones tienen su siguiente paso con fecha y no hay contactos pendientes.</EmptyBox>}
+          </> : dossiers !== null && !next && <EmptyBox title="Nada espera por ti">Las operaciones tienen su siguiente paso con fecha y no hay contactos pendientes.</EmptyBox>}
         </>}
-    </Section>
+    </Section>}
 
     {(interviews === null || !!interviews?.length) && <Section id="hoy-entrevistas" title="Entrevistas por terminar" count={interviews?.length} className={s.half}>
       {interviews === null ? failed("las entrevistas") : <Card as="ul" className={s.list}>{interviews!.map(interview => <li key={interview.id}><Link href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.id)}`} className={s.row} aria-label={`Seguir la entrevista de ${interview.contacto?.nombre || "contacto sin nombre"}`}>

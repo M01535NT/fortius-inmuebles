@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ArrowUpRight, MessageCircle, Phone } from "@/components/admin/icons";
 import { Avatar, ButtonLink, Card, Pill } from "@/components/admin/kit";
 import { LEAD_PROFILE_OPTIONS } from "@/lib/lead-profile";
-import { LEAD_ESTADO_LABELS, LEAD_ORIGEN_LABELS, fechaCorta, type Cliente, type Evento, type Lead } from "@/lib/admin/store";
+import { LEAD_ESTADO_LABELS, LEAD_ORIGEN_LABELS, type Cliente, type Evento, type Lead } from "@/lib/admin/store";
+import { operationalDate } from "@/lib/admin/operational-date";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { stepDate, type ContactRow } from "@/lib/admin/contacts-view";
 import { shortDate } from "@/lib/admin/today";
@@ -55,12 +56,12 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
     <div className="flex flex-wrap gap-2">
       {digits && <ButtonLink href={`tel:${digits}`}><Phone size={16} aria-hidden="true" />Llamar</ButtonLink>}
       {digits && <ButtonLink href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"><MessageCircle size={16} aria-hidden="true" />WhatsApp</ButtonLink>}
-      <ButtonLink href={row.href} variant="primary" className="ml-auto" aria-label={`Abrir ficha de ${person.nombre}`}>Abrir ficha<ArrowUpRight size={16} aria-hidden="true" /></ButtonLink>
+      <ButtonLink href={row.href} className="ml-auto" aria-label={`Abrir ficha de ${person.nombre}`}>Abrir ficha<ArrowUpRight size={16} aria-hidden="true" /></ButtonLink>
     </div>
     <dl className={s.facts}>
-      <div><dt>Busca</dt><dd>{row.wants}</dd></div>
-      <div><dt>Presupuesto</dt><dd>{row.budget ?? "Por definir"}</dd></div>
-      <div><dt>Zona</dt><dd>{row.zone}</dd></div>
+      <div><dt>Busca</dt><dd>{row.wants || "—"}</dd></div>
+      <div><dt>Presupuesto</dt><dd>{row.budget ?? "—"}</dd></div>
+      <div><dt>Zona</dt><dd>{row.zone || "—"}</dd></div>
       <div><dt>Teléfono</dt><dd>{person.telefono || "Sin teléfono"}</dd></div>
     </dl>
     {chips.length > 0 && <section className="flex flex-col gap-2"><h3 className={s.previewTitle}>Lo que busca</h3><div className="flex flex-wrap gap-1.5">{chips.map(text => <Pill key={text} size="sm" tone="muted">{text}</Pill>)}</div></section>}
@@ -76,6 +77,14 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
         {notes.map(note => <li key={note.id}><span className={s.activityRow}><span className={s.activityWhen}>{shortDate(note.fecha.slice(0, 10))}</span><span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{note.texto}</span></span></li>)}
       </ul>
     </section>}
-    <p className={s.meta}>Registrado el {fechaCorta(person.creadoEl)}.</p>
+    <p className={s.meta}>Registrado el {humanDay(person.creadoEl)}.</p>
   </Card>;
+}
+
+/** «21 oct 2026» en lugar de «21/10/2026» (C03, C40). */
+function humanDay(instant: string) {
+  const date = new Date(instant);
+  if (Number.isNaN(date.getTime())) return "fecha desconocida";
+  const day = operationalDate(date);
+  return `${shortDate(day)} ${day.slice(0, 4)}`;
 }

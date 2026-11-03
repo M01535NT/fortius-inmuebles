@@ -3,7 +3,6 @@ import * as React from "react";
 import Image from "next/image";
 import { apiRequest, changePassword, isLoggedIn, useSession } from "@/lib/admin/store";
 import { AsyncForm, Field, PageHeader, btnGhost, btnPrimary, inputClass } from "@/components/admin/ui";
-import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 
 export default function ProfilePage() {
   const user = useSession();
@@ -11,7 +10,6 @@ export default function ProfilePage() {
   const [photoError, setPhotoError] = React.useState("");
   const [processing, setProcessing] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
-  const [density, setDensity] = useBrowserPreference(`fortius:density:${user?.id}`, "comfortable", value => value === "compact" ? "compact" : "comfortable");
   const photo = avatar ?? user?.avatar ?? "";
   async function choose(file?: File) {
     if (!file) return;
@@ -28,7 +26,7 @@ export default function ProfilePage() {
     } catch (error) { setPhotoError(error instanceof DOMException ? "No se pudo leer la fotografía. Prueba con otra imagen JPG, PNG o WebP." : error instanceof Error ? error.message : "No se pudo leer la fotografía."); }
     finally { setProcessing(false); }
   }
-  return <div className="max-w-3xl space-y-6"><PageHeader title="Mi perfil" description="Tu identidad, seguridad y preferencias personales."/>
+  return <div className="max-w-3xl space-y-6"><PageHeader title="Mi perfil" description="Tu fotografía, tu nombre y tu contraseña."/>
     <AsyncForm className="space-y-5 rounded-lg bg-card p-5" onSubmit={async event => {
       const form = new FormData(event.currentTarget);
       if (processing) throw new Error("Espera a que termine de prepararse la foto.");
@@ -45,7 +43,6 @@ export default function ProfilePage() {
       <button className={btnPrimary} disabled={processing}>{processing ? "Preparando foto…" : "Guardar perfil"}</button>
       {saved && <p role="status">Perfil guardado en tu cuenta.</p>}
     </AsyncForm>
-    <section className="rounded-lg bg-card p-5"><h2>Preferencias de lectura</h2><div className="mt-4 flex gap-2" role="group" aria-label="Densidad de las tablas">{(["comfortable", "compact"] as const).map(value => <button key={value} type="button" aria-pressed={density === value} className={btnGhost} onClick={() => setDensity(value)}>{value === "compact" ? "Compacta" : "Cómoda"}</button>)}</div><p className="mt-3 text-sm text-muted-foreground">Se guarda en este navegador.</p></section>
     <section id="seguridad" className="scroll-mt-24 rounded-lg bg-card p-5"><h2>Cambiar contraseña</h2><AsyncForm className="mt-4 space-y-4" onSubmit={async event => {const form=event.currentTarget;const data=new FormData(form);if(data.get("password")!==data.get("confirm"))throw new Error("Las contraseñas no coinciden.");await changePassword(String(data.get("password")));form.reset();}}><Field label="Nueva contraseña" htmlFor="profile-password"><input id="profile-password" name="password" type="password" required minLength={12} maxLength={128} autoComplete="new-password" className={inputClass}/></Field><Field label="Confirmar contraseña" htmlFor="profile-confirm"><input id="profile-confirm" name="confirm" type="password" required minLength={12} maxLength={128} autoComplete="new-password" className={inputClass}/></Field><button className={btnPrimary}>Actualizar contraseña</button></AsyncForm></section>
   </div>;
 }

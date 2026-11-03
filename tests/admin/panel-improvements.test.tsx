@@ -40,11 +40,12 @@ test("due converted contact is visible on arrival and points to the client, once
   const profile={proximoContacto:"2026-10-12"};
   install({ leads:[{id:"lead",nombre:"Contacto convertido",telefono:"6640000000",estado:"activo",clienteId:"client",perfil:profile,notas:[],creadoEl:baseDate,origen:"manual"}], clientes:[{id:"client",nombre:"Contacto convertido",leadId:"lead",tipo:"comprador",perfil:profile}] });
   render(<AdminDashboard/>);
-  const waiting=await screen.findByRole("region",{name:/Esperan algo de ti/});
-  const link=await within(waiting).findByRole("link",{name:"Continuar con Contacto convertido"});
+  // Un solo pendiente: es la portada «Lo siguiente» y no se repite abajo (C34).
+  const cover=await screen.findByRole("region",{name:"Lo siguiente"});
+  const link=await within(cover).findByRole("link",{name:/Contacto convertido/});
   expect(link.getAttribute("href")).toBe("/admin/clientes/client");
-  expect(within(waiting).getAllByRole("link",{name:/Contacto convertido/})).toHaveLength(1);
-  expect(waiting.closest("details")).toBeNull();
+  expect(screen.getAllByRole("link",{name:/Contacto convertido/})).toHaveLength(1);
+  expect(cover.closest("details")).toBeNull();
 });
 
 test("reports opens the actual overdue client records and labels historical scope", async () => {
@@ -73,8 +74,8 @@ test("an empty operations module offers creation without forcing the form open",
   await screen.findByText("Todavía no hay operaciones");
   expect(screen.getByRole("link",{name:"Nueva operación"}).getAttribute("href")).toBe("/admin/operaciones/nueva");
   expect(screen.queryByRole("button",{name:"Abrir operación"})).toBeNull();
-  fireEvent.click(screen.getByRole("button", {name:"Alta directa, sin entrevista"}));
-  expect(screen.getByRole("button",{name:"Abrir operación"})).toBeTruthy();
+  // C38: la alta directa ya no es una tarjeta fija al pie del tablero.
+  expect(screen.queryByRole("button", {name:"Alta directa, sin entrevista"})).toBeNull();
 });
 
 test("operation overview exposes missing context and next task without inventing progress", async () => {

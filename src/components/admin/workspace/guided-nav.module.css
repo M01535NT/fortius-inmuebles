@@ -22,9 +22,10 @@
 }
 :global(.admin-root) .space { flex: 1; }
 :global(.admin-root) .count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.375rem; height: 1.375rem; padding: 0 .4375rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: .75rem; font-weight: 600; }
-:global(.admin-root) .newButton { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem 0 .875rem; border: 1px solid var(--primary); border-radius: var(--radius-pill); background: var(--primary); color: #fff; font: inherit; font-size: .9375rem; font-weight: 560; cursor: pointer; box-shadow: var(--shadow-cta); white-space: nowrap; }
-:global(.admin-root) .newButton:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
-:global(.dark) :global(.admin-root) .newButton { border-color: var(--primary-edge); }
+/* «+ Nuevo» es secundario (blanco con borde) para que cada pantalla conserve un solo guinda (C44). */
+:global(.admin-root) .newButton { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem 0 .875rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-size: .9375rem; font-weight: 560; cursor: pointer; white-space: nowrap; }
+:global(.admin-root) .newButton:hover { background: var(--secondary); }
+:global(.dark) :global(.admin-root) .newButton { border-color: var(--edge-soft); }
 :global(.admin-root) .account { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: var(--radius-pill); background: none; cursor: pointer; }
 :global(.admin-root) .menuWrap { position: relative; }
 :global(.admin-root) .pop { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 40; min-width: 15rem; display: flex; flex-direction: column; gap: .125rem; padding: .375rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-lift); transform-origin: top right; }

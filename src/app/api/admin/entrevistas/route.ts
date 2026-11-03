@@ -8,12 +8,28 @@ import {
   readJson,
 } from "@/lib/backend/http";
 import { BUYER_INTENT_MESSAGE, isBuyerIntent, startIntakeSchema } from "@/lib/intake/interview";
+import { conditionOf } from "@/lib/intake/condition";
 const fields =
   "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,propiedad_slug,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
 export async function GET(request: Request) {
   return apiResponse(async () => {
     const { client } = await requireStaff();
     const q = new URL(request.url).searchParams;
+    // CAP-05: solo el chip de la condición; el detalle (puede nombrar personas) no sale de la operación.
+    if (q.get("condiciones") === "1") {
+      const { data, error } = await client
+        .from("fortius_inmuebles_interviews")
+        .select("expediente_id,cliente_id,lead_id,problema:respuestas->>problema")
+        .neq("estado", "cancelada")
+        .not("respuestas->>problema", "is", null)
+        .neq("respuestas->>problema", "ninguno")
+        .order("updated_at", { ascending: false })
+        .limit(500);
+      if (error) databaseError(error);
+      const condiciones = ((data ?? []) as Array<{ expediente_id: string | null; cliente_id: string | null; lead_id: string | null; problema: string | null }>)
+        .flatMap(row => { const c = conditionOf({ problema: row.problema ?? undefined }); return c ? [{ expedienteId: row.expediente_id, clienteId: row.cliente_id, leadId: row.lead_id, text: c.text }] : []; });
+      return { condiciones };
+    }
     let query = client
       .from("fortius_inmuebles_interviews")
       .select(fields)

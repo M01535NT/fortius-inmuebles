@@ -21,6 +21,7 @@ const change = (label: string, value: string) => fireEvent.change(screen.getByLa
 function openCapture() {
   render(<ContactsScreen />);
   fireEvent.click(screen.getAllByRole("button", { name: "Agregar contacto" })[0]);
+  fireEvent.click(screen.getByRole("button", { name: "Busca comprar o rentar" }));
   change("Nombre", "Persona de prueba"); change("Teléfono", "6641234567");
 }
 test("manual lead stores email and a structured search independently of a property", async () => {

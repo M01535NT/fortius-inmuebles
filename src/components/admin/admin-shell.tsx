@@ -4,7 +4,6 @@ import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { usePathname } from "next/navigation";
 import { Eye, EyeOff } from "@/components/admin/icons";
-import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
 import { MobileHeader, MobileMenu, MobileTabBar, TopNav } from "@/components/admin/workspace/guided-nav";
@@ -181,7 +180,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
   const sessionId = session?.id;
-  const [density] = useBrowserPreference(`fortius:density:${sessionId}`, "comfortable", value => value === "compact" ? "compact" : "comfortable");
   const [checking, setChecking] = React.useState(true);
   const [passwordMode, setPasswordMode] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -325,7 +323,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   // Nueva operación ocupa toda la pantalla: sin menú, migas ni barra inferior; se sale con la ×.
   const focus = pathname === "/admin/operaciones/nueva";
   return (
-    <div data-density={density} className="admin-workspace flex min-h-[100dvh] flex-col bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
+    <div className="admin-workspace flex min-h-[100dvh] flex-col bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       {!focus && <TopNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch hotkey />} />}
       {ready && loadedPath === pathname && <Tour pathname={pathname} />}
       <div className="flex min-w-0 flex-1 flex-col">

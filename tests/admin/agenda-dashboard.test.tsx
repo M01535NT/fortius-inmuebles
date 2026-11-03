@@ -144,11 +144,13 @@ test("Hoy shows one overdue followup for a converted client and points to the cl
     return Response.json({ records: records.map(item => ({ ...item, version: 1 })) });
   });
   render(<AdminDashboard />);
-  const waiting = within(screen.getByRole("region", {name:/Esperan algo de ti/}));
-  expect(await waiting.findByRole("link", { name: "Continuar con Cliente convertido" })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
-  expect(waiting.getByText("Desde el 21 sep")).toBeTruthy();
-  expect(waiting.queryByText("Prospecto", {exact:true})).toBeNull();
-  expect(waiting.getAllByRole("article")).toHaveLength(1);
+  // El único pendiente es la portada «Lo siguiente» y no se repite en otra sección (C34).
+  const cover = within(await screen.findByRole("region", { name: "Lo siguiente" }));
+  expect(await cover.findByRole("link", { name: /Cliente convertido/ })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
+  expect(cover.getByText("Desde el 21 sep")).toBeTruthy();
+  expect(cover.queryByText("Prospecto", {exact:true})).toBeNull();
+  expect(screen.getAllByText("Cliente convertido", { exact: false })).toHaveLength(1);
+  expect(screen.queryByRole("region", { name: /Esperan algo de ti/ })).toBeNull();
 });
 
 test("calendar saves a linked event with client, property, expediente and adviser", async () => {

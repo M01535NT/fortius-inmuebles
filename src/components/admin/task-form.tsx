@@ -96,8 +96,12 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     const record = await onSave({ ...next, ...result.data });
     setDraft({ ...record, nuevaNota: "" }); setSaved(true);
   }}>
+    {/* C44: en la ficha, completar es la acción principal y va antes de los campos. */}
+    {initial && <div className={s.actions}>
+      {closed ? <Button type="submit" name="estado" value="pendiente">Reabrir tarea</Button> : <Button type="submit" variant="primary" name="estado" value="completada">Completar tarea</Button>}
+    </div>}
     <section className={s.group} aria-label="Lo básico">
-      <div className={s.groupHead}><h2>Lo básico</h2><p>La fecha límite se interpreta con la fecha de Tijuana.</p></div>
+      <div className={s.groupHead}><h2>Lo básico</h2></div>
       <div className={s.grid}>
         {!initial && <Field label="Plantilla opcional" htmlFor="task-template" className={s.span2} hint="Carga un borrador que puedes ajustar antes de guardar.">
           <select id="task-template" className={selectClass} defaultValue="" onChange={(event) => {
@@ -130,11 +134,8 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
       <Field label="Añadir nota al historial" htmlFor="task-note" hint="Queda en el historial con tu nombre y la fecha."><textarea id="task-note" maxLength={5000} rows={2} className={textareaClass} placeholder="Qué pasó o qué se acordó" value={draft.nuevaNota ?? ""} onChange={(e) => change("nuevaNota", e.target.value)} /></Field>
     </section>}
     <div className={s.actions}>
-      <Button type="submit" variant="primary">Guardar tarea</Button>
-      {initial && <>
-        {closed ? <Button type="submit" name="estado" value="pendiente">Reabrir tarea</Button> : <Button type="submit" name="estado" value="completada">Completar tarea</Button>}
-        {draft.estado !== "cancelada" && <Button type="submit" variant="ghost" name="estado" value="cancelada">Cancelar tarea</Button>}
-      </>}
+      <Button type="submit" variant={initial ? "secondary" : "primary"}>Guardar tarea</Button>
+      {initial && draft.estado !== "cancelada" && <Button type="submit" variant="ghost" name="estado" value="cancelada">Cancelar tarea</Button>}
     </div>
     {saved && <p role="status" className="text-sm text-primary-ink">Tarea guardada.</p>}
   </AsyncForm>;

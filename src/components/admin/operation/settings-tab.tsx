@@ -5,7 +5,7 @@ import { Button, Card, Notice } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { db, useCollection, useSession } from "@/lib/admin/store";
-import { RESOLUTION_TYPES, stageLabel, WORKFLOW_ROUTES, WORKFLOW_STAGES, WORKFLOW_STATES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { discardReasonOf, DISCARD_REASONS, RESOLUTION_TYPES, stageLabel, WORKFLOW_ROUTES, WORKFLOW_STAGES, WORKFLOW_STATES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { flowOf, isGuided, routeStages, stageOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
 
@@ -46,6 +46,7 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
   }
   async function save(event: React.FormEvent) {
     event.preventDefault();
+    if (flow.estado === "descartada" && original.estado !== "descartada" && !discardReasonOf(flow.motivo.trim())) { setError("Elige el motivo del descarte de la lista."); return; }
     if (flow.estado !== "activa" && flow.motivo.trim().length < 3) { setError("Escribe el motivo de la pausa, la regularización o el descarte."); return; }
     if (flow.resolucion && flow.resolucion.motivo.trim().length < 3) { setError("Escribe el motivo de la decisión del encargo."); return; }
     const before = routeStages(op, today).phase;
@@ -85,6 +86,7 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
         {guided && <label className="text-sm font-semibold">Situación<select className={selectClass} value={flow.estado} onChange={e => setFlow(old => ({ ...old, estado: e.target.value as OperationWorkflow["estado"] }))}>{Object.entries(WORKFLOW_STATES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
         <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={property} onChange={e => setProperty(e.target.value)}><option value="">Sin vincular todavía</option>{property && !available.some(p => p.slug === property) && <option value={property}>Inmueble vinculado no disponible</option>}{available.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select></label>
         <label className="text-sm font-semibold">Fecha objetivo<input type="date" value={date} className={inputClass} onChange={e => setDate(e.target.value)} /></label>
+        {guided && flow.estado === "descartada" && <label className="text-sm font-semibold sm:col-span-2">Motivo del descarte<select className={selectClass} value={discardReasonOf(flow.motivo) ?? ""} onChange={e => setFlow(old => { const detail = discardReasonOf(old.motivo) ? old.motivo.slice(discardReasonOf(old.motivo)!.length).replace(/^:\s*/, "") : old.motivo; return { ...old, motivo: e.target.value ? `${e.target.value}${detail.trim() ? `: ${detail.trim()}` : ""}` : detail }; })}><option value="">Elige el motivo</option>{DISCARD_REASONS.map(r => <option key={r} value={r}>{r}</option>)}</select></label>}
         {guided && <label className="text-sm font-semibold sm:col-span-2">Motivo de pausa, regularización, descarte o corrección<textarea rows={2} maxLength={1000} className={textareaClass} value={flow.motivo} onChange={e => setFlow(old => ({ ...old, motivo: e.target.value }))} /></label>}
       </Card>
 

@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, Plus, Search, UserPlus, X } from "@/components/admin/icons";
-import { Avatar, Button, Card, EmptyBox, Pill } from "@/components/admin/kit";
+import { Avatar, Button, ButtonLink, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import f from "@/components/admin/form.module.css";
 import { AsyncForm, inputClass } from "@/components/admin/ui";
 import { LeadFields, readLeadFields } from "@/components/admin/lead-fields";
@@ -12,10 +12,12 @@ import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 import { duplicateContacts } from "@/lib/admin/workspace";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { clientRows, leadRows, matches, type ContactRow } from "@/lib/admin/contacts-view";
-import { LEAD_ESTADO_LABELS, db, uid, upsert, useCollection, type Lead } from "@/lib/admin/store";
+import { clientRows, leadRows, matches, type ContactRow, type PersonOperation } from "@/lib/admin/contacts-view";
+import { LEAD_ESTADO_LABELS, apiRequest, db, uid, upsert, useCollection, type Lead } from "@/lib/admin/store";
+import { processStageText, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { cn } from "@/lib/utils";
 import { ContactPreview } from "./contact-preview";
+import { useConditions } from "@/lib/admin/conditions";
 import s from "./contacts.module.css";
 
 /*
@@ -41,15 +43,28 @@ export function ContactsScreen() {
   const [adding, setAdding] = React.useState(() => params.get("nuevo") === "1");
   const [selected, setSelected] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  // COR-15: una sola entrada para la llamada. Quien vende u ofrece en renta va a Nueva operación.
+  const [seeks, setSeeks] = React.useState(false);
   const nameInput = React.useRef<HTMLInputElement>(null);
+  // Operaciones activas: el siguiente paso de quien tiene una sale de ella, no del perfil (C40).
+  const [operations, setOperations] = React.useState<PersonOperation[]>([]);
+  React.useEffect(() => {
+    let alive = true;
+    apiRequest<{ expedientes?: Array<{ id: string; cliente_id?: string; etapa?: WorkflowStage; flujo?: OperationWorkflow | null }> }>("/api/admin/expedientes")
+      .then(r => { if (alive) setOperations((r.expedientes ?? []).filter(d => d.etapa !== "cerrado" && d.flujo?.estado !== "descartada").map(d => ({ id: d.id, clienteId: d.cliente_id, stage: processStageText(d.etapa, d.flujo, today) || "curso" }))); })
+      .catch(() => undefined);
+    return () => { alive = false; };
+  }, [today]);
   const searchInput = React.useRef<HTMLInputElement>(null);
+  // COR-14: la condición que el propietario mencionó en la llamada.
+  const conditions = useConditions();
 
   function openLeadCapture() {
     if (filter === "clientes") setFilter("todas");
     setAdding(true);
   }
   useQuickCreate("prospecto", openLeadCapture);
-  React.useEffect(() => { if (adding && filter !== "clientes") nameInput.current?.focus(); }, [adding, filter]);
+  React.useEffect(() => { if (adding && seeks && filter !== "clientes") nameInput.current?.focus(); }, [adding, seeks, filter]);
   React.useEffect(() => { if (searching) searchInput.current?.focus(); }, [searching]);
 
   const open = leads.filter(l => !l.clienteId);
@@ -63,7 +78,7 @@ export function ContactsScreen() {
   const counts = Object.fromEntries(FILTERS.map(item => [item.id, item.id === "todas" ? open.length + clients.length : item.id === "clientes" ? clients.length : open.filter(l => item.id === "nuevos" ? l.estado === "nuevo" : item.id === "seguimiento" ? SEGUIMIENTO.has(l.estado) : l.estado === "descartado").length])) as Record<Filter, number>;
   const rows = [
     ...leadRows(open, tasks, events, today).filter(r => { const l = open.find(x => x.id === r.id)!; return matches(query, l.nombre, l.telefono, l.email, l.zona, l.tipoPropiedad, l.mensaje, l.perfil?.requisitos, r.wants); }),
-    ...clientRows(clients, tasks, events, today).filter(r => { const c = clients.find(x => x.id === r.id)!; return matches(query, c.nombre, c.telefono, c.email, c.zona, c.tipoPropiedad, r.wants); }),
+    ...clientRows(clients, tasks, events, today, operations).filter(r => { const c = clients.find(x => x.id === r.id)!; return matches(query, c.nombre, c.telefono, c.email, c.zona, c.tipoPropiedad, r.wants); }),
   ].filter(r => inFilter(r.kind, r.id)).sort((x, y) => x.sort.localeCompare(y.sort) || x.name.localeCompare(y.name, "es"));
   const duplicates = filter === "clientes" ? 0 : leads.filter(l => duplicateContacts(l, leads).length > 0).length;
   const previewRow = rows.find(r => r.id === selected) ?? rows[0];
@@ -94,10 +109,17 @@ export function ContactsScreen() {
     {/* La captura del prospecto solo se oculta al cerrarla, para no perder lo escrito. */}
     {filter !== "clientes" && <div hidden={!adding} className="mb-5"><section className={f.window} aria-label="Nuevo prospecto">
       <div className={f.windowHead}>
-        <div className={f.windowTitle}><span className={f.windowIcon}><UserPlus size={22} aria-hidden="true" /></span><div><h2>Nuevo prospecto</h2><p>Al guardarlo se abre su ficha para seguirlo.</p></div></div>
+        <div className={f.windowTitle}><span className={f.windowIcon}><UserPlus size={22} aria-hidden="true" /></span><div><h2>Nuevo prospecto</h2><p>{seeks ? "Al guardarlo se abre su ficha para seguirlo." : "¿Qué quiere hacer?"}</p></div></div>
         <Button variant="ghost" iconOnly aria-label="Cerrar captura" onClick={() => setAdding(false)}><X size={20} aria-hidden="true" /></Button>
       </div>
-      <AsyncForm onSubmit={captureLead} className="flex min-w-0 flex-col gap-4" aria-label="Nuevo prospecto">
+      <div role="group" aria-label="¿Qué quiere hacer?" className="flex flex-wrap gap-2">
+        <ButtonLink href="/admin/operaciones/nueva?intencion=vender">Vender su inmueble</ButtonLink>
+        <ButtonLink href="/admin/operaciones/nueva?intencion=arrendar">Ofrecer su inmueble en renta</ButtonLink>
+        <ButtonLink href="/admin/operaciones/nueva?intencion=invertir">Invertir</ButtonLink>
+        <Button aria-pressed={seeks} onClick={() => setSeeks(true)}>Busca comprar o rentar</Button>
+      </div>
+      {!seeks && <p className="text-sm text-muted-foreground">Si vende, ofrece en renta o invierte, se abre Nueva operación para capturar la llamada completa.</p>}
+      <AsyncForm hidden={!seeks} onSubmit={captureLead} className={cn("flex min-w-0 flex-col gap-4", !seeks && "hidden")} aria-label="Nuevo prospecto">
         <LeadFields nombreRef={nameInput} />
         <div className={f.windowFoot}><Button type="submit" variant="primary" disabled={saving}>{saving ? "Guardando…" : "Guardar prospecto"}</Button><Button variant="ghost" onClick={() => setAdding(false)}>Cancelar</Button></div>
       </AsyncForm>
@@ -116,7 +138,7 @@ export function ContactsScreen() {
       {rows.length === 0 ? <EmptyBox title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : true ? "Llegan solos desde los formularios del sitio, o agrégalos con «Agregar contacto»." : "Un prospecto se vuelve cliente desde su ficha, o agrégalo con «Agregar contacto»."}
       </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
-        <ContactList rows={rows} onPreview={setSelected} stageOf={row => row.kind === "cliente" ? "Cliente" : LEAD_ESTADO_LABELS[estadoDe(row.id) ?? "nuevo"]} />
+        <ContactList rows={rows} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={row => row.kind === "cliente" ? "Cliente" : LEAD_ESTADO_LABELS[estadoDe(row.id) ?? "nuevo"]} />
         {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} />}
       </div>}
       {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
@@ -125,16 +147,16 @@ export function ContactsScreen() {
 }
 
 function Due({ row }: { row: ContactRow }) {
-  return row.when ? <Pill size="sm" tone={row.late ? "alert" : "muted"}>{row.when}</Pill> : <Pill size="sm" tone="muted">Sin fecha</Pill>;
+  return row.when ? <Pill size="sm" tone={row.late ? "alert" : "muted"}>{row.when}</Pill> : null;
 }
 
-function ContactList({ rows, onPreview, stageOf }: { rows: ContactRow[]; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string }) {
+function ContactList({ rows, onPreview, stageOf, conditionOf }: { rows: ContactRow[]; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined }) {
   return <Card as="div" className={s.listCard}>
     <ul className={s.list} aria-label="Contactos">{rows.map(row => <li key={row.id}><Link href={row.href} className={s.item} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>
       <Avatar name={row.name} size={44} />
       <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{row.phone}</span></span>
-      <span className={s.wants}><span className="[overflow-wrap:anywhere]"><Pill size="sm" tone={row.kind === "cliente" ? "success" : "muted"}>{stageOf(row)}</Pill> {row.wants}</span><span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span></span>
-      <span className={s.step}><span className={cn("lg:hidden", s.meta)}>Sigue:</span><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span></span>
+      <span className={s.wants}><span className="[overflow-wrap:anywhere]"><Pill size="sm" tone={row.kind === "cliente" ? "success" : "muted"}>{stageOf(row)}</Pill> {conditionOf(row) && <><Pill size="sm" tone="warn">{conditionOf(row)}</Pill> </>}{row.wants}</span>{(row.zone || row.budget) && <span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span>}</span>
+      <span className={s.step}>{row.step && <><span className={cn("lg:hidden whitespace-nowrap", s.meta)}>Sigue:</span><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span></>}</span>
       <span className={s.end}><Due row={row} /></span>
       <ChevronRight size={18} aria-hidden="true" className={cn(s.chevron, "hidden lg:block")} />
     </Link></li>)}</ul>

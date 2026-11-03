@@ -22,12 +22,14 @@
 :global(.admin-root) .overlay { position: absolute; left: .625rem; right: .625rem; top: .625rem; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .375rem; pointer-events: none; }
 :global(.admin-root) .onPhoto { background: rgba(255, 255, 255, .92); color: #061f3f; backdrop-filter: blur(6px); }
 :global(.admin-root) .onPhoto[data-strong] { background: var(--warning-surface); color: var(--warning); }
+:global(.admin-root) .star { display: inline-grid; place-items: center; width: 1.625rem; height: 1.625rem; border-radius: 999px; background: rgba(255, 255, 255, .92); color: #8a1634; backdrop-filter: blur(6px); }
 :global(.admin-root) .body { display: flex; flex-direction: column; gap: .3125rem; padding: .875rem 1rem 1rem; overflow-wrap: anywhere; }
 :global(.admin-root) .title { font-size: 1rem; font-weight: 540; line-height: 1.3; }
 :global(.admin-root) .zone { display: flex; align-items: center; gap: .25rem; font-size: .875rem; color: var(--muted-foreground); }
-:global(.admin-root) .priceRow { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-top: .375rem; padding-right: 3rem; }
-:global(.admin-root) .amount { font-size: 1.0625rem; font-weight: 620; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .priceRow { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: .25rem .75rem; margin-top: .375rem; padding-right: 3rem; }
+:global(.admin-root) .amount { font-size: 1.0625rem; font-weight: 620; letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 :global(.admin-root) .amount[data-pending] { font-weight: 500; color: var(--muted-foreground); }
+:global(.admin-root) .priceRow > .meta { white-space: nowrap; }
 
 /* Opciones de cada inmueble: «⋯» en la esquina de la foto. */
 :global(.admin-root) .options > summary { position: absolute; right: .625rem; bottom: .625rem; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-control); background: rgba(255, 255, 255, .92); color: #061f3f; cursor: pointer; list-style: none; backdrop-filter: blur(6px); }

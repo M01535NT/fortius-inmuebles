@@ -11,7 +11,8 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { isOwnerRoute, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { flowOf, initialStatus, isGuided, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
+import { conditionOf } from "@/lib/intake/condition";
+import { flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { TIPO_LABELS } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
@@ -128,6 +129,9 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const thing = property && TIPO_LABELS[property.tipo] ? `su ${TIPO_LABELS[property.tipo].toLowerCase()}` : isOwnerRoute(flow.ruta) ? "su inmueble" : "";
   const wants = [verb, isOwnerRoute(flow.ruta) ? thing : ""].filter(Boolean).join(" ");
   const stageName = track.stages[track.current]?.label;
+  // COR-14: la situación (con su motivo) y la condición de la llamada (con lo que contó).
+  const condition = conditionOf(interview?.respuestas);
+  const tags = operationTags(op, condition).map(text => ({ text, detail: text === condition?.text ? condition.detail : flow.motivo || undefined }));
   const digits = (client?.telefono ?? "").replace(/\D/g, "");
   const role = isOwnerRoute(flow.ruta) ? "Propietario" : flow.ruta === "inversion" ? "Inversionista" : flow.ruta === "arrendatario" ? "Arrendatario" : "Comprador";
   const tabItems = TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={18} aria-hidden="true" />, ...(t.id === "documentos" ? { count: docsCount } : t.id === "tareas" ? { count: taskCount } : {}) }));
@@ -141,11 +145,16 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     <div className={s.split}>
       <StagePanel op={view} today={today} docs={docs} checklist={checklist} compact={tab !== "sigue"} back={back}
         who={{ name: client?.nombre ?? op.folio, wants, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : undefined }}
+        tags={tags}
         person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin/clientes/${encodeURIComponent(client.id)}` } : undefined}
         onOpenStages={focus => setStagesOpen({ focus })} onRemove={() => void removeFromPanel()}>
         {tab !== "sigue" && tabs}
       </StagePanel>
       <div className={s.main}>
+        {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
+          {tabs}
+          <span className={s.footWho}>{adviser ? <><span className={s.footAvatar} aria-hidden="true">{initialsOf(adviser.nombre)}</span>Responsable {adviser.nombre}</> : "Sin responsable"}</span>
+        </div>}
         <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
           {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
             evidence={{ documents: docs.list, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer }} interview={interview}
@@ -156,10 +165,6 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
           {tab === "historial" && <HistoryTab operationId={op.id} refresh={changes} onDirtyChange={markDirty.historial} />}
           {tab === "ajustes" && <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onRemove={() => changeLifecycle(true)} onDirtyChange={markDirty.ajustes} />}
         </TabPanel>
-        {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
-          <span className={s.footWho}>{adviser ? <><span className={s.footAvatar} aria-hidden="true">{initialsOf(adviser.nombre)}</span>Responsable {adviser.nombre}</> : "Sin responsable"}</span>
-          {tabs}
-        </div>}
       </div>
     </div></>}
     {stagesOpen && isGuided(op) && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
