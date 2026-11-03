@@ -122,7 +122,7 @@ export function HoyScreen() {
       <p className={s.summary}>{summary}</p>
     </header>
 
-    <section aria-label="Lo siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
+    <section aria-label="Lo siguiente" data-tour="hoy-siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
       {dossiers === undefined ? <p role="status" className={s.nextNote}>Consultando operaciones…</p>
         : next ? <Link href={next.href} className={s.nextLink} aria-label={`Lo siguiente: ${next.reason} ${next.who}`}>
           {photo(next.propertySlug) && <Image unoptimized fill sizes="(max-width: 899px) 100vw, 60vw" src={photo(next.propertySlug)!} alt="" className={s.nextPhoto} />}

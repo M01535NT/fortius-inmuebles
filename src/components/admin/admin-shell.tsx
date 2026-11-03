@@ -8,6 +8,7 @@ import { useBrowserPreference } from "@/components/admin/workspace/browser-prefe
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
 import { MobileHeader, MobileMenu, MobileTabBar, TopNav } from "@/components/admin/workspace/guided-nav";
+import { Tour } from "@/components/admin/workspace/tour";
 import {
   AsyncForm,
   AsyncButton,
@@ -326,6 +327,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div data-density={density} className="admin-workspace flex min-h-[100dvh] flex-col bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       {!focus && <TopNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch hotkey />} />}
+      {ready && loadedPath === pathname && <Tour pathname={pathname} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}
         <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>

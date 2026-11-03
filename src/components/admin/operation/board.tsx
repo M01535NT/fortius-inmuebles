@@ -125,7 +125,7 @@ export function OperationsBoard() {
         <h1 className={s.head1}>{deleted ? "Operaciones eliminadas" : "Operaciones"}</h1>
         {records && <p className="text-muted-foreground">{deleted ? `${records.length} ${records.length === 1 ? "operación" : "operaciones"} que puedes restaurar` : `${active.length} en curso`}</p>}
       </div>
-      {!deleted && <div className="flex flex-wrap items-center gap-2.5">
+      {!deleted && <div data-tour="op-vista" className="flex flex-wrap items-center gap-2.5">
         <Segmented label="Vista" value={view} onChange={setView} options={[{ id: "lista", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tablero", label: "Tablero", icon: <Columns3 size={16} aria-hidden="true" /> }]} />
         {admin && me && <Segmented label="Operaciones que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
       </div>}
@@ -138,7 +138,7 @@ export function OperationsBoard() {
       : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" action={<Link href="/admin/operaciones/nueva" className="font-semibold underline underline-offset-4">Nueva operación</Link>}>Empieza con la entrevista del cliente; la operación se crea al terminarla.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
-          <div className={s.filters} role="group" aria-label="Etapa">
+          <div data-tour="op-filtros" className={s.filters} role="group" aria-label="Etapa">
             <button type="button" className={s.filter} aria-pressed={stageFilter === "todas"} onClick={() => chooseStage("todas")}>Todas<span className={s.count}>{active.length}</span></button>
             {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.n ? `${stage.n} · ` : ""}{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
           </div>

@@ -68,7 +68,7 @@ export function PropertyList() {
     <button type="button" className={s.gapChip} aria-pressed={missingOnly} onClick={() => { setMissingOnly(on => !on); setPage(0); }}>Les falta algo<span>{incomplete.length}</span></button>
     <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />
     <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
-    <ButtonLink href="/admin/propiedades/nueva" variant="primary"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
+    <ButtonLink href="/admin/propiedades/nueva" variant="primary" data-tour="inmuebles-agregar"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
   </>}>
     <details className={s.more}>
       <summary>Más filtros{extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}</summary>
@@ -77,7 +77,7 @@ export function PropertyList() {
 
     {properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" action={<Link href="/admin/propiedades/nueva" className="font-semibold underline underline-offset-4">Agregar inmueble</Link>}>Agrégalo aquí o al terminar la entrevista con el propietario.</EmptyBox>
       : shown.length === 0 ? <EmptyBox title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
-      : <ul aria-label="Inmuebles" className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul>}
+      : <ul aria-label="Inmuebles" data-tour="inmuebles-lista" className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul>}
 
     {results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
       <button type="button" className={s.pageButton} disabled={current === 0} onClick={() => setPage(current - 1)}>Anterior</button>

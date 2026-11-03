@@ -162,7 +162,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     }
     const ratio = counted.length ? done / counted.length : 1;
     const sub = now && target ? (target.target ? `${done} de ${counted.length} para pasar a ${target.label}` : `Con todo listo se abre sola ${target.label}.`) : "";
-    return <div role="region" aria-label="Siguiente acción" className={s.float}>
+    return <div role="region" aria-label="Siguiente acción" data-tour="operacion-continuar" className={s.float}>
       <span className={s.ring} aria-hidden="true"><svg width="44" height="44" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--track)" strokeWidth="5" /><circle cx="24" cy="24" r="20" fill="none" stroke="var(--primary)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${Math.round(ratio * 125.66)} 125.66`} transform="rotate(-90 24 24)" /></svg><span className={s.ringText}>{counted.length ? `${done}/${counted.length}` : "✓"}</span></span>
       <span className="flex min-w-0 flex-1 flex-col">
         <h2 className={s.floatTitle}>{title}</h2>
@@ -177,7 +177,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <div className={s.span6}><Notice tone="info">Primero dictamen jurídico, opinión de valor y decisión del encargo. Luego, contrato y preparación.</Notice></div>}
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
 
-    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" className={cn(s.piece, s.span4)}>
+    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={cn(s.piece, s.span4)}>
       <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
       <ul className={s.docList}>{documentsGroup.map(item => item.kind === "inicio"
         ? <li key={item.step} className={s.docWait}>
@@ -194,7 +194,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
 
     <NextTask op={op} today={today} className={documentsGroup.length ? s.span2 : s.span6} />
 
-    {(reviewsGroup.length > 0 || otherGroup.length > 0) && <section aria-labelledby="confirma-etapa" className={cn(s.piece, s.span3)}>
+    {(reviewsGroup.length > 0 || otherGroup.length > 0) && <section aria-labelledby="confirma-etapa" data-tour="operacion-confirma" className={cn(s.piece, s.span3)}>
       <div className={s.pieceHead}><h2 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h2>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
       <ul className={s.items}>
         {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} onQuick={quick} onSheet={setSheet} />)}

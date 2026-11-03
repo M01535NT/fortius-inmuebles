@@ -156,7 +156,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
           {tab === "historial" && <HistoryTab operationId={op.id} refresh={changes} onDirtyChange={markDirty.historial} />}
           {tab === "ajustes" && <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onRemove={() => changeLifecycle(true)} onDirtyChange={markDirty.ajustes} />}
         </TabPanel>
-        {tab === "sigue" && <div className={s.foot}>
+        {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
           <span className={s.footWho}>{adviser ? <><span className={s.footAvatar} aria-hidden="true">{initialsOf(adviser.nombre)}</span>Responsable {adviser.nombre}</> : "Sin responsable"}</span>
           {tabs}
         </div>}

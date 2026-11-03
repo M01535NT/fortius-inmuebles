@@ -86,9 +86,9 @@ export function ContactsScreen() {
     <div className="hidden lg:block">{searchField}</div>
     <div className="flex gap-2 lg:hidden">
       <Button iconOnly variant="ghost" aria-label={searching ? "Cerrar búsqueda" : "Buscar"} aria-expanded={searching} onClick={() => { setSearching(v => !v); if (searching) setQuery(""); }}>{searching ? <X size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}</Button>
-      <Button iconOnly aria-label="Agregar contacto" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
+      <Button iconOnly data-tour="contactos-agregar" aria-label="Agregar contacto" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
     </div>
-    <div className="hidden lg:block"><Button variant={adding ? "secondary" : "primary"} aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar contacto"}</Button></div>
+    <div className="hidden lg:block"><Button variant={adding ? "secondary" : "primary"} data-tour="contactos-agregar" aria-expanded={adding} onClick={() => setAdding(v => !v)}>{adding ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{adding ? "Cerrar" : "Agregar contacto"}</Button></div>
   </>}>
     {searching && <div className="mb-4 lg:hidden">{searchField}</div>}
     {/* La captura del prospecto solo se oculta al cerrarla, para no perder lo escrito. */}
@@ -110,12 +110,12 @@ export function ContactsScreen() {
       <ClienteEditor key="nuevo" title={false} onDone={() => setAdding(false)} />
     </section>}
     <div className={s.tabsRow}>
-      <div className={s.chips} role="group" aria-label="Mostrar personas">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
+      <div className={s.chips} role="group" aria-label="Mostrar personas" data-tour="contactos-filtros">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
     </div>
     <div className="mt-5 min-w-0">
       {rows.length === 0 ? <EmptyBox title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : true ? "Llegan solos desde los formularios del sitio, o agrégalos con «Agregar contacto»." : "Un prospecto se vuelve cliente desde su ficha, o agrégalo con «Agregar contacto»."}
-      </EmptyBox> : <div className={s.frame}>
+      </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
         <ContactList rows={rows} onPreview={setSelected} stageOf={row => row.kind === "cliente" ? "Cliente" : LEAD_ESTADO_LABELS[estadoDe(row.id) ?? "nuevo"]} />
         {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} />}
       </div>}

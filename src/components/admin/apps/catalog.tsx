@@ -48,7 +48,7 @@ export function AppsCatalog(){
    <Segmented label="Filtrar aplicaciones" value={category} onChange={setCategory} options={CATEGORIES.map(c=>({id:c,label:c}))}/>
    <span className={styles.count} aria-live="polite">{apps.length} {apps.length===1?"herramienta":"herramientas"}</span>
   </div>
-  {apps.length?<div className={styles.sections}>{sections.map(sec=><section key={sec.title||"lista"} className={styles.section} aria-label={sec.title||"Herramientas"}>
+  {apps.length?<div className={styles.sections} data-tour="herramientas-grupos">{sections.map(sec=><section key={sec.title||"lista"} className={styles.section} aria-label={sec.title||"Herramientas"}>
    {sec.title&&<div className={styles.sectionHead}><h2>{sec.title}</h2><span>{sec.items.length}</span></div>}
    <div className={styles.grid}>{sec.items.map(tile)}</div>
   </section>)}</div>
