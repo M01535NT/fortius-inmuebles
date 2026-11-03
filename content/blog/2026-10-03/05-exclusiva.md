@@ -1,36 +1,36 @@
-Vender una casa implica abrir la puerta a desconocidos, compartir documentos y negociar una parte importante de tu patrimonio. Una exclusiva bien organizada te da un responsable del proceso: sabes quién coordina las visitas, quién recibe la información y a quién llamar cuando necesitas una respuesta.
+Vender una casa implica abrir la puerta a desconocidos, compartir documentos y negociar una parte importante de tu patrimonio. Una exclusiva bien organizada te da una inmobiliaria responsable del proceso: sabes quién coordina las visitas, quién recibe la información y a quién llamar cuando necesitas una respuesta. En una misma operación pueden participar varias personas del equipo, por ejemplo quien capta la propiedad y quien atiende a los compradores; la responsable ante ti es la inmobiliaria con la que firmas.
 
 Para el propietario, esa claridad tiene un valor cotidiano. Evita atender solicitudes dispersas, entregar documentos varias veces y reconstruir lo que cada persona habló con un posible comprador.
 
 ## Control sobre quién entra a tu casa
 
-Con un asesor en exclusiva puedes acordar cómo se programan las visitas, quién acompaña a los interesados y cómo se manejan las llaves. Es especialmente importante cuando todavía vives en la propiedad o cuando la casa se encuentra vacía.
+Con una inmobiliaria en exclusiva puedes acordar cómo se programan las visitas, quién acompaña a los interesados y cómo se manejan las llaves. Es especialmente importante cuando todavía vives en la propiedad o cuando la casa se encuentra vacía.
 
-Define desde el principio quién autoriza cada acceso y cómo se registra el recorrido. Si colaboran otros asesores, las visitas se coordinan con el responsable de la propiedad. Así puedes tener un registro de quién entró y con qué propósito.
+Define desde el principio quién autoriza cada acceso y cómo se registra el recorrido. Si colaboran otros asesores, las visitas se coordinan con la inmobiliaria responsable de la propiedad. Así puedes tener un registro de quién entró y con qué propósito.
 
-También puedes acordar qué información sobre tu domicilio y tus horarios se comparte con interesados, y en qué etapa. El contacto inicial pasa por el asesor, sin exponerte a cada llamada o solicitud que genera un anuncio.
+También puedes acordar qué información sobre tu domicilio y tus horarios se comparte con interesados, y en qué etapa. El contacto inicial pasa por el equipo de la inmobiliaria, sin exponerte a cada llamada o solicitud que genera un anuncio.
 
 ## Un canal para tus documentos
 
-La venta requiere información del inmueble y de sus propietarios. Tener un responsable permite ordenar el expediente y definir qué documento necesita cada participante.
+La venta requiere información del inmueble y de sus propietarios. Tener una inmobiliaria responsable permite ordenar el expediente y definir qué documento necesita cada participante.
 
 Las identificaciones, escrituras completas, firmas y datos bancarios no tienen por qué circular en grupos abiertos ni aparecer en la publicidad. Acordar canales y permisos de acceso ayuda a reducir la difusión innecesaria de información personal.
 
-Una exclusiva debe acompañarse de estas prácticas. El contrato identifica al responsable; el manejo cuidadoso de documentos y visitas es el trabajo que le da valor a esa responsabilidad.
+Una exclusiva debe acompañarse de estas prácticas. El contrato identifica a la inmobiliaria responsable; el manejo cuidadoso de documentos y visitas es el trabajo que le da valor a esa responsabilidad.
 
 ## Otros inmobiliarios pueden traer compradores
 
-La colaboración con otros inmobiliarios puede formar parte del encargo. Si un asesor tiene un interesado, solicita información y coordina la visita con el asesor en exclusiva.
+La colaboración con otros inmobiliarios puede formar parte del encargo. Si un asesor tiene un interesado, solicita información y coordina la visita con la inmobiliaria que tiene la exclusiva.
 
-Eso permite ampliar la promoción mientras tú conservas un solo interlocutor. La colaboración, el precio autorizado y la distribución de honorarios deben acordarse entre quienes participan, sin duplicar cobros al propietario por acuerdos que este no haya aceptado.
+Eso permite ampliar la promoción mientras tú conservas una sola responsable ante ti: la inmobiliaria con la exclusiva. La colaboración, el precio autorizado y la distribución de honorarios deben acordarse entre quienes participan, sin duplicar cobros al propietario por acuerdos que este no haya aceptado.
 
 También facilita que los anuncios utilicen información consistente. Precios distintos, fotografías desactualizadas y condiciones contradictorias confunden al comprador y complican las conversaciones.
 
-## Un asesor que organiza la negociación
+## Quién organiza la negociación
 
-Tu asesor concentra las consultas, registra los comentarios de las visitas y te presenta las ofertas. Puede comparar contigo precio, forma de pago, plazos y condiciones antes de comunicar una respuesta.
+El equipo de la inmobiliaria concentra las consultas, registra los comentarios de las visitas y te presenta las ofertas. Puede comparar contigo precio, forma de pago, plazos y condiciones antes de comunicar una respuesta.
 
-Actúa como tu interlocutor comercial dentro del encargo. Tú decides qué oferta aceptar. Si se pretende que firme contratos o realice actos jurídicos en tu nombre, deben revisarse las facultades y formalidades correspondientes; la exclusiva no equivale por sí sola a un poder para vender. Los artículos 2428 y 2429 del [Código Civil de Baja California](https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_III/20260605_CODCIVIL.PDF) distinguen el alcance y las formalidades de los poderes.
+Actúa como tu interlocutora comercial dentro del encargo. Tú decides qué oferta aceptar. Si se pretende que firme contratos o realice actos jurídicos en tu nombre, deben revisarse las facultades y formalidades correspondientes; la exclusiva no equivale por sí sola a un poder para vender. Los artículos 2428 y 2429 del [Código Civil de Baja California](https://www.congresobc.gob.mx/Documentos/ProcesoParlamentario/Leyes/TOMO_III/20260605_CODCIVIL.PDF) distinguen el alcance y las formalidades de los poderes.
 
 ## Un plan de trabajo al que puedes dar seguimiento
 
