@@ -40,6 +40,9 @@ beforeAll(async () => {
   await db.exec(await readFile(new URL("../../supabase/migrations/20261005035035_fortius_inmuebles_identity.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../../supabase/migrations/20261010131109_fortius_public_property_facts.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../../supabase/migrations/20261018120000_property_escenario_fields.sql", import.meta.url), "utf8"));
+  // COR-21: se aplica dos veces para comprobar que no repite el cambio.
+  const leadAdviser = await readFile(new URL("../../supabase/migrations/20261112150000_prospecto_al_asesor_del_inmueble.sql", import.meta.url), "utf8");
+  await db.exec(leadAdviser); await db.exec(leadAdviser);
 });
 afterAll(async () => { await db?.close(); });
 
@@ -188,6 +191,24 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
       await expect(db.query("select public.fortius_inmuebles_capture_lead($1::jsonb,$2)", [JSON.stringify(lead), "ip-test"])).rejects.toMatchObject({ code: "PT429" });
     });
     expect((await db.query("select * from public.fortius_inmuebles_records where collection='leads'")).rows).toHaveLength(5);
+  });
+
+  it("assigns a public lead to the active adviser of the property it asks about (COR-21)", async () => {
+    await asRole("authenticated", member, async () => {
+      await save("asesores", "a1", adviser);
+      await save("asesores", "a2", { ...adviser, id: "a2", nombre: "Beto", activo: false });
+      await save("propiedades", "casa-1", property);
+      await save("propiedades", "casa-2", { ...property, slug: "casa-2", codigo: "C-2", asesorId: "a2" });
+    });
+    const capture = (data: Record<string, unknown>, key: string) => asRole("service_role", null, async () =>
+      (await db.query<{ id: string }>("select public.fortius_inmuebles_capture_lead($1::jsonb,$2) as id", [JSON.stringify({ nombre: "Persona", telefono: "6641234567", ...data }), key])).rows[0].id);
+    const stored = async (id: string) => (await db.query<{ data: Record<string, unknown> }>("select data from public.fortius_inmuebles_records where collection='leads' and id=$1", [id])).rows[0].data;
+    const toAdviser = await capture({ origen: "interes_propiedad", propiedadSlug: "casa-1", asesorId: "a2" }, "k1");
+    expect(await stored(toAdviser)).toMatchObject({ asesorId: "a1", propiedadSlug: "casa-1", estado: "nuevo" });
+    expect((await db.query("select target_id from public.fortius_inmuebles_record_references where source_collection='leads' and source_id=$1 and field='asesorId'", [toAdviser])).rows).toEqual([{ target_id: "a1" }]);
+    // Asesor inactivo o sin inmueble: sin asesor, le toca al director. El formulario no elige asesor.
+    expect(await stored(await capture({ origen: "interes_propiedad", propiedadSlug: "casa-2" }, "k2"))).not.toHaveProperty("asesorId");
+    expect(await stored(await capture({ origen: "contacto", asesorId: "a1" }, "k3"))).not.toHaveProperty("asesorId");
   });
 
   it("post projection still exposes only explicitly public posts without authentication", async () => {
