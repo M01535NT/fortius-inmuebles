@@ -4,8 +4,10 @@ import Link from "next/link";
 import { Search, X } from "@/components/admin/icons";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { normalizedText } from "@/lib/admin/workspace";
+import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
+import { usePersonStatus } from "./use-person-status";
 import { Button, Kbd } from "@/components/admin/kit";
-import { QUICK_CREATE } from "./guided-nav";
+
 import s from "./guided-nav.module.css";
 
 /*
@@ -21,6 +23,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
     leads = useCollection(db.leads, opened),
     clients = useCollection(db.clientes, opened),
     tasks = useCollection(db.tareas, opened);
+  const status = usePersonStatus();
   const dialog = React.useRef<HTMLDialogElement>(null);
   const trigger = React.useRef<HTMLButtonElement>(null);
   const [query, setQuery] = React.useState("");
@@ -46,8 +49,8 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
   }, [hotkey, open]);
   const results = [
     ...properties.map(p => ({ id: `p:${p.slug}`, label: p.titulo, detail: `Inmueble · ${p.codigo}`, text: `${p.titulo} ${p.codigo} ${p.zona}`, href: `/admin/propiedades/${p.slug}/editar` })),
-    ...leads.filter(l => !l.clienteId).map(l => ({ id: `l:${l.id}`, label: l.nombre, detail: "Prospecto", text: `${l.nombre} ${l.telefono} ${l.email ?? ""}`, href: `/admin/leads/${l.id}` })),
-    ...clients.map(c => ({ id: `c:${c.id}`, label: c.nombre, detail: "Cliente", text: `${c.nombre} ${c.telefono} ${c.email ?? ""}`, href: `/admin/clientes/${c.id}` })),
+    ...leads.filter(l => !l.clienteId).map(l => ({ id: `l:${l.id}`, label: l.nombre, detail: PERSON_STATUS_LABEL[status.ofLead(l) ?? "prospecto"], text: `${l.nombre} ${l.telefono} ${l.email ?? ""}`, href: `/admin/leads/${l.id}` })),
+    ...clients.map(c => ({ id: `c:${c.id}`, label: c.nombre, detail: (s => s ? PERSON_STATUS_LABEL[s] : "Contacto")(status.ofClient(c.id)), text: `${c.nombre} ${c.telefono} ${c.email ?? ""}`, href: `/admin/clientes/${c.id}` })),
     ...tasks.map(t => ({ id: `t:${t.id}`, label: t.titulo, detail: "Tarea", text: t.titulo, href: `/admin/tareas/${t.id}` })),
     ...dossiers.map(e => ({ id: `e:${e.id}`, label: clients.find(c => c.id === e.cliente_id)?.nombre ?? e.folio, detail: `Operación · ${e.folio}`, text: `${e.folio} ${clients.find(c => c.id === e.cliente_id)?.nombre ?? ""}`, href: `/admin/operaciones/${encodeURIComponent(e.id)}` })),
   ].filter(item => normalizedText(item.text).includes(normalizedText(query)));
@@ -74,8 +77,7 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
             <span className="min-w-0 flex-1 break-words font-medium">{item.label}</span><span className={s.resultKind}>{item.detail}</span>
           </Link></li>)}</ul>
         </> : <>
-          <p className={s.paletteTitle}>Crear rápidamente</p>
-          <div className={s.quick}>{QUICK_CREATE.map(item => <Link key={item.href} href={item.href} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}</div>
+          <p className="px-3 py-6 text-center text-sm text-muted-foreground">Escribe un nombre, teléfono, código de inmueble o folio.</p>
         </>}
       </div>
       <p className={s.paletteFoot}><span><Kbd>Esc</Kbd> cierra</span><span><Kbd>Ctrl K</Kbd> abre desde cualquier pantalla</span></p>

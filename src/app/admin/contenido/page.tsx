@@ -223,7 +223,7 @@ function Editor({ initial }: { initial: SiteContent }) {
           {guardado ? (
             <p
               aria-live="polite"
-              className="text-sm font-medium text-primary-ink"
+              className="text-sm font-medium text-foreground underline underline-offset-4"
             >
               Guardado.
             </p>

@@ -22,7 +22,7 @@ La búsqueda reúne los registros que el usuario puede consultar y permite crear
 - Guardar un inmueble conserva su estado de publicación. Publicar o retirar requiere una acción explícita.
 - La vista previa es una representación de la captura, no una publicación ni una reproducción exacta de la página pública.
 - **Guardar copia temporal** conserva la captura en esta pestaña. No es un autoguardado en el servidor. Cerrar la sesión borra estas copias. Tras un conflicto, se puede conservar la copia y recargar: una copia de otra versión se consulta completa sin sobrescribir los datos más recientes.
-- Contactos tiene las pestañas Prospectos y Clientes, en tabla (computadora) o lista (celular). Las coincidencias de teléfono/correo son avisos, no fusiones automáticas.
+- Contactos es una sola lista de personas con filtros (Todas, Nuevos, En seguimiento, Clientes y Descartados). Cada persona lleva su condición calculada por la firma de su contrato: Prospecto, Cliente, Cliente anterior o Contraparte (ver el [manual](admin-manual.md#prospectos-clientes-y-firma-del-contrato)). Las coincidencias de teléfono/correo son avisos, no fusiones automáticas.
 - Los vínculos entre personas, inmuebles, tareas, agenda y operaciones usan las relaciones existentes.
 - En una operación, «Lo tengo» no acredita la revisión. «Revisado» pide el documento que lo respalda, quién lo revisó, la fecha, la vigencia cuando aplica y qué se encontró.
 

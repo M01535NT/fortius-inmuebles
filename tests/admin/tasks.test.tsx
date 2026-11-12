@@ -145,13 +145,14 @@ function dossiers(ready = true) {
 test("choosing a dossier fixes task context and saves the direct reference", async () => {
   dossiers(); const save = vi.fn(async (value: Task) => value);
   render(<TaskForm onSave={save} />);
-  const selector = await screen.findByLabelText("Operación relacionada");
-  await waitFor(() => expect(screen.getByRole("option", { name: "VENTA-1" })).toBeTruthy());
-  fireEvent.change(selector, { target: { value: dossierA.id } });
+  // SIM-17: un solo campo «¿Con quién o sobre qué?» busca la operación y trae cliente, inmueble y responsable.
+  const picker = screen.getByLabelText("¿Con quién o sobre qué?");
+  fireEvent.change(picker, { target: { value: "venta" } });
+  fireEvent.mouseDown(await screen.findByRole("option", { name: /VENTA-1/ }));
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Revisión de venta" } });
   expect((screen.getByLabelText("Responsable") as HTMLSelectElement).disabled).toBe(true);
-  expect((screen.getByLabelText("Cliente relacionado") as HTMLSelectElement).value).toBe("c-own");
-  expect((screen.getByLabelText("Inmueble relacionado") as HTMLSelectElement).value).toBe("same-property");
+  const chosen = screen.getByRole("list", { name: "Vínculos elegidos" }).textContent;
+  expect(chosen).toContain("VENTA-1"); expect(chosen).toContain("Propietario"); expect(chosen).toContain("Mismo inmueble");
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ expedienteId: dossierA.id, clienteId: "c-own", asesorId: "own", propiedadSlug: "same-property" })));
 });
@@ -159,7 +160,7 @@ test("creation from a dossier URL retains the exact operation after the authoriz
   dossiers(); store.search = `nueva=1&expediente=${dossierB.id}`;
   store.put.mockReset().mockImplementation(async (_collection, value) => value);
   render(<TasksPage />);
-  await waitFor(() => expect((screen.getByLabelText("Operación relacionada") as HTMLSelectElement).value).toBe(dossierB.id));
+  await screen.findByRole("button", { name: "Quitar operación RENTA-2" });
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Revisión de renta" } });
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(store.put).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ expedienteId: dossierB.id, clienteId: "c-own", asesorId: "own" }), null));
@@ -170,7 +171,7 @@ test("missing migration blocks dossier references but permits legacy updates", a
   await screen.findByText(/Vincular tareas con operaciones todavía no está disponible/);
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await screen.findByRole("alert"); expect(save).not.toHaveBeenCalled();
-  fireEvent.change(screen.getByLabelText("Operación relacionada"), { target: { value: "" } });
+  fireEvent.click(await screen.findByRole("button", { name: "Quitar operación VENTA-1" }));
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(save).toHaveBeenCalledWith(expect.not.objectContaining({ expedienteId: dossierA.id })));
 });
@@ -208,4 +209,25 @@ test("a failed capability check reports uncertainty without claiming the migrati
   expect(screen.queryByText(/Vincular tareas con operaciones todavía no está disponible/)).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Guardar tarea" }));
   await waitFor(() => expect(save).toHaveBeenCalled());
+});
+
+test("SIM-09/C51: una tarea nueva queda a nombre de quien la captura, salvo que lo cambie", async () => {
+  store.records = { asesores: [{ id: "own", nombre: "Ana" }, { id: "otra", nombre: "Bea" }] };
+  store.request.mockImplementation(async (url: string) => url.includes("mi-asesor") ? { asesorId: "own" } : url.includes("capacidades") ? { expedienteLinks: true } : { expedientes: [] });
+  render(<TaskForm onSave={vi.fn()} />);
+  await waitFor(() => expect((screen.getByLabelText("Responsable") as HTMLSelectElement).value).toBe("own"));
+});
+
+test("SIM-12: la lista vacía de tareas enseña sus primeros pasos y distingue «nada pendiente» de un filtro", async () => {
+  store.tasks = [];
+  const view = render(<TasksPage />);
+  expect(await screen.findByText("Todavía no hay tareas")).toBeTruthy();
+  expect(screen.getByRole("list", { name: "Primeros pasos" }).querySelectorAll("li")).toHaveLength(3);
+  view.unmount();
+  store.tasks = [{ ...task, estado: "completada" }];
+  render(<TasksPage />);
+  expect(await screen.findByText("Nada pendiente")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Buscar tareas"), { target: { value: "xyz" } });
+  expect(await screen.findByText("No hay tareas con estos filtros")).toBeTruthy();
+  store.tasks = [];
 });

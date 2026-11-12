@@ -123,7 +123,7 @@ for (const width of [320, 390, 768, 1440]) {
     expect(await fits(page)).toBe(true);
 
     await page.goto("/admin/agenda");
-    await expect(page.getByRole("heading", { level: 1, name: "Agenda" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Agenda y tareas" })).toBeVisible();
     await expect(page.getByText(/^Semana del/)).toBeVisible();
     const week = page.getByRole("region", { name: "Agenda semanal" });
     if (width >= 1024) await expect(week.getByRole("button", { name: "Ver evento: Visita · Local en Tecate" })).toBeVisible();
@@ -134,7 +134,7 @@ for (const width of [320, 390, 768, 1440]) {
     await shot("tareas");
 
     await page.goto("/admin/herramientas");
-    await expect(page.getByRole("heading", { level: 1, name: "Herramientas" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Más" })).toBeVisible();
     await shot("herramientas");
 
     await page.goto("/admin/contenido");

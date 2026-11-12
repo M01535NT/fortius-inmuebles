@@ -69,3 +69,40 @@ export function channelMetrics(leads: Lead[]): ChannelRow[] {
   }
   return [...rows.values()].sort((a, b) => Number(a.canal === "sin-dato") - Number(b.canal === "sin-dato") || b.recibidos - a.recibidos || a.label.localeCompare(b.label, "es"));
 }
+
+/** Periodo anterior del mismo largo, que termina el día antes de `from` (SIM-11). */
+export function previousPeriod(from: string, to: string): { from: string; to: string } | null {
+  const day = /^\d{4}-\d{2}-\d{2}$/;
+  if (!day.test(from) || !day.test(to) || from > to) return null;
+  const start = Date.parse(`${from}T00:00:00Z`), end = Date.parse(`${to}T00:00:00Z`);
+  const length = Math.round((end - start) / 86400000) + 1;
+  const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  return { from: iso(start - length * 86400000), to: iso(start - 86400000) };
+}
+
+/** Los cuatro números de arriba de Reportes. Las definiciones son las de `periodMetrics` y `channelMetrics`. */
+export function periodSummary(leads: Lead[], events: Evento[], filter: PeriodFilter) {
+  const metrics = periodMetrics(leads, events, filter);
+  return {
+    received: metrics.leads.length,
+    attended: metrics.leads.filter(lead => lead.firstContactedAt || lead.estado !== "nuevo").length,
+    responseHours: metrics.responseHours,
+    visits: metrics.visits.length,
+  };
+}
+
+const hours = (value: number) => `${value.toLocaleString("es-MX", { maximumFractionDigits: 1 })} h`;
+/** Texto de comparación con el periodo anterior, sin juzgar si es bueno o malo. */
+export function compareCount(current: number, previous: number | null | undefined) {
+  if (previous === null || previous === undefined) return "Sin periodo anterior para comparar";
+  const diff = current - previous;
+  if (!diff) return `Igual que el periodo anterior`;
+  return `${Math.abs(diff)} ${diff > 0 ? "más" : "menos"} que el periodo anterior (${previous})`;
+}
+export function compareHours(current: number | null, previous: number | null | undefined) {
+  if (previous === undefined) return "Sin periodo anterior para comparar";
+  if (current === null || previous === null) return "Sin medición en uno de los dos periodos";
+  const diff = Math.round((current - previous) * 10) / 10;
+  if (!diff) return "Igual que el periodo anterior";
+  return `${hours(Math.abs(diff))} ${diff < 0 ? "más rápido" : "más lento"} que el periodo anterior (${hours(previous)})`;
+}

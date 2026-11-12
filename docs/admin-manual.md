@@ -1,6 +1,6 @@
 # Manual de administración de Fortius Inmuebles
 
-Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; [estado y pendientes](../PLAN_ERP_CRM.md).
+Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; la sección «Prospectos, clientes y firma del contrato» se actualizó el 12/11/2026 (COR-10 y COR-17). [Estado y pendientes](../PLAN_ERP_CRM.md).
 
 ## Acceso y roles
 
@@ -33,9 +33,46 @@ En **Mercado inmobiliario**, crea título, slug, resumen, contenido y estado. Cl
 
 La primera publicación se registra automáticamente y se conserva al editar. La activación de los nuevos campos y fechas requiere `202609240008_fortius_inmuebles_blog_editorial.sql`. Consulta [la guía editorial](mercado-inmobiliario-editorial.md) para conocer la búsqueda, clasificación y rutina propuesta.
 
-## Prospectos, expedientes y control comercial
+## Prospectos, clientes y firma del contrato
 
-El perfil del prospecto se adapta a comprar, rentar, vender o dar en arrendamiento. **Cómo llegó** registra el canal (sitio, WhatsApp, portal, referido, letrero, etc.); **Reportes** cuenta los prospectos del periodo por canal. La conversión vincula el cliente y, cuando corresponde, el expediente; revisar antes las coincidencias advertidas por el panel. La vinculación de cuenta con asesor determina el acceso privado a los expedientes, mientras el control comercial global requiere administrador.
+El perfil del prospecto se adapta a comprar, rentar, vender o dar en arrendamiento. **Cómo llegó** registra el canal (sitio, WhatsApp, portal, referido, letrero, etc.); **Reportes** cuenta los prospectos del periodo por canal. La vinculación de cuenta con asesor determina el acceso privado a las operaciones, mientras el control comercial global requiere administrador.
+
+Una persona es **prospecto** hasta que firma su contrato con Fortius, aunque ya tenga una operación abierta. En la ficha del prospecto, **Abrir operación** inicia la entrevista; ya no existe «Convertir en cliente». Antes de abrirla, revisa las coincidencias de teléfono o correo que advierte el panel.
+
+La firma se registra en la etapa **Contrato y preparación** de la operación, en la tarjeta **Firma del contrato**:
+
+1. Sube el contrato firmado (escaneado o en foto) a los documentos del cliente de esa operación. Vale el que se firmó fuera del panel.
+2. Elige **Registrar la firma** y anota el tipo de contrato, la fecha, quién firmó por cada parte y el archivo.
+3. Si falta alguien por firmar, desmarca «Firmaron todos los que deben firmar» y escribe quién falta. Queda como **Firma incompleta**.
+4. El director revisa el contrato y elige **Marcar la firma revisada**. Solo un administrador puede hacerlo, y nunca con una firma incompleta.
+
+Si se corrige la firma, vuelve a quedar por revisar. La firma no se borra: cuando el contrato vence o se rescinde se usa **Registrar terminación**, y después se puede registrar un contrato nuevo. Sin la firma completa, revisada y vigente, la operación no pasa a **Publicación y seguimiento** y el inmueble no se publica. El servidor también lo impide.
+
+La condición de cada persona y de cada inmueble se calcula a partir de esa firma y se ve igual en Contactos, las fichas, la búsqueda, la agenda, Hoy, Reportes e Inmuebles:
+
+| Se muestra | Cuándo |
+| --- | --- |
+| Prospecto | Todavía no firma su contrato con Fortius. |
+| Cliente | Su firma está registrada (aunque falte la revisión del director). |
+| Cliente anterior | Todos sus contratos terminaron. |
+| Contraparte | Quedó registrado como el comprador o arrendatario en la operación de un cliente; nunca es cliente de Fortius. |
+| En captación | El inmueble no tiene firma de intermediación. |
+| Captado, por revisar | La firma está registrada y espera al director. |
+| Captado | La firma está revisada. |
+
+En Contactos, el filtro **Clientes** muestra solo a quien firmó; quien tiene operación sin firma sigue en **En seguimiento**. Mientras el panel no termina de consultar las operaciones, una persona aparece como «Contacto» en lugar de suponer si es cliente.
+
+### Avalúo del propietario
+
+Si el propietario ya tiene un avalúo, no hace falta la opinión de valor. En la etapa **Opinión de valor y precio**:
+
+1. Sube el avalúo a los documentos del cliente de esa operación.
+2. En la tarjeta **Avalúo del propietario**, elige **El propietario trae avalúo** y anota el archivo, el perito o la unidad de valuación, la fecha, el valor y la vigencia que dice el avalúo.
+3. Al guardarlo, «Opinión de valor» queda revisada con ese archivo y la opinión de valor aparece como «No hace falta». La estimación del neto toma el valor del avalúo al crearse.
+
+Cuando el avalúo vence, la operación vuelve a pedir el valor: registra uno actualizado o haz la opinión de valor. El avalúo del propietario sirve para fijar el precio; si el comprador usa crédito, su banco o el Infonavit pedirá su propio avalúo.
+
+Al confirmar cualquier otro requisito, el respaldo puede ser **Un documento del cliente** subido a esa operación.
 
 **Eliminar expediente** conserva sus documentos y permite recuperarlo desde **Eliminados**. Mientras está eliminado se bloquean escrituras y descargas documentales. La recuperación mantiene su identidad y archivos; una eliminación recuperable no equivale a borrado definitivo.
 

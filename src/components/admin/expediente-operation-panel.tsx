@@ -5,6 +5,7 @@ import type { OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
 import { EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 import { fetchJson as json } from "@/lib/admin/store";
+import { humanDateTime } from "@/lib/utils";
 
 export type ExpedienteOperativo = {
   id: string; version: number; asesor_id: string; etapa?: keyof typeof EXPEDIENTE_ETAPAS;
@@ -125,7 +126,7 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
       {activity.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">Sin actividad registrada.</p>
         : <ol className="mt-3 space-y-2 text-sm">{activity.map(item => <li key={item.id} className="rounded-md border border-border p-3">
           <p>{item.descripcion}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · Responsable {item.created_by} · {new Date(item.created_at).toLocaleString("es-MX")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · Responsable {item.created_by} · {humanDateTime(item.created_at)}</p>
         </li>)}</ol>}
     </div>
   </section>;

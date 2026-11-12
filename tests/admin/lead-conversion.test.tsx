@@ -38,29 +38,32 @@ async function detail(kind: "lead" | "client") {
   await act(async () => { render(<React.Suspense fallback={<p>Cargando</p>}>{kind === "lead" ? <LeadDetail params={Promise.resolve({ id: "l1" })} /> : <ClientDetail params={Promise.resolve({ id: "c1" })} />}</React.Suspense>); });
 }
 
-test("convertir desde la ficha abre al cliente; en Contactos el prospecto pasa a «Ya son clientes»", async () => {
+test("COR-10: la ficha no convierte a mano; con registro de cliente y sin firma sigue en seguimiento", async () => {
   await detail("lead");
-  fireEvent.click(await screen.findByRole("button", { name: /Convertir en cliente/ }));
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/admin/clientes/c1"));
-  expect(posts).toEqual([{ version: 7 }]);
-  expect(db.clientes.list()[0].perfil).toEqual(original.perfil);
-  expect(db.leads.version(db.leads.list()[0])).toBe(8);
+  // «Convertir en cliente» desapareció: se es cliente al firmar el contrato (RP-90); la acción es «Abrir operación».
+  fireEvent.click(await screen.findByRole("button", { name: "Más opciones" }));
+  expect(screen.queryByRole("menuitem", { name: /Convertir en cliente/ })).toBeNull();
+  expect(screen.getByRole("link", { name: "Abrir operación" })).toBeTruthy();
   cleanup();
+  clearAdminCache();
+  currentLead = { ...original, clienteId: "c1", convertidoEl: "2026-10-05" }; currentClient = cliente;
   render(<ContactsScreen />);
-  fireEvent.click(within(screen.getByRole("group", { name: "Mostrar personas" })).getByRole("button", { name: /^Nuevos/ }));
+  const filters = within(screen.getByRole("group", { name: "Mostrar personas" }));
+  fireEvent.click(filters.getByRole("button", { name: /^En seguimiento/ }));
+  const links = await within(await screen.findByRole("list", { name: "Contactos" })).findAllByRole("link", { name: /Persona capturada/ });
+  expect(new Set(links.map(link => link.getAttribute("href")))).toEqual(new Set(["/admin/clientes/c1"]));
+  fireEvent.click(filters.getByRole("button", { name: /^Clientes/ }));
   expect(screen.getByText("Nadie coincide con la búsqueda")).toBeTruthy();
-  fireEvent.click(within(screen.getByRole("group", { name: "Mostrar personas" })).getByRole("button", { name: /^Clientes/ }));
-  expect(within(screen.getByRole("list", { name: "Contactos" })).getByRole("link", { name: /Persona capturada/ }).getAttribute("href")).toBe("/admin/clientes/c1");
 });
 
 test("preparar operación abre la entrevista sin convertir prematuramente",async()=>{
- await detail("lead");expect((await screen.findByRole("link",{name:"Preparar operación"})).getAttribute("href")).toBe("/admin/operaciones/nueva?leadId=l1&intencion=comprar");expect(posts).toEqual([]);expect(db.clientes.list()).toEqual([]);
+ await detail("lead");expect((await screen.findByRole("link",{name:"Abrir operación"})).getAttribute("href")).toBe("/admin/operaciones/nueva?leadId=l1&intencion=comprar");expect(posts).toEqual([]);expect(db.clientes.list()).toEqual([]);
 });
 test("la conversión explícita conserva el lead tras fallo y permite reintentar",async()=>{
  await db.leads.load();fail=true;await expect(convertirLead(db.leads.list()[0])).rejects.toThrow("Servicio temporalmente");expect(db.clientes.list()).toEqual([]);fail=false;await convertirLead(db.leads.list()[0]);expect(db.clientes.list()[0].id).toBe("c1");
 });
 test.each(["Nueva nota","Título"])("protege %s antes de preparar la entrevista",async(label)=>{
- await detail("lead");expect(await screen.findByRole("link",{name:"Preparar operación"})).toBeTruthy();fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});expect((screen.getByRole("button",{name:"Preparar operación"}) as HTMLButtonElement).disabled).toBe(true);expect(posts).toEqual([]);
+ await detail("lead");expect(await screen.findByRole("link",{name:"Abrir operación"})).toBeTruthy();if(label==="Título")fireEvent.click(screen.getByRole("button",{name:"Agendar"}));fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});expect((screen.getByRole("button",{name:"Abrir operación"}) as HTMLButtonElement).disabled).toBe(true);expect(posts).toEqual([]);
 });
 
 test("la ficha del cliente muestra el perfil, asesor, historial y contacto heredados; editar conserva el origen", async () => {
@@ -98,17 +101,32 @@ test("Hoy deja de pedir seguimiento a un lead ya convertido", async () => {
   currentLead = { ...original, estado: "nuevo", clienteId: "c1", perfil: { ...original.perfil, proximoContacto: "2020-01-01" } };
   await db.leads.load();
   render(<Dashboard />);
-  await screen.findByRole("region", { name: /Esperan algo de ti/ });
+  await screen.findByRole("region", { name: "Lo siguiente" });
   expect(screen.queryByRole("link", { name: new RegExp(original.nombre) })).toBeNull();
 });
 
 test.each(["Nueva nota", "Título"])("un prospecto convertido protege %s antes de abrir su operación", async (label) => {
   currentLead={...original,clienteId:"c1"};currentClient=cliente;
   await detail("lead");
-  expect((await screen.findByRole("link",{name:"Preparar operación"})).getAttribute("href")).toContain("clienteId=c1");
+  expect((await screen.findByRole("link",{name:"Abrir operación"})).getAttribute("href")).toContain("clienteId=c1");
+  if(label==="Título")fireEvent.click(screen.getByRole("button",{name:"Agendar"}));
   fireEvent.change(screen.getByLabelText(label,{exact:true}),{target:{value:"Captura pendiente"}});
-  const button=screen.getByRole("button",{name:"Preparar operación"}) as HTMLButtonElement;
+  const button=screen.getByRole("button",{name:"Abrir operación"}) as HTMLButtonElement;
   expect(button.disabled).toBe(true);fireEvent.click(button);
   expect(push).not.toHaveBeenCalled();expect(posts).toEqual([]);expect(writes).toEqual([]);
   expect((screen.getByLabelText(label,{exact:true}) as HTMLInputElement).value).toBe("Captura pendiente");
+});
+
+test("SIM-07: la ficha del prospecto muestra una sola acción principal, tres etapas y la fecha con palabras", async () => {
+  await detail("lead");
+  expect(await screen.findByRole("heading", { level: 1, name: original.nombre })).toBeTruthy();
+  const next = within(screen.getByRole("region", { name: "Siguiente paso" }));
+  expect(next.getByRole("link", { name: "Abrir operación" })).toBeTruthy();
+  const etapa = screen.getByLabelText("Etapa") as HTMLSelectElement;
+  expect(Array.from(etapa.options).map(option => option.text)).toEqual(["Nuevo", "En seguimiento", "Descartado"]);
+  expect(etapa.value).toBe("seguimiento");
+  // La nota y el registro de llegada son del mismo día.
+  expect(within(screen.getByRole("list", { name: "Lo que ya pasó" })).getAllByText("4 oct 2026")).toHaveLength(2);
+  expect(screen.queryByText(/2026-10-04/)).toBeNull();
+  expect(screen.queryByText(/Seguimiento conectado|Agenda del lead/)).toBeNull();
 });

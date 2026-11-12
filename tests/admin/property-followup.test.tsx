@@ -1,13 +1,15 @@
 import * as React from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { PropertyFollowup } from "@/components/admin/properties/property-followup";
+import { PropertyFile } from "@/components/admin/properties/property-file";
 import { buyersFor, matchReasons, noticeMessage, pendingNotices, seekersFrom, zoneTokens, type Seeker } from "@/lib/admin/buyer-matches";
 import { channelMetrics } from "@/lib/admin/period-report";
 import { expiryItems, type TodayDossier } from "@/lib/admin/today";
 import { clearAdminCache, type AdminProperty, type Cliente, type Lead } from "@/lib/admin/store";
 import { keyLoanLate, prepProgress, prepState } from "@/lib/propiedad-seguimiento";
 import { propiedades } from "../fixtures/propiedades";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => "/admin/propiedades/casa/seguimiento" }));
 
 afterEach(() => { cleanup(); clearAdminCache(); vi.unstubAllGlobals(); });
 
@@ -114,17 +116,19 @@ test("se prestan llaves, se registra su regreso y se registra un aviso al compra
     if (url.endsWith("/leads")) return Response.json({ records: [{ id: "lead1", data: lead({ tipoPropiedad: "casa", zona: "Playas", perfil: { operacion: "comprar" } }), version: 1 }] });
     return Response.json({ records: [] });
   });
-  render(<PropertyFollowup slug="casa" />);
+  render(<PropertyFile slug="casa" initialTab="llaves" />);
   const keys = within(await screen.findByRole("region", { name: "Llaves" }));
+  fireEvent.click(keys.getByRole("button", { name: "Prestar llaves" }));
   fireEvent.change(keys.getByLabelText("Quién se las lleva"), { target: { value: "Beto Soto" } });
   fireEvent.change(keys.getByLabelText("Para qué"), { target: { value: "Visita con comprador" } });
-  fireEvent.click(keys.getByRole("button", { name: "Prestar llaves" }));
+  fireEvent.click(keys.getByRole("button", { name: "Registrar préstamo" }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ llaves: { prestamos: [{ persona: "Beto Soto", motivo: "Visita con comprador" }] } });
   fireEvent.click(await keys.findByRole("button", { name: "Registrar que Beto Soto regresó las llaves" }));
   await waitFor(() => expect(writes).toHaveLength(2));
   expect((writes[1].llaves as { prestamos: Array<{ regreso?: string }> }).prestamos[0].regreso).toBeTruthy();
 
+  fireEvent.click(screen.getByRole("tab", { name: "Interesados" }));
   const buyers = within(screen.getByRole("region", { name: "Compradores que podrían interesarse" }));
   expect(await buyers.findByText("Ana Ruiz")).toBeTruthy();
   expect(buyers.getByRole("link", { name: "Escribir por WhatsApp a Ana Ruiz" }).getAttribute("href")).toMatch(/^https:\/\/wa\.me\/526641234567\?text=Hola%20Ana/);
@@ -132,4 +136,55 @@ test("se prestan llaves, se registra su regreso y se registra un aviso al compra
   await waitFor(() => expect(writes).toHaveLength(3));
   expect(writes[2]).toMatchObject({ avisosCompradores: [{ personaId: "lead1", tipo: "lead", medio: "whatsapp" }] });
   expect(await buyers.findByText("Avisado")).toBeTruthy();
+});
+
+test("SIM-19: la ficha del inmueble va por pestañas y no pierde lo escrito", async () => {
+  const writes: Array<Record<string, unknown>> = [];
+  let property: AdminProperty = house({ slug: "casa", galeria: [{ src: "/a.jpg", alt: "" }] });
+  let version = 1;
+  vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+    if (init?.method === "PUT") { const body = JSON.parse(String(init.body)); writes.push(body.data); property = body.data; version += 1; return Response.json({ record: { id: "casa", data: property, version } }); }
+    if (url.endsWith("/propiedades")) return Response.json({ records: [{ id: "casa", data: property, version }] });
+    return Response.json({ records: [] });
+  });
+  window.history.replaceState(null, "", "/admin/propiedades/casa/seguimiento?seccion=compradores");
+  render(<PropertyFile slug="casa" initialTab="llaves" />);
+  // La dirección anterior de Hoy («?seccion=compradores») abre «Interesados».
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Interesados" }).getAttribute("aria-selected")).toBe("true"));
+  expect(screen.getAllByRole("tab").map(tab => tab.textContent)).toEqual(["Ficha pública", "Fotos y material", "Llaves", "Interesados"]);
+
+  // «Ficha pública» muestra lo que se publica; las fotos van en su pestaña.
+  fireEvent.click(screen.getByRole("tab", { name: "Ficha pública" }));
+  expect(screen.getByRole("region", { name: "Precio" })).toBeTruthy();
+  expect(screen.queryByRole("region", { name: "Multimedia" })).toBeNull();
+  fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Casa en Playas renovada" } });
+
+  // Con la ficha sin guardar, los registros esperan para no pisar la versión abierta.
+  fireEvent.click(screen.getByRole("tab", { name: "Fotos y material" }));
+  expect(screen.getByRole("region", { name: "Multimedia" })).toBeTruthy();
+  expect(screen.getByText("Primero guarda la ficha")).toBeTruthy();
+  expect(screen.getByRole("checkbox", { name: /Video/ }).matches(":disabled")).toBe(true);
+  fireEvent.click(screen.getByRole("tab", { name: "Ficha pública" }));
+  expect((screen.getByLabelText("Título") as HTMLInputElement).value).toBe("Casa en Playas renovada");
+  expect(writes).toHaveLength(0);
+});
+
+test("SIM-19: la preparación se marca con una casilla y guarda al momento", async () => {
+  const writes: Array<Record<string, unknown>> = [];
+  let property: AdminProperty = house({ slug: "casa", galeria: [{ src: "/a.jpg", alt: "" }], videoUrl: undefined });
+  let version = 1;
+  vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+    if (init?.method === "PUT") { const body = JSON.parse(String(init.body)); writes.push(body.data); property = body.data; version += 1; return Response.json({ record: { id: "casa", data: property, version } }); }
+    if (url.endsWith("/propiedades")) return Response.json({ records: [{ id: "casa", data: property, version }] });
+    return Response.json({ records: [] });
+  });
+  window.history.replaceState(null, "", "/admin/propiedades/casa/editar?tab=material");
+  render(<PropertyFile slug="casa" />);
+  const list = within(await screen.findByRole("list", { name: "Lista de preparación" }));
+  expect((list.getByRole("checkbox", { name: /Sesión de fotos/ }) as HTMLInputElement).checked).toBe(true);
+  fireEvent.click(list.getByRole("checkbox", { name: /Video/ }));
+  await waitFor(() => expect(writes).toHaveLength(1));
+  expect(writes[0]).toMatchObject({ preparacion: { video: { estado: "listo" } } });
+  await waitFor(() => expect((list.getByRole("checkbox", { name: /Video/ }) as HTMLInputElement).checked).toBe(true));
+  expect(screen.queryByRole("button", { name: "Guardar preparación" })).toBeNull();
 });

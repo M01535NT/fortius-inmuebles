@@ -118,7 +118,7 @@ test("las listas anteriores del panel redirigen a sus secciones nuevas sin tocar
     "/admin/calendario": "/admin/agenda",
     "/admin/tareas": "/admin/agenda?tab=tareas",
     "/admin/apps": "/admin/herramientas",
-    "/admin/documentos": "/admin/herramientas?tab=documentos",
+    "/admin/documentos": "/admin/herramientas",
   });
   // Un expediente enlazado con ?expediente=<id> abre su operación; las fichas de detalle no se redirigen.
   expect(panel.find(r => "has" in r)).toMatchObject({ source: "/admin/operaciones", destination: "/admin/operaciones/:id", has: [{ type: "query", key: "expediente" }] });

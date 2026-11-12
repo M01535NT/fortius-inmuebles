@@ -5,6 +5,7 @@ import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 import * as React from "react";
 import { Pencil, Plus, Trash2 } from "@/components/admin/icons";
 import { BLOG_CATEGORIES, BLOG_FORMATS, postCategory, postFormat, formatBlogDate } from "@/lib/blog-editorial";
+import { humanDateTime } from "@/lib/utils";
 
 import {
   Badge,
@@ -19,7 +20,6 @@ import {
 } from "@/components/admin/ui";
 import {
   db,
-  fechaCorta,
   removeById,
   uid,
   upsert,
@@ -236,7 +236,7 @@ export default function BlogAdminPage() {
                   <span className="text-xs text-muted-foreground">{BLOG_FORMATS[postFormat(p)]}{postCategory(p) ? ` · ${BLOG_CATEGORIES[postCategory(p)!]}` : ""}{p.destacado ? " · Destacado" : ""}</span>
                 </p>
                 <p className="mt-1 truncate text-sm text-muted-foreground">
-                  Slug: {p.slug} · {fechaCorta(p.actualizadoEl)}
+                  Slug: {p.slug} · {humanDateTime(p.actualizadoEl)}
                 </p>
               </div>
               <div className="flex shrink-0 gap-1.5">

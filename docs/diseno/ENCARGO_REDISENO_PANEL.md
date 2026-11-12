@@ -161,8 +161,8 @@ Se actualizan los enlaces internos, la búsqueda y las pruebas a las rutas nueva
 | revision_cierre | Documentos al día para firmar |
 | instrumento | Cómo se firma y se paga |
 | contraparte | Comprador y participantes identificados |
-| firma | Firma ante notario |
-| pago | Pago completo antes de entregar |
+| firma | Firma acreditada (antes «Firma ante notario», cambiado el 12/11/2026, DEC-27) |
+| pago | Pagos para entregar cumplidos según contrato (antes «Pago completo antes de entregar», cambiado el 12/11/2026, DEC-27) |
 | entrega | Entrega con acta |
 | registro | Trámite de registro |
 | honorarios | Honorarios cobrados |

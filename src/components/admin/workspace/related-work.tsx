@@ -5,6 +5,7 @@ import { apiRequest, db, useCollection, upsert } from "@/lib/admin/store";
 import { duplicateContacts } from "@/lib/admin/workspace";
 import { AsyncButton, btnGhost } from "@/components/admin/ui";
 import { TASK_STATUSES } from "@/lib/tasks";
+import { humanDateTime, humanDate } from "@/lib/utils";
 
 export function RelatedWork({
   leadId,
@@ -119,7 +120,7 @@ export function RelatedWork({
           {lead.firstContactedAt ? (
             <p>
               Primer contacto registrado:{" "}
-              {new Date(lead.firstContactedAt).toLocaleString("es-MX")}
+              {humanDateTime(lead.firstContactedAt)}
             </p>
           ) : (
             <AsyncButton
@@ -170,7 +171,7 @@ export function RelatedWork({
       )}
       {property && (
         <Link
-          className="inline-flex min-h-11 items-center text-sm text-primary-ink underline"
+          className="inline-flex min-h-11 items-center text-sm text-foreground underline underline-offset-4"
           href={`/admin/propiedades/${property}/editar`}
         >
           {properties.find((p) => p.slug === property)?.titulo ??
@@ -223,7 +224,7 @@ export function RelatedWork({
                 >
                   {t.titulo}
                   <span className="block text-xs text-muted-foreground">
-                    {TASK_STATUSES[t.estado]} · {t.vence ?? "Sin fecha"}{expedienteId && !t.expedienteId ? " · Sin operación vinculada" : ""}
+                    {TASK_STATUSES[t.estado]} · {t.vence ? humanDate(t.vence) : "Sin fecha"}{expedienteId && !t.expedienteId ? " · Sin operación vinculada" : ""}
                   </span>
                 </Link>
               </li>
@@ -248,7 +249,7 @@ export function RelatedWork({
                 >
                   {e.titulo}
                   <span className="block text-xs text-muted-foreground">
-                    {e.fecha} {e.hora}
+                    {humanDate(e.fecha)} {e.hora}
                   </span>
                 </Link>
               </li>

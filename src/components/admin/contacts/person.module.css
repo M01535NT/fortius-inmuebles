@@ -1,0 +1,69 @@
+/* Ficha de persona (SIM-07, 11/11/2026): prospecto y cliente con el mismo marco. Prefijo :global(.admin-root): ver kit.module.css. */
+
+:global(.admin-root) .page { display: flex; min-width: 0; flex-direction: column; gap: 1rem; padding-bottom: 1rem; overflow-wrap: anywhere; }
+
+/* Encabezado: regreso, quién es, cómo contactarla y el menú de lo demás. */
+:global(.admin-root) .head { display: flex; flex-wrap: wrap; align-items: center; gap: .875rem 1rem; }
+:global(.admin-root) .back { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-pill); background: var(--card); border: 1px solid var(--card-edge); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .back:hover { background: var(--secondary); }
+:global(.admin-root) .who { display: flex; min-width: 0; flex: 1 1 16rem; align-items: center; gap: .875rem; }
+:global(.admin-root) .name { margin: 0; font-size: clamp(1.5rem, 2.4vw, 2.125rem); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; }
+:global(.admin-root) .sub { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem .5rem; margin-top: .25rem; font-size: .9375rem; color: var(--muted-foreground); }
+:global(.admin-root) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+:global(.admin-root) .menuWrap { position: relative; }
+:global(.admin-root) .menu { position: absolute; right: 0; top: calc(100% + .375rem); z-index: 5; min-width: 14rem; padding: .375rem; border-radius: 14px; background: var(--card); color: var(--foreground); border: 1px solid var(--card-edge); box-shadow: var(--shadow-raised); }
+:global(.admin-root) .menuItem { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-weight: 560; text-align: left; text-decoration: none; cursor: pointer; }
+:global(.admin-root) .menuItem:hover:not(:disabled) { background: var(--secondary); }
+:global(.admin-root) .menuItem:disabled { color: var(--muted-foreground); cursor: not-allowed; }
+:global(.admin-root) .menuDanger { color: var(--alert); }
+@media (max-width: 639px) { :global(.admin-root) .menu { right: auto; left: 0; } }
+
+/* Dos columnas desde 1024 px: lo que se trabaja a la izquierda, los datos a la derecha. */
+:global(.admin-root) .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+@media (min-width: 1024px) { :global(.admin-root) .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); } }
+:global(.admin-root) .col { display: flex; min-width: 0; flex-direction: column; gap: 1rem; }
+:global(.admin-root) .card { display: flex; min-width: 0; flex-direction: column; gap: .875rem; padding: 1.25rem; }
+:global(.admin-root) .cardHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem; }
+:global(.admin-root) .cardTitle { margin: 0; font-size: 1.0625rem; font-weight: 600; letter-spacing: -.01em; }
+:global(.admin-root) .muted { font-size: .9375rem; color: var(--muted-foreground); }
+:global(.admin-root) .small { font-size: .8125rem; color: var(--muted-foreground); }
+
+/* Siguiente paso: lo que toca, con su fecha y una sola acción principal. */
+:global(.admin-root) .next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .875rem 1.25rem; padding: 1.25rem; border-radius: var(--radius-panel); background: #061f3f; color: #fff; }
+:global(.dark) :global(.admin-root) .next { background: var(--card); border: 1px solid var(--card-edge); color: var(--foreground); }
+:global(.admin-root) .nextBody { display: flex; min-width: 0; flex: 1 1 16rem; flex-direction: column; gap: .375rem; }
+:global(.admin-root) .nextLabel { font-size: .875rem; color: rgba(255, 255, 255, .72); }
+:global(.dark) :global(.admin-root) .nextLabel { color: var(--muted-foreground); }
+:global(.admin-root) .nextText { font-size: clamp(1.125rem, 1.8vw, 1.375rem); line-height: 1.2; font-weight: 620; letter-spacing: -.015em; }
+:global(.admin-root) .nextMeta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .9375rem; color: rgba(255, 255, 255, .82); }
+:global(.dark) :global(.admin-root) .nextMeta { color: var(--muted-foreground); }
+:global(.admin-root) .nextActions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+:global(.admin-root) .onNavy { background: rgba(255, 255, 255, .12); border-color: transparent; color: #fff; }
+:global(.admin-root) .onNavy:hover:not(:disabled) { background: rgba(255, 255, 255, .2); }
+:global(.dark) :global(.admin-root) .onNavy { background: var(--secondary); color: var(--foreground); }
+
+/* Línea de tiempo: lo que viene y lo que ya pasó. */
+:global(.admin-root) .compose { display: flex; flex-direction: column; gap: .625rem; }
+:global(.admin-root) .composeFoot { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+:global(.admin-root) .group { margin: .25rem 0 0; font-size: .8125rem; font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .timeline { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .item { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .25rem .875rem; padding: .625rem .5rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) a.item:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+:global(.admin-root) .when { font-size: .875rem; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+:global(.admin-root) .late { color: var(--alert); font-weight: 600; }
+:global(.admin-root) .itemText { min-width: 0; white-space: pre-wrap; }
+:global(.admin-root) .done { color: var(--muted-foreground); text-decoration: line-through; }
+:global(.admin-root) .kind { font-size: .8125rem; color: var(--muted-foreground); }
+@media (max-width: 479px) { :global(.admin-root) .item { grid-template-columns: minmax(0, 1fr); } }
+:global(.admin-root) .inlineForm { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .75rem; padding: 1rem; border-radius: var(--radius-card); background: var(--secondary); }
+:global(.admin-root) .inlineFoot { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* Datos: pares de etiqueta y valor. */
+:global(.admin-root) .facts { display: flex; flex-direction: column; gap: .75rem; margin: 0; font-size: .9375rem; }
+:global(.admin-root) .facts > div { display: flex; min-width: 0; flex-direction: column; gap: .125rem; }
+:global(.admin-root) .facts dt { font-size: .8125rem; color: var(--muted-foreground); }
+:global(.admin-root) .facts dd { margin: 0; min-width: 0; white-space: pre-wrap; }
+:global(.admin-root) .quote { padding: .75rem .875rem; border-radius: var(--radius-thumb); background: var(--secondary); font-size: .9375rem; }
+:global(.admin-root) .linkRow { display: flex; min-height: 2.75rem; flex-direction: column; justify-content: center; gap: .125rem; padding: .375rem .625rem; margin: 0 -.625rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .linkRow:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+:global(.admin-root) .textLink { display: inline-flex; min-height: 2.75rem; align-items: center; font-size: .9375rem; font-weight: 560; color: var(--foreground); text-decoration: underline; text-underline-offset: 4px; }

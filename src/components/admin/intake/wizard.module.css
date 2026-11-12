@@ -22,7 +22,7 @@
 :global(.admin-root) .stepRow[data-done] { color: var(--foreground); }
 :global(.admin-root) .stepNumber { display: inline-flex; align-items: center; justify-content: center; width: 1.625rem; height: 1.625rem; border-radius: 999px; border: 2px solid var(--edge-soft); font-size: .75rem; font-weight: 700; flex: none; }
 :global(.admin-root) .stepRow[aria-current=step] .stepNumber { border-color: var(--primary); background: var(--primary); color: #fff; }
-:global(.admin-root) .stepRow[data-done] .stepNumber { border-color: var(--primary); color: var(--primary-text); }
+:global(.admin-root) .stepRow[data-done] .stepNumber { border-color: var(--success); color: var(--success); }
 :global(.admin-root) .main { display: flex; min-width: 0; flex-direction: column; }
 :global(.admin-root) .aside { display: none; position: sticky; top: 1rem; flex-direction: column; gap: .75rem; }
 @media (min-width: 1280px) { :global(.admin-root) .aside { display: flex; } }

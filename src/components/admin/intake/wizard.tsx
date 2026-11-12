@@ -7,8 +7,10 @@ import { Button, ButtonLink, Card, Notice, ProgressBar, Surface } from "@/compon
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState, type Lead } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
+import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 import { INTENTS, isBuyerIntent, type IntakeIntent, type OperationalInterview } from "@/lib/intake/interview";
-import { INTENT_CHOICES, intentTitle, wizardSteps } from "@/lib/intake/wizard";
+import { INTAKE_TITLE, INTENT_CHOICES, intentTitle, wizardSteps } from "@/lib/intake/wizard";
 import { useInterviewGuard } from "./use-interview-guard";
 import { InterviewStep } from "./interview-step";
 import { DoneStep } from "./done-step";
@@ -71,7 +73,7 @@ function Header({ step, intent }: { step: number; intent?: IntakeIntent | null }
   const WIZARD_STEPS = wizardSteps(intent);
   return <div className={s.top}>
     <div className={s.topRow}>
-      <Link href="/admin" className={s.close} aria-label="Salir de Nueva operación"><span className={s.closeIcon}><X size={18} aria-hidden="true" /></span>Nueva operación</Link>
+      <Link href="/admin" className={s.close} aria-label={`Salir de ${INTAKE_TITLE}`}><span className={s.closeIcon}><X size={18} aria-hidden="true" /></span>{INTAKE_TITLE}</Link>
       <span className="flex items-center gap-3"><span className={cn(s.hint, "hidden sm:inline")}>Se guarda solo mientras capturas</span><span className={s.meta}>Paso {step} de {WIZARD_STEPS.length}</span></span>
     </div>
     <div className={s.progress}>
@@ -98,6 +100,7 @@ function StepsNav({ step, intent }: { step: number; intent?: IntakeIntent | null
 function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: OperationalInterview) => void; onGuard: (dirty: boolean, busy: boolean) => void }) {
   const params = useSearchParams();
   const leads = useCollection(db.leads), clients = useCollection(db.clientes), advisers = useCollection(db.asesores);
+  const status = usePersonStatus();
   const leadState = useLoadState(db.leads), clientState = useLoadState(db.clientes), adviserState = useLoadState(db.asesores);
   const loaded = leadState.loaded && clientState.loaded && adviserState.loaded;
   const correctionOf = params.get("expedienteId");
@@ -135,8 +138,8 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
 
   const digits = phone.replace(/\D/g, ""), mail = email.trim().toLowerCase();
   const people = [
-    ...leads.filter(l => !l.clienteId).map(l => ({ kind: "lead" as const, id: l.id, nombre: l.nombre, telefono: l.telefono, email: l.email, detail: "Prospecto" })),
-    ...clients.map(c => ({ kind: "cliente" as const, id: c.id, nombre: c.nombre, telefono: c.telefono, email: c.email, detail: "Cliente" })),
+    ...leads.filter(l => !l.clienteId).map(l => ({ kind: "lead" as const, id: l.id, nombre: l.nombre, telefono: l.telefono, email: l.email, detail: PERSON_STATUS_LABEL[status.ofLead(l) ?? "prospecto"] })),
+    ...clients.map(c => ({ kind: "cliente" as const, id: c.id, nombre: c.nombre, telefono: c.telefono, email: c.email, detail: (st => st ? PERSON_STATUS_LABEL[st] : "Contacto")(status.ofClient(c.id)) })),
   ];
   const matches = !contact && (digits.length >= 7 || !!mail) ? people.filter(p => (digits.length >= 7 && p.telefono.replace(/\D/g, "") === digits) || (!!mail && p.email?.trim().toLowerCase() === mail)) : [];
   const chosen = contact ? people.find(p => p.kind === contact.kind && p.id === contact.id) : undefined;
@@ -218,7 +221,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
         <h1 className={s.title}>¿Qué quiere hacer el cliente?</h1>
         <p className={s.lead}>Elige una opción. La puedes cambiar después.</p>
         <div role="radiogroup" aria-label="Qué quiere hacer el cliente" data-tour="nueva-opciones" className={s.choices}>
-          {INTENT_CHOICES.map(choice => <button key={choice.id} type="button" role="radio" aria-checked={intent === choice.id} className={s.choice} onClick={() => { setIntent(choice.id); changed(); }}>
+          {INTENT_CHOICES.map(choice => <button key={choice.id} type="button" role="radio" aria-checked={intent === choice.id} className={s.choice} onClick={() => { setIntent(choice.id); changed(); setStep(2); }}>
             <span className={s.dot} aria-hidden="true" /><span className="flex flex-col gap-0.5"><strong>{choice.title}</strong><span className="text-sm text-muted-foreground">{choice.description}</span></span>
           </button>)}
         </div>
@@ -269,7 +272,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
     </div>
     <div className={s.footer}><div className={s.footerRow}>
       {step === 2 && !correctionOf ? <Button variant="ghost" disabled={busy} onClick={() => setStep(1)}><ArrowLeft size={16} aria-hidden="true" />Atrás</Button> : <span />}
-      {step === 1 ? <Button variant="primary" disabled={!intent} onClick={() => setStep(2)}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button>
+      {step === 1 ? (intent ? <Button variant="primary" onClick={() => setStep(2)}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button> : <span />)
         : buyer ? <Button variant="primary" disabled={!config} onClick={toProfile}>Continuar con lo que busca<ArrowRight size={16} aria-hidden="true" /></Button>
         : <Button variant="primary" disabled={busy || !intent || !config} onClick={() => void start()}>{busy ? "Guardando…" : uncertain ? "Reintentar con los mismos datos" : intent === "vender" || intent === "arrendar" ? "Continuar con los datos del prospecto" : "Continuar con la entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>}
     </div></div>

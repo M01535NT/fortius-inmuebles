@@ -3,6 +3,7 @@ import * as React from "react";
 import { Button, Card, EmptyBox } from "@/components/admin/kit";
 import { textareaClass } from "@/components/admin/ui";
 import { db, errorMessage, fetchJson as json, useCollection } from "@/lib/admin/store";
+import { humanDateTime } from "@/lib/utils";
 
 type Activity = { id: string; tipo: "nota" | "cambio"; descripcion: string; created_by: string; created_at: string };
 
@@ -40,7 +41,7 @@ export function HistoryTab({ operationId, refresh, onDirtyChange }: { operationI
     {items === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando el historial…</p>
       : items?.length ? <Card as="div" className="overflow-hidden"><ol>{items.map(item => <li key={item.id} className="border-b border-border px-5 py-4 last:border-0">
         <p className="[overflow-wrap:anywhere]">{item.descripcion}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · {who(item.created_by)} · {new Date(item.created_at).toLocaleString("es-MX")}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · {who(item.created_by)} · {humanDateTime(item.created_at)}</p>
       </li>)}</ol></Card>
       : items !== null && <EmptyBox title="Sin historial todavía">Los cambios y las notas de esta operación aparecen aquí.</EmptyBox>}
   </div>;

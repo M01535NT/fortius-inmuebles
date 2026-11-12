@@ -8,6 +8,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { PropertyForm } from "@/components/admin/property-form";
@@ -195,7 +196,7 @@ test("new real property defaults unpublished and not demo", async () => {
   expect(screen.getByText("Borrador · no visible en el sitio")).toBeTruthy();
   expect(screen.queryByRole("button",{name:"Guardar y publicar"})).toBeNull();
   expect(
-    (screen.getByLabelText("Dato de demostración (Demo)") as HTMLInputElement)
+    (screen.getByLabelText("Es un ejemplo (no es una oferta real)") as HTMLInputElement)
       .checked,
   ).toBe(false);
 });
@@ -213,10 +214,13 @@ test("property temporary copy recovers controlled and uncontrolled fields withou
  expect(sessionStorage.getItem("fortius:property-draft:anonymous:real")).toBeNull();
 });
 test("publication is an explicit action and image order controls choose the cover", async()=>{
- await db.propiedades.load();render(<PropertyForm initial={db.propiedades.list()[0]}/>);
- fireEvent.click(screen.getByRole("button",{name:"Agregar imagen"}));
- fireEvent.change(screen.getByLabelText("Imagen 2: URL"),{target:{value:"/hero/interior-depa.webp"}});
- fireEvent.change(screen.getByLabelText("Imagen 2: texto alternativo"),{target:{value:"Interior"}});
+ await db.propiedades.load();
+ // Las fotos entran subiéndolas o desde la biblioteca; aquí ya vienen dos y se cambia la portada.
+ const loaded = db.propiedades.list()[0];
+ render(<PropertyForm initial={{ ...loaded, galeria: [...loaded.galeria, { src: "/hero/interior-depa.webp", alt: "" }] }}/>);
+ expect(screen.queryByRole("button",{name:"Agregar imagen"})).toBeNull();
+ expect(screen.queryByLabelText(/: URL/)).toBeNull();
+ fireEvent.change(screen.getByLabelText("Descripción de la foto 2"),{target:{value:"Interior"}});
  fireEvent.click(screen.getByRole("button",{name:"Subir foto 2"}));
  await waitFor(()=>expect((screen.getByRole("button",{name:"Guardar y publicar"}) as HTMLButtonElement).disabled).toBe(false));
  fireEvent.click(screen.getByRole("button",{name:"Guardar y publicar"}));
@@ -339,7 +343,7 @@ test("singleton draft retains opening version and never shows success on conflic
 });
 test("client failure preserves details and only acknowledged save closes its editor", async () => {
   render(<ContactsScreen />);
-  fireEvent.click(screen.getAllByRole("button", { name: "Agregar contacto" })[0]);
+  fireEvent.click(screen.getAllByRole("button", { name: "Agregar cliente" })[0]);
   fireEvent.change(screen.getByLabelText("Nombre"), {
     target: { value: "Cliente real" },
   });
@@ -489,4 +493,24 @@ test("publication validation never reports a saved record or sends a write", asy
   expect((await screen.findByRole("alert")).textContent).toContain("imagen pública");
   expect(screen.queryByText("Cambios guardados.")).toBeNull();
   expect(sent).toBeNull();
+});
+test("SIM-19: video y 360 se ven listos, se quitan o se agregan sin campos de dirección a la vista", async () => {
+  await db.propiedades.load(); render(<PropertyForm initial={db.propiedades.list()[0]} />);
+  expect(screen.queryByLabelText("Video (URL)")).toBeNull();
+  expect(screen.queryByLabelText("Recorrido 360 (URL)")).toBeNull();
+  const video = within(screen.getByRole("group", { name: "Video" }));
+  expect(video.getByText("Listo")).toBeTruthy();
+  fireEvent.click(video.getByRole("button", { name: "Quitar video" }));
+  expect(video.getByText("Sin agregar")).toBeTruthy();
+  const tour = within(screen.getByRole("group", { name: "Recorrido 360" }));
+  fireEvent.click(tour.getByRole("button", { name: "Quitar recorrido 360" }));
+  fireEvent.click(tour.getByRole("button", { name: "Pegar el enlace del recorrido" }));
+  const field = tour.getByLabelText("Pegar el enlace del recorrido");
+  fireEvent.change(field, { target: { value: "https://my.matterport.com/show/?m=abc" } });
+  fireEvent.blur(field);
+  expect(tour.getByText("Listo")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+  await waitFor(() => expect(sent).not.toBeNull());
+  expect(sent?.data.videoUrl).toBeUndefined();
+  expect(sent?.data.tour360Url).toBe("https://my.matterport.com/show/?m=abc");
 });

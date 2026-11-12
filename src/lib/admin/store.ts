@@ -348,9 +348,13 @@ export function useSingleton<T extends object>(store: Singleton<T>): T | null {
   return React.useSyncExternalStore(store.subscribe, store.get, () => null);
 }
 export const adminStores = [...Object.values(db), contentStore, settingsStore];
+const cacheClearers = new Set<() => void>();
+/** Otros datos en memoria del panel que deben olvidarse al cambiar de sesión (COR-05: la cola de Hoy). */
+export function onAdminCacheClear(fn: () => void) { cacheClearers.add(fn); return () => { cacheClearers.delete(fn); }; }
 export function clearAdminCache() {
   sessionEpoch++;
   adminStores.forEach((s) => s.clear());
+  cacheClearers.forEach((fn) => fn());
 }
 export async function loadAdminData() {
   await Promise.all(adminStores.map((s) => s.load()));
@@ -560,8 +564,4 @@ export async function openFile(value: string) {
     tab?.close();
     throw error;
   }
-}
-export function fechaCorta(iso: string): string {
-  const d = new Date(iso);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }

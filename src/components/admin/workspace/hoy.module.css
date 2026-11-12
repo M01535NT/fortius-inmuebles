@@ -1,22 +1,17 @@
 /* Hoy, versión 2 (LV-07 «Mosaico cálido» + LV-08, 30/10/2026). Prefijo :global(.admin-root): ver kit.module.css. */
 
-/* Mosaico: una columna en celular; seis columnas desde 900 px. */
+/* Tres bloques (SIM-16): una columna en celular; seis columnas desde 900 px. */
 :global(.admin-root) .page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+/* «Lo siguiente» reparte sus piezas en la misma rejilla (subgrid): saludo a la izquierda, portada a la derecha, la cola debajo. */
+:global(.admin-root) .queueBox { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+:global(.admin-root) .queueHead { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 2.25rem; padding: 0 .25rem; }
 @media (min-width: 900px) {
   :global(.admin-root) .page { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem 1rem; }
+  :global(.admin-root) .queueBox { grid-column: 1 / -1; grid-template-columns: subgrid; }
   :global(.admin-root) .top { grid-column: span 2; }
   :global(.admin-root) .next { grid-column: span 4; }
-  :global(.admin-root) .navy { grid-column: span 2; }
-  :global(.admin-root) .tasksBox { grid-column: span 4; }
-  :global(.admin-root) .agendaBox { grid-column: span 2; }
-  :global(.admin-root) .weekBox { grid-column: span 4; }
-  :global(.admin-root) .waitingBox { grid-column: span 6; }
-  :global(.admin-root) .half { grid-column: span 3; }
-}
-@media (min-width: 900px) and (max-width: 1199px) {
-  :global(.admin-root) .navy { grid-column: span 3; }
-  :global(.admin-root) .tasksBox { grid-column: span 3; }
-  :global(.admin-root) .agendaBox { grid-column: span 6; }
+  :global(.admin-root) .queueBox > .full { grid-column: 1 / -1; }
+  :global(.admin-root) .todayBox { grid-column: span 6; }
   :global(.admin-root) .weekBox { grid-column: span 6; }
 }
 
@@ -25,7 +20,6 @@
 @media (min-width: 900px) { :global(.admin-root) .top { padding: 1.25rem .5rem .5rem; } }
 :global(.admin-root) .date { font-size: .9375rem; color: var(--muted-foreground); }
 :global(.admin-root) .hello { margin: 0; font-size: clamp(1.75rem, 2.8vw, 2.5rem); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; text-wrap: balance; }
-:global(.admin-root) .summary { font-size: 1.0625rem; color: var(--muted-foreground); }
 
 /* Lo siguiente: la foto del inmueble a sangre con el pendiente más urgente */
 :global(.admin-root) .next { position: relative; min-height: 15rem; overflow: hidden; border-radius: var(--radius-panel); background: #061f3f; color: #fff; }
@@ -47,27 +41,10 @@
 :global(.admin-root) .nextEmpty { position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: .5rem; min-height: inherit; height: 100%; padding: 1.75rem; }
 :global(.admin-root) .nextEmpty .nextWho { max-width: 48ch; }
 
-/* Operaciones en curso (azul marino): una línea por etapa con su número, sin barras (C34). Lo vencido se marca en cada tarjeta. */
-:global(.admin-root) .navy { display: flex; flex-direction: column; gap: .875rem; min-height: 15rem; padding: 1.5rem; border-radius: var(--radius-panel); background: #061f3f; color: #fff; }
-:global(.dark) :global(.admin-root) .navy { background: var(--card); border: 1px solid var(--card-edge); color: var(--foreground); }
-:global(.admin-root) .navyTitle { margin: 0; font-size: 1.0625rem; font-weight: 600; }
-:global(.admin-root) .navy .more { color: rgba(255, 255, 255, .72); }
-:global(.dark) :global(.admin-root) .navy .more { color: var(--muted-foreground); }
-:global(.admin-root) .big { font-size: clamp(3.5rem, 6vw, 5.5rem); line-height: .9; font-weight: 700; letter-spacing: -.04em; font-variation-settings: "wdth" 62; font-variant-numeric: tabular-nums; }
-:global(.admin-root) .bars { display: flex; flex-direction: column; gap: .5rem; margin-top: auto; font-size: .875rem; }
-:global(.admin-root) .bars > li { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; padding-bottom: .375rem; border-bottom: 1px solid rgba(255, 255, 255, .12); font-size: .9375rem; }
-:global(.dark) :global(.admin-root) .bars > li { border-bottom-color: var(--border); }
-:global(.admin-root) .bars > li:last-child { border-bottom: 0; }
-:global(.admin-root) .bars > li > span:first-child { min-width: 0; overflow-wrap: anywhere; color: rgba(255, 255, 255, .82); }
-:global(.dark) :global(.admin-root) .bars > li > span:first-child { color: var(--muted-foreground); }
-:global(.admin-root) .bars > li > span:last-child { text-align: right; font-weight: 600; }
-:global(.admin-root) .navyNote { grid-column: 1 / -1; font-size: .875rem; color: rgba(255, 255, 255, .72); }
-:global(.dark) :global(.admin-root) .navyNote { color: var(--muted-foreground); }
-
 /* Títulos de sección */
 :global(.admin-root) .title { display: flex; align-items: baseline; gap: .5rem; margin: 0; font-size: 1.1875rem; font-weight: 600; letter-spacing: -.015em; }
 :global(.admin-root) .count { font-size: .8125rem; font-weight: 600; padding: .125rem .5rem; border-radius: var(--radius-pill); background: var(--track); color: var(--muted-foreground); }
-:global(.admin-root) .more { flex: none; font-size: .875rem; font-weight: 560; color: var(--primary-text); text-decoration: none; }
+:global(.admin-root) .more { flex: none; font-size: .875rem; font-weight: 560; color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .more:hover { text-decoration: underline; text-underline-offset: 4px; }
 :global(.admin-root) .meta { font-size: .8125rem; color: var(--muted-foreground); }
 :global(.admin-root) .lateText { color: var(--alert); font-weight: 600; }
@@ -86,11 +63,8 @@
   :global(.admin-root) .row { flex-wrap: wrap; }
   :global(.admin-root) .rowEnd { flex-basis: 100%; flex-direction: row; align-items: center; justify-content: space-between; padding-left: calc(44px + .875rem); }
 }
-:global(.admin-root) .dayPill { flex: none; min-width: 3.5rem; font-size: .875rem; font-weight: 600; color: var(--muted-foreground); }
-:global(.admin-root) .report { display: flex; flex-direction: column; gap: .875rem; padding: .75rem .75rem; }
-@media (min-width: 640px) { :global(.admin-root) .report { flex-direction: row; align-items: center; justify-content: space-between; gap: 1.5rem; } }
 
-/* Esperan algo de ti: cuatro tarjetas con foto y el resto en lista */
+/* Lo siguiente: cuatro tarjetas con foto y el resto en lista */
 :global(.admin-root) .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0; padding: 0; list-style: none; }
 @media (min-width: 900px) { :global(.admin-root) .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; } }
 :global(.admin-root) .photoCard { height: 100%; }
@@ -104,16 +78,28 @@
 :global(.admin-root) .cardWho { font-weight: 560; overflow-wrap: anywhere; }
 :global(.admin-root) .cardText { font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
 
-/* Tareas de hoy */
+/* Hoy: citas y tareas en una sola tarjeta; desde 900 px, citas a la izquierda y tareas a la derecha. */
+:global(.admin-root) .todayCard { display: flex; flex-direction: column; }
+@media (min-width: 900px) {
+  :global(.admin-root) .todayCard { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); column-gap: 1rem; }
+  :global(.admin-root) .todayCard > .agenda { grid-column: 1; }
+  :global(.admin-root) .todayCard > .tasks { grid-column: 2; }
+  :global(.admin-root) .todayCard > .full { grid-column: 1 / -1; }
+  :global(.admin-root) .todayCard > .agendaEmpty, :global(.admin-root) .todayCard > .todayFoot { grid-column: 1 / -1; }
+  :global(.admin-root) .tasksAfterAgenda { border-left: 1px solid var(--border); padding-left: .75rem; }
+}
+@media (max-width: 899px) { :global(.admin-root) .tasksAfterAgenda { border-top: 1px solid var(--border); margin-top: .375rem; padding-top: .375rem; } }
+:global(.admin-root) .todayFoot { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+/* Tareas */
 :global(.admin-root) .task { display: flex; align-items: flex-start; gap: .875rem; padding: .625rem .75rem; border-radius: var(--radius-thumb); }
 :global(.admin-root) .task a { color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .task a:hover { text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .check { flex: none; width: 1.375rem; height: 1.375rem; margin-top: .125rem; accent-color: var(--primary); cursor: pointer; }
 :global(.admin-root) .doneText { color: var(--muted-foreground) !important; text-decoration: line-through !important; }
-:global(.admin-root) .add { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 .75rem; border-radius: var(--radius-control); color: var(--primary-text); font-size: .9375rem; font-weight: 600; text-decoration: none; }
+:global(.admin-root) .add { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 .75rem; border-radius: var(--radius-control); color: var(--foreground); font-size: .9375rem; font-weight: 600; text-decoration: none; }
 :global(.admin-root) .add:hover { background: var(--secondary); }
 
-/* Agenda de hoy: horas a la izquierda; las visitas llevan su color. */
+/* Citas de hoy: horas a la izquierda; las visitas llevan su color. */
 :global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); row-gap: .25rem; margin: 0; padding: .375rem; list-style: none; }
 :global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem .75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .event:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
@@ -123,7 +109,7 @@
 :global(.admin-root) .agendaEmpty { display: flex; flex-direction: column; gap: .25rem; padding: .375rem; }
 :global(.admin-root) .nextEvent { display: flex; align-items: center; gap: .875rem; margin: 0 .375rem; padding: .625rem; border-radius: var(--radius-thumb); background: var(--secondary); color: var(--foreground); text-decoration: none; }
 
-/* Próximos 7 días: siete casillas */
+/* Esta semana: siete casillas */
 :global(.admin-root) .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .375rem; margin: 0; padding: .625rem; list-style: none; }
 @media (max-width: 639px) { :global(.admin-root) .week { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 :global(.admin-root) .day { display: flex; min-width: 0; flex-direction: column; gap: .25rem; min-height: 6.5rem; padding: .625rem .5rem; border-radius: var(--radius-card); background: var(--secondary); }

@@ -8,6 +8,8 @@ vi.mock("next/navigation", async () => {
   const replace = (url: string) => { nav.search = new URL(url, "http://localhost").searchParams; nav.listeners.forEach(cb => cb()); };
   return { useRouter: () => ({ push, replace }), useSearchParams: () => react.useSyncExternalStore(subscribe, () => nav.search) };
 });
+// COR-10: la condición calculada usa las operaciones de Hoy; aquí, sin operaciones, nadie ha firmado.
+vi.mock("@/components/admin/workspace/use-person-status", () => ({ usePersonStatus: () => ({ ofClient: () => "prospecto", ofLead: () => "prospecto", ofProperty: () => null }) }));
 vi.mock("@/lib/admin/store", () => {
   const store = () => ({ load: vi.fn().mockResolvedValue(undefined), version: () => 4 });
   const stores = { leads: store(), clientes: store(), tareas: store(), propiedades: store(), asesores: store() };
@@ -39,9 +41,10 @@ it("elige qué quiere el cliente, captura quién es y no envía dos veces", asyn
   render(<NewOperationWizard />);
   expect(screen.getByText("Paso 1 de 4")).toBeTruthy();
   expect(screen.getAllByRole("radio")).toHaveLength(5);
-  expect((screen.getByRole("button", { name: /Continuar/ }) as HTMLButtonElement).disabled).toBe(true);
+  // SIM-17: el paso 1 avanza al elegir; no hay «Continuar» que pulsar.
+  expect(screen.getByText("Atender a alguien")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Continuar/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: /Vender su inmueble/ }));
-  fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
   expect(screen.getByRole("heading", { name: "¿Quién es?" })).toBeTruthy();
   fireEvent.change(screen.getByLabelText("Nombre completo"), { target: { value: "Ana Propietaria" } });
   fireEvent.change(screen.getByLabelText("Teléfono"), { target: { value: "6641234567" } });

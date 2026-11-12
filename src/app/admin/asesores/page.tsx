@@ -3,18 +3,12 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
-import { Pencil, Plus, Trash2 } from "@/components/admin/icons";
+import { Pencil, Plus, Trash2, UserRound } from "@/components/admin/icons";
+import { Avatar, Button, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import { AdviserAccountLinks } from "@/components/admin/adviser-account-links";
+import { SectionBoundary } from "@/components/admin/section-boundary";
 
-import {
-  Badge,
-  EmptyState,
-  Field,
-  PageHeader,
-  btnGhost,
-  btnPrimary,
-  inputClass,
-} from "@/components/admin/ui";
+import { Field, PageHeader, inputClass } from "@/components/admin/ui";
 import {
   db,
   removeById,
@@ -71,10 +65,10 @@ function Editor({
   return (
     <AsyncForm
       onSubmit={guardar}
-      className="space-y-4 rounded-lg border border-border bg-card p-5"
+      className="space-y-4 rounded-[var(--radius-card)] border border-[var(--card-edge)] bg-[var(--card)] p-5 shadow-[var(--shadow-rest)]"
     >
-      <h2 className="display-soft text-lg text-foreground">
-        {asesor ? `Editando: ${asesor.nombre}` : "Nuevo asesor"}
+      <h2 className="text-lg font-semibold text-foreground">
+        {asesor ? `Editar a ${asesor.nombre}` : "Nuevo asesor"}
       </h2>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Nombre" htmlFor="as-nombre">
@@ -133,7 +127,7 @@ function Editor({
             name="iniciales"
             maxLength={3}
             defaultValue={asesor?.iniciales}
-            className={inputClass + " max-w-[100px] font-mono uppercase"}
+            className={inputClass + " max-w-[100px] uppercase"}
           />
         </Field>
       </div>
@@ -155,13 +149,9 @@ function Editor({
         />
         Activo (asignable y visible en el sitio)
       </label>
-      <div className="flex gap-3">
-        <button type="submit" className={btnPrimary}>
-          Guardar asesor
-        </button>
-        <button type="button" onClick={onDone} className={btnGhost}>
-          Cancelar
-        </button>
+      <div className="flex flex-wrap gap-3">
+        <Button type="submit" variant="primary">Guardar asesor</Button>
+        <Button onClick={onDone}>Cancelar</Button>
       </div>
     </AsyncForm>
   );
@@ -185,15 +175,7 @@ export default function AsesoresPage() {
       <PageHeader
         title="Equipo"
         description="Quién sale en el sitio y atiende contactos."
-        actions={
-          <button
-            type="button"
-            onClick={() => setEditando("nuevo")}
-            className={btnPrimary}
-          >
-            <Plus className="size-4" strokeWidth={1.5} /> Nuevo asesor
-          </button>
-        }
+        actions={editando ? undefined : <Button variant="primary" onClick={() => setEditando("nuevo")}><Plus size={17} aria-hidden="true" />Nuevo asesor</Button>}
       />
 
       {editando ? (
@@ -205,97 +187,59 @@ export default function AsesoresPage() {
       ) : null}
 
       {asesores.length === 0 ? (
-        <EmptyState title="Sin asesores registrados." />
+        <EmptyBox
+          icon={<UserRound size={22} aria-hidden="true" />}
+          title="Todavía no hay asesores"
+          steps={["Registra a cada asesor con su nombre y cargo.", "Asígnale contactos e inmuebles desde cada ficha.", "Si quieres, publica su ficha en Nosotros."]}
+        >
+          Cada asesor puede atender contactos y salir en el sitio.
+        </EmptyBox>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {asesores.map((a) => {
-            const leadsAsignados = leads.filter(
-              (l) => l.asesorId === a.id,
-            ).length;
-            const clientesAsignados = clientes.filter(
-              (c) => c.asesorId === a.id,
-            ).length;
-            const inmuebles = propiedades.filter(
-              (p) => p.asesorId === a.id,
-            ).length;
+            const leadsAsignados = leads.filter((l) => l.asesorId === a.id).length;
+            const clientesAsignados = clientes.filter((c) => c.asesorId === a.id).length;
+            const inmuebles = propiedades.filter((p) => p.asesorId === a.id).length;
             return (
-              <article
-                key={a.id}
-                className="rounded-lg border border-border bg-card p-5"
-              >
+              <Card as="li" key={a.id} className="flex flex-col gap-4 p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-sm text-foreground"
-                    >
-                      {a.iniciales}
-                    </span>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar name={a.nombre} src={a.perfilPublico?.foto || undefined} size={44} />
                     <div className="min-w-0">
-                      <p className="truncate text-base font-semibold text-foreground">
-                        {a.nombre}
-                      </p>
-                      <p className="truncate text-sm text-muted-foreground">
-                        {a.cargo}
-                      </p>
+                      <p className="truncate text-base font-semibold text-foreground">{a.nombre}</p>
+                      <p className="truncate text-sm text-muted-foreground">{a.cargo}</p>
                     </div>
                   </div>
-                  <Badge tone={a.activo ? "green" : "neutral"}>
-                    {a.activo ? "Activo" : "Inactivo"}
-                  </Badge>
+                  <Pill tone={a.activo ? "success" : "muted"}>{a.activo ? "Activo" : "Inactivo"}</Pill>
                 </div>
-                <dl className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 text-center">
-                  <div>
-                    <dt className="font-mono text-xs uppercase tracking-[0.06em] text-muted-foreground">
-                      Leads
-                    </dt>
-                    <dd className="mt-1 font-mono text-xl text-foreground">
-                      {String(leadsAsignados).padStart(2, "0")}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-mono text-xs uppercase tracking-[0.06em] text-muted-foreground">
-                      Inmuebles
-                    </dt>
-                    <dd className="mt-1 font-mono text-xl text-foreground">
-                      {String(inmuebles).padStart(2, "0")}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="mt-4 flex justify-end gap-1.5">
-                  <button
-                    type="button"
-                    aria-label={`Editar ${a.nombre}`}
-                    onClick={() => setEditando(a.id)}
-                    className="rounded-md border border-border p-2 text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
-                  >
-                    <Pencil className="size-3.5" strokeWidth={1.5} />
-                  </button>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold tabular-nums text-foreground">{leadsAsignados}</span> {leadsAsignados === 1 ? "contacto" : "contactos"} · <span className="font-semibold tabular-nums text-foreground">{inmuebles}</span> {inmuebles === 1 ? "inmueble" : "inmuebles"}
+                </p>
+                <div className="mt-auto flex justify-end gap-2">
+                  <Button variant="secondary" onClick={() => setEditando(a.id)} aria-label={`Editar a ${a.nombre}`}>
+                    <Pencil size={16} aria-hidden="true" />Editar
+                  </Button>
                   <AsyncButton
                     type="button"
-                    aria-label={`Eliminar ${a.nombre}`}
+                    aria-label={`Eliminar a ${a.nombre}`}
                     onClick={async () => {
                       if (leadsAsignados + inmuebles + clientesAsignados > 0) {
                         throw new Error("Tiene contactos o inmuebles asignados. Reasígnalos antes de eliminarlo.");
                       }
-                      if (await confirmAction(`¿Eliminar a ${a.nombre}?`))
-                        await removeById(
-                          db.asesores,
-                          a.id,
-                          db.asesores.version(a),
-                        );
+                      if (await confirmAction(`¿Eliminar a ${a.nombre}? Podrás recuperarlo desde Historial.`))
+                        await removeById(db.asesores, a.id, db.asesores.version(a));
                     }}
-                    className="rounded-md border border-border p-2 text-foreground/70 transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   >
-                    <Trash2 className="size-3.5" strokeWidth={1.5} />
+                    <Trash2 size={16} aria-hidden="true" />
                   </AsyncButton>
                 </div>
-              </article>
+              </Card>
             );
           })}
-        </div>
+        </ul>
       )}
-      <AdviserAccountLinks isAdmin={session?.role === "admin"} advisers={asesores} />
+      <SectionBoundary what="las cuentas de asesores"><AdviserAccountLinks isAdmin={session?.role === "admin"} advisers={asesores} /></SectionBoundary>
     </div>
   );
 }

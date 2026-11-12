@@ -14,9 +14,9 @@ export function LeadProfileEditor({ lead, onDraftChange, readOnly = false }: { l
   React.useEffect(() => { if (draft) name.current?.focus(); }, [draft]);
   const finish = () => { setDraft(null); onDraftChange?.(null); heading.current?.focus(); };
   // Al editar, los grupos de campos son las tarjetas; la ficha en lectura conserva su tarjeta.
-  return <section className={draft ? "flex min-w-0 flex-col gap-4" : "min-w-0 space-y-4 rounded-lg border border-border bg-card p-4 sm:p-5"}>
+  return <section className={draft ? "flex min-w-0 flex-col gap-4" : "min-w-0 space-y-4 rounded-[var(--radius-card)] border border-[var(--card-edge)] bg-card p-5 shadow-[var(--shadow-rest)]"}>
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 ref={heading} tabIndex={-1} className="display-soft text-lg">Perfil del prospecto</h2>
+      <h2 ref={heading} tabIndex={-1} className="m-0 text-[1.0625rem] font-semibold tracking-[-0.01em]">Lo que busca</h2>
       {!draft && !readOnly ? <Button onClick={() => { setDraft({ lead, version: db.leads.version(lead) }); onDraftChange?.(lead); }}>Editar ficha</Button> : null}
     </div>
     {draft ? <AsyncForm className="flex min-w-0 flex-col gap-4" onSubmit={async event => {

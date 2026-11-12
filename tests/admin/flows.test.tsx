@@ -159,7 +159,8 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
     "/admin/perfil", "/",
   ]);
   const tabs = screen.getByRole("navigation", { name: "Secciones principales" });
-  expect(Array.from(tabs.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/operaciones", "/admin/operaciones/nueva", "/admin/contactos"]);
+  expect(Array.from(tabs.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/operaciones", "/admin/contactos"]); // SIM-17: el «+» es un botón que abre «+ Nuevo».
+  expect(within(tabs).getByRole("button", { name: "Nuevo" }).getAttribute("aria-haspopup")).toBe("menu");
   for (const href of ["finanzas", "territorio", "portal-clientes", "expedientes", "leads", "tareas"]) expect(document.querySelector(`a[href="/admin/${href}"]`)).toBeNull();
   fireEvent.click(
     Array.from(nav.querySelectorAll("button")).find((b) =>

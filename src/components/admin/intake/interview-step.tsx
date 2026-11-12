@@ -104,7 +104,7 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
   return <>
     <div className={s.body}>
       <ol className={s.substeps} aria-label="Partes de la entrevista">{screens.map((sc, i) => <li key={sc.title}>
-        <button type="button" aria-current={i === index ? "step" : undefined} disabled={busy || i > index} onClick={() => go(i)}>{i < index ? <Check size={14} aria-hidden="true" /> : <span className="font-mono text-xs">{i + 1}</span>}{sc.title}</button>
+        <button type="button" aria-current={i === index ? "step" : undefined} disabled={busy || i > index} onClick={() => go(i)}>{i < index ? <Check size={14} aria-hidden="true" /> : <span className="tabular-nums text-xs">{i + 1}</span>}{sc.title}</button>
       </li>)}</ol>
       <h1 ref={heading} tabIndex={-1} className={s.title}>{screen.title}</h1>
       <p className={s.lead}>{interview.contacto.nombre}. {prospect ? "Lo básico del primer contacto: la entrevista completa se hace en persona." : "Si no sabe algo, márcalo y seguimos; lo completas después."}</p>

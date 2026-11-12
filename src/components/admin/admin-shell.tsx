@@ -48,7 +48,7 @@ function LoginScreen({
       <div className="w-full max-w-[400px]">
         <div className="flex items-center gap-2.5">
           <BrandMark />
-          <span className="ml-1 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+          <span className="ml-1 text-sm text-muted-foreground">
             Panel
           </span>
         </div>
@@ -147,7 +147,7 @@ function LoginScreen({
                 : "Entrar"}
           </button>
           {sent ? (
-            <p role="status" className="text-sm text-primary-ink">
+            <p role="status" className="text-sm text-[var(--success)]">
               Si el correo tiene acceso, recibirá un enlace de recuperación.
             </p>
           ) : null}
@@ -165,7 +165,7 @@ function LoginScreen({
             </button>
           ) : null}
         </AsyncForm>
-        <DocumentLink href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-primary-ink underline-offset-4 hover:underline">
+        <DocumentLink href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-foreground underline underline-offset-4">
           Volver al sitio
         </DocumentLink>
       </div>

@@ -18,7 +18,9 @@ import s from "./operation.module.css";
 */
 
 type Review = NonNullable<OperationWorkflow["requisitos"][RequirementKey]>;
-export type Evidence = { documents: Array<{ id: string; formato_id: string; version: number; updated_at?: string }>; interview?: { id: string; version: number } | null; reviewer: string };
+export type Evidence = { documents: Array<{ id: string; formato_id: string; version: number; updated_at?: string }>; interview?: { id: string; version: number } | null; reviewer: string;
+  /** COR-17: con la operación, el respaldo puede ser un documento del cliente. */
+  expedienteId?: string };
 type Change = (key: RequirementKey, review: Review | undefined) => Promise<void>;
 
 const STATES: ReviewStateKey[] = ["pendiente", "recibido", "revisado", "observado", "no_aplica"];
@@ -49,7 +51,10 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const expired = state === "revisado" && !done;
   const problem = state === "observado" ? problemOf(review) : null;
   const name = requirementName(requirement, flow.ruta);
-  const detail = expired ? (review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
+  // COR-17: el valor respaldado con el avalúo del propietario vence con el avalúo.
+  const appraisalEnd = requirement === "valor" && review?.evidencia?.tipo === "cliente" ? flow.avaluo?.vigenteHasta : undefined;
+  const detail = expired ? (appraisalEnd && appraisalEnd < today ? `El avalúo venció el ${shortDate(appraisalEnd)}. Registra uno actualizado o haz la opinión de valor.`
+    : review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
     : problem ? problem.title : state === "recibido" ? "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
   const options = STATES.filter(st => st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica");
   const disabled = busy || locked;
@@ -123,7 +128,7 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
   const previous = review?.evidencia;
   // Ya viene elegido el documento que respalda este punto (el 02 para la entrevista, el 04 para el levantamiento…).
   const own = ownDocument(requirement, evidence.documents);
-  const [source, setSource] = React.useState<string>(() => previous?.tipo === "externa" ? "externa" : previous?.tipo === "entrevista" ? "entrevista" : previous && ["documento", "emision", "adjunto"].includes(previous.tipo) ? `doc:${evidence.documents.find(d => d.id === previous.referencia)?.id ?? ""}` : own ? `doc:${own.id}` : evidence.documents[0] ? `doc:${evidence.documents[0].id}` : "externa");
+  const [source, setSource] = React.useState<string>(() => previous?.tipo === "externa" ? "externa" : previous?.tipo === "cliente" ? "cliente" : previous?.tipo === "entrevista" ? "entrevista" : previous && ["documento", "emision", "adjunto"].includes(previous.tipo) ? `doc:${evidence.documents.find(d => d.id === previous.referencia)?.id ?? ""}` : own ? `doc:${own.id}` : evidence.documents[0] ? `doc:${evidence.documents[0].id}` : "externa");
   const [who, setWho] = React.useState(previous?.responsable ?? evidence.reviewer);
   const [date, setDate] = React.useState(previous?.fecha ?? today);
   const [until, setUntil] = React.useState(review?.vigenteHasta ?? "");
@@ -132,6 +137,16 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
   const [limits, setLimits] = React.useState(previous?.limites ?? "");
   const [kept, setKept] = React.useState<string>(previous && ["emision", "adjunto"].includes(previous.tipo) ? `${previous.tipo}:${previous.referencia}` : "");
   const [sources, setSources] = React.useState<{ emisiones: Array<{ id: string; draft_version: number }>; adjuntos: Array<{ id: string; caption: string }> } | null>(null);
+  // COR-17: un documento del cliente respalda cualquier requisito; el valor se respalda con el avalúo, en su tarjeta.
+  const clientOption = !!evidence.expedienteId && requirement !== "valor";
+  const [clientFile, setClientFile] = React.useState(previous?.tipo === "cliente" ? previous.referencia : "");
+  const [clientFiles, setClientFiles] = React.useState<Array<{ id: string; titulo: string }> | null | undefined>(undefined);
+  React.useEffect(() => {
+    if (source !== "cliente" || !evidence.expedienteId) return;
+    let alive = true;
+    apiRequest<{ archivos?: Array<{ id: string; titulo: string }> }>(`/api/admin/expedientes/${evidence.expedienteId}/archivos`).then(r => { if (alive) setClientFiles(r.archivos ?? []); }).catch(() => { if (alive) setClientFiles(null); });
+    return () => { alive = false; };
+  }, [source, evidence.expedienteId]);
   const documentId = source.startsWith("doc:") ? source.slice(4) : "";
   const document = evidence.documents.find(d => d.id === documentId);
   React.useEffect(() => {
@@ -155,6 +170,9 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
     if (source === "externa") {
       if (where.trim().length < 10) return "Escribe el folio o dónde está el documento (al menos 10 caracteres).";
       evidencia = { tipo: "externa", referencia: where.trim(), ...common };
+    } else if (source === "cliente") {
+      if (!clientFile) return "Elige el documento del cliente que lo respalda.";
+      evidencia = { tipo: "cliente", referencia: clientFile, ...common };
     } else if (source === "entrevista" && evidence.interview) {
       evidencia = { tipo: "entrevista", referencia: evidence.interview.id, version: evidence.interview.version, ...common };
     } else if (document) {
@@ -182,16 +200,21 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
       <legend className="mb-2 text-sm font-semibold">¿Con qué lo comprobaste?</legend>
       {evidence.documents.map(d => <label key={d.id} className={s.option}><input type="radio" name="respaldo" checked={source === `doc:${d.id}`} onChange={() => setSource(`doc:${d.id}`)} /><span className="flex min-w-0 flex-col"><strong className="[overflow-wrap:anywhere]">{formatoById(d.formato_id).title}</strong><small className={s.mono}>Versión {d.version}{d.updated_at ? ` · Actualizado el ${shortDate(d.updated_at)}` : ""}</small></span></label>)}
       {evidence.interview && <label className={s.option}><input type="radio" name="respaldo" checked={source === "entrevista"} onChange={() => setSource("entrevista")} /><span className="flex flex-col"><strong>Entrevista terminada</strong><small className="text-muted-foreground">Lo que declaró el cliente en la entrevista</small></span></label>}
+      {clientOption && <label className={s.option}><input type="radio" name="respaldo" checked={source === "cliente"} onChange={() => setSource("cliente")} /><span className="flex flex-col"><strong>Un documento del cliente</strong><small className="text-muted-foreground">Lo que subiste a sus documentos en esta operación</small></span></label>}
       <label className={s.option}><input type="radio" name="respaldo" checked={source === "externa"} onChange={() => setSource("externa")} /><span className="flex flex-col"><strong>Documento fuera del sistema</strong><small className="text-muted-foreground">Lo revisaste en papel o en la notaría</small></span></label>
       <button type="button" className={s.linkButton} onClick={onAddDocument}>Agregar un documento a la operación</button>
     </fieldset>
+    {source === "cliente" && (clientFiles === undefined ? <p className="text-sm text-muted-foreground">Consultando los documentos del cliente…</p>
+      : clientFiles === null ? <p role="alert" className="text-sm text-destructive">No pudimos consultar los documentos del cliente.</p>
+      : clientFiles.length === 0 ? <p className="text-sm text-muted-foreground">Todavía no hay documentos del cliente en esta operación. Súbelo en la pestaña del cliente y vuelve aquí.</p>
+      : <label className="text-sm font-semibold">Documento del cliente<select className={selectClass} value={clientFile} onChange={e => setClientFile(e.target.value)}><option value="">Elige el archivo…</option>{clientFiles.map(f => <option key={f.id} value={f.id}>{f.titulo}</option>)}</select></label>)}
     {source === "externa" && <label className="text-sm font-semibold">Folio o dónde está<input className={inputClass} maxLength={1000} value={where} onChange={e => setWhere(e.target.value)} placeholder="Ej. Escritura 1234, Notaría 5 de Tijuana" /></label>}
     <label className="text-sm font-semibold">Quién lo revisó<input className={inputClass} list="revisores" maxLength={160} value={who} onChange={e => setWho(e.target.value)} /><datalist id="revisores">{advisers.filter(a => a.activo !== false).map(a => <option key={a.id} value={a.nombre} />)}</datalist></label>
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-sm font-semibold">Fecha de revisión<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label>
       {hasValidity(requirement) && <label className="text-sm font-semibold">Vigente hasta<input type="date" className={inputClass} value={until} onChange={e => setUntil(e.target.value)} /></label>}
     </div>
-    {hasValidity(requirement) && <p className="-mt-3 text-sm text-muted-foreground">Una semana antes de que venza aparece en Hoy, en «Próximos 7 días».</p>}
+    {hasValidity(requirement) && <p className="-mt-3 text-sm text-muted-foreground">Una semana antes de que venza aparece en Hoy, en «Esta semana».</p>}
     <details className={s.more}><summary>Más detalles</summary><div className="mt-3 flex flex-col gap-4">
       {document && <label className="text-sm font-semibold">Usar el PDF generado o un archivo de este documento<select className={selectClass} value={kept} onChange={e => setKept(e.target.value)}><option value="">El documento en su versión {document.version}</option>{(sources?.emisiones ?? []).map(e => <option key={e.id} value={`emision:${e.id}`}>PDF generado · versión {e.draft_version}</option>)}{(sources?.adjuntos ?? []).map(a => <option key={a.id} value={`adjunto:${a.id}`}>Archivo · {a.caption}</option>)}</select></label>}
       <label className="text-sm font-semibold">Límites o condiciones<textarea className={textareaClass} rows={2} maxLength={1000} value={limits} onChange={e => setLimits(e.target.value)} /></label>

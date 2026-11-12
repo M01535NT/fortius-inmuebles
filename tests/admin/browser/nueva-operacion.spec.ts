@@ -77,11 +77,11 @@ for (const width of [320, 390, 768, 1440]) {
     await page.goto("/admin/operaciones/nueva");
     await expect(page.getByRole("heading", { name: "¿Qué quiere hacer el cliente?" })).toBeVisible();
     await expect(page.getByText("Paso 1 de 4")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continuar", exact: true })).toBeDisabled();
-    await page.getByRole("radio", { name: /^Vender su inmueble/ }).click();
+    // SIM-17: el paso 1 avanza al elegir; no hay «Continuar» que pulsar.
+    await expect(page.getByRole("button", { name: "Continuar", exact: true })).toHaveCount(0);
     await shot("paso-1");
     if (width === 1440) await noAxeViolations(page);
-    await page.getByRole("button", { name: "Continuar", exact: true }).click();
+    await page.getByRole("radio", { name: /^Vender su inmueble/ }).click();
 
     await expect(page.getByRole("heading", { name: "¿Quién es?" })).toBeVisible();
     await page.getByLabel("Nombre completo").fill("Propietaria de ensayo");

@@ -21,7 +21,7 @@ Estas instrucciones orientan el trabajo en todo el repositorio. Respeta las inst
 | Tema | Fuente que debes consultar |
 | --- | --- |
 | Producto y operación | `docs/PRODUCT.md`, `docs/admin-manual.md`, `docs/admin-workspace.md` |
-| Desarrollo ERP/CRM | `PLAN_ERP_CRM.md` |
+| Desarrollo ERP/CRM | `PLAN_ERP_CRM.md`; lo ya terminado y los registros de sesiones pasadas, en `docs/erp-crm/historial-del-plan.md` (consulta, no plan) |
 | Panel guiado | `docs/diseno/ENCARGO_REDISENO_PANEL.md` y `docs/diseno/lienzo-panel/` |
 | Marca | `docs/brand.md`, `public/brand/`, tokens del CSS existente |
 | Identificadores y compatibilidad | `docs/fortius-inmuebles-identity.md` |

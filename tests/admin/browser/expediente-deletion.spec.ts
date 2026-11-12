@@ -17,18 +17,20 @@ for(const width of [390,1440]){
    if(url.pathname==="/api/admin/entrevistas")return route.fulfill({json:{entrevistas:[]}});
    return route.fulfill({json:{records:[]}});
   });
-  await page.goto("/admin/operaciones/"+exp.id+"?tab=ajustes");
-  await page.getByRole("button",{name:"Eliminar operación",exact:true}).click();
-  const dialog=page.getByRole("dialog");
-  await expect(dialog).toContainText("Puedes restaurarla");
+  // SIM-18: eliminar vive en «Más opciones» del panel azul.
+  await page.goto("/admin/operaciones/"+exp.id);
+  const eliminar=async()=>{await page.getByRole("button",{name:"Más opciones",exact:true}).click();await page.getByRole("menuitem",{name:"Eliminar operación",exact:true}).click();};
+  await eliminar();
+  const dialog=page.getByRole("dialog").filter({hasText:"Puedes restaurarla"});
+  await expect(dialog).toBeVisible();
   await dialog.getByRole("button",{name:"Cancelar",exact:true}).click();
   expect(removed).toBe(false);
-  await page.getByRole("button",{name:"Eliminar operación",exact:true}).click();
-  await page.getByRole("dialog").getByRole("button",{name:"Eliminar",exact:true}).click();
+  await eliminar();
+  await page.getByRole("dialog").filter({hasText:"Puedes restaurarla"}).getByRole("button",{name:"Eliminar",exact:true}).click();
   await expect(page.getByText("Esta operación está eliminada")).toBeVisible();
   await page.reload();
   await expect(page.getByRole("button",{name:"Restaurar operación",exact:true})).toBeVisible();
-  await expect(page.getByRole("button",{name:"Crear y abrir",exact:true})).toHaveCount(0);
+  await expect(page.getByRole("button",{name:"Agregar documento",exact:true})).toHaveCount(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath("operacion-eliminada-"+width+".png"),fullPage:true});
   await page.goto("/admin/operaciones?eliminadas=1");
@@ -36,7 +38,7 @@ for(const width of [390,1440]){
   await page.goto("/admin/operaciones/"+exp.id);
   await page.getByRole("button",{name:"Restaurar operación",exact:true}).click();
   await expect(page.getByRole("main").getByRole("status").first()).toContainText("Operación restaurada");
-  await page.getByRole("tab",{name:/^Expediente/}).click();
-  await expect(page.getByRole("button",{name:"Crear y abrir",exact:true})).toBeVisible();
+  await page.getByRole("tab",{name:/^Documentos/}).click();
+  await expect(page.getByRole("button",{name:"Agregar documento",exact:true})).toBeVisible();
  });
 }

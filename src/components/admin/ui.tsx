@@ -86,7 +86,7 @@ export function Badge({
 }) {
   const tones = {
     neutral: "border-border bg-secondary text-foreground/80",
-    green: "border-primary/40 bg-primary/10 text-primary-ink",
+    green: "border-[var(--success)]/40 bg-[var(--success-surface)] text-[var(--success)]",
     amber:
       "border-warning-border bg-warning-surface text-warning",
     red: "border-destructive/40 bg-destructive/10 text-destructive",
@@ -94,7 +94,7 @@ export function Badge({
   return (
     <span
       className={
-        "admin-badge inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-xs uppercase tracking-[0.05em] " +
+        "admin-badge inline-flex items-center rounded-sm border px-2 py-0.5 text-xs font-semibold " +
         tones[tone]
       }
     >

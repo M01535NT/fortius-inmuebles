@@ -12,7 +12,7 @@ function verified(resolution = true): OperationWorkflow {
 
 describe("proceso de comercialización", () => {
   it("define diez etapas en el orden del titular", () => {
-    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
+    expect(SALE_PROCESS.map(p => p.label)).toEqual(["Primer contacto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"]);
     expect(new Set(SALE_PROCESS.flatMap(p => p.etapas))).toEqual(new Set(WORKFLOW_STAGES));
   });
   it("cada estado interno del propietario corresponde a una etapa", () => {
@@ -23,7 +23,7 @@ describe("proceso de comercialización", () => {
     const flow = emptyWorkflow("captacion");
     expect(processPhase("captacion", flow, today)).toBe("prospecto");
     expect(processPhase("captacion", flow, today, { iniciada: true })).toBe("captacion");
-    expect(processStageText("captacion", flow, today)).toBe("Prospecto");
+    expect(processStageText("captacion", flow, today)).toBe("Primer contacto");
     expect(processStageText("captacion", flow, today, { iniciada: true })).toBe("Entrevista inicial");
     expect(processPhase("captacion", emptyWorkflow("compra"), today)).toBe("captacion");
     expect(processPhase("captacion", flow, today, { iniciada: true, emitida: true, levantamiento: "borrador" })).toBe("levantamiento");

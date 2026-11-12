@@ -1,9 +1,9 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Button, Card, Notice } from "@/components/admin/kit";
+import { Button, Card } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
-import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
+import { confirmAction } from "@/components/admin/workspace/confirm";
 import { db, useCollection, useSession } from "@/lib/admin/store";
 import { discardReasonOf, DISCARD_REASONS, RESOLUTION_TYPES, stageLabel, WORKFLOW_ROUTES, WORKFLOW_STAGES, WORKFLOW_STATES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { flowOf, isGuided, routeStages, stageOf, type OperationRecord } from "@/lib/admin/operation-view";
@@ -14,10 +14,11 @@ const ROLE: Record<string, string> = { captacion: "Propietario vendedor", compra
 const OPPOSITE: Record<string, string> = { captacion: "compra", compra: "captacion", arrendador: "arrendatario", arrendatario: "arrendador", inversion: "" };
 
 /**
-  Ajustes: la decisión del encargo, la ruta y situación, el inmueble, la fecha objetivo,
-  la contraparte, corregir la etapa con motivo y eliminar (se puede restaurar).
+  Datos de la operación (antes pestaña «Ajustes»; desde SIM-18 se abren en «Más opciones»): la
+  decisión del encargo, la ruta y situación, el inmueble, la fecha objetivo, la contraparte y
+  corregir la etapa con motivo. Eliminar está en el mismo menú.
 */
-export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }: { op: OperationRecord; all: OperationRecord[]; today: string; onSave: Save; onRemove: () => Promise<void>; onDirtyChange: (dirty: boolean) => void }) {
+export function SettingsTab({ op, all, today, onSave, onDirtyChange }: { op: OperationRecord; all: OperationRecord[]; today: string; onSave: Save; onDirtyChange: (dirty: boolean) => void }) {
   const session = useSession();
   const properties = useCollection(db.propiedades), tasks = useCollection(db.tareas), leads = useCollection(db.leads);
   const original = flowOf(op), stage = stageOf(op);
@@ -52,16 +53,12 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
     const before = routeStages(op, today).phase;
     let opened = false;
     await run(() => onSave({ flujo: flow, propiedadSlug: property || null, fechaObjetivo: date || null }).then(saved => { opened = before === "verificacion" && routeStages(saved as OperationRecord, today).phase === "contrato"; }), "Guardado");
-    if (opened) setNotice("Guardado. Verificación terminada: ya puedes trabajar el contrato en «Lo que sigue».");
+    if (opened) setNotice("Guardado. Verificación terminada: ya puedes trabajar el contrato en la etapa.");
   }
   async function goBack() {
     if (!back || flow.motivo.trim().length < 3) { setError("Elige la etapa y escribe el motivo de la corrección."); return; }
     if (!await confirmAction(`¿Regresar la operación a «${stageLabel(back, flow.ruta)}»? Queda registrado con tu motivo.`)) return;
     await run(() => onSave({ flujo: flow, etapa: back, propiedadSlug: property || null, fechaObjetivo: date || null }).then(() => setBack("")), "Etapa corregida");
-  }
-  async function remove() {
-    if (!await confirmDeleteOperation(op.folio)) return;
-    await run(onRemove, "");
   }
   return <form onSubmit={save} className="flex max-w-[56rem] flex-col gap-5">
     <fieldset disabled={busy} className="flex min-w-0 flex-col gap-5">
@@ -84,7 +81,7 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
         <h2 className="m-0 text-lg sm:col-span-2">Datos de la operación</h2>
         {guided && <label className="text-sm font-semibold">Ruta<select className={selectClass} value={flow.ruta} onChange={e => setFlow(old => ({ ...old, ruta: e.target.value as OperationWorkflow["ruta"] }))}>{routeChoices.map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
         {guided && <label className="text-sm font-semibold">Situación<select className={selectClass} value={flow.estado} onChange={e => setFlow(old => ({ ...old, estado: e.target.value as OperationWorkflow["estado"] }))}>{Object.entries(WORKFLOW_STATES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>}
-        <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={property} onChange={e => setProperty(e.target.value)}><option value="">Sin vincular todavía</option>{property && !available.some(p => p.slug === property) && <option value={property}>Inmueble vinculado no disponible</option>}{available.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select></label>
+        <label className="text-sm font-semibold">Inmueble<select className={selectClass} value={property} onChange={e => setProperty(e.target.value)}><option value="">Sin vincular todavía</option>{property && !available.some(p => p.slug === property) && <option value={property}>Inmueble vinculado no disponible</option>}{available.map(p => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}</select></label>
         <label className="text-sm font-semibold">Fecha objetivo<input type="date" value={date} className={inputClass} onChange={e => setDate(e.target.value)} /></label>
         {guided && flow.estado === "descartada" && <label className="text-sm font-semibold sm:col-span-2">Motivo del descarte<select className={selectClass} value={discardReasonOf(flow.motivo) ?? ""} onChange={e => setFlow(old => { const detail = discardReasonOf(old.motivo) ? old.motivo.slice(discardReasonOf(old.motivo)!.length).replace(/^:\s*/, "") : old.motivo; return { ...old, motivo: e.target.value ? `${e.target.value}${detail.trim() ? `: ${detail.trim()}` : ""}` : detail }; })}><option value="">Elige el motivo</option>{DISCARD_REASONS.map(r => <option key={r} value={r}>{r}</option>)}</select></label>}
         {guided && <label className="text-sm font-semibold sm:col-span-2">Motivo de pausa, regularización, descarte o corrección<textarea rows={2} maxLength={1000} className={textareaClass} value={flow.motivo} onChange={e => setFlow(old => ({ ...old, motivo: e.target.value }))} /></label>}
@@ -113,11 +110,6 @@ export function SettingsTab({ op, all, today, onSave, onRemove, onDirtyChange }:
         <Button className="self-start" disabled={!back || flow.motivo.trim().length < 3 || busy} onClick={() => void goBack()}>Regresar con este motivo</Button>
       </Card>}
 
-      <Card className="flex flex-col gap-3 p-5" aria-label="Eliminar operación">
-        <div><h2 className="m-0 text-lg">Eliminar operación</h2><p className="mt-1 text-sm text-muted-foreground">Se mueve a «Operaciones eliminadas» con sus documentos, PDF y tareas. Puedes restaurarla desde ahí cuando quieras.</p></div>
-        {dirty && <Notice tone="info">Guarda o descarta los cambios antes de eliminar.</Notice>}
-        <Button variant="danger" className="self-start" disabled={busy || dirty} onClick={() => void remove()}>Eliminar operación</Button>
-      </Card>
     </fieldset>
   </form>;
 }

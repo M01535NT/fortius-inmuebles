@@ -14,7 +14,7 @@ import type { AppRun } from "@/lib/apps/types";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { VALOR_DEFAULTS } from "@/lib/formatos/valor-fields";
 import { copiaEditable, downloadValorExcel } from "@/lib/admin/download-word";
-import { cn } from "@/lib/utils";
+import { cn, humanDateTime } from "@/lib/utils";
 
 /*
   Documentos sin expediente: acceso directo a opiniones, contratos y propuestas sin recorrer
@@ -57,8 +57,8 @@ export function DocumentosSinExpediente() {
   }
 
   return <div className="flex flex-col gap-6">
-    <Link href="/admin/herramientas" className="inline-flex items-center gap-2 text-sm"><ArrowLeft size={16} aria-hidden="true" />Todas las aplicaciones</Link>
-    <PageHeader title="Documentos sin expediente" description="Opiniones, contratos o propuestas sin abrir una operación, con el diseño de su plantilla." />
+    <Link href="/admin/herramientas" className="inline-flex items-center gap-2 text-sm"><ArrowLeft size={16} aria-hidden="true" />Más</Link>
+    <PageHeader title="Documentos sueltos" description="Opiniones, contratos o propuestas sin abrir una operación, con el diseño de su plantilla." />
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
     <section aria-labelledby="nuevo-documento" className="flex flex-col gap-3">
@@ -70,7 +70,7 @@ export function DocumentosSinExpediente() {
         const definition = formatoById(id);
         return <li key={id}><button type="button" className="flex w-full flex-col items-start gap-0.5 rounded-[12px] border border-border p-3 text-left hover:bg-secondary/60"
           onClick={() => setOpen({ run: null, formatoId: id, title: name.trim() ? `${definition.title} · ${name.trim()}` : definition.title })}>
-          <span className="font-mono text-xs text-muted-foreground">{id}{definition.readyForEmission ? "" : " · solo Word"}</span>
+          <span className="tabular-nums text-xs text-muted-foreground">{id}{definition.readyForEmission ? "" : " · solo Word"}</span>
           <span className="font-semibold">{definition.title}</span>
         </button></li>;
       })}</ul>
@@ -85,7 +85,7 @@ export function DocumentosSinExpediente() {
         : runs.length === 0 ? <p className="text-sm text-muted-foreground">{deleted ? "No hay documentos eliminados." : "Todavía no hay documentos. Elige un formato arriba para empezar."}</p>
         : <ul className="flex flex-col divide-y divide-border rounded-[12px] border border-border">{runs.map(run => <li key={run.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
           <div className="min-w-0"><p className="m-0 font-semibold [overflow-wrap:anywhere]">{run.title}</p>
-            <p className="m-0 text-xs text-muted-foreground">{formatoOf(run)} · versión {run.version} · {new Date(run.updatedAt).toLocaleDateString("es-MX")}</p></div>
+            <p className="m-0 text-xs text-muted-foreground">{formatoOf(run)} · versión {run.version} · {humanDateTime(run.updatedAt)}</p></div>
           <div className="flex gap-2">{!deleted && <Button variant="ghost" onClick={() => void openRun(run)}>Abrir</Button>}<Button variant="ghost" onClick={() => void toggle(run)}>{deleted ? "Restaurar" : "Eliminar"}</Button></div>
         </li>)}</ul>}
       {next !== null && <Button variant="ghost" className="self-start" onClick={() => load(next).catch(e => setError(errorMessage(e)))}>Cargar más</Button>}
@@ -201,15 +201,15 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
         <ol className="flex flex-col gap-1">{sections.map((item, i) => <li key={item}>
           <button type="button" aria-current={i === index ? "step" : undefined} disabled={!!busy} onClick={() => i !== index && go(i)}
             className={cn("flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm", i === index ? "bg-secondary font-semibold" : "hover:bg-secondary/60")}>
-            {pendingBySection[i] === 0 ? <Check size={15} aria-hidden="true" className="shrink-0 text-[var(--success,#2f7d4f)]" /> : <span className="w-[15px] shrink-0 text-center font-mono text-xs">{i + 1}</span>}
+            {pendingBySection[i] === 0 ? <Check size={15} aria-hidden="true" className="shrink-0 text-[var(--success,#2f7d4f)]" /> : <span className="w-[15px] shrink-0 text-center tabular-nums text-xs">{i + 1}</span>}
             <span className="flex-1">{item}</span>
-            {pendingBySection[i] > 0 && <span className="font-mono text-xs text-muted-foreground" aria-label={`${pendingBySection[i]} pendientes`}>{pendingBySection[i]}</span>}
+            {pendingBySection[i] > 0 && <span className="tabular-nums text-xs text-muted-foreground" aria-label={`${pendingBySection[i]} pendientes`}>{pendingBySection[i]}</span>}
           </button>
         </li>)}</ol>
       </nav>
       <div data-scroll className="min-w-0 flex-1 overflow-auto px-4 py-5 sm:px-8">
         <div className="mx-auto flex max-w-3xl flex-col gap-5">
-          <p className="font-mono text-xs text-muted-foreground lg:hidden">Sección {index + 1} de {sections.length}</p>
+          <p className="tabular-nums text-xs text-muted-foreground lg:hidden">Sección {index + 1} de {sections.length}</p>
           <h3 ref={heading} tabIndex={-1} className="m-0 text-xl font-bold">{section}</h3>
           {section === IMAGES ? <FormatoImages documentId={run?.id ?? draftId} values={values} disabled={!!busy} source={images} onChange={(key, value) => setValues(old => ({ ...old, [key]: value }))} />
             : <fieldset disabled={!!busy} className="min-w-0">

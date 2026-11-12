@@ -3,7 +3,8 @@ import { afterEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import AdminDashboard from "@/app/admin/page";
 import { clearAdminCache } from "@/lib/admin/store";
-import { greeting, interviewProgress, interviewSummary, longDate, overdueReports, stageCounts, todayTasks, upcomingItems, waitingItems, weekDays, type TodayDossier } from "@/lib/admin/today";
+import { resetTodayData } from "@/components/admin/workspace/use-today-queue";
+import { requirementName, greeting, interviewProgress, interviewSummary, longDate, overdueReports, queueFromExpiry, queueFromInterviews, queueFromLeads, queueFromReports, queueFromWaiting, sortQueue, todayTasks, upcomingItems, waitingItems, weekDays, type TodayDossier } from "@/lib/admin/today";
 import type { Task } from "@/lib/tasks";
 
 const today = "2026-10-16";
@@ -15,7 +16,7 @@ const dossier = (over: Partial<TodayDossier> & { requisitos?: Record<string, unk
   return { id: "d1", folio: "EXP-2026-038", etapa: "documentacion", cliente_id: "c1", propiedad_slug: "casa", asesor_id: "a1", flujo: { version: 1, ruta: "captacion", estado: "activa", motivo: "", requisitos } as TodayDossier["flujo"], ...rest };
 };
 
-afterEach(() => { cleanup(); clearAdminCache(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); clearAdminCache(); resetTodayData(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 test("Esperan algo de ti shows one card per operation with its most urgent reason", () => {
   const items = waitingItems({ today, names, offers: [], followups: [], tasks: [task({ id: "late", expedienteId: "d1", vence: "2026-10-13", titulo: "Pedir el predial" })], dossiers: [
@@ -81,13 +82,23 @@ test("the overdue task behind a waiting card is named so «Tareas de hoy» does 
   expect(items[0].taskId).toBe("late");
 });
 
-test("operations in progress are counted by stage, the busiest first; the week lists the seven days after today", () => {
-  const counts = stageCounts([
-    dossier({ etapa: "comercializacion" }), dossier({ id: "d2", folio: "EXP-2", etapa: "comercializacion" }),
-    dossier({ id: "d3", folio: "EXP-3", etapa: "negociacion" }), dossier({ id: "d4", folio: "EXP-4", etapa: "cerrado" }),
-    dossier({ id: "d5", folio: "EXP-5", flujo: { version: 1, ruta: "captacion", estado: "descartada", motivo: "", requisitos: {} } }),
-  ], today);
-  expect(counts).toEqual([{ label: "Publicación y seguimiento", count: 2 }, { label: "Visitas y ofertas", count: 1 }]);
+test("SIM-16: the single queue puts what is late first, then by kind, and names each pending once", () => {
+  const waiting = waitingItems({ today, names, offers: [], followups: [{ id: "f1", kind: "lead", personId: "l1", personName: "Rosa Prospecto", fecha: today, href: "/admin/leads/l1" }], tasks: [task({ id: "late", expedienteId: "d1", vence: "2026-10-13", titulo: "Pedir el predial" })], dossiers: [
+    dossier({}), dossier({ id: "d2", folio: "EXP-2026-041", requisitos: { valor: review("recibido", { registradoEl: `${today}T09:00:00Z` }) } }),
+  ] });
+  const queue = sortQueue([
+    ...queueFromWaiting(waiting),
+    ...queueFromLeads([{ id: "w1", who: "Llegó del sitio", detail: "Dejó sus datos", since: "Lleva 3 h sin respuesta", late: true, href: "/admin/leads/w1", forDirector: true }, { id: "w2", who: "Recién llegado", detail: "Dejó sus datos", since: "Llegó hace 5 min", late: false, href: "/admin/leads/w2", forDirector: true }]),
+    ...queueFromInterviews([{ id: "e1", intencion: "vender", respuestas: {}, estado: "borrador", version: 1, contacto: { nombre: "Héctor Gaxiola" }, updated_at: "2026-10-15T10:00:00Z" } as never]),
+    ...queueFromExpiry([{ id: "contrato:d2", date: "2026-10-20", kind: "Contrato", text: "El contrato de servicio vence en 4 días.", meta: "Familia Navarro · Exclusiva", late: false, href: "/admin/operaciones/d2" }]),
+    ...queueFromReports(overdueReports({ today, names, reports: { d2: "2026-09-01T12:00:00Z" }, dossiers: [dossier({ id: "d2", folio: "EXP-2026-041", etapa: "comercializacion" })] })),
+  ]);
+  expect(queue.map(item => [item.kind, item.who, item.late])).toEqual([
+    ["vencida", "Familia Navarro", true], ["nuevo", "Llegó del sitio", true], ["informe", "Familia Navarro", true],
+    ["nuevo", "Recién llegado", false], ["contrato", "Familia Navarro · Exclusiva", false], ["revisar", "Familia Navarro", false], ["entrevista", "Héctor Gaxiola", false], ["seguimiento", "Rosa Prospecto", false],
+  ]);
+  expect(queue[0]).toMatchObject({ text: "Pedir el predial", taskId: "late", when: "Vencida desde el 13 oct" });
+  expect(new Set(queue.map(item => item.id)).size).toBe(queue.length);
   expect(weekDays(today)).toEqual(["2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
 });
 
@@ -131,11 +142,11 @@ test("a task is marked done from Hoy and the change is saved", async () => {
     return Response.json({ records: url.endsWith("/tareas") ? [{ id: "t1", data: due, version: 1 }] : [] });
   });
   render(<AdminDashboard />);
-  const region = within(await screen.findByRole("region", { name: "Tareas de hoy" }));
+  const region = within(await screen.findByRole("list", { name: "Tareas de hoy" }));
   fireEvent.click(await region.findByRole("checkbox", { name: "Marcar como hecha: Confirmar la visita" }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ id: "t1", estado: "completada" });
-  expect(await region.findByText("Guardado")).toBeTruthy();
+  expect(await screen.findByText("Guardado")).toBeTruthy();
 });
 
 test("C40: a client with an active operation is not listed again for the profile follow-up", () => {
@@ -164,4 +175,37 @@ test("COR-21: los prospectos del sitio sin atender le tocan a su asesor, al del 
   // El asesor del inmueble ve el suyo; otro asesor no ve nada.
   expect(unattendedLeads({ leads, properties, me: "a2", admin: false, now }).map(i => i.id)).toEqual(["w1"]);
   expect(unattendedLeads({ leads, properties, me: "a3", admin: false, now })).toEqual([]);
+});
+
+test("COR-05: la cola de Hoy usa el mismo motivo y orden que Operaciones (RP-84)", () => {
+  const base = { today, names, followups: [], offers: [] };
+  // Vence hoy: antes no aparecía en Hoy, aunque Operaciones sí lo marcaba.
+  const due = waitingItems({ ...base, tasks: [task({ id: "hoy", expedienteId: "d1", vence: today, titulo: "Confirmar la cita" })], dossiers: [dossier({ etapa: "captacion" })] });
+  expect(due[0]).toMatchObject({ kind: "hoy", reason: "Vence hoy: Confirmar la cita", when: "Hoy", taskId: "hoy" });
+  expect(queueFromWaiting(due)[0]).toMatchObject({ kind: "hoy" });
+  // Una etapa anterior sin su documento cuenta como en Operaciones cuando se conocen los formatos.
+  const gap = waitingItems({ ...base, tasks: [task({ expedienteId: "d1", vence: "2026-10-20" })], formats: new Map([["d1", new Map([["02", true]])]]), dossiers: [dossier({ inicial: { iniciada: true, emitida: true } })] });
+  expect(gap[0]).toMatchObject({ kind: "falta" });
+  expect(gap[0].reason).toMatch(/^Falta .* de una etapa anterior\.$/);
+  // El orden de las tarjetas sigue RP-84: problema, vencida, falta, revisar, vence hoy, oferta, agendar.
+  const ranks = sortQueue(queueFromWaiting(waitingItems({ ...base, offers: [{ id: "o", updatedAt: "2026-10-15T20:00:00Z", context: { expedienteId: "d5" } }], tasks: [
+    task({ id: "a", expedienteId: "d2", vence: "2026-10-10" }), task({ id: "b", expedienteId: "d4", vence: today }), task({ id: "c", expedienteId: "d5", vence: "2026-10-20" }), task({ id: "d", expedienteId: "d3", vence: "2026-10-20" }),
+  ], dossiers: [
+    dossier({ id: "d6", folio: "EXP-6", etapa: "captacion" }),
+    dossier({ id: "d5", folio: "EXP-5", etapa: "captacion" }),
+    dossier({ id: "d4", folio: "EXP-4", etapa: "captacion" }),
+    dossier({ id: "d3", folio: "EXP-3", requisitos: { valor: review("recibido") } }),
+    dossier({ id: "d2", folio: "EXP-2", etapa: "captacion" }),
+    dossier({ id: "d1", folio: "EXP-1", requisitos: { titularidad: review("observado") } }),
+  ] }))).map(item => item.kind);
+  expect(ranks).toEqual(["problema", "vencida", "revisar", "hoy", "decidir", "agendar"]);
+});
+
+test("COR-07 (RP-86, DEC-27): los nombres sencillos no prometen más que el requisito", () => {
+  expect(requirementName("firma")).toBe("Firma acreditada");
+  expect(requirementName("pago")).toBe("Pagos para entregar cumplidos según contrato");
+  expect(requirementName("privacidad")).toBe("Aviso y controles de privacidad revisados");
+  expect(requirementName("firma", "arrendador")).toBe("Contrato de arrendamiento firmado");
+  expect(requirementName("pago", "arrendador")).toBe("Depósito y primera renta recibidos");
+  for (const key of ["firma", "pago", "privacidad"] as const) expect(requirementName(key)).not.toMatch(/notario|completo|firmado/i);
 });

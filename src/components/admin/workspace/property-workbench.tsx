@@ -370,7 +370,7 @@ export function PropertyWorkbench({
               />
             )}
             <div className="space-y-4 p-5">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {preview.operacion} · {preview.codigo}
               </p>
               <h2 className="display-soft text-3xl">

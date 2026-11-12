@@ -39,7 +39,7 @@ async function subir(operationId: string, file: File): Promise<ArchivoCliente> {
   return r.archivo;
 }
 
-export function ClientDocumentsTab({ operationId }: { operationId: string }) {
+export function ClientDocumentsTab({ operationId, incoming }: { operationId: string; incoming?: { files: File[]; n: number } }) {
   const advisers = useCollection(db.asesores);
   const [lista, setLista] = React.useState<Lista | null | undefined>(undefined);
   const [subiendo, setSubiendo] = React.useState<string[]>([]);
@@ -88,6 +88,14 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
     try { setNotice(await leer(archivo)); } catch (cause) { setError(errorMessage(cause)); }
   }
 
+  // Lo elegido con «Agregar documento» (arriba de Documentos) se sube una sola vez.
+  const recibidos = React.useRef(0);
+  React.useEffect(() => {
+    if (!incoming || incoming.n === recibidos.current) return;
+    recibidos.current = incoming.n;
+    void agregar(incoming.files);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando llega una nueva selección
+  }, [incoming]);
   async function agregar(files: FileList | File[] | null) {
     const todos = Array.from(files ?? []);
     if (!todos.length) return;
@@ -143,7 +151,7 @@ export function ClientDocumentsTab({ operationId }: { operationId: string }) {
         <Upload size={28} aria-hidden="true" />
         <p className="text-sm">Arrastra los archivos aquí o</p>
         <div className="flex flex-wrap justify-center gap-2">
-          <Button variant="primary" disabled={subiendo.length > 0} onClick={() => elegir.current?.click()}><Upload size={16} aria-hidden="true" />Elegir archivos</Button>
+          <Button disabled={subiendo.length > 0} onClick={() => elegir.current?.click()}><Upload size={16} aria-hidden="true" />Elegir archivos</Button>
           <Button disabled={subiendo.length > 0} onClick={() => camara.current?.click()}><Camera size={16} aria-hidden="true" />Tomar foto</Button>
         </div>
         <input ref={elegir} type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp" className="sr-only" aria-label="Elegir archivos" tabIndex={-1} onChange={event => { void agregar(event.target.files); event.target.value = ""; }} />

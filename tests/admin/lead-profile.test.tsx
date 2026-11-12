@@ -1,6 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { ContactsScreen } from "@/components/admin/contacts/contacts";
 import { clearAdminCache, db, type Lead } from "@/lib/admin/store";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 
@@ -18,10 +17,14 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); clearAdminCache(); });
 const change = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label, { exact: true }), { target: { value } });
+/*
+  SIM-17: el alta de una persona nueva es el asistente único; los campos del prospecto
+  (LeadFields) se prueban en la ficha, con un prospecto recién creado y sin versión.
+*/
 function openCapture() {
-  render(<ContactsScreen />);
-  fireEvent.click(screen.getAllByRole("button", { name: "Agregar contacto" })[0]);
-  fireEvent.click(screen.getByRole("button", { name: "Busca comprar o rentar" }));
+  const lead: Lead = { id: "nuevo", nombre: "", telefono: "", origen: "manual", estado: "nuevo", creadoEl: "2026-09-23", notas: [] };
+  render(<LeadProfileEditor lead={lead} />);
+  fireEvent.click(screen.getByRole("button", { name: "Editar ficha" }));
   change("Nombre", "Persona de prueba"); change("Teléfono", "6641234567");
 }
 test("manual lead stores email and a structured search independently of a property", async () => {
@@ -32,13 +35,13 @@ test("manual lead stores email and a structured search independently of a proper
   change("Presupuesto mínimo", "100000"); change("Presupuesto máximo", "250000"); change("Moneda", "USD");
   change("Forma de pago", "mixto"); change("Origen de ingresos", "estados-unidos");
   change("Tipo de crédito", "bancario"); change("Estado del crédito", "en-tramite");
-  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar ficha" }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ version: null, data: { email: "prueba@example.invalid", zona: "Otay", tipoPropiedad: "terreno", perfil: { operacion: "comprar", uso: "industrial", presupuestoMin: 100000, presupuestoMax: 250000, moneda: "USD", formaPago: "mixto", origenIngresos: "estados-unidos", tipoCredito: "bancario", estadoCredito: "en-tramite" } } });
 });
 test("invalid budget prevents a write and preserves the draft", async () => {
   openCapture(); change("Presupuesto mínimo", "500"); change("Presupuesto máximo", "100"); change("Moneda", "MXN");
-  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar ficha" }));
   expect((await screen.findByRole("alert")).textContent).toMatch(/mínimo|máximo/i);
   expect(writes).toHaveLength(0);
   expect((screen.getByLabelText("Nombre") as HTMLInputElement).value).toBe("Persona de prueba");
@@ -55,7 +58,7 @@ test("operation changes the capture fields and saves an owner's asking price", a
   change("Superficie construida (m²)", "180");
   change("Precio de venta esperado", "3500000");
   change("Moneda", "MXN");
-  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar ficha" }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ data: { zona: "Hipódromo", perfil: { operacion: "vender", superficieConstruccion: 180, precioObjetivo: 3500000, moneda: "MXN" } } });
 });
@@ -81,7 +84,7 @@ test("switching from purchase to sale removes incompatible answers on save", asy
   change("Operación", "vender");
   change("Precio de venta esperado", "2500000");
   change("Moneda", "MXN");
-  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar ficha" }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ data: { perfil: { operacion: "vender", precioObjetivo: 2500000 } } });
   expect((writes[0].data as Lead).perfil).not.toHaveProperty("presupuestoMax");

@@ -16,7 +16,7 @@
 :global(.admin-root) .pill[aria-current=page] .count { background: #fff; color: #061f3f; }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .pill { transition: background-color 120ms; } }
 /* Con menos ancho, las píldoras conservan el ícono y el nombre queda para el lector de pantalla. */
-@media (max-width: 1099px) {
+@media (max-width: 1279px) {
   :global(.admin-root) .pill { padding: 0 .75rem; }
   :global(.admin-root) .pillLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
@@ -30,6 +30,9 @@
 :global(.admin-root) .menuWrap { position: relative; }
 :global(.admin-root) .pop { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 40; min-width: 15rem; display: flex; flex-direction: column; gap: .125rem; padding: .375rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-lift); transform-origin: top right; }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .pop { animation: popDown 160ms var(--ease-out); } }
+/* SIM-17: el «+» del celular abre «+ Nuevo» hacia arriba, centrado sobre la barra. */
+:global(.admin-root) .popUp { top: auto; bottom: calc(100% + .75rem); right: 50%; transform: translateX(50%); transform-origin: bottom center; }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .popUp { animation: none; } }
 @keyframes popDown { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
 :global(.admin-root) .popHead { display: flex; flex-direction: column; gap: .125rem; padding: .5rem .75rem .625rem; border-bottom: 1px solid var(--border); margin-bottom: .25rem; }
 :global(.admin-root) .link { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-thumb); background: none; color: var(--foreground); font-size: .9375rem; font-weight: 480; text-align: left; text-decoration: none; cursor: pointer; }
@@ -73,6 +76,8 @@
 /* Barra inferior flotante (celular) */
 :global(.admin-root) .tabbar { position: fixed; z-index: 40; left: .75rem; right: .75rem; bottom: calc(.75rem + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; height: 4.25rem; padding: 0 .25rem; background: color-mix(in srgb, var(--card) 94%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--card-edge); border-radius: 22px; box-shadow: var(--shadow-float); }
 @media (min-width: 768px) { :global(.admin-root) .tabbar { display: none; } }
+/* C59: en la etapa de una operación su barra ocupa el pie; no se apilan dos barras fijas. */
+:global(html[data-op-float]) .tabbar { display: none; }
 /* La barra inferior es fija: lo que se desplaza o se pega abajo debe quedar por encima de ella. */
 @media (max-width: 767px) {
   :global(html:has(.admin-root)) { scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)); }

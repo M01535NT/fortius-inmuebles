@@ -16,7 +16,7 @@
 :global(.admin-root) .secondary:not(:disabled):hover { background: var(--secondary); }
 :global(.admin-root) .ghost { background: none; color: var(--foreground); }
 :global(.admin-root) .ghost:not(:disabled):hover { background: var(--secondary); }
-:global(.admin-root) .link { color: var(--primary-text); padding: 0 .25rem; text-decoration: underline; text-underline-offset: 3px; min-height: 2.75rem; }
+:global(.admin-root) .link { color: var(--foreground); padding: 0 .25rem; text-decoration: underline; text-underline-offset: 3px; min-height: 2.75rem; }
 :global(.admin-root) .danger { background: var(--card); border-color: var(--destructive); color: var(--destructive); }
 :global(.admin-root) .dangerSolid { background: var(--alert); border-color: var(--alert); color: #fff; }
 :global(.admin-root) .iconOnly { width: 2.75rem; padding: 0; flex: none; }
@@ -70,7 +70,7 @@
   :global(.admin-root) .lift { transition: transform 350ms var(--ease-out), box-shadow 350ms var(--ease-out); }
   :global(.admin-root) .lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
 }
-:global(.admin-root) .eyebrow { font-size: .75rem; line-height: 1.2; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
+:global(.admin-root) .eyebrow { font-size: .75rem; line-height: 1.2; font-weight: 600; color: var(--muted-foreground); }
 
 /* Pestañas: subrayado en una fila; lista vertical dentro de una operación. */
 :global(.admin-root) .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
@@ -112,6 +112,9 @@
 :global(.admin-root) .notice > svg { color: var(--warning); flex: none; }
 :global(.admin-root) .notice[data-tone=info] { border-color: var(--border); background: var(--secondary); }
 :global(.admin-root) .notice[data-tone=info] > svg { color: var(--foreground); }
+:global(.admin-root) .emptySteps { display: flex; flex-direction: column; gap: .5rem; width: 100%; max-width: 26rem; margin: .25rem 0; padding: 0; list-style: none; text-align: left; }
+:global(.admin-root) .emptySteps li { display: flex; align-items: flex-start; gap: .75rem; font-size: .875rem; line-height: 1.45; color: var(--foreground); }
+:global(.admin-root) .emptySteps li > span:first-child { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; background: var(--secondary); color: var(--foreground); font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 :global(.admin-root) .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .625rem; padding: 2.5rem 1.5rem; border: 1px dashed var(--edge-soft); border-radius: var(--radius-card); color: var(--muted-foreground); }
 
 /* Panel lateral (computadora) o inferior (celular) */

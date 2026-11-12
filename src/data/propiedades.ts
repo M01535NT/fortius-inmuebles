@@ -139,7 +139,8 @@ export const OPERACION_LABELS: Record<Operacion, string> = {
 };
 
 export const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
-  evaluacion: "En evaluación · privado",
+  // RP-97 (COR-10): hasta que el propietario firma la intermediación, el inmueble está en captación.
+  evaluacion: "En captación · privado",
   disponible: "Disponible",
   apartada: "Apartada",
   vendida: "Vendida",

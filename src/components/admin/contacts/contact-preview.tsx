@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ArrowUpRight, MessageCircle, Phone } from "@/components/admin/icons";
 import { Avatar, ButtonLink, Card, Pill } from "@/components/admin/kit";
 import { LEAD_PROFILE_OPTIONS } from "@/lib/lead-profile";
-import { LEAD_ESTADO_LABELS, LEAD_ORIGEN_LABELS, type Cliente, type Evento, type Lead } from "@/lib/admin/store";
+import { LEAD_ORIGEN_LABELS, type Cliente, type Evento, type Lead } from "@/lib/admin/store";
+import { leadStage, LEAD_STAGE_LABELS } from "@/lib/admin/person-view";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { stepDate, type ContactRow } from "@/lib/admin/contacts-view";
@@ -50,7 +51,7 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
       <Avatar name={person.nombre} size={48} />
       <div className="flex min-w-0 flex-1 flex-col">
         <h2 className="m-0 text-lg font-[650] leading-tight [overflow-wrap:anywhere]">{person.nombre}</h2>
-        <p className="text-sm text-muted-foreground">{kind}{lead ? ` · ${LEAD_ESTADO_LABELS[lead.estado]}` : ""}</p>
+        <p className="text-sm text-muted-foreground">{kind}{lead ? ` · ${LEAD_STAGE_LABELS[leadStage(lead.estado)]}` : ""}</p>
       </div>
     </div>
     <div className="flex flex-wrap gap-2">

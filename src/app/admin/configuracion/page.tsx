@@ -2,7 +2,6 @@
 
 import { brandCopy } from "@/lib/brand-copy";
 import * as React from "react";
-import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 
 import {
   AsyncForm,
@@ -26,7 +25,7 @@ export default function ConfiguracionPage() {
   return value ? (
     <Editor initial={value} />
   ) : (
-    <PageHeader title="Configuración." />
+    <PageHeader title="Configuración" />
   );
 }
 function Editor({ initial }: { initial: SiteSettings }) {
@@ -36,7 +35,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
   );
   const [guardado, setGuardado] = React.useState(false);
 
-  if (!settings) return <PageHeader title="Configuración." />;
+  if (!settings) return <PageHeader title="Configuración" />;
 
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,10 +55,9 @@ function Editor({ initial }: { initial: SiteSettings }) {
   return (
     <div className="max-w-[760px] space-y-6">
       <PageHeader
-        title="Configuración."
+        title="Configuración"
         description="Identidad, contacto y datos operativos del negocio."
       />
-      <SetupChecklist />
 
       <AsyncForm onSubmit={guardar} className="space-y-6">
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">
@@ -158,7 +156,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
           {guardado ? (
             <p
               aria-live="polite"
-              className="text-sm font-medium text-primary-ink"
+              className="text-sm font-medium text-foreground underline underline-offset-4"
             >
               Guardado.
             </p>

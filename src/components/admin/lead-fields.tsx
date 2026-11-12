@@ -8,6 +8,7 @@ import { LEAD_CANALES, LEAD_CANAL_LABELS, db, useCollection, type Lead, type Lea
 import { leadProfileSchema, LEAD_PROFILE_OPTIONS, type LeadProfile } from "@/lib/lead-profile";
 import { MoneyInput } from "@/components/admin/money-input";
 import s from "./form.module.css";
+import { humanDay } from "@/lib/admin/person-view";
 
 /*
   Campos de un prospecto (captura en Contactos y edición de la ficha). Rediseño del 18/10/2026:
@@ -140,13 +141,15 @@ function LeadSection({ title, open, children }: { title: string; open?: boolean;
 }
 
 export function LeadProfileSummary({ perfil }: { perfil?: LeadProfile }) {
-  if (!perfil || !Object.values(perfil).some(value => value !== undefined && value !== "")) return <p className="text-sm text-muted-foreground">Perfil pendiente. Edita la ficha para registrar la necesidad del lead y sus datos.</p>;
+  if (!perfil || !Object.values(perfil).some(value => value !== undefined && value !== "")) return <p className="text-sm text-muted-foreground">Todavía no se sabe qué busca. Edita la ficha para registrarlo.</p>;
   const labels: Record<string, string> = { capitalDeclarado: "Capital declarado", presupuestoDeclarado: "Presupuesto declarado", estrategiaInversion: "Estrategia de inversión", horizonteInversion: "Horizonte", criteriosInversion: "Criterios y límites", operacion: "Operación", uso: "Uso", moneda: "Moneda", formaPago: "Forma de pago", tipoCredito: "Crédito", estadoCredito: "Estado del crédito", origenIngresos: "Origen de ingresos", presupuestoMin: "Presupuesto mínimo", presupuestoMax: "Presupuesto máximo", precioObjetivo: perfil.operacion === "arrendar" ? "Renta mensual esperada" : "Precio de venta esperado", superficieMin: "Superficie mínima (m²)", superficieMax: "Superficie máxima (m²)", superficieTerreno: "Superficie de terreno (m²)", superficieConstruccion: "Superficie construida (m²)", recamaras: "Recámaras mínimas", estacionamientos: "Estacionamientos mínimos", recamarasInmueble: "Recámaras del inmueble", estacionamientosInmueble: "Estacionamientos del inmueble", requisitos: "Requisitos", caracteristicas: "Características y condiciones", plazo: "Plazo previsto", proximoContacto: "Próximo contacto", proximaAccion: "Próxima acción", avisoPrivacidad: "Aviso de privacidad compartido" };
-  return <><p className="mb-3 text-sm text-muted-foreground">Perfil principal de la persona. Cada encargo conserva su entrevista y sus condiciones propias.</p><dl className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">{Object.entries(labels).map(([key, label]) => {
+  return <><dl className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">{Object.entries(labels).map(([key, label]) => {
     const value = perfil[key as keyof LeadProfile];
     if (value === undefined || value === "") return null;
     const options = LEAD_PROFILE_OPTIONS[key as keyof typeof LEAD_PROFILE_OPTIONS] as Record<string, string> | undefined;
     let display = options?.[String(value)] ?? (typeof value === "number" ? value.toLocaleString("es-MX") : String(value));
+    // Las fechas se escriben con palabras («11 nov 2026»), no en formato técnico (C03).
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) display = humanDay(value);
     if (key.startsWith("presupuesto") || key === "precioObjetivo") display += ` ${perfil.moneda ?? ""}${perfil.operacion === "rentar" || perfil.operacion === "arrendar" ? " /mes" : ""}`;
     return <div key={key} className="min-w-0 [overflow-wrap:anywhere]"><dt className="text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-wrap">{display}</dd></div>;
   })}</dl></>;
