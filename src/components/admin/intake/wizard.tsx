@@ -103,7 +103,8 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
   const correctionOf = params.get("expedienteId");
   const seed = params.get("intencion");
   const [intent, setIntent] = React.useState<IntakeIntent | null>(seed && Object.hasOwn(INTENTS, seed) ? seed as IntakeIntent : null);
-  const [step, setStep] = React.useState(intent && (params.has("clienteId") || params.has("leadId")) ? 2 : 1);
+  // Con la intención ya elegida (Contactos › Agregar contacto, COR-15) se empieza por quién es.
+  const [step, setStep] = React.useState(intent ? 2 : 1);
   const [contact, setContact] = React.useState<Contact | null>(params.get("clienteId") ? { kind: "cliente", id: params.get("clienteId")! } : params.get("leadId") ? { kind: "lead", id: params.get("leadId")! } : null);
   const [picking, setPicking] = React.useState(false);
   const [name, setName] = React.useState(""), [phone, setPhone] = React.useState(""), [email, setEmail] = React.useState("");
@@ -216,12 +217,12 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
       {step === 1 ? <>
         <h1 className={s.title}>¿Qué quiere hacer el cliente?</h1>
         <p className={s.lead}>Elige una opción. La puedes cambiar después.</p>
-        <div role="radiogroup" aria-label="Qué quiere hacer el cliente" className={s.choices}>
+        <div role="radiogroup" aria-label="Qué quiere hacer el cliente" data-tour="nueva-opciones" className={s.choices}>
           {INTENT_CHOICES.map(choice => <button key={choice.id} type="button" role="radio" aria-checked={intent === choice.id} className={s.choice} onClick={() => { setIntent(choice.id); changed(); }}>
             <span className={s.dot} aria-hidden="true" /><span className="flex flex-col gap-0.5"><strong>{choice.title}</strong><span className="text-sm text-muted-foreground">{choice.description}</span></span>
           </button>)}
         </div>
-        <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin/operaciones?nuevo=1" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
+        <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin/operaciones?nuevo=1" data-tour="nueva-alta" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
         {pending.length > 0 && <div className="xl:hidden"><PendingCard pending={pending} /></div>}
       </> : <>
         <h1 className={s.title}>¿Quién es?</h1>

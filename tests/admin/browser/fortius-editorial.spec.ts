@@ -10,7 +10,7 @@ test("the hero keeps a single silent video and one sentence", async ({ page }) =
   expect(await hero.locator("video").evaluate((video: HTMLVideoElement) => video.muted)).toBe(true);
   await expect(hero.getByRole("search")).toHaveCount(0);
   await expect(hero.locator(".hero-marquee, .editorial-photo-controls, .nx-marquee-track")).toHaveCount(0);
-  await expect(hero.locator("h1")).toHaveText("Te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
+  await expect(hero.locator("h1")).toHaveText("Inmobiliaria en Tijuana: te ayudamos a vender o comprar tu propiedad, con cada paso por escrito.");
 });
 
 test("dark link hover retains readable ink while buttons remain burgundy", async ({ page }) => {

@@ -134,8 +134,8 @@ export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; 
     <div>
     <div className="nx-head">
       <div>
-        <h2 id="equipo-title" className="nx-title">Una persona lleva tu caso.</h2>
-        <p className="nx-lead">De la revisión a la firma.</p>
+        <h2 id="equipo-title" className="nx-title">Fortius responde por tu operación.</h2>
+        <p className="nx-lead">Un equipo te atiende, de la revisión a la firma.</p>
       </div>
       <Link href="/nosotros#agentes" className="nx-link">Conocer al equipo <ArrowRight size={18} aria-hidden="true" /></Link>
     </div>

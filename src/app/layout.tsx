@@ -15,6 +15,9 @@ import { siteConfig } from "@/data/site";
 import { SITE_COPY } from "@/data/home-copy";
 import { PublicPerformance } from "@/components/providers/public-performance";
 import { PublicExperience } from "@/components/home/public-experience";
+import { JsonLd } from "@/components/seo/json-ld";
+import { organizationLd, websiteLd } from "@/lib/seo/json-ld";
+import { SITE_NAME } from "@/lib/seo/page-metadata";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -55,6 +58,7 @@ const defaultMetadata: Metadata = {
   openGraph: {
     title: SITE_COPY.seoTitle,
     description: SITE_COPY.seoDescription,
+    siteName: SITE_NAME,
     locale: "es_MX",
     type: "website",
   },
@@ -72,7 +76,8 @@ export async function generateMetadata(): Promise<Metadata> {
     ...defaultMetadata,
     title: { default: content?.seoTitle || SITE_COPY.seoTitle, template: "%s | Fortius Inmuebles" },
     description: content?.seoDescription || defaultMetadata.description,
-    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || SITE_COPY.seoTitle, description: content?.seoDescription || SITE_COPY.seoDescription },
+    openGraph: { ...defaultMetadata.openGraph, title: content?.seoTitle || SITE_COPY.seoTitle, description: content?.seoDescription || SITE_COPY.seoDescription, url: pathname },
+    twitter: { card: "summary_large_image", title: content?.seoTitle || SITE_COPY.seoTitle, description: content?.seoDescription || SITE_COPY.seoDescription },
   };
 }
 
@@ -121,6 +126,7 @@ export default async function RootLayout({
               this server layout and its settings persist during soft navigation. */}
           {isAdmin ? <div className="relative z-10 bg-background">{children}</div> : (
             <PublicExperience>
+              <JsonLd data={[organizationLd(settings), websiteLd()]} />
               <SiteNav />
               {process.env.VERCEL === "1" ? <PublicPerformance /> : null}
               <div className="relative z-10 bg-background">{children}</div>

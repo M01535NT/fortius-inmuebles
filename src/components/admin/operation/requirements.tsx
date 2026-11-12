@@ -37,8 +37,10 @@ export function quickReview(flow: OperationWorkflow, key: RequirementKey, state:
   Un requisito en «Para terminar la etapa»: su estado en palabras, «Marcar revisado» como acción
   normal y, en «Más», los demás estados. Un problema marcado muestra qué pasó y cómo resolverlo.
 */
-export function RequirementRow({ requirement, earlier, flow, today, locked, busy, onQuick, onSheet }: {
+export function RequirementRow({ requirement, earlier, flow, today, locked, busy, inFloat = false, onQuick, onSheet }: {
   requirement: RequirementKey; earlier: boolean; flow: OperationWorkflow; today: string; locked: boolean; busy: boolean;
+  /** La barra flotante ya ofrece su acción: la fila no repite los botones (C37). */
+  inFloat?: boolean;
   onQuick: (key: RequirementKey, state: "pendiente" | "recibido") => void; onSheet: (sheet: NonNullable<OpenSheet>) => void;
 }) {
   const [more, setMore] = React.useState(false);
@@ -65,7 +67,7 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
         {detail && <p className={cn("text-sm [overflow-wrap:anywhere]", problem || expired ? "font-semibold text-[var(--warning)]" : "text-muted-foreground")}>{detail}</p>}
       </div>
       <div className={s.itemActions}>
-        {problem ? <>
+        {inFloat ? null : problem ? <>
           <Button variant="ghost" disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "observado" })}>Escribir qué pasó</Button>
           <Button disabled={disabled} onClick={() => onQuick(requirement, "recibido")}>Ya se resolvió</Button>
         </> : !done && <Button disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "revisado" })}>Confirmar</Button>}

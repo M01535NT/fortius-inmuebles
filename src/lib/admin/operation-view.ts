@@ -1,7 +1,8 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
-import { emptyWorkflow, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { emptyWorkflow, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STATES, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
+import { isLawyerTask, type PropertyCondition } from "@/lib/intake/condition";
 
 /*
   Operación guiada (encargo del panel guiado, sección 4): qué toca en la etapa,
@@ -67,10 +68,20 @@ export function phaseFormats(phase: SalePhase, ruta?: string | null): readonly s
 export const PHASES_WITH_DOCUMENTS: readonly SalePhase[] = ["captacion", "levantamiento", "documentos", "dictamen", "verificacion", "contrato"];
 export type FormatStatus = "terminado" | "borrador" | undefined;
 
-/** Lo que dejó pendiente una etapa ya pasada («Falta el 02»); vacío si está completa o no deja documentos. */
+/** Nombre corto de cada documento de etapa con su artículo, para no mostrar números de formato en el texto (C15, C37). */
+const DOC_NAMES: Record<string, readonly ["el" | "la", string]> = {
+  "02": ["la", "entrevista inicial"], "04": ["el", "levantamiento"], "05": ["la", "revisión jurídica"], "06": ["la", "opinión jurídica"],
+  "07": ["la", "opinión de valor"], "08": ["la", "estimación del neto"], "09": ["el", "contrato de servicio"], "10": ["el", "plan de comercialización"],
+};
+function missingDoc(formato: string, draft: boolean) {
+  const [article, noun] = DOC_NAMES[formato] ?? ["el", "documento"];
+  return draft ? `el PDF ${article === "el" ? "del" : "de la"} ${noun}` : `${article} ${noun}`;
+}
+
+/** Lo que dejó pendiente una etapa ya pasada («Falta la entrevista inicial»); vacío si está completa o no deja documentos. */
 export function phaseGap(phase: SalePhase, status: (formato: string) => FormatStatus, checklist?: InitialInterviewStatus["documentos"], ruta?: string | null) {
   if (phase === "documentos") return checklist === "completo" ? "" : checklist ? "Faltan documentos" : "Falta el checklist";
-  const missing = phaseFormats(phase, ruta).filter(f => status(f) !== "terminado").map(f => status(f) ? `el PDF del ${f}` : `el ${f}`);
+  const missing = phaseFormats(phase, ruta).filter(f => status(f) !== "terminado").map(f => missingDoc(f, !!status(f)));
   return missing.length ? `Falta ${missing.length > 1 ? `${missing.slice(0, -1).join(", ")} y ${missing.at(-1)}` : missing[0]}` : "";
 }
 
@@ -107,7 +118,7 @@ export function stageTrack(op: OperationRecord, today: string) {
   return { stages, current, phase };
 }
 
-/** Etapas ya pasadas a las que les falta su documento, en orden («Falta el 04»). */
+/** Etapas ya pasadas a las que les falta su documento, en orden («Falta el levantamiento»). */
 export function pastGaps(op: OperationRecord, today: string, status: (formato: string) => FormatStatus) {
   const { stages, current } = stageTrack(op, today);
   return stages.slice(0, current).flatMap(stage => {
@@ -162,16 +173,35 @@ export type StageItem =
   /** El paso que abre la siguiente etapa del propietario: iniciar el levantamiento o el checklist. */
   | { kind: "inicio"; step: "levantamiento" | "checklist" }
   | { kind: "requisito"; key: RequirementKey; earlier: boolean; state: ReturnType<typeof reviewState>; done: boolean }
-  | { kind: "pendiente"; text: string; why: string; place: Missing["place"] };
+  | { kind: "pendiente"; text: string; why: string; place: Missing["place"] }
+  /** COR-14: con una condición declarada (o «Evaluar la operación» en la 02), el abogado revisa antes del levantamiento. */
+  | { kind: "abogado"; condition?: string; task?: Task; done: boolean }
+  /** COR-14: la 02 terminó con «Pausar» o «Referir»; un clic lo aplica. */
+  | { kind: "decision02"; action: "pausa" | "referir" };
+
+/** Lo que la etapa necesita saber de la llamada y de la 02. */
+export type StageContext = { condition?: PropertyCondition | null; next02?: string };
+
+/** Chips de la situación y la condición: se muestran igual en la operación, Operaciones, Hoy y Contactos. */
+export function operationTags(op: { flujo?: OperationWorkflow | null }, condition?: PropertyCondition | null): string[] {
+  const estado = op.flujo?.estado ?? "activa";
+  return [...(estado !== "activa" ? [WORKFLOW_STATES[estado]] : []), ...(condition ? [condition.text] : [])];
+}
 
 /** «Para terminar la etapa»: los documentos que se llenan, lo que se confirma y lo demás que impide avanzar. */
-export function stageItems(op: OperationRecord, tasks: Task[], today: string, status: (formato: string) => FormatStatus): StageItem[] {
+export function stageItems(op: OperationRecord, tasks: Task[], today: string, status: (formato: string) => FormatStatus, context: StageContext = {}): StageItem[] {
   const flow = flowOf(op), { phase } = routeStages(op, today);
   const items: StageItem[] = [];
+  const active = flow.estado === "activa", interviewed = status("02") === "terminado";
+  if (isOwnerRoute(flow.ruta) && phase === "captacion" && active && interviewed && (context.next02 === "pausa" || context.next02 === "referir")) items.push({ kind: "decision02", action: context.next02 });
   if (isOwnerRoute(flow.ruta) && phase) {
     for (const item of stageDocuments(phase, flow.ruta)) items.push({ kind: "documento", formato: item.formato, status: status(item.formato), ...(item.optional ? { optional: true as const } : {}) });
     if (phase === "documentos") items.push({ kind: "checklist", status: op.inicial?.documentos });
-    if (phase === "captacion" && status("02") === "terminado") items.push({ kind: "inicio", step: "levantamiento" });
+    if (phase === "captacion" && active && (context.condition || (interviewed && context.next02 === "evaluacion"))) {
+      const task = tasks.filter(t => t.expedienteId === op.id && isLawyerTask(t.titulo) && t.estado !== "cancelada").sort((a, b) => Number(isTaskOpen(b)) - Number(isTaskOpen(a)))[0];
+      items.push({ kind: "abogado", ...(context.condition ? { condition: context.condition.text } : {}), ...(task ? { task } : {}), done: task?.estado === "completada" });
+    }
+    if (phase === "captacion" && interviewed) items.push({ kind: "inicio", step: "levantamiento" });
     if (phase === "levantamiento" && status("04") === "terminado") items.push({ kind: "inicio", step: "checklist" });
   }
   for (const { key, earlier } of currentRequirements(op, today)) items.push({ kind: "requisito", key, earlier, state: reviewState(flow, key), done: reviewComplete(flow, key, today) });
@@ -182,10 +212,10 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
   return items;
 }
 export function itemDone(item: StageItem) {
-  return item.kind === "documento" ? item.status === "terminado" : item.kind === "checklist" ? item.status === "completo" : item.kind === "requisito" ? item.done : false;
+  return item.kind === "documento" ? item.status === "terminado" : item.kind === "checklist" ? item.status === "completo" : item.kind === "requisito" || item.kind === "abogado" ? item.done : false;
 }
 /** Cuenta para «N de M»: no el aviso opcional ni lo que quedó abierto de una etapa anterior. */
-export const itemCounted = (item: StageItem) => item.kind !== "inicio" && !(item.kind === "documento" && item.optional) && !(item.kind === "requisito" && item.earlier);
+export const itemCounted = (item: StageItem) => item.kind !== "inicio" && item.kind !== "decision02" && !(item.kind === "documento" && item.optional) && !(item.kind === "requisito" && item.earlier);
 /** «Ahora toca»: primero un problema marcado; después lo primero sin terminar, en orden. */
 export function nowItem(items: StageItem[]) {
   return items.find(i => i.kind === "requisito" && i.state === "observado") ?? items.find(i => !itemDone(i) && !(i.kind === "documento" && i.optional));

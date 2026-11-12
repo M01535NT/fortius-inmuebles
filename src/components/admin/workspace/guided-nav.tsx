@@ -1,7 +1,8 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, ClipboardList, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, ShieldCheck, UserRound } from "@/components/admin/icons";
+import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, ShieldCheck, UserRound } from "@/components/admin/icons";
+import { TourLauncher, openTour } from "./tour";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
@@ -86,13 +87,14 @@ export function TopNav({ pathname, role, user, onLogout, search }: { pathname: s
   const pending = usePendingCount();
   return <header className={s.topnav} aria-label="Barra del panel">
     <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className="h-7 w-28" /></Link>
-    <nav aria-label="Módulos del panel" className={s.pills}>
+    <nav aria-label="Módulos del panel" data-tour="nav" className={s.pills}>
       {[...MAIN_NAV, MORE_NAV].map(item => <Link key={item.href} href={item.href} className={s.pill} aria-current={isNavActive(pathname, item) ? "page" : undefined}>
         <item.icon size={18} aria-hidden={true} /><span className={s.pillLabel}>{item.label}</span>{item.href === "/admin" && <Count value={pending} />}
       </Link>)}
     </nav>
     <span className={s.space} />
     {search}
+    <TourLauncher />
     <NewMenu />
     <AccountMenu pathname={pathname} role={role} user={user} onLogout={onLogout} />
   </header>;
@@ -105,7 +107,7 @@ function NewMenu() {
   const close = React.useCallback(() => setOpen(false), []);
   useDismiss(open, close, wrap);
   return <div ref={wrap} className={s.menuWrap}>
-    <button type="button" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" />Nuevo</button>
+    <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" />Nuevo</button>
     {open && <div id="admin-new-menu" role="menu" aria-label="Qué quieres crear" className={s.pop}>
       {QUICK_CREATE.map(item => <Link key={item.href} role="menuitem" href={item.href} className={cn(s.link, s.sub)} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}
     </div>}
@@ -155,7 +157,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
   };
   return <nav className={s.tabbar} aria-label="Secciones principales">
     {tab(hoy, pending)}{tab(operaciones)}
-    <Link href="/admin/operaciones/nueva" className={s.plus} aria-label="Nueva operación"><Plus size={24} aria-hidden="true" /></Link>
+    <Link href="/admin/operaciones/nueva" data-tour="nuevo" className={s.plus} aria-label="Nueva operación"><Plus size={24} aria-hidden="true" /></Link>
     {tab(contactos)}
     <button ref={menuButton} type="button" className={s.tab} aria-expanded={menuOpen} aria-controls="admin-mobile-menu" aria-label="Menú del panel" onClick={onMenu}><Menu size={22} aria-hidden="true" />Más</button>
   </nav>;
@@ -187,6 +189,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     </div>}
     <div className={s.menuGroup}>
       <div className={s.menuRow}><Moon size={20} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle /></div>
+      <button type="button" className={s.menuRow} onClick={() => { onNavigate(); window.setTimeout(openTour, 250); }}><CircleHelp size={20} aria-hidden="true" /><span className="flex-1">Ayuda: guía de esta pantalla</span></button>
       {row("/admin/perfil", "Mi perfil", <UserRound size={20} aria-hidden="true" />, pathname.startsWith("/admin/perfil"))}
       <DocumentLink href="/" className={s.menuRow} onClick={onNavigate}><ExternalLink size={20} aria-hidden="true" /><span className="flex-1">Ver sitio</span></DocumentLink>
       <AsyncButton type="button" onClick={onLogout} className={s.menuRow}><LogOut size={20} aria-hidden="true" />Cerrar sesión</AsyncButton>

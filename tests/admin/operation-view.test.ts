@@ -1,4 +1,7 @@
 import { expect, test } from "vitest";
+import { operationTags } from "@/lib/admin/operation-view";
+import { discardReasonOf } from "@/lib/formatos/operation-workflow";
+import { LAWYER_TASK } from "@/lib/intake/condition";
 import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageDocuments, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
 import { emptyWorkflow, processStageText, requiredReviews, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
@@ -124,10 +127,10 @@ test("la tarjeta del tablero muestra la próxima tarea, lo vencido y su columna"
 
 test("una etapa pasada dice qué documento le falta: el formato, su PDF o el checklist", () => {
   const status = (map: Record<string, "terminado" | "borrador">) => (f: string) => map[f];
-  expect(phaseGap("captacion", status({}))).toBe("Falta el 02");
+  expect(phaseGap("captacion", status({}))).toBe("Falta la entrevista inicial");
   expect(phaseGap("captacion", status({ "02": "terminado" }))).toBe("");
-  expect(phaseGap("levantamiento", status({ "04": "borrador" }))).toBe("Falta el PDF del 04");
-  expect(phaseGap("dictamen", status({ "05": "borrador" }))).toBe("Falta el PDF del 05 y el 06");
+  expect(phaseGap("levantamiento", status({ "04": "borrador" }))).toBe("Falta el PDF del levantamiento");
+  expect(phaseGap("dictamen", status({ "05": "borrador" }))).toBe("Falta el PDF de la revisión jurídica y la opinión jurídica");
   expect(phaseGap("documentos", status({}))).toBe("Falta el checklist");
   expect(phaseGap("documentos", status({}), "pendiente")).toBe("Faltan documentos");
   expect(phaseGap("documentos", status({}), "completo")).toBe("");
@@ -148,7 +151,7 @@ test("las etapas se nombran por sí mismas, sin fases; compra, renta e inversió
 test("a las etapas pasadas se les pide su documento y el motivo de atención es el más urgente", () => {
   const dictamen = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }), inicial: { iniciada: true, emitida: true } });
   const status = (f: string) => f === "02" ? "terminado" as const : undefined;
-  expect(pastGaps(dictamen, today, status).map(g => [g.n, g.gap])).toEqual([[3, "Falta el 04"], [4, "Falta el checklist"]]);
+  expect(pastGaps(dictamen, today, status).map(g => [g.n, g.gap])).toEqual([[3, "Falta el levantamiento"], [4, "Falta el checklist"]]);
   expect(attentionOf(dictamen, [task({ vence: "2026-10-20" })], today, "Falta el 04")).toEqual({ label: "Falta el 04", rank: 2, late: false });
   expect(attentionOf(dictamen, [task({ vence: "2026-10-10" })], today, "Falta el 04")).toMatchObject({ label: "Tarea vencida", late: true });
   expect(attentionOf(op({ flujo: flow({ entrevista: { estado: "observado", soporte: "Sin escritura" } }) }), [], today)).toMatchObject({ label: "Hay un problema", rank: 0 });
@@ -225,4 +228,41 @@ test("la renta del propietario sigue su propio camino y nombra igual sus etapas 
   expect(missingItems(rent("documentacion", { titularidad: reviewed() }), [task()], today).map(m => m.text)).toEqual(["Opinión de renta con comparables", "Renta acordada con el propietario", "Registrar si tomas el encargo"]);
   // La venta no cambia.
   expect(requiredReviews("captacion", "comercializacion")).toContain("factibilidad");
+});
+
+test("COR-14: con una condición declarada, el abogado revisa antes del levantamiento", () => {
+  const interview = op({ inicial: { iniciada: true, emitida: true } });
+  const done02 = (f: string) => f === "02" ? "terminado" as const : undefined;
+  const condition = { text: "Ocupado sin permiso", detail: "Lo invadieron hace un año." };
+  // Sin pedirla, lo que toca es pedir la revisión; el levantamiento no se ofrece.
+  const asked = stageItems(interview, [task()], today, done02, { condition });
+  expect(asked.map(i => i.kind)).toEqual(["documento", "documento", "abogado", "inicio", "requisito"]);
+  expect(nowItem(asked)).toMatchObject({ kind: "abogado", condition: "Ocupado sin permiso", done: false });
+  // Pedida: sigue esperando al abogado.
+  const lawyer = task({ id: "t-abogado", titulo: `${LAWYER_TASK}: ocupado sin permiso` });
+  expect(nowItem(stageItems(interview, [task(), lawyer], today, done02, { condition }))).toMatchObject({ kind: "abogado", task: { id: "t-abogado" } });
+  // Hecha: ahora sí el levantamiento.
+  expect(nowItem(stageItems(interview, [task(), { ...lawyer, estado: "completada" }], today, done02, { condition }))).toMatchObject({ kind: "inicio", step: "levantamiento" });
+  // «Evaluar la operación» en la 02 pide lo mismo aunque la llamada no mencionara nada.
+  expect(nowItem(stageItems(interview, [task()], today, done02, { next02: "evaluacion" }))).toMatchObject({ kind: "abogado", done: false });
+});
+
+test("COR-14: «Pausar» y «Referir» de la 02 se ofrecen como lo que toca", () => {
+  const interview = op({ inicial: { iniciada: true, emitida: true } });
+  const done02 = (f: string) => f === "02" ? "terminado" as const : undefined;
+  for (const action of ["pausa", "referir"] as const) {
+    const items = stageItems(interview, [task()], today, done02, { next02: action });
+    expect(nowItem(items)).toEqual({ kind: "decision02", action });
+    expect(itemCounted(items[0])).toBe(false);
+  }
+  // Ya pausada, no se vuelve a ofrecer.
+  expect(stageItems(op({ inicial: { iniciada: true, emitida: true }, flujo: flow({}, { estado: "pausada", motivo: "Pausada en la entrevista inicial" }) }), [task()], today, done02, { next02: "pausa" }).some(i => i.kind === "decision02")).toBe(false);
+});
+
+test("COR-14: situación y condición como chips; el descarte exige un motivo de la lista", () => {
+  expect(operationTags(op())).toEqual([]);
+  expect(operationTags(op({ flujo: flow({}, { estado: "regularizacion", motivo: "Herencia" }) }), { text: "Herencia sin resolver" })).toEqual(["En regularización", "Herencia sin resolver"]);
+  expect(discardReasonOf("Referida")).toBe("Referida");
+  expect(discardReasonOf("No contesta: tres llamadas sin respuesta")).toBe("No contesta");
+  expect(discardReasonOf("Ya no quiso")).toBeUndefined();
 });

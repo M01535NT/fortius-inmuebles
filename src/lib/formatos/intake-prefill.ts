@@ -1,4 +1,5 @@
 import { FORMATOS } from "./catalog";
+import { conditionNote } from "@/lib/intake/condition";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { EXPEDIENTE_OPERACIONES } from "./expediente-operations";
 import { TIPO_INMUEBLE_DESDE_ENTREVISTA, VALOR_DEFAULTS } from "./valor-fields";
@@ -38,7 +39,10 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   acceso:a.acceso, formaPago:a.financiamiento,
   avisoPrivacidad:a.privacidad==="presentado"?"si":undefined,
   expectativas:a.objetivo, observaciones:a.detalleAlertas,
-  motivoSiguiente:a.siguienteAccion,fechaSeguimiento:a.siguienteFecha,responsableSeguimiento:asesor?.nombre,
+  // COR-15: lo que contó en la llamada pasa a «Notas del asesor» de la 02.
+  motivoSiguiente:[a.condiciones?.trim(),conditionNote(a)].filter(Boolean).join("\n\n")||undefined,fechaSeguimiento:a.siguienteFecha,responsableSeguimiento:asesor?.nombre,
+  // CAP-05: ocupación y crédito que dijo en la llamada; el asesor los confirma en la 02.
+  ...(formatoId==="02"?{ocupacion:a.ocupacion==="por_aclarar"?undefined:a.ocupacion,gravamen:a.creditoInmueble}:{}),
   // Levantamiento (04A–04G): se hace el mismo día de la entrevista y lo elabora el asesor; ambos se pueden corregir.
   ...(/^04[A-G]$/.test(formatoId)?{fechaVisita:hoyTijuana(),elaboro:asesor?.nombre}:{}),
   // Plan (10): se elabora hoy; lo demás lo proponen el levantamiento, el 07 y el 09 al crearlo.

@@ -1,4 +1,5 @@
 import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
+import { CREDIT_OPTIONS, PROBLEM_OPTIONS, conditionOf } from "@/lib/intake/condition";
 import { answerLabel, interviewFields, interviewIssues, isBuyerIntent, isOwnerIntent, type IntakeIntent, type InterviewAnswers } from "@/lib/intake/interview";
 
 /*
@@ -32,7 +33,7 @@ export const PROSPECT_SCREEN = "Datos del prospecto";
   Lo demás (situación personal, documentos, ocupación) se pregunta en la entrevista
   inicial (formato 02), en su propia etapa.
 */
-const PROSPECT_KEYS = ["ubicacion", "zona", "tipoInmueble", "objetivo", "plazo", "presupuestoEstado", "importe", "moneda", "condiciones", "privacidad", "siguienteAccion", "siguienteFecha"];
+const PROSPECT_KEYS = ["ubicacion", "zona", "tipoInmueble", "objetivo", "plazo", "presupuestoEstado", "importe", "moneda", "condiciones", "problema", "detalleAlertas", "creditoInmueble", "privacidad", "siguienteAccion", "siguienteFecha"];
 const PROSPECT_LABELS: Record<string, { label: string; hint?: string }> = {
   ubicacion: { label: "Domicilio del inmueble", hint: "Calle, número y colonia, como lo dio. Se confirma en la entrevista inicial." },
   zona: { label: "Municipio y colonia o fraccionamiento" },
@@ -41,6 +42,9 @@ const PROSPECT_LABELS: Record<string, { label: string; hint?: string }> = {
   presupuestoEstado: { label: "¿Mencionó un precio?" },
   importe: { label: "Precio que mencionó" },
   condiciones: { label: "Notas del primer contacto", hint: "Lo que contó, fotos que mandó, quién lo recomendó…" },
+  problema: { label: "¿Mencionó algún problema con el inmueble?", hint: "Si hay alguno, el abogado lo revisa antes del levantamiento." },
+  detalleAlertas: { label: "¿Qué contó del problema?", hint: "Desde cuándo, quién está involucrado y qué ha hecho." },
+  creditoInmueble: { label: "¿Debe un crédito o hipoteca del inmueble?" },
   privacidad: { label: "Aviso de privacidad", hint: "Compártele el enlace del aviso antes de guardar sus datos. El formato 01 se le entrega en la entrevista inicial." },
   siguienteAccion: { label: "Lo que sigue" },
   siguienteFecha: { label: "¿Cuándo es la entrevista inicial?" },
@@ -54,6 +58,9 @@ const PROSPECT_DEFAULTS: Record<string, string> = {
 export function withProspectDefaults(intent: IntakeIntent, answers: InterviewAnswers): InterviewAnswers {
   if (!isOwnerIntent(intent)) return answers;
   const filled = { ...answers };
+  // CAP-05: el problema de la llamada se refleja en las respuestas que la 02 confirma.
+  if (conditionOf(filled) && (!filled.alertas || filled.alertas === "por_aclarar")) filled.alertas = "declaradas";
+  if (filled.problema === "ocupado_sin_permiso" && (!filled.ocupacion || filled.ocupacion === "por_aclarar")) filled.ocupacion = "otro";
   for (const [key, value] of Object.entries(PROSPECT_DEFAULTS)) if (!filled[key]?.trim()) filled[key] = value;
   return filled;
 }
@@ -72,7 +79,7 @@ export function interviewScreens(intent: IntakeIntent): Screen[] {
 export function visibleFields(intent: IntakeIntent, answers: InterviewAnswers) {
   return interviewFields(intent).filter(f =>
     (!["importe", "moneda"].includes(f.key) || answers.presupuestoEstado === "conocido")
-    && (f.key !== "detalleAlertas" || answers.alertas === "declaradas")
+    && (f.key !== "detalleAlertas" || answers.alertas === "declaradas" || !!conditionOf(answers))
     && (!["conyuge", "regimen", "fechaMatrimonio", "lugarMatrimonio"].includes(f.key) || answers.estadoCivil === "casado"));
 }
 export function screenFields(intent: IntakeIntent, answers: InterviewAnswers, screen: Screen) {
@@ -115,5 +122,7 @@ export function dontKnowValue(intent: IntakeIntent, field: Field): string | null
 const LABELS: Record<string, string> = { por_aclarar: DONT_KNOW, por_definir: DONT_KNOW, conocido: "Ya tiene una cifra", ...TIPO_INMUEBLE_LABELS, presentado: "Ya se lo presenté", pendiente: "Todavía no" };
 export function optionLabel(field: Field, value: string) {
   if (field.key === "privacidad") return LABELS[value];
+  if (field.key === "problema") return PROBLEM_OPTIONS[value as keyof typeof PROBLEM_OPTIONS] ?? answerLabel(value);
+  if (field.key === "creditoInmueble") return CREDIT_OPTIONS[value as keyof typeof CREDIT_OPTIONS] ?? answerLabel(value);
   return LABELS[value] ?? answerLabel(value);
 }

@@ -10,7 +10,8 @@ import { useBrowserPreference } from "@/components/admin/workspace/browser-prefe
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
-import { attentionOf, boardCard, dueLabel, flowOf, initialStatus, pastGaps, stageTrack, type Attention, type OperationRecord } from "@/lib/admin/operation-view";
+import { attentionOf, boardCard, dueLabel, flowOf, initialStatus, operationTags, pastGaps, stageTrack, type Attention, type OperationRecord } from "@/lib/admin/operation-view";
+import { useConditions } from "@/lib/admin/conditions";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DirectCreate } from "./direct-create";
 import { useOperationFormats } from "./use-operation-formats";
@@ -28,7 +29,7 @@ import s from "./board.module.css";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const VERB: Record<string, string> = { captacion: "Vende", arrendador: "Renta su inmueble", compra: "Compra", arrendatario: "Busca una renta", inversion: "Invierte" };
-type Row = { op: OperationRecord; who: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string };
+type Row = { op: OperationRecord; who: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string; tags: string[] };
 /** Etapas presentes entre las operaciones, en su orden (las de venta y las de cada ruta conviven). */
 function stagesOf(rows: Row[]) {
   const seen = new Map<string, number>();
@@ -69,6 +70,7 @@ export function OperationsBoard() {
   }, [deleted, attempt]);
   // Formatos por operación: separan las primeras etapas del propietario y muestran lo que falta de etapas anteriores.
   const started = useOperationFormats(attempt);
+  const conditions = useConditions();
   React.useEffect(() => {
     let alive = true;
     apiRequest<{ asesorId?: string | null }>("/api/admin/mi-asesor").then(r => { if (alive) { setMe(r.asesorId ?? undefined); if (!r.asesorId) setScope("equipo"); } }).catch(() => { if (alive) setScope("equipo"); });
@@ -92,6 +94,7 @@ export function OperationsBoard() {
       photo: op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.galeria[0]?.src : undefined, adviser: advisers.find(a => a.id === op.asesor_id)?.nombre,
       n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", gapAt: new Set(gaps.map(g => g.n)),
       next: card.next, date: card.date, late: card.late, attention: attentionOf(view, tasks, today, gaps[0]?.gap), mine: card.mine, href: card.href,
+      tags: operationTags(op, conditions.ofOperation(op.id)),
     };
   });
   const visible = rows.filter(row => (!admin || scope === "equipo" || !me || row.mine) && (!query.trim() || normalize(`${row.who} ${row.op.folio} ${row.meta}`).includes(normalize(query.trim()))));
@@ -125,7 +128,7 @@ export function OperationsBoard() {
         <h1 className={s.head1}>{deleted ? "Operaciones eliminadas" : "Operaciones"}</h1>
         {records && <p className="text-muted-foreground">{deleted ? `${records.length} ${records.length === 1 ? "operación" : "operaciones"} que puedes restaurar` : `${active.length} en curso`}</p>}
       </div>
-      {!deleted && <div className="flex flex-wrap items-center gap-2.5">
+      {!deleted && <div data-tour="op-vista" className="flex flex-wrap items-center gap-2.5">
         <Segmented label="Vista" value={view} onChange={setView} options={[{ id: "lista", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tablero", label: "Tablero", icon: <Columns3 size={16} aria-hidden="true" /> }]} />
         {admin && me && <Segmented label="Operaciones que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
       </div>}
@@ -138,9 +141,9 @@ export function OperationsBoard() {
       : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" action={<Link href="/admin/operaciones/nueva" className="font-semibold underline underline-offset-4">Nueva operación</Link>}>Empieza con la entrevista del cliente; la operación se crea al terminarla.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
-          <div className={s.filters} role="group" aria-label="Etapa">
+          <div data-tour="op-filtros" className={s.filters} role="group" aria-label="Etapa">
             <button type="button" className={s.filter} aria-pressed={stageFilter === "todas"} onClick={() => chooseStage("todas")}>Todas<span className={s.count}>{active.length}</span></button>
-            {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.n ? `${stage.n} · ` : ""}{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
+            {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
           </div>
           <span className="flex-1" />
           <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
@@ -155,9 +158,10 @@ export function OperationsBoard() {
       </>}
 
     <footer className="mt-8 flex flex-col gap-4">
-      {!deleted && <Card as="div" className="p-4 sm:p-5">
-        <button type="button" className={s.toggle} aria-expanded={creating} aria-controls="alta-directa" onClick={() => setCreating(open => !open)}>Alta directa, sin entrevista</button>
-        {creating && <div className="mt-4"><DirectCreate onDirtyChange={setDraftDirty} /></div>}
+      {/* C38: sin tarjeta fija al pie; la alta directa se abre desde «Alta rápida, sin entrevista» de Nueva operación (?nuevo=1). */}
+      {!deleted && creating && <Card as="div" id="alta-directa" className="p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Alta directa, sin entrevista</h2><button type="button" className={s.toggle} onClick={() => setCreating(false)}>Cerrar</button></div>
+        <div className="mt-4"><DirectCreate onDirtyChange={setDraftDirty} /></div>
       </Card>}
       <Link href={deleted ? "/admin/operaciones" : "/admin/operaciones?eliminadas=1"} className="self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : "Ver operaciones eliminadas"}</Link>
     </footer>
@@ -173,10 +177,10 @@ function OperationGroup({ id, title, rows, today, empty }: { id: string; title: 
   return <section aria-labelledby={`grupo-${id}`} className="mb-6 flex flex-col gap-3">
     <h2 id={`grupo-${id}`} className={s.groupTitle}>{title}<Pill tone={id === "esperan" && rows.length ? "alert" : "muted"} size="sm">{rows.length}</Pill></h2>
     {rows.length ? <Card as="div" className={s.list}>
-      <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
+      <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
         <span className={s.who}><Thumb src={row.photo} size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
         <span className="flex min-w-0 flex-col gap-1.5">
-          <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}>{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}</span>
+          <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}>{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>
           <span className={s.bar} style={{ gridTemplateColumns: `repeat(${row.total}, minmax(0, 1fr))` }} aria-hidden="true">{Array.from({ length: row.total }, (_, i) => <span key={i} data-state={row.gapAt.has(i + 1) ? "warn" : i < row.n ? "on" : undefined} />)}</span>
         </span>
         <span className="min-w-0 text-[0.9375rem] text-muted-foreground [overflow-wrap:anywhere]"><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
@@ -195,10 +199,10 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
       const cards = rows.filter(row => row.stage === stage.label).sort(byDate);
       return <section key={stage.label} role="listitem" aria-labelledby={`columna-${index}`} className={s.column}>
         <h2 id={`columna-${index}`} className={s.columnTitle}>{stage.n} · {stage.label}<Pill tone="muted" size="sm">{cards.length}</Pill></h2>
-        {cards.map(row => <CardLink key={row.op.id} href={row.href} className={s.boardCard} data-late={row.late || row.attention?.late || undefined} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
+        {cards.map(row => <CardLink key={row.op.id} href={row.href} className={s.boardCard} data-late={row.late || row.attention?.late || undefined} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
           {row.photo && <Thumb src={row.photo} ratio="16 / 9" className={s.cardPhoto} />}
           <span className={s.cardBody}>
-            {row.attention && <span className="self-start"><Pill tone={row.attention.late ? "alert" : "warn"} size="sm">{row.attention.label}</Pill></span>}
+            {(row.attention || row.tags.length > 0) && <span className="flex flex-wrap gap-1.5 self-start">{row.attention && <Pill tone={row.attention.late ? "alert" : "warn"} size="sm">{row.attention.label}</Pill>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>}
             <strong className="[overflow-wrap:anywhere]">{row.who}</strong>
             <span className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{row.meta}</span>
             <span className="text-sm [overflow-wrap:anywhere]"><span className="text-muted-foreground">{row.n} de {row.total} · </span>{row.next}</span>

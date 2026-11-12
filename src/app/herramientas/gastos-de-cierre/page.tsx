@@ -3,13 +3,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { ClosingCostsCalculator } from "@/components/tools/closing-costs-calculator";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/herramientas/gastos-de-cierre" },
-  title: "Gastos de cierre",
+export const metadata: Metadata = pageMetadata({
+  path: "/herramientas/gastos-de-cierre",
+  title: "Gastos de cierre al comprar en Tijuana",
   description:
-    "Prepara tu presupuesto de compra o venta en Tijuana, Rosarito, Tecate o Ensenada con impuestos municipales y gastos desglosados.",
-};
+    "Calcula los gastos de cierre de tu compra o venta en Tijuana, Rosarito, Tecate o Ensenada: ISAI, honorarios de notaría y derechos de registro, desglosados.",
+});
 
 export default function GastosDeCierrePage() {
   return (

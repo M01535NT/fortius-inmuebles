@@ -4,12 +4,15 @@ import { ArrowUpRight, Check } from "lucide-react";
 
 import { getPublicSettings } from "@/lib/backend/public";
 import { publicContact } from "@/lib/public-contact";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/vender-propiedad/gracias" },
+export const metadata: Metadata = pageMetadata({
+  path: "/vender-propiedad/gracias",
   title: "Recibimos tu solicitud",
+  description:
+    "Recibimos los datos de tu propiedad. Te contactamos para revisar el precio, los documentos y el siguiente paso de tu venta.",
   robots: { index: false, follow: false }, // página de confirmación, no indexable
-};
+});
 
 const SIGUIENTE = [
   { when: "Ahora", text: "Revisamos los datos de tu propiedad y su zona." },

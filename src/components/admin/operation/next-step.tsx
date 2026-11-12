@@ -11,6 +11,7 @@ import { ExpedienteOperationPanel } from "@/components/admin/expediente-operatio
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
 import { CANALES_INFORME, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
+import { conditionOf, LAWYER_TASK } from "@/lib/intake/condition";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { actualizarChecklist, checklistCompleto, checklistDesactualizado, checklistFor, CODIGOS_POR_TIPO_DOCUMENTO, levantamientoFor, motivoNoAplica, pasoCompleto, type PasoChecklist } from "@/lib/formatos/checklist-documentos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
@@ -112,11 +113,30 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     else void docs.start(item.text.includes("(02)") ? "02" : "04", survey);
   }
 
-  const items = stageItems(op, tasks, today, docs.status);
+  // COR-14: la condición de la llamada y el «Siguiente paso» de la 02 cambian lo que toca.
+  const condition = conditionOf(interview?.respuestas);
+  const next02 = typeof docs.latest("02")?.data?.siguientePaso === "string" ? String(docs.latest("02")!.data.siguientePaso) : undefined;
+  const items = stageItems(op, tasks, today, docs.status, { condition, next02 });
+  async function requestLawyer() {
+    setBusy(true); setError(""); setNotice("");
+    const due = new Date(today + "T12:00:00Z"); due.setUTCDate(due.getUTCDate() + 2);
+    try {
+      await upsert(db.tareas, { id: uid(), titulo: `${LAWYER_TASK}${condition ? `: ${condition.text.toLowerCase()}` : ""}`.slice(0, 160), descripcion: [condition?.detail ? `Lo que contó el propietario: ${condition.detail}` : "", "El levantamiento espera esta revisión. Al terminarla, completa la tarea."].filter(Boolean).join("\n\n"), categoria: "documentacion", estado: "pendiente", prioridad: "alta", pasos: [], asesorId: op.asesor_id, expedienteId: op.id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "", vence: due.toISOString().slice(0, 10) }, null);
+      setNotice("Listo: se creó la tarea para el abogado.");
+    } catch (cause) { setError(`No se pudo crear la tarea: ${saveError(cause)}`); } finally { setBusy(false); }
+  }
+  async function applyDecision(action: "pausa" | "referir") {
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await onSave({ flujo: { ...flow, estado: action === "pausa" ? "pausada" : "descartada", motivo: action === "pausa" ? "Pausada en la entrevista inicial" : "Referida" } });
+      setNotice(action === "pausa" ? "La operación quedó en pausa." : "La operación quedó descartada como referida.");
+    } catch (cause) { setError(`No se pudo guardar: ${saveError(cause)}`); } finally { setBusy(false); }
+  }
   const counted = items.filter(itemCounted), done = counted.filter(itemDone).length;
   const now = nowItem(items);
   const locked = contractLocked(op, today);
-  const documentsGroup = items.filter(i => i.kind === "documento" || i.kind === "checklist" || i.kind === "inicio");
+  const waitsLawyer = items.some(i => i.kind === "abogado" && !i.done);
+  const documentsGroup = items.filter(i => i.kind === "documento" || i.kind === "checklist" || i.kind === "inicio" || i.kind === "abogado");
   const reviewsGroup = items.filter((i): i is Extract<StageItem, { kind: "requisito" }> => i.kind === "requisito");
   const otherGroup = items.filter((i): i is Extract<StageItem, { kind: "pendiente" }> => i.kind === "pendiente");
   const lock = busy || docs.busy;
@@ -156,20 +176,34 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
         title = `Confirmar: ${name}`; text = now.state === "recibido" ? "Ya tienes el documento; escribe qué encontraste." : "Su documento ya viene elegido; escribe qué encontraste.";
         action = <Button variant="primary" disabled={held} onClick={() => setSheet({ key: now.key, kind: "revisado" })}>Confirmar</Button>;
       }
+    } else if (now.kind === "abogado") {
+      if (!now.task) {
+        title = "Revisión del abogado antes del levantamiento";
+        text = condition ? `Mencionó: ${condition.text.toLowerCase()}.` : "La entrevista pide evaluar la operación.";
+        action = <Button variant="primary" disabled={lock} onClick={() => void requestLawyer()}>Pedir revisión al abogado</Button>;
+      } else {
+        title = "Esperando la revisión del abogado";
+        text = "Cuando responda, completa la tarea y sigue el levantamiento.";
+        action = <ButtonLink variant="primary" href={`/admin/tareas/${encodeURIComponent(now.task.id)}`}>Abrir la tarea<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
+      }
+    } else if (now.kind === "decision02") {
+      title = now.action === "pausa" ? "La entrevista dice: pausar" : "La entrevista dice: referir";
+      text = now.action === "pausa" ? "Deja la operación en pausa. Se reactiva desde Ajustes." : "Se descarta con el motivo «Referida».";
+      action = <Button variant="primary" disabled={lock} onClick={() => void applyDecision(now.action)}>{now.action === "pausa" ? "Pausar la operación" : "Referir y descartar"}</Button>;
     } else {
       title = now.text; text = now.why ? now.why.replace(/^./, c => c.toUpperCase()) + "." : "";
       action = <Button variant="primary" disabled={lock} onClick={() => goToPending(now)}>{now.place === "ajustes" ? "Ir a Ajustes" : now.place === "tarea" ? "Agendar la próxima tarea" : "Hacerlo ahora"}</Button>;
     }
     const ratio = counted.length ? done / counted.length : 1;
-    const sub = now && target ? (target.target ? `${done} de ${counted.length} para pasar a ${target.label}` : `Con todo listo se abre sola ${target.label}.`) : "";
-    return <div role="region" aria-label="Siguiente acción" className={s.float}>
+    const sub = now && target && now.kind !== "abogado" && now.kind !== "decision02" ? (target.target ? `${done} de ${counted.length} para pasar a ${target.label}` : `Con todo listo se abre sola ${target.label}.`) : "";
+    return <FloatBar>
       <span className={s.ring} aria-hidden="true"><svg width="44" height="44" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--track)" strokeWidth="5" /><circle cx="24" cy="24" r="20" fill="none" stroke="var(--primary)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${Math.round(ratio * 125.66)} 125.66`} transform="rotate(-90 24 24)" /></svg><span className={s.ringText}>{counted.length ? `${done}/${counted.length}` : "✓"}</span></span>
       <span className="flex min-w-0 flex-1 flex-col">
         <h2 className={s.floatTitle}>{title}</h2>
         {(sub || text) && <span className={s.floatSub}>{sub && <span>{sub}</span>}{text && <span>{sub ? " · " : ""}{text}</span>}</span>}
       </span>
       <span className={s.floatActions}>{now && pass}{action}</span>
-    </div>;
+    </FloatBar>;
   }
 
   return <section aria-label="Esta etapa" className={s.grid}>
@@ -177,13 +211,19 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <div className={s.span6}><Notice tone="info">Primero dictamen jurídico, opinión de valor y decisión del encargo. Luego, contrato y preparación.</Notice></div>}
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
 
-    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" className={cn(s.piece, s.span4)}>
+    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={cn(s.piece, s.span4)}>
       <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
-      <ul className={s.docList}>{documentsGroup.map(item => item.kind === "inicio"
+      <ul className={s.docList}>{documentsGroup.map(item => item.kind === "abogado"
+        ? <li key="abogado" className={s.docWait}>
+          <StateIcon state={item.task ? "recibido" : "pendiente"} done={item.done} />
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong>Revisión del abogado</strong><span className="text-sm text-muted-foreground">{item.done ? "Hecha. Ya puedes seguir con el levantamiento." : item.task ? "Pedida. El levantamiento espera su respuesta." : item.condition ? `Mencionó: ${item.condition.toLowerCase()}. Va antes del levantamiento.` : "La entrevista pide evaluar la operación antes del levantamiento."}</span></span>
+          {item.task && <Link className="text-sm font-semibold underline underline-offset-4" href={`/admin/tareas/${encodeURIComponent(item.task.id)}`}>Ver la tarea</Link>}
+        </li>
+        : item.kind === "inicio"
         ? <li key={item.step} className={s.docWait}>
           <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: checklist de documentos"}</strong><span className="text-sm text-muted-foreground">Al iniciarlo pasa a la siguiente etapa.</span></span>
-          {item.step === "levantamiento" && surveySelect}
+          <span className="flex min-w-[12rem] flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: checklist de documentos"}</strong><span className="text-sm text-muted-foreground">{item.step === "levantamiento" && waitsLawyer ? "Espera la revisión del abogado." : "Al iniciarlo pasa a la siguiente etapa."}</span></span>
+          {item.step === "levantamiento" && !waitsLawyer && surveySelect}
         </li>
         : item.kind === "checklist"
         ? <li key="checklist" className={s.docChecklist}>{checklist ? <Checklist task={checklist} answers={docs.checklistAnswers} expedienteId={op.id} disabled={lock} onError={setError} /> : <span className="text-sm text-muted-foreground">Checklist de documentos · todavía no se crea.</span>}</li>
@@ -194,10 +234,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
 
     <NextTask op={op} today={today} className={documentsGroup.length ? s.span2 : s.span6} />
 
-    {(reviewsGroup.length > 0 || otherGroup.length > 0) && <section aria-labelledby="confirma-etapa" className={cn(s.piece, s.span3)}>
+    {(reviewsGroup.length > 0 || otherGroup.length > 0) && <section aria-labelledby="confirma-etapa" data-tour="operacion-confirma" className={cn(s.piece, s.span3)}>
       <div className={s.pieceHead}><h2 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h2>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
       <ul className={s.items}>
-        {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} onQuick={quick} onSheet={setSheet} />)}
+        {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} inFloat={now?.kind === "requisito" && now.key === item.key} onQuick={quick} onSheet={setSheet} />)}
         {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
           <StateIcon state="pendiente" done={false} />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="font-semibold">{item.text}</span>{item.why && <span className="text-sm text-muted-foreground">{item.why.replace(/^./, c => c.toUpperCase())}</span>}</div>
@@ -222,6 +262,22 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
 }
 
 /** Un documento de la etapa: número grande, nombre y avance. El que toca va resaltado; el que espera a otro, punteado. */
+/**
+  La barra flotante publica su alto en `--op-float` para que la página reserve ese espacio al pie
+  y la barra nunca tape lo último de la pantalla (C36).
+*/
+function FloatBar({ children }: { children: React.ReactNode }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const el = ref.current, root = document.documentElement;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => root.style.setProperty("--op-float", `${Math.ceil(el.getBoundingClientRect().height)}px`));
+    observer.observe(el);
+    return () => { observer.disconnect(); root.style.removeProperty("--op-float"); };
+  }, []);
+  return <div ref={ref} role="region" aria-label="Siguiente acción" data-tour="operacion-continuar" className={s.float}>{children}</div>;
+}
+
 function DocRow({ item, now, docs, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
   const doc = docs.latest(item.formato), pdf = docs.pdfOf(doc);
   const [code, ...rest] = formatTitle(item.formato, doc).split(" · ");
@@ -251,14 +307,19 @@ function PropertyPiece({ op, property, interview, className, onLink }: { op: Ope
     <p className="text-sm text-muted-foreground">{op.propiedad_slug ? "El inmueble vinculado no está disponible." : "Sin inmueble vinculado."}{expected ? ` ${expected.charAt(0).toUpperCase()}${expected.slice(1)}.` : ""}</p>
     <span><Button onClick={onLink}>Vincular inmueble</Button></span>
   </section>;
-  return <section aria-label="Inmueble" className={cn(s.photoPiece, className)} data-photo={photo ? "true" : "false"}>
-    {photo ? <><Image unoptimized fill sizes="(max-width: 899px) 100vw, 50vw" src={photo} alt="" className={s.photoImg} /><span className={s.photoScrim} aria-hidden="true" /></> : <House size={40} aria-hidden="true" className={s.photoIcon} />}
-    <span className={s.photoChip}>{TIPO_LABELS[property.tipo] ?? "Inmueble"} · {price}</span>
-    <span className="relative flex min-w-0 flex-col gap-0.5">
-      <strong className={s.photoTitle}>{property.titulo}</strong>
-      <span className={s.photoMeta}>{property.direccionAproximada || property.zona}{property.galeria?.length ? ` · ${property.galeria.length === 1 ? "1 foto" : `${property.galeria.length} fotos`}` : ""}</span>
-      <Link href={`/admin/propiedades/${encodeURIComponent(property.slug)}/editar`} className={s.photoLink}>Ver ficha</Link>
-    </span>
+  // Dato y acción, no foto decorativa (C37): miniatura, tipo, precio, zona, fotos y si está publicado.
+  const photos = property.galeria?.length ?? 0;
+  return <section aria-label="Inmueble" className={cn(s.piece, className)}>
+    <div className={s.pieceHead}><h2 className={s.pieceTitle}>Inmueble</h2><span className={s.pieceCount}>{property.publicada ? "Publicado" : "Sin publicar"}</span></div>
+    <div className="flex min-w-0 items-start gap-4">
+      <span className={s.propertyThumb}>{photo ? <Image unoptimized fill sizes="96px" src={photo} alt="" /> : <House size={28} aria-hidden="true" />}</span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <strong className="[overflow-wrap:anywhere]">{property.titulo}</strong>
+        <span className="text-sm text-muted-foreground">{TIPO_LABELS[property.tipo] ?? "Inmueble"} · {price}</span>
+        <span className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{property.direccionAproximada || property.zona}{` · ${photos === 0 ? "sin fotos" : photos === 1 ? "1 foto" : `${photos} fotos`}`}</span>
+      </span>
+    </div>
+    <span><ButtonLink href={`/admin/propiedades/${encodeURIComponent(property.slug)}/editar`}>Ver ficha</ButtonLink></span>
   </section>;
 }
 
@@ -432,6 +493,7 @@ function Declared({ op, interview }: { op: OperationRecord; interview: Operation
       <dt>Ubicación en la ficha</dt><dd>{property?.direccionAproximada || "Sin inmueble vinculado"}</dd>
       <dt>Precio que espera</dt><dd>{interview.respuestas.presupuestoEstado === "conocido" ? `${interview.respuestas.importe} ${interview.respuestas.moneda}` : "Por definir"}</dd>
       <dt>Precio en la ficha</dt><dd>{property?.precio.modalidad === "publico" ? `${property.precio.monto} ${property.precio.moneda}` : "A consultar"}</dd>
+      {interview.respuestas.condiciones && <><dt>Notas de la llamada</dt><dd className="whitespace-pre-line">{interview.respuestas.condiciones}</dd></>}
     </dl>
     <p className="mt-3 text-sm text-muted-foreground">Si no coinciden, corrige la ficha y registra el acuerdo. Los documentos generados no cambian.</p>
     {op.propiedad_slug && <Link className="mt-2 inline-block text-sm font-semibold underline underline-offset-4" href={`/admin/propiedades/${encodeURIComponent(op.propiedad_slug)}/editar`}>Revisar la ficha del inmueble</Link>}

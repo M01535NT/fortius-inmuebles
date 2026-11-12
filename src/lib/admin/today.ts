@@ -85,7 +85,9 @@ const active = (d: TodayDossier) => d.etapa !== "cerrado" && d.flujo?.estado !==
 
 export type WaitingItem = { id: string; who: string; folio?: string; detail?: string; reason: string; when: string; late: boolean; href: string; rank: number; sort: string; propertySlug?: string | null;
   /** La tarea vencida que motiva la tarjeta: «Tareas de hoy» no la repite (C10). */
-  taskId?: string };
+  taskId?: string;
+  /** Con un problema escrito, el requisito al que pertenece; va en la línea secundaria (C35). */
+  requirement?: string };
 
 /**
   «Esperan algo de ti»: una tarjeta por operación o contacto, con el motivo más
@@ -104,18 +106,21 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today 
     const received = requirements.find(([, r]) => r.estado === "recibido");
     const offer = offers?.filter(o => o.context?.expedienteId === dossier.id && o.updatedAt.slice(0, 10) >= recentOffer).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
     const since = (value?: string) => value ? (value.slice(0, 10) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
-    let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank" | "taskId"> | null = null;
-    if (problem) pick = { reason: `Hay un problema con «${requirementName(problem[0], flow?.ruta)}»${problem[1].soporte.trim() ? `: ${problem[1].soporte.trim()}` : "."}`, when: since(problem[1].registradoEl), late: true, rank: 0 };
+    let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank" | "taskId" | "requirement"> | null = null;
+    // El título es el problema; el requisito va en la línea secundaria (C35).
+    if (problem) { const name = requirementName(problem[0], flow?.ruta), said = problem[1].soporte.trim(); pick = { reason: said ? said.replace(/^./, c => c.toUpperCase()) : `Hay un problema con «${name}».`, requirement: said ? name : undefined, when: since(problem[1].registradoEl), late: true, rank: 0 }; }
     else if (overdue.length) pick = { reason: `Tarea vencida: ${overdue[0].titulo}`, when: `Vencida desde el ${shortDate(overdue[0].vence!)}`, late: true, rank: 1, taskId: overdue[0].id };
     else if (received) pick = { reason: `Ya tienes «${requirementName(received[0], flow?.ruta)}». Revísalo.`, when: since(received[1].registradoEl), late: false, rank: 2 };
     else if (offer) pick = { reason: "Se registró una oferta. Revísala con el propietario.", when: offer.updatedAt.slice(0, 10) === today ? "Hoy" : `El ${shortDate(offer.updatedAt)}`, late: false, rank: 3 };
     else if (flow?.estado !== "pausada" && !open.some(t => !!t.vence)) pick = { reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "", late: false, rank: 4 };
     if (!pick) continue;
     const property = names.property(dossier.propiedad_slug);
-    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [property, processStageText(dossier.etapa, flow, today, dossier.inicial)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
+    items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [pick.requirement, property, processStageText(dossier.etapa, flow, today, dossier.inicial)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
   }
-  for (const contact of followups.filter(f => f.fecha <= today)) {
-    items.push({ id: contact.id, who: contact.personName, detail: contact.kind === "lead" ? "Prospecto" : "Cliente", reason: "Toca darle seguimiento.", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 5, sort: contact.fecha });
+  // Quien tiene una operación activa la sigue por su operación, no por el «próximo contacto» del perfil (C40).
+  const withOperation = new Set(dossiers.filter(active).map(d => d.cliente_id).filter(Boolean));
+  for (const contact of followups.filter(f => f.fecha <= today && !(f.kind === "cliente" && withOperation.has(f.personId)))) {
+    items.push({ id: contact.id, who: contact.personName, detail: contact.kind === "lead" ? "Prospecto" : "Cliente", reason: "Darle seguimiento", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 5, sort: contact.fecha });
   }
   return items.sort((a, b) => a.rank - b.rank || a.sort.localeCompare(b.sort));
 }
@@ -167,11 +172,11 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
   const items: UpcomingItem[] = [];
   for (const task of tasks.filter(t => isTaskOpen(t) && inRange(t.vence))) {
     const d = dossierOf(task.expedienteId);
-    items.push({ id: `tarea:${task.id}`, date: task.vence!, kind: "Tarea", text: task.titulo, meta: d ? `${d.folio} · ${label(d)}` : names.property(task.propiedadSlug) ?? "Sin operación", href: `/admin/tareas/${encodeURIComponent(task.id)}` });
+    items.push({ id: `tarea:${task.id}`, date: task.vence!, kind: "Tarea", text: task.titulo, meta: d ? label(d) : names.property(task.propiedadSlug) ?? "Sin operación", href: `/admin/tareas/${encodeURIComponent(task.id)}` });
   }
   for (const d of dossiers.filter(active)) {
     for (const [key, r] of Object.entries(d.flujo?.requisitos ?? {}) as Array<[RequirementKey, NonNullable<OperationWorkflow["requisitos"][RequirementKey]>]>) {
-      if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key), meta: `${label(d)} · ${d.folio}`, href: `/admin/operaciones/${encodeURIComponent(d.id)}` });
+      if (r.estado === "revisado" && inRange(r.vigenteHasta)) items.push({ id: `vigencia:${d.id}:${key}`, date: r.vigenteHasta!, kind: "Vence", text: requirementName(key, d.flujo?.ruta), meta: label(d), href: `/admin/operaciones/${encodeURIComponent(d.id)}` });
     }
     if (reports && ownerReportApplies(d.etapa, d.flujo)) {
       const last = lastOwnerReport(d.flujo, reports[d.id]);
@@ -186,7 +191,7 @@ export function upcomingItems({ tasks, dossiers, reports, names, today }: { task
 export function overdueReports({ dossiers, reports, names, today }: { dossiers: TodayDossier[]; reports: Record<string, string>; names: Names; today: string }) {
   return dossiers.filter(d => active(d) && ownerReportApplies(d.etapa, d.flujo)).map(d => ({ d, status: ownerReportStatus(lastOwnerReport(d.flujo, reports[d.id]), today) }))
     .filter(({ status }) => status.estado !== "al_dia")
-    .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? d.folio, status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
+    .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? "Sin inmueble vinculado", status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
 }
 
 /** Fechas del contrato de intermediación (09) que entrega /api/admin/vencimientos. */
@@ -214,7 +219,7 @@ export function expiryItems({ contracts, dossiers, names, today }: { contracts: 
       const left = daysBetween(today, contract.fin);
       if (left <= 30) items.push({ id: `contrato:${d.id}`, date: contract.fin, kind: "Contrato", late: left < 0, href,
         text: left < 0 ? `El contrato de servicio venció el ${shortDate(contract.fin)}. Renuévalo o retira la publicación.` : `El contrato de servicio vence ${inDays(left)}, el ${shortDate(contract.fin)}. Habla con el propietario para renovarlo.`,
-        meta: [who, names.property(d.propiedad_slug) !== who ? names.property(d.propiedad_slug) : undefined, contract.exclusiva ? "Exclusiva" : undefined, d.folio].filter(Boolean).join(" · ") });
+        meta: [who, names.property(d.propiedad_slug) !== who ? names.property(d.propiedad_slug) : undefined, contract.exclusiva ? "Exclusiva" : undefined].filter(Boolean).join(" · ") });
     }
     const vigencia = contract.licencia?.vigencia, key = contract.licencia?.numero ?? vigencia;
     if (vigencia && key && !licences.has(key)) {
@@ -223,9 +228,40 @@ export function expiryItems({ contracts, dossiers, names, today }: { contracts: 
         licences.add(key);
         items.push({ id: `licencia:${key}`, date: vigencia, kind: "Licencia", late: left < 0, href,
           text: left < 0 ? `La licencia estatal venció el ${shortDate(vigencia)}. Renuévala antes de firmar más contratos.` : `La licencia estatal vence ${inDays(left)}, el ${shortDate(vigencia)}. Tramita la renovación.`,
-          meta: [contract.licencia?.numero ? `Licencia ${contract.licencia.numero}` : undefined, `aparece en ${d.folio}`].filter(Boolean).join(" · ") });
+          meta: [contract.licencia?.numero ? `Licencia ${contract.licencia.numero}` : undefined, `en la operación de ${who}`].filter(Boolean).join(" · ") });
       }
     }
   }
   return items.sort((a, b) => a.date.localeCompare(b.date) || a.kind.localeCompare(b.kind));
+}
+
+/** RP-23: horas para la primera atención de un prospecto nuevo. Pendiente: hacerlo ajustable en Configuración. */
+export const FIRST_RESPONSE_HOURS = 2;
+export type NewLeadItem = { id: string; who: string; detail: string; since: string; late: boolean; href: string; responsible?: string; forDirector: boolean };
+type LeadLike = { id: string; nombre: string; estado: string; origen: string; creadoEl: string; asesorId?: string; propiedadSlug?: string; zona?: string; mensaje?: string; clienteId?: string; firstContactedAt?: string };
+
+/**
+  «Nuevos sin atender» (COR-21): prospectos en estado «Nuevo» a los que nadie ha contactado. Le
+  tocan a su asesor, si tiene; si no, al asesor del inmueble que le interesó; si tampoco, al
+  director. El director los ve todos. Salen de la lista al registrar el primer contacto o al
+  cambiar el estado.
+*/
+export function unattendedLeads({ leads, properties, me, admin, now, hours = FIRST_RESPONSE_HOURS, adviserName }: {
+  leads: LeadLike[]; properties: Array<{ slug: string; titulo: string; asesorId?: string }>; me?: string | null; admin: boolean; now: Date; hours?: number; adviserName?: (id?: string) => string | undefined;
+}): NewLeadItem[] {
+  return leads
+    // Los capturados a mano ya hablaron con alguien; aquí van los que llegan solos (sitio web).
+    .filter(l => l.origen !== "manual" && l.estado === "nuevo" && !l.firstContactedAt && !l.clienteId)
+    .sort((a, b) => a.creadoEl.localeCompare(b.creadoEl))
+    .map(l => {
+      const property = l.propiedadSlug ? properties.find(p => p.slug === l.propiedadSlug) : undefined;
+      const responsible = l.asesorId || property?.asesorId || undefined;
+      const elapsed = Math.max(0, now.getTime() - new Date(l.creadoEl).getTime());
+      const minutes = Number.isFinite(elapsed) ? Math.floor(elapsed / 60000) : 0;
+      const since = minutes < 60 ? `Llegó hace ${Math.max(1, minutes)} min` : minutes < 48 * 60 ? `Lleva ${Math.floor(minutes / 60)} h sin respuesta` : `Lleva ${Math.floor(minutes / 1440)} días sin respuesta`;
+      const interest = property ? `Le interesa ${property.titulo}` : l.mensaje?.trim() ? `«${l.mensaje.trim().slice(0, 80)}${l.mensaje.trim().length > 80 ? "…" : ""}»` : l.zona ? `Busca en ${l.zona}` : "Dejó sus datos";
+      const owner = responsible ? adviserName?.(responsible) : undefined;
+      return { id: l.id, who: l.nombre, detail: admin ? `${interest} · ${owner ? `le toca a ${owner}` : "sin asesor: te toca a ti"}` : interest, since, late: minutes >= hours * 60, href: `/admin/leads/${encodeURIComponent(l.id)}`, ...(responsible ? { responsible } : {}), forDirector: !responsible };
+    })
+    .filter(item => admin || (!!me && item.responsible === me));
 }

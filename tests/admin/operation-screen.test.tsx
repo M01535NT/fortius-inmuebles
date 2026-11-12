@@ -208,10 +208,10 @@ it("en el dictamen, la barra dice qué les falta a las etapas anteriores y «Ver
   server.ops = [base({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) })];
   await openOperation();
   await stage(5);
-  expect(await screen.findByRole("button", { name: "3 · Levantamiento: falta el 04" })).toBeTruthy();
+  expect(await screen.findByRole("button", { name: "3 · Levantamiento: falta el levantamiento" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "2 · Entrevista inicial: lista" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "4 · Checklist de documentos: falta el checklist" })).toBeTruthy();
-  expect(screen.getByText("A la etapa 3, levantamiento, le falta el 04. Hay 1 más en «Ver etapas».")).toBeTruthy();
+  expect(screen.getByText("A la etapa 3, levantamiento, le falta el levantamiento. Hay 1 más en «Ver etapas».")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Ver etapas" }));
   const sheet = await screen.findByRole("dialog", { name: "Etapas" });
   expect(within(sheet).getAllByText("No se generó").length).toBeGreaterThan(0);
@@ -491,7 +491,7 @@ it("la lista separa lo que espera algo de ti, filtra por etapa, busca sin acento
   expect(castaneda.getAttribute("href")).toBe(`/admin/operaciones/${ID}`);
   expect(within(castaneda).getByText("Tarea vencida")).toBeTruthy();
   expect(within(castaneda).getByText("Vencido · 14 oct")).toBeTruthy();
-  expect(within(waiting).getByRole("link", { name: /EXP-SIN-CLIENTE\. Etapa 5 de 10, Dictamen jurídico\. Falta el 02/ })).toBeTruthy();
+  expect(within(waiting).getByRole("link", { name: /EXP-SIN-CLIENTE\. Etapa 5 de 10, Dictamen jurídico\. Falta la entrevista inicial/ })).toBeTruthy();
   fireEvent.click(screen.getByRole("radio", { name: "Mías" }));
   expect(screen.queryByRole("link", { name: /Ángel Martínez/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
@@ -529,8 +529,10 @@ it("restaura desde Operaciones eliminadas con confirmación", async () => {
 });
 
 it("Alta directa no pide folio, protege la captura al salir, permite descartar y abre la operación creada", async () => {
+  // C38: sin tarjeta fija; se abre desde «Alta rápida, sin entrevista» de Nueva operación (?nuevo=1).
+  nav.search = new URLSearchParams({ nuevo: "1" });
   render(<OperationsBoard />);
-  fireEvent.click(await screen.findByRole("button", { name: "Alta directa, sin entrevista" }));
+  expect(await screen.findByRole("heading", { name: "Alta directa, sin entrevista" })).toBeTruthy();
   expect(screen.getByText("El folio se asigna al guardar.")).toBeTruthy();
   const unit = screen.getByLabelText("Unidad, si aplica");
   fireEvent.change(unit, { target: { value: "Unidad pendiente" } });

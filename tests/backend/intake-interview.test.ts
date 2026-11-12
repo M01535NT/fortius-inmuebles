@@ -120,3 +120,21 @@ describe("Entrevista inicial por intención", () => {
     ).toContain("privacidad");
   });
 });
+
+describe("CAP-05 · problema mencionado en la llamada", () => {
+  it("pide el detalle cuando mencionó un problema y llena alertas y ocupación", async () => {
+    const { withProspectDefaults, visibleFields, PROSPECT_SCREEN, screenFields, interviewScreens } = await import("../../src/lib/intake/wizard");
+    const owner: InterviewAnswers = { ...common, relacion: "propietario", ubicacion: "Calle 1, Otay", problema: "ocupado_sin_permiso", creditoInmueble: "infonavit" };
+    expect(interviewIssues("vender", withProspectDefaults("vender", owner)).map(i => i.key)).toContain("detalleAlertas");
+    const filled = withProspectDefaults("vender", { ...owner, detalleAlertas: "Lo ocupa un conocido desde 2025." });
+    expect(filled).toMatchObject({ alertas: "declaradas", ocupacion: "otro" });
+    expect(interviewIssues("vender", filled).map(i => i.key)).not.toContain("detalleAlertas");
+    // El detalle solo aparece si mencionó algo.
+    expect(visibleFields("vender", { ...owner, problema: "ninguno" }).some(f => f.key === "detalleAlertas")).toBe(false);
+    const screen = interviewScreens("vender").find(s => s.title === PROSPECT_SCREEN)!;
+    expect(screenFields("vender", owner, screen).map(f => f.key)).toEqual(expect.arrayContaining(["problema", "detalleAlertas", "creditoInmueble"]));
+    // «No mencionó ninguno» no declara nada ni toca la ocupación.
+    expect(withProspectDefaults("vender", { ...owner, problema: "ninguno" })).toMatchObject({ alertas: "por_aclarar", ocupacion: "por_aclarar" });
+    expect(interviewIssues("vender", { ...owner, problema: "inventado" }).map(i => i.key)).toContain("problema");
+  });
+});

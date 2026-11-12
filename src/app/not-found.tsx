@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
+
 import { DocumentLink } from "@/components/navigation/document-link";
+
+export const metadata: Metadata = { title: "Página no encontrada" };
 
 /* 404 con la misma letra y botones que las páginas interiores. */
 export default function NotFound() {

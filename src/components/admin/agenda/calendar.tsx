@@ -167,12 +167,12 @@ export function AgendaCalendar() {
         <Button iconOnly aria-label="Semana anterior" onClick={() => selectDay(shiftCalendarDate(seleccion, -7))}><ChevronLeft size={20} aria-hidden="true" /></Button>
         <Button onClick={() => selectDay(hoy)}>Hoy</Button>
         <Button iconOnly aria-label="Semana siguiente" onClick={() => selectDay(shiftCalendarDate(seleccion, 7))}><ChevronRight size={20} aria-hidden="true" /></Button>
-        <Button className="ml-2" onClick={focusCapture}><Plus size={16} aria-hidden="true" />Agendar</Button>
+        <Button className="ml-2" data-tour="agenda-agendar" onClick={focusCapture}><Plus size={16} aria-hidden="true" />Agendar</Button>
       </div>
     </div>
     <div className={s.legend} aria-hidden="true"><span><i className={s.swatchVisit} />Visita</span><span><i className={s.swatchOther} />Cita o llamada</span><span><i className={s.swatchTask} />Tarea o seguimiento</span></div>
 
-    <section aria-label="Agenda semanal" className={s.weekCard}>
+    <section aria-label="Agenda semanal" data-tour="agenda-semana" className={s.weekCard}>
       <div className={s.scroller}><div className={s.weekInner}>
         <div className={s.dayRow}>
           <span className={s.gutter} aria-hidden="true" />

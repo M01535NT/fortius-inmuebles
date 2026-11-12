@@ -163,6 +163,7 @@ test("quick creation works repeatedly from the current module", async ({
         .getByRole("dialog")
         .getByRole("link", { name: label, exact: true })
         .click();
+      if (label === "Nuevo prospecto") await page.getByRole("button", { name: "Busca comprar o rentar" }).click();
       await expect(page.getByLabel(field, { exact: true })).toBeVisible();
       if (i === 0)
         await page.getByRole("button", { name: close, exact: true }).click();
@@ -267,11 +268,8 @@ test("profile menu persists identity, photo and reading preferences", async ({ p
   await page.getByRole("button",{name:"Guardar perfil",exact:true}).click();
   await expect(page.getByText("Perfil guardado en tu cuenta.")).toBeVisible();
   expect(profile.avatar).toMatch(/^data:image\/jpeg;base64,/);
-  await page.getByRole("button",{name:"Compacta",exact:true}).click();
-  await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density","compact");
   await page.reload();
   await expect(page.getByLabel("Nombre visible")).toHaveValue("Moisés Núñez");
-  await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density","compact");
   await page.screenshot({path:info.outputPath("profile.png"),fullPage:true});
 });
 test("failed Blog loading does not block inventory navigation", async ({page}) => {
@@ -309,14 +307,17 @@ test("Documentos es una pestaña de Herramientas y la dirección anterior lleva 
   await expect(page.getByText("No hay documentos con estos criterios.")).toBeVisible();
   await page.getByRole("tab", { name: "Herramientas" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
-  await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Comercial", level: 2 })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toHaveCount(0);
 });
 test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/admin");
     await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
-    for (const name of [/^Esperan algo de ti/, /^Tareas de hoy/, /^Agenda de hoy/, /^Próximos 7 días/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+    // SIM-14: lo que espera va primero en «Lo siguiente»; la sección aparte solo si hay más.
+    await expect(page.getByRole("region", { name: "Lo siguiente" })).toBeVisible();
+    for (const name of [/^Tareas de hoy/, /^Agenda de hoy/, /^Próximos 7 días/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
     const tasks = page.getByRole("region", { name: "Tareas de hoy" });
     await expect(tasks.getByRole("checkbox").first()).toBeVisible();
     await expect(tasks.getByRole("link", { name: "Agregar tarea" })).toHaveAttribute("href", "/admin/agenda?tab=tareas&nueva=1");

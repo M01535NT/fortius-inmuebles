@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactIntents } from "@/components/contact/contact-intents";
+import { pageMetadata } from "@/lib/seo/page-metadata";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/contacto" }, title: "Contacto",
-  description: "Consulta sobre compra, venta o un inmueble publicado y solicita una conversación inicial.",
-};
+export const metadata: Metadata = pageMetadata({
+  path: "/contacto",
+  title: "Contacto de inmobiliaria en Tijuana",
+  description:
+    "Escríbenos para vender, comprar o preguntar por un inmueble en Tijuana, Rosarito, Tecate o Ensenada. Te respondemos por WhatsApp, por teléfono o por correo.",
+});
 
 /* Boceto Contacto: página nocturna completa con motivos, formulario y canales directos. */
 export default function ContactoPage() {

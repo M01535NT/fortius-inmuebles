@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { ZodError } from "zod";
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) { super(message); }
+  /** `details` se agrega al cuerpo del error (p. ej. `faltantes`); nunca lleva datos privados. */
+  constructor(public readonly status: number, message: string, public readonly details?: Record<string, unknown>) { super(message); }
 }
 
 // Next.js rewrites 127.0.0.1 (and the rest of 127.0.0.0/8) to localhost on request.url.
@@ -70,7 +71,7 @@ export async function apiResponse(action: () => Promise<unknown>, successStatus 
     const status = error instanceof ApiError ? error.status : error instanceof ZodError ? 400 : 500;
     const message = error instanceof ApiError ? error.message : status === 400 ? "Datos inválidos; revisa los campos" : "No se pudo completar la operación";
     if (status >= 500) console.error(JSON.stringify({ event: "api_failure", requestId, status, category: error instanceof ApiError ? "dependency" : "unexpected", durationMs: Date.now() - startedAt }));
-    return Response.json({ error: message, requestId }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
+    return Response.json({ ...(error instanceof ApiError ? error.details : undefined), error: message, requestId }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
   }
 }
 
