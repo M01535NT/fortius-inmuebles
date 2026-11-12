@@ -114,7 +114,7 @@ test("public and admin not-found pages return to the complete public site", asyn
   }
 });
 
-test("an admin render error offers a working exit to public navigation", async ({ page }) => {
+test("an admin render error stays inside the panel with a working way back to Hoy", async ({ page }) => {
   await page.route("**/api/**", (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/auth/session") {
@@ -126,13 +126,13 @@ test("an admin render error offers a working exit to public navigation", async (
       : [];
     return route.fulfill({ json: { records } });
   });
-  // Contactos muestra los prospectos; Hoy ya no lista prospectos y no se rompe con este dato.
+  // Contactos muestra los prospectos; el dato mal formado rompe su vista.
   await page.goto("/admin/contactos");
-  await expect(page.getByRole("heading", { name: "No pudimos cargar esta página." })).toBeVisible();
-  await page.getByRole("link", { name: "Volver al inicio", exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
-  await expect(page.locator("footer")).toBeVisible();
+  // SIM-11: el error se queda dentro del panel, sin detalles técnicos, y ofrece volver a Hoy.
+  await expect(page.getByRole("heading", { name: "No pudimos abrir esta página." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reintentar" })).toBeVisible();
+  await page.getByRole("link", { name: "Volver a Hoy", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin$/);
 });
 
 test("short phone screens can reach the first footer navigation link", async ({ page }) => {
