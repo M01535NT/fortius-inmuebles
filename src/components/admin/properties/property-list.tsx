@@ -3,7 +3,7 @@ import { usePropertyScope } from "@/lib/admin/staff-scope";
 import * as React from "react";
 import Link from "next/link";
 import { PropertyShareActions } from "./property-share";
-import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
+import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2, EMPTY_ART } from "@/components/admin/icons";
 import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
 import { AsyncButton, AsyncSelect, inputClass } from "@/components/admin/ui";
 import { confirmDelete } from "@/components/admin/workspace/confirm";
@@ -106,8 +106,8 @@ export function PropertyList() {
     </details>}
 
     {demand ? <DemandView groups={groups} />
-      : properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
-      : shown.length === 0 ? <EmptyBox title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
+      : properties.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.inmuebles, kind: "empezar" }} title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
+      : shown.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.inmuebles, kind: "buscar" }} title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
       : <>
       {viewError && <p role="alert" className="m-0 text-sm text-destructive">{viewError}</p>}
       <button type="button" className={s.viewToggle} onClick={toggleView}>{view === "filas" ? <><LayoutGrid size={16} aria-hidden="true" />Ver en tarjetas</> : <><List size={16} aria-hidden="true" />Ver en filas</>}</button>

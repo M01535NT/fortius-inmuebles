@@ -109,3 +109,69 @@ export const Film = adapt(I.MediaVideo, "MediaVideo");
 export const ImageIcon = adapt(I.MediaImage, "MediaImage");
 export const Link2 = adapt(I.Link, "Link");
 export const Paperclip = adapt(I.Attachment, "Attachment");
+
+/*
+  Catálogo LV-02 (V01, aprobado por el titular el 13/11/2026 sobre el boceto): un ícono por etapa
+  y por tipo de documento, el mismo en todas las pantallas. El documento usa el ícono de la etapa
+  que lo deja (entrevista 02, levantamiento 04, dictamen 06, opinión de valor 07, contrato 09…).
+*/
+export type PanelIcon = ReturnType<typeof adapt>;
+const STAGE = {
+  prospecto: adapt(I.PhoneIncome, "PhoneIncome"),
+  captacion: adapt(I.ChatLines, "ChatLines"),
+  levantamiento: adapt(I.RulerCombine, "RulerCombine"),
+  documentos: adapt(I.ClipboardCheck, "ClipboardCheck"),
+  dictamen: adapt(I.ShieldCheck, "ShieldCheck"),
+  verificacion: adapt(I.Coins, "Coins"),
+  contrato: adapt(I.PageEdit, "PageEdit"),
+  publicacion: adapt(I.Megaphone, "Megaphone"),
+  visitas: adapt(I.Eye, "Eye"),
+  cierre: adapt(I.Key, "Key"),
+} as const;
+/** Ícono de cada una de las diez etapas del propietario (venta y renta comparten claves). */
+export const OWNER_STAGE_ICONS: Record<keyof typeof STAGE, PanelIcon> = STAGE;
+/** Etapas de las demás rutas (comprador, arrendatario, inversión), por etapa del flujo. */
+export const ROUTE_STAGE_ICONS: Record<string, PanelIcon> = {
+  captacion: STAGE.captacion, documentacion: STAGE.documentos, comercializacion: adapt(I.Search, "Search"),
+  negociacion: adapt(I.HandCash, "HandCash"), cierre: STAGE.contrato, entrega: STAGE.cierre, postventa: adapt(I.ChatBubbleCheck, "ChatBubbleCheck"),
+};
+const DOC: Record<string, PanelIcon> = {
+  "01": adapt(I.Lock, "Lock"), "02": STAGE.captacion, "03": adapt(I.StatsReport, "StatsReport"), "04": STAGE.levantamiento,
+  "05": adapt(I.DocMagnifyingGlass, "DocMagnifyingGlass"), "06": STAGE.dictamen, "07": STAGE.verificacion, "08": adapt(I.Calculator, "Calculator"),
+  "09": STAGE.contrato, "10": adapt(I.TaskList, "TaskList"), "11": adapt(I.StatsReport, "StatsReport"), "12": adapt(I.UserCircle, "UserCircle"),
+  "13": STAGE.visitas, "14": ROUTE_STAGE_ICONS.negociacion, "15": adapt(I.PageStar, "PageStar"), "16": STAGE.cierre,
+  "17": adapt(I.BadgeCheck, "BadgeCheck"), "18": adapt(I.Wallet, "Wallet"), "19": adapt(I.Hammer, "Hammer"), "20": adapt(I.HomeSimpleDoor, "HomeSimpleDoor"),
+  "21": STAGE.contrato,
+};
+const DOC_FALLBACK = adapt(I.Page, "Page");
+/** Ícono del tipo de documento por su formato («04B» usa el del levantamiento). */
+export function docIcon(formato: string): PanelIcon { return DOC[formato] ?? DOC[formato.slice(0, 2)] ?? DOC_FALLBACK; }
+
+/*
+  Estados de un requisito (V03): cada uno con forma propia, además de color y palabra.
+  Pendiente círculo vacío, Lo tengo medio lleno, Revisado lleno con palomita, Hay un problema
+  triángulo, No aplica punteado con raya. Mismo trazo de 1.5 que Iconoir.
+*/
+type GlyphProps = Omit<React.SVGProps<SVGSVGElement>, "ref"> & { size?: number | string };
+const glyph = (name: string, body: React.ReactNode) => {
+  const Glyph = ({ size = 24, ...rest }: GlyphProps) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" {...rest}>{body}</svg>;
+  Glyph.displayName = `Glyph(${name})`;
+  return Glyph;
+};
+export const StatePending = glyph("Pendiente", <circle cx="12" cy="12" r="9" />);
+export const StateHalf = glyph("LoTengo", <><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" /></>);
+export const StateDone = glyph("Revisado", <><circle cx="12" cy="12" r="9.75" fill="currentColor" stroke="none" /><path d="M7.5 12.5l3 3 6-6.5" stroke="var(--card, #fff)" strokeWidth={2} /></>);
+export const StateProblem = glyph("Problema", <><path d="M12 3.5 21.5 20h-19z" /><path d="M12 10v4.5M12 17.2v.1" strokeWidth={2} /></>);
+export const StateNotApplicable = glyph("NoAplica", <><circle cx="12" cy="12" r="9" strokeDasharray="2.6 2.6" strokeLinecap="butt" /><path d="M8 12h8" /></>);
+
+const ROUTE_ORDER = ["captacion", "documentacion", "comercializacion", "negociacion", "cierre", "entrega", "postventa"] as const;
+/** Ícono de una etapa del avance: por su clave si es del propietario; si no, por su lugar en la ruta. */
+export function stageIcon(stage: { key?: string } | undefined, index: number): PanelIcon {
+  return (stage?.key && OWNER_STAGE_ICONS[stage.key as keyof typeof OWNER_STAGE_ICONS]) || ROUTE_STAGE_ICONS[ROUTE_ORDER[index] ?? "postventa"];
+}
+
+/** Objetos de los estados vacíos (LV-04): la misma figura que la pantalla o la etapa. */
+export const EMPTY_ART = {
+  operaciones: STAGE.cierre, inmuebles: DOC["20"], contactos: adapt(I.Community, "Community"), tareas: DOC["10"],
+  documentos: DOC_FALLBACK, historial: adapt(I.ClockRotateRight, "ClockRotateRight"), papelera: adapt(I.Trash, "Trash"), asesores: adapt(I.Group, "Group"),
+} as const;

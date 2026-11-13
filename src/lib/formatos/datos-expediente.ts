@@ -23,7 +23,7 @@ const d = (formato: string, ...keys: string[]): Destino[] => keys.map(key => ({ 
 export const DATOS_EXPEDIENTE: DatoExpediente[] = [
   // Propietario y apoderado
   { clave: "propietarioNombre", etiqueta: "Nombre del propietario o razón social", grupo: "Propietario", tipo: "texto",
-    destinos: [...d("01", "titular"), ...d("07", "propietario"), ...d("08", "propietario"), ...d("10", "propietario"), ...d("11", "propietario"), ...d("14", "propietario"), ...d("15", "vendedor"), ...d("20", "arrendador")] },
+    destinos: [...d("01", "titular"), ...d("07", "propietario"), ...d("08", "propietario"), ...d("10", "propietario"), ...d("11", "propietario"), ...d("14", "propietario"), ...d("15", "vendedor"), ...d("20", "arrendador"), ...d("23", "arrendador")] },
   { clave: "propietarioCurp", etiqueta: "CURP del propietario", grupo: "Propietario", tipo: "texto", destinos: [] },
   { clave: "propietarioRfc", etiqueta: "RFC del propietario", grupo: "Propietario", tipo: "texto", destinos: [...d("15", "rfcVendedor"), ...d("20", "arrendadorRfc")] },
   { clave: "propietarioIdentificacion", etiqueta: "Identificación oficial del propietario", grupo: "Propietario", tipo: "texto", ayuda: "Tipo y número, por ejemplo INE 1234567890.", destinos: [...d("15", "identificacionVendedor"), ...d("20", "arrendadorIdentificacion")] },
@@ -37,7 +37,7 @@ export const DATOS_EXPEDIENTE: DatoExpediente[] = [
 
   // Inmueble
   { clave: "inmuebleDomicilio", etiqueta: "Domicilio del inmueble", grupo: "Inmueble", tipo: "texto",
-    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19", "20", "21"].flatMap(formato => d(formato, "inmueble")) },
+    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"].flatMap(formato => d(formato, "inmueble")) },
   { clave: "inmuebleTipo", etiqueta: "Tipo de inmueble", grupo: "Inmueble", tipo: "texto", ayuda: "Casa, departamento, terreno, oficina, local, nave o plaza.",
     destinos: [...d("02", "tipoInmueble"), ...d("10", "tipoInmueble"), { formato: "07", key: "tipoInmueble", transformar: valor => TIPO_INMUEBLE_DESDE_ENTREVISTA[String(valor)] ?? valor }] },
   { clave: "folioReal", etiqueta: "Folio real", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "folioReal"), ...d("09", "folioReal"), ...d("10", "folioReal"), ...d("14", "folioInmueble")] },

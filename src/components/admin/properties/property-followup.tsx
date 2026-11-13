@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ChevronDown, MessageCircle, MoreHorizontal } from "@/components/admin/icons";
+import { ChevronDown, MessageCircle, MoreHorizontal, EMPTY_ART } from "@/components/admin/icons";
 import { Button, ButtonLink, EmptyBox, Notice, Pill, ProgressBar } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, Field, btnGhost, inputClass, selectClass } from "@/components/admin/ui";
 import { buyersFor, lastNotice, noticeMessage, priceDroppedSince, seekersFrom, whatsappDigits } from "@/lib/admin/buyer-matches";
@@ -139,7 +139,7 @@ export function BuyersBlock({ property, save }: BlockProps) {
   return <section id="compradores" aria-labelledby="compradores-title" className={`${f.group} scroll-mt-24`}>
     <div className={f.groupHead}><h2 id="compradores-title">Compradores que podrían interesarse</h2><p>{offerable ? `${matches.length} ${matches.length === 1 ? "persona" : "personas"}` : "Sin avisos por ahora"}</p></div>
     {!offerable ? <Notice tone="info" title="Publícalo para poder ofrecerlo">Solo inmuebles publicados y disponibles: sin contrato firmado no se ofrece a nadie.</Notice>
-      : !matches.length ? <EmptyBox title="Nadie coincide todavía">Contactos que buscan algo así, en esta zona o con este presupuesto.</EmptyBox>
+      : !matches.length ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: "buscar" }} title="Nadie coincide todavía">Contactos que buscan algo así, en esta zona o con este presupuesto.</EmptyBox>
       : <ul className="flex flex-col gap-2" aria-label="Compradores que podrían interesarse">{matches.map(({ seeker, reasons }) => {
         const notice = lastNotice(property, seeker), dropped = priceDroppedSince(property, notice), wa = whatsappDigits(seeker.telefono);
         return <li key={`${seeker.kind}:${seeker.id}`} className="flex flex-col gap-3 rounded-[10px] border border-border p-3">

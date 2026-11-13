@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ButtonLink, Card, EmptyBox } from "@/components/admin/kit";
+import { EMPTY_ART } from "@/components/admin/icons";
 import { TIPO_LABELS } from "@/data/propiedades";
 import { captureHref, type DemandGroup } from "@/lib/admin/demand";
 
@@ -21,7 +22,7 @@ export function budgetText(group: Pick<DemandGroup, "budgets">) {
 }
 
 export function DemandView({ groups }: { groups: DemandGroup[] }) {
-  if (!groups.length) return <EmptyBox title="Nadie espera algo que no tengamos">Cada interesado activo tiene al menos un inmueble publicado que le puede servir, o todavía no dice qué busca.</EmptyBox>;
+  if (!groups.length) return <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: "listo" }} title="Nadie espera algo que no tengamos">Cada interesado activo tiene al menos un inmueble publicado que le puede servir, o todavía no dice qué busca.</EmptyBox>;
   return <section aria-labelledby="buscan-titulo" className="flex flex-col gap-3">
     <h2 id="buscan-titulo" className="sr-only">Buscan y no tenemos</h2>
     <p className="m-0 text-sm text-muted-foreground">Interesados activos sin ningún inmueble publicado que les sirva. Quien busca en varias zonas aparece en cada una.</p>

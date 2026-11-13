@@ -54,7 +54,7 @@ function escribirEn(campo: HTMLInputElement | HTMLTextAreaElement, texto: string
 }
 
 /** Formatos que se capturan sobre el documento en vivo. */
-export const EN_VIVO = new Set(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"]);
+export const EN_VIVO = new Set(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]);
 const IMAGE_KEYS = ["fotoPrincipalId", "croquisId"];
 const IMAGE_ERRORS: Record<string, string> = { "Selecciona la fotografía principal adjunta": "fotoPrincipalId", "Selecciona el croquis adjunto": "croquisId" };
 type Render = (doc: Documento) => Promise<Maqueta>;

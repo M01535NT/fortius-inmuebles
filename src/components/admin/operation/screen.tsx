@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, FileText, History, ListChecks, Pencil, Settings2, Trash2, Upload } from "@/components/admin/icons";
 import { RecordNotes, useRecordNotes } from "@/components/admin/workspace/record-notes";
-import { Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
+import { Avatar, Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { PAPELERA } from "@/components/admin/papelera/textos";
@@ -23,7 +23,7 @@ import { DocumentsTab } from "./documents-tab";
 import { HistoryTab } from "./history-tab";
 import { NextStepTab } from "./next-step";
 import { SettingsTab } from "./settings-tab";
-import { initialsOf, StagePanel, StagesSheet } from "./stages";
+import { StagePanel, StagesSheet } from "./stages";
 import { useOperationDocuments } from "./use-documents";
 import { useLeaveGuard, useOperation } from "./use-operation";
 import s from "./operation.module.css";
@@ -190,7 +190,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       <div className={s.main}>
         {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
           {tabs}
-          <span className={s.footWho}>{adviser ? <><span className={s.footAvatar} aria-hidden="true">{initialsOf(adviser.nombre)}</span>Responsable {adviser.nombre}</> : "Sin responsable"}</span>
+          <span className={s.footWho}>{adviser ? <><Avatar name={adviser.nombre} size={28} />Responsable {adviser.nombre}</> : "Sin responsable"}</span>
         </div>}
         <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
           {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
