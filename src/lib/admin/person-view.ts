@@ -3,6 +3,7 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { stepDate } from "@/lib/admin/contacts-view";
 import { shortDate } from "@/lib/admin/today";
 import { isTaskOpen, type Task } from "@/lib/tasks";
+import { contactText, type ContactNote } from "@/lib/admin/lead-contact";
 
 /*
   Ficha de persona (SIM-07, 11/11/2026): los tres estados visibles del prospecto (DEC-46) y la
@@ -37,7 +38,7 @@ export function humanDay(instant?: string) {
 }
 
 export type TimelineItem = {
-  id: string; kind: "Nota" | "Cita" | "Visita" | "Tarea" | "Registro";
+  id: string; kind: "Nota" | "Contacto" | "Cita" | "Visita" | "Tarea" | "Registro";
   text: string;
   /** «Hoy · 11:00», «Vencido · 9 nov» o «21 oct 2026». */
   when: string;
@@ -67,7 +68,8 @@ export function personTimeline({ notes = [], events, tasks, records = [], today 
       upcoming.push({ id: `t:${task.id}`, kind: "Tarea", text: task.titulo, when: date?.label ?? "Sin fecha", late: date?.late, href, sort: task.vence ?? "9999" });
     } else past.push({ id: `t:${task.id}`, kind: "Tarea", text: task.titulo, when: humanDay(task.completadoEl ?? task.vence), done: task.estado === "completada", href, sort: task.completadoEl ?? task.vence ?? "" });
   }
-  for (const note of notes) past.push({ id: `n:${note.id}`, kind: "Nota", text: note.texto, when: humanDay(note.fecha), sort: note.fecha });
+  // COR-18: los intentos de contacto son notas marcadas con `contacto`.
+  for (const note of notes as ContactNote[]) past.push({ id: `n:${note.id}`, kind: note.contacto ? "Contacto" : "Nota", text: note.contacto ? contactText(note) : note.texto, when: humanDay(note.fecha), sort: note.fecha });
   for (const record of records) if (record.at) past.push({ id: `r:${record.id}`, kind: "Registro", text: record.text, when: humanDay(record.at), sort: record.at });
   upcoming.sort((a, b) => a.sort.localeCompare(b.sort));
   past.sort((a, b) => b.sort.localeCompare(a.sort));

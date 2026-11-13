@@ -8,6 +8,7 @@ import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, te
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
+import { ContactLog } from "@/components/admin/contacts/contact-log";
 import { NextStepCard, PersonCard, PersonHeader, Timeline, personStyles as s, useInterview, type MenuItem } from "@/components/admin/contacts/person";
 import { nextStep } from "@/lib/admin/contacts-view";
 import { estadoForStage, humanDay, leadStage, personTimeline, LEAD_STAGE_CHOICES, LEAD_STAGE_LABELS, type LeadStage } from "@/lib/admin/person-view";
@@ -39,6 +40,7 @@ function LeadDetail({ id }: { id: string }) {
   const [noteDirty, setNoteDirty] = React.useState(false);
   const [agendaOpen, setAgendaOpen] = React.useState(false);
   const [agendaDirty, setAgendaDirty] = React.useState(false);
+  const [contactDirty, setContactDirty] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState<{ lead: Lead; version: number | null } | null>(null);
   const interview = useInterview({ leadId: id });
   const today = operationalDate();
@@ -50,10 +52,13 @@ function LeadDetail({ id }: { id: string }) {
     <span><ButtonLink href="/admin/contactos">Volver a Contactos</ButtonLink></span>
   </Surface>;
 
-  const busy = !!profileDraft || noteDirty || agendaDirty;
+  const busy = !!profileDraft || noteDirty || agendaDirty || contactDirty;
   const propiedad = propiedades.find(p => p.slug === lead.propiedadSlug);
   const stage = leadStage(lead.estado);
   const seller = lead.perfil?.operacion === "vender" || lead.perfil?.operacion === "arrendar";
+  // COR-18: quien compra, renta o invierte no abre operación; su acción principal es registrar el contacto.
+  const buyer = ["comprar", "rentar", "invertir"].includes(lead.perfil?.operacion ?? "");
+  const active = !lead.clienteId && stage !== "descartado" && stage !== "cerrado";
   const duplicates = duplicateContacts(lead, leads);
   const step = lead.clienteId ? null : nextStep(lead, "lead", tareas, eventos, today);
   const { upcoming, past } = personTimeline({
@@ -106,10 +111,10 @@ function LeadDetail({ id }: { id: string }) {
     {duplicates.length > 0 && <Notice title="Puede estar repetido">Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
 
     <NextStepCard step={step} today={today} fallback={lead.clienteId ? "Su seguimiento continúa en su ficha de cliente." : draft ? "Terminar su entrevista inicial" : stage === "descartado" || stage === "cerrado" ? "Sin seguimiento: está descartado." : "Sin siguiente paso con fecha. Agenda una llamada o una tarea."}>
-      {!lead.clienteId && !lead.firstContactedAt && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[560]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}
+      {!lead.clienteId && !buyer && !lead.firstContactedAt && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[560]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}
       {lead.clienteId && <ButtonLink className={s.onNavy} href={`/admin/clientes/${encodeURIComponent(lead.clienteId)}`}>Ver cliente</ButtonLink>}
       {interview.current?.estado === "completada" && <ButtonLink className={s.onNavy} href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.current.id)}`}>Ver entrevista</ButtonLink>}
-      {draft ? (busy ? <Button variant="primary" disabled>Continuar entrevista</Button> : <ButtonLink variant="primary" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(draft.id)}`}>Continuar entrevista<ArrowRight size={18} aria-hidden="true" /></ButtonLink>) : prepare}
+      {draft ? (busy ? <Button variant="primary" disabled>Continuar entrevista</Button> : <ButtonLink variant="primary" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(draft.id)}`}>Continuar entrevista<ArrowRight size={18} aria-hidden="true" /></ButtonLink>) : buyer && active ? <Button variant="primary" onClick={() => { const target = document.querySelector<HTMLElement>("#registrar-contacto button"); target?.scrollIntoView({ block: "center" }); target?.focus(); }}>Registrar contacto</Button> : buyer && !lead.clienteId ? null : prepare}
     </NextStepCard>
     {interview.error && <p className={s.small}>No se pudo consultar su entrevista. <button type="button" className="font-semibold underline" onClick={interview.reload}>Reintentar</button></p>}
 
@@ -120,6 +125,7 @@ function LeadDetail({ id }: { id: string }) {
           <ButtonLink href={`/admin/agenda?tab=tareas&nueva=1&${linkQuery}`}>Nueva tarea</ButtonLink>
         </span>}>
           <Timeline upcoming={upcoming} past={past} empty="Todavía no hay nada registrado.">
+            {active && <ContactLog lead={lead} today={today} onDirtyChange={setContactDirty} />}
             <AsyncForm onSubmit={agregarNota} className={s.compose}>
               <label htmlFor="nueva-nota" className="sr-only">Nueva nota</label>
               <textarea id="nueva-nota" name="nota" rows={2} required placeholder="Qué se habló, qué sigue, compromisos…" className={textareaClass}
@@ -143,7 +149,7 @@ function LeadDetail({ id }: { id: string }) {
         </PersonCard>
 
         <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
-        {!lead.clienteId && stage !== "descartado" && stage !== "cerrado" && <MatchingProperties seeker={{ id: lead.id, kind: "lead", nombre: lead.nombre, telefono: lead.telefono, email: lead.email, zona: lead.zona, tipoPropiedad: lead.tipoPropiedad, perfil: lead.perfil, asesorId: lead.asesorId, href: `/admin/leads/${encodeURIComponent(lead.id)}` }} />}
+        {active && <MatchingProperties seeker={{ id: lead.id, kind: "lead", nombre: lead.nombre, telefono: lead.telefono, email: lead.email, zona: lead.zona, tipoPropiedad: lead.tipoPropiedad, perfil: lead.perfil, asesorId: lead.asesorId, href: `/admin/leads/${encodeURIComponent(lead.id)}` }} />}
       </div>
 
       <aside className={s.col}>

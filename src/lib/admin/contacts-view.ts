@@ -59,7 +59,7 @@ export function nextStep(person: { id: string; perfil?: LeadProfile }, kind: "le
   const options: Array<NextStep & { sort: string }> = [];
   for (const task of tasks) if (isTaskOpen(task) && mine(task)) options.push({ text: task.titulo, date: task.vence || undefined, sort: task.vence || "9999" });
   for (const event of events) if (mine(event) && event.fecha >= today) options.push({ text: event.titulo, date: event.fecha, time: event.hora, sort: `${event.fecha} ${event.hora ?? ""}` });
-  if (person.perfil?.proximoContacto && !ops.length) options.push({ text: "Darle seguimiento", date: person.perfil.proximoContacto, sort: person.perfil.proximoContacto });
+  if (person.perfil?.proximoContacto && !ops.length) options.push({ text: person.perfil.proximaAccion?.trim() || "Darle seguimiento", date: person.perfil.proximoContacto, sort: person.perfil.proximoContacto });
   options.sort((a, b) => a.sort.localeCompare(b.sort));
   const first = options[0];
   if (first) return { text: first.text, date: first.date, time: first.time };
