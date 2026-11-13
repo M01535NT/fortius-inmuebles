@@ -80,7 +80,7 @@
 :global(.admin-root) .cardPhoto { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 10; background: #0e2a52; color: rgba(255, 255, 255, .8); overflow: hidden; }
 :global(.admin-root) .cardPhoto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 :global(.admin-root) .cardInitials { background: #0e2a52; }
-:global(.admin-root) .cardBody { display: flex; flex: 1; flex-direction: column; gap: .3125rem; padding: .875rem 1rem 1rem; }
+:global(.admin-root) .cardBody { display: flex; flex: 1; flex-direction: column; gap: .25rem; padding: .875rem 1rem 1rem; }
 :global(.admin-root) .cardTags { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 :global(.admin-root) .cardWho { font-weight: 540; overflow-wrap: anywhere; }
 :global(.admin-root) .cardText { font-size: var(--admin-text-detalle); color: var(--muted-foreground); overflow-wrap: anywhere; }
