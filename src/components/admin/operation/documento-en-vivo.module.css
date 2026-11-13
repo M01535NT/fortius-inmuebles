@@ -42,3 +42,8 @@
 @media (max-width: 1279px) {
   .viewer { position: absolute; inset: 0; z-index: 3; width: auto; border-left: 0; }
 }
+
+/* Captura por lista (DEC-44): avance de la lista bajo el título de la pregunta. */
+.progress { height: 3px; background: var(--muted); }
+.progress > span { display: block; height: 100%; background: var(--primary); }
+@media (prefers-reduced-motion: no-preference) { .progress > span { transition: width .2s ease-out; } }
