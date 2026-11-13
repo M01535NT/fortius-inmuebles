@@ -14,6 +14,8 @@ export type PanelPreferences = {
   operacionesVista?: "lista" | "tablero";
   inmueblesVista?: "filas" | "tarjetas";
   vistasInventario?: Array<{ name: string; filters: Record<string, string> }>;
+  recientes?: string[];
+  atajos?: boolean;
 };
 export type UserPreferences = { bandeja?: { leidos?: InboxRead }; panel?: PanelPreferences };
 type State = { session: string; data: UserPreferences | null } | undefined; // null: no se pudo consultar
