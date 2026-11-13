@@ -56,7 +56,7 @@
 .fe-visor-arrow.is-prev { left: 16px; }
 .fe-visor-arrow.is-next { right: 16px; }
 .fe-visor-counter { position: absolute; left: 16px; bottom: 16px; z-index: 2; padding: 6px 10px; border-radius: 8px; background: rgba(6, 12, 20, 0.7); color: #fff; font-family: var(--font-mono); font-size: 12px; pointer-events: none; }
-.fe-visor-caption { position: absolute; right: 16px; bottom: 18px; left: 96px; z-index: 2; overflow: hidden; color: rgba(245, 241, 235, 0.85); font-size: 13px; text-align: right; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+.fe-visor-caption { position: absolute; right: 16px; bottom: 18px; left: 96px; z-index: 2; overflow: hidden; color: rgba(248, 248, 255, 0.85); font-size: 13px; text-align: right; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
 .fe-visor-media { display: block; width: 100%; height: clamp(280px, 52vw, 620px); border: 0; background: #060c14; object-fit: cover; }
 .fe-visor-thumbs-wrap { justify-content: flex-start; margin: 0; padding: 10px; border-top: 1px solid color-mix(in srgb, var(--ns-ink) 8%, transparent); }
 .fe-visor-thumbs { gap: 8px; }
@@ -81,12 +81,12 @@
 
 /* Franja de datos clave */
 .fe-facts { background: #061f3f; color: #fff; }
-.fe-facts, .fe-benefits li, .fe-visit { --ns-accent: #f5f1eb; }
+.fe-facts, .fe-benefits li, .fe-visit { --ns-accent: #f8f8ff; }
 .fe-facts .property-key-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; padding-block: 0; }
 .fe-facts .property-key-facts > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 4px; padding: 24px 22px; border-left: 1px solid rgba(255, 255, 255, 0.12); }
 .fe-facts .property-key-facts > div:first-child { border-left: 0; padding-left: 0; }
 .fe-facts dd { margin: 0; font-size: clamp(22px, 2.4vw, 30px); font-weight: 700; letter-spacing: -0.02em; }
-.fe-facts dt { color: rgba(245, 241, 235, 0.68); font-size: 13px; }
+.fe-facts dt { color: rgba(248, 248, 255, 0.68); font-size: 13px; }
 
 /* Cuerpo */
 .fe-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: clamp(28px, 4vw, 56px); align-items: start; padding-bottom: clamp(64px, 8vw, 112px); }
@@ -94,7 +94,7 @@
 .fe-sections { position: sticky; top: 72px; z-index: 5; display: flex; gap: 6px; margin: 0 -4px; padding: 14px 4px; overflow-x: auto; background: var(--background); scrollbar-width: none; }
 .fe-sections::-webkit-scrollbar { display: none; }
 .fe-sections a { flex: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 4px; background: var(--card, var(--background)); color: var(--foreground); font-size: 14px; font-weight: 600; transition: background-color 0.25s, color 0.25s, border-color 0.25s; }
-.fe-sections a:hover { border-color: #061f3f; background: #061f3f; color: #f5f1eb; }
+.fe-sections a:hover { border-color: #061f3f; background: #061f3f; color: #f8f8ff; }
 .fe-alert { margin: 24px 0 0; padding: 14px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); font-size: 15px; line-height: 1.6; }
 .fe-section { padding-block: clamp(40px, 5vw, 56px); border-top: 1px solid var(--border); }
 .fe-section:first-of-type { border-top: 0; }
@@ -110,18 +110,18 @@
 .fe-group li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.5; }
 .fe-group li svg { flex: none; margin-top: 3px; color: var(--primary-text, #8a1634); }
 .fe-benefits { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
-.fe-benefits li { display: grid; gap: 10px; align-content: start; padding: 24px; border-radius: 8px; background: #061f3f; color: #f5f1eb; }
+.fe-benefits li { display: grid; gap: 10px; align-content: start; padding: 24px; border-radius: 8px; background: #061f3f; color: #f8f8ff; }
 .fe-benefits .pg-number { color: var(--ns-accent); -webkit-text-stroke: 0; }
 .fe-benefits h3 { margin: 0; font-size: 19px; font-weight: 600; line-height: 1.25; }
-.fe-benefits p { margin: 0; color: rgba(245, 241, 235, 0.75); font-size: 15px; line-height: 1.55; }
+.fe-benefits p { margin: 0; color: rgba(248, 248, 255, 0.75); font-size: 15px; line-height: 1.55; }
 .fe-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .fe-filter button { min-height: 44px; padding: 0 16px; border: 1px solid var(--border); border-radius: 4px; background: var(--card, var(--background)); color: var(--foreground); font-size: 14px; font-weight: 600; cursor: pointer; }
-.fe-filter button[aria-pressed="true"] { border-color: #061f3f; background: #061f3f; color: #f5f1eb; }
+.fe-filter button[aria-pressed="true"] { border-color: #061f3f; background: #061f3f; color: #f8f8ff; }
 .fe-location-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .fe-location-grid.is-map-only { grid-template-columns: 1fr; }
 .fe-map { position: relative; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: #061f3f; }
 .fe-map iframe { display: block; width: 100%; height: 360px; border: 0; }
-.fe-map figcaption { padding: 10px 14px; background: #061f3f; color: rgba(245, 241, 235, 0.8); font-size: 12px; }
+.fe-map figcaption { padding: 10px 14px; background: #061f3f; color: rgba(248, 248, 255, 0.8); font-size: 12px; }
 .fe-places { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .fe-places li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
 .fe-place-number { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border-radius: 999px; background: #061f3f; color: #fff; font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
@@ -141,8 +141,8 @@
 .fe-availability h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
 .fe-availability p { margin: 6px 0 0; color: var(--muted-foreground); font-size: 14px; line-height: 1.6; }
 /* Documentos y costos: tarjetas apiladas, cada una con encabezado crema; las calculadoras son filas propias */
-.fe-page { --fe-tint: #f5f1eb; }
-.dark .fe-page { --fe-tint: rgba(245, 241, 235, 0.06); }
+.fe-page { --fe-tint: #f8f8ff; }
+.dark .fe-page { --fe-tint: rgba(248, 248, 255, 0.06); }
 .fe-docs-grid { display: grid; gap: 20px; }
 .fe-docs > * { overflow: hidden; border-radius: 8px !important; }
 .fe-card-head { padding: 16px 22px; border-bottom: 1px solid var(--border); background: var(--fe-tint); }
@@ -182,22 +182,22 @@
 .fe-visit-agent { display: flex; align-items: center; gap: 14px; }
 .fe-visit-avatar { display: grid; flex: none; place-items: center; width: 52px; height: 52px; border-radius: 999px; background: #8a1634; color: #fff; font-family: var(--font-mono); font-size: 14px; }
 .fe-visit-agent strong { display: block; font-size: 17px; font-weight: 600; }
-.fe-visit-agent span span { display: block; color: rgba(245, 241, 235, 0.7); font-size: 13px; }
+.fe-visit-agent span span { display: block; color: rgba(248, 248, 255, 0.7); font-size: 13px; }
 .fe-visit-title { margin: 0; font-size: 20px; font-weight: 600; }
-.fe-visit-lead { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; color: rgba(245, 241, 235, 0.85); font-size: 14px; }
+.fe-visit-lead { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; color: rgba(248, 248, 255, 0.85); font-size: 14px; }
 .fe-visit-lead svg { flex: none; color: var(--ns-accent); }
 .fe-visit-days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-.fe-visit-days button, .fe-visit-day-placeholder { display: grid; justify-items: center; gap: 2px; min-height: 60px; padding: 8px 0; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 4px; color: #f5f1eb; cursor: pointer; transition: background-color 0.25s, border-color 0.25s; }
-.fe-visit-days button span { color: rgba(245, 241, 235, 0.7); font-size: 12px; text-transform: capitalize; }
+.fe-visit-days button, .fe-visit-day-placeholder { display: grid; justify-items: center; gap: 2px; min-height: 60px; padding: 8px 0; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 4px; color: #f8f8ff; cursor: pointer; transition: background-color 0.25s, border-color 0.25s; }
+.fe-visit-days button span { color: rgba(248, 248, 255, 0.7); font-size: 12px; text-transform: capitalize; }
 .fe-visit-days button strong { font-size: 18px; font-weight: 600; }
 .fe-visit-days button:hover { border-color: rgba(255, 255, 255, 0.5); }
 .fe-visit-days button[aria-pressed="true"] { border-color: var(--ns-accent); background: color-mix(in srgb, var(--ns-accent) 18%, transparent); }
 .fe-visit-cta { width: 100%; min-height: 54px; border-radius: 4px; }
-.fe-visit-form { padding: 18px; border-radius: 6px; background: #f5f1eb; color: #061f3f; --foreground: #061f3f; --muted-foreground: #40536b; --border: rgba(6, 31, 63, 0.16); --input: rgba(6, 31, 63, 0.2); --background: #fff; --card: #fff; --primary-text: #8a1634; }
+.fe-visit-form { padding: 18px; border-radius: 6px; background: #f8f8ff; color: #061f3f; --foreground: #061f3f; --muted-foreground: #40536b; --border: rgba(6, 31, 63, 0.16); --input: rgba(6, 31, 63, 0.2); --background: #fff; --card: #fff; --primary-text: #8a1634; }
 .fe-visit-channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
-.fe-visit-channels a { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 4px; color: #f5f1eb; font-size: 13px; font-weight: 600; transition: background-color 0.25s; }
+.fe-visit-channels a { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 4px; color: #f8f8ff; font-size: 13px; font-weight: 600; transition: background-color 0.25s; }
 .fe-visit-channels a:hover { background: rgba(255, 255, 255, 0.1); }
-.fe-visit :is(a, button):focus-visible { outline: 2px solid #f5f1eb; outline-offset: 3px; }
+.fe-visit :is(a, button):focus-visible { outline: 2px solid #f8f8ff; outline-offset: 3px; }
 
 /* Similares */
 .fe-related { padding-block: clamp(56px, 7vw, 96px); background: var(--ns-bg); color: var(--ns-ink); }

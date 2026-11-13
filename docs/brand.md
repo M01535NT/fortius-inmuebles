@@ -7,9 +7,11 @@ La marca comercial del producto es **Fortius Inmuebles**. La referencia es el lo
 | Azul principal | `#061F3F` |
 | Borgoña | `#8A1634` |
 | Blanco | `#FFFFFF` |
-| Crema (texto y acento sobre fondos oscuros) | `#F5F1EB` |
+| Blanco azulado (fondos claros; texto y acento sobre fondos oscuros) | `#F8F8FF` |
 
-**La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es crema, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados; en tema oscuro las barras usan `#A2223F`.
+**La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es blanco azulado, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados; en tema oscuro las barras usan `#A2223F`.
+
+**Sin crema ni beige (titular, 12/11/2026).** El crema `#F5F1EB` salió del sitio público: fondos, bandas, botones claros y textos sobre oscuro usan el blanco azulado `#F8F8FF`, el mismo lienzo que el panel desde el 11/11. No lo regreses. En el panel, el crema solo queda como texto sobre la barra oscura (`src/app/admin/panel.module.css`).
 
 `BrandMark` comparte la geometría SVG entre cabecera, footer y administración. Sobre fondo claro: letras y portal izquierdo azules, portal derecho borgoña. Sobre fotografía o en tema oscuro, sin placa: letras y portal izquierdo blancos, portal derecho borgoña. Los tonos grises son neutros azulados.
 

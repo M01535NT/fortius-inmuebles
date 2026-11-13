@@ -31,7 +31,7 @@
 
 /* Portada (30/10/2026): video a sangre, antetítulo con las ciudades, titular, una línea y dos botones. */
 .nx-hero { position: relative; isolation: isolate; display: flex; flex-direction: column; min-height: clamp(640px, 100svh, 900px); overflow: hidden; background: #061325; }
-.nx-hero, .nx-stage.is-active { --ns-accent: #f5f1eb; }
+.nx-hero, .nx-stage.is-active { --ns-accent: #f8f8ff; }
 .nx-hero-media { position: absolute; inset: 0; z-index: -2; }
 .nx-hero-media video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; transform-origin: center 40%; }
 /* Velo arriba para la barra transparente y abajo para el texto. */
@@ -48,15 +48,15 @@
 .nx-hero-scenes { display: flex; gap: 8px; margin: 48px 0 0; padding: 0; list-style: none; }
 .nx-hero-scenes li { flex: 0 1 160px; }
 .nx-hero-scene { display: flex; align-items: center; width: 100%; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; }
-.nx-hero-scene:hover .nx-hero-scene-bar { background: rgba(245, 241, 235, 0.5); }
-.nx-hero-scene:focus-visible { outline: 2px solid #f5f1eb; outline-offset: 2px; }
-.nx-hero-scene-bar { display: block; height: 2px; background: rgba(245, 241, 235, 0.3); overflow: hidden; }
+.nx-hero-scene:hover .nx-hero-scene-bar { background: rgba(248, 248, 255, 0.5); }
+.nx-hero-scene:focus-visible { outline: 2px solid #f8f8ff; outline-offset: 2px; }
+.nx-hero-scene-bar { display: block; height: 2px; background: rgba(248, 248, 255, 0.3); overflow: hidden; }
 .nx-hero-scene-bar > span { display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; }
 .nx-hero-scene[aria-current="true"] .nx-hero-scene-bar > span { transform: scaleX(var(--nx-scene-progress, 0)); }
 .nx-hero-foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px 48px; margin-top: 24px; }
 .nx-hero-lead { max-width: 46ch; margin: 0; color: #e6eaf0; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.55; }
 .nx-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.nx-btn.nx-btn-light { border-color: #f5f1eb; background: #f5f1eb; color: #061f3f; }
+.nx-btn.nx-btn-light { border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
 .nx-btn.nx-btn-light:hover { border-color: #fff; background: #fff; color: #061f3f; }
 @media (max-width: 639px) {
   .nx-hero-actions { width: 100%; }
@@ -79,7 +79,7 @@
 .nx-deck-card, .nx-deck-link { height: 100%; }
 .nx-deck-link { position: relative; isolation: isolate; display: block; overflow: hidden; background: #0f1a28; color: #fff; }
 .nx-deck-link::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(6, 19, 37, 0.35) 0%, rgba(6, 19, 37, 0.1) 40%, rgba(6, 19, 37, 0.82) 100%); }
-.nx-deck-link:focus-visible { outline: 3px solid #f5f1eb; outline-offset: -8px; }
+.nx-deck-link:focus-visible { outline: 3px solid #f8f8ff; outline-offset: -8px; }
 .nx-deck-img { z-index: -2; object-fit: cover; transition: transform 1.2s var(--nx-ease); }
 .nx-deck-img.is-closed { opacity: 0.8; }
 .nx-deck-link:hover .nx-deck-img { transform: scale(1.03); }
@@ -146,7 +146,7 @@
 .nx-stage-step { display: block; margin-top: 18px; color: color-mix(in srgb, var(--ns-ink) 72%, transparent); font-size: 13px; font-weight: 600; }
 .nx-stage.is-active { color: #fff; border-color: #8a1634; box-shadow: 0 30px 60px -30px rgba(138, 22, 52, 0.45); translate: 0 -8px; }
 .nx-stage.is-active::before { opacity: 1; }
-.nx-stage.is-active .nx-stage-number { color: #f5f1eb; transform: scale(1); }
+.nx-stage.is-active .nx-stage-number { color: #f8f8ff; transform: scale(1); }
 .nx-stage.is-active p { color: rgba(255, 255, 255, 0.88); }
 .nx-stage.is-active .nx-stage-step { color: var(--ns-accent); }
 .nx-stage.is-past { filter: saturate(0.7); }
@@ -156,14 +156,14 @@
 
 /* Preguntas: banda clara de contraste dentro de la portada nocturna */
 .nx-faq {
-  --background: #f5f1eb;
+  --background: #f8f8ff;
   --foreground: #061f3f;
   --border: rgba(6, 31, 63, 0.16);
   --muted-foreground: #40536b;
   --primary-text: #8a1634;
   --ring: #8a1634;
   margin-top: clamp(72px, 8vw, 112px);
-  background: #f5f1eb;
+  background: #f8f8ff;
   color: #061f3f;
 }
 /* Ritmo del boceto 2 solo en el inicio; la página de preguntas conserva el suyo. */
@@ -334,9 +334,9 @@
 
 .nx-stage-doc { display: flex; align-items: center; gap: 8px; margin-top: 18px; color: var(--ns-accent); font-size: 13px; font-weight: 600; }
 .nx-stage-doc svg { flex: none; }
-.nx-stage.is-active .nx-stage-doc { color: #f5f1eb; }
+.nx-stage.is-active .nx-stage-doc { color: #f8f8ff; }
 
-.nx-band-navy { --nx-ink: #f5f1eb; --nx-muted: rgba(245, 241, 235, 0.78); --ns-accent: #f5f1eb; --ns-ink: #f5f1eb; margin-top: clamp(72px, 8vw, 112px); padding-block: clamp(64px, 7vw, 96px); background: #061f3f; color: #f5f1eb; }
+.nx-band-navy { --nx-ink: #f8f8ff; --nx-muted: rgba(248, 248, 255, 0.78); --ns-accent: #f8f8ff; --ns-ink: #f8f8ff; margin-top: clamp(72px, 8vw, 112px); padding-block: clamp(64px, 7vw, 96px); background: #061f3f; color: #f8f8ff; }
 .dark .nx-band-navy { background: #0c1622; }
 .nx-band-navy .nx-title { color: #fff; }
 /* Banda con video de fondo: el velo azul es más denso a la izquierda, donde va el texto. */
@@ -360,7 +360,7 @@
 .nx-pasos { display: flex; flex-direction: column; gap: 16px; margin: 32px 0 0; padding: 0; list-style: none; }
 .nx-pasos li { display: flex; gap: 16px; align-items: flex-start; font-size: 18px; line-height: 1.45; }
 .nx-pasos li span { flex: none; width: 32px; padding-top: 4px; font-size: 13px; font-weight: 600; }
-.nx-band-navy .nx-link { color: #f5f1eb; }
+.nx-band-navy .nx-link { color: #f8f8ff; }
 .nx-band-navy .nx-actions { margin-top: 32px; align-items: center; }
 .nx-search { --nx-ink: #061f3f; display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 12px; background: #fff; color: #061f3f; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.5); }
 .nx-search h3 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; }
@@ -386,7 +386,7 @@
 
 /* Imagen de cada etapa del método (30/10/2026): franja arriba de la tarjeta, el número encima. */
 .nx-stage { justify-content: flex-start; min-height: 0; padding-top: 0; }
-.nx-stage-photo { position: relative; display: block; aspect-ratio: 16 / 10; margin: 0 -32px 20px; overflow: hidden; background: #f5f1eb; }
+.nx-stage-photo { position: relative; display: block; aspect-ratio: 16 / 10; margin: 0 -32px 20px; overflow: hidden; background: #f8f8ff; }
 .nx-stage-photo img { object-fit: cover; object-position: 50% 60%; transition: transform 1.2s var(--nx-ease); }
 .nx-stage.is-active .nx-stage-photo img { transform: scale(1.04); }
 .nx-stage-number { margin-top: 0; }

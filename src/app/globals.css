@@ -37,7 +37,7 @@
   --color-block: var(--block);
   --color-block-foreground: var(--block-foreground);
   --color-block-muted: var(--block-muted);
-  --color-block-accent: #f5f1eb;
+  --color-block-accent: #f8f8ff;
   --color-brand-ink: var(--brand-ink);
   --color-on-image: #ffffff;
   --color-on-image-muted: #edf0f5;
@@ -88,16 +88,16 @@
 
 .dark {
   --background: #060c14;
-  --foreground: #f5f1eb;
+  --foreground: #f8f8ff;
   --card: #0c1622;
-  --card-foreground: #f5f1eb;
+  --card-foreground: #f8f8ff;
   --popover: #0c1622;
-  --popover-foreground: #f5f1eb;
+  --popover-foreground: #f8f8ff;
   --primary: #8a1634;
-  --primary-text: #f5f1eb;
+  --primary-text: #f8f8ff;
   --primary-foreground: #ffffff;
   --secondary: #121e2c;
-  --secondary-foreground: #f5f1eb;
+  --secondary-foreground: #f8f8ff;
   --muted: #0e1926;
   --muted-foreground: #b6bec8;
   --accent: #a2223f;
@@ -105,7 +105,7 @@
   --destructive: #e2564b;
   --border: rgba(245, 247, 250, 0.13);
   --input: rgba(245, 247, 250, 0.18);
-  --ring: #f5f1eb;
+  --ring: #f8f8ff;
   /* Subtle navy layers on a near-black canvas retain depth without bright blue bands. */
   --block: #0c1826;
   --block-foreground: #ffffff;
@@ -270,7 +270,7 @@ select {
   opacity: 0;
   pointer-events: none;
 }
-.dark .page-curtain { --lock-ink: #f5f1eb; }
+.dark .page-curtain { --lock-ink: #f8f8ff; }
 .lock-svg { width: clamp(15px, 1.625vw, 21px); height: auto; overflow: visible; }
 
 .interactive-card {
