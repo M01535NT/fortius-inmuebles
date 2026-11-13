@@ -21,6 +21,8 @@ export async function POST(request: Request) {
     const file = form.get("file");
     if (!(file instanceof File)) throw new ApiError(400, "Archivo requerido");
     const visibility = z.enum(["private", "public"]).parse(form.get("visibility") ?? "private");
+    // B5: esta ruta directa no sabe el destino; lo público por aquí solo lo sube el director.
+    if (visibility === "public" && user.role !== "admin") throw new ApiError(403, "Sube los archivos públicos desde la ficha del inmueble");
     const { type, extension } = await validateFile(file);
     const client = createServerClient(undefined, true);
     const bucket = visibility === "public" ? "fortius-inmuebles-public" : "fortius-inmuebles-private";

@@ -508,9 +508,12 @@ export function archivoFromUpload(id: string, file: UploadedFile): Archivo {
     visibility: file.bucket === "fortius-inmuebles-public" ? "public" : "private",
   };
 }
+/** B5: a dónde va un archivo público; el servidor decide con esto si se puede. */
+export type UploadDestino = { destino: "inmueble"; inmueble?: string } | { destino: "sitio" };
 export async function uploadFile(
   file: File,
   visibility: "private" | "public" = "private",
+  destino?: UploadDestino,
 ): Promise<UploadedFile> {
   if (!file.size || file.size > 20 * 1024 * 1024)
     throw new Error("El archivo debe pesar entre 1 byte y 20 MB.");
@@ -531,7 +534,7 @@ export async function uploadFile(
   const prepared = await apiRequest<{ signedUrl: string; ticket: string }>(
     "/api/admin/files/upload",
     "POST",
-    { name: file.name, size: file.size, contentType: file.type, visibility },
+    { name: file.name, size: file.size, contentType: file.type, visibility, ...(visibility === "public" ? destino ?? {} : {}) },
   );
   const sent = await fetch(prepared.signedUrl, {
     method: "PUT",
