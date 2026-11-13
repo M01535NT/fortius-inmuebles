@@ -128,3 +128,36 @@ it("tomar el encargo lo decide el director; pausarlo, también el asesor", async
   });
   await asUser(admin, async () => { await saveFlow(flow({}, decision("aceptada"))); });
 });
+
+// COR-20 y RP-31: el director autoriza avanzar sin un requisito, con motivo y constancia.
+const reviewOk = (key: string) => db.query<{ ok: boolean }>("select public.fortius_inmuebles_flow_review_ok(flujo,$2) as ok from public.fortius_inmuebles_expedientes where id=$1", [operation, key]).then(r => r.rows[0].ok);
+const exceptionOf = (key: string) => db.query<{ e: Record<string, string> | null }>("select flujo->'requisitos'->$2->'excepcion' as e from public.fortius_inmuebles_expedientes where id=$1", [operation, key]).then(r => r.rows[0].e);
+const motivo = "El propietario entrega el plan firmado la próxima semana";
+
+it("solo el director autoriza una excepción, con motivo y nunca en un requisito de protección", async () => {
+  expect(await reviewOk("plan")).toBe(false);
+  await asUser(own, async () => {
+    await expect(saveFlow(flow({ plan: { estado: "recibido", soporte: "", excepcion: { motivo } } }))).rejects.toMatchObject({ code: "PT403" });
+  });
+  await asUser(admin, async () => {
+    await expect(saveFlow(flow({ plan: { estado: "pendiente", soporte: "", excepcion: { motivo: "Corto" } } }))).rejects.toMatchObject({ code: "PT400" });
+    for (const key of ["titularidad", "factibilidad", "valor", "revision_cierre", "firma", "pago"]) {
+      await expect(saveFlow(flow({ [key]: { estado: "pendiente", soporte: "", excepcion: { motivo } } }))).rejects.toMatchObject({ code: "PT400" });
+    }
+    // Lo que se envíe como autor no cuenta: el servidor anota quién y cuándo.
+    await saveFlow(flow({ plan: { estado: "pendiente", soporte: "", excepcion: { motivo, autorizadoPor: own } } }));
+  });
+  const stamped = await exceptionOf("plan");
+  expect(stamped).toMatchObject({ motivo, autorizadoPor: admin });
+  expect(stamped?.autorizadoEl).toBeTruthy();
+  expect(await reviewOk("plan")).toBe(true);
+  await asUser(own, async () => {
+    // El asesor conserva la excepción al cambiar otra cosa del requisito, no la reescribe, y puede quitarla.
+    await saveFlow(flow({ plan: { estado: "recibido", soporte: "Borrador del plan de ensayo", excepcion: stamped } }));
+    expect(await exceptionOf("plan")).toEqual(stamped);
+    await expect(saveFlow(flow({ plan: { estado: "recibido", soporte: "Borrador del plan de ensayo", excepcion: { ...stamped, motivo: `${motivo} y otra cosa` } } }))).rejects.toMatchObject({ code: "PT403" });
+    await saveFlow(flow({ plan: { estado: "recibido", soporte: "Borrador del plan de ensayo" } }));
+  });
+  expect(await exceptionOf("plan")).toBeNull();
+  expect(await reviewOk("plan")).toBe(false);
+});

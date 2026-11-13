@@ -8,11 +8,12 @@ import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { isOwnerRoute, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
+import { exceptionKeys, isOwnerRoute, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
+import { requirementName } from "@/lib/admin/today";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { conditionOf } from "@/lib/intake/condition";
-import { flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
+import { EXCEPTION_TAG, flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { TIPO_LABELS } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
@@ -153,7 +154,9 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const stageName = track.stages[track.current]?.label;
   // COR-14: la situación (con su motivo) y la condición de la llamada (con lo que contó).
   const condition = conditionOf(interview?.respuestas);
-  const tags = operationTags(op, condition).map(text => ({ text, detail: text === condition?.text ? condition.detail : flow.motivo || undefined }));
+  // COR-20: con excepción autorizada, el detalle dice en qué requisitos.
+  const tags = operationTags(op, condition).map(text => ({ text, detail: text === condition?.text ? condition.detail
+    : text === EXCEPTION_TAG ? `En ${exceptionKeys(flow).map(key => requirementName(key, flow.ruta).toLowerCase()).join(", ")}.` : flow.motivo || undefined }));
   const digits = (client?.telefono ?? "").replace(/\D/g, "");
   const role = isOwnerRoute(flow.ruta) ? "Propietario" : flow.ruta === "inversion" ? "Inversionista" : flow.ruta === "arrendatario" ? "Arrendatario" : "Comprador";
   const tabItems = TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={18} aria-hidden="true" />, ...(t.id === "documentos" ? { count: docsCount } : t.id === "actividad" ? { count: taskCount } : {}) }));

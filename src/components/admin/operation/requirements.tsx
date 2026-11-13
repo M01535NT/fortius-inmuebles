@@ -5,7 +5,7 @@ import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/component
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
-import { directorReview, ownerProcess, requirementPhase, reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { directorReview, exceptionAllowed, exceptionCovers, ownerProcess, requirementPhase, reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirementDetail, reviewState } from "@/lib/admin/operation-view";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { useIsDirector } from "@/lib/admin/staff-scope";
@@ -26,14 +26,15 @@ type Change = (key: RequirementKey, review: Review | undefined) => Promise<void>
 
 const STATES: ReviewStateKey[] = ["pendiente", "recibido", "revisado", "observado", "no_aplica"];
 
-export type SheetKind = "revisado" | "observado" | "no_aplica";
+export type SheetKind = "revisado" | "observado" | "no_aplica" | "excepcion";
 export type OpenSheet = { key: RequirementKey; kind: SheetKind } | null;
 
 /** «Lo tengo» y «Pendiente» se guardan al momento y conservan lo escrito; un problema resuelto deja constancia en el soporte. */
 export function quickReview(flow: OperationWorkflow, key: RequirementKey, state: "pendiente" | "recibido", today: string): Review {
   const current = flow.requisitos[key];
   const soporte = current?.estado === "observado" ? `Resuelto el ${shortDate(today)}: ${problemOf(current).title}` : current?.soporte ?? "";
-  return { estado: state, soporte, ...(current?.vigenteHasta ? { vigenteHasta: current.vigenteHasta } : {}) };
+  // COR-20: la excepción del director se conserva; solo él la quita o la cambia desde su panel.
+  return { estado: state, soporte, ...(current?.vigenteHasta ? { vigenteHasta: current.vigenteHasta } : {}), ...(current?.excepcion ? { excepcion: current.excepcion } : {}) };
 }
 
 /**
@@ -53,14 +54,19 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const problem = state === "observado" ? problemOf(review) : null;
   const name = requirementName(requirement, flow.ruta);
   // COR-23: lo que revisa el director, el asesor lo deja en «Lo tengo».
-  const reserved = !useIsDirector() && directorReview(requirement);
+  const director = useIsDirector();
+  const reserved = !director && directorReview(requirement);
+  // COR-20 (RP-31): el director cubre el requisito con una excepción y su motivo; nunca en los de protección.
+  const excepted = exceptionCovers(flow, requirement);
+  const canExcept = director && exceptionAllowed(requirement) && (excepted || !done);
   // COR-17: el valor respaldado con el avalúo del propietario vence con el avalúo.
   const appraisalEnd = requirement === "valor" && review?.evidencia?.tipo === "cliente" ? flow.avaluo?.vigenteHasta : undefined;
-  const detail = expired ? (appraisalEnd && appraisalEnd < today ? `El avalúo venció el ${shortDate(appraisalEnd)}. Registra uno actualizado o haz la opinión de valor.`
+  const detail = excepted ? `Con excepción autorizada: ${review?.excepcion?.motivo}` : expired ? (appraisalEnd && appraisalEnd < today ? `El avalúo venció el ${shortDate(appraisalEnd)}. Registra uno actualizado o haz la opinión de valor.`
     : review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
     : problem ? problem.title : state === "recibido" ? reserved ? "Listo · falta que lo revise el director" : "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
   const options = STATES.filter(st => (st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica") && (!reserved || st === state || (st !== "revisado" && st !== "no_aplica")));
   const disabled = busy || locked;
+  function exception() { setMore(false); onSheet({ key: requirement, kind: "excepcion" }); }
   function choose(st: ReviewStateKey) {
     setMore(false);
     if (st === "revisado" || st === "observado" || st === "no_aplica") onSheet({ key: requirement, kind: st });
@@ -71,7 +77,7 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
     <div className={s.itemMain}>
       <StateIcon state={expired ? "observado" : state} done={done} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="flex flex-wrap items-center gap-2"><span className="font-semibold">{name}</span>{earlier && <span className={s.tag}>{origin ? `De la etapa ${origin}` : "Pendiente de antes"}</span>}</p>
+        <p className="flex flex-wrap items-center gap-2"><span className="font-semibold">{name}</span>{earlier && <span className={s.tag}>{origin ? `De la etapa ${origin}` : "Pendiente de antes"}</span>}{excepted && <span className={s.tag}>Con excepción autorizada</span>}</p>
         {detail && <p className={cn("text-sm [overflow-wrap:anywhere]", problem || expired ? "font-semibold text-[var(--warning)]" : "text-muted-foreground")}>{detail}</p>}
       </div>
       <div className={s.itemActions}>
@@ -87,6 +93,7 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
     {more && <div role="radiogroup" aria-label={`Estado de ${name}`} className={cn(s.states, s.itemExtra)}>
       {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <button key={st} type="button" role="radio" aria-checked={st === state} disabled={disabled} className={cn(s.state, s[`st_${st}`])} onClick={() => choose(st)}><Icon size={15} aria-hidden="true" />{label.replace(" ✓", "")}</button>; })}
     </div>}
+    {more && canExcept && <div className={s.itemExtra}><Button variant="ghost" disabled={disabled} onClick={exception}>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</Button></div>}
   </li>;
 }
 
@@ -112,6 +119,7 @@ export function RequirementSheets({ sheet, flow, today, evidence, onClose, onCha
   if (!sheet) return null;
   const save = (review: Review) => onChange(sheet.key, review).then(onClose);
   if (sheet.kind === "revisado") return <ReviewSheet requirement={sheet.key} route={flow.ruta} review={flow.requisitos[sheet.key]} today={today} evidence={evidence} onClose={onClose} onAddDocument={() => { onClose(); onAddDocument(); }} onSave={save} />;
+  if (sheet.kind === "excepcion") return <ExceptionSheet requirement={sheet.key} route={flow.ruta} review={flow.requisitos[sheet.key]} onClose={onClose} onSave={save} />;
   if (sheet.kind === "observado") return <ProblemSheet requirement={sheet.key} review={flow.requisitos[sheet.key]} route={flow.ruta} onClose={onClose} onSave={save} />;
   return <NotApplicableSheet requirement={sheet.key} route={flow.ruta} review={flow.requisitos[sheet.key]} onClose={onClose} onSave={save} />;
 }
@@ -258,6 +266,28 @@ function NotApplicableSheet({ requirement, route, review, onClose, onSave }: { r
     <Button variant="primary" disabled={busy} onClick={() => void run(why.trim().length < 3 ? "Escribe por qué no aplica." : { estado: "no_aplica", soporte: why.trim() })}>{busy ? "Guardando…" : "Guardar"}</Button>
   </>}>
     <label className="text-sm font-semibold">Por qué no aplica<textarea className={textareaClass} rows={3} maxLength={1000} value={why} onChange={e => setWhy(e.target.value)} /></label>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+  </Sheet>;
+}
+
+/**
+  «Autorizar excepción» (COR-20, RP-31): el director deja avanzar sin este requisito con un motivo
+  escrito. El servidor anota quién y cuándo, y la operación lo guarda en su historial.
+*/
+function ExceptionSheet({ requirement, route, review, onClose, onSave }: { requirement: RequirementKey; route: OperationWorkflow["ruta"]; review?: Review; onClose: () => void; onSave: (review: Review) => Promise<void> }) {
+  const current = review?.excepcion;
+  const [why, setWhy] = React.useState(current?.motivo ?? "");
+  const { busy, error, run } = useSheetSave(onSave);
+  const base: Review = review ? { ...review } : { estado: "pendiente", soporte: "" };
+  delete base.excepcion;
+  const save = () => void run(why.trim().length < 10 ? "Escribe por qué se avanza sin este requisito (al menos 10 caracteres)." : { ...base, excepcion: { ...(current && current.motivo === why.trim() ? current : {}), motivo: why.trim() } });
+  return <Sheet open onClose={onClose} eyebrow="Excepción del director" title={requirementName(requirement, route)} description="La operación avanza sin este requisito. El motivo, la fecha y quién lo autorizó quedan en el historial." footer={<>
+    {current && <Button disabled={busy} onClick={() => void run(base)}>Quitar la excepción</Button>}
+    <Button onClick={onClose} disabled={busy}>Cancelar</Button>
+    <Button variant="primary" disabled={busy} onClick={save}>{busy ? "Guardando…" : current ? "Guardar" : "Autorizar"}</Button>
+  </>}>
+    <label className="text-sm font-semibold">Por qué se avanza sin este requisito<textarea className={textareaClass} rows={3} maxLength={1000} value={why} onChange={e => setWhy(e.target.value)} placeholder="Ej. El propietario entrega el plan firmado la próxima semana" /></label>
+    {current?.autorizadoEl && <p className="text-sm text-muted-foreground">Autorizada el {shortDate(current.autorizadoEl)}.</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </Sheet>;
 }
