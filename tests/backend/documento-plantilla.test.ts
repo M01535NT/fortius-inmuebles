@@ -112,7 +112,7 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(control?.kind === "grid" && control.rows[0]).toEqual(["D01 · Escritura o título", "Sí", "Recibido", "Escritura 4521", ""]);
     const opinion = opinionJuridicaDocumento({ conclusion: "Factible con condiciones.\n\nActualizar el certificado.", abogado: "Lic. Ana Torres", cedula: "1234567" });
     expect(opinion.estilo).toBe("opinion");
-    expect(opinion.blocks.filter(b => b.kind === "numbered").map(b => b.kind === "numbered" && b.num)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+    expect(opinion.blocks.filter(b => b.kind === "numbered").map(b => b.kind === "numbered" && b.num)).toEqual(["01", "02", "03", "04", "05", "06", "07", "08"]);
     expect(opinion.blocks.filter(b => b.kind === "p" && b.strong).map(b => b.kind === "p" && b.text)).toEqual(["Factible con condiciones.", "Actualizar el certificado."]);
     expect(opinion.blocks.at(-1)).toMatchObject({ kind: "signatures", parties: [{ role: "Abogado responsable", name: "Lic. Ana Torres\nCédula profesional 1234567" }] });
   });

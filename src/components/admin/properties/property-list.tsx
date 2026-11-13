@@ -1,4 +1,5 @@
 "use client";
+import { usePropertyScope } from "@/lib/admin/staff-scope";
 import * as React from "react";
 import Link from "next/link";
 import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
@@ -129,6 +130,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
   const followup = `/admin/propiedades/${p.slug}/seguimiento`;
   const href = `/admin/propiedades/${p.slug}/editar`;
   const pending = p.precio.modalidad === "consulta";
+  const scope = usePropertyScope(p);
   return <Card as="li" lift className={s.item}>
     <Link href={href} className={s.link}>
       <span className={s.photoWrap}>
@@ -151,17 +153,18 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
     <details className={s.options}>
       <summary aria-label={`Opciones de ${p.titulo}`}><MoreHorizontal size={20} aria-hidden="true" /></summary>
       <div className={s.optionsBody}>
-        <label className="flex min-w-0 flex-col gap-1.5 text-sm font-semibold">Estado<PropertyStatus property={p} /></label>
+        {scope.edit ? <label className="flex min-w-0 flex-col gap-1.5 text-sm font-semibold">Estado<PropertyStatus property={p} /></label>
+          : <p className="text-sm text-muted-foreground">Este inmueble es de {adviser ?? "otro asesor"}: solo su asesor o el director lo cambian.</p>}
         <p className="text-sm"><span className="text-muted-foreground">Código:</span> <span className="break-all">{p.codigo}</span></p>
         <p className="text-sm"><span className="text-muted-foreground">Responsable:</span> <span>{adviser ?? "Sin asignar"}</span> · <span className="text-muted-foreground">PDF:</span> {p.documentos?.length ?? 0}</p>
         <div className="flex flex-wrap gap-2">
-          <FeaturedButton property={p} />
+          {scope.feature && <FeaturedButton property={p} />}
           <Link href={`/inventario/${p.slug}`} target="_blank" className={s.action} aria-label={`Ver ${p.titulo} en el sitio`}>Ver en el sitio</Link>
-          <Link href={href} className={s.action} aria-label={`Editar ${p.titulo}`}><Pencil size={15} aria-hidden="true" />Editar</Link>
+          {scope.edit && <><Link href={href} className={s.action} aria-label={`Editar ${p.titulo}`}><Pencil size={15} aria-hidden="true" />Editar</Link>
           <Link href={followup} className={s.action} aria-label={`Llaves, preparación y compradores de ${p.titulo}`}><Key size={15} aria-hidden="true" />Llaves y compradores</Link>
           <AsyncButton type="button" className={s.action} aria-label={`Eliminar ${p.titulo}`} onClick={async () => {
             if (await confirmAction(`¿Eliminar "${p.titulo}"? Un administrador podrá recuperarlo desde Historial.`)) await removePropiedad(p.slug, db.propiedades.version(p));
-          }}><Trash2 size={15} aria-hidden="true" />Eliminar</AsyncButton>
+          }}><Trash2 size={15} aria-hidden="true" />Eliminar</AsyncButton></>}
         </div>
       </div>
     </details>

@@ -18,6 +18,7 @@ import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable } from 
 import { EntrevistaRowsEditor } from "@/components/admin/entrevista-rows-editor";
 import { JuridicaRowsEditor } from "@/components/admin/juridica-rows-editor";
 import { JURIDICA_TABLES, type JuridicaTable } from "@/lib/formatos/juridica";
+import { OPINION_TABLES, type OpinionTable } from "@/lib/formatos/opinion-juridica";
 import { isLevantamiento, LEVANTAMIENTO_TABLES, type LevantamientoTable } from "@/lib/formatos/levantamiento";
 import { LevantamientoRowsEditor } from "@/components/admin/levantamiento-rows-editor";
 import { mostrarCampoValor } from "@/lib/formatos/valor-fields";
@@ -99,7 +100,7 @@ export function FormatoEditor({ definition, values, onChange, images, extras = t
         : field.type === "promesaRows" && field.key in PROMESA_TABLES ? <PromesaRowsEditor kind={field.key as PromesaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "valorRows" ? <ValorRowsEditor kind={field.key} value={value} images={images} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "levantamientoRows" && field.key in LEVANTAMIENTO_TABLES ? <LevantamientoRowsEditor kind={field.key as LevantamientoTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
-        : field.type === "juridicaRows" && field.key in JURIDICA_TABLES ? <JuridicaRowsEditor kind={field.key as JuridicaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
+        : field.type === "juridicaRows" && (field.key in JURIDICA_TABLES || field.key in OPINION_TABLES) ? <JuridicaRowsEditor kind={field.key as JuridicaTable | OpinionTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "entrevistaRows" && field.key in ENTREVISTA_TABLES ? <EntrevistaRowsEditor kind={field.key as EntrevistaTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "reporteRows" && field.key in REPORTE_TABLES ? <ReporteRowsEditor kind={field.key as ReporteTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
         : field.type === "planRows" && field.key in PLAN_TABLES ? <PlanRowsEditor kind={field.key as PlanTable} value={value} onChange={(rows) => onChange(field.key, rows)} />
