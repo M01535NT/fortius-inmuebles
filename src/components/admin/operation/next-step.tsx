@@ -9,7 +9,7 @@ import { inputClass, selectClass } from "@/components/admin/ui";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
-import { appraisalState, CANALES_INFORME, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { appraisalState, CANALES_INFORME, directorReview, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
 import { conditionOf, LAWYER_TASK } from "@/lib/intake/condition";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
@@ -23,6 +23,7 @@ import type { DocumentsController } from "./use-documents";
 import type { Documento } from "./documents-tab";
 import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
+import { useIsDirector } from "@/lib/admin/staff-scope";
 import { ContractSignatureCard } from "./contract-signature";
 import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
@@ -69,6 +70,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   onSavedLegacy: (value: OperationRecord) => void; onGoTo: (tab: "documentos" | "ajustes" | "tareas" | "cliente") => void; onDirtyChange: (dirty: boolean) => void;
 }) {
   const tasks = useCollection(db.tareas);
+  const director = useIsDirector();
   // CSR-02: datos del expediente que esperan revisión (llegaron de una ficha, un documento o un texto).
   const [porConfirmar, setPorConfirmar] = React.useState(0);
   React.useEffect(() => {
@@ -181,6 +183,11 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       if (now.state === "observado") {
         title = `Resolver: ${name}`; text = "";
         action = <><Button disabled={held} onClick={() => setSheet({ key: now.key, kind: "observado" })}>Escribir qué pasó</Button><Button variant="primary" disabled={held} onClick={() => quick(now.key, "recibido")}>Ya se resolvió</Button></>;
+      } else if (!director && directorReview(now.key)) {
+        // COR-23: el asesor lo deja listo y el director lo marca revisado.
+        title = `Para el director: ${name}`;
+        text = now.state === "recibido" ? "Ya está listo. Falta que el director lo revise para seguir." : "Cuando tengas el documento, márcalo «Lo tengo»; el director lo revisa.";
+        action = now.state === "recibido" ? null : <Button variant="primary" disabled={held} onClick={() => quick(now.key, "recibido")}>Lo tengo</Button>;
       } else {
         title = `Confirmar: ${name}`; text = now.state === "recibido" ? "Ya tienes el documento; escribe qué encontraste." : "Su documento ya viene elegido; escribe qué encontraste.";
         action = <Button variant="primary" disabled={held} onClick={() => setSheet({ key: now.key, kind: "revisado" })}>Confirmar</Button>;

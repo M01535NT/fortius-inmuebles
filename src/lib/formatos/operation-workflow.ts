@@ -169,6 +169,13 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
  if(n>=7) keys.push(rent ? "termino_renta" : "registro","honorarios","archivo");
  return keys;
 }
+/**
+  Revisiones que solo marca el director (MRP-01 «quién revisa», COR-23): lo jurídico, el precio, los
+  contratos y la autorización de publicar. El asesor las deja en «Lo tengo». La base lo hace valer
+  (20261112170000_revisiones_del_director); la firma del contrato ya era suya.
+*/
+export const DIRECTOR_REVIEWS: readonly RequirementKey[] = ["titularidad", "factibilidad", "revision_cierre", "precio", "intermediacion", "contrato_renta", "firma", "publicacion"];
+export const directorReview = (key: RequirementKey) => DIRECTOR_REVIEWS.includes(key);
 export function reviewComplete(flow: OperationWorkflow, key: RequirementKey, today: string) {
  const r=flow.requisitos[key], definition=WORKFLOW_REQUIREMENTS[key];
  return !!r && (r.estado === "revisado" || ("noAplica" in definition && r.estado === "no_aplica")) && r.soporte.trim().length>=3

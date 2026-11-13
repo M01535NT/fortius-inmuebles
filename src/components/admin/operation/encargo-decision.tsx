@@ -6,6 +6,7 @@ import { db, useCollection } from "@/lib/admin/store";
 import { RESOLUTION_TYPES, stageLabel, WORKFLOW_STAGES, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { flowOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
+import { useIsDirector } from "@/lib/admin/staff-scope";
 
 type Resolution = NonNullable<OperationWorkflow["resolucion"]>;
 type Save = (changes: { flujo?: OperationWorkflow; etapa?: WorkflowStage }) => Promise<unknown>;
@@ -21,6 +22,9 @@ export const encargoTomado = (flow: Pick<OperationWorkflow, "resolucion">) => !!
 export function EncargoDecisionCard({ op, today, disabled, onSave, onDirtyChange }: { op: OperationRecord; today: string; disabled: boolean; onSave: Save; onDirtyChange: (dirty: boolean) => void }) {
   const tasks = useCollection(db.tareas);
   const flow = flowOf(op);
+  // COR-23: tomar el encargo (aceptarlo, con o sin condiciones) lo decide el director.
+  const director = useIsDirector();
+  const taken = (tipo?: string) => tipo === "aceptada" || tipo === "condicionada";
   const [draft, setDraft] = React.useState<Resolution | undefined>(flow.resolucion);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const dirty = JSON.stringify(draft ?? null) !== JSON.stringify(flow.resolucion ?? null);
@@ -46,10 +50,11 @@ export function EncargoDecisionCard({ op, today, disabled, onSave, onDirtyChange
     } catch (cause) { setError(`No se pudo guardar: ${saveError(cause)}`); } finally { setBusy(false); }
   }
 
-  const lock = disabled || busy;
+  const lock = disabled || busy || (!director && taken(flow.resolucion?.tipo) && taken(draft?.tipo));
   return <Card id="decision-encargo" className="flex flex-col gap-4 p-5" aria-label="Decisión del encargo">
     <div><h2 className="m-0 text-lg">Decisión del encargo</h2><p className="mt-1 text-sm text-muted-foreground">{intro} Pausar, rechazar, referir o cancelar conserva los documentos y el historial.</p></div>
-    <label className="text-sm font-semibold">Decisión<select className={selectClass} disabled={lock} value={draft?.tipo ?? ""} onChange={e => e.target.value ? change({ tipo: e.target.value as Resolution["tipo"] }) : setDraft(undefined)}><option value="">Todavía en evaluación</option>{Object.entries(RESOLUTION_TYPES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+    <label className="text-sm font-semibold">Decisión<select className={selectClass} disabled={lock} value={draft?.tipo ?? ""} onChange={e => e.target.value ? change({ tipo: e.target.value as Resolution["tipo"] }) : setDraft(undefined)}><option value="">Todavía en evaluación</option>{Object.entries(RESOLUTION_TYPES).map(([value, label]) => <option key={value} value={value} disabled={!director && taken(value) && value !== flow.resolucion?.tipo}>{label}</option>)}</select></label>
+    {!director && <p className="-mt-2 text-sm text-muted-foreground">Tomar el encargo lo decide el director; tú puedes registrar si se pausa, se rechaza o se refiere.</p>}
     {draft && <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-sm font-semibold">Fecha de la decisión<input type="date" disabled={lock} className={inputClass} value={draft.fecha} onChange={e => change({ fecha: e.target.value })} /></label>
       <label className="text-sm font-semibold sm:col-span-2">Motivo y alcance<textarea disabled={lock} className={textareaClass} maxLength={1000} value={draft.motivo} onChange={e => change({ motivo: e.target.value })} /></label>
