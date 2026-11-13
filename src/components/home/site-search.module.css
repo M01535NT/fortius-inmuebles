@@ -9,7 +9,7 @@
 .input { flex: 1; min-width: 0; min-height: 72px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: var(--type-seccion); font-weight: 700; letter-spacing: var(--tracking-seccion); outline: none; }
 .input::placeholder { color: var(--muted); }
 .input::-webkit-search-cancel-button { display: none; }
-.close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; color: var(--ink); cursor: pointer; }
+.close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: var(--corner-pastilla); background: transparent; color: var(--ink); cursor: pointer; }
 .close:hover { background: var(--hover); }
 .close:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 /* Un solo indicador de foco en el campo: la línea inferior se engrosa en el acento (12/11/2026). */
