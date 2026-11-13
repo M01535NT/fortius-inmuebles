@@ -80,8 +80,11 @@ describe("COR-15 · notas de la llamada", () => {
 describe("CAP-05 · la 02 recibe lo que dijo en la llamada", () => {
   it("ocupación, crédito y el problema en las notas", () => {
     const data = prefillFormato("02", context({ ocupacion: "otro", creditoInmueble: "infonavit", problema: "ocupado_sin_permiso", detalleAlertas: "Invadida desde 2025.", condiciones: "Llamó por recomendación." }));
-    expect(data).toMatchObject({ ocupacion: "otro", gravamen: "infonavit" });
+    // CAP-06: «lo ocupa alguien sin permiso» llega como esa ocupación y el problema también pasa.
+    expect(data).toMatchObject({ ocupacion: "sin_permiso", gravamen: "infonavit", problema: "ocupado_sin_permiso" });
     expect(data.motivoSiguiente).toBe("Llamó por recomendación.\n\nProblema que mencionó: lo ocupa alguien sin permiso. Invadida desde 2025.");
     expect(prefillFormato("02", context({ ocupacion: "por_aclarar" }))).not.toHaveProperty("ocupacion");
+    // Si dijo que vive un inquilino, la ocupación se respeta aunque haya otro problema.
+    expect(prefillFormato("02", context({ ocupacion: "inquilino", problema: "herencia" }))).toMatchObject({ ocupacion: "inquilino", problema: "herencia" });
   });
 });

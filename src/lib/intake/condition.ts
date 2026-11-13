@@ -1,7 +1,8 @@
 /*
   Condición del inmueble declarada en la llamada (CAP-05, COR-14). Es lo que el propietario
   contó, no un dictamen: con una condición, el abogado revisa antes del levantamiento (RP-96).
-  Las opciones describen lo dicho; las preguntas jurídicas de la 02 esperan DEC-39 (CAP-06).
+  Las opciones describen lo dicho. CAP-06 (DEC-39, 12/11/2026): la 02 repite la pregunta y agrega
+  «Ocupado sin permiso» a la ocupación; lo que diga la 02 cuenta igual que lo de la llamada.
 */
 
 export const PROBLEM_OPTIONS = {
@@ -40,6 +41,14 @@ export function conditionOf(answers: Record<string, string | undefined> | null |
   if (!key || key === "ninguno" || !(key in PROBLEM_CHIP)) return null;
   const detail = answers?.detalleAlertas?.trim();
   return { text: PROBLEM_CHIP[key as Exclude<ProblemKey, "ninguno">], ...(detail ? { detail } : {}) };
+}
+
+/** La condición de la llamada o, si no hay, la que se anotó en la entrevista 02 (CAP-06). */
+export function conditionWith02(answers: Record<string, string | undefined> | null | undefined, entrevista02: Record<string, unknown> | null | undefined): PropertyCondition | null {
+  const fromCall = conditionOf(answers);
+  if (fromCall) return fromCall;
+  const problema = typeof entrevista02?.problema === "string" && entrevista02.problema !== "ninguno" ? entrevista02.problema : entrevista02?.ocupacion === "sin_permiso" ? "ocupado_sin_permiso" : undefined;
+  return conditionOf({ problema });
 }
 
 /** Título de la tarea que pide la revisión del abogado antes del levantamiento. */

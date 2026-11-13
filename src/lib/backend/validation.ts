@@ -39,6 +39,9 @@ const point = z.object({ lugar: short, minutos: amount, categoria: z.enum(CATEGO
 const benefit = z.object({ titulo: z.string().trim().min(1).max(80), texto: z.string().trim().max(240) }).passthrough();
 const featureGroup = z.object({ grupo: z.enum(GRUPOS_CARACTERISTICAS), elementos: z.array(z.string().trim().min(1).max(120)).max(30) }).passthrough();
 const costs = z.object({ predialAnual: amount.optional(), mantenimientoMensual: amount.optional() }).passthrough();
+// PUB-02: la inmobiliaria aliada de un compartido; la base vuelve a validarla y nunca sale al sitio.
+const allySchema = z.object({ inmobiliaria: z.string().trim().min(2).max(120), contacto: z.string().max(200).optional(), porcentaje: z.number().min(0).max(100).optional(),
+  autorizacion: z.object({ path: z.string().max(300), nombre: z.string().max(160).optional(), fecha: z.iso.date().optional(), firmante: z.string().max(160).optional() }).strict().optional() }).strict();
 const propertySchema = z.object({
   slug: id, codigo: z.string().trim().max(160).default(""), titulo: name, tipo: z.enum(TIPO_INMUEBLE_KEYS), conjunto: id.optional(), operacion: z.enum(["venta", "renta"]), precio: price,
   zona: short, direccionAproximada: short, descripcion: z.array(text).max(100), ficha, informacionPublica: informacionPublica.optional(), amenidades: z.array(short).max(100), galeria: z.array(image).max(100), videoUrl: optionalUrl, tour360Url: optionalUrl,
@@ -46,6 +49,7 @@ const propertySchema = z.object({
   demo: z.boolean(), publicada: z.boolean().default(false),
   // Seguimiento privado: se valida al guardar y nunca entra en la proyección pública.
   llaves: keysSchema.optional(), preparacion: prepSchema.optional(), avisosCompradores: buyerNoticesSchema.optional(),
+  origen: z.enum(["propio", "compartido"]).optional(), aliado: allySchema.optional(),
 }).passthrough();
 const adviserProfileSchema = z.object({
   publicado: z.boolean(), descripcion: z.string().max(2000),
@@ -123,8 +127,8 @@ const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? v
 const publicWhatsapp = z.string().transform((value) => isPublicUrl(value) || /^[+]?[0-9 ()-]{7,40}$/.test(value) ? value : "");
 const publicSettings = settingsSchema.omit({ horasPrimeraAtencion: true, mensajes: true }).strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
 // This second allowlist also protects server components against malformed DB data.
-const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, avisosCompradores: true }).strip().extend({
-  codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });
+const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, avisosCompradores: true, origen: true, aliado: true }).strip().extend({
+  colaboracion: z.string().trim().min(2).max(120).optional(), codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });
 /**
   COR-23 y DEC-43 (12/11/2026): un asesor ve de los inmuebles de otros asesores solo lo público
   (fotos, precio, descripción y ficha) para poder ofrecerlos; el seguimiento privado (llaves,
@@ -133,6 +137,9 @@ const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, av
 export function projectTeamProperty(value: Record<string, unknown>): Record<string, unknown> {
   const data: Record<string, unknown> = { ...value };
   for (const key of PRIVATE_PROPERTY_FIELDS) delete data[key];
+  // PUB-02: de un compartido ajeno, solo con qué inmobiliaria (sin contacto, porcentaje ni autorización).
+  const ally = data.aliado as { inmobiliaria?: unknown } | undefined;
+  if (ally) { if (typeof ally.inmobiliaria === "string") data.aliado = { inmobiliaria: ally.inmobiliaria }; else delete data.aliado; }
   if (Array.isArray(data.galeria)) data.galeria = (data.galeria as { src?: unknown }[]).filter(item => typeof item?.src === "string" && isPublicUrl(item.src));
   if (Array.isArray(data.documentos)) data.documentos = (data.documentos as { url?: unknown }[]).filter(item => typeof item?.url === "string" && isPublicUrl(item.url));
   for (const key of ["videoUrl", "tour360Url"]) if (typeof data[key] === "string" && !isPublicUrl(data[key] as string)) delete data[key];

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check } from "@/components/admin/icons";
 import { Button, ButtonLink, Card } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
-import { db, errorMessage, uid, upsert, type Lead } from "@/lib/admin/store";
+import { db, errorMessage, uid, upsert, useCollection, type Lead } from "@/lib/admin/store";
+import { planNextStep } from "@/lib/admin/next-step-task";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import { LEAD_PROFILE_OPTIONS, leadProfileSchema, type LeadProfile } from "@/lib/lead-profile";
@@ -64,6 +65,7 @@ export function interestedProfile(intent: Intent, form: Form, before: LeadProfil
 export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDirtyChange }: { intent: Intent; contact: InterestedContact; origin: string; onBack: () => void; onSaved: (lead: Lead) => void; onDirtyChange: (dirty: boolean, busy: boolean) => void }) {
   const [form, setForm] = React.useState(() => initial(contact, intent));
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState("");
+  const tasks = useCollection(db.tareas);
   const leadId = React.useRef(contact.kind === "lead" ? contact.lead.id : uid());
   const [baseline, setBaseline] = React.useState(form);
   const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
@@ -86,6 +88,9 @@ export function InterestedStep({ intent, contact, origin, onBack, onSaved, onDir
         lead = { ...before, tipoPropiedad: form.tipo || before.tipoPropiedad, zona: form.zona.trim() || before.zona, estado: before.estado === "nuevo" ? "contactado" : before.estado, perfil: interestedProfile(intent, form, before.perfil), notas: [...before.notas, note] };
       } else lead = { perfil: interestedProfile(intent, form), id: leadId.current, nombre: contact.nombre, telefono: contact.telefono, ...(contact.email ? { email: contact.email } : {}), ...(contact.asesorId ? { asesorId: contact.asesorId } : {}), origen: "manual", estado: "contactado", creadoEl: now, notas: [note], ...(form.tipo ? { tipoPropiedad: form.tipo } : {}), ...(form.zona.trim() ? { zona: form.zona.trim() } : {}) };
       await upsert(db.leads, lead, contact.kind === "lead" ? contact.version : null);
+      // DEC-42: la próxima acción acordada queda como tarea con fecha del interesado.
+      const task = planNextStep(tasks, { kind: "lead", id: lead.id, asesorId: lead.asesorId }, { accion: form.accion, fecha: form.fecha, id: uid() });
+      await upsert(db.tareas, task, db.tareas.version(task));
       setBaseline(form);
       onSaved(lead);
     } catch (cause) {

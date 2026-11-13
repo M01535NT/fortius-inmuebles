@@ -83,6 +83,8 @@ export function visibleFields(intent: IntakeIntent, answers: InterviewAnswers) {
   return interviewFields(intent).filter(f =>
     (!["importe", "moneda"].includes(f.key) || answers.presupuestoEstado === "conocido")
     && (f.key !== "detalleAlertas" || answers.alertas === "declaradas" || !!conditionOf(answers))
+    // CAP-06: si lo ocupa alguien sin permiso no se pregunta cómo visitarlo; primero revisa el abogado.
+    && (f.key !== "acceso" || answers.problema !== "ocupado_sin_permiso")
     && (!["conyuge", "regimen", "fechaMatrimonio", "lugarMatrimonio"].includes(f.key) || answers.estadoCivil === "casado"));
 }
 export function screenFields(intent: IntakeIntent, answers: InterviewAnswers, screen: Screen) {

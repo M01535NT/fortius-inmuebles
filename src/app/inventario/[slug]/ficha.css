@@ -22,6 +22,7 @@
 .fe-chip.is-demo { border-color: color-mix(in srgb, var(--ns-accent) 45%, transparent); color: var(--ns-accent); }
 .fe-title { max-width: 18ch; margin: 0; color: var(--ns-strong); font-size: clamp(36px, 4.6vw, 64px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; text-wrap: balance; }
 .fe-place { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; color: color-mix(in srgb, var(--ns-ink) 75%, transparent); font-size: 16px; }
+.fe-collab { margin: 8px 0 0; color: color-mix(in srgb, var(--ns-ink) 72%, transparent); font-size: 14px; }
 .fe-place svg { flex: none; color: var(--ns-accent); }
 .fe-price-block { text-align: right; }
 .fe-price { margin: 0; color: var(--ns-strong); font-size: clamp(28px, 3.2vw, 42px); line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }

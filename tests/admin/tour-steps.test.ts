@@ -1,5 +1,13 @@
 import { expect, test } from "vitest";
-import { TOUR_SCREENS, markSeen, readSeen, tourFor } from "@/lib/admin/tour";
+import { TOUR_SCREENS, helpPending, markSeen, opensAlone, readSeen, tourFor } from "@/lib/admin/tour";
+
+test("DEC-47: solo Hoy abre su guía sola; en las demás, «Ayuda» lleva un punto hasta verla", () => {
+  expect(TOUR_SCREENS.filter(screen => opensAlone(screen.id)).map(screen => screen.id)).toEqual(["hoy"]);
+  expect(helpPending("/admin", [])).toBe(false);
+  expect(helpPending("/admin/operaciones/nueva", [])).toBe(true);
+  expect(helpPending("/admin/operaciones/nueva", ["nueva"])).toBe(false);
+  expect(helpPending("/admin/configuracion", [])).toBe(false);
+});
 
 test("cada pantalla principal tiene su guía y las demás no", () => {
   expect(tourFor("/admin")?.id).toBe("hoy");

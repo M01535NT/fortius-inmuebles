@@ -12,11 +12,12 @@ import { ExpedienteOperationPanel } from "@/components/admin/expediente-operatio
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
 import { appraisalState, CANALES_INFORME, directorReview, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
-import { conditionOf, LAWYER_TASK } from "@/lib/intake/condition";
+import { conditionWith02, LAWYER_TASK } from "@/lib/intake/condition";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { actualizarChecklist, checklistCompleto, checklistDesactualizado, checklistFor, CODIGOS_POR_TIPO_DOCUMENTO, levantamientoFor, motivoNoAplica, pasoCompleto, type PasoChecklist } from "@/lib/formatos/checklist-documentos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
 import { isTaskOpen, type Task } from "@/lib/tasks";
+import { operationNextStep } from "@/lib/admin/next-step-task";
 import { advanceTarget, contractLocked, flowOf, isGuided, itemCounted, itemDone, missingItems, nowItem, routeStages, stageItems, stageOf, type OperationRecord, type StageItem } from "@/lib/admin/operation-view";
 import { requirementName, shortDate, weekdayDate } from "@/lib/admin/today";
 import { quickReview, RequirementRow, RequirementSheets, StateIcon, type Evidence, type OpenSheet } from "./requirements";
@@ -29,6 +30,7 @@ import { ContractSignatureCard } from "./contract-signature";
 import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
 import { EncargoDecisionCard, encargoTomado } from "./encargo-decision";
+import { PriorVisitCard } from "./prior-visit";
 import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
@@ -123,8 +125,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     else void docs.start(item.text.includes("(02)") ? "02" : "04", survey);
   }
 
-  // COR-14: la condición de la llamada y el «Siguiente paso» de la 02 cambian lo que toca.
-  const condition = conditionOf(interview?.respuestas);
+  // COR-14 y CAP-06: la condición de la llamada o de la 02 y su «Siguiente paso» cambian lo que toca.
+  const condition = conditionWith02(interview?.respuestas, docs.latest("02")?.data);
   const next02 = typeof docs.latest("02")?.data?.siguientePaso === "string" ? String(docs.latest("02")!.data.siguientePaso) : undefined;
   const items = stageItems(op, tasks, today, docs.status, { condition, next02 });
   async function requestLawyer() {
@@ -273,6 +275,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {owner && interview && (phase === "captacion" || phase === "verificacion" || phase === "contrato") && <div className={s.span6}><Declared op={op} interview={interview} /></div>}
     {owner && property && !property.publicada && property.estado === "evaluacion" && <div className={s.span6}><WaitingSeekers intent={flow.ruta === "arrendador" ? "rentar" : "comprar"} tipo={property.tipo} zona={`${property.zona} ${property.direccionAproximada}`} /></div>}
     {showEncargo && <div className={s.span6}><EncargoDecisionCard key={op.version} op={op} today={today} disabled={lock} onSave={onSave} onDirtyChange={setEncargoDirty} /></div>}
+    {owner && (!!flow.visitasPrevias?.length || (!!property && !property.publicada && property.estado === "evaluacion" && flow.requisitos.intermediacion?.estado !== "revisado")) && <div className={s.span6}><PriorVisitCard op={op} disabled={lock} onSave={onSave} /></div>}
     {flow.ruta === "captacion" && (phase === "verificacion" || appraisalState(flow, today) === "vencido") && <div className={s.span6}><OwnerAppraisalCard op={op} today={today} reviewer={evidence.reviewer} disabled={lock} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
     {owner && (phase === "contrato" || !!flow.firmaContrato) && <div className={s.span6}><ContractSignatureCard op={op} today={today} disabled={lock || locked} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
     {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest("09"))} disabled={lock} onSave={onSave} /></div>}
@@ -486,7 +489,7 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
     event.preventDefault(); if (!title.trim() || !date) return;
     setBusy(true); setMessage("");
     try {
-      await upsert(db.tareas, { id: uid(), titulo: title.trim(), descripcion: "Próxima acción de la operación", categoria: "documentacion", estado: "pendiente", prioridad: "normal", pasos: [], asesorId: op.asesor_id, expedienteId: op.id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "", vence: date }, null);
+      await upsert(db.tareas, operationNextStep({ kind: "operacion", id: op.id, asesorId: op.asesor_id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "" }, { accion: title, fecha: date, id: uid() }), null);
       setTitle(""); setDate(""); setMessage("Guardado");
     } catch (cause) { setMessage(`No se pudo guardar: ${errorMessage(cause)}`); } finally { setBusy(false); }
   }

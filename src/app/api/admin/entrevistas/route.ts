@@ -8,7 +8,7 @@ import {
   readJson,
 } from "@/lib/backend/http";
 import { BUYER_INTENT_MESSAGE, isBuyerIntent, startIntakeSchema } from "@/lib/intake/interview";
-import { conditionOf } from "@/lib/intake/condition";
+import { conditionOf, conditionWith02 } from "@/lib/intake/condition";
 const fields =
   "id,intencion,asesor_id,lead_id,cliente_id,expediente_id,propiedad_slug,anterior_id,contacto,respuestas,estado,version,completed_at,updated_at";
 export async function GET(request: Request) {
@@ -28,6 +28,21 @@ export async function GET(request: Request) {
       if (error) databaseError(error);
       const condiciones = ((data ?? []) as Array<{ expediente_id: string | null; cliente_id: string | null; lead_id: string | null; problema: string | null }>)
         .flatMap(row => { const c = conditionOf({ problema: row.problema ?? undefined }); return c ? [{ expedienteId: row.expediente_id, clienteId: row.cliente_id, leadId: row.lead_id, text: c.text }] : []; });
+      // CAP-06: si la llamada no dijo nada, cuenta lo anotado en la 02 (va después: la llamada manda).
+      const drafts = await client
+        .from("fortius_inmuebles_formato_drafts")
+        .select("expediente_id,problema:data->>problema,ocupacion:data->>ocupacion,expediente:fortius_inmuebles_expedientes!inner(cliente_id,deleted_at)")
+        .eq("formato_id", "02")
+        .is("expediente.deleted_at", null)
+        .or("data->>problema.not.is.null,data->>ocupacion.eq.sin_permiso")
+        .order("updated_at", { ascending: false })
+        .limit(500);
+      if (drafts.error) databaseError(drafts.error);
+      for (const row of (drafts.data ?? []) as Array<{ expediente_id: string; problema: string | null; ocupacion: string | null; expediente: { cliente_id: string | null } | Array<{ cliente_id: string | null }> | null }>) {
+        const c = conditionWith02(null, { problema: row.problema ?? undefined, ocupacion: row.ocupacion ?? undefined });
+        const expediente = Array.isArray(row.expediente) ? row.expediente[0] : row.expediente;
+        if (c) condiciones.push({ expedienteId: row.expediente_id, clienteId: expediente?.cliente_id ?? null, leadId: null, text: c.text });
+      }
       return { condiciones };
     }
     let query = client
