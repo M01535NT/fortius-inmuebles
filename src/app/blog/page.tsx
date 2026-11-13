@@ -12,7 +12,7 @@ export async function generateMetadata({ searchParams }: Props = {}): Promise<Me
   return pageMetadata({
     path: "/blog",
     title: "Guías inmobiliarias de Tijuana",
-    description: "Guías para comprar, vender y revisar inmuebles en Tijuana y Baja California: trámites, impuestos, crédito y precios, con fuente oficial y fecha de consulta.",
+    description: "Guías para comprar, vender y revisar inmuebles en Tijuana y Baja California: trámites, impuestos, crédito, precios, con fuente oficial y fecha de consulta.",
     ...(search.q || search.tema || search.tipo || search.desde || search.hasta || search.orden === "antiguos" || search.vista === "lista" || search.pagina !== "1" ? { robots: { index: false, follow: true } } : {}),
   });
 }
