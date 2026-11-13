@@ -28,7 +28,10 @@ import {
   logout,
   recoverPassword,
   useSession,
+  useSessionExpired,
 } from "@/lib/admin/store";
+import { SessionExpiredDialog } from "@/components/admin/workspace/session-expired";
+import { ConflictHost } from "@/components/admin/workspace/conflict-dialog";
 
 function LoginScreen({
   onLogin,
@@ -181,6 +184,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
   const sessionId = session?.id;
+  const expired = useSessionExpired();
   const [checking, setChecking] = React.useState(true);
   const [passwordMode, setPasswordMode] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -238,7 +242,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     // StrictMode mounts reuse the one-shot callback; secrets are consumed once.
     boot.current ??= (async () => {
       const linked = await acceptPasswordLink();
-      if (!linked) await isLoggedIn();
+      if (!linked) await isLoggedIn({ boot: true });
       return linked;
     })();
     void boot.current
@@ -332,7 +336,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         {!focus && <MobileHeader user={user} search={<WorkspaceSearch />} />}
         <span role="status" className="sr-only">{refreshing ? "Actualizando…" : error || refreshError ? "Revisar conexión" : "Panel disponible"}</span>
-        <main className={focus ? "admin-content admin-focus flex-1" : "admin-content flex-1 space-y-5"}>
+        {/* La llave por persona: si entra otra tras vencer la sesión, la pantalla anterior no se conserva. */}
+        <main key={session.id} className={focus ? "admin-content admin-focus flex-1" : "admin-content flex-1 space-y-5"}>
           {error || refreshError ? (
             <div className="space-y-2">
               <ErrorNotice error={error ?? refreshError} />
@@ -358,6 +363,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </div>
       {menu && !focus && <MobileMenu panel={mobileNav} pathname={pathname} role={session.role} user={user} onNavigate={() => setMenu(false)} onLogout={leave} />}
       {!focus && <MobileTabBar pathname={pathname} menuOpen={menu} menuButton={menuTrigger} onMenu={() => setMenu(open => !open)} />}
+      <ConflictHost />
+      {expired && <SessionExpiredDialog email={session.email} onLeave={leave} />}
     </div>
   );
 }
