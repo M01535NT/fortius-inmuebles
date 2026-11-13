@@ -14,7 +14,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 - **En `main`** (commit `14856aa`): lo integrado hasta el 12/11/2026, incluidos los PR #67 (SEO), #68 (DOC-06), #69 (opinión de valor 07), #70 (blanco azulado `#F8F8FF` en el sitio público), #71 (contrato 09 sin PROFECO y con las cláusulas del Word del 26/10) y #72 (PDF del 09 liberado).
 - **En la rama acumulada `claude/claude-code-project-strategy-8b1700`** (91 commits por delante de `main`, sin push): el trabajo de las sesiones en paralelo del 12/11/2026, ya juntas y probadas (lint sin errores, tipos limpios; base 979/979, panel 490/490 y herramientas 47/47). Espera la revisión del titular en localhost, la verificación completa y un solo PR (regla del titular: todo junto).
-- **Migraciones por aplicar:** 14 nuevas del 12/11/2026 (`20261112120000` a `20261112235000`), sin números repetidos y con una sola versión por función. Se aplican solas al integrar en `main`; mientras tanto, la base remota no las tiene y las pantallas que dependen de ellas no funcionan completas en localhost.
+- **Migraciones por aplicar:** 8 que no están en `main` (`20261112180000` a `20261112235000`), sin números repetidos y con una sola versión por función. Se aplican solas al integrar en `main`; mientras tanto, la base remota no las tiene y las pantallas que dependen de ellas no funcionan completas en localhost.
 - **Sin comprobar:** la build y las suites de navegador de la rama acumulada (las del sitio público pasaron en su rama); `verify-pdf-bundle`, que necesita build.
 
 **Qué entró en la rama acumulada (12/11/2026).**
