@@ -8,7 +8,7 @@
 
 ## Resumen
 
-**Respondidas por el titular el 12/11/2026:** DEC-39 A, DEC-40 A, DEC-41 B, DEC-42 A, DEC-44 A y DEC-47 A, todas las recomendadas. DEC-43, confirmada el mismo día. Falta pasarlas a `PLAN_ERP_CRM.md`. Las preguntas y cartas de DEC-39, DEC-40 y DEC-41 siguen sujetas a la validación del abogado antes de construirse.
+**Respondidas por el titular el 12/11/2026:** DEC-39 A, DEC-40 A, DEC-41 B, DEC-42 A, DEC-44 A y DEC-47 A, todas las recomendadas. DEC-43, confirmada el mismo día. Pasadas a `PLAN_ERP_CRM.md` el 12/11/2026 (tabla de decisiones, RP-91 y «Reglas reemplazadas»). Las preguntas y cartas de DEC-39, DEC-40 y DEC-41 siguen sujetas a la validación del abogado antes de construirse.
 
 | ID | Qué se decide | Recomendación | Detiene |
 |---|---|---|---|
