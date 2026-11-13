@@ -19,7 +19,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 - **En `feat/integracion`, sin publicar:** formato 20 (arrendamiento, DOC-14) en el cierre de la renta y en documentos sueltos; índice de la ficha siempre visible (decisión del titular del 13/11/2026, reemplaza I8); bloque 0, primera entrega de Seguridad: la copia diaria se detiene con aviso si la base y el código no tienen las mismas migraciones (causa de la falla del 13/11 a las 07:24), y se retira el permiso de ejecutar `rls_auto_enable` (único hallazgo del asesor de seguridad de Supabase).
 - **Migraciones en la rama, sin aplicar:** `20261113150000_formato_20_arrendamiento` y `20261113160000_revocar_rls_auto_enable`.
-- **Bloque 0, estado (13/11/2026):** REC-01 con copia diaria funcionando desde el 13/11; falta que el titular abra una copia con su llave y agregue el certificado. CI-01 se cierra cuando el titular acepte BAS-01. ENV-01 espera la decisión c), el backend de pruebas. AUT-01 espera el buzón de prueba y la decisión del MFA. OBS-01 espera el proveedor (DEC-19). PRV-01 espera al abogado. Detalle en `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
+- **Bloque 0, estado (13/11/2026):** REC-01 con copia diaria funcionando desde el 13/11; falta que el titular abra una copia con su llave y agregue el certificado. BAS-01 aceptada por el titular y CI-01 terminada (13/11/2026). ENV-01 espera la decisión c), el backend de pruebas. AUT-01 espera el buzón de prueba y la decisión del MFA. OBS-01 espera el proveedor (DEC-19). PRV-01 espera al abogado. Detalle en `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
 
 **Qué entró (13/11/2026).**
 
@@ -1099,9 +1099,7 @@ Corresponde a la fase 0 de continuidad. Sus correcciones de código ya existen; 
 
 | Entrega de continuidad | Lo disponible | Lo que sigue pendiente |
 |---|---|---|
-| BAS-01 | Correcciones de fundamentos integradas y verificadas en su commit; preparación local comprobada. | Aceptación de negocio del alcance. |
 | REC-01 | Export de 18 tablas, huellas, referencias, ensayo DB y copia de bytes local. | Custodia y copia periódica efectiva; recuperación completa Auth/Storage en destino aislado; medir RPO/RTO. Objetivos aprobados: copia diaria, RPO 24 h y RTO 8 h. |
-| CI-01 | Checks Vercel y pruebas de bloqueo/paso a verde documentados. El 17/10/2026 se creó en GitHub la regla «main exige verify» (el check Verify debe aprobarse antes de fusionar) y se activó el auto-merge del repositorio. Comprobada el 25/10/2026: el PR #50 quedó bloqueado mientras Verify fallaba y se integró al aprobarse; el titular decidió conservarla. Desde el 25/10 el agente solo activa auto-merge cuando el titular aprueba publicar (I-04 en `AGENTS.md`). | Rollback de aplicación. |
 | ENV-01 | Inventario de despliegues y retiro de credenciales productivas de previews documentados. | Backend preview aislado y dependencias del despliegue adicional. |
 | AUT-01 | Auth y recuperación de sesión implementados; URL de retorno corregida según el registro. | Buzón controlado, entrega real de recuperación/invitación y política MFA recuperable. |
 | OBS-01 | Identificador de solicitud y logs sin cuerpos/secretos comprobados en pruebas. | Captura, retención y alertas del proveedor. |
@@ -1377,16 +1375,14 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 
 **Entregas sin bloque en el «Orden vigente»** (el titular decide dónde van; el agente no las acomoda): COR-11 (compra y búsqueda de renta como lead), COR-12 (quitar PROFECO del 09), DOC-14, DOC-15, PUB-02 (inmuebles compartidos), FIR-01, EXT-13 (conexión a IA con tope) y LV-07 (tablero «Hoy» con el boceto D «Mosaico cálido»). EXT-12 (captura sobre el documento) entró al bloque 1 por decisión del titular (DEC-31, 27/10/2026). EXT-02, EXT-03, EXT-04 y EXT-07 sí están en el bloque 7, «solo por decisión de negocio».
 
-**Retiradas de esta tabla el 13/11/2026 por estar `en_main` o `terminada`:** SIM-02, SIM-03, SIM-08, COR-01, COR-02, COR-03, COR-04, COR-06, COR-08, COR-09, COR-11, COR-12, COR-13, DOC-EXP, DAT-EXP, IA-01, CSR-01 a CSR-08, LV-05, LV-07, LV-08, SIA-01 a SIA-06, MRP-01, DOC-09, EXT-12, LV-06, SIM-13, SIM-14, COR-15, COR-16 y CAP-05. Sus filas están en el historial (§19: [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md)). **Segunda pasada (13/11/2026), confirmadas en `main` (hasta el PR #73):** HER-01, HER-02, HER-03, HER-05, PUB-02, COR-18, COR-19, COR-20, COR-21, COR-22, COR-23, COR-24, DOC-06 y CAP-06 (historial, §21). Tercera pasada (13/11/2026, comprobadas en el código de `main` tras el PR #74): SIM-01, SIM-09, SIM-11, SIM-12, SIM-17, SIM-19, COR-05, COR-07, COR-10, COR-14, COR-17, IA-02, FCH-03, FCH-06 (historial, §22).
+**Retiradas de esta tabla el 13/11/2026 por estar `en_main` o `terminada`:** SIM-02, SIM-03, SIM-08, COR-01, COR-02, COR-03, COR-04, COR-06, COR-08, COR-09, COR-11, COR-12, COR-13, DOC-EXP, DAT-EXP, IA-01, CSR-01 a CSR-08, LV-05, LV-07, LV-08, SIA-01 a SIA-06, MRP-01, DOC-09, EXT-12, LV-06, SIM-13, SIM-14, COR-15, COR-16 y CAP-05. Sus filas están en el historial (§19: [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md)). **Segunda pasada (13/11/2026), confirmadas en `main` (hasta el PR #73):** HER-01, HER-02, HER-03, HER-05, PUB-02, COR-18, COR-19, COR-20, COR-21, COR-22, COR-23, COR-24, DOC-06 y CAP-06 (historial, §21). Tercera pasada (13/11/2026, comprobadas en el código de `main` tras el PR #74): SIM-01, SIM-09, SIM-11, SIM-12, SIM-17, SIM-19, COR-05, COR-07, COR-10, COR-14, COR-17, IA-02, FCH-03, FCH-06 (historial, §22). BAS-01 y CI-01, terminadas el 13/11/2026 al aceptar el titular BAS-01 (historial, §22).
 
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
-| BAS-01 | 0 | en_revision | Ninguna |
 | REC-01 | 0 | en_revision | BAS-01 |
-| CI-01 | 0 | bloqueada | BAS-01 |
-| AUT-01 | 0 | bloqueada | BAS-01 |
+| AUT-01 | 0 | en_revision | BAS-01 (aceptada el 13/11/2026) |
 | OBS-01 | 0 | en_revision | BAS-01 |
-| ENV-01 | 0 | bloqueada | BAS-01 |
+| ENV-01 | 0 | en_revision | BAS-01 (aceptada el 13/11/2026) |
 | PRV-01 | 0 | en_revision | BAS-01 |
 | REL-01 | 1 | pendiente | BAS-01 |
 | SEG-01 | 1 | pendiente | REL-01 |
