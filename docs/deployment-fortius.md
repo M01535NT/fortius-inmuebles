@@ -10,7 +10,7 @@
 
 ## Variables
 
-Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. Consultar [controles y evidencia](erp-crm/environment-release.md).
+Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. Al 12/11/2026 quedan además entradas de preview ligadas a dos ramas ya borradas y 13 variables de la integración de Supabase que el código no usa; su retiro está propuesto en [controles y evidencia](erp-crm/environment-release.md). Consultar [controles y evidencia](erp-crm/environment-release.md).
 
 El sitio público y el panel son un mismo producto. Los nombres de los proyectos cambiaron conservando sus IDs, datos, secretos y dominio público. La conexión Git existente identifica el repositorio por su ID y conserva la rama main.
 
@@ -35,4 +35,4 @@ Comprobar salud, Inicio, inventario, blog, herramientas, acceso al panel, robots
 
 ## Control de publicación (12 de octubre de 2026)
 
-Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado al mismo repositorio. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](erp-crm/environment-release.md).
+Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado entonces al mismo repositorio; al 12/11/2026 ese proyecto ya no aparece en el equipo y solo queda el check de Fortius. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](erp-crm/environment-release.md).

@@ -25,7 +25,7 @@ Los fundamentos ERP/CRM están integrados. El desarrollo del sistema completo, s
 
 La recepción pública de prospectos permanece desactivada. Los inmuebles y documentos demo no acreditan inventario, precios ni condiciones comerciales vigentes. El formato 09 permite preparar información; la emisión del contrato permanece bloqueada por falta de cotejo del modelo y sus registros aplicables. Consulta [el estado de los formatos](docs/formatos-admin-status.md).
 
-La verificación de recuperación local de datos y archivos no acredita todavía la recuperación completa de los servicios Auth y Storage del proveedor. Los objetivos de respaldo y recuperación requieren completar su ensayo operativo; consulta [la política de recuperación](docs/erp-crm/recovery-policy.md).
+La verificación de recuperación local de datos y archivos, y la herramienta que restaura Storage en un proyecto aislado (probada con un Storage simulado), no acreditan todavía la recuperación completa de los servicios Auth y Storage del proveedor. Los objetivos de respaldo y recuperación requieren completar su ensayo operativo; consulta [la política de recuperación](docs/erp-crm/recovery-policy.md).
 
 ## Tecnología
 

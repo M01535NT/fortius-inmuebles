@@ -12,7 +12,7 @@ El ensayo fija UTC antes de aplicar las migraciones para conservar las fechas y 
 
 Además regenera en la base aislada las referencias derivadas del JSON y compara su inventario contra la fuente. Un asesor inexistente dentro del JSON, aunque el índice anterior apuntara a un asesor válido, bloquea el ensayo. No se corrige ni normaliza el respaldo para hacerlo pasar.
 
-**Límites:** el ensayo usa identificadores Auth provisionales, no restaura contraseñas, sesiones ni configuración completa de Supabase. Los hashes verifican los objetos descargados, pero no se ha ensayado subirlos a un servicio Storage de recuperación. Completar esa prueba requiere un destino aislado y una política de custodia/RPO/RTO. No ejecutar una restauración en producción.
+**Límites:** el ensayo usa identificadores Auth provisionales, no restaura contraseñas, sesiones ni configuración completa de Supabase. Desde el 12/11/2026 existe la herramienta para subir los objetos a un servicio Storage aislado y releerlos (sección «Restauración de Storage en un proyecto aislado»), pero el ensayo real contra un proyecto aislado sigue pendiente porque no hay ninguno autorizado. No ejecutar una restauración en producción.
 
 La copia REST complementaria del esquema actual recorre las 30 tablas con orden por clave primaria y paginación. Sigue siendo evidencia de contraste: no sustituye el export propietario ni crea un snapshot atómico. Los ledgers internos `record_revisions`, `record_history` y `lead_conversions` no conceden lectura directa al rol de servicio. Si REST devuelve `42501` para esas tres tablas, se conserva la denegación como evidencia incompleta y solo se continúa cuando existe un export propietario íntegro de versión 4. El manifiesto distingue `database.complete` de `rest.complete` y enumera `rest.unavailable`; ninguna tabla se omite del export propietario. Cualquier otra tabla, error o export incompleto bloquea la copia. No se amplían permisos. Los formatos históricos `cota` y `mnt` mantienen sus cinco tablas originales.
 
@@ -29,3 +29,28 @@ El verificador también exige que los PDFs emitidos, copias firmadas, adjuntos y
 `node tools/fortius-inmuebles-backup.mjs --restore-objects DIRECTORIO_BACKUP --target DIRECTORIO_NUEVO_AISLADO` copia los bytes verificados a un directorio local nuevo con permisos restringidos. Conserva en `objects.json` las rutas/buckets originales y comprueba la huella del archivo recuperado. No requiere credenciales, no sube a Supabase ni reemplaza destinos existentes. El resultado marca expresamente `storageServiceRecovery: not_checked`.
 
 La política y el ensayo del proveedor pendientes están descritos en `docs/erp-crm/recovery-policy.md`. Un ensayo local no acredita recuperación de Auth/Storage del proveedor ni un RPO/RTO operativo.
+
+## Restauración de Storage en un proyecto aislado (12/11/2026)
+
+`tools/fortius-inmuebles-restore-storage.mjs` sube los objetos de un respaldo verificado a un proyecto Supabase **aislado** y los vuelve a leer para comparar huella y tamaño, uno por uno. Se usa después de aplicar las migraciones del repositorio a ese proyecto, porque las migraciones crean los buckets y las políticas de `storage.objects`.
+
+1. Revisar sin credenciales qué se va a restaurar: `node tools/fortius-inmuebles-restore-storage.mjs DIRECTORIO_BACKUP --plan`. Muestra buckets, objetos y bytes; verifica el respaldo completo antes.
+2. Guardar en un archivo propio, fuera del repositorio, `FORTIUS_RECOVERY_SUPABASE_URL`, `FORTIUS_RECOVERY_SERVICE_ROLE_KEY` y, de preferencia, `FORTIUS_RECOVERY_ANON_KEY` del proyecto aislado. No usar `.env.local`.
+3. Ejecutar `node --env-file=RUTA_ENV_RECUPERACION tools/fortius-inmuebles-restore-storage.mjs DIRECTORIO_BACKUP --confirm-target REF_DEL_PROYECTO_AISLADO`.
+
+Salvaguardas comprobadas por `tests/tools/restore-storage.test.mjs`:
+
+- Rechaza el proyecto de producción (`qkkirjzhviqwvuqjnmei`), el proyecto de origen (`NEXT_PUBLIC_SUPABASE_URL`) y una clave igual a la de origen. El ref debe repetirse con `--confirm-target`. Acepta también una pila local de Supabase (`127.0.0.1`, ref `local`).
+- Si el respaldo no pasa `--verify`, no escribe nada. Si un bucket del destino ya tiene objetos, se detiene antes de escribir; nunca mezcla ni sobrescribe (`upsert: false`).
+- Un bucket vacío creado por las migraciones se ajusta a la privacidad, límite y tipos del respaldo; uno faltante se crea.
+- Tras subir, descarga cada objeto y compara SHA-256 y tamaño; una diferencia, una subida rechazada o un bucket con privacidad distinta hace fallar el ensayo.
+- Con la clave anónima comprueba que ningún objeto privado se pueda descargar sin sesión (`privateDenial: verified`); sin ella, el informe dice `not_checked`.
+- Mide la duración total, de subida y de relectura en milisegundos, para contrastar con el RTO de ocho horas.
+
+El informe se guarda en el directorio del respaldo como `storage-restore-REF-FECHA.json`, sin claves ni contenido. Lo que **no** cubre: el propietario original de cada objeto (`owner_id`; las subidas usan el rol de servicio del destino), las cuentas de Auth y sus contraseñas, y la configuración del proyecto (correo, URL de retorno, límites de Auth). Esas partes requieren el procedimiento del proveedor descrito en `docs/erp-crm/recovery-policy.md`.
+
+**Estado:** herramienta y pruebas sintéticas listas; **el ensayo real quedó pendiente** porque no existe un proyecto aislado autorizado (12/11/2026).
+
+### Equipos con Windows
+
+`.gitattributes` fija `*.sql text eol=lf`. Con `core.autocrlf=true`, las migraciones se descargaban con CRLF y el ensayo de base fallaba en Windows (`Unexpected process function`), aunque en CI (Linux) pasaba. Si una copia antigua conserva CRLF, volver a descargar las migraciones con `git checkout -- supabase/migrations` después de actualizar la rama.
