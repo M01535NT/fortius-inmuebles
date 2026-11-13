@@ -1405,7 +1405,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | TAB-03 | 3 | pendiente | FIN-02, TAB-01 |
 | TAB-04 | 3 | pendiente | LEG-01, TEC-01, TAB-01 |
 | UX-01 | 4 | parcial | BAS-01 |
-| UX-02 | 4 | pendiente | UX-01 |
+| UX-02 | 4 | parcial | vista de Operaciones, filas o tarjetas de Inmuebles y vistas guardadas del inventario se guardan en el servidor por usuario (24fffb5, `feat/integracion`, 13/11/2026); faltan densidad, letra, fijados, recientes y secciones de Hoy (con NAV-01 y NAV-05), el tema (ThemeToggle sigue en el navegador) y filtrar en el servidor (PAG-01) |
 | PWA-01 | 4 | pendiente | AUT-01, UX-01 |
 | PWA-02 | 4 | pendiente | PWA-01 |
 | PWA-03 | 4 | pendiente | PWA-01, SEG-01, PRV-01 |
