@@ -11,6 +11,9 @@ export const maxDuration=300;
 export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){
  let response:Response|undefined;
  const failure=await apiResponse(async()=>{
+  // B8: la descarga la pide el panel con fetch; desde otro sitio no se genera nada.
+  const site=request.headers.get('sec-fetch-site');
+  if(site&&site!=='same-origin')throw new ApiError(403,'Origen de solicitud no permitido');
   const {client,user}=await requireStaff(),run=await findRun(client,(await params).id);
   if(!run.result)throw new ApiError(400,'Genera y guarda un resultado primero');
   const format=new URL(request.url).searchParams.get('format')??'pdf';
@@ -40,6 +43,8 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   // Large PDFs go through private Storage to respect the hosting response limit.
   if(body instanceof Uint8Array&&body.byteLength>20*1024*1024)throw new ApiError(413,"El PDF supera 20 MB. Reduce las fotografías seleccionadas.");
   if(body instanceof Uint8Array&&body.byteLength>4_000_000){
+   // Guardar el PDF grande es una escritura: solo con la petición del propio panel.
+   if(site!=='same-origin')throw new ApiError(403,'Descarga este PDF desde el panel');
    const current=await requireStaff();if(current.user.id!==user.id)throw new ApiError(403,'La sesión cambió');await findRun(current.client,run.id);
    const service=createServerClient(undefined,true),path=`${user.id}/${randomUUID()}.pdf`,name=`fortius-${run.slug}.pdf`;
    const uploaded=await service.storage.from('fortius-inmuebles-private').upload(path,body,{contentType:'application/pdf',upsert:false});if(uploaded.error)databaseError(uploaded.error);
