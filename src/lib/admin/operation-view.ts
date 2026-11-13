@@ -191,7 +191,7 @@ export type StageItem =
   /** El paso que abre la siguiente etapa del propietario: iniciar el levantamiento o el checklist. */
   | { kind: "inicio"; step: "levantamiento" | "checklist" }
   | { kind: "requisito"; key: RequirementKey; earlier: boolean; state: ReturnType<typeof reviewState>; done: boolean }
-  | { kind: "pendiente"; text: string; why: string; place: Missing["place"] }
+  | { kind: "pendiente"; text: string; why: string; place: Missing["place"]; formato?: Missing["formato"] }
   /** COR-14: con una condición declarada (o «Evaluar la operación» en la 02), el abogado revisa antes del levantamiento. */
   | { kind: "abogado"; condition?: string; task?: Task; done: boolean }
   /** COR-14: la 02 terminó con «Pausar» o «Referir»; un clic lo aplica. */
@@ -233,7 +233,7 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
   for (const { key, earlier } of currentRequirements(op, today)) items.push({ kind: "requisito", key, earlier, state: reviewState(flow, key), done: reviewComplete(flow, key, today) });
   for (const m of missingItems(op, tasks, today)) {
     // Lo de documentos ya está arriba; en el checklist también cuentan la entrevista y el levantamiento sin terminar.
-    if (m.place === "ajustes" || m.place === "encargo" || m.place === "tarea" || m.place === "firma" || m.place === "cierre" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place });
+    if (m.place === "ajustes" || m.place === "encargo" || m.place === "tarea" || m.place === "firma" || m.place === "cierre" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place, ...(m.formato ? { formato: m.formato } : {}) });
   }
   return items;
 }
@@ -294,7 +294,7 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   return { target: next, label: following?.label ?? stageLabel(next, flow.ruta) };
 }
 
-export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "encargo" | "tarea" | "operacion" | "firma" | "cierre" };
+export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "encargo" | "tarea" | "operacion" | "firma" | "cierre"; /** El documento que abre el pendiente (SIM-05: sin su número en el texto). */ formato?: "02" | "04" };
 const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
   "Reactivar la operación antes de avanzar.": { text: "Reactivar la operación", why: "está en pausa, en regularización o descartada", place: "ajustes" },
   "Resolver las observaciones que bloquean esta actividad.": { text: "Resolver los problemas marcados", why: "un requisito dice «Hay un problema»", place: "requisito" },
@@ -326,8 +326,8 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   const phase = isOwnerRoute(flow.ruta) ? processPhase(stageOf(op), op.flujo ?? flow, today, op.inicial) : undefined;
   const inicial = op.inicial ?? {};
   if (phase === "prospecto") return [{ text: "Iniciar la entrevista inicial", why: "con el botón «Iniciar entrevista inicial»", place: "operacion" }];
-  if (phase === "captacion" && !target.target) return [inicial.emitida ? { text: "Iniciar el levantamiento", why: "con el botón «Iniciar levantamiento»", place: "operacion" } : { text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" }];
-  if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar la lista de documentos", why: "con el botón «Iniciar lista»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
+  if (phase === "captacion" && !target.target) return [inicial.emitida ? { text: "Iniciar el levantamiento", why: "con el botón «Iniciar levantamiento»", place: "operacion" } : { text: "Terminar la entrevista inicial", why: "y generar su PDF", place: "operacion", formato: "02" }];
+  if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar la lista de documentos", why: "con el botón «Iniciar lista»", place: "operacion" } : { text: "Terminar el levantamiento", why: "y generar su PDF", place: "operacion", formato: "04" }];
   if (!target.target) {
     const items: Missing[] = (phase === "dictamen" ? phaseRequirements("dictamen", flow.ruta) : verificationRequirements(flow.ruta)).filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key, flow.ruta), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
     if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "en «Decisión del encargo» de esta etapa", place: "encargo" });
@@ -336,8 +336,8 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   const labels = new Map(Object.entries(WORKFLOW_REQUIREMENTS).map(([key, value]) => [value.label as string, key as RequirementKey]));
   const initial: Missing[] = phase !== "documentos" ? [] : [
     ...(inicial.documentos !== "completo" ? [{ text: "Recibir los documentos de la lista", why: "márcalos al recibirlos", place: "operacion" as const }] : []),
-    ...(!inicial.emitida ? [{ text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" as const }] : []),
-    ...(inicial.levantamiento !== "emitido" ? [{ text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" as const }] : []),
+    ...(!inicial.emitida ? [{ text: "Terminar la entrevista inicial", why: "y generar su PDF", place: "operacion" as const, formato: "02" as const }] : []),
+    ...(inicial.levantamiento !== "emitido" ? [{ text: "Terminar el levantamiento", why: "y generar su PDF", place: "operacion" as const, formato: "04" as const }] : []),
   ];
   return initial.concat(workflowBlockers(flow, target.target, { id: op.id, asesor_id: op.asesor_id, propiedad_slug: propertySlug }, tasks, today).map(blocker => {
     const key = labels.get(blocker);
