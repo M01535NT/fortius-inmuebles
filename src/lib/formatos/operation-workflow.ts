@@ -13,7 +13,7 @@ export const WORKFLOW_STATES = { activa: "Activa", pausada: "En pausa", regulari
 export const REVIEW_STATES = { pendiente: "Pendiente", recibido: "Recibido", revisado: "Revisado con soporte", observado: "Observado", no_aplica: "No aplica, justificado" } as const;
 export const WORKFLOW_REQUIREMENTS = {
  arrendatario: { label: "Arrendatario identificado y capacidad comprobada", formato: "12" },
- contrato_renta: { label: "Contrato de arrendamiento y condiciones acordadas", formato: "Contrato externo" },
+ contrato_renta: { label: "Contrato de arrendamiento y condiciones acordadas", formato: "20" },
  garantias_renta: { label: "Depósito y garantías según acuerdo, o no aplicabilidad justificada", formato: "Contrato y evidencias", noAplica: true },
  inventario_entrega: { label: "Inventario, estado físico, llaves y entrega acordados", formato: "16" },
  termino_renta: { label: "Término del encargo y obligaciones de seguimiento definidos", formato: "17" },

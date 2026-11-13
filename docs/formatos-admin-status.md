@@ -102,6 +102,14 @@ COR-12 (12/11/2026): el 09 ya no captura ni revisa el registro ante PROFECO (tit
 
 Verificación local de la preparación 09 (04/10/2026, antes de liberar su PDF): 377 pruebas de servidor y 155 del panel aprobadas; análisis estático y compilación aprobados. Desde el 12/11/2026 rige el párrafo anterior (COR-12): el PDF está liberado.
 
+## Contrato de arrendamiento 20 (DOC-14)
+
+El 13/11/2026 el titular pidió que el agente redactara un contrato de arrendamiento «estándar y que sea flexible», en lugar de esperar un modelo suyo, y aprobó el texto ese mismo día. Es el formato 20: un solo contrato para casa habitación o para uso comercial u oficina, con 21 cláusulas y sus anexos. Al capturarlo se elige si cada parte es persona física o empresa, si el arrendador es propietario o está facultado por el propietario, la garantía (fiador, con o sin inmueble; obligado solidario; o solo el depósito), la actualización de la renta (INPC o porcentaje fijo), la salida anticipada (con penalidad, o sin ella después de un plazo mínimo), IVA, retención de impuestos, primera renta proporcional, condominio, mascotas y seguros. En el PDF y el Word solo sale lo elegido; cada declaración y cada cláusula abren sus campos sobre el documento.
+
+Reglas: un dato vacío sale como línea en blanco y el PDF se descarga con el aviso de lo que falta (RP-77); se revisan fechas en orden, día de pago, porcentajes y correos. El borrador propone al propietario como arrendador y toma del diccionario del expediente el domicilio del inmueble, la clave catastral, las superficies, la escritura y la inscripción; el plazo de la entrevista no se copia, porque es otro dato. Fortius no firma el contrato. El texto no cita artículos: los del Código Civil de Baja California sobre arrendamiento no se verificaron, y una cláusula deja a salvo los derechos que la ley no permite renunciar. Antes de usarlo con clientes lo revisa el abogado. Montos, plazos y porcentajes no traen valor por defecto.
+
+La migración `20261113150000_formato_20_arrendamiento.sql` agrega «20» a los formatos permitidos en los borradores. En el camino de renta, el requisito «Contrato de arrendamiento y condiciones acordadas» apunta ahora al 20. Verificación local: pruebas de servidor y del panel, lint y tipos; PDF renderizado con datos largos (local comercial, empresa arrendadora, fiador con inmueble) y vacío. Falta verlo en el panel con el navegador.
+
 ## Tablero y control comercial 03
 
 El 03 tiene una ruta global separada de los borradores del expediente. Acceso administrativo en página, API y RLS; cartera vacía inicial, sin importar los ejemplos como operaciones actuales. Reproduce pesos y definiciones, umbral estrictamente mayor, priorización completa para inmuebles y ponderada para compradores. Toda cifra desconocida permanece vacía; las sumas con componentes pendientes no se completan como cero. USD requiere TC manual positivo, fecha anterior o igual al corte y fuente. Corte diario en Baja California sin actualización automática de TC.
@@ -112,7 +120,7 @@ Las emisiones utilizan exactamente una revisión guardada, con corte efectivo, e
 
 Ruling: sólo venta habilita el cálculo por valor y porcentaje. Renta/Otro muestran honorario pendiente y la necesidad de revisar su base. La conciliación histórica requiere fuente y ocho cifras explícitas o motivo de no aplicación; las sumas de origen con distintas monedas no se presentan como total económico.
 
-**Captura sobre el documento (29/10/2026, DEC-31, en `main` con el PR #63):** todos los formatos de expediente, del 01 al 19 salvo el 03, se llenan pulsando el documento; la vista y el PDF salen del mismo escritor. El 18 asigna su número de recibo automático (folio del expediente y consecutivo).
+**Captura sobre el documento (29/10/2026, DEC-31, en `main` con el PR #63):** todos los formatos de expediente, del 01 al 20 salvo el 03, se llenan pulsando el documento; la vista y el PDF salen del mismo escritor. El 18 asigna su número de recibo automático (folio del expediente y consecutivo).
 
 **Captura por lista en el celular (12/11/2026, DEC-44, en `main` con el PR #73):** en pantallas angostas, la entrevista (02) y los levantamientos (04A a 04G) ofrecen «Captura por lista»: una pregunta por pantalla, en el orden del documento y sobre las mismas celdas, con «No sabe» donde la plantilla lo admite, cámara y dictado. Empieza por lo pendiente; lo capturado aparece en la hoja y en el PDF, que no cambian. El documento en vivo se conserva.
 
