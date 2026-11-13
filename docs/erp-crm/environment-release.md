@@ -12,7 +12,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 - No hay protección de rama clásica (la API responde 404); la regla anterior la sustituye.
 - Se permite la integración automática y se borra la rama al integrar; se admiten merge, squash y rebase.
 - Actions: permisos por defecto de solo lectura; los workflows no pueden aprobar PR; se permiten todas las acciones (sin fijarlas por SHA). No hay secretos ni variables de Actions.
-- Escaneo de secretos, protección al subir y actualizaciones de seguridad de Dependabot: **desactivados**. El repositorio es público.
+- Escaneo de secretos, protección al subir y alertas de Dependabot: **activados el 12/11/2026** (sin alertas abiertas de secretos al activarlos). Las actualizaciones automáticas de Dependabot siguen desactivadas a propósito: abrirían PR sin acuerdo del titular.
 - Los entornos de despliegue no tienen reglas de protección. Siguen listados `Production – mnt-inmuebles`, `Production – fortius` y sus previews, sin despliegues desde el 18/10/2026.
 
 **Vercel (ENV-01).**
@@ -42,7 +42,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 
 1. ~~**Vercel:** borrar las cinco entradas de preview de las ramas eliminadas `codex/erp-crm-preview` y `cursor/sitio-publico-portal-b656`.~~ **Hecho el 12/11/2026.** Los despliegues de vista previa ya creados conservan sus variables hasta que se borren; están detrás de la protección de Vercel.
 2. **Vercel:** quitar del proyecto las 13 variables de la integración de Supabase que el código no usa, o al menos `POSTGRES_PASSWORD`, `POSTGRES_URL*`, `SUPABASE_JWT_SECRET` y `SUPABASE_SECRET_KEY`. Antes, comprobar que la integración no las vuelva a crear.
-3. **GitHub:** activar el escaneo de secretos y la protección al subir (gratis en repositorios públicos), además de las alertas de Dependabot.
+3. **GitHub:** ~~activar el escaneo de secretos, la protección al subir y las alertas de Dependabot~~ **Hecho el 12/11/2026.**
 4. **GitHub:** borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`) después de confirmar que no queda ningún proyecto Vercel con esos nombres.
 5. **GitHub (decide el titular):** la regla deja que el administrador la salte. Mientras sea la única cuenta, conviene conservarla así y no saltarla salvo urgencia (I-04).
 6. **Recuperación de la aplicación:** el rollback de Vercel (volver a un despliegue anterior) no se ha ensayado. Se propone ensayarlo con un despliegue de producción anterior compatible con el esquema vigente, con aviso previo.
