@@ -12,11 +12,10 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 **Dónde está el código.**
 
-- **En `main`:** todo hasta el PR #73 (commit `c03504b`), que integró la rama acumulada del 12/11/2026.
-- **Rama local `feat/integracion` (sin push):** el trabajo de las siete sesiones en paralelo del 13/11/2026 (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad). Van integradas tres rondas; lint, tipos y las suites de base y panel en verde. **Sin comprobar:** la build y las suites de navegador.
-- **Migraciones nuevas en la rama, sin aplicar** (se aplican solas al integrar en `main`): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
+- **En `main`:** todo hasta el PR de `feat/integracion` del 13/11/2026, que reunió el trabajo de las siete sesiones en paralelo (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad); antes, el PR #73 (commit `c03504b`). Verificado en local antes de subir: `npm run verify` (lint, tipos, base 1071/1071, panel 521/521 y build), herramientas de respaldo 48/48, activos PDF, navegador público 72 (1 omitida), panel 52/52 y formulario público 5/5.
+- **Migraciones que llegan a `main` con ese PR** (Supabase las aplica sola al integrar; confirmar en su historial): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
 
-**Qué entró en la rama (13/11/2026).**
+**Qué entró (13/11/2026).**
 
 - **Panel:** IA-02 (tope de IA en Configuración); FCH-03 completo: los datos de Fortius se capturan en Configuración y los formatos 01 y 09 los toman de ahí, con el membrete fijo (decisión del titular, 13/11/2026); en Contenido ya no aparecen «Titular (H1)» ni «Subtítulo», que el sitio no usa (C-01, lo guardado se conserva); NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
 - **Sistema visual:** escala tipográfica del sitio y del panel; tokens de espacio, botones, esquinas y colores, sin crema ni beige.
