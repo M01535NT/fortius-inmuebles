@@ -49,7 +49,22 @@ Salvaguardas comprobadas por `tests/tools/restore-storage.test.mjs`:
 
 El informe se guarda en el directorio del respaldo como `storage-restore-REF-FECHA.json`, sin claves ni contenido. Lo que **no** cubre: el propietario original de cada objeto (`owner_id`; las subidas usan el rol de servicio del destino), las cuentas de Auth y sus contraseñas, y la configuración del proyecto (correo, URL de retorno, límites de Auth). Esas partes requieren el procedimiento del proveedor descrito en `docs/erp-crm/recovery-policy.md`.
 
-**Estado:** herramienta y pruebas sintéticas listas; **el ensayo real quedó pendiente** porque no existe un proyecto aislado autorizado (12/11/2026).
+**Estado (12/11/2026):** el titular eligió la **pila local de Supabase** como destino del ensayo. La herramienta y las pruebas sintéticas están listas; **el ensayo real sigue pendiente** porque el equipo no tiene Docker ni WSL, que la pila local necesita.
+
+**Los buckets no salen de las migraciones.** Las migraciones crean los buckets con sus nombres históricos (`mnt-*`, `cota-*`) y reescriben las políticas de `storage.objects` hacia `fortius-inmuebles-*`. En producción, los buckets `fortius-inmuebles-*` se crearon aparte con `tools/fortius-inmuebles-storage-identity.mjs`. Un proyecto nuevo creado solo con migraciones tiene las políticas, pero no los buckets. La restauración de Storage los crea desde el inventario del respaldo, con su privacidad, límite y tipos. Los buckets históricos quedan vacíos en el destino y no estorban.
+
+### Respaldo sintético para el ensayo
+
+`node tools/fortius-inmuebles-synthetic-backup.mjs DIRECTORIO_NUEVO` crea, sin red ni credenciales, un respaldo completo de versión 4 con las 30 tablas. Contiene un administrador y un asesor de ensayo (`*.ensayo@fortius.test`), dos expedientes (uno del asesor y otro ajeno), una emisión y un documento del cliente. Las huellas de los PDF sintéticos coinciden con sus filas, y los buckets son los de producción. El manifiesto lleva `synthetic: true`. Pasa `--verify`, el ensayo en memoria y `restore-storage --plan` (`tests/tools/synthetic-backup.test.mjs`).
+
+### Ensayo en la pila local (pendiente de Docker)
+
+1. El titular instala WSL 2 y Docker Desktop (requiere administrador y reiniciar). La CLI de Supabase se usa con `npx supabase@2`, sin instalarla globalmente.
+2. El agente prepara una carpeta de trabajo fuera del repositorio, con la configuración de `supabase init` y una copia de `supabase/migrations`, y ejecuta `npx supabase start`. Así se aplican las migraciones a una base local nueva.
+3. Respaldo sintético → `restore-storage` contra `http://127.0.0.1:54321` con `--confirm-target local` y la clave anónima local.
+4. Carga del export en la base local y creación de las dos cuentas de ensayo en el Auth local.
+5. Acceso: el asesor descarga la emisión de su expediente y se le niega el documento del expediente ajeno; el administrador descarga ambos; sin sesión, nada privado se descarga. Medir los tiempos de punta a punta.
+
 
 ### Equipos con Windows
 
