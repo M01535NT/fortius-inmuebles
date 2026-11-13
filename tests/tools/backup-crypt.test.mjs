@@ -21,6 +21,10 @@ test('encrypts for the owner key, decrypts byte for byte and rejects tampering, 
     assert.equal(sealed.includes(plain.subarray(0, 64)), false);
     await decryptFile(join(dir, 'backup.enc'), join(dir, 'restored.tgz'), privatePem);
     assert.deepEqual(await readFile(join(dir, 'restored.tgz')), plain);
+    // Repeating a restore onto an existing file fails and leaves that file intact.
+    await writeFile(join(dir, 'keep.tgz'), 'previous');
+    await assert.rejects(decryptFile(join(dir, 'backup.enc'), join(dir, 'keep.tgz'), privatePem), /already exists/);
+    assert.equal(await readFile(join(dir, 'keep.tgz'), 'utf8'), 'previous');
 
     await assert.rejects(decryptFile(join(dir, 'backup.enc'), join(dir, 'x1'), await readFile(other.privateKey, 'utf8')), /different key/);
     const flipped = Buffer.from(sealed); flipped[flipped.length - 100] ^= 1;

@@ -72,11 +72,18 @@ export async function decryptFile(input, output, privatePem) {
   const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(header.iv, 'base64'));
   decipher.setAAD(raw);
   decipher.setAuthTag(tag);
+  // Creating the output first keeps an existing file untouched: only a partial output made here is removed.
+  let out;
+  try { out = await open(output, 'wx', 0o600); } catch (error) {
+    if (error.code === 'EEXIST') throw Error('Output already exists; it was left untouched');
+    throw error;
+  }
   try {
-    await pipeline(createReadStream(input, { start: raw.length, end: tagStart - 1 }), decipher, createWriteStream(output, { flags: 'wx', mode: 0o600 }));
-  } catch (error) {
+    await pipeline(createReadStream(input, { start: raw.length, end: tagStart - 1 }), decipher, out.createWriteStream());
+  } catch {
+    await out.close().catch(() => {});
     await rm(output, { force: true });
-    throw Error('Encrypted backup failed authentication: it was altered or is incomplete' + (error.code === 'EEXIST' ? ' (output exists)' : ''));
+    throw Error('Encrypted backup failed authentication: it was altered or is incomplete');
   }
   return { keyId: header.keyId, bytes: (await stat(output)).size };
 }
