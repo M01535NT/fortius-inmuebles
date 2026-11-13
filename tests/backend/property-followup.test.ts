@@ -53,7 +53,7 @@ describe("fechas del contrato de servicio", () => {
   };
   beforeEach(() => requireStaff.mockReset());
 
-  it("devuelve solo las fechas del 09 más reciente de cada operación y si está emitido", async () => {
+  it("devuelve solo las fechas del 09 (o 21 en la renta) más reciente de cada operación y si está emitido", async () => {
     const drafts = chain({ data: [
       { id: "new", expediente_id: "e1", version: 3, inicio: "2026-06-01", fin: "2026-11-30", modalidad: "exclusiva", licenciaEstado: "vigente", licenciaNumero: " BC-123 ", licenciaVigencia: "2026-12-15", expediente: { folio: "EXP-1" } },
       { id: "old", expediente_id: "e1", version: 1, inicio: "2026-01-01", fin: "2026-03-01", modalidad: "no_exclusiva", licenciaEstado: null, licenciaNumero: null, licenciaVigencia: null, expediente: { folio: "EXP-1" } },
@@ -69,6 +69,6 @@ describe("fechas del contrato de servicio", () => {
       { expedienteId: "e2", folio: "EXP-2", emitido: false, exclusiva: false },
     ]);
     expect(JSON.stringify(body)).not.toContain("\"data\"");
-    expect(drafts.eq).toHaveBeenCalledWith("formato_id", "09");
+    expect(drafts.in).toHaveBeenCalledWith("formato_id", ["09", "21"]);
   });
 });

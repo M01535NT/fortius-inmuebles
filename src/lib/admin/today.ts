@@ -255,7 +255,7 @@ export function overdueReports({ dossiers, reports, names, today }: { dossiers: 
     .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? "Sin inmueble vinculado", status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
 }
 
-/** Fechas del contrato de intermediación (09) que entrega /api/admin/vencimientos. */
+/** Fechas del contrato de intermediación (09, o 21 en la renta) que entrega /api/admin/vencimientos. */
 export type ContractDates = { expedienteId: string; folio: string; emitido: boolean; inicio?: string; fin?: string; exclusiva: boolean; licencia?: { numero?: string; vigencia?: string } };
 export type ExpiryItem = { id: string; date: string; kind: "Contrato" | "Licencia"; text: string; meta: string; late: boolean; href: string };
 

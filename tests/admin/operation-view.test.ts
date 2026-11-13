@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { operationTags } from "@/lib/admin/operation-view";
 import { discardReasonOf } from "@/lib/formatos/operation-workflow";
 import { LAWYER_TASK } from "@/lib/intake/condition";
-import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageDocuments, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
+import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseFormats, phaseGap, problemOf, stageDocuments, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
 import { emptyWorkflow, processStageText, requiredReviews, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
 
@@ -239,6 +239,10 @@ test("la renta del propietario sigue su propio camino y nombra igual sus etapas 
   // DOC-14: el contrato de arrendamiento (20) va en el cierre de la renta, opcional; nunca en la venta.
   expect(stageDocuments("cierre", "arrendador")).toContainEqual({ formato: "20", optional: true });
   expect(stageDocuments("cierre", "captacion").map(d => d.formato)).not.toContain("20");
+  // La intermediación de la renta es el 21, obligatorio como el 09 en la venta; el 09 no aparece en la renta.
+  expect(stageDocuments("contrato", "arrendador")).toEqual([{ formato: "21" }, { formato: "10" }]);
+  expect(stageDocuments("contrato", "captacion")).toEqual([{ formato: "09" }, { formato: "10" }]);
+  expect(phaseFormats("contrato", "arrendador")).toEqual(["21", "10"]);
   expect(advanceTarget(rent("documentacion", { titularidad: reviewed() }), today)).toEqual({ label: "Intermediación para renta" });
   // Lo que falta se dice con palabras de renta.
   expect(missingItems(rent("documentacion", { titularidad: reviewed() }), [task()], today).map(m => m.text)).toEqual(["Opinión de renta con comparables", "Renta acordada con el propietario", "Registrar si tomas el encargo"]);

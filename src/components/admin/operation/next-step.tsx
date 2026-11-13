@@ -279,7 +279,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {owner && (!!flow.visitasPrevias?.length || (!!property && !property.publicada && property.estado === "evaluacion" && flow.requisitos.intermediacion?.estado !== "revisado")) && <div className={s.span6}><PriorVisitCard op={op} disabled={lock} onSave={onSave} /></div>}
     {flow.ruta === "captacion" && (phase === "verificacion" || appraisalState(flow, today) === "vencido") && <div className={s.span6}><OwnerAppraisalCard op={op} today={today} reviewer={evidence.reviewer} disabled={lock} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
     {owner && (phase === "contrato" || !!flow.firmaContrato) && <div className={s.span6}><ContractSignatureCard op={op} today={today} disabled={lock || locked} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
-    {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest("09"))} disabled={lock} onSave={onSave} /></div>}
+    {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { formato: d.formato_id, data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest(flow.ruta === "arrendador" ? "21" : "09"))} disabled={lock} onSave={onSave} /></div>}
     {owner && ownerReportApplies(stageOf(op), op.flujo ?? flow) && <div className={s.span6}><OwnerReport op={op} today={today} disabled={lock} onSave={onSave} /></div>}
     {owner && (phase === "publicacion" || phase === "visitas") && <div className={s.span6}><VisitsAndOffers op={op} today={today} documents={evidence.documents} /></div>}
     {floatingBar()}
