@@ -5,7 +5,7 @@
 :global(.admin-root) .search input { padding-left: 2.5rem; width: 100%; background: var(--card); border-color: var(--edge-soft); }
 @media (min-width: 1024px) { :global(.admin-root) .search { flex: none; } :global(.admin-root) .search input { width: 17rem; } }
 :global(.admin-root) .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem; margin-bottom: 1.25rem; }
-:global(.admin-root) .filters { display: flex; gap: 2px; padding: 3px; border-radius: var(--radius-control); background: var(--track); overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+:global(.admin-root) .filters { display: flex; gap: 2px; padding: 4px; border-radius: var(--radius-control); background: var(--track); overflow-x: auto; scrollbar-width: none; max-width: 100%; }
 :global(.admin-root) .filter { flex: none; display: inline-flex; align-items: center; gap: .5rem; min-height: 2.5rem; padding: 0 .875rem; border: 0; border-radius: 7px; background: none; color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-detalle); font-weight: 540; cursor: pointer; white-space: nowrap; }
 :global(.admin-root) .filter[aria-pressed=true] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px rgba(6, 31, 63, .1); }
 :global(.admin-root) .filter[aria-pressed=false] { background: none; color: var(--muted-foreground); }
@@ -48,7 +48,7 @@
 :global(.admin-root) .stageText { font-size: var(--admin-text-detalle); font-weight: 540; }
 :global(.admin-root) .reason { display: inline-flex; align-items: center; min-height: 1.375rem; padding: 0 .5rem; border-radius: var(--radius-pill); background: var(--warning-surface); color: var(--warning); font-size: var(--admin-text-minimo); font-weight: 620; white-space: nowrap; }
 :global(.admin-root) .reason[data-late] { background: var(--alert-surface); color: var(--alert); }
-:global(.admin-root) .bar { display: grid; gap: 3px; max-width: 11rem; }
+:global(.admin-root) .bar { display: grid; gap: 4px; max-width: 11rem; }
 :global(.admin-root) .bar > span { height: 6px; border-radius: 3px; background: var(--track); }
 :global(.admin-root) .bar > span[data-state=on] { background: var(--primary); }
 :global(.admin-root) .bar > span[data-state=warn] { background: var(--warning); }
