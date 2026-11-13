@@ -8,7 +8,7 @@
 
 ## Resumen
 
-**Respondidas por el titular el 12/11/2026:** DEC-39 A, DEC-40 A, DEC-41 B, DEC-42 A, DEC-44 A y DEC-47 A, todas las recomendadas. DEC-43 queda como estaba decidida (sin nueva confirmación). Falta pasarlas a `PLAN_ERP_CRM.md`. Las preguntas y cartas de DEC-39, DEC-40 y DEC-41 siguen sujetas a la validación del abogado antes de construirse.
+**Respondidas por el titular el 12/11/2026:** DEC-39 A, DEC-40 A, DEC-41 B, DEC-42 A, DEC-44 A y DEC-47 A, todas las recomendadas. DEC-43, confirmada el mismo día. Falta pasarlas a `PLAN_ERP_CRM.md`. Las preguntas y cartas de DEC-39, DEC-40 y DEC-41 siguen sujetas a la validación del abogado antes de construirse.
 
 | ID | Qué se decide | Recomendación | Detiene |
 |---|---|---|---|
@@ -90,7 +90,7 @@
 
 **Estado:** decidida el 12/11/2026. El asesor ve de los inmuebles ajenos solo los datos públicos (fotos, precio, descripción) para poder ofrecerlos; el inmueble lo edita su asesor o el director; publicar lo autoriza siempre el director. Se construye en COR-23. Solo se confirma; si algo cambió, dilo.
 
-**Respuesta:**
+**Respuesta:** confirmada, así queda (titular, 12/11/2026).
 
 ## DEC-44 · Captura por lista en el celular
 
