@@ -209,6 +209,23 @@ it("schedules the next action of a paused decision without cancelling existing o
  expect(tasks).toContainEqual(expect.objectContaining({titulo:"Revisar condiciones de la pausa",estado:"pendiente",vence:"2030-10-31"}));
  expect(tasks).toContainEqual(expect.objectContaining({titulo:"Revisar antecedentes",estado:"pendiente"}));
 });
+it("DEC-42: changing the decision moves its open follow-up task instead of adding another",async()=>{
+ const done=await admit(await complete((await start()).id));
+ const id=done.expediente_id as string;
+ const read=async()=>(await db.query<{version:number;flujo:Record<string,unknown>}>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1",[id])).rows[0];
+ const decide=async(siguienteAccion:string,fechaSiguiente:string,motivo:string)=>{const row=await read();await db.query("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,$3::jsonb,null,false)",[id,row.version,JSON.stringify({...row.flujo,resolucion:{tipo:"pausada",fecha:"2026-10-14",motivo,siguienteAccion,fechaSiguiente}})]);};
+ const followups=async()=>(await db.query<{id:string;data:{titulo:string;estado:string;vence:string}}>("select id,data from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1 and id like 'res%'",[id])).rows;
+ await decide("Revisar condiciones de la pausa","2030-10-31","Esperar documentación del titular");
+ await decide("Llamar al propietario","2030-11-15","El titular pidió dos semanas más");
+ const open=await followups();
+ expect(open).toHaveLength(1);
+ expect(open[0].data).toMatchObject({titulo:"Llamar al propietario",vence:"2030-11-15",estado:"pendiente"});
+ // Con la anterior ya completada, la siguiente decisión crea otra.
+ const t=(await db.query<{version:number;data:Record<string,unknown>}>("select version,data from public.fortius_inmuebles_records where collection='tareas' and id=$1",[open[0].id])).rows[0];
+ await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,$3)",[open[0].id,JSON.stringify({...t.data,estado:"completada"}),t.version]);
+ await decide("Revisar respuesta","2030-12-01","Respondió el titular");
+ expect((await followups()).map(r=>[r.data.titulo,r.data.estado]).sort()).toEqual([["Llamar al propietario","completada"],["Revisar respuesta","pendiente"]]);
+});
 it("keeps an investor role when converting a manual prospect before completing the interview",async()=>{
  const first=await start("invertir");
  const lead=(await db.query<{version:number}>("select version from public.fortius_inmuebles_records where collection='leads' and id=$1",[first.lead_id])).rows[0];
