@@ -90,9 +90,13 @@ Verificación local de la promesa 15: revisión visual y lectura de tres especí
 
 Se identificaron los 38 controles de contenido del DOCX en su XML; la lectura simple de párrafos omitía sus marcadores. El panel separa los datos de cada cliente, representantes y firmantes, prestador, licencia y modelos, derecho e identificación del inmueble, situación informada, vigencia, comisión, IVA de venta y de servicios, base de pena, prospectos, anexos y entrega del aviso de privacidad. Permite consultar las once cláusulas y tercera bis del original. La captura no prueba derechos, facultades ni registros.
 
-El cálculo de referencia excluye IVA de venta de la base, desglosa IVA de servicios capturado sin tasa por defecto y limita la base de pena al menor entre máximo y comisión sin IVA. La aritmética de prorrateo se prueba con inicio y fin incluidos y deducción de pagos sólo para pena a cargo del cliente; no determina procedencia de cobro. El panel presenta la comisión estimada, sin confundirla con una comisión devengada.
+El cálculo de referencia excluye IVA de venta de la base, desglosa IVA de servicios capturado sin tasa por defecto y limita la base de pena al menor entre máximo y comisión sin IVA. El panel presenta la comisión estimada, sin confundirla con una comisión devengada.
 
 Ruling: completar la preparación y cálculos del 09 y mantener su PDF bloqueado. El usuario indicó que los modelos no están registrados; escribir un número, fecha o supuesto de no aplicación no habilita esta plantilla. Antes de emitir se requiere cotejar el modelo y sus registros aplicables. Este avance no modifica esa situación externa.
+
+Cotejo con el Word del titular del 26/10/2026 (12/11/2026): la tercera, la quinta y la novena se copiaron tal cual del Word; las demás cláusulas, las condiciones particulares y las declaraciones ya coincidían. La quinta agrega que, en exclusiva, el CLIENTE tampoco vende por conducto de otro intermediario. La novena ya no prorratea la pena por días: el máximo es el menor entre el importe pactado y la comisión sin IVA, sujeto a reducción por cumplimiento parcial; por eso se retiró la calculadora de prorrateo, que el panel no mostraba.
+
+COR-12 (12/11/2026): el 09 ya no captura ni revisa el registro ante PROFECO (titular, 17/10/2026: Fortius no lo tiene y no lo tendrá en 2026). El Word del titular no imprime esos datos. Los borradores anteriores conservan los valores, pero ya no se piden ni se validan. El PDF sigue bloqueado (`readyForEmission=false`) hasta que el titular cargue su modelo de contrato y el abogado lo revise (DOC-09, DEC-20).
 
 Verificación local de la preparación 09: 377 pruebas de servidor y 155 del panel aprobadas; análisis estático y compilación aprobados. El 09 conserva readyForEmission=false y no se generó un PDF utilizable con un número de registro capturado.
 

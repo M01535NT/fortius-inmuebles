@@ -9,7 +9,7 @@ import { BLANK, dinero, fecha, filas, v, type Block, type Documento } from "./mo
   Su PDF sigue bloqueado hasta cotejar el modelo registrado; este documento sirve para el Word.
   Captura sobre el documento (EXT-12, 29/10/2026): cada renglón de las condiciones particulares,
   la cláusula del aviso, la de registro y las firmas dicen qué campos las llenan. Los datos de
-  control que el contrato no imprime (licencia, modelo estatal, PROFECO, soportes fiscales y del
+  control que el contrato no imprime (licencia, modelo estatal, soportes fiscales y del
   presupuesto de la pena) se abren con el renglón o la cláusula a la que dan sustento.
 */
 
@@ -19,7 +19,7 @@ const days = (from: unknown, to: unknown) => typeof from === "string" && typeof 
   ? `${Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 864e5) + 1} días naturales` : BLANK;
 const CLIENTES = ["clientesContrato"];
 const AVISO = ["medioAvisoPrivacidad", "fechaAvisoPrivacidad", "referenciaAvisoPrivacidad"];
-const REGISTRO = ["modeloEstatalEstado", "modeloEstatalReferencia", "modeloEstatalCopia", "profecoEstado", "profecoNumero", "profecoFecha", "profecoCopia", "profecoFundamento"];
+const REGISTRO = ["modeloEstatalEstado", "modeloEstatalReferencia", "modeloEstatalCopia"];
 const LEAD = /^((?:[A-ZÁÉÍÓÚÑ]+ )*[A-ZÁÉÍÓÚÑ]+(?: BIS)?\. [^.]+\.)\s+/;
 
 export function intermediacionDocumento(d: Data): Documento {
