@@ -10,7 +10,7 @@ import {
 
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import NotasPage from "@/app/admin/notas/page";
+import { RecordNotes } from "@/components/admin/workspace/record-notes";
 import BlogPage from "@/app/admin/blog/page";
 import { AdminShell } from "@/components/admin/admin-shell";
 import * as api from "@/lib/admin/store";
@@ -83,21 +83,22 @@ afterEach(() => {
 });
 
 test("note save failure preserves input and shows an error, success resets after persistence", async () => {
-  render(<NotasPage />);
-  fireEvent.change(screen.getByLabelText("Título"), {
+  // DEC-42: la nota se escribe en el panel «Notas» del inmueble o la operación.
+  render(<RecordNotes link={{ propiedadSlug: "casa-ensayo" }} open onClose={() => {}} title="Notas del inmueble" description="Prueba" />);
+  fireEvent.change(screen.getByLabelText("Nueva nota"), {
     target: { value: "Pendiente real" },
   });
   fail = true;
-  fireEvent.click(screen.getByRole("button", { name: /Nueva nota/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar nota" }));
   await screen.findByRole("alert");
-  expect((screen.getByLabelText("Título") as HTMLInputElement).value).toBe(
+  expect((screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value).toBe(
     "Pendiente real",
   );
   expect(saved).toHaveLength(0);
   fail = false;
-  fireEvent.click(screen.getByRole("button", { name: /Nueva nota/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Guardar nota" }));
   await waitFor(() =>
-    expect((screen.getByLabelText("Título") as HTMLInputElement).value).toBe(
+    expect((screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value).toBe(
       "",
     ),
   );

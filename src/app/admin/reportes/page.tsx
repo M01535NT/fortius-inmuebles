@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PeriodReport } from "@/components/admin/workspace/period-report";
 import { SectionBoundary } from "@/components/admin/section-boundary";
 import { InventoryScope } from "@/components/admin/workspace/inventory-scope";
+import { ToolUsage } from "@/components/admin/apps/tool-usage";
 import { useOperationFormats } from "@/components/admin/operation/use-operation-formats";
 import { followupLabel, overdueFollowups, projectFollowups } from "@/lib/admin/followups";
 import { clientStatus } from "@/lib/admin/person-status";
@@ -16,6 +17,7 @@ import { initialStatus, stageTrack, type OperationRecord } from "@/lib/admin/ope
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { longDate } from "@/lib/admin/today";
 import { humanDate } from "@/lib/utils";
+import { isShared, sharedCommissionEstimate } from "@/lib/admin/shared-property";
 import { EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 import s from "@/components/admin/workspace/reports.module.css";
 
@@ -58,8 +60,10 @@ export default function ReportesPage() {
   if (states.some(state => !state.loaded) || expedientStatus === "loading") return <p role="status" className="p-6">Cargando reportes…</p>;
   if (expedientStatus === "error") return <p role="alert" className="rounded-md border border-destructive p-6">{error}</p>;
   const today = operationalDate();
+  // PUB-02 (RP-95): la comisión de un compartido es una estimación; no se suma a nada ni es lo cobrado.
+  const shared = propiedades.filter(property => isShared(property) && (includeDemo || !property.demo));
   const metrics = commercialMetrics({ leads, clientes, propiedades, tareas, asesores, expedientes, today, includeDemo });
-  const overdue = overdueFollowups(projectFollowups(leads, clientes, expedientes), today);
+  const overdue = overdueFollowups(projectFollowups(leads, clientes, expedientes, tareas), today);
   const converted = leads.flatMap(lead => {
     // COR-10: solo cuenta quien firmó su contrato con Fortius.
     const client = clientes.find(item => (item.id === lead.clienteId || item.leadId === lead.id) && clientStatus(item.id, expedientes) !== "prospecto");
@@ -107,6 +111,16 @@ export default function ReportesPage() {
         <p className={s.note}>El reparto es una estimación: 25 % al que capta y 25 % al que vende (50 % si es el mismo), sobre la comisión del contrato de intermediación. No es lo cobrado.</p>
       </div>
     </details>
+    <ToolUsage />
+    {shared.length > 0 && <details className={s.fold}>
+      <summary>Inmuebles compartidos <span className={s.summaryNote}>{shared.length === 1 ? "1 de otra inmobiliaria" : `${shared.length} de otras inmobiliarias`}</span></summary>
+      <div className={s.foldBody}>
+        <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-left text-sm"><caption className="sr-only">Inmuebles compartidos y su comisión estimada</caption><thead><tr className="border-b border-border text-muted-foreground"><th scope="col" className="p-2 font-medium">Inmueble</th><th scope="col" className="p-2 font-medium">Inmobiliaria</th><th scope="col" className="p-2 font-medium">Comisión acordada</th><th scope="col" className="p-2 font-medium">Estimación</th></tr></thead><tbody>
+          {shared.map(property => { const estimate = sharedCommissionEstimate(property); return <tr key={property.slug} className="border-b border-border"><th scope="row" className="p-2 font-medium"><Link href={`/admin/propiedades/${encodeURIComponent(property.slug)}/editar`} className="underline underline-offset-4">{property.titulo}</Link>{property.demo ? " · ejemplo" : ""}</th><td className="p-2">{property.aliado?.inmobiliaria ?? "—"}</td><td className="p-2 tabular-nums">{property.aliado?.porcentaje != null ? `${property.aliado.porcentaje} %` : "—"}</td><td className="p-2 tabular-nums">{estimate ? new Intl.NumberFormat("es-MX", { style: "currency", currency: estimate.moneda, maximumFractionDigits: 0 }).format(estimate.monto) : "—"}</td></tr>; })}
+        </tbody></table></div>
+        <p className={s.note}>Estimación: precio publicado por la comisión acordada con la inmobiliaria. No se suma a los cierres ni es lo cobrado; un precio a consulta no se estima.</p>
+      </div>
+    </details>}
     <details className={s.fold}>
       <summary>Desde el inicio <span className={s.summaryNote}>{metrics.conversionPercent === null ? "Sin prospectos" : `${metrics.conversionPercent}% se volvieron clientes`}</span></summary>
       <div className={s.foldBody}>

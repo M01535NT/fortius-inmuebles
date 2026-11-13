@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, X } from "@/components/admin/icons";
 import { Button, ButtonLink, Card, Notice, ProgressBar, Surface } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
-import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState, type Lead } from "@/lib/admin/store";
+import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState, useSession, type Lead } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
@@ -107,6 +107,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
   const loaded = leadState.loaded && clientState.loaded && adviserState.loaded;
   const correctionOf = params.get("expedienteId");
   const seed = params.get("intencion");
+  const director = useSession()?.role === "admin";
   const [intent, setIntent] = React.useState<IntakeIntent | null>(seed && Object.hasOwn(INTENTS, seed) ? seed as IntakeIntent : null);
   // Con la intención ya elegida (Contactos › Agregar contacto, COR-15) se empieza por quién es.
   const [step, setStep] = React.useState(intent ? 2 : 1);
@@ -228,6 +229,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
           </button>)}
         </div>
         <p className="text-sm text-muted-foreground">¿Ya tienes todos los datos? <Link href="/admin/operaciones?nuevo=1" data-tour="nueva-alta" className="font-semibold text-foreground underline underline-offset-4">Alta rápida, sin entrevista</Link></p>
+        {director && <p className="text-sm text-muted-foreground">¿Un inmueble que el asesor ya trae con contrato firmado? <Link href="/admin/operaciones?heredado=1#inventario-heredado" className="font-semibold text-foreground underline underline-offset-4">Inventario heredado</Link></p>}
         {pending.length > 0 && <div className="xl:hidden"><PendingCard pending={pending} /></div>}
       </> : <>
         <h1 className={s.title}>¿Quién es?</h1>

@@ -47,7 +47,9 @@ export type PropertyKeys = z.infer<typeof keysSchema>;
 export type PropertyPrep = z.infer<typeof prepSchema>;
 export type BuyerNotice = z.infer<typeof buyerNoticeSchema>;
 /** Campos privados del seguimiento; el sitio público nunca los recibe. */
-export type PropertyFollowup = { llaves?: PropertyKeys; preparacion?: PropertyPrep; avisosCompradores?: BuyerNotice[] };
+/** PUB-02 (DEC-40): inmueble de otra inmobiliaria, publicado con su autorización escrita. Privado. */
+export type PropertyAlly = { inmobiliaria: string; contacto?: string; porcentaje?: number; autorizacion?: { path: string; nombre?: string; fecha?: string; firmante?: string } };
+export type PropertyFollowup = { llaves?: PropertyKeys; preparacion?: PropertyPrep; avisosCompradores?: BuyerNotice[]; origen?: "propio" | "compartido"; aliado?: PropertyAlly };
 export const PRIVATE_PROPERTY_FIELDS = ["llaves", "preparacion", "avisosCompradores"] as const;
 
 /** Préstamos de llaves que no han regresado, del más antiguo al más reciente. */

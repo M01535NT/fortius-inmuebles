@@ -1,26 +1,27 @@
 # Recuperación de Fortius — procedimiento y decisiones
 
-Estado: controles locales implementados; objetivos iniciales aprobados; recuperación completa del proveedor pendiente de ensayo. Objetivos aprobados: 12/10/2026. Cobertura local actualizada: 13/10/2026.
+Estado: controles locales implementados; ensayo completo con datos sintéticos aprobado el 12/11/2026 en un proyecto aislado (16.5 s); objetivos iniciales aprobados; faltan copia diaria automática, custodia y ensayo con volumen real. Objetivos aprobados: 12/10/2026. Cobertura actualizada: 12/11/2026.
 
 ## Alcance comprobable
 
-El export del código actual cubre 26 tablas públicas (18 anteriores y ocho de Apps) y lleva `schema_version: 2`. Esta cifra describe el código y el ensayo aislado; no acredita migraciones remotas. El verificador comprueba hashes/bytes del inventario, vinculación de PDFs emitidos/copias/adjuntos/recibos de carga con sus objetos, metadata del bucket y privacidad. Incluye originales y resultados PDF de Apps en `fortius-inmuebles-private`, y originales, firmas y evidencia en el bucket privado `fortius-app-integrations`; verifica SHA-256 y tamaño contra las filas de `app_files` e `integration_artifacts`. Un documento con SHA-256 distinto al archivo bloquea el respaldo. Un objeto que no figure en el inventario de archivos con huella también lo bloquea.
+El export del código actual cubre 30 tablas públicas (18 anteriores, ocho de Apps, entrevistas y tres de documentos del cliente) y lleva `schema_version: 4`; el detalle está en [el procedimiento](../fortius-inmuebles-backup-restore.md). Esta cifra describe el código y el ensayo aislado; no acredita migraciones remotas. El verificador comprueba hashes/bytes del inventario, vinculación de PDFs emitidos/copias/adjuntos/recibos de carga con sus objetos, metadata del bucket y privacidad. Incluye originales y resultados PDF de Apps en `fortius-inmuebles-private`, y originales, firmas y evidencia en el bucket privado `fortius-app-integrations`; verifica SHA-256 y tamaño contra las filas de `app_files` e `integration_artifacts`. Un documento con SHA-256 distinto al archivo bloquea el respaldo. Un objeto que no figure en el inventario de archivos con huella también lo bloquea.
 
 Esto es integridad y coherencia del alcance capturado. No acredita autenticidad contra un atacante que pudiera reemplazar datos y manifiesto a la vez: custodiar la huella del manifiesto y la copia en un medio independiente y restringido.
 
-El ensayo DB aplica migraciones a PGlite en memoria, restaura contenido, valida FK/revisiones y compara campos/fechas. Comprueba continuidad y snapshot vigente de las versiones de Apps, recalcula búsqueda OCR y conserva correcciones, cargos/reservas, enlaces revocados y eventos de firma. No reenvía solicitudes a proveedores. Regenera el índice de referencias de los JSON mediante la función SQL migrada y lo contrasta con el snapshot; no basta que las filas del índice antiguo tengan FK válidas. No normaliza el export ni aplica reglas actuales de nueva captura indiscriminadamente a datos legacy. Auth contiene placeholders de identidad: no contraseñas/sesiones/servicio. La nueva recuperación de objetos copia bytes a un directorio local nuevo, relee huellas y conserva metadata; no configura un servicio Storage ni prueba sus políticas en otro proyecto.
+El ensayo DB aplica migraciones a PGlite en memoria, restaura contenido, valida FK/revisiones y compara campos/fechas. Comprueba continuidad y snapshot vigente de las versiones de Apps, recalcula búsqueda OCR y conserva correcciones, cargos/reservas, enlaces revocados y eventos de firma. No reenvía solicitudes a proveedores. Regenera el índice de referencias de los JSON mediante la función SQL migrada y lo contrasta con el snapshot; no basta que las filas del índice antiguo tengan FK válidas. No normaliza el export ni aplica reglas actuales de nueva captura indiscriminadamente a datos legacy. Auth contiene placeholders de identidad: no contraseñas/sesiones/servicio. La recuperación local de objetos copia bytes a un directorio nuevo, relee huellas y conserva metadata. La restauración de Storage (`tools/fortius-inmuebles-restore-storage.mjs`, 12/11/2026) sube esos objetos a un proyecto Supabase aislado, ajusta los buckets, relee cada huella, comprueba que lo privado no se descargue sin sesión y mide tiempos; está probada con un Storage simulado, no contra un proyecto real.
 
-Los respaldos históricos completos de 18 tablas siguen admitidos sin modificar su JSON: el ensayo reporta su versión de origen y las ocho tablas nuevas que quedan vacías. La versión 2 exige las 26 tablas, aun si no tienen filas. Un inventario incompleto de Apps, una tabla inesperada o una versión desconocida impiden la aceptación. Los formatos históricos `cota`/`mnt` conservan su tratamiento anterior. Ningún resultado histórico demuestra cobertura de trabajos creados después de esa copia.
+Los respaldos históricos completos de 18 tablas siguen admitidos sin modificar su JSON: el ensayo reporta su versión de origen y las tablas nuevas que quedan vacías. Las versiones 2, 3 y 4 exigen 26, 27 y 30 tablas, aun si no tienen filas. Un inventario incompleto de Apps, una tabla inesperada o una versión desconocida impiden la aceptación. Los formatos históricos `cota`/`mnt` conservan su tratamiento anterior. Ningún resultado histórico demuestra cobertura de trabajos creados después de esa copia.
 
 Los archivos y artefactos de Apps requieren SHA-256 de 64 caracteres hexadecimales y tamaño entero positivo; valores vacíos o ausentes no omiten la comprobación. Cada fila de `app_files` requiere además un único recibo en `file_uploads`, con bucket privado, misma ruta, mismo propietario y vínculo `apps:<expediente>` o `apps:independent` concordante. Esta comprobación se ejecuta también al ensayar directamente la base. Los artefactos de proveedores mantienen su relación con el trabajo y no requieren recibo genérico. La metadata de todos los buckets se valida aunque estén vacíos, sin IDs duplicados. Si el manifiesto declara `database.schemaVersion`, debe coincidir con la versión del export; no se acepta degradar una copia declarada como actual a un inventario histórico.
 
 ## Comprobación local sin credenciales
 
 ```bash
-node --test tests/tools/backup-coverage.test.mjs tests/tools/backup-objects.test.mjs tests/tools/restore-current.test.mjs
+node --test tests/tools/*.test.mjs
 node tools/fortius-inmuebles-backup.mjs --verify DIRECTORIO_BACKUP
 node tools/fortius-inmuebles-restore-rehearsal.mjs DIRECTORIO_BACKUP
 node tools/fortius-inmuebles-backup.mjs --restore-objects DIRECTORIO_BACKUP --target DIRECTORIO_NUEVO_AISLADO
+node tools/fortius-inmuebles-restore-storage.mjs DIRECTORIO_BACKUP --plan
 ```
 
 El padre del destino debe existir. Se rechazan destinos existentes, interiores al respaldo o que lo contengan. Los binarios se escriben con nombres numerados y permisos locales restringidos; `objects.json` conserva bucket/ruta original. Un error deja un destino parcial para diagnóstico; no se modifica ni elimina la fuente. Un siguiente intento requiere otro destino nuevo.
@@ -29,19 +30,22 @@ El padre del destino debe existir. Se rechazan destinos existentes, interiores a
 
 - Moisés aprobó el 12/10/2026 empezar con copia diaria: objetivo inicial de hasta 24 horas de trabajo reciente; copia adicional antes de una migración o cambio relevante. Validar consistencia de DB/archivos y frecuencia real, no solo el calendario.
 - Moisés aprobó el objetivo de volver a operar en hasta ocho horas desde declaración del incidente hasta restitución del alcance acordado. Se valida con ensayo; la aprobación del objetivo no demuestra capacidad.
-- Custodia: responsable designado por Moisés; copia cifrada fuera del repositorio y del servidor público; acceso por necesidad y registro de acceso.
+- Custodia: el titular (decisión del 12/11/2026). La copia se cifra para su llave y se guarda en Cloudflare R2, fuera del repositorio y del servidor público; solo él tiene la llave privada. Detalle en [copia diaria](respaldo-diario.md).
 - Retención: decidir según finalidad, relaciones, obligaciones aplicables y revisión profesional. No imponer un plazo uniforme ni borrado automático.
 
-## Ensayo completo pendiente
+## Ensayo completo (12/11/2026)
 
-1. Autorizar destino Supabase aislado y confirmar costo, custodia y cuentas controladas. No crear proyecto contratado por inferencia.
-2. Comprobar procedimientos del proveedor para DB/Auth/configuración y extensiones. Inventariar variables por nombre/ámbito; custodiar valores por el mecanismo seguro correspondiente.
-3. Cargar caso sintético con administrador y dos asesores, expedientes, actividad, emisiones y objetos; capturar snapshot consistente. Documentar pausa de escrituras o método de consistencia.
-4. Recuperar DB, identidad acordada, buckets/objetos y políticas en destino. Comprobar conteos, hashes, fechas, vínculos, RLS y acceso/denegación/descargas con cuentas de prueba.
-5. Medir tiempos y divergencias frente a RPO/RTO. Probar acceso recuperado y publicar solo un endpoint de prueba autorizado.
-6. Registrar limitaciones, disposición del destino y aprobación. Mantener producción intacta.
+El 12/11/2026 se ejecutó `tools/fortius-inmuebles-recovery-rehearsal.mjs` contra un proyecto gratuito aparte (`qmlpcpddvglhlmkxobis`), con datos sintéticos, y **pasó**: 53 migraciones, 30 tablas iguales a la fuente, 49 FK revalidadas, 6 buckets, 2 objetos con huella idéntica, 2 cuentas de ensayo y el acceso esperado para administrador, asesor y visitante sin sesión. Tardó 16.5 s en total. El detalle por paso está en [el procedimiento](../fortius-inmuebles-backup-restore.md). Antes se descartaron la pila local (sin Docker en el equipo) y las ramas de Supabase (exigen el plan Pro).
 
-No generar copias de clientes para la fase sintética. No considerar REC-01 cerrado hasta comprobar recuperación del alcance requerido y acordar custodia/destino.
+Para repetirlo: crear otro proyecto vacío (el script se niega a mezclar datos), guardar sus cuatro datos de conexión en un archivo propio fuera del repositorio y ejecutar el script con `--confirm-target REF`. Al terminar, borrar el proyecto de ensayo y el archivo con sus datos de conexión. El del 12/11/2026 se borró ese mismo día, junto con su archivo.
+
+**Pendiente para cerrar REC-01:**
+
+1. Copia diaria automática: **preparada** el 12/11/2026 (GitHub Actions → cifrado → Cloudflare R2, con el titular como custodio de la llave; ver [copia diaria](respaldo-diario.md)). La llave, el bucket con bloqueo de 30 días y los secretos quedaron listos el mismo día; falta integrar en `main` y comprobar la primera copia. Hasta entonces, el RPO de 24 h no es una capacidad.
+2. Repetir el ensayo con el volumen real cuando se cargue el inventario, porque los tiempos de hoy son de un caso mínimo.
+3. Documentar la configuración del proyecto que no viaja con el respaldo: correo saliente, URL de retorno, límites y plantillas de Auth.
+
+No generar copias de clientes reales para la fase sintética. No considerar REC-01 cerrado hasta resolver lo anterior.
 
 ## Explicación para decidir y evidencia del proveedor
 

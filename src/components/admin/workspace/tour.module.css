@@ -1,4 +1,11 @@
 /* Guía de la pantalla: capa que oscurece, recuadro que resalta y tarjeta con el paso. */
+/* DEC-47: punto fijo, sin animación, sobre «Ayuda» mientras la guía de la pantalla no se ha visto. */
+.launcher { position: relative; }
+.dot {
+  position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border-radius: 999px;
+  background: var(--primary); box-shadow: 0 0 0 2px var(--card); pointer-events: none;
+}
+.inline { position: static; flex: none; box-shadow: none; }
 .layer { position: fixed; inset: 0; z-index: 1200; }
 .spot {
   position: fixed; border-radius: 14px; pointer-events: none;
@@ -21,6 +28,7 @@
 .close:hover { background: var(--secondary); color: var(--foreground); }
 .title { margin: 0; font-size: 1.1rem; font-weight: 620; line-height: 1.25; }
 .text { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--muted-foreground); }
+.helpLink { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; font-size: 0.95rem; font-weight: 600; color: var(--foreground); text-decoration: underline; text-underline-offset: 4px; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
 .skip { margin-right: auto; }
 .btn {

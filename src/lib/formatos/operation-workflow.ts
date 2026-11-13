@@ -50,7 +50,10 @@ export const WORKFLOW_REQUIREMENTS = {
 } as const;
 export type RequirementKey = keyof typeof WORKFLOW_REQUIREMENTS;
 const evidence = z.object({ tipo: z.enum(["entrevista","documento","emision","adjunto","cliente","externa"]), referencia: z.string().max(1000), version: z.number().int().positive().optional(), fecha: z.iso.date().optional(), responsable: z.string().max(160).optional(), resultado: z.string().max(1000).optional(), limites: z.string().max(1000).optional() }).strict();
-const review = z.object({ estado: z.enum(["pendiente","recibido","revisado","observado","no_aplica"]), soporte: z.string().max(1000), evidencia: evidence.optional(), bloquea: z.array(z.enum(WORKFLOW_STAGES)).max(8).optional(), vigenteHasta: z.iso.date().optional(), registradoPor: z.uuid().optional(), registradoEl: z.string().max(80).optional() }).strict();
+/** Excepción que autoriza el director (COR-20, RP-31): motivo escrito; el servidor anota quién y cuándo. */
+const exception = z.object({ motivo: z.string().trim().min(10).max(1000), autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(80).optional() }).strict();
+export type RequirementException = z.infer<typeof exception>;
+const review = z.object({ estado: z.enum(["pendiente","recibido","revisado","observado","no_aplica"]), soporte: z.string().max(1000), evidencia: evidence.optional(), bloquea: z.array(z.enum(WORKFLOW_STAGES)).max(8).optional(), vigenteHasta: z.iso.date().optional(), registradoPor: z.uuid().optional(), registradoEl: z.string().max(80).optional(), excepcion: exception.optional() }).strict();
 export const RESOLUTION_TYPES = { aceptada: "Aceptada", condicionada: "Aceptada con condiciones", pausada: "Pausada", rechazada: "Rechazada", referida: "Referida", cancelada: "Cancelada" } as const;
 const resolution = z.object({ tipo: z.enum(["aceptada","condicionada","pausada","rechazada","referida","cancelada"]), fecha: z.iso.date(), motivo: z.string().trim().min(3).max(1000), condiciones: z.string().max(1000).optional(), permitidas: z.array(z.enum(WORKFLOW_STAGES)).max(8).optional(), siguienteAccion: z.string().trim().min(1).max(160), fechaSiguiente: z.iso.date() }).strict().refine(r=>r.tipo!=="condicionada" || !!r.condiciones?.trim(), "Describe las condiciones de aceptación");
 /** Canales de entrega del informe al propietario (COR-08, RP-88): se capturan a mano. */
@@ -95,6 +98,18 @@ const operationClose = z.object({
  registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional(),
 }).strict();
 export type OperationClose = z.infer<typeof operationClose>;
+/**
+  Inventario heredado (COR-24): el inmueble llegó con su asesor y un contrato ya firmado. «desde» es
+  la fecha del contrato. No salta protecciones (decisión del titular, 12/11/2026): titularidad,
+  factibilidad y valor se revisan antes de publicar; entrevista, levantamiento y plan van por excepción.
+*/
+const inherited = z.object({ desde: z.iso.date(), registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional() }).strict();
+/** Lo que se cubre por excepción en el alta del inventario heredado. */
+export function inheritedExceptions(route: OperationWorkflow["ruta"]): RequirementKey[] { return route === "arrendador" ? ["entrevista", "levantamiento"] : ["entrevista", "levantamiento", "plan"]; }
+/** Lo que falta para regularizar un inventario heredado: lo necesario para publicar. */
+export function inheritedPending(flow: OperationWorkflow, today: string): RequirementKey[] {
+ return flow.heredado ? requiredReviews(flow.ruta, "comercializacion").filter(key => !reviewComplete(flow, key, today)) : [];
+}
 /** Reparto de RP-99: 25 % al que capta y 25 % al que vende; si es el mismo asesor, 50 %. Es una estimación hasta que se cobre. */
 export function commissionSplit(c: Pick<OperationClose, "capto" | "vendio" | "comisionEstimada">): Array<{ asesorId: string; papel: "capto" | "vendio" | "ambos"; porcentaje: number; monto?: number }> {
  const part = (porcentaje: number) => typeof c.comisionEstimada === "number" ? { monto: Math.round(c.comisionEstimada * porcentaje) / 100 } : {};
@@ -111,6 +126,11 @@ export function valueFromAppraisal(flow: Pick<OperationWorkflow, "avaluo" | "req
  const e = flow.requisitos.valor?.evidencia;
  return !!flow.avaluo && e?.tipo === "cliente" && e.referencia === flow.avaluo.archivo;
 }
+// DEC-41 (excepción a RP-91): visita a un interesado concreto antes de la firma, con la carta del propietario y el visto bueno del director.
+const priorVisit = z.object({ id: z.string().min(1).max(80), interesado: z.string().trim().min(2).max(160), leadId: z.string().max(160).optional(),
+  carta: z.object({ path: z.string().min(1).max(300), nombre: z.string().max(160).optional() }).strict(), motivo: z.string().trim().min(3).max(1000),
+  autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(80).optional() }).strict();
+export type PriorVisit = z.infer<typeof priorVisit>;
 export const operationWorkflowSchema = z.object({
  version: z.literal(1), ruta: z.enum(["captacion","compra","arrendador","arrendatario","inversion"]), estado: z.enum(["activa","pausada","regularizacion","descartada"]),
  motivo: z.string().max(1000).default(""),
@@ -123,6 +143,9 @@ export const operationWorkflowSchema = z.object({
  firmaContrato: contractSignature.optional(),
  avaluo: ownerAppraisal.optional(),
  cierre: operationClose.optional(),
+ // COR-24: inmueble que el asesor trajo con contrato ya firmado; solo el director lo marca.
+ heredado: inherited.optional(),
+ visitasPrevias: z.array(priorVisit).max(20).optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
@@ -176,7 +199,25 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
 */
 export const DIRECTOR_REVIEWS: readonly RequirementKey[] = ["titularidad", "factibilidad", "revision_cierre", "precio", "intermediacion", "contrato_renta", "firma", "publicacion"];
 export const directorReview = (key: RequirementKey) => DIRECTOR_REVIEWS.includes(key);
+/**
+  Requisitos de protección (B-13, RP-96) que nunca se cubren por excepción: quién es dueño y quién
+  firma, la opinión jurídica y la comercial antes de la intermediación, la revisión jurídica para
+  cerrar, la firma acreditada y los pagos para entregar. La base aplica la misma lista
+  (20261112180000_excepcion_autorizada).
+*/
+export const PROTECTED_REQUIREMENTS: readonly RequirementKey[] = ["titularidad", "factibilidad", "valor", "revision_cierre", "firma", "pago"];
+export const exceptionAllowed = (key: RequirementKey) => !PROTECTED_REQUIREMENTS.includes(key);
+/** El requisito está cubierto por una excepción que autorizó el director. */
+export function exceptionCovers(flow: Pick<OperationWorkflow, "requisitos">, key: RequirementKey) {
+ const motivo = flow.requisitos[key]?.excepcion?.motivo;
+ return exceptionAllowed(key) && (motivo?.trim().length ?? 0) >= 10;
+}
+/** Requisitos de la operación cubiertos por excepción. */
+export function exceptionKeys(flow: Pick<OperationWorkflow, "requisitos"> | null | undefined): RequirementKey[] {
+ return flow ? (Object.keys(flow.requisitos) as RequirementKey[]).filter(key => exceptionCovers(flow, key)) : [];
+}
 export function reviewComplete(flow: OperationWorkflow, key: RequirementKey, today: string) {
+ if (exceptionCovers(flow, key)) return true;
  const r=flow.requisitos[key], definition=WORKFLOW_REQUIREMENTS[key];
  return !!r && (r.estado === "revisado" || ("noAplica" in definition && r.estado === "no_aplica")) && r.soporte.trim().length>=3
   && (r.estado === "no_aplica" || !!r.evidencia && (r.evidencia.tipo === "externa" ? r.evidencia.referencia.trim().length >= 10 && !!r.evidencia.fecha && (r.evidencia.responsable?.trim().length??0)>=3 && (r.evidencia.resultado?.trim().length??0)>=3 : z.uuid().safeParse(r.evidencia.referencia).success && (r.evidencia.tipo === "adjunto" || r.evidencia.tipo === "cliente" || !!r.evidencia.version)))

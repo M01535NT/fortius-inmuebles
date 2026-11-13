@@ -89,7 +89,7 @@ const active = (d: TodayDossier) => d.etapa !== "cerrado" && d.flujo?.estado !==
   sola lista, de lo más urgente a lo menos. Cada tipo conserva su origen (operación, contacto,
   entrevista, contrato, informe, llaves, aviso) y se distingue por una pastilla, no por una sección.
 */
-export type QueueKind = "problema" | "vencida" | "nuevo" | "llaves" | "contrato" | "licencia" | "informe" | "falta" | "revisar" | "hoy" | "decidir" | "entrevista" | "seguimiento" | "agendar" | "aviso";
+export type QueueKind = "plazo" | "problema" | "vencida" | "nuevo" | "llaves" | "contrato" | "licencia" | "informe" | "falta" | "revisar" | "hoy" | "decidir" | "entrevista" | "seguimiento" | "agendar" | "aviso";
 export type QueueItem = {
   id: string; kind: QueueKind;
   /** Quién o qué: la persona o el inmueble. */
@@ -102,9 +102,9 @@ export type QueueItem = {
   /** Prospecto nuevo del sitio: Hoy ofrece «Registrar contacto» (COR-21). */
   leadId?: string;
 };
-export const QUEUE_LABEL: Record<QueueKind, string> = { problema: "Problema", vencida: "Vencida", nuevo: "Nuevo", llaves: "Llaves", contrato: "Contrato", licencia: "Licencia", informe: "Informe", falta: "Falta", revisar: "Revisar", hoy: "Vence hoy", decidir: "Oferta", entrevista: "Entrevista", seguimiento: "Seguimiento", agendar: "Agendar", aviso: "Aviso" };
+export const QUEUE_LABEL: Record<QueueKind, string> = { plazo: "Pasó el plazo", problema: "Problema", vencida: "Vencida", nuevo: "Nuevo", llaves: "Llaves", contrato: "Contrato", licencia: "Licencia", informe: "Informe", falta: "Falta", revisar: "Revisar", hoy: "Vence hoy", decidir: "Oferta", entrevista: "Entrevista", seguimiento: "Seguimiento", agendar: "Agendar", aviso: "Aviso" };
 // Las operaciones siguen el orden de RP-84 (problema, vencida, falta, revisar, vence hoy, oferta, sin próxima tarea).
-const QUEUE_RANK: Record<QueueKind, number> = { problema: 0, vencida: 1, nuevo: 2, llaves: 3, contrato: 4, licencia: 4, informe: 5, falta: 6, revisar: 7, hoy: 8, decidir: 9, entrevista: 10, seguimiento: 11, agendar: 12, aviso: 13 };
+const QUEUE_RANK: Record<QueueKind, number> = { plazo: -1, problema: 0, vencida: 1, nuevo: 2, llaves: 3, contrato: 4, licencia: 4, informe: 5, falta: 6, revisar: 7, hoy: 8, decidir: 9, entrevista: 10, seguimiento: 11, agendar: 12, aviso: 13 };
 const WAITING_KIND: Record<AttentionKind | "contacto", QueueKind> = { problema: "problema", vencida: "vencida", falta: "falta", revisar: "revisar", hoy: "hoy", oferta: "decidir", agendar: "agendar", contacto: "seguimiento" };
 
 /** Lo vencido primero; después por tipo y, dentro del tipo, por folio o fecha. */
@@ -114,8 +114,19 @@ export function sortQueue(items: QueueItem[]): QueueItem[] {
 export function queueFromWaiting(items: WaitingItem[]): QueueItem[] {
   return items.map(item => ({ id: `espera:${item.id}`, kind: WAITING_KIND[item.kind], who: item.who, text: item.rank === 1 ? item.reason.replace(/^Tarea vencida: /, "") : item.reason, detail: item.detail, when: item.when, late: item.late, href: item.href, sort: item.sort, propertySlug: item.propertySlug, folio: item.folio, taskId: item.taskId }));
 }
-export function queueFromLeads(items: NewLeadItem[]): QueueItem[] {
-  return items.map((item, index) => ({ id: `nuevo:${item.id}`, kind: "nuevo", who: item.who, text: item.detail, when: item.since, late: item.late, href: item.href, leadId: item.id, sort: String(index).padStart(4, "0") }));
+/**
+  Al director, el prospecto de otro asesor que pasó el plazo de primera atención sube arriba como
+  aviso propio (CRM-01, 12/11/2026): dice a quién le toca y lleva a reasignarlo. No se reasigna solo.
+*/
+export function queueFromLeads(items: NewLeadItem[], viewer?: { admin: boolean; me?: string | null }): QueueItem[] {
+  return items.map((item, index) => {
+    const sort = String(index).padStart(4, "0");
+    if (viewer?.admin && item.late && item.responsible && item.responsible !== viewer.me) return {
+      id: `plazo:${item.id}`, kind: "plazo", who: item.who, text: "Nadie le ha respondido", detail: `Le toca a ${item.responsibleName ?? "su asesor"}: llámale tú o reasígnala`,
+      when: item.since, late: true, href: `${item.href}#reasignar`, sort,
+    };
+    return { id: `nuevo:${item.id}`, kind: "nuevo", who: item.who, text: item.detail, when: item.since, late: item.late, href: item.href, leadId: item.id, sort };
+  });
 }
 export function queueFromInterviews(interviews: OperationalInterview[]): QueueItem[] {
   return interviews.map(interview => ({ id: `entrevista:${interview.id}`, kind: "entrevista", who: interview.contacto?.nombre || "Contacto sin nombre", text: interviewSummary(interview), late: false, href: `/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.id)}`, sort: interview.updated_at ?? "" }));
@@ -292,8 +303,19 @@ export function firstResponseHours(settings?: { horasPrimeraAtencion?: unknown }
   const value = settings?.horasPrimeraAtencion;
   return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 72 ? value : FIRST_RESPONSE_HOURS;
 }
-export type NewLeadItem = { id: string; who: string; detail: string; since: string; late: boolean; href: string; responsible?: string; forDirector: boolean };
-type LeadLike = { id: string; nombre: string; estado: string; origen: string; creadoEl: string; asesorId?: string; propiedadSlug?: string; zona?: string; mensaje?: string; clienteId?: string; firstContactedAt?: string };
+/**
+  Espera su primera respuesta (COR-21, CRM-03): llegó sola por el sitio y nadie le ha contestado, o
+  estaba descartada y regresó (`reabiertoEl`) y aún no se registra un contacto. El plazo corre
+  desde que llegó o desde que regresó.
+*/
+type ReplyLike = { origen: string; estado: string; clienteId?: string; firstContactedAt?: string; reabiertoEl?: string; creadoEl: string };
+export function awaitingFirstReply(lead: ReplyLike) {
+  if (lead.estado !== "nuevo" || lead.clienteId) return false;
+  return lead.reabiertoEl ? true : lead.origen !== "manual" && !lead.firstContactedAt;
+}
+export const arrivedAt = (lead: Pick<ReplyLike, "creadoEl" | "reabiertoEl">) => lead.reabiertoEl ?? lead.creadoEl;
+export type NewLeadItem = { id: string; who: string; detail: string; since: string; late: boolean; href: string; responsible?: string; responsibleName?: string; forDirector: boolean };
+type LeadLike = { id: string; nombre: string; estado: string; origen: string; creadoEl: string; asesorId?: string; propiedadSlug?: string; zona?: string; mensaje?: string; clienteId?: string; firstContactedAt?: string; reabiertoEl?: string };
 
 /**
   «Nuevos sin atender» (COR-21): prospectos en estado «Nuevo» a los que nadie ha contactado. Le
@@ -306,17 +328,17 @@ export function unattendedLeads({ leads, properties, me, admin, now, hours = FIR
 }): NewLeadItem[] {
   return leads
     // Los capturados a mano ya hablaron con alguien; aquí van los que llegan solos (sitio web).
-    .filter(l => l.origen !== "manual" && l.estado === "nuevo" && !l.firstContactedAt && !l.clienteId)
-    .sort((a, b) => a.creadoEl.localeCompare(b.creadoEl))
+    .filter(awaitingFirstReply)
+    .sort((a, b) => arrivedAt(a).localeCompare(arrivedAt(b)))
     .map(l => {
       const property = l.propiedadSlug ? properties.find(p => p.slug === l.propiedadSlug) : undefined;
       const responsible = l.asesorId || property?.asesorId || undefined;
-      const elapsed = Math.max(0, now.getTime() - new Date(l.creadoEl).getTime());
+      const elapsed = Math.max(0, now.getTime() - new Date(arrivedAt(l)).getTime());
       const minutes = Number.isFinite(elapsed) ? Math.floor(elapsed / 60000) : 0;
-      const since = minutes < 60 ? `Llegó hace ${Math.max(1, minutes)} min` : minutes < 48 * 60 ? `Lleva ${Math.floor(minutes / 60)} h sin respuesta` : `Lleva ${Math.floor(minutes / 1440)} días sin respuesta`;
+      const since = minutes < 60 ? `${l.reabiertoEl ? "Regresó" : "Llegó"} hace ${Math.max(1, minutes)} min` : minutes < 48 * 60 ? `Lleva ${Math.floor(minutes / 60)} h sin respuesta` : `Lleva ${Math.floor(minutes / 1440)} días sin respuesta`;
       const interest = property ? `Le interesa ${property.titulo}` : l.mensaje?.trim() ? `«${l.mensaje.trim().slice(0, 80)}${l.mensaje.trim().length > 80 ? "…" : ""}»` : l.zona ? `Busca en ${l.zona}` : "Dejó sus datos";
       const owner = responsible ? adviserName?.(responsible) : undefined;
-      return { id: l.id, who: l.nombre, detail: admin ? `${interest} · ${owner ? `le toca a ${owner}` : "sin asesor: te toca a ti"}` : interest, since, late: minutes >= hours * 60, href: `/admin/leads/${encodeURIComponent(l.id)}`, ...(responsible ? { responsible } : {}), forDirector: !responsible };
+      return { id: l.id, who: l.nombre, detail: admin ? `${interest} · ${owner ? `le toca a ${owner}` : "sin asesor: te toca a ti"}` : interest, since, late: minutes >= hours * 60, href: `/admin/leads/${encodeURIComponent(l.id)}`, ...(responsible ? { responsible } : {}), ...(owner ? { responsibleName: owner } : {}), forDirector: !responsible };
     })
     .filter(item => admin || (!!me && item.responsible === me));
 }

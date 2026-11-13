@@ -43,6 +43,9 @@ beforeAll(async () => {
   // COR-21: se aplica dos veces para comprobar que no repite el cambio.
   const leadAdviser = await readFile(new URL("../../supabase/migrations/20261112150000_prospecto_al_asesor_del_inmueble.sql", import.meta.url), "utf8");
   await db.exec(leadAdviser); await db.exec(leadAdviser);
+  // CRM-03: también se aplica dos veces.
+  const reopen = await readFile(new URL("../../supabase/migrations/20261112231000_reabrir_prospecto_descartado.sql", import.meta.url), "utf8");
+  await db.exec(reopen); await db.exec(reopen);
 });
 afterAll(async () => { await db?.close(); });
 
@@ -209,6 +212,35 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
     // Asesor inactivo o sin inmueble: sin asesor, le toca al director. El formulario no elige asesor.
     expect(await stored(await capture({ origen: "interes_propiedad", propiedadSlug: "casa-2" }, "k2"))).not.toHaveProperty("asesorId");
     expect(await stored(await capture({ origen: "contacto", asesorId: "a1" }, "k3"))).not.toHaveProperty("asesorId");
+  });
+
+  it("reopens a discarded person who writes again instead of creating another (CRM-03)", async () => {
+    await asRole("authenticated", member, async () => {
+      await save("asesores", "a1", adviser);
+      await save("asesores", "a2", { ...adviser, id: "a2", nombre: "Beto", activo: false });
+      await save("propiedades", "casa-1", property);
+      const old = { nombre: "Laura", telefono: "+52 664 123 4567", origen: "contacto", creadoEl: "2026-10-01T10:00:00.000Z", notas: [{ id: "n1", texto: "No le interesó", fecha: "2026-10-02T10:00:00.000Z" }] };
+      await save("leads", "l1", { ...old, id: "l1", estado: "descartado", asesorId: "a1", firstContactedAt: "2026-10-01T11:00:00.000Z" });
+      await save("leads", "l2", { ...old, id: "l2", nombre: "Mario", telefono: "6640000000", email: "Mario@Example.com", estado: "descartado", asesorId: "a2" });
+      await save("leads", "l3", { ...old, id: "l3", nombre: "Activa", telefono: "6649999999", estado: "contactado" });
+    });
+    const capture = (data: Record<string, unknown>, key: string) => asRole("service_role", null, async () =>
+      (await db.query<{ id: string }>("select public.fortius_inmuebles_capture_lead($1::jsonb,$2) as id", [JSON.stringify({ nombre: "Otra forma de escribir", origen: "interes_propiedad", ...data }), key])).rows[0].id);
+    const stored = async (id: string) => (await db.query<{ data: Record<string, unknown> }>("select data from public.fortius_inmuebles_records where collection='leads' and id=$1", [id])).rows[0].data;
+    // Mismo teléfono escrito distinto: se reabre la misma persona con su asesor y su historial.
+    expect(await capture({ telefono: "664-123-4567", propiedadSlug: "casa-1", mensaje: "¿Sigue disponible?" }, "r1")).toBe("l1");
+    const laura = await stored("l1");
+    expect(laura).toMatchObject({ nombre: "Laura", estado: "nuevo", asesorId: "a1", propiedadSlug: "casa-1", mensaje: "¿Sigue disponible?", firstContactedAt: "2026-10-01T11:00:00.000Z" });
+    expect(typeof laura.reabiertoEl).toBe("string");
+    expect((laura.notas as Array<{ texto: string }>).map(n => n.texto)).toEqual(["Regresó por el sitio preguntando por Casa: «¿Sigue disponible?»", "No le interesó"]);
+    // Por correo, con su asesor ya inactivo: queda sin asesor (le toca al director).
+    expect(await capture({ telefono: "6641111111", email: " mario@example.com " }, "r2")).toBe("l2");
+    expect(await stored("l2")).not.toHaveProperty("asesorId");
+    expect((await db.query("select 1 from public.fortius_inmuebles_record_references where source_collection='leads' and source_id='l2' and field='asesorId'")).rows).toHaveLength(0);
+    // Quien sigue activa no se toca: llega como persona nueva, igual que antes.
+    expect(await capture({ telefono: "6649999999" }, "r3")).not.toBe("l3");
+    expect((await stored("l3")).estado).toBe("contactado");
+    expect((await db.query("select 1 from public.fortius_inmuebles_records where collection='leads'")).rows).toHaveLength(4);
   });
 
   it("post projection still exposes only explicitly public posts without authentication", async () => {

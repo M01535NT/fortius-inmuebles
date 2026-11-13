@@ -6,6 +6,7 @@ import { leadProfileSchema } from "@/lib/lead-profile";
 import { buyerNoticesSchema, keysSchema, prepSchema, PRIVATE_PROPERTY_FIELDS } from "@/lib/propiedad-seguimiento";
 import { LEAD_CANALES } from "@/lib/domain/records";
 import { taskSchema } from "@/lib/tasks";
+import { TEMPLATE_IDS, TEMPLATE_MAX, templateProblems } from "@/lib/admin/message-templates";
 import { COLLECTIONS, type CollectionName } from "./contracts";
 import { ApiError } from "./http";
 
@@ -38,6 +39,9 @@ const point = z.object({ lugar: short, minutos: amount, categoria: z.enum(CATEGO
 const benefit = z.object({ titulo: z.string().trim().min(1).max(80), texto: z.string().trim().max(240) }).passthrough();
 const featureGroup = z.object({ grupo: z.enum(GRUPOS_CARACTERISTICAS), elementos: z.array(z.string().trim().min(1).max(120)).max(30) }).passthrough();
 const costs = z.object({ predialAnual: amount.optional(), mantenimientoMensual: amount.optional() }).passthrough();
+// PUB-02: la inmobiliaria aliada de un compartido; la base vuelve a validarla y nunca sale al sitio.
+const allySchema = z.object({ inmobiliaria: z.string().trim().min(2).max(120), contacto: z.string().max(200).optional(), porcentaje: z.number().min(0).max(100).optional(),
+  autorizacion: z.object({ path: z.string().max(300), nombre: z.string().max(160).optional(), fecha: z.iso.date().optional(), firmante: z.string().max(160).optional() }).strict().optional() }).strict();
 const propertySchema = z.object({
   slug: id, codigo: z.string().trim().max(160).default(""), titulo: name, tipo: z.enum(TIPO_INMUEBLE_KEYS), conjunto: id.optional(), operacion: z.enum(["venta", "renta"]), precio: price,
   zona: short, direccionAproximada: short, descripcion: z.array(text).max(100), ficha, informacionPublica: informacionPublica.optional(), amenidades: z.array(short).max(100), galeria: z.array(image).max(100), videoUrl: optionalUrl, tour360Url: optionalUrl,
@@ -45,6 +49,7 @@ const propertySchema = z.object({
   demo: z.boolean(), publicada: z.boolean().default(false),
   // Seguimiento privado: se valida al guardar y nunca entra en la proyección pública.
   llaves: keysSchema.optional(), preparacion: prepSchema.optional(), avisosCompradores: buyerNoticesSchema.optional(),
+  origen: z.enum(["propio", "compartido"]).optional(), aliado: allySchema.optional(),
 }).passthrough();
 const adviserProfileSchema = z.object({
   publicado: z.boolean(), descripcion: z.string().max(2000),
@@ -67,7 +72,7 @@ const homeTextsSchema = z.object(Object.fromEntries(HOME_TEXT_KEYS.map((key) => 
 const faqSchema = z.object({ id, grupo: z.enum(["vender", "comprar", "general"]), pregunta: z.string().trim().min(1).max(300), respuesta: z.string().trim().min(1).max(4000) }).strip();
 const testimonialSchema = z.object({ id, texto: z.string().trim().min(1).max(1200), nombre: z.string().trim().min(1).max(120), detalle: z.string().max(160), autorizado: z.boolean() }).strip();
 const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short, homeTexts: homeTextsSchema.optional(), preguntas: z.array(faqSchema).max(60).optional(), testimonios: z.array(testimonialSchema).max(30).optional() }).passthrough();
-const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")), horasPrimeraAtencion: z.number().int().min(1).max(72).optional() }).passthrough();
+const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")), horasPrimeraAtencion: z.number().int().min(1).max(72).optional(), mensajes: z.partialRecord(z.enum(TEMPLATE_IDS), z.string().max(TEMPLATE_MAX).refine(text => templateProblems(text).length === 0, "Mensaje inválido")).optional() }).passthrough();
 const postSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
 const postSchema = z.object({
   id, slug: postSlug, titulo: name, resumen: text, contenido: z.string().max(150000),
@@ -81,7 +86,9 @@ const recordSchemas = {
   tareas: taskSchema,
   propiedades: propertySchema,
   asesores: adviserSchema,
-  leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), canal: z.enum(LEAD_CANALES).optional(), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500), clienteId: reference, convertidoEl: date.optional(), convertidoPor: reference }).passthrough(),
+  leads: z.object({ id, ...leadFields, perfil: leadProfileSchema.optional(), origen: z.enum(origins), canal: z.enum(LEAD_CANALES).optional(), estado: z.enum(["nuevo", "contactado", "en-evaluacion", "activo", "cerrado", "descartado"]), asesorId: reference, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500), clienteId: reference, convertidoEl: date.optional(), convertidoPor: reference,
+    // COR-18: oferta 14 ligada al interesado por su documento y la operación del propietario.
+    ofertas: z.array(z.object({ documentoId: z.uuid(), expedienteId: z.uuid(), fecha: date, propiedadSlug: reference }).strict()).max(100).optional() }).passthrough(),
   clientes: z.object({ id, ...leadFields, curp: z.string().trim().max(18).optional(), rfc: z.string().trim().max(13).optional(), estadoCivil: z.string().trim().max(120).optional(), fechaNacimiento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), domicilio: z.string().trim().max(400).optional(), identificacion: z.string().trim().max(160).optional(), perfil: leadProfileSchema.optional(), tipo: z.enum(["propietario", "comprador", "arrendador", "arrendatario", "inversionista", "otro"]), asesorId: reference, notas: text, creadoEl: date, actualizadoEl: date, leadId: reference, convertidoEl: date.optional(), convertidoPor: reference, leadOriginal: z.object({ id, creadoEl: date, notas: z.array(z.object({ id, texto: text, fecha: date }).passthrough()).max(500) }).passthrough().optional() }).passthrough(),
   eventos: z.object({ id, titulo: name, fecha: z.iso.date(), hora: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal("")).optional(), tipo: z.enum(["visita", "llamada", "firma", "reunion", "otro"]), leadId: reference, propiedadSlug: reference, clienteId: reference, expedienteId: z.uuid().or(z.literal("")).optional(), asesorId: reference, notas: text.optional() }).passthrough(),
   notas: z.object({ id, titulo: name, texto: text, actualizadoEl: date }).passthrough(),
@@ -118,10 +125,10 @@ function isPublicUrl(value: string) { return safeUrl.safeParse(value).success &&
 // This projection never rewrites the staff-owned source record.
 const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? value : "");
 const publicWhatsapp = z.string().transform((value) => isPublicUrl(value) || /^[+]?[0-9 ()-]{7,40}$/.test(value) ? value : "");
-const publicSettings = settingsSchema.omit({ horasPrimeraAtencion: true }).strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
+const publicSettings = settingsSchema.omit({ horasPrimeraAtencion: true, mensajes: true }).strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
 // This second allowlist also protects server components against malformed DB data.
-const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, avisosCompradores: true }).strip().extend({
-  codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });
+const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, avisosCompradores: true, origen: true, aliado: true }).strip().extend({
+  colaboracion: z.literal(true).optional(), codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });
 /**
   COR-23 y DEC-43 (12/11/2026): un asesor ve de los inmuebles de otros asesores solo lo público
   (fotos, precio, descripción y ficha) para poder ofrecerlos; el seguimiento privado (llaves,
@@ -130,6 +137,9 @@ const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, av
 export function projectTeamProperty(value: Record<string, unknown>): Record<string, unknown> {
   const data: Record<string, unknown> = { ...value };
   for (const key of PRIVATE_PROPERTY_FIELDS) delete data[key];
+  // PUB-02: de un compartido ajeno, solo con qué inmobiliaria (sin contacto, porcentaje ni autorización).
+  const ally = data.aliado as { inmobiliaria?: unknown } | undefined;
+  if (ally) { if (typeof ally.inmobiliaria === "string") data.aliado = { inmobiliaria: ally.inmobiliaria }; else delete data.aliado; }
   if (Array.isArray(data.galeria)) data.galeria = (data.galeria as { src?: unknown }[]).filter(item => typeof item?.src === "string" && isPublicUrl(item.src));
   if (Array.isArray(data.documentos)) data.documentos = (data.documentos as { url?: unknown }[]).filter(item => typeof item?.url === "string" && isPublicUrl(item.url));
   for (const key of ["videoUrl", "tour360Url"]) if (typeof data[key] === "string" && !isPublicUrl(data[key] as string)) delete data[key];

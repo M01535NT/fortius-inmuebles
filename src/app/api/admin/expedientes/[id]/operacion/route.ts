@@ -10,6 +10,10 @@ const workflowMessages = new Set([
  "La operación contraparte requiere revisión antes del cierre", "Identifica la contraparte interna o externa",
  "Resuelve o descarta las tareas pendientes antes de archivar", "Agenda una próxima tarea con fecha y responsable",
  "La captación debe corresponder al asesor titular del inmueble", "Contraparte incompatible o fuera de tu alcance",
+ // COR-23 y COR-20: lo que solo decide o autoriza el director.
+ "Esta revisión la marca el director; déjala como «Lo tengo»", "Tomar el encargo lo decide el director",
+ "Solo el director autoriza una excepción", "Este requisito protege al cliente y no admite excepción",
+ "Escribe el motivo de la excepción (al menos 10 caracteres)",
 ]);
 import { discardReasonOf, DISCARD_REASONS, WORKFLOW_REQUIREMENTS, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import { initialBlockers, loadInitialStatus, needsInitialGate } from "@/lib/formatos/operation-gates";
@@ -42,7 +46,7 @@ export async function PUT(request: Request, context: Context) {
       const pendingKey=error.message?.startsWith("Requisito de avance pendiente: ")?error.message.slice("Requisito de avance pendiente: ".length):"";
       if(error.code==="PT409"&&Object.hasOwn(WORKFLOW_REQUIREMENTS,pendingKey))
         throw new ApiError(409,`Requisito pendiente: ${WORKFLOW_REQUIREMENTS[pendingKey as RequirementKey].label}`);
-      if (["PT403","PT409"].includes(error.code) && workflowMessages.has(error.message))
+      if (["PT400","PT403","PT409"].includes(error.code) && workflowMessages.has(error.message))
         throw new ApiError(Number(error.code.slice(2)),error.message);
       databaseError(error);
     }

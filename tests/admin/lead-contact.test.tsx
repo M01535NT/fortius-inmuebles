@@ -7,7 +7,7 @@ import type { Lead } from "@/lib/domain/records";
 
 const mocks = vi.hoisted(() => ({ upsert: vi.fn() }));
 vi.mock("@/lib/admin/store", () => ({
-  db: { leads: { version: () => 7 }, eventos: "eventos", propiedades: "propiedades" },
+  db: { leads: { version: () => 7 }, tareas: { version: () => null }, eventos: "eventos", propiedades: "propiedades" },
   useCollection: () => [{ slug: "casa-playas", titulo: "Casa en Playas" }],
   upsert: mocks.upsert, uid: (() => { let n = 0; return () => `id-${++n}`; })(), errorMessage: (e: Error) => e.message,
 }));
@@ -44,9 +44,12 @@ it("en dos toques guarda el contacto; al tercer «No contestó» propone reinten
   expect((screen.getByLabelText("Siguiente paso") as HTMLInputElement).value).toBe(RETRY_ACTION);
   expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2026-12-12");
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
-  await waitFor(() => expect(mocks.upsert).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(mocks.upsert).toHaveBeenCalledTimes(2));
   expect(mocks.upsert.mock.calls[0][1].notas[0]).toMatchObject({ contacto: "no_contesto" });
   expect(mocks.upsert.mock.calls[0][2]).toBe(7);
+  // DEC-42: el siguiente paso queda como tarea con fecha, ligada al prospecto y sin operación.
+  expect(mocks.upsert.mock.calls[1][1]).toMatchObject({ titulo: RETRY_ACTION, vence: "2026-12-12", categoria: "leads", estado: "pendiente", leadId: "l1", asesorId: "a1" });
+  expect(mocks.upsert.mock.calls[1][1].expedienteId).toBeUndefined();
 });
 
 it("«Visitó» deja la visita en la agenda con el inmueble", async () => {
@@ -54,7 +57,7 @@ it("«Visitó» deja la visita en la agenda con el inmueble", async () => {
   render(<ContactLog lead={lead({ propiedadSlug: "casa-playas" })} today="2026-11-12" />);
   fireEvent.click(screen.getByRole("button", { name: "Visitó" }));
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
-  await waitFor(() => expect(mocks.upsert).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(mocks.upsert).toHaveBeenCalledTimes(3));
   expect(mocks.upsert.mock.calls[0][1]).toMatchObject({ tipo: "visita", fecha: "2026-11-12", leadId: "l1", propiedadSlug: "casa-playas", titulo: "Visita de Interesada de ensayo a Casa en Playas" });
   expect(mocks.upsert.mock.calls[1][1].notas[0]).toMatchObject({ contacto: "visito" });
 });

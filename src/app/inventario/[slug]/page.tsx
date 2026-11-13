@@ -9,6 +9,7 @@ import { PropertyCard } from "@/components/property/property-card";
 import { PropertyDocuments } from "@/components/property/property-documents";
 import { PropertyFaq } from "@/components/property/property-faq";
 import { PropertyGallery } from "@/components/property/property-gallery";
+import { FichaSectionsNav } from "@/components/property/ficha-sections-nav";
 import { InventoryBackLink } from "@/components/property/inventory-back-link";
 import { PropertyLocation } from "@/components/property/property-location";
 import { PropertyMobileCta } from "@/components/property/property-mobile-cta";
@@ -49,7 +50,7 @@ function fichaRows(p: Property): FichaRow[] {
   const f = p.ficha;
   const fuente = (key?: keyof typeof FUENTE_SUPERFICIE_LABELS) => key
     ? { source: `Fuente: ${FUENTE_SUPERFICIE_LABELS[key]}`, confirmed: key === "escritura" || key === "catastro" || key === "plano" }
-    : { source: "Fuente por confirmar", confirmed: false };
+    : {}; // Sin fuente registrada no se muestra nada al público (auditoría C4).
   const rows: FichaRow[] = [];
   if (f.terrenoM2 != null) rows.push({ label: "Terreno", value: `${f.terrenoM2} m²`, ...fuente(p.informacionPublica?.fuenteTerreno) });
   if (f.construccionM2 != null) rows.push({ label: "Construcción", value: `${f.construccionM2} m²`, ...fuente(p.informacionPublica?.fuenteConstruccion) });
@@ -57,6 +58,8 @@ function fichaRows(p: Property): FichaRow[] {
   if (f.banos) rows.push({ label: "Baños", value: String(f.banos) });
   if (f.estacionamientos) rows.push({ label: "Estacionamientos", value: String(f.estacionamientos) });
   if (f.antiguedad) rows.push({ label: "Antigüedad", value: f.antiguedad });
+  // PUB-02: un compartido no lo verificó Fortius; cada dato dice de quién viene.
+  if (p.colaboracion) return rows.map((row) => ({ ...row, source: "Según la inmobiliaria aliada", confirmed: false }));
   return rows;
 }
 
@@ -210,6 +213,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               </p>
               <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
               <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
+              {property.colaboracion && <p className="fe-collab">Inmueble en colaboración</p>}
               {(publicada || revisada) && <p className="fe-dates">
                 {publicada && <span>Publicada el {publicada}</span>}
                 {revisada && <span>Disponibilidad revisada el {revisada}</span>}
@@ -235,9 +239,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
 
       <div className="pg-container fe-layout">
         <div className="fe-main">
-          <nav className="fe-sections" aria-label="Secciones del inmueble">
-            {secciones.map(section => <a key={section.id} href={`#${section.id}`}>{section.label}</a>)}
-          </nav>
+          <FichaSectionsNav sections={secciones} />
 
           {property.estado === "apartada" && <p className="fe-alert">Apartada. Te avisamos si se libera o te mostramos opciones similares.</p>}
           {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
@@ -265,8 +267,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           {beneficios.length > 0 && <section id="beneficios" className="fe-section" aria-labelledby="fe-benefits">
             <h2 id="fe-benefits" className="fe-h2">Por qué destaca</h2>
             <ol className="fe-benefits">
-              {beneficios.map((beneficio, index) => <li key={beneficio.titulo}>
-                <span className="pg-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              {beneficios.map((beneficio) => <li key={beneficio.titulo}>
                 <h3>{beneficio.titulo}</h3>
                 {beneficio.texto && <p>{beneficio.texto}</p>}
               </li>)}
@@ -284,7 +285,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               {ficha.map((row) => <div key={row.label}>
                 <dt>{row.label}</dt>
                 <dd>{row.value}</dd>
-                {row.source ? <span className={"fe-source" + (row.confirmed ? " is-confirmed" : "")}>{row.source}</span> : <span />}
+                {row.source && <dd className={"fe-source" + (row.confirmed ? " is-confirmed" : "")}>{row.source}</dd>}
               </div>)}
             </dl>
             <div className="fe-card fe-availability">

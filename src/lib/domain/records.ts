@@ -96,7 +96,12 @@ export type Lead = {
   convertidoEl?: string;
   convertidoPor?: string;
   firstContactedAt?: string;
+  /** CRM-03: regresó por el sitio estando descartada; desde aquí corre el plazo de primera atención. */
+  reabiertoEl?: string;
+  /** COR-18: ofertas por escrito (formato 14) de este interesado, ligadas por el documento. */
+  ofertas?: LeadOffer[];
 };
+export type LeadOffer = { documentoId: string; expedienteId: string; fecha: string; propiedadSlug?: string };
 
 export const EVENTO_TIPOS = [
   "visita",
@@ -134,6 +139,13 @@ export type Nota = {
   titulo: string;
   texto: string;
   actualizadoEl: string;
+  /** DEC-42: la nota vive pegada a lo que describe (inmueble u operación con su cliente). */
+  propiedadSlug?: string;
+  expedienteId?: string;
+  clienteId?: string;
+  /** Aviso del director al equipo, en Hoy. Solo el administrador lo escribe. */
+  aviso?: boolean;
+  autor?: string;
 };
 
 export type Post = {
@@ -207,4 +219,6 @@ export type SiteSettings = {
   videoInstitucionalUrl: string;
   /** RP-23: horas para la primera atención de un prospecto nuevo del sitio (1 a 72). Solo del panel. */
   horasPrimeraAtencion?: number;
+  /** CRM-02: textos de «Mensajes listos» que el director cambió; los demás usan el aprobado. Solo del panel. */
+  mensajes?: Partial<Record<string, string>>;
 };

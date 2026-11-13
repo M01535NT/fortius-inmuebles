@@ -3,16 +3,18 @@ import * as React from "react";
 import { Button } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { db, errorMessage, uid, upsert, useCollection, type Lead } from "@/lib/admin/store";
+import { planNextStep } from "@/lib/admin/next-step-task";
 import { CONTACT_KINDS, RETRY_ACTION, RETRY_DAYS, addDays, missedInARow, suggestedNext, withContact, type ContactKind } from "@/lib/admin/lead-contact";
 
 /*
   «Registrar contacto» del interesado (COR-18, RP-21): primer toque, qué pasó; segundo, guardar con
-  el siguiente paso y su fecha ya propuestos. «Visitó» deja la visita en la agenda con el inmueble,
+  el siguiente paso y su fecha ya propuestos, que quedan como tarea (DEC-42). «Visitó» deja la visita en la agenda con el inmueble,
   para que la vean su ficha y la operación del propietario. Tras tres «No contestó» seguidos se
   propone reintentar en 30 días (RP-97).
 */
-export function ContactLog({ lead, today, onDirtyChange }: { lead: Lead; today: string; onDirtyChange?: (dirty: boolean) => void }) {
+export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead; today: string; onDirtyChange?: (dirty: boolean) => void; preset?: { key: number; kind: ContactKind; nota: string } | null }) {
   const properties = useCollection(db.propiedades);
+  const tasks = useCollection(db.tareas);
   const [kind, setKind] = React.useState<ContactKind | null>(null);
   const [accion, setAccion] = React.useState(""), [fecha, setFecha] = React.useState(""), [nota, setNota] = React.useState("");
   const [inmueble, setInmueble] = React.useState(lead.propiedadSlug ?? "");
@@ -27,6 +29,20 @@ export function ContactLog({ lead, today, onDirtyChange }: { lead: Lead; today: 
     setAccion(suggested.accion); setFecha(suggested.fecha);
   }
   function cancel() { setKind(null); setNota(""); setError(""); }
+  // «Ya lo mandé» desde Mensajes listos: deja elegido el tipo de contacto y la nota, para revisar y guardar.
+  const form = React.useRef<HTMLDivElement>(null);
+  const [presetKey, setPresetKey] = React.useState<number | null>(null);
+  if (preset && preset.key !== presetKey) {
+    // Se ajusta el estado durante el render al recibir un preset nuevo (patrón de React para props que cambian).
+    setPresetKey(preset.key);
+    const suggested = preset.kind === "no_contesto" && missed >= 2 ? { accion: RETRY_ACTION, fecha: addDays(today, RETRY_DAYS) } : suggestedNext(preset.kind, today);
+    setKind(preset.kind); setAccion(suggested.accion); setFecha(suggested.fecha); setNota(preset.nota); setError(""); setNotice("");
+  }
+  React.useEffect(() => {
+    if (presetKey === null) return;
+    form.current?.scrollIntoView({ block: "center" });
+    form.current?.querySelector<HTMLInputElement>("form input")?.focus();
+  }, [presetKey]);
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -41,11 +57,14 @@ export function ContactLog({ lead, today, onDirtyChange }: { lead: Lead; today: 
         await upsert(db.eventos, { id: uid(), titulo: `Visita de ${lead.nombre}${property ? ` a ${property.titulo}` : ""}`, fecha: today, tipo: "visita", leadId: lead.id, propiedadSlug: inmueble, asesorId: lead.asesorId }, null);
       }
       await upsert(db.leads, withContact(lead, { kind, nota, accion, fecha, id: uid(), at }), db.leads.version(lead));
+      // DEC-42: el siguiente paso es una tarea con fecha; se mueve la que ya había o se crea.
+      const task = planNextStep(tasks, { kind: "lead", id: lead.id, asesorId: lead.asesorId }, { accion, fecha, id: uid() });
+      await upsert(db.tareas, task, db.tareas.version(task));
       setNotice(`Listo: quedó registrado «${CONTACT_KINDS[kind]}».`); setKind(null); setNota("");
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
 
-  return <div id="registrar-contacto" className="flex flex-col gap-3">
+  return <div id="registrar-contacto" ref={form} className="flex flex-col gap-3">
     <fieldset className="flex flex-col gap-2" disabled={busy}>
       <legend className="mb-1 text-sm font-semibold">Registrar contacto</legend>
       <div className="flex flex-wrap gap-2">

@@ -19,6 +19,7 @@ vi.mock("@/lib/admin/store", () => {
   };
   return {
     AdminApiError: class extends Error { status = 503; },
+    useSession: () => null,
     apiRequest: request, db: stores, upsert, uid: () => "nuevo-id",
     errorMessage: (e: unknown) => e instanceof Error ? e.message : String(e),
     useCollection: (c: unknown) => people[Object.entries(stores).find(([, v]) => v === c)?.[0] ?? ""] ?? [],

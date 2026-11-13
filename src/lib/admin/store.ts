@@ -429,7 +429,9 @@ export async function acceptPasswordLink(): Promise<boolean> {
   const url = new URL(window.location.href);
   const hash = new URLSearchParams(url.hash.slice(1));
   const type = hash.get("type") ?? url.searchParams.get("type");
-  if (!url.hash && !url.searchParams.has("token_hash")) return false;
+  // Solo un fragmento con datos de acceso es un enlace de acceso; un ancla (#hoy) no lo es.
+  const authHash = ["access_token", "token_hash", "type", "error", "error_description"].some(k => hash.has(k));
+  if (!authHash && !url.searchParams.has("token_hash")) return false;
   const body = {
     type,
     ...(hash.get("access_token")

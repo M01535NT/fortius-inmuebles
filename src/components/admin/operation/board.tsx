@@ -14,6 +14,7 @@ import { attentionOf, boardCard, recentOfferOf, dueLabel, flowOf, initialStatus,
 import { useConditions } from "@/lib/admin/conditions";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DirectCreate } from "./direct-create";
+import { InheritedCreate } from "./inherited-create";
 import { useOperationFormats } from "./use-operation-formats";
 import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { useLeaveGuard } from "./use-operation";
@@ -57,7 +58,10 @@ export function OperationsBoard() {
   const [query, setQuery] = React.useState("");
   const [creating, setCreating] = React.useState(params.get("nuevo") === "1");
   const [draftDirty, setDraftDirty] = React.useState(false);
-  useLeaveGuard(creating && draftDirty);
+  // COR-24: alta del inventario heredado, solo para el director.
+  const [inheriting, setInheriting] = React.useState(params.get("heredado") === "1");
+  const [inheritDirty, setInheritDirty] = React.useState(false);
+  useLeaveGuard((creating && draftDirty) || (inheriting && inheritDirty));
   const requested = params.get("etapa");
   const stageFilter = requested ? [...SALE_PROCESS, ...RENT_PROCESS].find(p => p.slug === requested)?.label ?? requested : "todas";
   React.useEffect(() => {
@@ -165,6 +169,10 @@ export function OperationsBoard() {
       {!deleted && creating && <Card as="div" id="alta-directa" className="p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Alta directa, sin entrevista</h2><button type="button" className={s.toggle} onClick={() => setCreating(false)}>Cerrar</button></div>
         <div className="mt-4"><DirectCreate onDirtyChange={setDraftDirty} /></div>
+      </Card>}
+      {!deleted && admin && inheriting && <Card as="div" id="inventario-heredado" className="p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Inventario heredado</h2><button type="button" className={s.toggle} onClick={() => setInheriting(false)}>Cerrar</button></div>
+        <div className="mt-4"><InheritedCreate onDirtyChange={setInheritDirty} taken={new Set((records ?? []).filter(op => op.propiedad_slug && ["captacion", "arrendador"].includes(op.flujo?.ruta ?? "") && op.flujo?.estado !== "descartada").map(op => op.propiedad_slug!))} /></div>
       </Card>}
       <Link href={deleted ? "/admin/operaciones" : "/admin/operaciones?eliminadas=1"} className="self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : "Ver operaciones eliminadas"}</Link>
     </footer>

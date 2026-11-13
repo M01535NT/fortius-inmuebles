@@ -78,7 +78,8 @@ test("un asesor no ve Administración y conserva las 17 herramientas", async ({ 
   await expect(page.getByRole("link", { name: "Administración", exact: true })).toHaveCount(0);
   await expect(page.getByText("Asesor", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.locator("main article")).toHaveCount(17);
+  // HER-01 (12/11/2026): catálogo depurado en tres grupos.
+  await expect(page.locator("main article")).toHaveCount(9);
 });
 
 test("en celular la barra inferior y el menú llevan a todas las secciones", async ({ page }) => {
@@ -296,7 +297,7 @@ test("Herramientas es solo el catálogo y la dirección anterior de Documentos l
   await page.goto("/admin/documentos");
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
   await expect(page.getByRole("tab", { name: "Documentos" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Comercial", level: 2 })).toBeVisible();
+  for (const name of ["Documentos", "Calcular", "Presentar"]) await expect(page.getByRole("heading", { name, level: 2 })).toBeVisible();
   await expect(page.getByRole("searchbox", { name: "Buscar herramienta" })).toHaveCount(0);
 });
 test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días sin desbordar", async ({ page }) => {

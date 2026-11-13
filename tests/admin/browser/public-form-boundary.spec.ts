@@ -4,7 +4,8 @@ import type { ViteDevServer } from "vite";
 
 let server: ViteDevServer;
 let origin: string;
-const variants = ["contacto", "checklist", "documentos", "interes-propiedad"];
+// El checklist se descarga sin formulario desde el 12/11/2026 (decisión del titular).
+const variants = ["contacto", "documentos", "interes-propiedad"];
 test.beforeAll(async () => {
   const { createServer } = await import("vite");
   server = await createServer({
@@ -116,6 +117,6 @@ for (const variant of variants) {
     expect(new URL(page.url()).pathname).toBe("/");
     acknowledge();
     await expect(form).toHaveCount(0);
-    if (["documentos", "checklist"].includes(variant)) await expect(root.locator("a[download]")).toHaveCount(1);
+    if (variant === "documentos") await expect(root.locator("a[download]")).toHaveCount(1);
   });
 }

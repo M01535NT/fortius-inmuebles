@@ -104,7 +104,9 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
     Transición entre páginas (31/10/2026): sin cortina ni texto. La página se desvanece y al
     centro una llave entra en el candado, gira y lo abre. La página nueva carga mientras tanto;
     el candado se va cuando terminó su movimiento y la ruta ya cambió (o a los 4.5 s, para no
-    dejar la pantalla vacía). La primera vez de la visita va completo; después, más rápido.
+    dejar la pantalla vacía). La primera vez de la visita va completo; en los clics siguientes,
+    una versión corta del mismo candado (titular, 12/11/2026): la llave ya está puesta y el
+    arco se abre, en menos de medio segundo.
   */
   const navigateWithLock = React.useCallback((href: string) => {
     const veil = curtain.current;
@@ -127,6 +129,7 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
     pending.current = true;
     cursorOpacity.set(0);
 
+    const quick = played.current;
     let animDone = false;
     let routeDone = false;
     const q = gsap.utils.selector(veil);
@@ -137,8 +140,8 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
       running.current = null;
       if (fallback.current) clearTimeout(fallback.current);
       gsap.timeline()
-        .to(veil, { autoAlpha: 0, scale: 1.06, duration: 0.35, ease: "power2.in" })
-        .to(page, { opacity: 1, duration: 0.45, ease: "power2.out" }, "-=0.15")
+        .to(veil, { autoAlpha: 0, scale: 1.06, duration: quick ? 0.16 : 0.35, ease: "power2.in" })
+        .to(page, { opacity: 1, duration: quick ? 0.2 : 0.45, ease: "power2.out" }, quick ? "-=0.08" : "-=0.15")
         .set(veil, { scale: 1 });
     };
     arrived.current = () => { routeDone = true; reveal(); };
@@ -146,15 +149,27 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
     const key = q(".lock-key");
     const shackle = q(".lock-shackle");
     gsap.killTweensOf([veil, page, ...key, ...shackle]);
+    const startRoute = () => {
+      router.push(href);
+      fallback.current = setTimeout(() => { animDone = true; routeDone = true; reveal(); }, 4500);
+    };
+    if (quick) {
+      gsap.set(key, { y: 0, opacity: 1, scaleX: 0.16, svgOrigin: "100 240" });
+      gsap.set(shackle, { y: 0, scaleX: 1, svgOrigin: "142 80" });
+      running.current = gsap.timeline({ onComplete: () => { animDone = true; reveal(); } })
+        .to(page, { opacity: 0, duration: 0.15, ease: "power2.out" })
+        .fromTo(veil, { autoAlpha: 0, scale: 0.97 }, { autoAlpha: 1, scale: 1, duration: 0.15, ease: "power2.out" }, "<")
+        .add(startRoute)
+        .to(shackle, { y: -18, duration: 0.14, ease: "power2.out" })
+        .to(shackle, { scaleX: 0.3, duration: 0.16, ease: "power2.inOut" }, "-=0.04");
+      return;
+    }
     gsap.set(key, { y: 92, opacity: 0, scaleX: 1, svgOrigin: "100 240" });
     gsap.set(shackle, { y: 0, scaleX: 1, svgOrigin: "142 80" });
     const timeline = gsap.timeline({ onComplete: () => { animDone = true; reveal(); } })
       .to(page, { opacity: 0, duration: 0.3, ease: "power2.out" })
       .fromTo(veil, { autoAlpha: 0, scale: 0.94 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "power3.out" }, "<0.1")
-      .add(() => {
-        router.push(href);
-        fallback.current = setTimeout(() => { animDone = true; routeDone = true; reveal(); }, 4500);
-      })
+      .add(startRoute)
       // La llave sube y entra por la base hasta el tope.
       .to(key, { opacity: 1, duration: 0.2 }, "<")
       .to(key, { y: 0, duration: 0.6, ease: "power3.inOut" }, "<")
@@ -166,7 +181,6 @@ export function PublicExperience({ children }: React.PropsWithChildren) {
       .to(shackle, { scaleX: 0.3, duration: 0.42, ease: "power2.inOut" }, "-=0.04")
       .to({}, { duration: 0.18 });
     running.current = timeline;
-    if (played.current) timeline.timeScale(1.7);
     played.current = true;
   }, [reduce, router, cursorOpacity]);
 

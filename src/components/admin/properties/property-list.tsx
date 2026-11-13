@@ -2,6 +2,7 @@
 import { usePropertyScope } from "@/lib/admin/staff-scope";
 import * as React from "react";
 import Link from "next/link";
+import { PropertyShareActions } from "./property-share";
 import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
 import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
 import { AsyncButton, AsyncSelect, DemoBanner, inputClass } from "@/components/admin/ui";
@@ -147,7 +148,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
         {propertyGaps(p).length > 0 && <span className={s.gap}>{gapText(propertyGaps(p))}</span>}
         {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
         {(lent || prep) && <span className={s.meta}>{[lent && `Llaves con ${lent.persona}`, prep].filter(Boolean).join(" · ")}</span>}
-        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.demo && <span className={s.meta}>Ejemplo</span>}</span>
+        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.origen === "compartido" && <span className={s.meta}>Compartido</span>}{p.demo && <span className={s.meta}>Ejemplo</span>}</span>
       </span>
     </Link>
     <details className={s.options}>
@@ -157,6 +158,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
           : <p className="text-sm text-muted-foreground">Este inmueble es de {adviser ?? "otro asesor"}: solo su asesor o el director lo cambian.</p>}
         <p className="text-sm"><span className="text-muted-foreground">Código:</span> <span className="break-all">{p.codigo}</span></p>
         <p className="text-sm"><span className="text-muted-foreground">Responsable:</span> <span>{adviser ?? "Sin asignar"}</span> · <span className="text-muted-foreground">PDF:</span> {p.documentos?.length ?? 0}</p>
+        <PropertyShareActions property={p} actionClass={s.action} />
         <div className="flex flex-wrap gap-2">
           {scope.feature && <FeaturedButton property={p} />}
           <Link href={`/inventario/${p.slug}`} target="_blank" className={s.action} aria-label={`Ver ${p.titulo} en el sitio`}>Ver en el sitio</Link>

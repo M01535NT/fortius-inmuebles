@@ -61,14 +61,19 @@ export function receiptParagraphs(data: Record<string, unknown>): string[] {
   ];
 }
 
-/** «incompleto»: se emite aunque falten datos (si el formato lo admite) y cada hoja lo dice al pie. */
-export async function createFormatoPdf(id: string, data: Record<string, unknown>, assets: FormatoPdfAsset[] = [], options: { incompleto?: boolean } = {}): Promise<Uint8Array> {
+/**
+  «incompleto»: se emite aunque falten datos (si el formato lo admite) y cada hoja lo dice al pie.
+  «machote»: el formato en blanco para revisarlo o llenarlo a mano (HER-02, RP-77); sale siempre,
+  sin aviso de incompleto, porque no es una emisión.
+*/
+export async function createFormatoPdf(id: string, data: Record<string, unknown>, assets: FormatoPdfAsset[] = [], options: { incompleto?: boolean; machote?: boolean } = {}): Promise<Uint8Array> {
   const definition = formatoById(id);
   if (!definition.readyForEmission) throw new Error("Formato pendiente de cotejo con el original");
-  const missing = validateFormato(id, data);
+  const machote = !!options.machote;
+  const missing = machote ? [] : validateFormato(id, data);
   const incompleto = missing.length > 0 && !!options.incompleto && emiteIncompleto(id);
   if (missing.length && !incompleto) throw new Error(`Faltan datos obligatorios: ${missing.join(", ")}`);
-  if (isLevantamiento(id)) {
+  if (isLevantamiento(id) && !machote) {
     // Sin fotografía elegida, el PDF incompleto deja su recuadro vacío; una elegida debe venir y estar íntegra.
     if ((!incompleto || data.fotoPrincipalId) && !assets.some((asset) => asset.id === data.fotoPrincipalId && asset.kind === "foto")) throw new Error("Falta la fotografía principal del levantamiento");
     if (data.croquisId && !assets.some((asset) => asset.id === data.croquisId && asset.kind === "croquis")) throw new Error("Falta el croquis elegido para el levantamiento");

@@ -1,7 +1,7 @@
 /* Buscador público (31/10/2026): panel que baja desde arriba sobre un velo; campo grande en la tipografía del sitio. */
-.root { --ink: #061f3f; --muted: rgba(6, 31, 63, 0.56); --line: rgba(6, 31, 63, 0.14); --hover: #f8f8ff; --accent: #8a1634; --bg: #fff;
+.root { --ink: #061f3f; --muted: rgba(6, 31, 63, 0.72); --line: rgba(6, 31, 63, 0.14); --hover: #f8f8ff; --accent: #8a1634; --bg: #fff;
   position: fixed; inset: 0; z-index: 60; font-family: var(--font-sans); color: var(--ink); }
-:global(.dark) .root { --ink: #f8f8ff; --muted: rgba(248, 248, 255, 0.6); --line: rgba(248, 248, 255, 0.14); --hover: rgba(248, 248, 255, 0.08); --accent: #f8f8ff; --bg: #060c14; }
+:global(.dark) .root { --ink: #f8f8ff; --muted: rgba(248, 248, 255, 0.72); --line: rgba(248, 248, 255, 0.14); --hover: rgba(248, 248, 255, 0.08); --accent: #f8f8ff; --bg: #060c14; }
 .scrim { position: absolute; inset: 0; border: 0; padding: 0; background: rgba(6, 19, 37, 0.55); cursor: default; animation: fade 0.3s ease both; }
 .panel { position: relative; background: var(--bg); border-bottom: 1px solid var(--line); animation: drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .inner { width: 100%; max-width: 1240px; margin-inline: auto; padding: 24px clamp(20px, 4.2vw, 60px) 40px; }
@@ -11,8 +11,10 @@
 .input::-webkit-search-cancel-button { display: none; }
 .close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; color: var(--ink); cursor: pointer; }
 .close:hover { background: var(--hover); }
-.close:focus-visible, .input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.heading { margin: 24px 0 8px; color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.close:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+/* Un solo indicador de foco en el campo: la línea inferior se engrosa en el acento (12/11/2026). */
+.field:focus-within { border-bottom: 3px solid var(--accent); margin-bottom: -1px; }
+.heading { margin: 24px 0 8px; color: var(--muted); font-size: 14px; font-weight: 600; }
 .list { margin: 0; padding: 0; list-style: none; }
 .option { display: grid; grid-template-columns: 1fr auto 20px; align-items: center; gap: 16px; min-height: 52px; padding: 0 12px; border-bottom: 1px solid var(--line); font-size: 18px; font-weight: 600; cursor: pointer; }
 .option[aria-selected="true"] { background: var(--hover); }

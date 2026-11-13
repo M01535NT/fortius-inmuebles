@@ -103,7 +103,8 @@ for (const width of [320, 390, 768, 1440]) {
     const contact = people.getByRole("link", { name: /Ramón Félix Arce/ });
     await expect(contact).toContainText("Comprar casa");
     await expect(contact).toContainText("Mandarle 3 opciones");
-    await expect(people.getByText(/Vencido ·/).first()).toBeVisible();
+    // Un prospecto nuevo sin respuesta muestra su plazo de atención en lugar de la fecha (CRM).
+    await expect(people.getByRole("link", { name: /Sofía Arreola/ })).toContainText("Pasó el plazo");
     if (width >= 1180) await expect(page.getByRole("complementary", { name: /Vista previa de/ }).getByRole("link", { name: /Abrir ficha de/ })).toBeVisible();
     await shot("contactos");
     // DEC-36: la etapa es un filtro de la misma lista; «?tab=clientes» sigue abriendo los clientes.

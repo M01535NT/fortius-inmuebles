@@ -10,7 +10,7 @@
 
 ## Variables
 
-Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. Consultar [controles y evidencia](erp-crm/environment-release.md).
+Producción usa FORTIUS_INMUEBLES_SITE_URL=https://fortiusinmuebles.com y las variables de Supabase/recepción configuradas en Vercel. No se incluyen claves en el repositorio. Desde el 12 de octubre de 2026, los nuevos previews no reciben las variables del backend productivo ni la habilitación de recepción pública; requieren un backend de pruebas para validar los flujos dinámicos. El 12/11/2026 se borraron las cinco entradas de preview ligadas a dos ramas ya inexistentes. Quedan 13 variables de producción de la integración de Supabase que el código no usa; su retiro está propuesto en [controles y evidencia](erp-crm/environment-release.md). Consultar [controles y evidencia](erp-crm/environment-release.md).
 
 El sitio público y el panel son un mismo producto. Los nombres de los proyectos cambiaron conservando sus IDs, datos, secretos y dominio público. La conexión Git existente identifica el repositorio por su ID y conserva la rama main.
 
@@ -35,4 +35,21 @@ Comprobar salud, Inicio, inventario, blog, herramientas, acceso al panel, robots
 
 ## Control de publicación (12 de octubre de 2026)
 
-Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado al mismo repositorio. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](erp-crm/environment-release.md).
+Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado entonces al mismo repositorio; al 12/11/2026 ese proyecto ya no aparece en el equipo y solo queda el check de Fortius. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](erp-crm/environment-release.md).
+
+## Regresar a la versión anterior (ensayado el 12/11/2026)
+
+Si una publicación sale mal, se vuelve a la versión anterior en Vercel sin tocar código:
+
+1. En Vercel, **fortius-inmuebles → Deployments**, abre la publicación de producción anterior (la que dice *Previous* o *Stale*).
+2. Menú **⋯ → Instant Rollback**, escribe el motivo, **Continue** y **Confirm Rollback**. El dominio cambia en unos 2 segundos.
+3. Mientras dure el regreso, Vercel **no publica** en producción lo que llegue a `main` (queda en pausa la asignación automática de dominios).
+4. Para terminar: abre la publicación buena (corregida o la que se había quitado), **⋯ → Promote → Promote**. Eso deshace el regreso y reactiva la publicación automática.
+5. Comprueba con `npm run health -- https://fortiusinmuebles.com --json` (solo lectura).
+
+Límites:
+
+- En el plan Hobby solo se puede regresar a la versión **inmediatamente anterior**.
+- El regreso cambia el código, **no la base de datos**. Si la publicación problemática trajo una migración, la versión anterior podría no ser compatible con el esquema nuevo; revisar `supabase/migrations` entre ambas versiones antes de regresar.
+
+Ensayo del 12/11/2026: de `a9b10e2` (PR #69) a `02d28d6` (PR #68), sin migraciones entre ambas. Ida en ~2 s y vuelta en ~2 s; las páginas principales respondieron 200 con la versión anterior y después de volver (no se vigiló segundo a segundo durante el cambio). Al final, producción quedó en `a9b10e2` con la asignación automática reactivada y la revisión de salud en `ok` (51 solicitudes: 48 con 200, 1 redirección 308 y 2 con 404; no se compararon con una revisión previa).

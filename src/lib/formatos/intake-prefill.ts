@@ -42,7 +42,8 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   // COR-15: lo que contó en la llamada pasa a «Notas del asesor» de la 02.
   motivoSiguiente:[a.condiciones?.trim(),conditionNote(a)].filter(Boolean).join("\n\n")||undefined,fechaSeguimiento:a.siguienteFecha,responsableSeguimiento:asesor?.nombre,
   // CAP-05: ocupación y crédito que dijo en la llamada; el asesor los confirma en la 02.
-  ...(formatoId==="02"?{ocupacion:a.ocupacion==="por_aclarar"?undefined:a.ocupacion,gravamen:a.creditoInmueble}:{}),
+  // CAP-06: el problema también pasa a la 02, y «lo ocupa alguien sin permiso» es la ocupación «Ocupado sin permiso».
+  ...(formatoId==="02"?{ocupacion:a.problema==="ocupado_sin_permiso"&&(!a.ocupacion||["otro","por_aclarar"].includes(a.ocupacion))?"sin_permiso":a.ocupacion==="por_aclarar"?undefined:a.ocupacion,gravamen:a.creditoInmueble,problema:a.problema}:{}),
   // Levantamiento (04A–04G): se hace el mismo día de la entrevista y lo elabora el asesor; ambos se pueden corregir.
   ...(/^04[A-G]$/.test(formatoId)?{fechaVisita:hoyTijuana(),elaboro:asesor?.nombre}:{}),
   // Plan (10): se elabora hoy; lo demás lo proponen el levantamiento, el 07 y el 09 al crearlo.

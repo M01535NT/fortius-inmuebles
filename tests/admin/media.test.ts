@@ -128,6 +128,14 @@ test("callback failure still clears hash before transport", async () => {
   await expect(acceptPasswordLink()).rejects.toThrow("Expired");
   expect(window.location.hash).toBe("");
 });
+test("an anchor such as #hoy is not a sign-in link and stays in the address", async () => {
+  window.history.replaceState(null, "", "/admin/ayuda#hoy");
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  expect(await acceptPasswordLink()).toBe(false);
+  expect(fetch).not.toHaveBeenCalled();
+  expect(window.location.hash).toBe("#hoy");
+});
 test("session request begun before logout cannot restore authentication", async () => {
   let resolve!: (r: Response) => void;
   vi.stubGlobal(

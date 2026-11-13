@@ -101,7 +101,6 @@ export function NocturnoMetodo({ title, stages }: { title: string; stages: Stage
             className={"nx-stage" + (index === active ? " is-active" : "") + (active > index ? " is-past" : "")}
             style={{ "--stage-index": index } as React.CSSProperties}>
             <span className="nx-stage-photo"><Image src={stage.src} alt={stage.alt} fill sizes="(max-width: 1023px) 100vw, 400px" /></span>
-            <span className="nx-stage-number" aria-hidden="true">{stage.n}</span>
             <div>
               <h3>{stage.title}</h3>
               <p>{stage.text}</p>

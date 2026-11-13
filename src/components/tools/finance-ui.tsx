@@ -84,7 +84,7 @@ export function Metric({
   return (
     <div className="min-w-0 border-b border-border py-5">
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-2 break-words font-mono text-2xl tracking-tight text-foreground md:text-3xl">
+      <dd className="mt-2 break-words text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
         {value}
         {note && (
           <p className="mt-2 text-xs leading-relaxed tracking-normal text-muted-foreground">

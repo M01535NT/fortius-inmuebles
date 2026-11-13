@@ -13,9 +13,14 @@ import {
 import { firstResponseHours } from "@/lib/admin/today";
 import {
   settingsStore,
+  useSession,
   useSingleton,
   type SiteSettings,
 } from "@/lib/admin/store";
+import { MessageTemplatesEditor } from "@/components/admin/contacts/message-templates-editor";
+import type { TemplateOverrides } from "@/lib/admin/message-templates";
+
+const TEXT_KEYS = ["nombreComercial", "telefono", "whatsapp", "email", "horario", "facebook", "instagram", "videoInstitucionalUrl"] as const;
 
 /*
   Datos generales del negocio: identidad, contacto, redes y multimedia
@@ -35,6 +40,9 @@ function Editor({ initial }: { initial: SiteSettings }) {
     settingsStore.version("singleton"),
   );
   const [guardado, setGuardado] = React.useState(false);
+  // Los mensajes se guardan aparte, en el mismo registro: ambas partes comparten la versión.
+  const [mensajes, setMensajes] = React.useState<TemplateOverrides>((initial.mensajes ?? {}) as TemplateOverrides);
+  const session = useSession();
 
   if (!settings) return <PageHeader title="Configuración" />;
 
@@ -42,18 +50,26 @@ function Editor({ initial }: { initial: SiteSettings }) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const texts = Object.fromEntries(
-      Object.keys(settings as SiteSettings)
-        .filter((k) => k !== "horasPrimeraAtencion")
-        .map((k) => [k, String(data.get(k) ?? "")]),
-    ) as Omit<SiteSettings, "horasPrimeraAtencion">;
+      TEXT_KEYS.map((k) => [k, String(data.get(k) ?? "")]),
+    ) as Pick<SiteSettings, (typeof TEXT_KEYS)[number]>;
     const next: SiteSettings = {
       ...texts,
       horasPrimeraAtencion: firstResponseHours({ horasPrimeraAtencion: Number(data.get("horasPrimeraAtencion")) }),
+      ...(Object.keys(mensajes).length ? { mensajes } : {}),
     };
     const saved = await settingsStore.save(next, version);
     setVersion(settingsStore.version(saved));
     setGuardado(true);
     window.setTimeout(() => setGuardado(false), 2500);
+  }
+
+  async function guardarMensajes(next: TemplateOverrides) {
+    const current = settingsStore.get() ?? settings;
+    const { mensajes: _old, ...rest } = current as SiteSettings;
+    void _old;
+    const saved = await settingsStore.save({ ...rest, ...(Object.keys(next).length ? { mensajes: next } : {}) }, version);
+    setVersion(settingsStore.version(saved));
+    setMensajes(next);
   }
 
   return (
@@ -189,6 +205,8 @@ function Editor({ initial }: { initial: SiteSettings }) {
           ) : null}
         </div>
       </AsyncForm>
+
+      <MessageTemplatesEditor saved={mensajes} canEdit={session?.role === "admin"} adviserName={session?.name} onSave={guardarMensajes} />
     </div>
   );
 }

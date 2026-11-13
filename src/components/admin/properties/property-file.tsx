@@ -1,13 +1,15 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ExternalLink } from "@/components/admin/icons";
-import { ButtonLink, Notice, Pill, TabPanel, Tabs } from "@/components/admin/kit";
+import { ExternalLink, Pencil } from "@/components/admin/icons";
+import { Button, ButtonLink, Notice, Pill, TabPanel, Tabs } from "@/components/admin/kit";
+import { RecordNotes, useRecordNotes } from "@/components/admin/workspace/record-notes";
 import { EmptyState, PageHeader, btnGhost } from "@/components/admin/ui";
 import { PropertyForm } from "@/components/admin/property-form";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { HistoryLink } from "@/components/admin/workspace/history-link";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
+import { PropertyToolWork } from "@/components/admin/apps/property-tool-work";
 import { TIPO_LABELS, type Property } from "@/data/propiedades";
 import { db, upsertPropiedad, useCollection, useLoadState, type AdminProperty } from "@/lib/admin/store";
 import { openKeyLoans } from "@/lib/propiedad-seguimiento";
@@ -82,6 +84,8 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
     window.history.replaceState(window.history.state, "", url);
   }
   const showForm = React.useCallback((next: "ficha" | "material") => setTab(next), []);
+  const [notesOpen, setNotesOpen] = React.useState(false);
+  const noteCount = useRecordNotes({ propiedadSlug: slug }).length;
 
   if (!property && !load.loaded) return <PageHeader title="Inmueble" />;
   if (!property) return (
@@ -110,8 +114,10 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
       {latest.demo && <Pill size="sm" tone="warn">Ejemplo</Pill>}
     </span>} actions={<>
       {latest.publicada && <ButtonLink href={`/inventario/${encodeURIComponent(slug)}`} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" />Ver en el sitio</ButtonLink>}
+      <Button onClick={() => setNotesOpen(true)}><Pencil size={16} aria-hidden="true" />{noteCount ? `Notas (${noteCount})` : "Notas"}</Button>
       <HistoryLink collection="propiedades" id={slug} />
     </>}>
+    <RecordNotes link={{ propiedadSlug: slug }} open={notesOpen} onClose={() => setNotesOpen(false)} title="Notas del inmueble" description="Lo que hay que saber o recordar de este inmueble." />
     <div className="flex min-w-0 flex-col gap-5">
       <Tabs items={items} value={tab} onChange={choose} label="Ficha del inmueble" idPrefix="inmueble" />
       {!current && <p role="alert" className="text-sm text-destructive">El inmueble ya no aparece en el servidor. Conserva el borrador; guardarlo requerirá resolver el conflicto.</p>}
@@ -122,6 +128,8 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
         {tab === "ficha" && <>
           {property.tipo === "plaza" && <PlazaUnits slug={slug} units={propiedades.filter((p) => p.conjunto === slug)} />}
           <RelatedWork propertySlug={slug} />
+          {/* HER-05: la hipoteca se abre con el precio de venta puesto; los cálculos guardados se ven aquí. */}
+          <PropertyToolWork slug={slug} precio={latest.operacion === "venta" && latest.precio.modalidad !== "consulta" ? latest.precio.monto : undefined} moneda={latest.precio.modalidad !== "consulta" ? latest.precio.moneda : undefined} />
         </>}
         {tab === "llaves" && records(<KeysBlock property={latest} save={save} />)}
         {tab === "interesados" && records(<BuyersBlock property={latest} save={save} />)}

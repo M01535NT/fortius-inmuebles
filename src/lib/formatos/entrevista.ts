@@ -45,8 +45,12 @@ export const entrevistaFields: FormatoField[] = [
 
   select(INMUEBLE, "tipoInmueble", "Tipo de inmueble", TIPOS_INMUEBLE.map(tipo => ({ value: tipo.key, label: tipo.label }))),
   base(INMUEBLE, "inmueble", "Domicilio del inmueble"),
-  select(INMUEBLE, "ocupacion", "¿Quién vive o lo ocupa hoy?", options([["propietario", "El propietario"], ["familia", "Su familia"], ["inquilino", "Un inquilino"], ["desocupado", "Está desocupado"], ["otro", "Otra persona"]])),
+  select(INMUEBLE, "ocupacion", "¿Quién vive o lo ocupa hoy?", options([["propietario", "El propietario"], ["familia", "Su familia"], ["inquilino", "Un inquilino"], ["desocupado", "Está desocupado"], ["sin_permiso", "Ocupado sin permiso"], ["otro", "Otra persona"]])),
+  // CAP-06 (DEC-39, titular 12/11/2026): el problema que contó y, con crédito, si está al corriente y cuánto debe.
+  select(INMUEBLE, "problema", "¿Tiene algún problema el inmueble?", options([["ninguno", "Ninguno"], ["ocupado_sin_permiso", "Lo ocupa alguien sin permiso"], ["herencia", "Herencia o copropiedad sin resolver"], ["adeudos", "Adeudos de predial, agua o cuotas"], ["juicio", "Juicio o conflicto legal"], ["otro", "Otro problema"]]), false),
   select(INMUEBLE, "gravamen", "¿Tiene hipoteca o crédito?", options([["no", "No"], ["banco", "Banco"], ["infonavit", "Infonavit"], ["fovissste", "Fovissste"], ["otro", "Otro"], ["no_sabe", "No sabe"]])),
+  select(INMUEBLE, "creditoAlCorriente", "¿Está al corriente con los pagos?", options([["si", "Sí"], ["no", "No"], ["no_sabe", "No sabe"]]), false),
+  base(INMUEBLE, "saldoCredito", "¿Sabe cuánto debe?", "text", false),
 
   base(VENTA, "motivoVenta", "¿Por qué vende?", "long"),
   base(VENTA, "fechaDeseada", "¿Para cuándo quiere vender?", "date", false),
@@ -61,9 +65,12 @@ export const entrevistaFields: FormatoField[] = [
 ];
 
 const hasText = (value: unknown) => typeof value === "string" && value.trim().length > 0;
-/** El nombre del propietario solo se pide cuando responde otra persona. */
+/** Crédito declarado: con él se pregunta si está al corriente y cuánto debe (CAP-06). */
+const CON_CREDITO = ["banco", "infonavit", "fovissste", "otro"];
+/** El nombre del propietario solo se pide cuando responde otra persona; lo del crédito, cuando lo tiene. */
 export function mostrarCampoEntrevista(key: string, data: Record<string, unknown>): boolean {
   if (key === "propietario") return hasText(data.relacion) && data.relacion !== "propietario";
+  if (key === "creditoAlCorriente" || key === "saldoCredito") return CON_CREDITO.includes(String(data.gravamen ?? ""));
   return true;
 }
 export function validarEntrevista(data: Record<string, unknown>): string[] {

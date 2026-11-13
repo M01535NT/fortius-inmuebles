@@ -79,7 +79,7 @@ function safePath(root,file) {
   if(isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')) throw Error('Unsafe manifest path');
   return path;
 }
-async function readBackupFile(root, file) {
+export async function readBackupFile(root, file) {
   const actual = await realpath(safePath(root, file));
   safePath(root, relative(root, actual));
   return readFile(actual);

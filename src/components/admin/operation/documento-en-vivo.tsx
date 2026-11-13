@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Check, Files, ListChecks, Mic, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
+import { Check, ChevronLeft, ChevronRight, Files, List, ListChecks, Mic, X, ZoomIn, ZoomOut } from "@/components/admin/icons";
 import { Button, Pill } from "@/components/admin/kit";
 import { FormatoEditor } from "@/components/admin/formato-editor";
 import { errorMessage, fetchJson as json } from "@/lib/admin/store";
@@ -14,6 +14,7 @@ import type { Documento } from "@/lib/formatos/documento/modelo";
 import { imageInfo, type ImagenDocumento } from "@/lib/formatos/documento/imagen";
 import type { Maqueta, Trazo, Zona } from "@/lib/formatos/documento/pdf";
 import { FormatoImages, type Adjunto } from "./formato-images";
+import { CAPTURA_POR_LISTA, parcheNoSabe, preguntasDeLista } from "@/lib/formatos/captura-lista";
 import s from "./documento-en-vivo.module.css";
 
 /*
@@ -26,6 +27,11 @@ import s from "./documento-en-vivo.module.css";
   solos las celdas vacías y se avisa cuántas; lo que falta se separa entre lo propio del formato y
   lo que se resuelve una vez en el expediente (se completa aquí mismo); los documentos del cliente
   se pueden ver al lado; y los campos de texto se pueden dictar donde el navegador lo permite.
+
+  Captura por lista (DEC-44, 12/11/2026): en el celular, la entrevista y el levantamiento se
+  llenan también una pregunta por pantalla. Cada pregunta es una celda de la hoja, en su orden;
+  «Siguiente» guarda lo escrito, «No sabe» lo anota donde la plantilla lo admite, y la hoja
+  sigue a la vista arriba.
 */
 
 /** Reconocimiento de voz del navegador (Chrome, Edge, Safari); donde no existe, el botón no aparece. */
@@ -104,6 +110,9 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
   const [archivos, setArchivos] = React.useState<ArchivoCliente[] | null>(null);
   const [archivoAbierto, setArchivoAbierto] = React.useState<ArchivoCliente | null>(null);
   const [dictando, setDictando] = React.useState(false);
+  const [lista, setLista] = React.useState<{ zonas: Zona[]; index: number } | null>(null);
+  const valuesRef = React.useRef(values);
+  React.useEffect(() => { valuesRef.current = values; }, [values]);
   const reconocedor = React.useRef<Reconocedor | null>(null);
   const ultimoCampo = React.useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   React.useEffect(() => {
@@ -179,26 +188,52 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
 
   // Dos celdas pueden abrir los mismos campos (la foto y su ID): la posición las distingue.
   const zoneId = (zona: Zona) => `${zona.page}:${zona.keys.join(",")}:${Math.round(zona.x)}:${Math.round(zona.y)}`;
-  function open(zona: Zona) {
+  function open(zona: Zona, base: Record<string, unknown> = values) {
     setError(""); setListOpen(false);
-    setEditing({ zona, draft: Object.fromEntries(zona.keys.map(key => [key, values[key]])) });
+    setEditing({ zona, draft: Object.fromEntries(zona.keys.map(key => [key, base[key]])) });
     // En celular el panel sube desde abajo: la celda queda arriba, a la vista mientras se escribe.
     const narrow = narrowScreen();
     requestAnimationFrame(() => zoneRefs.current.get(zoneId(zona))?.scrollIntoView({ block: narrow ? "start" : "nearest", inline: "nearest" }));
   }
   function closePanel() {
     const target = editing && zoneRefs.current.get(zoneId(editing.zona));
-    setEditing(null); setError("");
+    setEditing(null); setError(""); setLista(null);
     if (editing?.zona.keys.some(key => IMAGE_KEYS.includes(key))) setRefresh(n => n + 1);
     requestAnimationFrame(() => target?.focus());
   }
   async function accept(event?: React.FormEvent) {
     event?.preventDefault();
     if (!editing || saving) return;
+    if (lista) { await mover(1); return; }
     setSaving(true); setError("");
     try { await onAccept(editing.draft); closePanel(); }
     catch (cause) { setError(errorMessage(cause)); }
     finally { setSaving(false); }
+  }
+  // DEC-44: la lista se toma al empezar (lo pendiente; si no queda nada, todas las celdas) y no cambia mientras se llena.
+  const porLista = CAPTURA_POR_LISTA.has(definition.id);
+  function empezarLista() {
+    if (!maqueta || disabled) return;
+    const pendientes = preguntasDeLista(maqueta.zonas, values, { soloPendiente: true, faltantes: missingKeys });
+    const zonas = pendientes.length ? pendientes : preguntasDeLista(maqueta.zonas, values, { soloPendiente: false });
+    if (!zonas.length) return;
+    setAutoNotice(""); setLista({ zonas, index: 0 }); open(zonas[0]);
+  }
+  /** Guarda la pregunta abierta (si cambió) y pasa a otra; al final vuelve a la hoja. */
+  async function mover(delta: number, extra: Record<string, unknown> = {}) {
+    if (!editing || !lista || saving) return;
+    const patch = { ...editing.draft, ...extra };
+    const changed = Object.entries(patch).some(([key, value]) => JSON.stringify(value ?? "") !== JSON.stringify(valuesRef.current[key] ?? ""));
+    setSaving(true); setError("");
+    try { if (changed) await onAccept(patch); }
+    catch (cause) { setError(errorMessage(cause)); setSaving(false); return; }
+    setSaving(false);
+    const next = lista.index + delta;
+    if (next < 0) return;
+    if (next >= lista.zonas.length) { closePanel(); setAutoNotice("Terminaste la lista. Lo que falte sigue marcado en la hoja y en «Qué falta»."); return; }
+    setLista({ ...lista, index: next });
+    // El dato recién guardado puede no haber llegado todavía en «values».
+    open(lista.zonas[next], { ...valuesRef.current, ...patch });
   }
   function openKey(key: string) {
     const zona = maqueta?.zonas.find(item => item.keys.includes(key));
@@ -260,6 +295,9 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
   const panelOpen = !!editing || listOpen;
   const editFields: FormatoField[] = editing ? editing.zona.keys.filter(key => !IMAGE_KEYS.includes(key)).map(key => fields.get(key)).filter((field): field is FormatoField => !!field) : [];
   const imageKey = editing?.zona.keys.find(key => IMAGE_KEYS.includes(key));
+  const noSabe = editing && lista && !imageKey ? parcheNoSabe(editFields, { ...values, ...editing.draft }) : {};
+  const conNoSabe = Object.keys(noSabe).length > 0;
+  const ultima = !!lista && lista.index === lista.zonas.length - 1;
 
   return <div className="relative flex min-h-0 flex-1">
     <div className={`${s.desk} min-w-0 flex-1 overflow-auto`}>
@@ -268,7 +306,7 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
           : <p className="text-sm text-muted-foreground">{autoNotice || "Pulsa una parte del documento para llenarla. Lo que se ve es lo que sale en el PDF."}</p>}
         <span className="flex flex-wrap gap-1">
           {expedienteId && <Button variant="ghost" aria-expanded={verDocs} onClick={() => setVerDocs(open => !open)}><Files size={16} aria-hidden="true" />Documentos del cliente</Button>}
-          <span className="flex gap-1 lg:hidden"><Button variant="ghost" aria-pressed={large} onClick={() => setLarge(value => !value)}>{large ? <ZoomOut size={16} aria-hidden="true" /> : <ZoomIn size={16} aria-hidden="true" />}{large ? "Ajustar al ancho" : "Ver más grande"}</Button><Button variant="ghost" aria-expanded={listOpen} onClick={() => { setEditing(null); setListOpen(open => !open); }}><ListChecks size={16} aria-hidden="true" />Qué falta{faltan ? ` (${faltan})` : ""}</Button></span>
+          <span className="flex flex-wrap gap-1 lg:hidden">{porLista && <Button variant="ghost" disabled={!maqueta || disabled} onClick={empezarLista}><List size={16} aria-hidden="true" />Captura por lista</Button>}<Button variant="ghost" aria-pressed={large} onClick={() => setLarge(value => !value)}>{large ? <ZoomOut size={16} aria-hidden="true" /> : <ZoomIn size={16} aria-hidden="true" />}{large ? "Ajustar al ancho" : "Ver más grande"}</Button><Button variant="ghost" aria-expanded={listOpen} onClick={() => { setEditing(null); setListOpen(open => !open); }}><ListChecks size={16} aria-hidden="true" />Qué falta{faltan ? ` (${faltan})` : ""}</Button></span>
         </span>
       </div>
       {failure ? <p role="alert" className="p-6 text-sm text-destructive">{failure}</p>
@@ -311,11 +349,12 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
       {editing ? <div ref={panelRef} onFocusCapture={event => { const t = event.target; if (t instanceof HTMLTextAreaElement || (t instanceof HTMLInputElement && (t.type === "text" || t.type === "search"))) ultimoCampo.current = t; }} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); closePanel(); } }} className="flex min-h-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex min-w-0 flex-col gap-0.5">
-            <p className="text-xs font-semibold text-muted-foreground">Hoja {editing.zona.page + 1}</p>
+            <p className="text-xs font-semibold text-muted-foreground">{lista ? `Pregunta ${lista.index + 1} de ${lista.zonas.length}` : `Hoja ${editing.zona.page + 1}`}</p>
             <h3 className="m-0 text-lg font-semibold leading-tight [overflow-wrap:anywhere]">{zoneName(editing.zona)}</h3>
           </div>
-          <Button variant="ghost" iconOnly aria-label="Cancelar la captura" onClick={closePanel}><X size={18} aria-hidden="true" /></Button>
+          <Button variant="ghost" iconOnly aria-label={lista ? "Volver a la hoja" : "Cancelar la captura"} onClick={closePanel}><X size={18} aria-hidden="true" /></Button>
         </div>
+        {lista && <div className={s.progress} role="progressbar" aria-label="Avance de la lista" aria-valuemin={0} aria-valuemax={lista.zonas.length} aria-valuenow={lista.index + 1}><span style={{ width: `${(lista.index + 1) / lista.zonas.length * 100}%` }} /></div>}
         {/* El desplazamiento va en un div: un fieldset no se encoge dentro del panel y sus campos se salían por debajo. */}
         <div className="min-h-0 flex-1 overflow-auto">
           <fieldset disabled={saving || disabled} className="flex min-w-0 flex-col gap-4 px-5 py-5">
@@ -339,10 +378,16 @@ export function DocumentoEnVivo({ definition, documentId, expedienteId, values, 
           </fieldset>
         </div>
         <div className="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-3">
-          {!imageKey && dictadoDisponible() && <Button variant="ghost" aria-pressed={dictando} disabled={saving || disabled} onClick={dictar}><Mic size={16} aria-hidden="true" />{dictando ? "Escuchando… pulsa para parar" : "Dictar"}</Button>}
+          {/* En la lista, «Dictar» y «No sabe» van en su renglón; «Anterior» y «Siguiente» juntos abajo. */}
+          <span className={lista ? "flex w-full flex-wrap gap-2 empty:hidden" : "contents"}>
+            {!imageKey && dictadoDisponible() && <Button variant="ghost" aria-pressed={dictando} disabled={saving || disabled} onClick={dictar}><Mic size={16} aria-hidden="true" />{dictando ? "Escuchando… pulsa para parar" : "Dictar"}</Button>}
+            {lista && conNoSabe && <Button variant="ghost" disabled={saving || disabled} onClick={() => void mover(1, noSabe)}>No sabe</Button>}
+          </span>
           <span className="flex-1" />
-          <Button variant="ghost" onClick={closePanel}>Cancelar</Button>
-          {imageKey ? <Button variant="primary" disabled={saving || disabled} onClick={() => void accept()}><Check size={16} aria-hidden="true" />{saving ? "Guardando…" : "Aceptar"}</Button>
+          {lista ? <Button variant="ghost" disabled={saving || disabled || lista.index === 0} onClick={() => void mover(-1)}><ChevronLeft size={16} aria-hidden="true" />Anterior</Button>
+            : <Button variant="ghost" onClick={closePanel}>Cancelar</Button>}
+          {lista ? <Button variant="primary" disabled={saving || disabled} onClick={() => void mover(1)}>{saving ? "Guardando…" : ultima ? <><Check size={16} aria-hidden="true" />Terminar</> : <>Siguiente<ChevronRight size={16} aria-hidden="true" /></>}</Button>
+          : imageKey ? <Button variant="primary" disabled={saving || disabled} onClick={() => void accept()}><Check size={16} aria-hidden="true" />{saving ? "Guardando…" : "Aceptar"}</Button>
             : <Button type="submit" form={formId} variant="primary" disabled={saving || disabled}><Check size={16} aria-hidden="true" />{saving ? "Guardando…" : "Aceptar"}</Button>}
         </div>
       </div>

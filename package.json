@@ -58,6 +58,7 @@
     "eslint-config-next": "16.4.3",
     "jsdom": "^30.0.1",
     "lighthouse": "13.5.0",
+    "pg": "^8.23.1",
     "tailwindcss": "4.3.2",
     "typescript": "6.0.3",
     "vitest": "^4.1.11"

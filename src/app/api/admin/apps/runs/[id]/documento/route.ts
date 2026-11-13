@@ -4,14 +4,17 @@ import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { ApiError, apiResponse, databaseError } from "@/lib/backend/http";
 import { findRun } from "@/lib/apps/repository";
 import { adjuntosDe, DOCUMENTOS_APP, documentoIndependienteInput, FOLIO_INDEPENDIENTE } from "@/lib/apps/documentos";
-import { formatoById, validateFormato } from "@/lib/formatos/catalog";
+import { emiteIncompleto, formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { createFormatoPdf } from "@/lib/formatos/pdf";
 import { MAX_ASSET_BYTES, type FormatoPdfAsset } from "@/lib/formatos/assets";
 import { valorAssetIds } from "@/lib/formatos/valor";
+import { isLevantamiento } from "@/lib/formatos/levantamiento";
 
 /*
-  PDF de un documento sin expediente: se genera con la versión guardada del trabajo y se
-  entrega al momento. No se archiva ni deja emisión, porque no pertenece a una operación.
+  PDF de un documento suelto: se genera con la versión guardada del trabajo y se entrega al
+  momento. No se archiva ni deja emisión, porque no pertenece a una operación. Con
+  «incompleto=1» sale aunque falten datos, marcado al pie (RP-77), salvo el aviso de privacidad
+  (01) y la promesa (15), que conservan sus reglas.
 */
 
 export const runtime = "nodejs";
@@ -22,7 +25,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const failure = await apiResponse(async () => {
     const { client } = await requireStaff();
     const run = await findRun(client, (await params).id);
-    const version = z.coerce.number().int().positive().parse(new URL(request.url).searchParams.get("version"));
+    const query = new URL(request.url).searchParams;
+    const version = z.coerce.number().int().positive().parse(query.get("version"));
     if (run.slug !== DOCUMENTOS_APP) throw new ApiError(400, "Este trabajo no es un documento");
     if (run.version !== version) throw new ApiError(409, "El documento cambió; guarda o recarga antes de generar el PDF");
     const parsed = documentoIndependienteInput.safeParse(run.input);
@@ -32,11 +36,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!definition.readyForEmission) throw new ApiError(409, "El PDF de este formato sigue bloqueado; descarga el Word");
     const values = { ...data, folio: FOLIO_INDEPENDIENTE };
     const missing = validateFormato(formatoId, values);
-    if (missing.length) throw new ApiError(409, `Faltan datos: ${missing.join(", ")}`);
+    const incompleto = missing.length > 0 && query.get("incompleto") === "1" && emiteIncompleto(formatoId);
+    if (missing.length && !incompleto) throw new ApiError(409, `Faltan datos: ${missing.join(", ")}`);
 
     const assets: FormatoPdfAsset[] = [];
-    if (formatoId === "07") {
-      const ids = valorAssetIds(values);
+    // Imágenes elegidas: las del reporte fotográfico (07) o la foto principal y el croquis (levantamientos).
+    const ids = formatoId === "07" ? valorAssetIds(values) : isLevantamiento(formatoId) ? [data.fotoPrincipalId, data.croquisId].filter((v): v is string => typeof v === "string" && z.uuid().safeParse(v).success) : [];
+    if (ids.length) {
       const rows = await client.from("fortius_inmuebles_app_files").select("id,path,mime,sha256,expediente_id").in("id", ids);
       if (rows.error) databaseError(rows.error);
       const privileged = createServerClient(undefined, true);
@@ -52,7 +58,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       }
     }
     let bytes: Uint8Array;
-    try { bytes = await createFormatoPdf(formatoId, values, assets); }
+    try { bytes = await createFormatoPdf(formatoId, values, assets, incompleto ? { incompleto: true } : {}); }
     catch (error) { throw new ApiError(409, error instanceof Error ? error.message : "No se pudo preparar el PDF"); }
     response = new Response(Buffer.from(bytes), { headers: {
       ...privateHeaders, "Content-Type": "application/pdf",

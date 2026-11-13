@@ -1,0 +1,74 @@
+name: Respaldo diario
+
+# REC-01: copia diaria de la base (export propietario) y de Storage, verificada,
+# ensayada en memoria, cifrada para la llave pública del titular y subida a Cloudflare R2.
+# El repositorio es público: ningún paso imprime datos, y solo sale el archivo cifrado.
+on:
+  schedule:
+    - cron: "0 10 * * *" # 10:00 UTC = 03:00 en Tijuana (horario de invierno), 02:00 (verano)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: respaldo-diario
+  cancel-in-progress: false
+
+jobs:
+  respaldo:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    # Los secretos viven en el entorno «respaldo», limitado a la rama main.
+    environment: respaldo
+    env:
+      FORTIUS_BACKUP_DB_URL: ${{ secrets.FORTIUS_BACKUP_DB_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.FORTIUS_BACKUP_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.FORTIUS_BACKUP_SERVICE_ROLE_KEY }}
+      R2_ACCOUNT_ID: ${{ secrets.FORTIUS_BACKUP_R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.FORTIUS_BACKUP_R2_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.FORTIUS_BACKUP_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.FORTIUS_BACKUP_R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # Compatibilidad de la AWS CLI reciente con R2.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Comprobar configuración (sin mostrar valores)
+        run: |
+          missing=0
+          for name in FORTIUS_BACKUP_DB_URL NEXT_PUBLIC_SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY R2_ACCOUNT_ID R2_BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            if [ -z "${!name}" ]; then echo "Falta el secreto para $name"; missing=1; fi
+          done
+          if [ ! -s .github/backup-public-key.pem ]; then echo "Falta .github/backup-public-key.pem"; missing=1; fi
+          exit $missing
+      - run: npm ci
+      - name: Export propietario (lectura, una sola instantánea)
+        run: node tools/fortius-inmuebles-owner-export.mjs "$RUNNER_TEMP/owner.json"
+      - name: Copia de base y Storage, verificada
+        run: |
+          node tools/fortius-inmuebles-backup.mjs --prefix fortius_inmuebles --database "$RUNNER_TEMP/owner.json" > "$RUNNER_TEMP/backup.json"
+          node -e 'const r=require(process.argv[1]);console.log(JSON.stringify({verified:r.verified,buckets:r.buckets,objects:r.objects,bytes:r.bytes,databaseComplete:r.databaseComplete,restComplete:r.restComplete}))' "$RUNNER_TEMP/backup.json"
+          dir=$(node -e 'console.log(require(process.argv[1]).backup)' "$RUNNER_TEMP/backup.json")
+          echo "BACKUP_DIR=$dir" >> "$GITHUB_ENV"
+          echo "BACKUP_NAME=fortius-respaldo-$(basename "$dir")" >> "$GITHUB_ENV"
+      - name: Ensayo de restauración en memoria
+        run: node tools/fortius-inmuebles-restore-rehearsal.mjs "$BACKUP_DIR"
+      - name: Empaquetar y cifrar
+        run: |
+          tar -czf "$RUNNER_TEMP/$BACKUP_NAME.tgz" -C "$(dirname "$BACKUP_DIR")" "$(basename "$BACKUP_DIR")"
+          node tools/fortius-inmuebles-backup-crypt.mjs --encrypt "$RUNNER_TEMP/$BACKUP_NAME.tgz" "$RUNNER_TEMP/$BACKUP_NAME.tgz.enc" --public-key .github/backup-public-key.pem
+      - name: Subir a Cloudflare R2
+        run: |
+          key="diario/$(date -u +%Y/%m)/$BACKUP_NAME.tgz.enc"
+          aws s3 cp "$RUNNER_TEMP/$BACKUP_NAME.tgz.enc" "s3://$R2_BUCKET/$key" --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com" --only-show-errors
+          echo "Subido: $key ($(stat -c %s "$RUNNER_TEMP/$BACKUP_NAME.tgz.enc") bytes)"
+      - name: Borrar copias sin cifrar del equipo de GitHub
+        if: always()
+        run: rm -rf .superpowers/backups "$RUNNER_TEMP"/owner.json "$RUNNER_TEMP"/*.tgz

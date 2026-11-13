@@ -2,6 +2,9 @@ import { z } from "zod";
 import type Decimal from "decimal.js";
 import { D, cents, localToday, MAX_MONEY, sumMoney, validIsoDate } from "@/lib/finance/money";
 import { calculateMortgage, type Installment } from "@/lib/finance/mortgage";
+import { calculateSellerIsrCase, type SellerIsrCase, type SellerIsrResult } from "@/lib/finance/seller-isr";
+import { FINANCIAL_SOURCES, MUNICIPALITIES, SELLER_ISR_RULES, type Municipality } from "@/data/financial-rules";
+import { calculateClosingBudget } from "@/lib/finance/closing";
 import type { AppInput, AppResult } from "./types";
 
 const numeric = (min = 0, max = MAX_MONEY) => z.preprocess((value) => {
@@ -55,7 +58,8 @@ function parse<T extends z.ZodType>(schema: T, input: AppInput): z.output<T> {
 export function getFinancialDefaults(slug: string): AppInput {
   switch (slug) {
     case "hipoteca": return { price: "", downPercent: "", annualRate: "", months: 240, firstPayment: localToday(), insurance: null, monthlyFee: null, openingFee: null, extraMonthly: 0, extraOnce: 0, extraMonth: 1, prepaymentFee: null, prepaymentMode: "term" };
-    case "neto-propietario": return { currency: "MXN", salePrice: "", loan: null, commission: null, taxes: null, expenses: [] };
+    case "neto-propietario": return netDefaults();
+    case "gastos-compra": return { municipality: "tijuana", date: localToday(), price: "", financing: "credito", downPayment: null, taxBase: null, isaiQuote: null, registrationQuote: null, preventiveNotices: 2, notary: null, appraisal: null, openingFee: null, other: null };
     case "comisiones": return { currency: "MXN", mode: "porcentaje", base: null, percent: null, fixed: null, taxPercent: null, withholding: null, shares: [] };
     case "inversiones": return { currency: "MXN", priceBasis: "nominal", taxBasis: "antes", costsComplete: false, rates: { proyecto: null, deuda: null, capital: null }, flows: [], notes: "" };
     case "rehabilitacion": return { currency: "MXN", contingencyPercent: "", items: [], payments: [] };
@@ -81,20 +85,173 @@ function mortgage(input: AppInput): AppResult {
   ], warnings: [...result.pending.map((v) => `Estimación preliminar: falta conocer ${v.toLowerCase()}.`)] };
 }
 
-const netSchema = z.object({ currency, salePrice: amount, loan: optional(amount), commission: optional(amount), taxes: optional(amount), expenses: z.array(z.object({ concept: name, amount: optional(amount), status: z.enum(["pagado", "pendiente"]) }).strict()).max(200) }).strict();
-function net(input: AppInput): AppResult {
-  const data = parse(netSchema, input);
+/*
+  ISR y neto del vendedor (HER-03). Reemplaza a «Neto del propietario» con el mismo slug, así que
+  los trabajos guardados se siguen abriendo: los anteriores (sin `isrMode`) se leen con el ISR
+  incluido en «Impuestos de la operación» y la comisión como importe, igual que cuando se hicieron.
+*/
+function netDefaults(): AppInput {
+  return {
+    currency: "MXN", salePrice: "", loan: null,
+    commissionMode: "porcentaje", commissionPercent: null, commissionVat: 16, commission: null,
+    isrMode: "calcular", isrAmount: null,
+    saleDate: localToday(), acquisitionDate: "", owners: 1, homeExemption: false, noPriorExemption: false, udiValue: null,
+    costMode: "historico", updatedCost: null, acquisitionCost: null, landCost: null, inpcAcquisition: null, inpcSale: null,
+    improvements: null, acquisitionExpenses: null, taxes: null, expenses: [],
+  };
+}
+/** Completa la captura con los valores por omisión; un trabajo anterior a HER-03 conserva su lectura. */
+export function netInput(input: AppInput): AppInput {
+  const legacy = Object.keys(input).length > 0 && !("isrMode" in input) && ("taxes" in input || "commission" in input);
+  return { ...netDefaults(), ...(legacy ? { commissionMode: "importe", isrMode: "incluido" } : {}), ...input };
+}
+const inpc = optional(numeric(0.000001, 100000));
+const netSchema = z.object({
+  currency, salePrice: amount, loan: optional(amount),
+  commissionMode: z.enum(["porcentaje", "importe"]), commissionPercent: optional(numeric(0, 20)), commissionVat: z.preprocess(v => typeof v === "string" && v !== "" ? Number(v) : v, z.union([z.literal(0), z.literal(8), z.literal(16)])), commission: optional(amount),
+  isrMode: z.enum(["calcular", "importe", "incluido"]), isrAmount: optional(amount),
+  saleDate: z.string(), acquisitionDate: z.string(), owners: numeric(1, 10).refine(Number.isInteger, "Los propietarios deben ser un número entero"),
+  homeExemption: z.boolean(), noPriorExemption: z.boolean(), udiValue: optional(numeric(0.000001, 1000)),
+  costMode: z.enum(["historico", "actualizado"]), updatedCost: optional(amount), acquisitionCost: optional(amount), landCost: optional(amount), inpcAcquisition: inpc, inpcSale: inpc,
+  improvements: optional(amount), acquisitionExpenses: optional(amount), taxes: optional(amount),
+  expenses: z.array(z.object({ concept: name, amount: optional(amount), status: z.enum(["pagado", "pendiente"]) }).strict()).max(200),
+}).strict();
+type NetData = z.output<typeof netSchema>;
+
+/** Gastos que suelen tocarle al vendedor; se agregan sin importe para que el asesor los confirme. */
+export const NET_COMMON_EXPENSES = ["Certificado de libertad de gravamen", "Constancia de no adeudo de predial", "Constancia de no adeudo de agua", "Avalúo", "Cancelación de hipoteca"] as const;
+
+const ESTIMATE = "Estimación: no sustituye el cálculo del notario ni la asesoría de un contador.";
+
+function netCommission(data: NetData) {
+  if (data.commissionMode === "importe") return { fee: null, vat: null, total: data.commission };
+  if (data.commissionPercent === null) return { fee: null, vat: null, total: null };
+  const fee = cents(new D(data.salePrice).mul(data.commissionPercent).div(100));
+  const vat = cents(new D(fee).mul(data.commissionVat).div(100));
+  return { fee, vat, total: total([fee, vat]) };
+}
+
+function isrCase(data: NetData, commission: number | null): SellerIsrCase {
+  return { price: data.salePrice, saleDate: data.saleDate, acquisitionDate: data.acquisitionDate, owners: data.owners, costMode: data.costMode, updatedCost: data.updatedCost, acquisitionCost: data.acquisitionCost, landCost: data.landCost, inpcAcquisition: data.inpcAcquisition, inpcSale: data.inpcSale, improvements: data.improvements, expenses: data.acquisitionExpenses, commission, homeExemption: data.homeExemption, noPriorExemption: data.noPriorExemption, udiValue: data.udiValue };
+}
+
+/** Hoja de cálculo del ISR para entregar al propietario. */
+function isrSheet(data: NetData, isr: SellerIsrResult, commission: number | null): AppResult {
+  const fmt = (n: number) => moneyText(n);
+  const plain = (n: number) => moneyText(n).replace(/ MXN$/, "");
+  const c = isrCase(data, commission);
+  const sources = `Ley del ISR (${SELLER_ISR_RULES.lawReform}, revisada el ${SELLER_ISR_RULES.reviewedAt}): artículos 120, 121, 124, 126 y 127; casa habitación, ${SELLER_ISR_RULES.homeExemptionArticle}. ${SELLER_ISR_RULES.updateFactorArticle}. Tarifa del ${FINANCIAL_SOURCES.isr.article} del SAT para 2026. Vigencia cargada: del ${SELLER_ISR_RULES.validFrom} al ${SELLER_ISR_RULES.validTo}. ${SELLER_ISR_RULES.url}`;
+  const captured = [
+    ["Precio de venta", fmt(data.salePrice)], ["Fecha estimada de la escritura", data.saleDate || "Pendiente"], ["Fecha en que se compró", data.acquisitionDate || "Pendiente"],
+    ["Propietarios (partes iguales)", String(data.owners)], ["Casa habitación del vendedor", data.homeExemption ? data.noPriorExemption ? "Sí; sin otra exención en los últimos tres años" : "Sí, pero falta confirmar que no usó la exención en los últimos tres años" : "No"],
+  ];
+  if (isr.status === "pendiente") return { title: "Hoja de cálculo del ISR por la venta", summary: [summary("ISR estimado", "Pendiente")], sections: [
+    { title: "Datos de la venta", columns: ["Concepto", "Valor"], rows: captured },
+    { title: "Para calcularlo falta", columns: ["Dato"], rows: isr.missing.map(m => [m]) },
+    { title: "Reglas y fuentes", text: sources },
+  ], warnings: [ESTIMATE] };
+  const cost: string[][] = c.costMode === "actualizado"
+    ? [["Costo de adquisición actualizado (capturado)", fmt(c.updatedCost!)]]
+    : [["Precio en que se compró", fmt(c.acquisitionCost!)], [`Terreno${c.landCost === null ? " (20% del costo, art. 124 fr. I)" : ""}`, fmt(isr.land!)], ["Construcción", fmt(isr.construction!)], [`Construcción menos 3% por ${isr.depreciationYears} ${isr.depreciationYears === 1 ? "año" : "años"} (mínimo 20%)`, fmt(isr.depreciatedConstruction!)], [`Factor de actualización (INPC ${decimalText(c.inpcSale!)} / ${decimalText(c.inpcAcquisition!)})`, decimalText(isr.factor!, 4, 4)]];
+  cost.push([isr.costFloorApplied ? "Costo actualizado (mínimo: 10% del precio, art. 121)" : "Costo actualizado", fmt(isr.updatedCost)]);
+  const gain = [["Precio de venta", fmt(data.salePrice)], ["Menos costo actualizado", fmt(isr.updatedCost)], ["Menos mejoras y ampliaciones", fmt(c.improvements!)], ["Menos gastos notariales, impuestos y avalúo", fmt(c.expenses!)], ["Menos comisión de la venta", fmt(c.commission!)], ["Ganancia", fmt(isr.gain)], ["Años para dividir la ganancia (máximo 20)", String(isr.yearsForTax)]];
+  if (isr.exemptLimit !== null) gain.push([`Exención por casa habitación por propietario (700,000 UDIS × ${decimalText(data.udiValue!)})`, fmt(isr.exemptLimit)]);
+  const multi = isr.owners.length > 1;
+  return { title: "Hoja de cálculo del ISR por la venta", summary: [
+    summary("ISR estimado a pagar ante notario", fmt(isr.provisional)), summary("Parte para el Estado (5% de la ganancia)", fmt(isr.state)), summary("Parte federal", fmt(isr.federal)), summary("Ganancia", fmt(isr.gain)),
+  ], sections: [
+    { title: "Datos de la venta", columns: ["Concepto", "Valor"], rows: captured },
+    { title: "Costo de adquisición", columns: ["Concepto", "Importe"], rows: cost },
+    { title: "Ganancia", columns: ["Concepto", "Importe"], rows: gain },
+    multi
+      ? { title: "ISR por propietario (pesos)", columns: ["Propietario", "Su parte del precio", "Exento", "Ganancia gravable", "ISR", "Estado", "Federal"], rows: isr.owners.map(o => [`Propietario ${o.owner}`, plain(o.price), plain(o.exempt), plain(o.taxableGain), plain(o.provisional), plain(o.state), plain(o.federal)]) }
+      : { title: "ISR", columns: ["Concepto", "Importe"], rows: [...(isr.exemptLimit !== null ? [["Parte exenta del precio", fmt(isr.owners[0].exempt)]] : []), ["Ganancia gravable", fmt(isr.owners[0].taxableGain)], [`Ganancia gravable ÷ ${isr.yearsForTax} ${isr.yearsForTax === 1 ? "año" : "años"}`, fmt(isr.owners[0].quotient)], ["ISR a pagar ante notario", fmt(isr.provisional)], ["Parte para el Estado", fmt(isr.state)], ["Parte federal", fmt(isr.federal)]] },
+    { title: "Cómo se calcula", text: `La ganancia es el precio menos el costo actualizado y las deducciones. Se divide entre los años transcurridos desde la compra (años completos, mínimo uno y máximo 20), al resultado se aplica la tarifa del pago provisional y lo obtenido se multiplica por los mismos años. Del total, el 5% de la ganancia se paga al Estado y se acredita; el resto es federal. ${c.costMode === "historico" ? "La construcción pierde 3% por año completo, sin bajar del 20% de su costo; terreno y construcción se actualizan con el INPC del mes de compra y del mes anterior a la venta, con factor al diezmilésimo y nunca menor a 1. " : ""}${isr.exemptLimit !== null ? "Como casa habitación, cada propietario no paga por su parte del precio hasta 700,000 UDIS; por el excedente se toma la ganancia en la proporción del excedente entre su parte del precio. " : ""}${multi ? "Cada propietario calcula por su parte, en partes iguales. " : ""}Mejoras, gastos e impuestos se capturan ya actualizados; la comisión de esta venta se deduce con su IVA.` },
+    { title: "Reglas y fuentes", text: sources },
+  ], warnings: [ESTIMATE, ...(data.homeExemption && !data.noPriorExemption ? ["Se calculó sin exención: el vendedor debe manifestar ante el notario que no vendió otra casa habitación exenta en los tres años anteriores."] : []), ...(isr.exemptLimit !== null ? ["La exención requiere que el notario compruebe que es la casa habitación del vendedor (por ejemplo, credencial y comprobantes de domicilio)."] : [])] };
+}
+
+/** El neto para el propietario y, si se calcula, la hoja del ISR (dos PDF). */
+export function netResults(input: AppInput): { neto: AppResult; isr: AppResult | null } {
+  const data = parse(netSchema, netInput(input));
   const fmt = (n: number) => moneyText(n, data.currency);
-  const warnings: string[] = [];
-  const charges: [string, number | null][] = [["Crédito pendiente", data.loan], ["Honorarios pendientes con impuestos", data.commission], ["Impuestos de la operación", data.taxes]];
+  const warnings: string[] = [ESTIMATE];
+  const commission = netCommission(data);
+  let isrValue: number | null = null, sheet: AppResult | null = null, exempt = false;
+  if (data.isrMode === "calcular") {
+    if (data.currency !== "MXN") warnings.push("El ISR se calcula en pesos. Cambia la moneda a MXN o captura el importe del ISR.");
+    else {
+      const isr = calculateSellerIsrCase(isrCase(data, commission.total));
+      sheet = isrSheet(data, isr, commission.total);
+      if (isr.status === "ok") { isrValue = isr.provisional; exempt = isr.exemptionApplied && isr.owners.some(o => o.exempt > 0); }
+      else warnings.push(`Para calcular el ISR falta: ${isr.missing.join("; ").toLowerCase()}.`);
+    }
+  } else if (data.isrMode === "importe" && data.isrAmount !== null) isrValue = data.isrAmount;
+  const charges: [string, number | null, string][] = [];
+  if (data.commissionMode === "porcentaje") {
+    charges.push([`Comisión (${data.commissionPercent === null ? "porcentaje pendiente" : percentText(data.commissionPercent)}) sin IVA`, commission.fee, "Pendiente"]);
+    charges.push([`IVA de la comisión (${data.commissionVat}%)`, commission.vat, "Pendiente"]);
+  } else charges.push(["Honorarios con impuestos", commission.total, "Pendiente"]);
+  if (data.isrMode !== "incluido") charges.push([data.isrMode !== "calcular" ? "ISR por la venta" : exempt ? "ISR por la venta (estimación, con exención de casa habitación)" : "ISR por la venta (estimación)", isrValue, "Pendiente"]);
+  charges.push([data.isrMode === "incluido" ? "Impuestos de la operación" : "Otros impuestos (por ejemplo, IVA de la construcción en un local)", data.taxes, "Pendiente"]);
+  charges.push(["Saldo para liquidar el crédito", data.loan, "Pendiente"]);
   for (const [label, value] of charges) if (value === null) warnings.push(`Falta conocer: ${label.toLowerCase()}.`);
   for (const row of data.expenses) if (row.amount === null) warnings.push(`Falta el importe de ${row.concept} (${row.status}).`);
-  const pending = total([...charges.flatMap(([, v]) => v === null ? [] : [v]), ...data.expenses.flatMap((r) => r.status === "pendiente" && r.amount !== null ? [r.amount] : [])]);
+  const pendingRows = data.expenses.filter(r => r.status === "pendiente");
+  const pending = total([...charges.flatMap(([, v]) => v === null ? [] : [v]), ...pendingRows.flatMap(r => r.amount === null ? [] : [r.amount])]);
   const historical = total(data.expenses.flatMap((r) => r.status === "pagado" && r.amount !== null ? [r.amount] : []));
-  return { title: "Estimación del neto del propietario", summary: [summary("Precio de venta", fmt(data.salePrice)), summary("Cargos pendientes conocidos", fmt(pending)), summary("Neto preliminar conocido", fmt(cents(new D(data.salePrice).minus(pending)))), summary("Gastos históricos pagados", fmt(historical))], sections: [
-    { title: "Cargos de cierre", columns: ["Concepto", "Importe", "Tratamiento"], rows: [...charges.map(([label, v]) => [label, v === null ? "Desconocido" : fmt(v), "Pendiente"]), ...data.expenses.map((r) => [r.concept, r.amount === null ? "Desconocido" : fmt(r.amount), r.status === "pagado" ? "Histórico; no se descuenta" : "Pendiente"])] },
-    { title: "Alcance", text: "Se resta únicamente lo pendiente y conocido. Los gastos pagados son informativos y no se vuelven a descontar. Captura los honorarios con sus impuestos y evita repetirlos en otros cargos. El neto es una estimación, sujeto a liquidaciones y revisión fiscal; no es utilidad histórica." },
-  ], warnings };
+  const complete = charges.every(([, v]) => v !== null) && pendingRows.every(r => r.amount !== null);
+  const neto: AppResult = { title: "Estimación del neto del vendedor", summary: [
+    summary("Precio de venta", fmt(data.salePrice)),
+    summary("Comisión con IVA", commission.total === null ? "Pendiente" : fmt(commission.total)),
+    ...(data.isrMode === "incluido" ? [] : [summary("ISR estimado", isrValue === null ? "Pendiente" : fmt(isrValue))]),
+    summary("Cargos pendientes conocidos", fmt(pending)),
+    summary(complete ? "Neto estimado" : "Neto preliminar conocido", fmt(cents(new D(data.salePrice).minus(pending)))),
+    summary("Gastos históricos pagados", fmt(historical)),
+  ], sections: [
+    { title: "Cargos de cierre", columns: ["Concepto", "Importe", "Tratamiento"], rows: [...charges.map(([label, v, how]) => [label, v === null ? "Desconocido" : fmt(v), how]), ...data.expenses.map((r) => [r.concept, r.amount === null ? "Desconocido" : fmt(r.amount), r.status === "pagado" ? "Histórico; no se descuenta" : "Pendiente"])] },
+    { title: "Alcance", text: "Se resta únicamente lo pendiente y conocido. Los gastos pagados son informativos y no se vuelven a descontar. El neto es una estimación, sujeta a liquidaciones, al cálculo del notario y a revisión fiscal; no es utilidad histórica." },
+  ], warnings: [...new Set(warnings)] };
+  return { neto, isr: sheet };
+}
+/*
+  Gastos de compra (revisión del catálogo, 12/11/2026): lo que el comprador paga además del precio.
+  Usa el mismo cálculo que la página pública de gastos de cierre (ISAI por municipio y Registro
+  Público con sus fuentes 2026); lo que depende de una cotización queda pendiente hasta capturarlo.
+*/
+const buyerSchema = z.object({
+  municipality: z.enum(Object.keys(MUNICIPALITIES) as [Municipality, ...Municipality[]]), date, price: amount,
+  financing: z.enum(["contado", "credito"]), downPayment: optional(amount), taxBase: optional(amount),
+  isaiQuote: optional(amount), registrationQuote: optional(amount), preventiveNotices: numeric(0, 4).refine(Number.isInteger, "Los avisos deben ser un número entero"),
+  notary: optional(amount), appraisal: optional(amount), openingFee: optional(amount), other: optional(amount),
+}).strict();
+const KIND_LABEL = { rule: "Según la ley 2026", quote: "Cotización", input: "Capturado", pending: "Pendiente" } as const;
+function buyerCosts(input: AppInput): AppResult {
+  const data = parse(buyerSchema, input);
+  if (data.price < 1) throw new Error("Captura el precio del inmueble.");
+  const credit = data.financing === "credito";
+  if (credit && data.downPayment === null) throw new Error("Captura el enganche; si paga todo de contado, elige «De contado».");
+  const downPayment = credit ? data.downPayment! : data.price;
+  if (downPayment > data.price) throw new Error("El enganche no puede ser mayor que el precio.");
+  const loan = cents(new D(data.price).minus(downPayment));
+  const budget = calculateClosingBudget({ profile: "buyer", municipality: data.municipality, date: data.date, price: data.price, taxBase: data.taxBase ?? data.price, baseIsAssumed: data.taxBase === null, downPayment, loan, isaiQuote: data.isaiQuote, registrationQuote: data.registrationQuote, preventiveNotices: data.preventiveNotices, notary: data.notary, appraisal: data.appraisal, openingFee: loan === 0 ? 0 : data.openingFee, other: data.other });
+  const fmt = (n: number) => moneyText(n);
+  const complete = budget.pending.length === 0;
+  return { title: "Gastos de compra del comprador", summary: [
+    summary("Precio", fmt(data.price)),
+    summary(credit ? "Enganche" : "Pago de contado", fmt(downPayment)),
+    ...(credit ? [summary("Crédito", fmt(loan))] : []),
+    summary(complete ? "Gastos de compra" : "Gastos conocidos", fmt(budget.knownExpenses)),
+    summary(complete ? "Dinero que necesita el comprador" : "Dinero que necesita (faltan datos)", fmt(budget.cashRequired!)),
+  ], sections: [
+    { title: "Gastos", columns: ["Concepto", "Importe", "Origen", "Nota"], rows: budget.items.map(i => [i.label, i.amount === null ? "Pendiente" : fmt(i.amount), KIND_LABEL[i.kind], i.note ?? ""]) },
+    { title: "Alcance", text: `${MUNICIPALITIES[data.municipality]}, operación ordinaria, fecha ${data.date}. El impuesto de adquisición y el Registro Público se calculan con las tablas publicadas para 2026; la determinación municipal y la cotización del notario mandan sobre esta estimación. Honorarios notariales con IVA, sin repetir impuesto ni Registro. Para compartir con el cliente, la misma calculadora está en el sitio: fortiusinmuebles.com/herramientas/gastos-de-cierre.` },
+  ], warnings: [ "Estimación: no sustituye la cotización del notario ni la determinación municipal.", ...budget.pending.map(p => `Falta conocer: ${p.toLowerCase()}.`), ...(data.taxBase === null ? ["La base del impuesto se supuso igual al precio; el municipio puede determinar otra con el avalúo y el valor catastral."] : [])] };
+}
+
+function net(input: AppInput): AppResult {
+  const { neto, isr } = netResults(input);
+  return isr ? { ...neto, sections: [...neto.sections ?? [], ...(isr.sections ?? []).map(s => ({ ...s, title: `ISR · ${s.title}` }))], warnings: [...new Set([...neto.warnings ?? [], ...isr.warnings ?? []])] } : neto;
 }
 
 const commissionSchema = z.object({ currency, mode: z.enum(["porcentaje", "fijo"]), base: optional(amount), percent: optional(percentage), fixed: optional(amount), taxPercent: optional(percentage), withholding: optional(amount), shares: z.array(z.object({ name, percent: percentage }).strict()).max(100) }).strict();
@@ -257,10 +414,11 @@ function converter(input: AppInput): AppResult {
 }
 
 export function calculateFinancial(slug: string, input: AppInput): AppResult {
-  const data = { ...getFinancialDefaults(slug), ...input };
+  const data = slug === "neto-propietario" ? netInput(input) : { ...getFinancialDefaults(slug), ...input };
   switch (slug) {
     case "hipoteca": return mortgage(data);
     case "neto-propietario": return net(data);
+    case "gastos-compra": return buyerCosts(data);
     case "comisiones": return commission(data);
     case "inversiones": return investment(data);
     case "rehabilitacion": return rehabilitation(data);

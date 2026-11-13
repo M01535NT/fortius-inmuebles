@@ -8,7 +8,8 @@ import { NocturnoCierre, NocturnoComprar, NocturnoEquipo, NocturnoRecursos, Noct
 import { entregablesDe, etapasDe, pilaresDe } from "@/components/home/nocturno-content";
 import { Respuestas } from "@/components/home/respuestas";
 import { homeText } from "@/data/home-copy";
-import { getPublicContent } from "@/lib/backend/public";
+import { getPublicContent, getPublicSettings } from "@/lib/backend/public";
+import { publicContact } from "@/lib/public-contact";
 import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
 import { getPublishedTeam } from "@/lib/backend/public-team";
 import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
@@ -19,12 +20,14 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
   Inicio (30/10/2026): cada sección responde una pregunta, en este orden: qué hacemos,
   cómo te ayudamos a vender (método), lo que recibes (expediente), cómo te ayudamos a
   comprar (buscador), qué tenemos (baraja), quién te atiende, herramientas y preguntas;
-  cierra una invitación a hablar. La portada, «Comprar» y el cierre llevan video.
+  cierra una sola invitación a hablar (12/11/2026: el pie no repite la suya aquí). La
+  portada, «Comprar» y el cierre llevan video.
 */
 export default async function HomePage() {
-  const [content, propiedades, destacadas, team] = await Promise.all([
-    getPublicContent(), getPropiedades(), getFeaturedProperties(), getPublishedTeam().catch(() => []),
+  const [content, propiedades, destacadas, team, settings] = await Promise.all([
+    getPublicContent(), getPropiedades(), getFeaturedProperties(), getPublishedTeam().catch(() => []), getPublicSettings().catch(() => null),
   ]);
+  const contact = publicContact(settings, "Hola, quiero conversar sobre una propiedad con Fortius.");
   const entregables = entregablesDe(content);
   return (
     <main className="nocturno-home">
@@ -38,7 +41,7 @@ export default async function HomePage() {
       <NocturnoEquipo team={team.length ? team : [PERFIL_ILUSTRATIVO]} ilustrativo={!team.length} />
       <NocturnoRecursos />
       <div className="nx-faq"><Respuestas content={content} /></div>
-      <NocturnoCierre />
+      <NocturnoCierre whatsapp={contact.whatsapp} />
     </main>
   );
 }
