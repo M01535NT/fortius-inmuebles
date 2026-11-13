@@ -118,8 +118,11 @@ export function parseRecord(collection: CollectionName, recordId: string, value:
 }
 export function parseWrite(value: unknown) { return z.object({ data: z.record(z.string(), z.unknown()), version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullable() }).strict().parse(value); }
 export function parseDelete(value: unknown) { return z.object({ version: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) }).strict().parse(value); }
+// C-43: «manual» es la captura del equipo en el panel; un envío del sitio no puede declararla
+// (saldría de «Nuevos sin atender» y no correría su plazo de primera atención).
+const publicOrigins = [...origins.filter(origin => origin !== "manual"), "interes_propiedad"] as const;
 export function parseLead(value: unknown) {
-  return z.object({ ...leadFields, telefono: phone, origen: z.enum([...origins, "interes_propiedad"]), website: z.literal("").optional() }).strict().parse(value);
+  return z.object({ ...leadFields, telefono: phone, origen: z.enum(publicOrigins), website: z.literal("").optional() }).strict().parse(value);
 }
 
 /*

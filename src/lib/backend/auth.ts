@@ -66,7 +66,7 @@ export function clientAddress(request: Request): string {
 
 // SEG-M5: Supabase solo ve la IP de Vercel; este conteo propio distingue visitantes y correos.
 // Las claves son huellas: ni la IP ni el correo se guardan.
-async function limitAttempt(kind: "login" | "recovery" | "mfa", scope: "ip" | "email" | "user", value: string, limit: number) {
+async function limitAttempt(kind: "login" | "recovery", scope: "ip" | "email", value: string, limit: number) {
   const key = `${kind}:${scope}:${createHash("sha256").update(value.trim().toLowerCase()).digest("hex")}`;
   const { error } = await createServerClient(undefined, true).rpc("fortius_inmuebles_auth_attempt", { p_key: key, p_limit: limit });
   if (!error) return;
@@ -208,15 +208,21 @@ async function saveCurrentSession(authClient: SupabaseClient) {
   return data.session;
 }
 
+// La base solo acepta claves `login|recovery:ip|email:<huella>`. Los códigos cuentan como intentos de
+// acceso: por dirección comparten el límite de 30 por hora del acceso y por cuenta llevan su propia
+// huella («mfa:» + id), distinta de la de cualquier correo.
+const limitCodeAttempt = (client: string) => limitAttempt("login", "ip", client, 30);
+const limitCodeAttemptForUser = (userId: string) => limitAttempt("login", "email", `mfa:${userId}`, 10);
+
 const wrongCode = () => new ApiError(400, "El código no coincide. Escribe el que muestra tu app en este momento.", { mfa: "required" });
 const tooManyCodes = () => new ApiError(429, "Demasiados intentos; espera un minuto y vuelve a intentarlo");
 
 /** Segundo paso del acceso: el código de la app sube la sesión a «aal2». */
 export async function verifyMfaLogin(input: unknown, client = "local"): Promise<{ user: StaffUser }> {
   const { code } = z.object({ code: codeSchema }).strict().parse(input);
-  await limitAttempt("mfa", "ip", client, 30);
+  await limitCodeAttempt(client);
   const { authClient, session } = await cookieSessionClient();
-  await limitAttempt("mfa", "user", session.user.id, 10);
+  await limitCodeAttemptForUser(session.user.id);
   const factors = verifiedTotp(session.user);
   if (!factors.length) throw new ApiError(400, "Tu cuenta no tiene verificación en dos pasos; vuelve a entrar");
   // Con dos dispositivos cada uno tiene su propia clave: el código vale si coincide con cualquiera.
@@ -270,7 +276,7 @@ export async function confirmTotpEnrollment(input: unknown): Promise<{ ok: true 
   const { factorId, code } = z.object({ factorId: z.uuid(), code: codeSchema }).strict().parse(input);
   await requireDirectorForMfa();
   const { authClient, session } = await cookieSessionClient();
-  await limitAttempt("mfa", "user", session.user.id, 10);
+  await limitCodeAttemptForUser(session.user.id);
   const { error } = await authClient.auth.mfa.challengeAndVerify({ factorId, code });
   if (error) throw error.status === 429 ? tooManyCodes() : new ApiError(400, "El código no coincide. Escribe el que muestra tu app en este momento.");
   await saveCurrentSession(authClient);
