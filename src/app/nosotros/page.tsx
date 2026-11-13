@@ -108,13 +108,11 @@ export default async function NosotrosPage() {
       <div className="nx-container ab-purpose" data-reveal>
         <article id="mision" className="ab-purpose-card" data-reveal-item>
           <span className="ab-purpose-photo"><Image src="/hero/etapa-01-revisamos.webp" alt="Escritura y pluma sobre un escritorio" fill sizes="(max-width: 899px) 100vw, 50vw" /></span>
-          <p className="ab-eyebrow">Misión</p>
           <h2>Decidir con información. Avanzar con respaldo.</h2>
           <p>Información comprobable para decidir con claridad.</p>
         </article>
         <article id="vision" className="ab-purpose-card ab-purpose-card-accent" data-reveal-item>
           <span className="ab-purpose-photo"><Image src="/hero/ciudad-tijuana.webp" alt="Zona Río de Tijuana con el Centro Cultural y los cerros al fondo" fill sizes="(max-width: 899px) 100vw, 50vw" /></span>
-          <p className="ab-eyebrow">Visión</p>
           <h2>Crecer por la confianza que construimos.</h2>
           <p>Referencia en Baja California, también después de la firma.</p>
         </article>
