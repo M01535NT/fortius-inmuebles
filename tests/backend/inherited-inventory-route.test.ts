@@ -7,8 +7,10 @@ import { POST } from "@/app/api/admin/inventario-heredado/route";
 
 /* COR-24: alta del inventario heredado, solo del director; la base valida cada paso (staff-scope-database). */
 const created = { id: "80000000-0000-4000-8000-000000000024", version: 1, checklist: {}, flujo: { ruta: "captacion" } };
-function fake({ operations = [] as unknown[] } = {}) {
-  const rpc = vi.fn(async (name: string) => ({ data: name === "fortius_inmuebles_put_record" ? { version: 1 } : { ...created, etapa: "documentacion" }, error: null }));
+/** `alta`: lo que responde la función atómica (B10); por omisión, que la base todavía no la tiene. */
+function fake({ operations = [] as unknown[], alta = { data: null, error: { code: "PGRST202" } } as { data: unknown; error: { code: string } | null } } = {}) {
+  const rpc = vi.fn(async (name: string) => name === "fortius_inmuebles_alta_heredado" ? alta
+    : ({ data: name === "fortius_inmuebles_put_record" ? { version: 1 } : { ...created, etapa: "documentacion" }, error: null }));
   const inserted: unknown[] = [];
   const from = (table: string) => {
     const q: Record<string, unknown> = {};
@@ -29,7 +31,30 @@ it("solo el director da de alta inventario heredado", async () => {
   expect(f.rpc).not.toHaveBeenCalled();
 });
 
-it("crea propietario, operación marcada con sus excepciones y tarea, y la lleva a verificación", async () => {
+// B10 / C-16: con la función de la base, todo va en una sola llamada.
+it("con la función de la base, da de alta todo en una sola transacción", async () => {
+  const f = fake({ alta: { data: { ...created, etapa: "documentacion" }, error: null } });
+  requireStaff.mockResolvedValue({ client: f.client, user: { role: "admin" } });
+  const response = await send();
+  expect(response.status).toBe(201);
+  expect((await response.json()).expediente).toMatchObject({ etapa: "documentacion" });
+  const calls = f.rpc.mock.calls as unknown as Array<[string, Record<string, unknown>]>;
+  expect(calls.map(([n]) => n)).toEqual(["fortius_inmuebles_alta_heredado"]);
+  const args = calls[0][1] as { p_slug: string; p_operacion: string; p_cliente: { asesorId: string }; p_flujo: { heredado: unknown; requisitos: Record<string, unknown> }; p_tarea: { titulo: string; expedienteId?: string } };
+  expect(args).toMatchObject({ p_slug: "casa-ficticia", p_operacion: "venta", p_cliente: { asesorId: "ana" }, p_flujo: { heredado: { desde: "2026-06-01" } }, p_tarea: { titulo: "Regularizar inventario heredado" } });
+  expect(Object.keys(args.p_flujo.requisitos).sort()).toEqual(["entrevista", "levantamiento", "plan"]);
+  expect(f.inserted).toEqual([]);
+});
+
+it("si otra alta del mismo inmueble ganó en la base, responde que ya tiene operación", async () => {
+  const f = fake({ alta: { data: null, error: { code: "PT409" } } });
+  requireStaff.mockResolvedValue({ client: f.client, user: { role: "admin" } });
+  const response = await send();
+  expect(response.status).toBe(409);
+  expect((await response.json()).error).toContain("ya tiene una operación del propietario");
+});
+
+it("sin la función todavía: crea propietario, operación marcada con sus excepciones y tarea, y la lleva a verificación", async () => {
   const f = fake(); requireStaff.mockResolvedValue({ client: f.client, user: { role: "admin" } });
   expect((await send()).status).toBe(201);
   const [row] = f.inserted as Array<{ asesor_id: string; operacion: string; flujo: { heredado: unknown; requisitos: Record<string, { excepcion?: { motivo: string } }> } }>;

@@ -73,7 +73,7 @@ export function MessageTemplatesEditor({ saved, canEdit, adviserName, onSave }: 
       <p className="m-0 text-sm font-semibold">Agregar un dato</p>
       <div className="flex flex-wrap gap-2">
         {TEMPLATE_FIELDS.map(f => <button key={f.key} type="button" onClick={() => insert(f.key)}
-          className="inline-flex min-h-11 items-center rounded-full border px-4 text-[.9375rem] font-[560]">{f.label}</button>)}
+          className="inline-flex min-h-11 items-center rounded-full border px-4 text-[.9375rem] font-[540]">{f.label}</button>)}
       </div>
     </div>}
 

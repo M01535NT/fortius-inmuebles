@@ -35,7 +35,7 @@ export function PeriodReport() {
     if (!bookId) return;
     apiRequest<{ cartera: CommercialBook }>(`/api/admin/comercial/${bookId}`)
       .then(r => { if (active) setBook(r.cartera); })
-      .catch(() => { if (active) setError("No se pudo abrir esta cartera."); })
+      .catch(() => { if (active) setError("No se pudo abrir esta cartera. Recarga la página."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [bookId]);
@@ -108,7 +108,7 @@ export function PeriodReport() {
             <div className="grid gap-3 sm:grid-cols-2">
               {[{ label: "Ofertas", rows: offers }, { label: "Cierres con comprobante", rows: closures }].map(group => <div key={group.label} className="rounded-[10px] border border-border p-3">
                 <p className="text-sm text-muted-foreground">{group.label}</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums">{group.rows.length}</p>
+                <p className="mt-1 text-cifra-panel font-[620] tabular-nums">{group.rows.length}</p>
                 <ul className="mt-2 space-y-2 text-sm">{group.rows.map(e => <li key={e.id} className="break-words">{book.data.oportunidades.find(o => o.id === e.oportunidad)?.nombre} · {humanDate(e.fecha)}<p>{e.detalle}</p></li>)}</ul>
               </div>)}
             </div>

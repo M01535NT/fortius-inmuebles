@@ -135,3 +135,16 @@ test("SIM-07: la ficha del prospecto muestra una sola acción principal, tres et
   expect(screen.queryByText(/2026-10-04/)).toBeNull();
   expect(screen.queryByText(/Seguimiento conectado|Agenda del lead/)).toBeNull();
 });
+
+// C-21: una nota a medias en la ficha del prospecto se protege al cerrar o recargar la pestaña.
+test("C-21: la ficha del prospecto con una nota sin guardar pide confirmación antes de salir", async () => {
+  await detail("lead");
+  expect(await screen.findByRole("heading", { level: 1, name: original.nombre })).toBeTruthy();
+  const clean = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(clean);
+  expect(clean.defaultPrevented).toBe(false);
+  fireEvent.change(screen.getByLabelText("Nueva nota"), { target: { value: "Quedó de llamar el lunes" } });
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  expect(event.defaultPrevented).toBe(true);
+});

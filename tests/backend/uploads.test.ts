@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createServerClient } from "@/lib/backend/auth";
-import { prepareUpload, completeUpload } from "@/lib/backend/files";
+import sharp from "sharp";
+import { autorizarDestino, prepareUpload, completeUpload } from "@/lib/backend/files";
 
 const userId = "10000000-0000-4000-8000-000000000001";
 const stored = new Map<string, Blob>();
@@ -45,7 +46,7 @@ afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.useRealTimers();
 
 describe("direct upload staging and authenticated completion", () => {
   const client = () => createServerClient(undefined, true);
-  const input = () => ({ name: "brochure.pdf", size: pdf.size, contentType: "application/pdf", visibility: "public" });
+  const input = () => ({ name: "brochure.pdf", size: pdf.size, contentType: "application/pdf", visibility: "public", destino: "inmueble" });
   it("persists server-authenticated provenance before returning a final file", async () => {
     const prepared = await prepareUpload(client(), userId, input());
     stored.set(`fortius-inmuebles-staging/${prepared.path}`, pdf);
@@ -112,5 +113,55 @@ describe("direct upload staging and authenticated completion", () => {
     stored.set(`fortius-inmuebles-staging/${prepared.path}`, new Blob([bytes], { type: "application/pdf" }));
     await expect(completeUpload(client(), userId, prepared.ticket)).rejects.toMatchObject({ status: 409 });
     expect(new Uint8Array(await stored.get(`fortius-inmuebles-public/${result.path}`)!.slice(20, 21).arrayBuffer())[0]).toBe(0);
+  });
+  it("M4: una foto pública se guarda sin EXIF ni GPS y girada; la privada conserva sus bytes", async () => {
+    const photo = await sharp({ create: { width: 40, height: 20, channels: 3, background: "#061F3F" } })
+      .withExif({ IFD0: { Make: "Telefono de ejemplo" }, IFD3: { GPSLatitudeRef: "N", GPSLatitude: "32/1 31/1 0/1" } })
+      .withMetadata({ orientation: 6 }).jpeg().toBuffer();
+    expect((await sharp(photo).metadata()).exif).toBeDefined();
+    const blob = new Blob([new Uint8Array(photo)], { type: "image/jpeg" });
+    const asked = { name: "casa.jpg", size: blob.size, contentType: "image/jpeg" };
+
+    const publica = await prepareUpload(client(), userId, { ...asked, visibility: "public", destino: "inmueble" });
+    stored.set(`fortius-inmuebles-staging/${publica.path}`, blob);
+    const saved = await completeUpload(client(), userId, publica.ticket);
+    const clean = await sharp(Buffer.from(await stored.get(`fortius-inmuebles-public/${saved.path}`)!.arrayBuffer())).metadata();
+    expect(clean.exif).toBeUndefined();
+    expect(clean.orientation ?? 1).toBe(1);
+    expect([clean.width, clean.height]).toEqual([20, 40]);
+
+    const privada = await prepareUpload(client(), userId, { ...asked, visibility: "private" });
+    stored.set(`fortius-inmuebles-staging/${privada.path}`, blob);
+    const kept = await completeUpload(client(), userId, privada.ticket);
+    expect(Buffer.from(await stored.get(`fortius-inmuebles-private/${kept.path}`)!.arrayBuffer()).equals(photo)).toBe(true);
+  });
+});
+
+// B5: lo público lo decide el servidor según el destino.
+describe("destino de lo público", () => {
+  const pedir = (extra: Record<string, unknown>) => ({ name: "casa.jpg", size: 10, contentType: "image/jpeg", visibility: "public", ...extra });
+  const base = (propiedad: Record<string, unknown> | null, mine: string | null) => ({
+    from: () => { throw new Error("sin lectura directa"); },
+    rpc: async (name: string) => name === "fortius_inmuebles_team_properties" ? { data: propiedad ? [{ id: "casa", data: propiedad }] : [], error: null } : { data: mine, error: null },
+  }) as never;
+  it("sin destino no se prepara nada público", async () => {
+    await expect(prepareUpload(createServerClient(undefined, true), userId, pedir({}))).rejects.toMatchObject({ status: 403 });
+    await expect(autorizarDestino(base(null, null), "admin", pedir({}))).rejects.toMatchObject({ status: 403 });
+  });
+  it("lo privado no pide destino", async () => {
+    await expect(autorizarDestino(base(null, null), "asesor", { ...pedir({}), visibility: "private" })).resolves.toBeUndefined();
+  });
+  it("la biblioteca pública del sitio es solo del director", async () => {
+    await expect(autorizarDestino(base(null, null), "asesor", pedir({ destino: "sitio" }))).rejects.toMatchObject({ status: 403 });
+    await expect(autorizarDestino(base(null, null), "admin", pedir({ destino: "sitio" }))).resolves.toBeUndefined();
+  });
+  it("las fotos de un inmueble las sube su asesor; las de uno ajeno, no", async () => {
+    await expect(autorizarDestino(base({ asesorId: "ana" }, "ana"), "asesor", pedir({ destino: "inmueble", inmueble: "casa" }))).resolves.toBeUndefined();
+    await expect(autorizarDestino(base({ asesorId: "luis" }, "ana"), "asesor", pedir({ destino: "inmueble", inmueble: "casa" }))).rejects.toMatchObject({ status: 403 });
+    await expect(autorizarDestino(base({ asesorId: "luis" }, "ana"), "admin", pedir({ destino: "inmueble", inmueble: "casa" }))).resolves.toBeUndefined();
+  });
+  it("un inmueble nuevo, todavía sin guardar, lo sube quien lo captura", async () => {
+    await expect(autorizarDestino(base(null, "ana"), "asesor", pedir({ destino: "inmueble", inmueble: "nueva" }))).resolves.toBeUndefined();
+    await expect(autorizarDestino(base(null, "ana"), "asesor", pedir({ destino: "inmueble" }))).resolves.toBeUndefined();
   });
 });

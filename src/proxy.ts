@@ -29,6 +29,10 @@ export function proxy(request: NextRequest) {
   response.headers.set("x-frame-options", "DENY");
   response.headers.set("x-content-type-options", "nosniff");
   response.headers.set("referrer-policy", "strict-origin-when-cross-origin");
+  // El sitio no usa cámara, micrófono, ubicación ni pagos: los niega también a los iframes (videos, recorridos 360).
+  response.headers.set("permissions-policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()");
+  // Aísla la ventana de páginas ajenas; conserva las ventanas que el panel abre para ver archivos.
+  response.headers.set("cross-origin-opener-policy", "same-origin-allow-popups");
   return response;
 }
 

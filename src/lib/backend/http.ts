@@ -36,7 +36,7 @@ export function assertSameOrigin(request: Request): void {
 export async function readBody(request: Request, maxBytes: number): Promise<Uint8Array> {
   const declared = Number(request.headers.get("content-length"));
   if (declared > maxBytes) throw new ApiError(413, "Solicitud demasiado grande");
-  if (!request.body) throw new ApiError(400, "Cuerpo requerido");
+  if (!request.body) throw new ApiError(400, "No llegaron los datos. Recarga la página y vuelve a intentarlo.");
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
   let size = 0;
@@ -56,10 +56,10 @@ export async function readBody(request: Request, maxBytes: number): Promise<Uint
 }
 
 export async function readJson(request: Request, maxBytes = 262144): Promise<unknown> {
-  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) throw new ApiError(415, "Se requiere JSON");
+  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) throw new ApiError(415, "No llegaron los datos. Recarga la página y vuelve a intentarlo.");
   const bytes = await readBody(request, maxBytes);
   try { return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); }
-  catch { throw new ApiError(400, "JSON inválido"); }
+  catch { throw new ApiError(400, "Los datos llegaron incompletos. Recarga la página y vuelve a intentarlo."); }
 }
 
 export async function apiResponse(action: () => Promise<unknown>, successStatus = 200): Promise<Response> {
@@ -69,7 +69,7 @@ export async function apiResponse(action: () => Promise<unknown>, successStatus 
   try { return Response.json(await action(), { status: successStatus, headers }); }
   catch (error) {
     const status = error instanceof ApiError ? error.status : error instanceof ZodError ? 400 : 500;
-    const message = error instanceof ApiError ? error.message : status === 400 ? "Datos inválidos; revisa los campos" : "No se pudo completar la operación";
+    const message = error instanceof ApiError ? error.message : status === 400 ? "Hay datos que no son válidos. Revisa lo que capturaste." : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
     if (status >= 500) console.error(JSON.stringify({ event: "api_failure", requestId, status, category: error instanceof ApiError ? "dependency" : "unexpected", durationMs: Date.now() - startedAt }));
     return Response.json({ ...(error instanceof ApiError ? error.details : undefined), error: message, requestId }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
   }
@@ -92,7 +92,7 @@ export function databaseError(error: { code?: string; message?: string }): never
     : error.code === "42501" ? 403 : ["23503", "23001", "23505"].includes(error.code ?? "") ? 409 : 503;
   // SQL messages are bounded application messages; never expose arbitrary DB errors.
   const message = status === 409 ? "El registro cambió o tiene referencias; recarga antes de continuar"
-    : status === 400 ? "Registro o referencia inválidos" : status === 401 ? "Sesión requerida"
-    : status === 403 ? "Acceso no autorizado" : status === 429 ? "Demasiadas solicitudes; inténtalo más tarde" : "Servicio temporalmente no disponible";
+    : status === 400 ? "Falta un dato o lo que elegiste ya no existe. Revisa y vuelve a intentarlo." : status === 401 ? "Tu sesión terminó. Vuelve a entrar."
+    : status === 403 ? "Tu cuenta no tiene permiso para esto." : status === 429 ? "Demasiados intentos seguidos. Espera un minuto y vuelve a intentarlo." : "El panel no responde. Espera un minuto y vuelve a intentarlo.";
   throw new ApiError(status, message);
 }

@@ -22,13 +22,26 @@ export async function exportOwner(db) {
   }
 }
 
+/**
+ * TLS de la conexión. SEG-B15: con FORTIUS_BACKUP_DB_CA (el certificado raíz de Supabase en PEM) se
+ * verifica el certificado del servidor y su nombre; sin él se cifra pero no se verifica, como antes.
+ */
+export function databaseSsl(dbUrl, env = process.env) {
+  if (/127\.0\.0\.1|localhost/.test(dbUrl)) return false;
+  const ca = env.FORTIUS_BACKUP_DB_CA?.trim();
+  if (!ca) return { rejectUnauthorized: false };
+  if (!ca.includes('-----BEGIN CERTIFICATE-----')) throw Error('FORTIUS_BACKUP_DB_CA must be a PEM certificate');
+  return { rejectUnauthorized: true, ca };
+}
+
 export async function main(args = process.argv.slice(2)) {
   const output = args[0], dbUrl = process.env.FORTIUS_BACKUP_DB_URL;
   if (!output) throw Error('Usage: FORTIUS_BACKUP_DB_URL=... node tools/fortius-inmuebles-owner-export.mjs OUTPUT.json');
   if (!dbUrl) throw Error('FORTIUS_BACKUP_DB_URL is required');
   const pg = (await import('pg')).default;
-  const client = new pg.Client({ connectionString: dbUrl, ssl: /127\.0\.0\.1|localhost/.test(dbUrl) ? false : { rejectUnauthorized: false } });
+  const client = new pg.Client({ connectionString: dbUrl, ssl: databaseSsl(dbUrl) });
   await client.connect();
+  if (!process.env.FORTIUS_BACKUP_DB_CA?.trim() && !/127\.0\.0\.1|localhost/.test(dbUrl)) console.warn('TLS sin verificar el certificado del servidor: falta FORTIUS_BACKUP_DB_CA');
   try {
     const backup = await exportOwner(client);
     await writeFile(resolve(output), JSON.stringify(backup), { flag: 'wx', mode: 0o600 });

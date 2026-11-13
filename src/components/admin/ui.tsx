@@ -2,7 +2,7 @@
 import { confirmAction } from "@/components/admin/workspace/confirm";
 
 import * as React from "react";
-import { errorMessage, uploadFile, type UploadedFile } from "@/lib/admin/store";
+import { errorMessage, uploadFile, useSession, type UploadedFile } from "@/lib/admin/store";
 
 /*
   Primitivos utilitarios del panel: mismo sistema de tokens que el sitio,
@@ -266,17 +266,22 @@ export function UploadControl({
   accept,
   label = "Subir archivo",
   publicOnly = false,
+  inmueble,
   capture,
 }: {
   onUploaded: (file: UploadedFile) => Promise<unknown> | void;
   accept?: string;
   label?: string;
   publicOnly?: boolean;
+  /** B5: con `publicOnly`, la ficha a la que va (vacío en un inmueble nuevo). */
+  inmueble?: string;
   capture?: "user" | "environment";
 }) {
   const [visibility, setVisibility] = React.useState<"private" | "public">(
     "private",
   );
+  // B5: la biblioteca pública del sitio es del director; el asesor sube privado.
+  const director = useSession()?.role === "admin";
   const notifyPending = React.useContext(UploadPendingContext);
   const mutation = useMutation();
   const id = React.useId();
@@ -320,6 +325,7 @@ export function UploadControl({
                 const result = await uploadFile(
                   file,
                   publicOnly ? "public" : visibility,
+                  publicOnly ? { destino: "inmueble", inmueble } : { destino: "sitio" },
                 );
                 await onUploaded(result);
                 input.value = "";
@@ -330,7 +336,7 @@ export function UploadControl({
           }}
         />
       </Field>
-      {!publicOnly ? (
+      {!publicOnly && director ? (
         <Field label="Visibilidad de la carga" htmlFor={id + "-visibility"}>
           <select
             id={id + "-visibility"}

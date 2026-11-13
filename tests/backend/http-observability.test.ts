@@ -6,7 +6,7 @@ it("correlates server failures without logging raw exceptions or customer data",
  const response=await apiResponse(async()=>{throw new Error("customer@example.com secret-token");});
  const id=response.headers.get("x-request-id");
  expect(id).toMatch(/^[a-f0-9-]{36}$/);
- expect(await response.json()).toMatchObject({requestId:id,error:"No se pudo completar la operación"});
+ expect(await response.json()).toMatchObject({requestId:id,error:"No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento."});
  expect(log).toHaveBeenCalledOnce();
  expect(JSON.stringify(log.mock.calls)).toContain(id);
  expect(JSON.stringify(log.mock.calls)).not.toMatch(/customer|secret-token/);

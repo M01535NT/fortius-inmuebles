@@ -214,7 +214,7 @@ test("buyers, sellers and segment pages lead to the right next step on mobile", 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/comprar-propiedad");
   await expect(page.getByRole("heading", { name: "Lo que se suma al precio." })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Explorar inventario" }).last()).toHaveAttribute("href", "/inventario");
+  await expect(page.getByRole("link", { name: "Ver propiedades" }).last()).toHaveAttribute("href", "/inventario");
 
   await page.goto("/vender-propiedad");
   await expect(page.getByRole("heading", { name: "Antes de publicar." })).toBeVisible();

@@ -10,6 +10,6 @@ export const PERFIL_ILUSTRATIVO = {
   nombre: SITE_TERMS.responsible,
   cargo: "Asesor inmobiliario en Fortius",
   iniciales: "MN",
-  descripcion: "Soy tu contacto para revisar lo que buscas o la propiedad que quieres vender. Coordino las visitas y reviso las propuestas contigo; tú decides qué condiciones aceptar.",
+  descripcion: "En Fortius revisamos contigo lo que buscas o la propiedad que vendes; coordinamos visitas y propuestas, y tú decides.",
   foto: "/images/team/advisor-example.webp",
 };

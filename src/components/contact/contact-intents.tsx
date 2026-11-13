@@ -12,7 +12,7 @@ const intents = {
   comprar: {
     label: "Quiero comprar",
     detail: "Te ayudamos a encontrarla.",
-    title: "Hablemos de tu próxima propiedad.",
+    title: "Cuéntanos qué buscas.",
     objective: "Comprar una propiedad",
     message: "Hola, quiero recibir orientación para comprar una propiedad.",
     photo: { src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" },
@@ -20,7 +20,7 @@ const intents = {
   vender: {
     label: "Quiero vender",
     detail: "Empezamos con una entrevista.",
-    title: "Hablemos de la venta de tu propiedad.",
+    title: "Cuéntanos de tu propiedad.",
     objective: "Vender mi propiedad",
     message: "Hola, quiero revisar la venta de mi propiedad.",
     photo: { src: "/hero/que-hacemos-vender.webp", alt: "Casa de dos niveles con jardín" },

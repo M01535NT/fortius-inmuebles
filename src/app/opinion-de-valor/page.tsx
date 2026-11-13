@@ -4,12 +4,13 @@ import Link from "next/link";
 
 import { InteriorPage } from "@/components/sections/interior-page";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./opinion.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/opinion-de-valor",
   title: "Opinión de valor de tu casa en Tijuana",
   description:
-    "La opinión de valor de tu casa en Tijuana se entrega después de la entrevista, el levantamiento y la revisión de documentos. No sustituye un avalúo bancario.",
+    "La opinión de valor de tu casa en Tijuana se entrega tras la entrevista, el levantamiento y la revisión de documentos. No sustituye un avalúo bancario.",
 });
 
 /* El procedimiento del titular (30/10/2026): sin estos pasos no se entrega opinión de valor. */
@@ -36,7 +37,7 @@ export default function OpinionDeValorPage() {
     <InteriorPage title="El precio sale de revisar tu propiedad."
       description="Es parte del método: llega con el dictamen de factibilidad, después de conocer el inmueble."
       bullets={[]}
-      primary={{ href: "/vender-propiedad#entrevista", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Ver el método" }}
+      primary={{ href: "/vender-propiedad#entrevista", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Conocer el método" }}
       aside={<ol className="ip-steps" aria-label="Cómo llegamos al precio">
         {STEPS.map((step, index) => <li key={step.title} className={index === STEPS.length - 1 ? "is-current" : undefined}>
           <span className="ip-step-dot" aria-hidden="true" />

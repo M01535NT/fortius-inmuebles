@@ -8,12 +8,13 @@ import { InteriorPage } from "@/components/sections/interior-page";
 import { routePages } from "@/data/site";
 import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./comprar.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/comprar-propiedad",
   title: "Guía para comprar casa en Tijuana",
   description:
-    "Antes de comprar casa en Tijuana revisa escritura, gravámenes, predial y uso de suelo. Te decimos qué pedir, cuánto cuesta el cierre y cómo evitar sorpresas.",
+    "Antes de comprar casa en Tijuana revisa escritura, gravámenes, predial y uso de suelo. Qué pedir, cuánto cuesta el cierre y cómo evitar sorpresas.",
 });
 
 const DOCUMENTS = [
@@ -57,7 +58,7 @@ export default async function ComprarInmueblePage() {
   return <main className="pg-page">
     <InteriorPage {...routePages.comprar} bullets={[]} title="Compra sin sorpresas."
       description="Documentos y gastos, antes del precio."
-      primary={{ href: "/inventario", label: "Explorar inventario" }} secondary={{ href: "/herramientas/gastos-de-cierre", label: "Calcular gastos de cierre" }}
+      primary={{ href: "/inventario", label: "Ver propiedades" }} secondary={{ href: "/herramientas/gastos-de-cierre", label: "Calcular gastos de cierre" }}
       media={{ src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" }} />
 
     <div className="pg-container gd-search-wrap">
@@ -119,7 +120,7 @@ export default async function ComprarInmueblePage() {
         </div>
         <div className="gd-cta-actions">
           <Link href="/contacto" className="pg-btn pg-btn-light">Hablar con un asesor</Link>
-          <Link href="/inventario" className="gd-cta-link">Ver todo el inventario</Link>
+          <Link href="/inventario" className="gd-cta-link">Ver propiedades</Link>
         </div>
       </div>
     </section>

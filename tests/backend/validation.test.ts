@@ -64,6 +64,12 @@ describe("BFF validation and authorization behavior", () => {
       "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-staging/video.mp4",
       "https://assets.example.com/storage/v1/object/public/legacy-private/video.mp4",
       "https://assets.example.com/storage/v1/object/public/legacy-staging/video.mp4",
+      // B6: de Storage solo el bucket público de Fortius; ni otros buckets, ni compartir, ni auth.
+      "https://assets.example.com/storage/v1/object/public/otro-proyecto/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-expedientes/video.mp4",
+      "https://assets.example.com/storage/v1/render/image/public/fortius-app-integrations/foto.jpg",
+      "https://fortiusinmuebles.com/api/apps/shared/token-de-ensayo",
+      "https://fortiusinmuebles.com/api/auth/callback",
       "javascript:alert(1)",
     ]) {
       const input = { ...settings, [field]: unsafe };
@@ -74,6 +80,8 @@ describe("BFF validation and authorization behavior", () => {
   it("public configuration preserves legitimate external and local links and empty URL fields", () => {
     const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "https://wa.me/526640000000", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "/media/institucional.mp4" };
     expect(projectPublic("config", [settings])).toEqual([settings]);
+    const bucketPublico = { ...settings, videoInstitucionalUrl: "https://x.supabase.co/storage/v1/object/public/fortius-inmuebles-public/video.mp4" };
+    expect(projectPublic("config", [bucketPublico])).toEqual([bucketPublico]);
     const emptyLinks = { ...settings, facebook: "", instagram: "", videoInstitucionalUrl: "", whatsapp: "" };
     expect(projectPublic("config", [emptyLinks])).toEqual([emptyLinks]);
   });
@@ -82,6 +90,10 @@ describe("BFF validation and authorization behavior", () => {
     expect(projectPublic("config", [{ ...settings, horasPrimeraAtencion: 4 }])).toEqual([settings]);
     expect(parseRecord("config", "singleton", { ...settings, horasPrimeraAtencion: 4 })).toMatchObject({ horasPrimeraAtencion: 4 });
     for (const bad of [0, 73, 1.5, "4"]) expect(() => parseRecord("config", "singleton", { ...settings, horasPrimeraAtencion: bad })).toThrow();
+    // IA-02: el tope de la lectura con IA es del panel; nunca sale en la proyección pública.
+    expect(projectPublic("config", [{ ...settings, topeIaMensualUsd: 35.5 }])).toEqual([settings]);
+    expect(parseRecord("config", "singleton", { ...settings, topeIaMensualUsd: 0.29 })).toMatchObject({ topeIaMensualUsd: 0.29 });
+    for (const bad of [-1, 1001, 1.234, "20"]) expect(() => parseRecord("config", "singleton", { ...settings, topeIaMensualUsd: bad })).toThrow();
   });
   it("validates contact, body, origin enum and rejects honeypot/privilege injection", () => {
     expect(parseLead({ nombre: "Persona", telefono: "6641234567", origen: "interes_propiedad" }).origen).toBe("interes_propiedad");

@@ -26,8 +26,9 @@ it("edita una foto de la galería y la reemplaza con la copia pública ajustada"
   fireEvent.change(screen.getByLabelText(/^Luz/), { target: { value: "120" } });
   fireEvent.click(save);
   await waitFor(() => expect(onSaved).toHaveBeenCalledWith("https://cdn.example/editada.jpg"));
-  const [file, visibility] = mocks.uploadFile.mock.calls[0];
+  const [file, visibility, destino] = mocks.uploadFile.mock.calls[0];
   expect(visibility).toBe("public");
+  expect(destino).toEqual({ destino: "inmueble", inmueble: undefined });
   expect((file as File).type).toBe("image/jpeg");
 });
 

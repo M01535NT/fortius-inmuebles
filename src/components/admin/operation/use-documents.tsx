@@ -25,6 +25,7 @@ import { semillaOpinion } from "@/lib/formatos/opinion-juridica";
 */
 
 const post = (body: unknown) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+const LOAD_ERROR = "No se pudieron cargar los documentos de la operación. Vuelve a intentarlo antes de iniciar un formato.";
 const byNewest = (a: Documento, b: Documento) => b.updated_at.localeCompare(a.updated_at);
 /** «04» es el levantamiento de cualquier tipo (04A–04G). */
 const matches = (formato: string, id: string) => formato === "04" ? id.startsWith("04") : id === formato;
@@ -34,7 +35,7 @@ const matches = (formato: string, id: string) => formato === "04" ? id.startsWit
   motivo o por determinar si aún está por confirmar; lo agregado a mano va en «Otros documentos» (D22).
 */
 export function juridicaDocumentsFrom(checklist?: Task) {
-  const referencia = "Checklist de documentos de la operación";
+  const referencia = "Lista de documentos de la operación";
   const otros = checklist?.pasos.filter(p => !/^D\d{2}$/.test(p.id) || p.id === "D22") ?? [];
   return (JURIDICA_TABLES.documentos.fixed ?? []).map(item => {
     if (item.key === "D22" && otros.length) {
@@ -64,11 +65,19 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   const [emissions, setEmissions] = React.useState<Record<string, Emision[]>>({});
   const [open, setOpen] = React.useState<Documento | null>(null);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState("");
+  // C-04: si la consulta falla, la lista sigue «sin cargar» (nunca vacía) y se avisa; así nadie inicia
+  // un formato que ya existe en el servidor ni avanza el consecutivo del recibo 18.
+  const [loadFailed, setLoadFailed] = React.useState(false), [attempt, setAttempt] = React.useState(0);
+  // La consulta en curso: iniciar un formato mientras carga espera su resultado en vez de adivinar.
+  const loading = React.useRef<Promise<Documento[] | null>>(Promise.resolve(null));
   React.useEffect(() => {
     let alive = true;
-    apiRequest<{ documentos?: Documento[] }>(`/api/admin/expedientes/${op.id}/formatos`).then(r => { if (alive) setDocuments(r.documentos ?? []); }).catch(() => { if (alive) setDocuments([]); });
+    loading.current = apiRequest<{ documentos?: Documento[] }>(`/api/admin/expedientes/${op.id}/formatos`)
+      .then(r => { const items = r.documentos ?? []; if (alive) { setLoadFailed(false); setDocuments(items); } return items; })
+      .catch(() => { if (alive) setLoadFailed(true); return null; });
     return () => { alive = false; };
-  }, [op.id]);
+  }, [op.id, attempt]);
+  const reload = React.useCallback(() => { setLoadFailed(false); setAttempt(n => n + 1); }, []);
   // Los PDF de cada borrador se consultan una vez por borrador.
   const ids = (documents ?? []).map(d => d.id).join(",");
   React.useEffect(() => {
@@ -124,13 +133,22 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     });
   }
   /** Abre la ventana del formato: el borrador más reciente o uno nuevo. El levantamiento nace del tipo elegido. */
+  /** La lista del servidor (esperando la carga si sigue en curso); sin ella no se sabe si el formato ya existe y no se crea nada. */
+  async function loaded(): Promise<Documento[] | null> {
+    const items = documents ?? await loading.current;
+    if (!items) setError(LOAD_ERROR);
+    return items;
+  }
   async function start(formato: string, survey?: LevantamientoId) {
-    const existing = latest(formato);
+    const items = await loaded();
+    if (!items) return;
+    const existing = items.filter(d => matches(formato, d.formato_id)).sort(byNewest)[0];
     const doc = existing ?? await create(formato === "04" ? survey ?? levantamientoFor(answers.tipoInmueble) : formato);
     if (doc) setOpen(doc);
   }
   /** Crea y abre un formato desde el expediente; en el neto (08) se elige si parte de una opinión de valor (null: no usarla). */
   async function createAndOpen(formatoId: string, valorReferencia?: { id: string; version: number } | null) {
+    if (!await loaded()) return;
     const { valorReferencia: suggested, ...seed } = seedFor(formatoId) as ReturnType<typeof seedFor> & { valorReferencia?: { id: string; version: number } };
     const reference = valorReferencia === undefined ? suggested : valorReferencia ?? undefined;
     const doc = await create(formatoId, { ...seed, ...(reference ? { valorReferencia: reference } : {}) });
@@ -149,8 +167,8 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
       const items = checklist?.pasos.map(p => ({ id: p.id, texto: p.texto, ...(p.porConfirmar ? { porConfirmar: p.porConfirmar } : {}) })) ?? checklistFor(answers);
       const fileContext = { folio: op.folio, cliente, recibidos: checklist?.pasos.filter(p => p.hecho).map(p => p.id), noAplica: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.noAplica?.trim()).map(p => [p.id, p.noAplica!.trim()])), porConfirmar: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.porConfirmar && !pasoCompleto(p)).map(p => [p.id, p.porConfirmar!])) };
       const { checklistPdf, checklistDocx } = await import("@/lib/formatos/checklist-print");
-      if (kind === "pdf") saveBlob(new Blob([new Uint8Array(await checklistPdf(items, fileContext))], { type: "application/pdf" }), `Fortius-Checklist-documentos-${op.folio}.pdf`);
-      else saveBlob(await checklistDocx(items, fileContext), `Fortius-Checklist-documentos-${op.folio}.docx`);
+      if (kind === "pdf") saveBlob(new Blob([new Uint8Array(await checklistPdf(items, fileContext))], { type: "application/pdf" }), `Fortius-Lista-documentos-${op.folio}.pdf`);
+      else saveBlob(await checklistDocx(items, fileContext), `Fortius-Lista-documentos-${op.folio}.docx`);
     });
   }
 
@@ -160,7 +178,7 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     onEmitted={emision => setEmissions(old => ({ ...old, [open.id]: [emision, ...(old[open.id] ?? [])] }))}
     onClose={() => setOpen(null)} />;
 
-  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error, capture, isOpen: !!open };
+  return { documents, list, emissions, latest, pdfOf, status, start, createAndOpen, openDocument: setOpen, word, startChecklist, checklistFile, checklistAnswers: answers, busy, error: error || (loadFailed ? LOAD_ERROR : ""), loadFailed, reload, capture, isOpen: !!open };
 }
 
 /**

@@ -1,0 +1,30 @@
+/*
+  Estilos que solo usa /inventario/[slug] (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.property-gallery-photos { width: 100%; margin-inline: auto; }
+.property-gallery-main { position: relative; width: 100%; height: clamp(240px, 50vw, 600px); overflow: hidden; background: var(--secondary); }
+.property-gallery-main img { animation: gallery-photo-in .6s ease both; }
+.property-gallery-navigation { display: flex; justify-content: center; min-width: 0; margin-top: var(--space-normal); }
+.property-gallery-counter { position: absolute; bottom: 20px; left: 20px; background: #f8f8ff; color: #061f3f; padding: var(--space-corto) var(--space-cerca); font-size: var(--type-etiqueta); }
+.property-gallery-thumbnails { display: flex; min-width: 0; max-width: 100%; gap: var(--space-cerca); overflow-x: auto; padding-block: var(--space-junto); scroll-snap-type: x proximity; }
+.property-gallery-thumbnails button { scroll-snap-align: start; }
+@media (prefers-reduced-motion: reduce) {
+  .property-gallery-main img { animation: none; }
+}
+.property-key-facts { display: flex; flex-wrap: wrap; gap: var(--space-amplio) var(--space-bloque); padding-top: var(--space-amplio); }
+.property-key-facts dt { font-size: var(--type-etiqueta); color: var(--muted-foreground); }
+.property-key-facts dd { margin-top: var(--space-junto); font-size: var(--type-cifra); }
+.pg-eyebrow-ink { color: var(--primary-text, #8a1634); }
+.inv-page .property-card-extra { margin: 0 -16px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--foreground) 3%, transparent); }
+@media (min-width: 1200px) {
+  .inv-page .property-catalog-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-amplio) var(--space-normal); }
+  .inv-layout.has-map .property-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1023px) {
+  .inv-layout.has-map .property-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .inv-layout.has-map .property-catalog-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inv-segment button, .inv-views button, .inv-select, .inv-toggle, .inv-page .property-editorial-card { transition: none; } }

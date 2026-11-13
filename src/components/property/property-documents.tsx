@@ -50,7 +50,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
   return (
     <div className="rounded-lg border border-border bg-card">
       <div className="fe-card-head p-5">
-        <h2 className="text-lg font-semibold text-foreground">Documentos comerciales</h2>
+        <h2 className="text-entrada font-semibold text-foreground">Documentos comerciales</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Material público. Los documentos privados se comparten por un canal autorizado.
         </p>
@@ -61,7 +61,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
           <li key={doc.codigo + doc.url} className="flex items-center gap-3 px-5 py-3.5">
             <FileText className="size-4.5 shrink-0 text-primary-ink" strokeWidth={1.5} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground">{doc.nombre} <span className="whitespace-nowrap text-xs font-normal text-muted-foreground">{doc.codigo}</span></p>
+              <p className="text-sm font-medium text-foreground">{doc.nombre} <span className="whitespace-nowrap text-etiqueta font-normal text-muted-foreground">{doc.codigo}</span></p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 {doc.descripcion}
               </p>
@@ -80,7 +80,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
                 PDF
               </a>
             ) : (
-              <span className="text-xs font-semibold text-muted-foreground">PDF</span>
+              <span className="text-etiqueta font-semibold text-muted-foreground">PDF</span>
             )}
           </li>
         ))}
@@ -123,7 +123,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
             className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
           >
             <ArrowDownToLine className="size-4" strokeWidth={1.5} />
-            {enviando ? "Enviando…" : "Liberar descargas"}
+            {enviando ? "Enviando…" : "Ver documentos"}
           </button>
           {error ? (
             <p
@@ -134,7 +134,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
             </p>
           ) : null}
           <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-            Sin compromiso. Usamos tus datos solo para dar seguimiento.
+            Sin compromiso. Usamos tus datos solo para responder esta solicitud.
           </p>
         </PublicLeadForm>
       ) : (

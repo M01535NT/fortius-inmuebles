@@ -1,5 +1,5 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { z } from "zod";
@@ -59,6 +59,37 @@ export async function updateProfile(input: unknown) {
   return { ok: true };
 }
 
+/** La dirección del visitante para contar intentos; fuera de Vercel todos comparten una. */
+export function clientAddress(request: Request): string {
+  return process.env.VERCEL === "1" ? request.headers.get("x-vercel-forwarded-for")?.split(",")[0].trim() || "unknown" : "local";
+}
+
+// SEG-M5: Supabase solo ve la IP de Vercel; este conteo propio distingue visitantes y correos.
+// Las claves son huellas: ni la IP ni el correo se guardan.
+async function limitAttempt(kind: "login" | "recovery", scope: "ip" | "email", value: string, limit: number) {
+  const key = `${kind}:${scope}:${createHash("sha256").update(value.trim().toLowerCase()).digest("hex")}`;
+  const { error } = await createServerClient(undefined, true).rpc("fortius_inmuebles_auth_attempt", { p_key: key, p_limit: limit });
+  if (!error) return;
+  if (error.code === "PT429") throw new ApiError(429, "Demasiados intentos de acceso; inténtalo más tarde");
+  // La función llega con su migración; mientras no esté aplicada, el acceso no se detiene.
+  if (error.code === "PGRST202") return;
+  throw new ApiError(503, "El servicio de acceso no está disponible; inténtalo de nuevo");
+}
+
+type AuthMethod = { method?: unknown; timestamp?: unknown };
+// Métodos con los que se abrió la sesión. El token ya fue validado por Supabase al usarlo.
+function authMethods(accessToken: string): { method: string; at: number }[] {
+  try {
+    const payload = JSON.parse(Buffer.from(accessToken.split(".")[1] ?? "", "base64url").toString("utf8")) as { amr?: AuthMethod[] };
+    return (Array.isArray(payload.amr) ? payload.amr : [])
+      .filter((entry): entry is { method: string; timestamp: number } => typeof entry?.method === "string" && typeof entry?.timestamp === "number")
+      .map(entry => ({ method: entry.method, at: entry.timestamp * 1000 }));
+  } catch { return []; }
+}
+const LINK_METHODS = ["recovery", "invite", "otp", "magiclink"];
+const fromRecentLink = (accessToken: string, now = Date.now()) => authMethods(accessToken).some(entry => LINK_METHODS.includes(entry.method) && now - entry.at < 60 * 60 * 1000);
+const recentlyAuthenticated = (accessToken: string, now = Date.now()) => authMethods(accessToken).some(entry => now - entry.at < 15 * 60 * 1000);
+
 async function verifyStaff(client: SupabaseClient, token: string): Promise<StaffUser> {
   const { data, error } = await client.auth.getUser(token);
   if (error || !data.user) throw new ApiError(401, "Sesión inválida o vencida");
@@ -100,8 +131,10 @@ export async function requireStaff(): Promise<{ user: StaffUser; client: Supabas
   return { user, client, accessToken: token };
 }
 
-export async function loginWithPassword(input: unknown): Promise<{ user: StaffUser }> {
+export async function loginWithPassword(input: unknown, client = "local"): Promise<{ user: StaffUser }> {
   const credentials = z.object({ email: z.email().max(254), password: z.string().min(1).max(128) }).strict().parse(input);
+  await limitAttempt("login", "ip", client, 30);
+  await limitAttempt("login", "email", credentials.email, 20);
   const authClient = createServerClient();
   const { data, error } = await authClient.auth.signInWithPassword(credentials);
   if (error) {
@@ -127,6 +160,8 @@ export async function acceptAuthCallback(input: unknown): Promise<{ user: StaffU
     ? await authClient.auth.verifyOtp({ type: payload.type, token_hash: payload.token_hash })
     : await authClient.auth.setSession({ access_token: payload.access_token, refresh_token: payload.refresh_token });
   if (error || !data.session) throw new ApiError(401, "Invitación o recuperación inválida o vencida");
+  // SEG-B2: un par de tokens solo vale si viene de un enlace reciente, no de un inicio de sesión cualquiera.
+  if (!("token_hash" in payload) && !fromRecentLink(data.session.access_token)) throw new ApiError(401, "Invitación o recuperación inválida o vencida");
   const user = await verifyStaff(createServerClient(data.session.access_token), data.session.access_token);
   await saveSession(data.session);
   return { user };
@@ -135,6 +170,8 @@ export async function acceptAuthCallback(input: unknown): Promise<{ user: StaffU
 export async function changePassword(input: unknown): Promise<{ ok: true }> {
   const { password } = z.object({ password: z.string().min(12).max(128) }).strict().parse(input);
   const { accessToken } = await requireStaff();
+  // SEG-B1: una sesión vieja (o robada) no fija una contraseña nueva; hace falta un enlace o un acceso reciente.
+  if (!fromRecentLink(accessToken) && !recentlyAuthenticated(accessToken)) throw new ApiError(401, "Por seguridad, vuelve a iniciar sesión para cambiar la contraseña");
   const refreshToken = (await cookies()).get(REFRESH_COOKIE)?.value;
   if (!refreshToken) throw new ApiError(401, "Solicita un enlace nuevo para establecer la contraseña");
   // updateUser requires Supabase's in-memory Auth session, not just the request's
@@ -156,8 +193,10 @@ export async function logoutSession(): Promise<{ ok: true }> {
   return { ok: true };
 }
 
-export async function requestRecovery(input: unknown, redirectTo: string): Promise<{ ok: true }> {
+export async function requestRecovery(input: unknown, redirectTo: string, client = "local"): Promise<{ ok: true }> {
   const { email } = z.object({ email: z.email().max(254) }).strict().parse(input);
+  await limitAttempt("recovery", "ip", client, 5);
+  await limitAttempt("recovery", "email", email, 3);
   const { error } = await createServerClient().auth.resetPasswordForEmail(email, { redirectTo });
   if (error) {
     if (error.status === 429) throw new ApiError(429, "Demasiadas solicitudes de acceso; inténtalo más tarde");

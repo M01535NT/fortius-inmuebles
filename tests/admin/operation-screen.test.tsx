@@ -166,7 +166,7 @@ it("el checklist de documentos se arma con la entrevista y se marca al recibir c
   server.docs.push({ id: "d04", expediente_id: ID, formato_id: "04B", data: {}, version: 3, updated_at: "2026-10-15T19:00:00Z" });
   server.emissions.d04 = [{ id: "e04", draft_version: 3, created_at: "2026-10-15T19:00:00Z" }];
   await openOperation();
-  fireEvent.click(await screen.findByRole("button", { name: /Iniciar checklist/ }));
+  fireEvent.click(await screen.findByRole("button", { name: /Iniciar lista/ }));
   await waitFor(() => expect(server.tasks).toHaveLength(1));
   const created = server.tasks[0] as { id: string; pasos: Array<{ id: string; hecho: boolean }> };
   expect(created.id).toBe(`checklist-${ID}`);
@@ -210,7 +210,7 @@ it("en el dictamen, la barra dice qué les falta a las etapas anteriores y «Ver
   await stage(5);
   expect(await screen.findByRole("button", { name: "3 · Levantamiento: falta el levantamiento" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "2 · Entrevista inicial: lista" })).toBeTruthy();
-  expect(screen.getByRole("button", { name: "4 · Checklist de documentos: falta el checklist" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "4 · Lista de documentos: falta la lista de documentos" })).toBeTruthy();
   expect(screen.getByText("A la etapa 3, levantamiento, le falta el levantamiento. Hay 1 más en «Ver etapas».")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Ver etapas" }));
   const sheet = await screen.findByRole("dialog", { name: "Etapas" });
@@ -542,7 +542,7 @@ it("Alta directa no pide folio, protege la captura al salir, permite descartar y
   const unit = screen.getByLabelText("Unidad, si aplica");
   fireEvent.change(unit, { target: { value: "Unidad pendiente" } });
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(screen.getByRole("link", { name: "Ver operaciones eliminadas" }));
+  fireEvent.click(screen.getByRole("link", { name: "Ver eliminados" }));
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Descartar los cambios y salir")));
   fireEvent.click(screen.getByRole("button", { name: "Descartar" }));
   await waitFor(() => expect((unit as HTMLInputElement).value).toBe(""));
@@ -650,4 +650,29 @@ it("la decisión del encargo se toma en el panel de la etapa y ya no en los dato
   fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
   const datos = await screen.findByRole("dialog", { name: "Datos de la operación" });
   expect(within(datos).queryByLabelText("Decisión")).toBeNull();
+});
+
+// BUG-C05: tras un 409 la versión del borrador no cambia y cerrar vuelve a guardar con la versión vieja;
+// aceptar o cancelar deja la ventana abierta y la única salida es recargar la página.
+it("Expediente: tras un conflicto 409 la ventana de captura ofrece una salida y se puede cerrar", async () => {
+  server.docs = [docA, docB];
+  server.fail = (url, init) => init?.method === "PUT" && url.includes("/formatos/") ? Response.json({ error: "El registro cambió o tiene referencias; recarga antes de continuar" }, { status: 409 }) : undefined;
+  await openOperation("documentos");
+  fireEvent.click((await screen.findAllByRole("button", { name: "Abrir" }))[1]);
+  const capture = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
+  fireEvent.change(await openPayer(capture), { target: { value: "Captura en conflicto" } });
+  fireEvent.click(within(capture).getByRole("button", { name: "Aceptar" }));
+  await waitFor(() => expect(within(capture).getAllByRole("alert").map(alert => alert.textContent).join(" ")).toMatch(/cambió/));
+  // Con todas las confirmaciones aceptadas (incluida la de descartar), «Cerrar» debe cerrar la ventana.
+  fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "Recibo de pago de honorarios" })).toBeNull(), { timeout: 3000 });
+});
+
+// BUG-C07: el foco inicial va a un encabezado que no existe en la captura en vivo y se queda detrás del velo.
+it("Expediente: al abrir la ventana de captura el foco queda dentro del diálogo", async () => {
+  server.docs = [docA, docB];
+  await openOperation("documentos");
+  fireEvent.click((await screen.findAllByRole("button", { name: "Abrir" }))[1]);
+  const capture = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
+  await waitFor(() => expect(capture.contains(document.activeElement)).toBe(true));
 });

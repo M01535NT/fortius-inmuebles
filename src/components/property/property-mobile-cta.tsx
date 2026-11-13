@@ -10,7 +10,7 @@ export function PropertyMobileCta({ settings, message }: { settings?: SiteSettin
   ].filter((action) => action.href);
   if (!actions.length) actions.push(contact.emailHref
     ? { label: "Correo", href: contact.emailHref, icon: Mail }
-    : { label: "Consultar este inmueble", href: "#interes", icon: ArrowUpRight });
+    : { label: "Solicitar visita", href: "#interes", icon: ArrowUpRight });
   return <div aria-label="Contacto del inmueble" className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 pb-[calc(env(safe-area-inset-bottom)+12px)] backdrop-blur md:hidden">
     <div className="flex gap-2.5">
       {actions.map(({ label, href, icon: Icon }) => {

@@ -7,7 +7,7 @@ import { inputClass, selectClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { downloadAdminPdf } from "@/lib/admin/download-pdf";
 import { copiaEditable, downloadFormatoCopia } from "@/lib/admin/download-word";
-import { errorMessage, fetchJson as json } from "@/lib/admin/store";
+import { errorMessage, fetchJson as json, RequestError } from "@/lib/admin/store";
 import { shortDate } from "@/lib/admin/today";
 import { AVISO_TEMPLATE_VERSION } from "@/lib/formatos/aviso";
 import { emiteIncompleto, formatoById, validateFormato } from "@/lib/formatos/catalog";
@@ -70,7 +70,9 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   }, [definition]);
   const [adjuntos, setAdjuntos] = React.useState<Adjunto[]>([]);
   const [index, setIndex] = React.useState(0);
-  const heading = React.useRef<HTMLHeadingElement>(null), scroller = React.useRef<HTMLDivElement>(null);
+  const heading = React.useRef<HTMLHeadingElement>(null), scroller = React.useRef<HTMLDivElement>(null), dialog = React.useRef<HTMLDivElement>(null);
+  // C-05: otra ventana o persona guardó una versión más nueva; esta captura ya no se puede guardar encima.
+  const [conflict, setConflict] = React.useState(false);
   const dirty = JSON.stringify(values) !== JSON.stringify(doc.data);
   const data = React.useMemo(() => ({ ...values, folio }), [values, folio]);
   const missing = validateFormato(definition.id, data);
@@ -105,13 +107,16 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
   React.useEffect(() => {
     const previous = document.activeElement as HTMLElement | null, overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    heading.current?.focus();
+    // C-07: sobre el documento en vivo no hay título de sección; el foco va al diálogo, nunca detrás del velo.
+    (heading.current ?? dialog.current)?.focus();
     return () => { document.body.style.overflow = overflow; previous?.focus?.(); };
   }, []);
 
   async function persist(next = values) {
     if (JSON.stringify(next) === JSON.stringify(doc.data)) return doc;
-    const result = await json<{ documento: Documento }>(`/api/admin/formatos/${doc.id}`, post({ version: doc.version, data: next }, "PUT"));
+    let result: { documento: Documento };
+    try { result = await json<{ documento: Documento }>(`/api/admin/formatos/${doc.id}`, post({ version: doc.version, data: next }, "PUT")); }
+    catch (cause) { if (cause instanceof RequestError && cause.status === 409) setConflict(true); throw cause; }
     setDoc(result.documento); setValues(result.documento.data); onSaved(result.documento);
     return result.documento;
   }
@@ -132,10 +137,22 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
     if (busy || closing.current) return;
     closing.current = true;
     try {
+      if (conflict) {
+        if (await confirmAction("Este documento cambió en otra ventana. ¿Cerrar y descartar lo que capturaste aquí? (Cancela para seguir y recargar)")) onClose();
+        return;
+      }
       if (live && liveDraft.current && !await confirmAction("Hay un dato abierto sin aceptar. ¿Cerrar y descartarlo? (Cancela para seguir capturando)")) return;
       if (dirty && !await confirmAction("Hay respuestas sin guardar. ¿Guardarlas y cerrar? (Cancela para seguir capturando)")) return;
       await run("Guardando…", async () => { await persist(); onClose(); });
     } finally { closing.current = false; }
+  }
+  /** Trae la versión guardada en el servidor y descarta lo capturado aquí después del conflicto. */
+  function reloadDiscarding() {
+    void run("Recargando…", async () => {
+      const result = await json<{ documento: Documento }>(`/api/admin/formatos/${doc.id}`);
+      setDoc(result.documento); setValues(result.documento.data); onSaved(result.documento); setConflict(false);
+      setNotice("Se cargó la versión guardada; lo capturado aquí se descartó.");
+    });
   }
   async function pdf() {
     if (busy) return;
@@ -179,7 +196,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
 
   return <>
     <div className={s.windowScrim} aria-hidden="true" />
-    <div role="dialog" aria-modal="true" aria-labelledby="captura-titulo" aria-describedby="captura-contexto" className={s.window}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="captura-titulo" aria-describedby="captura-contexto" className={cn(s.window, "outline-none")}>
       <header className="flex flex-wrap items-start gap-3 border-b border-border px-4 py-4 sm:gap-4 sm:px-7">
         <span className={s.formatBadge} aria-hidden="true">{definition.id}</span>
         <div className="flex min-w-0 flex-1 basis-40 flex-col gap-0.5">
@@ -276,6 +293,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
         <p className="hidden text-sm text-muted-foreground sm:block">Versión {doc.version}{current ? " · con PDF" : ""}</p>
         {/* Sobre el documento no hay pie de sección: el aviso de un PDF o guardado fallido va aquí. */}
         {live && error && <p role="alert" className="basis-full text-sm text-destructive sm:order-none sm:basis-auto sm:flex-1">{error}</p>}
+        {conflict && <Button variant="ghost" disabled={!!busy} onClick={reloadDiscarding}>Recargar y descartar mi captura</Button>}
         {live && !error && notice && <p role="status" className="basis-full text-sm text-muted-foreground sm:basis-auto sm:flex-1">{notice}</p>}
         <div className="flex flex-wrap justify-end gap-2">
           {copia && <Button variant="ghost" disabled={!!busy} onClick={word}><FileText size={16} aria-hidden="true" />{busy === `Preparando ${copia}…` ? busy : copia}</Button>}

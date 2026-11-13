@@ -5,6 +5,7 @@ import { BlogCard } from "@/components/blog/blog-card";
 import { getBlogPosts } from "@/lib/blog";
 import { BLOG_CATEGORIES, BLOG_FORMATS, blogHref, filterBlogPosts, normalizeBlogSearch, postFormat } from "@/lib/blog-editorial";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./blog.css";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
 export async function generateMetadata({ searchParams }: Props = {}): Promise<Metadata> {
@@ -12,7 +13,7 @@ export async function generateMetadata({ searchParams }: Props = {}): Promise<Me
   return pageMetadata({
     path: "/blog",
     title: "Guías inmobiliarias de Tijuana",
-    description: "Guías para comprar, vender y revisar inmuebles en Tijuana y Baja California: trámites, impuestos, crédito y precios, con fuente oficial y fecha de consulta.",
+    description: "Guías para comprar, vender y revisar inmuebles en Tijuana y Baja California: trámites, impuestos, crédito, precios, con fuente oficial y fecha de consulta.",
     ...(search.q || search.tema || search.tipo || search.desde || search.hasta || search.orden === "antiguos" || search.vista === "lista" || search.pagina !== "1" ? { robots: { index: false, follow: true } } : {}),
   });
 }

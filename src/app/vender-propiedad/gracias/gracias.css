@@ -1,0 +1,21 @@
+/*
+  Estilos que solo usa /vender-propiedad/gracias (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.pg-btn-light { border-color: var(--ns-invert); background: var(--ns-invert); color: var(--ns-invert-ink); }
+.pg-btn-light:hover { background: var(--ns-invert-hover); border-color: var(--ns-invert-hover); }
+.ip-steps li.is-current { border-color: color-mix(in srgb, var(--ns-ink) 14%, transparent); background: color-mix(in srgb, var(--ns-ink) 6%, transparent); }
+.ip-steps li.is-current .ip-step-dot { background: var(--ns-accent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--ns-accent) 18%, transparent); }
+.gr-body { display: grid; justify-items: start; gap: var(--space-corto); max-width: 820px; padding-block: clamp(64px, 9vw, 128px); }
+.gr-check { display: grid; place-items: center; width: 72px; height: 72px; margin-bottom: var(--space-normal); border-radius: var(--corner-pastilla); background: #8a1634; color: #fff; box-shadow: 0 0 0 12px rgba(138, 22, 52, 0.25); }
+.gr-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-cerca); width: 100%; margin: var(--space-bloque) 0 0; padding: 0; list-style: none; }
+.gr-steps li { padding: var(--space-normal); border: 1px solid color-mix(in srgb, var(--ns-ink) 14%, transparent); border-radius: var(--corner-tarjeta); }
+.gr-steps li.is-current { border-color: var(--ns-accent); background: color-mix(in srgb, var(--ns-accent) 10%, transparent); }
+.gr-step-when { font-size: var(--type-etiqueta); color: var(--ns-accent); font-weight: 600; }
+.gr-steps p { margin: var(--space-corto) 0 0; font-size: var(--type-interfaz); line-height: 1.55; color: color-mix(in srgb, var(--ns-ink) 85%, transparent); }
+.gr-actions { margin-top: var(--space-bloque); }
+.gr-links { margin: var(--space-amplio) 0 0; color: color-mix(in srgb, var(--ns-ink) 70%, transparent); font-size: var(--type-detalle); }
+.gr-links a { color: var(--ns-strong); text-decoration: underline; text-decoration-color: var(--ns-accent); text-underline-offset: 4px; }
+@media (max-width: 1023px) {
+  .gr-steps { grid-template-columns: 1fr; }
+}

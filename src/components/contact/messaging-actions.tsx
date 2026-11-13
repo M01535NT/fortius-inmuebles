@@ -32,7 +32,7 @@ export function MessagingContact({ children, title = "Conversemos directamente."
   const hasContact = !!(contact.whatsapp || contact.messenger || contact.phoneHref || contact.emailHref);
   return <div className="space-y-5">
     <div>
-      <h3 className="display-soft text-2xl text-foreground">{title}</h3>
+      <h3 className="display-soft text-subtitulo text-foreground">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{contact.whatsapp || contact.messenger ? `Escríbenos por ${contact.whatsapp && contact.messenger ? "WhatsApp o Messenger" : contact.whatsapp ? "WhatsApp" : "Messenger"}.` : contact.phoneHref ? "Llámanos para conversar sobre tu propiedad." : contact.emailHref ? "Escríbenos por correo." : shared.publicLeadsEnabled ? "Déjanos tus datos para revisar tu solicitud." : "El contacto directo estará disponible próximamente."}</p>
     </div>
     <MessagingActions {...props} />

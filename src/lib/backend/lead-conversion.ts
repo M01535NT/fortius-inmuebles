@@ -9,7 +9,7 @@ const inputSchema = z.object({ version: z.number().int().min(1).max(Number.MAX_S
 export async function convertLead(client: Pick<SupabaseClient, "rpc">, id: string, input: unknown) {
   const { version } = inputSchema.parse(input);
   const { data, error } = await client.rpc("fortius_inmuebles_convert_lead", { p_lead_id: leadId.parse(id), p_version: version });
-  if (error?.code === "PT404") throw new ApiError(404, "Lead no encontrado");
+  if (error?.code === "PT404") throw new ApiError(404, "Prospecto no encontrado");
   if (error) databaseError(error);
   return data;
 }

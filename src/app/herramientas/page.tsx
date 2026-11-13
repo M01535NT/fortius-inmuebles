@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./herramientas.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/herramientas",
@@ -19,7 +20,7 @@ export default function HerramientasPage() {
           <p className="pg-lead">Mensualidad y gastos, sin registro.</p>
           <div className="tl-grid">
             <Link href="/herramientas/hipoteca" className="tl-card">
-              <span className="tl-card-head"><span className="pg-chip">Crédito</span><span className="tl-open">Abrir</span></span>
+              <span className="tl-card-head"><span className="tl-open">Abrir</span></span>
               <span className="tl-card-title">Calculadora de hipoteca</span>
               <span className="tl-card-text">Escenarios, abonos y tabla de pagos.</span>
               <span className="tl-preview">
@@ -28,7 +29,7 @@ export default function HerramientasPage() {
               </span>
             </Link>
             <Link href="/herramientas/gastos-de-cierre" className="tl-card">
-              <span className="tl-card-head"><span className="pg-chip">Operación</span><span className="tl-open">Abrir</span></span>
+              <span className="tl-card-head"><span className="tl-open">Abrir</span></span>
               <span className="tl-card-title">Gastos de cierre</span>
               <span className="tl-card-text">Efectivo para comprar o neto al vender.</span>
               <span className="tl-preview">

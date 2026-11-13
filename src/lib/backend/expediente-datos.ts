@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { datosAutomaticos, datosGuardados, llenarDesdeDatos, mezclarDatos, sinAutomaticosIguales, type DatosGuardados, type InmuebleDatos, type PersonaDatos } from "@/lib/formatos/datos-expediente";
 import { ApiError, databaseError } from "./http";
+import { propiedadVisible } from "./repository";
 
 /*
   Datos del expediente en el servidor: se leen con la RLS del expediente y se guardan con versión
@@ -29,12 +30,16 @@ export async function datosAutomaticosDe(client: SupabaseClient, expedienteId: s
   try {
     const exp = await client.from("fortius_inmuebles_expedientes").select("cliente_id,propiedad_slug").eq("id", expedienteId).maybeSingle();
     if (exp.error || !exp.data) return {};
-    const ids = [exp.data.cliente_id, exp.data.propiedad_slug].filter((value): value is string => typeof value === "string" && !!value);
-    if (!ids.length) return {};
-    const rows = await client.from("fortius_inmuebles_records").select("id,collection,data").in("id", ids);
+    const { cliente_id: clienteId, propiedad_slug: slug } = exp.data;
+    if (!clienteId && !slug) return {};
+    // A1: el inmueble puede ser de otro asesor (compartido, contraparte COR-11): se lee recortado por la base.
+    const [rows, propiedad] = await Promise.all([
+      clienteId ? client.from("fortius_inmuebles_records").select("id,collection,data").eq("collection", "clientes").eq("id", clienteId) : Promise.resolve({ data: [], error: null }),
+      slug ? propiedadVisible(client, slug) : Promise.resolve(null),
+    ]);
     if (rows.error) return {};
-    const persona = rows.data?.find(row => row.collection === "clientes" && row.id === exp.data!.cliente_id)?.data as PersonaDatos | undefined;
-    const inmueble = rows.data?.find(row => row.collection === "propiedades" && row.id === exp.data!.propiedad_slug)?.data as InmuebleDatos | undefined;
+    const persona = rows.data?.find(row => row.collection === "clientes" && row.id === clienteId)?.data as PersonaDatos | undefined;
+    const inmueble = (propiedad ?? undefined) as InmuebleDatos | undefined;
     return datosAutomaticos({ persona, inmueble, ahora });
   } catch { return {}; }
 }
@@ -65,12 +70,25 @@ export async function guardarDatos(privileged: SupabaseClient, userId: string, e
   return { datos: datosGuardados.parse(saved.data.datos), version: saved.data.version as number };
 }
 
-/** Llena las celdas vacías de los borradores del expediente con lo confirmado. Devuelve cuántos cambió. */
+/**
+  Llena las celdas vacías de los borradores del expediente con lo confirmado. Devuelve cuántos cambió.
+  C-15: un borrador cuya versión vigente ya tiene PDF emitido no se toca; subirle la versión haría
+  que esa emisión dejara de contar (la 02 emitida volvería a bloquear el avance y un 09 firmado
+  dejaría de coincidir). Lo confirmado entra cuando alguien abra una versión nueva de ese formato.
+*/
 export async function aplicarDatos(client: SupabaseClient, expedienteId: string, datos: DatosGuardados): Promise<number> {
   const drafts = await client.from("fortius_inmuebles_formato_drafts").select("id,formato_id,data,version").eq("expediente_id", expedienteId);
   if (drafts.error) databaseError(drafts.error);
+  const ids = (drafts.data ?? []).map(draft => draft.id as string);
+  const emitted = new Set<string>();
+  for (let i = 0; i < ids.length; i += 100) {
+    const result = await client.from("fortius_inmuebles_formato_emissions").select("draft_id,draft_version").in("draft_id", ids.slice(i, i + 100));
+    if (result.error) databaseError(result.error);
+    for (const row of result.data ?? []) emitted.add(`${row.draft_id}:${row.draft_version}`);
+  }
   let actualizados = 0;
   for (const draft of drafts.data ?? []) {
+    if (emitted.has(`${draft.id}:${draft.version}`)) continue;
     const data = (draft.data ?? {}) as Record<string, unknown>;
     const { patch } = llenarDesdeDatos(draft.formato_id as string, data, datos);
     if (!Object.keys(patch).length) continue;

@@ -11,6 +11,6 @@ export async function PATCH(request: Request, { params }: Params) {
     assertSameOrigin(request); const { client } = await requireStaff(); const id = z.uuid().parse((await params).id);
     const { version, deleted } = z.object({ version: z.number().int().positive(), deleted: z.boolean() }).strict().parse(await readJson(request));
     const { data, error } = await client.from(RUNS).update({ version: version + 1, deleted_at: deleted ? new Date().toISOString() : null }).eq("id", id).eq("version", version).select("*").maybeSingle();
-    if (error) databaseError(error); if (!data) throw new ApiError(409, "Trabajo no disponible o modificado"); return { run: mapRun(data) };
+    if (error) databaseError(error); if (!data) throw new ApiError(409, "Este trabajo cambió o ya no existe. Recarga la lista."); return { run: mapRun(data) };
   });
 }

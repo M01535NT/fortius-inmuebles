@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import { InventoryExplorer } from "@/components/property/inventory-explorer";
 import { getPropiedades } from "@/lib/inventario";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./inventario.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/inventario",
-  title: "Inventario",
+  title: "Propiedades en venta y renta en Tijuana",
   description:
-    "Propiedades en venta y renta con características, precio y condiciones publicadas por cada inmueble.",
+    "Casas, departamentos, terrenos y locales en venta y renta en Tijuana, Rosarito, Tecate y Ensenada, con precio, superficies y condiciones de cada inmueble.",
 });
 
 /* El inventario publicado del panel MNT se consulta en cada solicitud. */

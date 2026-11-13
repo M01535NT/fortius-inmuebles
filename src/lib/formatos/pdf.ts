@@ -8,8 +8,6 @@ import { formatoById, validateFormato, type FormatoField, emiteIncompleto, aviso
 import { calcularPresupuesto, importePartida, type Partida, type Pago } from "./presupuesto";
 import { CARGOS_NETO, calcularNeto, type CargoNeto } from "./neto";
 import { ENTREGA_TABLAS, type EntregaRow, type EntregaTabla } from "./entrega";
-import { respuestaRequiereRatificacion } from "./oferta";
-
 import { calcularPublicidadReporte, REPORTE_TABLES, type ReporteRow, type ReporteTable } from "./reporte";
 import { ENTREVISTA_TABLES, mostrarCampoEntrevista, type EntrevistaTable, type EntrevistaRow } from "./entrevista";
 import { JURIDICA_TABLES, mostrarColumnaJuridica, type JuridicaRow } from "./juridica";

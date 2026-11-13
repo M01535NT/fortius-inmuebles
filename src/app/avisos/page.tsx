@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Download, FileText } from 'lucide-react';
 import { notices, noticeContent } from '@/lib/public-notices';
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./avisos.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/avisos",
