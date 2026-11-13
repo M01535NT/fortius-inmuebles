@@ -53,6 +53,8 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
    3. En **Alerts**, dejar la alerta de «nuevo problema» con aviso por correo.
    4. Copiar el **DSN** (Settings → Client Keys) y agregarlo en Vercel, producción, como `FORTIUS_SENTRY_DSN`. Publicar de nuevo para que lo tome.
    5. El agente provoca después un error controlado para comprobar que llega el aviso (casilla pendiente de OBS-01).
+
+   **13/11/2026:** el titular permitió crear proyectos a miembros y el agente creó por el conector el proyecto `fortius-inmuebles` (Node.js) en la organización `moises-nunez`, con la alerta por defecto de problemas de prioridad alta. Un evento de prueba enviado con `reportFailure` desde el equipo local llegó como `FORTIUS-INMUEBLES-1` («server_error PruebaControlada /api/prueba-obs-01», entorno `prueba`). Falta: el DSN en Vercel producción y repetir la prueba desde producción tras publicar. El ajuste *Prevent Storing of IP Addresses* no se puede cambiar por el conector; los eventos salen del servidor y no llevan IP de usuarios.
 9. **Regreso de la aplicación y esquema (CI-01):** compatibilidad de la publicación del 13/11/2026 revisada; regla y tabla en [despliegue](../deployment-fortius.md#compatibilidad-del-esquema-al-regresar-ci-01-revisado-el-13112026).
 
 ## Estado posterior a la integración
