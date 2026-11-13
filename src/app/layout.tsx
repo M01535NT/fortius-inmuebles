@@ -19,11 +19,14 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { organizationLd, websiteLd } from "@/lib/seo/json-ld";
 import { SITE_NAME } from "@/lib/seo/page-metadata";
 
+// Archivo es la letra del panel: aquí no se precarga para no competir con la del sitio público
+// en el celular (Web Vitals, 13/11/2026). El layout del panel la precarga en sus rutas.
 const archivo = Archivo({
   subsets: ["latin"],
   axes: ["wdth"],
   variable: "--font-archivo",
   display: "swap",
+  preload: false,
 });
 
 // Sitio público (30/10/2026): Schibsted Grotesk en 400/600/700. El panel conserva Archivo.
@@ -39,6 +42,8 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
   variable: "--font-plex",
   display: "swap",
+  // Solo la usan contadores pequeños (galería, carrusel); se descarga cuando aparecen.
+  preload: false,
 });
 
 export const viewport: Viewport = { themeColor: "#061f3f" };
