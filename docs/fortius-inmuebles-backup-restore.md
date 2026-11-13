@@ -49,7 +49,7 @@ Salvaguardas comprobadas por `tests/tools/restore-storage.test.mjs`:
 
 El informe se guarda en el directorio del respaldo como `storage-restore-REF-FECHA.json`, sin claves ni contenido. Lo que **no** cubre: el propietario original de cada objeto (`owner_id`; las subidas usan el rol de servicio del destino), las cuentas de Auth y sus contraseñas, y la configuración del proyecto (correo, URL de retorno, límites de Auth). Esas partes requieren el procedimiento del proveedor descrito en `docs/erp-crm/recovery-policy.md`.
 
-**Estado (12/11/2026):** el titular eligió la **pila local de Supabase** como destino del ensayo. La herramienta y las pruebas sintéticas están listas; **el ensayo real sigue pendiente** porque el equipo no tiene Docker ni WSL, que la pila local necesita.
+**Estado (12/11/2026):** no hay Docker para la pila local, y las ramas de Supabase exigen el plan Pro. El titular eligió un **proyecto gratuito aparte** (la organización tiene un solo proyecto activo de los dos que permite el plan gratuito). El ensayo real sigue pendiente: falta crear ese proyecto e instalar el cliente `pg`.
 
 **Los buckets no salen de las migraciones.** Las migraciones crean los buckets con sus nombres históricos (`mnt-*`, `cota-*`) y reescriben las políticas de `storage.objects` hacia `fortius-inmuebles-*`. En producción, los buckets `fortius-inmuebles-*` se crearon aparte con `tools/fortius-inmuebles-storage-identity.mjs`. Un proyecto nuevo creado solo con migraciones tiene las políticas, pero no los buckets. La restauración de Storage los crea desde el inventario del respaldo, con su privacidad, límite y tipos. Los buckets históricos quedan vacíos en el destino y no estorban.
 
@@ -57,14 +57,24 @@ El informe se guarda en el directorio del respaldo como `storage-restore-REF-FEC
 
 `node tools/fortius-inmuebles-synthetic-backup.mjs DIRECTORIO_NUEVO` crea, sin red ni credenciales, un respaldo completo de versión 4 con las 30 tablas. Contiene un administrador y un asesor de ensayo (`*.ensayo@fortius.test`), dos expedientes (uno del asesor y otro ajeno), una emisión y un documento del cliente. Las huellas de los PDF sintéticos coinciden con sus filas, y los buckets son los de producción. El manifiesto lleva `synthetic: true`. Pasa `--verify`, el ensayo en memoria y `restore-storage --plan` (`tests/tools/synthetic-backup.test.mjs`).
 
-### Ensayo en la pila local (pendiente de Docker)
+### Ensayo completo en un proyecto aislado
 
-1. El titular instala WSL 2 y Docker Desktop (requiere administrador y reiniciar). La CLI de Supabase se usa con `npx supabase@2`, sin instalarla globalmente.
-2. El agente prepara una carpeta de trabajo fuera del repositorio, con la configuración de `supabase init` y una copia de `supabase/migrations`, y ejecuta `npx supabase start`. Así se aplican las migraciones a una base local nueva.
-3. Respaldo sintético → `restore-storage` contra `http://127.0.0.1:54321` con `--confirm-target local` y la clave anónima local.
-4. Carga del export en la base local y creación de las dos cuentas de ensayo en el Auth local.
-5. Acceso: el asesor descarga la emisión de su expediente y se le niega el documento del expediente ajeno; el administrador descarga ambos; sin sesión, nada privado se descarga. Medir los tiempos de punta a punta.
+`tools/fortius-inmuebles-recovery-rehearsal.mjs` ejecuta el ensayo de punta a punta y mide cada paso:
 
+1. **Migraciones:** aplica en orden todas las de `supabase/migrations` a la base nueva. Se niega si ya tiene tablas de la aplicación.
+2. **Respaldo sintético:** lo genera, salvo que se indique `--backup DIRECTORIO`.
+3. **Auth:** crea las dos cuentas de ensayo con sus identificadores fijos, con contraseñas aleatorias que solo existen en memoria. No envía correos: los dominios son `.test`.
+4. **Base:** `restoreCurrentInto(..., { target: 'service' })` carga el export en la base vacía. Usa el modo réplica solo dentro de la transacción, vuelve a validar todas las FK y compara cada tabla con la fuente. Se niega si alguna tabla tiene datos o si faltan cuentas de Auth.
+5. **Storage:** `restoreStorageToService`, con comprobación anónima.
+6. **Acceso:** el administrador ve 2 expedientes, 1 emisión y 1 documento del cliente; el asesor ve 1, 1 y 0; sin sesión, 0. Ninguna sesión descarga directo de Storage un objeto privado (la aplicación los entrega desde el servidor tras revisar las tablas).
+
+Uso:
+
+```bash
+node --env-file=RUTA_ENV_RECUPERACION tools/fortius-inmuebles-recovery-rehearsal.mjs --confirm-target REF
+```
+
+El archivo de entorno lleva `FORTIUS_RECOVERY_SUPABASE_URL`, `FORTIUS_RECOVERY_ANON_KEY`, `FORTIUS_RECOVERY_SERVICE_ROLE_KEY` y `FORTIUS_RECOVERY_DB_URL` (cadena de conexión de sesión del proyecto aislado). Rechaza una cadena que apunte a producción o a otro proyecto. El informe se guarda en `tmp/rec01/ensayo-REF-FECHA/informe.json`, sin claves. Requiere el paquete `pg` (dependencia de desarrollo por agregar).
 
 ### Equipos con Windows
 

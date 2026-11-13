@@ -35,7 +35,7 @@ El padre del destino debe existir. Se rechazan destinos existentes, interiores a
 
 ## Ensayo completo pendiente
 
-Nada de lo siguiente se ha ejecutado. El 12/11/2026 el titular eligió la opción 1 (pila local de Supabase); falta instalar WSL 2 y Docker Desktop en el equipo. El respaldo sintético ya se genera con `tools/fortius-inmuebles-synthetic-backup.mjs`. Las migraciones no crean los buckets `fortius-inmuebles-*`; los crea la restauración de Storage (ver [el procedimiento](../fortius-inmuebles-backup-restore.md)). La base actual solo tiene datos de prueba (DEC-10), así que el ensayo puede hacerse con esa información sintética; aun así, **nunca** se restaura sobre el proyecto de producción.
+Nada de lo siguiente se ha ejecutado. El 12/11/2026 el titular eligió primero la pila local (el equipo no tiene Docker) y después una rama (exige el plan Pro); el destino acordado es un **proyecto gratuito aparte**, que se borra al terminar. El ensayo completo lo automatiza `tools/fortius-inmuebles-recovery-rehearsal.mjs`. El respaldo sintético ya se genera con `tools/fortius-inmuebles-synthetic-backup.mjs`. Las migraciones no crean los buckets `fortius-inmuebles-*`; los crea la restauración de Storage (ver [el procedimiento](../fortius-inmuebles-backup-restore.md)). La base actual solo tiene datos de prueba (DEC-10), así que el ensayo puede hacerse con esa información sintética; aun así, **nunca** se restaura sobre el proyecto de producción.
 
 **Destino.** Opciones, de menor a mayor costo (decide el titular):
 
