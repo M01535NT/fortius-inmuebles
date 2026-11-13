@@ -4,7 +4,7 @@
   azul de datos clave, cuerpo claro con índice y tarjeta de visita fijos.
 */
 .fe-page { --fe-ease: cubic-bezier(0.25, 1, 0.5, 1); overflow-x: clip; }
-.fe-page :is(#descripcion, #caracteristicas, #beneficios, #ubicacion, #ficha-tecnica, #documentos, #costos, #preguntas, #interes) { scroll-margin-top: 140px; }
+.fe-page :is(#descripcion, #caracteristicas, #beneficios, #ubicacion, #ficha-tecnica, #documentos, #costos, #preguntas, #interes) { scroll-margin-top: 152px; } /* barra 72 + índice pegado 72 + 8: el índice ya no se oculta (titular, 13/11/2026) */
 
 /* Banda de cabecera: crema en claro, noche con resplandor vino en oscuro */
 .fe-hero { background: var(--ns-bg); }
@@ -94,8 +94,6 @@
 .fe-main { min-width: 0; }
 .fe-sections { position: sticky; top: 72px; z-index: 5; display: flex; gap: var(--space-corto); margin: 0 -4px; padding: var(--space-normal) var(--space-junto); overflow-x: auto; background: var(--background); scrollbar-width: none; }
 .fe-sections::-webkit-scrollbar { display: none; }
-.fe-sections { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-.fe-sections[data-hidden] { transform: translateY(-110%); opacity: 0; pointer-events: none; }
 .fe-sections a { flex: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-normal); border: 1px solid var(--border); border-radius: var(--corner-pulsable); background: var(--card, var(--background)); color: var(--foreground); font-size: var(--type-detalle); font-weight: 600; transition: background-color 0.25s, color 0.25s, border-color 0.25s; }
 .fe-sections a:hover { border-color: #061f3f; background: #061f3f; color: #f8f8ff; }
 .fe-alert { margin: var(--space-amplio) 0 0; padding: var(--space-normal) var(--space-normal); border: 1px solid var(--border); border-radius: var(--corner-tarjeta); background: var(--secondary); font-size: var(--type-interfaz); line-height: 1.6; }
@@ -238,5 +236,5 @@
   .fe-layout { padding-bottom: 120px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fe-visor-tabs button, .fe-visor-thumbs button, .fe-visor-arrow, .fe-sections, .fe-sections a, .fe-visit-days button, .fe-faq summary svg, .fe-costs-tool, .fe-mortgage-icon { transition: none; }
+  .fe-visor-tabs button, .fe-visor-thumbs button, .fe-visor-arrow, .fe-sections a, .fe-visit-days button, .fe-faq summary svg, .fe-costs-tool, .fe-mortgage-icon { transition: none; }
 }
