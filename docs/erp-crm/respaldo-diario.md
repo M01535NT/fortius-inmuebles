@@ -96,3 +96,16 @@ Pasos 1 a 4 hechos el 12/11/2026:
 Las claves las guardó el titular en Bitwarden y las capturó él mismo; el agente no las vio.
 
 **Falta:** integrar en `main` y la primera ejecución manual. Esa ejecución es la primera prueba real de la conexión a la base y de las claves de R2.
+
+## Estado (13/11/2026)
+
+Integrada en `main` con el PR #73 (`c03504b`). Ejecuciones (lectura de GitHub, solo conteos):
+
+- 07:24 UTC, manual: **falló** en el ensayo («Restored reference inventory differs»). Se lanzó a los 45 segundos de integrar el PR #73, mientras Supabase aplicaba sus migraciones: la copia tenía el esquema anterior y el ensayo usó el del código nuevo. No se subió nada.
+- 07:30 UTC, manual: **correcta**.
+- 17:30 UTC, programada: **correcta**. 6 buckets, 23 objetos, 20.8 MB; base completa; cifrada para la llave del titular y subida a `diario/2026/11/`. La lectura de las tablas por la API quedó incompleta (`restComplete: false`), lo cual es esperado: la base sale completa de la conexión directa.
+- La programada se pidió para las 10:00 UTC y GitHub la corrió 7.5 horas tarde. GitHub no garantiza la hora de los flujos programados; sigue siendo una copia al día.
+
+Corrección del 13/11/2026 (`acfc546`, sin integrar): antes de copiar, la herramienta compara las migraciones de la base con las del código, dentro de la misma instantánea. Si no coinciden, se detiene con un mensaje claro («vuelve a lanzar la copia en unos minutos») en lugar del error confuso de arriba.
+
+**Falta (titular):** agregar el secreto `FORTIUS_BACKUP_DB_CA` (aún no está en el entorno `respaldo`) y abrir una copia con la llave privada siguiendo «Abrir una copia», para comprobar que se descifra fuera de GitHub.

@@ -37,7 +37,7 @@ SHA-256 de los PDFs oficiales leídos:
 - MX-PRIV-2025: `04d67464e1efc0472040e2ff8012ced52c73ff4fc3573c8e2d3477fd976359c6`.
 - MX-PLD-2025: `2e35228bd3100a3a137f313359833c4836f2b4b6d4e52e1ce4fe58a970cd768f`.
 
-Las versiones recuperadas llevan las fechas anteriores en su encabezado. Esta lectura no certifica cumplimiento de Fortius, registro PLD, consentimiento válido de un cliente ni agotamiento de todas las normas aplicables. NOM-247 y aspectos fiscales/contractuales se verifican en las tareas de esos módulos, sin ampliar su ámbito por defecto.
+Revisión del 13/11/2026: la autoridad que sustituyó al INAI en esta materia es la Secretaría Anticorrupción y Buen Gobierno (transitorios de la nueva ley); no se encontró publicado el reglamento de la nueva LFPDPPP, por lo que sigue pendiente confirmar qué reglamento aplica. En la LFPIORPI, la reforma del 16/07/2025 lleva la conservación a diez años para las operaciones desde el 17/07/2025 y su reglamento se modificó con vigencia del 28/03/2026; las dos cosas se confirman en la revisión profesional. Las versiones recuperadas llevan las fechas anteriores en su encabezado. Esta lectura no certifica cumplimiento de Fortius, registro PLD, consentimiento válido de un cliente ni agotamiento de todas las normas aplicables. NOM-247 y aspectos fiscales/contractuales se verifican en las tareas de esos módulos, sin ampliar su ámbito por defecto.
 
 ## Decisiones pendientes
 
