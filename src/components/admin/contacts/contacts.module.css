@@ -47,6 +47,16 @@
   :global(.admin-root) .end { align-items: flex-start; }
 }
 
+/* Lista del día (CRM-01): grupos con su conteo y, en «Sin atender», la barra del plazo de primera atención. */
+:global(.admin-root) .group + .group { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--border); }
+:global(.admin-root) .groupHead { display: flex; align-items: center; gap: .625rem; margin: 0; padding: .75rem .75rem .25rem; font-size: 1rem; font-weight: 600; letter-spacing: -.01em; }
+:global(.admin-root) .groupCount { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; height: 1.5rem; padding: 0 .5rem; border-radius: var(--radius-pill); background: var(--track); color: var(--muted-foreground); font-size: .8125rem; font-weight: 600; }
+:global(.admin-root) .clock { display: flex; flex: 1 1 12rem; align-items: center; gap: .625rem; min-width: 0; font-size: .8125rem; font-weight: 560; color: var(--warning); }
+:global(.admin-root) .clockLate { color: var(--alert); }
+:global(.admin-root) .meter { position: relative; flex: 1 1 4rem; max-width: 7rem; height: .25rem; border-radius: 2px; background: var(--track); }
+:global(.admin-root) .meter > span { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: currentColor; }
+:global(.admin-root) .meter > i { position: absolute; top: -3px; bottom: -3px; left: 50%; width: 2px; background: var(--foreground); opacity: .45; }
+
 /* Filtros de etapa en una sola lista de personas (DEC-36) */
 :global(.admin-root) .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
 :global(.admin-root) .chipBtn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 560; cursor: pointer; }

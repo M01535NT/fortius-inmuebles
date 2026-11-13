@@ -9,6 +9,7 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { ContactLog } from "@/components/admin/contacts/contact-log";
+import { ReadyMessages } from "@/components/admin/contacts/ready-messages";
 import { NextStepCard, PersonCard, PersonHeader, Timeline, personStyles as s, useInterview, type MenuItem } from "@/components/admin/contacts/person";
 import { nextStep } from "@/lib/admin/contacts-view";
 import { estadoForStage, humanDay, leadStage, personTimeline, LEAD_STAGE_CHOICES, LEAD_STAGE_LABELS, type LeadStage } from "@/lib/admin/person-view";
@@ -42,6 +43,7 @@ function LeadDetail({ id }: { id: string }) {
   const [agendaDirty, setAgendaDirty] = React.useState(false);
   const [contactDirty, setContactDirty] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState<{ lead: Lead; version: number | null } | null>(null);
+  const [contactPreset, setContactPreset] = React.useState<{ key: number; kind: "whatsapp"; nota: string } | null>(null);
   const interview = useInterview({ leadId: id });
   const today = operationalDate();
 
@@ -125,7 +127,7 @@ function LeadDetail({ id }: { id: string }) {
           <ButtonLink href={`/admin/agenda?tab=tareas&nueva=1&${linkQuery}`}>Nueva tarea</ButtonLink>
         </span>}>
           <Timeline upcoming={upcoming} past={past} empty="Todavía no hay nada registrado.">
-            {active && <ContactLog lead={lead} today={today} onDirtyChange={setContactDirty} />}
+            {active && <ContactLog lead={lead} today={today} onDirtyChange={setContactDirty} preset={contactPreset} />}
             <AsyncForm onSubmit={agregarNota} className={s.compose}>
               <label htmlFor="nueva-nota" className="sr-only">Nueva nota</label>
               <textarea id="nueva-nota" name="nota" rows={2} required placeholder="Qué se habló, qué sigue, compromisos…" className={textareaClass}
@@ -147,6 +149,10 @@ function LeadDetail({ id }: { id: string }) {
             </AsyncForm>
           </Timeline>
         </PersonCard>
+
+        {active && buyer && <PersonCard id="ficha-mensajes" title="Mensajes listos">
+          <ReadyMessages lead={lead} today={today} onSent={name => setContactPreset(old => ({ key: (old?.key ?? 0) + 1, kind: "whatsapp", nota: name }))} />
+        </PersonCard>}
 
         <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
         {active && <MatchingProperties seeker={{ id: lead.id, kind: "lead", nombre: lead.nombre, telefono: lead.telefono, email: lead.email, zona: lead.zona, tipoPropiedad: lead.tipoPropiedad, perfil: lead.perfil, asesorId: lead.asesorId, href: `/admin/leads/${encodeURIComponent(lead.id)}` }} />}
