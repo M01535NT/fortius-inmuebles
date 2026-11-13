@@ -26,7 +26,7 @@
 .editorial-scroll-cue svg { color: #8a1634; }
 .editorial-photo-start { grid-area: 2 / 1 / 3 / 2; height: 0; scroll-margin-top: 4rem; pointer-events: none; }
 .editorial-cover-figure { grid-area: 1 / 1 / 3 / 2; position: sticky; top: 4rem; align-self: start; z-index: 0; margin: 0; width: 100%; height: var(--hero-screen); }
-.editorial-cover-window { position: relative; overflow: hidden; height: 100%; background: #d9d3c7; }
+.editorial-cover-window { position: relative; overflow: hidden; height: 100%; background: #e8ecf2; }
 .editorial-cover-photo { position: absolute; inset: 0; }
 .editorial-cover-photo img { object-position: 45% 50%; }
 @media (hover: hover) {
