@@ -1,4 +1,11 @@
 /* Guía de la pantalla: capa que oscurece, recuadro que resalta y tarjeta con el paso. */
+/* DEC-47: punto fijo, sin animación, sobre «Ayuda» mientras la guía de la pantalla no se ha visto. */
+.launcher { position: relative; }
+.dot {
+  position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border-radius: 999px;
+  background: var(--primary); box-shadow: 0 0 0 2px var(--card); pointer-events: none;
+}
+.inline { position: static; flex: none; box-shadow: none; }
 .layer { position: fixed; inset: 0; z-index: 1200; }
 .spot {
   position: fixed; border-radius: 14px; pointer-events: none;

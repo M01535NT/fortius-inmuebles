@@ -3,7 +3,7 @@ import * as React from "react";
 import { usePendingCount } from "@/components/admin/workspace/use-today-queue";
 import Link from "next/link";
 import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, ShieldCheck, UserRound } from "@/components/admin/icons";
-import { TourLauncher, openTour } from "./tour";
+import { HelpDot, TourLauncher, openTour, useHelpPending } from "./tour";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
@@ -159,6 +159,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
   const [, , , inmuebles, agenda] = MAIN_NAV;
+  const helpPending = useHelpPending();
   const events = useCollection(db.eventos);
   const today = operationalDate();
   const visits = events.filter(event => event.tipo === "visita" && event.fecha === today).length;
@@ -183,7 +184,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     </div>}
     <div className={s.menuGroup}>
       <div className={s.menuRow}><Moon size={20} aria-hidden="true" /><span className="flex-1">Modo oscuro</span><ThemeToggle /></div>
-      <button type="button" className={s.menuRow} onClick={() => { onNavigate(); window.setTimeout(openTour, 250); }}><CircleHelp size={20} aria-hidden="true" /><span className="flex-1">Ayuda: guía de esta pantalla</span></button>
+      <button type="button" className={s.menuRow} onClick={() => { onNavigate(); window.setTimeout(openTour, 250); }}><CircleHelp size={20} aria-hidden="true" /><span className="flex-1">Ayuda: guía de esta pantalla</span>{helpPending && <HelpDot inline />}</button>
       {row("/admin/perfil", "Mi perfil", <UserRound size={20} aria-hidden="true" />, pathname.startsWith("/admin/perfil"))}
       <DocumentLink href="/" className={s.menuRow} onClick={onNavigate}><ExternalLink size={20} aria-hidden="true" /><span className="flex-1">Ver sitio</span></DocumentLink>
       <AsyncButton type="button" onClick={onLogout} className={s.menuRow}><LogOut size={20} aria-hidden="true" />Cerrar sesión</AsyncButton>

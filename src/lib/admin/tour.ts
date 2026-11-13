@@ -1,8 +1,8 @@
 /*
   Guía de cada pantalla (titular, 02/11/2026): un botón «Ayuda» en la barra y la tecla «?»
   abren una guía que oscurece la pantalla, resalta un elemento y dice qué hacer ahí, paso por
-  paso, con Siguiente, Omitir y cerrar. Nunca se abre sola: solo cuando se pide
-  (DEC-47, 12/11/2026). Aquí viven los pasos; la capa que los muestra está en
+  paso, con Siguiente, Omitir y cerrar. Solo Hoy la abre sola la primera vez; en las demás,
+  «Ayuda» lleva un punto mientras su guía no se haya visto (DEC-47, 12/11/2026). Aquí viven los pasos; la capa que los muestra está en
   `src/components/admin/workspace/tour.tsx`. Cada paso apunta a un elemento marcado con
   `data-tour="<target>"`; si ese elemento no está en pantalla (lista vacía, celular), el paso se salta.
 */
@@ -66,6 +66,18 @@ export const TOUR_SCREENS: TourScreen[] = [
 /** La guía de la pantalla actual, o null si esa pantalla no tiene una. */
 export function tourFor(pathname: string): TourScreen | null {
   return TOUR_SCREENS.find(screen => screen.match(pathname)) ?? null;
+}
+
+/**
+  DEC-47 (titular, 12/11/2026): solo Hoy abre su guía sola la primera vez. En las demás pantallas
+  la guía se abre con «Ayuda» o la tecla «?», y el botón muestra un punto mientras no se haya visto.
+*/
+export const AUTO_OPEN_SCREENS: readonly string[] = ["hoy"];
+export const opensAlone = (screenId: string) => AUTO_OPEN_SCREENS.includes(screenId);
+/** El punto de «Ayuda»: la pantalla tiene guía, no se abre sola y todavía no se ha visto. */
+export function helpPending(pathname: string, seen: readonly string[]): boolean {
+  const screen = tourFor(pathname);
+  return !!screen && !opensAlone(screen.id) && !seen.includes(screen.id);
 }
 
 export const TOUR_STORAGE_KEY = "fortius.guia.vista.v1";
