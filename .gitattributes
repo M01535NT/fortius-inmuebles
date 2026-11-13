@@ -4,3 +4,4 @@
 *.jpg binary
 *.woff2 binary
 *.svg text eol=lf
+*.sql text eol=lf
