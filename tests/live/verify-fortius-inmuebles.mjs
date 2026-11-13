@@ -342,23 +342,22 @@ try {
 
   if (process.env.FORTIUS_INMUEBLES_TEST_PRODUCTION_LEADS === "true") await check("all five public lead variants acknowledge actual persistence", async () => {
     const variants = ["evaluar", "contacto", "checklist", "documentos", "interes-propiedad"];
-    const ids = [];
     for (const origen of variants) {
       const response = await session()("/api/leads", { method: "POST", data: {
         nombre: "PRUEBA TECNICA MNT", telefono: "0000000000", origen, mensaje: prefix,
         ...(origen === "interes-propiedad" ? { propiedadSlug: propertyId } : {}),
       } });
       assert.equal(response.status, 201, `${origen}: acknowledgement`);
-      assert.equal(typeof response.data.id, "string");
-      ids.push(response.data.id);
-      records.push({ collection: "leads", id: response.data.id });
+      // C-43: la captura pública responde { ok: true } y nunca el número del prospecto.
+      assert.deepEqual(response.data, { ok: true });
     }
     const list = await first("/api/admin/collections/leads");
-    for (const [index, id] of ids.entries()) {
-      const savedVariant = list.data.records.find((r) => r.id === id);
-      assert.equal(savedVariant.data.origen, variants[index]);
-      assert.equal(savedVariant.data.mensaje, prefix);
-    }
+    const ids = variants.map((origen) => {
+      const savedVariant = list.data.records.find((r) => r.data.mensaje === prefix && r.data.origen === origen);
+      assert.ok(savedVariant, `${origen}: persisted`);
+      records.push({ collection: "leads", id: savedVariant.id });
+      return savedVariant.id;
+    });
     const saved = list.data.records.find((r) => r.id === ids[0]);
     const changed = { ...saved.data, estado: "contactado", notas: [{ id: `${prefix}-lead-note`, texto: "Seguimiento de prueba", fecha: now }] };
     const updated = await first(collectionPath("leads", saved.id), { method: "PUT", data: { data: changed, version: saved.version } });
