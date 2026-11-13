@@ -96,6 +96,8 @@ export type Lead = {
   convertidoEl?: string;
   convertidoPor?: string;
   firstContactedAt?: string;
+  /** CRM-03: regresó por el sitio estando descartada; desde aquí corre el plazo de primera atención. */
+  reabiertoEl?: string;
 };
 
 export const EVENTO_TIPOS = [

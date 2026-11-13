@@ -303,8 +303,19 @@ export function firstResponseHours(settings?: { horasPrimeraAtencion?: unknown }
   const value = settings?.horasPrimeraAtencion;
   return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 72 ? value : FIRST_RESPONSE_HOURS;
 }
+/**
+  Espera su primera respuesta (COR-21, CRM-03): llegó sola por el sitio y nadie le ha contestado, o
+  estaba descartada y regresó (`reabiertoEl`) y aún no se registra un contacto. El plazo corre
+  desde que llegó o desde que regresó.
+*/
+type ReplyLike = { origen: string; estado: string; clienteId?: string; firstContactedAt?: string; reabiertoEl?: string; creadoEl: string };
+export function awaitingFirstReply(lead: ReplyLike) {
+  if (lead.estado !== "nuevo" || lead.clienteId) return false;
+  return lead.reabiertoEl ? true : lead.origen !== "manual" && !lead.firstContactedAt;
+}
+export const arrivedAt = (lead: Pick<ReplyLike, "creadoEl" | "reabiertoEl">) => lead.reabiertoEl ?? lead.creadoEl;
 export type NewLeadItem = { id: string; who: string; detail: string; since: string; late: boolean; href: string; responsible?: string; responsibleName?: string; forDirector: boolean };
-type LeadLike = { id: string; nombre: string; estado: string; origen: string; creadoEl: string; asesorId?: string; propiedadSlug?: string; zona?: string; mensaje?: string; clienteId?: string; firstContactedAt?: string };
+type LeadLike = { id: string; nombre: string; estado: string; origen: string; creadoEl: string; asesorId?: string; propiedadSlug?: string; zona?: string; mensaje?: string; clienteId?: string; firstContactedAt?: string; reabiertoEl?: string };
 
 /**
   «Nuevos sin atender» (COR-21): prospectos en estado «Nuevo» a los que nadie ha contactado. Le
@@ -317,14 +328,14 @@ export function unattendedLeads({ leads, properties, me, admin, now, hours = FIR
 }): NewLeadItem[] {
   return leads
     // Los capturados a mano ya hablaron con alguien; aquí van los que llegan solos (sitio web).
-    .filter(l => l.origen !== "manual" && l.estado === "nuevo" && !l.firstContactedAt && !l.clienteId)
-    .sort((a, b) => a.creadoEl.localeCompare(b.creadoEl))
+    .filter(awaitingFirstReply)
+    .sort((a, b) => arrivedAt(a).localeCompare(arrivedAt(b)))
     .map(l => {
       const property = l.propiedadSlug ? properties.find(p => p.slug === l.propiedadSlug) : undefined;
       const responsible = l.asesorId || property?.asesorId || undefined;
-      const elapsed = Math.max(0, now.getTime() - new Date(l.creadoEl).getTime());
+      const elapsed = Math.max(0, now.getTime() - new Date(arrivedAt(l)).getTime());
       const minutes = Number.isFinite(elapsed) ? Math.floor(elapsed / 60000) : 0;
-      const since = minutes < 60 ? `Llegó hace ${Math.max(1, minutes)} min` : minutes < 48 * 60 ? `Lleva ${Math.floor(minutes / 60)} h sin respuesta` : `Lleva ${Math.floor(minutes / 1440)} días sin respuesta`;
+      const since = minutes < 60 ? `${l.reabiertoEl ? "Regresó" : "Llegó"} hace ${Math.max(1, minutes)} min` : minutes < 48 * 60 ? `Lleva ${Math.floor(minutes / 60)} h sin respuesta` : `Lleva ${Math.floor(minutes / 1440)} días sin respuesta`;
       const interest = property ? `Le interesa ${property.titulo}` : l.mensaje?.trim() ? `«${l.mensaje.trim().slice(0, 80)}${l.mensaje.trim().length > 80 ? "…" : ""}»` : l.zona ? `Busca en ${l.zona}` : "Dejó sus datos";
       const owner = responsible ? adviserName?.(responsible) : undefined;
       return { id: l.id, who: l.nombre, detail: admin ? `${interest} · ${owner ? `le toca a ${owner}` : "sin asesor: te toca a ti"}` : interest, since, late: minutes >= hours * 60, href: `/admin/leads/${encodeURIComponent(l.id)}`, ...(responsible ? { responsible } : {}), ...(owner ? { responsibleName: owner } : {}), forDirector: !responsible };

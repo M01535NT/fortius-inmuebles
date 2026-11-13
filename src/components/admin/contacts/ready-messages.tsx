@@ -7,6 +7,7 @@ import { whatsappDigits } from "@/lib/admin/buyer-matches";
 import { contactAttempts, missedInARow, RETRY_ACTION } from "@/lib/admin/lead-contact";
 import { blanks, messagesFor, suggestedTemplate, type TemplateId } from "@/lib/admin/message-templates";
 import { db, useCollection, useSession, type Lead } from "@/lib/admin/store";
+import { awaitingFirstReply } from "@/lib/admin/today";
 import { cn } from "@/lib/utils";
 import { personStyles as s } from "./person";
 
@@ -35,7 +36,7 @@ export function ReadyMessages({ lead, today, onSent }: { lead: Lead; today: stri
     visit: visit ? { dia: longDay(visit.fecha), hora: visit.hora } : null,
   });
   const suggested = suggestedTemplate({
-    unattended: !lead.firstContactedAt, hasProperty: !!property, lastContact: contactAttempts(lead)[0]?.contacto,
+    unattended: awaitingFirstReply(lead), hasProperty: !!property, lastContact: contactAttempts(lead)[0]?.contacto,
     retry: lead.perfil?.proximaAccion === RETRY_ACTION || missedInARow(lead) >= 3, visited,
     propertyClosed: property?.estado === "vendida" || property?.estado === "rentada",
   });

@@ -1,7 +1,7 @@
 import type { Cliente, Evento, Lead } from "@/lib/admin/store";
 import type { LeadProfile } from "@/lib/lead-profile";
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { shortDate } from "@/lib/admin/today";
+import { arrivedAt, awaitingFirstReply, shortDate } from "@/lib/admin/today";
 
 /*
   Contactos (lienzo: ContactosEscritorio y ContactosMovil): por persona, lo que busca,
@@ -102,9 +102,9 @@ export const DAY_GROUP_LABELS: Record<DayGroupId, string> = { "sin-atender": "Si
 export type Waiting = { hours: number; late: boolean };
 
 /** Prospecto que llegó solo (sitio web) y nadie ha contactado: horas que lleva y si pasó el plazo. */
-export function waitingSince(lead: Pick<Lead, "origen" | "estado" | "firstContactedAt" | "clienteId" | "creadoEl">, now: Date, limitHours: number): Waiting | null {
-  if (lead.origen === "manual" || lead.estado !== "nuevo" || lead.firstContactedAt || lead.clienteId) return null;
-  const elapsed = now.getTime() - new Date(lead.creadoEl).getTime();
+export function waitingSince(lead: Pick<Lead, "origen" | "estado" | "firstContactedAt" | "clienteId" | "creadoEl" | "reabiertoEl">, now: Date, limitHours: number): Waiting | null {
+  if (!awaitingFirstReply(lead)) return null;
+  const elapsed = now.getTime() - new Date(arrivedAt(lead)).getTime();
   if (!Number.isFinite(elapsed)) return null;
   const hours = Math.max(0, Math.floor(elapsed / 3_600_000));
   return { hours, late: elapsed >= limitHours * 3_600_000 };

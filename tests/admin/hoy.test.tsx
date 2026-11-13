@@ -212,6 +212,20 @@ test("CRM-01: al director, el prospecto de otro asesor que pasó el plazo sube a
   expect(queueFromLeads(unattendedLeads({ leads, properties: [], me: "a2", admin: false, now }), { admin: false, me: "a2" }).map(i => i.kind)).toEqual(["nuevo", "nuevo"]);
 });
 
+test("CRM-03: la persona descartada que regresa vuelve a «sin atender» y el plazo corre desde su regreso", async () => {
+  const { unattendedLeads, awaitingFirstReply } = await import("@/lib/admin/today");
+  const { waitingSince } = await import("@/lib/admin/contacts-view");
+  const now = new Date("2026-11-02T18:00:00Z");
+  const back = { id: "r1", nombre: "Regresó", estado: "nuevo", origen: "manual", creadoEl: "2026-09-01T10:00:00Z", firstContactedAt: "2026-09-01T11:00:00Z", reabiertoEl: "2026-11-02T17:30:00Z", asesorId: "a1" };
+  const items = unattendedLeads({ leads: [back], properties: [], me: "a1", admin: false, now });
+  expect(items.map(i => [i.id, i.since, i.late])).toEqual([["r1", "Regresó hace 30 min", false]]);
+  expect(waitingSince(back as never, now, 2)).toEqual({ hours: 0, late: false });
+  // Al registrar el contacto pasa a «contactado» y sale de la lista.
+  expect(awaitingFirstReply({ ...back, estado: "contactado" })).toBe(false);
+  // Sin regreso, quien se capturó a mano o ya fue atendido no espera respuesta.
+  expect(awaitingFirstReply({ ...back, reabiertoEl: undefined })).toBe(false);
+});
+
 test("COR-05: la cola de Hoy usa el mismo motivo y orden que Operaciones (RP-84)", () => {
   const base = { today, names, followups: [], offers: [] };
   // Vence hoy: antes no aparecía en Hoy, aunque Operaciones sí lo marcaba.
