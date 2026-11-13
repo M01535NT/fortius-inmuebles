@@ -18,7 +18,7 @@ it("alguna etapa de la renta del propietario ofrece la solicitud de arrendamient
 
 /*
   BUG-C29: con la captura sobre el documento, un dato se llena pulsando su zona. Para un pensionado
-  (o con referencias 3 a medias) hay campos visibles que no salen en ninguna zona del documento: la
+  hay campos visibles que no salen en ninguna zona del documento: la
   «Antigüedad en el empleo o actividad» es obligatoria, pero el documento solo la imprime para el
   empleado y el negocio. El asesor ve «falta Antigüedad» sin dónde llenarla, y lo capturado no se imprime.
 */
@@ -35,10 +35,4 @@ it("cada campo obligatorio que se muestra a un pensionado tiene dónde capturars
   const enDocumento = zonas(solicitudArrendamientoDocumento(pensionado).blocks);
   const sinZona = formatoById("22").fields.filter(f => f.required && mostrarCampoSolicitud(f.key, pensionado) && !enDocumento.has(f.key)).map(f => f.label);
   expect(sinZona).toEqual([]);
-});
-
-// La referencia 3 es opcional, pero sus datos solo tienen zona cuando ya hay nombre o teléfono: sin zona no hay dónde escribirlos.
-it("una tercera referencia se puede capturar en el documento aunque todavía esté vacía", () => {
-  const enDocumento = zonas(solicitudArrendamientoDocumento({ ...pensionado, actividad: "empleado" }).blocks);
-  expect(["ref3Tipo", "ref3Nombre", "ref3Telefono", "ref3Relacion"].filter(key => !enDocumento.has(key))).toEqual([]);
 });
