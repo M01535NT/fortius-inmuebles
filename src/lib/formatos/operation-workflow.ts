@@ -85,6 +85,22 @@ const ownerAppraisal = z.object({
  registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional(),
 }).strict().refine(a => a.vigenteHasta >= a.fecha, "La vigencia no puede ser anterior a la fecha del avalúo");
 export type OwnerAppraisal = z.infer<typeof ownerAppraisal>;
+/**
+  Cierre de la operación (COR-22, RP-99): quién captó y quién vendió, y la comisión estimada de
+  Fortius tomada del contrato de intermediación. Se archiva con este registro.
+*/
+const operationClose = z.object({
+ capto: z.string().min(1).max(200), vendio: z.string().min(1).max(200),
+ comisionEstimada: z.number().min(0).lt(1e12).optional(), fuente: z.string().max(200).optional(),
+ registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional(),
+}).strict();
+export type OperationClose = z.infer<typeof operationClose>;
+/** Reparto de RP-99: 25 % al que capta y 25 % al que vende; si es el mismo asesor, 50 %. Es una estimación hasta que se cobre. */
+export function commissionSplit(c: Pick<OperationClose, "capto" | "vendio" | "comisionEstimada">): Array<{ asesorId: string; papel: "capto" | "vendio" | "ambos"; porcentaje: number; monto?: number }> {
+ const part = (porcentaje: number) => typeof c.comisionEstimada === "number" ? { monto: Math.round(c.comisionEstimada * porcentaje) / 100 } : {};
+ if (c.capto === c.vendio) return [{ asesorId: c.capto, papel: "ambos", porcentaje: 50, ...part(50) }];
+ return [{ asesorId: c.capto, papel: "capto", porcentaje: 25, ...part(25) }, { asesorId: c.vendio, papel: "vendio", porcentaje: 25, ...part(25) }];
+}
 /** «vigente» o «vencido»; sin avalúo, undefined. */
 export function appraisalState(flow: Pick<OperationWorkflow, "avaluo"> | null | undefined, today: string): "vigente" | "vencido" | undefined {
  const a = flow?.avaluo;
@@ -106,6 +122,7 @@ export const operationWorkflowSchema = z.object({
  entregasInforme: z.array(entregaInforme).max(120).optional(),
  firmaContrato: contractSignature.optional(),
  avaluo: ownerAppraisal.optional(),
+ cierre: operationClose.optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
@@ -214,7 +231,10 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  if(flow.ruta!=="inversion" && index>=3 && !context.propiedad_slug) result.push("Captura los datos del inmueble.");
  if(flow.ruta!=="inversion" && index>=4 && !flow.contraparteId && !flow.contraparteLeadId && (flow.contraparteExterna?.trim().length??0)<3) result.push("Identificar la contraparte interna o externa.");
  const open=tasks.filter(t=>t.expedienteId===context.id && !["completada","cancelada"].includes(t.estado));
- if(target==="cerrado") { if(open.length) result.push("Resolver o descartar las tareas pendientes antes de archivar."); }
+ if(target==="cerrado") {
+  if(open.length) result.push("Resolver o descartar las tareas pendientes antes de archivar.");
+  if(["captacion","arrendador"].includes(flow.ruta) && !flow.cierre) result.push("Registrar quién captó y quién vendió antes de archivar.");
+ }
  else if(!open.some(t=>t.asesorId===context.asesor_id && !!t.vence)) result.push("Agendar una próxima tarea con fecha y responsable.");
  return result;
 }

@@ -63,3 +63,12 @@ test("COR-10: quien tiene registro de cliente sin firmar su contrato sigue como 
   expect(signed).toMatchObject({ converted: 1, activeLeads: 1 });
   expect(signed.portfolio[0]).toMatchObject({ leads: 1, clientes: 1 });
 });
+
+test("COR-22: el reparto estimado por asesor sale de los cierres registrados (25 % y 25 %, o 50 %)", () => {
+  const close = (id: string, capto: string, vendio: string, comisionEstimada?: number): StageRecord => ({ id, etapa: "cerrado", asesor_id: "a1", flujo: { ruta: "captacion", estado: "activa", cierre: { capto, vendio, ...(comisionEstimada !== undefined ? { comisionEstimada } : {}) } } });
+  const metrics = commercialMetrics({ ...base, asesores: [adviser, { id: "a2", nombre: "Asesor 2" } as Asesor],
+    expedientes: [close("e1", "a1", "a2", 200000), close("e2", "a1", "a1", 100000), close("e3", "a2", "a2")] });
+  expect(metrics.portfolio[0]).toMatchObject({ cierres: 2, repartoEstimado: 100000 });
+  expect(metrics.portfolio[1]).toMatchObject({ cierres: 2, repartoEstimado: 50000 });
+  expect(commercialMetrics(base).portfolio[0]).toMatchObject({ cierres: 0, repartoEstimado: null });
+});

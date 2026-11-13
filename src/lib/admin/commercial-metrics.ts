@@ -6,8 +6,9 @@ import { isTaskOpen } from "@/lib/tasks";
 import { projectFollowups, overdueFollowups } from "@/lib/admin/followups";
 import { operationalInventory } from "@/lib/admin/operational-inventory";
 import { clientStatus, type StatusDossier } from "@/lib/admin/person-status";
+import { commissionSplit, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 
-export type StageRecord = StatusDossier & { id: string; etapa?: string | null; asesor_id: string };
+export type StageRecord = StatusDossier & { id: string; etapa?: string | null; asesor_id: string; flujo?: Pick<OperationWorkflow, "cierre"> | null };
 
 export function commercialMetrics(input: {
   leads: Lead[]; clientes: Cliente[]; propiedades: Property[];
@@ -27,6 +28,12 @@ export function commercialMetrics(input: {
   const overdueContacts = overdueFollowups(projectFollowups(leads, clientes, expedientes), today);
   const stages = new Map<string, number>();
   for (const record of expedientes) stages.set(record.etapa || "sin-etapa", (stages.get(record.etapa || "sin-etapa") ?? 0) + 1);
+  // COR-22 (RP-99): reparto estimado de cada cierre registrado; no es lo cobrado (FIN-02).
+  const shares = expedientes.flatMap(record => record.flujo?.cierre ? commissionSplit(record.flujo.cierre) : []);
+  const closeShare = (id: string) => {
+    const mine = shares.filter(part => part.asesorId === id), amounts = mine.filter(part => part.monto !== undefined);
+    return { cierres: mine.length, repartoEstimado: amounts.length ? amounts.reduce((sum, part) => sum + part.monto!, 0) : null };
+  };
   const portfolio = asesores.map(asesor => ({
     id: asesor.id, nombre: asesor.nombre,
     leads: activeLeads.filter(lead => lead.asesorId === asesor.id).length,
@@ -35,6 +42,7 @@ export function commercialMetrics(input: {
     expedientes: expedientes.filter(record => record.asesor_id === asesor.id).length,
     tareasVencidas: overdueTasks.filter(task => task.asesorId === asesor.id).length,
     contactosVencidos: overdueContacts.filter(item => item.asesorId === asesor.id).length,
+    ...closeShare(asesor.id),
   }));
   return {
     capturedLeads: leads.length, converted, conversionPercent: leads.length ? Math.round(1000 * converted / leads.length) / 10 : null,

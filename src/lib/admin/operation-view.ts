@@ -225,7 +225,7 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
   for (const { key, earlier } of currentRequirements(op, today)) items.push({ kind: "requisito", key, earlier, state: reviewState(flow, key), done: reviewComplete(flow, key, today) });
   for (const m of missingItems(op, tasks, today)) {
     // Lo de documentos ya está arriba; en el checklist también cuentan la entrevista y el levantamiento sin terminar.
-    if (m.place === "ajustes" || m.place === "tarea" || m.place === "firma" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place });
+    if (m.place === "ajustes" || m.place === "tarea" || m.place === "firma" || m.place === "cierre" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place });
   }
   return items;
 }
@@ -286,7 +286,7 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   return { target: next, label: following?.label ?? stageLabel(next, flow.ruta) };
 }
 
-export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "tarea" | "operacion" | "firma" };
+export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "tarea" | "operacion" | "firma" | "cierre" };
 const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
   "Reactivar la operación antes de avanzar.": { text: "Reactivar la operación", why: "está en pausa, en regularización o descartada", place: "ajustes" },
   "Resolver las observaciones que bloquean esta actividad.": { text: "Resolver los problemas marcados", why: "un requisito dice «Hay un problema»", place: "requisito" },
@@ -298,6 +298,7 @@ const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
   "Completar la firma del contrato: faltan firmantes.": { text: "Completar la firma del contrato", why: "faltan firmantes", place: "firma" },
   "El director debe revisar la firma del contrato.": { text: "Revisión de la firma por el director", why: "sin ella no se publica", place: "firma" },
   "El contrato de intermediación terminó: registra uno nuevo para seguir.": { text: "Registrar un contrato nuevo", why: "el anterior terminó", place: "firma" },
+  "Registrar quién captó y quién vendió antes de archivar.": { text: "Registrar quién captó y quién vendió", why: "para el reparto de la comisión", place: "cierre" },
   "Captura los datos del inmueble.": { text: "Vincular el inmueble", why: "se hace en los datos de la operación", place: "ajustes" },
   "Identificar la contraparte interna o externa.": { text: "Identificar al comprador o contraparte", why: "se hace en los datos de la operación", place: "ajustes" },
   "Resolver o descartar las tareas pendientes antes de archivar.": { text: "Cerrar las tareas pendientes", why: "antes de archivar", place: "tarea" },

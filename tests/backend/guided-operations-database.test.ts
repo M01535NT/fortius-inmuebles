@@ -131,12 +131,50 @@ it('accepts the owner appraisal as value evidence only while it is current (COR-
   await expect(update(late.id,'comercializacion')).rejects.toMatchObject({code:'PT409'});
  });
 });
+/** COR-22: el cierre guarda quién captó y quién vendió, y el inmueble vendido sigue en el sitio como vendido. */
+const listing=(slug:string,extra:Record<string,unknown>={})=>({slug,codigo:slug.toUpperCase(),titulo:'Casa ficticia de ensayo',tipo:'casa',operacion:'venta',precio:{modalidad:'consulta'},zona:'Prueba',direccionAproximada:'Prueba',descripcion:['Prueba'],ficha:{},amenidades:[],galeria:[{src:'/hero/casa-playa.webp',alt:'Prueba'}],asesorId:'own',creditoDisponible:false,puntosDeInteres:[],destacada:false,estado:'disponible',publicadaEl:'2026-10-13',demo:true,publicada:true,...extra});
+async function putListing(slug:string,data:Record<string,unknown>){
+ const version=(await db.query<{version:number}>("select version from public.fortius_inmuebles_records where collection='propiedades' and id=$1",[slug])).rows[0]?.version??null;
+ return db.query("select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,$3)",[slug,JSON.stringify(data),version]);
+}
+const published=async(slug:string)=>(await db.query<{p:boolean}>("select (data->>'publicada')::boolean p from public.fortius_inmuebles_records where collection='propiedades' and id=$1",[slug])).rows[0].p;
+it('records who captured and who sold, and keeps a sold listing visible as sold (COR-22, RP-99)',async()=>{
+ await db.exec(`insert into public.fortius_inmuebles_records(collection,id,data) values
+  ('propiedades','house-sold','{"slug":"house-sold","codigo":"HOUSE-SOLD","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}'),
+  ('propiedades','house-left','{"slug":"house-left","codigo":"HOUSE-LEFT","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}')`);
+ await asUser(own,async()=>{
+  const ops:Record<string,string>={};
+  for(const slug of ['house-sold','house-left']){
+   const f=await fixture(completeFlow(),slug);ops[slug]=f.id;
+   await update(f.id,'documentacion');await sign(f.id,'documentacion');await update(f.id,'comercializacion');
+   await putListing(slug,listing(slug));
+   for(const stage of ['negociacion','cierre'])await update(f.id,stage);
+  }
+  // Asesores que no existen o registro incompleto.
+  for(const bad of [{capto:'own'},{capto:'own',vendio:'nadie'},{capto:'own',vendio:'other',comisionEstimada:-1},{capto:'own',vendio:'other',nota:'x'}])
+   await expect(update(ops['house-sold'],'cierre',{...completeFlow(),cierre:bad})).rejects.toMatchObject({code:'PT400'});
+  const saved=(await update(ops['house-sold'],'cierre',{...completeFlow(),cierre:{capto:'own',vendio:'other',comisionEstimada:150000,fuente:'Contrato de intermediación',registradoPor:admin}})).flujo as {cierre:Record<string,unknown>};
+  expect(saved.cierre).toMatchObject({capto:'own',vendio:'other',comisionEstimada:150000,registradoPor:own});
+  // Vendido: al pasar a entrega sigue en el sitio. Sin marcarlo, se retira como antes.
+  await putListing('house-sold',listing('house-sold',{estado:'vendida'}));
+  await update(ops['house-sold'],'entrega');await update(ops['house-left'],'entrega');
+  expect(await published('house-sold')).toBe(true);
+  expect(await published('house-left')).toBe(false);
+  // Con la operación ya cerrada se puede volver a mostrar como vendido, nunca como disponible.
+  await expect(putListing('house-left',listing('house-left'))).rejects.toMatchObject({code:'PT409'});
+  await putListing('house-left',listing('house-left',{estado:'vendida'}));
+  expect(await published('house-left')).toBe(true);
+ });
+});
 it('walks signature/payment, delivery and post-sale separately and archives without inventing an action',async()=>{
  await asUser(own,async()=>{
   const f=await fixture();await update(f.id,'documentacion');await sign(f.id,'documentacion');
   for(const stage of ['comercializacion','negociacion','cierre','entrega','postventa'])expect((await update(f.id,stage)).etapa).toBe(stage);
   await expect(update(f.id,'cerrado')).rejects.toMatchObject({code:'PT409'});
   await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,1)",[f.task.id,JSON.stringify({...f.task,estado:'completada'})]);
+  // COR-22: sin quién captó y quién vendió no se archiva.
+  await expect(update(f.id,'cerrado')).rejects.toMatchObject({code:'PT409'});
+  await update(f.id,'postventa',{...completeFlow(),cierre:{capto:'own',vendio:'other'}});
   expect((await update(f.id,'cerrado')).etapa).toBe('cerrado');
  });
 });

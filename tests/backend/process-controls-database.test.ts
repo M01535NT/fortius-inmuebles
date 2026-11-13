@@ -144,7 +144,9 @@ it.each(["arrendar","invertir"])("walks %s through its evidenced process and arc
  const evidence={tipo:"externa",referencia:"Documento externo sintético revisado v1",fecha:"2026-10-14",responsable:"Responsable del ensayo",resultado:"Actividad revisada dentro del alcance de prueba"};
  const keys=intent==="invertir"?["criterios_inversion","riesgos_inversion","escenarios_inversion","decision_inversion","capacidad","ejecucion_inversion","seguimiento_inversion","honorarios","archivo"]:["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion","arrendatario","opciones","visitas","capacidad","oferta","revision_cierre","contrato_renta","contraparte","garantias_renta","firma","pago","entrega","inventario_entrega","termino_renta","honorarios","archivo"];
  for(const key of keys)row.flujo.requisitos[key]={estado:"revisado",soporte:"Revisión externa de ensayo",evidencia:evidence,...(["factibilidad","revision_cierre"].includes(key)?{vigenteHasta:"2030-12-31"}:{})};
- const flow={...row.flujo,contraparteExterna:intent==="invertir"?undefined:"Contraparte externa de ensayo",resolucion:{tipo:"aceptada",fecha:"2026-10-14",motivo:"Encargo de ensayo aceptado",siguienteAccion:"Seguimiento del encargo",fechaSiguiente:"2030-12-31"}};
+ const flow={...row.flujo,contraparteExterna:intent==="invertir"?undefined:"Contraparte externa de ensayo",resolucion:{tipo:"aceptada",fecha:"2026-10-14",motivo:"Encargo de ensayo aceptado",siguienteAccion:"Seguimiento del encargo",fechaSiguiente:"2030-12-31"},
+  // COR-22: la operación del propietario se archiva con quién captó y quién vendió.
+  ...(intent!=="invertir"?{cierre:{capto:"process-adviser",vendio:"process-adviser"}}:{})};
  let version=row.version;
  if(intent!=="invertir") {
   const saved=await db.query<{r:{version:number}}>("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,$3::jsonb,null,false) r",[done.expediente_id,version,JSON.stringify(flow)]);
