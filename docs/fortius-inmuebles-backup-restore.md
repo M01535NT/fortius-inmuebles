@@ -49,7 +49,7 @@ Salvaguardas comprobadas por `tests/tools/restore-storage.test.mjs`:
 
 El informe se guarda en el directorio del respaldo como `storage-restore-REF-FECHA.json`, sin claves ni contenido. Lo que **no** cubre: el propietario original de cada objeto (`owner_id`; las subidas usan el rol de servicio del destino), las cuentas de Auth y sus contraseñas, y la configuración del proyecto (correo, URL de retorno, límites de Auth). Esas partes requieren el procedimiento del proveedor descrito en `docs/erp-crm/recovery-policy.md`.
 
-**Estado (12/11/2026):** no hay Docker para la pila local, y las ramas de Supabase exigen el plan Pro. El titular eligió un **proyecto gratuito aparte** (la organización tiene un solo proyecto activo de los dos que permite el plan gratuito). El ensayo real sigue pendiente: falta crear ese proyecto e instalar el cliente `pg`.
+**Estado (12/11/2026):** no hay Docker para la pila local, y las ramas de Supabase exigen el plan Pro. El titular eligió un **proyecto gratuito aparte** (la organización tiene un solo proyecto activo de los dos que permite el plan gratuito). El ensayo real sigue pendiente: falta crear ese proyecto.
 
 **Los buckets no salen de las migraciones.** Las migraciones crean los buckets con sus nombres históricos (`mnt-*`, `cota-*`) y reescriben las políticas de `storage.objects` hacia `fortius-inmuebles-*`. En producción, los buckets `fortius-inmuebles-*` se crearon aparte con `tools/fortius-inmuebles-storage-identity.mjs`. Un proyecto nuevo creado solo con migraciones tiene las políticas, pero no los buckets. La restauración de Storage los crea desde el inventario del respaldo, con su privacidad, límite y tipos. Los buckets históricos quedan vacíos en el destino y no estorban.
 
@@ -74,7 +74,7 @@ Uso:
 node --env-file=RUTA_ENV_RECUPERACION tools/fortius-inmuebles-recovery-rehearsal.mjs --confirm-target REF
 ```
 
-El archivo de entorno lleva `FORTIUS_RECOVERY_SUPABASE_URL`, `FORTIUS_RECOVERY_ANON_KEY`, `FORTIUS_RECOVERY_SERVICE_ROLE_KEY` y `FORTIUS_RECOVERY_DB_URL` (cadena de conexión de sesión del proyecto aislado). Rechaza una cadena que apunte a producción o a otro proyecto. El informe se guarda en `tmp/rec01/ensayo-REF-FECHA/informe.json`, sin claves. Requiere el paquete `pg` (dependencia de desarrollo por agregar).
+El archivo de entorno lleva `FORTIUS_RECOVERY_SUPABASE_URL`, `FORTIUS_RECOVERY_ANON_KEY`, `FORTIUS_RECOVERY_SERVICE_ROLE_KEY` y `FORTIUS_RECOVERY_DB_URL` (cadena de conexión de sesión del proyecto aislado). Rechaza una cadena que apunte a producción o a otro proyecto. El informe se guarda en `tmp/rec01/ensayo-REF-FECHA/informe.json`, sin claves. Usa el paquete `pg` (dependencia de desarrollo).
 
 ### Equipos con Windows
 
