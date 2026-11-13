@@ -219,7 +219,8 @@
 .ba-next strong { display: block; font-size: 19px; font-weight: 700; line-height: 1.25; letter-spacing: -0.015em; }
 .ba-next .pg-eyebrow { margin-bottom: 6px; }
 .ba-author { display: flex; align-items: center; gap: 16px; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
-.ba-author-mark { display: grid; flex: none; place-items: center; width: 56px; height: 56px; border-radius: 999px; background: #061f3f; color: #f8f8ff; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; }
+.ba-author .ba-author-mark { display: grid; flex: none; place-items: center; width: 56px; height: 56px; margin: 0; border-radius: 999px; background: #061f3f; color: #f8f8ff; font-size: 15px; font-weight: 700; }
+.dark .ba-author .ba-author-mark { border: 1px solid rgba(248, 248, 255, 0.2); }
 .ba-author strong { display: block; font-size: 16px; font-weight: 700; }
 .ba-author span { display: block; margin-top: 2px; color: var(--muted-foreground); font-size: 14px; }
 .ba-related { margin-top: clamp(64px, 8vw, 112px); padding-block: clamp(56px, 7vw, 96px); background: var(--secondary); }
