@@ -35,7 +35,7 @@ export function PeriodReport() {
     if (!bookId) return;
     apiRequest<{ cartera: CommercialBook }>(`/api/admin/comercial/${bookId}`)
       .then(r => { if (active) setBook(r.cartera); })
-      .catch(() => { if (active) setError("No se pudo abrir esta cartera."); })
+      .catch(() => { if (active) setError("No se pudo abrir esta cartera. Recarga la página."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [bookId]);
