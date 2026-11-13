@@ -5,7 +5,7 @@ const datos = vi.hoisted(() => ({ leerDatos: vi.fn(), guardarDatos: vi.fn() }));
 vi.mock("@/lib/backend/expediente-archivos", () => archivos);
 vi.mock("@/lib/backend/expediente-datos", () => datos);
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { leerArchivoConIa, type Extractor } from "@/lib/backend/expediente-lectura";
+import { leerArchivoConIa, usoDelMes, type Extractor } from "@/lib/backend/expediente-lectura";
 import { ApiError } from "@/lib/backend/http";
 
 /* Lectura con IA en el servidor (IA-01): el proveedor siempre es simulado. */
@@ -13,11 +13,13 @@ const ARCHIVO = { id: "61000000-0000-4000-8000-000000000001", expediente_id: "51
 const respuesta = { tipoDocumento: "escritura", datos: [{ clave: "folioReal", valor: "1234567", pagina: 9, cita: "folio real 1234567", confianza: "alta" }] };
 const uso = { input_tokens: 20_000, output_tokens: 500 };
 
-function privilegiado(gasto = 0) {
+function privilegiado(gasto = 0, config?: Record<string, unknown>) {
   const marcas: Record<string, unknown>[] = [], anotadas: Record<string, unknown>[] = [];
   const client = {
     from: (tabla: string) => ({
-      select: () => ({ gte: async () => ({ data: gasto ? [{ costo_usd: gasto }] : [], error: null }) }),
+      select: (columnas: string) => columnas === "data"
+        ? { eq: () => ({ eq: () => ({ maybeSingle: async () => { expect(tabla).toBe("fortius_inmuebles_records"); return { data: config ? { data: config } : null, error: null }; } }) }) }
+        : { gte: async () => ({ data: gasto ? [{ costo_usd: gasto }] : [], error: null }) },
       update: (patch: Record<string, unknown>) => ({ eq: async () => { expect(tabla).toBe("fortius_inmuebles_expediente_archivos"); marcas.push(patch); return { error: null }; } }),
       insert: async (row: Record<string, unknown>) => { expect(tabla).toBe("fortius_inmuebles_ia_lecturas"); anotadas.push(row); return { error: null }; },
     }),
@@ -69,6 +71,30 @@ describe("leer un documento del cliente con IA", () => {
     const extraer = vi.fn<Extractor>();
     await expect(leerArchivoConIa(sesion, client, "u1", ARCHIVO.id, extraer)).rejects.toMatchObject({ status: 429 });
     expect(extraer).not.toHaveBeenCalled();
+  });
+
+  it("el tope que fija el director en Configuración manda sobre el del servidor (IA-02)", async () => {
+    vi.stubEnv("IA_TOPE_MENSUAL_USD", "100");
+    try {
+      const pausado = vi.fn<Extractor>();
+      await expect(leerArchivoConIa(sesion, privilegiado(25, { topeIaMensualUsd: 10 }).client, "u1", ARCHIVO.id, pausado)).rejects.toThrow("Configuración");
+      expect(pausado).not.toHaveBeenCalled();
+      const subido = vi.fn<Extractor>(async () => ({ respuesta, uso, modelo: "claude-opus-5-5" }));
+      await leerArchivoConIa(sesion, privilegiado(25, { topeIaMensualUsd: 50 }).client, "u1", ARCHIVO.id, subido);
+      expect(subido).toHaveBeenCalledOnce();
+      // Sin tope en Configuración, el del servidor deja leer con 25 USD gastados.
+      await leerArchivoConIa(sesion, privilegiado(25).client, "u1", ARCHIVO.id, subido);
+      expect(subido).toHaveBeenCalledTimes(2);
+    } finally { vi.unstubAllEnvs(); }
+  });
+
+  it("el uso del mes dice el gasto, las lecturas y de dónde sale el tope", async () => {
+    vi.stubEnv("IA_TOPE_MENSUAL_USD", "");
+    try {
+      const ahora = new Date("2026-11-12T20:00:00Z");
+      expect(await usoDelMes(privilegiado(3.5).client, false, ahora)).toEqual({ gastoUsd: 3.5, topeUsd: 20, origenTope: "omision", lecturas: 1, desde: "2026-11-01", disponible: false });
+      expect(await usoDelMes(privilegiado(0, { topeIaMensualUsd: 0 }).client, true, ahora)).toMatchObject({ gastoUsd: 0, topeUsd: 0, origenTope: "configuracion", lecturas: 0, disponible: true });
+    } finally { vi.unstubAllEnvs(); }
   });
 
   it("si otra persona guardó los datos en ese momento, vuelve a unir y guarda sin pisar", async () => {

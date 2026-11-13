@@ -30,7 +30,7 @@ export const HELP_SECTIONS: HelpSection[] = [
   ] },
   { id: "contactos", title: "Contactos", intro: "Prospectos, interesados y clientes en una sola lista, cada uno con su siguiente paso.", tasks: [
     { q: "¿Cómo registro que le llamé a alguien?", steps: ["Abre su ficha y pulsa «Registrar contacto».", "Elige Llamé, No contestó, Mandé WhatsApp o Visitó.", "Revisa el siguiente paso que te propone y guarda."] },
-    { q: "No contesta, ¿qué hago?", steps: ["Registra cada intento con «No contestó».", "Al tercero seguido, el panel te propone reintentar en 30 días."] },
+    { q: "No contesta, ¿qué hago?", steps: ["Registra cada intento con «No contestó».", "Al tercero seguido, el panel te recuerda volver a intentarlo en 30 días."] },
     { q: "¿Dónde veo cómo paga un interesado?", steps: ["En su ficha, la tarjeta «Cómo paga y ofertas» muestra la forma de pago, el crédito y sus ofertas.", "Lo anotas o lo cambias en su perfil."] },
   ] },
   { id: "inmuebles", title: "Inmuebles", intro: "El inventario de Fortius: cada inmueble con sus datos, fotos y si está publicado.", tasks: [

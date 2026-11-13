@@ -35,7 +35,7 @@ export default function VenderInmueblePage() {
         <div className="pg-container vd-hero-grid">
           <div className="vd-hero-copy">
             <h1 id="vd-title" className="vd-title">Vende con todo en orden.</h1>
-            <p className="vd-lead">Documentos y precio en orden antes de publicar.</p>
+            <p className="vd-lead">Revisamos escritura, adeudos y precio antes de publicar.</p>
             <div className="vd-actions">
               <Link href="/vender-propiedad/#entrevista" className="pg-btn">Agendar entrevista</Link>
               <Link href="/vender-propiedad/#pasos" className="pg-btn pg-btn-ghost">Ver cómo funciona</Link>
@@ -63,7 +63,7 @@ export default function VenderInmueblePage() {
 
       <nav className="pg-container vd-tools" aria-label="Herramientas para propietarios">
         <Link href="/herramientas/gastos-de-cierre">Estimar gastos y neto de venta <ArrowRight size={20} aria-hidden="true" /></Link>
-        <Link href="/avisos">Documentos para vender <ArrowRight size={20} aria-hidden="true" /></Link>
+        <Link href="/avisos">Avisos y derechos del consumidor <ArrowRight size={20} aria-hidden="true" /></Link>
       </nav>
 
       <DiagnosticCTA />

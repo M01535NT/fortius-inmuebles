@@ -5,7 +5,7 @@ import type { SiteContent } from "@/lib/admin/store";
 export const HOME_FIELDS = {
   relatoTexto: { group: "Lo que recibes", label: "Lo que falta, a tiempo", value: "Qué falta, antes de anunciar." },
   relatoApoyo: { group: "Lo que recibes", label: "Dónde se publica", value: "Canales y fechas, acordados contigo." },
-  metodoTitulo: { group: "Método", label: "Título", value: "Cinco etapas, y lo que recibes en cada una." },
+  metodoTitulo: { group: "Método", label: "Título", value: "Cinco etapas, de la entrevista a la entrega." },
   metodoTexto: { group: "Método", label: "Introducción", value: "Cada paso queda en un documento que puedes revisar." },
   captacionTexto: { group: "Método", label: "Conocemos tu caso", value: "Platicamos qué buscas, quién puede firmar y qué papeles tienes." },
   diagnosticoTexto: { group: "Método", label: "Revisamos papeles y precio", value: "Medimos la propiedad, revisamos escritura y adeudos y la comparamos con otras parecidas. Tú decides el precio." },
@@ -17,7 +17,7 @@ export const HOME_FIELDS = {
   factibilidadTexto: { group: "Entregables", label: "Opinión jurídica", value: "Qué se revisó y qué falta." },
   valorTexto: { group: "Entregables", label: "Opinión de valor", value: "Precio propuesto y comparables." },
   planTexto: { group: "Entregables", label: "Plan de comercialización", value: "Dónde y cuándo se publica." },
-  gastosTexto: { group: "Entregables", label: "Estimación de lo que recibes", value: "Cuánto recibes al final, estimado." },
+  gastosTexto: { group: "Entregables", label: "Estimación de lo que recibes", value: "Lo que te queda después de impuestos y gastos." },
   contratoTexto: { group: "Entregables", label: "Contrato de intermediación", value: "Alcance y honorarios." },
   reportesTexto: { group: "Entregables", label: "Reporte de comercialización", value: "Consultas, visitas y ofertas." },
   preguntasTitulo: { group: "Preguntas frecuentes", label: "Título", value: "Lo que más\nnos preguntan." },
@@ -143,10 +143,16 @@ const PREVIOUS_FOUR_STAGE_TEXTS: Partial<Record<HomeTextKey, string>> = {
   cierreTexto: "Revisamos ofertas, notaría y entrega.",
 };
 
+/* Defaults of the five-stage home (31/10/2026), replaced by the copy review of 13/11/2026. */
+const PREVIOUS_FIVE_STAGE_TEXTS: Partial<Record<HomeTextKey, string>> = {
+  metodoTitulo: "Cinco etapas, y lo que recibes en cada una.",
+  gastosTexto: "Cuánto recibes al final, estimado.",
+};
+
 export function homeText(content: Pick<SiteContent, "homeTexts"> | null | undefined, key: HomeTextKey): string {
   const value = content?.homeTexts?.[key]?.trim();
   const isOldDefault = value === PREVIOUS_HOME_TEXTS[key] || value === PREVIOUS_NOTES[key] || value === PREVIOUS_EDITORIAL_TEXTS[key]
-    || value === PREVIOUS_SIX_STAGE_TEXTS[key] || value === PREVIOUS_LONG_TEXTS[key] || value === PREVIOUS_FOUR_STAGE_TEXTS[key]
+    || value === PREVIOUS_SIX_STAGE_TEXTS[key] || value === PREVIOUS_LONG_TEXTS[key] || value === PREVIOUS_FOUR_STAGE_TEXTS[key] || value === PREVIOUS_FIVE_STAGE_TEXTS[key]
     || (key === "cierreTexto" && value === OLDER_CLOSURE_NOTE)
     || (key === "metodoTitulo" && value === RETIRED_METHOD_TITLE);
   return brandCopy(value && !isOldDefault ? value : HOME_FIELDS[key].value);
