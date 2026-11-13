@@ -307,7 +307,7 @@ function FloatBar({ children }: { children: React.ReactNode }) {
 }
 
 /** Formatos que se hacen más de una vez en la misma operación: uno por visita, reporte, oferta o presupuesto. */
-const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Registrar otra visita", "14": "Otra propuesta", "19": "Otro presupuesto" };
+const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Registrar otra visita", "14": "Otra propuesta", "19": "Otro presupuesto", "22": "Solicitud de otro candidato" };
 
 function DocRow({ item, now, docs, signed, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; signed: boolean; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
   const doc = docs.latest(item.formato), pdf = docs.pdfOf(doc);

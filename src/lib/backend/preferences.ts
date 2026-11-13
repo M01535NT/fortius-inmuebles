@@ -17,6 +17,9 @@ export const panelSchema = z.object({
   operacionesVista: z.enum(["lista", "tablero"]).optional(),
   inmueblesVista: z.enum(["filas", "tarjetas"]).optional(),
   vistasInventario: z.array(z.object({ name: z.string().trim().min(1).max(60), filters: z.record(z.string().regex(/^[a-zA-Z]{1,40}$/), filterValue) }).strict()).max(10).optional(),
+  /** UX-03: los últimos registros abiertos (solo rutas del panel) y si los atajos de una tecla están encendidos. */
+  recientes: z.array(z.string().regex(/^\/admin\/[a-zA-Z0-9/_%.-]{1,200}$/)).max(5).optional(),
+  atajos: z.boolean().optional(),
 }).strict();
 export type PanelPreferences = z.infer<typeof panelSchema>;
 export const preferencesSchema = z.object({
