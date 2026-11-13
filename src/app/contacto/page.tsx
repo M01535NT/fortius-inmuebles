@@ -7,7 +7,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/contacto",
   title: "Contacto de inmobiliaria en Tijuana",
   description:
-    "Escríbenos para vender, comprar o preguntar por un inmueble en Tijuana, Rosarito, Tecate o Ensenada. Te respondemos por WhatsApp, por teléfono o por correo.",
+    "Escríbenos para vender, comprar o preguntar por un inmueble en Tijuana, Rosarito, Tecate o Ensenada. Te respondemos por WhatsApp, teléfono o correo.",
 });
 
 /* Boceto Contacto: página nocturna completa con motivos, formulario y canales directos. */

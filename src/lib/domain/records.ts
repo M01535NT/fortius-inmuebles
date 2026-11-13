@@ -219,6 +219,10 @@ export type SiteSettings = {
   videoInstitucionalUrl: string;
   /** RP-23: horas para la primera atención de un prospecto nuevo del sitio (1 a 72). Solo del panel. */
   horasPrimeraAtencion?: number;
+  /** IA-02: tope mensual de gasto de la lectura con IA, en dólares (0 a 1000). Solo del panel. */
+  topeIaMensualUsd?: number;
+  /** FCH-03: datos de Fortius como empresa para los documentos (ver `lib/backend/datos-fortius`). Solo del panel. */
+  empresa?: Partial<Record<string, string>>;
   /** CRM-02: textos de «Mensajes listos» que el director cambió; los demás usan el aprobado. Solo del panel. */
   mensajes?: Partial<Record<string, string>>;
 };
