@@ -125,6 +125,23 @@
   --tracking-seccion: -0.03em;
   --tracking-subtitulo: -0.015em;
   --tracking-cifra: -0.02em;
+
+  /* Espacios del sitio público (titular, 13/11/2026): ocho pasos, múltiplos de 4 px. */
+  --space-junto: 4px;
+  --space-corto: 8px;
+  --space-cerca: 12px;
+  --space-normal: 16px;
+  --space-amplio: 24px;
+  --space-bloque: 32px;
+  --space-grupo: 48px;
+  --space-seccion: clamp(72px, 3rem + 6vw, 112px);
+
+  /* Piezas del sitio (titular, 13/11/2026): botones y campos de 48 (grande 56) y tres esquinas. */
+  --control-normal: 48px;
+  --control-grande: 56px;
+  --corner-pulsable: 4px;
+  --corner-tarjeta: 8px;
+  --corner-pastilla: 999px;
 }
 
 /* En oscuro, la letra clara sobre fondo oscuro se ve más apretada: el texto largo lleva un poco más de aire. */
