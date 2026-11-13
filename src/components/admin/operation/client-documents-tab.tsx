@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 import { Camera, FileDown, FileText, Pencil, RotateCcw, Trash2, Upload } from "@/components/admin/icons";
 import { Button, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
@@ -12,7 +13,7 @@ import { ExpedienteDatosPanel } from "./expediente-datos-panel";
   documentos que entregue el cliente —escrituras, certificados, avalúos, identificaciones, CURP,
   predial…— sin acomodarlos por tipo. Cada archivo se sube directo a la carga privada con un
   permiso de un solo uso y el servidor lo comprueba antes de guardarlo. Nada se borra de golpe:
-  va a la papelera y se puede restaurar.
+  va a Eliminados (dentro de esta pestaña) y se puede restaurar.
   Con la lectura activada (IA-01), cada documento se lee al subirlo y sus datos aparecen abajo por
   confirmar; un error de lectura no detiene nada y se puede volver a leer.
   Regla del titular (29/10/2026): la pantalla nunca dice que algo fue propuesto o creado por la IA.
@@ -121,10 +122,11 @@ export function ClientDocumentsTab({ operationId, incoming }: { operationId: str
       try { avisos.push(await leer(archivo)); setNotice(avisos.join(" ")); } catch (cause) { fallas.push(errorMessage(cause)); setError(fallas.join(" ")); }
     }
   }
-  async function cambiar(id: string, body: Record<string, unknown>, mensaje: string) {
+  async function cambiar(archivo: ArchivoCliente, body: Record<string, unknown>, mensaje: string) {
+    const id = archivo.id;
     setError(""); setNotice("");
     try {
-      const r = await json<{ archivo: ArchivoCliente }>(`/api/admin/archivos-cliente/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const r = await json<{ archivo: ArchivoCliente }>(`/api/admin/archivos-cliente/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, esperado: { titulo: archivo.titulo, eliminado: Boolean(archivo.deleted_at) } }) });
       setLista(old => {
         if (!old) return old;
         const resto = { archivos: old.archivos.filter(a => a.id !== id), papelera: old.papelera.filter(a => a.id !== id) };
@@ -170,7 +172,7 @@ export function ClientDocumentsTab({ operationId, incoming }: { operationId: str
           <FileText size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
           <div className="flex min-w-0 flex-1 flex-col">
             {editando?.id === archivo.id
-              ? <form className="flex flex-wrap gap-2" onSubmit={async event => { event.preventDefault(); if (await cambiar(archivo.id, { titulo: editando.titulo }, "Nombre actualizado.")) setEditando(null); }}>
+              ? <form className="flex flex-wrap gap-2" onSubmit={async event => { event.preventDefault(); if (await cambiar(archivo, { titulo: editando.titulo }, "Nombre actualizado.")) setEditando(null); }}>
                 <label className="sr-only" htmlFor={`titulo-${archivo.id}`}>Nombre del documento</label>
                 <input id={`titulo-${archivo.id}`} className={`${inputClass} min-w-0 flex-1`} maxLength={240} value={editando.titulo} autoFocus onChange={event => setEditando({ id: archivo.id, titulo: event.target.value })} onKeyDown={event => { if (event.key === "Escape") setEditando(null); }} />
                 <Button type="submit" variant="primary" disabled={!editando.titulo.trim()}>Guardar</Button>
@@ -187,20 +189,20 @@ export function ClientDocumentsTab({ operationId, incoming }: { operationId: str
             {lista?.ia && archivo.lectura_estado !== "leyendo" && <Button variant="ghost" onClick={() => void leerUno(archivo)}>{archivo.lectura_estado === "leido" || archivo.lectura_estado === "error" ? "Volver a leer" : "Leer datos"}</Button>}
             <a className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-medium hover:bg-muted" href={`/api/admin/archivos-cliente/${archivo.id}/descargar`} target="_blank" rel="noopener"><FileDown size={16} aria-hidden="true" />Abrir</a>
             <Button variant="ghost" iconOnly aria-label={`Cambiar el nombre de ${archivo.titulo}`} onClick={() => setEditando({ id: archivo.id, titulo: archivo.titulo })}><Pencil size={16} aria-hidden="true" /></Button>
-            <Button variant="ghost" iconOnly aria-label={`Mandar ${archivo.titulo} a la papelera`} onClick={() => void cambiar(archivo.id, { papelera: true }, "Se movió a la papelera; puedes restaurarlo.")}><Trash2 size={16} aria-hidden="true" /></Button>
+            <Button variant="ghost" iconOnly aria-label={`Eliminar ${archivo.titulo}`} onClick={() => void cambiar(archivo, { papelera: true }, `Se movió a ${PAPELERA.nombre}; puedes restaurarlo.`)}><Trash2 size={16} aria-hidden="true" /></Button>
           </span>}
         </li>)}</ul>
       </Card>}
 
     <ExpedienteDatosPanel operationId={operationId} refresh={lecturas} />
 
-    {papelera.length > 0 && <Card className="p-4" aria-label="Papelera de documentos">
+    {papelera.length > 0 && <Card className="p-4" aria-label={`Documentos en ${PAPELERA.nombre}`}>
       <button type="button" className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-sm font-semibold" aria-expanded={verPapelera} onClick={() => setVerPapelera(open => !open)}>
-        Papelera <Pill size="sm" tone="muted">{papelera.length}</Pill>
+        {PAPELERA.nombre} <Pill size="sm" tone="muted">{papelera.length}</Pill>
       </button>
       {verPapelera && <ul className="mt-2 flex flex-col divide-y divide-border">{papelera.map(archivo => <li key={archivo.id} className="flex flex-wrap items-center gap-3 py-2">
         <span className="min-w-0 flex-1 text-sm text-muted-foreground [overflow-wrap:anywhere]">{archivo.titulo}</span>
-        <Button onClick={() => void cambiar(archivo.id, { papelera: false }, "Documento restaurado.")}><RotateCcw size={16} aria-hidden="true" />Restaurar</Button>
+        <Button onClick={() => void cambiar(archivo, { papelera: false }, "Documento restaurado.")}><RotateCcw size={16} aria-hidden="true" />Restaurar</Button>
       </li>)}</ul>}
     </Card>}
   </div>;

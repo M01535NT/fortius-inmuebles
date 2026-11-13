@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { dropStagedUpload, prepareUpload, takeStagedUpload } from "./files";
@@ -26,10 +26,13 @@ export const preparacion = z.object({
   contentType: z.enum(TIPOS_ARCHIVO_CLIENTE),
 }).strict();
 export const finalizacion = z.object({ ticket: z.string().max(4096), titulo: z.string().trim().min(1).max(240).optional() }).strict();
+/** C-18: lo que quien cambia vio del documento; si otra persona lo cambió antes, responde 409. */
+const esperado = z.object({ titulo: z.string().max(240), eliminado: z.boolean() }).strict();
 export const cambio = z.union([
-  z.object({ titulo: z.string().trim().min(1).max(240) }).strict(),
-  z.object({ papelera: z.boolean() }).strict(),
+  z.object({ titulo: z.string().trim().min(1).max(240), esperado }).strict(),
+  z.object({ papelera: z.boolean(), esperado }).strict(),
 ]);
+const CAMBIADO = "Otra persona cambió este documento; recarga antes de continuar";
 
 /** El expediente existe, está activo y quien llama tiene acceso a él (RLS del expediente). */
 export async function exigirExpediente(client: SupabaseClient, id: string) {
@@ -50,22 +53,39 @@ export async function prepararArchivo(privileged: SupabaseClient, userId: string
   return prepareUpload(privileged, userId, { ...data, visibility: "private" });
 }
 
-/** Guarda en el expediente el archivo que el ticket autorizó; si el registro falla, el archivo no queda huérfano. */
+/**
+  Guarda en el expediente el archivo que el ticket autorizó; si el registro falla, el archivo no queda huérfano.
+  C-17: el documento toma su identificador del ticket, así que un reintento o un doble envío del
+  mismo ticket devuelve el documento ya guardado en vez de registrarlo dos veces.
+*/
 export async function finalizarArchivo(privileged: SupabaseClient, userId: string, expedienteId: string, input: unknown): Promise<ArchivoCliente> {
   const { ticket, titulo } = finalizacion.parse(input);
   const { claims, file, type, extension } = await takeStagedUpload(privileged, userId, ticket);
   if (!(TIPOS_ARCHIVO_CLIENTE as readonly string[]).includes(type)) throw new ApiError(400, "Sube un PDF o una imagen JPEG, PNG o WEBP");
   const bytes = Buffer.from(await file.arrayBuffer());
-  const id = randomUUID();
+  const id = claims.path.slice(claims.path.indexOf("/") + 1, claims.path.lastIndexOf("."));
   const path = `${expedienteId}/cliente/${id}.${extension}`;
-  const uploaded = await privileged.storage.from(BUCKET_EXPEDIENTES).upload(path, bytes, { contentType: type, upsert: false });
+  const previo = await privileged.from("fortius_inmuebles_expediente_archivos").select(`${COLUMNAS},path`).eq("id", id).maybeSingle();
+  if (previo.error) databaseError(previo.error);
+  if (previo.data) {
+    if (previo.data.expediente_id !== expedienteId) throw new ApiError(409, "Esta carga ya se guardó en otra operación");
+    await dropStagedUpload(privileged, claims.path);
+    const { path: _path, ...guardado } = previo.data; void _path;
+    return guardado as ArchivoCliente;
+  }
+  // Si un intento anterior subió el archivo pero no alcanzó a registrarlo, se reemplaza con estos bytes ya validados.
+  const uploaded = await privileged.storage.from(BUCKET_EXPEDIENTES).upload(path, bytes, { contentType: type, upsert: true });
   if (uploaded.error) databaseError(uploaded.error);
   const saved = await privileged.from("fortius_inmuebles_expediente_archivos").insert({
     id, expediente_id: expedienteId, titulo: titulo ?? tituloDe(claims.name), nombre_original: claims.name.slice(0, 255),
     mime: type, byte_length: bytes.byteLength, sha256: createHash("sha256").update(bytes).digest("hex"), path, uploaded_by: userId,
   }).select(COLUMNAS).single();
   if (saved.error) {
-    await privileged.storage.from(BUCKET_EXPEDIENTES).remove([path]);
+    // Dos envíos simultáneos del mismo ticket: el segundo encuentra el registro del primero.
+    if (saved.error.code === "23505") {
+      const ganador = await privileged.from("fortius_inmuebles_expediente_archivos").select(COLUMNAS).eq("id", id).eq("expediente_id", expedienteId).maybeSingle();
+      if (ganador.data) return ganador.data as ArchivoCliente;
+    } else await privileged.storage.from(BUCKET_EXPEDIENTES).remove([path]);
     databaseError(saved.error);
   }
   await dropStagedUpload(privileged, claims.path);
@@ -90,10 +110,14 @@ export async function cambiarArchivo(client: SupabaseClient, privileged: Supabas
   const data = cambio.parse(input);
   const archivo = await archivoVisible(client, id);
   await exigirExpediente(client, archivo.expediente_id);
+  if (archivo.titulo !== data.esperado.titulo || Boolean(archivo.deleted_at) !== data.esperado.eliminado) throw new ApiError(409, CAMBIADO);
   const patch = "titulo" in data ? { titulo: data.titulo }
     : data.papelera ? { deleted_at: new Date().toISOString(), deleted_by: userId } : { deleted_at: null, deleted_by: null };
-  const saved = await privileged.from("fortius_inmuebles_expediente_archivos").update(patch).eq("id", id).select(COLUMNAS).single();
+  // Cambia solo si sigue como lo vio quien pide el cambio (la tabla no lleva versión).
+  const query = privileged.from("fortius_inmuebles_expediente_archivos").update(patch).eq("id", id).eq("titulo", data.esperado.titulo);
+  const saved = await (data.esperado.eliminado ? query.not("deleted_at", "is", null) : query.is("deleted_at", null)).select(COLUMNAS).maybeSingle();
   if (saved.error) databaseError(saved.error);
+  if (!saved.data) throw new ApiError(409, CAMBIADO);
   return saved.data as ArchivoCliente;
 }
 

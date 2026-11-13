@@ -3,7 +3,7 @@ import * as React from "react";
 import { Plus, Trash2 } from "@/components/admin/icons";
 import { Button, Card } from "@/components/admin/kit";
 import { textareaClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { announcements, newNote } from "@/lib/admin/notes";
 import { db, errorMessage, removeById, uid, upsert, useCollection, useSession } from "@/lib/admin/store";
 import { cn, humanDateTime } from "@/lib/utils";
@@ -33,7 +33,7 @@ export function Announcements({ className }: { className?: string }) {
   }
   async function remove(id: string) {
     const item = items.find(note => note.id === id);
-    if (!item || !await confirmAction(`¿Quitar el aviso «${item.titulo}»? Se puede recuperar desde Historial.`)) return;
+    if (!item || !await confirmDelete("aviso", `El aviso «${item.titulo}» deja de verse en Hoy.`, "o")) return;
     try { await removeById(db.notas, id, db.notas.version(item)); } catch (cause) { setError(errorMessage(cause)); }
   }
 

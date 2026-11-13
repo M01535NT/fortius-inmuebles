@@ -6,7 +6,7 @@ import { ArrowRight, CalendarPlus, Landmark, Trash2 } from "@/components/admin/i
 import { hipotecaHref } from "@/lib/apps/contexto";
 import { Button, ButtonLink, Notice, Pill, Surface } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { ContactLog } from "@/components/admin/contacts/contact-log";
@@ -119,7 +119,7 @@ function LeadDetail({ id }: { id: string }) {
     : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
   const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
     { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
-      if (!await confirmAction(`¿Eliminar al prospecto "${lead.nombre}" y su historial?`)) return;
+      if (!await confirmDelete("prospecto", `Se elimina a ${lead.nombre} con su historial.`, false)) return;
       await removeById(db.leads, lead.id, db.leads.version(lead));
       router.push("/admin/contactos");
     } },

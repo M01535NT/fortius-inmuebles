@@ -1,10 +1,11 @@
 "use client";
-import { confirmAction } from "@/components/admin/workspace/confirm";
 import * as React from "react";
+import Link from "next/link";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 import { humanDateTime } from "@/lib/utils";
-import { apiRequest, db, errorMessage, loadAdminData, useCollection, useSession } from "@/lib/admin/store";
-import { AsyncButton, Field, PageHeader, btnGhost, selectClass } from "@/components/admin/ui";
-import { Button, Card, EmptyBox, Notice, Segmented } from "@/components/admin/kit";
+import { apiRequest, db, errorMessage, useCollection, useSession } from "@/lib/admin/store";
+import { Field, PageHeader, selectClass } from "@/components/admin/ui";
+import { Button, Card, EmptyBox } from "@/components/admin/kit";
 
 type Entry = {
   id: string;
@@ -35,14 +36,13 @@ const ACTION = { INSERT: "Se creó", UPDATE: "Se cambió", DELETE: "Se eliminó"
 /*
   Historial (SIM-15, C46): con el kit del panel y en palabras del asesor. Cada movimiento dice qué
   registro cambió (por su nombre cuando se conoce), quién y cuándo; los campos tocados quedan
-  plegados. «Recuperar eliminados» conserva la restauración del servidor.
+  plegados. Lo eliminado se recupera en la papelera única (NAV-13), con la misma restauración del servidor.
 */
 export default function HistoryPage() {
   const session = useSession();
   const propiedades = useCollection(db.propiedades), leads = useCollection(db.leads), clientes = useCollection(db.clientes);
   const tareas = useCollection(db.tareas), asesores = useCollection(db.asesores), notas = useCollection(db.notas), eventos = useCollection(db.eventos);
   const [entries, setEntries] = React.useState<Entry[]>([]),
-    [deleted, setDeleted] = React.useState(false),
     [collection, setCollection] = React.useState(() => typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("collection") ?? "") : ""),
     [record, setRecord] = React.useState(() => typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("record") ?? "") : ""),
     [offset, setOffset] = React.useState(0),
@@ -53,12 +53,12 @@ export default function HistoryPage() {
   React.useEffect(() => {
     if (session?.role !== "admin") return;
     let active = true;
-    const query = new URLSearchParams({ offset: String(offset), collection, record, deleted: deleted ? "1" : "0" });
+    const query = new URLSearchParams({ offset: String(offset), collection, record, deleted: "0" });
     apiRequest<{ entries: Entry[]; hasMore: boolean }>(`/api/admin/historial?${query}`)
       .then(r => { if (active) { setError(""); setEntries(r.entries); setMore(r.hasMore); setStatus("ready"); } })
       .catch(e => { if (active) { setError(errorMessage(e)); setStatus("error"); } });
     return () => { active = false; };
-  }, [session?.role, deleted, collection, record, offset, revision]);
+  }, [session?.role, collection, record, offset, revision]);
   if (session?.role !== "admin") return <p role="alert">El historial es solo para administradores.</p>;
 
   const nameOf = (entry: Pick<Entry, "collection" | "record_id">): string | undefined => {
@@ -83,8 +83,6 @@ export default function HistoryPage() {
     <div className="flex min-w-0 flex-col gap-5">
       <PageHeader title="Historial" description="Lo que se ha creado, cambiado o eliminado en el panel, desde que se activó el historial." />
       <div className="flex flex-wrap items-end gap-3">
-        <Segmented label="Qué ver" value={deleted ? "eliminados" : "actividad"} onChange={id => { const next = id === "eliminados"; if (next === deleted && offset === 0) return; setDeleted(next); reload(); }}
-          options={[{ id: "actividad", label: "Actividad" }, { id: "eliminados", label: "Recuperar eliminados" }]} />
         <Field label="Sección" htmlFor="history-collection" className="min-w-[12rem]">
           <select id="history-collection" className={selectClass} value={collection} onChange={e => { setCollection(e.target.value); reload(); }}>
             <option value="">Todas</option>
@@ -94,7 +92,7 @@ export default function HistoryPage() {
         {record && <Button variant="ghost" onClick={() => { setRecord(""); reload(); }}>Ver todo el historial</Button>}
       </div>
       {record && <p className="text-sm text-muted-foreground">Solo los movimientos de {nameOf({ collection, record_id: record }) ?? "este registro"}.</p>}
-      {deleted && <Notice tone="info">Aquí se recuperan inmuebles, artículos, notas y citas eliminados. Los inmuebles y artículos vuelven sin publicar. Las operaciones se recuperan desde Operaciones.</Notice>}
+      <p className="text-sm text-muted-foreground">Para restaurar algo eliminado: <Link href={PAPELERA.href} className="font-semibold text-foreground underline underline-offset-4">{PAPELERA.enlace}</Link>.</p>
       {status === "loading" ? <p role="status">Cargando historial…</p>
         : error ? <div role="alert" className="flex flex-wrap items-center gap-3"><p>{error}</p><Button onClick={() => { setStatus("loading"); setRevision(n => n + 1); }}>Reintentar</Button></div>
         : <>
@@ -112,17 +110,11 @@ export default function HistoryPage() {
                       <p className="break-words">{entry.changed_fields.join(", ")}</p>
                     </details>}
                   </div>
-                  {deleted && <AsyncButton className={btnGhost + " shrink-0"} onClick={async () => {
-                    if (!await confirmAction("¿Recuperar este registro? Lo que estaba publicado vuelve sin publicar.")) return;
-                    await apiRequest("/api/admin/historial", "POST", { historyId: entry.id });
-                    setRevision(n => n + 1);
-                    try { await loadAdminData(); } catch { throw new Error("Se recuperó. Recarga el panel para ver las listas al día."); }
-                  }}>Restaurar</AsyncButton>}
                 </div>
               </Card>;
             })}
-          </ul> : <EmptyBox title={deleted ? "Nada que recuperar" : "Sin movimientos"}>
-            {deleted ? "Cuando se elimine un inmueble, un artículo, una nota o una cita, aparecerá aquí para recuperarlo." : collection || record ? "No hay movimientos en esta sección. Prueba con «Todas»." : "Cada vez que alguien del equipo guarde o elimine algo, quedará anotado aquí con su fecha."}
+          </ul> : <EmptyBox title="Sin movimientos">
+            {collection || record ? "No hay movimientos en esta sección. Prueba con «Todas»." : "Cada vez que alguien del equipo guarde o elimine algo, quedará anotado aquí con su fecha."}
           </EmptyBox>}
           {(offset > 0 || more) && <div className="flex gap-2">
             <Button disabled={offset === 0} onClick={() => { setStatus("loading"); setOffset(n => n - 50); }}>Anterior</Button>

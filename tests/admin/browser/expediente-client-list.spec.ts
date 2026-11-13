@@ -56,7 +56,7 @@ for (const width of [390, 768, 1440]) {
     await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });
     // En celular la operación esconde la barra inferior; «Volver a Operaciones» lleva a la misma lista.
     await page.getByRole("link", { name: /^(Volver a )?Operaciones$/ }).filter({ visible: true }).first().click();
-    await page.getByRole("link", { name: "Ver operaciones eliminadas" }).click();
+    await page.getByRole("link", { name: "Ver eliminados" }).click();
     await expect(page.getByText("No hay operaciones eliminadas")).toBeVisible();
     await page.goto("/admin/operaciones/nueva");
     await expect(page.getByRole("heading", { name: "¿Qué quiere hacer el cliente?" })).toBeVisible();

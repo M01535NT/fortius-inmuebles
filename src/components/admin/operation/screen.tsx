@@ -7,6 +7,7 @@ import { RecordNotes, useRecordNotes } from "@/components/admin/workspace/record
 import { Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { exceptionKeys, inheritedPending, isOwnerRoute, type OperationWorkflow, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
@@ -147,7 +148,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   async function changeLifecycle(remove: boolean) {
     const result = await json<{ expediente: OperationRecord }>(`/api/admin/expedientes/${op.id}`, { method: remove ? "DELETE" : "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: op.version }) });
     setOp(result.expediente); setDirty({}); setChanges(n => n + 1);
-    setNotice(remove ? "Operación eliminada. Puedes restaurarla aquí o desde «Operaciones eliminadas»." : "Operación restaurada.");
+    setNotice(remove ? `Operación eliminada. Puedes restaurarla aquí o desde ${PAPELERA.nombre}.` : "Operación restaurada.");
   }
 
   const reviewer = advisers.find(a => a.id === me)?.nombre ?? session?.name ?? session?.email ?? "";
