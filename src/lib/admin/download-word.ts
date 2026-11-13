@@ -24,10 +24,10 @@ export async function downloadFormatoWord(doc: SavedFormato, folio: string, clie
 
 /**
   Copia editable (titular, 27/10/2026: «quitar la opción de descargar el Word»). Los formatos se
-  entregan en PDF; solo quedan la opinión de valor (07), que se trabaja en su Excel, y el
-  contrato 09, cuyo PDF sigue bloqueado (DOC-09) y por eso se descarga en Word.
+  entregan en PDF; solo queda la opinión de valor (07), que se trabaja en su Excel. El contrato 09
+  salía en Word mientras su PDF estuvo bloqueado; desde el 12/11/2026 sale en PDF como los demás.
 */
-export const copiaEditable = (formatoId: string): "Excel" | "Word" | null => formatoId === "07" ? "Excel" : formatoId === "09" ? "Word" : null;
+export const copiaEditable = (formatoId: string): "Excel" | "Word" | null => formatoId === "07" ? "Excel" : null;
 
 /**
   Foto elegida, lista para el Excel: orientada como se ve en pantalla y reducida a 1600 px por

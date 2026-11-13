@@ -246,7 +246,7 @@ it("en el dictamen jurídico, «Iniciar» abre el 05 en su ventana con lo recibi
   expect(created.data.documentos.find(d => d.concepto === "D04")).toEqual({ concepto: "D04" });
 });
 
-it("en contrato y preparación se inician el 09 (sólo Word) y el 10", async () => {
+it("en contrato y preparación se inician el 09 (en PDF) y el 10", async () => {
   const verified = { entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: reviewed() };
   server.ops = [base({ etapa: "documentacion", flujo: flow(verified, accepted) })];
   await openOperation();
@@ -256,8 +256,8 @@ it("en contrato y preparación se inician el 09 (sólo Word) y el 10", async () 
   fireEvent.click(screen.getAllByRole("button", { name: /^Iniciar$/ })[0]);
   const capture = await screen.findByRole("dialog", { name: "Contrato de intermediación inmobiliaria para venta" });
   expect(server.docs.some(d => d.formato_id === "09")).toBe(true);
-  expect(within(capture).getByRole("button", { name: "Word" })).toBeTruthy();
-  expect((within(capture).getByRole("button", { name: "Generar PDF" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(within(capture).queryByRole("button", { name: "Word" })).toBeNull();
+  expect((within(capture).getByRole("button", { name: "Generar PDF" }) as HTMLButtonElement).disabled).toBe(false);
 });
 
 it("un fallo al guardar se informa en palabras sencillas y no anuncia ningún avance", async () => {

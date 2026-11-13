@@ -7,8 +7,7 @@ export function IntermediacionSummary({ values }: { values: Record<string, unkno
   const result = calcularIntermediacion(values);
   const cash = (value: number | null) => value === null ? "Pendiente" : `${formatAmount(value)} MXN`;
   return <section className="space-y-4 rounded-lg border border-border bg-muted/30 p-4 md:col-span-2">
-    <h2 className="font-semibold">Emisión del contrato 09 bloqueada</h2>
-    <p className="text-sm">Puedes preparar, guardar y descargar el contrato en Word. El PDF se habilita cuando Fortius cargue su modelo de contrato y el abogado lo revise.</p>
+    <h2 className="font-semibold">Comisión y pena del contrato</h2>
     <dl className="grid gap-3 md:grid-cols-2"><div><dt>Precio sin IVA de venta</dt><dd>{cash(result.basePrecio)}</dd></div><div><dt>Comisión estimada sin IVA</dt><dd>{cash(result.comision)}</dd></div><div><dt>IVA de comisión estimado</dt><dd>{cash(result.ivaComision)}</dd></div><div><dt>Comisión estimada con IVA</dt><dd className="font-semibold">{cash(result.total)}</dd></div><div><dt>Pena máxima (el menor entre el importe pactado y la comisión sin IVA)</dt><dd>{cash(result.basePena)}</dd></div></dl>
     {result.errors.length > 0 && <p className="text-sm text-muted-foreground">Pendientes de cálculo: {result.errors.join(". ")}.</p>}
     <p className="text-sm">Las cifras son estimaciones al precio autorizado. El contrato original devenga comisión con la transmisión formalizada y el precio efectivamente recibido o aplicado, proporcionalmente si hay pagos posteriores. Las tasas se capturan con su soporte fiscal; no se asignan por defecto.</p>

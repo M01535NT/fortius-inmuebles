@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Packer } from "docx";
 import { PDFDocument } from "pdf-lib";
 import { createFormatoPdf } from "@/lib/formatos/pdf";
+import { intermediacionCompleta } from "./fixtures/intermediacion";
 import { BLANK, m } from "@/lib/formatos/documento/modelo";
 import { planDocumento } from "@/lib/formatos/documento/plan";
 import { intermediacionDocumento } from "@/lib/formatos/documento/intermediacion";
@@ -154,11 +155,12 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(imageInfo(png)).toEqual({ tipo: "png", width: 1000, height: 500 });
     expect(imageInfo(Uint8Array.from([1, 2, 3]))).toBeNull();
   });
-  it("el PDF del 10 sale en tamaño carta con su título; el del 09 sigue bloqueado", async () => {
+  it("el PDF del 10 sale en tamaño carta con su título; el del 09 también", async () => {
     const plan = await PDFDocument.load(await renderDocumentoPdf(planDocumento({}), assets));
     expect(plan.getTitle()).toBe("Plan de comercialización");
     expect(plan.getPage(0).getSize()).toEqual({ width: 612, height: 792 });
-    await expect(createFormatoPdf("09", {})).rejects.toThrow("Formato pendiente de cotejo con el original");
+    const contrato = await PDFDocument.load(await createFormatoPdf("09", intermediacionCompleta));
+    expect(contrato.getPage(0).getSize()).toEqual({ width: 612, height: 792 });
   });
   it("el Word se genera para el 09 y el 10", async () => {
     for (const doc of [planDocumento({}), intermediacionDocumento({})]) {
