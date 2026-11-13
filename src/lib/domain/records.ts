@@ -98,7 +98,10 @@ export type Lead = {
   firstContactedAt?: string;
   /** CRM-03: regresó por el sitio estando descartada; desde aquí corre el plazo de primera atención. */
   reabiertoEl?: string;
+  /** COR-18: ofertas por escrito (formato 14) de este interesado, ligadas por el documento. */
+  ofertas?: LeadOffer[];
 };
+export type LeadOffer = { documentoId: string; expedienteId: string; fecha: string; propiedadSlug?: string };
 
 export const EVENTO_TIPOS = [
   "visita",

@@ -58,7 +58,7 @@ function ClosingBreakdown({ items }: { items: { key: string; label: string; amou
       <svg viewBox="0 0 100 16" role="img" aria-label={`Desglose de ${selected.label}: ${money(selected.amount)} MXN`} className="mt-4 h-16 w-full overflow-visible">
         {segments.map(({ item, x, width }) => <rect key={item.key} x={x} y="3" width={width} height="10" rx="1" className={item.key === selected.key ? "fill-primary" : "fill-muted-foreground/25"} onClick={() => setActiveKey(item.key)} />)}
       </svg>
-      <p className="font-mono text-sm text-foreground" aria-live="polite">{selected.label}: {money(selected.amount)} MXN</p>
+      <p className="text-sm font-semibold text-foreground" aria-live="polite">{selected.label}: {money(selected.amount)} MXN</p>
       <div className="mt-3 flex flex-wrap gap-2">{known.map((item) => <button key={item.key} type="button" aria-pressed={item.key === selected.key} onClick={() => setActiveKey(item.key)} className={`rounded-md border px-3 py-2 text-xs ${item.key === selected.key ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
     </section>
   );
@@ -634,7 +634,7 @@ export function ClosingCostsCalculator({
                   <li key={item.key} className="py-3">
                     <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-sm">
                       <span>{item.label}</span>
-                      <span className="font-mono">
+                      <span className="font-semibold">
                         {item.amount === null
                           ? "Pendiente"
                           : money(item.amount)}

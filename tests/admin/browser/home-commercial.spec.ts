@@ -14,14 +14,17 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     const seller = page.locator('#que-hacemos a[href="/vender-propiedad"]').first();
     await expect(seller).toBeAttached();
     await expect(page.locator("#comprar").getByRole("link", { name: "Ver propiedades" })).toHaveAttribute("href", "/inventario");
-    await expect(page.locator("#hablemos").getByRole("link", { name: "Contáctanos" })).toHaveAttribute("href", "/contacto");
+    // Cierre único del inicio (titular, 12/11/2026): la foto con «Quiero vender» y WhatsApp o Contacto.
+    await expect(page.locator("#hablemos").getByRole("link", { name: "Quiero vender" })).toHaveAttribute("href", "/vender-propiedad");
+    await expect(page.locator("#hablemos").getByRole("link", { name: /Escribir por WhatsApp|Contactar a Fortius/ })).toHaveCount(1);
     await expect(page.locator("#destacadas [data-property-card]")).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText(/de ejemplo$/)).toHaveCount(3);
     await expect(page.locator("#destacadas").getByText("Apartada de ejemplo", { exact: true })).toBeVisible();
     await expect(page.locator("[data-method-timeline] li")).toHaveCount(5);
     await expect(page.locator("#entregables article")).toHaveCount(6);
     await expect(page.locator("main .editorial-tools")).toHaveCount(0);
-    await expect(page.locator("footer").getByRole("heading", { name: "¿Vendes o compras? Hablemos." })).toBeVisible();
+    // El pie ya no repite la invitación en el inicio: el cierre de la página es el único.
+    await expect(page.locator("footer").getByRole("heading", { name: "¿Vendes o compras? Hablemos." })).toHaveCount(0);
 
     const costs = page.locator("#respuestas").getByRole("button", { name: "¿Qué gastos debo considerar al vender?" });
     await costs.click();
@@ -41,7 +44,8 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     await seller.click();
     await expect(page).toHaveURL(/\/vender-propiedad$/);
     await page.getByRole("link", { name: "Agendar entrevista" }).click();
-    await expect(page).toHaveURL(/\/vender-propiedad\/?#diagnostico$/);
+    await expect(page).toHaveURL(/\/vender-propiedad\/?#entrevista$/);
+    await expect(page.locator("#entrevista")).toBeVisible();
     await expect(page.locator("#diagnostico form")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });

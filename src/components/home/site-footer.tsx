@@ -52,7 +52,7 @@ function socialProfile(value: string | undefined, domain: string) {
 }
 
 /*
-  Pie (30/10/2026): una sola invitación sobre crema con dos acciones y, debajo, la
+  Pie (30/10/2026): una sola invitación sobre fondo claro con dos acciones y, debajo, la
   franja azul noche con la marca, el contacto, tres columnas, los avisos legales y el
   cambio de tema. Solo se muestran las redes que existen.
 */
@@ -67,10 +67,12 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
     { name: "WhatsApp", href: contact.whatsapp, Icon: MessageCircle },
   ].filter((item) => item.href);
   if (pathname.startsWith("/admin")) return null;
+  /* El inicio cierra con su propia invitación y Contacto ya es la invitación (12/11/2026). */
+  const showInvitation = pathname !== "/" && pathname !== "/contacto";
 
   return (
     <footer className="nx-footer">
-      <div className="nx-footer-cta">
+      {showInvitation && <div className="nx-footer-cta">
         <motion.div className="nx-container nx-footer-intro" initial={false}
           whileInView={reduce ? undefined : { y: [16, 0] }} viewport={{ once: true }} transition={{ duration: 1, ease: [0.25, 1, 0.5, 1] }}>
           <div>
@@ -84,7 +86,7 @@ export function SiteFooter({ settings }: { settings?: SiteSettings | null }) {
               : <Link href="/contacto" className="nx-btn">Contactar a Fortius</Link>}
           </div>
         </motion.div>
-      </div>
+      </div>}
       <div className="nx-footer-band">
         <div className="nx-container">
           <div className="nx-footer-columns">

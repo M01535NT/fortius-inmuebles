@@ -36,10 +36,10 @@ export default function OpinionDeValorPage() {
     <InteriorPage title="El precio sale de revisar tu propiedad."
       description="Es parte del método: llega con el dictamen de factibilidad, después de conocer el inmueble."
       bullets={[]}
-      primary={{ href: "/vender-propiedad#diagnostico", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Ver el método" }}
+      primary={{ href: "/vender-propiedad#entrevista", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Ver el método" }}
       aside={<ol className="ip-steps" aria-label="Cómo llegamos al precio">
         {STEPS.map((step, index) => <li key={step.title} className={index === STEPS.length - 1 ? "is-current" : undefined}>
-          <span className="ip-step-dot" aria-hidden="true" /><span className="ip-step-number">0{index + 1}</span>
+          <span className="ip-step-dot" aria-hidden="true" />
           <strong>{step.title}</strong><span>{step.text}</span>
         </li>)}
       </ol>} />
@@ -69,7 +69,7 @@ export default function OpinionDeValorPage() {
           <p className="pg-muted">Sin entrevista, levantamiento y documentos no hay opinión de valor.</p>
         </div>
         <div className="gd-cta-actions">
-          <Link href="/vender-propiedad#diagnostico" className="pg-btn pg-btn-light">Agendar entrevista</Link>
+          <Link href="/vender-propiedad#entrevista" className="pg-btn pg-btn-light">Agendar entrevista</Link>
           <Link href="/contacto" className="gd-cta-link">Hablar con un asesor</Link>
         </div>
       </div>

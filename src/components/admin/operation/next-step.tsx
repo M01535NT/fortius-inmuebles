@@ -5,7 +5,8 @@ import { ArrowRight, CalendarDays, Check, FileDown, FileText, House, PlayCircle,
 import Image from "next/image";
 import { Button, ButtonLink, Card, Notice } from "@/components/admin/kit";
 import { TIPO_LABELS, type Property as Propiedad } from "@/data/propiedades";
-import { inputClass, selectClass } from "@/components/admin/ui";
+import { AsyncSelect, inputClass, selectClass } from "@/components/admin/ui";
+import { offerCandidates, offerOwner, withOffer, withoutOffer } from "@/lib/admin/lead-offers";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
@@ -610,7 +611,15 @@ function VisitsAndOffers({ op, today, documents }: { op: OperationRecord; today:
   const offers = useRuns("ofertas", counterpart ? [op.id, counterpart] : [op.id]);
   const visits = events.filter(e => e.tipo === "visita" && (e.expedienteId === op.id || !!op.propiedad_slug && e.propiedadSlug === op.propiedad_slug)).sort((a, b) => (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? "")));
   const upcoming = visits.filter(e => e.fecha >= today), past = visits.filter(e => e.fecha < today);
-  const offerDocs = documents.filter(d => d.formato_id === "14").length;
+  const offerDocs = documents.filter(d => d.formato_id === "14");
+  // COR-18: cada oferta por escrito se liga al interesado que la hizo; su ficha muestra la misma.
+  const candidates = offerCandidates(leads, op.propiedad_slug, visits.map(e => e.leadId).filter((id): id is string => !!id), op.flujo?.contraparteLeadId);
+  async function link(documentoId: string, fecha: string, leadId: string) {
+    const before = offerOwner(leads, documentoId);
+    if (before && before.id !== leadId) await upsert(db.leads, withoutOffer(before, documentoId), db.leads.version(before));
+    const next = leads.find(l => l.id === leadId);
+    if (next) await upsert(db.leads, withOffer(next, { documentoId, expedienteId: op.id, fecha, ...(op.propiedad_slug ? { propiedadSlug: op.propiedad_slug } : {}) }), db.leads.version(next));
+  }
   return <Card className="flex flex-col gap-4 p-5" aria-label="Visitas y ofertas del inmueble">
     <h2 className="m-0 flex items-center gap-2 text-base"><CalendarDays size={18} aria-hidden="true" />Visitas y ofertas del inmueble</h2>
     {signer && <p className="text-sm">Contraparte: <Link className="font-semibold underline underline-offset-4" href={`/admin/leads/${encodeURIComponent(op.flujo!.contraparteLeadId!)}`}>{signer}</Link> (interesado que firma con el propietario).</p>}
@@ -622,7 +631,12 @@ function VisitsAndOffers({ op, today, documents }: { op: OperationRecord; today:
       </div>
       <div className="flex flex-col gap-2 text-sm"><p className="font-semibold">Ofertas comparadas</p>
         {offers === undefined ? <p className="text-muted-foreground">Consultando ofertas…</p> : offers === null ? <p className="text-muted-foreground">No se pudieron consultar las ofertas.</p> : offers.length ? <ul className="flex flex-col gap-1">{offers.slice(0, 5).map(run => <li key={run.id}>{run.title} · {shortDate(run.updatedAt)}{run.context?.expedienteId && run.context.expedienteId !== op.id ? " · del comprador" : ""}</li>)}</ul> : <p className="text-muted-foreground">Sin ofertas comparadas.</p>}
-        <p className="text-muted-foreground">{offerDocs ? `${offerDocs} ${offerDocs === 1 ? "oferta por escrito" : "ofertas por escrito"} (formato 14) en el expediente.` : "Sin oferta por escrito (formato 14) en el expediente."}</p>
+        {offerDocs.length ? <ul className="flex flex-col gap-2">{offerDocs.map(d => { const owner = offerOwner(leads, d.id), fecha = (d.updated_at ?? today).slice(0, 10), options = owner && !candidates.some(c => c.id === owner.id) ? [owner, ...candidates] : candidates; return <li key={d.id} className="flex flex-col gap-1">
+          <span>Oferta por escrito (14) · {shortDate(fecha)}{owner ? <> · de <Link className="font-semibold underline underline-offset-4" href={`/admin/leads/${encodeURIComponent(owner.id)}`}>{owner.nombre}</Link></> : ""}</span>
+          {options.length ? <label className="flex flex-col gap-1"><span className="text-muted-foreground">¿De quién es esta oferta?</span><AsyncSelect value={owner?.id ?? ""} className={selectClass} onChange={async value => { if (value) await link(d.id, fecha, value); else if (owner) await upsert(db.leads, withoutOffer(owner, d.id), db.leads.version(owner)); }}>
+            <option value="">Sin ligar</option>{options.map(l => <option key={l.id} value={l.id}>{l.nombre}</option>)}
+          </AsyncSelect></label> : !owner && <span className="text-muted-foreground">Para ligarla, relaciona al interesado con el inmueble o agenda su visita.</span>}
+        </li>; })}</ul> : <p className="text-muted-foreground">Sin oferta por escrito (formato 14) en el expediente.</p>}
         <Link className="font-semibold underline underline-offset-4" href={`/admin/apps/ofertas?expedienteId=${encodeURIComponent(op.id)}`}>Comparar una oferta</Link>
       </div>
     </div>

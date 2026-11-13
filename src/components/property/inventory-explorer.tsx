@@ -394,7 +394,8 @@ export function InventoryExplorer({ propiedades }: Props) {
                     }
                   }
                 }}>
-                  <PropertyCard property={p} extra={<label className="inv-compare-choice">
+                  {/* «Comparar» solo cuando hay al menos dos resultados que comparar (auditoría I10). */}
+                  <PropertyCard property={p} extra={resultados.length < 2 ? undefined : <label className="inv-compare-choice">
                     <input type="checkbox" checked={comparadas.includes(p.slug)} disabled={!comparadas.includes(p.slug) && comparadas.length >= 3} onChange={() => toggleComparada(p.slug)} />
                     <span>Comparar <span className="sr-only">{p.titulo}</span></span>
                   </label>} />
@@ -424,10 +425,11 @@ export function InventoryExplorer({ propiedades }: Props) {
           </div>
         )}
 
-        {/* CTA persistente en mobile */}
-        <div className="inv-mobile-cta">
+        {/* Teléfono: la invitación va al final de los resultados, no fija sobre ellos (auditoría I10). */}
+        {resultados.length > 0 ? <div className="inv-mobile-cta">
+          <p>¿No ves lo que buscas?</p>
           <Link href="/contacto" className="pg-btn">Cuéntanos qué buscas</Link>
-        </div>
+        </div> : null}
       </div>
     </>
   );

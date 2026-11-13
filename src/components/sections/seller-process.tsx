@@ -16,11 +16,11 @@ export function SellerProcess() {
   return (
     <section id="pasos" className="pg-container vd-section" aria-labelledby="seller-process">
       <h2 id="seller-process" className="pg-h2">Cuatro pasos antes de publicar.</h2>
+      <p className="sp-lead">Son las dos primeras etapas del método: conocemos tu caso y revisamos papeles y precio.</p>
       <ol className="sp-steps">
         {stages.map((stage, index) => (
           <li key={stage.title} id={index === 3 ? "precio-y-condiciones" : undefined} className="sp-step">
             <span className="sp-step-photo"><Image src={stage.src} alt={stage.alt} fill sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw" /></span>
-            <span className="sp-step-number" aria-hidden="true">0{index + 1}</span>
             <h3>{stage.title}</h3>
             <p>{stage.text}</p>
             {stage.doc && <span className="sp-step-doc"><FileText size={16} aria-hidden="true" /><span className="sr-only">Recibes: </span>{stage.doc}</span>}

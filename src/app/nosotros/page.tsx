@@ -69,14 +69,13 @@ export default async function NosotrosPage() {
         </div>
         <figure id="agentes" className="ab-portrait" data-reveal>
           <div className="ab-portrait-media">{isIllustrative(lead)
-            ? <span className="ab-mark"><Image src="/brand/fortius-symbol-inverse.svg" alt="" width={148} height={188} /></span>
+            ? <span className="ab-mark"><span className="ab-initials" aria-label={`Iniciales de ${lead.nombre}`}>{lead.iniciales}</span></span>
             : portrait(lead, true)}</div>
           <figcaption className="ab-portrait-card">
             <span className="ab-portrait-role">{lead.cargo}</span>
             <span className="ab-portrait-name">{lead.nombre}</span>
             <span className="ab-portrait-actions">{channelLinks(lead)}</span>
             {socialLinks(lead).length > 0 && <nav className="ab-social" aria-label={`Redes de ${lead.nombre}`}>{socialLinks(lead)}</nav>}
-            {isIllustrative(lead) && <span className="ab-portrait-note">La foto del equipo se publica cuando el perfil está en el panel.</span>}
           </figcaption>
         </figure>
       </div>

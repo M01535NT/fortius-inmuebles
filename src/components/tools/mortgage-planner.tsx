@@ -567,11 +567,11 @@ export function MortgagePlanner({
                   )}
                   <div className="flex flex-wrap justify-between gap-3 border-b border-border py-4 text-sm">
                     <dt>Enganche</dt>
-                    <dd className="font-mono">{money(result.downPayment)}</dd>
+                    <dd className="font-semibold">{money(result.downPayment)}</dd>
                   </div>
                   <div className="flex flex-wrap justify-between gap-3 border-b border-border py-4 text-sm">
                     <dt>Crédito solicitado</dt>
-                    <dd className="font-mono">{money(result.principal)}</dd>
+                    <dd className="font-semibold">{money(result.principal)}</dd>
                   </div>
                 </dl>
                 {result.extraPaid > 0 && (

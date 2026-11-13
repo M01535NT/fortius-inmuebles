@@ -13,6 +13,7 @@ import { ContactLog } from "@/components/admin/contacts/contact-log";
 import { ReadyMessages } from "@/components/admin/contacts/ready-messages";
 import { NextStepCard, PersonCard, PersonHeader, Timeline, personStyles as s, useInterview, type MenuItem } from "@/components/admin/contacts/person";
 import { nextStep, waitingSince } from "@/lib/admin/contacts-view";
+import { creditSummary } from "@/lib/admin/lead-offers";
 import { awaitingFirstReply, firstResponseHours } from "@/lib/admin/today";
 import { estadoForStage, humanDay, leadStage, personTimeline, LEAD_STAGE_CHOICES, LEAD_STAGE_LABELS, type LeadStage } from "@/lib/admin/person-view";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -77,6 +78,10 @@ function LeadDetail({ id }: { id: string }) {
   const active = !lead.clienteId && stage !== "descartado" && stage !== "cerrado";
   const duplicates = duplicateContacts(lead, leads);
   const step = lead.clienteId ? null : nextStep(lead, "lead", tareas, eventos, today);
+  // COR-18: sus ofertas por escrito, con el inmueble de cada operación, y cómo paga.
+  const offers = (lead.ofertas ?? []).map(o => { const place = propiedades.find(p => p.slug === o.propiedadSlug)?.titulo ?? "Operación del propietario";
+    return { ...o, label: place, href: `/admin/operaciones/${encodeURIComponent(o.expedienteId)}` }; }).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  const credit = creditSummary(lead.perfil);
   const { upcoming, past } = personTimeline({
     notes: lead.notas, events: eventos.filter(e => e.leadId === lead.id), tasks: tareas.filter(t => t.leadId === lead.id), today,
     records: [
@@ -84,6 +89,7 @@ function LeadDetail({ id }: { id: string }) {
       { id: "contacto", text: "Primer contacto", at: lead.firstContactedAt },
       { id: "cliente", text: "Pasó a ser cliente", at: lead.convertidoEl },
     ],
+    offers: offers.map(o => ({ id: o.documentoId, text: `Oferta por escrito (14) · ${o.label}`, at: o.fecha, href: o.href })),
   });
   const operationUrl = `/admin/operaciones/nueva?${new URLSearchParams({ ...(lead.clienteId ? { clienteId: lead.clienteId } : { leadId: lead.id }), ...(lead.perfil?.operacion ? { intencion: lead.perfil.operacion } : {}) })}`;
   const linkQuery = new URLSearchParams({ leadId: lead.id, ...(lead.propiedadSlug ? { propiedadSlug: lead.propiedadSlug } : {}) });
@@ -186,6 +192,14 @@ function LeadDetail({ id }: { id: string }) {
           </dl>
           {lead.mensaje && <p className={s.quote}>«{lead.mensaje}»</p>}
         </PersonCard>
+
+        {(buyer || offers.length > 0 || credit) && <PersonCard id="ficha-ofertas" title="Cómo paga y ofertas">
+          <dl className={s.facts}>
+            <div><dt>Forma de pago</dt><dd>{credit ?? "Sin registrar. Anótalo en su perfil."}</dd></div>
+          </dl>
+          {offers.length ? <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">{offers.map(o => <li key={o.documentoId}><Link className="font-semibold underline underline-offset-4" href={o.href}>{o.label}</Link> · oferta por escrito del {humanDay(o.fecha)}</li>)}</ul>
+            : <p className={s.muted}>Sin ofertas por escrito. Cuando haga una, se liga desde la operación del propietario.</p>}
+        </PersonCard>}
 
         <PersonCard id="ficha-asignacion" title="Etapa y responsable">
           <Field label="Etapa" htmlFor="lead-etapa" hint={lead.clienteId ? "Ya es cliente." : undefined}>

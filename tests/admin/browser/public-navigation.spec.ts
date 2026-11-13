@@ -168,7 +168,8 @@ test("inventory menu keeps primary links accessible and restores focus when clos
   await expect(lastFocusable).toBeFocused();
   await close.focus();
   await page.keyboard.press("Tab");
-  const firstLink = menu.locator('nav[aria-label="Menú principal"] a').first();
+  // «Hablemos» va primero en el menú (12/11/2026): el foco vuelve a su primer enlace.
+  const firstLink = menu.locator('section[aria-label="Contacto con Fortius"] a').first();
   await expect(firstLink).toBeFocused();
   await expect.poll(() => firstLink.evaluate((node) => {
     const rect = node.getBoundingClientRect();

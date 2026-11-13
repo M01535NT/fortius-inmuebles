@@ -25,8 +25,8 @@ const PENDIENTES = [
 
 /*
   Vender (30/10/2026, boceto aprobado): poca lectura y una acción por sección.
-  Portada con el arranque de dos preguntas, cuatro pasos, pendientes, checklist,
-  herramientas y, al final, la solicitud de entrevista: el único lugar que pide todos los datos.
+  Portada con el asistente de dos pasos (el único formulario, 12/11/2026), cuatro pasos,
+  pendientes, checklist de descarga directa, herramientas y, al final, WhatsApp y Llamar.
 */
 export default function VenderInmueblePage() {
   return (
@@ -37,7 +37,7 @@ export default function VenderInmueblePage() {
             <h1 id="vd-title" className="vd-title">Vende con todo en orden.</h1>
             <p className="vd-lead">Documentos y precio en orden antes de publicar.</p>
             <div className="vd-actions">
-              <Link href="/vender-propiedad/#diagnostico" className="pg-btn">Agendar entrevista</Link>
+              <Link href="/vender-propiedad/#entrevista" className="pg-btn">Agendar entrevista</Link>
               <Link href="/vender-propiedad/#pasos" className="pg-btn pg-btn-ghost">Ver cómo funciona</Link>
             </div>
             <ul className="vd-trust">

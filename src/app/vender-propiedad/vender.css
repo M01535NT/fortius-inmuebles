@@ -1,7 +1,7 @@
 /* Vender (30/10/2026): retícula, bandas crema/blanco/azul y letra en 400/600/700. */
 .vd { --vd-line: color-mix(in srgb, var(--foreground) 14%, transparent); --vd-cream: #f8f8ff; --vd-cream-line: #cfc6b8; }
 .dark .vd { --vd-cream: #0c1622; --vd-cream-line: rgba(248, 248, 255, 0.16); }
-.vd #pasos, .vd #diagnostico, .vd #precio-y-condiciones { scroll-margin-top: 88px; }
+.vd #pasos, .vd #diagnostico, .vd #entrevista, .vd #precio-y-condiciones { scroll-margin-top: 88px; }
 .vd-section { padding-block: clamp(64px, 8vw, 120px); }
 
 /* Portada */
@@ -17,7 +17,12 @@
 /* Arranque de dos preguntas */
 .ss-card { display: grid; gap: 20px; padding: clamp(20px, 2.4vw, 32px); border-radius: 8px; background: var(--card, #fff); color: var(--foreground); box-shadow: 0 24px 48px -32px rgba(6, 31, 63, 0.35); }
 .dark .ss-card { border: 1px solid var(--vd-line); box-shadow: none; }
-.ss-meta { display: flex; justify-content: space-between; margin: 0; color: var(--muted-foreground); font-size: 14px; font-weight: 600; }
+.ss-step { display: grid; gap: 20px; }
+.ss-title:focus { outline: none; }
+.ss-title:focus-visible { outline: 2px solid var(--ring, #8a1634); outline-offset: 4px; }
+.ss-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: -12px 0; padding: 0 4px; border: 0; background: none; color: var(--foreground); font: inherit; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.ss-step .cf-form .pg-btn { width: 100%; }
+.ss-meta { display: flex; align-items: center; justify-content: space-between; margin: 0; color: var(--muted-foreground); font-size: 14px; font-weight: 600; }
 .ss-title { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
 .ss-types { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .ss-types button { display: grid; justify-items: start; gap: 10px; min-height: 92px; padding: 14px; border: 1px solid var(--vd-line); border-radius: 6px; background: transparent; color: var(--foreground); font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
@@ -31,7 +36,7 @@
 /* Cuatro pasos */
 .sp-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 24px; margin: 48px 0 0; padding: 0; list-style: none; }
 .sp-step { display: flex; flex-direction: column; gap: 12px; padding-top: 20px; border-top: 2px solid var(--foreground); }
-.sp-step-number { font-size: 48px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; color: var(--primary-text, #8a1634); font-variant-numeric: tabular-nums; }
+.sp-lead { max-width: 40em; margin: 16px 0 0; font-size: 18px; line-height: 1.5; color: var(--muted-foreground); }
 .sp-step h3 { margin: 0; font-size: 24px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
 .sp-step p { margin: 0; font-size: 17px; line-height: 1.5; }
 .sp-step-doc { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--vd-line); border-radius: 4px; font-size: 14px; font-weight: 600; }
@@ -68,6 +73,7 @@
 
 /* Evaluación final */
 .vd .dc-section .pg-card { border: 0; background: var(--vd-cream); }
+.dc-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 
 @media (max-width: 1023px) {
   .vd-hero-grid, .vd-split, .lm-grid { grid-template-columns: 1fr; }

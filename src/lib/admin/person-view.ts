@@ -38,7 +38,7 @@ export function humanDay(instant?: string) {
 }
 
 export type TimelineItem = {
-  id: string; kind: "Nota" | "Contacto" | "Cita" | "Visita" | "Tarea" | "Registro";
+  id: string; kind: "Nota" | "Contacto" | "Cita" | "Visita" | "Tarea" | "Registro" | "Oferta";
   text: string;
   /** «Hoy · 11:00», «Vencido · 9 nov» o «21 oct 2026». */
   when: string;
@@ -52,7 +52,7 @@ type Note = { id: string; texto: string; fecha: string };
   Lo que viene (citas de hoy en adelante y tareas abiertas, lo más próximo primero) y lo que ya
   pasó (notas, citas anteriores, tareas cerradas y registros, lo más reciente primero).
 */
-export function personTimeline({ notes = [], events, tasks, records = [], today }: { notes?: Note[]; events: Evento[]; tasks: Task[]; records?: Array<{ id: string; text: string; at?: string }>; today: string }) {
+export function personTimeline({ notes = [], events, tasks, records = [], offers = [], today }: { notes?: Note[]; events: Evento[]; tasks: Task[]; records?: Array<{ id: string; text: string; at?: string }>; offers?: Array<{ id: string; text: string; at: string; href: string }>; today: string }) {
   const upcoming: TimelineItem[] = [], past: TimelineItem[] = [];
   for (const event of events) {
     const kind = event.tipo === "visita" ? "Visita" as const : "Cita" as const;
@@ -70,6 +70,8 @@ export function personTimeline({ notes = [], events, tasks, records = [], today 
   }
   // COR-18: los intentos de contacto son notas marcadas con `contacto`.
   for (const note of notes as ContactNote[]) past.push({ id: `n:${note.id}`, kind: note.contacto ? "Contacto" : "Nota", text: note.contacto ? contactText(note) : note.texto, when: humanDay(note.fecha), sort: note.fecha });
+  // COR-18: las ofertas por escrito ligadas al interesado.
+  for (const offer of offers) past.push({ id: `o:${offer.id}`, kind: "Oferta", text: offer.text, when: humanDay(offer.at), href: offer.href, sort: offer.at });
   for (const record of records) if (record.at) past.push({ id: `r:${record.id}`, kind: "Registro", text: record.text, when: humanDay(record.at), sort: record.at });
   upcoming.sort((a, b) => a.sort.localeCompare(b.sort));
   past.sort((a, b) => b.sort.localeCompare(a.sort));
