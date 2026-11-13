@@ -10,7 +10,7 @@ Bocetos navegables (datos de ejemplo): https://claude.ai/artifact/N8ZFG6NK4okiPD
 - Un solo siguiente paso con fecha por persona (parte de DEC-42; quedan las notas y el tablero de notas sueltas).
 - Primera atención: 2 horas, como hoy.
 - Cada asesor ve solo a sus personas; el director ve a todas y reasigna.
-- Mensajes: plantillas aprobadas por el titular, ajustables por el asesor; borrador de textos base pendiente de aprobación.
+- Mensajes: plantillas aprobadas por el titular, ajustables por el asesor; textos base aprobados el 12/11/2026.
 - Motivos para descartar a compradores e interesados en rentar: ya no busca, se fue con otra inmobiliaria, no le alcanza o no califica, no contesta, otro con nota.
 - Vista del director: después.
 
@@ -20,7 +20,7 @@ Bocetos navegables (datos de ejemplo): https://claude.ai/artifact/N8ZFG6NK4okiPD
 - RP-93: compradores y arrendatarios son leads de Fortius y contraparte de los clientes; nunca clientes ni con expediente propio.
 - RP-21 a RP-23 y RP-27: registro en dos toques con siguiente paso, plantillas que abren la aplicación del usuario sin registrar el envío hasta confirmarlo, reloj de primera atención y ficha con línea de tiempo única.
 - DEC-43 (decidida 12/11/2026): el asesor ve de los inmuebles ajenos solo los datos públicos. Aplica a la ficha del lead: lo que se le ofrece a un lead sale de datos públicos.
-- DEC-42 sigue pendiente: un solo siguiente paso por persona, respaldado por una tarea.
+- DEC-42 resuelta (12/11/2026): un solo siguiente paso por persona, respaldado por una tarea; notas dentro de la ficha y sin tablero de notas sueltas.
 
 ## Qué existe hoy (comprobado en el código)
 
@@ -55,7 +55,8 @@ Para construirlo, en este orden: (1) un solo siguiente paso por persona respalda
 ## Preguntas de negocio para el titular (una por una)
 
 1. ¿El asesor debe tener siempre **un solo siguiente paso** por persona, y que ese paso sea una tarea con fecha? (DEC-42)
-   **Respuesta del titular (12/11/2026): sí, uno solo.** Cada persona tiene un único pendiente con fecha; al registrar un contacto se cierra el anterior y queda el nuevo; las citas con hora siguen en la agenda. Resuelve la parte de DEC-42 sobre el siguiente paso; lo demás de DEC-42 (notas pegadas a persona, inmueble u operación y retirar el tablero de notas sueltas) sigue pendiente.
+   **Respuesta del titular (12/11/2026): sí, uno solo.** Cada persona tiene un único pendiente con fecha; al registrar un contacto se cierra el anterior y queda el nuevo; las citas con hora siguen en la agenda. Resuelve la parte de DEC-42 sobre el siguiente paso.
+   **Notas (titular, 12/11/2026): se retira el tablero de notas sueltas.** Toda nota se escribe dentro de la ficha de la persona, el inmueble o la operación y aparece en su historial. Antes de quitar el tablero, las notas que ya existen se pasan a quien corresponda. Con esto DEC-42 queda resuelta completa.
 2. ¿Qué pasa con un lead nuevo del sitio que ningún asesor tomó: se asigna al asesor del inmueble de interés y, si no hay, al director? ¿Cuántas horas puede esperar antes de avisarte?
    **Respuesta del titular (12/11/2026): 2 horas.** Se conserva el plazo actual de primera atención (ajustable en Configuración). La asignación al asesor del inmueble o, si no hay, al director ya está construida en COR-21 y no se volvió a preguntar.
 3. ¿Quién ve los leads de quién: cada asesor solo los suyos, o todos ven todos y el director reasigna?
