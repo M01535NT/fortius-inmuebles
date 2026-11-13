@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { InteriorPage } from "@/components/sections/interior-page";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./opinion.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/opinion-de-valor",

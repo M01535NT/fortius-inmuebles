@@ -69,7 +69,14 @@ export function mostrarCampoPromesa(key: string, data: Record<string, unknown>):
   return true;
 }
 
-const text = (value: unknown) => typeof value === "string" && value.trim().length > 0 && !/[\[\]<>]|\bpendiente\b|por definir|por confirmar/i.test(value);
+/**
+  C-23 (titular, 13/11/2026; el abogado lo revisa): bloquea el dato que es solo un hueco («pendiente»,
+  «por definir», «por confirmar», con o sin puntos) o que trae corchetes o signos de marcador; una frase
+  que menciona «pendiente» («el saldo pendiente se liquida con el precio») es redacción válida.
+*/
+const HUECO = /^(pendientes?|por (definir|confirmar))$/;
+const text = (value: unknown) => typeof value === "string" && value.trim().length > 0 && !/[\[\]<>]/.test(value)
+  && !HUECO.test(value.trim().toLowerCase().replace(/[.…:;,\s]+$/g, "").replace(/^[.…:;,\s]+/g, "").replace(/\s+/g, " "));
 const amount = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 999999999.99 && new Decimal(value).decimalPlaces() <= 2;
 const date = (value: unknown): value is string => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime()) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
 const rows = (value: unknown): PromesaRow[] | null => Array.isArray(value) && value.every((row) => row && typeof row === "object" && !Array.isArray(row)) ? value : null;

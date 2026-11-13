@@ -13,6 +13,7 @@ import { publicContact } from "@/lib/public-contact";
 import { PERFIL_ILUSTRATIVO } from "@/data/perfil-ilustrativo";
 import { getPublishedTeam } from "@/lib/backend/public-team";
 import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
+import "./inicio.css";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 

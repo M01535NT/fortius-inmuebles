@@ -35,7 +35,7 @@ const matches = (formato: string, id: string) => formato === "04" ? id.startsWit
   motivo o por determinar si aún está por confirmar; lo agregado a mano va en «Otros documentos» (D22).
 */
 export function juridicaDocumentsFrom(checklist?: Task) {
-  const referencia = "Checklist de documentos de la operación";
+  const referencia = "Lista de documentos de la operación";
   const otros = checklist?.pasos.filter(p => !/^D\d{2}$/.test(p.id) || p.id === "D22") ?? [];
   return (JURIDICA_TABLES.documentos.fixed ?? []).map(item => {
     if (item.key === "D22" && otros.length) {

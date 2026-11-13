@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Download } from 'lucide-react';
 import { privacyNotice } from '@/data/privacy-notice';
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./privacidad.css";
 export const metadata: Metadata = pageMetadata({
   path: "/privacidad",
   title: "Aviso de privacidad",

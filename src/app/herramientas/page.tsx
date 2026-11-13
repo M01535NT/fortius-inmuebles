@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./herramientas.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/herramientas",

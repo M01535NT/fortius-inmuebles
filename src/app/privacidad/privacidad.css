@@ -1,0 +1,11 @@
+/*
+  Estilos que solo usa /privacidad (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.editorial-container { max-width: 1240px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 60px); }
+.privacy-page { max-width: 920px; padding-block: 128px 64px; }
+.privacy-page h1 { font-size: var(--type-titulo); }
+.privacy-page section { padding-top: var(--space-bloque); }
+.privacy-page h2 { font-size: var(--type-subtitulo); font-weight: 700; }
+.privacy-page section p { font-size: var(--type-interfaz); line-height: 1.85; margin-top: var(--space-normal); white-space: pre-line; overflow-wrap: anywhere; }
+.privacy-download { display: inline-flex; align-items: center; gap: var(--space-cerca); min-height: 48px; margin-top: var(--space-amplio); color: var(--primary-text); text-decoration: underline; text-underline-offset: 4px; }

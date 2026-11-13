@@ -55,7 +55,7 @@ test("COR-03: Hoy, Operaciones y la operación nombran igual la etapa con el mis
 test("levantamiento y checklist de documentos llevan a verificación solo con todo recibido", () => {
   const surveying = op({ inicial: { iniciada: true, emitida: true, levantamiento: "borrador" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(surveying, today)).toMatchObject({ current: 2, phase: "levantamiento" });
-  expect(advanceTarget(surveying, today)).toEqual({ label: "Checklist de documentos" });
+  expect(advanceTarget(surveying, today)).toEqual({ label: "Lista de documentos" });
   expect(missingItems(surveying, [task()], today).map(m => m.text)).toEqual(["Terminar el levantamiento (04)"]);
   expect(missingItems({ ...surveying, inicial: { ...surveying.inicial, levantamiento: "emitido" } }, [task()], today).map(m => m.text)).toEqual(["Iniciar la lista de documentos"]);
   const collecting = op({ inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
@@ -67,7 +67,7 @@ test("levantamiento y checklist de documentos llevan a verificación solo con to
 
 test("el propietario ve las diez etapas: dictamen, luego valor, y el contrato espera la verificación", () => {
   const checking = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed() }) });
-  expect(routeStages(checking, today)).toMatchObject({ labels: ["Primer contacto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
+  expect(routeStages(checking, today)).toMatchObject({ labels: ["Primer contacto", "Entrevista inicial", "Levantamiento", "Lista de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
   expect(contractLocked(checking, today)).toBe(true);
   expect(currentRequirements(checking, today).map(r => r.key)).toEqual(["titularidad", "factibilidad"]);
   expect(advanceTarget(checking, today)).toEqual({ label: "Opinión de valor y precio" });

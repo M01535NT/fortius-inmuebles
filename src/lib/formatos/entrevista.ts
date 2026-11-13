@@ -59,7 +59,7 @@ export const entrevistaFields: FormatoField[] = [
   base(VENTA, "fuentePrecio", "¿Cómo llegó a ese precio?", "text", false),
   base(VENTA, "expectativas", "¿Qué espera de nosotros? ¿Qué le preocupa?", "long", false),
 
-  select(SIGUE, "siguientePaso", "Siguiente paso", options([["visita", "Visita al inmueble"], ["documentos", "Entregarle el checklist de documentos"], ["evaluacion", "Evaluar la operación"], ["pausa", "Pausar"], ["referir", "Referir"]])),
+  select(SIGUE, "siguientePaso", "Siguiente paso", options([["visita", "Visita al inmueble"], ["documentos", "Entregarle la lista de documentos"], ["evaluacion", "Evaluar la operación"], ["pausa", "Pausar"], ["referir", "Referir"]])),
   base(SIGUE, "fechaSeguimiento", "Fecha de seguimiento", "date"),
   base(SIGUE, "motivoSiguiente", "Notas del asesor", "long", false),
 ];

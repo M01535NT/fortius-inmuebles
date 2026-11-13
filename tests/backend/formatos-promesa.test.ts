@@ -104,3 +104,12 @@ it("cada marcador de la promesa sabe qué campos lo llenan, para abrirlos sobre 
   expect([...marcadores].filter(m => !PROMESA_MARCADORES[m]?.length)).toEqual([]);
   expect(camposParrafoPromesa(PROMESA_ORIGINAL[0])).toEqual(expect.arrayContaining(["vendedor", "comprador", "entidad"]));
 });
+
+// C-23 (titular, 13/11/2026): una frase que menciona «pendiente» es válida; un dato que solo es un hueco, no.
+it("acepta «saldo pendiente» en una frase y rechaza el dato que solo dice pendiente o por definir", () => {
+  const values = reviewed({ ...promesaSample, condicionesPosesion: "Desocupada; el saldo pendiente se liquida con el precio." });
+  expect(validateFormato("15", values)).toEqual([]);
+  for (const hueco of ["Pendiente", " por definir. ", "POR CONFIRMAR", "[nombre]"]) {
+    expect(validateFormato("15", reviewed({ ...promesaSample, condicionesPosesion: hueco })).length, hueco).toBeGreaterThan(0);
+  }
+});
