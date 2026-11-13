@@ -139,12 +139,20 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     if (!items) setError(LOAD_ERROR);
     return items;
   }
-  async function start(formato: string, survey?: LevantamientoId) {
-    const items = await loaded();
-    if (!items) return;
-    const existing = items.filter(d => matches(formato, d.formato_id)).sort(byNewest)[0];
-    const doc = existing ?? await create(formato === "04" ? survey ?? levantamientoFor(answers.tipoInmueble) : formato);
-    if (doc) setOpen(doc);
+  // C-38: un segundo toque en «Iniciar» mientras el primero sigue en curso espera al primero; no crea otro borrador.
+  const starting = React.useRef(new Map<string, Promise<void>>());
+  function start(formato: string, survey?: LevantamientoId) {
+    const inFlight = starting.current.get(formato);
+    if (inFlight) return inFlight;
+    const run = (async () => {
+      const items = await loaded();
+      if (!items) return;
+      const existing = items.filter(d => matches(formato, d.formato_id)).sort(byNewest)[0];
+      const doc = existing ?? await create(formato === "04" ? survey ?? levantamientoFor(answers.tipoInmueble) : formato);
+      if (doc) setOpen(doc);
+    })().finally(() => { starting.current.delete(formato); });
+    starting.current.set(formato, run);
+    return run;
   }
   /** Crea y abre un formato desde el expediente; en el neto (08) se elige si parte de una opinión de valor (null: no usarla). */
   async function createAndOpen(formatoId: string, valorReferencia?: { id: string; version: number } | null) {
