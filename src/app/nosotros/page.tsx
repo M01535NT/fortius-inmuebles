@@ -50,7 +50,7 @@ export default async function NosotrosPage() {
       {channels.whatsapp && <a href={channels.whatsapp} className="ab-chip ab-chip-primary">WhatsApp</a>}
       {channels.phoneHref && <a href={channels.phoneHref} className="ab-chip">Llamar</a>}
       {channels.emailHref && <a href={channels.emailHref} className="ab-chip">Correo</a>}
-      {!channels.whatsapp && !channels.phoneHref && !channels.emailHref && <Link href="/contacto" className="ab-chip">Contactar con Fortius</Link>}
+      {!channels.whatsapp && !channels.phoneHref && !channels.emailHref && <Link href="/contacto" className="ab-chip">Contactar a Fortius</Link>}
     </>;
   };
   const socialLinks = (profile: typeof lead) => ([["Instagram", profile.instagram], ["Facebook", profile.facebook], ["LinkedIn", profile.linkedin]] as const)
@@ -64,7 +64,7 @@ export default async function NosotrosPage() {
           <h1 id="about-title" className="ab-hero-title" data-reveal-item>Personas detrás de cada operación.</h1>
           <p className="ab-hero-lead" data-reveal-item>De la primera llamada a la entrega.</p>
           <nav className="ab-index" aria-label="En esta página" data-reveal-item>
-            <a href="#agentes">Agentes</a><a href="#identidad">Misión y visión</a><a href="#valores">Valores</a>{videoUrl && <a href="#video">Video</a>}
+            <a href="#agentes">Asesores</a><a href="#identidad">Misión y visión</a><a href="#valores">Valores</a>{videoUrl && <a href="#video">Video</a>}
           </nav>
         </div>
         <figure id="agentes" className="ab-portrait" data-reveal>
