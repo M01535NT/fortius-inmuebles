@@ -14,3 +14,11 @@ Estado: propuesta para revisión, sin cambio de roles, bloqueo de personal ni en
 Lectura actual confirma dominio Auth correcto y tests de servidor existentes ejercitan autenticación y custodia de documentos. Una configuración correcta y mocks aprobados no prueban entrega de correo ni recuperación real. Esa prueba permanece pendiente de cuenta controlada/autorización. No se ha exigido AAL2 en producción.
 
 Lectura del 12/11/2026: registro abierto desactivado, acceso solo por correo y confirmación de correo obligatoria. El código tiene recuperación de contraseña, pero no invitación ni MFA. SMTP propio, URL de retorno y MFA del proyecto no se pudieron leer sin la API de administración. Detalle en [entornos](environment-release.md).
+
+## Controles agregados el 13/11/2026 (rama de seguridad, sin integrar)
+
+- **Límite de intentos propio** (`fortius_inmuebles_auth_attempt`): por hora, acceso hasta 30 intentos por IP y 20 por correo; recuperación hasta 5 por IP y 3 por correo. Se cuentan huellas SHA-256, nunca la IP ni el correo. Mientras la migración no esté aplicada, el acceso sigue funcionando sin este límite.
+- **Cambiar la contraseña** exige un enlace de invitación o recuperación de la última hora, o un acceso de los últimos 15 minutos; si no, el panel pide volver a iniciar sesión.
+- **Enlace de acceso con tokens:** solo vale si la sesión la abrió un enlace reciente, no un inicio de sesión con contraseña.
+- **Recuperación:** en producción, el enlace del correo vuelve a `FORTIUS_INMUEBLES_SITE_URL`.
+- **Inmuebles ajenos:** un asesor solo lee directo sus inmuebles; los de otros, por `fortius_inmuebles_team_properties`, ya recortados en la base (COR-23, DEC-43).
