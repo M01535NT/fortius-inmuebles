@@ -6,6 +6,7 @@ import { Button, ProgressBar } from "@/components/admin/kit";
 import { AsyncForm, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, uid, useCollection } from "@/lib/admin/store";
 import { LinkPicker, type LinkValue } from "@/components/admin/workspace/link-picker";
+import { useLeaveGuard } from "@/components/admin/operation/use-operation";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, TASK_TEMPLATES, taskSchema, taskExpedienteContext, type Task, type TaskExpediente } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 import s from "./form.module.css";
@@ -21,6 +22,9 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
   // The draft belongs to this editor session, never to a background refetch.
   const [draft, setDraft] = React.useState<Task>(() => initial ?? { id: uid(), titulo: "", descripcion: "", categoria: "administracion", estado: "pendiente", prioridad: "normal", pasos: [], ...defaults });
   const [saved, setSaved] = React.useState(false);
+  // C-08: lo capturado sin guardar no se pierde al cerrar, recargar o salir por un enlace.
+  const [dirty, setDirty] = React.useState(false);
+  useLeaveGuard(dirty, "Esta tarea tiene cambios sin guardar. ¿Descartarlos y salir?");
   const asesores = useCollection(db.asesores);
   const leads = useCollection(db.leads);
   const clientes = useCollection(db.clientes);
@@ -69,12 +73,12 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     && (draft.propiedadSlug || "") === (expediente.propiedad_slug || "");
   function selectExpediente(value: string) {
     const selected = expedientes.find((item) => item.id === value);
-    setSaved(false);
+    setSaved(false); setDirty(true);
     setDraft((old) => selected ? { ...old, ...taskExpedienteContext(selected) } : { ...old, expedienteId: "" });
   }
-  function change<K extends keyof Task>(key: K, value: Task[K]) { if (key === "asesorId") advisorTouched.current = true; setSaved(false); setDraft((old) => ({ ...old, [key]: value })); }
+  function change<K extends keyof Task>(key: K, value: Task[K]) { if (key === "asesorId") advisorTouched.current = true; setSaved(false); setDirty(true); setDraft((old) => ({ ...old, [key]: value })); }
   function changeLinks(next: LinkValue, operation?: TaskExpediente) {
-    setSaved(false);
+    setSaved(false); setDirty(true);
     setDraft((old) => operation ? { ...old, ...taskExpedienteContext(operation), leadId: undefined }
       : { ...old, leadId: next.leadId, clienteId: next.clienteId, propiedadSlug: next.propiedadSlug, expedienteId: next.expedienteId ?? "" });
   }
@@ -98,7 +102,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     {!initial && <Field label="Plantilla opcional" htmlFor="task-template" className={s.span2} hint="Carga un borrador que puedes ajustar antes de guardar.">
       <select id="task-template" className={selectClass} defaultValue="" onChange={(event) => {
         const template = TASK_TEMPLATES.find((item) => item.id === event.target.value);
-        if (template) { setDraft((old) => ({ ...old, titulo: template.titulo, descripcion: template.descripcion, categoria: template.categoria, pasos: template.pasos.map((texto) => ({ id: uid(), texto, hecho: false })) })); setSaved(false); }
+        if (template) { setDraft((old) => ({ ...old, titulo: template.titulo, descripcion: template.descripcion, categoria: template.categoria, pasos: template.pasos.map((texto) => ({ id: uid(), texto, hecho: false })) })); setSaved(false); setDirty(true); }
       }}><option value="">Sin plantilla</option>{TASK_TEMPLATES.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>
     </Field>}
     <Field label="Estado" htmlFor="task-status"><select id="task-status" className={selectClass} value={draft.estado} onChange={(e) => change("estado", e.target.value as Task["estado"])}>{options(TASK_STATUSES)}</select></Field>
@@ -118,7 +122,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
     const result = taskSchema.safeParse(next);
     if (!result.success) throw new Error(result.error.issues.map((issue) => issue.message).join(". "));
     const record = await onSave({ ...next, ...result.data });
-    setDraft({ ...record, nuevaNota: "" }); setSaved(true);
+    setDraft({ ...record, nuevaNota: "" }); setSaved(true); setDirty(false);
   }}>
     {/* C44: en la ficha, completar es la acción principal y va antes de los campos. */}
     {initial && <div className={s.actions}>
