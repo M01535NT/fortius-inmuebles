@@ -18,7 +18,6 @@ import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { longDate } from "@/lib/admin/today";
 import { humanDate } from "@/lib/utils";
 import { isShared, sharedCommissionEstimate } from "@/lib/admin/shared-property";
-import { EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 import s from "@/components/admin/workspace/reports.module.css";
 
 type ReportRecord = StageRecord & Partial<OperationRecord>;
@@ -69,17 +68,12 @@ export default function ReportesPage() {
     const client = clientes.find(item => (item.id === lead.clienteId || item.leadId === lead.id) && clientStatus(item.id, expedientes) !== "prospecto");
     return client ? [{ id: lead.id, name: lead.nombre, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : `/admin/leads/${encodeURIComponent(lead.id)}` }] : [];
   });
-  // Mismo nombre de etapa que en Operaciones; un registro sin tipo de operación conserva su etapa guardada.
+  // SIM-04 (C12): el mismo nombre y número de etapa que la lista de Operaciones, también para un registro sin tipo de operación.
   const stageCounts = new Map<string, { n: number; count: number }>();
   for (const record of expedientes) {
-    let label: string, n: number;
-    if (record.operacion) {
-      const view = { ...record, inicial: initialStatus(formats.get(record.id), tareas.find(t => t.id === checklistTaskId(record.id))) } as OperationRecord;
-      const { stages, current } = stageTrack(view, today);
-      label = stages[current]?.label ?? "Sin etapa"; n = current + 1;
-    } else {
-      label = record.etapa ? EXPEDIENTE_ETAPAS[record.etapa as keyof typeof EXPEDIENTE_ETAPAS] ?? record.etapa : "Sin etapa"; n = 99;
-    }
+    const view = { ...record, inicial: initialStatus(formats.get(record.id), tareas.find(t => t.id === checklistTaskId(record.id))) } as OperationRecord;
+    const { stages, current } = stageTrack(view, today);
+    const label = stages[current]?.label ?? "Sin etapa", n = current + 1;
     const entry = stageCounts.get(label) ?? { n, count: 0 };
     stageCounts.set(label, { n: Math.min(entry.n, n), count: entry.count + 1 });
   }

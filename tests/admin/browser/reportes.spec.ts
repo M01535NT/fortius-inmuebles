@@ -17,7 +17,7 @@ for (const width of [390, 1440]) test(`commercial report fits at ${width}px`, as
   await expect(page.getByRole("heading", { name: "Reportes comerciales" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Resultados del periodo" })).toBeVisible();
   await expect(page.locator("summary", { hasText: "Por asesor" })).toBeVisible();
-  await expect(page.getByText("Negociación")).toBeVisible();
+  await expect(page.getByText("Visitas y ofertas")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath(`reportes-${width}.png`), fullPage: true });
 });
