@@ -70,3 +70,13 @@ describe("contrato de intermediación para renta (21)", () => {
     expect(Buffer.from(pdf).subarray(0, 5).toString()).toBe("%PDF-");
   });
 });
+
+describe("la intermediación en la renta es el 21", () => {
+  it("el requisito apunta al 21 en la renta del propietario y al 09 en la venta", async () => {
+    const { requirementFormato, CONTRACT_TYPES } = await import("@/lib/formatos/operation-workflow");
+    expect(requirementFormato("intermediacion", "arrendador")).toBe("21");
+    expect(requirementFormato("intermediacion", "captacion")).toBe("09");
+    expect(requirementFormato("contrato_renta", "arrendador")).toBe("20");
+    expect(CONTRACT_TYPES.intermediacion_renta).toBe("Intermediación para renta (21)");
+  });
+});
