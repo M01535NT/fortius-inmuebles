@@ -37,12 +37,12 @@ export const DATOS_EXPEDIENTE: DatoExpediente[] = [
 
   // Inmueble
   { clave: "inmuebleDomicilio", etiqueta: "Domicilio del inmueble", grupo: "Inmueble", tipo: "texto",
-    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19", "20"].flatMap(formato => d(formato, "inmueble")) },
+    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19", "20", "21"].flatMap(formato => d(formato, "inmueble")) },
   { clave: "inmuebleTipo", etiqueta: "Tipo de inmueble", grupo: "Inmueble", tipo: "texto", ayuda: "Casa, departamento, terreno, oficina, local, nave o plaza.",
     destinos: [...d("02", "tipoInmueble"), ...d("10", "tipoInmueble"), { formato: "07", key: "tipoInmueble", transformar: valor => TIPO_INMUEBLE_DESDE_ENTREVISTA[String(valor)] ?? valor }] },
   { clave: "folioReal", etiqueta: "Folio real", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "folioReal"), ...d("09", "folioReal"), ...d("10", "folioReal"), ...d("14", "folioInmueble")] },
   { clave: "partida", etiqueta: "Partida registral", grupo: "Inmueble", tipo: "texto", destinos: d("14", "partida") },
-  { clave: "claveCatastral", etiqueta: "Clave catastral", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "claveCatastral"), ...d("07", "cuentaCatastral"), ...d("09", "claveCatastral"), ...d("10", "claveCatastral"), ...d("15", "claveCatastral"), ...d("20", "claveCatastral")] },
+  { clave: "claveCatastral", etiqueta: "Clave catastral", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "claveCatastral"), ...d("07", "cuentaCatastral"), ...d("09", "claveCatastral"), ...d("10", "claveCatastral"), ...d("15", "claveCatastral"), ...d("20", "claveCatastral"), ...d("21", "claveCatastral")] },
   { clave: "superficieTerreno", etiqueta: "Superficie de terreno (m²)", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "superficieTerreno"), ...d("07", "terreno"), ...d("10", "terreno"), ...d("20", "superficieTerreno")] },
   { clave: "superficieConstruccion", etiqueta: "Superficie de construcción (m²)", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "superficieConstruccion", "superficieConstrucciones"), ...d("07", "construccion"), ...d("10", "construccion"), ...d("20", "superficieConstruccion")] },
   { clave: "recamaras", etiqueta: "Recámaras", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "recamaras"), ...d("07", "recamaras"), ...d("10", "recamaras")] },

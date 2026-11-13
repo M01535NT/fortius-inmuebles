@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
 import { FORMATOS } from "@/lib/formatos/catalog";
 
-/* DOC-14: la migración 20261113150000 agrega el formato 20 sin quitar ninguno de los que ya existían. */
+/* Las migraciones 20261113150000 y 20261113161000 agregan los formatos 20 y 21 sin quitar ninguno de los que ya existían. */
 let db: PGlite;
 const exp = "59000000-0000-4000-8000-000000000020";
 beforeAll(async () => {
@@ -29,12 +29,12 @@ const crear = (formato: string) => db.query("insert into public.fortius_inmueble
 
 it("acepta el 20 y todos los formatos del catálogo, uno por uno", async () => {
   const ids = FORMATOS.map(f => f.id);
-  expect(ids).toContain("20");
+  expect(ids).toEqual(expect.arrayContaining(["20", "21"]));
   for (const id of ids) await expect(crear(id), id).resolves.toBeTruthy();
 });
 
 it("sigue rechazando un formato que no existe, con una sola restricción sobre formato_id", async () => {
-  await expect(crear("21")).rejects.toThrow(/formato_id_check/);
+  await expect(crear("22")).rejects.toThrow(/formato_id_check/);
   const checks = await db.query<{ n: number }>("select count(*)::int n from pg_constraint where conrelid='public.fortius_inmuebles_formato_drafts'::regclass and contype='c' and pg_get_constraintdef(oid) like '%formato_id%'");
   expect(checks.rows[0].n).toBe(1);
 });
