@@ -10,8 +10,9 @@ import { ClienteEditor } from "@/components/admin/cliente-editor";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { duplicateContacts } from "@/lib/admin/workspace";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { clientRows, leadRows, matches, type ContactRow, type PersonOperation } from "@/lib/admin/contacts-view";
-import { apiRequest, db, useCollection } from "@/lib/admin/store";
+import { clientRows, dayGroups, leadRows, matches, waitingSince, type ContactRow, type PersonOperation, type Waiting } from "@/lib/admin/contacts-view";
+import { apiRequest, db, settingsStore, useCollection, useSingleton } from "@/lib/admin/store";
+import { firstResponseHours } from "@/lib/admin/today";
 import { leadStage, LEAD_STAGE_LABELS } from "@/lib/admin/person-view";
 import { processStageText, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { cn } from "@/lib/utils";
@@ -81,7 +82,15 @@ export function ContactsScreen() {
     ...clientRows(clients, tasks, events, today, operations).filter(r => { const c = clients.find(x => x.id === r.id)!; return matches(query, c.nombre, c.telefono, c.email, c.zona, c.tipoPropiedad, r.wants); }),
   ].filter(r => inFilter(r.kind, r.id)).sort((x, y) => x.sort.localeCompare(y.sort) || x.name.localeCompare(y.name, "es"));
   const duplicates = filter === "clientes" ? 0 : leads.filter(l => duplicateContacts(l, leads).length > 0).length;
-  const previewRow = rows.find(r => r.id === selected) ?? rows[0];
+  // Lista del día (CRM-01): agrupada mientras no se busca y la vista es de trabajo diario.
+  const settings = useSingleton(settingsStore);
+  const limitHours = firstResponseHours(settings);
+  const now = new Date();
+  const waiting = (row: ContactRow) => { if (row.kind !== "lead") return null; const lead = open.find(l => l.id === row.id); return lead ? waitingSince(lead, now, limitHours) : null; };
+  const grouped = !query.trim() && (filter === "todas" || filter === "nuevos" || filter === "seguimiento");
+  const groups = grouped ? dayGroups(rows, today, waiting) : [{ id: "todas" as const, label: "", rows }];
+  const ordered = groups.flatMap(group => group.rows);
+  const previewRow = ordered.find(r => r.id === selected) ?? ordered[0];
 
 
   const searchField = <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar nombre o teléfono</span><input ref={searchInput} type="search" className={inputClass} placeholder="Buscar nombre o teléfono" value={query} onChange={e => setQuery(e.target.value)} /></label>;
@@ -112,7 +121,7 @@ export function ContactsScreen() {
       {rows.length === 0 ? <EmptyBox title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
       </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
-        <ContactList rows={rows} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={row => { if (row.kind === "cliente") { const st = status.ofClient(row.id); return st ? PERSON_STATUS_LABEL[st] : "Contacto"; } return status.ofLead({ id: row.id }) === "contraparte" ? PERSON_STATUS_LABEL.contraparte : LEAD_STAGE_LABELS[leadStage(estadoDe(row.id))]; }} />
+        <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={row => { if (row.kind === "cliente") { const st = status.ofClient(row.id); return st ? PERSON_STATUS_LABEL[st] : "Contacto"; } return status.ofLead({ id: row.id }) === "contraparte" ? PERSON_STATUS_LABEL.contraparte : LEAD_STAGE_LABELS[leadStage(estadoDe(row.id))]; }} />
         {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} />}
       </div>}
       {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
@@ -124,15 +133,34 @@ function Due({ row }: { row: ContactRow }) {
   return row.when ? <Pill size="sm" tone={row.late ? "alert" : "muted"}>{row.when}</Pill> : null;
 }
 
-function ContactList({ rows, onPreview, stageOf, conditionOf }: { rows: ContactRow[]; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined }) {
+/** Barra de la primera atención: cuánto lleva esperando contra el plazo (la marca es el plazo). */
+function WaitClock({ wait, limitHours }: { wait: Waiting; limitHours: number }) {
+  const span = limitHours * 2;
+  return <span className={cn(s.clock, wait.late && s.clockLate)}>
+    <span className={s.meter} aria-hidden="true"><span style={{ width: `${Math.min(100, (wait.hours / span) * 100)}%` }} /><i /></span>
+    <span>{wait.hours < 1 ? "Menos de 1 h" : `${wait.hours} h`} sin respuesta · plazo {limitHours} h</span>
+  </span>;
+}
+
+function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditionOf }: { groups: Array<{ id: string; label: string; rows: ContactRow[] }>; waiting: (row: ContactRow) => Waiting | null; limitHours: number; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined }) {
+  // Una sola lista «Contactos»; cada grupo del día es un renglón con su título y sus personas.
   return <Card as="div" className={s.listCard}>
-    <ul className={s.list} aria-label="Contactos">{rows.map(row => <li key={row.id}><Link href={row.href} className={s.item} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>
-      <Avatar name={row.name} size={44} />
-      <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{row.phone}</span></span>
-      <span className={s.wants}><span className="[overflow-wrap:anywhere]"><Pill size="sm" tone={stageOf(row) === "Cliente" ? "success" : "muted"}>{stageOf(row)}</Pill> {conditionOf(row) && <><Pill size="sm" tone="warn">{conditionOf(row)}</Pill> </>}{row.wants}</span>{(row.zone || row.budget) && <span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span>}</span>
-      <span className={s.step}>{row.step && <><span className={cn("lg:hidden whitespace-nowrap", s.meta)}>Sigue:</span><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span></>}</span>
-      <span className={s.end}><Due row={row} /></span>
-      <ChevronRight size={18} aria-hidden="true" className={cn(s.chevron, "hidden lg:block")} />
-    </Link></li>)}</ul>
+    <ul className={s.list} aria-label="Contactos">{groups.map(group => {
+      const head = group.label ? `contactos-${group.id}` : undefined;
+      return <li key={group.id} className={s.group}>
+        {group.label && <h2 id={head} className={s.groupHead}>{group.label}<span className={s.groupCount}>{group.rows.length}</span></h2>}
+        <ul className={s.list} aria-label={group.label || undefined}>{group.rows.map(row => {
+          const wait = waiting(row);
+          return <li key={row.id}><Link href={row.href} className={s.item} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>
+            <Avatar name={row.name} size={44} />
+            <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{row.phone}</span></span>
+            <span className={s.wants}><span className="[overflow-wrap:anywhere]"><Pill size="sm" tone={stageOf(row) === "Cliente" ? "success" : "muted"}>{stageOf(row)}</Pill> {conditionOf(row) && <><Pill size="sm" tone="warn">{conditionOf(row)}</Pill> </>}{row.wants}</span>{(row.zone || row.budget) && <span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span>}</span>
+            <span className={s.step}>{wait ? <WaitClock wait={wait} limitHours={limitHours} /> : row.step && <><span className={cn("lg:hidden whitespace-nowrap", s.meta)}>Sigue:</span><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span></>}</span>
+            <span className={s.end}>{wait ? <Pill size="sm" tone={wait.late ? "alert" : "warn"}>{wait.late ? "Pasó el plazo" : "Por atender"}</Pill> : <Due row={row} />}</span>
+            <ChevronRight size={18} aria-hidden="true" className={cn(s.chevron, "hidden lg:block")} />
+          </Link></li>;
+        })}</ul>
+      </li>;
+    })}</ul>
   </Card>;
 }

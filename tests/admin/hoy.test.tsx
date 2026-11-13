@@ -189,6 +189,43 @@ test("COR-21: el plazo de primera atención se toma de Configuración y la cola 
   expect(queueFromLeads(relaxed)[0]).toMatchObject({ id: "nuevo:w1", kind: "nuevo", leadId: "w1" });
 });
 
+test("CRM-01: al director, el prospecto de otro asesor que pasó el plazo sube arriba como aviso y lleva a reasignar", async () => {
+  const { queueFromLeads, queueFromWaiting, sortQueue, unattendedLeads } = await import("@/lib/admin/today");
+  const now = new Date("2026-11-02T18:00:00Z");
+  const base = { estado: "nuevo", origen: "contacto", notas: [] };
+  const leads = [
+    { ...base, id: "w1", nombre: "De Rubén, vencido", creadoEl: "2026-11-02T15:00:00Z", asesorId: "a2" },
+    { ...base, id: "w2", nombre: "De Rubén, a tiempo", creadoEl: "2026-11-02T17:30:00Z", asesorId: "a2" },
+    { ...base, id: "w3", nombre: "Sin asesor, vencido", creadoEl: "2026-11-02T14:00:00Z" },
+    { ...base, id: "w4", nombre: "Del director, vencido", creadoEl: "2026-11-02T14:30:00Z", asesorId: "a1" },
+  ];
+  const items = unattendedLeads({ leads, properties: [], me: "a1", admin: true, now, adviserName: id => id === "a2" ? "Rubén" : id === "a1" ? "Dirección" : undefined });
+  const director = queueFromLeads(items, { admin: true, me: "a1" });
+  expect(director.find(i => i.id === "plazo:w1")).toMatchObject({ kind: "plazo", late: true, href: "/admin/leads/w1#reasignar", detail: "Le toca a Rubén: llámale tú o reasígnala", when: "Lleva 3 h sin respuesta" });
+  expect(director.find(i => i.id === "plazo:w1")?.leadId).toBeUndefined();
+  // A tiempo, sin asesor o propio del director: sigue como «Nuevo».
+  expect(director.filter(i => i.kind === "nuevo").map(i => i.leadId)).toEqual(["w3", "w4", "w2"]);
+  // Sube por encima de un problema de operación vencido.
+  const problem = queueFromWaiting([{ id: "op", kind: "problema", rank: 0, who: "EXP-1", reason: "Problema", late: true, href: "/admin/operaciones/op", sort: "EXP-1" } as never]);
+  expect(sortQueue([...problem, ...director])[0].id).toBe("plazo:w1");
+  // El asesor ve su propio vencido como «Nuevo», no como aviso.
+  expect(queueFromLeads(unattendedLeads({ leads, properties: [], me: "a2", admin: false, now }), { admin: false, me: "a2" }).map(i => i.kind)).toEqual(["nuevo", "nuevo"]);
+});
+
+test("CRM-03: la persona descartada que regresa vuelve a «sin atender» y el plazo corre desde su regreso", async () => {
+  const { unattendedLeads, awaitingFirstReply } = await import("@/lib/admin/today");
+  const { waitingSince } = await import("@/lib/admin/contacts-view");
+  const now = new Date("2026-11-02T18:00:00Z");
+  const back = { id: "r1", nombre: "Regresó", estado: "nuevo", origen: "manual", creadoEl: "2026-09-01T10:00:00Z", firstContactedAt: "2026-09-01T11:00:00Z", reabiertoEl: "2026-11-02T17:30:00Z", asesorId: "a1" };
+  const items = unattendedLeads({ leads: [back], properties: [], me: "a1", admin: false, now });
+  expect(items.map(i => [i.id, i.since, i.late])).toEqual([["r1", "Regresó hace 30 min", false]]);
+  expect(waitingSince(back as never, now, 2)).toEqual({ hours: 0, late: false });
+  // Al registrar el contacto pasa a «contactado» y sale de la lista.
+  expect(awaitingFirstReply({ ...back, estado: "contactado" })).toBe(false);
+  // Sin regreso, quien se capturó a mano o ya fue atendido no espera respuesta.
+  expect(awaitingFirstReply({ ...back, reabiertoEl: undefined })).toBe(false);
+});
+
 test("COR-05: la cola de Hoy usa el mismo motivo y orden que Operaciones (RP-84)", () => {
   const base = { today, names, followups: [], offers: [] };
   // Vence hoy: antes no aparecía en Hoy, aunque Operaciones sí lo marcaba.

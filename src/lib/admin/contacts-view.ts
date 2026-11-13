@@ -1,7 +1,7 @@
 import type { Cliente, Evento, Lead } from "@/lib/admin/store";
 import type { LeadProfile } from "@/lib/lead-profile";
 import { isTaskOpen, type Task } from "@/lib/tasks";
-import { shortDate } from "@/lib/admin/today";
+import { arrivedAt, awaitingFirstReply, shortDate } from "@/lib/admin/today";
 
 /*
   Contactos (lienzo: ContactosEscritorio y ContactosMovil): por persona, lo que busca,
@@ -91,6 +91,37 @@ function row(kind: "lead" | "cliente", person: Lead | Cliente, verb: string | un
 const bySort = (a: ContactRow, b: ContactRow) => a.sort.localeCompare(b.sort) || a.name.localeCompare(b.name, "es");
 export const leadRows = (leads: Lead[], tasks: Task[], events: Evento[], today: string) => leads.map(l => row("lead", l, undefined, tasks, events, today)).sort(bySort);
 export const clientRows = (clients: Cliente[], tasks: Task[], events: Evento[], today: string, operations: PersonOperation[] = []) => clients.map(c => row("cliente", c, CLIENT_VERB[c.tipo], tasks, events, today, operations)).sort(bySort);
+
+/*
+  Lista del día (CRM-01, propuesta A + B aprobada el 12/11/2026): arriba quien llegó y nadie le ha
+  escrito, con el tiempo contra el plazo de primera atención; luego lo que toca hoy o se atrasó;
+  después lo que viene, y al final quien no tiene siguiente paso con fecha.
+*/
+export type DayGroupId = "sin-atender" | "hoy" | "despues" | "sin-paso";
+export const DAY_GROUP_LABELS: Record<DayGroupId, string> = { "sin-atender": "Sin atender", hoy: "Toca hoy o se atrasó", despues: "Más adelante", "sin-paso": "Sin siguiente paso" };
+export type Waiting = { hours: number; late: boolean };
+
+/** Prospecto que llegó solo (sitio web) y nadie ha contactado: horas que lleva y si pasó el plazo. */
+export function waitingSince(lead: Pick<Lead, "origen" | "estado" | "firstContactedAt" | "clienteId" | "creadoEl" | "reabiertoEl">, now: Date, limitHours: number): Waiting | null {
+  if (!awaitingFirstReply(lead)) return null;
+  const elapsed = now.getTime() - new Date(arrivedAt(lead)).getTime();
+  if (!Number.isFinite(elapsed)) return null;
+  const hours = Math.max(0, Math.floor(elapsed / 3_600_000));
+  return { hours, late: elapsed >= limitHours * 3_600_000 };
+}
+
+export function dayGroups(rows: ContactRow[], today: string, waiting: (row: ContactRow) => Waiting | null) {
+  const groups: Record<DayGroupId, ContactRow[]> = { "sin-atender": [], hoy: [], despues: [], "sin-paso": [] };
+  for (const row of rows) {
+    if (row.kind === "lead" && waiting(row)) groups["sin-atender"].push(row);
+    else if (row.sort === "9999") groups["sin-paso"].push(row);
+    else if (row.sort.slice(0, 10) <= today) groups.hoy.push(row);
+    else groups.despues.push(row);
+  }
+  // Sin atender: quien más tiempo lleva esperando, primero.
+  groups["sin-atender"].sort((a, b) => (waiting(b)?.hours ?? 0) - (waiting(a)?.hours ?? 0));
+  return (Object.keys(groups) as DayGroupId[]).map(id => ({ id, label: DAY_GROUP_LABELS[id], rows: groups[id] })).filter(group => group.rows.length > 0);
+}
 
 /** Busca sin acentos por nombre, teléfono, correo, zona o lo que busca. */
 export function matches(query: string, ...values: Array<string | null | undefined>) {

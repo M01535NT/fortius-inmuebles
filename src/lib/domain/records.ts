@@ -96,6 +96,8 @@ export type Lead = {
   convertidoEl?: string;
   convertidoPor?: string;
   firstContactedAt?: string;
+  /** CRM-03: regresó por el sitio estando descartada; desde aquí corre el plazo de primera atención. */
+  reabiertoEl?: string;
 };
 
 export const EVENTO_TIPOS = [
@@ -207,4 +209,6 @@ export type SiteSettings = {
   videoInstitucionalUrl: string;
   /** RP-23: horas para la primera atención de un prospecto nuevo del sitio (1 a 72). Solo del panel. */
   horasPrimeraAtencion?: number;
+  /** CRM-02: textos de «Mensajes listos» que el director cambió; los demás usan el aprobado. Solo del panel. */
+  mensajes?: Partial<Record<string, string>>;
 };

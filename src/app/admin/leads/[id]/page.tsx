@@ -10,12 +10,14 @@ import { confirmAction } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { ContactLog } from "@/components/admin/contacts/contact-log";
+import { ReadyMessages } from "@/components/admin/contacts/ready-messages";
 import { NextStepCard, PersonCard, PersonHeader, Timeline, personStyles as s, useInterview, type MenuItem } from "@/components/admin/contacts/person";
-import { nextStep } from "@/lib/admin/contacts-view";
+import { nextStep, waitingSince } from "@/lib/admin/contacts-view";
+import { awaitingFirstReply, firstResponseHours } from "@/lib/admin/today";
 import { estadoForStage, humanDay, leadStage, personTimeline, LEAD_STAGE_CHOICES, LEAD_STAGE_LABELS, type LeadStage } from "@/lib/admin/person-view";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { duplicateContacts } from "@/lib/admin/workspace";
-import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, LEAD_CANAL_LABELS, LEAD_ORIGEN_LABELS, db, removeById, uid, upsert, useCollection, type EventoTipo, type Lead } from "@/lib/admin/store";
+import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, LEAD_CANAL_LABELS, LEAD_ORIGEN_LABELS, db, removeById, settingsStore, uid, upsert, useCollection, useSingleton, type EventoTipo, type Lead } from "@/lib/admin/store";
 import { cn } from "@/lib/utils";
 import { PERSON_STATUS_LABEL, PERSON_STATUS_TONE } from "@/lib/admin/person-status";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
@@ -43,10 +45,20 @@ function LeadDetail({ id }: { id: string }) {
   const [agendaDirty, setAgendaDirty] = React.useState(false);
   const [contactDirty, setContactDirty] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState<{ lead: Lead; version: number | null } | null>(null);
+  const [contactPreset, setContactPreset] = React.useState<{ key: number; kind: "whatsapp"; nota: string } | null>(null);
   const interview = useInterview({ leadId: id });
   const today = operationalDate();
+  const settings = useSingleton(settingsStore);
 
   const lead = leads.find(l => l.id === id) ?? noteDraft?.lead ?? profileDraft;
+  // Desde el aviso «Pasó el plazo» de Hoy (#reasignar): el foco queda en «Asesor responsable».
+  const loaded = !!lead;
+  React.useEffect(() => {
+    if (!loaded || window.location.hash !== "#reasignar") return;
+    const field = document.getElementById("lead-asesor");
+    field?.scrollIntoView({ block: "center" });
+    field?.focus();
+  }, [loaded]);
   if (!lead) return <Surface className={s.page}>
     <h1 className={s.name}>Prospecto no encontrado</h1>
     <p className={s.muted}>Este prospecto no existe o se eliminó.</p>
@@ -57,6 +69,9 @@ function LeadDetail({ id }: { id: string }) {
   const propiedad = propiedades.find(p => p.slug === lead.propiedadSlug);
   const stage = leadStage(lead.estado);
   const seller = lead.perfil?.operacion === "vender" || lead.perfil?.operacion === "arrendar";
+  const limitHours = firstResponseHours(settings);
+  const waiting = waitingSince(lead, new Date(), limitHours);
+  const overdue = waiting?.late ? waiting : null;
   // COR-18: quien compra, renta o invierte no abre operación; su acción principal es registrar el contacto.
   const buyer = ["comprar", "rentar", "invertir"].includes(lead.perfil?.operacion ?? "");
   const active = !lead.clienteId && stage !== "descartado" && stage !== "cerrado";
@@ -116,7 +131,7 @@ function LeadDetail({ id }: { id: string }) {
     {duplicates.length > 0 && <Notice title="Puede estar repetido">Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
 
     <NextStepCard step={step} today={today} fallback={lead.clienteId ? "Su seguimiento continúa en su ficha de cliente." : draft ? "Terminar su entrevista inicial" : stage === "descartado" || stage === "cerrado" ? "Sin seguimiento: está descartado." : "Sin siguiente paso con fecha. Agenda una llamada o una tarea."}>
-      {!lead.clienteId && !buyer && !lead.firstContactedAt && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[560]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}
+      {!lead.clienteId && !buyer && (!lead.firstContactedAt || awaitingFirstReply(lead)) && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[560]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}
       {lead.clienteId && <ButtonLink className={s.onNavy} href={`/admin/clientes/${encodeURIComponent(lead.clienteId)}`}>Ver cliente</ButtonLink>}
       {interview.current?.estado === "completada" && <ButtonLink className={s.onNavy} href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.current.id)}`}>Ver entrevista</ButtonLink>}
       {draft ? (busy ? <Button variant="primary" disabled>Continuar entrevista</Button> : <ButtonLink variant="primary" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(draft.id)}`}>Continuar entrevista<ArrowRight size={18} aria-hidden="true" /></ButtonLink>) : buyer && active ? <Button variant="primary" onClick={() => { const target = document.querySelector<HTMLElement>("#registrar-contacto button"); target?.scrollIntoView({ block: "center" }); target?.focus(); }}>Registrar contacto</Button> : buyer && !lead.clienteId ? null : prepare}
@@ -130,7 +145,7 @@ function LeadDetail({ id }: { id: string }) {
           <ButtonLink href={`/admin/agenda?tab=tareas&nueva=1&${linkQuery}`}>Nueva tarea</ButtonLink>
         </span>}>
           <Timeline upcoming={upcoming} past={past} empty="Todavía no hay nada registrado.">
-            {active && <ContactLog lead={lead} today={today} onDirtyChange={setContactDirty} />}
+            {active && <ContactLog lead={lead} today={today} onDirtyChange={setContactDirty} preset={contactPreset} />}
             <AsyncForm onSubmit={agregarNota} className={s.compose}>
               <label htmlFor="nueva-nota" className="sr-only">Nueva nota</label>
               <textarea id="nueva-nota" name="nota" rows={2} required placeholder="Qué se habló, qué sigue, compromisos…" className={textareaClass}
@@ -152,6 +167,10 @@ function LeadDetail({ id }: { id: string }) {
             </AsyncForm>
           </Timeline>
         </PersonCard>
+
+        {active && buyer && <PersonCard id="ficha-mensajes" title="Mensajes listos">
+          <ReadyMessages lead={lead} today={today} onSent={name => setContactPreset(old => ({ key: (old?.key ?? 0) + 1, kind: "whatsapp", nota: name }))} />
+        </PersonCard>}
 
         <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
         {active && <MatchingProperties seeker={{ id: lead.id, kind: "lead", nombre: lead.nombre, telefono: lead.telefono, email: lead.email, zona: lead.zona, tipoPropiedad: lead.tipoPropiedad, perfil: lead.perfil, asesorId: lead.asesorId, href: `/admin/leads/${encodeURIComponent(lead.id)}` }} />}
@@ -176,7 +195,7 @@ function LeadDetail({ id }: { id: string }) {
               {stage === "cerrado" && <option value="cerrado" disabled>Cerrado</option>}
             </AsyncSelect>
           </Field>
-          <Field label="Asesor responsable" htmlFor="lead-asesor" hint={lead.clienteId ? "Se reasigna desde su ficha de cliente." : undefined}>
+          <Field label="Asesor responsable" htmlFor="lead-asesor" hint={lead.clienteId ? "Se reasigna desde su ficha de cliente." : overdue ? `Lleva ${overdue.hours} h sin respuesta y el plazo es de ${limitHours} h: llámale o asígnala a otro asesor.` : undefined}>
             <AsyncSelect id="lead-asesor" disabled={!!lead.clienteId} value={lead.asesorId ?? ""} className={selectClass}
               onChange={async value => { await upsert(db.leads, { ...lead, asesorId: value || undefined }, db.leads.version(lead)); }}>
               <option value="">Sin asignar</option>

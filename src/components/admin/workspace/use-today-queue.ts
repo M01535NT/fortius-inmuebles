@@ -109,7 +109,7 @@ export function useTodayQueue({ maxAge = 0 }: { maxAge?: number } = {}) {
     href: `/admin/propiedades/${encodeURIComponent(property.slug)}/seguimiento?seccion=compradores`,
   }));
   // La cola única: cada pendiente una sola vez, lo vencido primero (C47).
-  const queue = dossiers === undefined ? [] : sortQueue([...queueFromWaiting(waiting), ...queueFromLeads(newLeads), ...queueFromInterviews(interviews ?? []), ...queueFromExpiry(expiring), ...queueFromReports(lateReports), ...lateKeys, ...notices]);
+  const queue = dossiers === undefined ? [] : sortQueue([...queueFromWaiting(waiting), ...queueFromLeads(newLeads, who ? { admin: who.administrador, me: who.asesorId } : undefined), ...queueFromInterviews(interviews ?? []), ...queueFromExpiry(expiring), ...queueFromReports(lateReports), ...lateKeys, ...notices]);
   return { queue, waiting, dossiers, staged, interviews, offers, reports, contracts, expiring, names, today };
 }
 
