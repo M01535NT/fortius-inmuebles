@@ -15,7 +15,7 @@ export default function AdminError({ error, retry, reset }: { error: unknown; re
   const again = retry ?? reset;
   return <Card panel className="mx-auto mt-6 flex w-full max-w-xl flex-col items-start gap-4 p-6 sm:p-8" role="alert" aria-labelledby="admin-error-title">
     <AlertTriangle size={28} aria-hidden="true" className="text-[var(--alert)]" />
-    <h1 id="admin-error-title" className="text-2xl font-semibold">No pudimos abrir esta página.</h1>
+    <h1 id="admin-error-title" className="text-pantalla font-[620]">No pudimos abrir esta página.</h1>
     <p className="text-muted-foreground">Tus datos están a salvo. Vuelve a intentarlo; si sigue igual, regresa a Hoy y abre la página más tarde.</p>
     <div className="flex flex-wrap gap-3">
       {again && <Button variant="primary" onClick={() => again()}>Reintentar</Button>}

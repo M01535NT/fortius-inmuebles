@@ -52,13 +52,13 @@ it("rechaza en el navegador lo que no es PDF ni imagen, sin subirlo", async () =
   expect(calls.some(call => call.startsWith("POST"))).toBe(false);
 });
 
-it("manda a la papelera y restaura sin borrar el documento", async () => {
+it("manda a Eliminados y restaura sin borrar el documento", async () => {
   servidor();
   render(<ClientDocumentsTab operationId={OP} />);
   await screen.findByText("Escritura");
-  fireEvent.click(screen.getByRole("button", { name: "Mandar Escritura a la papelera" }));
+  fireEvent.click(screen.getByRole("button", { name: "Eliminar Escritura" }));
   await waitFor(() => expect(screen.queryByRole("link", { name: /Abrir/ })).toBeNull());
-  fireEvent.click(screen.getByRole("button", { name: /Papelera/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Eliminados/ }));
   fireEvent.click(screen.getByRole("button", { name: /Restaurar/ }));
   expect(await screen.findByRole("link", { name: /Abrir/ })).toBeTruthy();
 });

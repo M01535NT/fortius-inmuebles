@@ -3,7 +3,7 @@ import * as React from "react";
 import { Trash2 } from "@/components/admin/icons";
 import { Button, Sheet } from "@/components/admin/kit";
 import { textareaClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { newNote, notesFor, type NoteLink } from "@/lib/admin/notes";
 import { db, errorMessage, removeById, uid, upsert, useCollection, useSession } from "@/lib/admin/store";
 import { humanDateTime } from "@/lib/utils";
@@ -34,7 +34,7 @@ export function RecordNotes({ link, open, onClose, title, description }: { link:
   }
   async function remove(id: string, titulo: string) {
     const note = notes.find(item => item.id === id);
-    if (!note || !await confirmAction(`¿Eliminar la nota «${titulo}»? Se puede recuperar desde Historial.`)) return;
+    if (!note || !await confirmDelete("nota", `Se elimina la nota «${titulo}».`, "a")) return;
     try { await removeById(db.notas, id, db.notas.version(note)); } catch (cause) { setError(errorMessage(cause)); }
   }
 

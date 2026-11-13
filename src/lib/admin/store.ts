@@ -47,7 +47,7 @@ export class RequestError extends Error {
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
   const body = await response.json();
-  if (!response.ok) throw new RequestError(body.error ?? "No se pudo completar la operación", response.status);
+  if (!response.ok) throw new RequestError(body.error ?? "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.", response.status);
   return body as T;
 }
 
@@ -101,7 +101,7 @@ export async function apiRequest<T>(
       response.status,
       typeof result.error === "string"
         ? result.error
-        : "No se pudo completar la operación.",
+        : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.",
     );
   }
   return result as T;
@@ -387,7 +387,7 @@ export async function removePropiedad(slug: string, version: number | null) {
 export function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
-    : "No se pudo completar la operación.";
+    : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
 }
 export async function isLoggedIn() {
   const epoch = sessionEpoch;

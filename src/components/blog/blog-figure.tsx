@@ -18,7 +18,7 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
           <Icon aria-hidden="true" className="size-5 shrink-0" />
           {isInfographic ? "Guía visual" : data.type === "monthly-comparison" ? "Ejemplo ficticio" : "Ejemplo ilustrativo"}
         </p>
-        <h3 id={`${figure.id}-title`} className="text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+        <h3 id={`${figure.id}-title`} className="text-balance text-subtitulo font-bold leading-tight tracking-tight">
           {figure.title}
         </h3>
       </div>
@@ -28,11 +28,11 @@ export function BlogFigureView({ figure }: { figure: BlogFigure }) {
           {data.items.map((item, index) => (
             <li key={item.label} className="relative min-w-0 border-b border-border py-5 last:border-b-0 first:pt-0 sm:first:pt-5">
               <div className="flex min-w-0 items-start gap-3">
-                <span aria-hidden="true" className="shrink-0 text-2xl font-semibold tabular-nums leading-tight text-primary-ink">
+                <span aria-hidden="true" className="shrink-0 text-subtitulo font-bold tabular-nums leading-tight text-primary-ink">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-lg font-semibold leading-snug">{item.label}</p>
+                  <p className="text-entrada font-semibold leading-snug">{item.label}</p>
                   <p className="mt-2 text-base leading-relaxed text-muted-foreground">{item.detail}</p>
                 </div>
               </div>
@@ -69,7 +69,7 @@ function FigureChart({ figure }: { figure: BlogFigure & { data: Exclude<BlogFigu
           <div key={row.label}>
             <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <span className="text-base font-semibold">{row.label}</span>
-              <span className="text-xl font-semibold tabular-nums text-primary-ink">{formatFigureAmount(row.value)} {unit}</span>
+              <span className="text-entrada font-bold tabular-nums text-primary-ink">{formatFigureAmount(row.value)} {unit}</span>
             </div>
             <div className="h-5 border-l border-foreground/40 bg-muted">
               <div className="h-full bg-primary" style={{ width: `${(row.value / max) * 100}%` }} />

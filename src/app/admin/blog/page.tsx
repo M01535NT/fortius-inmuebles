@@ -1,5 +1,5 @@
 "use client";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -69,7 +69,7 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
         {post ? `Editando: ${post.titulo}` : "Nueva entrada"}
       </h2>
       <Field
-        label="Slug"
+        label="Dirección en la web"
         htmlFor="post-slug"
         hint={
           post
@@ -215,8 +215,8 @@ export default function BlogAdminPage() {
 
       {posts.length === 0 ? (
         <EmptyState
-          title="Sin entradas."
-          hint="Redacta la primera guía local: es la base del SEO editorial."
+          title="Todavía no hay artículos."
+          hint="Escribe la primera guía con «Nueva entrada»."
         />
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
@@ -236,7 +236,7 @@ export default function BlogAdminPage() {
                   <span className="text-xs text-muted-foreground">{BLOG_FORMATS[postFormat(p)]}{postCategory(p) ? ` · ${BLOG_CATEGORIES[postCategory(p)!]}` : ""}{p.destacado ? " · Destacado" : ""}</span>
                 </p>
                 <p className="mt-1 truncate text-sm text-muted-foreground">
-                  Slug: {p.slug} · {humanDateTime(p.actualizadoEl)}
+                  /blog/{p.slug} · {humanDateTime(p.actualizadoEl)}
                 </p>
               </div>
               <div className="flex shrink-0 gap-1.5">
@@ -252,7 +252,7 @@ export default function BlogAdminPage() {
                   type="button"
                   aria-label={`Eliminar ${p.titulo}`}
                   onClick={async () => {
-                    if (await confirmAction(`¿Eliminar "${p.titulo}"?`))
+                    if (await confirmDelete("artículo", `«${p.titulo}» se quita del blog y vuelve como borrador si lo restauras.`, "o"))
                       await removeById(db.posts, p.id, db.posts.version(p));
                   }}
                   className="rounded-md border border-border p-2 text-foreground/70 transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"

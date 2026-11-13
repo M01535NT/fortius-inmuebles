@@ -108,7 +108,7 @@ export function PrepBlock({ property, save }: BlockProps) {
         <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3">
           <input type="checkbox" className="size-5 shrink-0 accent-[var(--primary)]" checked={state.estado === "listo"} disabled={busy === item || state.estado === "no_aplica"}
             onChange={event => void mark(item, event.currentTarget.checked ? "listo" : "pendiente")} />
-          <span className="flex min-w-0 flex-col"><span className={state.estado === "no_aplica" ? "text-muted-foreground line-through" : "font-[560]"}>{PREP_ITEMS[item]}</span>{meta && <small className="text-muted-foreground [overflow-wrap:anywhere]">{meta}</small>}</span>
+          <span className="flex min-w-0 flex-col"><span className={state.estado === "no_aplica" ? "text-muted-foreground line-through" : "font-[540]"}>{PREP_ITEMS[item]}</span>{meta && <small className="text-muted-foreground [overflow-wrap:anywhere]">{meta}</small>}</span>
         </label>
         <details className="group [&[open]]:basis-full">
           <summary aria-label={`Quién y cuándo: ${PREP_ITEMS[item]}`} className="ml-auto flex size-11 cursor-pointer list-none items-center justify-center rounded-[10px] text-muted-foreground hover:bg-secondary [&::-webkit-details-marker]:hidden"><MoreHorizontal size={20} aria-hidden="true" /></summary>

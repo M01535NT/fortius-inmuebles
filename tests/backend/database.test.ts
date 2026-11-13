@@ -46,6 +46,9 @@ beforeAll(async () => {
   // CRM-03: también se aplica dos veces.
   const reopen = await readFile(new URL("../../supabase/migrations/20261112231000_reabrir_prospecto_descartado.sql", import.meta.url), "utf8");
   await db.exec(reopen); await db.exec(reopen);
+  // SEG-M1: al reabrir no se cambia el correo; también se aplica dos veces.
+  const keepContact = await readFile(new URL("../../supabase/migrations/20261113121000_reabrir_sin_cambiar_contacto.sql", import.meta.url), "utf8");
+  await db.exec(keepContact); await db.exec(keepContact);
 });
 afterAll(async () => { await db?.close(); });
 
@@ -223,6 +226,7 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
       await save("leads", "l1", { ...old, id: "l1", estado: "descartado", asesorId: "a1", firstContactedAt: "2026-10-01T11:00:00.000Z" });
       await save("leads", "l2", { ...old, id: "l2", nombre: "Mario", telefono: "6640000000", email: "Mario@Example.com", estado: "descartado", asesorId: "a2" });
       await save("leads", "l3", { ...old, id: "l3", nombre: "Activa", telefono: "6649999999", estado: "contactado" });
+      await save("leads", "l4", { ...old, id: "l4", nombre: "Rosa", telefono: "6642222222", email: "rosa@ejemplo.test", estado: "descartado", asesorId: "a1" });
     });
     const capture = (data: Record<string, unknown>, key: string) => asRole("service_role", null, async () =>
       (await db.query<{ id: string }>("select public.fortius_inmuebles_capture_lead($1::jsonb,$2) as id", [JSON.stringify({ nombre: "Otra forma de escribir", origen: "interes_propiedad", ...data }), key])).rows[0].id);
@@ -240,7 +244,12 @@ describe("PostgreSQL policy and atomic persistence contract", () => {
     // Quien sigue activa no se toca: llega como persona nueva, igual que antes.
     expect(await capture({ telefono: "6649999999" }, "r3")).not.toBe("l3");
     expect((await stored("l3")).estado).toBe("contactado");
-    expect((await db.query("select 1 from public.fortius_inmuebles_records where collection='leads'")).rows).toHaveLength(4);
+    // SEG-M1: quien escribe con el teléfono de otra persona no le cambia el correo; el que dejó queda sin verificar.
+    expect(await capture({ telefono: "6642222222", email: "otra@ejemplo.test" }, "r4")).toBe("l4");
+    const rosa = await stored("l4");
+    expect(rosa).toMatchObject({ estado: "nuevo", email: "rosa@ejemplo.test" });
+    expect((rosa.notas as Array<{ texto: string }>)[0].texto).toBe("Regresó por el sitio. Dejó otro correo, sin verificar: otra@ejemplo.test");
+    expect((await db.query("select 1 from public.fortius_inmuebles_records where collection='leads'")).rows).toHaveLength(5);
   });
 
   it("post projection still exposes only explicitly public posts without authentication", async () => {

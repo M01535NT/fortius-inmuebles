@@ -1,9 +1,11 @@
 import { describe, expect, test } from "vitest";
 
+import type { Property } from "@/data/propiedades";
 import { municipioDeZona } from "@/data/zonas";
 import { siteConfig } from "@/data/site";
 import type { Post, SiteSettings } from "@/lib/domain/records";
-import { blogPostingLd, breadcrumbLd, ORG_ID, organizationLd, serializeLd, websiteLd } from "@/lib/seo/json-ld";
+import { blogPostingLd, breadcrumbLd, internationalPhone, ORG_ID, organizationLd, propertyLd, serializeLd, websiteLd } from "@/lib/seo/json-ld";
+import { propiedades } from "../fixtures/propiedades";
 import { fullTitle, pageMetadata } from "@/lib/seo/page-metadata";
 
 const settings: SiteSettings = {
@@ -28,10 +30,10 @@ const post: Post = {
 };
 
 describe("datos de la empresa", () => {
-  test("solo emite el contacto y las redes capturadas", () => {
+  test("solo emite el contacto capturado y ninguna red", () => {
     const org = organizationLd(settings);
     expect(org).toMatchObject({ "@type": "RealEstateAgent", "@id": ORG_ID, telephone: settings.telefono, email: settings.email });
-    expect(org.sameAs).toEqual([settings.instagram]);
+    expect(org).not.toHaveProperty("sameAs");
     expect(org.address).toEqual({ "@type": "PostalAddress", addressLocality: "Tijuana", addressRegion: "Baja California", addressCountry: "MX" });
     expect(org).not.toHaveProperty("streetAddress");
   });
@@ -42,6 +44,21 @@ describe("datos de la empresa", () => {
     expect(org).not.toHaveProperty("telephone");
     expect(org).not.toHaveProperty("email");
     expect(org).not.toHaveProperty("sameAs");
+  });
+
+  test("negocio de área de servicio: sin calle ni código postal, con los municipios que atiende", () => {
+    const org = organizationLd(settings);
+    expect(JSON.stringify(org)).not.toMatch(/streetAddress|postalCode|geo/);
+    expect(org.areaServed).toEqual(["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"].map((name) => ({ "@type": "City", name })));
+  });
+
+  test("publica el horario de lunes a viernes de 9:00 a 18:00", () => {
+    expect(organizationLd(null).openingHoursSpecification).toEqual([{
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => `https://schema.org/${day}`),
+      opens: "09:00",
+      closes: "18:00",
+    }]);
   });
 
   test("el sitio apunta a la empresa", () => {
@@ -116,4 +133,35 @@ test("el municipio sale de la zona capturada", () => {
   expect(municipioDeZona("Rosarito")).toBe("Playas de Rosarito");
   expect(municipioDeZona("Ensenada centro")).toBe("Ensenada");
   expect(municipioDeZona("TECATE")).toBe("Tecate");
+});
+
+describe("fichas de inmueble", () => {
+  const publicado: Property = { ...propiedades[0], demo: false, estado: "disponible", precio: { modalidad: "publico", monto: 3_500_000, moneda: "MXN" } };
+
+  test("un inmueble real con precio publicado anuncia su oferta", () => {
+    const [listing] = propertyLd(publicado);
+    expect(listing.offers).toMatchObject({ "@type": "Offer", price: 3_500_000, priceCurrency: "MXN", availability: "https://schema.org/InStock", seller: { "@id": ORG_ID } });
+  });
+
+  test("una ficha de ejemplo no anuncia una oferta vigente", () => {
+    const [listing, crumbs] = propertyLd({ ...publicado, demo: true });
+    expect(listing["@type"]).toBe("RealEstateListing");
+    expect(listing).not.toHaveProperty("offers");
+    expect(crumbs["@type"]).toBe("BreadcrumbList");
+  });
+
+  test("sin precio publicado no inventa monto", () => {
+    expect(propertyLd({ ...publicado, precio: { modalidad: "consulta" } })[0]).not.toHaveProperty("offers");
+  });
+});
+
+describe("teléfono en formato internacional", () => {
+  test.each([
+    ["6642212991", "+52 664 221 2991"],
+    ["(664) 221-2991", "+52 664 221 2991"],
+    ["+52 664 221 2991", "+52 664 221 2991"],
+    ["+1 619 555 0100", "+1 619 555 0100"],
+  ])("%s → %s", (raw, expected) => {
+    expect(internationalPhone(raw)).toBe(expected);
+  });
 });

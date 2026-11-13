@@ -24,7 +24,7 @@ export default function HipotecaPage() {
       </section>
       <div className="pg-container tl-tool-body">
         <MortgageCalculator precio={3000000} moneda="MXN" precioEditable />
-        <p className="tl-tool-foot pg-muted">¿Ya sabes qué buscas? <Link href="/inventario">Explora el inventario</Link>.</p>
+        <p className="tl-tool-foot pg-muted">¿Ya sabes qué buscas? <Link href="/inventario">Ver propiedades</Link>.</p>
       </div>
     </main>
   );

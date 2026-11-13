@@ -1,5 +1,9 @@
 import { confirmAction } from "@/components/admin/workspace/confirm";
-vi.mock("@/components/admin/workspace/confirm", () => ({ confirmAction: vi.fn().mockResolvedValue(true) }));
+vi.mock("@/components/admin/workspace/confirm", () => {
+  const confirmAction = vi.fn().mockResolvedValue(true);
+  // Las confirmaciones de borrado pasan por la misma ventana simulada.
+  return { confirmAction, confirmDelete: (cosa: string, mensaje: string) => confirmAction(mensaje, { title: `Eliminar ${cosa}` }) };
+});
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { ContactsScreen } from "@/components/admin/contacts/contacts";

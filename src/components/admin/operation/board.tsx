@@ -18,6 +18,7 @@ import { InheritedCreate } from "./inherited-create";
 import { useOperationFormats } from "./use-operation-formats";
 import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { useLeaveGuard } from "./use-operation";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 import s from "./board.module.css";
 
 /*
@@ -132,7 +133,7 @@ export function OperationsBoard() {
   return <Surface className="pb-4">
     <header className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div className="flex flex-col gap-1">
-        <h1 className={s.head1}>{deleted ? "Operaciones eliminadas" : "Operaciones"}</h1>
+        <h1 className={s.head1}>{deleted ? `${PAPELERA.operaciones} · ${PAPELERA.nombre}` : "Operaciones"}</h1>
         {records && <p className="text-muted-foreground">{deleted ? `${records.length} ${records.length === 1 ? "operación" : "operaciones"} que puedes restaurar` : `${active.length} en curso`}</p>}
       </div>
       {!deleted && <div data-tour="op-vista" className="flex flex-wrap items-center gap-2.5">
@@ -160,7 +161,7 @@ export function OperationsBoard() {
             <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} empty="Nada pendiente por ahora." />
             <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} />
           </>}
-        {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide con la búsqueda o el filtro.</p>}
+        {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide. Borra la búsqueda o cambia el filtro.</p>}
         {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="tabular-nums text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
       </>}
 
@@ -174,7 +175,8 @@ export function OperationsBoard() {
         <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Inventario heredado</h2><button type="button" className={s.toggle} onClick={() => setInheriting(false)}>Cerrar</button></div>
         <div className="mt-4"><InheritedCreate onDirtyChange={setInheritDirty} taken={new Set((records ?? []).filter(op => op.propiedad_slug && ["captacion", "arrendador"].includes(op.flujo?.ruta ?? "") && op.flujo?.estado !== "descartada").map(op => op.propiedad_slug!))} /></div>
       </Card>}
-      <Link href={deleted ? "/admin/operaciones" : "/admin/operaciones?eliminadas=1"} className="self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : "Ver operaciones eliminadas"}</Link>
+      {/* NAV-13: lo eliminado se recupera en la papelera única; «?eliminadas=1» sigue funcionando. */}
+      <Link href={deleted ? "/admin/operaciones" : PAPELERA.href} className="self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : PAPELERA.enlace}</Link>
     </footer>
   </Surface>;
 }

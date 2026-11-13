@@ -27,8 +27,7 @@ import {
 } from "@/data/propiedades";
 import { getConjunto, getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
-import { municipioDeZona } from "@/data/zonas";
-import { breadcrumbLd, ORG_ID, serializeLd } from "@/lib/seo/json-ld";
+import { propertyLd, serializeLd } from "@/lib/seo/json-ld";
 import "./ficha.css";
 
 type Params = { slug: string };
@@ -90,54 +89,6 @@ function precioPorM2(p: Property) {
   };
 }
 
-function jsonLd(p: Property): string {
-  const url = `${siteConfig.url}/inventario/${p.slug}`;
-  const tipoEnOperacion = `${TIPO_LABELS[p.tipo]} en ${OPERACION_LABELS[p.operacion].toLowerCase()}`;
-  const listing = {
-    "@type": "RealEstateListing",
-    name: p.titulo,
-    description: p.descripcion[0],
-    url,
-    image: p.galeria.map((g) => new URL(g.src, siteConfig.url).href),
-    datePosted: p.publicadaEl,
-    // Google pide la ciudad; la zona capturada es la colonia o el municipio.
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: municipioDeZona(p.zona),
-      addressRegion: "Baja California",
-      addressCountry: "MX",
-    },
-    containedInPlace: { "@type": "Place", name: p.zona },
-    provider: { "@id": ORG_ID },
-    // Sin offers cuando el precio es a consulta: no se inventan montos.
-    ...(p.precio.modalidad === "publico"
-      ? {
-          offers: {
-            "@type": "Offer",
-            url,
-            price: p.precio.monto,
-            priceCurrency: p.precio.moneda,
-            availability: availability(p.estado),
-            seller: { "@id": ORG_ID },
-          },
-        }
-      : {}),
-  };
-  const crumbs = breadcrumbLd([
-    { name: "Inicio", path: "/" },
-    { name: "Propiedades", path: "/inventario" },
-    { name: tipoEnOperacion, path: `/inventario?tipo=${p.tipo}&op=${p.operacion}` },
-    { name: p.titulo, path: `/inventario/${p.slug}` },
-  ]);
-  return serializeLd([listing, crumbs]);
-}
-
-/* Apartada sigue a la vista pero ya no se puede ofertar; vendida o rentada ya no está disponible. */
-function availability(estado: Property["estado"]) {
-  if (estado === "disponible") return "https://schema.org/InStock";
-  if (estado === "apartada") return "https://schema.org/LimitedAvailability";
-  return "https://schema.org/SoldOut";
-}
 
 /*
   Ficha del inmueble · «Escenario» (titular, 18/10/2026): banda oscura con
@@ -181,7 +132,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
 
   return (
     <main className="pg-page fe-page">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(property) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeLd(propertyLd(property)) }} />
 
       <section className="pg-hero fe-hero" aria-labelledby="fe-title">
         <div className="pg-container fe-hero-body">
@@ -241,7 +192,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         <div className="fe-main">
           <FichaSectionsNav sections={secciones} />
 
-          {property.estado === "apartada" && <p className="fe-alert">Apartada. Te avisamos si se libera o te mostramos opciones similares.</p>}
+          {property.estado === "apartada" && <p className="fe-alert">Apartada. Si quieres, te escribimos si se libera y te mostramos opciones parecidas.</p>}
           {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
           {conjunto.plaza && <p className="fe-alert">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`} className="font-semibold underline underline-offset-4">{conjunto.plaza.titulo}</Link>.</p>}
 

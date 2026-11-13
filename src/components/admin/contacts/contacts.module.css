@@ -1,5 +1,5 @@
 /* Contactos (boceto aprobado, 17/10/2026): una lista de personas con iniciales, lo que buscan y el siguiente paso. Prefijo :global(.admin-root): ver kit.module.css. */
-:global(.admin-root) .meta { font-size: .8125rem; color: var(--muted-foreground); }
+:global(.admin-root) .meta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
 :global(.admin-root) .late { color: var(--alert); font-weight: 600; }
 :global(.admin-root) .search { position: relative; display: flex; align-items: center; min-width: 0; }
 :global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
@@ -14,16 +14,16 @@
 @media (min-width: 1180px) { :global(.admin-root) .frame { grid-template-columns: minmax(0, 1fr) 21rem; } }
 :global(.admin-root) .preview { display: none; position: sticky; top: .875rem; flex-direction: column; gap: 1rem; padding: 1.125rem 1.25rem; }
 @media (min-width: 1180px) { :global(.admin-root) .preview { display: flex; } }
-:global(.admin-root) .previewTitle { margin: 0; font-size: .875rem; font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .previewTitle { margin: 0; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
 :global(.admin-root) .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; margin: 0; }
 :global(.admin-root) .facts > div { display: flex; flex-direction: column; gap: .125rem; padding: .625rem .75rem; border-radius: var(--radius-control); background: var(--canvas); }
-:global(.admin-root) .facts dt { font-size: .75rem; color: var(--muted-foreground); }
-:global(.admin-root) .facts dd { margin: 0; font-size: .9375rem; font-weight: 600; overflow-wrap: anywhere; }
-:global(.admin-root) .quote { margin: 0; padding: .625rem .875rem; border-radius: var(--radius-control); background: var(--canvas); font-size: .875rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
-:global(.admin-root) .activity { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: .875rem; }
+:global(.admin-root) .facts dt { font-size: var(--admin-text-minimo); color: var(--muted-foreground); }
+:global(.admin-root) .facts dd { margin: 0; font-size: var(--admin-text-interfaz); font-weight: 600; overflow-wrap: anywhere; }
+:global(.admin-root) .quote { margin: 0; padding: .625rem .875rem; border-radius: var(--radius-control); background: var(--canvas); font-size: var(--admin-text-detalle); color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .activity { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: var(--admin-text-detalle); }
 :global(.admin-root) .activity a, :global(.admin-root) .activityRow { display: flex; gap: .625rem; align-items: flex-start; padding: .25rem 0; color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .activity a:hover { text-decoration: underline; text-underline-offset: 3px; }
-:global(.admin-root) .activityWhen { flex: none; width: 5.5rem; font-size: .8125rem; color: var(--muted-foreground); }
+:global(.admin-root) .activityWhen { flex: none; width: 5.5rem; font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
 
 /* Lista: una fila por persona; en computadora, columnas. */
 :global(.admin-root) .listCard { padding: .375rem; }
@@ -33,14 +33,14 @@
 :global(.admin-root) .item:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .item { transition: background-color 150ms; } }
 :global(.admin-root) .person { display: flex; min-width: 0; flex-direction: column; }
-:global(.admin-root) .person strong { font-size: 1rem; font-weight: 540; overflow-wrap: anywhere; }
-:global(.admin-root) .wants { grid-column: 2; display: flex; min-width: 0; flex-direction: column; font-size: .875rem; overflow-wrap: anywhere; }
-:global(.admin-root) .step { grid-column: 2; display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; font-size: .875rem; overflow-wrap: anywhere; }
+:global(.admin-root) .person strong { font-size: var(--admin-text-cuerpo); font-weight: 540; overflow-wrap: anywhere; }
+:global(.admin-root) .wants { grid-column: 2; display: flex; min-width: 0; flex-direction: column; font-size: var(--admin-text-detalle); overflow-wrap: anywhere; }
+:global(.admin-root) .step { grid-column: 2; display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; font-size: var(--admin-text-detalle); overflow-wrap: anywhere; }
 :global(.admin-root) .end { grid-column: 3; grid-row: 1 / span 3; display: flex; flex-direction: column; align-items: flex-end; gap: .25rem; }
 :global(.admin-root) .chevron { color: var(--muted-foreground); }
 @media (min-width: 1024px) {
   :global(.admin-root) .head, :global(.admin-root) .item { grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 1.2fr) 6.5rem 1.25rem; gap: .875rem; }
-  :global(.admin-root) .head { display: grid; padding: .5rem 1rem .625rem; margin: 0 .375rem; border-bottom: 1px solid var(--border); font-size: .8125rem; font-weight: 600; color: var(--muted-foreground); }
+  :global(.admin-root) .head { display: grid; padding: .5rem 1rem .625rem; margin: 0 .375rem; border-bottom: 1px solid var(--border); font-size: var(--admin-text-pastilla); font-weight: 600; color: var(--muted-foreground); }
   :global(.admin-root) .head > :first-child { grid-column: 1 / 3; }
   :global(.admin-root) .item { min-height: 4.25rem; }
   :global(.admin-root) .wants, :global(.admin-root) .step, :global(.admin-root) .end { grid-column: auto; grid-row: auto; }
@@ -49,9 +49,9 @@
 
 /* Lista del día (CRM-01): grupos con su conteo y, en «Sin atender», la barra del plazo de primera atención. */
 :global(.admin-root) .group + .group { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--border); }
-:global(.admin-root) .groupHead { display: flex; align-items: center; gap: .625rem; margin: 0; padding: .75rem .75rem .25rem; font-size: 1rem; font-weight: 600; letter-spacing: -.01em; }
-:global(.admin-root) .groupCount { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; height: 1.5rem; padding: 0 .5rem; border-radius: var(--radius-pill); background: var(--track); color: var(--muted-foreground); font-size: .8125rem; font-weight: 600; }
-:global(.admin-root) .clock { display: flex; flex: 1 1 12rem; align-items: center; gap: .625rem; min-width: 0; font-size: .8125rem; font-weight: 560; color: var(--warning); }
+:global(.admin-root) .groupHead { display: flex; align-items: center; gap: .625rem; margin: 0; padding: .75rem .75rem .25rem; font-size: var(--admin-text-cuerpo); font-weight: 600; letter-spacing: -.01em; }
+:global(.admin-root) .groupCount { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; height: 1.5rem; padding: 0 .5rem; border-radius: var(--radius-pill); background: var(--track); color: var(--muted-foreground); font-size: var(--admin-text-pastilla); font-weight: 600; }
+:global(.admin-root) .clock { display: flex; flex: 1 1 12rem; align-items: center; gap: .625rem; min-width: 0; font-size: var(--admin-text-pastilla); font-weight: 540; color: var(--warning); }
 :global(.admin-root) .clockLate { color: var(--alert); }
 :global(.admin-root) .meter { position: relative; flex: 1 1 4rem; max-width: 7rem; height: .25rem; border-radius: 2px; background: var(--track); }
 :global(.admin-root) .meter > span { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: currentColor; }
@@ -59,8 +59,8 @@
 
 /* Filtros de etapa en una sola lista de personas (DEC-36) */
 :global(.admin-root) .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
-:global(.admin-root) .chipBtn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 560; cursor: pointer; }
+:global(.admin-root) .chipBtn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 540; cursor: pointer; }
 :global(.admin-root) .chipBtn:hover { background: var(--secondary); }
 :global(.admin-root) .chipBtn[aria-pressed=true] { background: #061f3f; color: #fff; }
 :global(.dark) :global(.admin-root) .chipBtn[aria-pressed=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .chipCount { font-size: .8125rem; font-weight: 600; opacity: .7; }
+:global(.admin-root) .chipCount { font-size: var(--admin-text-pastilla); font-weight: 600; opacity: .7; }

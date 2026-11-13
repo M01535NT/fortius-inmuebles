@@ -11,7 +11,7 @@ export const navigationGroups = [
     { href: "/#revision", label: "Revisión documental", detail: "Qué revisamos antes de vender." },
   ] },
   { label: "Nosotros", href: "/nosotros", heading: "Conoce a Fortius.", featured: "Nuestro equipo", links: [
-    { href: "/nosotros#agentes", label: "Agentes", detail: "Conoce a tu contacto." },
+    { href: "/nosotros#agentes", label: "Asesores", detail: "Conoce a tu contacto." },
     { href: "/nosotros#mision", label: "Misión", detail: "El propósito de nuestro trabajo." },
     { href: "/nosotros#vision", label: "Visión", detail: "Hacia dónde queremos crecer." },
     { href: "/nosotros#valores", label: "Valores", detail: "Lo que guía nuestras decisiones." },

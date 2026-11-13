@@ -9,7 +9,7 @@ function cliente(drafts: Draft[], cambiado: string[] = []) {
   const updates: { id: string; data: Record<string, unknown>; version: number }[] = [];
   const client = {
     from: () => ({
-      select: () => ({ eq: async () => ({ data: drafts, error: null }) }),
+      select: () => ({ eq: async () => ({ data: drafts, error: null }), in: async () => ({ data: [], error: null }) }),
       update: (row: { data: Record<string, unknown>; version: number }) => ({
         eq: (_c: string, id: string) => ({ eq: (_v: string, version: number) => ({ select: () => ({ maybeSingle: async () => {
           if (cambiado.includes(id)) return { data: null, error: null };
