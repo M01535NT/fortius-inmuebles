@@ -14,7 +14,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 - **En `main`:** todo hasta el PR #73 (commit `c03504b`), que integró la rama acumulada del 12/11/2026.
 - **Rama local `feat/integracion` (sin push):** el trabajo de las siete sesiones en paralelo del 13/11/2026 (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad). Van integradas tres rondas; lint, tipos y las suites de base y panel en verde. **Sin comprobar:** la build y las suites de navegador.
-- **Migraciones nuevas en la rama, sin aplicar** (se aplican solas al integrar en `main`): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
+- **Migraciones nuevas en la rama, sin aplicar** (se aplican solas al integrar en `main`): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
 
 **Qué entró en la rama (13/11/2026).**
 
@@ -24,12 +24,12 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 - **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
 - **Seguridad:** cabeceras de seguridad; fotos sin EXIF ni GPS.
 - **Calidad:** hallazgos C-02 a C-22, C-24 y C-25 corregidos (C-26 espera su arreglo en Sistema visual).
-- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; CSS y fuentes separados entre sitio y panel.
+- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; el candado de arranque del propietario también en la base (M2); CSS y fuentes separados entre sitio y panel.
 
 **Qué sigue, en orden.**
 
 1. Terminar los hallazgos abiertos de Calidad y de Seguridad.
-2. Integrar las pruebas de Calidad que esperan su arreglo (C-26) y el disparador M2 de Seguridad.
+2. Integrar la prueba de Calidad C-26 junto con su arreglo de Sistema visual.
 3. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
 4. DOC-14 espera el Word de arrendamiento del titular.
 5. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
