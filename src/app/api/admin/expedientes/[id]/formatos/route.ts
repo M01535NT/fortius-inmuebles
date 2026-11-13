@@ -9,6 +9,7 @@ import { fechasDeHoy, llenarDesdeDatos } from "@/lib/formatos/datos-expediente";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { leerDatosCompletos } from "@/lib/backend/expediente-datos";
 import { asegurarReciboUnico, numeroReciboNuevo } from "@/lib/backend/recibo-18";
+import { propiedadVisible } from "@/lib/backend/repository";
 import { appraisalState, operationWorkflowSchema, valueFromAppraisal } from "@/lib/formatos/operation-workflow";
 
 type Context = { params: Promise<{ id: string }> };
@@ -38,6 +39,8 @@ export async function POST(request: Request, context: Context) {
     const exp=parent.data;
     async function record(collection:string,key:string|null) {
       if(!key)return undefined;
+      // A1: el inmueble puede ser de otro asesor (compartido, contraparte): se lee recortado por la base.
+      if(collection==="propiedades")return (await propiedadVisible(client,key))??undefined;
       const result=await client.from("fortius_inmuebles_records").select("data").eq("collection",collection).eq("id",key).maybeSingle();
       if(result.error)databaseError(result.error);
       return result.data?.data;

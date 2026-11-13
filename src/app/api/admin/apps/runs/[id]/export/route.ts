@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { requireStaff, createServerClient } from '@/lib/backend/auth';
 import { ApiError, apiResponse, databaseError } from '@/lib/backend/http';
 import { registerUpload } from '@/lib/backend/files';
+import { propiedadVisible } from '@/lib/backend/repository';
 import { findRun } from '@/lib/apps/repository';
 import { resultToCsv } from '@/lib/apps/contracts';
 import { buildAppPdf } from '@/lib/apps/pdf';
@@ -33,8 +34,8 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   if(!csv&&run.slug==='ficha-comercial'&&Array.isArray(run.input.photoUrls)&&run.input.photoUrls.length){
    const propertyId=run.context.inmuebleId??run.input.propertySlug;
    if(typeof propertyId!=='string'||run.input.photoUrls.length>20)throw new ApiError(400,'Selecciona hasta 20 fotografías del inmueble');
-   const property=await client.from('fortius_inmuebles_records').select('data').eq('collection','propiedades').eq('id',propertyId).maybeSingle();if(property.error)databaseError(property.error);
-   const data=property.data?.data;
+   // A1: la ficha de un inmueble ajeno se lee por la función de la base, ya recortada.
+   const data=await propiedadVisible(client,propertyId) as {publicada?:unknown;demo?:unknown;galeria?:unknown}|null;
    if(!data?.publicada||data.demo)throw new ApiError(400,'Las fotografías requieren un inmueble publicado');
    const allowed=new Set<string>((Array.isArray(data.galeria)?data.galeria.map((p:{src?:string})=>p.src):[]).filter((v:unknown):v is string=>typeof v==='string'));
    for(const url of run.input.photoUrls){if(typeof url!=='string'||!allowed.has(url))throw new ApiError(400,'Una fotografía ya no pertenece a la galería publicada');const bytes=await loadPdfImage(url);if(!bytes)throw new ApiError(503,'No se pudo recuperar una fotografía. Reintenta la exportación.');photos.push(bytes);}

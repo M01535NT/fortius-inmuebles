@@ -50,6 +50,19 @@ async function teamProperties(client: DatabaseClient): Promise<StoredRecord[] | 
   }
 }
 
+/**
+  Un inmueble tal como lo puede ver quien pregunta (A1): el director y el asesor del inmueble lo
+  reciben completo; los demás asesores, recortado por la base. `null` si no existe o no lo puede ver.
+*/
+export async function propiedadVisible(client: DatabaseClient, slug: string): Promise<Record<string, unknown> | null> {
+  const { data, error } = await client.rpc("fortius_inmuebles_team_properties", { p_id: slug });
+  if (!error) return ((data as Row[] | null)?.[0]?.data as Record<string, unknown> | undefined) ?? null;
+  if (!missingFunction(error)) databaseError(error);
+  const direct = await client.from("fortius_inmuebles_records").select("data").eq("collection", "propiedades").eq("id", slug).maybeSingle();
+  if (direct.error) databaseError(direct.error);
+  return (direct.data?.data as Record<string, unknown> | undefined) ?? null;
+}
+
 export async function putRecord(client: Pick<SupabaseClient, "rpc">, collection: string, id: string, input: unknown): Promise<StoredRecord> {
   const name = parseCollection(collection);
   const { data: value, version } = parseWrite(input);
