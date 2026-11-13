@@ -114,7 +114,7 @@ function block(b: Block, keepNext = false): Array<Paragraph | Table> {
     case "label": return [new Paragraph({ keepNext: true, spacing: { before: 120, after: 60 }, children: run(b.text, { size: b.size ?? BODY, bold: true, heading: true }) })];
     case "h3": return [new Paragraph({ keepNext: true, spacing: { before: 160, after: 60 }, children: run(b.text, { size: 13 }) })];
     case "sheet": return [sheet(b.rows)];
-    case "image": return [image(b.label, b.image, b.height), new Paragraph({ spacing: { after: 60 }, children: [] })];
+    case "image": return [image(b.label, b.image, b.height), ...(b.side ? [new Paragraph({ spacing: { after: 60 }, children: [] }), image(b.side.label, b.side.image, b.height)] : []), new Paragraph({ spacing: { after: 60 }, children: [] })];
     case "grid": return [grid(b.widths, b.header, b.rows, !!b.labels, b.minRow ?? 0), new Paragraph({ spacing: { after: COMPACT ? 40 : 60, ...(COMPACT?{line:20,lineRule:LineRuleType.EXACT}:{}) }, children: [] })];
     case "pagebreak": return [new Paragraph({ children: [new PageBreak()] })];
     case "title": return [new Paragraph({ keepNext: true, spacing: { after: b.bold ? 100 : 160 }, children: run(b.text, { size: b.size ?? (b.bold ? 22 : 27), bold: !!b.bold, heading: true }) })];

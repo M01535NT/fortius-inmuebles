@@ -11,7 +11,7 @@ import { formatoById } from "@/lib/formatos/catalog";
 
 export const comparable = (id: string, precio: number) => ({ ubicacion: `Ubicación ficticia ${id}`, superficie: 100, precio, moneda: "MXN", fZona: 1, fUbicacion: 1, fSuperficie: 1, fNegociacion: 1, fuente: `https://ejemplo.test/${id}`, fechaPrecio: "2026-09-30" });
 export const valorSample: Record<string, unknown> = {
-  folio: "QA-07", fechaValor: "2026-10-04", fechaEmision: "2026-10-04", revisarAntes: "2027-04-04", fechaSolicitud: "2026-09-28", fechaInspeccion: "2026-09-30",
+  folio: "QA-07", fechaValor: "2026-10-04", fechaEmision: "2026-10-04", fechaSolicitud: "2026-09-28", fechaInspeccion: "2026-09-30",
   inspeccionEstado: "Realizada", operacion: "Venta", baseMercado: "Construcción", tipoInmueble: "Casa", solicitante: "Persona sintética", propietario: "Persona sintética",
   terreno: 100, construccion: 100, tipoCambio: 18,
   comparablesTerreno: [comparable("T1", 500000), comparable("T2", 550000), comparable("T3", 450000)],
