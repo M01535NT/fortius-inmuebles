@@ -44,7 +44,7 @@ beforeAll(async () => {
   const leadAdviser = await readFile(new URL("../../supabase/migrations/20261112150000_prospecto_al_asesor_del_inmueble.sql", import.meta.url), "utf8");
   await db.exec(leadAdviser); await db.exec(leadAdviser);
   // CRM-03: también se aplica dos veces.
-  const reopen = await readFile(new URL("../../supabase/migrations/20261112180000_reabrir_prospecto_descartado.sql", import.meta.url), "utf8");
+  const reopen = await readFile(new URL("../../supabase/migrations/20261112231000_reabrir_prospecto_descartado.sql", import.meta.url), "utf8");
   await db.exec(reopen); await db.exec(reopen);
 });
 afterAll(async () => { await db?.close(); });
