@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { Button, Card, EmptyBox, Notice, Surface } from "@/components/admin/kit";
+import { EMPTY_ART } from "@/components/admin/icons";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { AdminFrame } from "@/components/admin/workspace/admin-frame";
 import { apiRequest, db, errorMessage, fetchJson, loadAdminData, useCollection, useSession } from "@/lib/admin/store";
@@ -50,7 +51,7 @@ function Operaciones() {
     {notice && <p role="status" className="text-sm">{notice}</p>}
     {error ? <Fallo error={error} onRetry={() => { setError(""); setRecords(undefined); setRevision(n => n + 1); }} />
       : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando operaciones eliminadas…</p>
-      : !records.length ? <EmptyBox title="No hay operaciones eliminadas">Cuando se elimine una operación aparecerá aquí con sus documentos y tareas.</EmptyBox>
+      : !records.length ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay operaciones eliminadas">Cuando se elimine una operación aparecerá aquí con sus documentos y tareas.</EmptyBox>
       : <Card as="ul" className="m-0 list-none overflow-hidden p-0" aria-label="Operaciones eliminadas">{records.map(op => {
         const who = clients.find(c => c.id === op.cliente_id)?.nombre;
         const where = op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.titulo : undefined;
@@ -101,7 +102,7 @@ function Registros() {
       {notice && <p role="status" className="text-sm">{notice}</p>}
       {error ? <Fallo error={error} onRetry={() => { setError(""); setEntries(undefined); setRevision(n => n + 1); }} />
         : entries === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando lo eliminado…</p>
-        : !entries.length && offset === 0 ? <EmptyBox title="Nada más que recuperar">Cuando se elimine un inmueble, un artículo, una nota o una cita, aparecerá aquí.</EmptyBox>
+        : !entries.length && offset === 0 ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="Nada más que recuperar">Cuando se elimine un inmueble, un artículo, una nota o una cita, aparecerá aquí.</EmptyBox>
         : <Card as="ul" className="m-0 list-none overflow-hidden p-0" aria-label={PAPELERA.registros}>{entries.map(entry => {
           const name = nameOf(entry) ?? `${KIND[entry.collection] ?? "Registro"} eliminado`;
           return <li key={entry.id} className={row}>

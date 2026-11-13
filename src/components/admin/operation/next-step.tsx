@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Check, docIcon, FileDown, FileText, House, PlayCircle, Plus, Trash2 } from "@/components/admin/icons";
 import Image from "next/image";
-import { Button, ButtonLink, Card, DocBadge, IconTile, Notice } from "@/components/admin/kit";
+import { Button, ButtonLink, Card, DocBadge, Hint, IconTile, Notice } from "@/components/admin/kit";
 import { TIPO_LABELS, type Property as Propiedad } from "@/data/propiedades";
 import { AsyncSelect, inputClass, selectClass } from "@/components/admin/ui";
 import { offerCandidates, offerOwner, withoutOffer } from "@/lib/admin/lead-offers";
@@ -232,7 +232,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
 
     {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={cn(s.piece, s.span4)}>
-      <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
+      <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><Hint term="los documentos de la etapa">Los formatos que deja esta etapa. Cada uno se abre en su propia ventana para llenarlo.</Hint><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
       <ul className={s.docList}>{documentsGroup.map(item => item.kind === "abogado"
         ? <li key="abogado" className={s.docWait}>
           <StateIcon state={item.task ? "recibido" : "pendiente"} done={item.done} />
@@ -255,7 +255,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     <NextTask op={op} today={today} className={documentsGroup.length ? s.span2 : s.span6} />
 
     {(reviewsGroup.length > 0 || otherGroup.length > 0) && <section aria-labelledby="confirma-etapa" data-tour="operacion-confirma" className={cn(s.piece, s.span3)}>
-      <div className={s.pieceHead}><h2 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h2>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
+      <div className={s.pieceHead}><h2 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h2><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que la operación pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
       <ul className={s.items}>
         {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} inFloat={now?.kind === "requisito" && now.key === item.key} onQuick={quick} onSheet={setSheet} />)}
         {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>

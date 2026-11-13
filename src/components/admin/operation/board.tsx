@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronRight, Columns3, List, Search, stageIcon, type PanelIcon } from "@/components/admin/icons";
+import { Building2, ChevronRight, Columns3, List, Search, stageIcon, type PanelIcon, EMPTY_ART } from "@/components/admin/icons";
 import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, IconTile, Pill, ProgressRing, Segmented, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -146,7 +146,7 @@ export function OperationsBoard() {
 
     {deleted ? <DeletedList records={records} names={names} onRestore={op => void restore(op)} />
       : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando operaciones…</p>
-      : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" steps={["Atiende a la persona con «Nueva operación».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: la operación se crea sola y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nueva operación</ButtonLink>}>Una operación reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
+      : records !== null && records.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Todavía no hay operaciones" steps={["Atiende a la persona con «Nueva operación».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: la operación se crea sola y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nueva operación</ButtonLink>}>Una operación reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
           <div data-tour="op-filtros" className={s.filters} role="group" aria-label="Etapa">
@@ -230,7 +230,7 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
 
 function DeletedList({ records, names, onRestore }: { records: OperationRecord[] | null | undefined; names: { client: (id?: string) => string | undefined; property: (slug?: string | null) => string | undefined }; onRestore: (op: OperationRecord) => void }) {
   if (records === undefined) return <p role="status" className="text-sm text-muted-foreground">Consultando operaciones eliminadas…</p>;
-  if (!records?.length) return records === null ? null : <EmptyBox title="No hay operaciones eliminadas">Cuando elimines una operación aparecerá aquí y podrás restaurarla.</EmptyBox>;
+  if (!records?.length) return records === null ? null : <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay operaciones eliminadas">Cuando elimines una operación aparecerá aquí y podrás restaurarla.</EmptyBox>;
   return <><p className="mb-3 text-sm text-muted-foreground">Se conservan con sus documentos y tareas. Restaurar las devuelve a Operaciones.</p><Card as="div" className="overflow-hidden"><ul className="m-0 list-none p-0">{records.map(op => <li key={op.id} className={s.deletedRow}>
     <span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{names.client(op.cliente_id) ?? op.folio}</strong><small className="text-muted-foreground">{op.folio} · {names.property(op.propiedad_slug) ?? "Sin inmueble vinculado"}</small></span>
     <Button onClick={() => onRestore(op)} aria-label={`Restaurar ${op.folio}`}>Restaurar</Button>

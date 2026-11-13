@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { MoreHorizontal, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem } from "@/components/admin/icons";
-import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
+import { Button, Hint, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
@@ -93,7 +93,7 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
     {more && <div role="radiogroup" aria-label={`Estado de ${name}`} className={cn(s.states, s.itemExtra)}>
       {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <button key={st} type="button" role="radio" aria-checked={st === state} disabled={disabled} className={cn(s.state, s[`st_${st}`])} onClick={() => choose(st)}><Icon size={15} aria-hidden="true" />{label.replace(" ✓", "")}</button>; })}
     </div>}
-    {more && canExcept && <div className={s.itemExtra}><Button variant="ghost" disabled={disabled} onClick={exception}>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</Button></div>}
+    {more && canExcept && <div className={s.itemExtra}><Button variant="ghost" disabled={disabled} onClick={exception}>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</Button><Hint term="la excepción">El director deja avanzar sin este punto con un motivo escrito, que queda en el historial.</Hint></div>}
   </li>;
 }
 

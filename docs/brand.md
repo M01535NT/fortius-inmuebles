@@ -78,6 +78,12 @@ Un solo catálogo en `src/components/admin/icons.tsx`, el mismo en todas las pan
 - **Documento:** distintivo `DocBadge` Borrador neutro, Revisado azul, Aprobado y Firmado verdes. «Terminado · PDF» lo dice el texto del renglón.
 - **Persona:** un solo círculo neutro con iniciales (`Avatar`, `onDark` sobre el azul).
 
+### Ayuda y estados vacíos del panel (LV-04, titular, 13/11/2026)
+
+- **«?» de una línea** (`Hint`): junto a un título o botón que pueda generar duda; abre una sola línea debajo y se cierra al pulsar otra vez o con Escape. Hoy está en «Documentos de la etapa», «Antes de seguir, confirma» y «Autorizar excepción».
+- **Punto «Empieza aquí»** (`StartHere`): sobre «Nuevo». Late tres veces y la etiqueta se oculta a los cinco segundos; el punto queda hasta que la persona lo pulsa y se recuerda por usuario en ese navegador. Con «reducir movimiento» no late.
+- **Estados vacíos** (`EmptyBox` con `art`): el objeto de la pantalla (`EMPTY_ART`) sobre una placa, con insignia según el caso: «+» aún no hay nada, palomita verde todo hecho, lupa sin resultados, flecha para subir. Sin dibujos a mano ni escenas.
+
 Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `src/app/admin/panel-base.css` bajo `.admin-root`; `panel.module.css` ya no las define. El sitio público no descarga ese archivo ni las utilidades de Tailwind que solo usa el panel, y Archivo solo se precarga en `/admin`.
 
 ### Espacios, botones y esquinas del sitio público (titular, 13/11/2026)
