@@ -37,7 +37,7 @@ export const DATOS_EXPEDIENTE: DatoExpediente[] = [
 
   // Inmueble
   { clave: "inmuebleDomicilio", etiqueta: "Domicilio del inmueble", grupo: "Inmueble", tipo: "texto",
-    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19", "20", "21"].flatMap(formato => d(formato, "inmueble")) },
+    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"].flatMap(formato => d(formato, "inmueble")) },
   { clave: "inmuebleTipo", etiqueta: "Tipo de inmueble", grupo: "Inmueble", tipo: "texto", ayuda: "Casa, departamento, terreno, oficina, local, nave o plaza.",
     destinos: [...d("02", "tipoInmueble"), ...d("10", "tipoInmueble"), { formato: "07", key: "tipoInmueble", transformar: valor => TIPO_INMUEBLE_DESDE_ENTREVISTA[String(valor)] ?? valor }] },
   { clave: "folioReal", etiqueta: "Folio real", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "folioReal"), ...d("09", "folioReal"), ...d("10", "folioReal"), ...d("14", "folioInmueble")] },
