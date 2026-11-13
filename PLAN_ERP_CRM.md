@@ -30,7 +30,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 1. Terminar los hallazgos abiertos de Calidad y de Seguridad.
 2. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
-3. DOC-14 espera el Word de arrendamiento del titular.
+3. DOC-14: el titular pidió que el agente redacte el arrendamiento («estándar y que sea flexible»; casa habitación o uso comercial, con opciones). Borrador del agente en revisión del titular; el formato se construye cuando apruebe el texto, y como contrato sigue necesitando la revisión del abogado antes de firmarse.
 4. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
 5. Verificación completa y un solo PR a `main` cuando el titular lo pida.
 6. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
