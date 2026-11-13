@@ -7,12 +7,14 @@ import { useMyAdvisor } from "@/lib/admin/staff-scope";
 import { firstDaySteps } from "@/lib/admin/first-day";
 import { helpHref } from "@/lib/admin/help";
 
-/** «Tu primer día» (COR-26): solo para el asesor, en Hoy, mientras le falte alguno de los tres pasos. */
+/** «Tu primer día» (COR-26, con N24): solo para el asesor, en Hoy, mientras le falte algún paso. */
 export function FirstDay({ operations, className }: { operations: ReadonlyArray<{ asesor_id?: string }> | null | undefined; className?: string }) {
   const session = useSession(), mine = useMyAdvisor();
-  const leads = useCollection(db.leads), events = useCollection(db.eventos);
+  const leads = useCollection(db.leads), events = useCollection(db.eventos), asesores = useCollection(db.asesores);
   if (!session || session.role === "admin" || !mine || !operations) return null;
-  const steps = firstDaySteps({ mine, leads, events, operations });
+  const ficha = asesores.find(a => a.id === mine);
+  const perfil = { foto: !!session.avatar, whatsapp: !!(ficha?.whatsapp || ficha?.perfilPublico?.whatsapp) };
+  const steps = firstDaySteps({ mine, leads, events, operations, perfil });
   const done = steps.filter(step => step.done).length;
   if (done === steps.length) return null;
   return <Card as="section" aria-labelledby="primer-dia" className={(className ? className + " " : "") + "p-4 sm:p-5"}>
@@ -20,7 +22,7 @@ export function FirstDay({ operations, className }: { operations: ReadonlyArray<
       <h2 id="primer-dia" className="m-0 text-lg font-semibold">Tu primer día</h2>
       <span className="text-sm text-muted-foreground">{done} de {steps.length}</span>
     </div>
-    <ol className="m-0 mt-3 grid list-none gap-2 p-0 sm:grid-cols-3">{steps.map(step => <li key={step.id}>
+    <ol className="m-0 mt-3 grid list-none gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3">{steps.map(step => <li key={step.id}>
       <Link href={step.href} className="flex min-h-11 items-start gap-2.5 rounded-[var(--radius-control)] bg-secondary p-3 text-sm">
         {step.done ? <CheckCircle2 size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-[var(--success)]" /> : <Circle size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-muted-foreground" />}
         <span className="flex flex-col gap-0.5"><strong className={step.done ? "text-muted-foreground line-through" : undefined}>{step.label}</strong><span className="text-muted-foreground">{step.hint}</span></span>
