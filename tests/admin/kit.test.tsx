@@ -59,6 +59,21 @@ test("el selector segmentado se comporta como grupo de opciones", () => {
   expect(change).toHaveBeenCalledWith("equipo");
 });
 
+test("Escape dentro de una confirmación abierta sobre el panel no cierra el panel", () => {
+  const close = vi.fn();
+  render(<Sheet open onClose={close} title="Datos"><textarea aria-label="Nota" /></Sheet>);
+  const confirm = document.createElement("dialog"); confirm.setAttribute("open", "");
+  const cancel = document.createElement("button"); confirm.append(cancel); document.body.append(confirm);
+  fireEvent.keyDown(cancel, { key: "Escape" });
+  expect(close).not.toHaveBeenCalled();
+  confirm.remove();
+  const prevented = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }); prevented.preventDefault();
+  document.dispatchEvent(prevented);
+  expect(close).not.toHaveBeenCalled();
+  fireEvent.keyDown(document, { key: "Escape" });
+  expect(close).toHaveBeenCalledTimes(1);
+});
+
 test("el panel lateral enfoca su primer campo, cierra con Escape y con el velo", () => {
   const close = vi.fn();
   const { rerender } = render(<Sheet open onClose={close} eyebrow="Marcar como revisado" title="Que se pueda vender sin obstáculos" footer={<Button variant="primary">Guardar como revisado</Button>}><label htmlFor="q">Qué encontraste</label><textarea id="q" /></Sheet>);
