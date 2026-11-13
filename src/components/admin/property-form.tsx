@@ -41,6 +41,9 @@ import {
 import { zonas } from "@/data/zonas";
 import { AdminApiError, db, upsertPropiedad, useCollection, useSession } from "@/lib/admin/store";
 import { usePropertyScope } from "@/lib/admin/staff-scope";
+import { PropertyOrigin } from "@/components/admin/property-origin";
+import { knownAllies } from "@/lib/admin/shared-property";
+import type { AdminProperty } from "@/lib/domain/records";
 
 /*
   Formulario completo de inmueble (alta y edición). Los campos de lista
@@ -56,6 +59,7 @@ type Props = { initial?: Property; view?: PropertyFormView; onDirtyChange?: (dir
 
 const formSections = [
   { id: "pf-basicos", label: "Datos básicos", tab: "ficha" },
+  { id: "pf-origen", label: "Origen", tab: "ficha" },
   { id: "pf-precio", label: "Precio", tab: "ficha" },
   { id: "pf-ubicacion", label: "Ubicación", tab: "ficha" },
   { id: "pf-contenido", label: "Descripción y ficha", tab: "ficha" },
@@ -111,6 +115,10 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
   // COR-23: el asesor edita solo sus inmuebles; reasignar, publicar y destacar lo hace el director.
   const scope = usePropertyScope(source);
   const readOnly = !!source && !scope.loading && !scope.edit;
+  // PUB-02: propio o compartido por otra inmobiliaria (también llega como «?origen=compartido» desde Herramientas).
+  const followup = initial as AdminProperty | undefined;
+  const [origin] = React.useState<"propio" | "compartido">(() => followup?.origen ?? (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("origen") === "compartido" ? "compartido" : "propio"));
+  const allies = React.useMemo(() => knownAllies(propiedades as AdminProperty[]), [propiedades]);
   const [publicationReady,setPublicationReady]=React.useState(false);
   const [dirty,setDirty] = React.useState(false);
   const [conflict,setConflict] = React.useState(false);
@@ -175,6 +183,19 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
     const base = { ...initial };
     delete base.informacionPublica;
     delete base.conjunto;
+    const followupBase = base as Partial<AdminProperty>;
+    delete followupBase.origen;
+    delete followupBase.aliado;
+    const porcentaje = num("aliadoPorcentaje");
+    const shared: Partial<AdminProperty> = v("origen") === "compartido" ? { origen: "compartido", aliado: {
+      inmobiliaria: v("aliadoInmobiliaria"),
+      ...(v("aliadoContacto") ? { contacto: v("aliadoContacto") } : {}),
+      ...(porcentaje != null && Number.isFinite(porcentaje) ? { porcentaje } : {}),
+      ...(v("aliadoAutorizacionPath") ? { autorizacion: { path: v("aliadoAutorizacionPath"),
+        ...(v("aliadoAutorizacionNombre") ? { nombre: v("aliadoAutorizacionNombre") } : {}),
+        ...(v("aliadoAutorizacionFecha") ? { fecha: v("aliadoAutorizacionFecha") } : {}),
+        ...(v("aliadoAutorizacionFirmante") ? { firmante: v("aliadoAutorizacionFirmante") } : {}) } } : {}),
+    } } : {};
     // Ficha «Escenario»: secciones opcionales; una sección vacía se retira de la ficha.
     const beneficios = [0, 1, 2, 3]
       .map((i) => ({ titulo: v(`beneficio-titulo-${i}`), texto: v(`beneficio-texto-${i}`) }))
@@ -186,8 +207,9 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
       ...(num("predialAnual") != null ? { predialAnual: num("predialAnual") } : {}),
       ...(num("mantenimientoMensual") != null ? { mantenimientoMensual: num("mantenimientoMensual") } : {}),
     };
-    const property: Property = {
+    const property: AdminProperty = {
       ...base,
+      ...shared,
       slug,
       codigo,
       titulo: titulo.trim(),
@@ -276,7 +298,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
       {/* En computadora la barra de guardar, el avance y la autorización van a la derecha (la barra arriba y fija); en celular, arriba y abajo. */}
       <div className="flex min-w-0 flex-col gap-8 lg:col-start-2 lg:row-start-2 lg:gap-4">
       <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={sections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
-      {initial ? <div hidden={view === "material"}><PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/></div> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">Guárdalo privado; luego liga su captación y la autorización para publicar.</p>}
+      {initial ? <div hidden={view === "material"}><PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/></div> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">{origin === "compartido" ? "Guárdalo privado con la autorización de la inmobiliaria; después el director lo publica." : "Guárdalo privado; luego liga su captación y la autorización para publicar."}</p>}
       </div>
       <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-span-2 lg:row-start-1">
       {/* Básicos */}
@@ -427,6 +449,12 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
             </label>
           </div>
         </div>
+      </FormSection>
+
+      {/* Origen */}
+      <FormSection id="pf-origen" data-tab="ficha" hidden={!shown("ficha")} aria-labelledby="pf-origen-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-origen-heading" className={headingClass}>Origen</h2>
+        <PropertyOrigin origen={origin} aliado={followup?.aliado} allies={allies} onChange={() => setDirty(true)} />
       </FormSection>
 
       {/* Precio */}
@@ -948,7 +976,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
           <Button type="submit" variant="primary" className="flex-1 sm:flex-none lg:flex-1">
             {initial ? "Guardar cambios" : "Crear inmueble"}
           </Button>
-          {initial && !initial.publicada && !scope.publish && <p className="min-w-0 basis-full text-sm text-muted-foreground">El director lo publica en el sitio cuando la captación esté lista.</p>}
+          {initial && !initial.publicada && !scope.publish && <p className="min-w-0 basis-full text-sm text-muted-foreground">{origin === "compartido" ? "El director lo publica en el sitio con la autorización de la inmobiliaria adjunta." : "El director lo publica en el sitio cuando la captación esté lista."}</p>}
           {initial && (initial.publicada || scope.publish) && <Button type="submit" disabled={!initial.publicada && !publicationReady} data-action={initial.publicada?"unpublish":"publish"} className="flex-1 sm:flex-none lg:flex-1">{initial.publicada?"Retirar del sitio":"Guardar y publicar"}</Button>}</>}
         </div>
       </div>

@@ -148,7 +148,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
         {propertyGaps(p).length > 0 && <span className={s.gap}>{gapText(propertyGaps(p))}</span>}
         {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
         {(lent || prep) && <span className={s.meta}>{[lent && `Llaves con ${lent.persona}`, prep].filter(Boolean).join(" · ")}</span>}
-        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.demo && <span className={s.meta}>Ejemplo</span>}</span>
+        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.origen === "compartido" && <span className={s.meta}>Compartido</span>}{p.demo && <span className={s.meta}>Ejemplo</span>}</span>
       </span>
     </Link>
     <details className={s.options}>
