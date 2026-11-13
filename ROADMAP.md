@@ -345,7 +345,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 - **RP-71 · Un ícono fijo por concepto.** Cada etapa, tipo de documento y estado tiene un solo ícono (de `lucide-react`, ya instalado), definido en un catálogo único y usado igual en el tablero, la barra de avance, Hoy, las listas y los documentos. (LV-02)
 - **RP-72 · El estado se reconoce sin color.** Todo estado combina forma, color y palabra (WCAG 1.4.1). (LV-02)
 - **RP-73 · El movimiento confirma, no decora.** Animaciones de 300 ms o menos que confirman una acción o muestran un cambio; ninguna en bucle continuo; todas se apagan con «reducir movimiento». (LV-03)
-- **RP-74 · Escala tipográfica fija de cuatro tamaños:** título de página, título de sección, texto y nota. Ningún otro tamaño en el panel. (LV-01)
+- **RP-74 · Escala tipográfica fija de `docs/brand.md`:** ocho tamaños para el panel (30/26, 20, 18, 16, 15, 14, 13 y 12 px) más dos de cifra, aprobados por el titular el 13/11/2026; ningún tamaño fuera de ella. Reemplaza la escala de cuatro tamaños del 17/10/2026. (LV-01)
 
 **Q. Proceso, captura y documentos (aprobado el 17/10/2026)**
 
@@ -727,7 +727,7 @@ La tabla de reglas reemplazadas hasta el 13/11/2026 está en el historial (§18:
 | V07 | **Ayuda con «?» de una línea** junto a lo que confunde, y la primera vez un punto que late sobre el botón clave («Empieza aquí») y desaparece al usarlo. | Es la forma visual de RP-54 y de C17 («¿Qué se hace aquí?»). El punto late como máximo tres veces y queda fijo (WCAG 2.2.2); se recuerda por usuario que ya lo vio (preferencias de RP-14). Se coordina con «Primeros pasos» (N24) y el recorrido de SOP-01 para no mostrar dos ayudas a la vez. |
 | V08 | **Ilustraciones de línea simples en las pantallas vacías**, con trazo en el color de texto secundario (sin guinda, para respetar RP-52). | Acompañan a los estados vacíos que enseñan (C31). SVG en el propio código, una línea, adaptadas a claro y oscuro; no se usan en pantallas con datos. |
 | V09 | **Foto o iniciales del asesor responsable** en cada tarjeta, en un círculo neutro. | Sin un color por persona, para no competir con los colores de estado (RP-69, RP-70). Usa la foto de Mi perfil si existe. |
-| V10 | **Escala tipográfica de cuatro tamaños**. | Es RP-74. Se hace con SIM-01 (C02, C05): una sola letra, cuatro tamaños, y el peso para la jerarquía. Compatible con la letra Grande de N09, que aumenta los cuatro por igual. |
+| V10 | **Escala tipográfica fija** (la de `docs/brand.md`, 13/11/2026; antes, cuatro tamaños). | Es RP-74. Una sola letra, los tamaños de la escala y el peso para la jerarquía. Compatible con la letra Grande de N09, que aumenta la escala por igual. |
 
 **LV-05 · Rediseño visual por área, con bocetos:** terminada (PR #45, #46 y #47, 18/10/2026). Su descripción, su estado y la «Dirección aprobada» del 17/10/2026 pasaron al historial (§20).
 
@@ -759,7 +759,7 @@ Ocho reglas para todas las pantallas (del artboard de diagnóstico): cada dato u
 
 | ID | Mejoras | Depende de | Aceptación |
 |---|---|---|---|
-| LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; cuatro tamaños de letra en todo el panel; axe sin fallas. |
+| LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; solo los tamaños de la escala de `docs/brand.md` en todo el panel; axe sin fallas. |
 | LV-02 | V01, V03, V04, V05, V09 | LV-01, SIM-05 | Catálogo único de íconos usado en todas las pantallas; cada estado con forma, color y palabra; anillo de avance con texto; insignias de documento; avatar neutro del asesor. |
 | LV-03 | V06 | LV-02, UX-04 | Animaciones de confirmación de 300 ms o menos, sin bucles; con «reducir movimiento» no hay transiciones; los mensajes de guardado siguen apareciendo. |
 | LV-04 | V07, V08 | LV-01, SIM-12 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
@@ -1453,7 +1453,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | NAV-12 | 4 | pendiente | Migración autorizada, PRV-01 |
 | NAV-13 | 4 | parcial | SIM-01; papelera «Eliminados» (N23) en la rama `feat/integracion` (13/11/2026); falta N24, que se une a «Tu primer día» de COR-26 |
 | NAV-14 | 4 | pendiente | PWA-03 |
-| LV-01 | 4 | pendiente | SIM-01 (conjunta) |
+| LV-01 | 4 | en_local | cinco roles de color con superficie y borde, AA en claro y oscuro; axe sin fallas en 24 pantallas; escala de `docs/brand.md` (13/11/2026, `feat/integracion`) |
 | LV-02 | 4 | pendiente | LV-01, SIM-05 |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
 | LV-04 | 4 | pendiente | LV-01, SIM-12 |
