@@ -50,7 +50,7 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
     <div className="flex items-start gap-3">
       <Avatar name={person.nombre} size={48} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <h2 className="m-0 text-lg font-[650] leading-tight [overflow-wrap:anywhere]">{person.nombre}</h2>
+        <h2 className="m-0 text-lg font-[620] leading-tight [overflow-wrap:anywhere]">{person.nombre}</h2>
         <p className="text-sm text-muted-foreground">{kind}{lead ? ` · ${LEAD_STAGE_LABELS[leadStage(lead.estado)]}` : ""}</p>
       </div>
     </div>

@@ -68,7 +68,7 @@ const formSections = [
   { id: "pf-documentos", label: "Documentos", tab: "material" },
 ] as const;
 const sectionClass = `${f.group} scroll-mt-20`;
-const headingClass = "m-0 text-[1.0625rem] font-semibold tracking-[-0.01em]";
+const headingClass = "m-0 text-lg font-semibold tracking-[-0.01em]";
 
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {

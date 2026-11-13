@@ -1,24 +1,24 @@
 .panel {
   color: var(--foreground);
-  font-size: 16px;
+  font-size: var(--admin-text-cuerpo);
   line-height: 1.55;
   font-variation-settings: "wdth" 96;
   font-variant-numeric: tabular-nums;
 }
 .panel h1 { font-variation-settings: "wdth" 92; }
 .panel :is(h2, h3) { font-variation-settings: "wdth" 94; }
-.panel h1 { font-family: var(--font-sans); font-size: clamp(1.75rem, 2.3vw, 2rem); font-weight: 620; line-height: 1.15; letter-spacing: -.025em; text-transform: none; }
-.panel h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 600; line-height: 1.35; letter-spacing: -.015em; }
-.panel h3 { font-family: var(--font-sans); font-size: 1.125rem; font-weight: 560; line-height: 1.4; }
-.panel label { font-weight: 500; color: var(--foreground); }
-.panel label ~ p { font-size: .875rem; line-height: 1.5; }
+.panel h1 { font-family: var(--font-sans); font-size: var(--admin-text-pantalla); font-weight: 620; line-height: 1.15; letter-spacing: -.025em; text-transform: none; }
+.panel h2 { font-family: var(--font-sans); font-size: var(--admin-text-seccion); font-weight: 600; line-height: 1.35; letter-spacing: -.015em; }
+.panel h3 { font-family: var(--font-sans); font-size: var(--admin-text-grupo); font-weight: 540; line-height: 1.4; }
+.panel label { font-weight: 540; color: var(--foreground); }
+.panel label ~ p { font-size: var(--admin-text-detalle); line-height: 1.5; }
 .panel :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]), textarea, select) {
   background: var(--field-surface);
   color: var(--foreground);
   border: 1px solid var(--control-edge);
   border-radius: var(--field-radius, 6px);
   box-shadow: none;
-  font-size: 1rem;
+  font-size: var(--admin-text-cuerpo);
 }
 .panel :is(input, textarea)::placeholder { color: var(--muted-foreground); opacity: 1; }
 .panel :is(button, a, input, textarea, select, [role=separator]):focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
@@ -34,7 +34,7 @@
 .panel button[aria-pressed=false] { background: var(--card); color: var(--foreground); border-color: var(--border); box-shadow: none; }
 .panel [aria-invalid=true] { border-color: var(--destructive); outline: 2px solid var(--destructive); outline-offset: 1px; }
 .panel :global(.admin-saved) { border-left: 3px solid #27735d; padding: .65rem 1rem; background: var(--secondary); color: var(--foreground); }
-.panel :global(.admin-avatar) { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #061f3f; color: #fff; border: 1px solid var(--border); font-size: .9rem; font-weight: 700; flex-shrink: 0; }
+.panel :global(.admin-avatar) { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #061f3f; color: #fff; border: 1px solid var(--border); font-size: var(--admin-text-interfaz); font-weight: 620; flex-shrink: 0; }
 .panel :global(.admin-avatar) img { width: 100%; height: 100%; object-fit: cover; }
 .panel :global(.admin-confirm) { position: fixed; inset: 0; margin: auto; width: min(460px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; border-radius: 12px; padding: 24px; background: var(--card); color: var(--foreground); border: 1px solid var(--border); }
 .panel :global(.admin-confirm)::backdrop { background: #061325a6; }
@@ -54,18 +54,18 @@
 .panel :global(.admin-workspace) { background: var(--canvas); }
 .panel :global(.admin-content) { width: 100%; max-width: 110rem; margin-inline: auto; padding: 1rem 1rem calc(7rem + env(safe-area-inset-bottom, 0px)); } /* abajo: altura de la barra inferior del celular */
 .panel :global(.admin-page-header) { align-items: center; border: 0; padding-bottom: .25rem; }
-.panel :global(.admin-page-header) p { margin-top: .5rem; font-size: .9375rem; }
+.panel :global(.admin-page-header) p { margin-top: .5rem; font-size: var(--admin-text-interfaz); }
 .panel :global(.admin-search-trigger) { flex: 1; min-width: 2.75rem; justify-content: flex-start; max-width: 44rem; background: var(--field-surface); color: var(--muted-foreground); font-weight: 400; }
 .panel :global(.admin-search-trigger) span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.panel :global(.admin-search-trigger) kbd { margin-left: auto; border: 1px solid var(--border); border-radius: .25rem; padding: .125rem .375rem; font-size: .75rem; }
+.panel :global(.admin-search-trigger) kbd { margin-left: auto; border: 1px solid var(--border); border-radius: .25rem; padding: .125rem .375rem; font-size: var(--admin-text-minimo); }
 .panel :global(.admin-card) { min-width: 0; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); box-shadow: 0 2px 8px #061f3f03; }
 .panel :global(.admin-card-heading) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 1rem; min-height: 2.75rem; border-bottom: 1px solid var(--border); }
-.panel :global(.admin-card-heading) h2 { font-size: 1.125rem; }
-.panel :global(.admin-card-heading) a { display: inline-flex; align-items: center; min-height: 2.75rem; gap: .375rem; font-size: .875rem; color: var(--foreground); }
-.panel :global(.admin-badge) { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; border-radius: .25rem; font-size: .8125rem; line-height: 1.5; }
+.panel :global(.admin-card-heading) h2 { font-size: var(--admin-text-grupo); }
+.panel :global(.admin-card-heading) a { display: inline-flex; align-items: center; min-height: 2.75rem; gap: .375rem; font-size: var(--admin-text-detalle); color: var(--foreground); }
+.panel :global(.admin-badge) { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; border-radius: .25rem; font-size: var(--admin-text-pastilla); line-height: 1.5; }
 @media (min-width: 1280px) {
   .panel :global(.admin-inventory-controls) { background: transparent; border: 0; padding: 0; }
-  .panel :global(.admin-inventory-controls) > p[role=status] { font-size: .75rem; }
+  .panel :global(.admin-inventory-controls) > p[role=status] { font-size: var(--admin-text-minimo); }
 }
 @media (min-width: 1024px) {
   .panel :global(.admin-inventory-controls) { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: .75rem; padding: .875rem 1rem; }
@@ -77,25 +77,25 @@
 .panel :global(.admin-login-card) { padding: 2rem; box-shadow: 0 12px 40px #061f3f08; }
 
 /* Operational review: visible priorities, a single dossier context and document access. */
-.panel :global(.admin-data-scope) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; color: var(--muted-foreground); font-size: .8125rem; }
-.panel :global(.admin-data-scope) label { display: inline-flex; align-items: center; gap: .625rem; min-height: 2.75rem; font-size: .8125rem; cursor: pointer; }
+.panel :global(.admin-data-scope) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; color: var(--muted-foreground); font-size: var(--admin-text-pastilla); }
+.panel :global(.admin-data-scope) label { display: inline-flex; align-items: center; gap: .625rem; min-height: 2.75rem; font-size: var(--admin-text-pastilla); cursor: pointer; }
 .panel :global(.admin-data-scope) input { width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
 .panel :global(.admin-report-metrics) { display: grid; gap: .75rem; }
 .panel :global(.admin-metric-action) { display: grid; gap: .375rem; min-width: 0; padding: 1rem; text-align: left; border: 1px solid var(--border); border-radius: .375rem; background: var(--card); color: var(--foreground); }
 .panel :is(button,a):global(.admin-metric-action):hover { background: var(--secondary); }
-.panel :global(.admin-metric-action) strong { font-size: 1.875rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
-.panel :global(.admin-metric-action) :is(span,small) { font-size: .875rem; }
+.panel :global(.admin-metric-action) strong { font-size: var(--admin-text-cifra); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.panel :global(.admin-metric-action) :is(span,small) { font-size: var(--admin-text-detalle); }
 .panel :global(.admin-metric-action) small { color: var(--muted-foreground); }
 .panel :global(.admin-report-detail) { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-.panel :global(.admin-report-detail) h3 { font-size: 1rem; }
+.panel :global(.admin-report-detail) h3 { font-size: var(--admin-text-cuerpo); }
 .panel :global(.admin-report-detail) a { display: block; min-height: 2.75rem; padding-block: .5rem; overflow-wrap: anywhere; }
 .panel :global(.admin-report-detail) small { display: block; color: var(--muted-foreground); }
 .panel :global(.admin-document-filters) { display: grid; gap: .75rem; padding: 1rem 1.25rem; align-items: end; }
-.panel :global(.admin-document-filters) label { min-width: 0; font-size: .875rem; }
+.panel :global(.admin-document-filters) label { min-width: 0; font-size: var(--admin-text-detalle); }
 .panel :global(.admin-document-filters) :is(input,select) { margin-top: .375rem; }
 .panel :global(.admin-document-list) > li { display: grid; grid-template-columns: 1.5rem minmax(0,1fr); gap: .75rem; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
-.panel :global(.admin-document-list) h3 { font-size: .9375rem; overflow-wrap: anywhere; }
-.panel :global(.admin-document-list) :is(p,small) { color: var(--muted-foreground); font-size: .8125rem; overflow-wrap: anywhere; }
+.panel :global(.admin-document-list) h3 { font-size: var(--admin-text-interfaz); overflow-wrap: anywhere; }
+.panel :global(.admin-document-list) :is(p,small) { color: var(--muted-foreground); font-size: var(--admin-text-pastilla); overflow-wrap: anywhere; }
 .panel :global(.admin-document-list) > li > :is(a,span) { grid-column: 2; justify-self: start; }
 .panel :global(.admin-document-pagination) { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1rem; padding: 1rem; border-top: 1px solid var(--border); }
 @media (min-width: 640px) {
@@ -106,7 +106,7 @@
 @media (min-width: 1024px) {
   .panel :global(.admin-document-filters) { grid-template-columns: minmax(0,1fr) minmax(0,1.5fr) auto; }
 }
-.panel table th { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-size: .8125rem; font-weight: 600; background: var(--secondary); }
+.panel table th { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-size: var(--admin-text-pastilla); font-weight: 600; background: var(--secondary); }
 .panel table td { padding-block: .875rem; }
 @media (min-width: 768px) {
   .panel :global(.admin-content) { padding: .75rem 2rem 2.5rem; }

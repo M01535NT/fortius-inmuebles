@@ -69,7 +69,7 @@ export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead;
       <legend className="mb-1 text-sm font-semibold">Registrar contacto</legend>
       <div className="flex flex-wrap gap-2">
         {(Object.keys(CONTACT_KINDS) as ContactKind[]).map(k => <button key={k} type="button" aria-pressed={kind === k} onClick={() => pick(k)}
-          className="inline-flex min-h-11 items-center rounded-full border px-4 text-[.9375rem] font-[560]">{CONTACT_KINDS[k]}</button>)}
+          className="inline-flex min-h-11 items-center rounded-full border px-4 text-[.9375rem] font-[540]">{CONTACT_KINDS[k]}</button>)}
       </div>
       {missed >= 2 && <p className="m-0 text-sm text-muted-foreground">{missed} intentos seguidos sin respuesta.</p>}
     </fieldset>
