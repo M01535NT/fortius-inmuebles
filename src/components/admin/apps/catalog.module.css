@@ -18,10 +18,34 @@
 :global(.admin-root) .tile:has(a:focus-visible) { outline: 3px solid var(--focus-color); outline-offset: 3px; }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .tile { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); } }
 :global(.admin-root) .icon { grid-row: 1 / span 2; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-thumb); background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .tile[data-category="Finanzas"] .icon { background: var(--success-surface); color: var(--success); }
-:global(.admin-root) .tile[data-category="Documentos"] .icon { background: var(--info-surface); color: var(--info); }
-:global(.admin-root) .tile[data-category="Productividad"] .icon { background: var(--warning-surface); color: var(--warning); }
+:global(.admin-root) .tile[data-group="Calcular"] .icon { background: var(--success-surface); color: var(--success); }
+:global(.admin-root) .tile[data-group="Documentos"] .icon { background: var(--info-surface); color: var(--info); }
+:global(.admin-root) .tile[data-group="Presentar"] .icon { background: var(--warning-surface); color: var(--warning); }
 :global(.admin-root) .tile a { grid-column: 2; min-width: 0; padding-top: .125rem; font-size: 1rem; font-weight: 560; line-height: 1.3; color: var(--foreground); text-decoration: none; overflow-wrap: anywhere; }
 :global(.admin-root) .tile a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 :global(.admin-root) .tile a:focus-visible { outline: none; }
 :global(.admin-root) .tile p { grid-column: 2; margin: 0; font-size: .8125rem; line-height: 1.5; color: var(--muted-foreground); overflow-wrap: anywhere; }
+
+/* Accesos directos (HER-01): tres tarjetas anchas arriba del catálogo. */
+:global(.admin-root) .shortcuts { display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { :global(.admin-root) .shortcuts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+:global(.admin-root) .shortcut { display: flex; min-height: 5.5rem; height: 100%; align-items: center; gap: .875rem; padding: 1rem 1.125rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .shortcut:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+:global(.admin-root) .shortcut:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .shortcut { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); } }
+:global(.admin-root) .shortcutIcon { display: grid; flex: none; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-thumb); background: var(--panel-selected); color: var(--panel-selected-ink); }
+:global(.admin-root) .shortcutBody { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .125rem; }
+:global(.admin-root) .shortcutBody strong { font-size: 1rem; font-weight: 600; line-height: 1.3; }
+:global(.admin-root) .shortcutBody span { font-size: .8125rem; line-height: 1.45; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .shortcutArrow { flex: none; opacity: .55; }
+
+/* Herramientas retiradas: plegadas, solo para consultar sus trabajos guardados. */
+:global(.admin-root) .retired { min-width: 0; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); color: var(--foreground); }
+:global(.admin-root) .retired > summary { display: flex; flex-wrap: wrap; min-height: 3.5rem; align-items: center; gap: .25rem 1rem; padding: .75rem 1rem; font-weight: 600; cursor: pointer; list-style: none; border-radius: inherit; }
+:global(.admin-root) .retired > summary::-webkit-details-marker { display: none; }
+:global(.admin-root) .retired > summary:hover { background: var(--secondary); }
+:global(.admin-root) .retired > summary:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 3px; }
+:global(.admin-root) .retired > summary span { font-size: .875rem; font-weight: 400; color: var(--muted-foreground); }
+:global(.admin-root) .retired ul { margin: 0; padding: 0 1rem .5rem; list-style: none; border-top: 1px solid var(--card-edge); }
+:global(.admin-root) .retired li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; padding: .75rem 0; border-bottom: 1px solid var(--card-edge); }
+:global(.admin-root) .retired li:last-child { border-bottom: 0; }

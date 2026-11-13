@@ -1,22 +1,41 @@
+/*
+  Catálogo de Herramientas (HER-01, confirmado por el titular el 18/10/2026): tres grupos
+  (Documentos · Calcular · Presentar). Las herramientas retiradas («group: null») ya no se
+  muestran en el catálogo, pero conservan su ruta y sus trabajos guardados: el `slug` no cambia
+  para que ningún trabajo se pierda ni falle al abrirse.
+*/
+export const APP_GROUPS = ["Documentos", "Calcular", "Presentar"] as const;
+export type AppGroup = typeof APP_GROUPS[number];
+
 export const APPS = [
-  { slug: "documentos", title: "Documentos sueltos", description: "Opiniones, contratos y propuestas sin pasar por las etapas.", category: "Documentos", icon: "FileText" },
-  { slug: "ficha-comercial", title: "Ficha comercial", description: "Presenta un inmueble con la identidad Fortius.", category: "Comercial", icon: "Building2" },
-  { slug: "hipoteca", title: "Hipoteca", description: "Mensualidades, anticipos y tabla de amortización.", category: "Finanzas", icon: "Landmark" },
-  { slug: "comparables", title: "Comparables", description: "Sustenta precios con fuentes y ajustes visibles.", category: "Comercial", icon: "Scale" },
-  { slug: "ofertas", title: "Comparador de ofertas", description: "Compara condiciones y formas de pago.", category: "Comercial", icon: "GitCompareArrows" },
-  { slug: "neto-propietario", title: "Neto del propietario", description: "Desglosa lo que recibirá el propietario.", category: "Finanzas", icon: "Wallet" },
-  { slug: "comisiones", title: "Comisiones y reparto", description: "Honorarios, participantes y distribución.", category: "Finanzas", icon: "HandCoins" },
-  { slug: "informe-propietario", title: "Informe al propietario", description: "Actividades, resultados y próximos pasos.", category: "Comercial", icon: "ChartNoAxesCombined" },
-  { slug: "pdf", title: "Plantillas y PDF", description: "Prepara formatos y organiza páginas.", category: "Documentos", icon: "Files" },
-  { slug: "revisor-expediente", title: "Pendientes documentales", description: "Requisitos, vencimientos y pendientes.", category: "Documentos", icon: "ClipboardCheck" },
-  { slug: "fotografias", title: "Fotografías", description: "Recorte, luz y copias listas para publicar.", category: "Productividad", icon: "Image" },
-  { slug: "qr", title: "Enlaces y QR", description: "Comparte fichas y documentos seleccionados.", category: "Productividad", icon: "QrCode" },
-  { slug: "conversor", title: "Unidades y monedas", description: "Superficies, longitudes y MXN / USD.", category: "Finanzas", icon: "ArrowLeftRight" },
-  { slug: "inversiones", title: "Inversiones", description: "ROI, VAN y TIR con flujos y escenarios.", category: "Finanzas", icon: "TrendingUp" },
-  { slug: "rehabilitacion", title: "Rehabilitación", description: "Partidas, contingencia y desembolsos.", category: "Finanzas", icon: "Hammer" },
-  { slug: "versiones", title: "Comparador de versiones", description: "Encuentra cambios entre dos textos.", category: "Documentos", icon: "FileDiff" },
-  { slug: "cotizador", title: "Cotizador de servicios", description: "Prepara una propuesta con conceptos y vigencia.", category: "Comercial", icon: "ReceiptText" },
+  { slug: "documentos", title: "Documentos sueltos", description: "Cualquier formato en blanco o lleno, sin abrir una operación.", group: "Documentos", icon: "FileText" },
+  { slug: "pdf", title: "Unir y separar PDF", description: "Une escaneos, ordena, gira o quita páginas.", group: "Documentos", icon: "Files" },
+  { slug: "neto-propietario", title: "Neto del propietario", description: "Lo que recibe el propietario después de comisión y gastos.", group: "Calcular", icon: "Wallet" },
+  { slug: "hipoteca", title: "Hipoteca", description: "Mensualidades, anticipos y tabla de amortización.", group: "Calcular", icon: "Landmark" },
+  { slug: "comparables", title: "Comparables", description: "Comparables y ajustes de la opinión de valor, sin operación.", group: "Calcular", icon: "Scale" },
+  { slug: "ofertas", title: "Comparador de ofertas", description: "Compara precio, plazo y forma de pago de cada oferta.", group: "Calcular", icon: "GitCompareArrows" },
+  { slug: "comisiones", title: "Comisiones y reparto", description: "Honorarios y reparto con aliados o entre asesores.", group: "Calcular", icon: "HandCoins" },
+  { slug: "inversiones", title: "Inversiones", description: "ROI, VAN y TIR con flujos y escenarios.", group: "Calcular", icon: "TrendingUp" },
+  { slug: "rehabilitacion", title: "Rehabilitación", description: "Partidas, contingencia y desembolsos.", group: "Calcular", icon: "Hammer" },
+  { slug: "conversor", title: "Unidades y monedas", description: "Superficies, longitudes y MXN / USD.", group: "Calcular", icon: "ArrowLeftRight" },
+  { slug: "fotografias", title: "Fotografías", description: "Recorte, luz y copias listas para publicar.", group: "Presentar", icon: "Image" },
+  { slug: "cotizador", title: "Cotizador de servicios", description: "Propuesta de honorarios antes de abrir una operación.", group: "Presentar", icon: "ReceiptText" },
+  // Retiradas del catálogo (HER-01). «home» dice dónde vive ahora su función.
+  { slug: "ficha-comercial", title: "Ficha comercial", description: "Presenta un inmueble con la identidad Fortius.", group: null, home: "Ahora se descarga desde el menú «⋯» de cada inmueble: «Descargar ficha técnica».", icon: "Building2" },
+  { slug: "qr", title: "Enlaces y QR", description: "Comparte fichas y documentos seleccionados.", group: null, home: "Ahora está en el menú «⋯» de cada inmueble: «Compartir liga o QR».", icon: "QrCode" },
+  { slug: "informe-propietario", title: "Informe al propietario", description: "Actividades, resultados y próximos pasos.", group: null, home: "Se prepara desde su operación, en Publicación y seguimiento.", icon: "ChartNoAxesCombined" },
+  { slug: "revisor-expediente", title: "Pendientes documentales", description: "Requisitos, vencimientos y pendientes.", group: null, home: "Lo que falta o vence se ve en cada operación.", icon: "ClipboardCheck" },
+  { slug: "versiones", title: "Comparador de versiones", description: "Encuentra cambios entre dos textos.", group: null, home: "Para comparar contratos usa «Comparar» de Word.", icon: "FileDiff" },
 ] as const;
-export function getApp(slug: string) { return APPS.find(app => app.slug === slug); }
+export type AppDefinition = typeof APPS[number];
+export function getApp(slug: string): AppDefinition | undefined { return APPS.find(app => app.slug === slug); }
+export const isRetired = (app: AppDefinition) => app.group === null;
+export const activeApps = (group: AppGroup) => APPS.filter(app => app.group === group);
+export const RETIRED_APPS = APPS.filter(isRetired);
 export const FINANCIAL_APPS = new Set(["hipoteca", "neto-propietario", "comisiones", "inversiones", "rehabilitacion", "conversor"]);
 export const COMMERCIAL_APPS = new Set(["ficha-comercial", "comparables", "ofertas", "informe-propietario", "cotizador", "revisor-expediente"]);
+
+/** Comparables suelto es la opinión de valor (07) sin operación (HER-05): mismo cálculo, no un segundo motor. */
+export const COMPARABLES_HREF = "/admin/apps/documentos?formato=07&seccion=comparables";
+/** Destino de cada tarjeta del catálogo. */
+export const appHref = (slug: string) => slug === "comparables" ? COMPARABLES_HREF : `/admin/apps/${slug}`;

@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
+import { PropertyShareActions } from "./property-share";
 import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
 import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
 import { AsyncButton, AsyncSelect, DemoBanner, inputClass } from "@/components/admin/ui";
@@ -154,6 +155,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
         <label className="flex min-w-0 flex-col gap-1.5 text-sm font-semibold">Estado<PropertyStatus property={p} /></label>
         <p className="text-sm"><span className="text-muted-foreground">Código:</span> <span className="break-all">{p.codigo}</span></p>
         <p className="text-sm"><span className="text-muted-foreground">Responsable:</span> <span>{adviser ?? "Sin asignar"}</span> · <span className="text-muted-foreground">PDF:</span> {p.documentos?.length ?? 0}</p>
+        <PropertyShareActions property={p} actionClass={s.action} />
         <div className="flex flex-wrap gap-2">
           <FeaturedButton property={p} />
           <Link href={`/inventario/${p.slug}`} target="_blank" className={s.action} aria-label={`Ver ${p.titulo} en el sitio`}>Ver en el sitio</Link>
