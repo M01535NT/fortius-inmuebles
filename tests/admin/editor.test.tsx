@@ -393,8 +393,8 @@ const singletonEditors = [
     name: "Contenido",
     Page: ContenidoPage,
     store: contentStore,
-    label: "Titular (H1)",
-    field: "heroTitulo",
+    label: "Título de la sección",
+    field: "manifiestoTitulo",
     button: "Guardar contenido",
     initial: {
       heroTitulo: "MNT",
