@@ -11,7 +11,8 @@ export const intermediacionFields: FormatoField[] = [
   field(s[0], "domicilioPrestador", "Domicilio del prestador", "long"), field(s[0], "correoPrestador", "Correo del prestador"), field(s[0], "telefonoPrestador", "Teléfono del prestador"), field(s[0], "firmantePrestador", "Firmante por el prestador"), field(s[0], "calidadFirmaPrestador", "Calidad de la firma por el prestador"),
   choice(s[1], "licenciaEstado", "Estado de la licencia estatal", [["vigente", "Vigente con soporte"], ["pendiente", "Pendiente de comprobar"], ["no_aplica", "No aplica, con fundamento"]]), field(s[1], "licenciaNumero", "Número de licencia estatal"), field(s[1], "licenciaVigencia", "Fin de vigencia de la licencia", "date"), field(s[1], "licenciaSoporte", "Soporte o fundamento de la licencia", "long"),
   choice(s[1], "modeloEstatalEstado", "Estado del modelo estatal", [["aprobado", "Aprobado con copia"], ["pendiente", "Pendiente de cotejo"], ["no_aplica", "No aplica, con fundamento"]]), field(s[1], "modeloEstatalReferencia", "Datos de aprobación o fundamento del modelo estatal", "long"), field(s[1], "modeloEstatalCopia", "Referencia y versión de la copia estatal", "long"),
-  choice(s[1], "profecoEstado", "Estado del registro PROFECO", [["no_registrado", "No registrado"], ["registrado", "Registro informado, pendiente de cotejo del modelo"], ["no_aplica", "No aplica, requiere revisión del supuesto"]]), field(s[1], "profecoNumero", "Número de registro informado"), field(s[1], "profecoFecha", "Fecha del registro informado", "date"), field(s[1], "profecoCopia", "Referencia de la copia registrada", "long"), field(s[1], "profecoFundamento", "Fundamento de no aplicación del registro", "long"),
+  // COR-12 (titular, 17/10/2026): Fortius no tiene registro ante PROFECO y no lo tendrá en 2026; el 09
+  // ya no lo captura ni lo revisa. Los borradores anteriores conservan esos datos, pero no se usan.
   field(s[2], "inmueble", "Domicilio del inmueble", "long"), field(s[2], "idInmueble", "Identificador del inmueble"), field(s[2], "tipoInmueble", "Tipo de inmueble"), field(s[2], "destino", "Destino del inmueble"), field(s[2], "titulo", "Título"), field(s[2], "folioReal", "Folio real"), field(s[2], "claveCatastral", "Clave catastral"), field(s[2], "derecho", "Derecho objeto del encargo", "long"), field(s[2], "superficie", "Superficie y concepto según soporte"), field(s[2], "accesorios", "Accesorios incluidos o ninguno", "long"),
   field(s[2], "gravamenes", "Gravámenes o ausencia declarada", "long"), field(s[2], "ocupacion", "Ocupación informada", "long"), field(s[2], "restricciones", "Restricciones informadas o ninguna", "long"), field(s[2], "condicionesEncargo", "Condiciones del encargo", "long"),
   choice(s[2], "modalidad", "Modalidad del encargo", [["exclusiva", "Exclusiva"], ["no_exclusiva", "No exclusiva"]]), field(s[2], "inicio", "Inicio de vigencia", "date"), field(s[2], "fin", "Fin de vigencia, sin renovación automática", "date"),
@@ -35,8 +36,6 @@ export function mostrarCampoIntermediacion(key: string, data: Record<string, unk
   if (["representantePrestador", "calidadRepresentante", "facultadesPrestador"].includes(key)) return data.comparecePrestador === "representante";
   if (["licenciaNumero", "licenciaVigencia"].includes(key)) return data.licenciaEstado === "vigente";
   if (key === "modeloEstatalCopia") return data.modeloEstatalEstado === "aprobado";
-  if (["profecoNumero", "profecoFecha", "profecoCopia"].includes(key)) return data.profecoEstado === "registrado";
-  if (key === "profecoFundamento") return data.profecoEstado === "no_aplica";
   if (key === "excepcionesProspectos") return data.excepcionesEstado === "registradas";
   if (key === "anexosContrato") return data.anexosEstado === "registrados";
   return true;
@@ -58,20 +57,8 @@ export function calcularIntermediacion(data: Record<string, unknown>) {
   return { errors, basePrecio: basePrecio.toNumber(), comision: comision.toNumber(), ivaComision: ivaComision.toNumber(), total: comision.add(ivaComision).toNumber(), basePena: Decimal.min(data.penaMaxima as number, comision).toNumber() };
 }
 
-/** Aritmética de la cláusula novena, para revisión; no determina si jurídicamente procede cobrar. */
-export function calcularPenaIntermediacion(data: Record<string, unknown>, termination: string, debtor: string, paid: number) {
-  const base = calcularIntermediacion(data); const errors = [...base.errors];
-  if (!date(data.inicio) || !date(data.fin) || data.fin < data.inicio) errors.push("Vigencia válida con inicio y fin");
-  if (!date(termination) || !date(data.inicio) || !date(data.fin) || termination < data.inicio || termination > data.fin) errors.push("La terminación efectiva debe estar dentro de la vigencia");
-  if (!["cliente", "prestador"].includes(debtor) || !cash(paid)) errors.push("Deudor y pagos abonables válidos");
-  if (errors.length) return { errors, diasVigencia: null, diasPendientes: null, penaAntesAbonos: null, abono: null, estimacion: null };
-  const utc = (value: string) => new Date(`${value}T00:00:00Z`).getTime();
-  const diasVigencia = (utc(data.fin as string) - utc(data.inicio as string)) / 86400000 + 1;
-  const diasPendientes = (utc(data.fin as string) - utc(termination)) / 86400000;
-  const pena = new Decimal(base.basePena!).mul(diasPendientes).div(diasVigencia).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
-  const abono = debtor === "cliente" ? Decimal.min(pena, paid) : new Decimal(0);
-  return { errors, diasVigencia, diasPendientes, penaAntesAbonos: pena.toNumber(), abono: abono.toNumber(), estimacion: pena.minus(abono).toNumber() };
-}
+// La cláusula novena del Word del titular (26/10/2026) ya no prorratea la pena por días: queda el máximo
+// (el menor entre el importe pactado y la comisión sin IVA) sujeto a reducción por cumplimiento parcial.
 
 export function validarIntermediacion(data: Record<string, unknown>): string[] {
   const errors = [...calcularIntermediacion(data).errors];
