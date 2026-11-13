@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Task } from "@/lib/tasks";
+import { operationalDate } from "@/lib/admin/operational-date";
 
 export const WORKFLOW_STAGES = ["captacion","documentacion","comercializacion","negociacion","cierre","entrega","postventa","cerrado"] as const;
 export type WorkflowStage = typeof WORKFLOW_STAGES[number];
@@ -408,7 +409,11 @@ export function addMonths(date: string, months: number) {
 /** Última entrega registrada del informe; si no hay, cuenta el último preparado (RP-88: preparado no es entregado). */
 export function lastOwnerReport(flow: Pick<OperationWorkflow, "entregasInforme"> | null | undefined, prepared?: string | null): string | undefined {
  const delivered = (flow?.entregasInforme ?? []).map(e => e.fecha).sort().at(-1);
- return delivered ?? prepared?.slice(0, 10) ?? undefined;
+ if (delivered) return delivered;
+ if (!prepared) return undefined;
+ // C-12: un instante (updated_at, en UTC) se fecha con el día de Tijuana; una fecha sola se respeta.
+ const instant = prepared.length > 10 ? new Date(prepared) : null;
+ return instant && !Number.isNaN(instant.getTime()) ? operationalDate(instant) : prepared.slice(0, 10);
 }
 export function ownerReportStatus(lastReport: string | null | undefined, today: string): { estado: "al_dia" | "vencido" | "sin_informe"; proximo?: string } {
  if (!lastReport) return { estado: "sin_informe" };
