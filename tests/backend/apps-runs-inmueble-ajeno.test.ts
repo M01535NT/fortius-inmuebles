@@ -52,3 +52,11 @@ it("el asesor dueño guarda un trabajo ligado a su inmueble", async () => {
 it("otro asesor también puede guardar un trabajo ligado a ese inmueble (la ficha comercial lo admite)", async () => {
   await expect(guardar(own)).resolves.toBeTruthy();
 });
+
+it("un inmueble que no existe sigue sin poder ligarse", async () => {
+  await db.exec("set role authenticated");
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)", [own]);
+  try {
+    await expect(db.query("insert into public.fortius_inmuebles_app_runs(slug,title,input,context) values ('ficha-comercial','Ficha de ensayo','{}'::jsonb,'{\"inmuebleId\":\"no-existe\"}'::jsonb)")).rejects.toThrow(/Inmueble no disponible/);
+  } finally { await db.exec("reset role"); }
+});
