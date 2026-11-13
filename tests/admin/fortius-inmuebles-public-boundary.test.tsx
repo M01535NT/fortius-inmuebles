@@ -41,6 +41,9 @@ test("proxy overwrites spoofed path headers, emits a fresh nonce CSP and hardeni
   expect(response.headers.get("x-frame-options")).toBe("DENY");
   expect(response.headers.get("x-content-type-options")).toBe("nosniff");
   expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+  const permissions = response.headers.get("permissions-policy") ?? "";
+  for (const feature of ["camera=()", "microphone=()", "geolocation=()", "payment=()"]) expect(permissions).toContain(feature);
+  expect(response.headers.get("cross-origin-opener-policy")).toBe("same-origin-allow-popups");
 });
 
 test("admin root layout and metadata never query the public backend", async () => {
