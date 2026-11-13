@@ -66,7 +66,7 @@ it("usa el folio autorizado del expediente al emitir, aunque el borrador conteng
 
 it("bloquea un formato cuyo original aún no fue cotejado", async () => {
   const id = "51000000-0000-4000-8000-000000000011";
-  const client = { from: vi.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id, expediente_id: "51000000-0000-4000-8000-000000000010", formato_id: "09", data: {}, version: 1 }, error: null }) }) }) })) };
+  const client = { from: vi.fn(() => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id, expediente_id: "51000000-0000-4000-8000-000000000010", formato_id: "03", data: {}, version: 1 }, error: null }) }) }) })) };
   requireStaff.mockResolvedValue({ client, user: { id: "51000000-0000-4000-8000-000000000002", role: "editor" } });
   createServerClient.mockClear();
   const response = await POST(emitRequest(id), { params: Promise.resolve({ id }) });

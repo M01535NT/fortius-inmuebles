@@ -6,7 +6,7 @@ import { BLANK, dinero, fecha, filas, v, type Block, type Documento } from "./mo
 /*
   09 · Contrato de intermediación inmobiliaria para venta, con el texto, las condiciones
   particulares y las cláusulas de la plantilla (Metodología/09...docx), en estilo contrato.
-  Su PDF sigue bloqueado hasta cotejar el modelo registrado; este documento sirve para el Word.
+  El Word del titular del 26/10/2026 es el modelo (DOC-09, 12/11/2026); este documento arma su PDF.
   Captura sobre el documento (EXT-12, 29/10/2026): cada renglón de las condiciones particulares,
   la cláusula del aviso, la de registro y las firmas dicen qué campos las llenan. Los datos de
   control que el contrato no imprime (licencia, modelo estatal, soportes fiscales y del
@@ -79,7 +79,7 @@ export function intermediacionDocumento(d: Data): Documento {
     ...clauses,
     { kind: "center", text: "Firmas" },
     { kind: "p", zona: { keys: ["lugar", "fecha"], label: "Lugar y fecha de firma" }, text: `Leído este contrato, las partes lo firman en ${v(d.lugar)}, Baja California, el ${fecha(d.fecha)}.` },
-    { kind: "signatures", zona: { keys: [...CLIENTES, "firmantePrestador", "calidadFirmaPrestador"], label: "Firmas" }, parties: [
+    { kind: "signatures", line: true, zona: { keys: [...CLIENTES, "firmantePrestador", "calidadFirmaPrestador"], label: "Firmas" }, parties: [
       { role: "CLIENTE", name: clientes.length ? clientes.map(c => `${v(c.firmante ?? c.nombre)}${c.calidadFirma ? `, ${String(c.calidadFirma)}` : ""}`).join("\n") : BLANK },
       { role: "PRESTADOR", name: `${v(d.firmantePrestador ?? d.prestador)}${d.calidadFirmaPrestador ? `, ${String(d.calidadFirmaPrestador)}` : ""}` },
     ] },
