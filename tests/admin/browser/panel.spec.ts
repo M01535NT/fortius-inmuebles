@@ -171,62 +171,9 @@ for (const width of [375, 768]) {
     },
   );
 }
-test("real browser forms retain failed drafts and reload acknowledged notes", async ({
-  page,
-}) => {
-  let fail = true;
-  let note: Record<string, unknown> | null = null;
-  await page.route("**/api/admin/collections/notas**", async (route) => {
-    if (route.request().method() === "PUT") {
-      if (fail)
-        return route.fulfill({
-          status: 503,
-          json: { error: "No se guardó la nota" },
-        });
-      note = route.request().postDataJSON().data;
-      return route.fulfill({
-        json: {
-          record: {
-            id: note!.id,
-            data: note,
-            version: 1,
-            createdAt: "2026-09-03",
-            updatedAt: "2026-09-03",
-          },
-        },
-      });
-    }
-    return route.fulfill({
-      json: {
-        records: note
-          ? [
-              {
-                id: note.id,
-                data: note,
-                version: 1,
-                createdAt: "2026-09-03",
-                updatedAt: "2026-09-03",
-              },
-            ]
-          : [],
-      },
-    });
-  });
+test("la dirección anterior del tablero de notas lleva a Hoy (DEC-42)", async ({ page }) => {
+  // DEC-42 (12/11/2026): se retiró el tablero de notas sueltas; las notas viven en el inmueble y la operación.
   await page.goto("/admin/notas");
-  await page.getByLabel("Título", { exact: true }).fill("Acuerdo registrado");
-  await page.getByRole("textbox", { name: "Contenido", exact: true }).fill("Seguimiento real");
-  await page.getByRole("button", { name: "Nueva nota" }).click();
-  await expect(page.getByRole("main").getByRole("alert")).toContainText(
-    "No se guardó",
-  );
-  await expect(page.getByLabel("Título", { exact: true })).toHaveValue(
-    "Acuerdo registrado",
-  );
-  fail = false;
-  await page.getByRole("button", { name: "Nueva nota" }).click();
-  await expect(page.getByLabel("Título", { exact: true })).toHaveValue("");
-  await page.reload();
-  await expect(page.getByLabel("Título de la nota")).toHaveValue(
-    "Acuerdo registrado",
-  );
+  await expect(page).toHaveURL(/\/admin\/?$/);
+  await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
 });

@@ -169,18 +169,6 @@ export function FullscreenMenu({ open, onClose }: Props) {
           </button>
         </header>
         <div className={styles.body}>
-          {/* «Hablemos» va primero: en celular queda arriba, sin bajar dos pantallas (12/11/2026). */}
-          <section className={styles.aside} data-menu-item aria-label="Contacto con Fortius">
-            <h2 className={styles.title}>Hablemos</h2>
-            {contact.whatsapp && <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" onClick={onClose} className={styles.channel}>WhatsApp {contact.whatsappLabel}</a>}
-            {contact.emailHref && <a href={contact.emailHref} onClick={onClose} className={styles.channel}>{contact.email}</a>}
-            {contact.messenger && <a href={contact.messenger} target="_blank" rel="noopener noreferrer" onClick={onClose} className={styles.channel}>Messenger</a>}
-            {contact.phoneHref && <a href={contact.phoneHref} onClick={onClose} className={styles.channel}>Teléfono {contact.phone}</a>}
-            {settings?.horario?.trim() && <p className={styles.hours}>{settings.horario}</p>}
-            <Link href="/vender-propiedad" prefetch={open ? null : false} onClick={onClose} className={styles.primary}>Quiero vender</Link>
-            <Link href={directHref} prefetch={false} onClick={onClose} className={styles.direct}>Contacto directo <ArrowRight size={16} aria-hidden="true" /></Link>
-            <ThemeToggle className={styles.square} />
-          </section>
           <nav aria-label="Menú principal" className={styles.columns}>
             {COLUMNS.map((column) => (
               <section key={column.title} data-menu-item aria-label={column.title}>
@@ -196,6 +184,19 @@ export function FullscreenMenu({ open, onClose }: Props) {
               </section>
             ))}
           </nav>
+          {/* «Hablemos» va después del menú en el orden del teclado, igual que se ve en escritorio (columna derecha);
+              en celular el CSS lo sube arriba, sin bajar dos pantallas (12/11/2026). */}
+          <section className={styles.aside} data-menu-item aria-label="Contacto con Fortius">
+            <h2 className={styles.title}>Hablemos</h2>
+            {contact.whatsapp && <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" onClick={onClose} className={styles.channel}>WhatsApp {contact.whatsappLabel}</a>}
+            {contact.emailHref && <a href={contact.emailHref} onClick={onClose} className={styles.channel}>{contact.email}</a>}
+            {contact.messenger && <a href={contact.messenger} target="_blank" rel="noopener noreferrer" onClick={onClose} className={styles.channel}>Messenger</a>}
+            {contact.phoneHref && <a href={contact.phoneHref} onClick={onClose} className={styles.channel}>Teléfono {contact.phone}</a>}
+            {settings?.horario?.trim() && <p className={styles.hours}>{settings.horario}</p>}
+            <Link href="/vender-propiedad" prefetch={open ? null : false} onClick={onClose} className={styles.primary}>Quiero vender</Link>
+            <Link href={directHref} prefetch={false} onClick={onClose} className={styles.direct}>Contacto directo <ArrowRight size={16} aria-hidden="true" /></Link>
+            <ThemeToggle className={styles.square} />
+          </section>
         </div>
       </div>
     </div>
