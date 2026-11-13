@@ -30,10 +30,10 @@ const post: Post = {
 };
 
 describe("datos de la empresa", () => {
-  test("solo emite el contacto y las redes capturadas", () => {
+  test("solo emite el contacto capturado y ninguna red", () => {
     const org = organizationLd(settings);
     expect(org).toMatchObject({ "@type": "RealEstateAgent", "@id": ORG_ID, telephone: settings.telefono, email: settings.email });
-    expect(org.sameAs).toEqual([settings.instagram]);
+    expect(org).not.toHaveProperty("sameAs");
     expect(org.address).toEqual({ "@type": "PostalAddress", addressLocality: "Tijuana", addressRegion: "Baja California", addressCountry: "MX" });
     expect(org).not.toHaveProperty("streetAddress");
   });
@@ -44,6 +44,21 @@ describe("datos de la empresa", () => {
     expect(org).not.toHaveProperty("telephone");
     expect(org).not.toHaveProperty("email");
     expect(org).not.toHaveProperty("sameAs");
+  });
+
+  test("negocio de área de servicio: sin calle ni código postal, con los municipios que atiende", () => {
+    const org = organizationLd(settings);
+    expect(JSON.stringify(org)).not.toMatch(/streetAddress|postalCode|geo/);
+    expect(org.areaServed).toEqual(["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"].map((name) => ({ "@type": "City", name })));
+  });
+
+  test("publica el horario de lunes a viernes de 9:00 a 18:00", () => {
+    expect(organizationLd(null).openingHoursSpecification).toEqual([{
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => `https://schema.org/${day}`),
+      opens: "09:00",
+      closes: "18:00",
+    }]);
   });
 
   test("el sitio apunta a la empresa", () => {

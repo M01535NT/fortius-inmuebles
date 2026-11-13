@@ -21,16 +21,13 @@ afterEach(() => {
   cleanup();
   request.mockReset();
 });
-test("clicking the current history tab does not leave a permanent spinner", async () => {
+test("NAV-13: lo eliminado ya no se recupera aquí; el historial lleva a la papelera única", async () => {
   request.mockResolvedValue({ entries: [], hasMore: false });
   render(<HistoryPage />);
-  await waitFor(() =>
-    expect(screen.queryByText("Cargando historial…")).toBeNull(),
-  );
-  fireEvent.click(
-    screen.getByRole("radio", { name: "Actividad" }),
-  );
-  expect(screen.queryByText("Cargando historial…")).toBeNull();
+  await waitFor(() => expect(screen.queryByText("Cargando historial…")).toBeNull());
+  expect(screen.queryByRole("radio", { name: "Recuperar eliminados" })).toBeNull();
+  expect(screen.getByRole("link", { name: "Ver eliminados" }).getAttribute("href")).toBe("/admin/papelera");
+  expect(request).toHaveBeenCalledWith(expect.stringContaining("deleted=0"));
 });
 test("successful history retry clears the obsolete error", async () => {
   request

@@ -1,10 +1,10 @@
 /* Una operación (bocetos aprobados, 17/10/2026). Prefijo :global(.admin-root): ver kit.module.css. */
-:global(.admin-root) .mono { font-variant-numeric: tabular-nums; font-size: .75rem; color: var(--muted-foreground); }
+:global(.admin-root) .mono { font-variant-numeric: tabular-nums; font-size: var(--admin-text-minimo); color: var(--muted-foreground); }
 :global(.admin-root) .lateText { color: var(--alert) !important; font-weight: 600; }
 /* Operación guiada */
-:global(.admin-root) .tag { padding: .0625rem .5rem; border-radius: 6px; background: var(--secondary); font-size: .75rem; font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .tag { padding: .0625rem .5rem; border-radius: 6px; background: var(--secondary); font-size: var(--admin-text-minimo); font-weight: 600; color: var(--muted-foreground); }
 :global(.admin-root) .states { display: flex; flex-wrap: wrap; gap: .5rem; }
-:global(.admin-root) .state { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.5rem; padding: 0 .875rem; border-radius: 999px; border: 1px solid var(--edge-soft); background: var(--card); color: var(--muted-foreground); font-size: .8125rem; font-weight: 600; cursor: pointer; }
+:global(.admin-root) .state { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.5rem; padding: 0 .875rem; border-radius: 999px; border: 1px solid var(--edge-soft); background: var(--card); color: var(--muted-foreground); font-size: var(--admin-text-pastilla); font-weight: 600; cursor: pointer; }
 :global(.admin-root) .state:hover:not(:disabled) { border-color: var(--control-edge); color: var(--foreground); }
 :global(.admin-root) .state:disabled { cursor: not-allowed; opacity: .55; }
 :global(.admin-root) .state[aria-checked=true] { color: var(--foreground); border-color: var(--foreground); box-shadow: inset 0 0 0 1px var(--foreground); }
@@ -16,7 +16,7 @@
 :global(.admin-root) .option:has(input:checked) { border-color: var(--primary-edge); box-shadow: inset 0 0 0 1px var(--primary-edge); background: var(--panel-selected); }
 :global(.admin-root) .option input { width: 1.25rem; height: 1.25rem; flex: none; accent-color: var(--primary); }
 :global(.admin-root) .linkButton { align-self: flex-start; border: 0; background: none; padding: .5rem 0; color: var(--foreground); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-:global(.admin-root) .more summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; font-weight: 650; border-top: 1px solid var(--border); padding-top: .75rem; }
+:global(.admin-root) .more summary { cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; font-weight: 620; border-top: 1px solid var(--border); padding-top: .75rem; }
 :global(.admin-root) .layout { display: grid; gap: 1rem; align-items: start; }
 @media (min-width: 1440px) { :global(.admin-root) .layout { grid-template-columns: minmax(0, 1fr) 19rem; gap: 1.25rem; } }
 
@@ -28,14 +28,14 @@
 :global(.admin-root) .hero:not([data-photo]) .heroScrim { background: radial-gradient(120% 90% at 100% 0%, rgba(138, 22, 52, .35) 0%, transparent 55%); }
 :global(.admin-root) .heroTop, :global(.admin-root) .heroBottom { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 :global(.admin-root) .heroBottom { align-items: flex-end; justify-content: space-between; gap: 1rem; }
-:global(.admin-root) .heroAction { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.5rem; padding: 0 .875rem; border-radius: var(--radius-pill); background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25); color: #fff; font-size: .875rem; font-weight: 540; text-decoration: none; }
+:global(.admin-root) .heroAction { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.5rem; padding: 0 .875rem; border-radius: var(--radius-pill); background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25); color: #fff; font-size: var(--admin-text-detalle); font-weight: 540; text-decoration: none; }
 :global(.admin-root) .heroAction:hover { background: rgba(255, 255, 255, .26); }
 :global(.admin-root) .heroActionSolid { background: #fff; border-color: #fff; color: #061f3f; }
 :global(.admin-root) .heroActionSolid:hover { background: #f3f6fc; }
-:global(.admin-root) .heroTitle { margin: 0; font-size: clamp(1.625rem, 2.8vw, 2.375rem); line-height: 1.05; font-weight: 620; letter-spacing: -.025em; color: #fff; overflow-wrap: anywhere; text-wrap: balance; }
-:global(.admin-root) .heroFacts { margin: .5rem 0 0; font-size: .9375rem; color: rgba(255, 255, 255, .86); overflow-wrap: anywhere; }
-:global(.admin-root) .phases { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .3125rem; list-style: none; border-radius: var(--radius-card); background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2); }
-:global(.admin-root) .phases span { display: block; padding: .375rem .75rem; border-radius: var(--radius-control); background: #fff; color: #061f3f; font-size: .875rem; font-weight: 600; }
+:global(.admin-root) .heroTitle { margin: 0; font-size: var(--admin-text-pantalla); line-height: 1.05; font-weight: 620; letter-spacing: -.025em; color: #fff; overflow-wrap: anywhere; text-wrap: balance; }
+:global(.admin-root) .heroFacts { margin: .5rem 0 0; font-size: var(--admin-text-interfaz); color: rgba(255, 255, 255, .86); overflow-wrap: anywhere; }
+:global(.admin-root) .phases { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .25rem; list-style: none; border-radius: var(--radius-card); background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2); }
+:global(.admin-root) .phases span { display: block; padding: .375rem .75rem; border-radius: var(--radius-control); background: #fff; color: #061f3f; font-size: var(--admin-text-detalle); font-weight: 600; }
 
 /* Cuerpo: etapas y secciones a la izquierda, el contenido al centro. */
 :global(.admin-root) .body { display: grid; gap: 1rem; align-items: start; }
@@ -50,10 +50,10 @@
 :global(.admin-root) .timeline { position: relative; display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .timeline::before { content: ""; position: absolute; left: 1.375rem; top: .875rem; bottom: .875rem; width: 2px; background: var(--track); }
 :global(.admin-root) .timelineItem { position: relative; }
-:global(.admin-root) .stageLink { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 2.5rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-control); background: none; color: var(--muted-foreground); font: inherit; font-size: .875rem; font-weight: 500; text-align: left; cursor: default; }
+:global(.admin-root) .stageLink { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 2.5rem; padding: 0 .75rem; border: 0; border-radius: var(--radius-control); background: none; color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-detalle); font-weight: 540; text-align: left; cursor: default; }
 :global(.admin-root) button.stageLink { cursor: pointer; }
 :global(.admin-root) button.stageLink:hover { background: var(--secondary); color: var(--foreground); }
-:global(.admin-root) .timelineItem[data-state=now] .stageLink { min-height: 2.75rem; background: var(--panel-selected); color: var(--panel-selected-ink); font-size: .9375rem; font-weight: 600; }
+:global(.admin-root) .timelineItem[data-state=now] .stageLink { min-height: 2.75rem; background: var(--panel-selected); color: var(--panel-selected-ink); font-size: var(--admin-text-interfaz); font-weight: 600; }
 :global(.admin-root) .timelineItem[data-state=done] .stageLink { color: var(--foreground); }
 :global(.admin-root) .timelineItem[data-state=warn] .stageLink { color: var(--foreground); }
 :global(.admin-root) .stageName { min-width: 0; flex: 1; overflow-wrap: anywhere; }
@@ -62,22 +62,22 @@
 /* Boceto C (17/10/2026): operación guiada con «Ahora toca», avance numerado y ventana de captura. */
 :global(.admin-root) .track { display: flex; flex-direction: column; gap: .75rem; padding: .875rem .75rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); }
 :global(.admin-root) .trackCompact { flex-direction: row; align-items: center; gap: .75rem; width: 100%; padding: .75rem 1rem; color: var(--foreground); font: inherit; cursor: pointer; }
-:global(.admin-root) .stageBadge, :global(.admin-root) .formatBadge { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; height: 2.75rem; padding: 0 .375rem; border-radius: 10px; background: var(--panel-selected); color: var(--panel-selected-ink); font-variant-numeric: tabular-nums; font-size: .875rem; font-weight: 500; }
+:global(.admin-root) .stageBadge, :global(.admin-root) .formatBadge { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; height: 2.75rem; padding: 0 .375rem; border-radius: 10px; background: var(--panel-selected); color: var(--panel-selected-ink); font-variant-numeric: tabular-nums; font-size: var(--admin-text-detalle); font-weight: 540; }
 :global(.admin-root) .dots { display: flex; align-items: center; gap: .5rem; margin: 0; padding: 0; list-style: none; }
-:global(.admin-root) .dot { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; height: 1.25rem; border-radius: 999px; border: 2px solid var(--edge-soft); background: var(--card); color: var(--muted-foreground); font-size: .6875rem; font-weight: 700; flex: none; box-sizing: border-box; }
+:global(.admin-root) .dot { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; height: 1.25rem; border-radius: 999px; border: 2px solid var(--edge-soft); background: var(--card); color: var(--muted-foreground); font-size: var(--admin-text-minimo); font-weight: 620; flex: none; box-sizing: border-box; }
 :global(.admin-root) .dot[data-state=done] { background: var(--primary); border-color: var(--primary); color: #fff; }
 :global(.admin-root) .dot[data-state=now] { background: var(--card); border-color: var(--primary); }
 :global(.admin-root) .dot[data-state=warn] { background: var(--warning-surface); border-color: var(--warning); color: var(--warning); }
 :global(.admin-root) .dotButton { display: inline-flex; padding: 0; border: 0; background: none; border-radius: 999px; cursor: pointer; }
 :global(.admin-root) .dotButton:hover .dot { border-color: var(--control-edge); }
-:global(.admin-root) .gapNotice { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .625rem; padding: .5rem .75rem; border-radius: var(--radius-control); border: 1px solid var(--warning-border); background: var(--warning-surface); font-size: .8125rem; }
+:global(.admin-root) .gapNotice { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .625rem; padding: .5rem .75rem; border-radius: var(--radius-control); border: 1px solid var(--warning-border); background: var(--warning-surface); font-size: var(--admin-text-pastilla); }
 :global(.admin-root) .gapNotice > svg { color: var(--warning); flex: none; }
-:global(.admin-root) .gapAction { flex: none; min-height: 2.75rem; padding: 0 .25rem; border: 0; background: none; color: var(--foreground); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+:global(.admin-root) .gapAction { flex: none; min-height: 2.75rem; padding: 0 .25rem; border: 0; background: none; color: var(--foreground); font-weight: 620; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 :global(.admin-root) .stageCard { padding: 1.5rem 1.25rem; border-radius: var(--radius-panel); }
 @media (min-width: 640px) { :global(.admin-root) .stageCard { padding: 1.75rem 2rem 1.75rem; } }
 :global(.admin-root) .finish { display: flex; flex-direction: column; gap: .25rem; margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-:global(.admin-root) .why summary { cursor: pointer; min-height: 2.75rem; display: inline-flex; align-items: center; font-size: .875rem; font-weight: 600; color: var(--muted-foreground); }
-:global(.admin-root) .group { margin: 1rem 0 .25rem; font-size: .8125rem; font-weight: 650; color: var(--muted-foreground); }
+:global(.admin-root) .why summary { cursor: pointer; min-height: 2.75rem; display: inline-flex; align-items: center; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .group { margin: 1rem 0 .25rem; font-size: var(--admin-text-pastilla); font-weight: 620; color: var(--muted-foreground); }
 :global(.admin-root) .items { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .item { display: flex; flex-direction: column; gap: .5rem; padding: .875rem 0; border-top: 1px solid var(--border); scroll-margin-top: 6rem; }
 :global(.admin-root) .item:focus { outline: none; }
@@ -89,24 +89,24 @@
 :global(.admin-root) .iconDone { flex: none; color: var(--success); }
 :global(.admin-root) .iconWarn { flex: none; color: var(--warning); }
 :global(.admin-root) .iconIdle { flex: none; color: var(--control-edge); }
-:global(.admin-root) .nowTag { display: inline-flex; align-items: center; min-height: 1.625rem; padding: 0 .625rem; border-radius: 999px; background: var(--panel-selected); color: var(--panel-selected-ink); font-size: .8125rem; font-weight: 650; }
+:global(.admin-root) .nowTag { display: inline-flex; align-items: center; min-height: 1.625rem; padding: 0 .625rem; border-radius: 999px; background: var(--panel-selected); color: var(--panel-selected-ink); font-size: var(--admin-text-pastilla); font-weight: 620; }
 :global(.admin-root) .advance { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; padding: .875rem 1rem; border-radius: 10px; background: var(--secondary); }
-:global(.admin-root) .avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 999px; background: var(--secondary); font-size: .8125rem; font-weight: 700; }
+:global(.admin-root) .avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 999px; background: var(--secondary); font-size: var(--admin-text-pastilla); font-weight: 620; }
 :global(.admin-root) .nextTask { display: flex; gap: .875rem; }
-:global(.admin-root) .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .375rem 1rem; font-size: .9375rem; }
+:global(.admin-root) .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .375rem 1rem; font-size: var(--admin-text-interfaz); }
 :global(.admin-root) .facts dt { color: var(--muted-foreground); }
-:global(.admin-root) .meaning summary { cursor: pointer; min-height: 3rem; display: flex; align-items: center; font-weight: 650; }
+:global(.admin-root) .meaning summary { cursor: pointer; min-height: 3rem; display: flex; align-items: center; font-weight: 620; }
 
 /* Panel «Ver etapas» */
-:global(.admin-root) .groupTitle { margin: .75rem 0 .25rem; font-size: .75rem; font-weight: 650;  color: var(--muted-foreground); }
+:global(.admin-root) .groupTitle { margin: .75rem 0 .25rem; font-size: var(--admin-text-minimo); font-weight: 620;  color: var(--muted-foreground); }
 :global(.admin-root) .stageRow { display: flex; align-items: center; gap: .75rem; min-height: 2.75rem; margin: 0; padding: 0 .625rem; border-radius: 10px; font-weight: 600; scroll-margin-top: 1rem; }
 :global(.admin-root) .stageRow[data-state=now] { background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .stageRow[data-state=next] { color: var(--muted-foreground); font-weight: 500; }
+:global(.admin-root) .stageRow[data-state=next] { color: var(--muted-foreground); font-weight: 540; }
 :global(.admin-root) .stageRow:focus { outline: none; }
 :global(.admin-root) .stageRow:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 :global(.admin-root) .stageDocs { display: flex; flex-direction: column; margin: 0 0 .5rem 1.5rem; padding: 0 0 0 1rem; list-style: none; border-left: 1px solid var(--border); }
-:global(.admin-root) .stageDoc { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; font-size: .875rem; }
-:global(.admin-root) .docLink { flex: none; min-height: 2.75rem; padding: 0 .375rem; border: 0; background: none; color: var(--foreground); font: inherit; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; display: inline-flex; align-items: center; }
+:global(.admin-root) .stageDoc { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; font-size: var(--admin-text-detalle); }
+:global(.admin-root) .docLink { flex: none; min-height: 2.75rem; padding: 0 .375rem; border: 0; background: none; color: var(--foreground); font: inherit; font-weight: 620; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; display: inline-flex; align-items: center; }
 :global(.admin-root) .docLink:hover { text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .docLink:disabled { opacity: .55; cursor: not-allowed; }
 
@@ -116,25 +116,25 @@
 @media (min-width: 1024px) {
   :global(.admin-root) .window { inset: 1.5rem; max-width: 1360px; margin: 0 auto; border-radius: var(--radius-panel); border: 1px solid var(--card-edge); box-shadow: var(--shadow-raised); overflow: hidden; }
 }
-:global(.admin-root) .formatBadge { min-width: 3rem; height: 3rem; font-size: 1rem; background: #061f3f; color: #fff; border-radius: var(--radius-thumb); font-weight: 700; }
+:global(.admin-root) .formatBadge { min-width: 3rem; height: 3rem; font-size: var(--admin-text-cuerpo); background: #061f3f; color: #fff; border-radius: var(--radius-thumb); font-weight: 620; }
 :global(.admin-root) .sectionsNav { width: 17rem; flex: none; flex-direction: column; border-right: 1px solid var(--border); background: color-mix(in srgb, var(--canvas) 60%, var(--card)); }
 :global(.admin-root) .sectionsProgress { display: flex; align-items: center; gap: .75rem; padding: 1rem 1rem .75rem; }
-:global(.admin-root) .sectionTitle { margin: 0; font-size: 1.625rem; line-height: 1.15; font-weight: 620; letter-spacing: -.02em; }
-:global(.admin-root) .pill { display: inline-flex; align-items: center; min-height: 1.75rem; padding: 0 .75rem; border-radius: 999px; font-size: .8125rem; font-weight: 650; white-space: nowrap; }
+:global(.admin-root) .sectionTitle { margin: 0; font-size: var(--admin-text-seccion); line-height: 1.15; font-weight: 620; letter-spacing: -.02em; }
+:global(.admin-root) .pill { display: inline-flex; align-items: center; min-height: 1.75rem; padding: 0 .75rem; border-radius: 999px; font-size: var(--admin-text-pastilla); font-weight: 620; white-space: nowrap; }
 :global(.admin-root) .pillDraft { background: var(--secondary); color: var(--foreground); }
 :global(.admin-root) .pillDone { background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .windowTab { display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font: inherit; font-size: .9375rem; font-weight: 600; cursor: pointer; }
+:global(.admin-root) .windowTab { display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding: 0 .875rem; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-interfaz); font-weight: 600; cursor: pointer; }
 :global(.admin-root) .windowTab[aria-selected=true] { color: var(--foreground); border-bottom-color: var(--primary); }
-:global(.admin-root) .sectionLink { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: var(--foreground); font: inherit; font-size: .9375rem; text-align: left; cursor: pointer; }
+:global(.admin-root) .sectionLink { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: var(--foreground); font: inherit; font-size: var(--admin-text-interfaz); text-align: left; cursor: pointer; }
 :global(.admin-root) .sectionLink:hover:not(:disabled) { background: var(--secondary); }
-:global(.admin-root) .sectionLink[aria-current=step] { background: var(--panel-selected); color: var(--panel-selected-ink); font-weight: 650; }
-:global(.admin-root) .sectionNumber { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.375rem; height: 1.375rem; border-radius: 999px; border: 1px solid var(--edge-soft); font-variant-numeric: tabular-nums; font-size: .6875rem; }
+:global(.admin-root) .sectionLink[aria-current=step] { background: var(--panel-selected); color: var(--panel-selected-ink); font-weight: 620; }
+:global(.admin-root) .sectionNumber { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.375rem; height: 1.375rem; border-radius: 999px; border: 1px solid var(--edge-soft); font-variant-numeric: tabular-nums; font-size: var(--admin-text-minimo); }
 :global(.admin-root) .sectionLink[aria-current=step] .sectionNumber { background: var(--primary); border-color: var(--primary); color: #fff; }
 :global(.admin-root) .sectionDone { flex: none; color: var(--success); }
-:global(.admin-root) .asideLabel { font-size: .75rem; font-weight: 600;  color: var(--muted-foreground); }
+:global(.admin-root) .asideLabel { font-size: var(--admin-text-minimo); font-weight: 600;  color: var(--muted-foreground); }
 /* «Ahora toca» se lee primero: su título es más grande que los de las tarjetas. */
-:global(.admin-root) .nowTitle { margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 620; letter-spacing: -.02em; overflow-wrap: anywhere; }
-@media (min-width: 640px) { :global(.admin-root) .nowTitle { font-size: 1.75rem; } }
+:global(.admin-root) .nowTitle { margin: 0; font-size: var(--admin-text-seccion); line-height: 1.2; font-weight: 620; letter-spacing: -.02em; overflow-wrap: anywhere; }
+@media (min-width: 640px) { :global(.admin-root) .nowTitle { font-size: var(--admin-text-seccion); } }
 
 /* ---------- Una operación, boceto D «Moderno» (LV-06, 31/10/2026) ---------- */
 /* El pie reserva el alto real de la barra flotante (`--op-float`, lo publica next-step.tsx) más su margen (C36). */
@@ -157,26 +157,26 @@
 :global(.admin-root) .onNavyMuted { color: rgba(255, 255, 255, .7); }
 :global(.dark) :global(.admin-root) .onNavyMuted { color: var(--muted-foreground); }
 :global(.admin-root) .menu { position: absolute; right: 0; top: calc(100% + .375rem); z-index: 5; min-width: 13rem; padding: .375rem; border-radius: 14px; background: var(--card); color: var(--foreground); border: 1px solid var(--card-edge); box-shadow: var(--shadow-raised); }
-:global(.admin-root) .menuItem { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-weight: 560; text-align: left; cursor: pointer; }
+:global(.admin-root) .menuItem { display: flex; width: 100%; align-items: center; gap: .625rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-weight: 540; text-align: left; cursor: pointer; }
 :global(.admin-root) .menuItem:hover { background: var(--secondary); }
-:global(.admin-root) .who { font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; }
+:global(.admin-root) .who { font-size: var(--admin-text-cuerpo); line-height: 1.35; overflow-wrap: anywhere; }
 :global(.admin-root) .whoName { display: inline; margin: 0; font: inherit; font-weight: 600; }
 :global(.admin-root) .whoLink { color: inherit; text-decoration: none; }
 :global(.admin-root) .whoLink:hover { text-decoration: underline; text-underline-offset: 4px; }
 :global(.admin-root) .stageHead { display: flex; flex-direction: column; gap: .25rem; }
 :global(.admin-root) .bigRow { display: flex; align-items: flex-end; gap: .625rem; }
-:global(.admin-root) .bigNum { font-size: clamp(4.5rem, 10vw, 9.5rem); line-height: .82; font-weight: 700; letter-spacing: -.04em; font-variation-settings: "wdth" 62; font-variant-numeric: tabular-nums; }
-:global(.admin-root) .ofTen { padding-bottom: .375rem; font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1; font-weight: 300; opacity: .5; font-variation-settings: "wdth" 62; }
-:global(.admin-root) .stageTitle { margin: .5rem 0 0; font-size: clamp(1.375rem, 2.4vw, 2rem); line-height: 1.05; font-weight: 600; letter-spacing: -.02em; font-variation-settings: "wdth" 80; text-wrap: balance; }
+:global(.admin-root) .bigNum { font-size: var(--admin-text-cifra-grande); line-height: .82; font-weight: 620; letter-spacing: -.04em; font-variation-settings: "wdth" 62; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .ofTen { padding-bottom: .375rem; font-size: var(--admin-text-cifra); line-height: 1; font-weight: 400; opacity: .5; font-variation-settings: "wdth" 62; }
+:global(.admin-root) .stageTitle { margin: .5rem 0 0; font-size: var(--admin-text-pantalla); line-height: 1.05; font-weight: 600; letter-spacing: -.02em; font-variation-settings: "wdth" 80; text-wrap: balance; }
 :global(.admin-root) .navyCompact .bigNum { font-size: 4rem; }
 :global(.admin-root) .navyCompact .ofTen { font-size: 1.375rem; }
-:global(.admin-root) .navyCompact .stageTitle { font-size: 1.25rem; }
+:global(.admin-root) .navyCompact .stageTitle { font-size: var(--admin-text-seccion); }
 /* Las diez etapas como barras */
-:global(.admin-root) .stages { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: .8125rem; }
+:global(.admin-root) .stages { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: var(--admin-text-pastilla); }
 :global(.admin-root) .stage { color: rgba(255, 255, 255, .55); }
 :global(.dark) :global(.admin-root) .stage { color: var(--muted-foreground); }
 :global(.admin-root) .stage[data-state=done], :global(.admin-root) .stage[data-state=warn] { color: rgba(255, 255, 255, .78); }
-:global(.admin-root) .stage[data-state=now] { color: #fff; font-weight: 600; font-size: .9375rem; }
+:global(.admin-root) .stage[data-state=now] { color: #fff; font-weight: 600; font-size: var(--admin-text-interfaz); }
 :global(.dark) :global(.admin-root) .stage[data-state=done], :global(.dark) :global(.admin-root) .stage[data-state=warn], :global(.dark) :global(.admin-root) .stage[data-state=now] { color: var(--foreground); }
 :global(.admin-root) .stageBtn { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); align-items: center; gap: .625rem; width: 100%; min-height: 1.875rem; padding: .125rem .25rem; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; text-align: left; }
 :global(.admin-root) button.stageBtn { cursor: pointer; }
@@ -191,7 +191,7 @@
 :global(.admin-root) .stage[data-state=now] .stageBar { width: 4.5rem; height: 6px; background: #fff; }
 :global(.dark) :global(.admin-root) .stage[data-state=now] .stageBar { background: var(--foreground); }
 :global(.admin-root) .stageLabel { min-width: 0; overflow-wrap: anywhere; }
-:global(.admin-root) .stageWarn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.125rem; height: 1.125rem; border-radius: 999px; background: #f5c26b; color: #061f3f; font-size: .6875rem; font-weight: 700; }
+:global(.admin-root) .stageWarn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.125rem; height: 1.125rem; border-radius: 999px; background: #f5c26b; color: #061f3f; font-size: var(--admin-text-minimo); font-weight: 620; }
 :global(.admin-root) .closeStepsDark { margin-left: 2.125rem; color: rgba(255, 255, 255, .8); }
 :global(.admin-root) .closeStepsDark li { color: inherit; }
 /* En celular: las etapas como una barra de diez tramos; la actual, más alta */
@@ -210,7 +210,7 @@
 :global(.admin-root) .navy .gapAction { color: #fff; }
 :global(.dark) :global(.admin-root) .navy .gapNotice { background: var(--warning-surface); border-color: var(--warning-border); color: var(--foreground); }
 :global(.dark) :global(.admin-root) .navy .gapAction { color: var(--foreground); }
-:global(.admin-root) .navyLink { display: inline-flex; align-items: center; gap: .25rem; align-self: flex-start; min-height: 2.75rem; padding: 0 .25rem; border: 0; background: none; color: inherit; font: inherit; font-weight: 560; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(255, 255, 255, .4); }
+:global(.admin-root) .navyLink { display: inline-flex; align-items: center; gap: .25rem; align-self: flex-start; min-height: 2.75rem; padding: 0 .25rem; border: 0; background: none; color: inherit; font: inherit; font-weight: 540; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(255, 255, 255, .4); }
 :global(.admin-root) .navyTabs { gap: .25rem; }
 :global(.admin-root) .navyTabs > [role=tab] { color: rgba(255, 255, 255, .78); }
 :global(.admin-root) .navyTabs > [role=tab]:hover { background: rgba(255, 255, 255, .08); }
@@ -224,8 +224,8 @@
 :global(.admin-root) .navyTop { order: -2; }
 :global(.admin-root) .who, :global(.admin-root) .owner { order: -1; }
 :global(.admin-root) .owner { margin-top: 0; }
-:global(.admin-root) .ownerAvatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 999px; background: #fff; color: #061f3f; font-size: .875rem; font-weight: 600; }
-:global(.admin-root) .ownerName { font-weight: 560; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+:global(.admin-root) .ownerAvatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 999px; background: #fff; color: #061f3f; font-size: var(--admin-text-detalle); font-weight: 600; }
+:global(.admin-root) .ownerName { font-weight: 540; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
 :global(.admin-root) .ownerName:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 /* Piezas de la etapa: rejilla de seis columnas */
@@ -243,8 +243,8 @@
 :global(.admin-root) .piece { display: flex; flex-direction: column; gap: .75rem; min-width: 0; padding: 1.25rem 1.375rem; border-radius: 22px; background: var(--card); color: var(--foreground); }
 :global(.dark) :global(.admin-root) .piece { border: 1px solid var(--card-edge); }
 :global(.admin-root) .pieceHead { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
-:global(.admin-root) .pieceTitle { margin: 0; font-size: 1.125rem; font-weight: 600; letter-spacing: -.01em; }
-:global(.admin-root) .pieceCount { flex: none; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .pieceTitle { margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; letter-spacing: -.01em; }
+:global(.admin-root) .pieceCount { flex: none; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
 :global(.admin-root) .docList { display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .docRowWrap { display: flex; align-items: center; gap: .25rem; }
 :global(.admin-root) .docRow { display: flex; flex: 1; align-items: center; gap: 1rem; min-width: 0; min-height: 3.5rem; padding: .75rem 1rem; border: 0; border-radius: 16px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -254,12 +254,12 @@
 :global(.dark) :global(.admin-root) .docRow[data-now=true] .docNum { color: var(--panel-selected-ink); }
 :global(.admin-root) .docRow:disabled { cursor: not-allowed; }
 :global(.admin-root) .docRowWait { border: 1px dashed var(--control-edge); color: var(--muted-foreground); }
-:global(.admin-root) .docNum { flex: none; min-width: 2.75rem; font-size: 2rem; line-height: 1; font-weight: 700; letter-spacing: -.03em; font-variation-settings: "wdth" 62; }
+:global(.admin-root) .docNum { flex: none; min-width: 2.75rem; font-size: var(--admin-text-cifra); line-height: 1; font-weight: 620; letter-spacing: -.03em; font-variation-settings: "wdth" 62; }
 :global(.admin-root) .docWait { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1rem; padding: .75rem 1rem; border-radius: 16px; border: 1px dashed var(--control-edge); }
 :global(.admin-root) .docChecklist { padding: .25rem .25rem 0; }
 /* Próxima tarea: roja solo si venció */
 :global(.admin-root) .taskPiece { gap: .5rem; }
-:global(.admin-root) .taskTitle { font-size: 1.125rem; line-height: 1.2; font-weight: 600; color: inherit; overflow-wrap: anywhere; text-decoration: none; }
+:global(.admin-root) .taskTitle { font-size: var(--admin-text-grupo); line-height: 1.2; font-weight: 600; color: inherit; overflow-wrap: anywhere; text-decoration: none; }
 :global(.admin-root) .taskTitle:hover { text-decoration: underline; text-underline-offset: 4px; }
 /* Vencida: superficie de alerta con borde rojo, sin bloque lleno que compita con el botón principal ni salmón en oscuro (C36, C37). */
 :global(.admin-root) .taskPiece[data-late=true] .lateText { color: var(--alert) !important; }
@@ -267,8 +267,8 @@
 /* Arriba del contenido de la etapa: las partes de la operación y el responsable (C36). */
 :global(.admin-root) .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .625rem 1rem; padding: 0 .25rem; }
 @media (max-width: 1023px) { :global(.admin-root) .foot .footTabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; } }
-:global(.admin-root) .footWho { display: inline-flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--muted-foreground); }
-:global(.admin-root) .footAvatar { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 999px; background: var(--secondary); color: var(--foreground); font-size: .6875rem; font-weight: 600; }
+:global(.admin-root) .footWho { display: inline-flex; align-items: center; gap: .5rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
+:global(.admin-root) .footAvatar { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 999px; background: var(--secondary); color: var(--foreground); font-size: var(--admin-text-minimo); font-weight: 600; }
 :global(.admin-root) .footTabs { border-bottom: 0; }
 :global(.admin-root) .footTabs > [role=tab] { min-height: 2.5rem; border-bottom: 0; border-radius: var(--radius-pill); }
 :global(.admin-root) .footTabs > [role=tab][aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
@@ -277,15 +277,15 @@
 @media (max-width: 1023px) { :global(.admin-root) .float { bottom: calc(.75rem + env(safe-area-inset-bottom, 0px)); border-radius: 22px; flex-wrap: wrap; width: calc(100% - 1.5rem); padding: .75rem .875rem; } }
 :global(.admin-root) .ring { position: relative; flex: none; display: grid; place-items: center; }
 :global(.admin-root) .ring svg { display: block; }
-:global(.admin-root) .ringText { position: absolute; font-size: .6875rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-:global(.admin-root) .floatTitle { margin: 0; font-size: 1rem; line-height: 1.2; font-weight: 600; overflow-wrap: anywhere; }
-:global(.admin-root) .floatSub { font-size: .8125rem; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .ringText { position: absolute; font-size: var(--admin-text-minimo); font-weight: 600; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .floatTitle { margin: 0; font-size: var(--admin-text-cuerpo); line-height: 1.2; font-weight: 600; overflow-wrap: anywhere; }
+:global(.admin-root) .floatSub { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); overflow-wrap: anywhere; }
 :global(.admin-root) .floatActions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
 @media (max-width: 1023px) { :global(.admin-root) .floatActions { width: 100%; } }
 @media (max-width: 1023px) {
   :global(.admin-root) .screen { padding-bottom: calc(var(--op-float, 5.5rem) + 2rem); }
   :global(.admin-root) .floatSub { display: none; }
-  :global(.admin-root) .floatTitle { font-size: .9375rem; }
+  :global(.admin-root) .floatTitle { font-size: var(--admin-text-interfaz); }
 }
 /* Miniatura del inmueble en la etapa (C37). */
 :global(.admin-root) .propertyThumb { position: relative; flex: none; display: grid; place-items: center; width: 6rem; height: 4.5rem; overflow: hidden; border-radius: var(--radius-thumb, 12px); background: var(--track); color: var(--muted-foreground); }
@@ -293,5 +293,5 @@
 
 /* COR-14: situación y condición declarada, como etiqueta sobre el azul. */
 :global(.admin-root) .navyTags { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .5rem; }
-:global(.admin-root) .navyTag { display: inline-flex; align-items: center; min-height: 1.75rem; padding: .125rem .625rem; border: 1px solid rgba(245, 241, 235, .45); border-radius: 999px; color: #F5F1EB; font-size: .8125rem; font-weight: 600; }
+:global(.admin-root) .navyTag { display: inline-flex; align-items: center; min-height: 1.75rem; padding: .125rem .625rem; border: 1px solid rgba(245, 241, 235, .45); border-radius: 999px; color: #F5F1EB; font-size: var(--admin-text-pastilla); font-weight: 600; }
 :global(.dark) :global(.admin-root) .navyTag { border-color: var(--edge-soft); color: var(--foreground); }

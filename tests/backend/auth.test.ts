@@ -8,17 +8,20 @@ import { PUT as putRoute } from "@/app/api/admin/collections/[collection]/[id]/r
 import { POST as leadRoute } from "@/app/api/leads/route";
 import { POST as uploadRoute, GET as fileRoute } from "@/app/api/admin/files/route";
 
-const state = vi.hoisted(() => ({ cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(), active: true, member: true, validPassword: true, authServiceFailure: false, password: "", recoveryFailure: false, leadFailure: false, fileMissing: false }));
+const state = vi.hoisted(() => ({ cookies: new Map<string, { value: string; options?: Record<string, unknown> }>(), active: true, member: true, validPassword: true, authServiceFailure: false, password: "", recoveryFailure: false, leadFailure: false, fileMissing: false, limited: false, limiterMissing: false, attempts: [] as string[] }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: (name: string) => state.cookies.get(name), set: (name: string, value: string, options: Record<string, unknown>) => { state.cookies.set(name, { value, options }); } }) }));
 const user = { id: "10000000-0000-4000-8000-000000000001", aud: "authenticated", role: "authenticated", email: "staff@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-09-02T12:00:00Z" };
-const token = `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url")}.${Buffer.from(JSON.stringify({ sub: user.id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url")}.test-signature`;
+const jwt = (amr: { method: string; timestamp: number }[]) => `${Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url")}.${Buffer.from(JSON.stringify({ sub: user.id, exp: Math.floor(Date.now() / 1000) + 3600, amr })).toString("base64url")}.test-signature`;
+// Sesión abierta con un enlace hace un momento; `staleToken` es una sesión de contraseña de hace un día.
+const token = jwt([{ method: "otp", timestamp: Math.floor(Date.now() / 1000) }]);
+const staleToken = jwt([{ method: "password", timestamp: Math.floor(Date.now() / 1000) - 86400 }]);
 const session = { access_token: token, refresh_token: "test-refresh-token", expires_in: 3600, token_type: "bearer", user };
 
 beforeEach(() => {
   user.user_metadata = {};
   state.cookies.clear(); state.active = true; state.member = true; state.validPassword = true; state.password = ""; state.recoveryFailure = false; state.leadFailure = false;
   state.authServiceFailure = false;
-  state.fileMissing = false;
+  state.fileMissing = false; state.limited = false; state.limiterMissing = false; state.attempts = [];
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://fortius-inmuebles-test.supabase.co"); vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-public-key");
   vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_key");
   vi.stubEnv("FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED", "true");
@@ -34,7 +37,7 @@ beforeEach(() => {
     }
     if (url.pathname === "/auth/v1/verify") return Response.json(session);
     if (url.pathname === "/auth/v1/user") {
-      if (headers.get("authorization") !== `Bearer ${token}`) return Response.json({ msg: "invalid JWT", error_code: "bad_jwt" }, { status: 401 });
+      if (headers.get("authorization") !== `Bearer ${token}` && headers.get("authorization") !== `Bearer ${staleToken}`) return Response.json({ msg: "invalid JWT", error_code: "bad_jwt" }, { status: 401 });
       if (init.method === "PUT") { const body = JSON.parse(String(init.body)); state.password = body.password; if (body.data) user.user_metadata = body.data; }
       return Response.json(user);
     }
@@ -42,6 +45,11 @@ beforeEach(() => {
     if (url.pathname === "/auth/v1/logout") return new Response(null, { status: 204 });
     if (url.pathname === "/auth/v1/recover") return state.recoveryFailure ? Response.json({ msg: "SMTP is unavailable", error_code: "unexpected_failure" }, { status: 500 }) : Response.json({});
     if (url.pathname === "/rest/v1/rpc/fortius_inmuebles_capture_lead") return state.leadFailure ? Response.json({ code: "PT429", message: "Limited" }, { status: 429 }) : Response.json("new-lead-id");
+    if (url.pathname === "/rest/v1/rpc/fortius_inmuebles_auth_attempt") {
+      state.attempts.push(JSON.parse(String(init.body)).p_key);
+      if (state.limiterMissing) return Response.json({ code: "PGRST202", message: "Could not find the function" }, { status: 404 });
+      return state.limited ? Response.json({ code: "PT429", message: "Demasiados intentos" }, { status: 429 }) : Response.json(1);
+    }
     if (url.pathname === "/rest/v1/fortius_inmuebles_records") return Response.json([]);
     if (url.pathname === "/rest/v1/fortius_inmuebles_file_uploads" && init.method === "POST") return new Response(null, { status: 201 });
     if (url.pathname.startsWith("/storage/v1/object/sign/")) return state.fileMissing
@@ -143,6 +151,25 @@ describe("real session behavior against the external transport boundary", () => 
     await expect(changePassword({ password: "short" })).rejects.toThrow();
     await expect(changePassword({ password: "new strong password" })).resolves.toEqual({ ok: true });
     expect(state.password).toBe("new strong password");
+  });
+  it("counts login and recovery attempts by fingerprint, never by raw address or email (SEG-M5)", async () => {
+    await loginWithPassword({ email: user.email, password: "a long password" }, "203.0.113.7");
+    expect(state.attempts).toHaveLength(2);
+    expect(state.attempts.every(key => /^login:(ip|email):[0-9a-f]{64}$/.test(key))).toBe(true);
+    expect(state.attempts.join(" ")).not.toMatch(/203\.0\.113\.7|staff@example/);
+    state.cookies.clear(); state.limited = true;
+    await expect(loginWithPassword({ email: user.email, password: "a long password" }, "203.0.113.7")).rejects.toMatchObject({ status: 429 });
+    expect(state.cookies.size).toBe(0);
+    await expect(requestRecovery({ email: user.email }, "https://mnt.test/admin", "203.0.113.7")).rejects.toMatchObject({ status: 429 });
+    state.limited = false; state.limiterMissing = true;
+    expect((await loginWithPassword({ email: user.email, password: "a long password" })).user.role).toBe("admin");
+  });
+  it("an old session cannot set a new password, nor a plain login be passed off as a link (SEG-B1, SEG-B2)", async () => {
+    await expect(acceptAuthCallback({ type: "recovery", access_token: staleToken, refresh_token: session.refresh_token })).rejects.toMatchObject({ status: 401 });
+    state.cookies.set("fortius-inmuebles-access-token", { value: staleToken });
+    state.cookies.set("fortius-inmuebles-refresh-token", { value: session.refresh_token });
+    await expect(changePassword({ password: "new strong password" })).rejects.toMatchObject({ status: 401 });
+    expect(state.password).toBe("");
   });
   it("clears both cookies on logout so the next request is unauthenticated", async () => {
     await loginWithPassword({ email: user.email, password: "a long password" });

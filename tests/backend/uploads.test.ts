@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createServerClient } from "@/lib/backend/auth";
+import sharp from "sharp";
 import { prepareUpload, completeUpload } from "@/lib/backend/files";
 
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -112,5 +113,26 @@ describe("direct upload staging and authenticated completion", () => {
     stored.set(`fortius-inmuebles-staging/${prepared.path}`, new Blob([bytes], { type: "application/pdf" }));
     await expect(completeUpload(client(), userId, prepared.ticket)).rejects.toMatchObject({ status: 409 });
     expect(new Uint8Array(await stored.get(`fortius-inmuebles-public/${result.path}`)!.slice(20, 21).arrayBuffer())[0]).toBe(0);
+  });
+  it("M4: una foto pública se guarda sin EXIF ni GPS y girada; la privada conserva sus bytes", async () => {
+    const photo = await sharp({ create: { width: 40, height: 20, channels: 3, background: "#061F3F" } })
+      .withExif({ IFD0: { Make: "Telefono de ejemplo" }, IFD3: { GPSLatitudeRef: "N", GPSLatitude: "32/1 31/1 0/1" } })
+      .withMetadata({ orientation: 6 }).jpeg().toBuffer();
+    expect((await sharp(photo).metadata()).exif).toBeDefined();
+    const blob = new Blob([new Uint8Array(photo)], { type: "image/jpeg" });
+    const asked = { name: "casa.jpg", size: blob.size, contentType: "image/jpeg" };
+
+    const publica = await prepareUpload(client(), userId, { ...asked, visibility: "public" });
+    stored.set(`fortius-inmuebles-staging/${publica.path}`, blob);
+    const saved = await completeUpload(client(), userId, publica.ticket);
+    const clean = await sharp(Buffer.from(await stored.get(`fortius-inmuebles-public/${saved.path}`)!.arrayBuffer())).metadata();
+    expect(clean.exif).toBeUndefined();
+    expect(clean.orientation ?? 1).toBe(1);
+    expect([clean.width, clean.height]).toEqual([20, 40]);
+
+    const privada = await prepareUpload(client(), userId, { ...asked, visibility: "private" });
+    stored.set(`fortius-inmuebles-staging/${privada.path}`, blob);
+    const kept = await completeUpload(client(), userId, privada.ticket);
+    expect(Buffer.from(await stored.get(`fortius-inmuebles-private/${kept.path}`)!.arrayBuffer()).equals(photo)).toBe(true);
   });
 });

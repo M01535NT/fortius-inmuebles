@@ -6,7 +6,7 @@ import { ArrowRight, CalendarPlus, Landmark, Trash2 } from "@/components/admin/i
 import { hipotecaHref } from "@/lib/apps/contexto";
 import { Button, ButtonLink, Notice, Pill, Surface } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { ContactLog } from "@/components/admin/contacts/contact-log";
@@ -119,7 +119,7 @@ function LeadDetail({ id }: { id: string }) {
     : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
   const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
     { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
-      if (!await confirmAction(`¿Eliminar al prospecto "${lead.nombre}" y su historial?`)) return;
+      if (!await confirmDelete("prospecto", `Se elimina a ${lead.nombre} con su historial.`, false)) return;
       await removeById(db.leads, lead.id, db.leads.version(lead));
       router.push("/admin/contactos");
     } },
@@ -137,7 +137,7 @@ function LeadDetail({ id }: { id: string }) {
     {duplicates.length > 0 && <Notice title="Puede estar repetido">Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
 
     <NextStepCard step={step} today={today} fallback={lead.clienteId ? "Su seguimiento continúa en su ficha de cliente." : draft ? "Terminar su entrevista inicial" : stage === "descartado" || stage === "cerrado" ? "Sin seguimiento: está descartado." : "Sin siguiente paso con fecha. Agenda una llamada o una tarea."}>
-      {!lead.clienteId && !buyer && (!lead.firstContactedAt || awaitingFirstReply(lead)) && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[560]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}
+      {!lead.clienteId && !buyer && (!lead.firstContactedAt || awaitingFirstReply(lead)) && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[540]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}
       {lead.clienteId && <ButtonLink className={s.onNavy} href={`/admin/clientes/${encodeURIComponent(lead.clienteId)}`}>Ver cliente</ButtonLink>}
       {interview.current?.estado === "completada" && <ButtonLink className={s.onNavy} href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.current.id)}`}>Ver entrevista</ButtonLink>}
       {draft ? (busy ? <Button variant="primary" disabled>Continuar entrevista</Button> : <ButtonLink variant="primary" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(draft.id)}`}>Continuar entrevista<ArrowRight size={18} aria-hidden="true" /></ButtonLink>) : buyer && active ? <Button variant="primary" onClick={() => { const target = document.querySelector<HTMLElement>("#registrar-contacto button"); target?.scrollIntoView({ block: "center" }); target?.focus(); }}>Registrar contacto</Button> : buyer && !lead.clienteId ? null : prepare}

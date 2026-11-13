@@ -201,14 +201,18 @@ export function EmptyBox({ icon, title, children, steps, action }: { icon?: Reac
 export function Sheet({ open, onClose, eyebrow, title, description, children, footer, keepMounted }: { open: boolean; onClose: () => void; eyebrow?: string; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode; keepMounted?: boolean }) {
   const panel = React.useRef<HTMLDivElement>(null);
   const titleId = React.useId();
+  // onClose suele llegar como función nueva en cada render: se guarda aparte para que el foco
+  // solo se mueva al abrir y al cerrar, no cada vez que el padre se vuelve a pintar (C-06).
+  const closeRef = React.useRef(onClose);
+  React.useEffect(() => { closeRef.current = onClose; });
   React.useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     panel.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-sheet-close])")?.focus();
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") closeRef.current(); };
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("keydown", onKey); previous?.focus?.(); };
-  }, [open, onClose]);
+  }, [open]);
   if (!open && !keepMounted) return null;
   return <>
     {open && <button type="button" className={s.scrim} aria-label="Cerrar" tabIndex={-1} onClick={onClose} />}

@@ -18,6 +18,7 @@ import { InheritedCreate } from "./inherited-create";
 import { useOperationFormats } from "./use-operation-formats";
 import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { useLeaveGuard } from "./use-operation";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 import s from "./board.module.css";
 
 /*
@@ -132,7 +133,7 @@ export function OperationsBoard() {
   return <Surface className="pb-4">
     <header className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div className="flex flex-col gap-1">
-        <h1 className={s.head1}>{deleted ? "Operaciones eliminadas" : "Operaciones"}</h1>
+        <h1 className={s.head1}>{deleted ? `${PAPELERA.operaciones} · ${PAPELERA.nombre}` : "Operaciones"}</h1>
         {records && <p className="text-muted-foreground">{deleted ? `${records.length} ${records.length === 1 ? "operación" : "operaciones"} que puedes restaurar` : `${active.length} en curso`}</p>}
       </div>
       {!deleted && <div data-tour="op-vista" className="flex flex-wrap items-center gap-2.5">
@@ -174,7 +175,8 @@ export function OperationsBoard() {
         <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Inventario heredado</h2><button type="button" className={s.toggle} onClick={() => setInheriting(false)}>Cerrar</button></div>
         <div className="mt-4"><InheritedCreate onDirtyChange={setInheritDirty} taken={new Set((records ?? []).filter(op => op.propiedad_slug && ["captacion", "arrendador"].includes(op.flujo?.ruta ?? "") && op.flujo?.estado !== "descartada").map(op => op.propiedad_slug!))} /></div>
       </Card>}
-      <Link href={deleted ? "/admin/operaciones" : "/admin/operaciones?eliminadas=1"} className="self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : "Ver operaciones eliminadas"}</Link>
+      {/* NAV-13: lo eliminado se recupera en la papelera única; «?eliminadas=1» sigue funcionando. */}
+      <Link href={deleted ? "/admin/operaciones" : PAPELERA.href} className="self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : PAPELERA.enlace}</Link>
     </footer>
   </Surface>;
 }

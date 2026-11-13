@@ -15,7 +15,17 @@ type JsonLd = Record<string, unknown>;
 const ORIGIN = siteConfig.url.replace(/\/$/, "");
 export const ORG_ID = `${ORIGIN}/#org`;
 export const WEBSITE_ID = `${ORIGIN}/#website`;
+// Zona de servicio que confirmó el titular (13/11/2026: «Los cuatro»).
 const AREA_SERVED = ["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"];
+
+/* Horario de atención que fijó el titular (13/11/2026): lunes a viernes de 9:00 a 18:00, hora de Tijuana.
+   Si cambia, se actualiza aquí y en Google Business para que coincidan. */
+const OPENING_HOURS = [{
+  "@type": "OpeningHoursSpecification",
+  dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => `https://schema.org/${day}`),
+  opens: "09:00",
+  closes: "18:00",
+}];
 
 const absolute = (path: string) => new URL(path, siteConfig.url).href;
 const filled = (value: string | undefined | null) => (value ?? "").trim();
@@ -28,7 +38,7 @@ export function internationalPhone(raw: string): string {
 }
 
 export function organizationLd(settings: SiteSettings | null): JsonLd {
-  const sameAs = [settings?.facebook, settings?.instagram].map(filled).filter((url) => /^https:\/\//.test(url));
+  // Sin sameAs: el titular confirmó (13/11/2026) que aún no hay redes oficiales; se agrega cuando existan.
   return {
     "@type": "RealEstateAgent",
     "@id": ORG_ID,
@@ -38,9 +48,11 @@ export function organizationLd(settings: SiteSettings | null): JsonLd {
     image: absolute("/opengraph-image.png"),
     ...(filled(settings?.telefono) ? { telephone: internationalPhone(filled(settings?.telefono)) } : {}),
     ...(filled(settings?.email) ? { email: filled(settings?.email) } : {}),
+    // Negocio de área de servicio (titular, 13/11/2026: «visitamos al cliente», sin oficina abierta al
+    // público): solo ciudad y estado, nunca calle ni código postal; la cobertura va en areaServed.
     address: { "@type": "PostalAddress", addressLocality: "Tijuana", addressRegion: "Baja California", addressCountry: "MX" },
     areaServed: AREA_SERVED.map((name) => ({ "@type": "City", name })),
-    ...(sameAs.length ? { sameAs } : {}),
+    openingHoursSpecification: OPENING_HOURS,
   };
 }
 
