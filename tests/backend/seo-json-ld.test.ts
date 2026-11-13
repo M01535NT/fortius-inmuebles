@@ -49,7 +49,7 @@ describe("datos de la empresa", () => {
   test("negocio de área de servicio: sin calle ni código postal, con los municipios que atiende", () => {
     const org = organizationLd(settings);
     expect(JSON.stringify(org)).not.toMatch(/streetAddress|postalCode|geo/);
-    expect(org.areaServed).toEqual(["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"].map((name) => ({ "@type": "City", name })));
+    expect(org.areaServed).toEqual([{ "@type": "City", name: "Tijuana" }]);
   });
 
   test("publica el horario de lunes a viernes de 9:00 a 18:00", () => {

@@ -8,7 +8,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/inventario",
   title: "Propiedades en venta y renta en Tijuana",
   description:
-    "Casas, departamentos, terrenos y locales en venta y renta en Tijuana, Rosarito, Tecate y Ensenada, con precio, superficies y condiciones de cada inmueble.",
+    "Casas, departamentos, terrenos y locales en venta y renta en Tijuana, con precio, superficies, ubicación y condiciones publicadas de cada inmueble.",
 });
 
 /* El inventario publicado del panel MNT se consulta en cada solicitud. */
