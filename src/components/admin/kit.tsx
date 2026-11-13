@@ -209,7 +209,19 @@ export function Sheet({ open, onClose, eyebrow, title, description, children, fo
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     panel.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-sheet-close])")?.focus();
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") closeRef.current(); };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { closeRef.current(); return; }
+      if (event.key !== "Tab" || !panel.current) return;
+      // El panel es modal: Tab y Shift+Tab dan la vuelta dentro de él y no salen al fondo (C-26).
+      const controls = Array.from(panel.current.querySelectorAll<HTMLElement>("button:not([tabindex='-1']), input, select, textarea, a[href]"))
+        .filter((el) => !el.hasAttribute("disabled") && !el.closest("[hidden]"));
+      if (!controls.length) return;
+      const first = controls[0], last = controls[controls.length - 1];
+      const active = document.activeElement;
+      const inside = active instanceof Node && panel.current.contains(active);
+      if (event.shiftKey && (active === first || !inside)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (active === last || !inside)) { event.preventDefault(); first.focus(); }
+    };
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("keydown", onKey); previous?.focus?.(); };
   }, [open]);
