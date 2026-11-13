@@ -1,0 +1,41 @@
+/*
+  Estilos que solo usa /blog (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.pg-lead-ink { color: var(--muted-foreground); }
+.pg-empty { padding: clamp(40px, 6vw, 72px) 24px; border: 1px dashed var(--border); border-radius: var(--corner-tarjeta); text-align: center; }
+.pg-empty h2, .pg-empty h3 { font-size: var(--type-subtitulo); font-weight: 700; letter-spacing: var(--tracking-subtitulo); }
+.pg-empty p { margin-top: var(--space-cerca); color: var(--muted-foreground); line-height: 1.6; }
+.bp-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: clamp(24px, 4vw, 56px); padding-top: clamp(40px, 6vw, 72px); }
+.bp-search { margin-top: clamp(24px, 3vw, 36px); }
+.bp-more { margin-top: var(--space-corto); }
+.bp-more > summary { display: inline-flex; align-items: center; gap: var(--space-corto); min-height: 44px; color: var(--muted-foreground); font-size: var(--type-detalle); font-weight: 600; list-style: none; cursor: pointer; }
+.bp-more > summary::-webkit-details-marker { display: none; }
+.bp-more > summary:hover { color: var(--foreground); }
+.bp-more > summary svg { transition: transform 0.2s; }
+.bp-more[open] > summary svg { transform: rotate(180deg); }
+.bp-search-error { margin: var(--space-junto) 0 0; color: var(--primary-text, #8a1634); font-size: var(--type-detalle); }
+.bp-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-corto) var(--space-amplio); margin-top: var(--space-cerca); padding-top: var(--space-cerca); border-top: 1px solid var(--border); }
+.bp-toolbar-end { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-corto) var(--space-normal); }
+.bp-results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-corto) var(--space-amplio); margin-bottom: var(--space-amplio); }
+.bp-list { display: grid; gap: var(--space-cerca); margin: 0; padding: 0; list-style: none; }
+.bp-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-normal); margin-top: var(--space-grupo); }
+.bp-card-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-corto); }
+.bp-featured-tag { padding: var(--space-junto) var(--space-cerca); border-radius: var(--corner-pulsable); background: #f8f8ff; color: #061f3f; font-size: var(--type-etiqueta); font-weight: 600; }
+.bp-foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-amplio); margin-top: clamp(56px, 7vw, 96px); }
+.bp-tools { display: grid; gap: var(--space-cerca); }
+.bp-tool-icon { display: grid; flex: none; place-items: center; width: 48px; height: 48px; border-radius: var(--corner-pulsable); background: rgba(138, 22, 52, 0.1); color: var(--primary-text, #8a1634); }
+.bp-guides { padding: clamp(24px, 3vw, 36px); border-radius: var(--corner-tarjeta); background: #061f3f; color: #f8f8ff; }
+.bp-guides ul { display: grid; gap: var(--space-corto); margin: var(--space-amplio) 0 0; padding: 0; list-style: none; }
+.bp-guides li a { display: flex; align-items: center; justify-content: space-between; gap: var(--space-normal); min-height: 56px; padding: var(--space-cerca) var(--space-normal); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: var(--corner-pulsable); color: #f8f8ff; font-size: var(--type-interfaz); transition: background-color 0.3s, border-color 0.3s; }
+.bp-guides li a:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.4); }
+.bp-guides li a svg { flex: none; color: var(--ns-accent); }
+@media (max-width: 1023px) {
+  .pg-hero-grid, .bp-head, .bp-foot { grid-template-columns: 1fr; }
+  .bp-more-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bp-chips { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .bp-toolbar > .bp-chips { width: 100%; }
+}
+@media (max-width: 639px) {
+  .bp-search { grid-template-columns: 1fr; }
+}

@@ -7,6 +7,7 @@
 begin;
 set local lock_timeout='2s';
 set local statement_timeout='20s';
+select pg_advisory_xact_lock(781023);
 
 create or replace function public.fortius_inmuebles_alta_heredado(
   p_slug text, p_cliente_id text, p_cliente jsonb, p_operacion text, p_flujo jsonb, p_tarea_id text, p_tarea jsonb

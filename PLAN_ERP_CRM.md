@@ -12,29 +12,26 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 **Dónde está el código.**
 
-- **En `main`:** todo hasta el PR #73 (commit `c03504b`), que integró la rama acumulada del 12/11/2026.
-- **Rama local `feat/integracion` (sin push):** el trabajo de las siete sesiones en paralelo del 13/11/2026 (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad). Van integradas tres rondas; lint, tipos y las suites de base y panel en verde. **Sin comprobar:** la build y las suites de navegador.
-- **Migraciones nuevas en la rama, sin aplicar** (se aplican solas al integrar en `main`): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
+- **En `main`:** todo hasta el PR de `feat/integracion` del 13/11/2026, que reunió el trabajo de las siete sesiones en paralelo (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad); antes, el PR #73 (commit `c03504b`). Verificado en local antes de subir: `npm run verify` (lint, tipos, base 1071/1071, panel 521/521 y build), herramientas de respaldo 48/48, activos PDF, navegador público 72 (1 omitida), panel 52/52 y formulario público 5/5.
+- **Migraciones que llegan a `main` con ese PR** (Supabase las aplica sola al integrar; confirmar en su historial): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
 
-**Qué entró en la rama (13/11/2026).**
+**Qué entró (13/11/2026).**
 
 - **Panel:** IA-02 (tope de IA en Configuración); FCH-03 completo: los datos de Fortius se capturan en Configuración y los formatos 01 y 09 los toman de ahí, con el membrete fijo (decisión del titular, 13/11/2026); en Contenido ya no aparecen «Titular (H1)» ni «Subtítulo», que el sitio no usa (C-01, lo guardado se conserva); NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
 - **Sistema visual:** escala tipográfica del sitio y del panel; tokens de espacio, botones, esquinas y colores, sin crema ni beige.
 - **Textos:** inicio, Vender y Nosotros; nombres unificados del sitio y del panel.
 - **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
 - **Seguridad:** cabeceras de seguridad; fotos sin EXIF ni GPS.
-- **Calidad:** hallazgos C-02 a C-22, C-24 y C-25 corregidos (C-26 espera su arreglo en Sistema visual).
-- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; CSS y fuentes separados entre sitio y panel.
+- **Calidad:** hallazgos C-02 a C-26 corregidos, cada uno con su prueba.
+- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; el candado de arranque del propietario también en la base (M2); CSS y fuentes separados entre sitio y panel, y cada página pública carga solo sus estilos; video de portada ligero en celular (aprobado por el titular el 13/11/2026); el expediente completo incluye las copias firmadas.
 
 **Qué sigue, en orden.**
 
 1. Terminar los hallazgos abiertos de Calidad y de Seguridad.
-2. Integrar las pruebas de Calidad que esperan su arreglo (C-26) y el disparador M2 de Seguridad.
-3. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
-4. DOC-14 espera el Word de arrendamiento del titular.
-5. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
-6. Verificación completa y un solo PR a `main` cuando el titular lo pida.
-7. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
+2. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
+3. DOC-14: el titular pidió que el agente redacte el arrendamiento («estándar y que sea flexible»; casa habitación o uso comercial, con opciones). Borrador del agente en revisión del titular; el formato se construye cuando apruebe el texto, y como contrato sigue necesitando la revisión del abogado antes de firmarse.
+4. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
+5. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
 
 **Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **Fortius solo representa al propietario: compradores y arrendatarios son leads de Fortius y contraparte de sus clientes, nunca clientes de Fortius** (RP-93).
 

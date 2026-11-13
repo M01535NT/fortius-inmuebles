@@ -1,0 +1,10 @@
+/*
+  Estilos que solo usa /herramientas/hipoteca (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.pg-title-sm { font-size: var(--type-titulo); line-height: var(--leading-titulo); letter-spacing: var(--tracking-titulo); }
+.ba-back { display: inline-flex; align-items: center; gap: var(--space-corto); min-height: 44px; color: color-mix(in srgb, var(--ns-ink) 78%, transparent); font-size: var(--type-detalle); }
+.ba-back:hover { color: var(--ns-strong); }
+.tl-tool-body { padding-top: clamp(28px, 4vw, 40px); padding-bottom: var(--space-seccion); }
+.tl-tool-foot { margin: var(--space-bloque) 0 0; font-size: var(--type-interfaz); }
+.tl-tool-foot a { color: var(--primary-text, #8a1634); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }

@@ -13,6 +13,7 @@ import { reporteDocumento } from "./reporte";
 import { ofertaDocumento, promesaDocumento } from "./oferta-promesa";
 import { presupuestoDocumento } from "./presupuesto";
 import { avisoDocumento } from "./aviso";
+import { arrendamientoDocumento } from "./arrendamiento";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "../levantamiento";
 
 /*
@@ -39,5 +40,6 @@ export const DOCUMENTOS: Partial<Record<string, (data: Record<string, unknown>, 
   "17": cierreDocumento,
   "18": reciboDocumento,
   "19": presupuestoDocumento,
+  "20": arrendamientoDocumento,
 };
 export const hasDocumento = (id: string) => !!DOCUMENTOS[id];

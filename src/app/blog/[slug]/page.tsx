@@ -15,6 +15,7 @@ import { BLOG_CATEGORIES, postCategory, postFormat, formatBlogDate, readingMinut
 import { JsonLd } from "@/components/seo/json-ld";
 import { blogPostingLd, breadcrumbLd } from "@/lib/seo/json-ld";
 import { fullTitle } from "@/lib/seo/page-metadata";
+import "./articulo.css";
 
 type Params = { slug: string };
 

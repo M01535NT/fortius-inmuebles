@@ -5,6 +5,7 @@ import { ArrowUpRight, Check } from "lucide-react";
 import { getPublicSettings } from "@/lib/backend/public";
 import { publicContact } from "@/lib/public-contact";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./gracias.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/vender-propiedad/gracias",

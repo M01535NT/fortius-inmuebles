@@ -1,6 +1,5 @@
 /* Editorial typography and layout, using the Fortius palette. */
 .editorial-home { --editorial-serif: Georgia, "Times New Roman", serif; overflow-x: clip; }
-.editorial-container { max-width: 1240px; margin-inline: auto; padding-inline: clamp(20px, 4vw, 60px); }
 .editorial-home h2.display-title, .editorial-home h3.display-soft,
 .editorial-home .editorial-section-title { font-family: var(--editorial-serif); font-weight: 400; letter-spacing: -.045em; line-height: 1.05; }
 .editorial-hero { --hero-gutter: clamp(1.25rem, 4vw, 3.75rem); --hero-screen: calc(100svh - 4rem); position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto var(--hero-screen); margin-top: 4rem; color: #061f3f; background: #061f3f; }
@@ -217,14 +216,6 @@
 .property-card-facts p { color: var(--muted-foreground); font-size: var(--type-etiqueta); line-height: 1.6; }
 .property-card-detail { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; transition: background .3s, color .3s; }
 .property-card-detail:hover { background: #8a1634; color: #fff; }
-
-.property-gallery-photos { width: 100%; margin-inline: auto; }
-.property-gallery-main { position: relative; width: 100%; height: clamp(240px, 50vw, 600px); overflow: hidden; background: var(--secondary); }
-.property-gallery-main img { animation: gallery-photo-in .6s ease both; }
-.property-gallery-navigation { display: flex; justify-content: center; min-width: 0; margin-top: var(--space-normal); }
-.property-gallery-counter { position: absolute; bottom: 20px; left: 20px; background: #f8f8ff; color: #061f3f; padding: var(--space-corto) var(--space-cerca); font-size: var(--type-etiqueta); }
-.property-gallery-thumbnails { display: flex; min-width: 0; max-width: 100%; gap: var(--space-cerca); overflow-x: auto; padding-block: var(--space-junto); scroll-snap-type: x proximity; }
-.property-gallery-thumbnails button { scroll-snap-align: start; }
 @keyframes gallery-photo-in { from { opacity: .6; } to { opacity: 1; } }
 
 @media (max-width: 1099px) {
@@ -257,7 +248,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .editorial-fixed-photo { position: absolute; height: 100%; }
-  .property-gallery-main img { animation: none; }
   .editorial-faq-answer, .editorial-journey-action svg { transition: none; }
   .editorial-journey:is(:hover, :focus-visible) .editorial-journey-action svg { transform: none; }
 }
@@ -275,9 +265,6 @@
 .method-timeline h3 { min-height: 0; }
 .timeline-detail { overflow: hidden; }
 .method-timeline .timeline-detail p { margin-top: var(--space-corto); padding-bottom: var(--space-cerca); }
-.property-key-facts { display: flex; flex-wrap: wrap; gap: var(--space-amplio) var(--space-bloque); padding-top: var(--space-amplio); }
-.property-key-facts dt { font-size: var(--type-etiqueta); color: var(--muted-foreground); }
-.property-key-facts dd { margin-top: var(--space-junto); font-size: var(--type-cifra); }
 .property-enquiry-link { margin-top: var(--space-cerca); }
 .property-detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .42fr); grid-template-areas: "details contact" "details extras"; grid-template-rows: auto 1fr; gap: var(--space-amplio) var(--space-grupo); margin-top: var(--space-bloque); }
 .property-detail-main { grid-area: details; }
@@ -357,12 +344,6 @@
 /* Contact: shared Archivo identity, a clear choice and one conversation panel. */
 
 .nav-disclosure:last-of-type .nav-disclosure-panel { left: auto; right: 0; transform: none; }
-.privacy-page { max-width: 920px; padding-block: 128px 64px; }
-.privacy-page h1 { font-size: var(--type-titulo); }
-.privacy-page section { padding-top: var(--space-bloque); }
-.privacy-page h2 { font-size: var(--type-subtitulo); font-weight: 700; }
-.privacy-page section p { font-size: var(--type-interfaz); line-height: 1.85; margin-top: var(--space-normal); white-space: pre-line; overflow-wrap: anywhere; }
-.privacy-download { display: inline-flex; align-items: center; gap: var(--space-cerca); min-height: 48px; margin-top: var(--space-amplio); color: var(--primary-text); text-decoration: underline; text-underline-offset: 4px; }
 
 /* Footer social profiles use the public settings, never placeholder accounts. */
 

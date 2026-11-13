@@ -8,6 +8,7 @@
 begin;
 set local lock_timeout='2s';
 set local statement_timeout='20s';
+select pg_advisory_xact_lock(781023);
 
 alter table public.fortius_inmuebles_ia_lecturas drop constraint if exists fortius_inmuebles_ia_lecturas_estado_check;
 alter table public.fortius_inmuebles_ia_lecturas add constraint fortius_inmuebles_ia_lecturas_estado_check

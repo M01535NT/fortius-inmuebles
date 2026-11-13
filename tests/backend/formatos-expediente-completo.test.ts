@@ -69,6 +69,30 @@ describe("armado del expediente", () => {
     expect(huellas).toContain(sha(a));
     expect(huellas).toContain(sha(b));
   });
+
+  it("la copia firmada más reciente va justo después de su formato y aparte en el ZIP", async () => {
+    const [a, b, firma] = await Promise.all([pdfDe(2), pdfDe(1), pdfDe(3)]);
+    const copia = (cid: string, created_at: string) => ({ id: cid, emission_id: "e1", sha256: sha(firma), path: `exp/${cid}.pdf`, created_at });
+    const elegidas = elegirEmisiones([borrador("d1", "09", 1), borrador("d2", "15", 1)], [emision("e1", "d1", 1, "2026-11-01T10:00:00Z"), emision("e2", "d2", 1, "2026-11-02T10:00:00Z")], [copia("c1", "2026-11-03T10:00:00Z"), copia("c2", "2026-11-04T10:00:00Z")]);
+    expect(elegidas[0].firmada?.id).toBe("c2");
+    expect(elegidas[1].firmada).toBeUndefined();
+    const entradas = elegidas.map((entrada, i) => ({ ...entrada, bytes: [a, b][i], ...(i === 0 ? { bytesFirmada: firma } : {}) }));
+    const unido = await PDFDocument.load(await armarExpedientePdf({ folio: "EXP-2026-0006", generado: "2026-11-13T18:00:00Z", entradas, ...await recursos() }));
+    expect(unido.getPageCount()).toBe(1 + 1 + 2 + 3 + 1);
+    const zip = await JSZip.loadAsync(await armarExpedienteZip({ folio: "EXP-2026-0006", generado: "2026-11-13T18:00:00Z", entradas }));
+    const firmado = nombreEnZip(entradas[0], 0, true);
+    expect(firmado).toMatch(/-firmado\.pdf$/);
+    expect(sha(await zip.file(firmado)!.async("uint8array"))).toBe(sha(firma));
+    expect(await zip.file("huellas.txt")!.async("string")).toContain(sha(firma));
+  });
+
+  it("una copia firmada ilegible no detiene el PDF unido", async () => {
+    const a = await pdfDe(1);
+    const entradas = elegirEmisiones([borrador("d1", "09", 1)], [emision("e1", "d1", 1, "2026-11-01T10:00:00Z")], [{ id: "c1", emission_id: "e1", sha256: "c".repeat(64), path: "exp/c1.pdf", created_at: "2026-11-03T10:00:00Z" }])
+      .map(entrada => ({ ...entrada, bytes: a, bytesFirmada: new Uint8Array([1, 2, 3]) }));
+    const unido = await PDFDocument.load(await armarExpedientePdf({ folio: "EXP-2026-0007", generado: "2026-11-13T18:00:00Z", entradas, ...await recursos() }));
+    expect(unido.getPageCount()).toBe(1 + 1 + 1);
+  });
 });
 
 /** Cliente de Supabase mínimo: cada tabla devuelve lo configurado, venga por maybeSingle o por await. */
@@ -130,6 +154,26 @@ describe("ruta del expediente completo", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/zip");
     expect(response.headers.get("cache-control")).toContain("no-store");
+  });
+
+  it("incluye la copia firmada y la rechaza si no coincide con su huella", async () => {
+    const bytes = await pdfDe(1), firma = await pdfDe(2);
+    const tablas = (huella: string) => cliente({
+      fortius_inmuebles_expedientes: { data: { id, folio: "EXP-2026-0008" }, error: null },
+      fortius_inmuebles_formato_drafts: { data: [borrador("d1", "09", 1)], error: null },
+      fortius_inmuebles_formato_emissions: { data: [emision("e1", "d1", 1, "2026-11-01T10:00:00Z", { sha256: sha(bytes) })], error: null },
+      fortius_inmuebles_signed_copies: { data: [{ id: "c1", emission_id: "e1", sha256: huella, path: "exp/c1.pdf", created_at: "2026-11-03T10:00:00Z" }], error: null },
+    });
+    createServerClient.mockReturnValue({ storage: { from: () => ({ download: async (path: string) => ({ data: new Blob([Buffer.from(path === "exp/c1.pdf" ? firma : bytes)]), error: null }) }) } });
+    requireStaff.mockResolvedValue({ client: tablas(sha(firma)) });
+    const response = await llamar("?formato=zip");
+    expect(response.status).toBe(200);
+    const zip = await JSZip.loadAsync(await response.arrayBuffer());
+    expect(Object.keys(zip.files).some(nombre => nombre.endsWith("-firmado.pdf"))).toBe(true);
+    requireStaff.mockResolvedValue({ client: tablas("d".repeat(64)) });
+    const mala = await llamar("?formato=zip");
+    expect(mala.status).toBe(503);
+    expect((await mala.json()).error).toContain("copia firmada");
   });
 });
 

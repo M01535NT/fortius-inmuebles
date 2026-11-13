@@ -1,0 +1,7 @@
+/*
+  Estilos que solo usa /preguntas-frecuentes (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.nx-faq #respuestas .editorial-eyebrow { margin-bottom: 0; padding-bottom: var(--space-cerca); font-size: var(--type-interfaz); }
+.nx-faq .editorial-eyebrow { margin: 0 0 var(--space-normal); font-size: var(--type-interfaz); font-weight: 600; line-height: 1.4; color: var(--muted-foreground); }
+.faq-groups { display: grid; gap: clamp(40px, 5vw, 64px); }
