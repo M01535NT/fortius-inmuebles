@@ -18,7 +18,7 @@ export default function TerminosPage() {
       <Container className="max-w-3xl pb-24 md:pb-32">
         <article>
           <header className="border-b border-border pb-8">
-            <h1 className="display-title text-5xl text-foreground md:text-6xl">
+            <h1 className="display-title text-titulo text-foreground">
               Términos y condiciones.
             </h1>
             <p className="mt-5 text-sm text-muted-foreground">
@@ -43,7 +43,7 @@ export default function TerminosPage() {
 
           <div className="mt-10 space-y-10 md:space-y-12">
             {SITE_TERMS.sections.map((section, index) => <section key={section.id} id={section.id} aria-labelledby={`${section.id}-title`} className="scroll-mt-28">
-              <h2 id={`${section.id}-title`} className="display-soft text-2xl leading-tight text-foreground md:text-3xl">{index + 1}. {section.title}</h2>
+              <h2 id={`${section.id}-title`} className="display-soft text-subtitulo leading-tight text-foreground">{index + 1}. {section.title}</h2>
               <div className="mt-4 space-y-4 text-base leading-8 text-foreground/85">
                 {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
                 {section.id === "datos" && <p><Link href="/privacidad" className="text-primary-ink underline decoration-primary/40 underline-offset-4 hover:decoration-primary">Consultar el aviso de privacidad</Link>.</p>}

@@ -91,7 +91,7 @@ function BalanceChart({ result }: { result: MortgageResult }) {
         Mes {row.month} · {row.date} · Saldo {money(row.balance)} · Capital del mes {money(row.principal)} · Interés {money(row.interest)}
       </p>
       {(result.interestSaved > 0 || result.monthsSaved > 0) ? <p className="mt-3 rounded-md bg-secondary p-3 text-sm text-foreground">Con los abonos capturados: {money(result.interestSaved)} menos de intereses y {result.monthsSaved} {result.monthsSaved === 1 ? "mes" : "meses"} menos de crédito.</p> : null}
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className="mt-2 text-etiqueta text-muted-foreground">
         Línea continua: tu escenario. Discontinua: sin abonos anticipados.
       </p>
     </div>
@@ -113,7 +113,7 @@ function Amortization({ result }: { result: MortgageResult }) {
         tabIndex={0}
         className="mt-4 overflow-x-auto rounded-md border border-border"
       >
-        <table className="w-full min-w-[760px] text-left text-xs tabular-nums">
+        <table className="w-full min-w-[760px] text-left text-etiqueta tabular-nums">
           <caption className="p-3 text-left text-sm">
             Pagos {activePage * 12 + 1} a{" "}
             {Math.min((activePage + 1) * 12, result.schedule.length)}. Importes
@@ -170,7 +170,7 @@ function Amortization({ result }: { result: MortgageResult }) {
         >
           12 meses anteriores
         </button>
-        <span className="text-xs">
+        <span className="text-etiqueta">
           {activePage + 1} de {lastPage + 1}
         </span>
         <button
@@ -182,7 +182,7 @@ function Amortization({ result }: { result: MortgageResult }) {
           12 meses siguientes
         </button>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">
+      <p className="mt-3 text-etiqueta text-muted-foreground">
         El último pago se ajusta para liquidar el saldo. El PDF incluye todos
         los meses.
       </p>
@@ -366,7 +366,7 @@ export function MortgagePlanner({
           className={`grid items-start gap-8 ${compact ? "" : "lg:grid-cols-[1.1fr_1fr]"}`}
         >
           <div className="min-w-0 space-y-6">
-            <h2 className="display-soft text-2xl">Arma tu hipoteca</h2>
+            <h2 className="display-soft text-subtitulo">Arma tu hipoteca</h2>
             {precioEditable ? (
               field("price", `Precio de la propiedad (${moneda})`)
             ) : (
@@ -662,7 +662,7 @@ export function MortgagePlanner({
           className="mt-8 rounded-lg border border-border bg-card p-5 md:p-8"
           aria-label="Comparación de escenarios"
         >
-          <h2 className="display-soft text-2xl">Compara antes de decidir</h2>
+          <h2 className="display-soft text-subtitulo">Compara antes de decidir</h2>
           <p className="mt-3 text-sm text-muted-foreground">
             Hasta tres escenarios en esta pestaña. Cada uno conserva sus datos;
             al recargar se borran.
@@ -674,11 +674,11 @@ export function MortgagePlanner({
                 className="min-w-0 rounded-md border border-border p-4"
               >
                 <h3 className="font-medium">Escenario {index + 1}</h3>
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-2 text-etiqueta text-muted-foreground">
                   {s.input.downPercent}% de enganche · {s.input.annualRate}%
                   nominal · {s.input.months} meses
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-2 text-etiqueta text-muted-foreground">
                   Precio {money(s.input.price)} · Crédito{" "}
                   {money(s.result.principal)}
                 </p>
@@ -693,7 +693,7 @@ export function MortgagePlanner({
                     value={money(s.result.totalKnownCost)}
                   />
                 </dl>
-                <p className="mt-3 text-xs text-muted-foreground">
+                <p className="mt-3 text-etiqueta text-muted-foreground">
                   {s.result.schedule.length} pagos.{" "}
                   {s.result.pending.length
                     ? `Pendientes: ${s.result.pending.join(", ")}.`
@@ -712,7 +712,7 @@ export function MortgagePlanner({
               </article>
             ))}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">
+          <p className="mt-4 text-etiqueta text-muted-foreground">
             Compara cargos completos y condiciones equivalentes. Un subtotal con
             cotizaciones pendientes no indica el crédito más barato.
           </p>
@@ -720,7 +720,7 @@ export function MortgagePlanner({
       )}
       {!compact && (
         <details className="mt-8">
-          <summary className="display-soft cursor-pointer rounded-lg border border-border bg-card px-5 py-5 text-xl">
+          <summary className="display-soft cursor-pointer rounded-lg border border-border bg-card px-5 py-5 text-entrada">
             Efectivo inicial y gastos de compra
           </summary>
           <div className="mt-4">

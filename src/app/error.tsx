@@ -11,7 +11,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   return (
     <main className="flex min-h-[70vh] items-center bg-background px-5 py-32 text-foreground">
       <div className="mx-auto w-full max-w-2xl rounded-lg border border-border bg-card p-7 md:p-10">
-        <h1 className="display-title text-4xl md:text-5xl">No pudimos cargar esta página.</h1>
+        <h1 className="display-title text-titulo">No pudimos cargar esta página.</h1>
         <p className="mt-4 max-w-[52ch] leading-7 text-muted-foreground">
           La información no se mostró como vacía. Intenta cargarla nuevamente en unos momentos.
         </p>
