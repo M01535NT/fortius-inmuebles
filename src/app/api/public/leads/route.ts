@@ -25,6 +25,8 @@ export async function POST(request: Request) {
       p_rate_key: rateKey,
     });
     if (result.error) databaseError(result.error);
-    return { id: result.data as string };
+    // C-43: el número no sale al sitio; un prospecto descartado que regresa devolvía el suyo y eso
+    // revelaba que ese teléfono o correo ya estaba registrado.
+    return { ok: true };
   }, 201);
 }

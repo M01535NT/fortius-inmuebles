@@ -106,7 +106,8 @@ test("public lead endpoint writes only when explicitly enabled", async () => {
     body: JSON.stringify({ website: "", nombre: "Persona", telefono: "6641234567", origen: "contacto" }),
   }));
   expect(response.status).toBe(201);
-  expect(await response.json()).toEqual({ id: "lead-id" });
+  // C-43: el número del prospecto no sale al sitio.
+  expect(await response.json()).toEqual({ ok: true });
   expect(rpc).toHaveBeenCalledWith("fortius_inmuebles_capture_lead", expect.objectContaining({ p_data: expect.objectContaining({ nombre: "Persona" }) }));
 });
 
