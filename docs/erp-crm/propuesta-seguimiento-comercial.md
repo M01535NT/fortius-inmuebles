@@ -49,6 +49,7 @@ Para construirlo, en este orden: (1) un solo siguiente paso por persona respalda
 2. ¿Qué pasa con un lead nuevo del sitio que ningún asesor tomó: se asigna al asesor del inmueble de interés y, si no hay, al director? ¿Cuántas horas puede esperar antes de avisarte?
    **Respuesta del titular (12/11/2026): 2 horas.** Se conserva el plazo actual de primera atención (ajustable en Configuración). La asignación al asesor del inmueble o, si no hay, al director ya está construida en COR-21 y no se volvió a preguntar.
 3. ¿Quién ve los leads de quién: cada asesor solo los suyos, o todos ven todos y el director reasigna?
+   **Respuesta del titular (12/11/2026): cada asesor ve solo a sus personas.** Aplica a compradores, interesados en rentar y propietarios por captar. El director ve a todas y puede reasignarlas. Antes de construir hay que comprobar cómo filtra hoy el servidor (permisos y RLS); ocultarlas en pantalla no basta. Va con SEG-01 y COR-23. No cambia DEC-43: los inmuebles ajenos se siguen viendo con sus datos públicos.
 4. ¿Los mensajes de WhatsApp y correo salen de plantillas que tú apruebas, o cada asesor puede editar el texto?
 5. ¿Qué razones aceptas para descartar un lead? (propuesta: ya no busca, se fue con otra inmobiliaria, presupuesto no alcanza, no contesta, otro)
 6. ¿Quieres que el director tenga una vista del seguimiento de todo el equipo ahora, o después de que el asesor trabaje bien con la suya?
