@@ -202,7 +202,9 @@ export type StageContext = { condition?: PropertyCondition | null; next02?: stri
 /** Chips de la situación y la condición: se muestran igual en la operación, Operaciones, Hoy y Contactos. */
 export function operationTags(op: { flujo?: OperationWorkflow | null }, condition?: PropertyCondition | null): string[] {
   const estado = op.flujo?.estado ?? "activa";
-  return [...(estado !== "activa" ? [WORKFLOW_STATES[estado]] : []), ...(condition ? [condition.text] : []), ...(op.flujo?.heredado ? [INHERITED_TAG] : []), ...(exceptionKeys(op.flujo).length ? [EXCEPTION_TAG] : [])];
+  // DEC-41: mientras no se firme la intermediación, la visita autorizada antes de la firma se ve.
+  const priorVisit = (op.flujo?.visitasPrevias?.length ?? 0) > 0 && op.flujo?.requisitos?.intermediacion?.estado !== "revisado";
+  return [...(estado !== "activa" ? [WORKFLOW_STATES[estado]] : []), ...(condition ? [condition.text] : []), ...(op.flujo?.heredado ? [INHERITED_TAG] : []), ...(exceptionKeys(op.flujo).length ? [EXCEPTION_TAG] : []), ...(priorVisit ? ["Visita autorizada antes de la firma"] : [])];
 }
 /** COR-24: inmueble que el asesor trajo con contrato firmado. */
 export const INHERITED_TAG = "Inventario heredado";

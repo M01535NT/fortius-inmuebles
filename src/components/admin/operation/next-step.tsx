@@ -30,6 +30,7 @@ import { ContractSignatureCard } from "./contract-signature";
 import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
 import { EncargoDecisionCard, encargoTomado } from "./encargo-decision";
+import { PriorVisitCard } from "./prior-visit";
 import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
@@ -274,6 +275,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {owner && interview && (phase === "captacion" || phase === "verificacion" || phase === "contrato") && <div className={s.span6}><Declared op={op} interview={interview} /></div>}
     {owner && property && !property.publicada && property.estado === "evaluacion" && <div className={s.span6}><WaitingSeekers intent={flow.ruta === "arrendador" ? "rentar" : "comprar"} tipo={property.tipo} zona={`${property.zona} ${property.direccionAproximada}`} /></div>}
     {showEncargo && <div className={s.span6}><EncargoDecisionCard key={op.version} op={op} today={today} disabled={lock} onSave={onSave} onDirtyChange={setEncargoDirty} /></div>}
+    {owner && (!!flow.visitasPrevias?.length || (!!property && !property.publicada && property.estado === "evaluacion" && flow.requisitos.intermediacion?.estado !== "revisado")) && <div className={s.span6}><PriorVisitCard op={op} disabled={lock} onSave={onSave} /></div>}
     {flow.ruta === "captacion" && (phase === "verificacion" || appraisalState(flow, today) === "vencido") && <div className={s.span6}><OwnerAppraisalCard op={op} today={today} reviewer={evidence.reviewer} disabled={lock} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
     {owner && (phase === "contrato" || !!flow.firmaContrato) && <div className={s.span6}><ContractSignatureCard op={op} today={today} disabled={lock || locked} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
     {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest("09"))} disabled={lock} onSave={onSave} /></div>}

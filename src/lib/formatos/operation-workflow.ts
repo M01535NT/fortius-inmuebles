@@ -126,6 +126,11 @@ export function valueFromAppraisal(flow: Pick<OperationWorkflow, "avaluo" | "req
  const e = flow.requisitos.valor?.evidencia;
  return !!flow.avaluo && e?.tipo === "cliente" && e.referencia === flow.avaluo.archivo;
 }
+// DEC-41 (excepción a RP-91): visita a un interesado concreto antes de la firma, con la carta del propietario y el visto bueno del director.
+const priorVisit = z.object({ id: z.string().min(1).max(80), interesado: z.string().trim().min(2).max(160), leadId: z.string().max(160).optional(),
+  carta: z.object({ path: z.string().min(1).max(300), nombre: z.string().max(160).optional() }).strict(), motivo: z.string().trim().min(3).max(1000),
+  autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(80).optional() }).strict();
+export type PriorVisit = z.infer<typeof priorVisit>;
 export const operationWorkflowSchema = z.object({
  version: z.literal(1), ruta: z.enum(["captacion","compra","arrendador","arrendatario","inversion"]), estado: z.enum(["activa","pausada","regularizacion","descartada"]),
  motivo: z.string().max(1000).default(""),
@@ -140,6 +145,7 @@ export const operationWorkflowSchema = z.object({
  cierre: operationClose.optional(),
  // COR-24: inmueble que el asesor trajo con contrato ya firmado; solo el director lo marca.
  heredado: inherited.optional(),
+ visitasPrevias: z.array(priorVisit).max(20).optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
