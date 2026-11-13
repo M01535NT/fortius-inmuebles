@@ -123,7 +123,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
             className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
           >
             <ArrowDownToLine className="size-4" strokeWidth={1.5} />
-            {enviando ? "Enviando…" : "Liberar descargas"}
+            {enviando ? "Enviando…" : "Ver documentos"}
           </button>
           {error ? (
             <p
@@ -134,7 +134,7 @@ export function PropertyDocuments({ documentos, slug, codigo }: Props) {
             </p>
           ) : null}
           <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-            Sin compromiso. Usamos tus datos solo para dar seguimiento.
+            Sin compromiso. Usamos tus datos solo para responder esta solicitud.
           </p>
         </PublicLeadForm>
       ) : (

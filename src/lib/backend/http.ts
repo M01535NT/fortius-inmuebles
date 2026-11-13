@@ -69,7 +69,7 @@ export async function apiResponse(action: () => Promise<unknown>, successStatus 
   try { return Response.json(await action(), { status: successStatus, headers }); }
   catch (error) {
     const status = error instanceof ApiError ? error.status : error instanceof ZodError ? 400 : 500;
-    const message = error instanceof ApiError ? error.message : status === 400 ? "Datos inválidos; revisa los campos" : "No se pudo completar la operación";
+    const message = error instanceof ApiError ? error.message : status === 400 ? "Datos inválidos; revisa los campos" : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
     if (status >= 500) console.error(JSON.stringify({ event: "api_failure", requestId, status, category: error instanceof ApiError ? "dependency" : "unexpected", durationMs: Date.now() - startedAt }));
     return Response.json({ ...(error instanceof ApiError ? error.details : undefined), error: message, requestId }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
   }

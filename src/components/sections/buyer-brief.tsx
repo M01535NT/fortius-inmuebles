@@ -63,7 +63,7 @@ export function BuyerBrief() {
               <li><span className="pg-number" aria-hidden="true">02</span><div><strong>Presupuesto total</strong><p>Con gastos de cierre y mensualidad, si hay crédito.</p></div></li>
               <li><span className="pg-number" aria-hidden="true">03</span><div><strong>Plazo y pago</strong><p>Fecha tentativa y forma de pago.</p></div></li>
             </ol>
-            <Link href="/inventario" className="pg-btn" style={{ marginTop: 24 }}>Explorar inventario</Link>
+            <Link href="/inventario" className="pg-btn" style={{ marginTop: 24 }}>Ver propiedades</Link>
           </div>
         ) : sent ? (
           <div role="status" className="pg-card pg-card-pad bb-sent">

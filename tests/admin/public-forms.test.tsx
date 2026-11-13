@@ -21,7 +21,7 @@ vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: Reac
 const variants = [
   { name: "contacto", component: <ContactForm />, button: "Enviar consulta" },
   { name: "comprador", component: <BuyerBrief />, button: "Enviar mi búsqueda" },
-  { name: "documentos", component: <PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} />, button: "Liberar descargas" },
+  { name: "documentos", component: <PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} />, button: "Ver documentos" },
   { name: "interes-propiedad", component: <PropertyInterestForm slug="fixture" codigo="TEST" titulo="Casa" />, button: "Me interesa esta propiedad" },
 ];
 beforeEach(() => push.mockReset());

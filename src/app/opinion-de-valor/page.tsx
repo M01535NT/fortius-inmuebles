@@ -36,7 +36,7 @@ export default function OpinionDeValorPage() {
     <InteriorPage title="El precio sale de revisar tu propiedad."
       description="Es parte del método: llega con el dictamen de factibilidad, después de conocer el inmueble."
       bullets={[]}
-      primary={{ href: "/vender-propiedad#entrevista", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Ver el método" }}
+      primary={{ href: "/vender-propiedad#entrevista", label: "Agendar entrevista" }} secondary={{ href: "/vender-propiedad#pasos", label: "Conocer el método" }}
       aside={<ol className="ip-steps" aria-label="Cómo llegamos al precio">
         {STEPS.map((step, index) => <li key={step.title} className={index === STEPS.length - 1 ? "is-current" : undefined}>
           <span className="ip-step-dot" aria-hidden="true" />

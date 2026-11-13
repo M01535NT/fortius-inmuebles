@@ -109,7 +109,7 @@ test("visit CTA targets the current property form and records visit intent", asy
   window.history.replaceState(null, "", "/inventario/casa-prueba?intencion=visita#interes");
   const cta = renderToStaticMarkup(<PropertyMobileCta />);
   expect(cta).toContain('href="#interes"');
-  expect(cta).toContain("Consultar este inmueble");
+  expect(cta).toContain("Solicitar visita");
   expect(cta).not.toContain("Agendar visita");
   render(<PropertyInterestForm slug="casa-prueba" codigo="C-1" titulo="Casa prueba" />);
   expect(await screen.findByDisplayValue("visita")).toBeTruthy();
