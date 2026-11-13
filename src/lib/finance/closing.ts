@@ -108,6 +108,19 @@ export function calculateSellerIsr(input: SellerIsrInput) {
       new D(input.price).minus(acquisitionCost).minus(input.updatedDeductions),
     ),
   );
+  const tax = isrFromGain(gain, years);
+  if (!tax) return null;
+  return { gain, years, acquisitionCost, ...tax };
+}
+
+/**
+ * Pago provisional (LISR 126) y pago a la entidad (LISR 127) sobre una ganancia ya determinada.
+ * `years` ya viene limitado a 20. Devuelve null si el cociente no cae en ningún renglón de la tarifa.
+ */
+export function isrFromGain(gain: number, years: number) {
+  checkAmount(gain);
+  if (!Number.isInteger(years) || years < 1 || years > 20)
+    throw new RangeError("Años inválidos");
   const quotient = new D(gain).div(years).toDecimalPlaces(2);
   const bracket = SELLER_ISR_BRACKETS.find(
     ([lo, hi]) => quotient.gte(lo) && (hi === null || quotient.lte(hi)),
@@ -125,9 +138,8 @@ export function calculateSellerIsr(input: SellerIsrInput) {
     : 0;
   const state = cents(D.min(provisional, new D(gain).mul("0.05")));
   return {
-    gain,
-    years,
-    acquisitionCost,
+    quotient: quotient.toNumber(),
+    bracket: bracket ?? null,
     provisional,
     state,
     federal: cents(new D(provisional).minus(state)),

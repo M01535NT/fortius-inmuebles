@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import { btnDanger, btnGhost, btnPrimary, ErrorNotice, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
-import { calculateFinancial, getFinancialDefaults, rehabilitationTransfer } from "@/lib/apps/financial";
+import { calculateFinancial, getFinancialDefaults, NET_COMMON_EXPENSES, netInput, rehabilitationTransfer } from "@/lib/apps/financial";
+import { SELLER_ISR_RULES } from "@/data/financial-rules";
 import { localToday } from "@/lib/finance/money";
 import type { AppEditorProps, AppInput } from "@/lib/apps/types";
 import { MoneyInput } from "@/components/admin/money-input";
@@ -22,7 +23,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   return <fieldset className="min-w-0 space-y-4 rounded-lg border border-border p-4 sm:p-5"><legend className="px-2 font-semibold text-foreground">{title}</legend>{hint && <p className="max-w-[90ch] text-sm leading-relaxed text-muted-foreground">{hint}</p>}{children}</fieldset>;
 }
 /** Importes de las calculadoras: se muestran con formato de moneda. */
-const MONEY_KEYS = new Set(["amount", "base", "commission", "extraMonthly", "extraOnce", "fixed", "insurance", "loan", "monthlyFee", "openingFee", "prepaymentFee", "price", "salePrice", "taxes", "withholding"]);
+const MONEY_KEYS = new Set(["amount", "base", "commission", "isrAmount", "updatedCost", "acquisitionCost", "landCost", "improvements", "acquisitionExpenses", "extraMonthly", "extraOnce", "fixed", "insurance", "loan", "monthlyFee", "openingFee", "prepaymentFee", "price", "salePrice", "taxes", "withholding"]);
 function Capture({ label, value, onChange, type = "number", hint, money = false }: { label: string; value: unknown; onChange: (value: string) => void; type?: "text" | "number" | "date"; hint?: string; money?: boolean }) {
   const id = useId();
   if (money) return <Field label={label} htmlFor={id} hint={hint}><MoneyInput id={id} value={textValue(value) === "" ? "" : Number(textValue(value))} onValueChange={(next) => onChange(next === "" ? "" : String(next))} /></Field>;
@@ -31,6 +32,9 @@ function Capture({ label, value, onChange, type = "number", hint, money = false 
 function Choice({ label, value, onChange, options, hint }: { label: string; value: unknown; onChange: (value: string) => void; options: Option[]; hint?: string }) {
   const id = useId();
   return <Field label={label} htmlFor={id} hint={hint}><select id={id} className={selectClass} value={textValue(value)} onChange={(event) => onChange(event.target.value)}>{options.map(([v, label]) => <option key={v} value={v}>{label}</option>)}</select></Field>;
+}
+function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
+  return <label className="flex min-h-11 items-start gap-3 text-sm"><input type="checkbox" className="mt-1 h-5 w-5 accent-primary" checked={checked} onChange={(event) => onChange(event.target.checked)} /><span>{label}</span></label>;
 }
 function Rows({ title, singular, rows, columns, blank, addLabel, max, onChange }: { title: string; singular: string; rows: AppInput[]; columns: Column[]; blank: AppInput; addLabel: string; max: number; onChange: (rows: AppInput[]) => void }) {
   return <div className="min-w-0 space-y-3">
@@ -46,7 +50,7 @@ export function FinancialEditor({ slug, input, onChange, onResult, context }: Ap
   const [error, setError] = useState<string | null>(null);
   const [prepared, setPrepared] = useState(false);
   const notesId = useId();
-  const data = { ...getFinancialDefaults(slug), ...input };
+  const data = slug === "neto-propietario" ? netInput(input) : { ...getFinancialDefaults(slug), ...input };
   const change = (patch: AppInput) => {
     setError(null);
     if (prepared) {
@@ -76,8 +80,23 @@ export function FinancialEditor({ slug, input, onChange, onResult, context }: Ap
       <Section title="Pagos anticipados" hint="El escenario sin anticipos se conserva en el resultado para comparar intereses y plazo."><div className={grid}>{field("extraMonthly", "Anticipo mensual")}{field("extraOnce", "Anticipo único")}{field("extraMonth", "Mes del anticipo único")}{choice("prepaymentMode", "Aplicar anticipos a", [["term", "Reducir plazo"], ["payment", "Reducir mensualidad"]])}</div></Section>
     </>}
     {slug === "neto-propietario" && <>
-      <Section title="Venta y cargos principales" hint="Captura importes pendientes al cierre. Vacío significa desconocido; 0 significa que confirmaste que no aplica."><div className={grid}>{currencyField}{field("salePrice", "Precio de venta")}{field("loan", "Saldo para liquidar el crédito")}{field("commission", "Honorarios con impuestos", "Importe total pendiente; no lo repitas en otros gastos.")}{field("taxes", "Impuestos de la operación", "Importe estimado o cotizado; no se calcula ISR automáticamente.")}</div></Section>
-      <Section title="Otros gastos" hint="Los gastos ya pagados se muestran como históricos. Solo los pendientes conocidos se restan del precio de venta."><Rows title="Gastos del propietario" singular="gasto" rows={list(data.expenses)} onChange={(expenses) => change({ expenses })} max={200} addLabel="Agregar gasto" blank={{ concept: "", amount: null, status: "pendiente" }} columns={[{ key: "concept", label: "Concepto", width: "min-w-60" }, { key: "amount", label: "Importe", type: "number" }, { key: "status", label: "Estado", options: [["pendiente", "Pendiente de pago"], ["pagado", "Histórico ya pagado"]] }]} /></Section>
+      <Section title="Venta" hint="Vacío significa desconocido; 0 significa que confirmaste que no aplica."><div className={grid}>{currencyField}{field("salePrice", "Precio de venta")}{field("loan", "Saldo para liquidar el crédito")}</div></Section>
+      <Section title="Comisión"><div className={grid}>{choice("commissionMode", "Cómo se cobra", [["porcentaje", "Porcentaje del precio"], ["importe", "Importe con IVA"]])}{data.commissionMode === "importe" ? field("commission", "Honorarios con impuestos", "Importe total; no lo repitas en otros gastos.") : <>{field("commissionPercent", "Comisión (%)")}{choice("commissionVat", "IVA de la comisión", [["16", "16%"], ["8", "8% (si la factura aplica el estímulo fronterizo)"], ["0", "Sin IVA"]])}</>}</div></Section>
+      <Section title="ISR por la venta" hint="Para una persona física que vende. Lo calcula y lo cobra el notario; aquí se estima para contestar al propietario."><div className={grid}>{choice("isrMode", "ISR", [["calcular", "Calcularlo aquí"], ["importe", "Ya tengo el importe"], ...(data.isrMode === "incluido" ? [["incluido", "Incluido en impuestos (trabajo anterior)"] as Option] : [])])}{data.isrMode === "importe" && field("isrAmount", "ISR a pagar", "Del notario o de otro cálculo.")}</div>
+        {data.isrMode === "calcular" && <>
+          <div className={grid}>{field("saleDate", "Fecha estimada de la escritura", undefined, "date")}{field("acquisitionDate", "Fecha en que se compró", "La de la escritura de compra; en herencia o donación, la del dueño anterior.", "date")}{field("owners", "Propietarios", "En partes iguales; los cónyuges cuentan como dos.")}</div>
+          <Check label="Es la casa habitación del vendedor" checked={data.homeExemption === true} onChange={(homeExemption) => change({ homeExemption })} />
+          {data.homeExemption === true && <><Check label="No vendió otra casa habitación exenta en los últimos tres años" checked={data.noPriorExemption === true} onChange={(noPriorExemption) => change({ noPriorExemption })} />
+            {data.noPriorExemption === true && <div className={grid}>{field("udiValue", "Valor de la UDI", "Del día de la escritura; si aún no llega, el más reciente.")}<p className="self-end text-sm"><a className="underline underline-offset-4" href={SELLER_ISR_RULES.udiUrl} target="_blank" rel="noreferrer">Consultar la UDI en Banco de México</a></p></div>}</>}
+          <div className={grid}>{choice("costMode", "Costo de compra", [["historico", "Calcularlo con el precio de compra"], ["actualizado", "Ya tengo el costo actualizado"]])}{data.costMode === "actualizado" ? field("updatedCost", "Costo actualizado") : <>{field("acquisitionCost", "Precio en que se compró")}{field("landCost", "Valor del terreno en la compra", "Vacío: se toma el 20% del precio de compra.")}{field("inpcAcquisition", "INPC del mes en que se compró")}{field("inpcSale", "INPC del mes anterior a la venta")}</>}</div>
+          {data.costMode !== "actualizado" && <p className="text-sm"><a className="underline underline-offset-4" href={SELLER_ISR_RULES.inpcUrl} target="_blank" rel="noreferrer">Consultar el INPC en el INEGI</a></p>}
+          <div className={grid}>{field("improvements", "Mejoras y ampliaciones", "Con factura, ya actualizadas; 0 si no hubo. No incluye mantenimiento.")}{field("acquisitionExpenses", "Gastos de notario, impuestos y avalúo", "De la compra y de esta venta, ya actualizados; 0 si no hay.")}</div>
+          <p className="text-sm text-muted-foreground">La comisión de esta venta se deduce sola. Resultado rotulado como estimación.</p>
+        </>}
+      </Section>
+      <Section title="Otros impuestos y gastos" hint="Los gastos ya pagados se muestran como históricos. Solo los pendientes conocidos se restan del precio de venta."><div className={grid}>{field("taxes", data.isrMode === "incluido" ? "Impuestos de la operación" : "Otros impuestos", data.isrMode === "incluido" ? "Trabajo anterior: este importe incluye el ISR." : "Por ejemplo, el IVA de la construcción si es un local. Vacío si no lo sabes; 0 si no aplica.")}</div><Rows title="Gastos del propietario" singular="gasto" rows={list(data.expenses)} onChange={(expenses) => change({ expenses })} max={200} addLabel="Agregar gasto" blank={{ concept: "", amount: null, status: "pendiente" }} columns={[{ key: "concept", label: "Concepto", width: "min-w-60" }, { key: "amount", label: "Importe", type: "number" }, { key: "status", label: "Estado", options: [["pendiente", "Pendiente de pago"], ["pagado", "Histórico ya pagado"]] }]} />
+        {(() => { const have = new Set(list(data.expenses).map(r => textValue(r.concept))); const missing = NET_COMMON_EXPENSES.filter(c => !have.has(c)); return missing.length > 0 && <button type="button" className={btnGhost + " self-start"} onClick={() => change({ expenses: [...list(data.expenses), ...missing.map(concept => ({ concept, amount: null, status: "pendiente" }))] })}>Agregar gastos habituales</button>; })()}
+      </Section>
     </>}
     {slug === "comisiones" && <>
       <Section title="Honorarios" hint="Indica la base pactada o un honorario fijo. Los impuestos y las retenciones requieren captura expresa."><div className={grid}>{currencyField}{choice("mode", "Forma de honorarios", [["porcentaje", "Porcentaje sobre una base"], ["fijo", "Importe fijo"]])}{data.mode === "fijo" ? field("fixed", "Honorario fijo") : <>{field("base", "Base de honorarios")}{field("percent", "Porcentaje de honorarios")}</>}{field("taxPercent", "Impuesto trasladado (%)", "Vacío si se desconoce; 0 si confirmaste que no aplica.")}{field("withholding", "Retenciones (importe)", "Importe, no porcentaje. Vacío si se desconoce.")}</div></Section>

@@ -126,6 +126,36 @@ export const FINANCIAL_SOURCES = {
   },
   cat: { url: "https://www.banxico.org.mx/CAT/" },
 };
+/**
+ * ISR por la venta de un inmueble de persona física residente (HER-03). Texto revisado el
+ * 12/11/2026 en la Ley del ISR publicada por la Cámara de Diputados (última reforma DOF
+ * 01-04-2024; mismo archivo que el 4/10/2026). Fuera de la vigencia, el cálculo queda pendiente.
+ */
+export const SELLER_ISR_RULES = {
+  reviewedAt: "2026-11-12",
+  lawReform: "DOF 01-04-2024",
+  validFrom: "2026-01-01",
+  validTo: "2026-12-31",
+  url: "https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf",
+  /** Art. 93, fr. XIX, a): casa habitación exenta hasta 700,000 UDIS de contraprestación. */
+  homeExemptionUdis: "700000",
+  homeExemptionArticle: "Artículo 93, fracción XIX, inciso a)",
+  /** Art. 121, fr. I: el costo actualizado es cuando menos el 10% del precio. */
+  costFloorPercent: "10",
+  /** Art. 124, fr. I: sin separación, el terreno es el 20% del costo total. */
+  landWhenUnknownPercent: "20",
+  /** Art. 124, fr. II: la construcción se disminuye 3% por año, sin bajar del 20% del costo inicial. */
+  depreciationPercent: "3",
+  depreciationFloorPercent: "20",
+  /** Arts. 120 y 126: la ganancia se divide entre los años transcurridos, sin exceder de 20. */
+  maxYears: 20,
+  /** Art. 127: pago a la entidad del 5% de la ganancia, acreditable contra el provisional. */
+  statePercent: "5",
+  /** CFF 17-A (última reforma DOF 09-04-2026): factor al diezmilésimo y nunca menor a 1. */
+  updateFactorArticle: "Código Fiscal de la Federación, artículo 17-A",
+  udiUrl: "https://www.banxico.org.mx/SieInternet/consultarDirectorioInternetAction.do?sector=8&accion=consultarCuadro&idCuadro=CP150&locale=es",
+  inpcUrl: "https://www.inegi.org.mx/temas/inpc/",
+} as const;
 export const SELLER_ISR_BRACKETS: Bracket[] = [
   ["0.01", "10135.11", "0", "1.92"],
   ["10135.12", "86022.11", "194.59", "6.40"],

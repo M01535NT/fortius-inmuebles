@@ -10,7 +10,7 @@ export type AppGroup = typeof APP_GROUPS[number];
 export const APPS = [
   { slug: "documentos", title: "Documentos sueltos", description: "Cualquier formato en blanco o lleno, sin abrir una operación.", group: "Documentos", icon: "FileText" },
   { slug: "pdf", title: "Unir y separar PDF", description: "Une escaneos, ordena, gira o quita páginas.", group: "Documentos", icon: "Files" },
-  { slug: "neto-propietario", title: "Neto del propietario", description: "Lo que recibe el propietario después de comisión y gastos.", group: "Calcular", icon: "Wallet" },
+  { slug: "neto-propietario", title: "ISR y neto del vendedor", description: "Cuánto le queda al propietario después de comisión, ISR y gastos.", group: "Calcular", icon: "Wallet" },
   { slug: "hipoteca", title: "Hipoteca", description: "Mensualidades, anticipos y tabla de amortización.", group: "Calcular", icon: "Landmark" },
   { slug: "comparables", title: "Comparables", description: "Comparables y ajustes de la opinión de valor, sin operación.", group: "Calcular", icon: "Scale" },
   { slug: "ofertas", title: "Comparador de ofertas", description: "Compara precio, plazo y forma de pago de cada oferta.", group: "Calcular", icon: "GitCompareArrows" },

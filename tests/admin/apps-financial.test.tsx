@@ -11,7 +11,7 @@ function Harness({ slug, initial }: { slug: string; initial?: AppInput }) {
   return <><FinancialEditor slug={slug} input={input} context={{}} onChange={(next) => { setInput(next); setResult(null); }} onResult={setResult} /><output aria-label="Datos guardables">{JSON.stringify(input)}</output><output aria-label="Resultado emitido">{JSON.stringify(result)}</output></>;
 }
 it("edita cargos históricos sin descontarlos, emite resultado y permite recalcular después de editar", () => {
-  render(<Harness slug="neto-propietario" initial={{ salePrice: 1000, loan: 0, commission: 50, taxes: 0 }} />);
+  render(<Harness slug="neto-propietario" initial={{ salePrice: 1000, loan: 0, commissionMode: "importe", commission: 50, isrMode: "importe", isrAmount: 0, taxes: 0 }} />);
   fireEvent.click(screen.getByRole("button", { name: "Agregar gasto" }));
   fireEvent.change(screen.getByLabelText("Concepto 1"), { target: { value: "Obra pagada" } });
   fireEvent.change(screen.getByLabelText("Importe 1"), { target: { value: "300" } });
@@ -76,4 +76,17 @@ it("invalida la transferencia preparada cuando cambia el presupuesto", () => {
   fireEvent.change(screen.getByLabelText("Precio unitario 1"), { target: { value: "150" } });
   expect(sessionStorage.getItem("fortius.apps.inversiones.transfer.v1")).toBeNull();
   expect(screen.queryByRole("link", { name: "Abrir inversión con este presupuesto" })).toBeNull();
+});
+it("ISR y neto: pide la UDI solo con casa habitación confirmada y calcula el ISR (HER-03)", () => {
+  render(<Harness slug="neto-propietario" initial={{ salePrice: 3000000, loan: 0, commissionPercent: 5, saleDate: "2026-11-20", acquisitionDate: "2016-03-15", acquisitionCost: 1000000, inpcAcquisition: 120, inpcSale: 145.5, improvements: 0, acquisitionExpenses: 50000, taxes: 0 }} />);
+  expect(screen.queryByLabelText("Valor de la UDI")).toBeNull();
+  fireEvent.click(screen.getByLabelText("Es la casa habitación del vendedor"));
+  expect(screen.queryByLabelText("Valor de la UDI")).toBeNull();
+  fireEvent.click(screen.getByLabelText("No vendió otra casa habitación exenta en los últimos tres años"));
+  expect(screen.getByLabelText("Valor de la UDI")).toBeTruthy();
+  fireEvent.click(screen.getByLabelText("Es la casa habitación del vendedor"));
+  fireEvent.click(screen.getByRole("button", { name: "Agregar gastos habituales" }));
+  expect(screen.getByLabelText("Concepto 1")).toHaveProperty("value", "Certificado de libertad de gravamen");
+  fireEvent.click(screen.getByRole("button", { name: "Calcular neto" }));
+  expect(screen.getByLabelText("Resultado emitido").textContent).toContain("$178,104.48 MXN");
 });

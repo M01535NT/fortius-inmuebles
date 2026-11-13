@@ -387,11 +387,11 @@ const PHASE_TOOLS: Record<SalePhase, Array<[string, string]>> = {
   documentos: [["revisor-expediente", "Pendientes documentales"]],
   dictamen: [["revisor-expediente", "Pendientes documentales"]],
   captacion: [["revisor-expediente", "Pendientes documentales"], ["comparables", "Comparar casas parecidas"]],
-  verificacion: [["comparables", "Comparar casas parecidas"], ["neto-propietario", "Neto del propietario"], ["revisor-expediente", "Pendientes documentales"]],
+  verificacion: [["comparables", "Comparar casas parecidas"], ["neto-propietario", "ISR y neto del vendedor"], ["revisor-expediente", "Pendientes documentales"]],
   contrato: [["ficha-comercial", "Ficha del inmueble"], ["fotografias", "Fotografías"], ["cotizador", "Cotizador de servicios"]],
   publicacion: [["informe-propietario", "Preparar informe"], ["ficha-comercial", "Ficha del inmueble"], ["qr", "Enlaces y QR"]],
   visitas: [["ofertas", "Comparar ofertas"], ["hipoteca", "Hipoteca"], ["informe-propietario", "Preparar informe"]],
-  cierre: [["neto-propietario", "Neto del propietario"], ["comisiones", "Comisiones y reparto"], ["revisor-expediente", "Pendientes documentales"]],
+  cierre: [["neto-propietario", "ISR y neto del vendedor"], ["comisiones", "Comisiones y reparto"], ["revisor-expediente", "Pendientes documentales"]],
 };
 const ROUTE_TOOLS: Partial<Record<OperationWorkflow["ruta"], Array<[string, string]>>> = {
   compra: [["comparables", "Comparar casas parecidas"], ["hipoteca", "Hipoteca"], ["ofertas", "Comparar ofertas"]],

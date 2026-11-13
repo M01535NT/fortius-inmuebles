@@ -24,15 +24,19 @@ export function prefillFromUrl(slug: string, params: URLSearchParams): { input: 
   return { input: {}, context };
 }
 
-/** Enlace a la hipoteca con el precio puesto (desde un inmueble o el presupuesto de un prospecto). */
-export function hipotecaHref({ precio, moneda, inmueble }: { precio?: number; moneda?: string; inmueble?: string }) {
+type PriceLink = { precio?: number; moneda?: string; inmueble?: string };
+function priceHref(slug: string, { precio, moneda, inmueble }: PriceLink) {
   const query = new URLSearchParams();
-  // La hipoteca calcula en pesos: un precio en dólares no se pasa para no confundirlo.
+  // Hipoteca e ISR calculan en pesos: un precio en dólares no se pasa para no confundirlo.
   if (precio && precio > 0 && (!moneda || moneda === "MXN")) query.set("precio", String(Math.round(precio * 100) / 100));
   if (inmueble) query.set("inmueble", inmueble);
   const text = query.toString();
-  return `/admin/apps/hipoteca${text ? `?${text}` : ""}`;
+  return `/admin/apps/${slug}${text ? `?${text}` : ""}`;
 }
+/** Enlace a la hipoteca con el precio puesto (desde un inmueble o el presupuesto de un prospecto). */
+export const hipotecaHref = (link: PriceLink) => priceHref("hipoteca", link);
+/** Enlace a ISR y neto del vendedor con el precio de venta puesto (HER-03). */
+export const netoHref = (link: PriceLink) => priceHref("neto-propietario", link);
 
 type Propuesta = { id: string; formato_id: string; data: Record<string, unknown> };
 const text = (value: unknown) => typeof value === "string" ? value.trim() : "";

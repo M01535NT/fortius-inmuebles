@@ -18,8 +18,7 @@ import styles from "./catalog.module.css";
 const SHORTCUTS = [
   { href: "/admin/apps/documentos?vista=machotes", title: "Machotes en blanco", text: "Cualquier formato con el membrete, para revisarlo o llenarlo a mano.", Icon: FileDown },
   { href: "/admin/apps/documentos?formato=07", title: "Opinión de valor", text: "Con los datos que dé el cliente, sin abrir una operación.", Icon: Building2 },
-  // ISR y neto (HER-03) sustituirá este acceso; mientras tanto, el neto sin el cálculo del ISR.
-  { href: "/admin/apps/neto-propietario", title: "Neto del propietario", text: "Precio menos comisión y gastos. El ISR todavía se calcula aparte.", Icon: Wallet },
+  { href: "/admin/apps/neto-propietario", title: "ISR y neto", text: "Cuánto le queda al propietario al precio sugerido, con el ISR estimado.", Icon: Wallet },
 ] as const;
 
 export function AppsCatalog(){

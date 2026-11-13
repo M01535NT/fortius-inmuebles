@@ -10,6 +10,9 @@ vi.mock("@/lib/backend/auth", () => ({ requireStaff, createServerClient: vi.fn()
 import { GET as machote } from "@/app/api/admin/apps/machote/route";
 import { GET as uso } from "@/app/api/admin/apps/uso/route";
 import { GET as runs } from "@/app/api/admin/apps/runs/route";
+import { GET as exportRun } from "@/app/api/admin/apps/runs/[id]/export/route";
+import { getFinancialDefaults } from "@/lib/apps/financial";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 beforeEach(() => requireStaff.mockReset());
 
@@ -110,5 +113,30 @@ describe("Machote en blanco (HER-02)", () => {
     expect((await get("03")).status).toBe(400);
     requireStaff.mockRejectedValueOnce(new ApiError(401, "Inicia sesión"));
     expect((await get("06")).status).toBe(401);
+  });
+});
+
+describe("ISR y neto: dos PDF para el propietario (HER-03)", () => {
+  const id = "71000000-0000-4000-8000-000000000003";
+  const input = { ...getFinancialDefaults("neto-propietario"), salePrice: 3_000_000, loan: 0, commissionPercent: 5, saleDate: "2026-11-20", acquisitionDate: "2016-03-15", acquisitionCost: 1_000_000, inpcAcquisition: 120, inpcSale: 145.5, improvements: 0, acquisitionExpenses: 50_000, taxes: 0 };
+  const client = (row: Record<string, unknown>) => {
+    const query = { eq: () => query, is: () => query, maybeSingle: async () => ({ data: { id, slug: "neto-propietario", title: "Neto", input, result: { title: "Estimación", summary: [] }, context: {}, version: 1, updated_at: "2026-11-12", ...row }, error: null }) };
+    return { from: () => ({ select: () => query }) } as unknown as SupabaseClient;
+  };
+  const get = (query: string) => exportRun(new Request(`https://panel.test/api/admin/apps/runs/${id}/export?${query}`), { params: Promise.resolve({ id }) });
+  it("descarga el neto y la hoja del ISR armados con la captura guardada", async () => {
+    requireStaff.mockResolvedValue({ client: client({}), user: { id: "u" } });
+    for (const parte of ["neto", "isr"]) {
+      const response = await get(`format=pdf&parte=${parte}`);
+      expect(response.status, parte).toBe(200);
+      expect(response.headers.get("content-disposition")).toContain(parte === "isr" ? "fortius-hoja-isr.pdf" : "fortius-neto-vendedor.pdf");
+      expect(new TextDecoder().decode((await response.arrayBuffer()).slice(0, 5))).toBe("%PDF-");
+    }
+  }, 60000);
+  it("no hay hoja sin cálculo del ISR ni en otras herramientas", async () => {
+    requireStaff.mockResolvedValue({ client: client({ input: { ...input, isrMode: "importe", isrAmount: 1 } }), user: { id: "u" } });
+    expect((await get("format=pdf&parte=isr")).status).toBe(400);
+    requireStaff.mockResolvedValue({ client: client({ slug: "hipoteca" }), user: { id: "u" } });
+    expect((await get("format=pdf&parte=neto")).status).toBe(400);
   });
 });
