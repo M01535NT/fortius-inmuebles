@@ -31,6 +31,8 @@ import s from "./wizard.module.css";
 
 const ORIGINS = { llamada: "Llamada", whatsapp: "WhatsApp", correo: "Correo electrónico", referido: "Referido", web: "Página web o redes sociales", presencial: "En persona", otro: "Otro" } as const;
 type Contact = { kind: "lead" | "cliente"; id: string };
+/** COR-19: «Captar inmueble para este perfil» trae la zona y el tipo que buscan los interesados. */
+const demandSeed = (p: { get(key: string): string | null }) => Object.fromEntries(["zona", "tipo"].flatMap(key => p.get(key)?.trim() ? [[key, p.get(key)!.trim().slice(0, 200)]] : [])) as { zona?: string; tipo?: string };
 
 export function NewOperationWizard() {
   const params = useSearchParams(), router = useRouter();
@@ -52,7 +54,7 @@ export function NewOperationWizard() {
 
   const step = !interviewId ? null : !interview ? 0 : interview.estado === "borrador" ? 3 : 4;
   return <Surface className="flex min-h-[100dvh] flex-1 flex-col">
-    {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin/operaciones/nueva?entrevista=${encodeURIComponent(started.id)}`, { scroll: false }); }} onGuard={onGuard} />
+    {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin/operaciones/nueva?${new URLSearchParams({ entrevista: started.id, ...demandSeed(params) })}`, { scroll: false }); }} onGuard={onGuard} />
       : <div className={s.shell}>
         <Header step={step === 0 ? 3 : step} intent={interview?.intencion} />
         <div className={s.frame}>
@@ -61,7 +63,7 @@ export function NewOperationWizard() {
             {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
               : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre operación">Fortius representa al propietario: quien compra o renta se guarda como interesado.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
               : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble. Prepara la entrevista desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
-              : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+              : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} seed={demandSeed(params)} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
               : <DoneStep interview={interview!} fresh={fresh} />}
           </div>
         </div>

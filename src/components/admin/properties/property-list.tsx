@@ -13,6 +13,9 @@ import { usePersonStatus } from "@/components/admin/workspace/use-person-status"
 import { ESTADO_LABELS, ESTADOS_POR_OPERACION, OPERACION_LABELS, estadoValido, formatPrecio, type Property } from "@/data/propiedades";
 import { db, removePropiedad, upsertPropiedad, useCollection, type AdminProperty } from "@/lib/admin/store";
 import { PREP_ITEMS, openKeyLoans, prepState, type PrepItem } from "@/lib/propiedad-seguimiento";
+import { seekersFrom } from "@/lib/admin/buyer-matches";
+import { demandGroups } from "@/lib/admin/demand";
+import { DemandView } from "./demand-view";
 import s from "./properties.module.css";
 
 /*
@@ -75,6 +78,10 @@ export function PropertyList() {
   const [filters, setFilters] = React.useState<InventoryFilters>(emptyInventoryFilters);
   const [page, setPage] = React.useState(0);
   const [missingOnly, setMissingOnly] = React.useState(false);
+  // COR-19: «Buscan y no tenemos» cambia la lista por la demanda sin cubrir.
+  const [demand, setDemand] = React.useState(false);
+  const leads = useCollection(db.leads), clients = useCollection(db.clientes);
+  const groups = React.useMemo(() => demandGroups(seekersFrom(leads, clients), properties), [leads, clients, properties]);
   const incomplete = properties.filter(p => p.estado !== "vendida" && p.estado !== "rentada" && propertyGaps(p).length > 0);
   const results = filterInventory(properties, filters).filter(p => !missingOnly || propertyGaps(p).length > 0);
   const pages = Math.max(1, Math.ceil(results.length / PAGE));
@@ -88,23 +95,25 @@ export function PropertyList() {
   const toggleView = () => writeView(view === "filas" ? "tarjetas" : "filas");
 
   return <GuidedPage title="Inmuebles" subtitle={`${properties.length} ${properties.length === 1 ? "inmueble" : "inmuebles"} · ${published} ${published === 1 ? "publicado" : "publicados"}`} actions={<>
-    <button type="button" className={s.gapChip} aria-pressed={missingOnly} onClick={() => { setMissingOnly(on => !on); setPage(0); }}>Les falta algo<span>{incomplete.length}</span></button>
+    <button type="button" className={s.gapChip} aria-pressed={missingOnly && !demand} onClick={() => { setDemand(false); setMissingOnly(on => demand || !on); setPage(0); }}>Les falta algo<span>{incomplete.length}</span></button>
+    <button type="button" className={s.gapChip} aria-pressed={demand} onClick={() => setDemand(on => !on)}>Buscan y no tenemos<span>{new Set(groups.flatMap(g => g.seekers.map(x => `${x.kind}-${x.id}`))).size}</span></button>
     <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />
     <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
     <ButtonLink href="/admin/propiedades/nueva" variant="primary" data-tour="inmuebles-agregar"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
   </>}>
-    <details className={s.more}>
+    {!demand && <details className={s.more}>
       <summary>Más filtros{extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}</summary>
       <div className="mt-3"><InventoryControls value={filters} onChange={update} advisers={advisers} count={results.length} hideSearch /></div>
-    </details>
+    </details>}
 
-    {properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
+    {demand ? <DemandView groups={groups} />
+      : properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
       : shown.length === 0 ? <EmptyBox title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
       : <>
       <button type="button" className={s.viewToggle} onClick={toggleView}>{view === "filas" ? <><LayoutGrid size={16} aria-hidden="true" />Ver en tarjetas</> : <><List size={16} aria-hidden="true" />Ver en filas</>}</button>
       <ul aria-label="Inmuebles" data-tour="inmuebles-lista" data-view={view} className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul></>}
 
-    {results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
+    {!demand && results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
       <button type="button" className={s.pageButton} disabled={current === 0} onClick={() => setPage(current - 1)}>Anterior</button>
       <span className="text-sm">Página {current + 1} de {pages}</span>
       <button type="button" className={s.pageButton} disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Siguiente</button>

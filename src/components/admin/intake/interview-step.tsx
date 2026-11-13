@@ -10,20 +10,31 @@ import { DONT_KNOW, dontKnowValue, firstOpenScreen, interviewScreens, optionLabe
 import { cn } from "@/lib/utils";
 import s from "./wizard.module.css";
 import { MoneyInput } from "@/components/admin/money-input";
+import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
+import { TIPO_INMUEBLE_KEYS } from "@/lib/inmueble-tipos";
 
 type Field = ReturnType<typeof screenFields>[number];
+
+/** COR-19: la zona y el tipo que buscan los interesados entran solo en preguntas sin contestar. */
+function withDemandSeed(owner: boolean, answers: InterviewAnswers, seed?: { zona?: string; tipo?: string }): InterviewAnswers {
+  if (!owner || !seed) return answers;
+  const filled = { ...answers };
+  if (seed.zona && !filled.zona?.trim()) filled.zona = seed.zona;
+  if (seed.tipo && (TIPO_INMUEBLE_KEYS as readonly string[]).includes(seed.tipo) && (!filled.tipoInmueble || filled.tipoInmueble === "por_definir")) filled.tipoInmueble = seed.tipo;
+  return filled;
+}
 
 /**
   Paso 3: la entrevista, una pantalla a la vez. «Continuar» guarda el borrador;
   «Terminar entrevista» la completa y entonces se crea la operación.
 */
-export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChange }: {
-  interview: OperationalInterview; onSaved: (interview: OperationalInterview) => void; onDone: (interview: OperationalInterview) => void;
+export function InterviewStep({ interview, seed, onSaved, onDone, onLater, onDirtyChange }: {
+  interview: OperationalInterview; seed?: { zona?: string; tipo?: string }; onSaved: (interview: OperationalInterview) => void; onDone: (interview: OperationalInterview) => void;
   onLater: () => void; onDirtyChange: (dirty: boolean, busy: boolean) => void;
 }) {
   const properties = useCollection(db.propiedades);
   const intent = interview.intencion, owner = isOwnerIntent(intent), correction = !!interview.anterior_id;
-  const [answers, setAnswers] = React.useState<InterviewAnswers>(() => withProspectDefaults(intent, { ...interview.respuestas, ...(interview.respuestas.fecha ? {} : { fecha: operationalDate() }) }));
+  const [answers, setAnswers] = React.useState<InterviewAnswers>(() => withProspectDefaults(intent, withDemandSeed(owner, { ...interview.respuestas, ...(interview.respuestas.fecha ? {} : { fecha: operationalDate() }) }, seed)));
   const screens = interviewScreens(intent);
   const [index, setIndex] = React.useState(() => firstOpenScreen(intent, interview.respuestas));
   const [validate, setValidate] = React.useState(false);
@@ -114,6 +125,7 @@ export function InterviewStep({ interview, onSaved, onDone, onLater, onDirtyChan
         <label className="flex flex-col gap-2 text-sm font-semibold">¿Ya tenemos este inmueble registrado?<select className={selectClass} value={answers.propiedadExistente ?? ""} disabled={busy} onChange={e => set("propiedadExistente", e.target.value)}><option value="">No, registrar uno nuevo con estos datos</option>{properties.map(p => <option key={p.slug} value={p.slug}>{p.codigo} · {p.titulo}</option>)}</select></label>
         <p className="mt-2 text-sm text-muted-foreground">Solo si es la misma unidad, no basta la dirección. Medidas y fotos van en el levantamiento.</p>
       </Card>}
+      {owner && prospect && <WaitingSeekers intent={intent === "arrendar" ? "rentar" : "comprar"} tipo={answers.tipoInmueble} zona={answers.zona} />}
       <Card as="div" className="flex flex-col gap-6 p-5 sm:p-7">
         {fields.map(field => <div key={field.key} className={s.question}>
           {field.options ? <span id={`pregunta-${field.key}-label`} className={s.questionLabel}>{field.label}</span> : <label htmlFor={`pregunta-${field.key}`}>{field.label}</label>}

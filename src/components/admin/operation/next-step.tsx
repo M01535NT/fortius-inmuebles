@@ -25,6 +25,8 @@ import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
 import { ContractSignatureCard } from "./contract-signature";
 import { OwnerAppraisalCard } from "./owner-appraisal";
+import { CloseCard } from "./close-card";
+import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
@@ -110,7 +112,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   }
   function goToPending(item: Extract<StageItem, { kind: "pendiente" }>) {
     if (item.place === "ajustes") onGoTo("ajustes");
-    else if (item.place === "firma") { const card = document.getElementById("firma-contrato"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("button")?.focus(); }
+    else if (item.place === "firma" || item.place === "cierre") { const card = document.getElementById(item.place === "firma" ? "firma-contrato" : "cierre-operacion"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("button")?.focus(); }
     else if (item.place === "tarea") { const card = document.getElementById("proxima-tarea"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("input, button")?.focus(); }
     else void docs.start(item.text.includes("(02)") ? "02" : "04", survey);
   }
@@ -194,7 +196,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       action = <Button variant="primary" disabled={lock} onClick={() => void applyDecision(now.action)}>{now.action === "pausa" ? "Pausar la operación" : "Referir y descartar"}</Button>;
     } else {
       title = now.text; text = now.why ? now.why.replace(/^./, c => c.toUpperCase()) + "." : "";
-      action = <Button variant="primary" disabled={lock} onClick={() => goToPending(now)}>{now.place === "ajustes" ? "Abrir los datos" : now.place === "tarea" ? "Agendar la próxima tarea" : now.place === "firma" ? "Ir a la firma" : "Hacerlo ahora"}</Button>;
+      action = <Button variant="primary" disabled={lock} onClick={() => goToPending(now)}>{now.place === "ajustes" ? "Abrir los datos" : now.place === "tarea" ? "Agendar la próxima tarea" : now.place === "firma" ? "Ir a la firma" : now.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button>;
     }
     const ratio = counted.length ? done / counted.length : 1;
     const sub = now && target && now.kind !== "abogado" && now.kind !== "decision02" ? (target.target ? `${done} de ${counted.length} para pasar a ${target.label}` : `Con todo listo se abre sola ${target.label}.`) : "";
@@ -243,7 +245,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
         {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
           <StateIcon state="pendiente" done={false} />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="font-semibold">{item.text}</span>{item.why && <span className="text-sm text-muted-foreground">{item.why.replace(/^./, c => c.toUpperCase())}</span>}</div>
-          <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Abrir los datos" : item.place === "tarea" ? "Ir a la próxima tarea" : item.place === "firma" ? "Ir a la firma" : "Hacerlo ahora"}</Button></div>
+          <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Abrir los datos" : item.place === "tarea" ? "Ir a la próxima tarea" : item.place === "firma" ? "Ir a la firma" : item.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button></div>
         </div></li>)}
       </ul>
       <details className={s.meaning}><summary>¿Qué significa cada estado?</summary><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
@@ -256,8 +258,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
 
     {phase === "prospecto" && owner && <div className={cn(s.piece, s.span6)}><FirstContact interview={interview} op={op} disabled={lock} /></div>}
     {owner && interview && (phase === "captacion" || phase === "verificacion" || phase === "contrato") && <div className={s.span6}><Declared op={op} interview={interview} /></div>}
+    {owner && property && !property.publicada && property.estado === "evaluacion" && <div className={s.span6}><WaitingSeekers intent={flow.ruta === "arrendador" ? "rentar" : "comprar"} tipo={property.tipo} zona={`${property.zona} ${property.direccionAproximada}`} /></div>}
     {flow.ruta === "captacion" && (phase === "verificacion" || appraisalState(flow, today) === "vencido") && <div className={s.span6}><OwnerAppraisalCard op={op} today={today} reviewer={evidence.reviewer} disabled={lock} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
     {owner && (phase === "contrato" || !!flow.firmaContrato) && <div className={s.span6}><ContractSignatureCard op={op} today={today} disabled={lock || locked} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
+    {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest("09"))} disabled={lock} onSave={onSave} /></div>}
     {owner && ownerReportApplies(stageOf(op), op.flujo ?? flow) && <div className={s.span6}><OwnerReport op={op} today={today} disabled={lock} onSave={onSave} /></div>}
     {owner && (phase === "publicacion" || phase === "visitas") && <div className={s.span6}><VisitsAndOffers op={op} today={today} documents={evidence.documents} /></div>}
     {floatingBar()}
