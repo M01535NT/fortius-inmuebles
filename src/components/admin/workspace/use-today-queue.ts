@@ -94,7 +94,7 @@ export function useTodayQueue({ maxAge = 0 }: { maxAge?: number } = {}) {
   };
   // Misma etapa que Operaciones: documentos de cada operación y su checklist (COR-03).
   const staged = (dossiers ?? []).map(d => ({ ...d, inicial: initialStatus(formats.get(d.id), tasks.find(t => t.id === checklistTaskId(d.id))) }));
-  const waiting = dossiers === undefined ? [] : waitingItems({ dossiers: staged, tasks, offers: offers ?? null, followups: projectFollowups(leads, clients, dossiers), names, today, formats });
+  const waiting = dossiers === undefined ? [] : waitingItems({ dossiers: staged, tasks, offers: offers ?? null, followups: projectFollowups(leads, clients, dossiers, tasks), names, today, formats });
   const toDay = (instant: string) => operationalDate(new Date(instant));
   const newLeads = who ? unattendedLeads({ leads, properties, me: who.asesorId, admin: who.administrador, now: new Date(), hours: firstResponseHours(settings), adviserName: id => advisers.find(a => a.id === id)?.nombre }) : [];
   const expiring = dossiers && contracts ? expiryItems({ contracts, dossiers, names, today }) : [];

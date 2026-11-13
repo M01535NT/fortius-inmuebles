@@ -38,7 +38,8 @@ export function AgendaCalendar() {
   const clientes = useCollection(db.clientes);
   const propiedades = useCollection(db.propiedades);
   const asesores = useCollection(db.asesores);
-  const tareas = useCollection(db.tareas).filter(isTaskOpen);
+  const todasLasTareas = useCollection(db.tareas);
+  const tareas = todasLasTareas.filter(isTaskOpen);
   const [expedientes, setExpedientes] = React.useState<Expediente[]>([]);
   const [selectedExpedienteId, setSelectedExpedienteId] = React.useState("");
   const referencesEdited = React.useRef(false);
@@ -64,7 +65,7 @@ export function AgendaCalendar() {
     return () => { active = false; };
   }, [expedientesRetry]);
   const { dossiers } = useTodayData(60_000);
-  const followups = projectFollowups(leads, clientes, dossiers);
+  const followups = projectFollowups(leads, clientes, dossiers, todasLasTareas);
   const hoy = operationalDate();
   const [seleccion, setSeleccion] = React.useState(hoy);
   const [captureDate, setCaptureDate] = React.useState(hoy);

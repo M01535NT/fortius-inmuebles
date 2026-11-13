@@ -5,6 +5,7 @@ import { apiRequest, db, useCollection, upsert } from "@/lib/admin/store";
 import { duplicateContacts } from "@/lib/admin/workspace";
 import { AsyncButton, btnGhost } from "@/components/admin/ui";
 import { TASK_STATUSES } from "@/lib/tasks";
+import { isNextStepTask, openNextStep } from "@/lib/admin/next-step-task";
 import { humanDateTime, humanDate } from "@/lib/utils";
 
 export function RelatedWork({
@@ -111,7 +112,13 @@ export function RelatedWork({
       {person && (
         <p className="text-sm">
           Próxima comunicación:{" "}
-          <strong>{person.perfil?.proximoContacto ?? "Por programar"}</strong>
+          {/* DEC-42: si la persona ya tiene su siguiente paso como tarea, manda la tarea. */}
+          <strong>{(() => {
+            const ref = leadId ? { kind: "lead" as const, id: leadId } : clienteId ? { kind: "cliente" as const, id: clienteId } : null;
+            const task = ref ? openNextStep(tasks, ref) : undefined;
+            if (task) return `${task.titulo}${task.vence ? ` · ${humanDate(task.vence)}` : ""}`;
+            return ref && tasks.some((t) => isNextStepTask(t, ref)) ? "Por programar" : person.perfil?.proximoContacto ?? "Por programar";
+          })()}</strong>
         </p>
       )}
       <p className="text-sm text-muted-foreground">Mensajes, citas y tareas llevan su propia fecha.</p>

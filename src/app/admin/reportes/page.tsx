@@ -60,7 +60,7 @@ export default function ReportesPage() {
   if (expedientStatus === "error") return <p role="alert" className="rounded-md border border-destructive p-6">{error}</p>;
   const today = operationalDate();
   const metrics = commercialMetrics({ leads, clientes, propiedades, tareas, asesores, expedientes, today, includeDemo });
-  const overdue = overdueFollowups(projectFollowups(leads, clientes, expedientes), today);
+  const overdue = overdueFollowups(projectFollowups(leads, clientes, expedientes, tareas), today);
   const converted = leads.flatMap(lead => {
     // COR-10: solo cuenta quien firmó su contrato con Fortius.
     const client = clientes.find(item => (item.id === lead.clienteId || item.leadId === lead.id) && clientStatus(item.id, expedientes) !== "prospecto");

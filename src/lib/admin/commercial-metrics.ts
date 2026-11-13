@@ -25,7 +25,7 @@ export function commercialMetrics(input: {
   const activeLeads: Array<{ asesorId?: string }> = [...openLeads, ...prospectClients];
   const converted = leads.filter(lead => clientes.some(cliente => (cliente.id === lead.clienteId || cliente.leadId === lead.id) && signed(cliente))).length;
   const overdueTasks = tareas.filter(task => isTaskOpen(task) && !!task.vence && task.vence < today);
-  const overdueContacts = overdueFollowups(projectFollowups(leads, clientes, expedientes), today);
+  const overdueContacts = overdueFollowups(projectFollowups(leads, clientes, expedientes, tareas), today);
   const stages = new Map<string, number>();
   for (const record of expedientes) stages.set(record.etapa || "sin-etapa", (stages.get(record.etapa || "sin-etapa") ?? 0) + 1);
   // COR-22 (RP-99): reparto estimado de cada cierre registrado; no es lo cobrado (FIN-02).

@@ -3,16 +3,18 @@ import * as React from "react";
 import { Button } from "@/components/admin/kit";
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { db, errorMessage, uid, upsert, useCollection, type Lead } from "@/lib/admin/store";
+import { planNextStep } from "@/lib/admin/next-step-task";
 import { CONTACT_KINDS, RETRY_ACTION, RETRY_DAYS, addDays, missedInARow, suggestedNext, withContact, type ContactKind } from "@/lib/admin/lead-contact";
 
 /*
   «Registrar contacto» del interesado (COR-18, RP-21): primer toque, qué pasó; segundo, guardar con
-  el siguiente paso y su fecha ya propuestos. «Visitó» deja la visita en la agenda con el inmueble,
+  el siguiente paso y su fecha ya propuestos, que quedan como tarea (DEC-42). «Visitó» deja la visita en la agenda con el inmueble,
   para que la vean su ficha y la operación del propietario. Tras tres «No contestó» seguidos se
   propone reintentar en 30 días (RP-97).
 */
 export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead; today: string; onDirtyChange?: (dirty: boolean) => void; preset?: { key: number; kind: ContactKind; nota: string } | null }) {
   const properties = useCollection(db.propiedades);
+  const tasks = useCollection(db.tareas);
   const [kind, setKind] = React.useState<ContactKind | null>(null);
   const [accion, setAccion] = React.useState(""), [fecha, setFecha] = React.useState(""), [nota, setNota] = React.useState("");
   const [inmueble, setInmueble] = React.useState(lead.propiedadSlug ?? "");
@@ -55,6 +57,9 @@ export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead;
         await upsert(db.eventos, { id: uid(), titulo: `Visita de ${lead.nombre}${property ? ` a ${property.titulo}` : ""}`, fecha: today, tipo: "visita", leadId: lead.id, propiedadSlug: inmueble, asesorId: lead.asesorId }, null);
       }
       await upsert(db.leads, withContact(lead, { kind, nota, accion, fecha, id: uid(), at }), db.leads.version(lead));
+      // DEC-42: el siguiente paso es una tarea con fecha; se mueve la que ya había o se crea.
+      const task = planNextStep(tasks, { kind: "lead", id: lead.id, asesorId: lead.asesorId }, { accion, fecha, id: uid() });
+      await upsert(db.tareas, task, db.tareas.version(task));
       setNotice(`Listo: quedó registrado «${CONTACT_KINDS[kind]}».`); setKind(null); setNota("");
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
