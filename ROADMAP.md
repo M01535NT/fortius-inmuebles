@@ -17,6 +17,10 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 - **En `main`:** todo hasta el PR de `feat/integracion` del 13/11/2026, que reunió el trabajo de las siete sesiones en paralelo (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad); antes, el PR #73 (commit `c03504b`). Verificado en local antes de subir: `npm run verify` (lint, tipos, base 1071/1071, panel 521/521 y build), herramientas de respaldo 48/48, activos PDF, navegador público 72 (1 omitida), panel 52/52 y formulario público 5/5.
 - **Migraciones aplicadas en remoto con ese PR** (Seguridad las confirmó una por una en `schema_migrations` y en su contenido, 13/11/2026): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
 
+- **En `feat/integracion`, sin publicar:** formato 20 (arrendamiento, DOC-14) en el cierre de la renta y en documentos sueltos; índice de la ficha siempre visible (decisión del titular del 13/11/2026, reemplaza I8); bloque 0, primera entrega de Seguridad: la copia diaria se detiene con aviso si la base y el código no tienen las mismas migraciones (causa de la falla del 13/11 a las 07:24), y se retira el permiso de ejecutar `rls_auto_enable` (único hallazgo del asesor de seguridad de Supabase); OBS-01: las fallas del servidor avisan a Sentry solo con la clase de falla, la ruta como plantilla y el número de rastreo, sin mensaje, pila, cuerpo ni datos de clientes (se activa cuando `FORTIUS_SENTRY_DSN` esté en Vercel); formato 21, contrato de intermediación para renta, ya usado en la etapa de contrato de la renta; formato 22, solicitud de arrendamiento con revisión del candidato y consentimiento para datos de ingresos y patrimonio (los dos esperan al abogado; C-27 corregido: en la renta el respaldo sale del 21 y del 22, no de la entrevista); aviso «Cambios guardados» en recuadro verde con palomita, aprobado por el titular.
+- **Migraciones en la rama, sin aplicar:** `20261113150000_formato_20_arrendamiento`, `20261113160000_revocar_rls_auto_enable` `20261113161000_formato_21_intermediacion_renta` y `20261113170000_formato_22_solicitud_arrendamiento`.
+- **Bloque 0, estado (13/11/2026):** REC-01 con copia diaria funcionando desde el 13/11 y conexión verificada con el certificado raíz de Supabase (13/11/2026); el titular descifró una copia con su llave y Seguridad comprobó que está completa y se restaura (13/11/2026); solo falta repetir el ensayo con volumen real después de cargar el inventario. BAS-01 aceptada por el titular y CI-01 terminada (13/11/2026). ENV-01 espera la decisión c), el backend de pruebas. AUT-01 espera el buzón de prueba y la decisión del MFA. OBS-01 construida con Sentry gratuito (DEC-19); proyecto `fortius-inmuebles` creado en Sentry y evento de prueba recibido (13/11/2026); `FORTIUS_SENTRY_DSN` puesto en Vercel producción (13/11/2026); se activa con la próxima publicación y Seguridad repite la prueba desde producción. PRV-01 espera al abogado. Detalle en `docs/erp-crm/respaldo-diario.md` y `recovery-policy.md`.
+
 **Qué entró (13/11/2026).**
 
 - **Panel:** IA-02 (tope de IA en Configuración); FCH-03 completo: los datos de Fortius se capturan en Configuración y los formatos 01 y 09 los toman de ahí, con el membrete fijo (decisión del titular, 13/11/2026); en Contenido ya no aparecen «Titular (H1)» ni «Subtítulo», que el sitio no usa (C-01, lo guardado se conserva); NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
@@ -341,7 +345,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 - **RP-71 · Un ícono fijo por concepto.** Cada etapa, tipo de documento y estado tiene un solo ícono (de `lucide-react`, ya instalado), definido en un catálogo único y usado igual en el tablero, la barra de avance, Hoy, las listas y los documentos. (LV-02)
 - **RP-72 · El estado se reconoce sin color.** Todo estado combina forma, color y palabra (WCAG 1.4.1). (LV-02)
 - **RP-73 · El movimiento confirma, no decora.** Animaciones de 300 ms o menos que confirman una acción o muestran un cambio; ninguna en bucle continuo; todas se apagan con «reducir movimiento». (LV-03)
-- **RP-74 · Escala tipográfica fija de cuatro tamaños:** título de página, título de sección, texto y nota. Ningún otro tamaño en el panel. (LV-01)
+- **RP-74 · Escala tipográfica fija de `docs/brand.md`:** ocho tamaños para el panel (30/26, 20, 18, 16, 15, 14, 13 y 12 px) más dos de cifra, aprobados por el titular el 13/11/2026; ningún tamaño fuera de ella. Reemplaza la escala de cuatro tamaños del 17/10/2026. (LV-01)
 
 **Q. Proceso, captura y documentos (aprobado el 17/10/2026)**
 
@@ -723,7 +727,7 @@ La tabla de reglas reemplazadas hasta el 13/11/2026 está en el historial (§18:
 | V07 | **Ayuda con «?» de una línea** junto a lo que confunde, y la primera vez un punto que late sobre el botón clave («Empieza aquí») y desaparece al usarlo. | Es la forma visual de RP-54 y de C17 («¿Qué se hace aquí?»). El punto late como máximo tres veces y queda fijo (WCAG 2.2.2); se recuerda por usuario que ya lo vio (preferencias de RP-14). Se coordina con «Primeros pasos» (N24) y el recorrido de SOP-01 para no mostrar dos ayudas a la vez. |
 | V08 | **Ilustraciones de línea simples en las pantallas vacías**, con trazo en el color de texto secundario (sin guinda, para respetar RP-52). | Acompañan a los estados vacíos que enseñan (C31). SVG en el propio código, una línea, adaptadas a claro y oscuro; no se usan en pantallas con datos. |
 | V09 | **Foto o iniciales del asesor responsable** en cada tarjeta, en un círculo neutro. | Sin un color por persona, para no competir con los colores de estado (RP-69, RP-70). Usa la foto de Mi perfil si existe. |
-| V10 | **Escala tipográfica de cuatro tamaños**. | Es RP-74. Se hace con SIM-01 (C02, C05): una sola letra, cuatro tamaños, y el peso para la jerarquía. Compatible con la letra Grande de N09, que aumenta los cuatro por igual. |
+| V10 | **Escala tipográfica fija** (la de `docs/brand.md`, 13/11/2026; antes, cuatro tamaños). | Es RP-74. Una sola letra, los tamaños de la escala y el peso para la jerarquía. Compatible con la letra Grande de N09, que aumenta la escala por igual. |
 
 **LV-05 · Rediseño visual por área, con bocetos:** terminada (PR #45, #46 y #47, 18/10/2026). Su descripción, su estado y la «Dirección aprobada» del 17/10/2026 pasaron al historial (§20).
 
@@ -755,7 +759,7 @@ Ocho reglas para todas las pantallas (del artboard de diagnóstico): cada dato u
 
 | ID | Mejoras | Depende de | Aceptación |
 |---|---|---|---|
-| LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; cuatro tamaños de letra en todo el panel; axe sin fallas. |
+| LV-01 | V02, V10 | Se hace junto con SIM-01 | Tokens `--success` e `--info` en claro y oscuro con contraste AA; ningún color de estado fuera de los cinco roles; solo los tamaños de la escala de `docs/brand.md` en todo el panel; axe sin fallas. |
 | LV-02 | V01, V03, V04, V05, V09 | LV-01, SIM-05 | Catálogo único de íconos usado en todas las pantallas; cada estado con forma, color y palabra; anillo de avance con texto; insignias de documento; avatar neutro del asesor. |
 | LV-03 | V06 | LV-02, UX-04 | Animaciones de confirmación de 300 ms o menos, sin bucles; con «reducir movimiento» no hay transiciones; los mensajes de guardado siguen apareciendo. |
 | LV-04 | V07, V08 | LV-01, SIM-12 | «?» de una línea donde hay dudas; punto «Empieza aquí» que late tres veces y se recuerda por usuario; ilustraciones en todos los estados vacíos, en claro y oscuro. |
@@ -1095,9 +1099,7 @@ Corresponde a la fase 0 de continuidad. Sus correcciones de código ya existen; 
 
 | Entrega de continuidad | Lo disponible | Lo que sigue pendiente |
 |---|---|---|
-| BAS-01 | Correcciones de fundamentos integradas y verificadas en su commit; preparación local comprobada. | Aceptación de negocio del alcance. |
 | REC-01 | Export de 18 tablas, huellas, referencias, ensayo DB y copia de bytes local. | Custodia y copia periódica efectiva; recuperación completa Auth/Storage en destino aislado; medir RPO/RTO. Objetivos aprobados: copia diaria, RPO 24 h y RTO 8 h. |
-| CI-01 | Checks Vercel y pruebas de bloqueo/paso a verde documentados. El 17/10/2026 se creó en GitHub la regla «main exige verify» (el check Verify debe aprobarse antes de fusionar) y se activó el auto-merge del repositorio. Comprobada el 25/10/2026: el PR #50 quedó bloqueado mientras Verify fallaba y se integró al aprobarse; el titular decidió conservarla. Desde el 25/10 el agente solo activa auto-merge cuando el titular aprueba publicar (I-04 en `AGENTS.md`). | Rollback de aplicación. |
 | ENV-01 | Inventario de despliegues y retiro de credenciales productivas de previews documentados. | Backend preview aislado y dependencias del despliegue adicional. |
 | AUT-01 | Auth y recuperación de sesión implementados; URL de retorno corregida según el registro. | Buzón controlado, entrega real de recuperación/invitación y política MFA recuperable. |
 | OBS-01 | Identificador de solicitud y logs sin cuerpos/secretos comprobados en pruebas. | Captura, retención y alertas del proveedor. |
@@ -1373,16 +1375,14 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 
 **Entregas sin bloque en el «Orden vigente»** (el titular decide dónde van; el agente no las acomoda): COR-11 (compra y búsqueda de renta como lead), COR-12 (quitar PROFECO del 09), DOC-14, DOC-15, PUB-02 (inmuebles compartidos), FIR-01, EXT-13 (conexión a IA con tope) y LV-07 (tablero «Hoy» con el boceto D «Mosaico cálido»). EXT-12 (captura sobre el documento) entró al bloque 1 por decisión del titular (DEC-31, 27/10/2026). EXT-02, EXT-03, EXT-04 y EXT-07 sí están en el bloque 7, «solo por decisión de negocio».
 
-**Retiradas de esta tabla el 13/11/2026 por estar `en_main` o `terminada`:** SIM-02, SIM-03, SIM-08, COR-01, COR-02, COR-03, COR-04, COR-06, COR-08, COR-09, COR-11, COR-12, COR-13, DOC-EXP, DAT-EXP, IA-01, CSR-01 a CSR-08, LV-05, LV-07, LV-08, SIA-01 a SIA-06, MRP-01, DOC-09, EXT-12, LV-06, SIM-13, SIM-14, COR-15, COR-16 y CAP-05. Sus filas están en el historial (§19: [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md)). **Segunda pasada (13/11/2026), confirmadas en `main` (hasta el PR #73):** HER-01, HER-02, HER-03, HER-05, PUB-02, COR-18, COR-19, COR-20, COR-21, COR-22, COR-23, COR-24, DOC-06 y CAP-06 (historial, §21). Tercera pasada (13/11/2026, comprobadas en el código de `main` tras el PR #74): SIM-01, SIM-09, SIM-11, SIM-12, SIM-17, SIM-19, COR-05, COR-07, COR-10, COR-14, COR-17, IA-02, FCH-03, FCH-06 (historial, §22).
+**Retiradas de esta tabla el 13/11/2026 por estar `en_main` o `terminada`:** SIM-02, SIM-03, SIM-08, COR-01, COR-02, COR-03, COR-04, COR-06, COR-08, COR-09, COR-11, COR-12, COR-13, DOC-EXP, DAT-EXP, IA-01, CSR-01 a CSR-08, LV-05, LV-07, LV-08, SIA-01 a SIA-06, MRP-01, DOC-09, EXT-12, LV-06, SIM-13, SIM-14, COR-15, COR-16 y CAP-05. Sus filas están en el historial (§19: [`docs/erp-crm/historial-del-plan.md`](docs/erp-crm/historial-del-plan.md)). **Segunda pasada (13/11/2026), confirmadas en `main` (hasta el PR #73):** HER-01, HER-02, HER-03, HER-05, PUB-02, COR-18, COR-19, COR-20, COR-21, COR-22, COR-23, COR-24, DOC-06 y CAP-06 (historial, §21). Tercera pasada (13/11/2026, comprobadas en el código de `main` tras el PR #74): SIM-01, SIM-09, SIM-11, SIM-12, SIM-17, SIM-19, COR-05, COR-07, COR-10, COR-14, COR-17, IA-02, FCH-03, FCH-06 (historial, §22). BAS-01 y CI-01, terminadas el 13/11/2026 al aceptar el titular BAS-01 (historial, §22).
 
 | ID | Fase | Estado registrado | Depende de |
 |---|---|---|---|
-| BAS-01 | 0 | en_revision | Ninguna |
 | REC-01 | 0 | en_revision | BAS-01 |
-| CI-01 | 0 | bloqueada | BAS-01 |
-| AUT-01 | 0 | bloqueada | BAS-01 |
+| AUT-01 | 0 | en_revision | BAS-01 (aceptada el 13/11/2026) |
 | OBS-01 | 0 | en_revision | BAS-01 |
-| ENV-01 | 0 | bloqueada | BAS-01 |
+| ENV-01 | 0 | en_revision | BAS-01 (aceptada el 13/11/2026) |
 | PRV-01 | 0 | en_revision | BAS-01 |
 | REL-01 | 1 | pendiente | BAS-01 |
 | SEG-01 | 1 | pendiente | REL-01 |
@@ -1434,11 +1434,11 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | APR-01 | 3 | pendiente | SEG-01, FIN-02, UX-05 |
 | TAB-05 | 3 | pendiente | TAB-01, DEC-17 |
 | FIS-01 | 3 | pendiente | BAS-01; revisión fiscal |
-| SIM-04 | 4 | parcial | C13 y C22 hechas; faltan los mismos nombres de fase en Reportes (C12); depende de SIM-01 |
-| SIM-05 | 4 | parcial | SIM-01 |
-| SIM-06 | 4 | parcial | C19 y C20 hechas; falta retirar la pestaña Ajustes (C21, DEC-38); las dos barras del celular (C59) en local el 12/11/2026; depende de SIM-01 |
+| SIM-04 | 4 | en_local | C12, C13 y C22 hechas; Reportes usa el mismo cálculo de etapa que Operaciones, también en registros sin tipo (defb62e, `feat/integracion`, 13/11/2026) |
+| SIM-05 | 4 | en_local | la etapa nombra sus documentos sin número de formato; los números siguen en Documentos (ad53e35, `feat/integracion`, 13/11/2026) |
+| SIM-06 | 4 | en_local | C19, C20 y C21 hechas (Ajustes retirada con SIM-18); barra única del celular (C59) comprobada a 390 px (13/11/2026) |
 | SIM-07 | 4 | en_main | fichas de prospecto y cliente (C23, C41, C58), en `main` desde el PR #73; falta el visto bueno del titular |
-| SIM-10 | 4 | parcial | cada inmueble dice qué le falta y Herramientas va en grupos; faltan el aviso amarillo (C27) y «Documentos sueltos» (C28); depende de SIM-01 |
+| SIM-10 | 4 | en_local | C27 (sin aviso amarillo, abdc6b8) y C28 («Documentos sueltos») hechas, en `feat/integracion` (13/11/2026) |
 | NAV-01 | 4 | pendiente | SIM-02, UX-02 |
 | NAV-02 | 4 | pendiente | UX-03 |
 | NAV-03 | 4 | pendiente | SIM-01, SIM-08 |
@@ -1451,10 +1451,10 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | NAV-10 | 4 | pendiente | DOC-11, PUB-01 |
 | NAV-11 | 4 | pendiente | Decisión del titular |
 | NAV-12 | 4 | pendiente | Migración autorizada, PRV-01 |
-| NAV-13 | 4 | parcial | SIM-01; papelera «Eliminados» (N23) en la rama `feat/integracion` (13/11/2026); falta N24, que se une a «Tu primer día» de COR-26 |
+| NAV-13 | 4 | en_local | papelera «Eliminados» (N23) y «Tu primer día» con foto, WhatsApp, cita y operación, que desaparece al completarse (N24, 8d7bb05); en `feat/integracion` (13/11/2026) |
 | NAV-14 | 4 | pendiente | PWA-03 |
-| LV-01 | 4 | pendiente | SIM-01 (conjunta) |
-| LV-02 | 4 | pendiente | LV-01, SIM-05 |
+| LV-01 | 4 | en_local | cinco roles de color con superficie y borde, AA en claro y oscuro; axe sin fallas en 24 pantallas; escala de `docs/brand.md` (13/11/2026, `feat/integracion`) |
+| LV-02 | 4 | en_local | íconos por etapa y documento, estados con forma, anillo de avance y avatar único (8b1d265, `feat/integracion`, 13/11/2026; boceto aprobado por el titular); «Aprobado» y «Revisado» aún no tienen dato de documento detrás: hoy solo se muestran Borrador y Firmado (09 y 21 con firma registrada) |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
 | LV-04 | 4 | pendiente | LV-01, SIM-12 |
 | DOC-14 | 2 | pendiente | modelos del titular |
@@ -1481,7 +1481,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
 | HER-04 | 2 | pendiente | FCH-01 |
 | UX-03 | 4 | pendiente | UX-01 |
-| UX-04 | 4 | pendiente | UX-01 |
+| UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); faltan Deshacer (RP-16), siluetas y reversión con motivo (RP-18), y el conflicto en operaciones y formatos |
 | UX-05 | 4 | pendiente | UX-04 |
 | SOP-01 | 5 | pendiente | OBS-01 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
@@ -1494,7 +1494,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | PIL-02 | posterior | en_pausa | SAAS-01 a SAAS-03, SAAS-05, PIL-01, REC-01, OBS-01 |
 | SIM-15 | 4 | parcial | primera parte en `main` (PR #66); segunda en local el 12/11/2026 (Herramientas sin «Documentos», «Documentos sueltos», Notas e Historial con el kit); cada herramienta con el kit, C56 y C57, también en local; C54 y C55 con SIM-19 |
 | SIM-16 | 4 | en_main | Hoy en tres bloques (C47), en `main` desde el PR #73; falta el visto bueno del titular |
-| SIM-18 | 4 | parcial | operación en tres partes (C52; C53 en parte) en `main` desde el PR #73; falta la decisión del encargo como pieza de la etapa 6 |
+| SIM-18 | 4 | en_local | operación en tres partes en `main` (PR #73); la decisión del encargo es su propia tarjeta en la etapa 6 desde 0da635a, con prueba en operation-screen |
 | COR-25 | 1 | pendiente | DAT-01 |
 | COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso |
 | USO-02 | 4 | pendiente | USO-01 |

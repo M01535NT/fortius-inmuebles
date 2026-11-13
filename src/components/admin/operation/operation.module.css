@@ -8,10 +8,10 @@
 :global(.admin-root) .state:hover:not(:disabled) { border-color: var(--control-edge); color: var(--foreground); }
 :global(.admin-root) .state:disabled { cursor: not-allowed; opacity: .55; }
 :global(.admin-root) .state[aria-checked=true] { color: var(--foreground); border-color: var(--foreground); box-shadow: inset 0 0 0 1px var(--foreground); }
-:global(.admin-root) .st_revisado[aria-checked=true] { background: color-mix(in srgb, #1f7a4d 12%, var(--card)); border-color: #1f7a4d; box-shadow: inset 0 0 0 1px #1f7a4d; }
+:global(.admin-root) .st_revisado[aria-checked=true] { background: color-mix(in srgb, var(--success) 12%, var(--card)); border-color: var(--success); box-shadow: inset 0 0 0 1px var(--success); }
 :global(.admin-root) .st_observado[aria-checked=true] { background: var(--warning-surface); border-color: var(--warning); box-shadow: inset 0 0 0 1px var(--warning); color: var(--warning); }
 :global(.admin-root) .st_recibido[aria-checked=true] { background: color-mix(in srgb, var(--focus-color) 10%, var(--card)); border-color: var(--focus-color); box-shadow: inset 0 0 0 1px var(--focus-color); }
-:global(.dark) :global(.admin-root) .st_revisado[aria-checked=true] { background: color-mix(in srgb, #5fd39a 16%, var(--card)); border-color: #5fd39a; box-shadow: inset 0 0 0 1px #5fd39a; color: #c9f5de; }
+:global(.dark) :global(.admin-root) .st_revisado[aria-checked=true] { background: color-mix(in srgb, var(--success) 16%, var(--card)); border-color: var(--success); box-shadow: inset 0 0 0 1px var(--success); color: #c9f5de; }
 :global(.admin-root) .option { display: flex; align-items: center; gap: .875rem; padding: .875rem 1rem; border: 1px solid var(--edge-soft); border-radius: 12px; cursor: pointer; }
 :global(.admin-root) .option:has(input:checked) { border-color: var(--primary-edge); box-shadow: inset 0 0 0 1px var(--primary-edge); background: var(--panel-selected); }
 :global(.admin-root) .option input { width: 1.25rem; height: 1.25rem; flex: none; accent-color: var(--primary); }
@@ -89,6 +89,7 @@
 :global(.admin-root) .iconDone { flex: none; color: var(--success); }
 :global(.admin-root) .iconWarn { flex: none; color: var(--warning); }
 :global(.admin-root) .iconIdle { flex: none; color: var(--control-edge); }
+:global(.admin-root) .iconInfo { flex: none; color: var(--info); }
 :global(.admin-root) .nowTag { display: inline-flex; align-items: center; min-height: 1.625rem; padding: 0 .625rem; border-radius: 999px; background: var(--panel-selected); color: var(--panel-selected-ink); font-size: var(--admin-text-pastilla); font-weight: 620; }
 :global(.admin-root) .advance { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; padding: .875rem 1rem; border-radius: 10px; background: var(--secondary); }
 :global(.admin-root) .avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 999px; background: var(--secondary); font-size: var(--admin-text-pastilla); font-weight: 620; }
@@ -171,6 +172,8 @@
 :global(.admin-root) .navyCompact .bigNum { font-size: 4rem; }
 :global(.admin-root) .navyCompact .ofTen { font-size: 1.375rem; }
 :global(.admin-root) .navyCompact .stageTitle { font-size: var(--admin-text-seccion); }
+:global(.admin-root) .stageTitleIcon { display: inline-block; vertical-align: -.12em; margin-right: .5rem; opacity: .85; }
+:global(.admin-root) .navyCompact .stageTitleIcon { width: 20px; height: 20px; }
 /* Las diez etapas como barras */
 :global(.admin-root) .stages { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: var(--admin-text-pastilla); }
 :global(.admin-root) .stage { color: rgba(255, 255, 255, .55); }
@@ -224,7 +227,6 @@
 :global(.admin-root) .navyTop { order: -2; }
 :global(.admin-root) .who, :global(.admin-root) .owner { order: -1; }
 :global(.admin-root) .owner { margin-top: 0; }
-:global(.admin-root) .ownerAvatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 999px; background: #fff; color: #061f3f; font-size: var(--admin-text-detalle); font-weight: 600; }
 :global(.admin-root) .ownerName { font-weight: 540; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
 :global(.admin-root) .ownerName:hover { text-decoration: underline; text-underline-offset: 4px; }
 
@@ -242,19 +244,16 @@
 }
 :global(.admin-root) .piece { display: flex; flex-direction: column; gap: .75rem; min-width: 0; padding: 1.25rem 1.375rem; border-radius: 22px; background: var(--card); color: var(--foreground); }
 :global(.dark) :global(.admin-root) .piece { border: 1px solid var(--card-edge); }
-:global(.admin-root) .pieceHead { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+:global(.admin-root) .pieceHead { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; }
 :global(.admin-root) .pieceTitle { margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; letter-spacing: -.01em; }
-:global(.admin-root) .pieceCount { flex: none; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
+:global(.admin-root) .pieceCount { flex: none; margin-left: auto; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
 :global(.admin-root) .docList { display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .docRowWrap { display: flex; align-items: center; gap: .25rem; }
 :global(.admin-root) .docRow { display: flex; flex: 1; align-items: center; gap: 1rem; min-width: 0; min-height: 3.5rem; padding: .75rem 1rem; border: 0; border-radius: 16px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 :global(.admin-root) .docRow:hover:not(:disabled) { background: var(--secondary); }
 :global(.admin-root) .docRow[data-now=true] { background: var(--panel-selected); }
-:global(.admin-root) .docRow[data-now=true] .docNum { color: var(--primary); }
-:global(.dark) :global(.admin-root) .docRow[data-now=true] .docNum { color: var(--panel-selected-ink); }
-:global(.admin-root) .docRow:disabled { cursor: not-allowed; }
+:global(.dark) :global(.admin-root) .docRow:disabled { cursor: not-allowed; }
 :global(.admin-root) .docRowWait { border: 1px dashed var(--control-edge); color: var(--muted-foreground); }
-:global(.admin-root) .docNum { flex: none; min-width: 2.75rem; font-size: var(--admin-text-cifra); line-height: 1; font-weight: 620; letter-spacing: -.03em; font-variation-settings: "wdth" 62; }
 :global(.admin-root) .docWait { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1rem; padding: .75rem 1rem; border-radius: 16px; border: 1px dashed var(--control-edge); }
 :global(.admin-root) .docChecklist { padding: .25rem .25rem 0; }
 /* Próxima tarea: roja solo si venció */
@@ -268,7 +267,6 @@
 :global(.admin-root) .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .625rem 1rem; padding: 0 .25rem; }
 @media (max-width: 1023px) { :global(.admin-root) .foot .footTabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; } }
 :global(.admin-root) .footWho { display: inline-flex; align-items: center; gap: .5rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
-:global(.admin-root) .footAvatar { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 999px; background: var(--secondary); color: var(--foreground); font-size: var(--admin-text-minimo); font-weight: 600; }
 :global(.admin-root) .footTabs { border-bottom: 0; }
 :global(.admin-root) .footTabs > [role=tab] { min-height: 2.5rem; border-bottom: 0; border-radius: var(--radius-pill); }
 :global(.admin-root) .footTabs > [role=tab][aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
@@ -293,5 +291,5 @@
 
 /* COR-14: situación y condición declarada, como etiqueta sobre el azul. */
 :global(.admin-root) .navyTags { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .5rem; }
-:global(.admin-root) .navyTag { display: inline-flex; align-items: center; min-height: 1.75rem; padding: .125rem .625rem; border: 1px solid rgba(245, 241, 235, .45); border-radius: 999px; color: #F5F1EB; font-size: var(--admin-text-pastilla); font-weight: 600; }
+:global(.admin-root) .navyTag { display: inline-flex; align-items: center; min-height: 1.75rem; padding: .125rem .625rem; border: 1px solid rgba(248, 248, 255, .45); border-radius: 999px; color: #F5F1EB; font-size: var(--admin-text-pastilla); font-weight: 600; }
 :global(.dark) :global(.admin-root) .navyTag { border-color: var(--edge-soft); color: var(--foreground); }

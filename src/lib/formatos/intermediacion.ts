@@ -60,8 +60,9 @@ export function calcularIntermediacion(data: Record<string, unknown>) {
 // La cláusula novena del Word del titular (26/10/2026) ya no prorratea la pena por días: queda el máximo
 // (el menor entre el importe pactado y la comisión sin IVA) sujeto a reducción por cumplimiento parcial.
 
-export function validarIntermediacion(data: Record<string, unknown>): string[] {
-  const errors = [...calcularIntermediacion(data).errors];
+/** Clientes, excepciones de prospectos y anexos: las mismas tablas en el 09 y en la intermediación para renta (21). */
+export function validarTablasIntermediacion(data: Record<string, unknown>): string[] {
+  const errors: string[] = [];
   const filled = (value: unknown) => typeof value === "string" && value.trim().length > 0;
   for (const [key, config] of Object.entries(INTERMEDIACION_TABLES)) {
     const entries = data[key] ?? [];
@@ -75,6 +76,11 @@ export function validarIntermediacion(data: Record<string, unknown>): string[] {
     if (key === "clientesContrato" && new Set(entries.map((row) => `${String(row?.nombre ?? "").trim().toLowerCase()}|${String(row?.rfc ?? "").trim().toUpperCase()}`)).size !== entries.length) errors.push("Cliente duplicado en el contrato");
     if (key === "anexosContrato" && date(data.fecha) && entries.some((row) => date(row?.fecha) && row.fecha > String(data.fecha))) errors.push("Aviso de privacidad o anexos posteriores a la firma prevista");
   }
+  return errors;
+}
+
+export function validarIntermediacion(data: Record<string, unknown>): string[] {
+  const errors = [...calcularIntermediacion(data).errors, ...validarTablasIntermediacion(data)];
   if (date(data.fecha) && date(data.fechaAvisoPrivacidad) && data.fechaAvisoPrivacidad > data.fecha) errors.push("Aviso de privacidad o anexos posteriores a la firma prevista");
   if (!date(data.inicio) || !date(data.fin) || data.fin < data.inicio) errors.push("Vigencia válida con inicio y fin");
   if (!Number.isSafeInteger(data.proteccionDias) || (data.proteccionDias as number) < 0) errors.push("Protección posterior en días naturales enteros");

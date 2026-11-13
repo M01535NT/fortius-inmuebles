@@ -8,6 +8,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { TaskForm } from "@/components/admin/task-form";
 import { Badge, Field, inputClass, selectClass } from "@/components/admin/ui";
 import { Button, Card, EmptyBox } from "@/components/admin/kit";
+import { EMPTY_ART } from "@/components/admin/icons";
 import { stepDate } from "@/lib/admin/contacts-view";
 import { db, useCollection, upsert } from "@/lib/admin/store";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, taskBucket } from "@/lib/tasks";
@@ -114,8 +115,8 @@ function Tasks() {
         <Card as="div" className="overflow-hidden"><ul aria-label={group.title}>{items.map(renderTask)}</ul></Card>
       </section>;
     })}</div> : (tareas.length === 0
-      ? <EmptyBox title="Todavía no hay tareas" steps={["Crea una con «Nueva tarea» o desde la ficha de una persona.", "Ponle fecha y responsable.", "Márcala como hecha desde esta lista."]}>Las tareas son lo que el equipo tiene que hacer y para cuándo. Las que vencen aparecen en Hoy.</EmptyBox>
-      : !query.trim() && !activeFilters && due === "todas" ? <EmptyBox title="Nada pendiente">Todas las tareas están hechas. Las nuevas aparecerán aquí y en Hoy.</EmptyBox>
-      : <EmptyBox title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>)}
+      ? <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "empezar" }} title="Todavía no hay tareas" steps={["Crea una con «Nueva tarea» o desde la ficha de una persona.", "Ponle fecha y responsable.", "Márcala como hecha desde esta lista."]}>Las tareas son lo que el equipo tiene que hacer y para cuándo. Las que vencen aparecen en Hoy.</EmptyBox>
+      : !query.trim() && !activeFilters && due === "todas" ? <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "listo" }} title="Nada pendiente">Todas las tareas están hechas. Las nuevas aparecerán aquí y en Hoy.</EmptyBox>
+      : <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "buscar" }} title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>)}
   </div>;
 }

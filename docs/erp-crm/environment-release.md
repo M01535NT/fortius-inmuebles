@@ -46,7 +46,16 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 4. **GitHub:** ~~borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`)~~ **Hecho el 12/11/2026**, tras confirmar que ningún flujo, regla ni proyecto de Vercel los usa.
 5. **GitHub (decide el titular):** la regla deja que el administrador la salte. Mientras sea la única cuenta, conviene conservarla así y no saltarla salvo urgencia (I-04).
 6. **Recuperación de la aplicación:** ~~ensayar el rollback de Vercel~~ **Ensayado el 12/11/2026** (ida y vuelta en ~2 s cada una; el sitio respondió con ambas versiones). Pasos y límites en [despliegue](../deployment-fortius.md#regresar-a-la-versión-anterior-ensayado-el-12112026).
-7. **Supabase:** autorizar el conector de solo lectura `supabase-fortius` (o un token de solo lectura de la API de administración) para leer SMTP, URL de retorno, MFA y copias sin pedírselo al titular cada vez.
+7. **Supabase:** ~~autorizar el conector de solo lectura `supabase-fortius`~~ **Autorizado el 13/11/2026.** Sirve para el historial de migraciones, el esquema y el asesor de seguridad ([acceso](access-policy.md)). No lee SMTP, URL de retorno, MFA ni copias del proveedor: eso sigue en el panel de Supabase o con un token de administración de solo lectura.
+8. **Avisos de fallas con Sentry (OBS-01, DEC-19; titular, 13/11/2026: «Sentry gratuito»).** El código ya los manda si existe `FORTIUS_SENTRY_DSN` (solo servidor). Pasos del titular:
+   1. Crear la cuenta en sentry.io (plan gratuito) y un proyecto de tipo **Node.js** llamado `fortius-inmuebles`.
+   2. En el proyecto, **Settings → Security & Privacy**: dejar activado *Data Scrubber* y activar *Prevent Storing of IP Addresses*.
+   3. En **Alerts**, dejar la alerta de «nuevo problema» con aviso por correo.
+   4. Copiar el **DSN** (Settings → Client Keys) y agregarlo en Vercel, producción, como `FORTIUS_SENTRY_DSN`. Publicar de nuevo para que lo tome.
+   5. El agente provoca después un error controlado para comprobar que llega el aviso (casilla pendiente de OBS-01).
+
+   **13/11/2026:** el titular permitió crear proyectos a miembros y el agente creó por el conector el proyecto `fortius-inmuebles` (Node.js) en la organización `moises-nunez`, con la alerta por defecto de problemas de prioridad alta. Un evento de prueba enviado con `reportFailure` desde el equipo local llegó como `FORTIUS-INMUEBLES-1` («server_error PruebaControlada /api/prueba-obs-01», entorno `prueba`). El mismo día, a pedido del titular («Hazlo tú») y con su sesión en el navegador, el agente agregó `FORTIUS_SENTRY_DSN` en Vercel como secreto, solo en producción. No se redesplegó: toma efecto con la próxima publicación de `main`. Falta repetir la prueba desde producción tras publicar. El ajuste *Prevent Storing of IP Addresses* no se puede cambiar por el conector; los eventos salen del servidor y no llevan IP de usuarios.
+9. **Regreso de la aplicación y esquema (CI-01):** compatibilidad de la publicación del 13/11/2026 revisada; regla y tabla en [despliegue](../deployment-fortius.md#compatibilidad-del-esquema-al-regresar-ci-01-revisado-el-13112026).
 
 ## Estado posterior a la integración
 

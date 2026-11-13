@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { operationalDate } from "@/lib/admin/operational-date";
-import type { OperationWorkflow } from "@/lib/formatos/operation-workflow";
+import { stageLabel, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { btnGhost, btnPrimary, inputClass, selectClass } from "@/components/admin/ui";
 import { EXPEDIENTE_DOCUMENTOS, EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 import { fetchJson as json } from "@/lib/admin/store";
@@ -91,7 +91,7 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Etapa
           <select className={selectClass} value={etapa} disabled={busy} onChange={event => setEtapa(event.target.value as keyof typeof EXPEDIENTE_ETAPAS)}>
-            {Object.entries(EXPEDIENTE_ETAPAS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            {Object.keys(EXPEDIENTE_ETAPAS).map(key => <option key={key} value={key}>{stageLabel(key as keyof typeof EXPEDIENTE_ETAPAS)}</option>)}
           </select>
         </label>
         <label className="text-sm">Fecha objetivo

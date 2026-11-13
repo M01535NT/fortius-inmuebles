@@ -54,6 +54,7 @@
 :global(.admin-root) .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 :global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: #dbe4f0; color: #061f3f; font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
 :global(.dark) :global(.admin-root) .avatar { background: var(--secondary); color: var(--foreground); }
+:global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: #f8f8ff; }
 :global(.admin-root) .avatar { position: relative; }
 :global(.admin-root) .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 :global(.admin-root) .kbd { display: inline-flex; align-items: center; padding: .25rem .5rem; border-radius: 8px; background: var(--track); color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-minimo); font-weight: 600; letter-spacing: .02em; }
@@ -133,3 +134,39 @@
 @keyframes sheetIn { from { transform: translateX(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 @keyframes sheetUp { from { transform: translateY(32px); opacity: .4; } to { transform: none; opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* LV-02: anillo de avance con texto, distintivo de documento y cuadro de ícono */
+:global(.admin-root) .progressRing { display: inline-flex; align-items: center; gap: .5rem; flex: none; }
+:global(.admin-root) .progressRingDial { position: relative; display: grid; place-items: center; flex: none; }
+:global(.admin-root) .progressRingDial svg { position: absolute; inset: 0; }
+:global(.admin-root) .progressRingValue { stroke: var(--foreground); }
+:global(.admin-root) .progressRing[data-done] .progressRingValue { stroke: var(--success); }
+:global(.admin-root) .progressRingNum { position: relative; display: grid; place-items: center; font-size: var(--admin-text-minimo); font-weight: 620; font-stretch: 62%; font-variant-numeric: tabular-nums; line-height: 1; }
+:global(.admin-root) .progressRing[data-done] .progressRingNum { color: var(--success); }
+:global(.admin-root) .progressRingText { font-size: var(--admin-text-detalle); font-weight: 540; color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .progressRingValue { transition: stroke-dasharray 500ms var(--ease-out), stroke 200ms var(--ease-out); } }
+:global(.admin-root) .docBadge { display: inline-flex; align-items: center; min-height: 1.5rem; padding: 0 .625rem; border-radius: var(--radius-pill); border: 1px solid var(--control-edge); color: var(--muted-foreground); font-size: var(--admin-text-pastilla); font-weight: 540; line-height: 1; white-space: nowrap; }
+:global(.admin-root) .docBadge[data-status=revisado] { border-color: transparent; background: var(--info-surface); color: var(--info); }
+:global(.admin-root) .docBadge[data-status=aprobado], :global(.admin-root) .docBadge[data-status=firmado] { border-color: transparent; background: var(--success-surface); color: var(--success); }
+:global(.admin-root) .iconTile { display: grid; place-items: center; flex: none; border-radius: var(--radius-control); background: var(--track); color: var(--foreground); }
+
+/* LV-04: ilustración de estado vacío, «?» de una línea y punto «Empieza aquí» */
+:global(.admin-root) .emptyArt { position: relative; display: grid; place-items: center; width: 5.5rem; height: 5.5rem; margin-bottom: .25rem; }
+:global(.admin-root) .emptyPlate { display: grid; place-items: center; width: 5rem; height: 5rem; border-radius: var(--radius-panel, 20px); background: var(--track); color: var(--foreground); }
+:global(.admin-root) .emptyBadge { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 1.875rem; height: 1.875rem; border-radius: 999px; border: 3px solid var(--background); background: var(--foreground); color: var(--background); }
+:global(.admin-root) .emptyBadge[data-kind=listo] { background: var(--success); color: var(--card); }
+:global(.admin-root) .emptyBadge[data-kind=buscar] { background: var(--info-surface); color: var(--info); }
+:global(.admin-root) .hint { display: inline-grid; place-items: center; flex: none; width: 1.75rem; height: 1.75rem; margin: -.25rem 0; padding: 0; border: 0; border-radius: 999px; background: none; color: var(--muted-foreground); cursor: pointer; vertical-align: middle; position: relative; }
+:global(.admin-root) .hint::after { content: ""; position: absolute; inset: -.5rem; }
+:global(.admin-root) .hint:hover, :global(.admin-root) .hint[aria-expanded=true] { background: var(--track); color: var(--foreground); }
+:global(.admin-root) .hintText { display: block; order: 99; flex-basis: 100%; width: fit-content; max-width: 52ch; margin-top: .375rem; padding: .5rem .75rem; border-radius: var(--radius-control); background: var(--track); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 400; line-height: 1.45; text-align: left; }
+:global(.admin-root) .hintText[hidden] { display: none; }
+:global(.admin-root) .startHere { position: relative; display: inline-flex; }
+:global(.admin-root) .startDot { position: absolute; top: -3px; right: -3px; width: .875rem; height: .875rem; border-radius: 999px; background: var(--info); box-shadow: 0 0 0 3px var(--background); pointer-events: none; }
+:global(.admin-root) .startTip { position: absolute; top: calc(100% + .5rem); right: 0; padding: .25rem .625rem; border-radius: 999px; background: var(--info-surface); color: var(--info); font-size: var(--admin-text-pastilla); font-weight: 540; white-space: nowrap; pointer-events: none; animation: start-tip 300ms linear 5s both; }
+:global(.admin-root) .startTip[data-above] { top: auto; bottom: calc(100% + .5rem); right: 50%; transform: translateX(50%); }
+@keyframes start-tip { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: no-preference) {
+  :global(.admin-root) .startDot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 2px solid var(--info); animation: start-here 1.2s var(--ease-out) 600ms 3 both; }
+}
+@keyframes start-here { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }

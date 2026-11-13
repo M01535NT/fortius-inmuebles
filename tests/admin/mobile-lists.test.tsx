@@ -142,3 +142,9 @@ test("C59: en el celular los inmuebles van en filas y «Ver en tarjetas» cambia
   fireEvent.click(screen.getByRole("button", { name: "Ver en filas" }));
   expect(list.getAttribute("data-view")).toBe("filas");
 });
+
+test("SIM-10 (C27): Inmuebles no lleva el aviso general de borradores; cada inmueble dice lo suyo", async () => {
+  render(<PropiedadesPage />);
+  await screen.findByRole("list", { name: "Inmuebles" });
+  expect(screen.queryByText(/en borrador solo son visibles/)).toBeNull();
+});

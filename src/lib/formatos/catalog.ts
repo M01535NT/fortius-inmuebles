@@ -13,6 +13,8 @@ import { valorFields, mostrarCampoValor } from "./valor-fields";
 import { promesaFields, mostrarCampoPromesa, validarPromesa } from "./promesa";
 import { intermediacionFields, mostrarCampoIntermediacion, validarIntermediacion } from "./intermediacion";
 import { arrendamientoFields, mostrarCampoArrendamiento, validarArrendamiento } from "./arrendamiento";
+import { intermediacionRentaFields, mostrarCampoIntermediacionRenta, validarIntermediacionRenta } from "./intermediacion-renta";
+import { solicitudArrendamientoFields, mostrarCampoSolicitud, validarSolicitud } from "./solicitud-arrendamiento";
 
 export type FormatoField = {
   key: string;
@@ -45,7 +47,7 @@ const TITLES: Record<string, string> = {
   "09": "Contrato de intermediación inmobiliaria para venta", "10": "Plan de comercialización", "11": "Reporte de comercialización al propietario", "12": "Entrevista y perfil del comprador",
   "13": "Registro de visita y retroalimentación", "14": "Propuesta de compra y respuesta del propietario", "15": "Promesa de compraventa", "16": "Acta de entrega y recepción del inmueble",
   "17": "Cierre de la operación", "18": "Recibo de pago de honorarios", "19": "Presupuesto de rehabilitación",
-  "20": "Contrato de arrendamiento",
+  "20": "Contrato de arrendamiento", "21": "Contrato de intermediación inmobiliaria para renta", "22": "Solicitud de arrendamiento y revisión del candidato",
 };
 const f = (id: string, title: string, extension: "docx" | "xlsx", phase: FormatoDefinition["phase"], fields: FormatoField[], readyForEmission = false): FormatoDefinition => ({ id, title: TITLES[id] ?? title.replaceAll("_", " "), source: `${id}.${title}.${extension}`, phase, fields, readyForEmission });
 const inmueble = field("inmueble", "Inmueble y domicilio");
@@ -453,6 +455,8 @@ export const FORMATOS: readonly FormatoDefinition[] = [
   ], true),
   // DOC-14: el titular pidió que el agente lo redactara y aprobó el texto (13/11/2026).
   f("20", "Contrato_de_arrendamiento", "docx", 4, arrendamientoFields, true),
+  f("21", "Contrato_de_intermediacion_inmobiliaria_para_renta", "docx", 3, intermediacionRentaFields, true),
+  f("22", "Solicitud_de_arrendamiento", "docx", 3, solicitudArrendamientoFields, true),
 ];
 
 const avisoDefinition = FORMATOS.find(item => item.id === "01")!;
@@ -483,6 +487,8 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     if (id === "15" && !mostrarCampoPromesa(item.key, data)) return false;
     if (id === "09" && !mostrarCampoIntermediacion(item.key, data)) return false;
     if (id === "20" && !mostrarCampoArrendamiento(item.key, data)) return false;
+    if (id === "21" && !mostrarCampoIntermediacionRenta(item.key, data)) return false;
+    if (id === "22" && !mostrarCampoSolicitud(item.key, data)) return false;
     if (id === "10" && !mostrarCampoPlan(item.key, data)) return false;
     if (item.type === "valorRows" || item.type === "promesaRows" || item.type === "intermediacionRows") return false;
     if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows" || item.type === "levantamientoRows") return false;
@@ -515,6 +521,8 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "09") errors.push(...validarIntermediacion(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
   if (id === "20") errors.push(...validarArrendamiento(data));
+  if (id === "21") errors.push(...validarIntermediacionRenta(data));
+  if (id === "22") errors.push(...validarSolicitud(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
     if (data.precioDeseado === 0) errors.push("Precio que le gustaría pagar");

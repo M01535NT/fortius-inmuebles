@@ -5,6 +5,7 @@ import type { Cliente, StaffUser, StoredRecord } from "@/lib/backend/contracts";
 import type { Task } from "@/lib/tasks";
 export type { Cliente } from "@/lib/backend/contracts";
 export * from "@/lib/domain/records";
+import { conflictFields, mergeChoice, type ConflictField, type ConflictSide } from "@/lib/admin/conflict";
 import type { AdminProperty, Asesor, LeadOrigen, Lead, Evento, Nota, Post, ArchivoTipo, Archivo, SiteContent, SiteSettings } from "@/lib/domain/records";
 
 /** In-memory, acknowledged server data only. Never read/migrate browser storage. */
@@ -25,10 +26,34 @@ export class AdminApiError extends Error {
 const sessionListeners = new Set<() => void>();
 let session: StaffUser | null = null;
 let sessionEpoch = 0;
+/*
+  RP-19 (UX-04): si la sesión vence con alguien trabajando, la pantalla no se cierra. Se marca
+  «vencida», el panel pide entrar de nuevo encima de lo capturado y, si entra la misma persona,
+  todo sigue donde estaba. Si entra otra persona, se limpia como siempre.
+*/
+let expired = false;
 function setSession(user: StaffUser | null) {
   if (!user || session?.id !== user.id) clearAdminCache();
   session = user;
+  expired = false;
   sessionListeners.forEach((l) => l());
+}
+/** Un 401 con sesión abierta la marca vencida sin borrar la pantalla; sin sesión, cierra como antes. */
+function sessionRejected() {
+  if (!session) { setSession(null); return; }
+  if (expired) return;
+  expired = true;
+  sessionListeners.forEach((l) => l());
+}
+export function useSessionExpired() {
+  return React.useSyncExternalStore(
+    (cb) => {
+      sessionListeners.add(cb);
+      return () => sessionListeners.delete(cb);
+    },
+    () => expired,
+    () => false,
+  );
 }
 export function useSession() {
   return React.useSyncExternalStore(
@@ -41,16 +66,21 @@ export function useSession() {
   );
 }
 
+/** RP-15: sin red nada se guardó; lo capturado sigue en pantalla para reintentar. */
+export const SIN_CONEXION = "Sin conexión: tus cambios siguen en pantalla, todavía no se guardan.";
 /** Error de una petición con su código HTTP; conserva el mensaje del servidor. */
 export class RequestError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
 /** Petición JSON o multipart (FormData) sin cambiar el mensaje de error del servidor. */
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
+  let response: Response;
+  try { response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" }); }
+  catch { throw new RequestError(SIN_CONEXION, 0); }
   // C-02: un proxy o un error 502/504 puede responder HTML; no se muestra «Unexpected token '<'».
   let body: { error?: unknown } | null = null;
   try { body = await response.json(); } catch { body = null; }
+  if (response.status === 401 && url.startsWith("/api/admin/")) sessionRejected();
   if (!response.ok) throw new RequestError(typeof body?.error === "string" && body.error ? body.error : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.", response.status);
   if (body === null || typeof body !== "object") throw new RequestError("El servidor respondió algo inesperado. Recarga e inténtalo de nuevo.", response.status);
   return body as T;
@@ -91,7 +121,7 @@ export async function apiRequest<T>(
   } catch {
     throw new AdminApiError(
       0,
-      "No se pudo conectar. Tus cambios no se han guardado.",
+      SIN_CONEXION,
     );
   }
   const result = await response.json().catch(() => ({}));
@@ -101,7 +131,7 @@ export async function apiRequest<T>(
       response.status === 401 &&
       url.startsWith("/api/admin/")
     )
-      setSession(null);
+      sessionRejected();
     throw new AdminApiError(
       response.status,
       typeof result.error === "string"
@@ -130,6 +160,18 @@ type Collection<T extends object> = {
   clear(): void;
   subscribe(cb: () => void): () => void;
 };
+/*
+  RP-17 (UX-04): ante un 409 por versión, el panel muestra campo por campo lo tuyo y lo que se
+  guardó antes, y vuelve a guardar sobre la versión nueva solo con lo que elegiste. Sin ventana
+  disponible (pruebas, otra pantalla) el 409 llega igual que antes y la captura sigue en pantalla.
+*/
+export type ConflictRequest = { collection: string; fields: ConflictField[] };
+type ConflictResolver = (request: ConflictRequest) => Promise<Record<string, ConflictSide> | null>;
+let conflictResolver: ConflictResolver | null = null;
+export function setConflictResolver(resolver: ConflictResolver) {
+  conflictResolver = resolver;
+  return () => { if (conflictResolver === resolver) conflictResolver = null; };
+}
 export function uid(): string {
   return crypto.randomUUID();
 }
@@ -140,6 +182,14 @@ function collection<T extends object>(
   let cache: T[] = [];
   let versions = new Map<string, number>();
   const snapshots = new WeakMap<T, number>();
+  // Lo confirmado por el servidor en cada versión: la base para explicar un conflicto (RP-17).
+  let confirmed = new Map<string, Map<number, T>>();
+  const remember = (id: string, version: number, data: T) => {
+    const byVersion = confirmed.get(id) ?? new Map<number, T>();
+    byVersion.set(version, data);
+    if (byVersion.size > 5) byVersion.delete(byVersion.keys().next().value!);
+    confirmed.set(id, byVersion);
+  };
   let state = IDLE;
   let generation = 0;
   let cacheRevision = 0;
@@ -181,6 +231,7 @@ function collection<T extends object>(
       pending = null;
       cache = [];
       versions = new Map();
+      confirmed = new Map();
       state = IDLE;
       emit();
     },
@@ -194,7 +245,7 @@ function collection<T extends object>(
           const result = await apiRequest<{ records: StoredRecord<T>[] }>(path);
           if (current !== generation) return;
           cache = result.records.map((r) => r.data);
-          result.records.forEach((r) => snapshots.set(r.data, r.version));
+          result.records.forEach((r) => { snapshots.set(r.data, r.version); remember(r.id, r.version, r.data); });
           versions = new Map(result.records.map((r) => [r.id, r.version]));
           cacheRevision++;
           needsRevalidation = false;
@@ -215,11 +266,26 @@ function collection<T extends object>(
     async put(item, version) {
       const epoch = sessionEpoch;
       const revision = cacheRevision;
-      const result = await apiRequest<{ record: StoredRecord<T> }>(
-        path + "/" + encodeURIComponent(identify(item)),
-        "PUT",
-        { data: item, version },
-      );
+      let result: { record: StoredRecord<T> };
+      try {
+        result = await apiRequest<{ record: StoredRecord<T> }>(
+          path + "/" + encodeURIComponent(identify(item)),
+          "PUT",
+          { data: item, version },
+        );
+      } catch (error) {
+        if (!(error instanceof AdminApiError) || error.status !== 409 || version === null || !conflictResolver) throw error;
+        const id = identify(item), base = confirmed.get(id)?.get(version);
+        try { await col.load(); } catch { throw error; }
+        const theirs = cache.find((x) => identify(x) === id), theirsVersion = versions.get(id);
+        // Sin registro guardado o sin versión nueva, el 409 no es de versión (vínculos, borrado): se informa igual que antes.
+        if (!theirs || theirsVersion === undefined || theirsVersion <= version) throw error;
+        const fields = conflictFields(base, item, theirs);
+        if (!fields.length) return theirs;
+        const choice = await conflictResolver({ collection: key, fields });
+        if (!choice) throw error;
+        return col.put(mergeChoice(theirs, item, choice), theirsVersion);
+      }
       if (epoch !== sessionEpoch)
         throw new AdminApiError(401, "La sesión cambió; vuelve a entrar.");
       // A response to an earlier GET must never overwrite the acknowledged mutation.
@@ -228,6 +294,7 @@ function collection<T extends object>(
       // The returned snapshot always owns the version actually saved, even
       // when the shared cache has already observed a later server state.
       snapshots.set(result.record.data, result.record.version);
+      remember(result.record.id, result.record.version, result.record.data);
       if (revision !== cacheRevision || needsRevalidation) {
         // Response order need not match commit order. A fresh GET
         // after this acknowledgement resolves that ambiguity without briefly
@@ -251,6 +318,7 @@ function collection<T extends object>(
       generation++;
       pending = null;
       snapshots.set(record.data, record.version);
+      remember(record.id, record.version, record.data);
       if ((versions.get(record.id) ?? 0) > record.version || needsRevalidation) {
         await reconcile(epoch);
         return;
@@ -394,7 +462,8 @@ export function errorMessage(error: unknown) {
     ? error.message
     : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
 }
-export async function isLoggedIn() {
+/** `boot`: al abrir el panel no hay nada capturado; sin sesión se muestra el acceso de siempre. */
+export async function isLoggedIn(options: { boot?: boolean } = {}) {
   const epoch = sessionEpoch;
   try {
     const result = await apiRequest<{ user: StaffUser }>("/api/auth/session");
@@ -407,7 +476,7 @@ export async function isLoggedIn() {
       error instanceof AdminApiError &&
       (error.status === 401 || error.status === 403)
     ) {
-      setSession(null);
+      if (error.status === 401 && !options.boot) sessionRejected(); else setSession(null);
       return false;
     }
     throw error;
