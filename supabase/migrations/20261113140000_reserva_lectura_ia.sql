@@ -3,6 +3,7 @@
 -- reserva la lectura en la base antes de llamar al servicio: la reserva se toma en fila (un candado
 -- por transacción), cuenta para el tope y al terminar se convierte en la lectura con su costo real.
 -- Una reserva abandonada (el servidor se cayó a la mitad) deja de contar a los 15 minutos.
+-- C-19: mientras un documento se está leyendo, otra lectura del mismo documento responde PT409.
 -- Solo la usa el servidor; nada cambia para el personal.
 begin;
 set local lock_timeout='2s';
@@ -28,6 +29,12 @@ begin
   end if;
   -- Una sola reserva a la vez: la siguiente ve la anterior al sumar.
   perform pg_advisory_xact_lock(hashtextextended('fortius_inmuebles_ia_tope', 0));
+  if exists (
+    select 1 from public.fortius_inmuebles_ia_lecturas l
+     where l.archivo_id = p_archivo and l.estado = 'reservada' and l.created_at > now() - interval '15 minutes'
+  ) then
+    raise exception 'Este documento ya se está leyendo' using errcode = 'PT409';
+  end if;
   select coalesce(sum(l.costo_usd), 0) into v_gasto
     from public.fortius_inmuebles_ia_lecturas l
    where l.created_at >= date_trunc('month', now(), 'UTC')
