@@ -11,13 +11,24 @@ import { INBOX_READ_LIMIT, markRead } from "@/lib/admin/inbox";
 export const PREFERENCES_TABLE = "fortius_inmuebles_user_preferences";
 const key = z.string().min(1).max(200);
 const stamp = z.iso.datetime({ offset: true });
+const filterValue = z.string().max(200);
+/** Lo que cada quien acomoda en el panel (RP-14). Una preferencia nunca cambia permisos: solo cómo se ve. */
+export const panelSchema = z.object({
+  operacionesVista: z.enum(["lista", "tablero"]).optional(),
+  inmueblesVista: z.enum(["filas", "tarjetas"]).optional(),
+  vistasInventario: z.array(z.object({ name: z.string().trim().min(1).max(60), filters: z.record(z.string().regex(/^[a-zA-Z]{1,40}$/), filterValue) }).strict()).max(10).optional(),
+}).strict();
+export type PanelPreferences = z.infer<typeof panelSchema>;
 export const preferencesSchema = z.object({
   bandeja: z.object({ leidos: z.record(key, stamp).refine(value => Object.keys(value).length <= INBOX_READ_LIMIT, "Demasiados avisos leídos").default({}) }).strict().optional(),
+  panel: panelSchema.optional(),
 }).strict();
 export type Preferences = z.infer<typeof preferencesSchema>;
 export type StoredPreferences = { data: Preferences; version: number };
 
 export const readInput = z.object({ claves: z.array(key).min(1).max(100) }).strict();
+/** Cambia solo las preferencias del panel que llegan; las demás se conservan. */
+export const panelInput = z.object({ panel: panelSchema.refine(value => Object.keys(value).length > 0, "Indica qué preferencia cambia") }).strict();
 
 export async function loadPreferences(client: SupabaseClient, userId: string): Promise<StoredPreferences> {
   const { data, error } = await client.from(PREFERENCES_TABLE).select("data,version").eq("user_id", userId).maybeSingle();
@@ -40,13 +51,22 @@ async function writePreferences(client: SupabaseClient, userId: string, data: Pr
   return row ? { data, version: Number(row.version) } : null;
 }
 
-/** Marca avisos de «Para ti» como leídos. Se mezcla en el servidor: dos pestañas no se pisan. */
-export async function markInboxRead(client: SupabaseClient, userId: string, keys: readonly string[], now = new Date()): Promise<StoredPreferences> {
+/** Lee, cambia y escribe sobre la misma versión; se mezcla en el servidor para que dos pestañas no se pisen. */
+async function mutatePreferences(client: SupabaseClient, userId: string, change: (data: Preferences) => Preferences): Promise<StoredPreferences> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const current = await loadPreferences(client, userId);
-    const leidos = markRead(current.data.bandeja?.leidos ?? {}, keys, now.toISOString());
-    const saved = await writePreferences(client, userId, { ...current.data, bandeja: { leidos } }, current.version);
+    const saved = await writePreferences(client, userId, preferencesSchema.parse(change(current.data)), current.version);
     if (saved) return saved;
   }
   throw new ApiError(409, "Tus preferencias cambiaron en otra ventana; vuelve a intentarlo");
+}
+
+/** Marca avisos de «Para ti» como leídos. */
+export function markInboxRead(client: SupabaseClient, userId: string, keys: readonly string[], now = new Date()) {
+  return mutatePreferences(client, userId, data => ({ ...data, bandeja: { leidos: markRead(data.bandeja?.leidos ?? {}, keys, now.toISOString()) } }));
+}
+
+/** Guarda preferencias del panel (vistas, columnas…). */
+export function updatePanel(client: SupabaseClient, userId: string, patch: PanelPreferences) {
+  return mutatePreferences(client, userId, data => ({ ...data, panel: { ...data.panel, ...patch } }));
 }
