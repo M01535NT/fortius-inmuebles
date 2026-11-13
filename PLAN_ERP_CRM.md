@@ -23,8 +23,8 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 - **Textos:** inicio, Vender y Nosotros; nombres unificados del sitio y del panel.
 - **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
 - **Seguridad:** cabeceras de seguridad; fotos sin EXIF ni GPS.
-- **Calidad:** hallazgos C-02 a C-22, C-24 y C-25 corregidos y C-26 (Tab no saca el foco del panel lateral).
-- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; el candado de arranque del propietario también en la base (M2); CSS y fuentes separados entre sitio y panel, y cada página pública carga solo sus estilos; video de portada ligero en celular (aprobado por el titular el 13/11/2026); el expediente completo incluye las copias firmadas; C-23 corregido.
+- **Calidad:** hallazgos C-02 a C-26 corregidos, cada uno con su prueba.
+- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; el candado de arranque del propietario también en la base (M2); CSS y fuentes separados entre sitio y panel, y cada página pública carga solo sus estilos; video de portada ligero en celular (aprobado por el titular el 13/11/2026); el expediente completo incluye las copias firmadas.
 
 **Qué sigue, en orden.**
 
