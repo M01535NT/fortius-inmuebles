@@ -51,7 +51,7 @@ describe("emisión de formatos", () => {
   });
 
   it("bloquea formatos cuya correspondencia con el original sigue pendiente", async () => {
-    await expect(prepareFormatoEmission("09", {})).rejects.toThrow(/pendiente de cotejo/i);
+    await expect(prepareFormatoEmission("03", {})).rejects.toThrow(/pendiente de cotejo/i);
   });
 
   it("genera el registro de una visita cancelada sin exigir retroalimentación inexistente", async () => {

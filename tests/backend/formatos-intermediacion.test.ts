@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { createFormatoPdf } from "@/lib/formatos/pdf";
 import * as intermediacion from "@/lib/formatos/intermediacion";
+import { PDFDocument } from "pdf-lib";
+import { intermediacionCompleta } from "./fixtures/intermediacion";
 
 it("incorpora condiciones, registros, IVA, protección, excepciones y aviso de privacidad de 09", () => {
   const keys = formatoById("09").fields.map((field) => field.key);
@@ -20,9 +22,13 @@ it("excluye IVA de venta de la base y desglosa IVA de comisión sin aplicar una 
   expect(result).toEqual({ errors: [], basePrecio: 840000, comision: 25200, ivaComision: 4032, total: 29232, basePena: 20000 });
 });
 
-it("mantiene bloqueado el PDF aun si se introduce un número de registro sin cotejar el modelo", async () => {
-  expect(formatoById("09").readyForEmission).toBe(false);
-  await expect(createFormatoPdf("09", { profecoEstado: "registrado", profecoNumero: "DATO-CAPTURADO" })).rejects.toThrow("Formato pendiente de cotejo con el original");
+it("emite el PDF del contrato con el modelo del titular, completo o marcado como incompleto (DOC-09)", async () => {
+  expect(formatoById("09").readyForEmission).toBe(true);
+  const completo = await PDFDocument.load(await createFormatoPdf("09", intermediacionCompleta));
+  expect(completo.getTitle()).toBe("Contrato de intermediación inmobiliaria para venta");
+  expect(completo.getPageCount()).toBeGreaterThan(1);
+  await expect(createFormatoPdf("09", {})).rejects.toThrow("Faltan datos obligatorios");
+  expect((await PDFDocument.load(await createFormatoPdf("09", {}, [], { incompleto: true }))).getPageCount()).toBeGreaterThan(1);
 });
 
 it("no presupone IVA y rechaza bases fiscales imposibles", () => {

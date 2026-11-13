@@ -207,7 +207,8 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     ]),
     field("responsableEstimacion", "Responsable de la estimación"),
   ], true),
-  f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, intermediacionFields),
+  // DOC-09 (titular, 12/11/2026): su Word del 26/10 es el modelo y no requiere registro ante PROFECO; el PDF se libera.
+  f("09", "Contrato_de_intermediacion_inmobiliaria_para_venta", "docx", 3, intermediacionFields, true),
   // Plantilla del 26/10/2026, aprobada por el titular el 29/10/2026 (src/lib/formatos/plan.ts).
   f("10", "Plan_de_comercializacion", "docx", 3, planFields, true),
   f("11", "Reporte_de_comercializacion_al_propietario", "docx", 3, [
@@ -462,7 +463,7 @@ export function formatoById(id: string): FormatoDefinition {
 /**
   PDF con datos faltantes (titular, 27/10/2026): se descarga avisando y pidiendo confirmación, y
   sale marcado como incompleto. No aplica al aviso de privacidad (01), documento legal cotejado,
-  ni a la promesa (15), que exige su revisión jurídica; el PDF del 09 sigue bloqueado aparte.
+  ni a la promesa (15), que exige su revisión jurídica.
 */
 const SIN_INCOMPLETO = new Set(["01", "15"]);
 export const emiteIncompleto = (id: string) => !SIN_INCOMPLETO.has(id);

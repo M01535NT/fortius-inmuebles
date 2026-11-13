@@ -70,13 +70,13 @@ describe("Documentos sin expediente", () => {
     expect(new TextDecoder().decode((await response.arrayBuffer()).slice(0, 5))).toBe("%PDF-");
   }, 30000);
 
-  it("rechaza versiones viejas, capturas incompletas y el 09 en PDF", async () => {
+  it("rechaza versiones viejas y capturas incompletas, también del 09", async () => {
     requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "06", data: opinion } }), user: { id: "u" } });
     expect((await get(1)).status).toBe(409);
     requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "06", data: { ...opinion, sustento: "" } } }), user: { id: "u" } });
     expect((await (await get()).json()).error).toContain("Faltan datos");
     requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "09", data: {} } }), user: { id: "u" } });
-    expect((await (await get()).json()).error).toContain("Word");
+    expect((await (await get()).json()).error).toContain("Faltan datos");
     requireStaff.mockResolvedValue({ client: runClient({ slug: "hipoteca", input: {} }), user: { id: "u" } });
     expect((await get()).status).toBe(400);
   });
