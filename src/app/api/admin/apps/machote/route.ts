@@ -9,7 +9,7 @@ import { VALOR_DEFAULTS } from "@/lib/formatos/valor-fields";
 /*
   Machote en blanco (HER-02, RP-77): el formato con el membrete de Fortius y sus espacios vacíos,
   para que el cliente lo revise o se llene a mano. Siempre se descarga; no se guarda ni se archiva.
-  El 09 sale en Word mientras su PDF siga pendiente de cotejo (DOC-09).
+  Un formato cuyo PDF siga pendiente de cotejo (readyForEmission falso) se descarga en Word.
 */
 
 export const runtime = "nodejs";

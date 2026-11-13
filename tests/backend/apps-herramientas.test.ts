@@ -106,16 +106,15 @@ describe("Machote en blanco (HER-02)", () => {
   const get = (formato: string) => machote(new Request(`https://panel.test/api/admin/apps/machote?formato=${formato}`));
   it("descarga cualquier formato en blanco, también la promesa", async () => {
     requireStaff.mockResolvedValue({ client: {}, user: { id: "u" } });
-    for (const formato of ["15", "04B", "07"]) {
+    for (const formato of ["15", "04B", "07", "09"]) {
       const response = await get(formato);
       expect(response.status, formato).toBe(200);
       expect(response.headers.get("content-type")).toBe("application/pdf");
       expect(new TextDecoder().decode((await response.arrayBuffer()).slice(0, 5))).toBe("%PDF-");
     }
   }, 60000);
-  it("el 09 se pide en Word, el 03 no es un documento y exige sesión", async () => {
+  it("el 03 no es un documento y exige sesión", async () => {
     requireStaff.mockResolvedValue({ client: {}, user: { id: "u" } });
-    expect((await (await get("09")).json()).error).toContain("Word");
     expect((await get("03")).status).toBe(400);
     requireStaff.mockRejectedValueOnce(new ApiError(401, "Inicia sesión"));
     expect((await get("06")).status).toBe(401);

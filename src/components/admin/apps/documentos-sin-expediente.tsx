@@ -23,7 +23,7 @@ import { cn, humanDateTime } from "@/lib/utils";
   mismo diseño de plantilla que en el expediente; «En blanco» descarga el machote con el membrete
   para que el cliente lo revise o se llene a mano. Nada se bloquea por datos faltantes (RP-77):
   el PDF sale marcado como incompleto, salvo el aviso de privacidad (01) y la promesa (15), que
-  conservan sus reglas. El contrato 09 sale en Word mientras su PDF siga pendiente (DOC-09).
+  conservan sus reglas. Un formato cuyo PDF siga pendiente de cotejo sale en Word.
   Lo lleno se guarda como trabajo de Herramientas (con versiones); el PDF no se archiva.
 */
 
