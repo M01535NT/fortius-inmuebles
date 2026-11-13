@@ -38,7 +38,7 @@ export function internationalPhone(raw: string): string {
 }
 
 export function organizationLd(settings: SiteSettings | null): JsonLd {
-  const sameAs = [settings?.facebook, settings?.instagram].map(filled).filter((url) => /^https:\/\//.test(url));
+  // Sin sameAs: el titular confirmó (13/11/2026) que aún no hay redes oficiales; se agrega cuando existan.
   return {
     "@type": "RealEstateAgent",
     "@id": ORG_ID,
@@ -53,7 +53,6 @@ export function organizationLd(settings: SiteSettings | null): JsonLd {
     address: { "@type": "PostalAddress", addressLocality: "Tijuana", addressRegion: "Baja California", addressCountry: "MX" },
     areaServed: AREA_SERVED.map((name) => ({ "@type": "City", name })),
     openingHoursSpecification: OPENING_HOURS,
-    ...(sameAs.length ? { sameAs } : {}),
   };
 }
 

@@ -30,10 +30,10 @@ const post: Post = {
 };
 
 describe("datos de la empresa", () => {
-  test("solo emite el contacto y las redes capturadas", () => {
+  test("solo emite el contacto capturado y ninguna red", () => {
     const org = organizationLd(settings);
     expect(org).toMatchObject({ "@type": "RealEstateAgent", "@id": ORG_ID, telephone: settings.telefono, email: settings.email });
-    expect(org.sameAs).toEqual([settings.instagram]);
+    expect(org).not.toHaveProperty("sameAs");
     expect(org.address).toEqual({ "@type": "PostalAddress", addressLocality: "Tijuana", addressRegion: "Baja California", addressCountry: "MX" });
     expect(org).not.toHaveProperty("streetAddress");
   });
