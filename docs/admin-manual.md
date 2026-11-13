@@ -1,6 +1,6 @@
 # Manual de administración de Fortius Inmuebles
 
-Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; la sección «Prospectos, clientes y firma del contrato» se actualizó el 12/11/2026 (COR-10, COR-14, COR-17, COR-18, COR-19 y COR-22). [Estado y pendientes](../PLAN_ERP_CRM.md).
+Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; la sección «Prospectos, clientes y firma del contrato» se actualizó el 12/11/2026 (COR-10, COR-14, COR-17, COR-18, COR-19 y COR-22). [Estado y pendientes](../ROADMAP.md).
 
 ## Acceso y roles
 

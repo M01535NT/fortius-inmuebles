@@ -4,13 +4,13 @@
 
 Este archivo reúne en un solo lugar las preguntas que antes estaban repartidas en tres cuestionarios: las preguntas para el titular (grupos A–K), el complemento de la revisión del panel (P01–P84) y las preguntas para precisar el panel (rondas 1 a 6). Las preguntas repetidas o que resolvían la misma situación quedaron fusionadas en una sola. Las que ya tienen regla en el plan no se vuelven a preguntar: están en «Lo que ya está decidido».
 
-**No es un plan.** El único plan vigente es [`PLAN_ERP_CRM.md`](../../PLAN_ERP_CRM.md) y sus reglas prevalecen. Este archivo solo guarda preguntas y respuestas.
+**No es un plan.** El único plan vigente es [`ROADMAP.md`](../../ROADMAP.md) y sus reglas prevalecen. Este archivo solo guarda preguntas y respuestas.
 
 ## Cómo responder
 
 - Escribe debajo de **Respuesta**. Con «Sí a la propuesta» basta; si no, di qué cambia. También puedes contestar en el chat con el identificador (por ejemplo, «B-04: …»).
 - No hace falta contestar todo de una vez. **Los grupos A y B quedaron respondidos el 17/10/2026** y están en el plan como RP-90 a RP-98. Los demás se contestan antes del bloque del plan que los usa; la columna «Detiene» del índice lo indica.
-- Cada respuesta se lleva a `PLAN_ERP_CRM.md` como regla (RP) o decisión (DEC). Si contradice una regla anterior, primero se aclara qué cambia, la anterior se reescribe y queda anotada en «Reglas reemplazadas». Después la pregunta se marca **Respondida** con la fecha y la regla o decisión donde quedó.
+- Cada respuesta se lleva a `ROADMAP.md` como regla (RP) o decisión (DEC). Si contradice una regla anterior, primero se aclara qué cambia, la anterior se reescribe y queda anotada en «Reglas reemplazadas». Después la pregunta se marca **Respondida** con la fecha y la regla o decisión donde quedó.
 - Las propuestas son recomendaciones del agente; no son reglas mientras no las confirmes. «No lo he decidido» o «Propón alternativas» dejan la pregunta abierta; el silencio no aprueba una propuesta.
 - Las preguntas sin propuesta piden información que solo tú tienes (cómo trabajas hoy, qué usas, quién hace qué). Bastan unas líneas o un ejemplo inventado, sin datos personales de clientes.
 
@@ -726,7 +726,7 @@ Si la condición es jurídica, está supeditada a una cancelación de hipoteca, 
 
 ### C-01 · Preguntas necesarias de la entrevista
 
-**Pregunta:** Revisa la tabla «Cita · necesario» y «Cita · Ampliar» de `PLAN_ERP_CRM.md` (sección «A. Llamada, entrevista y cierre»). ¿Falta o sobra alguna pregunta?
+**Pregunta:** Revisa la tabla «Cita · necesario» y «Cita · Ampliar» de `ROADMAP.md` (sección «A. Llamada, entrevista y cierre»). ¿Falta o sobra alguna pregunta?
 
 **Por qué importa:** es la lista base de DEC-22; sin tu visto bueno no se programa CAP-03.
 

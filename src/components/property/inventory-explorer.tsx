@@ -20,7 +20,7 @@ import { SEGMENTOS_INMUEBLE, SEGMENTO_LABELS, segmentoInmueble, tiposDeSegmento,
   y ordenamiento. Los filtros se reflejan en la URL con history.replaceState
   (URLs compartibles) SIN useSearchParams: ese hook forzaría un límite de
   Suspense/CSR bailout en toda la página. Conservar esta frontera al ampliar
-  el inventario conforme a PLAN_ERP_CRM.md.
+  el inventario conforme a ROADMAP.md.
 */
 type Orden = "recientes" | "precio-asc" | "precio-desc";
 type Moneda = "todas" | "MXN" | "USD";
