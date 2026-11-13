@@ -1456,7 +1456,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | LV-01 | 4 | en_local | cinco roles de color con superficie y borde, AA en claro y oscuro; axe sin fallas en 24 pantallas; escala de `docs/brand.md` (13/11/2026, `feat/integracion`) |
 | LV-02 | 4 | en_local | íconos por etapa y documento, estados con forma, anillo de avance y avatar único (8b1d265, `feat/integracion`, 13/11/2026; boceto aprobado por el titular); «Aprobado» y «Revisado» aún no tienen dato de documento detrás: hoy solo se muestran Borrador y Firmado (09 y 21 con firma registrada) |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
-| LV-04 | 4 | pendiente | LV-01, SIM-12 |
+| LV-04 | 4 | en_local | ayuda «?» de una línea, punto «Empieza aquí» sobre «Nuevo» e ilustración en los estados vacíos (d4acc7d, `feat/integracion`, 13/11/2026; boceto aprobado por el titular) |
 | DOC-14 | 2 | pendiente | modelos del titular |
 | FIR-01 | 6 | pendiente | COR-10, DOC-01, PRV-01, DEC-30 |
 | IA-01 (proveedores) | 1 | en_revision | Claude Haiku 5.5 activo en local con clave de prueba (31/10/2026, 7 datos de un PDF ficticio); adaptador Grok listo pero su clave no la acepta xAI; PDF por páginas con pdfjs-dist |
