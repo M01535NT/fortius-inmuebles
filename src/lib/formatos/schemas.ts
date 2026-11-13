@@ -25,7 +25,7 @@ export const expedienteWrite = z.object({
   propiedadSlug: id.nullable().optional(), unidad: z.string().max(160).optional(),
   clienteId: id.optional(), asesorId: id.optional(),
 }).strict();
-export const draftCreate = z.object({ formatoId: z.enum(["01","02","03","04A","04B","04C","04D","04E","04F","04G","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20"]), data: data.default({}), valorReferencia: z.object({id:z.uuid(),version}).strict().optional(),
+export const draftCreate = z.object({ formatoId: z.enum(["01","02","03","04A","04B","04C","04D","04E","04F","04G","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21"]), data: data.default({}), valorReferencia: z.object({id:z.uuid(),version}).strict().optional(),
   // COR-17: el 08 toma el valor del avalúo del propietario registrado en la operación.
   avaluo: z.literal(true).optional() }).strict();
 export const draftWrite = z.object({ version, data }).strict();

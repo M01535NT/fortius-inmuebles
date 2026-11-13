@@ -49,7 +49,7 @@ export async function POST(request: Request, context: Context) {
     const [persona,asesor,inmueble,interviews]=await Promise.all([record("clientes",exp.cliente_id),record("asesores",exp.asesor_id),record("propiedades",exp.propiedad_slug),client.from("fortius_inmuebles_interviews").select("id,version,intencion,respuestas").eq("expediente_id",id).eq("estado","completada").order("completed_at",{ascending:false}).limit(1)]);
     if(interviews.error)databaseError(interviews.error);
     // FCH-03: el 01 y el 09 toman los datos de Fortius de Configuración; si no se pueden leer, nacen sin ellos.
-    const empresa=["01","09"].includes(input.formatoId)?datosFortius(await record("config","singleton").catch(()=>undefined)):undefined;
+    const empresa=["01","09","21"].includes(input.formatoId)?datosFortius(await record("config","singleton").catch(()=>undefined)):undefined;
     const proposed=prefillFormato(input.formatoId,{expediente:exp,persona,asesor,inmueble,entrevista:interviews.data?.[0] as OperationalInterview|undefined,empresa});
     // Recibo 18: número automático, folio del expediente y consecutivo de sus recibos (nadie lo inventa).
     // C-20: el consecutivo sale del mayor ya usado y se comprueba al crear (ver recibo-18.ts).

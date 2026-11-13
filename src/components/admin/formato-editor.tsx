@@ -29,6 +29,7 @@ import { PromesaRowsEditor } from "./promesa-rows-editor";
 import { PromesaReview } from "./promesa-review";
 import { mostrarCampoIntermediacion, INTERMEDIACION_TABLES, type IntermediacionTable } from "@/lib/formatos/intermediacion";
 import { mostrarCampoArrendamiento } from "@/lib/formatos/arrendamiento";
+import { mostrarCampoIntermediacionRenta } from "@/lib/formatos/intermediacion-renta";
 import { IntermediacionRowsEditor } from "./intermediacion-rows-editor";
 import { IntermediacionSummary } from "./intermediacion-summary";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -59,7 +60,7 @@ export function FormatoEditor({ definition, values, onChange, images, extras = t
 }) {
   // Sobre el documento (panel angosto) el aviso abre solo los campos de la parte pulsada; fuera de él, su editor completo.
   if (definition.id === "01" && !narrow) return <AvisoEditor definition={definition} values={values} onChange={onChange} />;
-  const shownFields = definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "20" ? definition.fields.filter((field) => mostrarCampoArrendamiento(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.fields;
+  const shownFields = definition.id === "01" ? definition.fields.filter((field) => mostrarCampoAviso(field.key, values)) : definition.id === "09" ? definition.fields.filter((field) => mostrarCampoIntermediacion(field.key, values)) : definition.id === "20" ? definition.fields.filter((field) => mostrarCampoArrendamiento(field.key, values)) : definition.id === "21" ? definition.fields.filter((field) => mostrarCampoIntermediacionRenta(field.key, values)) : definition.id === "15" ? definition.fields.filter((field) => mostrarCampoPromesa(field.key, values)) : definition.id === "07" ? definition.fields.filter((field) => mostrarCampoValor(field.key, values)).map((field) => values.baseMercado === "terreno" && field.section?.startsWith("06") ? { ...field, section: "05 / Comparables de terreno" } : field) : definition.id === "02" ? definition.fields.filter((field) => mostrarCampoEntrevista(field.key, values)) : definition.fields;
   // En la captura por secciones la pantalla ya lleva el título de la sección; no se repite.
   const singleSection = new Set(shownFields.map(field => field.section)).size === 1;
   return <div className={narrow ? "grid gap-5" : "grid gap-5 md:grid-cols-2"}>
