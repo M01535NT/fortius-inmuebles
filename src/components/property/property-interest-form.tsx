@@ -124,8 +124,7 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
         </p>
       ) : null}
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        Sin compromiso. Usamos tus datos solo para dar seguimiento a tu
-        solicitud.
+        Sin compromiso. Usamos tus datos solo para responder esta solicitud.
       </p>
     </PublicLeadForm>
   );

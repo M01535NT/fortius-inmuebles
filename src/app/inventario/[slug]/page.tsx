@@ -241,7 +241,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
         <div className="fe-main">
           <FichaSectionsNav sections={secciones} />
 
-          {property.estado === "apartada" && <p className="fe-alert">Apartada. Te avisamos si se libera o te mostramos opciones similares.</p>}
+          {property.estado === "apartada" && <p className="fe-alert">Apartada. Si quieres, te escribimos si se libera y te mostramos opciones parecidas.</p>}
           {property.estado === "rentada" && <p className="fe-alert">Esta propiedad ya fue rentada. Podemos mostrarte opciones similares.</p>}
           {conjunto.plaza && <p className="fe-alert">Forma parte de <Link href={`/inventario/${conjunto.plaza.slug}`} className="font-semibold underline underline-offset-4">{conjunto.plaza.titulo}</Link>.</p>}
 
