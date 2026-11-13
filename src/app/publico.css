@@ -451,7 +451,7 @@
 .tl-card { display: grid; gap: 12px; align-content: start; padding: clamp(22px, 2.6vw, 32px); border: 1px solid color-mix(in srgb, var(--ns-ink) 14%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--ns-ink) 5%, transparent); color: var(--ns-ink); transition: background-color 0.4s, border-color 0.4s, transform 0.5s var(--pg-ease); }
 .tl-card:hover { border-color: color-mix(in srgb, var(--ns-ink) 40%, transparent); background: color-mix(in srgb, var(--ns-ink) 8%, transparent); transform: translateY(-4px); }
 .tl-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.tl-open { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ns-accent); }
+.tl-open { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 14px; font-weight: 600; color: var(--ns-accent); }
 .tl-card-title { font-size: clamp(24px, 2.1vw, 30px); line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; }
 .tl-card-text { max-width: 46ch; color: color-mix(in srgb, var(--ns-ink) 72%, transparent); font-size: 15px; line-height: 1.6; }
 .tl-preview { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: 12px; padding: 18px 20px; border-radius: 8px; background: color-mix(in srgb, var(--ns-deep) 60%, transparent); }
