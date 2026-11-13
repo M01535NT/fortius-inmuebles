@@ -24,6 +24,9 @@ const archivo = Archivo({
   axes: ["wdth"],
   variable: "--font-archivo",
   display: "swap",
+  // Sin precarga (13/11/2026): el layout raíz la precargaba en todas las rutas y el sitio público
+  // no la usa (88 KiB en la ruta crítica del celular). El panel la descarga al pedirla su CSS.
+  preload: false,
 });
 
 // Sitio público (30/10/2026): Schibsted Grotesk en 400/600/700. El panel conserva Archivo.
