@@ -3,6 +3,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { CircleHelp, X } from "@/components/admin/icons";
 import { markSeen, tourFor, type TourStep } from "@/lib/admin/tour";
+import { hasHelp, helpHref } from "@/lib/admin/help";
 import { cn } from "@/lib/utils";
 import nav from "./guided-nav.module.css";
 import s from "./tour.module.css";
@@ -121,6 +122,8 @@ export function Tour({ pathname }: { pathname: string }) {
       </div>
       <h2 id="guia-titulo" className={s.title}>{step.title}</h2>
       <p id="guia-texto" className={s.text}>{step.text}</p>
+      {/* COR-26: cada pantalla enlaza a su sección del manual. */}
+      {screen && hasHelp(screen.id) && <a href={helpHref(screen.id)} className={s.helpLink} onClick={close}>¿Cómo se hace esto?</a>}
       <div className={s.actions}>
         {!last && <button type="button" className={cn(s.btn, s.ghost, s.skip)} onClick={close}>Omitir guía</button>}
         {index > 0 && <button type="button" className={s.btn} onClick={() => setIndex(i => Math.max(0, i - 1))}>Anterior</button>}

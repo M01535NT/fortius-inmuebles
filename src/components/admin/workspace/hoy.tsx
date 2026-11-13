@@ -1,4 +1,5 @@
 "use client";
+import { FirstDay } from "./first-day";
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -105,6 +106,7 @@ export function HoyScreen() {
         <h1 className={s.hello}>{hour === null ? "Hola" : greeting(hour)}{firstName ? `, ${firstName}` : ""}.</h1>
       </header>
       <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist className={s.full} /></SectionBoundary>
+      <SectionBoundary what="«Tu primer día»"><FirstDay operations={dossiers} className={s.full} /></SectionBoundary>
 
       <div data-tour="hoy-siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
         {dossiers === undefined ? <p role="status" className={s.nextNote}>Consultando operaciones…</p>
