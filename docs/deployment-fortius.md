@@ -53,3 +53,19 @@ Límites:
 - El regreso cambia el código, **no la base de datos**. Si la publicación problemática trajo una migración, la versión anterior podría no ser compatible con el esquema nuevo; revisar `supabase/migrations` entre ambas versiones antes de regresar.
 
 Ensayo del 12/11/2026: de `a9b10e2` (PR #69) a `02d28d6` (PR #68), sin migraciones entre ambas. Ida en ~2 s y vuelta en ~2 s; las páginas principales respondieron 200 con la versión anterior y después de volver (no se vigiló segundo a segundo durante el cambio). Al final, producción quedó en `a9b10e2` con la asignación automática reactivada y la revisión de salud en `ok` (51 solicitudes: 48 con 200, 1 redirección 308 y 2 con 404; no se compararon con una revisión previa).
+
+### Compatibilidad del esquema al regresar (CI-01, revisado el 13/11/2026)
+
+Regla: las migraciones de Fortius solo agregan o endurecen (columnas nuevas opcionales, funciones, disparadores, políticas, permisos); nunca borran ni renombran lo que usa la versión anterior del código. Así, regresar la aplicación una versión no exige tocar la base. Una migración aplicada **no se revierte** para acompañar un regreso: si hiciera falta, se corrige con una migración nueva.
+
+Revisión de la publicación del 13/11/2026 (PR #74, `ff2e09c`) contra la anterior (`c03504b`), con las 10 migraciones ya aplicadas:
+
+| Migración | Si se regresa a `c03504b` |
+| --- | --- |
+| `120000` inmuebles por asesor | El panel anterior lee los inmuebles directo: un asesor vería solo los suyos (sin la vista del equipo). No falla ni expone nada. |
+| `121000`, `122000`, `124000`, `126000`, `127000` | Reglas dentro de la base, más estrictas; el código anterior las cumple o recibe el mismo mensaje de la base. |
+| `123000` límite de acceso, `141000` alta heredada | El código anterior no las llama; siguen ahí sin efecto. |
+| `125000` URL públicas | Más estricta; el código anterior no cambia. |
+| `140000` reserva de IA | Solo amplía los estados permitidos; el código anterior escribe los de siempre. |
+
+Conclusión: el regreso de esa publicación es compatible. Revisar esta tabla en cada publicación con migraciones.

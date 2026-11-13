@@ -46,7 +46,8 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 4. **GitHub:** ~~borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`)~~ **Hecho el 12/11/2026**, tras confirmar que ningún flujo, regla ni proyecto de Vercel los usa.
 5. **GitHub (decide el titular):** la regla deja que el administrador la salte. Mientras sea la única cuenta, conviene conservarla así y no saltarla salvo urgencia (I-04).
 6. **Recuperación de la aplicación:** ~~ensayar el rollback de Vercel~~ **Ensayado el 12/11/2026** (ida y vuelta en ~2 s cada una; el sitio respondió con ambas versiones). Pasos y límites en [despliegue](../deployment-fortius.md#regresar-a-la-versión-anterior-ensayado-el-12112026).
-7. **Supabase:** autorizar el conector de solo lectura `supabase-fortius` (o un token de solo lectura de la API de administración) para leer SMTP, URL de retorno, MFA y copias sin pedírselo al titular cada vez.
+7. **Supabase:** ~~autorizar el conector de solo lectura `supabase-fortius`~~ **Autorizado el 13/11/2026.** Sirve para el historial de migraciones, el esquema y el asesor de seguridad ([acceso](access-policy.md)). No lee SMTP, URL de retorno, MFA ni copias del proveedor: eso sigue en el panel de Supabase o con un token de administración de solo lectura.
+8. **Regreso de la aplicación y esquema (CI-01):** compatibilidad de la publicación del 13/11/2026 revisada; regla y tabla en [despliegue](../deployment-fortius.md#compatibilidad-del-esquema-al-regresar-ci-01-revisado-el-13112026).
 
 ## Estado posterior a la integración
 
