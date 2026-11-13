@@ -6,7 +6,7 @@ import { Building2, ChevronRight, Columns3, List, Search } from "@/components/ad
 import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, Pill, Segmented, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
-import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
+import { usePanelPreference } from "@/components/admin/workspace/preferences-store";
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
@@ -48,7 +48,10 @@ export function OperationsBoard() {
   const admin = session?.role === "admin";
   const deleted = params.get("eliminadas") === "1";
   const clients = useCollection(db.clientes), properties = useCollection(db.propiedades), tasks = useCollection(db.tareas), advisers = useCollection(db.asesores);
-  const [view, setView] = useBrowserPreference<View>(`fortius:operaciones:vista:${session?.id ?? "anon"}`, "lista", asView);
+  // UX-02: la vista sigue al usuario en cualquier equipo; lo que este navegador recordaba se sube una vez.
+  const legacyView = React.useMemo(() => ({ key: `fortius:operaciones:vista:${session?.id ?? "anon"}`, parse: (raw: string) => { try { return asView(JSON.parse(raw)); } catch { return undefined; } } }), [session?.id]);
+  const { value: view, save: saveView, error: viewError } = usePanelPreference("operacionesVista", "lista", legacyView);
+  const setView = (next: View) => { void saveView(next); };
   const today = operationalDate();
   const [records, setRecords] = React.useState<OperationRecord[] | null | undefined>(undefined);
   const [error, setError] = React.useState("");
@@ -143,6 +146,7 @@ export function OperationsBoard() {
     </header>
     {error && <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-sm text-destructive"><span>{error}</span>{records === null && <Button onClick={() => setAttempt(n => n + 1)}>Reintentar</Button>}</div>}
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}
+    {viewError && <p role="alert" className="mb-4 text-sm text-destructive">{viewError}</p>}
 
     {deleted ? <DeletedList records={records} names={names} onRestore={op => void restore(op)} />
       : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando operaciones…</p>

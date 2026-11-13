@@ -59,3 +59,14 @@ it("rechaza otro origen y datos que no son claves", async () => {
   expect((await POST(request({ claves: [] }))).status).toBe(400);
   expect((await POST(request({ claves: ["k"], userId: "otra-persona" }))).status).toBe(400);
 });
+
+it("UX-02: cambia una preferencia del panel sin borrar lo leído ni aceptar campos inventados", async () => {
+  const { PATCH } = await import("@/app/api/admin/preferencias/route");
+  row = { data: { bandeja: { leidos: { k: "2026-11-14T10:00:00.000Z" } }, panel: { inmueblesVista: "tarjetas" } }, version: 3 };
+  const patch = (body: unknown) => new Request("https://panel.test/api/admin/preferencias", { method: "PATCH", headers: { origin: "https://panel.test", "content-type": "application/json" }, body: JSON.stringify(body) });
+  const body = await (await PATCH(patch({ panel: { operacionesVista: "tablero" } }))).json();
+  expect(body.preferencias.data).toEqual({ bandeja: { leidos: { k: "2026-11-14T10:00:00.000Z" } }, panel: { inmueblesVista: "tarjetas", operacionesVista: "tablero" } });
+  expect((await PATCH(patch({ panel: { rol: "admin" } }))).status).toBe(400);
+  expect((await PATCH(patch({ panel: {} }))).status).toBe(400);
+  expect((await PATCH(patch({ panel: { vistasInventario: Array.from({ length: 11 }, (_, i) => ({ name: `v${i}`, filters: {} })) } }))).status).toBe(400);
+});
