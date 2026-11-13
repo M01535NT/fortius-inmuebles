@@ -1434,11 +1434,11 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | APR-01 | 3 | pendiente | SEG-01, FIN-02, UX-05 |
 | TAB-05 | 3 | pendiente | TAB-01, DEC-17 |
 | FIS-01 | 3 | pendiente | BAS-01; revisión fiscal |
-| SIM-04 | 4 | parcial | C13 y C22 hechas; faltan los mismos nombres de fase en Reportes (C12); depende de SIM-01 |
-| SIM-05 | 4 | parcial | SIM-01 |
-| SIM-06 | 4 | parcial | C19 y C20 hechas; falta retirar la pestaña Ajustes (C21, DEC-38); las dos barras del celular (C59) en local el 12/11/2026; depende de SIM-01 |
+| SIM-04 | 4 | en_local | C12, C13 y C22 hechas; Reportes usa el mismo cálculo de etapa que Operaciones, también en registros sin tipo (defb62e, `feat/integracion`, 13/11/2026) |
+| SIM-05 | 4 | en_local | la etapa nombra sus documentos sin número de formato; los números siguen en Documentos (ad53e35, `feat/integracion`, 13/11/2026) |
+| SIM-06 | 4 | en_local | C19, C20 y C21 hechas (Ajustes retirada con SIM-18); barra única del celular (C59) comprobada a 390 px (13/11/2026) |
 | SIM-07 | 4 | en_main | fichas de prospecto y cliente (C23, C41, C58), en `main` desde el PR #73; falta el visto bueno del titular |
-| SIM-10 | 4 | parcial | cada inmueble dice qué le falta y Herramientas va en grupos; faltan el aviso amarillo (C27) y «Documentos sueltos» (C28); depende de SIM-01 |
+| SIM-10 | 4 | en_local | C27 (sin aviso amarillo, abdc6b8) y C28 («Documentos sueltos») hechas, en `feat/integracion` (13/11/2026) |
 | NAV-01 | 4 | pendiente | SIM-02, UX-02 |
 | NAV-02 | 4 | pendiente | UX-03 |
 | NAV-03 | 4 | pendiente | SIM-01, SIM-08 |
@@ -1451,7 +1451,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | NAV-10 | 4 | pendiente | DOC-11, PUB-01 |
 | NAV-11 | 4 | pendiente | Decisión del titular |
 | NAV-12 | 4 | pendiente | Migración autorizada, PRV-01 |
-| NAV-13 | 4 | parcial | SIM-01; papelera «Eliminados» (N23) en la rama `feat/integracion` (13/11/2026); falta N24, que se une a «Tu primer día» de COR-26 |
+| NAV-13 | 4 | en_local | papelera «Eliminados» (N23) y «Tu primer día» con foto, WhatsApp, cita y operación, que desaparece al completarse (N24, 8d7bb05); en `feat/integracion` (13/11/2026) |
 | NAV-14 | 4 | pendiente | PWA-03 |
 | LV-01 | 4 | en_local | cinco roles de color con superficie y borde, AA en claro y oscuro; axe sin fallas en 24 pantallas; escala de `docs/brand.md` (13/11/2026, `feat/integracion`) |
 | LV-02 | 4 | pendiente | LV-01, SIM-05 |
@@ -1494,7 +1494,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | PIL-02 | posterior | en_pausa | SAAS-01 a SAAS-03, SAAS-05, PIL-01, REC-01, OBS-01 |
 | SIM-15 | 4 | parcial | primera parte en `main` (PR #66); segunda en local el 12/11/2026 (Herramientas sin «Documentos», «Documentos sueltos», Notas e Historial con el kit); cada herramienta con el kit, C56 y C57, también en local; C54 y C55 con SIM-19 |
 | SIM-16 | 4 | en_main | Hoy en tres bloques (C47), en `main` desde el PR #73; falta el visto bueno del titular |
-| SIM-18 | 4 | parcial | operación en tres partes (C52; C53 en parte) en `main` desde el PR #73; falta la decisión del encargo como pieza de la etapa 6 |
+| SIM-18 | 4 | en_local | operación en tres partes en `main` (PR #73); la decisión del encargo es su propia tarjeta en la etapa 6 desde 0da635a, con prueba en operation-screen |
 | COR-25 | 1 | pendiente | DAT-01 |
 | COR-26 | 4 | parcial | PR #66: guía de cada pantalla; en local: «Tu primer día» y manual en `/admin/ayuda`; faltan capturas del manual y prueba de uso |
 | USO-02 | 4 | pendiente | USO-01 |
