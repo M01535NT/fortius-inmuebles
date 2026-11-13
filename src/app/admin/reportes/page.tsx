@@ -10,6 +10,7 @@ import { useOperationFormats } from "@/components/admin/operation/use-operation-
 import { followupLabel, overdueFollowups, projectFollowups } from "@/lib/admin/followups";
 import { clientStatus } from "@/lib/admin/person-status";
 import { PageHeader } from "@/components/admin/ui";
+import { Silhouette } from "@/components/admin/workspace/silhouette";
 import { apiRequest, db, useCollection, useLoadState, useSession } from "@/lib/admin/store";
 import { commercialMetrics, type StageRecord } from "@/lib/admin/commercial-metrics";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -56,7 +57,7 @@ export default function ReportesPage() {
   if (session?.role !== "admin") return <p role="alert" className="rounded-md border border-border p-6">Los reportes son solo para administradores.</p>;
   const states = [leadState, clientState, propertyState, taskState, adviserState];
   if (states.some(state => state.status === "error")) return <p role="alert" className="rounded-md border border-destructive p-6">No se pudieron cargar los datos del reporte. Revisa la conexión y recarga la página.</p>;
-  if (states.some(state => !state.loaded) || expedientStatus === "loading") return <p role="status" className="p-6">Cargando reportes…</p>;
+  if (states.some(state => !state.loaded) || expedientStatus === "loading") return <Silhouette label="Cargando reportes…" />;
   if (expedientStatus === "error") return <p role="alert" className="rounded-md border border-destructive p-6">{error}</p>;
   const today = operationalDate();
   // PUB-02 (RP-95): la comisión de un compartido es una estimación; no se suma a nada ni es lo cobrado.
