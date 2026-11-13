@@ -41,7 +41,7 @@ Para repetirlo: crear otro proyecto vacío (el script se niega a mezclar datos),
 
 **Pendiente para cerrar REC-01:**
 
-1. Copia diaria automática: **preparada** el 12/11/2026 (GitHub Actions → cifrado → Cloudflare R2, con el titular como custodio de la llave; ver [copia diaria](respaldo-diario.md)). Falta que el titular cree la llave, el bucket y los secretos, integrar en `main` y comprobar la primera copia. Hasta entonces, el RPO de 24 h no es una capacidad.
+1. Copia diaria automática: **preparada** el 12/11/2026 (GitHub Actions → cifrado → Cloudflare R2, con el titular como custodio de la llave; ver [copia diaria](respaldo-diario.md)). La llave, el bucket con bloqueo de 30 días y los secretos quedaron listos el mismo día; falta integrar en `main` y comprobar la primera copia. Hasta entonces, el RPO de 24 h no es una capacidad.
 2. Repetir el ensayo con el volumen real cuando se cargue el inventario, porque los tiempos de hoy son de un caso mínimo.
 3. Documentar la configuración del proyecto que no viaja con el respaldo: correo saliente, URL de retorno, límites y plantillas de Auth.
 

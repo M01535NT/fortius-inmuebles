@@ -82,4 +82,15 @@ Se recomienda hacer los pasos 1 a 3 una vez al mes: una copia que nunca se ha ab
 
 ## Estado (12/11/2026)
 
-Herramientas, flujo y pruebas listos en la rama de trabajo (47 pruebas de herramientas en verde). La cadena completa se comprobó localmente con un respaldo sintético: empaquetar → cifrar → descifrar → desempaquetar → verificar → ensayar. **Falta:** los pasos 1 a 4 del titular, integrar en `main` y la primera ejecución real con subida a R2.
+Herramientas, flujo y pruebas listos en la rama de trabajo (47 pruebas de herramientas en verde). La cadena completa se comprobó localmente con un respaldo sintético: empaquetar → cifrar → descifrar → desempaquetar → verificar → ensayar.
+
+Pasos 1 a 4 hechos el 12/11/2026:
+
+- Llave del titular creada; la pública está en `.github/backup-public-key.pem`.
+- Bucket `fortius-respaldos` en R2: privado (sin URL pública), Norteamérica, Standard, con la regla de bloqueo `bloqueo-30-dias`.
+- Token de cuenta `respaldo-diario` limitado a ese bucket.
+- Entorno de GitHub `respaldo` limitado a `main`, con los siete secretos.
+
+Las claves las guardó el titular en Bitwarden y las capturó él mismo; el agente no las vio.
+
+**Falta:** integrar en `main` y la primera ejecución manual. Esa ejecución es la primera prueba real de la conexión a la base y de las claves de R2.
