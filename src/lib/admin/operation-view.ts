@@ -225,7 +225,7 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
   for (const { key, earlier } of currentRequirements(op, today)) items.push({ kind: "requisito", key, earlier, state: reviewState(flow, key), done: reviewComplete(flow, key, today) });
   for (const m of missingItems(op, tasks, today)) {
     // Lo de documentos ya está arriba; en el checklist también cuentan la entrevista y el levantamiento sin terminar.
-    if (m.place === "ajustes" || m.place === "tarea" || m.place === "firma" || m.place === "cierre" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place });
+    if (m.place === "ajustes" || m.place === "encargo" || m.place === "tarea" || m.place === "firma" || m.place === "cierre" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place });
   }
   return items;
 }
@@ -286,13 +286,13 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   return { target: next, label: following?.label ?? stageLabel(next, flow.ruta) };
 }
 
-export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "tarea" | "operacion" | "firma" | "cierre" };
+export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "encargo" | "tarea" | "operacion" | "firma" | "cierre" };
 const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
   "Reactivar la operación antes de avanzar.": { text: "Reactivar la operación", why: "está en pausa, en regularización o descartada", place: "ajustes" },
   "Resolver las observaciones que bloquean esta actividad.": { text: "Resolver los problemas marcados", why: "un requisito dice «Hay un problema»", place: "requisito" },
-  "Revisar la resolución y reactivar el encargo antes de avanzar.": { text: "Revisar la decisión del encargo", why: "está en pausa, rechazada, referida o cancelada", place: "ajustes" },
-  "La aceptación condicionada no autoriza esta actividad.": { text: "Revisar las condiciones del encargo", why: "la decisión con condiciones no permite este paso", place: "ajustes" },
-  "Registrar la decisión de captación y sus condiciones antes de comercializar.": { text: "Registrar si tomas el encargo", why: "se decide en los datos de la operación", place: "ajustes" },
+  "Revisar la resolución y reactivar el encargo antes de avanzar.": { text: "Revisar la decisión del encargo", why: "está en pausa, rechazada, referida o cancelada", place: "encargo" },
+  "La aceptación condicionada no autoriza esta actividad.": { text: "Revisar las condiciones del encargo", why: "la decisión con condiciones no permite este paso", place: "encargo" },
+  "Registrar la decisión de captación y sus condiciones antes de comercializar.": { text: "Registrar si tomas el encargo", why: "en «Decisión del encargo» de esta etapa", place: "encargo" },
   // COR-10: la firma del contrato se registra y se revisa en la tarjeta «Firma del contrato».
   "Registrar la firma del contrato de intermediación.": { text: "Registrar la firma del contrato", why: "con el contrato firmado, la fecha y quién firmó", place: "firma" },
   "Completar la firma del contrato: faltan firmantes.": { text: "Completar la firma del contrato", why: "faltan firmantes", place: "firma" },
@@ -322,7 +322,7 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar el checklist de documentos", why: "con el botón «Iniciar checklist»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
   if (!target.target) {
     const items: Missing[] = (phase === "dictamen" ? phaseRequirements("dictamen", flow.ruta) : verificationRequirements(flow.ruta)).filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key, flow.ruta), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
-    if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "se decide en los datos de la operación", place: "ajustes" });
+    if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "en «Decisión del encargo» de esta etapa", place: "encargo" });
     return items;
   }
   const labels = new Map(Object.entries(WORKFLOW_REQUIREMENTS).map(([key, value]) => [value.label as string, key as RequirementKey]));
