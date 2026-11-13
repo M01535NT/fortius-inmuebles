@@ -6,7 +6,7 @@ import { apiResponse, assertSameOrigin, readJson } from "@/lib/backend/http";
 export const runtime = "nodejs";
 type Context = { params: Promise<{ id: string }> };
 
-/** Renombra un documento del cliente, lo manda a la papelera o lo restaura. */
+/** Renombra un documento del cliente, lo elimina (se puede restaurar) o lo restaura. */
 export async function PATCH(request: Request, context: Context) {
   return apiResponse(async () => {
     assertSameOrigin(request);

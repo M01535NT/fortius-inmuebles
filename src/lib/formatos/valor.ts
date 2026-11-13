@@ -29,18 +29,22 @@ export type ComparableCalculado = { index: number; precioMxn: number; unitario: 
 /** Tabla de comparables (hojas 5, 6 y 7): precio en MXN, $/m², factor resultante y $/m² homologado. Media con tres o más. */
 export function calcularComparables(input: unknown, data: ValorRow) {
   const calculated: ComparableCalculado[] = [];
+  // C-11: un comparable en dólares sin tipo de cambio, o con un factor en 0, no se puede homologar
+  // como en el Excel (que lo cuenta como 0). La media queda pendiente y se avisa, en vez de calcular otra.
+  let sinTipoCambio = 0, factorCero = 0;
   for (const [index, row] of rows(input).entries()) {
     if (!number(row.precio, true) || !number(row.superficie, true)) continue;
     const usd = row.moneda === "USD";
-    if (usd && !number(data.tipoCambio, true)) continue;
+    if (usd && !number(data.tipoCambio, true)) { sinTipoCambio++; continue; }
+    if ([row.fZona, row.fUbicacion, row.fSuperficie, row.fNegociacion].some(value => value === 0)) { factorCero++; continue; }
     const precio = d(row.precio).mul(usd ? data.tipoCambio as number : 1);
     const f = d(factor(row.fZona)).mul(factor(row.fUbicacion)).mul(factor(row.fSuperficie)).mul(factor(row.fNegociacion));
     const unitario = precio.div(row.superficie);
     calculated.push({ index, precioMxn: precio.toNumber(), unitario: unitario.toNumber(), factor: f.toNumber(), homologado: unitario.mul(f).toNumber() });
   }
-  const media = calculated.length >= 3 ? calculated.reduce((sum, row) => sum.add(row.homologado), new Decimal(0)).div(calculated.length).toNumber() : null;
+  const media = calculated.length >= 3 && !sinTipoCambio && !factorCero ? calculated.reduce((sum, row) => sum.add(row.homologado), new Decimal(0)).div(calculated.length).toNumber() : null;
   const desviacion = media !== null && calculated.length > 1 ? Math.sqrt(calculated.reduce((sum, row) => sum + (row.homologado - media) ** 2, 0) / (calculated.length - 1)) : null;
-  return { rows: calculated, media, desviacion, variacion: desviacion !== null && media ? desviacion / media : null };
+  return { rows: calculated, media, desviacion, variacion: desviacion !== null && media ? desviacion / media : null, sinTipoCambio, factorCero };
 }
 
 /** Una construcción del enfoque físico: Ross-Heidecke sin valor de rescate, como la plantilla. */
@@ -65,6 +69,10 @@ export function calcularValor(data: ValorRow) {
   const construido = calcularComparables(data.comparablesConstruccion, data);
   const renta = calcularComparables(data.comparablesRenta, data);
   if (base === null) pendientes.push("Elige la base de mercado y captura su superficie");
+  for (const [nombre, tabla] of [["terreno", terreno], ["construcción", construido], ["renta", renta]] as const) {
+    if (tabla.sinTipoCambio) pendientes.push(`Captura el tipo de cambio: hay comparables de ${nombre} en dólares`);
+    if (tabla.factorCero) pendientes.push(`Un factor de ajuste en 0 en los comparables de ${nombre} anula el comparable: usa 1 para «sin ajuste»`);
+  }
 
   // Hoja 5: valor de mercado del terreno = superficie del terreno × valor unitario × factor adicional.
   const valorTerreno = number(data.terreno, true) && terreno.media !== null ? d(data.terreno).mul(terreno.media).mul(factor(data.factorTerreno)).toNumber() : null;

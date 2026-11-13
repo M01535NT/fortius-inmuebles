@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
-import { listRecordsFor } from "@/lib/backend/repository";
+import { listRecordsFor, propiedadVisible } from "@/lib/backend/repository";
 import { projectTeamProperty } from "@/lib/backend/validation";
 
 // COR-23 / DEC-43: de los inmuebles de otros asesores, el asesor recibe solo lo público.
@@ -50,5 +50,27 @@ describe("inmuebles del equipo", () => {
     const admin = client([house("ajena", "luis")], null, []);
     await listRecordsFor(admin, "propiedades", "admin");
     expect(admin.calls).toEqual(["records"]);
+  });
+});
+
+// A1: una lectura de un solo inmueble (publicación, exportar la ficha, formatos, datos del expediente).
+describe("un inmueble visible para quien pregunta", () => {
+  it("lo pide a la función de la base con su clave y toma la primera fila", async () => {
+    const asked: unknown[] = [];
+    const recortado = projectTeamProperty(house("ajena", "luis"));
+    const db = { from: () => { throw new Error("no debe leer la tabla"); }, rpc: async (name: string, args: unknown) => { asked.push([name, args]); return { data: [{ id: "ajena", data: recortado, version: 1, created_at: "", updated_at: "" }], error: null }; } };
+    expect(await propiedadVisible(db as never, "ajena")).toEqual(recortado);
+    expect(asked).toEqual([["fortius_inmuebles_team_properties", { p_id: "ajena" }]]);
+  });
+  it("sin fila devuelve null; sin la función todavía, lee como antes", async () => {
+    const vacia = { from: () => { throw new Error("no"); }, rpc: async () => ({ data: [], error: null }) };
+    expect(await propiedadVisible(vacia as never, "x")).toBeNull();
+    const chain = { select: () => chain, eq: () => chain, maybeSingle: async () => ({ data: { data: { slug: "x" } }, error: null }) };
+    const vieja = { from: () => chain, rpc: async () => ({ data: null, error: { code: "PGRST202" } }) };
+    expect(await propiedadVisible(vieja as never, "x")).toEqual({ slug: "x" });
+  });
+  it("otro error de la base no se oculta", async () => {
+    const rota = { from: () => { throw new Error("no"); }, rpc: async () => ({ data: null, error: { code: "PT403", message: "Solo personal" } }) };
+    await expect(propiedadVisible(rota as never, "x")).rejects.toBeTruthy();
   });
 });

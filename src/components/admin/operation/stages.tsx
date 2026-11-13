@@ -136,7 +136,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
     if (stage.key === "documentos") {
       const received = checklist?.pasos.filter(pasoCompleto).length ?? 0, total = checklist?.pasos.length ?? 0;
       return <ul className={s.stageDocs}><li className={s.stageDoc}>
-        <span className="min-w-0 flex-1">{checklist ? `Checklist · ${received} de ${total} listos` : <span className="font-semibold text-[var(--warning)]">Falta el checklist</span>}</span>
+        <span className="min-w-0 flex-1">{checklist ? `Lista · ${received} de ${total} listos` : <span className="font-semibold text-[var(--warning)]">Falta la lista de documentos</span>}</span>
         {checklist ? <><Link className={s.docLink} href={`/admin/tareas/${encodeURIComponent(checklistTaskId(op.id))}`}>Ver</Link><button type="button" className={s.docLink} onClick={() => docs.checklistFile("pdf")}>PDF</button></>
           : <button type="button" className={s.docLink} disabled={docs.busy} onClick={() => open(() => docs.startChecklist())}>Crear</button>}
       </li></ul>;

@@ -17,7 +17,7 @@ describe("reconocer texto pegado", () => {
       folioReal: "1,234,567",
       claveCatastral: "004-123-456-7890",
       partida: "88",
-      escritura: "escritura 12,345 del 2010-05-02 notaría 5",
+      escritura: "escritura 12,345 del 2 de mayo de 2010 notaría 5",
       propietarioTelefono: "6641234567",
       propietarioCorreo: "maria.ramirez@ejemplo.test",
       propietarioNacimiento: "1980-05-12",
@@ -42,4 +42,12 @@ describe("reconocer texto pegado", () => {
     expect(propuestos).not.toContain("folioReal");
     expect(datos.propietarioCurp).toEqual({ valor: "RAMM800512MBCRRR09", estado: "propuesto", fuente: { documento: "Texto pegado", cita: expect.stringContaining("CURP RAMM800512MBCRRR09") }, actualizadoEl: "2026-10-31T00:00:00.000Z" });
   });
+});
+
+// C-24: una fecha que no existe no se reconoce, y la del título de la escritura se escribe en palabras.
+it("no reconoce fechas imposibles y escribe la de la escritura en palabras", () => {
+  expect(fechaEnTexto("el 31/02/2010")).toBeUndefined();
+  expect(fechaEnTexto("el 30 de febrero de 2010")).toBeUndefined();
+  expect(fechaEnTexto("el 29/02/2024")).toBe("2024-02-29");
+  expect(reconocerTexto("Escritura 45 del 31/02/2010.").find(item => item.clave === "escritura")?.valor).toBe("escritura 45");
 });

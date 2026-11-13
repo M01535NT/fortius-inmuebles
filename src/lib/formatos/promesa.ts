@@ -146,11 +146,14 @@ export function importePromesaLetra(value: number, currency: string): string {
 
 export function promesaParagraphs(data: Record<string, unknown>): string[] {
   const v = (key: string) => String(data[key] ?? "").trim();
-  const day = (key: string) => new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${v(key)}T00:00:00Z`));
+  // C-10: un dato vacío o inválido queda en blanco en vez de lanzar; así la vista en vivo conserva lo
+  // demás (vendedor, comprador…). La emisión valida antes, de modo que el PDF no cambia.
+  const dayOf = (value: string) => { const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00Z`) : null; return date && !Number.isNaN(date.getTime()) ? new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(date) : ""; };
+  const day = (key: string) => dayOf(v(key));
   const cash = (key: string) => formatAmount(data[key] as number);
-  const letters = (key: string) => importePromesaLetra(data[key] as number, v("moneda"));
+  const letters = (key: string) => { try { return importePromesaLetra(data[key] as number, v("moneda")); } catch { return ""; } };
   const list = (key: string, format: (row: PromesaRow) => string) => (rows(data[key]) ?? []).map((row, index) => `${index + 1}) ${format(row)}`).join("; ");
-  const rowDay = (value: unknown) => new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${String(value)}T00:00:00Z`));
+  const rowDay = (value: unknown) => dayOf(String(value ?? "").trim());
   const represent = (suffix: string) => data[`comparece${suffix}`] === "propia" ? "por propio derecho" : `por conducto de ${v(`representante${suffix}`)}, conforme a ${v(`documentoRepresentacion${suffix}`)}`;
   const replacements: Record<string, string> = {
     VENDEDOR: v("vendedor"), COMPRADOR: v("comprador"), "REPRESENTACIÓN VENDEDORA": represent("Vendedor"), "REPRESENTACIÓN COMPRADORA": represent("Comprador"), LUGAR: v("lugar"), FECHA: day("fecha"),

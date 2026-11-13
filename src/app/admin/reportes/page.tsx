@@ -97,7 +97,7 @@ export default function ReportesPage() {
     </section>
     <section className={s.block} aria-labelledby="report-stages">
       <h2 id="report-stages" className="text-xl font-semibold">Operaciones por etapa</h2>
-      {stageRows.length ? <ul className={s.stages}>{stageRows.map(([label, { count }]) => <li key={label}><span>{label}</span><strong>{count}</strong></li>)}</ul> : <p className={s.note}>Sin operaciones en curso.</p>}
+      {stageRows.length ? <ul className={s.stages}>{stageRows.map(([label, { count }]) => <li key={label}><span>{label}</span><strong>{count}</strong></li>)}</ul> : <p className={s.note}>Todavía no hay operaciones abiertas.</p>}
       <Link href="/admin/operaciones" className="self-start text-sm font-medium text-foreground underline underline-offset-4">Abrir operaciones</Link>
     </section>
     <details className={s.fold}>

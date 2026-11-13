@@ -38,7 +38,7 @@ export function MoreMenu({ items, label = "Más opciones" }: { items: MenuItem[]
   async function run(item: MenuItem) {
     setOpen(false); setError(""); setBusy(true);
     try { await item.onSelect(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo completar. Intenta de nuevo."); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "No se guardó. Lo que escribiste sigue en pantalla; vuelve a intentarlo."); }
     finally { setBusy(false); }
   }
   return <div ref={wrap} className={s.menuWrap}>

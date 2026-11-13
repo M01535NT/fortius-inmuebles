@@ -45,7 +45,7 @@ export function extractorClaude(): Extractor {
       return { respuesta: mensaje.parsed_output, uso: { input_tokens: entrada, output_tokens: uso.output_tokens }, modelo: mensaje.model };
     } catch (error) {
       if (error instanceof ApiError) throw error;
-      if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) throw new ApiError(503, "La clave del servicio de lectura no es válida; revísala en la configuración del servidor");
+      if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) throw new ApiError(503, "La lectura de documentos no está disponible. Avisa al director para que revise la configuración.");
       if (error instanceof Anthropic.RateLimitError) throw new ApiError(503, "El servicio de lectura está saturado; inténtalo en unos minutos");
       if (error instanceof Anthropic.BadRequestError) throw new ApiError(502, "No se pudo abrir este archivo; revisa que el PDF o la imagen se vean bien");
       if (error instanceof Anthropic.APIError) throw new ApiError(502, "El servicio de lectura no respondió; inténtalo más tarde");

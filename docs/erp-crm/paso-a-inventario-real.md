@@ -1,6 +1,6 @@
 # Paso de datos de prueba a inventario real
 
-Estado: propuesta del 13/11/2026, sin ejecutar. Nada de esto se hace sin el acuerdo del titular, y el borrado lo ejecuta o aprueba él. Relacionado: [recuperación](recovery-policy.md), [copia diaria](respaldo-diario.md), [entornos](environment-release.md), [acceso](access-policy.md) y [registro de tratamiento](privacy/data-processing-register.md).
+Estado: propuesta del 13/11/2026, sin ejecutar. Nada de esto se hace sin el acuerdo del titular, y el borrado lo ejecuta o aprueba él el día del paso; hasta entonces no se borra nada. Relacionado: [recuperación](recovery-policy.md), [copia diaria](respaldo-diario.md), [entornos](environment-release.md), [acceso](access-policy.md) y [registro de tratamiento](privacy/data-processing-register.md).
 
 ## Qué hay hoy en la base (conteo del 13/11/2026)
 
@@ -8,11 +8,11 @@ Lectura de solo conteos con la clave de servicio, sin leer contenido. Proyecto `
 
 | Grupo | Filas | Qué hacer |
 | --- | --- | --- |
-| Inmuebles (`records/propiedades`) | 11 | Borrar los de prueba. **El titular confirma si alguno es real.** |
+| Inmuebles (`records/propiedades`) | 11 | Borrar todos: el titular confirmó el 13/11/2026 que son de prueba. |
 | Prospectos y clientes (`leads`, `clientes`) | 18 y 14 | Borrar todo. |
 | Tareas, notas, eventos, archivos (`records`) | 17, 1, 0, 7 | Borrar todo. |
-| Perfiles de asesor (`records/asesores`) | 2 | **El titular confirma si son reales** (pueden mostrarse en el sitio). |
-| Blog, contenido, configuración (`records/posts`, `contenido`, `config`) | 27, 1, 1 | Conservar: es contenido editorial real del sitio. |
+| Perfiles de asesor (`records/asesores`) | 2 | Borrar los dos: de prueba (titular, 13/11/2026). Los perfiles reales se dan de alta desde el panel. |
+| Blog, contenido, configuración (`records/posts`, `contenido`, `config`) | 27, 1, 1 | Conservar (titular, 13/11/2026: «No borrar el blog»): es contenido editorial real del sitio. |
 | Operaciones (`expedientes`) y su actividad | 17 y 36 | Borrar todo. |
 | Formatos: borradores, emisiones, activos, copias firmadas | 30, 8, 1, 3 | Borrar todo, con sus archivos. |
 | Entrevistas | 12 | Borrar todo. |
@@ -64,7 +64,7 @@ Rotar no requiere cambio de código. Cada cambio en Vercel necesita un despliegu
 
 ## Decisiones del titular
 
-1. ¿Alguno de los 11 inmuebles o de los 2 perfiles de asesor es real y se conserva?
-2. ¿Se conservan las 27 entradas del blog, el contenido de inicio y la configuración? (Se propone que sí.)
+1. ~~¿Alguno de los 11 inmuebles o de los 2 perfiles de asesor es real?~~ **13/11/2026:** «Todos son de prueba».
+2. ~~¿Se conservan el blog, el contenido y la configuración?~~ **13/11/2026:** «No borrar el blog»; se conservan también contenido y configuración.
 3. ¿Qué proyecto queda para ensayos con escritura después del paso?
 4. Fecha del paso, con una ventana sin uso del panel de unas dos horas.

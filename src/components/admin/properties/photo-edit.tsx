@@ -21,15 +21,15 @@ const SLIDERS = [
 type Adjust = { brightness: number; contrast: number; crop: number; rotation: number };
 const START: Adjust = { brightness: 100, contrast: 100, crop: 0, rotation: 0 };
 
-export function PhotoEditButton({ src, label, onSaved }: { src: string; label: string; onSaved: (url: string) => void }) {
+export function PhotoEditButton({ src, label, inmueble, onSaved }: { src: string; label: string; inmueble?: string; onSaved: (url: string) => void }) {
   const [open, setOpen] = React.useState(false);
   return <>
     <Button iconOnly variant="ghost" aria-label={`Editar ${label.toLowerCase()}`} onClick={() => setOpen(true)}><Pencil size={16} aria-hidden="true" /></Button>
-    {open && <PhotoEditSheet src={src} label={label} onClose={() => setOpen(false)} onSaved={url => { onSaved(url); setOpen(false); }} />}
+    {open && <PhotoEditSheet src={src} label={label} inmueble={inmueble} onClose={() => setOpen(false)} onSaved={url => { onSaved(url); setOpen(false); }} />}
   </>;
 }
 
-function PhotoEditSheet({ src, label, onClose, onSaved }: { src: string; label: string; onClose: () => void; onSaved: (url: string) => void }) {
+function PhotoEditSheet({ src, label, inmueble, onClose, onSaved }: { src: string; label: string; inmueble?: string; onClose: () => void; onSaved: (url: string) => void }) {
   const [source, setSource] = React.useState<Blob | null>(null);
   const [adjust, setAdjust] = React.useState<Adjust>(START);
   const [preview, setPreview] = React.useState("");
@@ -59,7 +59,7 @@ function PhotoEditSheet({ src, label, onClose, onSaved }: { src: string; label: 
     setBusy(true); setError("");
     try {
       const { blob } = await renderPhoto(source, { ...adjust, quality: 85 });
-      const file = await uploadFile(new File([blob], "fortius-foto-editada.jpg", { type: "image/jpeg" }), "public");
+      const file = await uploadFile(new File([blob], "fortius-foto-editada.jpg", { type: "image/jpeg" }), "public", { destino: "inmueble", inmueble });
       onSaved(file.url);
     } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); }
   }

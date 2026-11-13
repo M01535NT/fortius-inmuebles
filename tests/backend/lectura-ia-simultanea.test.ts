@@ -29,6 +29,8 @@ function base() {
     return c;
   };
   const client = {
+    // La base simulada todavía no tiene la función de reserva (B9); la marca del archivo es la señal.
+    rpc: async () => ({ data: null, error: { code: "PGRST202" } }),
     from: (tabla: string) => ({
       select: (columnas: string) => columnas === "data" ? chain(() => ({ data: null, error: null })) : tabla === "fortius_inmuebles_ia_lecturas" ? chain(() => ({ data: [], error: null })) : chain(() => ({ data: archivo, error: null })),
       update: (patch: Record<string, unknown>) => chain(() => { Object.assign(archivo, patch, { updated_at: new Date().toISOString() }); return { data: archivo, error: null }; }),

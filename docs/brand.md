@@ -38,7 +38,7 @@ Excepciones que conservan su medida: el carrusel de la ficha del inmueble (`.fe-
 
 ### Escala tipográfica del panel (titular, 13/11/2026)
 
-Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 títulos y cifras, 600 secciones, 540 nombres y pastillas, 400 texto. Las clases de Tailwind `font-medium` y `font-semibold` se pintan en 540 y `font-bold` en 600 dentro del panel (`panel-uplift.css`). Tamaños fijos (tokens `--admin-text-*` en `globals.css`); coinciden con `text-xs`…`text-xl` de Tailwind, y hay dos utilidades propias: `text-pantalla` y `text-cifra-panel`.
+Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 títulos y cifras, 600 secciones, 540 nombres y pastillas, 400 texto. Las clases de Tailwind `font-medium` y `font-semibold` se pintan en 540 y `font-bold` en 600 dentro del panel (`panel-uplift.css`). Tamaños fijos (tokens `--admin-text-*` en `src/app/admin/panel-base.css`, que solo descarga el panel); coinciden con `text-xs`…`text-xl` de Tailwind, y hay dos utilidades propias: `text-pantalla` y `text-cifra-panel`.
 
 | Nivel | Token | Tamaño | Peso | Uso |
 | --- | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 tít
 | Cifra | `--admin-text-cifra` | 30 px, anchura 62 | 620 | Fechas del calendario, número de documento |
 | Calificación grande | `--admin-text-cifra-grande` | 72 → 152 px, anchura 62 | 620 | La calificación de la operación |
 
-Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `globals.css` bajo `.admin-root`; `panel.module.css` ya no las define.
+Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `src/app/admin/panel-base.css` bajo `.admin-root`; `panel.module.css` ya no las define. El sitio público no descarga ese archivo ni las utilidades de Tailwind que solo usa el panel, y Archivo solo se precarga en `/admin`.
 
 ### Espacios, botones y esquinas del sitio público (titular, 13/11/2026)
 

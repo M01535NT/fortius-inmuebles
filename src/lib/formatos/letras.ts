@@ -27,5 +27,5 @@ export function importeEnLetra(value: number): string {
     millones > 0 && miles === 0 && unidades === 0 ? "de" : "",
     grupo(unidades, true),
   ].filter(Boolean);
-  return `${(partes.join(" ") || "cero").toUpperCase()} PESOS ${String(centavos).padStart(2, "0")}/100 M.N.`;
+  return `${(partes.join(" ") || "cero").toUpperCase()} ${entero === 1 ? "PESO" : "PESOS"} ${String(centavos).padStart(2, "0")}/100 M.N.`;
 }
