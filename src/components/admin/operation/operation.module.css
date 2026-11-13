@@ -34,7 +34,7 @@
 :global(.admin-root) .heroActionSolid:hover { background: #f3f6fc; }
 :global(.admin-root) .heroTitle { margin: 0; font-size: var(--admin-text-pantalla); line-height: 1.05; font-weight: 620; letter-spacing: -.025em; color: #fff; overflow-wrap: anywhere; text-wrap: balance; }
 :global(.admin-root) .heroFacts { margin: .5rem 0 0; font-size: var(--admin-text-interfaz); color: rgba(255, 255, 255, .86); overflow-wrap: anywhere; }
-:global(.admin-root) .phases { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .3125rem; list-style: none; border-radius: var(--radius-card); background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2); }
+:global(.admin-root) .phases { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0; padding: .25rem; list-style: none; border-radius: var(--radius-card); background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2); }
 :global(.admin-root) .phases span { display: block; padding: .375rem .75rem; border-radius: var(--radius-control); background: #fff; color: #061f3f; font-size: var(--admin-text-detalle); font-weight: 600; }
 
 /* Cuerpo: etapas y secciones a la izquierda, el contenido al centro. */
