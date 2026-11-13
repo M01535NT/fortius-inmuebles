@@ -375,14 +375,18 @@ it("una operación de búsqueda de renta ya abierta se muestra como histórica y
 
 it("eliminar pide confirmación, se puede restaurar y no procede con cambios sin guardar", async () => {
   await openOperation("ajustes");
+  // SIM-18: eliminar ya no es una tarjeta de Ajustes; vive solo en «Más opciones» del panel.
+  expect(screen.queryByRole("button", { name: "Eliminar operación" })).toBeNull();
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(screen.getByRole("button", { name: "Eliminar operación" }));
+  eliminar();
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Puedes restaurarla"), expect.objectContaining({ title: "Eliminar operación" })));
   expect(server.methods).toEqual([]);
   fireEvent.change(screen.getByLabelText("Fecha objetivo"), { target: { value: "2026-12-01" } });
-  expect((screen.getByRole("button", { name: "Eliminar operación" }) as HTMLButtonElement).disabled).toBe(true);
+  eliminar();
+  expect(await screen.findByText("Guarda o descarta los cambios antes de eliminar la operación.")).toBeTruthy();
+  expect(server.methods).toEqual([]);
   fireEvent.click(screen.getByRole("button", { name: "Descartar cambios" }));
-  fireEvent.click(screen.getByRole("button", { name: "Eliminar operación" }));
+  eliminar();
   expect(await screen.findByText("Esta operación está eliminada")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Restaurar operación" }));
   expect(await screen.findByText("Operación restaurada.")).toBeTruthy();
@@ -419,7 +423,7 @@ it("una nota sin guardar protege la salida por un enlace y el cambio de pestaña
   fireEvent.click(screen.getByRole("link", { name: "Volver a Operaciones" }));
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Descartar los cambios y salir")));
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(screen.getByRole("tab", { name: "Esta etapa" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Etapa" }));
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("cambiar de pestaña")));
   expect((screen.getByLabelText("Nueva nota") as HTMLTextAreaElement).value).toBe("Comprobar antecedente original");
   fireEvent.click(screen.getByRole("button", { name: "Guardar nota" }));
@@ -440,7 +444,8 @@ it("Expediente: cada documento se abre en su ventana y un fallo al guardar conse
   server.fail = (url, init) => init?.method === "PUT" && url.includes("/formatos/") ? new Promise<Response>(resolve => { finish = resolve; }) : undefined;
   await openOperation("documentos");
   expect((await screen.findAllByText("18 · Recibo de pago de honorarios")).length).toBeGreaterThan(0);
-  expect(screen.getByRole("link", { name: /03 · Control comercial/ }).getAttribute("href")).toBe("/admin/control-comercial");
+  // El control comercial (03) vive en Reportes; el expediente ya no lo enlaza con una nota técnica.
+  expect(screen.queryByRole("link", { name: /Control comercial/ })).toBeNull();
   fireEvent.click(screen.getAllByRole("button", { name: "Abrir" })[1]);
   const capture = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
   fireEvent.change(await openPayer(capture), { target: { value: "Captura pendiente" } });
@@ -585,4 +590,42 @@ it("en el cierre, la etapa 10 dice en qué paso va y muestra los cuatro pasos (C
   const pasos = screen.getByRole("list", { name: "Pasos de cierre y entrega" });
   expect(within(pasos).getAllByRole("listitem").map(li => li.textContent)).toEqual(["Firma y pago: listo", "Entrega: aquí vas", "Postventa: pendiente", "Archivo: pendiente"]);
   expect(within(pasos).getByText("Entrega").closest("li")?.getAttribute("aria-current")).toBe("step");
+});
+
+it("SIM-18: la operación tiene tres partes y las direcciones anteriores siguen abriendo la suya", async () => {
+  await openOperation();
+  expect(screen.getAllByRole("tab").map(tab => tab.textContent?.replace(/\d+$/, "").trim())).toEqual(["Etapa", "Documentos", "Actividad"]);
+  // «Más opciones» reúne los datos de la operación, corregir etapa y eliminar.
+  fireEvent.click(screen.getByRole("button", { name: "Más opciones" }));
+  // «Corregir etapa» solo aparece cuando hay una etapa anterior a la cual regresar; esta operación está en la primera.
+  expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Datos de la operación", "Eliminar operación"]);
+  fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
+  expect(within(screen.getByRole("dialog", { name: "Datos de la operación" })).getByLabelText("Fecha objetivo")).toBeTruthy();
+  cleanup();
+  for (const [old, part] of [["cliente", "Documentos"], ["tareas", "Actividad"], ["historial", "Actividad"], ["documentos", "Documentos"]] as const) {
+    await openOperation(old);
+    expect(screen.getByRole("tab", { name: new RegExp(`^${part}`) }).getAttribute("aria-selected")).toBe("true");
+    cleanup();
+  }
+  await openOperation("cliente");
+  expect(screen.getByRole("radio", { name: "Del cliente" }).getAttribute("aria-checked")).toBe("true");
+});
+
+it("«Agregar documento» sube escrituras o identificaciones a los documentos del cliente; ya no hay «Crear y abrir»", async () => {
+  const uploads: string[] = [];
+  server.fail = (url, init) => {
+    if (url === `/api/admin/expedientes/${ID}/archivos` && init?.method === "POST") return Response.json({ signedUrl: "https://storage.test/subida", ticket: "t1" });
+    if (url === "https://storage.test/subida") { uploads.push("PUT"); return new Response(null, { status: 200 }); }
+    if (url === `/api/admin/expedientes/${ID}/archivos/completar`) return Response.json({ archivo: { id: "a1", titulo: "Escritura", nombre_original: "escritura.pdf", mime: "application/pdf", byte_length: 900, uploaded_by: "u1", created_at: "2026-11-12T10:00:00Z", deleted_at: null } });
+    if (url === `/api/admin/expedientes/${ID}/archivos`) return Response.json({ archivos: [], papelera: [] });
+    return undefined;
+  };
+  await openOperation("documentos");
+  expect(screen.queryByRole("button", { name: "Crear y abrir" })).toBeNull();
+  expect(screen.queryByRole("combobox", { name: "Formato" })).toBeNull();
+  const file = new File(["%PDF-1.4"], "escritura.pdf", { type: "application/pdf" });
+  fireEvent.change(screen.getByLabelText("Elegir documentos del cliente"), { target: { files: [file] } });
+  await waitFor(() => expect(uploads).toEqual(["PUT"]));
+  expect(screen.getByRole("radio", { name: "Del cliente" }).getAttribute("aria-checked")).toBe("true");
+  expect(await screen.findByText("Escritura")).toBeTruthy();
 });

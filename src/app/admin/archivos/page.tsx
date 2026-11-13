@@ -204,14 +204,14 @@ export default function ArchivosPage() {
                   <p className="truncate text-sm font-medium text-foreground">
                     {archivo.nombre}
                   </p>
-                  <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
+                  <p className="mt-0.5 truncate tabular-nums text-xs text-muted-foreground">
                     {archivo.tipo.toUpperCase()}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
                     <AsyncButton
                       type="button"
                       onClick={async () => await openFile(archivo.url)}
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-ink hover:text-foreground"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground underline underline-offset-4"
                     >
                       <Link2 className="size-3.5" strokeWidth={1.5} /> Abrir
                     </AsyncButton>

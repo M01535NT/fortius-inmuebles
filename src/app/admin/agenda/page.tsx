@@ -9,7 +9,7 @@ import { isTaskOpen } from "@/lib/tasks";
 
 export default function AgendaPage() {
   const open = useCollection(db.tareas).filter(isTaskOpen).length;
-  return <GuidedPage title="Agenda">
+  return <GuidedPage title="Agenda y tareas">
     <React.Suspense fallback={null}>
       <RouteTabs label="Vista de la agenda" idPrefix="agenda" tabs={[
         { id: "agenda", label: "Agenda", render: () => <AgendaCalendar /> },

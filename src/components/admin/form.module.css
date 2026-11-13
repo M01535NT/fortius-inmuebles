@@ -70,7 +70,7 @@
 /* Historial como línea de tiempo */
 :global(.admin-root) .timeline { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .event { position: relative; display: flex; flex-direction: column; gap: .125rem; padding: 0 0 1rem 1.375rem; min-width: 0; font-size: .875rem; }
-:global(.admin-root) .event::before { content: ""; position: absolute; left: .3125rem; top: .4375rem; width: .5rem; height: .5rem; border-radius: 50%; background: var(--primary); }
+:global(.admin-root) .event::before { content: ""; position: absolute; left: .3125rem; top: .4375rem; width: .5rem; height: .5rem; border-radius: 50%; background: var(--info); }
 :global(.admin-root) .event::after { content: ""; position: absolute; left: .5rem; top: 1.125rem; bottom: 0; width: 2px; background: var(--track); }
 :global(.admin-root) .event:last-child { padding-bottom: 0; }
 :global(.admin-root) .event:last-child::after { display: none; }

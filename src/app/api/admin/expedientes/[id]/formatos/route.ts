@@ -8,6 +8,7 @@ import { calcularValor } from "@/lib/formatos/valor";
 import { fechasDeHoy, llenarDesdeDatos } from "@/lib/formatos/datos-expediente";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { leerDatosCompletos } from "@/lib/backend/expediente-datos";
+import { appraisalState, operationWorkflowSchema, valueFromAppraisal } from "@/lib/formatos/operation-workflow";
 
 type Context = { params: Promise<{ id: string }> };
 export async function GET(_request: Request, context: Context) {
@@ -59,6 +60,17 @@ export async function POST(request: Request, context: Context) {
       const value=calcularValor(opinion.data);
       if(value.concluido===null)throw new ApiError(409,"La opinión todavía no tiene valor concluido: completa sus enfoques y pesos");
       valorSeed={referencia07:`Opinión ${opinion.id} · versión ${opinion.version}`,fecha07:opinion.data.fechaValor,precioSugerido07:value.concluido,precioBase:"sugerido07",moneda:"MXN"};
+    }
+    if(input.avaluo) {
+      if(input.formatoId!=="08"||input.valorReferencia)throw new ApiError(400,"El avalúo del propietario se incorpora al formato 08 en lugar de la opinión 07");
+      const flow=operationWorkflowSchema.safeParse(exp.flujo);
+      const avaluo=flow.success?flow.data.avaluo:undefined;
+      if(!flow.success||!avaluo||!valueFromAppraisal(flow.data))throw new ApiError(409,"La operación no tiene avalúo del propietario registrado");
+      if(appraisalState(flow.data,operationalDate())!=="vigente")throw new ApiError(409,"El avalúo del propietario venció: registra uno actualizado o haz la opinión de valor");
+      const archivo=await client.from("fortius_inmuebles_expediente_archivos").select("titulo").eq("id",avaluo.archivo).eq("expediente_id",id).is("deleted_at",null).maybeSingle();
+      if(archivo.error)databaseError(archivo.error);
+      if(!archivo.data)throw new ApiError(409,"El archivo del avalúo ya no está entre los documentos del cliente");
+      valorSeed={referencia07:`Avalúo del propietario · ${avaluo.perito} · ${archivo.data.titulo}`.slice(0,1000),fecha07:avaluo.fecha,precioSugerido07:avaluo.valor,precioBase:"sugerido07",moneda:"MXN"};
     }
     // Datos del expediente ya confirmados: llenan lo que la propuesta dejó vacío (nunca la reemplazan).
     // Si no se pueden leer, el formato nace igual con su propuesta.

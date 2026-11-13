@@ -25,8 +25,8 @@ test("shows saved commercial counts and expediente stages", async () => {
   });
   render(<ReportesPage />);
   expect(await screen.findByRole("heading", { name: "Reportes comerciales" })).toBeTruthy();
-  const stages = screen.getByRole("heading", { name: "Etapas de operación" }).closest("section")!;
+  const stages = screen.getByRole("heading", { name: "Operaciones por etapa" }).closest("section")!;
   expect(within(stages).getByText("Negociación")).toBeTruthy();
   expect(within(stages).getByText("1")).toBeTruthy();
-  expect(screen.getByText(/Conversión histórica = prospectos convertidos/)).toBeTruthy();
+  expect(screen.getByText(/Cuenta todos los prospectos registrados/)).toBeTruthy();
 });

@@ -49,3 +49,26 @@
 :global(.dark) :global(.admin-root) .gapChip[aria-pressed=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
 :global(.admin-root) .gapChip span { font-size: .8125rem; opacity: .7; }
 :global(.admin-root) .gap { font-size: .8125rem; font-weight: 600; color: var(--warning); }
+
+/* C59: en el celular, filas compactas (foto pequeña, título, precio y estado); «Ver en tarjetas» vuelve a la galería. */
+:global(.admin-root) .viewToggle { display: none; }
+:global(.admin-root) .priceRow .rowPill { display: none; }
+@media (max-width: 767px) {
+  :global(.admin-root) .viewToggle { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; margin-bottom: .75rem; padding: 0 .875rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-control); background: var(--card); color: var(--foreground); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
+  :global(.admin-root) .grid[data-view=filas] { gap: .5rem; }
+  :global(.admin-root) .grid[data-view=filas] .link { flex-direction: row; align-items: center; gap: .75rem; padding: .5rem 3.5rem .5rem .5rem; }
+  :global(.admin-root) .grid[data-view=filas] .photoWrap { flex: none; width: 4.5rem; }
+  :global(.admin-root) .grid[data-view=filas] .photo { border-radius: var(--radius-thumb); }
+  :global(.admin-root) .grid[data-view=filas] .noPhoto > span { display: none; }
+  :global(.admin-root) .grid[data-view=filas] .overlay,
+  :global(.admin-root) .grid[data-view=filas] .zone,
+  :global(.admin-root) .grid[data-view=filas] .body > .meta,
+  :global(.admin-root) .grid[data-view=filas] .gap { display: none; }
+  :global(.admin-root) .grid[data-view=filas] .body { min-width: 0; padding: 0; gap: .125rem; }
+  :global(.admin-root) .grid[data-view=filas] .title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .9375rem; }
+  :global(.admin-root) .grid[data-view=filas] .priceRow { margin-top: .125rem; padding-right: 0; align-items: center; justify-content: flex-start; gap: .25rem .5rem; }
+  :global(.admin-root) .grid[data-view=filas] .amount { font-size: .9375rem; }
+  :global(.admin-root) .grid[data-view=filas] .priceRow .rowPill { display: inline-flex; }
+  :global(.admin-root) .grid[data-view=filas] .rowPill[data-strong] { background: var(--warning-surface); color: var(--warning); }
+  :global(.admin-root) .grid[data-view=filas] .options > summary { top: 1.125rem; bottom: auto; right: .375rem; background: transparent; backdrop-filter: none; color: var(--foreground); }
+}

@@ -2,8 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ClipboardList, FileText, Folder, History, ListChecks, Settings2 } from "@/components/admin/icons";
-import { Button, Notice, Surface, TabPanel, Tabs } from "@/components/admin/kit";
+import { ChevronLeft, FileText, History, ListChecks, Settings2, Trash2, Upload } from "@/components/admin/icons";
+import { Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
@@ -30,19 +30,23 @@ import s from "./operation.module.css";
   pantalla partida. A la izquierda el panel azul (quién, número de etapa, las diez etapas como
   barras y la persona con Llamar y WhatsApp); a la derecha las piezas de la etapa (documentos,
   próxima tarea, confirmaciones e inmueble) y, abajo, la barra flotante con lo que toca y un solo
-  botón. Las demás partes (Expediente, Documentos del cliente, Tareas, Historial, Ajustes) siguen
-  siendo pestañas; en ellas el panel azul va compacto con la lista de partes. Los documentos se
-  capturan en su propia ventana. La dirección conserva ?tab=documentos y ?documento=<id>.
-  Eliminar vive en «Más opciones» del panel, con confirmación y recuperación (DEC-37).
+  botón. La operación tiene tres partes (SIM-18, 11/11/2026): «Etapa», «Documentos» (los del
+  expediente y los que entrega el cliente) y «Actividad» (tareas e historial); en las dos últimas
+  el panel azul va compacto con la lista de partes. Los datos de la operación (ruta, situación,
+  inmueble, contraparte y decisión del encargo), corregir la etapa y eliminar viven en «Más
+  opciones» del panel (DEC-37, DEC-38). Los documentos se capturan en su propia ventana. Las
+  direcciones anteriores siguen funcionando: ?tab=cliente abre Documentos, ?tab=tareas y
+  ?tab=historial abren Actividad, ?tab=ajustes abre los datos de la operación.
 */
 
 const TABS = [
-  { id: "sigue", label: "Esta etapa", icon: ListChecks }, { id: "documentos", label: "Expediente", icon: FileText },
-  // Documentos del cliente (titular, 29/10/2026): el repositorio de todo lo que entrega el cliente.
-  { id: "cliente", label: "Documentos del cliente", icon: Folder }, { id: "tareas", label: "Tareas", icon: ClipboardList },
-  { id: "historial", label: "Historial", icon: History }, { id: "ajustes", label: "Ajustes", icon: Settings2 },
+  { id: "sigue", label: "Etapa", icon: ListChecks }, { id: "documentos", label: "Documentos", icon: FileText }, { id: "actividad", label: "Actividad", icon: History },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
+/** Direcciones anteriores (seis pestañas) llevadas a las tres partes. */
+const LEGACY_TAB: Record<string, TabId> = { cliente: "documentos", tareas: "actividad", historial: "actividad" };
+type DirtyKey = TabId | "ajustes";
+const DIRTY_KEYS: DirtyKey[] = ["sigue", "documentos", "actividad", "ajustes"];
 /** «vende su casa», «renta su departamento», «invierte». */
 const VERB: Record<string, string> = { captacion: "vende", arrendador: "renta", compra: "compra", arrendatario: "busca una renta", inversion: "invierte" };
 
@@ -60,9 +64,16 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const session = useSession();
   const clients = useCollection(db.clientes), properties = useCollection(db.propiedades), advisers = useCollection(db.asesores), tasks = useCollection(db.tareas);
   const today = operationalDate();
-  const requested = params.get("tab") as TabId | null;
-  const tab: TabId = TABS.some(t => t.id === requested) ? requested! : params.has("documento") ? "documentos" : "sigue";
-  const [dirty, setDirty] = React.useState<Partial<Record<TabId, boolean>>>({});
+  const requested = params.get("tab");
+  const tab: TabId = TABS.some(t => t.id === requested) ? requested as TabId : requested && LEGACY_TAB[requested] ? LEGACY_TAB[requested] : params.has("documento") ? "documentos" : "sigue";
+  // Documentos: los del expediente o los que entrega el cliente (titular, 29/10/2026).
+  const [docKind, setDocKind] = React.useState<"expediente" | "cliente">(requested === "cliente" ? "cliente" : "expediente");
+  // «Agregar documento»: los archivos elegidos pasan a los documentos del cliente, que los sube uno por uno.
+  const addFile = React.useRef<HTMLInputElement>(null);
+  const [incoming, setIncoming] = React.useState<{ files: File[]; n: number } | undefined>();
+  // Datos de la operación: se abren desde «Más opciones»; ?tab=ajustes los abre al llegar.
+  const [settings, setSettings] = React.useState(requested === "ajustes");
+  const [dirty, setDirty] = React.useState<Partial<Record<DirtyKey, boolean>>>({});
   const anyDirty = Object.values(dirty).some(Boolean);
   useLeaveGuard(anyDirty);
   const [interview, setInterview] = React.useState<OperationalInterview | null>(null);
@@ -86,7 +97,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const view: OperationRecord = { ...op, inicial: initialStatus(new Map(["02", "04"].filter(f => docs.latest(f)).map(f => [f, docs.status(f) === "terminado"])), checklist) };
   const { phase } = routeStages(view, today);
   const track = stageTrack(view, today);
-  const markDirty = React.useMemo(() => Object.fromEntries(TABS.map(t => [t.id, (value: boolean) => setDirty(old => old[t.id] === value ? old : { ...old, [t.id]: value })])) as Record<TabId, (value: boolean) => void>, []);
+  const markDirty = React.useMemo(() => Object.fromEntries(DIRTY_KEYS.map(key => [key, (value: boolean) => setDirty(old => old[key] === value ? old : { ...old, [key]: value })])) as Record<DirtyKey, (value: boolean) => void>, []);
 
   // ?documento=<id> abre ese documento en su ventana una sola vez.
   const opened = React.useRef(false);
@@ -105,6 +116,17 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
     if (next === "sigue") query.delete("tab"); else query.set("tab", next);
     router.replace(`${pathname}${query.size ? `?${query}` : ""}`, { scroll: false });
     return true;
+  }
+  /** La etapa manda a otra parte con los nombres de antes (documentos, cliente, tareas, ajustes). */
+  function goTo(place: "documentos" | "ajustes" | "tareas" | "cliente") {
+    if (place === "ajustes") { setSettings(true); return; }
+    if (place !== "tareas") setDocKind(place === "cliente" ? "cliente" : "expediente");
+    void changeTab(place === "tareas" ? "actividad" : "documentos");
+  }
+  async function closeSettings() {
+    if (dirty.ajustes && !await confirmAction("Hay cambios sin guardar en los datos de la operación. ¿Descartarlos?")) return;
+    setDirty(old => ({ ...old, ajustes: false })); setSettings(false);
+    if (params.get("tab") === "ajustes") { const query = new URLSearchParams(params.toString()); query.delete("tab"); router.replace(`${pathname}${query.size ? `?${query}` : ""}`, { scroll: false }); }
   }
   async function saveAndTrack(changesToSave: Parameters<typeof save>[1]) {
     const saved = await save(op, changesToSave);
@@ -134,7 +156,12 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const tags = operationTags(op, condition).map(text => ({ text, detail: text === condition?.text ? condition.detail : flow.motivo || undefined }));
   const digits = (client?.telefono ?? "").replace(/\D/g, "");
   const role = isOwnerRoute(flow.ruta) ? "Propietario" : flow.ruta === "inversion" ? "Inversionista" : flow.ruta === "arrendatario" ? "Arrendatario" : "Comprador";
-  const tabItems = TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={18} aria-hidden="true" />, ...(t.id === "documentos" ? { count: docsCount } : t.id === "tareas" ? { count: taskCount } : {}) }));
+  const tabItems = TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={18} aria-hidden="true" />, ...(t.id === "documentos" ? { count: docsCount } : t.id === "actividad" ? { count: taskCount } : {}) }));
+  const menu = [
+    { label: "Datos de la operación", icon: <Settings2 size={16} aria-hidden="true" />, onSelect: () => setSettings(true) },
+    ...(isGuided(op) && op.etapa && op.etapa !== "captacion" ? [{ label: "Corregir etapa", icon: <ChevronLeft size={16} aria-hidden="true" />, onSelect: () => setSettings(true) }] : []),
+    { label: "Eliminar operación", icon: <Trash2 size={16} aria-hidden="true" />, onSelect: () => void removeFromPanel() },
+  ];
   const back = phase ? `/admin/operaciones?etapa=${ownerProcess(op.flujo?.ruta).find(p => p.key === phase)?.slug ?? ""}` : "/admin/operaciones";
   const tabs = <Tabs orientation={tab === "sigue" ? "horizontal" : "vertical"} className={tab === "sigue" ? s.footTabs : s.navyTabs} idPrefix="operacion" label="Secciones de la operación" value={tab} onChange={id => void changeTab(id)} items={tabItems} />;
 
@@ -147,7 +174,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         who={{ name: client?.nombre ?? op.folio, wants, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : undefined }}
         tags={tags}
         person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin/clientes/${encodeURIComponent(client.id)}` } : undefined}
-        onOpenStages={focus => setStagesOpen({ focus })} onRemove={() => void removeFromPanel()}>
+        onOpenStages={focus => setStagesOpen({ focus })} menu={menu}>
         {tab !== "sigue" && tabs}
       </StagePanel>
       <div className={s.main}>
@@ -157,16 +184,28 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         </div>}
         <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
           {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
-            evidence={{ documents: docs.list, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer }} interview={interview}
-            onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={next => void changeTab(next)} onDirtyChange={markDirty.sigue} />}
-          {tab === "documentos" && <DocumentsTab op={op} docs={docs} />}
-          {tab === "cliente" && <ClientDocumentsTab operationId={op.id} />}
-          {tab === "tareas" && <RelatedWork expedienteId={op.id} clienteId={op.cliente_id} propertySlug={op.propiedad_slug ?? undefined} />}
-          {tab === "historial" && <HistoryTab operationId={op.id} refresh={changes} onDirtyChange={markDirty.historial} />}
-          {tab === "ajustes" && <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onRemove={() => changeLifecycle(true)} onDirtyChange={markDirty.ajustes} />}
+            evidence={{ documents: docs.list, interview: interview ? { id: interview.id, version: interview.version } : null, reviewer, expedienteId: op.id }} interview={interview}
+            onSave={saveAndTrack} onSavedLegacy={value => { setOp(value); setChanges(n => n + 1); }} onGoTo={goTo} onDirtyChange={markDirty.sigue} />}
+          {tab === "documentos" && <div className="flex min-w-0 flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Segmented label="Qué documentos ver" value={docKind} onChange={setDocKind} options={[{ id: "expediente", label: "Del expediente" }, { id: "cliente", label: "Del cliente" }]} />
+              <Button variant="primary" onClick={() => addFile.current?.click()}><Upload size={16} aria-hidden="true" />Agregar documento</Button>
+              {/* Escrituras, predial, identificaciones, certificados…: desde la computadora o, en el celular, también con la cámara. */}
+              <input ref={addFile} type="file" multiple accept="application/pdf,image/jpeg,image/png,image/webp" className="sr-only" aria-label="Elegir documentos del cliente" tabIndex={-1}
+                onChange={event => { const files = Array.from(event.target.files ?? []); event.target.value = ""; if (files.length) { setIncoming(old => ({ files, n: (old?.n ?? 0) + 1 })); setDocKind("cliente"); } }} />
+            </div>
+            {docKind === "expediente" ? <DocumentsTab op={op} docs={docs} /> : <ClientDocumentsTab operationId={op.id} incoming={incoming} />}
+          </div>}
+          {tab === "actividad" && <div className="flex min-w-0 flex-col gap-5">
+            <RelatedWork expedienteId={op.id} clienteId={op.cliente_id} propertySlug={op.propiedad_slug ?? undefined} />
+            <HistoryTab operationId={op.id} refresh={changes} onDirtyChange={markDirty.actividad} />
+          </div>}
         </TabPanel>
       </div>
     </div></>}
+    {!op.deleted_at && <Sheet open={settings} onClose={() => void closeSettings()} title="Datos de la operación" description="Ruta, situación, inmueble, contraparte, decisión del encargo y corrección de etapa.">
+      <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onDirtyChange={markDirty.ajustes} />
+    </Sheet>}
     {stagesOpen && isGuided(op) && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
     {docs.capture({ cliente: client?.nombre, inmueble: property?.titulo, etapa: stageName })}
   </Surface>;

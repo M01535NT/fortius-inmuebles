@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { PropertyFollowup } from "@/components/admin/properties/property-followup";
+import { PropertyFile } from "@/components/admin/properties/property-file";
 
-/* Seguimiento privado del inmueble: llaves, preparación y avisos a compradores. */
+/* Dirección anterior de «Llaves y compradores»: abre la misma ficha en «Llaves» (o la que pida «?seccion=»). */
 export default function SeguimientoPropiedadPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = React.use(params);
-  return <PropertyFollowup key={slug} slug={slug} />;
+  return <PropertyFile key={slug} slug={slug} initialTab="llaves" />;
 }

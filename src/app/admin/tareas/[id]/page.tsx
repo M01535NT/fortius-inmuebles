@@ -10,6 +10,7 @@ import { stepDate } from "@/lib/admin/contacts-view";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, type Task } from "@/lib/tasks";
 import s from "@/components/admin/form.module.css";
+import { humanDateTime } from "@/lib/utils";
 
 /*
   Ficha de una tarea (rediseño del 18/10/2026): título grande con su estado, vencimiento y
@@ -109,11 +110,11 @@ function TaskDetail({ id }: { id: string }) {
         </Card>}
         <Card className="flex flex-col gap-3 p-5">
           <h2 className="m-0 text-[1.0625rem] font-[600]">Historial</h2>
-          {task?.completadoEl && <p className="text-sm">Completada: {new Date(task.completadoEl).toLocaleString("es-MX")}{task.completadoPor ? ` · ${task.completadoPor}` : ""}</p>}
+          {task?.completadoEl && <p className="text-sm">Completada: {humanDateTime(task.completadoEl)}{task.completadoPor ? ` · ${task.completadoPor}` : ""}</p>}
           {history.length ? <ol className={s.timeline}>{history.map((event, index) => <li key={`${event.fecha}-${index}`} className={s.event}>
             <strong>{event.accion}</strong>
             {event.texto && <p>{event.texto}</p>}
-            <span className={s.when}>{new Date(event.fecha).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })} · {event.actorEmail ?? event.actorId}</span>
+            <span className={s.when}>{humanDateTime(event.fecha)} · {event.actorEmail ?? event.actorId}</span>
           </li>)}</ol> : <p className="text-sm text-muted-foreground">Todavía no hay movimientos registrados.</p>}
         </Card>
       </aside>

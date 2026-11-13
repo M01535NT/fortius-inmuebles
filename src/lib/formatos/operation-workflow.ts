@@ -49,7 +49,7 @@ export const WORKFLOW_REQUIREMENTS = {
  archivo: { label: "Postventa, pendientes resueltos y operación archivada", formato: "17" },
 } as const;
 export type RequirementKey = keyof typeof WORKFLOW_REQUIREMENTS;
-const evidence = z.object({ tipo: z.enum(["entrevista","documento","emision","adjunto","externa"]), referencia: z.string().max(1000), version: z.number().int().positive().optional(), fecha: z.iso.date().optional(), responsable: z.string().max(160).optional(), resultado: z.string().max(1000).optional(), limites: z.string().max(1000).optional() }).strict();
+const evidence = z.object({ tipo: z.enum(["entrevista","documento","emision","adjunto","cliente","externa"]), referencia: z.string().max(1000), version: z.number().int().positive().optional(), fecha: z.iso.date().optional(), responsable: z.string().max(160).optional(), resultado: z.string().max(1000).optional(), limites: z.string().max(1000).optional() }).strict();
 const review = z.object({ estado: z.enum(["pendiente","recibido","revisado","observado","no_aplica"]), soporte: z.string().max(1000), evidencia: evidence.optional(), bloquea: z.array(z.enum(WORKFLOW_STAGES)).max(8).optional(), vigenteHasta: z.iso.date().optional(), registradoPor: z.uuid().optional(), registradoEl: z.string().max(80).optional() }).strict();
 export const RESOLUTION_TYPES = { aceptada: "Aceptada", condicionada: "Aceptada con condiciones", pausada: "Pausada", rechazada: "Rechazada", referida: "Referida", cancelada: "Cancelada" } as const;
 const resolution = z.object({ tipo: z.enum(["aceptada","condicionada","pausada","rechazada","referida","cancelada"]), fecha: z.iso.date(), motivo: z.string().trim().min(3).max(1000), condiciones: z.string().max(1000).optional(), permitidas: z.array(z.enum(WORKFLOW_STAGES)).max(8).optional(), siguienteAccion: z.string().trim().min(1).max(160), fechaSiguiente: z.iso.date() }).strict().refine(r=>r.tipo!=="condicionada" || !!r.condiciones?.trim(), "Describe las condiciones de aceptación");
@@ -57,6 +57,60 @@ const resolution = z.object({ tipo: z.enum(["aceptada","condicionada","pausada",
 export const CANALES_INFORME = { whatsapp: "WhatsApp", correo: "Correo", en_persona: "En persona", telefono: "Teléfono", otro: "Otro" } as const;
 const entregaInforme = z.object({ fecha: z.iso.date(), canal: z.enum(Object.keys(CANALES_INFORME) as [keyof typeof CANALES_INFORME, ...Array<keyof typeof CANALES_INFORME>]), responsable: z.string().trim().min(1).max(160), registradoEl: z.string().max(80).optional() }).strict();
 export type EntregaInforme = z.infer<typeof entregaInforme>;
+/**
+  Firma del contrato con Fortius (COR-10, RP-90, RP-91, RP-97): desde que el propietario firma la
+  intermediación es cliente y el inmueble está captado. El asesor la registra con el contrato
+  firmado (un documento del cliente), la fecha y quién firmó; el director la marca revisada. El
+  servidor anota quién y cuándo, y una firma corregida vuelve a quedar por revisar. No se borra:
+  un contrato que se acaba se registra con su terminación.
+*/
+export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta", mandato: "Asesoría o mandato" } as const;
+export const SIGNER_ROLES = { propietario: "Propietario", representante: "Representante o apoderado", fortius: "Por Fortius", otro: "Otra parte" } as const;
+type ContractType = keyof typeof CONTRACT_TYPES; type SignerRole = keyof typeof SIGNER_ROLES;
+const signer = z.object({ nombre: z.string().trim().min(3).max(160), parte: z.enum(Object.keys(SIGNER_ROLES) as [SignerRole, ...SignerRole[]]) }).strict();
+const contractSignature = z.object({
+ tipo: z.enum(Object.keys(CONTRACT_TYPES) as [ContractType, ...ContractType[]]), fecha: z.iso.date(),
+ firmantes: z.array(signer).min(1).max(12), archivo: z.uuid(), completa: z.boolean(), faltan: z.string().max(1000).optional(),
+ revisada: z.boolean(), registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional(), revisadoPor: z.string().max(80).optional(), revisadoEl: z.string().max(80).optional(),
+ terminacion: z.object({ fecha: z.iso.date(), motivo: z.string().trim().min(3).max(1000) }).strict().optional(),
+}).strict().refine(f => f.completa || (f.faltan?.trim().length ?? 0) >= 3, "Indica quién falta por firmar");
+export type ContractSignature = z.infer<typeof contractSignature>;
+/**
+  Avalúo que trae el propietario (COR-17, RP-96): sustituye a la opinión de valor (07). Vive en los
+  documentos del cliente; se registran perito, fecha, valor y vigencia. El requisito «valor»
+  respaldado con él solo cuenta mientras está vigente; el servidor aplica la misma regla.
+*/
+const ownerAppraisal = z.object({
+ archivo: z.uuid(), perito: z.string().trim().min(3).max(160), fecha: z.iso.date(), valor: z.number().positive().lt(1e12), vigenteHasta: z.iso.date(),
+ registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional(),
+}).strict().refine(a => a.vigenteHasta >= a.fecha, "La vigencia no puede ser anterior a la fecha del avalúo");
+export type OwnerAppraisal = z.infer<typeof ownerAppraisal>;
+/**
+  Cierre de la operación (COR-22, RP-99): quién captó y quién vendió, y la comisión estimada de
+  Fortius tomada del contrato de intermediación. Se archiva con este registro.
+*/
+const operationClose = z.object({
+ capto: z.string().min(1).max(200), vendio: z.string().min(1).max(200),
+ comisionEstimada: z.number().min(0).lt(1e12).optional(), fuente: z.string().max(200).optional(),
+ registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional(),
+}).strict();
+export type OperationClose = z.infer<typeof operationClose>;
+/** Reparto de RP-99: 25 % al que capta y 25 % al que vende; si es el mismo asesor, 50 %. Es una estimación hasta que se cobre. */
+export function commissionSplit(c: Pick<OperationClose, "capto" | "vendio" | "comisionEstimada">): Array<{ asesorId: string; papel: "capto" | "vendio" | "ambos"; porcentaje: number; monto?: number }> {
+ const part = (porcentaje: number) => typeof c.comisionEstimada === "number" ? { monto: Math.round(c.comisionEstimada * porcentaje) / 100 } : {};
+ if (c.capto === c.vendio) return [{ asesorId: c.capto, papel: "ambos", porcentaje: 50, ...part(50) }];
+ return [{ asesorId: c.capto, papel: "capto", porcentaje: 25, ...part(25) }, { asesorId: c.vendio, papel: "vendio", porcentaje: 25, ...part(25) }];
+}
+/** «vigente» o «vencido»; sin avalúo, undefined. */
+export function appraisalState(flow: Pick<OperationWorkflow, "avaluo"> | null | undefined, today: string): "vigente" | "vencido" | undefined {
+ const a = flow?.avaluo;
+ return a ? a.vigenteHasta >= today ? "vigente" : "vencido" : undefined;
+}
+/** El requisito «valor» está respaldado con el avalúo del propietario. */
+export function valueFromAppraisal(flow: Pick<OperationWorkflow, "avaluo" | "requisitos">) {
+ const e = flow.requisitos.valor?.evidencia;
+ return !!flow.avaluo && e?.tipo === "cliente" && e.referencia === flow.avaluo.archivo;
+}
 export const operationWorkflowSchema = z.object({
  version: z.literal(1), ruta: z.enum(["captacion","compra","arrendador","arrendatario","inversion"]), estado: z.enum(["activa","pausada","regularizacion","descartada"]),
  motivo: z.string().max(1000).default(""),
@@ -66,6 +120,9 @@ export const operationWorkflowSchema = z.object({
  contraparteLeadId: z.string().min(1).max(200).optional(),
  resolucion: resolution.optional(),
  entregasInforme: z.array(entregaInforme).max(120).optional(),
+ firmaContrato: contractSignature.optional(),
+ avaluo: ownerAppraisal.optional(),
+ cierre: operationClose.optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
@@ -115,7 +172,9 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
 export function reviewComplete(flow: OperationWorkflow, key: RequirementKey, today: string) {
  const r=flow.requisitos[key], definition=WORKFLOW_REQUIREMENTS[key];
  return !!r && (r.estado === "revisado" || ("noAplica" in definition && r.estado === "no_aplica")) && r.soporte.trim().length>=3
-  && (r.estado === "no_aplica" || !!r.evidencia && (r.evidencia.tipo === "externa" ? r.evidencia.referencia.trim().length >= 10 && !!r.evidencia.fecha && (r.evidencia.responsable?.trim().length??0)>=3 && (r.evidencia.resultado?.trim().length??0)>=3 : z.uuid().safeParse(r.evidencia.referencia).success && (r.evidencia.tipo === "adjunto" || !!r.evidencia.version)))
+  && (r.estado === "no_aplica" || !!r.evidencia && (r.evidencia.tipo === "externa" ? r.evidencia.referencia.trim().length >= 10 && !!r.evidencia.fecha && (r.evidencia.responsable?.trim().length??0)>=3 && (r.evidencia.resultado?.trim().length??0)>=3 : z.uuid().safeParse(r.evidencia.referencia).success && (r.evidencia.tipo === "adjunto" || r.evidencia.tipo === "cliente" || !!r.evidencia.version)))
+  // COR-17: el valor respaldado con un documento del cliente es el avalúo, y vale mientras está vigente.
+  && (key !== "valor" || r.evidencia?.tipo !== "cliente" || valueFromAppraisal(flow) && appraisalState(flow, today) === "vigente")
   && (!("vigencia" in definition) || !!r.vigenteHasta && r.vigenteHasta>=today);
 }
 function observationBlocks(flow: OperationWorkflow, target: WorkflowStage) {
@@ -129,12 +188,36 @@ function resolutionBlockers(flow: OperationWorkflow, target: WorkflowStage) {
  if(["captacion","arrendador"].includes(flow.ruta) && WORKFLOW_STAGES.indexOf(target)>=2 && !r) return ["Registrar la decisión de captación y sus condiciones antes de comercializar."];
  return [];
 }
+/** Contrato que capta al propietario según su ruta. */
+export function contractTypeFor(route?: OperationWorkflow["ruta"] | null): ContractType { return route === "arrendador" ? "intermediacion_renta" : route === "inversion" ? "mandato" : "intermediacion"; }
+/** Estado de la firma: sin registrar, incompleta, por revisar (el inmueble queda «Captado, por revisar»), vigente o terminada. */
+export type SignatureState = "sin_firma" | "incompleta" | "por_revisar" | "vigente" | "terminada";
+export function signatureState(flow: Pick<OperationWorkflow, "firmaContrato"> | null | undefined): SignatureState {
+ const f = flow?.firmaContrato;
+ if (!f) return "sin_firma";
+ if (f.terminacion) return "terminada";
+ if (!f.completa) return "incompleta";
+ return f.revisada && f.revisadoEl ? "vigente" : "por_revisar";
+}
+export const SIGNATURE_STATE_LABEL: Record<SignatureState, string> = { sin_firma: "Sin firma registrada", incompleta: "Firma incompleta", por_revisar: "Firma por revisar", vigente: "Contrato firmado y revisado", terminada: "Contrato terminado" };
+/** Lo que falta de la firma para publicar (RP-91): firma completa, revisada por el director y vigente. */
+export function signatureBlockers(flow: OperationWorkflow): string[] {
+ if (!isOwnerRoute(flow.ruta)) return [];
+ return {
+  sin_firma: ["Registrar la firma del contrato de intermediación."],
+  incompleta: ["Completar la firma del contrato: faltan firmantes."],
+  por_revisar: ["El director debe revisar la firma del contrato."],
+  terminada: ["El contrato de intermediación terminó: registra uno nuevo para seguir."],
+  vigente: [],
+ }[signatureState(flow)];
+}
 export function publicationBlockers(flow: OperationWorkflow | null | undefined, stage: WorkflowStage, today: string): string[] {
  if(!flow || !["captacion","arrendador"].includes(flow.ruta)) return ["Abrir y completar la guía de captación vinculada."];
  const result: string[] = requiredReviews(flow.ruta,"comercializacion").filter(k=>!reviewComplete(flow,k,today)).map(k=>WORKFLOW_REQUIREMENTS[k].label);
  if(flow.estado!=="activa") result.unshift("La captación debe estar activa.");
  if(!["comercializacion","negociacion","cierre"].includes(stage)) result.unshift("Llevar la captación a comercialización antes de publicar.");
  if(observationBlocks(flow,"comercializacion")) result.push("Resolver las observaciones que bloquean la publicación.");
+ result.push(...signatureBlockers(flow));
  result.push(...resolutionBlockers(flow,"comercializacion"));
  return result;
 }
@@ -142,19 +225,23 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  const result: string[] = requiredReviews(flow.ruta,target).filter(k=>!reviewComplete(flow,k,today)).map(k=>WORKFLOW_REQUIREMENTS[k].label);
  if(flow.estado!=="activa") result.unshift("Reactivar la operación antes de avanzar.");
  if(observationBlocks(flow,target)) result.push("Resolver las observaciones que bloquean esta actividad.");
- result.push(...resolutionBlockers(flow,target));
  const index=WORKFLOW_STAGES.indexOf(target);
+ if(index>=2) result.push(...signatureBlockers(flow));
+ result.push(...resolutionBlockers(flow,target));
  if(flow.ruta!=="inversion" && index>=3 && !context.propiedad_slug) result.push("Captura los datos del inmueble.");
  if(flow.ruta!=="inversion" && index>=4 && !flow.contraparteId && !flow.contraparteLeadId && (flow.contraparteExterna?.trim().length??0)<3) result.push("Identificar la contraparte interna o externa.");
  const open=tasks.filter(t=>t.expedienteId===context.id && !["completada","cancelada"].includes(t.estado));
- if(target==="cerrado") { if(open.length) result.push("Resolver o descartar las tareas pendientes antes de archivar."); }
+ if(target==="cerrado") {
+  if(open.length) result.push("Resolver o descartar las tareas pendientes antes de archivar.");
+  if(["captacion","arrendador"].includes(flow.ruta) && !flow.cierre) result.push("Registrar quién captó y quién vendió antes de archivar.");
+ }
  else if(!open.some(t=>t.asesorId===context.asesor_id && !!t.vence)) result.push("Agendar una próxima tarea con fecha y responsable.");
  return result;
 }
 
 /** Proceso de comercialización definido por el titular (PLAN_ERP_CRM.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
 export const SALE_PROCESS = [
- { key: "prospecto", slug: "prospecto", label: "Prospecto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
+ { key: "prospecto", slug: "prospecto", label: "Primer contacto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
  { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir el checklist de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
  { key: "levantamiento", slug: "levantamiento", label: "Levantamiento", hace: "Visitar el inmueble y capturar sus características con el levantamiento que corresponde a su tipo (04A–04G): superficies, niveles, espacios, instalaciones, fotografías y croquis.", para: "Tener los datos físicos comprobados para el dictamen, la opinión de valor y la publicación.", etapas: ["captacion"] },
  { key: "documentos", slug: "checklist-documentos", label: "Checklist de documentos", hace: "Entregar al propietario la lista de documentos que le corresponde y marcar cada uno al recibirlo.", para: "Reunir lo necesario para iniciar el dictamen jurídico.", etapas: ["captacion"] },
@@ -173,7 +260,7 @@ type ProcessStep = { key: SalePhase; slug: string; label: string; hace: string; 
   y requisitos. Sin dictamen jurídico completo ni plan de comercialización.
 */
 export const RENT_PROCESS: readonly ProcessStep[] = [
- { key: "prospecto", slug: "prospecto", label: "Prospecto", hace: "Registrar el primer contacto: quién es, qué inmueble quiere rentar, dónde está y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
+ { key: "prospecto", slug: "prospecto", label: "Primer contacto", hace: "Registrar el primer contacto: quién es, qué inmueble quiere rentar, dónde está y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
  { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: qué renta espera, condiciones y situación del inmueble; entregar el aviso de privacidad.", para: "Conocer al propietario y su inmueble antes de revisar documentos y renta.", etapas: ["captacion"] },
  { key: "levantamiento", slug: "levantamiento", label: "Levantamiento", hace: "En la misma visita, capturar el inmueble con el levantamiento de su tipo (04A–04G): espacios, estado, fotografías e inventario básico.", para: "Tener los datos físicos para la opinión de renta y la publicación.", etapas: ["captacion"] },
  { key: "documentos", slug: "checklist-documentos", label: "Documentos básicos", hace: "Pedir y marcar la identificación del propietario, la prueba de propiedad y el predial al corriente.", para: "Saber que quien renta es el dueño o puede rentar.", etapas: ["captacion"] },

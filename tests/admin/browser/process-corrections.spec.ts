@@ -23,8 +23,7 @@ for(const width of [390,768,1440]) {
   });
   await page.goto('/admin/operaciones/nueva');
   const seller=page.getByRole('radio',{name:/^Vender su inmueble/});await seller.focus();await page.keyboard.press('Enter');
-  await expect(seller).toHaveAttribute('aria-checked','true');
-  await page.getByRole('button',{name:'Continuar',exact:true}).click();
+  // SIM-17: elegir con el teclado avanza solo al paso 2.
   await expect(page.getByRole('heading',{name:'¿Quién es?'})).toBeVisible();
   await page.getByLabel('Nombre completo').fill('Primer contacto sintético');
   await page.getByLabel(/^Correo/).fill('ensayo@example.invalid');
@@ -52,7 +51,7 @@ for(const width of [390,768,1440]) {
    expect(await outside.evaluate(e=>{const b=e.getBoundingClientRect();const t=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return e===t||e.contains(t)||!!t?.closest('label')?.contains(e);})).toBe(true);
    await page.screenshot({path:info.outputPath(r+'-revisado-'+width+'.png')});
    await page.keyboard.press('Escape');
-   await page.getByRole('tab',{name:'Ajustes'}).click();
+   await page.getByRole('button',{name:'Más opciones'}).click();await page.getByRole('menuitem',{name:'Datos de la operación'}).click();
    await expect(page.getByRole('combobox',{name:'Decisión',exact:true})).toBeVisible();
    await page.getByRole('combobox',{name:'Decisión',exact:true}).selectOption('pausada');
    await expect(page.getByRole('region',{name:'Contraparte'})).toHaveCount(r==='inversion'?0:1);

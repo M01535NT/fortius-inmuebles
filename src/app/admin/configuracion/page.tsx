@@ -2,7 +2,6 @@
 
 import { brandCopy } from "@/lib/brand-copy";
 import * as React from "react";
-import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 
 import {
   AsyncForm,
@@ -11,6 +10,7 @@ import {
   btnPrimary,
   inputClass,
 } from "@/components/admin/ui";
+import { firstResponseHours } from "@/lib/admin/today";
 import {
   settingsStore,
   useSingleton,
@@ -26,7 +26,7 @@ export default function ConfiguracionPage() {
   return value ? (
     <Editor initial={value} />
   ) : (
-    <PageHeader title="Configuración." />
+    <PageHeader title="Configuración" />
   );
 }
 function Editor({ initial }: { initial: SiteSettings }) {
@@ -36,17 +36,20 @@ function Editor({ initial }: { initial: SiteSettings }) {
   );
   const [guardado, setGuardado] = React.useState(false);
 
-  if (!settings) return <PageHeader title="Configuración." />;
+  if (!settings) return <PageHeader title="Configuración" />;
 
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const next = Object.fromEntries(
-      Object.keys(settings as SiteSettings).map((k) => [
-        k,
-        String(data.get(k) ?? ""),
-      ]),
-    ) as SiteSettings;
+    const texts = Object.fromEntries(
+      Object.keys(settings as SiteSettings)
+        .filter((k) => k !== "horasPrimeraAtencion")
+        .map((k) => [k, String(data.get(k) ?? "")]),
+    ) as Omit<SiteSettings, "horasPrimeraAtencion">;
+    const next: SiteSettings = {
+      ...texts,
+      horasPrimeraAtencion: firstResponseHours({ horasPrimeraAtencion: Number(data.get("horasPrimeraAtencion")) }),
+    };
     const saved = await settingsStore.save(next, version);
     setVersion(settingsStore.version(saved));
     setGuardado(true);
@@ -56,10 +59,9 @@ function Editor({ initial }: { initial: SiteSettings }) {
   return (
     <div className="max-w-[760px] space-y-6">
       <PageHeader
-        title="Configuración."
+        title="Configuración"
         description="Identidad, contacto y datos operativos del negocio."
       />
-      <SetupChecklist />
 
       <AsyncForm onSubmit={guardar} className="space-y-6">
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">
@@ -151,6 +153,28 @@ function Editor({ initial }: { initial: SiteSettings }) {
           </Field>
         </section>
 
+        <section className="space-y-4 rounded-lg border border-border bg-card p-5">
+          <h2 className="display-soft text-lg text-foreground">Prospectos del sitio</h2>
+          <Field
+            label="Horas para la primera atención"
+            htmlFor="cf-primera-atencion"
+            hint="Un prospecto nuevo del sitio sale como atrasado en Hoy al pasar este plazo sin que nadie lo contacte. De 1 a 72 horas."
+          >
+            <input
+              id="cf-primera-atencion"
+              name="horasPrimeraAtencion"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={72}
+              step={1}
+              required
+              defaultValue={firstResponseHours(settings)}
+              className={inputClass + " sm:max-w-[10rem]"}
+            />
+          </Field>
+        </section>
+
         <div className="flex items-center gap-4">
           <button type="submit" className={btnPrimary}>
             Guardar configuración
@@ -158,7 +182,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
           {guardado ? (
             <p
               aria-live="polite"
-              className="text-sm font-medium text-primary-ink"
+              className="text-sm font-medium text-foreground underline underline-offset-4"
             >
               Guardado.
             </p>

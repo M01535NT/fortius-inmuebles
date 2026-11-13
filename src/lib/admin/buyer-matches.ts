@@ -30,9 +30,18 @@ export function seekersFrom(leads: Lead[], clients: Cliente[]): Seeker[] {
 }
 
 const plain = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-/** Zonas escritas a mano: «Playas, Otay y Chapultepec» → ["playas", "otay", "chapultepec"]. */
+const ZONE_STOPWORDS = new Set(["de", "del", "la", "las", "los", "el"]);
+/** Zona comparable: sin acentos, signos ni «de», «del», «la»… («Lomas de Virreyes» → «lomas virreyes»). */
+export function zoneKey(value: string) {
+  return plain(value).replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(word => word && !ZONE_STOPWORDS.has(word)).join(" ");
+}
+/** Zonas escritas a mano, como se escribieron: «Playas, Otay y Chapultepec» → ["Playas", "Otay", "Chapultepec"]. */
+export function zoneParts(value?: string) {
+  return (value ?? "").split(/[,;/]|\sy\s|\so\s/).map(part => part.trim()).filter(part => zoneKey(part).length >= 3);
+}
+/** Zonas comparables: «Playas, Otay y Chapultepec» → ["playas", "otay", "chapultepec"]. */
 export function zoneTokens(value?: string) {
-  return (value ?? "").split(/[,;/]|\sy\s|\so\s/).map(plain).filter(token => token.length >= 3);
+  return zoneParts(value).map(zoneKey);
 }
 
 /** Razones por las que el inmueble le sirve a la persona, o null si un criterio capturado no se cumple. */
@@ -47,10 +56,10 @@ export function matchReasons(property: AdminProperty, seeker: Seeker): string[] 
   }
   const zones = zoneTokens(seeker.zona);
   if (zones.length) {
-    const place = plain(`${property.zona} ${property.direccionAproximada}`);
+    const place = zoneKey(`${property.zona} ${property.direccionAproximada}`);
     const zone = zones.find(token => place.includes(token));
     if (!zone) return null;
-    reasons.push(`Busca en ${seeker.zona!.split(/[,;/]|\sy\s|\so\s/).find(part => plain(part) === zone)?.trim() ?? property.zona}`);
+    reasons.push(`Busca en ${zoneParts(seeker.zona).find(part => zoneKey(part) === zone) ?? property.zona}`);
   }
   const profile = seeker.perfil ?? {};
   if (property.precio.modalidad === "publico" && profile.presupuestoMax !== undefined && profile.moneda === property.precio.moneda) {

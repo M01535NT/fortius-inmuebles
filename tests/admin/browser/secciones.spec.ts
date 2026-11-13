@@ -51,7 +51,8 @@ async function mockApi(page: Page) {
     if (req.method() !== "GET") { writes.push(path); return route.fulfill({ status: 405, json: { error: "Ensayo sin escrituras" } }); }
     if (path === "/api/auth/session") return route.fulfill({ json: { user: { id: "qa", email: "qa@example.invalid", role: "admin" } } });
     if (path === "/api/admin/mi-asesor") return route.fulfill({ json: { asesorId: adviser.id } });
-    if (path === "/api/admin/expedientes") return route.fulfill({ json: { expedientes: [], nextOffset: null } });
+    // COR-10: la familia Ortega es cliente porque firmó su contrato con Fortius en su operación.
+    if (path === "/api/admin/expedientes") return route.fulfill({ json: { expedientes: new URL(req.url()).searchParams.has("estado") ? [] : [signedOperation], nextOffset: null } });
     if (path === "/api/admin/apps/runs") return route.fulfill({ json: { runs: [], nextOffset: null } });
     if (path === "/api/admin/entrevistas") return route.fulfill({ json: { entrevistas: [] } });
     if (path === "/api/admin/comercial") return route.fulfill({ json: { carteras: [] } });
@@ -63,6 +64,10 @@ async function mockApi(page: Page) {
   return writes;
 }
 
+const signedOperation = {
+  id: "51000000-0000-4000-8000-0000000000c1", folio: "EXP-2026-0101", version: 1, cliente_id: "c1", asesor_id: adviser.id, operacion: "venta", unidad: "", propiedad_slug: null, etapa: "documentacion",
+  flujo: { version: 1, ruta: "compra", estado: "activa", motivo: "", requisitos: {}, firmaContrato: { tipo: "mandato", fecha: today, firmantes: [{ nombre: "Familia Ortega Ruiz", parte: "otro" }, { nombre: "Mariana Ruiz", parte: "fortius" }], archivo: "52000000-0000-4000-8000-000000000001", completa: true, revisada: true, revisadoEl: stamp, registradoEl: stamp } },
+};
 const fits = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 async function noAxeViolations(page: Page) {
   const result = await new AxeBuilder({ page }).include("main").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
@@ -123,7 +128,7 @@ for (const width of [320, 390, 768, 1440]) {
     expect(await fits(page)).toBe(true);
 
     await page.goto("/admin/agenda");
-    await expect(page.getByRole("heading", { level: 1, name: "Agenda" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Agenda y tareas" })).toBeVisible();
     await expect(page.getByText(/^Semana del/)).toBeVisible();
     const week = page.getByRole("region", { name: "Agenda semanal" });
     if (width >= 1024) await expect(week.getByRole("button", { name: "Ver evento: Visita · Local en Tecate" })).toBeVisible();
@@ -134,7 +139,7 @@ for (const width of [320, 390, 768, 1440]) {
     await shot("tareas");
 
     await page.goto("/admin/herramientas");
-    await expect(page.getByRole("heading", { level: 1, name: "Herramientas" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Más" })).toBeVisible();
     await shot("herramientas");
 
     await page.goto("/admin/contenido");

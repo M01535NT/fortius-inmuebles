@@ -1,16 +1,21 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Building2, Key, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
+import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
 import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
 import { AsyncButton, AsyncSelect, DemoBanner, inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
 import { emptyInventoryFilters, filterInventory, type InventoryFilters } from "@/lib/admin/workspace";
+import { CAPTURE_STATUS_LABEL, type CaptureStatus } from "@/lib/admin/person-status";
+import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 import { ESTADO_LABELS, ESTADOS_POR_OPERACION, OPERACION_LABELS, estadoValido, formatPrecio, type Property } from "@/data/propiedades";
 import { db, removePropiedad, upsertPropiedad, useCollection, type AdminProperty } from "@/lib/admin/store";
 import { PREP_ITEMS, openKeyLoans, prepState, type PrepItem } from "@/lib/propiedad-seguimiento";
+import { seekersFrom } from "@/lib/admin/buyer-matches";
+import { demandGroups } from "@/lib/admin/demand";
+import { DemandView } from "./demand-view";
 import s from "./properties.module.css";
 
 /*
@@ -23,6 +28,12 @@ import s from "./properties.module.css";
 */
 
 const PAGE = 24;
+const VIEW_KEY = "fortius.inmuebles.vista.v1";
+const viewListeners = new Set<() => void>();
+let viewFallback: "filas" | "tarjetas" = "filas";
+function readView(): "filas" | "tarjetas" { try { return localStorage.getItem(VIEW_KEY) === "tarjetas" ? "tarjetas" : "filas"; } catch { return viewFallback; } }
+function writeView(next: "filas" | "tarjetas") { viewFallback = next; try { localStorage.setItem(VIEW_KEY, next); } catch {} viewListeners.forEach(fn => fn()); }
+function subscribeView(fn: () => void) { viewListeners.add(fn); return () => { viewListeners.delete(fn); }; }
 
 /** Lo que le falta a un inmueble para promoverse: «fotos», «medidas», «precio». Sin faltantes, lista vacía. */
 export function propertyGaps(p: Property) {
@@ -55,7 +66,9 @@ export function propertyFacts(p: Property) {
 }
 
 /** Lo que más importa del estado: si ya no está disponible, eso; si lo está, si se ve en el sitio. */
-export function propertyState(p: Property) {
+export function propertyState(p: Property, capture?: CaptureStatus | null) {
+  // COR-10 (RP-97): mientras se capta, la firma de la intermediación dice si ya está captado.
+  if (p.estado === "evaluacion" && capture) return { label: CAPTURE_STATUS_LABEL[capture], strong: false };
   if (p.estado !== "disponible") return { label: ESTADO_LABELS[p.estado], strong: p.estado === "apartada" };
   return { label: p.publicada ? "Publicado" : "Sin publicar", strong: false };
 }
@@ -65,6 +78,10 @@ export function PropertyList() {
   const [filters, setFilters] = React.useState<InventoryFilters>(emptyInventoryFilters);
   const [page, setPage] = React.useState(0);
   const [missingOnly, setMissingOnly] = React.useState(false);
+  // COR-19: «Buscan y no tenemos» cambia la lista por la demanda sin cubrir.
+  const [demand, setDemand] = React.useState(false);
+  const leads = useCollection(db.leads), clients = useCollection(db.clientes);
+  const groups = React.useMemo(() => demandGroups(seekersFrom(leads, clients), properties), [leads, clients, properties]);
   const incomplete = properties.filter(p => p.estado !== "vendida" && p.estado !== "rentada" && propertyGaps(p).length > 0);
   const results = filterInventory(properties, filters).filter(p => !missingOnly || propertyGaps(p).length > 0);
   const pages = Math.max(1, Math.ceil(results.length / PAGE));
@@ -73,23 +90,30 @@ export function PropertyList() {
   const published = properties.filter(p => p.publicada).length;
   const update = (next: InventoryFilters) => { setFilters(next); setPage(0); };
   const extra = [filters.advisor, filters.publication, filters.status].filter(Boolean).length;
+  // C59: en el celular, filas compactas; «Ver en tarjetas» es una preferencia de este navegador.
+  const view = React.useSyncExternalStore(subscribeView, readView, () => "filas" as const);
+  const toggleView = () => writeView(view === "filas" ? "tarjetas" : "filas");
 
   return <GuidedPage title="Inmuebles" subtitle={`${properties.length} ${properties.length === 1 ? "inmueble" : "inmuebles"} · ${published} ${published === 1 ? "publicado" : "publicados"}`} actions={<>
-    <button type="button" className={s.gapChip} aria-pressed={missingOnly} onClick={() => { setMissingOnly(on => !on); setPage(0); }}>Les falta algo<span>{incomplete.length}</span></button>
+    <button type="button" className={s.gapChip} aria-pressed={missingOnly && !demand} onClick={() => { setDemand(false); setMissingOnly(on => demand || !on); setPage(0); }}>Les falta algo<span>{incomplete.length}</span></button>
+    <button type="button" className={s.gapChip} aria-pressed={demand} onClick={() => setDemand(on => !on)}>Buscan y no tenemos<span>{new Set(groups.flatMap(g => g.seekers.map(x => `${x.kind}-${x.id}`))).size}</span></button>
     <Segmented className={s.segmented} label="Operación" value={filters.operation || "todos"} onChange={id => update({ ...filters, operation: id === "todos" ? "" : id })} options={[{ id: "todos", label: "Todos" }, { id: "venta", label: "En venta" }, { id: "renta", label: "En renta" }]} />
     <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar colonia, calle o código</span><input type="search" className={inputClass} placeholder="Buscar colonia o calle" value={filters.q} onChange={e => update({ ...filters, q: e.target.value })} /></label>
     <ButtonLink href="/admin/propiedades/nueva" variant="primary" data-tour="inmuebles-agregar"><Plus size={16} aria-hidden="true" />Agregar inmueble</ButtonLink>
   </>}>
-    <details className={s.more}>
+    {!demand && <details className={s.more}>
       <summary>Más filtros{extra > 0 ? ` · ${extra} ${extra === 1 ? "activo" : "activos"}` : ""}</summary>
       <div className="mt-3"><InventoryControls value={filters} onChange={update} advisers={advisers} count={results.length} hideSearch /></div>
-    </details>
+    </details>}
 
-    {properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" action={<Link href="/admin/propiedades/nueva" className="font-semibold underline underline-offset-4">Agregar inmueble</Link>}>Agrégalo aquí o al terminar la entrevista con el propietario.</EmptyBox>
+    {demand ? <DemandView groups={groups} />
+      : properties.length === 0 ? <EmptyBox title="Todavía no hay inmuebles" steps={["Agrégalo aquí o al terminar la entrevista con el propietario.", "Sube sus fotos y completa la ficha.", "Publícalo en el sitio cuando el propietario lo autorice."]} action={<ButtonLink href="/admin/propiedades/nueva">Agregar inmueble</ButtonLink>}>Los inmuebles que Fortius vende o renta. Solo lo que publicas aparece en el sitio.</EmptyBox>
       : shown.length === 0 ? <EmptyBox title="Ningún inmueble coincide">Prueba con otra búsqueda o limpia los filtros.</EmptyBox>
-      : <ul aria-label="Inmuebles" data-tour="inmuebles-lista" className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul>}
+      : <>
+      <button type="button" className={s.viewToggle} onClick={toggleView}>{view === "filas" ? <><LayoutGrid size={16} aria-hidden="true" />Ver en tarjetas</> : <><List size={16} aria-hidden="true" />Ver en filas</>}</button>
+      <ul aria-label="Inmuebles" data-tour="inmuebles-lista" data-view={view} className={s.grid}>{shown.map(p => <PropertyItem key={p.slug} property={p} duplicated={properties.some(o => o.slug !== p.slug && o.codigo.trim().toUpperCase() === p.codigo.trim().toUpperCase())} adviser={advisers.find(a => a.id === p.asesorId)?.nombre} />)}</ul></>}
 
-    {results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
+    {!demand && results.length > PAGE && <nav aria-label="Páginas de inmuebles" className="mt-5 flex flex-wrap items-center gap-3">
       <button type="button" className={s.pageButton} disabled={current === 0} onClick={() => setPage(current - 1)}>Anterior</button>
       <span className="text-sm">Página {current + 1} de {pages}</span>
       <button type="button" className={s.pageButton} disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Siguiente</button>
@@ -99,7 +123,7 @@ export function PropertyList() {
 }
 
 function PropertyItem({ property: p, duplicated, adviser }: { property: AdminProperty; duplicated: boolean; adviser?: string }) {
-  const state = propertyState(p);
+  const state = propertyState(p, usePersonStatus().ofProperty(p.slug));
   const lent = openKeyLoans(p.llaves)[0];
   const prep = p.estado === "evaluacion" || p.estado === "disponible" ? prepText(p) : "";
   const followup = `/admin/propiedades/${p.slug}/seguimiento`;
@@ -121,7 +145,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
         {propertyGaps(p).length > 0 && <span className={s.gap}>{gapText(propertyGaps(p))}</span>}
         {duplicated && <span className="text-xs font-semibold text-destructive">Código repetido: corrígelo en Editar.</span>}
         {(lent || prep) && <span className={s.meta}>{[lent && `Llaves con ${lent.persona}`, prep].filter(Boolean).join(" · ")}</span>}
-        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span>{p.demo && <span className={s.meta}>Ejemplo</span>}</span>
+        <span className={s.priceRow}><span className={s.amount} data-pending={pending || undefined}>{formatPrecio(p.precio)}</span><Pill size="sm" className={s.rowPill} data-strong={state.strong || undefined}>{state.label}</Pill>{p.demo && <span className={s.meta}>Ejemplo</span>}</span>
       </span>
     </Link>
     <details className={s.options}>

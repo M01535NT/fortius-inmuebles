@@ -72,7 +72,7 @@ export function InterviewAccess({
         <ClipboardList
           size={20}
           aria-hidden="true"
-          className="text-primary-ink"
+          className="text-muted-foreground"
         />
         <h2 className="font-semibold">Entrevista inicial</h2>
       </div>

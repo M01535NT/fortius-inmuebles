@@ -17,7 +17,8 @@ import type { OperationRecord } from "@/lib/admin/operation-view";
 /** El expediente con su controlador de documentos: abrir o crear un formato lleva a su ventana de captura. */
 function Docs() {
   const docs = useOperationDocuments({ op: exp as unknown as OperationRecord, interviewAnswers: {}, cliente: "Cliente del expediente QA" });
-  return <><DocumentsTab op={exp as unknown as OperationRecord} docs={docs} />{docs.capture({ cliente: "Cliente del expediente QA" })}</>;
+  // El aviso se inicia desde su etapa (captación); aquí basta el mismo inicio sin la pantalla de la etapa.
+  return <><button type="button" onClick={() => void docs.start("01")}>Iniciar aviso</button><DocumentsTab op={exp as unknown as OperationRecord} docs={docs} />{docs.capture({ cliente: "Cliente del expediente QA" })}</>;
 }
 /** Letras y membrete reales: la vista en vivo dibuja el aviso con el mismo escritor del PDF. */
 function asset(url: string) {
@@ -117,8 +118,7 @@ it("recupera el cliente y la operación al crear un aviso, sin presumir autoriza
     return Response.json({ documentos: [] });
   });
   render(<Docs />);
-  fireEvent.change(screen.getByRole("combobox", { name: "Formato" }), { target: { value: "01" } });
-  fireEvent.click(screen.getByRole("button", { name: "Crear y abrir" }));
+  fireEvent.click(screen.getByRole("button", { name: "Iniciar aviso" }));
   await openTitular(await screen.findByRole("dialog", { name: "Aviso de privacidad" }));
   expect((screen.getByLabelText("Nombre del titular") as HTMLInputElement).value).toBe("Cliente del expediente QA");
   expect(initial).not.toHaveProperty("titular");

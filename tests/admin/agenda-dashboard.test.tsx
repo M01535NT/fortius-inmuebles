@@ -35,14 +35,14 @@ test("Hoy lists today's and overdue open tasks by Tijuana date and links to each
     {id:"later",titulo:"Tarea de mañana",descripcion:"",categoria:"cierre",estado:"pendiente",prioridad:"normal",vence:"2026-09-23",pasos:[]},
   ];
   render(<AdminDashboard />);
-  const today = within(screen.getByRole("region", {name:"Tareas de hoy"}));
+  const today = within(await screen.findByRole("list", {name:"Tareas de hoy"}));
   await today.findByRole("link", {name:/Revisar expediente/});
   expect(today.getByRole("link", {name:/Revisar expediente/}).getAttribute("href")).toBe("/admin/tareas/late");
   expect(today.getByText("Vencida desde el 21 sep")).toBeTruthy();
   expect(today.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
   expect(today.queryByText("Tarea terminada")).toBeNull();
   expect(today.queryByText("Tarea de mañana")).toBeNull();
-  expect(within(screen.getByRole("region", {name:"Próximos 7 días"})).getByText("Tarea de mañana")).toBeTruthy();
+  expect(within(screen.getByRole("region", {name:"Esta semana"})).getByText("Tarea de mañana")).toBeTruthy();
 });
 
 test("calendar projects an open task deadline without creating an event", async () => {
@@ -76,11 +76,11 @@ test("Hoy keeps this evening's eight Tijuana events when UTC is already tomorrow
   events = eightEvents("2026-09-22");
   render(<AdminDashboard />);
 
-  const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
+  const agenda = within(await screen.findByRole("list", {name:"Citas de hoy"}));
   await agenda.findByText("Visita 1");
   expect(agenda.getByText("Visita 8")).toBeTruthy();
   expect(agenda.getAllByText("Visita", {exact:true})).toHaveLength(8);
-  expect(screen.getByText(/8 visitas hoy/)).toBeTruthy();
+  expect(agenda.getAllByRole("listitem")).toHaveLength(8);
 });
 
 test("Hoy's agenda shows only the operating day, not later or past days", async () => {
@@ -90,8 +90,8 @@ test("Hoy's agenda shows only the operating day, not later or past days", async 
   ];
   render(<AdminDashboard />);
 
-  const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
-  await agenda.findByText("Sin citas hoy");
+  const agenda = within(screen.getByRole("region", {name:"Hoy"}));
+  await agenda.findByText("Sin citas ni tareas hoy");
   // Sin citas hoy, la agenda anuncia la siguiente con su día; no la presenta como de hoy ni muestra las pasadas.
   expect(agenda.queryAllByRole("listitem")).toHaveLength(0);
   expect(agenda.getByText(/La siguiente: Jue 24 · 23:52 · Visita/)).toBeTruthy();
@@ -107,10 +107,10 @@ test("Hoy's agenda includes earlier and untimed events from the operating day, u
   ];
   render(<AdminDashboard />);
 
-  const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
+  const agenda = within(await screen.findByRole("list", {name:"Citas de hoy"}));
   await agenda.findByText("Pendiente sin hora");
   expect(agenda.getAllByRole("listitem").map(item => item.textContent)).toEqual([expect.stringContaining("Reunión matutina"), expect.stringContaining("Pendiente sin hora")]);
-  expect(screen.getByText(/0 visitas hoy/)).toBeTruthy();
+  expect(agenda.queryByText("Visita", {exact:true})).toBeNull();
 });
 
 test("calendar opens the operating day and week even when UTC has crossed the year", async () => {
@@ -144,13 +144,14 @@ test("Hoy shows one overdue followup for a converted client and points to the cl
     return Response.json({ records: records.map(item => ({ ...item, version: 1 })) });
   });
   render(<AdminDashboard />);
-  // El único pendiente es la portada «Lo siguiente» y no se repite en otra sección (C34).
+  // El único pendiente es la portada «Lo siguiente» y no se repite en la cola (C34, SIM-16).
   const cover = within(await screen.findByRole("region", { name: "Lo siguiente" }));
   expect(await cover.findByRole("link", { name: /Cliente convertido/ })).toHaveProperty("href", "http://localhost:3000/admin/clientes/client1");
   expect(cover.getByText("Desde el 21 sep")).toBeTruthy();
   expect(cover.queryByText("Prospecto", {exact:true})).toBeNull();
   expect(screen.getAllByText("Cliente convertido", { exact: false })).toHaveLength(1);
-  expect(screen.queryByRole("region", { name: /Esperan algo de ti/ })).toBeNull();
+  expect(cover.getByText("Nada más espera por ti.")).toBeTruthy();
+  expect(screen.queryByRole("list", { name: "Más pendientes" })).toBeNull();
 });
 
 test("calendar saves a linked event with client, property, expediente and adviser", async () => {
@@ -167,8 +168,8 @@ test("calendar saves a linked event with client, property, expediente and advise
     return Response.json({ records: data.map(item => ({ id: "id" in item ? item.id : item.slug, data: item, version: 1 })) });
   });
   render(<CalendarioPage />);
-  await screen.findByRole("option", { name: "EXP-1" });
-  await waitFor(() => expect((screen.getByLabelText("Operación (opcional)") as HTMLSelectElement).value).toBe(expedienteId));
+  // SIM-17: la operación de la dirección se ve como vínculo elegido en «¿Con quién o sobre qué?».
+  await screen.findByText("Operación: EXP-1");
   fireEvent.change(screen.getByLabelText("Nuevo evento"), { target: { value: "Visita vinculada" } });
   fireEvent.submit(screen.getByRole("button", { name: "Guardar en la agenda" }).closest("form")!);
   await waitFor(() => expect(saved).toMatchObject({ titulo: "Visita vinculada", clienteId: "c1", propiedadSlug: "p1", expedienteId, asesorId: "a1" }));

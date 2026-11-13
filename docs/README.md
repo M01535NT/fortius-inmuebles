@@ -5,6 +5,7 @@ El desarrollo del ERP/CRM se dirige únicamente desde [PLAN_ERP_CRM.md](../PLAN_
 | Tema | Referencia |
 |---|---|
 | Producto | [Propósito y capacidades](PRODUCT.md). |
+| Historial del plan | [Trabajo terminado y registros de sesiones pasadas](erp-crm/historial-del-plan.md), separados del plan el 11/11/2026. No es un plan: si contradice al plan, manda el plan. |
 | Preguntas abiertas | [Cuestionario único para el titular](erp-crm/CUESTIONARIO_TITULAR.md), empezando por A y B. Reúne sin duplicados las preguntas al titular, el complemento P01–P84 y las preguntas del panel. Cada respuesta se integra en el plan. |
 | Panel | [Manual](admin-manual.md), [espacio de trabajo](admin-workspace.md). |
 | Marca | [Marca](brand.md), [identidad técnica](fortius-inmuebles-identity.md). |

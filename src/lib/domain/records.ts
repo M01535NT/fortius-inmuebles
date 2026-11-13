@@ -205,4 +205,6 @@ export type SiteSettings = {
   facebook: string;
   instagram: string;
   videoInstitucionalUrl: string;
+  /** RP-23: horas para la primera atención de un prospecto nuevo del sitio (1 a 72). Solo del panel. */
+  horasPrimeraAtencion?: number;
 };

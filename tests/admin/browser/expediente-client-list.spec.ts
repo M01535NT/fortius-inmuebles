@@ -33,7 +33,7 @@ for (const width of [390, 768, 1440]) {
     await expect(page.getByRole("heading", { name: "Operaciones", exact: true })).toBeVisible();
     // Lista del boceto C: «Esperan algo de ti» y «Al día», con filtro por etapa (sin fases desde el 27/10/2026).
     const waiting = page.getByRole("region", { name: /Esperan algo de ti/ });
-    await expect(waiting.getByRole("link", { name: /Juan Ibarra\. Etapa 1 de 10, Prospecto\. Sin próxima tarea/ })).toBeVisible();
+    await expect(waiting.getByRole("link", { name: /Juan Ibarra\. Etapa 1 de 10, Primer contacto\. Sin próxima tarea/ })).toBeVisible();
     await expect(waiting.getByRole("link", { name: /Ana Martínez\. Etapa 2 de 7, Opciones/ })).toBeVisible();
     await page.getByRole("group", { name: "Etapa" }).getByRole("button", { name: /Opciones/ }).click();
     await expect(page).toHaveURL(/etapa=Opciones/);
@@ -54,7 +54,8 @@ for (const width of [390, 768, 1440]) {
     await expect(page.getByRole("region", { name: "Siguiente acción" }).getByRole("heading", { level: 2, name: "Hacer la entrevista inicial" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });
-    await page.getByRole("link", { name: "Operaciones", exact: true }).first().click();
+    // En celular la operación esconde la barra inferior; «Volver a Operaciones» lleva a la misma lista.
+    await page.getByRole("link", { name: /^(Volver a )?Operaciones$/ }).filter({ visible: true }).first().click();
     await page.getByRole("link", { name: "Ver operaciones eliminadas" }).click();
     await expect(page.getByText("No hay operaciones eliminadas")).toBeVisible();
     await page.goto("/admin/operaciones/nueva");

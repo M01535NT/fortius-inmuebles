@@ -58,7 +58,7 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await page.getByRole("button", { name: "Menú del panel" }).click();
         const menu = page.getByRole("navigation", { name: "Módulos móviles" });
         await menu.getByRole("button", { name: /Administración/ }).click();
-        for (const name of ["Inmuebles", "Agenda", "Herramientas", "Equipo", "Sitio web", "Reportes", "Historial", "Configuración"])
+        for (const name of ["Inmuebles", "Agenda y tareas", "Herramientas", "Equipo", "Sitio web", "Reportes", "Historial", "Configuración"])
           await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
         await expect(menu.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
         await page.screenshot({ path: testInfo.outputPath("navigation-" + width + ".png"), fullPage: true });
@@ -75,7 +75,8 @@ for (const width of [375, 414, 768, 1024, 1440]) {
         await nav.getByRole("link", { name: "Contactos" }).click();
       }
       await page.getByRole("group", { name: "Mostrar personas" }).getByRole("button", { name: /^Clientes/ }).click();
-      await page.getByRole("button", { name: "Agregar contacto" }).filter({ visible: true }).click();
+      // SIM-17: en la vista Clientes, el alta directa se llama «Agregar cliente».
+      await page.getByRole("button", { name: "Agregar cliente" }).filter({ visible: true }).click();
       await expect(page.getByLabel("Teléfono", { exact: true })).toBeVisible();
       expect(
         await page.evaluate(

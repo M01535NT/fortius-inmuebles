@@ -1,463 +1,193 @@
 "use client";
-import { confirmAction } from "@/components/admin/workspace/confirm";
-import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
-import { InterviewAccess } from "@/components/admin/intake/interview-access";
-import { RelatedWork } from "@/components/admin/workspace/related-work";
-import { ConvertLeadButton } from "@/components/admin/convert-lead-button";
-import { MatchingProperties } from "@/components/admin/properties/matching-properties";
-import { AsyncForm, AsyncButton, AsyncSelect } from "@/components/admin/ui";
-
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarPlus, Trash2 } from "@/components/admin/icons";
-
-import {
-  Badge,
-  EmptyState,
-  Field,
-  PageHeader,
-  btnDanger,
-  btnGhost,
-  btnPrimary,
-  inputClass,
-  selectClass,
-  textareaClass,
-} from "@/components/admin/ui";
-import {
-  EVENTO_TIPOS,
-  EVENTO_TIPO_LABELS,
-  LEAD_ESTADOS,
-  LEAD_ESTADO_LABELS,
-  LEAD_CANAL_LABELS,
-  LEAD_ORIGEN_LABELS,
-  db,
-  fechaCorta,
-  removeById,
-  uid,
-  upsert,
-  useCollection,
-  type EventoTipo,
-  type LeadEstado,
-  type Lead,
-} from "@/lib/admin/store";
+import { ArrowRight, CalendarPlus, Trash2 } from "@/components/admin/icons";
+import { Button, ButtonLink, Notice, Pill, Surface } from "@/components/admin/kit";
+import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
+import { confirmAction } from "@/components/admin/workspace/confirm";
+import { LeadProfileEditor } from "@/components/admin/lead-profile-editor";
+import { MatchingProperties } from "@/components/admin/properties/matching-properties";
+import { ContactLog } from "@/components/admin/contacts/contact-log";
+import { NextStepCard, PersonCard, PersonHeader, Timeline, personStyles as s, useInterview, type MenuItem } from "@/components/admin/contacts/person";
+import { nextStep } from "@/lib/admin/contacts-view";
+import { estadoForStage, humanDay, leadStage, personTimeline, LEAD_STAGE_CHOICES, LEAD_STAGE_LABELS, type LeadStage } from "@/lib/admin/person-view";
+import { operationalDate } from "@/lib/admin/operational-date";
+import { duplicateContacts } from "@/lib/admin/workspace";
+import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, LEAD_CANAL_LABELS, LEAD_ORIGEN_LABELS, db, removeById, uid, upsert, useCollection, type EventoTipo, type Lead } from "@/lib/admin/store";
+import { cn } from "@/lib/utils";
+import { PERSON_STATUS_LABEL, PERSON_STATUS_TONE } from "@/lib/admin/person-status";
+import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 
 /*
-  Expediente del lead: datos, pipeline, asignación, notas con historial y
-  agenda vinculada. Es la vista de trabajo diario del asesor.
+  Ficha del prospecto (SIM-07, 11/11/2026). Arriba, quién es y cómo contactarlo; después el
+  «Siguiente paso» con la única acción principal (continuar su entrevista o preparar la operación);
+  la línea de tiempo con la nota de la llamada, las citas y las tareas; y a la derecha sus datos y
+  su seguimiento. La etapa se elige entre tres (DEC-46); convertir y eliminar van en «Más opciones».
+  No cambian los datos ni las reglas: la nota conserva su versión al refrescar, las capturas a
+  medias bloquean convertir y abrir la operación, y un prospecto convertido conserva su historial.
 */
-export default function LeadDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   return <LeadDetail key={id} id={id} />;
 }
 
 function LeadDetail({ id }: { id: string }) {
   const router = useRouter();
-  const leads = useCollection(db.leads);
-  const asesores = useCollection(db.asesores);
-  const propiedades = useCollection(db.propiedades);
-  const eventos = useCollection(db.eventos);
+  const leads = useCollection(db.leads), asesores = useCollection(db.asesores), propiedades = useCollection(db.propiedades), eventos = useCollection(db.eventos), tareas = useCollection(db.tareas);
+  const personStatus = usePersonStatus();
   const [profileDraft, setProfileDraft] = React.useState<Lead | null>(null);
   const [noteDirty, setNoteDirty] = React.useState(false);
+  const [agendaOpen, setAgendaOpen] = React.useState(false);
   const [agendaDirty, setAgendaDirty] = React.useState(false);
-  const [noteDraft, setNoteDraft] = React.useState<{
-    lead: Lead;
-    version: number | null;
-  } | null>(null);
+  const [contactDirty, setContactDirty] = React.useState(false);
+  const [noteDraft, setNoteDraft] = React.useState<{ lead: Lead; version: number | null } | null>(null);
+  const interview = useInterview({ leadId: id });
+  const today = operationalDate();
 
-  const lead = leads.find((l) => l.id === id) ?? noteDraft?.lead ?? profileDraft;
+  const lead = leads.find(l => l.id === id) ?? noteDraft?.lead ?? profileDraft;
+  if (!lead) return <Surface className={s.page}>
+    <h1 className={s.name}>Prospecto no encontrado</h1>
+    <p className={s.muted}>Este prospecto no existe o se eliminó.</p>
+    <span><ButtonLink href="/admin/contactos">Volver a Contactos</ButtonLink></span>
+  </Surface>;
 
-  if (!lead) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Prospecto no encontrado." />
-        <EmptyState title="Este prospecto no existe o se eliminó." />
-        <Link href="/admin/contactos" className={btnGhost}>
-          Volver a Contactos
-        </Link>
-      </div>
-    );
-  }
+  const busy = !!profileDraft || noteDirty || agendaDirty || contactDirty;
+  const propiedad = propiedades.find(p => p.slug === lead.propiedadSlug);
+  const stage = leadStage(lead.estado);
+  const seller = lead.perfil?.operacion === "vender" || lead.perfil?.operacion === "arrendar";
+  // COR-18: quien compra, renta o invierte no abre operación; su acción principal es registrar el contacto.
+  const buyer = ["comprar", "rentar", "invertir"].includes(lead.perfil?.operacion ?? "");
+  const active = !lead.clienteId && stage !== "descartado" && stage !== "cerrado";
+  const duplicates = duplicateContacts(lead, leads);
+  const step = lead.clienteId ? null : nextStep(lead, "lead", tareas, eventos, today);
+  const { upcoming, past } = personTimeline({
+    notes: lead.notas, events: eventos.filter(e => e.leadId === lead.id), tasks: tareas.filter(t => t.leadId === lead.id), today,
+    records: [
+      { id: "llegada", text: lead.canal ? `Llegó por ${LEAD_CANAL_LABELS[lead.canal]}` : `Llegó: ${LEAD_ORIGEN_LABELS[lead.origen] ?? lead.origen}`, at: lead.creadoEl },
+      { id: "contacto", text: "Primer contacto", at: lead.firstContactedAt },
+      { id: "cliente", text: "Pasó a ser cliente", at: lead.convertidoEl },
+    ],
+  });
+  const operationUrl = `/admin/operaciones/nueva?${new URLSearchParams({ ...(lead.clienteId ? { clienteId: lead.clienteId } : { leadId: lead.id }), ...(lead.perfil?.operacion ? { intencion: lead.perfil.operacion } : {}) })}`;
+  const linkQuery = new URLSearchParams({ leadId: lead.id, ...(lead.propiedadSlug ? { propiedadSlug: lead.propiedadSlug } : {}) });
 
-  const propiedad = propiedades.find((p) => p.slug === lead.propiedadSlug);
-  const eventosDelLead = eventos
-    .filter((e) => e.leadId === lead.id)
-    .sort((a, b) =>
-      (a.fecha + (a.hora ?? "")).localeCompare(b.fecha + (b.hora ?? "")),
-    );
-
-  async function agregarNota(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function agregarNota(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (!lead) return;
-    const form = e.currentTarget;
+    const form = event.currentTarget;
     const texto = String(new FormData(form).get("nota") ?? "").trim();
     if (!texto) return;
     const base = noteDraft?.lead ?? lead;
-    await upsert(
-      db.leads,
-      {
-        ...base,
-        notas: [
-          { id: uid(), texto, fecha: new Date().toISOString() },
-          ...base.notas,
-        ],
-      },
-      noteDraft ? noteDraft.version : db.leads.version(base),
-    );
-    form.reset();
-    setNoteDraft(null);
-    setNoteDirty(false);
+    await upsert(db.leads, { ...base, notas: [{ id: uid(), texto, fecha: new Date().toISOString() }, ...base.notas] }, noteDraft ? noteDraft.version : db.leads.version(base));
+    form.reset(); setNoteDraft(null); setNoteDirty(false);
   }
-
-  async function agendar(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function agendar(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (!lead) return;
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    await upsert(
-      db.eventos,
-      {
-        id: uid(),
-        titulo: String(data.get("titulo") ?? ""),
-        fecha: String(data.get("fecha") ?? ""),
-        hora: String(data.get("hora") ?? "") || undefined,
-        tipo: String(data.get("tipo") ?? "llamada") as EventoTipo,
-        leadId: lead.id,
-        propiedadSlug: lead.propiedadSlug,
-      },
-      null,
-    );
-    form.reset();
-    setAgendaDirty(false);
+    const form = event.currentTarget, data = new FormData(form);
+    await upsert(db.eventos, { id: uid(), titulo: String(data.get("titulo") ?? ""), fecha: String(data.get("fecha") ?? ""), hora: String(data.get("hora") ?? "") || undefined, tipo: String(data.get("tipo") ?? "llamada") as EventoTipo, leadId: lead.id, propiedadSlug: lead.propiedadSlug }, null);
+    form.reset(); setAgendaDirty(false); setAgendaOpen(false);
   }
-
-  async function eliminar() {
-    if (!lead) return;
-    if (await confirmAction(`¿Eliminar al prospecto "${lead.nombre}" y su historial?`)) {
+  // COR-10: con su registro de cliente, la condición la da la firma; si firmó con un cliente de Fortius, es contraparte.
+  const condition = personStatus.ofLead(lead);
+  const menu: MenuItem[] = lead.clienteId ? [] : [
+    { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
+      if (!await confirmAction(`¿Eliminar al prospecto "${lead.nombre}" y su historial?`)) return;
       await removeById(db.leads, lead.id, db.leads.version(lead));
       router.push("/admin/contactos");
-    }
-  }
+    } },
+  ];
+  const prepare = busy ? <Button variant="primary" disabled>Abrir operación</Button> : <ButtonLink variant="primary" href={operationUrl}>Abrir operación<ArrowRight size={18} aria-hidden="true" /></ButtonLink>;
+  const draft = interview.current?.estado === "borrador" ? interview.current : null;
 
-  return (
-    <div className="space-y-6">
-      <Link
-        href="/admin/contactos"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" strokeWidth={1.5} /> Volver a Contactos
-      </Link>
+  return <Surface className={s.page}>
+    <PersonHeader back={{ href: "/admin/contactos", label: "Volver a Contactos" }} name={lead.nombre} phone={lead.telefono} email={lead.email} menu={menu}
+      stage={condition && condition !== "prospecto" ? <Pill size="sm" tone={PERSON_STATUS_TONE[condition]}>{PERSON_STATUS_LABEL[condition]}</Pill> : <Pill size="sm" tone={stage === "descartado" || stage === "cerrado" ? "muted" : stage === "nuevo" ? "brand" : "info"}>{LEAD_STAGE_LABELS[stage]}</Pill>}
+      sub={<span>Prospecto · llegó el {humanDay(lead.creadoEl)}</span>} />
 
-      <InterviewAccess leadId={id} clienteId={lead.clienteId} intencion={lead.perfil?.operacion} disabled={!!profileDraft || noteDirty || agendaDirty}/>
-      <RelatedWork leadId={id}/>
-      <PageHeader
-        title={lead.nombre}
-        description={`${LEAD_ORIGEN_LABELS[lead.origen]}${lead.canal ? ` · llegó por ${LEAD_CANAL_LABELS[lead.canal].toLowerCase()}` : ""} · recibido el ${fechaCorta(lead.creadoEl)}`}
-        actions={
-          <>
-            <ConvertLeadButton lead={lead} openOperation disabled={!!profileDraft || noteDirty || agendaDirty} />
-            <ConvertLeadButton lead={lead} compact disabled={!!profileDraft || noteDirty || agendaDirty} />
-            {!lead.clienteId ? <AsyncButton type="button" onClick={eliminar} className={btnDanger}>
-              <Trash2 className="size-3.5" strokeWidth={1.5} /> Eliminar
-            </AsyncButton> : null}
-          </>
-        }
-      />
+    {busy && <p role="status" className={s.muted}>Guarda o cancela los cambios pendientes antes de abrir su operación.</p>}
+    {lead.clienteId && <p className={s.muted}>Ya es cliente. Esta ficha conserva su historial y su agenda como prospecto.</p>}
+    {duplicates.length > 0 && <Notice title="Puede estar repetido">Revisa antes de crear otro registro: {duplicates.map((d, i) => <React.Fragment key={d.id}>{i > 0 && ", "}<Link className="font-semibold underline" href={`/admin/leads/${encodeURIComponent(d.id)}`}>{d.nombre}</Link></React.Fragment>)}.</Notice>}
 
-      {profileDraft || noteDirty || agendaDirty ? <p role="status" className="text-sm text-muted-foreground">Guarda o cancela los cambios pendientes antes de convertirlo en cliente.</p> : null}
-      {lead.clienteId ? <p className="text-sm text-muted-foreground">Ya es cliente. Esta ficha conserva su historial y su agenda como prospecto.</p> : null}
+    <NextStepCard step={step} today={today} fallback={lead.clienteId ? "Su seguimiento continúa en su ficha de cliente." : draft ? "Terminar su entrevista inicial" : stage === "descartado" || stage === "cerrado" ? "Sin seguimiento: está descartado." : "Sin siguiente paso con fecha. Agenda una llamada o una tarea."}>
+      {!lead.clienteId && !buyer && !lead.firstContactedAt && <AsyncButton className={cn("inline-flex min-h-11 items-center rounded-[10px] border px-4 text-[.9375rem] font-[560]", s.onNavy)} onClick={async () => { await upsert(db.leads, { ...lead, firstContactedAt: new Date().toISOString(), estado: lead.estado === "nuevo" ? "contactado" : lead.estado }, db.leads.version(lead)); }}>Ya hablé con esta persona</AsyncButton>}
+      {lead.clienteId && <ButtonLink className={s.onNavy} href={`/admin/clientes/${encodeURIComponent(lead.clienteId)}`}>Ver cliente</ButtonLink>}
+      {interview.current?.estado === "completada" && <ButtonLink className={s.onNavy} href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.current.id)}`}>Ver entrevista</ButtonLink>}
+      {draft ? (busy ? <Button variant="primary" disabled>Continuar entrevista</Button> : <ButtonLink variant="primary" href={`/admin/operaciones/nueva?entrevista=${encodeURIComponent(draft.id)}`}>Continuar entrevista<ArrowRight size={18} aria-hidden="true" /></ButtonLink>) : buyer && active ? <Button variant="primary" onClick={() => { const target = document.querySelector<HTMLElement>("#registrar-contacto button"); target?.scrollIntoView({ block: "center" }); target?.focus(); }}>Registrar contacto</Button> : buyer && !lead.clienteId ? null : prepare}
+    </NextStepCard>
+    {interview.error && <p className={s.small}>No se pudo consultar su entrevista. <button type="button" className="font-semibold underline" onClick={interview.reload}>Reintentar</button></p>}
 
-      <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
+    <div className={s.grid}>
+      <div className={s.col}>
+        <PersonCard id="ficha-seguimiento" title="Seguimiento" action={<span className="flex flex-wrap gap-2">
+          <Button aria-expanded={agendaOpen} onClick={() => setAgendaOpen(open => !open)}><CalendarPlus size={16} aria-hidden="true" />Agendar</Button>
+          <ButtonLink href={`/admin/agenda?tab=tareas&nueva=1&${linkQuery}`}>Nueva tarea</ButtonLink>
+        </span>}>
+          <Timeline upcoming={upcoming} past={past} empty="Todavía no hay nada registrado.">
+            {active && <ContactLog lead={lead} today={today} onDirtyChange={setContactDirty} />}
+            <AsyncForm onSubmit={agregarNota} className={s.compose}>
+              <label htmlFor="nueva-nota" className="sr-only">Nueva nota</label>
+              <textarea id="nueva-nota" name="nota" rows={2} required placeholder="Qué se habló, qué sigue, compromisos…" className={textareaClass}
+                onFocus={() => { if (!noteDraft) setNoteDraft({ lead, version: db.leads.version(lead) }); }}
+                onChange={event => { setNoteDirty(event.target.value.trim().length > 0); if (!noteDraft) setNoteDraft({ lead, version: db.leads.version(lead) }); }} />
+              <div className={s.composeFoot}><Button type="submit">Agregar nota</Button></div>
+            </AsyncForm>
+            {/* La cita solo se oculta al cerrarla, para no perder lo escrito. */}
+            <AsyncForm hidden={!agendaOpen} onSubmit={agendar} aria-label="Agendar con este prospecto" className={cn(s.inlineForm, !agendaOpen && "hidden")}
+              onChange={event => { const data = new FormData(event.currentTarget); setAgendaDirty(["titulo", "fecha", "hora"].some(key => String(data.get(key) ?? "").trim() !== "") || data.get("tipo") !== EVENTO_TIPOS[0]); }}>
+              <Field label="Título" htmlFor="ev-titulo"><input id="ev-titulo" name="titulo" required placeholder="Visita, llamada…" className={inputClass} /></Field>
+              <Field label="Fecha" htmlFor="ev-fecha"><input id="ev-fecha" name="fecha" type="date" required className={inputClass} /></Field>
+              <Field label="Hora" htmlFor="ev-hora"><input id="ev-hora" name="hora" type="time" className={inputClass} /></Field>
+              <Field label="Tipo" htmlFor="ev-tipo"><select id="ev-tipo" name="tipo" className={selectClass}>{EVENTO_TIPOS.map(tipo => <option key={tipo} value={tipo}>{EVENTO_TIPO_LABELS[tipo]}</option>)}</select></Field>
+              <div className={s.inlineFoot}>
+                <Button type="submit">Guardar cita</Button>
+                <Button variant="ghost" onClick={event => { event.currentTarget.form?.reset(); setAgendaDirty(false); setAgendaOpen(false); }}>Cancelar</Button>
+              </div>
+            </AsyncForm>
+          </Timeline>
+        </PersonCard>
 
-      {!lead.clienteId && lead.estado !== "descartado" && lead.estado !== "cerrado" ? <MatchingProperties seeker={{ id: lead.id, kind: "lead", nombre: lead.nombre, telefono: lead.telefono, email: lead.email, zona: lead.zona, tipoPropiedad: lead.tipoPropiedad, perfil: lead.perfil, asesorId: lead.asesorId, href: `/admin/leads/${encodeURIComponent(lead.id)}` }} /> : null}
-
-      {/* Pipeline */}
-      <div
-        className="flex flex-wrap gap-1.5"
-        role="group"
-        aria-label="Estado del prospecto"
-      >
-        {LEAD_ESTADOS.map((estado) => (
-          <AsyncButton
-            key={estado}
-            type="button"
-            aria-pressed={lead.estado === estado}
-            onClick={async () =>
-              await upsert(
-                db.leads,
-                { ...lead, estado: estado as LeadEstado },
-                db.leads.version(lead),
-              )
-            }
-            className={
-              "inline-flex h-9 items-center rounded-md border px-3.5 text-sm font-medium transition-colors " +
-              (lead.estado === estado
-                ? "border-primary/50 bg-primary/10 text-primary-ink"
-                : "border-border text-foreground/70 hover:bg-secondary")
-            }
-          >
-            {LEAD_ESTADO_LABELS[estado]}
-          </AsyncButton>
-        ))}
+        <LeadProfileEditor key={lead.id} lead={lead} readOnly={!!lead.clienteId} onDraftChange={setProfileDraft} />
+        {active && <MatchingProperties seeker={{ id: lead.id, kind: "lead", nombre: lead.nombre, telefono: lead.telefono, email: lead.email, zona: lead.zona, tipoPropiedad: lead.tipoPropiedad, perfil: lead.perfil, asesorId: lead.asesorId, href: `/admin/leads/${encodeURIComponent(lead.id)}` }} />}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
-        {/* Columna principal: notas */}
-        <div className="space-y-6">
-          <section className="rounded-lg border border-border bg-card p-5">
-            <h2 className="display-soft text-lg text-foreground">
-              Notas de seguimiento
-            </h2>
-            <AsyncForm onSubmit={agregarNota} className="mt-4">
-              <label htmlFor="nueva-nota" className="sr-only">
-                Nueva nota
-              </label>
-              <textarea
-                id="nueva-nota"
-                name="nota"
-                onFocus={() => {
-                  if (!noteDraft)
-                    setNoteDraft({ lead, version: db.leads.version(lead) });
-                }}
-                onChange={(event) => {
-                  setNoteDirty(event.target.value.trim().length > 0);
-                  if (!noteDraft)
-                    setNoteDraft({ lead, version: db.leads.version(lead) });
-                }}
-                rows={3}
-                required
-                placeholder="Qué se habló, qué sigue, compromisos…"
-                className={textareaClass}
-              />
-              <button type="submit" className={btnPrimary + " mt-3"}>
-                Agregar nota
-              </button>
-            </AsyncForm>
+      <aside className={s.col}>
+        <PersonCard id="ficha-contacto" title="Contacto">
+          <dl className={s.facts}>
+            <div><dt>Teléfono</dt><dd>{lead.telefono || "Sin teléfono"}</dd></div>
+            {lead.email && <div><dt>Correo electrónico</dt><dd>{lead.email}</dd></div>}
+            {lead.zona && <div><dt>{seller ? "Ubicación" : "Zona de interés"}</dt><dd>{lead.zona}</dd></div>}
+            {lead.tipoPropiedad && <div><dt>Tipo de inmueble</dt><dd>{lead.tipoPropiedad[0].toUpperCase() + lead.tipoPropiedad.slice(1)}</dd></div>}
+          </dl>
+          {lead.mensaje && <p className={s.quote}>«{lead.mensaje}»</p>}
+        </PersonCard>
 
-            {lead.notas.length > 0 ? (
-              <ol className="mt-6 space-y-4 border-t border-border pt-5">
-                {lead.notas.map((nota) => (
-                  <li
-                    key={nota.id}
-                    className="rounded-md bg-secondary/50 p-3.5"
-                  >
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-                      {nota.texto}
-                    </p>
-                    <p className="mt-2 font-mono text-xs text-muted-foreground">
-                      {fechaCorta(nota.fecha)}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className="mt-5 text-sm text-muted-foreground">
-                Sin notas aún. La primera llamada siempre deja una.
-              </p>
-            )}
-          </section>
-
-          {/* Agenda del lead */}
-          <section className="rounded-lg border border-border bg-card p-5">
-            <h2 className="display-soft text-lg text-foreground">
-              Agenda del lead
-            </h2>
-            <AsyncForm
-              onSubmit={agendar}
-              onChange={(event) => {
-                const data = new FormData(event.currentTarget);
-                setAgendaDirty(["titulo", "fecha", "hora"].some(key => String(data.get(key) ?? "").trim() !== "") || data.get("tipo") !== EVENTO_TIPOS[0]);
-              }}
-              className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-            >
-              <Field label="Título" htmlFor="ev-titulo">
-                <input
-                  id="ev-titulo"
-                  name="titulo"
-                  required
-                  placeholder="Visita, llamada…"
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Fecha" htmlFor="ev-fecha">
-                <input
-                  id="ev-fecha"
-                  name="fecha"
-                  type="date"
-                  required
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Hora" htmlFor="ev-hora">
-                <input
-                  id="ev-hora"
-                  name="hora"
-                  type="time"
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Tipo" htmlFor="ev-tipo">
-                <select id="ev-tipo" name="tipo" className={selectClass}>
-                  {EVENTO_TIPOS.map((t) => (
-                    <option key={t} value={t}>
-                      {EVENTO_TIPO_LABELS[t]}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  className={btnPrimary + " h-10 w-full"}
-                  aria-label="Agendar evento"
-                >
-                  <CalendarPlus className="size-4" strokeWidth={1.5} />
-                </button>
-              </div>
-              {agendaDirty ? <button type="button" className={btnGhost} onClick={(event) => {
-                event.currentTarget.form?.reset();
-                setAgendaDirty(false);
-              }}>Cancelar cita</button> : null}
-            </AsyncForm>
-
-            {eventosDelLead.length > 0 ? (
-              <ul className="mt-5 divide-y divide-border border-t border-border">
-                {eventosDelLead.map((evento) => (
-                  <li
-                    key={evento.id}
-                    className="flex items-center justify-between gap-4 py-3"
-                  >
-                    <div className="flex min-w-0 items-baseline gap-3">
-                      <span className="shrink-0 font-mono text-xs text-primary-ink">
-                        {evento.fecha.slice(8, 10)}/{evento.fecha.slice(5, 7)}
-                        {evento.hora ? ` ${evento.hora}` : ""}
-                      </span>
-                      <p className="truncate text-sm text-foreground">
-                        {evento.titulo}
-                      </p>
-                      <Badge>{EVENTO_TIPO_LABELS[evento.tipo]}</Badge>
-                    </div>
-                    <AsyncButton
-                      type="button"
-                      aria-label={`Eliminar evento ${evento.titulo}`}
-                      onClick={async () =>
-                        await removeById(
-                          db.eventos,
-                          evento.id,
-                          db.eventos.version(evento),
-                        )
-                      }
-                      className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
-                    >
-                      <Trash2 className="size-3.5" strokeWidth={1.5} />
-                    </AsyncButton>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </section>
-        </div>
-
-        {/* Lateral: datos + asignación */}
-        <aside className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
-          <section className="rounded-lg border border-border bg-card p-5">
-            <h2 className="display-soft text-lg text-foreground">Datos</h2>
-            <dl className="mt-4 space-y-3 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Teléfono</dt>
-                <dd className="font-mono text-sm text-foreground">
-                  {lead.telefono}
-                </dd>
-              </div>
-              {lead.email ? <div><dt className="text-muted-foreground">Correo electrónico</dt><dd className="mt-1 break-all">{lead.email}</dd></div> : null}
-              {lead.zona ? (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">{lead.perfil?.operacion === "vender" || lead.perfil?.operacion === "arrendar" ? "Ubicación" : "Zona de interés"}</dt>
-                  <dd className="text-foreground">{lead.zona}</dd>
-                </div>
-              ) : null}
-              {lead.tipoPropiedad ? (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Tipo</dt>
-                  <dd className="text-foreground">{lead.tipoPropiedad}</dd>
-                </div>
-              ) : null}
-              {lead.mensaje ? (
-                <div>
-                  <dt className="text-muted-foreground">Mensaje</dt>
-                  <dd className="mt-1 rounded-md bg-secondary/50 p-3 text-sm leading-relaxed text-foreground/90">
-                    {lead.mensaje}
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-          </section>
-
-          <section className="rounded-lg border border-border bg-card p-5">
-            <h2 className="display-soft text-lg text-foreground">Asignación</h2>
-            <div className="mt-4 space-y-4">
-              <Field label="Asesor responsable" htmlFor="lead-asesor" hint={lead.clienteId ? "Reasigna al asesor desde Clientes; el historial se conserva con el mismo responsable." : undefined}>
-                <AsyncSelect
-                  id="lead-asesor"
-                  disabled={!!lead.clienteId}
-                  value={lead.asesorId ?? ""}
-                  onChange={async (value) =>
-                    await upsert(
-                      db.leads,
-                      { ...lead, asesorId: value || undefined },
-                      db.leads.version(lead),
-                    )
-                  }
-                  className={selectClass}
-                >
-                  <option value="">Sin asignar</option>
-                  {asesores
-                    .filter((a) => a.activo)
-                    .map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.nombre}
-                      </option>
-                    ))}
-                </AsyncSelect>
-              </Field>
-              <Field label="Propiedad vinculada" htmlFor="lead-propiedad">
-                <AsyncSelect
-                  id="lead-propiedad"
-                  value={lead.propiedadSlug ?? ""}
-                  onChange={async (value) =>
-                    await upsert(
-                      db.leads,
-                      { ...lead, propiedadSlug: value || undefined },
-                      db.leads.version(lead),
-                    )
-                  }
-                  className={selectClass}
-                >
-                  <option value="">Ninguna</option>
-                  {propiedades.map((p) => (
-                    <option key={p.slug} value={p.slug}>
-                      {p.codigo} · {p.titulo}
-                    </option>
-                  ))}
-                </AsyncSelect>
-              </Field>
-              {propiedad ? (
-                <Link
-                  href={`/inventario/${propiedad.slug}`}
-                  target="_blank"
-                  className="block text-sm font-medium text-primary-ink hover:text-foreground"
-                >
-                  Ver {propiedad.codigo} en el sitio →
-                </Link>
-              ) : null}
-            </div>
-          </section>
-        </aside>
-      </div>
+        <PersonCard id="ficha-asignacion" title="Etapa y responsable">
+          <Field label="Etapa" htmlFor="lead-etapa" hint={lead.clienteId ? "Ya es cliente." : undefined}>
+            <AsyncSelect id="lead-etapa" disabled={!!lead.clienteId} value={stage} className={selectClass}
+              onChange={async value => { await upsert(db.leads, { ...lead, estado: estadoForStage(value as LeadStage, lead.estado) }, db.leads.version(lead)); }}>
+              {LEAD_STAGE_CHOICES.map(choice => <option key={choice} value={choice}>{LEAD_STAGE_LABELS[choice]}</option>)}
+              {stage === "cerrado" && <option value="cerrado" disabled>Cerrado</option>}
+            </AsyncSelect>
+          </Field>
+          <Field label="Asesor responsable" htmlFor="lead-asesor" hint={lead.clienteId ? "Se reasigna desde su ficha de cliente." : undefined}>
+            <AsyncSelect id="lead-asesor" disabled={!!lead.clienteId} value={lead.asesorId ?? ""} className={selectClass}
+              onChange={async value => { await upsert(db.leads, { ...lead, asesorId: value || undefined }, db.leads.version(lead)); }}>
+              <option value="">Sin asignar</option>
+              {asesores.filter(a => a.activo).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+            </AsyncSelect>
+          </Field>
+          <Field label={seller ? "Su inmueble" : "Inmueble que le interesa"} htmlFor="lead-propiedad">
+            <AsyncSelect id="lead-propiedad" value={lead.propiedadSlug ?? ""} className={selectClass}
+              onChange={async value => { await upsert(db.leads, { ...lead, propiedadSlug: value || undefined }, db.leads.version(lead)); }}>
+              <option value="">Ninguno</option>
+              {propiedades.map(p => <option key={p.slug} value={p.slug}>{p.titulo}</option>)}
+            </AsyncSelect>
+          </Field>
+          {propiedad && <Link href={`/admin/propiedades/${encodeURIComponent(propiedad.slug)}/editar`} className={s.textLink}>Abrir {propiedad.titulo}</Link>}
+        </PersonCard>
+      </aside>
     </div>
-  );
+  </Surface>;
 }

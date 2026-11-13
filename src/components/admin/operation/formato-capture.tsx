@@ -14,7 +14,7 @@ import { emiteIncompleto, formatoById, validateFormato } from "@/lib/formatos/ca
 import { calcularPresupuesto } from "@/lib/formatos/presupuesto";
 import { calcularNeto } from "@/lib/formatos/neto";
 import { formatAmount } from "@/lib/finance/money";
-import { cn } from "@/lib/utils";
+import { cn, humanDateTime } from "@/lib/utils";
 import type { Documento } from "./documents-tab";
 import { FormatoImages, WITH_IMAGES, type Adjunto } from "./formato-images";
 import { DocumentoEnVivo, EN_VIVO } from "./documento-en-vivo";
@@ -196,7 +196,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 sm:px-7">
         <div role="tablist" aria-label="Partes del documento" className="flex">
           <button type="button" role="tab" aria-selected={view === "captura"} className={s.windowTab} onClick={() => setView("captura")}><FileText size={16} aria-hidden="true" />{live ? "Documento" : "Captura"}</button>
-          <button type="button" role="tab" aria-selected={view === "pdf"} className={s.windowTab} onClick={() => setView("pdf")}><FileDown size={16} aria-hidden="true" />PDF y copias firmadas{emisiones && emisiones.length > 0 && <span className="font-mono text-xs">{emisiones.length}</span>}</button>
+          <button type="button" role="tab" aria-selected={view === "pdf"} className={s.windowTab} onClick={() => setView("pdf")}><FileDown size={16} aria-hidden="true" />PDF y copias firmadas{emisiones && emisiones.length > 0 && <span className="tabular-nums text-xs">{emisiones.length}</span>}</button>
         </div>
         <p className="py-2 text-sm text-muted-foreground">{definition.id === "07" ? "El PDF se descarga aunque falten datos." : missing.length ? `Faltan ${missing.length} ${missing.length === 1 ? "dato" : "datos"}${emiteIncompleto(definition.id) ? "; el PDF sale como incompleto" : " para el PDF"}` : "Captura completa"}</p>
       </div>
@@ -253,7 +253,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
               {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
               <div className="flex items-center justify-between gap-3 border-t border-border pt-5">
                 {index > 0 ? <Button variant="ghost" disabled={!!busy} onClick={() => go(index - 1)}><ArrowLeft size={16} aria-hidden="true" />Anterior</Button> : <span />}
-                <span className="font-mono text-xs text-muted-foreground">{index + 1} de {sections.length}</span>
+                <span className="tabular-nums text-xs text-muted-foreground">{index + 1} de {sections.length}</span>
                 {!last ? <Button disabled={!!busy} onClick={() => go(index + 1)}>Siguiente<ArrowRight size={16} aria-hidden="true" /></Button> : <span />}
               </div>
             </div>
@@ -264,7 +264,7 @@ export function FormatoCapture({ document: initial, folio, context, onSaved, onE
               {context.cliente && <div><dt className={s.asideLabel}>Cliente</dt><dd className="m-0">{context.cliente}</dd></div>}
               <div><dt className={s.asideLabel}>Inmueble</dt><dd className="m-0">{context.inmueble ?? "Sin inmueble vinculado"}</dd></div>
               {context.etapa && <div><dt className={s.asideLabel}>Etapa</dt><dd className="m-0">{context.etapa}</dd></div>}
-              <div><dt className={s.asideLabel}>Folio</dt><dd className="m-0 font-mono">{folio}</dd></div>
+              <div><dt className={s.asideLabel}>Folio</dt><dd className="m-0 tabular-nums">{folio}</dd></div>
               <div><dt className={s.asideLabel}>Versión</dt><dd className="m-0">Versión {doc.version} · {shortDate(doc.updated_at)}</dd></div>
             </dl>
             <p className="border-t border-border pt-4 text-xs text-muted-foreground">El panel guarda lo que capturas. Generar el archivo no sustituye la revisión del profesional responsable.</p>
@@ -310,9 +310,9 @@ function Emissions({ emisiones, current, disabled }: { emisiones: Emision[] | nu
     <ul className="flex flex-col gap-3">{emisiones.map(item => <li key={item.id} className="flex flex-col gap-3 rounded-[12px] border border-border p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-semibold">PDF de la versión {item.draft_version}{item.id === current?.id ? " · la actual" : ""}</span>
-        <a className="text-sm font-semibold underline underline-offset-4" href={`/api/admin/emisiones/${item.id}/descargar`}>Descargar · {new Date(item.created_at).toLocaleString("es-MX")}</a>
+        <a className="text-sm font-semibold underline underline-offset-4" href={`/api/admin/emisiones/${item.id}/descargar`}>Descargar · {humanDateTime(item.created_at)}</a>
       </div>
-      {(copias[item.id] ?? []).map(copy => <a key={copy.id} className="text-sm underline underline-offset-4" href={`/api/admin/copias-firmadas/${copy.id}/descargar`}>Copia firmada · {new Date(copy.created_at).toLocaleString("es-MX")}</a>)}
+      {(copias[item.id] ?? []).map(copy => <a key={copy.id} className="text-sm underline underline-offset-4" href={`/api/admin/copias-firmadas/${copy.id}/descargar`}>Copia firmada · {humanDateTime(copy.created_at)}</a>)}
       <form onSubmit={event => void upload(item.id, event)} className="flex flex-wrap items-end gap-2">
         <label className="min-w-0 flex-1 text-sm">Agregar la copia firmada (PDF)<input name="archivo" type="file" accept="application/pdf,.pdf" required disabled={disabled} className={inputClass} /></label>
         <Button type="submit" disabled={disabled}>Guardar copia firmada</Button>

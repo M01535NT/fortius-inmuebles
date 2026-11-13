@@ -42,7 +42,7 @@ describe("Documentos sin expediente", () => {
   beforeEach(() => requireStaff.mockReset());
 
   it("aparece en Herramientas con los formatos elegidos", () => {
-    expect(getApp("documentos")?.title).toBe("Documentos sin expediente");
+    expect(getApp("documentos")?.title).toBe("Documentos sueltos");
     expect([...FORMATOS_INDEPENDIENTES]).toEqual(["06", "07", "08", "09", "10", "12", "14", "15", "19"]);
   });
 

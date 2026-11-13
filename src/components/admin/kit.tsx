@@ -19,7 +19,7 @@ import s from "./kit.module.css";
 type ButtonVariant = "primary" | "secondary" | "ghost" | "link" | "danger" | "dangerSolid";
 type ButtonProps = { variant?: ButtonVariant; size?: "md" | "lg"; iconOnly?: boolean; className?: string };
 
-function buttonClass({ variant = "secondary", size = "md", iconOnly = false, className }: ButtonProps) {
+export function buttonClass({ variant = "secondary", size = "md", iconOnly = false, className }: ButtonProps) {
   return cn(s.btn, s[variant], size === "lg" && s.lg, iconOnly && s.iconOnly, className);
 }
 
@@ -118,13 +118,13 @@ export function StageProgress({ stages, current, notes, warnings, selectable, on
 }) {
   const total = stages.length;
   if (compact) return <div className="flex flex-col gap-2">
-    <p className="flex justify-between gap-3 text-[0.9375rem]"><span className="font-semibold">{stages[current - 1]}</span><span className="font-mono text-sm text-muted-foreground">Etapa {current} de {total}</span></p>
+    <p className="flex justify-between gap-3 text-[0.9375rem]"><span className="font-semibold">{stages[current - 1]}</span><span className="tabular-nums text-sm text-muted-foreground">Etapa {current} de {total}</span></p>
     <ProgressBar value={current} max={total} label={`Etapa ${current} de ${total}`} />
   </div>;
   return <ol aria-label="Avance de la operación" className="grid gap-2" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}>
     {stages.map((name, i) => {
       const n = i + 1, done = n < current, here = n === current, warning = done ? warnings?.[n] : undefined;
-      const label = <span className="flex min-w-0 items-baseline gap-1.5"><span className="font-mono text-xs text-muted-foreground">{n}</span><span className={cn(s.stepName, "text-sm leading-snug", here ? "font-bold" : "font-medium text-muted-foreground")}>{name}</span></span>;
+      const label = <span className="flex min-w-0 items-baseline gap-1.5"><span className="tabular-nums text-xs text-muted-foreground">{n}</span><span className={cn(s.stepName, "text-sm leading-snug", here ? "font-bold" : "font-medium text-muted-foreground")}>{name}</span></span>;
       return <li key={name} aria-current={here ? "step" : undefined} className="flex min-w-0 flex-col gap-2">
         <span className={s.stepLine} data-on={done || here} />
         {done && onSelect && selectable?.includes(n) ? <button type="button" className={s.stepButton} onClick={() => onSelect(n)}>{label}<span className="sr-only"> · ver sus documentos</span></button> : label}
@@ -187,12 +187,18 @@ export function Notice({ title, children, tone = "warn", actions, className }: {
   </div>;
 }
 
-export function EmptyBox({ icon, title, children, action }: { icon?: React.ReactNode; title: string; children?: React.ReactNode; action?: React.ReactNode }) {
-  return <div className={s.empty}>{icon}<p className="font-semibold text-foreground">{title}</p>{children && <div className="text-sm">{children}</div>}{action}</div>;
+/** Lista vacía que enseña (C31): qué es la sección, sus primeros pasos y el botón para empezar. */
+export function EmptyBox({ icon, title, children, steps, action }: { icon?: React.ReactNode; title: string; children?: React.ReactNode; steps?: React.ReactNode[]; action?: React.ReactNode }) {
+  return <div className={s.empty}>{icon}<p className="font-semibold text-foreground">{title}</p>{children && <div className="max-w-[52ch] text-sm">{children}</div>}
+    {steps?.length ? <ol className={s.emptySteps} aria-label="Primeros pasos">{steps.map((step, i) => <li key={i}><span aria-hidden="true">{i + 1}</span><span>{step}</span></li>)}</ol> : null}
+    {action}</div>;
 }
 
-/** Panel que se abre a la derecha en computadora y desde abajo en celular. Escape y el velo lo cierran. */
-export function Sheet({ open, onClose, eyebrow, title, description, children, footer }: { open: boolean; onClose: () => void; eyebrow?: string; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode }) {
+/**
+  Panel que se abre a la derecha en computadora y desde abajo en celular. Escape y el velo lo cierran.
+  Con `keepMounted`, cerrado solo se oculta: lo escrito sigue ahí al volver a abrirlo.
+*/
+export function Sheet({ open, onClose, eyebrow, title, description, children, footer, keepMounted }: { open: boolean; onClose: () => void; eyebrow?: string; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode; keepMounted?: boolean }) {
   const panel = React.useRef<HTMLDivElement>(null);
   const titleId = React.useId();
   React.useEffect(() => {
@@ -203,10 +209,10 @@ export function Sheet({ open, onClose, eyebrow, title, description, children, fo
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("keydown", onKey); previous?.focus?.(); };
   }, [open, onClose]);
-  if (!open) return null;
+  if (!open && !keepMounted) return null;
   return <>
-    <button type="button" className={s.scrim} aria-label="Cerrar" tabIndex={-1} onClick={onClose} />
-    <div ref={panel} className={s.sheet} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+    {open && <button type="button" className={s.scrim} aria-label="Cerrar" tabIndex={-1} onClick={onClose} />}
+    <div ref={panel} className={s.sheet} role="dialog" aria-modal="true" aria-labelledby={titleId} hidden={!open}>
       <div className="flex items-start justify-between gap-3 border-b border-border px-5 pb-4 pt-5 sm:px-7 sm:pt-7">
         <div className="flex flex-col gap-1.5">
           {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}

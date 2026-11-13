@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, FileDown, FileText, House, PlayCircle, Trash2 } from "@/components/admin/icons";
+import { ArrowRight, CalendarDays, Check, FileDown, FileText, House, PlayCircle, Plus, Trash2 } from "@/components/admin/icons";
 import Image from "next/image";
 import { Button, ButtonLink, Card, Notice } from "@/components/admin/kit";
 import { TIPO_LABELS, type Property as Propiedad } from "@/data/propiedades";
@@ -9,7 +9,7 @@ import { inputClass, selectClass } from "@/components/admin/ui";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
-import { CANALES_INFORME, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { appraisalState, CANALES_INFORME, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
 import { conditionOf, LAWYER_TASK } from "@/lib/intake/condition";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
@@ -18,12 +18,15 @@ import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levan
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { advanceTarget, contractLocked, flowOf, isGuided, itemCounted, itemDone, missingItems, nowItem, routeStages, stageItems, stageOf, type OperationRecord, type StageItem } from "@/lib/admin/operation-view";
 import { requirementName, shortDate, weekdayDate } from "@/lib/admin/today";
-import { problemOf } from "@/lib/admin/operation-view";
 import { quickReview, RequirementRow, RequirementSheets, StateIcon, type Evidence, type OpenSheet } from "./requirements";
 import type { DocumentsController } from "./use-documents";
 import type { Documento } from "./documents-tab";
 import type { ArchivoCliente } from "./client-documents-tab";
 import { saveError } from "./use-operation";
+import { ContractSignatureCard } from "./contract-signature";
+import { OwnerAppraisalCard } from "./owner-appraisal";
+import { CloseCard } from "./close-card";
+import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
@@ -109,6 +112,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   }
   function goToPending(item: Extract<StageItem, { kind: "pendiente" }>) {
     if (item.place === "ajustes") onGoTo("ajustes");
+    else if (item.place === "firma" || item.place === "cierre") { const card = document.getElementById(item.place === "firma" ? "firma-contrato" : "cierre-operacion"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("button")?.focus(); }
     else if (item.place === "tarea") { const card = document.getElementById("proxima-tarea"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("input, button")?.focus(); }
     else void docs.start(item.text.includes("(02)") ? "02" : "04", survey);
   }
@@ -170,7 +174,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       const name = requirementName(now.key, flow.ruta);
       const held = lock || (locked && CONTRACT_KEYS.includes(now.key));
       if (now.state === "observado") {
-        title = `Resolver: ${name}`; text = problemOf(flow.requisitos[now.key]).title;
+        title = `Resolver: ${name}`; text = "";
         action = <><Button disabled={held} onClick={() => setSheet({ key: now.key, kind: "observado" })}>Escribir qué pasó</Button><Button variant="primary" disabled={held} onClick={() => quick(now.key, "recibido")}>Ya se resolvió</Button></>;
       } else {
         title = `Confirmar: ${name}`; text = now.state === "recibido" ? "Ya tienes el documento; escribe qué encontraste." : "Su documento ya viene elegido; escribe qué encontraste.";
@@ -188,11 +192,11 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       }
     } else if (now.kind === "decision02") {
       title = now.action === "pausa" ? "La entrevista dice: pausar" : "La entrevista dice: referir";
-      text = now.action === "pausa" ? "Deja la operación en pausa. Se reactiva desde Ajustes." : "Se descarta con el motivo «Referida».";
+      text = now.action === "pausa" ? "Deja la operación en pausa. Se reactiva desde «Más opciones»." : "Se descarta con el motivo «Referida».";
       action = <Button variant="primary" disabled={lock} onClick={() => void applyDecision(now.action)}>{now.action === "pausa" ? "Pausar la operación" : "Referir y descartar"}</Button>;
     } else {
       title = now.text; text = now.why ? now.why.replace(/^./, c => c.toUpperCase()) + "." : "";
-      action = <Button variant="primary" disabled={lock} onClick={() => goToPending(now)}>{now.place === "ajustes" ? "Ir a Ajustes" : now.place === "tarea" ? "Agendar la próxima tarea" : "Hacerlo ahora"}</Button>;
+      action = <Button variant="primary" disabled={lock} onClick={() => goToPending(now)}>{now.place === "ajustes" ? "Abrir los datos" : now.place === "tarea" ? "Agendar la próxima tarea" : now.place === "firma" ? "Ir a la firma" : now.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button>;
     }
     const ratio = counted.length ? done / counted.length : 1;
     const sub = now && target && now.kind !== "abogado" && now.kind !== "decision02" ? (target.target ? `${done} de ${counted.length} para pasar a ${target.label}` : `Con todo listo se abre sola ${target.label}.`) : "";
@@ -241,7 +245,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
         {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
           <StateIcon state="pendiente" done={false} />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="font-semibold">{item.text}</span>{item.why && <span className="text-sm text-muted-foreground">{item.why.replace(/^./, c => c.toUpperCase())}</span>}</div>
-          <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Ir a Ajustes" : item.place === "tarea" ? "Ir a la próxima tarea" : "Hacerlo ahora"}</Button></div>
+          <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Abrir los datos" : item.place === "tarea" ? "Ir a la próxima tarea" : item.place === "firma" ? "Ir a la firma" : item.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button></div>
         </div></li>)}
       </ul>
       <details className={s.meaning}><summary>¿Qué significa cada estado?</summary><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
@@ -254,6 +258,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
 
     {phase === "prospecto" && owner && <div className={cn(s.piece, s.span6)}><FirstContact interview={interview} op={op} disabled={lock} /></div>}
     {owner && interview && (phase === "captacion" || phase === "verificacion" || phase === "contrato") && <div className={s.span6}><Declared op={op} interview={interview} /></div>}
+    {owner && property && !property.publicada && property.estado === "evaluacion" && <div className={s.span6}><WaitingSeekers intent={flow.ruta === "arrendador" ? "rentar" : "comprar"} tipo={property.tipo} zona={`${property.zona} ${property.direccionAproximada}`} /></div>}
+    {flow.ruta === "captacion" && (phase === "verificacion" || appraisalState(flow, today) === "vencido") && <div className={s.span6}><OwnerAppraisalCard op={op} today={today} reviewer={evidence.reviewer} disabled={lock} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
+    {owner && (phase === "contrato" || !!flow.firmaContrato) && <div className={s.span6}><ContractSignatureCard op={op} today={today} disabled={lock || locked} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
+    {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest("09"))} disabled={lock} onSave={onSave} /></div>}
     {owner && ownerReportApplies(stageOf(op), op.flujo ?? flow) && <div className={s.span6}><OwnerReport op={op} today={today} disabled={lock} onSave={onSave} /></div>}
     {owner && (phase === "publicacion" || phase === "visitas") && <div className={s.span6}><VisitsAndOffers op={op} today={today} documents={evidence.documents} /></div>}
     {floatingBar()}
@@ -264,25 +272,30 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
 /** Un documento de la etapa: número grande, nombre y avance. El que toca va resaltado; el que espera a otro, punteado. */
 /**
   La barra flotante publica su alto en `--op-float` para que la página reserve ese espacio al pie
-  y la barra nunca tape lo último de la pantalla (C36).
+  y la barra nunca tape lo último de la pantalla (C36). En el celular oculta la barra inferior (C59).
 */
 function FloatBar({ children }: { children: React.ReactNode }) {
   const ref = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     const el = ref.current, root = document.documentElement;
-    if (!el || typeof ResizeObserver === "undefined") return;
+    // C59: en el celular esta barra sustituye a la barra inferior del panel (una sola barra fija).
+    root.setAttribute("data-op-float", "");
+    if (!el || typeof ResizeObserver === "undefined") return () => root.removeAttribute("data-op-float");
     const observer = new ResizeObserver(() => root.style.setProperty("--op-float", `${Math.ceil(el.getBoundingClientRect().height)}px`));
     observer.observe(el);
-    return () => { observer.disconnect(); root.style.removeProperty("--op-float"); };
+    return () => { observer.disconnect(); root.style.removeProperty("--op-float"); root.removeAttribute("data-op-float"); };
   }, []);
   return <div ref={ref} role="region" aria-label="Siguiente acción" data-tour="operacion-continuar" className={s.float}>{children}</div>;
 }
+
+/** Formatos que se hacen más de una vez en la misma operación: uno por visita, reporte, oferta o presupuesto. */
+const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Registrar otra visita", "14": "Otra propuesta", "19": "Otro presupuesto" };
 
 function DocRow({ item, now, docs, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
   const doc = docs.latest(item.formato), pdf = docs.pdfOf(doc);
   const [code, ...rest] = formatTitle(item.formato, doc).split(" · ");
   const waits = item.formato === "06" && !doc && docs.status("05") !== "terminado";
-  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar el 05" : item.optional ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : "Todavía no empieza";
+  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar el 05" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en esta operación") : "Todavía no empieza";
   return <li className="flex flex-col gap-2">
     <div className={s.docRowWrap}>
       <button type="button" className={cn(s.docRow, waits && s.docRowWait)} data-now={now || undefined} disabled={disabled || waits} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
@@ -291,6 +304,7 @@ function DocRow({ item, now, docs, disabled, survey, surveySelect }: { item: Ext
         {item.status === "terminado" ? <Check size={20} aria-hidden="true" className="shrink-0 text-[var(--primary-text)]" /> : !waits && <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />}
       </button>
       {pdf && <ButtonLink variant="ghost" prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`} aria-label={`PDF de ${rest.join(" · ")}`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
+      {doc && REPEATABLE[item.formato] && <Button variant="ghost" disabled={disabled} onClick={() => void docs.createAndOpen(item.formato)}><Plus size={16} aria-hidden="true" />{REPEATABLE[item.formato]}</Button>}
     </div>
     {now && surveySelect && <div className="px-4">{surveySelect}</div>}
   </li>;

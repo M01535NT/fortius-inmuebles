@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { Building2 } from "@/components/admin/icons";
-import { Pill, Thumb } from "@/components/admin/kit";
-import { lastNotice, priceDroppedSince, propertiesFor, type Seeker } from "@/lib/admin/buyer-matches";
+import { ButtonLink, Pill, Thumb } from "@/components/admin/kit";
+import { lastNotice, priceDroppedSince, propertiesFor, zoneParts, type Seeker } from "@/lib/admin/buyer-matches";
+import { captureHref } from "@/lib/admin/demand";
 import { formatPrecio } from "@/data/propiedades";
 import { db, useCollection } from "@/lib/admin/store";
 import f from "@/components/admin/form.module.css";
@@ -25,6 +26,8 @@ export function MatchingProperties({ seeker }: { seeker: Seeker }) {
         <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{property.titulo}</strong><small className="text-muted-foreground [overflow-wrap:anywhere]">{[formatPrecio(property.precio), ...reasons].join(" · ")}</small></span>
         {priceDroppedSince(property, notice) ? <Pill size="sm" tone="warn">Bajó de precio</Pill> : <Pill size="sm" tone={notice ? "success" : "brand"}>{notice ? "Avisado" : "Por avisar"}</Pill>}
       </Link></li>;
-    })}</ul> : <p className="text-sm text-muted-foreground">Cuando se publique un inmueble con su tipo, zona o presupuesto, aparecerá aquí.</p>}
+    })}</ul> : <div className="flex flex-col items-start gap-3"><p className="m-0 text-sm text-muted-foreground">Cuando se publique un inmueble con su tipo, zona o presupuesto, aparecerá aquí.</p>
+      {/* COR-19: sin inmueble que le sirva, se capta uno con su perfil. */}
+      <ButtonLink href={captureHref({ intent: seeker.perfil?.operacion === "rentar" ? "rentar" : "comprar", tipo: seeker.tipoPropiedad, zona: zoneParts(seeker.zona)[0] })}>Captar inmueble para este perfil</ButtonLink></div>}
   </section>;
 }

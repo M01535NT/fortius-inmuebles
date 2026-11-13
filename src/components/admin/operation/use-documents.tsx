@@ -7,6 +7,8 @@ import { checklistFor, checklistTaskId, levantamientoFor, pasoCompleto } from "@
 import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
 import { calcularValor } from "@/lib/formatos/valor";
+import { appraisalState, valueFromAppraisal } from "@/lib/formatos/operation-workflow";
+import { operationalDate } from "@/lib/admin/operational-date";
 import type { LevantamientoId } from "@/lib/formatos/levantamiento";
 import { downloadFormatoCopia, saveBlob } from "@/lib/admin/download-word";
 import type { FormatStatus, OperationRecord } from "@/lib/admin/operation-view";
@@ -104,15 +106,17 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     if (formatoId === "05") return { data: { documentos: juridicaDocumentsFrom(checklist) } };
     if (formatoId === "08") {
       const valor = latest("07");
-      return { data: { erogaciones: CARGOS_NETO.map(item => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) }, ...(valor && pdfOf(valor) ? { valorReferencia: { id: valor.id, version: valor.version } } : {}) };
+      // COR-17: sin opinión de valor terminada, el valor sale del avalúo del propietario vigente.
+      const appraised = !!op.flujo && appraisalState(op.flujo, operationalDate()) === "vigente" && valueFromAppraisal(op.flujo);
+      return { data: { erogaciones: CARGOS_NETO.map(item => ({ concepto: item.key, estado: "Pendiente", justificacion: "" })) }, ...(valor && pdfOf(valor) ? { valorReferencia: { id: valor.id, version: valor.version } } : appraised ? { avaluo: true as const } : {}) };
     }
     if (formatoId === "10") return { data: planSeed(latest("04")?.data, latest("07")?.data, latest("09")?.data) };
     return { data: {} };
   }
   /** Crea un borrador del formato; el 05, el 08 y el 10 nacen con lo que ya se sabe de la operación. */
-  async function create(formatoId: string, seed: { data?: Record<string, unknown>; valorReferencia?: { id: string; version: number } } = seedFor(formatoId)) {
+  async function create(formatoId: string, seed: { data?: Record<string, unknown>; valorReferencia?: { id: string; version: number }; avaluo?: true } = seedFor(formatoId)) {
     return guard(async () => {
-      const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${op.id}/formatos`, post({ formatoId, data: seed.data ?? {}, ...(seed.valorReferencia ? { valorReferencia: seed.valorReferencia } : {}) }));
+      const result = await json<{ documento: Documento }>(`/api/admin/expedientes/${op.id}/formatos`, post({ formatoId, data: seed.data ?? {}, ...(seed.valorReferencia ? { valorReferencia: seed.valorReferencia } : {}), ...(seed.avaluo ? { avaluo: true } : {}) }));
       setDocuments(items => [result.documento, ...(items ?? [])]);
       return result.documento;
     });

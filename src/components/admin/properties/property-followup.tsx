@@ -1,15 +1,14 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ChevronDown, ExternalLink, MessageCircle, Pencil } from "@/components/admin/icons";
+import { ChevronDown, MessageCircle, MoreHorizontal } from "@/components/admin/icons";
 import { Button, ButtonLink, EmptyBox, Notice, Pill, ProgressBar } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, Field, btnGhost, inputClass, selectClass } from "@/components/admin/ui";
-import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { buyersFor, lastNotice, noticeMessage, priceDroppedSince, seekersFrom, whatsappDigits } from "@/lib/admin/buyer-matches";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { db, uid, upsertPropiedad, useCollection, useLoadState, useSession, type AdminProperty } from "@/lib/admin/store";
+import { db, uid, useCollection, useSession, type AdminProperty } from "@/lib/admin/store";
 import { shortDate } from "@/lib/admin/today";
-import { KEY_PLACES, NOTICE_CHANNELS, PREP_ITEMS, PREP_STATES, keyDueDate, keyLoanLate, openKeyLoans, prepProgress, prepState, type KeyPlace, type NoticeChannel, type PrepItem, type PrepState, type PropertyPrep } from "@/lib/propiedad-seguimiento";
+import { KEY_PLACES, NOTICE_CHANNELS, PREP_ITEMS, PREP_STATES, keyDueDate, keyLoanLate, openKeyLoans, prepProgress, prepState, type KeyPlace, type NoticeChannel, type PrepItem, type PrepState } from "@/lib/propiedad-seguimiento";
 import f from "@/components/admin/form.module.css";
 
 /*
@@ -17,41 +16,17 @@ import f from "@/components/admin/form.module.css";
   promoverlo y a qué compradores les puede servir. Todo es privado: el sitio no recibe
   estos campos. Cada bloque guarda solo lo suyo sobre la versión más reciente del
   inmueble; si alguien lo cambió antes, el servidor responde con conflicto y no se pierde.
+  Desde SIM-19 (12/11/2026) son pestañas de la ficha del inmueble (`property-file.tsx`):
+  «Prestar llaves» abre su formulario y la preparación es una lista con casilla.
 */
 
 const toDay = (instant: string) => operationalDate(new Date(instant));
 const optional = (data: FormData, key: string) => String(data.get(key) ?? "").trim() || undefined;
 
-export function PropertyFollowup({ slug }: { slug: string }) {
-  const properties = useCollection(db.propiedades), load = useLoadState(db.propiedades);
-  const property = properties.find(p => p.slug === slug);
-  const found = !!property;
-  // «?seccion=compradores» desde Hoy o la ficha de la persona. No se usa «#»: al cargar
-  // el panel, un fragmento en la dirección se lee como enlace de acceso.
-  React.useEffect(() => {
-    if (!found) return;
-    const section = new URLSearchParams(window.location.search).get("seccion");
-    if (section && ["llaves", "preparacion", "compradores"].includes(section)) document.getElementById(section)?.scrollIntoView({ block: "start" });
-  }, [found]);
-  if (!property) return <GuidedPage title={load.loaded ? "Inmueble no encontrado" : "Seguimiento del inmueble"}>
-    {load.loaded && <EmptyBox title={`No existe «${slug}» en el inventario.`} action={<Link href="/admin/propiedades" className="font-semibold underline underline-offset-4">Volver a inmuebles</Link>} />}
-  </GuidedPage>;
-  const save = (patch: Partial<AdminProperty>) => upsertPropiedad({ ...property, ...patch }, db.propiedades.version(property));
-  return <GuidedPage title={property.titulo} subtitle={`Llaves, preparación y compradores · ${property.codigo}`} actions={<>
-    <ButtonLink href={`/admin/propiedades/${encodeURIComponent(slug)}/editar`}><Pencil size={16} aria-hidden="true" />Editar ficha</ButtonLink>
-    {property.publicada && <ButtonLink href={`/inventario/${encodeURIComponent(slug)}`} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" />Ver en el sitio</ButtonLink>}
-  </>}>
-    <div className="flex min-w-0 flex-col gap-5">
-      <KeysBlock property={property} save={save} />
-      <PrepBlock property={property} save={save} />
-      <BuyersBlock property={property} save={save} />
-    </div>
-  </GuidedPage>;
-}
+export type BlockProps = { property: AdminProperty; save: (patch: Partial<AdminProperty>) => Promise<unknown> };
 
-type BlockProps = { property: AdminProperty; save: (patch: Partial<AdminProperty>) => Promise<unknown> };
-
-function KeysBlock({ property, save }: BlockProps) {
+export function KeysBlock({ property, save }: BlockProps) {
+  const [lending, setLending] = React.useState(false);
   const session = useSession();
   const today = operationalDate();
   const keys = property.llaves ?? { prestamos: [] };
@@ -62,7 +37,7 @@ function KeysBlock({ property, save }: BlockProps) {
     const persona = optional(data, "persona");
     if (!persona) throw new Error("Escribe quién se lleva las llaves");
     await save({ llaves: { ...keys, prestamos: [...keys.prestamos, { id: uid(), persona, motivo: optional(data, "motivo"), regresoPrevisto: optional(data, "regresoPrevisto"), salida: new Date().toISOString(), registradoPor: session?.name ?? session?.email }] } });
-    form.reset();
+    form.reset(); setLending(false);
   };
   const where = async (event: React.FormEvent<HTMLFormElement>) => {
     const data = new FormData(event.currentTarget), copias = optional(data, "copias");
@@ -81,12 +56,13 @@ function KeysBlock({ property, save }: BlockProps) {
         <span className="flex flex-wrap items-center gap-2">{late && <Pill tone="alert">Atrasadas</Pill>}<AsyncButton type="button" className={btnGhost} onClick={() => giveBack(loan.id)} aria-label={`Registrar que ${loan.persona} regresó las llaves`}>Registrar regreso</AsyncButton></span>
       </li>;
     })}</ul>}
-    <AsyncForm onSubmit={lend} aria-label="Prestar llaves" className={f.grid}>
-      <Field label="Quién se las lleva" htmlFor="llaves-persona"><input id="llaves-persona" name="persona" required maxLength={160} className={inputClass} placeholder="Asesor, comprador, técnico…" /></Field>
+    {!lending ? <div><Button variant="primary" onClick={() => setLending(true)}>Prestar llaves</Button></div>
+    : <AsyncForm onSubmit={lend} aria-label="Prestar llaves" className={`${f.grid} rounded-[10px] border border-border p-3`}>
+      <Field label="Quién se las lleva" htmlFor="llaves-persona"><input id="llaves-persona" name="persona" required maxLength={160} autoFocus className={inputClass} placeholder="Asesor, comprador, técnico…" /></Field>
       <Field label="Para qué" htmlFor="llaves-motivo"><input id="llaves-motivo" name="motivo" maxLength={500} className={inputClass} placeholder="Visita, sesión de fotos, mantenimiento…" /></Field>
       <Field label="Regresan el" htmlFor="llaves-regreso" hint="Si lo dejas vacío, deben volver el mismo día."><input id="llaves-regreso" name="regresoPrevisto" type="date" min={today} className={inputClass} /></Field>
-      <div className={f.span2}><Button type="submit" variant="primary">Prestar llaves</Button></div>
-    </AsyncForm>
+      <div className={`${f.span2} flex flex-wrap gap-2`}><Button type="submit" variant="primary">Registrar préstamo</Button><Button onClick={() => setLending(false)}>Cancelar</Button></div>
+    </AsyncForm>}
     <details className="group rounded-[10px] border border-border p-3">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-semibold [&::-webkit-details-marker]:hidden">Dónde se guardan{keys.copias !== undefined ? ` · ${keys.copias} ${keys.copias === 1 ? "copia" : "copias"}` : ""}<ChevronDown size={18} aria-hidden="true" className="transition-transform group-open:rotate-180" /></summary>
       <AsyncForm onSubmit={where} aria-label="Dónde se guardan las llaves" className={`${f.grid} mt-3`}>
@@ -103,46 +79,55 @@ function KeysBlock({ property, save }: BlockProps) {
   </section>;
 }
 
-function PrepBlock({ property, save }: BlockProps) {
+/** Preparación como lista: la casilla marca «Listo» y guarda al momento; «⋯» abre quién y cuándo. */
+export function PrepBlock({ property, save }: BlockProps) {
   const advisers = useCollection(db.asesores);
   const progress = prepProgress(property);
   const items = Object.keys(PREP_ITEMS) as PrepItem[];
-  const hint = (item: PrepItem) => item === "fotos" && property.galeria.length ? `Hay ${property.galeria.length} ${property.galeria.length === 1 ? "foto" : "fotos"} en la ficha.` : item === "video" && property.videoUrl ? "El video ya está en la ficha." : item === "recorrido360" && property.tour360Url ? "El recorrido ya está en la ficha." : undefined;
-  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
-    const data = new FormData(event.currentTarget), next: PropertyPrep = { ...property.preparacion };
-    for (const item of items) {
-      const estado = optional(data, `${item}.estado`) as PrepState | undefined;
-      const entry = { estado: estado ?? "pendiente", fecha: optional(data, `${item}.fecha`), responsable: optional(data, `${item}.responsable`) };
-      // Sin captura previa y sin cambios, se deja sin registrar para que el material cargado siga contando.
-      if (!property.preparacion?.[item] && !estado && !entry.fecha && !entry.responsable) { delete next[item]; continue; }
-      next[item] = { ...property.preparacion?.[item], ...entry };
-    }
-    await save({ preparacion: next });
+  const hint = (item: PrepItem) => item === "fotos" && property.galeria.length ? `Hay ${property.galeria.length} ${property.galeria.length === 1 ? "foto" : "fotos"} en la ficha` : item === "video" && property.videoUrl ? "El video ya está en la ficha" : item === "recorrido360" && property.tour360Url ? "El recorrido ya está en la ficha" : undefined;
+  const [busy, setBusy] = React.useState<PrepItem | null>(null);
+  const [error, setError] = React.useState("");
+  async function mark(item: PrepItem, estado: PrepState) {
+    setBusy(item); setError("");
+    try { await save({ preparacion: { ...property.preparacion, [item]: { ...property.preparacion?.[item], estado } } }); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo guardar. Intenta de nuevo."); }
+    finally { setBusy(null); }
+  }
+  const details = async (item: PrepItem, event: React.FormEvent<HTMLFormElement>) => {
+    const data = new FormData(event.currentTarget);
+    await save({ preparacion: { ...property.preparacion, [item]: { ...property.preparacion?.[item], estado: (optional(data, "estado") as PrepState | undefined) ?? prepState(property, item).estado, fecha: optional(data, "fecha"), responsable: optional(data, "responsable") } } });
   };
   return <section id="preparacion" aria-labelledby="preparacion-title" className={`${f.group} scroll-mt-24`}>
     <div className={f.groupHead}><h2 id="preparacion-title">Preparación para promoverlo</h2><p>{progress.done} de {progress.total} listas</p></div>
     <ProgressBar value={progress.done} max={Math.max(progress.total, 1)} label={`Preparación: ${progress.done} de ${progress.total} listas`} />
-    <AsyncForm onSubmit={submit} aria-label="Preparación para promoverlo" className="flex min-w-0 flex-col gap-3">
-      <datalist id="prep-responsables">{advisers.filter(a => a.activo).map(a => <option key={a.id} value={a.nombre} />)}</datalist>
-      {items.map(item => {
-        const state = prepState(property, item), stored = property.preparacion?.[item];
-        return <fieldset key={item} className="grid min-w-0 gap-3 rounded-[10px] border border-border p-3 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,1fr))] lg:items-end">
-          <legend className="sr-only">{PREP_ITEMS[item]}</legend>
-          <div className="flex min-w-0 flex-col gap-1 self-center sm:col-span-3 lg:col-span-1"><strong>{PREP_ITEMS[item]}</strong>{hint(item) && <small className="text-muted-foreground">{hint(item)}</small>}</div>
-          <Field label="Estado" htmlFor={`prep-${item}-estado`}><select id={`prep-${item}-estado`} name={`${item}.estado`} defaultValue={stored?.estado ?? ""} className={selectClass}>
-            <option value="">{state.derived ? "Ya en la ficha" : "Pendiente"}</option>
-            {(Object.keys(PREP_STATES) as PrepState[]).map(k => <option key={k} value={k}>{PREP_STATES[k]}</option>)}
-          </select></Field>
-          <Field label="Fecha" htmlFor={`prep-${item}-fecha`}><input id={`prep-${item}-fecha`} name={`${item}.fecha`} type="date" defaultValue={stored?.fecha ?? ""} className={inputClass} /></Field>
-          <Field label="Responsable" htmlFor={`prep-${item}-responsable`}><input id={`prep-${item}-responsable`} name={`${item}.responsable`} list="prep-responsables" maxLength={160} defaultValue={stored?.responsable ?? ""} className={inputClass} /></Field>
-        </fieldset>;
-      })}
-      <div><Button type="submit" variant="primary">Guardar preparación</Button></div>
-    </AsyncForm>
+    <datalist id="prep-responsables">{advisers.filter(a => a.activo).map(a => <option key={a.id} value={a.nombre} />)}</datalist>
+    <ul className="m-0 flex list-none flex-col divide-y divide-border p-0" aria-label="Lista de preparación">{items.map(item => {
+      const state = prepState(property, item), stored = property.preparacion?.[item];
+      const meta = [state.estado === "agendado" ? "Agendado" : state.estado === "no_aplica" ? "No aplica" : undefined, stored?.fecha && shortDate(stored.fecha), stored?.responsable, state.derived ? hint(item) : undefined].filter(Boolean).join(" · ");
+      return <li key={item} className="flex flex-wrap items-start gap-x-3 gap-y-1 py-1.5">
+        <label className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3">
+          <input type="checkbox" className="size-5 shrink-0 accent-[var(--primary)]" checked={state.estado === "listo"} disabled={busy === item || state.estado === "no_aplica"}
+            onChange={event => void mark(item, event.currentTarget.checked ? "listo" : "pendiente")} />
+          <span className="flex min-w-0 flex-col"><span className={state.estado === "no_aplica" ? "text-muted-foreground line-through" : "font-[560]"}>{PREP_ITEMS[item]}</span>{meta && <small className="text-muted-foreground [overflow-wrap:anywhere]">{meta}</small>}</span>
+        </label>
+        <details className="group [&[open]]:basis-full">
+          <summary aria-label={`Quién y cuándo: ${PREP_ITEMS[item]}`} className="ml-auto flex size-11 cursor-pointer list-none items-center justify-center rounded-[10px] text-muted-foreground hover:bg-secondary [&::-webkit-details-marker]:hidden"><MoreHorizontal size={20} aria-hidden="true" /></summary>
+          <AsyncForm onSubmit={event => details(item, event)} aria-label={`Quién y cuándo: ${PREP_ITEMS[item]}`} className={`${f.grid} mt-1 mb-2 rounded-[10px] border border-border p-3`}>
+            <Field label="Estado" htmlFor={`prep-${item}-estado`}><select id={`prep-${item}-estado`} name="estado" defaultValue={state.estado} className={selectClass}>
+              {(Object.keys(PREP_STATES) as PrepState[]).map(k => <option key={k} value={k}>{PREP_STATES[k]}</option>)}
+            </select></Field>
+            <Field label="Fecha" htmlFor={`prep-${item}-fecha`}><input id={`prep-${item}-fecha`} name="fecha" type="date" defaultValue={stored?.fecha ?? ""} className={inputClass} /></Field>
+            <Field label="Responsable" htmlFor={`prep-${item}-responsable`} className={f.span2}><input id={`prep-${item}-responsable`} name="responsable" list="prep-responsables" maxLength={160} defaultValue={stored?.responsable ?? ""} className={inputClass} /></Field>
+            <div><Button type="submit">Guardar</Button></div>
+          </AsyncForm>
+        </details>
+      </li>;
+    })}</ul>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </section>;
 }
 
-function BuyersBlock({ property, save }: BlockProps) {
+export function BuyersBlock({ property, save }: BlockProps) {
   const leads = useCollection(db.leads), clients = useCollection(db.clientes), session = useSession();
   const [origin, setOrigin] = React.useState("");
   // El enlace al sitio se arma en el navegador con el dominio desde el que se abrió el panel.

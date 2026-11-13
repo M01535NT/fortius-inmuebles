@@ -23,8 +23,8 @@
     LV-08): lienzo crema, tarjetas de 20 px y bloques de 24 px; sombras azul marino en reposo,
     al levantar y en la acción principal. El sitio público conserva su escala.
   */
-  --canvas: #f5f1eb;
-  --card-edge: rgba(6, 31, 63, .06);
+  --canvas: #f8f8ff;
+  --card-edge: rgba(6, 31, 63, .11);
   --edge-soft: #c5d0dd;
   --track: #e3e8f0;
   --radius-control: 10px;
@@ -144,7 +144,6 @@
 .panel :global(.admin-card-heading) h2 { font-size: 1.125rem; }
 .panel :global(.admin-card-heading) a { display: inline-flex; align-items: center; min-height: 2.75rem; gap: .375rem; font-size: .875rem; color: var(--foreground); }
 .panel :global(.admin-badge) { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; border-radius: .25rem; font-size: .8125rem; line-height: 1.5; }
-.panel :global(.font-mono) { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
 @media (min-width: 1280px) {
   .panel :global(.admin-inventory-controls) { background: transparent; border: 0; padding: 0; }
   .panel :global(.admin-inventory-controls) > p[role=status] { font-size: .75rem; }

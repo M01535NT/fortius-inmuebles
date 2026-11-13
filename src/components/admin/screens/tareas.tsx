@@ -3,12 +3,12 @@ import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 
 import * as React from "react";
 import Link from "next/link";
+import { humanDate, overdueText } from "@/lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
 import { TaskForm } from "@/components/admin/task-form";
 import { Badge, Field, inputClass, selectClass } from "@/components/admin/ui";
 import { Button, Card, EmptyBox } from "@/components/admin/kit";
 import { stepDate } from "@/lib/admin/contacts-view";
-import { shortDate } from "@/lib/admin/today";
 import { db, useCollection, upsert } from "@/lib/admin/store";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, taskBucket } from "@/lib/tasks";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -58,7 +58,7 @@ function Tasks() {
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
           <h3 className="m-0 min-w-0 text-base font-semibold"><Link className={"inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" + (open ? "" : " text-muted-foreground line-through")} href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h3>
-          {date && <span className={"text-sm " + (open && date.late ? "font-semibold text-[var(--alert)]" : "text-muted-foreground")}>{!date.late ? date.label : open ? date.label.replace("Vencido", "Vencida") : shortDate(task.vence!)}</span>}
+          {date && <span className={"text-sm " + (open && date.late ? "font-semibold text-[var(--alert)]" : "text-muted-foreground")}>{!date.late ? date.label : open ? overdueText(task.vence, today) : humanDate(task.vence, today)}</span>}
         </div>
         {task.descripcion && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{task.descripcion}</p>}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
@@ -103,6 +103,9 @@ function Tasks() {
         <h2 id={"grupo-tareas-" + group.id} className="m-0 flex items-baseline gap-2 px-1 text-lg font-semibold">{group.title}<span className="text-sm font-semibold text-muted-foreground">{items.length}</span></h2>
         <Card as="div" className="overflow-hidden"><ul aria-label={group.title}>{items.map(renderTask)}</ul></Card>
       </section>;
-    })}</div> : <EmptyBox title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>}
+    })}</div> : (tareas.length === 0
+      ? <EmptyBox title="Todavía no hay tareas" steps={["Crea una con «Nueva tarea» o desde la ficha de una persona.", "Ponle fecha y responsable.", "Márcala como hecha desde esta lista."]}>Las tareas son lo que el equipo tiene que hacer y para cuándo. Las que vencen aparecen en Hoy.</EmptyBox>
+      : !query.trim() && !activeFilters && due === "todas" ? <EmptyBox title="Nada pendiente">Todas las tareas están hechas. Las nuevas aparecerán aquí y en Hoy.</EmptyBox>
+      : <EmptyBox title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>)}
   </div>;
 }

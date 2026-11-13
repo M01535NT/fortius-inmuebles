@@ -29,6 +29,18 @@ async function admit<T extends Record<string, unknown>>(done: T) {
   await db.query("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,null,null,false)", [done.expediente_id, current.version]);
   return done;
 }
+/** COR-10: registra la firma del contrato con su archivo y la marca revisada (el usuario de la prueba es director). */
+async function sign(expediente: unknown) {
+  const file = crypto.randomUUID();
+  await db.exec("reset role");
+  await db.query("insert into public.fortius_inmuebles_expediente_archivos(id,expediente_id,titulo,nombre_original,mime,byte_length,sha256,path,uploaded_by) values($1,$2,'Contrato ficticio firmado','contrato.pdf','application/pdf',1000,$3,$4,$5)", [file, expediente, "b".repeat(64), `${expediente}/cliente/${file}.pdf`, user]);
+  await db.exec("set role authenticated");
+  const firma = { tipo: "intermediacion", fecha: "2026-10-14", firmantes: [{ nombre: "Propietario de ensayo", parte: "propietario" }], archivo: file, completa: true, revisada: false };
+  for (const revisada of [false, true]) {
+    const row = (await db.query<{ version: number; flujo: Record<string, unknown> }>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1", [expediente])).rows[0];
+    await db.query("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,$3::jsonb,null,false)", [expediente, row.version, JSON.stringify({ ...row.flujo, firmaContrato: { ...firma, revisada } })]);
+  }
+}
 async function property(slug: unknown) {
   return (await db.query<{ data: Record<string, unknown>; version: number }>("select data,version from public.fortius_inmuebles_records where collection='propiedades' and id=$1", [slug])).rows[0];
 }
@@ -112,6 +124,7 @@ it("does not accept unlinked text or a nonexistent document as completed review 
 });
 it("permits preparation despite a later registration observation while retaining its evidence", async () => {
   const done = await admit(await complete((await start()).id));
+  await sign(done.expediente_id);
   const exp = (await db.query<{ version: number; flujo: { requisitos: Record<string, unknown> } }>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0];
   const reviewed = { estado: "revisado", soporte: "Revisión externa sintética registrada", evidencia: { tipo: "externa", referencia: "Archivo sintético de ensayo · versión 1", fecha: "2026-10-14", responsable: "Responsable de ensayo", resultado: "Apto dentro del alcance declarado", limites: "Ensayo sin efectos reales" } };
   for (const key of ["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion"]) exp.flujo.requisitos[key] = { ...reviewed, ...(key === "factibilidad" ? { vigenteHasta: "2030-12-31" } : {}) };
@@ -126,11 +139,14 @@ it.each(["arrendar","invertir"])("walks %s through its evidenced process and arc
  const done=await complete((await start(intent)).id,intakeAnswers);
  // Avanzar de etapa y cambiar el inmueble van en movimientos separados.
  await admit(done);
+ if(intent!=="invertir") await sign(done.expediente_id);
  const row=(await db.query<{version:number;flujo:{requisitos:Record<string,unknown>;[key:string]:unknown}}>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
  const evidence={tipo:"externa",referencia:"Documento externo sintético revisado v1",fecha:"2026-10-14",responsable:"Responsable del ensayo",resultado:"Actividad revisada dentro del alcance de prueba"};
  const keys=intent==="invertir"?["criterios_inversion","riesgos_inversion","escenarios_inversion","decision_inversion","capacidad","ejecucion_inversion","seguimiento_inversion","honorarios","archivo"]:["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion","arrendatario","opciones","visitas","capacidad","oferta","revision_cierre","contrato_renta","contraparte","garantias_renta","firma","pago","entrega","inventario_entrega","termino_renta","honorarios","archivo"];
  for(const key of keys)row.flujo.requisitos[key]={estado:"revisado",soporte:"Revisión externa de ensayo",evidencia:evidence,...(["factibilidad","revision_cierre"].includes(key)?{vigenteHasta:"2030-12-31"}:{})};
- const flow={...row.flujo,contraparteExterna:intent==="invertir"?undefined:"Contraparte externa de ensayo",resolucion:{tipo:"aceptada",fecha:"2026-10-14",motivo:"Encargo de ensayo aceptado",siguienteAccion:"Seguimiento del encargo",fechaSiguiente:"2030-12-31"}};
+ const flow={...row.flujo,contraparteExterna:intent==="invertir"?undefined:"Contraparte externa de ensayo",resolucion:{tipo:"aceptada",fecha:"2026-10-14",motivo:"Encargo de ensayo aceptado",siguienteAccion:"Seguimiento del encargo",fechaSiguiente:"2030-12-31"},
+  // COR-22: la operación del propietario se archiva con quién captó y quién vendió.
+  ...(intent!=="invertir"?{cierre:{capto:"process-adviser",vendio:"process-adviser"}}:{})};
  let version=row.version;
  if(intent!=="invertir") {
   const saved=await db.query<{r:{version:number}}>("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,$3::jsonb,null,false) r",[done.expediente_id,version,JSON.stringify(flow)]);
@@ -171,6 +187,7 @@ it("registers an interested lead as the counterparty of the owner's operation (C
 });
 it("publishes an owner's rent with its own requirements, without the sale's feasibility or marketing plan (COR-04)",async()=>{
  const done=await admit(await complete((await start("arrendar")).id));
+ await sign(done.expediente_id);
  const row=(await db.query<{version:number;flujo:{requisitos:Record<string,unknown>;[key:string]:unknown}}>("select version,flujo from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
  const evidence={tipo:"externa",referencia:"Documento externo sintético revisado v1",fecha:"2026-10-29",responsable:"Responsable del ensayo",resultado:"Revisado dentro del alcance de prueba"};
  const requisitos={...row.flujo.requisitos};

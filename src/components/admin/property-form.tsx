@@ -3,10 +3,12 @@ import { MoneyInput } from "@/components/admin/money-input";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import Image from "next/image";
 import { PropertyPublicationGate } from "./property-publication-gate";
+import { Button, Pill } from "@/components/admin/kit";
+import f from "@/components/admin/form.module.css";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ArrowUp, ArrowDown } from "@/components/admin/icons";
+import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, ExternalLink } from "@/components/admin/icons";
 import { LibraryPicker } from "@/components/admin/workspace/library-picker";
 import { FormSection, revealSection } from "@/components/admin/workspace/form-section";
 import { PropertyWorkbench, readDraftFields, type PropertyDraft } from "@/components/admin/workspace/property-workbench";
@@ -15,8 +17,6 @@ import {
   AsyncForm,
   UploadControl,
   Field,
-  btnGhost,
-  btnPrimary,
   inputClass,
   selectClass,
   textareaClass,
@@ -48,19 +48,21 @@ import { AdminApiError, db, upsertPropiedad, useCollection, useSession } from "@
   Los PDFs cargados aquí aparecen en la sección "Documentos de la
   propiedad" del detalle público (con captura de datos del interesado).
 */
-type Props = { initial?: Property };
+/** Pestaña de la ficha del inmueble (SIM-19): sin ella se muestra el formulario completo (alta). */
+export type PropertyFormView = "ficha" | "material" | "oculto";
+type Props = { initial?: Property; view?: PropertyFormView; onDirtyChange?: (dirty: boolean) => void; onShowTab?: (tab: "ficha" | "material") => void };
 
 const formSections = [
-  { id: "pf-basicos", label: "Datos básicos" },
-  { id: "pf-precio", label: "Precio" },
-  { id: "pf-ubicacion", label: "Ubicación" },
-  { id: "pf-contenido", label: "Descripción y ficha" },
-  { id: "pf-escenario", label: "Ficha pública" },
-  { id: "pf-multimedia", label: "Multimedia" },
-  { id: "pf-documentos", label: "Documentos" },
-];
-const sectionClass =
-  "scroll-mt-20 rounded-lg border border-border bg-card p-5 md:p-6";
+  { id: "pf-basicos", label: "Datos básicos", tab: "ficha" },
+  { id: "pf-precio", label: "Precio", tab: "ficha" },
+  { id: "pf-ubicacion", label: "Ubicación", tab: "ficha" },
+  { id: "pf-contenido", label: "Descripción y ficha", tab: "ficha" },
+  { id: "pf-escenario", label: "Ficha pública", tab: "ficha" },
+  { id: "pf-multimedia", label: "Multimedia", tab: "material" },
+  { id: "pf-documentos", label: "Documentos", tab: "material" },
+] as const;
+const sectionClass = `${f.group} scroll-mt-20`;
+const headingClass = "m-0 text-[1.0625rem] font-semibold tracking-[-0.01em]";
 
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {
@@ -91,7 +93,7 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-export function PropertyForm({ initial: source }: Props) {
+export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }: Props) {
   const router = useRouter();
   const [initial] = React.useState(source);
   const [version] = React.useState(() =>
@@ -108,6 +110,10 @@ export function PropertyForm({ initial: source }: Props) {
   const [dirty,setDirty] = React.useState(false);
   const [conflict,setConflict] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
+  // En la ficha por pestañas cada sección vive en la suya; el formulario sigue siendo uno solo.
+  const shown = (tab: "ficha" | "material") => !view || view === tab;
+  const sections = formSections.filter(section => shown(section.tab)).map(section => view && section.id === "pf-escenario" ? { ...section, label: "Más para la ficha del sitio" } : section);
+  React.useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
   const [titulo, setTitulo] = React.useState(initial?.titulo ?? "");
   const codigo = initial?.codigo ?? "";
@@ -122,6 +128,8 @@ export function PropertyForm({ initial: source }: Props) {
     initial?.documentos ?? [],
   );
   const [pois, updatePois] = React.useState(initial?.puntosDeInteres ?? []);
+  const [video, setVideo] = React.useState(initial?.videoUrl ?? "");
+  const [tour, setTour] = React.useState(initial?.tour360Url ?? "");
   function setGaleria(value: React.SetStateAction<ImagenPropiedad[]>) {updateGaleria(value);setDirty(true);}
   function setDocumentos(value: React.SetStateAction<DocumentoPropiedad[]>) {updateDocumentos(value);setDirty(true);}
   function setPois(value: React.SetStateAction<typeof pois>) {updatePois(value);setDirty(true);}
@@ -130,6 +138,8 @@ export function PropertyForm({ initial: source }: Props) {
   function restore(draft:PropertyDraft) {
     setTitulo(draft.titulo);setOperacion(draft.operacion);setEstado(draft.estado);setGaleria(draft.galeria);setDocumentos(draft.documentos);setPois(draft.pois);
     formRef.current?.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>("input,select,textarea").forEach(el=>{const value=draft.fields[el.name||el.id];if(value===undefined || el instanceof HTMLInputElement && (el.type==="file" || el.readOnly))return;if(el instanceof HTMLInputElement && el.type==="checkbox")el.checked=value===true;else el.value=String(value);});
+    if (typeof draft.fields.videoUrl === "string") setVideo(draft.fields.videoUrl);
+    if (typeof draft.fields.tour360Url === "string") setTour(draft.fields.tour360Url);
     setDirty(true);
   }
   function moveImage(index:number,direction:number) { const next=[...galeria];[next[index],next[index+direction]]=[next[index+direction],next[index]];setGaleria(next);setDirty(true); }
@@ -243,22 +253,30 @@ export function PropertyForm({ initial: source }: Props) {
     router.push("/admin/propiedades");
   }
 
-  const rowBtn =
-    "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground";
 
   return (
     <AsyncForm
       ref={formRef}
       onChangeCapture={()=>setDirty(true)}
-      onInvalidCapture={(event) => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }}
+      onInvalidCapture={(event) => {
+        const target = event.target as HTMLElement;
+        const details = target.closest("details"); if (details) details.open = true;
+        const tab = target.closest<HTMLElement>("[data-tab]")?.dataset.tab;
+        if (view && (tab === "ficha" || tab === "material") && tab !== view) { onShowTab?.(tab); window.setTimeout(() => target.focus(), 0); }
+      }}
       onSubmit={onSubmit}
-      className="max-w-[880px] space-y-8 [&_input]:scroll-mt-24 [&_input]:scroll-mb-52 [&_select]:scroll-mt-24 [&_select]:scroll-mb-52 [&_textarea]:scroll-mt-24 [&_textarea]:scroll-mb-52"
+      hidden={view === "oculto"}
+      className="flex min-w-0 max-w-[880px] flex-col gap-8 lg:grid lg:max-w-none lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-4 [&_input]:scroll-mt-24 [&_input]:scroll-mb-52 [&_select]:scroll-mt-24 [&_select]:scroll-mb-52 [&_textarea]:scroll-mt-24 [&_textarea]:scroll-mb-52"
     >
-      <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={formSections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
-      {initial ? <PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">Guárdalo privado; luego liga su captación y la autorización para publicar.</p>}
+      {/* En computadora la barra de guardar, el avance y la autorización van a la derecha (la barra arriba y fija); en celular, arriba y abajo. */}
+      <div className="flex min-w-0 flex-col gap-8 lg:col-start-2 lg:row-start-2 lg:gap-4">
+      <PropertyWorkbench identity={initial?.slug??"new"} version={version} snapshot={snapshot} restore={restore} sections={sections} dirty={dirty} onDirty={()=>setDirty(true)} photoCount={galeria.filter(image=>publicGalleryUrl(image.src)).length} conflict={conflict}/>
+      {initial ? <div hidden={view === "material"}><PropertyPublicationGate slug={initial.slug} onReady={setPublicationReady}/></div> : <p className="rounded-md border border-border bg-secondary/30 p-3 text-sm">Guárdalo privado; luego liga su captación y la autorización para publicar.</p>}
+      </div>
+      <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-span-2 lg:row-start-1">
       {/* Básicos */}
-      <FormSection id="pf-basicos" aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
-        <h2 id="pf-basicos-heading" className="display-soft text-lg text-foreground">Datos básicos</h2>
+      <FormSection id="pf-basicos" data-tab="ficha" hidden={!shown("ficha")} aria-labelledby="pf-basicos-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-basicos-heading" className={headingClass}>Datos básicos</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="Título" htmlFor="pf-titulo" className="sm:col-span-2">
             <input
@@ -390,22 +408,22 @@ export function PropertyForm({ initial: source }: Props) {
               />
               Acepta crédito
             </label>
-            <p className="flex min-h-11 items-center text-sm">{initial?.publicada ? "Publicado en el sitio" : "Borrador · no visible en el sitio"}</p>
+            {!view && <p className="flex min-h-11 items-center text-sm">{initial?.publicada ? "Publicado en el sitio" : "Borrador · no visible en el sitio"}</p>}
             <label className="flex min-h-11 items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 name="demo"
                 defaultChecked={initial?.demo ?? false}
               />
-              Dato de demostración (Demo)
+              Es un ejemplo (no es una oferta real)
             </label>
           </div>
         </div>
       </FormSection>
 
       {/* Precio */}
-      <FormSection id="pf-precio" aria-labelledby="pf-precio-heading" tabIndex={-1} className={sectionClass}>
-        <h2 id="pf-precio-heading" className="display-soft text-lg text-foreground">Precio</h2>
+      <FormSection id="pf-precio" data-tab="ficha" hidden={!shown("ficha")} aria-labelledby="pf-precio-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-precio-heading" className={headingClass}>Precio</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <Field label="Modalidad" htmlFor="pf-modalidad">
             <select
@@ -452,8 +470,8 @@ export function PropertyForm({ initial: source }: Props) {
       </FormSection>
 
       {/* Ubicación */}
-      <FormSection id="pf-ubicacion" aria-labelledby="pf-ubicacion-heading" tabIndex={-1} className={sectionClass}>
-        <h2 id="pf-ubicacion-heading" className="display-soft text-lg text-foreground">Ubicación</h2>
+      <FormSection id="pf-ubicacion" data-tab="ficha" hidden={!shown("ficha")} aria-labelledby="pf-ubicacion-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-ubicacion-heading" className={headingClass}>Ubicación</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <Field label="Zona" htmlFor="pf-zona">
             <input
@@ -535,30 +553,29 @@ export function PropertyForm({ initial: source }: Props) {
                   <option value="">Sin categoría</option>
                   {CATEGORIAS_PUNTO.map((categoria) => <option key={categoria} value={categoria}>{CATEGORIA_PUNTO_LABELS[categoria]}</option>)}
                 </select>
-                <button
-                  type="button"
+                <Button
+                  iconOnly
+                  variant="ghost"
                   aria-label="Quitar punto"
                   onClick={() => setPois(pois.filter((_, j) => j !== i))}
-                  className={rowBtn}
                 >
-                  <Trash2 className="size-4" strokeWidth={1.5} />
-                </button>
+                  <Trash2 size={16} aria-hidden="true" />
+                </Button>
               </div>
             ))}
           </div>
-          <button
-            type="button"
+          <Button
+            className="mt-3 self-start"
             onClick={() => setPois([...pois, { lugar: "", minutos: 5 }])}
-            className={btnGhost + " mt-3 h-9"}
           >
-            <Plus className="size-4" strokeWidth={1.5} /> Agregar punto
-          </button>
+            <Plus size={16} aria-hidden="true" />Agregar punto
+          </Button>
         </div>
       </FormSection>
 
       {/* Contenido */}
-      <FormSection id="pf-contenido" aria-labelledby="pf-contenido-heading" tabIndex={-1} className={sectionClass}>
-        <h2 id="pf-contenido-heading" className="display-soft text-lg text-foreground">
+      <FormSection id="pf-contenido" data-tab="ficha" hidden={!shown("ficha")} aria-labelledby="pf-contenido-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-contenido-heading" className={headingClass}>
           Descripción y ficha
         </h2>
         <div className="mt-5 space-y-4">
@@ -653,8 +670,8 @@ export function PropertyForm({ initial: source }: Props) {
               />
             </Field>
           </div>
-          <div className="border-t border-border pt-5">
-            <h3 className="display-soft text-base text-foreground">Información para la ficha pública</h3>
+          <details className="group border-t border-border pt-5">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"><h3 className="m-0 text-base font-semibold">Fuente de las superficies y entrega</h3><ChevronDown size={18} aria-hidden="true" className="transition-transform group-open:rotate-180" /></summary>
             <p className="mt-1 text-sm text-muted-foreground">Solo datos autorizados. Anota la fuente de cada superficie y la fecha solo si se verificó la disponibilidad.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Fuente de terreno" htmlFor="pf-fuenteTerreno">
@@ -674,13 +691,13 @@ export function PropertyForm({ initial: source }: Props) {
                 <input id="pf-ocupacionEntrega" name="ocupacionEntrega" maxLength={500} defaultValue={initial?.informacionPublica?.ocupacionEntrega} placeholder="Ej. Desocupada; fecha de entrega por acordar" className={inputClass} />
               </Field>
             </div>
-          </div>
+          </details>
         </div>
       </FormSection>
 
       {/* Ficha pública «Escenario» */}
-      <FormSection id="pf-escenario" aria-labelledby="pf-escenario-heading" tabIndex={-1} className={sectionClass}>
-        <h2 id="pf-escenario-heading" className="display-soft text-lg text-foreground">Ficha pública</h2>
+      <FormSection id="pf-escenario" data-tab="ficha" hidden={!shown("ficha")} collapsed={!!view} aria-labelledby="pf-escenario-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-escenario-heading" className={headingClass}>{view ? "Más para la ficha del sitio" : "Ficha pública"}</h2>
         <p className="mt-1 text-sm text-muted-foreground">Todo es opcional. Lo que dejes vacío no aparece en la ficha del sitio.</p>
         <div className="mt-5 space-y-6">
           <fieldset>
@@ -720,11 +737,11 @@ export function PropertyForm({ initial: source }: Props) {
       </FormSection>
 
       {/* Multimedia */}
-      <FormSection id="pf-multimedia" aria-labelledby="pf-multimedia-heading" tabIndex={-1} className={sectionClass}>
-        <h2 id="pf-multimedia-heading" className="display-soft text-lg text-foreground">Multimedia</h2>
+      <FormSection id="pf-multimedia" data-tab="material" hidden={!shown("material")} aria-labelledby="pf-multimedia-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-multimedia-heading" className={headingClass}>Multimedia</h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          Puedes usar URLs o cargar material público validado. No incluyas
-          documentos confidenciales.
+          Fotos, video y recorrido del carrusel de la ficha. Solo material
+          público: nada confidencial.
         </p>
         <div className="mt-4">
           <p className="text-sm font-medium text-foreground">Galería</p>
@@ -744,26 +761,13 @@ export function PropertyForm({ initial: source }: Props) {
               <div key={i} className="grid min-w-0 grid-cols-1 gap-2 rounded-md border border-border p-3 sm:grid-cols-2">
                 <div className="flex items-center gap-2 sm:col-span-2">
                   {img.src && publicGalleryUrl(img.src) && <Image unoptimized width={960} height={720} src={img.src} alt={img.alt} className="h-16 w-24 rounded object-cover"/>}
-                  <span className="flex-1 text-sm">{i===0?"Portada":`Foto ${i+1}`}</span>
-                  <button type="button" className={rowBtn} disabled={i===0} aria-label={`Subir foto ${i+1}`} onClick={()=>moveImage(i,-1)}><ArrowUp size={16}/></button>
-                  <button type="button" className={rowBtn} disabled={i===galeria.length-1} aria-label={`Bajar foto ${i+1}`} onClick={()=>moveImage(i,1)}><ArrowDown size={16}/></button>
+                  <span className="flex-1 text-sm">{i===0?"Portada":`Foto ${i+1}`}</span>{img.src && <a href={img.src} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center px-2 text-sm font-semibold underline underline-offset-4">Ver</a>}
+                  <Button iconOnly variant="ghost" disabled={i===0} aria-label={`Subir foto ${i+1}`} onClick={()=>moveImage(i,-1)}><ArrowUp size={16} aria-hidden="true"/></Button>
+                  <Button iconOnly variant="ghost" disabled={i===galeria.length-1} aria-label={`Bajar foto ${i+1}`} onClick={()=>moveImage(i,1)}><ArrowDown size={16} aria-hidden="true"/></Button>
                 </div>
+                {img.src && !publicGalleryUrl(img.src) && <p className="text-sm font-semibold text-[var(--warning)] sm:col-span-2">Esta foto no es pública y no saldrá en el sitio. Súbela de nuevo como material público.</p>}
                 <input
-                  aria-label={`Imagen ${i + 1}: URL`}
-                  value={img.src}
-                  onChange={(e) =>
-                    setGaleria(
-                      galeria.map((g, j) =>
-                        j === i ? { ...g, src: e.target.value } : g,
-                      ),
-                    )
-                  }
-                  placeholder="/hero/casa-playa.webp"
-                  list="pf-imagenes"
-                  className={inputClass}
-                />
-                <input
-                  aria-label={`Imagen ${i + 1}: texto alternativo`}
+                  aria-label={`Descripción de la foto ${i + 1}`}
                   value={img.alt}
                   onChange={(e) =>
                     setGaleria(
@@ -772,85 +776,47 @@ export function PropertyForm({ initial: source }: Props) {
                       ),
                     )
                   }
-                  placeholder="Descripción de la imagen (alt)"
+                  placeholder="Qué se ve: fachada, cocina, vista…"
                   className={inputClass}
                 />
-                <button
-                  type="button"
+                <Button
+                  iconOnly
+                  variant="ghost"
                   aria-label="Quitar imagen"
                   onClick={() => {setGaleria(galeria.filter((_, j) => j !== i));setDirty(true);}}
-                  className={rowBtn}
                 >
-                  <Trash2 className="size-4" strokeWidth={1.5} />
-                </button>
+                  <Trash2 size={16} aria-hidden="true" />
+                </Button>
               </div>
             ))}
           </div>
-          <datalist id="pf-imagenes">
-            {[
-              "/hero/casa-playa.webp",
-              "/hero/edificio-ciudad.webp",
-              "/hero/interior-depa.webp",
-              "/hero/plaza.webp",
-              "/hero/nave-tijuana.webp",
-              "/hero/interior-plaza.webp",
-              "/hero/parque-industrial.webp",
-            ].map((src) => (
-              <option key={src} value={src} />
-            ))}
-          </datalist>
-          <button
-            type="button"
-            onClick={() => setGaleria([...galeria, { src: "", alt: "" }])}
-            className={btnGhost + " mt-3 h-9"}
-          >
-            <Plus className="size-4" strokeWidth={1.5} /> Agregar imagen
-          </button>
           <LibraryPicker kind="imagen" allowed={publicGalleryUrl} onChoose={file => { setGaleria([...galeria, { src: file.url, alt: file.nombre }]); setDirty(true); }}/>
         </div>
 
-        <div className="mt-4">
-          <UploadControl
-            label="Subir video público"
-            accept="video/mp4,video/webm"
-            publicOnly
-            onUploaded={(file) => {
-              const input = document.getElementById(
-                "pf-video",
-              ) as HTMLInputElement | null;
-              if (input) input.value = file.url;
-            }}
-          />
-        </div>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Video (URL)"
-            htmlFor="pf-video"
-            hint="Espacio reservado en la galería pública."
-          >
-            <input
-              id="pf-video"
-              name="videoUrl"
-              defaultValue={initial?.videoUrl}
-              placeholder="https://…"
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Recorrido 360 (URL)" htmlFor="pf-360">
-            <input
-              id="pf-360"
-              name="tour360Url"
-              defaultValue={initial?.tour360Url}
-              placeholder="https://…"
-              className={inputClass}
-            />
-          </Field>
-        </div>
+        <MediaPiece
+          title="Video"
+          value={video}
+          onChange={(value) => { setVideo(value); setDirty(true); }}
+          ready="El video aparece en el carrusel de la ficha."
+          link="Usar un enlace de YouTube o Vimeo"
+          placeholder="https://www.youtube.com/watch?v=…"
+          upload={<UploadControl label="Subir video" accept="video/mp4,video/webm" publicOnly onUploaded={(file) => { setVideo(file.url); setDirty(true); }} />}
+        />
+        <MediaPiece
+          title="Recorrido 360"
+          value={tour}
+          onChange={(value) => { setTour(value); setDirty(true); }}
+          ready="El recorrido aparece en el carrusel de la ficha."
+          link="Pegar el enlace del recorrido"
+          placeholder="Enlace de Matterport, Kuula u otro servicio"
+        />
+        <input type="hidden" name="videoUrl" value={video} />
+        <input type="hidden" name="tour360Url" value={tour} />
       </FormSection>
 
       {/* Documentos PDF */}
-      <FormSection id="pf-documentos" aria-labelledby="pf-documentos-heading" tabIndex={-1} className={sectionClass}>
-        <h2 id="pf-documentos-heading" className="display-soft text-lg text-foreground">
+      <FormSection id="pf-documentos" data-tab="material" hidden={!shown("material")} aria-labelledby="pf-documentos-heading" tabIndex={-1} className={sectionClass}>
+        <h2 id="pf-documentos-heading" className={headingClass}>
           Documentos descargables (PDF)
         </h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
@@ -874,7 +840,7 @@ export function PropertyForm({ initial: source }: Props) {
             <div key={i} className="rounded-md border border-border p-3">
               <div className="grid gap-2 sm:grid-cols-[130px_1fr_auto]">
                 <input
-                  aria-label={`Documento ${i + 1}: código`}
+                  aria-label={`Documento ${i + 1}: clave interna`}
                   value={doc.codigo}
                   onChange={(e) =>
                     setDocumentos(
@@ -884,7 +850,7 @@ export function PropertyForm({ initial: source }: Props) {
                     )
                   }
                   placeholder="FIC-PRO-001"
-                  className={inputClass + " font-mono text-sm"}
+                  className={inputClass + " text-sm"}
                 />
                 <input
                   aria-label={`Documento ${i + 1}: nombre`}
@@ -899,16 +865,16 @@ export function PropertyForm({ initial: source }: Props) {
                   placeholder="Ficha técnica en PDF"
                   className={inputClass}
                 />
-                <button
-                  type="button"
+                <Button
+                  iconOnly
+                  variant="ghost"
                   aria-label="Quitar documento"
                   onClick={() =>
                     setDocumentos(documentos.filter((_, j) => j !== i))
                   }
-                  className={rowBtn}
                 >
-                  <Trash2 className="size-4" strokeWidth={1.5} />
-                </button>
+                  <Trash2 size={16} aria-hidden="true" />
+                </Button>
               </div>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <input
@@ -924,40 +890,17 @@ export function PropertyForm({ initial: source }: Props) {
                   placeholder="Qué contiene el documento"
                   className={inputClass}
                 />
-                <input
-                  aria-label={`Documento ${i + 1}: URL del PDF`}
-                  value={doc.url}
-                  onChange={(e) =>
-                    setDocumentos(
-                      documentos.map((d, j) =>
-                        j === i ? { ...d, url: e.target.value } : d,
-                      ),
-                    )
-                  }
-                  placeholder="/descargas/ficha-tecnica-demo.pdf"
-                  className={inputClass}
-                />
+                {doc.url && <a href={doc.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold underline underline-offset-4"><ExternalLink size={16} aria-hidden="true" />Ver PDF</a>}
               </div>
             </div>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() =>
-            setDocumentos([
-              ...documentos,
-              { codigo: "", nombre: "", descripcion: "", url: "" },
-            ])
-          }
-          className={btnGhost + " mt-3 h-9"}
-        >
-          <Plus className="size-4" strokeWidth={1.5} /> Agregar PDF
-        </button>
         <LibraryPicker kind="pdf" allowed={publicGalleryUrl} onChoose={file => { setDocumentos([...documentos, { codigo: file.id, nombre: file.nombre, descripcion: file.notas ?? "", url: file.url }]); setDirty(true); }}/>
       </FormSection>
 
+      </div>
       {/* Sticky stays in flow, reserving its own space after the final fields. */}
-      <div className="sticky bottom-0 z-20 space-y-3 rounded-lg border border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
+      <div className="sticky bottom-0 z-20 lg:bottom-auto lg:top-24 lg:col-start-2 lg:row-start-1 lg:self-start lg:shadow-[var(--shadow-rest)] space-y-2 rounded-[var(--radius-card)] border border-[var(--card-edge)] bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
         {error ? (
           <p
             role="alert"
@@ -966,9 +909,13 @@ export function PropertyForm({ initial: source }: Props) {
             {error}
           </p>
         ) : null}
-        <p role="status" className="text-sm font-semibold">{dirty ? "Cambios sin guardar" : "Sin cambios pendientes"} · {initial?.publicada ? "Publicado" : "Borrador"}</p>
-        <div className="flex flex-wrap items-end gap-3">
-          <nav aria-label="Secciones del inmueble" className="w-full min-w-0 sm:flex-1">
+        {/* En celular la barra va compacta: estado y Cancelar en una línea, los dos botones en otra; «Ir a sección» solo con más ancho (arriba están las secciones). */}
+        <div className="flex items-center justify-between gap-2">
+          <p role="status" className="min-w-0 text-sm font-semibold">{dirty ? "Cambios sin guardar" : "Sin cambios pendientes"} · {initial?.publicada ? "Publicado" : "Borrador"}</p>
+          <Button variant="ghost" className="shrink-0" onClick={async () => {if(!dirty || await confirmAction("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin/propiedades");}}>Cancelar</Button>
+        </div>
+        <div className="flex flex-wrap items-end gap-2 sm:gap-3">
+          <nav aria-label="Secciones del inmueble" className="hidden min-w-0 sm:block sm:min-w-[12rem] sm:flex-1 lg:basis-full">
             <label htmlFor="pf-seccion" className="sr-only">Ir a sección</label>
             <select
               id="pf-seccion"
@@ -983,26 +930,46 @@ export function PropertyForm({ initial: source }: Props) {
               }}
             >
               <option value="" disabled>Ir a sección…</option>
-              {formSections.map((section) => (
+              {sections.map((section) => (
                 <option key={section.id} value={section.id}>{section.label}</option>
               ))}
             </select>
           </nav>
-          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-            <button type="submit" className={btnPrimary + " flex-1 sm:flex-none"}>
-              {initial ? "Guardar cambios" : "Crear inmueble"}
-            </button>
-            {initial && <button type="submit" disabled={!initial.publicada && !publicationReady} data-action={initial.publicada?"unpublish":"publish"} className={btnGhost+" flex-1 sm:flex-none"}>{initial.publicada?"Retirar del sitio":"Guardar y publicar"}</button>}
-            <button
-              type="button"
-              onClick={async () => {if(!dirty || await confirmAction("Hay cambios sin guardar. ¿Salir del editor?"))router.push("/admin/propiedades");}}
-              className={btnGhost + " flex-1 sm:flex-none"}
-            >
-              Cancelar
-            </button>
-          </div>
+          <Button type="submit" variant="primary" className="flex-1 sm:flex-none lg:flex-1">
+            {initial ? "Guardar cambios" : "Crear inmueble"}
+          </Button>
+          {initial && <Button type="submit" disabled={!initial.publicada && !publicationReady} data-action={initial.publicada?"unpublish":"publish"} className="flex-1 sm:flex-none lg:flex-1">{initial.publicada?"Retirar del sitio":"Guardar y publicar"}</Button>}
         </div>
       </div>
     </AsyncForm>
+  );
+}
+
+/** Video o recorrido 360: listo con «Ver» y «Quitar», o cómo agregarlo; el enlace solo se pide si se elige. */
+function MediaPiece({ title, value, onChange, ready, link, placeholder, upload }: { title: string; value: string; onChange: (value: string) => void; ready: string; link: string; placeholder: string; upload?: React.ReactNode }) {
+  const [typing, setTyping] = React.useState(false);
+  const id = React.useId();
+  return (
+    <div className="mt-5 flex flex-col gap-3 border-t border-border pt-5" role="group" aria-labelledby={id}>
+      <div className="flex flex-wrap items-center gap-2"><h3 id={id} className="m-0 text-base font-semibold">{title}</h3>{value ? <Pill size="sm" tone="success">Listo</Pill> : <Pill size="sm">Sin agregar</Pill>}</div>
+      {value ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="min-w-0 flex-1 text-sm text-muted-foreground">{ready}</p>
+          <a href={value} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold underline underline-offset-4"><ExternalLink size={16} aria-hidden="true" />Ver</a>
+          <Button variant="ghost" aria-label={`Quitar ${title.toLowerCase()}`} onClick={() => { onChange(""); setTyping(false); }}><Trash2 size={16} aria-hidden="true" />Quitar</Button>
+        </div>
+      ) : (
+        <>
+          {upload}
+          {typing ? (
+            <Field label={link} htmlFor={`${id}-enlace`}>
+              <input id={`${id}-enlace`} type="url" autoFocus placeholder={placeholder} className={inputClass}
+                onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); const v = event.currentTarget.value.trim(); if (v) onChange(v); } }}
+                onBlur={(event) => { const v = event.currentTarget.value.trim(); if (v) onChange(v); }} />
+            </Field>
+          ) : <Button variant="ghost" className="self-start" onClick={() => setTyping(true)}>{link}</Button>}
+        </>
+      )}
+    </div>
   );
 }

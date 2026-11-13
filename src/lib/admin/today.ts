@@ -1,7 +1,8 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { addMonths, lastOwnerReport, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { interviewFields, INTENTS, type OperationalInterview } from "@/lib/intake/interview";
-import type { Followup } from "@/lib/admin/followups";
+import { followupLabel, type Followup } from "@/lib/admin/followups";
+import { attentionOf, pastGaps, recentOfferOf, type AttentionKind, type OperationRecord } from "@/lib/admin/operation-view";
 
 /*
   Datos de la pantalla Hoy (encargo del panel guiado, sección 4). Todo se calcula
@@ -31,15 +32,15 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   revision_cierre: "Documentos al día para firmar",
   instrumento: "Cómo se firma y se paga",
   contraparte: "Comprador y participantes identificados",
-  firma: "Firma ante notario",
-  pago: "Pago completo antes de entregar",
+  firma: "Firma acreditada",
+  pago: "Pagos para entregar cumplidos según contrato",
   entrega: "Entrega con acta",
   registro: "Trámite de registro",
   honorarios: "Honorarios cobrados",
   archivo: "Pendientes resueltos y operación archivada",
   perfil: "Qué busca el cliente y quién decide",
   capacidad: "Presupuesto y crédito comprobados",
-  privacidad: "Aviso de privacidad firmado",
+  privacidad: "Aviso y controles de privacidad revisados",
   opciones: "Opciones que le sirven al cliente",
   visitas: "Visitas hechas e inmueble elegido",
   arrendatario: "Inquilino con capacidad de pago",
@@ -83,56 +84,105 @@ export function greeting(hour: number) { return hour < 12 ? "Buenos días" : hou
 
 const active = (d: TodayDossier) => d.etapa !== "cerrado" && d.flujo?.estado !== "descartada";
 
-export type WaitingItem = { id: string; who: string; folio?: string; detail?: string; reason: string; when: string; late: boolean; href: string; rank: number; sort: string; propertySlug?: string | null;
+/**
+  La cola única de «Lo siguiente» (SIM-16, 11/11/2026): todo lo que espera algo del usuario en una
+  sola lista, de lo más urgente a lo menos. Cada tipo conserva su origen (operación, contacto,
+  entrevista, contrato, informe, llaves, aviso) y se distingue por una pastilla, no por una sección.
+*/
+export type QueueKind = "problema" | "vencida" | "nuevo" | "llaves" | "contrato" | "licencia" | "informe" | "falta" | "revisar" | "hoy" | "decidir" | "entrevista" | "seguimiento" | "agendar" | "aviso";
+export type QueueItem = {
+  id: string; kind: QueueKind;
+  /** Quién o qué: la persona o el inmueble. */
+  who: string;
+  /** Qué espera: el motivo en una frase. */
+  text: string; detail?: string; when?: string; late: boolean; href: string;
+  /** Orden dentro de la misma urgencia (folio, fecha o posición). */
+  sort: string;
+  propertySlug?: string | null; folio?: string; taskId?: string;
+  /** Prospecto nuevo del sitio: Hoy ofrece «Registrar contacto» (COR-21). */
+  leadId?: string;
+};
+export const QUEUE_LABEL: Record<QueueKind, string> = { problema: "Problema", vencida: "Vencida", nuevo: "Nuevo", llaves: "Llaves", contrato: "Contrato", licencia: "Licencia", informe: "Informe", falta: "Falta", revisar: "Revisar", hoy: "Vence hoy", decidir: "Oferta", entrevista: "Entrevista", seguimiento: "Seguimiento", agendar: "Agendar", aviso: "Aviso" };
+// Las operaciones siguen el orden de RP-84 (problema, vencida, falta, revisar, vence hoy, oferta, sin próxima tarea).
+const QUEUE_RANK: Record<QueueKind, number> = { problema: 0, vencida: 1, nuevo: 2, llaves: 3, contrato: 4, licencia: 4, informe: 5, falta: 6, revisar: 7, hoy: 8, decidir: 9, entrevista: 10, seguimiento: 11, agendar: 12, aviso: 13 };
+const WAITING_KIND: Record<AttentionKind | "contacto", QueueKind> = { problema: "problema", vencida: "vencida", falta: "falta", revisar: "revisar", hoy: "hoy", oferta: "decidir", agendar: "agendar", contacto: "seguimiento" };
+
+/** Lo vencido primero; después por tipo y, dentro del tipo, por folio o fecha. */
+export function sortQueue(items: QueueItem[]): QueueItem[] {
+  return [...items].sort((a, b) => Number(b.late) - Number(a.late) || QUEUE_RANK[a.kind] - QUEUE_RANK[b.kind] || a.sort.localeCompare(b.sort));
+}
+export function queueFromWaiting(items: WaitingItem[]): QueueItem[] {
+  return items.map(item => ({ id: `espera:${item.id}`, kind: WAITING_KIND[item.kind], who: item.who, text: item.rank === 1 ? item.reason.replace(/^Tarea vencida: /, "") : item.reason, detail: item.detail, when: item.when, late: item.late, href: item.href, sort: item.sort, propertySlug: item.propertySlug, folio: item.folio, taskId: item.taskId }));
+}
+export function queueFromLeads(items: NewLeadItem[]): QueueItem[] {
+  return items.map((item, index) => ({ id: `nuevo:${item.id}`, kind: "nuevo", who: item.who, text: item.detail, when: item.since, late: item.late, href: item.href, leadId: item.id, sort: String(index).padStart(4, "0") }));
+}
+export function queueFromInterviews(interviews: OperationalInterview[]): QueueItem[] {
+  return interviews.map(interview => ({ id: `entrevista:${interview.id}`, kind: "entrevista", who: interview.contacto?.nombre || "Contacto sin nombre", text: interviewSummary(interview), late: false, href: `/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.id)}`, sort: interview.updated_at ?? "" }));
+}
+export function queueFromExpiry(items: ExpiryItem[]): QueueItem[] {
+  return items.map(item => ({ id: item.id, kind: item.kind === "Contrato" ? "contrato" : "licencia", who: item.meta, text: item.text, when: shortDate(item.date), late: item.late, href: item.href, sort: item.date }));
+}
+export function queueFromReports(items: ReturnType<typeof overdueReports>): QueueItem[] {
+  return items.map(report => ({ id: `informe:${report.id}`, kind: "informe", who: report.who, text: "Preparar el informe mensual al propietario", detail: report.property, when: report.status, late: report.status.startsWith("Vencido"), href: report.href, sort: report.id }));
+}
+
+export type WaitingItem = { id: string; who: string; folio?: string; detail?: string; reason: string; when: string; late: boolean; href: string; rank: number; kind: AttentionKind | "contacto"; sort: string; propertySlug?: string | null;
   /** La tarea vencida que motiva la tarjeta: «Tareas de hoy» no la repite (C10). */
   taskId?: string;
   /** Con un problema escrito, el requisito al que pertenece; va en la línea secundaria (C35). */
   requirement?: string };
 
 /**
-  «Esperan algo de ti»: una tarjeta por operación o contacto, con el motivo más
-  urgente. Orden: hay un problema, tarea vencida, documento por revisar, oferta
-  nueva, sin próxima tarea; después los contactos a los que toca dar seguimiento.
+  «Esperan algo de ti»: una tarjeta por operación o contacto, con el motivo más urgente.
+  El motivo de cada operación sale de `attentionOf` (RP-84, COR-05), la misma función de
+  Operaciones; aquí solo se escribe en una frase. Después, los contactos a los que toca dar seguimiento.
 */
-export function waitingItems({ dossiers, tasks, offers, followups, names, today }: { dossiers: TodayDossier[]; tasks: Task[]; offers: OfferRun[] | null; followups: Followup[]; names: Names; today: string }): WaitingItem[] {
+export function waitingItems({ dossiers, tasks, offers, followups, names, today, formats }: { dossiers: TodayDossier[]; tasks: Task[]; offers: OfferRun[] | null; followups: Followup[]; names: Names; today: string; formats?: ReadonlyMap<string, ReadonlyMap<string, boolean>> }): WaitingItem[] {
   const items: WaitingItem[] = [];
-  const recentOffer = addDays(today, -3);
   for (const dossier of dossiers.filter(active)) {
     const flow = dossier.flujo;
     const requirements = Object.entries(flow?.requisitos ?? {}) as Array<[RequirementKey, NonNullable<OperationWorkflow["requisitos"][RequirementKey]>]>;
     const open = tasks.filter(t => t.expedienteId === dossier.id && isTaskOpen(t));
-    const overdue = open.filter(t => t.vence && t.vence < today).sort((a, b) => a.vence!.localeCompare(b.vence!));
-    const problem = requirements.find(([, r]) => r.estado === "observado");
-    const received = requirements.find(([, r]) => r.estado === "recibido");
-    const offer = offers?.filter(o => o.context?.expedienteId === dossier.id && o.updatedAt.slice(0, 10) >= recentOffer).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+    const offer = recentOfferOf(dossier.id, offers, today);
+    // Igual que Operaciones: solo se sabe qué formatos existen; se avisa del que falta por completo.
+    const own = formats?.get(dossier.id);
+    const gap = formats ? pastGaps(dossier as unknown as OperationRecord, today, formato => own?.has(formato) ? "terminado" : undefined)[0]?.gap : undefined;
+    const attention = attentionOf(dossier, tasks, today, gap, !!offer);
+    if (!attention) continue;
     const since = (value?: string) => value ? (value.slice(0, 10) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
-    let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank" | "taskId" | "requirement"> | null = null;
-    // El título es el problema; el requisito va en la línea secundaria (C35).
-    if (problem) { const name = requirementName(problem[0], flow?.ruta), said = problem[1].soporte.trim(); pick = { reason: said ? said.replace(/^./, c => c.toUpperCase()) : `Hay un problema con «${name}».`, requirement: said ? name : undefined, when: since(problem[1].registradoEl), late: true, rank: 0 }; }
-    else if (overdue.length) pick = { reason: `Tarea vencida: ${overdue[0].titulo}`, when: `Vencida desde el ${shortDate(overdue[0].vence!)}`, late: true, rank: 1, taskId: overdue[0].id };
-    else if (received) pick = { reason: `Ya tienes «${requirementName(received[0], flow?.ruta)}». Revísalo.`, when: since(received[1].registradoEl), late: false, rank: 2 };
-    else if (offer) pick = { reason: "Se registró una oferta. Revísala con el propietario.", when: offer.updatedAt.slice(0, 10) === today ? "Hoy" : `El ${shortDate(offer.updatedAt)}`, late: false, rank: 3 };
-    else if (flow?.estado !== "pausada" && !open.some(t => !!t.vence)) pick = { reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "", late: false, rank: 4 };
-    if (!pick) continue;
+    const base = { late: attention.late, rank: attention.rank, kind: attention.kind };
+    let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank" | "kind" | "taskId" | "requirement">;
+    if (attention.kind === "problema") {
+      // El título es el problema; el requisito va en la línea secundaria (C35).
+      const problem = requirements.find(([, r]) => r.estado === "observado")!;
+      const name = requirementName(problem[0], flow?.ruta), said = problem[1].soporte.trim();
+      pick = { ...base, reason: said ? said.replace(/^./, c => c.toUpperCase()) : `Hay un problema con «${name}».`, requirement: said ? name : undefined, when: since(problem[1].registradoEl) };
+    } else if (attention.kind === "vencida") {
+      const overdue = open.filter(t => t.vence && t.vence < today).sort((a, b) => a.vence!.localeCompare(b.vence!))[0];
+      pick = { ...base, reason: `Tarea vencida: ${overdue.titulo}`, when: `Vencida desde el ${shortDate(overdue.vence!)}`, taskId: overdue.id };
+    } else if (attention.kind === "falta") {
+      pick = { ...base, reason: `${attention.label} de una etapa anterior.`, when: "" };
+    } else if (attention.kind === "revisar") {
+      const received = requirements.find(([, r]) => r.estado === "recibido")!;
+      pick = { ...base, reason: `Ya tienes «${requirementName(received[0], flow?.ruta)}». Revísalo.`, when: since(received[1].registradoEl) };
+    } else if (attention.kind === "hoy") {
+      const due = open.filter(t => t.vence === today).sort((a, b) => a.titulo.localeCompare(b.titulo, "es"))[0];
+      pick = { ...base, reason: `Vence hoy: ${due.titulo}`, when: "Hoy", taskId: due.id };
+    } else if (attention.kind === "oferta") {
+      pick = { ...base, reason: "Se registró una oferta. Revísala con el propietario.", when: offer!.updatedAt.slice(0, 10) === today ? "Hoy" : `El ${shortDate(offer!.updatedAt)}` };
+    } else {
+      pick = { ...base, reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "" };
+    }
     const property = names.property(dossier.propiedad_slug);
     items.push({ id: dossier.id, who: names.client(dossier.cliente_id) ?? property ?? dossier.folio, folio: dossier.folio, propertySlug: dossier.propiedad_slug, detail: [pick.requirement, property, processStageText(dossier.etapa, flow, today, dossier.inicial)].filter(Boolean).join(" · "), href: `/admin/operaciones/${encodeURIComponent(dossier.id)}`, sort: dossier.folio, ...pick });
   }
   // Quien tiene una operación activa la sigue por su operación, no por el «próximo contacto» del perfil (C40).
   const withOperation = new Set(dossiers.filter(active).map(d => d.cliente_id).filter(Boolean));
   for (const contact of followups.filter(f => f.fecha <= today && !(f.kind === "cliente" && withOperation.has(f.personId)))) {
-    items.push({ id: contact.id, who: contact.personName, detail: contact.kind === "lead" ? "Prospecto" : "Cliente", reason: "Darle seguimiento", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 5, sort: contact.fecha });
+    items.push({ id: contact.id, who: contact.personName, detail: followupLabel(contact), reason: "Darle seguimiento", when: contact.fecha === today ? "Hoy" : `Desde el ${shortDate(contact.fecha)}`, late: contact.fecha < today, href: contact.href, rank: 7, kind: "contacto", sort: contact.fecha });
   }
   return items.sort((a, b) => a.rank - b.rank || a.sort.localeCompare(b.sort));
-}
-
-/** Operaciones en curso por etapa, de la más poblada a la menos (bloque azul de Hoy, LV-07). */
-export function stageCounts(dossiers: TodayDossier[], today: string) {
-  const counts = new Map<string, number>();
-  for (const d of dossiers.filter(active)) {
-    const label = processStageText(d.etapa, d.flujo, today, d.inicial) || "Sin etapa";
-    counts.set(label, (counts.get(label) ?? 0) + 1);
-  }
-  return [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "es"));
 }
 
 /** Los siete días que siguen a hoy, en orden. */
@@ -235,8 +285,13 @@ export function expiryItems({ contracts, dossiers, names, today }: { contracts: 
   return items.sort((a, b) => a.date.localeCompare(b.date) || a.kind.localeCompare(b.kind));
 }
 
-/** RP-23: horas para la primera atención de un prospecto nuevo. Pendiente: hacerlo ajustable en Configuración. */
+/** RP-23: horas para la primera atención de un prospecto nuevo; se ajusta en Configuración. */
 export const FIRST_RESPONSE_HOURS = 2;
+/** El plazo guardado en Configuración, o 2 h si no hay uno válido. */
+export function firstResponseHours(settings?: { horasPrimeraAtencion?: unknown } | null): number {
+  const value = settings?.horasPrimeraAtencion;
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 72 ? value : FIRST_RESPONSE_HOURS;
+}
 export type NewLeadItem = { id: string; who: string; detail: string; since: string; late: boolean; href: string; responsible?: string; forDirector: boolean };
 type LeadLike = { id: string; nombre: string; estado: string; origen: string; creadoEl: string; asesorId?: string; propiedadSlug?: string; zona?: string; mensaje?: string; clienteId?: string; firstContactedAt?: string };
 

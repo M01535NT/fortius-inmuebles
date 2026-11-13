@@ -9,6 +9,7 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { TIPO_INMUEBLE_LABELS } from "@/lib/inmueble-tipos";
 import { LEAD_PROFILE_OPTIONS, leadProfileSchema, type LeadProfile } from "@/lib/lead-profile";
 import s from "./wizard.module.css";
+import { humanDate } from "@/lib/utils";
 
 /*
   «Quiere comprar» y «Quiere rentar» (COR-11, RP-93, 29/10/2026). Fortius solo representa al
@@ -138,7 +139,7 @@ export function InterestedDone({ intent, lead }: { intent: Intent; lead: Lead })
     <Card as="div" className="overflow-hidden"><dl className={s.summary} aria-label="Resumen del interesado">
       <dt>Interesado</dt><dd>{lead.nombre}</dd>
       <dt>Quiere</dt><dd>{label(intent)}</dd>
-      <dt>Próxima acción</dt><dd>{lead.perfil?.proximaAccion} · {lead.perfil?.proximoContacto}</dd>
+      <dt>Próxima acción</dt><dd>{lead.perfil?.proximaAccion} · {humanDate(lead.perfil?.proximoContacto)}</dd>
       <dt>Lo que sigue</dt><dd>Sus visitas y ofertas van en la operación del propietario. Si firma, queda como contraparte.</dd>
     </dl></Card>
     <div className="flex flex-wrap items-center gap-3">

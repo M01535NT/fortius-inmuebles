@@ -1,6 +1,6 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
-import { emptyWorkflow, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STATES, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { appraisalState, emptyWorkflow, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STATES, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { isLawyerTask, type PropertyCondition } from "@/lib/intake/condition";
 
@@ -123,29 +123,45 @@ export function pastGaps(op: OperationRecord, today: string, status: (formato: s
   const { stages, current } = stageTrack(op, today);
   return stages.slice(0, current).flatMap(stage => {
     if (!stage.key || !PHASES_WITH_DOCUMENTS.includes(stage.key)) return [];
-    const gap = phaseGap(stage.key, status, op.inicial?.documentos, op.flujo?.ruta);
+    // COR-17: si el propietario trajo avalúo, a la etapa del valor no le falta la opinión de valor.
+    const covered = stage.key === "verificacion" && op.flujo?.ruta === "captacion" && !!op.flujo.avaluo;
+    const gap = phaseGap(stage.key, covered ? f => f === "07" ? "terminado" : status(f) : status, op.inicial?.documentos, op.flujo?.ruta);
     return gap ? [{ ...stage, key: stage.key, gap }] : [];
   });
 }
 
-export type Attention = { label: string; rank: number; late: boolean };
+/** El motivo de RP-84, del más urgente (0) al menos urgente (6). */
+export type AttentionKind = "problema" | "vencida" | "falta" | "revisar" | "hoy" | "oferta" | "agendar";
+export const ATTENTION_ORDER: readonly AttentionKind[] = ["problema", "vencida", "falta", "revisar", "hoy", "oferta", "agendar"];
+export type Attention = { kind: AttentionKind; label: string; rank: number; late: boolean };
+type AttentionInput = Pick<OperationRecord, "id" | "etapa" | "flujo"> & Partial<Pick<OperationRecord, "operacion">>;
 /**
-  Por qué una operación «espera algo de ti», en pocas palabras: hay un problema, tarea vencida,
-  documento de una etapa anterior, documento por revisar, vence hoy o sin próxima tarea.
+  Por qué una operación «espera algo de ti» (RP-84, COR-05). Es la única definición: la usan
+  Operaciones, la cola de Hoy y el número del menú, con este orden: 1) hay un problema;
+  2) tarea vencida; 3) falta un documento de una etapa anterior; 4) documento por revisar;
+  5) vence hoy; 6) oferta nueva (últimos 3 días); 7) sin próxima tarea con fecha.
 */
-export function attentionOf(op: OperationRecord, tasks: Task[], today: string, gap?: string): Attention | null {
-  const flow = flowOf(op);
+export function attentionOf(op: AttentionInput, tasks: Task[], today: string, gap?: string, recentOffer = false): Attention | null {
+  const flow = flowOf({ flujo: op.flujo, operacion: op.operacion ?? "" });
   if (stageOf(op) === "cerrado" || flow.estado === "descartada") return null;
   const reviews = Object.values(flow.requisitos);
   const open = tasks.filter(t => t.expedienteId === op.id && isTaskOpen(t));
-  if (reviews.some(r => r?.estado === "observado")) return { label: "Hay un problema", rank: 0, late: true };
-  if (open.some(t => !!t.vence && t.vence < today)) return { label: "Tarea vencida", rank: 1, late: true };
-  if (gap) return { label: gap, rank: 2, late: false };
-  if (reviews.some(r => r?.estado === "recibido")) return { label: "Documento por revisar", rank: 3, late: false };
-  if (open.some(t => t.vence === today)) return { label: "Vence hoy", rank: 4, late: false };
-  if (flow.estado !== "pausada" && !open.some(t => !!t.vence)) return { label: "Sin próxima tarea", rank: 5, late: false };
+  const at = (kind: AttentionKind, label: string, late = false): Attention => ({ kind, label, rank: ATTENTION_ORDER.indexOf(kind), late });
+  if (reviews.some(r => r?.estado === "observado")) return at("problema", "Hay un problema", true);
+  if (open.some(t => !!t.vence && t.vence < today)) return at("vencida", "Tarea vencida", true);
+  if (gap) return at("falta", gap);
+  if (reviews.some(r => r?.estado === "recibido")) return at("revisar", "Documento por revisar");
+  if (open.some(t => t.vence === today)) return at("hoy", "Vence hoy");
+  if (recentOffer) return at("oferta", "Oferta nueva");
+  if (flow.estado !== "pausada" && !open.some(t => !!t.vence)) return at("agendar", "Sin próxima tarea");
   return null;
 }
+/** Una oferta registrada en los últimos 3 días para esta operación. */
+export function recentOfferOf(operationId: string, offers: ReadonlyArray<{ updatedAt: string; context?: { expedienteId?: string } }> | null | undefined, today: string) {
+  const from = shiftDay(today, -3);
+  return offers?.filter(o => o.context?.expedienteId === operationId && o.updatedAt.slice(0, 10) >= from).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+}
+function shiftDay(date: string, days: number) { const d = new Date(date.slice(0, 10) + "T12:00:00.000Z"); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); }
 
 /** Formatos que se trabajan en cada etapa del propietario; el aviso (01) se entrega en la entrevista y no detiene el avance. */
 /*
@@ -155,7 +171,7 @@ export function attentionOf(op: OperationRecord, tasks: Task[], today: string, g
   comprador, oferta de compra y promesa de compraventa).
 */
 const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; optional?: true; venta?: true; renta?: "opcional" }>>> = {
-  prospecto: [{ formato: "02" }], captacion: [{ formato: "02" }, { formato: "01", optional: true }], levantamiento: [{ formato: "04" }],
+  prospecto: [{ formato: "02" }], captacion: [{ formato: "02" }, { formato: "01", optional: true }], levantamiento: [{ formato: "04" }, { formato: "19", optional: true }],
   dictamen: [{ formato: "05", renta: "opcional" }, { formato: "06", venta: true }], verificacion: [{ formato: "07" }, { formato: "08", venta: true }], contrato: [{ formato: "09", renta: "opcional" }, { formato: "10" }],
   publicacion: [{ formato: "11", optional: true }],
   visitas: [{ formato: "12", optional: true, venta: true }, { formato: "13", optional: true }, { formato: "14", optional: true, venta: true }],
@@ -195,7 +211,9 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
   const active = flow.estado === "activa", interviewed = status("02") === "terminado";
   if (isOwnerRoute(flow.ruta) && phase === "captacion" && active && interviewed && (context.next02 === "pausa" || context.next02 === "referir")) items.push({ kind: "decision02", action: context.next02 });
   if (isOwnerRoute(flow.ruta) && phase) {
-    for (const item of stageDocuments(phase, flow.ruta)) items.push({ kind: "documento", formato: item.formato, status: status(item.formato), ...(item.optional ? { optional: true as const } : {}) });
+    // COR-17: con el avalúo del propietario vigente, la opinión de valor (07) ya no se pide.
+    const appraised = flow.ruta === "captacion" && appraisalState(flow, today) === "vigente";
+    for (const item of stageDocuments(phase, flow.ruta)) items.push({ kind: "documento", formato: item.formato, status: status(item.formato), ...(item.optional || (appraised && item.formato === "07") ? { optional: true as const } : {}) });
     if (phase === "documentos") items.push({ kind: "checklist", status: op.inicial?.documentos });
     if (phase === "captacion" && active && (context.condition || (interviewed && context.next02 === "evaluacion"))) {
       const task = tasks.filter(t => t.expedienteId === op.id && isLawyerTask(t.titulo) && t.estado !== "cancelada").sort((a, b) => Number(isTaskOpen(b)) - Number(isTaskOpen(a)))[0];
@@ -207,7 +225,7 @@ export function stageItems(op: OperationRecord, tasks: Task[], today: string, st
   for (const { key, earlier } of currentRequirements(op, today)) items.push({ kind: "requisito", key, earlier, state: reviewState(flow, key), done: reviewComplete(flow, key, today) });
   for (const m of missingItems(op, tasks, today)) {
     // Lo de documentos ya está arriba; en el checklist también cuentan la entrevista y el levantamiento sin terminar.
-    if (m.place === "ajustes" || m.place === "tarea" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place });
+    if (m.place === "ajustes" || m.place === "tarea" || m.place === "firma" || m.place === "cierre" || (phase === "documentos" && m.place === "operacion" && !m.text.startsWith("Recibir"))) items.push({ kind: "pendiente", text: m.text, why: m.why, place: m.place });
   }
   return items;
 }
@@ -268,15 +286,21 @@ export function advanceTarget(op: OperationRecord, today: string): { target?: Wo
   return { target: next, label: following?.label ?? stageLabel(next, flow.ruta) };
 }
 
-export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "tarea" | "operacion" };
+export type Missing = { text: string; why: string; requirement?: RequirementKey; place: "requisito" | "ajustes" | "tarea" | "operacion" | "firma" | "cierre" };
 const BLOCKER_TEXT: Record<string, Omit<Missing, "requirement">> = {
   "Reactivar la operación antes de avanzar.": { text: "Reactivar la operación", why: "está en pausa, en regularización o descartada", place: "ajustes" },
   "Resolver las observaciones que bloquean esta actividad.": { text: "Resolver los problemas marcados", why: "un requisito dice «Hay un problema»", place: "requisito" },
   "Revisar la resolución y reactivar el encargo antes de avanzar.": { text: "Revisar la decisión del encargo", why: "está en pausa, rechazada, referida o cancelada", place: "ajustes" },
   "La aceptación condicionada no autoriza esta actividad.": { text: "Revisar las condiciones del encargo", why: "la decisión con condiciones no permite este paso", place: "ajustes" },
-  "Registrar la decisión de captación y sus condiciones antes de comercializar.": { text: "Registrar si tomas el encargo", why: "se decide en Ajustes", place: "ajustes" },
-  "Captura los datos del inmueble.": { text: "Vincular el inmueble", why: "se hace en Ajustes", place: "ajustes" },
-  "Identificar la contraparte interna o externa.": { text: "Identificar al comprador o contraparte", why: "se hace en Ajustes", place: "ajustes" },
+  "Registrar la decisión de captación y sus condiciones antes de comercializar.": { text: "Registrar si tomas el encargo", why: "se decide en los datos de la operación", place: "ajustes" },
+  // COR-10: la firma del contrato se registra y se revisa en la tarjeta «Firma del contrato».
+  "Registrar la firma del contrato de intermediación.": { text: "Registrar la firma del contrato", why: "con el contrato firmado, la fecha y quién firmó", place: "firma" },
+  "Completar la firma del contrato: faltan firmantes.": { text: "Completar la firma del contrato", why: "faltan firmantes", place: "firma" },
+  "El director debe revisar la firma del contrato.": { text: "Revisión de la firma por el director", why: "sin ella no se publica", place: "firma" },
+  "El contrato de intermediación terminó: registra uno nuevo para seguir.": { text: "Registrar un contrato nuevo", why: "el anterior terminó", place: "firma" },
+  "Registrar quién captó y quién vendió antes de archivar.": { text: "Registrar quién captó y quién vendió", why: "para el reparto de la comisión", place: "cierre" },
+  "Captura los datos del inmueble.": { text: "Vincular el inmueble", why: "se hace en los datos de la operación", place: "ajustes" },
+  "Identificar la contraparte interna o externa.": { text: "Identificar al comprador o contraparte", why: "se hace en los datos de la operación", place: "ajustes" },
   "Resolver o descartar las tareas pendientes antes de archivar.": { text: "Cerrar las tareas pendientes", why: "antes de archivar", place: "tarea" },
   "Agendar una próxima tarea con fecha y responsable.": { text: "Agendar la próxima tarea", why: "con fecha y responsable", place: "tarea" },
 };
@@ -298,7 +322,7 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar el checklist de documentos", why: "con el botón «Iniciar checklist»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
   if (!target.target) {
     const items: Missing[] = (phase === "dictamen" ? phaseRequirements("dictamen", flow.ruta) : verificationRequirements(flow.ruta)).filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key, flow.ruta), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
-    if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "se decide en Ajustes", place: "ajustes" });
+    if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "se decide en los datos de la operación", place: "ajustes" });
     return items;
   }
   const labels = new Map(Object.entries(WORKFLOW_REQUIREMENTS).map(([key, value]) => [value.label as string, key as RequirementKey]));

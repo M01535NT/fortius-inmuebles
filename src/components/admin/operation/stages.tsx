@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { AlertCircle, Check, ChevronLeft, ChevronRight, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone, Trash2 } from "@/components/admin/icons";
+import { AlertCircle, Check, ChevronLeft, ChevronRight, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone } from "@/components/admin/icons";
 import { Button, ButtonLink, Pill, Sheet } from "@/components/admin/kit";
 import { flowOf, isGuided, phaseFormats, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
@@ -49,7 +49,7 @@ export const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).sl
   pasó, abre «Ver etapas» en ella), lo que quedó pendiente de etapas anteriores y, al pie, la persona
   con Llamar y WhatsApp. En las demás pestañas va compacto, con las partes de la operación.
 */
-export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, onOpenStages, onRemove, children }: {
+export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, onOpenStages, menu: menuItems = [], children }: {
   op: OperationRecord; today: string; docs: DocumentsController; checklist?: Task; compact: boolean;
   /** A dónde vuelve el círculo de regreso. */
   back: string;
@@ -59,7 +59,8 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
   tags?: Array<{ text: string; detail?: string }>;
   person?: { name: string; role: string; digits: string; email?: string; href: string };
   onOpenStages: (focus?: SalePhase) => void;
-  onRemove?: () => void;
+  /** «Más opciones»: datos de la operación, corregir etapa y eliminar. */
+  menu?: Array<{ label: string; icon?: React.ReactNode; onSelect: () => void }>;
   /** Las partes de la operación (pestañas), en el panel compacto. */
   children?: React.ReactNode;
 }) {
@@ -75,9 +76,9 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
       <Link href={back} className={s.round} aria-label="Volver a Operaciones"><ChevronLeft size={20} aria-hidden="true" /></Link>
       <span className={s.onNavyMuted}>{op.folio}</span>
       <span className="flex-1" />
-      {onRemove && <span className="relative">
+      {menuItems.length > 0 && <span className="relative">
         <button type="button" className={s.round} aria-label="Más opciones" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(open => !open)}><MoreHorizontal size={20} aria-hidden="true" /></button>
-        {menu && <div role="menu" className={s.menu}><button type="button" role="menuitem" className={s.menuItem} onClick={() => { setMenu(false); onRemove(); }}><Trash2 size={16} aria-hidden="true" />Eliminar operación</button></div>}
+        {menu && <div role="menu" className={s.menu}>{menuItems.map(item => <button key={item.label} type="button" role="menuitem" className={s.menuItem} onClick={() => { setMenu(false); item.onSelect(); }}>{item.icon}{item.label}</button>)}</div>}
       </span>}
     </div>
     <div className={s.who}>

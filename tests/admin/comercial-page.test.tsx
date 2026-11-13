@@ -20,7 +20,7 @@ it("consumes the portfolio deep link once and does not reload after saving",asyn
   expect((screen.getByLabelText("Nombre de cartera") as HTMLInputElement).value).toBe("Nueva versión");
  } finally {window.history.replaceState(null,"","/");}
 });
-it("editor no solicita datos globales",()=>{session.mockReturnValue({role:"editor"});render(<Page/>);expect(screen.getByText(/requiere acceso de administrador/i)).toBeTruthy();expect(fetch).not.toHaveBeenCalled();});
+it("editor no solicita datos globales",()=>{session.mockReturnValue({role:"editor"});render(<Page/>);expect(screen.getByText(/es solo para administradores/i)).toBeTruthy();expect(fetch).not.toHaveBeenCalled();});
 it("carga servidor, guarda campos y conserva captura ante conflicto; no emite cambios sin guardar",async()=>{
  render(<Page/>);fireEvent.change(await screen.findByLabelText("Cartera"),{target:{value:id}});await screen.findByText(/Versión guardada 1/);fireEvent.click(screen.getByRole("button",{name:"Oportunidades"}));fireEvent.click(screen.getByRole("button",{name:/I1/}));fireEvent.change(screen.getByLabelText("Nombre de la oportunidad"),{target:{value:"Captura pendiente"}});
  expect((screen.getByRole("button",{name:"Generar PDF"}) as HTMLButtonElement).disabled).toBe(true);

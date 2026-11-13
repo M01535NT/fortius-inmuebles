@@ -31,7 +31,7 @@ export function AssistedLabel({ id, label, help, children }: { id: string; label
 /** Desplegable compacto que inserta una plantilla en un texto largo. */
 export function TemplateMenu({ label, templates, onPick }: { label: string; templates: Plantilla[]; onPick: (text: string) => void }) {
   return <select aria-label={`Usar una plantilla en «${label}»`} value="" onChange={event => { const pick = templates.find(t => t.label === event.target.value); if (pick) onPick(pick.text); }}
-    className="cursor-pointer rounded-md border-transparent! bg-transparent! pr-7 text-right font-semibold text-primary-ink! hover:bg-secondary!">
+    className="cursor-pointer rounded-md border-transparent! bg-transparent! pr-7 text-right font-semibold text-foreground! hover:bg-secondary!">
     <option value="">Usar plantilla…</option>
     {templates.map(t => <option key={t.label} value={t.label}>{t.label}</option>)}
   </select>;

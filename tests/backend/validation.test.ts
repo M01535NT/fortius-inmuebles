@@ -77,6 +77,12 @@ describe("BFF validation and authorization behavior", () => {
     const emptyLinks = { ...settings, facebook: "", instagram: "", videoInstitucionalUrl: "", whatsapp: "" };
     expect(projectPublic("config", [emptyLinks])).toEqual([emptyLinks]);
   });
+  it("COR-21: the first-response limit is staff-only and stays between 1 and 72 hours", () => {
+    const settings = { nombreComercial: "MNT", telefono: "", whatsapp: "", email: "", horario: "", facebook: "", instagram: "", videoInstitucionalUrl: "" };
+    expect(projectPublic("config", [{ ...settings, horasPrimeraAtencion: 4 }])).toEqual([settings]);
+    expect(parseRecord("config", "singleton", { ...settings, horasPrimeraAtencion: 4 })).toMatchObject({ horasPrimeraAtencion: 4 });
+    for (const bad of [0, 73, 1.5, "4"]) expect(() => parseRecord("config", "singleton", { ...settings, horasPrimeraAtencion: bad })).toThrow();
+  });
   it("validates contact, body, origin enum and rejects honeypot/privilege injection", () => {
     expect(parseLead({ nombre: "Persona", telefono: "6641234567", origen: "interes_propiedad" }).origen).toBe("interes_propiedad");
     for (const extra of [{ telefono: "a" }, { email: "wrong" }, { website: "spam" }, { estado: "cerrado" }, { origen: "fake" }]) {

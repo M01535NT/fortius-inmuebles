@@ -15,6 +15,8 @@ const published = (extra: Record<string, unknown> = {}) => ({ ...property, publi
 function completeFlow() {
   const flow = emptyWorkflow();
   flow.resolucion = { tipo: "aceptada", fecha: "2026-10-14", motivo: "Admisión de ensayo", siguienteAccion: "Preparar publicación", fechaSiguiente: "2030-12-31" };
+  // COR-10: firma del contrato completa y revisada por el director.
+  flow.firmaContrato = {tipo:"intermediacion",fecha:"2026-10-14",firmantes:[{nombre:"Propietario de ensayo",parte:"propietario"}],archivo:"52000000-0000-4000-8000-0000000000aa",completa:true,revisada:true,revisadoEl:"2026-10-14T18:00:00.000Z"};
   for (const k of ["entrevista", "titularidad", "factibilidad", "valor", "precio", "intermediacion", "levantamiento", "plan", "publicacion"] as const)
     flow.requisitos[k] = { estado: "revisado", soporte: "Documento ficticio v1", evidencia: { tipo: "externa", referencia: "Documento externo de ensayo v1", fecha: "2026-10-14", responsable: "Revisor de ensayo", resultado: "Apto para esta actividad de prueba" }, ...(k === "factibilidad" ? { vigenteHasta: "2030-12-31" } : {}) };
   return flow;

@@ -7,8 +7,10 @@ import { Button, ButtonLink, Card, Notice, ProgressBar, Surface } from "@/compon
 import { inputClass, selectClass } from "@/components/admin/ui";
 import { AdminApiError, apiRequest, db, errorMessage, useCollection, useLoadState, type Lead } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
+import { PERSON_STATUS_LABEL } from "@/lib/admin/person-status";
+import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
 import { INTENTS, isBuyerIntent, type IntakeIntent, type OperationalInterview } from "@/lib/intake/interview";
-import { INTENT_CHOICES, intentTitle, wizardSteps } from "@/lib/intake/wizard";
+import { INTAKE_TITLE, INTENT_CHOICES, intentTitle, wizardSteps } from "@/lib/intake/wizard";
 import { useInterviewGuard } from "./use-interview-guard";
 import { InterviewStep } from "./interview-step";
 import { DoneStep } from "./done-step";
@@ -29,6 +31,8 @@ import s from "./wizard.module.css";
 
 const ORIGINS = { llamada: "Llamada", whatsapp: "WhatsApp", correo: "Correo electrónico", referido: "Referido", web: "Página web o redes sociales", presencial: "En persona", otro: "Otro" } as const;
 type Contact = { kind: "lead" | "cliente"; id: string };
+/** COR-19: «Captar inmueble para este perfil» trae la zona y el tipo que buscan los interesados. */
+const demandSeed = (p: { get(key: string): string | null }) => Object.fromEntries(["zona", "tipo"].flatMap(key => p.get(key)?.trim() ? [[key, p.get(key)!.trim().slice(0, 200)]] : [])) as { zona?: string; tipo?: string };
 
 export function NewOperationWizard() {
   const params = useSearchParams(), router = useRouter();
@@ -50,7 +54,7 @@ export function NewOperationWizard() {
 
   const step = !interviewId ? null : !interview ? 0 : interview.estado === "borrador" ? 3 : 4;
   return <Surface className="flex min-h-[100dvh] flex-1 flex-col">
-    {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin/operaciones/nueva?entrevista=${encodeURIComponent(started.id)}`, { scroll: false }); }} onGuard={onGuard} />
+    {step === null ? <ContactSteps onStarted={started => { setGuard({ dirty: false, busy: false }); setInterview(started); setFresh(true); router.replace(`/admin/operaciones/nueva?${new URLSearchParams({ entrevista: started.id, ...demandSeed(params) })}`, { scroll: false }); }} onGuard={onGuard} />
       : <div className={s.shell}>
         <Header step={step === 0 ? 3 : step} intent={interview?.intencion} />
         <div className={s.frame}>
@@ -59,7 +63,7 @@ export function NewOperationWizard() {
             {step === 0 ? (loadError ? <div className={s.body}><p role="alert">{loadError}</p><Button className="self-start" onClick={() => window.location.reload()}>Reintentar</Button></div> : <div className={s.body}><p role="status" className="text-sm text-muted-foreground">Cargando la entrevista…</p></div>)
               : interview && isBuyerIntent(interview.intencion) && interview.estado === "borrador" ? <div className={s.body}><Notice title="Esta entrevista ya no abre operación">Fortius representa al propietario: quien compra o renta se guarda como interesado.</Notice><ButtonLink className="self-start" variant="primary" href={`/admin/operaciones/nueva?${new URLSearchParams({ intencion: interview.intencion, ...(interview.lead_id ? { leadId: interview.lead_id } : interview.cliente_id ? { clienteId: interview.cliente_id } : {}) })}`}>Guardarlo como interesado</ButtonLink></div>
               : interview?.estado === "cancelada" ? <div className={s.body}><Notice title="Esta entrevista se reemplazó">Cambió el contacto, el responsable o el inmueble. Prepara la entrevista desde la operación.</Notice>{interview.expediente_id && <Link className="font-semibold underline" href={`/admin/operaciones/${encodeURIComponent(interview.expediente_id)}`}>Abrir la operación</Link>}</div>
-              : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+              : step === 3 ? <InterviewStep key={interview!.id} interview={interview!} seed={demandSeed(params)} onSaved={setInterview} onDirtyChange={onGuard} onLater={() => { allowRef.current = true; router.push("/admin"); }} onDone={done => { setGuard({ dirty: false, busy: false }); setInterview(done); setFresh(true); window.scrollTo({ top: 0, behavior: "instant" }); }} />
               : <DoneStep interview={interview!} fresh={fresh} />}
           </div>
         </div>
@@ -71,7 +75,7 @@ function Header({ step, intent }: { step: number; intent?: IntakeIntent | null }
   const WIZARD_STEPS = wizardSteps(intent);
   return <div className={s.top}>
     <div className={s.topRow}>
-      <Link href="/admin" className={s.close} aria-label="Salir de Nueva operación"><span className={s.closeIcon}><X size={18} aria-hidden="true" /></span>Nueva operación</Link>
+      <Link href="/admin" className={s.close} aria-label={`Salir de ${INTAKE_TITLE}`}><span className={s.closeIcon}><X size={18} aria-hidden="true" /></span>{INTAKE_TITLE}</Link>
       <span className="flex items-center gap-3"><span className={cn(s.hint, "hidden sm:inline")}>Se guarda solo mientras capturas</span><span className={s.meta}>Paso {step} de {WIZARD_STEPS.length}</span></span>
     </div>
     <div className={s.progress}>
@@ -98,6 +102,7 @@ function StepsNav({ step, intent }: { step: number; intent?: IntakeIntent | null
 function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: OperationalInterview) => void; onGuard: (dirty: boolean, busy: boolean) => void }) {
   const params = useSearchParams();
   const leads = useCollection(db.leads), clients = useCollection(db.clientes), advisers = useCollection(db.asesores);
+  const status = usePersonStatus();
   const leadState = useLoadState(db.leads), clientState = useLoadState(db.clientes), adviserState = useLoadState(db.asesores);
   const loaded = leadState.loaded && clientState.loaded && adviserState.loaded;
   const correctionOf = params.get("expedienteId");
@@ -135,8 +140,8 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
 
   const digits = phone.replace(/\D/g, ""), mail = email.trim().toLowerCase();
   const people = [
-    ...leads.filter(l => !l.clienteId).map(l => ({ kind: "lead" as const, id: l.id, nombre: l.nombre, telefono: l.telefono, email: l.email, detail: "Prospecto" })),
-    ...clients.map(c => ({ kind: "cliente" as const, id: c.id, nombre: c.nombre, telefono: c.telefono, email: c.email, detail: "Cliente" })),
+    ...leads.filter(l => !l.clienteId).map(l => ({ kind: "lead" as const, id: l.id, nombre: l.nombre, telefono: l.telefono, email: l.email, detail: PERSON_STATUS_LABEL[status.ofLead(l) ?? "prospecto"] })),
+    ...clients.map(c => ({ kind: "cliente" as const, id: c.id, nombre: c.nombre, telefono: c.telefono, email: c.email, detail: (st => st ? PERSON_STATUS_LABEL[st] : "Contacto")(status.ofClient(c.id)) })),
   ];
   const matches = !contact && (digits.length >= 7 || !!mail) ? people.filter(p => (digits.length >= 7 && p.telefono.replace(/\D/g, "") === digits) || (!!mail && p.email?.trim().toLowerCase() === mail)) : [];
   const chosen = contact ? people.find(p => p.kind === contact.kind && p.id === contact.id) : undefined;
@@ -218,7 +223,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
         <h1 className={s.title}>¿Qué quiere hacer el cliente?</h1>
         <p className={s.lead}>Elige una opción. La puedes cambiar después.</p>
         <div role="radiogroup" aria-label="Qué quiere hacer el cliente" data-tour="nueva-opciones" className={s.choices}>
-          {INTENT_CHOICES.map(choice => <button key={choice.id} type="button" role="radio" aria-checked={intent === choice.id} className={s.choice} onClick={() => { setIntent(choice.id); changed(); }}>
+          {INTENT_CHOICES.map(choice => <button key={choice.id} type="button" role="radio" aria-checked={intent === choice.id} className={s.choice} onClick={() => { setIntent(choice.id); changed(); setStep(2); }}>
             <span className={s.dot} aria-hidden="true" /><span className="flex flex-col gap-0.5"><strong>{choice.title}</strong><span className="text-sm text-muted-foreground">{choice.description}</span></span>
           </button>)}
         </div>
@@ -269,7 +274,7 @@ function ContactSteps({ onStarted, onGuard }: { onStarted: (interview: Operation
     </div>
     <div className={s.footer}><div className={s.footerRow}>
       {step === 2 && !correctionOf ? <Button variant="ghost" disabled={busy} onClick={() => setStep(1)}><ArrowLeft size={16} aria-hidden="true" />Atrás</Button> : <span />}
-      {step === 1 ? <Button variant="primary" disabled={!intent} onClick={() => setStep(2)}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button>
+      {step === 1 ? (intent ? <Button variant="primary" onClick={() => setStep(2)}>Continuar<ArrowRight size={16} aria-hidden="true" /></Button> : <span />)
         : buyer ? <Button variant="primary" disabled={!config} onClick={toProfile}>Continuar con lo que busca<ArrowRight size={16} aria-hidden="true" /></Button>
         : <Button variant="primary" disabled={busy || !intent || !config} onClick={() => void start()}>{busy ? "Guardando…" : uncertain ? "Reintentar con los mismos datos" : intent === "vender" || intent === "arrendar" ? "Continuar con los datos del prospecto" : "Continuar con la entrevista"}<ArrowRight size={16} aria-hidden="true" /></Button>}
     </div></div>

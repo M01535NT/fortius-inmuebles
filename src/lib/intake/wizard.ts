@@ -16,6 +16,9 @@ export function wizardSteps(intent?: IntakeIntent | null): readonly string[] {
   return intent && isOwnerIntent(intent) ? ["Qué quiere hacer", "Quién es", "Datos del prospecto", "Listo"] : WIZARD_STEPS;
 }
 
+/** Nombre del asistente único para quien llama o escribe (SIM-17). Lo confirmó el titular en DEC-45 (12/11/2026). */
+export const INTAKE_TITLE = "Atender a alguien";
+
 export const INTENT_CHOICES: Array<{ id: IntakeIntent; title: string; description: string }> = [
   { id: "vender", title: "Vender su inmueble", description: "Casa, departamento, terreno o local que quiere vender." },
   { id: "arrendar", title: "Ofrecer su inmueble en renta", description: "Busca inquilino para su propiedad." },

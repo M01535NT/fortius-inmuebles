@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { usePendingCount } from "@/components/admin/workspace/use-today-queue";
 import Link from "next/link";
 import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, ShieldCheck, UserRound } from "@/components/admin/icons";
 import { TourLauncher, openTour } from "./tour";
@@ -10,8 +11,7 @@ import { AsyncButton } from "@/components/admin/ui";
 import { Avatar } from "@/components/admin/kit";
 import { db, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { projectFollowups } from "@/lib/admin/followups";
-import { isTaskOpen } from "@/lib/tasks";
+import { INTAKE_TITLE } from "@/lib/intake/wizard";
 import { cn } from "@/lib/utils";
 import s from "./guided-nav.module.css";
 
@@ -28,7 +28,7 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/admin/operaciones", label: "Operaciones", icon: Columns3, match: ["/admin/operaciones"] },
   { href: "/admin/contactos", label: "Contactos", icon: Contact, match: ["/admin/contactos", "/admin/leads", "/admin/clientes"] },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
-  { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
+  { href: "/admin/agenda", label: "Agenda y tareas", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
 ];
 /** Herramientas: un solo acceso a las 17 (y a Notas del equipo). */
 export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
@@ -44,8 +44,8 @@ export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> 
 export const MORE_NAV: NavItem = { href: TOOLS_NAV.href, label: "Más", icon: LayoutGrid, match: [...TOOLS_NAV.match, ...ADMIN_NAV.flatMap(item => item.match), "/admin/perfil", "/admin/sistema"] };
 /** «+ Nuevo» (C08): cinco altas en un menú corto. `action` avisa a la pantalla destino por `fortius:quick-create`. */
 export const QUICK_CREATE: Array<{ label: string; href: string; action: "" | "prospecto" | "tarea" | "visita"; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }> }> = [
-  { label: "Nueva operación", href: "/admin/operaciones/nueva", action: "", icon: Plus },
-  { label: "Nuevo prospecto", href: "/admin/contactos?nuevo=1", action: "prospecto", icon: Contact },
+  { label: INTAKE_TITLE, href: "/admin/operaciones/nueva", action: "", icon: Contact },
+  { label: "Nueva operación", href: "/admin/operaciones/nueva?intencion=vender", action: "", icon: Plus },
   { label: "Nuevo inmueble", href: "/admin/propiedades/nueva", action: "", icon: Building2 },
   { label: "Nueva tarea", href: "/admin/agenda?tab=tareas&nueva=1", action: "tarea", icon: ClipboardList },
   { label: "Agendar visita", href: "/admin/agenda?nueva=1", action: "visita", icon: CalendarPlus },
@@ -54,14 +54,6 @@ export const QUICK_CREATE: Array<{ label: string; href: string; action: "" | "pr
 export function isNavActive(pathname: string, item: { href: string; match: string[] }) {
   if (item.href === "/admin") return pathname === "/admin";
   return item.match.some(prefix => pathname === prefix || pathname.startsWith(prefix + "/"));
-}
-
-/** Pendientes de hoy: tareas abiertas que vencen hoy o antes y contactos por atender. */
-export function usePendingCount() {
-  const tasks = useCollection(db.tareas), leads = useCollection(db.leads), clients = useCollection(db.clientes);
-  const today = operationalDate();
-  return tasks.filter(task => isTaskOpen(task) && !!task.vence && task.vence <= today).length
-    + projectFollowups(leads, clients).filter(contact => contact.fecha <= today).length;
 }
 
 function Count({ value }: { value: number }) {
@@ -100,15 +92,17 @@ export function TopNav({ pathname, role, user, onLogout, search }: { pathname: s
   </header>;
 }
 
-/** «+ Nuevo»: las cinco altas en un menú; la operación va primero. */
-function NewMenu() {
+/** «+ Nuevo»: las cinco altas en un menú; atender a alguien va primero. En el celular, el «+» abre el mismo menú hacia arriba. */
+function NewMenu({ mobile = false }: { mobile?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const wrap = React.useRef<HTMLDivElement>(null);
   const close = React.useCallback(() => setOpen(false), []);
   useDismiss(open, close, wrap);
   return <div ref={wrap} className={s.menuWrap}>
-    <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" />Nuevo</button>
-    {open && <div id="admin-new-menu" role="menu" aria-label="Qué quieres crear" className={s.pop}>
+    {mobile
+      ? <button type="button" data-tour="nuevo" className={s.plus} aria-label="Nuevo" aria-expanded={open} aria-controls="admin-new-menu-movil" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={24} aria-hidden="true" /></button>
+      : <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" />Nuevo</button>}
+    {open && <div id={mobile ? "admin-new-menu-movil" : "admin-new-menu"} role="menu" aria-label="Qué quieres crear" className={cn(s.pop, mobile && s.popUp)}>
       {QUICK_CREATE.map(item => <Link key={item.href} role="menuitem" href={item.href} className={cn(s.link, s.sub)} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}
     </div>}
   </div>;
@@ -157,7 +151,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
   };
   return <nav className={s.tabbar} aria-label="Secciones principales">
     {tab(hoy, pending)}{tab(operaciones)}
-    <Link href="/admin/operaciones/nueva" data-tour="nuevo" className={s.plus} aria-label="Nueva operación"><Plus size={24} aria-hidden="true" /></Link>
+    <NewMenu mobile />
     {tab(contactos)}
     <button ref={menuButton} type="button" className={s.tab} aria-expanded={menuOpen} aria-controls="admin-mobile-menu" aria-label="Menú del panel" onClick={onMenu}><Menu size={22} aria-hidden="true" />Más</button>
   </nav>;

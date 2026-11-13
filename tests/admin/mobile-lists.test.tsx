@@ -62,51 +62,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const addButton = () => screen.getAllByRole("button", { name: "Agregar contacto" })[0];
 
-test("manual lead capture starts collapsed and keeps an unfinished draft when toggled", async () => {
-  render(<ContactsScreen />);
-  const toggle = addButton();
-  expect(toggle.getAttribute("aria-expanded")).toBe("false");
-  expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
-  fireEvent.click(toggle);
-  fireEvent.click(screen.getByRole("button", { name: "Busca comprar o rentar" }));
-  fireEvent.change(screen.getByRole("textbox", { name: "Nombre" }), { target: { value: "Borrador manual" } });
-  fireEvent.change(screen.getByRole("textbox", { name: "Teléfono" }), { target: { value: "6641234567" } });
-  fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
-  expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
-  fireEvent.click(addButton());
-  expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("Borrador manual");
-  expect((screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement).value).toBe("6641234567");
-  await screen.findByRole("list", { name: "Contactos" });
-  expect(writes).toHaveLength(0);
-});
 
-test("manual capture preserves failed input and only closes after acknowledged save", async () => {
-  render(<ContactsScreen />);
-  fireEvent.click(addButton());
-  fireEvent.click(screen.getByRole("button", { name: "Busca comprar o rentar" }));
-  const name = screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement;
-  const phone = screen.getByRole("textbox", { name: "Teléfono" }) as HTMLInputElement;
-  expect(name.required).toBe(true);
-  expect(phone.required).toBe(false);
-  fireEvent.change(name, { target: { value: "Lead capturado" } });
-  fireEvent.change(phone, { target: { value: "6641234567" } });
-  rejectWrites = true;
-  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
-  expect((await screen.findByRole("alert")).textContent).toContain("No se guardó");
-  expect(name.value).toBe("Lead capturado");
-  expect(push).not.toHaveBeenCalled();
-  rejectWrites = false;
-  fireEvent.click(screen.getByRole("button", { name: "Guardar prospecto" }));
-  await waitFor(() => expect(addButton().getAttribute("aria-expanded")).toBe("false"));
-  const saved = db.leads.list().find((item) => item.nombre === "Lead capturado")!;
-  expect(saved.telefono).toBe("6641234567");
-  expect(push).toHaveBeenCalledWith(`/admin/leads/${saved.id}`);
-  expect(writes.map((write) => write.version)).toEqual([null, null]);
-  fireEvent.click(addButton());
-  expect((screen.getByRole("textbox", { name: "Nombre" }) as HTMLInputElement).value).toBe("");
-});
 
 test("mobile contact rows show what the person wants and the next step; search and status filter work", async () => {
   render(<ContactsScreen />);
@@ -129,7 +86,7 @@ test("mobile property rows expose full details and preserve versioned changes an
   const list = await screen.findByRole("list", { name: "Inmuebles" });
   fireEvent.click(within(list).getByLabelText(`Opciones de ${property.titulo}`));
   expect(within(list).getByRole("link", { name: new RegExp(`^Venta.*${property.titulo}`) }).getAttribute("href")).toBe(`/admin/propiedades/${property.slug}/editar`);
-  expect(within(list).getByText("Publicado")).toBeTruthy();
+  expect(within(list).getAllByText("Publicado").length).toBeGreaterThan(0);
   expect(within(list).getByText(/12,850,000 MXN/)).toBeTruthy();
   expect(within(list).getByText("Asesora de prueba")).toBeTruthy();
   fireEvent.change(within(list).getByRole("combobox", { name: `Estado de ${property.titulo}` }), { target: { value: "apartada" } });
@@ -164,12 +121,20 @@ test("mobile property deletion requires confirmation and retains the row when th
   expect(writes.at(-1)).toEqual({ url: `/api/admin/collections/propiedades/${property.slug}`, method: "DELETE", version: 7 });
 });
 
-test("COR-15: quien vende u ofrece en renta va a Nueva operación desde Agregar contacto", async () => {
+test("SIM-17: «Agregar contacto» abre el asistente único y no hay captura aparte", async () => {
   render(<ContactsScreen />);
-  fireEvent.click(addButton());
-  expect(screen.getByRole("link", { name: "Vender su inmueble" }).getAttribute("href")).toBe("/admin/operaciones/nueva?intencion=vender");
-  expect(screen.getByRole("link", { name: "Ofrecer su inmueble en renta" }).getAttribute("href")).toBe("/admin/operaciones/nueva?intencion=arrendar");
-  // El formulario del interesado espera a que se elija «Busca comprar o rentar».
+  for (const link of screen.getAllByRole("link", { name: "Agregar contacto" })) expect(link.getAttribute("href")).toBe("/admin/operaciones/nueva");
+  expect(screen.queryByRole("button", { name: "Busca comprar o rentar" })).toBeNull();
   expect(screen.queryByRole("textbox", { name: "Nombre" })).toBeNull();
   await screen.findByRole("list", { name: "Contactos" });
+});
+
+test("C59: en el celular los inmuebles van en filas y «Ver en tarjetas» cambia la vista", async () => {
+  render(<PropiedadesPage />);
+  const list = await screen.findByRole("list", { name: "Inmuebles" });
+  expect(list.getAttribute("data-view")).toBe("filas");
+  fireEvent.click(screen.getByRole("button", { name: "Ver en tarjetas" }));
+  expect(list.getAttribute("data-view")).toBe("tarjetas");
+  fireEvent.click(screen.getByRole("button", { name: "Ver en filas" }));
+  expect(list.getAttribute("data-view")).toBe("filas");
 });

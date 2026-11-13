@@ -29,7 +29,7 @@ test("mobile menu exposes the signed-in account and Escape restores trigger focu
   const { trigger, nav } = await openMenu();
   expect(within(nav).getByText("Administrador")).toBeTruthy();
   expect(nav.contains(document.activeElement)).toBe(true);
-  within(nav).getByRole("link", { name: "Agenda" }).focus();
+  within(nav).getByRole("link", { name: "Agenda y tareas" }).focus();
   fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("navigation", { name: "Módulos móviles" })).toBeNull();
   expect(document.activeElement).toBe(trigger);

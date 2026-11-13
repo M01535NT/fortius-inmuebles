@@ -41,7 +41,7 @@ test("COR-03: Hoy, Operaciones y la operación nombran igual la etapa con el mis
   expect(initialStatus(new Map([["02", true], ["04", false]]), checklist)).toEqual({ iniciada: true, emitida: true, levantamiento: "borrador", documentos: "pendiente" });
   const cases: Array<[Map<string, boolean> | undefined, string]> = [
     // La etapa cambia al empezar el siguiente documento (titular, 26/10/2026): con la 02 terminada sigue «Entrevista inicial».
-    [undefined, "Prospecto"], [new Map([["02", false]]), "Entrevista inicial"], [new Map([["02", true]]), "Entrevista inicial"],
+    [undefined, "Primer contacto"], [new Map([["02", false]]), "Entrevista inicial"], [new Map([["02", true]]), "Entrevista inicial"],
     [new Map([["02", true], ["04", false]]), "Levantamiento"],
   ];
   for (const [formats, label] of cases) {
@@ -67,7 +67,7 @@ test("levantamiento y checklist de documentos llevan a verificación solo con to
 
 test("el propietario ve las diez etapas: dictamen, luego valor, y el contrato espera la verificación", () => {
   const checking = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed() }) });
-  expect(routeStages(checking, today)).toMatchObject({ labels: ["Prospecto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
+  expect(routeStages(checking, today)).toMatchObject({ labels: ["Primer contacto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
   expect(contractLocked(checking, today)).toBe(true);
   expect(currentRequirements(checking, today).map(r => r.key)).toEqual(["titularidad", "factibilidad"]);
   expect(advanceTarget(checking, today)).toEqual({ label: "Opinión de valor y precio" });
@@ -152,13 +152,24 @@ test("a las etapas pasadas se les pide su documento y el motivo de atención es 
   const dictamen = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }), inicial: { iniciada: true, emitida: true } });
   const status = (f: string) => f === "02" ? "terminado" as const : undefined;
   expect(pastGaps(dictamen, today, status).map(g => [g.n, g.gap])).toEqual([[3, "Falta el levantamiento"], [4, "Falta el checklist"]]);
-  expect(attentionOf(dictamen, [task({ vence: "2026-10-20" })], today, "Falta el 04")).toEqual({ label: "Falta el 04", rank: 2, late: false });
+  expect(attentionOf(dictamen, [task({ vence: "2026-10-20" })], today, "Falta el 04")).toEqual({ kind: "falta", label: "Falta el 04", rank: 2, late: false });
   expect(attentionOf(dictamen, [task({ vence: "2026-10-10" })], today, "Falta el 04")).toMatchObject({ label: "Tarea vencida", late: true });
   expect(attentionOf(op({ flujo: flow({ entrevista: { estado: "observado", soporte: "Sin escritura" } }) }), [], today)).toMatchObject({ label: "Hay un problema", rank: 0 });
   expect(attentionOf(op(), [task({ vence: today })], today)).toMatchObject({ label: "Vence hoy" });
   expect(attentionOf(op(), [task({ vence: "2026-10-20" })], today)).toBeNull();
   expect(attentionOf(op(), [], today)).toMatchObject({ label: "Sin próxima tarea" });
   expect(attentionOf(op({ etapa: "cerrado" }), [], today)).toBeNull();
+});
+
+test("COR-05: el motivo sigue el orden de RP-84, con la oferta nueva entre «vence hoy» y «sin próxima tarea»", () => {
+  const later = task({ vence: "2026-10-20" });
+  expect(attentionOf(op(), [later], today, undefined, true)).toMatchObject({ kind: "oferta", label: "Oferta nueva", rank: 5 });
+  expect(attentionOf(op(), [task({ vence: today })], today, undefined, true)).toMatchObject({ kind: "hoy", rank: 4 });
+  expect(attentionOf(op(), [], today, undefined, true)).toMatchObject({ kind: "oferta" });
+  expect(attentionOf(op(), [], today)).toMatchObject({ kind: "agendar", rank: 6 });
+  const received = op({ flujo: flow({ entrevista: { estado: "recibido", soporte: "" } }) });
+  expect(attentionOf(received, [task({ vence: today })], today, undefined, true)).toMatchObject({ kind: "revisar", rank: 3 });
+  expect(attentionOf(received, [], today, "Falta el levantamiento")).toMatchObject({ kind: "falta", rank: 2 });
 });
 
 test("«Para terminar la etapa» junta documentos, revisiones y lo demás; «Ahora toca» es lo primero sin terminar", () => {
@@ -178,7 +189,9 @@ test("«Para terminar la etapa» junta documentos, revisiones y lo demás; «Aho
 
 test("cada etapa ofrece su documento; de la publicación al cierre no detienen y la renta no recibe los de compraventa", () => {
   const formatos = (phase: Parameters<typeof stageDocuments>[0], ruta: Parameters<typeof stageDocuments>[1]) => stageDocuments(phase, ruta).map(item => item.formato);
-  expect(formatos("levantamiento", "captacion")).toEqual(["04"]);
+  // El presupuesto de rehabilitación (19) se ofrece en el levantamiento sin detener la etapa.
+  expect(formatos("levantamiento", "captacion")).toEqual(["04", "19"]);
+  expect(stageDocuments("levantamiento", "captacion").find(item => item.formato === "19")?.optional).toBe(true);
   expect(formatos("publicacion", "captacion")).toEqual(["11"]);
   expect(formatos("visitas", "captacion")).toEqual(["12", "13", "14"]);
   expect(formatos("cierre", "captacion")).toEqual(["15", "16", "17", "18"]);
@@ -207,7 +220,7 @@ test("la renta del propietario sigue su propio camino y nombra igual sus etapas 
   const rent = (etapa: OperationRecord["etapa"], requisitos: Partial<Record<RequirementKey, unknown>> = {}, extra: Partial<OperationWorkflow> = {}) =>
     op({ operacion: "renta", etapa, inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "completo" }, flujo: flow(requisitos, extra, "arrendador") });
   const track = stageTrack(rent("documentacion"), today);
-  expect(track.stages.map(s => s.label)).toEqual(["Prospecto", "Entrevista inicial", "Levantamiento", "Documentos básicos", "Revisión de titularidad", "Opinión de renta", "Intermediación para renta", "Publicación y seguimiento", "Selección del arrendatario", "Cierre y entrega"]);
+  expect(track.stages.map(s => s.label)).toEqual(["Primer contacto", "Entrevista inicial", "Levantamiento", "Documentos básicos", "Revisión de titularidad", "Opinión de renta", "Intermediación para renta", "Publicación y seguimiento", "Selección del arrendatario", "Cierre y entrega"]);
   // Hoy y la operación dicen lo mismo en cada estado.
   for (const [etapa, requisitos, extra] of [["documentacion", {}, {}], ["documentacion", { titularidad: reviewed() }, {}], ["documentacion", { titularidad: reviewed(), valor: reviewed(), precio: reviewed() }, accepted], ["comercializacion", {}, {}], ["negociacion", {}, {}]] as const) {
     const current = rent(etapa, requisitos, extra), t = stageTrack(current, today);
@@ -265,4 +278,53 @@ test("COR-14: situación y condición como chips; el descarte exige un motivo de
   expect(discardReasonOf("Referida")).toBe("Referida");
   expect(discardReasonOf("No contesta: tres llamadas sin respuesta")).toBe("No contesta");
   expect(discardReasonOf("Ya no quiso")).toBeUndefined();
+});
+
+test("COR-17: con el avalúo del propietario vigente no se pide el 07 y la etapa pasa a Contrato; vencido, vuelve a pedir el valor", async () => {
+  const { reviewComplete, appraisalState } = await import("@/lib/formatos/operation-workflow");
+  const file = "51000000-0000-4000-8000-0000000000bb";
+  const fromAppraisal = reviewed({ evidencia: { tipo: "cliente", referencia: file, fecha: "2026-10-14", responsable: "Jorge Salcedo", resultado: "Valor según avalúo" } });
+  const avaluo = (vigenteHasta: string) => ({ archivo: file, perito: "Perito de ejemplo", fecha: "2026-09-01", valor: 2500000, vigenteHasta });
+  const status = (f: string) => ["02", "04", "05", "06"].includes(f) ? "terminado" as const : undefined;
+  const done = { iniciada: true, emitida: true, levantamiento: "emitido" as const, documentos: "completo" as const };
+  const at = (extra: Partial<OperationWorkflow>, valor: unknown = fromAppraisal, precio: unknown = undefined) => op({ etapa: "documentacion", inicial: done, flujo: flow({ ...verified, valor, precio }, { ...accepted, ...extra }) });
+  // Sin precio todavía: la etapa es la del valor y el 07 ya no se pide.
+  const verifying = at({ avaluo: avaluo("2027-03-01") });
+  expect(routeStages(verifying, today).phase).toBe("verificacion");
+  const docs = stageItems(verifying, [task()], today, status).filter(i => i.kind === "documento");
+  expect(docs).toEqual([{ kind: "documento", formato: "07", status: undefined, optional: true }, { kind: "documento", formato: "08", status: undefined }]);
+  expect(nowItem(stageItems(verifying, [task()], today, status))).toMatchObject({ kind: "documento", formato: "08" });
+  // Con el valor del avalúo y el precio revisados pasa a Contrato sin el 07, y no queda como pendiente atrás.
+  const priced = at({ avaluo: avaluo("2027-03-01") }, fromAppraisal, reviewed());
+  expect(routeStages(priced, today).phase).toBe("contrato");
+  expect(pastGaps(priced, today, f => f === "08" ? "terminado" : status(f)).map(g => g.gap)).toEqual([]);
+  // Vencido, o sin avalúo que lo respalde, el valor vuelve a faltar.
+  const expired = at({ avaluo: avaluo("2026-10-01") }, fromAppraisal, reviewed());
+  expect(appraisalState(expired.flujo, today)).toBe("vencido");
+  expect(reviewComplete(expired.flujo!, "valor", today)).toBe(false);
+  expect(routeStages(expired, today).phase).toBe("verificacion");
+  expect(stageItems(expired, [task()], today, status).find(i => i.kind === "documento" && i.formato === "07")).not.toHaveProperty("optional");
+  expect(reviewComplete(at({}, fromAppraisal).flujo!, "valor", today)).toBe(false);
+  // Otro requisito sí se respalda con cualquier documento del cliente.
+  expect(reviewComplete(flow({ titularidad: fromAppraisal }), "titularidad", today)).toBe(true);
+});
+test("COR-10: sin la firma del contrato completa y revisada no se pasa a Publicación ni se publica", async () => {
+  const { publicationBlockers, signatureState } = await import("@/lib/formatos/operation-workflow");
+  const all = Object.fromEntries(requiredReviews("captacion", "comercializacion").map(k => [k, k === "factibilidad" ? reviewed({ vigenteHasta: "2026-12-31" }) : reviewed()]));
+  const firma = { tipo: "intermediacion" as const, fecha: "2026-10-15", firmantes: [{ nombre: "Propietaria de ejemplo", parte: "propietario" as const }], archivo: "51000000-0000-4000-8000-0000000000aa", completa: true, revisada: false };
+  const at = (extra: Partial<OperationWorkflow>) => op({ etapa: "documentacion", flujo: flow(all, { ...accepted, ...extra }) });
+  const firmaText = (o: OperationRecord) => missingItems(o, [task()], today).filter(m => m.place === "firma").map(m => m.text);
+  expect(firmaText(at({}))).toEqual(["Registrar la firma del contrato"]);
+  expect(firmaText(at({ firmaContrato: { ...firma, completa: false, faltan: "La copropietaria" } }))).toEqual(["Completar la firma del contrato"]);
+  expect(firmaText(at({ firmaContrato: firma }))).toEqual(["Revisión de la firma por el director"]);
+  const vigente = { ...firma, revisada: true, revisadoEl: "2026-10-15T18:00:00.000Z" };
+  expect(firmaText(at({ firmaContrato: vigente }))).toEqual([]);
+  expect(missingItems(at({ firmaContrato: vigente }), [task()], today)).toEqual([]);
+  expect(firmaText(at({ firmaContrato: { ...vigente, terminacion: { fecha: "2026-10-16", motivo: "Rescisión" } } }))).toEqual(["Registrar un contrato nuevo"]);
+  expect(signatureState(flow(all, { firmaContrato: firma }))).toBe("por_revisar");
+  expect(signatureState(flow(all, { firmaContrato: vigente }))).toBe("vigente");
+  expect(publicationBlockers(flow(all, accepted), "comercializacion", today)).toEqual(["Registrar la firma del contrato de intermediación."]);
+  expect(publicationBlockers(flow(all, { ...accepted, firmaContrato: vigente }), "comercializacion", today)).toEqual([]);
+  // La inversión no se capta con intermediación: no la pide.
+  expect(signatureState(flow({}, {}, "inversion"))).toBe("sin_firma");
 });

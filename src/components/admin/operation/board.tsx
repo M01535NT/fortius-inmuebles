@@ -3,18 +3,19 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Building2, ChevronRight, Columns3, List, Search } from "@/components/admin/icons";
-import { Avatar, Button, Card, CardLink, EmptyBox, Pill, Segmented, Surface, Thumb } from "@/components/admin/kit";
+import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, Pill, Segmented, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
-import { attentionOf, boardCard, dueLabel, flowOf, initialStatus, operationTags, pastGaps, stageTrack, type Attention, type OperationRecord } from "@/lib/admin/operation-view";
+import { attentionOf, boardCard, recentOfferOf, dueLabel, flowOf, initialStatus, operationTags, pastGaps, stageTrack, type Attention, type OperationRecord } from "@/lib/admin/operation-view";
 import { useConditions } from "@/lib/admin/conditions";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { DirectCreate } from "./direct-create";
 import { useOperationFormats } from "./use-operation-formats";
+import { useTodayData } from "@/components/admin/workspace/use-today-queue";
 import { useLeaveGuard } from "./use-operation";
 import s from "./board.module.css";
 
@@ -70,6 +71,8 @@ export function OperationsBoard() {
   }, [deleted, attempt]);
   // Formatos por operación: separan las primeras etapas del propietario y muestran lo que falta de etapas anteriores.
   const started = useOperationFormats(attempt);
+  // Oferta nueva con los mismos datos que Hoy y el menú (COR-05).
+  const offers = useTodayData(60_000).offers;
   const conditions = useConditions();
   React.useEffect(() => {
     let alive = true;
@@ -93,7 +96,7 @@ export function OperationsBoard() {
       op, who: card.who, meta: [VERB[flow.ruta] ?? "", card.property].filter(Boolean).join(" · "),
       photo: op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.galeria[0]?.src : undefined, adviser: advisers.find(a => a.id === op.asesor_id)?.nombre,
       n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", gapAt: new Set(gaps.map(g => g.n)),
-      next: card.next, date: card.date, late: card.late, attention: attentionOf(view, tasks, today, gaps[0]?.gap), mine: card.mine, href: card.href,
+      next: card.next, date: card.date, late: card.late, attention: attentionOf(view, tasks, today, gaps[0]?.gap, !!recentOfferOf(op.id, offers, today)), mine: card.mine, href: card.href,
       tags: operationTags(op, conditions.ofOperation(op.id)),
     };
   });
@@ -138,7 +141,7 @@ export function OperationsBoard() {
 
     {deleted ? <DeletedList records={records} names={names} onRestore={op => void restore(op)} />
       : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando operaciones…</p>
-      : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" action={<Link href="/admin/operaciones/nueva" className="font-semibold underline underline-offset-4">Nueva operación</Link>}>Empieza con la entrevista del cliente; la operación se crea al terminarla.</EmptyBox>
+      : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" steps={["Atiende a la persona con «Nueva operación».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: la operación se crea sola y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nueva operación</ButtonLink>}>Una operación reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
           <div data-tour="op-filtros" className={s.filters} role="group" aria-label="Etapa">
@@ -154,7 +157,7 @@ export function OperationsBoard() {
             <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} />
           </>}
         {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide con la búsqueda o el filtro.</p>}
-        {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="font-mono text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
+        {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="tabular-nums text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
       </>}
 
     <footer className="mt-8 flex flex-col gap-4">
