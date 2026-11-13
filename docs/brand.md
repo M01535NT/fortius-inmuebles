@@ -53,6 +53,20 @@ Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 tít
 | Cifra | `--admin-text-cifra` | 30 px, anchura 62 | 620 | Fechas del calendario, número de documento |
 | Calificación grande | `--admin-text-cifra-grande` | 72 → 152 px, anchura 62 | 620 | La calificación de la operación |
 
+### Colores de estado del panel (RP-70, LV-01, 13/11/2026)
+
+Cinco colores con significado fijo, siempre acompañados de ícono y palabra. Cada uno tiene texto, superficie y borde (`--x`, `--x-surface`, `--x-border`) en claro y oscuro, y existen como utilidades de Tailwind (`text-success`, `bg-info-surface`…). Ningún otro color comunica estado.
+
+| Papel | Token | Claro | Oscuro | Uso |
+| --- | --- | --- | --- | --- |
+| Acción | `--primary` | `#8A1634` | `#F8F8FF` (texto) | Acción principal y sección activa |
+| Información | `--info` | `#174F94` | `#AACFFF` | Información, agenda y visitas |
+| Listo | `--success` | `#1F7A4D` | `#5FD39A` | Revisado, completo |
+| Atención | `--warning` | `#953D00` | `#FFD236` | Lo que necesita atención |
+| Vencido o error | `--destructive` (alias `--alert`) | `#B3352C` | `#FF8A7A` | Vencido, error, eliminar |
+
+Todos pasan AA (4.5:1 o más) sobre tarjeta, fondo y su propia superficie. En el panel oscuro el rojo es `#FF8A7A`: el `#E2564B` anterior daba 4.16:1 sobre su superficie.
+
 Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `src/app/admin/panel-base.css` bajo `.admin-root`; `panel.module.css` ya no las define. El sitio público no descarga ese archivo ni las utilidades de Tailwind que solo usa el panel, y Archivo solo se precarga en `/admin`.
 
 ### Espacios, botones y esquinas del sitio público (titular, 13/11/2026)
