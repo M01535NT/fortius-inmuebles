@@ -39,14 +39,23 @@ export function BuscadorPropiedades({ properties, className = "nx-search" }: { p
   );
 }
 
-/* Cierre de la portada (31/10/2026): sala frente al mar al atardecer, una frase y una sola acción. */
-export function NocturnoCierre() {
+/*
+  Cierre del inicio (titular, 12/11/2026): sala frente al mar al atardecer y la única
+  invitación al final del inicio (el pie no repite la suya aquí). Dos acciones: vender, que
+  lleva a la entrevista, y escribir por WhatsApp.
+*/
+export function NocturnoCierre({ whatsapp }: { whatsapp?: string }) {
   return <section id="hablemos" aria-labelledby="cierre-title" className="nx-cierre nx-band-media">
     <SectionVideo src="/hero/cierre.mp4" mobileSrc="/hero/cierre-movil.mp4" poster="/hero/cierre-poster.webp" />
     <div className="nx-cierre-scrim" aria-hidden="true" />
     <div className="nx-container nx-cierre-body">
       <h2 id="cierre-title" className="nx-cierre-title">¿Hablamos de tu propiedad?</h2>
-      <Link href="/contacto" className="nx-btn nx-btn-light">Contáctanos</Link>
+      <div className="nx-actions nx-cierre-actions">
+        <Link href="/vender-propiedad" className="nx-btn nx-btn-primary">Quiero vender</Link>
+        {whatsapp
+          ? <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="nx-btn nx-btn-light">Escribir por WhatsApp</a>
+          : <Link href="/contacto" className="nx-btn nx-btn-light">Contactar a Fortius</Link>}
+      </div>
     </div>
   </section>;
 }
@@ -64,7 +73,7 @@ export function NocturnoComprar({ properties }: { properties: Property[] }) {
       <div>
         <h2 id="comprar-title" className="nx-title">Comprar también empieza por revisar.</h2>
         <ol className="nx-pasos">
-          {PASOS_COMPRA.map((paso, index) => <li key={paso}><span aria-hidden="true">0{index + 1}</span>{paso}</li>)}
+          {PASOS_COMPRA.map((paso) => <li key={paso}>{paso}</li>)}
         </ol>
         <div className="nx-actions">
           <Link href="/inventario" className="nx-btn nx-btn-light">Ver propiedades</Link>

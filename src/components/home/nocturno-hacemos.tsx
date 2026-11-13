@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-/* Inicio · «Qué hacemos»: tres caminos con foto, una frase cada uno. */
+/* Inicio · «Qué hacemos»: tres caminos con foto, una frase cada uno; sin numeración, no son una secuencia (12/11/2026). */
 const CAMINOS = [
   { n: "01", title: "Vender tu propiedad", text: "Precio, anuncio y cada oferta, contigo.", href: "/vender-propiedad", label: "Cómo vendemos", src: "/hero/que-hacemos-vender.webp", alt: "Casa de dos niveles con jardín al atardecer" },
   { n: "02", title: "Comprar una propiedad", text: "Con tu presupuesto, documentos revisados, hasta las llaves.", href: "/comprar-propiedad", label: "Cómo compramos", src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" },
@@ -22,7 +22,6 @@ export function NocturnoHacemos() {
         <Link href={camino.href} className="nx-camino">
           <span className="nx-camino-photo"><Image src={camino.src} alt={camino.alt} fill sizes="(max-width: 1023px) 100vw, 400px" /></span>
           <span className="nx-camino-body">
-            <span className="nx-camino-n" aria-hidden="true">{camino.n}</span>
             <span className="nx-camino-title">{camino.title}</span>
             <span className="nx-camino-text">{camino.text}</span>
             <span className="nx-camino-link">{camino.label} <ArrowRight size={18} aria-hidden="true" /></span>

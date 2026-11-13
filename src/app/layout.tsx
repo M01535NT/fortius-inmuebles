@@ -82,10 +82,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /*
-  Theme boot: light is the primary theme. We only add `.dark` when the user
-  chose it before. Runs inline before paint to avoid a flash.
+  Theme boot: light is the primary theme. We add `.dark` when the user chose it
+  before or, on the public site with no choice saved yet, when the device is in
+  dark mode (12/11/2026). The panel keeps light unless chosen. Runs inline before
+  paint to avoid a flash.
 */
-const themeInit = `(function(){try{if(localStorage.getItem("fortius-inmuebles-theme")==="dark"){document.documentElement.classList.add("dark")}}catch(e){}})();`;
+const themeInit = `(function(){try{var s=localStorage.getItem("fortius-inmuebles-theme");var p=location.pathname;var admin=p==="/admin"||p.indexOf("/admin/")===0;if(s==="dark"||(s===null&&!admin&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
 export default async function RootLayout({
   children,
