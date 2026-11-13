@@ -57,6 +57,28 @@ Responde a RP-22 y a la decisión del titular del 12/11/2026: los mensajes salen
 
 > Gracias por avisarme, {nombre}. Si más adelante vuelves a buscar, con gusto te ayudamos.
 
+### 11. El inmueble que le interesaba ya se vendió o se rentó
+
+> Hola, {nombre}. Te aviso que {inmueble} ya se {vendió_o_rentó}. Sé que te había gustado. Tengo otras opciones en {zona} parecidas a lo que buscas; ¿te las mando?
+
+`{vendió_o_rentó}` sale del estado del inmueble. El mensaje no da el precio de cierre ni datos de quien compró o rentó.
+
+### 12. Cambiar o cancelar una visita
+
+> Hola, {nombre}. Te escribo por la visita a {inmueble} del {día} a las {hora}. Se me presentó un cambio y no vamos a poder verla a esa hora. ¿Te acomoda [nuevo horario]? Si no, dime cuándo puedes y lo ajustamos.
+
+Si la visita se cancela sin nueva fecha, el asesor borra la pregunta del horario y escribe el motivo en sus palabras. El mensaje no culpa al propietario.
+
+### 13. Pedirle sus documentos para apartar
+
+> {nombre}, qué buena noticia que quieras apartar {inmueble}. Para avanzar necesito estos documentos:
+>
+> {lista_documentos}
+>
+> Me los puedes mandar por aquí en foto o PDF, o traerlos cuando nos veamos. Si tienes duda con alguno, pregúntame.
+
+`{lista_documentos}` sale de la lista de requisitos del expediente según la operación (compra de contado, con crédito, renta); el asesor no la escribe de memoria. Por ser datos personales, el envío por WhatsApp es opción de la persona, no requisito.
+
 ## Correo
 
 ### A. La información que pediste
@@ -105,4 +127,4 @@ Responde a RP-22 y a la decisión del titular del 12/11/2026: los mensajes salen
 
 1. ~~¿Usted o tú?~~ **Decidido: tú** (12/11/2026).
 2. ~~¿El primer mensaje lleva la liga al aviso de privacidad cuando la persona llegó por teléfono o WhatsApp?~~ **Decidido: no la lleva** (12/11/2026); el asesor lo explica en persona o en la llamada cuando haga falta. Pendiente para el abogado: confirmar cómo se pone el aviso a disposición de quien da sus datos por teléfono o WhatsApp (ver `docs/erp-crm/privacy/data-processing-register.md`).
-3. ¿Falta alguna situación que los asesores viven seguido? (por ejemplo, el inmueble que le interesaba ya se vendió o se rentó)
+3. ~~¿Falta alguna situación que los asesores viven seguido?~~ **Decidido** (12/11/2026): se agregan «ya se vendió o se rentó», «cambiar o cancelar una visita» y «pedirle sus documentos para apartar» (mensajes 11 a 13). El aviso de cambio de precio no se agrega.
