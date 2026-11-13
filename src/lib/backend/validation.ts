@@ -122,7 +122,17 @@ export function parseLead(value: unknown) {
   return z.object({ ...leadFields, telefono: phone, origen: z.enum([...origins, "interes_propiedad"]), website: z.literal("").optional() }).strict().parse(value);
 }
 
-function isPublicUrl(value: string) { return safeUrl.safeParse(value).success && !/([a-z0-9-]+-(?:private|staging)|\/api\/admin\/|\/storage\/v1\/object\/sign\/)/i.test(value); }
+/*
+  B6 (auditoría de seguridad, 13/11/2026), igual que la regla de la base (20261113125000): de Storage
+  solo pasa el bucket público de Fortius; nunca los privados, los firmados, `/object/authenticated/`
+  ni los de otros proyectos; tampoco `/api/admin/`, `/api/apps/` (enlaces de compartir) ni `/api/auth/`.
+  Los enlaces externos (redes, YouTube, Matterport, fuentes del blog) siguen valiendo.
+*/
+function isPublicUrl(value: string) {
+  return safeUrl.safeParse(value).success
+    && !/([a-z0-9-]+-(?:private|staging)|\/api\/(?:admin|apps|auth)\/|\/storage\/v1\/object\/sign\/)/i.test(value)
+    && (!/\/storage\/v1\/(?:object|render\/image)\//i.test(value) || /\/storage\/v1\/(?:object|render\/image)\/public\/fortius-inmuebles-public\//i.test(value));
+}
 // Keep the settings/contact shape even when a stored link is private or invalid.
 // This projection never rewrites the staff-owned source record.
 const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? value : "");

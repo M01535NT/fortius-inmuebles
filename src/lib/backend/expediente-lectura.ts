@@ -48,14 +48,18 @@ export const RESERVA_LECTURA_USD = 0.05;
 /** La función de la base todavía no existe (migración sin aplicar): se usa la comprobación de antes. */
 const sinFuncion = (error: { code?: string }) => error.code === "PGRST202" || error.code === "42883";
 
-async function reservarLectura(privileged: SupabaseClient, archivo: { id: string; expediente_id: string }, userId: string, tope: number): Promise<string | null> {
+async function reservarLectura(privileged: SupabaseClient, archivo: { id: string; expediente_id: string }, userId: string, tope: number, marcadoLeyendo: boolean): Promise<string | null> {
   const { data, error } = await privileged.rpc("fortius_inmuebles_reservar_lectura_ia", { p_archivo: archivo.id, p_expediente: archivo.expediente_id, p_requested_by: userId, p_tope: tope, p_reserva: RESERVA_LECTURA_USD });
   if (!error) return data as string;
   if (error.code === "PT429") throw topeAlcanzado();
+  if (error.code === "PT409") throw leyendose();
   if (!sinFuncion(error)) databaseError(error);
+  if (marcadoLeyendo) throw leyendose();
   if (await gastoDelMes(privileged) >= tope) throw topeAlcanzado();
   return null;
 }
+/** C-19: dos pulsaciones o dos pestañas sobre el mismo documento no cobran dos lecturas. */
+const leyendose = () => new ApiError(409, "Este documento ya se está leyendo; espera a que termine");
 // Sin el monto en dólares: el asesor no administra el presupuesto.
 const topeAlcanzado = () => new ApiError(429, "Se terminaron las lecturas de este mes. Captura los datos a mano o pide al director que amplíe el límite en Configuración.");
 
@@ -80,9 +84,11 @@ export type Lectura = { tipoDocumento: RespuestaLectura["tipoDocumento"]; propue
 export async function leerArchivoConIa(client: SupabaseClient, privileged: SupabaseClient, userId: string, archivoId: string, extraer: Extractor, paginas?: EntradaLectura["paginas"]): Promise<Lectura> {
   const { archivo, bytes } = await descargarArchivo(client, privileged, archivoId);
   if (archivo.deleted_at) throw new ApiError(409, "Restaura el documento antes de leerlo");
+  // Sin la función de la base (migración sin aplicar), basta ver la marca del archivo.
+  const marcadoLeyendo = (archivo as { lectura_estado?: unknown }).lectura_estado === "leyendo";
   await exigirExpediente(client, archivo.expediente_id);
   const { topeUsd: tope } = await topeVigente(privileged);
-  const reserva = await reservarLectura(privileged, archivo, userId, tope);
+  const reserva = await reservarLectura(privileged, archivo, userId, tope, marcadoLeyendo);
 
   await marcar(privileged, archivo.id, { lectura_estado: "leyendo", lectura_error: null });
   // La reserva se convierte en la lectura con su costo real; sin reserva (base sin migrar), se anota nueva.

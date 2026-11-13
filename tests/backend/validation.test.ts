@@ -64,6 +64,12 @@ describe("BFF validation and authorization behavior", () => {
       "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-staging/video.mp4",
       "https://assets.example.com/storage/v1/object/public/legacy-private/video.mp4",
       "https://assets.example.com/storage/v1/object/public/legacy-staging/video.mp4",
+      // B6: de Storage solo el bucket público de Fortius; ni otros buckets, ni compartir, ni auth.
+      "https://assets.example.com/storage/v1/object/public/otro-proyecto/video.mp4",
+      "https://assets.example.com/storage/v1/object/public/fortius-inmuebles-expedientes/video.mp4",
+      "https://assets.example.com/storage/v1/render/image/public/fortius-app-integrations/foto.jpg",
+      "https://fortiusinmuebles.com/api/apps/shared/token-de-ensayo",
+      "https://fortiusinmuebles.com/api/auth/callback",
       "javascript:alert(1)",
     ]) {
       const input = { ...settings, [field]: unsafe };
@@ -74,6 +80,8 @@ describe("BFF validation and authorization behavior", () => {
   it("public configuration preserves legitimate external and local links and empty URL fields", () => {
     const settings = { nombreComercial: "MNT", telefono: "6641234567", whatsapp: "https://wa.me/526640000000", email: "contacto@example.com", horario: "Lunes a viernes", facebook: "https://www.facebook.com/mnt", instagram: "https://www.instagram.com/mnt/", videoInstitucionalUrl: "/media/institucional.mp4" };
     expect(projectPublic("config", [settings])).toEqual([settings]);
+    const bucketPublico = { ...settings, videoInstitucionalUrl: "https://x.supabase.co/storage/v1/object/public/fortius-inmuebles-public/video.mp4" };
+    expect(projectPublic("config", [bucketPublico])).toEqual([bucketPublico]);
     const emptyLinks = { ...settings, facebook: "", instagram: "", videoInstitucionalUrl: "", whatsapp: "" };
     expect(projectPublic("config", [emptyLinks])).toEqual([emptyLinks]);
   });

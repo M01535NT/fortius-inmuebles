@@ -12,6 +12,12 @@ describe("tu primer día", () => {
     expect(some.map(s => s.done)).toEqual([true, true, false]);
     expect(firstDaySteps({ mine: "ana", leads: [], events: [{ asesorId: "ana" }], operations: [{ asesor_id: "ana" }] }).every(s => s.done)).toBe(true);
   });
+  it("N24: antes van la foto y el WhatsApp, y se marcan con lo que ya tiene", () => {
+    const pasos = firstDaySteps({ mine: "ana", leads: [], events: [], operations: [], perfil: { foto: true, whatsapp: false } });
+    expect(pasos.map(s => s.id)).toEqual(["foto", "whatsapp", "llamada", "entrevista", "operacion"]);
+    expect(pasos.slice(0, 2).map(s => s.done)).toEqual([true, false]);
+    expect(pasos[0].href).toBe("/admin/perfil");
+  });
 });
 
 describe("¿cómo se hace esto?", () => {
