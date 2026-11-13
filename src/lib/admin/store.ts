@@ -8,6 +8,8 @@ export * from "@/lib/domain/records";
 import type { AdminProperty, Asesor, LeadOrigen, Lead, Evento, Nota, Post, ArchivoTipo, Archivo, SiteContent, SiteSettings } from "@/lib/domain/records";
 
 /** In-memory, acknowledged server data only. Never read/migrate browser storage. */
+/** C-03: el mensaje del servidor puede no traer punto final; se agrega para que no se pegue al siguiente. */
+const conPunto = (texto: string) => /[.!?…]$/.test(texto.trim()) ? texto.trim() : `${texto.trim()}.`;
 export class AdminApiError extends Error {
   constructor(
     public status: number,
@@ -15,7 +17,7 @@ export class AdminApiError extends Error {
   ) {
     super(
       status === 409
-        ? `${message || "El registro cambió o tiene vínculos que impiden la operación."} Conserva tu borrador antes de reintentar.`
+        ? `${conPunto(message || "El registro cambió o tiene vínculos que impiden la operación.")} Conserva tu borrador antes de reintentar.`
         : message,
     );
   }
@@ -46,8 +48,11 @@ export class RequestError extends Error {
 /** Petición JSON o multipart (FormData) sin cambiar el mensaje de error del servidor. */
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
-  const body = await response.json();
-  if (!response.ok) throw new RequestError(body.error ?? "No se pudo completar la operación", response.status);
+  // C-02: un proxy o un error 502/504 puede responder HTML; no se muestra «Unexpected token '<'».
+  let body: { error?: unknown } | null = null;
+  try { body = await response.json(); } catch { body = null; }
+  if (!response.ok) throw new RequestError(typeof body?.error === "string" && body.error ? body.error : "No se pudo completar la operación", response.status);
+  if (body === null || typeof body !== "object") throw new RequestError("El servidor respondió algo inesperado. Recarga e inténtalo de nuevo.", response.status);
   return body as T;
 }
 
