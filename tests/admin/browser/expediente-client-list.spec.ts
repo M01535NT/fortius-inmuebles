@@ -54,7 +54,8 @@ for (const width of [390, 768, 1440]) {
     await expect(page.getByRole("region", { name: "Siguiente acción" }).getByRole("heading", { level: 2, name: "Hacer la entrevista inicial" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`operacion-${width}.png`), fullPage: true });
-    await page.getByRole("link", { name: "Operaciones", exact: true }).first().click();
+    // En celular la operación esconde la barra inferior; «Volver a Operaciones» lleva a la misma lista.
+    await page.getByRole("link", { name: /^(Volver a )?Operaciones$/ }).filter({ visible: true }).first().click();
     await page.getByRole("link", { name: "Ver operaciones eliminadas" }).click();
     await expect(page.getByText("No hay operaciones eliminadas")).toBeVisible();
     await page.goto("/admin/operaciones/nueva");
