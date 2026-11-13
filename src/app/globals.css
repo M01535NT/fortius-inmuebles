@@ -446,7 +446,8 @@ select {
   Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 títulos y cifras,
   600 secciones, 540 nombres y pastillas, 400 texto. Tamaños fijos, salvo la calificación grande.
 */
-.admin-root {
+:root {
+  /* En :root para que también lleguen a las ventanas que se abren fuera del panel (portales). */
   --admin-text-pantalla: 1.875rem;   /* 30: un título por pantalla (26 en celular) */
   --admin-text-seccion: 1.25rem;     /* 20 */
   --admin-text-grupo: 1.125rem;      /* 18: tarjetas y grupos de campos */
@@ -458,4 +459,4 @@ select {
   --admin-text-cifra: 1.875rem;      /* 30, letra angosta */
   --admin-text-cifra-grande: clamp(4.5rem, 10vw, 9.5rem);
 }
-@media (max-width: 767px) { .admin-root { --admin-text-pantalla: 1.625rem; } }
+@media (max-width: 767px) { :root { --admin-text-pantalla: 1.625rem; } }
