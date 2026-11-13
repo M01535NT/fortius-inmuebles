@@ -58,9 +58,9 @@ export function routeStages(op: OperationRecord, today: string) {
 export const PHASE_FORMATS: Partial<Record<SalePhase, readonly string[]>> = {
   captacion: ["02"], levantamiento: ["04"], dictamen: ["05", "06"], verificacion: ["07", "08"], contrato: ["09", "10"],
 };
-/** En la renta (MRP-01) la titularidad se revisa sin dictamen completo y la opinión de renta es el 07; la intermediación para renta aún no tiene plantilla. */
+/** En la renta (MRP-01) la titularidad se revisa sin dictamen completo, la opinión de renta es el 07 y la intermediación es el contrato para renta (21). */
 const RENT_PHASE_FORMATS: Partial<Record<SalePhase, readonly string[]>> = {
-  captacion: ["02"], levantamiento: ["04"], verificacion: ["07"], contrato: ["10"],
+  captacion: ["02"], levantamiento: ["04"], verificacion: ["07"], contrato: ["21", "10"],
 };
 export function phaseFormats(phase: SalePhase, ruta?: string | null): readonly string[] {
   return (ruta === "arrendador" ? RENT_PHASE_FORMATS : PHASE_FORMATS)[phase] ?? [];
@@ -72,7 +72,7 @@ export type FormatStatus = "terminado" | "borrador" | undefined;
 /** Nombre corto de cada documento de etapa con su artículo, para no mostrar números de formato en el texto (C15, C37). */
 const DOC_NAMES: Record<string, readonly ["el" | "la", string]> = {
   "02": ["la", "entrevista inicial"], "04": ["el", "levantamiento"], "05": ["la", "revisión jurídica"], "06": ["la", "opinión jurídica"],
-  "07": ["la", "opinión de valor"], "08": ["la", "estimación del neto"], "09": ["el", "contrato de servicio"], "10": ["el", "plan de comercialización"],
+  "07": ["la", "opinión de valor"], "08": ["la", "estimación del neto"], "09": ["el", "contrato de servicio"], "21": ["el", "contrato de servicio"], "10": ["el", "plan de comercialización"],
 };
 function missingDoc(formato: string, draft: boolean) {
   const [article, noun] = DOC_NAMES[formato] ?? ["el", "documento"];
@@ -170,11 +170,11 @@ function shiftDay(date: string, days: number) { const d = new Date(date.slice(0,
   publicación al cierre los documentos se ofrecen sin detener la etapa (RP-82), porque el avance
   lo marcan sus confirmaciones; «venta» los deja fuera de la renta del propietario (perfil del
   comprador, oferta de compra y promesa de compraventa); «soloRenta», al revés, deja el contrato
-  de arrendamiento (20, DOC-14) solo en la renta del propietario.
+  de arrendamiento (20, DOC-14) y la intermediación para renta (21) solo en la renta del propietario.
 */
 const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; optional?: true; venta?: true; soloRenta?: true; renta?: "opcional" }>>> = {
   prospecto: [{ formato: "02" }], captacion: [{ formato: "02" }, { formato: "01", optional: true }], levantamiento: [{ formato: "04" }, { formato: "19", optional: true }],
-  dictamen: [{ formato: "05", renta: "opcional" }, { formato: "06", venta: true }], verificacion: [{ formato: "07" }, { formato: "08", venta: true }], contrato: [{ formato: "09", renta: "opcional" }, { formato: "10" }],
+  dictamen: [{ formato: "05", renta: "opcional" }, { formato: "06", venta: true }], verificacion: [{ formato: "07" }, { formato: "08", venta: true }], contrato: [{ formato: "09", venta: true }, { formato: "21", soloRenta: true }, { formato: "10" }],
   publicacion: [{ formato: "11", optional: true }],
   visitas: [{ formato: "12", optional: true, venta: true }, { formato: "13", optional: true }, { formato: "14", optional: true, venta: true }],
   cierre: [{ formato: "15", optional: true, venta: true }, { formato: "16", optional: true }, { formato: "17", optional: true }, { formato: "18", optional: true }, { formato: "20", optional: true, soloRenta: true }],
@@ -182,7 +182,7 @@ const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; op
 /** Formatos de una etapa del propietario según su ruta (la renta no usa los de compraventa). */
 export function stageDocuments(phase: SalePhase, ruta: OperationWorkflow["ruta"]) {
   const rent = ruta === "arrendador";
-  // En la renta: sin dictamen (06) ni neto de venta (08); la revisión (05) y el 09 se ofrecen sin detener la etapa.
+  // En la renta: sin dictamen (06) ni neto de venta (08); la revisión (05) se ofrece sin detener la etapa y el contrato es el 21 en lugar del 09.
   return (PHASE_ITEMS[phase] ?? []).filter(item => !(item.venta && rent) && !(item.soloRenta && !rent)).map(({ formato, optional, renta }) => ({ formato, ...(optional || (rent && renta) ? { optional: true as const } : {}) }));
 }
 export type StageItem =
