@@ -70,7 +70,7 @@ export function FinancialEditor({ slug, input, onChange, onResult, context }: Ap
     event.preventDefault();
     setError(null);
     try { onResult(calculateFinancial(slug, data)); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo calcular. Revisa los datos."); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo calcular. Revisa que los importes y las fechas estén completos."); }
   }}>
     {slug === "hipoteca" && <>
       <Section title="Condiciones del crédito" hint="Importes en pesos mexicanos. Captura las condiciones ofrecidas para el escenario; la tasa no se consulta automáticamente."><div className={grid}>

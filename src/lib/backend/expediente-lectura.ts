@@ -51,16 +51,17 @@ const sinFuncion = (error: { code?: string }) => error.code === "PGRST202" || er
 async function reservarLectura(privileged: SupabaseClient, archivo: { id: string; expediente_id: string }, userId: string, tope: number, marcadoLeyendo: boolean): Promise<string | null> {
   const { data, error } = await privileged.rpc("fortius_inmuebles_reservar_lectura_ia", { p_archivo: archivo.id, p_expediente: archivo.expediente_id, p_requested_by: userId, p_tope: tope, p_reserva: RESERVA_LECTURA_USD });
   if (!error) return data as string;
-  if (error.code === "PT429") throw topeAlcanzado(tope);
+  if (error.code === "PT429") throw topeAlcanzado();
   if (error.code === "PT409") throw leyendose();
   if (!sinFuncion(error)) databaseError(error);
   if (marcadoLeyendo) throw leyendose();
-  if (await gastoDelMes(privileged) >= tope) throw topeAlcanzado(tope);
+  if (await gastoDelMes(privileged) >= tope) throw topeAlcanzado();
   return null;
 }
 /** C-19: dos pulsaciones o dos pestañas sobre el mismo documento no cobran dos lecturas. */
 const leyendose = () => new ApiError(409, "Este documento ya se está leyendo; espera a que termine");
-const topeAlcanzado = (tope: number) => new ApiError(429, `Se alcanzó el tope de lecturas de este mes (${tope} USD); la lectura se reanuda el próximo mes o cuando el director suba el tope en Configuración`);
+// Sin el monto en dólares: el asesor no administra el presupuesto.
+const topeAlcanzado = () => new ApiError(429, "Se terminaron las lecturas de este mes. Captura los datos a mano o pide al director que amplíe el límite en Configuración.");
 
 export async function gastoDelMes(privileged: SupabaseClient, ahora = new Date()): Promise<number> {
   return (await lecturasDelMes(privileged, ahora)).reduce((total, row) => total + Number(row.costo_usd ?? 0), 0);

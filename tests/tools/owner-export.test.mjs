@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRehearsalDatabase, rehearseCurrent } from '../../tools/fortius-inmuebles-restore-current.mjs';
-import { exportOwner } from '../../tools/fortius-inmuebles-owner-export.mjs';
+import { databaseSsl, exportOwner } from '../../tools/fortius-inmuebles-owner-export.mjs';
 
 test('exports every current table in one read-only snapshot that the rehearsal accepts', async () => {
   const db = await createRehearsalDatabase();
@@ -21,4 +21,13 @@ test('exports every current table in one read-only snapshot that the rehearsal a
     await assert.rejects(db.query("insert into public.fortius_inmuebles_rate_limits(key) values ('x')"), /read-only/);
     await db.query('rollback');
   } finally { await db.close(); }
+});
+
+test('SEG-B15: with the Supabase root certificate the server certificate and name are verified', () => {
+  const remote = 'postgresql://postgres.ref:secret@aws-0-us-west-1.pooler.supabase.com:5432/postgres';
+  const pem = '-----BEGIN CERTIFICATE-----\nMIIBsynthetic\n-----END CERTIFICATE-----';
+  assert.equal(databaseSsl('postgresql://postgres@127.0.0.1:54322/postgres', { FORTIUS_BACKUP_DB_CA: pem }), false);
+  assert.deepEqual(databaseSsl(remote, {}), { rejectUnauthorized: false });
+  assert.deepEqual(databaseSsl(remote, { FORTIUS_BACKUP_DB_CA: pem }), { rejectUnauthorized: true, ca: pem });
+  assert.throws(() => databaseSsl(remote, { FORTIUS_BACKUP_DB_CA: 'not a certificate' }), /PEM/);
 });

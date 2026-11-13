@@ -83,6 +83,18 @@ describe("lectura de inmuebles por asesor", () => {
     try { await expect(team()).rejects.toThrow(); } finally { await db.exec("reset role"); }
   });
 
+  it("de Storage solo pasa el bucket público; los enlaces externos siguen valiendo (SEG-B6)", async () => {
+    const isPublic = async (u: string) => (await db.query<{ ok: boolean }>("select public.fortius_inmuebles_public_url($1) ok", [u])).rows[0].ok;
+    const base = "https://ejemplo.supabase.co/storage/v1";
+    for (const u of [`${base}/object/public/fortius-inmuebles-public/a.jpg`, `${base}/render/image/public/fortius-inmuebles-public/a.jpg?width=800`,
+      "/hero/casa.jpg", "https://www.youtube.com/watch?v=abc", "https://my.matterport.com/show/?m=abc", "https://www.inegi.org.mx/temas/vivienda/"])
+      expect(await isPublic(u), u).toBe(true);
+    for (const u of [`${base}/object/public/fortius-inmuebles-expedientes/a.pdf`, `${base}/object/authenticated/fortius-inmuebles-public/a.jpg`,
+      `${base}/object/public/fortius-app-integrations/a.pdf`, `${base}/object/sign/fortius-inmuebles-public/a.jpg?token=t`, `${base}/object/public/fortius-inmuebles-comercial/a.pdf`,
+      "https://fortiusinmuebles.com/api/apps/shared/abc123", "/api/admin/files?path=x", "/api/auth/profile/photo"])
+      expect(await isPublic(u), u).toBe(false);
+  });
+
   it("el asesor sigue guardando su inmueble con la política nueva", async () => {
     const version = (await as(director, () => team("de-ana"))).rows[0].version;
     await as(ana, () => db.query("select public.fortius_inmuebles_put_record('propiedades','de-ana',$1::jsonb,$2)", [JSON.stringify(property("de-ana", "ana", { titulo: "Casa de ensayo editada" })), version]));

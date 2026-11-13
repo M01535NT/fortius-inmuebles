@@ -49,6 +49,9 @@ beforeAll(async () => {
   // SEG-M1: al reabrir no se cambia el correo; también se aplica dos veces.
   const keepContact = await readFile(new URL("../../supabase/migrations/20261113121000_reabrir_sin_cambiar_contacto.sql", import.meta.url), "utf8");
   await db.exec(keepContact); await db.exec(keepContact);
+  // SEG-B4: tope global de 1000 por hora; también se aplica dos veces.
+  const globalCap = await readFile(new URL("../../supabase/migrations/20261113127000_tope_global_de_prospectos.sql", import.meta.url), "utf8");
+  await db.exec(globalCap); await db.exec(globalCap);
 });
 afterAll(async () => { await db?.close(); });
 

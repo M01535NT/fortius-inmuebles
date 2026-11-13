@@ -274,7 +274,7 @@ test("changing the property route cannot reuse another record's editor snapshot"
   await act(async () => view.rerender(<EditPropertyPage params={next} />));
   expect(screen.queryByLabelText("Título")).toBeNull();
   expect(
-    screen.getByText('No existe "missing" en el inventario.'),
+    screen.getByText("Este inmueble no está en el inventario."),
   ).toBeTruthy();
 });
 test("removal in background refresh does not discard a property's unsaved editor", async () => {
