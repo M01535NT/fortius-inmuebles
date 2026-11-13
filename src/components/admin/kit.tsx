@@ -292,7 +292,12 @@ export function Sheet({ open, onClose, eyebrow, title, description, children, fo
     const previous = document.activeElement as HTMLElement | null;
     panel.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-sheet-close])")?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { closeRef.current(); return; }
+      if (event.key === "Escape") {
+        // Escape dentro de una confirmación (<dialog> nativo) la cancela a ella, no al panel de abajo.
+        const target = event.target instanceof Element ? event.target : null;
+        if (!event.defaultPrevented && !target?.closest("dialog[open]")) closeRef.current();
+        return;
+      }
       if (event.key !== "Tab" || !panel.current) return;
       // El panel es modal: Tab y Shift+Tab dan la vuelta dentro de él y no salen al fondo (C-26).
       const controls = Array.from(panel.current.querySelectorAll<HTMLElement>("button:not([tabindex='-1']), input, select, textarea, a[href]"))
