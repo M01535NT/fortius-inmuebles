@@ -50,7 +50,7 @@ afterEach(() => {
 test("creation lets staff choose the slug and persists that exact route key", async () => {
   render(<BlogAdminPage />);
   fireEvent.click(screen.getByRole("button", { name: "Nueva entrada" }));
-  fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "guia-para-comprar" } });
+  fireEvent.change(screen.getByLabelText("Dirección en la web"), { target: { value: "guia-para-comprar" } });
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Guía para comprar" } });
   fireEvent.change(screen.getByLabelText("Resumen"), { target: { value: "Resumen" } });
   fireEvent.change(screen.getByLabelText("Contenido"), { target: { value: "Contenido" } });
@@ -65,7 +65,7 @@ test("editing displays the persisted slug as readonly and preserves it on save",
   render(<BlogAdminPage />);
   fireEvent.click(screen.getByRole("button", { name: "Editar Guía existente" }));
 
-  const slug = screen.getByLabelText("Slug") as HTMLInputElement;
+  const slug = screen.getByLabelText("Dirección en la web") as HTMLInputElement;
   expect(slug.readOnly).toBe(true);
   expect(slug.value).toBe("guia-existente");
   fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Título revisado" } });

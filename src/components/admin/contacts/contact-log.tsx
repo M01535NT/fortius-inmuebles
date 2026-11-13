@@ -81,7 +81,7 @@ export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead;
       <label className="flex flex-col gap-1 text-sm">Siguiente paso<input className={inputClass} value={accion} maxLength={160} required onChange={e => setAccion(e.target.value)} /></label>
       <label className="flex flex-col gap-1 text-sm">Fecha<input type="date" className={inputClass} value={fecha} min={today} required onChange={e => setFecha(e.target.value)} /></label>
       <label className="flex flex-col gap-1 text-sm sm:col-span-2">Nota (opcional)<input className={inputClass} value={nota} maxLength={2000} placeholder="Qué se habló o qué quedó pendiente" onChange={e => setNota(e.target.value)} /></label>
-      {retry && <p className="m-0 text-sm text-muted-foreground sm:col-span-2">Es el tercer intento sin respuesta: se propone reintentar en {RETRY_DAYS} días.</p>}
+      {retry && <p className="m-0 text-sm text-muted-foreground sm:col-span-2">Es el tercer intento sin respuesta. Vuelve a intentarlo en {RETRY_DAYS} días.</p>}
       <span className="flex flex-wrap gap-2 sm:col-span-2"><Button type="submit" disabled={busy}>Guardar</Button><Button variant="ghost" disabled={busy} onClick={cancel}>Cancelar</Button></span>
     </form>}
     {notice && <p role="status" className="m-0 text-sm text-muted-foreground">{notice}</p>}
