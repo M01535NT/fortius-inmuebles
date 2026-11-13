@@ -39,14 +39,13 @@ describe("solicitud de arrendamiento (22)", () => {
   });
 
   it("empresa con fiador con inmueble y uso comercial cambia el texto y los documentos", () => {
-    const d = { ...SOLICITUD_COMPLETA, solicitanteTipo: "moral", acta: "escritura 1", representante: "Persona Representante", poder: "escritura 2", uso: "comercial", giro: "oficinas", garantia: "fiador", garante: "Persona Fiadora", telefonoGarante: "6640000006", fiadorConInmueble: "si", inmuebleGarante: "Calle 4", actividad: "empresa", actividadDetalle: "servicios contables", ref3Tipo: "comercial", ref3Nombre: "Proveedor de Ejemplo", ref3Telefono: "6640000007", ref3Relacion: "Proveedor", decision: "condiciones", condiciones: "depósito de dos meses" };
+    const d = { ...SOLICITUD_COMPLETA, solicitanteTipo: "moral", acta: "escritura 1", representante: "Persona Representante", poder: "escritura 2", uso: "comercial", giro: "oficinas", garantia: "fiador", garante: "Persona Fiadora", telefonoGarante: "6640000006", fiadorConInmueble: "si", inmuebleGarante: "Calle 4", actividad: "empresa", actividadDetalle: "servicios contables", decision: "condiciones", condiciones: "depósito de dos meses" };
     expect(validateFormato("22", d)).toEqual([]);
     expect(documentosAplicables(d)).toEqual(["identificacion", "domicilio", "ingresos", "acta", "poder", "constanciaFiscal", "garanteIdentificacion", "garanteDomicilio", "escrituraFiador"]);
     const doc = solicitudArrendamientoDocumento(d);
     const t = texto(doc.blocks);
     expect(t).toContain("Comercial u oficina, giro: oficinas");
     expect(t).toContain("Escritura del inmueble del fiador");
-    expect(t).toContain("Proveedor de Ejemplo");
     expect(t).toContain("Acepta al candidato con estas condiciones: depósito de dos meses");
     expect(t).not.toContain("Personas que lo habitarán");
     expect(doc.blocks.find(b => b.kind === "signatures")).toMatchObject({ parties: [{ role: "SOLICITANTE", name: "Persona Solicitante de Ejemplo, por conducto de Persona Representante" }, { role: "GARANTE" }] });
@@ -73,5 +72,23 @@ describe("solicitud de arrendamiento (22)", () => {
     expect(texto(solicitudArrendamientoDocumento({}).blocks)).toContain("____");
     const pdf = await createFormatoPdf("22", SOLICITUD_COMPLETA);
     expect(Buffer.from(pdf).subarray(0, 5).toString()).toBe("%PDF-");
+  });
+});
+
+describe("captura sobre el documento del 22 (C-29)", () => {
+  const zonas = (blocks: Block[]) => new Set(blocks.flatMap(b => {
+    const any = b as { keys?: string[][]; zona?: { keys: string[] } };
+    return [...(any.zona?.keys ?? []), ...(Array.isArray(any.keys) ? any.keys.flat() : [])];
+  }));
+  it("a un pensionado no se le pide antigüedad, y todo lo que se le pide tiene zona", () => {
+    const d = { solicitanteTipo: "fisica", uso: "habitacion", mascotas: "no", garantia: "ninguna", actividad: "pensionado" };
+    expect(mostrarCampoSolicitud("antiguedad", d)).toBe(false);
+    const enDocumento = zonas(solicitudArrendamientoDocumento(d).blocks);
+    expect(formatoById("22").fields.filter(f => f.required && mostrarCampoSolicitud(f.key, d) && !enDocumento.has(f.key)).map(f => f.label)).toEqual([]);
+  });
+  it("pide solo dos referencias, y las dos tienen zona", () => {
+    expect(formatoById("22").fields.some(f => f.key.startsWith("ref3"))).toBe(false);
+    const enDocumento = zonas(solicitudArrendamientoDocumento(SOLICITUD_COMPLETA).blocks);
+    expect([1, 2].flatMap(n => [`ref${n}Tipo`, `ref${n}Nombre`, `ref${n}Telefono`, `ref${n}Relacion`, `ref${n}Resultado`]).filter(key => !enDocumento.has(key))).toEqual([]);
   });
 });

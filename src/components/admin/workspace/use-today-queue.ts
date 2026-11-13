@@ -9,6 +9,7 @@ import type { OperationalInterview } from "@/lib/intake/interview";
 import { expiryItems, firstResponseHours, overdueReports, queueFromExpiry, queueFromInterviews, queueFromLeads, queueFromReports, queueFromWaiting, shortDate, sortQueue, unattendedLeads, waitingItems, type ContractDates, type OfferRun, type QueueItem, type TodayDossier } from "@/lib/admin/today";
 import { initialStatus } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
+import { useInboxCount } from "@/components/admin/workspace/use-inbox";
 
 /*
   La cola de «Lo siguiente» en un solo lugar (COR-05, RP-84): Hoy la muestra y el número del
@@ -113,7 +114,7 @@ export function useTodayQueue({ maxAge = 0 }: { maxAge?: number } = {}) {
   return { queue, waiting, dossiers, staged, interviews, offers, reports, contracts, expiring, names, today };
 }
 
-/** El número del menú: las tarjetas de la cola de Hoy (RP-84). Mientras carga, nada. */
+/** El número del menú: las tarjetas de la cola de Hoy más lo no leído de «Para ti» (RP-84, RP-20). Mientras carga, nada. */
 export function usePendingCount() {
-  return useTodayQueue({ maxAge: 60_000 }).queue.length;
+  return useTodayQueue({ maxAge: 60_000 }).queue.length + useInboxCount();
 }

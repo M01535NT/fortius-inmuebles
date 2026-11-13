@@ -11,6 +11,8 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/admin/notas", useRouter
   entrar de nuevo encima, lo capturado sigue ahí y, al volver a entrar, se puede guardar.
 */
 let expired = false;
+let mfa = false;
+const codes: string[] = [];
 let user = { id: "staff", email: "staff@example.com", role: "admin" };
 const logins: unknown[] = [];
 
@@ -25,13 +27,14 @@ function Capture() {
 }
 
 beforeEach(() => {
-  expired = false;
+  expired = false; mfa = false; codes.length = 0;
   user = { id: "staff", email: "staff@example.com", role: "admin" };
   logins.length = 0;
   api.clearAdminCache();
   vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
     if (url === "/api/auth/session") return expired ? Response.json({ error: "Sin sesión" }, { status: 401 }) : Response.json({ user });
-    if (url === "/api/auth/login") { logins.push(JSON.parse(String(init?.body))); expired = false; return Response.json({ ok: true }); }
+    if (url === "/api/auth/login") { logins.push(JSON.parse(String(init?.body))); if (mfa) return Response.json({ mfaRequired: true }); expired = false; return Response.json({ ok: true }); }
+    if (url === "/api/auth/mfa/verify") { const { code } = JSON.parse(String(init?.body)); codes.push(code); if (code !== "123456") return Response.json({ error: "El código no coincide." }, { status: 400 }); expired = false; return Response.json({ ok: true }); }
     if (url.startsWith("/api/auth/")) return Response.json({ ok: true });
     if (expired) return Response.json({ error: "Sin sesión" }, { status: 401 });
     if (init?.method === "PUT") { const body = JSON.parse(String(init.body)); return Response.json({ record: { id: "n1", data: body.data, version: 1, createdAt: "2026-11-13", updatedAt: "2026-11-13" } }); }
@@ -79,4 +82,24 @@ test("al abrir el panel sin sesión se muestra el acceso de siempre", async () =
   render(<AdminShell><Capture /></AdminShell>);
   expect(await screen.findByRole("heading", { name: "Acceso al panel" })).toBeTruthy();
   expect(screen.queryByLabelText("Nota en captura")).toBeNull();
+});
+
+test("AUT-01: con la verificación en dos pasos, después de la contraseña se pide el código de la app", async () => {
+  render(<AdminShell><Capture /></AdminShell>);
+  fireEvent.change(await screen.findByLabelText("Nota en captura"), { target: { value: "Dato que no se pierde" } });
+  expired = true; mfa = true;
+  fireEvent.click(screen.getByRole("button", { name: "Guardar la nota" }));
+  await screen.findByRole("heading", { name: "Tu sesión venció" });
+  fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "clave-de-prueba-123" } });
+  fireEvent.click(screen.getByRole("button", { name: "Entrar y seguir" }));
+  const code = await screen.findByLabelText("Código de la app");
+  fireEvent.change(code, { target: { value: "000000" } });
+  fireEvent.click(screen.getByRole("button", { name: "Entrar y seguir" }));
+  expect(await screen.findByText(/El código no coincide/)).toBeTruthy();
+  expect(screen.getByLabelText("Código de la app")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Código de la app"), { target: { value: "123456" } });
+  fireEvent.click(screen.getByRole("button", { name: "Entrar y seguir" }));
+  await waitFor(() => expect(screen.queryByRole("heading", { name: "Tu sesión venció" })).toBeNull());
+  expect(codes).toEqual(["000000", "123456"]);
+  expect((screen.getByLabelText("Nota en captura") as HTMLTextAreaElement).value).toBe("Dato que no se pierde");
 });

@@ -1,4 +1,5 @@
 "use client";
+import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { FirstDay } from "./first-day";
 import * as React from "react";
 import Image from "next/image";
@@ -18,6 +19,7 @@ import { useTodayQueue } from "@/components/admin/workspace/use-today-queue";
 import { FirstContactButton } from "@/components/admin/workspace/first-contact";
 import { NextStepPrompt } from "@/components/admin/contacts/next-step-prompt";
 import { Announcements } from "@/components/admin/workspace/announcements";
+import { Inbox } from "@/components/admin/workspace/inbox";
 import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
 import s from "./hoy.module.css";
 
@@ -111,6 +113,7 @@ export function HoyScreen() {
       <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist className={s.full} /></SectionBoundary>
       <SectionBoundary what="«Tu primer día»"><FirstDay operations={dossiers} className={s.full} /></SectionBoundary>
       <SectionBoundary what="«Avisos»"><Announcements className={s.full} /></SectionBoundary>
+      <SectionBoundary what="«Para ti»"><Inbox className={s.full} /></SectionBoundary>
 
       <div data-tour="hoy-siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
         {dossiers === undefined ? <p role="status" className={s.nextNote}>Consultando operaciones…</p>
@@ -185,14 +188,17 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
   const [message, setMessage] = React.useState("");
   const allTasks = useCollection(db.tareas);
   const [ask, setAsk] = React.useState<NextRef | null>(null);
+  const undo = useUndo();
   const open = tasks.filter(isTaskOpen), done = tasks.length - open.length;
   const shown = tasks.slice(0, TASK_ROWS);
   async function toggle(task: Task) {
-    setSaving(task.id); setMessage(""); setAsk(null);
+    setSaving(task.id); setMessage(""); setAsk(null); undo.clear();
     try {
       const completing = isTaskOpen(task);
-      await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
-      setMessage("Guardado");
+      const saved = await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
+      // RP-16: completar se deshace con un toque; el aviso sale cuando el servidor ya lo guardó.
+      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)) });
+      else setMessage("Guardado");
       // DEC-42: completar el siguiente paso de una persona pide el que sigue.
       if (completing) setAsk(askNextAfter(task, allTasks));
     } catch (error) {
@@ -235,6 +241,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
       </div>
     </Card>
     {message && <p role="status" className={cn("px-1 text-sm", message.startsWith("No se pudo") ? "text-destructive" : "text-muted-foreground")}>{message}</p>}
+    <UndoNotice {...undo} onError={setMessage} />
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : names.client(ask.kind === "operacion" ? ask.clienteId : ask.id)} onClose={() => setAsk(null)} />}
   </Section>;
 }

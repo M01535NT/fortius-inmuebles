@@ -1,4 +1,5 @@
 "use client";
+import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 
 import * as React from "react";
@@ -47,12 +48,16 @@ function Tasks() {
   const activeFilters = Number(responsible !== "todas") + Number(status !== "abiertas") + Number(priority !== "todas") + Number(category !== "todas");
   const [saving, setSaving] = React.useState<string | null>(null), [message, setMessage] = React.useState("");
   const [ask, setAsk] = React.useState<NextRef | null>(null);
+  const undo = useUndo();
   async function toggle(task: (typeof filtered)[number]) {
     setSaving(task.id); setMessage("");
-    setAsk(null);
+    setAsk(null); undo.clear();
     try {
       const completing = !["completada", "cancelada"].includes(task.estado);
-      await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task)); setMessage("Guardado");
+      const saved = await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
+      // RP-16: completar se deshace con un toque; el aviso sale cuando el servidor ya lo guardó.
+      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)) });
+      else setMessage("Guardado");
       // DEC-42: completar el siguiente paso de una persona pide el que sigue.
       if (completing) setAsk(askNextAfter(task, tareas));
     }
@@ -88,6 +93,7 @@ function Tasks() {
   return <div className="min-w-0 space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"}{message ? ` · ${message}` : ""}</p>
+      <UndoNotice {...undo} onError={setMessage} />
       <Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button>
     </div>
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : clientes.find(c => c.id === (ask.kind === "operacion" ? ask.clienteId : ask.id))?.nombre} onClose={() => setAsk(null)} />}

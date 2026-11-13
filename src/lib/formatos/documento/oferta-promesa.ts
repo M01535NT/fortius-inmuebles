@@ -1,4 +1,5 @@
 import { formatoById } from "../catalog";
+import { respuestaRequiereRatificacion } from "../oferta";
 import { camposParrafoPromesa, importePromesaLetra, PROMESA_REVISION, promesaParagraphs } from "../promesa";
 import { PROMESA_ORIGINAL } from "../promesa-text";
 import { BLANK, a, dinero, fecha, m, v, type Block, type Documento } from "./modelo";
@@ -51,7 +52,8 @@ export function ofertaDocumento(d: Data): Documento {
     { kind: "p", zona: z("Mi respuesta", "estadoRespuesta", "decisionPropietario", "motivoRespuesta"), text: `He decidido ${decision}, por ${registrada ? m(d.motivoRespuesta) : BLANK}.` },
     // Controles del panel que la plantilla no trae en blanco: solo se imprimen cuando se usan.
     ...(registrada && d.decisionPropietario === "contraoferta" ? [{ kind: "p", zona: z("Contraoferta", "precioContraoferta", "monedaContraoferta", "impuestosContraoferta", "cambiosContraoferta", "fechaLimiteContraoferta", "horaLimiteContraoferta"), text: `Contraoferta: precio de ${money(d.precioContraoferta)} ${v(d.monedaContraoferta)}, ${m(d.impuestosContraoferta)}. Cambios: ${m(d.cambiosContraoferta)}. Agradeceré su respuesta hasta el ${f(d.fechaLimiteContraoferta)}, a las ${v(d.horaLimiteContraoferta)}.` } as Block] : []),
-    ...(registrada && d.confirmacionVigencia ? [{ kind: "p", zona: z("Confirmación de vigencia", "confirmacionVigencia"), text: `Confirmación de vigencia por el comprador: ${m(d.confirmacionVigencia)}.` } as Block] : []),
+    // C-31: si la respuesta llegó fuera de plazo, el renglón aparece en blanco para capturar la confirmación.
+    ...(registrada && (d.confirmacionVigencia || respuestaRequiereRatificacion(d)) ? [{ kind: "p", zona: z("Confirmación de vigencia", "confirmacionVigencia"), text: `Confirmación de vigencia por el comprador: ${m(d.confirmacionVigencia)}.` } as Block] : []),
     { kind: "p", text: "Esta respuesta, aun si es favorable, conserva el alcance de negociación de la propuesta y no obliga por sí sola a vender ni a celebrar un contrato futuro. Cualquier compromiso requerirá el instrumento correspondiente." },
     { kind: "p", text: "Atentamente," },
     { kind: "signatures", zona: z("Firma del propietario", "propietario"), line: true, parties: [{ role: "", name: v(d.propietario) }] },

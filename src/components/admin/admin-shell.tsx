@@ -26,27 +26,66 @@ import {
   isLoggedIn,
   login,
   logout,
+  needsMfaCode,
   recoverPassword,
   useSession,
   useSessionExpired,
+  verifyMfaCode,
 } from "@/lib/admin/store";
 import { SessionExpiredDialog } from "@/components/admin/workspace/session-expired";
 import { ConflictHost } from "@/components/admin/workspace/conflict-dialog";
+import { Silhouette } from "@/components/admin/workspace/silhouette";
+
+/** AUT-01: segundo paso del acceso, con el código de la app de verificación. */
+function MfaStep({ onVerified, onCancel }: { onVerified: () => void; onCancel: () => void }) {
+  return (
+    <AsyncForm
+      className="admin-login-card mt-8 space-y-4 rounded-lg border border-border bg-card p-6"
+      onSubmit={async (e) => {
+        await verifyMfaCode(String(new FormData(e.currentTarget).get("code")));
+        onVerified();
+      }}
+    >
+      <h1 className="display-soft text-xl text-foreground">Código de verificación</h1>
+      <p className="text-sm text-muted-foreground">Abre tu app de verificación y escribe el código de 6 dígitos de Fortius Inmuebles.</p>
+      <Field label="Código" htmlFor="admin-mfa-code">
+        <input
+          id="admin-mfa-code"
+          name="code"
+          required
+          autoFocus
+          inputMode="numeric"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          autoComplete="one-time-code"
+          className={inputClass + " tracking-[0.3em]"}
+        />
+      </Field>
+      <button type="submit" className={btnPrimary + " w-full"}>Continuar</button>
+      <AsyncButton type="button" className={btnGhost + " w-full"} onClick={async () => { await logout(); onCancel(); }}>
+        Volver al acceso
+      </AsyncButton>
+    </AsyncForm>
+  );
+}
 
 function LoginScreen({
   onLogin,
   onPasswordReady,
   passwordMode,
+  mfa,
   error: initialError,
 }: {
   onLogin: () => void;
   onPasswordReady: () => void;
   passwordMode: boolean;
+  mfa: boolean;
   error: string | null;
 }) {
   const [recovery, setRecovery] = React.useState(false);
   const [sent, setSent] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [codeStep, setCodeStep] = React.useState(mfa);
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-background px-5">
       <div className="w-full max-w-[400px]">
@@ -56,6 +95,12 @@ function LoginScreen({
             Panel
           </span>
         </div>
+        {codeStep ? (
+          <MfaStep
+            onVerified={() => { setCodeStep(false); if (!passwordMode) onLogin(); }}
+            onCancel={() => { setCodeStep(false); if (passwordMode) onPasswordReady(); }}
+          />
+        ) : (
         <AsyncForm
           className="admin-login-card mt-8 space-y-4 rounded-lg border border-border bg-card p-6"
           onSubmit={async (e) => {
@@ -74,6 +119,7 @@ function LoginScreen({
                 String(data.get("email")),
                 String(data.get("password")),
               );
+              if (needsMfaCode()) { setCodeStep(true); return; }
               onLogin();
             }
           }}
@@ -169,6 +215,7 @@ function LoginScreen({
             </button>
           ) : null}
         </AsyncForm>
+        )}
         <DocumentLink href="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-foreground underline underline-offset-4">
           Volver al sitio
         </DocumentLink>
@@ -310,7 +357,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   if (!session || passwordMode)
     return (
       <LoginScreen
+        // Si una sesión pide el código después de abrir la pantalla, se vuelve a montar en ese paso.
+        key={needsMfaCode() ? "mfa" : "login"}
         passwordMode={passwordMode}
+        mfa={needsMfaCode()}
         error={error}
         onLogin={() => {
           setError(null);
@@ -347,9 +397,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
           {!ready || loadedPath !== pathname ? (
-            <p role="status" aria-busy={refreshing}>
-              {error || refreshError ? "No se pudo cargar este módulo. Puedes reintentar o abrir otro desde el menú." : "Cargando módulo…"}
-            </p>
+            error || refreshError ? <p role="status">No se pudo cargar este módulo. Puedes reintentar o abrir otro desde el menú.</p> : <Silhouette label="Cargando módulo…" />
           ) : directorOnly ? (
             <div role="alert" className="max-w-[640px] space-y-3 rounded-[var(--radius-card)] border border-[var(--card-edge)] bg-card p-6">
               <h1 className="text-xl font-semibold">Esta sección la administra el director</h1>

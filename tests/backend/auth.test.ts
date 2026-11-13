@@ -134,7 +134,7 @@ describe("real session behavior against the external transport boundary", () => 
     await expect(loginWithPassword({ email: user.email, password: "a long password" })).rejects.toMatchObject({ status: 403 });
     expect(state.cookies.size).toBe(0);
     state.member = true;
-    expect((await loginWithPassword({ email: user.email, password: "a long password" })).user.role).toBe("admin");
+    expect(((await loginWithPassword({ email: user.email, password: "a long password" })) as { user: { role: string } }).user.role).toBe("admin");
     expect(state.cookies.get("fortius-inmuebles-access-token")).toMatchObject({ value: token, options: { httpOnly: true, sameSite: "lax", path: "/" } });
     state.active = false;
     await expect(requireStaff()).rejects.toMatchObject({ status: 403 });
@@ -162,7 +162,7 @@ describe("real session behavior against the external transport boundary", () => 
     expect(state.cookies.size).toBe(0);
     await expect(requestRecovery({ email: user.email }, "https://mnt.test/admin", "203.0.113.7")).rejects.toMatchObject({ status: 429 });
     state.limited = false; state.limiterMissing = true;
-    expect((await loginWithPassword({ email: user.email, password: "a long password" })).user.role).toBe("admin");
+    expect(((await loginWithPassword({ email: user.email, password: "a long password" })) as { user: { role: string } }).user.role).toBe("admin");
   });
   it("an old session cannot set a new password, nor a plain login be passed off as a link (SEG-B1, SEG-B2)", async () => {
     await expect(acceptAuthCallback({ type: "recovery", access_token: staleToken, refresh_token: session.refresh_token })).rejects.toMatchObject({ status: 401 });

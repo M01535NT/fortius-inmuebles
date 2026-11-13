@@ -77,10 +77,15 @@ async function limitAttempt(kind: "login" | "recovery", scope: "ip" | "email", v
 }
 
 type AuthMethod = { method?: unknown; timestamp?: unknown };
+// Datos del token. Solo se usan después de que Supabase lo validó (getUser/setSession).
+function tokenClaims(accessToken: string): { amr?: unknown; aal?: unknown } {
+  try { return JSON.parse(Buffer.from(accessToken.split(".")[1] ?? "", "base64url").toString("utf8")) ?? {}; }
+  catch { return {}; }
+}
 // Métodos con los que se abrió la sesión. El token ya fue validado por Supabase al usarlo.
 function authMethods(accessToken: string): { method: string; at: number }[] {
   try {
-    const payload = JSON.parse(Buffer.from(accessToken.split(".")[1] ?? "", "base64url").toString("utf8")) as { amr?: AuthMethod[] };
+    const payload = tokenClaims(accessToken) as { amr?: AuthMethod[] };
     return (Array.isArray(payload.amr) ? payload.amr : [])
       .filter((entry): entry is { method: string; timestamp: number } => typeof entry?.method === "string" && typeof entry?.timestamp === "number")
       .map(entry => ({ method: entry.method, at: entry.timestamp * 1000 }));
@@ -90,9 +95,22 @@ const LINK_METHODS = ["recovery", "invite", "otp", "magiclink"];
 const fromRecentLink = (accessToken: string, now = Date.now()) => authMethods(accessToken).some(entry => LINK_METHODS.includes(entry.method) && now - entry.at < 60 * 60 * 1000);
 const recentlyAuthenticated = (accessToken: string, now = Date.now()) => authMethods(accessToken).some(entry => now - entry.at < 15 * 60 * 1000);
 
+/*
+  AUT-01 (titular, 13/11/2026: verificación en dos pasos solo para el director). Quien tiene una app
+  de códigos registrada y verificada entra en dos pasos: la contraseña (o el enlace) abre una sesión
+  «aal1» que no sirve para el panel hasta escribir el código, que la sube a «aal2». La base aplica la
+  misma regla en sus funciones de permisos (migración 20261113180000). Sin factor, nada cambia.
+*/
+type FactorLike = { id: string; factor_type: string; status: string; created_at: string };
+const verifiedTotp = (user: { factors?: FactorLike[] } | null | undefined) => (user?.factors ?? []).filter(factor => factor.factor_type === "totp" && factor.status === "verified");
+const mfaRequired = () => new ApiError(401, "Escribe el código de 6 dígitos de tu app de verificación", { mfa: "required" });
+const isMfaRequired = (error: unknown) => error instanceof ApiError && error.details?.mfa === "required";
+const codeSchema = z.string().trim().regex(/^\d{6}$/, "El código tiene 6 dígitos");
+
 async function verifyStaff(client: SupabaseClient, token: string): Promise<StaffUser> {
   const { data, error } = await client.auth.getUser(token);
   if (error || !data.user) throw new ApiError(401, "Sesión inválida o vencida");
+  if (verifiedTotp(data.user).length && tokenClaims(token).aal !== "aal2") throw mfaRequired();
   const membership = await client.from("fortius_inmuebles_staff").select("role,active").eq("user_id", data.user.id).maybeSingle();
   if (membership.error) databaseError(membership.error);
   return staffIdentity(data.user, membership.data);
@@ -118,7 +136,7 @@ export async function requireStaff(): Promise<{ user: StaffUser; client: Supabas
   if (token) {
     const client = createServerClient(token);
     try { return { user: await verifyStaff(client, token), client, accessToken: token }; }
-    catch (error) { if (!(error instanceof ApiError) || error.status !== 401) throw error; }
+    catch (error) { if (!(error instanceof ApiError) || error.status !== 401 || isMfaRequired(error)) throw error; }
   }
   if (!refreshToken) { await clearSession(); throw new ApiError(401, "Sesión vencida"); }
   const authClient = createServerClient();
@@ -131,7 +149,7 @@ export async function requireStaff(): Promise<{ user: StaffUser; client: Supabas
   return { user, client, accessToken: token };
 }
 
-export async function loginWithPassword(input: unknown, client = "local"): Promise<{ user: StaffUser }> {
+export async function loginWithPassword(input: unknown, client = "local"): Promise<{ user: StaffUser } | { mfaRequired: true }> {
   const credentials = z.object({ email: z.email().max(254), password: z.string().min(1).max(128) }).strict().parse(input);
   await limitAttempt("login", "ip", client, 30);
   await limitAttempt("login", "email", credentials.email, 20);
@@ -144,12 +162,14 @@ export async function loginWithPassword(input: unknown, client = "local"): Promi
     throw new ApiError(503, "El servicio de acceso no está disponible; inténtalo de nuevo");
   }
   if (!data.session) throw new ApiError(503, "El servicio de acceso no devolvió una sesión válida");
+  // AUT-01: la contraseña fue correcta; falta el código. La sesión «aal1» no abre el panel.
+  if (verifiedTotp(data.session.user).length) { await saveSession(data.session); return { mfaRequired: true }; }
   const user = await verifyStaff(createServerClient(data.session.access_token), data.session.access_token);
   await saveSession(data.session);
   return { user };
 }
 
-export async function acceptAuthCallback(input: unknown): Promise<{ user: StaffUser }> {
+export async function acceptAuthCallback(input: unknown): Promise<{ user: StaffUser } | { mfaRequired: true }> {
   const type = z.enum(["invite", "recovery"]);
   const payload = z.union([
     z.object({ type, token_hash: z.string().min(20).max(2048) }).strict(),
@@ -162,9 +182,105 @@ export async function acceptAuthCallback(input: unknown): Promise<{ user: StaffU
   if (error || !data.session) throw new ApiError(401, "Invitación o recuperación inválida o vencida");
   // SEG-B2: un par de tokens solo vale si viene de un enlace reciente, no de un inicio de sesión cualquiera.
   if (!("token_hash" in payload) && !fromRecentLink(data.session.access_token)) throw new ApiError(401, "Invitación o recuperación inválida o vencida");
+  // AUT-01: un enlace de recuperación tampoco salta el código; se pide antes de fijar la contraseña.
+  if (verifiedTotp(data.session.user).length) { await saveSession(data.session); return { mfaRequired: true }; }
   const user = await verifyStaff(createServerClient(data.session.access_token), data.session.access_token);
   await saveSession(data.session);
   return { user };
+}
+
+/** Cliente con la sesión de las cookies en memoria (las funciones de MFA de Supabase la necesitan). */
+async function cookieSessionClient() {
+  const jar = await cookies();
+  const accessToken = jar.get(ACCESS_COOKIE)?.value;
+  const refreshToken = jar.get(REFRESH_COOKIE)?.value;
+  if (!accessToken || !refreshToken) throw new ApiError(401, "Inicia sesión para continuar");
+  const authClient = createServerClient();
+  const established = await authClient.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+  if (established.error || !established.data.session) { await clearSession(); throw new ApiError(401, "Sesión vencida; vuelve a entrar"); }
+  return { authClient, session: established.data.session };
+}
+
+async function saveCurrentSession(authClient: SupabaseClient) {
+  const { data } = await authClient.auth.getSession();
+  if (!data.session) throw new ApiError(503, "El servicio de acceso no devolvió una sesión válida");
+  await saveSession(data.session);
+  return data.session;
+}
+
+// La base solo acepta claves `login|recovery:ip|email:<huella>`. Los códigos cuentan como intentos de
+// acceso: por dirección comparten el límite de 30 por hora del acceso y por cuenta llevan su propia
+// huella («mfa:» + id), distinta de la de cualquier correo.
+const limitCodeAttempt = (client: string) => limitAttempt("login", "ip", client, 30);
+const limitCodeAttemptForUser = (userId: string) => limitAttempt("login", "email", `mfa:${userId}`, 10);
+
+const wrongCode = () => new ApiError(400, "El código no coincide. Escribe el que muestra tu app en este momento.", { mfa: "required" });
+const tooManyCodes = () => new ApiError(429, "Demasiados intentos; espera un minuto y vuelve a intentarlo");
+
+/** Segundo paso del acceso: el código de la app sube la sesión a «aal2». */
+export async function verifyMfaLogin(input: unknown, client = "local"): Promise<{ user: StaffUser }> {
+  const { code } = z.object({ code: codeSchema }).strict().parse(input);
+  await limitCodeAttempt(client);
+  const { authClient, session } = await cookieSessionClient();
+  await limitCodeAttemptForUser(session.user.id);
+  const factors = verifiedTotp(session.user);
+  if (!factors.length) throw new ApiError(400, "Tu cuenta no tiene verificación en dos pasos; vuelve a entrar");
+  // Con dos dispositivos cada uno tiene su propia clave: el código vale si coincide con cualquiera.
+  let verified = false;
+  for (const factor of factors) {
+    const { error } = await authClient.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+    if (!error) { verified = true; break; }
+    if (error.status === 429) throw tooManyCodes();
+  }
+  if (!verified) throw wrongCode();
+  const upgraded = await saveCurrentSession(authClient);
+  return { user: await verifyStaff(createServerClient(upgraded.access_token), upgraded.access_token) };
+}
+
+/** Estado de la verificación en dos pasos de quien consulta. */
+export async function mfaStatus(): Promise<{ available: boolean; devices: { id: string; createdAt: string }[] }> {
+  const { user, client, accessToken } = await requireStaff();
+  const { data, error } = await client.auth.getUser(accessToken);
+  if (error || !data.user) throw new ApiError(401, "Sesión inválida o vencida");
+  return { available: user.role === "admin", devices: verifiedTotp(data.user).map(factor => ({ id: factor.id, createdAt: factor.created_at })) };
+}
+
+async function requireDirectorForMfa() {
+  const staff = await requireStaff();
+  if (staff.user.role !== "admin") throw new ApiError(403, "Por ahora la verificación en dos pasos es solo para el director");
+  return staff;
+}
+
+const MAX_DEVICES = 2;
+/** Primer paso del alta: devuelve el código QR y la clave para la app. No se guarda en ningún registro. */
+export async function startTotpEnrollment(): Promise<{ factorId: string; qr: string; secret: string }> {
+  const { accessToken } = await requireDirectorForMfa();
+  if (!recentlyAuthenticated(accessToken) && !fromRecentLink(accessToken)) throw new ApiError(401, "Por seguridad, sal y vuelve a entrar antes de activar la verificación en dos pasos", { reauth: true });
+  const { authClient } = await cookieSessionClient();
+  const listed = await authClient.auth.mfa.listFactors();
+  if (listed.error) throw new ApiError(503, "El servicio de acceso no está disponible; inténtalo de nuevo");
+  // Un alta que se quedó a medias no cuenta; se quita para no acumularlas.
+  for (const factor of listed.data.all.filter(factor => factor.factor_type === "totp" && factor.status !== "verified"))
+    await authClient.auth.mfa.unenroll({ factorId: factor.id });
+  if (listed.data.totp.length >= MAX_DEVICES) throw new ApiError(409, `Ya tienes ${MAX_DEVICES} dispositivos registrados`);
+  const { data, error } = await authClient.auth.mfa.enroll({ factorType: "totp", friendlyName: `Dispositivo ${randomUUID().slice(0, 8)}`, issuer: "Fortius Inmuebles" });
+  if (error || !data) throw new ApiError(503, "No se pudo preparar el código; inténtalo de nuevo");
+  // El QR llega como SVG; se entrega en base64 para mostrarlo como imagen sin interpretar su contenido.
+  const raw = data.totp.qr_code;
+  const svg = raw.startsWith("data:") ? decodeURIComponent(raw.slice(raw.indexOf(",") + 1)) : raw;
+  return { factorId: data.id, qr: `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`, secret: data.totp.secret };
+}
+
+/** Segundo paso del alta: el primer código de la app confirma que quedó bien registrada. */
+export async function confirmTotpEnrollment(input: unknown): Promise<{ ok: true }> {
+  const { factorId, code } = z.object({ factorId: z.uuid(), code: codeSchema }).strict().parse(input);
+  await requireDirectorForMfa();
+  const { authClient, session } = await cookieSessionClient();
+  await limitCodeAttemptForUser(session.user.id);
+  const { error } = await authClient.auth.mfa.challengeAndVerify({ factorId, code });
+  if (error) throw error.status === 429 ? tooManyCodes() : new ApiError(400, "El código no coincide. Escribe el que muestra tu app en este momento.");
+  await saveCurrentSession(authClient);
+  return { ok: true };
 }
 
 export async function changePassword(input: unknown): Promise<{ ok: true }> {

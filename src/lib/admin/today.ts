@@ -2,6 +2,7 @@ import { isTaskOpen, type Task } from "@/lib/tasks";
 import { addMonths, lastOwnerReport, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { interviewFields, INTENTS, type OperationalInterview } from "@/lib/intake/interview";
 import { followupLabel, type Followup } from "@/lib/admin/followups";
+import { operationalDate } from "@/lib/admin/operational-date";
 import { attentionOf, pastGaps, recentOfferOf, type AttentionKind, type OperationRecord } from "@/lib/admin/operation-view";
 
 /*
@@ -219,7 +220,7 @@ export function interviewSummary(interview: Pick<OperationalInterview, "intencio
 
 /** Tareas de hoy: las abiertas que vencen hoy o antes y las que se terminaron hoy. */
 export function todayTasks(tasks: Task[], today: string) {
-  return tasks.filter(t => !!t.vence && t.vence <= today && (isTaskOpen(t) || (t.estado === "completada" && t.completadoEl?.slice(0, 10) === today)))
+  return tasks.filter(t => !!t.vence && t.vence <= today && (isTaskOpen(t) || (t.estado === "completada" && !!t.completadoEl && operationalDate(new Date(t.completadoEl)) === today)))
     .sort((a, b) => Number(!isTaskOpen(a)) - Number(!isTaskOpen(b)) || a.vence!.localeCompare(b.vence!) || a.titulo.localeCompare(b.titulo, "es"));
 }
 

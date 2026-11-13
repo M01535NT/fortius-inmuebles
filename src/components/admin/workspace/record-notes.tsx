@@ -28,7 +28,7 @@ export function RecordNotes({ link, open, onClose, title, description }: { link:
     if (!text.trim() || busy) return;
     setBusy(true); setError("");
     try {
-      await upsert(db.notas, newNote(text, link, uid(), new Date().toISOString(), session?.name || session?.email || undefined), null);
+      await upsert(db.notas, newNote(text, link, uid(), new Date().toISOString(), session?.name || session?.email || undefined, session?.id), null);
       setText("");
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }
@@ -41,7 +41,7 @@ export function RecordNotes({ link, open, onClose, title, description }: { link:
   return <Sheet open={open} onClose={onClose} title={title} description={description}>
     <form onSubmit={add} className="flex flex-col gap-2">
       <label className="flex flex-col gap-1 text-sm font-semibold">Nueva nota
-        <textarea className={textareaClass} rows={3} maxLength={5000} value={text} placeholder="Qué se acordó, qué falta, qué hay que recordar" onChange={e => setText(e.target.value)} />
+        <textarea className={textareaClass} rows={3} maxLength={5000} value={text} placeholder="Qué se acordó, qué falta, qué hay que recordar. Escribe @nombre para avisarle a alguien." onChange={e => setText(e.target.value)} />
       </label>
       {error && <p role="alert" className="m-0 text-sm text-destructive">{error}</p>}
       <span><Button type="submit" variant="primary" disabled={busy || !text.trim()}>Guardar nota</Button></span>

@@ -47,7 +47,8 @@ export const solicitudArrendamientoFields: FormatoField[] = [
   field(s[2], "actividadDetalle", "Actividad o giro del negocio"), field(s[2], "antiguedad", "Antigüedad en el empleo o actividad"),
   field(s[2], "ingresoMensual", "Ingreso mensual comprobable en MXN", "money"),
 
-  ...referencia(1, true), ...referencia(2, true), ...referencia(3, false),
+  // Dos referencias (titular, 13/11/2026): una de ellas del arrendador anterior, si lo tuvo.
+  ...referencia(1, true), ...referencia(2, true),
 
   field(s[4], "mesesComprobantes", "Meses de comprobantes de ingresos que se piden", "number"),
   { ...field(s[4], "documentosRecibidos", "Documentos recibidos", "multi", false), options: DOCUMENTOS_SOLICITUD.map(([value, label]) => ({ value, label })) },
@@ -57,7 +58,7 @@ export const solicitudArrendamientoFields: FormatoField[] = [
   field(s[5], "fechaRecepcion", "Fecha en que se recibió la solicitud completa", "date", false), field(s[5], "fechaPresentacion", "Fecha en que se presentó al propietario", "date", false),
   choice(s[5], "coherencia", "¿Los datos coinciden entre la solicitud y los documentos?", SI_NO, false), field(s[5], "discrepancias", "Lo que no coincide", "long", false),
   field(s[5], "ref1Resultado", "Resultado de la referencia 1 (fecha y comentario, o «no contestó»)", "long", false),
-  field(s[5], "ref2Resultado", "Resultado de la referencia 2", "long", false), field(s[5], "ref3Resultado", "Resultado de la referencia 3", "long", false),
+  field(s[5], "ref2Resultado", "Resultado de la referencia 2", "long", false),
   choice(s[5], "garantiaEstado", "Garantía", [["identificado", "Garante identificado y documentos recibidos"], ["pendiente", "Pendiente"], ["deposito", "Solo depósito"]], false),
   field(s[5], "observaciones", "Observaciones", "long", false), field(s[5], "asesor", "Asesor que preparó la revisión", "text", false),
 
@@ -88,6 +89,9 @@ export function mostrarCampoSolicitud(key: string, d: Record<string, unknown>): 
   if (key === "inmuebleGarante") return d.garantia === "fiador" && d.fiadorConInmueble === "si";
   if (["empleador", "puesto", "telefonoEmpleo"].includes(key)) return d.actividad === "empleado";
   if (key === "actividadDetalle") return d.actividad === "negocio" || d.actividad === "empresa";
+  // Al pensionado no se le pide antigüedad: el documento no la imprime para él (C-29). Antes de
+  // elegir la actividad tampoco, porque aún no hay renglón donde capturarla.
+  if (key === "antiguedad") return !vacio(d.actividad) && d.actividad !== "pensionado";
   if (key === "discrepancias") return d.coherencia === "no";
   if (key === "condiciones") return d.decision === "condiciones";
   return true;

@@ -69,10 +69,11 @@ export type EntregaInforme = z.infer<typeof entregaInforme>;
   un contrato que se acaba se registra con su terminación.
 */
 export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta (21)", mandato: "Asesoría o mandato" } as const;
-/** El formato que respalda un requisito en su ruta: en la renta del propietario, la intermediación es el 21 (no el 09) y el arrendatario se respalda con su solicitud, el 22 (no el 12). */
+/** El formato que respalda un requisito en su ruta: en la renta del propietario, la intermediación es el 21 (no el 09) el arrendatario se respalda con su solicitud, el 22 (no el 12), y la entrega con el inventario de la renta, el 23 (no el 16). */
 export function requirementFormato(key: keyof typeof WORKFLOW_REQUIREMENTS, route?: string | null): string {
   if (key === "intermediacion" && route === "arrendador") return "21";
   if (key === "arrendatario" && route === "arrendador") return "22";
+  if (key === "inventario_entrega" && route === "arrendador") return "23";
   return String(WORKFLOW_REQUIREMENTS[key].formato);
 }
 export const SIGNER_ROLES = { propietario: "Propietario", representante: "Representante o apoderado", fortius: "Por Fortius", otro: "Otra parte" } as const;

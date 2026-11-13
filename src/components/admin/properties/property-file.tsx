@@ -85,6 +85,9 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
   }
   const showForm = React.useCallback((next: "ficha" | "material") => setTab(next), []);
   const [notesOpen, setNotesOpen] = React.useState(false);
+  // Desde «Para ti» (UX-05) la mención llega con ?notas=1 y abre el panel de notas.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  React.useEffect(() => { if (new URL(window.location.href).searchParams.get("notas") === "1") setNotesOpen(true); }, []);
   const noteCount = useRecordNotes({ propiedadSlug: slug }).length;
 
   if (!property && !load.loaded) return <PageHeader title="Inmueble" />;
