@@ -9,8 +9,8 @@ import { gsap, useGSAP } from "@/lib/gsap";
   escena del video (casa, oficina, nave): las líneas salen hacia arriba por su máscara y las
   nuevas suben desde abajo. Los cortes se midieron sobre /hero/portada.mp4 (fundidos hacia
   5.6 s y 10.3 s; desde 14.7 s el fundido ya regresa a la casa); si cambia el video, ajusta
-  `start` y LOOP_BACK. Con movimiento reducido o sin JavaScript queda el póster quieto con
-  la primera escena. El h1 es fijo para lectores de pantalla y buscadores.
+  `start` y LOOP_BACK (y regenera /hero/portada-movil.mp4, la versión para celular). Con
+  movimiento reducido, ahorro de datos o sin JavaScript queda el póster quieto con la primera escena. El h1 es fijo para lectores de pantalla y buscadores.
 */
 const SCENES = [
   { start: 0, label: "Residencial", lines: ["Te ayudamos a vender o comprar", "tu casa, con cada paso por escrito."] },
@@ -34,21 +34,27 @@ export function NocturnoHero() {
   const shown = React.useRef(0);
 
   useGSAP(() => {
+    const el = video.current;
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.from(".nx-hero-slide:first-child .nx-hero-rise", { yPercent: 110, duration: 1.6, stagger: 0.14, ease: "power3.out", delay: 0.2 });
+      // El primer titular ya está colocado al cargar (13/11/2026, Web Vitals con el visto bueno del
+      // titular): es lo primero que se pinta en el celular. La subida queda para los relevos de escena.
       // El video se acerca con el desplazamiento, como lo hacía la foto.
       gsap.fromTo(".nx-hero-media video", { scale: 1.08 }, {
         scale: 1, ease: "none",
         scrollTrigger: { trigger: ref.current, start: "top top", end: "bottom top", scrub: 1.2 },
       });
-      video.current?.play().then(() => {
+      // Con ahorro de datos se queda el póster. En celular, la versión ligera (854×480, ~1.1 MB).
+      if (!el || saveData) return;
+      el.src = matchMedia("(max-width: 767px)").matches ? "/hero/portada-movil.mp4" : "/hero/portada.mp4";
+      el.play().then(() => {
         // Los titulares de las otras escenas esperan bajo su máscara hasta que les toque.
         gsap.set(".nx-hero-slide + .nx-hero-slide .nx-hero-rise", { yPercent: 110 });
         setPlaying(true);
       }).catch(() => { /* el póster se queda */ });
     });
-    media.add("(prefers-reduced-motion: reduce)", () => { video.current?.pause(); });
+    media.add("(prefers-reduced-motion: reduce)", () => { el?.pause(); });
     return () => media.revert();
   }, { scope: ref });
 
@@ -92,7 +98,7 @@ export function NocturnoHero() {
   return (
     <section ref={ref} aria-labelledby="hero-title" className="nx-hero">
       <div className="nx-hero-media">
-        <video ref={video} src="/hero/portada.mp4" poster="/hero/portada-poster.webp" muted loop playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />
+        <video ref={video} poster="/hero/portada-poster.webp" muted loop playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />
       </div>
       <div className="nx-hero-scrim" aria-hidden="true" />
       <div className="nx-hero-body nx-container">
