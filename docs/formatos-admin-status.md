@@ -58,6 +58,16 @@ La captura incorpora antecedentes, tres fechas distintas, vigencia, referencias 
 
 Las muestras sintéticas de tres enfoques, mercado construido y terreno se revisaron visualmente. El índice incluye las secciones utilizadas y sus páginas reales. No son valoraciones reales ni acreditan fuentes externas. El 08 sigue separado; la transferencia de su referencia y valor del 07 se captura como en el original.
 
+Plantilla del 30/10/2026 (12/11/2026): `public/plantillas/07_OpinionValor.xlsx` se genera con `node tools/plantilla-07.mjs "<ruta al 07_OpinionValor.xlsx del titular>"`. La herramienta copia el original y solo reemplaza las fórmulas que dependen de controles que el panel no captura: la marca BORRADOR de la portada y las casillas «Incluido», «Revisado» y «Revisada» de las hojas 7 a 11. El resto, incluidas las fórmulas de presentación del 30/10, queda igual al original. Cambios que se reflejan en el panel, el PDF y el Excel:
+
+- **Vigencia.** Ya no se captura: son seis meses desde la fecha de emisión, como fija la plantilla, con el mismo cálculo que EDATE.
+- **Campos retirados.** Se quitaron el índice de saturación y la altitud.
+- **Etiquetas.** Ahora dicen «Tipo de inmueble», «Domicilio del inmueble» y «Opinión de valor comercial».
+- **Textos.** Cambiaron el objeto, los límites (puntos 5 a 7: no es avalúo ni tasación; declaración de interés) y la nota de la portada.
+- **Índice.** Marca «No aplica» en los enfoques que la plantilla excluye por su peso. El PDF del panel conserva las diez secciones.
+- **Fotografías.** El PDF pone dos por renglón, cada una con su pie. El Excel descargado coloca la portada, el croquis y las fotografías del reporte dentro de sus recuadros, escaladas, reorientadas y reducidas a 1600 px.
+- **Celdas que no caben.** En el Excel, los textos largos se cortan en las celdas de alto fijo de la plantilla; lo mismo pasa con los pies de foto largos.
+
 Ruling: se conserva la media aritmética y la posibilidad de un único enfoque del Excel original, con razones de selección/exclusión y límites. No se declara cumplimiento de un estándar de valuación. Si ese alcance resulta insuficiente para el encargo, el responsable debe cambiar el método o solicitar el avalúo pertinente.
 
 

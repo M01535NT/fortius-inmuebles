@@ -29,12 +29,40 @@ export async function downloadFormatoWord(doc: SavedFormato, folio: string, clie
 */
 export const copiaEditable = (formatoId: string): "Excel" | "Word" | null => formatoId === "07" ? "Excel" : formatoId === "09" ? "Word" : null;
 
-/** Opinión de valor en Excel: la plantilla del titular llenada con lo capturado. */
+/**
+  Foto elegida, lista para el Excel: orientada como se ve en pantalla y reducida a 1600 px por
+  lado en JPG (las fotos de celular pesan varios MB y Excel no siempre respeta su orientación).
+  Si no se puede leer, el recuadro queda vacío y el Excel se descarga igual.
+*/
+async function fotoParaExcel(id: string): Promise<import("@/lib/formatos/valor-excel").FotoExcel | null> {
+  try {
+    const response = await fetch(`/api/admin/adjuntos/${encodeURIComponent(id)}/descargar`);
+    if (!response.ok) return null;
+    const bitmap = await createImageBitmap(await response.blob());
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale)), height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width; canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) { bitmap.close(); return null; }
+    context.fillStyle = "#FFFFFF"; context.fillRect(0, 0, width, height);
+    context.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.85));
+    return blob ? { bytes: new Uint8Array(await blob.arrayBuffer()), tipo: "jpg", width, height } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Opinión de valor en Excel: la plantilla del titular llenada con lo capturado y sus fotografías. */
 export async function downloadValorExcel(data: Record<string, unknown>, nombre: string) {
-  const { valorExcel, PLANTILLA_07 } = await import("@/lib/formatos/valor-excel");
+  const { valorExcel, fotosValor, PLANTILLA_07 } = await import("@/lib/formatos/valor-excel");
   const response = await fetch(PLANTILLA_07, { cache: "no-store" });
   if (!response.ok) throw new Error("No se pudo cargar la plantilla de Excel de la opinión de valor.");
-  const bytes = await valorExcel(data, await response.arrayBuffer());
+  const ids = [...new Set(fotosValor(data).map(item => item.id))];
+  const fotos = Object.fromEntries((await Promise.all(ids.map(async id => [id, await fotoParaExcel(id)] as const))).filter((entry): entry is readonly [string, NonNullable<typeof entry[1]>] => !!entry[1]));
+  const bytes = await valorExcel(data, await response.arrayBuffer(), fotos);
   saveBlob(new Blob([new Uint8Array(bytes)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `${nombre}.xlsx`);
 }
 

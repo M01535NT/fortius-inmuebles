@@ -26,7 +26,7 @@ it("explica cada sección y campo de antecedentes y ofrece listas y plantillas",
   fireEvent.change(screen.getByRole("combobox", { name: "Usar una plantilla en «Propósito / uso previsto»" }), { target: { value: "Precio de salida" } });
   expect(onChange).toHaveBeenCalledWith("proposito", expect.stringContaining("Ana Ruiz defina el precio de salida"));
   // Las listas de la plantilla: tipo de inmueble.
-  fireEvent.change(screen.getByLabelText("Inmueble objeto de la opinión"), { target: { value: "Casa" } });
+  fireEvent.change(screen.getByLabelText("Tipo de inmueble"), { target: { value: "Casa" } });
   expect(onChange).toHaveBeenCalledWith("tipoInmueble", "Casa");
   // El uso de suelo se elige de la lista del reglamento; «Otro» deja escribir.
   const uso = screen.getByLabelText("Uso o destino actual");

@@ -29,8 +29,8 @@ export type Block = ({ zona?: ZonaBloque }) & (
   /** Pregunta con opciones en casillas; la elegida va marcada (☒). */
   | { kind: "checks"; q: string; options: Array<{ value: string; label: string }>; selected?: unknown }
   | { kind: "subtitle"; text: string }
-  /** Recuadro de imagen con su barra de título (foto principal, croquis); vacío si no hay imagen. */
-  | { kind: "image"; label: string; image?: ImagenDocumento; height: number; keys?: string[] }
+  /** Recuadro de imagen con su barra de título (foto principal, croquis); vacío si no hay imagen. «side»: otra imagen a su derecha, cada una de media hoja. */
+  | { kind: "image"; label: string; image?: ImagenDocumento; height: number; keys?: string[]; side?: { label: string; image?: ImagenDocumento; keys?: string[] } }
   /** Tabla con encabezado claro (F3F7F4) y bordes finos, como las de los levantamientos. */
   /** labels: primera columna en negritas, como «Terreno» o «Muros»; minRow: alto mínimo de renglón en puntos. */
   | { kind: "grid"; widths: number[]; header: string[]; rows: string[][]; labels?: boolean; minRow?: number; keys?: Array<Array<string[] | undefined>> }

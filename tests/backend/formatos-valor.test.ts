@@ -6,8 +6,9 @@ import { PDFDocument } from "pdf-lib";
 import { expect, it } from "vitest";
 import { comparable, valorSample, completeValorSample } from "./fixtures/valor";
 import { calcularComparables, calcularConstruccion, calcularValor, valorAssetIds } from "@/lib/formatos/valor";
-import { valorFields, VALOR_TABLES } from "@/lib/formatos/valor-fields";
-import { celdasValor, llenarHoja, valorExcel } from "@/lib/formatos/valor-excel";
+import { valorFields, VALOR_TABLES, vigenciaValor } from "@/lib/formatos/valor-fields";
+import { celdasValor, fotosValor, llenarHoja, valorExcel } from "@/lib/formatos/valor-excel";
+import { valorDocumento } from "@/lib/formatos/documento/valor";
 import { importeEnLetra } from "@/lib/formatos/letras";
 import { validateFormato } from "@/lib/formatos/catalog";
 import { draftWrite } from "@/lib/formatos/schemas";
@@ -111,4 +112,50 @@ it("genera el PDF con imágenes y también sin ningún dato", async () => {
 it("usa solo las imágenes elegidas y válidas; el borrador completo cabe en el límite", () => {
   expect(valorAssetIds({ fotoPrincipalId: "x", croquisId: valorSample.croquisId, fotografias: [{ assetId: valorSample.fotoPrincipalId }] })).toEqual([valorSample.croquisId, valorSample.fotoPrincipalId]);
   expect(draftWrite.safeParse({ version: 1, data: completeValorSample() }).success).toBe(true);
+});
+
+it("la vigencia como referencia es de seis meses desde la emisión, como la plantilla del 30/10/2026", () => {
+  expect(vigenciaValor("2026-10-04")).toBe("2027-04-04");
+  expect(vigenciaValor("2026-08-31")).toBe("2027-02-28");
+  expect(vigenciaValor("2027-08-31")).toBe("2028-02-29");
+  expect(vigenciaValor("")).toBeNull();
+  expect(valorFields.some(field => ["revisarAntes", "saturacion", "altitud"].includes(field.key))).toBe(false);
+  const textos = JSON.stringify(valorDocumento({ fechaEmision: "2026-10-04" }).blocks);
+  expect(textos).toContain("vigente como referencia hasta el 4 de abril de 2027 (seis meses a partir de su emisión");
+  expect(textos).toContain("No es un avalúo ni una tasación");
+});
+
+it("sigue las celdas de la plantilla del 30/10/2026 y respeta sus fórmulas", async () => {
+  const cells = celdasValor({ ...valorSample, dinamicaMercado: "Demanda media", orientacion: "Norte", fechaEmision: "2026-10-04" });
+  expect(cells[5]).toMatchObject({ E14: "Demanda media", D36: "Norte" });
+  expect(cells[4]).not.toHaveProperty("E26");
+  const book = await JSZip.loadAsync(await valorExcel(valorSample, readFileSync("public/plantillas/07_OpinionValor.xlsx")));
+  const antecedentes = await book.file("xl/worksheets/sheet4.xml")!.async("string");
+  expect(antecedentes).toMatch(/<c r="E26"[^>]*><f>IF\(ISNUMBER\(E25\),EDATE\(E25,6\),""\)<\/f>/);
+  const portada = await book.file("xl/worksheets/sheet1.xml")!.async("string");
+  expect(portada).toMatch(/<c r="A42"[^>]*><f>""<\/f><\/c>/);
+  const terreno = await book.file("xl/worksheets/sheet7.xml")!.async("string");
+  expect(terreno).toContain("<f>IF(AND(ISNUMBER(Q18),Q18&gt;0),Q18*IF(Q17=\"USD\",'2. Antecedentes'!$Q$16,1),\"\")</f>");
+});
+
+it("coloca la foto principal, el croquis y las del reporte dentro de sus recuadros del Excel", async () => {
+  const jpg = new Uint8Array(await sharp({ create: { width: 800, height: 600, channels: 3, background: "#8899aa" } }).jpeg().toBuffer());
+  const foto = { bytes: jpg, tipo: "jpg" as const, width: 800, height: 600 };
+  const data = { ...valorSample, fotografias: [{ assetId: "a", pie: "Fachada" }, { assetId: "b", pie: "Sala" }, { assetId: "sin-archivo", pie: "Patio" }] };
+  expect(fotosValor(data).map(item => item.id)).toEqual([valorSample.fotoPrincipalId, valorSample.croquisId, "a", "b", "sin-archivo"]);
+  const book = await JSZip.loadAsync(await valorExcel(data, readFileSync("public/plantillas/07_OpinionValor.xlsx"), { [valorSample.fotoPrincipalId as string]: foto, [valorSample.croquisId as string]: foto, a: foto, b: foto }));
+  expect(Object.keys(book.files).filter(name => name.startsWith("xl/media/fortius-foto-"))).toHaveLength(4);
+  expect(await book.file("[Content_Types].xml")!.async("string")).toContain('<Default Extension="jpeg" ContentType="image/jpeg"/>');
+  const anclas = async (n: number) => [...(await book.file(`xl/drawings/drawing${n}.xml`)!.async("string")).matchAll(/<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>(\d+)<\/xdr:col><xdr:colOff>\d+<\/xdr:colOff><xdr:row>(\d+)<\/xdr:row>[\s\S]*?<xdr:to><xdr:col>(\d+)<\/xdr:col><xdr:colOff>\d+<\/xdr:colOff><xdr:row>(\d+)<\/xdr:row>[\s\S]*?r:embed="(rIdFortiusFoto\d+)"/g)].map(m => m.slice(1, 6));
+  // Portada: recuadro A15:L26 (renglones 14 a 25 en base 0). Croquis: A38:L46. Reporte: A10:F17 y G10:L17.
+  for (const [c1, r1, c2, r2] of await anclas(1)) { expect(+c1).toBeGreaterThanOrEqual(0); expect(+c2).toBeLessThanOrEqual(11); expect(+r1).toBeGreaterThanOrEqual(14); expect(+r2).toBeLessThanOrEqual(25); }
+  expect(await book.file("xl/worksheets/sheet1.xml")!.async("string")).toMatch(/<c r="A15" s="\d+"\/>/);
+  for (const [, r1, , r2] of await anclas(5)) { expect(+r1).toBeGreaterThanOrEqual(37); expect(+r2).toBeLessThanOrEqual(45); }
+  const reporte = await anclas(12);
+  expect(reporte).toHaveLength(2);
+  expect(+reporte[0][2]).toBeLessThanOrEqual(5);
+  expect(+reporte[1][0]).toBeGreaterThanOrEqual(6);
+  for (const [, r1, , r2] of reporte) { expect(+r1).toBeGreaterThanOrEqual(9); expect(+r2).toBeLessThanOrEqual(16); }
+  const rels = await book.file("xl/drawings/_rels/drawing12.xml.rels")!.async("string");
+  for (const [, , , , rid] of reporte) expect(rels).toContain(`Id="${rid}"`);
 });
