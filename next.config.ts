@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const publicStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const nextConfig: NextConfig = {
+  // No anunciar la pila en cada respuesta.
+  poweredByHeader: false,
   // HTTP-only cloud tunnels reload on changes; React debug data must travel in RSC.
   ...(process.env.NODE_ENV === "development" && process.env.FORTIUS_INMUEBLES_CLOUD_PREVIEW === "true"
     ? { experimental: { reactDebugChannel: false } }

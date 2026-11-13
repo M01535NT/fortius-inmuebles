@@ -4,6 +4,7 @@ import { aPropuestas, costoAproximado, respuestaLectura, type RespuestaLectura, 
 import { descargarArchivo, exigirExpediente } from "./expediente-archivos";
 import { guardarDatos, leerDatos } from "./expediente-datos";
 import { ApiError, databaseError } from "./http";
+import { TOPE_IA_POR_OMISION, topeIaValido, type UsoIa } from "./ia-tope";
 
 /*
   Lectura con IA de un documento del cliente (IA-01). El servidor descarga el archivo comprobado,
@@ -18,17 +19,34 @@ export type ResultadoExtractor = { respuesta: unknown; uso: { input_tokens: numb
 /** El proveedor de lectura; las pruebas lo simulan. */
 export type Extractor = (entrada: EntradaLectura) => Promise<ResultadoExtractor>;
 
-/** Tope de gasto mensual en dólares (variable del servidor; 20 si no se configuró). */
-export function topeMensualUsd(): number {
-  const valor = Number(process.env.IA_TOPE_MENSUAL_USD);
-  return Number.isFinite(valor) && valor >= 0 ? valor : 20;
+/** El tope vigente: el que guardó el director en Configuración, si existe; si no, el del servidor. */
+export async function topeVigente(privileged: SupabaseClient): Promise<Pick<UsoIa, "topeUsd" | "origenTope">> {
+  const config = await privileged.from("fortius_inmuebles_records").select("data").eq("collection", "config").eq("id", "singleton").maybeSingle();
+  if (config.error) databaseError(config.error);
+  const guardado = topeIaValido((config.data?.data as { topeIaMensualUsd?: unknown } | undefined)?.topeIaMensualUsd);
+  if (guardado !== undefined) return { topeUsd: guardado, origenTope: "configuracion" };
+  const variable = process.env.IA_TOPE_MENSUAL_USD?.trim();
+  const servidor = variable ? topeIaValido(Number(variable)) : undefined;
+  return servidor !== undefined ? { topeUsd: servidor, origenTope: "servidor" } : { topeUsd: TOPE_IA_POR_OMISION, origenTope: "omision" };
+}
+
+const inicioDelMes = (ahora: Date) => new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1));
+
+async function lecturasDelMes(privileged: SupabaseClient, ahora: Date) {
+  const result = await privileged.from("fortius_inmuebles_ia_lecturas").select("costo_usd").gte("created_at", inicioDelMes(ahora).toISOString());
+  if (result.error) databaseError(result.error);
+  return result.data ?? [];
 }
 
 export async function gastoDelMes(privileged: SupabaseClient, ahora = new Date()): Promise<number> {
-  const inicio = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1)).toISOString();
-  const result = await privileged.from("fortius_inmuebles_ia_lecturas").select("costo_usd").gte("created_at", inicio);
-  if (result.error) databaseError(result.error);
-  return (result.data ?? []).reduce((total, row) => total + Number(row.costo_usd ?? 0), 0);
+  return (await lecturasDelMes(privileged, ahora)).reduce((total, row) => total + Number(row.costo_usd ?? 0), 0);
+}
+
+/** Lo que muestra Configuración: gasto y lecturas del mes, tope vigente y si hay servicio (IA-02). */
+export async function usoDelMes(privileged: SupabaseClient, disponible: boolean, ahora = new Date()): Promise<UsoIa> {
+  const [filas, tope] = await Promise.all([lecturasDelMes(privileged, ahora), topeVigente(privileged)]);
+  const gasto = filas.reduce((total, row) => total + Number(row.costo_usd ?? 0), 0);
+  return { gastoUsd: Math.round(gasto * 10_000) / 10_000, ...tope, lecturas: filas.length, desde: inicioDelMes(ahora).toISOString().slice(0, 10), disponible };
 }
 
 async function marcar(privileged: SupabaseClient, id: string, patch: Record<string, unknown>) {
@@ -42,8 +60,8 @@ export async function leerArchivoConIa(client: SupabaseClient, privileged: Supab
   const { archivo, bytes } = await descargarArchivo(client, privileged, archivoId);
   if (archivo.deleted_at) throw new ApiError(409, "Restaura el documento antes de leerlo");
   await exigirExpediente(client, archivo.expediente_id);
-  const tope = topeMensualUsd();
-  if (await gastoDelMes(privileged) >= tope) throw new ApiError(429, `Se alcanzó el tope de lecturas de este mes (${tope} USD); la lectura se reanuda el próximo mes o al subir el tope`);
+  const [{ topeUsd: tope }, gasto] = await Promise.all([topeVigente(privileged), gastoDelMes(privileged)]);
+  if (gasto >= tope) throw new ApiError(429, `Se alcanzó el tope de lecturas de este mes (${tope} USD); la lectura se reanuda el próximo mes o cuando el director suba el tope en Configuración`);
 
   await marcar(privileged, archivo.id, { lectura_estado: "leyendo", lectura_error: null });
   const anotar = (estado: "leido" | "error", resultado?: ResultadoExtractor, propuestos = 0) => privileged.from("fortius_inmuebles_ia_lecturas").insert({

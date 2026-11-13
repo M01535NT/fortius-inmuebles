@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/comprar-propiedad",
   title: "Guía para comprar casa en Tijuana",
   description:
-    "Antes de comprar casa en Tijuana revisa escritura, gravámenes, predial y uso de suelo. Te decimos qué pedir, cuánto cuesta el cierre y cómo evitar sorpresas.",
+    "Antes de comprar casa en Tijuana revisa escritura, gravámenes, predial y uso de suelo. Qué pedir, cuánto cuesta el cierre y cómo evitar sorpresas.",
 });
 
 const DOCUMENTS = [

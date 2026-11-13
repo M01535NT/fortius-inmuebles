@@ -483,7 +483,7 @@ export function MortgagePlanner({
                 {field(
                   "prepaymentFee",
                   "Comisiones totales por anticipos (MXN)",
-                  "Suma cotizada por todos los abonos del escenario. Usa 0 sólo si no hay penalización.",
+                  "Suma cotizada por todos los abonos del escenario. Usa 0 solo si no hay penalización.",
                 )}
               </div>
             </details>
