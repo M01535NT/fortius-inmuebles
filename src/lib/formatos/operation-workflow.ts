@@ -68,7 +68,13 @@ export type EntregaInforme = z.infer<typeof entregaInforme>;
   servidor anota quién y cuándo, y una firma corregida vuelve a quedar por revisar. No se borra:
   un contrato que se acaba se registra con su terminación.
 */
-export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta", mandato: "Asesoría o mandato" } as const;
+export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta (21)", mandato: "Asesoría o mandato" } as const;
+/** El formato que respalda un requisito en su ruta: en la renta del propietario, la intermediación es el 21 (no el 09) y el arrendatario se respalda con su solicitud, el 22 (no el 12). */
+export function requirementFormato(key: keyof typeof WORKFLOW_REQUIREMENTS, route?: string | null): string {
+  if (key === "intermediacion" && route === "arrendador") return "21";
+  if (key === "arrendatario" && route === "arrendador") return "22";
+  return String(WORKFLOW_REQUIREMENTS[key].formato);
+}
 export const SIGNER_ROLES = { propietario: "Propietario", representante: "Representante o apoderado", fortius: "Por Fortius", otro: "Otra parte" } as const;
 type ContractType = keyof typeof CONTRACT_TYPES; type SignerRole = keyof typeof SIGNER_ROLES;
 const signer = z.object({ nombre: z.string().trim().min(3).max(160), parte: z.enum(Object.keys(SIGNER_ROLES) as [SignerRole, ...SignerRole[]]) }).strict();

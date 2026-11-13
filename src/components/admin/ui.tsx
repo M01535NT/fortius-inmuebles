@@ -116,14 +116,6 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
-export function DemoBanner() {
-  return (
-    <p className="rounded-md border border-warning-border bg-warning-surface px-3.5 py-2.5 text-sm leading-relaxed text-warning">
-      Los inmuebles en borrador solo son visibles para tu equipo.
-    </p>
-  );
-}
-
 export function ErrorNotice({ error }: { error: string | null }) {
   return error ? (
     <p

@@ -2,7 +2,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, Building2, Check, Circle, CircleDot, Info, MinusCircle, X } from "@/components/admin/icons";
+import { AlertTriangle, Building2, Check, Info, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem, X } from "@/components/admin/icons";
 import { cn } from "@/lib/utils";
 import s from "./kit.module.css";
 
@@ -31,13 +31,13 @@ export function ButtonLink({ variant, size, iconOnly, className, ...props }: But
   return <Link className={buttonClass({ variant, size, iconOnly, className })} {...props} />;
 }
 
-/** Estados de un requisito con sus nombres sencillos (encargo, sección 4). */
+/** Estados de un requisito con sus nombres sencillos (encargo, sección 4) y su forma (LV-02, V03). */
 export const REVIEW_STATE_UI = {
-  pendiente: { label: "Pendiente", icon: Circle },
-  recibido: { label: "Lo tengo", icon: CircleDot },
-  revisado: { label: "Revisado ✓", icon: Check },
-  observado: { label: "Hay un problema", icon: AlertTriangle },
-  no_aplica: { label: "No aplica", icon: MinusCircle },
+  pendiente: { label: "Pendiente", icon: StatePending },
+  recibido: { label: "Lo tengo", icon: StateHalf },
+  revisado: { label: "Revisado ✓", icon: StateDone },
+  observado: { label: "Hay un problema", icon: StateProblem },
+  no_aplica: { label: "No aplica", icon: StateNotApplicable },
 } as const;
 export type ReviewStateKey = keyof typeof REVIEW_STATE_UI;
 
@@ -91,8 +91,9 @@ export function Thumb({ src, alt = "", size = 52, ratio, icon, className, childr
 export function initialsOf(name: string) {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "·";
 }
-export function Avatar({ name, src, size = 36, className }: { name: string; src?: string | null; size?: number; className?: string }) {
-  return <span className={cn(s.avatar, className)} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
+/** El círculo único de una persona (LV-02, V09): neutro, en tres tamaños de uso (24, 32, 48) y en `onDark` sobre el azul. */
+export function Avatar({ name, src, size = 36, onDark, className }: { name: string; src?: string | null; size?: number; onDark?: boolean; className?: string }) {
+  return <span className={cn(s.avatar, className)} data-tone={onDark ? "onDark" : undefined} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
 }
 
 /** Anillo de avance pequeño («6 de 10»), con el texto para lectores de pantalla. */
@@ -103,6 +104,38 @@ export function Ring({ value, max, size = 64, stroke = 7, label, className, trac
     <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className={cn(s.ringTrack, trackClass)} />
     <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${c * share} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} className={cn(s.ringValue, valueClass)} />
   </svg>;
+}
+
+/**
+  Avance con anillo y texto (LV-02, V04): «6 de 10» junto al anillo, que se llena en azul marino y
+  se vuelve verde con palomita al completarse. Nunca usa el rojo de alerta. El texto ya lo dice,
+  así que el anillo es decorativo.
+*/
+export function ProgressRing({ value, max, size = 36, showText = true, className }: { value: number; max: number; size?: number; showText?: boolean; className?: string }) {
+  const stroke = size >= 40 ? 4 : 3, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const share = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0, done = max > 0 && value >= max;
+  return <span className={cn(s.progressRing, className)} data-done={done || undefined}>
+    <span className={s.progressRingDial} style={{ width: size, height: size }} aria-hidden="true">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className={s.ringTrack} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${c * share} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} className={s.progressRingValue} />
+      </svg>
+      <span className={s.progressRingNum}>{done ? <Check size={Math.round(size * 0.42)} strokeWidth={2} /> : value}</span>
+    </span>
+    {showText && <span className={s.progressRingText}>{value} de {max}</span>}
+  </span>;
+}
+
+export type DocStatus = "borrador" | "revisado" | "aprobado" | "firmado";
+const DOC_STATUS_LABEL: Record<DocStatus, string> = { borrador: "Borrador", revisado: "Revisado", aprobado: "Aprobado", firmado: "Firmado" };
+/** Distintivo del estado de un documento (LV-02, V05): Borrador neutro, Revisado azul, Aprobado y Firmado verdes. */
+export function DocBadge({ status, className }: { status: DocStatus; className?: string }) {
+  return <span className={cn(s.docBadge, className)} data-status={status}>{DOC_STATUS_LABEL[status]}</span>;
+}
+
+/** Cuadro del ícono de una etapa o un documento (LV-02, V01). */
+export function IconTile({ icon: Icon, size = 40, className }: { icon: React.ComponentType<{ size?: number | string; "aria-hidden"?: boolean }>; size?: number; className?: string }) {
+  return <span className={cn(s.iconTile, className)} style={{ width: size, height: size }} aria-hidden="true"><Icon size={Math.round(size * 0.52)} aria-hidden /></span>;
 }
 
 export function Kbd({ children }: { children: React.ReactNode }) { return <kbd className={s.kbd}>{children}</kbd>; }

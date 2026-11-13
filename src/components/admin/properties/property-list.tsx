@@ -5,7 +5,7 @@ import Link from "next/link";
 import { PropertyShareActions } from "./property-share";
 import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
 import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
-import { AsyncButton, AsyncSelect, DemoBanner, inputClass } from "@/components/admin/ui";
+import { AsyncButton, AsyncSelect, inputClass } from "@/components/admin/ui";
 import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
@@ -120,7 +120,6 @@ export function PropertyList() {
       <span className="text-sm">Página {current + 1} de {pages}</span>
       <button type="button" className={s.pageButton} disabled={current + 1 >= pages} onClick={() => setPage(current + 1)}>Siguiente</button>
     </nav>}
-    <div className="mt-6"><DemoBanner /></div>
   </GuidedPage>;
 }
 

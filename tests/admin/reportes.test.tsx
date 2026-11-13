@@ -26,7 +26,9 @@ test("shows saved commercial counts and expediente stages", async () => {
   render(<ReportesPage />);
   expect(await screen.findByRole("heading", { name: "Reportes comerciales" })).toBeTruthy();
   const stages = screen.getByRole("heading", { name: "Operaciones por etapa" }).closest("section")!;
-  expect(within(stages).getByText("Negociación")).toBeTruthy();
+  expect(within(stages).getByText("Visitas y ofertas")).toBeTruthy();
+  // SIM-04 (C12): el mismo nombre que en Operaciones, no el antiguo «Negociación».
+  expect(within(stages).queryByText("Negociación")).toBeNull();
   expect(within(stages).getByText("1")).toBeTruthy();
   expect(screen.getByText(/Cuenta todos los prospectos registrados/)).toBeTruthy();
 });
