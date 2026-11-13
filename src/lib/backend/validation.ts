@@ -7,6 +7,7 @@ import { buyerNoticesSchema, keysSchema, prepSchema, PRIVATE_PROPERTY_FIELDS } f
 import { LEAD_CANALES } from "@/lib/domain/records";
 import { taskSchema } from "@/lib/tasks";
 import { TEMPLATE_IDS, TEMPLATE_MAX, templateProblems } from "@/lib/admin/message-templates";
+import { TOPE_IA_MAXIMO } from "./ia-tope";
 import { COLLECTIONS, type CollectionName } from "./contracts";
 import { ApiError } from "./http";
 
@@ -72,7 +73,7 @@ const homeTextsSchema = z.object(Object.fromEntries(HOME_TEXT_KEYS.map((key) => 
 const faqSchema = z.object({ id, grupo: z.enum(["vender", "comprar", "general"]), pregunta: z.string().trim().min(1).max(300), respuesta: z.string().trim().min(1).max(4000) }).strip();
 const testimonialSchema = z.object({ id, texto: z.string().trim().min(1).max(1200), nombre: z.string().trim().min(1).max(120), detalle: z.string().max(160), autorizado: z.boolean() }).strip();
 const contentSchema = z.object({ heroTitulo: text, heroSubtitulo: text, manifiestoTitulo: text, manifiestoTexto: text, seoTitle: short, seoDescription: short, homeTexts: homeTextsSchema.optional(), preguntas: z.array(faqSchema).max(60).optional(), testimonios: z.array(testimonialSchema).max(30).optional() }).passthrough();
-const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")), horasPrimeraAtencion: z.number().int().min(1).max(72).optional(), mensajes: z.partialRecord(z.enum(TEMPLATE_IDS), z.string().max(TEMPLATE_MAX).refine(text => templateProblems(text).length === 0, "Mensaje inválido")).optional() }).passthrough();
+const settingsSchema = z.object({ nombreComercial: short, telefono: short, whatsapp: short, email: z.email().max(254).or(z.literal("")), horario: short, facebook: safeUrl.or(z.literal("")), instagram: safeUrl.or(z.literal("")), videoInstitucionalUrl: safeUrl.or(z.literal("")), horasPrimeraAtencion: z.number().int().min(1).max(72).optional(), topeIaMensualUsd: z.number().min(0).max(TOPE_IA_MAXIMO).refine(value => Math.abs(Math.round(value * 100) - value * 100) < 1e-6, "Usa hasta dos decimales").optional(), mensajes: z.partialRecord(z.enum(TEMPLATE_IDS), z.string().max(TEMPLATE_MAX).refine(text => templateProblems(text).length === 0, "Mensaje inválido")).optional() }).passthrough();
 const postSlug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
 const postSchema = z.object({
   id, slug: postSlug, titulo: name, resumen: text, contenido: z.string().max(150000),
@@ -125,7 +126,7 @@ function isPublicUrl(value: string) { return safeUrl.safeParse(value).success &&
 // This projection never rewrites the staff-owned source record.
 const publicSettingsUrl = z.string().transform((value) => isPublicUrl(value) ? value : "");
 const publicWhatsapp = z.string().transform((value) => isPublicUrl(value) || /^[+]?[0-9 ()-]{7,40}$/.test(value) ? value : "");
-const publicSettings = settingsSchema.omit({ horasPrimeraAtencion: true, mensajes: true }).strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
+const publicSettings = settingsSchema.omit({ horasPrimeraAtencion: true, topeIaMensualUsd: true, mensajes: true }).strip().extend({ facebook: publicSettingsUrl, instagram: publicSettingsUrl, videoInstitucionalUrl: publicSettingsUrl, whatsapp: publicWhatsapp });
 // This second allowlist also protects server components against malformed DB data.
 const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, avisosCompradores: true, origen: true, aliado: true }).strip().extend({
   colaboracion: z.literal(true).optional(), codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });

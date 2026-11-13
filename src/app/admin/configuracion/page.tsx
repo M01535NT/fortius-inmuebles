@@ -19,6 +19,11 @@ import {
 } from "@/lib/admin/store";
 import { MessageTemplatesEditor } from "@/components/admin/contacts/message-templates-editor";
 import type { TemplateOverrides } from "@/lib/admin/message-templates";
+import { IaUsoSection } from "@/components/admin/ia-uso";
+import { topeIaValido } from "@/lib/backend/ia-tope";
+
+/** IA-02: el tope de la lectura con IA vive en el mismo registro (solo del panel). */
+type Settings = SiteSettings & { topeIaMensualUsd?: number };
 
 const TEXT_KEYS = ["nombreComercial", "telefono", "whatsapp", "email", "horario", "facebook", "instagram", "videoInstitucionalUrl"] as const;
 
@@ -55,12 +60,21 @@ function Editor({ initial }: { initial: SiteSettings }) {
     const next: SiteSettings = {
       ...texts,
       horasPrimeraAtencion: firstResponseHours({ horasPrimeraAtencion: Number(data.get("horasPrimeraAtencion")) }),
+      ...tope(data),
       ...(Object.keys(mensajes).length ? { mensajes } : {}),
     };
     const saved = await settingsStore.save(next, version);
     setVersion(settingsStore.version(saved));
     setGuardado(true);
     window.setTimeout(() => setGuardado(false), 2500);
+  }
+
+  // Vacío o inválido conserva el tope guardado; el director lo ve y lo cambia solo él.
+  function tope(data: FormData): Pick<Settings, "topeIaMensualUsd"> {
+    const raw = String(data.get("topeIaMensualUsd") ?? "").trim();
+    const value = raw ? topeIaValido(Number(raw)) : undefined;
+    const kept = value ?? (settingsStore.get() as Settings | null)?.topeIaMensualUsd;
+    return kept === undefined ? {} : { topeIaMensualUsd: kept };
   }
 
   async function guardarMensajes(next: TemplateOverrides) {
@@ -190,6 +204,8 @@ function Editor({ initial }: { initial: SiteSettings }) {
             />
           </Field>
         </section>
+
+        {session?.role === "admin" && <IaUsoSection guardado={(settings as Settings).topeIaMensualUsd} />}
 
         <div className="flex items-center gap-4">
           <button type="submit" className={btnPrimary}>
