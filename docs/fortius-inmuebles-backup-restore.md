@@ -94,6 +94,10 @@ Un segundo intento sobre el mismo proyecto se negó («Target already has applic
 
 **Qué demuestra:** desde el repositorio y un respaldo verificado se reconstruye un proyecto nuevo con base, buckets, archivos, cuentas y permisos que se comportan como se espera, en segundos. **Qué no demuestra:** el tiempo con el volumen real (hoy solo hay datos de prueba), la configuración del proyecto alojado (correo, URL de retorno, límites de Auth), las contraseñas de las cuentas reales (se emiten nuevas) ni el propietario original de cada objeto. Tampoco hay todavía copia diaria automática ni custodia acordada; el RPO de 24 h sigue sin capacidad demostrada.
 
+### Copia diaria automática
+
+El flujo `.github/workflows/backup-daily.yml` hace cada noche export propietario (`tools/fortius-inmuebles-owner-export.mjs`, una sola instantánea de solo lectura), copia de Storage, verificación, ensayo en memoria y cifrado para la llave del titular (`tools/fortius-inmuebles-backup-crypt.mjs`), y sube a Cloudflare R2. Cómo activarlo y cómo abrir una copia: [copia diaria](erp-crm/respaldo-diario.md).
+
 ### Equipos con Windows
 
 `.gitattributes` fija `*.sql text eol=lf`. Con `core.autocrlf=true`, las migraciones se descargaban con CRLF y el ensayo de base fallaba en Windows (`Unexpected process function`), aunque en CI (Linux) pasaba. Si una copia antigua conserva CRLF, volver a descargar las migraciones con `git checkout -- supabase/migrations` después de actualizar la rama.

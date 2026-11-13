@@ -36,6 +36,8 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 
 **Acceso (AUT-01), según el código.** El panel tiene inicio de sesión, cambio de contraseña y recuperación por correo (`requestRecovery` en `src/lib/backend/auth.ts`). El código no tiene invitación de personal ni MFA; USR-01 las cubrirá. La entrega real de correos no se probó: requiere un buzón de prueba autorizado.
 
+**Copia diaria (12/11/2026).** Nuevo flujo `Respaldo diario` (`.github/workflows/backup-daily.yml`), solo en `main`, con secretos en el entorno de GitHub `respaldo` limitado a `main`. Aún no existe ese entorno; lo crea el titular según [copia diaria](respaldo-diario.md).
+
 ### Cambios de proveedor propuestos (no aplicados)
 
 1. ~~**Vercel:** borrar las cinco entradas de preview de las ramas eliminadas `codex/erp-crm-preview` y `cursor/sitio-publico-portal-b656`.~~ **Hecho el 12/11/2026.** Los despliegues de vista previa ya creados conservan sus variables hasta que se borren; están detrás de la protección de Vercel.

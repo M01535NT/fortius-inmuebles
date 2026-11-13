@@ -30,7 +30,7 @@ El padre del destino debe existir. Se rechazan destinos existentes, interiores a
 
 - Moisés aprobó el 12/10/2026 empezar con copia diaria: objetivo inicial de hasta 24 horas de trabajo reciente; copia adicional antes de una migración o cambio relevante. Validar consistencia de DB/archivos y frecuencia real, no solo el calendario.
 - Moisés aprobó el objetivo de volver a operar en hasta ocho horas desde declaración del incidente hasta restitución del alcance acordado. Se valida con ensayo; la aprobación del objetivo no demuestra capacidad.
-- Custodia: responsable designado por Moisés; copia cifrada fuera del repositorio y del servidor público; acceso por necesidad y registro de acceso.
+- Custodia: el titular (decisión del 12/11/2026). La copia se cifra para su llave y se guarda en Cloudflare R2, fuera del repositorio y del servidor público; solo él tiene la llave privada. Detalle en [copia diaria](respaldo-diario.md).
 - Retención: decidir según finalidad, relaciones, obligaciones aplicables y revisión profesional. No imponer un plazo uniforme ni borrado automático.
 
 ## Ensayo completo (12/11/2026)
@@ -41,7 +41,7 @@ Para repetirlo: crear otro proyecto vacío (el script se niega a mezclar datos),
 
 **Pendiente para cerrar REC-01:**
 
-1. Copia diaria automática del export propietario y de Storage, con custodia cifrada fuera del repositorio (decide el titular dónde y quién). Sin esto, el RPO de 24 h no es una capacidad.
+1. Copia diaria automática: **preparada** el 12/11/2026 (GitHub Actions → cifrado → Cloudflare R2, con el titular como custodio de la llave; ver [copia diaria](respaldo-diario.md)). Falta que el titular cree la llave, el bucket y los secretos, integrar en `main` y comprobar la primera copia. Hasta entonces, el RPO de 24 h no es una capacidad.
 2. Repetir el ensayo con el volumen real cuando se cargue el inventario, porque los tiempos de hoy son de un caso mínimo.
 3. Documentar la configuración del proyecto que no viaja con el respaldo: correo saliente, URL de retorno, límites y plantillas de Auth.
 
