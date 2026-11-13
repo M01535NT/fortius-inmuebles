@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import { randomBytes, randomUUID, createHash, createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 
 assert.equal(process.argv[2], "--run", "Live mutation requires explicit --run");
 const projectRef = process.env.FORTIUS_INMUEBLES_TEST_PROJECT_REF || "qkkirjzhviqwvuqjnmei";
@@ -444,8 +445,12 @@ try {
     assert.equal(saved.data.bucket, "fortius-inmuebles-public");
     const publicDownload = await fetch(saved.data.url);
     assert.equal(publicDownload.status, 200);
-    assert.equal(createHash("sha256").update(Buffer.from(await publicDownload.arrayBuffer())).digest("hex"),
-      createHash("sha256").update(bytes).digest("hex"));
+    // M4/B5: lo público se recodifica sin metadatos; se compara la imagen, no los bytes.
+    const original = await sharp(bytes).metadata();
+    const published = await sharp(Buffer.from(await publicDownload.arrayBuffer())).metadata();
+    assert.equal(published.format, "webp");
+    assert.deepEqual([published.width, published.height], [original.width, original.height]);
+    assert.equal(published.exif, undefined, "A public image must not keep EXIF metadata");
 
     const invalidForm = new FormData();
     invalidForm.set("file", new File([Buffer.from("not a real png")], `${prefix}.png`, { type: "image/png" }));

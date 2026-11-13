@@ -29,7 +29,8 @@ function database(stored: Record<string, unknown> | null, expedientes: unknown[]
   for (const fn of [operations.select, operations.eq, operations.is]) fn.mockReturnValue(operations);
   const client = {
     from: vi.fn((table: string) => table === "fortius_inmuebles_records" ? records : operations),
-    rpc: vi.fn(async (_name: string, args: { p_id: string; p_data: unknown }) => ({ data: { id: args.p_id, data: args.p_data, version: 2 }, error: null })),
+    // La lectura de un inmueble (A1) cae a la lectura directa mientras la función no exista en esta base simulada.
+    rpc: vi.fn(async (name: string, args: { p_id: string; p_data: unknown }) => name === "fortius_inmuebles_team_properties" ? { data: null, error: { code: "PGRST202" } } : ({ data: { id: args.p_id, data: args.p_data, version: 2 }, error: null })),
   };
   auth.requireStaff.mockResolvedValue({ client });
   return client;
@@ -44,7 +45,7 @@ test("rechaza publicar un inmueble propio sin operación de captación y devuelv
   const body = await response.json();
   expect(body.faltantes).toEqual(["Abrir una operación de captación vinculada y completar sus revisiones y autorización."]);
   expect(body.error).toContain("Para publicar falta");
-  expect(client.rpc).not.toHaveBeenCalled();
+  expect(client.rpc).not.toHaveBeenCalledWith("fortius_inmuebles_put_record", expect.anything());
 });
 
 test("rechaza publicar con la captación incompleta o fuera de comercialización", async () => {
@@ -55,7 +56,7 @@ test("rechaza publicar con la captación incompleta o fuera de comercialización
   const { faltantes } = await response.json();
   expect(faltantes).toContain("Llevar la captación a comercialización antes de publicar.");
   expect(faltantes.length).toBeGreaterThan(1);
-  expect(client.rpc).not.toHaveBeenCalled();
+  expect(client.rpc).not.toHaveBeenCalledWith("fortius_inmuebles_put_record", expect.anything());
 });
 
 test("acepta publicar con la captación en comercialización y sus revisiones completas", async () => {
@@ -63,14 +64,14 @@ test("acepta publicar con la captación en comercialización y sus revisiones co
   const response = await PUT(request(published(), 1), context);
   expect(response.status).toBe(200);
   expect((await response.json()).record.data.publicada).toBe(true);
-  expect(client.rpc).toHaveBeenCalledOnce();
+  expect(client.rpc.mock.calls.filter(([name]) => name === "fortius_inmuebles_put_record")).toHaveLength(1);
 });
 
 test("un inmueble ya publicado se guarda sin cambios aunque no tenga captación", async () => {
   const client = database(published(), []);
   const response = await PUT(request(published({ destacada: !property.destacada }), 3), context);
   expect(response.status).toBe(200);
-  expect(client.rpc).toHaveBeenCalledOnce();
+  expect(client.rpc.mock.calls.filter(([name]) => name === "fortius_inmuebles_put_record")).toHaveLength(1);
 });
 
 test("guardar privado no consulta la captación", async () => {

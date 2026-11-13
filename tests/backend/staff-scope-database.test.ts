@@ -187,3 +187,27 @@ it("el director da de alta inventario heredado; pasa a verificación y no public
     await expect(advance("documentacion", { ...value, heredado: { desde: "2026-01-01" } })).rejects.toMatchObject({ code: "PT403" });
   });
 });
+
+// B10 / C-16: el alta del inventario heredado va en una sola transacción y no se duplica.
+it("el alta heredada crea propietario, operación y tarea juntos, o nada; un segundo alta del mismo inmueble se rechaza", async () => {
+  const motive = "Inventario anterior con contrato firmado con su asesor";
+  const flujo = { version: 1, ruta: "arrendador", estado: "activa", motivo: "", heredado: { desde: "2026-06-01" },
+    requisitos: Object.fromEntries(["entrevista", "levantamiento"].map(k => [k, { estado: "pendiente", soporte: "", excepcion: { motivo: motive } }])) };
+  const cliente = (id: string) => ({ id, nombre: "Propietario ficticio heredado", telefono: "6641234567", tipo: "arrendador", asesorId: "own", propiedadSlug: "heredada-b10", notas: "Inventario heredado de ensayo.", creadoEl: "2026-11-13", actualizadoEl: "2026-11-13" });
+  const tarea = (id: string, extra: Record<string, unknown> = {}) => ({ id, titulo: "Regularizar inventario heredado", categoria: "documentacion", estado: "pendiente", prioridad: "alta", vence: "2030-12-31", clienteId: "cli-b10", asesorId: "own", propiedadSlug: "heredada-b10", pasos: [], creadoEl: "2026-11-13", actualizadoEl: "2026-11-13", ...extra });
+  const alta = (clienteId: string, tareaId: string, t: unknown = tarea(tareaId)) => db.query<{ r: { etapa: string; id: string } }>("select public.fortius_inmuebles_alta_heredado($1,$2,$3::jsonb,'renta',$4::jsonb,$5,$6::jsonb) as r",
+    ["heredada-b10", clienteId, JSON.stringify(cliente(clienteId)), JSON.stringify(flujo), tareaId, JSON.stringify(t)]).then(x => x.rows[0].r);
+  const cuenta = async (sql: string) => Number((await db.query<{ n: number }>(sql)).rows[0].n);
+  await asUser(admin, async () => { await put("propiedades", "heredada-b10", listing("heredada-b10")); });
+  await asUser(own, async () => { await expect(alta("cli-b10", "t-b10")).rejects.toMatchObject({ code: "PT403" }); });
+  // Una tarea que la base rechaza deshace también al propietario y a la operación.
+  await asUser(admin, async () => { await expect(alta("cli-b10-roto", "t-b10-roto", { id: "t-b10-roto" })).rejects.toBeTruthy(); });
+  expect(await cuenta("select count(*) n from public.fortius_inmuebles_records where collection='clientes' and id='cli-b10-roto'")).toBe(0);
+  expect(await cuenta("select count(*) n from public.fortius_inmuebles_expedientes where propiedad_slug='heredada-b10'")).toBe(0);
+  const creada = await asUser(admin, () => alta("cli-b10", "t-b10"));
+  expect(creada.etapa).toBe("documentacion");
+  const ligada = (await db.query<{ e: string }>("select data->>'expedienteId' e from public.fortius_inmuebles_records where collection='tareas' and id='t-b10'")).rows[0].e;
+  expect(ligada).toBe(creada.id);
+  await asUser(admin, async () => { await expect(alta("cli-b10-2", "t-b10-2")).rejects.toMatchObject({ code: "PT409" }); });
+  expect(await cuenta("select count(*) n from public.fortius_inmuebles_records where collection='clientes' and id='cli-b10-2'")).toBe(0);
+});

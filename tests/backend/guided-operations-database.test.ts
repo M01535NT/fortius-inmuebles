@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
+import { cumplirArranque } from "../helpers/arranque";
 
 let db: PGlite;
 const admin = "52000000-0000-4000-8000-000000000001";
@@ -71,6 +72,8 @@ const completeFlow=(): {version:number;ruta:string;estado:string;motivo:string;c
 async function fixture(flow:Record<string,unknown>=completeFlow(),slug='house-a') {
  const id=crypto.randomUUID();
  await db.query("insert into public.fortius_inmuebles_expedientes(id,cliente_id,asesor_id,propiedad_slug,flujo) values($1,'c-own','own',$2,$3::jsonb)",[id,slug,JSON.stringify(flow)]);
+ // SEG-M2: la operación completa ya tiene 02 y 04 emitidos y el checklist completo.
+ await cumplirArranque(db,id,own);
  const task={id:'next-'+id,titulo:'Siguiente acción ficticia',categoria:'documentacion',estado:'pendiente',prioridad:'normal',pasos:[],asesorId:'own',clienteId:'c-own',propiedadSlug:slug,expedienteId:id,vence:'2030-12-31'};
  await db.query("select public.fortius_inmuebles_put_record('tareas',$1,$2::jsonb,null)",[task.id,JSON.stringify(task)]);
  return {id,task};

@@ -8,7 +8,7 @@ const aliado = { inmobiliaria: "Inmobiliaria Aliada de Ensayo", contacto: "Conta
   autorizacion: { path: "u/a.pdf", nombre: "autorizacion.pdf", fecha: "2026-11-12", firmante: "Gerente de ensayo" } };
 const shared = { ...propiedades[0], origen: "compartido", aliado, publicada: true, estado: "disponible", publicadaEl: "2026-11-12" };
 // Cliente mínimo: el inmueble aún no estaba publicado y no hay captación.
-const client = { from: () => { const chain = { select: () => chain, eq: () => chain, is: () => chain, maybeSingle: async () => ({ data: null, error: null }), then: (ok: (value: unknown) => void) => ok({ data: [], error: null }) }; return chain; } };
+const client = { rpc: async () => ({ data: null, error: { code: "PGRST202" } }), from: () => { const chain = { select: () => chain, eq: () => chain, is: () => chain, maybeSingle: async () => ({ data: null, error: null }), then: (ok: (value: unknown) => void) => ok({ data: [], error: null }) }; return chain; } };
 
 describe("inmueble compartido", () => {
   it("el sitio recibe solo la marca de colaboración, sin el nombre de la inmobiliaria", () => {

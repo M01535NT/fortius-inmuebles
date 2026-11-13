@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createServerClient, requireStaff } from "@/lib/backend/auth";
 import { apiResponse, ApiError, assertSameOrigin, databaseError, readBody } from "@/lib/backend/http";
 import { MAX_FILE_BYTES, validateFile } from "@/lib/backend/validation";
-import { registerUpload } from "@/lib/backend/files";
+import { registerUpload, sinMetadatos } from "@/lib/backend/files";
 
 export const runtime = "nodejs";
 const bucketSchema = z.enum(["fortius-inmuebles-private", "fortius-inmuebles-public"]);
@@ -21,11 +21,15 @@ export async function POST(request: Request) {
     const file = form.get("file");
     if (!(file instanceof File)) throw new ApiError(400, "Archivo requerido");
     const visibility = z.enum(["private", "public"]).parse(form.get("visibility") ?? "private");
+    // B5: esta ruta directa no sabe el destino; lo público por aquí solo lo sube el director.
+    if (visibility === "public" && user.role !== "admin") throw new ApiError(403, "Sube los archivos públicos desde la ficha del inmueble");
     const { type, extension } = await validateFile(file);
     const client = createServerClient(undefined, true);
     const bucket = visibility === "public" ? "fortius-inmuebles-public" : "fortius-inmuebles-private";
     const path = `${user.id}/${randomUUID()}.${extension}`;
-    const { error } = await client.storage.from(bucket).upload(path, file, { contentType: type, upsert: false });
+    // M4: lo público sale sin EXIF ni GPS también por esta ruta, igual que por la carga con ticket.
+    const stored = visibility === "public" ? await sinMetadatos(file, type) : file;
+    const { error } = await client.storage.from(bucket).upload(path, stored, { contentType: type, upsert: false });
     if (error) databaseError(error);
     await registerUpload(client, user.id, bucket, path);
     const url = visibility === "public" ? client.storage.from(bucket).getPublicUrl(path).data.publicUrl : `/api/admin/files?bucket=${bucket}&path=${encodeURIComponent(path)}`;

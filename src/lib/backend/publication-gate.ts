@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError, databaseError } from "./http";
+import { propiedadVisible } from "./repository";
 import { operationWorkflowSchema, publicationBlockers, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { sharedPublicationBlockers } from "@/lib/admin/shared-property";
@@ -28,11 +29,9 @@ export async function publicationReadiness(client: DatabaseClient, slug: string,
  * COR-16: al guardar un inmueble con `publicada: true`, el servidor exige la captación en comercialización
  * con sus revisiones completas. Un inmueble que ya estaba publicado conserva su publicación al guardarse.
  */
-export async function assertPropertyPublicationAllowed(client: DatabaseClient, slug: string, record: Record<string, unknown>): Promise<void> {
+export async function assertPropertyPublicationAllowed(client: Pick<SupabaseClient, "from" | "rpc">, slug: string, record: Record<string, unknown>): Promise<void> {
   if (record.publicada !== true) return;
-  const stored = await client.from("fortius_inmuebles_records").select("data").eq("collection", "propiedades").eq("id", slug).maybeSingle();
-  if (stored.error) databaseError(stored.error);
-  if ((stored.data?.data as { publicada?: unknown } | undefined)?.publicada === true) return;
+  if ((await propiedadVisible(client, slug))?.publicada === true) return;
   // PUB-02: un compartido no tiene captación; pide la inmobiliaria y su autorización (la base exige además al director).
   const { faltantes } = record.origen === "compartido" ? { faltantes: sharedPublicationBlockers(record.aliado as PropertyAlly | undefined) } : await publicationReadiness(client, slug, record.operacion);
   if (faltantes.length) throw new ApiError(400, `Para publicar falta: ${faltantes.join("; ")}`, { faltantes });

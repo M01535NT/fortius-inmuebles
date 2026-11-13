@@ -90,7 +90,7 @@ export function PrepBlock({ property, save }: BlockProps) {
   async function mark(item: PrepItem, estado: PrepState) {
     setBusy(item); setError("");
     try { await save({ preparacion: { ...property.preparacion, [item]: { ...property.preparacion?.[item], estado } } }); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "No se pudo guardar. Intenta de nuevo."); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "No se guardó. Lo que escribiste sigue en pantalla; vuelve a intentarlo."); }
     finally { setBusy(null); }
   }
   const details = async (item: PrepItem, event: React.FormEvent<HTMLFormElement>) => {

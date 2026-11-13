@@ -167,8 +167,8 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
       const items = checklist?.pasos.map(p => ({ id: p.id, texto: p.texto, ...(p.porConfirmar ? { porConfirmar: p.porConfirmar } : {}) })) ?? checklistFor(answers);
       const fileContext = { folio: op.folio, cliente, recibidos: checklist?.pasos.filter(p => p.hecho).map(p => p.id), noAplica: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.noAplica?.trim()).map(p => [p.id, p.noAplica!.trim()])), porConfirmar: Object.fromEntries((checklist?.pasos ?? []).filter(p => p.porConfirmar && !pasoCompleto(p)).map(p => [p.id, p.porConfirmar!])) };
       const { checklistPdf, checklistDocx } = await import("@/lib/formatos/checklist-print");
-      if (kind === "pdf") saveBlob(new Blob([new Uint8Array(await checklistPdf(items, fileContext))], { type: "application/pdf" }), `Fortius-Checklist-documentos-${op.folio}.pdf`);
-      else saveBlob(await checklistDocx(items, fileContext), `Fortius-Checklist-documentos-${op.folio}.docx`);
+      if (kind === "pdf") saveBlob(new Blob([new Uint8Array(await checklistPdf(items, fileContext))], { type: "application/pdf" }), `Fortius-Lista-documentos-${op.folio}.pdf`);
+      else saveBlob(await checklistDocx(items, fileContext), `Fortius-Lista-documentos-${op.folio}.docx`);
     });
   }
 
