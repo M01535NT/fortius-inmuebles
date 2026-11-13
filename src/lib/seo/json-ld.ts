@@ -17,6 +17,15 @@ export const ORG_ID = `${ORIGIN}/#org`;
 export const WEBSITE_ID = `${ORIGIN}/#website`;
 const AREA_SERVED = ["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"];
 
+/* Horario de atención que fijó el titular (13/11/2026): lunes a viernes de 9:00 a 18:00, hora de Tijuana.
+   Si cambia, se actualiza aquí y en Google Business para que coincidan. */
+const OPENING_HOURS = [{
+  "@type": "OpeningHoursSpecification",
+  dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => `https://schema.org/${day}`),
+  opens: "09:00",
+  closes: "18:00",
+}];
+
 const absolute = (path: string) => new URL(path, siteConfig.url).href;
 const filled = (value: string | undefined | null) => (value ?? "").trim();
 
@@ -42,6 +51,7 @@ export function organizationLd(settings: SiteSettings | null): JsonLd {
     // público): solo ciudad y estado, nunca calle ni código postal; la cobertura va en areaServed.
     address: { "@type": "PostalAddress", addressLocality: "Tijuana", addressRegion: "Baja California", addressCountry: "MX" },
     areaServed: AREA_SERVED.map((name) => ({ "@type": "City", name })),
+    openingHoursSpecification: OPENING_HOURS,
     ...(sameAs.length ? { sameAs } : {}),
   };
 }

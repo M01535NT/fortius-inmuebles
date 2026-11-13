@@ -52,6 +52,15 @@ describe("datos de la empresa", () => {
     expect(org.areaServed).toEqual(["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"].map((name) => ({ "@type": "City", name })));
   });
 
+  test("publica el horario de lunes a viernes de 9:00 a 18:00", () => {
+    expect(organizationLd(null).openingHoursSpecification).toEqual([{
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => `https://schema.org/${day}`),
+      opens: "09:00",
+      closes: "18:00",
+    }]);
+  });
+
   test("el sitio apunta a la empresa", () => {
     expect(websiteLd()).toMatchObject({ "@type": "WebSite", inLanguage: "es-MX", publisher: { "@id": ORG_ID } });
   });
