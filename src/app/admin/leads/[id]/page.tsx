@@ -11,11 +11,12 @@ import { MatchingProperties } from "@/components/admin/properties/matching-prope
 import { ContactLog } from "@/components/admin/contacts/contact-log";
 import { ReadyMessages } from "@/components/admin/contacts/ready-messages";
 import { NextStepCard, PersonCard, PersonHeader, Timeline, personStyles as s, useInterview, type MenuItem } from "@/components/admin/contacts/person";
-import { nextStep } from "@/lib/admin/contacts-view";
+import { nextStep, waitingSince } from "@/lib/admin/contacts-view";
+import { firstResponseHours } from "@/lib/admin/today";
 import { estadoForStage, humanDay, leadStage, personTimeline, LEAD_STAGE_CHOICES, LEAD_STAGE_LABELS, type LeadStage } from "@/lib/admin/person-view";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { duplicateContacts } from "@/lib/admin/workspace";
-import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, LEAD_CANAL_LABELS, LEAD_ORIGEN_LABELS, db, removeById, uid, upsert, useCollection, type EventoTipo, type Lead } from "@/lib/admin/store";
+import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, LEAD_CANAL_LABELS, LEAD_ORIGEN_LABELS, db, removeById, settingsStore, uid, upsert, useCollection, useSingleton, type EventoTipo, type Lead } from "@/lib/admin/store";
 import { cn } from "@/lib/utils";
 import { PERSON_STATUS_LABEL, PERSON_STATUS_TONE } from "@/lib/admin/person-status";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
@@ -46,8 +47,17 @@ function LeadDetail({ id }: { id: string }) {
   const [contactPreset, setContactPreset] = React.useState<{ key: number; kind: "whatsapp"; nota: string } | null>(null);
   const interview = useInterview({ leadId: id });
   const today = operationalDate();
+  const settings = useSingleton(settingsStore);
 
   const lead = leads.find(l => l.id === id) ?? noteDraft?.lead ?? profileDraft;
+  // Desde el aviso «Pasó el plazo» de Hoy (#reasignar): el foco queda en «Asesor responsable».
+  const loaded = !!lead;
+  React.useEffect(() => {
+    if (!loaded || window.location.hash !== "#reasignar") return;
+    const field = document.getElementById("lead-asesor");
+    field?.scrollIntoView({ block: "center" });
+    field?.focus();
+  }, [loaded]);
   if (!lead) return <Surface className={s.page}>
     <h1 className={s.name}>Prospecto no encontrado</h1>
     <p className={s.muted}>Este prospecto no existe o se eliminó.</p>
@@ -58,6 +68,9 @@ function LeadDetail({ id }: { id: string }) {
   const propiedad = propiedades.find(p => p.slug === lead.propiedadSlug);
   const stage = leadStage(lead.estado);
   const seller = lead.perfil?.operacion === "vender" || lead.perfil?.operacion === "arrendar";
+  const limitHours = firstResponseHours(settings);
+  const waiting = waitingSince(lead, new Date(), limitHours);
+  const overdue = waiting?.late ? waiting : null;
   // COR-18: quien compra, renta o invierte no abre operación; su acción principal es registrar el contacto.
   const buyer = ["comprar", "rentar", "invertir"].includes(lead.perfil?.operacion ?? "");
   const active = !lead.clienteId && stage !== "descartado" && stage !== "cerrado";
@@ -177,7 +190,7 @@ function LeadDetail({ id }: { id: string }) {
               {stage === "cerrado" && <option value="cerrado" disabled>Cerrado</option>}
             </AsyncSelect>
           </Field>
-          <Field label="Asesor responsable" htmlFor="lead-asesor" hint={lead.clienteId ? "Se reasigna desde su ficha de cliente." : undefined}>
+          <Field label="Asesor responsable" htmlFor="lead-asesor" hint={lead.clienteId ? "Se reasigna desde su ficha de cliente." : overdue ? `Lleva ${overdue.hours} h sin respuesta y el plazo es de ${limitHours} h: llámale o asígnala a otro asesor.` : undefined}>
             <AsyncSelect id="lead-asesor" disabled={!!lead.clienteId} value={lead.asesorId ?? ""} className={selectClass}
               onChange={async value => { await upsert(db.leads, { ...lead, asesorId: value || undefined }, db.leads.version(lead)); }}>
               <option value="">Sin asignar</option>

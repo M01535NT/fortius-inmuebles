@@ -189,6 +189,29 @@ test("COR-21: el plazo de primera atención se toma de Configuración y la cola 
   expect(queueFromLeads(relaxed)[0]).toMatchObject({ id: "nuevo:w1", kind: "nuevo", leadId: "w1" });
 });
 
+test("CRM-01: al director, el prospecto de otro asesor que pasó el plazo sube arriba como aviso y lleva a reasignar", async () => {
+  const { queueFromLeads, queueFromWaiting, sortQueue, unattendedLeads } = await import("@/lib/admin/today");
+  const now = new Date("2026-11-02T18:00:00Z");
+  const base = { estado: "nuevo", origen: "contacto", notas: [] };
+  const leads = [
+    { ...base, id: "w1", nombre: "De Rubén, vencido", creadoEl: "2026-11-02T15:00:00Z", asesorId: "a2" },
+    { ...base, id: "w2", nombre: "De Rubén, a tiempo", creadoEl: "2026-11-02T17:30:00Z", asesorId: "a2" },
+    { ...base, id: "w3", nombre: "Sin asesor, vencido", creadoEl: "2026-11-02T14:00:00Z" },
+    { ...base, id: "w4", nombre: "Del director, vencido", creadoEl: "2026-11-02T14:30:00Z", asesorId: "a1" },
+  ];
+  const items = unattendedLeads({ leads, properties: [], me: "a1", admin: true, now, adviserName: id => id === "a2" ? "Rubén" : id === "a1" ? "Dirección" : undefined });
+  const director = queueFromLeads(items, { admin: true, me: "a1" });
+  expect(director.find(i => i.id === "plazo:w1")).toMatchObject({ kind: "plazo", late: true, href: "/admin/leads/w1#reasignar", detail: "Le toca a Rubén: llámale tú o reasígnala", when: "Lleva 3 h sin respuesta" });
+  expect(director.find(i => i.id === "plazo:w1")?.leadId).toBeUndefined();
+  // A tiempo, sin asesor o propio del director: sigue como «Nuevo».
+  expect(director.filter(i => i.kind === "nuevo").map(i => i.leadId)).toEqual(["w3", "w4", "w2"]);
+  // Sube por encima de un problema de operación vencido.
+  const problem = queueFromWaiting([{ id: "op", kind: "problema", rank: 0, who: "EXP-1", reason: "Problema", late: true, href: "/admin/operaciones/op", sort: "EXP-1" } as never]);
+  expect(sortQueue([...problem, ...director])[0].id).toBe("plazo:w1");
+  // El asesor ve su propio vencido como «Nuevo», no como aviso.
+  expect(queueFromLeads(unattendedLeads({ leads, properties: [], me: "a2", admin: false, now }), { admin: false, me: "a2" }).map(i => i.kind)).toEqual(["nuevo", "nuevo"]);
+});
+
 test("COR-05: la cola de Hoy usa el mismo motivo y orden que Operaciones (RP-84)", () => {
   const base = { today, names, followups: [], offers: [] };
   // Vence hoy: antes no aparecía en Hoy, aunque Operaciones sí lo marcaba.
