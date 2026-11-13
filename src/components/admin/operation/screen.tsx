@@ -76,7 +76,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const [incoming, setIncoming] = React.useState<{ files: File[]; n: number } | undefined>();
   // Datos de la operación: se abren desde «Más opciones»; ?tab=ajustes los abre al llegar.
   const [settings, setSettings] = React.useState(requested === "ajustes");
-  const [notesOpen, setNotesOpen] = React.useState(false);
+  const [notesOpen, setNotesOpen] = React.useState(() => params.get("notas") === "1");
   const noteLink = { expedienteId: op.id, clienteId: op.cliente_id };
   const noteCount = useRecordNotes(noteLink).length;
   const [dirty, setDirty] = React.useState<Partial<Record<DirtyKey, boolean>>>({});

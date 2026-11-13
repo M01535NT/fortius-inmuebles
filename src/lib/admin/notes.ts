@@ -21,9 +21,9 @@ export function notesFor(notes: readonly Nota[], link: NoteLink): Nota[] {
 
 export const announcements = (notes: readonly Nota[]) => notes.filter(note => note.aviso).sort(newestFirst);
 
-export function newNote(text: string, link: NoteLink | "aviso", id: string, now: string, autor?: string): Nota {
+export function newNote(text: string, link: NoteLink | "aviso", id: string, now: string, autor?: string, autorId?: string): Nota {
   const texto = text.trim();
-  return { id, titulo: noteTitle(texto), texto, actualizadoEl: now, ...(link === "aviso" ? { aviso: true } : link), ...(autor ? { autor } : {}) };
+  return { id, titulo: noteTitle(texto), texto, actualizadoEl: now, ...(link === "aviso" ? { aviso: true } : link), ...(autor ? { autor } : {}), ...(autorId ? { autorId } : {}) };
 }
 
 function newestFirst(a: Nota, b: Nota) { return b.actualizadoEl.localeCompare(a.actualizadoEl); }

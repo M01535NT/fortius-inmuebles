@@ -146,6 +146,8 @@ export type Nota = {
   /** Aviso del director al equipo, en Hoy. Solo el administrador lo escribe. */
   aviso?: boolean;
   autor?: string;
+  /** Cuenta que la escribió; con ella «Para ti» no avisa a quien se menciona a sí mismo. */
+  autorId?: string;
 };
 
 export type Post = {
