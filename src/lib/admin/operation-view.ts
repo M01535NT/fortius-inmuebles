@@ -1,6 +1,6 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
-import { appraisalState, emptyWorkflow, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STATES, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { appraisalState, emptyWorkflow, exceptionKeys, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STATES, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { isLawyerTask, type PropertyCondition } from "@/lib/intake/condition";
 
@@ -201,8 +201,12 @@ export type StageContext = { condition?: PropertyCondition | null; next02?: stri
 /** Chips de la situación y la condición: se muestran igual en la operación, Operaciones, Hoy y Contactos. */
 export function operationTags(op: { flujo?: OperationWorkflow | null }, condition?: PropertyCondition | null): string[] {
   const estado = op.flujo?.estado ?? "activa";
-  return [...(estado !== "activa" ? [WORKFLOW_STATES[estado]] : []), ...(condition ? [condition.text] : [])];
+  return [...(estado !== "activa" ? [WORKFLOW_STATES[estado]] : []), ...(condition ? [condition.text] : []), ...(op.flujo?.heredado ? [INHERITED_TAG] : []), ...(exceptionKeys(op.flujo).length ? [EXCEPTION_TAG] : [])];
 }
+/** COR-24: inmueble que el asesor trajo con contrato firmado. */
+export const INHERITED_TAG = "Inventario heredado";
+/** COR-20: la operación avanza con algún requisito cubierto por excepción del director. */
+export const EXCEPTION_TAG = "Con excepción autorizada";
 
 /** «Para terminar la etapa»: los documentos que se llenan, lo que se confirma y lo demás que impide avanzar. */
 export function stageItems(op: OperationRecord, tasks: Task[], today: string, status: (formato: string) => FormatStatus, context: StageContext = {}): StageItem[] {

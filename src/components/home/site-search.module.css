@@ -1,7 +1,7 @@
 /* Buscador público (31/10/2026): panel que baja desde arriba sobre un velo; campo grande en la tipografía del sitio. */
-.root { --ink: #061f3f; --muted: rgba(6, 31, 63, 0.56); --line: rgba(6, 31, 63, 0.14); --hover: #f5f1eb; --accent: #8a1634; --bg: #fff;
+.root { --ink: #061f3f; --muted: rgba(6, 31, 63, 0.56); --line: rgba(6, 31, 63, 0.14); --hover: #f8f8ff; --accent: #8a1634; --bg: #fff;
   position: fixed; inset: 0; z-index: 60; font-family: var(--font-sans); color: var(--ink); }
-:global(.dark) .root { --ink: #f5f1eb; --muted: rgba(245, 241, 235, 0.6); --line: rgba(245, 241, 235, 0.14); --hover: rgba(245, 241, 235, 0.08); --accent: #f5f1eb; --bg: #060c14; }
+:global(.dark) .root { --ink: #f8f8ff; --muted: rgba(248, 248, 255, 0.6); --line: rgba(248, 248, 255, 0.14); --hover: rgba(248, 248, 255, 0.08); --accent: #f8f8ff; --bg: #060c14; }
 .scrim { position: absolute; inset: 0; border: 0; padding: 0; background: rgba(6, 19, 37, 0.55); cursor: default; animation: fade 0.3s ease both; }
 .panel { position: relative; background: var(--bg); border-bottom: 1px solid var(--line); animation: drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .inner { width: 100%; max-width: 1240px; margin-inline: auto; padding: 24px clamp(20px, 4.2vw, 60px) 40px; }

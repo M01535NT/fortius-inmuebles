@@ -128,3 +128,62 @@ it("tomar el encargo lo decide el director; pausarlo, también el asesor", async
   });
   await asUser(admin, async () => { await saveFlow(flow({}, decision("aceptada"))); });
 });
+
+// COR-20 y RP-31: el director autoriza avanzar sin un requisito, con motivo y constancia.
+const reviewOk = (key: string) => db.query<{ ok: boolean }>("select public.fortius_inmuebles_flow_review_ok(flujo,$2) as ok from public.fortius_inmuebles_expedientes where id=$1", [operation, key]).then(r => r.rows[0].ok);
+const exceptionOf = (key: string) => db.query<{ e: Record<string, string> | null }>("select flujo->'requisitos'->$2->'excepcion' as e from public.fortius_inmuebles_expedientes where id=$1", [operation, key]).then(r => r.rows[0].e);
+const motivo = "El propietario entrega el plan firmado la próxima semana";
+
+it("solo el director autoriza una excepción, con motivo y nunca en un requisito de protección", async () => {
+  expect(await reviewOk("plan")).toBe(false);
+  await asUser(own, async () => {
+    await expect(saveFlow(flow({ plan: { estado: "recibido", soporte: "", excepcion: { motivo } } }))).rejects.toMatchObject({ code: "PT403" });
+  });
+  await asUser(admin, async () => {
+    await expect(saveFlow(flow({ plan: { estado: "pendiente", soporte: "", excepcion: { motivo: "Corto" } } }))).rejects.toMatchObject({ code: "PT400" });
+    for (const key of ["titularidad", "factibilidad", "valor", "revision_cierre", "firma", "pago"]) {
+      await expect(saveFlow(flow({ [key]: { estado: "pendiente", soporte: "", excepcion: { motivo } } }))).rejects.toMatchObject({ code: "PT400" });
+    }
+    // Lo que se envíe como autor no cuenta: el servidor anota quién y cuándo.
+    await saveFlow(flow({ plan: { estado: "pendiente", soporte: "", excepcion: { motivo, autorizadoPor: own } } }));
+  });
+  const stamped = await exceptionOf("plan");
+  expect(stamped).toMatchObject({ motivo, autorizadoPor: admin });
+  expect(stamped?.autorizadoEl).toBeTruthy();
+  expect(await reviewOk("plan")).toBe(true);
+  await asUser(own, async () => {
+    // El asesor conserva la excepción al cambiar otra cosa del requisito, no la reescribe, y puede quitarla.
+    await saveFlow(flow({ plan: { estado: "recibido", soporte: "Borrador del plan de ensayo", excepcion: stamped } }));
+    expect(await exceptionOf("plan")).toEqual(stamped);
+    await expect(saveFlow(flow({ plan: { estado: "recibido", soporte: "Borrador del plan de ensayo", excepcion: { ...stamped, motivo: `${motivo} y otra cosa` } } }))).rejects.toMatchObject({ code: "PT403" });
+    await saveFlow(flow({ plan: { estado: "recibido", soporte: "Borrador del plan de ensayo" } }));
+  });
+  expect(await exceptionOf("plan")).toBeNull();
+  expect(await reviewOk("plan")).toBe(false);
+});
+
+// COR-24: inventario que el asesor trae con contrato firmado. Lo da de alta el director; la marca no salta protecciones.
+it("el director da de alta inventario heredado; pasa a verificación y no publica sin titularidad, factibilidad y valor", async () => {
+  const inherited = "53000000-0000-4000-8000-000000000020";
+  const motive = "Inventario anterior con contrato firmado con su asesor";
+  const value = { version: 1, ruta: "captacion", estado: "activa", motivo: "", heredado: { desde: "2026-06-01" },
+    requisitos: Object.fromEntries(["entrevista", "levantamiento", "plan"].map(k => [k, { estado: "pendiente", soporte: "", excepcion: { motivo: motive } }])) };
+  const insert = () => db.query("insert into public.fortius_inmuebles_expedientes(id,cliente_id,asesor_id,folio,operacion,flujo) values ($1,'c-own','own','EXP-HEREDADO','venta',$2::jsonb)", [inherited, JSON.stringify(value)]);
+  await asUser(own, async () => { await expect(insert()).rejects.toMatchObject({ code: "PT403" }); });
+  await asUser(admin, insert);
+  const heredado = (await db.query<{ h: Record<string, string> }>("select flujo->'heredado' as h from public.fortius_inmuebles_expedientes where id=$1", [inherited])).rows[0].h;
+  expect(heredado).toMatchObject({ desde: "2026-06-01", registradoPor: admin });
+  await db.exec(`insert into public.fortius_inmuebles_records(collection,id,data) values ('tareas','t-heredado','{"id":"t-heredado","titulo":"Regularizar inventario heredado","categoria":"documentacion","estado":"pendiente","prioridad":"alta","vence":"2030-12-31","expedienteId":"${inherited}","clienteId":"c-own","asesorId":"own","pasos":[]}')`);
+  const advance = (stage: string, flujo: unknown) => db.query<{ version: number }>("select version from public.fortius_inmuebles_expedientes where id=$1", [inherited])
+    .then(r => db.query(`select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,null,false)`, [inherited, r.rows[0].version, stage, JSON.stringify(flujo)]));
+  await asUser(admin, async () => {
+    await advance("documentacion", value);
+    // A comercialización no pasa: titularidad, factibilidad y valor siguen pendientes y no admiten excepción.
+    await expect(advance("comercializacion", value)).rejects.toMatchObject({ code: "PT409" });
+  });
+  await asUser(own, async () => {
+    // El asesor no quita ni cambia la marca.
+    await expect(advance("documentacion", { ...value, heredado: undefined })).rejects.toMatchObject({ code: "PT403" });
+    await expect(advance("documentacion", { ...value, heredado: { desde: "2026-01-01" } })).rejects.toMatchObject({ code: "PT403" });
+  });
+});

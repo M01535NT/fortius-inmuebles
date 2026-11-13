@@ -8,11 +8,12 @@ import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { apiRequest, db, fetchJson as json, useCollection, useSession, errorMessage } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { isOwnerRoute, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
+import { exceptionKeys, inheritedPending, isOwnerRoute, type OperationWorkflow, ownerProcess, type SalePhase } from "@/lib/formatos/operation-workflow";
+import { requirementName, shortDate } from "@/lib/admin/today";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
 import { conditionOf } from "@/lib/intake/condition";
-import { flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
+import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { TIPO_LABELS } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
@@ -153,7 +154,10 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const stageName = track.stages[track.current]?.label;
   // COR-14: la situación (con su motivo) y la condición de la llamada (con lo que contó).
   const condition = conditionOf(interview?.respuestas);
-  const tags = operationTags(op, condition).map(text => ({ text, detail: text === condition?.text ? condition.detail : flow.motivo || undefined }));
+  // COR-20: con excepción autorizada, el detalle dice en qué requisitos.
+  const tags = operationTags(op, condition).map(text => ({ text, detail: text === condition?.text ? condition.detail
+    : text === INHERITED_TAG ? inheritedDetail(flow, today)
+    : text === EXCEPTION_TAG ? `En ${exceptionKeys(flow).map(key => requirementName(key, flow.ruta).toLowerCase()).join(", ")}.` : flow.motivo || undefined }));
   const digits = (client?.telefono ?? "").replace(/\D/g, "");
   const role = isOwnerRoute(flow.ruta) ? "Propietario" : flow.ruta === "inversion" ? "Inversionista" : flow.ruta === "arrendatario" ? "Arrendatario" : "Comprador";
   const tabItems = TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={18} aria-hidden="true" />, ...(t.id === "documentos" ? { count: docsCount } : t.id === "actividad" ? { count: taskCount } : {}) }));
@@ -213,4 +217,10 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
 
 function BackLink() {
   return <Link href="/admin/operaciones" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold"><ChevronLeft size={16} aria-hidden="true" />Operaciones</Link>;
+}
+
+/** COR-24: desde cuándo está el contrato y qué falta revisar para publicar. */
+function inheritedDetail(flow: OperationWorkflow, today: string) {
+  const pending = inheritedPending(flow, today).map(key => requirementName(key, flow.ruta).toLowerCase());
+  return `Contrato desde el ${shortDate(flow.heredado!.desde)}. ${pending.length ? `Para publicar falta: ${pending.join(", ")}.` : "Listo para publicar."}`;
 }
