@@ -1,4 +1,4 @@
-import { APPS } from "./catalog";
+import { APPS, isRetired } from "./catalog";
 
 /*
   Uso de cada herramienta (HER-05): cuántos trabajos se empezaron con ella cada mes, para decidir
@@ -31,6 +31,6 @@ export function usoPorHerramienta(rows: { slug: string; created_at: string }[], 
   }
   return { months, rows: APPS.map(app => {
     const byMonth = counts.get(app.slug) ?? months.map(() => 0);
-    return { slug: app.slug, title: app.title, retired: app.group === null, byMonth, total: byMonth.reduce((a, b) => a + b, 0) };
+    return { slug: app.slug, title: app.title, retired: isRetired(app), byMonth, total: byMonth.reduce((a, b) => a + b, 0) };
   }).sort((a, b) => Number(a.retired) - Number(b.retired) || b.total - a.total || a.title.localeCompare(b.title, "es")) };
 }

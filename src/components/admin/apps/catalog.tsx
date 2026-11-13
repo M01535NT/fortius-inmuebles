@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, Building2, ClipboardList, FileDown, ShieldCheck, Wallet } from "@/components/admin/icons";
+import { ArrowRight, Building2, ClipboardList, ExternalLink, FileDown, ShieldCheck, Wallet } from "@/components/admin/icons";
+import { SELLER_ISR_RULES } from "@/data/financial-rules";
 import { APP_GROUPS, RETIRED_APPS, activeApps, appHref, type AppDefinition } from "@/lib/apps/catalog";
 import { ButtonLink } from "@/components/admin/kit";
 import { ADMIN_NAV } from "@/components/admin/workspace/guided-nav";
@@ -19,6 +20,19 @@ const SHORTCUTS = [
   { href: "/admin/apps/documentos?vista=machotes", title: "Machotes en blanco", text: "Cualquier formato con el membrete, para revisarlo o llenarlo a mano.", Icon: FileDown },
   { href: "/admin/apps/documentos?formato=07", title: "Opinión de valor", text: "Con los datos que dé el cliente, sin abrir una operación.", Icon: Building2 },
   { href: "/admin/apps/neto-propietario", title: "ISR y neto", text: "Cuánto le queda al propietario al precio sugerido, con el ISR estimado.", Icon: Wallet },
+] as const;
+
+/*
+  Ligas útiles (revisión del 12/11/2026): sitios oficiales que se consultan a mitad de un cálculo y
+  las calculadoras del sitio público para mandarlas al cliente. Falta la de Nuvigant (H-06): no se
+  conoce su dirección.
+*/
+const USEFUL_LINKS = [
+  { href: SELLER_ISR_RULES.udiUrl, title: "Valor de la UDI", text: "Banxico. Para la exención de casa habitación en «ISR y neto»." },
+  { href: SELLER_ISR_RULES.inpcUrl, title: "INPC", text: "INEGI. Para actualizar el costo de compra en «ISR y neto»." },
+  { href: "https://portalmx.infonavit.org.mx/", title: "Infonavit", text: "Portal oficial; ahí el comprador consulta su precalificación y su simulador." },
+  { href: "/herramientas/hipoteca", title: "Calculadora de hipoteca del sitio", text: "La versión pública, para mandarla al cliente." },
+  { href: "/herramientas/gastos-de-cierre", title: "Gastos de cierre del sitio", text: "La versión pública, para mandarla al cliente." },
 ] as const;
 
 export function AppsCatalog(){
@@ -47,6 +61,15 @@ export function AppsCatalog(){
    <h2 className={styles.sectionHead}>{group}</h2>
    <div className={styles.grid}>{activeApps(group).map(tile)}</div>
   </section>)}</div>
+  <section aria-labelledby="ligas-utiles" className={styles.section}>
+   <h2 id="ligas-utiles" className={styles.sectionHead}>Ligas útiles</h2>
+   <ul className={styles.links}>{USEFUL_LINKS.map(link=><li key={link.href}>
+    <a href={link.href} target="_blank" rel="noreferrer">
+     <span className="min-w-0"><strong>{link.title}</strong><span>{link.text}</span></span>
+     <ExternalLink size={16} aria-hidden="true"/><span className="sr-only">(se abre en otra pestaña)</span>
+    </a>
+   </li>)}</ul>
+  </section>
   <details className={styles.retired}>
    <summary>Herramientas que ya no se usan desde aquí <span>Sus trabajos guardados siguen disponibles</span></summary>
    <ul>{RETIRED_APPS.map(app=><li key={app.slug}>

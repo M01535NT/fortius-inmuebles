@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/backend/http";
-import { APP_GROUPS, APPS, RETIRED_APPS, activeApps, appHref, getApp } from "@/lib/apps/catalog";
+import { APP_GROUPS, APPS, RETIRED_APPS, activeApps, appHref, getApp, isRetired, parentOf } from "@/lib/apps/catalog";
 import { appRunSchema } from "@/lib/apps/contracts";
 import { hipotecaHref, ofertasDesdePropuestas, prefillFromUrl } from "@/lib/apps/contexto";
 import { lastMonths, usoPorHerramienta } from "@/lib/apps/uso";
@@ -20,16 +20,22 @@ describe("Catálogo de Herramientas (HER-01)", () => {
   it("queda en tres grupos con lo aprobado el 18/10/2026", () => {
     expect(APP_GROUPS).toEqual(["Documentos", "Calcular", "Presentar"]);
     expect(activeApps("Documentos").map(a => a.title)).toEqual(["Documentos sueltos", "Unir y separar PDF"]);
-    expect(activeApps("Calcular").map(a => a.slug)).toEqual(["neto-propietario", "hipoteca", "comparables", "ofertas", "comisiones", "inversiones", "rehabilitacion", "conversor"]);
-    expect(activeApps("Presentar").map(a => a.slug)).toEqual(["fotografias", "cotizador"]);
+    expect(activeApps("Calcular").map(a => a.slug)).toEqual(["neto-propietario", "hipoteca", "gastos-compra", "ofertas", "inversiones", "conversor"]);
+    expect(activeApps("Presentar").map(a => a.slug)).toEqual(["cotizador"]);
   });
   it("lo retirado deja de mostrarse pero sus trabajos se siguen leyendo y guardando", () => {
-    expect(RETIRED_APPS.map(a => a.slug).sort()).toEqual(["ficha-comercial", "informe-propietario", "qr", "revisor-expediente", "versiones"]);
+    expect(RETIRED_APPS.map(a => a.slug).sort()).toEqual(["comisiones", "comparables", "ficha-comercial", "fotografias", "informe-propietario", "qr", "revisor-expediente", "versiones"]);
     for (const app of RETIRED_APPS) {
       expect(getApp(app.slug)).toBeDefined();
       expect(appRunSchema.safeParse({ slug: app.slug, title: "Trabajo anterior", input: {}, result: null, context: {} }).success).toBe(true);
     }
-    expect(APPS).toHaveLength(17);
+    expect(APPS).toHaveLength(18);
+  });
+  it("Rehabilitación vive dentro de Inversiones: sin tarjeta, pero no retirada (12/11/2026)", () => {
+    const app = getApp("rehabilitacion")!;
+    expect(isRetired(app)).toBe(false);
+    expect(parentOf(app)?.slug).toBe("inversiones");
+    expect(RETIRED_APPS.some(a => a.slug === "rehabilitacion")).toBe(false);
   });
   it("Comparables abre la opinión de valor sin operación en sus comparables (HER-05)", () => {
     expect(appHref("comparables")).toBe("/admin/apps/documentos?formato=07&seccion=comparables");

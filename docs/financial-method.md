@@ -50,3 +50,7 @@ The panel tool «ISR y neto del vendedor» (slug `neto-propietario`, so earlier 
 
 Independent cases (Python Decimal) are in `tests/backend/seller-isr.test.ts`.
 
+
+## Buyer closing costs in the panel (12 November 2026)
+
+The panel tool «Gastos de compra» (slug `gastos-compra`) reuses `calculateClosingBudget` with the buyer profile, the same rules as the public calculator `/herramientas/gastos-de-cierre`. No new rule or source was added. Differences from the public page: the tax base defaults to the price and the result says so; notary, appraisal, opening fee and other costs are the adviser's quotes, and any missing one keeps the total labeled preliminary. Opened from an operation or a property, it takes the price from `?precio`.

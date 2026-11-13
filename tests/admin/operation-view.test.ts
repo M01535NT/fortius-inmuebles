@@ -91,7 +91,7 @@ test("un comprador sigue sus propios pasos con perfil y capacidad, no título ni
   expect(routeStages(buyer, today)).toMatchObject({ labels: ["Perfil y capacidad", "Opciones", "Visitas", "Oferta y negociación", "Firma y pago", "Entrega", "Postventa"], current: 0, phase: undefined });
   expect(currentRequirements(buyer, today).map(r => r.key)).toEqual(["perfil", "privacidad"]);
   expect(advanceTarget(buyer, today)).toEqual({ target: "documentacion", label: "Opciones" });
-  expect(stageTools(buyer, today).map(t => t.label)).toEqual(["Comparar casas parecidas", "Hipoteca", "Comparar ofertas"]);
+  expect(stageTools(buyer, today).map(t => t.label)).toEqual(["Comparar casas parecidas", "Hipoteca", "Gastos de compra", "Comparar ofertas"]);
 });
 
 test("pide vincular el inmueble antes de negociar y los requisitos abiertos de etapas anteriores siguen visibles", () => {

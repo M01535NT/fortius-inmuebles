@@ -49,3 +49,17 @@
 :global(.admin-root) .retired ul { margin: 0; padding: 0 1rem .5rem; list-style: none; border-top: 1px solid var(--card-edge); }
 :global(.admin-root) .retired li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; padding: .75rem 0; border-bottom: 1px solid var(--card-edge); }
 :global(.admin-root) .retired li:last-child { border-bottom: 0; }
+
+/* Ligas útiles: lista sobria en dos columnas, cada fila abre otra pestaña. */
+:global(.admin-root) .links { display: grid; gap: 0 1.5rem; margin: 0; padding: 0 1rem; list-style: none; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); }
+@media (min-width: 900px) { :global(.admin-root) .links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+:global(.admin-root) .links li { border-bottom: 1px solid var(--card-edge); }
+:global(.admin-root) .links li:last-child { border-bottom: 0; }
+@media (min-width: 900px) { :global(.admin-root) .links li:nth-last-child(2):nth-child(odd) { border-bottom: 0; } }
+:global(.admin-root) .links a { display: flex; min-height: 3.5rem; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .links a:hover strong { text-decoration: underline; text-underline-offset: 4px; }
+:global(.admin-root) .links a:focus-visible { outline: 3px solid var(--focus-color); outline-offset: 2px; border-radius: 6px; }
+:global(.admin-root) .links a > span { display: flex; flex-direction: column; gap: .125rem; }
+:global(.admin-root) .links strong { font-size: .9375rem; font-weight: 600; }
+:global(.admin-root) .links a > span > span { font-size: .8125rem; line-height: 1.45; color: var(--muted-foreground); overflow-wrap: anywhere; }
+:global(.admin-root) .links svg { flex: none; opacity: .6; }

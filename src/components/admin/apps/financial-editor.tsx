@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import { btnDanger, btnGhost, btnPrimary, ErrorNotice, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { calculateFinancial, getFinancialDefaults, NET_COMMON_EXPENSES, netInput, rehabilitationTransfer } from "@/lib/apps/financial";
-import { SELLER_ISR_RULES } from "@/data/financial-rules";
+import { MUNICIPALITIES, SELLER_ISR_RULES } from "@/data/financial-rules";
 import { localToday } from "@/lib/finance/money";
 import type { AppEditorProps, AppInput } from "@/lib/apps/types";
 import { MoneyInput } from "@/components/admin/money-input";
@@ -23,7 +23,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   return <fieldset className="min-w-0 space-y-4 rounded-lg border border-border p-4 sm:p-5"><legend className="px-2 font-semibold text-foreground">{title}</legend>{hint && <p className="max-w-[90ch] text-sm leading-relaxed text-muted-foreground">{hint}</p>}{children}</fieldset>;
 }
 /** Importes de las calculadoras: se muestran con formato de moneda. */
-const MONEY_KEYS = new Set(["amount", "base", "commission", "isrAmount", "updatedCost", "acquisitionCost", "landCost", "improvements", "acquisitionExpenses", "extraMonthly", "extraOnce", "fixed", "insurance", "loan", "monthlyFee", "openingFee", "prepaymentFee", "price", "salePrice", "taxes", "withholding"]);
+const MONEY_KEYS = new Set(["downPayment", "taxBase", "isaiQuote", "registrationQuote", "notary", "appraisal", "other", "amount", "base", "commission", "isrAmount", "updatedCost", "acquisitionCost", "landCost", "improvements", "acquisitionExpenses", "extraMonthly", "extraOnce", "fixed", "insurance", "loan", "monthlyFee", "openingFee", "prepaymentFee", "price", "salePrice", "taxes", "withholding"]);
 function Capture({ label, value, onChange, type = "number", hint, money = false }: { label: string; value: unknown; onChange: (value: string) => void; type?: "text" | "number" | "date"; hint?: string; money?: boolean }) {
   const id = useId();
   if (money) return <Field label={label} htmlFor={id} hint={hint}><MoneyInput id={id} value={textValue(value) === "" ? "" : Number(textValue(value))} onValueChange={(next) => onChange(next === "" ? "" : String(next))} /></Field>;
@@ -44,7 +44,7 @@ function Rows({ title, singular, rows, columns, blank, addLabel, max, onChange }
 }
 
 const grid = "grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3";
-const actions: Record<string, string> = { hipoteca: "Calcular hipoteca", "neto-propietario": "Calcular neto", comisiones: "Calcular honorarios", inversiones: "Evaluar inversión", rehabilitacion: "Calcular presupuesto", conversor: "Convertir" };
+const actions: Record<string, string> = { hipoteca: "Calcular hipoteca", "neto-propietario": "Calcular neto", "gastos-compra": "Calcular gastos", comisiones: "Calcular honorarios", inversiones: "Evaluar inversión", rehabilitacion: "Calcular presupuesto", conversor: "Convertir" };
 
 export function FinancialEditor({ slug, input, onChange, onResult, context }: AppEditorProps) {
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +79,17 @@ export function FinancialEditor({ slug, input, onChange, onResult, context }: Ap
       <Section title="Seguros y comisiones" hint="Deja vacío un costo desconocido. Escribe 0 únicamente si confirmaste que no aplica."><div className={grid}>{field("insurance", "Seguro mensual")}{field("monthlyFee", "Administración mensual")}{field("openingFee", "Comisión de apertura", "Importe único.")}{field("prepaymentFee", "Comisiones por anticipos", "Importe total por todos los anticipos del escenario.")}</div></Section>
       <Section title="Pagos anticipados" hint="El escenario sin anticipos se conserva en el resultado para comparar intereses y plazo."><div className={grid}>{field("extraMonthly", "Anticipo mensual")}{field("extraOnce", "Anticipo único")}{field("extraMonth", "Mes del anticipo único")}{choice("prepaymentMode", "Aplicar anticipos a", [["term", "Reducir plazo"], ["payment", "Reducir mensualidad"]])}</div></Section>
     </>}
+    {slug === "gastos-compra" && <>
+      <Section title="Compra" hint="Importes en pesos mexicanos. Vacío significa desconocido; 0 significa que confirmaste que no aplica."><div className={grid}>
+        {choice("municipality", "Municipio", Object.entries(MUNICIPALITIES) as Option[])}{field("date", "Fecha de la escritura", "Las tablas cargadas son de 2026.", "date")}{field("price", "Precio")}
+        {choice("financing", "Forma de pago", [["credito", "Con crédito"], ["contado", "De contado"]])}{data.financing !== "contado" && field("downPayment", "Enganche", "Lo que paga con recursos propios; el resto es el crédito.")}
+        {field("taxBase", "Base del impuesto de adquisición", "Vacío: se supone igual al precio; el municipio puede fijar otra.")}
+      </div></Section>
+      <Section title="Cotizaciones" hint="Lo que da el notario o el banco. Si tienes el impuesto o el Registro cotizados, sustituyen al cálculo."><div className={grid}>
+        {field("notary", "Honorarios del notario con IVA", "Sin impuesto de adquisición ni Registro, para no repetirlos.")}{field("appraisal", "Avalúo")}{data.financing !== "contado" && field("openingFee", "Comisión de apertura del crédito")}
+        {field("isaiQuote", "Impuesto de adquisición cotizado")}{field("registrationQuote", "Registro Público cotizado")}{field("preventiveNotices", "Avisos preventivos", "Normalmente 2.")}{field("other", "Otros gastos")}
+      </div><p className="text-sm"><a className="underline underline-offset-4" href="/herramientas/gastos-de-cierre" target="_blank" rel="noreferrer">Calculadora para compartir con el cliente</a></p></Section>
+    </>}
     {slug === "neto-propietario" && <>
       <Section title="Venta" hint="Vacío significa desconocido; 0 significa que confirmaste que no aplica."><div className={grid}>{currencyField}{field("salePrice", "Precio de venta")}{field("loan", "Saldo para liquidar el crédito")}</div></Section>
       <Section title="Comisión"><div className={grid}>{choice("commissionMode", "Cómo se cobra", [["porcentaje", "Porcentaje del precio"], ["importe", "Importe con IVA"]])}{data.commissionMode === "importe" ? field("commission", "Honorarios con impuestos", "Importe total; no lo repitas en otros gastos.") : <>{field("commissionPercent", "Comisión (%)")}{choice("commissionVat", "IVA de la comisión", [["16", "16%"], ["8", "8% (si la factura aplica el estímulo fronterizo)"], ["0", "Sin IVA"]])}</>}</div></Section>
@@ -103,6 +114,7 @@ export function FinancialEditor({ slug, input, onChange, onResult, context }: Ap
       <Section title="Distribución" hint="Se reparte el honorario antes de impuestos. La suma puede ser menor a 100%; el resto queda sin asignar. Los centavos se concilian en el resultado."><Rows title="Reparto de honorarios" singular="participante" rows={list(data.shares)} onChange={(shares) => change({ shares })} max={100} addLabel="Agregar participante" blank={{ name: "", percent: "" }} columns={[{ key: "name", label: "Participante", width: "min-w-60" }, { key: "percent", label: "Participación (%)", type: "number" }]} /></Section>
     </>}
     {slug === "inversiones" && <>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4"><p className="max-w-[70ch] text-sm text-muted-foreground">Si el inmueble necesita obra, arma primero el presupuesto de rehabilitación; sus desembolsos llegan aquí como egresos del proyecto.</p><Link className={btnGhost} href="/admin/apps/rehabilitacion">Presupuesto de rehabilitación</Link></div>
       <Section title="Base de la evaluación" hint="Captura flujos nominales fechados: entradas positivas y salidas negativas. Los tres escenarios se calculan por separado, sin probabilidades supuestas."><div className={grid}>{currencyField}{choice("taxBasis", "Tratamiento de impuestos", [["antes", "Antes de impuestos"], ["despues", "Después de impuestos capturados"]])}{layers.map(([layer, label]) => <Capture key={layer} label={`Tasa exigida: ${label} (%)`} value={rates[layer]} hint="Efectiva anual. Vacío: VAN no determinado." onChange={(value) => change({ rates: { ...rates, [layer]: value } })} />)}</div><label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 h-5 w-5 accent-primary" checked={data.costsComplete === true} onChange={(event) => change({ costsComplete: event.target.checked })} /><span>Confirmé que el modelo incluye todos los costos, impuestos y obligaciones aplicables a la base elegida.</span></label></Section>
       <Section title="Flujos por escenario y capa" hint="Proyecto: economía del activo sin deuda. Deuda: disposiciones, intereses y amortizaciones. Capital: aportaciones y distribuciones del inversionista. No sumes las tres capas. Un importe vacío conserva el pendiente e impide determinar las métricas de su capa.">
         <Rows title="Flujos de inversión" singular="flujo" rows={list(data.flows)} onChange={(flows) => change({ flows })} max={600} addLabel="Agregar flujo" blank={{ scenario: "base", layer: "proyecto", date: localToday(), concept: "", amount: null, source: "", evidence: "supuesto" }} columns={[{ key: "scenario", label: "Escenario", options: scenarios }, { key: "layer", label: "Capa", options: layers, width: "min-w-64" }, { key: "date", label: "Fecha", type: "date" }, { key: "concept", label: "Concepto", width: "min-w-60" }, { key: "amount", label: "Importe", type: "number" }, { key: "evidence", label: "Evidencia", options: evidence }, { key: "source", label: "Fuente", width: "min-w-64" }]} />

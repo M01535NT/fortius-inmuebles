@@ -90,3 +90,12 @@ it("ISR y neto: pide la UDI solo con casa habitación confirmada y calcula el IS
   fireEvent.click(screen.getByRole("button", { name: "Calcular neto" }));
   expect(screen.getByLabelText("Resultado emitido").textContent).toContain("$178,104.48 MXN");
 });
+it("gastos de compra: con crédito pide el enganche y da el dinero que necesita el comprador", () => {
+  render(<Harness slug="gastos-compra" initial={{ date: "2026-10-04", price: 3_000_000, downPayment: 600_000, notary: 40_000, appraisal: 8_000, openingFee: 20_000, other: 0 }} />);
+  expect(screen.getByLabelText("Enganche")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Calcular gastos" }));
+  expect(screen.getByLabelText("Resultado emitido").textContent).toContain("$762,341.63 MXN");
+  fireEvent.change(screen.getByLabelText("Forma de pago"), { target: { value: "contado" } });
+  expect(screen.queryByLabelText("Enganche")).toBeNull();
+  expect(screen.getByRole("link", { name: /compartir con el cliente/i }).getAttribute("href")).toBe("/herramientas/gastos-de-cierre");
+});

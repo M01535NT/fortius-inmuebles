@@ -3,7 +3,8 @@ import type Decimal from "decimal.js";
 import { D, cents, localToday, MAX_MONEY, sumMoney, validIsoDate } from "@/lib/finance/money";
 import { calculateMortgage, type Installment } from "@/lib/finance/mortgage";
 import { calculateSellerIsrCase, type SellerIsrCase, type SellerIsrResult } from "@/lib/finance/seller-isr";
-import { FINANCIAL_SOURCES, SELLER_ISR_RULES } from "@/data/financial-rules";
+import { FINANCIAL_SOURCES, MUNICIPALITIES, SELLER_ISR_RULES, type Municipality } from "@/data/financial-rules";
+import { calculateClosingBudget } from "@/lib/finance/closing";
 import type { AppInput, AppResult } from "./types";
 
 const numeric = (min = 0, max = MAX_MONEY) => z.preprocess((value) => {
@@ -58,6 +59,7 @@ export function getFinancialDefaults(slug: string): AppInput {
   switch (slug) {
     case "hipoteca": return { price: "", downPercent: "", annualRate: "", months: 240, firstPayment: localToday(), insurance: null, monthlyFee: null, openingFee: null, extraMonthly: 0, extraOnce: 0, extraMonth: 1, prepaymentFee: null, prepaymentMode: "term" };
     case "neto-propietario": return netDefaults();
+    case "gastos-compra": return { municipality: "tijuana", date: localToday(), price: "", financing: "credito", downPayment: null, taxBase: null, isaiQuote: null, registrationQuote: null, preventiveNotices: 2, notary: null, appraisal: null, openingFee: null, other: null };
     case "comisiones": return { currency: "MXN", mode: "porcentaje", base: null, percent: null, fixed: null, taxPercent: null, withholding: null, shares: [] };
     case "inversiones": return { currency: "MXN", priceBasis: "nominal", taxBasis: "antes", costsComplete: false, rates: { proyecto: null, deuda: null, capital: null }, flows: [], notes: "" };
     case "rehabilitacion": return { currency: "MXN", contingencyPercent: "", items: [], payments: [] };
@@ -212,6 +214,41 @@ export function netResults(input: AppInput): { neto: AppResult; isr: AppResult |
   ], warnings: [...new Set(warnings)] };
   return { neto, isr: sheet };
 }
+/*
+  Gastos de compra (revisión del catálogo, 12/11/2026): lo que el comprador paga además del precio.
+  Usa el mismo cálculo que la página pública de gastos de cierre (ISAI por municipio y Registro
+  Público con sus fuentes 2026); lo que depende de una cotización queda pendiente hasta capturarlo.
+*/
+const buyerSchema = z.object({
+  municipality: z.enum(Object.keys(MUNICIPALITIES) as [Municipality, ...Municipality[]]), date, price: amount,
+  financing: z.enum(["contado", "credito"]), downPayment: optional(amount), taxBase: optional(amount),
+  isaiQuote: optional(amount), registrationQuote: optional(amount), preventiveNotices: numeric(0, 4).refine(Number.isInteger, "Los avisos deben ser un número entero"),
+  notary: optional(amount), appraisal: optional(amount), openingFee: optional(amount), other: optional(amount),
+}).strict();
+const KIND_LABEL = { rule: "Según la ley 2026", quote: "Cotización", input: "Capturado", pending: "Pendiente" } as const;
+function buyerCosts(input: AppInput): AppResult {
+  const data = parse(buyerSchema, input);
+  if (data.price < 1) throw new Error("Captura el precio del inmueble.");
+  const credit = data.financing === "credito";
+  if (credit && data.downPayment === null) throw new Error("Captura el enganche; si paga todo de contado, elige «De contado».");
+  const downPayment = credit ? data.downPayment! : data.price;
+  if (downPayment > data.price) throw new Error("El enganche no puede ser mayor que el precio.");
+  const loan = cents(new D(data.price).minus(downPayment));
+  const budget = calculateClosingBudget({ profile: "buyer", municipality: data.municipality, date: data.date, price: data.price, taxBase: data.taxBase ?? data.price, baseIsAssumed: data.taxBase === null, downPayment, loan, isaiQuote: data.isaiQuote, registrationQuote: data.registrationQuote, preventiveNotices: data.preventiveNotices, notary: data.notary, appraisal: data.appraisal, openingFee: loan === 0 ? 0 : data.openingFee, other: data.other });
+  const fmt = (n: number) => moneyText(n);
+  const complete = budget.pending.length === 0;
+  return { title: "Gastos de compra del comprador", summary: [
+    summary("Precio", fmt(data.price)),
+    summary(credit ? "Enganche" : "Pago de contado", fmt(downPayment)),
+    ...(credit ? [summary("Crédito", fmt(loan))] : []),
+    summary(complete ? "Gastos de compra" : "Gastos conocidos", fmt(budget.knownExpenses)),
+    summary(complete ? "Dinero que necesita el comprador" : "Dinero que necesita (faltan datos)", fmt(budget.cashRequired!)),
+  ], sections: [
+    { title: "Gastos", columns: ["Concepto", "Importe", "Origen", "Nota"], rows: budget.items.map(i => [i.label, i.amount === null ? "Pendiente" : fmt(i.amount), KIND_LABEL[i.kind], i.note ?? ""]) },
+    { title: "Alcance", text: `${MUNICIPALITIES[data.municipality]}, operación ordinaria, fecha ${data.date}. El impuesto de adquisición y el Registro Público se calculan con las tablas publicadas para 2026; la determinación municipal y la cotización del notario mandan sobre esta estimación. Honorarios notariales con IVA, sin repetir impuesto ni Registro. Para compartir con el cliente, la misma calculadora está en el sitio: fortiusinmuebles.com/herramientas/gastos-de-cierre.` },
+  ], warnings: [ "Estimación: no sustituye la cotización del notario ni la determinación municipal.", ...budget.pending.map(p => `Falta conocer: ${p.toLowerCase()}.`), ...(data.taxBase === null ? ["La base del impuesto se supuso igual al precio; el municipio puede determinar otra con el avalúo y el valor catastral."] : [])] };
+}
+
 function net(input: AppInput): AppResult {
   const { neto, isr } = netResults(input);
   return isr ? { ...neto, sections: [...neto.sections ?? [], ...(isr.sections ?? []).map(s => ({ ...s, title: `ISR · ${s.title}` }))], warnings: [...new Set([...neto.warnings ?? [], ...isr.warnings ?? []])] } : neto;
@@ -381,6 +418,7 @@ export function calculateFinancial(slug: string, input: AppInput): AppResult {
   switch (slug) {
     case "hipoteca": return mortgage(data);
     case "neto-propietario": return net(data);
+    case "gastos-compra": return buyerCosts(data);
     case "comisiones": return commission(data);
     case "inversiones": return investment(data);
     case "rehabilitacion": return rehabilitation(data);

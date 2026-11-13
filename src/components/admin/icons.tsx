@@ -47,6 +47,7 @@ export const Clock = adapt(I.Clock, "Clock");
 export const Columns3 = adapt(I.KanbanBoard, "KanbanBoard");
 export const Contact = adapt(I.Community, "Community");
 export const ExternalLink = adapt(I.OpenNewWindow, "OpenNewWindow");
+export const Calculator = adapt(I.Calculator, "Calculator");
 export const Eye = adapt(I.Eye, "Eye");
 export const EyeOff = adapt(I.EyeClosed, "EyeClosed");
 export const FileDiff = adapt(I.GitCompare, "GitCompare");

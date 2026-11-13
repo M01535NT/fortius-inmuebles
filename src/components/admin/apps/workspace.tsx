@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, FileDown, History, Plus, RotateCcw } from "@/components/admin/icons";
-import { getApp, isRetired, FINANCIAL_APPS, COMMERCIAL_APPS } from "@/lib/apps/catalog";
+import { getApp, isRetired, parentOf, FINANCIAL_APPS, COMMERCIAL_APPS } from "@/lib/apps/catalog";
 import { ofertasDesdePropuestas, prefillFromUrl } from "@/lib/apps/contexto";
 import { appRunSchema } from "@/lib/apps/contracts";
 import type { AppContext, AppInput, AppResult, AppRun } from "@/lib/apps/types";
@@ -59,7 +59,7 @@ function WorkspaceSession({slug}:{slug:string}){
  const props={slug,input,onChange:change,onResult:finish,context,onBusyChange:setEditorBusy};
  const busyAny=busy||editorBusy;
  return <div className={styles.workspace} data-ready={result?"":undefined}>
- <Link href="/admin/herramientas" className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true"/>Más</Link>
+ {(()=>{const parent=parentOf(app);return <Link href={parent?`/admin/apps/${parent.slug}`:"/admin/herramientas"} className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true"/>{parent?.title??"Más"}</Link>;})()}
  <PageHeader title={app.title} description={app.description} actions={<>
    <Button disabled={busyAny} onClick={create}><Plus size={17} aria-hidden="true"/>Nuevo</Button>
    <Button aria-expanded={historyOpen} onClick={()=>setHistoryOpen(!historyOpen)}><History size={17} aria-hidden="true"/>Mis trabajos</Button>

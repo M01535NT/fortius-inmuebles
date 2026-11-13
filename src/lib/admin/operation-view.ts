@@ -1,4 +1,5 @@
 import { isTaskOpen, type Task } from "@/lib/tasks";
+import { COMPARABLES_HREF } from "@/lib/apps/catalog";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
 import { appraisalState, emptyWorkflow, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STATES, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
@@ -382,26 +383,29 @@ export function dueLabel(date: string | undefined, today: string) {
 
 /** Herramientas de cada etapa; se abren con el contexto de la operación. */
 const PHASE_TOOLS: Record<SalePhase, Array<[string, string]>> = {
-  prospecto: [["comparables", "Comparar casas parecidas"]],
+  // Revisión del catálogo (12/11/2026): en la ruta del propietario los comparables se capturan en su 07
+  // y el reparto en el cierre; el propietario pregunta su neto desde la primera llamada.
+  prospecto: [["neto-propietario", "ISR y neto del vendedor"]],
   levantamiento: [["fotografias", "Fotografías"], ["ficha-comercial", "Ficha del inmueble"]],
   documentos: [["revisor-expediente", "Pendientes documentales"]],
   dictamen: [["revisor-expediente", "Pendientes documentales"]],
-  captacion: [["revisor-expediente", "Pendientes documentales"], ["comparables", "Comparar casas parecidas"]],
-  verificacion: [["comparables", "Comparar casas parecidas"], ["neto-propietario", "ISR y neto del vendedor"], ["revisor-expediente", "Pendientes documentales"]],
+  captacion: [["revisor-expediente", "Pendientes documentales"]],
+  verificacion: [["neto-propietario", "ISR y neto del vendedor"], ["revisor-expediente", "Pendientes documentales"]],
   contrato: [["ficha-comercial", "Ficha del inmueble"], ["fotografias", "Fotografías"], ["cotizador", "Cotizador de servicios"]],
   publicacion: [["informe-propietario", "Preparar informe"], ["ficha-comercial", "Ficha del inmueble"], ["qr", "Enlaces y QR"]],
   visitas: [["ofertas", "Comparar ofertas"], ["hipoteca", "Hipoteca"], ["informe-propietario", "Preparar informe"]],
-  cierre: [["neto-propietario", "ISR y neto del vendedor"], ["comisiones", "Comisiones y reparto"], ["revisor-expediente", "Pendientes documentales"]],
+  cierre: [["neto-propietario", "ISR y neto del vendedor"], ["revisor-expediente", "Pendientes documentales"]],
 };
 const ROUTE_TOOLS: Partial<Record<OperationWorkflow["ruta"], Array<[string, string]>>> = {
-  compra: [["comparables", "Comparar casas parecidas"], ["hipoteca", "Hipoteca"], ["ofertas", "Comparar ofertas"]],
+  compra: [["comparables", "Comparar casas parecidas"], ["hipoteca", "Hipoteca"], ["gastos-compra", "Gastos de compra"], ["ofertas", "Comparar ofertas"]],
   arrendatario: [["comparables", "Comparar opciones"], ["ofertas", "Comparar ofertas"]],
   inversion: [["inversiones", "Escenarios de inversión"], ["rehabilitacion", "Rehabilitación"], ["comparables", "Comparar casas parecidas"]],
 };
 export function stageTools(op: OperationRecord, today: string) {
   const flow = flowOf(op), { phase } = routeStages(op, today);
   const tools = phase ? PHASE_TOOLS[phase] : ROUTE_TOOLS[flow.ruta] ?? [];
-  return tools.map(([slug, label]) => ({ slug, label, href: `/admin/apps/${slug}?expedienteId=${encodeURIComponent(op.id)}` }));
+  // Comparables es la opinión de valor suelta (07): no se liga a la operación.
+  return tools.map(([slug, label]) => ({ slug, label, href: slug === "comparables" ? COMPARABLES_HREF : `/admin/apps/${slug}?expedienteId=${encodeURIComponent(op.id)}` }));
 }
 
 /** El contrato se captura después de terminar la verificación (decisión del titular, 15/10/2026). */

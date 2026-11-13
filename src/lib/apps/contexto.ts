@@ -21,6 +21,7 @@ export function prefillFromUrl(slug: string, params: URLSearchParams): { input: 
   const precio = amount(params.get("precio"));
   if (slug === "hipoteca" && precio) return { input: { price: precio }, context };
   if (slug === "neto-propietario" && precio) return { input: { salePrice: precio }, context };
+  if (slug === "gastos-compra" && precio) return { input: { price: precio }, context };
   return { input: {}, context };
 }
 
