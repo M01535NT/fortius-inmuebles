@@ -54,6 +54,7 @@
 :global(.admin-root) .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 :global(.admin-root) .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill); background: #dbe4f0; color: #061f3f; font-size: var(--admin-text-minimo); font-weight: 620; letter-spacing: .02em; overflow: hidden; }
 :global(.dark) :global(.admin-root) .avatar { background: var(--secondary); color: var(--foreground); }
+:global(.admin-root) .avatar[data-tone=onDark] { background: rgba(248,248,255,.16); color: #f8f8ff; }
 :global(.admin-root) .avatar { position: relative; }
 :global(.admin-root) .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 :global(.admin-root) .kbd { display: inline-flex; align-items: center; padding: .25rem .5rem; border-radius: 8px; background: var(--track); color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-minimo); font-weight: 600; letter-spacing: .02em; }
@@ -133,3 +134,18 @@
 @keyframes sheetIn { from { transform: translateX(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 @keyframes sheetUp { from { transform: translateY(32px); opacity: .4; } to { transform: none; opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* LV-02: anillo de avance con texto, distintivo de documento y cuadro de ícono */
+:global(.admin-root) .progressRing { display: inline-flex; align-items: center; gap: .5rem; flex: none; }
+:global(.admin-root) .progressRingDial { position: relative; display: grid; place-items: center; flex: none; }
+:global(.admin-root) .progressRingDial svg { position: absolute; inset: 0; }
+:global(.admin-root) .progressRingValue { stroke: var(--foreground); }
+:global(.admin-root) .progressRing[data-done] .progressRingValue { stroke: var(--success); }
+:global(.admin-root) .progressRingNum { position: relative; display: grid; place-items: center; font-size: var(--admin-text-minimo); font-weight: 620; font-stretch: 62%; font-variant-numeric: tabular-nums; line-height: 1; }
+:global(.admin-root) .progressRing[data-done] .progressRingNum { color: var(--success); }
+:global(.admin-root) .progressRingText { font-size: var(--admin-text-detalle); font-weight: 540; color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .progressRingValue { transition: stroke-dasharray 500ms var(--ease-out), stroke 200ms var(--ease-out); } }
+:global(.admin-root) .docBadge { display: inline-flex; align-items: center; min-height: 1.5rem; padding: 0 .625rem; border-radius: var(--radius-pill); border: 1px solid var(--control-edge); color: var(--muted-foreground); font-size: var(--admin-text-pastilla); font-weight: 540; line-height: 1; white-space: nowrap; }
+:global(.admin-root) .docBadge[data-status=revisado] { border-color: transparent; background: var(--info-surface); color: var(--info); }
+:global(.admin-root) .docBadge[data-status=aprobado], :global(.admin-root) .docBadge[data-status=firmado] { border-color: transparent; background: var(--success-surface); color: var(--success); }
+:global(.admin-root) .iconTile { display: grid; place-items: center; flex: none; border-radius: var(--radius-control); background: var(--track); color: var(--foreground); }

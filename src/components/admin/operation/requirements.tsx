@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { AlertCircle, CheckCircle2, Circle, CircleDashed, MinusCircle, MoreHorizontal } from "@/components/admin/icons";
+import { MoreHorizontal, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem } from "@/components/admin/icons";
 import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
@@ -97,13 +97,14 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   </li>;
 }
 
-/** Círculo vacío, medio lleno, palomita o alerta: el estado se distingue por forma, no solo por color. */
+/** Círculo vacío, medio lleno, lleno con palomita, triángulo o punteado: el estado se distingue por forma, no solo por color (LV-02, V03). */
 export function StateIcon({ state, done }: { state: ReviewStateKey | "borrador"; done: boolean }) {
-  if (done) return <CheckCircle2 size={20} aria-label="Listo" className={s.iconDone} />;
-  if (state === "observado") return <AlertCircle size={20} aria-label="Hay un problema" className={s.iconWarn} />;
-  if (state === "recibido" || state === "borrador") return <CircleDashed size={20} aria-label="En proceso" className={s.iconDone} />;
-  if (state === "no_aplica") return <MinusCircle size={20} aria-label="No aplica" className={s.iconIdle} />;
-  return <Circle size={20} aria-label="Pendiente" className={s.iconIdle} />;
+  if (done) return <StateDone size={20} aria-label="Listo" className={s.iconDone} />;
+  if (state === "observado") return <StateProblem size={20} aria-label="Hay un problema" className={s.iconWarn} />;
+  if (state === "recibido") return <StateHalf size={20} aria-label="Lo tengo" className={s.iconInfo} />;
+  if (state === "borrador") return <StateHalf size={20} aria-label="En proceso" className={s.iconInfo} />;
+  if (state === "no_aplica") return <StateNotApplicable size={20} aria-label="No aplica" className={s.iconIdle} />;
+  return <StatePending size={20} aria-label="Pendiente" className={s.iconIdle} />;
 }
 
 /** El documento de la operación que respalda un punto: el de su formato (cualquier 04 para el levantamiento). */

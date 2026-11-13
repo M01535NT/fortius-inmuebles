@@ -67,6 +67,17 @@ Cinco colores con significado fijo, siempre acompañados de ícono y palabra. Ca
 
 Todos pasan AA (4.5:1 o más) sobre tarjeta, fondo y su propia superficie. En el panel oscuro el rojo es `#FF8A7A`: el `#E2564B` anterior daba 4.16:1 sobre su superficie.
 
+### Íconos, estados y avance del panel (LV-02, titular, 13/11/2026)
+
+Un solo catálogo en `src/components/admin/icons.tsx`, el mismo en todas las pantallas:
+
+- **Etapas del propietario:** Primer contacto teléfono, Entrevista inicial conversación, Levantamiento regla, Lista de documentos portapapeles, Dictamen jurídico escudo, Opinión de valor monedas, Contrato hoja con lápiz, Publicación megáfono, Visitas y ofertas ojo, Cierre y entrega llave (`OWNER_STAGE_ICONS`, `stageIcon`). Las demás rutas usan `ROUTE_STAGE_ICONS`.
+- **Documentos:** cada formato usa el ícono de la etapa que lo deja; los demás tienen el suyo (`docIcon`): 01 candado, 05 hoja con lupa, 08 calculadora, 14 mano con dinero, 15 hoja con estrella, 18 cartera, 19 martillo, 20 casa.
+- **Estado de un requisito:** forma, color y palabra. Pendiente círculo vacío, Lo tengo medio lleno (azul), Revisado lleno con palomita (verde), Hay un problema triángulo (ámbar), No aplica punteado con raya.
+- **Avance:** anillo con «6 de 10» (`ProgressRing`); se llena en azul marino y al completarse queda verde con palomita. Nunca usa el rojo.
+- **Documento:** distintivo `DocBadge` Borrador neutro, Revisado azul, Aprobado y Firmado verdes. «Terminado · PDF» lo dice el texto del renglón.
+- **Persona:** un solo círculo neutro con iniciales (`Avatar`, `onDark` sobre el azul).
+
 Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `src/app/admin/panel-base.css` bajo `.admin-root`; `panel.module.css` ya no las define. El sitio público no descarga ese archivo ni las utilidades de Tailwind que solo usa el panel, y Archivo solo se precarga en `/admin`.
 
 ### Espacios, botones y esquinas del sitio público (titular, 13/11/2026)
