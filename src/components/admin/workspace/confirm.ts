@@ -1,11 +1,21 @@
 "use client";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 
 // Native dialog supplies focus containment, Escape and an inert background.
 // Text is assigned with textContent, never interpreted as HTML.
 let queue: Promise<unknown> = Promise.resolve();
-/** Eliminar una operación: ventana propia, recuperable desde «Operaciones eliminadas». */
+/**
+  Confirmación de borrado aprobada (titular, 13/11/2026): título «Eliminar <cosa>», botón «Eliminar»
+  en rojo y una frase que dice si se puede restaurar desde Eliminados. `restaurable` es el género
+  del objeto («o» o «a») cuando la base lo permite, o `false` cuando no.
+*/
+export function confirmDelete(cosa: string, mensaje: string, restaurable: "o" | "a" | false) {
+  const cierre = restaurable ? PAPELERA.sePuedeRestaurar[restaurable] : PAPELERA.noSePuedeRestaurar;
+  return confirmAction(`${mensaje} ${cierre}`, { title: `Eliminar ${cosa}`, confirmLabel: "Eliminar", danger: true });
+}
+/** Eliminar una operación: ventana propia; vuelve desde Eliminados con todo lo suyo. */
 export function confirmDeleteOperation(folio: string, who?: string) {
-  return confirmAction(`¿Eliminar la operación ${folio}${who && who !== folio ? ` de ${who}` : ""}? Se mueve a «Operaciones eliminadas» con sus documentos, PDF y tareas. Puedes restaurarla desde ahí cuando quieras.`, { title: "Eliminar operación", confirmLabel: "Eliminar", danger: true });
+  return confirmDelete("operación", `La operación ${folio}${who && who !== folio ? ` de ${who}` : ""} se mueve a Eliminados con sus documentos, PDF y tareas.`, "a");
 }
 export type ConfirmOptions = { title?: string; confirmLabel?: string; danger?: boolean };
 export function confirmAction(message: string, options: ConfirmOptions = {}): Promise<boolean> {

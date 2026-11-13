@@ -9,7 +9,7 @@ import { ClienteEditor, CLIENTE_TIPO_LABELS } from "@/components/admin/cliente-e
 import { LeadProfileSummary } from "@/components/admin/lead-fields";
 import { MatchingProperties } from "@/components/admin/properties/matching-properties";
 import { NextStepCard, PersonCard, PersonHeader, Timeline, personStyles as s, type MenuItem } from "@/components/admin/contacts/person";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { seekersFrom } from "@/lib/admin/buyer-matches";
 import { nextStep } from "@/lib/admin/contacts-view";
 import { humanDay, personTimeline } from "@/lib/admin/person-view";
@@ -80,7 +80,7 @@ function ClienteDetail({ id }: { id: string }) {
   const linkQuery = new URLSearchParams({ clienteId: id, ...(cliente.leadId ? { leadId: cliente.leadId } : {}), ...(cliente.propiedadSlug ? { propiedadSlug: cliente.propiedadSlug } : {}) });
   // Quien vino de un prospecto conserva su historial; por eso solo se eliminan los capturados como cliente.
   const menu: MenuItem[] = cliente.leadId || editing ? [] : [{ label: "Eliminar cliente", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
-    if (!await confirmAction(`¿Eliminar a ${cliente.nombre}?`)) return;
+    if (!await confirmDelete("cliente", `Se elimina a ${cliente.nombre}.`, false)) return;
     await removeById(db.clientes, cliente.id, db.clientes.version(cliente));
     router.push("/admin/contactos?tab=clientes");
   } }];
