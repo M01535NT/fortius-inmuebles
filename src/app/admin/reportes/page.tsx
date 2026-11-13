@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PeriodReport } from "@/components/admin/workspace/period-report";
 import { SectionBoundary } from "@/components/admin/section-boundary";
 import { InventoryScope } from "@/components/admin/workspace/inventory-scope";
+import { ToolUsage } from "@/components/admin/apps/tool-usage";
 import { useOperationFormats } from "@/components/admin/operation/use-operation-formats";
 import { followupLabel, overdueFollowups, projectFollowups } from "@/lib/admin/followups";
 import { clientStatus } from "@/lib/admin/person-status";
@@ -107,6 +108,7 @@ export default function ReportesPage() {
         <p className={s.note}>El reparto es una estimación: 25 % al que capta y 25 % al que vende (50 % si es el mismo), sobre la comisión del contrato de intermediación. No es lo cobrado.</p>
       </div>
     </details>
+    <ToolUsage />
     <details className={s.fold}>
       <summary>Desde el inicio <span className={s.summaryNote}>{metrics.conversionPercent === null ? "Sin prospectos" : `${metrics.conversionPercent}% se volvieron clientes`}</span></summary>
       <div className={s.foldBody}>

@@ -3,13 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, FileDown, History, Plus, RotateCcw } from "@/components/admin/icons";
-import { getApp, FINANCIAL_APPS, COMMERCIAL_APPS } from "@/lib/apps/catalog";
+import { getApp, isRetired, FINANCIAL_APPS, COMMERCIAL_APPS } from "@/lib/apps/catalog";
+import { ofertasDesdePropuestas, prefillFromUrl } from "@/lib/apps/contexto";
 import { appRunSchema } from "@/lib/apps/contracts";
 import type { AppContext, AppInput, AppResult, AppRun } from "@/lib/apps/types";
 import { apiRequest, db, errorMessage, useCollection, useSession, loadAllDossiers } from "@/lib/admin/store";
 import { LinkPicker } from "@/components/admin/workspace/link-picker";
 import { PageHeader, inputClass } from "@/components/admin/ui";
-import { Button } from "@/components/admin/kit";
+import { Button, Notice } from "@/components/admin/kit";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { getFinancialDefaults } from "@/lib/apps/financial";
 import { getCommercialDefaults } from "@/lib/apps/commercial";
@@ -24,8 +25,10 @@ function defaults(slug:string):AppInput{return FINANCIAL_APPS.has(slug)?getFinan
 export function AppWorkspace({slug}:{slug:string}){const session=useSession();return <WorkspaceSession key={session?.id??"anonymous"} slug={slug}/>;}
 function WorkspaceSession({slug}:{slug:string}){
  const app=getApp(slug)!;const search=useSearchParams();
- const [input,setInput]=useState<AppInput>(()=>defaults(slug)),[result,setResult]=useState<AppResult|null>(null),[context,setContext]=useState<AppContext>({}),[title,setTitle]=useState(app.title as string),[run,setRun]=useState<AppRun|null>(null);
- const [dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState(""),[error,setError]=useState(""),[runs,setRuns]=useState<AppRun[]>([]),[versions,setVersions]=useState<AppRun[]>([]),[dossiers,setDossiers]=useState<Dossier[]>([]),[deleted,setDeleted]=useState(false),[next,setNext]=useState<number|null>(null),[historyOpen,setHistoryOpen]=useState(false),[dossierError,setDossierError]=useState("");
+ const retired=isRetired(app)&&!(slug==="informe-propietario"&&search.get("expedienteId"));
+ // HER-05: abierta desde el inmueble, el prospecto o la operación, trae puestos los datos que el sistema ya sabe.
+ const [input,setInput]=useState<AppInput>(()=>({...defaults(slug),...prefillFromUrl(slug,search).input})),[result,setResult]=useState<AppResult|null>(null),[context,setContext]=useState<AppContext>(()=>prefillFromUrl(slug,search).context),[title,setTitle]=useState(app.title as string),[run,setRun]=useState<AppRun|null>(null);
+ const [dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState(""),[error,setError]=useState(""),[runs,setRuns]=useState<AppRun[]>([]),[versions,setVersions]=useState<AppRun[]>([]),[dossiers,setDossiers]=useState<Dossier[]>([]),[deleted,setDeleted]=useState(false),[next,setNext]=useState<number|null>(null),[historyOpen,setHistoryOpen]=useState(retired),[dossierError,setDossierError]=useState("");
  const clientes=useCollection(db.clientes),propiedades=useCollection(db.propiedades);
  const draftId=useRef<string|null>(null);const generation=useRef(0);const dirtyRef=useRef(false);
  useEffect(()=>{dirtyRef.current=dirty;},[dirty]);
@@ -36,6 +39,10 @@ function WorkspaceSession({slug}:{slug:string}){
  // A one-time import synchronizes an external sessionStorage draft with this editor.
  // eslint-disable-next-line react-hooks/set-state-in-effect
  useEffect(()=>{if(slug!=="inversiones"||search.get("importar")!=="rehabilitacion")return;try{const raw=sessionStorage.getItem("fortius.apps.inversiones.transfer.v1");if(!raw)return;const transfer=JSON.parse(raw);const parsed=appRunSchema.safeParse({slug,title:app.title,input:transfer.input,result:null,context:transfer.context??{}});if(transfer.version===1&&transfer.source==="rehabilitacion"&&parsed.success){setInput(parsed.data.input);setContext(parsed.data.context);setDirty(true);setNotice("Presupuesto recibido. Revisa fechas, ingresos y financiamiento antes de calcular.");sessionStorage.removeItem("fortius.apps.inversiones.transfer.v1");}}catch{setError("No se pudo recuperar el presupuesto para inversión.");}},[slug,search,app.title]);
+ // «?abrir=<id>»: abre un trabajo guardado desde la ficha del inmueble o de la operación donde se hizo.
+ useEffect(()=>{const id=search.get("abrir");if(!id)return;let active=true;const epoch=++generation.current;apiRequest<{run:AppRun}>(`/api/admin/apps/runs/${encodeURIComponent(id)}`).then(({run:saved})=>{if(!active||epoch!==generation.current||saved.slug!==slug)return;setEditorKey(k=>k+1);setRun(saved);setInput(saved.input);setResult(saved.result);setContext(saved.context);setTitle(saved.title);setDirty(false);}).catch(e=>{if(active)setError(errorMessage(e));});return()=>{active=false;};},[search,slug]);
+ // Comparador abierto desde «Visitas y ofertas»: lee las propuestas de compra (14) de la operación, sin recapturar.
+ useEffect(()=>{const requested=search.get("expedienteId");if(slug!=="ofertas"||!requested)return;let active=true;apiRequest<{documentos:{id:string;formato_id:string;data:Record<string,unknown>}[]}>(`/api/admin/expedientes/${encodeURIComponent(requested)}/formatos`).then(({documentos})=>{if(!active||dirtyRef.current)return;const rows=ofertasDesdePropuestas(documentos);if(!rows.length)return;setInput(old=>Array.isArray(old.rows)&&old.rows.length?old:{...old,rows});setEditorKey(k=>k+1);setDirty(true);setNotice(rows.length===1?"Se cargó la propuesta de compra registrada en la operación. Captura el anticipo, los gastos y el saldo del crédito.":`Se cargaron las ${rows.length} propuestas de compra registradas en la operación. Captura el anticipo, los gastos y el saldo del crédito.`);}).catch(()=>{if(active)setNotice("No se pudieron leer las propuestas de la operación. Puedes capturar las ofertas a mano.");});return()=>{active=false;};},[slug,search]);
  useEffect(()=>{const unload=(e:BeforeUnloadEvent)=>{if(dirtyRef.current){e.preventDefault();e.returnValue="";}};let bypass=false;const click=async(e:MouseEvent)=>{const link=(e.target as Element).closest?.("a[href]") as HTMLAnchorElement|null;if(bypass||!dirtyRef.current||!link||link.target==="_blank"||link.hasAttribute("download")||link.href===location.href||!link.href.startsWith(location.origin))return;e.preventDefault();e.stopPropagation();if(await confirmAction("Hay cambios sin guardar. ¿Quieres salir de esta herramienta?")){bypass=true;link.click();bypass=false;}};window.addEventListener("beforeunload",unload);document.addEventListener("click",click,true);return()=>{window.removeEventListener("beforeunload",unload);document.removeEventListener("click",click,true);};},[]);
  useEffect(()=>{const token=generation;return()=>{token.current++;};},[]);
  const change=(value:AppInput)=>{setInput(value);setResult(null);setDirty(true);setNotice("");};
@@ -55,6 +62,7 @@ function WorkspaceSession({slug}:{slug:string}){
    <Button aria-expanded={historyOpen} onClick={()=>setHistoryOpen(!historyOpen)}><History size={17} aria-hidden="true"/>Mis trabajos</Button>
    <Button variant={result?"primary":"secondary"} disabled={busyAny||!dirty||input.ocrHasUnsavedChanges===true} onClick={save}><Save size={17} aria-hidden="true"/>{busy?"Guardando…":"Guardar"}</Button>
  </>}/>
+ {retired&&<Notice tone="info" title="Esta herramienta ya no está en el catálogo">{"home" in app?`${app.home} `:""}Aquí sigues pudiendo consultar y descargar los trabajos que ya guardaste.</Notice>}
  {error&&<div role="alert" className={styles.notice}>{error}<button type="button" className="ml-3 min-h-11 underline underline-offset-4" onClick={()=>loadHistory().then(()=>setError("")).catch(e=>setError(errorMessage(e)))}>Reintentar carga</button></div>}
  {notice&&<p role="status" className={styles.notice}>{notice}</p>}
  {input.ocrHasUnsavedChanges===true&&<p className={styles.notice}>Guarda primero la revisión del texto para conservar tus correcciones.</p>}
@@ -62,7 +70,7 @@ function WorkspaceSession({slug}:{slug:string}){
    value={{expedienteId:context.expedienteId,clienteId:context.clienteId,propiedadSlug:context.inmuebleId}}
    hint={contextLocked?"Inicia un trabajo nuevo para cambiar el vínculo.":context.expedienteId||context.clienteId||context.inmuebleId?undefined:"Opcional. Sin vínculo, es un trabajo independiente."}
    status={dossierError?<small role="alert">{dossierError}</small>:undefined}
-   onChange={(_next,dossier)=>{setContext(dossier?{expedienteId:dossier.id,clienteId:dossier.cliente_id,...(dossier.propiedad_slug?{inmuebleId:dossier.propiedad_slug}:{})}:{});setDirty(true);setResult(null);}}/></div>}<p className={styles.saved}>{dirty?"Cambios sin guardar":run?`Guardado · ${humanDateTime(run.updatedAt)}`:"Llena los datos y prepara tu resultado."}</p></fieldset>
+   onChange={(_next,dossier)=>{setContext(dossier?{expedienteId:dossier.id,clienteId:dossier.cliente_id,...(dossier.propiedad_slug?{inmuebleId:dossier.propiedad_slug}:{})}:{});setDirty(true);setResult(null);}}/></div>}{context.inmuebleId&&!context.expedienteId&&<p className={styles.saved}>Para el inmueble: <strong>{propiedades.find(p=>p.slug===context.inmuebleId)?.titulo??context.inmuebleId}</strong>. El trabajo guardado aparece en su ficha.</p>}<p className={styles.saved}>{dirty?"Cambios sin guardar":run?`Guardado · ${humanDateTime(run.updatedAt)}`:"Llena los datos y prepara tu resultado."}</p></fieldset>
  {historyOpen&&<section className={styles.history} aria-labelledby="app-history-title"><div className={styles.toolbar}><h2 id="app-history-title" className="text-lg font-semibold">{deleted?"Eliminados":"Trabajos guardados"}</h2><Button variant="ghost" disabled={busyAny} onClick={()=>setDeleted(!deleted)}>{deleted?"Ver activos":"Ver eliminados"}</Button></div>
    {runs.map(item=><div className={styles.historyRow} key={item.id}><div className="min-w-0"><strong className="break-words">{item.title}</strong><p className="text-sm text-muted-foreground">{humanDateTime(item.updatedAt)}</p></div><div className="flex gap-2">{!deleted&&<Button disabled={busyAny} onClick={()=>open(item)}>Abrir</Button>}<Button variant="ghost" disabled={busyAny} onClick={()=>remove(item)}>{deleted?"Restaurar":"Eliminar"}</Button></div></div>)}
    {!runs.length&&<p className="py-4 text-sm text-muted-foreground">{deleted?"No hay trabajos eliminados.":"Todavía no guardas trabajos de esta herramienta. Usa «Guardar» cuando tengas un resultado."}</p>}
