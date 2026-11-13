@@ -46,6 +46,12 @@ describe("datos de la empresa", () => {
     expect(org).not.toHaveProperty("sameAs");
   });
 
+  test("negocio de área de servicio: sin calle ni código postal, con los municipios que atiende", () => {
+    const org = organizationLd(settings);
+    expect(JSON.stringify(org)).not.toMatch(/streetAddress|postalCode|geo/);
+    expect(org.areaServed).toEqual(["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"].map((name) => ({ "@type": "City", name })));
+  });
+
   test("el sitio apunta a la empresa", () => {
     expect(websiteLd()).toMatchObject({ "@type": "WebSite", inLanguage: "es-MX", publisher: { "@id": ORG_ID } });
   });

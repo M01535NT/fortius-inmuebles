@@ -38,6 +38,8 @@ export function organizationLd(settings: SiteSettings | null): JsonLd {
     image: absolute("/opengraph-image.png"),
     ...(filled(settings?.telefono) ? { telephone: internationalPhone(filled(settings?.telefono)) } : {}),
     ...(filled(settings?.email) ? { email: filled(settings?.email) } : {}),
+    // Negocio de área de servicio (titular, 13/11/2026: «visitamos al cliente», sin oficina abierta al
+    // público): solo ciudad y estado, nunca calle ni código postal; la cobertura va en areaServed.
     address: { "@type": "PostalAddress", addressLocality: "Tijuana", addressRegion: "Baja California", addressCountry: "MX" },
     areaServed: AREA_SERVED.map((name) => ({ "@type": "City", name })),
     ...(sameAs.length ? { sameAs } : {}),
