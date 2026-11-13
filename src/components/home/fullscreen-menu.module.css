@@ -27,7 +27,7 @@
 .channel { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
 .channel:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
 .hours { margin: 0; color: var(--muted); font-size: var(--type-detalle); }
-.primary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: var(--space-cerca) var(--space-amplio); border: 1px solid #8a1634; background: #8a1634; color: #fff; font-size: var(--type-interfaz); font-weight: 600; transition: border-radius 0.4s, transform 0.4s, background-color 0.2s; }
+.primary { display: inline-flex; align-items: center; justify-content: center; min-height: var(--control-normal); padding: var(--space-cerca) var(--space-amplio); border: 1px solid #8a1634; background: #8a1634; color: #fff; font-size: var(--type-interfaz); font-weight: 600; transition: border-radius 0.4s, transform 0.4s, background-color 0.2s; }
 .primary:hover { border-color: #70112a; background: #70112a; border-radius: 20px 0 20px 0; transform: translateY(-3px); }
 .direct { display: inline-flex; align-items: center; gap: var(--space-corto); min-height: 44px; color: var(--accent); font-weight: 600; }
 .direct svg { transition: transform 0.3s; }

@@ -29,7 +29,7 @@
 .ss-types button:hover { border-color: var(--foreground); }
 .ss-types button[aria-checked="true"] { border-color: #061f3f; background: #061f3f; color: #fff; }
 .dark .ss-types button[aria-checked="true"] { border-color: #f8f8ff; background: #f8f8ff; color: #061f3f; }
-.ss-submit { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-corto); min-height: 48px; border: 0; border-radius: 4px; background: #061f3f; color: #fff; font-size: var(--type-texto); font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.ss-submit { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-corto); min-height: var(--control-normal); border: 0; border-radius: 4px; background: #061f3f; color: #fff; font-size: var(--type-texto); font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
 .ss-submit:hover { background: #0b2c56; }
 .dark .ss-submit { background: #f8f8ff; color: #061f3f; }
 

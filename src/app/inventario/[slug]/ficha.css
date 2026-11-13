@@ -195,7 +195,7 @@
 .fe-visit-days button strong { font-size: var(--type-entrada); font-weight: 600; }
 .fe-visit-days button:hover { border-color: rgba(255, 255, 255, 0.5); }
 .fe-visit-days button[aria-pressed="true"] { border-color: var(--ns-accent); background: color-mix(in srgb, var(--ns-accent) 18%, transparent); }
-.fe-visit-cta { width: 100%; min-height: 54px; border-radius: 4px; }
+.fe-visit-cta { width: 100%; min-height: var(--control-grande); border-radius: 4px; }
 .fe-visit-form { padding: var(--space-normal); border-radius: 6px; background: #f8f8ff; color: #061f3f; --foreground: #061f3f; --muted-foreground: #40536b; --border: rgba(6, 31, 63, 0.16); --input: rgba(6, 31, 63, 0.2); --background: #fff; --card: #fff; --primary-text: #8a1634; }
 .fe-visit-channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: var(--space-corto); }
 .fe-visit-channels a { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-corto); min-height: 44px; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 4px; color: #f8f8ff; font-size: var(--type-etiqueta); font-weight: 600; transition: background-color 0.25s; }
