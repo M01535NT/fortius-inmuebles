@@ -196,7 +196,7 @@ test("cada etapa ofrece su documento; de la publicación al cierre no detienen y
   expect(formatos("visitas", "captacion")).toEqual(["12", "13", "14"]);
   expect(formatos("cierre", "captacion")).toEqual(["15", "16", "17", "18"]);
   expect(formatos("visitas", "arrendador")).toEqual(["13"]);
-  expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18"]);
+  expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18", "20"]);
   expect(stageDocuments("cierre", "captacion").every(item => item.optional)).toBe(true);
 });
 
@@ -236,6 +236,9 @@ test("la renta del propietario sigue su propio camino y nombra igual sus etapas 
   expect(routeStages(rent("documentacion", { titularidad: reviewed() }), today).phase).toBe("verificacion");
   expect(stageDocuments("dictamen", "arrendador")).toEqual([{ formato: "05", optional: true }]);
   expect(stageDocuments("verificacion", "arrendador").map(d => d.formato)).toEqual(["07"]);
+  // DOC-14: el contrato de arrendamiento (20) va en el cierre de la renta, opcional; nunca en la venta.
+  expect(stageDocuments("cierre", "arrendador")).toContainEqual({ formato: "20", optional: true });
+  expect(stageDocuments("cierre", "captacion").map(d => d.formato)).not.toContain("20");
   expect(advanceTarget(rent("documentacion", { titularidad: reviewed() }), today)).toEqual({ label: "Intermediación para renta" });
   // Lo que falta se dice con palabras de renta.
   expect(missingItems(rent("documentacion", { titularidad: reviewed() }), [task()], today).map(m => m.text)).toEqual(["Opinión de renta con comparables", "Renta acordada con el propietario", "Registrar si tomas el encargo"]);
