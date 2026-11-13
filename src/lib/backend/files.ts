@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import sharp, { type Sharp } from "sharp";
 import { z } from "zod";
 import { ApiError, databaseError } from "./http";
 import { MAX_FILE_BYTES, validateFile } from "./validation";
@@ -71,9 +72,29 @@ export async function dropStagedUpload(client: StorageClient, path: string) {
   await client.storage.from("fortius-inmuebles-staging").remove([path]);
 }
 
+/**
+  M4 (auditoría de seguridad, 13/11/2026): una foto pública no debe llevar EXIF, GPS ni datos de la
+  cámara; una foto del celular da la ubicación exacta de la casa. Se recodifica en el mismo formato,
+  girada según su orientación, y sharp descarta todos los metadatos. GIF, PDF y video no se tocan.
+*/
+const SIN_METADATOS: Partial<Record<string, (image: Sharp) => Sharp>> = {
+  "image/jpeg": image => image.jpeg({ quality: 90, mozjpeg: true }),
+  "image/png": image => image.png(),
+  "image/webp": image => image.webp({ quality: 90 }),
+};
+export async function sinMetadatos(file: File, type: string): Promise<File> {
+  const encode = SIN_METADATOS[type];
+  if (!encode) return file;
+  try {
+    const bytes = await encode(sharp(Buffer.from(await file.arrayBuffer()), { failOn: "error" }).rotate()).toBuffer();
+    return new File([new Uint8Array(bytes)], file.name, { type });
+  } catch { throw new ApiError(400, "No se pudo preparar la imagen para publicarla; prueba con otra foto"); }
+}
+
 export async function completeUpload(client: UploadClient, userId: string, ticket: unknown) {
-  const { claims, file, type } = await takeStagedUpload(client, userId, ticket);
+  const { claims, file: validated, type } = await takeStagedUpload(client, userId, ticket);
   const bucket = claims.visibility === "public" ? "fortius-inmuebles-public" : "fortius-inmuebles-private";
+  const file = bucket === "fortius-inmuebles-public" ? await sinMetadatos(validated, type) : validated;
   // Copy the exact bytes just validated, not a mutable remote object. Immutable
   // final names make concurrent completion/replayed tickets unable to overwrite.
   const saved = await client.storage.from(bucket).upload(claims.path, file, { contentType: type, upsert: false });
