@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { MortgageCalculator } from "@/components/property/mortgage-calculator";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./hipoteca.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/herramientas/hipoteca",

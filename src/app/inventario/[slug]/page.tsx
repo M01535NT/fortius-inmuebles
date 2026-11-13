@@ -28,6 +28,7 @@ import {
 import { getConjunto, getPropertyBySlug, getRelatedProperties } from "@/lib/inventario";
 import { siteConfig } from "@/data/site";
 import { propertyLd, serializeLd } from "@/lib/seo/json-ld";
+import "./inmueble.css";
 import "./ficha.css";
 
 type Params = { slug: string };

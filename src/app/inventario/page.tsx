@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { InventoryExplorer } from "@/components/property/inventory-explorer";
 import { getPropiedades } from "@/lib/inventario";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./inventario.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/inventario",

@@ -8,6 +8,7 @@ import { InteriorPage } from "@/components/sections/interior-page";
 import { routePages } from "@/data/site";
 import { getFeaturedProperties, getPropiedades } from "@/lib/inventario";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./comprar.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/comprar-propiedad",
