@@ -56,6 +56,8 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   ...(formatoId==="01"?{responsable:empresa?.razonSocial||SITE_TERMS.responsible,domicilioResponsable:empresa?.domicilio||privacyAddress,contactoPrivacidad:SITE_TERMS.responsible,correoPrivacidad:SITE_TERMS.email,fechaEmision:hoyTijuana()}:{}),
   // Contrato 09: el prestador (Fortius) sale de Configuración; solo lo capturado, nada inventado (FCH-03).
   // Si ya hay representante, comparece por él (persona moral) y firma con su cargo.
+  // Arrendamiento (20): el propietario que renta es el arrendador; el plazo de la entrevista es otro dato (cuándo quiere rentar).
+  ...(formatoId==="20"?{plazo:undefined,arrendador:owner&&["propietario","copropietario"].includes(a.relacion)?name:undefined,arrendadorCorreo:owner&&["propietario","copropietario"].includes(a.relacion)?persona?.email:undefined}:{}),
   ...(formatoId==="09"&&empresa?{...prestadorDel09(empresa),...(empresa.representante?{comparecePrestador:"representante",calidadFirmaPrestador:empresa.calidadRepresentante||undefined}:{})}:{}),
  };
  const result: Record<string,string|number> = {};
