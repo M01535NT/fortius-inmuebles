@@ -2,14 +2,14 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { CircleHelp, X } from "@/components/admin/icons";
-import { markSeen, readSeen, tourFor, type TourStep } from "@/lib/admin/tour";
+import { markSeen, tourFor, type TourStep } from "@/lib/admin/tour";
 import { cn } from "@/lib/utils";
 import nav from "./guided-nav.module.css";
 import s from "./tour.module.css";
 
 /*
   Guía de la pantalla (titular, 02/11/2026). «Ayuda» en la barra, la tecla «?» o el evento
-  `fortius:tour` la abren; la primera visita a cada pantalla la abre sola. Oscurece todo, resalta
+  `fortius:tour` la abren; nunca se abre sola (DEC-47, 12/11/2026). Oscurece todo, resalta
   el elemento del paso y explica qué hacer ahí; Siguiente, Anterior, Omitir y cerrar; con el
   teclado: flechas, Enter y Escape. Mientras está abierta no se puede tocar el resto de la pantalla.
   Los pasos viven en `src/lib/admin/tour.ts`.
@@ -59,7 +59,7 @@ export function Tour({ pathname }: { pathname: string }) {
     restore.current?.focus?.();
   }, [screenId]);
 
-  // Botón, tecla «?» y primera visita.
+  // Botón y tecla «?».
   React.useEffect(() => {
     const onEvent = () => start();
     const onKey = (event: KeyboardEvent) => {
@@ -68,14 +68,6 @@ export function Tour({ pathname }: { pathname: string }) {
     window.addEventListener(EVENT, onEvent); window.addEventListener("keydown", onKey);
     return () => { window.removeEventListener(EVENT, onEvent); window.removeEventListener("keydown", onKey); };
   }, [start]);
-  React.useEffect(() => {
-    if (!screenId) return;
-    let storage: Storage | null = null;
-    try { storage = localStorage; } catch { storage = null; }
-    if (!storage || readSeen(storage).includes(screenId)) return;
-    const timer = window.setTimeout(start, 900);
-    return () => window.clearTimeout(timer);
-  }, [screenId, start]);
   // Al cambiar de pantalla la guía se cierra sin marcarla vista (ajuste de estado durante el render).
   const [shownFor, setShownFor] = React.useState(pathname);
   if (shownFor !== pathname) { setShownFor(pathname); setSteps(null); setRect(null); }

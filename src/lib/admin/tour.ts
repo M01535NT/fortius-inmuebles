@@ -1,8 +1,8 @@
 /*
   Guía de cada pantalla (titular, 02/11/2026): un botón «Ayuda» en la barra y la tecla «?»
   abren una guía que oscurece la pantalla, resalta un elemento y dice qué hacer ahí, paso por
-  paso, con Siguiente, Omitir y cerrar. La primera vez que se entra a una pantalla se abre sola;
-  después solo cuando se pide. Aquí viven los pasos; la capa que los muestra está en
+  paso, con Siguiente, Omitir y cerrar. Nunca se abre sola: solo cuando se pide
+  (DEC-47, 12/11/2026). Aquí viven los pasos; la capa que los muestra está en
   `src/components/admin/workspace/tour.tsx`. Cada paso apunta a un elemento marcado con
   `data-tour="<target>"`; si ese elemento no está en pantalla (lista vacía, celular), el paso se salta.
 */
