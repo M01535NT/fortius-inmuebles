@@ -31,8 +31,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 2. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
 3. DOC-14: el titular pidió que el agente redacte el arrendamiento («estándar y que sea flexible»; casa habitación o uso comercial, con opciones). Borrador del agente en revisión del titular; el formato se construye cuando apruebe el texto, y como contrato sigue necesitando la revisión del abogado antes de firmarse.
 4. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
-5. Verificación completa y un solo PR a `main` cuando el titular lo pida.
-6. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
+5. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
 
 **Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **Fortius solo representa al propietario: compradores y arrendatarios son leads de Fortius y contraparte de sus clientes, nunca clientes de Fortius** (RP-93).
 
