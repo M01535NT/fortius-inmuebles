@@ -165,11 +165,11 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       text = target?.target ? `Pasa a ${target.label} cuando quieras.` : target ? `La siguiente etapa, «${target.label}», se abre sola.` : "No hay más pasos en esta operación.";
       action = pass;
     } else if (now.kind === "inicio") {
-      title = now.step === "levantamiento" ? "Iniciar el levantamiento" : "Iniciar el checklist de documentos";
+      title = now.step === "levantamiento" ? "Iniciar el levantamiento" : "Iniciar la lista de documentos";
       text = now.step === "levantamiento" ? "Elige el tipo de levantamiento en la lista de documentos; se captura en la visita." : "La lista de documentos del propietario. Marca cada uno al recibirlo.";
       action = now.step === "levantamiento"
         ? <Button variant="primary" disabled={lock} onClick={() => void docs.start("04", survey)}><PlayCircle size={18} aria-hidden="true" />Iniciar levantamiento</Button>
-        : <Button variant="primary" disabled={lock} onClick={() => void docs.startChecklist()}>Iniciar checklist<ArrowRight size={18} aria-hidden="true" /></Button>;
+        : <Button variant="primary" disabled={lock} onClick={() => void docs.startChecklist()}>Iniciar lista<ArrowRight size={18} aria-hidden="true" /></Button>;
     } else if (now.kind === "documento") {
       const doc = docs.latest(now.formato), name = formatTitle(now.formato, doc);
       const plain = name.split(" · ").slice(1).join(" · ");
@@ -177,9 +177,9 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       text = doc ? draftText(doc, !!docs.pdfOf(doc)) : phase === "prospecto" ? "Ya trae sus preguntas: solo capturas las respuestas." : "Se abre en su propia ventana.";
       action = <Button variant="primary" disabled={lock} onClick={() => void docs.start(now.formato, survey)}><PlayCircle size={18} aria-hidden="true" />{phase === "prospecto" ? "Iniciar entrevista" : doc ? "Continuar" : "Iniciar"}</Button>;
     } else if (now.kind === "checklist") {
-      title = checklist ? "Reunir los documentos del propietario" : "Crear el checklist de documentos";
+      title = checklist ? "Reunir los documentos del propietario" : "Crear la lista de documentos";
       text = checklist ? `${checklist.pasos.filter(pasoCompleto).length} de ${checklist.pasos.length} listos. Márcalos en la lista al recibirlos.` : "Se arma con lo que contestó en la entrevista.";
-      action = checklist ? <Button disabled={lock} onClick={() => docs.checklistFile("pdf")}><FileDown size={16} aria-hidden="true" />Checklist PDF</Button> : <Button variant="primary" disabled={lock} onClick={() => void docs.startChecklist()}>Crear checklist</Button>;
+      action = checklist ? <Button disabled={lock} onClick={() => docs.checklistFile("pdf")}><FileDown size={16} aria-hidden="true" />Lista de documentos PDF</Button> : <Button variant="primary" disabled={lock} onClick={() => void docs.startChecklist()}>Crear checklist</Button>;
     } else if (now.kind === "requisito") {
       const name = requirementName(now.key, flow.ruta);
       const held = lock || (locked && CONTRACT_KEYS.includes(now.key));
@@ -241,7 +241,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
         : item.kind === "inicio"
         ? <li key={item.step} className={s.docWait}>
           <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
-          <span className="flex min-w-[12rem] flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: checklist de documentos"}</strong><span className="text-sm text-muted-foreground">{item.step === "levantamiento" && waitsLawyer ? "Espera la revisión del abogado." : "Al iniciarlo pasa a la siguiente etapa."}</span></span>
+          <span className="flex min-w-[12rem] flex-1 flex-col gap-0.5"><strong>{item.step === "levantamiento" ? "Siguiente: levantamiento del inmueble" : "Siguiente: lista de documentos"}</strong><span className="text-sm text-muted-foreground">{item.step === "levantamiento" && waitsLawyer ? "Espera la revisión del abogado." : "Al iniciarlo pasa a la siguiente etapa."}</span></span>
           {item.step === "levantamiento" && !waitsLawyer && surveySelect}
         </li>
         : item.kind === "checklist"

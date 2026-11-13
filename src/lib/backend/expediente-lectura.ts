@@ -61,7 +61,7 @@ export async function leerArchivoConIa(client: SupabaseClient, privileged: Supab
   if (archivo.deleted_at) throw new ApiError(409, "Restaura el documento antes de leerlo");
   await exigirExpediente(client, archivo.expediente_id);
   const [{ topeUsd: tope }, gasto] = await Promise.all([topeVigente(privileged), gastoDelMes(privileged)]);
-  if (gasto >= tope) throw new ApiError(429, `Se alcanzó el tope de lecturas de este mes (${tope} USD); la lectura se reanuda el próximo mes o cuando el director suba el tope en Configuración`);
+  if (gasto >= tope) throw new ApiError(429, "Se terminaron las lecturas de este mes. Captura los datos a mano o pide al director que amplíe el límite en Configuración.");
 
   await marcar(privileged, archivo.id, { lectura_estado: "leyendo", lectura_error: null });
   const anotar = (estado: "leido" | "error", resultado?: ResultadoExtractor, propuestos = 0) => privileged.from("fortius_inmuebles_ia_lecturas").insert({

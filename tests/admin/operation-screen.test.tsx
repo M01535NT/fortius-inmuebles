@@ -166,7 +166,7 @@ it("el checklist de documentos se arma con la entrevista y se marca al recibir c
   server.docs.push({ id: "d04", expediente_id: ID, formato_id: "04B", data: {}, version: 3, updated_at: "2026-10-15T19:00:00Z" });
   server.emissions.d04 = [{ id: "e04", draft_version: 3, created_at: "2026-10-15T19:00:00Z" }];
   await openOperation();
-  fireEvent.click(await screen.findByRole("button", { name: /Iniciar checklist/ }));
+  fireEvent.click(await screen.findByRole("button", { name: /Iniciar lista/ }));
   await waitFor(() => expect(server.tasks).toHaveLength(1));
   const created = server.tasks[0] as { id: string; pasos: Array<{ id: string; hecho: boolean }> };
   expect(created.id).toBe(`checklist-${ID}`);
@@ -210,7 +210,7 @@ it("en el dictamen, la barra dice qué les falta a las etapas anteriores y «Ver
   await stage(5);
   expect(await screen.findByRole("button", { name: "3 · Levantamiento: falta el levantamiento" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "2 · Entrevista inicial: lista" })).toBeTruthy();
-  expect(screen.getByRole("button", { name: "4 · Checklist de documentos: falta el checklist" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "4 · Checklist de documentos: falta la lista de documentos" })).toBeTruthy();
   expect(screen.getByText("A la etapa 3, levantamiento, le falta el levantamiento. Hay 1 más en «Ver etapas».")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Ver etapas" }));
   const sheet = await screen.findByRole("dialog", { name: "Etapas" });

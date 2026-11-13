@@ -69,7 +69,9 @@ describe("leer un documento del cliente con IA", () => {
   it("al llegar al tope del mes se pausa sin llamar al proveedor", async () => {
     const { client } = privilegiado(25);
     const extraer = vi.fn<Extractor>();
-    await expect(leerArchivoConIa(sesion, client, "u1", ARCHIVO.id, extraer)).rejects.toMatchObject({ status: 429 });
+    const pausa = leerArchivoConIa(sesion, client, "u1", ARCHIVO.id, extraer);
+    await expect(pausa).rejects.toMatchObject({ status: 429, message: "Se terminaron las lecturas de este mes. Captura los datos a mano o pide al director que amplíe el límite en Configuración." });
+    await expect(pausa).rejects.not.toThrow("USD");
     expect(extraer).not.toHaveBeenCalled();
   });
 

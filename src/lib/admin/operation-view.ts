@@ -81,7 +81,7 @@ function missingDoc(formato: string, draft: boolean) {
 
 /** Lo que dejó pendiente una etapa ya pasada («Falta la entrevista inicial»); vacío si está completa o no deja documentos. */
 export function phaseGap(phase: SalePhase, status: (formato: string) => FormatStatus, checklist?: InitialInterviewStatus["documentos"], ruta?: string | null) {
-  if (phase === "documentos") return checklist === "completo" ? "" : checklist ? "Faltan documentos" : "Falta el checklist";
+  if (phase === "documentos") return checklist === "completo" ? "" : checklist ? "Faltan documentos" : "Falta la lista de documentos";
   const missing = phaseFormats(phase, ruta).filter(f => status(f) !== "terminado").map(f => missingDoc(f, !!status(f)));
   return missing.length ? `Falta ${missing.length > 1 ? `${missing.slice(0, -1).join(", ")} y ${missing.at(-1)}` : missing[0]}` : "";
 }
@@ -326,7 +326,7 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   const inicial = op.inicial ?? {};
   if (phase === "prospecto") return [{ text: "Iniciar la entrevista inicial", why: "con el botón «Iniciar entrevista inicial»", place: "operacion" }];
   if (phase === "captacion" && !target.target) return [inicial.emitida ? { text: "Iniciar el levantamiento", why: "con el botón «Iniciar levantamiento»", place: "operacion" } : { text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" }];
-  if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar el checklist de documentos", why: "con el botón «Iniciar checklist»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
+  if (phase === "levantamiento") return [inicial.levantamiento === "emitido" ? { text: "Iniciar la lista de documentos", why: "con el botón «Iniciar lista»", place: "operacion" } : { text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" }];
   if (!target.target) {
     const items: Missing[] = (phase === "dictamen" ? phaseRequirements("dictamen", flow.ruta) : verificationRequirements(flow.ruta)).filter(k => !reviewComplete(flow, k, today)).map(key => ({ text: requirementName(key, flow.ruta), why: requirementWhy(flow.requisitos[key]), requirement: key, place: "requisito" }));
     if (phase !== "dictamen" && (!flow.resolucion || !["aceptada", "condicionada"].includes(flow.resolucion.tipo))) items.push({ text: "Registrar si tomas el encargo", why: "en «Decisión del encargo» de esta etapa", place: "encargo" });
@@ -334,7 +334,7 @@ export function missingItems(op: OperationRecord, tasks: Task[], today: string, 
   }
   const labels = new Map(Object.entries(WORKFLOW_REQUIREMENTS).map(([key, value]) => [value.label as string, key as RequirementKey]));
   const initial: Missing[] = phase !== "documentos" ? [] : [
-    ...(inicial.documentos !== "completo" ? [{ text: "Recibir los documentos del checklist", why: "márcalos al recibirlos", place: "operacion" as const }] : []),
+    ...(inicial.documentos !== "completo" ? [{ text: "Recibir los documentos de la lista", why: "márcalos al recibirlos", place: "operacion" as const }] : []),
     ...(!inicial.emitida ? [{ text: "Terminar la entrevista inicial (02)", why: "y generar su PDF", place: "operacion" as const }] : []),
     ...(inicial.levantamiento !== "emitido" ? [{ text: "Terminar el levantamiento (04)", why: "y generar su PDF", place: "operacion" as const }] : []),
   ];
