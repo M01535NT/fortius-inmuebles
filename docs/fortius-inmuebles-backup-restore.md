@@ -49,7 +49,7 @@ Salvaguardas comprobadas por `tests/tools/restore-storage.test.mjs`:
 
 El informe se guarda en el directorio del respaldo como `storage-restore-REF-FECHA.json`, sin claves ni contenido. Lo que **no** cubre: el propietario original de cada objeto (`owner_id`; las subidas usan el rol de servicio del destino), las cuentas de Auth y sus contraseñas, y la configuración del proyecto (correo, URL de retorno, límites de Auth). Esas partes requieren el procedimiento del proveedor descrito en `docs/erp-crm/recovery-policy.md`.
 
-**Estado (12/11/2026):** no hay Docker para la pila local, y las ramas de Supabase exigen el plan Pro. El titular eligió un **proyecto gratuito aparte** (la organización tiene un solo proyecto activo de los dos que permite el plan gratuito). El ensayo real sigue pendiente: falta crear ese proyecto.
+**Estado (12/11/2026):** ensayo completo **aprobado** en un proyecto gratuito aparte; ver «Resultado del ensayo del 12/11/2026». No había Docker para la pila local, y las ramas de Supabase exigen el plan Pro.
 
 **Los buckets no salen de las migraciones.** Las migraciones crean los buckets con sus nombres históricos (`mnt-*`, `cota-*`) y reescriben las políticas de `storage.objects` hacia `fortius-inmuebles-*`. En producción, los buckets `fortius-inmuebles-*` se crearon aparte con `tools/fortius-inmuebles-storage-identity.mjs`. Un proyecto nuevo creado solo con migraciones tiene las políticas, pero no los buckets. La restauración de Storage los crea desde el inventario del respaldo, con su privacidad, límite y tipos. Los buckets históricos quedan vacíos en el destino y no estorban.
 
@@ -75,6 +75,24 @@ node --env-file=RUTA_ENV_RECUPERACION tools/fortius-inmuebles-recovery-rehearsal
 ```
 
 El archivo de entorno lleva `FORTIUS_RECOVERY_SUPABASE_URL`, `FORTIUS_RECOVERY_ANON_KEY`, `FORTIUS_RECOVERY_SERVICE_ROLE_KEY` y `FORTIUS_RECOVERY_DB_URL` (cadena de conexión de sesión del proyecto aislado). Rechaza una cadena que apunte a producción o a otro proyecto. El informe se guarda en `tmp/rec01/ensayo-REF-FECHA/informe.json`, sin claves. Usa el paquete `pg` (dependencia de desarrollo).
+
+### Resultado del ensayo del 12/11/2026 (hora de México)
+
+Destino: proyecto gratuito aparte `fortius-ensayo-recuperacion` (`qmlpcpddvglhlmkxobis`, us-west-2), creado ese día solo para el ensayo, con datos sintéticos. Producción no se tocó.
+
+| Paso | Resultado | Tiempo |
+| --- | --- | --- |
+| Migraciones | 53 aplicadas a la base nueva | 3.0 s |
+| Respaldo sintético | 30 tablas, 2 documentos, verificado | 1.2 s |
+| Auth | 2 cuentas de ensayo creadas, 0 correos | 0.7 s |
+| Base | 30 tablas iguales a la fuente, 49 FK revalidadas | 5.3 s |
+| Storage | 6 buckets (5 creados, 1 reutilizado), 2 objetos con huella idéntica; sin sesión no se descarga nada privado | 3.4 s |
+| Acceso | Administrador 2/1/1, asesor 1/1/0 y sin sesión 0/0/0 (expedientes/emisiones/documentos), como se esperaba; ninguna sesión descarga directo de Storage | 2.5 s |
+| **Total** | **Aprobado** | **16.5 s** |
+
+Un segundo intento sobre el mismo proyecto se negó («Target already has application tables»), y apuntar a producción también se negó. El informe sin claves quedó en `tmp/rec01/` (carpeta ignorada).
+
+**Qué demuestra:** desde el repositorio y un respaldo verificado se reconstruye un proyecto nuevo con base, buckets, archivos, cuentas y permisos que se comportan como se espera, en segundos. **Qué no demuestra:** el tiempo con el volumen real (hoy solo hay datos de prueba), la configuración del proyecto alojado (correo, URL de retorno, límites de Auth), las contraseñas de las cuentas reales (se emiten nuevas) ni el propietario original de cada objeto. Tampoco hay todavía copia diaria automática ni custodia acordada; el RPO de 24 h sigue sin capacidad demostrada.
 
 ### Equipos con Windows
 

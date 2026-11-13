@@ -1,6 +1,6 @@
 # Recuperación de Fortius — procedimiento y decisiones
 
-Estado: controles locales implementados; herramienta de restauración de Storage en un proyecto aislado lista; objetivos iniciales aprobados; ensayo real del proveedor pendiente por falta de destino aislado. Objetivos aprobados: 12/10/2026. Cobertura actualizada: 12/11/2026.
+Estado: controles locales implementados; ensayo completo con datos sintéticos aprobado el 12/11/2026 en un proyecto aislado (16.5 s); objetivos iniciales aprobados; faltan copia diaria automática, custodia y ensayo con volumen real. Objetivos aprobados: 12/10/2026. Cobertura actualizada: 12/11/2026.
 
 ## Alcance comprobable
 
@@ -33,28 +33,20 @@ El padre del destino debe existir. Se rechazan destinos existentes, interiores a
 - Custodia: responsable designado por Moisés; copia cifrada fuera del repositorio y del servidor público; acceso por necesidad y registro de acceso.
 - Retención: decidir según finalidad, relaciones, obligaciones aplicables y revisión profesional. No imponer un plazo uniforme ni borrado automático.
 
-## Ensayo completo pendiente
+## Ensayo completo (12/11/2026)
 
-Nada de lo siguiente se ha ejecutado. El 12/11/2026 el titular eligió primero la pila local (el equipo no tiene Docker) y después una rama (exige el plan Pro); el destino acordado es un **proyecto gratuito aparte**, que se borra al terminar. El ensayo completo lo automatiza `tools/fortius-inmuebles-recovery-rehearsal.mjs`. El respaldo sintético ya se genera con `tools/fortius-inmuebles-synthetic-backup.mjs`. Las migraciones no crean los buckets `fortius-inmuebles-*`; los crea la restauración de Storage (ver [el procedimiento](../fortius-inmuebles-backup-restore.md)). La base actual solo tiene datos de prueba (DEC-10), así que el ensayo puede hacerse con esa información sintética; aun así, **nunca** se restaura sobre el proyecto de producción.
+El 12/11/2026 se ejecutó `tools/fortius-inmuebles-recovery-rehearsal.mjs` contra un proyecto gratuito aparte (`qmlpcpddvglhlmkxobis`), con datos sintéticos, y **pasó**: 53 migraciones, 30 tablas iguales a la fuente, 49 FK revalidadas, 6 buckets, 2 objetos con huella idéntica, 2 cuentas de ensayo y el acceso esperado para administrador, asesor y visitante sin sesión. Tardó 16.5 s en total. El detalle por paso está en [el procedimiento](../fortius-inmuebles-backup-restore.md). Antes se descartaron la pila local (sin Docker en el equipo) y las ramas de Supabase (exigen el plan Pro).
 
-**Destino.** Opciones, de menor a mayor costo (decide el titular):
+Para repetirlo: crear otro proyecto vacío (el script se niega a mezclar datos), guardar sus cuatro datos de conexión en un archivo propio fuera del repositorio y ejecutar el script con `--confirm-target REF`. Al terminar, borrar el proyecto de ensayo.
 
-1. **Pila local de Supabase** (`supabase start`, requiere Docker y la CLI de Supabase, hoy no instalada en el equipo). Sin costo; prueba DB, Storage y políticas, pero no la configuración del proyecto alojado.
-2. **Rama de Supabase** (Supabase Branching). El repositorio ya tiene la integración con GitHub: cada PR muestra el check «Supabase Preview». Una rama crea una base y un Storage separados con las migraciones aplicadas. Puede tener costo por hora según el plan; confirmar antes.
-3. **Proyecto Supabase nuevo** solo para recuperación. Es lo más parecido a un desastre real; tiene costo mensual mientras exista.
+**Pendiente para cerrar REC-01:**
 
-**Pasos con el destino ya autorizado:**
+1. Copia diaria automática del export propietario y de Storage, con custodia cifrada fuera del repositorio (decide el titular dónde y quién). Sin esto, el RPO de 24 h no es una capacidad.
+2. Repetir el ensayo con el volumen real cuando se cargue el inventario, porque los tiempos de hoy son de un caso mínimo.
+3. Documentar la configuración del proyecto que no viaja con el respaldo: correo saliente, URL de retorno, límites y plantillas de Auth.
+4. Decidir qué hacer con el proyecto de ensayo: borrarlo o conservarlo pausado para el siguiente ensayo.
 
-1. Anotar la hora de inicio (inicio del RTO). Coordinar una pausa de escrituras en el origen mientras dura la copia.
-2. Respaldar: export propietario (`tools/fortius-inmuebles-owner-export.sql`) y `node --env-file=.env.local tools/fortius-inmuebles-backup.mjs --prefix fortius_inmuebles --database RUTA_EXPORT.json`; después `--verify`.
-3. Ensayo de base en memoria: `node tools/fortius-inmuebles-restore-rehearsal.mjs DIRECTORIO_BACKUP`.
-4. Aplicar las migraciones del repositorio al destino aislado (crean buckets y políticas).
-5. Restaurar Storage: `node --env-file=RUTA_ENV_RECUPERACION tools/fortius-inmuebles-restore-storage.mjs DIRECTORIO_BACKUP --confirm-target REF`. Con la clave anónima, el informe confirma que lo privado no se descarga sin sesión.
-6. Cargar los datos del export en el destino. Hoy solo existe la carga en la base en memoria; falta una carga contra un Postgres real, que debe usar el mismo orden y validaciones de `fortius-inmuebles-restore-current.mjs`.
-7. Recrear dos cuentas de prueba (administrador y asesor) en el Auth del destino y comprobar acceso, denegación y descarga de un documento con cada una. Las contraseñas y sesiones del origen no se recuperan; se emiten nuevas.
-8. Anotar la hora de fin, comparar con RPO 24 h y RTO 8 h, registrar lo que no se pudo restaurar y decidir la disposición del destino.
-
-No generar copias de clientes reales para la fase sintética. No considerar REC-01 cerrado hasta comprobar recuperación del alcance requerido y acordar custodia/destino.
+No generar copias de clientes reales para la fase sintética. No considerar REC-01 cerrado hasta resolver lo anterior.
 
 ## Explicación para decidir y evidencia del proveedor
 
