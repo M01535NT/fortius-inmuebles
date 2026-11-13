@@ -44,3 +44,9 @@ it("las columnas de las políticas tienen índice", async () => {
   expect(names).toEqual(expect.arrayContaining(["fortius_inmuebles_records_task_expediente", "fortius_inmuebles_records_asesor",
     "fortius_inmuebles_app_files_expediente", "fortius_inmuebles_app_shares_file", "fortius_inmuebles_integration_jobs_expediente"]));
 });
+
+it("el tope global de la captura pública es de 1000 por hora (SEG-B4)", async () => {
+  const definition = (await db.query<{ d: string }>("select pg_get_functiondef('public.fortius_inmuebles_capture_lead(jsonb,text)'::regprocedure) d")).rows[0].d;
+  expect(definition).toContain("when k='global:hour' then 1000");
+  expect(definition).toContain("when k like 'minute:%' then 5");
+});
