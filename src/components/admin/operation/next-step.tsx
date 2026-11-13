@@ -123,7 +123,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     if (item.place === "ajustes") onGoTo("ajustes");
     else if (item.place === "firma" || item.place === "cierre" || item.place === "encargo") { const card = document.getElementById(item.place === "firma" ? "firma-contrato" : item.place === "encargo" ? "decision-encargo" : "cierre-operacion"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("button")?.focus(); }
     else if (item.place === "tarea") { const card = document.getElementById("proxima-tarea"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("input, button")?.focus(); }
-    else void docs.start(item.text.includes("(02)") ? "02" : "04", survey);
+    else void docs.start(item.formato ?? "04", survey);
   }
 
   // COR-14 y CAP-06: la condición de la llamada o de la 02 y su «Siguiente paso» cambian lo que toca.
@@ -311,13 +311,13 @@ const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Regis
 
 function DocRow({ item, now, docs, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
   const doc = docs.latest(item.formato), pdf = docs.pdfOf(doc);
-  const [code, ...rest] = formatTitle(item.formato, doc).split(" · ");
+  // SIM-05 (C15): en la etapa, el documento por su nombre; el número se ve en Documentos.
+  const [, ...rest] = formatTitle(item.formato, doc).split(" · ");
   const waits = item.formato === "06" && !doc && docs.status("05") !== "terminado";
-  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar el 05" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en esta operación") : "Todavía no empieza";
+  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en esta operación") : "Todavía no empieza";
   return <li className="flex flex-col gap-2">
     <div className={s.docRowWrap}>
       <button type="button" className={cn(s.docRow, waits && s.docRowWait)} data-now={now || undefined} disabled={disabled || waits} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
-        <span className={s.docNum} aria-hidden="true">{code}</span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{rest.join(" · ")}</strong><span className="text-sm text-muted-foreground">{text}</span></span>
         {item.status === "terminado" ? <Check size={20} aria-hidden="true" className="shrink-0 text-[var(--primary-text)]" /> : !waits && <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />}
       </button>

@@ -31,7 +31,7 @@ test("el prospecto pasa a entrevista inicial al iniciar el 02 y no avanza sin su
   const started = op({ inicial: { iniciada: true }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(started, today)).toMatchObject({ current: 1, phase: "captacion" });
   expect(advanceTarget(started, today)).toEqual({ label: "Levantamiento" });
-  expect(missingItems(started, [task()], today).map(m => m.text)).toEqual(["Terminar la entrevista inicial (02)"]);
+  expect(missingItems(started, [task()], today).map(m => m.text)).toEqual(["Terminar la entrevista inicial"]);
   expect(missingItems({ ...started, inicial: { iniciada: true, emitida: true } }, [task()], today).map(m => m.text)).toEqual(["Iniciar el levantamiento"]);
 });
 
@@ -56,7 +56,7 @@ test("levantamiento y checklist de documentos llevan a verificación solo con to
   const surveying = op({ inicial: { iniciada: true, emitida: true, levantamiento: "borrador" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(surveying, today)).toMatchObject({ current: 2, phase: "levantamiento" });
   expect(advanceTarget(surveying, today)).toEqual({ label: "Lista de documentos" });
-  expect(missingItems(surveying, [task()], today).map(m => m.text)).toEqual(["Terminar el levantamiento (04)"]);
+  expect(missingItems(surveying, [task()], today).map(m => m.text)).toEqual(["Terminar el levantamiento"]);
   expect(missingItems({ ...surveying, inicial: { ...surveying.inicial, levantamiento: "emitido" } }, [task()], today).map(m => m.text)).toEqual(["Iniciar la lista de documentos"]);
   const collecting = op({ inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(collecting, today)).toMatchObject({ current: 3, phase: "documentos" });
