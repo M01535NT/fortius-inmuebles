@@ -8,7 +8,8 @@ import { checklistFor } from "@/lib/formatos/checklist-documentos";
 it("la entrevista es sencilla: quién es, el inmueble, por qué vende y cuánto espera, y el siguiente paso", () => {
   const definition = formatoById("02");
   expect([...new Set(definition.fields.map(field => field.section))]).toEqual(["Datos de la entrevista", "01 / Quién es", "02 / El inmueble", "03 / Por qué vende y cuánto espera", "04 / Siguiente paso"]);
-  expect(definition.fields.length).toBeLessThanOrEqual(32);
+  // 30 campos el 17/10/2026; CAP-06 (DEC-39, 12/11/2026) agregó el problema y dos preguntas del crédito.
+  expect(definition.fields.length).toBeLessThanOrEqual(33);
   expect(definition.fields.map(field => field.key)).toEqual(expect.arrayContaining(["entrevistado", "fechaNacimiento", "telefono", "correo", "estadoCivilActual", "tipoInmueble", "ocupacion", "gravamen", "motivoVenta", "precioDeseado", "expectativas"]));
   // Lo legal y lo fiscal se toman de los documentos en la revisión jurídica (05), no de la entrevista.
   for (const key of ["curp", "rfc", "residenciaFiscal", "regimenAdquisicion", "tituloInscrito", "referenciaNotarial", "fechaAdquisicion", "exencionTresAnios", "precioMinimo", "netoNecesario", "contradicciones"]) {

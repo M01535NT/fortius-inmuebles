@@ -12,7 +12,7 @@ import { exceptionKeys, inheritedPending, isOwnerRoute, type OperationWorkflow, 
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { EXPEDIENTE_OPERACIONES } from "@/lib/formatos/expediente-operations";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { conditionOf } from "@/lib/intake/condition";
+import { conditionWith02 } from "@/lib/intake/condition";
 import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { TIPO_LABELS } from "@/data/propiedades";
@@ -153,7 +153,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const wants = [verb, isOwnerRoute(flow.ruta) ? thing : ""].filter(Boolean).join(" ");
   const stageName = track.stages[track.current]?.label;
   // COR-14: la situación (con su motivo) y la condición de la llamada (con lo que contó).
-  const condition = conditionOf(interview?.respuestas);
+  const condition = conditionWith02(interview?.respuestas, docs.latest("02")?.data);
   // COR-20: con excepción autorizada, el detalle dice en qué requisitos.
   const tags = operationTags(op, condition).map(text => ({ text, detail: text === condition?.text ? condition.detail
     : text === INHERITED_TAG ? inheritedDetail(flow, today)

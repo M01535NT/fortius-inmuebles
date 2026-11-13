@@ -12,7 +12,7 @@ import { ExpedienteOperationPanel } from "@/components/admin/expediente-operatio
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
 import { appraisalState, CANALES_INFORME, directorReview, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
-import { conditionOf, LAWYER_TASK } from "@/lib/intake/condition";
+import { conditionWith02, LAWYER_TASK } from "@/lib/intake/condition";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { actualizarChecklist, checklistCompleto, checklistDesactualizado, checklistFor, CODIGOS_POR_TIPO_DOCUMENTO, levantamientoFor, motivoNoAplica, pasoCompleto, type PasoChecklist } from "@/lib/formatos/checklist-documentos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
@@ -123,8 +123,8 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     else void docs.start(item.text.includes("(02)") ? "02" : "04", survey);
   }
 
-  // COR-14: la condición de la llamada y el «Siguiente paso» de la 02 cambian lo que toca.
-  const condition = conditionOf(interview?.respuestas);
+  // COR-14 y CAP-06: la condición de la llamada o de la 02 y su «Siguiente paso» cambian lo que toca.
+  const condition = conditionWith02(interview?.respuestas, docs.latest("02")?.data);
   const next02 = typeof docs.latest("02")?.data?.siguientePaso === "string" ? String(docs.latest("02")!.data.siguientePaso) : undefined;
   const items = stageItems(op, tasks, today, docs.status, { condition, next02 });
   async function requestLawyer() {

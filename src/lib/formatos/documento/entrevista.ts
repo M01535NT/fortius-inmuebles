@@ -39,7 +39,10 @@ export function entrevistaDocumento(d: Data): Documento {
     { kind: "form", label: "02 / El inmueble", rows: [
       [c("¿Qué tipo de inmueble quiere vender?", label("tipoInmueble", d.tipoInmueble), 2, ["tipoInmueble"]), c("¿Dónde se encuentra?", a(d.inmueble), 4, ["inmueble"])],
       [c("¿Quién vive o lo ocupa hoy?", label("ocupacion", d.ocupacion), 6, ["ocupacion"])],
+      [marcas("¿Tiene algún problema el inmueble?", "problema", d, 6)],
       [marcas("¿Tiene hipoteca o crédito?", "gravamen", d, 6)],
+      // CAP-06: sin crédito no se imprime; sin respuesta queda el espacio para llenarlo a mano.
+      ...(d.gravamen === "no" ? [] : [[marcas("¿Está al corriente con los pagos?", "creditoAlCorriente", d, 3), c("¿Sabe cuánto debe?", a(d.saldoCredito), 3, ["saldoCredito"])]]),
     ] },
     { kind: "form", label: "03 / Por qué vende y cuánto espera", rows: [
       [c("¿Por qué quiere vender?", a(d.motivoVenta), 6, ["motivoVenta"])],

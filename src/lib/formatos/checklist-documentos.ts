@@ -40,13 +40,15 @@ const ACREEDOR: Record<string, string> = { banco: "del banco", infonavit: "del I
 type Regla = boolean | { pregunta: string; siNo: string };
 const pregunta = (texto: string, siNo: string): Regla => ({ pregunta: texto, siNo });
 const tipo = (data: Data) => tipoInmueble(data.tipoInmueble);
+/** CAP-06 (DEC-39): lo ocupa alguien sin permiso, dicho en la ocupación o en el problema de la 02. */
+const sinPermiso = (d: Data) => is(d, "ocupacion", "sin_permiso") || is(d, "problema", "ocupado_sin_permiso");
 
 const DOCUMENTS: Array<{ code: string; label: string | ((data: Data) => string); when?: (data: Data) => Regla }> = [
   { code: "D01", label: "Escritura o título de propiedad inscrito en el Registro Público" },
   { code: "D02", label: "Boleta de inscripción en el Registro Público" },
   { code: "D03", label: "Certificado de inscripción con o sin gravámenes del Registro Público" },
   { code: "D05", label: d => tipo(d) === "terreno" ? "Deslinde catastral certificado por catastro y clave catastral" : "Plano o clave catastral" },
-  { code: "D06", label: "Recibo de predial al corriente" },
+  { code: "D06", label: d => is(d, "problema", "adeudos") ? "Último recibo de predial, con lo que se debe" : "Recibo de predial al corriente" },
   { code: "D07", label: d => { const m = municipioDe(d.inmueble); return m ? AGUA[m] : "Constancia de no adeudo del agua (CESPT, CESPE o CESPTE, según el municipio) y estado de cuenta"; },
     when: d => tipo(d) === "terreno" ? pregunta("¿El terreno tiene toma de agua?", "El terreno no tiene toma de agua") : true },
   { code: "D08", label: "Comprobante de domicilio del propietario" },
@@ -58,16 +60,17 @@ const DOCUMENTS: Array<{ code: string; label: string | ((data: Data) => string);
   { code: "D13", label: "Acta de divorcio, liquidación o defunción", when: d => is(d, "estadoCivilActual", "divorciado", "viudo") || is(d, "cambioEstadoCivil", "si") },
   { code: "D14", label: "Poder notarial del representante", when: d => is(d, "representacion", "si") || is(d, "relacion", "representante") },
   { code: "D15", label: "Acta constitutiva y poderes de la empresa", when: d => is(d, "tipoPropietario", "moral") },
-  { code: "D16", label: "Documentos de la sucesión o adjudicación",
-    when: d => is(d, "adquisicion", "herencia", "adjudicacion") || is(d, "relacion", "heredero") || (!!d.relacion && pregunta("¿Lo recibió por herencia o adjudicación?", "No lo recibió por herencia ni adjudicación")) },
-  { code: "D17", label: d => `Carta ${ACREEDOR[String(d.gravamen)] ?? "del acreedor"} con el saldo y la instrucción de cancelación de la hipoteca`,
+  { code: "D16", label: d => is(d, "problema", "herencia") ? "Acta de defunción y testamento o juicio sucesorio" : "Documentos de la sucesión o adjudicación",
+    when: d => is(d, "problema", "herencia") || is(d, "adquisicion", "herencia", "adjudicacion") || is(d, "relacion", "heredero") || (!!d.relacion && pregunta("¿Lo recibió por herencia o adjudicación?", "No lo recibió por herencia ni adjudicación")) },
+  { code: "D17", label: d => `Carta ${ACREEDOR[String(d.gravamen)] ?? "del acreedor"} con el saldo y la instrucción de cancelación de la hipoteca${is(d, "creditoAlCorriente", "no", "no_sabe") ? ", y estado de cuenta con lo que se debe" : ""}`,
     when: d => is(d, "gravamen", "banco", "infonavit", "fovissste", "otro") || (is(d, "gravamen", "no_sabe") && pregunta("¿Tiene hipoteca o crédito sobre el inmueble?", "No tiene hipoteca ni crédito")) },
-  { code: "D18", label: d => is(d, "ocupacion", "inquilino") ? "Contrato de arrendamiento vigente" : "Contrato de arrendamiento, promesa u otro compromiso sobre el inmueble",
-    when: d => is(d, "ocupacion", "inquilino") || is(d, "acuerdoOcupacion", "si") || is(d, "promesaPrevia", "si") || (!!d.ocupacion && pregunta("¿Hay contrato de renta, promesa u otro compromiso sobre el inmueble?", "No hay contratos ni compromisos sobre el inmueble")) },
+  { code: "D18", label: d => sinPermiso(d) ? "Denuncia o demanda por la ocupación" : is(d, "ocupacion", "inquilino") ? "Contrato de arrendamiento vigente" : "Contrato de arrendamiento, promesa u otro compromiso sobre el inmueble",
+    when: d => sinPermiso(d) ? pregunta("¿Hay denuncia o demanda por la ocupación?", "No hay denuncia ni demanda por la ocupación") : is(d, "ocupacion", "inquilino") || is(d, "acuerdoOcupacion", "si") || is(d, "promesaPrevia", "si") || (!!d.ocupacion && pregunta("¿Hay contrato de renta, promesa u otro compromiso sobre el inmueble?", "No hay contratos ni compromisos sobre el inmueble")) },
   { code: "D19", label: "Constancia de no adeudo de cuotas del condominio y reglamento",
     when: d => ["departamento", "plaza"].includes(tipo(d) ?? "") || (["casa", "terreno", "local", "oficina"].includes(tipo(d) ?? "") && pregunta("¿Está en un condominio o fraccionamiento con cuotas?", "No está en condominio")) },
   { code: "D20", label: "Dictamen de uso de suelo o constancia de zonificación, y licencia de construcción", when: d => ["local", "nave-industrial", "plaza", "oficina"].includes(tipo(d) ?? "") },
   { code: "D21", label: "Constancia de no adeudo del INDIVI", when: d => ["casa", "terreno"].includes(tipo(d) ?? "") && pregunta("¿El inmueble viene del INDIVI?", "No viene del INDIVI") },
+  { code: "D22", label: "Número de expediente y copia de la demanda del juicio", when: d => is(d, "problema", "juicio") },
 ];
 const POR_CODIGO = new Map(DOCUMENTS.map(doc => [doc.code, doc]));
 
