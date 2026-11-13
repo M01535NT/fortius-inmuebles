@@ -54,7 +54,7 @@ export function arrendamientoDocumento(d: Data): Documento {
 
     ...(garante ? [
       { kind: "label" as const, text: `III. Declara el ${garante}:` },
-      { kind: "p" as const, indent: true, ...z(`Datos del ${garante.toLowerCase()}`, "garante", "garanteIdentificacion", "garanteDomicilio"), text: `a) Que es una persona mayor de edad, con capacidad legal para obligarse, que se identifica con ${v(d.garanteIdentificacion)} y cuyo domicilio es ${v(d.garanteDomicilio)}.` },
+      { kind: "p" as const, indent: true, ...z(`Datos del ${garante.toLowerCase()}`, "garante", "garanteIdentificacion", "garanteDomicilio", ...(d.garantia === "fiador" ? ["fiadorConInmueble"] : [])), text: `a) Que es una persona mayor de edad, con capacidad legal para obligarse, que se identifica con ${v(d.garanteIdentificacion)} y cuyo domicilio es ${v(d.garanteDomicilio)}.` },
       ...(d.garantia === "fiador" && d.fiadorConInmueble === "si" ? [{ kind: "p" as const, indent: true, ...z("Inmueble del fiador", "fiadorConInmueble", "garanteInmueble", "garanteTitulo"), text: `b) Que es propietario del inmueble ubicado en ${v(d.garanteInmueble)}, como consta en ${v(d.garanteTitulo)}, libre de gravámenes a la fecha de firma, y que no lo enajenará ni gravará mientras subsistan las obligaciones que garantiza sin aviso previo y por escrito al Arrendador.` }] : []),
       { kind: "p" as const, indent: true, text: `${d.garantia === "fiador" && d.fiadorConInmueble === "si" ? "c" : "b"}) Que conoce este contrato y acepta garantizar las obligaciones del Arrendatario en los términos de la cláusula Décima.` },
     ] : []),
