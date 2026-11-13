@@ -13,7 +13,7 @@ export async function GET(_request: Request, context: Context) {
     const { client } = await requireStaff();
     const result = await client.from("fortius_inmuebles_formato_emissions").select("id,path,sha256").eq("id", id).maybeSingle();
     if (result.error) databaseError(result.error);
-    if (!result.data) throw new ApiError(404, "Emisión no encontrada");
+    if (!result.data) throw new ApiError(404, "PDF no encontrado");
     const privileged = createServerClient(undefined, true);
     const file = await privileged.storage.from("fortius-inmuebles-expedientes").download(result.data.path);
     if (file.error || !file.data) throw new ApiError(503, "El PDF archivado no está disponible");

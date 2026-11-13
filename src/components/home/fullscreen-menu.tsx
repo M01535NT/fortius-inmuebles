@@ -15,7 +15,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   { title: "Vender", links: [
     { href: "/vender-propiedad", label: "Vender mi propiedad" },
     { href: "/opinion-de-valor", label: "Opinión de valor" },
-    { href: "/herramientas/gastos-de-cierre", label: "Gastos y neto de venta" },
+    { href: "/herramientas/gastos-de-cierre", label: "Gastos de cierre" },
     { href: "/preguntas-frecuentes", label: "Preguntas frecuentes" },
   ] },
   { title: "Comprar", links: [
@@ -34,7 +34,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   { title: "Fortius", links: [
     { href: "/", label: "Inicio" },
     { href: "/nosotros", label: "Nosotros" },
-    { href: "/nosotros#agentes", label: "Agentes" },
+    { href: "/nosotros#agentes", label: "Asesores" },
     { href: "/blog", label: "Blog" },
     { href: "/avisos", label: "Avisos y documentos" },
     { href: "/contacto", label: "Contacto" },

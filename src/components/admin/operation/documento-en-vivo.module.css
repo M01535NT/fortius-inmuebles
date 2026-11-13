@@ -23,7 +23,7 @@
 .zone:disabled { cursor: progress; }
 
 .aside { width: 26rem; flex: none; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid var(--border); background: var(--card); }
-.missingItem { display: flex; width: 100%; align-items: center; gap: .5rem; min-height: 2.75rem; padding: .375rem .75rem; border: 0; border-radius: 10px; background: none; color: var(--foreground); font: inherit; font-size: .9375rem; text-align: left; cursor: pointer; }
+.missingItem { display: flex; width: 100%; align-items: center; gap: .5rem; min-height: 2.75rem; padding: .375rem .75rem; border: 0; border-radius: 10px; background: none; color: var(--foreground); font: inherit; font-size: var(--admin-text-interfaz); text-align: left; cursor: pointer; }
 .missingItem:hover:not(:disabled) { background: var(--secondary); }
 .missingItem:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
 

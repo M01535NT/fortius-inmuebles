@@ -19,7 +19,7 @@ export function PreguntaItem({ item, index, animated = true }: { item: Pregunta;
       <h4><button id={buttonId} type="button" aria-expanded={open} aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
         className="flex w-full cursor-pointer items-center justify-between gap-6 py-6 text-left">
-        <span className="display-soft text-xl text-foreground">{item.q}</span>
+        <span className="display-soft text-entrada text-foreground">{item.q}</span>
         <Plus aria-hidden="true" className={`h-5 w-5 shrink-0 text-primary-ink transition-transform duration-300${open ? " rotate-45" : ""}`} strokeWidth={1.5} />
       </button></h4>
       <div id={panelId} role="region" aria-labelledby={buttonId} aria-hidden={!open} inert={!open}
@@ -43,7 +43,7 @@ export function Respuestas({ content }: { content?: SiteContent | null }) {
   ];
   return <section id="respuestas" aria-label="Preguntas frecuentes" className="mx-auto max-w-[1280px] scroll-mt-20 overflow-x-clip px-5 py-24 md:px-8 md:py-32">
     <div className="grid gap-12 lg:grid-cols-12">
-      <SplitHeading lines={homeText(content, "preguntasTitulo").split("\n")} className="display-title text-4xl text-foreground sm:text-5xl lg:col-span-4" />
+      <SplitHeading lines={homeText(content, "preguntasTitulo").split("\n")} className="display-title text-seccion text-foreground lg:col-span-4" />
       <div className="space-y-10 lg:col-span-7 lg:col-start-6">
         {groups.map((group) => <div key={group.title}>
           <h3 className="editorial-eyebrow mb-4">{group.title}</h3>

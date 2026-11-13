@@ -6,7 +6,7 @@ import { PropertyShareActions } from "./property-share";
 import { Building2, Key, LayoutGrid, List, MapPin, MoreHorizontal, Pencil, Plus, Search, Star, Trash2 } from "@/components/admin/icons";
 import { ButtonLink, Card, EmptyBox, Pill, Segmented, Thumb } from "@/components/admin/kit";
 import { AsyncButton, AsyncSelect, DemoBanner, inputClass } from "@/components/admin/ui";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { InventoryControls } from "@/components/admin/workspace/inventory-controls";
 import { emptyInventoryFilters, filterInventory, type InventoryFilters } from "@/lib/admin/workspace";
@@ -165,7 +165,7 @@ function PropertyItem({ property: p, duplicated, adviser }: { property: AdminPro
           {scope.edit && <><Link href={href} className={s.action} aria-label={`Editar ${p.titulo}`}><Pencil size={15} aria-hidden="true" />Editar</Link>
           <Link href={followup} className={s.action} aria-label={`Llaves, preparación y compradores de ${p.titulo}`}><Key size={15} aria-hidden="true" />Llaves y compradores</Link>
           <AsyncButton type="button" className={s.action} aria-label={`Eliminar ${p.titulo}`} onClick={async () => {
-            if (await confirmAction(`¿Eliminar "${p.titulo}"? Un administrador podrá recuperarlo desde Historial.`)) await removePropiedad(p.slug, db.propiedades.version(p));
+            if (await confirmDelete("inmueble", `«${p.titulo}» deja de estar en Inmuebles y en el sitio; el director lo restaura sin publicar.`, "o")) await removePropiedad(p.slug, db.propiedades.version(p));
           }}><Trash2 size={15} aria-hidden="true" />Eliminar</AsyncButton></>}
         </div>
       </div>

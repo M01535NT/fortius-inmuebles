@@ -542,7 +542,7 @@ it("Alta directa no pide folio, protege la captura al salir, permite descartar y
   const unit = screen.getByLabelText("Unidad, si aplica");
   fireEvent.change(unit, { target: { value: "Unidad pendiente" } });
   vi.mocked(confirmAction).mockResolvedValueOnce(false);
-  fireEvent.click(screen.getByRole("link", { name: "Ver operaciones eliminadas" }));
+  fireEvent.click(screen.getByRole("link", { name: "Ver eliminados" }));
   await waitFor(() => expect(confirmAction).toHaveBeenCalledWith(expect.stringContaining("Descartar los cambios y salir")));
   fireEvent.click(screen.getByRole("button", { name: "Descartar" }));
   await waitFor(() => expect((unit as HTMLInputElement).value).toBe(""));

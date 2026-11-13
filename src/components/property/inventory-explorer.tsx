@@ -417,7 +417,7 @@ export function InventoryExplorer({ propiedades }: Props) {
         ) : (
           <div className="pg-empty">
             <h2>No hay propiedades con esos criterios.</h2>
-            <p>Dinos qué buscas y te avisamos cuando entre.</p>
+            <p>Dinos qué buscas y te escribimos si encontramos algo.</p>
             <div className="pg-pills" style={{ justifyContent: "center", marginTop: 24 }}>
               {hayFiltros ? <button type="button" onClick={() => setFiltros(DEFAULTS)} className="pg-btn pg-btn-ghost">Limpiar filtros</button> : null}
               <Link href="/contacto" className="pg-btn">Cuéntanos qué buscas</Link>

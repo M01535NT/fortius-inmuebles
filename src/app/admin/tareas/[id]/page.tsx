@@ -107,7 +107,7 @@ function TaskDetail({ id }: { id: string }) {
       </div>
       <aside className={s.side} aria-label="Relacionado e historial">
         {task && (task.expedienteId || task.leadId || task.clienteId || task.propiedadSlug) && <Card className="flex flex-col gap-3 p-5">
-          <h2 className="m-0 text-[1.0625rem] font-[600]">Relacionado</h2>
+          <h2 className="m-0 text-lg font-[600]">Relacionado</h2>
           <nav aria-label="Registros relacionados" className={s.related}>
             {task.expedienteId && <ButtonLink href={`/admin/operaciones/${encodeURIComponent(task.expedienteId)}`}>Ver operación</ButtonLink>}
             {task.leadId && <ButtonLink href={`/admin/leads/${task.leadId}`}>Ver prospecto</ButtonLink>}
@@ -116,7 +116,7 @@ function TaskDetail({ id }: { id: string }) {
           </nav>
         </Card>}
         <Card className="flex flex-col gap-3 p-5">
-          <h2 className="m-0 text-[1.0625rem] font-[600]">Historial</h2>
+          <h2 className="m-0 text-lg font-[600]">Historial</h2>
           {task?.completadoEl && <p className="text-sm">Completada: {humanDateTime(task.completadoEl)}{task.completadoPor ? ` · ${task.completadoPor}` : ""}</p>}
           {history.length ? <ol className={s.timeline}>{history.map((event, index) => <li key={`${event.fecha}-${index}`} className={s.event}>
             <strong>{event.accion}</strong>

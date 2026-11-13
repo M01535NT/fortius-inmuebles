@@ -10,9 +10,14 @@ const house = (slug: string, asesorId: string) => ({
   documentos: [{ codigo: "d1", nombre: "Escritura", descripcion: "", url: "/api/admin/archivos/d1" }],
   llaves: { ubicacion: "Oficina", prestamos: [] }, preparacion: { pasos: [] }, avisosCompradores: [],
 });
-function client(rows: ReturnType<typeof house>[], mine: string | null) {
-  const query = { select: () => query, eq: () => query, order: () => query, range: async () => ({ data: rows.map(data => ({ id: data.slug, data, version: 1, created_at: "", updated_at: "" })), error: null }) };
-  return { from: () => query, rpc: async () => ({ data: mine, error: null }) } as never;
+const asRows = (rows: ReturnType<typeof house>[]) => rows.map(data => ({ id: data.slug, data, version: 1, created_at: "", updated_at: "" }));
+/** `team`: lo que devuelve la función de la base (A1); `null`, que la migración aún no está aplicada. */
+function client(rows: ReturnType<typeof house>[], mine: string | null, team: ReturnType<typeof house>[] | null = null) {
+  const calls: string[] = [];
+  const query = { select: () => query, eq: () => query, order: () => query, range: async () => { calls.push("records"); return { data: asRows(rows), error: null }; } };
+  const teamQuery = { order: () => teamQuery, range: async () => { calls.push("team"); return team ? { data: asRows(team), error: null } : { data: null, error: { code: "PGRST202", message: "not found" } }; } };
+  const rpc = (name: string) => name === "fortius_inmuebles_team_properties" ? teamQuery : Promise.resolve({ data: mine, error: null });
+  return Object.assign({ from: () => query, rpc }, { calls }) as never as Parameters<typeof listRecordsFor>[0] & { calls: string[] };
 }
 
 describe("inmuebles del equipo", () => {
@@ -34,5 +39,16 @@ describe("inmuebles del equipo", () => {
     expect(unlinked.every(r => !("llaves" in (r.data as object)))).toBe(true);
     const admin = await listRecordsFor(client(rows, null), "propiedades", "admin");
     expect(admin.every(r => "llaves" in (r.data as object))).toBe(true);
+  });
+  it("A1: con la función de la base, el asesor ya no lee los inmuebles por lectura directa y se recorta otra vez", async () => {
+    const leaked = house("ajena", "luis");
+    const db = client([], "ana", [house("propia", "ana"), leaked]);
+    const editor = await listRecordsFor(db, "propiedades", "editor");
+    expect(db.calls).toEqual(["team"]);
+    expect(editor.find(r => r.id === "propia")?.data).toHaveProperty("llaves");
+    expect(editor.find(r => r.id === "ajena")?.data).not.toHaveProperty("llaves");
+    const admin = client([house("ajena", "luis")], null, []);
+    await listRecordsFor(admin, "propiedades", "admin");
+    expect(admin.calls).toEqual(["records"]);
   });
 });

@@ -13,7 +13,7 @@ export async function GET(_request: Request, context: Context) {
     const { client } = await requireStaff();
     const emission = await client.from("fortius_inmuebles_formato_emissions").select("id").eq("id", id).maybeSingle();
     if (emission.error) databaseError(emission.error);
-    if (!emission.data) throw new ApiError(404, "Emisión no encontrada");
+    if (!emission.data) throw new ApiError(404, "PDF no encontrado");
     const copies = await client.from("fortius_inmuebles_signed_copies").select("id,emission_id,sha256,created_at").eq("emission_id", id).order("created_at", { ascending: false });
     if (copies.error) databaseError(copies.error);
     return { copias: copies.data ?? [] };
@@ -27,7 +27,7 @@ export async function POST(request: Request, context: Context) {
     const { client, user } = await requireStaff();
     const result = await client.from("fortius_inmuebles_formato_emissions").select("id,draft_id").eq("id", id).maybeSingle();
     if (result.error) databaseError(result.error);
-    if (!result.data) throw new ApiError(404, "Emisión no encontrada");
+    if (!result.data) throw new ApiError(404, "PDF no encontrado");
     const draft = await client.from("fortius_inmuebles_formato_drafts").select("expediente_id").eq("id", result.data.draft_id).maybeSingle();
     if (draft.error) databaseError(draft.error);
     if (!draft.data) throw new ApiError(404, "Expediente no encontrado");
