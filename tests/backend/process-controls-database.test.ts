@@ -2,6 +2,7 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 import type { PGlite } from "@electric-sql/pglite";
 // @ts-expect-error Isolated database helper is JavaScript.
 import { createRehearsalDatabase } from "../../tools/fortius-inmuebles-restore-current.mjs";
+import { cumplirArranque } from "../helpers/arranque";
 
 let db: PGlite;
 const user = "66000000-0000-4000-8000-000000000001";
@@ -25,6 +26,8 @@ async function complete(id: unknown, data: Record<string, string> = answers()) {
 }
 /** El primer contacto deja la operación en captación (26/10/2026); el panel la pasa a documentación como cualquier avance. */
 async function admit<T extends Record<string, unknown>>(done: T) {
+  // SEG-M2: salir de captación exige el 02 y el 04 emitidos y el checklist completo.
+  await cumplirArranque(db, String(done.expediente_id), user);
   const current = (await db.query<{ version: number }>("select version from public.fortius_inmuebles_expedientes where id=$1", [done.expediente_id])).rows[0];
   await db.query("select public.fortius_inmuebles_update_operation($1,$2,'documentacion',null,'{}'::jsonb,null,null,false)", [done.expediente_id, current.version]);
   return done;
@@ -239,6 +242,7 @@ it("allows gradual historical evidence regularization without authorizing unprov
   await db.exec("alter table public.fortius_inmuebles_expedientes disable trigger all");
   await db.query("update public.fortius_inmuebles_expedientes set flujo=jsonb_set(flujo,'{requisitos,titularidad}',$2::jsonb) where id=$1",[done.expediente_id,JSON.stringify({estado:"revisado",soporte:"Antecedente de revisión histórica sin referencia estructurada"})]);
  } finally { await db.exec("alter table public.fortius_inmuebles_expedientes enable trigger all; set role authenticated"); }
+ await cumplirArranque(db, String(done.expediente_id), user);
  const current=(await db.query<{version:number}>("select version from public.fortius_inmuebles_expedientes where id=$1",[done.expediente_id])).rows[0];
  const saved=(await db.query<{r:{version:number;flujo:{requisitos:{titularidad:{soporte:string}}}}}>("select public.fortius_inmuebles_update_operation($1,$2,'documentacion','2030-12-30','{}'::jsonb,null,null,false) r",[done.expediente_id,current.version])).rows[0].r;
  expect(saved.flujo.requisitos.titularidad.soporte).toBe("Antecedente de revisión histórica sin referencia estructurada");

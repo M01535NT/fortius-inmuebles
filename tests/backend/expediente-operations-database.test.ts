@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
+import { cumplirArranque } from "../helpers/arranque";
 
 let db: PGlite;
 const admin = "52000000-0000-4000-8000-000000000001";
@@ -39,6 +40,7 @@ beforeAll(async () => {
 afterAll(async () => { await db?.close(); });
 
 it("registra cambios y notas, y limita lectura y escritura al asesor responsable", async () => {
+  await cumplirArranque(db, exp, own);
   await asUser(own, async () => {
     const flow={version:1,ruta:"arrendador",estado:"activa",motivo:"",requisitos:{entrevista:{estado:"revisado",soporte:"Entrevista externa documentada",evidencia:{tipo:"externa",referencia:"Archivo sintético de entrevista v1",fecha:"2026-10-14",responsable:"Responsable del ensayo",resultado:"Perfil inicial recibido y revisado"}}}};
     await db.query("update public.fortius_inmuebles_expedientes set flujo=$2::jsonb,version=2 where id=$1",[exp,JSON.stringify(flow)]);
