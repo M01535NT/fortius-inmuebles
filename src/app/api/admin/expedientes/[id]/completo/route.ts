@@ -13,7 +13,8 @@ const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Vary: 
 
 /*
   FCH-06: el expediente en un PDF (portada, índice y emisiones en orden) o en un ZIP con los PDF
-  originales. El permiso se comprueba en el servidor: expediente, borradores y emisiones se leen
+  originales, cada uno con su copia firmada más reciente. El permiso se comprueba en el servidor:
+  expediente, borradores, emisiones y copias firmadas se leen
   con la sesión del usuario, así que RLS solo deja ver los del administrador o del asesor asignado.
   El cliente privilegiado se usa únicamente para bajar de Storage los archivos ya autorizados, y
   cada uno se coteja con su SHA-256 antes de entregarlo.
@@ -31,7 +32,10 @@ export async function GET(request: Request, context: Context) {
     const ids = (drafts.data ?? []).map(draft => draft.id);
     const emissions = ids.length ? await client.from("fortius_inmuebles_formato_emissions").select("id,draft_id,draft_version,sha256,path,created_at,incompleto:snapshot->datosFaltantes").in("draft_id", ids) : { data: [], error: null };
     if (emissions.error) databaseError(emissions.error);
-    const entradas = elegirEmisiones(drafts.data ?? [], emissions.data ?? []);
+    const emissionIds = (emissions.data ?? []).map(emission => emission.id);
+    const copies = emissionIds.length ? await client.from("fortius_inmuebles_signed_copies").select("id,emission_id,sha256,path,created_at").in("emission_id", emissionIds) : { data: [], error: null };
+    if (copies.error) databaseError(copies.error);
+    const entradas = elegirEmisiones(drafts.data ?? [], emissions.data ?? [], copies.data ?? []);
     if (!entradas.length) throw new ApiError(409, "Este expediente todavía no tiene documentos emitidos");
     if (entradas.length > MAX_DOCUMENTOS_EXPEDIENTE) throw new ApiError(413, "El expediente tiene demasiados documentos para reunirlos en un archivo");
 
@@ -42,7 +46,14 @@ export async function GET(request: Request, context: Context) {
       if (file.error || !file.data) throw new ApiError(503, `El PDF del formato ${entrada.formatoId} no está disponible`);
       const bytes = new Uint8Array(await file.data.arrayBuffer());
       if (createHash("sha256").update(bytes).digest("hex") !== entrada.emision.sha256) throw new ApiError(503, `El PDF del formato ${entrada.formatoId} no superó la verificación de integridad`);
-      conArchivo.push({ ...entrada, bytes });
+      let bytesFirmada: Uint8Array | undefined;
+      if (entrada.firmada) {
+        const signed = await privileged.storage.from("fortius-inmuebles-expedientes").download(entrada.firmada.path);
+        if (signed.error || !signed.data) throw new ApiError(503, `La copia firmada del formato ${entrada.formatoId} no está disponible`);
+        bytesFirmada = new Uint8Array(await signed.data.arrayBuffer());
+        if (createHash("sha256").update(bytesFirmada).digest("hex") !== entrada.firmada.sha256) throw new ApiError(503, `La copia firmada del formato ${entrada.formatoId} no superó la verificación de integridad`);
+      }
+      conArchivo.push({ ...entrada, bytes, ...(bytesFirmada ? { bytesFirmada } : {}) });
     }
 
     const generado = new Date().toISOString(), folio = parent.data.folio as string;
