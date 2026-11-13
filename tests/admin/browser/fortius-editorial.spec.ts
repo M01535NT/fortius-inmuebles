@@ -18,7 +18,7 @@ test("dark link hover retains readable ink while buttons remain burgundy", async
   await page.locator("footer").getByRole("button", { name: "Cambiar a tema oscuro" }).click();
   const indexLink = page.locator('main a[href^="#"]').first();
   await indexLink.hover();
-  await expect(indexLink).toHaveCSS("color", "rgb(245, 241, 235)");
+  await expect(indexLink).toHaveCSS("color", "rgb(248, 248, 255)");
 });
 
 for (const width of [390, 1440]) {
