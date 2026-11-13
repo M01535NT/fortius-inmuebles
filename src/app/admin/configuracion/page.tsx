@@ -19,6 +19,11 @@ import {
 } from "@/lib/admin/store";
 import { MessageTemplatesEditor } from "@/components/admin/contacts/message-templates-editor";
 import type { TemplateOverrides } from "@/lib/admin/message-templates";
+import { IaUsoSection } from "@/components/admin/ia-uso";
+import { topeIaValido } from "@/lib/backend/ia-tope";
+import { DatosFortiusSection, datosFortiusDelFormulario } from "@/components/admin/datos-fortius-section";
+import { datosFortius } from "@/lib/backend/datos-fortius";
+
 
 const TEXT_KEYS = ["nombreComercial", "telefono", "whatsapp", "email", "horario", "facebook", "instagram", "videoInstitucionalUrl"] as const;
 
@@ -49,18 +54,34 @@ function Editor({ initial }: { initial: SiteSettings }) {
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    const admin = session?.role === "admin";
+    const empresa = admin ? datosFortiusDelFormulario(data) : null;
+    if (empresa && "error" in empresa) throw new Error(empresa.error);
+    // Quien no es director no ve la sección: se conservan los datos guardados.
+    const kept = (settingsStore.get() as SiteSettings | null)?.empresa;
+    const nextEmpresa = empresa ? empresa.empresa : kept;
     const texts = Object.fromEntries(
       TEXT_KEYS.map((k) => [k, String(data.get(k) ?? "")]),
     ) as Pick<SiteSettings, (typeof TEXT_KEYS)[number]>;
     const next: SiteSettings = {
       ...texts,
       horasPrimeraAtencion: firstResponseHours({ horasPrimeraAtencion: Number(data.get("horasPrimeraAtencion")) }),
+      ...tope(data),
+      ...(nextEmpresa && Object.keys(nextEmpresa).length ? { empresa: nextEmpresa } : {}),
       ...(Object.keys(mensajes).length ? { mensajes } : {}),
     };
     const saved = await settingsStore.save(next, version);
     setVersion(settingsStore.version(saved));
     setGuardado(true);
     window.setTimeout(() => setGuardado(false), 2500);
+  }
+
+  // Vacío o inválido conserva el tope guardado; el director lo ve y lo cambia solo él.
+  function tope(data: FormData): Pick<SiteSettings, "topeIaMensualUsd"> {
+    const raw = String(data.get("topeIaMensualUsd") ?? "").trim();
+    const value = raw ? topeIaValido(Number(raw)) : undefined;
+    const kept = value ?? (settingsStore.get() as SiteSettings | null)?.topeIaMensualUsd;
+    return kept === undefined ? {} : { topeIaMensualUsd: kept };
   }
 
   async function guardarMensajes(next: TemplateOverrides) {
@@ -190,6 +211,10 @@ function Editor({ initial }: { initial: SiteSettings }) {
             />
           </Field>
         </section>
+
+        {session?.role === "admin" && <DatosFortiusSection datos={datosFortius(settings)} />}
+
+        {session?.role === "admin" && <IaUsoSection guardado={settings.topeIaMensualUsd} />}
 
         <div className="flex items-center gap-4">
           <button type="submit" className={btnPrimary}>
