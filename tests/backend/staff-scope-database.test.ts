@@ -161,3 +161,29 @@ it("solo el director autoriza una excepción, con motivo y nunca en un requisito
   expect(await exceptionOf("plan")).toBeNull();
   expect(await reviewOk("plan")).toBe(false);
 });
+
+// COR-24: inventario que el asesor trae con contrato firmado. Lo da de alta el director; la marca no salta protecciones.
+it("el director da de alta inventario heredado; pasa a verificación y no publica sin titularidad, factibilidad y valor", async () => {
+  const inherited = "53000000-0000-4000-8000-000000000020";
+  const motive = "Inventario anterior con contrato firmado con su asesor";
+  const value = { version: 1, ruta: "captacion", estado: "activa", motivo: "", heredado: { desde: "2026-06-01" },
+    requisitos: Object.fromEntries(["entrevista", "levantamiento", "plan"].map(k => [k, { estado: "pendiente", soporte: "", excepcion: { motivo: motive } }])) };
+  const insert = () => db.query("insert into public.fortius_inmuebles_expedientes(id,cliente_id,asesor_id,folio,operacion,flujo) values ($1,'c-own','own','EXP-HEREDADO','venta',$2::jsonb)", [inherited, JSON.stringify(value)]);
+  await asUser(own, async () => { await expect(insert()).rejects.toMatchObject({ code: "PT403" }); });
+  await asUser(admin, insert);
+  const heredado = (await db.query<{ h: Record<string, string> }>("select flujo->'heredado' as h from public.fortius_inmuebles_expedientes where id=$1", [inherited])).rows[0].h;
+  expect(heredado).toMatchObject({ desde: "2026-06-01", registradoPor: admin });
+  await db.exec(`insert into public.fortius_inmuebles_records(collection,id,data) values ('tareas','t-heredado','{"id":"t-heredado","titulo":"Regularizar inventario heredado","categoria":"documentacion","estado":"pendiente","prioridad":"alta","vence":"2030-12-31","expedienteId":"${inherited}","clienteId":"c-own","asesorId":"own","pasos":[]}')`);
+  const advance = (stage: string, flujo: unknown) => db.query<{ version: number }>("select version from public.fortius_inmuebles_expedientes where id=$1", [inherited])
+    .then(r => db.query(`select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,null,false)`, [inherited, r.rows[0].version, stage, JSON.stringify(flujo)]));
+  await asUser(admin, async () => {
+    await advance("documentacion", value);
+    // A comercialización no pasa: titularidad, factibilidad y valor siguen pendientes y no admiten excepción.
+    await expect(advance("comercializacion", value)).rejects.toMatchObject({ code: "PT409" });
+  });
+  await asUser(own, async () => {
+    // El asesor no quita ni cambia la marca.
+    await expect(advance("documentacion", { ...value, heredado: undefined })).rejects.toMatchObject({ code: "PT403" });
+    await expect(advance("documentacion", { ...value, heredado: { desde: "2026-01-01" } })).rejects.toMatchObject({ code: "PT403" });
+  });
+});

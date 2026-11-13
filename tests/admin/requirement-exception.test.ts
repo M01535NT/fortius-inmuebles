@@ -21,3 +21,23 @@ describe("excepción autorizada", () => {
     expect(operationTags({ flujo: emptyWorkflow() })).not.toContain(EXCEPTION_TAG);
   });
 });
+
+/* COR-24: inventario heredado. */
+import { inheritedExceptions, inheritedPending } from "@/lib/formatos/operation-workflow";
+import { INHERITED_TAG } from "@/lib/admin/operation-view";
+import { needsInitialGate } from "@/lib/formatos/operation-gates";
+describe("inventario heredado", () => {
+  const flow = (ruta: OperationWorkflow["ruta"]): OperationWorkflow => ({ ...emptyWorkflow(ruta), heredado: { desde: "2026-06-01" },
+    requisitos: Object.fromEntries(inheritedExceptions(ruta).map(key => [key, { estado: "pendiente" as const, soporte: "", excepcion: { motivo } }])) });
+  it("lleva su etiqueta y para publicar pide lo que protege al cliente, el precio y el contrato", () => {
+    const sale = flow("captacion");
+    expect(operationTags({ flujo: sale })).toContain(INHERITED_TAG);
+    expect(inheritedPending(sale, today)).toEqual(["titularidad", "factibilidad", "valor", "precio", "intermediacion", "publicacion"]);
+    expect(inheritedExceptions("arrendador")).not.toContain("plan");
+    expect(inheritedPending(emptyWorkflow(), today)).toEqual([]);
+  });
+  it("no pide la 02, el 04 ni el checklist para salir de captación", () => {
+    expect(needsInitialGate({ etapa: "captacion", operacion: "venta", flujo: flow("captacion") }, "documentacion")).toBe(false);
+    expect(needsInitialGate({ etapa: "captacion", operacion: "venta", flujo: emptyWorkflow() }, "documentacion")).toBe(true);
+  });
+});

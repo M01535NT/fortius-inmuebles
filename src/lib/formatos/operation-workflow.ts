@@ -98,6 +98,18 @@ const operationClose = z.object({
  registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional(),
 }).strict();
 export type OperationClose = z.infer<typeof operationClose>;
+/**
+  Inventario heredado (COR-24): el inmueble llegó con su asesor y un contrato ya firmado. «desde» es
+  la fecha del contrato. No salta protecciones (decisión del titular, 12/11/2026): titularidad,
+  factibilidad y valor se revisan antes de publicar; entrevista, levantamiento y plan van por excepción.
+*/
+const inherited = z.object({ desde: z.iso.date(), registradoPor: z.string().max(80).optional(), registradoEl: z.string().max(80).optional() }).strict();
+/** Lo que se cubre por excepción en el alta del inventario heredado. */
+export function inheritedExceptions(route: OperationWorkflow["ruta"]): RequirementKey[] { return route === "arrendador" ? ["entrevista", "levantamiento"] : ["entrevista", "levantamiento", "plan"]; }
+/** Lo que falta para regularizar un inventario heredado: lo necesario para publicar. */
+export function inheritedPending(flow: OperationWorkflow, today: string): RequirementKey[] {
+ return flow.heredado ? requiredReviews(flow.ruta, "comercializacion").filter(key => !reviewComplete(flow, key, today)) : [];
+}
 /** Reparto de RP-99: 25 % al que capta y 25 % al que vende; si es el mismo asesor, 50 %. Es una estimación hasta que se cobre. */
 export function commissionSplit(c: Pick<OperationClose, "capto" | "vendio" | "comisionEstimada">): Array<{ asesorId: string; papel: "capto" | "vendio" | "ambos"; porcentaje: number; monto?: number }> {
  const part = (porcentaje: number) => typeof c.comisionEstimada === "number" ? { monto: Math.round(c.comisionEstimada * porcentaje) / 100 } : {};
@@ -126,6 +138,8 @@ export const operationWorkflowSchema = z.object({
  firmaContrato: contractSignature.optional(),
  avaluo: ownerAppraisal.optional(),
  cierre: operationClose.optional(),
+ // COR-24: inmueble que el asesor trajo con contrato ya firmado; solo el director lo marca.
+ heredado: inherited.optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }

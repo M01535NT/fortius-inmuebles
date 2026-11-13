@@ -201,8 +201,10 @@ export type StageContext = { condition?: PropertyCondition | null; next02?: stri
 /** Chips de la situación y la condición: se muestran igual en la operación, Operaciones, Hoy y Contactos. */
 export function operationTags(op: { flujo?: OperationWorkflow | null }, condition?: PropertyCondition | null): string[] {
   const estado = op.flujo?.estado ?? "activa";
-  return [...(estado !== "activa" ? [WORKFLOW_STATES[estado]] : []), ...(condition ? [condition.text] : []), ...(exceptionKeys(op.flujo).length ? [EXCEPTION_TAG] : [])];
+  return [...(estado !== "activa" ? [WORKFLOW_STATES[estado]] : []), ...(condition ? [condition.text] : []), ...(op.flujo?.heredado ? [INHERITED_TAG] : []), ...(exceptionKeys(op.flujo).length ? [EXCEPTION_TAG] : [])];
 }
+/** COR-24: inmueble que el asesor trajo con contrato firmado. */
+export const INHERITED_TAG = "Inventario heredado";
 /** COR-20: la operación avanza con algún requisito cubierto por excepción del director. */
 export const EXCEPTION_TAG = "Con excepción autorizada";
 

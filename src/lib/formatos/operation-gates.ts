@@ -26,7 +26,10 @@ export function initialBlockers(status: InitialInterviewStatus): string[] {
 /** Sólo aplica a ventas y rentas guiadas del propietario que salen de captación. */
 export function needsInitialGate(current: Expediente, nextStage: string, nextFlow?: OperationWorkflow) {
   if (!["venta", "renta"].includes(current.operacion)) return false;
-  const route = (nextFlow ?? current.flujo)?.ruta ?? defaultRoute(current.operacion);
+  const flow = nextFlow ?? current.flujo;
+  // COR-24: el inventario heredado no tiene 02, 04 ni checklist; esos requisitos van por excepción del director.
+  if (flow?.heredado) return false;
+  const route = flow?.ruta ?? defaultRoute(current.operacion);
   return isOwnerRoute(route) && (current.etapa ?? "captacion") === "captacion" && nextStage !== "captacion";
 }
 
