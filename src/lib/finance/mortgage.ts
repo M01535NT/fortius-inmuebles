@@ -109,9 +109,8 @@ export function calculateMortgage(input: MortgageInput) {
     !Number.isInteger(input.months) ||
     input.months < 1 ||
     input.months > 360 ||
-    !Number.isInteger(input.extraMonth) ||
-    input.extraMonth < 1 ||
-    input.extraMonth > input.months ||
+    // C-14: el mes del abono único solo importa cuando hay abono único.
+    (input.extraOnce > 0 && (!Number.isInteger(input.extraMonth) || input.extraMonth < 1 || input.extraMonth > input.months)) ||
     !validIsoDate(input.firstPayment) ||
     !["term", "payment"].includes(input.prepaymentMode)
   )

@@ -41,8 +41,8 @@ export function useOperation(id: string) {
   return { op, setOp, all, loadError, reload, save };
 }
 
-/** Mientras haya captura sin guardar, pide confirmación antes de salir de la operación. */
-export function useLeaveGuard(dirty: boolean) {
+/** Mientras haya captura sin guardar, pide confirmación antes de salir (de la operación, por omisión). */
+export function useLeaveGuard(dirty: boolean, message = "Hay captura sin guardar. ¿Descartar los cambios y salir de esta operación?") {
   const allow = React.useRef(false), pending = React.useRef(false);
   React.useEffect(() => {
     if (!dirty) return;
@@ -56,11 +56,11 @@ export function useLeaveGuard(dirty: boolean) {
       event.preventDefault(); event.stopImmediatePropagation();
       if (pending.current) return;
       pending.current = true;
-      void confirmAction("Hay captura sin guardar. ¿Descartar los cambios y salir de esta operación?").then(approved => { if (approved) { allow.current = true; window.location.assign(target.href); } }).finally(() => { pending.current = false; });
+      void confirmAction(message).then(approved => { if (approved) { allow.current = true; window.location.assign(target.href); } }).finally(() => { pending.current = false; });
     };
     window.addEventListener("beforeunload", warn); document.addEventListener("click", protect, true);
     return () => { window.removeEventListener("beforeunload", warn); document.removeEventListener("click", protect, true); };
-  }, [dirty]);
+  }, [dirty, message]);
 }
 
 /** Mensaje claro para un error de guardado. */

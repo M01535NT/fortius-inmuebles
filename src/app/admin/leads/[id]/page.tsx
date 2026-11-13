@@ -22,6 +22,7 @@ import { EVENTO_TIPOS, EVENTO_TIPO_LABELS, LEAD_CANAL_LABELS, LEAD_ORIGEN_LABELS
 import { cn } from "@/lib/utils";
 import { PERSON_STATUS_LABEL, PERSON_STATUS_TONE } from "@/lib/admin/person-status";
 import { usePersonStatus } from "@/components/admin/workspace/use-person-status";
+import { useLeaveGuard } from "@/components/admin/operation/use-operation";
 
 /*
   Ficha del prospecto (SIM-07, 11/11/2026). Arriba, quién es y cómo contactarlo; después el
@@ -50,6 +51,8 @@ function LeadDetail({ id }: { id: string }) {
   const interview = useInterview({ leadId: id });
   const today = operationalDate();
   const settings = useSingleton(settingsStore);
+  // C-21: cualquier captura a medias (perfil, nota, cita o contacto) se protege al cerrar, recargar o salir por un enlace.
+  useLeaveGuard(!!profileDraft || noteDirty || agendaDirty || contactDirty, "Este prospecto tiene cambios sin guardar. ¿Descartarlos y salir?");
 
   const lead = leads.find(l => l.id === id) ?? noteDraft?.lead ?? profileDraft;
   // Desde el aviso «Pasó el plazo» de Hoy (#reasignar): el foco queda en «Asesor responsable».

@@ -8,7 +8,7 @@ const context={params:Promise.resolve({slug:'house-a'})};
 const request=()=>new Request('https://panel.test/api/admin/propiedades/house-a/publicacion');
 function fixture(expedientes:unknown[],publicada=false){
  const query={select:vi.fn(),eq:vi.fn(),is:vi.fn(),maybeSingle:vi.fn().mockResolvedValue({data:{data:{tipo:'casa',operacion:'venta',publicada}},error:null}),then:(resolve:(v:unknown)=>void)=>Promise.resolve(resolve({data:expedientes,error:null}))};
- for(const fn of [query.select,query.eq,query.is])fn.mockReturnValue(query);requireStaff.mockResolvedValue({client:{from:()=>query}});
+ for(const fn of [query.select,query.eq,query.is])fn.mockReturnValue(query);requireStaff.mockResolvedValue({client:{from:()=>query,rpc:async()=>({data:null,error:{code:'PGRST202'}})}});
 }
 beforeEach(()=>{requireStaff.mockReset();});
 it('keeps publication controls private behind the existing staff session',async()=>{requireStaff.mockRejectedValue(new ApiError(401,'Sesión requerida'));expect((await GET(request(),context)).status).toBe(401);});

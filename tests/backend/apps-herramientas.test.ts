@@ -144,4 +144,10 @@ describe("ISR y neto: dos PDF para el propietario (HER-03)", () => {
     requireStaff.mockResolvedValue({ client: client({ slug: "hipoteca" }), user: { id: "u" } });
     expect((await get("format=pdf&parte=neto")).status).toBe(400);
   });
+  it("B8: una descarga pedida desde otro sitio no genera nada", async () => {
+    requireStaff.mockResolvedValue({ client: client({}), user: { id: "u" } });
+    const cross = await exportRun(new Request(`https://panel.test/api/admin/apps/runs/${id}/export?format=pdf&parte=neto`, { headers: { "sec-fetch-site": "cross-site" } }), { params: Promise.resolve({ id }) });
+    expect(cross.status).toBe(403);
+    expect(requireStaff).not.toHaveBeenCalled();
+  });
 });

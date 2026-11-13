@@ -33,10 +33,31 @@ export async function topeVigente(privileged: SupabaseClient): Promise<Pick<UsoI
 const inicioDelMes = (ahora: Date) => new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1));
 
 async function lecturasDelMes(privileged: SupabaseClient, ahora: Date) {
-  const result = await privileged.from("fortius_inmuebles_ia_lecturas").select("costo_usd").gte("created_at", inicioDelMes(ahora).toISOString());
+  const result = await privileged.from("fortius_inmuebles_ia_lecturas").select("costo_usd,estado").gte("created_at", inicioDelMes(ahora).toISOString());
   if (result.error) databaseError(result.error);
-  return result.data ?? [];
+  // Una reserva en curso (B9) no es una lectura todavía: no se muestra como gasto.
+  return (result.data ?? []).filter(row => row.estado !== "reservada");
 }
+
+/**
+  B9 / C-19: lo que se aparta del tope antes de llamar al servicio. Al terminar se cambia por el
+  costo real. Una lectura típica cuesta centavos; esto basta para que peticiones simultáneas no
+  rebasen el tope todas juntas.
+*/
+export const RESERVA_LECTURA_USD = 0.05;
+/** La función de la base todavía no existe (migración sin aplicar): se usa la comprobación de antes. */
+const sinFuncion = (error: { code?: string }) => error.code === "PGRST202" || error.code === "42883";
+
+async function reservarLectura(privileged: SupabaseClient, archivo: { id: string; expediente_id: string }, userId: string, tope: number): Promise<string | null> {
+  const { data, error } = await privileged.rpc("fortius_inmuebles_reservar_lectura_ia", { p_archivo: archivo.id, p_expediente: archivo.expediente_id, p_requested_by: userId, p_tope: tope, p_reserva: RESERVA_LECTURA_USD });
+  if (!error) return data as string;
+  if (error.code === "PT429") throw topeAlcanzado();
+  if (!sinFuncion(error)) databaseError(error);
+  if (await gastoDelMes(privileged) >= tope) throw topeAlcanzado();
+  return null;
+}
+// Sin el monto en dólares: el asesor no administra el presupuesto.
+const topeAlcanzado = () => new ApiError(429, "Se terminaron las lecturas de este mes. Captura los datos a mano o pide al director que amplíe el límite en Configuración.");
 
 export async function gastoDelMes(privileged: SupabaseClient, ahora = new Date()): Promise<number> {
   return (await lecturasDelMes(privileged, ahora)).reduce((total, row) => total + Number(row.costo_usd ?? 0), 0);
@@ -60,14 +81,17 @@ export async function leerArchivoConIa(client: SupabaseClient, privileged: Supab
   const { archivo, bytes } = await descargarArchivo(client, privileged, archivoId);
   if (archivo.deleted_at) throw new ApiError(409, "Restaura el documento antes de leerlo");
   await exigirExpediente(client, archivo.expediente_id);
-  const [{ topeUsd: tope }, gasto] = await Promise.all([topeVigente(privileged), gastoDelMes(privileged)]);
-  if (gasto >= tope) throw new ApiError(429, "Se terminaron las lecturas de este mes. Captura los datos a mano o pide al director que amplíe el límite en Configuración.");
+  const { topeUsd: tope } = await topeVigente(privileged);
+  const reserva = await reservarLectura(privileged, archivo, userId, tope);
 
   await marcar(privileged, archivo.id, { lectura_estado: "leyendo", lectura_error: null });
-  const anotar = (estado: "leido" | "error", resultado?: ResultadoExtractor, propuestos = 0) => privileged.from("fortius_inmuebles_ia_lecturas").insert({
-    archivo_id: archivo.id, expediente_id: archivo.expediente_id, requested_by: userId, modelo: resultado?.modelo ?? "sin respuesta", estado,
-    input_tokens: resultado?.uso.input_tokens ?? 0, output_tokens: resultado?.uso.output_tokens ?? 0, costo_usd: resultado ? costoAproximado(resultado.uso, resultado.modelo) : 0, datos_propuestos: propuestos,
-  });
+  // La reserva se convierte en la lectura con su costo real; sin reserva (base sin migrar), se anota nueva.
+  const anotar = (estado: "leido" | "error", resultado?: ResultadoExtractor, propuestos = 0) => {
+    const fila = { modelo: resultado?.modelo ?? "sin respuesta", estado, input_tokens: resultado?.uso.input_tokens ?? 0, output_tokens: resultado?.uso.output_tokens ?? 0,
+      costo_usd: resultado ? costoAproximado(resultado.uso, resultado.modelo) : 0, datos_propuestos: propuestos };
+    const tabla = privileged.from("fortius_inmuebles_ia_lecturas");
+    return reserva ? tabla.update(fila).eq("id", reserva) : tabla.insert({ archivo_id: archivo.id, expediente_id: archivo.expediente_id, requested_by: userId, ...fila });
+  };
   const fallar = async (mensaje: string, resultado?: ResultadoExtractor): Promise<never> => {
     await marcar(privileged, archivo.id, { lectura_estado: "error", lectura_error: mensaje });
     await anotar("error", resultado);

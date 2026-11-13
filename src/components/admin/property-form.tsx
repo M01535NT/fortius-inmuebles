@@ -544,7 +544,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
             Puntos de interés cercanos
           </p>
           <div className="mt-2 space-y-2">
-            <UploadControl label="Tomar foto con la cámara" accept="image/*" capture="environment" publicOnly onUploaded={file=>{setGaleria(current=>[...current,{src:file.url,alt:file.name}]);setDirty(true);}}/>
+            <UploadControl label="Tomar foto con la cámara" accept="image/*" capture="environment" publicOnly inmueble={initial?.slug} onUploaded={file=>{setGaleria(current=>[...current,{src:file.url,alt:file.name}]);setDirty(true);}}/>
             {pois.map((poi, i) => (
               <div key={i} className="flex gap-2">
                 <input
@@ -784,7 +784,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
           <UploadControl
             label="Subir imagen pública"
             accept="image/jpeg,image/png,image/webp,image/gif"
-            publicOnly
+            publicOnly inmueble={initial?.slug}
             onUploaded={(file) =>
               { setDirty(true); setGaleria((current) => [
                 ...current,
@@ -798,7 +798,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
                 <div className="flex items-center gap-2 sm:col-span-2">
                   {img.src && publicGalleryUrl(img.src) && <Image unoptimized width={960} height={720} src={img.src} alt={img.alt} className="h-16 w-24 rounded object-cover"/>}
                   <span className="flex-1 text-sm">{i===0?"Portada":`Foto ${i+1}`}</span>{img.src && <a href={img.src} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center px-2 text-sm font-semibold underline underline-offset-4">Ver</a>}
-                  {img.src && publicGalleryUrl(img.src) && <PhotoEditButton src={img.src} label={i===0?"Portada":`Foto ${i+1}`} onSaved={url=>setGaleria(current=>current.map((g,j)=>j===i?{...g,src:url}:g))}/>}
+                  {img.src && publicGalleryUrl(img.src) && <PhotoEditButton inmueble={initial?.slug} src={img.src} label={i===0?"Portada":`Foto ${i+1}`} onSaved={url=>setGaleria(current=>current.map((g,j)=>j===i?{...g,src:url}:g))}/>}
                   <Button iconOnly variant="ghost" disabled={i===0} aria-label={`Subir foto ${i+1}`} onClick={()=>moveImage(i,-1)}><ArrowUp size={16} aria-hidden="true"/></Button>
                   <Button iconOnly variant="ghost" disabled={i===galeria.length-1} aria-label={`Bajar foto ${i+1}`} onClick={()=>moveImage(i,1)}><ArrowDown size={16} aria-hidden="true"/></Button>
                 </div>
@@ -837,7 +837,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
           ready="El video aparece en el carrusel de la ficha."
           link="Usar un enlace de YouTube o Vimeo"
           placeholder="https://www.youtube.com/watch?v=…"
-          upload={<UploadControl label="Subir video" accept="video/mp4,video/webm" publicOnly onUploaded={(file) => { setVideo(file.url); setDirty(true); }} />}
+          upload={<UploadControl label="Subir video" accept="video/mp4,video/webm" publicOnly inmueble={initial?.slug} onUploaded={(file) => { setVideo(file.url); setDirty(true); }} />}
         />
         <MediaPiece
           title="Recorrido 360"
@@ -864,7 +864,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
         <UploadControl
           label="Subir PDF público"
           accept="application/pdf"
-          publicOnly
+          publicOnly inmueble={initial?.slug}
           onUploaded={(file) =>
             setDocumentos((current) => [
               ...current,

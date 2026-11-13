@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { datosAutomaticos, datosGuardados, llenarDesdeDatos, mezclarDatos, sinAutomaticosIguales, type DatosGuardados, type InmuebleDatos, type PersonaDatos } from "@/lib/formatos/datos-expediente";
 import { ApiError, databaseError } from "./http";
+import { propiedadVisible } from "./repository";
 
 /*
   Datos del expediente en el servidor: se leen con la RLS del expediente y se guardan con versión
@@ -29,12 +30,16 @@ export async function datosAutomaticosDe(client: SupabaseClient, expedienteId: s
   try {
     const exp = await client.from("fortius_inmuebles_expedientes").select("cliente_id,propiedad_slug").eq("id", expedienteId).maybeSingle();
     if (exp.error || !exp.data) return {};
-    const ids = [exp.data.cliente_id, exp.data.propiedad_slug].filter((value): value is string => typeof value === "string" && !!value);
-    if (!ids.length) return {};
-    const rows = await client.from("fortius_inmuebles_records").select("id,collection,data").in("id", ids);
+    const { cliente_id: clienteId, propiedad_slug: slug } = exp.data;
+    if (!clienteId && !slug) return {};
+    // A1: el inmueble puede ser de otro asesor (compartido, contraparte COR-11): se lee recortado por la base.
+    const [rows, propiedad] = await Promise.all([
+      clienteId ? client.from("fortius_inmuebles_records").select("id,collection,data").eq("collection", "clientes").eq("id", clienteId) : Promise.resolve({ data: [], error: null }),
+      slug ? propiedadVisible(client, slug) : Promise.resolve(null),
+    ]);
     if (rows.error) return {};
-    const persona = rows.data?.find(row => row.collection === "clientes" && row.id === exp.data!.cliente_id)?.data as PersonaDatos | undefined;
-    const inmueble = rows.data?.find(row => row.collection === "propiedades" && row.id === exp.data!.propiedad_slug)?.data as InmuebleDatos | undefined;
+    const persona = rows.data?.find(row => row.collection === "clientes" && row.id === clienteId)?.data as PersonaDatos | undefined;
+    const inmueble = (propiedad ?? undefined) as InmuebleDatos | undefined;
     return datosAutomaticos({ persona, inmueble, ahora });
   } catch { return {}; }
 }

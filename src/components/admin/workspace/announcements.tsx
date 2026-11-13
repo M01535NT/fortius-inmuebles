@@ -54,7 +54,7 @@ export function Announcements({ className }: { className?: string }) {
           <span className="whitespace-pre-wrap text-[.9375rem] [overflow-wrap:anywhere]">{item.texto || item.titulo}</span>
           <small className="text-muted-foreground">{humanDateTime(item.actualizadoEl)}{item.autor ? ` · ${item.autor}` : ""}</small>
         </span>
-        {director && <button type="button" aria-label={`Quitar el aviso «${item.titulo}»`} className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-[10px] text-muted-foreground hover:bg-secondary hover:text-destructive" onClick={() => void remove(item.id)}><Trash2 size={18} aria-hidden="true" /></button>}
+        {director && <button type="button" aria-label={`Eliminar el aviso «${item.titulo}»`} className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-[10px] text-muted-foreground hover:bg-secondary hover:text-destructive" onClick={() => void remove(item.id)}><Trash2 size={18} aria-hidden="true" /></button>}
       </li>)}</ul> : !writing && <p className="m-0 text-sm text-muted-foreground">Sin avisos. Lo que escribas aquí lo ve todo el equipo en Hoy.</p>}
       {error && <p role="alert" className="m-0 text-sm text-destructive">{error}</p>}
     </Card>

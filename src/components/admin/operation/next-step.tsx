@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button, ButtonLink, Card, Notice } from "@/components/admin/kit";
 import { TIPO_LABELS, type Property as Propiedad } from "@/data/propiedades";
 import { AsyncSelect, inputClass, selectClass } from "@/components/admin/ui";
-import { offerCandidates, offerOwner, withOffer, withoutOffer } from "@/lib/admin/lead-offers";
+import { offerCandidates, offerOwner, withoutOffer } from "@/lib/admin/lead-offers";
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
@@ -31,6 +31,7 @@ import { OwnerAppraisalCard } from "./owner-appraisal";
 import { CloseCard } from "./close-card";
 import { EncargoDecisionCard, encargoTomado } from "./encargo-decision";
 import { PriorVisitCard } from "./prior-visit";
+import { moverOferta } from "./offer-link";
 import { WaitingSeekers } from "@/components/admin/properties/waiting-seekers";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
@@ -618,10 +619,8 @@ function VisitsAndOffers({ op, today, documents }: { op: OperationRecord; today:
   // COR-18: cada oferta por escrito se liga al interesado que la hizo; su ficha muestra la misma.
   const candidates = offerCandidates(leads, op.propiedad_slug, visits.map(e => e.leadId).filter((id): id is string => !!id), op.flujo?.contraparteLeadId);
   async function link(documentoId: string, fecha: string, leadId: string) {
-    const before = offerOwner(leads, documentoId);
-    if (before && before.id !== leadId) await upsert(db.leads, withoutOffer(before, documentoId), db.leads.version(before));
-    const next = leads.find(l => l.id === leadId);
-    if (next) await upsert(db.leads, withOffer(next, { documentoId, expedienteId: op.id, fecha, ...(op.propiedad_slug ? { propiedadSlug: op.propiedad_slug } : {}) }), db.leads.version(next));
+    await moverOferta(leads, { documentoId, expedienteId: op.id, fecha, ...(op.propiedad_slug ? { propiedadSlug: op.propiedad_slug } : {}) }, leadId,
+      (lead, version) => upsert(db.leads, lead, version), lead => db.leads.version(lead));
   }
   return <Card className="flex flex-col gap-4 p-5" aria-label="Visitas y ofertas del inmueble">
     <h2 className="m-0 flex items-center gap-2 text-base"><CalendarDays size={18} aria-hidden="true" />Visitas y ofertas del inmueble</h2>

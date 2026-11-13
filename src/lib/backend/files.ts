@@ -5,11 +5,15 @@ import sharp, { type Sharp } from "sharp";
 import { z } from "zod";
 import { ApiError, databaseError } from "./http";
 import { MAX_FILE_BYTES, validateFile } from "./validation";
+import { propiedadVisible } from "./repository";
 
 const uploadInput = z.object({
   name: z.string().min(1).max(160), size: z.number().int().positive().max(MAX_FILE_BYTES),
   contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf", "video/mp4", "video/webm"]),
   visibility: z.enum(["private", "public"]).default("private"),
+  // B5: a dónde va lo público. «inmueble»: fotos, video y PDF de una ficha; «sitio»: biblioteca de Archivos.
+  destino: z.enum(["inmueble", "sitio"]).optional(),
+  inmueble: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/).optional(),
 }).strict();
 const ticketSchema = uploadInput.extend({ v: z.literal(1), uid: z.uuid(), path: z.string().regex(/^[a-f0-9-]+\/[a-f0-9-]+\.(jpg|png|webp|gif|pdf|mp4|webm)$/), expires: z.number().int() }).strict();
 type StorageClient = Pick<SupabaseClient, "storage">;
@@ -41,8 +45,29 @@ function parseTicket(ticket: unknown, userId: string) {
   return data;
 }
 
+/**
+  B5 (auditoría de seguridad, 13/11/2026): lo público lo decide el servidor según el destino, no la
+  pantalla. Una ficha de inmueble: su asesor o el director (un inmueble nuevo, todavía sin guardar,
+  lo sube quien lo captura). La biblioteca pública de Archivos: solo el director. Sin destino, nada
+  sale al bucket público. Lo privado no cambia.
+*/
+export async function autorizarDestino(client: Pick<SupabaseClient, "from" | "rpc">, role: string, input: unknown) {
+  const data = uploadInput.parse(input);
+  if (data.visibility !== "public") return;
+  if (!data.destino) throw new ApiError(403, "Indica a dónde va el archivo público");
+  if (role === "admin") return;
+  if (data.destino === "sitio") throw new ApiError(403, "Solo el director publica archivos en la biblioteca del sitio. Súbelo como privado.");
+  if (!data.inmueble) return;
+  const propiedad = await propiedadVisible(client, data.inmueble);
+  if (!propiedad) return;
+  const { data: mine, error } = await client.rpc("fortius_inmuebles_current_asesor_id");
+  if (error) databaseError(error);
+  if (!mine || propiedad.asesorId !== mine) throw new ApiError(403, "Solo el asesor del inmueble o el director suben sus fotos y documentos públicos");
+}
+
 export async function prepareUpload(client: StorageClient, userId: string, input: unknown) {
   const data = uploadInput.parse(input);
+  if (data.visibility === "public" && !data.destino) throw new ApiError(403, "Indica a dónde va el archivo público");
   z.uuid().parse(userId);
   const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "application/pdf": "pdf", "video/mp4": "mp4", "video/webm": "webm" }[data.contentType];
   const path = `${userId}/${randomUUID()}.${extension}`;
