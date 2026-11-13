@@ -651,3 +651,28 @@ it("la decisión del encargo se toma en el panel de la etapa y ya no en los dato
   const datos = await screen.findByRole("dialog", { name: "Datos de la operación" });
   expect(within(datos).queryByLabelText("Decisión")).toBeNull();
 });
+
+// BUG-C05: tras un 409 la versión del borrador no cambia y cerrar vuelve a guardar con la versión vieja;
+// aceptar o cancelar deja la ventana abierta y la única salida es recargar la página.
+it("Expediente: tras un conflicto 409 la ventana de captura ofrece una salida y se puede cerrar", async () => {
+  server.docs = [docA, docB];
+  server.fail = (url, init) => init?.method === "PUT" && url.includes("/formatos/") ? Response.json({ error: "El registro cambió o tiene referencias; recarga antes de continuar" }, { status: 409 }) : undefined;
+  await openOperation("documentos");
+  fireEvent.click((await screen.findAllByRole("button", { name: "Abrir" }))[1]);
+  const capture = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
+  fireEvent.change(await openPayer(capture), { target: { value: "Captura en conflicto" } });
+  fireEvent.click(within(capture).getByRole("button", { name: "Aceptar" }));
+  await waitFor(() => expect(within(capture).getAllByRole("alert").map(alert => alert.textContent).join(" ")).toMatch(/cambió/));
+  // Con todas las confirmaciones aceptadas (incluida la de descartar), «Cerrar» debe cerrar la ventana.
+  fireEvent.click(within(capture).getByRole("button", { name: "Cerrar" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "Recibo de pago de honorarios" })).toBeNull(), { timeout: 3000 });
+});
+
+// BUG-C07: el foco inicial va a un encabezado que no existe en la captura en vivo y se queda detrás del velo.
+it("Expediente: al abrir la ventana de captura el foco queda dentro del diálogo", async () => {
+  server.docs = [docA, docB];
+  await openOperation("documentos");
+  fireEvent.click((await screen.findAllByRole("button", { name: "Abrir" }))[1]);
+  const capture = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
+  await waitFor(() => expect(capture.contains(document.activeElement)).toBe(true));
+});
