@@ -4,8 +4,8 @@ import { FileText } from "lucide-react";
 const stages = [
   { title: "Entrevista inicial", text: "Nos cuentas del inmueble y qué esperas.", src: "/hero/que-hacemos-vender.webp", alt: "Casa de dos niveles con jardín" },
   { title: "Levantamiento", text: "Visitamos, medimos y fotografiamos.", src: "/hero/etapa-03-telefono.webp", alt: "Teléfono en un trípode frente a la fachada de una casa" },
-  { title: "Documentos", text: "Reunimos y revisamos el checklist.", src: "/hero/etapa-01-revisamos.webp", alt: "Escritura y pluma sobre un escritorio" },
-  { title: "Dictamen y precio", text: "Si se puede vender y en cuánto.", src: "/hero/etapa-02-precio.webp", alt: "Cinta métrica sobre un plano", doc: "Factibilidad y opinión de valor" },
+  { title: "Documentos", text: "Reunimos escritura, predial y lo que haga falta.", src: "/hero/etapa-01-revisamos.webp", alt: "Escritura y pluma sobre un escritorio" },
+  { title: "Dictamen y precio", text: "Si se puede vender y en cuánto.", src: "/hero/etapa-02-precio.webp", alt: "Cinta métrica sobre un plano", doc: "Opinión jurídica y opinión de valor" },
 ];
 
 /*
