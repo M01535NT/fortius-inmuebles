@@ -19,7 +19,7 @@ import s from "./kit.module.css";
 type ButtonVariant = "primary" | "secondary" | "ghost" | "link" | "danger" | "dangerSolid";
 type ButtonProps = { variant?: ButtonVariant; size?: "md" | "lg"; iconOnly?: boolean; className?: string };
 
-function buttonClass({ variant = "secondary", size = "md", iconOnly = false, className }: ButtonProps) {
+export function buttonClass({ variant = "secondary", size = "md", iconOnly = false, className }: ButtonProps) {
   return cn(s.btn, s[variant], size === "lg" && s.lg, iconOnly && s.iconOnly, className);
 }
 

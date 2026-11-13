@@ -99,6 +99,8 @@ export type QueueItem = {
   /** Orden dentro de la misma urgencia (folio, fecha o posición). */
   sort: string;
   propertySlug?: string | null; folio?: string; taskId?: string;
+  /** Prospecto nuevo del sitio: Hoy ofrece «Registrar contacto» (COR-21). */
+  leadId?: string;
 };
 export const QUEUE_LABEL: Record<QueueKind, string> = { problema: "Problema", vencida: "Vencida", nuevo: "Nuevo", llaves: "Llaves", contrato: "Contrato", licencia: "Licencia", informe: "Informe", falta: "Falta", revisar: "Revisar", hoy: "Vence hoy", decidir: "Oferta", entrevista: "Entrevista", seguimiento: "Seguimiento", agendar: "Agendar", aviso: "Aviso" };
 // Las operaciones siguen el orden de RP-84 (problema, vencida, falta, revisar, vence hoy, oferta, sin próxima tarea).
@@ -113,7 +115,7 @@ export function queueFromWaiting(items: WaitingItem[]): QueueItem[] {
   return items.map(item => ({ id: `espera:${item.id}`, kind: WAITING_KIND[item.kind], who: item.who, text: item.rank === 1 ? item.reason.replace(/^Tarea vencida: /, "") : item.reason, detail: item.detail, when: item.when, late: item.late, href: item.href, sort: item.sort, propertySlug: item.propertySlug, folio: item.folio, taskId: item.taskId }));
 }
 export function queueFromLeads(items: NewLeadItem[]): QueueItem[] {
-  return items.map((item, index) => ({ id: `nuevo:${item.id}`, kind: "nuevo", who: item.who, text: item.detail, when: item.since, late: item.late, href: item.href, sort: String(index).padStart(4, "0") }));
+  return items.map((item, index) => ({ id: `nuevo:${item.id}`, kind: "nuevo", who: item.who, text: item.detail, when: item.since, late: item.late, href: item.href, leadId: item.id, sort: String(index).padStart(4, "0") }));
 }
 export function queueFromInterviews(interviews: OperationalInterview[]): QueueItem[] {
   return interviews.map(interview => ({ id: `entrevista:${interview.id}`, kind: "entrevista", who: interview.contacto?.nombre || "Contacto sin nombre", text: interviewSummary(interview), late: false, href: `/admin/operaciones/nueva?entrevista=${encodeURIComponent(interview.id)}`, sort: interview.updated_at ?? "" }));
@@ -283,8 +285,13 @@ export function expiryItems({ contracts, dossiers, names, today }: { contracts: 
   return items.sort((a, b) => a.date.localeCompare(b.date) || a.kind.localeCompare(b.kind));
 }
 
-/** RP-23: horas para la primera atención de un prospecto nuevo. Pendiente: hacerlo ajustable en Configuración. */
+/** RP-23: horas para la primera atención de un prospecto nuevo; se ajusta en Configuración. */
 export const FIRST_RESPONSE_HOURS = 2;
+/** El plazo guardado en Configuración, o 2 h si no hay uno válido. */
+export function firstResponseHours(settings?: { horasPrimeraAtencion?: unknown } | null): number {
+  const value = settings?.horasPrimeraAtencion;
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 72 ? value : FIRST_RESPONSE_HOURS;
+}
 export type NewLeadItem = { id: string; who: string; detail: string; since: string; late: boolean; href: string; responsible?: string; forDirector: boolean };
 type LeadLike = { id: string; nombre: string; estado: string; origen: string; creadoEl: string; asesorId?: string; propiedadSlug?: string; zona?: string; mensaje?: string; clienteId?: string; firstContactedAt?: string };
 

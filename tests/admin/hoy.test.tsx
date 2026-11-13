@@ -177,6 +177,18 @@ test("COR-21: los prospectos del sitio sin atender le tocan a su asesor, al del 
   expect(unattendedLeads({ leads, properties, me: "a3", admin: false, now })).toEqual([]);
 });
 
+test("COR-21: el plazo de primera atención se toma de Configuración y la cola marca el prospecto", async () => {
+  const { firstResponseHours, queueFromLeads, unattendedLeads } = await import("@/lib/admin/today");
+  expect(firstResponseHours({ horasPrimeraAtencion: 6 })).toBe(6);
+  for (const bad of [undefined, null, {}, { horasPrimeraAtencion: 0 }, { horasPrimeraAtencion: 100 }, { horasPrimeraAtencion: "6" }]) expect(firstResponseHours(bad as never)).toBe(2);
+  const now = new Date("2026-11-02T18:00:00Z");
+  const leads = [{ id: "w1", nombre: "Persona", estado: "nuevo", origen: "contacto", creadoEl: "2026-11-02T15:00:00Z" }];
+  expect(unattendedLeads({ leads, properties: [], admin: true, now, hours: 2 })[0].late).toBe(true);
+  const relaxed = unattendedLeads({ leads, properties: [], admin: true, now, hours: firstResponseHours({ horasPrimeraAtencion: 4 }) });
+  expect(relaxed[0].late).toBe(false);
+  expect(queueFromLeads(relaxed)[0]).toMatchObject({ id: "nuevo:w1", kind: "nuevo", leadId: "w1" });
+});
+
 test("COR-05: la cola de Hoy usa el mismo motivo y orden que Operaciones (RP-84)", () => {
   const base = { today, names, followups: [], offers: [] };
   // Vence hoy: antes no aparecía en Hoy, aunque Operaciones sí lo marcaba.

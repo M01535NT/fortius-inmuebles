@@ -10,6 +10,7 @@ import {
   btnPrimary,
   inputClass,
 } from "@/components/admin/ui";
+import { firstResponseHours } from "@/lib/admin/today";
 import {
   settingsStore,
   useSingleton,
@@ -40,12 +41,15 @@ function Editor({ initial }: { initial: SiteSettings }) {
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const next = Object.fromEntries(
-      Object.keys(settings as SiteSettings).map((k) => [
-        k,
-        String(data.get(k) ?? ""),
-      ]),
-    ) as SiteSettings;
+    const texts = Object.fromEntries(
+      Object.keys(settings as SiteSettings)
+        .filter((k) => k !== "horasPrimeraAtencion")
+        .map((k) => [k, String(data.get(k) ?? "")]),
+    ) as Omit<SiteSettings, "horasPrimeraAtencion">;
+    const next: SiteSettings = {
+      ...texts,
+      horasPrimeraAtencion: firstResponseHours({ horasPrimeraAtencion: Number(data.get("horasPrimeraAtencion")) }),
+    };
     const saved = await settingsStore.save(next, version);
     setVersion(settingsStore.version(saved));
     setGuardado(true);
@@ -145,6 +149,28 @@ function Editor({ initial }: { initial: SiteSettings }) {
               defaultValue={settings.videoInstitucionalUrl}
               placeholder="https://… .mp4"
               className={inputClass}
+            />
+          </Field>
+        </section>
+
+        <section className="space-y-4 rounded-lg border border-border bg-card p-5">
+          <h2 className="display-soft text-lg text-foreground">Prospectos del sitio</h2>
+          <Field
+            label="Horas para la primera atención"
+            htmlFor="cf-primera-atencion"
+            hint="Un prospecto nuevo del sitio sale como atrasado en Hoy al pasar este plazo sin que nadie lo contacte. De 1 a 72 horas."
+          >
+            <input
+              id="cf-primera-atencion"
+              name="horasPrimeraAtencion"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={72}
+              step={1}
+              required
+              defaultValue={firstResponseHours(settings)}
+              className={inputClass + " sm:max-w-[10rem]"}
             />
           </Field>
         </section>

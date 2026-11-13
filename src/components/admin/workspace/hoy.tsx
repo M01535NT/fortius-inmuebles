@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { SetupChecklist } from "@/components/admin/workspace/setup-checklist";
 import { SectionBoundary } from "@/components/admin/section-boundary";
 import { useTodayQueue } from "@/components/admin/workspace/use-today-queue";
+import { FirstContactButton } from "@/components/admin/workspace/first-contact";
 import s from "./hoy.module.css";
 
 /*
@@ -90,6 +91,9 @@ export function HoyScreen() {
   const failures = [dossiers === null && "las operaciones", interviews === null && "las entrevistas", contracts === null && "los contratos de servicio", reports === null && "los informes al propietario"].filter((x): x is string => !!x);
   // COR-14: la situación y la condición de la llamada, como chip en cada operación.
   const tagsOf = (item: QueueItem) => { const d = item.folio ? dossiers?.find(x => x.folio === item.folio) : undefined; return d ? operationTags(d, conditions.ofOperation(d.id)) : []; };
+  // COR-21: un prospecto nuevo del sitio se marca como atendido desde aquí, sin abrir su ficha.
+  const leadOf = (item: QueueItem) => item.leadId ? leads.find(l => l.id === item.leadId) : undefined;
+  const nextLead = next ? leadOf(next) : undefined;
   const thumb = (item: QueueItem, size: number) => item.folio || item.propertySlug ? <Thumb src={photo(item.propertySlug)} size={size} icon={<Building2 size={size > 44 ? 24 : 20} aria-hidden="true" />} /> : <Avatar name={item.who} size={size} />;
 
   return <Surface className={s.page}>
@@ -116,6 +120,10 @@ export function HoyScreen() {
           : <div className={s.nextEmpty}><strong className={s.nextTitle}>Nada espera por ti.</strong><span className={s.nextWho}>{inProgress.length ? "Cada operación tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: la operación se crea al terminarla."}</span>{!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nueva operación</ButtonLink>}</div>}
       </div>
 
+      {nextLead && <div className={cn(s.contactLine, s.full)}>
+        <span className={s.meta}>¿Ya hablaste con {nextLead.nombre}?</span>
+        <FirstContactButton lead={nextLead} />
+      </div>}
       {failures.map(what => <div key={what} className={s.full}>{failed(what)}</div>)}
       {dossiers !== undefined && rest.length > 0 && <div className={cn(s.queueHead, s.full)}>
         <span className={s.meta}>{plural(queue.length, "pendiente en total", "pendientes en total")}</span>
@@ -135,11 +143,12 @@ export function HoyScreen() {
         })}</ul>}
         {listRows.length > 0 && <Card as="ul" className={cn(s.list, s.full)} aria-label="Más pendientes">{listRows.map(item => {
           const pill = queuePill(item);
-          return <li key={item.id}><article><Link href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
+          const lead = leadOf(item);
+          return <li key={item.id}><article className={cn(lead && s.rowWithAction)}><Link href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
             {thumb(item, 44)}
             <span className={s.rowBody}><span className={s.rowTitle}>{item.who}</span><span className={s.rowText}>{item.text}{item.detail ? ` · ${item.detail}` : ""}</span></span>
             <span className={s.rowEnd}>{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.kind !== "vencida" && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}{item.when && <span className={cn(s.meta, item.late && s.lateText)}>{item.when}</span>}</span>
-          </Link></article></li>;
+          </Link>{lead && <FirstContactButton lead={lead} className={s.rowAction} />}</article></li>;
         })}</Card>}
       </>}
       {dossiers !== undefined && next && rest.length === 0 && <p className={cn(s.note, s.full)}>Nada más espera por ti.</p>}

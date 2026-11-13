@@ -2,11 +2,11 @@
 import * as React from "react";
 import { lastNotice, pendingNotices, priceDroppedSince, seekersFrom } from "@/lib/admin/buyer-matches";
 import { keyDueDate, keyLoanLate, openKeyLoans } from "@/lib/propiedad-seguimiento";
-import { apiRequest, db, onAdminCacheClear, useCollection } from "@/lib/admin/store";
+import { apiRequest, db, onAdminCacheClear, settingsStore, useCollection, useSingleton } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { projectFollowups } from "@/lib/admin/followups";
 import type { OperationalInterview } from "@/lib/intake/interview";
-import { expiryItems, overdueReports, queueFromExpiry, queueFromInterviews, queueFromLeads, queueFromReports, queueFromWaiting, shortDate, sortQueue, unattendedLeads, waitingItems, type ContractDates, type OfferRun, type QueueItem, type TodayDossier } from "@/lib/admin/today";
+import { expiryItems, firstResponseHours, overdueReports, queueFromExpiry, queueFromInterviews, queueFromLeads, queueFromReports, queueFromWaiting, shortDate, sortQueue, unattendedLeads, waitingItems, type ContractDates, type OfferRun, type QueueItem, type TodayDossier } from "@/lib/admin/today";
 import { initialStatus } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 
@@ -86,6 +86,7 @@ export function useTodayData(maxAge: number) {
 export function useTodayQueue({ maxAge = 0 }: { maxAge?: number } = {}) {
   const { dossiers, interviews, offers, reports, contracts, who, formats } = useTodayData(maxAge);
   const tasks = useCollection(db.tareas), leads = useCollection(db.leads), clients = useCollection(db.clientes), properties = useCollection(db.propiedades), advisers = useCollection(db.asesores);
+  const settings = useSingleton(settingsStore);
   const today = operationalDate();
   const names = {
     client: (id?: string) => id ? clients.find(c => c.id === id)?.nombre : undefined,
@@ -95,7 +96,7 @@ export function useTodayQueue({ maxAge = 0 }: { maxAge?: number } = {}) {
   const staged = (dossiers ?? []).map(d => ({ ...d, inicial: initialStatus(formats.get(d.id), tasks.find(t => t.id === checklistTaskId(d.id))) }));
   const waiting = dossiers === undefined ? [] : waitingItems({ dossiers: staged, tasks, offers: offers ?? null, followups: projectFollowups(leads, clients, dossiers), names, today, formats });
   const toDay = (instant: string) => operationalDate(new Date(instant));
-  const newLeads = who ? unattendedLeads({ leads, properties, me: who.asesorId, admin: who.administrador, now: new Date(), adviserName: id => advisers.find(a => a.id === id)?.nombre }) : [];
+  const newLeads = who ? unattendedLeads({ leads, properties, me: who.asesorId, admin: who.administrador, now: new Date(), hours: firstResponseHours(settings), adviserName: id => advisers.find(a => a.id === id)?.nombre }) : [];
   const expiring = dossiers && contracts ? expiryItems({ contracts, dossiers, names, today }) : [];
   const lateReports = dossiers && reports ? overdueReports({ dossiers, reports, names, today }) : [];
   const lateKeys: QueueItem[] = properties.flatMap(p => openKeyLoans(p.llaves).filter(loan => keyLoanLate(loan, today, toDay)).map(loan => ({
