@@ -8,6 +8,7 @@ import { calcularValor } from "@/lib/formatos/valor";
 import { fechasDeHoy, llenarDesdeDatos } from "@/lib/formatos/datos-expediente";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { leerDatosCompletos } from "@/lib/backend/expediente-datos";
+import { asegurarReciboUnico, numeroReciboNuevo } from "@/lib/backend/recibo-18";
 import { appraisalState, operationWorkflowSchema, valueFromAppraisal } from "@/lib/formatos/operation-workflow";
 
 type Context = { params: Promise<{ id: string }> };
@@ -45,11 +46,8 @@ export async function POST(request: Request, context: Context) {
     if(interviews.error)databaseError(interviews.error);
     const proposed=prefillFormato(input.formatoId,{expediente:exp,persona,asesor,inmueble,entrevista:interviews.data?.[0] as OperationalInterview|undefined});
     // Recibo 18: número automático, folio del expediente y consecutivo de sus recibos (nadie lo inventa).
-    if(input.formatoId==="18"){
-      const previos=await client.from("fortius_inmuebles_formato_drafts").select("id",{count:"exact",head:true}).eq("expediente_id",id).eq("formato_id","18");
-      if(previos.error)databaseError(previos.error);
-      proposed.numeroRecibo=`${exp.folio}-R${String((previos.count??0)+1).padStart(2,"0")}`;
-    }
+    // C-20: el consecutivo sale del mayor ya usado y se comprueba al crear (ver recibo-18.ts).
+    if(input.formatoId==="18")proposed.numeroRecibo=await numeroReciboNuevo(client,id,exp.folio);
     let valorSeed: Record<string,string|number>={};
     if(input.valorReferencia) {
       if(input.formatoId!=="08")throw new ApiError(400,"La referencia 07 se incorpora al formato 08");
@@ -79,9 +77,9 @@ export async function POST(request: Request, context: Context) {
     // Las fechas que son «hoy» (emisión, corte, registro…) nacen puestas con la fecha de Tijuana (CSR-02).
     const base={...proposed,...input.data,...valorSeed};
     const conFechas={...base,...fechasDeHoy(input.formatoId,base,operationalDate())};
-    const seeded=draftCreate.parse({formatoId:input.formatoId,data:{...conFechas,...llenarDesdeDatos(input.formatoId,conFechas,confirmados).patch}});
+    const seeded=draftCreate.parse({formatoId:input.formatoId,data:{...conFechas,...llenarDesdeDatos(input.formatoId,conFechas,confirmados).patch,...(input.formatoId==="18"?{numeroRecibo:proposed.numeroRecibo}:{})}});
     const { data, error } = await client.from("fortius_inmuebles_formato_drafts").insert({ expediente_id: id, formato_id: input.formatoId, data: seeded.data }).select("id,expediente_id,formato_id,data,version,created_at,updated_at").single();
     if (error) databaseError(error);
-    return { documento: data };
+    return { documento: input.formatoId === "18" ? await asegurarReciboUnico(client, id, exp.folio, data) : data };
   }, 201);
 }
