@@ -68,7 +68,7 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
           });
           setSent(true);
         } catch {
-          setError("No se enviaron tus datos. Inténtalo otra vez o escríbenos por WhatsApp.");
+          setError("No pudimos enviar tus datos. Inténtalo otra vez o escríbenos por WhatsApp.");
         } finally {
           setEnviando(false);
         }
@@ -82,7 +82,7 @@ export function ContactForm({ submitLabel = "Enviar consulta", initialObjective 
       </div>
       {error ? <p role="alert" className="pg-notice" style={{ marginTop: 16, color: "var(--primary-text, #8a1634)" }}>{error}</p> : null}
       <button type="submit" disabled={enviando} className="pg-btn" style={{ marginTop: 20 }}>{enviando ? "Enviando…" : submitLabel}</button>
-      <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Sin compromiso. Tus datos, solo para esta solicitud.</p>
+      <p className="pg-muted" style={{ marginTop: 12, fontSize: 14 }}>Sin compromiso. Usamos tus datos solo para responder esta solicitud.</p>
     </PublicLeadForm>
   );
 }

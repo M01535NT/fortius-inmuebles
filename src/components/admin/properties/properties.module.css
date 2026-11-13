@@ -1,5 +1,5 @@
 /* Inmuebles en galería (boceto aprobado, 17/10/2026). Prefijo :global(.admin-root): ver kit.module.css. */
-:global(.admin-root) .meta { font-size: .8125rem; color: var(--muted-foreground); }
+:global(.admin-root) .meta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
 :global(.admin-root) .search { position: relative; display: flex; align-items: center; min-width: 0; flex: 1 1 16rem; }
 :global(.admin-root) .search svg { position: absolute; left: .875rem; color: var(--muted-foreground); pointer-events: none; }
 :global(.admin-root) .search input { padding-left: 2.5rem; width: 100%; background: var(--card); border-color: var(--edge-soft); }
@@ -9,7 +9,7 @@
 @media (min-width: 1024px) { :global(.admin-root) .segmented[role=radiogroup] { display: inline-flex; width: auto; } }
 
 :global(.admin-root) .more { margin-bottom: 1.25rem; }
-:global(.admin-root) .more > summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-size: .9375rem; font-weight: 600; }
+:global(.admin-root) .more > summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-size: var(--admin-text-interfaz); font-weight: 600; }
 
 /* Galería: tarjetas con la foto arriba, pastillas encima y el precio abajo. */
 :global(.admin-root) .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .875rem; margin: 0; padding: 0; list-style: none; }
@@ -18,17 +18,17 @@
 :global(.admin-root) .link { display: flex; flex-direction: column; color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .photoWrap { position: relative; display: block; }
 :global(.admin-root) .photo { display: block; width: 100%; border-radius: 0; }
-:global(.admin-root) .noPhoto { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem; width: 100%; height: 100%; color: var(--muted-foreground); font-size: .75rem; }
+:global(.admin-root) .noPhoto { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem; width: 100%; height: 100%; color: var(--muted-foreground); font-size: var(--admin-text-minimo); }
 :global(.admin-root) .overlay { position: absolute; left: .625rem; right: .625rem; top: .625rem; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .375rem; pointer-events: none; }
 :global(.admin-root) .onPhoto { background: rgba(255, 255, 255, .92); color: #061f3f; backdrop-filter: blur(6px); }
 :global(.admin-root) .onPhoto[data-strong] { background: var(--warning-surface); color: var(--warning); }
 :global(.admin-root) .star { display: inline-grid; place-items: center; width: 1.625rem; height: 1.625rem; border-radius: 999px; background: rgba(255, 255, 255, .92); color: #8a1634; backdrop-filter: blur(6px); }
-:global(.admin-root) .body { display: flex; flex-direction: column; gap: .3125rem; padding: .875rem 1rem 1rem; overflow-wrap: anywhere; }
-:global(.admin-root) .title { font-size: 1rem; font-weight: 540; line-height: 1.3; }
-:global(.admin-root) .zone { display: flex; align-items: center; gap: .25rem; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .body { display: flex; flex-direction: column; gap: .25rem; padding: .875rem 1rem 1rem; overflow-wrap: anywhere; }
+:global(.admin-root) .title { font-size: var(--admin-text-cuerpo); font-weight: 540; line-height: 1.3; }
+:global(.admin-root) .zone { display: flex; align-items: center; gap: .25rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
 :global(.admin-root) .priceRow { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: .25rem .75rem; margin-top: .375rem; padding-right: 3rem; }
-:global(.admin-root) .amount { font-size: 1.0625rem; font-weight: 620; letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-:global(.admin-root) .amount[data-pending] { font-weight: 500; color: var(--muted-foreground); }
+:global(.admin-root) .amount { font-size: var(--admin-text-grupo); font-weight: 620; letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+:global(.admin-root) .amount[data-pending] { font-weight: 540; color: var(--muted-foreground); }
 :global(.admin-root) .priceRow > .meta { white-space: nowrap; }
 
 /* Opciones de cada inmueble: «⋯» en la esquina de la foto. */
@@ -37,24 +37,24 @@
 :global(.admin-root) .options { position: static; }
 :global(.admin-root) .options[open] > summary { background: var(--primary); color: #fff; }
 :global(.admin-root) .optionsBody { display: flex; flex-direction: column; gap: .875rem; margin: 0 .75rem .75rem; padding: .875rem; border-radius: var(--radius-thumb); background: var(--canvas); }
-:global(.admin-root) .action { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.75rem; padding: 0 .875rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); font-size: .875rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+:global(.admin-root) .action { display: inline-flex; align-items: center; gap: .375rem; min-height: 2.75rem; padding: 0 .875rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 600; text-decoration: none; cursor: pointer; }
 :global(.admin-root) .action[aria-pressed=true] { color: var(--primary-text); }
 :global(.admin-root) .pageButton { min-height: 2.75rem; padding: 0 1rem; border-radius: var(--radius-control); border: 1px solid var(--edge-soft); background: var(--card); font-weight: 600; }
 :global(.admin-root) .pageButton:disabled { opacity: .5; }
 
 /* «Les falta algo»: filtro rápido y aviso en cada tarjeta (boceto v2, 31/10/2026) */
-:global(.admin-root) .gapChip { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 560; cursor: pointer; }
+:global(.admin-root) .gapChip { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-weight: 540; cursor: pointer; }
 :global(.admin-root) .gapChip:hover { background: var(--secondary); }
 :global(.admin-root) .gapChip[aria-pressed=true] { background: #061f3f; color: #fff; }
 :global(.dark) :global(.admin-root) .gapChip[aria-pressed=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .gapChip span { font-size: .8125rem; opacity: .7; }
-:global(.admin-root) .gap { font-size: .8125rem; font-weight: 600; color: var(--warning); }
+:global(.admin-root) .gapChip span { font-size: var(--admin-text-pastilla); opacity: .7; }
+:global(.admin-root) .gap { font-size: var(--admin-text-pastilla); font-weight: 600; color: var(--warning); }
 
 /* C59: en el celular, filas compactas (foto pequeña, título, precio y estado); «Ver en tarjetas» vuelve a la galería. */
 :global(.admin-root) .viewToggle { display: none; }
 :global(.admin-root) .priceRow .rowPill { display: none; }
 @media (max-width: 767px) {
-  :global(.admin-root) .viewToggle { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; margin-bottom: .75rem; padding: 0 .875rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-control); background: var(--card); color: var(--foreground); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
+  :global(.admin-root) .viewToggle { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; margin-bottom: .75rem; padding: 0 .875rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-control); background: var(--card); color: var(--foreground); font: inherit; font-size: var(--admin-text-detalle); font-weight: 600; cursor: pointer; }
   :global(.admin-root) .grid[data-view=filas] { gap: .5rem; }
   :global(.admin-root) .grid[data-view=filas] .link { flex-direction: row; align-items: center; gap: .75rem; padding: .5rem 3.5rem .5rem .5rem; }
   :global(.admin-root) .grid[data-view=filas] .photoWrap { flex: none; width: 4.5rem; }
@@ -65,9 +65,9 @@
   :global(.admin-root) .grid[data-view=filas] .body > .meta,
   :global(.admin-root) .grid[data-view=filas] .gap { display: none; }
   :global(.admin-root) .grid[data-view=filas] .body { min-width: 0; padding: 0; gap: .125rem; }
-  :global(.admin-root) .grid[data-view=filas] .title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .9375rem; }
+  :global(.admin-root) .grid[data-view=filas] .title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--admin-text-interfaz); }
   :global(.admin-root) .grid[data-view=filas] .priceRow { margin-top: .125rem; padding-right: 0; align-items: center; justify-content: flex-start; gap: .25rem .5rem; }
-  :global(.admin-root) .grid[data-view=filas] .amount { font-size: .9375rem; }
+  :global(.admin-root) .grid[data-view=filas] .amount { font-size: var(--admin-text-interfaz); }
   :global(.admin-root) .grid[data-view=filas] .priceRow .rowPill { display: inline-flex; }
   :global(.admin-root) .grid[data-view=filas] .rowPill[data-strong] { background: var(--warning-surface); color: var(--warning); }
   :global(.admin-root) .grid[data-view=filas] .options > summary { top: 1.125rem; bottom: auto; right: .375rem; background: transparent; backdrop-filter: none; color: var(--foreground); }

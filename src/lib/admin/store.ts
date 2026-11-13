@@ -51,7 +51,7 @@ export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> 
   // C-02: un proxy o un error 502/504 puede responder HTML; no se muestra «Unexpected token '<'».
   let body: { error?: unknown } | null = null;
   try { body = await response.json(); } catch { body = null; }
-  if (!response.ok) throw new RequestError(typeof body?.error === "string" && body.error ? body.error : "No se pudo completar la operación", response.status);
+  if (!response.ok) throw new RequestError(typeof body?.error === "string" && body.error ? body.error : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.", response.status);
   if (body === null || typeof body !== "object") throw new RequestError("El servidor respondió algo inesperado. Recarga e inténtalo de nuevo.", response.status);
   return body as T;
 }
@@ -106,7 +106,7 @@ export async function apiRequest<T>(
       response.status,
       typeof result.error === "string"
         ? result.error
-        : "No se pudo completar la operación.",
+        : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.",
     );
   }
   return result as T;
@@ -392,7 +392,7 @@ export async function removePropiedad(slug: string, version: number | null) {
 export function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
-    : "No se pudo completar la operación.";
+    : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
 }
 export async function isLoggedIn() {
   const epoch = sessionEpoch;

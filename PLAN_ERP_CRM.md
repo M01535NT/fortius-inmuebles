@@ -1363,7 +1363,7 @@ El ensayo completo del proveedor no frena el desarrollo funcional inicial con da
 | DEC-17 | Probabilidad por etapa y metas | Fortius define probabilidades por etapa y metas por asesor y periodo, ajustables en Configuración. |
 | DEC-18 | Cobro de suscripciones (etapa posterior, en pausa) | Proveedor de cobro, moneda, facturación (CFDI) de la suscripción y política de solo lectura por falta de pago. |
 | DEC-19 | Monitoreo de errores en producción | Proveedor, retención, alertas y filtro de datos personales (OBS-01). |
-| DEC-20 | Qué hace falta para liberar el PDF del contrato 09 | El titular define si basta su plantilla registrada (vía FCH-10) o qué cotejo externo se requiere (DOC-09). |
+| DEC-20 | Qué hace falta para liberar el PDF del contrato 09 | Resuelta el 12/11/2026: el titular descartó el registro PROFECO y el PDF del 09 quedó liberado (COR-12). |
 | DEC-21 | Aviso de edición simultánea (NAV-11) | El titular decide si se hace; requiere presencia en tiempo real. |
 | DEC-22 | Lista final de preguntas de la entrevista por tipo de operación | El titular valida la lista base de «Proceso, captura y documentos» antes de CAP-03. |
 | DEC-23 | Contenido de los procesos y módulos de fábrica | El titular (y revisión jurídica cuando aplique) valida requisitos y documentos de cada proceso y módulo antes de MOT-04. |
@@ -1675,14 +1675,14 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | COR-10 | 2 | en_local | MRP-01 |
 | COR-11 | 2 | en_main | PR #57; migración `20261029160000_interesados_sin_operacion.sql`; falta ligar las ofertas (14) al interesado |
 | PUB-02 | 3 | pendiente | PUB-01 |
-| COR-12 | 2 | pendiente | modelo del 09 del titular |
+| COR-12 | 2 | en_main | PDF del 09 liberado sin PROFECO |
 | COR-13 | 2 | en_main | PR #56; lleva migración |
 | DOC-14 | 2 | pendiente | modelos del titular |
 | FIR-01 | 6 | pendiente | COR-10, DOC-01, PRV-01, DEC-30 |
 | DOC-EXP | 2 | en_main | PR #57; lleva migración |
 | DAT-EXP | 2 | en_main | PR #57; lleva migración |
 | IA-01 | 1 | en_main | PR #57 y #63; sin activar: falta la clave de API en producción y el visto bueno del abogado |
-| IA-02 | 2 | en_curso | falta el tope y el gasto del mes en «Ajustes» |
+| IA-02 | 2 | en_local | tope y gasto del mes en Configuración (13/11/2026, rama `feat/integracion`) |
 | CSR-01 a CSR-08 | 2 | en_main | PR #63 (31/10/2026); sin migración |
 | IA-01 (proveedores) | 1 | en_revision | Claude Haiku 5.5 activo en local con clave de prueba (31/10/2026, 7 datos de un PDF ficticio); adaptador Grok listo pero su clave no la acepta xAI; PDF por páginas con pdfjs-dist |
 | DOC-15 | 2 | pendiente | COR-06 |
@@ -1698,7 +1698,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | CAP-04 | 1 | pendiente | CAP-03, CRM-02 |
 | FCH-01 | 2 | pendiente | REL-01 (diseño conjunto), migración autorizada |
 | FCH-02 | 2 | pendiente | FCH-01, DOC-01 |
-| FCH-03 | 2 | pendiente | ninguna |
+| FCH-03 | 2 | parcial | datos de Fortius en Configuración en `feat/integracion` (13/11/2026); falta que los formatos los usen y el membrete editable si el titular lo pide |
 | FCH-04 | 2 | pendiente | UX-05 |
 | FCH-05 | 2 | pendiente | FCH-01, DOC-10 |
 | FCH-06 | 2 | pendiente | ninguna |
@@ -1712,7 +1712,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | MOT-03 | 2 | pendiente | MOT-02, SEG-01 |
 | MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
 | DOC-06 | 2 | en local (12/11/2026) | revisión del abogado |
-| DOC-09 | 2 | pendiente | DEC-20 |
+| DOC-09 | 2 | en_main | PDF del 09 liberado sin PROFECO (COR-12) |
 | HER-01 | 4 | pendiente | SIM-10 |
 | HER-02 | 2 | pendiente | FCH-03, FCH-04 |
 | HER-03 | 3 | pendiente | FIS-01, revisión fiscal |
@@ -1740,7 +1740,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | SIM-19 | 4 | en_local | ficha del inmueble por pestañas (C54, C55), 12/11/2026; completa y sin commit |
 | COR-14 | 2 | en_local | PR #66: condición declarada y revisión del abogado; la decisión del encargo en el panel de la etapa, 12/11/2026 |
 | COR-15 | 2 | en_main | PR #66; la puerta única completa es SIM-17 |
-| COR-16 | 2 | parcial | PR #66: el servidor aplica la puerta de publicación; falta lo que detalla su fila |
+| COR-16 | 2 | en_main | PR #66: la puerta de publicación se aplica en el servidor y en SQL (comprobado el 12/11/2026) |
 | COR-17 | 2 | en_local | ninguna |
 | COR-18 | 2 | en_local | Registro de contacto en dos toques, reintento a 30 días y visita compartida en local (12/11). El 12/11 en la tarde, sin migración: en «Visitas y ofertas del inmueble» de la operación, cada oferta por escrito (14) pregunta «¿De quién es esta oferta?» entre quienes buscan ese inmueble, lo visitaron o son la contraparte. El vínculo se guarda en la ficha del interesado (`ofertas`, con el documento y la operación; el formato no cambia). La ficha muestra la tarjeta «Cómo paga y ofertas», con la forma de pago, el crédito y su estado y las ofertas, y cada oferta sale en su línea de tiempo |
 | COR-19 | 2 | en_local | ninguna |

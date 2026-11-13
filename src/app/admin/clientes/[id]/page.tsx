@@ -107,7 +107,7 @@ function ClienteDetail({ id }: { id: string }) {
       <div className={s.grid}>
         <div className={s.col}>
           {operations.length > 0 && <PersonCard id="ficha-operaciones" title={operations.length === 1 ? "Su operación" : "Sus operaciones"} action={<ButtonLink href={newOperation}>Nueva operación</ButtonLink>}>
-            <ul className="m-0 flex list-none flex-col p-0">{operations.map(op => <li key={op.id}><Link href={`/admin/operaciones/${encodeURIComponent(op.id)}`} className={s.linkRow}><strong className="font-[560]">{op.label}</strong><span className={s.small}>{op.stage.charAt(0).toUpperCase() + op.stage.slice(1)}</span></Link></li>)}</ul>
+            <ul className="m-0 flex list-none flex-col p-0">{operations.map(op => <li key={op.id}><Link href={`/admin/operaciones/${encodeURIComponent(op.id)}`} className={s.linkRow}><strong className="font-[540]">{op.label}</strong><span className={s.small}>{op.stage.charAt(0).toUpperCase() + op.stage.slice(1)}</span></Link></li>)}</ul>
           </PersonCard>}
 
           <PersonCard id="ficha-seguimiento" title="Seguimiento" action={<span className="flex flex-wrap gap-2">

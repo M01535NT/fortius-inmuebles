@@ -9,23 +9,23 @@
 :global(.admin-root) .kpi > summary::-webkit-details-marker, :global(.admin-root) .fold > summary::-webkit-details-marker { display: none; }
 :global(.admin-root) .kpi > summary { display: flex; min-height: 8.5rem; flex-direction: column; gap: .375rem; padding: 1rem; }
 :global(.admin-root) .kpi > summary:hover, :global(.admin-root) .fold > summary:hover { background: var(--secondary); }
-:global(.admin-root) .kpiLabel { font-size: .875rem; color: var(--muted-foreground); }
-:global(.admin-root) .kpiValue { font-size: 2rem; font-weight: 650; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-:global(.admin-root) .kpiCompare { margin-top: auto; font-size: .8125rem; line-height: 1.35; color: var(--muted-foreground); }
+:global(.admin-root) .kpiLabel { font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
+:global(.admin-root) .kpiValue { font-size: var(--admin-text-cifra); font-weight: 620; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+:global(.admin-root) .kpiCompare { margin-top: auto; font-size: var(--admin-text-pastilla); line-height: 1.35; color: var(--muted-foreground); }
 :global(.admin-root) .kpiList { max-height: 15rem; overflow-y: auto; border-top: 1px solid var(--card-edge); padding: .25rem 1rem .75rem; }
-:global(.admin-root) .kpiList a { display: block; min-height: 2.75rem; padding-block: .625rem; font-size: .875rem; text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
-:global(.admin-root) .kpiList p { padding-block: .625rem; font-size: .875rem; color: var(--muted-foreground); }
+:global(.admin-root) .kpiList a { display: block; min-height: 2.75rem; padding-block: .625rem; font-size: var(--admin-text-detalle); text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
+:global(.admin-root) .kpiList p { padding-block: .625rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
 :global(.admin-root) .fold > summary { display: flex; min-height: 3.5rem; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; font-weight: 600; }
 :global(.admin-root) .fold > summary::after { content: ""; width: .5rem; height: .5rem; flex: none; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); opacity: .6; }
 :global(.admin-root) .fold[open] > summary::after { transform: rotate(-135deg); }
 :global(.admin-root) .foldBody { display: flex; min-width: 0; flex-direction: column; gap: .75rem; border-top: 1px solid var(--card-edge); padding: 1rem; }
-:global(.admin-root) .summaryNote { margin-left: auto; font-size: .875rem; font-weight: 400; text-align: right; color: var(--muted-foreground); }
-:global(.admin-root) .note { font-size: .875rem; line-height: 1.5; color: var(--muted-foreground); }
+:global(.admin-root) .summaryNote { margin-left: auto; font-size: var(--admin-text-detalle); font-weight: 400; text-align: right; color: var(--muted-foreground); }
+:global(.admin-root) .note { font-size: var(--admin-text-detalle); line-height: 1.5; color: var(--muted-foreground); }
 :global(.admin-root) .pending { display: grid; min-width: 0; gap: .75rem; }
 @media (min-width: 640px) { :global(.admin-root) .pending { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 :global(.admin-root) .pendingItem { display: flex; min-height: 4.5rem; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; text-align: left; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-rest); color: var(--foreground); }
 :global(.admin-root) .pendingItem:hover { background: var(--secondary); }
-:global(.admin-root) .pendingItem strong { font-size: 1.5rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+:global(.admin-root) .pendingItem strong { font-size: var(--admin-text-cifra); font-weight: 620; font-variant-numeric: tabular-nums; }
 :global(.admin-root) .stages { display: grid; gap: .5rem; }
 @media (min-width: 640px) { :global(.admin-root) .stages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { :global(.admin-root) .stages { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -35,4 +35,4 @@
 :global(.admin-root) .detail a { display: block; min-height: 2.75rem; padding-block: .625rem; text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
 :global(.admin-root) .detail small { display: block; color: var(--muted-foreground); text-decoration: none; }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .fold > summary::after { transition: transform .18s ease; } }
-:global(.admin-root) .kpiValue[data-text] { font-size: 1.25rem; line-height: 1.3; }
+:global(.admin-root) .kpiValue[data-text] { font-size: var(--admin-text-seccion); line-height: 1.3; }

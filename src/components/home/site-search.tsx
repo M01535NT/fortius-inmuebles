@@ -21,7 +21,7 @@ const CIUDADES = "tijuana rosarito tecate ensenada baja california";
 const DESTINOS: Destino[] = [
   { label: "Vender mi propiedad", group: "Vender", href: "/vender-propiedad", keywords: "venta vendo casa" },
   { label: "Opinión de valor", group: "Vender", href: "/opinion-de-valor", keywords: "cuanto vale precio avaluo valuacion" },
-  { label: "Gastos y neto de venta", group: "Vender", href: "/herramientas/gastos-de-cierre", keywords: "calculadora isr impuestos notario cierre" },
+  { label: "Gastos de cierre", group: "Vender", href: "/herramientas/gastos-de-cierre", keywords: "calculadora isr impuestos notario cierre" },
   { label: "Guía para comprar", group: "Comprar", href: "/comprar-propiedad", keywords: "compra credito infonavit fovissste" },
   { label: "Propiedades en venta", group: "Propiedades", href: "/inventario?op=venta", keywords: `inventario ${CIUDADES}` },
   { label: "Propiedades en renta", group: "Propiedades", href: "/inventario?op=renta", keywords: `rentar alquiler arrendamiento ${CIUDADES}` },
@@ -32,7 +32,7 @@ const DESTINOS: Destino[] = [
   { label: "Todas las herramientas", group: "Herramientas", href: "/herramientas", keywords: "calculadoras" },
   { label: "Preguntas frecuentes", group: "Ayuda", href: "/preguntas-frecuentes", keywords: "dudas faq" },
   { label: "Nosotros", group: "Fortius", href: "/nosotros", keywords: "equipo empresa quienes somos" },
-  { label: "Agentes", group: "Fortius", href: "/nosotros#agentes", keywords: "asesores equipo" },
+  { label: "Asesores", group: "Fortius", href: "/nosotros#agentes", keywords: "asesores equipo" },
   { label: "Blog", group: "Fortius", href: "/blog", keywords: "noticias articulos mercado inmobiliario" },
   { label: "Contacto", group: "Fortius", href: "/contacto", keywords: "telefono whatsapp correo cita" },
   { label: "Avisos y documentos", group: "Fortius", href: "/avisos", keywords: "privacidad aviso legal" },

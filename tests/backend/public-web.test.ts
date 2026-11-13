@@ -67,6 +67,6 @@ test("sitemap includes only currently published non-demo details", async () => {
   expect(JSON.stringify(urls)).not.toContain("mnt.example");
 });
 test("robots directs crawlers to the real public sitemap and keeps admin excluded", () => {
-  expect(robots()).toMatchObject({ sitemap: `${siteConfig.url}/sitemap.xml`, rules: { disallow: "/admin" } });
+  expect(robots()).toMatchObject({ sitemap: `${siteConfig.url}/sitemap.xml`, rules: { disallow: ["/admin", "/api/"] } });
   expect(JSON.stringify(robots())).not.toContain("mnt.example");
 });
