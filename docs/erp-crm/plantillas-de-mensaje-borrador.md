@@ -1,6 +1,6 @@
 # Textos base de los mensajes
 
-Fecha: 12/11/2026. Estado: **textos aprobados por el titular el 12/11/2026.** Son los textos base que se cargan en Configuración; el director puede cambiarlos después. Todavía no están programados en el panel.
+Fecha: 12/11/2026. Estado: **textos aprobados por el titular el 12/11/2026.** Son los textos base del panel: los 13 de WhatsApp están en «Mensajes listos» de la ficha (`src/lib/admin/message-templates.ts`) y, desde el 12/11/2026, el director puede cambiarlos en Configuración; se guarda solo lo que cambió y cada uno puede volver al texto aprobado. Los 2 correos todavía no están programados.
 
 Responde a RP-22 y a la decisión del titular del 12/11/2026: los mensajes salen de textos aprobados por él, el asesor los ve ya llenos y puede ajustar una palabra antes de mandarlos. El envío queda en el historial solo cuando el asesor confirma que lo mandó.
 

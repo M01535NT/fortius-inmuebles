@@ -7,12 +7,18 @@ import type { AdminProperty } from "@/lib/domain/records";
   inmueble; lo que va entre corchetes lo completa el asesor antes de enviar. Solo se ofrece un
   inmueble publicado y disponible (RP-91); si el precio es «a consulta», la frase del precio se
   quita. Abrir WhatsApp no registra nada: el envío queda en el historial cuando el asesor confirma.
-  Los textos se podrán editar en Configuración; mientras, estos son los aprobados.
+  El director puede cambiar cada texto en Configuración (CRM-02); se guarda solo lo que cambió y,
+  si no hay cambio, se usa el aprobado.
 */
 
-export type TemplateId =
-  | "primera-inmueble" | "primera-busqueda" | "opcion" | "confirmar-vio" | "proponer-visita" | "confirmar-visita"
-  | "despues-visita" | "no-contesto" | "reintento" | "ya-no-busca" | "ya-vendido" | "cambiar-visita" | "documentos";
+export const TEMPLATE_IDS = [
+  "primera-inmueble", "primera-busqueda", "opcion", "confirmar-vio", "proponer-visita", "confirmar-visita",
+  "despues-visita", "no-contesto", "reintento", "ya-no-busca", "ya-vendido", "cambiar-visita", "documentos",
+] as const;
+export type TemplateId = (typeof TEMPLATE_IDS)[number];
+/** Textos propios guardados en Configuración: solo los que el director cambió. */
+export type TemplateOverrides = Partial<Record<TemplateId, string>>;
+export const TEMPLATE_MAX = 1500;
 
 /** Qué necesita el texto para poder usarse. */
 type Needs = "ofrecible" | "inmueble" | "cerrado";
@@ -37,6 +43,43 @@ export const MESSAGE_TEMPLATES: Template[] = [
   { id: "cambiar-visita", name: "Cambiar o cancelar una visita", needs: "inmueble", text: "Hola, {nombre}. Te escribo por la visita a {inmueble} del {dia} a las {hora}. Se me presentó un cambio y no vamos a poder verla a esa hora. ¿Te acomoda [nuevo horario]? Si no, dime cuándo puedes y lo ajustamos." },
   { id: "documentos", name: "Pedirle sus documentos", needs: "inmueble", text: "{nombre}, qué buena noticia que quieras apartar {inmueble}. Para avanzar necesito estos documentos:\n\n[lista de documentos]\n\nMe los puedes mandar por aquí en foto o PDF, o traerlos cuando nos veamos. Si tienes duda con alguno, pregúntame." },
 ];
+
+/** Los datos que se llenan solos, con el nombre que ve el director al editar. */
+export const TEMPLATE_FIELDS: Array<{ key: string; label: string }> = [
+  { key: "nombre", label: "Nombre" }, { key: "asesor", label: "Asesor" }, { key: "inmueble", label: "Inmueble" },
+  { key: "zona", label: "Zona" }, { key: "precio", label: "Precio" }, { key: "liga_ficha", label: "Liga a la ficha" },
+  { key: "dia", label: "Día de la visita" }, { key: "hora", label: "Hora de la visita" }, { key: "vendio_o_rento", label: "vendió o rentó" },
+];
+const FIELD_KEYS = new Set(TEMPLATE_FIELDS.map(f => f.key));
+
+/** Lo que impide guardar un texto: vacío, muy largo, un dato que no existe o un ⟨ ⟩ sin cerrar. */
+export function templateProblems(text: string): string[] {
+  const problems: string[] = [];
+  if (!text.trim()) problems.push("El mensaje no puede quedar vacío.");
+  if (text.length > TEMPLATE_MAX) problems.push(`El mensaje pasa de ${TEMPLATE_MAX} caracteres.`);
+  const unknown = [...new Set([...text.matchAll(/\{([^{}]*)\}/g)].map(m => m[1]).filter(key => !FIELD_KEYS.has(key)))];
+  if (unknown.length) problems.push(`No existe el dato ${unknown.map(k => `{${k}}`).join(", ")}. Usa los botones de abajo para agregar datos.`);
+  let depth = 0;
+  for (const ch of text) { if (ch === "⟨") depth++; if (ch === "⟩" && --depth < 0) break; if (depth > 1) break; }
+  if (depth !== 0) problems.push("Cada ⟨ necesita su ⟩, sin uno dentro de otro.");
+  return problems;
+}
+
+/** El texto vigente: el propio si es válido; si no, el aprobado. */
+export function templateText(id: TemplateId, overrides?: TemplateOverrides | null) {
+  const own = overrides?.[id];
+  return own && templateProblems(own).length === 0 ? own : MESSAGE_TEMPLATES.find(t => t.id === id)!.text;
+}
+
+/** Deja solo los textos que cambiaron respecto del aprobado. */
+export function changedTemplates(texts: Partial<Record<TemplateId, string>>): TemplateOverrides {
+  const out: TemplateOverrides = {};
+  for (const t of MESSAGE_TEMPLATES) {
+    const own = texts[t.id]?.replace(/\r/g, "");
+    if (own !== undefined && own !== t.text) out[t.id] = own;
+  }
+  return out;
+}
 
 export type MessageContext = {
   nombre: string;
@@ -87,10 +130,10 @@ const NEED_REASON: Record<Needs, string> = {
 };
 
 /** Todos los mensajes, llenos, con los que no aplican marcados y su motivo. */
-export function messagesFor(ctx: MessageContext): FilledMessage[] {
+export function messagesFor(ctx: MessageContext, overrides?: TemplateOverrides | null): FilledMessage[] {
   const values = fields(ctx);
   return MESSAGE_TEMPLATES.map(template => {
-    const text = fillTemplate(template.text, values);
+    const text = fillTemplate(templateText(template.id, overrides), values);
     const ok = template.needs === "ofrecible" ? offerable(ctx.property) : template.needs === "inmueble" ? !!ctx.property : template.needs === "cerrado" ? closed(ctx.property) : true;
     return ok ? { id: template.id, name: template.name, text, available: true as const } : { id: template.id, name: template.name, text, available: false as const, reason: NEED_REASON[template.needs!] };
   });

@@ -53,3 +53,18 @@ test("el mensaje sugerido sigue el momento de la persona", () => {
   expect(suggestedTemplate({ unattended: false, hasProperty: true, visited: true })).toBe("despues-visita");
   expect(suggestedTemplate({ unattended: false, hasProperty: true, propertyClosed: true })).toBe("ya-vendido");
 });
+
+test("CRM-02: el texto del director reemplaza al aprobado y se guarda solo lo que cambió", async () => {
+  const { changedTemplates, templateProblems, templateText, MESSAGE_TEMPLATES } = await import("@/lib/admin/message-templates");
+  const own = "Hola, {nombre}. Te escribe {asesor}.";
+  expect(byId(messagesFor(ctx, { "primera-busqueda": own }), "primera-busqueda").text).toBe("Hola, Laura. Te escribe Ana Ejemplo.");
+  const approved = MESSAGE_TEMPLATES.find(t => t.id === "opcion")!.text;
+  expect(changedTemplates({ opcion: approved, "primera-busqueda": own.replace(/\n/g, "\r\n") })).toEqual({ "primera-busqueda": own });
+  // Un texto guardado con errores no se usa: se queda el aprobado.
+  expect(templateText("opcion", { opcion: "Hola {telefono}" })).toBe(approved);
+  expect(templateProblems("")).toEqual(["El mensaje no puede quedar vacío."]);
+  expect(templateProblems("Hola {telefono} y {nombre}")[0]).toContain("{telefono}");
+  expect(templateProblems("Hola ⟨{precio}")).toEqual(["Cada ⟨ necesita su ⟩, sin uno dentro de otro."]);
+  expect(templateProblems("Hola ⟨a ⟨b⟩⟩")).toHaveLength(1);
+  for (const t of MESSAGE_TEMPLATES) expect(templateProblems(t.text)).toEqual([]);
+});

@@ -5,8 +5,8 @@ import { Button, ButtonLink } from "@/components/admin/kit";
 import { selectClass, textareaClass } from "@/components/admin/ui";
 import { whatsappDigits } from "@/lib/admin/buyer-matches";
 import { contactAttempts, missedInARow, RETRY_ACTION } from "@/lib/admin/lead-contact";
-import { blanks, messagesFor, suggestedTemplate, type TemplateId } from "@/lib/admin/message-templates";
-import { db, useCollection, useSession, type Lead } from "@/lib/admin/store";
+import { blanks, messagesFor, suggestedTemplate, type TemplateId, type TemplateOverrides } from "@/lib/admin/message-templates";
+import { db, settingsStore, useCollection, useSession, useSingleton, type Lead } from "@/lib/admin/store";
 import { awaitingFirstReply } from "@/lib/admin/today";
 import { cn } from "@/lib/utils";
 import { personStyles as s } from "./person";
@@ -22,7 +22,7 @@ const noSubscribe = () => () => undefined;
 const longDay = (day: string) => new Intl.DateTimeFormat("es-MX", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${day}T12:00:00.000Z`));
 
 export function ReadyMessages({ lead, today, onSent }: { lead: Lead; today: string; onSent: (templateName: string) => void }) {
-  const session = useSession();
+  const session = useSession(), settings = useSingleton(settingsStore);
   const asesores = useCollection(db.asesores), propiedades = useCollection(db.propiedades), eventos = useCollection(db.eventos);
   // La liga a la ficha usa el sitio desde el que se abre el panel; en el servidor no hay origen.
   const origin = React.useSyncExternalStore(noSubscribe, () => window.location.origin, () => "");
@@ -34,7 +34,7 @@ export function ReadyMessages({ lead, today, onSent }: { lead: Lead; today: stri
     // Sin asesor asignado (lo común en «Sin atender»), firma quien escribe desde su sesión.
     nombre: lead.nombre, asesor: asesores.find(a => a.id === lead.asesorId)?.nombre ?? session?.name?.trim(), zona: lead.zona, property, origin,
     visit: visit ? { dia: longDay(visit.fecha), hora: visit.hora } : null,
-  });
+  }, settings?.mensajes as TemplateOverrides | undefined);
   const suggested = suggestedTemplate({
     unattended: awaitingFirstReply(lead), hasProperty: !!property, lastContact: contactAttempts(lead)[0]?.contacto,
     retry: lead.perfil?.proximaAccion === RETRY_ACTION || missedInARow(lead) >= 3, visited,
