@@ -47,6 +47,7 @@ Para construirlo, en este orden: (1) un solo siguiente paso por persona respalda
 1. ¿El asesor debe tener siempre **un solo siguiente paso** por persona, y que ese paso sea una tarea con fecha? (DEC-42)
    **Respuesta del titular (12/11/2026): sí, uno solo.** Cada persona tiene un único pendiente con fecha; al registrar un contacto se cierra el anterior y queda el nuevo; las citas con hora siguen en la agenda. Resuelve la parte de DEC-42 sobre el siguiente paso; lo demás de DEC-42 (notas pegadas a persona, inmueble u operación y retirar el tablero de notas sueltas) sigue pendiente.
 2. ¿Qué pasa con un lead nuevo del sitio que ningún asesor tomó: se asigna al asesor del inmueble de interés y, si no hay, al director? ¿Cuántas horas puede esperar antes de avisarte?
+   **Respuesta del titular (12/11/2026): 2 horas.** Se conserva el plazo actual de primera atención (ajustable en Configuración). La asignación al asesor del inmueble o, si no hay, al director ya está construida en COR-21 y no se volvió a preguntar.
 3. ¿Quién ve los leads de quién: cada asesor solo los suyos, o todos ven todos y el director reasigna?
 4. ¿Los mensajes de WhatsApp y correo salen de plantillas que tú apruebas, o cada asesor puede editar el texto?
 5. ¿Qué razones aceptas para descartar un lead? (propuesta: ya no busca, se fue con otra inmobiliaria, presupuesto no alcanza, no contesta, otro)
