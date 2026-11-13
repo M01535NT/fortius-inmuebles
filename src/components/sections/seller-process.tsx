@@ -15,7 +15,7 @@ const stages = [
 export function SellerProcess() {
   return (
     <section id="pasos" className="pg-container vd-section" aria-labelledby="seller-process">
-      <h2 id="seller-process" className="pg-h2">Antes de publicar, cuatro pasos.</h2>
+      <h2 id="seller-process" className="pg-h2">Cuatro pasos antes de publicar.</h2>
       <p className="sp-lead">Son las dos primeras etapas del método: conocemos tu caso y revisamos papeles y precio.</p>
       <ol className="sp-steps">
         {stages.map((stage, index) => (
