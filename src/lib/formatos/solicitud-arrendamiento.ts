@@ -89,8 +89,9 @@ export function mostrarCampoSolicitud(key: string, d: Record<string, unknown>): 
   if (key === "inmuebleGarante") return d.garantia === "fiador" && d.fiadorConInmueble === "si";
   if (["empleador", "puesto", "telefonoEmpleo"].includes(key)) return d.actividad === "empleado";
   if (key === "actividadDetalle") return d.actividad === "negocio" || d.actividad === "empresa";
-  // Al pensionado no se le pide antigüedad: el documento no la imprime para él (C-29).
-  if (key === "antiguedad") return d.actividad !== "pensionado";
+  // Al pensionado no se le pide antigüedad: el documento no la imprime para él (C-29). Antes de
+  // elegir la actividad tampoco, porque aún no hay renglón donde capturarla.
+  if (key === "antiguedad") return !vacio(d.actividad) && d.actividad !== "pensionado";
   if (key === "discrepancias") return d.coherencia === "no";
   if (key === "condiciones") return d.decision === "condiciones";
   return true;

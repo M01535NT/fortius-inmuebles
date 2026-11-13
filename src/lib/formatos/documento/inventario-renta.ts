@@ -27,7 +27,7 @@ export function inventarioRentaDocumento(d: Data): Documento {
     { kind: "p", ...z("Contrato e inmueble", "fechaContrato", "arrendador", "arrendatario", "inmueble", "folio"), text: `Anexo 2 del contrato de arrendamiento celebrado el ${fecha(d.fechaContrato)} entre ${v(d.arrendador)}, el Arrendador, y ${v(d.arrendatario)}, el Arrendatario, sobre el inmueble ubicado en ${v(d.inmueble).replace(/.$/, "")}. Folio: ${v(d.folio)}.` },
 
     { kind: "center", text: "I. Entrega al Arrendatario" },
-    { kind: "p", ...z("Fecha y presentes", "fechaEntrega", "horaEntrega", "presentes"), text: `Fecha y hora: ${fecha(d.fechaEntrega)} a las ${v(d.horaEntrega)} · Presentes: ${v(d.presentes)}` },
+    { kind: "p", ...z("Fecha y presentes", "fechaEntrega", "horaEntrega", "presentes", "intervieneFortius"), text: `Fecha y hora: ${fecha(d.fechaEntrega)} a las ${v(d.horaEntrega)} · Presentes: ${v(d.presentes)}` },
     { kind: "label", text: "1. Estado de cada espacio" },
     { kind: "table", widths: [1900, 3000, 1500, 3824], header: ["Espacio", "Elemento", "Estado", "Observaciones"], ...z("Estado de cada espacio", "espacios"),
       rows: espacios.length ? espacios.map(r => [v(r.espacio), v(r.elemento), opcion("espacios", "estado", r.estado), v(r.observaciones)]) : vacias(3, 4) },
