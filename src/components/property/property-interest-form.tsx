@@ -25,7 +25,7 @@ export function PropertyInterestForm({ slug, codigo, titulo, intent, proposedDay
     return (
       <div className="flex flex-col items-start" aria-live="polite">
         <CheckCircle2 className="h-7 w-7 text-primary-ink" strokeWidth={1.5} />
-        <p className="display-soft mt-4 text-xl text-foreground">Recibimos tu solicitud.</p>
+        <p className="display-soft mt-4 text-subtitulo text-foreground">Recibimos tu solicitud.</p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Te contactamos para coordinar la visita o resolver tus dudas sobre
           esta propiedad.

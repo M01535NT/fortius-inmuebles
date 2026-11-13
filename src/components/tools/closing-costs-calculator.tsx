@@ -59,7 +59,7 @@ function ClosingBreakdown({ items }: { items: { key: string; label: string; amou
         {segments.map(({ item, x, width }) => <rect key={item.key} x={x} y="3" width={width} height="10" rx="1" className={item.key === selected.key ? "fill-primary" : "fill-muted-foreground/25"} onClick={() => setActiveKey(item.key)} />)}
       </svg>
       <p className="text-sm font-semibold text-foreground" aria-live="polite">{selected.label}: {money(selected.amount)} MXN</p>
-      <div className="mt-3 flex flex-wrap gap-2">{known.map((item) => <button key={item.key} type="button" aria-pressed={item.key === selected.key} onClick={() => setActiveKey(item.key)} className={`rounded-md border px-3 py-2 text-xs ${item.key === selected.key ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
+      <div className="mt-3 flex flex-wrap gap-2">{known.map((item) => <button key={item.key} type="button" aria-pressed={item.key === selected.key} onClick={() => setActiveKey(item.key)} className={`rounded-md border px-3 py-2 text-etiqueta ${item.key === selected.key ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
     </section>
   );
 }
@@ -421,7 +421,7 @@ export function ClosingCostsCalculator({
                   Usar precio para simular
                 </button>
                 {assumed && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-etiqueta text-muted-foreground">
                     El precio es un supuesto de base; no equivale a su
                     determinación fiscal.
                   </p>
@@ -584,7 +584,7 @@ export function ClosingCostsCalculator({
           )}
         </div>
         <div className="min-w-0 lg:sticky lg:top-28">
-          <h2 className="display-soft text-2xl">
+          <h2 className="display-soft text-subtitulo">
             {activeProfile === "buyer"
               ? "Tu presupuesto de compra"
               : "Lo que recibes al vender"}
@@ -641,7 +641,7 @@ export function ClosingCostsCalculator({
                       </span>
                     </div>
                     {item.note && (
-                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      <p className="mt-1 text-etiqueta leading-relaxed text-muted-foreground">
                         {item.note}
                       </p>
                     )}
@@ -658,7 +658,7 @@ export function ClosingCostsCalculator({
                 </div>
               )}
               {activeProfile === "seller" && (
-                <p className="mt-3 text-xs text-muted-foreground">
+                <p className="mt-3 text-etiqueta text-muted-foreground">
                   Comisión de intermediación ({v.commission || "pendiente"}%).{" "}
                   {includesVat
                     ? "IVA incluido en el importe pactado."
