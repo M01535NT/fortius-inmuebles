@@ -10,7 +10,7 @@ Bocetos navegables (datos de ejemplo): https://claude.ai/artifact/N8ZFG6NK4okiPD
 - Un solo siguiente paso con fecha por persona (parte de DEC-42; quedan las notas y el tablero de notas sueltas).
 - Primera atención: 2 horas, como hoy.
 - Cada asesor ve solo a sus personas; el director ve a todas y reasigna.
-- Mensajes: plantillas aprobadas por el titular, ajustables por el asesor; faltan los textos base.
+- Mensajes: plantillas aprobadas por el titular, ajustables por el asesor; borrador de textos base pendiente de aprobación.
 - Motivos para descartar a compradores e interesados en rentar: ya no busca, se fue con otra inmobiliaria, no le alcanza o no califica, no contesta, otro con nota.
 - Vista del director: después.
 
@@ -66,7 +66,7 @@ Para construirlo, en este orden: (1) un solo siguiente paso por persona respalda
    - **Hueco encontrado:** las **tareas** ligadas a un prospecto (`leadId`) sin cliente ni expediente las pueden leer todos los asesores, porque para tareas la regla solo revisa `clienteId` y `expedienteId` (no `leadId` ni `asesorId`). Las notas sueltas (`notas`) no llevan persona en su esquema y las ve todo el equipo, como el tablero que DEC-42 propone retirar. El título de una tarea puede llevar el nombre de la persona («Llamar a …»). Con el siguiente paso único respaldado por una tarea, esto crece; hay que cerrarlo con una migración nueva que revise también `leadId`, antes o junto con CRM-02. **Preparada en local:** `supabase/migrations/20261112170000_tareas_del_prospecto_por_asesor.sql` (política restrictiva de lectura y disparador de escritura) con su prueba `tests/backend/task-lead-scope-database.test.ts`. No está aplicada en la base; se aplica al integrar en `main`. Al reasignar un prospecto, sus tareas pasan con él.
    - Va con SEG-01 y COR-23. No cambia DEC-43: los inmuebles ajenos se siguen viendo con sus datos públicos.
 4. ¿Los mensajes de WhatsApp y correo salen de plantillas que tú apruebas, o cada asesor puede editar el texto?
-   **Respuesta del titular (12/11/2026): plantillas aprobadas por el titular que el asesor puede ajustar antes de enviar.** Las plantillas se llenan solas con nombre, inmueble, precio y liga a la ficha (RP-22); el asesor corrige el texto si hace falta. El envío se registra solo cuando el asesor confirma que lo mandó. Las plantillas se editan en Configuración y solo el director puede cambiarlas. Falta que el titular dé los textos base.
+   **Respuesta del titular (12/11/2026): plantillas aprobadas por el titular que el asesor puede ajustar antes de enviar.** Las plantillas se llenan solas con nombre, inmueble, precio y liga a la ficha (RP-22); el asesor corrige el texto si hace falta. El envío se registra solo cuando el asesor confirma que lo mandó. Las plantillas se editan en Configuración y solo el director puede cambiarlas. Borrador de los textos base en [`plantillas-de-mensaje-borrador.md`](plantillas-de-mensaje-borrador.md), pendiente de aprobación.
 5. ¿Qué razones aceptas para descartar un lead? (propuesta: ya no busca, se fue con otra inmobiliaria, presupuesto no alcanza, no contesta, otro)
    **Respuesta del titular (12/11/2026), para compradores e interesados en rentar:** ya no busca; se fue con otra inmobiliaria; no le alcanza o no califica; no contesta (después del reintento a 30 días); y «Otro» con nota obligatoria (confirmado por el titular el mismo día). Los propietarios conservan su lista de RP-97.
 6. ¿Quieres que el director tenga una vista del seguimiento de todo el equipo ahora, o después de que el asesor trabaje bien con la suya?
