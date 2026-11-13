@@ -40,6 +40,9 @@ async function subir(operationId: string, file: File): Promise<ArchivoCliente> {
   return r.archivo;
 }
 
+// C-36: cada selección de «Agregar documento» se sube una sola vez, aunque la pestaña se vuelva a montar.
+const recibidas = new WeakSet<object>();
+
 export function ClientDocumentsTab({ operationId, incoming }: { operationId: string; incoming?: { files: File[]; n: number } }) {
   const advisers = useCollection(db.asesores);
   const [lista, setLista] = React.useState<Lista | null | undefined>(undefined);
@@ -89,14 +92,15 @@ export function ClientDocumentsTab({ operationId, incoming }: { operationId: str
     try { setNotice(await leer(archivo)); } catch (cause) { setError(errorMessage(cause)); }
   }
 
-  // Lo elegido con «Agregar documento» (arriba de Documentos) se sube una sola vez.
-  const recibidos = React.useRef(0);
+  // Lo elegido con «Agregar documento» (arriba de Documentos) se sube una sola vez. Espera a que la
+  // lista responda (C-37): así se sabe si la lectura está activada; si la lista falla, se sube sin leer.
+  const listaLista = lista !== undefined;
   React.useEffect(() => {
-    if (!incoming || incoming.n === recibidos.current) return;
-    recibidos.current = incoming.n;
+    if (!incoming || !listaLista || recibidas.has(incoming)) return;
+    recibidas.add(incoming);
     void agregar(incoming.files);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando llega una nueva selección
-  }, [incoming]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando llega una nueva selección y la lista ya respondió
+  }, [incoming, listaLista]);
   async function agregar(files: FileList | File[] | null) {
     const todos = Array.from(files ?? []);
     if (!todos.length) return;

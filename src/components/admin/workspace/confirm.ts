@@ -44,6 +44,8 @@ export function confirmAction(message: string, options: ConfirmOptions = {}): Pr
     cancel.onclick = () => dialog.close();
     accept.onclick = () => { accepted = true; dialog.close(); };
     dialog.onclose = () => { dialog.remove(); previous?.focus(); resolve(accepted); };
+    // C-41: Escape cierra solo esta confirmación; no sube a la ventana de captura ni a otros oyentes.
+    dialog.addEventListener("keydown", event => { if (event.key === "Escape") event.stopPropagation(); });
     (document.querySelector(".admin-workspace") ?? document.body).append(dialog);
     dialog.showModal();
     cancel.focus();
