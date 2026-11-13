@@ -22,7 +22,8 @@ export function solicitudArrendamientoDocumento(d: Data): Documento {
   const aplicables = documentosAplicables(d);
   const recibidos = Array.isArray(d.documentosRecibidos) ? d.documentosRecibidos.map(String) : [];
   const proporcion = rentaSobreIngreso(d);
-  const refs = [1, 2, 3].filter(n => n < 3 || [d.ref3Nombre, d.ref3Telefono].some(x => typeof x === "string" && x.trim()));
+  // Dos referencias (titular, 13/11/2026).
+  const refs = [1, 2];
   const refKeys = refs.flatMap(n => [`ref${n}Tipo`, `ref${n}Nombre`, `ref${n}Telefono`, `ref${n}Relacion`]);
 
   const solicitante: Array<[string, string, string[]]> = [
