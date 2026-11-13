@@ -2,6 +2,7 @@ import {beforeAll,afterAll,it,expect} from 'vitest';
 import {randomUUID} from 'node:crypto';
 import {createRehearsalDatabase} from '../../tools/fortius-inmuebles-restore-current.mjs';
 import {startIntakeSchema} from '../../src/lib/intake/interview';
+import {cumplirArranque} from '../helpers/arranque';
 let db;
 const user='66000000-0000-4000-8000-000000000001';
 const q=async(sql,args=[])=> (await db.query(sql,args)).rows;
@@ -20,7 +21,8 @@ const ext={tipo:'externa',referencia:'Revisión externa sintética versión 1',f
 async function sign(id){const file=randomUUID();await db.exec('reset role');await q("insert into public.fortius_inmuebles_expediente_archivos(id,expediente_id,titulo,nombre_original,mime,byte_length,sha256,path,uploaded_by) values($1,$2,'Contrato sintético firmado','contrato.pdf','application/pdf',1000,$3,$4,$5)",[file,id,'c'.repeat(64),`${id}/cliente/${file}.pdf`,user]);await db.exec('set role authenticated');
  const firma={tipo:'intermediacion',fecha:'2026-10-14',firmantes:[{nombre:'Persona sintética',parte:'propietario'}],archivo:file,completa:true};for(const revisada of [false,true]){const e=await row(id);await update(id,{...e.flujo,firmaContrato:{...firma,revisada}});}}
 // El primer contacto deja la operación en captación (26/10/2026): se pasa a documentación antes de autorizar.
-async function authorize(id){let e=await row(id);if(e.etapa==='captacion'){await update(id,e.flujo,'documentacion');e=await row(id);}await sign(id);e=await row(id);let flow=e.flujo;for(const k of ['titularidad','factibilidad','valor','precio','intermediacion','levantamiento','plan','publicacion'])flow.requisitos[k]={estado:'revisado',soporte:'Revisión sintética del contexto original',evidencia:ext,...(k==='factibilidad'?{vigenteHasta:'2030-12-31'}:{})};flow.resolucion={tipo:'aceptada',fecha:'2026-10-14',motivo:'Autorización del contexto original',siguienteAccion:'Revisar antecedentes',fechaSiguiente:'2030-12-31'};return update(id,flow,'comercializacion');}
+// SEG-M2: salir de captación exige el 02 y el 04 emitidos y el checklist completo.
+async function authorize(id){let e=await row(id);if(e.etapa==='captacion'){await cumplirArranque(db,id,user);await update(id,e.flujo,'documentacion');e=await row(id);}await sign(id);e=await row(id);let flow=e.flujo;for(const k of ['titularidad','factibilidad','valor','precio','intermediacion','levantamiento','plan','publicacion'])flow.requisitos[k]={estado:'revisado',soporte:'Revisión sintética del contexto original',evidencia:ext,...(k==='factibilidad'?{vigenteHasta:'2030-12-31'}:{})};flow.resolucion={tipo:'aceptada',fecha:'2026-10-14',motivo:'Autorización del contexto original',siguienteAccion:'Revisar antecedentes',fechaSiguiente:'2030-12-31'};return update(id,flow,'comercializacion');}
 async function prop(id){return (await q("select data,version from public.fortius_inmuebles_records where collection='propiedades' and id=$1",[id]))[0];}
 async function publish(id){let p=await prop(id);await q("select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,$3)",[id,JSON.stringify({...p.data,estado:'disponible',publicadaEl:'2026-10-14',demo:true,publicada:true,galeria:[{src:'/hero/casa-playa.webp',alt:'Fotografía sintética'}]}),p.version]);}
 async function ready(id){await db.exec('reset role');try{return (await q('select public.fortius_inmuebles_flow_publish_ready($1) ready',[id]))[0].ready;}finally{await db.exec('set role authenticated');}}

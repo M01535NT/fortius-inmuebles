@@ -14,16 +14,26 @@ export type Reconocido = { clave: string; valor: string | number; cita: string }
 const MESES: Record<string, string> = { enero: "01", febrero: "02", marzo: "03", abril: "04", mayo: "05", junio: "06", julio: "07", agosto: "08", septiembre: "09", setiembre: "09", octubre: "10", noviembre: "11", diciembre: "12" };
 const frase = (texto: string, indice: number, largo: number) => texto.slice(Math.max(0, indice - 40), Math.min(texto.length, indice + largo + 40)).replace(/\s+/g, " ").trim();
 
+/** Solo fechas que existen en el calendario (C-24: «31/02» no es una fecha). */
+const fechaReal = (iso: string) => { const date = new Date(`${iso}T00:00:00Z`); return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === iso ? iso : undefined; };
+
 /** «2 de mayo de 2010» o «02/05/2010» → 2010-05-02. */
 export function fechaEnTexto(texto: string): string | undefined {
   const letras = /(\d{1,2})\s+de\s+([a-záéíóú]+)\s+(?:de\s+|del\s+)?(\d{4})/i.exec(texto);
   if (letras) {
     const mes = MESES[letras[2].toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")] ?? MESES[letras[2].toLowerCase()];
-    if (mes) return `${letras[3]}-${mes}-${letras[1].padStart(2, "0")}`;
+    if (mes) return fechaReal(`${letras[3]}-${mes}-${letras[1].padStart(2, "0")}`);
   }
   const numeros = /(\d{1,2})[/-](\d{1,2})[/-](\d{4})/.exec(texto);
-  if (numeros) return `${numeros[3]}-${numeros[2].padStart(2, "0")}-${numeros[1].padStart(2, "0")}`;
+  if (numeros) return fechaReal(`${numeros[3]}-${numeros[2].padStart(2, "0")}-${numeros[1].padStart(2, "0")}`);
   return undefined;
+}
+
+/** 2010-05-02 → «2 de mayo de 2010», para textos que se imprimen tal cual (título de la escritura). */
+export function fechaLegible(iso: string): string {
+  const [anio, mes, dia] = iso.split("-");
+  const nombre = Object.entries(MESES).find(([key, value]) => value === mes && key !== "setiembre")?.[0];
+  return nombre ? `${Number(dia)} de ${nombre} de ${anio}` : iso;
 }
 
 /** Lo que el texto dice con forma propia, en el orden en que aparece; un dato por clave (el primero gana). */
@@ -50,7 +60,7 @@ export function reconocerTexto(texto: string): Reconocido[] {
     const oracion = fin === -1 ? resto : resto.slice(0, fin);
     const fecha = fechaEnTexto(oracion);
     const notaria = /notar[ií]a(?:\s+p[úu]blica)?(?:\s+n[úu]mero|\s+no\.?)?\s*[:#]?\s*(\d+)/i.exec(oracion)?.[1];
-    const partes = [`escritura ${escritura[1].replace(/[.,]+$/, "")}`, fecha ? `del ${fecha}` : "", notaria ? `notaría ${notaria}` : ""].filter(Boolean);
+    const partes = [`escritura ${escritura[1].replace(/[.,]+$/, "")}`, fecha ? `del ${fechaLegible(fecha)}` : "", notaria ? `notaría ${notaria}` : ""].filter(Boolean);
     anota("escritura", partes.join(" "), escritura.index, oracion.length);
   }
   const telefono = /(?:tel[ée]fono|cel(?:ular)?|whatsapp)\s*[:#]?\s*(\+?\d[\d\s-]{8,}\d)/i.exec(texto);

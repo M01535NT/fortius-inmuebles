@@ -59,6 +59,8 @@ En github.com/M01535NT/fortius-inmuebles, ve a **Settings → Environments → N
 | `FORTIUS_BACKUP_R2_ACCESS_KEY_ID` | Access Key ID del paso 2 |
 | `FORTIUS_BACKUP_R2_SECRET_ACCESS_KEY` | Secret Access Key del paso 2 |
 
+**Opcional, recomendado (13/11/2026):** un octavo secreto `FORTIUS_BACKUP_DB_CA` con el certificado raíz de Supabase en PEM (Supabase → Settings → Database → SSL Configuration → *Download certificate*; se pega el contenido completo). El titular aceptó agregarlo el 13/11/2026. Con él, la copia comprueba que habla con el servidor de Supabase y no con un intermediario; sin él, la conexión va cifrada pero sin esa comprobación, y el registro del flujo lo advierte.
+
 Los secretos de un entorno no los ven ni las personas que copian el repositorio ni los cambios que proponen; solo la rama `main` los usa.
 
 ### 5. Activar

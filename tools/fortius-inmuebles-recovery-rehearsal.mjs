@@ -12,6 +12,7 @@ import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ownerExport, verifyBackup } from './fortius-inmuebles-backup.mjs';
+import { databaseSsl } from './fortius-inmuebles-owner-export.mjs';
 import { restoreCurrentInto } from './fortius-inmuebles-restore-current.mjs';
 import { assertIsolatedTarget, PRODUCTION_PROJECT_REF, restoreStorageToService } from './fortius-inmuebles-restore-storage.mjs';
 import { buildSyntheticBackup, SYNTHETIC } from './fortius-inmuebles-synthetic-backup.mjs';
@@ -57,7 +58,7 @@ export async function checkAccess(sessions, manifest) {
 async function connect(dbUrl) {
   let pg;
   try { pg = (await import('pg')).default; } catch { throw Error('The pg package is required: npm install -D pg'); }
-  const client = new pg.Client({ connectionString: dbUrl, ssl: dbUrl.includes('127.0.0.1') || dbUrl.includes('localhost') ? false : { rejectUnauthorized: false } });
+  const client = new pg.Client({ connectionString: dbUrl, ssl: databaseSsl(dbUrl, { FORTIUS_BACKUP_DB_CA: process.env.FORTIUS_RECOVERY_DB_CA }) });
   await client.connect();
   return { query: (sql, params) => client.query(sql, params), exec: sql => client.query(sql), close: () => client.end() };
 }

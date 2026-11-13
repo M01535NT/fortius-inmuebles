@@ -121,7 +121,8 @@ function calculateQuote(input: AppInput): AppResult {
   let subtotal = new Decimal(0), discount = new Decimal(0), taxes = new Decimal(0), total = new Decimal(0);
   const rows = checkedRows(input, "items").map(row => {
     const concept = required(row.concept, "concepto"); const category = choice(row.category, ["servicios", "honorarios", "gastos"], "categoría"); const quantity = number(row.quantity, "Cantidad", 0.001, 1e6); const price = number(row.unitPrice, "Precio unitario", 0, 1e9); const disc = number(row.discountPct, "Descuento", 0, 100); const tax = number(row.taxPct, "Impuesto", 0, 100);
-    if (new Decimal(row.unitPrice as string | number).decimalPlaces() > 2) throw new Error("Precio unitario: captura como máximo dos decimales; no se admiten fracciones de centavo.");
+    // C-25: el precio ya pasó number(); se recorta el texto para que «  100 » no rompa Decimal.
+    if (new Decimal(String(row.unitPrice).trim()).decimalPlaces() > 2) throw new Error("Precio unitario: captura como máximo dos decimales; no se admiten fracciones de centavo.");
     const gross = round(new Decimal(quantity).mul(price)); const reduction = round(gross.mul(disc).div(100)); const net = gross.minus(reduction); const charge = round(net.mul(tax).div(100)); const line = net.plus(charge);
     subtotal = subtotal.plus(gross); discount = discount.plus(reduction); taxes = taxes.plus(charge); total = total.plus(line);
     return [concept, category, String(quantity), money(price, unit), `${disc}% · ${money(reduction, unit)}`, `${tax}% · ${money(charge, unit)}`, money(line, unit)];

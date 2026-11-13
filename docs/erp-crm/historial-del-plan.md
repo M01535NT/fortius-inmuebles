@@ -1,6 +1,6 @@
 # Fortius — historial del plan de implementación del ERP/CRM
 
-**Qué es este archivo.** Guarda, sin cambios de redacción, las secciones de [`PLAN_ERP_CRM.md`](../../PLAN_ERP_CRM.md) que describen trabajo ya terminado o registros de sesiones pasadas. Se separó del plan el 11/11/2026 a pedido del titular para que el plan quede corto. **No es un plan ni una fuente de reglas:** si algo de aquí contradice al plan, manda el plan. Las referencias a ramas «sin integrar» son de su fecha: al 11/11/2026 todo lo registrado aquí está en `main`.
+**Qué es este archivo.** Guarda, sin cambios de redacción, las secciones de [`PLAN_ERP_CRM.md`](../../PLAN_ERP_CRM.md) que describen trabajo ya terminado o registros de sesiones pasadas. Se separó del plan el 11/11/2026 a pedido del titular para que el plan quede corto. **No es un plan ni una fuente de reglas:** si algo de aquí contradice al plan, manda el plan. Las referencias a ramas «sin integrar» son de su fecha: al 11/11/2026 todo lo registrado aquí está en `main`. El 13/11/2026 se retiraron del plan más secciones terminadas (§17 a §21); sus referencias a ramas también son de su fecha.
 
 **Cómo usarlo.** Consultarlo cuando haga falta saber cómo o por qué se construyó algo (por ejemplo, los candados FLUJO-04a, el encargo de la Fase C o qué se cotejó de cada formato). Al cerrar una entrega, su registro detallado se pasa del plan a este archivo, al final.
 
@@ -22,6 +22,11 @@
 14. Simplificación (SIM): estado de las correcciones tras el boceto C (18/10/2026)
 15. Proceso: correcciones COR ya hechas, texto original
 16. Matriz de estados: notas de revisión anteriores al 11/11/2026
+17. «Dónde nos quedamos»: tablero al 12/11/2026
+18. Reglas reemplazadas hasta el 13/11/2026
+19. Entregas terminadas, retiradas del plan el 13/11/2026
+20. Paquetes y secciones construidos, retirados del plan el 13/11/2026 (SIM, LV, COR, MRP-01, CAP-05, CSR, COR-16, SIA, DOC-09, EXT-12 y filas del backlog)
+21. Entregas confirmadas en `main`, retiradas del plan el 13/11/2026 (segunda pasada: HER, PUB-02, COR-18 a COR-24, DOC-06, CAP-06 y DEC-44)
 
 ## 1. Rediseño guiado del panel (Fase C): encargo y avance
 
@@ -818,3 +823,498 @@ Corregido en la rama: el botón principal de «Ahora toca» se apagaba en el dic
 Esta matriz conserva los 42 estados y dependencias explícitos del seguimiento original, incorpora tres entregas del producto ampliado (EXT-08, EXT-09 y EXT-10) y, desde el 17/10/2026, las 23 entregas de «Dirección del producto» las 12 del paquete SIM, las 14 del paquete NAV las 4 del paquete LV las 21 de «Proceso, captura y documentos» (COR, CAP, FCH y MOT) las 4 de «Herramientas para trabajo suelto» (HER) y los pendientes de formatos DOC-06 y DOC-09 y, desde el 18/10/2026, COR-03 a COR-09, MRP-01, USO-01 y COR-10 (prospecto y cliente), para un total de 135. **Estados revisados el 18/10/2026:** «parcial» significa que una parte ya existe — OPS-01 (tareas vinculadas a la operación y apertura transaccional desde la entrevista, 13/10), CRM-01 (conversión idempotente), PUB-01 (publicación condicionada a la operación de captación), DOC-01 (emisiones con huella, versiones y copia firmada), UX-01 (kit del panel guiado) y SIM-04 a SIM-06 (boceto C). Lo demás sigue pendiente aunque tenga piezas sueltas. Las seis de la etapa posterior figuran «en_pausa». EXT-06 ya contemplaba IA y RAG; ahora se concreta su alcance solicitado. Complementa las condiciones de negocio y pruebas del backlog; preparación local aprobada no cambia automáticamente una entrega a aceptada.
 
 **Revisión del 26/10/2026.** Se agrega el estado **«terminada»**: la entrega está integrada en `main` y cumple su aceptación. Antes no existía, por eso los resúmenes contaban cero terminadas. LV-05 pasa a «terminada» (PR #45, #46 y #47) y MRP-01 a «en_revision» (borrador en «Matriz de reglas por ruta», espera DEC-26). El resto de los estados no se revisó contra el código en esta pasada.
+
+## 17. «Dónde nos quedamos»: tablero al 12/11/2026
+
+Texto tal como estaba en el plan hasta el 13/11/2026, cuando se reescribió el tablero. Lo que dice «rama acumulada» se integró en `main` con el PR #73 (commit `c03504b`).
+
+### Dónde nos quedamos — tablero al 12/11/2026
+
+Esta sección es la única que hay que leer para saber cómo va el trabajo. Se reescribe al cerrar cada entrega; lo que deja de ser actual pasa a [`docs/erp-crm/historial-del-plan.md`](historial-del-plan.md).
+
+**Dónde está el código.**
+
+- **En `main`** (commit `14856aa`): lo integrado hasta el 12/11/2026, incluidos los PR #67 (SEO), #68 (DOC-06), #69 (opinión de valor 07), #70 (blanco azulado `#F8F8FF` en el sitio público), #71 (contrato 09 sin PROFECO y con las cláusulas del Word del 26/10) y #72 (PDF del 09 liberado).
+- **En la rama acumulada `claude/claude-code-project-strategy-8b1700`** (91 commits por delante de `main`, sin push): el trabajo de las sesiones en paralelo del 12/11/2026, ya juntas y probadas (lint sin errores, tipos limpios; base 979/979, panel 490/490 y herramientas 47/47). Espera la revisión del titular en localhost, la verificación completa y un solo PR (regla del titular: todo junto).
+- **Migraciones por aplicar:** 8 que no están en `main` (`20261112180000` a `20261112235000`), sin números repetidos y con una sola versión por función. Se aplican solas al integrar en `main`; mientras tanto, la base remota no las tiene y las pantallas que dependen de ellas no funcionan completas en localhost.
+- **Sin comprobar:** la build y las suites de navegador de la rama acumulada (las del sitio público pasaron en su rama); `verify-pdf-bundle`, que necesita build.
+
+**Qué entró en la rama acumulada (12/11/2026).**
+
+- **Bloque 0:** REC-01 con restauración de Storage y ensayo completo aprobado en un proyecto aislado (ya borrado); copia diaria cifrada a Cloudflare R2 (`.github/workflows/backup-daily.yml`, custodia del titular). Fuera del repositorio y autorizado por el titular: bucket R2 con bloqueo de 30 días, entorno `respaldo` en GitHub con sus secretos, escaneo de secretos y alertas de Dependabot activados, entornos viejos de GitHub y 18 variables sobrantes de Vercel borradas, ensayo de Instant Rollback. Al integrar: lanzar a mano «Respaldo diario» y comprobar el archivo en R2.
+- **Bloque 1:** COR-18 (registrar contacto y la oferta 14 ligada al interesado), COR-20 (excepción del director con motivo), COR-23 y DEC-43 (alcance del asesor), COR-24 (inventario heredado), COR-26 («Tu primer día» y manual dentro del panel); formatos 07 y 09 (ya en `main`).
+- **Bloque 2:** HER-01 a HER-03 y HER-05 (catálogo depurado en tres grupos, machotes en blanco, ISR y neto del vendedor con dos PDF, herramientas abiertas desde los datos, «Gastos de compra», «Ligas útiles», editar fotos de la galería); DEC-44 (captura por lista en el celular); DEC-47 (solo Hoy abre su guía sola).
+- **Bloque 3:** CRM-01 a CRM-03 (propuesta en `docs/erp-crm/propuesta-seguimiento-comercial.md`; tareas del prospecto solo para su asesor; prospecto descartado que regresa se reabre con su asesor; mensajes listos que edita el director); DEC-42 (el siguiente paso es una tarea, notas en inmueble y operación, avisos del director en Hoy); CAP-06 (la 02 con el problema del inmueble y documentos por caso); PUB-02 (inmuebles compartidos con autorización escrita); DEC-41 (visita antes de la firma con carta del propietario).
+- **Sitio público (auditoría UI/UX del 12/11):** cierre único del inicio, candado corto después de la primera navegación, modo oscuro según el teléfono, Vender con un solo formulario y checklist directo, equipo con iniciales mientras no haya foto, WhatsApp de Contacto legible, ficha más clara en el teléfono, cifras sin letra monoespaciada y contraste del blog. Informe y decisiones en la nota de la auditoría.
+
+**Qué sigue, en orden.**
+
+1. El titular revisa en localhost la rama acumulada (con el límite de las migraciones sin aplicar).
+2. Verificación completa (`npm run verify`, unos 13 minutos, y las suites de navegador), con su permiso; auditoría en una sesión limpia (`gauntlet-review`).
+3. Un solo PR a `main`; al integrar, «Respaldo diario» a mano y revisión de salud del sitio.
+4. Pendientes del titular: cotejar el ISR con 3 o 4 casos de Nuvigant y su dirección (H-06); fotos reales del equipo y correo del dominio; textos que valida el abogado (cartas de DEC-40 y DEC-41, preguntas de DEC-39); LFPIORPI (antilavado), que no está en el plan.
+5. Resto del bloque 1 (COR-10, COR-16, COR-21), USO-01 y USO-02, activar IA-01 y terminar IA-02.
+6. NAV, UX-02 a UX-05, FCH-03, FCH-04 y FCH-06; escala tipográfica del sitio (P1 de la auditoría).
+7. Bloque 3 restante (SEG-01, DAT-01, COR-25, visitas y ofertas, CAP-01 a CAP-04), después los bloques 4 a 7.
+
+**Confirmado por el titular al juntar las ramas (12/11/2026):** DEC-40 sin el nombre de la aliada en el sitio (aplicado en PUB-02); CAP-06 se queda activa y el abogado revisa las preguntas y documentos de DEC-39 después, sin frenar su uso.
+
+**Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **Fortius solo representa al propietario: compradores y arrendatarios son leads de Fortius y contraparte de sus clientes, nunca clientes de Fortius** (RP-93).
+
+**Color del lienzo del panel (titular, 11/11/2026):** el titular cambió en `src/app/admin/panel.module.css` el lienzo claro del panel de crema `#F5F1EB` a **`#F8F8FF`** y el borde de las tarjetas de `rgba(6, 31, 63, .06)` a **`rgba(6, 31, 63, .11)`**. Es la referencia vigente para LV-07 y LV-08; el modo oscuro no cambia. Desde el 12/11/2026 el sitio público también usa `#F8F8FF` en lugar del crema (ver `docs/brand.md`).
+
+**Preguntas abiertas para el titular:** [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](CUESTIONARIO_TITULAR.md). Cada respuesta se integra en este plan como regla o decisión.
+
+## 18. Reglas reemplazadas hasta el 13/11/2026
+
+Tabla de «Reglas reemplazadas» de la sección «Dirección del producto y reglas vigentes» del plan, tal como estaba el 13/11/2026. Las reglas que se reemplacen después se anotan primero en el plan.
+
+### Reglas reemplazadas
+
+| Fecha | Regla anterior (dónde estaba) | Regla vigente |
+|---|---|---|
+| 27/10/2026 | Las 10 etapas del vendedor agrupadas en cuatro fases en pantalla: Conocer · Revisar · Preparar y publicar · Vender y cerrar (boceto C, 17/10/2026). | Sin fases: cada operación dice «Etapa N de M · nombre». Operaciones filtra por etapa y su tablero pone una columna por etapa (titular, 27/10/2026). El requisito del levantamiento se confirma en la etapa 3 y no en la 7. Las etapas 8 a 10 ofrecen sus documentos (11; 12, 13 y 14; 15 a 18) sin detenerse. «Confirma lo que revisaste» se llama «Antes de seguir, confirma» y su panel llega lleno. |
+| 27/10/2026 | Captura de cada formato en una ventana por secciones con campos sueltos (boceto «Captura de un documento», 17/10/2026). | La ventana se conserva, pero abre en el documento tal como sale en PDF y se llena pulsando sobre él (EXT-12, DEC-31). El formulario por secciones queda solo para los formatos que aún no se pasan. |
+| 17/10/2026 | «Un sistema operativo dentro de `/admin`» («Qué vamos a construir»). | ERP/CRM profesional exclusivo de Fortius, con su marca (RP-01). |
+| 17/10/2026 | «La estructura de la guía (`flujo`) no cambia» y «sin migraciones ni endpoints nuevos» (encargo del rediseño, §2). | Esas reglas valían para la Fase C, ya terminada. Los procesos de Fortius se ajustarán desde el propio sistema con el motor de procesos (RP-79, MOT); las migraciones siguen requiriendo respaldo, ensayo y autorización. |
+| 17/10/2026 | Roles `admin` y `editor` como modelo de permisos (encargo y manual). | Roles del equipo de Fortius y permisos por acción (RP-05, DEC-03, SEG-01). |
+| 17/10/2026 | Orden de menú, vistas y preferencias guardados «por usuario en ese navegador» (`docs/admin-workspace.md`) y sincronización opcional (UX-02). | Preferencias y vistas en el servidor por usuario (RP-14). El navegador solo guarda comodidades del dispositivo. |
+| 17/10/2026 | «No convertir ponderaciones en probabilidades» (COM-01). | Las ponderaciones de la cartera comercial siguen sin presentarse como probabilidad. El pronóstico usa probabilidades por etapa definidas por Fortius y rotuladas «Estimación» (RP-30). |
+| 17/10/2026 | Avisos «solo dentro del panel» con el contador de Hoy como único aviso (encargo del rediseño). | Se agrega la bandeja «Para ti» en Hoy (RP-20). Sigue sin campana; los avisos fuera del panel siguen en PWA-03. |
+| 17/10/2026 | Firmas con DocuSeal, OCR con Document AI, consulta con OpenAI y rutas con Google (sección «20 apps»). | Esas integraciones se retiraron del código el 15/10/2026 (Fase A). Si se retoman, entran por EXT-05 (firma), EXT-11 y EXT-06 (lectura de documentos e IA) y EXT-09 (rutas), con proveedor decidido de nuevo. |
+| 17/10/2026 | Usuarios piloto: administrador y dos asesores (Gobierno). | Piloto con el equipo de Fortius y pruebas de uso medidas, repetidas tras cada cambio grande (RP-47, PIL-01). |
+| 17/10/2026 | Ruta principal BAS-01 → REL-01/SEG-01 → CRM-01… y «Siguiente acción: continuar con REL-01 y SEG-01». | «Orden vigente» de esta sección. |
+| 17/10/2026 | EXT-01 (coincidencias) como extensión condicionada. | Solicitada (RP-24). |
+| 17/10/2026 | Tablero de Operaciones y barra de avance con una columna o paso por cada una de las 10 etapas (FLUJO-01 a 03, Fase C · 4). | Se presentan 6 etapas con los 10 pasos dentro (C12, C13). `SALE_PROCESS`, los candados y las direcciones `?etapa=` se conservan. |
+| 17/10/2026 | Chips de estado de requisito siempre visibles (Pendiente · Lo tengo · Revisado · Hay un problema · No aplica) (encargo, §4). | Estado actual y siguiente acción; el resto en «⋯» (RP-55, C16). |
+| 17/10/2026 | Pestañas de la operación con «Ajustes»; columna con herramientas, propietario y «¿Qué significa?» como tarjetas (encargo, §4). | Acciones en «⋯» del encabezado; «¿Qué significa?» como enlace; Llamar y WhatsApp en el encabezado en celular (C19 a C21). |
+| 17/10/2026 | Lo vencido y las visitas «en guinda» (encargo, §4). | Vencido en rojo de alerta con ícono; visitas con color propio; guinda solo para la acción principal (RP-52, C01). |
+| 17/10/2026 | Botón principal «+ Nueva operación» en la barra lateral (encargo, §4). | «+ Nuevo» con menú; Nueva operación es la primera opción (C08). |
+| 17/10/2026 | Contactos con pestañas Prospectos y Clientes (encargo, §4; Fase C · 6). | Una sola lista de personas con etapa y filtro; las tablas no cambian (C24). |
+| 17/10/2026 | «Agendar» conservado como formulario fijo junto al calendario (Fase C · 6). | Panel que se abre desde el botón o un hueco del calendario, con un solo campo de vínculo (C25). |
+| 17/10/2026 | «Alta directa, sin entrevista» en el tablero de Operaciones (Fase C · 4 y 5). | Opción secundaria dentro de Nueva operación (C22). |
+| 17/10/2026 | Fechas y cifras en letra monoespaciada (lienzo de diseño aprobado). | Letra normal y fechas humanas en todo el panel (RP-53, C02, C03). |
+| 17/10/2026 | La Fase C · 2 retiró contraer y ajustar el ancho de la barra lateral. | Vuelve contraer a íconos (N01); el ancho ajustable no regresa. Reordenar el menú sigue fuera (RP-65). |
+| 17/10/2026 | «Hoy» como pantalla de inicio para todos los roles (encargo, decisiones por defecto). | Inicio por rol: Hoy para el asesor y el tablero para el director cuando exista; cada quien puede cambiarla (N11). |
+| 17/10/2026 | La lista de arranque «Preparar tu espacio» solo para el administrador, en Configuración (Fase C · 3). | Se conserva para el administrador y se agrega «Primeros pasos» del asesor en Hoy, unida al recorrido de SOP-01 (N24). |
+| 17/10/2026 | «Ver operaciones eliminadas» en el tablero y recuperaciones repartidas en Historial. | Una sola Papelera en Administración (N23); las reglas de cada restauración no cambian. |
+| 17/10/2026 | «Orden vigente», bloque 2: LV-01 a LV-04 después de SIM-01, y LV-05 como ejercicio previo con bocetos. | Por decisión del titular (17/10/2026), LV-05 se adelantó en el orden y se construyó primero, como capa visual sobre el panel actual (entregada el 18/10/2026); SIM, NAV y LV-01 a LV-04 siguen en su lugar y reutilizan sus tokens y su kit. |
+| 17/10/2026 | Flujo configurable en pausa para la etapa posterior (RP-04, SAAS-03); procesos escritos en el código. | Motor de procesos para Fortius: procesos base por tipo de operación y módulos activados por respuestas, editables desde el sistema (RP-79, MOT). SAAS-03 queda solo para adaptarlo por empresa. |
+| 17/10/2026 | El PDF se emite solo con la captura completa, salvo el 07 (regla del catálogo de formatos). | Descargar siempre, avisando lo que falta, dentro o fuera de una operación; 09 y 15 conservan su bloqueo legal; un PDF con faltantes cuenta para los candados (RP-77, RP-82). |
+| 17/10/2026 | Cada documento guarda su copia de los datos y se llena solo al crearse. | Ficha única de la operación de la que leen todos los documentos (RP-75, RP-76). |
+| 17/10/2026 | Lista de documentos fija D01–D22, levantamientos 04A–04G y listas de intenciones y tipos escritos en el código. | Salen del motor de procesos según el tipo de operación y sus módulos (MOT-02). |
+| 17/10/2026 | Pantalla de prospecto del propietario sin fecha visible y sin envío del aviso (FLUJO-01). | Primer contacto con fecha editable, envío del aviso y cita en la misma pantalla (CAP-01, CAP-02). |
+| 17/10/2026 | Primera redacción de RP-77: un PDF con datos críticos faltantes no contaba para los candados ni para «Revisado», y había «datos críticos» con confirmación. | Ningún dato faltante detiene el flujo; el PDF con faltantes cuenta para los candados; solo detienen los requisitos del proceso y los datos que Fortius marque como indispensables (RP-82). |
+| 17/10/2026 | La entrevista exige todas sus preguntas obligatorias para crear la operación (FLUJO-01, entrevistas). | Basta lo indispensable; lo demás queda en «Datos por completar» (F06, RP-82). |
+| 17/10/2026 | Catálogo de 17 herramientas con formatos repartidos entre «Documentos sin expediente» y «Plantillas y PDF». | Catálogo depurado en tres grupos con accesos directos y trabajo suelto completo (HER, RP-83), confirmado por el titular el 18/10/2026. |
+| 18/10/2026 | Tablero y avance en 6 etapas (C12, C13). | Las cuatro fases del boceto C agrupan las 10 etapas en pantalla, aprobadas por el titular el 17/10/2026; la renta tendrá sus propias etapas (COR-04). |
+| 18/10/2026 | Entrevista «ampliada» con todas las preguntas en la cita (CAP-03, primera redacción) frente a la entrevista sencilla del 17/10/2026. | Entrevista con lo necesario para que el proceso funcione y sección opcional «Ampliar» (RP-89). |
+| 18/10/2026 | Etiquetas «Firma ante notario», «Pago completo antes de entregar» y «Aviso de privacidad firmado» (encargo del rediseño y RP-82/MOT). | Nombres fieles a la regla (RP-86), pendientes de confirmación del titular (DEC-27). |
+| 18/10/2026 | Insignias de documento «Borrador · PDF listo · Firmado» (V05). | Estados Borrador · Revisado · Aprobado · Firmado; el PDF es una salida (RP-85). |
+| 18/10/2026 | DEC-02, DEC-04 y DEC-05 como «confirmar antes de diseñar». | Decididas; lo abierto pasa a MRP-01 y REL-01. |
+| 18/10/2026 | «Ficha comercial» como herramienta (catálogo HER). | Sale del catálogo: la ficha técnica PDF se descarga en la página pública del inmueble y desde el menú del inmueble en el panel. |
+| 18/10/2026 | «09 y 15 conservan su bloqueo legal» (RP-77, F16, FCH-04). | Solo el 09 está bloqueado (DOC-09); la 15 conserva sus reglas legales y de congruencia, no un bloqueo general (RP-77). |
+| 18/10/2026 | UX-02 con «tablero personal» y dependiente de SEG-01, PAG-01 y TAB-01. | Solo búsqueda, vistas y preferencias por usuario, sin tablero armable (RP-66), y sin esas dependencias. |
+| 18/10/2026 | Al completar la entrevista el contacto «se convierte a cliente» (registro del 13/10/2026 y código actual) y el botón «Convertir en cliente» lo hace a mano. | Completar la entrevista abre la operación; la persona sigue siendo prospecto hasta firmar su contrato. La conversión de `leads` a `clientes` queda como mecanismo técnico y el botón cambia de nombre (RP-90, RP-92, COR-10). |
+| 18/10/2026 | La etapa 7 de la venta se cerraba con la intermediación (09) revisada. | Intermediación firmada y revisada; desde la firma el inmueble está captado (RP-91). |
+| 18/10/2026 | «Cliente» como una etapa más de la lista de personas (C24) y «Conversión CRM: leads convertidos a cliente» (diccionario). | «Cliente» se calcula del contrato firmado (C24, RP-92); la conversión a cliente y las captaciones se miden por fecha de firma (diccionario). |
+| 18/10/2026 | CRM-01: «captar, calificar, convertir» con la conversión como acción del asesor. | La conversión técnica se conserva; la condición de cliente la da la firma (CRM-01, RP-90). |
+| 17/10/2026 | El comprador pasa a cliente al firmar la promesa o la compraventa y el arrendatario al firmar el arrendamiento (RP-90, «Etapas por ruta», COR-10). | Compradores y arrendatarios son leads de Fortius y contraparte del cliente; nunca clientes de Fortius (RP-93). |
+| 17/10/2026 | Rutas de operación `compra` y `arrendatario` con siete pasos y su expediente («Etapas por ruta», MRP-01). | «Quiere comprar» y «Quiere rentar» hacen el perfilamiento y guardan un lead; no abren operación (RP-93, COR-11). |
+| 17/10/2026 | Fortius en los dos lados de la venta como dos operaciones vinculadas (propuesta del cuestionario, B-08). | Una sola operación, la del propietario (RP-93). |
+| 17/10/2026 | La intermediación podía firmarse antes del dictamen y la opinión de valor, con motivo (propuesta del cuestionario, B-04). | Se firma solo después de la opinión jurídica y la comercial; con condición jurídica subsanable, queda «En regularización» (RP-96). |
+| 17/10/2026 | Ofrecer el inmueble en privado antes de firmar, por decidir (RP-91). | No se ofrece antes de la firma; excepción: inmuebles compartidos de otra inmobiliaria (RP-91, RP-95). |
+| 17/10/2026 | Una operación con folio `EXP-…` como expediente completo de la persona. | Expediente del cliente en la ficha del propietario y folio por inmueble (RP-94). |
+| 17/10/2026 | La opinión de valor podía hacerse al mismo tiempo que el dictamen (B-04). | Primero la opinión jurídica; la de valor solo si el inmueble pasa o pasa con condiciones (RP-96, D-11). |
+| 17/10/2026 | Cada asesor ve sus operaciones; «Notas del equipo» como página aparte (F-03 propuesto, DEC-25). | El inventario captado es del equipo y cualquier asesor puede venderlo; notas en un botón discreto del inmueble y de la operación (RP-99). |
+| 17/10/2026 | Primera versión de esta sección: producto comercializable a otras inmobiliarias desde ahora, con multiempresa, marca por empresa, flujo configurable, planes y piloto externo; DEC-15 bloqueando REL-01 y SEG-01. | Segunda indicación del titular el mismo día: exclusivo de Fortius y solo con su marca. Lo de otras inmobiliarias pasa a «Etapa posterior (en pausa)»; DEC-15 ya no bloquea nada; las reglas fiscales por lugar se quedan para Fortius (FIS-01). |
+| 29/10/2026 | Una operación con portada azul con foto, línea de tiempo de las 10 etapas a la izquierda y «Ahora toca» al centro (LV-05, «Dirección aprobada»; encargo del rediseño, «Operación guiada»). | Boceto D «Moderno»: panel azul con el número de etapa y las etapas como barras, piezas de la etapa en rejilla y barra de acción flotante (LV-06). Lo construido sigue vigente en pantalla hasta que el titular pida el cambio. |
+| 30/10/2026 | Inicio con tres propiedades destacadas: una tarjeta grande y dos filas a su lado («Sitio público · Inicio»). | Baraja de tarjetas a pantalla completa con botones por tipo y hasta cinco destacadas por botón; el resto se consulta en el inventario. |
+
+## 19. Entregas terminadas, retiradas del plan el 13/11/2026
+
+Filas de la tabla «Estado y dependencias de cada entrega» del plan con estado `en_main` o `terminada`, tal como estaban el 13/11/2026 (revisión de la tabla contra git del 11/11/2026, con ajustes posteriores). Las demás filas siguen en el plan.
+
+| ID | Fase | Estado registrado | Depende de |
+|---|---|---|---|
+| SIM-02 | 4 | en_main | PR #63: cuenta con menú, buscador único y «+ Nuevo» (C06, C08); falta distinguir el filtro de cada lista (C07) |
+| SIM-03 | 4 | en_main | PR #63 y #66 (C09 a C11) |
+| SIM-08 | 4 | en_main | PR #65: una sola lista de personas (DEC-36) |
+| COR-01 | 2 | en_main | PR #56 (27/10/2026) |
+| COR-02 | 2 | en_main | PR #56 (27/10/2026) |
+| COR-03 | 2 | en_main | PR #56 (27/10/2026) |
+| COR-04 | 2 | en_main | PR #57; migración `20261029170000_camino_de_renta.sql` |
+| COR-06 | 2 | en_main | PR #57; sin migración; quedan los grupos B a D de B-06 |
+| COR-08 | 2 | en_main | PR #57; migración `20261029150000_informe_entregas.sql` |
+| COR-09 | 2 | en_main | PR #57; sin migración |
+| COR-11 | 2 | en_main | PR #57; migración `20261029160000_interesados_sin_operacion.sql`; falta ligar las ofertas (14) al interesado |
+| COR-12 | 2 | en_main | PDF del 09 liberado sin PROFECO |
+| COR-13 | 2 | en_main | PR #56; lleva migración |
+| DOC-EXP | 2 | en_main | PR #57; lleva migración |
+| DAT-EXP | 2 | en_main | PR #57; lleva migración |
+| IA-01 | 1 | en_main | PR #57 y #63; sin activar: falta la clave de API en producción y el visto bueno del abogado |
+| CSR-01 a CSR-08 | 2 | en_main | PR #63 (31/10/2026); sin migración |
+| LV-05 | 2 | terminada | PR #45, #46 y #47 (18/10/2026) |
+| LV-07 | 2 | en_main | PR #63; reordenado en tres bloques por SIM-16 |
+| LV-08 | 2 | en_main | PR #63 y #65; lo que falta sigue en SIM-07, SIM-09, SIM-15 y SIM-17 a SIM-19 |
+| SIA-01 a SIA-06 | 2 | en_main | PR #57 (29/10/2026); sin migración |
+| MRP-01 | 2 | terminada | aprobada por el titular el 26/10/2026 (DEC-26); en `main` (PR #56) |
+| DOC-09 | 2 | en_main | PDF del 09 liberado sin PROFECO (COR-12) |
+| EXT-12 | 1 | en_main | PR #57: todos los formatos (01, 02, 04A–04G y 05 a 19) se llenan sobre el documento; falta que el titular revise cada formato |
+| LV-06 | 2 | en_main | PR #65 (31/10/2026): una operación según el boceto D «Moderno» |
+| SIM-13 | 4 | en_main | PR #66 (C33, C36, C39); la prueba de navegador `barras-fijas.spec.ts` no se ha corrido |
+| SIM-14 | 4 | en_main | PR #66 (C34, C35, C38, C44; C37 y C40 en parte) |
+| COR-15 | 2 | en_main | PR #66; la puerta única completa es SIM-17 |
+| COR-16 | 2 | en_main | PR #66: la puerta de publicación se aplica en el servidor y en SQL (comprobado el 12/11/2026) |
+| CAP-05 | 1 | en_main | PR #66: condición desde la llamada |
+
+## 20. Paquetes y secciones construidos, retirados del plan el 13/11/2026
+
+Texto que salió del plan el 13/11/2026 porque describe trabajo ya construido e integrado en `main` (o descartado). En el plan queda, en su lugar, una línea con lo que es y un enlace aquí. Lo pendiente de cada paquete sigue en el plan.
+
+### Simplificación (SIM): entregas en `main`
+
+De «Entregas del paquete SIM».
+
+| ID | Correcciones | Alcance | Aceptación |
+|---|---|---|---|
+| SIM-02 | C06–C08 | Barra lateral, buscadores y botón «+ Nuevo» | Pie compacto con menú; sin contadores inútiles; búsqueda global distinguible del filtro; «+ Nuevo» con 5 opciones por teclado y en celular. |
+| SIM-03 | C09–C11 | Hoy | Tarjetas tocables completas; sin duplicados entre secciones; saludo con nombre; pruebas de `today.ts` actualizadas. |
+| SIM-08 | C24 | Lista única de personas | Una lista con etapa y filtro; las fichas y las direcciones anteriores funcionan; sin cambios de base. |
+| SIM-13 | C33, C36, C39 | Fallas visibles de la segunda revisión (02/11/2026) | Hoy en celular muestra el título completo; ninguna barra fija tapa contenido ni acciones en la operación ni en Nueva operación (prueba de navegador a 390 px que comprueba que el último elemento queda visible); pestañas de la operación arriba; sin rosa en modo oscuro. **Construido el 02/11/2026; en `main` (PR #66):** título completo en Hoy, barra flotante que reserva su alto, pestañas arriba, Llamar y WhatsApp en el encabezado, sin rosa en botones desactivados ni en el texto de marca del modo oscuro (pasa a crema). La prueba de navegador `tests/admin/browser/barras-fijas.spec.ts` está escrita y falta correrla. |
+| SIM-14 | C34, C35, C37, C38, C40, C44 | Cada dato una vez, un solo guinda y textos del glosario en Hoy, Operaciones, la operación, Contactos y Tareas | Ningún pendiente aparece dos veces en una pantalla (prueba de `today.ts`); un solo botón guinda por pantalla con «+ Nuevo» secundario; el siguiente paso en Contactos viene de la operación cuando existe; completar tareas desde la lista; sin códigos de formato ni folios como subtítulo. **Construido el 02/11/2026; en `main` (PR #66):** Hoy sin repetir la portada ni el bloque «Vencidas», metas sin folio, siguiente paso de Contactos tomado de la operación, casilla para completar tareas en la lista, «+ Nuevo» secundario y faltantes con su nombre en lugar del código. |
+
+### Lenguaje visual (LV): LV-05 a LV-08
+
+De la sección «Lenguaje visual (LV)». Las reglas de volumen alto de LV-07, las decisiones y las ocho reglas de LV-08 y la nota del sitio público siguen en el plan.
+
+**LV-05 · Rediseño visual por área, con bocetos (titular, 17/10/2026, J-05):** antes de programar más pantallas, el titular envía capturas del sistema actual y el agente propone bocetos de rediseño por área; el titular elige y se ajusta lo visual antes de implementarlo. Hay un estilo general (marca, tokens, kit), pero cada etapa y ventana tiene su propio carácter, para que el panel no parezca una plantilla repetida. Criterio de aceptación en J-05 del cuestionario.
+
+**Estado de LV-05 (18/10/2026): construida la capa visual** según los bocetos (marco, Hoy, Operaciones en lista y tablero, una operación, Inmuebles en galería, Contactos, Nueva operación y ventana de captura); registro en el historial ([`docs/erp-crm/historial-del-plan.md`](historial-del-plan.md)). Quedan fuera, por falta de datos en el sistema, las cifras de cobros, la meta mensual, el avalúo dentro de la oferta, el perfil de leads compradores con coincidencias, las notas por inmueble y el tipo de cambio; el mapa entra con EXT-09.
+
+**LV-07 · Tablero «Hoy» con el boceto D «Mosaico cálido» (titular, 29/10/2026).** El titular pidió bocetos nuevos del tablero «Hoy» y eligió el **D · Mosaico cálido** entre cuatro propuestas (A moderno, B estilo suizo, C consola nocturna y D mosaico cálido) del lienzo «Tablero Hoy del panel» (claude.ai, privado del titular). Reemplaza el «Hoy» de LV-05. **Estado al 11/11/2026: construido y en `main` (PR #63); el 11/11/2026 se reordenó en tres bloques (SIM-16, en local).** Las reglas para volumen alto de abajo siguen mandando.
+
+- **Diseño del boceto D:** fondo crema `#F5F1EB` (desde el 11/11/2026 el lienzo del panel es `#F8F8FF`, ver LV-08); menú del panel en una barra superior de píldoras («Hoy» con su contador, Operaciones, Contactos, Inmuebles, Agenda y «Más»), con buscador, «Nueva operación» y avatar a la derecha; bloques de tamaños distintos con esquinas de 28 px y sin sombras marcadas: saludo con la fecha y dos acciones; «Lo siguiente» con la foto del inmueble y su pendiente más urgente; «Operaciones en curso» en azul marino con la barra por fase (Conocer · Revisar · Preparar y publicar · Vender y cerrar); «Vencidas» en borgoña sólido; «Tareas de hoy» con casillas; «Agenda» con la próxima cita y su foto; «Esta semana» en siete días; y «Esperan algo de ti» en tarjetas con foto. Marca sin rosa: borgoña en claro y crema sobre oscuro. Debe tener también su versión oscura y acomodarse al celular en una columna.
+- **Límites:** solo cambia la presentación de «Hoy»; usa los datos que el panel ya calcula (pendientes, tareas, agenda, operaciones por fase y foto principal del inmueble) y no lleva migración. Conserva la navegación por teclado, el foco visible, los objetivos de 44 px y «reducir movimiento». El cambio del menú lateral a barra superior aplica solo si el titular lo confirma para todo el panel; mientras tanto, «Hoy» conserva el marco actual.
+
+**Dirección aprobada (titular, 17/10/2026):** los bocetos están en el lienzo «Bocetos del panel Fortius» (claude.ai, privado del titular). El titular eligió la dirección **clara**: menú lateral flotante, buscador rápido, tarjetas con esquinas suaves (16 px en tarjetas, 10 px en controles), sombras azul marino, fotos reales de los inmuebles y gráficas pequeñas. La escala quedó en el sistema de diseño «Fortius Inmuebles» como `admin-radius-*` y `admin-shadow-*`; el sitio público conserva sus esquinas casi rectas.
+
+(Después de la nota «Sitio público», que sigue en el plan:)
+
+- **Hoy:** tablero del director con cifras arriba y «Necesitan tu decisión»; la misma pantalla se acomoda al celular, con barra inferior y botón «+».
+- **Operaciones:** dos vistas con selector, **lista** (la de inicio) y **tablero** por fase; el sistema recuerda la última vista de cada usuario.
+- **Inmuebles:** dos vistas, **galería** (primero) y **mapa** (cuando entre EXT-09).
+- **Una operación:** se reemplaza por el boceto D «Moderno» (titular, 29/10/2026); ver **LV-06** abajo. Lo construido el 18/10/2026 (portada azul con foto, línea de tiempo a la izquierda y «Ahora toca» al centro) sigue en `main` hasta que el titular pida el cambio.
+- **Contactos, Nueva operación y captura de documentos:** según sus bocetos.
+
+**LV-06 · Una operación según el boceto D «Moderno» (titular, 29/10/2026). Construida el 31/10/2026 y en `main` (PR #65).** Pantalla partida: panel azul con quién, número de etapa, las diez etapas como barras y la persona con Llamar y WhatsApp; a la derecha las piezas de la etapa (documentos, próxima tarea, confirmaciones e inmueble) y la barra flotante con una sola acción. Fuente del boceto: `docs/diseno/operacion-boceto-d/`. La especificación completa está en [`docs/erp-crm/historial-del-plan.md`](historial-del-plan.md). Lo que cambia después se decide en SIM-18 (operación en tres partes).
+  - **Documentos de la etapa** (4 columnas): cada formato con su número grande en Archivo condensado, nombre y avance («0 de 12 secciones · versión 1»); el que toca va sobre `--panel-selected` y abre su **ventana de captura propia** (regla vigente: nunca incrustado); el que espera a otro va con borde punteado y dice cuándo se abre («Se abre al terminar el 05»). Sin números de formato fuera de esta pieza (C15).
+  - **Próxima tarea** (2 columnas): título, fecha con palabras y «Cambiar fecha». Fondo **rojo sólido** (`--alert`) con texto blanco **solo si está vencida**; si no, tarjeta blanca normal. Sin tarea, la pieza no aparece y la de documentos toma las 6 columnas.
+  - **Antes de seguir, confirma** (3 columnas): los requisitos reales de la etapa con sus chips de estado vigentes (Pendiente, Lo tengo, Revisado, Hay un problema, No aplica) y «Marcar revisado» con la misma evidencia que hoy. Nunca texto de relleno.
+  - **Inmueble** (3 columnas): la primera foto de la galería a sangre con una píldora blanca «Tipo · precio» (o «Precio por definir»). Sin foto: fondo `--track` con el ícono de casa y la ubicación; nunca un recuadro de «foto pendiente».
+  - **Fila completa al pie:** responsable y los accesos a Expediente, Tareas, Historial y Ajustes, que abren las pestañas que ya existen.
+- **Barra de acción flotante:** píldora blanca centrada abajo (máx. 760 px, sombra `--shadow-float`) con un anillo de los requisitos de la etapa («N de M para pasar a <siguiente etapa>»), lo que toca en una línea y el botón guinda. El botón dice **«Continuar»** y abre la ventana del documento que toca; cuando todo está listo cambia a **«Pasar a <siguiente etapa>»** con los mismos candados de hoy (`workflowBlockers`). El contenido deja espacio debajo para que la barra no tape nada.
+- **Celular (390 y 320 px):** el panel azul va arriba y compacto (número de etapa de unos 72 px y las 10 etapas como barra horizontal de 10 tramos); las piezas en una columna; la barra flotante se apoya sobre la barra inferior del panel sin taparla.
+- **Oscuro:** el panel azul pasa a `--card` con borde `--card-edge`; la tarea vencida conserva rojo con contraste AA; el resto usa los tokens del panel.
+- **Se conserva sin cambios:** «Ver etapas», la vista de una etapa anterior, los cuatro pasos dentro de «Cierre y entrega» (COR-09), las pestañas y su contenido, el informe mensual y las visitas y ofertas, el panel de «Marcar revisado», la eliminación recuperable y las pruebas de navegador que leen la portada (folio como texto propio, nombres accesibles de las etapas).
+- **Marca:** Archivo con los pesos del panel (620/600/540/400) salvo el número de etapa; íconos Iconoir por `icons.tsx`; sin rosa, sin etiquetas en mayúsculas y sin animaciones de entrada en cada pieza (RP-73: solo las que confirman).
+- **Archivos previstos:** `src/components/admin/operation/screen.tsx`, `stages.tsx`, `next-step.tsx`, `requirements.tsx` y `operation.module.css`; el kit solo si hace falta una variante.
+- **Aceptación:** revisión en el navegador a 1440, 1024, 390 y 320 px, en claro y oscuro, con teclado y con «reducir movimiento»; sin desbordamiento horizontal; la barra flotante no tapa contenido ni la barra inferior; operaciones con y sin foto, con y sin tarea, con tarea vencida y en «Cierre y entrega»; lint, tipos y pruebas del panel; Verify en CI antes de integrar, con el acuerdo del titular para fusionar.
+
+(Del bloque LV-08:)
+
+- **Orden de construcción:** 1) marco común y lienzo (`#F8F8FF` desde el 11/11/2026); 2) Hoy; 3) Operaciones; 4) Una operación (LV-06); 5) Nueva operación; 6) Contactos y ficha de persona; 7) Inmuebles; 8) Agenda y Tareas; 9) Herramientas; 10) Administración (Equipo, Reportes, Sitio web, Historial, Configuración y Mi cuenta en una sola sección con índice). Cada sección se revisa en localhost antes de seguir con la siguiente.
+- **Límites:** solo cambia la presentación. No cambian rutas, API, base de datos, permisos, candados de avance, 409 ni la protección de cambios sin guardar; las direcciones anteriores siguen funcionando. Sin dependencias nuevas.
+- **Estado al 11/11/2026:** las diez secciones del orden de construcción están en `main` (PR #63 y #65, 31/10/2026). Lo que cada sección dejó pendiente se sigue en SIM-07, SIM-09, SIM-15 y SIM-17 a SIM-19.
+
+De «Entregas del paquete LV»:
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| LV-06 | Una operación según el boceto D «Moderno» | Ninguna; se empieza cuando el titular lo pida | Lo descrito en «LV-06» arriba: pantalla partida con panel azul y número de etapa, piezas de la etapa en rejilla, barra de acción flotante; mismas reglas, candados y pruebas; revisado en 1440, 1024, 390 y 320 px, claro y oscuro. |
+| LV-07 | Tablero «Hoy», boceto D «Mosaico cálido» | ninguna | «Hoy» igual al boceto D en claro y oscuro, a 390 y 1440 px; las reglas de volumen alto de LV-07 se cumplen con 200 pendientes de ensayo sin que el tablero crezca; axe sin fallas; pruebas de «Hoy» actualizadas sin debilitarlas. |
+| LV-08 | Panel versión 2: marco común (DEC-35), lista única de personas (DEC-36), eliminar desde dentro (DEC-37) y bocetos por sección | LV-06 y LV-07 se construyen dentro de este orden | Cada sección igual a su boceto en claro y oscuro, a 390 y 1440 px, con las ocho reglas; pruebas del panel actualizadas sin debilitarlas; sin desbordamiento; teclado, foco y 44 px conservados. |
+
+### Proceso: correcciones COR en `main`
+
+De «Correcciones inmediatas (fallas encontradas)». El texto original de varias está además en §15.
+
+| ID | Falla | Corrección | Aceptación |
+|---|---|---|---|
+| COR-01 | El nombre del propietario no llegaba al 07, 08 y 10. | **Hecha; en `main` (PR #56, 27/10/2026).** | Texto completo y pruebas en el historial. |
+| COR-02 | El tipo de inmueble se perdía al pasar de la entrevista al 07. | **Hecha; en `main` (PR #56).** | Texto completo y pruebas en el historial. |
+| COR-03 | Hoy llamaba «Prospecto» a operaciones que ya habían avanzado. | **Hecha; en `main` (PR #56).** La etapa cambia cuando se empieza el siguiente documento (titular, 26/10/2026). | Texto completo y pruebas en el historial. |
+| COR-04 | La renta del propietario usaba el camino de la venta. | **Hecha; en `main` (PR #57).** Diez etapas propias de renta; migración `20261029170000_camino_de_renta.sql`. La revisión (05) y el 09 quedan opcionales mientras no exista la plantilla de intermediación para renta (DOC-14). | Texto completo y pruebas en el historial. |
+| COR-06 | La lista de documentos pedía siempre CESPT y no admitía «No aplica». | **Hecha; en `main` (PR #57).** **Queda fuera:** los grupos B a D de B-06 (documentos según la forma de pago del comprador) se agregan al conocer la oferta (14); siguen sin confirmar la constancia de no adeudo predial de Tijuana, el certificado de la Junta de Urbanización y la constancia de la CESPTE. | Texto completo y pruebas en el historial. |
+| COR-08 | El informe al propietario solo registraba cuándo se preparó. | **Hecha; en `main` (PR #57).** Registra cada entrega (fecha, canal y responsable); migración `20261029150000_informe_entregas.sql`. | Texto completo y pruebas en el historial. |
+| COR-09 | «Cierre y entrega» ocultaba firma, entrega, postventa y archivo en un solo círculo. | **Hecha; en `main` (PR #57).** | Texto completo y pruebas en el historial. |
+| COR-11 | «Quiere comprar» y «Quiere rentar» abrían una operación aunque Fortius solo representa al propietario. | **Hecha; en `main` (PR #57).** Se guardan como interesados; migración `20261029160000_interesados_sin_operacion.sql`. **Falta:** ligar las ofertas (14) al interesado y la revisión del titular. | Texto completo y pruebas en el historial. |
+| COR-12 | El formato 09 pide el «Estado del registro PROFECO» y sus datos (`src/lib/formatos/intermediacion.ts`), y su bloqueo cuenta con ese registro. Fortius no tiene registro ante PROFECO y no lo tendrá en 2026 (titular, 17/10/2026). | Quitar del 09 la captura y la revisión del registro PROFECO y ajustar su texto. El PDF se libera a partir del modelo de contrato que enviará el titular (DOC-09); antes, el abogado de Fortius confirma si ese registro es obligatorio. | Prueba: el 09 ya no pide PROFECO; con el modelo del titular cargado, el PDF sale de esa plantilla. |
+| COR-13 | Las operaciones nuevas empezaban en la etapa 5, «Dictamen jurídico». | **Hecha; en `main` (PR #56).** La operación nueva se queda en captación; lleva migración. | Texto completo y pruebas en el historial. |
+| COR-15 | Dos entradas para la misma llamada (Contactos y Nueva operación). | **Hecha; en `main` (PR #66).** Lo que falta para que sea una sola puerta está en C48 y SIM-17. | Texto completo y pruebas en el historial. |
+
+### Matriz de reglas por ruta: fila de MRP-01
+
+De «Matriz de reglas por ruta y observación de uso (MRP, USO)». La matriz aprobada sigue en el plan.
+
+| ID | Alcance | Depende de | Aceptación |
+|---|---|---|---|
+| MRP-01 | **Matriz de reglas por ruta** (documento dentro de este plan, sin código): para venta, renta e inversión, más el seguimiento del lead comprador o arrendatario (RP-93), por etapa: actividad · evidencia · quién revisa · desde cuándo puede empezar · qué la termina · qué autoriza avanzar, publicar o formalizar · excepción admitida y con qué motivo · qué puede ir en paralelo y qué ciclos se admiten (RP-87) · qué contrato firmado convierte en cliente (RP-90). Parte de RP-90 a RP-98, de la tabla «Etapas por ruta» y de `requiredReviews`. | — | El titular la aprueba (DEC-26). Es la fuente de COR-04, de la lista de documentos de COR-06 y del contenido de MOT-01 (versión 1 del motor). |
+
+### Captura (CAP): fila de CAP-05
+
+Del apartado «A. Llamada, entrevista y cierre (CAP)».
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| CAP-05 | Condición desde la llamada (ver el bloque siguiente) | CAP-01, COR-14 | En «Datos del prospecto» hay una pregunta «¿Mencionó algún problema con el inmueble?» con opciones y detalle; la respuesta llena la entrevista 02 (ocupación, crédito, alertas) y se muestra como condición visible en la operación, en Operaciones, en Hoy y en Contactos; la nota del primer contacto aparece en la operación y en la 02; «Nuevo prospecto» de Contactos, al elegir «Vender», lleva a la misma pantalla (COR-15). **Construido el 02/11/2026; en `main` (PR #66):** preguntas «¿Mencionó algún problema con el inmueble?» (con detalle obligatorio) y «¿Debe un crédito o hipoteca del inmueble?»; llenan alertas, ocupación y crédito de la 02. Requiere la migración `20261102120000_interview_property_condition.sql`, que amplía las respuestas aceptadas; hasta aplicarla, guardar un prospecto con estas respuestas falla contra la base. |
+
+### D. Captura sin repetir (CSR)
+
+Del apartado «D. Captura sin repetir (CSR) — aprobado por el titular el 31/10/2026». El párrafo del proveedor de prueba para IA-01 sigue en el plan.
+
+**Origen:** el titular observó que capturar sobre el documento en vivo es lento porque muchos valores se repiten entre formatos (nombre del cliente, fecha, datos del inmueble). Su solución de fondo es la lectura de documentos del cliente (IA-01); pidió además ideas sin IA. Aprobó este paquete, que se construye **después de las secciones del panel (LV-08)**, salvo que el titular pida adelantarlo. Principio: el sistema nunca pide dos veces lo que ya sabe; la IA (IA-01) solo lee lo que no se pueda deducir.
+
+| ID | Qué | Cómo convive | Aceptación |
+|---|---|---|---|
+| CSR-01 | **El diccionario como puerta.** «Datos del expediente» (DAT-EXP) deja de ser una pestaña más: cada etapa muestra primero los datos que le faltan al expediente, y un formato nunca pregunta un dato que el expediente ya tiene; en la ventana del documento esas celdas aparecen llenas y la lista «Qué falta» solo cuenta las propias del formato. | Usa DAT-EXP tal como está (confirmar una vez, llenar celdas vacías, respetar lo escrito por una persona). Sin migración. | En el 05 la lista «Qué falta» baja de 47 a los datos propios del formato con un expediente confirmado; una celda llenada desde el expediente muestra su fuente. |
+| CSR-02 | **Datos automáticos con dueño.** Fecha de hoy, folio, asesor, responsable y nombre del cliente salen de la operación; dirección, medidas, precio y tipo de la ficha del inmueble; estado civil, RFC, CURP y domicilio de la ficha de la persona, que sirven para todas sus operaciones. Cada dato tiene un solo lugar donde se escribe; los demás lo muestran con enlace a su origen. | Amplía `datos-expediente.ts` con la fuente de cada dato (operación, inmueble, persona, expediente). La ficha de la persona recibe los datos jurídicos que hoy solo viven en formatos. Puede llevar migración (campos de la persona): se avisa antes. | Al cambiar el teléfono o el estado civil en la ficha, los formatos nuevos lo toman; los existentes avisan como en DAT-EXP. |
+| CSR-03 | **Deducir en vez de preguntar.** CURP → fecha de nacimiento, sexo y estado; código postal → colonia, municipio y estado con el catálogo público de Correos de México (archivo local, sin servicio externo); validación de formato de RFC y clave catastral. | Reglas deterministas en `src/lib`, con pruebas; el catálogo de códigos postales se incorpora como datos estáticos con su fecha de corte. | Al escribir una CURP válida se llenan tres campos; un CP válido llena la colonia con lista si hay varias; un RFC mal formado avisa sin bloquear. |
+| CSR-04 | **Pedir solo lo que se imprime, por bloques.** Revisión formato por formato: campo que no sale en el PDF se retira de la captura; lo conocido primero y lo nuevo al final; «No sabe» donde la entrevista ya lo usa. | Conserva «los formatos siguen su plantilla»: no se agregan campos ni se cambia el PDF. | Tabla por formato: campos capturados antes y después; ningún PDF cambia. |
+| CSR-05 | **El documento del cliente al lado.** En la ventana del documento, un panel con el archivo del cliente (foto o PDF ya subido) para transcribir sin cambiar de ventana; se elige el archivo que corresponde al formato. | Usa DOC-EXP (Storage privado). Solo pantalla. | Transcribir una escritura al 05 no exige abrir otra pestaña; el visor respeta el acceso por RLS. |
+| CSR-06 | **Copiar de otra operación** del mismo cliente o inmueble («Tomar los datos de la operación anterior»). | Lee el diccionario de la otra operación; todo entra «Por confirmar». | Una segunda operación del mismo propietario arranca con sus datos confirmados en un paso. |
+| CSR-07 | **Pegar y reconocer.** Un cuadro donde se pega texto (correo del notario, mensaje del cliente) y el sistema reconoce fechas, CURP, RFC, montos y claves con patrones fijos; todo entra «Por confirmar». | Patrones deterministas, sin IA; misma entrada que IA-01 al diccionario. | Pegar un párrafo con CURP y una fecha los propone en el expediente con su frase de origen. |
+| CSR-08 | **Dictado del navegador** en la captura (API de voz del navegador, sin servicio externo), pensado para el levantamiento en sitio. Última prioridad: la calidad depende del ruido. | Opcional por campo; nada se guarda sin que el asesor lo vea escrito. | Funciona en Chrome y Safari del celular; sin soporte, el botón no aparece. |
+
+**Orden:** CSR-01, CSR-02 y CSR-04 primero (bajan la captura a la mitad y no dependen de nada externo); después CSR-03, CSR-05 y CSR-07; CSR-06 y CSR-08 al final. IA-01 entra encima y lee solo lo que quede.
+
+**Construido el 31/10/2026 (rama `feat/inicio-claro`, pendiente de revisión del titular en localhost):**
+
+| ID | Qué quedó | Dónde |
+|---|---|---|
+| CSR-01 | Al abrir un formato, lo confirmado en el expediente llena solo las celdas vacías y la barra avisa cuántas; «Qué falta» separa «Se completan una vez en el expediente» (con «Completar en el expediente», que abre los datos que faltan sin cerrar la ventana) de lo propio del formato. | `documento-en-vivo.tsx`, `datoParaCelda` en `datos-expediente.ts` |
+| CSR-02 | La ficha de la persona tiene «Datos para el expediente» (CURP, RFC, fecha de nacimiento, estado civil, identificación, domicilio). Al leer los datos del expediente se mezclan los automáticos: persona → confirmados con origen «Ficha de la persona»; inmueble (tipo, superficies, recámaras, baños) → «Por confirmar» con origen «Ficha del inmueble». Lo guardado en el expediente gana; al guardar se omiten los automáticos sin cambio. Un formato nuevo nace con las fechas que son hoy (`fecha`, `fechaEmision`, `fechaCorte`, `fechaRegistro`, `fechaEntrevista`, `fechaValor`). «Esta etapa» avisa cuántos datos hay por confirmar. **Sin migración:** los campos nuevos de la persona viajan en el JSON de la colección `clientes`. | `cliente-editor.tsx`, `contracts.ts`, `validation.ts`, `expediente-datos.ts`, rutas `/datos` y `/formatos`, `next-step.tsx` |
+| CSR-03 | CURP → fecha de nacimiento, sexo y entidad (en la ficha y en el expediente; la fecha entra «Por confirmar»); RFC y CURP mal formados avisan y no se guardan; clave catastral con validador. Código postal → colonias de Baja California con el catálogo de Correos de México: `node tools/sepomex-bc.mjs` genera `src/data/codigos-postales-bc.json` (ignorado por git: la licencia de SEPOMEX no permite redistribuirlo; en el servidor se genera antes del build con `--si-falta`); la ruta `/api/admin/codigos-postales?cp=` lo sirve y, sin catálogo, lo dice. | `deducir.ts`, `cp-helper.tsx`, `tools/sepomex-bc.mjs`, `api/admin/codigos-postales` |
+| CSR-04 | Auditoría de 1 279 campos en 24 formatos: todo se imprime; ningún campo se retira. Una corrección: «Número de recibo» del 18 ya es pulsable. | `docs/formatos-campos-auditoria.md` |
+| CSR-05 | «Documentos del cliente» en la barra de la ventana del documento: lista los archivos del expediente y muestra el elegido (PDF o imagen) en un panel al lado; en pantallas angostas cubre la hoja y se cierra. | `documento-en-vivo.tsx` |
+| CSR-06 | «Tomar de otra operación» en Datos del expediente: lista las operaciones del mismo cliente o inmueble y trae sus datos confirmados «Por confirmar» con origen «Operación EXP-…». | `expediente-datos-panel.tsx` |
+| CSR-07 | «Pegar texto» en Datos del expediente: reconoce CURP, RFC, folio real, clave catastral, partida, escritura (con fecha y notaría), teléfono, correo, fecha de nacimiento y superficies; todo entra «Por confirmar» con la frase de origen. | `reconocer.ts`, `expediente-datos-panel.tsx` |
+| CSR-08 | «Dictar» en la captura de la ventana del documento (voz del navegador, español de México); escribe en el último campo de texto que tuvo el foco; sin soporte, el botón no aparece. | `documento-en-vivo.tsx` |
+
+### E. Inmuebles compartidos: COR-16
+
+Del apartado «E. Inmuebles compartidos de otra inmobiliaria». El diseño de PUB-02 sigue en el plan.
+
+**Hueco de servidor encontrado al revisar (COR-16):** la puerta de publicación se comprueba solo en el navegador (`property-publication-gate.tsx` consulta `/api/admin/propiedades/[slug]/publicacion`); al guardar, el servidor (`parseRecord` en `src/lib/backend/validation.ts`) solo exige imagen, fecha y que no esté «en evaluación». Una escritura directa a la API publica sin operación.
+
+| ID | Alcance | Depende de | Aceptación |
+|---|---|---|---|
+| COR-16 | La publicación de un inmueble se bloquea solo en el navegador; el servidor acepta `publicada: true` sin operación de captación. | — | Prueba de backend: guardar un inmueble propio con `publicada: true` sin operación en comercialización con sus revisiones devuelve 400 con la lista de faltantes; con la operación completa se acepta. Los inmuebles ya publicados no cambian.  **Construido el 02/11/2026; en `main` (PR #66):** `PUT /api/admin/collections/propiedades/[id]` aplica la misma regla que la puerta del navegador (`src/lib/backend/publication-gate.ts`, compartido con `/publicacion`) y responde 400 con `faltantes`; prueba en `tests/backend/publication-server-gate.test.ts`. **Comprobado el 12/11/2026, sin hueco en SQL:** el disparador `fortius_01_guard_guided_publication` (antes de insertar o actualizar `fortius_inmuebles_records`, activo en producción) exige la captación activa en comercialización con revisiones, observaciones y resoluciones (`fortius_inmuebles_flow_publish_ready`), también cuando se llama directo a `fortius_inmuebles_put_record`; `fortius_inmuebles_restore_record` devuelve el inmueble con `publicada: false`. No hace falta migración. |
+
+### Seguimiento del inmueble y avisos (SIA)
+
+De la sección «Seguimiento del inmueble y avisos (SIA) — construido el 29/10/2026, en `main` (PR #57)». Sus pendientes siguen en el plan.
+
+**Origen:** revisión de lo que le falta al panel (29/10/2026). Casi todo lo pendiente ya tenía entrega en este plan; estas seis funciones no aparecían en ninguna y el titular pidió aplicarlas. **Estado:** construidas y probadas; se integran en `main` con el PR de la rama `feat/sitio-pildora-sobria`, autorizado por el titular el 29/10/2026. **Sin migración:** los campos nuevos viven en registros que ya admiten campos opcionales (inmuebles y prospectos) y la proyección pública es una lista cerrada (SQL y `projectPublic`), así que el sitio no recibe ninguno.
+
+| ID | Qué hace | Dónde | Reglas y límites |
+|---|---|---|---|
+| SIA-01 | **Contrato de servicio por vencer.** Hoy avisa 30 días antes del fin del contrato de intermediación (09) y sigue avisando ya vencido: «Renuévalo o retira la publicación». | Hoy, sección «Contratos y licencias por vencer»; consulta `GET /api/admin/vencimientos`. | Solo el 09 más reciente de cada operación con su versión actual emitida, en operaciones activas de `documentacion` a `cierre`. La consulta devuelve solo fechas, nunca el cuerpo del documento; conserva la RLS del usuario. Emitido no equivale a firmado: cuando exista la firma registrada (COR-10), el aviso debe usarla. |
+| SIA-02 | **Licencia estatal por vencer.** Avisa 60 días antes de la vigencia de la licencia capturada en el 09. | Hoy, misma sección. | Una sola vez por número de licencia. La licencia se toma del 09; no hay todavía un registro de licencias por asesor. |
+| SIA-03 | **Prospectos por canal.** Campo «Cómo llegó» (sitio web, WhatsApp, llamada, portal, referido, letrero o lona, redes, visita a la oficina, otro) y tabla de recibidos, atendidos y descartados por canal en el periodo. | Captura y ficha del prospecto; Reportes, «Resultados por periodo». | Si falta el canal, los formularios del sitio cuentan como «Sitio web» y la captura manual como «Sin dato». No mide ventas ni conversión a cliente (RP-90). |
+| SIA-04 | **Control de llaves.** Dónde se guardan, copias, préstamos con quién, para qué y cuándo regresan; regreso registrado; historial. | Inmueble → «Llaves y compradores» (`/admin/propiedades/[slug]/seguimiento`); Hoy, «Llaves sin regresar»; aviso en la tarjeta del inventario. | Sin fecha prevista, las llaves deben volver el mismo día. Campo privado `llaves` del inmueble. |
+| SIA-05 | **Preparación para promover.** Fotos, video, recorrido 360, plano, letrero y texto del anuncio con estado (pendiente, agendado, listo, no aplica), fecha y responsable. | Misma pantalla; avance en la tarjeta del inventario. | El material ya cargado en la ficha (fotos, video, 360) cuenta como listo si no se capturó otra cosa. Campo privado `preparacion`. |
+| SIA-06 | **Avisos a compradores.** Propone prospectos y clientes que buscan comprar o rentar ese tipo, en esa zona o con ese presupuesto, con sus razones; abre WhatsApp con el mensaje y registra el aviso solo cuando el asesor lo confirma. Si el precio baja después del aviso, la persona vuelve a quedar por avisar. | Misma pantalla; Hoy, «Compradores por avisar»; fichas del prospecto y del cliente, «Inmuebles que le pueden servir». | Solo inmuebles publicados y disponibles (RP-91). Un criterio capturado que no se cumple descarta; presupuesto hasta 5 % arriba; monedas distintas no se comparan. Abrir WhatsApp no registra nada. Campo privado `avisosCompradores` con el precio al avisar. Es una primera pieza de EXT-01, sin reglas configurables. |
+
+**Comprobación (29/10/2026):** lint y tipos de los archivos tocados; `npm run test:admin` (368) y `npm run test:backend` (763) completos, más las pruebas nuevas `tests/admin/property-followup.test.tsx` y `tests/backend/property-followup.test.ts`. En localhost contra la base de prueba: préstamo de llaves, aviso a un comprador de ejemplo, secciones nuevas de Hoy, tabla por canal y campo «Cómo llegó»; la ficha pública no contiene los campos privados. Los datos de ensayo se retiraron al terminar. Sin `npm run verify`, build ni suites de navegador.
+
+### Lo que quedó abierto de PROC y FLUJO: DOC-09
+
+Viñeta superada (DEC-20, 12/11/2026).
+
+- **DOC-09:** el titular define qué hace falta para liberar el PDF del contrato 09; hoy sale solo en Word.
+
+### EXT-12: lo construido y el registro del 29/10/2026
+
+Del apartado «EXT-12 — captura con vista previa del documento». Siguen en el plan el estado, la decisión del titular, los folios, el estilo 04A, las casillas y menús, la lista de trabajo para pasar cada formato y las reglas que se conservan.
+
+**Cómo funciona (construido y probado con el 04B):**
+
+- **Pantalla.** La ventana del formato abre en la pestaña «Documento» con sus hojas. Cada espacio por llenar es pulsable y abre su campo a un lado (abajo en celular, con «Ver más grande»). Lo que se escribe aparece en la hoja al teclear. «Aceptar» lo integra y lo guarda con la versión del borrador; un conflicto 409 deja abierta la captura con el aviso. Lo que falta para el PDF lleva borde vino y aparece en la lista «Qué falta». Siguen igual «Generar PDF», «Word», el historial de versiones y la protección de cambios sin guardar. Funciona con teclado (Tab y Enter) y en claro y oscuro.
+- **Lo que se ve es lo que se descarga.** La pantalla usa el mismo escritor del PDF (`crearMaquetador` en `src/lib/formatos/documento/pdf.ts`). En vez de una página de pdf-lib recibe una superficie que anota los trazos, así que vista y PDF comparten medidas, cortes de línea y saltos de página; una prueba lo compara. Cada celda del documento declara qué campos la llenan (`keys` en `src/lib/formatos/documento/modelo.ts`), y una prueba exige que todo campo tenga su parte pulsable.
+- **De dónde sale cada documento.** Se reproduce en código el archivo del titular de `G:\Mi unidad\FORTIUS\04_Metodologia\01_Captacion\` (y las demás carpetas de la metodología), como el 04B. Así la vista, el PDF y el Word salen del mismo contenido. Subir un Word propio con campos marcados sigue siendo FCH-10, para después.
+- **Componente.** `src/components/admin/operation/documento-en-vivo.tsx`. Un formato entra a la captura en vivo al agregarse a `EN_VIVO`.
+
+**Levantamientos 04A–04G (grupo A, titular 27/10/2026, en `main`):** los siete se capturan en vivo. Cada uno sigue los espacios de su Word (`04x_Levantamiento*.docx`) con lo decidido en el 04B: sin columnas de base y referencia (D/O/M/C/NV/NA), sin las tablas de respaldos ni de discrepancias, con uso de suelo (lista del Reglamento de Zonificación de Tijuana, la misma del 07) y con superficies opcionales («si las tienes a la mano»). Las casillas comunes son las del Word del 04A; «NV» se lee «No se pudo ver». Cada tipo se describe una sola vez en `PLANTILLAS` (`src/lib/formatos/levantamiento.ts`), y de ahí salen sus campos y su documento (`src/lib/formatos/documento/levantamiento.ts`).
+
+**Grupos, en el orden de las etapas (cada uno se revisa en localhost antes de seguir):**
+
+| Grupo | Formatos | Estado |
+|---|---|---|
+| A | 04A a 04G | En `main` (PR #57). |
+| B | 02 entrevista y 01 aviso | En `main` (PR #57). El 02 conserva su versión corta. |
+| C | 05 revisión jurídica y 06 opinión jurídica | En `main` (PR #57). DOC-06 (captura completa del 06) en local el 12/11/2026. |
+| D | 07 opinión de valor y 08 neto | En `main` (PR #57). |
+| E | 09 contrato y 10 plan | En `main` (PR #57). El PDF del 09 sigue bloqueado (DOC-09); sale en Word. |
+| F | 11, 12, 13 y 14 | En `main` (PR #57). |
+| G | 15, 16, 17 y 18 | En `main` (PR #57). La 15 conserva su revisión obligatoria. |
+
+El detalle de cada grupo (qué se cotejó con cada Word y qué cambió) está en [`docs/erp-crm/historial-del-plan.md`](historial-del-plan.md). Falta que el titular revise cada formato y lo dé por bueno.
+
+**Dónde seguimos (registro del 29/10/2026; todo lo que dice «en la rama» está en `main` desde el PR #57):** todos los formatos (01, 02, 04A–04G y 05 a 19) se llenan sobre el documento en la rama; el 03 no es un documento. Falta la revisión del titular. Ya están en la rama, sin integrar, DOC-EXP (pestaña «Documentos del cliente») y DAT-EXP (datos del expediente que llenan los formatos); sus dos migraciones se aplican al integrar. SUB-01 quedó descartada (titular, 29/10/2026). IA-01 (la IA lee los documentos y propone los datos) también está en la rama, sin activar: espera la clave de API del titular y el visto bueno del abogado. COR-06 (lista de documentos con «No aplica», «por confirmar» y documentos del cliente) está en la rama (29/10/2026). COR-09 (los cuatro pasos de «Cierre y entrega») y COR-08 (entrega del informe al propietario, con una migración más) también están en la rama. COR-11 (quien compra o renta es interesado, no operación; una migración más) también está en la rama. COR-04 (camino propio de la renta, con una migración más) también está en la rama. Queda pendiente IA-02 (tope y gasto del mes en «Ajustes»). **Pendiente de los grupos A a D:** revisión del titular en localhost. Del 01, el domicilio del responsable es el del sitio, «C. Dos, 4063, Benedetti B45, Villa Fontana, C.P. 22205, Tijuana, B. C.» (titular, 28/10/2026; el Word traía otra redacción). La hoja de decisiones del representante sale solo cuando hay representante (titular, 28/10/2026; el Word la trae siempre, en blanco). Revisión en localhost (`http://127.0.0.1:3002/admin`). Al terminar los grupos, `npm run verify` y las suites de navegador, solo con su autorización, antes de abrir un único PR.
+
+**Idea original (26/10/2026):** ver el documento con el membrete oficial y llenarlo ahí mismo, con lo escrito reflejado de inmediato. Se resolvió con la opción «clic en el documento para abrir el campo» y sin pantalla dividida fija: el campo se abre a un lado solo cuando se pulsa una parte del documento.
+
+### Backlog base, fase 2: filas en `main` o descartadas
+
+De «Backlog base: entregas y pruebas», «Fase 2 — operación de venta y revisiones».
+
+| ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
+|---|---|---|---|---|
+| COR-01, COR-02 P0/I | Fallas: el nombre del propietario y el tipo de inmueble no llegan al 07 (y el nombre al 08 y 10) | ver «Proceso, captura y documentos» | ninguna; menos de 1d | Pruebas de llenado automático para cada caso. |
+| SUB-01 | **Descartada (titular, 29/10/2026):** ya no se sube cada formato hecho a mano; la reemplazan DOC-EXP, DAT-EXP e IA-01. | — | — | — |
+| DOC-EXP P1/I | **Documentos del cliente (titular, 29/10/2026; entrega 1):** pestaña «Documentos del cliente» en cada operación, un solo repositorio sin categorías para todo lo que entrega el cliente (escritura, certificado de libertad de gravámenes, avalúo, CURP, identificación, poderes, predial, agua, actas). Varios archivos a la vez, desde la computadora o el celular (elegir o tomar foto); el nombre del archivo queda como título editable; papelera recuperable. Privados en `fortius-inmuebles-expedientes`, con SHA-256, quién y cuándo. | pestaña de la operación, tabla `fortius_inmuebles_expediente_archivos`, rutas `/api/admin/expedientes/[id]/archivos` y `/api/admin/archivos-cliente/[id]` | **Hecha; en `main` (PR #57). La migración viaja con `main`; su aplicación en la base remota no está comprobada en este registro** | Solo quien tiene acceso al expediente ve o descarga (prueba de RLS); la descarga comprueba el SHA-256; mandar a la papelera no borra. |
+| DAT-EXP P1/I | **Datos del expediente (titular, 29/10/2026; entrega 2):** un diccionario único (`src/lib/formatos/datos-expediente.ts`) con cada dato del cliente y del inmueble y las claves que lo reciben en cada formato (propietario, apoderado, inmueble, escritura y registro, adeudos, avalúo). Panel «Datos del expediente» en la pestaña: cada dato con valor, estado («Por confirmar» o «Confirmado») y fuente; se confirma **una vez por expediente** (decisión del titular). Lo confirmado llena solo celdas vacías de los formatos existentes y de los nuevos; **lo escrito por una persona se respeta** (decisión del titular): la ventana del formato avisa «aquí dice X; el expediente tiene Y» con «Usar el del expediente». Nunca llena consentimientos, firmas, decisiones ni conclusiones jurídicas. | tabla `fortius_inmuebles_expediente_datos` (versión y 409), ruta `/api/admin/expedientes/[id]/datos`, ventana en vivo | **Hecha; en `main` (PR #57). La migración viaja con `main`; su aplicación en la base remota no está comprobada en este registro** | Confirmar un dato llena los formatos vacíos; un campo con otro valor no cambia y aparece el aviso; un conflicto de versión recarga sin pisar. |
+
+## 21. Entregas confirmadas en `main`, retiradas del plan el 13/11/2026 (segunda pasada)
+
+El 13/11/2026 se comprobó con `git log origin/main --grep=<ID>` qué entregas anotadas en el plan como pendientes, parciales o en local ya están en `main` (hasta el PR #73, commit `c03504b`; algunas entraron antes, con PR anteriores). Las confirmadas pasan a `en_main` y su texto del plan se mueve aquí sin cambios; los estados de las filas son los que tenían antes de la comprobación.
+
+| ID | Commit en `main` que la construye |
+|---|---|
+| HER-01 | `2cb5563` |
+| HER-02 | `728081d` |
+| HER-03 | `f2d6881` |
+| HER-05 | `934649d` |
+| PUB-02 | `647af86` |
+| COR-18 | `f19505e`, `c5f56e8` |
+| COR-19 | `25aa593` |
+| COR-20 | `fc8e097` |
+| COR-21 | `fb330af` |
+| COR-22 | `0682229` |
+| COR-23 | `89e903c` |
+| COR-24 | `c5cdbcd` |
+| DOC-06 | `ddb0650` |
+| CAP-06 | `8c78426`, `3072952` |
+
+### Filas de «Estado y dependencias de cada entrega»
+
+| ID | Fase | Estado registrado | Depende de |
+|---|---|---|---|
+| PUB-02 | 3 | pendiente | PUB-01 |
+| DOC-06 | 2 | en local (12/11/2026) | revisión del abogado |
+| HER-01 | 4 | pendiente | SIM-10 |
+| HER-02 | 2 | pendiente | FCH-03, FCH-04 |
+| HER-03 | 3 | pendiente | FIS-01, revisión fiscal |
+| COR-18 | 2 | en_local | Registro de contacto en dos toques, reintento a 30 días y visita compartida en local (12/11). El 12/11 en la tarde, sin migración: en «Visitas y ofertas del inmueble» de la operación, cada oferta por escrito (14) pregunta «¿De quién es esta oferta?» entre quienes buscan ese inmueble, lo visitaron o son la contraparte. El vínculo se guarda en la ficha del interesado (`ofertas`, con el documento y la operación; el formato no cambia). La ficha muestra la tarjeta «Cómo paga y ofertas», con la forma de pago, el crédito y su estado y las ofertas, y cada oferta sale en su línea de tiempo |
+| COR-19 | 2 | en_local | ninguna |
+| COR-20 | 2 | en_local | 12/11/2026, en la rama `feat/seo-integral`, con los dos roles actuales (COR-23). En «Más» de un requisito, el director elige «Autorizar excepción» y escribe el motivo (al menos 10 caracteres). El requisito cuenta como cubierto para avanzar y para publicar. La operación lleva la etiqueta «Con excepción autorizada» en su pantalla, en Operaciones y en Hoy. La base solo la acepta del director, anota quién y cuándo, la quita si cambian el inmueble, el cliente o el asesor, y la rechaza en titularidad, factibilidad, valor, revisión para cerrar, firma y pago (RP-96; migración `20261112180000_excepcion_autorizada`). Para COR-24: el valor es de protección, así que el inventario heredado necesitará otra salida para la opinión de valor |
+| COR-21 | 2 | en_local | «Nuevos sin atender» en `main` (PR #66); asignación al asesor del inmueble (en PR #67), plazo en Configuración y «Registrar contacto», 12/11/2026, también en PR #67 |
+| COR-22 | 2 | en_local | ninguna |
+| COR-23 | 1 | en_local | 12/11/2026, en la rama `feat/seo-integral`. La base rechaza al asesor: escribir Configuración, Sitio web, Blog y Equipo; editar, borrar o reasignar inmuebles ajenos; publicar o destacar (migración `20261112160000_alcance_del_asesor`); marcar revisado lo jurídico, el precio, los contratos y la publicación, y tomar el encargo (`20261112170000_revisiones_del_director`). La API del panel entrega de los inmuebles ajenos solo lo público, sin llaves, preparación, avisos ni archivos privados. La pantalla oculta esos controles, deja «Lo tengo» y avisa «Para el director». El paso siguiente es SEG-01 (roles nuevos) |
+| COR-24 | 1 | en_local | 12/11/2026, en la rama `feat/seo-integral`. Decisión del titular ese día: el inventario heredado **no salta protecciones**; titularidad, factibilidad y valor se revisan antes de publicar (RP-96), lo que reemplaza «publicar y regularizar después» de su fila. El director lo da de alta desde Nueva operación → «Inventario heredado» con el inmueble, el propietario, la fecha del contrato y el motivo. Se crea el propietario y la operación con la marca `heredado` (solo la pone o la quita el director; migración `20261112190000_inventario_heredado`), con entrevista, levantamiento y plan por excepción (COR-20) y una tarea para regularizar, y la operación queda en verificación. La etiqueta «Inventario heredado» dice qué falta para publicar. El contrato se registra como cualquier firma. Falta la carga por lote (COR-25, con DAT-01) y distinguirlo en Reportes cuando exista ese tablero |
+| CAP-06 | 1 | pendiente | CAP-05, DEC-39 |
+| HER-05 | 4 | pendiente | HER-01 |
+
+### E. Inmuebles compartidos de otra inmobiliaria: PUB-02
+
+Del apartado E del plan. Siguen en el plan el encabezado y la línea de COR-16.
+
+**Supuesto del titular (02/11/2026):** un colega de otra inmobiliaria le comparte inmuebles que él captó; Fortius los publica en su sitio sin conocer al propietario ni haber hecho la entrevista, confiando en el trabajo del colega.
+
+**Qué prevé hoy el sistema:** la regla existe (RP-95) y la entrega PUB-02 está en el backlog, en el bloque 3 y **sin construir**. En el código no hay marca «Compartido», aliado externo, autorización adjunta ni etiqueta pública. Lo que sí hay: el inmueble se da de alta privado («+ Nuevo» → Nuevo inmueble o Herramientas), y el botón «Publicar» del formulario solo se activa cuando el inmueble tiene una operación de captación en comercialización con todas sus revisiones (entrevista, titularidad, factibilidad, valor, precio, intermediación, levantamiento, plan y publicación autorizada). Un inmueble compartido no tiene esa operación, así que el panel lo deja en borrador con el texto «Guárdalo privado; luego liga su captación y la autorización». El único camino para publicarlo hoy sería abrir una operación de captación ficticia y marcar revisiones que Fortius no hizo: eso contradice RP-91 y RP-96 y deja constancia falsa en el historial. **No hacerlo.**
+
+**Diseño propuesto (sin construir; lo aprueba el titular):**
+
+- **Origen del inmueble:** cada inmueble lleva `origen: propio | compartido`. Al dar de alta uno nuevo, la primera pregunta es «¿Es de Fortius o lo comparte otra inmobiliaria?». Un inmueble compartido no abre operación ni etapas; no pide entrevista, levantamiento, documentos ni dictamen de Fortius. Conserva llaves, preparación y avisos a compradores si el equipo los usa.
+- **Aliado externo:** la inmobiliaria y su asesor se registran una vez como aliado externo (papel de RP-05), con nombre, teléfono, correo y porcentaje pactado por omisión. Cada inmueble compartido liga a su aliado y guarda el porcentaje de esa operación y el acuerdo de colaboración adjunto.
+- **Autorización para publicar:** el inmueble compartido se publica solo con la autorización escrita de la inmobiliaria adjunta (archivo o foto legible, fecha y quién la dio) y con el aliado ligado. El servidor rechaza `publicada: true` sin esas dos cosas; para un inmueble propio exige lo mismo que la puerta actual (COR-16). El aliado confirma por escrito que su contrato con el propietario le permite compartirlo y publicarlo; el abogado de Fortius dice qué debe decir esa autorización (DEC-40).
+- **Lo que ve el público:** solo lo que la inmobiliaria autorice (fotos, precio, descripción, ubicación aproximada); nunca el nombre, teléfono ni documentos del propietario. La ficha pública lleva la etiqueta «Inmueble en colaboración», sin el nombre de la inmobiliaria (DEC-40), y la ficha técnica no afirma datos que Fortius no verificó: en cada uno la fuente dice «Según la inmobiliaria aliada». El asesor de contacto que aparece es el de Fortius. Qué texto lleva la etiqueta lo decide el titular (DEC-40).
+- **En el panel:** chip «Compartido» en la lista de Inmuebles y en la ficha, con el aliado y el porcentaje; sin «Les falta algo» de captación; en Reportes la comisión estimada entra rotulada «Estimación» y no se suma a lo cobrado hasta cobrarse (RP-95). Cuando Fortius consigue comprador para un inmueble compartido, la venta se lleva como contraparte con aliado externo, no como operación de captación.
+- **Registro:** qué se publicó, con qué autorización y quién lo autorizó queda en el historial del inmueble, para poder retirarlo si la inmobiliaria lo pide.
+
+| ID | Alcance | Depende de | Aceptación |
+|---|---|---|---|
+| PUB-02 (detalle) | Origen propio o compartido; aliado externo; autorización adjunta; etiqueta y proyección pública; chip en el panel; estimación en finanzas. | COR-16, DEC-40; PUB-01 parcial basta | Un inmueble compartido se publica solo con aliado ligado y autorización adjunta (prueba de backend); la proyección pública no incluye datos del propietario; la ficha pública muestra la etiqueta y la fuente de cada dato; la lista de Inmuebles lo marca «Compartido»; la estimación no se suma a lo cobrado. Sin migración: todo cabe en el registro del inmueble y en archivos adjuntos. |
+
+### Captura (CAP): fila de CAP-06
+
+| ID | Mejoras | Depende de | Aceptación |
+|---|---|---|---|
+| CAP-06 | Entrevista 02 y lista de documentos con la condición | CAP-05, COR-06, DEC-39 | La 02 ofrece «Invadida u ocupada sin permiso» en ocupación y, con crédito, «¿Está al corriente?» y «¿Sabe cuánto debe?»; la lista de documentos pide la denuncia o demanda cuando hay invasión y deja de pedir llaves y horarios de visita; con Infonavit sigue pidiendo la carta con saldo e instrucción de cancelación (D17) y el 08 conserva «Liquidación de crédito». Las preguntas exactas las valida el titular con el abogado (DEC-39). |
+
+### F. Correcciones de los casos: COR-18 a COR-22
+
+| ID | Falla | Corrección | Aceptación |
+|---|---|---|---|
+| COR-18 | El interesado (comprador o arrendatario) no tiene acciones ni historia propias: «Preparar operación» en guinda, estados como botones sin significado comercial, oferta 14 sin liga al prospecto, sin registro de intentos de contacto. | Ficha del interesado (dentro de SIM-07) con una acción principal («Enviarle opciones» o «Registrar contacto»), registro en dos toques (Llamé · No contestó · Mandé WhatsApp · Visitó, RP-21) que pide el siguiente paso con fecha, línea de tiempo con visitas, ofertas y crédito, oferta 14 ligada por identificador al prospecto, «No contesta» con reintento programado a 30 días (RP-97). «Preparar operación» solo para quien vende u ofrece en renta. | Prueba: un interesado registra tres intentos y una visita; su ficha y la operación del propietario muestran la misma visita y la misma oferta; «Preparar operación» no aparece para quien compra o renta. **En local el 12/11/2026 (sin migración):** en la ficha del prospecto, la tarjeta Seguimiento tiene «Registrar contacto» con cuatro opciones (Llamé · No contestó · Mandé WhatsApp · Visitó); al elegir una se proponen el siguiente paso y su fecha (se pueden cambiar) y una nota opcional, y se guarda con un toque más. Se guarda como nota del prospecto marcada con el tipo de contacto: sale en la línea de tiempo como «Contacto», pone la primera atención si faltaba (sale de «Nuevos sin atender», COR-21), pasa «Nuevo» a «En seguimiento» y deja el siguiente paso con su texto en la ficha, Contactos y Hoy. Al tercer «No contestó» seguido propone «Reintentar: no contesta» a 30 días (RP-97). «Visitó» deja la visita en la agenda con el inmueble, así la ven la ficha y la operación del propietario. Para quien compra, renta o invierte la acción principal es «Registrar contacto» y ya no aparece «Abrir operación» (solo para quien vende o da en renta, y para el prospecto ya convertido). Pendiente: ligar cada oferta 14 al interesado por identificador (los formatos solo guardan los campos impresos; necesita decidir dónde se guarda el vínculo) y mostrar en su ficha el crédito y las ofertas. |
+| COR-19 | Nada conecta la demanda con la captación: no se ve qué buscan los prospectos sin inventario, y desde un prospecto no se puede abrir la búsqueda de un inmueble. | Vista «Buscan y no tenemos» (en Inmuebles o Reportes): interesados activos agrupados por operación, tipo y zona sin coincidencias, con cuántos son y su presupuesto. Desde ahí y desde el prospecto, «Captar inmueble para este perfil» abre Nueva operación del propietario con la zona y el tipo ya puestos y liga la operación nueva a los interesados que la originaron; mientras no se firme, el inmueble queda «En evaluación» y no se ofrece (RP-91, salvo lo que decida DEC-41). La coincidencia por zona usa el catálogo de colonias (`codigos-postales`) además del texto, y compara presupuestos en monedas distintas con el tipo de cambio de Configuración. | Prueba: tres interesados en una colonia sin inmuebles aparecen agrupados; la operación creada desde ahí muestra «3 interesados esperan»; «Lomas Virreyes» coincide con «Lomas de Virreyes». **En local el 12/11/2026 (sin migración):** Inmuebles tiene «Buscan y no tenemos» junto a «Les falta algo»: interesados activos (prospectos y clientes que compran, rentan o invierten) sin ningún inmueble publicado y disponible que les sirva, agrupados por operación, tipo y zona, con cuántos son, sus nombres y el presupuesto por moneda (de … a …). Cada grupo, y la ficha del interesado cuando no hay inmuebles que le sirvan, tiene «Captar inmueble para este perfil», que abre Nueva operación del propietario (vender o arrendar) con la zona y el tipo ya puestos en el primer contacto. «N interesados esperan un inmueble así» se calcula al momento con la zona y el tipo, en el primer contacto y en la operación mientras el inmueble está «En evaluación» y sin publicar; no se guarda el vínculo. La zona se compara sin acentos, signos ni «de», «del», «la», «las», «los», «el»: «Lomas Virreyes» es «Lomas de Virreyes». El inmueble sigue sin ofrecerse hasta la firma (RP-91). Pendiente: el catálogo de colonias (`codigos-postales-bc.json` no está en el repositorio) y comparar presupuestos en monedas distintas con un tipo de cambio en Configuración, que no existe; hoy cada moneda se muestra aparte. |
+| COR-20 | RP-31 (solo el director autoriza avanzar sin un requisito, con motivo escrito y constancia en el historial) no existe en el sistema: o se cumplen todos los requisitos o se inventan revisiones. | «Autorizar excepción» en el requisito, solo para el director (SEG-01; mientras no haya roles, cualquier administrador): motivo obligatorio, fecha y quién; el requisito cuenta como cubierto por excepción, con chip «Con excepción autorizada» en la operación, Operaciones y Hoy, y constancia en el historial. Nunca aplica a los requisitos protegidos de RP-96 (quién es dueño y quién firma, opinión jurídica y comercial antes de la intermediación, firma acreditada, pagos para entregar). | Prueba: una excepción con motivo deja avanzar y queda en el historial; un requisito protegido no ofrece la opción; el servidor rechaza la excepción sin motivo o sin permiso. |
+| COR-21 | Un prospecto del sitio web no aparece en Hoy, no se asigna y nadie mide cuánto lleva sin respuesta. | Hoy muestra «Nuevos sin atender» con el tiempo desde que llegó (RP-23, umbral en Configuración); se asigna al asesor del inmueble de interés o, si no hay, al director; «Registrar contacto» (COR-18) lo saca de la lista. Verificar en producción que la recepción de solicitudes esté encendida. | Prueba: un prospecto creado por la API pública aparece en Hoy del asesor correspondiente con «Lleva 2 h sin respuesta»; al registrar el contacto desaparece. **Construido en parte el 02/11/2026; en `main` (PR #66):** Hoy muestra «Nuevos sin atender» con el reloj de primera atención (2 h fijas) con a quién le toca. **Asignación hecha en local el 12/11/2026 (sin commit):** la migración `20261112150000_prospecto_al_asesor_del_inmueble.sql` hace que la captura pública guarde como asesor al del inmueble de interés, si está activo; sin inmueble o sin asesor activo queda sin asesor y le toca al director. El formulario no puede elegir asesor. Prueba en `tests/backend/database.test.ts`. Se aplica al integrar en `main`; los prospectos ya guardados no cambian. **Terminado en local el 12/11/2026 (sin commit):** el plazo de primera atención se ajusta en Configuración («Prospectos del sitio», 1 a 72 h; 2 h si no hay uno; no se publica en el sitio) y cada prospecto nuevo en Hoy tiene «Registrar contacto»: en dos toques (Llamé · No contestó · Mandé WhatsApp) lo guarda con el registro de COR-18 (nota de contacto, primera atención, «Contactado» y siguiente paso sugerido), lo saca de la lista y aparece en su línea de tiempo; si otra persona lo cambió, avisa en lugar de pisarlo. **Comprobado el 02/11/2026, solo lectura:** en producción la recepción de solicitudes está apagada (responde 503); los formularios del sitio no crean prospectos hasta encender `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED`. |
+| COR-22 | Cerrar una operación no toca el inmueble ni registra quién captó y quién vendió. | Al archivar la operación (y al registrar la firma y el pago), proponer «Marcar el inmueble como vendido o rentado» con la opción de retirarlo del sitio o dejarlo visible como vendido; la operación guarda asesor que captó y asesor que vendió y calcula el reparto de RP-99 (25 % y 25 %, o 50 % si es el mismo), rotulado como estimación hasta que se cobre (FIN-02). | Prueba: al archivar, el inmueble queda «Vendida» y la ficha pública lo dice; el reparto aparece en la operación y en Reportes como estimación. **En local el 12/11/2026 (migración `20261112140000_cierre_capto_vendio.sql` autorizada por el titular ese día; se aplica al integrar en `main`):** la guía guarda `cierre` (asesor que captó, asesor que vendió y la comisión estimada del contrato de intermediación con su versión; el servidor comprueba que los asesores existan y anota quién y cuándo). En «Cierre y entrega», la tarjeta «Cierre de la operación» muestra el reparto de RP-99 (25 % y 25 %, o 50 % si es el mismo asesor) rotulado como estimado, y propone «Marcar el inmueble como vendido» (o rentado) dejándolo en el sitio como vendido o retirándolo. Archivar la venta o la renta del propietario pide ese registro (pantalla y servidor). Un inmueble marcado «Vendida» o «Rentada» ya no se retira solo del sitio al pasar a entrega, postventa o archivo; con la operación en cierre o después se puede volver a mostrar como vendido, nunca como disponible. Reportes, «Por asesor», agrega «Cierres · reparto estimado». Pendiente: lo cobrado contra lo estimado (FIN-02); el reparto con aliados externos sigue en «Comisiones y reparto». |
+
+### G2. Director y asesor: COR-23 y COR-24
+
+| ID | Falla | Corrección | Aceptación |
+|---|---|---|---|
+| COR-23 | El asesor edita configuración, sitio web, blog y cualquier inmueble (incluido reasignarlo), y marca revisado lo que corresponde al director; el servidor no distingue. | Antes de SEG-01, con los dos roles actuales: Configuración, Sitio web, Blog, Equipo y reasignar el asesor de un inmueble solo para `admin`, en pantalla y en el servidor (`parseRecord` o el RPC de escritura); un inmueble lo edita su asesor responsable o el administrador, los demás lo ven con los datos públicos (RP-99); las revisiones de dictamen, precio, decisión del encargo, firma de contratos y autorización de publicación las marca solo el administrador (MRP-01, «quién revisa»); el asesor las deja en «Lo tengo». | Prueba de backend: un `editor` recibe 403 al escribir config, contenido, posts o un inmueble ajeno, y al marcar «revisado» un requisito reservado; el administrador sí. Las pantallas no muestran lo que no se puede hacer. |
+| COR-24 | Un asesor que llega con su inventario (inmuebles con contrato ya firmado con él) no tiene forma de meterlo: cada inmueble exigiría entrevista, levantamiento, dictamen, valor y plan antes de publicarse, o inventar revisiones. | «Alta de inventario heredado», solo para el administrador: por cada inmueble pide propietario, contrato vigente adjunto con su vencimiento, precio y fotos; crea la operación en «Publicación y seguimiento» con los requisitos cubiertos por excepción del director (COR-20) y el chip «Inventario heredado · por regularizar» que lista lo que falta (dictamen, valor) para completarlo después; registra al asesor como captador (RP-99). Se apoya en DAT-01 (migración asistida) para cargas grandes. | Prueba: un inmueble heredado se publica con contrato adjunto y chip visible; sin contrato no se publica; la operación muestra qué falta regularizar; Reportes lo distingue de lo captado por el proceso. |
+
+### G3. Herramientas: fila de HER-05
+
+| ID | Alcance | Depende de | Aceptación |
+|---|---|---|---|
+| HER-05 | Puntos de entrada en contexto: Hipoteca desde el inmueble y el prospecto; ISR y neto desde la etapa de precio; Comparador de ofertas desde «Visitas y ofertas» con las ofertas del 14; Fotografías desde la galería del inmueble; Comparables como 07 suelto. Los trabajos guardados se ven en la operación o el inmueble donde se hicieron. Contador de uso por herramienta en Reportes para decidir después qué más se retira. | HER-01, HER-03 | Cada punto de entrada abre la herramienta con los datos puestos; el trabajo guardado aparece en la operación o inmueble; Reportes muestra usos por herramienta y mes. |
+
+### H. Pendiente del titular DEC-44
+
+Párrafo superado: DEC-44 quedó decidida el 12/11/2026 y la captura por lista está en `main` (commit `7e35678`).
+
+**Pendiente del titular (DEC-44):** en celular, además de la captura sobre el documento (DEC-31), ofrecer «Captura por lista» para el levantamiento y la entrevista: las mismas celdas, una pregunta por pantalla, con «No sabe», cámara y dictado (CSR-08); lo capturado aparece en la hoja igual que ahora. **Construido en local el 12/11/2026** (rama `feat/seo-integral`, sin migración): en el celular, la ventana de la entrevista (02) y de cada levantamiento (04A a 04G) tiene «Captura por lista». Cada pregunta es una celda de la hoja, en su orden, empezando por lo vacío o faltante; «Siguiente» guarda lo escrito y «Anterior» regresa; «No sabe» lo anota solo donde la plantilla lo admite (su opción «No sabe» o «No verificado», o el texto en preguntas abiertas; nunca en cifras, fechas ni folio); se conservan «Dictar» y la cámara de las fotos, y la celda se ve arriba mientras se llena. Lógica en `src/lib/formatos/captura-lista.ts`, prueba `tests/admin/captura-lista.test.ts`. En escritorio no cambia nada.
+
+### Herramientas para trabajo suelto (HER): catálogo y filas HER-01 a HER-03
+
+De la sección HER del plan. Siguen en el plan el origen y HER-04.
+
+### Catálogo recomendado
+
+| Herramienta actual | Recomendación | Por qué |
+|---|---|---|
+| Documentos sin expediente | **Se queda y crece** como «Documentos sueltos» (HER-02). | Es la puerta del trabajo sin operación. |
+| Opinión de valor (hoy dentro de Documentos sin expediente) | **Acceso directo propio** arriba del catálogo. | Es lo que más se pide suelto. |
+| Neto del propietario | **Se une con el ISR nuevo** como «ISR y neto del vendedor» (HER-03). | Hoy pide los impuestos a mano y no calcula ISR. |
+| Hipoteca | Se queda. | Atender compradores. |
+| Comparables | Se queda. | Sustenta la opinión de valor. |
+| Comparador de ofertas | Se queda. | Negociación. |
+| Comisiones y reparto | Se queda. | Reparto con aliados y asesores. |
+| Inversiones | Se queda. | Inversionistas. |
+| Rehabilitación | Se queda. | Flipping (módulo del motor de procesos). |
+| Unidades y monedas | Se queda. | En Tijuana se cotiza en USD y pies cuadrados. |
+| Ficha comercial | **Sale del catálogo** (decisión del titular, 18/10/2026). En Inmuebles, el menú «⋯» de cada inmueble suma «Descargar ficha técnica» (el mismo PDF que ya ofrece su página pública) y «Compartir liga o QR». | La página pública de cada inmueble ya descarga la ficha técnica en PDF; tenerla dos veces sobra. |
+| Enlaces y QR | **Sale del catálogo**; su función pasa a «Compartir liga o QR» en el menú del inmueble. | Compartir es parte del inmueble. |
+| Fotografías | Se queda. | Preparar fotos para publicar. |
+| Cotizador de servicios | Se queda. | Propuesta de honorarios antes de abrir una operación. |
+| Plantillas y PDF | **Se queda solo como «Unir y separar PDF»**; los formatos pasan a Documentos sueltos. | Evita dos lugares para los formatos. |
+| Informe al propietario | **Sale del catálogo**; sigue dentro de la operación (etapa Publicación y seguimiento). | Siempre es de una operación. |
+| Pendientes documentales | **Sale del catálogo**; se convierte en el tablero de vencimientos (DOC-13) y la cola de revisión (NAV-08). | Es una vista de trabajo, no una herramienta. |
+| Comparador de versiones | **Sale.** | Uso muy raro; el Word ya compara versiones. |
+
+Queda en tres grupos (C28): **Documentos** (Documentos sueltos con sus accesos directos, Unir y separar PDF) · **Calcular** (ISR y neto del vendedor, Hipoteca, Comparables, Comparador de ofertas, Comisiones, Inversiones, Rehabilitación, Unidades y monedas) · **Presentar** (Fotografías, Cotizador). Arriba, tres accesos directos: **Machotes en blanco**, **Opinión de valor** e **ISR y neto**.
+
+| ID | Alcance | Depende de | Aceptación |
+|---|---|---|---|
+| HER-01 | Catálogo depurado y agrupado según la tabla, con los tres accesos directos, y en Inmuebles «Descargar ficha técnica» y «Compartir liga o QR». Lo retirado deja de mostrarse; sus datos guardados se conservan y se pueden consultar. | SIM-10 | Catálogo de la tabla; ninguna herramienta retirada pierde trabajos guardados; las que pasan a la operación siguen ahí. |
+| HER-02 | Documentos sueltos: **machote en blanco** de cualquier formato con el membrete de Fortius (PDF o Word) y **llenar y descargar** cualquier formato sin operación, con los datos que dé el cliente. El contrato 09 sale en Word mientras siga pendiente DOC-09. | FCH-03, FCH-04 | Cada formato se descarga en blanco y lleno; nada se bloquea por datos faltantes (RP-77); no se crea operación ni prospecto. |
+| HER-03 | ISR y neto del vendedor: cálculo de ISR por enajenación (con exención de casa habitación cuando aplique), costos de cierre y neto, con fuente y vigencia de cada regla; descarga en PDF. **Pedido del titular (17/10/2026):** sirve para contestar al propietario, incluso antes de firmar, cuánto le queda neto al precio sugerido. Entrega dos PDF para el propietario: la estimación del neto (precio menos comisión, impuestos que apliquen, como el IVA en comerciales, certificados y otros gastos) y la hoja de cálculo del ISR. Disponible desde la operación, entre las herramientas de la etapa, y suelta en Herramientas; no es un paso obligatorio de la captación. Parte de la plantilla «netos del propietario» del titular (G-07). **Validación:** el agente investiga la legislación vigente y programa las reglas con su fuente y vigencia; el titular compara los resultados con Nuvigant en varios casos antes de usarlo con clientes (sin revisión del contador). Rotulado «Estimación» hasta esa comparación. **Pendiente del titular al programarla:** entregar 3 o 4 casos ya calculados en Nuvigant (por ejemplo, casa habitación exenta, casa no exenta y local comercial) para compararlos cifra por cifra. **Mientras tanto:** enlace directo a Nuvigant en Herramientas (H-06). | FIS-01, revisión fiscal | Sin regla vigente el resultado dice «pendiente» (RP-06); casos de prueba cotejados por una vía independiente; reemplaza a «Neto del propietario» sin perder sus trabajos guardados. |
+
+### Lo que quedó abierto de PROC y FLUJO: DOC-06
+
+Viñeta superada: DOC-06 entró en `main` (commit `ddb0650`, PR #68).
+
+- **DOC-06 (en local el 12/11/2026):** no hay plantilla del titular para el 06; el titular aprobó el diseño propuesto ese día, tomando como base la plantilla de la 05. El 06 lleva ocho secciones: conclusión con resultado (los cinco de la 05), objeto y alcance, antecedentes en tabla (acto, fecha, qué acredita), marco jurídico (leyes y artículos con fecha de consulta), análisis, condiciones por etapa (las seis etapas de la 05, con estado y condición en palabras para el cliente) y recomendaciones, documentos revisados (nombre y estado) y vigencia y límites. Al iniciarlo toma de la 05 solo el resultado, el estado de cada etapa y los documentos que aplican con su estado; nunca folios, escrituras, expedientes, acreedores ni notas internas. Los campos nuevos son opcionales, así que los borradores anteriores siguen válidos. Pendiente: que el abogado revise la redacción del marco jurídico y de las condiciones antes de entregar el primero a un cliente.
+
+### Backlog base, fase 1: fila de PUB-02
+
+| ID / clase | Entrega / problema | Archivos o ámbito | Dependencias / esfuerzo | Aceptación verificable |
+|---|---|---|---|---|
+| PUB-02 P1/I | Inmuebles compartidos de otra inmobiliaria: alta desde Herramientas, marca «Compartido», aliado externo ligado, autorización escrita adjunta y comisión estimada rotulada (RP-95) | inventario, property-form, public.ts, finanzas | PUB-01; 2–4d | Sin autorización adjunta no se publica; el sitio no muestra datos del propietario; la comisión estimada no se suma a lo cobrado. |

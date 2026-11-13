@@ -378,11 +378,20 @@ class Writer {
     for (const line of lines) { this.ensure(leading); this.page.drawText(line, { x: LEFT, y: this.y - size, size, font: this.fonts.regular, color: NAVY }); this.y -= leading; }
     this.y -= 4;
   }
+  /**
+    Alto del bloque de firmas: el espacio para firmar, el cargo y el nombre más largo. Hasta dos
+    renglones de nombre mide lo de siempre; con más, crece para no invadir el pie de la hoja.
+  */
+  signaturesHeight(parties: Array<{ role: string; name: string }>) {
+    const col = parties.length === 1 ? 240 : WIDTH / parties.length, size = this.style.body;
+    const lines = Math.max(0, ...parties.map(party => wrap(party.name, this.fonts.regular, size, col - 20).length));
+    return { col, size, gap: this.compact ? 20 : 36, body: Math.max(size * 5, size * 2.6 + lines * size * 1.2) };
+  }
   signatures(parties: Array<{ role: string; name: string }>, line = false) {
     // Una sola firma: línea corta a la izquierda, como en las cartas; varias: columnas iguales.
-    const col = parties.length === 1 ? 240 : WIDTH / parties.length, size = this.style.body;
-    const gap = this.compact ? 20 : 36;
-    this.ensure(gap + size * 4);
+    const { col, size, gap, body } = this.signaturesHeight(parties);
+    // Lo que ocupa hasta el último renglón del nombre (sin el margen final), como antes.
+    this.ensure(gap + body - size);
     this.y -= gap;
     parties.forEach((party, i) => {
       const center = LEFT + col * i + col / 2;
@@ -395,7 +404,7 @@ class Writer {
         this.page.drawText(line, { x: center - w / 2, y: this.y - size * 2.6 - n * size * 1.2, size, font: this.fonts.regular, color: this.style.ink });
       });
     });
-    this.y -= size * 5;
+    this.y -= body;
   }
   heading(text: string, size: number, color: typeof NAVY, before: number, after: number, font = this.fonts.regular) {
     const lines = wrap(text, font, size, WIDTH);
@@ -445,13 +454,19 @@ class Writer {
   }
   async render(block: Block, next?: Block, afterNext?: Block, lastNext = false) {
     const paragraphHeight=(text:string)=>wrap(text,this.fonts.regular,this.style.body,WIDTH).length*this.style.body*this.style.leading+this.style.after;
-    const signatureHeight=(this.compact?20:36)+this.style.body*5;
+    const firmas=next?.kind==='signatures'?next:afterNext?.kind==='signatures'?afterNext:undefined;
+    const signatureHeight=firmas?(({gap,body})=>gap+body)(this.signaturesHeight(firmas.parties)):(this.compact?20:36)+this.style.body*5;
     if(block.kind==='p') {
       if(next?.kind==='signatures') this.ensure(paragraphHeight(block.text)+signatureHeight);
       else if(next?.kind==='bar' && afterNext?.kind==='signatures') this.ensure(paragraphHeight(block.text)+30+signatureHeight);
       else if(lastNext && next?.kind==='p') this.ensure(paragraphHeight(block.text)+paragraphHeight(next.text));
     }
     if(block.kind==='bar' && next?.kind==='signatures') this.ensure(30+signatureHeight);
+    // El título «Firmas» no se queda solo al pie: va con su párrafo de lugar y fecha y las firmas.
+    if(block.kind==='center' && next?.kind==='p' && afterNext?.kind==='signatures') {
+      const junto=10+this.style.body*1.2+paragraphHeight(next.text)+signatureHeight;
+      if(junto<PAGE[1]-TOP-BOTTOM) this.ensure(junto);
+    }
     const start = { page: this.pages.length - 1, y: this.y, draws: this.draws[this.pages.length - 1] ?? 0 };
     switch (block.kind) {
       case "image": await this.image(block.label, block.image, block.height, block.keys, block.side); break;

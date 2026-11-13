@@ -55,19 +55,19 @@ test("COR-03: Hoy, Operaciones y la operación nombran igual la etapa con el mis
 test("levantamiento y checklist de documentos llevan a verificación solo con todo recibido", () => {
   const surveying = op({ inicial: { iniciada: true, emitida: true, levantamiento: "borrador" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(surveying, today)).toMatchObject({ current: 2, phase: "levantamiento" });
-  expect(advanceTarget(surveying, today)).toEqual({ label: "Checklist de documentos" });
+  expect(advanceTarget(surveying, today)).toEqual({ label: "Lista de documentos" });
   expect(missingItems(surveying, [task()], today).map(m => m.text)).toEqual(["Terminar el levantamiento (04)"]);
-  expect(missingItems({ ...surveying, inicial: { ...surveying.inicial, levantamiento: "emitido" } }, [task()], today).map(m => m.text)).toEqual(["Iniciar el checklist de documentos"]);
+  expect(missingItems({ ...surveying, inicial: { ...surveying.inicial, levantamiento: "emitido" } }, [task()], today).map(m => m.text)).toEqual(["Iniciar la lista de documentos"]);
   const collecting = op({ inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(collecting, today)).toMatchObject({ current: 3, phase: "documentos" });
   expect(advanceTarget(collecting, today)).toEqual({ target: "documentacion", label: "Dictamen jurídico" });
-  expect(missingItems(collecting, [task()], today).map(m => m.text)).toEqual(["Recibir los documentos del checklist"]);
+  expect(missingItems(collecting, [task()], today).map(m => m.text)).toEqual(["Recibir los documentos de la lista"]);
   expect(missingItems({ ...collecting, inicial: { ...collecting.inicial, documentos: "completo" } }, [task()], today)).toEqual([]);
 });
 
 test("el propietario ve las diez etapas: dictamen, luego valor, y el contrato espera la verificación", () => {
   const checking = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed() }) });
-  expect(routeStages(checking, today)).toMatchObject({ labels: ["Primer contacto", "Entrevista inicial", "Levantamiento", "Checklist de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
+  expect(routeStages(checking, today)).toMatchObject({ labels: ["Primer contacto", "Entrevista inicial", "Levantamiento", "Lista de documentos", "Dictamen jurídico", "Opinión de valor y precio", "Contrato y preparación", "Publicación y seguimiento", "Visitas y ofertas", "Cierre y entrega"], current: 4, phase: "dictamen" });
   expect(contractLocked(checking, today)).toBe(true);
   expect(currentRequirements(checking, today).map(r => r.key)).toEqual(["titularidad", "factibilidad"]);
   expect(advanceTarget(checking, today)).toEqual({ label: "Opinión de valor y precio" });
@@ -131,7 +131,7 @@ test("una etapa pasada dice qué documento le falta: el formato, su PDF o el che
   expect(phaseGap("captacion", status({ "02": "terminado" }))).toBe("");
   expect(phaseGap("levantamiento", status({ "04": "borrador" }))).toBe("Falta el PDF del levantamiento");
   expect(phaseGap("dictamen", status({ "05": "borrador" }))).toBe("Falta el PDF de la revisión jurídica y la opinión jurídica");
-  expect(phaseGap("documentos", status({}))).toBe("Falta el checklist");
+  expect(phaseGap("documentos", status({}))).toBe("Falta la lista de documentos");
   expect(phaseGap("documentos", status({}), "pendiente")).toBe("Faltan documentos");
   expect(phaseGap("documentos", status({}), "completo")).toBe("");
   expect(phaseGap("prospecto", status({}))).toBe("");
@@ -151,7 +151,7 @@ test("las etapas se nombran por sí mismas, sin fases; compra, renta e inversió
 test("a las etapas pasadas se les pide su documento y el motivo de atención es el más urgente", () => {
   const dictamen = op({ etapa: "documentacion", flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }), inicial: { iniciada: true, emitida: true } });
   const status = (f: string) => f === "02" ? "terminado" as const : undefined;
-  expect(pastGaps(dictamen, today, status).map(g => [g.n, g.gap])).toEqual([[3, "Falta el levantamiento"], [4, "Falta el checklist"]]);
+  expect(pastGaps(dictamen, today, status).map(g => [g.n, g.gap])).toEqual([[3, "Falta el levantamiento"], [4, "Falta la lista de documentos"]]);
   expect(attentionOf(dictamen, [task({ vence: "2026-10-20" })], today, "Falta el 04")).toEqual({ kind: "falta", label: "Falta el 04", rank: 2, late: false });
   expect(attentionOf(dictamen, [task({ vence: "2026-10-10" })], today, "Falta el 04")).toMatchObject({ label: "Tarea vencida", late: true });
   expect(attentionOf(op({ flujo: flow({ entrevista: { estado: "observado", soporte: "Sin escritura" } }) }), [], today)).toMatchObject({ label: "Hay un problema", rank: 0 });

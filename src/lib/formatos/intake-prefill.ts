@@ -5,6 +5,7 @@ import { EXPEDIENTE_OPERACIONES } from "./expediente-operations";
 import { TIPO_INMUEBLE_DESDE_ENTREVISTA, VALOR_DEFAULTS } from "./valor-fields";
 import { SITE_TERMS } from "@/data/site-terms";
 import { privacyAddress } from "@/data/privacy-notice";
+import { prestadorDel09, type DatosFortius } from "@/lib/backend/datos-fortius";
 
 type Context = {
  expediente: { folio: string; unidad?: string; operacion?: string; flujo?: { ruta?: string } | null };
@@ -12,12 +13,14 @@ type Context = {
  asesor?: { nombre?: string };
  inmueble?: { direccionAproximada?: string; zona?: string; slug?: string; codigo?: string };
  entrevista?: Pick<OperationalInterview,"id"|"version"|"intencion"|"respuestas">;
+ /** FCH-03: datos de Fortius capturados en Configuración; lo vacío no se propone. */
+ empresa?: DatosFortius;
 };
 /** Propose declarations to a new draft only. Never attest ownership, approve
  * money/consent or overwrite an existing/issued document. */
 const hoyTijuana = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Tijuana", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 export function prefillFormato(formatoId: string, context: Context): Record<string,string|number> {
- const {expediente,persona,asesor,inmueble,entrevista}=context, a=entrevista?.respuestas??{};
+ const {expediente,persona,asesor,inmueble,entrevista,empresa}=context, a=entrevista?.respuestas??{};
  const name=persona?.nombre??"", owner=entrevista?.intencion==="vender"||entrevista?.intencion==="arrendar";
  const amount=a.presupuestoEstado==="conocido"&&Number(a.importe)>0?Number(a.importe):undefined;
  // COR-01: quien vende o renta y aún no aclara su relación se propone como propietario «por confirmar».
@@ -48,8 +51,12 @@ export function prefillFormato(formatoId: string, context: Context): Record<stri
   ...(/^04[A-G]$/.test(formatoId)?{fechaVisita:hoyTijuana(),elaboro:asesor?.nombre}:{}),
   // Plan (10): se elabora hoy; lo demás lo proponen el levantamiento, el 07 y el 09 al crearlo.
   ...(formatoId==="10"?{fecha:hoyTijuana()}:{}),
-  // Aviso (01): los datos del responsable son los del aviso publicado en el sitio; la fecha de emisión, hoy.
-  ...(formatoId==="01"?{responsable:SITE_TERMS.responsible,domicilioResponsable:privacyAddress,contactoPrivacidad:SITE_TERMS.responsible,correoPrivacidad:SITE_TERMS.email,fechaEmision:hoyTijuana()}:{}),
+  // Aviso (01): responsable y domicilio de Configuración (FCH-03) cuando ya se capturaron; si no, los del aviso
+  // publicado en el sitio. La fecha de emisión, hoy.
+  ...(formatoId==="01"?{responsable:empresa?.razonSocial||SITE_TERMS.responsible,domicilioResponsable:empresa?.domicilio||privacyAddress,contactoPrivacidad:SITE_TERMS.responsible,correoPrivacidad:SITE_TERMS.email,fechaEmision:hoyTijuana()}:{}),
+  // Contrato 09: el prestador (Fortius) sale de Configuración; solo lo capturado, nada inventado (FCH-03).
+  // Si ya hay representante, comparece por él (persona moral) y firma con su cargo.
+  ...(formatoId==="09"&&empresa?{...prestadorDel09(empresa),...(empresa.representante?{comparecePrestador:"representante",calidadFirmaPrestador:empresa.calidadRepresentante||undefined}:{})}:{}),
  };
  const result: Record<string,string|number> = {};
  for(const field of FORMATOS.find(f=>f.id===formatoId)?.fields??[]) {

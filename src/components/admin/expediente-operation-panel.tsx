@@ -99,7 +99,7 @@ export function ExpedienteOperationPanel<T extends ExpedienteOperativo>({ expedi
         </label>
       </div>
       <div>
-        <h4 className="font-semibold">Checklist documental</h4>
+        <h4 className="font-semibold">Lista de documentos</h4>
         <p className="text-sm text-muted-foreground">Coteja los documentos antes de marcar «Lo tengo».</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {Object.entries(EXPEDIENTE_DOCUMENTOS).map(([key, label]) => <label key={key} className="text-sm">{label}

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Task } from "@/lib/tasks";
+import { operationalDate } from "@/lib/admin/operational-date";
 
 export const WORKFLOW_STAGES = ["captacion","documentacion","comercializacion","negociacion","cierre","entrega","postventa","cerrado"] as const;
 export type WorkflowStage = typeof WORKFLOW_STAGES[number];
@@ -290,9 +291,9 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
 /** Proceso de comercialización definido por el titular (PLAN_ERP_CRM.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
 export const SALE_PROCESS = [
  { key: "prospecto", slug: "prospecto", label: "Primer contacto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
- { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir el checklist de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
+ { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir la lista de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
  { key: "levantamiento", slug: "levantamiento", label: "Levantamiento", hace: "Visitar el inmueble y capturar sus características con el levantamiento que corresponde a su tipo (04A–04G): superficies, niveles, espacios, instalaciones, fotografías y croquis.", para: "Tener los datos físicos comprobados para el dictamen, la opinión de valor y la publicación.", etapas: ["captacion"] },
- { key: "documentos", slug: "checklist-documentos", label: "Checklist de documentos", hace: "Entregar al propietario la lista de documentos que le corresponde y marcar cada uno al recibirlo.", para: "Reunir lo necesario para iniciar el dictamen jurídico.", etapas: ["captacion"] },
+ { key: "documentos", slug: "checklist-documentos", label: "Lista de documentos", hace: "Entregar al propietario la lista de documentos que le corresponde y marcar cada uno al recibirlo.", para: "Reunir lo necesario para iniciar el dictamen jurídico.", etapas: ["captacion"] },
  { key: "dictamen", slug: "dictamen-juridico", label: "Dictamen jurídico", hace: "Revisar los documentos recibidos con la revisión jurídica (05) y emitir la opinión jurídica del inmueble (06): quién es dueño, quién firma y si se puede vender sin obstáculos.", para: "Detectar a tiempo lo que impediría o retrasaría la venta.", etapas: ["documentacion"] },
  { key: "verificacion", slug: "opinion-valor", label: "Opinión de valor y precio", hace: "Comparar propiedades similares con la opinión de valor (07), estimar el neto del propietario (08) y acordar el precio de salida; registrar si tomamos el encargo.", para: "Vender con un precio sustentado que el propietario entiende.", etapas: ["documentacion"] },
  { key: "contrato", slug: "contrato-preparacion", label: "Contrato y preparación", hace: "Formalizar el servicio, honorarios y autorizaciones; preparar ficha, fotografías y plan de publicación.", para: "Dejar claras las responsabilidades y presentar el inmueble con información respaldada.", etapas: ["documentacion"] },
@@ -408,7 +409,11 @@ export function addMonths(date: string, months: number) {
 /** Última entrega registrada del informe; si no hay, cuenta el último preparado (RP-88: preparado no es entregado). */
 export function lastOwnerReport(flow: Pick<OperationWorkflow, "entregasInforme"> | null | undefined, prepared?: string | null): string | undefined {
  const delivered = (flow?.entregasInforme ?? []).map(e => e.fecha).sort().at(-1);
- return delivered ?? prepared?.slice(0, 10) ?? undefined;
+ if (delivered) return delivered;
+ if (!prepared) return undefined;
+ // C-12: un instante (updated_at, en UTC) se fecha con el día de Tijuana; una fecha sola se respeta.
+ const instant = prepared.length > 10 ? new Date(prepared) : null;
+ return instant && !Number.isNaN(instant.getTime()) ? operationalDate(instant) : prepared.slice(0, 10);
 }
 export function ownerReportStatus(lastReport: string | null | undefined, today: string): { estado: "al_dia" | "vencido" | "sin_informe"; proximo?: string } {
  if (!lastReport) return { estado: "sin_informe" };

@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
 const fixture = vi.hoisted(() => ({ inserted: {} as Record<string, unknown>, valuation: {} as Record<string, unknown>, flujo: { ruta: "captacion" } as Record<string, unknown>, archivo: null as Record<string, unknown> | null }));
-vi.mock("@/lib/backend/auth", () => ({ requireStaff: async () => ({ client: { from(table: string) {
+vi.mock("@/lib/backend/auth", () => ({ requireStaff: async () => ({ client: { rpc: async () => ({ data: null, error: { code: "PGRST202" } }), from(table: string) {
   let kind = "", payload: Record<string, unknown> | undefined;
   const exp = { id: "77000000-0000-4000-8000-000000000001", cliente_id: "person", asesor_id: "adviser", propiedad_slug: "property", folio: "EXP-ENSAYO", operacion: "venta", unidad: "Domicilio corregido", flujo: fixture.flujo };
   const interview = { id: "77000000-0000-4000-8000-000000000002", version: 3, intencion: "vender", estado: "completada", respuestas: { fecha: "2026-10-14", relacion: "representante", objetivo: "Vender en seis meses", zona: "Tijuana", tipoInmueble: "casa", presupuestoEstado: "conocido", importe: "8000000", moneda: "MXN", privacidad: "presentado", siguienteAccion: "Aclarar facultades", siguienteFecha: "2030-12-31", origenContacto: "referido" } };

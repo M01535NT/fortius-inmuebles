@@ -91,7 +91,7 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
   if (!property) return (
     <div className="space-y-6">
       <PageHeader title="Inmueble no encontrado." />
-      <EmptyState title={`No existe "${slug}" en el inventario.`} />
+      <EmptyState title="Este inmueble no está en el inventario." />
       <Link href="/admin/propiedades" className={btnGhost}>Volver al inventario</Link>
     </div>
   );
