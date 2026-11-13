@@ -13,7 +13,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 **Dónde está el código.**
 
 - **En `main`:** todo hasta el PR de `feat/integracion` del 13/11/2026, que reunió el trabajo de las siete sesiones en paralelo (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad); antes, el PR #73 (commit `c03504b`). Verificado en local antes de subir: `npm run verify` (lint, tipos, base 1071/1071, panel 521/521 y build), herramientas de respaldo 48/48, activos PDF, navegador público 72 (1 omitida), panel 52/52 y formulario público 5/5.
-- **Migraciones que llegan a `main` con ese PR** (Supabase las aplica sola al integrar; confirmar en su historial): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
+- **Migraciones aplicadas en remoto con ese PR** (Seguridad las confirmó una por una en `schema_migrations` y en su contenido, 13/11/2026): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113124000_candado_de_arranque`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
 
 **Qué entró (13/11/2026).**
 
