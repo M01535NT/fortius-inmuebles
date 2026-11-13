@@ -112,7 +112,7 @@ describe("documentos con el diseño de la plantilla", () => {
     expect(control?.kind === "grid" && control.rows[0]).toEqual(["D01 · Escritura o título", "Sí", "Recibido", "Escritura 4521", ""]);
     const opinion = opinionJuridicaDocumento({ conclusion: "Factible con condiciones.\n\nActualizar el certificado.", abogado: "Lic. Ana Torres", cedula: "1234567" });
     expect(opinion.estilo).toBe("opinion");
-    expect(opinion.blocks.filter(b => b.kind === "numbered").map(b => b.kind === "numbered" && b.num)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+    expect(opinion.blocks.filter(b => b.kind === "numbered").map(b => b.kind === "numbered" && b.num)).toEqual(["01", "02", "03", "04", "05", "06", "07", "08"]);
     expect(opinion.blocks.filter(b => b.kind === "p" && b.strong).map(b => b.kind === "p" && b.text)).toEqual(["Factible con condiciones.", "Actualizar el certificado."]);
     expect(opinion.blocks.at(-1)).toMatchObject({ kind: "signatures", parties: [{ role: "Abogado responsable", name: "Lic. Ana Torres\nCédula profesional 1234567" }] });
   });
@@ -129,7 +129,10 @@ describe("documentos con el diseño de la plantilla", () => {
     const secciones = doc.blocks.filter(b => b.kind === "bar" && b.big && /^\d+\./.test(b.text)).map(b => b.kind === "bar" && b.text.split(".")[0]);
     expect(secciones).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
     expect(valorDocumento({}).blocks.length).toBe(doc.blocks.length);
-    expect(doc.blocks.find(b => b.kind === "bar" && b.text === "Valor comercial concluido")).toMatchObject({ right: "Pendiente" });
+    expect(doc.blocks.find(b => b.kind === "bar" && b.text === "Opinión de valor comercial")).toMatchObject({ right: "Pendiente" });
+    // Índice como la plantilla del 30/10/2026: los enfoques sin peso dicen «No aplica».
+    const indice = doc.blocks.find(b => b.kind === "table" && b.rows[0]?.[1] === "Resumen ejecutivo");
+    expect(indice && indice.kind === "table" && indice.rows.map(r => r[1].endsWith("No aplica"))).toEqual([false, false, false, false, true, false, true, true, false, false]);
   });
   it("todos los formatos con plantilla se arman sin datos y en Word", async () => {
     expect(Object.keys(DOCUMENTOS).sort()).toEqual(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);

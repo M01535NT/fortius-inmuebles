@@ -1,9 +1,11 @@
 "use client";
 import { btnGhost, inputClass, selectClass } from "@/components/admin/ui";
 import { JURIDICA_TABLES, mostrarColumnaJuridica, type JuridicaRow, type JuridicaTable } from "@/lib/formatos/juridica";
+import { OPINION_TABLES, type OpinionTable } from "@/lib/formatos/opinion-juridica";
 
-export function JuridicaRowsEditor({ kind, value, onChange }: { kind: JuridicaTable; value: unknown; onChange: (rows: JuridicaRow[]) => void }) {
-  const config = JURIDICA_TABLES[kind];
+export function JuridicaRowsEditor({ kind, value, onChange }: { kind: JuridicaTable | OpinionTable; value: unknown; onChange: (rows: JuridicaRow[]) => void }) {
+  // DOC-06: las tablas del 06 usan el mismo editor que las de la revisión 05.
+  const config = kind in OPINION_TABLES ? OPINION_TABLES[kind as OpinionTable] : JURIDICA_TABLES[kind as JuridicaTable];
   const saved = Array.isArray(value) ? value as JuridicaRow[] : [];
   const rows: JuridicaRow[] = config.fixed ? config.fixed.map((item) => ({ concepto: item.key, ...saved.find((row) => row.concepto === item.key) })) : saved;
   return <div className="space-y-3">

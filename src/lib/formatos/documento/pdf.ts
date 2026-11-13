@@ -252,25 +252,33 @@ class Writer {
     this.y -= 4;
   }
   /** Recuadro verde claro como en la plantilla: con la imagen ajustada y centrada, o con su leyenda si aún no hay imagen. */
-  async image(label: string, image: ImagenDocumento | undefined, height: number, keys?: string[]) {
+  /** Recuadro con su imagen (o su título si falta); con «side», dos recuadros de media hoja lado a lado (reporte fotográfico del 07). */
+  async image(label: string, image: ImagenDocumento | undefined, height: number, keys?: string[], side?: { label: string; image?: ImagenDocumento; keys?: string[] }) {
     this.ensure(height + 4);
-    this.zone(keys, label, LEFT, this.y, WIDTH, height);
-    this.page.drawRectangle({ x: LEFT, y: this.y - height, width: WIDTH, height, color: HEAD, borderColor: RULE, borderWidth: 0.5 });
+    const gap = 6, half = (WIDTH - gap) / 2;
+    if (side) {
+      await this.imageBox(label, image, LEFT, half, height, keys);
+      await this.imageBox(side.label, side.image, LEFT + half + gap, half, height, side.keys);
+    } else await this.imageBox(label, image, LEFT, WIDTH, height, keys);
+    this.y -= height + 4;
+  }
+  private async imageBox(label: string, image: ImagenDocumento | undefined, x: number, width: number, height: number, keys?: string[]) {
+    this.zone(keys, label, x, this.y, width, height);
+    this.page.drawRectangle({ x, y: this.y - height, width, height, color: HEAD, borderColor: RULE, borderWidth: 0.5 });
     if (!image) {
       const text = label.toUpperCase(), w = this.fonts.bold.widthOfTextAtSize(text, 11);
-      this.page.drawText(text, { x: LEFT + (WIDTH - w) / 2, y: this.y - height / 2 - 4, size: 11, font: this.fonts.bold, color: NAVY });
-    } else {
-      // La vista en vivo reutiliza la imagen ya incrustada y la dibuja desde su dirección.
-      const { images, hrefs } = this.options;
-      const embedded = images?.get(image) ?? (image.tipo === "png" ? await this.pdf.embedPng(image.bytes) : await this.pdf.embedJpg(image.bytes));
-      images?.set(image, embedded);
-      if (image.href) hrefs?.set(embedded, image.href);
-      // Medidas de la imagen ya orientada: en el servidor coinciden con las incrustadas; en pantalla, con la foto girada.
-      const scale = Math.min((WIDTH - 12) / image.width, (height - 12) / image.height);
-      const w = image.width * scale, h = image.height * scale;
-      this.page.drawImage(embedded, { x: LEFT + (WIDTH - w) / 2, y: this.y - height + (height - h) / 2, width: w, height: h });
+      this.page.drawText(text, { x: x + (width - w) / 2, y: this.y - height / 2 - 4, size: 11, font: this.fonts.bold, color: NAVY });
+      return;
     }
-    this.y -= height + 4;
+    // La vista en vivo reutiliza la imagen ya incrustada y la dibuja desde su dirección.
+    const { images, hrefs } = this.options;
+    const embedded = images?.get(image) ?? (image.tipo === "png" ? await this.pdf.embedPng(image.bytes) : await this.pdf.embedJpg(image.bytes));
+    images?.set(image, embedded);
+    if (image.href) hrefs?.set(embedded, image.href);
+    // Medidas de la imagen ya orientada: en el servidor coinciden con las incrustadas; en pantalla, con la foto girada.
+    const scale = Math.min((width - 12) / image.width, (height - 12) / image.height);
+    const w = image.width * scale, h = image.height * scale;
+    this.page.drawImage(embedded, { x: x + (width - w) / 2, y: this.y - height + (height - h) / 2, width: w, height: h });
   }
   /** Tabla de levantamiento: encabezado claro, bordes finos y celdas vacías para escribir a mano. */
   grid(widths: number[], header: string[], rows: string[][], options: { labels?: boolean; minRow?: number; keys?: Array<Array<string[] | undefined>> } = {}) {
@@ -446,7 +454,7 @@ class Writer {
     if(block.kind==='bar' && next?.kind==='signatures') this.ensure(30+signatureHeight);
     const start = { page: this.pages.length - 1, y: this.y, draws: this.draws[this.pages.length - 1] ?? 0 };
     switch (block.kind) {
-      case "image": await this.image(block.label, block.image, block.height, block.keys); break;
+      case "image": await this.image(block.label, block.image, block.height, block.keys, block.side); break;
       case "bar": this.bar(block.text, block.right, block.big, block.raw, block.center); break;
       case "right": {
         const size = this.style.body;

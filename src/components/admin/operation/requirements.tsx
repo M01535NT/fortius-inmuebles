@@ -5,9 +5,10 @@ import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/component
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
-import { ownerProcess, requirementPhase, reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { directorReview, ownerProcess, requirementPhase, reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirementDetail, reviewState } from "@/lib/admin/operation-view";
 import { requirementName, shortDate } from "@/lib/admin/today";
+import { useIsDirector } from "@/lib/admin/staff-scope";
 import { cn } from "@/lib/utils";
 import s from "./operation.module.css";
 
@@ -51,12 +52,14 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const expired = state === "revisado" && !done;
   const problem = state === "observado" ? problemOf(review) : null;
   const name = requirementName(requirement, flow.ruta);
+  // COR-23: lo que revisa el director, el asesor lo deja en «Lo tengo».
+  const reserved = !useIsDirector() && directorReview(requirement);
   // COR-17: el valor respaldado con el avalúo del propietario vence con el avalúo.
   const appraisalEnd = requirement === "valor" && review?.evidencia?.tipo === "cliente" ? flow.avaluo?.vigenteHasta : undefined;
   const detail = expired ? (appraisalEnd && appraisalEnd < today ? `El avalúo venció el ${shortDate(appraisalEnd)}. Registra uno actualizado o haz la opinión de valor.`
     : review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
-    : problem ? problem.title : state === "recibido" ? "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
-  const options = STATES.filter(st => st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica");
+    : problem ? problem.title : state === "recibido" ? reserved ? "Listo · falta que lo revise el director" : "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
+  const options = STATES.filter(st => (st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica") && (!reserved || st === state || (st !== "revisado" && st !== "no_aplica")));
   const disabled = busy || locked;
   function choose(st: ReviewStateKey) {
     setMore(false);
@@ -75,7 +78,8 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
         {inFloat ? null : problem ? <>
           <Button variant="ghost" disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "observado" })}>Escribir qué pasó</Button>
           <Button disabled={disabled} onClick={() => onQuick(requirement, "recibido")}>Ya se resolvió</Button>
-        </> : !done && <Button disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "revisado" })}>Confirmar</Button>}
+        </> : done ? null : reserved ? state !== "recibido" && <Button disabled={disabled} onClick={() => onQuick(requirement, "recibido")}>Lo tengo</Button>
+          : <Button disabled={disabled} onClick={() => onSheet({ key: requirement, kind: "revisado" })}>Confirmar</Button>}
         <Button variant="ghost" iconOnly aria-label={`Más estados de ${name}`} aria-expanded={more} disabled={disabled} onClick={() => setMore(open => !open)}><MoreHorizontal size={18} aria-hidden="true" /></Button>
       </div>
     </div>

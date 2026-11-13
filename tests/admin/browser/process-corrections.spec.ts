@@ -52,8 +52,8 @@ for(const width of [390,768,1440]) {
    await page.screenshot({path:info.outputPath(r+'-revisado-'+width+'.png')});
    await page.keyboard.press('Escape');
    await page.getByRole('button',{name:'Más opciones'}).click();await page.getByRole('menuitem',{name:'Datos de la operación'}).click();
-   await expect(page.getByRole('combobox',{name:'Decisión',exact:true})).toBeVisible();
-   await page.getByRole('combobox',{name:'Decisión',exact:true}).selectOption('pausada');
+   // COR-14 / DEC-38: la decisión del encargo ya no está en los datos de la operación.
+   await expect(page.getByRole('dialog',{name:'Datos de la operación'}).getByRole('combobox',{name:'Decisión',exact:true})).toHaveCount(0);
    await expect(page.getByRole('region',{name:'Contraparte'})).toHaveCount(r==='inversion'?0:1);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await page.screenshot({path:info.outputPath(r+'-ajustes-'+width+'.png')});

@@ -1,6 +1,6 @@
 # Manual de administración de Fortius Inmuebles
 
-Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; la sección «Prospectos, clientes y firma del contrato» se actualizó el 12/11/2026 (COR-10, COR-17, COR-18, COR-19 y COR-22). [Estado y pendientes](../PLAN_ERP_CRM.md).
+Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; la sección «Prospectos, clientes y firma del contrato» se actualizó el 12/11/2026 (COR-10, COR-14, COR-17, COR-18, COR-19 y COR-22). [Estado y pendientes](../PLAN_ERP_CRM.md).
 
 ## Acceso y roles
 
@@ -61,6 +61,12 @@ La condición de cada persona y de cada inmueble se calcula a partir de esa firm
 | Captado | La firma está revisada. |
 
 En Contactos, el filtro **Clientes** muestra solo a quien firmó; quien tiene operación sin firma sigue en **En seguimiento**. Mientras el panel no termina de consultar las operaciones, una persona aparece como «Contacto» en lugar de suponer si es cliente.
+
+### Decisión del encargo
+
+Evaluar un inmueble no significa aceptarlo para venderlo. En la etapa **Verificación**, la tarjeta **Decisión del encargo** registra si Fortius toma el encargo: aceptado, aceptado con condiciones, en pausa, rechazado, referido o cancelado, con la fecha, el motivo y la siguiente acción. Con condiciones, se escriben las condiciones pendientes y se marcan las etapas que se permiten mientras se cumplen. **Guardar decisión** guarda solo la decisión.
+
+Sin un encargo aceptado, la operación no pasa a **Contrato y preparación**; «Para terminar la etapa» lo dice con **Ir a la decisión**. Si el encargo queda en pausa, rechazado o referido, la tarjeta sigue a la vista para reactivarlo. Desde el 12/11/2026 la decisión ya no está en **Datos de la operación** (DEC-38).
 
 ### Avalúo del propietario
 
