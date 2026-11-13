@@ -160,7 +160,7 @@ export function OperationsBoard() {
             <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} empty="Nada pendiente por ahora." />
             <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} />
           </>}
-        {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide con la búsqueda o el filtro.</p>}
+        {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide. Borra la búsqueda o cambia el filtro.</p>}
         {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="tabular-nums text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
       </>}
 
