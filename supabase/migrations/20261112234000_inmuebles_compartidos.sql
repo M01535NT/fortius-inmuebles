@@ -62,7 +62,8 @@ begin
 end;
 $migration$;
 
--- Proyección pública: solo el nombre de la inmobiliaria, para «En colaboración con…».
+-- Proyección pública: solo la marca de que es compartido, para «Inmueble en colaboración».
+-- El nombre de la inmobiliaria aliada no sale al sitio (DEC-40, titular 12/11/2026).
 do $migration$
 declare original text; definition text; root_marker text := 'if jsonb_typeof(d->''informacionPublica'')=''object'' then';
 begin
@@ -70,7 +71,7 @@ begin
   if original is null or position(root_marker in original)=0 then raise exception 'Unexpected property projection; migration not applied'; end if;
   definition := replace(original, root_marker, $new$if d->>'origen'='compartido' and jsonb_typeof(d->'aliado'->'inmobiliaria')='string'
         and length(btrim(d->'aliado'->>'inmobiliaria')) between 2 and 120 then
-        result := result || jsonb_build_object('colaboracion',btrim(d->'aliado'->>'inmobiliaria'));
+        result := result || jsonb_build_object('colaboracion',true);
       end if;
       $new$ || root_marker);
   if definition = original then raise exception 'Unexpected property projection; migration not applied'; end if;

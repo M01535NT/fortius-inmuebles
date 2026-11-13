@@ -45,7 +45,7 @@ export function PropertyOrigin({ origen: initialOrigin, aliado, allies, onChange
       </select>
     </Field>
     {origen === "compartido" && <>
-      <p className="m-0 text-sm text-muted-foreground sm:col-span-2">No lleva captación. Se publica con la autorización escrita de la inmobiliaria y lo publica el director. En el sitio dice «En colaboración con» su nombre; su contacto, porcentaje y autorización no salen del panel.</p>
+      <p className="m-0 text-sm text-muted-foreground sm:col-span-2">No lleva captación. Se publica con la autorización escrita de la inmobiliaria y lo publica el director. En el sitio dice «Inmueble en colaboración», sin el nombre de la inmobiliaria; su nombre, contacto, porcentaje y autorización no salen del panel.</p>
       <Field label="Inmobiliaria que lo comparte" htmlFor={`${id}-inmobiliaria`}>
         <input id={`${id}-inmobiliaria`} name="aliadoInmobiliaria" list={`${id}-aliados`} required minLength={2} maxLength={120} defaultValue={aliado?.inmobiliaria ?? ""} onChange={(event) => prefill(event.target.value)} className={inputClass} />
         <datalist id={`${id}-aliados`}>{allies.map((ally) => <option key={ally.inmobiliaria} value={ally.inmobiliaria} />)}</datalist>

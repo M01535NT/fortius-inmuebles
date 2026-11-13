@@ -59,7 +59,7 @@ function fichaRows(p: Property): FichaRow[] {
   if (f.estacionamientos) rows.push({ label: "Estacionamientos", value: String(f.estacionamientos) });
   if (f.antiguedad) rows.push({ label: "Antigüedad", value: f.antiguedad });
   // PUB-02: un compartido no lo verificó Fortius; cada dato dice de quién viene.
-  if (p.colaboracion) return rows.map((row) => ({ ...row, source: `Según ${p.colaboracion}`, confirmed: false }));
+  if (p.colaboracion) return rows.map((row) => ({ ...row, source: "Según la inmobiliaria aliada", confirmed: false }));
   return rows;
 }
 
@@ -213,7 +213,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
               </p>
               <h1 id="fe-title" className="fe-title">{property.titulo}</h1>
               <p className="fe-place"><MapPin size={16} strokeWidth={1.6} aria-hidden="true" />{property.zona}, {property.direccionAproximada}</p>
-              {property.colaboracion && <p className="fe-collab">En colaboración con {property.colaboracion}</p>}
+              {property.colaboracion && <p className="fe-collab">Inmueble en colaboración</p>}
               {(publicada || revisada) && <p className="fe-dates">
                 {publicada && <span>Publicada el {publicada}</span>}
                 {revisada && <span>Disponibilidad revisada el {revisada}</span>}

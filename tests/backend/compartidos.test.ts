@@ -11,9 +11,10 @@ const shared = { ...propiedades[0], origen: "compartido", aliado, publicada: tru
 const client = { from: () => { const chain = { select: () => chain, eq: () => chain, is: () => chain, maybeSingle: async () => ({ data: null, error: null }), then: (ok: (value: unknown) => void) => ok({ data: [], error: null }) }; return chain; } };
 
 describe("inmueble compartido", () => {
-  it("el sitio recibe solo el nombre de la inmobiliaria", () => {
-    const [projected] = projectPublic("propiedades", [{ ...shared, colaboracion: aliado.inmobiliaria }]);
-    expect(projected).toMatchObject({ colaboracion: aliado.inmobiliaria });
+  it("el sitio recibe solo la marca de colaboración, sin el nombre de la inmobiliaria", () => {
+    const [projected] = projectPublic("propiedades", [{ ...shared, colaboracion: true }]);
+    expect(projected).toMatchObject({ colaboracion: true });
+    expect(JSON.stringify(projected)).not.toContain(aliado.inmobiliaria);
     expect(projected).not.toHaveProperty("aliado");
     expect(projected).not.toHaveProperty("origen");
     expect(JSON.stringify(projected)).not.toMatch(/Contacto de ensayo|Gerente de ensayo|autorizacion/);

@@ -66,13 +66,13 @@ describe("publicar un compartido", () => {
     await as(director, async () => { await put(property("compartida", { publicada: true }), await versionOf("compartida")); });
   });
 
-  it("el sitio dice con quién colabora y no muestra contacto, porcentaje ni autorización", async () => {
+  it("el sitio dice que es en colaboración y no muestra el nombre, contacto, porcentaje ni autorización", async () => {
     await db.exec("set role anon");
     try {
       const rows = (await db.query<{ data: Record<string, unknown> }>("select data from public.fortius_inmuebles_public_records('propiedades')")).rows.map(row => row.data);
       const shared = rows.find(row => row.slug === "compartida");
-      expect(shared).toMatchObject({ colaboracion: "Inmobiliaria Aliada de Ensayo" });
-      expect(JSON.stringify(shared)).not.toMatch(/Contacto de ensayo|Gerente de ensayo|autorizacion|porcentaje|aliado/);
+      expect(shared).toMatchObject({ colaboracion: true });
+      expect(JSON.stringify(shared)).not.toMatch(/Inmobiliaria Aliada de Ensayo|Contacto de ensayo|Gerente de ensayo|autorizacion|porcentaje|aliado/);
       expect(rows.find(row => row.slug === "sin-autorizacion")).toBeUndefined();
     } finally { await db.exec("reset role"); }
   });

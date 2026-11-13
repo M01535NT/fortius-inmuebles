@@ -129,8 +129,8 @@ export type Property = {
   publicadaEl: string; // ISO
   demo: boolean; // marca explícita de dato de ejemplo
   publicada?: boolean; // solo se publica por decisión explícita
-  /* PUB-02: inmueble compartido por otra inmobiliaria; el sitio muestra solo su nombre. */
-  colaboracion?: string;
+  /* PUB-02: inmueble compartido por otra inmobiliaria; el sitio dice «Inmueble en colaboración», sin su nombre (DEC-40). */
+  colaboracion?: true;
 };
 
 export const TIPO_LABELS: Record<TipoPropiedad, string> = TIPO_INMUEBLE_LABELS;

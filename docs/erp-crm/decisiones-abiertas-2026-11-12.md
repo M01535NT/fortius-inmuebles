@@ -52,7 +52,7 @@
 
 **Recomendación:** A. El texto de la autorización lo valida el abogado. Si te preocupa que el comprador busque directo a la otra inmobiliaria, C es la variante.
 
-**Respuesta:** A, la recomendada (titular, 12/11/2026).
+**Respuesta:** A, la recomendada (titular, 12/11/2026). **Ajuste confirmado el mismo día:** la ficha pública no lleva el nombre de la otra inmobiliaria; dice «Inmueble en colaboración» y cada dato que Fortius no verificó, «Según la inmobiliaria aliada».
 
 ## DEC-41 · Enseñar un inmueble antes de firmar
 
