@@ -1,0 +1,36 @@
+/*
+  Estilos que solo usa /contacto (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.ct-head { max-width: 760px; }
+.ct-workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: var(--space-amplio); align-items: start; margin-top: clamp(32px, 4vw, 48px); }
+.ct-side { display: grid; gap: var(--space-amplio); }
+.ct-photo { position: relative; margin: 0; height: 332px; overflow: hidden; border-radius: var(--corner-tarjeta); background: var(--secondary); }
+.ct-photo img { object-fit: cover; }
+.ct-choices { min-width: 0; margin: 0; padding: 0; border: 0; }
+.ct-intents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-cerca); }
+.ct-intent { position: relative; display: grid; gap: var(--space-junto); align-content: start; min-height: 0; padding: var(--space-normal) var(--space-normal); border: 1px solid color-mix(in srgb, var(--ns-ink) 16%, transparent); border-radius: var(--corner-pulsable); background: transparent; color: var(--ns-ink); cursor: pointer; transition: border-color 0.3s, background-color 0.3s, transform 0.4s var(--pg-ease); }
+.ct-intent:hover { border-color: color-mix(in srgb, var(--ns-ink) 45%, transparent); transform: translateY(-2px); }
+.ct-intent[data-selected="true"] { border-color: #8a1634; background: #8a1634; color: #fff; }
+.ct-intent:has(input:focus-visible) { outline: 2px solid var(--ns-ink); outline-offset: 3px; }
+.ct-intent-top { display: flex; align-items: center; justify-content: flex-end; min-height: 22px; }
+.ct-intent-check { display: grid; place-items: center; width: 22px; height: 22px; border-radius: var(--corner-pastilla); background: #f8f8ff; color: #8a1634; }
+.ct-intent strong { margin-top: var(--space-cerca); font-size: var(--type-entrada); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
+.ct-intent small { color: color-mix(in srgb, var(--ns-ink) 70%, transparent); font-size: var(--type-etiqueta); line-height: 1.5; }
+.ct-intent[data-selected="true"] small { color: rgba(255, 255, 255, 0.82); }
+.ct-direct a[href^="/inventario"] { color: var(--ns-accent); }
+.ct-hours { display: flex; gap: var(--space-cerca); align-items: flex-start; margin: 0; padding-top: var(--space-normal); border-top: 1px solid color-mix(in srgb, var(--ns-ink) 12%, transparent); color: color-mix(in srgb, var(--ns-ink) 75%, transparent); font-size: var(--type-detalle); line-height: 1.6; }
+.ct-hours svg { flex: none; margin-top: var(--space-junto); }
+.ct-team { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-normal); margin-top: clamp(40px, 5vw, 64px); padding-top: var(--space-bloque); border-top: 1px solid color-mix(in srgb, var(--ns-ink) 12%, transparent); }
+.ct-team p { margin: 0; font-size: var(--type-entrada); font-weight: 700; letter-spacing: -0.02em; }
+@media (max-width: 1023px) {
+  .tl-grid, .ct-workspace { grid-template-columns: 1fr; }
+  .ct-photo { display: none; }
+  .ct-direct { position: static; }
+}
+@media (max-width: 639px) {
+  .ct-intents { grid-template-columns: 1fr; }
+  .ct-intent { min-height: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .tl-card, .ct-intent { transition: none; }
+  .tl-card:hover, .ct-intent:hover { transform: none; } }

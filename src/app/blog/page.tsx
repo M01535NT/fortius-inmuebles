@@ -5,6 +5,7 @@ import { BlogCard } from "@/components/blog/blog-card";
 import { getBlogPosts } from "@/lib/blog";
 import { BLOG_CATEGORIES, BLOG_FORMATS, blogHref, filterBlogPosts, normalizeBlogSearch, postFormat } from "@/lib/blog-editorial";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./blog.css";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
 export async function generateMetadata({ searchParams }: Props = {}): Promise<Metadata> {

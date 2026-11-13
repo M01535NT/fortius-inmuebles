@@ -5,6 +5,7 @@ import { PreguntaItem } from "@/components/home/respuestas";
 import { preguntasPorGrupo } from "@/data/preguntas-frecuentes";
 import { getPublicContent } from "@/lib/backend/public";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./preguntas.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/preguntas-frecuentes",

@@ -1,0 +1,16 @@
+/*
+  Estilos que solo usa /avisos (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.nt-card { display: grid; gap: var(--space-cerca); align-content: start; scroll-margin-top: 96px; }
+.nt-card-head { display: flex; align-items: center; justify-content: space-between; }
+.nt-badge { display: inline-flex; align-items: center; gap: var(--space-corto); padding: var(--space-junto) var(--space-cerca); border-radius: var(--corner-pulsable); background: rgba(138, 22, 52, 0.1); color: var(--primary-text, #8a1634); font-variant-numeric: tabular-nums; font-size: var(--type-etiqueta); letter-spacing: 0.08em; }
+.nt-card p { font-size: var(--type-interfaz); line-height: 1.6; }
+.nt-actions { display: flex; flex-wrap: wrap; gap: var(--space-corto); margin-top: var(--space-corto); }
+.pg-pill-download { border-color: var(--pg-wine); background: var(--pg-wine); color: #fff; }
+.pg-pill-download:hover { border-color: #a2223f; background: #a2223f; }
+.nt-reading { padding-top: var(--space-corto); border-top: 1px solid var(--border); }
+.nt-reading summary { min-height: 44px; padding: var(--space-cerca) 0; color: var(--primary-text, #8a1634); font-size: var(--type-detalle); font-weight: 600; cursor: pointer; }
+.nt-reading section { padding: var(--space-cerca) 0; }
+.nt-reading h3 { font-size: var(--type-texto); font-weight: 600; }
+.nt-reading section p { margin-top: var(--space-corto); font-size: var(--type-detalle); line-height: 1.65; }

@@ -1,0 +1,29 @@
+/*
+  Estilos que solo usa /herramientas (antes en editorial/nocturno/publico.css, que carga todo el sitio).
+  Se separaron el 13/11/2026 para que cada página descargue menos CSS antes de pintar.
+*/
+.tl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-amplio); margin-top: clamp(32px, 4vw, 48px); }
+.tl-card { display: grid; gap: var(--space-cerca); align-content: start; padding: clamp(22px, 2.6vw, 32px); border: 1px solid color-mix(in srgb, var(--ns-ink) 14%, transparent); border-radius: var(--corner-tarjeta); background: color-mix(in srgb, var(--ns-ink) 5%, transparent); color: var(--ns-ink); transition: background-color 0.4s, border-color 0.4s, transform 0.5s var(--pg-ease); }
+.tl-card:hover { border-color: color-mix(in srgb, var(--ns-ink) 40%, transparent); background: color-mix(in srgb, var(--ns-ink) 8%, transparent); transform: translateY(-4px); }
+.tl-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-cerca); }
+.tl-open { display: inline-flex; align-items: center; gap: var(--space-corto); margin-left: auto; font-size: var(--type-detalle); font-weight: 600; color: var(--ns-accent); }
+.tl-card-title { font-size: var(--type-subtitulo); line-height: var(--leading-subtitulo); font-weight: 700; letter-spacing: var(--tracking-subtitulo); }
+.tl-card-text { max-width: 46ch; color: color-mix(in srgb, var(--ns-ink) 72%, transparent); font-size: var(--type-interfaz); line-height: 1.6; }
+.tl-preview { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-normal); margin-top: var(--space-cerca); padding: var(--space-normal) var(--space-amplio); border-radius: var(--corner-tarjeta); background: color-mix(in srgb, var(--ns-deep) 60%, transparent); }
+.tl-preview svg { flex: none; max-width: 45%; height: auto; color: var(--ns-fill); }
+.tl-preview-label { display: block; font-size: var(--type-etiqueta); color: color-mix(in srgb, var(--ns-ink) 75%, transparent); font-weight: 600; }
+.tl-preview-value { display: block; margin-top: var(--space-corto); font-size: var(--type-cifra); font-weight: 700; letter-spacing: var(--tracking-cifra); }
+.tl-preview:has(.tl-legend) { flex-direction: column; align-items: flex-start; gap: var(--space-cerca); }
+.tl-legend { display: flex; flex-wrap: wrap; gap: var(--space-corto); font-size: var(--type-etiqueta); color: color-mix(in srgb, var(--ns-ink) 85%, transparent); font-weight: 600; }
+.tl-legend span { padding: var(--space-junto) var(--space-cerca); border: 1px solid color-mix(in srgb, var(--ns-ink) 18%, transparent); border-radius: var(--corner-pulsable); }
+.tl-foot { margin: var(--space-bloque) 0 0; color: color-mix(in srgb, var(--ns-ink) 72%, transparent); font-size: var(--type-interfaz); }
+.tl-foot a { color: var(--ns-strong); font-weight: 600; text-decoration: underline; text-decoration-color: var(--ns-accent); text-underline-offset: 4px; }
+@media (max-width: 1023px) {
+  .tl-grid, .ct-workspace { grid-template-columns: 1fr; }
+}
+@media (max-width: 639px) {
+  .tl-preview { flex-direction: column; align-items: stretch; }
+  .tl-preview svg { max-width: 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  .tl-card, .ct-intent { transition: none; }
+  .tl-card:hover, .ct-intent:hover { transform: none; } }

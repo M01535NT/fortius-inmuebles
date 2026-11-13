@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { ClosingCostsCalculator } from "@/components/tools/closing-costs-calculator";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./gastos.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/herramientas/gastos-de-cierre",

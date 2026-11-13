@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactIntents } from "@/components/contact/contact-intents";
 import { pageMetadata } from "@/lib/seo/page-metadata";
+import "./contacto.css";
 
 export const metadata: Metadata = pageMetadata({
   path: "/contacto",
