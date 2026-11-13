@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, Plus, Search, UserPlus, X } from "@/components/admin/icons";
+import { ChevronRight, Plus, Search, UserPlus, X, EMPTY_ART } from "@/components/admin/icons";
 import { Avatar, Button, ButtonLink, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import f from "@/components/admin/form.module.css";
 import { inputClass } from "@/components/admin/ui";
@@ -118,7 +118,7 @@ export function ContactsScreen() {
       <div className={s.chips} role="group" aria-label="Mostrar personas" data-tour="contactos-filtros">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
     </div>
     <div className="mt-5 min-w-0">
-      {rows.length === 0 ? <EmptyBox title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
+      {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
       </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
         <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={row => { if (row.kind === "cliente") { const st = status.ofClient(row.id); return st ? PERSON_STATUS_LABEL[st] : "Contacto"; } return status.ofLead({ id: row.id }) === "contraparte" ? PERSON_STATUS_LABEL.contraparte : LEAD_STAGE_LABELS[leadStage(estadoDe(row.id))]; }} />

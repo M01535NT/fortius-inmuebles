@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { PAPELERA } from "@/components/admin/papelera/textos";
-import { Camera, FileDown, FileText, Pencil, RotateCcw, Trash2, Upload } from "@/components/admin/icons";
+import { Camera, FileDown, FileText, Pencil, RotateCcw, Trash2, Upload, EMPTY_ART } from "@/components/admin/icons";
 import { Button, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { db, errorMessage, fetchJson as json, useCollection } from "@/lib/admin/store";
@@ -166,7 +166,7 @@ export function ClientDocumentsTab({ operationId, incoming }: { operationId: str
 
     {lista === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando los documentos…</p>
       : lista === null ? <div className="flex items-center gap-3"><p className="text-sm">No se pudieron cargar los documentos.</p><Button onClick={() => void cargar()}>Reintentar</Button></div>
-      : !archivos.length ? <EmptyBox icon={<FileText size={28} aria-hidden="true" />} title="Todavía no hay documentos">Cuando subas los documentos del cliente aparecerán aquí.</EmptyBox>
+      : !archivos.length ? <EmptyBox art={{ icon: EMPTY_ART.documentos, kind: "subir" }} title="Todavía no hay documentos">Cuando subas los documentos del cliente aparecerán aquí.</EmptyBox>
       : <Card className="p-2" aria-label="Documentos guardados">
         <ul className="flex flex-col divide-y divide-border">{archivos.map(archivo => <li key={archivo.id} className="flex flex-wrap items-center gap-3 px-3 py-3">
           <FileText size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />

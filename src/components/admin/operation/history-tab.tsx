@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { Button, Card, EmptyBox } from "@/components/admin/kit";
+import { EMPTY_ART } from "@/components/admin/icons";
 import { textareaClass } from "@/components/admin/ui";
 import { db, errorMessage, fetchJson as json, useCollection } from "@/lib/admin/store";
 import { humanDateTime } from "@/lib/utils";
@@ -43,6 +44,6 @@ export function HistoryTab({ operationId, refresh, onDirtyChange }: { operationI
         <p className="[overflow-wrap:anywhere]">{item.descripcion}</p>
         <p className="mt-1 text-xs text-muted-foreground">{item.tipo === "nota" ? "Nota" : "Cambio"} · {who(item.created_by)} · {humanDateTime(item.created_at)}</p>
       </li>)}</ol></Card>
-      : items !== null && <EmptyBox title="Sin historial todavía">Los cambios y las notas de esta operación aparecen aquí.</EmptyBox>}
+      : items !== null && <EmptyBox art={{ icon: EMPTY_ART.historial }} title="Sin historial todavía">Los cambios y las notas de esta operación aparecen aquí.</EmptyBox>}
   </div>;
 }

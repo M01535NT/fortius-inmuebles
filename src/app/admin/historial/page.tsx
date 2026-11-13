@@ -6,6 +6,7 @@ import { humanDateTime } from "@/lib/utils";
 import { apiRequest, db, errorMessage, useCollection, useSession } from "@/lib/admin/store";
 import { Field, PageHeader, selectClass } from "@/components/admin/ui";
 import { Button, Card, EmptyBox } from "@/components/admin/kit";
+import { EMPTY_ART } from "@/components/admin/icons";
 
 type Entry = {
   id: string;
@@ -113,7 +114,7 @@ export default function HistoryPage() {
                 </div>
               </Card>;
             })}
-          </ul> : <EmptyBox title="Sin movimientos">
+          </ul> : <EmptyBox art={{ icon: EMPTY_ART.historial }} title="Sin movimientos">
             {collection || record ? "No hay movimientos en esta sección. Prueba con «Todas»." : "Cada vez que alguien del equipo guarde o elimine algo, quedará anotado aquí con su fecha."}
           </EmptyBox>}
           {(offset > 0 || more) && <div className="flex gap-2">

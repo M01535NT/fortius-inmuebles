@@ -8,9 +8,9 @@ import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { AsyncButton } from "@/components/admin/ui";
-import { Avatar } from "@/components/admin/kit";
+import { Avatar, StartHere } from "@/components/admin/kit";
 import { PAPELERA } from "@/components/admin/papelera/textos";
-import { db, useCollection } from "@/lib/admin/store";
+import { db, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { INTAKE_TITLE } from "@/lib/intake/wizard";
 import { cn } from "@/lib/utils";
@@ -97,13 +97,15 @@ export function TopNav({ pathname, role, user, onLogout, search }: { pathname: s
 /** «+ Nuevo»: las cinco altas en un menú; atender a alguien va primero. En el celular, el «+» abre el mismo menú hacia arriba. */
 function NewMenu({ mobile = false }: { mobile?: boolean }) {
   const [open, setOpen] = React.useState(false);
+  // LV-04: «Empieza aquí» sobre «Nuevo» la primera vez de cada persona; se recuerda por su id.
+  const userId = useSession()?.id;
   const wrap = React.useRef<HTMLDivElement>(null);
   const close = React.useCallback(() => setOpen(false), []);
   useDismiss(open, close, wrap);
   return <div ref={wrap} className={s.menuWrap}>
-    {mobile
+    <StartHere storageKey={userId ? `fortius.empieza-aqui.v1:${userId}` : undefined} above={mobile}>{mobile
       ? <button type="button" data-tour="nuevo" className={s.plus} aria-label="Nuevo" aria-expanded={open} aria-controls="admin-new-menu-movil" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={24} aria-hidden="true" /></button>
-      : <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" />Nuevo</button>}
+      : <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" />Nuevo</button>}</StartHere>
     {open && <div id={mobile ? "admin-new-menu-movil" : "admin-new-menu"} role="menu" aria-label="Qué quieres crear" className={cn(s.pop, mobile && s.popUp)}>
       {QUICK_CREATE.map(item => <Link key={item.href} role="menuitem" href={item.href} className={cn(s.link, s.sub)} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}
     </div>}

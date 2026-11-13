@@ -2,7 +2,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, Building2, Check, Info, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem, X } from "@/components/admin/icons";
+import { AlertTriangle, Building2, Check, CircleHelp, Info, Plus, Search, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem, Upload, X } from "@/components/admin/icons";
 import { cn } from "@/lib/utils";
 import s from "./kit.module.css";
 
@@ -138,6 +138,43 @@ export function IconTile({ icon: Icon, size = 40, className }: { icon: React.Com
   return <span className={cn(s.iconTile, className)} style={{ width: size, height: size }} aria-hidden="true"><Icon size={Math.round(size * 0.52)} aria-hidden /></span>;
 }
 
+/**
+  «?» de una línea donde hay dudas (LV-04, V07): al pulsarlo se abre una sola línea debajo; se cierra
+  al pulsar otra vez o con Escape. Va junto a un título o un botón; `term` nombra lo que explica.
+*/
+export function Hint({ term, children, className }: { term: string; children: React.ReactNode; className?: string }) {
+  const [open, setOpen] = React.useState(false);
+  const id = React.useId();
+  return <>
+    <button type="button" className={cn(s.hint, className)} aria-expanded={open} aria-controls={id} aria-label={`Qué es ${term}`} onClick={() => setOpen(v => !v)} onKeyDown={e => { if (e.key === "Escape" && open) { e.stopPropagation(); setOpen(false); } }}><CircleHelp size={18} aria-hidden="true" /></button>
+    <span id={id} role="note" className={s.hintText} hidden={!open}>{children}</span>
+  </>;
+}
+
+/**
+  Punto «Empieza aquí» (LV-04, V07): late tres veces la primera vez y se queda quieto hasta que la
+  persona pulsa lo que señala; desde entonces no vuelve a salir para ella. `storageKey` lleva su id.
+  Es una preferencia de interfaz en este navegador; sin almacenamiento no se muestra.
+*/
+const START_EVENT = "fortius:empieza-aqui";
+function startSeen(key: string) { try { return localStorage.getItem(key) === "1"; } catch { return true; } }
+function subscribeStart(cb: () => void) {
+  window.addEventListener("storage", cb); window.addEventListener(START_EVENT, cb);
+  return () => { window.removeEventListener("storage", cb); window.removeEventListener(START_EVENT, cb); };
+}
+export function StartHere({ storageKey, above, children }: { storageKey?: string; above?: boolean; children: React.ReactNode }) {
+  const seen = React.useSyncExternalStore(subscribeStart, () => !storageKey || startSeen(storageKey), () => true);
+  const done = () => {
+    if (seen || !storageKey) return;
+    try { localStorage.setItem(storageKey, "1"); } catch { /* sin almacenamiento */ }
+    window.dispatchEvent(new Event(START_EVENT));
+  };
+  return <span className={s.startHere} onClickCapture={done}>
+    {children}
+    {!seen && <><span className={s.startDot} aria-hidden="true" /><span className={s.startTip} data-above={above || undefined}>Empieza aquí</span></>}
+  </span>;
+}
+
 export function Kbd({ children }: { children: React.ReactNode }) { return <kbd className={s.kbd}>{children}</kbd>; }
 
 /**
@@ -221,8 +258,20 @@ export function Notice({ title, children, tone = "warn", actions, className }: {
 }
 
 /** Lista vacía que enseña (C31): qué es la sección, sus primeros pasos y el botón para empezar. */
-export function EmptyBox({ icon, title, children, steps, action }: { icon?: React.ReactNode; title: string; children?: React.ReactNode; steps?: React.ReactNode[]; action?: React.ReactNode }) {
-  return <div className={s.empty}>{icon}<p className="font-semibold text-foreground">{title}</p>{children && <div className="max-w-[52ch] text-sm">{children}</div>}
+type ArtIcon = React.ComponentType<{ size?: number | string; strokeWidth?: number | string; "aria-hidden"?: boolean }>;
+const ART_BADGE = { empezar: Plus, listo: Check, buscar: Search, subir: Upload } as const;
+/**
+  Ilustración de un estado vacío (LV-04, V08, aprobada el 13/11/2026): el objeto de la pantalla en
+  grande sobre una placa, con una insignia que dice el caso: «empezar» (+, aún no hay nada),
+  «listo» (palomita verde, todo hecho), «buscar» (lupa, sin resultados) y «subir».
+*/
+export function EmptyArt({ icon: Icon, kind }: { icon: ArtIcon; kind?: keyof typeof ART_BADGE }) {
+  const Badge = kind ? ART_BADGE[kind] : null;
+  return <span className={s.emptyArt} aria-hidden="true"><span className={s.emptyPlate}><Icon size={44} strokeWidth={1.25} aria-hidden /></span>{Badge && <span className={s.emptyBadge} data-kind={kind}><Badge size={18} strokeWidth={2} aria-hidden="true" /></span>}</span>;
+}
+
+export function EmptyBox({ icon, art, title, children, steps, action }: { icon?: React.ReactNode; art?: { icon: ArtIcon; kind?: keyof typeof ART_BADGE }; title: string; children?: React.ReactNode; steps?: React.ReactNode[]; action?: React.ReactNode }) {
+  return <div className={s.empty}>{art ? <EmptyArt icon={art.icon} kind={art.kind} /> : icon}<p className="font-semibold text-foreground">{title}</p>{children && <div className="max-w-[52ch] text-sm">{children}</div>}
     {steps?.length ? <ol className={s.emptySteps} aria-label="Primeros pasos">{steps.map((step, i) => <li key={i}><span aria-hidden="true">{i + 1}</span><span>{step}</span></li>)}</ol> : null}
     {action}</div>;
 }

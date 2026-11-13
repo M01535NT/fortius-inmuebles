@@ -169,3 +169,9 @@ const ROUTE_ORDER = ["captacion", "documentacion", "comercializacion", "negociac
 export function stageIcon(stage: { key?: string } | undefined, index: number): PanelIcon {
   return (stage?.key && OWNER_STAGE_ICONS[stage.key as keyof typeof OWNER_STAGE_ICONS]) || ROUTE_STAGE_ICONS[ROUTE_ORDER[index] ?? "postventa"];
 }
+
+/** Objetos de los estados vacíos (LV-04): la misma figura que la pantalla o la etapa. */
+export const EMPTY_ART = {
+  operaciones: STAGE.cierre, inmuebles: DOC["20"], contactos: adapt(I.Community, "Community"), tareas: DOC["10"],
+  documentos: DOC_FALLBACK, historial: adapt(I.ClockRotateRight, "ClockRotateRight"), papelera: adapt(I.Trash, "Trash"), asesores: adapt(I.Group, "Group"),
+} as const;
