@@ -1,90 +1,9 @@
 .panel {
-  --background: #fbfcfe;
-  --foreground: #061f3f;
-  --card: #ffffff;
-  --secondary: #edf2f8;
-  --muted-foreground: #52647a;
-  --border: #dce4ee;
-  --input: #61738a;
-  --primary: #8a1634;
-  --primary-foreground: #ffffff;
-  --control-edge: #61738a;
-  --focus-color: #174f94;
   color: var(--foreground);
-  --primary-text: #8a1634;
-  --card-foreground: #061f3f;
-  --panel-selected: #edf2f8;
-  --panel-selected-ink: #8a1634;
-  --primary-edge: #8a1634;
-  --primary-hover: #70112a;
-  --scrim: rgba(6, 31, 63, .45);
-  /*
-    Panel: dirección clara aprobada por el titular (17/10/2026) y versión 2 (30/10/2026,
-    LV-08): lienzo crema, tarjetas de 20 px y bloques de 24 px; sombras azul marino en reposo,
-    al levantar y en la acción principal. El sitio público conserva su escala.
-  */
-  --canvas: #f8f8ff;
-  --card-edge: rgba(6, 31, 63, .11);
-  --edge-soft: #c5d0dd;
-  --track: #e3e8f0;
-  --radius-control: 10px;
-  --radius-thumb: 12px;
-  --radius-card: 20px;
-  --radius-panel: 24px;
-  --radius-pill: 999px;
-  --shadow-rest: 0 1px 2px rgba(6, 31, 63, .04);
-  --shadow-lift: 0 2px 4px rgba(6, 31, 63, .05), 0 18px 40px -18px rgba(6, 31, 63, .28);
-  --shadow-cta: 0 8px 20px -10px rgba(138, 22, 52, .7);
-  --shadow-float: 0 12px 30px -12px rgba(6, 31, 63, .35);
-  --shadow-card: var(--shadow-rest);
-  --shadow-control: none;
-  --shadow-raised: 0 12px 32px rgba(6, 31, 63, .14);
-  --ease-out: cubic-bezier(.16, 1, .3, 1);
-  --success: #1f7a4d;
-  --success-surface: #e4f3ea;
-  --info: #174f94;
-  --info-surface: #e6eef9;
-  --alert: #b3352c;
-  --alert-surface: #fff0ed;
-  --field-surface: #ffffff;
-  --field-radius: var(--radius-control);
   font-size: 16px;
   line-height: 1.55;
   font-variation-settings: "wdth" 96;
   font-variant-numeric: tabular-nums;
-}
-:global(.dark) .panel {
-  --background: #080f1c;
-  --foreground: #f3f6fc;
-  --card: #121e30;
-  --secondary: #2c405a;
-  --muted-foreground: #c1ccdb;
-  --border: #35465d;
-  --input: #92a7c2;
-  --field-surface: #24364e;
-  --control-edge: #92a7c2;
-  --focus-color: #aacfff;
-  --primary-text: #f8f8ff; /* blanco azulado: la marca no lleva rosa ni crema */
-  --card-foreground: #f3f6fc;
-  --panel-selected: #382333;
-  --panel-selected-ink: #f8f8ff;
-  --primary-edge: #f8f8ff;
-  --primary-hover: #a2223f;
-  --scrim: rgba(0, 0, 0, .62);
-  --canvas: #080f1c;
-  --card-edge: rgba(255, 255, 255, .08);
-  --edge-soft: #4a5d78;
-  --track: #1b2a40;
-  --shadow-rest: 0 1px 2px rgba(0, 0, 0, .3);
-  --shadow-lift: 0 18px 40px -18px rgba(0, 0, 0, .6);
-  --shadow-float: 0 12px 30px -12px rgba(0, 0, 0, .6);
-  --shadow-raised: 0 12px 32px rgba(0, 0, 0, .45);
-  --success: #5fd39a;
-  --success-surface: #15311f;
-  --info: #aacfff;
-  --info-surface: #16294a;
-  --alert: #ff8a7a;
-  --alert-surface: #3a1c1a;
 }
 .panel h1 { font-variation-settings: "wdth" 92; }
 .panel :is(h2, h3) { font-variation-settings: "wdth" 94; }
