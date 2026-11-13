@@ -542,7 +542,7 @@ export function ClosingCostsCalculator({
                 field(
                   "isr",
                   "ISR determinado (MXN)",
-                  "Deja vacío si aún falta determinarlo. Usa 0 sólo si se confirmó que no hay pago.",
+                  "Deja vacío si aún falta determinarlo. Usa 0 solo si se confirmó que no hay pago.",
                 )
               ) : (
                 <div className="space-y-4 border-l-2 border-primary/40 pl-4">
