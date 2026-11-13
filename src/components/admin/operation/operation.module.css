@@ -89,6 +89,7 @@
 :global(.admin-root) .iconDone { flex: none; color: var(--success); }
 :global(.admin-root) .iconWarn { flex: none; color: var(--warning); }
 :global(.admin-root) .iconIdle { flex: none; color: var(--control-edge); }
+:global(.admin-root) .iconInfo { flex: none; color: var(--info); }
 :global(.admin-root) .nowTag { display: inline-flex; align-items: center; min-height: 1.625rem; padding: 0 .625rem; border-radius: 999px; background: var(--panel-selected); color: var(--panel-selected-ink); font-size: var(--admin-text-pastilla); font-weight: 620; }
 :global(.admin-root) .advance { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; padding: .875rem 1rem; border-radius: 10px; background: var(--secondary); }
 :global(.admin-root) .avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 999px; background: var(--secondary); font-size: var(--admin-text-pastilla); font-weight: 620; }
@@ -171,6 +172,8 @@
 :global(.admin-root) .navyCompact .bigNum { font-size: 4rem; }
 :global(.admin-root) .navyCompact .ofTen { font-size: 1.375rem; }
 :global(.admin-root) .navyCompact .stageTitle { font-size: var(--admin-text-seccion); }
+:global(.admin-root) .stageTitleIcon { display: inline-block; vertical-align: -.12em; margin-right: .5rem; opacity: .85; }
+:global(.admin-root) .navyCompact .stageTitleIcon { width: 20px; height: 20px; }
 /* Las diez etapas como barras */
 :global(.admin-root) .stages { display: flex; flex-direction: column; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: var(--admin-text-pastilla); }
 :global(.admin-root) .stage { color: rgba(255, 255, 255, .55); }
@@ -224,7 +227,6 @@
 :global(.admin-root) .navyTop { order: -2; }
 :global(.admin-root) .who, :global(.admin-root) .owner { order: -1; }
 :global(.admin-root) .owner { margin-top: 0; }
-:global(.admin-root) .ownerAvatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 999px; background: #fff; color: #061f3f; font-size: var(--admin-text-detalle); font-weight: 600; }
 :global(.admin-root) .ownerName { font-weight: 540; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
 :global(.admin-root) .ownerName:hover { text-decoration: underline; text-underline-offset: 4px; }
 
@@ -265,7 +267,6 @@
 :global(.admin-root) .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .625rem 1rem; padding: 0 .25rem; }
 @media (max-width: 1023px) { :global(.admin-root) .foot .footTabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; } }
 :global(.admin-root) .footWho { display: inline-flex; align-items: center; gap: .5rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
-:global(.admin-root) .footAvatar { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 999px; background: var(--secondary); color: var(--foreground); font-size: var(--admin-text-minimo); font-weight: 600; }
 :global(.admin-root) .footTabs { border-bottom: 0; }
 :global(.admin-root) .footTabs > [role=tab] { min-height: 2.5rem; border-bottom: 0; border-radius: var(--radius-pill); }
 :global(.admin-root) .footTabs > [role=tab][aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); }
