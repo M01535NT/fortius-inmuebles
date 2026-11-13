@@ -19,6 +19,7 @@ import { useTodayQueue } from "@/components/admin/workspace/use-today-queue";
 import { FirstContactButton } from "@/components/admin/workspace/first-contact";
 import { NextStepPrompt } from "@/components/admin/contacts/next-step-prompt";
 import { Announcements } from "@/components/admin/workspace/announcements";
+import { Inbox } from "@/components/admin/workspace/inbox";
 import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
 import s from "./hoy.module.css";
 
@@ -112,6 +113,7 @@ export function HoyScreen() {
       <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist className={s.full} /></SectionBoundary>
       <SectionBoundary what="«Tu primer día»"><FirstDay operations={dossiers} className={s.full} /></SectionBoundary>
       <SectionBoundary what="«Avisos»"><Announcements className={s.full} /></SectionBoundary>
+      <SectionBoundary what="«Para ti»"><Inbox className={s.full} /></SectionBoundary>
 
       <div data-tour="hoy-siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
         {dossiers === undefined ? <p role="status" className={s.nextNote}>Consultando operaciones…</p>
