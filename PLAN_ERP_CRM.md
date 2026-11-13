@@ -23,18 +23,17 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 - **Textos:** inicio, Vender y Nosotros; nombres unificados del sitio y del panel.
 - **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
 - **Seguridad:** cabeceras de seguridad; fotos sin EXIF ni GPS.
-- **Calidad:** hallazgos C-02 a C-22, C-24 y C-25 corregidos (C-26 espera su arreglo en Sistema visual).
-- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; el candado de arranque del propietario también en la base (M2); CSS y fuentes separados entre sitio y panel.
+- **Calidad:** hallazgos C-02 a C-22, C-24 y C-25 corregidos y C-26 (Tab no saca el foco del panel lateral).
+- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; el candado de arranque del propietario también en la base (M2); CSS y fuentes separados entre sitio y panel, y cada página pública carga solo sus estilos; video de portada ligero en celular (aprobado por el titular el 13/11/2026); el expediente completo incluye las copias firmadas; C-23 corregido.
 
 **Qué sigue, en orden.**
 
 1. Terminar los hallazgos abiertos de Calidad y de Seguridad.
-2. Integrar la prueba de Calidad C-26 junto con su arreglo de Sistema visual.
-3. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
-4. DOC-14 espera el Word de arrendamiento del titular.
-5. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
-6. Verificación completa y un solo PR a `main` cuando el titular lo pida.
-7. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
+2. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
+3. DOC-14 espera el Word de arrendamiento del titular.
+4. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
+5. Verificación completa y un solo PR a `main` cuando el titular lo pida.
+6. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
 
 **Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **Fortius solo representa al propietario: compradores y arrendatarios son leads de Fortius y contraparte de sus clientes, nunca clientes de Fortius** (RP-93).
 
