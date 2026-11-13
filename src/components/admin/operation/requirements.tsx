@@ -5,7 +5,7 @@ import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/component
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
-import { directorReview, exceptionAllowed, exceptionCovers, ownerProcess, requirementPhase, reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { directorReview, exceptionAllowed, exceptionCovers, ownerProcess, requirementFormato, requirementPhase, reviewComplete, stageLabel, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirementDetail, reviewState } from "@/lib/admin/operation-view";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { useIsDirector } from "@/lib/admin/staff-scope";
@@ -107,8 +107,8 @@ export function StateIcon({ state, done }: { state: ReviewStateKey | "borrador";
 }
 
 /** El documento de la operación que respalda un punto: el de su formato (cualquier 04 para el levantamiento). */
-function ownDocument(requirement: RequirementKey, documents: Evidence["documents"]) {
-  const formato = String(WORKFLOW_REQUIREMENTS[requirement].formato);
+function ownDocument(requirement: RequirementKey, documents: Evidence["documents"], route?: OperationWorkflow["ruta"]) {
+  const formato = requirementFormato(requirement, route);
   return documents.find(d => d.formato_id === formato || (/^04[A-G]$/.test(formato) && /^04[A-G]$/.test(d.formato_id)));
 }
 
@@ -139,7 +139,7 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
   const advisers = useCollection(db.asesores);
   const previous = review?.evidencia;
   // Ya viene elegido el documento que respalda este punto (el 02 para la entrevista, el 04 para el levantamiento…).
-  const own = ownDocument(requirement, evidence.documents);
+  const own = ownDocument(requirement, evidence.documents, route);
   const [source, setSource] = React.useState<string>(() => previous?.tipo === "externa" ? "externa" : previous?.tipo === "cliente" ? "cliente" : previous?.tipo === "entrevista" ? "entrevista" : previous && ["documento", "emision", "adjunto"].includes(previous.tipo) ? `doc:${evidence.documents.find(d => d.id === previous.referencia)?.id ?? ""}` : own ? `doc:${own.id}` : evidence.documents[0] ? `doc:${evidence.documents[0].id}` : "externa");
   const [who, setWho] = React.useState(previous?.responsable ?? evidence.reviewer);
   const [date, setDate] = React.useState(previous?.fecha ?? today);
@@ -230,7 +230,7 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
     <details className={s.more}><summary>Más detalles</summary><div className="mt-3 flex flex-col gap-4">
       {document && <label className="text-sm font-semibold">Usar el PDF generado o un archivo de este documento<select className={selectClass} value={kept} onChange={e => setKept(e.target.value)}><option value="">El documento en su versión {document.version}</option>{(sources?.emisiones ?? []).map(e => <option key={e.id} value={`emision:${e.id}`}>PDF generado · versión {e.draft_version}</option>)}{(sources?.adjuntos ?? []).map(a => <option key={a.id} value={`adjunto:${a.id}`}>Archivo · {a.caption}</option>)}</select></label>}
       <label className="text-sm font-semibold">Límites o condiciones<textarea className={textareaClass} rows={2} maxLength={1000} value={limits} onChange={e => setLimits(e.target.value)} /></label>
-      <p className="text-sm text-muted-foreground">Formato relacionado: {WORKFLOW_REQUIREMENTS[requirement].formato}. La referencia se valida al guardar; el panel no certifica su contenido ni sustituye una revisión profesional.</p>
+      <p className="text-sm text-muted-foreground">Formato relacionado: {requirementFormato(requirement, route)}. La referencia se valida al guardar; el panel no certifica su contenido ni sustituye una revisión profesional.</p>
     </div></details>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </Sheet>;
