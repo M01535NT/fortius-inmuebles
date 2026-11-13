@@ -28,8 +28,7 @@
 .ab-mark { display: grid; place-items: center; width: 100%; height: 100%; background: #061f3f; }
 .ab-portrait-name { font-size: 22px; font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; color: #fff; }
 .ab-portrait-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.ab-portrait-note { font-size: 11px; color: rgba(248, 248, 255, 0.6); }
-.ab-chip { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 4px; color: #fff; font-size: 13px; font-weight: 600; transition: background-color 0.3s, border-color 0.3s, transform 0.3s var(--ab-ease); }
+.ab-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 4px; color: #fff; font-size: 13px; font-weight: 600; transition: background-color 0.3s, border-color 0.3s, transform 0.3s var(--ab-ease); }
 .ab-chip:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); }
 .ab-chip-primary { border-color: var(--ab-wine); background: var(--ab-wine); font-weight: 600; }
 .ab-chip-primary:hover { background: #a2223f; border-color: #a2223f; }

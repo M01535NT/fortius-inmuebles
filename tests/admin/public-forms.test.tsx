@@ -21,7 +21,6 @@ vi.mock("@/components/magicui/blur-fade", () => ({ BlurFade: ({ children }: Reac
 const variants = [
   { name: "contacto", component: <ContactForm />, button: "Enviar consulta" },
   { name: "comprador", component: <BuyerBrief />, button: "Enviar mi búsqueda" },
-  { name: "checklist", component: <LeadMagnet />, button: "Recibir el checklist" },
   { name: "documentos", component: <PropertyDocuments slug="fixture" codigo="TEST" documentos={[{ codigo: "F1", nombre: "Ficha", descripcion: "Documento", url: "/fixture.pdf" }]} />, button: "Liberar descargas" },
   { name: "interes-propiedad", component: <PropertyInterestForm slug="fixture" codigo="TEST" titulo="Casa" />, button: "Me interesa esta propiedad" },
 ];
@@ -106,4 +105,11 @@ test.each(variants)("$name retains failed drafts and waits for ACK before succes
   expect(push).not.toHaveBeenCalled();
   acknowledge(Response.json({ id: "persisted-ack" }, { status: 201 }));
   await waitFor(() => expect(push.mock.calls.length || !container.querySelector("form")).toBeTruthy());
+});
+
+test("checklist downloads directly without asking for personal data", () => {
+  const { container } = render(enabled(<LeadMagnet />));
+  expect(container.querySelector("form")).toBeNull();
+  expect(container.querySelector("input")).toBeNull();
+  expect(screen.getByRole("link", { name: /Descargar el checklist/ }).getAttribute("href")).toBe("/descargas/checklist-venta-fortius.pdf");
 });

@@ -362,13 +362,12 @@
 .ip-chips span { padding: 8px 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; background: rgba(6, 12, 20, 0.62); color: #f8f8ff; font-size: 12px; font-weight: 600; backdrop-filter: blur(10px); }
 .ip-aside { justify-self: stretch; }
 .ip-steps { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.ip-steps li { position: relative; display: grid; grid-template-columns: 20px 40px minmax(0, 1fr); align-items: baseline; gap: 4px 10px; padding: 16px 18px; border: 1px solid transparent; border-radius: 6px; }
+.ip-steps li { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: baseline; gap: 4px 10px; padding: 16px 18px; border: 1px solid transparent; border-radius: 6px; }
 .ip-steps li.is-current { border-color: color-mix(in srgb, var(--ns-ink) 14%, transparent); background: color-mix(in srgb, var(--ns-ink) 6%, transparent); }
 .ip-step-dot { width: 10px; height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--ns-ink) 30%, transparent); }
 .ip-steps li.is-current .ip-step-dot { background: var(--ns-accent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--ns-accent) 18%, transparent); }
-.ip-step-number { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ns-accent); }
 .ip-steps strong { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
-.ip-steps li > span:last-child { grid-column: 3; color: color-mix(in srgb, var(--ns-ink) 70%, transparent); font-size: 14px; line-height: 1.5; }
+.ip-steps li > span:last-child { grid-column: 2; color: color-mix(in srgb, var(--ns-ink) 70%, transparent); font-size: 14px; line-height: 1.5; }
 
 /* Segmentos */
 .seg-intro { max-width: 56ch; margin: 0; font-size: 17px; line-height: 1.6; }
@@ -492,6 +491,7 @@
 .ct-direct .text-muted-foreground { color: color-mix(in srgb, var(--ns-ink) 70%, transparent); }
 .ct-direct a { color: var(--ns-ink); }
 .ct-direct .bg-primary { background: #8a1634; }
+.ct-direct a.bg-primary { color: #fff; }
 .ct-direct .border-border { border-color: color-mix(in srgb, var(--ns-ink) 24%, transparent); background: transparent; color: var(--ns-ink); }
 .ct-direct .border-border:hover { background: color-mix(in srgb, var(--ns-ink) 10%, transparent); }
 .ct-direct a[href^="/inventario"] { color: var(--ns-accent); }

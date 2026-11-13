@@ -265,8 +265,9 @@
 .nx-person-photo img { object-fit: cover; }
 .nx-person strong { font-size: 18px; font-weight: 600; }
 .nx-person-role { color: var(--nx-muted); font-size: 14px; }
-.nx-person-bio { margin-top: 6px; color: var(--nx-muted); font-size: 14px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.nx-person-photo.is-mark { background: #061f3f; }
+.nx-person-bio { margin-top: 6px; color: var(--nx-muted); font-size: 14px; line-height: 1.55; }
+.nx-person-photo.is-mark { background: #061f3f; color: #f8f8ff; }
+.dark .nx-person-photo.is-mark { border: 1px solid rgba(248, 248, 255, 0.16); }
 @media (max-width: 1023px) {
   .nx-segments { grid-template-columns: 1fr; }
   .nx-segment { min-height: 280px; }

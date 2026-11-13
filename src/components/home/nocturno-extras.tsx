@@ -151,9 +151,7 @@ export function NocturnoEquipo({ team, ilustrativo = false }: { team: Perfil[]; 
     <ul className="nx-team">
       {team.slice(0, 6).map((person) => <li key={person.id}>
         <Link href="/nosotros#agentes" className="nx-person">
-          <span className={"nx-person-photo" + (ilustrativo ? " is-mark" : "")}>{ilustrativo
-            ? <Image src="/brand/fortius-symbol-inverse.svg" alt="" width={74} height={94} />
-            : person.foto
+          <span className={"nx-person-photo" + (ilustrativo || !person.foto ? " is-mark" : "")}>{!ilustrativo && person.foto
               ? <Image unoptimized src={person.foto} alt={`Foto de ${person.nombre}`} fill sizes="(max-width: 767px) 50vw, 300px" />
               : <span aria-hidden="true">{person.iniciales}</span>}</span>
           <strong>{person.nombre}</strong>
