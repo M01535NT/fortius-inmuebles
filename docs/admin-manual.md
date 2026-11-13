@@ -1,6 +1,6 @@
 # Manual de administración de Fortius Inmuebles
 
-Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; la sección «Prospectos, clientes y firma del contrato» se actualizó el 12/11/2026 (COR-10 y COR-17). [Estado y pendientes](../PLAN_ERP_CRM.md).
+Corte documental: 12/10/2026. Alcance cotejado con el código de `1e763345`; la sección «Prospectos, clientes y firma del contrato» se actualizó el 12/11/2026 (COR-10, COR-17, COR-18, COR-19 y COR-22). [Estado y pendientes](../PLAN_ERP_CRM.md).
 
 ## Acceso y roles
 
@@ -73,6 +73,16 @@ Si el propietario ya tiene un avalúo, no hace falta la opinión de valor. En la
 Cuando el avalúo vence, la operación vuelve a pedir el valor: registra uno actualizado o haz la opinión de valor. El avalúo del propietario sirve para fijar el precio; si el comprador usa crédito, su banco o el Infonavit pedirá su propio avalúo.
 
 Al confirmar cualquier otro requisito, el respaldo puede ser **Un documento del cliente** subido a esa operación.
+
+### Cierre: quién captó, quién vendió y el inmueble vendido
+
+En **Cierre y entrega**, la tarjeta **Cierre de la operación** registra el asesor que captó y el que vendió; cualquier asesor del equipo puede vender. Muestra el reparto estimado de la comisión: 25 % para cada uno, o 50 % si es la misma persona, sobre la comisión del contrato de intermediación. Es una estimación hasta que se cobre. Sin este registro, la operación no se archiva.
+
+En **Inmuebles**, **Buscan y no tenemos** muestra a los interesados activos que no tienen ningún inmueble publicado y disponible que les sirva, agrupados por operación, tipo y zona, con cuántos son y su presupuesto (cada moneda aparte). **Captar inmueble para este perfil**, en cada grupo o en la ficha del interesado sin inmuebles que le sirvan, abre la atención a un propietario con la zona y el tipo ya puestos. Mientras se capta, el primer contacto y la operación dicen cuántos interesados esperan un inmueble así; se les avisa cuando se publique, nunca antes de la firma. La zona se compara sin acentos ni «de»: «Lomas Virreyes» es «Lomas de Virreyes».
+
+En la ficha del prospecto, **Registrar contacto** guarda cada intento en dos toques: eliges qué pasó (**Llamé**, **No contestó**, **Mandé WhatsApp** o **Visitó**) y guardas el siguiente paso con su fecha, que ya viene propuesto. El intento aparece en la línea de tiempo, cuenta como primera atención y el siguiente paso se ve en Contactos y en Hoy. Al tercer «No contestó» seguido se propone reintentar en 30 días. **Visitó** deja la visita en la agenda con el inmueble, así la ve también la operación del propietario. Para quien compra o renta la acción principal es **Registrar contacto**: no se abre operación, porque Fortius representa al propietario.
+
+La misma tarjeta propone **Marcar el inmueble como vendido** (o rentado): se puede dejar en el sitio como vendido o retirarlo. Un inmueble marcado como vendido ya no se retira solo del sitio al avanzar el cierre. **Reportes**, en «Por asesor», suma los cierres y el reparto estimado de cada quien.
 
 **Eliminar expediente** conserva sus documentos y permite recuperarlo desde **Eliminados**. Mientras está eliminado se bloquean escrituras y descargas documentales. La recuperación mantiene su identidad y archivos; una eliminación recuperable no equivale a borrado definitivo.
 
