@@ -34,7 +34,9 @@ Bocetos navegables (datos de ejemplo): https://claude.ai/artifact/N8ZFG6NK4okiPD
 - **B · Ficha de la persona.** El trabajo ocurre en la ficha: siguiente paso arriba, mensajes listos con confirmación de envío, historial al lado.
 - **C · Tablero por momento.** Sin atender, en contacto, con visita, para retomar; la tarjeta cambia de columna sola al registrar.
 
-## Recomendación
+## Recomendación (el titular pidió el 12/11/2026 ajustar los bocetos a A más B)
+
+Los bocetos muestran ahora **A + B en una sola pantalla**: lista del día a la izquierda y ficha a la derecha (en celular, una a la vez). El tablero C queda como opción para el director.
 
 **A para el día a día más B para el detalle, y dejar C para el director.** A reutiliza Hoy y el registro que ya existe; B agrega lo que falta (plantillas, línea de tiempo completa). El tablero C es una pantalla nueva y solo se justifica con volumen de leads o cuando el director lo pida.
 
