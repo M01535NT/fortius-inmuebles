@@ -3,6 +3,7 @@ import * as React from "react";
 import Image from "next/image";
 import { apiRequest, changePassword, isLoggedIn, useSession } from "@/lib/admin/store";
 import { AsyncForm, Field, PageHeader, btnGhost, btnPrimary, inputClass } from "@/components/admin/ui";
+import { TwoStepSection } from "@/components/admin/two-step-section";
 
 export default function ProfilePage() {
   const user = useSession();
@@ -44,5 +45,6 @@ export default function ProfilePage() {
       {saved && <p role="status">Perfil guardado en tu cuenta.</p>}
     </AsyncForm>
     <section id="seguridad" className="scroll-mt-24 rounded-lg bg-card p-5"><h2>Cambiar contraseña</h2><AsyncForm className="mt-4 space-y-4" onSubmit={async event => {const form=event.currentTarget;const data=new FormData(form);if(data.get("password")!==data.get("confirm"))throw new Error("Las contraseñas no coinciden.");await changePassword(String(data.get("password")));form.reset();}}><Field label="Nueva contraseña" htmlFor="profile-password"><input id="profile-password" name="password" type="password" required minLength={12} maxLength={128} autoComplete="new-password" className={inputClass}/></Field><Field label="Confirmar contraseña" htmlFor="profile-confirm"><input id="profile-confirm" name="confirm" type="password" required minLength={12} maxLength={128} autoComplete="new-password" className={inputClass}/></Field><button className={btnPrimary}>Actualizar contraseña</button></AsyncForm></section>
+    {user?.role === "admin" && <TwoStepSection />}
   </div>;
 }

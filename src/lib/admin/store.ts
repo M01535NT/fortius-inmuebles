@@ -14,6 +14,8 @@ export class AdminApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** AUT-01: `mfa: "required"` cuando falta el código de la app de verificación. */
+    public details?: { mfa?: string; reauth?: boolean },
   ) {
     super(
       status === 409
@@ -107,6 +109,10 @@ export async function apiRequest<T>(
       typeof result.error === "string"
         ? result.error
         : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.",
+      {
+        ...(typeof result.mfa === "string" ? { mfa: result.mfa } : {}),
+        ...(result.reauth === true ? { reauth: true } : {}),
+      },
     );
   }
   return result as T;
@@ -394,11 +400,15 @@ export function errorMessage(error: unknown) {
     ? error.message
     : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
 }
+// AUT-01: la contraseña (o el enlace) fue aceptada y falta el código de la app de verificación.
+let mfaPending = false;
+export const needsMfaCode = () => mfaPending;
 export async function isLoggedIn() {
   const epoch = sessionEpoch;
   try {
     const result = await apiRequest<{ user: StaffUser }>("/api/auth/session");
     if (epoch !== sessionEpoch) return false;
+    mfaPending = false;
     setSession(result.user);
     return true;
   } catch (error) {
@@ -407,6 +417,7 @@ export async function isLoggedIn() {
       error instanceof AdminApiError &&
       (error.status === 401 || error.status === 403)
     ) {
+      mfaPending = error.details?.mfa === "required";
       setSession(null);
       return false;
     }
@@ -414,9 +425,22 @@ export async function isLoggedIn() {
   }
 }
 export async function login(email: string, password: string) {
-  await apiRequest("/api/auth/login", "POST", { email, password });
+  const result = await apiRequest<{ mfaRequired?: boolean }>("/api/auth/login", "POST", { email, password });
+  if (result.mfaRequired) { mfaPending = true; return false; }
   return isLoggedIn();
 }
+/** Segundo paso del acceso con el código de 6 dígitos. */
+export async function verifyMfaCode(code: string) {
+  await apiRequest("/api/auth/mfa/verify", "POST", { code });
+  mfaPending = false;
+  return isLoggedIn();
+}
+export type MfaStatus = { available: boolean; devices: { id: string; createdAt: string }[] };
+export const mfaStatus = () => apiRequest<MfaStatus>("/api/auth/mfa");
+export const startMfaEnrollment = () =>
+  apiRequest<{ factorId: string; qr: string; secret: string }>("/api/auth/mfa/enroll", "POST", {});
+export const confirmMfaEnrollment = (factorId: string, code: string) =>
+  apiRequest<{ ok: true }>("/api/auth/mfa/confirm", "POST", { factorId, code });
 export async function logout() {
   // Clear private UI immediately, even if server logout fails; report failure to retry.
   clearAdminCache();
@@ -464,7 +488,8 @@ export async function acceptPasswordLink(): Promise<boolean> {
     );
   if (type !== "invite" && type !== "recovery")
     throw new AdminApiError(400, "Enlace de acceso no compatible.");
-  await apiRequest("/api/auth/callback", "POST", body);
+  const result = await apiRequest<{ mfaRequired?: boolean }>("/api/auth/callback", "POST", body);
+  mfaPending = Boolean(result.mfaRequired);
   return true;
 }
 export async function captureLead(input: {
