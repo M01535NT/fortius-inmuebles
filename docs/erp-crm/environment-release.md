@@ -13,7 +13,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 - Se permite la integración automática y se borra la rama al integrar; se admiten merge, squash y rebase.
 - Actions: permisos por defecto de solo lectura; los workflows no pueden aprobar PR; se permiten todas las acciones (sin fijarlas por SHA). No hay secretos ni variables de Actions.
 - Escaneo de secretos, protección al subir y alertas de Dependabot: **activados el 12/11/2026** (sin alertas abiertas de secretos al activarlos). Las actualizaciones automáticas de Dependabot siguen desactivadas a propósito: abrirían PR sin acuerdo del titular.
-- Los entornos de despliegue no tienen reglas de protección. Siguen listados `Production – mnt-inmuebles`, `Production – fortius` y sus previews, sin despliegues desde el 18/10/2026.
+- Los entornos de despliegue no tienen reglas de protección. Los viejos (`Production – mnt-inmuebles`, `Production – fortius` y sus previews, sin despliegues desde el 18/10/2026) **se borraron el 12/11/2026**; en Vercel solo existe el proyecto `fortius-inmuebles`. Quedan `Production`/`Preview`, `Production – fortius-inmuebles`/`Preview – fortius-inmuebles` y `respaldo`.
 
 **Vercel (ENV-01).**
 
@@ -43,7 +43,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 1. ~~**Vercel:** borrar las cinco entradas de preview de las ramas eliminadas `codex/erp-crm-preview` y `cursor/sitio-publico-portal-b656`.~~ **Hecho el 12/11/2026.** Los despliegues de vista previa ya creados conservan sus variables hasta que se borren; están detrás de la protección de Vercel.
 2. **Vercel:** ~~quitar las 13 variables de la integración de Supabase que el código no usa~~ **Hecho el 12/11/2026**, con la sincronización de Supabase hacia Vercel apagada para que no vuelvan. Si algún día se rota una clave que sí se usa, hay que cambiarla a mano en Vercel.
 3. **GitHub:** ~~activar el escaneo de secretos, la protección al subir y las alertas de Dependabot~~ **Hecho el 12/11/2026.**
-4. **GitHub:** borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`) después de confirmar que no queda ningún proyecto Vercel con esos nombres.
+4. **GitHub:** ~~borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`)~~ **Hecho el 12/11/2026**, tras confirmar que ningún flujo, regla ni proyecto de Vercel los usa.
 5. **GitHub (decide el titular):** la regla deja que el administrador la salte. Mientras sea la única cuenta, conviene conservarla así y no saltarla salvo urgencia (I-04).
 6. **Recuperación de la aplicación:** el rollback de Vercel (volver a un despliegue anterior) no se ha ensayado. Se propone ensayarlo con un despliegue de producción anterior compatible con el esquema vigente, con aviso previo.
 7. **Supabase:** autorizar el conector de solo lectura `supabase-fortius` (o un token de solo lectura de la API de administración) para leer SMTP, URL de retorno, MFA y copias sin pedírselo al titular cada vez.
