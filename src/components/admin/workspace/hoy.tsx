@@ -1,4 +1,5 @@
 "use client";
+import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { FirstDay } from "./first-day";
 import * as React from "react";
 import Image from "next/image";
@@ -185,14 +186,17 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
   const [message, setMessage] = React.useState("");
   const allTasks = useCollection(db.tareas);
   const [ask, setAsk] = React.useState<NextRef | null>(null);
+  const undo = useUndo();
   const open = tasks.filter(isTaskOpen), done = tasks.length - open.length;
   const shown = tasks.slice(0, TASK_ROWS);
   async function toggle(task: Task) {
-    setSaving(task.id); setMessage(""); setAsk(null);
+    setSaving(task.id); setMessage(""); setAsk(null); undo.clear();
     try {
       const completing = isTaskOpen(task);
-      await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
-      setMessage("Guardado");
+      const saved = await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
+      // RP-16: completar se deshace con un toque; el aviso sale cuando el servidor ya lo guardó.
+      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)) });
+      else setMessage("Guardado");
       // DEC-42: completar el siguiente paso de una persona pide el que sigue.
       if (completing) setAsk(askNextAfter(task, allTasks));
     } catch (error) {
@@ -235,6 +239,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
       </div>
     </Card>
     {message && <p role="status" className={cn("px-1 text-sm", message.startsWith("No se pudo") ? "text-destructive" : "text-muted-foreground")}>{message}</p>}
+    <UndoNotice {...undo} onError={setMessage} />
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : names.client(ask.kind === "operacion" ? ask.clienteId : ask.id)} onClose={() => setAsk(null)} />}
   </Section>;
 }

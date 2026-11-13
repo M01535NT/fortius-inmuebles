@@ -146,7 +146,12 @@ test("a task is marked done from Hoy and the change is saved", async () => {
   fireEvent.click(await region.findByRole("checkbox", { name: "Marcar como hecha: Confirmar la visita" }));
   await waitFor(() => expect(writes).toHaveLength(1));
   expect(writes[0]).toMatchObject({ id: "t1", estado: "completada" });
-  expect(await screen.findByText("Guardado")).toBeTruthy();
+  // RP-16: tras guardar, «Deshacer» la regresa a como estaba con otra escritura confirmada.
+  expect(await screen.findByText("Completaste «Confirmar la visita».")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Deshacer" }));
+  await waitFor(() => expect(writes).toHaveLength(2));
+  expect(writes[1]).toMatchObject({ id: "t1", estado: "pendiente" });
+  await waitFor(() => expect(screen.queryByRole("button", { name: "Deshacer" })).toBeNull());
 });
 
 test("C40: a client with an active operation is not listed again for the profile follow-up", () => {

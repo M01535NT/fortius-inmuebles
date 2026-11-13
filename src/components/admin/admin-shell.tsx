@@ -34,6 +34,7 @@ import {
 } from "@/lib/admin/store";
 import { SessionExpiredDialog } from "@/components/admin/workspace/session-expired";
 import { ConflictHost } from "@/components/admin/workspace/conflict-dialog";
+import { Silhouette } from "@/components/admin/workspace/silhouette";
 
 /** AUT-01: segundo paso del acceso, con el código de la app de verificación. */
 function MfaStep({ onVerified, onCancel }: { onVerified: () => void; onCancel: () => void }) {
@@ -396,9 +397,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
           {!ready || loadedPath !== pathname ? (
-            <p role="status" aria-busy={refreshing}>
-              {error || refreshError ? "No se pudo cargar este módulo. Puedes reintentar o abrir otro desde el menú." : "Cargando módulo…"}
-            </p>
+            error || refreshError ? <p role="status">No se pudo cargar este módulo. Puedes reintentar o abrir otro desde el menú.</p> : <Silhouette label="Cargando módulo…" />
           ) : directorOnly ? (
             <div role="alert" className="max-w-[640px] space-y-3 rounded-[var(--radius-card)] border border-[var(--card-edge)] bg-card p-6">
               <h1 className="text-xl font-semibold">Esta sección la administra el director</h1>
