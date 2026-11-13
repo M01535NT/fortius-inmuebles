@@ -1454,7 +1454,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | NAV-13 | 4 | en_local | papelera «Eliminados» (N23) y «Tu primer día» con foto, WhatsApp, cita y operación, que desaparece al completarse (N24, 8d7bb05); en `feat/integracion` (13/11/2026) |
 | NAV-14 | 4 | pendiente | PWA-03 |
 | LV-01 | 4 | en_local | cinco roles de color con superficie y borde, AA en claro y oscuro; axe sin fallas en 24 pantallas; escala de `docs/brand.md` (13/11/2026, `feat/integracion`) |
-| LV-02 | 4 | pendiente | LV-01, SIM-05 |
+| LV-02 | 4 | en_local | íconos por etapa y documento, estados con forma, anillo de avance y avatar único (8b1d265, `feat/integracion`, 13/11/2026; boceto aprobado por el titular); «Aprobado» y «Revisado» aún no tienen dato de documento detrás: hoy solo se muestran Borrador y Firmado (09 y 21 con firma registrada) |
 | LV-03 | 4 | pendiente | LV-02, UX-04 |
 | LV-04 | 4 | pendiente | LV-01, SIM-12 |
 | DOC-14 | 2 | pendiente | modelos del titular |
