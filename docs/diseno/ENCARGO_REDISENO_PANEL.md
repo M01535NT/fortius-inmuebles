@@ -1,6 +1,6 @@
 # Rediseño guiado del panel (Fase C) — encargo para el agente de desarrollo
 
-> **Estado: cumplido.** Las siete fases se fusionaron en `main` con el PR #39 el 17/10/2026. Las reglas de este encargo (sin migraciones, flujo sin cambios, roles `admin`/`editor`, avisos solo con el contador de Hoy) valían para esa fase. Las reglas vigentes del producto están en «Dirección del producto y reglas vigentes» de `PLAN_ERP_CRM.md`; si algo de aquí las contradice, mandan aquellas. El estilo redondeado, el glosario y los nombres sencillos de este encargo siguen vigentes. Desde el 17/10/2026, las decisiones de §4 que contradigan el paquete «Simplificación de la interfaz (SIM)» del plan quedan reemplazadas: tablero y avance en 6 etapas, estados de requisito compactos, sin pestaña Ajustes, guinda solo para la acción principal, sin letra monoespaciada, «+ Nuevo» con menú, una sola lista de personas y «Agendar» como panel. También quedan reemplazadas por el paquete «Navegación y productividad (NAV)»: la pantalla de inicio es por rol (N11) y la barra lateral vuelve a poder contraerse (N01). Desde el 18/10/2026, los nombres sencillos de firma, pago y privacidad cambian a textos fieles a la regla (RP-86: «Firma acreditada», «Pagos para entregar cumplidos según contrato», «Aviso y controles de privacidad revisados»), pendientes de confirmación del titular (DEC-27), y las 10 etapas se agrupan en las cuatro fases del boceto C.
+> **Estado: cumplido.** Las siete fases se fusionaron en `main` con el PR #39 el 17/10/2026. Las reglas de este encargo (sin migraciones, flujo sin cambios, roles `admin`/`editor`, avisos solo con el contador de Hoy) valían para esa fase. Las reglas vigentes del producto están en «Dirección del producto y reglas vigentes» de `ROADMAP.md`; si algo de aquí las contradice, mandan aquellas. El estilo redondeado, el glosario y los nombres sencillos de este encargo siguen vigentes. Desde el 17/10/2026, las decisiones de §4 que contradigan el paquete «Simplificación de la interfaz (SIM)» del plan quedan reemplazadas: tablero y avance en 6 etapas, estados de requisito compactos, sin pestaña Ajustes, guinda solo para la acción principal, sin letra monoespaciada, «+ Nuevo» con menú, una sola lista de personas y «Agendar» como panel. También quedan reemplazadas por el paquete «Navegación y productividad (NAV)»: la pantalla de inicio es por rol (N11) y la barra lateral vuelve a poder contraerse (N01). Desde el 18/10/2026, los nombres sencillos de firma, pago y privacidad cambian a textos fieles a la regla (RP-86: «Firma acreditada», «Pagos para entregar cumplidos según contrato», «Aviso y controles de privacidad revisados»), pendientes de confirmación del titular (DEC-27), y las 10 etapas se agrupan en las cuatro fases del boceto C.
 
 **Aprobado por el titular (Moisés Núñez Tonalá) el 15 y 16/10/2026.** Este archivo es el encargo completo. El agente lo lee entero antes de escribir código y vuelve a él al empezar cada fase.
 
@@ -114,7 +114,7 @@ Se actualizan los enlaces internos, la búsqueda y las pruebas a las rutas nueva
 
 **Operación guiada** (lienzo: `OperacionEscritorio*` y `OperacionMovil*`)
 
-> **Nueva disposición elegida por el titular (29/10/2026):** la pantalla de una operación pasará al boceto D «Moderno» (`docs/diseno/operacion-boceto-d/OperacionModerno.dc.html`), especificado como LV-06 en `PLAN_ERP_CRM.md`. Cambia la disposición y el estilo; el contenido y las reglas de esta sección (requisitos, chips, «Marcar como revisado», próxima tarea, candados para pasar de etapa, pestañas, Ajustes) se conservan. Se construye cuando el titular lo pida.
+> **Nueva disposición elegida por el titular (29/10/2026):** la pantalla de una operación pasará al boceto D «Moderno» (`docs/diseno/operacion-boceto-d/OperacionModerno.dc.html`), especificado como LV-06 en `ROADMAP.md`. Cambia la disposición y el estilo; el contenido y las reglas de esta sección (requisitos, chips, «Marcar como revisado», próxima tarea, candados para pasar de etapa, pestañas, Ajustes) se conservan. Se construye cuando el titular lo pida.
 - **Encabezado:** regreso a Operaciones, cliente, folio, inmueble, precio («Precio que espera» o «Precio de salida», según la etapa) y responsable.
 - **Avance de 6 etapas** numeradas del 1 al 6 («Lista», «Aquí vas»). En celular se lee «Etapa N de 6» con barra. Cambia también la numeración 0–5 que hoy usan las páginas de proceso.
 - **Pestañas:** Lo que sigue · Documentos · Tareas · Historial · Ajustes.
@@ -189,7 +189,7 @@ Para cada fase:
 - trabajar en la rama `feat/panel-guiado`, con un commit por fase;
 - actualizar las pruebas;
 - comparar la pantalla con su artboard a 390 y 1440 px, en claro y oscuro;
-- registrar la entrega en `PLAN_ERP_CRM.md`. La regla del plan pide registrar cada entrega con su commit, pruebas y límites, y no marcar nada como publicado por haber hecho push.
+- registrar la entrega en `ROADMAP.md`. La regla del plan pide registrar cada entrega con su commit, pruebas y límites, y no marcar nada como publicado por haber hecho push.
 
 1. **Base visual.**
    - Pasar los tokens de `fortius-panel.css` y `ds/fortius/tokens.json` a variables del panel, en claro y oscuro.
