@@ -1,6 +1,6 @@
-# Textos base de los mensajes (borrador)
+# Textos base de los mensajes
 
-Fecha: 12/11/2026. Estado: **borrador para que el titular lo apruebe o corrija.** Nada de esto está programado.
+Fecha: 12/11/2026. Estado: **textos aprobados por el titular el 12/11/2026.** Son los textos base que se cargan en Configuración; el director puede cambiarlos después. Todavía no están programados en el panel.
 
 Responde a RP-22 y a la decisión del titular del 12/11/2026: los mensajes salen de textos aprobados por él, el asesor los ve ya llenos y puede ajustar una palabra antes de mandarlos. El envío queda en el historial solo cuando el asesor confirma que lo mandó.
 
