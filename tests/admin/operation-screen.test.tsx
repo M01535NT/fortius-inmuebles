@@ -595,10 +595,10 @@ it("en el cierre, la etapa 10 dice en qué paso va y muestra los cuatro pasos (C
 it("SIM-18: la operación tiene tres partes y las direcciones anteriores siguen abriendo la suya", async () => {
   await openOperation();
   expect(screen.getAllByRole("tab").map(tab => tab.textContent?.replace(/\d+$/, "").trim())).toEqual(["Etapa", "Documentos", "Actividad"]);
-  // «Más opciones» reúne los datos de la operación, corregir etapa y eliminar.
+  // «Más opciones» reúne las notas (DEC-42), los datos de la operación, corregir etapa y eliminar.
   fireEvent.click(screen.getByRole("button", { name: "Más opciones" }));
   // «Corregir etapa» solo aparece cuando hay una etapa anterior a la cual regresar; esta operación está en la primera.
-  expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Datos de la operación", "Eliminar operación"]);
+  expect(screen.getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Notas", "Datos de la operación", "Eliminar operación"]);
   fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
   expect(within(screen.getByRole("dialog", { name: "Datos de la operación" })).getByLabelText("Fecha objetivo")).toBeTruthy();
   cleanup();

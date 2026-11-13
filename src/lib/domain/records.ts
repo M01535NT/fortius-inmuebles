@@ -139,6 +139,13 @@ export type Nota = {
   titulo: string;
   texto: string;
   actualizadoEl: string;
+  /** DEC-42: la nota vive pegada a lo que describe (inmueble u operación con su cliente). */
+  propiedadSlug?: string;
+  expedienteId?: string;
+  clienteId?: string;
+  /** Aviso del director al equipo, en Hoy. Solo el administrador lo escribe. */
+  aviso?: boolean;
+  autor?: string;
 };
 
 export type Post = {

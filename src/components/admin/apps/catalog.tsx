@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, Building2, ClipboardList, ExternalLink, FileDown, ShieldCheck, Wallet } from "@/components/admin/icons";
+import { ArrowRight, Building2, ExternalLink, FileDown, ShieldCheck, Wallet } from "@/components/admin/icons";
 import { SELLER_ISR_RULES } from "@/data/financial-rules";
 import { APP_GROUPS, RETIRED_APPS, activeApps, appHref, type AppDefinition } from "@/lib/apps/catalog";
 import { ButtonLink } from "@/components/admin/kit";
@@ -44,7 +44,6 @@ export function AppsCatalog(){
  </article>;
  return <div className="flex flex-col gap-7">
   <div className={styles.toolbar}>
-   <ButtonLink href="/admin/notas"><ClipboardList size={16} aria-hidden="true"/>Notas del equipo</ButtonLink>
    {session?.role==="admin"&&<ButtonLink href={ADMIN_NAV[0].href}><ShieldCheck size={16} aria-hidden="true"/>Administración</ButtonLink>}
   </div>
   <section aria-labelledby="accesos-directos" className={styles.section}>

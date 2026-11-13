@@ -2,7 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, FileText, History, ListChecks, Settings2, Trash2, Upload } from "@/components/admin/icons";
+import { ChevronLeft, FileText, History, ListChecks, Pencil, Settings2, Trash2, Upload } from "@/components/admin/icons";
+import { RecordNotes, useRecordNotes } from "@/components/admin/workspace/record-notes";
 import { Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
@@ -74,6 +75,9 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const [incoming, setIncoming] = React.useState<{ files: File[]; n: number } | undefined>();
   // Datos de la operación: se abren desde «Más opciones»; ?tab=ajustes los abre al llegar.
   const [settings, setSettings] = React.useState(requested === "ajustes");
+  const [notesOpen, setNotesOpen] = React.useState(false);
+  const noteLink = { expedienteId: op.id, clienteId: op.cliente_id };
+  const noteCount = useRecordNotes(noteLink).length;
   const [dirty, setDirty] = React.useState<Partial<Record<DirtyKey, boolean>>>({});
   const anyDirty = Object.values(dirty).some(Boolean);
   useLeaveGuard(anyDirty);
@@ -162,6 +166,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
   const role = isOwnerRoute(flow.ruta) ? "Propietario" : flow.ruta === "inversion" ? "Inversionista" : flow.ruta === "arrendatario" ? "Arrendatario" : "Comprador";
   const tabItems = TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon size={18} aria-hidden="true" />, ...(t.id === "documentos" ? { count: docsCount } : t.id === "actividad" ? { count: taskCount } : {}) }));
   const menu = [
+    { label: noteCount ? `Notas (${noteCount})` : "Notas", icon: <Pencil size={16} aria-hidden="true" />, onSelect: () => setNotesOpen(true) },
     { label: "Datos de la operación", icon: <Settings2 size={16} aria-hidden="true" />, onSelect: () => setSettings(true) },
     ...(isGuided(op) && op.etapa && op.etapa !== "captacion" ? [{ label: "Corregir etapa", icon: <ChevronLeft size={16} aria-hidden="true" />, onSelect: () => setSettings(true) }] : []),
     { label: "Eliminar operación", icon: <Trash2 size={16} aria-hidden="true" />, onSelect: () => void removeFromPanel() },
@@ -207,6 +212,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         </TabPanel>
       </div>
     </div></>}
+    {!op.deleted_at && <RecordNotes link={noteLink} open={notesOpen} onClose={() => setNotesOpen(false)} title="Notas de la operación" description="Lo que se acordó o hay que recordar de esta operación. Las ve quien puede ver a su cliente." />}
     {!op.deleted_at && <Sheet open={settings} onClose={() => void closeSettings()} title="Datos de la operación" description="Ruta, situación, inmueble, contraparte y corrección de etapa.">
       <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onDirtyChange={markDirty.ajustes} />
     </Sheet>}
