@@ -156,7 +156,7 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   fireEvent.click(admin);
   expect(links()).toEqual([
     "/admin/propiedades", "/admin/agenda", "/admin/herramientas",
-    "/admin/asesores", "/admin/contenido", "/admin/reportes", "/admin/historial", "/admin/configuracion",
+    "/admin/asesores", "/admin/contenido", "/admin/reportes", "/admin/historial", "/admin/papelera", "/admin/configuracion",
     "/admin/perfil", "/",
   ]);
   const tabs = screen.getByRole("navigation", { name: "Secciones principales" });

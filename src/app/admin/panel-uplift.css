@@ -28,13 +28,14 @@
 }
 
 /* Títulos de página y encabezados de ficha */
-.admin-root .admin-page-header h1 { font-size: clamp(1.75rem, 2.6vw, 2.5rem); font-weight: 620; line-height: 1.1; letter-spacing: -.025em; }
+.admin-root .admin-page-header h1 { font-size: var(--admin-text-pantalla); font-weight: 620; line-height: 1.1; letter-spacing: -.025em; }
 
 /* Íconos (Iconoir): trazo fino de 1.5; el tamaño lo pone cada uso. */
 .admin-root svg.lucide { stroke-width: 1.5; } /* lucide solo queda en piezas compartidas con el sitio (cambio de tema) */
-.admin-root strong, .admin-root b { font-weight: 560; }
-.admin-root .font-semibold { font-weight: 560; }
+.admin-root strong, .admin-root b { font-weight: 540; }
+.admin-root .font-semibold { font-weight: 540; }
 .admin-root .font-bold { font-weight: 600; }
+.admin-root .font-medium { font-weight: 540; } /* escala del panel (13/11/2026): cuatro grosores, 400 · 540 · 600 · 620 */
 
 /* Insignias anteriores, en pastilla */
 .admin-root .admin-badge { border-radius: var(--radius-pill); padding-inline: .625rem; border-color: transparent; }

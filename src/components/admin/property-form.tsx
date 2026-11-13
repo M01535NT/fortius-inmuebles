@@ -68,7 +68,7 @@ const formSections = [
   { id: "pf-documentos", label: "Documentos", tab: "material" },
 ] as const;
 const sectionClass = `${f.group} scroll-mt-20`;
-const headingClass = "m-0 text-[1.0625rem] font-semibold tracking-[-0.01em]";
+const headingClass = "m-0 text-lg font-semibold tracking-[-0.01em]";
 
 // Mirror the public projection's URL boundary for publication feedback.
 function publicGalleryUrl(value: string) {
@@ -167,10 +167,10 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
 
     const slug = initial?.slug ?? slugify(v("slug") || titulo);
     if (!slug) {
-      throw new Error("El título o slug no puede estar vacío.");
+      throw new Error("Escribe un título para el inmueble.");
     }
     if (!initial && propiedades.some((p) => p.slug === slug)) {
-      throw new Error(`Ya existe un inmueble con el slug "${slug}".`);
+      throw new Error(`Ya existe un inmueble con la dirección web «${slug}». Cambia el título o la dirección.`);
     }
 
     const modalidad = v("modalidad");
@@ -317,7 +317,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
           </Field>
           {!initial ? (
             <Field
-              label="Slug (URL)"
+              label="Dirección en la web"
               htmlFor="pf-slug"
               hint={`Se genera del título si lo dejas vacío: ${slugify(titulo) || "…"}`}
             >

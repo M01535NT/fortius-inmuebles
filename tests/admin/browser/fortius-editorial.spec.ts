@@ -59,7 +59,7 @@ for (const width of [390, 1440]) {
     await page.goto("/", { waitUntil: "networkidle" });
     const timeline = page.locator("[data-method-timeline]");
     await expect(timeline.locator("li")).toHaveCount(5);
-    await expect(page.getByRole("heading", { name: "Cinco etapas, y lo que recibes en cada una." })).toBeAttached();
+    await expect(page.getByRole("heading", { name: "Cinco etapas, de la entrevista a la entrega." })).toBeAttached();
     await page.locator("#metodo").scrollIntoViewIfNeeded();
     await expect(timeline.locator("li.is-active")).toHaveCount(1);
     for (let step = 0; step < 30 && !(await timeline.locator("li").last().evaluate((node) => node.classList.contains("is-active"))); step++) {

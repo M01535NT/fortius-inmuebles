@@ -1,5 +1,5 @@
 "use client";
-import { confirmAction } from "@/components/admin/workspace/confirm";
+import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -226,7 +226,7 @@ export default function AsesoresPage() {
                       if (leadsAsignados + inmuebles + clientesAsignados > 0) {
                         throw new Error("Tiene contactos o inmuebles asignados. Reasígnalos antes de eliminarlo.");
                       }
-                      if (await confirmAction(`¿Eliminar a ${a.nombre}? Podrás recuperarlo desde Historial.`))
+                      if (await confirmDelete("asesor", `Se elimina a ${a.nombre} del equipo.`, false))
                         await removeById(db.asesores, a.id, db.asesores.version(a));
                     }}
                     className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"

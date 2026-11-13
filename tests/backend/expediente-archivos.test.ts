@@ -20,6 +20,12 @@ beforeEach(() => {
   vi.stubGlobal("fetch", async (input: string | URL | Request, init: RequestInit = {}) => {
     const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
     if (url.pathname === "/rest/v1/fortius_inmuebles_expediente_archivos") {
+      // Lectura por id (C-17): devuelve el registro si ya existe.
+      if ((init.method ?? "GET") === "GET") {
+        const id = url.searchParams.get("id")?.replace(/^eq\./, "");
+        const found = rows.find(row => row.id === id);
+        return Response.json(found ? [found] : []);
+      }
       if (rejectRow) return Response.json({ code: "XX000", message: "Unavailable" }, { status: 500 });
       const row = { ...JSON.parse(String(init.body)), created_at: "2026-10-29T10:00:00Z", deleted_at: null };
       rows.push(row);
@@ -60,6 +66,16 @@ describe("documentos del cliente", () => {
     expect(String(rows[0].path)).toMatch(new RegExp(`^${expediente}/cliente/[a-f0-9-]+\\.pdf$`));
     expect(stored.has(`fortius-inmuebles-expedientes/${rows[0].path}`)).toBe(true);
     expect(stored.has(`fortius-inmuebles-staging/${prepared.path}`)).toBe(false);
+  });
+
+  it("C-17: finalizar dos veces el mismo ticket devuelve el mismo documento sin registrarlo otra vez", async () => {
+    const prepared = await subir();
+    const primero = await finalizarArchivo(client(), userId, expediente, { ticket: prepared.ticket });
+    stored.set(`fortius-inmuebles-staging/${prepared.path}`, pdf);
+    const segundo = await finalizarArchivo(client(), userId, expediente, { ticket: prepared.ticket });
+    expect(segundo.id).toBe(primero.id);
+    expect(rows).toHaveLength(1);
+    await expect(finalizarArchivo(client(), userId, "51000000-0000-4000-8000-000000000099", { ticket: prepared.ticket })).rejects.toMatchObject({ status: 409 });
   });
 
   it("si el registro falla, el archivo no queda en el expediente sin su registro", async () => {

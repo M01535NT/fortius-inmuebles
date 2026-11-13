@@ -9,6 +9,7 @@ import { DocumentLink } from "@/components/navigation/document-link";
 import { ThemeToggle } from "@/components/home/theme-toggle";
 import { AsyncButton } from "@/components/admin/ui";
 import { Avatar } from "@/components/admin/kit";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 import { db, useCollection } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { INTAKE_TITLE } from "@/lib/intake/wizard";
@@ -38,6 +39,7 @@ export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> 
   { href: "/admin/contenido", label: "Sitio web", match: ["/admin/contenido", "/admin/blog", "/admin/archivos"] },
   { href: "/admin/reportes", label: "Reportes", match: ["/admin/reportes", "/admin/control-comercial"] },
   { href: "/admin/historial", label: "Historial", match: ["/admin/historial"] },
+  { href: PAPELERA.href, label: PAPELERA.nombre, match: [PAPELERA.href] },
   { href: "/admin/configuracion", label: "Configuración", match: ["/admin/configuracion"] },
 ];
 /** «Más» en la barra superior: lleva a Herramientas y se marca también dentro de Administración y Mi perfil. */

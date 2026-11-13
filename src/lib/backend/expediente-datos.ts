@@ -65,12 +65,25 @@ export async function guardarDatos(privileged: SupabaseClient, userId: string, e
   return { datos: datosGuardados.parse(saved.data.datos), version: saved.data.version as number };
 }
 
-/** Llena las celdas vacías de los borradores del expediente con lo confirmado. Devuelve cuántos cambió. */
+/**
+  Llena las celdas vacías de los borradores del expediente con lo confirmado. Devuelve cuántos cambió.
+  C-15: un borrador cuya versión vigente ya tiene PDF emitido no se toca; subirle la versión haría
+  que esa emisión dejara de contar (la 02 emitida volvería a bloquear el avance y un 09 firmado
+  dejaría de coincidir). Lo confirmado entra cuando alguien abra una versión nueva de ese formato.
+*/
 export async function aplicarDatos(client: SupabaseClient, expedienteId: string, datos: DatosGuardados): Promise<number> {
   const drafts = await client.from("fortius_inmuebles_formato_drafts").select("id,formato_id,data,version").eq("expediente_id", expedienteId);
   if (drafts.error) databaseError(drafts.error);
+  const ids = (drafts.data ?? []).map(draft => draft.id as string);
+  const emitted = new Set<string>();
+  for (let i = 0; i < ids.length; i += 100) {
+    const result = await client.from("fortius_inmuebles_formato_emissions").select("draft_id,draft_version").in("draft_id", ids.slice(i, i + 100));
+    if (result.error) databaseError(result.error);
+    for (const row of result.data ?? []) emitted.add(`${row.draft_id}:${row.draft_version}`);
+  }
   let actualizados = 0;
   for (const draft of drafts.data ?? []) {
+    if (emitted.has(`${draft.id}:${draft.version}`)) continue;
     const data = (draft.data ?? {}) as Record<string, unknown>;
     const { patch } = llenarDesdeDatos(draft.formato_id as string, data, datos);
     if (!Object.keys(patch).length) continue;

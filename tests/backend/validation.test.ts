@@ -82,6 +82,10 @@ describe("BFF validation and authorization behavior", () => {
     expect(projectPublic("config", [{ ...settings, horasPrimeraAtencion: 4 }])).toEqual([settings]);
     expect(parseRecord("config", "singleton", { ...settings, horasPrimeraAtencion: 4 })).toMatchObject({ horasPrimeraAtencion: 4 });
     for (const bad of [0, 73, 1.5, "4"]) expect(() => parseRecord("config", "singleton", { ...settings, horasPrimeraAtencion: bad })).toThrow();
+    // IA-02: el tope de la lectura con IA es del panel; nunca sale en la proyección pública.
+    expect(projectPublic("config", [{ ...settings, topeIaMensualUsd: 35.5 }])).toEqual([settings]);
+    expect(parseRecord("config", "singleton", { ...settings, topeIaMensualUsd: 0.29 })).toMatchObject({ topeIaMensualUsd: 0.29 });
+    for (const bad of [-1, 1001, 1.234, "20"]) expect(() => parseRecord("config", "singleton", { ...settings, topeIaMensualUsd: bad })).toThrow();
   });
   it("validates contact, body, origin enum and rejects honeypot/privilege injection", () => {
     expect(parseLead({ nombre: "Persona", telefono: "6641234567", origen: "interes_propiedad" }).origen).toBe("interes_propiedad");

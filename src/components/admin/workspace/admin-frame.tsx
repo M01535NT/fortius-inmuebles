@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NavTabs, Surface } from "@/components/admin/kit";
 import { ADMIN_NAV } from "@/components/admin/workspace/guided-nav";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 
 /*
   Marco de las páginas de Administración (LV-08, punto 10; C57): una sola sección con índice.
   En escritorio el índice va a la izquierda y fijo al desplazarse; en el celular, en una fila que se desliza.
   Sitio web y Reportes reúnen varias páginas en pestañas.
 */
-const ORDER = ["Equipo", "Reportes", "Sitio web", "Historial", "Configuración", "Mi perfil"];
+const ORDER = ["Equipo", "Reportes", "Sitio web", "Historial", PAPELERA.nombre, "Configuración", "Mi perfil"];
 const INDEX = [...ADMIN_NAV.map(item => ({ href: item.href, label: item.label, match: item.match })), { href: "/admin/perfil", label: "Mi perfil", match: ["/admin/perfil"] }]
   .sort((a, b) => ORDER.indexOf(a.label) - ORDER.indexOf(b.label));
 const SECTIONS = {

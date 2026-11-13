@@ -28,7 +28,7 @@ export function Field({
       {hint && (
         <p
           id={`${id}-hint`}
-          className="text-xs leading-relaxed text-muted-foreground"
+          className="text-etiqueta leading-relaxed text-muted-foreground"
         >
           {hint}
         </p>
@@ -84,10 +84,10 @@ export function Metric({
   return (
     <div className="min-w-0 border-b border-border py-5">
       <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-2 break-words text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+      <dd className="mt-2 break-words text-cifra font-bold tracking-tight text-foreground">
         {value}
         {note && (
-          <p className="mt-2 text-xs leading-relaxed tracking-normal text-muted-foreground">
+          <p className="mt-2 text-etiqueta leading-relaxed tracking-normal text-muted-foreground">
             {note}
           </p>
         )}
@@ -139,7 +139,7 @@ export function ExportButton({
 }
 export function PrivacyNote() {
   return (
-    <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+    <p className="mt-5 text-etiqueta leading-relaxed text-muted-foreground">
       Tus cifras se quedan en esta pestaña. Puedes descargar el resultado sin
       registrarte.
     </p>
