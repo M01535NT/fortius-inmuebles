@@ -108,4 +108,6 @@ Integrada en `main` con el PR #73 (`c03504b`). Ejecuciones (lectura de GitHub, s
 
 Corrección del 13/11/2026 (`acfc546`, sin integrar): antes de copiar, la herramienta compara las migraciones de la base con las del código, dentro de la misma instantánea. Si no coinciden, se detiene con un mensaje claro («vuelve a lanzar la copia en unos minutos») en lugar del error confuso de arriba.
 
-**Falta (titular):** agregar el secreto `FORTIUS_BACKUP_DB_CA` (aún no está en el entorno `respaldo`) y abrir una copia con la llave privada siguiendo «Abrir una copia», para comprobar que se descifra fuera de GitHub.
+**Certificado (13/11/2026, 21:15 UTC):** a pedido del titular («Hazlo tú»), el agente descargó el certificado raíz desde el enlace del panel de Supabase (`prod-ca-2021.crt`, «Supabase Root 2021 CA», vence el 26/04/2031, SHA-256 `80:70:25:AD:…:CA:FA`) y lo guardó como `FORTIUS_BACKUP_DB_CA` en el entorno `respaldo`. Una copia manual lanzada enseguida (ejecución 43509036143) terminó **correcta** sin el aviso «TLS sin verificar»: la conexión ya comprueba el servidor. 30 tablas, 657 filas, 23 objetos.
+
+**Falta (titular):** abrir una copia con la llave privada siguiendo «Abrir una copia», para comprobar que se descifra fuera de GitHub.
