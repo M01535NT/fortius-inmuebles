@@ -1347,7 +1347,7 @@ Después del PR #74 (commit `ff2e09c`) se comprobó en el código de `main` que 
 
 **Bloque 0, 13/11/2026.** El titular aceptó BAS-01 («Sí, la acepto»); con eso BAS-01 y CI-01 quedan terminadas, y AUT-01 y ENV-01 pasan a revisión (AUT-01 espera el buzón de prueba y la decisión del MFA; ENV-01, la decisión c)).
 
-| ID | Alcance | Depende de | Aceptación |
-|---|---|---|---|
+| Entrega de continuidad | Lo disponible | Lo que seguía pendiente |
+|---|---|---|
 | BAS-01 | Correcciones de fundamentos integradas y verificadas en su commit; preparación local comprobada. | Aceptación de negocio del alcance. |
 | CI-01 | Checks Vercel y pruebas de bloqueo/paso a verde documentados. El 17/10/2026 se creó en GitHub la regla «main exige verify» (el check Verify debe aprobarse antes de fusionar) y se activó el auto-merge del repositorio. Comprobada el 25/10/2026: el PR #50 quedó bloqueado mientras Verify fallaba y se integró al aprobarse; el titular decidió conservarla. Desde el 25/10 el agente solo activa auto-merge cuando el titular aprueba publicar (I-04 en `AGENTS.md`). | Rollback de aplicación. |
