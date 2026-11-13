@@ -1481,7 +1481,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
 | HER-04 | 2 | pendiente | FCH-01 |
 | UX-03 | 4 | pendiente | UX-01 |
-| UX-04 | 4 | pendiente | UX-01 |
+| UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); faltan Deshacer (RP-16), siluetas y reversión con motivo (RP-18), y el conflicto en operaciones y formatos |
 | UX-05 | 4 | pendiente | UX-04 |
 | SOP-01 | 5 | pendiente | OBS-01 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
