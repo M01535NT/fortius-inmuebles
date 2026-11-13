@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/vender-propiedad",
   title: "Vender tu casa en Tijuana con asesoría",
   description:
-    "Vende tu casa en Tijuana con Fortius Inmuebles. Revisamos documentos y precio antes de publicar y te damos seguimiento por escrito hasta la firma.",
+    "Vende tu casa en Tijuana, Rosarito, Tecate o Ensenada. Revisamos documentos y precio antes de publicar y te damos seguimiento por escrito hasta la firma.",
 });
 
 const TRUST = ["Sin compromiso", "Respuesta por WhatsApp", "Tijuana, Rosarito, Tecate y Ensenada"];

@@ -15,8 +15,8 @@ type JsonLd = Record<string, unknown>;
 const ORIGIN = siteConfig.url.replace(/\/$/, "");
 export const ORG_ID = `${ORIGIN}/#org`;
 export const WEBSITE_ID = `${ORIGIN}/#website`;
-// Solo lo que confirmó el titular; otros municipios se agregan cuando él lo diga (13/11/2026).
-const AREA_SERVED = ["Tijuana"];
+// Zona de servicio que confirmó el titular (13/11/2026: «Los cuatro»).
+const AREA_SERVED = ["Tijuana", "Playas de Rosarito", "Tecate", "Ensenada"];
 
 /* Horario de atención que fijó el titular (13/11/2026): lunes a viernes de 9:00 a 18:00, hora de Tijuana.
    Si cambia, se actualiza aquí y en Google Business para que coincidan. */
