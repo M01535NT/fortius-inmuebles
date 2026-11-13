@@ -31,6 +31,7 @@ import {
   useSessionExpired,
 } from "@/lib/admin/store";
 import { SessionExpiredDialog } from "@/components/admin/workspace/session-expired";
+import { ConflictHost } from "@/components/admin/workspace/conflict-dialog";
 
 function LoginScreen({
   onLogin,
@@ -362,6 +363,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </div>
       {menu && !focus && <MobileMenu panel={mobileNav} pathname={pathname} role={session.role} user={user} onNavigate={() => setMenu(false)} onLogout={leave} />}
       {!focus && <MobileTabBar pathname={pathname} menuOpen={menu} menuButton={menuTrigger} onMenu={() => setMenu(open => !open)} />}
+      <ConflictHost />
       {expired && <SessionExpiredDialog email={session.email} onLeave={leave} />}
     </div>
   );
