@@ -21,9 +21,11 @@ import { MessageTemplatesEditor } from "@/components/admin/contacts/message-temp
 import type { TemplateOverrides } from "@/lib/admin/message-templates";
 import { IaUsoSection } from "@/components/admin/ia-uso";
 import { topeIaValido } from "@/lib/backend/ia-tope";
+import { DatosFortiusSection, datosFortiusDelFormulario } from "@/components/admin/datos-fortius-section";
+import { datosFortius } from "@/lib/backend/datos-fortius";
 
 /** IA-02: el tope de la lectura con IA vive en el mismo registro (solo del panel). */
-type Settings = SiteSettings & { topeIaMensualUsd?: number };
+type Settings = SiteSettings & { topeIaMensualUsd?: number; empresa?: Record<string, string> };
 
 const TEXT_KEYS = ["nombreComercial", "telefono", "whatsapp", "email", "horario", "facebook", "instagram", "videoInstitucionalUrl"] as const;
 
@@ -54,6 +56,12 @@ function Editor({ initial }: { initial: SiteSettings }) {
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    const admin = session?.role === "admin";
+    const empresa = admin ? datosFortiusDelFormulario(data) : null;
+    if (empresa && "error" in empresa) throw new Error(empresa.error);
+    // Quien no es director no ve la sección: se conservan los datos guardados.
+    const kept = (settingsStore.get() as Settings | null)?.empresa;
+    const nextEmpresa = empresa ? empresa.empresa : kept;
     const texts = Object.fromEntries(
       TEXT_KEYS.map((k) => [k, String(data.get(k) ?? "")]),
     ) as Pick<SiteSettings, (typeof TEXT_KEYS)[number]>;
@@ -61,6 +69,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
       ...texts,
       horasPrimeraAtencion: firstResponseHours({ horasPrimeraAtencion: Number(data.get("horasPrimeraAtencion")) }),
       ...tope(data),
+      ...(nextEmpresa && Object.keys(nextEmpresa).length ? { empresa: nextEmpresa } : {}),
       ...(Object.keys(mensajes).length ? { mensajes } : {}),
     };
     const saved = await settingsStore.save(next, version);
@@ -204,6 +213,8 @@ function Editor({ initial }: { initial: SiteSettings }) {
             />
           </Field>
         </section>
+
+        {session?.role === "admin" && <DatosFortiusSection datos={datosFortius(settings)} />}
 
         {session?.role === "admin" && <IaUsoSection guardado={(settings as Settings).topeIaMensualUsd} />}
 
