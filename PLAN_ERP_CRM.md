@@ -29,7 +29,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 | Bloque del «Orden vigente» | Avance | Qué falta |
 |---|---|---|
 | 0. Continuidad | Sin cerrar | Ensayo de recuperación con Storage (REC-01), accesos y entornos (CI-01, AUT-01, ENV-01), tratamiento de datos (PRV-01). Es condición para el piloto. |
-| 1. Coherencia y fallas | Cerca de tres cuartos | COR-10, COR-12 y COR-17 a COR-25; DOC-06, DOC-09 y pendientes del 07; activar IA-01; USO-01. |
+| 1. Coherencia y fallas | Cerca de tres cuartos | COR-10, COR-12 y COR-17 a COR-25; DOC-09 y pendientes del 07 (DOC-06 en local); activar IA-01; USO-01. |
 | 2. Interfaz, confianza y trabajo suelto | Cerca de un tercio | SIM-01, SIM-11, SIM-12 y SIM-17; LV-01 a LV-04; NAV; UX-02 a UX-05; FCH-03, FCH-04, FCH-06; HER-01, HER-02, HER-05. |
 | 3. Núcleo del equipo y disciplina comercial | Apenas iniciado | REL-01, SEG-01, USR-01, CRM-01 a CRM-03, OPS-01, PUB-01, PUB-02, COM-01, DAT-01, DAT-02, INV-01, VIS-01, OFE-01, CAP-01 a CAP-04 y CAP-06. |
 | 4 a 7. Ficha única y motor, dinero y tableros, documentos avanzados y portal, escala y piloto | Sin empezar | Todo. |
@@ -42,7 +42,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 4. *(Hecho en local el 11/11/2026: SIM-18. El 12/11 se limpió Documentos: «Agregar documento» sube los papeles del cliente y se quitó «Crear y abrir». Queda la decisión del encargo como pieza de la etapa 6.)*
 5. *(Hecho en local el 12/11/2026: SIM-19 completa.)*
 6. Resto de la simplificación (SIM-01, SIM-09, SIM-11 y SIM-12 hechas en local el 12/11/2026; de LV-01 falta la escala de cuatro tamaños; de SIM-15 Notas, Historial, Herramientas, cada herramienta, C56, C57, C59 y C60 en local el 12/11/2026): no queda nada de esta tanda; falta revisarla en localhost y la verificación completa antes del PR.
-7. Cerrar el bloque 1 (COR-05 y COR-07 en local el 12/11/2026): COR-10 (prospecto y cliente por contrato firmado; sus dos entregas en local el 12/11/2026), COR-12, lo que falta de COR-14, COR-16 y COR-21, y los pendientes de formatos (DOC-06, DOC-09 y el 07).
+7. Cerrar el bloque 1 (COR-05 y COR-07 en local el 12/11/2026): COR-10 (prospecto y cliente por contrato firmado; sus dos entregas en local el 12/11/2026), COR-12, lo que falta de COR-14, COR-16 y COR-21, y los pendientes de formatos (DOC-09 y el 07; DOC-06 en local el 12/11/2026).
 8. USO-01 y USO-02: prueba de uso con el director y dos asesores.
 9. Activar IA-01 (clave y abogado) y terminar IA-02.
 10. NAV-01, NAV-02, NAV-03, NAV-05, NAV-07 y NAV-13; UX-02 a UX-05; FCH-03, FCH-04 y FCH-06; HER-01, HER-02 y HER-05.
@@ -1264,7 +1264,7 @@ La adaptación del panel a este proceso (PROC-01 a PROC-05) y el flujo del vende
 
 - **PROC-06 (opcional):** estado interno propio para «Contrato y preparación». Requiere migración; fuera de alcance hasta nueva indicación del titular (15/10/2026).
 - **FLUJO-04b (opcional):** llevar los candados del arranque a PostgreSQL y separar «Redes sociales» de «Página web» como origen. Requiere migración, respaldo y ventana autorizada.
-- **DOC-06:** completar la captura del 06 (antecedentes, condiciones por etapa, marco jurídico y documentos revisados).
+- **DOC-06 (en local el 12/11/2026):** no hay plantilla del titular para el 06; el titular aprobó el diseño propuesto ese día, tomando como base la plantilla de la 05. El 06 lleva ocho secciones: conclusión con resultado (los cinco de la 05), objeto y alcance, antecedentes en tabla (acto, fecha, qué acredita), marco jurídico (leyes y artículos con fecha de consulta), análisis, condiciones por etapa (las seis etapas de la 05, con estado y condición en palabras para el cliente) y recomendaciones, documentos revisados (nombre y estado) y vigencia y límites. Al iniciarlo toma de la 05 solo el resultado, el estado de cada etapa y los documentos que aplican con su estado; nunca folios, escrituras, expedientes, acreedores ni notas internas. Los campos nuevos son opcionales, así que los borradores anteriores siguen válidos. Pendiente: que el abogado revise la redacción del marco jurídico y de las condiciones antes de entregar el primero a un cliente.
 - **DOC-09:** el titular define qué hace falta para liberar el PDF del contrato 09; hoy sale solo en Word.
 - **Formato 07:** diseño del cuerpo del PDF igual a la plantilla y fotografías dentro del Excel (portada, croquis y las ocho del reporte). Por confirmar con el titular si la captura sobre el documento (EXT-12) ya lo resolvió.
 - **Ayuda en otros formatos:** las notas y desplegables existen solo en el 07 (`src/lib/formatos/ayuda.ts`); extenderlas al 04, 05 y los demás, con la plantilla como fuente.
@@ -1729,7 +1729,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | MOT-02 | 2 | pendiente | MOT-01, CAP-03 |
 | MOT-03 | 2 | pendiente | MOT-02, SEG-01 |
 | MOT-04 | 2 | pendiente | MOT-03, revisión del titular |
-| DOC-06 | 2 | pendiente | ninguna |
+| DOC-06 | 2 | en local (12/11/2026) | revisión del abogado |
 | DOC-09 | 2 | pendiente | DEC-20 |
 | HER-01 | 4 | pendiente | SIM-10 |
 | HER-02 | 2 | pendiente | FCH-03, FCH-04 |
@@ -1900,7 +1900,7 @@ Paquetes de fase 6: EXT-01, EXT-06, EXT-08, EXT-09, EXT-10 y EXT-11 están solic
 |---|---|---|
 | A | 04A a 04G | En `main` (PR #57). |
 | B | 02 entrevista y 01 aviso | En `main` (PR #57). El 02 conserva su versión corta. |
-| C | 05 revisión jurídica y 06 opinión jurídica | En `main` (PR #57). Pendiente DOC-06 (completar la captura del 06). |
+| C | 05 revisión jurídica y 06 opinión jurídica | En `main` (PR #57). DOC-06 (captura completa del 06) en local el 12/11/2026. |
 | D | 07 opinión de valor y 08 neto | En `main` (PR #57). |
 | E | 09 contrato y 10 plan | En `main` (PR #57). El PDF del 09 sigue bloqueado (DOC-09); sale en Word. |
 | F | 11, 12, 13 y 14 | En `main` (PR #57). |
