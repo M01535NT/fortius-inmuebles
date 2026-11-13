@@ -13,7 +13,7 @@
   color: var(--foreground);
   --primary-text: #8a1634;
   --card-foreground: #061f3f;
-  --panel-selected: #f4e9ed;
+  --panel-selected: #edf2f8;
   --panel-selected-ink: #8a1634;
   --primary-edge: #8a1634;
   --primary-hover: #70112a;
@@ -64,11 +64,11 @@
   --field-surface: #24364e;
   --control-edge: #92a7c2;
   --focus-color: #aacfff;
-  --primary-text: #F5F1EB; /* crema: la marca no lleva rosa (SIM-13) */
+  --primary-text: #f8f8ff; /* blanco azulado: la marca no lleva rosa ni crema */
   --card-foreground: #f3f6fc;
   --panel-selected: #382333;
-  --panel-selected-ink: #F5F1EB;
-  --primary-edge: #d8cfc3;
+  --panel-selected-ink: #f8f8ff;
+  --primary-edge: #f8f8ff;
   --primary-hover: #a2223f;
   --scrim: rgba(0, 0, 0, .62);
   --canvas: #080f1c;
@@ -106,7 +106,7 @@
 .panel :is(button, a):global(.admin-button) { border: 1px solid var(--border); box-shadow: none; font-weight: 600; }
 .panel :global(.admin-button-secondary) { background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 6px; }
 .panel :global(.admin-button-primary) { background: #8a1634; color: #fff; border-color: #8a1634; }
-:global(.dark) .panel :global(.admin-button-primary) { border-color: #cf8b9c; }
+:global(.dark) .panel :global(.admin-button-primary) { border-color: #a2223f; }
 .panel :global(.admin-button):not(:disabled):hover { filter: brightness(.94); }
 :global(.dark) .panel :global(.admin-button):not(:disabled):hover { filter: brightness(1.15); }
 .panel :global(.admin-button):disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
