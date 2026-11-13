@@ -166,7 +166,7 @@ it("el checklist de documentos se arma con la entrevista y se marca al recibir c
   server.docs.push({ id: "d04", expediente_id: ID, formato_id: "04B", data: {}, version: 3, updated_at: "2026-10-15T19:00:00Z" });
   server.emissions.d04 = [{ id: "e04", draft_version: 3, created_at: "2026-10-15T19:00:00Z" }];
   await openOperation();
-  fireEvent.click(await screen.findByRole("button", { name: /Iniciar checklist/ }));
+  fireEvent.click(await screen.findByRole("button", { name: /Iniciar lista/ }));
   await waitFor(() => expect(server.tasks).toHaveLength(1));
   const created = server.tasks[0] as { id: string; pasos: Array<{ id: string; hecho: boolean }> };
   expect(created.id).toBe(`checklist-${ID}`);
