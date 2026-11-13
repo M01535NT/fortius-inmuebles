@@ -11,7 +11,7 @@ import { operationalDate } from "@/lib/admin/operational-date";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, type Task } from "@/lib/tasks";
 import s from "@/components/admin/form.module.css";
 import { humanDateTime } from "@/lib/utils";
-import { askNextAfter, type PersonRef } from "@/lib/admin/next-step-task";
+import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
 import { NextStepPrompt } from "@/components/admin/contacts/next-step-prompt";
 
 /*
@@ -37,7 +37,7 @@ function TaskDetail({ id }: { id: string }) {
   const [snapshot, setSnapshot] = React.useState<{ task: Task; version: number | null } | null>(null);
   const [conflict, setConflict] = React.useState<{ task: Task; version: number | null } | "missing" | null>(null);
   const [rebased, setRebased] = React.useState(false);
-  const [ask, setAsk] = React.useState<PersonRef | null>(null);
+  const [ask, setAsk] = React.useState<NextRef | null>(null);
   // Capture once when the initial fetch arrives; deletion/refetch cannot destroy a draft.
   if (!snapshot && latest) setSnapshot({ task: latest, version: db.tareas.version(latest) });
   const task = snapshot?.task;
@@ -85,7 +85,7 @@ function TaskDetail({ id }: { id: string }) {
           </div>}
         </Notice></section>}
         {rebased && <p role="status" className="text-sm">Tu borrador se conserva y ya usa la versión revisada como base. Revisa los campos y pulsa Guardar tarea para aplicar tus cambios.</p>}
-        {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : clientes.find(c => c.id === ask.id)?.nombre} onClose={() => setAsk(null)} />}
+        {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : clientes.find(c => c.id === (ask.kind === "operacion" ? ask.clienteId : ask.id))?.nombre} onClose={() => setAsk(null)} />}
         <TaskForm initial={snapshot.task} onSave={async (draft) => {
           try {
             const completing = snapshot.task.estado !== "completada" && draft.estado === "completada";

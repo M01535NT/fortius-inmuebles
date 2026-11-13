@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import type { Lead } from "@/lib/admin/store";
 import type { Cliente } from "@/lib/backend/contracts";
 import type { Task } from "@/lib/tasks";
-import { askNextAfter, isNextStepTask, openNextStep, planNextStep } from "@/lib/admin/next-step-task";
+import { askNextAfter, isNextStepTask, openNextStep, operationNextStep, planNextStep } from "@/lib/admin/next-step-task";
 import { projectFollowups } from "@/lib/admin/followups";
 import { nextStep } from "@/lib/admin/contacts-view";
 
@@ -44,4 +44,13 @@ test("con tarea de siguiente paso, el «próximo contacto» del perfil ya no apa
   expect(nextStep(lead(), "lead", [task({})], [], "2026-11-12")).toEqual({ text: "Llamar", date: "2026-11-14", time: undefined });
   expect(nextStep(lead(), "lead", [task({ estado: "completada" })], [], "2026-11-12")).toBeNull();
   expect(nextStep(lead(), "lead", [], [], "2026-11-12")?.text).toBe("Paso viejo");
+});
+
+test("en una operación, completar su última tarea abierta pide la siguiente; la nueva queda en la operación", () => {
+  const op = "51000000-0000-4000-8000-000000000001";
+  const done = task({ id: "o1", categoria: "documentacion", leadId: undefined, clienteId: "c1", expedienteId: op, asesorId: "a1", propiedadSlug: "casa", estado: "completada" });
+  expect(askNextAfter(done, [done])).toEqual({ kind: "operacion", id: op, asesorId: "a1", clienteId: "c1", propiedadSlug: "casa" });
+  expect(askNextAfter(done, [done, task({ id: "o2", leadId: undefined, expedienteId: op })])).toBeNull();
+  expect(operationNextStep({ kind: "operacion", id: op, clienteId: "c1" }, { accion: " Firmar la intermediación ", fecha: "2026-11-16", id: "n" }))
+    .toMatchObject({ id: "n", titulo: "Firmar la intermediación", vence: "2026-11-16", expedienteId: op, clienteId: "c1", estado: "pendiente", descripcion: "Próxima acción de la operación" });
 });

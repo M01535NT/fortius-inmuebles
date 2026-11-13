@@ -10,6 +10,18 @@ import { isTaskOpen, type Task } from "@/lib/tasks";
 */
 
 export type PersonRef = { kind: "lead" | "cliente"; id: string; asesorId?: string };
+/** Una operación: su siguiente paso es su próxima tarea con fecha (tarjeta «Próxima tarea»). */
+export type OperationRef = { kind: "operacion"; id: string; asesorId?: string; clienteId?: string; propiedadSlug?: string };
+export type NextRef = PersonRef | OperationRef;
+export const OPERATION_NEXT_DESCRIPTION = "Próxima acción de la operación";
+
+/** La tarea nueva con que una operación agenda su siguiente paso. */
+export function operationNextStep(ref: OperationRef, step: { accion: string; fecha: string; id: string }): Task {
+  return {
+    id: step.id, titulo: step.accion.trim().slice(0, 160), descripcion: OPERATION_NEXT_DESCRIPTION, categoria: "documentacion", estado: "pendiente", prioridad: "normal", pasos: [], vence: step.fecha,
+    expedienteId: ref.id, ...(ref.asesorId ? { asesorId: ref.asesorId } : {}), ...(ref.clienteId ? { clienteId: ref.clienteId } : {}), propiedadSlug: ref.propiedadSlug ?? "",
+  };
+}
 
 const owns = (task: Pick<Task, "leadId" | "clienteId">, ref: Pick<PersonRef, "kind" | "id">) => ref.kind === "lead" ? task.leadId === ref.id : task.clienteId === ref.id;
 
@@ -48,8 +60,15 @@ export function planNextStep(tasks: readonly Task[], ref: PersonRef, step: { acc
   };
 }
 
-/** Al completar una tarea de siguiente paso, si la persona se queda sin otra abierta, hay que pedir la siguiente. */
-export function askNextAfter(completed: Task, tasks: readonly Task[]): PersonRef | null {
+/**
+  Al completar una tarea, si la persona (o la operación) se queda sin otra abierta, hay que pedir
+  la siguiente. En una operación cuenta cualquier tarea suya: «Próxima tarea» muestra la primera abierta.
+*/
+export function askNextAfter(completed: Task, tasks: readonly Task[]): NextRef | null {
+  if (completed.expedienteId) {
+    const others = tasks.some(task => task.id !== completed.id && task.expedienteId === completed.expedienteId && isTaskOpen(task));
+    return others ? null : { kind: "operacion", id: completed.expedienteId, asesorId: completed.asesorId, clienteId: completed.clienteId, propiedadSlug: completed.propiedadSlug };
+  }
   if (!isNextStepTask(completed)) return null;
   const ref: PersonRef = completed.leadId ? { kind: "lead", id: completed.leadId, asesorId: completed.asesorId } : { kind: "cliente", id: completed.clienteId!, asesorId: completed.asesorId };
   return openNextStep(tasks.filter(task => task.id !== completed.id), ref) ? null : ref;

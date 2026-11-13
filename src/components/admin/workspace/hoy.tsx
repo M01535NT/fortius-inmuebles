@@ -17,7 +17,7 @@ import { SectionBoundary } from "@/components/admin/section-boundary";
 import { useTodayQueue } from "@/components/admin/workspace/use-today-queue";
 import { FirstContactButton } from "@/components/admin/workspace/first-contact";
 import { NextStepPrompt } from "@/components/admin/contacts/next-step-prompt";
-import { askNextAfter, type PersonRef } from "@/lib/admin/next-step-task";
+import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
 import s from "./hoy.module.css";
 
 /*
@@ -182,7 +182,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
   const [saving, setSaving] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState("");
   const allTasks = useCollection(db.tareas);
-  const [ask, setAsk] = React.useState<PersonRef | null>(null);
+  const [ask, setAsk] = React.useState<NextRef | null>(null);
   const open = tasks.filter(isTaskOpen), done = tasks.length - open.length;
   const shown = tasks.slice(0, TASK_ROWS);
   async function toggle(task: Task) {
@@ -233,6 +233,6 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
       </div>
     </Card>
     {message && <p role="status" className={cn("px-1 text-sm", message.startsWith("No se pudo") ? "text-destructive" : "text-muted-foreground")}>{message}</p>}
-    {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : names.client(ask.id)} onClose={() => setAsk(null)} />}
+    {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : names.client(ask.kind === "operacion" ? ask.clienteId : ask.id)} onClose={() => setAsk(null)} />}
   </Section>;
 }

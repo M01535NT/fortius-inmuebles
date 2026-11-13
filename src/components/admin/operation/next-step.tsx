@@ -17,6 +17,7 @@ import { formatoById, validateFormato } from "@/lib/formatos/catalog";
 import { actualizarChecklist, checklistCompleto, checklistDesactualizado, checklistFor, CODIGOS_POR_TIPO_DOCUMENTO, levantamientoFor, motivoNoAplica, pasoCompleto, type PasoChecklist } from "@/lib/formatos/checklist-documentos";
 import { LEVANTAMIENTO_TITLES, type LevantamientoId } from "@/lib/formatos/levantamiento";
 import { isTaskOpen, type Task } from "@/lib/tasks";
+import { operationNextStep } from "@/lib/admin/next-step-task";
 import { advanceTarget, contractLocked, flowOf, isGuided, itemCounted, itemDone, missingItems, nowItem, routeStages, stageItems, stageOf, type OperationRecord, type StageItem } from "@/lib/admin/operation-view";
 import { requirementName, shortDate, weekdayDate } from "@/lib/admin/today";
 import { quickReview, RequirementRow, RequirementSheets, StateIcon, type Evidence, type OpenSheet } from "./requirements";
@@ -486,7 +487,7 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
     event.preventDefault(); if (!title.trim() || !date) return;
     setBusy(true); setMessage("");
     try {
-      await upsert(db.tareas, { id: uid(), titulo: title.trim(), descripcion: "Próxima acción de la operación", categoria: "documentacion", estado: "pendiente", prioridad: "normal", pasos: [], asesorId: op.asesor_id, expedienteId: op.id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "", vence: date }, null);
+      await upsert(db.tareas, operationNextStep({ kind: "operacion", id: op.id, asesorId: op.asesor_id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "" }, { accion: title, fecha: date, id: uid() }), null);
       setTitle(""); setDate(""); setMessage("Guardado");
     } catch (cause) { setMessage(`No se pudo guardar: ${errorMessage(cause)}`); } finally { setBusy(false); }
   }

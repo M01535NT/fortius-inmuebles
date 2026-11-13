@@ -19,7 +19,7 @@ import { humanDay } from "@/lib/admin/person-view";
 /** Importes del perfil: se muestran con formato de moneda. */
 const MONEY_FIELDS: string[] = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo"];
 const numericFields = ["presupuestoMin", "presupuestoMax", "presupuestoDeclarado", "capitalDeclarado", "precioObjetivo", "superficieMin", "superficieMax", "superficieTerreno", "superficieConstruccion", "recamaras", "estacionamientos", "recamarasInmueble", "estacionamientosInmueble"] as const;
-const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "caracteristicas", "plazo", "proximoContacto", "proximaAccion", "estrategiaInversion", "horizonteInversion", "criteriosInversion"] as const;
+const textFields = ["operacion", "uso", "moneda", "formaPago", "tipoCredito", "estadoCredito", "origenIngresos", "requisitos", "caracteristicas", "plazo", "estrategiaInversion", "horizonteInversion", "criteriosInversion"] as const;
 
 export function readLeadFields(form: HTMLFormElement, base?: Pick<Lead, "perfil">) {
   const data = new FormData(form);
@@ -125,7 +125,7 @@ export function LeadFields({ lead, nombreRef, channel = true }: { lead?: Pick<Le
     {["comprar","rentar"].includes(operacion)&&perfil.presupuestoDeclarado!==undefined&&<LeadSection title="Presupuesto declarado" open>{number("presupuestoDeclarado","Presupuesto declarado",1e13)}<p className="text-sm text-muted-foreground">Es una declaración inicial, distinta de capacidad comprobada o presupuesto máximo acordado.</p></LeadSection>}
     <LeadSection title="Seguimiento" open={editing}>
       {text("perfil.plazo", "Plazo previsto", perfil.plazo)}
-      {text("perfil.proximaAccion", "Próxima acción", perfil.proximaAccion, "text", 160)}{text("perfil.proximoContacto", "Próximo contacto", perfil.proximoContacto, "date", 10)}
+      {/* DEC-42: el siguiente paso se registra con «Registrar contacto» y vive en su tarea, no aquí. */}
       <Field label="Asesor responsable" htmlFor={id("asesorId")} className={s.span2}><select id={id("asesorId")} name="asesorId" defaultValue={lead?.asesorId ?? ""} className={selectClass}>
         <option value="">Sin asignar</option>
         {lead?.asesorId && !asesores.some(a => a.id === lead.asesorId) ? <option value={lead.asesorId}>{lead.asesorId}</option> : null}
