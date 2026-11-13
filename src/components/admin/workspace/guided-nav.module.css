@@ -83,10 +83,10 @@
   :global(html:has(.admin-root)) { scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)); }
   :global(.admin-root) :global(.sticky.bottom-0) { bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px)); }
 }
-:global(.admin-root) .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1875rem; min-height: 3.5rem; border: 0; border-radius: var(--radius-thumb); background: none; color: var(--muted-foreground); font-size: var(--admin-text-minimo); font-weight: 540; text-decoration: none; cursor: pointer; }
+:global(.admin-root) .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem; min-height: 3.5rem; border: 0; border-radius: var(--radius-thumb); background: none; color: var(--muted-foreground); font-size: var(--admin-text-minimo); font-weight: 540; text-decoration: none; cursor: pointer; }
 :global(.admin-root) .tab[aria-current=page], :global(.admin-root) .tab[aria-expanded=true] { color: var(--foreground); }
 :global(.dark) :global(.admin-root) .tab[aria-current=page], :global(.dark) :global(.admin-root) .tab[aria-expanded=true] { color: var(--panel-selected-ink); }
-:global(.admin-root) .tabCount { position: absolute; top: -.375rem; left: .875rem; min-width: 1.125rem; height: 1.125rem; padding: 0 .3125rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: var(--admin-text-minimo); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+:global(.admin-root) .tabCount { position: absolute; top: -.375rem; left: .875rem; min-width: 1.125rem; height: 1.125rem; padding: 0 .25rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: var(--admin-text-minimo); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
 :global(.admin-root) .plus { justify-self: center; width: 3.25rem; height: 3.25rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 18px; background: var(--primary); border: 1px solid var(--primary-edge); color: #fff; box-shadow: var(--shadow-cta); }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .plus { transition: transform 160ms var(--ease-out); } :global(.admin-root) .plus:active { transform: scale(.95); } }
 
