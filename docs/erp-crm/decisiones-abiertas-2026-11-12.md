@@ -8,6 +8,8 @@
 
 ## Resumen
 
+**Respondidas por el titular el 12/11/2026:** DEC-39 A, DEC-40 A, DEC-41 B, DEC-42 A, DEC-44 A y DEC-47 A, todas las recomendadas. DEC-43 queda como estaba decidida (sin nueva confirmación). Falta pasarlas a `PLAN_ERP_CRM.md`. Las preguntas y cartas de DEC-39, DEC-40 y DEC-41 siguen sujetas a la validación del abogado antes de construirse.
+
 | ID | Qué se decide | Recomendación | Detiene |
 |---|---|---|---|
 | DEC-39 | Qué preguntar y qué pedir cuando el inmueble tiene un problema | A · tres preguntas cortas y documentos por caso; el abogado revisa antes del levantamiento | CAP-06 |
@@ -34,7 +36,7 @@
 
 **Recomendación:** A. Las preguntas y la lista exactas las valida el abogado antes de construirlas.
 
-**Respuesta:**
+**Respuesta:** A, la recomendada (titular, 12/11/2026).
 
 ## DEC-40 · Inmuebles que comparte otra inmobiliaria
 
@@ -50,7 +52,7 @@
 
 **Recomendación:** A. El texto de la autorización lo valida el abogado. Si te preocupa que el comprador busque directo a la otra inmobiliaria, C es la variante.
 
-**Respuesta:**
+**Respuesta:** A, la recomendada (titular, 12/11/2026).
 
 ## DEC-41 · Enseñar un inmueble antes de firmar
 
@@ -66,7 +68,7 @@
 
 **Recomendación:** B, como excepción a A-11 y no como cambio de la regla. El texto de la carta lo valida el abogado; conviene que diga que, si ese interesado compra, se respeta la comisión de Fortius.
 
-**Respuesta:**
+**Respuesta:** B, la recomendada (titular, 12/11/2026).
 
 ## DEC-42 · Un solo «siguiente paso»
 
@@ -82,7 +84,7 @@
 
 **Recomendación:** A.
 
-**Respuesta:**
+**Respuesta:** A, la recomendada (titular, 12/11/2026).
 
 ## DEC-43 · Qué ve el asesor de los inmuebles ajenos
 
@@ -104,7 +106,7 @@
 
 **Recomendación:** A.
 
-**Respuesta:**
+**Respuesta:** A, la recomendada (titular, 12/11/2026).
 
 ## DEC-47 · Cuándo se abre sola la guía
 
@@ -120,4 +122,4 @@
 
 **Recomendación:** A.
 
-**Respuesta:**
+**Respuesta:** A, la recomendada (titular, 12/11/2026).
