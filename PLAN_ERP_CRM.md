@@ -18,7 +18,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 **Qué entró en la rama (13/11/2026).**
 
-- **Panel:** IA-02 (tope de IA en Configuración); FCH-03 en su parte de Configuración (datos de Fortius); NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
+- **Panel:** IA-02 (tope de IA en Configuración); FCH-03 completo: los datos de Fortius se capturan en Configuración y los formatos 01 y 09 los toman de ahí; NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
 - **Sistema visual:** escala tipográfica del sitio y del panel; tokens de espacio, botones, esquinas y colores, sin crema ni beige.
 - **Textos:** inicio, Vender y Nosotros; nombres unificados del sitio y del panel.
 - **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
@@ -29,12 +29,11 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 **Qué sigue, en orden.**
 
 1. Terminar los hallazgos abiertos de Calidad y de Seguridad.
-2. FCH-03 en los formatos 01 y 09.
-3. Integrar las pruebas de Calidad que esperan su arreglo (C-26) y el disparador M2 de Seguridad.
-4. DOC-14 espera el Word de arrendamiento del titular.
-5. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
-6. Verificación completa y un solo PR a `main` cuando el titular lo pida.
-7. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
+2. Integrar las pruebas de Calidad que esperan su arreglo (C-26) y el disparador M2 de Seguridad.
+3. DOC-14 espera el Word de arrendamiento del titular.
+4. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
+5. Verificación completa y un solo PR a `main` cuando el titular lo pida.
+6. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
 
 **Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **Fortius solo representa al propietario: compradores y arrendatarios son leads de Fortius y contraparte de sus clientes, nunca clientes de Fortius** (RP-93).
 
