@@ -181,7 +181,7 @@ const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; op
   dictamen: [{ formato: "05", renta: "opcional" }, { formato: "06", venta: true }], verificacion: [{ formato: "07" }, { formato: "08", venta: true }], contrato: [{ formato: "09", venta: true }, { formato: "21", soloRenta: true }, { formato: "10" }],
   publicacion: [{ formato: "11", optional: true }],
   visitas: [{ formato: "12", optional: true, venta: true }, { formato: "22", optional: true, soloRenta: true }, { formato: "13", optional: true }, { formato: "14", optional: true, venta: true }],
-  cierre: [{ formato: "15", optional: true, venta: true }, { formato: "16", optional: true }, { formato: "17", optional: true }, { formato: "18", optional: true }, { formato: "20", optional: true, soloRenta: true }, { formato: "23", optional: true, soloRenta: true }],
+  cierre: [{ formato: "15", optional: true, venta: true }, { formato: "24", optional: true, venta: true }, { formato: "16", optional: true }, { formato: "17", optional: true }, { formato: "18", optional: true }, { formato: "20", optional: true, soloRenta: true }, { formato: "23", optional: true, soloRenta: true }],
 };
 /** Formatos de una etapa del propietario según su ruta (la renta no usa los de compraventa). */
 export function stageDocuments(phase: SalePhase, ruta: OperationWorkflow["ruta"]) {
