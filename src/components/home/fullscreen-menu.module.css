@@ -3,7 +3,7 @@
 .overlay { position: fixed; inset: 0; z-index: 60; visibility: hidden; }
 .scrim { position: absolute; inset: 0; background: rgba(6, 19, 37, 0.42); opacity: 0; }
 .panel { --ink: #061f3f; --muted: #526176; --accent: #8a1634; --line: rgba(6, 31, 63, 0.14); --paper: #f8f7f4; position: absolute; inset: 0 0 auto; max-height: 100dvh; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; border-bottom: 4px solid #8a1634; background: #fff; color: var(--ink); box-shadow: 0 24px 56px rgba(0, 0, 0, 0.16); clip-path: circle(0% at 94% 4%); }
-:global(.dark) .panel { --ink: #f5f1eb; --muted: rgba(245, 241, 235, 0.72); --accent: #f5f1eb; --line: rgba(245, 241, 235, 0.14); --paper: #0c1622; background: #060c14; }
+:global(.dark) .panel { --ink: #f8f8ff; --muted: rgba(248, 248, 255, 0.72); --accent: #f8f8ff; --line: rgba(248, 248, 255, 0.14); --paper: #0c1622; background: #060c14; }
 .header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 24px; max-width: 1240px; height: 72px; margin-inline: auto; padding-inline: clamp(20px, 4.2vw, 60px); background: #fff; }
 :global(.dark) .header { background: #060c14; }
 .brand { width: 160px; }
