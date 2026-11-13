@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Seguimiento de leads</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;540;600;700&display=swap">
+<style>
+/* Concepto: el asesor siempre ve a quién le toca algo y registra el contacto en dos toques; tres maneras de organizarlo. */
+:root{
+  --bg:#F8F8FF; --card:#FFFFFF; --ink:#061F3F; --muted:#5A6B82; --line:#D9DEEA; --soft:#EEF0F8;
+  --brand:#8A1634; --brand-ink:#FFFFFF; --navy:#061F3F; --navy-ink:#F8F8FF; --navy-muted:#B7C3D6;
+  --ok:#1F6B4A; --ok-bg:#E3F2EA; --warn:#8A5A00; --warn-bg:#FBF0D8; --late:#A3262A; --late-bg:#FBE4E4;
+  --font:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A1220; --card:#101B2E; --ink:#EEF1F8; --muted:#9AA9C0; --line:#25334B; --soft:#16233A;
+  --brand:#E0708A; --brand-ink:#0A1220; --navy:#16294A; --navy-ink:#F2F4FA; --navy-muted:#A9B8D0;
+  --ok:#6CCB9C; --ok-bg:#12301F; --warn:#E8B964; --warn-bg:#33270E; --late:#F08A8D; --late-bg:#3A1619; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1220; --card:#101B2E; --ink:#EEF1F8; --muted:#9AA9C0; --line:#25334B; --soft:#16233A;
+  --brand:#E0708A; --brand-ink:#0A1220; --navy:#16294A; --navy-ink:#F2F4FA; --navy-muted:#A9B8D0;
+  --ok:#6CCB9C; --ok-bg:#12301F; --warn:#E8B964; --warn-bg:#33270E; --late:#F08A8D; --late-bg:#3A1619; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;
+  padding-block:20px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3,p{margin:0}
+h1{font-size:1.75rem;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:1.125rem;font-weight:600;text-wrap:balance}
+h3{font-size:.9375rem;font-weight:600}
+.lede{color:var(--muted);max-width:62ch}
+.demo{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 14px;font-size:.875rem}
+.demo b{font-weight:600}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:540;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:var(--ink)}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{min-height:44px;padding:0 14px;font-size:.9375rem}
+.btn[disabled]{opacity:.5;cursor:default}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:540}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:var(--navy-ink)}
+.panel-intro{display:grid;gap:6px;padding:4px 0}
+.panel-intro p{color:var(--muted);max-width:70ch}
+.app{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.pill{display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:999px;font-size:.8125rem;font-weight:600;white-space:nowrap;background:var(--soft);color:var(--muted)}
+.pill.late{background:var(--late-bg);color:var(--late)}
+.pill.today{background:var(--warn-bg);color:var(--warn)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.new{background:var(--brand);color:var(--brand-ink)}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+/* Alternativa A: lista */
+.group{display:flex;flex-direction:column;gap:8px}
+.group>h3{display:flex;align-items:center;gap:8px}
+.count{background:var(--soft);color:var(--muted);border-radius:999px;padding:0 8px;font-size:.8125rem;min-height:22px;display:inline-flex;align-items:center}
+.row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.4fr) auto;gap:8px 16px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card)}
+.row.open{border-color:var(--ink)}
+.row .who{min-width:0}
+.row .who strong{display:block;font-weight:600}
+.row .step{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.row .step span.t{font-weight:540}
+.clock{color:var(--late);font-weight:600;font-size:.875rem}
+@media(max-width:720px){.row{grid-template-columns:1fr}.row .btn{width:100%}}
+/* Hoja de registro */
+.sheet{grid-column:1/-1;border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:12px}
+.kinds{display:flex;flex-wrap:wrap;gap:8px}
+.kind{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:540}
+.kind[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--navy-ink)}
+.next-edit{display:grid;gap:10px;background:var(--soft);border-radius:10px;padding:12px}
+.next-edit label{display:grid;gap:4px;font-size:.875rem;color:var(--muted)}
+.next-edit input,.next-edit select{min-height:44px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--card);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:.9375rem}
+.chip[aria-pressed="true"]{border-color:var(--brand);color:var(--brand);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;min-height:44px;padding:0 6px}
+.err{color:var(--late);font-size:.875rem}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--navy-ink);padding:12px 18px;border-radius:12px;max-width:calc(100% - 32px);z-index:20;box-shadow:0 8px 24px rgba(6,31,63,.25)}
+/* Alternativa B: ficha */
+.split{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
+.pick .gh{display:flex;align-items:center;gap:8px;margin-top:8px}
+.pick .gh:first-child{margin-top:0}
+.pick button{gap:2px;align-items:flex-start}
+.backbtn{display:none;align-self:flex-start}
+.detail{display:flex;flex-direction:column;gap:14px;min-width:0}
+@media(max-width:820px){.split{grid-template-columns:1fr}.split.show-detail .pick{display:none}.split:not(.show-detail) .detail{display:none}.backbtn{display:inline-flex}}
+.pick{display:flex;flex-direction:column;gap:6px;min-width:0}
+.pick button{text-align:left;min-height:48px;padding:6px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column}
+.pick button[aria-pressed="true"]{border-color:var(--ink);background:var(--soft)}
+.pick small{color:var(--muted)}
+
+.head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.head .name{display:flex;gap:12px;align-items:center;min-width:0}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--navy);color:var(--navy-ink);display:grid;place-items:center;font-weight:600;flex:none}
+.nextcard{background:var(--navy);color:var(--navy-ink);border-radius:14px;padding:16px;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;justify-content:space-between}
+.nextcard .lbl{color:var(--navy-muted);font-size:.875rem}
+.nextcard strong{display:block;font-size:1.125rem;font-weight:600}
+.nextcard .btn.primary{border-color:#fff3}
+.cols2{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media(max-width:820px){.cols2{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.tpl{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.tpl p{font-size:.875rem;color:var(--muted)}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.tl li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.tl li:first-child{border-top:0}
+.tl .w{font-size:.875rem;color:var(--muted)}
+.tl .k{font-size:.8125rem;color:var(--muted)}
+.confirm{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* Alternativa C: tablero */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:980px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.board{grid-template-columns:1fr}}
+.col{background:var(--soft);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0;align-content:start}
+.col>h3{display:flex;justify-content:space-between;align-items:center;padding:2px 4px}
+.col .hint{font-size:.8125rem;color:var(--muted);padding:0 4px 4px}
+.lc{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.lc[aria-pressed="true"]{border-color:var(--ink)}
+.lc strong{font-weight:600}
+.drawer{border:1px solid var(--ink);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.compare{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.9375rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-top:1px solid var(--line)}
+th{font-weight:600;color:var(--muted);font-size:.875rem;border-top:0}
+td:first-child{font-weight:600}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>Seguimiento de leads</h1>
+    <p class="lede">Tres maneras de que el asesor sepa a quién le toca algo, registre el contacto en dos toques y deje siempre un siguiente paso. Prueba cada una: todo se puede tocar.</p>
+    <div class="demo"><b>Datos de ejemplo.</b> Las personas, los inmuebles y los precios de esta página son inventados para mostrar el flujo. No son contactos ni ofertas reales. Hoy es jueves 12 de noviembre.</div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Alternativas">
+    <button class="tab" role="tab" id="t-ab" aria-selected="true" data-tab="ab">A + B · Lista y ficha</button>
+    <button class="tab" role="tab" id="t-tablero" aria-selected="false" data-tab="tablero">C · Tablero (opcional, para el director)</button>
+    <button class="tab" role="tab" id="t-comparar" aria-selected="false" data-tab="comparar">Qué incluye</button>
+  </div>
+
+  <main id="view"></main>
+  <div><button class="link" id="reset" type="button">Volver los datos de ejemplo al inicio</button></div>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(function(){
+  var MONTHS=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  var DAYS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+  var TODAY=new Date(Date.UTC(2026,10,12,12));
+  function dayAt(off){var d=new Date(TODAY.getTime());d.setUTCDate(d.getUTCDate()+off);return d}
+  function label(off){
+    if(off<0)return "Vencido · "+dayAt(off).getUTCDate()+" "+MONTHS[dayAt(off).getUTCMonth()];
+    if(off===0)return "Hoy";
+    if(off===1)return "Mañana";
+    var d=dayAt(off);return DAYS[d.getUTCDay()]+" · "+d.getUTCDate()+" "+MONTHS[d.getUTCMonth()];
+  }
+  var KINDS={llamada:"Llamé",no_contesto:"No contestó",whatsapp:"Mandé WhatsApp",visito:"Visitó"};
+  var SUGG={llamada:["Enviarle opciones",2],no_contesto:["Volver a llamar",2],whatsapp:["Confirmar que vio las opciones",2],visito:["Preguntar qué le pareció",1]};
+  var REASONS=["Ya no busca","Se fue con otra inmobiliaria","Su presupuesto no alcanza","Otro motivo"];
+
+  function seed(){return [
+    {id:1,name:"Laura Méndez",phone:"664 555 0101",wants:"Comprar casa",zone:"Lomas Altas",budget:"Hasta $3,400,000 MXN",origin:"Sitio web · interés en «Casa Lomas Altas (ejemplo)»",hoursWaiting:3,status:"nuevo",next:null,off:null,
+      hist:[{kind:"Llegó",text:"Pidió informes desde la ficha del inmueble",when:"Hoy · hace 3 h"}]},
+    {id:2,name:"Ricardo Salas",phone:"664 555 0102",wants:"Comprar casa",zone:"Chula Vista",budget:"$2,800,000 a $3,200,000 MXN",origin:"Recomendación",hoursWaiting:0,status:"contacto",next:"Enviarle opciones",off:0,
+      hist:[{kind:"Contacto",text:"Llamé · Prefiere 3 recámaras",when:"10 nov"}]},
+    {id:3,name:"Daniela Ortiz",phone:"664 555 0103",wants:"Rentar departamento",zone:"Zona Río",budget:"Hasta $14,000 MXN al mes",origin:"Sitio web",hoursWaiting:0,status:"contacto",next:"Confirmar que vio las opciones",off:-2,
+      hist:[{kind:"Contacto",text:"Mandé WhatsApp · Le envié tres departamentos",when:"10 nov"}]},
+    {id:4,name:"Héctor Palma",phone:"664 555 0104",wants:"Comprar casa",zone:"Otay",budget:"Hasta $2,200,000 MXN",origin:"Anuncio en redes",hoursWaiting:0,status:"retomar",next:"Reintentar: no contesta",off:25,
+      hist:[{kind:"Contacto",text:"No contestó",when:"8 nov"},{kind:"Contacto",text:"No contestó",when:"6 nov"},{kind:"Contacto",text:"No contestó",when:"4 nov"}]},
+    {id:5,name:"Mariana Cota",phone:"664 555 0105",wants:"Comprar casa",zone:"Playas de Tijuana",budget:"Hasta $4,500,000 MXN",origin:"Recomendación",hoursWaiting:0,status:"visita",next:"Preguntar qué le pareció",off:0,
+      hist:[{kind:"Visita",text:"Visitó «Casa Playas (ejemplo)»",when:"11 nov"},{kind:"Contacto",text:"Llamé · Confirmó la visita",when:"9 nov"}]},
+    {id:6,name:"Jorge Ibarra",phone:"664 555 0106",wants:"Comprar terreno",zone:"Rosarito",budget:"Hasta $1,800,000 MXN",origin:"Sitio web",hoursWaiting:0,status:"contacto",next:"Enviarle lotes disponibles",off:7,
+      hist:[{kind:"Contacto",text:"Llamé · Busca terreno para construir",when:"9 nov"}]}
+  ]}
+  var leads=seed(), tab="ab", detailOpen=false, sel=null, selB=1, selC=null, pendingMsg=null, toastT=null;
+  var draft={}; // por lead: {kind, accion, off, none, reason}
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function byId(id){return leads.filter(function(l){return l.id===id})[0]}
+  function dateClass(l){return l.off===null?"":l.off<0?"late":l.off===0?"today":""}
+  function toast(t){var el=document.getElementById("toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},2600)}
+  function initials(n){return n.split(" ").map(function(p){return p[0]}).slice(0,2).join("")}
+  function waitText(l){return "Lleva "+l.hoursWaiting+" h sin respuesta"}
+
+  /* ---------- registro de contacto (compartido) ---------- */
+  function sheet(l){
+    var d=draft[l.id]||{};
+    var k=d.kind;
+    var h='<div class="sheet" data-sheet="'+l.id+'"><div><h3>¿Qué pasó?</h3></div><div class="kinds" role="group" aria-label="Qué pasó">';
+    Object.keys(KINDS).forEach(function(key){h+='<button type="button" class="kind" data-kind="'+key+'" data-id="'+l.id+'" aria-pressed="'+(k===key)+'">'+KINDS[key]+'</button>'});
+    h+='</div>';
+    if(k){
+      h+='<div class="next-edit"><h3>Siguiente paso</h3>';
+      if(d.none){
+        h+='<label>Motivo<select data-field="reason" data-id="'+l.id+'" id="reason-'+l.id+'">';
+        REASONS.forEach(function(r){h+='<option'+(d.reason===r?' selected':'')+'>'+r+'</option>'});
+        h+='</select></label><button type="button" class="link" data-act="withnext" data-id="'+l.id+'" style="justify-self:start">Mejor dejar un siguiente paso</button>';
+      }else{
+        h+='<label>Qué sigue<input type="text" id="acc-'+l.id+'" data-field="accion" data-id="'+l.id+'" value="'+esc(d.accion)+'"></label>';
+        h+='<div class="chips" role="group" aria-label="Cuándo">';
+        [[1,"Mañana"],[2,"En 2 días"],[7,"En una semana"],[30,"En 30 días"]].forEach(function(o){h+='<button type="button" class="chip" data-off="'+o[0]+'" data-id="'+l.id+'" aria-pressed="'+(d.off===o[0])+'">'+o[1]+'</button>'});
+        h+='</div><p class="small muted">Fecha: <b>'+label(d.off)+'</b></p>';
+        h+='<button type="button" class="link" data-act="none" data-id="'+l.id+'" style="justify-self:start">No necesita siguiente paso</button>';
+      }
+      h+='</div>';
+      if(d.error)h+='<p class="err" role="alert">'+esc(d.error)+'</p>';
+      h+='<div class="actions"><button type="button" class="btn primary" data-act="save" data-id="'+l.id+'">Guardar</button><button type="button" class="btn" data-act="cancel" data-id="'+l.id+'">Cancelar</button></div>';
+    }else{
+      h+='<p class="small muted">Toca una opción. Se propone el siguiente paso y solo queda guardar.</p><div class="actions"><button type="button" class="btn" data-act="cancel" data-id="'+l.id+'">Cancelar</button></div>';
+    }
+    return h+'</div>';
+  }
+  function pickKind(id,key){
+    var l=byId(id), missed=0;
+    for(var i=0;i<l.hist.length;i++){if(l.hist[i].text.indexOf("No contestó")===0)missed++;else break}
+    var s=SUGG[key], d={kind:key,accion:s[0],off:s[1]};
+    if(key==="no_contesto"&&missed>=2){d.accion="Reintentar: no contesta";d.off=30}
+    draft[id]=d;
+  }
+  function saveContact(id){
+    var l=byId(id), d=draft[id];
+    if(!d||!d.kind)return;
+    if(d.none){
+      l.hist.unshift({kind:"Contacto",text:KINDS[d.kind]+" · Sin siguiente paso: "+d.reason,when:"Hoy"});
+      l.status="descartado";l.next=null;l.off=null;
+    }else{
+      if(!d.accion.trim()){d.error="Escribe el siguiente paso o elige «No necesita siguiente paso».";return false}
+      l.hist.unshift({kind:d.kind==="visito"?"Visita":"Contacto",text:KINDS[d.kind],when:"Hoy"});
+      l.next=d.accion.trim();l.off=d.off;
+      if(d.kind==="visito")l.status="visita";
+      else if(d.kind==="no_contesto"&&d.off>=30)l.status="retomar";
+      else l.status="contacto";
+    }
+    l.hoursWaiting=0;
+    delete draft[id];
+    return true;
+  }
+  function priority(l){
+    if(l.status==="nuevo")return -1000;
+    if(l.status==="descartado")return 9999;
+    return l.off===null?500:l.off;
+  }
+
+  /* ---------- A · lista ---------- */
+  function viewA(){
+    var live=leads.filter(function(l){return l.status!=="descartado"});
+    var fresh=live.filter(function(l){return l.status==="nuevo"});
+    var due=live.filter(function(l){return l.status!=="nuevo"&&l.off!==null&&l.off<=0}).sort(function(a,b){return a.off-b.off});
+    var later=live.filter(function(l){return l.status!=="nuevo"&&(l.off===null||l.off>0)}).sort(function(a,b){return priority(a)-priority(b)});
+    var gone=leads.filter(function(l){return l.status==="descartado"});
+    function rowHtml(l){
+      var open=sel===l.id;
+      var step=l.status==="nuevo"?'<span class="t">Todavía sin atender</span><span class="clock">'+waitText(l)+'</span>':'<span class="t">'+esc(l.next||"")+'</span><span class="pill '+dateClass(l)+'">'+label(l.off)+'</span>';
+      return '<div class="row'+(open?' open':'')+'"><div class="who"><strong>'+esc(l.name)+'</strong><span class="small muted">'+esc(l.wants)+' · '+esc(l.zone)+'</span></div><div class="step">'+step+'</div>'+
+        '<button type="button" class="btn sm'+(l.status==="nuevo"?' primary':'')+'" data-open="'+l.id+'" aria-expanded="'+open+'">'+(open?'Cerrar':'Registrar contacto')+'</button>'+(open?sheet(l):'')+'</div>';
+    }
+    function grp(title,arr,hint){
+      if(!arr.length)return "";
+      return '<section class="group"><h3>'+title+' <span class="count">'+arr.length+'</span></h3>'+(hint?'<p class="small muted">'+hint+'</p>':'')+arr.map(rowHtml).join("")+'</section>';
+    }
+    var body=grp("Sin atender",fresh,"Llegaron y nadie les ha escrito. El tiempo corre desde que entraron.")+grp("Toca hoy o se atrasó",due)+grp("Más adelante",later);
+    if(!fresh.length&&!due.length)body='<div class="card"><h3>Todo al día</h3><p class="muted small">Nadie está sin atender y no hay pasos vencidos. Lo que sigue está en «Más adelante».</p></div>'+body;
+    if(gone.length)body+='<p class="small muted">Descartados esta sesión: '+gone.map(function(g){return esc(g.name)}).join(", ")+'.</p>';
+    return '<div class="panel-intro"><h2>A · Una lista del día</h2><p>Es la pantalla Hoy, pero solo con personas. Arriba quien nadie ha atendido, luego lo que toca hoy o se atrasó. Cada renglón tiene un solo paso y un solo botón.</p></div><div class="app" aria-label="Ejemplo de la lista del día">'+
+      '<div class="head"><div><h3>Buenos días, Ana (asesora de ejemplo)</h3><p class="small muted">Jueves 12 de noviembre · '+(fresh.length+due.length)+' personas esperan algo de ti</p></div></div>'+body+'</div>';
+  }
+
+  /* ---------- B · ficha ---------- */
+  var TPL=[
+    {id:"opciones",name:"Enviarle opciones",text:function(l){return "Hola "+l.name.split(" ")[0]+", soy Ana de Fortius Inmuebles. Te comparto una casa en "+l.zone+" (ejemplo) que se ajusta a lo que buscas. Aquí está la ficha: fortiusinmuebles.com/ejemplo"}},
+    {id:"visita",name:"Proponer una visita",text:function(l){return "Hola "+l.name.split(" ")[0]+", ¿te acomoda visitar el inmueble el sábado por la mañana? Dime la hora y lo agendo."}},
+    {id:"seguir",name:"Preguntar qué le pareció",text:function(l){return "Hola "+l.name.split(" ")[0]+", ¿qué te pareció lo que viste? Si quieres, te busco otras opciones en "+l.zone+"."}}
+  ];
+  function viewB(){
+    var list=leads.filter(function(x){return x.status!=="descartado"}).sort(function(a,b){return priority(a)-priority(b)});
+    if(!list.some(function(x){return x.id===selB})){selB=list[0].id}
+    var l=byId(selB), d=draft[l.id];
+    function item(x){return '<button type="button" data-pick="'+x.id+'" aria-pressed="'+(x.id===selB)+'"><strong>'+esc(x.name)+'</strong><small>'+esc(x.wants)+' · '+esc(x.zone)+'</small>'+
+      (x.status==="nuevo"?'<span class="clock">'+waitText(x)+'</span>':'<span class="small">'+esc(x.next||"")+'</span><span><span class="pill '+dateClass(x)+'">'+label(x.off)+'</span></span>')+'</button>'}
+    var fresh=list.filter(function(x){return x.status==="nuevo"});
+    var due=list.filter(function(x){return x.status!=="nuevo"&&x.off!==null&&x.off<=0});
+    var later=list.filter(function(x){return x.status!=="nuevo"&&(x.off===null||x.off>0)});
+    function grp(t,a){return a.length?'<h3 class="gh">'+t+' <span class="count">'+a.length+'</span></h3>'+a.map(item).join(""):""}
+    var gone=leads.filter(function(x){return x.status==="descartado"});
+    var pick='<nav class="pick" aria-label="Lista del día">'+grp("Sin atender",fresh)+grp("Toca hoy o se atrasó",due)+grp("Más adelante",later)+
+      (gone.length?'<p class="small muted">Descartados esta sesión: '+gone.map(function(g){return esc(g.name)}).join(", ")+'.</p>':'')+'</nav>';
+    var stage=l.status==="nuevo"?"Nuevo":l.status==="descartado"?"Descartado":"En seguimiento";
+    var nextTxt=l.status==="nuevo"?"Atenderle por primera vez":l.next;
+    var nextPill=l.status==="nuevo"?'<span class="pill new">'+waitText(l)+'</span>':'<span class="pill '+dateClass(l)+'">'+label(l.off)+'</span>';
+    var tpls=TPL.map(function(t){
+      var asking=pendingMsg&&pendingMsg.id===l.id&&pendingMsg.tpl===t.id;
+      return '<div class="tpl"><h3>'+t.name+'</h3><p>'+esc(t.text(l))+'</p>'+
+        (asking?'<div class="confirm"><span>¿Ya lo mandaste?</span><button type="button" class="btn sm primary" data-sent="'+t.id+'">Sí, registrarlo</button><button type="button" class="btn sm" data-notsent="1">Todavía no</button></div>':
+        '<div class="actions"><button type="button" class="btn sm" data-tpl="'+t.id+'">Abrir WhatsApp con este texto</button></div>')+'</div>'}).join("");
+    var tl='<ul class="tl" aria-label="Historial">'+l.hist.map(function(h){return '<li><span class="w">'+esc(h.when)+'</span><span><span>'+esc(h.text)+'</span><br><span class="k">'+h.kind+'</span></span></li>'}).join("")+'</ul>';
+    var main='<div class="detail">'+
+      '<button type="button" class="btn sm backbtn" data-back="1">← Volver a la lista del día</button>'+
+      '<div class="head"><div class="name"><div class="avatar" aria-hidden="true">'+initials(l.name)+'</div><div><h2>'+esc(l.name)+'</h2><p class="small muted"><span class="pill">'+stage+'</span> '+esc(l.origin)+'</p></div></div>'+
+        '<div class="actions"><a class="btn sm" href="#ficha" data-fake="Llamar a '+esc(l.phone)+'">Llamar</a><a class="btn sm" href="#ficha" data-fake="WhatsApp">WhatsApp</a></div></div>'+
+      '<section class="nextcard" aria-label="Siguiente paso"><div><span class="lbl">Siguiente paso</span><strong>'+esc(nextTxt||"")+'</strong><div style="margin-top:6px">'+nextPill+'</div></div>'+
+        '<button type="button" class="btn primary" data-open="'+l.id+'">'+(d?'Cerrar registro':'Registrar contacto')+'</button></section>'+
+      (d?'<div class="card">'+sheet(l)+'</div>':'')+
+      '<div class="cols2"><section class="card"><h3>Lo que busca</h3><p>'+esc(l.wants)+' en '+esc(l.zone)+'</p><p class="muted small">'+esc(l.budget)+'</p>'+
+        '<h3 style="margin-top:6px">Mensajes listos</h3><p class="small muted">Abren WhatsApp con el texto escrito. Hasta que confirmes que lo mandaste, no queda registrado.</p>'+tpls+'</section>'+
+        '<section class="card"><h3>Historial</h3>'+tl+'</section></div></div>';
+    return '<div class="panel-intro"><h2>A + B · Lista del día y ficha en la misma pantalla</h2><p>A la izquierda, la lista de A: quién espera algo, en orden. A la derecha, la ficha de B: el siguiente paso arriba, el registro en dos toques, los mensajes listos y el historial. Al guardar un contacto, la persona sube o baja en la lista. En celular se ve una a la vez, con «Volver a la lista del día».</p></div>'+
+      '<div class="app"><div class="split'+(detailOpen?' show-detail':'')+'">'+pick+main+'</div></div>';
+  }
+
+  /* ---------- C · tablero ---------- */
+  var COLS=[["nuevo","Sin atender","Nadie les ha escrito"],["contacto","En contacto","Hay siguiente paso con fecha"],["visita","Con visita","Ya conocieron un inmueble"],["retomar","Para retomar","No contestaron; se reintenta en 30 días"]];
+  function viewC(){
+    var l=selC?byId(selC):null;
+    var cols=COLS.map(function(c){
+      var arr=leads.filter(function(x){return x.status===c[0]}).sort(function(a,b){return priority(a)-priority(b)});
+      return '<section class="col" aria-label="'+c[1]+'"><h3>'+c[1]+' <span class="count">'+arr.length+'</span></h3><p class="hint">'+c[2]+'</p>'+
+        arr.map(function(x){return '<button type="button" class="lc" data-card="'+x.id+'" aria-pressed="'+(selC===x.id)+'"><strong>'+esc(x.name)+'</strong><span class="small muted">'+esc(x.wants)+' · '+esc(x.zone)+'</span>'+
+          (x.status==="nuevo"?'<span class="clock">'+waitText(x)+'</span>':'<span class="small">'+esc(x.next||"")+'</span><span><span class="pill '+dateClass(x)+'">'+label(x.off)+'</span></span>')+'</button>'}).join("")+'</section>'}).join("");
+    var drawer=l?'<div class="drawer"><div class="head"><div><h2>'+esc(l.name)+'</h2><p class="small muted">'+esc(l.wants)+' · '+esc(l.zone)+' · '+esc(l.budget)+'</p></div><button type="button" class="btn sm" data-card="'+l.id+'">Cerrar</button></div>'+
+      '<p><b>Siguiente paso:</b> '+(l.status==="nuevo"?"Atenderle por primera vez":esc(l.next||""))+' '+(l.status==="nuevo"?'':'<span class="pill '+dateClass(l)+'">'+label(l.off)+'</span>')+'</p>'+sheet(l)+
+      '<div><h3>Historial</h3><ul class="tl">'+l.hist.slice(0,3).map(function(h){return '<li><span class="w">'+esc(h.when)+'</span><span>'+esc(h.text)+'</span></li>'}).join("")+'</ul></div></div>':'';
+    var gone=leads.filter(function(x){return x.status==="descartado"});
+    return '<div class="panel-intro"><h2>C · Un tablero por momento</h2><p>Cuatro columnas según el momento de cada persona. Al registrar un contacto la tarjeta cambia de columna sola: una visita la pasa a «Con visita» y tres «No contestó» a «Para retomar». Nada se arrastra.</p></div><div class="app"><div class="board">'+cols+'</div>'+drawer+
+      (gone.length?'<p class="small muted">Descartados esta sesión: '+gone.map(function(g){return esc(g.name)}).join(", ")+'.</p>':'')+'</div>';
+  }
+
+  /* ---------- comparar ---------- */
+  function viewCmp(){
+    return '<div class="panel-intro"><h2>Qué incluye la combinación A + B</h2><p>Se apoya en lo que ya existe en el panel y agrega solo lo que falta. El tablero C queda como opción para el director.</p></div>'+
+    '<div class="app compare"><table><thead><tr><th>Pieza</th><th>De dónde sale</th><th>Estado hoy</th></tr></thead><tbody>'+
+    '<tr><td>Lista del día con personas</td><td>A: la pantalla Hoy, solo con personas y en tres grupos</td><td>Hoy ya muestra «Nuevos sin atender»; falta agrupar por persona</td></tr>'+
+    '<tr><td>Siguiente paso arriba de la ficha</td><td>B: tarjeta azul con una acción</td><td>Ya existe en la ficha; falta que sea una sola fuente (tarea con fecha)</td></tr>'+
+    '<tr><td>Registrar contacto en dos toques</td><td>B: dentro de la ficha</td><td>Ya existe (COR-18)</td></tr>'+
+    '<tr><td>Mensajes listos con confirmación de envío</td><td>B: abren WhatsApp con el texto; se registran al confirmar</td><td>No existe (RP-22)</td></tr>'+
+    '<tr><td>Historial completo de la persona</td><td>B: contactos, visitas, ofertas, documentos</td><td>Parcial; faltan ofertas y documentos (CRM-03)</td></tr>'+
+    '<tr><td>Tablero por momento</td><td>C: solo si el director lo pide</td><td>No existe</td></tr>'+
+    '</tbody></table></div>';
+  }
+
+  /* ---------- render y eventos ---------- */
+  var view=document.getElementById("view");
+  function render(){
+    view.innerHTML=tab==="ab"?viewB():tab==="tablero"?viewC():viewCmp();
+    document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-selected",String(b.dataset.tab===tab))});
+  }
+  function setTab(t){tab=t;sel=null;detailOpen=false;selC=null;pendingMsg=null;draft={};try{history.replaceState(null,"","#"+t)}catch(e){location.hash=t}render()}
+  document.querySelector(".tabs").addEventListener("click",function(e){var b=e.target.closest(".tab");if(b)setTab(b.dataset.tab)});
+  document.getElementById("reset").addEventListener("click",function(){leads=seed();draft={};sel=null;selC=null;pendingMsg=null;render();toast("Datos de ejemplo restablecidos")});
+
+  function openSheet(id){
+    if(false){}
+    else if(tab==="ab"){if(draft[id])delete draft[id];else draft[id]={}}
+    render();
+    var f=view.querySelector(".kind");if(f)f.focus();
+  }
+  view.addEventListener("click",function(e){
+    var t=e.target.closest("button,a");if(!t)return;
+    if(t.dataset.fake){e.preventDefault();toast("En el panel esto abre la llamada o WhatsApp de tu teléfono.");return}
+    if(t.dataset.open){openSheet(Number(t.dataset.open));return}
+    if(t.dataset.pick){selB=Number(t.dataset.pick);pendingMsg=null;draft={};detailOpen=true;render();window.scrollTo(0,0);return}
+    if(t.dataset.back){detailOpen=false;draft={};pendingMsg=null;render();return}
+    if(t.dataset.card){var id=Number(t.dataset.card);selC=selC===id?null:id;draft={};if(selC)draft[id]={};render();return}
+    if(t.dataset.kind){var id2=Number(t.dataset.id);pickKind(id2,t.dataset.kind);render();var a=document.getElementById("acc-"+id2);return}
+    if(t.dataset.off){var id3=Number(t.dataset.id);draft[id3].off=Number(t.dataset.off);render();return}
+    if(t.dataset.tpl){pendingMsg={id:selB,tpl:t.dataset.tpl};render();return}
+    if(t.dataset.notsent){pendingMsg=null;render();return}
+    if(t.dataset.sent){var l=byId(selB);pendingMsg=null;l.hist.unshift({kind:"Contacto",text:"Mandé WhatsApp · "+TPL.filter(function(x){return x.id===t.dataset.sent})[0].name,when:"Hoy"});l.hoursWaiting=0;if(l.status==="nuevo")l.status="contacto";if(!l.next){l.next="Confirmar que lo vio";l.off=2}render();toast("Listo: quedó registrado «Mandé WhatsApp».");return}
+    var act=t.dataset.act;if(!act)return;
+    var id4=Number(t.dataset.id);
+    if(act==="cancel"){delete draft[id4];if(tab==="lista")sel=null;render();return}
+    if(act==="none"){draft[id4].none=true;draft[id4].reason=REASONS[0];render();return}
+    if(act==="withnext"){draft[id4].none=false;render();return}
+    if(act==="save"){
+      var name=byId(id4).name, kind=KINDS[draft[id4].kind];
+      var ok=saveContact(id4);
+      if(ok===false){render();return}
+      if(tab==="lista")sel=null;
+      if(tab==="tablero")selC=null;
+      render();toast("Listo: «"+kind+"» quedó registrado con "+name+".");
+    }
+  });
+  view.addEventListener("input",function(e){
+    var t=e.target;if(t.dataset.field==="accion"){draft[Number(t.dataset.id)].accion=t.value;draft[Number(t.dataset.id)].error=""}
+  });
+  view.addEventListener("change",function(e){
+    var t=e.target;if(t.dataset.field==="reason"){draft[Number(t.dataset.id)].reason=t.value}
+  });
+  var h=(location.hash||"").slice(1);
+  if(["ab","tablero","comparar"].indexOf(h)>-1)tab=h;
+  render();
+})();
+</script>
