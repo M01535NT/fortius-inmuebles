@@ -52,7 +52,12 @@ beforeEach(() => {
       return Response.json({ id: NEW_FACTOR, type: "totp", friendly_name: "Dispositivo", totp: { qr_code: "data:image/svg+xml;utf-8,<svg xmlns='http://www.w3.org/2000/svg'><path d='M0 0h1'/></svg>", secret: "JBSWY3DPEHPK3PXP", uri: "otpauth://totp/x" } });
     }
     if (url.pathname === "/rest/v1/fortius_inmuebles_staff") return Response.json([{ role: state.role, active: true }]);
-    if (url.pathname === "/rest/v1/rpc/fortius_inmuebles_auth_attempt") return Response.json(1);
+    if (url.pathname === "/rest/v1/rpc/fortius_inmuebles_auth_attempt") {
+      // Mismo formato que exige la función de la base (20261113123000_limite_de_acceso).
+      const key = JSON.parse(String(init.body)).p_key;
+      if (!/^(login|recovery):(ip|email):[0-9a-f]{64}$/.test(key)) return Response.json({ code: "PT400", message: "Solicitud inválida" }, { status: 400 });
+      return Response.json(1);
+    }
     throw new Error(`Unexpected external request: ${method} ${url.pathname}`);
   });
 });
