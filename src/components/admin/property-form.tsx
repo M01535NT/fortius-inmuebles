@@ -39,6 +39,7 @@ import {
 } from "@/data/propiedades";
 import { zonas } from "@/data/zonas";
 import { AdminApiError, db, upsertPropiedad, useCollection, useSession } from "@/lib/admin/store";
+import { usePropertyScope } from "@/lib/admin/staff-scope";
 
 /*
   Formulario completo de inmueble (alta y edición). Los campos de lista
@@ -106,6 +107,9 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
   const [conjunto, setConjunto] = React.useState(() => source?.conjunto ?? (typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("conjunto") ?? ""));
   const plazas = propiedades.filter((p) => p.tipo === "plaza" && p.slug !== source?.slug);
   const session = useSession();
+  // COR-23: el asesor edita solo sus inmuebles; reasignar, publicar y destacar lo hace el director.
+  const scope = usePropertyScope(source);
+  const readOnly = !!source && !scope.loading && !scope.edit;
   const [publicationReady,setPublicationReady]=React.useState(false);
   const [dirty,setDirty] = React.useState(false);
   const [conflict,setConflict] = React.useState(false);
@@ -363,7 +367,10 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
               ))}
             </select>
           </Field>
-          <Field label="Asesor titular" htmlFor="pf-asesor">
+          {!scope.reassign ? <Field label="Asesor titular" htmlFor="pf-asesor" hint={source ? "Solo el director cambia el asesor de un inmueble." : "Se da de alta a tu nombre."}>
+            <input id="pf-asesor" readOnly value={asesores.find(a => a.id === (source?.asesorId ?? scope.myAdvisor))?.nombre ?? "Sin asignar"} className={inputClass} />
+            <input type="hidden" name="asesorId" value={source?.asesorId ?? scope.myAdvisor ?? ""} />
+          </Field> : <Field label="Asesor titular" htmlFor="pf-asesor">
             <select
               id="pf-asesor"
               name="asesorId"
@@ -377,7 +384,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
                 </option>
               ))}
             </select>
-          </Field>
+          </Field>}
           <Field label="Fecha de publicación" htmlFor="pf-publicadaEl">
             <input
               id="pf-publicadaEl"
@@ -390,7 +397,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
             />
           </Field>
           <div className="flex flex-wrap items-end gap-6 pb-1">
-            <label className="flex items-center gap-2 text-sm text-foreground">
+            {scope.feature ? <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
                 name="destacada"
@@ -398,7 +405,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
                 className="size-4 accent-[var(--primary)]"
               />
               Destacada en Home
-            </label>
+            </label> : initial?.destacada ? <p className="flex min-h-11 items-center text-sm"><input type="hidden" name="destacada" value="on" />Destacada en Home (la cambia el director)</p> : null}
             <label className="flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
@@ -935,10 +942,12 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
               ))}
             </select>
           </nav>
+          {readOnly ? <p className="min-w-0 flex-1 text-sm">Este inmueble es de otro asesor: puedes consultarlo, y solo su asesor o el director lo cambian.</p> : <>
           <Button type="submit" variant="primary" className="flex-1 sm:flex-none lg:flex-1">
             {initial ? "Guardar cambios" : "Crear inmueble"}
           </Button>
-          {initial && <Button type="submit" disabled={!initial.publicada && !publicationReady} data-action={initial.publicada?"unpublish":"publish"} className="flex-1 sm:flex-none lg:flex-1">{initial.publicada?"Retirar del sitio":"Guardar y publicar"}</Button>}
+          {initial && !initial.publicada && !scope.publish && <p className="min-w-0 basis-full text-sm text-muted-foreground">El director lo publica en el sitio cuando la captación esté lista.</p>}
+          {initial && (initial.publicada || scope.publish) && <Button type="submit" disabled={!initial.publicada && !publicationReady} data-action={initial.publicada?"unpublish":"publish"} className="flex-1 sm:flex-none lg:flex-1">{initial.publicada?"Retirar del sitio":"Guardar y publicar"}</Button>}</>}
         </div>
       </div>
     </AsyncForm>
