@@ -194,17 +194,60 @@ h1{font-size:clamp(1.75rem,2.8vw,2.5rem);line-height:1.1;font-weight:620;letter-
 .prop .pt{font-weight:560}
 .prop .pm{font-size:14px;color:var(--mut)}
 
-/* Tablero */
-.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
-@media (max-width:1100px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:600px){.board{grid-template-columns:1fr}}
-.bcol{padding:8px;display:flex;flex-direction:column;gap:2px}
-.bcol .hint{padding:0 12px 6px;font-size:13px;color:var(--mut)}
-.bcard{display:flex;flex-direction:column;gap:6px;width:100%;padding:12px;border:0;border-radius:var(--r-thumb);background:none;text-align:left;color:var(--fg)}
-.bcard:hover{background:color-mix(in srgb,var(--fg) 4%,transparent)}
-.bcard .top{display:flex;align-items:center;gap:10px}
-.bcard .pn{font-weight:560}
-.bcard .ps{font-size:14px;color:var(--mut)}
+/* Tablero: resumen del embudo arriba, cuatro carriles debajo, vistazo lateral al tocar una persona */
+.bwrap{display:flex;flex-direction:column;gap:20px}
+.funnel{padding:20px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px 24px}
+.funnel .fh{display:flex;flex-direction:column;gap:4px;min-width:0}
+.funnel .fh h2{font-size:clamp(1.25rem,1.9vw,1.5rem);line-height:1.2;font-weight:620;letter-spacing:-.015em;font-variation-settings:"wdth" 92}
+.funnel .fh p{font-size:15px;color:var(--mut)}
+.whoseg{justify-self:end}
+.fbar{grid-column:1/-1;display:flex;height:14px;border-radius:999px;overflow:hidden;gap:3px;background:var(--card)}
+.fbar span{min-width:14px;border-radius:999px}
+.legend{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:10px;height:10px;border-radius:999px;flex:none}
+.legend b{color:var(--fg);font-weight:600}
+@media (max-width:640px){.funnel{grid-template-columns:1fr;padding:18px}.whoseg{justify-self:start}}
+.st-nuevo{background:var(--primary)} .st-contacto{background:#061f3f} .st-visita{background:#4b78b5} .st-retomar{background:var(--edge-soft)}
+:root[data-theme="dark"] .st-contacto{background:#aacfff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .st-contacto{background:#aacfff}}
+
+.lanes-scroll{overflow-x:auto;margin-inline:-4px;padding:4px 4px 8px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.board{display:grid;grid-template-columns:repeat(4,minmax(15rem,1fr));gap:16px;align-items:stretch}
+@media (max-width:1023px){.board{grid-template-columns:repeat(4,minmax(17rem,82vw))}}
+.lane{scroll-snap-align:start;display:flex;flex-direction:column;gap:10px;padding:14px 12px 12px;border-radius:var(--r-panel);background:var(--sec);min-height:22rem}
+.lane-h{display:flex;flex-direction:column;gap:2px;padding:2px 6px 6px}
+.lane-h .lt{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.lane-h .lt i{width:10px;height:10px;border-radius:999px;flex:none}
+.lane-h .lt .n{margin-left:auto;font-size:13px;font-weight:600;min-width:26px;height:26px;padding:0 8px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);color:var(--fg);border:1px solid var(--edge)}
+.lane-h .hint{font-size:13px;color:var(--mut);padding-left:20px}
+.bcard{display:flex;flex-direction:column;gap:10px;width:100%;padding:14px;border:1px solid var(--edge);border-radius:16px;background:var(--card);box-shadow:var(--shadow-rest);text-align:left;color:var(--fg)}
+.bcard:hover{box-shadow:var(--shadow-lift);border-color:var(--edge-soft)}
+.bcard[aria-expanded=true]{border-color:var(--sel-ink);box-shadow:0 0 0 1px var(--sel-ink),var(--shadow-lift)}
+@media (prefers-reduced-motion:no-preference){.bcard{transition:box-shadow 180ms var(--ease),border-color 150ms,transform 180ms var(--ease)}.bcard:hover{transform:translateY(-1px)}.bcard:active{transform:scale(.985)}}
+.bcard .top{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:12px}
+.bcard .pb{display:flex;flex-direction:column;min-width:0}
+.bcard .pn{font-weight:560;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bcard .ps{font-size:14px;color:var(--mut);line-height:1.35}
+.adv{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:999px;font-size:11px;font-weight:700;background:var(--track);color:var(--mut)}
+.bcard .step{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding-top:10px;border-top:1px solid var(--border);font-size:14px}
+.bcard .step span:first-child{min-width:0}
+.bcard .clock{display:flex;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--alert);font-weight:560}
+.lane-empty{flex:1;display:grid;place-items:center;text-align:center;padding:20px;border:1.5px dashed var(--edge-soft);border-radius:16px;font-size:14px;color:var(--mut)}
+.gone-note{font-size:14px;color:var(--mut);padding:0 4px}
+
+/* Vistazo lateral */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(6,31,63,.32)}
+.peek{position:fixed;z-index:51;top:0;right:0;bottom:0;width:min(440px,100%);display:flex;flex-direction:column;gap:18px;overflow-y:auto;padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(24px + env(safe-area-inset-bottom,0px));padding-left:24px;padding-right:max(24px,env(safe-area-inset-right,0px));background:var(--canvas);border-left:1px solid var(--edge);box-shadow:var(--shadow-raised)}
+@media (prefers-reduced-motion:no-preference){.peek{animation:slide 260ms var(--ease)}.scrim{animation:fade 200ms ease}@keyframes slide{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}@keyframes fade{from{opacity:0}}}
+.peek .ph{display:flex;align-items:flex-start;gap:14px}
+.peek .ph h2{font-size:1.5rem;line-height:1.15;font-weight:620;letter-spacing:-.02em;font-variation-settings:"wdth" 92}
+.peek .ph .sub{font-size:14px;color:var(--mut);margin-top:4px}
+.peek .ph .round{margin-left:auto;flex:none}
+.peek .next{padding:20px}
+.peek .facts{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.peek .acts{display:flex;flex-wrap:wrap;gap:8px}
+.peek .acts .btn{flex:1 1 10rem}
 .empty{padding:14px 12px 16px;font-size:14px;color:var(--mut)}
 
 /* Qué incluye */
@@ -276,7 +319,7 @@ tbody th{font-weight:560}
     {id:6,name:"Jorge Ibarra",phone:"664 555 0106",wants:"Comprar terreno",zone:"Rosarito",budget:"Hasta $1,800,000",origin:"Sitio web",hours:0,status:"contacto",next:"Enviarle lotes disponibles",off:7,
       prop:null,hist:[{k:"Contacto",t:"Llamé · busca terreno para construir",w:"9 nov"}]}
   ]}
-  var leads=seed(), view="lista", sel=1, detail=false, draft=null, pending=null, toastT=null;
+  var leads=seed(), view="lista", sel=1, detail=false, draft=null, pending=null, toastT=null, who="todos", peek=null, peekFrom=null;
   var app=document.getElementById("app");
 
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -420,12 +463,48 @@ tbody th{font-weight:560}
 
   /* ---------- tablero ---------- */
   var COLS=[["nuevo","Sin atender","Nadie les ha escrito"],["contacto","En contacto","Tienen siguiente paso con fecha"],["visita","Con visita","Ya conocieron un inmueble"],["retomar","Para retomar","No contestan; se reintenta en 30 días"]];
+  var ADV={ana:["Ana","AN"],luis:["Luis","LU"]}; // asesores de ejemplo
+  var OWNER={1:"ana",2:"ana",3:"ana",4:"luis",5:"ana",6:"luis"};
+  function mine(l){return who==="todos"||OWNER[l.id]===who}
   function boardHtml(){
-    return '<div class="board">'+COLS.map(function(c){
-      var a=leads.filter(function(l){return l.status===c[0]}).sort(function(x,y){return rank(x)-rank(y)});
-      return '<section class="card bcol" aria-label="'+c[1]+'"><h2 class="gh first">'+c[1]+'<span class="n">'+a.length+'</span></h2><p class="hint">'+c[2]+'</p>'+
-        (a.length?a.map(function(l){return '<button type="button" class="bcard" data-board="'+l.id+'"><span class="top">'+av(l)+'<span class="pb"><span class="pn">'+esc(l.name)+'</span><br><span class="ps">'+esc(l.wants)+' · '+esc(l.zone)+'</span></span></span>'+
-          (l.status==="nuevo"?'<span>'+dateChip(l)+'</span>':'<span class="ps">'+esc(l.next)+'</span><span>'+dateChip(l)+'</span>')+'</button>'}).join(""):'<p class="empty">Nadie en este momento.</p>')+'</section>'}).join("")+'</div>';
+    var L=leads.filter(function(l){return l.status!=="descartado"&&mine(l)});
+    var counts=COLS.map(function(c){return L.filter(function(l){return l.status===c[0]}).length});
+    var late=L.filter(function(l){return l.status!=="nuevo"&&l.off<0}).length, fresh=counts[0];
+    var lead=fresh?fresh+(fresh===1?" persona espera":" personas esperan")+" su primera respuesta":"Nadie espera su primera respuesta";
+    lead+=late?"; "+late+(late===1?" paso vencido.":" pasos vencidos."):"; no hay pasos vencidos.";
+    var bar=COLS.map(function(c,i){return counts[i]?'<span class="st-'+c[0]+'" style="flex:'+counts[i]+'"></span>':''}).join("");
+    var legend=COLS.map(function(c,i){return '<span><i class="st-'+c[0]+'"></i>'+c[1]+' <b>'+counts[i]+'</b></span>'}).join("");
+    var seg='<div class="seg whoseg" role="group" aria-label="De quién">'+[["todos","Todo el equipo"],["ana","Ana"],["luis","Luis"]].map(function(o){return '<button type="button" data-who="'+o[0]+'" aria-pressed="'+(who===o[0])+'">'+o[1]+'</button>'}).join("")+'</div>';
+    var funnel='<section class="card funnel" aria-label="Resumen"><div class="fh"><h2>'+L.length+(L.length===1?" persona":" personas")+' en seguimiento</h2><p>'+lead+' Así lo ve el director; cada asesor ve solo a sus personas.</p></div>'+seg+
+      '<div class="fbar" role="img" aria-label="'+COLS.map(function(c,i){return c[1]+": "+counts[i]}).join(", ")+'">'+bar+'</div><div class="legend">'+legend+'</div></section>';
+    var lanes=COLS.map(function(c,i){
+      var a=L.filter(function(l){return l.status===c[0]}).sort(function(x,y){return rank(x)-rank(y)});
+      var cards=a.map(function(l){
+        var adv=ADV[OWNER[l.id]];
+        var foot=l.status==="nuevo"
+          ?'<span class="clock"><span class="meter" aria-hidden="true"><span style="width:'+Math.min(100,l.hours/(PLAZO*2)*100)+'%"></span><i style="left:50%"></i></span>'+l.hours+' h · plazo '+PLAZO+' h</span>'
+          :'<span class="step"><span>'+esc(l.next)+'</span>'+dateChip(l)+'</span>';
+        return '<button type="button" class="bcard" data-board="'+l.id+'" aria-expanded="'+(peek===l.id)+'"><span class="top">'+av(l)+'<span class="pb"><span class="pn">'+esc(l.name)+'</span><span class="ps">'+esc(l.wants)+' · '+esc(l.zone)+'</span></span><span class="adv" title="Asesor: '+adv[0]+'" aria-label="Asesor: '+adv[0]+'">'+adv[1]+'</span></span>'+foot+'</button>';
+      }).join("");
+      return '<section class="lane" aria-label="'+c[1]+'"><div class="lane-h"><h2 class="lt"><i class="st-'+c[0]+'" aria-hidden="true"></i>'+c[1]+'<span class="n">'+a.length+'</span></h2><p class="hint">'+c[2]+'</p></div>'+
+        (cards||'<p class="lane-empty">Nadie en este momento</p>')+'</section>';
+    }).join("");
+    var gone=leads.filter(function(l){return l.status==="descartado"&&mine(l)});
+    return '<div class="bwrap">'+funnel+'<div class="lanes-scroll"><div class="board">'+lanes+'</div></div>'+
+      (gone.length?'<p class="gone-note">Descartados: '+gone.map(function(g){return esc(g.name)}).join(", ")+'</p>':'')+'</div>'+peekHtml();
+  }
+  function peekHtml(){
+    if(!peek)return "";
+    var l=byId(peek), adv=ADV[OWNER[l.id]];
+    var nextTxt=l.status==="nuevo"?"Atenderle por primera vez":l.next;
+    var meta=l.status==="nuevo"?'<span class="chip ondark alert">Lleva '+l.hours+' h · el plazo es de '+PLAZO+' h</span>':dateChip(l,true);
+    return '<div class="scrim" data-peekclose="1"></div><aside class="peek" role="dialog" aria-modal="true" aria-labelledby="peek-t">'+
+      '<div class="ph">'+av(l,true)+'<div style="min-width:0"><h2 id="peek-t">'+esc(l.name)+'</h2><p class="sub">'+esc(l.origin)+' · Asesor: '+adv[0]+'</p></div>'+
+        '<button type="button" class="round" data-peekclose="1" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>'+
+      '<section class="next" aria-label="Siguiente paso"><div class="nb"><span class="nl">Siguiente paso</span><span class="nt">'+esc(nextTxt)+'</span><span class="nm">'+meta+'</span></div></section>'+
+      '<section class="card box"><h3>Lo que busca</h3><dl class="facts"><div><dt>Quiere</dt><dd>'+esc(l.wants)+'</dd></div><div><dt>Zona</dt><dd>'+esc(l.zone)+'</dd></div><div style="grid-column:1/-1"><dt>Presupuesto</dt><dd>'+esc(l.budget)+' MXN</dd></div></dl></section>'+
+      '<section class="card box"><h3>Lo último</h3><ul class="tl">'+l.hist.slice(0,3).map(function(h){return '<li><span class="w">'+esc(h.w)+'</span><span>'+esc(h.t)+'</span></li>'}).join("")+'</ul></section>'+
+      '<div class="acts"><button type="button" class="btn pri" data-peekreg="'+l.id+'">Registrar contacto</button><button type="button" class="btn sec" data-peekopen="'+l.id+'">Abrir ficha</button></div></aside>';
   }
 
   function includes(){
@@ -450,10 +529,13 @@ tbody th{font-weight:560}
   app.addEventListener("click",function(e){
     var t=e.target.closest("button,a");if(!t)return;
     var ds=t.dataset;
-    if(ds.view){view=ds.view;draft=null;pending=null;render();return}
-    if(ds.reset){leads=seed();sel=1;draft=null;pending=null;detail=false;view="lista";render();toast("Datos de ejemplo restablecidos");return}
+    if(ds.view){view=ds.view;draft=null;pending=null;peek=null;render();return}
+    if(ds.reset){leads=seed();sel=1;draft=null;pending=null;detail=false;view="lista";who="todos";peek=null;render();toast("Datos de ejemplo restablecidos");return}
     if(ds.pick){sel=Number(ds.pick);draft=null;pending=null;detail=true;render();if(innerWidth<960)scrollTo(0,0);return}
-    if(ds.board){sel=Number(ds.board);view="lista";draft=null;pending=null;detail=true;render();scrollTo(0,0);return}
+    if(ds.who){who=ds.who;peek=null;render();return}
+    if(ds.board){peek=Number(ds.board);peekFrom=peek;render();var c=app.querySelector(".peek .round");if(c)c.focus();return}
+    if(ds.peekclose){closePeek();return}
+    if(ds.peekopen||ds.peekreg){sel=Number(ds.peekopen||ds.peekreg);peek=null;view="lista";pending=null;detail=true;draft=ds.peekreg?{}:null;render();scrollTo(0,0);var k=app.querySelector(".kind");if(k)k.focus();return}
     if(ds.back){detail=false;draft=null;pending=null;render();return}
     if(ds.fake){e.preventDefault();toast("En el panel, «"+ds.fake+"» abre lo suyo; aquí es un boceto.");return}
     if(ds.open){draft=draft?null:{};render();var k=app.querySelector(".kind");if(k)k.focus();return}
@@ -468,6 +550,8 @@ tbody th{font-weight:560}
     if(act==="withnext"){draft.none=false;render();return}
     if(act==="save"){var name=byId(sel).name,k2=KINDS[draft.kind];if(save()===false){render();return}draft=null;render();toast("Quedó registrado: "+k2+" con "+name);}
   });
+  function closePeek(){var back=peekFrom;peek=null;render();var b=back&&app.querySelector('[data-board="'+back+'"]');if(b)b.focus()}
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&peek)closePeek()});
   app.addEventListener("input",function(e){var f=e.target.dataset.field;if(!f||!draft)return;draft[f]=e.target.value;draft.error=""});
   app.addEventListener("change",function(e){if(e.target.dataset.field==="reason"){draft.reason=e.target.value;render()}});
   document.querySelector(".topnav").addEventListener("click",function(e){var t=e.target.closest("[data-fake]");if(t){e.preventDefault();toast("En el panel, «"+t.dataset.fake+"» abre lo suyo; aquí es un boceto.")}});
