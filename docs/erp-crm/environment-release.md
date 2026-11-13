@@ -45,7 +45,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 3. **GitHub:** ~~activar el escaneo de secretos, la protección al subir y las alertas de Dependabot~~ **Hecho el 12/11/2026.**
 4. **GitHub:** ~~borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`)~~ **Hecho el 12/11/2026**, tras confirmar que ningún flujo, regla ni proyecto de Vercel los usa.
 5. **GitHub (decide el titular):** la regla deja que el administrador la salte. Mientras sea la única cuenta, conviene conservarla así y no saltarla salvo urgencia (I-04).
-6. **Recuperación de la aplicación:** el rollback de Vercel (volver a un despliegue anterior) no se ha ensayado. Se propone ensayarlo con un despliegue de producción anterior compatible con el esquema vigente, con aviso previo.
+6. **Recuperación de la aplicación:** ~~ensayar el rollback de Vercel~~ **Ensayado el 12/11/2026** (ida y vuelta en ~2 s cada una, sin caída). Pasos y límites en [despliegue](../deployment-fortius.md#regresar-a-la-versión-anterior-ensayado-el-12112026).
 7. **Supabase:** autorizar el conector de solo lectura `supabase-fortius` (o un token de solo lectura de la API de administración) para leer SMTP, URL de retorno, MFA y copias sin pedírselo al titular cada vez.
 
 ## Estado posterior a la integración

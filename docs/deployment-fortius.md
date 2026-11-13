@@ -36,3 +36,20 @@ Comprobar salud, Inicio, inventario, blog, herramientas, acceso al panel, robots
 ## Control de publicación (12 de octubre de 2026)
 
 Deployment Check GitHub `verify` activado en Fortius y en el proyecto adicional conectado entonces al mismo repositorio; al 12/11/2026 ese proyecto ya no aparece en el equipo y solo queda el check de Fortius. Exige check antes de asignar dominios. Main todavía requiere permiso administrativo para aplicar su protección. La preparación de controles no publicó producción. Posteriormente, [PR #15](https://github.com/M01535NT/fortius-inmuebles/pull/15) integró `36e3ba64` y documentó su despliegue productivo tras Verify exitoso. La actualización documental actual no publica otra revisión. Ver [estado y alcance de la evidencia](erp-crm/environment-release.md).
+
+## Regresar a la versión anterior (ensayado el 12/11/2026)
+
+Si una publicación sale mal, se vuelve a la versión anterior en Vercel sin tocar código:
+
+1. En Vercel, **fortius-inmuebles → Deployments**, abre la publicación de producción anterior (la que dice *Previous* o *Stale*).
+2. Menú **⋯ → Instant Rollback**, escribe el motivo, **Continue** y **Confirm Rollback**. El dominio cambia en unos 2 segundos.
+3. Mientras dure el regreso, Vercel **no publica** en producción lo que llegue a `main` (queda en pausa la asignación automática de dominios).
+4. Para terminar: abre la publicación buena (corregida o la que se había quitado), **⋯ → Promote → Promote**. Eso deshace el regreso y reactiva la publicación automática.
+5. Comprueba con `npm run health -- https://fortiusinmuebles.com --json` (solo lectura).
+
+Límites:
+
+- En el plan Hobby solo se puede regresar a la versión **inmediatamente anterior**.
+- El regreso cambia el código, **no la base de datos**. Si la publicación problemática trajo una migración, la versión anterior podría no ser compatible con el esquema nuevo; revisar `supabase/migrations` entre ambas versiones antes de regresar.
+
+Ensayo del 12/11/2026: de `a9b10e2` (PR #69) a `02d28d6` (PR #68), sin migraciones entre ambas. Ida en ~2 s y vuelta en ~2 s; el sitio respondió 200 en todo momento. Al final, producción quedó en `a9b10e2` con la asignación automática reactivada y la revisión de salud en `ok` (51 solicitudes: 48 con 200, 1 redirección 308 y 2 con 404; no se compararon con una revisión previa).
