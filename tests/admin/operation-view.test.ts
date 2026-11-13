@@ -195,8 +195,9 @@ test("cada etapa ofrece su documento; de la publicación al cierre no detienen y
   expect(formatos("publicacion", "captacion")).toEqual(["11"]);
   expect(formatos("visitas", "captacion")).toEqual(["12", "13", "14"]);
   expect(formatos("cierre", "captacion")).toEqual(["15", "16", "17", "18"]);
-  expect(formatos("visitas", "arrendador")).toEqual(["13"]);
-  expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18", "20"]);
+  // C-28: en la renta, la selección del arrendatario ofrece la solicitud (22) y la entrega el inventario (23).
+  expect(formatos("visitas", "arrendador")).toEqual(["22", "13"]);
+  expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18", "20", "23"]);
   expect(stageDocuments("cierre", "captacion").every(item => item.optional)).toBe(true);
 });
 

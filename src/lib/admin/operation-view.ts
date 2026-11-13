@@ -73,6 +73,7 @@ export type FormatStatus = "terminado" | "borrador" | undefined;
 const DOC_NAMES: Record<string, readonly ["el" | "la", string]> = {
   "02": ["la", "entrevista inicial"], "04": ["el", "levantamiento"], "05": ["la", "revisión jurídica"], "06": ["la", "opinión jurídica"],
   "07": ["la", "opinión de valor"], "08": ["la", "estimación del neto"], "09": ["el", "contrato de servicio"], "21": ["el", "contrato de servicio"], "10": ["el", "plan de comercialización"],
+  "22": ["la", "solicitud de arrendamiento"], "23": ["el", "inventario de entrega"],
 };
 function missingDoc(formato: string, draft: boolean) {
   const [article, noun] = DOC_NAMES[formato] ?? ["el", "documento"];
@@ -171,13 +172,15 @@ function shiftDay(date: string, days: number) { const d = new Date(date.slice(0,
   lo marcan sus confirmaciones; «venta» los deja fuera de la renta del propietario (perfil del
   comprador, oferta de compra y promesa de compraventa); «soloRenta», al revés, deja el contrato
   de arrendamiento (20, DOC-14) y la intermediación para renta (21) solo en la renta del propietario.
+  En la renta, «Selección del arrendatario» ofrece la solicitud de arrendamiento (22, una por
+  candidato, C-28) y «Cierre y entrega» el inventario de entrega y devolución (23).
 */
 const PHASE_ITEMS: Partial<Record<SalePhase, ReadonlyArray<{ formato: string; optional?: true; venta?: true; soloRenta?: true; renta?: "opcional" }>>> = {
   prospecto: [{ formato: "02" }], captacion: [{ formato: "02" }, { formato: "01", optional: true }], levantamiento: [{ formato: "04" }, { formato: "19", optional: true }],
   dictamen: [{ formato: "05", renta: "opcional" }, { formato: "06", venta: true }], verificacion: [{ formato: "07" }, { formato: "08", venta: true }], contrato: [{ formato: "09", venta: true }, { formato: "21", soloRenta: true }, { formato: "10" }],
   publicacion: [{ formato: "11", optional: true }],
-  visitas: [{ formato: "12", optional: true, venta: true }, { formato: "13", optional: true }, { formato: "14", optional: true, venta: true }],
-  cierre: [{ formato: "15", optional: true, venta: true }, { formato: "16", optional: true }, { formato: "17", optional: true }, { formato: "18", optional: true }, { formato: "20", optional: true, soloRenta: true }],
+  visitas: [{ formato: "12", optional: true, venta: true }, { formato: "22", optional: true, soloRenta: true }, { formato: "13", optional: true }, { formato: "14", optional: true, venta: true }],
+  cierre: [{ formato: "15", optional: true, venta: true }, { formato: "16", optional: true }, { formato: "17", optional: true }, { formato: "18", optional: true }, { formato: "20", optional: true, soloRenta: true }, { formato: "23", optional: true, soloRenta: true }],
 };
 /** Formatos de una etapa del propietario según su ruta (la renta no usa los de compraventa). */
 export function stageDocuments(phase: SalePhase, ruta: OperationWorkflow["ruta"]) {

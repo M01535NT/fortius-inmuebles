@@ -11,7 +11,7 @@ import { formatoById, type FormatoDefinition } from "@/lib/formatos/catalog";
 
 export const DOCUMENTOS_APP = "documentos";
 /** Todos los formatos con captura (HER-02); el 03 es la cartera de Control comercial, no un documento. */
-export const FORMATOS_INDEPENDIENTES = ["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"] as const;
+export const FORMATOS_INDEPENDIENTES = ["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"] as const;
 /**
   Formatos llenos que no salen en Word: el aviso de privacidad (01) es un documento legal cotejado
   y la promesa (15) exige su revisión jurídica; los dos se descargan en PDF completo o como machote.
