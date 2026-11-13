@@ -25,10 +25,34 @@ export class AdminApiError extends Error {
 const sessionListeners = new Set<() => void>();
 let session: StaffUser | null = null;
 let sessionEpoch = 0;
+/*
+  RP-19 (UX-04): si la sesión vence con alguien trabajando, la pantalla no se cierra. Se marca
+  «vencida», el panel pide entrar de nuevo encima de lo capturado y, si entra la misma persona,
+  todo sigue donde estaba. Si entra otra persona, se limpia como siempre.
+*/
+let expired = false;
 function setSession(user: StaffUser | null) {
   if (!user || session?.id !== user.id) clearAdminCache();
   session = user;
+  expired = false;
   sessionListeners.forEach((l) => l());
+}
+/** Un 401 con sesión abierta la marca vencida sin borrar la pantalla; sin sesión, cierra como antes. */
+function sessionRejected() {
+  if (!session) { setSession(null); return; }
+  if (expired) return;
+  expired = true;
+  sessionListeners.forEach((l) => l());
+}
+export function useSessionExpired() {
+  return React.useSyncExternalStore(
+    (cb) => {
+      sessionListeners.add(cb);
+      return () => sessionListeners.delete(cb);
+    },
+    () => expired,
+    () => false,
+  );
 }
 export function useSession() {
   return React.useSyncExternalStore(
@@ -41,16 +65,21 @@ export function useSession() {
   );
 }
 
+/** RP-15: sin red nada se guardó; lo capturado sigue en pantalla para reintentar. */
+export const SIN_CONEXION = "Sin conexión: tus cambios siguen en pantalla, todavía no se guardan.";
 /** Error de una petición con su código HTTP; conserva el mensaje del servidor. */
 export class RequestError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
 /** Petición JSON o multipart (FormData) sin cambiar el mensaje de error del servidor. */
 export async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" });
+  let response: Response;
+  try { response = await fetch(url, { ...init, credentials: "same-origin", cache: "no-store" }); }
+  catch { throw new RequestError(SIN_CONEXION, 0); }
   // C-02: un proxy o un error 502/504 puede responder HTML; no se muestra «Unexpected token '<'».
   let body: { error?: unknown } | null = null;
   try { body = await response.json(); } catch { body = null; }
+  if (response.status === 401 && url.startsWith("/api/admin/")) sessionRejected();
   if (!response.ok) throw new RequestError(typeof body?.error === "string" && body.error ? body.error : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.", response.status);
   if (body === null || typeof body !== "object") throw new RequestError("El servidor respondió algo inesperado. Recarga e inténtalo de nuevo.", response.status);
   return body as T;
@@ -91,7 +120,7 @@ export async function apiRequest<T>(
   } catch {
     throw new AdminApiError(
       0,
-      "No se pudo conectar. Tus cambios no se han guardado.",
+      SIN_CONEXION,
     );
   }
   const result = await response.json().catch(() => ({}));
@@ -101,7 +130,7 @@ export async function apiRequest<T>(
       response.status === 401 &&
       url.startsWith("/api/admin/")
     )
-      setSession(null);
+      sessionRejected();
     throw new AdminApiError(
       response.status,
       typeof result.error === "string"
@@ -394,7 +423,8 @@ export function errorMessage(error: unknown) {
     ? error.message
     : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
 }
-export async function isLoggedIn() {
+/** `boot`: al abrir el panel no hay nada capturado; sin sesión se muestra el acceso de siempre. */
+export async function isLoggedIn(options: { boot?: boolean } = {}) {
   const epoch = sessionEpoch;
   try {
     const result = await apiRequest<{ user: StaffUser }>("/api/auth/session");
@@ -407,7 +437,7 @@ export async function isLoggedIn() {
       error instanceof AdminApiError &&
       (error.status === 401 || error.status === 403)
     ) {
-      setSession(null);
+      if (error.status === 401 && !options.boot) sessionRejected(); else setSession(null);
       return false;
     }
     throw error;
