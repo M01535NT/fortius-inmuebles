@@ -13,7 +13,7 @@ Estado: propuesta para revisión, sin cambio de roles, bloqueo de personal ni en
 
 Lectura actual confirma dominio Auth correcto y tests de servidor existentes ejercitan autenticación y custodia de documentos. Una configuración correcta y mocks aprobados no prueban entrega de correo ni recuperación real. Esa prueba permanece pendiente de cuenta controlada/autorización. No se ha exigido AAL2 en producción.
 
-Lectura del 12/11/2026: registro abierto desactivado, acceso solo por correo y confirmación de correo obligatoria. El código tiene recuperación de contraseña, pero no invitación ni MFA. SMTP propio, URL de retorno y MFA del proyecto no se pudieron leer sin la API de administración. Detalle en [entornos](environment-release.md).
+Lectura del 12/11/2026: registro abierto desactivado, acceso solo por correo y confirmación de correo obligatoria. El código tiene recuperación de contraseña, pero no invitación ni MFA (la verificación en dos pasos se agregó el 13/11/2026; ver AUT-01 abajo). SMTP propio, URL de retorno y MFA del proyecto no se pudieron leer sin la API de administración. Detalle en [entornos](environment-release.md).
 
 ## Controles agregados el 13/11/2026 (en `main` con el PR #74; migraciones aplicadas y comprobadas)
 
@@ -31,10 +31,14 @@ Lectura del 12/11/2026: registro abierto desactivado, acceso solo por correo y c
 - **`rls_auto_enable` sin sesión:** función del disparador que Supabase crea para activar RLS en tablas nuevas. No se puede llamar directo; se le quita el permiso con `20261113160000_revocar_rls_auto_enable` (sin integrar).
 - **Protección contra contraseñas filtradas** (consulta a HaveIBeenPwned) desactivada. Supabase la ofrece en el plan Pro; queda para cuando se decida el plan.
 
-## Propuesta de MFA (AUT-01, 13/11/2026, sin activar)
+## Verificación en dos pasos (AUT-01)
 
-1. **Quién:** solo el director al principio; asesores después, cuando USR-01 dé de alta cuentas reales.
-2. **Cómo:** app de códigos (TOTP), incluida en Supabase sin costo. El SMS cuesta y es más débil.
-3. **Recuperación antes de exigirlo:** registrar dos dispositivos (teléfono y un segundo equipo o gestor de contraseñas). Si se pierden ambos, la base permite quitar el factor con la clave de servicio; ese paso lo hace el titular desde Supabase y queda registrado.
-4. **Orden:** activar el enrolamiento, ensayar la pérdida de un dispositivo con una cuenta de prueba y solo después exigir el segundo factor en el panel (sesión AAL2) para acciones del director.
-5. **Pendiente del titular:** decidir si se exige y tener la cuenta y el buzón de prueba para ensayarlo.
+Decisión del titular (13/11/2026): **sí, solo para el director**. Construida en la rama de seguridad, sin integrar.
+
+1. **Quién:** solo el director puede activarla (el servidor rechaza el alta de un asesor). Asesores, cuando USR-01 dé de alta cuentas reales y el titular lo decida.
+2. **Cómo:** app de códigos (TOTP: Google Authenticator, Microsoft Authenticator, 1Password…), incluida en Supabase sin costo. El SMS cuesta y es más débil.
+3. **Alta:** Mi perfil → «Verificación en dos pasos» → escanear el QR (o escribir la clave) y confirmar con el primer código. Pide haber entrado en los últimos 15 minutos. Admite dos dispositivos; se recomienda registrar el segundo (otro teléfono o el gestor de contraseñas) el mismo día.
+4. **Al entrar:** quien la tiene activa escribe la contraseña y después el código de 6 dígitos. La contraseña sola abre una sesión «aal1» que no sirve para el panel ni para la base: el servidor la rechaza y la migración `20261113180000_dos_pasos_del_director` hace que las funciones de permisos (`is_staff`, `is_admin`, `current_asesor_id`) tampoco la reconozcan. Un enlace de recuperación también pide el código antes de fijar la contraseña. Intentos limitados a 10 por cuenta y 30 por dirección.
+5. **Sin la app activa nada cambia:** la exigencia solo aplica a quien registró y confirmó un dispositivo.
+6. **Si se pierden los dos dispositivos:** el titular entra a Supabase → Authentication → Users → la cuenta del director → quita el factor. Con eso vuelve a entrar solo con contraseña y lo activa de nuevo. Quitar un dispositivo desde el panel no está disponible a propósito.
+7. **Pendiente:** ensayo con una cuenta y un buzón de prueba (alta, entrada con código, pérdida de un dispositivo y recuperación) antes de que el director la active en su cuenta real.
