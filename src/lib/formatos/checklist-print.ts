@@ -6,7 +6,7 @@ import { drawFortiusLetterhead, embedFortiusLetterhead } from "@/lib/pdf-letterh
 import { fortiusDocxSection } from "@/lib/docx-letterhead";
 
 /*
-  Checklist de documentos para entregar al propietario, en PDF o Word. Lista simple
+  Lista de documentos para entregar al propietario, en PDF o Word. Lista simple
   con casillas; marca los ya recibidos. No es un formato emitido ni lleva huella.
   Debajo de cada documento: si no aplica, su motivo; si aún no se sabe, la pregunta (COR-06).
 */
@@ -40,7 +40,7 @@ export async function checklistPdf(items: ChecklistItem[], context: Context): Pr
   let page = pdf.addPage([612, 792]); let y = body.bodyTop - 22;
   const margin = 56, width = 612 - margin * 2;
   const room = (height: number) => { if (y-height<body.bottom) {page=pdf.addPage([612,792]);y=body.bodyTop-12;} };
-  page.drawText("Checklist de documentos", { x: margin, y, size: 22, font: bold, color: navy }); y -= 20;
+  page.drawText("Lista de documentos", { x: margin, y, size: 22, font: bold, color: navy }); y -= 20;
   for(const line of wrap(`Operación ${context.folio}${context.cliente ? ` · ${context.cliente}` : ""}`,width,t=>regular.widthOfTextAtSize(t,10))) { room(14);page.drawText(line, { x: margin, y, size: 10, font: regular, color: grey }); y-=14; } y-=12;
   for (const line of wrap(INTRO, width, t => regular.widthOfTextAtSize(t, 11))) { page.drawText(line, { x: margin, y, size: 11, font: regular, color: grey }); y -= 15; }
   y -= 12;
@@ -57,14 +57,14 @@ export async function checklistPdf(items: ChecklistItem[], context: Context): Pr
   }
   room(18);
   page.drawText("Las copias se usan solo para revisar la operación, conforme al aviso de privacidad.", { x: margin, y, size: 8.5, font: regular, color: grey });
-  pdf.getPages().forEach((p,i)=>drawFortiusLetterhead(p,art,bold,'Checklist de documentos',i+1,pdf.getPageCount()));
+  pdf.getPages().forEach((p,i)=>drawFortiusLetterhead(p,art,bold,'Lista de documentos',i+1,pdf.getPageCount()));
   return pdf.save();
 }
 
 export async function checklistDocx(items: ChecklistItem[], context: Context): Promise<Blob> {
   const assets = await fetchLetterhead();
-  const document = new Document({ creator: "Fortius Inmuebles", title: "Checklist de documentos", styles: { default: { document: { run: { font: "Calibri" } } } }, sections: [{ ...fortiusDocxSection(assets,'Checklist de documentos'), children: [
-    new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: "Checklist de documentos" })] }),
+  const document = new Document({ creator: "Fortius Inmuebles", title: "Lista de documentos", styles: { default: { document: { run: { font: "Calibri" } } } }, sections: [{ ...fortiusDocxSection(assets,'Lista de documentos'), children: [
+    new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: "Lista de documentos" })] }),
     new Paragraph({ spacing: { after: 200 }, children: [new TextRun({ text: `Fortius Inmuebles · Operación ${context.folio}${context.cliente ? ` · ${context.cliente}` : ""}`, size: 20, color: "595959" })] }),
     new Paragraph({ spacing: { after: 240 }, children: [new TextRun({ text: INTRO, size: 22 })] }),
     ...items.map(item => { const extra = nota(item, context); return new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: `${context.recibidos?.includes(item.id) ? "☒" : "☐"}  ${item.texto}`, size: 24 }), ...(extra ? [new TextRun({ text: extra, size: 18, color: "595959", break: 1 })] : [])] }); }),
