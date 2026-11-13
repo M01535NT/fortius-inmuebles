@@ -46,7 +46,7 @@ function Editor({ initial }: { initial: SiteContent }) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const next: SiteContent = { ...content, ...Object.fromEntries(
-      ["heroTitulo", "heroSubtitulo", "manifiestoTitulo", "manifiestoTexto", "seoTitle", "seoDescription"].map((k) => [
+      ["manifiestoTitulo", "manifiestoTexto", "seoTitle", "seoDescription"].map((k) => [
         k,
         String(data.get(k) ?? ""),
       ]),
@@ -68,28 +68,8 @@ function Editor({ initial }: { initial: SiteContent }) {
       />
 
       <AsyncForm onSubmit={guardar} className="space-y-6">
-        <section className="space-y-4 rounded-lg border border-border bg-card p-5">
-          <h2 className="display-soft text-lg text-foreground">Hero</h2>
-          <Field label="Titular (H1)" htmlFor="ct-heroTitulo">
-            <textarea
-              id="ct-heroTitulo"
-              name="heroTitulo"
-              required
-              defaultValue={content.heroTitulo}
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Subtítulo" htmlFor="ct-heroSubtitulo">
-            <textarea
-              id="ct-heroSubtitulo"
-              name="heroSubtitulo"
-              rows={2}
-              required
-              defaultValue={content.heroSubtitulo}
-              className={textareaClass}
-            />
-          </Field>
-        </section>
+        {/* C-01 (titular, 13/11/2026): el titular y el subtítulo de la portada no se editan aquí; el inicio
+            tiene su propio texto. Lo guardado antes se conserva sin cambios. */}
 
         <section className="space-y-4 rounded-lg border border-border bg-card p-5">
           <h2 className="display-soft text-lg text-foreground">

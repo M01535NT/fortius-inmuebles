@@ -18,7 +18,7 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 
 **Qué entró en la rama (13/11/2026).**
 
-- **Panel:** IA-02 (tope de IA en Configuración); FCH-03 en su parte de Configuración (datos de Fortius); NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
+- **Panel:** IA-02 (tope de IA en Configuración); FCH-03 completo: los datos de Fortius se capturan en Configuración y los formatos 01 y 09 los toman de ahí, con el membrete fijo (decisión del titular, 13/11/2026); en Contenido ya no aparecen «Titular (H1)» ni «Subtítulo», que el sitio no usa (C-01, lo guardado se conserva); NAV-13, papelera «Eliminados»; «Lista de documentos» en lugar de «Checklist».
 - **Sistema visual:** escala tipográfica del sitio y del panel; tokens de espacio, botones, esquinas y colores, sin crema ni beige.
 - **Textos:** inicio, Vender y Nosotros; nombres unificados del sitio y del panel.
 - **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
@@ -29,8 +29,8 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 **Qué sigue, en orden.**
 
 1. Terminar los hallazgos abiertos de Calidad y de Seguridad.
-2. FCH-03 en los formatos 01 y 09.
-3. Integrar las pruebas de Calidad que esperan su arreglo (C-26) y el disparador M2 de Seguridad.
+2. Integrar las pruebas de Calidad que esperan su arreglo (C-26) y el disparador M2 de Seguridad.
+3. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
 4. DOC-14 espera el Word de arrendamiento del titular.
 5. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
 6. Verificación completa y un solo PR a `main` cuando el titular lo pida.
@@ -855,7 +855,7 @@ COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a p
 | F19 | **Recibir el archivo en cada documento de la lista** (no solo la palomita). | Usa la carga de DOC-11; el propietario puede subirlo con la liga de DOC-12. Recibido es «Lo tengo», nunca revisado. |
 | F20 | **Dictamen con biblioteca de párrafos** y resultado: Vendible, Vendible con condiciones o No vendible. | Completa DOC-06. El abogado elige y redacta; el sistema no dictamina (LEG-01, R-03). «No vendible» ofrece pausar o descartar con motivo. |
 | F21 | **Copia firmada como último paso** de cada documento. | Ya existe la carga de copia firmada; se presenta como paso final con la insignia «Firmado» (V05). |
-| F22 | **Membrete propio** (logo, pie, colores) cargable en Configuración. | Solo marca Fortius (RP-01); los colores del membrete no cambian la paleta del panel (RP-70). |
+| F22 | **Descartada por ahora (titular, 13/11/2026): el membrete queda fijo, sin edición en Configuración.** Antes: membrete propio (logo, pie, colores) cargable en Configuración. | Solo marca Fortius (RP-01); los colores del membrete no cambian la paleta del panel (RP-70). |
 | F23 | **Plantillas Word propias con campos** (por ejemplo `{{propietario.nombre}}`) llenadas desde la ficha. | Después de FCH-01. Campos simples con `jszip`, ya instalado. Una plantilla propia del contrato puede ser la vía para liberar DOC-09 si el titular confirma que es el modelo registrado. |
 | — | **Opinión de valor:** captura en el sistema, Excel como salida, archivo final adjunto y valor concluido en la ficha. | Es RP-80. Siguen pendientes el diseño del PDF del 07 y las fotos del Excel («Qué sigue»). |
 
@@ -863,7 +863,7 @@ COR-01 y COR-02 se encontraron el 17/10/2026; COR-03 a COR-09, el 18/10/2026 a p
 |---|---|---|---|
 | FCH-01 | F10, F12 | REL-01 (diseño conjunto); migración autorizada | Ficha con cuatro bloques por operación; operaciones existentes migradas sin perder datos; origen y estado por dato; respaldo y restauración ensayados. |
 | FCH-02 | F11, F13 | FCH-01, DOC-01 | Los documentos leen de la ficha; corregir en un documento actualiza la ficha con confirmación; PDF emitido fijo con aviso de versión nueva. |
-| FCH-03 | F14, F22 | — | Datos de Fortius y membrete en Configuración; todos los documentos los usan. |
+| FCH-03 | F14 | — | Datos de Fortius en Configuración; todos los documentos los usan. El membrete queda fijo (F22 descartada el 13/11/2026). |
 | FCH-04 | F16, F17 y RP-82 | UX-05 | PDF y Word descargables con faltantes en todos los formatos; aviso de lo que falta; registro en historial; el 09 y las reglas legales y de congruencia de la 15 se conservan; un PDF con faltantes cuenta para los candados; «Datos por completar» separados de «Te falta» y avisados en «Para ti»; ningún campo vacío detiene el avance salvo los marcados como indispensables. |
 | FCH-05 | F15 | FCH-01, DOC-10 | Documento y «Datos legales» lado a lado; guardar actualiza la ficha. |
 | FCH-06 | F18 | — | Un PDF con portada, índice y emisiones en orden, y ZIP; solo con permiso. |
@@ -1490,7 +1490,7 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | CAP-04 | 1 | pendiente | CAP-03, CRM-02 |
 | FCH-01 | 2 | pendiente | REL-01 (diseño conjunto), migración autorizada |
 | FCH-02 | 2 | pendiente | FCH-01, DOC-01 |
-| FCH-03 | 2 | parcial | datos de Fortius en Configuración en `feat/integracion` (13/11/2026); falta que los formatos los usen y el membrete editable si el titular lo pide |
+| FCH-03 | 2 | en_local | datos de Fortius en Configuración y formatos 01 y 09 que los usan, en `feat/integracion` (13/11/2026); el membrete queda fijo por decisión del titular (F22 descartada) |
 | FCH-04 | 2 | pendiente | UX-05 |
 | FCH-05 | 2 | pendiente | FCH-01, DOC-10 |
 | FCH-06 | 2 | en_local | ninguna; expediente completo en la rama de Formatos (`7cb7761`, 13/11/2026), entra en la ronda 3 |

@@ -210,7 +210,7 @@ it("en el dictamen, la barra dice qué les falta a las etapas anteriores y «Ver
   await stage(5);
   expect(await screen.findByRole("button", { name: "3 · Levantamiento: falta el levantamiento" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "2 · Entrevista inicial: lista" })).toBeTruthy();
-  expect(screen.getByRole("button", { name: "4 · Checklist de documentos: falta la lista de documentos" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "4 · Lista de documentos: falta la lista de documentos" })).toBeTruthy();
   expect(screen.getByText("A la etapa 3, levantamiento, le falta el levantamiento. Hay 1 más en «Ver etapas».")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Ver etapas" }));
   const sheet = await screen.findByRole("dialog", { name: "Etapas" });
