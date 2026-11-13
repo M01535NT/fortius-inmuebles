@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { ZodError } from "zod";
+import { reportFailure } from "@/lib/backend/monitor";
 
 export class ApiError extends Error {
   /** `details` se agrega al cuerpo del error (p. ej. `faltantes`); nunca lleva datos privados. */
@@ -70,7 +71,12 @@ export async function apiResponse(action: () => Promise<unknown>, successStatus 
   catch (error) {
     const status = error instanceof ApiError ? error.status : error instanceof ZodError ? 400 : 500;
     const message = error instanceof ApiError ? error.message : status === 400 ? "Hay datos que no son válidos. Revisa lo que capturaste." : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
-    if (status >= 500) console.error(JSON.stringify({ event: "api_failure", requestId, status, category: error instanceof ApiError ? "dependency" : "unexpected", durationMs: Date.now() - startedAt }));
+    if (status >= 500) {
+      const category = error instanceof ApiError ? "dependency" : "unexpected";
+      console.error(JSON.stringify({ event: "api_failure", requestId, status, category, durationMs: Date.now() - startedAt }));
+      // OBS-01: aviso a Sentry, sin mensaje ni datos; si no está configurado, no hace nada.
+      await reportFailure({ kind: "api_failure", category, status, requestId });
+    }
     return Response.json({ ...(error instanceof ApiError ? error.details : undefined), error: message, requestId }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
   }
 }
