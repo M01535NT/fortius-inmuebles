@@ -7,6 +7,7 @@ import { validarReporte } from "./reporte";
 import { entrevistaFields, validarEntrevista } from "./entrevista";
 import { camposRepresentante, mostrarCampoAviso, validarAviso } from "./aviso";
 import { validarJuridica } from "./juridica";
+import { RESULTADOS_OPINION } from "./opinion-juridica";
 import { levantamientoFields, isLevantamiento, validarLevantamiento } from "./levantamiento";
 import { valorFields, mostrarCampoValor } from "./valor-fields";
 import { promesaFields, mostrarCampoPromesa, validarPromesa } from "./promesa";
@@ -161,19 +162,26 @@ export const FORMATOS: readonly FormatoDefinition[] = [
     sectionField("Referencia de la opinión", "destinatario", "Destinatario"),
     sectionField("Referencia de la opinión", "inmueble", "Domicilio y referencia del inmueble"),
     sectionField("Referencia de la opinión", "operacion", "Operación y etapa examinadas"),
+    // DOC-06 (12/11/2026): resultado, antecedentes en tabla, marco jurídico, condiciones por etapa y
+    // documentos revisados; son opcionales y los borradores anteriores conservan sus párrafos.
+    { ...choice("resultado", "Resultado de la opinión", RESULTADOS_OPINION, false), section: "01 / Conclusión ejecutiva" },
     sectionField("01 / Conclusión ejecutiva", "conclusion", "Conclusión ejecutiva", "long"),
     sectionField("01 / Conclusión ejecutiva", "sustento", "Evidencia y fundamento de la conclusión", "long"),
     sectionField("02 / Objeto y alcance", "objeto", "Objeto del encargo", "long"),
     sectionField("02 / Objeto y alcance", "alcance", "Alcance de la revisión", "long"),
-    sectionField("03 / Antecedentes y documentación", "antecedentes", "Antecedentes relevantes", "long"),
-    sectionField("03 / Antecedentes y documentación", "documentos", "Documentación examinada y localizadores", "long"),
-    sectionField("04 / Análisis jurídico", "titularidad", "Titularidad y facultades para disponer", "long"),
-    sectionField("04 / Análisis jurídico", "registro", "Situación registral e identidad del inmueble", "long"),
-    sectionField("04 / Análisis jurídico", "impedimentos", "Impedimentos y condiciones de la operación", "long"),
-    sectionField("05 / Recomendaciones", "recomendaciones", "Recomendaciones y próximos pasos", "long"),
-    sectionField("05 / Recomendaciones", "responsables", "Responsables y acciones pendientes", "long"),
-    sectionField("06 / Límites y actualización", "limites", "Límites de la opinión", "long"),
-    sectionField("06 / Límites y actualización", "actualizacion", "Hechos y momento para actualizar la opinión", "long"),
+    { ...sectionField("03 / Antecedentes", "antecedentesTabla", "Antecedentes", "juridicaRows"), required: false },
+    { ...sectionField("03 / Antecedentes", "antecedentes", "Notas sobre los antecedentes", "long"), required: false },
+    { ...sectionField("04 / Marco jurídico", "marcoJuridico", "Leyes y artículos aplicables, con la fecha en que se consultaron", "long"), required: false },
+    sectionField("05 / Análisis jurídico", "titularidad", "Titularidad y facultades para disponer", "long"),
+    sectionField("05 / Análisis jurídico", "registro", "Situación registral e identidad del inmueble", "long"),
+    sectionField("05 / Análisis jurídico", "impedimentos", "Impedimentos y condiciones de la operación", "long"),
+    { ...sectionField("06 / Condiciones y recomendaciones", "etapasCliente", "Condiciones por etapa", "juridicaRows"), required: false },
+    sectionField("06 / Condiciones y recomendaciones", "recomendaciones", "Recomendaciones y próximos pasos", "long"),
+    sectionField("06 / Condiciones y recomendaciones", "responsables", "Responsables y acciones pendientes", "long"),
+    { ...sectionField("07 / Documentos revisados", "documentosRevisados", "Documentos revisados", "juridicaRows"), required: false },
+    { ...sectionField("07 / Documentos revisados", "documentos", "Notas sobre los documentos revisados", "long"), required: false },
+    sectionField("08 / Vigencia y límites", "limites", "Límites de la opinión", "long"),
+    sectionField("08 / Vigencia y límites", "actualizacion", "Hechos y momento para actualizar la opinión", "long"),
     sectionField("Emisión de la opinión", "abogado", "Nombre completo del abogado responsable"),
     sectionField("Emisión de la opinión", "cedula", "Cédula profesional"),
   ], true),

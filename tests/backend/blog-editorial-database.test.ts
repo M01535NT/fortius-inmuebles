@@ -20,7 +20,7 @@ beforeAll(async () => {
     insert into auth.users values ('${member}');`);
   const dir = new URL("../../supabase/migrations/", import.meta.url);
   for (const file of (await readdir(dir)).filter((f) => f.endsWith(".sql")).sort()) await db.exec(await readFile(new URL(file, dir), "utf8"));
-  await db.query("insert into public.fortius_inmuebles_staff(user_id,role) values ($1,'editor')", [member]);
+  await db.query("insert into public.fortius_inmuebles_staff(user_id,role) values ($1,'admin')", [member]);
   await db.exec("set role authenticated");
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [member]);
 });

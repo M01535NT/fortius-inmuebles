@@ -3,7 +3,7 @@ import { HOME_TEXT_KEYS } from "@/data/home-copy";
 import { CATEGORIAS_PUNTO, GRUPOS_CARACTERISTICAS, estadoValido, type Property } from "@/data/propiedades";
 import { z } from "zod";
 import { leadProfileSchema } from "@/lib/lead-profile";
-import { buyerNoticesSchema, keysSchema, prepSchema } from "@/lib/propiedad-seguimiento";
+import { buyerNoticesSchema, keysSchema, prepSchema, PRIVATE_PROPERTY_FIELDS } from "@/lib/propiedad-seguimiento";
 import { LEAD_CANALES } from "@/lib/domain/records";
 import { taskSchema } from "@/lib/tasks";
 import { COLLECTIONS, type CollectionName } from "./contracts";
@@ -122,6 +122,20 @@ const publicSettings = settingsSchema.omit({ horasPrimeraAtencion: true }).strip
 // This second allowlist also protects server components against malformed DB data.
 const publicProperty = propertySchema.omit({ llaves: true, preparacion: true, avisosCompradores: true }).strip().extend({
   codigo: name, ficha: ficha.strip(), informacionPublica: informacionPublica.strip().optional(), precio: z.discriminatedUnion("modalidad", [z.object({ modalidad: z.literal("consulta") }), z.object({ modalidad: z.literal("publico"), monto: amount, moneda: z.enum(["MXN", "USD"]), periodo: z.literal("mensual").optional() })]), galeria: z.array(image.strip()), documentos: z.array(document.strip()).optional(), puntosDeInteres: z.array(point.strip()), beneficios: z.array(benefit.strip()).max(4).optional(), caracteristicas: z.array(featureGroup.strip()).optional(), costos: costs.strip().optional() });
+/**
+  COR-23 y DEC-43 (12/11/2026): un asesor ve de los inmuebles de otros asesores solo lo público
+  (fotos, precio, descripción y ficha) para poder ofrecerlos; el seguimiento privado (llaves,
+  preparación y avisos a compradores) y los archivos privados se quedan con su asesor y el director.
+*/
+export function projectTeamProperty(value: Record<string, unknown>): Record<string, unknown> {
+  const data: Record<string, unknown> = { ...value };
+  for (const key of PRIVATE_PROPERTY_FIELDS) delete data[key];
+  if (Array.isArray(data.galeria)) data.galeria = (data.galeria as { src?: unknown }[]).filter(item => typeof item?.src === "string" && isPublicUrl(item.src));
+  if (Array.isArray(data.documentos)) data.documentos = (data.documentos as { url?: unknown }[]).filter(item => typeof item?.url === "string" && isPublicUrl(item.url));
+  for (const key of ["videoUrl", "tour360Url"]) if (typeof data[key] === "string" && !isPublicUrl(data[key] as string)) delete data[key];
+  return data;
+}
+
 export function projectPublic(collection: string, values: unknown[]): Record<string, unknown>[] {
   const schema = collection === "propiedades" ? publicProperty : collection === "asesores" ? adviserSchema.pick({ id: true, nombre: true, cargo: true, iniciales: true, activo: true }).strip()
     : collection === "contenido" ? contentSchema.strip() : collection === "config" ? publicSettings : collection === "posts" ? postSchema.strip() : null;

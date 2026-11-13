@@ -41,6 +41,9 @@ beforeAll(async () => {
     ('propiedades','house-a','{"slug":"house-a","codigo":"HOUSE-A","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}'),
     ('propiedades','house-b','{"slug":"house-b","codigo":"HOUSE-B","tipo":"casa","operacion":"venta","asesorId":"own","publicada":false}');`);
   for(const file of (await readdir(dir)).filter(f=>f.endsWith('.sql')&&f>='20261014033544_guided_operations.sql').sort())await db.exec(await readFile(new URL(file,dir),'utf8'));
+  // Estas pruebas recorren el flujo con el asesor marcando todo; que ciertas revisiones sean del
+  // director (COR-23) se prueba aparte, en staff-scope-database.test.ts.
+  await db.exec("alter table public.fortius_inmuebles_expedientes disable trigger fortius_02_guard_director_reviews");
 });
 afterAll(async () => { await db?.close(); });
 
@@ -137,6 +140,8 @@ async function putListing(slug:string,data:Record<string,unknown>){
  const version=(await db.query<{version:number}>("select version from public.fortius_inmuebles_records where collection='propiedades' and id=$1",[slug])).rows[0]?.version??null;
  return db.query("select public.fortius_inmuebles_put_record('propiedades',$1,$2::jsonb,$3)",[slug,JSON.stringify(data),version]);
 }
+/** Cambia de usuario sin salir del rol `authenticated`. */
+const actAs=(uid:string)=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[uid]);
 const published=async(slug:string)=>(await db.query<{p:boolean}>("select (data->>'publicada')::boolean p from public.fortius_inmuebles_records where collection='propiedades' and id=$1",[slug])).rows[0].p;
 it('records who captured and who sold, and keeps a sold listing visible as sold (COR-22, RP-99)',async()=>{
  await db.exec(`insert into public.fortius_inmuebles_records(collection,id,data) values
@@ -147,7 +152,8 @@ it('records who captured and who sold, and keeps a sold listing visible as sold 
   for(const slug of ['house-sold','house-left']){
    const f=await fixture(completeFlow(),slug);ops[slug]=f.id;
    await update(f.id,'documentacion');await sign(f.id,'documentacion');await update(f.id,'comercializacion');
-   await putListing(slug,listing(slug));
+   // DEC-43: publicar lo autoriza el director.
+   await actAs(admin);await putListing(slug,listing(slug));await actAs(own);
    for(const stage of ['negociacion','cierre'])await update(f.id,stage);
   }
   // Asesores que no existen o registro incompleto.
@@ -161,9 +167,11 @@ it('records who captured and who sold, and keeps a sold listing visible as sold 
   expect(await published('house-sold')).toBe(true);
   expect(await published('house-left')).toBe(false);
   // Con la operación ya cerrada se puede volver a mostrar como vendido, nunca como disponible.
+  await actAs(admin);
   await expect(putListing('house-left',listing('house-left'))).rejects.toMatchObject({code:'PT409'});
   await putListing('house-left',listing('house-left',{estado:'vendida'}));
   expect(await published('house-left')).toBe(true);
+  await actAs(own);
  });
 });
 it('walks signature/payment, delivery and post-sale separately and archives without inventing an action',async()=>{

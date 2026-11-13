@@ -2,11 +2,12 @@
 import * as React from "react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Eye, EyeOff } from "@/components/admin/icons";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
-import { MobileHeader, MobileMenu, MobileTabBar, TopNav } from "@/components/admin/workspace/guided-nav";
+import { ADMIN_NAV, isNavActive, MobileHeader, MobileMenu, MobileTabBar, TopNav } from "@/components/admin/workspace/guided-nav";
 import { Tour } from "@/components/admin/workspace/tour";
 import {
   AsyncForm,
@@ -322,6 +323,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const user = { name, email: session.email, initials: name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase(), avatar: session.avatar };
   // Nueva operación ocupa toda la pantalla: sin menú, migas ni barra inferior; se sale con la ×.
   const focus = pathname === "/admin/operaciones/nueva";
+  // COR-23: Equipo, Sitio web, Reportes, Historial y Configuración son del director (la base lo hace valer).
+  const directorOnly = session.role !== "admin" && ADMIN_NAV.some(item => isNavActive(pathname, item));
   return (
     <div className="admin-workspace flex min-h-[100dvh] flex-col bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       {!focus && <TopNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch hotkey />} />}
@@ -342,6 +345,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <p role="status" aria-busy={refreshing}>
               {error || refreshError ? "No se pudo cargar este módulo. Puedes reintentar o abrir otro desde el menú." : "Cargando módulo…"}
             </p>
+          ) : directorOnly ? (
+            <div role="alert" className="max-w-[640px] space-y-3 rounded-[var(--radius-card)] border border-[var(--card-edge)] bg-card p-6">
+              <h1 className="text-xl font-semibold">Esta sección la administra el director</h1>
+              <p className="text-sm text-muted-foreground">Si necesitas un cambio aquí, pídelo al director.</p>
+              <Link href="/admin" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4">Volver a Hoy</Link>
+            </div>
           ) : (
             children
           )}

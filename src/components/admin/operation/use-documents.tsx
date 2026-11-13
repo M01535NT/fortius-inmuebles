@@ -15,6 +15,7 @@ import type { FormatStatus, OperationRecord } from "@/lib/admin/operation-view";
 import type { Task } from "@/lib/tasks";
 import { FormatoCapture, type CaptureContext, type Emision } from "./formato-capture";
 import type { Documento } from "./documents-tab";
+import { semillaOpinion } from "@/lib/formatos/opinion-juridica";
 
 /*
   Documentos de la operación en un solo lugar: el borrador más reciente de cada formato,
@@ -104,6 +105,7 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
       return { data: { fechaEmision: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`, consentimientoPatrimonial: "pendiente", consentimientoPublicidad: "pendiente", transferenciaAsesor: "pendiente", transferenciaFinanciera: "pendiente", transferenciaOperacion: "pendiente", acuseEstado: "pendiente" } };
     }
     if (formatoId === "05") return { data: { documentos: juridicaDocumentsFrom(checklist) } };
+    if (formatoId === "06") return { data: semillaOpinion(latest("05")?.data as Record<string, unknown> | undefined) };
     if (formatoId === "08") {
       const valor = latest("07");
       // COR-17: sin opinión de valor terminada, el valor sale del avalúo del propietario vigente.

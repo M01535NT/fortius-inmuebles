@@ -629,3 +629,25 @@ it("«Agregar documento» sube escrituras o identificaciones a los documentos de
   expect(screen.getByRole("radio", { name: "Del cliente" }).getAttribute("aria-checked")).toBe("true");
   expect(await screen.findByText("Escritura")).toBeTruthy();
 });
+
+it("la decisión del encargo se toma en el panel de la etapa y ya no en los datos de la operación (COR-14, DEC-38)", async () => {
+  const verified = { entrevista: reviewed(), levantamiento: reviewed(), titularidad: reviewed(), factibilidad: reviewed({ vigenteHasta: "2026-12-31" }), valor: reviewed(), precio: reviewed() };
+  server.ops = [base({ etapa: "documentacion", flujo: flow(verified) })];
+  await openOperation();
+  await stage(6);
+  const region = screen.getByRole("region", { name: "Esta etapa" });
+  expect(within(region).getAllByText("Registrar si tomas el encargo").length).toBeGreaterThan(0);
+  expect(within(region).getAllByRole("button", { name: "Ir a la decisión" }).length).toBeGreaterThan(0);
+  const card = within(region).getByRole("region", { name: "Decisión del encargo" });
+  fireEvent.change(within(card).getByLabelText("Decisión"), { target: { value: "aceptada" } });
+  fireEvent.click(within(card).getByRole("button", { name: "Guardar decisión" }));
+  expect(await within(card).findByText("Escribe el motivo de la decisión.")).toBeTruthy();
+  fireEvent.change(within(card).getByLabelText("Motivo y alcance"), { target: { value: "Documentos completos; se toma la venta" } });
+  fireEvent.change(within(card).getByLabelText("Siguiente acción"), { target: { value: "Firmar el contrato" } });
+  fireEvent.click(within(card).getByRole("button", { name: "Guardar decisión" }));
+  await waitFor(() => expect(lastFlow()).toMatchObject({ flujo: { resolucion: { tipo: "aceptada", motivo: "Documentos completos; se toma la venta", siguienteAccion: "Firmar el contrato", fecha: "2026-10-16" }, requisitos: { precio: { estado: "revisado" } } } }));
+  fireEvent.click(screen.getByRole("button", { name: "Más opciones" }));
+  fireEvent.click(screen.getByRole("menuitem", { name: "Datos de la operación" }));
+  const datos = await screen.findByRole("dialog", { name: "Datos de la operación" });
+  expect(within(datos).queryByLabelText("Decisión")).toBeNull();
+});

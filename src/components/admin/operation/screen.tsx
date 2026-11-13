@@ -203,7 +203,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
         </TabPanel>
       </div>
     </div></>}
-    {!op.deleted_at && <Sheet open={settings} onClose={() => void closeSettings()} title="Datos de la operación" description="Ruta, situación, inmueble, contraparte, decisión del encargo y corrección de etapa.">
+    {!op.deleted_at && <Sheet open={settings} onClose={() => void closeSettings()} title="Datos de la operación" description="Ruta, situación, inmueble, contraparte y corrección de etapa.">
       <SettingsTab key={op.version} op={op} all={all} today={today} onSave={saveAndTrack} onDirtyChange={markDirty.ajustes} />
     </Sheet>}
     {stagesOpen && isGuided(op) && <StagesSheet op={view} today={today} docs={docs} checklist={checklist} focus={stagesOpen.focus} onClose={() => setStagesOpen(null)} />}
