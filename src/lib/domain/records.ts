@@ -96,7 +96,10 @@ export type Lead = {
   convertidoEl?: string;
   convertidoPor?: string;
   firstContactedAt?: string;
+  /** COR-18: ofertas por escrito (formato 14) de este interesado, ligadas por el documento. */
+  ofertas?: LeadOffer[];
 };
+export type LeadOffer = { documentoId: string; expedienteId: string; fecha: string; propiedadSlug?: string };
 
 export const EVENTO_TIPOS = [
   "visita",
