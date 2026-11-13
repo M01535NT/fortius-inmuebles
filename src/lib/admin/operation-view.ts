@@ -136,7 +136,7 @@ export function pastGaps(op: OperationRecord, today: string, status: (formato: s
 export type AttentionKind = "problema" | "vencida" | "falta" | "revisar" | "hoy" | "oferta" | "agendar";
 export const ATTENTION_ORDER: readonly AttentionKind[] = ["problema", "vencida", "falta", "revisar", "hoy", "oferta", "agendar"];
 export type Attention = { kind: AttentionKind; label: string; rank: number; late: boolean };
-type AttentionInput = Pick<OperationRecord, "id" | "etapa" | "flujo"> & Partial<Pick<OperationRecord, "operacion">>;
+type AttentionInput = Pick<OperationRecord, "id" | "etapa" | "flujo"> & Partial<Pick<OperationRecord, "operacion" | "asesor_id">>;
 /**
   Por qué una operación «espera algo de ti» (RP-84, COR-05). Es la única definición: la usan
   Operaciones, la cola de Hoy y el número del menú, con este orden: 1) hay un problema;
@@ -155,7 +155,8 @@ export function attentionOf(op: AttentionInput, tasks: Task[], today: string, ga
   if (reviews.some(r => r?.estado === "recibido")) return at("revisar", "Documento por revisar");
   if (open.some(t => t.vence === today)) return at("hoy", "Vence hoy");
   if (recentOffer) return at("oferta", "Oferta nueva");
-  if (flow.estado !== "pausada" && !open.some(t => !!t.vence)) return at("agendar", "Sin próxima tarea");
+  // C-35: la misma regla que el avance de etapa: una tarea con fecha del asesor de la operación.
+  if (flow.estado !== "pausada" && !open.some(t => t.asesorId === op.asesor_id && !!t.vence)) return at("agendar", "Sin próxima tarea");
   return null;
 }
 /** Una oferta registrada en los últimos 3 días para esta operación. */

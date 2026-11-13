@@ -9,7 +9,7 @@ import type { Task } from "@/lib/tasks";
 
 const today = "2026-10-16";
 const names = { client: (id?: string) => id === "c1" ? "Familia Navarro" : undefined, property: (slug?: string | null) => slug === "casa" ? "Casa en Playas" : undefined };
-const task = (over: Partial<Task>): Task => ({ id: "t", titulo: "Tarea", descripcion: "", categoria: "captacion", estado: "pendiente", prioridad: "normal", pasos: [], ...over });
+const task = (over: Partial<Task>): Task => ({ id: "t", titulo: "Tarea", descripcion: "", categoria: "captacion", estado: "pendiente", prioridad: "normal", pasos: [], asesorId: "a1", ...over });
 const review = (estado: "pendiente" | "recibido" | "revisado" | "observado", over: Record<string, unknown> = {}) => ({ estado, soporte: "", ...over });
 const dossier = (over: Partial<TodayDossier> & { requisitos?: Record<string, unknown> }): TodayDossier => {
   const { requisitos = {}, ...rest } = over;
