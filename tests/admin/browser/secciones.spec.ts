@@ -18,7 +18,7 @@ const data: Record<string, Record<string, unknown>[]> = {
   asesores: [adviser],
   leads: [
     { id: "l1", nombre: "Ramón Félix Arce", telefono: "664 351 0928", origen: "manual", estado: "contactado", zona: "Rosarito, cerca de la playa", tipoPropiedad: "casa", creadoEl: stamp, notas: [], perfil: { operacion: "comprar", presupuestoMax: 4200000, moneda: "MXN" } },
-    { id: "l2", nombre: "Sofía Arreola Peña", telefono: "664 772 1045", origen: "contacto", estado: "nuevo", zona: "Zona Río", tipoPropiedad: "departamento", creadoEl: stamp, notas: [], perfil: { operacion: "rentar", presupuestoMin: 18000, presupuestoMax: 22000, moneda: "MXN", proximoContacto: shift(-2) } },
+    { id: "l2", nombre: "Sofía Arreola Peña", telefono: "664 772 1045", origen: "contacto", estado: "nuevo", zona: "Zona Río", tipoPropiedad: "departamento", creadoEl: `${shift(-1)}T18:00:00Z`, notas: [], perfil: { operacion: "rentar", presupuestoMin: 18000, presupuestoMax: 22000, moneda: "MXN", proximoContacto: shift(-2) } },
     { id: "l3", nombre: "Alberto Cázares", telefono: "664 615 8820", origen: "manual", estado: "en-evaluacion", zona: "Otay y Zona Río", creadoEl: stamp, notas: [], perfil: { operacion: "invertir", capitalDeclarado: 3500000, moneda: "MXN" } },
     { id: "l4", nombre: "Daniela Ochoa Lizárraga con un nombre muy largo para revisar el ancho", telefono: "665 108 3371", origen: "manual", estado: "nuevo", creadoEl: stamp, notas: [] },
   ],
