@@ -231,3 +231,12 @@ test("SIM-12: la lista vacía de tareas enseña sus primeros pasos y distingue �
   expect(await screen.findByText("No hay tareas con estos filtros")).toBeTruthy();
   store.tasks = [];
 });
+
+// BUG-C08: la ficha de tarea no protege los cambios sin guardar; cerrar la pestaña o recargar los descarta sin aviso.
+test("una tarea con cambios sin guardar pide confirmación antes de cerrar o recargar la pestaña", () => {
+  render(<TaskForm initial={task} onSave={vi.fn().mockResolvedValue(task)} />);
+  fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Cambio sin guardar" } });
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  expect(event.defaultPrevented).toBe(true);
+});
