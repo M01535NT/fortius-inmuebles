@@ -13,8 +13,8 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 **Dónde está el código.**
 
 - **En `main`:** todo hasta el PR #73 (commit `c03504b`), que integró la rama acumulada del 12/11/2026.
-- **Rama local `feat/integracion` (sin push):** el trabajo de las siete sesiones en paralelo del 13/11/2026 (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad). Van integradas dos rondas; lint, tipos, base 1011/1011 y panel 501/501 en verde. **Sin comprobar:** la build y las suites de navegador.
-- **Migraciones nuevas en la rama, sin aplicar** (se aplican solas al integrar en `main`): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion` y `20261113123000_limite_de_acceso`.
+- **Rama local `feat/integracion` (sin push):** el trabajo de las siete sesiones en paralelo del 13/11/2026 (Bloques, Formatos, Sistema visual, Copy, SEO, Calidad y Seguridad). Van integradas tres rondas; lint, tipos y las suites de base y panel en verde. **Sin comprobar:** la build y las suites de navegador.
+- **Migraciones nuevas en la rama, sin aplicar** (se aplican solas al integrar en `main`): `20261113120000_propiedades_por_asesor`, `20261113121000_reabrir_sin_cambiar_contacto`, `20261113122000_titulo_sin_direccion`, `20261113123000_limite_de_acceso`, `20261113125000_urls_publicas_estrictas`, `20261113126000_alcance_y_permisos_menores`, `20261113127000_tope_global_de_prospectos`, `20261113140000_reserva_lectura_ia` y `20261113141000_alta_heredado_atomica`.
 
 **Qué entró en la rama (13/11/2026).**
 
@@ -23,13 +23,14 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 - **Textos:** inicio, Vender y Nosotros; nombres unificados del sitio y del panel.
 - **SEO local:** zona de servicio Tijuana, Rosarito, Tecate y Ensenada; horario de lunes a viernes de 9 a 18 h; sin redes sociales; teléfono +52 664 221 2991.
 - **Seguridad:** cabeceras de seguridad; fotos sin EXIF ni GPS.
-- **Calidad:** hallazgos C-06, C-08, C-09, C-15, C-17, C-18, C-20, C-21 y C-22 corregidos.
+- **Calidad:** hallazgos C-02 a C-22, C-24 y C-25 corregidos (C-26 espera su arreglo en Sistema visual).
+- **Ronda 3:** FCH-06, expediente completo en PDF y ZIP; firmas largas sin invadir el pie; errores y vacíos que dicen qué hacer; el tope de lecturas con IA se reserva en la base (B9); alta heredada en una sola transacción (B10); RLS y URLs públicas más estrictas (A1, B5, B8); tope global de prospectos; CSS y fuentes separados entre sitio y panel.
 
 **Qué sigue, en orden.**
 
 1. Terminar los hallazgos abiertos de Calidad y de Seguridad.
 2. FCH-03 en los formatos 01 y 09.
-3. Integrar la ronda 3: Formatos (FCH-06 expediente completo, firmas largas y 8 hallazgos, ya con commit), Copy, SEO, Sistema visual (CSS y fuentes por superficie), Calidad y Seguridad (B4, B6, B12–B15 y sus migraciones).
+3. Integrar las pruebas de Calidad que esperan su arreglo (C-26) y el disparador M2 de Seguridad.
 4. DOC-14 espera el Word de arrendamiento del titular.
 5. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
 6. Verificación completa y un solo PR a `main` cuando el titular lo pida.
