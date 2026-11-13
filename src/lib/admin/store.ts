@@ -572,9 +572,8 @@ export async function captureLead(input: {
   tipoPropiedad?: string;
   mensaje?: string;
   website?: string;
-}): Promise<string> {
-  const result = await apiRequest<{ id: string }>("/api/leads", "POST", input);
-  return result.id;
+}): Promise<void> {
+  await apiRequest<{ ok: true }>("/api/leads", "POST", input);
 }
 export type UploadedFile = {
   bucket: "fortius-inmuebles-private" | "fortius-inmuebles-public";
