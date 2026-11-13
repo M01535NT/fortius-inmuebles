@@ -12,3 +12,5 @@ Estado: propuesta para revisión, sin cambio de roles, bloqueo de personal ni en
 ## Comprobado y pendiente
 
 Lectura actual confirma dominio Auth correcto y tests de servidor existentes ejercitan autenticación y custodia de documentos. Una configuración correcta y mocks aprobados no prueban entrega de correo ni recuperación real. Esa prueba permanece pendiente de cuenta controlada/autorización. No se ha exigido AAL2 en producción.
+
+Lectura del 12/11/2026: registro abierto desactivado, acceso solo por correo y confirmación de correo obligatoria. El código tiene recuperación de contraseña, pero no invitación ni MFA. SMTP propio, URL de retorno y MFA del proyecto no se pudieron leer sin la API de administración. Detalle en [entornos](environment-release.md).

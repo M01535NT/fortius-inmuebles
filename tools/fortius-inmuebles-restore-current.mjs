@@ -20,12 +20,22 @@ export async function createRehearsalDatabase(){
  }catch(error){await db.close();throw error;}
 }
 export async function rehearseCurrent(input){
+ const db=await createRehearsalDatabase();
+ try{return await restoreCurrentInto(db,input);}finally{await db.close();}
+}
+// Load a current owner export into a migrated, EMPTY database and compare it with the source.
+// target 'memory': the in-memory rehearsal database (identity placeholders are created).
+// target 'service': an isolated Supabase Postgres reached as its owner; the Auth accounts
+// referenced by the export must already exist there, and every Fortius table must be empty.
+// db must offer query(sql,params) and exec(sql) on a single connection.
+export async function restoreCurrentInto(db,input,{target='memory'}={}){
+ if(!['memory','service'].includes(target))throw Error('Unknown restore target');
  const backup=ownerExport(input);
  if(backup.prefix!=='fortius_inmuebles')throw Error('Current Fortius export required');
  const sourceSchemaVersion=ownerSchemaVersion(backup);
  const emptyTablesAdded=currentSuffixes.filter(s=>!Object.hasOwn(backup.tables,'fortius_inmuebles_'+s));
  const rowsFor=table=>backup.tables[table]??[];
- const db=await createRehearsalDatabase();
+ let open=false;
  try{
   const actual=(await db.query("select tablename from pg_tables where schemaname='public' and tablename like 'fortius_inmuebles_%' order by tablename")).rows.map(r=>r.tablename);
   const expected=currentSuffixes.map(s=>'fortius_inmuebles_'+s);
@@ -40,20 +50,35 @@ export async function rehearseCurrent(input){
    c.confrelid='auth.users'::regclass as auth_fk,a.attname as auth_column
    from pg_constraint c left join pg_attribute a on a.attrelid=c.conrelid and a.attnum=c.conkey[1]
    where c.contype='f' and c.connamespace='public'::regnamespace`)).rows;
-  await db.exec('begin');
-  // Reconstitute identity references only, not accounts/passwords/sessions.
-  for(const fk of fks.filter(f=>f.auth_fk))for(const row of backup.tables[fk.rel.replace('public.','')]??[]){
-   if(row[fk.auth_column])await db.query('insert into auth.users(id) values($1) on conflict do nothing',[row[fk.auth_column]]);
+  if(target==='service'){
+   // Never merge into existing data: the isolated target must be freshly migrated.
+   for(const table of expected)if((await db.query(`select exists(select 1 from public.${quote(table)}) x`)).rows[0].x)throw Error('Target table is not empty: '+table);
   }
-  // Disabling triggers is limited to this newly created, in-memory database.
-  for(const table of expected)await db.exec(`alter table public.${quote(table)} disable trigger all`);
+  await db.exec('begin');
+  open=true;
+  await db.exec("set local time zone 'UTC'");
+  const authIds=new Set();
+  for(const fk of fks.filter(f=>f.auth_fk))for(const row of backup.tables[fk.rel.replace('public.','')]??[])if(row[fk.auth_column])authIds.add(row[fk.auth_column]);
+  if(target==='memory'){
+   // Reconstitute identity references only, not accounts/passwords/sessions.
+   for(const id of authIds)await db.query('insert into auth.users(id) values($1) on conflict do nothing',[id]);
+   // Disabling triggers is limited to this newly created, in-memory database.
+   for(const table of expected)await db.exec(`alter table public.${quote(table)} disable trigger all`);
+  }else{
+   const present=(await db.query('select count(*)::int n from auth.users where id=any($1::uuid[])',[[...authIds]])).rows[0].n;
+   if(present!==authIds.size)throw Error('Create the referenced Auth accounts in the target first: '+(authIds.size-present)+' missing');
+   // Supabase's owner role cannot disable system triggers; replica mode skips user
+   // triggers and FK checks for this transaction only. FKs are revalidated below.
+   await db.exec("set local session_replication_role = replica");
+  }
   // Generated columns must be calculated by PostgreSQL, not copied from the export.
   for(const table of expected){
    const writable=columns.get(table).writable.map(quote).join(',');
    if(!writable)throw Error('Migrated table has no writable columns: '+table);
    await db.query(`insert into public.${quote(table)} (${writable}) select ${writable} from jsonb_populate_recordset(null::public.${quote(table)},$1::jsonb)`,[JSON.stringify(rowsFor(table))]);
   }
-  for(const table of expected)await db.exec(`alter table public.${quote(table)} enable trigger all`);
+  if(target==='memory')for(const table of expected)await db.exec(`alter table public.${quote(table)} enable trigger all`);
+  else await db.exec("set local session_replication_role = origin");
   // Restoring with triggers disabled does not validate FK rows retroactively.
   // Re-create each actual FK as NOT VALID, then ask PostgreSQL to validate it.
   for(const fk of fks){
@@ -105,6 +130,10 @@ export async function rehearseCurrent(input){
     or (select max(version) from public.fortius_inmuebles_app_run_versions h where h.run_id=r.id)<>r.version`)).rows[0].n;
   if(badAppVersions)throw Error('Restored app version history does not match runs');
   await db.exec('commit');
-  return {passed:true,productionWrites:0,sourceSchemaVersion,emptyTablesAdded,restoreOrder:[...currentSuffixes],tables,foreignKeysValidated:fks.length,auth:'Identity placeholders only; full Auth recovery is not tested',storage:'Object hashes are checked by the backup verifier; Storage service recovery is not tested'};
- }finally{await db.close();}
+  open=false;
+  return {passed:true,target,productionWrites:0,sourceSchemaVersion,emptyTablesAdded,restoreOrder:[...currentSuffixes],tables,foreignKeysValidated:fks.length,auth:target==='memory'?'Identity placeholders only; full Auth recovery is not tested':'Accounts created in the target Auth beforehand; passwords and sessions are not restored',storage:'Object hashes are checked by the backup verifier; Storage service recovery is a separate step (restore-storage)'};
+ }catch(error){
+  if(open)await db.exec('rollback').catch(()=>{});
+  throw error;
+ }
 }
