@@ -37,14 +37,13 @@ El padre del destino debe existir. Se rechazan destinos existentes, interiores a
 
 El 12/11/2026 se ejecutó `tools/fortius-inmuebles-recovery-rehearsal.mjs` contra un proyecto gratuito aparte (`qmlpcpddvglhlmkxobis`), con datos sintéticos, y **pasó**: 53 migraciones, 30 tablas iguales a la fuente, 49 FK revalidadas, 6 buckets, 2 objetos con huella idéntica, 2 cuentas de ensayo y el acceso esperado para administrador, asesor y visitante sin sesión. Tardó 16.5 s en total. El detalle por paso está en [el procedimiento](../fortius-inmuebles-backup-restore.md). Antes se descartaron la pila local (sin Docker en el equipo) y las ramas de Supabase (exigen el plan Pro).
 
-Para repetirlo: crear otro proyecto vacío (el script se niega a mezclar datos), guardar sus cuatro datos de conexión en un archivo propio fuera del repositorio y ejecutar el script con `--confirm-target REF`. Al terminar, borrar el proyecto de ensayo.
+Para repetirlo: crear otro proyecto vacío (el script se niega a mezclar datos), guardar sus cuatro datos de conexión en un archivo propio fuera del repositorio y ejecutar el script con `--confirm-target REF`. Al terminar, borrar el proyecto de ensayo y el archivo con sus datos de conexión. El del 12/11/2026 se borró ese mismo día, junto con su archivo.
 
 **Pendiente para cerrar REC-01:**
 
 1. Copia diaria automática del export propietario y de Storage, con custodia cifrada fuera del repositorio (decide el titular dónde y quién). Sin esto, el RPO de 24 h no es una capacidad.
 2. Repetir el ensayo con el volumen real cuando se cargue el inventario, porque los tiempos de hoy son de un caso mínimo.
 3. Documentar la configuración del proyecto que no viaja con el respaldo: correo saliente, URL de retorno, límites y plantillas de Auth.
-4. Decidir qué hacer con el proyecto de ensayo: borrarlo o conservarlo pausado para el siguiente ensayo.
 
 No generar copias de clientes reales para la fase sintética. No considerar REC-01 cerrado hasta resolver lo anterior.
 

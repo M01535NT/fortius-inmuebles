@@ -24,8 +24,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 - Variables (solo nombre y ámbito):
   - Producción: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `FORTIUS_INMUEBLES_SITE_URL` (también en preview) y `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED` (cambiada el 12/11/2026; no se leyó el valor).
   - Producción, añadidas el 18/10/2026 por la integración de Supabase: `POSTGRES_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`, `POSTGRES_USER`, `POSTGRES_HOST`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE`, `SUPABASE_URL`, `SUPABASE_JWT_SECRET`, `SUPABASE_ANON_KEY`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. **El código no usa ninguna**, y entre ellas están la contraseña de la base y el secreto JWT.
-  - Preview limitado a `codex/erp-crm-preview`: URL, clave anónima y `SUPABASE_SERVICE_ROLE_KEY` de la base actual (excepción del 12/10/2026). **La rama ya no existe en GitHub.**
-  - Preview limitado a `cursor/sitio-publico-portal-b656` (26/10/2026): URL y clave anónima de la base actual. No estaba documentada. **La rama ya no existe en GitHub.**
+  - Preview limitado a `codex/erp-crm-preview`: URL, clave anónima y `SUPABASE_SERVICE_ROLE_KEY` de la base actual (excepción del 12/10/2026). Preview limitado a `cursor/sitio-publico-portal-b656` (26/10/2026, sin documentar): URL y clave anónima. Las dos ramas ya no existían en GitHub. **Las cinco entradas se borraron el 12/11/2026** con autorización del titular; las de producción no cambiaron.
   - Los previews generales siguen sin backend.
 
 **Supabase (ENV-01, AUT-01).** Lectura con la clave anónima (`/auth/v1/settings`) y con la de servicio (lista de buckets). El conector `supabase-fortius` no estaba autorizado en esta sesión.
@@ -39,7 +38,7 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 
 ### Cambios de proveedor propuestos (no aplicados)
 
-1. **Vercel:** borrar las seis entradas de preview de las ramas eliminadas `codex/erp-crm-preview` y `cursor/sitio-publico-portal-b656`. La primera contiene la clave de servicio.
+1. ~~**Vercel:** borrar las cinco entradas de preview de las ramas eliminadas `codex/erp-crm-preview` y `cursor/sitio-publico-portal-b656`.~~ **Hecho el 12/11/2026.** Los despliegues de vista previa ya creados conservan sus variables hasta que se borren; están detrás de la protección de Vercel.
 2. **Vercel:** quitar del proyecto las 13 variables de la integración de Supabase que el código no usa, o al menos `POSTGRES_PASSWORD`, `POSTGRES_URL*`, `SUPABASE_JWT_SECRET` y `SUPABASE_SECRET_KEY`. Antes, comprobar que la integración no las vuelva a crear.
 3. **GitHub:** activar el escaneo de secretos y la protección al subir (gratis en repositorios públicos), además de las alertas de Dependabot.
 4. **GitHub:** borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`) después de confirmar que no queda ningún proyecto Vercel con esos nombres.
@@ -73,7 +72,7 @@ Quitar solo service_role no basta: el panel usa sesión del usuario y RLS para o
 
 ### Excepción autorizada: codex/erp-crm-preview
 
-**12/11/2026:** la rama ya no existe en GitHub, pero sus tres variables siguen en Vercel; se propone borrarlas (ver «Cambios de proveedor propuestos»).
+**12/11/2026:** la rama ya no existía en GitHub; sus tres variables se borraron de Vercel ese día. La excepción terminó.
 
 El 12/10/2026 Moisés autorizó conectar únicamente `codex/erp-crm-preview` a la base actual de Fortius y, de forma expresa, reutilizar `SUPABASE_SERVICE_ROLE_KEY` como secreto del servidor de esa rama. En Vercel se añadieron entradas independientes para `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`, con ámbito Preview y restricción a esa rama. Las entradas de Production se conservaron; no se habilitó el backend para todos los previews ni se cambió el código de permisos.
 
