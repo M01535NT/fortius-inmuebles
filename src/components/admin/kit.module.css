@@ -37,7 +37,7 @@
 :global(.admin-root) .no_aplica { border: 1px dashed var(--control-edge); color: var(--muted-foreground); }
 
 /* Pastillas de estado y contadores */
-:global(.admin-root) .pill { display: inline-flex; align-items: center; gap: .3125rem; min-height: 1.75rem; padding: 0 .75rem; border-radius: var(--radius-pill); font-size: var(--admin-text-pastilla); font-weight: 540; line-height: 1; white-space: nowrap; background: var(--track); color: var(--foreground); }
+:global(.admin-root) .pill { display: inline-flex; align-items: center; gap: .25rem; min-height: 1.75rem; padding: 0 .75rem; border-radius: var(--radius-pill); font-size: var(--admin-text-pastilla); font-weight: 540; line-height: 1; white-space: nowrap; background: var(--track); color: var(--foreground); }
 :global(.admin-root) .pill[data-tone=brand] { background: var(--panel-selected); color: var(--panel-selected-ink); }
 :global(.admin-root) .pill[data-tone=warn] { background: var(--warning-surface); color: var(--warning); }
 :global(.admin-root) .pill[data-tone=alert] { background: var(--alert-surface); color: var(--alert); }
@@ -84,7 +84,7 @@
 :global(.admin-root) .tabsVertical .tab[aria-selected=true] .tabCount { color: inherit; opacity: .8; }
 
 /* Selector segmentado: una pista con la opción elegida en blanco. */
-:global(.admin-root) .seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--radius-control); background: var(--track); }
+:global(.admin-root) .seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-radius: var(--radius-control); background: var(--track); }
 :global(.admin-root) .seg .segItem { min-height: 2.5rem; padding: 0 .875rem; border: 0; border-radius: 7px; background: none; font-size: var(--admin-text-detalle); font-weight: 540; color: var(--muted-foreground); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .375rem; white-space: nowrap; }
 :global(.admin-root) .seg .segItem[aria-checked=true], :global(.admin-root) .seg .segItem[aria-pressed=true] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 2px rgba(6, 31, 63, .1); }
 :global(.admin-root) .seg .segItem:disabled { opacity: .5; cursor: not-allowed; }
