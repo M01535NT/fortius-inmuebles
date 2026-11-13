@@ -258,7 +258,7 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
         <ol className="flex flex-col gap-1">{sections.map((item, i) => <li key={item}>
           <button type="button" aria-current={i === index ? "step" : undefined} disabled={!!busy} onClick={() => i !== index && go(i)}
             className={cn("flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm", i === index ? "bg-secondary font-semibold" : "hover:bg-secondary/60")}>
-            {pendingBySection[i] === 0 ? <Check size={15} aria-hidden="true" className="shrink-0 text-[var(--success,#2f7d4f)]" /> : <span className="w-[15px] shrink-0 text-center tabular-nums text-xs">{i + 1}</span>}
+            {pendingBySection[i] === 0 ? <Check size={15} aria-hidden="true" className="shrink-0 text-success" /> : <span className="w-[15px] shrink-0 text-center tabular-nums text-xs">{i + 1}</span>}
             <span className="flex-1">{item}</span>
             {pendingBySection[i] > 0 && <span className="tabular-nums text-xs text-muted-foreground" aria-label={`${pendingBySection[i]} por llenar`}>{pendingBySection[i]}</span>}
           </button>
