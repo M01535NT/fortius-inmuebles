@@ -79,7 +79,7 @@ export function MessageTemplatesEditor({ saved, canEdit, adviserName, onSave }: 
 
     <div className="space-y-1">
       <p className="m-0 text-sm font-semibold">Así lo verá la persona (datos de ejemplo)</p>
-      <p className="m-0 whitespace-pre-wrap rounded-md border border-border bg-background p-3 text-[.9375rem]">{preview.text}</p>
+      <p className="m-0 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-md border border-border bg-background p-3 text-[.9375rem]">{preview.text}</p>
     </div>
 
     {canEdit && <div className="flex flex-wrap items-center gap-3">
