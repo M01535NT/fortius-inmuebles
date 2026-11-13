@@ -27,3 +27,18 @@ ISR sale 3,000,000, updated acquisition cost 1,800,000, updated deductions 200,0
 ## Remaining transaction-specific determinations
 
 Taxable base, exemptions, updated fiscal cost/deductions, INPC, depreciation, actual appraisal, notarial quote, applicability of invoice VAT, exact registration acts, mortgage cancellation/payoff and lender fees must come from the operation's documents or quotations. The tool exposes missing amounts and supports captured determinations without fabricating them.
+
+## Addendum, 12 November 2026: seller ISR (HER-03)
+
+- Re-read the [Income Tax Law](https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf). The latest reform shown is DOF 01-04-2024, and the file's hash matches the 4 October snapshot.
+- Rules taken from it:
+  - Art. 93, XIX, a): the main-residence exemption up to 700,000 UDIS of consideration. It must be formalized before a notary, with no exempt sale in the prior three years (sworn statement). On the excess, the gain uses deductions in the proportion excess / consideration.
+  - Art. 121: deductions, with the 10% cost floor.
+  - Art. 124: 20% land when it cannot be separated, 3% annual construction decrease with a 20% floor, and the update period from the acquisition month to the month before the sale.
+  - Arts. 120 and 126: years transcurred, at most 20.
+  - Art. 127: 5% state payment, creditable.
+- Art. 92 places spouses under the co-ownership rules. The tool computes each owner's equal share separately; this is an assumption to verify with the notary.
+- [Federal Tax Code](https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf), last reform DOF 09-04-2026. Art. 17-A: the update factor is never below 1, and factors are computed to the ten-thousandth.
+- The user captures the UDI value ([Banxico CP150](https://www.banxico.org.mx/SieInternet/consultarDirectorioInternetAction.do?sector=8&accion=consultarCuadro&idCuadro=CP150&locale=es)) and the INPC values ([INEGI](https://www.inegi.org.mx/temas/inpc/)). The tool stores no index series, so a missing value stays pending.
+- Not covered: sales by companies, non-residents, installment payments, inheritance cost rules beyond the captured date, and annual-return effects (art. 120). The owner validates the results against Nuvigant; no accountant review was requested.
+

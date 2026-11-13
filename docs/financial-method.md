@@ -33,3 +33,24 @@ Optional ISR simulation is only for a resident individual, single owner, ordinar
 See [legal research](legal/financial-tools-2026-10-04.md), `src/data/financial-rules.ts` and `tools/financial-sources.json`. Expected payment/tax cases were independently calculated with Python Decimal before implementation. Tests also check principal conservation, zero-rate purchases, prepayment limits, pending quotes and registration overrides.
 
 `npm run check:financial-sources` checks PDF hashes, current legislative catalog links and year expiration. The scheduled workflow reports changes as a failed check and uploads a report; it never edits fiscal rates or contacts clients. A failed remote request requires retry/manual source verification; it does not prove a legal amendment. When a rule changes, verify its effective date and transaction scope, update the versioned rules/manifest/research, add independent boundary cases, then review and deploy. The public tool automatically withholds expired date-dependent rules.
+
+## Seller ISR and net in the panel (HER-03, 12 November 2026)
+
+The panel tool «ISR y neto del vendedor» (slug `neto-propietario`, so earlier saved work still opens) estimates the seller's provisional ISR and the net amount. Code: `src/lib/finance/seller-isr.ts`; rules: `SELLER_ISR_RULES` in `src/data/financial-rules.ts`. Scope: resident individual sellers, sale dates in 2026; anything else is pending. Every result is labeled «Estimación» until the owner compares cases against Nuvigant.
+
+- Years: completed anniversaries between purchase and deed, minimum one. Division and multiplication use at most 20 years (LISR 120 and 126). Depreciation uses the uncapped completed years.
+- Historic cost (LISR 124): the land is the captured value, or 20% of the cost when it cannot be separated. Construction loses 3% per completed year, never below 20% of its initial cost. Land plus construction is multiplied by the INPC factor: the month before the sale over the purchase month, truncated to the ten-thousandth and never below 1 (CFF 17-A, last reform DOF 09-04-2026). Alternatively, the user enters an already updated cost.
+- Cost floor: 10% of the price (LISR 121, I).
+- Deductions (LISR 121, II–IV) are captured already updated: improvements, and notary fees, taxes, duties and appraisal from the purchase and this sale. The commission of this sale is deducted automatically, VAT included. This is an assumption to confirm against Nuvigant.
+- Main residence (LISR 93, XIX, a): applies only when the seller confirms no exempt sale in the prior three years. Each owner's share of the price is exempt up to 700,000 UDIS × the captured UDI value. On the excess, the gain is taken in proportion excess / price.
+- Co-owners, spouses included, are equal shares. Each computes separately and the cents are reconciled on the last owner.
+- Tax: the existing A.I 2026 table through `isrFromGain`. The state payment is the lesser of 5% of the taxable gain and the provisional, credited against it (LISR 127).
+- Net = price − commission with VAT − ISR − other taxes − loan payoff − pending known expenses. Missing amounts keep the result «preliminar».
+- Two PDFs, rebuilt from the saved input: `/api/admin/apps/runs/{id}/export?format=pdf&parte=neto|isr`.
+
+Independent cases (Python Decimal) are in `tests/backend/seller-isr.test.ts`.
+
+
+## Buyer closing costs in the panel (12 November 2026)
+
+The panel tool «Gastos de compra» (slug `gastos-compra`) reuses `calculateClosingBudget` with the buyer profile, the same rules as the public calculator `/herramientas/gastos-de-cierre`. No new rule or source was added. Differences from the public page: the tax base defaults to the price and the result says so; notary, appraisal, opening fee and other costs are the adviser's quotes, and any missing one keeps the total labeled preliminary. Opened from an operation or a property, it takes the price from `?precio`.

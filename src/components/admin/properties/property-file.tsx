@@ -8,6 +8,7 @@ import { PropertyForm } from "@/components/admin/property-form";
 import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { HistoryLink } from "@/components/admin/workspace/history-link";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
+import { PropertyToolWork } from "@/components/admin/apps/property-tool-work";
 import { TIPO_LABELS, type Property } from "@/data/propiedades";
 import { db, upsertPropiedad, useCollection, useLoadState, type AdminProperty } from "@/lib/admin/store";
 import { openKeyLoans } from "@/lib/propiedad-seguimiento";
@@ -122,6 +123,8 @@ export function PropertyFile({ slug, initialTab = "ficha" }: { slug: string; ini
         {tab === "ficha" && <>
           {property.tipo === "plaza" && <PlazaUnits slug={slug} units={propiedades.filter((p) => p.conjunto === slug)} />}
           <RelatedWork propertySlug={slug} />
+          {/* HER-05: la hipoteca se abre con el precio de venta puesto; los cálculos guardados se ven aquí. */}
+          <PropertyToolWork slug={slug} precio={latest.operacion === "venta" && latest.precio.modalidad !== "consulta" ? latest.precio.monto : undefined} moneda={latest.precio.modalidad !== "consulta" ? latest.precio.moneda : undefined} />
         </>}
         {tab === "llaves" && records(<KeysBlock property={latest} save={save} />)}
         {tab === "interesados" && records(<BuyersBlock property={latest} save={save} />)}

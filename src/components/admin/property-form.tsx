@@ -10,6 +10,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, ExternalLink } from "@/components/admin/icons";
 import { LibraryPicker } from "@/components/admin/workspace/library-picker";
+import { PhotoEditButton } from "@/components/admin/properties/photo-edit";
 import { FormSection, revealSection } from "@/components/admin/workspace/form-section";
 import { PropertyWorkbench, readDraftFields, type PropertyDraft } from "@/components/admin/workspace/property-workbench";
 
@@ -769,6 +770,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
                 <div className="flex items-center gap-2 sm:col-span-2">
                   {img.src && publicGalleryUrl(img.src) && <Image unoptimized width={960} height={720} src={img.src} alt={img.alt} className="h-16 w-24 rounded object-cover"/>}
                   <span className="flex-1 text-sm">{i===0?"Portada":`Foto ${i+1}`}</span>{img.src && <a href={img.src} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center px-2 text-sm font-semibold underline underline-offset-4">Ver</a>}
+                  {img.src && publicGalleryUrl(img.src) && <PhotoEditButton src={img.src} label={i===0?"Portada":`Foto ${i+1}`} onSaved={url=>setGaleria(current=>current.map((g,j)=>j===i?{...g,src:url}:g))}/>}
                   <Button iconOnly variant="ghost" disabled={i===0} aria-label={`Subir foto ${i+1}`} onClick={()=>moveImage(i,-1)}><ArrowUp size={16} aria-hidden="true"/></Button>
                   <Button iconOnly variant="ghost" disabled={i===galeria.length-1} aria-label={`Bajar foto ${i+1}`} onClick={()=>moveImage(i,1)}><ArrowDown size={16} aria-hidden="true"/></Button>
                 </div>

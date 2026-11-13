@@ -5,6 +5,7 @@ import { registerUpload } from '@/lib/backend/files';
 import { findRun } from '@/lib/apps/repository';
 import { resultToCsv } from '@/lib/apps/contracts';
 import { buildAppPdf } from '@/lib/apps/pdf';
+import { netResults } from '@/lib/apps/financial';
 import { loadPdfImage } from '@/lib/backend/pdf-images';
 export const maxDuration=300;
 export async function GET(request:Request,{params}:{params:Promise<{id:string}>}){
@@ -16,6 +17,16 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
   if(!['pdf','csv'].includes(format))throw new ApiError(400,'Formato no disponible');
   if(run.slug==='conversor'&&format==='pdf')throw new ApiError(400,'Consulta la conversión directamente en pantalla');
   const csv=format==='csv',photos:Uint8Array[]=[];
+  // ISR y neto (HER-03): dos PDF para el propietario, armados con la captura guardada.
+  const parte=new URL(request.url).searchParams.get('parte');
+  let result=run.result;
+  if(parte!==null){
+   if(run.slug!=='neto-propietario'||csv||!['neto','isr'].includes(parte))throw new ApiError(400,'Documento no disponible');
+   let built:ReturnType<typeof netResults>;
+   try{built=netResults(run.input);}catch(cause){throw new ApiError(400,cause instanceof Error?cause.message:'Revisa la captura');}
+   if(parte==='isr'&&!built.isr)throw new ApiError(400,'Este trabajo no calcula el ISR');
+   result=parte==='isr'?built.isr!:built.neto;
+  }
   if(!csv&&run.slug==='ficha-comercial'&&Array.isArray(run.input.photoUrls)&&run.input.photoUrls.length){
    const propertyId=run.context.inmuebleId??run.input.propertySlug;
    if(typeof propertyId!=='string'||run.input.photoUrls.length>20)throw new ApiError(400,'Selecciona hasta 20 fotografías del inmueble');
@@ -25,7 +36,7 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
    const allowed=new Set<string>((Array.isArray(data.galeria)?data.galeria.map((p:{src?:string})=>p.src):[]).filter((v:unknown):v is string=>typeof v==='string'));
    for(const url of run.input.photoUrls){if(typeof url!=='string'||!allowed.has(url))throw new ApiError(400,'Una fotografía ya no pertenece a la galería publicada');const bytes=await loadPdfImage(url);if(!bytes)throw new ApiError(503,'No se pudo recuperar una fotografía. Reintenta la exportación.');photos.push(bytes);}
   }
-  const body=csv?resultToCsv(run.result):new Uint8Array(await buildAppPdf(run.result,photos));
+  const body=csv?resultToCsv(result):new Uint8Array(await buildAppPdf(result,photos));
   // Large PDFs go through private Storage to respect the hosting response limit.
   if(body instanceof Uint8Array&&body.byteLength>20*1024*1024)throw new ApiError(413,"El PDF supera 20 MB. Reduce las fotografías seleccionadas.");
   if(body instanceof Uint8Array&&body.byteLength>4_000_000){
@@ -38,6 +49,6 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
    const signed=await service.storage.from('fortius-inmuebles-private').createSignedUrl(path,60,{download:name});if(signed.error)databaseError(signed.error);
    response=new Response(null,{status:303,headers:{Location:signed.data.signedUrl,'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'}});return{};
   }
-  response=new Response(body,{headers:{'Content-Type':csv?'text/csv; charset=utf-8':'application/pdf','Content-Disposition':`attachment; filename="fortius-${run.slug}.${format}"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});return{};
+  response=new Response(body,{headers:{'Content-Type':csv?'text/csv; charset=utf-8':'application/pdf','Content-Disposition':`attachment; filename="${parte==='isr'?'fortius-hoja-isr':parte==='neto'?'fortius-neto-vendedor':`fortius-${run.slug}`}.${format}"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});return{};
  });return response??failure;
 }

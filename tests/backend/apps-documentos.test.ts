@@ -41,9 +41,11 @@ const get = (version = 2) => GET(new Request(`https://panel.test/api/admin/apps/
 describe("Documentos sin expediente", () => {
   beforeEach(() => requireStaff.mockReset());
 
-  it("aparece en Herramientas con los formatos elegidos", () => {
+  it("aparece en Herramientas con todos los formatos que tienen captura (HER-02)", () => {
     expect(getApp("documentos")?.title).toBe("Documentos sueltos");
-    expect([...FORMATOS_INDEPENDIENTES]).toEqual(["06", "07", "08", "09", "10", "12", "14", "15", "19"]);
+    expect(FORMATOS_INDEPENDIENTES).toHaveLength(24);
+    expect(FORMATOS_INDEPENDIENTES).not.toContain("03");
+    expect(FORMATOS_INDEPENDIENTES).toEqual(expect.arrayContaining(["01", "02", "04B", "05", "09", "11", "13", "15", "16", "17", "18"]));
   });
 
   it("guarda el documento como trabajo independiente", async () => {
@@ -56,7 +58,7 @@ describe("Documentos sin expediente", () => {
   it("no se vincula a una operación ni acepta formatos fuera de la lista", async () => {
     const save = (body: Record<string, unknown>) => saveRun({} as SupabaseClient, "user", { slug: "documentos", title: "x", result: null, context: {}, input: { formatoId: "06", data: {} }, ...body });
     await expect(save({ context: { expedienteId: id } })).rejects.toThrow("no se vinculan");
-    await expect(save({ input: { formatoId: "02", data: {} } })).rejects.toThrow("Revisa la captura");
+    await expect(save({ input: { formatoId: "03", data: {} } })).rejects.toThrow("Revisa la captura");
     await expect(save({ input: { formatoId: "07", data: { adjuntos: [{ id: "no-uuid" }] } } })).rejects.toThrow("Revisa la captura");
   });
 
@@ -78,6 +80,18 @@ describe("Documentos sin expediente", () => {
     requireStaff.mockResolvedValue({ client: runClient({ slug: "hipoteca", input: {} }), user: { id: "u" } });
     expect((await get()).status).toBe(400);
   });
+
+  it("con faltantes sale como incompleto si se pide, salvo el 01 y la 15 (RP-77)", async () => {
+    const incompleto = () => GET(new Request(`https://panel.test/api/admin/apps/runs/${id}/documento?version=2&incompleto=1`), { params: Promise.resolve({ id }) });
+    requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "06", data: { ...opinion, sustento: "" } } }), user: { id: "u" } });
+    const response = await incompleto();
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/pdf");
+    requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "15", data: {} } }), user: { id: "u" } });
+    expect((await incompleto()).status).toBe(409);
+    requireStaff.mockResolvedValue({ client: runClient({ input: { formatoId: "01", data: {} } }), user: { id: "u" } });
+    expect((await incompleto()).status).toBe(409);
+  }, 30000);
 
   it("exige sesión", async () => {
     requireStaff.mockRejectedValueOnce(new ApiError(401, "Inicia sesión"));

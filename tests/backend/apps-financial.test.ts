@@ -17,7 +17,7 @@ describe("herramientas financieras", () => {
     expect(result.warnings?.join(" ")).toMatch(/Seguro|seguro/);
   });
   it("separa gasto histórico y resta solamente cargos pendientes conocidos", () => {
-    const result = run("neto-propietario", { salePrice: 1000, loan: 100, commission: 50, taxes: null, expenses: [{ concept: "Obra pagada", amount: 300, status: "pagado" }, { concept: "Cancelación", amount: 20, status: "pendiente" }] });
+    const result = run("neto-propietario", { salePrice: 1000, loan: 100, commissionMode: "importe", commission: 50, isrMode: "importe", isrAmount: 0, taxes: null, expenses: [{ concept: "Obra pagada", amount: 300, status: "pagado" }, { concept: "Cancelación", amount: 20, status: "pendiente" }] });
     expect(value(result, "Neto preliminar conocido")).toBe("$830.00 MXN");
     expect(value(result, "Gastos históricos pagados")).toBe("$300.00 MXN");
     expect(result.warnings?.join(" ")).toMatch(/impuestos/i);

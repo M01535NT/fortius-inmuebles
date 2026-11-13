@@ -6,6 +6,14 @@ import { z } from "zod";
 export async function GET(request: Request) {
   return apiResponse(async () => {
     const { client } = await requireStaff(); const params = new URL(request.url).searchParams;
+    const inmuebleId = params.get("inmuebleId");
+    if (inmuebleId && !params.get("slug")) {
+      // HER-05: los trabajos hechos para un inmueble, de cualquier herramienta, para mostrarlos en su ficha.
+      const property = z.string().min(1).max(200).parse(inmuebleId);
+      const { data, error } = await client.from(RUNS).select("*").eq("context->>inmuebleId", property).is("deleted_at", null).order("updated_at", { ascending: false }).order("id").limit(50);
+      if (error) databaseError(error);
+      return { runs: (data ?? []).map(mapRun) };
+    }
     const slug = z.string().refine(v => !!getApp(v)).parse(params.get("slug"));
     if (params.get("vista") === "ultimo-por-expediente") {
       // Only runs with a result count as a prepared report; drafts keep result null.

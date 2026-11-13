@@ -2,7 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CalendarPlus, Trash2 } from "@/components/admin/icons";
+import { ArrowRight, CalendarPlus, Landmark, Trash2 } from "@/components/admin/icons";
+import { hipotecaHref } from "@/lib/apps/contexto";
 import { Button, ButtonLink, Notice, Pill, Surface } from "@/components/admin/kit";
 import { AsyncButton, AsyncForm, AsyncSelect, Field, inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -91,7 +92,11 @@ function LeadDetail({ id }: { id: string }) {
   }
   // COR-10: con su registro de cliente, la condición la da la firma; si firmó con un cliente de Fortius, es contraparte.
   const condition = personStatus.ofLead(lead);
-  const menu: MenuItem[] = lead.clienteId ? [] : [
+  // HER-05: quien compra abre la hipoteca con su presupuesto (o el precio del inmueble que pidió) ya puesto.
+  const hipoteca: MenuItem[] = buyer ? [{ label: "Calcular hipoteca", icon: <Landmark size={18} aria-hidden="true" />, onSelect: () => router.push(hipotecaHref(lead.perfil?.presupuestoMax
+    ? { precio: lead.perfil.presupuestoMax, moneda: lead.perfil.moneda }
+    : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
+  const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
     { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
       if (!await confirmAction(`¿Eliminar al prospecto "${lead.nombre}" y su historial?`)) return;
       await removeById(db.leads, lead.id, db.leads.version(lead));
