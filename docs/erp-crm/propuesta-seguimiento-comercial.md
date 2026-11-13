@@ -1,8 +1,18 @@
 # Propuesta del seguimiento comercial (CRM-01, CRM-02, CRM-03)
 
-Fecha: 12/11/2026. Estado: **propuesta para el titular; nada de esto está programado.** No modifica `PLAN_ERP_CRM.md`; las decisiones aprobadas deben pasar al plan.
+Fecha: 12/11/2026. Estado: **propuesta con las seis preguntas contestadas por el titular el 12/11/2026; nada de esto está programado.** No modifica `PLAN_ERP_CRM.md`; las decisiones aprobadas deben pasar al plan.
 
 Bocetos navegables (datos de ejemplo): https://claude.ai/artifact/N8ZFG6NK4okiPDrHZRSj49 · copia en el repositorio: [`docs/diseno/boceto-seguimiento-comercial.html`](../diseno/boceto-seguimiento-comercial.html) (se abre en el navegador; las fuentes vienen de Google Fonts)
+
+## Decisiones del titular (12/11/2026), para pasar al plan
+
+- Diseño: **A + B** (lista del día y ficha en la misma pantalla); C queda para después.
+- Un solo siguiente paso con fecha por persona (parte de DEC-42; quedan las notas y el tablero de notas sueltas).
+- Primera atención: 2 horas, como hoy.
+- Cada asesor ve solo a sus personas; el director ve a todas y reasigna.
+- Mensajes: plantillas aprobadas por el titular, ajustables por el asesor; faltan los textos base.
+- Motivos para descartar a compradores e interesados en rentar: ya no busca, se fue con otra inmobiliaria, no le alcanza o no califica, no contesta, otro con nota.
+- Vista del director: después.
 
 ## Reglas que la propuesta respeta
 
@@ -55,3 +65,4 @@ Para construirlo, en este orden: (1) un solo siguiente paso por persona respalda
 5. ¿Qué razones aceptas para descartar un lead? (propuesta: ya no busca, se fue con otra inmobiliaria, presupuesto no alcanza, no contesta, otro)
    **Respuesta del titular (12/11/2026), para compradores e interesados en rentar:** ya no busca; se fue con otra inmobiliaria; no le alcanza o no califica; no contesta (después del reintento a 30 días); y «Otro» con nota obligatoria (confirmado por el titular el mismo día). Los propietarios conservan su lista de RP-97.
 6. ¿Quieres que el director tenga una vista del seguimiento de todo el equipo ahora, o después de que el asesor trabaje bien con la suya?
+   **Respuesta del titular (12/11/2026): después.** Primero la lista y la ficha del asesor (A + B); mientras tanto el director ve a todas las personas en la misma lista. El tablero C o un resumen por asesor se agregan cuando haya uso real.
