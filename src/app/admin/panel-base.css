@@ -82,6 +82,7 @@
   --field-radius: var(--radius-control);
 }
 .dark .admin-root {
+  color-scheme: dark; /* casillas, barras de desplazamiento y calendarios nativos en oscuro */
   --background: #060c14;
   --foreground: #f8f8ff;
   --card: #0c1724;

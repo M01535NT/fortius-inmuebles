@@ -102,7 +102,7 @@
 
 /* Citas de hoy: horas a la izquierda; las visitas llevan su color. */
 :global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
-:global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem .75rem; margin-inline: -.75rem; border-top: 1px solid var(--border); border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem 0; border-top: 1px solid var(--border); border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .event:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
 :global(.admin-root) .agenda > li:first-child .event { border-top: 0; }
 :global(.admin-root) .time { font-size: var(--admin-text-interfaz); font-weight: 540; color: var(--foreground); font-variant-numeric: tabular-nums; padding-top: .0625rem; }
