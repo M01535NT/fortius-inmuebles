@@ -32,9 +32,10 @@ Esta sección es la única que hay que leer para saber cómo va el trabajo. Se r
 4. Publicar `feat/integracion` cuando el titular lo pida (PR en borrador, verificación completa al marcarlo listo). Queda fuera, anotado: `npm audit` marca 3 avisos altos de una sola cadena de desarrollo (zod 3 dentro de lighthouse); corregirla pide subir lighthouse de versión mayor.
 5. COR-21: el titular mandará una solicitud de prueba desde el formulario de fortiusinmuebles.com; Bloques revisa que llegue al panel con su plazo.
 6. Pendiente legal: en los avisos, el responsable es la persona moral; faltan los datos de la empresa.
-7. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
+7. **Panel flexible (FLX, DEC-50):** la sesión «Panel flexible» construye FLX-01, Bandeja y documentos sin operación; las demás etapas siguen en orden.
+8. Después, el «Orden vigente». Los pendientes del titular y la cola que anotó el tablero del 12/11/2026 están en el historial (§17).
 
-**Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **Fortius solo representa al propietario: compradores y arrendatarios son leads de Fortius y contraparte de sus clientes, nunca clientes de Fortius** (RP-93).
+**Decisiones vigentes que más cambian el trabajo:** ERP exclusivo de Fortius (RP-01); ningún dato faltante detiene el flujo (RP-82); descargar siempre, y descargar no es aprobar (RP-77, RP-85); entrevista con lo necesario para que el proceso funcione y opción «Ampliar» (RP-89); procesos por tipo de operación con motor editable (RP-79); las cuatro fases del boceto C para agrupar las etapas en pantalla; **una persona es prospecto hasta que firma su contrato, y un inmueble está captado solo cuando el propietario firma la intermediación** (RP-90 a RP-92); **compradores y arrendatarios son clientes de Fortius desde que firman su contrato, con su papel en cada operación** (RP-93, 14/11/2026); **nada frena, solo avisa, y queda anotado en el historial** (RP-100, cuando se construya FLX-03).
 
 **Preguntas abiertas para el titular:** [`docs/erp-crm/CUESTIONARIO_TITULAR.md`](docs/erp-crm/CUESTIONARIO_TITULAR.md). Cada respuesta se integra en `SPEC.md` como regla o decisión.
 
@@ -232,7 +233,7 @@ El producto cambia con frecuencia por ideas nuevas. Para que el plan siga limpio
 | # | Mejora | Cómo convive con el plan |
 |---|---|---|
 | N01 | **Contraer la barra lateral a íconos** con un botón y la tecla `[` (atajo de una tecla: no actúa dentro de campos y se puede desactivar, RP-11); con la barra contraída, el nombre aparece al pasar el mouse o al enfocar. El estado se recuerda por usuario. | El rediseño (Fase C · 2) había retirado contraer y ajustar el ancho; vuelve solo contraer, sin ancho ajustable. El estado se guarda con las preferencias del servidor (RP-14, UX-02). En celular no aplica: sigue la barra inferior. Se hace junto con el pie compacto de C06. |
-| N02 | **Sección «Fijados»**: cada quien fija hasta 5 registros o listas (operación, contacto, inmueble, lista guardada). | No mueve ni oculta las seis secciones (RP-58, RP-65). Si un registro fijado se elimina o se pierde el permiso, desaparece de Fijados sin error. En celular, Fijados va en el Menú. |
+| N02 | **Sección «Fijados»**: cada quien fija hasta 5 registros o listas (operación, contacto, inmueble, lista guardada). | No mueve ni oculta las siete secciones (RP-58, RP-65). Si un registro fijado se elimina o se pierde el permiso, desaparece de Fijados sin error. En celular, Fijados va en el Menú. |
 | N03 | **«Recientes»**: los últimos 5 registros abiertos aparecen al abrir el buscador, sin escribir. | Va dentro de la barra de comandos (RP-10, UX-03) y de la búsqueda global de C07. Se guarda por usuario en el servidor; solo lista lo que el usuario puede ver hoy. |
 | N04 | **Contadores solo cuando hay algo que atender** (por ejemplo, «2 vencidas» en Operaciones, en el rojo de alerta). | Completa C06 (quitar contadores inútiles). El de Hoy se queda porque es de atención y suma la bandeja «Para ti» (RP-20). Usa los mismos cálculos de Hoy, sin consultas nuevas al servidor. |
 | N05 | **Vista previa lateral**: tocar una fila de Operaciones, Contactos o Inmuebles abre un panel a la derecha con lo esencial (siguiente paso, teléfono, estado) y sus acciones; «Abrir completo» lleva a la ficha. | Usa el componente de panel lateral del kit (`Sheet`). En celular no hay vista previa: se abre la ficha. Respeta C09 (toda la tarjeta se toca), C24 (lista única de personas) y RP-55 (lo demás en «⋯»). Las ediciones en la vista previa usan el mismo control de versión. |
@@ -591,6 +592,21 @@ Las 17 abren sin error con datos simulados (solo «Enlaces y QR» cayó por un d
 
 **DEC-44 decidida y en `main`** (captura por lista en el celular, commit `7e35678`); el párrafo de la propuesta está en el historial (§21).
 
+## Panel flexible (FLX) — aprobado por el titular el 14/11/2026
+
+**Origen:** el titular recibió el levantamiento y el avalúo de un terreno para inspeccionarlo, sin trato con el propietario, y el panel no tenía dónde guardarlos. Aprobó un concepto nuevo (DEC-50): guardar primero y ordenar después, con Bandeja, personas, inmuebles sin dueño conocido y asuntos; la metodología como guía que sugiere; nada frena, solo avisa (RP-100); compradores y arrendatarios como clientes al firmar (RP-93). Bocetos aprobados: lenguaje de Trámites. Lo lleva la sesión «Panel flexible»; las etapas 3 y 4 tocan el territorio de Metodología y se coordinan con la central antes de empezar.
+
+| ID | Alcance | Depende de | Aceptación |
+|---|---|---|---|
+| FLX-01 | **Bandeja y documentos sin operación:** tabla nueva (migración aditiva) con documentos ligables a persona, inmueble, asunto o a nada; Bandeja con lectura y confirmación; inmueble sin propietario; «Nuevo perfil» con las cinco preguntas de una llamada; entrada en el menú después de Hoy (RP-58, RP-101, RP-102). | LV-09 | Soltar dos PDF y terminar con el terreno archivado sin propietario; abrir un perfil con las cinco preguntas; el respaldo diario incluye la tabla nueva; ninguna guarda existente se quita. |
+| FLX-02 | **Crear cualquier documento desde cualquier lado:** «Crear documento» en persona, inmueble y asunto; se retiran los candados de pantalla. | FLX-01 | Crear el levantamiento sin entrevista; los formatos conservan versiones y PDF inmutables. |
+| FLX-03 | **De frenos a avisos y de metodología a guías:** guías como datos (venta, renta, compra, búsqueda de renta, inspección, opinión de valor, cancelación de hipoteca); disparadores nuevos que avisan y anotan en lugar de rechazar, con el mismo cambio en TypeScript (RP-100). | FLX-02 | Publicar sin intermediación firmada deja aviso en el historial; las pruebas que hoy dicen «rechaza» pasan a «permite y anota», sin borrarse; una operación existente conserva etapa, documentos y formatos. |
+| FLX-04 | **Perfiles completos y listas:** persona con folio y vista agregada; papeles por asunto; compradores y arrendatarios como clientes (RP-93); prospectos del formulario sin duplicarse. | FLX-03 | Un comprador que firma pasa a cliente y conserva su historial; listas con filtros. |
+| FLX-05 | **Vencimientos y coincidencias:** vigencia por documento y fechas de contratos en Hoy; coincidencias entre búsquedas e inmuebles. | FLX-04 | Un arrendamiento por terminar aparece en Hoy como llamada; un inmueble nuevo muestra quién buscaba algo así. |
+| FLX-06 | **Cierre:** manual, registro de privacidad (documentos de compradores y arrendatarios), revisión con crítico en contexto limpio y propuesta de verificación completa. | FLX-05 | Documentos al día; PRV-01 actualizado para el abogado. |
+
+**Por replantear en su etapa** (las reglas siguen vigentes hasta entonces): candado de arranque (FLUJO-04a) y «avanzar sí espera» (B-04, RP-87); DEC-42 (siguiente paso con tarea y fecha); el freno de la firma de TRA-01, que pasaría a aviso con Trámites como guía; MOT-01 a MOT-04 (guías como listas editables en lugar de motor con editor). REL-01, FCH-01, HER-02, HER-04, CRM-03 y COR-11 quedan absorbidas o se replantean dentro de FLX.
+
 ## Herramientas para trabajo suelto (HER) — paquete del 17/10/2026 (el estado de cada entrega está en «Estado y dependencias»)
 
 **Origen:** indicación del titular del 17/10/2026. Hay clientes que solo piden el machote del contrato para revisarlo, solo una opinión de valor con datos básicos o solo el cálculo del ISR. Para eso no se abre una operación: se va a Herramientas, se hace el documento o el cálculo y se descarga. También pidió quitar de Herramientas lo que no sirve. **Estado: pendiente; no hay código escrito.** El titular **confirmó el catálogo el 18/10/2026**, con el cambio de la ficha comercial.
@@ -735,6 +751,7 @@ No se trabaja en estas entregas hasta que el titular abra la etapa posterior (DE
 - **en_local:** construida en la carpeta de trabajo, sin commit.
 - **en_integracion:** construida y con commit en `feat/integracion`, todavía sin publicar en `main`.
 - **parcial:** una parte está en `main`; la columna dice qué falta.
+- **en_curso:** una sesión la está construyendo; la columna dice cuál y en qué rama.
 - **en_revision** y **bloqueada:** se conservan para las entregas de continuidad (bloque 0), que esperan evidencia o accesos externos.
 - **en_curso**, **pendiente** y **en_pausa:** como siempre.
 
@@ -841,6 +858,12 @@ Las migraciones de las entregas en `main` viajan con `main`; su aplicación en l
 | UX-03 | 4 | parcial | barra de comandos Ctrl/⌘K que busca y actúa según el rol, «Recientes» (NAV-02) por usuario y atajos «/» y «?» desactivables (6a07d62, `feat/integracion`, 13/11/2026); acciones masivas con resultado por registro y «Reintentar» (RP-12) y edición en la fila con control de versión (RP-13) en Tareas y Contactos, con boceto aprobado por el titular (b41ae84); exportar contactos solo el administrador y CSV sin fórmulas; el director reasigna operaciones desde la lista con motivo (M-04, deb2326); en `main` con el PR #75; revisado contra el código el 14/11/2026 |
 | UX-04 | 4 | parcial | en `feat/integracion` (13/11/2026): sesión vencida sin perder lo capturado y aviso sin conexión (RP-19, RP-15; aa852a1) y conflicto de versión campo por campo en tareas, inmuebles, prospectos, clientes, citas, notas y posts (RP-17; bffbdbf); siluetas de carga (RP-18; 7d3dfe6) y «Deshacer» al completar una tarea, solo tras confirmar el servidor (RP-16; aa98fba); falta el conflicto en operaciones y formatos; la reversión optimista con motivo (RP-18) no aplica mientras el panel no tenga cambios optimistas; en `main` con el PR #75; revisado contra el código el 14/11/2026 |
 | TRA-01 | 4 | en_integracion | pantalla aprobada por el titular (13/11/2026); pasos según fuentes oficiales, sin esperar al notario; base, servidor, pantalla, menú y pruebas en `feat/integracion`; freno de la firma de la venta hecho el 14/11/2026: el servidor y la base (migración `20261114212000_freno_firma_hipoteca`, disparador que cubre la RPC y la tabla) responden 409 mientras la cancelación no esté inscrita, salvo «Firmar sin la cancelación» del director con su motivo; pantalla en la etapa y en el trámite (9f6c8f0); revisado contra el código el 14/11/2026 |
+| FLX-01 | 4 | en_curso | sesión «Panel flexible», rama `claude/flexible-admin-panel-5d2030`, desde `feat/integracion` 3d4b7a3 |
+| FLX-02 | 4 | pendiente | FLX-01 |
+| FLX-03 | 4 | pendiente | FLX-02; coordina con Metodología |
+| FLX-04 | 4 | pendiente | FLX-03 |
+| FLX-05 | 5 | pendiente | FLX-04 |
+| FLX-06 | 6 | pendiente | FLX-05 |
 | SOP-01 | 5 | parcial | OBS-01; guía por pantalla y `/admin/ayuda`; falta «Reportar un problema»; revisado contra el código el 14/11/2026 |
 | EXT-11 | 6 | pendiente | DEC-14, EXT-06, SEG-01 |
 | EXT-13 | por decidir | idea, no aprobada | DEC-14, SEG-01, PRV-01 |
