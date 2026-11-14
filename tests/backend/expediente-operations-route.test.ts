@@ -33,6 +33,7 @@ it("actualiza sólo la versión activa y reporta conflicto si ya cambió", async
     global: { fetch: async (url, init) => {
       const target = new URL(String(url));
       if (target.pathname.endsWith("/fortius_inmuebles_expedientes")) return Response.json({ etapa: "contrato", operacion: "venta", flujo: null });
+      if (target.pathname.endsWith("/fortius_inmuebles_tramites_que_frenan_firma")) return Response.json(0);
       calls.push({ url: target, body: JSON.parse(String(init?.body ?? "{}")) });
       return Response.json({code:"PT409",message:"Conflicto"},{status:409});
     } },
@@ -111,4 +112,30 @@ it("el candado no aplica a compradores, inversión ni a quien sigue en captació
 it("responde 404 si el expediente no existe o está eliminado", async () => {
   requireStaff.mockResolvedValue({ client: fakeClient({ expediente: null }), user: { id: "u" } });
   expect((await PUT(request(advance), context)).status).toBe(404);
+});
+
+it("en una venta, una cancelación de hipoteca abierta frena la firma hasta inscribirse o hasta la decisión del director", async () => {
+  const sale = { etapa: "negociacion", operacion: "venta", flujo: null };
+  const rpcWith = (frenan: number) => vi.fn(async (name: unknown) => name === "fortius_inmuebles_tramites_que_frenan_firma" ? { data: frenan, error: null } : { data: { id }, error: null });
+  let rpc = rpcWith(1);
+  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: sale }, rpc), user: { id: "u" } });
+  const blocked = await PUT(request({ ...advance, etapa: "cierre" }), context);
+  expect(blocked.status).toBe(409);
+  expect((await blocked.json()).error).toMatch(/cancelación de hipoteca.*Registro Público.*director/);
+  expect(rpc).not.toHaveBeenCalledWith("fortius_inmuebles_update_operation", expect.anything());
+  // También frena saltar a etapas posteriores desde la firma.
+  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: { ...sale, etapa: "cierre" } }, rpcWith(1)), user: { id: "u" } });
+  expect((await PUT(request({ ...advance, etapa: "entrega" }), context)).status).toBe(409);
+  // Inscrita o con la decisión del director, la base ya no la cuenta y la firma avanza.
+  rpc = rpcWith(0);
+  requireStaff.mockResolvedValue({ client: fakeClient({ expediente: sale }, rpc), user: { id: "u" } });
+  expect((await PUT(request({ ...advance, etapa: "cierre" }), context)).status).toBe(200);
+  expect(rpc).toHaveBeenCalledWith("fortius_inmuebles_tramites_que_frenan_firma", { p_expediente: id });
+  // No aplica a rentas ni a quien sigue antes de la firma.
+  for (const [expediente, etapa] of [[{ ...sale, operacion: "renta" }, "cierre"], [{ ...sale, etapa: "comercializacion" }, "negociacion"]] as const) {
+    const other = rpcWith(1);
+    requireStaff.mockResolvedValue({ client: fakeClient({ expediente }, other), user: { id: "u" } });
+    expect((await PUT(request({ ...advance, etapa }), context)).status).toBe(200);
+    expect(other).toHaveBeenCalledOnce();
+  }
 });

@@ -7,7 +7,9 @@
 --  · las notas las sella la base (autor y fecha); nadie cambia el texto de una nota ni borra el
 --    historial; solo su autor o el director quitan una nota;
 --  · quedar en espera crea la tarea «Volver a preguntar» para «Hoy», una sola vez por fecha;
---  · solo el director reasigna cliente o asesor y borra un trámite.
+--  · solo el director reasigna cliente o asesor y borra un trámite;
+--  · en una venta, la cancelación ligada a la operación frena la firma hasta que el paso del Registro
+--    Público se cierra o el director decide firmar sin ella (firmaSinCancelacion, con su motivo).
 -- No reescribe registros existentes.
 begin;
 set local lock_timeout='2s';
@@ -52,6 +54,11 @@ begin
   or (d ? 'propiedadSlug' and jsonb_typeof(d->'propiedadSlug')<>'string')
   or (d ? 'expedienteId' and jsonb_typeof(d->'expedienteId')<>'string') then
   raise sqlstate 'PT400' using message='Trámite inválido';
+ end if;
+ if jsonb_typeof(d->'firmaSinCancelacion')='object' then
+  if jsonb_typeof(d->'firmaSinCancelacion'->'motivo') is distinct from 'string' or length(btrim(d->'firmaSinCancelacion'->>'motivo')) not between 10 and 1000 then
+   raise sqlstate 'PT400' using message='Escribe el motivo de firmar sin la cancelación inscrita (al menos 10 caracteres)'; end if;
+ elsif d ? 'firmaSinCancelacion' and jsonb_typeof(d->'firmaSinCancelacion')<>'null' then raise sqlstate 'PT400' using message='Decisión de firma inválida';
  end if;
  if (d->>'estado'='terminado') <> ((d->>'pasoActual')::int=8) then
   raise sqlstate 'PT400' using message='El trámite termina al cerrar el último paso';
@@ -141,6 +148,25 @@ begin
  end if;
  if tg_op='INSERT' and (ahora<>0 or new.data->>'estado'<>'en_curso') then
   raise sqlstate 'PT400' using message='Un trámite empieza en el primer paso'; end if;
+ -- Ligado a una venta, el trámite frena la firma: solo el director lo desliga o decide firmar sin la cancelación.
+ if not admin and tg_op='UPDATE' and coalesce(old.data->>'expedienteId','')<>'' and new.data->>'expedienteId' is distinct from old.data->>'expedienteId' then
+  raise sqlstate 'PT403' using message='Solo el director desliga un trámite de su operación'; end if;
+ if (jsonb_typeof(new.data->'firmaSinCancelacion')='object') is distinct from (jsonb_typeof(prev->'firmaSinCancelacion')='object')
+   or btrim(new.data->'firmaSinCancelacion'->>'motivo') is distinct from btrim(prev->'firmaSinCancelacion'->>'motivo') then
+  if not admin then raise sqlstate 'PT403' using message='Solo el director decide firmar la venta sin la cancelación inscrita'; end if;
+  if jsonb_typeof(new.data->'firmaSinCancelacion')='object' then
+   new.data:=jsonb_set(new.data,'{firmaSinCancelacion}',jsonb_build_object('motivo',btrim(new.data->'firmaSinCancelacion'->>'motivo'),'autorizadoPor',actor::text,'autorizadoEl',stamp));
+   eventos:=eventos||('El director autorizó firmar la venta sin la cancelación inscrita: '||btrim(new.data->'firmaSinCancelacion'->>'motivo'));
+  else
+   new.data:=new.data-'firmaSinCancelacion';
+   eventos:=eventos||'El director retiró la autorización de firmar sin la cancelación inscrita'::text;
+  end if;
+ elsif jsonb_typeof(prev->'firmaSinCancelacion')='object' then
+  -- Sin cambio de decisión, quién y cuándo los conserva la base.
+  new.data:=jsonb_set(new.data,'{firmaSinCancelacion}',prev->'firmaSinCancelacion');
+ else
+  new.data:=new.data-'firmaSinCancelacion';
+ end if;
  if tg_op='UPDATE' and old.data->>'acreedor' is distinct from new.data->>'acreedor' then
   raise sqlstate 'PT400' using message='El acreedor no cambia; abre otro trámite'; end if;
  if tg_op='UPDATE' and old.data->>'estado'='cancelado' and ahora<>antes then
@@ -225,6 +251,16 @@ begin
  return new;
 end; $$;
 
+-- Cuántas cancelaciones ligadas a la operación frenan la firma: el paso del Registro Público sin cerrar
+-- y sin la decisión del director. Cuenta también las que el asesor de la venta no ve; solo responde a
+-- quien tiene acceso a la operación. Un trámite cancelado sigue frenando: la hipoteca no se canceló.
+create or replace function public.fortius_inmuebles_tramites_que_frenan_firma(p_expediente uuid)
+returns integer language sql stable security definer set search_path='' as $$
+ select case when public.fortius_inmuebles_is_staff() and public.fortius_inmuebles_can_access_expediente(p_expediente) then
+  (select count(*)::integer from public.fortius_inmuebles_records t where t.collection='tramites' and t.data->>'expedienteId'=p_expediente::text
+    and (t.data->>'pasoActual')::int < 6 and jsonb_typeof(t.data->'firmaSinCancelacion') is distinct from 'object')
+ else 0 end $$;
+
 drop trigger if exists fortius_inmuebles_guard_tramite on public.fortius_inmuebles_records;
 create trigger fortius_inmuebles_guard_tramite before insert or update or delete on public.fortius_inmuebles_records
  for each row execute function public.fortius_inmuebles_guard_tramite();
@@ -278,6 +314,8 @@ revoke execute on function public.fortius_inmuebles_tramite_paso_nombre(text,tex
 grant execute on function public.fortius_inmuebles_validate_tramite(text,jsonb) to authenticated, service_role;
 grant execute on function public.fortius_inmuebles_tramite_paso_nombre(text,text) to authenticated, service_role;
 revoke execute on function public.fortius_inmuebles_guard_tramite() from public, anon, authenticated;
+revoke execute on function public.fortius_inmuebles_tramites_que_frenan_firma(uuid) from public, anon;
+grant execute on function public.fortius_inmuebles_tramites_que_frenan_firma(uuid) to authenticated, service_role;
 
 drop function public.fortius_inmuebles_replace_once(text,text,text,integer,text);
 

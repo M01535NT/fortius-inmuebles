@@ -77,6 +77,8 @@ export const tramiteSchema = z.object({
   pagos: z.array(pagoSchema).max(30).default([]),
   notas: z.array(notaSchema).max(1000).default([]),
   ultimoAvance: z.object({ fecha: z.string().max(40).optional(), medio: z.enum(["whatsapp", "correo", "pdf"]) }).strict().nullable().optional(),
+  // Ligado a una venta, frena la firma hasta cerrar el Registro Público; el director puede decidir firmar sin ella.
+  firmaSinCancelacion: z.object({ motivo: texto(1000).min(10), autorizadoPor: z.string().max(80).optional(), autorizadoEl: z.string().max(40).optional() }).strict().nullable().optional(),
   creadoEl: z.string().max(40).optional(), actualizadoEl: z.string().max(40).optional(),
 }).strict().refine(t => t.pasos.every((p, i) => p.clave === PASO_CLAVES[i]), { message: "Pasos fuera de orden", path: ["pasos"] })
   .refine(t => (t.estado === "terminado") === (t.pasoActual === TOTAL_PASOS), { message: "Solo termina al cerrar el último paso", path: ["estado"] });
