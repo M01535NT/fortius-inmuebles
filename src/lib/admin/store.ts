@@ -160,7 +160,8 @@ type Collection<T extends object> = {
   load(): Promise<void>;
   state(): LoadState;
   version(item: T | string): number | null;
-  put(item: T, version: number | null): Promise<T>;
+  /** `resolve: false` (RP-12): ante un 409 no abre la ventana de conflicto; recarga la colección y lanza el error. */
+  put(item: T, version: number | null, options?: { resolve?: boolean }): Promise<T>;
   acknowledge(record: StoredRecord<T>): Promise<void>;
   remove(id: string, version: number): Promise<void>;
   clear(): void;
@@ -269,7 +270,7 @@ function collection<T extends object>(
       })();
       return pending;
     },
-    async put(item, version) {
+    async put(item, version, options) {
       const epoch = sessionEpoch;
       const revision = cacheRevision;
       let result: { record: StoredRecord<T> };
@@ -280,7 +281,10 @@ function collection<T extends object>(
           { data: item, version },
         );
       } catch (error) {
-        if (!(error instanceof AdminApiError) || error.status !== 409 || version === null || !conflictResolver) throw error;
+        if (!(error instanceof AdminApiError) || error.status !== 409 || version === null) throw error;
+        // En una acción masiva el conflicto se informa por registro y la versión nueva queda cargada para reintentar.
+        if (options?.resolve === false) { try { await col.load(); } catch { /* el error original es el que se informa */ } throw error; }
+        if (!conflictResolver) throw error;
         const id = identify(item), base = confirmed.get(id)?.get(version);
         try { await col.load(); } catch { throw error; }
         const theirs = cache.find((x) => identify(x) === id), theirsVersion = versions.get(id);
@@ -442,8 +446,9 @@ export async function upsert<T extends { id: string }>(
   col: Collection<T>,
   item: T,
   version: number | null,
+  options?: { resolve?: boolean },
 ) {
-  return col.put(item, version);
+  return col.put(item, version, options);
 }
 export async function removeById<T extends { id: string }>(
   col: Collection<T>,
