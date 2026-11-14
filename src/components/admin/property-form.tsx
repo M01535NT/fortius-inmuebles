@@ -425,7 +425,7 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
               className={selectClass}
             >
               <option value="">Sin asignar</option>
-              {asesores.map((a) => (
+              {asesores.filter((a) => a.activo || a.id === initial?.asesorId).map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.nombre}
                 </option>

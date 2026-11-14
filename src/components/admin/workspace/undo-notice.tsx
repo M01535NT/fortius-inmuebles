@@ -18,6 +18,9 @@ export function useUndo(ms = 8000) {
 export function UndoNotice({ current, clear, ms, onError }: { current: Undoable | null; clear: () => void; ms: number; onError: (message: string) => void }) {
   const [busy, setBusy] = React.useState(false);
   const [hold, setHold] = React.useState(false);
+  // C-72: un aviso nuevo empieza sin pausa (tras pulsar «Deshacer» con el ratón nunca llega pointerleave).
+  const [shown, setShown] = React.useState(current);
+  if (shown !== current) { setShown(current); setHold(false); }
   React.useEffect(() => {
     if (!current || hold || busy) return;
     const timer = window.setTimeout(clear, ms);
@@ -26,7 +29,7 @@ export function UndoNotice({ current, clear, ms, onError }: { current: Undoable 
   if (!current) return null;
   async function undo() {
     setBusy(true);
-    try { await current!.undo(); clear(); }
+    try { await current!.undo(); setHold(false); clear(); }
     catch (error) { clear(); onError(`No se pudo deshacer: ${error instanceof Error ? error.message : "intenta de nuevo"}`); }
     finally { setBusy(false); }
   }

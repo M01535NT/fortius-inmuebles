@@ -66,7 +66,7 @@ function Editor({ initial }: { initial: SiteSettings }) {
     const next: SiteSettings = {
       ...texts,
       horasPrimeraAtencion: firstResponseHours({ horasPrimeraAtencion: Number(data.get("horasPrimeraAtencion")) }),
-      ...tope(data),
+      ...tope(data, e.currentTarget),
       ...(nextEmpresa && Object.keys(nextEmpresa).length ? { empresa: nextEmpresa } : {}),
       ...(Object.keys(mensajes).length ? { mensajes } : {}),
     };
@@ -77,7 +77,13 @@ function Editor({ initial }: { initial: SiteSettings }) {
   }
 
   // Vacío o inválido conserva el tope guardado; el director lo ve y lo cambia solo él.
-  function tope(data: FormData): Pick<SiteSettings, "topeIaMensualUsd"> {
+  function tope(data: FormData, form: HTMLFormElement): Pick<SiteSettings, "topeIaMensualUsd"> {
+    // C-82: si el campo sigue con lo que mostró (el tope del servidor o el guardado), no se fija nada nuevo.
+    const field = form.elements.namedItem("topeIaMensualUsd");
+    if (field instanceof HTMLInputElement && field.value === field.defaultValue) {
+      const stored = (settingsStore.get() as SiteSettings | null)?.topeIaMensualUsd;
+      return stored === undefined ? {} : { topeIaMensualUsd: stored };
+    }
     const raw = String(data.get("topeIaMensualUsd") ?? "").trim();
     const value = raw ? topeIaValido(Number(raw)) : undefined;
     const kept = value ?? (settingsStore.get() as SiteSettings | null)?.topeIaMensualUsd;
