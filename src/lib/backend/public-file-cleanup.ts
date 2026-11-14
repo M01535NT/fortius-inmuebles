@@ -8,7 +8,7 @@ import { createServerClient } from "./auth";
   la dirección; una foto subida por error con datos personales no se retiraba.
   Para que la eliminación sea recuperable, el archivo no se borra: se mueve al almacenamiento privado
   (`retirados/<ruta>`). Si después la misma dirección vuelve a un inmueble (por ejemplo, al copiar una
-  versión anterior), al guardar regresa a su lugar público.
+  versión anterior), al guardar regresa a su lugar público. A los 30 días de retirado se borra para siempre.
   Solo se retira lo que estaba en el inmueble antes de guardar, ya no está, y nada más en la base usa:
   otro inmueble o sus versiones, el blog, fichas de Herramientas, cartera, formatos, expedientes o algo
   en Eliminados (función fortius_inmuebles_public_files_in_use). Si algo falla, el guardado sigue hecho; el archivo queda como estaba.
@@ -92,6 +92,35 @@ export async function syncPublicFiles(before: PublicFilesSnapshot, propertyId: s
     if (errors) failed("public_file_retire_failed", errors);
   } catch {
     failed("public_file_retire_failed", candidates.length);
+  }
+  return result;
+}
+
+/*
+  Lo retirado hace más de 30 días se borra para siempre (titular, 13/11/2026). No hay tarea programada:
+  corre al guardar un inmueble. Si algo volvió a usar la dirección en ese tiempo, regresa a público.
+*/
+export async function purgeRetiredPublicFiles(service: Service): Promise<{ purged: number; restored: number }> {
+  const result = { purged: 0, restored: 0 };
+  try {
+    const due = await service.rpc("fortius_inmuebles_retired_public_files_due", { p_limit: 100 });
+    if (due.error || !Array.isArray(due.data) || !due.data.length) return result;
+    const paths = (due.data as string[]).filter(name => name.startsWith(RETIRED)).map(name => name.slice(RETIRED.length));
+    const byNeedle = new Map(paths.flatMap(path => needles(path).map(needle => [needle, path] as const)));
+    const used = await service.rpc("fortius_inmuebles_public_files_in_use", { p_needles: [...byNeedle.keys()], p_property_id: null });
+    if (used.error || !Array.isArray(used.data)) return result;
+    const inUse = new Set((used.data as string[]).map(needle => byNeedle.get(needle)));
+    for (const path of paths.filter(item => inUse.has(item))) {
+      const { error } = await service.storage.from(PRIVATE_BUCKET).move(retiredPath(path), path, { destinationBucket: PUBLIC_BUCKET });
+      if (!error) result.restored += 1;
+    }
+    const expired = paths.filter(item => !inUse.has(item)).map(retiredPath);
+    if (expired.length) {
+      const { error } = await service.storage.from(PRIVATE_BUCKET).remove(expired);
+      if (error) failed("public_file_purge_failed", expired.length); else result.purged = expired.length;
+    }
+  } catch {
+    failed("public_file_purge_failed", 0);
   }
   return result;
 }

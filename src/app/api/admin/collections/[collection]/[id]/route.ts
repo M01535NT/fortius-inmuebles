@@ -1,5 +1,5 @@
 import { requireStaff } from "@/lib/backend/auth";
-import { publicFilesBeforeSave, syncPublicFiles } from "@/lib/backend/public-file-cleanup";
+import { publicFilesBeforeSave, purgeRetiredPublicFiles, syncPublicFiles } from "@/lib/backend/public-file-cleanup";
 import { ApiError, apiResponse, assertSameOrigin, readJson } from "@/lib/backend/http";
 import { listRecords, putRecord, deleteRecord } from "@/lib/backend/repository";
 import { parseRecord, parseWrite } from "@/lib/backend/validation";
@@ -34,6 +34,7 @@ export async function PUT(request: Request, context: Context) {
       const before = await publicFilesBeforeSave(id);
       const record = await putRecord(client, collection, id, input);
       await syncPublicFiles(before, id, record.data);
+      if (before) await purgeRetiredPublicFiles(before.service);
       return { record };
     }
     return { record: await putRecord(client, collection, id, input) };
