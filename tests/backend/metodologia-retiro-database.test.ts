@@ -122,6 +122,26 @@ it('withdraws the listing when the intermediation contract ends (M-01)',async()=
   expect(await dataOf('m01-terminado')).toEqual(before);
  });
 });
+/** Contrato 09 emitido con su modalidad (como superusuario de la prueba). */
+async function contract(id:string,modalidad:string){
+ await db.exec('reset role');
+ const d=crypto.randomUUID(),m=crypto.randomUUID();
+ await db.query("insert into public.fortius_inmuebles_formato_drafts(id,expediente_id,formato_id,data) values($1,$2,'09',$3::jsonb)",[d,id,JSON.stringify({modalidad})]);
+ await db.query("insert into public.fortius_inmuebles_formato_emissions(id,draft_id,draft_version,snapshot,sha256,path,created_by) values($1,$2,1,'{}',$3,$4,$5)",[m,d,'c'.repeat(64),`${id}/${m}.pdf`,own]);
+ await db.exec('set role authenticated');
+}
+// Titular, 14/11/2026: terminar un contrato sin exclusiva no retira el inmueble; uno en exclusiva sí.
+it('keeps the listing when a non-exclusive contract ends, and withdraws it when an exclusive one ends',async()=>{
+ await asUser(own,async()=>{
+  for(const [slug,modalidad,visible] of [['m01-sin-exclusiva','no_exclusiva',true],['m01-exclusiva','exclusiva',false]] as const){
+   const id=await publishedOperation(slug);
+   await contract(id,modalidad);
+   const flujo=await flowOf(id);
+   await update(id,'negociacion',{...flujo,firmaContrato:{...flujo.firmaContrato,terminacion:{fecha:'2026-11-13',motivo:'El propietario terminó el contrato con Fortius'}}});
+   expect(await published(slug)).toBe(visible);
+  }
+ });
+});
 // Titular, 14/11/2026: una corrección no retira el inmueble; la terminación sí.
 it('keeps the listing when the signed contract is corrected and awaits review again (M-01)',async()=>{
  await asUser(own,async()=>{
