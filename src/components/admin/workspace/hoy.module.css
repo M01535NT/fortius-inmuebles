@@ -33,7 +33,8 @@
 :global(.admin-root) .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; width: 100%; }
 @media (min-width: 640px) { :global(.admin-root) .stats { display: flex; width: auto; gap: .625rem; } }
 :global(.admin-root) .stat { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: .125rem; min-height: 4.25rem; padding: .5rem .875rem; border-radius: var(--radius-card); background: var(--card); border: 1px solid var(--card-edge); box-shadow: var(--shadow-rest); color: var(--foreground); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
-@media (min-width: 640px) { :global(.admin-root) .stat { flex-direction: row; align-items: baseline; gap: .625rem; padding: 0 1.25rem; } }
+/* Cifra y texto en la misma línea base, y la línea centrada en la tarjeta aunque la fila la estire. */
+@media (min-width: 640px) { :global(.admin-root) .stat { flex-direction: row; flex-wrap: wrap; align-items: baseline; align-content: center; gap: .625rem; padding: 0 1.25rem; } }
 :global(.admin-root) .stat strong { font-size: var(--admin-text-cifra); line-height: 1; font-weight: 640; font-variant-numeric: tabular-nums; font-variation-settings: "wdth" 92; }
 :global(.admin-root) .stat span { font-size: var(--admin-text-detalle); font-weight: 600; }
 :global(.admin-root) .stat:hover { box-shadow: var(--shadow-lift); }
