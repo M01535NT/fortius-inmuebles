@@ -53,7 +53,11 @@
 :global(.admin-root) .reason[data-late] { background: var(--alert-surface); color: var(--alert); }
 :global(.admin-root) .bar { display: grid; gap: 4px; max-width: 11rem; }
 :global(.admin-root) .bar > span { height: 6px; border-radius: 3px; background: var(--track); }
-:global(.admin-root) .bar > span[data-state=on] { background: var(--primary); }
+/* Como el riel de la operación: lo listo en tinta y la etapa actual (el último tramo encendido) en borgoña. */
+:global(.admin-root) .bar > span[data-state=on] { background: var(--foreground); }
+:global(.admin-root) .bar > span[data-state=on]:not(:has(+ span[data-state])) { background: var(--primary); }
+:global(.dark) :global(.admin-root) .bar > span[data-state=on] { background: var(--muted-foreground); }
+:global(.dark) :global(.admin-root) .bar > span[data-state=on]:not(:has(+ span[data-state])) { background: #f8f8ff; }
 :global(.admin-root) .bar > span[data-state=warn] { background: var(--warning); }
 
 /* Tablero: una columna por fase, con desplazamiento horizontal si no caben. */
