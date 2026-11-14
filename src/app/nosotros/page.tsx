@@ -41,7 +41,7 @@ export default async function NosotrosPage() {
   const isIllustrative = (profile: typeof lead) => profile.id === "moises" && !team.length;
 
   const portrait = (profile: typeof lead, priority = false) => profile.foto
-    ? <Image unoptimized priority={priority} src={profile.foto} alt={isIllustrative(profile) ? `Retrato ilustrativo; no representa a ${profile.nombre}` : profile.nombre} fill sizes="(max-width: 899px) 100vw, 480px" />
+    ? <Image unoptimized preload={priority} src={profile.foto} alt={isIllustrative(profile) ? `Retrato ilustrativo; no representa a ${profile.nombre}` : profile.nombre} fill sizes="(max-width: 899px) 100vw, 480px" />
     : <span className="ab-initials" aria-label={`Iniciales de ${profile.nombre}`}>{profile.iniciales}</span>;
 
   const channelLinks = (profile: typeof lead) => {

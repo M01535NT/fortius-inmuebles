@@ -197,7 +197,7 @@ test("property, article and calculator pages return to their catalogs", async ({
   await page.goto("/blog");
   await page.locator('main a[href="/blog/cuanto-vale-mi-casa-tijuana"]').first().click();
   await expect(page).toHaveURL(/\/blog\/cuanto-vale-mi-casa-tijuana$/);
-  await page.getByRole("link", { name: "Volver al Blog" }).click();
+  await page.getByRole("link", { name: "Volver al blog" }).click();
   await expect(page).toHaveURL(/\/blog$/);
 
   for (const calculator of ["hipoteca", "gastos-de-cierre"]) {
