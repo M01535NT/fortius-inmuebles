@@ -63,25 +63,6 @@ async function update(id:string,stage:string,flow:Record<string,unknown>|null=nu
  const version=(await db.query<{version:number}>('select version from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0].version;
  return (await db.query<{r:Record<string,unknown>}>("select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,$5,$6) r",[id,version,stage,flow?JSON.stringify(flow):null,slug??null,slug!==undefined])).rows[0].r;
 }
-/** Sube a los documentos del cliente un contrato ficticio de la operación (como superusuario de la prueba). */
-async function clientFile(id:string){
- const file=crypto.randomUUID();
- await db.exec('reset role');
- await db.query("insert into public.fortius_inmuebles_expediente_archivos(id,expediente_id,titulo,nombre_original,mime,byte_length,sha256,path,uploaded_by) values($1,$2,'Contrato ficticio firmado','contrato.pdf','application/pdf',1000,$3,$4,$5)",[file,id,'a'.repeat(64),`${id}/cliente/${file}.pdf`,own]);
- await db.exec('set role authenticated');
- return file;
-}
-const signature=(archivo:string,patch:Record<string,unknown>={})=>({tipo:'intermediacion',fecha:'2026-11-10',firmantes:[{nombre:'Cliente propio',parte:'propietario'},{nombre:'Ana',parte:'fortius'}],archivo,completa:true,revisada:false,...patch});
-async function asAdmin<T>(action:()=>Promise<T>){
- await db.query("select set_config('request.jwt.claim.sub',$1,false)",[admin]);
- try{return await action();}finally{await db.query("select set_config('request.jwt.claim.sub',$1,false)",[own]);}
-}
-/** COR-10: el asesor registra la firma del contrato y el director la marca revisada. */
-async function sign(id:string,stage:string){
- const firma=signature(await clientFile(id));
- await update(id,stage,{...completeFlow(),firmaContrato:firma});
- return asAdmin(()=>update(id,stage,{...completeFlow(),firmaContrato:{...firma,revisada:true}}));
-}
 const flowOf=async(id:string)=>(await db.query<{flujo:{requisitos:Record<string,{estado:string;evidencia?:unknown;soporte:string}>}}>("select flujo from public.fortius_inmuebles_expedientes where id=$1",[id])).rows[0].flujo;
 async function draft(id:string,formato:string){
  const d=crypto.randomUUID();
