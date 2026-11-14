@@ -125,7 +125,7 @@ function LeadDetail({ id }: { id: string }) {
     : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
   const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
     { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
-      if (!await confirmDelete("prospecto", `Se elimina a ${lead.nombre} con su historial.`, false)) return;
+      if (!await confirmDelete("prospecto", `${lead.nombre} sale de Contactos con su historial.`, "o")) return;
       await removeById(db.leads, lead.id, db.leads.version(lead));
       router.push("/admin/contactos");
     } },

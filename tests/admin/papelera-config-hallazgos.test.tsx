@@ -75,7 +75,7 @@ test("Eliminados distingue por nombre dos inmuebles borrados", async () => {
   } : undefined;
   await isLoggedIn();
   render(<PapeleraScreen />);
-  const lista = await screen.findByRole("list", { name: "Inmuebles, artículos, notas y citas" });
+  const lista = await screen.findByRole("list", { name: "Contactos, inmuebles, artículos, notas y citas" });
   const nombres = within(lista).getAllByRole("listitem").map(item => item.querySelector("strong")?.textContent);
   expect(new Set(nombres).size, `los dos se ven como ${JSON.stringify(nombres)}`).toBe(2);
 });

@@ -37,6 +37,9 @@ export function Announcements({ className }: { className?: string }) {
     try { await removeById(db.notas, id, db.notas.version(item)); } catch (cause) { setError(errorMessage(cause)); }
   }
 
+  // Sin avisos, el director ve solo el botón para escribir uno: un bloque vacío no ocupa la pantalla (13/11/2026).
+  if (!items.length && !writing) return <Button variant="ghost" className={cn("self-start", className)} onClick={() => setWriting(true)}><Plus size={16} aria-hidden="true" />Escribir aviso para el equipo</Button>;
+
   return <section aria-labelledby="hoy-avisos" className={cn("flex min-w-0 flex-col gap-3", className)}>
     <div className="flex items-center justify-between gap-3">
       <h2 id="hoy-avisos" className="m-0 text-lg font-semibold">Avisos</h2>
@@ -55,7 +58,7 @@ export function Announcements({ className }: { className?: string }) {
           <small className="text-muted-foreground">{humanDateTime(item.actualizadoEl)}{item.autor ? ` · ${item.autor}` : ""}</small>
         </span>
         {director && <button type="button" aria-label={`Eliminar el aviso «${item.titulo}»`} className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-[10px] text-muted-foreground hover:bg-secondary hover:text-destructive" onClick={() => void remove(item.id)}><Trash2 size={18} aria-hidden="true" /></button>}
-      </li>)}</ul> : !writing && <p className="m-0 text-sm text-muted-foreground">Sin avisos. Lo que escribas aquí lo ve todo el equipo en Hoy.</p>}
+      </li>)}</ul> : <p className="m-0 text-sm text-muted-foreground">Lo que escribas aquí lo ve todo el equipo en Hoy.</p>}
       {error && <p role="alert" className="m-0 text-sm text-destructive">{error}</p>}
     </Card>
   </section>;

@@ -193,7 +193,6 @@ export function OperationsBoard() {
             <button type="button" className={s.filter} aria-pressed={stageFilter === "todas"} onClick={() => chooseStage("todas")}>Todas<span className={s.count}>{active.length}</span></button>
             {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
           </div>
-          <span className="flex-1" />
           <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
           {listed.length > 0 && <SelectToggle selection={selection} noun="operaciones" />}
         </div>
@@ -218,7 +217,7 @@ export function OperationsBoard() {
         <div className="mt-4"><InheritedCreate onDirtyChange={setInheritDirty} taken={new Set((records ?? []).filter(op => op.propiedad_slug && ["captacion", "arrendador"].includes(op.flujo?.ruta ?? "") && op.flujo?.estado !== "descartada").map(op => op.propiedad_slug!))} /></div>
       </Card>}
       {/* NAV-13: lo eliminado se recupera en la papelera única; «?eliminadas=1» sigue funcionando. */}
-      <Link href={deleted ? "/admin/operaciones" : PAPELERA.href} className="self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : PAPELERA.enlace}</Link>
+      <Link href={deleted ? "/admin/operaciones" : PAPELERA.href} className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-foreground underline underline-offset-4">{deleted ? "Volver a las operaciones en curso" : PAPELERA.enlace}</Link>
     </footer>
   </Surface>;
 }
