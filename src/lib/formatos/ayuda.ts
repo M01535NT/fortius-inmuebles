@@ -79,7 +79,15 @@ const VALOR: Ayuda = {
   },
 };
 
-const AYUDA: Record<string, Ayuda> = { "07": VALOR };
+/* M-05: datos que la promesa no imprime; sirven para revisar el límite del efectivo antes de emitir. */
+const PROMESA: Ayuda = {
+  campos: {
+    tipoCambio: "Cuántos pesos vale 1 dólar el día del pago en efectivo. Sirve para revisar el límite de efectivo de la ley; no se imprime en el contrato.",
+    medioGarantia: "Cómo se entregará la garantía. Sirve para revisar el límite de efectivo de la ley; no se imprime en el contrato.",
+    garantiaAbonaPrecio: "Sí, si las partes acordarán por escrito aplicar la garantía al precio; no, si se devolverá. Sirve para revisar el límite de efectivo; no se imprime en el contrato.",
+  },
+};
+const AYUDA: Record<string, Ayuda> = { "07": VALOR, "15": PROMESA };
 
 export const ayudaSeccion = (formato: string, seccion?: string) => seccion ? AYUDA[formato]?.secciones?.[seccion] : undefined;
 export const ayudaCampo = (formato: string, campo: string) => AYUDA[formato]?.campos?.[campo];
