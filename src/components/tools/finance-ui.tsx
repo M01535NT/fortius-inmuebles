@@ -148,7 +148,7 @@ export function PrivacyNote() {
 export function Method({ children }: { children: ReactNode }) {
   return (
     <details className="mt-5 border-t border-border pt-4 text-sm">
-      <summary className="cursor-pointer py-2 font-medium">
+      <summary className="min-h-11 cursor-pointer content-center py-2 font-medium">
         Fuentes y método
       </summary>
       <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
