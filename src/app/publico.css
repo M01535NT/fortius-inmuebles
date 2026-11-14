@@ -309,7 +309,7 @@
 .ct-form { margin-top: var(--space-cerca); padding: clamp(20px, 2.6vw, 28px); border-radius: var(--corner-tarjeta); border: 1px solid rgba(6, 31, 63, 0.12); background: var(--ns-form); color: #061f3f; --foreground: #061f3f; --muted-foreground: #40536b; --border: rgba(6, 31, 63, 0.16); --card: #fff; --background: #fff; --primary-text: #8a1634; }
 .ct-form .pg-field > label { color: #061f3f; }
 .ct-direct { position: sticky; top: 88px; display: grid; gap: var(--space-normal); padding: clamp(20px, 2.6vw, 28px); border: 1px solid color-mix(in srgb, var(--ns-ink) 12%, transparent); border-radius: var(--corner-tarjeta); background: color-mix(in srgb, var(--ns-ink) 5%, transparent); }
-.ct-direct .display-soft, .ct-direct h3 { color: var(--ns-ink); font-size: var(--type-subtitulo); font-weight: 700; letter-spacing: var(--tracking-subtitulo); }
+.ct-direct .display-soft, .ct-direct :is(h2, h3) { color: var(--ns-ink); font-size: var(--type-subtitulo); font-weight: 700; letter-spacing: var(--tracking-subtitulo); }
 .ct-direct .text-muted-foreground { color: color-mix(in srgb, var(--ns-ink) 70%, transparent); }
 .ct-direct a { color: var(--ns-ink); }
 .ct-direct .bg-primary { background: #8a1634; }
@@ -329,7 +329,7 @@
 .gd-cta .pg-muted { max-width: 52ch; margin: 0; }
 /* Guía para comprar: buscador en una sola fila bajo la portada y las propiedades actuales al final. */
 .gd-search { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: var(--space-cerca) var(--space-normal); padding: var(--space-amplio); border: 1px solid var(--border); border-radius: var(--corner-tarjeta); box-shadow: none; }
-.gd-search h3 { flex-basis: 100%; font-size: var(--type-texto); }
+.gd-search :is(h2, h3) { flex-basis: 100%; font-size: var(--type-texto); }
 .gd-search .nx-search-fields { flex: 1 1 560px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .gd-search .nx-btn { flex: 0 0 auto; width: auto; min-height: var(--control-normal); }
 .dark .gd-search { border-color: rgba(248, 248, 255, 0.14); }

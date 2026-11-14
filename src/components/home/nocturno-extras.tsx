@@ -22,12 +22,13 @@ const PRESUPUESTOS = [
 ];
 
 /* Buscador sin script: manda al inventario con los filtros en la URL. También lo usa la guía para comprar. */
-export function BuscadorPropiedades({ properties, className = "nx-search" }: { properties: Property[]; className?: string }) {
+export function BuscadorPropiedades({ properties, className = "nx-search", headingLevel = 3 }: { properties: Property[]; className?: string; headingLevel?: 2 | 3 }) {
   const zonas = Array.from(new Set(properties.map((property) => property.zona))).sort();
   const tipos = Array.from(new Set(properties.map((property) => property.tipo)));
+  const Titulo = headingLevel === 2 ? "h2" : "h3";
   return (
     <form action="/inventario" method="get" role="search" aria-label="Buscar propiedad" className={className}>
-      <h3>Buscar propiedad</h3>
+      <Titulo>Buscar propiedad</Titulo>
       <div className="nx-search-fields">
         <label><span>Operación</span><select name="op" defaultValue=""><option value="">Comprar o rentar</option><option value="venta">Comprar</option><option value="renta">Rentar</option></select></label>
         <label><span>Tipo</span><select name="tipo" defaultValue=""><option value="">Todos los tipos</option>{tipos.map((tipo) => <option key={tipo} value={tipo}>{TIPO_LABELS[tipo]}</option>)}</select></label>

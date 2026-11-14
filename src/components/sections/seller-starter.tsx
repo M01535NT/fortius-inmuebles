@@ -21,6 +21,8 @@ const TIPOS: { label: string; Icon: LucideIcon }[] = [
 export function SellerStarter() {
   const { publicLeadsEnabled } = usePublicFeatures();
   const [paso, setPaso] = React.useState<1 | 2>(1);
+  // Una vez abierto, el paso 2 queda montado: «Volver» ya no borra nombre y teléfono.
+  const [visitado, setVisitado] = React.useState(false);
   const [tipo, setTipo] = React.useState(TIPOS[0].label);
   const [zona, setZona] = React.useState("");
   const pasoDos = React.useRef<HTMLHeadingElement>(null);
@@ -35,20 +37,39 @@ export function SellerStarter() {
   function continuar(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     // El formulario del paso 2 lee la selección al montarse.
-    try { window.sessionStorage.setItem(SELLER_START_KEY, JSON.stringify({ tipo, zona: zona.trim() })); } catch { /* sin prellenado */ }
+    try {
+      window.sessionStorage.setItem(SELLER_START_KEY, JSON.stringify({ tipo, zona: zona.trim() }));
+      // Si el formulario ya está montado (volvió al paso 1), toma la nueva selección.
+      if (visitado) window.dispatchEvent(new Event(SELLER_START_KEY));
+    } catch { /* sin prellenado */ }
     movido.current = true;
+    setVisitado(true);
     setPaso(2);
+  }
+
+  // Una sola parada de Tab y flechas para elegir, como un grupo de radios nativo.
+  function teclaTipo(event: React.KeyboardEvent<HTMLDivElement>) {
+    const delta = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number>)[event.key];
+    const actual = TIPOS.findIndex(item => item.label === tipo);
+    let siguiente: number | null = null;
+    if (delta) siguiente = (actual + delta + TIPOS.length) % TIPOS.length;
+    else if (event.key === "Home") siguiente = 0;
+    else if (event.key === "End") siguiente = TIPOS.length - 1;
+    if (siguiente === null) return;
+    event.preventDefault();
+    setTipo(TIPOS[siguiente].label);
+    event.currentTarget.querySelectorAll<HTMLButtonElement>("[role=radio]")[siguiente]?.focus();
   }
 
   return (
     <div id="entrevista" className="ss-card">
-      {paso === 1 ? (
+      {paso === 1 && (
         <form className="ss-step" aria-label="Cuéntanos de tu propiedad" onSubmit={continuar}>
           <p className="ss-meta"><span>Paso 1 de 2</span><span>2 minutos</span></p>
           <h2 ref={pasoUno} tabIndex={-1} className="ss-title">¿Qué quieres vender?</h2>
-          <div role="radiogroup" aria-label="Tipo de propiedad" className="ss-types">
+          <div role="radiogroup" aria-label="Tipo de propiedad" className="ss-types" onKeyDown={teclaTipo}>
             {TIPOS.map(({ label, Icon }) => (
-              <button key={label} type="button" role="radio" aria-checked={tipo === label} onClick={() => setTipo(label)}>
+              <button key={label} type="button" role="radio" aria-checked={tipo === label} tabIndex={tipo === label ? 0 : -1} onClick={() => setTipo(label)}>
                 <Icon size={24} strokeWidth={1.6} aria-hidden="true" /><span>{label}</span>
               </button>
             ))}
@@ -59,8 +80,9 @@ export function SellerStarter() {
           </div>
           <button type="submit" className="ss-submit">Continuar <ArrowRight size={18} aria-hidden="true" /></button>
         </form>
-      ) : (
-        <div className="ss-step">
+      )}
+      {visitado && (
+        <div className="ss-step" hidden={paso !== 2}>
           <p className="ss-meta">
             <span>Paso 2 de 2</span>
             <button type="button" className="ss-back" onClick={() => setPaso(1)}><ArrowLeft size={16} aria-hidden="true" />Volver</button>

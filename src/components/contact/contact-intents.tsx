@@ -61,12 +61,12 @@ export function ContactIntents() {
           </div>
         </fieldset>
         <div id="contact-conversation" className="ct-form">
-          <ContactForm key={intent} submitLabel="Enviar consulta" initialObjective={selected.objective} initialMessage={selected.message} />
+          <ContactForm submitLabel="Enviar consulta" initialObjective={selected.objective} initialMessage={selected.message} />
         </div>
       </div>
       <div className="ct-side">
         <aside className="ct-direct">
-          <MessagingContact title={selected.title} message={selected.message} />
+          <MessagingContact title={selected.title} message={selected.message} headingLevel={2} />
           {settings?.horario?.trim() && <p className="ct-hours"><Clock3 size={17} aria-hidden="true" /><span>{settings.horario}</span></p>}
         </aside>
         {/* La foto cambia con el motivo elegido; en móvil se omite para no alejar el formulario. */}

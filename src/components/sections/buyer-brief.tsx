@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
-import { PublicLeadForm } from "@/components/forms/public-lead-form";
+import { enfocarAlMontar, mensajeDeEnvio, PublicLeadForm, revisarTelefono } from "@/components/forms/public-lead-form";
 import { captureLead } from "@/lib/admin/store";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
 
@@ -19,6 +19,8 @@ export function BuyerBrief() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const read = (key: string) => String(data.get(key) ?? "").trim();
+    const telefonoMal = revisarTelefono(event.currentTarget, "telefono");
+    if (telefonoMal) { setError(telefonoMal); return; }
     setSending(true);
     setError(null);
     try {
@@ -36,8 +38,8 @@ export function BuyerBrief() {
         ].join(" · "),
       });
       setSent(true);
-    } catch {
-      setError("No pudimos recibir tu solicitud. Revisa tu conexión e inténtalo de nuevo.");
+    } catch (fallo) {
+      setError(mensajeDeEnvio(fallo, "No pudimos recibir tu solicitud. Revisa tu conexión e inténtalo de nuevo."));
     } finally {
       setSending(false);
     }
@@ -66,7 +68,7 @@ export function BuyerBrief() {
             <Link href="/inventario" className="pg-btn" style={{ marginTop: 24 }}>Ver propiedades</Link>
           </div>
         ) : sent ? (
-          <div role="status" className="pg-card pg-card-pad bb-sent">
+          <div role="status" className="pg-card pg-card-pad bb-sent" tabIndex={-1} ref={enfocarAlMontar}>
             <CheckCircle2 size={32} strokeWidth={1.5} aria-hidden="true" />
             <h3 className="pg-h3">Recibimos tu búsqueda.</h3>
             <p className="pg-muted">Te contactamos con opciones.</p>
