@@ -97,8 +97,9 @@ export async function syncPublicFiles(before: PublicFilesSnapshot, propertyId: s
 }
 
 /*
-  Lo retirado hace más de 30 días se borra para siempre (titular, 13/11/2026). No hay tarea programada:
-  corre al guardar un inmueble. Si algo volvió a usar la dirección en ese tiempo, regresa a público.
+  Lo retirado hace más de 30 días se borra para siempre (titular, 13/11/2026). Corre cada día con la tarea
+  de Vercel (/api/cron/limpieza-archivos) y también al guardar un inmueble. Si algo volvió a usar la
+  dirección en ese tiempo, regresa a público.
 */
 export async function purgeRetiredPublicFiles(service: Service): Promise<{ purged: number; restored: number }> {
   const result = { purged: 0, restored: 0 };
