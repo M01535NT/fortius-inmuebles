@@ -1,8 +1,8 @@
-/* Hoy en dos columnas (13/11/2026; base LV-07 «Mosaico cálido» + LV-08). Prefijo :global(.admin-root): ver kit.module.css. */
+/* Hoy en dos columnas (rediseño del 14/11/2026). Prefijo :global(.admin-root): ver kit.module.css. */
 
 /*
   Celular: una columna; las dos columnas se «abren» (display: contents) y el orden es
-  resumen, avisos, lo siguiente, hoy, pendientes y semana.
+  saludo, avisos, tu día, hoy y semana.
   Desde 1100 px: el trabajo a la izquierda y el tiempo a la derecha.
 */
 :global(.admin-root) .page { display: flex; flex-direction: column; gap: 1rem; }
@@ -11,78 +11,67 @@
 :global(.admin-root) .notices { order: 1; }
 :global(.admin-root) .nextBox { order: 2; }
 :global(.admin-root) .todayBox { order: 3; }
-:global(.admin-root) .queueBox { order: 4; }
-:global(.admin-root) .weekBox { order: 5; }
+:global(.admin-root) .weekBox { order: 4; }
 :global(.admin-root) .notices { display: flex; flex-direction: column; gap: 1rem; }
 :global(.admin-root) .notices:empty { display: none; }
-:global(.admin-root) .nextBox { display: flex; flex-direction: column; gap: .75rem; }
-/* Los bloques a los que llevan las cifras del resumen no quedan bajo la barra superior. */
-:global(.admin-root) .page section[id] { scroll-margin-top: 6rem; }
 @media (min-width: 1100px) {
-  :global(.admin-root) .page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(20rem, 26rem); gap: 1.25rem 1.5rem; align-items: start; }
+  :global(.admin-root) .page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem); gap: 1.25rem; align-items: start; }
   :global(.admin-root) .top { grid-column: 1 / -1; }
   :global(.admin-root) .main, :global(.admin-root) .side { display: flex; min-width: 0; flex-direction: column; gap: 1.25rem; }
 }
 
-/* Saludo y resumen */
-:global(.admin-root) .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 1.5rem; padding: .5rem .25rem 0; }
-@media (min-width: 900px) { :global(.admin-root) .top { padding-top: 1rem; } }
-:global(.admin-root) .hello { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: .375rem; }
+/* Saludo y hallazgo del día */
+:global(.admin-root) .top { display: flex; flex-direction: column; align-items: flex-start; gap: .375rem; padding: .25rem .25rem 0; }
 :global(.admin-root) .date { font-size: var(--admin-text-interfaz); color: var(--muted-foreground); }
 :global(.admin-root) .helloTitle { margin: 0; font-size: var(--admin-text-pantalla); line-height: 1.1; font-weight: 620; letter-spacing: -.025em; text-wrap: balance; }
-:global(.admin-root) .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; width: 100%; }
-@media (min-width: 640px) { :global(.admin-root) .stats { display: flex; width: auto; gap: .625rem; } }
-:global(.admin-root) .stat { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: .125rem; min-height: 4.25rem; padding: .5rem .875rem; border-radius: var(--radius-card); background: var(--card); border: 1px solid var(--card-edge); box-shadow: var(--shadow-rest); color: var(--foreground); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
-/* Cifra y texto en la misma línea base, y la línea centrada en la tarjeta aunque la fila la estire. */
-@media (min-width: 640px) { :global(.admin-root) .stat { flex-direction: row; flex-wrap: wrap; align-items: baseline; align-content: center; gap: .625rem; padding: 0 1.25rem; } }
-:global(.admin-root) .stat strong { font-size: var(--admin-text-cifra); line-height: 1; font-weight: 640; font-variant-numeric: tabular-nums; font-variation-settings: "wdth" 92; }
-:global(.admin-root) .stat span { font-size: var(--admin-text-detalle); font-weight: 600; }
-:global(.admin-root) .stat:hover { box-shadow: var(--shadow-lift); }
-:global(.admin-root) .stat:disabled { cursor: default; box-shadow: var(--shadow-rest); color: var(--muted-foreground); }
-:global(.admin-root) .statLate { color: var(--alert); border-color: color-mix(in srgb, var(--alert) 40%, transparent); }
-/* Activado: el mismo par de la pastilla de alerta, legible en claro y en oscuro, con borde marcado. */
-:global(.admin-root) .statLate[aria-pressed=true] { background: var(--alert-surface); border: 2px solid var(--alert); color: var(--alert); }
-@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .stat { transition: box-shadow 160ms, background-color 160ms; } }
+:global(.admin-root) .finding { max-width: 70ch; margin: 0 0 .25rem; font-size: var(--admin-text-cuerpo, 1rem); color: var(--muted-foreground); text-wrap: pretty; }
+:global(.admin-root) .finding b { font-weight: 600; }
 
-/* Lo siguiente: la foto del inmueble a sangre con el pendiente más urgente */
-:global(.admin-root) .next { position: relative; min-height: 14rem; overflow: hidden; border-radius: var(--radius-panel); background: #061f3f; color: #fff; }
-@media (min-width: 900px) { :global(.admin-root) .next { min-height: 15rem; } }
-/* El enlace va en el flujo (no absoluto) para que la tarjeta crezca con un título largo (C33). */
-:global(.admin-root) .nextLink { position: relative; display: flex; min-height: inherit; color: #fff; text-decoration: none; }
-:global(.admin-root) .nextPhoto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-:global(.admin-root) .nextScrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 19, 37, .08) 10%, rgba(6, 19, 37, .86) 100%); }
-@media (min-width: 900px) { :global(.admin-root) .nextScrim { background: linear-gradient(90deg, rgba(6, 19, 37, .9) 0%, rgba(6, 19, 37, .66) 55%, rgba(6, 19, 37, .12) 100%); } }
-:global(.admin-root) .next:not(.nextWithPhoto) .nextScrim { background: linear-gradient(160deg, rgba(14, 42, 82, .9) 0%, rgba(6, 31, 63, 1) 70%); }
-:global(.admin-root) .nextBody { position: relative; display: flex; flex: 1; flex-direction: column; justify-content: flex-end; gap: .625rem; padding: 1.25rem; }
-@media (min-width: 900px) { :global(.admin-root) .nextBody { padding: 1.5rem 1.75rem; max-width: 46rem; } }
-:global(.admin-root) .nextTags { display: flex; flex-wrap: wrap; gap: .5rem; }
-:global(.admin-root) .nextTitle { font-size: var(--admin-text-seccion); line-height: 1.2; font-weight: 620; letter-spacing: -.02em; text-wrap: balance; overflow-wrap: anywhere; }
-:global(.admin-root) .nextFoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; }
-:global(.admin-root) .nextWho { font-size: var(--admin-text-interfaz); color: rgba(255, 255, 255, .85); overflow-wrap: anywhere; }
-:global(.admin-root) .nextGo { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-weight: 540; box-shadow: var(--shadow-cta); }
-@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .nextPhoto { transition: transform 900ms var(--ease-out); } :global(.admin-root) .nextLink:hover .nextPhoto { transform: scale(1.03); } }
-:global(.admin-root) .nextNote { position: relative; padding: 1.25rem; color: rgba(255, 255, 255, .8); }
-:global(.admin-root) .nextEmpty { position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: .5rem; min-height: inherit; height: 100%; padding: 1.75rem; }
-:global(.admin-root) .nextEmpty .nextWho { max-width: 48ch; }
+/* Tarjetas de bloque: el título va dentro, como en el boceto. */
+:global(.admin-root) .panel { display: flex; min-width: 0; flex-direction: column; gap: .5rem; padding: 1rem 1rem .75rem; border-radius: var(--radius-card); background: var(--card); border: 1px solid var(--card-edge); }
+@media (min-width: 640px) { :global(.admin-root) .panel { padding: 1.125rem 1.25rem .875rem; } }
+:global(.admin-root) .head { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+:global(.admin-root) .nextSection, :global(.admin-root) .queueSection { display: flex; min-width: 0; flex-direction: column; gap: .5rem; }
+:global(.admin-root) .queueSection { border-top: 1px solid var(--border); margin-top: .25rem; padding-top: .25rem; }
+
+/* Lo siguiente: una fila destacada, sin foto a sangre. */
+:global(.admin-root) .lead { display: flex; align-items: center; gap: 1rem; padding: .75rem; margin-inline: -.75rem; border-radius: var(--radius-control); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .lead:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
+:global(.admin-root) .leadBody { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .25rem; }
+:global(.admin-root) .leadTags { display: flex; flex-wrap: wrap; gap: .25rem; }
+:global(.admin-root) .leadTitle { font-size: var(--admin-text-grupo); line-height: 1.25; font-weight: 620; letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; }
+:global(.admin-root) .leadGo { display: inline-flex; flex: none; align-items: center; gap: .375rem; min-height: 2.75rem; padding: 0 1rem; border-radius: var(--radius-control); background: var(--primary); color: var(--primary-foreground, #fff); font-weight: 540; }
+:global(.admin-root) .lead:hover .leadGo { background: var(--primary-hover); }
+@media (max-width: 639px) {
+  :global(.admin-root) .lead { flex-wrap: wrap; }
+  :global(.admin-root) .leadGo { flex-basis: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .lead, :global(.admin-root) .leadGo { transition: background-color 150ms; } }
+:global(.admin-root) .empty { display: flex; flex-direction: column; gap: .375rem; padding: .5rem 0 .75rem; }
 :global(.admin-root) .contactLine { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+
+/* Grupos de la cola: «Vencido» en rojo, «Por atender» en gris. */
+:global(.admin-root) .group { display: flex; gap: .375rem; margin: .75rem 0 0; font-size: var(--admin-text-detalle); font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .group span { font-weight: 400; }
+:global(.admin-root) .groupLate { color: var(--alert); }
 
 /* Títulos de sección */
 :global(.admin-root) .title { display: flex; align-items: baseline; gap: .5rem; margin: 0; font-size: var(--admin-text-grupo); font-weight: 600; letter-spacing: -.015em; }
-:global(.admin-root) .count { font-size: var(--admin-text-pastilla); font-weight: 600; padding: .125rem .5rem; border-radius: var(--radius-pill); background: var(--track); color: var(--muted-foreground); }
+:global(.admin-root) .count { font-size: var(--admin-text-detalle); font-weight: 400; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 :global(.admin-root) .more { flex: none; font-size: var(--admin-text-detalle); font-weight: 540; color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .more:hover { text-decoration: underline; text-underline-offset: 4px; }
 :global(.admin-root) .meta { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
 :global(.admin-root) .lateText { color: var(--alert); font-weight: 600; }
-:global(.admin-root) .note { padding: 1rem 1.25rem; font-size: var(--admin-text-interfaz); color: var(--muted-foreground); }
+:global(.admin-root) .note { padding: .5rem 0 .75rem; font-size: var(--admin-text-interfaz); color: var(--muted-foreground); }
 
 /* Pendientes: una fila por operación, con foto, lo más urgente y cuántos más tiene. */
-:global(.admin-root) .list { overflow: hidden; padding: .375rem; }
+:global(.admin-root) .list { margin: 0; padding: 0; list-style: none; }
 :global(.admin-root) .list > li + li { border-top: 1px solid var(--border); }
-:global(.admin-root) .row { display: flex; align-items: center; gap: .875rem; padding: .625rem .75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .row { display: flex; align-items: center; gap: .875rem; padding: .625rem .75rem; margin-inline: -.75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .row:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .row { transition: background-color 150ms; } }
 :global(.admin-root) .rowBody { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .125rem; }
-:global(.admin-root) .rowTitle { font-weight: 600; overflow-wrap: anywhere; }
+:global(.admin-root) .rowTitle { font-weight: 540; overflow-wrap: anywhere; }
 :global(.admin-root) .rowDetail { font-weight: 400; color: var(--muted-foreground); }
 :global(.admin-root) .rowText { font-size: var(--admin-text-detalle); color: var(--muted-foreground); overflow-wrap: anywhere; }
 :global(.admin-root) .rowEnd { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: .25rem; }
@@ -92,18 +81,18 @@
 :global(.admin-root) .rowAction { flex: none; }
 @media (max-width: 639px) {
   :global(.admin-root) .row { flex-wrap: wrap; }
-  :global(.admin-root) .rowEnd { flex-basis: 100%; flex-direction: row; align-items: center; justify-content: space-between; padding-left: calc(48px + .875rem); }
-  :global(.admin-root) .rowWithAction { padding: 0 .75rem .625rem; }
-  :global(.admin-root) .rowWithAction > a { padding-inline: 0; }
-  :global(.admin-root) .rowAction { margin-left: calc(48px + .875rem); }
+  :global(.admin-root) .rowEnd { flex-basis: 100%; flex-direction: row; align-items: center; justify-content: space-between; padding-left: calc(40px + .875rem); }
+  :global(.admin-root) .rowWithAction { padding: 0 0 .625rem; }
+  :global(.admin-root) .rowWithAction > a { padding-inline: 0; margin-inline: 0; }
+  :global(.admin-root) .rowAction { margin-left: calc(40px + .875rem); }
 }
 
 /* Hoy: citas arriba y tareas debajo, en una sola tarjeta (en la columna angosta no caben lado a lado). */
 :global(.admin-root) .todayCard { display: flex; flex-direction: column; }
 :global(.admin-root) .tasksAfterAgenda { border-top: 1px solid var(--border); margin-top: .375rem; padding-top: .375rem; }
-:global(.admin-root) .todayFoot { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+:global(.admin-root) .todayFoot { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-inline: -.75rem; }
 /* Tareas */
-:global(.admin-root) .task { display: flex; align-items: flex-start; gap: .875rem; padding: .625rem .75rem; border-radius: var(--radius-thumb); }
+:global(.admin-root) .task { display: flex; align-items: flex-start; gap: .875rem; padding: .625rem 0; border-radius: var(--radius-thumb); }
 :global(.admin-root) .task a { color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .task a:hover { text-decoration: underline; text-underline-offset: 3px; }
 :global(.admin-root) .check { flex: none; width: 1.375rem; height: 1.375rem; margin-top: .125rem; accent-color: var(--primary); cursor: pointer; }
@@ -112,10 +101,11 @@
 :global(.admin-root) .add:hover { background: var(--secondary); }
 
 /* Citas de hoy: horas a la izquierda; las visitas llevan su color. */
-:global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); row-gap: .25rem; margin: 0; padding: .375rem; list-style: none; }
-:global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem .75rem; border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
+:global(.admin-root) .agenda { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .event { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: .625rem 0; border-top: 1px solid var(--border); border-radius: var(--radius-thumb); color: var(--foreground); text-decoration: none; }
 :global(.admin-root) .event:hover { background: color-mix(in srgb, var(--foreground) 4%, transparent); }
-:global(.admin-root) .time { font-size: var(--admin-text-interfaz); color: var(--muted-foreground); font-variant-numeric: tabular-nums; padding-top: .0625rem; }
+:global(.admin-root) .agenda > li:first-child .event { border-top: 0; }
+:global(.admin-root) .time { font-size: var(--admin-text-interfaz); font-weight: 540; color: var(--foreground); font-variant-numeric: tabular-nums; padding-top: .0625rem; }
 :global(.admin-root) .visit .time { color: var(--info); font-weight: 600; }
 :global(.admin-root) .visitTag { display: inline-flex; align-self: flex-start; align-items: center; gap: .25rem; padding: .0625rem .5rem; border-radius: var(--radius-pill); background: var(--info-surface); color: var(--info); font-size: var(--admin-text-minimo); font-weight: 600; }
 :global(.admin-root) .agendaEmpty { display: flex; flex-direction: column; gap: .25rem; padding: .375rem; }
@@ -123,9 +113,9 @@
 
 /* Esta semana: una lista por día, solo los días que tienen algo. */
 :global(.admin-root) .week { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-:global(.admin-root) .day { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: .75rem; align-items: start; padding: .5rem .375rem; }
+:global(.admin-root) .day { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); gap: .75rem; align-items: start; padding: .5rem 0; }
 :global(.admin-root) .day + .day { border-top: 1px solid var(--border); }
-:global(.admin-root) .dayBadge { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 3rem; margin-top: .25rem; border-radius: var(--radius-control); background: var(--secondary); line-height: 1.1; }
+:global(.admin-root) .dayBadge { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 2.75rem; line-height: 1.1; }
 :global(.admin-root) .dayName { font-size: var(--admin-text-minimo); color: var(--muted-foreground); }
 :global(.admin-root) .dayNum { font-size: var(--admin-text-grupo); font-weight: 640; font-variant-numeric: tabular-nums; }
 :global(.admin-root) .dayItems { display: flex; min-width: 0; flex-direction: column; margin: 0; padding: 0; list-style: none; }

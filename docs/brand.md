@@ -19,9 +19,9 @@ Tema oscuro del sitio público (no son colores de marca impresos; solo pantalla)
 
 **Bandas en oscuro (titular, 13/11/2026).** El tema oscuro alterna noche y azul noche como el claro alterna blanco y blanco azulado, para que se vea dónde empieza cada sección. Las preguntas del inicio siguen el tema (en oscuro ya no son una banda blanca). Sin resplandores ni degradados vino: salieron el halo detrás de «Cinco etapas», el de las cabeceras de página, Nosotros y la ficha, y el degradado de la etapa activa (ahora borgoña sólido). Se conserva el fondo propio del visor de ficha técnica dentro del carrusel de la ficha, que no se toca.
 
-**La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es blanco azulado, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados; en tema oscuro las barras usan `#A2223F`.
+**La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es blanco azulado, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados. En el panel oscuro las barras no usan un borgoña aclarado: la etapa actual va en `#F8F8FF` (14/11/2026).
 
-**Sin crema ni beige (titular, 12/11/2026).** El crema `#F5F1EB` salió del sitio público: fondos, bandas, botones claros y textos sobre oscuro usan el blanco azulado `#F8F8FF`, el mismo lienzo que el panel desde el 11/11. No lo regreses. Desde el 13/11/2026 tampoco queda en el panel: el texto de acento y la opción seleccionada del panel oscuro usan `#F8F8FF`, y la opción seleccionada del panel claro es azul muy diluido (`#EDF2F8`), no rosado. El rosa `#E8A0B2` del método del inicio en oscuro y el beige de Vender y de la portada editorial también salieron.
+**Sin crema ni beige (titular, 12/11/2026).** El crema `#F5F1EB` salió del sitio público: fondos, bandas, botones claros y textos sobre oscuro usan el blanco azulado `#F8F8FF`, el mismo lienzo que el panel desde el 11/11. No lo regreses. Desde el 13/11/2026 tampoco queda en el panel: el texto de acento y la opción seleccionada del panel oscuro usan `#F8F8FF`, y la opción seleccionada del panel claro es azul muy diluido (`#ECF0F7` desde el 14/11), no rosado. El rosa `#E8A0B2` del método del inicio en oscuro y el beige de Vender y de la portada editorial también salieron.
 
 `BrandMark` comparte la geometría SVG entre cabecera, footer y administración. Sobre fondo claro: letras y portal izquierdo azules, portal derecho borgoña. Sobre fotografía o en tema oscuro, sin placa: letras y portal izquierdo blancos, portal derecho borgoña. Los tonos grises son neutros azulados.
 
@@ -63,19 +63,36 @@ Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 tít
 | Cifra | `--admin-text-cifra` | 30 px, anchura 62 | 620 | Fechas del calendario, número de documento |
 | Calificación grande | `--admin-text-cifra-grande` | 72 → 152 px, anchura 62 | 620 | La calificación de la operación |
 
-### Colores de estado del panel (RP-70, LV-01, 13/11/2026)
+### Paleta del panel (rediseño del 14/11/2026; reemplaza RP-70 y LV-01)
+
+Cuatro capas, todas en `src/app/admin/panel-base.css` bajo `.admin-root` y `.dark .admin-root`:
+
+- **Grises con tinte del azul de la marca:** 50 `#F8F8FF` (lienzo), 100 `#ECF0F7` (relleno suave y opción seleccionada), 200 `#DEE3EC` (líneas y bordes de tarjeta), 300 `#C9D0DB`, 400 `#959FAE`, 500 `#647080` (borde de campo, 4.8:1), 600 `#49566A` (texto secundario, 7.0:1), 700 `#3A485E`, 800 `#1F314A`, 900 `#061F3F` (texto).
+- **Marca:** azul `#061F3F` para texto y lo terminado; borgoña `#8A1634` solo para la acción principal y la etapa actual; borgoña presionado `#74112B`. El borgoña nunca es texto.
+- **Oscuro en tres capas:** noche `#060C14` (lienzo), superficie `#0C1724` (tarjetas), elevado `#1A2331` (rellenos y selección), línea `#293342`; texto `#F8F8FF` y secundario `#B0B8C4`. En oscuro la etapa actual va en `#F8F8FF`.
+- **Esquinas y sombras:** 10 px controles, 12 px tarjetas, 14 px bloques grandes; sin sombra en reposo, la profundidad la dan el tono y una línea.
+
+Retirados: `#A2223F` (borgoña de barras en oscuro) y el azul noche `#0B1828` del panel; el `#EDF2F8` de selección pasa a `#ECF0F7`. Los colores fijos que quedaban (círculos de persona `#DBE4F0`, chips activos en `#061F3F`) usan los tokens.
+
+#### Colores de estado
 
 Cinco colores con significado fijo, siempre acompañados de ícono y palabra. Cada uno tiene texto, superficie y borde (`--x`, `--x-surface`, `--x-border`) en claro y oscuro, y existen como utilidades de Tailwind (`text-success`, `bg-info-surface`…). Ningún otro color comunica estado.
 
-| Papel | Token | Claro | Oscuro | Uso |
+| Papel | Token | Claro (texto / superficie / borde) | Oscuro (texto / superficie / borde) | Uso |
 | --- | --- | --- | --- | --- |
-| Acción | `--primary` | `#8A1634` | `#F8F8FF` (texto) | Acción principal y sección activa |
-| Información | `--info` | `#174F94` | `#AACFFF` | Información, agenda y visitas |
-| Listo | `--success` | `#1F7A4D` | `#5FD39A` | Revisado, completo |
-| Atención | `--warning` | `#953D00` | `#FFD236` | Lo que necesita atención |
-| Vencido o error | `--destructive` (alias `--alert`) | `#B3352C` | `#FF8A7A` | Vencido, error, eliminar |
+| Acción | `--primary` | `#8A1634` | `#8A1634` (relleno), texto `#F8F8FF` | Acción principal y etapa actual |
+| Información | `--info` | `#1E5BA1` / `#EAF5FF` / `#B7D4F9` | `#92C1FD` / `#15273E` / `#274367` | Ligas, foco, agenda y visitas |
+| Listo | `--success` | `#1A763F` / `#E5FAEA` / `#AFDFBB` | `#7FD497` / `#142D1B` / `#224D2F` | Revisado, completo |
+| Atención | `--warning` | `#9C5400` / `#FFEFDC` / `#FBC99E` | `#F4B768` / `#37250D` / `#5C3E14` | Lo que necesita atención |
+| Vencido o error | `--destructive` (alias `--alert`) | `#B6341F` / `#FFECE7` / `#FBC1B5` | `#FA8978` / `#401D18` / `#69332A` | Vencido, error, eliminar |
 
-Todos pasan AA (4.5:1 o más) sobre tarjeta, fondo y su propia superficie. En el panel oscuro el rojo es `#FF8A7A`: el `#E2564B` anterior daba 4.16:1 sobre su superficie.
+Todos pasan AA (4.5:1 o más) sobre tarjeta, fondo y su propia superficie. El bermellón de «vencido» se separa del borgoña por tono y porque nunca rellena un botón.
+
+#### Estructura del panel (14/11/2026)
+
+- **Menú lateral** (reemplaza la barra superior de LV-08): buscador, «Nuevo», los seis módulos, Herramientas y, para el director, Administración; la cuenta abajo. De 768 a 1279 px se recoge a íconos; en celular sigue la barra inferior.
+- **Hoy:** saludo con una frase que dice lo vencido, lo de hoy y lo de la semana; «Tu día» en una tarjeta (lo siguiente destacado y lo demás en «Vencido» y «Por atender»); a la derecha «Hoy» y «Esta semana».
+- **Una operación** (reemplaza el panel azul de LV-06): encabezado claro con quién es, la etapa actual y el riel de las diez etapas. Listas en tinta, con algo pendiente en ámbar, la actual en borgoña y lo que falta en gris. La lista de Operaciones usa el mismo riel en cada fila.
 
 ### Íconos, estados y avance del panel (LV-02, titular, 13/11/2026)
 

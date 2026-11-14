@@ -17,11 +17,12 @@ import { cn } from "@/lib/utils";
 import s from "./guided-nav.module.css";
 
 /*
-  Marco del panel, versión 2 (titular, 30/10/2026, DEC-35): barra superior con el logotipo,
-  las píldoras Hoy · Operaciones · Contactos · Inmuebles · Trámites · Agenda · Más (Trámites desde el
-  14/11/2026, TRA-01, a pedido del titular; también sigue en Herramientas), el buscador (Ctrl K),
-  «+ Nuevo» con un menú corto y la cuenta. En celular, barra inferior flotante con «+» y «Más».
-  Reemplaza al menú lateral del 17/10/2026.
+  Marco del panel, versión 3 (titular, 14/11/2026, «Panel desde cero»): menú lateral sobre el mismo
+  fondo, separado por una línea. Arriba el logotipo, el buscador (Ctrl K) y «+ Nuevo»; luego Hoy ·
+  Operaciones · Contactos · Inmuebles · Trámites · Agenda y, tras una línea, Herramientas y
+  Administración (solo el director). Abajo, la ayuda y la cuenta. Crece sin apretarse, a diferencia
+  de la barra superior de la versión 2 (DEC-35, LV-08), a la que reemplaza. Entre 768 y 1279 px el
+  menú queda en íconos con su nombre accesible. En celular no cambia: barra inferior con «+» y «Más».
 */
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>; match: string[] };
@@ -44,8 +45,10 @@ export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> 
   { href: PAPELERA.href, label: PAPELERA.nombre, match: [PAPELERA.href] },
   { href: "/admin/configuracion", label: "Configuración", match: ["/admin/configuracion"] },
 ];
-/** «Más» en la barra superior: lleva a Herramientas y se marca también dentro de Administración y Mi perfil. */
+/** «Más» de la barra inferior del celular: Herramientas, Administración y Mi perfil. */
 export const MORE_NAV: NavItem = { href: TOOLS_NAV.href, label: "Más", icon: LayoutGrid, match: [...TOOLS_NAV.match, ...ADMIN_NAV.flatMap(item => item.match), "/admin/perfil", "/admin/sistema"] };
+/** Administración en el menú lateral (solo el director): abre Equipo y se marca en todas sus páginas. */
+export const ADMIN_ENTRY: NavItem = { href: ADMIN_NAV[0].href, label: "Administración", icon: ShieldCheck, match: [...ADMIN_NAV.flatMap(item => item.match), "/admin/sistema"] };
 /** «+ Nuevo» (C08): cinco altas en un menú corto. `action` avisa a la pantalla destino por `fortius:quick-create`. */
 export const QUICK_CREATE: Array<{ label: string; href: string; action: "" | "prospecto" | "tarea" | "visita"; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }> }> = [
   { label: INTAKE_TITLE, href: "/admin/operaciones/nueva", action: "", icon: Contact },
@@ -78,21 +81,25 @@ function useDismiss(open: boolean, close: () => void, container: React.RefObject
   }, [open, close, container]);
 }
 
-/** Barra superior de la computadora. */
-export function TopNav({ pathname, role, user, onLogout, search }: { pathname: string; role: string; user: User; onLogout: () => Promise<void>; search: React.ReactNode }) {
+/** Menú lateral de la computadora. */
+export function SideNav({ pathname, role, user, onLogout, search }: { pathname: string; role: string; user: User; onLogout: () => Promise<void>; search: React.ReactNode }) {
   const pending = usePendingCount();
-  return <header className={s.topnav} aria-label="Barra del panel">
-    <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className="h-7 w-28" /></Link>
-    <nav aria-label="Módulos del panel" data-tour="nav" className={s.pills}>
-      {[...MAIN_NAV, MORE_NAV].map(item => <Link key={item.href} href={item.href} className={s.pill} aria-current={isNavActive(pathname, item) ? "page" : undefined}>
-        <item.icon size={18} aria-hidden={true} /><span className={s.pillLabel}>{item.label}</span>{item.href === "/admin" && <Count value={pending} />}
-      </Link>)}
+  const link = (item: NavItem, count = 0) => <Link key={item.href} href={item.href} className={s.navi} title={item.label} aria-current={isNavActive(pathname, item) ? "page" : undefined}>
+    <item.icon size={18} aria-hidden={true} /><span className={s.naviLabel}>{item.label}</span>{count > 0 && <Count value={count} />}
+  </Link>;
+  return <header className={s.side} aria-label="Barra del panel">
+    <Link href="/admin" className={s.logo} aria-label="Fortius Inmuebles, ir a Hoy"><BrandMark className={s.logoFull} /><BrandMark variant="symbol" className={s.logoCompact} /></Link>
+    <div className={s.sideTools}>{search}<NewMenu /></div>
+    <nav aria-label="Módulos del panel" data-tour="nav" className={s.navlist}>
+      {MAIN_NAV.map(item => link(item, item.href === "/admin" ? pending : 0))}
+      <span className={s.navsep} aria-hidden="true" />
+      {link(TOOLS_NAV)}
+      {role === "admin" && link(ADMIN_ENTRY)}
     </nav>
-    <span className={s.space} />
-    {search}
-    <TourLauncher />
-    <NewMenu />
-    <AccountMenu pathname={pathname} role={role} user={user} onLogout={onLogout} />
+    <div className={s.sideFoot}>
+      <TourLauncher />
+      <AccountMenu pathname={pathname} role={role} user={user} onLogout={onLogout} />
+    </div>
   </header>;
 }
 
@@ -105,9 +112,9 @@ function NewMenu({ mobile = false }: { mobile?: boolean }) {
   const close = React.useCallback(() => setOpen(false), []);
   useDismiss(open, close, wrap);
   return <div ref={wrap} className={s.menuWrap}>
-    <StartHere storageKey={userId ? `fortius.empieza-aqui.v1:${userId}` : undefined} above={mobile}>{mobile
+    <StartHere storageKey={userId ? `fortius.empieza-aqui.v1:${userId}` : undefined} above={mobile} side={!mobile}>{mobile
       ? <button type="button" data-tour="nuevo" className={s.plus} aria-label="Nuevo" aria-expanded={open} aria-controls="admin-new-menu-movil" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={24} aria-hidden="true" /></button>
-      : <button type="button" data-tour="nuevo" className={s.newButton} aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" />Nuevo</button>}</StartHere>
+      : <button type="button" data-tour="nuevo" className={s.newButton} title="Nuevo" aria-expanded={open} aria-controls="admin-new-menu" aria-haspopup="menu" onClick={() => setOpen(value => !value)}><Plus size={18} aria-hidden="true" /><span className={s.naviLabel}>Nuevo</span></button>}</StartHere>
     {open && <div id={mobile ? "admin-new-menu-movil" : "admin-new-menu"} role="menu" aria-label="Qué quieres crear" className={cn(s.pop, mobile && s.popUp)}>
       {QUICK_CREATE.map(item => <Link key={item.href} role="menuitem" href={item.href} className={cn(s.link, s.sub)} onClick={() => { close(); window.dispatchEvent(new CustomEvent("fortius:quick-create", { detail: item.action })); }}><item.icon size={18} aria-hidden={true} />{item.label}</Link>)}
     </div>}
@@ -122,9 +129,10 @@ function AccountMenu({ pathname, role, user, onLogout }: { pathname: string; rol
   useDismiss(open, close, wrap);
   return <div ref={wrap} className={s.menuWrap}>
     <button type="button" className={s.account} aria-expanded={open} aria-controls="admin-account-menu" aria-label={`${user.name}, ${roleLabel(role)}. Cuenta y sesión`} onClick={() => setOpen(value => !value)}>
-      <Avatar name={user.name} src={user.avatar} size={40} />
+      <Avatar name={user.name} src={user.avatar} size={36} />
+      <span className={s.accountText} aria-hidden="true"><span className="truncate font-semibold">{user.name}</span><span className={s.accountRole}>{roleLabel(role)}</span></span>
     </button>
-    {open && <div id="admin-account-menu" className={s.pop}>
+    {open && <div id="admin-account-menu" className={cn(s.pop, s.popAccount)}>
       <p className={s.popHead}><span className="truncate font-semibold">{user.name}</span><span className="text-xs text-muted-foreground">{roleLabel(role)}</span></p>
       <Link href="/admin/perfil" className={cn(s.link, s.sub)} aria-current={pathname.startsWith("/admin/perfil") ? "page" : undefined} onClick={close}><UserRound size={18} aria-hidden="true" />Mi perfil</Link>
       {role === "admin" && <Link href={ADMIN_NAV[0].href} className={cn(s.link, s.sub)} aria-current={ADMIN_NAV.some(item => isNavActive(pathname, item)) ? "page" : undefined} onClick={close}><ShieldCheck size={18} aria-hidden="true" />Administración</Link>}

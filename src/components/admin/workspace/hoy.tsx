@@ -2,10 +2,9 @@
 import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { FirstDay } from "./first-day";
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Building2, MapPin, Plus } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, Pill, Surface, Thumb, type PillTone } from "@/components/admin/kit";
+import { Avatar, Button, ButtonLink, Pill, Surface, Thumb, type PillTone } from "@/components/admin/kit";
 import { db, upsert, useCollection, useSession, type Evento } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { isTaskOpen, type Task } from "@/lib/tasks";
@@ -24,13 +23,12 @@ import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
 import s from "./hoy.module.css";
 
 /*
-  Hoy en dos columnas (13/11/2026, boceto aprobado por el titular; conserva LV-07, LV-08 y SIM-16):
-  - Arriba, el saludo y un resumen de tres cifras: lo vencido (filtra la cola), lo de hoy y lo de la
-    semana (llevan a su bloque). Cada cifra cuenta una cosa distinta; nada se suma dos veces.
-  - Izquierda, el trabajo: «Lo siguiente» en grande y, debajo, los pendientes agrupados por persona
-    (una fila por cliente o prospecto con lo más urgente y cuántos más tiene).
+  Hoy en dos columnas (rediseño del 14/11/2026 sobre el boceto «desde cero»; conserva SIM-16):
+  - Arriba, el saludo y una frase con el hallazgo del día: lo vencido, lo de hoy y lo de la semana.
+  - Izquierda, «Tu día» en una sola tarjeta: lo siguiente como fila destacada y, debajo, lo demás
+    agrupado por persona en «Vencido» y «Por atender» (una fila por persona, con cuántos más tiene).
   - Derecha, el tiempo: «Hoy» (citas y tareas, que se marcan aquí) y «Esta semana» como lista por día.
-  En celular va todo en una columna: resumen, lo siguiente, hoy, pendientes y semana.
+  En celular va todo en una columna: saludo, avisos, tu día, hoy y semana.
   Todo se calcula con datos que el panel ya carga; nada se inventa.
 */
 
@@ -55,8 +53,8 @@ function byPerson(items: QueueItem[]) {
 }
 
 function Section({ title, count, action, children, id, className }: { title: string; count?: number; action?: React.ReactNode; children: React.ReactNode; id: string; className?: string }) {
-  return <section id={id + "-bloque"} aria-labelledby={id} className={cn("flex min-w-0 flex-col gap-3", className)}>
-    <div className="flex items-baseline justify-between gap-3 px-1">
+  return <section id={id + "-bloque"} aria-labelledby={id} className={cn(s.panel, className)}>
+    <div className={s.head}>
       {/* El número va fuera del h2 para que el nombre de la sección sea solo el título. */}
       <span className={s.title}><h2 id={id} className="m-0 text-[length:inherit] font-[inherit]">{title}</h2>{!!count && <span className={s.count}>{count}</span>}</span>
       {action}
@@ -74,7 +72,6 @@ export function HoyScreen() {
   const conditions = useConditions();
   const [hour, setHour] = React.useState<number | null>(null);
   const [showAll, setShowAll] = React.useState(false);
-  const [lateOnly, setLateOnly] = React.useState(false);
   React.useEffect(() => {
     // La hora se toma en el navegador para no saludar con la hora del servidor.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -103,9 +100,7 @@ export function HoyScreen() {
   const lateCount = queue.filter(item => item.late).length;
   // La portada no se repite abajo; lo demás, agrupado por persona (13/11/2026).
   const rest = queue.slice(1);
-  const groups = byPerson(lateOnly ? rest.filter(item => item.late) : rest);
-  const listRows = showAll ? groups : groups.slice(0, LIST_ROWS);
-  const hidden = groups.length - listRows.length;
+  const groups = byPerson(rest);
   const failures = [dossiers === null && "las operaciones", interviews === null && "las entrevistas", contracts === null && "los contratos de servicio", reports === null && "los informes al propietario"].filter((x): x is string => !!x);
   // COR-14: la situación y la condición de la llamada, como chip en cada operación.
   const tagsOf = (item: QueueItem) => { const d = item.folio ? dossiers?.find(x => x.folio === item.folio) : undefined; return d ? operationTags(d, conditions.ofOperation(d.id)) : []; };
@@ -114,21 +109,32 @@ export function HoyScreen() {
   const nextLead = next ? leadOf(next) : undefined;
   const thumb = (item: QueueItem, size: number) => item.folio || item.propertySlug ? <Thumb src={photo(item.propertySlug)} size={size} icon={<Building2 size={size > 44 ? 24 : 20} aria-hidden="true" />} /> : <Avatar name={item.who} size={size} />;
 
+  const lateGroups = groups.filter(group => group[0].late), otherGroups = groups.filter(group => !group[0].late);
+  const lateShown = showAll ? lateGroups : lateGroups.slice(0, LIST_ROWS);
+  const otherShown = showAll ? otherGroups : otherGroups.slice(0, Math.max(0, LIST_ROWS - lateShown.length));
+  const hidden = groups.length - lateShown.length - otherShown.length;
+  const row = (group: QueueItem[]) => {
+    const item = group[0], pill = queuePill(item), lead = leadOf(item), others = group.length - 1;
+    return <li key={item.id}><article className={cn(lead && s.rowWithAction)}><Link href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
+      {thumb(item, 40)}
+      <span className={s.rowBody}><span className={s.rowTitle}>{item.text}</span><span className={s.rowText}>{item.who}{item.detail ? ` · ${item.detail}` : ""}</span></span>
+      <span className={s.rowEnd}>
+        <span className={s.rowPills}>{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.kind !== "vencida" && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}</span>
+        <span className={s.meta}>{item.when && <span className={cn(item.late && s.lateText)}>{item.when}</span>}{item.when && others > 0 && " · "}{others > 0 && `${others} más`}</span>
+      </span>
+    </Link>{lead && <FirstContactButton lead={lead} className={s.rowAction} />}</article></li>;
+  };
+  // El hallazgo del día en una frase: lo vencido primero; nada se cuenta dos veces.
+  const finding = dossiers === undefined ? "Consultando tu día…"
+    : <>{lateCount > 0 ? <>Tienes <b className={s.lateText}>{plural(lateCount, "cosa vencida", "cosas vencidas")}</b>, </> : "No tienes nada vencido; "}
+      {todayCount > 0 ? `${todayCount} para hoy` : "nada más para hoy"}{weekCount > 0 ? ` y ${weekCount} en los próximos siete días.` : "."}</>;
+
   return <Surface className={s.page}>
     <header className={s.top}>
-      <div className={s.hello}>
-        <p className={s.date}><time dateTime={today}>{longDate(today)}</time></p>
-        <h1 className={s.helloTitle}>{hour === null ? "Hola" : greeting(hour)}{firstName ? `, ${firstName}` : ""}.</h1>
-        <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist compact /></SectionBoundary>
-      </div>
-      {/* Resumen: lo vencido filtra la cola; hoy y la semana llevan a su bloque. */}
-      <div role="group" aria-label="Resumen del día" className={s.stats}>
-        <button type="button" className={cn(s.stat, lateCount > 0 && s.statLate)} aria-pressed={lateOnly} disabled={!lateCount && !lateOnly} onClick={() => { setLateOnly(on => !on); setShowAll(false); }}>
-          <strong>{lateCount}</strong><span>{lateCount === 1 ? "Vencido" : "Vencidos"}</span>
-        </button>
-        <a href="#hoy-hoy-bloque" className={s.stat}><strong>{todayCount}</strong><span>Para hoy</span></a>
-        <a href="#hoy-semana-bloque" className={s.stat}><strong>{weekCount}</strong><span>Esta semana</span></a>
-      </div>
+      <p className={s.date}><time dateTime={today}>{longDate(today)}</time></p>
+      <h1 className={s.helloTitle}>{hour === null ? "Hola" : greeting(hour)}{firstName ? `, ${firstName}` : ""}.</h1>
+      <p className={s.finding}>{finding}</p>
+      <SectionBoundary what="«Preparar tu espacio»"><SetupChecklist compact /></SectionBoundary>
     </header>
 
     <div className={s.main}>
@@ -138,61 +144,58 @@ export function HoyScreen() {
         <SectionBoundary what="«Para ti»"><Inbox /></SectionBoundary>
       </div>
 
-      {/* «Lo siguiente»: la región lleva el título oculto porque la portada ya lo dice. */}
-      <section aria-labelledby="hoy-cola" className={s.nextBox}>
-        <h2 id="hoy-cola" className="sr-only">Lo siguiente</h2>
-        <div data-tour="hoy-siguiente" className={cn(s.next, next && photo(next.propertySlug) && s.nextWithPhoto)}>
-          {dossiers === undefined ? <p role="status" className={s.nextNote}>Consultando operaciones…</p>
-            : next ? <Link href={next.href} className={s.nextLink} aria-label={`Lo siguiente: ${next.text} ${next.who}`}>
-              {photo(next.propertySlug) && <Image unoptimized fill sizes="(max-width: 1099px) 100vw, 60vw" src={photo(next.propertySlug)!} alt="" className={s.nextPhoto} />}
-              <span className={s.nextScrim} aria-hidden="true" />
-              <span className={s.nextBody}>
-                <span className={s.nextTags}>{next.late && <Pill tone="alert">{next.when || QUEUE_LABEL[next.kind]}</Pill>}<Pill tone="onDark">{next.late && next.kind !== "vencida" ? QUEUE_LABEL[next.kind] : "Lo siguiente"}</Pill>{tagsOf(next).map(tag => <Pill key={tag} tone="onDark">{tag}</Pill>)}</span>
-                <strong className={s.nextTitle}>{next.text}</strong>
-                <span className={s.nextFoot}><span className={s.nextWho}>{next.who}{next.detail ? ` · ${next.detail}` : ""}</span><span className={s.nextGo}>Continuar<ArrowRight size={18} aria-hidden="true" /></span></span>
-              </span>
-            </Link>
-            : <div className={s.nextEmpty}><strong className={s.nextTitle}>Nada espera por ti.</strong><span className={s.nextWho}>{inProgress.length ? "Cada operación tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: la operación se crea al terminarla."}</span>{!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nueva operación</ButtonLink>}</div>}
-        </div>
-        {nextLead && <div className={s.contactLine}>
-          <span className={s.meta}>¿Ya hablaste con {nextLead.nombre}?</span>
-          <FirstContactButton lead={nextLead} />
-        </div>}
-        {failures.map(what => <div key={what}>{failed(what)}</div>)}
-        {dossiers !== undefined && next && rest.length === 0 && <p className={s.note}>Nada más espera por ti.</p>}
-      </section>
+      {/* Tu día (boceto del 14/11/2026): lo siguiente arriba y, debajo, lo demás en «Vencido» y «Por atender». */}
+      <div className={cn(s.panel, s.nextBox)}>
+        <section aria-labelledby="hoy-cola" className={s.nextSection}>
+          <div className={s.head}><h2 id="hoy-cola" className={s.title}>Lo siguiente</h2>{dossiers !== undefined && queue.length > 1 && <span className={s.meta}>{plural(queue.length, "pendiente", "pendientes")}</span>}</div>
+          <div data-tour="hoy-siguiente">
+            {dossiers === undefined ? <p role="status" className={s.note}>Consultando operaciones…</p>
+              : next ? <Link href={next.href} className={s.lead} aria-label={`Lo siguiente: ${next.text} ${next.who}`}>
+                {next.folio || next.propertySlug ? <Thumb src={photo(next.propertySlug)} size={64} icon={<Building2 size={24} aria-hidden="true" />} /> : <Avatar name={next.who} size={64} />}
+                <span className={s.leadBody}>
+                  <span className={s.leadTags}>{next.late && <Pill tone="alert" size="sm">{next.when || QUEUE_LABEL[next.kind]}</Pill>}{!(next.late && next.kind === "vencida") && <Pill tone={next.late ? "muted" : queuePill(next).tone} size="sm">{QUEUE_LABEL[next.kind]}</Pill>}{tagsOf(next).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>
+                  <strong className={s.leadTitle}>{next.text}</strong>
+                  <span className={s.rowText}>{next.who}{next.detail ? ` · ${next.detail}` : ""}</span>
+                </span>
+                <span className={s.leadGo}>Continuar<ArrowRight size={16} aria-hidden="true" /></span>
+              </Link>
+              : <div className={s.empty}><strong className={s.leadTitle}>Nada espera por ti.</strong><span className={s.rowText}>{inProgress.length ? "Cada operación tiene su siguiente paso con fecha." : "Empieza con la entrevista del propietario: la operación se crea al terminarla."}</span>{!inProgress.length && <ButtonLink href="/admin/operaciones/nueva" variant="primary" className="mt-2 self-start">Nueva operación</ButtonLink>}</div>}
+          </div>
+          {nextLead && <div className={s.contactLine}>
+            <span className={s.meta}>¿Ya hablaste con {nextLead.nombre}?</span>
+            <FirstContactButton lead={nextLead} />
+          </div>}
+          {failures.map(what => <div key={what}>{failed(what)}</div>)}
+          {dossiers !== undefined && next && rest.length === 0 && <p className={s.note}>Nada más espera por ti.</p>}
+        </section>
 
-      {dossiers !== undefined && rest.length > 0 && <Section id="hoy-pendientes" title={lateOnly ? "Pendientes vencidos" : "Pendientes"} className={s.queueBox}
-        action={lateOnly ? <Button variant="ghost" className={s.more} onClick={() => setLateOnly(false)}>Ver todos</Button> : <span className={s.meta}>{plural(rest.length, "pendiente", "pendientes")}</span>}>
-        {listRows.length > 0 ? <Card as="ul" className={s.list} aria-label="Más pendientes">{listRows.map(group => {
-          const item = group[0], pill = queuePill(item), lead = leadOf(item), others = group.length - 1;
-          return <li key={item.id}><article className={cn(lead && s.rowWithAction)}><Link href={item.href} className={s.row} aria-label={`Continuar con ${item.who}`}>
-            {thumb(item, 48)}
-            <span className={s.rowBody}><span className={s.rowTitle}>{item.who}{item.detail && <span className={s.rowDetail}> · {item.detail}</span>}</span><span className={s.rowText}>{item.text}</span></span>
-            <span className={s.rowEnd}>
-              <span className={s.rowPills}>{tagsOf(item).map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}{item.kind !== "vencida" && <Pill tone={pill.tone} size="sm">{pill.text}</Pill>}</span>
-              <span className={s.meta}>{item.when && <span className={cn(item.late && s.lateText)}>{item.when}</span>}{item.when && others > 0 && " · "}{others > 0 && `${others} más`}</span>
-            </span>
-          </Link>{lead && <FirstContactButton lead={lead} className={s.rowAction} />}</article></li>;
-        })}</Card> : <p className={s.note}>Nada más está vencido.</p>}
-        {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>{hidden === 1 ? "Ver 1 fila más" : `Ver ${hidden} filas más`}</Button>}
-      </Section>}
+        {dossiers !== undefined && rest.length > 0 && <section aria-labelledby="hoy-pendientes" className={s.queueSection}>
+          <h2 id="hoy-pendientes" className="sr-only">Pendientes</h2>
+          {lateShown.length > 0 && <>
+            <h3 className={cn(s.group, s.groupLate)}>Vencido <span>{lateGroups.length}</span></h3>
+            <ul className={s.list} aria-label="Pendientes vencidos">{lateShown.map(row)}</ul>
+          </>}
+          {otherShown.length > 0 && <>
+            <h3 className={s.group}>Por atender <span>{otherGroups.length}</span></h3>
+            <ul className={s.list} aria-label="Más pendientes">{otherShown.map(row)}</ul>
+          </>}
+          {hidden > 0 && <Button variant="ghost" className={cn(s.more, "self-start")} onClick={() => setShowAll(true)}>{hidden === 1 ? "Ver 1 fila más" : `Ver ${hidden} filas más`}</Button>}
+        </section>}
+      </div>
     </div>
 
     <div className={s.side}>
       <TodayBlock tasks={dayTasks} agenda={agenda} today={today} nextEvent={nextEvent} names={names} leads={leads} photo={photo} />
 
       <Section id="hoy-semana" title="Esta semana" className={s.weekBox} action={more("/admin/agenda", "Ver agenda")}>
-        <Card as="div" className={s.list}>
-          {weekList.length ? <ul className={s.week} aria-label="Esta semana, por día">{weekList.map(({ day, items }) => <li key={day} className={s.day}>
-            <span className={s.dayBadge} aria-hidden="true"><span className={s.dayName}>{weekdayDate(day).slice(0, 3)}</span><span className={s.dayNum}>{Number(day.slice(8))}</span></span>
-            <span className="sr-only">{weekdayDate(day)}</span>
-            <ul className={s.dayItems}>{items.map(item => <li key={item.id}><Link href={item.href} className={s.dayItem}>
-              <span className={cn(s.dayText, item.visit && s.dayVisit)}>{item.time ? `${item.time} · ` : ""}{item.text}</span>
-              {item.meta && <small className={s.dayMeta}>{item.meta}</small>}
-            </Link></li>)}</ul>
-          </li>)}</ul> : <p className={s.note}>Nada vence en los próximos siete días.</p>}
-        </Card>
+        {weekList.length ? <ul className={s.week} aria-label="Esta semana, por día">{weekList.map(({ day, items }) => <li key={day} className={s.day}>
+          <span className={s.dayBadge} aria-hidden="true"><span className={s.dayName}>{weekdayDate(day).slice(0, 3)}</span><span className={s.dayNum}>{Number(day.slice(8))}</span></span>
+          <span className="sr-only">{weekdayDate(day)}</span>
+          <ul className={s.dayItems}>{items.map(item => <li key={item.id}><Link href={item.href} className={s.dayItem}>
+            <span className={cn(s.dayText, item.visit && s.dayVisit)}>{item.time ? `${item.time} · ` : ""}{item.text}</span>
+            {item.meta && <small className={s.dayMeta}>{item.meta}</small>}
+          </Link></li>)}</ul>
+        </li>)}</ul> : <p className={s.note}>Nada vence en los próximos siete días.</p>}
       </Section>
     </div>
   </Surface>;
@@ -226,7 +229,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
   }
   const empty = !agenda.length && !tasks.length;
   return <Section id="hoy-hoy" title="Hoy" count={agenda.length + open.length || undefined} className={s.todayBox} action={more("/admin/agenda", "Ver semana")}>
-    <Card as="div" className={cn(s.list, s.todayCard)}>
+    <div className={s.todayCard}>
       {empty ? <div className={s.agendaEmpty}>
         <p className={s.note}>Sin citas ni tareas hoy</p>
         {nextEvent && <Link href={`/admin/agenda?fecha=${nextEvent.fecha}&evento=${encodeURIComponent(nextEvent.id)}`} className={s.nextEvent}>
@@ -258,7 +261,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
         <Link href="/admin/agenda?tab=tareas&nueva=1" className={s.add}><Plus size={18} aria-hidden="true" />Agregar tarea</Link>
         <Link href="/admin/agenda?nueva=1" className={s.add}><Plus size={18} aria-hidden="true" />Agendar</Link>
       </div>
-    </Card>
+    </div>
     {message && <p role="status" className={cn("px-1 text-sm", message.startsWith("No se pudo") ? "text-destructive" : "text-muted-foreground")}>{message}</p>}
     <UndoNotice {...undo} onError={setMessage} />
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : names.client(ask.kind === "operacion" ? ask.clienteId : ask.id)} onClose={() => setAsk(null)} />}
