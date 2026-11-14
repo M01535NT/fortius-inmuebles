@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronRight, Columns3, List, Search, stageIcon, type PanelIcon, EMPTY_ART } from "@/components/admin/icons";
+import { Building2, ChevronRight, Columns3, List, Plus, Search, stageIcon, type PanelIcon, EMPTY_ART } from "@/components/admin/icons";
 import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, IconTile, Pill, ProgressRing, Segmented, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
@@ -116,6 +116,7 @@ export function OperationsBoard() {
   const byDate = (a: Row, b: Row) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.who.localeCompare(b.who, "es");
   const waiting = inGroup.filter(row => row.attention).sort((a, b) => a.attention!.rank - b.attention!.rank || byDate(a, b));
   const fine = inGroup.filter(row => !row.attention).sort(byDate);
+  const waitingCount = active.filter(row => row.attention).length, lateCount = active.filter(row => row.attention && (row.attention.late || row.late)).length;
 
   // M-04: el director pasa operaciones a otro asesor desde la lista, una llamada por operación. La base
   // mueve juntas las operaciones abiertas del mismo inmueble; si una ya pasó con otra, cuenta como hecha.
@@ -170,15 +171,13 @@ export function OperationsBoard() {
   }
 
   return <Surface className="pb-4">
-    <header className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div className="flex flex-col gap-1">
+    {/* Boceto «desde cero» (14/11/2026): título con el hallazgo y «+ Nueva operación» a la derecha. */}
+    <header className={s.top}>
+      <div className="flex min-w-0 flex-col gap-1.5">
         <h1 className={s.head1}>{deleted ? `${PAPELERA.operaciones} · ${PAPELERA.nombre}` : "Operaciones"}</h1>
-        {records && <p className="text-muted-foreground">{deleted ? `${records.length} ${records.length === 1 ? "operación" : "operaciones"} que puedes restaurar` : `${active.length} en curso`}</p>}
+        {records && <p className={s.finding}>{deleted ? `${records.length} ${records.length === 1 ? "operación" : "operaciones"} que puedes restaurar` : <>{active.length} en curso.{lateCount > 0 && <> <b className={s.late}>{lateCount === 1 ? "1 tiene algo vencido" : `${lateCount} tienen algo vencido`}</b>{waitingCount > lateCount ? ` y ${waitingCount - lateCount} más ${waitingCount - lateCount === 1 ? "espera" : "esperan"} algo de ti.` : "."}</>}{lateCount === 0 && waitingCount > 0 && ` ${waitingCount === 1 ? "1 espera" : `${waitingCount} esperan`} algo de ti.`}</>}</p>}
       </div>
-      {!deleted && <div data-tour="op-vista" className="flex flex-wrap items-center gap-2.5">
-        <Segmented label="Vista" value={view} onChange={setView} options={[{ id: "lista", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tablero", label: "Tablero", icon: <Columns3 size={16} aria-hidden="true" /> }]} />
-        {admin && me && <Segmented label="Operaciones que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
-      </div>}
+      {!deleted && !!records?.length && <ButtonLink variant="primary" href="/admin/operaciones/nueva" className={s.newOp}><Plus size={16} aria-hidden="true" />Nueva operación</ButtonLink>}
     </header>
     {error && <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-sm text-destructive"><span>{error}</span>{records === null && <Button onClick={() => setAttempt(n => n + 1)}>Reintentar</Button>}</div>}
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}
@@ -189,17 +188,26 @@ export function OperationsBoard() {
       : records !== null && records.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Todavía no hay operaciones" steps={["Atiende a la persona con «Nueva operación».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: la operación se crea sola y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nueva operación</ButtonLink>}>Una operación reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
+          {admin && me && <Segmented label="Operaciones que se muestran" options={[{ id: "mias", label: "Mías" }, { id: "equipo", label: "Todo el equipo" }]} value={scope} onChange={setScope} />}
+          <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
+          {listed.length > 0 && <SelectToggle selection={selection} noun="operaciones" />}
+          <div data-tour="op-vista" className={s.viewSwitch}><Segmented label="Vista" value={view} onChange={setView} options={[{ id: "lista", label: "Lista", icon: <List size={16} aria-hidden="true" /> }, { id: "tablero", label: "Tablero", icon: <Columns3 size={16} aria-hidden="true" /> }]} /></div>
+        </div>
+        <div className={s.stageRow}>
           <div data-tour="op-filtros" className={s.filters} role="group" aria-label="Etapa">
             <button type="button" className={s.filter} aria-pressed={stageFilter === "todas"} onClick={() => chooseStage("todas")}>Todas<span className={s.count}>{active.length}</span></button>
             {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
           </div>
-          <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
-          {listed.length > 0 && <SelectToggle selection={selection} noun="operaciones" />}
         </div>
         {view === "tablero" ? <PhaseBoard rows={inGroup} today={today} />
           : <>
-            <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} selection={selection} empty="Nada pendiente por ahora." />
-            <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} selection={selection} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} />
+            <Card as="div" className={s.list}>
+              <div className={s.head} aria-hidden="true"><span>Operación</span><span>Etapa</span><span>Lo que sigue</span><span className="text-right">Fecha</span><span /></div>
+              {waiting.length > 0 && <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} selection={selection} />}
+              {fine.length > 0 && <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} selection={selection} />}
+              {!waiting.length && !fine.length && <p className={s.emptyNote}>Sin operaciones en esta etapa.</p>}
+              <p className={s.listFoot}>{inGroup.length === 1 ? "1 operación" : `${inGroup.length} operaciones`}</p>
+            </Card>
             {admin && <BulkBar selection={selection} targets={listed.map(row => ({ id: row.op.id, label: `${row.who} · ${row.op.folio}` }))} actions={bulkActions} noun={{ one: "operación seleccionada", many: "operaciones seleccionadas", empty: "Elige operaciones en la lista" }} />}
           </>}
         {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide. Borra la búsqueda o cambia el filtro.</p>}
@@ -227,17 +235,15 @@ function DuePill({ date, late, today }: { date?: string; late: boolean; today: s
   return <Pill tone={late ? "alert" : date === today ? "brand" : "muted"}>{dueLabel(date, today)}</Pill>;
 }
 
-function OperationGroup({ id, title, rows, today, empty, selection }: { id: string; title: string; rows: Row[]; today: string; empty: string; selection: Selection }) {
-  return <section aria-labelledby={`grupo-${id}`} className="mb-6 flex flex-col gap-3">
-    <h2 id={`grupo-${id}`} className={s.groupTitle}>{title}<Pill tone={id === "esperan" && rows.length ? "alert" : "muted"} size="sm">{rows.length}</Pill></h2>
-    {rows.length ? <Card as="div" className={s.list}>
-      <ul className="m-0 list-none p-0">{rows.map(row => selection.on
+function OperationGroup({ id, title, rows, today, selection }: { id: string; title: string; rows: Row[]; today: string; selection: Selection }) {
+  return <section aria-labelledby={`grupo-${id}`} className={s.group}>
+    <h2 id={`grupo-${id}`} className={s.groupTitle} data-tone={id}>{title} <span>{rows.length}</span></h2>
+    <ul className="m-0 list-none p-0">{rows.map(row => selection.on
         ? <li key={row.op.id} className={`${s.rowItem} flex items-center pl-1 sm:pl-3${selection.selected.has(row.op.id) ? " bg-muted" : ""}`}><SelectBox selection={selection} id={row.op.id} label={`${row.who} · ${row.op.folio}`} />
             <div className={`${s.row} min-w-0 flex-1 cursor-pointer`} onClick={() => selection.toggle(row.op.id)}><RowBody row={row} today={today} selecting /></div></li>
         : <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
         <RowBody row={row} today={today} />
       </Link></li>)}</ul>
-    </Card> : <p className="px-1 text-sm text-muted-foreground">{empty}</p>}
   </section>;
 }
 
@@ -246,11 +252,11 @@ function RowBody({ row, today, selecting }: { row: Row; today: string; selecting
   return <>
         <span className={s.who}><Thumb src={row.photo} size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
         <span className="flex min-w-0 flex-col gap-1.5">
-          <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}><IconTile icon={row.icon} size={28} />{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>
           <span className={s.bar} style={{ gridTemplateColumns: `repeat(${row.total}, minmax(0, 1fr))` }} aria-hidden="true">{Array.from({ length: row.total }, (_, i) => <span key={i} data-state={row.gapAt.has(i + 1) ? "warn" : i < row.n ? "on" : undefined} />)}</span>
+          <span className={s.stageText}>{row.n} · {row.stage}{row.attention && <> · <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span></>}{row.tags.map(tag => <React.Fragment key={tag}> · <span className={s.reason}>{tag}</span></React.Fragment>)}</span>
         </span>
-        <span className="min-w-0 text-[0.9375rem] text-muted-foreground [overflow-wrap:anywhere]"><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
-        <DuePill date={row.date} late={row.late} today={today} />
+        <span className={s.next}><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
+        <span className={s.due} data-late={row.late || undefined}>{dueLabel(row.date, today)}</span>
         {!selecting && <ChevronRight size={18} aria-hidden="true" className={s.chevron} />}
   </>;
 }
