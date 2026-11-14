@@ -211,6 +211,9 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
 */
 export const DIRECTOR_REVIEWS: readonly RequirementKey[] = ["titularidad", "factibilidad", "revision_cierre", "precio", "intermediacion", "contrato_renta", "firma", "publicacion"];
 export const directorReview = (key: RequirementKey) => DIRECTOR_REVIEWS.includes(key);
+/** M-06 (titular, 14/11/2026): «No aplica» en estos requisitos lo marca el director; una renta sin depósito ni garantía la aprueba él. La base lo hace valer (20261114204000). */
+export const DIRECTOR_NOT_APPLICABLE: readonly RequirementKey[] = ["garantias_renta"];
+export const directorNotApplicable = (key: RequirementKey) => DIRECTOR_NOT_APPLICABLE.includes(key);
 /**
   Requisitos de protección (B-13, RP-96) que nunca se cubren por excepción: quién es dueño y quién
   firma, la opinión jurídica y la comercial antes de la intermediación, la revisión jurídica para
