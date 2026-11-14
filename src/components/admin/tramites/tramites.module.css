@@ -185,3 +185,14 @@
 .err { color: var(--destructive); font-size: var(--admin-text-detalle); }
 
 @media (prefers-reduced-motion: reduce) { .app *, .viewer * { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* TRA-01 · venta ligada y decisión del director de firmar sin la cancelación inscrita. */
+.firma { display: grid; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); border-left-width: 3px; font-size: var(--admin-text-interfaz); }
+.firma p { margin: 0; }
+.firma[data-estado="frena"] { border-left-color: var(--warning); }
+.firma[data-estado="autorizada"] { border-left-color: var(--primary); }
+.firma[data-estado="inscrita"] { border-left-color: var(--success); }
+.firmaVenta { font-weight: 600; }
+.firmaVenta a { text-decoration: underline; text-underline-offset: 3px; }
+.firmaMotivo { font: inherit; font-size: var(--admin-text-interfaz); color: var(--foreground); background: var(--field-surface); border: 1px solid var(--control-edge); border-radius: var(--field-radius); padding: 8px 10px; resize: vertical; min-height: 72px; }
+.firmaMotivo:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
