@@ -1,5 +1,5 @@
 "use client";
-import { confirmDelete } from "@/components/admin/workspace/confirm";
+import { confirmAction, confirmDelete } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
@@ -28,7 +28,7 @@ import {
 } from "@/lib/admin/store";
 
 /* Blog: redacción, borradores y publicación en las rutas públicas del sitio. */
-function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
+function Editor({ post: source, onDone, onDirty }: { post?: Post; onDone: () => void; onDirty: () => void }) {
   const [post] = React.useState(source);
   const [version] = React.useState(() =>
     source ? db.posts.version(source) : null,
@@ -63,6 +63,8 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
   return (
     <AsyncForm
       onSubmit={guardar}
+      onInput={onDirty}
+      onChange={onDirty}
       className="space-y-4 rounded-lg border border-border bg-card p-5"
     >
       <h2 className="display-soft text-lg text-foreground">
@@ -188,6 +190,15 @@ function Editor({ post: source, onDone }: { post?: Post; onDone: () => void }) {
 export default function BlogAdminPage() {
   const posts = useCollection(db.posts);
   const [editando, setEditando] = React.useState<string | "nuevo" | null>(null);
+  // C-62: cambiar a otra entrada con lo escrito sin guardar pregunta antes de descartarlo.
+  const dirty = React.useRef(false);
+  async function abrir(next: string | "nuevo") {
+    if (next === editando) return;
+    if (dirty.current && !(await confirmAction("Tienes cambios sin guardar en la entrada abierta. ¿Descartarlos y abrir otra?", { title: "Cambios sin guardar", confirmLabel: "Descartar" }))) return;
+    dirty.current = false;
+    setEditando(next);
+  }
+  const cerrar = () => { dirty.current = false; setEditando(null); };
 
   const post =
     editando && editando !== "nuevo"
@@ -202,7 +213,7 @@ export default function BlogAdminPage() {
         actions={
           <button
             type="button"
-            onClick={() => setEditando("nuevo")}
+            onClick={() => void abrir("nuevo")}
             className={btnPrimary}
           >
             <Plus className="size-4" strokeWidth={1.5} /> Nueva entrada
@@ -210,7 +221,7 @@ export default function BlogAdminPage() {
         }
       />
       {editando ? (
-        <Editor key={editando} post={post} onDone={() => setEditando(null)} />
+        <Editor key={editando} post={post} onDone={cerrar} onDirty={() => { dirty.current = true; }} />
       ) : null}
 
       {posts.length === 0 ? (
@@ -243,7 +254,7 @@ export default function BlogAdminPage() {
                 <button
                   type="button"
                   aria-label={`Editar ${p.titulo}`}
-                  onClick={() => setEditando(p.id)}
+                  onClick={() => void abrir(p.id)}
                   className="rounded-md border border-border p-2 text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
                 >
                   <Pencil className="size-3.5" strokeWidth={1.5} />
