@@ -15,11 +15,14 @@ Tema oscuro del sitio público (no son colores de marca impresos; solo pantalla)
 | --- | --- |
 | Noche (fondo de página) | `#060C14` |
 | Azul noche (bandas alternas: cabeceras de página, «Cinco etapas», «Haz números», preguntas, llamada final; equivale al blanco azulado del tema claro) | `#0B1828` |
-| Superficie de tarjeta | `#0C1622` |
+| Superficie (tarjetas; la misma del panel desde el 14/11/2026) | `#0C1724` |
+| Elevado (campos, menús, chips) | `#1A2331` |
 
 **Bandas en oscuro (titular, 13/11/2026).** El tema oscuro alterna noche y azul noche como el claro alterna blanco y blanco azulado, para que se vea dónde empieza cada sección. Las preguntas del inicio siguen el tema (en oscuro ya no son una banda blanca). Sin resplandores ni degradados vino: salieron el halo detrás de «Cinco etapas», el de las cabeceras de página, Nosotros y la ficha, y el degradado de la etapa activa (ahora borgoña sólido). Se conserva el fondo propio del visor de ficha técnica dentro del carrusel de la ficha, que no se toca.
 
-**La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es blanco azulado, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados. En el panel oscuro las barras no usan un borgoña aclarado: la etapa actual va en `#F8F8FF` (14/11/2026).
+**La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es blanco azulado, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados. En oscuro las barras no usan un borgoña aclarado: la etapa actual del panel y las barras de avance del sitio van en `#F8F8FF` (14/11/2026).
+
+**Paleta del panel en el sitio público (titular, 14/11/2026).** El sitio usa los mismos tonos que el panel: borgoña presionado `#74112B` en todos los botones (salen `#70112A` y `#A2223F`), superficie `#0C1724` y elevado `#1A2331` en oscuro, ámbar `#9C5400` / `#F4B768` para lo pendiente y bermellón `#B6341F` / `#FA8978` para errores (sale el amarillo `#FFD236`). Las bandas alternas en azul noche `#0B1828` se quedan.
 
 **Sin crema ni beige (titular, 12/11/2026).** El crema `#F5F1EB` salió del sitio público: fondos, bandas, botones claros y textos sobre oscuro usan el blanco azulado `#F8F8FF`, el mismo lienzo que el panel desde el 11/11. No lo regreses. Desde el 13/11/2026 tampoco queda en el panel: el texto de acento y la opción seleccionada del panel oscuro usan `#F8F8FF`, y la opción seleccionada del panel claro es azul muy diluido (`#ECF0F7` desde el 14/11), no rosado. El rosa `#E8A0B2` del método del inicio en oscuro y el beige de Vender y de la portada editorial también salieron.
 
