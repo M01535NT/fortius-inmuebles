@@ -20,6 +20,7 @@ function adapt(Component: IconoirComponent, name: string) {
 }
 
 export const AlertCircle = adapt(I.WarningCircle, "WarningCircle");
+export const Inbox = adapt(I.Archive, "Archive");
 export const AlertTriangle = adapt(I.WarningTriangle, "WarningTriangle");
 export const ArrowDown = adapt(I.ArrowDown, "ArrowDown");
 export const ArrowLeft = adapt(I.ArrowLeft, "ArrowLeft");

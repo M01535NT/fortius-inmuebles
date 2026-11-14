@@ -2,7 +2,7 @@
 import * as React from "react";
 import { usePendingCount } from "@/components/admin/workspace/use-today-queue";
 import Link from "next/link";
-import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound } from "@/components/admin/icons";
+import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, Inbox, LayoutGrid, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound } from "@/components/admin/icons";
 import { HelpDot, TourLauncher, openTour, useHelpPending } from "./tour";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
@@ -28,6 +28,8 @@ import s from "./guided-nav.module.css";
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean }>; match: string[] };
 export const MAIN_NAV: NavItem[] = [
   { href: "/admin", label: "Hoy", icon: House, match: [] },
+  // FLX-01 (RP-58, RP-101): la Bandeja va después de Hoy; lo que llega se guarda ahí sin llenar nada.
+  { href: "/admin/bandeja", label: "Bandeja", icon: Inbox, match: ["/admin/bandeja"] },
   { href: "/admin/operaciones", label: "Operaciones", icon: Columns3, match: ["/admin/operaciones"] },
   { href: "/admin/contactos", label: "Contactos", icon: Contact, match: ["/admin/contactos", "/admin/leads", "/admin/clientes"] },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
@@ -57,6 +59,7 @@ export const QUICK_CREATE: Array<{ label: string; href: string; action: "" | "pr
   { label: "Nuevo inmueble", href: "/admin/propiedades/nueva", action: "", icon: Building2 },
   { label: "Nueva tarea", href: "/admin/agenda?tab=tareas&nueva=1", action: "tarea", icon: ClipboardList },
   { label: "Agendar visita", href: "/admin/agenda?nueva=1", action: "visita", icon: CalendarPlus },
+  { label: "Agregar archivo", href: "/admin/bandeja", action: "", icon: Inbox },
 ];
 
 export function isNavActive(pathname: string, item: { href: string; match: string[] }) {
@@ -160,7 +163,7 @@ export function MobileHeader({ search, user }: { search: React.ReactNode; user: 
 
 export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathname: string; menuOpen: boolean; onMenu: () => void; menuButton: React.Ref<HTMLButtonElement> }) {
   const pending = usePendingCount();
-  const [hoy, operaciones, contactos] = MAIN_NAV;
+  const [hoy, , operaciones, contactos] = MAIN_NAV;
   const tab = (item: NavItem, badge = 0) => {
     const active = !menuOpen && isNavActive(pathname, item);
     return <Link href={item.href} className={s.tab} aria-current={active ? "page" : undefined}>
@@ -176,7 +179,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 }
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
-  const [, , , inmuebles, agenda, tramites] = MAIN_NAV;
+  const [, bandeja, , , inmuebles, agenda, tramites] = MAIN_NAV;
   const helpPending = useHelpPending();
   const events = useCollection(db.eventos);
   const today = operationalDate();
@@ -188,6 +191,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
   return <nav ref={panel} id="admin-mobile-menu" className={s.menu} aria-label="Módulos móviles">
     <div className="flex items-center gap-3 px-1"><Avatar name={user.name} src={user.avatar} size={40} /><span className="flex min-w-0 flex-col"><span className="truncate font-semibold">{user.name}</span><span className="text-sm text-muted-foreground">{roleLabel(role)}</span></span></div>
     <div className={s.menuGroup}>
+      {row(bandeja.href, bandeja.label, <bandeja.icon size={20} aria-hidden={true} />, isNavActive(pathname, bandeja))}
       {row(inmuebles.href, inmuebles.label, <inmuebles.icon size={20} aria-hidden={true} />, isNavActive(pathname, inmuebles))}
       {row(agenda.href, agenda.label, <agenda.icon size={20} aria-hidden={true} />, isNavActive(pathname, agenda), visits ? `${visits} ${visits === 1 ? "visita" : "visitas"} hoy` : undefined)}
       {row(tramites.href, tramites.label, <tramites.icon size={20} aria-hidden={true} />, isNavActive(pathname, tramites))}

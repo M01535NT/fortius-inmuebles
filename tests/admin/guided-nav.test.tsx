@@ -21,7 +21,7 @@ afterEach(cleanup);
 test("el menú lateral lleva los seis módulos y Herramientas, el buscador y la cuenta; sin Administración a la vista del asesor", () => {
   sidenav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
-  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
+  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Bandeja", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Trámites", "Herramientas"]);
   expect(within(nav).getByRole("link", { name: "Herramientas" }).getAttribute("href")).toBe("/admin/herramientas");
   expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
   const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
@@ -34,7 +34,7 @@ test("el menú lateral lleva los seis módulos y Herramientas, el buscador y la 
   expect(within(menu).getByText("Asesor")).toBeTruthy();
 });
 
-test("«+ Nuevo» abre las cinco altas, la operación primero, y avisa a la pantalla destino", () => {
+test("«+ Nuevo» abre las cinco altas y «Agregar archivo» (FLX-01), la operación primero, y avisa a la pantalla destino", () => {
   // Desde el 14/11/2026 «+ Nuevo» va en el encabezado de Hoy, no en el menú lateral.
   render(<NewMenu />);
   const heard: string[] = [];
@@ -44,7 +44,7 @@ test("«+ Nuevo» abre las cinco altas, la operación primero, y avisa a la pant
   fireEvent.click(trigger);
   const menu = screen.getByRole("menu", { name: "Qué quieres crear" });
   expect(within(menu).getAllByRole("menuitem").map(item => [item.textContent, item.getAttribute("href")])).toEqual([
-    ["Atender a alguien", "/admin/operaciones/nueva"], ["Nueva operación", "/admin/operaciones/nueva?intencion=vender"], ["Nuevo inmueble", "/admin/propiedades/nueva"], ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin/agenda?nueva=1"],
+    ["Atender a alguien", "/admin/operaciones/nueva"], ["Nueva operación", "/admin/operaciones/nueva?intencion=vender"], ["Nuevo inmueble", "/admin/propiedades/nueva"], ["Nueva tarea", "/admin/agenda?tab=tareas&nueva=1"], ["Agendar visita", "/admin/agenda?nueva=1"], ["Agregar archivo", "/admin/bandeja"],
   ]);
   fireEvent.click(within(menu).getByRole("menuitem", { name: "Nueva tarea" }));
   expect(heard).toEqual(["tarea"]);
@@ -69,7 +69,11 @@ test("el administrador encuentra Administración en el menú lateral y en su cue
 });
 
 test("la sección activa incluye sus fichas de detalle y las direcciones anteriores", () => {
-  const [hoy, operaciones, contactos, , agenda] = MAIN_NAV;
+  const [hoy, bandeja, operaciones, contactos, , agenda] = MAIN_NAV;
+  // FLX-01 (RP-58): la Bandeja es la segunda sección.
+  expect(bandeja.label).toBe("Bandeja");
+  expect(isNavActive("/admin/bandeja", bandeja)).toBe(true);
+  expect(isNavActive("/admin/bandeja", hoy)).toBe(false);
   expect(isNavActive("/admin", hoy)).toBe(true);
   expect(isNavActive("/admin/operaciones", hoy)).toBe(false);
   expect(isNavActive("/admin/operaciones/nueva", operaciones)).toBe(true);
@@ -105,7 +109,7 @@ test("la barra inferior del celular marca la sección y abre el menú «Más»",
   expect(within(tabs).getByRole("link", { name: "Contactos" }).getAttribute("aria-current")).toBe("page");
   // SIM-17: el «+» abre el mismo menú que «+ Nuevo».
   fireEvent.click(within(tabs).getByRole("button", { name: "Nuevo" }));
-  expect(within(tabs).getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Atender a alguien", "Nueva operación", "Nuevo inmueble", "Nueva tarea", "Agendar visita"]);
+  expect(within(tabs).getAllByRole("menuitem").map(item => item.textContent)).toEqual(["Atender a alguien", "Nueva operación", "Nuevo inmueble", "Nueva tarea", "Agendar visita", "Agregar archivo"]);
   const more = within(tabs).getByRole("button", { name: "Menú del panel" });
   expect(more.textContent).toBe("Más");
   fireEvent.click(more);
