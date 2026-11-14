@@ -99,6 +99,8 @@ const published=async(slug:string)=>(await db.query<{p:boolean}>("select (data->
   una etapa anterior a la publicación.
 */
 const flowOf=async(id:string)=>(await db.query<{flujo:{firmaContrato:Record<string,unknown>}&Record<string,unknown>}>("select flujo from public.fortius_inmuebles_expedientes where id=$1",[id])).rows[0].flujo;
+/** Lo publicado salvo la marca: fotos, textos y datos deben quedar iguales al retirarlo. */
+const dataOf=async(slug:string)=>{const d=(await db.query<{d:Record<string,unknown>}>("select data d from public.fortius_inmuebles_records where collection='propiedades' and id=$1",[slug])).rows[0].d;const rest={...d};delete rest.publicada;return rest;};
 async function publishedOperation(slug:string){
  await db.exec('reset role');
  await db.query("insert into public.fortius_inmuebles_records(collection,id,data) values('propiedades',$1,$2::jsonb)",[slug,JSON.stringify({slug,codigo:slug.toUpperCase(),tipo:'casa',operacion:'venta',asesorId:'own',publicada:false})]);
@@ -113,25 +115,31 @@ async function publishedOperation(slug:string){
 it('withdraws the listing when the intermediation contract ends (M-01)',async()=>{
  await asUser(own,async()=>{
   const id=await publishedOperation('m01-terminado');
+  const before=await dataOf('m01-terminado');
   const flujo=await flowOf(id);
   await update(id,'negociacion',{...flujo,firmaContrato:{...flujo.firmaContrato,terminacion:{fecha:'2026-11-13',motivo:'El propietario revocó la intermediación'}}});
   expect(await published('m01-terminado')).toBe(false);
+  expect(await dataOf('m01-terminado')).toEqual(before);
  });
 });
 it('withdraws the listing when the signed contract is corrected and awaits review again (M-01)',async()=>{
  await asUser(own,async()=>{
   const id=await publishedOperation('m01-corregido');
+  const before=await dataOf('m01-corregido');
   const flujo=await flowOf(id);
   await update(id,'negociacion',{...flujo,firmaContrato:{...flujo.firmaContrato,fecha:'2026-11-11'}});
   expect((await flowOf(id)).firmaContrato.revisada).toBe(false);
   expect(await published('m01-corregido')).toBe(false);
+  expect(await dataOf('m01-corregido')).toEqual(before);
  });
 });
 it('withdraws the listing when the operation goes back before publication (M-02)',async()=>{
  await asUser(own,async()=>{
   const id=await publishedOperation('m02-retroceso');
+  const before=await dataOf('m02-retroceso');
   await update(id,'documentacion',{...(await flowOf(id)),motivo:'Corregir el precio con el propietario'});
   expect(await published('m02-retroceso')).toBe(false);
+  expect(await dataOf('m02-retroceso')).toEqual(before);
  });
 });
 it('keeps the listing when the operation moves between publication stages (M-02)',async()=>{
