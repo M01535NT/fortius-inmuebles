@@ -32,7 +32,7 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/admin/agenda", label: "Agenda y tareas", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
 ];
 /** Herramientas: un solo acceso a las 17. «/admin/notas» lleva a Hoy (DEC-42). */
-export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
+export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas", "/admin/tramites"] };
 /** Administración (solo administrador). Sitio web y Reportes agrupan sus páginas en pestañas (ver AdminFrame). */
 export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> = [
   { href: "/admin/asesores", label: "Equipo", match: ["/admin/asesores"] },
