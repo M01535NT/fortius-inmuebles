@@ -13,7 +13,7 @@ test('exports every current table in one read-only snapshot that the rehearsal a
     const backup = await exportOwner(spy);
     assert.equal(statements[0], 'begin isolation level repeatable read read only');
     assert.equal(statements.at(-1), 'commit');
-    assert.equal(Object.keys(backup.tables).length, 30);
+    assert.equal(Object.keys(backup.tables).length, 31);
     assert.equal(backup.tables.fortius_inmuebles_staff.length, 1);
     assert.equal((await rehearseCurrent(backup)).passed, true);
     // The transaction is read only: an export query cannot write.
@@ -38,7 +38,7 @@ test('REC-01: the export stops when the base and the code do not have the same m
     const versions = await repositoryMigrations();
     assert.ok(versions.length > 50 && versions.every(v => /^\d{12,14}$/.test(v)));
     // Local copies have no migration history: nothing to compare.
-    assert.equal(Object.keys((await exportOwner(db, { migrations: versions })).tables).length, 30);
+    assert.equal(Object.keys((await exportOwner(db, { migrations: versions })).tables).length, 31);
     await db.exec('create schema supabase_migrations; create table supabase_migrations.schema_migrations(version text primary key)');
     const record = list => db.query('insert into supabase_migrations.schema_migrations select unnest($1::text[])', [list]);
     await record(versions.slice(0, -1));
@@ -46,6 +46,6 @@ test('REC-01: the export stops when the base and the code do not have the same m
     await record([versions.at(-1), '29991231000000']);
     await assert.rejects(exportOwner(db, { migrations: versions }), /no conoce.*29991231000000/);
     await db.query("delete from supabase_migrations.schema_migrations where version='29991231000000'");
-    assert.equal(Object.keys((await exportOwner(db, { migrations: versions })).tables).length, 30);
+    assert.equal(Object.keys((await exportOwner(db, { migrations: versions })).tables).length, 31);
   } finally { await db.close(); }
 });
