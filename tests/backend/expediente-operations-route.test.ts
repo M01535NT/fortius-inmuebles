@@ -50,7 +50,7 @@ it("rechaza notas vacías", async () => {
 });
 
 it("conserva motivos operativos permitidos sin exponer errores arbitrarios",async()=>{
- for(const [code,message,expected] of [["PT409","Agenda una próxima tarea con fecha y responsable","Agenda una próxima tarea"],["PT403","Contraparte incompatible o fuera de tu alcance","Contraparte incompatible"],["PT409","secret SQL detail","El registro cambió"]]){
+ for(const [code,message,expected] of [["PT409","Agenda una próxima tarea con fecha y responsable","Agenda una próxima tarea"],["PT403","Contraparte incompatible o fuera de tu alcance","Contraparte incompatible"],["PT409","secret SQL detail","El registro cambió"],["PT409","Antes de la firma: la cancelación de hipoteca de esta venta debe quedar inscrita en el Registro Público. Si se firma sin ella, lo decide el director en el trámite, con su motivo.","Antes de la firma"]]){
   requireStaff.mockResolvedValue({client:fakeClient({expediente:{etapa:"documentacion",operacion:"venta",flujo:null}},async()=>({data:null,error:{code,message}})),user:{id:"u"}});
   const response=await PUT(request({version:1,etapa:"documentacion",fechaObjetivo:null,checklist:{}}),context);
   expect(response.status).toBe(Number(code.slice(2)));expect((await response.json()).error).toContain(expected);
