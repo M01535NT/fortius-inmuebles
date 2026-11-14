@@ -119,7 +119,7 @@ async function saveOwner(f){
 async function appFixture(){
  const f=await fixture();
  for(const suffix of ['app_runs','app_run_versions','app_files','app_shares','integration_jobs','integration_artifacts','integration_pages','signature_events'])f.owner.tables['fortius_inmuebles_'+suffix]=[];
- f.owner.schema_version=5;
+ f.owner.schema_version=6;
  for(const [bucket,path,kind] of [
   ['fortius-inmuebles-private',appOwner+'/52000000-0000-4000-8000-000000000003.pdf','app'],
   ['fortius-inmuebles-private',appOwner+'/52000000-0000-4000-8000-000000000004.pdf','app'],
@@ -225,16 +225,36 @@ test('validates metadata and uniqueness of buckets even without any objects in t
 
 test('rejects manifest schema downgrades and mismatches while accepting a genuine historical backup',async()=>{
  const f=await fixture();try{
-  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes])delete f.owner.tables['fortius_inmuebles_'+suffix];
-  delete f.owner.schema_version;f.manifest.database.schemaVersion=5;await saveOwner(f);
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.documentSuffixes])delete f.owner.tables['fortius_inmuebles_'+suffix];
+  delete f.owner.schema_version;f.manifest.database.schemaVersion=6;await saveOwner(f);
   await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);
   f.manifest.database.schemaVersion=1;await f.save();await backupTools.verifyBackup(f.root);
   delete f.manifest.database.schemaVersion;await f.save();await backupTools.verifyBackup(f.root);
   const target=join(f.parent,'legacy-restored');assert.equal((await backupTools.restoreBackupObjects(f.root,target)).objects,1);
-  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes])f.owner.tables['fortius_inmuebles_'+suffix]=[];
-  f.owner.schema_version=5;
-  for(const version of [1,2,3,4,'5',null]){f.manifest.database.schemaVersion=version;await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);}
-  f.manifest.database.schemaVersion=5;await f.save();await backupTools.verifyBackup(f.root);
+  for(const suffix of [...backupTools.appSuffixes,'interviews',...backupTools.expedienteFileSuffixes,...backupTools.preferenceSuffixes,...backupTools.documentSuffixes])f.owner.tables['fortius_inmuebles_'+suffix]=[];
+  f.owner.schema_version=6;
+  for(const version of [1,2,3,4,5,'6',null]){f.manifest.database.schemaVersion=version;await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/schema.*(?:version|differ)|version.*differ/i);}
+  f.manifest.database.schemaVersion=6;await f.save();await backupTools.verifyBackup(f.root);
+ }finally{await f.close();}
+});
+
+test('requires the backed-up object of every document without an operation, with the same fingerprint and size',async()=>{
+ const f=await fixture();try{
+  const path='bandeja/56000000-0000-4000-8000-000000000001.pdf',bytes=Buffer.from('synthetic inbox document'),sha256=backupTools.sha256(bytes);
+  const file={file:'inbox.bin',bytes:bytes.length,sha256};
+  await writeFile(join(f.root,file.file),bytes);
+  f.owner.schema_version=6;
+  f.owner.tables.fortius_inmuebles_documentos=[{id:'56000000-0000-4000-8000-000000000001',path,sha256,byte_length:bytes.length}];
+  // The row exists but its object was not backed up.
+  await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/referenced object missing/i);
+  f.manifest.files.push(file);f.manifest.objects.push({...file,bucket:'fortius-inmuebles-expedientes',path,public:false});
+  await f.save();await backupTools.verifyBackup(f.root);
+  f.owner.tables.fortius_inmuebles_documentos[0].sha256='0'.repeat(64);
+  await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/database object fingerprint/i);
+  Object.assign(f.owner.tables.fortius_inmuebles_documentos[0],{sha256,byte_length:bytes.length+1});
+  await saveOwner(f);await assert.rejects(backupTools.verifyBackup(f.root),/byte length differs/i);
+  f.owner.tables.fortius_inmuebles_documentos[0].byte_length=bytes.length;
+  await saveOwner(f);await backupTools.verifyBackup(f.root);
  }finally{await f.close();}
 });
 
