@@ -15,6 +15,9 @@ describe("promesa 15: pago en efectivo (LFPIORPI art. 32)", () => {
     const medio = PROMESA_TABLES.pagosPrecio.columns.find(c => c.key === "medio")!;
     expect("options" in medio && medio.options.map(o => o.value)).toEqual(["transferencia", "cheque", "credito", "efectivo", "otro"]);
     expect(validarPromesa(conPagos(pago(1000000, "por definir")), false)).toContain("pago del precio: fila incompleta o inválida");
+    // Un borrador anterior a la lista con «Transferencia» o «Efectivo» escrito a mano sigue valiendo.
+    expect(validarPromesa(conPagos(pago(1000000, "Transferencia")), false)).not.toContain("pago del precio: fila incompleta o inválida");
+    expect(promesaParagraphs(conPagos(pago(1000000, "Transferencia electrónica"))).join("\n")).toContain("por transferencia electrónica, a Ana Ejemplo");
   });
 
   it("imprime el medio elegido con su nombre", () => {
@@ -32,7 +35,8 @@ describe("promesa 15: pago en efectivo (LFPIORPI art. 32)", () => {
     const usd = { ...conPagos(pago(60000, "efectivo")), moneda: "USD", precio: 60000, recursosPropios: 60000, credito: 0 };
     expect(mostrarCampoPromesa("tipoCambio", promesaSample)).toBe(false);
     expect(mostrarCampoPromesa("tipoCambio", usd)).toBe(true);
-    expect(bloqueo(usd)).toEqual(["Indica el tipo de cambio del día del pago en efectivo para revisar el límite de la ley"]);
+    // Lo pide su campo, una sola vez.
+    expect(bloqueo(usd)).toEqual([]);
     expect(validarPromesa(usd, false)).toContain(formatoById("15").fields.find(f => f.key === "tipoCambio")!.label);
     expect(bloqueo({ ...usd, tipoCambio: 15 })).toEqual([]);
     expect(bloqueo({ ...usd, tipoCambio: 18 })[0]).toMatch(new RegExp(`^${LIMITE}`));

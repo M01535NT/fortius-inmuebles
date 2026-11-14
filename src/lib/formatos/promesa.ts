@@ -9,6 +9,12 @@ const choice = (section: string, key: string, label: string, options: string[][]
 const yesNo = [["si", "Sí"], ["no", "No"]];
 /** M-05: medio de pago de la lista, para revisar el límite del efectivo (LFPIORPI art. 32). */
 export const MEDIOS_PAGO_PROMESA = [["transferencia", "Transferencia electrónica"], ["cheque", "Cheque"], ["credito", "Crédito"], ["efectivo", "Efectivo"], ["otro", "Otro medio"]];
+/** El medio de la lista, también si un borrador anterior lo escribió a mano («Transferencia», «Efectivo»). */
+export function medioPromesa(value: unknown): string | undefined {
+  const plain = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+  if (typeof value !== "string") return undefined;
+  return MEDIOS_PAGO_PROMESA.find(([key, label]) => plain(value) === key || plain(value) === plain(label))?.[0];
+}
 const reviewed = [["revisada", "Revisada y compatible"], ["pendiente", "Pendiente"], ["bloqueada", "Con impedimento"]];
 const s = ["01 / Alcance y modelo", "02 / Parte vendedora", "03 / Parte compradora", "04 / Inmueble y anexos", "05 / Precio y pagos", "06 / Condiciones y financiamiento", "07 / Documentación y formalización", "08 / Entrega y gastos", "09 / Garantía y remedios", "10 / Revisión profesional"];
 export const promesaFields: FormatoField[] = [
@@ -134,7 +140,7 @@ export function validarPromesa(data: Record<string, unknown>, review = true): st
   for (const [key, config] of Object.entries(PROMESA_TABLES)) {
     const entries = rows(data[key]);
     if (!entries || entries.length < 1 || entries.length > 30) { errors.push(`${config.label}: registro obligatorio de 1 a 30 filas`); continue; }
-    for (const entry of entries) if (config.columns.some((column) => "options" in column ? !column.options.some((option) => option.value === entry[column.key]) : column.type === "number" ? !amount(entry[column.key]) || entry[column.key] === 0 : column.type === "date" ? !date(entry[column.key]) : !text(entry[column.key]))) errors.push(`${config.label}: fila incompleta o inválida`);
+    for (const entry of entries) if (config.columns.some((column) => "options" in column ? medioPromesa(entry[column.key]) === undefined : column.type === "number" ? !amount(entry[column.key]) || entry[column.key] === 0 : column.type === "date" ? !date(entry[column.key]) : !text(entry[column.key]))) errors.push(`${config.label}: fila incompleta o inválida`);
     if (key === "pagosPrecio") {
       if (entries.every((entry) => amount(entry.importe)) && amount(data.precio) && !entries.reduce((sum, entry) => sum.add(entry.importe), new Decimal(0)).equals(data.precio as number)) errors.push("El calendario de pagos debe sumar el precio sin descontar la garantía");
       if (entries.some((entry) => entry.fecha !== data.fechaFormalizacion)) errors.push("Los pagos del precio deben pactarse en la fecha de formalización");
@@ -143,7 +149,8 @@ export function validarPromesa(data: Record<string, unknown>, review = true): st
     if (key === "anexos" && new Set(entries.map((entry) => `${String(entry.documento).trim().toLowerCase()}|${String(entry.referencia).trim().toLowerCase()}`)).size !== entries.length) errors.push("Anexo duplicado");
   }
   if (mostrarCampoPromesa("tipoCambio", data) && !(typeof data.tipoCambio === "number" && Number.isFinite(data.tipoCambio) && data.tipoCambio > 0)) errors.push(promesaFields.find((field) => field.key === "tipoCambio")!.label);
-  errors.push(...efectivoBlockers({ pagos: pagosPromesa(data), moneda: data.moneda, tipoCambio: data.tipoCambio }));
+  // Sin tipo de cambio ya lo pide su campo: no se repite el aviso de la regla del efectivo.
+  errors.push(...efectivoBlockers({ pagos: pagosPromesa(data), moneda: data.moneda, tipoCambio: data.tipoCambio }).filter((blocker) => !(errors.includes(promesaFields.find((field) => field.key === "tipoCambio")!.label) && blocker.startsWith("Indica el tipo de cambio"))));
   if (!["identidadEstado", "titularidadEstado", "facultadesEstado"].every((key) => data[key] === "revisada") || data.anexosEstado !== "revisados") errors.push("Resolver identidad, titularidad, facultades y copias de anexos antes de emitir");
   if (!Number.isInteger(data.versionContrato) || (data.versionContrato as number) < 1) errors.push("Versión del contrato positiva");
   if (!date(data.fechaRevision) || !date(data.fecha) || data.fechaRevision > data.fecha) errors.push("Fecha de revisión válida no posterior a la promesa");
@@ -173,7 +180,7 @@ export function importePromesaLetra(value: number, currency: string): string {
 }
 
 /** El medio elegido como se lee en el contrato («por transferencia electrónica»); un texto anterior a la lista, tal cual. */
-const medioTexto = (medio: unknown) => { const found = MEDIOS_PAGO_PROMESA.find(([value]) => value === medio); return found ? found[1].toLocaleLowerCase("es-MX") : String(medio ?? "").trim(); };
+const medioTexto = (medio: unknown) => { const found = MEDIOS_PAGO_PROMESA.find(([value]) => value === medioPromesa(medio)); return found ? found[1].toLocaleLowerCase("es-MX") : String(medio ?? "").trim(); };
 
 export function promesaParagraphs(data: Record<string, unknown>): string[] {
   const v = (key: string) => String(data[key] ?? "").trim();
