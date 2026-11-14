@@ -14,6 +14,8 @@ type Entry = {
   record_id: string;
   action: "INSERT" | "UPDATE" | "DELETE";
   actor_id: string | null;
+  /** Título guardado en la foto del registro (Seguridad, C-81): nombra lo que ya no está en las listas. */
+  titulo?: string | null;
   version: number;
   changed_fields?: string[];
   created_at: string;
@@ -42,7 +44,7 @@ const ACTION = { INSERT: "Se creó", UPDATE: "Se cambió", DELETE: "Se eliminó"
 export default function HistoryPage() {
   const session = useSession();
   const propiedades = useCollection(db.propiedades), leads = useCollection(db.leads), clientes = useCollection(db.clientes);
-  const tareas = useCollection(db.tareas), asesores = useCollection(db.asesores), notas = useCollection(db.notas), eventos = useCollection(db.eventos);
+  const tareas = useCollection(db.tareas), asesores = useCollection(db.asesores), notas = useCollection(db.notas), eventos = useCollection(db.eventos), posts = useCollection(db.posts);
   const [entries, setEntries] = React.useState<Entry[]>([]),
     [collection, setCollection] = React.useState(() => typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("collection") ?? "") : ""),
     [record, setRecord] = React.useState(() => typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("record") ?? "") : ""),
@@ -62,7 +64,8 @@ export default function HistoryPage() {
   }, [session?.role, collection, record, offset, revision]);
   if (session?.role !== "admin") return <p role="alert">El historial es solo para administradores.</p>;
 
-  const nameOf = (entry: Pick<Entry, "collection" | "record_id">): string | undefined => {
+  const nameOf = (entry: Pick<Entry, "collection" | "record_id"> & { titulo?: string | null }): string | undefined => current(entry) ?? (entry.titulo || undefined);
+  const current = (entry: Pick<Entry, "collection" | "record_id">): string | undefined => {
     const id = entry.record_id;
     switch (entry.collection) {
       case "propiedades": return propiedades.find(p => p.slug === id)?.titulo;
@@ -72,6 +75,8 @@ export default function HistoryPage() {
       case "asesores": return asesores.find(a => a.id === id)?.nombre;
       case "notas": return notas.find(n => n.id === id)?.titulo;
       case "eventos": return eventos.find(e => e.id === id)?.titulo;
+      // C-85: las entradas del blog también se nombran.
+      case "posts": return posts.find(p => p.id === id)?.titulo;
       case "config": return "Configuración del sitio";
       case "contenido": return "Textos del sitio";
       default: return undefined;

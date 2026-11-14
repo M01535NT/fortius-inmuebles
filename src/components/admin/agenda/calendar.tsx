@@ -298,7 +298,7 @@ export function AgendaCalendar() {
               {requestedExpedienteUnresolved && <Button onClick={withdrawRequestedExpediente}>Quitar operación solicitada</Button>}
             </div>
           </section>
-          <Field label="Asesor (opcional)" htmlFor="cal-asesor" hint={selectedExpedienteId ? "Lo pone la operación; si lo cambias, la operación se desvincula." : formReferences.asesorId && formReferences.asesorId === me ? "Tú, salvo que elijas a otra persona." : undefined}><select value={formReferences.asesorId ?? ""} onChange={updateReference} id="cal-asesor" name="asesorId" className={selectClass}><option value="">Ninguno</option>{asesores.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
+          <Field label="Asesor (opcional)" htmlFor="cal-asesor" hint={selectedExpedienteId ? "Lo pone la operación; si lo cambias, la operación se desvincula." : formReferences.asesorId && formReferences.asesorId === me ? "Tú, salvo que elijas a otra persona." : undefined}><select value={formReferences.asesorId ?? ""} onChange={updateReference} id="cal-asesor" name="asesorId" className={selectClass}><option value="">Ninguno</option>{asesores.filter(a => a.activo || a.id === formReferences.asesorId).map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
           <Button type="submit" variant="primary" disabled={requestedExpedienteUnresolved} className="w-full">Guardar en la agenda</Button>
         </AsyncForm>
       </Sheet>

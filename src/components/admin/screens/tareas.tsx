@@ -32,6 +32,9 @@ function Tasks() {
   const defaults = {expedienteId: params.get("expediente")?.toLowerCase() || undefined, leadId: leads.find(l=>l.id===params.get("leadId"))?.id, clienteId: clientes.find(c=>c.id===params.get("clienteId"))?.id, propiedadSlug: propiedades.find(p=>p.slug===params.get("propiedadSlug"))?.slug};
   const asesores = useCollection(db.asesores);
   const [creating, setCreating] = React.useState(params.get("nueva") === "1");
+  // C-74: la captura se monta al abrirla la primera vez y después solo se oculta, para no perder lo escrito.
+  const [captureMounted, setCaptureMounted] = React.useState(creating);
+  if (creating && !captureMounted) setCaptureMounted(true);
   useQuickCreate("tarea", () => setCreating(true));
   const [query, setQuery] = React.useState("");
   const [responsible, setResponsible] = React.useState("todas");
@@ -83,7 +86,7 @@ function Tasks() {
       const completing = !["completada", "cancelada"].includes(task.estado);
       const saved = await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
       // RP-16: completar se deshace con un toque; el aviso sale cuando el servidor ya lo guardó.
-      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)) });
+      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => { setAsk(null); return upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)); } }); // C-71: deshacer también retira «¿Qué sigue?»
       else setMessage("Guardado");
       // DEC-42: completar el siguiente paso de una persona pide el que sigue.
       if (completing) setAsk(askNextAfter(task, tareas));
@@ -126,7 +129,7 @@ function Tasks() {
       <div className="flex flex-wrap gap-2">{filtered.length > 0 && <SelectToggle selection={selection} noun="tareas" />}<Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button></div>
     </div>
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : clientes.find(c => c.id === (ask.kind === "operacion" ? ask.clienteId : ask.id))?.nombre} onClose={() => setAsk(null)} />}
-    {creating && <section className="min-w-0" aria-label="Nueva tarea"><h2 className="mb-4 text-xl font-[600] tracking-[-0.015em]">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
+    {captureMounted && <section hidden={!creating} className="min-w-0" aria-label="Nueva tarea"><h2 className="mb-4 text-xl font-[600] tracking-[-0.015em]">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
     <section aria-label="Filtros de tareas" className="min-w-0 space-y-3">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       <Field label="Buscar tareas" htmlFor="tasks-search"><input id="tasks-search" className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Título o descripción" /></Field>
