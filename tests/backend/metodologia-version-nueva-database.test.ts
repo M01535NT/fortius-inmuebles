@@ -64,16 +64,40 @@ async function update(id:string,stage:string,flow:Record<string,unknown>|null=nu
  return (await db.query<{r:Record<string,unknown>}>("select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb,$4::jsonb,$5,$6) r",[id,version,stage,flow?JSON.stringify(flow):null,slug??null,slug!==undefined])).rows[0].r;
 }
 const flowOf=async(id:string)=>(await db.query<{flujo:{requisitos:Record<string,{estado:string;evidencia?:unknown;soporte:string}>}}>("select flujo from public.fortius_inmuebles_expedientes where id=$1",[id])).rows[0].flujo;
+async function clientFile(id:string){
+ const file=crypto.randomUUID();
+ await db.exec('reset role');
+ await db.query("insert into public.fortius_inmuebles_expediente_archivos(id,expediente_id,titulo,nombre_original,mime,byte_length,sha256,path,uploaded_by) values($1,$2,'Contrato ficticio firmado','contrato.pdf','application/pdf',1000,$3,$4,$5)",[file,id,'a'.repeat(64),`${id}/cliente/${file}.pdf`,own]);
+ await db.exec('set role authenticated');
+ return file;
+}
+const signature=(archivo:string,patch:Record<string,unknown>={})=>({tipo:'intermediacion',fecha:'2026-11-10',firmantes:[{nombre:'Cliente propio',parte:'propietario'},{nombre:'Ana',parte:'fortius'}],archivo,completa:true,revisada:false,...patch});
+async function asAdmin<T>(action:()=>Promise<T>){
+ await db.query("select set_config('request.jwt.claim.sub',$1,false)",[admin]);
+ try{return await action();}finally{await db.query("select set_config('request.jwt.claim.sub',$1,false)",[own]);}
+}
+/** COR-10: el asesor registra la firma del contrato y el director la marca revisada. */
+async function sign(id:string,stage:string){
+ const firma=signature(await clientFile(id));
+ await update(id,stage,{...completeFlow(),firmaContrato:firma});
+ return asAdmin(()=>update(id,stage,{...completeFlow(),firmaContrato:{...firma,revisada:true}}));
+}
 async function draft(id:string,formato:string){
  const d=crypto.randomUUID();
  await db.query("insert into public.fortius_inmuebles_formato_drafts(id,expediente_id,formato_id,data) values($1,$2,$3,'{}')",[d,id,formato]);
  return d;
 }
+/** Como la ruta de emisión: la inserta el servidor con la cuenta de servicio, sin sesión de usuario. */
 async function emit(id:string,d:string){
  const m=crypto.randomUUID();
+ await db.exec('reset role');
+ const sub=(await db.query<{s:string}>("select current_setting('request.jwt.claim.sub',true) s")).rows[0].s;
+ await db.query("select set_config('request.jwt.claim.sub','',false)");await db.exec('set role service_role');
+ try{
  const version=(await db.query<{v:number}>('select version v from public.fortius_inmuebles_formato_drafts where id=$1',[d])).rows[0].v;
  await db.query("insert into public.fortius_inmuebles_formato_emissions(id,draft_id,draft_version,snapshot,sha256,path,created_by) values($1,$2,$3,'{}',$4,$5,$6)",[m,d,version,'a'.repeat(64),`${id}/${m}.pdf`,own]);
- return {m,version};
+  return {m,version};
+ }finally{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[sub??'']);}
 }
 const bump=(d:string)=>db.query("update public.fortius_inmuebles_formato_drafts set version=version+1,data='{\"cambio\":true}' where id=$1",[d]);
 const byEmission=(e:{m:string;version:number})=>({estado:'revisado',soporte:'Oferta revisada con el comprador',evidencia:{tipo:'emision',referencia:e.m,version:e.version}});
@@ -110,4 +134,27 @@ it('also counts a new draft of the same document in the operation',async()=>{
  await asUser(own,()=>update(id,'captacion',{...completeFlow(),requisitos:{...completeFlow().requisitos,oferta:byEmission(first)}}));
  await emit(id,await draft(id,'14'));
  expect((await flowOf(id)).requisitos.oferta.estado).toBe('recibido');
+});
+it('still issues the document when the operation is already closing, and keeps the stage',async()=>{
+ const {id}=await asUser(own,()=>fixture());
+ const d=await draft(id,'14');const first=await emit(id,d);
+ await asUser(own,async()=>{
+  const conOferta=()=>({...completeFlow(),requisitos:{...completeFlow().requisitos,oferta:byEmission(first)}});
+  await update(id,'documentacion',conOferta());await sign(id,'documentacion');
+  const firmaContrato=(await db.query<{f:unknown}>("select flujo->'firmaContrato' f from public.fortius_inmuebles_expedientes where id=$1",[id])).rows[0].f;
+  await update(id,'comercializacion',{...conOferta(),firmaContrato});await update(id,'negociacion');await update(id,'cierre');
+ });
+ await bump(d);
+ await emit(id,d);
+ const row=(await db.query<{etapa:string;flujo:{requisitos:Record<string,{estado:string}>}}>('select etapa,flujo from public.fortius_inmuebles_expedientes where id=$1',[id])).rows[0];
+ expect(row.etapa).toBe('cierre');
+ expect(row.flujo.requisitos.oferta.estado).toBe('recibido');
+});
+it('ignores a new issue of an older draft of the same document',async()=>{
+ const {id}=await asUser(own,()=>fixture());
+ const older=await draft(id,'14');await emit(id,older);
+ const newer=await emit(id,await draft(id,'14'));
+ await asUser(own,()=>update(id,'captacion',{...completeFlow(),requisitos:{...completeFlow().requisitos,oferta:byEmission(newer)}}));
+ await bump(older);await emit(id,older);
+ expect((await flowOf(id)).requisitos.oferta.estado).toBe('revisado');
 });
