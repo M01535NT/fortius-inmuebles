@@ -4,14 +4,20 @@ import { createServerClient } from "./auth";
 
 /*
   Decisión del titular (13/11/2026): lo público que se quita de un inmueble (fotos, documentos, video)
-  se borra del almacenamiento público al guardar. Antes seguía en internet para quien tuviera la
-  dirección; una foto subida por error con datos personales no se retiraba.
-  Solo se borra lo que estaba en el inmueble antes de guardar, ya no está, y ningún otro registro
-  (otro inmueble, el blog, la configuración, el contenido, un asesor, cualquier otro registro o algo en Eliminados) usa. Las versiones anteriores
-  del historial que lo mostraban quedan sin esa imagen: para recuperarla hay que volver a subirla.
-  Si el borrado falla, el guardado sigue hecho; solo queda el archivo como antes.
+  deja de estar disponible en su dirección pública al guardar. Antes seguía en internet para quien tuviera
+  la dirección; una foto subida por error con datos personales no se retiraba.
+  Para que la eliminación sea recuperable, el archivo no se borra: se mueve al almacenamiento privado
+  (`retirados/<ruta>`). Si después la misma dirección vuelve a un inmueble (por ejemplo, al copiar una
+  versión anterior), al guardar regresa a su lugar público.
+  Solo se retira lo que estaba en el inmueble antes de guardar, ya no está, y ningún otro registro
+  (otro inmueble, el blog, la configuración, el contenido, un asesor, cualquier otro registro o algo
+  en Eliminados) usa. Si algo falla, el guardado sigue hecho; el archivo queda como estaba.
+  Ensayo del 13/11/2026 en el Supabase de pruebas: la dirección deja de servir el archivo al momento, pero
+  una copia que la caché pública ya tenía puede seguir viéndose hasta una hora (max-age=3600).
 */
-const BUCKET = "fortius-inmuebles-public";
+const PUBLIC_BUCKET = "fortius-inmuebles-public";
+const PRIVATE_BUCKET = "fortius-inmuebles-private";
+const RETIRED = "retirados/";
 const PUBLIC_URL = /\/storage\/v1\/(?:object|render\/image)\/public\/fortius-inmuebles-public\/([^?#]+)/;
 
 /** Rutas dentro del almacenamiento público a las que apunta cualquier texto del registro. */
@@ -26,52 +32,63 @@ export function publicPaths(value: unknown, found = new Set<string>()): Set<stri
   return found;
 }
 
-/** Lo que estaba antes y ya no está. */
-export function removedPaths(before: unknown, after: unknown): string[] {
-  const kept = publicPaths(after);
-  return [...publicPaths(before)].filter(path => !kept.has(path));
+/** Lo que está en `from` y no en `to`. */
+export function removedPaths(from: unknown, to: unknown): string[] {
+  const kept = publicPaths(to);
+  return [...publicPaths(from)].filter(path => !kept.has(path));
 }
 
+export const retiredPath = (path: string) => `${RETIRED}${path}`;
+
 type Service = Pick<SupabaseClient, "from" | "storage">;
+/** Cómo estaba el inmueble antes de guardar (data null si es nuevo). null si no se pudo leer: entonces no se toca nada. */
 export type PublicFilesSnapshot = { service: Service; data: unknown } | null;
 
-/** Lo que el inmueble tenía antes de guardar. Si no se puede leer, no se borrará nada. */
 export async function publicFilesBeforeSave(propertyId: string, service?: Service): Promise<PublicFilesSnapshot> {
   try {
     const client = service ?? createServerClient(undefined, true);
     const { data, error } = await client.from("fortius_inmuebles_records").select("data").eq("collection", "propiedades").eq("id", propertyId).maybeSingle();
-    if (error || !data || !publicPaths(data.data).size) return null;
-    return { service: client, data: data.data };
+    if (error) return null;
+    return { service: client, data: data?.data ?? null };
   } catch {
     return null;
   }
 }
 
-export async function removeOrphanedPublicFiles(before: PublicFilesSnapshot, propertyId: string, after: unknown): Promise<number> {
-  if (!before) return 0;
+const failed = (event: string, count: number) => console.error(JSON.stringify({ event, count }));
+
+/** Después de guardar: retira lo que se quitó y nadie más usa, y regresa lo retirado que se volvió a poner. */
+export async function syncPublicFiles(before: PublicFilesSnapshot, propertyId: string, after: unknown): Promise<{ retired: number; restored: number }> {
+  const result = { retired: 0, restored: 0 };
+  if (!before) return result;
   const { service } = before;
+  // Lo nuevo puede ser un archivo retirado que vuelve; si no estaba retirado, mover falla y no pasa nada.
+  for (const path of removedPaths(after, before.data)) {
+    try {
+      const { error } = await service.storage.from(PRIVATE_BUCKET).move(retiredPath(path), path, { destinationBucket: PUBLIC_BUCKET });
+      if (!error) result.restored += 1;
+    } catch { /* no estaba retirado */ }
+  }
   const candidates = removedPaths(before.data, after);
-  if (!candidates.length) return 0;
+  if (!candidates.length) return result;
   try {
     const { data, error } = await service.from("fortius_inmuebles_records").select("collection,id,data");
-    if (error || !data) return 0;
+    if (error || !data) return result;
     // Lo que está en Eliminados vive en el historial; si se restaura, sus fotos deben seguir ahí.
     const trash = await service.from("fortius_inmuebles_record_history").select("snapshot").eq("action", "DELETE").is("restored_at", null);
-    if (trash.error || !trash.data) return 0;
+    if (trash.error || !trash.data) return result;
     const inUse = new Set<string>();
     for (const row of data as { collection: string; id: string; data: unknown }[])
       if (!(row.collection === "propiedades" && row.id === propertyId)) publicPaths(row.data, inUse);
     for (const row of trash.data as { snapshot: unknown }[]) publicPaths(row.snapshot, inUse);
-    const orphaned = candidates.filter(path => !inUse.has(path));
-    if (!orphaned.length) return 0;
-    const removed = await service.storage.from(BUCKET).remove(orphaned);
-    if (removed.error) {
-      console.error(JSON.stringify({ event: "public_file_cleanup_failed", count: orphaned.length }));
-      return 0;
+    let errors = 0;
+    for (const path of candidates.filter(item => !inUse.has(item))) {
+      const { error: moveError } = await service.storage.from(PUBLIC_BUCKET).move(path, retiredPath(path), { destinationBucket: PRIVATE_BUCKET });
+      if (moveError) errors += 1; else result.retired += 1;
     }
-    return orphaned.length;
+    if (errors) failed("public_file_retire_failed", errors);
   } catch {
-    console.error(JSON.stringify({ event: "public_file_cleanup_failed", count: candidates.length }));
-    return 0;
+    failed("public_file_retire_failed", candidates.length);
   }
+  return result;
 }

@@ -1,5 +1,5 @@
 import { requireStaff } from "@/lib/backend/auth";
-import { publicFilesBeforeSave, removeOrphanedPublicFiles } from "@/lib/backend/public-file-cleanup";
+import { publicFilesBeforeSave, syncPublicFiles } from "@/lib/backend/public-file-cleanup";
 import { ApiError, apiResponse, assertSameOrigin, readJson } from "@/lib/backend/http";
 import { listRecords, putRecord, deleteRecord } from "@/lib/backend/repository";
 import { parseRecord, parseWrite } from "@/lib/backend/validation";
@@ -30,10 +30,10 @@ export async function PUT(request: Request, context: Context) {
     if (collection === "propiedades") {
       const { data } = parseWrite(input);
       await assertPropertyPublicationAllowed(client, id, parseRecord(collection, id, data));
-      // Lo público que se quita se borra del almacenamiento después de guardar (titular, 13/11/2026).
+      // Lo público que se quita pasa al almacenamiento privado después de guardar (titular, 13/11/2026).
       const before = await publicFilesBeforeSave(id);
       const record = await putRecord(client, collection, id, input);
-      await removeOrphanedPublicFiles(before, id, record.data);
+      await syncPublicFiles(before, id, record.data);
       return { record };
     }
     return { record: await putRecord(client, collection, id, input) };
