@@ -7,7 +7,7 @@ import { SplitText } from "gsap/SplitText";
 
 /*
   Punto único de registro de GSAP. Las reglas activas de identidad y diseño
-  están en docs/brand.md; el desarrollo se guía por ROADMAP.md.
+  están en docs/brand.md; el desarrollo se guía por PLAN.md.
   Importar gsap/ScrollTrigger/SplitText SIEMPRE desde aquí.
 */
 if (typeof window !== "undefined") {

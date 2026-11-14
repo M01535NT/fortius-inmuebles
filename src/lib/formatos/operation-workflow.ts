@@ -304,7 +304,7 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  return result;
 }
 
-/** Proceso de comercialización definido por el titular (ROADMAP.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
+/** Proceso de comercialización definido por el titular (SPEC.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
 export const SALE_PROCESS = [
  { key: "prospecto", slug: "prospecto", label: "Primer contacto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
  { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir la lista de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
