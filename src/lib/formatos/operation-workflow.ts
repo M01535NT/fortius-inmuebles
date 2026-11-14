@@ -42,6 +42,8 @@ export const WORKFLOW_REQUIREMENTS = {
  revision_cierre: { label: "Revisión actualizada para contratar y cerrar", formato: "06", vigencia: true },
  instrumento: { label: "Instrumento, anticipos, custodia y devoluciones definidos", formato: "15" },
  contraparte: { label: "Participantes y contraparte relacionados e identificados", formato: "14 o contrato aplicable" },
+ // M-05 (titular, 14/11/2026): LFPIORPI art. 18, identificar a los clientes y conservar sus documentos antes de firmar.
+ identificacion_pld: { label: "Expediente de identificación de las partes (LFPIORPI)", formato: "Identificaciones y documentos de las partes" },
  firma: { label: "Firma e instrumento acreditados", formato: "15" },
  pago: { label: "Condiciones de pago para entrega cumplidas según acuerdo", formato: "18" },
  entrega: { label: "Entrega material y acta con pendientes asentados", formato: "16" },
@@ -198,7 +200,7 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
  const keys: RequirementKey[] = owner ? ["entrevista"] : ["perfil","privacidad"];
  if(n>=2) keys.push(...(owner ? ["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion"] as RequirementKey[] : ["opciones"] as RequirementKey[]));
  if(n>=3) keys.push(...(owner ? [rent ? "arrendatario" : "comprador"] as RequirementKey[] : ["visitas","capacidad"] as RequirementKey[]));
- if(n>=4) keys.push("oferta","revision_cierre",rent ? "contrato_renta" : "instrumento","contraparte",...(rent ? ["garantias_renta"] as RequirementKey[] : []));
+ if(n>=4) keys.push("oferta","revision_cierre",rent ? "contrato_renta" : "instrumento","contraparte",...(rent ? ["garantias_renta"] : ["identificacion_pld"]) as RequirementKey[]);
  if(n>=5) keys.push("firma","pago");
  if(n>=6) keys.push("entrega",...(rent ? ["inventario_entrega"] as RequirementKey[] : []));
  if(n>=7) keys.push(rent ? "termino_renta" : "registro","honorarios","archivo");
@@ -214,10 +216,10 @@ export const directorReview = (key: RequirementKey) => DIRECTOR_REVIEWS.includes
 /**
   Requisitos de protección (B-13, RP-96) que nunca se cubren por excepción: quién es dueño y quién
   firma, la opinión jurídica y la comercial antes de la intermediación, la revisión jurídica para
-  cerrar, la firma acreditada y los pagos para entregar. La base aplica la misma lista
+  cerrar, la firma acreditada, los pagos para entregar y la identificación LFPIORPI. La base aplica la misma lista
   (20261112180000_excepcion_autorizada).
 */
-export const PROTECTED_REQUIREMENTS: readonly RequirementKey[] = ["titularidad", "factibilidad", "valor", "revision_cierre", "firma", "pago"];
+export const PROTECTED_REQUIREMENTS: readonly RequirementKey[] = ["titularidad", "factibilidad", "valor", "revision_cierre", "firma", "pago", "identificacion_pld"];
 export const exceptionAllowed = (key: RequirementKey) => !PROTECTED_REQUIREMENTS.includes(key);
 /** El requisito está cubierto por una excepción que autorizó el director. */
 export function exceptionCovers(flow: Pick<OperationWorkflow, "requisitos">, key: RequirementKey) {
@@ -346,7 +348,7 @@ const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
  verificacion: ["valor","precio"],
  contrato: ["intermediacion","plan","publicacion"],
  publicacion: ["comprador","arrendatario"],
- visitas: ["oferta","revision_cierre","instrumento","contraparte","contrato_renta","garantias_renta"],
+ visitas: ["oferta","revision_cierre","instrumento","contraparte","identificacion_pld","contrato_renta","garantias_renta"],
  cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
 };
 /** Requisitos que cierran cada etapa de la renta del propietario (MRP-01). */

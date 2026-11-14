@@ -32,6 +32,7 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   revision_cierre: "Documentos al día para firmar",
   instrumento: "Cómo se firma y se paga",
   contraparte: "Comprador y participantes identificados",
+  identificacion_pld: "Identificaciones de las partes (ley antilavado)",
   firma: "Firma acreditada",
   pago: "Pagos para entregar cumplidos según contrato",
   entrega: "Entrega con acta",
