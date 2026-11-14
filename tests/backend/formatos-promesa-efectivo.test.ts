@@ -51,14 +51,23 @@ describe("promesa 15: pago en efectivo (LFPIORPI art. 32)", () => {
   it("si el calendario ya cubre el precio, la garantía que se abona al precio no se cuenta dos veces", () => {
     // Ejemplo de Metodología: garantía de $300,000 en efectivo ya incluida en el calendario; efectivo real $700,000.
     const abonada = { ...conPagos(pago(300000, "efectivo"), pago(400000, "efectivo"), pago(300000, "transferencia")), garantia: 300000, fechaGarantia: "2026-11-01", medioGarantia: "efectivo", receptorGarantia: promesaSample.vendedor, cuentaGarantia: "Cuenta de muestra", custodioTipo: "parte" };
-    expect(bloqueo(abonada)).toEqual([]);
-    expect(validarPromesa(abonada, false).some(e => e.startsWith(LIMITE))).toBe(false);
+    expect(mostrarCampoPromesa("garantiaAbonaPrecio", abonada)).toBe(true);
+    expect(mostrarCampoPromesa("garantiaAbonaPrecio", { ...abonada, medioGarantia: "transferencia" })).toBe(false);
+    expect(validarPromesa(abonada, false)).toContain(formatoById("15").fields.find(f => f.key === "garantiaAbonaPrecio")!.label);
+    expect(bloqueo({ ...abonada, garantiaAbonaPrecio: "si" })).toEqual([]);
+    expect(validarPromesa({ ...abonada, garantiaAbonaPrecio: "si" }, false).some(e => e.startsWith(LIMITE))).toBe(false);
+  });
+
+  it("si la garantía en efectivo se restituye en vez de aplicarse al precio, se suma al efectivo", () => {
+    const restituida = { ...conPagos(pago(700000, "efectivo"), pago(300000, "transferencia")), garantia: 300000, fechaGarantia: "2026-11-01", medioGarantia: "efectivo", garantiaAbonaPrecio: "no", receptorGarantia: promesaSample.vendedor, cuentaGarantia: "Cuenta de muestra", custodioTipo: "parte" };
+    expect(bloqueo(restituida)[0]).toMatch(new RegExp(`^${LIMITE}`));
+    expect(bloqueo({ ...restituida, garantiaAbonaPrecio: "si" })).toEqual([]);
   });
 
   it("el medio de la garantía y el tipo de cambio se capturan desde sus cláusulas", () => {
     const garantiaKeys = camposParrafoPromesa(PROMESA_ORIGINAL.find(p => p.startsWith("La garantía pactada es"))!);
     const pagosKeys = camposParrafoPromesa(PROMESA_ORIGINAL.find(p => p.includes("[CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO]"))!);
-    expect(garantiaKeys).toContain("medioGarantia");
+    expect(garantiaKeys).toEqual(expect.arrayContaining(["medioGarantia", "garantiaAbonaPrecio"]));
     expect(pagosKeys).toContain("tipoCambio");
   });
 });
