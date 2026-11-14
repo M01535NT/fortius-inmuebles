@@ -1,36 +1,57 @@
 /*
-  Marco del panel, versión 2 (titular, 30/10/2026, DEC-35): barra superior con píldoras sobre el
-  lienzo crema, «+ Nuevo» y la cuenta; en celular, barra inferior flotante y menú «Más».
-  Prefijo :global(.admin-root): ver kit.module.css.
+  Marco del panel, versión 3 (titular, 14/11/2026): menú lateral sobre el mismo fondo, separado por
+  una línea; en celular, barra inferior flotante y menú «Más». Prefijo :global(.admin-root): ver kit.module.css.
 */
 
-/* Barra superior (computadora) */
-:global(.admin-root) .topnav { position: sticky; top: 0; z-index: 30; display: none; align-items: center; gap: .75rem; padding: .75rem 1.5rem .625rem 1.25rem; background: color-mix(in srgb, var(--canvas) 86%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-@media (min-width: 768px) { :global(.admin-root) .topnav { display: flex; } }
-:global(.admin-root) .logo { display: flex; align-items: center; margin-right: .25rem; }
-:global(.admin-root) .pills { display: flex; align-items: center; gap: .125rem; padding: .25rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-pill); box-shadow: var(--shadow-rest); }
-:global(.admin-root) .pill { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.5rem; padding: 0 .875rem; border-radius: var(--radius-pill); color: var(--foreground); font-size: var(--admin-text-interfaz); font-weight: 540; text-decoration: none; white-space: nowrap; }
-:global(.admin-root) .pill:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
-:global(.admin-root) .pill[aria-current=page] { background: #061f3f; color: #fff; }
-:global(.dark) :global(.admin-root) .pill[aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); }
-:global(.admin-root) .pill[aria-current=page] .count { background: #fff; color: #061f3f; }
-@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .pill { transition: background-color 120ms; } }
-/* Con menos ancho, las píldoras conservan el ícono y el nombre queda para el lector de pantalla. */
-/* Con Trámites en la barra (14/11/2026) los nombres caben desde 1366 px; debajo quedan los íconos con su nombre accesible. */
-@media (max-width: 1365px) {
-  :global(.admin-root) .pill { padding: 0 .75rem; }
-  :global(.admin-root) .pillLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-}
-:global(.admin-root) .space { flex: 1; }
-@media (max-width: 1023px) { :global(.admin-root) .topnav { gap: .5rem; padding-inline: 1rem; } }
-:global(.admin-root) .count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.375rem; height: 1.375rem; padding: 0 .4375rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: var(--admin-text-minimo); font-weight: 600; }
-/* «+ Nuevo» es secundario (blanco con borde) para que cada pantalla conserve un solo guinda (C44). */
-:global(.admin-root) .newButton { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem 0 .875rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-size: var(--admin-text-interfaz); font-weight: 540; cursor: pointer; white-space: nowrap; }
+/* Menú lateral (computadora). Entre 768 y 1279 px queda en íconos; el nombre sigue para el lector de pantalla. */
+:global(.admin-root) .side { position: sticky; top: 0; z-index: 30; display: none; flex: none; flex-direction: column; gap: .875rem; width: 15.5rem; height: 100dvh; padding: 1.25rem .75rem 1rem; border-right: 1px solid var(--border); background: var(--canvas); overflow-y: auto; overscroll-behavior: contain; }
+@media (min-width: 768px) { :global(.admin-root) .side { display: flex; } }
+:global(.admin-root) .logo { display: flex; align-items: center; min-height: 2.75rem; padding: 0 .625rem; }
+:global(.admin-root) .logoFull { height: 1.625rem; width: 7rem; }
+:global(.admin-root) .logoCompact { display: none; height: 2.25rem; width: 2.25rem; margin-inline: auto; }
+:global(.admin-root) .sideTools { display: flex; flex-direction: column; gap: .5rem; }
+:global(.admin-root) .navlist { display: flex; flex-direction: column; gap: .125rem; }
+:global(.admin-root) .navi { display: flex; align-items: center; gap: .75rem; min-height: 2.75rem; padding: 0 .75rem; border-radius: var(--radius-control); color: var(--muted-foreground); font-size: var(--admin-text-interfaz); font-weight: 540; text-decoration: none; white-space: nowrap; }
+:global(.admin-root) .navi svg { flex: none; }
+:global(.admin-root) .naviLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+:global(.admin-root) .navi:hover { background: var(--secondary); color: var(--foreground); }
+:global(.admin-root) .navi[aria-current=page] { background: var(--panel-selected); color: var(--panel-selected-ink); }
+@media (prefers-reduced-motion: no-preference) { :global(.admin-root) .navi { transition: background-color 120ms, color 120ms; } }
+:global(.admin-root) .navsep { display: block; height: 1px; margin: .5rem .75rem; background: var(--border); }
+:global(.admin-root) .sideFoot { margin-top: auto; display: flex; align-items: center; gap: .25rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+:global(.admin-root) .sideFoot > :last-child { flex: 1; min-width: 0; }
+/* El contador de Hoy: cifra en rojo de aviso, sin pastilla (el color solo avisa). */
+:global(.admin-root) .count { flex: none; font-size: var(--admin-text-pastilla); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--alert); }
+/* Buscador ancho con su atajo */
+:global(.admin-root) .searchField { display: flex; align-items: center; gap: .625rem; width: 100%; min-height: 2.5rem; padding: 0 .75rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-control); background: var(--card); color: var(--muted-foreground); font: inherit; font-size: var(--admin-text-detalle); cursor: pointer; }
+:global(.admin-root) .searchField:hover { border-color: var(--control-edge); }
+:global(.admin-root) .searchFieldText { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:global(.admin-root) .searchKey { flex: none; padding: 0 .3125rem; border: 1px solid var(--border); border-radius: 5px; font: inherit; font-size: var(--admin-text-minimo); line-height: 1.5; }
+/* «+ Nuevo» es secundario (blanco con borde) para que cada pantalla conserve un solo borgoña (C44). */
+:global(.admin-root) .newButton { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .75rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-control); background: var(--card); color: var(--foreground); font: inherit; font-size: var(--admin-text-interfaz); font-weight: 540; cursor: pointer; white-space: nowrap; text-align: left; }
 :global(.admin-root) .newButton:hover { background: var(--secondary); }
-:global(.dark) :global(.admin-root) .newButton { border-color: var(--edge-soft); }
-:global(.admin-root) .account { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: var(--radius-pill); background: none; cursor: pointer; }
+:global(.admin-root) .account { display: flex; align-items: center; gap: .625rem; width: 100%; min-height: 2.75rem; padding: .25rem .5rem; border: 0; border-radius: var(--radius-control); background: none; color: var(--foreground); font: inherit; text-align: left; cursor: pointer; }
+:global(.admin-root) .account:hover { background: var(--secondary); }
+:global(.admin-root) .accountText { display: flex; flex-direction: column; min-width: 0; font-size: var(--admin-text-detalle); line-height: 1.3; }
+:global(.admin-root) .accountRole { font-size: var(--admin-text-pastilla); color: var(--muted-foreground); }
 :global(.admin-root) .menuWrap { position: relative; }
-:global(.admin-root) .pop { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 40; min-width: 15rem; display: flex; flex-direction: column; gap: .125rem; padding: .375rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-lift); transform-origin: top right; }
+:global(.admin-root) .pop { position: absolute; left: 0; top: calc(100% + .5rem); z-index: 40; min-width: 15rem; display: flex; flex-direction: column; gap: .125rem; padding: .375rem; background: var(--card); border: 1px solid var(--card-edge); border-radius: var(--radius-card); box-shadow: var(--shadow-lift); transform-origin: top left; }
+/* La cuenta abre hacia arriba, desde el pie del menú lateral. */
+:global(.admin-root) .popAccount { top: auto; bottom: calc(100% + .5rem); transform-origin: bottom left; }
+@media (min-width: 768px) and (max-width: 1279px) {
+  :global(.admin-root) .side { width: 4.75rem; align-items: center; padding-inline: .625rem; }
+  :global(.admin-root) .logo { padding: 0; }
+  :global(.admin-root) .logoFull { display: none; }
+  :global(.admin-root) .logoCompact { display: block; }
+  :global(.admin-root) .sideTools, :global(.admin-root) .navlist { width: 100%; align-items: center; }
+  :global(.admin-root) .navi, :global(.admin-root) .newButton, :global(.admin-root) .searchField { justify-content: center; width: 2.75rem; padding: 0; }
+  :global(.admin-root) .naviLabel, :global(.admin-root) .searchFieldText, :global(.admin-root) .searchKey, :global(.admin-root) .accountText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :global(.admin-root) .navi { position: relative; }
+  :global(.admin-root) .navi .count { position: absolute; top: .125rem; right: .125rem; font-size: var(--admin-text-minimo); }
+  :global(.admin-root) .navsep { width: 2rem; margin-inline: auto; }
+  :global(.admin-root) .sideFoot { flex-direction: column; width: 100%; }
+  :global(.admin-root) .account { justify-content: center; width: 2.75rem; padding: 0; }
+}
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .pop { animation: popDown 160ms var(--ease-out); } }
 /* SIM-17: el «+» del celular abre «+ Nuevo» hacia arriba, centrado sobre la barra. */
 :global(.admin-root) .popUp { top: auto; bottom: calc(100% + .75rem); right: 50%; transform: translateX(50%); transform-origin: bottom center; }
@@ -45,11 +66,10 @@
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .chevron { transition: transform 150ms var(--ease-out); } :global(.admin-root) .link { transition: background-color 120ms; } }
 :global(.admin-root) .chevronOpen { transform: rotate(180deg); }
 
-/* Buscador: en la barra superior es un botón redondo blanco; en celular, un ícono. */
+/* Buscador: en el menú lateral es un campo ancho (searchField); en celular, un ícono. */
 :global(.admin-root) .searchIcon { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border: 0; border-radius: var(--radius-pill); background: none; color: var(--foreground); cursor: pointer; }
 :global(.admin-root) .searchIcon:hover { background: var(--secondary); }
-:global(.admin-root) .topnav .searchIcon { background: var(--card); border: 1px solid var(--card-edge); box-shadow: var(--shadow-rest); }
-:global(.admin-root) .topnav .searchIcon:hover { background: var(--secondary); }
+:global(.admin-root) .side .searchIcon { width: 2.75rem; }
 
 /* Ventana de búsqueda */
 :global(.admin-root) .palette { position: fixed; inset: 0; margin: auto; width: min(640px, calc(100% - 2rem)); max-height: min(80dvh, 640px); padding: 0; border: 1px solid var(--card-edge); border-radius: var(--radius-panel); background: var(--card); color: var(--foreground); box-shadow: var(--shadow-raised); overflow: hidden; display: flex; flex-direction: column; }
@@ -88,7 +108,7 @@
 :global(.admin-root) .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem; min-height: 3.5rem; border: 0; border-radius: var(--radius-thumb); background: none; color: var(--muted-foreground); font-size: var(--admin-text-minimo); font-weight: 540; text-decoration: none; cursor: pointer; }
 :global(.admin-root) .tab[aria-current=page], :global(.admin-root) .tab[aria-expanded=true] { color: var(--foreground); }
 :global(.dark) :global(.admin-root) .tab[aria-current=page], :global(.dark) :global(.admin-root) .tab[aria-expanded=true] { color: var(--panel-selected-ink); }
-:global(.admin-root) .tabCount { position: absolute; top: -.375rem; left: .875rem; min-width: 1.125rem; height: 1.125rem; padding: 0 .25rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: var(--admin-text-minimo); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+:global(.admin-root) .tabCount { position: absolute; top: -.375rem; left: .875rem; min-width: 1.125rem; height: 1.125rem; padding: 0 .25rem; border-radius: var(--radius-pill); background: var(--alert); color: var(--card); font-size: var(--admin-text-minimo); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
 :global(.admin-root) .plus { justify-self: center; width: 3.25rem; height: 3.25rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 18px; background: var(--primary); border: 1px solid var(--primary-edge); color: #fff; box-shadow: var(--shadow-cta); }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .plus { transition: transform 160ms var(--ease-out); } :global(.admin-root) .plus:active { transform: scale(.95); } }
 
