@@ -36,6 +36,11 @@ function Editor({ post: source, onDone, onDirty }: { post?: Post; onDone: () => 
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    // C-68: la dirección repetida se avisa antes de guardar (el servidor solo diría que el registro cambió).
+    const slug = post?.slug ?? String(data.get("slug") ?? "").trim();
+    if (!post && db.posts.list().some(p => p.slug === slug)) {
+      throw new Error(`Ya hay una entrada con la dirección «${slug}». Cambia la dirección en la web.`);
+    }
     await upsert(
       db.posts,
       {
