@@ -3,6 +3,7 @@ import { COMPARABLES_HREF } from "@/lib/apps/catalog";
 import { checklistCompleto } from "@/lib/formatos/checklist-documentos";
 import { appraisalState, emptyWorkflow, exceptionKeys, isOwnerRoute, ownerProcess, verificationRequirements, nextWorkflowStage, phaseRequirements, processPhase, requiredReviews, requirementPhase, reviewComplete, stageLabel, verificationComplete, workflowBlockers, WORKFLOW_REQUIREMENTS, WORKFLOW_STATES, WORKFLOW_STAGES, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type SalePhase, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { requirementName, shortDate } from "@/lib/admin/today";
+import { calendarDayOf } from "@/lib/admin/operational-date";
 import { isLawyerTask, type PropertyCondition } from "@/lib/intake/condition";
 
 /*
@@ -162,7 +163,7 @@ export function attentionOf(op: AttentionInput, tasks: Task[], today: string, ga
 /** Una oferta registrada en los últimos 3 días para esta operación. */
 export function recentOfferOf(operationId: string, offers: ReadonlyArray<{ updatedAt: string; context?: { expedienteId?: string } }> | null | undefined, today: string) {
   const from = shiftDay(today, -3);
-  return offers?.filter(o => o.context?.expedienteId === operationId && o.updatedAt.slice(0, 10) >= from).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+  return offers?.filter(o => o.context?.expedienteId === operationId && calendarDayOf(o.updatedAt) >= from).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
 }
 function shiftDay(date: string, days: number) { const d = new Date(date.slice(0, 10) + "T12:00:00.000Z"); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); }
 

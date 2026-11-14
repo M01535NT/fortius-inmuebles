@@ -16,7 +16,7 @@ import { PAPELERA } from "./textos";
   inmuebles, artículos, notas y citas vuelven por la restauración del historial, sin publicar.
   Las operaciones las ve quien tiene acceso a ellas; lo demás, solo el director (como en Historial).
 */
-type Entry = { id: string; collection: string; record_id: string; created_at: string; actor_id: string | null; nombre?: string | null; titulo?: string | null };
+type Entry = { id: string; collection: string; record_id: string; created_at: string; actor_id: string | null; titulo?: string | null; nombre?: string | null };
 const KIND: Record<string, string> = { propiedades: "Inmueble", posts: "Artículo del blog", notas: "Nota", eventos: "Cita", leads: "Prospecto", clientes: "Cliente" };
 const row = "flex flex-wrap items-center justify-between gap-3 px-5 py-4 [&+&]:border-t [&+&]:border-border";
 
@@ -79,11 +79,10 @@ function Registros() {
     return () => { active = false; };
   }, [admin, offset, revision]);
 
-  const nameOf = (entry: Entry) => entry.collection === "propiedades" ? propiedades.find(p => p.slug === entry.record_id)?.titulo
+  // C-81: lo borrado ya no está en las listas; el título guardado en el historial lo nombra.
+  const nameOf = (entry: Entry) => (entry.collection === "propiedades" ? propiedades.find(p => p.slug === entry.record_id)?.titulo
     : entry.collection === "notas" ? notas.find(n => n.id === entry.record_id)?.titulo
-    : entry.collection === "eventos" ? eventos.find(e => e.id === entry.record_id)?.titulo
-    // El nombre guardado al eliminar (contactos y lo demás que ya no está en la lista).
-    : entry.nombre || entry.titulo || undefined;
+    : entry.collection === "eventos" ? eventos.find(e => e.id === entry.record_id)?.titulo : undefined) ?? (entry.titulo || entry.nombre || undefined);
 
   async function restaurar(entry: Entry) {
     if (!await confirmAction(`${nameOf(entry) ?? "El registro"} vuelve a su lugar; lo que estaba publicado vuelve sin publicar.`, { title: `${PAPELERA.restaurar} ${(KIND[entry.collection] ?? "registro").toLowerCase()}`, confirmLabel: PAPELERA.restaurar })) return;

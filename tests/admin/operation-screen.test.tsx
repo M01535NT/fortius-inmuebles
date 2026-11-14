@@ -676,3 +676,42 @@ it("Expediente: al abrir la ventana de captura el foco queda dentro del diálogo
   const capture = await screen.findByRole("dialog", { name: "Recibo de pago de honorarios" });
   await waitFor(() => expect(capture.contains(document.activeElement)).toBe(true));
 });
+
+it("M-04: el director pasa operaciones a otro asesor con motivo; la que se movió junto con otra cuenta como hecha", async () => {
+  server.ops = [base(), base({ id: ID2, folio: "EXP-2026-042", cliente_id: "c1" })];
+  const calls: Array<{ url: string; body: Record<string, unknown> }> = [];
+  server.fail = (url, init) => {
+    if (!url.endsWith("/reasignar")) return undefined;
+    calls.push({ url, body: JSON.parse(String(init?.body)) });
+    return Response.json({ movidas: [ID, ID2] });
+  };
+  render(<OperationsBoard />);
+  await screen.findAllByRole("link", { name: /Familia Castañeda Ortiz/ });
+  fireEvent.click(screen.getByRole("button", { name: /Seleccionar/ }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Seleccionar: Familia Castañeda Ortiz · EXP-2026-041" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Seleccionar: Familia Castañeda Ortiz · EXP-2026-042" }));
+  fireEvent.change(screen.getByRole("combobox", { name: "Pasar a…" }), { target: { value: "a2" } });
+  fireEvent.change(screen.getByLabelText("Motivo de la reasignación"), { target: { value: "corto" } });
+  fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
+  expect((await screen.findByRole("alert")).textContent).toContain("al menos 10 caracteres");
+  expect(calls).toHaveLength(0);
+  fireEvent.change(screen.getByLabelText("Motivo de la reasignación"), { target: { value: "Mariana sale de vacaciones" } });
+  fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
+  expect(await screen.findByText("Se reasignaron 2 de 2.")).toBeTruthy();
+  // Una sola llamada: la segunda operación del mismo inmueble pasó junto con la primera.
+  expect(calls).toEqual([{ url: `/api/admin/expedientes/${ID}/reasignar`, body: { asesorId: "a2", motivo: "Mariana sale de vacaciones" } }]);
+});
+
+it("M-04: si el cliente tiene otra operación abierta, se dice cuál y se puede reintentar", async () => {
+  server.ops = [base()];
+  server.fail = url => url.endsWith("/reasignar") ? Response.json({ error: "El cliente tiene otras operaciones abiertas (EXP-2026-050); reasígnalas primero o juntas" }, { status: 409 }) : undefined;
+  render(<OperationsBoard />);
+  await screen.findByRole("link", { name: /Familia Castañeda Ortiz/ });
+  fireEvent.click(screen.getByRole("button", { name: /Seleccionar/ }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Seleccionar: Familia Castañeda Ortiz · EXP-2026-041" }));
+  fireEvent.change(screen.getByRole("combobox", { name: "Pasar a…" }), { target: { value: "a2" } });
+  fireEvent.change(screen.getByLabelText("Motivo de la reasignación"), { target: { value: "Cambio de zona del asesor" } });
+  fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
+  expect(await screen.findByText(/El cliente tiene otras operaciones abiertas \(EXP-2026-050\)/)).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Reintentar la que falló" })).toBeTruthy();
+});

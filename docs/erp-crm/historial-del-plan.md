@@ -1351,3 +1351,7 @@ Después del PR #74 (commit `ff2e09c`) se comprobó en el código de `main` que 
 |---|---|---|
 | BAS-01 | Correcciones de fundamentos integradas y verificadas en su commit; preparación local comprobada. | Aceptación de negocio del alcance. |
 | CI-01 | Checks Vercel y pruebas de bloqueo/paso a verde documentados. El 17/10/2026 se creó en GitHub la regla «main exige verify» (el check Verify debe aprobarse antes de fusionar) y se activó el auto-merge del repositorio. Comprobada el 25/10/2026: el PR #50 quedó bloqueado mientras Verify fallaba y se integró al aprobarse; el titular decidió conservarla. Desde el 25/10 el agente solo activa auto-merge cuando el titular aprueba publicar (I-04 en `AGENTS.md`). | Rollback de aplicación. |
+
+Viñeta retirada de los pendientes del plan el 13/11/2026, cuando el titular aprobó el PDF del 07:
+
+- **Formato 07:** diseño del cuerpo del PDF igual a la plantilla y fotografías dentro del Excel (portada, croquis y las ocho del reporte). Por confirmar con el titular si la captura sobre el documento (EXT-12) ya lo resolvió.

@@ -43,6 +43,8 @@ describe("lista de documentos revisable", () => {
 
   it("el organismo del agua sale del municipio del domicilio", () => {
     expect(["Calle 1, Tijuana", "Playas de Rosarito", "ENSENADA", "Tecate, B.C.", "Mexicali"].map(municipioDe)).toEqual(["tijuana", "rosarito", "ensenada", "tecate", undefined]);
+    // C-92 (Calidad): la vía nombra otros municipios; cuenta el del final del domicilio.
+    expect(["Carretera Escénica Tijuana-Ensenada km 19.5, Tijuana, B.C.", "Blvd. Tijuana-Tecate 100, Tijuana", "Carretera Tijuana-Ensenada km 100, Ensenada, B.C.", "Carretera Libre Tijuana-Rosarito km 30, Playas de Rosarito"].map(municipioDe)).toEqual(["tijuana", "tijuana", "ensenada", "rosarito"]);
     expect(checklistFor({ tipoInmueble: "casa", inmueble: "Av. Juárez, Tecate" }).find(i => i.id === "D07")?.texto).toContain("CESPTE");
     expect(checklistFor({ tipoInmueble: "casa" }).find(i => i.id === "D07")?.texto).toContain("según el municipio");
   });

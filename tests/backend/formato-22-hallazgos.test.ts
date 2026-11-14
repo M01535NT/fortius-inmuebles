@@ -18,7 +18,7 @@ it("alguna etapa de la renta del propietario ofrece la solicitud de arrendamient
 
 /*
   BUG-C29: con la captura sobre el documento, un dato se llena pulsando su zona. Para un pensionado
-  (o con referencias 3 a medias) hay campos visibles que no salen en ninguna zona del documento: la
+  hay campos visibles que no salen en ninguna zona del documento: la
   «Antigüedad en el empleo o actividad» es obligatoria, pero el documento solo la imprime para el
   empleado y el negocio. El asesor ve «falta Antigüedad» sin dónde llenarla, y lo capturado no se imprime.
 */
@@ -36,5 +36,3 @@ it("cada campo obligatorio que se muestra a un pensionado tiene dónde capturars
   const sinZona = formatoById("22").fields.filter(f => f.required && mostrarCampoSolicitud(f.key, pensionado) && !enDocumento.has(f.key)).map(f => f.label);
   expect(sinZona).toEqual([]);
 });
-
-// La tercera referencia ya no existe: el 22 pide solo dos (94dc9c9 de Formatos), así que su prueba se retiró.

@@ -7,6 +7,7 @@ import { AsyncForm, Field, inputClass, selectClass, textareaClass } from "@/comp
 import { apiRequest, db, uid, useCollection } from "@/lib/admin/store";
 import { LinkPicker, type LinkValue } from "@/components/admin/workspace/link-picker";
 import { useLeaveGuard } from "@/components/admin/operation/use-operation";
+import { useUnsavedDraft } from "@/components/admin/workspace/draft-registry";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, TASK_TEMPLATES, taskSchema, taskExpedienteContext, type Task, type TaskExpediente } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 import s from "./form.module.css";
@@ -25,6 +26,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
   // C-08: lo capturado sin guardar no se pierde al cerrar, recargar o salir por un enlace.
   const [dirty, setDirty] = React.useState(false);
   useLeaveGuard(dirty, "Esta tarea tiene cambios sin guardar. ¿Descartarlos y salir?");
+  useUnsavedDraft(dirty);
   const asesores = useCollection(db.asesores);
   const leads = useCollection(db.leads);
   const clientes = useCollection(db.clientes);
@@ -133,7 +135,7 @@ export function TaskForm({ initial, defaults, onSave }: { initial?: Task; defaul
       <div className={s.grid}>
         <Field label="Título" htmlFor="task-title" className={s.span2}><input id="task-title" required maxLength={160} className={inputClass} value={draft.titulo} onChange={(e) => change("titulo", e.target.value)} /></Field>
         <Field label="Fecha límite (opcional)" htmlFor="task-due"><input id="task-due" type="date" className={inputClass} value={draft.vence ?? ""} onChange={(e) => change("vence", e.target.value || undefined)} /></Field>
-        <Field label="Responsable" htmlFor="task-advisor" hint={draft.expedienteId ? "Lo pone la operación." : undefined}><select disabled={!!draft.expedienteId} id="task-advisor" className={selectClass} value={draft.asesorId ?? ""} onChange={(e) => change("asesorId", e.target.value || undefined)}><option value="">Sin asignar</option>{draft.asesorId && !asesores.some((a) => a.id === draft.asesorId) && <option value={draft.asesorId}>Responsable no disponible</option>}{asesores.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
+        <Field label="Responsable" htmlFor="task-advisor" hint={draft.expedienteId ? "Lo pone la operación." : undefined}><select disabled={!!draft.expedienteId} id="task-advisor" className={selectClass} value={draft.asesorId ?? ""} onChange={(e) => change("asesorId", e.target.value || undefined)}><option value="">Sin asignar</option>{draft.asesorId && !asesores.some((a) => a.id === draft.asesorId) && <option value={draft.asesorId}>Responsable no disponible</option>}{asesores.filter((a) => a.activo || a.id === draft.asesorId).map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}</select></Field>
         <div className={s.span2}>{picker}</div>
       </div>
     </section>

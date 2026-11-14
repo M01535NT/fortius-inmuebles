@@ -3,7 +3,7 @@ import * as React from "react";
 import { Button, Card, Pill } from "@/components/admin/kit";
 import { selectClass } from "@/components/admin/ui";
 import { db, upsertPropiedad, useCollection } from "@/lib/admin/store";
-import { commissionSplit, type OperationClose, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
+import { captorOf, commissionSplit, type OperationClose, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { calcularIntermediacion } from "@/lib/formatos/intermediacion";
 import { calcularIntermediacionRenta } from "@/lib/formatos/intermediacion-renta";
 import { flowOf, type OperationRecord } from "@/lib/admin/operation-view";
@@ -27,7 +27,8 @@ export function CloseCard({ op, intermediacion, disabled, onSave, className }: {
   const flow = flowOf(op), cierre = flow.cierre;
   const property = properties.find(p => p.slug === op.propiedad_slug);
   const rent = op.operacion === "renta" || flow.ruta === "arrendador";
-  const [capto, setCapto] = React.useState(cierre?.capto ?? op.asesor_id);
+  // M-04: tras una reasignación, «captó» sigue siendo el asesor de antes (flujo.captadoPor).
+  const [capto, setCapto] = React.useState(cierre?.capto ?? captorOf(op));
   const [vendio, setVendio] = React.useState(cierre?.vendio ?? op.asesor_id);
   const [keep, setKeep] = React.useState(true);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");

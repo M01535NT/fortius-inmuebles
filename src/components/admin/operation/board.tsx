@@ -7,9 +7,10 @@ import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, IconTile, Pill, P
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
 import { usePanelPreference } from "@/components/admin/workspace/preferences-store";
-import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
+import { AdminApiError, apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
+import { BulkBar, SelectBox, SelectToggle, useSelection, type BulkAction, type Selection } from "@/components/admin/workspace/bulk";
 import { operationalDate } from "@/lib/admin/operational-date";
-import { RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
+import { captorOf, RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
 import { attentionOf, boardCard, recentOfferOf, dueLabel, flowOf, initialStatus, operationTags, pastGaps, stageTrack, type Attention, type OperationRecord } from "@/lib/admin/operation-view";
 import { useConditions } from "@/lib/admin/conditions";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
@@ -116,6 +117,41 @@ export function OperationsBoard() {
   const waiting = inGroup.filter(row => row.attention).sort((a, b) => a.attention!.rank - b.attention!.rank || byDate(a, b));
   const fine = inGroup.filter(row => !row.attention).sort(byDate);
 
+  // M-04: el director pasa operaciones a otro asesor desde la lista, una llamada por operación. La base
+  // mueve juntas las operaciones abiertas del mismo inmueble; si una ya pasó con otra, cuenta como hecha.
+  const listed = admin && view !== "tablero" ? [...waiting, ...fine] : [];
+  const selection = useSelection(listed.map(row => row.op.id));
+  const movedAlong = React.useRef(new Map<string, string>());
+  const refreshTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  function refreshSoon() {
+    clearTimeout(refreshTimer.current);
+    refreshTimer.current = setTimeout(() => { void loadAllDossiers<OperationRecord>().then(list => setRecords(list.filter(item => !item.deleted_at))).catch(() => {}); }, 400);
+  }
+  async function reassign(id: string, asesorId: string, motivo: string): Promise<"aplicado" | "sin-cambio"> {
+    if (movedAlong.current.get(id) === asesorId) return "aplicado";
+    const op = (records ?? []).find(item => item.id === id);
+    if (!op) throw new Error("Ya no aparece en Operaciones.");
+    if (op.asesor_id === asesorId) return "sin-cambio";
+    try {
+      const { movidas } = await apiRequest<{ movidas: string[] }>(`/api/admin/expedientes/${id}/reasignar`, "POST", { asesorId, motivo });
+      const moved = new Set([id, ...movidas]);
+      moved.forEach(item => movedAlong.current.set(item, asesorId));
+      setRecords(items => items?.map(item => moved.has(item.id) ? { ...item, asesor_id: asesorId, flujo: item.flujo ? { ...item.flujo, captadoPor: captorOf(item) } : item.flujo } : item));
+      refreshSoon();
+      return "aplicado";
+    } catch (cause) {
+      if (cause instanceof AdminApiError && cause.status === 400 && cause.message === "La operación ya es de ese asesor") return "sin-cambio";
+      // El 409 de la base explica qué otras operaciones del cliente siguen abiertas; se muestra tal cual.
+      if (cause instanceof AdminApiError && cause.status === 409) throw new Error(cause.message);
+      throw cause;
+    }
+  }
+  const bulkActions: BulkAction[] = [{
+    id: "asesor", label: "Pasar a…", verb: "Se reasignaron", apply: reassign,
+    options: advisers.filter(a => a.activo).map(a => ({ value: a.id, label: a.nombre })),
+    note: { label: "Motivo de la reasignación", min: 10, max: 1000, placeholder: "Motivo (queda en la nota de la operación)" },
+  }];
+
   function chooseStage(label: string) {
     const next = new URLSearchParams(params.toString()); next.delete("fase");
     const slug = [...SALE_PROCESS, ...RENT_PROCESS].find(p => p.label === label)?.slug;
@@ -158,11 +194,13 @@ export function OperationsBoard() {
             {[...stagesOf(active), ...(stageFilter !== "todas" && !active.some(row => row.stage === stageFilter) ? [{ label: stageFilter, n: 0 }] : [])].map(stage => <button key={stage.label} type="button" className={s.filter} aria-pressed={stageFilter === stage.label} onClick={() => chooseStage(stage.label)}>{stage.label}<span className={s.count}>{active.filter(row => row.stage === stage.label).length}</span></button>)}
           </div>
           <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar operación</span><input className={inputClass} placeholder="Nombre, folio o inmueble" value={query} onChange={e => setQuery(e.target.value)} /></label>
+          {listed.length > 0 && <SelectToggle selection={selection} noun="operaciones" />}
         </div>
         {view === "tablero" ? <PhaseBoard rows={inGroup} today={today} />
           : <>
-            <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} empty="Nada pendiente por ahora." />
-            <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} />
+            <OperationGroup id="esperan" title="Esperan algo de ti" rows={waiting} today={today} selection={selection} empty="Nada pendiente por ahora." />
+            <OperationGroup id="al-dia" title="Al día" rows={fine} today={today} selection={selection} empty={waiting.length ? "Todas las operaciones de esta vista esperan algo de ti." : "Sin operaciones en esta etapa."} />
+            {admin && <BulkBar selection={selection} targets={listed.map(row => ({ id: row.op.id, label: `${row.who} · ${row.op.folio}` }))} actions={bulkActions} noun={{ one: "operación seleccionada", many: "operaciones seleccionadas", empty: "Elige operaciones en la lista" }} />}
           </>}
         {visible.length === 0 && records.length > 0 && <p className="mt-4 text-sm text-muted-foreground">Ninguna operación coincide. Borra la búsqueda o cambia el filtro.</p>}
         {archived.length > 0 && <details className={s.archived}><summary>Archivadas ({archived.length})</summary><ul className="mt-2 flex flex-col gap-1">{archived.map(row => <li key={row.op.id}><Link href={row.href} className={s.archivedLink}>{row.who} <span className="tabular-nums text-xs text-muted-foreground">{row.op.folio}</span></Link></li>)}</ul></details>}
@@ -189,11 +227,23 @@ function DuePill({ date, late, today }: { date?: string; late: boolean; today: s
   return <Pill tone={late ? "alert" : date === today ? "brand" : "muted"}>{dueLabel(date, today)}</Pill>;
 }
 
-function OperationGroup({ id, title, rows, today, empty }: { id: string; title: string; rows: Row[]; today: string; empty: string }) {
+function OperationGroup({ id, title, rows, today, empty, selection }: { id: string; title: string; rows: Row[]; today: string; empty: string; selection: Selection }) {
   return <section aria-labelledby={`grupo-${id}`} className="mb-6 flex flex-col gap-3">
     <h2 id={`grupo-${id}`} className={s.groupTitle}>{title}<Pill tone={id === "esperan" && rows.length ? "alert" : "muted"} size="sm">{rows.length}</Pill></h2>
     {rows.length ? <Card as="div" className={s.list}>
-      <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
+      <ul className="m-0 list-none p-0">{rows.map(row => selection.on
+        ? <li key={row.op.id} className={`${s.rowItem} flex items-center pl-1 sm:pl-3${selection.selected.has(row.op.id) ? " bg-muted" : ""}`}><SelectBox selection={selection} id={row.op.id} label={`${row.who} · ${row.op.folio}`} />
+            <div className={`${s.row} min-w-0 flex-1 cursor-pointer`} onClick={() => selection.toggle(row.op.id)}><RowBody row={row} today={today} selecting /></div></li>
+        : <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
+        <RowBody row={row} today={today} />
+      </Link></li>)}</ul>
+    </Card> : <p className="px-1 text-sm text-muted-foreground">{empty}</p>}
+  </section>;
+}
+
+/** Contenido de una fila de la lista: el mismo con enlace o en modo de selección. */
+function RowBody({ row, today, selecting }: { row: Row; today: string; selecting?: boolean }) {
+  return <>
         <span className={s.who}><Thumb src={row.photo} size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
         <span className="flex min-w-0 flex-col gap-1.5">
           <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}><IconTile icon={row.icon} size={28} />{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>
@@ -201,10 +251,8 @@ function OperationGroup({ id, title, rows, today, empty }: { id: string; title: 
         </span>
         <span className="min-w-0 text-[0.9375rem] text-muted-foreground [overflow-wrap:anywhere]"><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
         <DuePill date={row.date} late={row.late} today={today} />
-        <ChevronRight size={18} aria-hidden="true" className={s.chevron} />
-      </Link></li>)}</ul>
-    </Card> : <p className="px-1 text-sm text-muted-foreground">{empty}</p>}
-  </section>;
+        {!selecting && <ChevronRight size={18} aria-hidden="true" className={s.chevron} />}
+  </>;
 }
 
 /** Tablero: una columna por etapa presente; cada tarjeta lleva la foto, lo que sigue, su fecha y el responsable. */

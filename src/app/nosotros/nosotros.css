@@ -10,8 +10,6 @@
 /* Portada */
 .ab-hero { position: relative; overflow: hidden; background: var(--ns-bg); color: var(--ns-ink); }
 .ab-portrait-card, .ab-purpose-card-accent, .ab-value:hover { --ns-accent: #f8f8ff; }
-.ab-hero::before { display: none; content: ""; position: absolute; inset: auto -10% -40% 30%; height: 70%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.45), transparent 70%); pointer-events: none; }
-.dark .ab-hero::before { display: block; }
 .ab-hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: end; gap: clamp(32px, 5vw, 64px); padding-top: clamp(48px, 7vw, 96px); }
 .ab-hero-copy { padding-bottom: clamp(48px, 7vw, 96px); }
 .ab-hero-title { max-width: 12ch; margin: 0; font-size: var(--type-titulo); line-height: var(--leading-titulo); font-weight: 700; letter-spacing: var(--tracking-titulo); text-wrap: balance; }

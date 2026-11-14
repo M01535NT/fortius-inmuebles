@@ -103,8 +103,11 @@ function LeadDetail({ id }: { id: string }) {
     const form = event.currentTarget;
     const texto = String(new FormData(form).get("nota") ?? "").trim();
     if (!texto) return;
-    const base = noteDraft?.lead ?? lead;
-    await upsert(db.leads, { ...base, notas: [{ id: uid(), texto, fecha: new Date().toISOString() }, ...base.notas] }, noteDraft ? noteDraft.version : db.leads.version(base));
+    // C-64: la nota se agrega sobre el prospecto vigente (otro guardado de la ficha pudo cambiarlo); la copia
+    // del borrador solo se usa si el prospecto ya no está en la lista.
+    const current = db.leads.list().find(l => l.id === lead.id);
+    const base = current ?? noteDraft?.lead ?? lead;
+    await upsert(db.leads, { ...base, notas: [{ id: uid(), texto, fecha: new Date().toISOString() }, ...base.notas] }, current ? db.leads.version(current) : noteDraft ? noteDraft.version : db.leads.version(base));
     form.reset(); setNoteDraft(null); setNoteDirty(false);
   }
   async function agendar(event: React.FormEvent<HTMLFormElement>) {

@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "@/components/admin/icons";
 import { loadWorkspace, workspaceStores } from "@/lib/admin/workspace-loading";
 import { WorkspaceSearch } from "@/components/admin/workspace/search";
 import { ADMIN_NAV, isNavActive, MobileHeader, MobileMenu, MobileTabBar, TopNav } from "@/components/admin/workspace/guided-nav";
+import { PAPELERA } from "@/components/admin/papelera/textos";
 import { Tour } from "@/components/admin/workspace/tour";
 import {
   AsyncForm,
@@ -378,7 +379,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   // Nueva operación ocupa toda la pantalla: sin menú, migas ni barra inferior; se sale con la ×.
   const focus = pathname === "/admin/operaciones/nueva";
   // COR-23: Equipo, Sitio web, Reportes, Historial y Configuración son del director (la base lo hace valer).
-  const directorOnly = session.role !== "admin" && ADMIN_NAV.some(item => isNavActive(pathname, item));
+  // C-80: Eliminados está en el menú del director, pero el asesor la abre para restaurar sus operaciones.
+  const directorOnly = session.role !== "admin" && ADMIN_NAV.some(item => item.href !== PAPELERA.href && isNavActive(pathname, item));
   return (
     <div className="admin-workspace flex min-h-[100dvh] flex-col bg-background [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11">
       {!focus && <TopNav pathname={pathname} role={session.role} user={user} onLogout={leave} search={<WorkspaceSearch hotkey />} />}

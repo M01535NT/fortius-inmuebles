@@ -216,7 +216,7 @@ function TodayBlock({ tasks, agenda, today, nextEvent, names, leads, photo }: {
       const completing = isTaskOpen(task);
       const saved = await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
       // RP-16: completar se deshace con un toque; el aviso sale cuando el servidor ya lo guardó.
-      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)) });
+      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => { setAsk(null); return upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)); } }); // C-71: deshacer también retira «¿Qué sigue?»
       else setMessage("Guardado");
       // DEC-42: completar el siguiente paso de una persona pide el que sigue.
       if (completing) setAsk(askNextAfter(task, allTasks));

@@ -74,8 +74,8 @@
 .nx-exp-chip { padding: var(--space-junto) var(--space-cerca); border-radius: var(--corner-pastilla); background: color-mix(in srgb, var(--ns-accent) 10%, transparent); color: var(--ns-accent); font-size: var(--type-etiqueta); font-weight: 600; font-variant-numeric: tabular-nums; }
 .nx-exp-list { padding: 0 0 var(--space-corto); }
 .nx-method { position: relative; isolation: isolate; margin-top: var(--space-seccion); padding-block: var(--space-seccion); overflow: clip; background: var(--ns-bg); scroll-margin-top: 84px; }
-.nx-method-glow { display: none; position: absolute; z-index: -1; bottom: -45%; left: -10%; width: 70%; height: 110%; border-radius: 50%; background: radial-gradient(closest-side, rgba(138, 22, 52, 0.42), transparent); pointer-events: none; }
-.dark .nx-method-glow { display: block; }
+/* Sin resplandor vino detrás de las etapas (13/11/2026): la marca no lleva degradados. */
+.nx-method-glow { display: none; }
 .nx-method-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-amplio); }
 .nx-method-count { color: var(--nx-ink); font-size: clamp(40px, 4.6vw, 64px); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .nx-method-count span { color: color-mix(in srgb, var(--ns-ink) 55%, transparent); }
@@ -98,6 +98,17 @@
 .nx-faq #respuestas h2 { font-size: var(--type-seccion); line-height: var(--leading-seccion); font-weight: 700; letter-spacing: var(--tracking-seccion); }
 .nx-faq #respuestas h4 button { min-height: 60px; padding-block: var(--space-normal); }
 .nx-faq #respuestas h4 button > span { font-size: var(--type-texto); font-weight: 600; line-height: 1.4; }
+/* En oscuro las preguntas siguen el tema, en la banda azul noche (13/11/2026). */
+.dark .nx-faq {
+  --background: var(--ns-bg);
+  --foreground: #f8f8ff;
+  --border: rgba(245, 247, 250, 0.13);
+  --muted-foreground: #b6bec8;
+  --primary-text: #f8f8ff;
+  --ring: #f8f8ff;
+  background: var(--ns-bg);
+  color: #f8f8ff;
+}
 .nx-faq #respuestas .editorial-eyebrow { margin-bottom: 0; padding-bottom: var(--space-cerca); font-size: var(--type-interfaz); }
 @media (max-width: 1023px) {
   .nx-exp { grid-template-columns: 1fr; }
