@@ -150,7 +150,8 @@ export function suggestedTemplate(state: { unattended: boolean; hasProperty: boo
   if (state.unattended) return state.hasProperty ? "primera-inmueble" : "primera-busqueda";
   if (state.retry) return "reintento";
   if (state.lastContact === "no_contesto") return "no-contesto";
-  if (state.visited) return "despues-visita";
-  if (state.lastContact === "whatsapp") return "confirmar-vio";
+  // C-52: los mensajes que hablan de un inmueble solo se sugieren si hay uno.
+  if (state.visited && state.hasProperty) return "despues-visita";
+  if (state.lastContact === "whatsapp" && state.hasProperty) return "confirmar-vio";
   return state.hasProperty ? "opcion" : "primera-busqueda";
 }
