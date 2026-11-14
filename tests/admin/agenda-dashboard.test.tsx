@@ -42,7 +42,7 @@ test("Hoy lists today's and overdue open tasks by Tijuana date and links to each
   expect(today.getByRole("link", {name:/Confirmar documentos/})).toBeTruthy();
   expect(today.queryByText("Tarea terminada")).toBeNull();
   expect(today.queryByText("Tarea de mañana")).toBeNull();
-  expect(within(screen.getByRole("region", {name:"Esta semana"})).getByText("Tarea de mañana")).toBeTruthy();
+  expect(within(screen.getByRole("region", {name:"Próximos 7 días"})).getByText("Tarea de mañana")).toBeTruthy();
 });
 
 test("calendar projects an open task deadline without creating an event", async () => {
@@ -90,7 +90,7 @@ test("Hoy's agenda shows only the operating day, not later or past days", async 
   ];
   render(<AdminDashboard />);
 
-  const agenda = within(screen.getByRole("region", {name:"Hoy"}));
+  const agenda = within(screen.getByRole("region", {name:"Agenda de hoy"}));
   await agenda.findByText("Sin citas ni tareas hoy");
   // Sin citas hoy, la agenda anuncia la siguiente con su día; no la presenta como de hoy ni muestra las pasadas.
   expect(agenda.queryAllByRole("listitem")).toHaveLength(0);

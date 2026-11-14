@@ -99,7 +99,7 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
   for (const width of [320, 375]) {
     await page.setViewportSize({ width, height: 812 });
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Hoy" })).toBeVisible();
     const tabs = page.getByRole("navigation", { name: "Secciones principales" });
     for (const name of ["Hoy", "Operaciones", "Contactos"]) await expect(tabs.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
     await fits(page);
@@ -317,12 +317,12 @@ test("Hoy muestra lo que espera, las tareas, la agenda y los próximos 7 días s
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { level: 1, name: /^(Buenos días|Buenas tardes|Buenas noches|Hola)/ })).toBeVisible();
-    // SIM-16: tres bloques, «Lo siguiente» (portada y cola), «Hoy» (citas y tareas) y «Esta semana».
+    await expect(page.getByRole("heading", { level: 1, name: "Hoy" })).toBeVisible();
+    // Boceto del 14/11/2026: «Tu día», «Agenda de hoy» (citas y tareas) y «Próximos 7 días».
     await expect(page.getByRole("region", { name: "Lo siguiente" })).toBeVisible();
-    for (const name of [/^Hoy/, /^Esta semana/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
-    for (const name of [/Operaciones en curso/, /Tareas de hoy/, /Agenda de hoy/, /Esperan algo de ti/]) await expect(page.getByRole("heading", { level: 2, name })).toHaveCount(0);
-    const today = page.getByRole("region", { name: "Hoy" });
+    for (const name of [/^Tu día/, /^Agenda de hoy/, /^Próximos 7 días/]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+    for (const name of [/Operaciones en curso/, /Tareas de hoy/, /Esta semana/, /Esperan algo de ti/]) await expect(page.getByRole("heading", { level: 2, name })).toHaveCount(0);
+    const today = page.getByRole("region", { name: "Agenda de hoy" });
     await expect(today.getByRole("checkbox").first()).toBeVisible();
     await expect(today.getByRole("link", { name: "Agregar tarea" })).toHaveAttribute("href", "/admin/agenda?tab=tareas&nueva=1");
     await fits(page);

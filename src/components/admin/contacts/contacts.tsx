@@ -3,7 +3,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight, FileDown, Plus, Search, UserPlus, X, EMPTY_ART } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, EmptyBox, Pill } from "@/components/admin/kit";
+import { Avatar, Button, ButtonLink, Card, EmptyBox } from "@/components/admin/kit";
 import f from "@/components/admin/form.module.css";
 import { inputClass } from "@/components/admin/ui";
 import { ClienteEditor } from "@/components/admin/cliente-editor";
@@ -47,6 +47,13 @@ export function ContactsScreen() {
   // «Agregar» solo captura aquí al cliente directo (vista Clientes); a una persona nueva la atiende el asistente único (SIM-17).
   const [adding, setAdding] = React.useState(false);
   const [selected, setSelected] = React.useState<string | null>(null);
+  // «Asignármela» en la ficha lateral: el asesor de quien usa el panel.
+  const [me, setMe] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
+    let alive = true;
+    apiRequest<{ asesorId?: string | null }>("/api/admin/mi-asesor").then(r => { if (alive) setMe(r.asesorId ?? undefined); }).catch(() => undefined);
+    return () => { alive = false; };
+  }, []);
   // Operaciones activas: el siguiente paso de quien tiene una sale de ella, no del perfil (C40).
   const [operations, setOperations] = React.useState<PersonOperation[]>([]);
   // Folios abiertos por cliente, para no eliminar a quien tiene una operación en curso (undefined: consultando; null: falló).
@@ -137,8 +144,14 @@ export function ContactsScreen() {
 
   const searchField = <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar nombre o teléfono</span><input ref={searchInput} type="search" className={inputClass} placeholder="Buscar nombre o teléfono" value={query} onChange={e => setQuery(e.target.value)} /></label>;
 
-  return <GuidedPage title="Contactos" subtitle={<span className="hidden sm:inline">Las personas con las que hablamos y lo que buscan.</span>} actions={<>
-    <div className="hidden lg:block">{searchField}</div>
+  // Boceto «desde cero» (14/11/2026): bajo el título, quién espera respuesta y cuántos seguimientos vencieron.
+  const firstWaiting = groups.find(group => group.id === "sin-atender")?.rows[0];
+  const lateCount = ordered.filter(row => row.late).length;
+  const lateText = lateCount ? `${lateCount === 1 ? "1 seguimiento está vencido" : `${lateCount} seguimientos están vencidos`}.` : "";
+  const finding = firstWaiting ? <><b className={s.findingInfo}>{firstWaiting.name} espera respuesta</b>{lateText ? `; ${lateText.charAt(0).toLowerCase()}${lateText.slice(1)}` : "."}</>
+    : lateText || "Las personas con las que hablamos y lo que buscan.";
+
+  return <GuidedPage title="Contactos" subtitle={<span className="hidden sm:inline">{finding}</span>} actions={<>
     <div className="flex gap-2 lg:hidden">
       <Button iconOnly variant="ghost" aria-label={searching ? "Cerrar búsqueda" : "Buscar"} aria-expanded={searching} onClick={() => { setSearching(v => !v); if (searching) setQuery(""); }}>{searching ? <X size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}</Button>
       {filter === "clientes" ? <Button iconOnly data-tour="contactos-agregar" aria-label="Agregar cliente" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={20} aria-hidden="true" /></Button>
@@ -156,16 +169,18 @@ export function ContactsScreen() {
       </div>
       <ClienteEditor key="nuevo" title={false} onDone={() => setAdding(false)} />
     </section>}
+    {/* Filtros como selector a la izquierda; seleccionar y buscar a la derecha. */}
     <div className={s.tabsRow}>
-      {rows.length > 0 && <div className="ml-auto"><SelectToggle selection={selection} noun="contactos" /></div>}
       <div className={s.chips} role="group" aria-label="Mostrar personas" data-tour="contactos-filtros">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
+      {rows.length > 0 && <SelectToggle selection={selection} noun="contactos" />}
+      <div className="hidden lg:block">{searchField}</div>
     </div>
     <div className="mt-5 min-w-0">
       {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
       </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
-        <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={stageText} selection={selection} keyOf={keyOf} />
-        {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} blocking={previewRow.kind === "cliente" ? deleteBlock(openFolios, previewRow.id) : ""} />}
+        <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} current={previewRow ? keyOf(previewRow) : undefined} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={stageText} selection={selection} keyOf={keyOf} />
+        {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} blocking={previewRow.kind === "cliente" ? deleteBlock(openFolios, previewRow.id) : ""} wait={waiting(previewRow)} limitHours={limitHours} me={me} />}
       </div>}
       {rows.length > 0 && <BulkBar selection={selection} targets={ordered.map(r => ({ id: keyOf(r), label: r.name }))} actions={bulkActions} noun={{ one: "persona seleccionada", many: "personas seleccionadas", empty: "Elige personas en la lista" }} />}
       {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
@@ -181,20 +196,7 @@ function deleteBlock(open: Array<{ clienteId?: string; folio: string }> | null |
   return mine.length ? `Tiene ${mine.length === 1 ? `la operación ${mine[0].folio}` : `${mine.length} operaciones`} en curso` : "";
 }
 
-function Due({ row }: { row: ContactRow }) {
-  return row.when ? <Pill size="sm" tone={row.late ? "alert" : "muted"}>{row.when}</Pill> : null;
-}
-
-/** Barra de la primera atención: cuánto lleva esperando contra el plazo (la marca es el plazo). */
-function WaitClock({ wait, limitHours }: { wait: Waiting; limitHours: number }) {
-  const span = limitHours * 2;
-  return <span className={cn(s.clock, wait.late && s.clockLate)}>
-    <span className={s.meter} aria-hidden="true"><span style={{ width: `${Math.min(100, (wait.hours / span) * 100)}%` }} /><i /></span>
-    <span>{wait.hours < 1 ? "Menos de 1 h" : `${wait.hours} h`} sin respuesta · plazo {limitHours} h</span>
-  </span>;
-}
-
-function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditionOf, selection, keyOf }: { groups: Array<{ id: string; label: string; rows: ContactRow[] }>; waiting: (row: ContactRow) => Waiting | null; limitHours: number; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined; selection: Selection; keyOf: (row: ContactRow) => string }) {
+function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditionOf, selection, keyOf, current }: { current?: string; groups: Array<{ id: string; label: string; rows: ContactRow[] }>; waiting: (row: ContactRow) => Waiting | null; limitHours: number; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined; selection: Selection; keyOf: (row: ContactRow) => string }) {
   // Una sola lista «Contactos»; cada grupo del día es un renglón con su título y sus personas.
   return <Card as="div" className={s.listCard}>
     <ul className={s.list} aria-label="Contactos">{groups.map(group => {
@@ -203,17 +205,18 @@ function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditio
         {group.label && <h2 id={head} className={s.groupHead}>{group.label}<span className={s.groupCount}>{group.rows.length}</span></h2>}
         <ul className={s.list} aria-label={group.label || undefined}>{group.rows.map(row => {
           const wait = waiting(row);
+          // Boceto «desde cero» (14/11/2026): nombre, lo que busca y lo que sigue, y cuándo; sin teléfono ni pastillas.
+          const condition = conditionOf(row);
+          const context = [row.wants || stageOf(row), wait ? (wait.hours < 1 ? "sin respuesta" : `${wait.hours} h sin respuesta`) : row.step].filter(Boolean).join(" · ");
           const body = <>
-            <Avatar name={row.name} size={44} />
-            <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{row.phone}</span></span>
-            <span className={s.wants}><span className="[overflow-wrap:anywhere]"><Pill size="sm" tone={stageOf(row) === "Cliente" ? "success" : "muted"}>{stageOf(row)}</Pill> {conditionOf(row) && <><Pill size="sm" tone="warn">{conditionOf(row)}</Pill> </>}{row.wants}</span>{(row.zone || row.budget) && <span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span>}</span>
-            <span className={s.step}>{wait ? <WaitClock wait={wait} limitHours={limitHours} /> : row.step && <><span className={cn("lg:hidden whitespace-nowrap", s.meta)}>Sigue:</span><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span></>}</span>
-            <span className={s.end}>{wait ? <Pill size="sm" tone={wait.late ? "alert" : "warn"}>{wait.late ? "Pasó el plazo" : "Por atender"}</Pill> : <Due row={row} />}</span>
+            <Avatar name={row.name} size={36} />
+            <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{context}{condition && <span className={s.warnText}> · {condition}</span>}</span></span>
+            <span className={cn(s.end, (wait ? wait.late : row.late) && s.lateWhen, wait && !wait.late && s.infoWhen)}>{wait ? (wait.late ? "Pasó el plazo" : `Responder antes de ${Math.max(1, Math.ceil(limitHours - wait.hours))} h`) : row.when}</span>
             <ChevronRight size={18} aria-hidden="true" className={cn(s.chevron, "hidden lg:block", selection.on && "invisible")} />
           </>;
           // En modo selección la fila elige a la persona en lugar de abrir su ficha.
           if (selection.on) return <li key={row.id} className={cn("flex items-center pl-3", selection.selected.has(keyOf(row)) && "bg-muted")}><SelectBox selection={selection} id={keyOf(row)} label={row.name} /><div className={cn(s.item, "min-w-0 flex-1 cursor-pointer")} onClick={() => selection.toggle(keyOf(row))}>{body}</div></li>;
-          return <li key={row.id}><Link href={row.href} className={s.item} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>{body}</Link></li>;
+          return <li key={row.id}><Link href={row.href} className={s.item} data-current={current === keyOf(row) || undefined} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>{body}</Link></li>;
         })}</ul>
       </li>;
     })}</ul>

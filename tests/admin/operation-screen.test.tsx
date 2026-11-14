@@ -484,7 +484,8 @@ it("la lista separa lo que espera algo de ti, filtra por etapa, busca sin acento
   // «?etapa=visitas-ofertas» sigue funcionando: filtra por esa etapa (ya no hay fases).
   const etapa = await screen.findByRole("group", { name: "Etapa" });
   expect(within(etapa).getByRole("button", { name: /Visitas y ofertas/ }).getAttribute("aria-pressed")).toBe("true");
-  expect(within(screen.getByRole("region", { name: /Esperan algo de ti/ })).queryByRole("link", { name: /Familia Castañeda Ortiz/ })).toBeNull();
+  // Con el filtro, la operación de otra etapa no aparece en ningún grupo (el grupo vacío ya no se dibuja).
+  expect(screen.queryByRole("link", { name: /Familia Castañeda Ortiz. Etapa/ })).toBeNull();
   fireEvent.click(screen.getByRole("radio", { name: "Todo el equipo" }));
   fireEvent.click(within(etapa).getByRole("button", { name: /Oferta y negociación/ }));
   await waitFor(() => expect(nav.search.get("etapa")).toBe("Oferta y negociación"));

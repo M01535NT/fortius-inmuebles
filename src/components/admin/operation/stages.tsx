@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { AlertCircle, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone, stageIcon } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, IconTile, Pill, Sheet } from "@/components/admin/kit";
+import { AlertCircle, AlertTriangle, Building2, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone, stageIcon } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, IconTile, Pill, Sheet, Thumb } from "@/components/admin/kit";
 import { flowOf, isGuided, phaseFormats, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
@@ -21,6 +21,8 @@ import s from "./operation.module.css";
 */
 
 const two = (n: number) => String(n).padStart(2, "0");
+/** Las diez etapas del propietario en sus cuatro fases (boceto «desde cero», 14/11/2026). */
+const PHASES = [["Captar", 3], ["Preparar", 4], ["Comercializar", 2], ["Cerrar", 1]] as const;
 
 /** Los cuatro pasos de «Cierre y entrega», con el actual marcado (COR-09). */
 function CloseSteps({ stage, onDark }: { stage: TrackStage; onDark?: boolean }) {
@@ -47,7 +49,7 @@ function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | und
   pasó, abre «Ver etapas» en ella), lo que quedó pendiente de etapas anteriores y, al pie, la persona
   con Llamar y WhatsApp. En las demás pestañas va compacto, con las partes de la operación.
 */
-export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, onOpenStages, menu: menuItems = [], children }: {
+export function StagePanel({ op, today, docs, checklist, compact, back, who, tags = [], person, photo, facts = [], onOpenStages, menu: menuItems = [], children }: {
   op: OperationRecord; today: string; docs: DocumentsController; checklist?: Task; compact: boolean;
   /** A dónde vuelve el círculo de regreso. */
   back: string;
@@ -56,6 +58,10 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
   /** Situación y condición declarada (COR-14): «En pausa», «Ocupado sin permiso». */
   tags?: Array<{ text: string; detail?: string }>;
   person?: { name: string; role: string; digits: string; email?: string; href: string };
+  /** Foto del inmueble (null: tiene inmueble sin foto; sin valor: no tiene inmueble). */
+  photo?: string | null;
+  /** Datos bajo el título: inmueble, precio y responsable. */
+  facts?: string[];
   onOpenStages: (focus?: SalePhase) => void;
   /** «Más opciones»: datos de la operación, corregir etapa y eliminar. */
   menu?: Array<{ label: string; icon?: React.ReactNode; onSelect: () => void }>;
@@ -69,15 +75,71 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
   const gapAt = new Map(gaps.map(g => [g.n, g]));
   const here = stages[current];
   const first = gaps[0];
+  const moreMenu = menuItems.length > 0 && <span className="relative">
+    <button type="button" className={s.round} aria-label="Más opciones" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(open => !open)}><MoreHorizontal size={20} aria-hidden="true" /></button>
+    {menu && <div role="menu" className={s.menu}>{menuItems.map(item => <button key={item.label} type="button" role="menuitem" className={s.menuItem} onClick={() => { setMenu(false); item.onSelect(); }}>{item.icon}{item.label}</button>)}</div>}
+  </span>;
+  /*
+    Boceto «desde cero» (14/11/2026): migas, foto, título grande con sus datos y Llamar/WhatsApp con su
+    nombre; debajo, el riel en su propia tarjeta con las fases arriba, los números abajo y solo la etapa
+    actual con ícono y nombre. Lo pendiente de etapas anteriores va en una línea al pie del riel.
+  */
+  if (!compact) return <section className={s.opHead} aria-label="Avance de la operación">
+    <nav aria-label="Dónde estás" className={s.crumbs}>
+      <Link href={back} aria-label="Volver a Operaciones">Operaciones</Link>
+      <ChevronRight size={14} aria-hidden="true" />
+      <span aria-current="page">{op.folio}</span>
+    </nav>
+    <div className={s.titleRow}>
+      {photo !== undefined && <Thumb src={photo ?? undefined} size={72} icon={<Building2 size={24} aria-hidden="true" />} className={s.titlePhoto} />}
+      <div className={s.titleText}>
+        <div className={s.opTitle}>
+          <h1 className={s.whoName}>{who.href ? <Link href={who.href} className={s.whoLink}>{who.name}</Link> : who.name}</h1>
+          {who.wants && <span> {who.wants}</span>}
+        </div>
+        {facts.length > 0 && <p className={s.opFacts}>{facts.join(" · ")}</p>}
+        {tags.length > 0 && <span className={s.navyTags}>{tags.map(tag => <span key={tag.text} className={s.navyTag} title={tag.detail}>{tag.text}</span>)}</span>}
+      </div>
+      <div className={s.opActions}>
+        {person?.digits ? <>
+          <a href={`tel:${person.digits}`} className={s.actBtn} aria-label={`Llamar a ${person.name}`}><Phone size={16} aria-hidden="true" />Llamar</a>
+          <a href={`https://wa.me/${person.digits.length === 10 ? `52${person.digits}` : person.digits}`} target="_blank" rel="noreferrer" className={s.actBtn} aria-label={`WhatsApp a ${person.name}`}><MessageCircle size={16} aria-hidden="true" />WhatsApp</a>
+        </> : person?.email ? <a href={`mailto:${person.email}`} className={s.actBtn} aria-label={`Escribir a ${person.name}`}><Mail size={16} aria-hidden="true" />Correo</a> : null}
+        {moreMenu}
+      </div>
+    </div>
+    {guided && here && <div className={s.railCard} style={{ "--rail": stages.map((_, i) => i === current ? "minmax(0, 2.6fr)" : "minmax(0, 1fr)").join(" ") } as React.CSSProperties}>
+      <p className="sr-only">Etapa {current + 1} de {stages.length} · {here.label}</p>
+      {stages.length === 10 && <div className={s.railPhases} aria-hidden="true">{PHASES.map(([name, span]) => <span key={name} style={{ gridColumn: `span ${span}` }}>{name}</span>)}</div>}
+      <ol aria-label="Etapas" className={s.rail}>{stages.map((stage, i) => {
+        const gap = gapAt.get(stage.n), done = i < current, now = i === current;
+        const state = now ? "now" : gap ? "warn" : done ? "done" : "next";
+        const label = `${stage.n} · ${stage.label}: ${now ? "aquí vas" : gap ? gap.gap.toLowerCase() : done ? "lista" : "pendiente"}`;
+        const inner = <><span className={s.railBar} aria-hidden="true" /><span className={s.railNum} aria-hidden="true">{now ? <>{React.createElement(stageIcon(stage, i), { size: 14, "aria-hidden": true })}<b>{stage.label}</b></> : stage.n}</span></>;
+        return <li key={stage.n} aria-current={now ? "step" : undefined} className={s.railStep} data-state={state} data-now={now || undefined}>
+          {done && stage.key
+            ? <button type="button" className={s.railBtn} title={label} aria-label={label} onClick={() => onOpenStages(stage.key)}>{inner}</button>
+            : <span className={s.railBtn} title={label}>{inner}<span className="sr-only">{label}</span></span>}
+          {now && <CloseSteps stage={stage} onDark />}
+        </li>;
+      })}</ol>
+      <div className={s.railFoot}>
+        {first && <p className={s.railGap} role="status">
+          <AlertTriangle size={16} aria-hidden="true" />
+          <span className="min-w-0 flex-1">A la etapa {first.n}, {first.label.toLowerCase()}, le {first.gap.replace(/^Falta(n?)/, (_, n) => `falta${n}`)}.{gaps.length > 1 ? ` Hay ${gaps.length - 1} más en «Ver etapas».` : ""}</span>
+          <button type="button" className={s.gapAction} disabled={docs.busy} onClick={() => fixGap(first.key, docs, checklist, onOpenStages, op.flujo?.ruta)}>Hacerlo ahora</button>
+        </p>}
+        <button type="button" className={s.navyLink} onClick={() => onOpenStages()}>Ver etapas<ChevronRight size={16} aria-hidden="true" /></button>
+      </div>
+    </div>}
+    {children}
+  </section>;
   return <section className={cn(s.navy, compact && s.navyCompact)} aria-label="Avance de la operación">
     <div className={s.navyTop}>
       <Link href={back} className={s.round} aria-label="Volver a Operaciones"><ChevronLeft size={20} aria-hidden="true" /></Link>
       <span className={s.onNavyMuted}>{op.folio}</span>
       <span className="flex-1" />
-      {menuItems.length > 0 && <span className="relative">
-        <button type="button" className={s.round} aria-label="Más opciones" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu(open => !open)}><MoreHorizontal size={20} aria-hidden="true" /></button>
-        {menu && <div role="menu" className={s.menu}>{menuItems.map(item => <button key={item.label} type="button" role="menuitem" className={s.menuItem} onClick={() => { setMenu(false); item.onSelect(); }}>{item.icon}{item.label}</button>)}</div>}
-      </span>}
+      {moreMenu}
     </div>
     <div className={s.who}>
       <h1 className={s.whoName}>{who.href ? <Link href={who.href} className={s.whoLink}>{who.name}</Link> : who.name}</h1>

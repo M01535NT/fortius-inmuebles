@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, FileText, History, ListChecks, Pencil, Settings2, Trash2, Upload } from "@/components/admin/icons";
 import { RecordNotes, useRecordNotes } from "@/components/admin/workspace/record-notes";
-import { Avatar, Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
+import { Button, Notice, Segmented, Sheet, Surface, TabPanel, Tabs } from "@/components/admin/kit";
 import { RelatedWork } from "@/components/admin/workspace/related-work";
 import { confirmAction, confirmDeleteOperation } from "@/components/admin/workspace/confirm";
 import { PAPELERA } from "@/components/admin/papelera/textos";
@@ -17,7 +17,7 @@ import type { OperationalInterview } from "@/lib/intake/interview";
 import { conditionWith02 } from "@/lib/intake/condition";
 import { EXCEPTION_TAG, INHERITED_TAG, flowOf, initialStatus, isGuided, operationTags, routeStages, stageTrack, type OperationRecord } from "@/lib/admin/operation-view";
 import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
-import { TIPO_LABELS } from "@/data/propiedades";
+import { TIPO_LABELS, formatPrecio } from "@/data/propiedades";
 import { ClientDocumentsTab } from "./client-documents-tab";
 import { DocumentsTab } from "./documents-tab";
 import { HistoryTab } from "./history-tab";
@@ -183,6 +183,8 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       <StagePanel op={view} today={today} docs={docs} checklist={checklist} compact={tab !== "sigue"} back={back}
         who={{ name: client?.nombre ?? op.folio, wants, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : undefined }}
         tags={tags}
+        photo={op.propiedad_slug ? property?.galeria[0]?.src ?? null : undefined}
+        facts={[property?.titulo, property && property.precio.modalidad === "publico" ? `precio ${formatPrecio(property.precio)}` : undefined, adviser ? `responsable ${adviser.nombre}` : undefined].filter((x): x is string => !!x)}
         person={client ? { name: client.nombre, role, digits, email: client.email, href: `/admin/clientes/${encodeURIComponent(client.id)}` } : undefined}
         onOpenStages={focus => setStagesOpen({ focus })} menu={menu}>
         {tab !== "sigue" && tabs}
@@ -190,7 +192,7 @@ function OperationView({ op, operation }: { op: OperationRecord; operation: Retu
       <div className={s.main}>
         {tab === "sigue" && <div data-tour="operacion-pestanas" className={s.foot}>
           {tabs}
-          <span className={s.footWho}>{adviser ? <><Avatar name={adviser.nombre} size={28} />Responsable {adviser.nombre}</> : "Sin responsable"}</span>
+          {!adviser && <span className={s.footWho}>Sin responsable</span>}
         </div>}
         <TabPanel idPrefix="operacion" id={tab} className="min-w-0">
           {tab === "sigue" && <NextStepTab key={op.id} op={view} today={today} docs={docs} checklist={checklist} property={property}
