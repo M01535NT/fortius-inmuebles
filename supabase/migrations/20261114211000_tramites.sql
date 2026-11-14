@@ -1,5 +1,5 @@
 -- TRA-01 · Trámites con pasos (decisiones del titular del 14/11/2026). El primero: cancelación de
--- hipoteca. Fortius lo hace; el propietario paga notario y Registro; es aparte de la venta.
+-- hipoteca. Fortius lo hace; el propietario paga los derechos (y notario, solo con banco); es aparte de la venta.
 -- Un trámite vive en el registro genérico (colección «tramites») y se ve como los registros del
 -- cliente: cada asesor, los de sus clientes; el director, todos. La base decide:
 --  · los pasos se cierran de uno en uno, con sus pendientes hechos y, si el paso lo pide, su documento
@@ -30,9 +30,10 @@ alter table public.fortius_inmuebles_records add constraint fortius_inmuebles_re
 create or replace function public.fortius_inmuebles_tramite_paso_nombre(acreedor text, clave text)
 returns text language sql immutable set search_path='' as $$
  select case clave when 'datos' then 'Datos del crédito' when 'liquidado' then 'Crédito liquidado'
-  when 'carta' then case acreedor when 'banco' then 'Carta de finiquito' when 'fovissste' then 'Carta de no adeudo' else 'Carta de cancelación' end
-  when 'notario' then 'Notario y presupuesto' when 'firma' then 'Firma' when 'registro' then 'Registro Público'
-  when 'certificado' then 'Certificado' when 'entrega' then 'Entrega' end $$;
+  when 'carta' then case acreedor when 'infonavit' then 'Carta de instrucción' else 'Carta de finiquito' end
+  when 'notario' then case acreedor when 'infonavit' then 'Validación de Infonavit' when 'fovissste' then 'Pago de derechos' else 'Notario y presupuesto' end
+  when 'firma' then case acreedor when 'infonavit' then 'Pago de derechos' when 'fovissste' then 'Instrumento de cancelación' else 'Firma ante notario' end
+  when 'registro' then 'Registro Público' when 'certificado' then 'Certificado de gravámenes' when 'entrega' then 'Entrega' end $$;
 
 create or replace function public.fortius_inmuebles_validate_tramite(record_id text, d jsonb)
 returns void language plpgsql set search_path='' as $$
