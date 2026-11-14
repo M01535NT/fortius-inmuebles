@@ -1,5 +1,5 @@
 import { requireStaff } from "@/lib/backend/auth";
-import { ApiError, apiResponse, assertSameOrigin, readJson } from "@/lib/backend/http";
+import { ApiError, apiResponse, assertSameOrigin, databaseError, readJson } from "@/lib/backend/http";
 import { listRecords, putRecord, deleteRecord } from "@/lib/backend/repository";
 import { parseRecord, parseWrite } from "@/lib/backend/validation";
 import { taskExpedienteLinksReady } from "@/lib/backend/task-links";
@@ -38,6 +38,13 @@ export async function DELETE(request: Request, context: Context) {
     assertSameOrigin(request);
     const { client } = await requireStaff();
     const { collection, id } = await context.params;
+    // Un cliente con una operación en curso no se elimina: primero se cierra o se elimina la operación (13/11/2026).
+    if (collection === "clientes") {
+      const { data, error } = await client.from("fortius_inmuebles_expedientes").select("folio,etapa,flujo").eq("cliente_id", id).is("deleted_at", null);
+      if (error) databaseError(error);
+      const open = (data ?? []).filter(row => row.etapa !== "cerrado" && (row.flujo as { estado?: string } | null)?.estado !== "descartada");
+      if (open.length) throw new ApiError(409, `Tiene ${open.length === 1 ? `la operación ${open[0].folio}` : `${open.length} operaciones`} en curso. Ciérrala o elimínala antes de eliminar al cliente.`);
+    }
     await deleteRecord(client, collection, id, await readJson(request, 1024));
     return { ok: true };
   });

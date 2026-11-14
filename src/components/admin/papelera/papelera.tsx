@@ -16,8 +16,8 @@ import { PAPELERA } from "./textos";
   inmuebles, artículos, notas y citas vuelven por la restauración del historial, sin publicar.
   Las operaciones las ve quien tiene acceso a ellas; lo demás, solo el director (como en Historial).
 */
-type Entry = { id: string; collection: string; record_id: string; created_at: string; actor_id: string | null };
-const KIND: Record<string, string> = { propiedades: "Inmueble", posts: "Artículo del blog", notas: "Nota", eventos: "Cita" };
+type Entry = { id: string; collection: string; record_id: string; created_at: string; actor_id: string | null; nombre?: string | null; titulo?: string | null };
+const KIND: Record<string, string> = { propiedades: "Inmueble", posts: "Artículo del blog", notas: "Nota", eventos: "Cita", leads: "Prospecto", clientes: "Cliente" };
 const row = "flex flex-wrap items-center justify-between gap-3 px-5 py-4 [&+&]:border-t [&+&]:border-border";
 
 function Fallo({ error, onRetry }: { error: string; onRetry: () => void }) {
@@ -81,7 +81,9 @@ function Registros() {
 
   const nameOf = (entry: Entry) => entry.collection === "propiedades" ? propiedades.find(p => p.slug === entry.record_id)?.titulo
     : entry.collection === "notas" ? notas.find(n => n.id === entry.record_id)?.titulo
-    : entry.collection === "eventos" ? eventos.find(e => e.id === entry.record_id)?.titulo : undefined;
+    : entry.collection === "eventos" ? eventos.find(e => e.id === entry.record_id)?.titulo
+    // El nombre guardado al eliminar (contactos y lo demás que ya no está en la lista).
+    : entry.nombre || entry.titulo || undefined;
 
   async function restaurar(entry: Entry) {
     if (!await confirmAction(`${nameOf(entry) ?? "El registro"} vuelve a su lugar; lo que estaba publicado vuelve sin publicar.`, { title: `${PAPELERA.restaurar} ${(KIND[entry.collection] ?? "registro").toLowerCase()}`, confirmLabel: PAPELERA.restaurar })) return;
@@ -102,7 +104,7 @@ function Registros() {
       {notice && <p role="status" className="text-sm">{notice}</p>}
       {error ? <Fallo error={error} onRetry={() => { setError(""); setEntries(undefined); setRevision(n => n + 1); }} />
         : entries === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando lo eliminado…</p>
-        : !entries.length && offset === 0 ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="Nada más que recuperar">Cuando se elimine un inmueble, un artículo, una nota o una cita, aparecerá aquí.</EmptyBox>
+        : !entries.length && offset === 0 ? <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="Nada más que recuperar">Cuando se elimine un contacto, un inmueble, un artículo, una nota o una cita, aparecerá aquí.</EmptyBox>
         : <Card as="ul" className="m-0 list-none overflow-hidden p-0" aria-label={PAPELERA.registros}>{entries.map(entry => {
           const name = nameOf(entry) ?? `${KIND[entry.collection] ?? "Registro"} eliminado`;
           return <li key={entry.id} className={row}>

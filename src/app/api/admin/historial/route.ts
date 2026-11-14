@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     let query = client
       .from("fortius_inmuebles_record_history")
       .select(
-        "id,collection,record_id,action,actor_id,version,changed_fields,created_at,restored_at",
+        "id,collection,record_id,action,actor_id,version,changed_fields,created_at,restored_at,nombre:snapshot->>nombre,titulo:snapshot->>titulo",
       )
       .order("created_at", { ascending: false })
       .order("id")
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       query = query
         .eq("action", "DELETE")
         .is("restored_at", null)
-        .in("collection", ["propiedades", "posts", "notas", "eventos"]);
+        .in("collection", ["propiedades", "posts", "notas", "eventos", "leads", "clientes"]);
     const { data, error } = await query;
     if (error && ["42P01", "PGRST205"].includes(error.code))
       throw new ApiError(
