@@ -93,7 +93,7 @@ async function openOperation(tab?: string) {
   render(<OperationScreen id={ID} />);
   await screen.findByRole("heading", { level: 1, name: "Familia Castañeda Ortiz" });
 }
-/** Eliminar vive en «Más opciones» del panel azul (DEC-37). */
+/** Eliminar vive en «Más opciones» del encabezado (DEC-37). */
 const eliminar = () => { fireEvent.click(screen.getByRole("button", { name: "Más opciones" })); fireEvent.click(screen.getByRole("menuitem", { name: "Eliminar operación" })); };
 const lastFlow = () => server.puts.filter(p => p.url.endsWith("/operacion")).at(-1)!.body;
 /** La etapa en curso se lee en la tarjeta de avance («Etapa N de 10 · fase»). */

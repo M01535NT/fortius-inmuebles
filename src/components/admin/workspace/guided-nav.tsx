@@ -19,7 +19,7 @@ import s from "./guided-nav.module.css";
 /*
   Marco del panel, versión 3 (titular, 14/11/2026, «Panel desde cero»): menú lateral sobre el mismo
   fondo, separado por una línea. Arriba el logotipo, el buscador (Ctrl K) y «+ Nuevo»; luego Hoy ·
-  Operaciones · Contactos · Inmuebles · Trámites · Agenda y, tras una línea, Herramientas y
+  Operaciones · Contactos · Inmuebles · Agenda · Trámites y, tras una línea, Herramientas y
   Administración (solo el director). Abajo, la ayuda y la cuenta. Crece sin apretarse, a diferencia
   de la barra superior de la versión 2 (DEC-35, LV-08), a la que reemplaza. Entre 768 y 1279 px el
   menú queda en íconos con su nombre accesible. En celular no cambia: barra inferior con «+» y «Más».

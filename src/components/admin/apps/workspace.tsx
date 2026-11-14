@@ -59,7 +59,7 @@ function WorkspaceSession({slug}:{slug:string}){
  const props={slug,input,onChange:change,onResult:finish,context,onBusyChange:setEditorBusy};
  const busyAny=busy||editorBusy;
  return <div className={styles.workspace} data-ready={result?"":undefined}>
- {(()=>{const parent=parentOf(app);return <Link href={parent?`/admin/apps/${parent.slug}`:"/admin/herramientas"} className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true"/>{parent?.title??"Más"}</Link>;})()}
+ {(()=>{const parent=parentOf(app);return <Link href={parent?`/admin/apps/${parent.slug}`:"/admin/herramientas"} className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-medium underline-offset-4 hover:underline"><ArrowLeft size={16} aria-hidden="true"/>{parent?.title??"Herramientas"}</Link>;})()}
  <PageHeader title={app.title} description={app.description} actions={<>
    <Button disabled={busyAny} onClick={create}><Plus size={17} aria-hidden="true"/>Nuevo</Button>
    <Button aria-expanded={historyOpen} onClick={()=>setHistoryOpen(!historyOpen)}><History size={17} aria-hidden="true"/>Mis trabajos</Button>

@@ -77,7 +77,7 @@ test("la barra superior guía por cinco secciones y «Más»; «Nuevo» y la cue
   await page.keyboard.press("Escape");
   await nav.getByRole("link", { name: "Más" }).click();
   await expect(page).toHaveURL(/\/admin\/herramientas$/);
-  await expect(page.locator("main h1")).toHaveText("Más");
+  await expect(page.locator("main h1")).toHaveText("Herramientas");
   await expect(nav.getByRole("link", { name: "Más" })).toHaveAttribute("aria-current", "page");
   await fits(page);
 });

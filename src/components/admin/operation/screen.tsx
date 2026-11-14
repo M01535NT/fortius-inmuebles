@@ -29,13 +29,13 @@ import { useLeaveGuard, useOperation } from "./use-operation";
 import s from "./operation.module.css";
 
 /*
-  Una operación (boceto D «Moderno», LV-06, construido el 31/10/2026 con las reglas de LV-08):
-  pantalla partida. A la izquierda el panel azul (quién, número de etapa, las diez etapas como
-  barras y la persona con Llamar y WhatsApp); a la derecha las piezas de la etapa (documentos,
-  próxima tarea, confirmaciones e inmueble) y, abajo, la barra flotante con lo que toca y un solo
+  Una operación (boceto «desde cero», LV-09, 14/11/2026; reemplaza el panel azul del boceto D):
+  arriba las migas, la foto, el título con sus datos y Llamar/WhatsApp, y el riel de diez etapas en
+  su propia tarjeta; debajo, a la izquierda la etapa con lo que hay que confirmar y sus documentos,
+  y a la derecha la próxima tarea y el inmueble. Abajo, la barra flotante con lo que toca y un solo
   botón. La operación tiene tres partes (SIM-18, 11/11/2026): «Etapa», «Documentos» (los del
   expediente y los que entrega el cliente) y «Actividad» (tareas e historial); en las dos últimas
-  el panel azul va compacto con la lista de partes. Los datos de la operación (ruta, situación,
+  el encabezado va compacto con la lista de partes. Los datos de la operación (ruta, situación,
   inmueble, contraparte y decisión del encargo), corregir la etapa y eliminar viven en «Más
   opciones» del panel (DEC-37, DEC-38). Los documentos se capturan en su propia ventana. Las
   direcciones anteriores siguen funcionando: ?tab=cliente abre Documentos, ?tab=tareas y

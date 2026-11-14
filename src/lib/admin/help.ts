@@ -20,7 +20,7 @@ export const HELP_SECTIONS: HelpSection[] = [
   { id: "operaciones", title: "Operaciones", intro: "Todas tus operaciones, con la etapa en la que van y lo que toca en cada una.", tasks: [
     { q: "¿Cómo encuentro una operación?", steps: ["Busca por nombre, folio o inmueble, o filtra por etapa.", "«Esperan algo de ti» son las que tienen un pendiente tuyo."] },
   ] },
-  { id: "operacion", title: "Una operación", intro: "El panel azul dice en qué etapa va; a la derecha, lo que hay que hacer para pasar a la siguiente.", tasks: [
+  { id: "operacion", title: "Una operación", intro: "El riel de arriba dice en qué etapa va; debajo, lo que hay que hacer para pasar a la siguiente.", tasks: [
     { q: "¿Cómo lleno un documento?", steps: ["En «Documentos de la etapa», pulsa el formato.", "Se abre en su propia ventana: pulsa cada espacio del documento y escribe.", "Lo que ya se confirmó en el expediente aparece lleno."] },
     { q: "¿Cómo confirmo un requisito?", steps: ["En «Antes de seguir, confirma», pulsa «Confirmar».", "Elige con qué lo comprobaste y escribe qué encontraste.", "Si es algo que revisa el director (lo jurídico, el precio, los contratos o publicar), déjalo en «Lo tengo»: él lo marca revisado."] },
     { q: "Algo salió mal con un requisito, ¿cómo lo anoto?", steps: ["En «⋯» del requisito elige «Hay un problema».", "Escribe qué pasó y cómo se puede resolver.", "Cuando se resuelva, pulsa «Ya se resolvió»."] },
@@ -38,7 +38,7 @@ export const HELP_SECTIONS: HelpSection[] = [
     { q: "¿Dónde anoto las llaves y la preparación?", steps: ["En «⋯» del inmueble, elige «Llaves y compradores».", "Registra dónde están las llaves, a quién se prestan y qué falta para promoverlo."] },
     { q: "¿Por qué no puedo cambiar un inmueble?", steps: ["Un inmueble lo cambia su asesor o el director.", "Si necesitas un cambio en uno que no es tuyo, pídeselo a su asesor."] },
   ] },
-  { id: "agenda", title: "Agenda y tareas", intro: "Tu semana: citas con hora y tareas con fecha.", tasks: [
+  { id: "agenda", title: "Agenda", intro: "Tu semana: citas con hora y tareas con fecha.", tasks: [
     { q: "¿Cómo agendo una visita?", steps: ["Pulsa «Agendar» y elige «Visita».", "Liga la visita a la persona y al inmueble: así la ven su ficha y la operación."] },
     { q: "¿Cómo creo una tarea?", steps: ["Pulsa «Nueva tarea», escribe qué hay que hacer y ponle fecha.", "Ligada a una operación, cuenta como su próximo paso."] },
   ] },
