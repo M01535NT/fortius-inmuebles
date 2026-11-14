@@ -227,9 +227,13 @@ it('replaces a supplied recording actor with the authenticated user and does not
   const flow=completeFlow();flow.requisitos.entrevista.registradoPor=other;const f=await fixture(flow);
   const saved=(await db.query<{flujo:{requisitos:{entrevista:{registradoPor:string}}}}>('select flujo from public.fortius_inmuebles_expedientes where id=$1',[f.id])).rows[0].flujo;
   expect(saved.requisitos.entrevista.registradoPor).toBe(own);
-  const observed=completeFlow();observed.requisitos.archivo.estado='observado';await update(f.id,'captacion',observed);
+  // La observación bloquea la documentación; un guardado sin requisitos no la borra (M-03: quitar la
+  // contraparte ya no reinicia lo del propietario, así que el bloqueo viene solo de la observación).
+  const observed=completeFlow();observed.requisitos.archivo.estado='observado';observed.requisitos.archivo.bloquea=['documentacion'];await update(f.id,'captacion',observed);
   await update(f.id,'captacion',{version:1,ruta:'captacion',estado:'activa',motivo:'',requisitos:{}});
-  await expect(update(f.id,'documentacion')).rejects.toMatchObject({code:'PT409'});
+  const kept=(await db.query<{flujo:{requisitos:{archivo:{estado:string}}}}>('select flujo from public.fortius_inmuebles_expedientes where id=$1',[f.id])).rows[0].flujo;
+  expect(kept.requisitos.archivo.estado).toBe('observado');
+  await expect(update(f.id,'documentacion')).rejects.toMatchObject({code:'PT409',message:'Resuelve las observaciones abiertas'});
  });
 });
 it.each([{version:'1'},{motivo:123},{contraparteExterna:123},{estado:true}])('rejects direct guide data incompatible with the visible schema: %j',async(patch)=>{

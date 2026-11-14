@@ -149,3 +149,37 @@ it('keeps the listing when the operation moves between publication stages (M-02)
   expect(await published('m02-sigue')).toBe(true);
  });
 });
+
+/*
+  M-03 (decisión del titular, 14/11/2026): si se cae el comprador y se cambia o quita la contraparte,
+  solo se rehace lo que depende de él. Lo del propietario, la firma de la intermediación y la
+  publicación se conservan.
+*/
+const ownerKeys=['entrevista','titularidad','factibilidad','valor','precio','intermediacion','levantamiento','plan','publicacion'];
+const buyerKeys=['comprador','oferta','revision_cierre','instrumento','contraparte','firma','pago','entrega'];
+it('keeps the owner reviews and the listing when the buyer changes (M-03)',async()=>{
+ await asUser(own,async()=>{
+  const id=await publishedOperation('m03-comprador');
+  const flujo=await flowOf(id) as Record<string,unknown>&{requisitos:Record<string,{estado:string;registradoPor?:string}>;firmaContrato:Record<string,unknown>};
+  const stamps=Object.fromEntries(ownerKeys.map(k=>[k,flujo.requisitos[k].registradoPor]));
+  await update(id,'negociacion',{...flujo,contraparteExterna:'Otro comprador ficticio con su oferta nueva'});
+  const after=await flowOf(id) as unknown as {requisitos:Record<string,{estado:string;registradoPor?:string}>;firmaContrato:{revisada:boolean}};
+  for(const k of ownerKeys){expect(after.requisitos[k].estado,k).toBe('revisado');expect(after.requisitos[k].registradoPor,k).toBe(stamps[k]);}
+  for(const k of buyerKeys)expect(after.requisitos[k].estado,k).toBe('recibido');
+  expect(after.firmaContrato.revisada).toBe(true);
+  expect(await published('m03-comprador')).toBe(true);
+ });
+});
+it('still resets every review when the property changes (M-03)',async()=>{
+ await asUser(own,async()=>{
+  const id=await publishedOperation('m03-inmueble');
+  await db.exec('reset role');
+  await db.query("insert into public.fortius_inmuebles_records(collection,id,data) values('propiedades','m03-otro','{\"slug\":\"m03-otro\",\"codigo\":\"M03-OTRO\",\"tipo\":\"casa\",\"operacion\":\"venta\",\"asesorId\":\"own\",\"publicada\":false}')");
+  await db.exec('set role authenticated');
+  await update(id,'negociacion',await flowOf(id),'m03-otro');
+  const after=await flowOf(id) as unknown as {requisitos:Record<string,{estado:string}>;firmaContrato:{revisada:boolean}};
+  for(const k of [...ownerKeys,...buyerKeys])expect(after.requisitos[k].estado,k).toBe('recibido');
+  expect(after.firmaContrato.revisada).toBe(false);
+  expect(await published('m03-inmueble')).toBe(false);
+ });
+});
