@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { CATEGORIA_PUNTO_LABELS, type CategoriaPunto, type Property } from "@/data/propiedades";
+import { municipioDeZona } from "@/data/zonas";
 
 /*
   Ubicación y zona (ficha «Escenario»): embed de Google Maps por zona en un
@@ -9,7 +10,10 @@ import { CATEGORIA_PUNTO_LABELS, type CategoriaPunto, type Property } from "@/da
   aproximados en auto, filtrables por categoría cuando el panel las define.
 */
 export function PropertyLocation({ property }: { property: Property }) {
-  const query = encodeURIComponent(`${property.zona}, Tijuana, Baja California, México`);
+  /* La zona se busca en su municipio, no siempre en Tijuana (C-48). */
+  const municipio = municipioDeZona(property.zona);
+  const lugar = property.zona.trim().toLowerCase() === municipio.toLowerCase() ? municipio : `${property.zona}, ${municipio}`;
+  const query = encodeURIComponent(`${lugar}, Baja California, México`);
   const lugares = property.puntosDeInteres;
   const categorias = Array.from(new Set(lugares.map(lugar => lugar.categoria).filter((c): c is CategoriaPunto => Boolean(c))));
   const [filtro, setFiltro] = React.useState<CategoriaPunto | "todos">("todos");
