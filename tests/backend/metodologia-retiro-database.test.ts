@@ -123,19 +123,20 @@ it('withdraws the listing when the intermediation contract ends (M-01)',async()=
  });
 });
 /** Contrato 09 emitido con su modalidad (como superusuario de la prueba). */
-async function contract(id:string,modalidad:string){
+async function contract(id:string,modalidad:string,borrador=modalidad){
  await db.exec('reset role');
  const d=crypto.randomUUID(),m=crypto.randomUUID();
- await db.query("insert into public.fortius_inmuebles_formato_drafts(id,expediente_id,formato_id,data) values($1,$2,'09',$3::jsonb)",[d,id,JSON.stringify({modalidad})]);
- await db.query("insert into public.fortius_inmuebles_formato_emissions(id,draft_id,draft_version,snapshot,sha256,path,created_by) values($1,$2,1,'{}',$3,$4,$5)",[m,d,'c'.repeat(64),`${id}/${m}.pdf`,own]);
+ await db.query("insert into public.fortius_inmuebles_formato_drafts(id,expediente_id,formato_id,data) values($1,$2,'09',$3::jsonb)",[d,id,JSON.stringify({modalidad:borrador})]);
+ await db.query("insert into public.fortius_inmuebles_formato_emissions(id,draft_id,draft_version,snapshot,sha256,path,created_by) values($1,$2,1,$6::jsonb,$3,$4,$5)",[m,d,'c'.repeat(64),`${id}/${m}.pdf`,own,JSON.stringify({modalidad,formatoId:'09'})]);
  await db.exec('set role authenticated');
 }
 // Titular, 14/11/2026: terminar un contrato sin exclusiva no retira el inmueble; uno en exclusiva sí.
 it('keeps the listing when a non-exclusive contract ends, and withdraws it when an exclusive one ends',async()=>{
  await asUser(own,async()=>{
-  for(const [slug,modalidad,visible] of [['m01-sin-exclusiva','no_exclusiva',true],['m01-exclusiva','exclusiva',false]] as const){
+  // La modalidad cuenta como se emitió: cambiar el borrador sin emitir no cambia la regla.
+  for(const [slug,modalidad,borrador,visible] of [['m01-sin-exclusiva','no_exclusiva','no_exclusiva',true],['m01-exclusiva','exclusiva','exclusiva',false],['m01-borrador','exclusiva','no_exclusiva',false]] as const){
    const id=await publishedOperation(slug);
-   await contract(id,modalidad);
+   await contract(id,modalidad,borrador);
    const flujo=await flowOf(id);
    await update(id,'negociacion',{...flujo,firmaContrato:{...flujo.firmaContrato,terminacion:{fecha:'2026-11-13',motivo:'El propietario terminó el contrato con Fortius'}}});
    expect(await published(slug)).toBe(visible);

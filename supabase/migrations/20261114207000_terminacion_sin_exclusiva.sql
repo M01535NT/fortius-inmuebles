@@ -1,7 +1,7 @@
 -- Metodología M-01 (decisión del titular, 14/11/2026): terminar el contrato de intermediación retira
 -- el inmueble del sitio, salvo que el contrato sea sin exclusiva: entonces sigue publicado.
--- El contrato vigente es el borrador 09 o 21 de la operación modificado más recientemente que tenga
--- una emisión (la misma regla que usa Vencimientos). Sin contrato emitido, o en exclusiva, se retira.
+-- La modalidad se lee de lo emitido, no del borrador editable: la emisión más reciente de un 09 o 21
+-- de la operación (su instantánea). Sin contrato emitido, o en exclusiva, se retira.
 -- No reescribe registros.
 begin;
 set local lock_timeout='2s';
@@ -10,10 +10,10 @@ select pg_advisory_xact_lock(781023);
 
 create or replace function public.fortius_inmuebles_contract_non_exclusive(p_expediente uuid) returns boolean
 language sql stable security definer set search_path='' as $$
- select coalesce((select d.data->>'modalidad'='no_exclusiva' from public.fortius_inmuebles_formato_drafts d
+ select coalesce((select m.snapshot->>'modalidad'='no_exclusiva' from public.fortius_inmuebles_formato_emissions m
+  join public.fortius_inmuebles_formato_drafts d on d.id=m.draft_id
   where d.expediente_id=p_expediente and d.formato_id in ('09','21')
-    and exists(select 1 from public.fortius_inmuebles_formato_emissions m where m.draft_id=d.id)
-  order by d.updated_at desc, d.id desc limit 1),false);
+  order by m.created_at desc, m.id desc limit 1),false);
 $$;
 revoke all on function public.fortius_inmuebles_contract_non_exclusive(uuid) from public, anon, authenticated;
 
