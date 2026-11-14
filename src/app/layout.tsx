@@ -134,9 +134,11 @@ export default async function RootLayout({
           {isAdmin ? <div className="relative z-10 bg-background">{children}</div> : (
             <PublicExperience>
               <JsonLd data={[organizationLd(settings), websiteLd()]} />
+              {/* Con teclado, la primera parada salta la barra y lleva directo al contenido. */}
+              <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-md focus:bg-background focus:px-4 focus:text-sm focus:font-semibold focus:text-foreground focus:shadow-lg">Saltar al contenido</a>
               <SiteNav />
               {process.env.VERCEL === "1" ? <PublicPerformance /> : null}
-              <div className="relative z-10 bg-background">{children}</div>
+              <div id="contenido" tabIndex={-1} className="relative z-10 bg-background outline-none">{children}</div>
               <div className="public-footer relative z-0"><SiteFooter settings={settings} /></div>
             </PublicExperience>
           )}
