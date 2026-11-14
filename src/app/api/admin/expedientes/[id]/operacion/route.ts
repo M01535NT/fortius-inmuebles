@@ -14,6 +14,8 @@ const workflowMessages = new Set([
  "Esta revisión la marca el director; déjala como «Lo tengo»", "Tomar el encargo lo decide el director",
  "Solo el director autoriza una excepción", "Este requisito protege al cliente y no admite excepción",
  "Escribe el motivo de la excepción (al menos 10 caracteres)",
+ // TRA-01: el mismo freno de la firma, si la base lo aplica antes que la ruta (20261114212000).
+ MORTGAGE_GATE_MESSAGE,
 ]);
 import { discardReasonOf, DISCARD_REASONS, WORKFLOW_REQUIREMENTS, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import { initialBlockers, loadInitialStatus, loadMortgageBlockers, MORTGAGE_GATE_MESSAGE, needsInitialGate, needsMortgageGate } from "@/lib/formatos/operation-gates";

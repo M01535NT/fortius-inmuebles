@@ -198,3 +198,28 @@ test("en una venta, la cancelación abierta frena la firma hasta inscribirse o h
   await db.exec("set session_replication_role=replica; update public.fortius_inmuebles_records set data=jsonb_set(data,'{pasoActual}','6') where collection='tramites' and id='tr-8'; set session_replication_role=origin;");
   expect(await as(ana, frenan)).toBe(0);
 });
+
+test("el freno de la firma vale en la base: ni la RPC directa ni una escritura a la tabla lo saltan", async () => {
+  const { MORTGAGE_GATE_MESSAGE } = await import("@/lib/formatos/operation-gates");
+  const exp = "40000000-0000-4000-8000-0000000000e2";
+  await db.exec(`insert into public.fortius_inmuebles_expedientes(id,cliente_id,asesor_id,folio,operacion) values ('${exp}','cli-ana','ase-ana','EXP-TRAMITE-2','venta');
+    set session_replication_role=replica; update public.fortius_inmuebles_expedientes set etapa='negociacion' where id='${exp}'; set session_replication_role=origin;`);
+  const version = () => db.query<{ v: number }>("select version v from public.fortius_inmuebles_expedientes where id=$1", [exp]).then(x => Number(x.rows[0].v));
+  const rpc = async (stage: string) => db.query("select public.fortius_inmuebles_update_operation($1,$2,$3,null,'{}'::jsonb)", [exp, await version(), stage]);
+  const reason = (p: Promise<unknown>) => p.then(() => "ok", (e: { message?: string }) => e.message ?? "");
+  let t = await as(ana, () => put("tr-9", { ...base("tr-9"), expedienteId: exp }, null));
+  // La migración del freno se puede volver a correr.
+  await db.exec(await readFile(new URL("../../supabase/migrations/20261114212000_freno_firma_hipoteca.sql", import.meta.url), "utf8"));
+  await as(ana, async () => {
+    expect(await reason(rpc("cierre"))).toBe(MORTGAGE_GATE_MESSAGE);
+    expect(await reason(rpc("entrega"))).toBe(MORTGAGE_GATE_MESSAGE);
+    expect(await reason(db.query("update public.fortius_inmuebles_expedientes set etapa='cierre',version=version+1 where id=$1", [exp]))).toBe(MORTGAGE_GATE_MESSAGE);
+  });
+  // Con la decisión del director, el freno ya no responde (quedan los demás requisitos de la etapa).
+  t = await as(director, () => put("tr-9", { ...t.data, firmaSinCancelacion: { motivo: "El notario cancela la hipoteca en la misma firma" } }, t.version));
+  expect(await as(ana, () => reason(rpc("cierre")))).not.toBe(MORTGAGE_GATE_MESSAGE);
+  // Una renta no se frena.
+  await db.exec(`set session_replication_role=replica; update public.fortius_inmuebles_expedientes set operacion='renta' where id='${exp}'; set session_replication_role=origin;`);
+  t = await as(director, () => put("tr-9", { ...t.data, firmaSinCancelacion: null }, t.version));
+  expect(await as(ana, () => reason(rpc("cierre")))).not.toBe(MORTGAGE_GATE_MESSAGE);
+});
