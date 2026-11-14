@@ -75,7 +75,7 @@ export function ContactPreview({ row, lead, client, tasks, events, today }: { ro
       <h3 className={s.previewTitle}>Actividad</h3>
       <ul className={s.activity}>
         {activity.map(item => <li key={item.id}><Link href={item.href}><span className={s.activityWhen}>{item.when?.label ?? "Sin fecha"}</span><span className="min-w-0 flex-1 [overflow-wrap:anywhere]"><span className={s.meta}>{item.kind} · </span>{item.text}</span></Link></li>)}
-        {notes.map(note => <li key={note.id}><span className={s.activityRow}><span className={s.activityWhen}>{shortDate(note.fecha.slice(0, 10))}</span><span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{note.texto}</span></span></li>)}
+        {notes.map(note => <li key={note.id}><span className={s.activityRow}><span className={s.activityWhen}>{shortDate(note.fecha)}</span><span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{note.texto}</span></span></li>)}
       </ul>
     </section>}
     <p className={s.meta}>Registrado el {humanDay(person.creadoEl)}.</p>

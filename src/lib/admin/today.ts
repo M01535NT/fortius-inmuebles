@@ -2,7 +2,7 @@ import { isTaskOpen, type Task } from "@/lib/tasks";
 import { addMonths, lastOwnerReport, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { interviewFields, INTENTS, type OperationalInterview } from "@/lib/intake/interview";
 import { followupLabel, type Followup } from "@/lib/admin/followups";
-import { operationalDate } from "@/lib/admin/operational-date";
+import { calendarDayOf, operationalDate } from "@/lib/admin/operational-date";
 import { attentionOf, pastGaps, recentOfferOf, type AttentionKind, type OperationRecord } from "@/lib/admin/operation-view";
 
 /*
@@ -73,7 +73,8 @@ export function requirementName(key: RequirementKey, route?: string | null) {
 
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const WEEKDAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-const dayOf = (date: string) => new Date(date.slice(0, 10) + "T12:00:00.000Z");
+// Una marca de tiempo (UTC) se muestra con el día de Tijuana en que ocurrió.
+const dayOf = (date: string) => new Date(calendarDayOf(date) + "T12:00:00.000Z");
 /** «16 oct». */
 export function shortDate(date: string) { const d = dayOf(date); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`; }
 /** «Viernes 16 oct 2026». */
@@ -162,7 +163,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today,
     const gap = formats ? pastGaps(dossier as unknown as OperationRecord, today, formato => own?.has(formato) ? "terminado" : undefined)[0]?.gap : undefined;
     const attention = attentionOf(dossier, tasks, today, gap, !!offer);
     if (!attention) continue;
-    const since = (value?: string) => value ? (value.slice(0, 10) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
+    const since = (value?: string) => value ? (calendarDayOf(value) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
     const base = { late: attention.late, rank: attention.rank, kind: attention.kind };
     let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank" | "kind" | "taskId" | "requirement">;
     if (attention.kind === "problema") {
@@ -182,7 +183,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today,
       const due = open.filter(t => t.vence === today).sort((a, b) => a.titulo.localeCompare(b.titulo, "es"))[0];
       pick = { ...base, reason: `Vence hoy: ${due.titulo}`, when: "Hoy", taskId: due.id };
     } else if (attention.kind === "oferta") {
-      pick = { ...base, reason: "Se registró una oferta. Revísala con el propietario.", when: offer!.updatedAt.slice(0, 10) === today ? "Hoy" : `El ${shortDate(offer!.updatedAt)}` };
+      pick = { ...base, reason: "Se registró una oferta. Revísala con el propietario.", when: calendarDayOf(offer!.updatedAt) === today ? "Hoy" : `El ${shortDate(offer!.updatedAt)}` };
     } else {
       pick = { ...base, reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "" };
     }

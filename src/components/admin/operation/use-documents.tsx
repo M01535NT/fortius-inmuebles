@@ -8,7 +8,7 @@ import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
 import { calcularValor } from "@/lib/formatos/valor";
 import { appraisalState, valueFromAppraisal } from "@/lib/formatos/operation-workflow";
-import { operationalDate } from "@/lib/admin/operational-date";
+import { addCalendarDays, operationalDate } from "@/lib/admin/operational-date";
 import type { LevantamientoId } from "@/lib/formatos/levantamiento";
 import { downloadFormatoCopia, saveBlob } from "@/lib/admin/download-word";
 import type { FormatStatus, OperationRecord } from "@/lib/admin/operation-view";
@@ -166,7 +166,8 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   /** El checklist de documentos se guarda como pasos de una tarea de la operación. */
   function startChecklist() {
     return guard(async () => {
-      const vence = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+      // Una semana a partir de hoy en Tijuana (de noche, la fecha UTC ya es mañana).
+      const vence = addCalendarDays(operationalDate(), 7);
       await upsert(db.tareas, { id: checklistTaskId(op.id), titulo: "Reunir los documentos del propietario", descripcion: "Marca cada documento al recibirlo. Con ellos se hace el dictamen jurídico.", categoria: "documentacion", estado: "en-curso", prioridad: "normal", pasos: checklistFor(answers).map(item => ({ ...item, hecho: false })), asesorId: op.asesor_id, expedienteId: op.id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "", vence }, null);
     });
   }
