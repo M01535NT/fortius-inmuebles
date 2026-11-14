@@ -189,6 +189,8 @@ export default function ArchivosPage() {
                       alt={archivo.nombre}
                       fill
                       sizes="300px"
+                      // C-70: la dirección la escribe el asesor (cualquier dominio); no pasa por el optimizador.
+                      unoptimized
                       className="object-cover"
                     />
                   </div>

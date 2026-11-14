@@ -47,7 +47,8 @@ export function PeriodReport() {
   const now = periodSummary(leads, events, filter);
   const before = previous ? periodSummary(leads, events, { ...previous, advisor }) : undefined;
   const advisorName = advisers.find(a => a.id === advisor)?.nombre;
-  const checked = book ? calculateComercial(book.data, to || today) : null;
+  // C-66: el reporte corta al cierre de su periodo, aunque la cartera use un corte «Fijo» para su propio tablero.
+  const checked = book ? calculateComercial({ ...book.data, config: { ...book.data.config, modoCorte: "Diario" } }, to || today) : null;
   const commercialEvents = book?.data.eventos.filter(e =>
     dateInPeriod(e.fecha, filter) && (!advisor || e.responsable === advisor || e.responsable === advisorName) &&
     !["Pendiente", "Cancelado"].includes(e.estado) && checked?.eventos.some(c => c.id === e.id && c.vigente && !c.controles.length)) ?? [];

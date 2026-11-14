@@ -290,6 +290,10 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
     ) {
       throw new Error("Para publicar, agrega al menos una imagen pública. Lo privado no sale en el sitio.");
     }
+    // C-69: la misma regla que el servidor (validation.ts), dicha antes de enviar.
+    if (property.estado === "evaluacion" && (property.publicada || property.publicadaEl)) {
+      throw new Error("Un inmueble «En captación · privado» no se publica ni lleva fecha de publicación. Retíralo del sitio y borra la fecha, o elige otro estado.");
+    }
 
     try {await upsertPropiedad(property, version);}catch(cause){if(cause instanceof AdminApiError && cause.status===409)setConflict(true);throw cause;}
     setDirty(false);
@@ -403,7 +407,10 @@ export function PropertyForm({ initial: source, view, onDirtyChange, onShowTab }
               className={selectClass}
             >
               {ESTADOS_POR_OPERACION[operacion].map((value) => (
-                <option key={value} value={value}>{ESTADO_LABELS[value]}</option>
+                // C-69: un inmueble publicado no vuelve a «En captación · privado» sin retirarlo antes del sitio.
+                <option key={value} value={value} disabled={value === "evaluacion" && !!initial?.publicada && estado !== "evaluacion"}>
+                  {ESTADO_LABELS[value]}{value === "evaluacion" && initial?.publicada && estado !== "evaluacion" ? " (retíralo antes del sitio)" : ""}
+                </option>
               ))}
             </select>
           </Field>
