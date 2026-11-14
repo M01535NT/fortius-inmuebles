@@ -11,7 +11,7 @@ import { offerCandidates, offerOwner, withoutOffer } from "@/lib/admin/lead-offe
 import { InterviewAccess } from "@/components/admin/intake/interview-access";
 import { ExpedienteOperationPanel } from "@/components/admin/expediente-operation-panel";
 import { apiRequest, db, errorMessage, upsert, uid, useCollection } from "@/lib/admin/store";
-import { appraisalState, CANALES_INFORME, directorReview, isOwnerRoute, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { appraisalState, CANALES_INFORME, directorReview, isOwnerRoute, ownerProcess, lastOwnerReport, ownerReportApplies, ownerReportStatus, type EntregaInforme, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { answerLabel, type OperationalInterview } from "@/lib/intake/interview";
 import { conditionWith02, LAWYER_TASK } from "@/lib/intake/condition";
 import { formatoById, validateFormato } from "@/lib/formatos/catalog";
@@ -86,7 +86,10 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const [sheet, setSheet] = React.useState<OpenSheet>(null);
   const flow = flowOf(op), owner = isOwnerRoute(flow.ruta);
-  const { phase } = routeStages(op, today);
+  const { phase, labels, current } = routeStages(op, today);
+  // «Etapa 5 de 10 · Dictamen jurídico» y qué se hace en ella, del proceso del titular.
+  const stageName = current >= 0 && labels[current] ? `Etapa ${current + 1} de ${labels.length} · ${labels[current]}` : "Esta etapa";
+  const stageText = owner && current >= 0 ? ownerProcess(flow.ruta)[current]?.hace ?? "" : "";
   const answers = (docs.latest("02")?.data ?? interview?.respuestas ?? {}) as Record<string, unknown>;
   // El tipo sugerido sale de la entrevista; se calcula hasta que el asesor elige otro.
   const [surveyChoice, setSurvey] = React.useState<LevantamientoId | null>(null);
@@ -232,7 +235,29 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {locked && reviewsGroup.some(i => !i.earlier && CONTRACT_KEYS.includes(i.key)) && <div className={s.span6}><Notice tone="info">Primero dictamen jurídico, opinión de valor y decisión del encargo. Luego, contrato y preparación.</Notice></div>}
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
 
-    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={cn(s.piece, s.span4)}>
+    {/* Boceto «desde cero» (14/11/2026): a la izquierda la etapa con lo que hay que confirmar y sus documentos; a la derecha la próxima tarea y el inmueble. */}
+    <div className={cn(s.span6, s.bodyCols)}>
+      <div className={s.bodyMain}>
+    {(reviewsGroup.length > 0 || otherGroup.length > 0 || !!stageText) && <section aria-labelledby="etapa-actual" data-tour="operacion-confirma" className={cn(s.piece, s.stagePiece)}>
+      <div className={s.stageIntro}><h2 id="etapa-actual" className={s.stageTitle}>{stageName}</h2>{stageText && <p className={s.stageText}>{stageText}</p>}</div>
+      {(reviewsGroup.length > 0 || otherGroup.length > 0) && <>
+      <div className={s.pieceHead}><h3 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h3><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que la operación pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
+      <ul className={s.items}>
+        {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} inFloat={now?.kind === "requisito" && now.key === item.key} onQuick={quick} onSheet={setSheet} />)}
+        {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
+          <StateIcon state="pendiente" done={false} />
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="font-semibold">{item.text}</span>{item.why && <span className="text-sm text-muted-foreground">{item.why.replace(/^./, c => c.toUpperCase())}</span>}</div>
+          <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Abrir los datos" : item.place === "encargo" ? "Ir a la decisión" : item.place === "tarea" ? "Ir a la próxima tarea" : item.place === "firma" ? "Ir a la firma" : item.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button></div>
+        </div></li>)}
+      </ul>
+      <details className={s.meaning}><summary>¿Qué significa cada estado?</summary><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
+        <li><strong className="text-foreground">Lo tengo</strong>: ya llegó el documento; todavía no se revisa. <strong className="text-foreground">Revisado</strong> exige decir con qué se comprobó, quién y cuándo.</li>
+        <li>El panel guarda cada revisión, pero no emite dictámenes ni sustituye la revisión de un profesional.</li>
+      </ul></details>
+      </>}
+    </section>}
+
+    {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={s.piece}>
       <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><Hint term="los documentos de la etapa">Los formatos que deja esta etapa. Cada uno se abre en su propia ventana para llenarlo.</Hint><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
       <ul className={s.docList}>{documentsGroup.map(item => item.kind === "abogado"
         ? <li key="abogado" className={s.docWait}>
@@ -253,25 +278,12 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
       {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
     </section>}
 
-    <NextTask op={op} today={today} className={documentsGroup.length ? s.span2 : s.span6} />
-
-    {(reviewsGroup.length > 0 || otherGroup.length > 0) && <section aria-labelledby="confirma-etapa" data-tour="operacion-confirma" className={cn(s.piece, s.span3)}>
-      <div className={s.pieceHead}><h2 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h2><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que la operación pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
-      <ul className={s.items}>
-        {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} inFloat={now?.kind === "requisito" && now.key === item.key} onQuick={quick} onSheet={setSheet} />)}
-        {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
-          <StateIcon state="pendiente" done={false} />
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5"><span className="font-semibold">{item.text}</span>{item.why && <span className="text-sm text-muted-foreground">{item.why.replace(/^./, c => c.toUpperCase())}</span>}</div>
-          <div className={s.itemActions}><Button disabled={lock} onClick={() => goToPending(item)}>{item.place === "ajustes" ? "Abrir los datos" : item.place === "encargo" ? "Ir a la decisión" : item.place === "tarea" ? "Ir a la próxima tarea" : item.place === "firma" ? "Ir a la firma" : item.place === "cierre" ? "Ir al cierre" : "Hacerlo ahora"}</Button></div>
-        </div></li>)}
-      </ul>
-      <details className={s.meaning}><summary>¿Qué significa cada estado?</summary><ul className="mb-2 mt-1 flex flex-col gap-2 text-sm text-muted-foreground">
-        <li><strong className="text-foreground">Lo tengo</strong>: ya llegó el documento; todavía no se revisa. <strong className="text-foreground">Revisado</strong> exige decir con qué se comprobó, quién y cuándo.</li>
-        <li>El panel guarda cada revisión, pero no emite dictámenes ni sustituye la revisión de un profesional.</li>
-      </ul></details>
-    </section>}
-
-    <PropertyPiece op={op} property={property} interview={interview} className={reviewsGroup.length || otherGroup.length ? s.span3 : s.span6} onLink={() => onGoTo("ajustes")} />
+      </div>
+      <div className={s.bodySide}>
+        <NextTask op={op} today={today} />
+        <PropertyPiece op={op} property={property} interview={interview} onLink={() => onGoTo("ajustes")} />
+      </div>
+    </div>
 
     {phase === "prospecto" && owner && <div className={cn(s.piece, s.span6)}><FirstContact interview={interview} op={op} disabled={lock} /></div>}
     {owner && interview && (phase === "captacion" || phase === "verificacion" || phase === "contrato") && <div className={s.span6}><Declared op={op} interview={interview} /></div>}
@@ -498,13 +510,19 @@ function NextTask({ op, today, className }: { op: OperationRecord; today: string
       setTitle(""); setDate(""); setMessage("Guardado");
     } catch (cause) { setMessage(`No se pudo guardar: ${errorMessage(cause)}`); } finally { setBusy(false); }
   }
+  async function finish() {
+    if (!next) return;
+    setBusy(true); setMessage("");
+    try { await upsert(db.tareas, { ...next, estado: "completada" }, db.tareas.version(next)); setMessage(`Completaste «${next.titulo}».`); }
+    catch (cause) { setMessage(`No se pudo guardar: ${errorMessage(cause)}`); } finally { setBusy(false); }
+  }
   const late = !!next?.vence && next.vence < today;
   return <Card id="proxima-tarea" className={cn(s.piece, s.taskPiece, className)} aria-label="Próxima tarea" data-late={late || undefined}>
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <h2 className={s.pieceTitle}>Próxima tarea</h2>
       {next ? <>
         <span className="flex min-w-0 flex-col gap-0.5"><span className={cn("text-sm", late ? s.lateText : "text-muted-foreground")}>{next.vence ? `${late ? "Venció el " : next.vence === today ? "Hoy · " : ""}${weekdayDate(next.vence)} ${shortDate(next.vence).split(" ")[1]}` : "Sin fecha"}</span><Link href={`/admin/tareas/${encodeURIComponent(next.id)}`} className={s.taskTitle}>{next.titulo}</Link></span>
-        {!editing && <button type="button" className={s.linkButton} onClick={() => { setDate(next.vence ?? ""); setEditing(true); }}>Cambiar fecha</button>}
+        {!editing && <div className={s.taskActions}><Button disabled={busy} onClick={() => void finish()}><Check size={16} aria-hidden="true" />Hecha</Button><button type="button" className={s.linkButton} onClick={() => { setDate(next.vence ?? ""); setEditing(true); }}>Cambiar fecha</button></div>}
         {editing && <div className="flex flex-col gap-2"><label className="text-sm">Nueva fecha<input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></label><div className="flex gap-2"><Button variant="primary" disabled={busy || !date} onClick={() => void changeDate()}>Guardar fecha</Button><Button variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancelar</Button></div></div>}
       </> : <form onSubmit={create} className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">{stageOf(op) === "cerrado" ? "Operación archivada: no necesita próxima tarea." : "Esta operación no tiene una próxima tarea con fecha. Agenda el siguiente paso para no perderlo de vista."}</p>
