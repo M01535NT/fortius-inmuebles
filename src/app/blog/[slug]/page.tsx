@@ -28,7 +28,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
-  if (!post) return {};
+  if (!post) return { title: "Artículo no encontrado", robots: { index: false, follow: true } };
   const path = `/blog/${post.slug}`;
   const cover = getBlogCover(post.slug);
   const coverUrl = cover ? new URL(cover.src, siteConfig.url).href : undefined;

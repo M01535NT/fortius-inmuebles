@@ -7,6 +7,7 @@ import { ArrowRight, X } from "lucide-react";
 import { usePageTransition } from "@/components/home/public-experience";
 import { TIPOS_INMUEBLE } from "@/lib/inmueble-tipos";
 import { SEGMENTOS_INMUEBLE, inventarioDeSegmento } from "@/lib/inmueble-segmentos";
+import { zonas } from "@/data/zonas";
 import styles from "./site-search.module.css";
 
 /*
@@ -28,6 +29,8 @@ const DESTINOS: Destino[] = [
   { label: "Todas las propiedades", group: "Propiedades", href: "/inventario", keywords: `inventario inmuebles ${CIUDADES}` },
   ...SEGMENTOS_INMUEBLE.map((s) => ({ label: s.label, group: "Propiedades", href: inventarioDeSegmento(s.key), keywords: s.detalle })),
   ...TIPOS_INMUEBLE.map((t) => ({ label: t.label, group: "Tipo de inmueble", href: `/inventario?tipo=${t.key}`, keywords: t.key.replace("-", " ") })),
+  // Zonas: «playas» o «otay» llevan al inventario filtrado (si no hay ahí, el inventario muestra todo).
+  ...zonas.map((z) => ({ label: z.nombre, group: "Zona", href: `/inventario?zona=${encodeURIComponent(z.nombre)}` })),
   { label: "Calculadora de hipoteca", group: "Herramientas", href: "/herramientas/hipoteca", keywords: "credito mensualidad pago banco" },
   { label: "Todas las herramientas", group: "Herramientas", href: "/herramientas", keywords: "calculadoras" },
   { label: "Preguntas frecuentes", group: "Ayuda", href: "/preguntas-frecuentes", keywords: "dudas faq" },
@@ -73,7 +76,12 @@ export function SiteSearch({ onClose }: { onClose: () => void }) {
   const previousFocus = React.useRef<HTMLElement | null>(null);
   const [consulta, setConsulta] = React.useState("");
   const [activo, setActivo] = React.useState(0);
-  const lista = React.useMemo(() => sugerencias(consulta), [consulta]);
+  const coincidencias = React.useMemo(() => sugerencias(consulta), [consulta]);
+  // Siempre hay salida: lo escrito también se puede buscar en los artículos del blog.
+  const lista = React.useMemo(() => {
+    const texto = consulta.trim();
+    return texto ? [...coincidencias, { label: `Buscar «${texto}» en el blog`, group: "Blog", href: `/blog?q=${encodeURIComponent(texto)}` }] : coincidencias;
+  }, [consulta, coincidencias]);
   const listId = React.useId();
 
   React.useEffect(() => {
@@ -110,7 +118,7 @@ export function SiteSearch({ onClose }: { onClose: () => void }) {
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   };
 
-  const titulo = consulta.trim() ? (lista.length ? "Sugerencias" : "Sin coincidencias") : "Lo más buscado";
+  const titulo = consulta.trim() ? (coincidencias.length ? "Sugerencias" : "Sin coincidencias en el sitio") : "Lo más buscado";
 
   return createPortal(
     <div className={styles.root} role="dialog" aria-modal="true" aria-label="Buscar en Fortius" onKeyDown={onDialogKey}>
