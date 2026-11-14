@@ -28,7 +28,8 @@ export function projectFollowups(leads: Lead[], clientes: Cliente[], dossiers?: 
   const followups: Followup[] = [];
   for (const cliente of clientes) {
     const fecha = cliente.perfil?.proximoContacto;
-    if (fecha && !onTasks.has(`cliente:${cliente.id}`)) followups.push({ id: `cliente:${cliente.id}`, kind: "cliente", personId: cliente.id, personName: cliente.nombre, asesorId: cliente.asesorId, fecha, href: `/admin/clientes/${encodeURIComponent(cliente.id)}`, ...(dossiers ? { status: clientStatus(cliente.id, dossiers) } : {}) });
+    // C-53: la tarea de siguiente paso creada cuando era prospecto también cubre al cliente convertido.
+    if (fecha && !onTasks.has(`cliente:${cliente.id}`) && !(cliente.leadId && onTasks.has(`lead:${cliente.leadId}`))) followups.push({ id: `cliente:${cliente.id}`, kind: "cliente", personId: cliente.id, personName: cliente.nombre, asesorId: cliente.asesorId, fecha, href: `/admin/clientes/${encodeURIComponent(cliente.id)}`, ...(dossiers ? { status: clientStatus(cliente.id, dossiers) } : {}) });
   }
   for (const lead of leads) {
     const fecha = lead.perfil?.proximoContacto;

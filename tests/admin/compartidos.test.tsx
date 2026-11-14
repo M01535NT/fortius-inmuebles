@@ -44,6 +44,7 @@ it("desde Herramientas el alta llega como compartido y guarda la inmobiliaria co
   fireEvent.change(screen.getByLabelText("Zona"), { target: { value: "Centro" } });
   fireEvent.change(screen.getByLabelText("Referencia (nunca dirección exacta)"), { target: { value: "Cerca del parque" } });
   fireEvent.change(screen.getByLabelText("Descripción"), { target: { value: "Descripción" } });
+  fireEvent.change(screen.getByLabelText("Monto"), { target: { value: "2500000" } });
   fireEvent.change(screen.getByLabelText("Inmobiliaria que lo comparte"), { target: { value: "Aliada de Ensayo" } });
   fireEvent.change(screen.getByLabelText("Comisión para Fortius (% del precio)"), { target: { value: "2.5" } });
   fireEvent.change(screen.getByLabelText("Archivo de la autorización"), { target: { files: [new File(["x"], "carta.pdf", { type: "application/pdf" })] } });

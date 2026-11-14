@@ -53,7 +53,7 @@ export type PersonOperation = { id: string; clienteId?: string; stage: string };
   persona tiene una operación activa, manda la operación (C40): cuentan sus tareas y citas, el
   «próximo contacto» del perfil ya no, y sin nada con fecha se dice en qué etapa va.
 */
-export function nextStep(person: { id: string; perfil?: LeadProfile }, kind: "lead" | "cliente", tasks: Task[], events: Evento[], today: string, operations: PersonOperation[] = []): NextStep | null {
+export function nextStep(person: { id: string; perfil?: LeadProfile; estado?: string }, kind: "lead" | "cliente", tasks: Task[], events: Evento[], today: string, operations: PersonOperation[] = []): NextStep | null {
   const ops = kind === "cliente" ? operations.filter(op => op.clienteId === person.id) : [];
   const opIds = new Set(ops.map(op => op.id));
   const mine = (ref: { leadId?: string; clienteId?: string; expedienteId?: string }) => (kind === "lead" ? ref.leadId === person.id : ref.clienteId === person.id) || (!!ref.expedienteId && opIds.has(ref.expedienteId));
@@ -62,7 +62,9 @@ export function nextStep(person: { id: string; perfil?: LeadProfile }, kind: "le
   for (const event of events) if (mine(event) && event.fecha >= today) options.push({ text: event.titulo, date: event.fecha, time: event.hora, sort: `${event.fecha} ${event.hora ?? ""}` });
   // DEC-42: con una tarea de siguiente paso, el «próximo contacto» del perfil ya no cuenta.
   const onTasks = tasks.some(task => isNextStepTask(task, { kind, id: person.id }));
-  if (person.perfil?.proximoContacto && !ops.length && !onTasks) options.push({ text: person.perfil.proximaAccion?.trim() || "Darle seguimiento", date: person.perfil.proximoContacto, sort: person.perfil.proximoContacto });
+  // C-51: el «próximo contacto» de un prospecto descartado o cerrado ya no cuenta (igual que Hoy y Agenda).
+  const closedLead = kind === "lead" && (person.estado === "descartado" || person.estado === "cerrado");
+  if (person.perfil?.proximoContacto && !ops.length && !onTasks && !closedLead) options.push({ text: person.perfil.proximaAccion?.trim() || "Darle seguimiento", date: person.perfil.proximoContacto, sort: person.perfil.proximoContacto });
   options.sort((a, b) => a.sort.localeCompare(b.sort));
   const first = options[0];
   if (first) return { text: first.text, date: first.date, time: first.time };
