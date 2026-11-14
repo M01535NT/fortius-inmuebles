@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
-import { nuevoTramite, type Tramite } from "@/lib/tramites";
+import { ACREEDORES, nuevoTramite, pasosDe, type Acreedor, type Tramite } from "@/lib/tramites";
 
 // TRA-01: trámites de cancelación de hipoteca. La base decide quién los ve, que los pasos se cierren
 // en orden con sus pendientes y documento, sella las notas y crea la tarea al quedar en espera.
@@ -157,4 +157,11 @@ test("la migración se puede volver a correr sin cambiar nada", async () => {
   expect(await firma()).toBe(antes);
   const t = await as(ana, () => put("tr-7", base("tr-7"), null));
   expect(t.version).toBe(1);
+});
+
+test("la base nombra cada paso igual que el panel", async () => {
+  for (const a of Object.keys(ACREEDORES) as Acreedor[]) for (const p of pasosDe(a)) {
+    const r = await db.query<{ n: string }>("select public.fortius_inmuebles_tramite_paso_nombre($1,$2) n", [a, p.clave]);
+    expect(r.rows[0].n).toBe(p.nombre);
+  }
 });

@@ -2,9 +2,19 @@ import { z } from "zod";
 
 /*
   TRA-01 · Trámites con pasos. El primero: cancelación de hipoteca (decisiones del titular del
-  14/11/2026): Fortius lo hace, el propietario paga notario y Registro, y es un trámite aparte de la
-  venta. Los pasos son de referencia (fuentes secundarias); confírmalos con el notario y los sitios
-  oficiales antes de darlos como regla a un cliente.
+  14/11/2026): Fortius lo hace, el propietario paga los derechos (y el notario si lo hay), y es un
+  trámite aparte de la venta. Pasos según fuentes oficiales consultadas el 14/11/2026:
+  · Registro Público de BC, «Inscripción de Cancelación de Gravámenes» (Retys BC-DRPPC-014): pide
+    los derechos pagados y la «Carta de cancelación»; la escritura solo si ese es el medio. $794
+    (tarifa oct. 2026), 5 días hábiles, presencial (Tijuana: Xavier Villarrutia 1271, Zona Río).
+  · «Certificado de Inscripción con o sin Gravámenes» (Retys BC-DRPPC-011): $516, 5 días hábiles,
+    en línea o presencial.
+  · Infonavit: carta de instrucción gratuita en Mi Cuenta Infonavit; para ir directo al Registro
+    se pide antes la validación de documentos de Infonavit.
+  · Fovissste: instrumento administrativo de cancelación (gob.mx FOVISSSTE-00-012-A), gratuito, 10
+    días hábiles; pide el comprobante de pago de derechos de la cancelación.
+  · Banco: carta de finiquito y escritura de cancelación ante notario (no hay vía oficial sin él).
+  Las claves de los pasos son identificadores fijos (la base los revisa); el nombre cambia por acreedor.
 
   La base guarda los pendientes de cada paso al abrir el trámite y revisa al avanzar que estén hechos
   y que el documento del paso exista (migración 20261114211000). Este archivo solo define textos.
@@ -14,10 +24,12 @@ export type Acreedor = keyof typeof ACREEDORES;
 export const PASO_CLAVES = ["datos", "liquidado", "carta", "notario", "firma", "registro", "certificado", "entrega"] as const;
 export type PasoClave = (typeof PASO_CLAVES)[number];
 /** Pasos que no se cierran sin su documento (la base revisa lo mismo). */
-export const PASOS_CON_DOCUMENTO: Partial<Record<PasoClave, string>> = { liquidado: "Estado de cuenta en cero", carta: "", certificado: "Certificado de libertad de gravamen" };
+export const PASOS_CON_DOCUMENTO: Partial<Record<PasoClave, string>> = { liquidado: "Estado de cuenta en cero", carta: "", certificado: "Certificado de inscripción sin gravámenes" };
 export const TOTAL_PASOS = PASO_CLAVES.length;
 
-const CARTA: Record<Acreedor, string> = { infonavit: "Carta de cancelación", banco: "Carta de finiquito", fovissste: "Carta de no adeudo" };
+const CARTA: Record<Acreedor, string> = { infonavit: "Carta de instrucción de cancelación", banco: "Carta de finiquito", fovissste: "Carta de finiquito" };
+/** Solo el crédito bancario pasa por notario; Infonavit y Fovissste van directo al Registro. */
+export const conNotario = (acreedor: Acreedor) => acreedor === "banco";
 export function documentoDelPaso(acreedor: Acreedor, clave: PasoClave) {
   if (!(clave in PASOS_CON_DOCUMENTO)) return undefined;
   return clave === "carta" ? CARTA[acreedor] : PASOS_CON_DOCUMENTO[clave];
@@ -25,22 +37,26 @@ export function documentoDelPaso(acreedor: Acreedor, clave: PasoClave) {
 
 type PasoDef = { clave: PasoClave; nombre: string; ayuda: string; pendientes: string[] };
 export function pasosDe(acreedor: Acreedor): PasoDef[] {
-  const carta = CARTA[acreedor];
-  const ayudaCarta = acreedor === "infonavit"
-    ? "Se genera sin costo en Mi Cuenta Infonavit, en «Mi crédito», o en un centro de servicio."
-    : acreedor === "banco"
-      ? "La entrega el banco al liquidar. Pide la carta de finiquito y la instrucción para el notario."
-      : "Se pide en Mi Fovissste o en el departamento de vivienda. Confirma si la cancelación puede hacerse en línea.";
-  return [
-    { clave: "datos", nombre: "Datos del crédito", ayuda: "Reúne el número de crédito, la escritura con folio real y la identificación del propietario.", pendientes: ["Número de crédito", "Escritura con folio real", "Identificación del propietario"] },
-    { clave: "liquidado", nombre: "Crédito liquidado", ayuda: "Confirma con el estado de cuenta del acreedor que el saldo está en cero.", pendientes: ["Saldo en cero confirmado", "Fecha del último pago"] },
-    { clave: "carta", nombre: carta, ayuda: ayudaCarta, pendientes: ["Solicitud hecha al acreedor", "Carta revisada: nombre, crédito y folio coinciden"] },
+  const datos: PasoDef = { clave: "datos", nombre: "Datos del crédito", ayuda: "Reúne el número de crédito, la escritura con la hipoteca inscrita (folio real) y la identificación del propietario.", pendientes: ["Número de crédito", "Escritura con folio real", "Identificación del propietario"] };
+  const liquidado: PasoDef = { clave: "liquidado", nombre: "Crédito liquidado", ayuda: "Confirma con el estado de cuenta del acreedor que el saldo está en cero.", pendientes: ["Saldo en cero confirmado", "Fecha del último pago"] };
+  const registro = (quien: string): PasoDef => ({ clave: "registro", nombre: "Registro Público", ayuda: `${quien} en el Registro Público de Tijuana (Xavier Villarrutia 1271, Zona Río), con los derechos pagados. El Registro tiene 5 días hábiles para resolver.`, pendientes: ["Ingreso al Registro", "Boleta de inscripción recibida"] });
+  const certificado: PasoDef = { clave: "certificado", nombre: "Certificado de gravámenes", ayuda: "Pide el «Certificado de inscripción con o sin gravámenes» (en línea o en el Registro, 5 días hábiles): prueba que la hipoteca ya no existe.", pendientes: ["Certificado solicitado"] };
+  const entrega: PasoDef = { clave: "entrega", nombre: "Entrega", ayuda: "Entrega al propietario la boleta de inscripción, el certificado y sus documentos originales.", pendientes: ["Entregado al propietario"] };
+  if (acreedor === "infonavit") return [datos, liquidado,
+    { clave: "carta", nombre: "Carta de instrucción", ayuda: "Se genera sin costo en Mi Cuenta Infonavit («Mi crédito») o en un centro de servicio, solo con el crédito liquidado. Elige la opción de ir directo al Registro Público.", pendientes: ["Carta generada para el Registro Público", "Carta revisada: nombre, crédito y folio coinciden"] },
+    { clave: "notario", nombre: "Validación de Infonavit", ayuda: "Para ir directo al Registro, Infonavit valida antes los documentos. Pide la validación y guarda el comprobante.", pendientes: ["Validación solicitada", "Validación aprobada"] },
+    { clave: "firma", nombre: "Pago de derechos", ayuda: "Paga en la caja recaudadora del Registro los derechos de cancelación de gravamen ($794 con un gravamen, tarifa de octubre de 2026). Lo cubre el propietario.", pendientes: ["Derechos pagados", "Recibo guardado"] },
+    registro("Ingresa la carta de instrucción validada"), certificado, entrega];
+  if (acreedor === "fovissste") return [datos, liquidado,
+    { clave: "carta", nombre: "Carta de finiquito", ayuda: "La emite el Departamento de Vivienda o la Subdirección de Finanzas del Fovissste al liquidar.", pendientes: ["Carta solicitada al Fovissste", "Carta revisada: nombre, crédito y folio coinciden"] },
+    { clave: "notario", nombre: "Pago de derechos", ayuda: "El Fovissste pide el comprobante de pago de derechos de la cancelación antes de emitir el instrumento. Se paga en la caja recaudadora del Registro ($794 con un gravamen, tarifa de octubre de 2026).", pendientes: ["Derechos pagados", "Comprobante guardado"] },
+    { clave: "firma", nombre: "Instrumento de cancelación", ayuda: "Con cita en el portal del Fovissste se pide el instrumento administrativo de cancelación: gratuito, 10 días hábiles. Lleva identificación, carta de finiquito, escritura inscrita y el comprobante de pago.", pendientes: ["Cita en el Fovissste", "Instrumento recibido"] },
+    registro("Ingresa el instrumento de cancelación del Fovissste"), certificado, entrega];
+  return [datos, liquidado,
+    { clave: "carta", nombre: "Carta de finiquito", ayuda: "La entrega el banco al liquidar. Pide la carta de finiquito y la instrucción para el notario.", pendientes: ["Solicitud hecha al banco", "Carta revisada: nombre, crédito y folio coinciden"] },
     { clave: "notario", nombre: "Notario y presupuesto", ayuda: "Elige la notaría, pide el presupuesto de la escritura de cancelación y que el propietario lo apruebe.", pendientes: ["Notaría elegida", "Presupuesto recibido", "Aprobado por el propietario"] },
-    { clave: "firma", nombre: "Firma", ayuda: "El acreedor o su apoderado firma la escritura de cancelación ante el notario.", pendientes: ["Fecha de firma acordada", "Escritura firmada"] },
-    { clave: "registro", nombre: "Registro Público", ayuda: "El notario inscribe la cancelación en el Registro Público de Tijuana. Suele ser la espera más larga.", pendientes: ["Ingreso al Registro", "Boleta de inscripción recibida"] },
-    { clave: "certificado", nombre: "Certificado", ayuda: "Pide el certificado de libertad de gravamen: prueba que la hipoteca ya no existe.", pendientes: ["Certificado solicitado"] },
-    { clave: "entrega", nombre: "Entrega", ayuda: "Entrega al propietario la escritura de cancelación y el certificado.", pendientes: ["Entregado al propietario"] },
-  ];
+    { clave: "firma", nombre: "Firma ante notario", ayuda: "El apoderado del banco firma la escritura de cancelación ante el notario.", pendientes: ["Fecha de firma acordada", "Escritura firmada"] },
+    registro("El notario ingresa la escritura de cancelación"), certificado, entrega];
 }
 
 const id = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/);
@@ -74,7 +90,11 @@ export function nuevoTramite(input: { id: string; acreedor: Acreedor; titulo: st
     clienteId: input.clienteId, asesorId: input.asesorId, propiedadSlug: input.propiedadSlug || "", expedienteId: input.expedienteId || "",
     estado: "en_curso", pasoActual: 0, espera: null, credito: {}, ultimoAvance: null, notas: [],
     pasos: pasosDe(input.acreedor).map(p => ({ clave: p.clave, pendientes: p.pendientes.map((texto, i) => ({ id: `${p.clave}-${i + 1}`, texto, hecho: false })) })),
-    pagos: (input.pagos ?? ["Escritura de cancelación", "Derechos del Registro", "Certificado de libertad de gravamen"]).map((concepto, i) => ({ id: `pago-${i + 1}`, concepto, estado: "pendiente" as const })),
+    // Montos de referencia del Registro de BC (Retys, octubre de 2026); la escritura solo con banco.
+    pagos: input.pagos
+      ? input.pagos.map((concepto, i) => ({ id: `pago-${i + 1}`, concepto, estado: "pendiente" as const }))
+      : [...(conNotario(input.acreedor) ? [{ concepto: "Escritura de cancelación" }] : []), { concepto: "Derechos de cancelación en el Registro", monto: 794 }, { concepto: "Certificado de gravámenes", monto: 516 }]
+        .map((p, i) => ({ id: `pago-${i + 1}`, ...p, estado: "pendiente" as const })),
   };
 }
 
@@ -88,6 +108,13 @@ export function faltanParaCerrar(t: Pick<Tramite, "acreedor" | "pasoActual" | "p
   return faltan;
 }
 
+function necesitaDelPropietario(t: Tramite, paso?: string) {
+  if (t.pasoActual >= TOTAL_PASOS) return "• Nada por ahora.";
+  if (paso === "Notario y presupuesto") return "• Aprobar el presupuesto del notario.";
+  if (paso === "Pago de derechos") return "• Cubrir los derechos del Registro ($794).";
+  return "• Nada por ahora.";
+}
+
 /** Texto del avance para el propietario: sin notas internas. */
 export function textoDelAvance(t: Tramite, partes: { listo: boolean; sigue: boolean; necesita: boolean; pagos: boolean }, propietario: string, firma: string) {
   const pasos = pasosDe(t.acreedor);
@@ -97,7 +124,7 @@ export function textoDelAvance(t: Tramite, partes: { listo: boolean; sigue: bool
   else lineas.push(`Vamos en el paso ${t.pasoActual + 1} de ${TOTAL_PASOS}: ${actual.nombre}${t.espera ? `, esperando respuesta de ${t.espera.quien}` : ""}.`);
   if (partes.listo && t.pasoActual > 0) lineas.push("", "Ya está listo:", ...pasos.slice(0, t.pasoActual).map(p => `• ${p.nombre}`));
   if (partes.sigue && t.pasoActual < TOTAL_PASOS - 1) lineas.push("", "Lo que sigue:", `• ${pasos[t.pasoActual + 1].nombre}`);
-  if (partes.necesita) lineas.push("", "Lo que necesitamos de usted:", t.pasos[t.pasoActual]?.clave === "notario" ? "• Aprobar el presupuesto del notario." : "• Nada por ahora.");
+  if (partes.necesita) lineas.push("", "Lo que necesitamos de usted:", necesitaDelPropietario(t, actual?.nombre));
   if (partes.pagos && t.pagos.length) lineas.push("", "Pagos:", ...t.pagos.map(p => `• ${p.concepto}: ${p.estado === "pagado" ? "pagado" : "pendiente"}${p.monto !== undefined ? ` ($${p.monto.toLocaleString("es-MX")})` : ""}`));
   lineas.push("", firma);
   return lineas.join("\n");

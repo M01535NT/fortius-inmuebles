@@ -8,7 +8,7 @@ import { apiRequest, archivoFromUpload, db, errorMessage, resolveFileUrl, uid, u
 import { operationalDate } from "@/lib/admin/operational-date";
 import type { Archivo, Evento } from "@/lib/domain/records";
 import type { Task } from "@/lib/tasks";
-import { ACREEDORES, PASO_CLAVES, TOTAL_PASOS, documentoDelPaso, faltanParaCerrar, nuevoTramite, pasosDe, textoDelAvance, type Acreedor, type Tramite, type TramiteNota } from "@/lib/tramites";
+import { ACREEDORES, PASO_CLAVES, conNotario, TOTAL_PASOS, documentoDelPaso, faltanParaCerrar, nuevoTramite, pasosDe, textoDelAvance, type Acreedor, type Tramite, type TramiteNota } from "@/lib/tramites";
 import { cn } from "@/lib/utils";
 import s from "./tramites.module.css";
 
@@ -276,7 +276,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
             {cliente.telefono && <a className="inline-grid size-10 place-items-center rounded-lg" href={`https://wa.me/${waNumber(cliente.telefono)}`} target="_blank" rel="noreferrer" aria-label={`WhatsApp a ${cliente.nombre}`}><MessageCircle size={16} aria-hidden /></a>}
           </div>}
           <div className={s.person}><span className={s.pa}>{initials(ACREEDORES[t.acreedor])}</span><div><b>{ACREEDORES[t.acreedor]}</b><span>Acreedor</span></div></div>
-          <div className={s.person}><span className={s.pa}>NT</span><div><b>Notaría</b><span>{t.credito?.notaria || "Por elegir"}</span></div></div>
+          {conNotario(t.acreedor) && <div className={s.person}><span className={s.pa}>NT</span><div><b>Notaría</b><span>{t.credito?.notaria || "Por elegir"}</span></div></div>}
           <div className={s.person}><span className={s.pa}>RP</span><div><b>Registro Público</b><span>Oficina Tijuana</span></div></div>
         </div>
         <div className={s.blk}>
@@ -291,7 +291,7 @@ function Detalle({ t, me, sessionId, sessionName, today, cliente, propiedad, doc
           <div className={s.kv}>
             <CreditoField label="Número de crédito" value={t.credito?.numero} onSave={v => save({ ...t, credito: { ...t.credito, numero: v } })} />
             <CreditoField label="Folio real" value={t.credito?.folioReal} onSave={v => save({ ...t, credito: { ...t.credito, folioReal: v } })} />
-            <CreditoField label="Notaría" value={t.credito?.notaria} onSave={v => save({ ...t, credito: { ...t.credito, notaria: v } })} />
+            {conNotario(t.acreedor) && <CreditoField label="Notaría" value={t.credito?.notaria} onSave={v => save({ ...t, credito: { ...t.credito, notaria: v } })} />}
             <div className={s.kvRow}><span>Último avance</span><span>{t.ultimoAvance?.fecha ? shortDate(t.ultimoAvance.fecha) : "Sin enviar"}</span></div>
           </div>
         </div>
@@ -387,7 +387,11 @@ function QuickTask({ at, today, onClose, onSave }: { at: { x: number; y: number;
 }
 
 function QuickWait({ at, today, acreedor, paso, onClose, onSave }: { at: { x: number; y: number }; today: string; acreedor: Acreedor; paso: string; onClose: () => void; onSave: (quien: string, volver: string) => Promise<void> }) {
-  const sugerido = paso === "registro" || paso === "certificado" ? "Registro Público" : paso === "notario" || paso === "firma" ? "la notaría" : ACREEDORES[acreedor];
+  // Quién suele tener la respuesta en cada paso (Infonavit y Fovissste no pasan por notario).
+  const sugerido = paso === "registro" || paso === "certificado" ? "Registro Público"
+    : conNotario(acreedor) && (paso === "notario" || paso === "firma") ? "la notaría"
+    : (acreedor === "infonavit" && paso === "firma") || (acreedor === "fovissste" && paso === "notario") ? "Registro Público"
+    : ACREEDORES[acreedor];
   const [quien, setQuien] = React.useState(sugerido);
   const [dias, setDias] = React.useState(paso === "registro" ? 14 : 7);
   const [busy, setBusy] = React.useState(false);
@@ -480,7 +484,7 @@ function NuevoTramite({ open, onClose, me, clientes, propiedades, onCreated }: {
     } catch (e) { setErr(errorMessage(e)); } finally { setBusy(false); }
   }
   const field = "min-h-11 w-full rounded-[var(--field-radius)] border border-[var(--control-edge)] bg-[var(--field-surface)] px-3";
-  return <Sheet open={open} onClose={onClose} title="Nueva cancelación de hipoteca" description="Fortius lleva el trámite; el propietario paga notario y Registro. Los pasos se ajustan al acreedor."
+  return <Sheet open={open} onClose={onClose} title="Nueva cancelación de hipoteca" description="Fortius lleva el trámite; el propietario paga los derechos del Registro. Infonavit y Fovissste van directo al Registro; con banco hay escritura ante notario."
     footer={<div className="flex justify-end gap-2"><Button onClick={onClose}>Cancelar</Button><Button variant="primary" disabled={busy || !clienteId} onClick={() => void crear()}>{busy ? "Abriendo…" : "Abrir trámite"}</Button></div>}>
     <div className="grid gap-4">
       <Segmented label="Acreedor" value={acreedor} onChange={setAcreedor} options={(Object.keys(ACREEDORES) as Acreedor[]).map(id => ({ id, label: ACREEDORES[id] }))} />
