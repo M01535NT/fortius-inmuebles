@@ -274,3 +274,58 @@
 :global(.admin-root) .navyTag { display: inline-flex; align-items: center; min-height: 1.75rem; padding: .125rem .625rem; border: 1px solid var(--edge-soft); border-radius: 999px; color: var(--foreground); font-size: var(--admin-text-pastilla); font-weight: 600; }
 /* El panel ya no es azul: el círculo de la persona vuelve a su tono neutro. */
 :global(.admin-root) .owner [data-tone=onDark] { background: var(--card); color: var(--foreground); }
+
+/*
+  Encabezado de la operación según el boceto «desde cero» (14/11/2026): migas, foto, título grande,
+  datos y Llamar/WhatsApp; el riel en su propia tarjeta con fases arriba y números abajo.
+*/
+:global(.admin-root) .opHead { flex: 1 1 100%; display: flex; min-width: 0; flex-direction: column; gap: 1.25rem; }
+:global(.admin-root) .crumbs { display: flex; align-items: center; gap: .375rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
+:global(.admin-root) .crumbs a { display: inline-flex; align-items: center; min-height: 2.75rem; color: inherit; text-decoration: none; }
+:global(.admin-root) .crumbs a:hover { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
+:global(.admin-root) .crumbs [aria-current] { color: var(--foreground); font-variant-numeric: tabular-nums; }
+:global(.admin-root) .crumbs + .titleRow { margin-top: -.75rem; }
+:global(.admin-root) .titleRow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1rem 1.25rem; }
+:global(.admin-root) .titlePhoto { border-radius: var(--radius-thumb); }
+:global(.admin-root) .titleText { display: flex; min-width: 0; flex: 1 1 20rem; flex-direction: column; gap: .375rem; }
+:global(.admin-root) .opTitle { font-size: 1.75rem; line-height: 1.15; font-weight: 620; letter-spacing: -.02em; overflow-wrap: anywhere; text-wrap: balance; }
+:global(.admin-root) .opTitle .whoName { font-weight: inherit; }
+:global(.admin-root) .opFacts { margin: 0; font-size: .9375rem; line-height: 1.5; color: var(--muted-foreground); }
+:global(.admin-root) .opActions { display: flex; flex: none; align-items: center; gap: .5rem; }
+:global(.admin-root) .actBtn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1rem; border: 1px solid var(--input); border-radius: var(--radius-control); background: var(--card); color: var(--foreground); font-size: var(--admin-text-detalle); font-weight: 600; text-decoration: none; }
+:global(.admin-root) .actBtn:hover { border-color: var(--foreground); }
+:global(.admin-root) .opActions .round { border-color: var(--input); }
+:global(.admin-root) .railCard { display: flex; flex-direction: column; gap: .5rem; padding: 1rem 1.25rem .75rem; border-radius: var(--radius-card); background: var(--card); border: 1px solid var(--card-edge); }
+/* La etapa actual lleva una columna más ancha para su nombre; fases y riel comparten la rejilla. */
+:global(.admin-root) .railPhases { display: grid; grid-template-columns: var(--rail); gap: .375rem; font-size: var(--admin-text-pastilla); font-weight: 600; color: var(--muted-foreground); }
+:global(.admin-root) .rail { display: grid; grid-template-columns: var(--rail); gap: .375rem; margin: 0; padding: 0; list-style: none; }
+:global(.admin-root) .railStep { position: relative; min-width: 0; }
+/* La etapa actual ocupa lo que su nombre necesita. */
+:global(.admin-root) .railStep[data-now] { z-index: 1; }
+:global(.admin-root) .railBtn { display: flex; width: 100%; flex-direction: column; gap: .5rem; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; }
+:global(.admin-root) button.railBtn { cursor: pointer; }
+:global(.admin-root) button.railBtn:hover .railNum { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
+:global(.admin-root) .railBar { display: block; height: 6px; border-radius: 999px; background: var(--track); }
+:global(.admin-root) .railStep[data-state=done] .railBar { background: var(--foreground); }
+:global(.admin-root) .railStep[data-state=warn] .railBar { background: var(--warning); }
+:global(.admin-root) .railStep[data-state=now] .railBar { background: var(--primary); }
+:global(.dark) :global(.admin-root) .railStep[data-state=now] .railBar { background: #f8f8ff; }
+:global(.dark) :global(.admin-root) .railStep[data-state=done] .railBar { background: var(--muted-foreground); }
+:global(.admin-root) .railNum { display: flex; align-items: center; gap: .3125rem; min-height: 1.25rem; font-size: var(--admin-text-pastilla); color: var(--muted-foreground); font-variant-numeric: tabular-nums; white-space: nowrap; }
+:global(.admin-root) .railNum b { font-weight: 600; color: var(--foreground); }
+:global(.admin-root) .railStep[data-state=warn] .railNum { color: var(--warning); }
+:global(.admin-root) .railFoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 1rem; padding-top: .25rem; border-top: 1px solid var(--border); }
+:global(.admin-root) .railGap { display: flex; min-width: 0; flex: 1 1 24rem; align-items: center; gap: .5rem; margin: 0; font-size: var(--admin-text-detalle); color: var(--foreground); }
+:global(.admin-root) .railGap > svg { flex: none; color: var(--warning); }
+@media (max-width: 767px) {
+  /* Celular: el riel sin fases ni nombres; la etapa actual se lee debajo en una línea. */
+  :global(.admin-root) .railPhases { display: none; }
+  :global(.admin-root) .railNum { display: none; }
+  :global(.admin-root) .rail { position: relative; }
+  :global(.admin-root) .railStep { position: static; }
+  :global(.admin-root) .railStep[data-now] .railNum { display: flex; position: absolute; bottom: 0; left: 0; }
+  :global(.admin-root) .rail { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding-bottom: 1.75rem; gap: .25rem; }
+  :global(.admin-root) .opTitle { font-size: 1.375rem; }
+  :global(.admin-root) .opActions { flex: 1 1 100%; }
+  :global(.admin-root) .opActions .actBtn { flex: 1; justify-content: center; }
+}
