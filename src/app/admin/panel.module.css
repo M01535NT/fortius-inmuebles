@@ -33,7 +33,6 @@
 .panel button[aria-pressed=true], .panel button[aria-selected=true] { background: var(--panel-selected); color: var(--panel-selected-ink); border-color: var(--panel-selected-ink); box-shadow: none; }
 .panel button[aria-pressed=false] { background: var(--card); color: var(--foreground); border-color: var(--border); box-shadow: none; }
 .panel [aria-invalid=true] { border-color: var(--destructive); outline: 2px solid var(--destructive); outline-offset: 1px; }
-.panel :global(.admin-saved) { border-left: 3px solid #27735d; padding: .65rem 1rem; background: var(--secondary); color: var(--foreground); }
 .panel :global(.admin-avatar) { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #061f3f; color: #fff; border: 1px solid var(--border); font-size: var(--admin-text-interfaz); font-weight: 620; flex-shrink: 0; }
 .panel :global(.admin-avatar) img { width: 100%; height: 100%; object-fit: cover; }
 .panel :global(.admin-confirm) { position: fixed; inset: 0; margin: auto; width: min(460px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; border-radius: 12px; padding: 24px; background: var(--card); color: var(--foreground); border: 1px solid var(--border); }

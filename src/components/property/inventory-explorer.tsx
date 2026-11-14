@@ -20,7 +20,7 @@ import { SEGMENTOS_INMUEBLE, SEGMENTO_LABELS, segmentoInmueble, tiposDeSegmento,
   y ordenamiento. Los filtros se reflejan en la URL con history.replaceState
   (URLs compartibles) SIN useSearchParams: ese hook forzaría un límite de
   Suspense/CSR bailout en toda la página. Conservar esta frontera al ampliar
-  el inventario conforme a PLAN_ERP_CRM.md.
+  el inventario conforme a ROADMAP.md.
 */
 type Orden = "recientes" | "precio-asc" | "precio-desc";
 type Moneda = "todas" | "MXN" | "USD";
@@ -97,6 +97,9 @@ export function InventoryExplorer({ propiedades }: Props) {
   const [vista, setVista] = React.useState<"cuadricula" | "mapa">("cuadricula");
   const [mapaZona, setMapaZona] = React.useState<string | null>(null);
   const inicializado = React.useRef(false);
+  /* Última búsqueda («?op=renta» o «») que escribió el propio inventario. Si la URL ya no coincide,
+     la cambió una navegación de fuera (menú, pie, buscador) y manda la URL, no el estado (C-46). */
+  const busquedaEscrita = React.useRef("");
   const comparisonRef = React.useRef<HTMLElement>(null);
   const comparisonButtonRef = React.useRef<HTMLButtonElement>(null);
 
@@ -152,13 +155,24 @@ export function InventoryExplorer({ propiedades }: Props) {
       if (typeof savedScroll === "number" && savedScroll > 0) {
         window.requestAnimationFrame(() => window.scrollTo({ top: savedScroll }));
       }
+      busquedaEscrita.current = window.location.search;
       return;
     }
-    window.history.replaceState(window.history.state, "", urlDesdeFiltros(filtros));
+    if (window.location.search !== busquedaEscrita.current) {
+      busquedaEscrita.current = window.location.search;
+      setFiltros(filtrosDesdeUrl(window.location.search, zonas, tipos));
+      return;
+    }
+    const url = urlDesdeFiltros(filtros);
+    busquedaEscrita.current = url.startsWith("?") ? url : "";
+    window.history.replaceState(window.history.state, "", url);
   }, [filtros, zonas, tipos]);
 
   React.useEffect(() => {
-    const restore = () => setFiltros(filtrosDesdeUrl(window.location.search, zonas, tipos));
+    const restore = () => {
+      busquedaEscrita.current = window.location.search;
+      setFiltros(filtrosDesdeUrl(window.location.search, zonas, tipos));
+    };
     window.addEventListener("popstate", restore);
     return () => window.removeEventListener("popstate", restore);
   }, [zonas, tipos]);
@@ -248,9 +262,11 @@ export function InventoryExplorer({ propiedades }: Props) {
   }
 
   const total = propiedades.length;
-  const mapaZonaActiva = mapaZona ?? (filtros.zona !== "todas" ? filtros.zona : resultados[0]?.zona);
-  const mapQuery = encodeURIComponent(`${mapaZonaActiva ?? "Tijuana"}, Baja California, México`);
   const zonasResultado = Array.from(new Set(resultados.map((p) => p.zona)));
+  // La zona elegida en el mapa deja de valer si los filtros ya no muestran inmuebles ahí.
+  const zonaElegida = mapaZona && zonasResultado.includes(mapaZona) ? mapaZona : null;
+  const mapaZonaActiva = zonaElegida ?? (filtros.zona !== "todas" ? filtros.zona : resultados[0]?.zona);
+  const mapQuery = encodeURIComponent(`${mapaZonaActiva ?? "Tijuana"}, Baja California, México`);
 
   return (
     <>
@@ -382,8 +398,10 @@ export function InventoryExplorer({ propiedades }: Props) {
 
         {resultados.length > 0 ? (
           <div className={"inv-layout" + (vista === "mapa" ? " has-map" : "")}>
+            {/* Encabezado solo para lectores de pantalla: las tarjetas son h3 y no deben colgar del h1. */}
+            <h2 className="sr-only">Resultados</h2>
             <div className="property-catalog-grid inv-grid">
-              {resultados.map((p) => (
+              {resultados.map((p, posicion) => (
                 <div key={p.slug} className="inv-item" onMouseEnter={() => vista === "mapa" && setMapaZona(p.zona)} onFocusCapture={() => vista === "mapa" && setMapaZona(p.zona)} onClickCapture={(event) => {
                   if ((event.target as HTMLElement).closest("a[href^='/inventario/']")) {
                     window.history.replaceState({ ...window.history.state, fortiusInventoryScroll: window.scrollY }, "", window.location.href);
@@ -395,7 +413,7 @@ export function InventoryExplorer({ propiedades }: Props) {
                   }
                 }}>
                   {/* «Comparar» solo cuando hay al menos dos resultados que comparar (auditoría I10). */}
-                  <PropertyCard property={p} extra={resultados.length < 2 ? undefined : <label className="inv-compare-choice">
+                  <PropertyCard property={p} eager={posicion < 3} extra={resultados.length < 2 ? undefined : <label className="inv-compare-choice">
                     <input type="checkbox" checked={comparadas.includes(p.slug)} disabled={!comparadas.includes(p.slug) && comparadas.length >= 3} onChange={() => toggleComparada(p.slug)} />
                     <span>Comparar <span className="sr-only">{p.titulo}</span></span>
                   </label>} />

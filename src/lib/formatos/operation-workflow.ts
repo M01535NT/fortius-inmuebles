@@ -13,7 +13,7 @@ export const WORKFLOW_STATES = { activa: "Activa", pausada: "En pausa", regulari
 export const REVIEW_STATES = { pendiente: "Pendiente", recibido: "Recibido", revisado: "Revisado con soporte", observado: "Observado", no_aplica: "No aplica, justificado" } as const;
 export const WORKFLOW_REQUIREMENTS = {
  arrendatario: { label: "Arrendatario identificado y capacidad comprobada", formato: "12" },
- contrato_renta: { label: "Contrato de arrendamiento y condiciones acordadas", formato: "Contrato externo" },
+ contrato_renta: { label: "Contrato de arrendamiento y condiciones acordadas", formato: "20" },
  garantias_renta: { label: "Depósito y garantías según acuerdo, o no aplicabilidad justificada", formato: "Contrato y evidencias", noAplica: true },
  inventario_entrega: { label: "Inventario, estado físico, llaves y entrega acordados", formato: "16" },
  termino_renta: { label: "Término del encargo y obligaciones de seguimiento definidos", formato: "17" },
@@ -42,6 +42,8 @@ export const WORKFLOW_REQUIREMENTS = {
  revision_cierre: { label: "Revisión actualizada para contratar y cerrar", formato: "06", vigencia: true },
  instrumento: { label: "Instrumento, anticipos, custodia y devoluciones definidos", formato: "15" },
  contraparte: { label: "Participantes y contraparte relacionados e identificados", formato: "14 o contrato aplicable" },
+ // M-05 (titular, 14/11/2026): LFPIORPI art. 18, identificar a los clientes y conservar sus documentos antes de firmar.
+ identificacion_pld: { label: "Expediente de identificación de las partes (LFPIORPI)", formato: "Identificaciones y documentos de las partes" },
  firma: { label: "Firma e instrumento acreditados", formato: "15" },
  pago: { label: "Condiciones de pago para entrega cumplidas según acuerdo", formato: "18" },
  entrega: { label: "Entrega material y acta con pendientes asentados", formato: "16" },
@@ -68,7 +70,14 @@ export type EntregaInforme = z.infer<typeof entregaInforme>;
   servidor anota quién y cuándo, y una firma corregida vuelve a quedar por revisar. No se borra:
   un contrato que se acaba se registra con su terminación.
 */
-export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta", mandato: "Asesoría o mandato" } as const;
+export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta (21)", mandato: "Asesoría o mandato" } as const;
+/** El formato que respalda un requisito en su ruta: en la renta del propietario, la intermediación es el 21 (no el 09) el arrendatario se respalda con su solicitud, el 22 (no el 12), y la entrega con el inventario de la renta, el 23 (no el 16). */
+export function requirementFormato(key: keyof typeof WORKFLOW_REQUIREMENTS, route?: string | null): string {
+  if (key === "intermediacion" && route === "arrendador") return "21";
+  if (key === "arrendatario" && route === "arrendador") return "22";
+  if (key === "inventario_entrega" && route === "arrendador") return "23";
+  return String(WORKFLOW_REQUIREMENTS[key].formato);
+}
 export const SIGNER_ROLES = { propietario: "Propietario", representante: "Representante o apoderado", fortius: "Por Fortius", otro: "Otra parte" } as const;
 type ContractType = keyof typeof CONTRACT_TYPES; type SignerRole = keyof typeof SIGNER_ROLES;
 const signer = z.object({ nombre: z.string().trim().min(3).max(160), parte: z.enum(Object.keys(SIGNER_ROLES) as [SignerRole, ...SignerRole[]]) }).strict();
@@ -111,6 +120,8 @@ export function inheritedExceptions(route: OperationWorkflow["ruta"]): Requireme
 export function inheritedPending(flow: OperationWorkflow, today: string): RequirementKey[] {
  return flow.heredado ? requiredReviews(flow.ruta, "comercializacion").filter(key => !reviewComplete(flow, key, today)) : [];
 }
+/** Quién captó para comisiones y reportes (M-04): el asesor de antes si la operación se reasignó. */
+export function captorOf(op: { asesor_id: string; flujo?: Pick<OperationWorkflow, "captadoPor"> | null }) { return op.flujo?.captadoPor ?? op.asesor_id; }
 /** Reparto de RP-99: 25 % al que capta y 25 % al que vende; si es el mismo asesor, 50 %. Es una estimación hasta que se cobre. */
 export function commissionSplit(c: Pick<OperationClose, "capto" | "vendio" | "comisionEstimada">): Array<{ asesorId: string; papel: "capto" | "vendio" | "ambos"; porcentaje: number; monto?: number }> {
  const part = (porcentaje: number) => typeof c.comisionEstimada === "number" ? { monto: Math.round(c.comisionEstimada * porcentaje) / 100 } : {};
@@ -147,6 +158,8 @@ export const operationWorkflowSchema = z.object({
  // COR-24: inmueble que el asesor trajo con contrato ya firmado; solo el director lo marca.
  heredado: inherited.optional(),
  visitasPrevias: z.array(priorVisit).max(20).optional(),
+ // M-04: el asesor que captó, cuando la operación se reasignó; solo lo escribe la reasignación del director.
+ captadoPor: z.string().min(1).max(80).optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
@@ -187,7 +200,7 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
  const keys: RequirementKey[] = owner ? ["entrevista"] : ["perfil","privacidad"];
  if(n>=2) keys.push(...(owner ? ["titularidad","factibilidad","valor","precio","intermediacion","levantamiento","plan","publicacion"] as RequirementKey[] : ["opciones"] as RequirementKey[]));
  if(n>=3) keys.push(...(owner ? [rent ? "arrendatario" : "comprador"] as RequirementKey[] : ["visitas","capacidad"] as RequirementKey[]));
- if(n>=4) keys.push("oferta","revision_cierre",rent ? "contrato_renta" : "instrumento","contraparte",...(rent ? ["garantias_renta"] as RequirementKey[] : []));
+ if(n>=4) keys.push("oferta","revision_cierre",rent ? "contrato_renta" : "instrumento","contraparte",...(rent ? ["garantias_renta"] : ["identificacion_pld"]) as RequirementKey[]);
  if(n>=5) keys.push("firma","pago");
  if(n>=6) keys.push("entrega",...(rent ? ["inventario_entrega"] as RequirementKey[] : []));
  if(n>=7) keys.push(rent ? "termino_renta" : "registro","honorarios","archivo");
@@ -200,13 +213,16 @@ export function requiredReviews(route: OperationWorkflow["ruta"], target: Workfl
 */
 export const DIRECTOR_REVIEWS: readonly RequirementKey[] = ["titularidad", "factibilidad", "revision_cierre", "precio", "intermediacion", "contrato_renta", "firma", "publicacion"];
 export const directorReview = (key: RequirementKey) => DIRECTOR_REVIEWS.includes(key);
+/** M-06 (titular, 14/11/2026): «No aplica» en estos requisitos lo marca el director; una renta sin depósito ni garantía la aprueba él. La base lo hace valer (20261114204000). */
+export const DIRECTOR_NOT_APPLICABLE: readonly RequirementKey[] = ["garantias_renta"];
+export const directorNotApplicable = (key: RequirementKey) => DIRECTOR_NOT_APPLICABLE.includes(key);
 /**
   Requisitos de protección (B-13, RP-96) que nunca se cubren por excepción: quién es dueño y quién
   firma, la opinión jurídica y la comercial antes de la intermediación, la revisión jurídica para
-  cerrar, la firma acreditada y los pagos para entregar. La base aplica la misma lista
+  cerrar, la firma acreditada, los pagos para entregar y la identificación LFPIORPI. La base aplica la misma lista
   (20261112180000_excepcion_autorizada).
 */
-export const PROTECTED_REQUIREMENTS: readonly RequirementKey[] = ["titularidad", "factibilidad", "valor", "revision_cierre", "firma", "pago"];
+export const PROTECTED_REQUIREMENTS: readonly RequirementKey[] = ["titularidad", "factibilidad", "valor", "revision_cierre", "firma", "pago", "identificacion_pld"];
 export const exceptionAllowed = (key: RequirementKey) => !PROTECTED_REQUIREMENTS.includes(key);
 /** El requisito está cubierto por una excepción que autorizó el director. */
 export function exceptionCovers(flow: Pick<OperationWorkflow, "requisitos">, key: RequirementKey) {
@@ -288,7 +304,7 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  return result;
 }
 
-/** Proceso de comercialización definido por el titular (PLAN_ERP_CRM.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
+/** Proceso de comercialización definido por el titular (ROADMAP.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
 export const SALE_PROCESS = [
  { key: "prospecto", slug: "prospecto", label: "Primer contacto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
  { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir la lista de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },
@@ -335,7 +351,7 @@ const OWNER_PHASE_REQUIREMENTS: Record<SalePhase, readonly RequirementKey[]> = {
  verificacion: ["valor","precio"],
  contrato: ["intermediacion","plan","publicacion"],
  publicacion: ["comprador","arrendatario"],
- visitas: ["oferta","revision_cierre","instrumento","contraparte","contrato_renta","garantias_renta"],
+ visitas: ["oferta","revision_cierre","instrumento","contraparte","identificacion_pld","contrato_renta","garantias_renta"],
  cierre: ["firma","pago","entrega","inventario_entrega","registro","termino_renta","honorarios","archivo"],
 };
 /** Requisitos que cierran cada etapa de la renta del propietario (MRP-01). */

@@ -42,7 +42,7 @@ export function SiteNav() {
     <header className={`${styles.header} ${solid ? styles.solid : styles.onImage}`}>
       <div className={styles.inner}>
         <div className={styles.start}>
-          <button type="button" onClick={() => setSearchOpen(true)} aria-label="Abrir buscador" aria-haspopup="dialog" aria-expanded={searchOpen}
+          <button type="button" onClick={() => setSearchOpen(true)} aria-label="Buscar propiedades" aria-haspopup="dialog" aria-expanded={searchOpen}
             className={styles.word}>
             Buscar
           </button>

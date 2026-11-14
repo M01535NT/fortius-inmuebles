@@ -14,7 +14,7 @@
 .ba-index { position: sticky; top: 88px; display: grid; gap: var(--space-normal); }
 .ba-index ol { display: grid; gap: var(--space-junto); margin: 0; padding: 0; list-style: none; counter-reset: indice; }
 .ba-index li { counter-increment: indice; }
-.ba-index li a { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-corto); min-height: 40px; padding: var(--space-corto) var(--space-cerca); border-radius: var(--corner-pulsable); color: var(--foreground); font-size: var(--type-detalle); line-height: 1.45; transition: background-color 0.2s; }
+.ba-index li a { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-corto); min-height: 44px; padding: var(--space-corto) var(--space-cerca); border-radius: var(--corner-pulsable); color: var(--foreground); font-size: var(--type-detalle); line-height: 1.45; transition: background-color 0.2s; }
 .ba-index li a::before { content: counter(indice, decimal-leading-zero); font-variant-numeric: tabular-nums; font-size: var(--type-etiqueta); color: var(--primary-text, #8a1634); padding-top: 2px; }
 .ba-index li.is-sub a { padding-left: var(--space-amplio); }
 .ba-index li a:hover { background: var(--secondary); }

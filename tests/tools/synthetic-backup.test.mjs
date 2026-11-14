@@ -13,10 +13,10 @@ test('builds a complete current synthetic backup that verifies, rehearses and pl
   try {
     const root = join(parent, 'backup');
     const result = await buildSyntheticBackup(root);
-    assert.equal(result.tables, 30);
+    assert.equal(result.tables, 31);
     const manifest = await verifyBackup(root);
     assert.equal(manifest.synthetic, true);
-    assert.equal(manifest.database.schemaVersion, 4);
+    assert.equal(manifest.database.schemaVersion, 5);
     // Production bucket identities, not the historical mnt-* names the migrations create.
     assert.ok(manifest.buckets.every(b => b.id.startsWith('fortius-')));
     assert.equal(manifest.buckets.find(b => b.id === 'fortius-inmuebles-public').public, true);

@@ -47,6 +47,15 @@ test("mobile contact uses exactly phone and contextual WhatsApp links", () => {
   expect((html.match(/<a /g) ?? []).length).toBe(2);
 });
 
+test("a Mexican number saved without country code still dials Mexico and reads in groups", () => {
+  const contact = publicContact({ ...settings, telefono: "6641234567", whatsapp: "+526641234567" });
+  expect(contact.phoneHref).toBe("tel:+526641234567");
+  expect(contact.phone).toBe("+52 664 123 4567");
+  expect(contact.whatsappLabel).toBe("+52 664 123 4567");
+  expect(new URL(publicContact({ ...settings, whatsapp: "6641234567" }).whatsapp).pathname).toBe("/526641234567");
+  expect(publicContact({ ...settings, whatsapp: "https://wa.me/526641234567" }).whatsappLabel).toBe("+52 664 123 4567");
+});
+
 test("email-only contact preserves the property and does not claim contact is unavailable", () => {
   const message = "Me interesa Casa Jardín (FOR-001). https://example.com/inventario/jardin?a=1&b=2";
   const emailOnly = { ...settings, whatsapp: "", facebook: "", email: "asesor@example.com" };

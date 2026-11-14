@@ -103,8 +103,11 @@ function LeadDetail({ id }: { id: string }) {
     const form = event.currentTarget;
     const texto = String(new FormData(form).get("nota") ?? "").trim();
     if (!texto) return;
-    const base = noteDraft?.lead ?? lead;
-    await upsert(db.leads, { ...base, notas: [{ id: uid(), texto, fecha: new Date().toISOString() }, ...base.notas] }, noteDraft ? noteDraft.version : db.leads.version(base));
+    // C-64: la nota se agrega sobre el prospecto vigente (otro guardado de la ficha pudo cambiarlo); la copia
+    // del borrador solo se usa si el prospecto ya no está en la lista.
+    const current = db.leads.list().find(l => l.id === lead.id);
+    const base = current ?? noteDraft?.lead ?? lead;
+    await upsert(db.leads, { ...base, notas: [{ id: uid(), texto, fecha: new Date().toISOString() }, ...base.notas] }, current ? db.leads.version(current) : noteDraft ? noteDraft.version : db.leads.version(base));
     form.reset(); setNoteDraft(null); setNoteDirty(false);
   }
   async function agendar(event: React.FormEvent<HTMLFormElement>) {
@@ -122,7 +125,7 @@ function LeadDetail({ id }: { id: string }) {
     : propiedad && propiedad.precio.modalidad !== "consulta" ? { precio: propiedad.precio.monto, moneda: propiedad.precio.moneda, inmueble: propiedad.slug } : {})) }] : [];
   const menu: MenuItem[] = lead.clienteId ? hipoteca : [...hipoteca,
     { label: "Eliminar prospecto", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
-      if (!await confirmDelete("prospecto", `Se elimina a ${lead.nombre} con su historial.`, false)) return;
+      if (!await confirmDelete("prospecto", `${lead.nombre} sale de Contactos con su historial.`, "o")) return;
       await removeById(db.leads, lead.id, db.leads.version(lead));
       router.push("/admin/contactos");
     } },

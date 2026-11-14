@@ -23,10 +23,15 @@ const is = (data: Data, key: string, ...values: string[]) => values.includes(Str
 const sinAcentos = (texto: string) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export type Municipio = "tijuana" | "rosarito" | "ensenada" | "tecate";
-/** Municipio del domicilio escrito en la entrevista (Fortius trabaja en estos cuatro, titular 26/10/2026). */
+/**
+  Municipio del domicilio escrito en la entrevista (Fortius trabaja en estos cuatro, titular 26/10/2026).
+  C-92: el que aparece al final, donde va el municipio del domicilio; una vía como la «Carretera Escénica
+  Tijuana-Ensenada» o el «Blvd. Tijuana-Tecate» nombra otros antes.
+*/
 export function municipioDe(domicilio: unknown): Municipio | undefined {
   const texto = sinAcentos(String(domicilio ?? ""));
-  return (["rosarito", "ensenada", "tecate", "tijuana"] as const).find(m => texto.includes(m));
+  const [ultimo] = (["rosarito", "ensenada", "tecate", "tijuana"] as const).map(m => ({ m, at: texto.lastIndexOf(m) })).filter(x => x.at >= 0).sort((a, b) => b.at - a.at);
+  return ultimo?.m;
 }
 const AGUA: Record<Municipio, string> = {
   tijuana: "Constancia de no adeudo de la CESPT y estado de cuenta del agua",

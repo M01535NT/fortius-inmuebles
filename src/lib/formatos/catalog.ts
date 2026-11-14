@@ -12,12 +12,17 @@ import { levantamientoFields, isLevantamiento, validarLevantamiento } from "./le
 import { valorFields, mostrarCampoValor } from "./valor-fields";
 import { promesaFields, mostrarCampoPromesa, validarPromesa } from "./promesa";
 import { intermediacionFields, mostrarCampoIntermediacion, validarIntermediacion } from "./intermediacion";
+import { arrendamientoFields, mostrarCampoArrendamiento, validarArrendamiento } from "./arrendamiento";
+import { intermediacionRentaFields, mostrarCampoIntermediacionRenta, validarIntermediacionRenta } from "./intermediacion-renta";
+import { solicitudArrendamientoFields, mostrarCampoSolicitud, validarSolicitud } from "./solicitud-arrendamiento";
+import { inventarioRentaFields, mostrarCampoInventario, validarInventario } from "./inventario-renta";
+import { compraventaPlazosFields, mostrarCampoCompraventaPlazos, validarCompraventaPlazos } from "./compraventa-plazos";
 
 export type FormatoField = {
   key: string;
   label: string;
   /** «multi»: varias opciones a la vez (casillas); se guarda como lista de valores. */
-  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "multi" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows" | "intermediacionRows";
+  type: "text" | "date" | "time" | "money" | "number" | "long" | "choice" | "multi" | "partidas" | "pagos" | "netoCargos" | "entregaRows" | "planRows" | "reporteRows" | "entrevistaRows" | "juridicaRows" | "levantamientoRows" | "valorRows" | "promesaRows" | "intermediacionRows" | "inventarioRows";
   required: boolean;
   section?: string;
   options?: readonly { value: string; label: string }[];
@@ -44,6 +49,8 @@ const TITLES: Record<string, string> = {
   "09": "Contrato de intermediación inmobiliaria para venta", "10": "Plan de comercialización", "11": "Reporte de comercialización al propietario", "12": "Entrevista y perfil del comprador",
   "13": "Registro de visita y retroalimentación", "14": "Propuesta de compra y respuesta del propietario", "15": "Promesa de compraventa", "16": "Acta de entrega y recepción del inmueble",
   "17": "Cierre de la operación", "18": "Recibo de pago de honorarios", "19": "Presupuesto de rehabilitación",
+  "20": "Contrato de arrendamiento", "21": "Contrato de intermediación inmobiliaria para renta", "22": "Solicitud de arrendamiento y revisión del candidato", "23": "Inventario de entrega y devolución del arrendamiento",
+  "24": "Compraventa a plazos con reserva de dominio",
 };
 const f = (id: string, title: string, extension: "docx" | "xlsx", phase: FormatoDefinition["phase"], fields: FormatoField[], readyForEmission = false): FormatoDefinition => ({ id, title: TITLES[id] ?? title.replaceAll("_", " "), source: `${id}.${title}.${extension}`, phase, fields, readyForEmission });
 const inmueble = field("inmueble", "Inmueble y domicilio");
@@ -449,6 +456,13 @@ export const FORMATOS: readonly FormatoDefinition[] = [
       { value: "si", label: "Sí, no hubo pagos" }, { value: "no", label: "Hay pagos por registrar" },
     ], false),
   ], true),
+  // DOC-14: el titular pidió que el agente lo redactara y aprobó el texto (13/11/2026).
+  f("20", "Contrato_de_arrendamiento", "docx", 4, arrendamientoFields, true),
+  f("21", "Contrato_de_intermediacion_inmobiliaria_para_renta", "docx", 3, intermediacionRentaFields, true),
+  f("22", "Solicitud_de_arrendamiento", "docx", 3, solicitudArrendamientoFields, true),
+  f("23", "Inventario_de_entrega_del_arrendamiento", "docx", 4, inventarioRentaFields, true),
+  // DOC-14 (RP-97): redactado por el agente y aprobado por el titular el 13/11/2026.
+  f("24", "Compraventa_a_plazos_con_reserva_de_dominio", "docx", 4, compraventaPlazosFields, true),
 ];
 
 const avisoDefinition = FORMATOS.find(item => item.id === "01")!;
@@ -478,8 +492,13 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
     if (id === "07" && !mostrarCampoValor(item.key, data)) return false;
     if (id === "15" && !mostrarCampoPromesa(item.key, data)) return false;
     if (id === "09" && !mostrarCampoIntermediacion(item.key, data)) return false;
+    if (id === "20" && !mostrarCampoArrendamiento(item.key, data)) return false;
+    if (id === "21" && !mostrarCampoIntermediacionRenta(item.key, data)) return false;
+    if (id === "22" && !mostrarCampoSolicitud(item.key, data)) return false;
+    if (id === "23" && !mostrarCampoInventario(item.key, data)) return false;
+    if (id === "24" && !mostrarCampoCompraventaPlazos(item.key, data)) return false;
     if (id === "10" && !mostrarCampoPlan(item.key, data)) return false;
-    if (item.type === "valorRows" || item.type === "promesaRows" || item.type === "intermediacionRows") return false;
+    if (item.type === "valorRows" || item.type === "promesaRows" || item.type === "intermediacionRows" || item.type === "inventarioRows") return false;
     if (item.type === "partidas" || item.type === "pagos" || item.type === "netoCargos" || item.type === "entregaRows" || item.type === "planRows" || item.type === "reporteRows" || item.type === "entrevistaRows" || item.type === "juridicaRows" || item.type === "levantamientoRows") return false;
     const value = data[item.key];
     if (value === undefined || value === null || String(value).trim() === "") return item.required;
@@ -509,6 +528,11 @@ export function validateFormato(id: string, data: Record<string, unknown>): stri
   if (id === "15") errors.push(...validarPromesa(data));
   if (id === "09") errors.push(...validarIntermediacion(data));
   if (id === "19") errors.push(...validarPresupuesto(data));
+  if (id === "20") errors.push(...validarArrendamiento(data));
+  if (id === "21") errors.push(...validarIntermediacionRenta(data));
+  if (id === "22") errors.push(...validarSolicitud(data));
+  if (id === "23") errors.push(...validarInventario(data));
+  if (id === "24") errors.push(...validarCompraventaPlazos(data));
   if (id === "12") {
     if (typeof data.precioDeseado === "number" && typeof data.precioMaximo === "number" && data.precioDeseado > data.precioMaximo) errors.push("Precio que le gustaría pagar");
     if (data.precioDeseado === 0) errors.push("Precio que le gustaría pagar");

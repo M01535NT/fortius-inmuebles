@@ -2,6 +2,31 @@
 
 import { useSyncExternalStore, type ComponentProps } from "react";
 import { usePublicFeatures } from "@/components/providers/public-features-provider";
+import { AdminApiError } from "@/lib/admin/store";
+
+/*
+  El servidor rechaza un teléfono de menos de 7 dígitos con un aviso genérico («Hay datos que no
+  son válidos»), sin decir cuál. Se revisa antes de enviar: marca el campo y lleva el foco ahí.
+*/
+export function revisarTelefono(form: HTMLFormElement, name: string): string | null {
+  const input = form.elements.namedItem(name);
+  if (!(input instanceof HTMLInputElement)) return null;
+  if (input.value.replace(/\D/g, "").length >= 7) {
+    input.removeAttribute("aria-invalid");
+    return null;
+  }
+  input.setAttribute("aria-invalid", "true");
+  input.focus();
+  return "Revisa el teléfono: escribe al menos 7 dígitos, con lada.";
+}
+
+/** Los avisos del servidor para datos, tamaño, límite de intentos o recepción cerrada sí orientan; los demás no. */
+export function mensajeDeEnvio(error: unknown, alterno: string): string {
+  return error instanceof AdminApiError && [400, 413, 429, 503].includes(error.status) ? error.message : alterno;
+}
+
+/** Lleva el foco al aviso de «Recibimos tu solicitud» cuando aparece (el formulario ya no existe). */
+export const enfocarAlMontar = (element: HTMLElement | null) => element?.focus();
 
 const subscribe = () => () => {};
 const ready = () => true;

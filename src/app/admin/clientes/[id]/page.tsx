@@ -78,9 +78,11 @@ function ClienteDetail({ id }: { id: string }) {
   const duplicates = duplicateContacts(cliente, clientes);
   const newOperation = `/admin/operaciones/nueva?${new URLSearchParams({ clienteId: id, intencion: INTENT[cliente.tipo as keyof typeof INTENT] ?? "vender" })}`;
   const linkQuery = new URLSearchParams({ clienteId: id, ...(cliente.leadId ? { leadId: cliente.leadId } : {}), ...(cliente.propiedadSlug ? { propiedadSlug: cliente.propiedadSlug } : {}) });
-  // Quien vino de un prospecto conserva su historial; por eso solo se eliminan los capturados como cliente.
-  const menu: MenuItem[] = cliente.leadId || editing ? [] : [{ label: "Eliminar cliente", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, onSelect: async () => {
-    if (!await confirmDelete("cliente", `Se elimina a ${cliente.nombre}.`, false)) return;
+  // Se elimina a Eliminados (13/11/2026), también quien vino de un prospecto: su historial vuelve al restaurarlo.
+  // Con una operación en curso no se puede: primero se cierra o se elimina la operación (el servidor también lo revisa).
+  const blocking = dossiers === undefined ? "Consultando sus operaciones…" : dossiers === null ? "No se pudieron revisar sus operaciones" : dossiers.length ? `Tiene ${dossiers.length === 1 ? `la operación ${dossiers[0].folio}` : `${dossiers.length} operaciones`} en curso` : "";
+  const menu: MenuItem[] = editing ? [] : [{ label: blocking ? `Eliminar cliente · ${blocking}` : "Eliminar cliente", icon: <Trash2 size={18} aria-hidden="true" />, danger: true, disabled: !!blocking, onSelect: async () => {
+    if (!await confirmDelete("cliente", `${cliente.nombre} sale de Contactos.`, "o")) return;
     await removeById(db.clientes, cliente.id, db.clientes.version(cliente));
     router.push("/admin/contactos?tab=clientes");
   } }];

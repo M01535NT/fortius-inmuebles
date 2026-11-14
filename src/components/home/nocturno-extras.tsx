@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight, Calculator, Landmark, Search } from "lucide-r
 import { TIPO_LABELS, type Property } from "@/data/propiedades";
 import type { Testimonio } from "@/lib/domain/records";
 import { SectionVideo } from "@/components/home/section-video";
+import { OperacionPresupuesto } from "@/components/home/operacion-presupuesto";
 
 type Perfil = { id: string; nombre: string; cargo: string; iniciales: string; foto?: string; descripcion?: string };
 
@@ -14,25 +15,19 @@ const PASOS_COMPRA = [
   "Te acompañamos hasta la firma.",
 ];
 
-const PRESUPUESTOS = [
-  { value: "", label: "Cualquiera" },
-  { value: "3000000", label: "Hasta $3,000,000 MXN" },
-  { value: "8000000", label: "Hasta $8,000,000 MXN" },
-  { value: "15000000", label: "Hasta $15,000,000 MXN" },
-];
-
-/* Buscador sin script: manda al inventario con los filtros en la URL. También lo usa la guía para comprar. */
-export function BuscadorPropiedades({ properties, className = "nx-search" }: { properties: Property[]; className?: string }) {
+/* Buscador que funciona sin script: manda al inventario con los filtros en la URL. También lo usa la guía para comprar. */
+export function BuscadorPropiedades({ properties, className = "nx-search", headingLevel = 3 }: { properties: Property[]; className?: string; headingLevel?: 2 | 3 }) {
   const zonas = Array.from(new Set(properties.map((property) => property.zona))).sort();
   const tipos = Array.from(new Set(properties.map((property) => property.tipo)));
+  const Titulo = headingLevel === 2 ? "h2" : "h3";
   return (
     <form action="/inventario" method="get" role="search" aria-label="Buscar propiedad" className={className}>
-      <h3>Buscar propiedad</h3>
+      <Titulo>Buscar propiedad</Titulo>
       <div className="nx-search-fields">
-        <label><span>Operación</span><select name="op" defaultValue=""><option value="">Comprar o rentar</option><option value="venta">Comprar</option><option value="renta">Rentar</option></select></label>
+        <OperacionPresupuesto>
         <label><span>Tipo</span><select name="tipo" defaultValue=""><option value="">Todos los tipos</option>{tipos.map((tipo) => <option key={tipo} value={tipo}>{TIPO_LABELS[tipo]}</option>)}</select></label>
         <label><span>Zona</span><select name="zona" defaultValue=""><option value="">Todas las zonas</option>{zonas.map((zona) => <option key={zona} value={zona}>{zona}</option>)}</select></label>
-        <label><span>Presupuesto</span><select name="max" defaultValue="">{PRESUPUESTOS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+        </OperacionPresupuesto>
       </div>
       <button type="submit" className="nx-btn nx-btn-primary"><Search size={18} aria-hidden="true" />Buscar</button>
     </form>
@@ -113,7 +108,7 @@ export function NocturnoRecursos() {
         <div>
           <h2 id="recursos-title" className="nx-title">Haz números antes de decidir.</h2>
         </div>
-        <Link href="/blog" className="nx-link">Ir al blog <ArrowRight size={18} aria-hidden="true" /></Link>
+        <Link href="/herramientas" className="nx-link">Ver herramientas <ArrowRight size={18} aria-hidden="true" /></Link>
       </div>
       <ul className="nx-tools">
         {[

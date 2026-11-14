@@ -62,7 +62,7 @@ export default async function ComprarInmueblePage() {
       media={{ src: "/hero/que-hacemos-comprar.webp", alt: "Sala luminosa de un departamento con vista a la ciudad" }} />
 
     <div className="pg-container gd-search-wrap">
-      <BuscadorPropiedades properties={propiedades} className="nx-search gd-search" />
+      <BuscadorPropiedades properties={propiedades} className="nx-search gd-search" headingLevel={2} />
     </div>
 
     <section id="documentos" className="pg-container pg-section" aria-labelledby="gd-documentos">
@@ -74,7 +74,7 @@ export default async function ComprarInmueblePage() {
           <p className="pg-muted">{item.text}</p>
         </li>)}
       </ul>
-      <p className="gd-note">Según el estado civil de quien vende, pueden firmar más personas. <Link href="/#revision" className="editorial-text-link">Conoce nuestra revisión documental</Link>.</p>
+      <p className="gd-note">Según el estado civil de quien vende, pueden firmar más personas. <Link href="/#por-que-fortius" className="editorial-text-link">Conoce nuestra revisión documental</Link>.</p>
     </section>
 
     <section id="gastos" className="pg-container pg-section" aria-labelledby="gd-gastos">

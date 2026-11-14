@@ -1,9 +1,10 @@
 "use client";
 import * as React from "react";
+import { calendarDayOf } from "@/lib/admin/operational-date";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, FileDown, FileText, House, PlayCircle, Plus, Trash2 } from "@/components/admin/icons";
+import { ArrowRight, CalendarDays, Check, docIcon, FileDown, FileText, House, PlayCircle, Plus, Trash2 } from "@/components/admin/icons";
 import Image from "next/image";
-import { Button, ButtonLink, Card, Notice } from "@/components/admin/kit";
+import { Button, ButtonLink, Card, DocBadge, Hint, IconTile, Notice } from "@/components/admin/kit";
 import { TIPO_LABELS, type Property as Propiedad } from "@/data/propiedades";
 import { AsyncSelect, inputClass, selectClass } from "@/components/admin/ui";
 import { offerCandidates, offerOwner, withoutOffer } from "@/lib/admin/lead-offers";
@@ -123,7 +124,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     if (item.place === "ajustes") onGoTo("ajustes");
     else if (item.place === "firma" || item.place === "cierre" || item.place === "encargo") { const card = document.getElementById(item.place === "firma" ? "firma-contrato" : item.place === "encargo" ? "decision-encargo" : "cierre-operacion"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("button")?.focus(); }
     else if (item.place === "tarea") { const card = document.getElementById("proxima-tarea"); card?.scrollIntoView({ block: "center" }); card?.querySelector<HTMLElement>("input, button")?.focus(); }
-    else void docs.start(item.text.includes("(02)") ? "02" : "04", survey);
+    else void docs.start(item.formato ?? "04", survey);
   }
 
   // COR-14 y CAP-06: la condición de la llamada o de la 02 y su «Siguiente paso» cambian lo que toca.
@@ -217,7 +218,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     const ratio = counted.length ? done / counted.length : 1;
     const sub = now && target && now.kind !== "abogado" && now.kind !== "decision02" ? (target.target ? `${done} de ${counted.length} para pasar a ${target.label}` : `Con todo listo se abre sola ${target.label}.`) : "";
     return <FloatBar>
-      <span className={s.ring} aria-hidden="true"><svg width="44" height="44" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--track)" strokeWidth="5" /><circle cx="24" cy="24" r="20" fill="none" stroke="var(--primary)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${Math.round(ratio * 125.66)} 125.66`} transform="rotate(-90 24 24)" /></svg><span className={s.ringText}>{counted.length ? `${done}/${counted.length}` : "✓"}</span></span>
+      <span className={s.ring} aria-hidden="true"><svg width="44" height="44" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--track)" strokeWidth="5" /><circle cx="24" cy="24" r="20" fill="none" stroke={ratio >= 1 ? "var(--success)" : "var(--primary)"} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${Math.round(ratio * 125.66)} 125.66`} transform="rotate(-90 24 24)" /></svg><span className={s.ringText}>{counted.length ? `${done}/${counted.length}` : "✓"}</span></span>
       <span className="flex min-w-0 flex-1 flex-col">
         <h2 className={s.floatTitle}>{title}</h2>
         {(sub || text) && <span className={s.floatSub}>{sub && <span>{sub}</span>}{text && <span>{sub ? " · " : ""}{text}</span>}</span>}
@@ -232,7 +233,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {porConfirmar > 0 && <div className={s.span6}><Notice tone="info" title={porConfirmar === 1 ? "Hay 1 dato por confirmar en el expediente" : `Hay ${porConfirmar} datos por confirmar en el expediente`} actions={<Button onClick={() => onGoTo("cliente")}>Revisar los datos</Button>}>Llegaron de una ficha, un documento o un texto. Al confirmarlos llenan los formatos.</Notice></div>}
 
     {documentsGroup.length > 0 && <section aria-labelledby="docs-etapa" data-tour="operacion-documentos" className={cn(s.piece, s.span4)}>
-      <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
+      <div className={s.pieceHead}><h2 id="docs-etapa" className={s.pieceTitle}>Documentos de la etapa</h2><Hint term="los documentos de la etapa">Los formatos que deja esta etapa. Cada uno se abre en su propia ventana para llenarlo.</Hint><span className={s.pieceCount}>{documentsGroup.filter(itemDone).length} de {documentsGroup.filter(itemCounted).length}</span></div>
       <ul className={s.docList}>{documentsGroup.map(item => item.kind === "abogado"
         ? <li key="abogado" className={s.docWait}>
           <StateIcon state={item.task ? "recibido" : "pendiente"} done={item.done} />
@@ -247,7 +248,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
         </li>
         : item.kind === "checklist"
         ? <li key="checklist" className={s.docChecklist}>{checklist ? <Checklist task={checklist} answers={docs.checklistAnswers} expedienteId={op.id} disabled={lock} onError={setError} /> : <span className="text-sm text-muted-foreground">Checklist de documentos · todavía no se crea.</span>}</li>
-        : <DocRow key={item.formato} item={item} now={item === now} docs={docs} disabled={lock} survey={survey} surveySelect={item.formato === "04" && !docs.latest("04") ? surveySelect : null} />)}</ul>
+        : <DocRow key={item.formato} item={item} now={item === now} docs={docs} signed={(item.formato === "09" || item.formato === "21") && !!flow.firmaContrato} disabled={lock} survey={survey} surveySelect={item.formato === "04" && !docs.latest("04") ? surveySelect : null} />)}</ul>
       {(error || docs.error) && <p role="alert" className="text-sm text-destructive">{error || docs.error}</p>}
       {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
     </section>}
@@ -255,7 +256,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     <NextTask op={op} today={today} className={documentsGroup.length ? s.span2 : s.span6} />
 
     {(reviewsGroup.length > 0 || otherGroup.length > 0) && <section aria-labelledby="confirma-etapa" data-tour="operacion-confirma" className={cn(s.piece, s.span3)}>
-      <div className={s.pieceHead}><h2 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h2>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
+      <div className={s.pieceHead}><h2 id="confirma-etapa" className={s.pieceTitle}>Antes de seguir, confirma</h2><Hint term="«Antes de seguir, confirma»">Lo que revisas tú para que la operación pase a la siguiente etapa.</Hint>{reviewsGroup.length > 0 && <span className={s.pieceCount}>{reviewsGroup.filter(i => !i.earlier && i.done).length} de {reviewsGroup.filter(i => !i.earlier).length}</span>}</div>
       <ul className={s.items}>
         {reviewsGroup.map(item => <RequirementRow key={item.key} requirement={item.key} earlier={item.earlier} flow={flow} today={today} locked={locked && CONTRACT_KEYS.includes(item.key) && !item.earlier} busy={lock} inFloat={now?.kind === "requisito" && now.key === item.key} onQuick={quick} onSheet={setSheet} />)}
         {otherGroup.map(item => <li key={item.text} className={s.item}><div className={s.itemMain}>
@@ -279,7 +280,7 @@ export function NextStepTab({ op, today, evidence, interview, docs, checklist, p
     {owner && (!!flow.visitasPrevias?.length || (!!property && !property.publicada && property.estado === "evaluacion" && flow.requisitos.intermediacion?.estado !== "revisado")) && <div className={s.span6}><PriorVisitCard op={op} disabled={lock} onSave={onSave} /></div>}
     {flow.ruta === "captacion" && (phase === "verificacion" || appraisalState(flow, today) === "vencido") && <div className={s.span6}><OwnerAppraisalCard op={op} today={today} reviewer={evidence.reviewer} disabled={lock} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
     {owner && (phase === "contrato" || !!flow.firmaContrato) && <div className={s.span6}><ContractSignatureCard op={op} today={today} disabled={lock || locked} onSave={onSave} onGoToFiles={() => onGoTo("cliente")} /></div>}
-    {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest("09"))} disabled={lock} onSave={onSave} /></div>}
+    {owner && phase === "cierre" && <div className={s.span6}><CloseCard op={op} intermediacion={(d => d ? { formato: d.formato_id, data: d.data as Record<string, unknown>, version: d.version } : undefined)(docs.latest(flow.ruta === "arrendador" ? "21" : "09"))} disabled={lock} onSave={onSave} /></div>}
     {owner && ownerReportApplies(stageOf(op), op.flujo ?? flow) && <div className={s.span6}><OwnerReport op={op} today={today} disabled={lock} onSave={onSave} /></div>}
     {owner && (phase === "publicacion" || phase === "visitas") && <div className={s.span6}><VisitsAndOffers op={op} today={today} documents={evidence.documents} /></div>}
     {floatingBar()}
@@ -307,18 +308,21 @@ function FloatBar({ children }: { children: React.ReactNode }) {
 }
 
 /** Formatos que se hacen más de una vez en la misma operación: uno por visita, reporte, oferta o presupuesto. */
-const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Registrar otra visita", "14": "Otra propuesta", "19": "Otro presupuesto" };
+const REPEATABLE: Record<string, string> = { "11": "Nuevo reporte", "13": "Registrar otra visita", "14": "Otra propuesta", "19": "Otro presupuesto", "22": "Solicitud de otro candidato" };
 
-function DocRow({ item, now, docs, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
+function DocRow({ item, now, docs, signed, disabled, survey, surveySelect }: { item: Extract<StageItem, { kind: "documento" }>; now: boolean; docs: DocumentsController; signed: boolean; disabled: boolean; survey: LevantamientoId; surveySelect: React.ReactNode }) {
   const doc = docs.latest(item.formato), pdf = docs.pdfOf(doc);
-  const [code, ...rest] = formatTitle(item.formato, doc).split(" · ");
+  // SIM-05 (C15): en la etapa, el documento por su nombre; el número se ve en Documentos.
+  const [, ...rest] = formatTitle(item.formato, doc).split(" · ");
   const waits = item.formato === "06" && !doc && docs.status("05") !== "terminado";
-  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar el 05" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en esta operación") : "Todavía no empieza";
+  const text = doc ? draftText(doc, !!pdf) : waits ? "Se abre al terminar la revisión jurídica" : item.optional ? (item.formato === "01" ? "Se entrega en la entrevista; guarda la copia firmada en su ventana." : item.formato === "07" ? "No hace falta: se usa el avalúo del propietario." : "Si hace falta en esta operación") : "Todavía no empieza";
   return <li className="flex flex-col gap-2">
     <div className={s.docRowWrap}>
       <button type="button" className={cn(s.docRow, waits && s.docRowWait)} data-now={now || undefined} disabled={disabled || waits} aria-label={`${doc ? "Abrir" : "Iniciar"} ${rest.join(" · ")}`} onClick={() => void docs.start(item.formato, survey)}>
-        <span className={s.docNum} aria-hidden="true">{code}</span>
+        <IconTile icon={docIcon(item.formato)} size={36} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{rest.join(" · ")}</strong><span className="text-sm text-muted-foreground">{text}</span></span>
+        {/* LV-02 (V05): el distintivo dice si es borrador o ya firmado; «Terminado · PDF» lo dice el texto. */}
+        {signed ? <DocBadge status="firmado" /> : doc && !pdf && <DocBadge status="borrador" />}
         {item.status === "terminado" ? <Check size={20} aria-hidden="true" className="shrink-0 text-[var(--primary-text)]" /> : !waits && <ArrowRight size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />}
       </button>
       {pdf && <ButtonLink variant="ghost" prefetch={false} href={`/api/admin/emisiones/${pdf.id}/descargar`} aria-label={`PDF de ${rest.join(" · ")}`}><FileDown size={16} aria-hidden="true" />PDF</ButtonLink>}
@@ -557,7 +561,8 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
   const prepared = runs?.filter(run => run.result != null);
   const entregas = [...(flow.entregasInforme ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha));
   const ultima = entregas[0];
-  const status = prepared || ultima ? ownerReportStatus(lastOwnerReport(flow, prepared?.[0]?.updatedAt), today) : undefined;
+  // C-90: una lista vacía de informes no es un informe; sin ninguno no hay estado que calcular.
+  const status = prepared?.length || ultima ? ownerReportStatus(lastOwnerReport(flow, prepared?.[0]?.updatedAt), today) : undefined;
   const [form, setForm] = React.useState<{ fecha: string; canal: EntregaInforme["canal"] | ""; responsable: string } | null>(null);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const abrir = () => { setNotice(""); setError(""); setForm({ fecha: today, canal: "", responsable: advisers.find(a => a.id === op.asesor_id)?.nombre ?? "" }); };
@@ -572,7 +577,8 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
     } catch (cause) { setError(saveError(cause)); } finally { setBusy(false); }
   }
   const lock = disabled || busy;
-  const preparado = prepared?.[0]?.updatedAt;
+  // C-91: el preparado se fecha con el día de Tijuana, no con el de UTC.
+  const preparadoEl = prepared?.[0]?.updatedAt, preparado = preparadoEl ? calendarDayOf(preparadoEl) : undefined;
   return <Card className="flex flex-col gap-2 p-5" aria-label="Informe al propietario">
     <h2 className="m-0 flex items-center gap-2 text-base"><FileText size={18} aria-hidden="true" />Informe mensual al propietario</h2>
     <p className={cn("text-sm", status && status.estado !== "al_dia" && s.lateText)}>{runs === undefined ? "Consultando informes…" : runs === null && !ultima ? "No se pudieron consultar los informes. Recarga la página para reintentar." : !status ? "Todavía no hay un informe preparado para esta operación."
@@ -581,7 +587,7 @@ function OwnerReport({ op, today, disabled, onSave }: { op: OperationRecord; tod
       <dt className="text-muted-foreground">Último preparado</dt><dd>{preparado ? shortDate(preparado) : "Ninguno"}</dd>
       <dt className="text-muted-foreground">Última entrega</dt><dd>{ultima ? `${shortDate(ultima.fecha)} · ${CANALES_INFORME[ultima.canal]} · ${ultima.responsable}` : "Sin registrar"}</dd>
     </dl>
-    {preparado && (!ultima || ultima.fecha < preparado.slice(0, 10)) && !form && <p className="text-sm text-[var(--warning)]">El último informe preparado todavía no se registra como entregado.</p>}
+    {preparado && (!ultima || ultima.fecha < preparado) && !form && <p className="text-sm text-[var(--warning)]">El último informe preparado todavía no se registra como entregado.</p>}
     {form ? <form onSubmit={registrar} className="mt-1 grid gap-2 sm:grid-cols-3" aria-label="Registrar entrega del informe">
       <label className="text-sm">Fecha de entrega<input type="date" className={inputClass} required max={today} value={form.fecha} disabled={lock} onChange={e => setForm({ ...form, fecha: e.target.value })} /></label>
       <label className="text-sm">Canal<select className={selectClass} required value={form.canal} disabled={lock} onChange={e => setForm({ ...form, canal: e.target.value as EntregaInforme["canal"] })}>

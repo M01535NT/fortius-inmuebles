@@ -1,14 +1,14 @@
 # Decisiones abiertas para el titular — 12/11/2026
 
-**Para:** el titular. **Qué es:** las decisiones de `PLAN_ERP_CRM.md` que frenan el trabajo inmediato (DEC-39, DEC-40, DEC-41, DEC-42, DEC-43, DEC-44 y DEC-47), cada una con dos o tres opciones y una recomendación. Sigue el formato de [`CUESTIONARIO_TITULAR.md`](CUESTIONARIO_TITULAR.md): escribe debajo de **Respuesta** o contesta en el chat con el identificador («DEC-41: B»). Una recomendación no es una regla mientras no la confirmes. Cuando respondas, la respuesta pasa al plan y esta hoja se marca respondida.
+**Para:** el titular. **Qué es:** las decisiones de `ROADMAP.md` que frenan el trabajo inmediato (DEC-39, DEC-40, DEC-41, DEC-42, DEC-43, DEC-44 y DEC-47), cada una con dos o tres opciones y una recomendación. Sigue el formato de [`CUESTIONARIO_TITULAR.md`](CUESTIONARIO_TITULAR.md): escribe debajo de **Respuesta** o contesta en el chat con el identificador («DEC-41: B»). Una recomendación no es una regla mientras no la confirmes. Cuando respondas, la respuesta pasa al plan y esta hoja se marca respondida.
 
-**No es un plan.** El único plan vigente es [`PLAN_ERP_CRM.md`](../../PLAN_ERP_CRM.md).
+**No es un plan.** El único plan vigente es [`ROADMAP.md`](../../ROADMAP.md).
 
 **Versión para ver en pantalla:** la misma información, con bocetos, está publicada como página privada del titular: <https://claude.ai/artifact/G643Fkh55zq5PdvNdf2Jki>. Ahí se elige una opción por decisión y se copia el texto para el chat.
 
 ## Resumen
 
-**Respondidas por el titular el 12/11/2026:** DEC-39 A, DEC-40 A, DEC-41 B, DEC-42 A, DEC-44 A y DEC-47 A, todas las recomendadas. DEC-43, confirmada el mismo día. Pasadas a `PLAN_ERP_CRM.md` el 12/11/2026 (tabla de decisiones, RP-91 y «Reglas reemplazadas»). Las preguntas y cartas de DEC-39, DEC-40 y DEC-41 siguen sujetas a la validación del abogado antes de construirse.
+**Respondidas por el titular el 12/11/2026:** DEC-39 A, DEC-40 A, DEC-41 B, DEC-42 A, DEC-44 A y DEC-47 A, todas las recomendadas. DEC-43, confirmada el mismo día. Pasadas a `ROADMAP.md` el 12/11/2026 (tabla de decisiones, RP-91 y «Reglas reemplazadas»). Las preguntas y cartas de DEC-39, DEC-40 y DEC-41 siguen sujetas a la validación del abogado antes de construirse.
 
 | ID | Qué se decide | Recomendación | Detiene |
 |---|---|---|---|

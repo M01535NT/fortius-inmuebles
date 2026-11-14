@@ -8,7 +8,7 @@ import { JURIDICA_TABLES } from "@/lib/formatos/juridica";
 import { CARGOS_NETO } from "@/lib/formatos/neto";
 import { calcularValor } from "@/lib/formatos/valor";
 import { appraisalState, valueFromAppraisal } from "@/lib/formatos/operation-workflow";
-import { operationalDate } from "@/lib/admin/operational-date";
+import { addCalendarDays, operationalDate } from "@/lib/admin/operational-date";
 import type { LevantamientoId } from "@/lib/formatos/levantamiento";
 import { downloadFormatoCopia, saveBlob } from "@/lib/admin/download-word";
 import type { FormatStatus, OperationRecord } from "@/lib/admin/operation-view";
@@ -139,12 +139,20 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
     if (!items) setError(LOAD_ERROR);
     return items;
   }
-  async function start(formato: string, survey?: LevantamientoId) {
-    const items = await loaded();
-    if (!items) return;
-    const existing = items.filter(d => matches(formato, d.formato_id)).sort(byNewest)[0];
-    const doc = existing ?? await create(formato === "04" ? survey ?? levantamientoFor(answers.tipoInmueble) : formato);
-    if (doc) setOpen(doc);
+  // C-38: un segundo toque en «Iniciar» mientras el primero sigue en curso espera al primero; no crea otro borrador.
+  const starting = React.useRef(new Map<string, Promise<void>>());
+  function start(formato: string, survey?: LevantamientoId) {
+    const inFlight = starting.current.get(formato);
+    if (inFlight) return inFlight;
+    const run = (async () => {
+      const items = await loaded();
+      if (!items) return;
+      const existing = items.filter(d => matches(formato, d.formato_id)).sort(byNewest)[0];
+      const doc = existing ?? await create(formato === "04" ? survey ?? levantamientoFor(answers.tipoInmueble) : formato);
+      if (doc) setOpen(doc);
+    })().finally(() => { starting.current.delete(formato); });
+    starting.current.set(formato, run);
+    return run;
   }
   /** Crea y abre un formato desde el expediente; en el neto (08) se elige si parte de una opinión de valor (null: no usarla). */
   async function createAndOpen(formatoId: string, valorReferencia?: { id: string; version: number } | null) {
@@ -158,7 +166,8 @@ export function useOperationDocuments({ op, checklist, interviewAnswers, cliente
   /** El checklist de documentos se guarda como pasos de una tarea de la operación. */
   function startChecklist() {
     return guard(async () => {
-      const vence = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+      // Una semana a partir de hoy en Tijuana (de noche, la fecha UTC ya es mañana).
+      const vence = addCalendarDays(operationalDate(), 7);
       await upsert(db.tareas, { id: checklistTaskId(op.id), titulo: "Reunir los documentos del propietario", descripcion: "Marca cada documento al recibirlo. Con ellos se hace el dictamen jurídico.", categoria: "documentacion", estado: "en-curso", prioridad: "normal", pasos: checklistFor(answers).map(item => ({ ...item, hecho: false })), asesorId: op.asesor_id, expedienteId: op.id, clienteId: op.cliente_id, propiedadSlug: op.propiedad_slug ?? "", vence }, null);
     });
   }

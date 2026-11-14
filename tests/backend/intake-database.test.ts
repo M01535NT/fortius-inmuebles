@@ -239,6 +239,13 @@ it("uses a stable intake ID, rejects changed retry payloads and shared phones wi
       start("vender", { ...c, telefonoCompartido: false }),
     ).rejects.toMatchObject({ code: "PT409" });
   }));
+it("reconoce el mismo teléfono con o sin la lada 52 (C-50)", async () =>
+  asUser(own, async () => {
+    // «Cliente existente» tiene 6648889999.
+    await expect(
+      start("vender", { ...contact("+52 664 888 9999"), telefonoCompartido: false }),
+    ).rejects.toMatchObject({ code: "PT409" });
+  }));
 it("denies foreign adviser, unknown answers, incomplete interviews and direct snapshot updates", async () => {
   await asUser(own, async () => {
     await expect(

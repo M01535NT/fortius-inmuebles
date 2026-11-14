@@ -7,6 +7,8 @@ for(const width of [390,1440]){
   await page.route("**/api/**",async route=>{
    const req=route.request(),url=new URL(req.url());
    if(url.pathname==="/api/auth/session")return route.fulfill({json:{user:{id:"qa",email:"qa@example.invalid",role:"admin"}}});
+   // Recientes se guarda en las preferencias de la persona; no es parte de eliminar o restaurar.
+   if(url.pathname==="/api/admin/preferencias")return route.fulfill({json:{preferencias:{data:{},version:1}}});
    if(req.method()==="DELETE" || req.method()==="PATCH"){
     expect(req.postDataJSON()).toEqual({version});removed=req.method()==="DELETE";version++;
     return route.fulfill({json:{expediente:{...exp,version,deleted_at:removed?"2026-10-05T05:30:00Z":null}}});

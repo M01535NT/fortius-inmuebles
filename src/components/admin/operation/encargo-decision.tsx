@@ -50,10 +50,13 @@ export function EncargoDecisionCard({ op, today, disabled, onSave, onDirtyChange
     } catch (cause) { setError(`No se pudo guardar: ${saveError(cause)}`); } finally { setBusy(false); }
   }
 
-  const lock = disabled || busy || (!director && taken(flow.resolucion?.tipo) && taken(draft?.tipo));
+  // C-94 (titular, 13/11/2026): el asesor puede pausar, rechazar o referir un encargo ya aceptado. El selector
+  // solo se bloquea al guardar; los demás campos, mientras el borrador siga en una decisión que solo toma el director.
+  const choiceLock = disabled || busy;
+  const lock = choiceLock || (!director && taken(draft?.tipo));
   return <Card id="decision-encargo" className="flex flex-col gap-4 p-5" aria-label="Decisión del encargo">
     <div><h2 className="m-0 text-lg">Decisión del encargo</h2><p className="mt-1 text-sm text-muted-foreground">{intro} Pausar, rechazar, referir o cancelar conserva los documentos y el historial.</p></div>
-    <label className="text-sm font-semibold">Decisión<select className={selectClass} disabled={lock} value={draft?.tipo ?? ""} onChange={e => e.target.value ? change({ tipo: e.target.value as Resolution["tipo"] }) : setDraft(undefined)}><option value="">Todavía en evaluación</option>{Object.entries(RESOLUTION_TYPES).map(([value, label]) => <option key={value} value={value} disabled={!director && taken(value) && value !== flow.resolucion?.tipo}>{label}</option>)}</select></label>
+    <label className="text-sm font-semibold">Decisión<select className={selectClass} disabled={choiceLock} value={draft?.tipo ?? ""} onChange={e => e.target.value ? change({ tipo: e.target.value as Resolution["tipo"] }) : setDraft(undefined)}><option value="">Todavía en evaluación</option>{Object.entries(RESOLUTION_TYPES).map(([value, label]) => <option key={value} value={value} disabled={!director && taken(value) && value !== flow.resolucion?.tipo}>{label}</option>)}</select></label>
     {!director && <p className="-mt-2 text-sm text-muted-foreground">Tomar el encargo lo decide el director; tú puedes registrar si se pausa, se rechaza o se refiere.</p>}
     {draft && <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-sm font-semibold">Fecha de la decisión<input type="date" disabled={lock} className={inputClass} value={draft.fecha} onChange={e => change({ fecha: e.target.value })} /></label>
@@ -66,8 +69,8 @@ export function EncargoDecisionCard({ op, today, disabled, onSave, onDirtyChange
       <label className="text-sm font-semibold">Fecha de la siguiente acción<input type="date" disabled={lock} className={inputClass} value={draft.fechaSiguiente} onChange={e => change({ fechaSiguiente: e.target.value })} /></label>
     </div>}
     <div className="flex flex-wrap items-center gap-3">
-      <Button disabled={!dirty || lock} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar decisión"}</Button>
-      {dirty && <Button variant="ghost" disabled={lock} onClick={() => { setDraft(flow.resolucion); setError(""); }}>Descartar cambios</Button>}
+      <Button disabled={!dirty || choiceLock || (!director && taken(draft?.tipo))} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar decisión"}</Button>
+      {dirty && <Button variant="ghost" disabled={choiceLock} onClick={() => { setDraft(flow.resolucion); setError(""); }}>Descartar cambios</Button>}
       {notice && !dirty && <span role="status" className="text-sm text-muted-foreground">{notice}</span>}
     </div>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

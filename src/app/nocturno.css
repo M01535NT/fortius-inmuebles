@@ -2,7 +2,7 @@
   Inicio · dirección «Nocturno» (LV-05, elegida por el titular el 18/10/2026).
   Boceto: lienzo «Rediseño sitio público Fortius», artboard C.
   Desde el 25/10/2026 las secciones siguen el tema (titular): en claro son
-  blancas y crema sin degradados; en oscuro, la noche original. La portada
+  blancas y blanco azulado sin degradados; en oscuro, noche y azul noche (13/11). La portada
   conserva su foto con velo en ambos temas. Colores --ns-* en publico.css.
 */
 .nx-container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: clamp(20px, 4.2vw, 60px); }
@@ -67,7 +67,6 @@
 .nx-stage.is-active p { color: rgba(255, 255, 255, 0.88); }
 .nx-stage.is-active .nx-stage-step { color: var(--ns-accent); }
 .nx-stage.is-past { filter: saturate(0.7); }
-.dark .nx-stage::before { background: linear-gradient(160deg, #8a1634 0%, #4a0c1d 100%); }
 .dark .nx-stage.is-active { box-shadow: 0 40px 80px -30px rgba(138, 22, 52, 0.9); }
 .dark .nx-stage.is-past { filter: brightness(0.6) saturate(0.7); }
 
@@ -193,7 +192,7 @@
 /* Banda con video de fondo: el velo azul es más denso a la izquierda, donde va el texto. */
 /* Cierre: casi pantalla completa, la frase centrada sobre un velo que oscurece abajo. */
 .nx-search { --nx-ink: #061f3f; display: flex; flex-direction: column; gap: var(--space-normal); padding: var(--space-amplio); border-radius: var(--corner-tarjeta); background: #fff; color: #061f3f; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.5); }
-.nx-search h3 { margin: 0; font-size: var(--type-subtitulo); font-weight: 600; letter-spacing: var(--tracking-subtitulo); }
+.nx-search :is(h2, h3) { margin: 0; font-size: var(--type-subtitulo); font-weight: 600; letter-spacing: var(--tracking-subtitulo); }
 .nx-search-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-cerca); }
 .nx-search label { display: flex; flex-direction: column; gap: var(--space-corto); min-width: 0; }
 .nx-search label span { color: #526176; font-size: var(--type-etiqueta); font-weight: 600; }
@@ -233,7 +232,7 @@
 .nx-footer-columns ul { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .nx-footer-link { display: inline-flex; align-items: center; min-height: 36px; padding-block: var(--space-corto); color: var(--ft-muted); font-size: var(--type-detalle); line-height: 1.5; overflow-wrap: anywhere; transition: color 0.2s; }
 .nx-footer-link:hover { color: #fff; text-decoration: underline; text-underline-offset: 5px; text-decoration-color: #8a1634; }
-.nx-footer-brand { display: inline-flex; }
+.nx-footer-brand { display: inline-flex; align-items: center; min-height: 44px; }
 .nx-footer-brand .brand-mark { width: 170px; height: auto; aspect-ratio: 1275 / 324; }
 .nx-footer-brand-block p { max-width: 30ch; margin: var(--space-amplio) 0 0; color: var(--ft-muted); font-size: var(--type-detalle); line-height: 1.6; }
 .nx-footer-contact { display: flex; flex-direction: column; gap: var(--space-corto); margin: var(--space-amplio) 0 0; }
@@ -250,10 +249,17 @@
 .nx-footer-bottom .nx-footer-link { font-size: var(--type-etiqueta); }
 .nx-footer-admin { opacity: 0.7; }
 .nx-footer-tools { display: flex; align-items: center; gap: var(--space-corto); }
-.nx-footer-band .nx-footer-theme { width: 40px; height: 40px; border-color: var(--ft-rule); border-radius: var(--corner-pulsable); color: var(--ft-ink); }
+.nx-footer-band .nx-footer-theme { width: 40px; height: 40px; padding: 0; border-color: var(--ft-rule); border-radius: var(--corner-pulsable); color: var(--ft-ink); }
 .nx-footer-band .nx-footer-theme:hover { background: #101e30; color: #fff; }
 .nx-footer-bottom button { display: inline-flex; align-items: center; gap: var(--space-cerca); min-height: 40px; padding: 0 var(--space-normal); border: 1px solid var(--ft-rule); border-radius: var(--corner-pulsable); background: transparent; color: var(--ft-ink); font-size: var(--type-etiqueta); cursor: pointer; transition: background-color 0.2s; }
 .nx-footer-bottom button:hover { background: #101e30; }
+/* En pantallas táctiles cada enlace y botón del pie mide al menos 44 px de alto (13/11/2026). */
+@media (pointer: coarse) {
+  .nx-footer-link, .nx-footer-contact .nx-footer-link { min-height: 44px; }
+  .nx-footer-columns ul { gap: 0; }
+  .nx-footer-band .nx-footer-theme { width: 44px; height: 44px; }
+  .nx-footer-bottom button { min-height: 44px; }
+}
 @media (max-width: 1100px) {
   .nx-footer-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nx-footer-brand-block { grid-column: 1 / -1; }
@@ -290,9 +296,12 @@
 .nx-exp-section.is-animated .nx-exp-rail { position: absolute; top: 30px; bottom: 30px; left: 20px; display: block; width: 2px; background: color-mix(in srgb, var(--ns-ink) 12%, transparent); }
 .nx-exp-section.is-animated .nx-exp-rail > span { position: absolute; inset: 0; background: #8a1634; transform-origin: top; transform: scaleY(var(--exp-progress, 0)); }
 .dark .nx-exp-section.is-animated .nx-exp-rail > span { background: #f8f8ff; }
-.nx-exp-section.is-animated .nx-exp-pillars li { position: relative; padding-left: 52px; border-color: transparent; background: none; opacity: 0.42; transition: opacity 0.6s var(--nx-ease), transform 0.6s var(--nx-ease); }
-.nx-exp-section.is-animated .nx-exp-pillars li.is-past { opacity: 0.7; }
-.nx-exp-section.is-animated .nx-exp-pillars li.is-active { opacity: 1; transform: translateX(8px); }
+/* Pendiente, hecho y actual se distinguen por color del título, no por opacidad:
+   el texto atenuado al 42 % quedaba por debajo de 4.5:1 (auditoría P2, 13/11/2026). */
+.nx-exp-section.is-animated .nx-exp-pillars li { position: relative; padding-left: 52px; border-color: transparent; background: none; transition: transform 0.6s var(--nx-ease); }
+.nx-exp-section.is-animated .nx-exp-pillars li h3 { color: var(--nx-muted); transition: color 0.6s var(--nx-ease); }
+.nx-exp-section.is-animated .nx-exp-pillars li.is-past h3 { color: var(--ns-ink); }
+.nx-exp-section.is-animated .nx-exp-pillars li.is-active { transform: translateX(8px); }
 .nx-exp-section.is-animated .nx-exp-dot { position: absolute; top: 24px; left: 14px; display: block; width: 14px; height: 14px; border: 2px solid color-mix(in srgb, var(--ns-ink) 30%, transparent); border-radius: 50%; background: var(--background); transition: border-color 0.5s, background-color 0.5s, transform 0.5s var(--nx-ease); }
 .nx-exp-section.is-animated li.is-past .nx-exp-dot { border-color: #8a1634; background: #8a1634; }
 .nx-exp-section.is-animated li.is-active .nx-exp-dot { border-color: #8a1634; background: #8a1634; transform: scale(1.35); box-shadow: 0 0 0 6px color-mix(in srgb, #8a1634 18%, transparent); }
@@ -301,6 +310,6 @@
 /* En móvil los puntos quedan arriba del expediente: se leen completos, sin línea ni atenuado. */
 @media (max-width: 1023px) {
   .nx-exp-section.is-animated .nx-exp-rail, .nx-exp-section.is-animated .nx-exp-dot { display: none; }
-  .nx-exp-section.is-animated .nx-exp-pillars li { padding-left: var(--space-amplio); opacity: 1; transform: none; }
-  .nx-exp-section.is-animated li.is-active h3 { color: inherit; }
+  .nx-exp-section.is-animated .nx-exp-pillars li { padding-left: var(--space-amplio); transform: none; }
+  .nx-exp-section.is-animated .nx-exp-pillars li h3, .nx-exp-section.is-animated li.is-active h3 { color: inherit; }
 }

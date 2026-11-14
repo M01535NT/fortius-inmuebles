@@ -12,12 +12,13 @@ import {
   type Property,
 } from "@/data/propiedades";
 
-export function PropertyCard({ property, extra, layout = "card" }: { property: Property; extra?: ReactNode; layout?: "card" | "feature" | "row" }) {
+/* `eager`: las tarjetas de la primera fila cargan su foto sin esperar (son la imagen más grande del primer pantallazo). */
+export function PropertyCard({ property, extra, layout = "card", eager = false }: { property: Property; extra?: ReactNode; layout?: "card" | "feature" | "row"; eager?: boolean }) {
   const href = `/inventario/${property.slug}`;
   const noDisponible = property.estado !== "disponible";
   const facts = [
     property.ficha.recamaras ? `${property.ficha.recamaras} rec.` : null,
-    property.ficha.banos ? `${property.ficha.banos} baños` : null,
+    property.ficha.banos ? `${property.ficha.banos} ${property.ficha.banos === 1 ? "baño" : "baños"}` : null,
     property.ficha.construccionM2 ? `${property.ficha.construccionM2} m² const.` : property.ficha.terrenoM2 ? `${property.ficha.terrenoM2} m² terreno` : null,
   ].filter(Boolean);
 
@@ -41,6 +42,7 @@ export function PropertyCard({ property, extra, layout = "card" }: { property: P
           alt={property.galeria[0].alt}
           width={600}
           height={750}
+          loading={eager ? "eager" : "lazy"}
           sizes={layout === "feature" ? "(max-width: 1023px) 100vw, 60vw" : layout === "row" ? "156px" : "(max-width: 639px) 100vw, (max-width: 1199px) 50vw, 400px"}
           className={
             "h-full w-full object-cover" +

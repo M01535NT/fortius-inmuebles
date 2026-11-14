@@ -43,9 +43,9 @@ describe("Documentos sin expediente", () => {
 
   it("aparece en Herramientas con todos los formatos que tienen captura (HER-02)", () => {
     expect(getApp("documentos")?.title).toBe("Documentos sueltos");
-    expect(FORMATOS_INDEPENDIENTES).toHaveLength(24);
+    expect(FORMATOS_INDEPENDIENTES).toHaveLength(29);
     expect(FORMATOS_INDEPENDIENTES).not.toContain("03");
-    expect(FORMATOS_INDEPENDIENTES).toEqual(expect.arrayContaining(["01", "02", "04B", "05", "09", "11", "13", "15", "16", "17", "18"]));
+    expect(FORMATOS_INDEPENDIENTES).toEqual(expect.arrayContaining(["01", "02", "04B", "05", "09", "11", "13", "15", "16", "17", "18", "20", "21"]));
   });
 
   it("guarda el documento como trabajo independiente", async () => {

@@ -12,7 +12,8 @@ export function InventoryBackLink() {
       onClick={(event) => {
         try {
           const referrer = document.referrer ? new URL(document.referrer) : null;
-          if (referrer?.origin === window.location.origin && referrer.pathname === "/inventario") {
+          // En una pestaña nueva el referrer existe pero no hay a dónde regresar.
+          if (referrer?.origin === window.location.origin && referrer.pathname === "/inventario" && window.history.length > 1) {
             event.preventDefault();
             window.history.back();
             return;

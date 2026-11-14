@@ -46,6 +46,8 @@ const ICONOS: Record<ArchivoTipo, typeof FileText> = {
   otro: Paperclip,
 };
 
+const FILTRO_LABEL = { todos: "Todos", imagen: "Imagen", pdf: "PDF", video: "Video", otro: "Otro" } as const;
+
 export default function ArchivosPage() {
   const archivos = useCollection(db.archivos);
   const [filtro, setFiltro] = React.useState<ArchivoTipo | "todos">("todos");
@@ -91,7 +93,7 @@ export default function ArchivosPage() {
         }}
       />
 
-      <details className="rounded-lg border border-border bg-card p-4"><summary className="cursor-pointer font-semibold">Registrar un enlace existente</summary>
+      <details className="rounded-lg border border-border bg-card px-4 py-1 open:pb-4"><summary className="flex min-h-11 cursor-pointer items-center font-semibold">Registrar un enlace existente</summary>
       <AsyncForm
         onSubmit={agregar}
         className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4"
@@ -165,13 +167,15 @@ export default function ArchivosPage() {
                 : " border-border text-foreground/70 hover:bg-secondary")
             }
           >
-            {t === "todos" ? "Todos" : t.charAt(0).toUpperCase() + t.slice(1)}
+            {FILTRO_LABEL[t]}
           </button>
         ))}
       </div>
 
       {filtrados.length === 0 ? (
-        <EmptyState title="Sin archivos de ese tipo." hint="Carga tu primer archivo arriba o cambia el filtro." />
+        archivos.length === 0
+          ? <EmptyState title="Aún no hay archivos." hint="Carga el primero arriba." />
+          : <EmptyState title="Sin archivos de ese tipo." hint="Cambia el filtro para ver los demás." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtrados.map((archivo) => {
@@ -189,6 +193,8 @@ export default function ArchivosPage() {
                       alt={archivo.nombre}
                       fill
                       sizes="300px"
+                      // C-70: la dirección la escribe el asesor (cualquier dominio); no pasa por el optimizador.
+                      unoptimized
                       className="object-cover"
                     />
                   </div>

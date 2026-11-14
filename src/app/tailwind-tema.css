@@ -38,6 +38,13 @@
   --color-warning: var(--warning);
   --color-warning-border: var(--warning-border);
   --color-warning-surface: var(--warning-surface);
+  /* Verde y azul de estado: solo los define el panel (src/app/admin/panel-base.css). */
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-success-border: var(--success-border);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
+  --color-info-border: var(--info-border);
   /* Escala del sitio público como utilidades: text-titulo, text-seccion, text-etiqueta… */
   --text-portada: var(--type-portada);
   --text-titulo: var(--type-titulo);

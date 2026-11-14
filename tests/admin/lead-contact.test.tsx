@@ -7,7 +7,7 @@ import type { Lead } from "@/lib/domain/records";
 
 const mocks = vi.hoisted(() => ({ upsert: vi.fn() }));
 vi.mock("@/lib/admin/store", () => ({
-  db: { leads: { version: () => 7 }, tareas: { version: () => null }, eventos: "eventos", propiedades: "propiedades" },
+  db: { leads: { version: () => 7, list: () => [] }, tareas: { version: () => null }, eventos: "eventos", propiedades: "propiedades" },
   useCollection: () => [{ slug: "casa-playas", titulo: "Casa en Playas" }],
   upsert: mocks.upsert, uid: (() => { let n = 0; return () => `id-${++n}`; })(), errorMessage: (e: Error) => e.message,
 }));

@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronRight, Plus, Search, UserPlus, X } from "@/components/admin/icons";
+import { ChevronRight, FileDown, Plus, Search, UserPlus, X, EMPTY_ART } from "@/components/admin/icons";
 import { Avatar, Button, ButtonLink, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import f from "@/components/admin/form.module.css";
 import { inputClass } from "@/components/admin/ui";
@@ -11,7 +11,10 @@ import { GuidedPage } from "@/components/admin/workspace/guided-page";
 import { duplicateContacts } from "@/lib/admin/workspace";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { clientRows, dayGroups, leadRows, matches, waitingSince, type ContactRow, type PersonOperation, type Waiting } from "@/lib/admin/contacts-view";
-import { apiRequest, db, settingsStore, useCollection, useSingleton } from "@/lib/admin/store";
+import { apiRequest, db, settingsStore, upsert, useCollection, useSession, useSingleton } from "@/lib/admin/store";
+import { BulkBar, SelectBox, SelectToggle, useSelection, type BulkAction, type Selection } from "@/components/admin/workspace/bulk";
+import { toCsv } from "@/lib/admin/bulk";
+import { saveBlob } from "@/lib/admin/download-word";
 import { firstResponseHours } from "@/lib/admin/today";
 import { leadStage, LEAD_STAGE_LABELS } from "@/lib/admin/person-view";
 import { processStageText, type OperationWorkflow, type WorkflowStage } from "@/lib/formatos/operation-workflow";
@@ -91,6 +94,38 @@ export function ContactsScreen() {
   const groups = grouped ? dayGroups(rows, today, waiting) : [{ id: "todas" as const, label: "", rows }];
   const ordered = groups.flatMap(group => group.rows);
   const previewRow = ordered.find(r => r.id === selected) ?? ordered[0];
+  // RP-12 (UX-03): reasignar varias personas a la vez; exportar es solo del administrador (datos personales).
+  const session = useSession();
+  const advisers = useCollection(db.asesores);
+  const keyOf = (row: Pick<ContactRow, "kind" | "id">) => `${row.kind}:${row.id}`;
+  const selection = useSelection(ordered.map(keyOf));
+  const adviserName = (id?: string) => advisers.find(a => a.id === id)?.nombre ?? (id ? "Responsable no disponible" : "Sin asignar");
+  async function reassign(key: string, asesorId: string): Promise<"aplicado" | "sin-cambio"> {
+    const cut = key.indexOf(":"), kind = key.slice(0, cut), id = key.slice(cut + 1);
+    const value = asesorId || undefined;
+    if (kind === "lead") {
+      const latest = db.leads.list().find(l => l.id === id);
+      if (!latest) throw new Error("Ya no aparece en tus contactos.");
+      if ((latest.asesorId ?? "") === asesorId) return "sin-cambio";
+      await upsert(db.leads, { ...latest, asesorId: value }, db.leads.version(id), { resolve: false });
+    } else {
+      const latest = db.clientes.list().find(c => c.id === id);
+      if (!latest) throw new Error("Ya no aparece en tus contactos.");
+      if ((latest.asesorId ?? "") === asesorId) return "sin-cambio";
+      await upsert(db.clientes, { ...latest, asesorId: value }, db.clientes.version(id), { resolve: false });
+    }
+    return "aplicado";
+  }
+  const stageText = (row: ContactRow) => { if (row.kind === "cliente") { const st = status.ofClient(row.id); return st ? PERSON_STATUS_LABEL[st] : "Contacto"; } return status.ofLead({ id: row.id }) === "contraparte" ? PERSON_STATUS_LABEL.contraparte : LEAD_STAGE_LABELS[leadStage(estadoDe(row.id))]; };
+  const bulkActions: BulkAction[] = [
+    { id: "responsable", label: "Reasignar a…", verb: "Se reasignaron", options: [{ value: "", label: "Sin asignar" }, ...advisers.map(a => ({ value: a.id, label: a.nombre }))], apply: reassign },
+    ...(session?.role === "admin" ? [{ id: "exportar", label: "Exportar", icon: <FileDown size={16} aria-hidden="true" />, run: (keys: string[]) => {
+      const list = ordered.filter(r => keys.includes(keyOf(r)));
+      const person = (r: ContactRow) => r.kind === "lead" ? leads.find(l => l.id === r.id) : clients.find(c => c.id === r.id);
+      const data = list.map(r => { const p = person(r); return [r.name, r.phone ?? "", p?.email ?? "", stageText(r), r.zone ?? "", r.wants ?? "", adviserName(p?.asesorId)]; });
+      saveBlob(new Blob([toCsv(["Nombre", "Teléfono", "Correo", "Etapa", "Zona", "Busca", "Responsable"], data)], { type: "text/csv;charset=utf-8" }), `Fortius-Contactos-${today}.csv`);
+    } } satisfies BulkAction] : []),
+  ];
 
 
   const searchField = <label className={s.search}><Search size={18} aria-hidden="true" /><span className="sr-only">Buscar nombre o teléfono</span><input ref={searchInput} type="search" className={inputClass} placeholder="Buscar nombre o teléfono" value={query} onChange={e => setQuery(e.target.value)} /></label>;
@@ -115,15 +150,17 @@ export function ContactsScreen() {
       <ClienteEditor key="nuevo" title={false} onDone={() => setAdding(false)} />
     </section>}
     <div className={s.tabsRow}>
+      {rows.length > 0 && <div className="ml-auto"><SelectToggle selection={selection} noun="contactos" /></div>}
       <div className={s.chips} role="group" aria-label="Mostrar personas" data-tour="contactos-filtros">{FILTERS.map(item => <button key={item.id} type="button" className={s.chipBtn} aria-pressed={filter === item.id} onClick={() => { setFilter(item.id); setAdding(false); }}>{item.label}<span className={s.chipCount}>{counts[item.id]}</span></button>)}</div>
     </div>
     <div className="mt-5 min-w-0">
-      {rows.length === 0 ? <EmptyBox title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
+      {rows.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.contactos, kind: query.trim() || filter !== "todas" ? "buscar" : "empezar" }} title={query.trim() || filter !== "todas" ? "Nadie coincide con la búsqueda" : "Todavía no hay contactos"} steps={query.trim() || filter !== "todas" ? undefined : ["Registra a quien llamó o escribió con «Agregar contacto».", "Anota qué busca y cuándo vuelves a hablarle.", "Cuando quiera avanzar, abre su operación desde su ficha."]} action={query.trim() || filter !== "todas" ? undefined : <ButtonLink href="/admin/operaciones/nueva">Agregar contacto</ButtonLink>}>
         {query.trim() || filter !== "todas" ? "Prueba con otro nombre, teléfono o estado." : "Aquí están las personas que buscan a Fortius y los clientes, con lo que sigue con cada una. Las que escriben desde el sitio llegan solas."}
       </EmptyBox> : <div className={s.frame} data-tour="contactos-lista">
-        <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={row => { if (row.kind === "cliente") { const st = status.ofClient(row.id); return st ? PERSON_STATUS_LABEL[st] : "Contacto"; } return status.ofLead({ id: row.id }) === "contraparte" ? PERSON_STATUS_LABEL.contraparte : LEAD_STAGE_LABELS[leadStage(estadoDe(row.id))]; }} />
+        <ContactList groups={groups} waiting={waiting} limitHours={limitHours} onPreview={setSelected} conditionOf={row => conditions.ofPerson(row.kind, row.id)?.text} stageOf={stageText} selection={selection} keyOf={keyOf} />
         {previewRow && <ContactPreview key={previewRow.id} row={previewRow} lead={previewRow.kind === "lead" ? leads.find(l => l.id === previewRow.id) : undefined} client={previewRow.kind === "cliente" ? clients.find(c => c.id === previewRow.id) : undefined} tasks={tasks} events={events} today={today} />}
       </div>}
+      {rows.length > 0 && <BulkBar selection={selection} targets={ordered.map(r => ({ id: keyOf(r), label: r.name }))} actions={bulkActions} noun={{ one: "persona seleccionada", many: "personas seleccionadas", empty: "Elige personas en la lista" }} />}
       {duplicates > 0 && <p className="mt-4 text-sm text-muted-foreground">{duplicates === 1 ? "1 prospecto podría estar repetido" : `${duplicates} prospectos podrían estar repetidos`}: revisa su ficha antes de abrir una operación.</p>}
     </div>
   </GuidedPage>;
@@ -142,7 +179,7 @@ function WaitClock({ wait, limitHours }: { wait: Waiting; limitHours: number }) 
   </span>;
 }
 
-function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditionOf }: { groups: Array<{ id: string; label: string; rows: ContactRow[] }>; waiting: (row: ContactRow) => Waiting | null; limitHours: number; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined }) {
+function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditionOf, selection, keyOf }: { groups: Array<{ id: string; label: string; rows: ContactRow[] }>; waiting: (row: ContactRow) => Waiting | null; limitHours: number; onPreview: (id: string) => void; stageOf: (row: ContactRow) => string; conditionOf: (row: ContactRow) => string | undefined; selection: Selection; keyOf: (row: ContactRow) => string }) {
   // Una sola lista «Contactos»; cada grupo del día es un renglón con su título y sus personas.
   return <Card as="div" className={s.listCard}>
     <ul className={s.list} aria-label="Contactos">{groups.map(group => {
@@ -151,14 +188,17 @@ function ContactList({ groups, waiting, limitHours, onPreview, stageOf, conditio
         {group.label && <h2 id={head} className={s.groupHead}>{group.label}<span className={s.groupCount}>{group.rows.length}</span></h2>}
         <ul className={s.list} aria-label={group.label || undefined}>{group.rows.map(row => {
           const wait = waiting(row);
-          return <li key={row.id}><Link href={row.href} className={s.item} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>
+          const body = <>
             <Avatar name={row.name} size={44} />
             <span className={s.person}><strong>{row.name}</strong><span className={s.meta}>{row.phone}</span></span>
             <span className={s.wants}><span className="[overflow-wrap:anywhere]"><Pill size="sm" tone={stageOf(row) === "Cliente" ? "success" : "muted"}>{stageOf(row)}</Pill> {conditionOf(row) && <><Pill size="sm" tone="warn">{conditionOf(row)}</Pill> </>}{row.wants}</span>{(row.zone || row.budget) && <span className={s.meta}>{[row.zone, row.budget].filter(Boolean).join(" · ")}</span>}</span>
             <span className={s.step}>{wait ? <WaitClock wait={wait} limitHours={limitHours} /> : row.step && <><span className={cn("lg:hidden whitespace-nowrap", s.meta)}>Sigue:</span><span className={cn(!row.when && "text-muted-foreground")}>{row.step}</span></>}</span>
             <span className={s.end}>{wait ? <Pill size="sm" tone={wait.late ? "alert" : "warn"}>{wait.late ? "Pasó el plazo" : "Por atender"}</Pill> : <Due row={row} />}</span>
-            <ChevronRight size={18} aria-hidden="true" className={cn(s.chevron, "hidden lg:block")} />
-          </Link></li>;
+            <ChevronRight size={18} aria-hidden="true" className={cn(s.chevron, "hidden lg:block", selection.on && "invisible")} />
+          </>;
+          // En modo selección la fila elige a la persona en lugar de abrir su ficha.
+          if (selection.on) return <li key={row.id} className={cn("flex items-center pl-3", selection.selected.has(keyOf(row)) && "bg-muted")}><SelectBox selection={selection} id={keyOf(row)} label={row.name} /><div className={cn(s.item, "min-w-0 flex-1 cursor-pointer")} onClick={() => selection.toggle(keyOf(row))}>{body}</div></li>;
+          return <li key={row.id}><Link href={row.href} className={s.item} onMouseEnter={() => onPreview(row.id)} onFocus={() => onPreview(row.id)}>{body}</Link></li>;
         })}</ul>
       </li>;
     })}</ul>

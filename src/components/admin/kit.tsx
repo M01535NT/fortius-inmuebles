@@ -2,7 +2,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, Building2, Check, Circle, CircleDot, Info, MinusCircle, X } from "@/components/admin/icons";
+import { AlertTriangle, Building2, Check, CircleHelp, Info, Plus, Search, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem, Upload, X } from "@/components/admin/icons";
 import { cn } from "@/lib/utils";
 import s from "./kit.module.css";
 
@@ -31,13 +31,13 @@ export function ButtonLink({ variant, size, iconOnly, className, ...props }: But
   return <Link className={buttonClass({ variant, size, iconOnly, className })} {...props} />;
 }
 
-/** Estados de un requisito con sus nombres sencillos (encargo, sección 4). */
+/** Estados de un requisito con sus nombres sencillos (encargo, sección 4) y su forma (LV-02, V03). */
 export const REVIEW_STATE_UI = {
-  pendiente: { label: "Pendiente", icon: Circle },
-  recibido: { label: "Lo tengo", icon: CircleDot },
-  revisado: { label: "Revisado ✓", icon: Check },
-  observado: { label: "Hay un problema", icon: AlertTriangle },
-  no_aplica: { label: "No aplica", icon: MinusCircle },
+  pendiente: { label: "Pendiente", icon: StatePending },
+  recibido: { label: "Lo tengo", icon: StateHalf },
+  revisado: { label: "Revisado ✓", icon: StateDone },
+  observado: { label: "Hay un problema", icon: StateProblem },
+  no_aplica: { label: "No aplica", icon: StateNotApplicable },
 } as const;
 export type ReviewStateKey = keyof typeof REVIEW_STATE_UI;
 
@@ -91,8 +91,9 @@ export function Thumb({ src, alt = "", size = 52, ratio, icon, className, childr
 export function initialsOf(name: string) {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "·";
 }
-export function Avatar({ name, src, size = 36, className }: { name: string; src?: string | null; size?: number; className?: string }) {
-  return <span className={cn(s.avatar, className)} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
+/** El círculo único de una persona (LV-02, V09): neutro, en tres tamaños de uso (24, 32, 48) y en `onDark` sobre el azul. */
+export function Avatar({ name, src, size = 36, onDark, className }: { name: string; src?: string | null; size?: number; onDark?: boolean; className?: string }) {
+  return <span className={cn(s.avatar, className)} data-tone={onDark ? "onDark" : undefined} style={{ width: size, height: size, fontSize: Math.max(10, Math.round(size / 3)) }} aria-hidden="true">{src ? <Image unoptimized fill sizes="64px" src={src} alt="" /> : initialsOf(name)}</span>;
 }
 
 /** Anillo de avance pequeño («6 de 10»), con el texto para lectores de pantalla. */
@@ -103,6 +104,75 @@ export function Ring({ value, max, size = 64, stroke = 7, label, className, trac
     <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className={cn(s.ringTrack, trackClass)} />
     <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${c * share} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} className={cn(s.ringValue, valueClass)} />
   </svg>;
+}
+
+/**
+  Avance con anillo y texto (LV-02, V04): «6 de 10» junto al anillo, que se llena en azul marino y
+  se vuelve verde con palomita al completarse. Nunca usa el rojo de alerta. El texto ya lo dice,
+  así que el anillo es decorativo.
+*/
+export function ProgressRing({ value, max, size = 36, showText = true, className }: { value: number; max: number; size?: number; showText?: boolean; className?: string }) {
+  const stroke = size >= 40 ? 4 : 3, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const share = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0, done = max > 0 && value >= max;
+  return <span className={cn(s.progressRing, className)} data-done={done || undefined}>
+    <span className={s.progressRingDial} style={{ width: size, height: size }} aria-hidden="true">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className={s.ringTrack} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${c * share} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} className={s.progressRingValue} />
+      </svg>
+      <span className={s.progressRingNum}>{done ? <Check size={Math.round(size * 0.42)} strokeWidth={2} /> : value}</span>
+    </span>
+    {showText && <span className={s.progressRingText}>{value} de {max}</span>}
+  </span>;
+}
+
+export type DocStatus = "borrador" | "revisado" | "aprobado" | "firmado";
+const DOC_STATUS_LABEL: Record<DocStatus, string> = { borrador: "Borrador", revisado: "Revisado", aprobado: "Aprobado", firmado: "Firmado" };
+/** Distintivo del estado de un documento (LV-02, V05): Borrador neutro, Revisado azul, Aprobado y Firmado verdes. */
+export function DocBadge({ status, className }: { status: DocStatus; className?: string }) {
+  return <span className={cn(s.docBadge, className)} data-status={status}>{DOC_STATUS_LABEL[status]}</span>;
+}
+
+/** Cuadro del ícono de una etapa o un documento (LV-02, V01). */
+export function IconTile({ icon: Icon, size = 40, className }: { icon: React.ComponentType<{ size?: number | string; "aria-hidden"?: boolean }>; size?: number; className?: string }) {
+  return <span className={cn(s.iconTile, className)} style={{ width: size, height: size }} aria-hidden="true"><Icon size={Math.round(size * 0.52)} aria-hidden /></span>;
+}
+
+/**
+  «?» de una línea donde hay dudas (LV-04, V07): al pulsarlo se abre una sola línea debajo; se cierra
+  al pulsar otra vez o con Escape. Va junto a un título o un botón; `term` nombra lo que explica.
+*/
+export function Hint({ term, children, className }: { term: string; children: React.ReactNode; className?: string }) {
+  const [open, setOpen] = React.useState(false);
+  const id = React.useId();
+  return <>
+    <button type="button" className={cn(s.hint, className)} aria-expanded={open} aria-controls={id} aria-label={`Qué es ${term}`} onClick={() => setOpen(v => !v)} onKeyDown={e => { if (e.key === "Escape" && open) { e.stopPropagation(); setOpen(false); } }}><CircleHelp size={18} aria-hidden="true" /></button>
+    <span id={id} role="note" className={s.hintText} hidden={!open}>{children}</span>
+  </>;
+}
+
+/**
+  Punto «Empieza aquí» (LV-04, V07): late tres veces la primera vez y se queda quieto hasta que la
+  persona pulsa lo que señala; desde entonces no vuelve a salir para ella. `storageKey` lleva su id.
+  Es una preferencia de interfaz en este navegador; sin almacenamiento no se muestra.
+*/
+const START_EVENT = "fortius:empieza-aqui";
+function startSeen(key: string) { try { return localStorage.getItem(key) === "1"; } catch { return true; } }
+function subscribeStart(cb: () => void) {
+  window.addEventListener("storage", cb); window.addEventListener(START_EVENT, cb);
+  return () => { window.removeEventListener("storage", cb); window.removeEventListener(START_EVENT, cb); };
+}
+export function StartHere({ storageKey, above, children }: { storageKey?: string; above?: boolean; children: React.ReactNode }) {
+  const seen = React.useSyncExternalStore(subscribeStart, () => !storageKey || startSeen(storageKey), () => true);
+  const done = () => {
+    if (seen || !storageKey) return;
+    try { localStorage.setItem(storageKey, "1"); } catch { /* sin almacenamiento */ }
+    window.dispatchEvent(new Event(START_EVENT));
+  };
+  return <span className={s.startHere} onClickCapture={done}>
+    {children}
+    {!seen && <><span className={s.startDot} aria-hidden="true" /><span className={s.startTip} data-above={above || undefined}>Empieza aquí</span></>}
+  </span>;
 }
 
 export function Kbd({ children }: { children: React.ReactNode }) { return <kbd className={s.kbd}>{children}</kbd>; }
@@ -188,8 +258,20 @@ export function Notice({ title, children, tone = "warn", actions, className }: {
 }
 
 /** Lista vacía que enseña (C31): qué es la sección, sus primeros pasos y el botón para empezar. */
-export function EmptyBox({ icon, title, children, steps, action }: { icon?: React.ReactNode; title: string; children?: React.ReactNode; steps?: React.ReactNode[]; action?: React.ReactNode }) {
-  return <div className={s.empty}>{icon}<p className="font-semibold text-foreground">{title}</p>{children && <div className="max-w-[52ch] text-sm">{children}</div>}
+type ArtIcon = React.ComponentType<{ size?: number | string; strokeWidth?: number | string; "aria-hidden"?: boolean }>;
+const ART_BADGE = { empezar: Plus, listo: Check, buscar: Search, subir: Upload } as const;
+/**
+  Ilustración de un estado vacío (LV-04, V08, aprobada el 13/11/2026): el objeto de la pantalla en
+  grande sobre una placa, con una insignia que dice el caso: «empezar» (+, aún no hay nada),
+  «listo» (palomita verde, todo hecho), «buscar» (lupa, sin resultados) y «subir».
+*/
+export function EmptyArt({ icon: Icon, kind }: { icon: ArtIcon; kind?: keyof typeof ART_BADGE }) {
+  const Badge = kind ? ART_BADGE[kind] : null;
+  return <span className={s.emptyArt} aria-hidden="true"><span className={s.emptyPlate}><Icon size={44} strokeWidth={1.25} aria-hidden /></span>{Badge && <span className={s.emptyBadge} data-kind={kind}><Badge size={18} strokeWidth={2} aria-hidden="true" /></span>}</span>;
+}
+
+export function EmptyBox({ icon, art, title, children, steps, action }: { icon?: React.ReactNode; art?: { icon: ArtIcon; kind?: keyof typeof ART_BADGE }; title: string; children?: React.ReactNode; steps?: React.ReactNode[]; action?: React.ReactNode }) {
+  return <div className={s.empty}>{art ? <EmptyArt icon={art.icon} kind={art.kind} /> : icon}<p className="font-semibold text-foreground">{title}</p>{children && <div className="max-w-[52ch] text-sm">{children}</div>}
     {steps?.length ? <ol className={s.emptySteps} aria-label="Primeros pasos">{steps.map((step, i) => <li key={i}><span aria-hidden="true">{i + 1}</span><span>{step}</span></li>)}</ol> : null}
     {action}</div>;
 }
@@ -210,7 +292,12 @@ export function Sheet({ open, onClose, eyebrow, title, description, children, fo
     const previous = document.activeElement as HTMLElement | null;
     panel.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-sheet-close])")?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { closeRef.current(); return; }
+      if (event.key === "Escape") {
+        // Escape dentro de una confirmación (<dialog> nativo) la cancela a ella, no al panel de abajo.
+        const target = event.target instanceof Element ? event.target : null;
+        if (!event.defaultPrevented && !target?.closest("dialog[open]")) closeRef.current();
+        return;
+      }
       if (event.key !== "Tab" || !panel.current) return;
       // El panel es modal: Tab y Shift+Tab dan la vuelta dentro de él y no salen al fondo (C-26).
       const controls = Array.from(panel.current.querySelectorAll<HTMLElement>("button:not([tabindex='-1']), input, select, textarea, a[href]"))

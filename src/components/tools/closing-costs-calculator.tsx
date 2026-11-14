@@ -21,6 +21,7 @@ import {
   MAX_MONEY,
   money,
   parseAmount,
+  parseExchangeRate,
   validIsoDate,
 } from "@/lib/finance/money";
 import {
@@ -59,7 +60,7 @@ function ClosingBreakdown({ items }: { items: { key: string; label: string; amou
         {segments.map(({ item, x, width }) => <rect key={item.key} x={x} y="3" width={width} height="10" rx="1" className={item.key === selected.key ? "fill-primary" : "fill-muted-foreground/25"} onClick={() => setActiveKey(item.key)} />)}
       </svg>
       <p className="text-sm font-semibold text-foreground" aria-live="polite">{selected.label}: {money(selected.amount)} MXN</p>
-      <div className="mt-3 flex flex-wrap gap-2">{known.map((item) => <button key={item.key} type="button" aria-pressed={item.key === selected.key} onClick={() => setActiveKey(item.key)} className={`rounded-md border px-3 py-2 text-etiqueta ${item.key === selected.key ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
+      <div className="mt-3 flex flex-wrap gap-2">{known.map((item) => <button key={item.key} type="button" aria-pressed={item.key === selected.key} onClick={() => setActiveKey(item.key)} className={`min-h-11 rounded-md border px-3 py-2 text-etiqueta ${item.key === selected.key ? "border-primary text-foreground" : "border-border text-muted-foreground"}`}>{item.label}</button>)}</div>
     </section>
   );
 }
@@ -102,7 +103,7 @@ export function ClosingCostsCalculator({
   type Key = keyof typeof v;
   const set = (key: Key, value: string) =>
     setV((old) => ({ ...old, [key]: value }));
-  const field = (key: Key, label: string, hint?: string, max = MAX_MONEY) => (
+  const field = (key: Key, label: string, hint?: string, max = MAX_MONEY, step?: number) => (
     <AmountField
       label={label}
       value={
@@ -114,6 +115,7 @@ export function ClosingCostsCalculator({
       }}
       hint={hint}
       max={max}
+      step={step}
     />
   );
   const enteredPrice = parseAmount(v.price);
@@ -123,7 +125,7 @@ export function ClosingCostsCalculator({
       price = convertPrice(
         enteredPrice,
         currency,
-        parseAmount(v.exchange, 100),
+        parseExchangeRate(v.exchange, 100),
       );
     } catch {
       price = null;
@@ -271,7 +273,7 @@ export function ClosingCostsCalculator({
             ? {
                 fx: {
                   original: enteredPrice!,
-                  rate: parseAmount(v.exchange, 100)!,
+                  rate: parseExchangeRate(v.exchange, 100)!,
                 },
               }
             : {}),
@@ -372,6 +374,7 @@ export function ClosingCostsCalculator({
                     "Tipo de cambio (MXN por USD)",
                     "Captura el cambio de tu operación. Todos los gastos se calculan en pesos.",
                     100,
+                    0.0001,
                   )}
               </>
             )}
@@ -428,7 +431,7 @@ export function ClosingCostsCalculator({
                 )}
               </div>
               <details className="border-y border-border py-3">
-                <summary className="cursor-pointer py-2 text-sm font-medium">
+                <summary className="min-h-11 cursor-pointer content-center py-2 text-sm font-medium">
                   Determinaciones y registro
                 </summary>
                 <div className="mt-4 grid gap-4">
@@ -578,6 +581,14 @@ export function ClosingCostsCalculator({
                       en el ISR; no se suman otra vez.
                     </p>
                   )}
+                  {/* Sin esto, el ISR quedaba en «Pendiente» sin decir qué falta. */}
+                  {!simulation && !error && (!isrScope || price === null) && (
+                    <p className="text-sm text-muted-foreground">
+                      {!isrScope
+                        ? "Para simular el ISR, confirma arriba que tu caso cumple los requisitos."
+                        : "Para simular el ISR, captura primero el precio de venta."}
+                    </p>
+                  )}
                 </div>
               )}
             </>
@@ -659,7 +670,7 @@ export function ClosingCostsCalculator({
               )}
               {activeProfile === "seller" && (
                 <p className="mt-3 text-etiqueta text-muted-foreground">
-                  Comisión de intermediación ({v.commission || "pendiente"}%).{" "}
+                  Comisión de intermediación ({v.commission ? `${v.commission}%` : "porcentaje pendiente"}).{" "}
                   {includesVat
                     ? "IVA incluido en el importe pactado."
                     : "IVA adicional según la factura."}

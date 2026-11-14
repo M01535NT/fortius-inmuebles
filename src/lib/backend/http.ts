@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { ZodError } from "zod";
+import { reportFailure } from "@/lib/backend/monitor";
 
 export class ApiError extends Error {
   /** `details` se agrega al cuerpo del error (p. ej. `faltantes`); nunca lleva datos privados. */
@@ -70,7 +71,12 @@ export async function apiResponse(action: () => Promise<unknown>, successStatus 
   catch (error) {
     const status = error instanceof ApiError ? error.status : error instanceof ZodError ? 400 : 500;
     const message = error instanceof ApiError ? error.message : status === 400 ? "Hay datos que no son válidos. Revisa lo que capturaste." : "No se pudo terminar. Lo que escribiste sigue en pantalla. Vuelve a intentarlo en un momento.";
-    if (status >= 500) console.error(JSON.stringify({ event: "api_failure", requestId, status, category: error instanceof ApiError ? "dependency" : "unexpected", durationMs: Date.now() - startedAt }));
+    if (status >= 500) {
+      const category = error instanceof ApiError ? "dependency" : "unexpected";
+      console.error(JSON.stringify({ event: "api_failure", requestId, status, category, durationMs: Date.now() - startedAt }));
+      // OBS-01: aviso a Sentry, sin mensaje ni datos; si no está configurado, no hace nada.
+      await reportFailure({ kind: "api_failure", category, status, requestId });
+    }
     return Response.json({ ...(error instanceof ApiError ? error.details : undefined), error: message, requestId }, { status, headers: { ...headers, ...(status === 429 ? { "Retry-After": "60" } : {}) } });
   }
 }
@@ -91,7 +97,10 @@ export function databaseError(error: { code?: string; message?: string }): never
   const status = /^PT(400|401|403|409|429)$/.test(error.code ?? "") ? Number(error.code!.slice(2))
     : error.code === "42501" ? 403 : ["23503", "23001", "23505"].includes(error.code ?? "") ? 409 : 503;
   // SQL messages are bounded application messages; never expose arbitrary DB errors.
-  const message = status === 409 ? "El registro cambió o tiene referencias; recarga antes de continuar"
+  // C-68: put_record avisa «El registro ya existe» cuando choca un índice único (la dirección de una entrada
+  // del blog o de un inmueble). Recargar no lo arregla; hay que cambiar la dirección.
+  const message = status === 409 && error.code === "PT409" && error.message === "El registro ya existe" ? "Esa dirección ya la usa otro registro. Cámbiala y vuelve a guardar."
+    : status === 409 ? "El registro cambió o tiene referencias; recarga antes de continuar"
     : status === 400 ? "Falta un dato o lo que elegiste ya no existe. Revisa y vuelve a intentarlo." : status === 401 ? "Tu sesión terminó. Vuelve a entrar."
     : status === 403 ? "Tu cuenta no tiene permiso para esto." : status === 429 ? "Demasiados intentos seguidos. Espera un minuto y vuelve a intentarlo." : "El panel no responde. Espera un minuto y vuelve a intentarlo.";
   throw new ApiError(status, message);

@@ -9,9 +9,9 @@ const request = (path: string, method: string, body: object) => new Request(`htt
   method, headers: { origin: "https://panel.test", "content-type": "application/json" }, body: JSON.stringify(body),
 });
 
-it("rechaza un tipo de documento que no está en los 25 originales", async () => {
+it("rechaza un tipo de documento que no está en el catálogo", async () => {
   const id = "51000000-0000-4000-8000-000000000010";
-  const response = await createDraft(request(`/api/admin/expedientes/${id}/formatos`, "POST", { formatoId: "20", data: {} }), { params: Promise.resolve({ id }) });
+  const response = await createDraft(request(`/api/admin/expedientes/${id}/formatos`, "POST", { formatoId: "25", data: {} }), { params: Promise.resolve({ id }) });
   expect(response.status).toBe(400);
 });
 it("el tablero global 03 no crea un borrador por expediente",async()=>{

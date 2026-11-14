@@ -6,11 +6,11 @@ Corte documental: 12 de octubre de 2026. [Índice y plan vigente](README.md).
 
 Propietarios, compradores y arrendadores de Tijuana y Baja California consultan propiedades, servicios, guías y herramientas en el sitio público. El personal autorizado usa `/admin` para mantener los datos y conducir el trabajo diario. Ambas superficies pertenecen al mismo producto; cualquier integración con otro sistema requiere diseño y autorización propios.
 
-Desde el 17/10/2026, el panel se desarrolla como un ERP/CRM inmobiliario profesional, exclusivo de Fortius Inmuebles y solo con su marca. Adaptarlo para otras inmobiliarias es una etapa posterior, en pausa hasta que el sistema haya demostrado que funciona en la operación de Fortius. Las reglas de producto están en [«Dirección del producto y reglas vigentes»](../PLAN_ERP_CRM.md) del plan.
+Desde el 17/10/2026, el panel se desarrolla como un ERP/CRM inmobiliario profesional, exclusivo de Fortius Inmuebles y solo con su marca. Adaptarlo para otras inmobiliarias es una etapa posterior, en pausa hasta que el sistema haya demostrado que funciona en la operación de Fortius. Las reglas de producto están en [«Dirección del producto y reglas vigentes»](../ROADMAP.md) del plan.
 
 ## Capacidades actuales y evolución
 
-Existen inventario y publicación, prospectos/clientes, agenda/tareas, expedientes y PDF privados, cartera comercial, reportes y edición de contenido. Los fundamentos ERP están integrados; personas con varios papeles, capacidades ampliadas, finanzas operativas y cuatro tableros siguen el [plan ERP/CRM](../PLAN_ERP_CRM.md). No presentar ese backlog como funcionalidades terminadas.
+Existen inventario y publicación, prospectos/clientes, agenda/tareas, expedientes y PDF privados, cartera comercial, reportes y edición de contenido. Los fundamentos ERP están integrados; personas con varios papeles, capacidades ampliadas, finanzas operativas y cuatro tableros siguen el [plan ERP/CRM](../ROADMAP.md). No presentar ese backlog como funcionalidades terminadas.
 
 ## Identidad
 

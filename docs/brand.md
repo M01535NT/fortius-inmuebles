@@ -9,6 +9,16 @@ La marca comercial del producto es **Fortius Inmuebles**. La referencia es el lo
 | Blanco | `#FFFFFF` |
 | Blanco azulado (fondos claros; texto y acento sobre fondos oscuros) | `#F8F8FF` |
 
+Tema oscuro del sitio público (no son colores de marca impresos; solo pantalla):
+
+| Uso | Color |
+| --- | --- |
+| Noche (fondo de página) | `#060C14` |
+| Azul noche (bandas alternas: cabeceras de página, «Cinco etapas», «Haz números», preguntas, llamada final; equivale al blanco azulado del tema claro) | `#0B1828` |
+| Superficie de tarjeta | `#0C1622` |
+
+**Bandas en oscuro (titular, 13/11/2026).** El tema oscuro alterna noche y azul noche como el claro alterna blanco y blanco azulado, para que se vea dónde empieza cada sección. Las preguntas del inicio siguen el tema (en oscuro ya no son una banda blanca). Sin resplandores ni degradados vino: salieron el halo detrás de «Cinco etapas», el de las cabeceras de página, Nosotros y la ficha, y el degradado de la etapa activa (ahora borgoña sólido). Se conserva el fondo propio del visor de ficha técnica dentro del carrusel de la ficha, que no se toca.
+
 **La marca no lleva rosa (titular, 25/10/2026).** El acento es el borgoña. Sobre fondos claros, el texto de acento (etiquetas, enlaces, cifras) es borgoña; sobre fondos oscuros (azul, noche, vino o fotografía) es blanco azulado, porque el borgoña no tiene contraste suficiente para texto ahí y aclararlo lo vuelve rosa. Los rellenos (botones, barras de progreso, indicadores) son borgoña sólido, sin degradados; en tema oscuro las barras usan `#A2223F`.
 
 **Sin crema ni beige (titular, 12/11/2026).** El crema `#F5F1EB` salió del sitio público: fondos, bandas, botones claros y textos sobre oscuro usan el blanco azulado `#F8F8FF`, el mismo lienzo que el panel desde el 11/11. No lo regreses. Desde el 13/11/2026 tampoco queda en el panel: el texto de acento y la opción seleccionada del panel oscuro usan `#F8F8FF`, y la opción seleccionada del panel claro es azul muy diluido (`#EDF2F8`), no rosado. El rosa `#E8A0B2` del método del inicio en oscuro y el beige de Vender y de la portada editorial también salieron.
@@ -52,6 +62,37 @@ Archivo en anchura 96 (92 en títulos, 62 en cifras) y cuatro grosores: 620 tít
 | Mínimo | `--admin-text-minimo` | 12 px | 600 | Contadores, atajos |
 | Cifra | `--admin-text-cifra` | 30 px, anchura 62 | 620 | Fechas del calendario, número de documento |
 | Calificación grande | `--admin-text-cifra-grande` | 72 → 152 px, anchura 62 | 620 | La calificación de la operación |
+
+### Colores de estado del panel (RP-70, LV-01, 13/11/2026)
+
+Cinco colores con significado fijo, siempre acompañados de ícono y palabra. Cada uno tiene texto, superficie y borde (`--x`, `--x-surface`, `--x-border`) en claro y oscuro, y existen como utilidades de Tailwind (`text-success`, `bg-info-surface`…). Ningún otro color comunica estado.
+
+| Papel | Token | Claro | Oscuro | Uso |
+| --- | --- | --- | --- | --- |
+| Acción | `--primary` | `#8A1634` | `#F8F8FF` (texto) | Acción principal y sección activa |
+| Información | `--info` | `#174F94` | `#AACFFF` | Información, agenda y visitas |
+| Listo | `--success` | `#1F7A4D` | `#5FD39A` | Revisado, completo |
+| Atención | `--warning` | `#953D00` | `#FFD236` | Lo que necesita atención |
+| Vencido o error | `--destructive` (alias `--alert`) | `#B3352C` | `#FF8A7A` | Vencido, error, eliminar |
+
+Todos pasan AA (4.5:1 o más) sobre tarjeta, fondo y su propia superficie. En el panel oscuro el rojo es `#FF8A7A`: el `#E2564B` anterior daba 4.16:1 sobre su superficie.
+
+### Íconos, estados y avance del panel (LV-02, titular, 13/11/2026)
+
+Un solo catálogo en `src/components/admin/icons.tsx`, el mismo en todas las pantallas:
+
+- **Etapas del propietario:** Primer contacto teléfono, Entrevista inicial conversación, Levantamiento regla, Lista de documentos portapapeles, Dictamen jurídico escudo, Opinión de valor monedas, Contrato hoja con lápiz, Publicación megáfono, Visitas y ofertas ojo, Cierre y entrega llave (`OWNER_STAGE_ICONS`, `stageIcon`). Las demás rutas usan `ROUTE_STAGE_ICONS`.
+- **Documentos:** cada formato usa el ícono de la etapa que lo deja; los demás tienen el suyo (`docIcon`): 01 candado, 05 hoja con lupa, 08 calculadora, 14 mano con dinero, 15 hoja con estrella, 18 cartera, 19 martillo, 20 casa.
+- **Estado de un requisito:** forma, color y palabra. Pendiente círculo vacío, Lo tengo medio lleno (azul), Revisado lleno con palomita (verde), Hay un problema triángulo (ámbar), No aplica punteado con raya.
+- **Avance:** anillo con «6 de 10» (`ProgressRing`); se llena en azul marino y al completarse queda verde con palomita. Nunca usa el rojo.
+- **Documento:** distintivo `DocBadge` Borrador neutro, Revisado azul, Aprobado y Firmado verdes. «Terminado · PDF» lo dice el texto del renglón.
+- **Persona:** un solo círculo neutro con iniciales (`Avatar`, `onDark` sobre el azul).
+
+### Ayuda y estados vacíos del panel (LV-04, titular, 13/11/2026)
+
+- **«?» de una línea** (`Hint`): junto a un título o botón que pueda generar duda; abre una sola línea debajo y se cierra al pulsar otra vez o con Escape. Hoy está en «Documentos de la etapa», «Antes de seguir, confirma» y «Autorizar excepción».
+- **Punto «Empieza aquí»** (`StartHere`): sobre «Nuevo». Late tres veces y la etiqueta se oculta a los cinco segundos; el punto queda hasta que la persona lo pulsa y se recuerda por usuario en ese navegador. Con «reducir movimiento» no late.
+- **Estados vacíos** (`EmptyBox` con `art`): el objeto de la pantalla (`EMPTY_ART`) sobre una placa, con insignia según el caso: «+» aún no hay nada, palomita verde todo hecho, lupa sin resultados, flecha para subir. Sin dibujos a mano ni escenas.
 
 Las medidas y colores del panel (esquinas de 10/12/20/24 px, sombras, superficies) viven en `src/app/admin/panel-base.css` bajo `.admin-root`; `panel.module.css` ya no las define. El sitio público no descarga ese archivo ni las utilidades de Tailwind que solo usa el panel, y Archivo solo se precarga en `/admin`.
 

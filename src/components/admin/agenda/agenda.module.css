@@ -2,7 +2,8 @@
 :global(.admin-root) .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; }
 :global(.admin-root) .legend { display: flex; flex-wrap: wrap; gap: .5rem 1rem; font-size: var(--admin-text-detalle); color: var(--muted-foreground); }
 :global(.admin-root) .legend span { display: inline-flex; align-items: center; gap: .375rem; }
-:global(.admin-root) .legend i { width: .875rem; height: .875rem; border-radius: 3px; }
+/* Barra y no cuadro: un cuadro con borde parecía una casilla para filtrar. */
+:global(.admin-root) .legend i { width: 1.25rem; height: .5rem; border-radius: 2px; }
 /* C59: la leyenda explica los colores de la cuadrícula semanal; sin cuadrícula (celular y tableta) se oculta. */
 @media (max-width: 1023px) { :global(.admin-root) .legend { display: none; } }
 :global(.admin-root) .swatchVisit { background: var(--info); }

@@ -7,8 +7,20 @@ test.beforeEach(async ({ page }) => {
   data.leads[0].perfil = { proximoContacto: "2026-10-08" };
   data.eventos[0].propiedadSlug = "audit-casa";
   data.tareas[0].propiedadSlug = "audit-casa";
+  // UX-02: las vistas guardadas y Recientes viven en las preferencias del usuario en el servidor;
+  // aquí se simulan en memoria para que una vista sobreviva a recargar la página.
+  let preferences: { panel?: Record<string, unknown> } = {};
+  let preferencesVersion = 0;
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
+    if (path === "/api/admin/preferencias") {
+      if (route.request().method() === "PATCH") {
+        const patch = (route.request().postDataJSON() as { panel: Record<string, unknown> }).panel;
+        preferences = { ...preferences, panel: { ...preferences.panel, ...patch } };
+        preferencesVersion += 1;
+      }
+      return route.fulfill({ json: { preferencias: { data: preferences, version: preferencesVersion } } });
+    }
     if (route.request().method() !== "GET")
       return route.fulfill({
         status: 405,

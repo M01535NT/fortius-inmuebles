@@ -2,6 +2,7 @@ import { isTaskOpen, type Task } from "@/lib/tasks";
 import { addMonths, lastOwnerReport, ownerReportApplies, ownerReportStatus, processStageText, WORKFLOW_REQUIREMENTS, type InitialInterviewStatus, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { interviewFields, INTENTS, type OperationalInterview } from "@/lib/intake/interview";
 import { followupLabel, type Followup } from "@/lib/admin/followups";
+import { calendarDayOf, operationalDate } from "@/lib/admin/operational-date";
 import { attentionOf, pastGaps, recentOfferOf, type AttentionKind, type OperationRecord } from "@/lib/admin/operation-view";
 
 /*
@@ -32,6 +33,7 @@ export const REQUIREMENT_PLAIN_LABELS: Record<RequirementKey, string> = {
   revision_cierre: "Documentos al día para firmar",
   instrumento: "Cómo se firma y se paga",
   contraparte: "Comprador y participantes identificados",
+  identificacion_pld: "Identificaciones de las partes (ley antilavado)",
   firma: "Firma acreditada",
   pago: "Pagos para entregar cumplidos según contrato",
   entrega: "Entrega con acta",
@@ -72,7 +74,8 @@ export function requirementName(key: RequirementKey, route?: string | null) {
 
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const WEEKDAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-const dayOf = (date: string) => new Date(date.slice(0, 10) + "T12:00:00.000Z");
+// Una marca de tiempo (UTC) se muestra con el día de Tijuana en que ocurrió.
+const dayOf = (date: string) => new Date(calendarDayOf(date) + "T12:00:00.000Z");
 /** «16 oct». */
 export function shortDate(date: string) { const d = dayOf(date); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`; }
 /** «Viernes 16 oct 2026». */
@@ -161,7 +164,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today,
     const gap = formats ? pastGaps(dossier as unknown as OperationRecord, today, formato => own?.has(formato) ? "terminado" : undefined)[0]?.gap : undefined;
     const attention = attentionOf(dossier, tasks, today, gap, !!offer);
     if (!attention) continue;
-    const since = (value?: string) => value ? (value.slice(0, 10) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
+    const since = (value?: string) => value ? (calendarDayOf(value) === today ? "Hoy" : `Desde el ${shortDate(value)}`) : "";
     const base = { late: attention.late, rank: attention.rank, kind: attention.kind };
     let pick: Pick<WaitingItem, "reason" | "when" | "late" | "rank" | "kind" | "taskId" | "requirement">;
     if (attention.kind === "problema") {
@@ -181,7 +184,7 @@ export function waitingItems({ dossiers, tasks, offers, followups, names, today,
       const due = open.filter(t => t.vence === today).sort((a, b) => a.titulo.localeCompare(b.titulo, "es"))[0];
       pick = { ...base, reason: `Vence hoy: ${due.titulo}`, when: "Hoy", taskId: due.id };
     } else if (attention.kind === "oferta") {
-      pick = { ...base, reason: "Se registró una oferta. Revísala con el propietario.", when: offer!.updatedAt.slice(0, 10) === today ? "Hoy" : `El ${shortDate(offer!.updatedAt)}` };
+      pick = { ...base, reason: "Se registró una oferta. Revísala con el propietario.", when: calendarDayOf(offer!.updatedAt) === today ? "Hoy" : `El ${shortDate(offer!.updatedAt)}` };
     } else {
       pick = { ...base, reason: "No tiene una próxima tarea con fecha. Agenda el siguiente paso.", when: "" };
     }
@@ -219,7 +222,7 @@ export function interviewSummary(interview: Pick<OperationalInterview, "intencio
 
 /** Tareas de hoy: las abiertas que vencen hoy o antes y las que se terminaron hoy. */
 export function todayTasks(tasks: Task[], today: string) {
-  return tasks.filter(t => !!t.vence && t.vence <= today && (isTaskOpen(t) || (t.estado === "completada" && t.completadoEl?.slice(0, 10) === today)))
+  return tasks.filter(t => !!t.vence && t.vence <= today && (isTaskOpen(t) || (t.estado === "completada" && !!t.completadoEl && operationalDate(new Date(t.completadoEl)) === today)))
     .sort((a, b) => Number(!isTaskOpen(a)) - Number(!isTaskOpen(b)) || a.vence!.localeCompare(b.vence!) || a.titulo.localeCompare(b.titulo, "es"));
 }
 
@@ -255,7 +258,7 @@ export function overdueReports({ dossiers, reports, names, today }: { dossiers: 
     .map(({ d, status }) => ({ id: d.id, who: names.client(d.cliente_id) ?? d.folio, property: names.property(d.propiedad_slug) ?? "Sin inmueble vinculado", status: status.estado === "sin_informe" ? "Sin informe preparado" : `Vencido desde el ${shortDate(status.proximo!)}`, href: `/admin/apps/informe-propietario?expedienteId=${encodeURIComponent(d.id)}` }));
 }
 
-/** Fechas del contrato de intermediación (09) que entrega /api/admin/vencimientos. */
+/** Fechas del contrato de intermediación (09, o 21 en la renta) que entrega /api/admin/vencimientos. */
 export type ContractDates = { expedienteId: string; folio: string; emitido: boolean; inicio?: string; fin?: string; exclusiva: boolean; licencia?: { numero?: string; vigencia?: string } };
 export type ExpiryItem = { id: string; date: string; kind: "Contrato" | "Licencia"; text: string; meta: string; late: boolean; href: string };
 

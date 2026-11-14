@@ -96,3 +96,18 @@ Pasos 1 a 4 hechos el 12/11/2026:
 Las claves las guardó el titular en Bitwarden y las capturó él mismo; el agente no las vio.
 
 **Falta:** integrar en `main` y la primera ejecución manual. Esa ejecución es la primera prueba real de la conexión a la base y de las claves de R2.
+
+## Estado (13/11/2026)
+
+Integrada en `main` con el PR #73 (`c03504b`). Ejecuciones (lectura de GitHub, solo conteos):
+
+- 07:24 UTC, manual: **falló** en el ensayo («Restored reference inventory differs»). Se lanzó a los 45 segundos de integrar el PR #73, mientras Supabase aplicaba sus migraciones: la copia tenía el esquema anterior y el ensayo usó el del código nuevo. No se subió nada.
+- 07:30 UTC, manual: **correcta**.
+- 17:30 UTC, programada: **correcta**. 6 buckets, 23 objetos, 20.8 MB; base completa; cifrada para la llave del titular y subida a `diario/2026/11/`. La lectura de las tablas por la API quedó incompleta (`restComplete: false`), lo cual es esperado: la base sale completa de la conexión directa.
+- La programada se pidió para las 10:00 UTC y GitHub la corrió 7.5 horas tarde. GitHub no garantiza la hora de los flujos programados; sigue siendo una copia al día.
+
+Corrección del 13/11/2026 (`acfc546`, sin integrar): antes de copiar, la herramienta compara las migraciones de la base con las del código, dentro de la misma instantánea. Si no coinciden, se detiene con un mensaje claro («vuelve a lanzar la copia en unos minutos») en lugar del error confuso de arriba.
+
+**Certificado (13/11/2026, 21:15 UTC):** a pedido del titular («Hazlo tú»), el agente descargó el certificado raíz desde el enlace del panel de Supabase (`prod-ca-2021.crt`, «Supabase Root 2021 CA», vence el 26/04/2031, SHA-256 `80:70:25:AD:…:CA:FA`) y lo guardó como `FORTIUS_BACKUP_DB_CA` en el entorno `respaldo`. Una copia manual lanzada enseguida (ejecución 43509036143) terminó **correcta** sin el aviso «TLS sin verificar»: la conexión ya comprueba el servidor. 30 tablas, 657 filas, 23 objetos.
+
+**Primera apertura con la llave del titular (13/11/2026):** el titular descargó la copia de las 21:15 UTC desde R2 (20,782,532 bytes, igual a lo subido) y la descifró en su equipo con su llave privada; la llave no pasó por el agente y se borró de la carpeta de prueba. El agente la desempacó y comprobó: `--verify` correcto (55 archivos, 23 objetos, base completa), ensayo de restauración correcto (30 tablas, 23 objetos, sin escrituras, 1.9 s) y recuperación local de los 23 objetos (20.8 MB). Después se borró la carpeta de prueba con los datos descifrados. La copia diaria queda probada de punta a punta: GitHub → R2 → llave del custodio → restauración.

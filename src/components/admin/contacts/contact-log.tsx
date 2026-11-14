@@ -44,22 +44,33 @@ export function ContactLog({ lead, today, onDirtyChange, preset }: { lead: Lead;
     form.current?.querySelector<HTMLInputElement>("form input")?.focus();
   }, [presetKey]);
 
+  // C-63: un reintento de la misma captura reutiliza sus ids y salta lo que ya se guardó (la visita no se duplica).
+  const attempt = React.useRef<{ key: string; ids: { visita: string; contacto: string; tarea: string }; at: string; done: Set<string> } | null>(null);
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!kind || busy) return;
     if (!accion.trim() || !fecha) { setError("Escribe el siguiente paso y su fecha."); return; }
     if (fecha < today) { setError("La fecha del siguiente paso no puede ser anterior a hoy."); return; }
     setBusy(true); setError("");
+    const key = JSON.stringify([lead.id, kind, kind === "visito" ? inmueble : "", nota, accion, fecha]);
+    if (attempt.current?.key !== key) attempt.current = { key, ids: { visita: uid(), contacto: uid(), tarea: uid() }, at: new Date().toISOString(), done: new Set() };
+    const run = attempt.current;
     try {
-      const at = new Date().toISOString();
-      if (kind === "visito" && inmueble) {
+      const { at, ids, done } = run;
+      if (kind === "visito" && inmueble && !done.has("visita")) {
         const property = properties.find(p => p.slug === inmueble);
-        await upsert(db.eventos, { id: uid(), titulo: `Visita de ${lead.nombre}${property ? ` a ${property.titulo}` : ""}`, fecha: today, tipo: "visita", leadId: lead.id, propiedadSlug: inmueble, asesorId: lead.asesorId }, null);
+        await upsert(db.eventos, { id: ids.visita, titulo: `Visita de ${lead.nombre}${property ? ` a ${property.titulo}` : ""}`, fecha: today, tipo: "visita", leadId: lead.id, propiedadSlug: inmueble, asesorId: lead.asesorId }, null);
+        done.add("visita");
       }
-      await upsert(db.leads, withContact(lead, { kind, nota, accion, fecha, id: uid(), at }), db.leads.version(lead));
+      if (!done.has("contacto")) {
+        const latest = db.leads.list().find(l => l.id === lead.id) ?? lead;
+        await upsert(db.leads, withContact(latest, { kind, nota, accion, fecha, id: ids.contacto, at }), db.leads.version(latest));
+        done.add("contacto");
+      }
       // DEC-42: el siguiente paso es una tarea con fecha; se mueve la que ya había o se crea.
-      const task = planNextStep(tasks, { kind: "lead", id: lead.id, asesorId: lead.asesorId }, { accion, fecha, id: uid() });
+      const task = planNextStep(tasks, { kind: "lead", id: lead.id, asesorId: lead.asesorId }, { accion, fecha, id: ids.tarea });
       await upsert(db.tareas, task, db.tareas.version(task));
+      attempt.current = null;
       setNotice(`Listo: quedó registrado «${CONTACT_KINDS[kind]}».`); setKind(null); setNota("");
     } catch (cause) { setError(errorMessage(cause)); } finally { setBusy(false); }
   }

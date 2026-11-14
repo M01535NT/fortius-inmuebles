@@ -1,11 +1,11 @@
 "use client";
 import * as React from "react";
-import { AlertCircle, CheckCircle2, Circle, CircleDashed, MinusCircle, MoreHorizontal } from "@/components/admin/icons";
-import { Button, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
+import { MoreHorizontal, StateDone, StateHalf, StateNotApplicable, StatePending, StateProblem } from "@/components/admin/icons";
+import { Button, Hint, Sheet, REVIEW_STATE_UI, type ReviewStateKey } from "@/components/admin/kit";
 import { inputClass, selectClass, textareaClass } from "@/components/admin/ui";
 import { apiRequest, db, useCollection } from "@/lib/admin/store";
 import { formatoById } from "@/lib/formatos/catalog";
-import { directorReview, exceptionAllowed, exceptionCovers, ownerProcess, requirementPhase, reviewComplete, stageLabel, WORKFLOW_REQUIREMENTS, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
+import { directorNotApplicable, directorReview, exceptionAllowed, exceptionCovers, ownerProcess, requirementFormato, requirementPhase, reviewComplete, stageLabel, WORKFLOW_STAGES, type OperationWorkflow, type RequirementKey, type WorkflowStage } from "@/lib/formatos/operation-workflow";
 import { allowsNotApplicable, encodeProblem, hasValidity, problemOf, requirementDetail, reviewState } from "@/lib/admin/operation-view";
 import { requirementName, shortDate } from "@/lib/admin/today";
 import { useIsDirector } from "@/lib/admin/staff-scope";
@@ -64,7 +64,9 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
   const detail = excepted ? `Con excepción autorizada: ${review?.excepcion?.motivo}` : expired ? (appraisalEnd && appraisalEnd < today ? `El avalúo venció el ${shortDate(appraisalEnd)}. Registra uno actualizado o haz la opinión de valor.`
     : review?.vigenteHasta && review.vigenteHasta < today ? `Venció el ${shortDate(review.vigenteHasta)}. Vuelve a revisarlo.` : "Le falta su respaldo. Vuelve a marcarlo como revisado.")
     : problem ? problem.title : state === "recibido" ? reserved ? "Listo · falta que lo revise el director" : "Ya tienes el documento · falta revisarlo" : requirementDetail(flow, requirement) || (state === "pendiente" ? "Pendiente" : "");
-  const options = STATES.filter(st => (st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica") && (!reserved || st === state || (st !== "revisado" && st !== "no_aplica")));
+  // M-06: «No aplica» en una renta sin depósito ni garantía lo marca el director; la marca que ya existe se conserva.
+  const notApplicableReserved = !director && directorNotApplicable(requirement) && state !== "no_aplica";
+  const options = STATES.filter(st => (st !== "no_aplica" || allowsNotApplicable(requirement) || state === "no_aplica") && (st !== "no_aplica" || !notApplicableReserved) && (!reserved || st === state || (st !== "revisado" && st !== "no_aplica")));
   const disabled = busy || locked;
   function exception() { setMore(false); onSheet({ key: requirement, kind: "excepcion" }); }
   function choose(st: ReviewStateKey) {
@@ -93,22 +95,23 @@ export function RequirementRow({ requirement, earlier, flow, today, locked, busy
     {more && <div role="radiogroup" aria-label={`Estado de ${name}`} className={cn(s.states, s.itemExtra)}>
       {options.map(st => { const { icon: Icon, label } = REVIEW_STATE_UI[st]; return <button key={st} type="button" role="radio" aria-checked={st === state} disabled={disabled} className={cn(s.state, s[`st_${st}`])} onClick={() => choose(st)}><Icon size={15} aria-hidden="true" />{label.replace(" ✓", "")}</button>; })}
     </div>}
-    {more && canExcept && <div className={s.itemExtra}><Button variant="ghost" disabled={disabled} onClick={exception}>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</Button></div>}
+    {more && canExcept && <div className={s.itemExtra}><Button variant="ghost" disabled={disabled} onClick={exception}>{excepted ? "Cambiar o quitar la excepción" : "Autorizar excepción"}</Button><Hint term="la excepción">El director deja avanzar sin este punto con un motivo escrito, que queda en el historial.</Hint></div>}
   </li>;
 }
 
-/** Círculo vacío, medio lleno, palomita o alerta: el estado se distingue por forma, no solo por color. */
+/** Círculo vacío, medio lleno, lleno con palomita, triángulo o punteado: el estado se distingue por forma, no solo por color (LV-02, V03). */
 export function StateIcon({ state, done }: { state: ReviewStateKey | "borrador"; done: boolean }) {
-  if (done) return <CheckCircle2 size={20} aria-label="Listo" className={s.iconDone} />;
-  if (state === "observado") return <AlertCircle size={20} aria-label="Hay un problema" className={s.iconWarn} />;
-  if (state === "recibido" || state === "borrador") return <CircleDashed size={20} aria-label="En proceso" className={s.iconDone} />;
-  if (state === "no_aplica") return <MinusCircle size={20} aria-label="No aplica" className={s.iconIdle} />;
-  return <Circle size={20} aria-label="Pendiente" className={s.iconIdle} />;
+  if (done) return <StateDone size={20} aria-label="Listo" className={s.iconDone} />;
+  if (state === "observado") return <StateProblem size={20} aria-label="Hay un problema" className={s.iconWarn} />;
+  if (state === "recibido") return <StateHalf size={20} aria-label="Lo tengo" className={s.iconInfo} />;
+  if (state === "borrador") return <StateHalf size={20} aria-label="En proceso" className={s.iconInfo} />;
+  if (state === "no_aplica") return <StateNotApplicable size={20} aria-label="No aplica" className={s.iconIdle} />;
+  return <StatePending size={20} aria-label="Pendiente" className={s.iconIdle} />;
 }
 
 /** El documento de la operación que respalda un punto: el de su formato (cualquier 04 para el levantamiento). */
-function ownDocument(requirement: RequirementKey, documents: Evidence["documents"]) {
-  const formato = String(WORKFLOW_REQUIREMENTS[requirement].formato);
+function ownDocument(requirement: RequirementKey, documents: Evidence["documents"], route?: OperationWorkflow["ruta"]) {
+  const formato = requirementFormato(requirement, route);
   return documents.find(d => d.formato_id === formato || (/^04[A-G]$/.test(formato) && /^04[A-G]$/.test(d.formato_id)));
 }
 
@@ -139,7 +142,7 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
   const advisers = useCollection(db.asesores);
   const previous = review?.evidencia;
   // Ya viene elegido el documento que respalda este punto (el 02 para la entrevista, el 04 para el levantamiento…).
-  const own = ownDocument(requirement, evidence.documents);
+  const own = ownDocument(requirement, evidence.documents, route);
   const [source, setSource] = React.useState<string>(() => previous?.tipo === "externa" ? "externa" : previous?.tipo === "cliente" ? "cliente" : previous?.tipo === "entrevista" ? "entrevista" : previous && ["documento", "emision", "adjunto"].includes(previous.tipo) ? `doc:${evidence.documents.find(d => d.id === previous.referencia)?.id ?? ""}` : own ? `doc:${own.id}` : evidence.documents[0] ? `doc:${evidence.documents[0].id}` : "externa");
   const [who, setWho] = React.useState(previous?.responsable ?? evidence.reviewer);
   const [date, setDate] = React.useState(previous?.fecha ?? today);
@@ -230,7 +233,7 @@ export function ReviewSheet({ requirement, route, review, today, evidence, onClo
     <details className={s.more}><summary>Más detalles</summary><div className="mt-3 flex flex-col gap-4">
       {document && <label className="text-sm font-semibold">Usar el PDF generado o un archivo de este documento<select className={selectClass} value={kept} onChange={e => setKept(e.target.value)}><option value="">El documento en su versión {document.version}</option>{(sources?.emisiones ?? []).map(e => <option key={e.id} value={`emision:${e.id}`}>PDF generado · versión {e.draft_version}</option>)}{(sources?.adjuntos ?? []).map(a => <option key={a.id} value={`adjunto:${a.id}`}>Archivo · {a.caption}</option>)}</select></label>}
       <label className="text-sm font-semibold">Límites o condiciones<textarea className={textareaClass} rows={2} maxLength={1000} value={limits} onChange={e => setLimits(e.target.value)} /></label>
-      <p className="text-sm text-muted-foreground">Formato relacionado: {WORKFLOW_REQUIREMENTS[requirement].formato}. La referencia se valida al guardar; el panel no certifica su contenido ni sustituye una revisión profesional.</p>
+      <p className="text-sm text-muted-foreground">Formato relacionado: {requirementFormato(requirement, route)}. La referencia se valida al guardar; el panel no certifica su contenido ni sustituye una revisión profesional.</p>
     </div></details>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </Sheet>;

@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, FileText, Images, Maximize2, Play, Rotate3d,
 
 import type { ImagenPropiedad } from "@/data/propiedades";
 import { PropertyShare } from "@/components/property/property-share";
+import { videoEmbedUrl } from "@/lib/video-embed";
 
 type Modo = "fotos" | "video" | "360" | "ficha";
 
@@ -42,6 +43,7 @@ const MODOS: { id: Modo; label: string; icon: LucideIcon }[] = [
   completa accesible y la foto se amplía a pantalla completa.
 */
 export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaUrl, ficha, share }: Props) {
+  const videoEmbed = videoEmbedUrl(videoUrl);
   const [modo, setModo] = React.useState<Modo>("fotos");
   const [index, setIndex] = React.useState(0);
   const dialogRef = React.useRef<HTMLDialogElement>(null);
@@ -98,7 +100,9 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
         ) : null}
 
         {modo === "video" && videoUrl ? (
-          <video src={videoUrl} controls playsInline className="fe-visor-media" />
+          videoEmbed
+            ? <iframe src={videoEmbed} title={`Video de ${titulo}`} allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen className="fe-visor-media" />
+            : <video src={videoUrl} controls playsInline className="fe-visor-media" />
         ) : null}
 
         {modo === "360" && tour360Url ? (
@@ -155,7 +159,7 @@ export function PropertyGallery({ imagenes, titulo, videoUrl, tour360Url, fichaU
           {imagenes.length > 1 ? <button type="button" onClick={() => move(-1)} aria-label="Fotografía anterior" className="absolute left-3 z-20 inline-flex size-11 items-center justify-center rounded-full border border-white/25 bg-black/20 sm:left-6"><ChevronLeft aria-hidden="true" /></button> : null}
           <Image src={actual.src} alt={actual.alt} fill sizes="100vw" className="object-contain object-center p-4 sm:p-10" />
           {imagenes.length > 1 ? <button type="button" onClick={() => move(1)} aria-label="Fotografía siguiente" className="absolute right-3 z-20 inline-flex size-11 items-center justify-center rounded-full border border-white/25 bg-black/20 sm:right-6"><ChevronRight aria-hidden="true" /></button> : null}
-          <span role="status" className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2 font-mono text-sm">{index + 1} / {imagenes.length}</span>
+          <span role="status" className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2 text-sm tabular-nums">{index + 1} / {imagenes.length}</span>
         </div>
       </dialog>
     </div>

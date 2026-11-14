@@ -30,6 +30,18 @@ export function parseAmount(value: string, max = MAX_MONEY): number | null {
   const n = Number(value);
   return Number.isFinite(n) && n >= 0 && n <= max ? n : null;
 }
+/** Tope razonable para un tipo de cambio en pesos por unidad de moneda extranjera. */
+export const MAX_EXCHANGE_RATE = 1_000;
+/**
+ * Tipo de cambio escrito por el usuario (C-44): admite hasta 4 decimales, como el FIX de Banxico
+ * (18.3417), y un punto inicial («.5»). Devuelve null si está vacío, no es número, es cero o excede el tope.
+ */
+export function parseExchangeRate(value: string, max = MAX_EXCHANGE_RATE): number | null {
+  const text = value.trim();
+  if (!/^(?:\d+(?:\.\d{0,4})?|\.\d{1,4})$/.test(text)) return null;
+  const n = Number(text);
+  return Number.isFinite(n) && n > 0 && n <= max ? n : null;
+}
 export function checkAmount(value: number): void {
   if (!Number.isFinite(value) || value < 0 || value > MAX_MONEY)
     throw new RangeError("Importe fuera de rango");

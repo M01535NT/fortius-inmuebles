@@ -59,6 +59,8 @@ for(const width of [390,768,1440]) {
    await page.screenshot({path:info.outputPath(r+'-ajustes-'+width+'.png')});
    page.once('dialog',d=>void d.accept());
   }
-  expect(errors).toEqual([]);expect(writes).toEqual([]);
+  // Las preferencias de la persona (Recientes) no son datos de la operación; si fallan no se reintentan sin fin.
+  expect(errors).toEqual([]);expect(writes.filter(p=>p!=='/api/admin/preferencias')).toEqual([]);
+  expect(writes.filter(p=>p==='/api/admin/preferencias').length).toBeLessThan(10);
  });
 }

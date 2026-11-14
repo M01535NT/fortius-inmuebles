@@ -19,7 +19,8 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 
 - El equipo solo tiene un proyecto conectado a este repositorio: `fortius-inmuebles` (`prj_mCgnplUXyiI0YFnL6Fr2zVLmSzJv`), con rama de producción `main` y Node 24.x. El «proyecto adicional» del check `chk_be048572…` **ya no aparece** en el equipo; sus últimos despliegues son del 18/10/2026.
 - El Deployment Check `Fortius · Verify` (`chk_bed0e675…`) sigue vigente: requiere `build-ready`, bloquea `deployment-alias`, ámbito producción, 1,800 s.
-- Protección `all_except_custom_domains`, sin contraseña; protección de forks activa; sin deploy hooks ni crons.
+- Protección `all_except_custom_domains`, sin contraseña; protección de forks activa; sin deploy hooks.
+- Tarea diaria (pedida por el titular el 13/11/2026): `vercel.json` llama `/api/cron/limpieza-archivos` a las 10:30 UTC. Borra lo retirado del almacenamiento público hace más de 30 días. Necesita la variable `CRON_SECRET` en producción (al menos 16 caracteres al azar); sin ella la ruta responde 503 y no hace nada. El titular la creó el 13/11/2026 como Secret, solo en producción (no se leyó el valor). Vercel solo corre las tareas en producción.
 - Dominios: `fortiusinmuebles.com`; `www` redirige con 308; `fortius-inmuebles.vercel.app` y `fortius-alpha.vercel.app` asignados al proyecto.
 - Variables (solo nombre y ámbito):
   - Producción: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `FORTIUS_INMUEBLES_SITE_URL` (también en preview) y `FORTIUS_INMUEBLES_PUBLIC_LEADS_ENABLED` (cambiada el 12/11/2026; no se leyó el valor).
@@ -46,7 +47,16 @@ Se leyó la configuración con la sesión del titular, sin cambiar nada y sin ve
 4. **GitHub:** ~~borrar los entornos de despliegue sin uso (`* – mnt-inmuebles`, `* – fortius`)~~ **Hecho el 12/11/2026**, tras confirmar que ningún flujo, regla ni proyecto de Vercel los usa.
 5. **GitHub (decide el titular):** la regla deja que el administrador la salte. Mientras sea la única cuenta, conviene conservarla así y no saltarla salvo urgencia (I-04).
 6. **Recuperación de la aplicación:** ~~ensayar el rollback de Vercel~~ **Ensayado el 12/11/2026** (ida y vuelta en ~2 s cada una; el sitio respondió con ambas versiones). Pasos y límites en [despliegue](../deployment-fortius.md#regresar-a-la-versión-anterior-ensayado-el-12112026).
-7. **Supabase:** autorizar el conector de solo lectura `supabase-fortius` (o un token de solo lectura de la API de administración) para leer SMTP, URL de retorno, MFA y copias sin pedírselo al titular cada vez.
+7. **Supabase:** ~~autorizar el conector de solo lectura `supabase-fortius`~~ **Autorizado el 13/11/2026.** Sirve para el historial de migraciones, el esquema y el asesor de seguridad ([acceso](access-policy.md)). No lee SMTP, URL de retorno, MFA ni copias del proveedor: eso sigue en el panel de Supabase o con un token de administración de solo lectura.
+8. **Avisos de fallas con Sentry (OBS-01, DEC-19; titular, 13/11/2026: «Sentry gratuito»).** El código ya los manda si existe `FORTIUS_SENTRY_DSN` (solo servidor). Pasos del titular:
+   1. Crear la cuenta en sentry.io (plan gratuito) y un proyecto de tipo **Node.js** llamado `fortius-inmuebles`.
+   2. En el proyecto, **Settings → Security & Privacy**: dejar activado *Data Scrubber* y activar *Prevent Storing of IP Addresses*.
+   3. En **Alerts**, dejar la alerta de «nuevo problema» con aviso por correo.
+   4. Copiar el **DSN** (Settings → Client Keys) y agregarlo en Vercel, producción, como `FORTIUS_SENTRY_DSN`. Publicar de nuevo para que lo tome.
+   5. El agente provoca después un error controlado para comprobar que llega el aviso (casilla pendiente de OBS-01).
+
+   **13/11/2026:** el titular permitió crear proyectos a miembros y el agente creó por el conector el proyecto `fortius-inmuebles` (Node.js) en la organización `moises-nunez`, con la alerta por defecto de problemas de prioridad alta. Un evento de prueba enviado con `reportFailure` desde el equipo local llegó como `FORTIUS-INMUEBLES-1` («server_error PruebaControlada /api/prueba-obs-01», entorno `prueba`). El mismo día, a pedido del titular («Hazlo tú») y con su sesión en el navegador, el agente agregó `FORTIUS_SENTRY_DSN` en Vercel como secreto, solo en producción. No se redesplegó: toma efecto con la próxima publicación de `main`. Falta repetir la prueba desde producción tras publicar. El ajuste *Prevent Storing of IP Addresses* no se puede cambiar por el conector; los eventos salen del servidor y no llevan IP de usuarios.
+9. **Regreso de la aplicación y esquema (CI-01):** compatibilidad de la publicación del 13/11/2026 revisada; regla y tabla en [despliegue](../deployment-fortius.md#compatibilidad-del-esquema-al-regresar-ci-01-revisado-el-13112026).
 
 ## Estado posterior a la integración
 
@@ -64,7 +74,7 @@ Se configuró un Deployment Check en cada proyecto:
 
 Este control retiene la asignación de dominios cuando falta o falla el check; **no impide que exista el build ni su URL de despliegue**. La protección de acceso de Vercel sigue siendo necesaria. Una cuenta autorizada que cambie configuraciones puede eludir controles: esto no es una frontera frente al administrador del proveedor.
 
-Durante la prueba controlada se amplió temporalmente el ámbito del check Fortius a preview, conservando producción. Se comprobó el fallo y el paso a verde, y se restituyó el ámbito a producción mediante PATCH y lectura posterior. Los recibos negativo y positivo se conservan en la copia externa `workspace-before.zip`, dentro de `docs/erp-crm/iterations/`; el [plan único](../../PLAN_ERP_CRM.md) resume su alcance. Esa prueba de mecanismo no creó ni promovió un despliegue de producción.
+Durante la prueba controlada se amplió temporalmente el ámbito del check Fortius a preview, conservando producción. Se comprobó el fallo y el paso a verde, y se restituyó el ámbito a producción mediante PATCH y lectura posterior. Los recibos negativo y positivo se conservan en la copia externa `workspace-before.zip`, dentro de `docs/erp-crm/iterations/`; el [plan único](../../ROADMAP.md) resume su alcance. Esa prueba de mecanismo no creó ni promovió un despliegue de producción.
 
 ## Previews y datos
 
@@ -106,4 +116,4 @@ Pendientes: custodia y destino aislado aprobados, Auth/Storage recuperados con p
 
 - [Vercel Deployment Checks](https://vercel.com/docs/deployment-checks).
 - OpenAPI oficial `https://openapi.vercel.sh`: `/v2/projects/{projectIdOrName}/checks` y `/v9/projects/{idOrName}/env/{id}`.
-- Metadata de GitHub, checks por SHA y configuración Vercel consultadas mediante sesión autorizada. La evidencia cronológica anterior se conserva fuera del repositorio; el avance está en [el plan único](../../PLAN_ERP_CRM.md).
+- Metadata de GitHub, checks por SHA y configuración Vercel consultadas mediante sesión autorizada. La evidencia cronológica anterior se conserva fuera del repositorio; el avance está en [el plan único](../../ROADMAP.md).

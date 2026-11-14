@@ -3,8 +3,9 @@ import * as React from "react";
 import { Button, Card, Pill } from "@/components/admin/kit";
 import { selectClass } from "@/components/admin/ui";
 import { db, upsertPropiedad, useCollection } from "@/lib/admin/store";
-import { commissionSplit, type OperationClose, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
+import { captorOf, commissionSplit, type OperationClose, type OperationWorkflow } from "@/lib/formatos/operation-workflow";
 import { calcularIntermediacion } from "@/lib/formatos/intermediacion";
+import { calcularIntermediacionRenta } from "@/lib/formatos/intermediacion-renta";
 import { flowOf, type OperationRecord } from "@/lib/admin/operation-view";
 import { saveError } from "./use-operation";
 
@@ -20,21 +21,24 @@ const money = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN
 const ROLE = { capto: "captó", vendio: "vendió", ambos: "captó y vendió" } as const;
 
 export function CloseCard({ op, intermediacion, disabled, onSave, className }: {
-  op: OperationRecord; intermediacion?: { data: Record<string, unknown>; version: number }; disabled: boolean; onSave: Save; className?: string;
+  op: OperationRecord; intermediacion?: { formato?: string; data: Record<string, unknown>; version: number }; disabled: boolean; onSave: Save; className?: string;
 }) {
   const advisers = useCollection(db.asesores), properties = useCollection(db.propiedades);
   const flow = flowOf(op), cierre = flow.cierre;
   const property = properties.find(p => p.slug === op.propiedad_slug);
   const rent = op.operacion === "renta" || flow.ruta === "arrendador";
-  const [capto, setCapto] = React.useState(cierre?.capto ?? op.asesor_id);
+  // M-04: tras una reasignación, «captó» sigue siendo el asesor de antes (flujo.captadoPor).
+  const [capto, setCapto] = React.useState(cierre?.capto ?? captorOf(op));
   const [vendio, setVendio] = React.useState(cierre?.vendio ?? op.asesor_id);
   const [keep, setKeep] = React.useState(true);
   const [busy, setBusy] = React.useState(false), [error, setError] = React.useState(""), [notice, setNotice] = React.useState("");
   const lock = disabled || busy;
 
-  // La comisión estimada sale del contrato de intermediación (09): porcentaje sobre el precio sin IVA.
-  const calc = intermediacion ? calcularIntermediacion(intermediacion.data) : null;
-  const comision = calc && calc.comision !== null ? calc.comision : undefined;
+  // La comisión estimada sale del contrato de intermediación: en la venta (09), porcentaje sobre el precio sin IVA;
+  // en la renta (21), los honorarios sin IVA en meses de renta o porcentaje del plazo forzoso.
+  const comision = !intermediacion ? undefined : intermediacion.formato === "21"
+    ? calcularIntermediacionRenta(intermediacion.data).honorarios ?? undefined
+    : calcularIntermediacion(intermediacion.data).comision ?? undefined;
   const draft: OperationClose = { capto, vendio, ...(comision !== undefined ? { comisionEstimada: comision, fuente: `Contrato de intermediación · versión ${intermediacion!.version}` } : {}) };
   const shown = cierre ?? draft;
   const changed = !cierre || cierre.capto !== capto || cierre.vendio !== vendio || cierre.comisionEstimada !== draft.comisionEstimada;

@@ -3,7 +3,7 @@ import { confirmDelete } from "@/components/admin/workspace/confirm";
 import { AsyncForm, AsyncButton } from "@/components/admin/ui";
 
 import * as React from "react";
-import { Pencil, Plus, Trash2, UserRound } from "@/components/admin/icons";
+import { Pencil, Plus, Trash2, EMPTY_ART } from "@/components/admin/icons";
 import { Avatar, Button, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import { AdviserAccountLinks } from "@/components/admin/adviser-account-links";
 import { SectionBoundary } from "@/components/admin/section-boundary";
@@ -187,8 +187,7 @@ export default function AsesoresPage() {
       ) : null}
 
       {asesores.length === 0 ? (
-        <EmptyBox
-          icon={<UserRound size={22} aria-hidden="true" />}
+        <EmptyBox art={{ icon: EMPTY_ART.asesores, kind: "empezar" }}
           title="Todavía no hay asesores"
           steps={["Registra a cada asesor con su nombre y cargo.", "Asígnale contactos e inmuebles desde cada ficha.", "Si quieres, publica su ficha en Nosotros."]}
         >

@@ -260,7 +260,7 @@ test("logout clears cache and late in-flight loads cannot restore private record
 });
 test("public lead capture delivers only through BFF and never writes a local lead", async () => {
   vi.mocked(fetch).mockResolvedValueOnce(
-    Response.json({ id: "lead-server" }, { status: 201 }),
+    Response.json({ ok: true }, { status: 201 }),
   );
   await expect(
     store.captureLead({
@@ -268,7 +268,7 @@ test("public lead capture delivers only through BFF and never writes a local lea
       telefono: "6645550101",
       origen: "contacto",
     }),
-  ).resolves.toBe("lead-server");
+  ).resolves.toBeUndefined();
   expect(store.db.leads.list()).toEqual([]);
 });
 

@@ -1,4 +1,5 @@
 "use client";
+import { UndoNotice, useUndo } from "@/components/admin/workspace/undo-notice";
 import { useQuickCreate } from "@/components/admin/workspace/quick-create";
 
 import * as React from "react";
@@ -8,12 +9,18 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { TaskForm } from "@/components/admin/task-form";
 import { Badge, Field, inputClass, selectClass } from "@/components/admin/ui";
 import { Button, Card, EmptyBox } from "@/components/admin/kit";
+import { EMPTY_ART } from "@/components/admin/icons";
 import { stepDate } from "@/lib/admin/contacts-view";
 import { db, useCollection, upsert } from "@/lib/admin/store";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES, taskBucket } from "@/lib/tasks";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { askNextAfter, type NextRef } from "@/lib/admin/next-step-task";
 import { NextStepPrompt } from "@/components/admin/contacts/next-step-prompt";
+import { BulkBar, InlineDate, InlineSelect, SelectBox, SelectGroup, SelectToggle, useSelection, type BulkAction } from "@/components/admin/workspace/bulk";
+import { toCsv } from "@/lib/admin/bulk";
+import { saveBlob } from "@/lib/admin/download-word";
+import { FileDown } from "@/components/admin/icons";
+import type { Task } from "@/lib/tasks";
 
 export default function TasksPage() { return <React.Suspense fallback={<p>Cargando tareas…</p>}><Tasks /></React.Suspense>; }
 
@@ -25,6 +32,9 @@ function Tasks() {
   const defaults = {expedienteId: params.get("expediente")?.toLowerCase() || undefined, leadId: leads.find(l=>l.id===params.get("leadId"))?.id, clienteId: clientes.find(c=>c.id===params.get("clienteId"))?.id, propiedadSlug: propiedades.find(p=>p.slug===params.get("propiedadSlug"))?.slug};
   const asesores = useCollection(db.asesores);
   const [creating, setCreating] = React.useState(params.get("nueva") === "1");
+  // C-74: la captura se monta al abrirla la primera vez y después solo se oculta, para no perder lo escrito.
+  const [captureMounted, setCaptureMounted] = React.useState(creating);
+  if (creating && !captureMounted) setCaptureMounted(true);
   useQuickCreate("tarea", () => setCreating(true));
   const [query, setQuery] = React.useState("");
   const [responsible, setResponsible] = React.useState("todas");
@@ -46,12 +56,38 @@ function Tasks() {
   const activeFilters = Number(responsible !== "todas") + Number(status !== "abiertas") + Number(priority !== "todas") + Number(category !== "todas");
   const [saving, setSaving] = React.useState<string | null>(null), [message, setMessage] = React.useState("");
   const [ask, setAsk] = React.useState<NextRef | null>(null);
+  const undo = useUndo();
+  // RP-12/RP-13 (UX-03): selección de varias tareas y cambios en la fila, con control de versión.
+  const visibleIds = filtered.map(t => t.id);
+  const selection = useSelection(visibleIds);
+  const adviserName = (id?: string) => asesores.find((a) => a.id === id)?.nombre ?? (id ? "Responsable no disponible" : "Sin asignar");
+  const adviserOptions = [{ value: "", label: "Sin asignar" }, ...asesores.map(a => ({ value: a.id, label: a.nombre }))];
+  /** Cambia una tarea partiendo de lo último guardado; `bulk` informa el conflicto en lugar de abrir la ventana. */
+  async function patchTask(id: string, patch: Partial<Task>, bulk = false): Promise<"aplicado" | "sin-cambio"> {
+    const latest = db.tareas.list().find(t => t.id === id);
+    if (!latest) throw new Error("Ya no aparece en tus tareas.");
+    const next = { ...latest, ...patch };
+    if ((Object.keys(patch) as Array<keyof Task>).every(key => (latest[key] ?? "") === (next[key] ?? ""))) return "sin-cambio";
+    await upsert(db.tareas, next, db.tareas.version(id), bulk ? { resolve: false } : undefined);
+    return "aplicado";
+  }
+  const bulkActions: BulkAction[] = [
+    { id: "responsable", label: "Reasignar a…", verb: "Se reasignaron", options: adviserOptions, apply: (id, value) => patchTask(id, { asesorId: value || undefined }, true) },
+    { id: "estado", label: "Cambiar estado…", verb: "Se cambiaron", options: Object.entries(TASK_STATUSES).map(([value, label]) => ({ value, label })), apply: (id, value) => patchTask(id, { estado: value as Task["estado"] }, true) },
+    { id: "exportar", label: "Exportar", icon: <FileDown size={16} aria-hidden="true" />, run: ids => {
+      const rows = tareas.filter(t => ids.includes(t.id)).map(t => [t.titulo, TASK_STATUSES[t.estado], TASK_PRIORITIES[t.prioridad], adviserName(t.asesorId), t.vence ?? "", TASK_CATEGORIES[t.categoria]]);
+      saveBlob(new Blob([toCsv(["Tarea", "Estado", "Prioridad", "Responsable", "Vence", "Categoría"], rows)], { type: "text/csv;charset=utf-8" }), `Fortius-Tareas-${today}.csv`);
+    } },
+  ];
   async function toggle(task: (typeof filtered)[number]) {
     setSaving(task.id); setMessage("");
-    setAsk(null);
+    setAsk(null); undo.clear();
     try {
       const completing = !["completada", "cancelada"].includes(task.estado);
-      await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task)); setMessage("Guardado");
+      const saved = await upsert(db.tareas, { ...task, estado: completing ? "completada" : "pendiente" }, db.tareas.version(task));
+      // RP-16: completar se deshace con un toque; el aviso sale cuando el servidor ya lo guardó.
+      if (completing) undo.offer({ text: `Completaste «${task.titulo}».`, undo: () => { setAsk(null); return upsert(db.tareas, { ...saved, estado: task.estado as typeof saved.estado }, db.tareas.version(saved.id)); } }); // C-71: deshacer también retira «¿Qué sigue?»
+      else setMessage("Guardado");
       // DEC-42: completar el siguiente paso de una persona pide el que sigue.
       if (completing) setAsk(askNextAfter(task, tareas));
     }
@@ -61,19 +97,21 @@ function Tasks() {
   const renderTask = (task: (typeof filtered)[number]) => {
       const date = task.vence ? stepDate(task.vence, today) : null;
       const open = !["completada", "cancelada"].includes(task.estado);
-      return <li key={task.id} className="flex min-w-0 items-start gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:px-5">
+      return <li key={task.id} className={"flex min-w-0 items-start gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:px-5" + (selection.selected.has(task.id) ? " bg-muted" : "")}>
         {/* C44: se completa desde la lista, igual que en Hoy. */}
-        <label className="-ml-3 flex h-11 w-11 flex-none cursor-pointer items-center justify-center self-start"><input type="checkbox" className="h-5 w-5 cursor-pointer accent-[var(--primary)]" checked={task.estado === "completada"} disabled={saving === task.id || task.estado === "cancelada"} onChange={() => void toggle(task)} aria-label={`${open ? "Marcar como hecha" : "Marcar como pendiente"}: ${task.titulo}`} /></label>
+        {selection.on ? <SelectBox selection={selection} id={task.id} label={task.titulo} />
+        : <label className="-ml-3 flex h-11 w-11 flex-none cursor-pointer items-center justify-center self-start"><input type="checkbox" className="h-5 w-5 cursor-pointer accent-[var(--primary)]" checked={task.estado === "completada"} disabled={saving === task.id || task.estado === "cancelada"} onChange={() => void toggle(task)} aria-label={`${open ? "Marcar como hecha" : "Marcar como pendiente"}: ${task.titulo}`} /></label>}
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
           <h3 className="m-0 min-w-0 text-base font-semibold"><Link className={"inline-flex min-h-11 items-center [overflow-wrap:anywhere] hover:underline" + (open ? "" : " text-muted-foreground line-through")} href={`/admin/tareas/${task.id}`}>{task.titulo}</Link></h3>
-          {date && <span className={"text-sm " + (open && date.late ? "font-semibold text-[var(--alert)]" : "text-muted-foreground")}>{!date.late ? date.label : open ? overdueText(task.vence, today) : humanDate(task.vence, today)}</span>}
+          <InlineDate label={`Fecha de «${task.titulo}»`} value={task.vence} tone={open && date?.late ? "late" : undefined} display={!date ? "Sin fecha" : !date.late ? date.label : open ? overdueText(task.vence, today) : humanDate(task.vence, today)} onSave={value => patchTask(task.id, { vence: value || undefined })} />
         </div>
         {task.descripcion && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{task.descripcion}</p>}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
           {task.estado !== "pendiente" && <Badge tone={task.estado === "completada" ? "green" : "neutral"}>{TASK_STATUSES[task.estado]}</Badge>}
           {task.prioridad !== "normal" && <Badge tone={task.prioridad === "urgente" ? "red" : "neutral"}>Prioridad {TASK_PRIORITIES[task.prioridad].toLowerCase()}</Badge>}
-          <span className="text-muted-foreground">{asesores.find((a) => a.id === task.asesorId)?.nombre ?? (task.asesorId ? "Responsable no disponible" : "Sin asignar")} · {TASK_CATEGORIES[task.categoria]}{task.pasos.length ? ` · ${task.pasos.filter((p) => p.hecho).length} de ${task.pasos.length} pasos` : ""}</span>
+          <InlineSelect label={`Responsable de «${task.titulo}»`} value={task.asesorId ?? ""} options={adviserOptions} display={adviserName(task.asesorId)} onSave={value => patchTask(task.id, { asesorId: value || undefined })} />
+          <span className="text-muted-foreground">{TASK_CATEGORIES[task.categoria]}{task.pasos.length ? ` · ${task.pasos.filter((p) => p.hecho).length} de ${task.pasos.length} pasos` : ""}</span>
         </div>
         </div>
       </li>;
@@ -87,10 +125,11 @@ function Tasks() {
   return <div className="min-w-0 space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <p className="text-sm text-muted-foreground" aria-live="polite">{filtered.length} {filtered.length === 1 ? "tarea" : "tareas"}{message ? ` · ${message}` : ""}</p>
-      <Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button>
+      <UndoNotice {...undo} onError={setMessage} />
+      <div className="flex flex-wrap gap-2">{filtered.length > 0 && <SelectToggle selection={selection} noun="tareas" />}<Button variant={creating ? "secondary" : "primary"} aria-expanded={creating} onClick={() => setCreating(!creating)}>{creating ? "Cerrar captura" : "Nueva tarea"}</Button></div>
     </div>
     {ask && <NextStepPrompt key={ask.id} person={ask} today={today} name={ask.kind === "lead" ? leads.find(l => l.id === ask.id)?.nombre : clientes.find(c => c.id === (ask.kind === "operacion" ? ask.clienteId : ask.id))?.nombre} onClose={() => setAsk(null)} />}
-    {creating && <section className="min-w-0" aria-label="Nueva tarea"><h2 className="mb-4 text-xl font-[600] tracking-[-0.015em]">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
+    {captureMounted && <section hidden={!creating} className="min-w-0" aria-label="Nueva tarea"><h2 className="mb-4 text-xl font-[600] tracking-[-0.015em]">Nueva tarea</h2><TaskForm defaults={defaults} onSave={async (task) => { const saved = await upsert(db.tareas, task, null); router.push(`/admin/tareas/${saved.id}`); return saved; }} /></section>}
     <section aria-label="Filtros de tareas" className="min-w-0 space-y-3">
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       <Field label="Buscar tareas" htmlFor="tasks-search"><input id="tasks-search" className={inputClass} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Título o descripción" /></Field>
@@ -110,12 +149,12 @@ function Tasks() {
       const items = filtered.filter(task => group.buckets.includes(taskBucket(task, today)));
       if (!items.length) return null;
       return <section key={group.id} aria-labelledby={"grupo-tareas-" + group.id} className="flex flex-col gap-3">
-        <h2 id={"grupo-tareas-" + group.id} className="m-0 flex items-baseline gap-2 px-1 text-lg font-semibold">{group.title}<span className="text-sm font-semibold text-muted-foreground">{items.length}</span></h2>
+        <div className="flex items-center gap-1">{selection.on && <SelectGroup selection={selection} ids={items.map(t => t.id)} label={group.title} />}<h2 id={"grupo-tareas-" + group.id} className="m-0 flex items-baseline gap-2 px-1 text-lg font-semibold">{group.title}<span className="text-sm font-semibold text-muted-foreground">{items.length}</span></h2></div>
         <Card as="div" className="overflow-hidden"><ul aria-label={group.title}>{items.map(renderTask)}</ul></Card>
       </section>;
-    })}</div> : (tareas.length === 0
-      ? <EmptyBox title="Todavía no hay tareas" steps={["Crea una con «Nueva tarea» o desde la ficha de una persona.", "Ponle fecha y responsable.", "Márcala como hecha desde esta lista."]}>Las tareas son lo que el equipo tiene que hacer y para cuándo. Las que vencen aparecen en Hoy.</EmptyBox>
-      : !query.trim() && !activeFilters && due === "todas" ? <EmptyBox title="Nada pendiente">Todas las tareas están hechas. Las nuevas aparecerán aquí y en Hoy.</EmptyBox>
-      : <EmptyBox title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>)}
+    })}<BulkBar selection={selection} targets={filtered.map(t => ({ id: t.id, label: t.titulo }))} actions={bulkActions} noun={{ one: "tarea seleccionada", many: "tareas seleccionadas", empty: "Elige tareas en la lista" }} /></div> : (tareas.length === 0
+      ? <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "empezar" }} title="Todavía no hay tareas" steps={["Crea una con «Nueva tarea» o desde la ficha de una persona.", "Ponle fecha y responsable.", "Márcala como hecha desde esta lista."]}>Las tareas son lo que el equipo tiene que hacer y para cuándo. Las que vencen aparecen en Hoy.</EmptyBox>
+      : !query.trim() && !activeFilters && due === "todas" ? <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "listo" }} title="Nada pendiente">Todas las tareas están hechas. Las nuevas aparecerán aquí y en Hoy.</EmptyBox>
+      : <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "buscar" }} title="No hay tareas con estos filtros">Cambia los filtros o crea una tarea.</EmptyBox>)}
   </div>;
 }
