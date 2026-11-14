@@ -171,13 +171,27 @@ it('keeps the listing when a corrected intermediation contract is issued (M-07)'
   expect(await published('m07-correccion')).toBe(true);
  });
 });
-it('withdraws the listing when the operation goes back before publication (M-02)',async()=>{
+// M-02b (titular, 14/11/2026): pausar, descartar o regresar avisa que se retire; no retira solo.
+const notices=async(id:string)=>(await db.query<{d:{titulo:string;prioridad:string;asesorId:string}}>("select data d from public.fortius_inmuebles_records where collection='tareas' and data->>'expedienteId'=$1 and data->>'titulo' like 'Retirar del sitio%'",[id])).rows.map(r=>r.d);
+it('asks to withdraw the listing when the operation goes back before publication (M-02)',async()=>{
  await asUser(own,async()=>{
   const id=await publishedOperation('m02-retroceso');
-  const before=await dataOf('m02-retroceso');
   await update(id,'documentacion',{...(await flowOf(id)),motivo:'Corregir el precio con el propietario'});
-  expect(await published('m02-retroceso')).toBe(false);
-  expect(await dataOf('m02-retroceso')).toEqual(before);
+  expect(await published('m02-retroceso')).toBe(true);
+  expect(await notices(id)).toMatchObject([{titulo:'Retirar del sitio: la operación regresó a antes de publicar',prioridad:'urgente',asesorId:'own'}]);
+ });
+});
+it('asks to withdraw the listing when the operation is paused or discarded (M-02)',async()=>{
+ await asUser(own,async()=>{
+  const id=await publishedOperation('m02-pausa');
+  await update(id,'negociacion',{...(await flowOf(id)),estado:'pausada',motivo:'El propietario pidió esperar un mes'});
+  expect(await published('m02-pausa')).toBe(true);
+  // Otro guardado en pausa no repite el aviso.
+  await update(id,'negociacion',{...(await flowOf(id)),motivo:'El propietario pidió esperar dos meses'});
+  expect((await notices(id)).map(n=>n.titulo)).toEqual(['Retirar del sitio: se pausó la operación']);
+  await update(id,'negociacion',{...(await flowOf(id)),estado:'descartada',motivo:'Desistió: ya no quiere vender'});
+  expect(await published('m02-pausa')).toBe(true);
+  expect((await notices(id)).map(n=>n.titulo).sort()).toEqual(['Retirar del sitio: se descartó la operación','Retirar del sitio: se pausó la operación']);
  });
 });
 it('keeps the listing when the operation moves between publication stages (M-02)',async()=>{
