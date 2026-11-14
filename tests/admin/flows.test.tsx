@@ -150,12 +150,12 @@ test("authenticated shell exposes every module, clients and logout on mobile nav
   fireEvent.click(menu);
   const nav = screen.getByRole("navigation", { name: "Módulos móviles" });
   const links = () => Array.from(nav.querySelectorAll("a")).map((a) => a.getAttribute("href"));
-  expect(links()).toEqual(["/admin/propiedades", "/admin/agenda", "/admin/herramientas", "/admin/perfil", "/"]);
+  expect(links()).toEqual(["/admin/propiedades", "/admin/tramites", "/admin/agenda", "/admin/herramientas", "/admin/perfil", "/"]);
   const admin = within(nav).getByRole("button", { name: /Administración/ });
   expect(admin.getAttribute("aria-expanded")).toBe("false");
   fireEvent.click(admin);
   expect(links()).toEqual([
-    "/admin/propiedades", "/admin/agenda", "/admin/herramientas",
+    "/admin/propiedades", "/admin/tramites", "/admin/agenda", "/admin/herramientas",
     "/admin/asesores", "/admin/contenido", "/admin/reportes", "/admin/historial", "/admin/papelera", "/admin/configuracion",
     "/admin/perfil", "/",
   ]);

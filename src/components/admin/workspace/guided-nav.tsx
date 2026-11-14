@@ -2,7 +2,7 @@
 import * as React from "react";
 import { usePendingCount } from "@/components/admin/workspace/use-today-queue";
 import Link from "next/link";
-import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, ShieldCheck, UserRound } from "@/components/admin/icons";
+import { Building2, CalendarDays, CalendarPlus, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Columns3, Contact, ExternalLink, House, LayoutGrid, LogOut, Menu, Moon, Plus, Route, ShieldCheck, UserRound } from "@/components/admin/icons";
 import { HelpDot, TourLauncher, openTour, useHelpPending } from "./tour";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { DocumentLink } from "@/components/navigation/document-link";
@@ -18,7 +18,8 @@ import s from "./guided-nav.module.css";
 
 /*
   Marco del panel, versión 2 (titular, 30/10/2026, DEC-35): barra superior con el logotipo,
-  las píldoras Hoy · Operaciones · Contactos · Inmuebles · Agenda · Más, el buscador (Ctrl K),
+  las píldoras Hoy · Operaciones · Contactos · Inmuebles · Trámites · Agenda · Más (Trámites desde el
+  14/11/2026, TRA-01, a pedido del titular; también sigue en Herramientas), el buscador (Ctrl K),
   «+ Nuevo» con un menú corto y la cuenta. En celular, barra inferior flotante con «+» y «Más».
   Reemplaza al menú lateral del 17/10/2026.
 */
@@ -29,10 +30,11 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/admin/operaciones", label: "Operaciones", icon: Columns3, match: ["/admin/operaciones"] },
   { href: "/admin/contactos", label: "Contactos", icon: Contact, match: ["/admin/contactos", "/admin/leads", "/admin/clientes"] },
   { href: "/admin/propiedades", label: "Inmuebles", icon: Building2, match: ["/admin/propiedades"] },
+  { href: "/admin/tramites", label: "Trámites", icon: Route, match: ["/admin/tramites"] },
   { href: "/admin/agenda", label: "Agenda y tareas", icon: CalendarDays, match: ["/admin/agenda", "/admin/tareas"] },
 ];
 /** Herramientas: un solo acceso a las 17. «/admin/notas» lleva a Hoy (DEC-42). */
-export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas", "/admin/tramites"] };
+export const TOOLS_NAV: NavItem = { href: "/admin/herramientas", label: "Herramientas", icon: LayoutGrid, match: ["/admin/herramientas", "/admin/apps", "/admin/notas"] };
 /** Administración (solo administrador). Sitio web y Reportes agrupan sus páginas en pestañas (ver AdminFrame). */
 export const ADMIN_NAV: Array<{ href: string; label: string; match: string[] }> = [
   { href: "/admin/asesores", label: "Equipo", match: ["/admin/asesores"] },
@@ -162,7 +164,7 @@ export function MobileTabBar({ pathname, menuOpen, onMenu, menuButton }: { pathn
 }
 
 export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }: { pathname: string; role: string; user: User; onNavigate: () => void; onLogout: () => Promise<void>; panel: React.Ref<HTMLElement> }) {
-  const [, , , inmuebles, agenda] = MAIN_NAV;
+  const [, , , inmuebles, tramites, agenda] = MAIN_NAV;
   const helpPending = useHelpPending();
   const events = useCollection(db.eventos);
   const today = operationalDate();
@@ -175,6 +177,7 @@ export function MobileMenu({ pathname, role, user, onNavigate, onLogout, panel }
     <div className="flex items-center gap-3 px-1"><Avatar name={user.name} src={user.avatar} size={40} /><span className="flex min-w-0 flex-col"><span className="truncate font-semibold">{user.name}</span><span className="text-sm text-muted-foreground">{roleLabel(role)}</span></span></div>
     <div className={s.menuGroup}>
       {row(inmuebles.href, inmuebles.label, <inmuebles.icon size={20} aria-hidden={true} />, isNavActive(pathname, inmuebles))}
+      {row(tramites.href, tramites.label, <tramites.icon size={20} aria-hidden={true} />, isNavActive(pathname, tramites))}
       {row(agenda.href, agenda.label, <agenda.icon size={20} aria-hidden={true} />, isNavActive(pathname, agenda), visits ? `${visits} ${visits === 1 ? "visita" : "visitas"} hoy` : undefined)}
       {row(TOOLS_NAV.href, TOOLS_NAV.label, <TOOLS_NAV.icon size={20} aria-hidden={true} />, isNavActive(pathname, TOOLS_NAV))}
     </div>
