@@ -169,7 +169,7 @@ it('keeps the listing when a corrected intermediation contract is issued (M-07)'
   await db.query("insert into public.fortius_inmuebles_formato_drafts(id,expediente_id,formato_id,data) values($1,$2,'09','{}')",[d,id]);
   await db.exec('set role authenticated');
   const first=await issue(id,d);
-  const flujo=await flowOf(id) as Record<string,unknown>&{requisitos:Record<string,unknown>};
+  const flujo=await flowOf(id) as unknown as Record<string,unknown>&{requisitos:Record<string,unknown>};
   await actAs(admin);
   await update(id,'negociacion',{...flujo,requisitos:{...flujo.requisitos,intermediacion:{estado:'revisado',soporte:'Contrato 09 revisado',evidencia:{tipo:'emision',referencia:first.m,version:first.v}}}});
   await actAs(own);
