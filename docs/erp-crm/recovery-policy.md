@@ -1,6 +1,6 @@
 # Recuperación de Fortius — procedimiento y decisiones
 
-Estado: controles locales implementados; ensayo completo con datos sintéticos aprobado el 12/11/2026 en un proyecto aislado (16.5 s); objetivos iniciales aprobados; faltan copia diaria automática, custodia y ensayo con volumen real. Objetivos aprobados: 12/10/2026. Cobertura actualizada: 12/11/2026.
+Estado: controles locales implementados; ensayo completo con datos sintéticos aprobado el 12/11/2026 en un proyecto aislado (16.5 s); objetivos iniciales aprobados; **copia diaria automática funcionando desde el 13/11/2026**; faltan abrir una copia con la llave del titular, el certificado de la conexión y el ensayo con volumen real. Objetivos aprobados: 12/10/2026. Cobertura actualizada: 12/11/2026.
 
 ## Alcance comprobable
 
@@ -41,9 +41,9 @@ Para repetirlo: crear otro proyecto vacío (el script se niega a mezclar datos),
 
 **Pendiente para cerrar REC-01:**
 
-1. Copia diaria automática: **preparada** el 12/11/2026 (GitHub Actions → cifrado → Cloudflare R2, con el titular como custodio de la llave; ver [copia diaria](respaldo-diario.md)). La llave, el bucket con bloqueo de 30 días y los secretos quedaron listos el mismo día; falta integrar en `main` y comprobar la primera copia. Hasta entonces, el RPO de 24 h no es una capacidad.
+1. Copia diaria automática: **funcionando** desde el 13/11/2026 (GitHub Actions → cifrado → Cloudflare R2, con el titular como custodio de la llave; ver [copia diaria](respaldo-diario.md)). Dos copias completas ese día, cada una verificada y ensayada en memoria antes de subirse. El certificado `FORTIUS_BACKUP_DB_CA` está puesto y comprobado desde el 13/11/2026, y ese mismo día el titular abrió una copia con su llave privada: se verificó y se ensayó su restauración en su equipo. El RPO de 24 h queda demostrado de punta a punta. Se recomienda repetir la apertura una vez al mes. Hasta abrir una copia, el RPO de 24 h está probado en GitHub, no en manos del custodio.
 2. Repetir el ensayo con el volumen real cuando se cargue el inventario, porque los tiempos de hoy son de un caso mínimo.
-3. Documentar la configuración del proyecto que no viaja con el respaldo: correo saliente, URL de retorno, límites y plantillas de Auth.
+3. Documentar la configuración del proyecto que no viaja con el respaldo: correo saliente, URL de retorno, límites y plantillas de Auth. Leído el 13/11/2026 sin credenciales de administración: registro abierto desactivado, solo correo y confirmación obligatoria. Lo demás solo se ve en el panel de Supabase (Authentication → Emails, URL Configuration, Rate Limits): copiarlo aquí requiere al titular o un token de administración de solo lectura.
 
 No generar copias de clientes reales para la fase sintética. No considerar REC-01 cerrado hasta resolver lo anterior.
 

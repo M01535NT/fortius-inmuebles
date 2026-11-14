@@ -11,7 +11,7 @@ Estas instrucciones orientan el trabajo en todo el repositorio. Respeta las inst
 ## Antes de modificar
 
 1. Lee `git status --short`, la rama activa y los archivos reales afectados. Conserva los cambios del usuario y de otros agentes; no restaures una versión anterior ni limpies el árbol para facilitar tu tarea.
-2. Consulta `README.md` y las referencias pertinentes de `docs/README.md`. Para ERP/CRM, localiza «Dónde nos quedamos» en `PLAN_ERP_CRM.md` con `rg` y lee las secciones afectadas: es el único plan vigente y no es necesario releerlo entero. No crees planes paralelos; incorpora ahí el avance cuando el encargo lo requiera.
+2. Consulta `README.md` y las referencias pertinentes de `docs/README.md`. Para ERP/CRM, localiza «Dónde nos quedamos» en `ROADMAP.md` con `rg` y lee las secciones afectadas: es el único plan vigente y no es necesario releerlo entero. No crees planes paralelos; incorpora ahí el avance cuando el encargo lo requiera.
 3. Contrasta los estados documentados con código, pruebas y evidencia disponible. Los manuales fechados pueden describir una interfaz anterior; un plan no demuestra que una función esté implementada o publicada.
 4. Delimita rutas, comportamiento, datos y diseño que deben conservarse. En una auditoría, inspecciona y documenta antes de implementar; no cambies registros productivos para comprobar una hipótesis.
 5. Selecciona y lee las skills pertinentes a la materia y al formato, cuando estén disponibles. Mantén las skills generales separadas de las convenciones particulares de Fortius.
@@ -21,7 +21,7 @@ Estas instrucciones orientan el trabajo en todo el repositorio. Respeta las inst
 | Tema | Fuente que debes consultar |
 | --- | --- |
 | Producto y operación | `docs/PRODUCT.md`, `docs/admin-manual.md`, `docs/admin-workspace.md` |
-| Desarrollo ERP/CRM | `PLAN_ERP_CRM.md`; lo ya terminado y los registros de sesiones pasadas, en `docs/erp-crm/historial-del-plan.md` (consulta, no plan) |
+| Desarrollo ERP/CRM | `ROADMAP.md`; lo ya terminado y los registros de sesiones pasadas, en `docs/erp-crm/historial-del-plan.md` (consulta, no plan) |
 | Panel guiado | `docs/diseno/ENCARGO_REDISENO_PANEL.md` y `docs/diseno/lienzo-panel/` |
 | Marca | `docs/brand.md`, `public/brand/`, tokens del CSS existente |
 | Identificadores y compatibilidad | `docs/fortius-inmuebles-identity.md` |

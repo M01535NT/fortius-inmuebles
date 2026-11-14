@@ -1,6 +1,6 @@
 # Panel operativo Fortius
 
-Corte documental: 17/10/2026, después del rediseño guiado (PR #39). El desarrollo se dirige desde [el plan único](../PLAN_ERP_CRM.md); las reglas de producto, desde su sección «Dirección del producto y reglas vigentes».
+Corte documental: 17/10/2026, después del rediseño guiado (PR #39). El desarrollo se dirige desde [el plan único](../ROADMAP.md); las reglas de producto, desde su sección «Dirección del producto y reglas vigentes».
 
 ## Navegación
 

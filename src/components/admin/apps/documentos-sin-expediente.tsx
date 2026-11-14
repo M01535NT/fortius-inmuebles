@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, FileDown, FileText, X } from "@/components/admin/icons";
+import { ArrowLeft, ArrowRight, Check, FileDown, FileText, X, EMPTY_ART } from "@/components/admin/icons";
 import { Button, Card, EmptyBox, Eyebrow, Notice, Segmented } from "@/components/admin/kit";
 import { PageHeader, inputClass } from "@/components/admin/ui";
 import { FormatoEditor } from "@/components/admin/formato-editor";
@@ -139,7 +139,7 @@ export function DocumentosSinExpediente() {
       </div>
       {runs === null ? <p role="status" className="text-sm text-muted-foreground">Consultando documentos…</p>
         : runs.length === 0 ? (deleted ? <p className="text-sm text-muted-foreground">No hay documentos eliminados.</p>
-          : <EmptyBox icon={<FileText size={28} aria-hidden="true" />} title="Todavía no hay documentos llenos">Lo que llenes aquí se guarda solo y lo encuentras en esta lista para seguirlo o descargarlo otra vez.</EmptyBox>)
+          : <EmptyBox art={{ icon: EMPTY_ART.documentos, kind: "empezar" }} title="Todavía no hay documentos llenos">Lo que llenes aquí se guarda solo y lo encuentras en esta lista para seguirlo o descargarlo otra vez.</EmptyBox>)
         : <Card as="ul" className="flex flex-col divide-y divide-border p-0">{runs.map(run => <li key={run.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 sm:px-5">
           <div className="min-w-0"><p className="m-0 font-semibold [overflow-wrap:anywhere]">{run.title}</p>
             <p className="m-0 text-xs text-muted-foreground">{formatoOf(run)} · Guardado · {humanDateTime(run.updatedAt)}</p></div>
@@ -258,7 +258,7 @@ function Captura({ open, onSaved, onClose }: { open: Open; onSaved: () => void; 
         <ol className="flex flex-col gap-1">{sections.map((item, i) => <li key={item}>
           <button type="button" aria-current={i === index ? "step" : undefined} disabled={!!busy} onClick={() => i !== index && go(i)}
             className={cn("flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm", i === index ? "bg-secondary font-semibold" : "hover:bg-secondary/60")}>
-            {pendingBySection[i] === 0 ? <Check size={15} aria-hidden="true" className="shrink-0 text-[var(--success,#2f7d4f)]" /> : <span className="w-[15px] shrink-0 text-center tabular-nums text-xs">{i + 1}</span>}
+            {pendingBySection[i] === 0 ? <Check size={15} aria-hidden="true" className="shrink-0 text-success" /> : <span className="w-[15px] shrink-0 text-center tabular-nums text-xs">{i + 1}</span>}
             <span className="flex-1">{item}</span>
             {pendingBySection[i] > 0 && <span className="tabular-nums text-xs text-muted-foreground" aria-label={`${pendingBySection[i]} por llenar`}>{pendingBySection[i]}</span>}
           </button>

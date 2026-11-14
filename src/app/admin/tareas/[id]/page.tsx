@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft } from "@/components/admin/icons";
+import { ChevronLeft, EMPTY_ART } from "@/components/admin/icons";
 import { TaskForm } from "@/components/admin/task-form";
 import { Avatar, Button, ButtonLink, Card, EmptyBox, Notice, Pill, type PillTone } from "@/components/admin/kit";
 import { db, useCollection, upsert } from "@/lib/admin/store";
@@ -58,7 +58,7 @@ function TaskDetail({ id }: { id: string }) {
         <span>{TASK_CATEGORIES[task.categoria]}</span>
       </div>}
     </header>
-    {!snapshot ? <EmptyBox title="Tarea no disponible">Puede estar cargando o ya no estar disponible.</EmptyBox> : <div className={s.layout}>
+    {!snapshot ? <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "buscar" }} title="Tarea no disponible">Puede estar cargando o ya no estar disponible.</EmptyBox> : <div className={s.layout}>
       <div className="flex min-w-0 flex-col gap-5">
         {conflict && <section aria-label="Revisar conflicto"><Notice title="La tarea cambió mientras la editabas" actions={conflict !== "missing" && <Button onClick={() => { setSnapshot(conflict); setConflict(null); setRebased(true); }}>Usar versión actual como base</Button>}>
           {conflict === "missing" ? <p>La tarea ya no está disponible. Conservamos tu borrador, pero no se puede guardar sobre un registro eliminado.</p> : <div className="flex flex-col gap-3">

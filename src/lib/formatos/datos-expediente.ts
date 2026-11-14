@@ -23,13 +23,13 @@ const d = (formato: string, ...keys: string[]): Destino[] => keys.map(key => ({ 
 export const DATOS_EXPEDIENTE: DatoExpediente[] = [
   // Propietario y apoderado
   { clave: "propietarioNombre", etiqueta: "Nombre del propietario o razón social", grupo: "Propietario", tipo: "texto",
-    destinos: [...d("01", "titular"), ...d("07", "propietario"), ...d("08", "propietario"), ...d("10", "propietario"), ...d("11", "propietario"), ...d("14", "propietario"), ...d("15", "vendedor")] },
+    destinos: [...d("01", "titular"), ...d("07", "propietario"), ...d("08", "propietario"), ...d("10", "propietario"), ...d("11", "propietario"), ...d("14", "propietario"), ...d("15", "vendedor"), ...d("20", "arrendador"), ...d("23", "arrendador"), ...d("24", "vendedor")] },
   { clave: "propietarioCurp", etiqueta: "CURP del propietario", grupo: "Propietario", tipo: "texto", destinos: [] },
-  { clave: "propietarioRfc", etiqueta: "RFC del propietario", grupo: "Propietario", tipo: "texto", destinos: d("15", "rfcVendedor") },
-  { clave: "propietarioIdentificacion", etiqueta: "Identificación oficial del propietario", grupo: "Propietario", tipo: "texto", ayuda: "Tipo y número, por ejemplo INE 1234567890.", destinos: d("15", "identificacionVendedor") },
+  { clave: "propietarioRfc", etiqueta: "RFC del propietario", grupo: "Propietario", tipo: "texto", destinos: [...d("15", "rfcVendedor"), ...d("20", "arrendadorRfc"), ...d("24", "vendedorRfc")] },
+  { clave: "propietarioIdentificacion", etiqueta: "Identificación oficial del propietario", grupo: "Propietario", tipo: "texto", ayuda: "Tipo y número, por ejemplo INE 1234567890.", destinos: [...d("15", "identificacionVendedor"), ...d("20", "arrendadorIdentificacion"), ...d("24", "vendedorIdentificacion")] },
   { clave: "propietarioNacimiento", etiqueta: "Fecha de nacimiento del propietario", grupo: "Propietario", tipo: "fecha", destinos: d("02", "fechaNacimiento") },
-  { clave: "propietarioEstadoCivil", etiqueta: "Estado civil del propietario", grupo: "Propietario", tipo: "texto", destinos: [...d("02", "estadoCivilActual"), ...d("05", "estadoCivilActual"), ...d("15", "estadoCivilVendedor")] },
-  { clave: "propietarioDomicilio", etiqueta: "Domicilio del propietario", grupo: "Propietario", tipo: "texto", destinos: d("15", "domicilioVendedor") },
+  { clave: "propietarioEstadoCivil", etiqueta: "Estado civil del propietario", grupo: "Propietario", tipo: "texto", destinos: [...d("02", "estadoCivilActual"), ...d("05", "estadoCivilActual"), ...d("15", "estadoCivilVendedor"), ...d("24", "vendedorEstadoCivil")] },
+  { clave: "propietarioDomicilio", etiqueta: "Domicilio del propietario", grupo: "Propietario", tipo: "texto", destinos: [...d("15", "domicilioVendedor"), ...d("20", "arrendadorDomicilio"), ...d("24", "vendedorDomicilio")] },
   { clave: "propietarioTelefono", etiqueta: "Teléfono del propietario", grupo: "Propietario", tipo: "texto", destinos: d("02", "telefono") },
   { clave: "propietarioCorreo", etiqueta: "Correo del propietario", grupo: "Propietario", tipo: "texto", destinos: d("02", "correo") },
   { clave: "apoderadoNombre", etiqueta: "Nombre del apoderado o representante", grupo: "Apoderado", tipo: "texto", destinos: [...d("01", "representante"), ...d("15", "representanteVendedor")] },
@@ -37,14 +37,14 @@ export const DATOS_EXPEDIENTE: DatoExpediente[] = [
 
   // Inmueble
   { clave: "inmuebleDomicilio", etiqueta: "Domicilio del inmueble", grupo: "Inmueble", tipo: "texto",
-    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19"].flatMap(formato => d(formato, "inmueble")) },
+    destinos: ["02", LEV, "05", "06", "07", "08", "09", "10", "11", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"].flatMap(formato => d(formato, "inmueble")) },
   { clave: "inmuebleTipo", etiqueta: "Tipo de inmueble", grupo: "Inmueble", tipo: "texto", ayuda: "Casa, departamento, terreno, oficina, local, nave o plaza.",
     destinos: [...d("02", "tipoInmueble"), ...d("10", "tipoInmueble"), { formato: "07", key: "tipoInmueble", transformar: valor => TIPO_INMUEBLE_DESDE_ENTREVISTA[String(valor)] ?? valor }] },
   { clave: "folioReal", etiqueta: "Folio real", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "folioReal"), ...d("09", "folioReal"), ...d("10", "folioReal"), ...d("14", "folioInmueble")] },
   { clave: "partida", etiqueta: "Partida registral", grupo: "Inmueble", tipo: "texto", destinos: d("14", "partida") },
-  { clave: "claveCatastral", etiqueta: "Clave catastral", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "claveCatastral"), ...d("07", "cuentaCatastral"), ...d("09", "claveCatastral"), ...d("10", "claveCatastral"), ...d("15", "claveCatastral")] },
-  { clave: "superficieTerreno", etiqueta: "Superficie de terreno (m²)", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "superficieTerreno"), ...d("07", "terreno"), ...d("10", "terreno")] },
-  { clave: "superficieConstruccion", etiqueta: "Superficie de construcción (m²)", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "superficieConstruccion", "superficieConstrucciones"), ...d("07", "construccion"), ...d("10", "construccion")] },
+  { clave: "claveCatastral", etiqueta: "Clave catastral", grupo: "Inmueble", tipo: "texto", destinos: [...d("05", "claveCatastral"), ...d("07", "cuentaCatastral"), ...d("09", "claveCatastral"), ...d("10", "claveCatastral"), ...d("15", "claveCatastral"), ...d("20", "claveCatastral"), ...d("21", "claveCatastral"), ...d("24", "claveCatastral")] },
+  { clave: "superficieTerreno", etiqueta: "Superficie de terreno (m²)", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "superficieTerreno"), ...d("07", "terreno"), ...d("10", "terreno"), ...d("20", "superficieTerreno"), ...d("24", "superficieTerreno")] },
+  { clave: "superficieConstruccion", etiqueta: "Superficie de construcción (m²)", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "superficieConstruccion", "superficieConstrucciones"), ...d("07", "construccion"), ...d("10", "construccion"), ...d("20", "superficieConstruccion"), ...d("24", "superficieConstruccion")] },
   { clave: "recamaras", etiqueta: "Recámaras", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "recamaras"), ...d("07", "recamaras"), ...d("10", "recamaras")] },
   { clave: "banos", etiqueta: "Baños completos", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "banos"), ...d("07", "banos"), ...d("10", "banos")] },
   { clave: "mediosBanos", etiqueta: "Medios baños", grupo: "Inmueble", tipo: "numero", destinos: [...d(LEV, "mediosBanos"), ...d("10", "mediosBanos")] },
@@ -52,8 +52,8 @@ export const DATOS_EXPEDIENTE: DatoExpediente[] = [
   { clave: "regimenPropiedad", etiqueta: "Régimen de propiedad", grupo: "Inmueble", tipo: "texto", ayuda: "Individual o condominio.", destinos: [...d("07", "regimen"), ...d("10", "regimen")] },
 
   // Escritura, registro y adeudos
-  { clave: "escritura", etiqueta: "Escritura o título de propiedad", grupo: "Escritura y registro", tipo: "texto", ayuda: "Número, fecha y notario, por ejemplo: escritura 12,345 del 2 de mayo de 2010, notaría 5 de Tijuana.", destinos: [...d("09", "titulo"), ...d("15", "titulo")] },
-  { clave: "inscripcion", etiqueta: "Inscripción en el Registro Público", grupo: "Escritura y registro", tipo: "texto", destinos: d("15", "inscripcion") },
+  { clave: "escritura", etiqueta: "Escritura o título de propiedad", grupo: "Escritura y registro", tipo: "texto", ayuda: "Número, fecha y notario, por ejemplo: escritura 12,345 del 2 de mayo de 2010, notaría 5 de Tijuana.", destinos: [...d("09", "titulo"), ...d("15", "titulo"), ...d("20", "tituloPropiedad"), ...d("24", "tituloPropiedad")] },
+  { clave: "inscripcion", etiqueta: "Inscripción en el Registro Público", grupo: "Escritura y registro", tipo: "texto", destinos: [...d("15", "inscripcion"), ...d("20", "datosRegistrales"), ...d("24", "datosRegistrales")] },
   { clave: "gravamenes", etiqueta: "Gravámenes o hipotecas", grupo: "Escritura y registro", tipo: "texto", ayuda: "Lo que dice el certificado de libertad de gravámenes; «ninguno» si está libre.", destinos: d("09", "gravamenes") },
   { clave: "predial", etiqueta: "Predial: cuenta, periodo y saldo", grupo: "Adeudos", tipo: "texto", destinos: d("05", "predial") },
   { clave: "agua", etiqueta: "Agua: cuenta, titular y saldo", grupo: "Adeudos", tipo: "texto", destinos: d("05", "agua") },

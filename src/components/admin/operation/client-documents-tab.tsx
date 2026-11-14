@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { PAPELERA } from "@/components/admin/papelera/textos";
-import { Camera, FileDown, FileText, Pencil, RotateCcw, Trash2, Upload } from "@/components/admin/icons";
+import { Camera, FileDown, FileText, Pencil, RotateCcw, Trash2, Upload, EMPTY_ART } from "@/components/admin/icons";
 import { Button, Card, EmptyBox, Pill } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { db, errorMessage, fetchJson as json, useCollection } from "@/lib/admin/store";
@@ -39,6 +39,9 @@ async function subir(operationId: string, file: File): Promise<ArchivoCliente> {
   const r = await json<{ archivo: ArchivoCliente }>(`/api/admin/expedientes/${operationId}/archivos/completar`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ticket: prepared.ticket }) });
   return r.archivo;
 }
+
+// C-36: cada selección de «Agregar documento» se sube una sola vez, aunque la pestaña se vuelva a montar.
+const recibidas = new WeakSet<object>();
 
 export function ClientDocumentsTab({ operationId, incoming }: { operationId: string; incoming?: { files: File[]; n: number } }) {
   const advisers = useCollection(db.asesores);
@@ -89,14 +92,15 @@ export function ClientDocumentsTab({ operationId, incoming }: { operationId: str
     try { setNotice(await leer(archivo)); } catch (cause) { setError(errorMessage(cause)); }
   }
 
-  // Lo elegido con «Agregar documento» (arriba de Documentos) se sube una sola vez.
-  const recibidos = React.useRef(0);
+  // Lo elegido con «Agregar documento» (arriba de Documentos) se sube una sola vez. Espera a que la
+  // lista responda (C-37): así se sabe si la lectura está activada; si la lista falla, se sube sin leer.
+  const listaLista = lista !== undefined;
   React.useEffect(() => {
-    if (!incoming || incoming.n === recibidos.current) return;
-    recibidos.current = incoming.n;
+    if (!incoming || !listaLista || recibidas.has(incoming)) return;
+    recibidas.add(incoming);
     void agregar(incoming.files);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando llega una nueva selección
-  }, [incoming]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- solo cuando llega una nueva selección y la lista ya respondió
+  }, [incoming, listaLista]);
   async function agregar(files: FileList | File[] | null) {
     const todos = Array.from(files ?? []);
     if (!todos.length) return;
@@ -166,7 +170,7 @@ export function ClientDocumentsTab({ operationId, incoming }: { operationId: str
 
     {lista === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando los documentos…</p>
       : lista === null ? <div className="flex items-center gap-3"><p className="text-sm">No se pudieron cargar los documentos.</p><Button onClick={() => void cargar()}>Reintentar</Button></div>
-      : !archivos.length ? <EmptyBox icon={<FileText size={28} aria-hidden="true" />} title="Todavía no hay documentos">Cuando subas los documentos del cliente aparecerán aquí.</EmptyBox>
+      : !archivos.length ? <EmptyBox art={{ icon: EMPTY_ART.documentos, kind: "subir" }} title="Todavía no hay documentos">Cuando subas los documentos del cliente aparecerán aquí.</EmptyBox>
       : <Card className="p-2" aria-label="Documentos guardados">
         <ul className="flex flex-col divide-y divide-border">{archivos.map(archivo => <li key={archivo.id} className="flex flex-wrap items-center gap-3 px-3 py-3">
           <FileText size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />

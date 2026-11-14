@@ -13,7 +13,7 @@ export const WORKFLOW_STATES = { activa: "Activa", pausada: "En pausa", regulari
 export const REVIEW_STATES = { pendiente: "Pendiente", recibido: "Recibido", revisado: "Revisado con soporte", observado: "Observado", no_aplica: "No aplica, justificado" } as const;
 export const WORKFLOW_REQUIREMENTS = {
  arrendatario: { label: "Arrendatario identificado y capacidad comprobada", formato: "12" },
- contrato_renta: { label: "Contrato de arrendamiento y condiciones acordadas", formato: "Contrato externo" },
+ contrato_renta: { label: "Contrato de arrendamiento y condiciones acordadas", formato: "20" },
  garantias_renta: { label: "Depósito y garantías según acuerdo, o no aplicabilidad justificada", formato: "Contrato y evidencias", noAplica: true },
  inventario_entrega: { label: "Inventario, estado físico, llaves y entrega acordados", formato: "16" },
  termino_renta: { label: "Término del encargo y obligaciones de seguimiento definidos", formato: "17" },
@@ -68,7 +68,14 @@ export type EntregaInforme = z.infer<typeof entregaInforme>;
   servidor anota quién y cuándo, y una firma corregida vuelve a quedar por revisar. No se borra:
   un contrato que se acaba se registra con su terminación.
 */
-export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta", mandato: "Asesoría o mandato" } as const;
+export const CONTRACT_TYPES = { intermediacion: "Intermediación (09)", intermediacion_renta: "Intermediación para renta (21)", mandato: "Asesoría o mandato" } as const;
+/** El formato que respalda un requisito en su ruta: en la renta del propietario, la intermediación es el 21 (no el 09) el arrendatario se respalda con su solicitud, el 22 (no el 12), y la entrega con el inventario de la renta, el 23 (no el 16). */
+export function requirementFormato(key: keyof typeof WORKFLOW_REQUIREMENTS, route?: string | null): string {
+  if (key === "intermediacion" && route === "arrendador") return "21";
+  if (key === "arrendatario" && route === "arrendador") return "22";
+  if (key === "inventario_entrega" && route === "arrendador") return "23";
+  return String(WORKFLOW_REQUIREMENTS[key].formato);
+}
 export const SIGNER_ROLES = { propietario: "Propietario", representante: "Representante o apoderado", fortius: "Por Fortius", otro: "Otra parte" } as const;
 type ContractType = keyof typeof CONTRACT_TYPES; type SignerRole = keyof typeof SIGNER_ROLES;
 const signer = z.object({ nombre: z.string().trim().min(3).max(160), parte: z.enum(Object.keys(SIGNER_ROLES) as [SignerRole, ...SignerRole[]]) }).strict();
@@ -288,7 +295,7 @@ export function workflowBlockers(flow: OperationWorkflow, target: WorkflowStage,
  return result;
 }
 
-/** Proceso de comercialización definido por el titular (PLAN_ERP_CRM.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
+/** Proceso de comercialización definido por el titular (ROADMAP.md, 15/10/2026). Se deriva de la etapa interna; no la sustituye. */
 export const SALE_PROCESS = [
  { key: "prospecto", slug: "prospecto", label: "Primer contacto", hace: "Registrar el primer contacto (llamada, mensaje, referido o redes): quién es, qué quiere, dónde está el inmueble y cuándo nos vemos.", para: "Atrapar rápido al prospecto y llegar preparados a la entrevista en persona.", etapas: ["captacion"] },
  { key: "captacion", slug: "entrevista-inicial", label: "Entrevista inicial", hace: "Entrevistar en persona al propietario con el formato 02: motivo, precio que desea, situación del inmueble; entregar el aviso de privacidad y pedir la lista de documentos.", para: "Conocer a fondo al propietario y su inmueble antes de revisar documentos y valor.", etapas: ["captacion"] },

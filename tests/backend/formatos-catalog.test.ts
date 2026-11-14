@@ -3,8 +3,8 @@ import { FORMATOS, formatoById, validateFormato } from "@/lib/formatos/catalog";
 
 describe("catálogo de formatos exclusivos", () => {
   it("incluye cada original una sola vez y conserva los siete levantamientos", () => {
-    expect(FORMATOS).toHaveLength(25);
-    expect(new Set(FORMATOS.map((formato) => formato.id)).size).toBe(25);
+    expect(FORMATOS).toHaveLength(30);
+    expect(new Set(FORMATOS.map((formato) => formato.id)).size).toBe(30);
     expect(FORMATOS.filter((formato) => /^04[A-G]$/.test(formato.id))).toHaveLength(7);
     expect(FORMATOS.filter((formato) => formato.source.endsWith(".xlsx"))).toHaveLength(4);
   });
@@ -22,7 +22,7 @@ describe("catálogo de formatos exclusivos", () => {
   it("dirige el 03 al tablero global y excluye campos preliminares por expediente",()=>{expect(formatoById("03").globalRoute).toBe("/admin/control-comercial");expect(formatoById("03").fields).toEqual([]);});
 
   it("solo marca listo para emitir un formato cotejado con su original", () => {
-    expect(FORMATOS.filter((formato) => formato.readyForEmission).map((formato) => formato.id)).toEqual(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]);
+    expect(FORMATOS.filter((formato) => formato.readyForEmission).map((formato) => formato.id)).toEqual(["01", "02", "04A", "04B", "04C", "04D", "04E", "04F", "04G", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"]);
   });
 
   it("valida presupuesto, forma de pago y evidencia del crédito del comprador", () => {

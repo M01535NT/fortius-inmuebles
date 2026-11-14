@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { operationTags } from "@/lib/admin/operation-view";
 import { discardReasonOf } from "@/lib/formatos/operation-workflow";
 import { LAWYER_TASK } from "@/lib/intake/condition";
-import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseGap, problemOf, stageDocuments, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
+import { advanceTarget, attentionOf, boardCard, contractLocked, currentRequirements, dueLabel, encodeProblem, initialStatus, itemCounted, itemDone, missingItems, nowItem, pastGaps, phaseFormats, phaseGap, problemOf, stageDocuments, stageItems, stageTrack, requirementDetail, routeStages, stageTools, type OperationRecord } from "@/lib/admin/operation-view";
 import { emptyWorkflow, processStageText, requiredReviews, type OperationWorkflow, type RequirementKey } from "@/lib/formatos/operation-workflow";
 import type { Task } from "@/lib/tasks";
 
@@ -31,7 +31,7 @@ test("el prospecto pasa a entrevista inicial al iniciar el 02 y no avanza sin su
   const started = op({ inicial: { iniciada: true }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(started, today)).toMatchObject({ current: 1, phase: "captacion" });
   expect(advanceTarget(started, today)).toEqual({ label: "Levantamiento" });
-  expect(missingItems(started, [task()], today).map(m => m.text)).toEqual(["Terminar la entrevista inicial (02)"]);
+  expect(missingItems(started, [task()], today).map(m => m.text)).toEqual(["Terminar la entrevista inicial"]);
   expect(missingItems({ ...started, inicial: { iniciada: true, emitida: true } }, [task()], today).map(m => m.text)).toEqual(["Iniciar el levantamiento"]);
 });
 
@@ -56,7 +56,7 @@ test("levantamiento y checklist de documentos llevan a verificación solo con to
   const surveying = op({ inicial: { iniciada: true, emitida: true, levantamiento: "borrador" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(surveying, today)).toMatchObject({ current: 2, phase: "levantamiento" });
   expect(advanceTarget(surveying, today)).toEqual({ label: "Lista de documentos" });
-  expect(missingItems(surveying, [task()], today).map(m => m.text)).toEqual(["Terminar el levantamiento (04)"]);
+  expect(missingItems(surveying, [task()], today).map(m => m.text)).toEqual(["Terminar el levantamiento"]);
   expect(missingItems({ ...surveying, inicial: { ...surveying.inicial, levantamiento: "emitido" } }, [task()], today).map(m => m.text)).toEqual(["Iniciar la lista de documentos"]);
   const collecting = op({ inicial: { iniciada: true, emitida: true, levantamiento: "emitido", documentos: "pendiente" }, flujo: flow({ entrevista: reviewed(), levantamiento: reviewed() }) });
   expect(routeStages(collecting, today)).toMatchObject({ current: 3, phase: "documentos" });
@@ -194,9 +194,10 @@ test("cada etapa ofrece su documento; de la publicación al cierre no detienen y
   expect(stageDocuments("levantamiento", "captacion").find(item => item.formato === "19")?.optional).toBe(true);
   expect(formatos("publicacion", "captacion")).toEqual(["11"]);
   expect(formatos("visitas", "captacion")).toEqual(["12", "13", "14"]);
-  expect(formatos("cierre", "captacion")).toEqual(["15", "16", "17", "18"]);
-  expect(formatos("visitas", "arrendador")).toEqual(["13"]);
-  expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18"]);
+  expect(formatos("cierre", "captacion")).toEqual(["15", "24", "16", "17", "18"]);
+  // C-28: en la renta, la selección del arrendatario ofrece la solicitud (22) y la entrega el inventario (23).
+  expect(formatos("visitas", "arrendador")).toEqual(["22", "13"]);
+  expect(formatos("cierre", "arrendador")).toEqual(["16", "17", "18", "20", "23"]);
   expect(stageDocuments("cierre", "captacion").every(item => item.optional)).toBe(true);
 });
 
@@ -236,6 +237,13 @@ test("la renta del propietario sigue su propio camino y nombra igual sus etapas 
   expect(routeStages(rent("documentacion", { titularidad: reviewed() }), today).phase).toBe("verificacion");
   expect(stageDocuments("dictamen", "arrendador")).toEqual([{ formato: "05", optional: true }]);
   expect(stageDocuments("verificacion", "arrendador").map(d => d.formato)).toEqual(["07"]);
+  // DOC-14: el contrato de arrendamiento (20) va en el cierre de la renta, opcional; nunca en la venta.
+  expect(stageDocuments("cierre", "arrendador")).toContainEqual({ formato: "20", optional: true });
+  expect(stageDocuments("cierre", "captacion").map(d => d.formato)).not.toContain("20");
+  // La intermediación de la renta es el 21, obligatorio como el 09 en la venta; el 09 no aparece en la renta.
+  expect(stageDocuments("contrato", "arrendador")).toEqual([{ formato: "21" }, { formato: "10" }]);
+  expect(stageDocuments("contrato", "captacion")).toEqual([{ formato: "09" }, { formato: "10" }]);
+  expect(phaseFormats("contrato", "arrendador")).toEqual(["21", "10"]);
   expect(advanceTarget(rent("documentacion", { titularidad: reviewed() }), today)).toEqual({ label: "Intermediación para renta" });
   // Lo que falta se dice con palabras de renta.
   expect(missingItems(rent("documentacion", { titularidad: reviewed() }), [task()], today).map(m => m.text)).toEqual(["Opinión de renta con comparables", "Renta acordada con el propietario", "Registrar si tomas el encargo"]);

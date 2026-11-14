@@ -21,7 +21,7 @@ El acceso al panel requiere autenticación y una membresía activa. Los permisos
 
 Producción se despliega desde `main` en el proyecto Vercel `fortius-inmuebles`, conectado al repositorio público [`M01535NT/fortius-inmuebles`](https://github.com/M01535NT/fortius-inmuebles). El dominio principal es `https://fortiusinmuebles.com`; `www` y los aliases públicos de Fortius redirigen a ese dominio.
 
-Los fundamentos ERP/CRM están integrados. El desarrollo del sistema completo, sus fases, decisiones y avance se concentran en [PLAN_ERP_CRM.md](PLAN_ERP_CRM.md), el único plan vigente.
+Los fundamentos ERP/CRM están integrados. El desarrollo del sistema completo, sus fases, decisiones y avance se concentran en [ROADMAP.md](ROADMAP.md), el único plan vigente.
 
 La recepción pública de prospectos permanece desactivada. Los inmuebles y documentos demo no acreditan inventario, precios ni condiciones comerciales vigentes. El formato 09 permite preparar información; la emisión del contrato permanece bloqueada por falta de cotejo del modelo y sus registros aplicables. Consulta [el estado de los formatos](docs/formatos-admin-status.md).
 
@@ -114,7 +114,7 @@ La interfaz pública incluye un menú a pantalla completa, navegación por servi
 
 ## Documentación
 
-- [Plan único del ERP/CRM](PLAN_ERP_CRM.md): alcance, orden de implementación, tareas y avance.
+- [Plan único del ERP/CRM](ROADMAP.md): alcance, orden de implementación, tareas y avance.
 - [Manuales y referencias vigentes](docs/README.md): operación del panel, formatos, marca, despliegue, recuperación y fuentes.
 
 Los planes, auditorías y archivos temporales anteriores se retiraron del área de trabajo con una copia local recuperable fuera del repositorio. Las migraciones y pruebas conservan identificadores históricos que siguen siendo necesarios para compatibilidad y recuperación.

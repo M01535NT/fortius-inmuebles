@@ -157,7 +157,9 @@ export function promesaParagraphs(data: Record<string, unknown>): string[] {
   // demás (vendedor, comprador…). La emisión valida antes, de modo que el PDF no cambia.
   const dayOf = (value: string) => { const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00Z`) : null; return date && !Number.isNaN(date.getTime()) ? new Intl.DateTimeFormat("es-MX", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(date) : ""; };
   const day = (key: string) => dayOf(v(key));
-  const cash = (key: string) => formatAmount(data[key] as number);
+  // C-32: un importe aún sin capturar queda en blanco, no «NaN».
+  const amount = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? formatAmount(value) : "";
+  const cash = (key: string) => amount(data[key]);
   const letters = (key: string) => { try { return importePromesaLetra(data[key] as number, v("moneda")); } catch { return ""; } };
   const list = (key: string, format: (row: PromesaRow) => string) => (rows(data[key]) ?? []).map((row, index) => `${index + 1}) ${format(row)}`).join("; ");
   const rowDay = (value: unknown) => dayOf(String(value ?? "").trim());
@@ -174,7 +176,7 @@ export function promesaParagraphs(data: Record<string, unknown>): string[] {
     "RECURSOS PROPIOS Y FINANCIAMIENTO": `${cash("recursosPropios")} ${v("moneda")} de recursos propios y ${cash("credito")} ${v("moneda")} de crédito`, "ESTADO DEL CRÉDITO": (data.credito as number) > 0 ? v("estadoCredito") : "no se prevé crédito",
     "ANEXOS INCORPORADOS": list("anexos", (row) => `${row.documento}, versión ${row.version}, ${row.referencia}`), "ACCESORIOS INCLUIDOS": v("accesorios"), EXCLUSIONES: v("exclusiones"), "FECHA LÍMITE": day("fechaLimite"),
     "PRECIO NÚMERO": cash("precio"), MONEDA: v("moneda"), "PRECIO LETRA": letters("precio"), "TRATAMIENTO FISCAL": v("tratamientoFiscal"), "REGLA DE CONVERSIÓN": data.conversion === "si" ? v("reglaConversion") : "el pago en la moneda pactada, sin conversión",
-    "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": list("pagosPrecio", (row) => `${formatAmount(row.importe as number)} ${v("moneda")} el ${rowDay(row.fecha)}, por ${row.medio}, a ${row.beneficiario}, ${row.cuenta}`),
+    "CALENDARIO, IMPORTES, MEDIO Y BENEFICIARIO DE PAGO": list("pagosPrecio", (row) => `${amount(row.importe)} ${v("moneda")} el ${rowDay(row.fecha)}, por ${row.medio}, a ${row.beneficiario}, ${row.cuenta}`),
     "FECHA CONDICIONES": day("fechaCondiciones"), "CONDICIONES, RESPONSABLES Y EVIDENCIA": list("condiciones", (row) => `${row.condicion}; responsable: ${row.responsable}; evidencia: ${row.evidencia}`),
     INSTITUCIÓN: v("institucionCredito"), "FECHA SOLICITUD": data.condicionCredito === "si" ? day("fechaSolicitud") : "no aplica",
     "DOCUMENTOS Y FECHA DE ENTREGA": list("documentosVendedor", (row) => `${row.documento}, a más tardar el ${rowDay(row.fecha)}`), "MECANISMO DE LIQUIDACIÓN Y CANCELACIÓN": v("mecanismoGravamenes"),

@@ -10,6 +10,7 @@ import { useOperationFormats } from "@/components/admin/operation/use-operation-
 import { followupLabel, overdueFollowups, projectFollowups } from "@/lib/admin/followups";
 import { clientStatus } from "@/lib/admin/person-status";
 import { PageHeader } from "@/components/admin/ui";
+import { Silhouette } from "@/components/admin/workspace/silhouette";
 import { apiRequest, db, useCollection, useLoadState, useSession } from "@/lib/admin/store";
 import { commercialMetrics, type StageRecord } from "@/lib/admin/commercial-metrics";
 import { operationalDate } from "@/lib/admin/operational-date";
@@ -18,7 +19,6 @@ import { checklistTaskId } from "@/lib/formatos/checklist-documentos";
 import { longDate } from "@/lib/admin/today";
 import { humanDate } from "@/lib/utils";
 import { isShared, sharedCommissionEstimate } from "@/lib/admin/shared-property";
-import { EXPEDIENTE_ETAPAS } from "@/lib/formatos/expediente-operations";
 import s from "@/components/admin/workspace/reports.module.css";
 
 type ReportRecord = StageRecord & Partial<OperationRecord>;
@@ -57,7 +57,7 @@ export default function ReportesPage() {
   if (session?.role !== "admin") return <p role="alert" className="rounded-md border border-border p-6">Los reportes son solo para administradores.</p>;
   const states = [leadState, clientState, propertyState, taskState, adviserState];
   if (states.some(state => state.status === "error")) return <p role="alert" className="rounded-md border border-destructive p-6">No se pudieron cargar los datos del reporte. Revisa la conexión y recarga la página.</p>;
-  if (states.some(state => !state.loaded) || expedientStatus === "loading") return <p role="status" className="p-6">Cargando reportes…</p>;
+  if (states.some(state => !state.loaded) || expedientStatus === "loading") return <Silhouette label="Cargando reportes…" />;
   if (expedientStatus === "error") return <p role="alert" className="rounded-md border border-destructive p-6">{error}</p>;
   const today = operationalDate();
   // PUB-02 (RP-95): la comisión de un compartido es una estimación; no se suma a nada ni es lo cobrado.
@@ -69,17 +69,12 @@ export default function ReportesPage() {
     const client = clientes.find(item => (item.id === lead.clienteId || item.leadId === lead.id) && clientStatus(item.id, expedientes) !== "prospecto");
     return client ? [{ id: lead.id, name: lead.nombre, href: client ? `/admin/clientes/${encodeURIComponent(client.id)}` : `/admin/leads/${encodeURIComponent(lead.id)}` }] : [];
   });
-  // Mismo nombre de etapa que en Operaciones; un registro sin tipo de operación conserva su etapa guardada.
+  // SIM-04 (C12): el mismo nombre y número de etapa que la lista de Operaciones, también para un registro sin tipo de operación.
   const stageCounts = new Map<string, { n: number; count: number }>();
   for (const record of expedientes) {
-    let label: string, n: number;
-    if (record.operacion) {
-      const view = { ...record, inicial: initialStatus(formats.get(record.id), tareas.find(t => t.id === checklistTaskId(record.id))) } as OperationRecord;
-      const { stages, current } = stageTrack(view, today);
-      label = stages[current]?.label ?? "Sin etapa"; n = current + 1;
-    } else {
-      label = record.etapa ? EXPEDIENTE_ETAPAS[record.etapa as keyof typeof EXPEDIENTE_ETAPAS] ?? record.etapa : "Sin etapa"; n = 99;
-    }
+    const view = { ...record, inicial: initialStatus(formats.get(record.id), tareas.find(t => t.id === checklistTaskId(record.id))) } as OperationRecord;
+    const { stages, current } = stageTrack(view, today);
+    const label = stages[current]?.label ?? "Sin etapa", n = current + 1;
     const entry = stageCounts.get(label) ?? { n, count: 0 };
     stageCounts.set(label, { n: Math.min(entry.n, n), count: entry.count + 1 });
   }

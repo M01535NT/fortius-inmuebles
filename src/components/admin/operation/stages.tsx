@@ -1,8 +1,8 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { AlertCircle, Check, ChevronLeft, ChevronRight, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone } from "@/components/admin/icons";
-import { Button, ButtonLink, Pill, Sheet } from "@/components/admin/kit";
+import { AlertCircle, Check, ChevronLeft, ChevronRight, docIcon, FileDown, FileText, Mail, MessageCircle, MoreHorizontal, Phone, stageIcon } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, IconTile, Pill, Sheet } from "@/components/admin/kit";
 import { flowOf, isGuided, phaseFormats, pastGaps, stageDocuments, stageTrack, type OperationRecord, type TrackStage } from "@/lib/admin/operation-view";
 import { checklistTaskId, pasoCompleto } from "@/lib/formatos/checklist-documentos";
 import type { SalePhase } from "@/lib/formatos/operation-workflow";
@@ -40,8 +40,6 @@ function fixGap(key: SalePhase, docs: DocumentsController, checklist: Task | und
   if (formato) void docs.start(formato);
 }
 
-/** Las iniciales de una persona, para su círculo. */
-export const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join("").toUpperCase();
 
 /**
   Panel azul de la operación (LV-06 «Moderno», 31/10/2026): regreso y folio, quién y qué quiere, el
@@ -88,7 +86,7 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
     </div>
     {guided && here && <div className={s.stageHead}>
       <div className={s.bigRow}><span className={s.bigNum}>{two(current + 1)}</span><span className={s.ofTen}>/{stages.length}</span></div>
-      <p className={s.stageTitle}>{here.label}</p>
+      <p className={s.stageTitle}>{React.createElement(stageIcon(here, current), { size: 26, "aria-hidden": true, className: s.stageTitleIcon })}{here.label}</p>
       <p className={cn(s.onNavyMuted, "text-sm")}>Etapa {current + 1} de {stages.length}</p>
     </div>}
     {guided && !compact && <ol aria-label="Etapas" className={s.stages}>{stages.map((stage, i) => {
@@ -111,7 +109,7 @@ export function StagePanel({ op, today, docs, checklist, compact, back, who, tag
     {guided && !compact && <button type="button" className={s.navyLink} onClick={() => onOpenStages()}>Ver etapas<ChevronRight size={16} aria-hidden="true" /></button>}
     {children}
     {person && <div className={s.owner}>
-      <span className={s.ownerAvatar} aria-hidden="true">{initialsOf(person.name)}</span>
+      <Avatar name={person.name} size={44} onDark />
       <span className="flex min-w-0 flex-1 flex-col"><Link href={person.href} className={s.ownerName}>{person.name}</Link><span className={cn(s.onNavyMuted, "text-sm")}>{person.role}</span></span>
       {person.digits ? <>
         <a href={`tel:${person.digits}`} className={s.round} aria-label={`Llamar a ${person.name}`}><Phone size={18} aria-hidden="true" /></a>
@@ -164,7 +162,7 @@ export function StagesSheet({ op, today, docs, checklist, focus, onClose }: { op
           return <li key={stage.n}>
             <p tabIndex={-1} data-stage={stage.key} className={s.stageRow} data-state={now ? "now" : gap ? "warn" : done ? "done" : "next"}>
               <span className={s.dot} data-state={now ? "now" : gap ? "warn" : done ? "done" : "next"} aria-hidden="true">{now ? stage.n : gap ? "!" : done ? <Check size={13} strokeWidth={3} /> : stage.n}</span>
-              <span className="min-w-0 flex-1">{stage.n} · {stage.label}</span>
+              {React.createElement(stageIcon(stage, i), { size: 18, "aria-hidden": true, className: "shrink-0 text-muted-foreground" })}<span className="min-w-0 flex-1">{stage.n} · {stage.label}</span>
               {now && <Pill tone="brand" size="sm">Aquí vas</Pill>}
               {gap && <Pill tone="warn" size="sm">{gap}</Pill>}
             </p>
@@ -185,7 +183,7 @@ export function DocumentsByStage({ docs, folio }: { docs: DocumentsController; f
   return <ul className={s.items}>{sorted.map(doc => {
     const pdf = docs.pdfOf(doc), latest = docs.latest(doc.formato_id.startsWith("04") ? "04" : doc.formato_id)?.id === doc.id;
     return <li key={doc.id} className={s.item}><div className={s.itemMain}>
-      <FileText size={20} aria-hidden="true" className="shrink-0 text-muted-foreground" />
+      <IconTile icon={docIcon(doc.formato_id)} size={36} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="font-semibold [overflow-wrap:anywhere]">{formatTitle(doc.formato_id.startsWith("04") ? "04" : doc.formato_id, doc)}</span>
         <span className="text-sm text-muted-foreground">Versión {doc.version}{pdf ? " · con PDF" : ""}{latest ? "" : " · borrador anterior"}</span>

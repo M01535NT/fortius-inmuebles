@@ -43,7 +43,7 @@ export async function asegurarReciboUnico<T extends Draft>(client: SupabaseClien
     const propio = numero(actual);
     if (!todos.some(otro => otro.id !== actual.id && numero(otro) === propio && antes(otro, actual))) return actual;
     const data = { ...(actual.data ?? {}), numeroRecibo: siguienteRecibo(folio, todos.map(numero).filter(Boolean)) };
-    const result = await client.from("fortius_inmuebles_formato_drafts").update({ data }).eq("id", actual.id).eq("version", actual.version).select(COLUMNAS).maybeSingle();
+    const result = await client.from("fortius_inmuebles_formato_drafts").update({ data, version: actual.version + 1 }).eq("id", actual.id).eq("version", actual.version).select(COLUMNAS).maybeSingle();
     if (result.error) databaseError(result.error);
     // Alguien ya lo editó: se deja como está; su número lo resuelve quien lo editó.
     if (!result.data) return actual;

@@ -1,6 +1,6 @@
 # Manuales y referencias de Fortius
 
-El desarrollo del ERP/CRM se dirige únicamente desde [PLAN_ERP_CRM.md](../PLAN_ERP_CRM.md). Esta carpeta conserva material de consulta y operación; los planes e informes anteriores están en una copia recuperable fuera del repositorio.
+El desarrollo del ERP/CRM se dirige únicamente desde [ROADMAP.md](../ROADMAP.md). Esta carpeta conserva material de consulta y operación; los planes e informes anteriores están en una copia recuperable fuera del repositorio.
 
 | Tema | Referencia |
 |---|---|

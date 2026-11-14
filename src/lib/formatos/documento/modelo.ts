@@ -91,6 +91,8 @@ export function dinero(value: unknown, moneda?: unknown): string {
   const amount = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
   return `$${amount}${moneda ? ` ${String(moneda)}` : ""}`;
 }
+/** «ninguno» o equivalente: el contrato no menciona accesorios. */
+export const sinAccesorios = (value: unknown) => typeof value === "string" && /^\s*ningun[oa]?s?\s*\.?\s*$/i.test(value);
 /** Respuesta de formulario: el dato o la celda vacía para escribir a mano. */
 export function a(value: unknown): string {
   if (value === undefined || value === null) return "";

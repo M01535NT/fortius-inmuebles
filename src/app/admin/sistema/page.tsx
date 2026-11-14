@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ArrowRight, Columns3 } from "@/components/admin/icons";
+import { ArrowRight, EMPTY_ART } from "@/components/admin/icons";
 import { useSession } from "@/lib/admin/store";
 import { SALE_PROCESS } from "@/lib/formatos/operation-workflow";
 import { Button, Card, EmptyBox, Eyebrow, Notice, Segmented, Sheet, StageProgress, StatusChip, Surface, Tabs, TabPanel } from "@/components/admin/kit";
@@ -54,8 +54,8 @@ export default function SistemaPage() {
         <Notice title="Ya tenemos a alguien con ese teléfono" actions={<><Button>Sí, es la misma persona</Button><Button variant="ghost">No, es otra persona</Button></>}>Ramón Félix Arce · Prospecto desde marzo de 2026.</Notice>
         <Card className="flex flex-col gap-3 p-6"><Eyebrow as="h3">Próxima tarea</Eyebrow><p className="font-semibold">Llamar para agendar la opinión de valor</p><Button variant="secondary" className="self-start" onClick={() => setSheet(true)}>Abrir panel «Revisado»</Button></Card>
         <div className="grid gap-5 sm:grid-cols-2">
-          <EmptyBox title="Nada espera por ti">Todas tus operaciones van al día.</EmptyBox>
-          <EmptyBox icon={<Columns3 size={28} aria-hidden="true" />} title="Aún no hay operaciones en esta etapa" action={<Button>Nueva operación</Button>} />
+          <EmptyBox art={{ icon: EMPTY_ART.tareas, kind: "listo" }} title="Nada espera por ti">Todas tus operaciones van al día.</EmptyBox>
+          <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Aún no hay operaciones en esta etapa" action={<Button>Nueva operación</Button>} />
         </div>
       </div>
     </section>

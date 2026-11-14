@@ -56,11 +56,19 @@
   --shadow-control: none;
   --shadow-raised: 0 12px 32px rgba(6, 31, 63, .14);
   --ease-out: cubic-bezier(.16, 1, .3, 1);
+  /*
+    Cinco colores de estado (RP-70, LV-01, 13/11/2026), cada uno con superficie y borde, AA sobre
+    tarjeta, fondo y su superficie: guinda (--primary) acción principal; azul (--info) información
+    y agenda; verde (--success) listo o revisado; ámbar (--warning) atención; rojo (--destructive,
+    alias --alert) vencido o error. Ningún otro color comunica estado.
+  */
   --success: #1f7a4d;
   --success-surface: #e4f3ea;
+  --success-border: rgba(31, 122, 77, .4);
   --info: #174f94;
   --info-surface: #e6eef9;
-  --alert: #b3352c;
+  --info-border: rgba(23, 79, 148, .4);
+  --alert: var(--destructive);
   --alert-surface: #fff0ed;
   --field-surface: #ffffff;
   --field-radius: var(--radius-control);
@@ -93,9 +101,13 @@
   --shadow-raised: 0 12px 32px rgba(0, 0, 0, .45);
   --success: #5fd39a;
   --success-surface: #15311f;
+  --success-border: rgba(95, 211, 154, .4);
   --info: #aacfff;
   --info-surface: #16294a;
-  --alert: #ff8a7a;
+  --info-border: rgba(170, 207, 255, .4);
+  /* Un solo rojo en el panel oscuro: #e2564b daba 4.16:1 sobre su superficie; este da 6.7:1. */
+  --destructive: #ff8a7a;
+  --alert: var(--destructive);
   --alert-surface: #3a1c1a;
 }
 

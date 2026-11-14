@@ -2,11 +2,11 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronRight, Columns3, List, Search } from "@/components/admin/icons";
-import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, Pill, Segmented, Surface, Thumb } from "@/components/admin/kit";
+import { Building2, ChevronRight, Columns3, List, Search, stageIcon, type PanelIcon, EMPTY_ART } from "@/components/admin/icons";
+import { Avatar, Button, ButtonLink, Card, CardLink, EmptyBox, IconTile, Pill, ProgressRing, Segmented, Surface, Thumb } from "@/components/admin/kit";
 import { inputClass } from "@/components/admin/ui";
 import { confirmAction } from "@/components/admin/workspace/confirm";
-import { useBrowserPreference } from "@/components/admin/workspace/browser-preference";
+import { usePanelPreference } from "@/components/admin/workspace/preferences-store";
 import { apiRequest, db, errorMessage, fetchJson as json, loadAllDossiers, useCollection, useSession } from "@/lib/admin/store";
 import { operationalDate } from "@/lib/admin/operational-date";
 import { RENT_PROCESS, SALE_PROCESS } from "@/lib/formatos/operation-workflow";
@@ -32,7 +32,7 @@ import s from "./board.module.css";
 
 const normalize = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const VERB: Record<string, string> = { captacion: "Vende", arrendador: "Renta su inmueble", compra: "Compra", arrendatario: "Busca una renta", inversion: "Invierte" };
-type Row = { op: OperationRecord; who: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string; tags: string[] };
+type Row = { op: OperationRecord; who: string; meta: string; photo?: string; adviser?: string; n: number; total: number; stage: string; icon: PanelIcon; gapAt: Set<number>; next: string; date?: string; late: boolean; attention: Attention | null; mine: boolean; href: string; tags: string[] };
 /** Etapas presentes entre las operaciones, en su orden (las de venta y las de cada ruta conviven). */
 function stagesOf(rows: Row[]) {
   const seen = new Map<string, number>();
@@ -48,7 +48,10 @@ export function OperationsBoard() {
   const admin = session?.role === "admin";
   const deleted = params.get("eliminadas") === "1";
   const clients = useCollection(db.clientes), properties = useCollection(db.propiedades), tasks = useCollection(db.tareas), advisers = useCollection(db.asesores);
-  const [view, setView] = useBrowserPreference<View>(`fortius:operaciones:vista:${session?.id ?? "anon"}`, "lista", asView);
+  // UX-02: la vista sigue al usuario en cualquier equipo; lo que este navegador recordaba se sube una vez.
+  const legacyView = React.useMemo(() => ({ key: `fortius:operaciones:vista:${session?.id ?? "anon"}`, parse: (raw: string) => { try { return asView(JSON.parse(raw)); } catch { return undefined; } } }), [session?.id]);
+  const { value: view, save: saveView, error: viewError } = usePanelPreference("operacionesVista", "lista", legacyView);
+  const setView = (next: View) => { void saveView(next); };
   const today = operationalDate();
   const [records, setRecords] = React.useState<OperationRecord[] | null | undefined>(undefined);
   const [error, setError] = React.useState("");
@@ -100,7 +103,7 @@ export function OperationsBoard() {
     return {
       op, who: card.who, meta: [VERB[flow.ruta] ?? "", card.property].filter(Boolean).join(" · "),
       photo: op.propiedad_slug ? properties.find(p => p.slug === op.propiedad_slug)?.galeria[0]?.src : undefined, adviser: advisers.find(a => a.id === op.asesor_id)?.nombre,
-      n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", gapAt: new Set(gaps.map(g => g.n)),
+      n: current + 1, total: stages.length, stage: stages[current]?.label ?? "", icon: stageIcon(stages[current], current), gapAt: new Set(gaps.map(g => g.n)),
       next: card.next, date: card.date, late: card.late, attention: attentionOf(view, tasks, today, gaps[0]?.gap, !!recentOfferOf(op.id, offers, today)), mine: card.mine, href: card.href,
       tags: operationTags(op, conditions.ofOperation(op.id)),
     };
@@ -143,10 +146,11 @@ export function OperationsBoard() {
     </header>
     {error && <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 text-sm text-destructive"><span>{error}</span>{records === null && <Button onClick={() => setAttempt(n => n + 1)}>Reintentar</Button>}</div>}
     {notice && <p role="status" className="mb-4 text-sm">{notice}</p>}
+    {viewError && <p role="alert" className="mb-4 text-sm text-destructive">{viewError}</p>}
 
     {deleted ? <DeletedList records={records} names={names} onRestore={op => void restore(op)} />
       : records === undefined ? <p role="status" className="text-sm text-muted-foreground">Consultando operaciones…</p>
-      : records !== null && records.length === 0 ? <EmptyBox title="Todavía no hay operaciones" steps={["Atiende a la persona con «Nueva operación».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: la operación se crea sola y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nueva operación</ButtonLink>}>Una operación reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
+      : records !== null && records.length === 0 ? <EmptyBox art={{ icon: EMPTY_ART.operaciones, kind: "empezar" }} title="Todavía no hay operaciones" steps={["Atiende a la persona con «Nueva operación».", "Elige qué quiere hacer: vender, comprar o rentar.", "Termina la entrevista: la operación se crea sola y te dice qué sigue."]} action={<ButtonLink variant="primary" href="/admin/operaciones/nueva">Nueva operación</ButtonLink>}>Una operación reúne a un cliente, su inmueble y cada paso hasta el cierre.</EmptyBox>
       : records !== null && <>
         <div className={s.toolbar}>
           <div data-tour="op-filtros" className={s.filters} role="group" aria-label="Etapa">
@@ -193,7 +197,7 @@ function OperationGroup({ id, title, rows, today, empty }: { id: string; title: 
       <ul className="m-0 list-none p-0">{rows.map(row => <li key={row.op.id} className={s.rowItem}><Link href={row.href} className={s.row} aria-label={`${row.who}. Etapa ${row.n} de ${row.total}, ${row.stage}.${row.attention ? ` ${row.attention.label}.` : ""}${row.tags.length ? ` ${row.tags.join(". ")}.` : ""} Sigue: ${row.next}. ${dueLabel(row.date, today)}`}>
         <span className={s.who}><Thumb src={row.photo} size={48} icon={<Building2 size={20} aria-hidden="true" />} /><span className={s.whoText}><strong>{row.who}</strong><span>{row.meta}</span></span></span>
         <span className="flex min-w-0 flex-col gap-1.5">
-          <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}>{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>
+          <span className="flex flex-wrap items-center gap-2"><span className={s.stageText}><IconTile icon={row.icon} size={28} />{row.n} de {row.total} · {row.stage}</span>{row.attention && <span className={s.reason} data-late={row.attention.late || undefined}>{row.attention.label}</span>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>
           <span className={s.bar} style={{ gridTemplateColumns: `repeat(${row.total}, minmax(0, 1fr))` }} aria-hidden="true">{Array.from({ length: row.total }, (_, i) => <span key={i} data-state={row.gapAt.has(i + 1) ? "warn" : i < row.n ? "on" : undefined} />)}</span>
         </span>
         <span className="min-w-0 text-[0.9375rem] text-muted-foreground [overflow-wrap:anywhere]"><span className={s.mobileLabel}>Sigue: </span>{row.next}</span>
@@ -218,7 +222,8 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
             {(row.attention || row.tags.length > 0) && <span className="flex flex-wrap gap-1.5 self-start">{row.attention && <Pill tone={row.attention.late ? "alert" : "warn"} size="sm">{row.attention.label}</Pill>}{row.tags.map(tag => <Pill key={tag} tone="warn" size="sm">{tag}</Pill>)}</span>}
             <strong className="[overflow-wrap:anywhere]">{row.who}</strong>
             <span className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{row.meta}</span>
-            <span className="text-sm [overflow-wrap:anywhere]"><span className="text-muted-foreground">{row.n} de {row.total} · </span>{row.next}</span>
+            <span className={s.cardStage}><IconTile icon={row.icon} size={28} /><ProgressRing value={row.n} max={row.total} size={32} /></span>
+            <span className="text-sm [overflow-wrap:anywhere]">{row.next}</span>
             <span className={s.cardFoot}><DuePill date={row.date} late={row.late} today={today} />{row.adviser && <Avatar name={row.adviser} size={26} />}</span>
           </span>
         </CardLink>)}
@@ -229,7 +234,7 @@ function PhaseBoard({ rows, today }: { rows: Row[]; today: string }) {
 
 function DeletedList({ records, names, onRestore }: { records: OperationRecord[] | null | undefined; names: { client: (id?: string) => string | undefined; property: (slug?: string | null) => string | undefined }; onRestore: (op: OperationRecord) => void }) {
   if (records === undefined) return <p role="status" className="text-sm text-muted-foreground">Consultando operaciones eliminadas…</p>;
-  if (!records?.length) return records === null ? null : <EmptyBox title="No hay operaciones eliminadas">Cuando elimines una operación aparecerá aquí y podrás restaurarla.</EmptyBox>;
+  if (!records?.length) return records === null ? null : <EmptyBox art={{ icon: EMPTY_ART.papelera, kind: "listo" }} title="No hay operaciones eliminadas">Cuando elimines una operación aparecerá aquí y podrás restaurarla.</EmptyBox>;
   return <><p className="mb-3 text-sm text-muted-foreground">Se conservan con sus documentos y tareas. Restaurar las devuelve a Operaciones.</p><Card as="div" className="overflow-hidden"><ul className="m-0 list-none p-0">{records.map(op => <li key={op.id} className={s.deletedRow}>
     <span className="flex min-w-0 flex-col gap-0.5"><strong className="[overflow-wrap:anywhere]">{names.client(op.cliente_id) ?? op.folio}</strong><small className="text-muted-foreground">{op.folio} · {names.property(op.propiedad_slug) ?? "Sin inmueble vinculado"}</small></span>
     <Button onClick={() => onRestore(op)} aria-label={`Restaurar ${op.folio}`}>Restaurar</Button>

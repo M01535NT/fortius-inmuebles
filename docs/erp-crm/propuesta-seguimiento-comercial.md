@@ -1,6 +1,6 @@
 # Propuesta del seguimiento comercial (CRM-01, CRM-02, CRM-03)
 
-Fecha: 12/11/2026. Estado: **propuesta con las seis preguntas contestadas por el titular el 12/11/2026; nada de esto está programado.** No modifica `PLAN_ERP_CRM.md`; las decisiones aprobadas deben pasar al plan.
+Fecha: 12/11/2026. Estado: **propuesta con las seis preguntas contestadas por el titular el 12/11/2026; nada de esto está programado.** No modifica `ROADMAP.md`; las decisiones aprobadas deben pasar al plan.
 
 Bocetos navegables (datos de ejemplo): https://claude.ai/artifact/N8ZFG6NK4okiPDrHZRSj49 · copia en el repositorio: [`docs/diseno/boceto-seguimiento-comercial.html`](../diseno/boceto-seguimiento-comercial.html) (se abre en el navegador; las fuentes vienen de Google Fonts)
 

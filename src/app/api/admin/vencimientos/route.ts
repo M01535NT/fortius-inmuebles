@@ -2,7 +2,7 @@ import { requireStaff } from "@/lib/backend/auth";
 import { ApiError, apiResponse, databaseError, readAllPages } from "@/lib/backend/http";
 
 /*
-  Fechas del contrato de intermediación (09) de cada operación para los avisos de Hoy
+  Fechas del contrato de intermediación (09, o 21 en la renta) de cada operación para los avisos de Hoy
   (titular, 29/10/2026): fin del encargo y vigencia de la licencia estatal. Devuelve solo
   esas fechas, del borrador más reciente de cada operación, y si su versión actual ya
   tiene PDF emitido; nunca el cuerpo del documento. El cliente del usuario conserva la
@@ -17,7 +17,7 @@ export async function GET() {
     const { client } = await requireStaff();
     const rows = await readAllPages<Row>((from, to) => client.from("fortius_inmuebles_formato_drafts")
       .select("id,expediente_id,version,inicio:data->>inicio,fin:data->>fin,modalidad:data->>modalidad,licenciaEstado:data->>licenciaEstado,licenciaNumero:data->>licenciaNumero,licenciaVigencia:data->>licenciaVigencia,expediente:fortius_inmuebles_expedientes!inner(folio,deleted_at)")
-      .eq("formato_id", "09").is("expediente.deleted_at", null)
+      .in("formato_id", ["09", "21"]).is("expediente.deleted_at", null)
       .order("updated_at", { ascending: false }).order("id", { ascending: false }).range(from, to));
     // La lista llega del más reciente al más antiguo: el primero de cada operación es el vigente.
     const latest = new Map<string, Row>();

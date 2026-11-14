@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { useBrowserPreference } from "./browser-preference";
+import { usePanelPreference } from "./preferences-store";
 import {
   btnGhost,
   Field,
@@ -13,6 +13,16 @@ import {
   type InventoryFilters,
 } from "@/lib/admin/workspace";
 type View = { name: string; filters: InventoryFilters };
+const NO_VIEWS: Array<{ name: string; filters: Record<string, string> }> = [];
+const isView = (v: { name: string; filters: Record<string, string> }): v is View =>
+  !!v && typeof v.name === "string" && !!v.filters && Object.keys(emptyInventoryFilters).every((k) => typeof v.filters[k] === "string");
+function parseViews(raw: string): View[] | undefined {
+  try {
+    const stored: unknown = JSON.parse(raw);
+    const views = Array.isArray(stored) ? (stored as View[]).filter(isView).slice(0, 10).map((v) => ({ name: v.name.slice(0, 60), filters: { ...v.filters } })) : [];
+    return views.length ? views : undefined;
+  } catch { return undefined; }
+}
 export function InventoryControls({
   value,
   onChange,
@@ -28,22 +38,10 @@ export function InventoryControls({
   hideSearch?: boolean;
 }) {
   const session = useSession();
-  const key = `fortius:inventory-views:${session?.id ?? "anonymous"}`;
-  const [views, setViews] = useBrowserPreference<View[]>(key, [], (stored) =>
-    Array.isArray(stored)
-      ? stored
-          .filter(
-            (v) =>
-              v &&
-              typeof v.name === "string" &&
-              v.filters &&
-              Object.keys(emptyInventoryFilters).every(
-                (k) => typeof v.filters[k] === "string",
-              ),
-          )
-          .slice(0, 10)
-      : [],
-  );
+  // UX-02: las vistas guardadas siguen al usuario en cualquier equipo; las de este navegador se suben una vez.
+  const legacy = React.useMemo(() => ({ key: `fortius:inventory-views:${session?.id ?? "anonymous"}`, parse: parseViews }), [session?.id]);
+  const { value: stored, save } = usePanelPreference("vistasInventario", NO_VIEWS, legacy);
+  const views = stored.filter(isView);
   const [name, setName] = React.useState(""),
     [notice, setNotice] = React.useState("");
   const [myAdvisor, setMyAdvisor] = React.useState<string | null>(null);
@@ -59,12 +57,9 @@ export function InventoryControls({
     };
   }, [session?.id]);
 
-  function persist(next: View[]) {
-    setNotice(
-      setViews(next)
-        ? "Vistas guardadas en este navegador."
-        : "No se pudieron guardar las vistas en este navegador.",
-    );
+  async function persist(next: View[]) {
+    setNotice("Guardando…");
+    setNotice((await save(next)) ? "Vistas guardadas. Las verás en cualquier equipo." : "No se pudieron guardar las vistas. Revisa tu conexión y vuelve a intentarlo.");
   }
   const change = (field: keyof InventoryFilters, next: string) =>
     onChange({ ...value, [field]: next });
@@ -191,7 +186,7 @@ export function InventoryControls({
             className={btnGhost}
             disabled={!name.trim()}
             onClick={() => {
-              persist(
+              void persist(
                 [
                   ...views.filter((v) => v.name !== name.trim()),
                   { name: name.trim(), filters: { ...value } },
@@ -217,7 +212,7 @@ export function InventoryControls({
                 type="button"
                 aria-label={`Eliminar vista ${v.name}`}
                 className="border-l border-border"
-                onClick={() => persist(views.filter((x) => x.name !== v.name))}
+                onClick={() => void persist(views.filter((x) => x.name !== v.name))}
               >
                 ×
               </button>
