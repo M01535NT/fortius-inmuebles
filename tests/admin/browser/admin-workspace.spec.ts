@@ -63,7 +63,7 @@ test("la barra superior guía por cinco secciones y «Más»; «Nuevo» y la cue
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin");
   const nav = page.getByRole("navigation", { name: "Módulos del panel", exact: true });
-  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda", "Más"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ["Hoy", "Operaciones", "Contactos", "Inmuebles", "Trámites", "Agenda", "Más"]) await expect(nav.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^Hoy/ })).toHaveAttribute("aria-current", "page");
   for (const gone of ["Organizar módulos", "Abrir aplicaciones"]) await expect(page.getByRole("button", { name: gone, exact: true })).toHaveCount(0);
   await expect(nav.getByRole("button", { name: /Administración/ })).toHaveCount(0);
@@ -112,7 +112,7 @@ test("en celular la barra inferior y el menú llevan a todas las secciones", asy
     const trigger = page.getByRole("button", { name: "Menú del panel" });
     await trigger.click();
     const menu = page.getByRole("navigation", { name: "Módulos móviles" });
-    for (const name of ["Inmuebles", "Agenda y tareas", "Herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    for (const name of ["Inmuebles", "Trámites", "Agenda y tareas", "Herramientas"]) await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
     const admin = menu.getByRole("button", { name: /Administración/ });
     await expect(admin).toHaveAttribute("aria-expanded", "false");
     await admin.click();

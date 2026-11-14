@@ -16,11 +16,13 @@
 :global(.admin-root) .pill[aria-current=page] .count { background: #fff; color: #061f3f; }
 @media (prefers-reduced-motion: no-preference) { :global(.admin-root) .pill { transition: background-color 120ms; } }
 /* Con menos ancho, las píldoras conservan el ícono y el nombre queda para el lector de pantalla. */
-@media (max-width: 1279px) {
+/* Con Trámites en la barra (14/11/2026) los nombres caben desde 1366 px; debajo quedan los íconos con su nombre accesible. */
+@media (max-width: 1365px) {
   :global(.admin-root) .pill { padding: 0 .75rem; }
   :global(.admin-root) .pillLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 :global(.admin-root) .space { flex: 1; }
+@media (max-width: 1023px) { :global(.admin-root) .topnav { gap: .5rem; padding-inline: 1rem; } }
 :global(.admin-root) .count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.375rem; height: 1.375rem; padding: 0 .4375rem; border-radius: var(--radius-pill); background: var(--primary); color: #fff; font-size: var(--admin-text-minimo); font-weight: 600; }
 /* «+ Nuevo» es secundario (blanco con borde) para que cada pantalla conserve un solo guinda (C44). */
 :global(.admin-root) .newButton { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding: 0 1.125rem 0 .875rem; border: 1px solid var(--edge-soft); border-radius: var(--radius-pill); background: var(--card); color: var(--foreground); font: inherit; font-size: var(--admin-text-interfaz); font-weight: 540; cursor: pointer; white-space: nowrap; }

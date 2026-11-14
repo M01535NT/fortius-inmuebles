@@ -18,10 +18,10 @@ const topnav = (role: string, pathname = "/admin") => render(<TopNav pathname={p
 beforeEach(() => { tasks.length = 0; leads.length = 0; clients.length = 0; pending.value = 0; });
 afterEach(cleanup);
 
-test("la barra superior lleva seis píldoras, el buscador, «Nuevo» y la cuenta; sin Administración a la vista del asesor", () => {
+test("la barra superior lleva siete píldoras, el buscador, «Nuevo» y la cuenta; sin Administración a la vista del asesor", () => {
   topnav("editor");
   const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
-  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Agenda y tareas", "Más"]);
+  expect(Array.from(nav.querySelectorAll("a")).map(a => a.textContent)).toEqual(["Hoy", "Operaciones", "Contactos", "Inmuebles", "Trámites", "Agenda y tareas", "Más"]);
   expect(within(nav).getByRole("link", { name: "Más" }).getAttribute("href")).toBe("/admin/herramientas");
   expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
   const account = screen.getByRole("button", { name: /Mariana Ruiz, Asesor/ });
@@ -64,7 +64,7 @@ test("el administrador encuentra Administración en su cuenta y «Más» se marc
 });
 
 test("la sección activa incluye sus fichas de detalle y las direcciones anteriores", () => {
-  const [hoy, operaciones, contactos, , agenda] = MAIN_NAV;
+  const [hoy, operaciones, contactos, , , agenda] = MAIN_NAV;
   expect(isNavActive("/admin", hoy)).toBe(true);
   expect(isNavActive("/admin/operaciones", hoy)).toBe(false);
   expect(isNavActive("/admin/operaciones/nueva", operaciones)).toBe(true);
@@ -73,6 +73,18 @@ test("la sección activa incluye sus fichas de detalle y las direcciones anterio
   expect(isNavActive("/admin/agendas", agenda)).toBe(false);
   for (const path of ["/admin/herramientas", "/admin/apps/hipoteca", "/admin/notas", "/admin/reportes", "/admin/configuracion", "/admin/perfil"]) expect(isNavActive(path, MORE_NAV)).toBe(true);
   expect(isNavActive("/admin/propiedades", MORE_NAV)).toBe(false);
+});
+
+test("Trámites va en la barra para el asesor y el director y se marca en sus pantallas, no «Más» (TRA-01)", () => {
+  for (const role of ["editor", "admin"]) {
+    topnav(role, "/admin/tramites");
+    const nav = screen.getByRole("navigation", { name: "Módulos del panel" });
+    const link = within(nav).getByRole("link", { name: "Trámites" });
+    expect(link.getAttribute("href")).toBe("/admin/tramites");
+    expect(link.getAttribute("aria-current")).toBe("page");
+    expect(within(nav).getByRole("link", { name: "Más" }).getAttribute("aria-current")).toBeNull();
+    cleanup();
+  }
 });
 
 test("el contador de Hoy muestra las tarjetas de la cola de Hoy (COR-05)", () => {

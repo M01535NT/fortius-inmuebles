@@ -28,6 +28,7 @@ async function openMenu() {
 test("mobile menu exposes the signed-in account and Escape restores trigger focus", async () => {
   const { trigger, nav } = await openMenu();
   expect(within(nav).getByText("Administrador")).toBeTruthy();
+  expect(within(nav).getByRole("link", { name: "Trámites" }).getAttribute("href")).toBe("/admin/tramites");
   expect(nav.contains(document.activeElement)).toBe(true);
   within(nav).getByRole("link", { name: "Agenda y tareas" }).focus();
   fireEvent.keyDown(document, { key: "Escape" });
