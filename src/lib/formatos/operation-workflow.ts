@@ -118,6 +118,8 @@ export function inheritedExceptions(route: OperationWorkflow["ruta"]): Requireme
 export function inheritedPending(flow: OperationWorkflow, today: string): RequirementKey[] {
  return flow.heredado ? requiredReviews(flow.ruta, "comercializacion").filter(key => !reviewComplete(flow, key, today)) : [];
 }
+/** Quién captó para comisiones y reportes (M-04): el asesor de antes si la operación se reasignó. */
+export function captorOf(op: { asesor_id: string; flujo?: Pick<OperationWorkflow, "captadoPor"> | null }) { return op.flujo?.captadoPor ?? op.asesor_id; }
 /** Reparto de RP-99: 25 % al que capta y 25 % al que vende; si es el mismo asesor, 50 %. Es una estimación hasta que se cobre. */
 export function commissionSplit(c: Pick<OperationClose, "capto" | "vendio" | "comisionEstimada">): Array<{ asesorId: string; papel: "capto" | "vendio" | "ambos"; porcentaje: number; monto?: number }> {
  const part = (porcentaje: number) => typeof c.comisionEstimada === "number" ? { monto: Math.round(c.comisionEstimada * porcentaje) / 100 } : {};
@@ -154,6 +156,8 @@ export const operationWorkflowSchema = z.object({
  // COR-24: inmueble que el asesor trajo con contrato ya firmado; solo el director lo marca.
  heredado: inherited.optional(),
  visitasPrevias: z.array(priorVisit).max(20).optional(),
+ // M-04: el asesor que captó, cuando la operación se reasignó; solo lo escribe la reasignación del director.
+ captadoPor: z.string().min(1).max(80).optional(),
 }).strict();
 export type OperationWorkflow = z.infer<typeof operationWorkflowSchema>;
 export function emptyWorkflow(ruta: OperationWorkflow["ruta"] = "captacion"): OperationWorkflow { return {version:1,ruta,estado:"activa",motivo:"",requisitos:{}}; }
