@@ -71,7 +71,7 @@ test("calculators preserve editing and reject invalid output in production", asy
   await expect(page.getByText(/Comisión de intermediación \(0%\)/)).toBeVisible();
   await page.getByLabel("Comisión pactada (%)").fill("");
   await expect(page.getByLabel("Comisión pactada (%)")).toHaveValue("");
-  await expect(page.getByText(/Comisión de intermediación \(pendiente%\)/)).toBeVisible();
+  await expect(page.getByText(/Comisión de intermediación \(porcentaje pendiente\)/)).toBeVisible();
   await expect(page.getByText("Falta incorporar", { exact: true })).toBeVisible();
   await expect(page.getByText("Neto estimado de venta", { exact: true })).toHaveCount(0);
   await page.getByLabel("Comisión pactada (%)").fill("21");

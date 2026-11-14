@@ -72,10 +72,15 @@ export function WorkspaceSearch({ label = "Buscar persona, inmueble o folio", va
   }, [hotkey, open, singleKeys]);
   // Recientes (N03): cada registro que se abre queda al frente; se guarda con las preferencias del usuario.
   const recent = React.useMemo(() => prefs?.panel?.recientes ?? [], [prefs]);
+  // Una página se intenta guardar una sola vez por visita: si el servidor falla, la lista regresa y,
+  // sin esta marca, el efecto volvería a intentarlo sin fin.
+  const attempted = React.useRef("");
   React.useEffect(() => {
-    if (!hotkey || !session || !prefs || !pathname || recent[0] === pathname) return;
+    if (!hotkey || !session || !prefs || !pathname || recent[0] === pathname || attempted.current === pathname) return;
     const next = pushRecent(recent, pathname);
-    if (next.length && next[0] === pathname) void savePanel(session.id, { recientes: next }).catch(() => undefined);
+    if (!next.length || next[0] !== pathname) return;
+    attempted.current = pathname;
+    void savePanel(session.id, { recientes: next }).catch(() => undefined);
   }, [hotkey, session, prefs, pathname, recent]);
 
   const clientName = (id?: string) => clients.find(c => c.id === id)?.nombre;
