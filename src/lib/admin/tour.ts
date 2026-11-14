@@ -38,7 +38,7 @@ export const TOUR_SCREENS: TourScreen[] = [
     { target: "operacion-documentos", title: "Documentos de la etapa", text: "Cada etapa tiene su formato. Pulsa uno para llenarlo sobre el documento, tal como saldrá en PDF." },
     { target: "operacion-confirma", title: "Antes de seguir, confirma", text: "Lo que debe estar revisado para pasar de etapa. Cuando lo tengas, pulsa «Confirmar» y di qué encontraste." },
     { target: "operacion-continuar", title: "Continuar", text: "Cuando todo está listo, este botón pasa la operación a la siguiente etapa. Si falta algo, aquí dice qué." },
-    { target: "operacion-pestanas", title: "Lo demás de la operación", text: "Los documentos y la actividad (tareas e historial) de esta misma operación. Los datos de la operación están en «Más opciones», arriba del panel azul." },
+    { target: "operacion-pestanas", title: "Lo demás de la operación", text: "Los documentos y la actividad (tareas e historial) de esta misma operación. Los datos de la operación están en «Más opciones» (⋯), junto a Llamar y WhatsApp." },
   ] },
   { id: "nueva", title: "Nueva operación", match: pathname => pathname === "/admin/operaciones/nueva", steps: [
     { target: "nueva-opciones", title: "¿Qué quiere hacer?", text: "Elige si vende, ofrece en renta, busca comprar, busca rentar o invierte. Se puede cambiar después." },
@@ -53,11 +53,11 @@ export const TOUR_SCREENS: TourScreen[] = [
     { target: "inmuebles-agregar", title: "Agregar inmueble", text: "Da de alta un inmueble con sus datos y fotos. Se guarda privado; se publica desde su operación cuando el contrato está firmado." },
     { target: "inmuebles-lista", title: "El inventario", text: "Cada tarjeta dice si está publicado y qué le falta. Pulsa una para editarla o ver su seguimiento." },
   ] },
-  { id: "agenda", title: "Agenda y tareas", match: pathname => under(pathname, "/admin/agenda", "/admin/tareas"), steps: [
+  { id: "agenda", title: "Agenda", match: pathname => under(pathname, "/admin/agenda", "/admin/tareas"), steps: [
     { target: "agenda-semana", title: "Tu semana", text: "Citas con hora y tareas que vencen. Pulsa un día para ver su detalle." },
     { target: "agenda-agendar", title: "Agendar", text: "Una visita, una llamada o una firma, ligada a la persona, el inmueble o la operación." },
   ] },
-  { id: "herramientas", title: "Más", match: pathname => under(pathname, "/admin/herramientas"), steps: [
+  { id: "herramientas", title: "Herramientas", match: pathname => under(pathname, "/admin/herramientas"), steps: [
     { target: "herramientas-grupos", title: "Trabajo suelto", text: "Calculadoras y documentos que no necesitan una operación: abre una, guarda el trabajo y descárgalo en PDF." },
     ...BAR.slice(0, 2),
   ] },

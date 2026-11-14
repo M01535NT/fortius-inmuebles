@@ -19,7 +19,7 @@ for(const width of [390,1440]){
    if(url.pathname==="/api/admin/entrevistas")return route.fulfill({json:{entrevistas:[]}});
    return route.fulfill({json:{records:[]}});
   });
-  // SIM-18: eliminar vive en «Más opciones» del panel azul.
+  // SIM-18: eliminar vive en «Más opciones» del encabezado.
   await page.goto("/admin/operaciones/"+exp.id);
   const eliminar=async()=>{await page.getByRole("button",{name:"Más opciones",exact:true}).click();await page.getByRole("menuitem",{name:"Eliminar operación",exact:true}).click();};
   await eliminar();
